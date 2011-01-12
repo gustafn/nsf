@@ -1147,16 +1147,36 @@ The class +Person+ has two attributes +name+ and +birthday+, where the
 attribute +name+ is required, the attribute +birthday+ is not. The
 class +Student+ is a subclass of +Person+ with the additional required
 attribute +matnr+. (see <<xmp-object-parameters,
-{xmp-object-parameters}>>). These definitions imply in NX, that
-instances of the class of +Person+ have +name+ and +birthday+ as
-non-positional object parameters. Furthermore it implies, that
-instances of +Student+ will have now at least three non-positional
-object parameters, namely +name+ and +birthday+ (inherited from
-+Person+) and +matnr+ (defined on +Student+).
+{xmp-object-parameters}>>). The class diagram below visualizes these
+definitions.
 
 [[img-slots]]
 image::object-parameter.png[align="center",title="System and Application Classes"]
 {set:img-object-parameters:Figure {figure-number}}
+
+In NX, these definitions imply that instances of the class of +Person+
+have +name+ and +birthday+ as _non-positional object parameters_.
+Furthermore it implies that instances of +Student+ will have at
+least the object parameters of +Person+ augmented by the object
+parameters from +Student+ (namely +matnr+).
+
+[[xmp-object-parameter-list]]
+.Listing {counter:figure-number}: Computed Actual Object Parameter (simplified)
+{set:xmp-object-parameter-list:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+Object parameter of p1: 
+   -name:required -birthday -mixin:relation -filter:relation 
+   ... __initcmd:initcmd,optional
+
+Object parameter of s1:
+   -matnr:required -name:required -birthday -mixin:relation 
+   -filter:relation ... __initcmd:initcmd,optional
+
+Object parameter of Student:
+   -mixin:relation -filter:relation -superclass:relation 
+   ... -attributes:method __initcmd:initcmd,optional
+--------------------------------------------------
 
 describe inherited object parameter from nx::Object, 
 describe object parameters for configuring the classes Student and
@@ -1173,6 +1193,8 @@ differently for method parameters or object parameters
 [[img-slots]]
 image::slots.png[align="center",title="Slot Classes and Objects"]
 {set:img-slots:Figure {figure-number}}
+
+
 
 ==== Special Object Parameters
 
