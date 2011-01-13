@@ -12766,10 +12766,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	  if (valueInArgument) {
 	    int equalOffset = valueInArgument - argument;
 	    /*
-	     * parameter like -flag=1
+	     * Handle parameter like -flag=1
+	     *
+	     * Just iterate over flags without arguments here.
 	     */
 	    for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
-	      /* just process flags without arguments here */
 	      if (nppPtr->nrArgs > 0) continue;
 	      if (ch1 == nppPtr->name[1] 
 		  && strncmp(argument, nppPtr->name, equalOffset) == 0 
@@ -12806,10 +12807,16 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	     */
 	    if (nppPtr->nrArgs == 0) {
 	      /*
-	       * No argument exprected. Take value either from flag or
+	       * No argument expected. Take value either from flag or
 	       * use constant ONE.
-	       */ 
-	      valueObj = valueInArgument ? Tcl_NewStringObj(valueInArgument+1,-1) : NsfGlobalObjs[NSF_ONE];
+	       */
+	      if (valueInArgument) {
+		valueObj = Tcl_NewStringObj(valueInArgument+1,-1);
+		INCR_REF_COUNT(valueObj);
+		pcPtr->flags[j] |= NSF_PC_MUST_DECR;
+	      } else {
+		valueObj = NsfGlobalObjs[NSF_ONE];
+	      }
 	    } else {
 	      /*
 	       * We expect one argument (currently, it has to be
