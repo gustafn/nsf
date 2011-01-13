@@ -28,8 +28,8 @@ proc ? {cmd expected {msg ""}} {
 #
 Class create Tree {
   :attribute label
-  :attribute contains:method
-  :attribute foo:method
+  :attribute contains:alias
+  :attribute foo:alias
   :public method foo {arg} {set :x $arg}
 }
 set y [Tree new -foo hu]

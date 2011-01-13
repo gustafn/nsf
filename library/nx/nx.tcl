@@ -597,7 +597,7 @@ namespace eval ::nx {
   Class create ::nx::MetaSlot
   ::nsf::relation MetaSlot superclass Class
 
-  MetaSlot public method createFromParameterSyntax {
+  MetaSlot public method createFromParameterSpec {
     target -per-object:switch 
     {-initblock ""} 
     value default:optional
@@ -621,8 +621,10 @@ namespace eval ::nx {
           lappend opts -arg $argument
         } elseif {$property eq "optional"} {
 	  lappend opts -required 0
-        } elseif {$property eq "method"} {
-	  lappend opts -ismethod 1 -nosetter 1
+        } elseif {$property eq "alias"} {
+	  lappend opts -isalias 1 -nosetter 1
+        } elseif {$property eq "forward"} {
+	  lappend opts -isforward 1 -nosetter 1
         } elseif {[regexp {([01])[.][.]([1n*])} $property _ lower upper]} {
 	  if {$lower eq "0"} {lappend opts -allowempty 1}
 	  if {$upper ne "1"} {lappend opts -multivalued 1}
@@ -727,7 +729,8 @@ namespace eval ::nx {
     {manager "[::nsf::self]"}
     {per-object false}
     {nosetter}
-    {ismethod}
+    {isalias}
+    {isforward}
   }
 
   # maybe add the following slots at some later time here
@@ -816,7 +819,7 @@ namespace eval ::nx {
   # Provide the a slot based mechanism for building an object
   # configuration interface from slot definitions
 
-  ObjectParameterSlot public method toParameterSyntax {{name:substdefault ${:name}}} {
+  ObjectParameterSlot public method toParameterSpec {{name:substdefault ${:name}}} {
     set objparamdefinition $name
     set methodparamdefinition ""
     set objopts [list]
@@ -897,9 +900,12 @@ namespace eval ::nx {
       # provided values, not for defaults.
       if {$type ne "substdefault"} {set methodopts [linsert $methodopts 0 $type]}
     }
-    if {[info exists :ismethod]} {
-      set objopts [linsert $objopts 0 method]
-    } else {
+    if {[info exists :isalias]} {
+      set objopts [linsert $objopts 0 alias]
+    } elseif {[info exists :isforward]} {
+      set objopts [linsert $objopts 0 forward]
+    } elseif {$type ni [list "" "boolean" "integer" "object" "class" "metaclass" "baseclass"]} {
+      #puts stderr "adding slot for type $type"
       lappend objopts slot=[::nsf::self]
     }
 
@@ -925,7 +931,7 @@ namespace eval ::nx {
 	  && [::nsf::dispatch $object ::nsf::methods::object::info::hastype ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
 	} continue
-      array set "" [$slot toParameterSyntax]
+      array set "" [$slot toParameterSpec]
       lappend parameterdefinitions -$(oparam)
     }
     return $parameterdefinitions
@@ -935,13 +941,13 @@ namespace eval ::nx {
     #puts stderr "... objectparameter [::nsf::self]"
     set parameterdefinitions [::nsf::parametersfromslots [::nsf::self]]
     if {[::nsf::is class [::nsf::self]]} {
-      lappend parameterdefinitions -attributes:method
+      lappend parameterdefinitions -attributes:alias
     }
 
     # {{-F:forward,arg=%self foo %1 a b c %method}}
     lappend parameterdefinitions \
-        -noinit:method,arg=::nsf::methods::object::noinit,noarg \
-        -volatile:method,noarg \
+        -noinit:alias,arg=::nsf::methods::object::noinit,noarg \
+        -volatile:alias,noarg \
         {*}$lastparameter
     #puts stderr "*** parameter definition for [::nsf::self]: $parameterdefinitions"
     return $parameterdefinitions
@@ -1149,7 +1155,7 @@ namespace eval ::nx {
 	\[list [::nsf::self] __value_changed_cmd \[::nsf::self\] [list [set :valuechangedcmd]]\]"
     }
     
-    array set "" [:toParameterSyntax ${:name}]
+    array set "" [:toParameterSpec ${:name}]
     #puts stderr "Attribute.init valueParam for [::nsf::self] is $(mparam)"
     if {$(mparam) ne ""} {
       if {[info exists :multivalued] && ${:multivalued}} {
@@ -1221,7 +1227,7 @@ namespace eval ::nx {
       set getInfo [:info method definition [:info lookup method get]]
       if {$getInfo ne "::nx::ObjectParameterSlot public alias get ::nsf::setvar"} return
 
-      array set "" [:toParameterSyntax ${:name}]
+      array set "" [:toParameterSpec ${:name}]
       if {$(mparam) ne ""} {
         set setterParam [lindex $(oparam) 0]
 	# never pass substdefault to setter
@@ -1241,7 +1247,7 @@ namespace eval ::nx {
   # Define method "attribute" for convenience
   ##################################################################
   Class method attribute {spec {-class ::nx::Attribute} {initblock ""}} {
-    set r [$class createFromParameterSyntax [::nsf::self] -initblock $initblock {*}$spec]
+    set r [$class createFromParameterSpec [::nsf::self] -initblock $initblock {*}$spec]
     if {$r ne ""} {
       set o [::nsf::self]
       ::nsf::methodproperty $o $r call-protected \
@@ -1251,7 +1257,7 @@ namespace eval ::nx {
   }
 
   Object method attribute {spec {-class ::nx::Attribute} {initblock ""}} {
-    set r [$class createFromParameterSyntax [::nsf::self] -per-object -initblock $initblock {*}$spec]
+    set r [$class createFromParameterSpec [::nsf::self] -per-object -initblock $initblock {*}$spec]
     if {$r ne ""} {
       set o [::nsf::self]
       ::nsf::methodproperty $o -per-object $r call-protected \
@@ -1267,7 +1273,7 @@ namespace eval ::nx {
   Class public method attributes arglist {
   
     foreach arg $arglist {
-      Attribute createFromParameterSyntax [::nsf::self] {*}$arg
+      Attribute createFromParameterSpec [::nsf::self] {*}$arg
     }
     set slot [::nx::slotObj [::nsf::self]]
     ::nsf::setvar $slot __parameter $arglist

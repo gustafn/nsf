@@ -2222,13 +2222,20 @@ text
 - eliminate protected method "noinit" for nx and allow it just as an
   object parameter
 
-- added first implementation of object parameter type forward
+- added first implementation of object parameter type "forward"
+- renamed object parameter type "method" to "alias"
+- removed parameter option "slotobj=" in toParameterSyntax
+- renamed to [from|to]parameterSyntax to [from|to]parameterSpec
 
 TODO:
 - object parameter type forward:
    - regression test
    - reduce verbosity
    - get rid of eager tcd creation
+- [from|to]parameterSpec
+  - better handling of isalias,isforward
+  - better handling of predefined types (currently isupper etc. is missing)
+
 
 - doc:
    NextScriptingLanguage/index.html: 
