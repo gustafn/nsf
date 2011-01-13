@@ -868,7 +868,9 @@ namespace eval ::nx {
     if {[info exists :arg]} {
       set prefix [expr {$type eq "object" || $type eq "class" ? "type" : "arg"}]
       lappend objopts $prefix=${:arg}
-      lappend methodopts $prefix=${:arg}
+      if {![info exists :isalias] && ![info exists :isforward]} {
+	lappend methodopts $prefix=${:arg}
+      }
     }
     foreach att {convert} {
       if {[info exists :$att]} {
@@ -910,7 +912,8 @@ namespace eval ::nx {
     }
 
     if {[llength $objopts] > 0} {
-      append objparamdefinition :[join $objopts ,]
+      #append objparamdefinition :[join $objopts ,]
+      set objparamdefinition [list $name:[join $objopts ,]]
     }
     if {[llength $methodopts] > 0} {
       set methodparamdefinition [join $methodopts ,]
@@ -932,7 +935,11 @@ namespace eval ::nx {
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
 	} continue
       array set "" [$slot toParameterSpec]
-      lappend parameterdefinitions -$(oparam)
+      # insert dash carefully to first element ... 
+      # TODO we should do this already in toParameterSpec, but setter uses oparam without the dash
+      set param [list -[lindex $(oparam) 0]]
+      if {[llength $(oparam)] > 1} {lappend param [lindex $(oparam) 1]}
+      lappend parameterdefinitions $param
     }
     return $parameterdefinitions
   }
