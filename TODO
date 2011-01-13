@@ -2215,6 +2215,12 @@ text
 - extended regression test
 
 - next-tutorial: documentation updates
+- add explicit reference counting for oacs-style flag value passing
+
+- parameter specs: use "arg=" in object parameter type "method" as
+  name of a called method to allow to call unregistered methods
+- eliminate protected method "noinit" for nx and allow it just as an
+  object parameter
 
 TODO:
 - doc:

@@ -40,7 +40,7 @@ namespace eval ::nx {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "autoname" "cleanup" "exists" \
 			 "filterguard" "instvar" "mixinguard" \
-			 "requirenamespace"]} continue
+			 "noinit" "requirenamespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
   }
   
@@ -65,7 +65,7 @@ namespace eval ::nx {
 
   # set a few aliases as protected
   # "__next", if defined, should be added as well
-  foreach cmd [list noinit residualargs uplevel upvar] {
+  foreach cmd [list residualargs uplevel upvar] {
     ::nsf::methodproperty Object $cmd call-protected 1
   }
 
@@ -938,7 +938,7 @@ namespace eval ::nx {
       lappend parameterdefinitions -attributes:method
     }
     lappend parameterdefinitions \
-        -noinit:method,noarg \
+        -noinit:method,arg=::nsf::methods::object::noinit,noarg \
         -volatile:method,noarg \
         {*}$lastparameter
     #puts stderr "*** parameter definition for [::nsf::self]: $parameterdefinitions"

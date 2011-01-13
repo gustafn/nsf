@@ -8457,7 +8457,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
   Tcl_Obj *objv[3];
   int result;
 
-  if (pPtr->converterArg) {
+  if (pPtr->converterArg && (pPtr->flags & (NSF_ARG_METHOD)) == 0) {
     /*fprintf(stderr, "ConvertToTclobj %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
 
     objv[1] = pPtr->converterArg;
@@ -8802,7 +8802,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     if (*option == '*' || *option == 'n') {
       if ((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_METHOD|NSF_ARG_SWITCH)) != 0) {
 	return NsfPrintError(interp, 
-			     "multivalued not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n");
+			     "upper bound of multiplicity of '%c' not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n", *option);
       }
       paramPtr->flags |= NSF_ARG_MULTIVALUED;
     } else if (*option != '1') {
@@ -16489,21 +16489,22 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       NsfCallStackContent csc, *cscPtr = &csc;
       CallFrame frame2, *framePtr2 = &frame2;
 
-      /* The current callframe of configure uses an objframe, such
-         that setvar etc.  are able to access variables like "a" as a
-         local variable.  However, in the init block, we do not like
-         that behavior, since this should look like like a proc body.
-         So we push yet another callframe without providing the
-         varframe.
-
-         The new frame will have the namespace of the caller to avoid
-         the current objframe. Nsf_PushFrameCsc() will establish
-         a CMETHOD frame.
-      */
+      /* 
+       * The current callframe of configure uses an objframe, such
+       * that setvar etc.  are able to access variables like "a" as a
+       * local variable.  However, in the init block, we do not like
+       * that behavior, since this should look like like a proc body.
+       * So we push yet another callframe without providing the
+       * varframe.
+       *
+       * The new frame will have the namespace of the caller to avoid
+       * the current objframe. Nsf_PushFrameCsc() will establish a
+       * CMETHOD frame.
+       */
 
       Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
       cscPtr->flags = 0;
-      CscInit(cscPtr, object, NULL /*cl*/, NULL/*cmd*/, NSF_CSC_TYPE_PLAIN, 0);
+      CscInit(cscPtr, object, NULL /*cl*/, NULL /*cmd*/, NSF_CSC_TYPE_PLAIN, 0);
       Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
 
       if (paramPtr->flags & NSF_ARG_INITCMD) {
@@ -16511,7 +16512,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
 
       } else /* must be NSF_ARG_METHOD */ {
-        Tcl_Obj *ov[3];
+        Tcl_Obj *ov[3], *methodObj;
         int oc = 0;
 
 	/*
@@ -16520,16 +16521,19 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	 * activelevel ignore it.
 	 */
 	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
-        if (paramPtr->converterArg) {
-          /* if arg= was given, pass it as first argument */
-          ov[0] = paramPtr->converterArg;
-          oc = 1;
-        }
+
+	/* 
+	 * If arg= was given, use it as method name 
+	 */
+	methodObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj;
+
         if (paramPtr->nrArgs == 1) {
           ov[oc] = newValue;
           oc ++;
         }
-        result = NsfCallMethodWithArgs((ClientData) object, interp, paramPtr->nameObj,
+	/*fprintf(stderr, "call **alias with methodObj %s.%s oc %d\n", 
+	  ObjectName(object), ObjStr(methodObj), oc);*/
+        result = NsfCallMethodWithArgs((ClientData) object, interp, methodObj,
                                          ov[0], oc, &ov[1], NSF_CSC_IMMEDIATE);
       }
       /*
