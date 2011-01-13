@@ -8802,7 +8802,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     if (*option == '*' || *option == 'n') {
       if ((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_METHOD|NSF_ARG_SWITCH)) != 0) {
 	return NsfPrintError(interp, 
-			     "option multivalued not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n");
+			     "multivalued not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n");
       }
       paramPtr->flags |= NSF_ARG_MULTIVALUED;
     } else if (*option != '1') {
@@ -10424,7 +10424,7 @@ NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_O
     /* No arguments were provided */
     objc = 0;
   } else {
-    /* in case --noargs is used, remove the flag and provide an empty argument list */
+    /* in case --noArgs is used, remove the flag and provide an empty argument list */
     CONST char *arg1String = ObjStr(objv[1]);
     if (*arg1String == '-' && !strcmp(arg1String, "--noArgs")) {
       objc = 1;
