@@ -7047,6 +7047,8 @@ ParamDefsFormat(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
         ParamDefsFormatOption(nameStringObj, "initcmd", &colonWritten, &first);
       } else if ((pPtr->flags & NSF_ARG_METHOD)) {
         ParamDefsFormatOption(nameStringObj, "method", &colonWritten, &first);
+      } else if ((pPtr->flags & NSF_ARG_FORWARD)) {
+        ParamDefsFormatOption(nameStringObj, "forward", &colonWritten, &first);
       } else if ((pPtr->flags & NSF_ARG_NOARG)) {
         ParamDefsFormatOption(nameStringObj, "noarg", &colonWritten, &first);
       }
@@ -8457,7 +8459,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
   Tcl_Obj *objv[3];
   int result;
 
-  if (pPtr->converterArg && (pPtr->flags & (NSF_ARG_METHOD)) == 0) {
+  if (pPtr->converterArg && (pPtr->flags & (NSF_ARG_METHOD|NSF_ARG_FORWARD)) == 0) {
     /*fprintf(stderr, "ConvertToTclobj %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
 
     objv[1] = pPtr->converterArg;
@@ -8790,6 +8792,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else if (strncmp(option, "method", 6) == 0) {
     paramPtr->flags |= NSF_ARG_METHOD;
 
+  } else if (strncmp(option, "forward", 6) == 0) {
+    paramPtr->flags |= NSF_ARG_FORWARD;
+
   } else if ((dotdot = strnstr(option, "..", optionLength))) {
     /* check lower bound */
     if (*option == '0') {
@@ -8800,9 +8805,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     /* check upper bound */
     option = dotdot + 2;
     if (*option == '*' || *option == 'n') {
-      if ((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_METHOD|NSF_ARG_SWITCH)) != 0) {
+      if ((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_METHOD|NSF_ARG_FORWARD|NSF_ARG_SWITCH)) != 0) {
 	return NsfPrintError(interp, 
-			     "upper bound of multiplicity of '%c' not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n", *option);
+			     "upper bound of multiplicity of '%c' not allowed for \"forward\", \"initcmd\", \"method\", \"relation\" or \"switch\"\n", *option);
       }
       paramPtr->flags |= NSF_ARG_MULTIVALUED;
     } else if (*option != '1') {
@@ -8817,11 +8822,11 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->nrArgs = 0;
 
   } else if (optionLength >= 4 && strncmp(option, "arg=", 4) == 0) {
-    if ((paramPtr->flags & (NSF_ARG_METHOD|NSF_ARG_RELATION)) == 0
+    if ((paramPtr->flags & (NSF_ARG_METHOD|NSF_ARG_FORWARD|NSF_ARG_RELATION)) == 0
         && paramPtr->converter != ConvertViaCmd) {
       fprintf(stderr, "type %s flags %.6x\n", paramPtr->type, paramPtr->flags);
       return NsfPrintError(interp, 
-			   "option arg= only allowed for \"method\", \"relation\" or user-defined converter");
+			   "option arg= only allowed for \"forward\", \"method\", \"relation\" or user-defined converter");
     }
     paramPtr->converterArg =  Tcl_NewStringObj(option + 4, optionLength - 4);
     INCR_REF_COUNT(paramPtr->converterArg);
@@ -16484,7 +16489,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     }
 
     /* special setter for init commands */
-    if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_METHOD)) {
+    if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_METHOD|NSF_ARG_FORWARD)) {
       CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
       NsfCallStackContent csc, *cscPtr = &csc;
       CallFrame frame2, *framePtr2 = &frame2;
@@ -16511,17 +16516,17 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	/* cscPtr->cmdPtr = NSFindCommand(interp, "::eval"); */
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
 
-      } else /* must be NSF_ARG_METHOD */ {
-        Tcl_Obj *ov[3], *methodObj;
+      } else if (paramPtr->flags & NSF_ARG_METHOD) {
+        Tcl_Obj *ov[2], *methodObj;
         int oc = 0;
-
+	
 	/*
 	 * Mark the current frame as inactive such that e.g. volatile
 	 * does not use this as a base frame, and methods like
 	 * activelevel ignore it.
 	 */
 	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
-
+	
 	/* 
 	 * If arg= was given, use it as method name 
 	 */
@@ -16534,8 +16539,63 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	/*fprintf(stderr, "call **alias with methodObj %s.%s oc %d\n", 
 	  ObjectName(object), ObjStr(methodObj), oc);*/
         result = NsfCallMethodWithArgs((ClientData) object, interp, methodObj,
-                                         ov[0], oc, &ov[1], NSF_CSC_IMMEDIATE);
+				       ov[0], oc, &ov[1], NSF_CSC_IMMEDIATE);
+	
+      } else /* must be NSF_ARG_FORWARD */ {
+	Tcl_Obj *forwardSpec = paramPtr->converterArg ? paramPtr->converterArg : NULL; /* different default? */
+	Tcl_Obj **nobjv, *ov[3];
+	int nobjc, oc=1;
+	
+	/*
+	 * The current implementation performs for every object
+	 * parameter forward the full cycle of
+	 *
+	 *  (a) splitting the spec,
+	 *  (b) convert it to a the client data structure,
+	 *  (c) invoke forward,
+	 *  (d) free client data structure
+	 * 
+	 * In the future, it should convert to the client data
+	 * structure just once and free it with the disposal of the
+	 * parameter. This could be achieved 
+	 */
+	if (forwardSpec == NULL) {
+	  result = NsfPrintError(interp, "no forward spec available\n");
+	  goto method_arg_done;
+	}
+	result = Tcl_ListObjGetElements(interp, forwardSpec, &nobjc, &nobjv);
+        if (result != TCL_OK) {
+	  goto method_arg_done;
+	} else {
+	  Tcl_Obj *methodObj = paramPtr->nameObj;
+	  ForwardCmdClientData *tcd = NULL;
+
+	  result = ForwardProcessOptions(interp, methodObj,
+					 NULL /*withDefault*/, 0 /*withEarlybinding*/, 
+					 NULL /*withMethodprefix*/, 0 /*withObjframe*/, 
+					 NULL /*withOnerror*/, 1 /*withVerbose*/,
+					 nobjv[0], nobjc-1, nobjv+1, &tcd);
+	  if (result != TCL_OK) {
+	    if (tcd) ForwardCmdDeleteProc((ClientData)tcd);
+	    goto method_arg_done;
+	  }
+
+	  fprintf(stderr, "parameter %s forward spec <%s> After Options obj %s method %s\n", 
+		  ObjStr(paramPtr->nameObj), ObjStr(forwardSpec), 
+		  ObjectName(object), ObjStr(methodObj));
+
+	  tcd->object = object;
+	  ov[0] = methodObj;
+	  if (paramPtr->nrArgs == 1) {
+	    ov[oc] = newValue;
+	    oc ++;
+	  }
+
+	  result = NsfForwardMethod(tcd, interp, oc, ov);
+	  ForwardCmdDeleteProc((ClientData)tcd);
+	}
       }
+    method_arg_done:
       /*
        * Pop previously stacked frame for eval context and set the
        * varFramePtr to the previous value.

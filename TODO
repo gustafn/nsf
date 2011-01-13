@@ -2222,7 +2222,14 @@ text
 - eliminate protected method "noinit" for nx and allow it just as an
   object parameter
 
+- added first implementation of object parameter type forward
+
 TODO:
+- object parameter type forward:
+   - regression test
+   - reduce verbosity
+   - get rid of eager tcd creation
+
 - doc:
    NextScriptingLanguage/index.html: 
 

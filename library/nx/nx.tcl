@@ -937,6 +937,8 @@ namespace eval ::nx {
     if {[::nsf::is class [::nsf::self]]} {
       lappend parameterdefinitions -attributes:method
     }
+
+    # {{-F:forward,arg=%self foo %1 a b c %method}}
     lappend parameterdefinitions \
         -noinit:method,arg=::nsf::methods::object::noinit,noarg \
         -volatile:method,noarg \
