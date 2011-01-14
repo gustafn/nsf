@@ -2230,6 +2230,23 @@ text
 - serializer.tcl: reactivated methodSerialize 
   (used in api-browser of OpenACS)
 
+- nx.tcl: 
+
+   * new method requireClass to Combine two classes and return the
+     more specialized one
+   * make slot objects for parameter aliases and parameter forwarder
+     instances of ObjectParameterSlot
+   * get rid of attributes "isforward" and "isalias" and replace it
+     by "dispositon"
+   * complete list of predefined value checkers
+   * we have now three approaches for providing parameter 
+     -object-filter and -object-method
+        Approach 1: create RelationSlot with nosetter
+        Approach 2: use parameter forwarder
+        Approach 3: use parameter alias
+     we switched from approach 1 to approach 3
+
+
 TODO:
 - object parameter type forward:
    - regression test

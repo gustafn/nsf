@@ -249,7 +249,7 @@ Test case objectparameter {
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "-object-mixin:relation,slot=::nx::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::nx::Class::slot::mixin -superclass:relation,slot=::nx::Class::slot::superclass -object-filter:relation,slot=::nx::Class::slot::object-filter -filter:relation,arg=class-filter,slot=::nx::Class::slot::filter -attributes:alias -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
+      "-object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:relation,arg=class-mixin,slot=::nx::Class::slot::mixin -superclass:relation,slot=::nx::Class::slot::superclass -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:relation,arg=class-filter,slot=::nx::Class::slot::filter -attributes:alias -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
 
   ? {c1 eval {:objectparameter}} \
       "-a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"

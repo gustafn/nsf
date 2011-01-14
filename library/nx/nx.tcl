@@ -596,11 +596,30 @@ namespace eval ::nx {
   #
   Class create ::nx::MetaSlot
   ::nsf::relation MetaSlot superclass Class
+  
+  MetaSlot class-object method requireClass {required:class old:class,0..1} {
+    #
+    # Combine two classes and return the more specialized one
+    #
+    if {$old eq "" || $old eq $required} {return $required}
+    if {[$required info superclass -closure $old] ne ""} {
+      puts stderr "required $required has $old as superclass => specializing"
+      return $required
+    } elseif {[$required info subclass -closure $old] ne ""} {
+      puts stderr "required $required is more general than $old => keep $old"
+      return $old
+    } else {
+      error "required class $required not compatible with $old"
+    }
+  }
 
-  MetaSlot public method createFromParameterSpec {
-    target -per-object:switch 
+  MetaSlot public class-object method createFromParameterSpec {
+    target 
+    -per-object:switch 
+    {-class ""}
     {-initblock ""} 
-    value default:optional
+    value
+    default:optional
   } {
     set opts [list]
     set colonPos [string first : $value]
@@ -612,8 +631,12 @@ namespace eval ::nx {
       foreach property [split $properties ,] {
         if {$property in [list "required" "multivalued" "allowempty" \
 			  "convert" "nosetter"]} {
+	  if {$property eq "convert"} {
+	    set class [:requireClass ::nx::Attribute $class]
+	  }
           lappend opts -$property 1
         } elseif {[string match type=* $property]} {
+	  set class [:requireClass ::nx::Attribute $class]
           set type [string range $property 5 end]
           if {![string match ::* $type]} {set type ::$type}
         } elseif {[string match arg=* $property]} {
@@ -621,10 +644,10 @@ namespace eval ::nx {
           lappend opts -arg $argument
         } elseif {$property eq "optional"} {
 	  lappend opts -required 0
-        } elseif {$property eq "alias"} {
-	  lappend opts -isalias 1 -nosetter 1
-        } elseif {$property eq "forward"} {
-	  lappend opts -isforward 1 -nosetter 1
+        } elseif {$property in [list "alias" "forward"]} {
+	  set class [:requireClass ::nx::ObjectParameterSlot $class]
+	  lappend opts -disposition $property
+	  set class [:requireClass ::nx::ObjectParameterSlot $class]
         } elseif {[regexp {([01])[.][.]([1n*])} $property _ lower upper]} {
 	  if {$lower eq "0"} {lappend opts -allowempty 1}
 	  if {$upper ne "1"} {lappend opts -multivalued 1}
@@ -649,7 +672,13 @@ namespace eval ::nx {
       set scope class
     }
 
-    :create [::nx::slotObj $target $name] {*}$opts $initblock
+    if {$class eq ""} {
+      set class ::nx::Attribute
+    } else {
+      #puts stderr "*** Class for '$value' is $class"
+    }
+    #puts stderr "*** $class create [::nx::slotObj $target $name] {*}$opts $initblock"
+    $class create [::nx::slotObj $target $name] {*}$opts $initblock
     return [::nsf::dispatch $target ::nsf::methods::${scope}::info::method handle $name]
   }
 
@@ -728,9 +757,9 @@ namespace eval ::nx {
     {defaultmethods {get assign}}
     {manager "[::nsf::self]"}
     {per-object false}
-    {nosetter}
-    {isalias}
-    {isforward}
+    {arg}
+    {nosetter true}
+    {disposition}
   }
 
   # maybe add the following slots at some later time here
@@ -868,7 +897,7 @@ namespace eval ::nx {
     if {[info exists :arg]} {
       set prefix [expr {$type eq "object" || $type eq "class" ? "type" : "arg"}]
       lappend objopts $prefix=${:arg}
-      if {![info exists :isalias] && ![info exists :isforward]} {
+      if {![info exists :disposition]} {
 	lappend methodopts $prefix=${:arg}
       }
     }
@@ -902,11 +931,14 @@ namespace eval ::nx {
       # provided values, not for defaults.
       if {$type ne "substdefault"} {set methodopts [linsert $methodopts 0 $type]}
     }
-    if {[info exists :isalias]} {
-      set objopts [linsert $objopts 0 alias]
-    } elseif {[info exists :isforward]} {
-      set objopts [linsert $objopts 0 forward]
-    } elseif {$type ni [list "" "boolean" "integer" "object" "class" "metaclass" "baseclass"]} {
+    
+    if {[info exists :disposition]} {
+      set objopts [linsert $objopts 0 ${:disposition}]
+    } elseif {$type ni [list "" "boolean" "integer" "object" "class" \
+			    "metaclass" "baseclass" "parameter" \
+			    "alnum" "alpha" "ascii" "control" "digit" "double" \
+			    "false" "graph" "lower" "print" "punct" "space" "true" \
+			    "wideinteger" "wordchar" "xdigit" ]} {
       #puts stderr "adding slot for type $type"
       lappend objopts slot=[::nsf::self]
     }
@@ -948,7 +980,9 @@ namespace eval ::nx {
     #puts stderr "... objectparameter [::nsf::self]"
     set parameterdefinitions [::nsf::parametersfromslots [::nsf::self]]
     if {[::nsf::is class [::nsf::self]]} {
-      lappend parameterdefinitions -attributes:alias
+      lappend parameterdefinitions -attributes:alias 
+#	  {{-object-mixin:forward,arg=::nsf::relation %self %proc}} \
+#	  {{-object-filter:forward,arg=::nsf::relation %self %proc}} 
     }
 
     # {{-F:forward,arg=%self foo %1 a b c %method}}
@@ -970,6 +1004,7 @@ namespace eval ::nx {
     {elementtype ::nx::Class}
     {multivalued true}
     {type relation}
+    {nosetter}
   }
 
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
@@ -1064,9 +1099,28 @@ namespace eval ::nx {
         -methodname class-filter
 
     # Create two conveniance slots to allow configuration of 
-    # object-slots for classes via object-mixin
-    ::nx::RelationSlot create ${os}::Class::slot::object-mixin -nosetter 1
-    ::nx::RelationSlot create ${os}::Class::slot::object-filter -elementtype "" -nosetter 1
+    # object-slots for classes via object-mixins
+    #
+    # Approach 1: create RelationSlot with nosetter
+    #
+    #::nx::RelationSlot create ${os}::Class::slot::object-mixin -nosetter 1
+    #::nx::RelationSlot create ${os}::Class::slot::object-filter -elementtype "" -nosetter 1
+
+    #
+    # Approach 2: use parameter forwarder
+    # 
+    #::nx::ObjectParameterSlot create ${os}::Class::slot::object-mixin \
+    #	-disposition forward -arg "::nsf::relation %self %proc"
+    #::nx::ObjectParameterSlot create ${os}::Class::slot::object-filter \
+    #	-disposition forward -arg "::nsf::relation %self %proc"
+
+    #
+    # Approach 3: use parameter alias
+    # 
+    ::nx::ObjectParameterSlot create ${os}::Class::slot::object-mixin \
+	-disposition alias -arg "::nsf::classes::nx::Object::mixin"
+    ::nx::ObjectParameterSlot create ${os}::Class::slot::object-filter \
+	-disposition alias -arg "::nsf::classes::nx::Object::filter"
 
     #
     # Define method "guard" for mixin- and filter-slots of Object and Class
@@ -1115,13 +1169,13 @@ namespace eval ::nx {
 
   createBootstrapAttributeSlots ::nx::Attribute {
     allowempty
-    arg
     convert
     incremental
     initcmd
     valuecmd
     defaultcmd
     valuechangedcmd
+    nosetter
   }
 
   Attribute method __default_from_cmd {obj cmd var sub op} {
@@ -1253,8 +1307,9 @@ namespace eval ::nx {
   ##################################################################
   # Define method "attribute" for convenience
   ##################################################################
-  Class method attribute {spec {-class ::nx::Attribute} {initblock ""}} {
-    set r [$class createFromParameterSpec [::nsf::self] -initblock $initblock {*}$spec]
+  Class method attribute {spec {-class ""} {initblock ""}} {
+    set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
+	       -class $class -initblock $initblock {*}$spec]
     if {$r ne ""} {
       set o [::nsf::self]
       ::nsf::methodproperty $o $r call-protected \
@@ -1263,8 +1318,9 @@ namespace eval ::nx {
     }
   }
 
-  Object method attribute {spec {-class ::nx::Attribute} {initblock ""}} {
-    set r [$class createFromParameterSpec [::nsf::self] -per-object -initblock $initblock {*}$spec]
+  Object method attribute {spec {-class ""} {initblock ""}} {
+    set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
+	       -class $class -per-object -initblock $initblock {*}$spec]
     if {$r ne ""} {
       set o [::nsf::self]
       ::nsf::methodproperty $o -per-object $r call-protected \
@@ -1280,7 +1336,7 @@ namespace eval ::nx {
   Class public method attributes arglist {
   
     foreach arg $arglist {
-      Attribute createFromParameterSpec [::nsf::self] {*}$arg
+      ::nx::MetaSlot createFromParameterSpec [::nsf::self] {*}$arg
     }
     set slot [::nx::slotObj [::nsf::self]]
     ::nsf::setvar $slot __parameter $arglist
