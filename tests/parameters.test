@@ -1496,3 +1496,24 @@ Test case xotcl-list-notation {
   ? {cc user_id} 456
 }
 
+#
+# Test parameter alias and parameter forwarder
+#
+Test case parameter-without-data {
+
+  Class create C {
+    :attribute {x:alias}
+    :attribute {A:alias,arg=bar}
+    :attribute {{F:forward,arg=%self foo %1 a b c %method}}
+    :attribute {D def}
+    :public method x args {set :x $args}
+    :public method foo args {set :foo $args}
+    :public method bar args {set :bar $args}
+    :create c1 -F 123 -x x1 -A aha
+  }
+
+  ? {c1 eval {set :x}} "x1"
+  ? {c1 eval {set :foo}} "123 a b c F"
+  ? {c1 eval {set :bar}} "aha"
+  ? {lsort [c1 info lookup methods -source application]} "D bar foo x"
+}

@@ -2244,6 +2244,7 @@ text
         Approach 2: use parameter forwarder
         Approach 3: use parameter alias
      we switched from approach 1 to approach 3
+- extended regression test
 
 
 TODO:
