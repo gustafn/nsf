@@ -438,10 +438,16 @@ namespace eval ::nx::serializer {
       return $result
     }
 
-    :class-object method methodSerialize {object method prefix} {
+    :public class-object method methodSerialize {object method prefix} {
       set s [:new -childof [::nsf::current object] -volatile]
-      #$s volatile
-      concat $object [$s method-serialize $object $method $prefix]
+      foreach oss [ObjectSystemSerializer info instances] {
+        if {[$oss responsibleSerializer $object]} {
+	  set result [$oss serializeExportedMethod $object $prefix $method]
+	  break
+	}
+      }
+      #concat $object [$s method-serialize $object $method $prefix]
+      return $result
     }
 
     :public class-object method deepSerialize {-ignoreVarsRE -ignore -map args} {
@@ -512,6 +518,10 @@ namespace eval ::nx::serializer {
     #
     # Handle association between objects and responsible serializers
     #
+    :public method responsibleSerializer {object} {
+      return [::nsf::dispatch $object ::nsf::methods::object::info::hastype ${:rootClass}]
+    }
+
     :public method registerSerializer {s instances} {
       # Communicate responsibility to serializer object $s
       foreach i $instances {
@@ -727,7 +737,7 @@ namespace eval ::nx::serializer {
       expr {[$object info method type $name] ne ""}
     }
 
-    :method serializeExportedMethod {object kind name} {
+    :public method serializeExportedMethod {object kind name} {
       # todo: object modifier is missing
       return [:method-serialize $object $name ""]
     }
@@ -854,9 +864,13 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :method serializeExportedMethod {object kind name} {
+    :public method serializeExportedMethod {object kind name} {
       set code ""
       switch $kind {
+	"" - inst {
+	  # legacy; kind is prefix
+	  set code [:method-serialize $object $name $kind]\n
+	}
         proc - instproc {
           if {[$object info ${kind}s $name] ne ""} {
             set prefix [expr {$kind eq "proc" ? "" : "inst"}] 

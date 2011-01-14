@@ -2227,6 +2227,9 @@ text
 - removed parameter option "slotobj=" in toParameterSyntax
 - renamed to [from|to]parameterSyntax to [from|to]parameterSpec
 
+- serializer.tcl: reactivated methodSerialize 
+  (used in api-browser of OpenACS)
+
 TODO:
 - object parameter type forward:
    - regression test
