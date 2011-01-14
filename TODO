@@ -2231,7 +2231,6 @@ text
   (used in api-browser of OpenACS)
 
 - nx.tcl: 
-
    * new method requireClass to Combine two classes and return the
      more specialized one
    * make slot objects for parameter aliases and parameter forwarder
@@ -2252,10 +2251,9 @@ TODO:
    - regression test
    - reduce verbosity
    - get rid of eager tcd creation
-- [from|to]parameterSpec
-  - better handling of isalias,isforward
-  - better handling of predefined types (currently isupper etc. is missing)
 
+- toParameterSpec: 
+   simplify, maybe different methods per class?
 
 - doc:
    NextScriptingLanguage/index.html: 
