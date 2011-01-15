@@ -577,12 +577,14 @@ typedef struct NsfObjectSystem {
 } NsfObjectSystem;
 
 
+/* 
+ * Next Scripting global names and strings 
+ *
+ * We provide enums for efficient lookup for corresponding string
+ * names and Tcl_Objs via global arrays. The "constant" Tcl_Objs are
+ * built at start-up-time via Nsf_Init().
+ */
 
-
-/* Next Scripting global names and strings */
-/* these are names and contents for global (corresponding) Tcl_Objs
-   and Strings - otherwise these "constants" would have to be built
-   every time they are used; now they are built once in Nsf_Init */
 typedef enum {
   NSF_EMPTY, NSF_ONE,
   /* methods called internally */

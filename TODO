@@ -2248,12 +2248,11 @@ text
 
 - fixed potential crash with missing parent namespace
 
-
 - added shadowing for ::tcl::info::body to allow "info body"
   to be called on ::nsf::procs
 - commented nsfShadow.c
 - added regression test
-
+- removed NSF_INFO
 
 TODO:
 
