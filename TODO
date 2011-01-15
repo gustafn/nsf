@@ -2216,6 +2216,12 @@ text
 
 - next-tutorial: documentation updates
 
+- added shadowing for ::tcl::info::body to allow "info body"
+  to be called on ::nsf::procs
+- commented nsfShadow.c
+- added regression test
+
+
 TODO:
 - doc:
    NextScriptingLanguage/index.html: 

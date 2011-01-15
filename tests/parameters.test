@@ -1468,6 +1468,10 @@ Test case nsf-proc {
   ? {::ns1::foo -s=0} "::ns1-0"
   ? {::ns1::foo -s -s=0} "::ns1-0"
   ? {::ns1::baz -b true -- -b} "::ns1-1--b"
+  ? {info body ad_returnredirect} {::nsf::__unset_unknown_args
+
+    return [namespace current]-[lsort [info vars]]-$html_p-$allow_complete_url_p
+  }
   
   Test parameter count 1000
   ? {::ns1::pass1} "::ns1-0"

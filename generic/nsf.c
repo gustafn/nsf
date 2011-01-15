@@ -9319,12 +9319,6 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
 /**************************************************************************
  * Begin Definition of Parameter procs (Tcl Procs with Parameter handling)
  **************************************************************************/
-typedef struct NsfProcClientData {
-  Tcl_Obj *procName;
-  NsfParamDefs *paramDefs;
-  int with_ad;
-} NsfProcClientData;
-
 /*
  *----------------------------------------------------------------------
  * NsfProcStubDeleteProc --
@@ -9439,7 +9433,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, int objc, Tcl_Obj *
  *
  *----------------------------------------------------------------------
  */
-static int
+extern int
 NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfProcClientData *tcd = clientData;
   int result;

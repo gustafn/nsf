@@ -317,6 +317,7 @@ typedef struct NsfStringIncrStruct {
   int length;
 } NsfStringIncrStruct;
 
+
 /* 
  * cmd flags
  */
@@ -517,6 +518,15 @@ typedef struct NsfClasses {
   struct NsfClasses *nextPtr;
 } NsfClasses;
 
+/*
+ * needed in nsf.c and in nsfShadow
+ */
+typedef struct NsfProcClientData {
+  Tcl_Obj *procName;
+  NsfParamDefs *paramDefs;
+  int with_ad;
+} NsfProcClientData;
+
 typedef enum SystemMethodsIdx {
   NSF_c_alloc_idx, 
   NSF_c_create_idx, 
@@ -586,7 +596,7 @@ typedef enum {
   NSF_METHOD, NSF_OBJECT, NSF_SETTER, NSF_VALUECHECK,
   NSF_GUARD_OPTION, NSF___UNKNOWN__, 
   /* Partly redefined Tcl commands; leave them together at the end */
-  NSF_EXPR, NSF_FORMAT, NSF_INFO, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, 
+  NSF_EXPR, NSF_FORMAT, NSF_INFO_BODY, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, 
   NSF_RENAME, NSF_SUBST
 } NsfGlobalNames;
 #if !defined(NSF_C)
@@ -606,7 +616,7 @@ char *NsfGlobalStrings[] = {
   "method", "object", "setter", "valuecheck",
   "-guard", "__unknown__",
   /* tcl commands */
-  "expr", "format", "info", "::tcl::info::frame", "interp", "::tcl::string::is", 
+  "expr", "format", "::tcl::info::body", "::tcl::info::frame", "interp", "::tcl::string::is", 
   "rename", "subst"
 };
 #endif
@@ -840,7 +850,6 @@ char *Nsf_ltoa(char *buf, long i, int *len);
 char *NsfStringIncr(NsfStringIncrStruct *iss);
 void NsfStringIncrInit(NsfStringIncrStruct *iss);
 void NsfStringIncrFree(NsfStringIncrStruct *iss);
-
 
 /*
    Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
