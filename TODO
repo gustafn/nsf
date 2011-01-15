@@ -2215,6 +2215,39 @@ text
 - extended regression test
 
 - next-tutorial: documentation updates
+- add explicit reference counting for oacs-style flag value passing
+
+- parameter specs: use "arg=" in object parameter type "method" as
+  name of a called method to allow to call unregistered methods
+- eliminate protected method "noinit" for nx and allow it just as an
+  object parameter
+
+- added first implementation of object parameter type "forward"
+- renamed object parameter type "method" to "alias"
+- removed parameter option "slotobj=" in toParameterSyntax
+- renamed to [from|to]parameterSyntax to [from|to]parameterSpec
+
+- serializer.tcl: reactivated methodSerialize 
+  (used in api-browser of OpenACS)
+
+- nx.tcl: 
+   * new method requireClass to Combine two classes and return the
+     more specialized one
+   * make slot objects for parameter aliases and parameter forwarder
+     instances of ObjectParameterSlot
+   * get rid of attributes "isforward" and "isalias" and replace it
+     by "dispositon"
+   * complete list of predefined value checkers
+   * we have now three approaches for providing parameter 
+     -object-filter and -object-method
+        Approach 1: create RelationSlot with nosetter
+        Approach 2: use parameter forwarder
+        Approach 3: use parameter alias
+     we switched from approach 1 to approach 3
+- extended regression test
+
+- fixed potential crash with missing parent namespace
+
 
 - added shadowing for ::tcl::info::body to allow "info body"
   to be called on ::nsf::procs
@@ -2223,6 +2256,15 @@ text
 
 
 TODO:
+
+- object parameter type forward:
+   - regression test
+   - reduce verbosity
+   - get rid of eager tcd creation
+
+- toParameterSpec: 
+   simplify, maybe different methods per class?
+
 - doc:
    NextScriptingLanguage/index.html: 
 

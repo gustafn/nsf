@@ -180,17 +180,17 @@ Test case parametercheck {
 #   substdefault:  if no value given, subst on default (result is substituted value); 
 #                  susbt cmd can use variable resolvers,
 #                  works for scripted/c-methods and obj-parm, 
-#                  autmatically set by "$slot toParameterSyntax" if default contains "[" ... "]".
+#                  autmatically set by "$slot toParameterSpec" if default contains "[" ... "]".
 #
 #   initcmd:       evaluate body in an xotcl nonleaf frame, called via configure 
 #                  (example: last arg on create)
-#   method         call specified method in an xotcl nonleaf frame, called via configure;
+#   alias,forward  call specified method in an xotcl nonleaf frame, called via configure;
 #                  specified value is the first argument unless "noarg" is used  
 #                  (example: -noinit).
 #
 # parameter type   multivalued  required  noarg  type=   arg=  parametercheck  methodParm  objectParm
 #  initcmd            NO         YES        NO    NO      NO      NO       NO/POSSIBLE    YES
-#  method             NO         YES        YES   NO      YES     NO       NO/POSSIBLE    YES
+#  alias,forward      NO         YES        YES   NO      YES     NO       NO/POSSIBLE    YES
 #
 #  relation           NO         YES        NO    NO      YES     NO          NO          YES
 #  stringtype         YES        YES        NO    NO      NO      YES         YES         YES
@@ -249,13 +249,10 @@ Test case objectparameter {
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "-object-mixin:relation,slot=::nx::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::nx::Class::slot::mixin -superclass:relation,slot=::nx::Class::slot::superclass -object-filter:relation,slot=::nx::Class::slot::object-filter -filter:relation,arg=class-filter,slot=::nx::Class::slot::filter -attributes:method -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional"
-
-
-
+      "-object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:relation,arg=class-mixin,slot=::nx::Class::slot::mixin -superclass:relation,slot=::nx::Class::slot::superclass -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:relation,arg=class-filter,slot=::nx::Class::slot::filter -attributes:alias -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
 
   ? {c1 eval {:objectparameter}} \
-      "-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional"
+      "-a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -268,13 +265,13 @@ Test case reclass {
 
   c1 class Object
   ? {c1 eval :objectparameter} \
-      "-mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional"
+      "-mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
   
   Class create D -superclass C -attributes {d:required}
   D create d1 -d 100
   
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -290,27 +287,27 @@ Test case objparam-mixins {
   Class create M2 -attributes {b2}
   D mixin M
   ? {d1 eval :objectparameter} \
-      "-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional" \
+      "-b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional" \
     "mixin added"
   M mixin M2
   ? {d1 eval :objectparameter} \
-      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional" \
     "transitive mixin added"
   D mixin ""
   #we should have again the old interface
 
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
 
   C mixin M
   ? {d1 eval :objectparameter} \
-      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional" \
     "mixin added"
   C mixin ""
   #we should have again the old interface
   
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:method,noarg -volatile:method,noarg __initcmd:initcmd,optional" 
+      "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional" 
 }
 
 #######################################################
@@ -845,17 +842,17 @@ Test case op-object-types {
   # TODO: we have no good interface for querying the slot notation for parameters
   proc ::parameterFromSlot {class objectparameter} {
     set slot ${class}::slot::$objectparameter
-    array set "" [$slot toParameterSyntax $objectparameter]
+    array set "" [$slot toParameterSpec $objectparameter]
     return $(oparam)
   }
   
-  ? {::parameterFromSlot ParamTest o} "o:object,slot=::ParamTest::slot::o"
-  ? {::parameterFromSlot ParamTest c} "c:class,slot=::ParamTest::slot::c"
-  ? {::parameterFromSlot ParamTest c1} "c1:class,type=::MC,slot=::ParamTest::slot::c1"
-  ? {::parameterFromSlot ParamTest d} "d:object,type=::C,slot=::ParamTest::slot::d"
-  ? {::parameterFromSlot ParamTest d1} "d1:object,type=::C,slot=::ParamTest::slot::d1"
+  ? {::parameterFromSlot ParamTest o} "o:object"
+  ? {::parameterFromSlot ParamTest c} "c:class"
+  ? {::parameterFromSlot ParamTest c1} "c1:class,type=::MC"
+  ? {::parameterFromSlot ParamTest d} "d:object,type=::C"
+  ? {::parameterFromSlot ParamTest d1} "d1:object,type=::C"
   #? {::parameterFromSlot ParamTest mix} "mix:hasmixin,arg=M,slot=::ParamTest::slot::mix"
-  ? {::parameterFromSlot ParamTest x} "x:object,1..*,slot=::ParamTest::slot::x o"
+  ? {::parameterFromSlot ParamTest x} "x:object,1..* o"
   ? {::parameterFromSlot ParamTest u} "u:upper,slot=::ParamTest::slot::u"
   ? {::parameterFromSlot ParamTest us} "us:upper,1..*,slot=::ParamTest::slot::us"
   
@@ -1503,3 +1500,24 @@ Test case xotcl-list-notation {
   ? {cc user_id} 456
 }
 
+#
+# Test parameter alias and parameter forwarder
+#
+Test case parameter-without-data {
+
+  Class create C {
+    :attribute {x:alias}
+    :attribute {A:alias,arg=bar}
+    :attribute {{F:forward,arg=%self foo %1 a b c %method}}
+    :attribute {D def}
+    :public method x args {set :x $args}
+    :public method foo args {set :foo $args}
+    :public method bar args {set :bar $args}
+    :create c1 -F 123 -x x1 -A aha
+  }
+
+  ? {c1 eval {set :x}} "x1"
+  ? {c1 eval {set :foo}} "123 a b c F"
+  ? {c1 eval {set :bar}} "aha"
+  ? {lsort [c1 info lookup methods -source application]} "D bar foo x"
+}
