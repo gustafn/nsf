@@ -3498,13 +3498,13 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name)
 static int
 NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName, NsfClass *cl) {
   NsfClass *defaultSuperClass = DefaultSuperClass(interp, cl, cl->object.cl, 1);
-  Tcl_Obj *methodObj = NsfMethodObj(&defaultSuperClass->object, NSF_c_requireobject_idx);
+  Tcl_Obj *methodObj;
   int rc = 0;
   
-  /*fprintf(stderr, "NSRequireParentObject %s cl %p (%s) methodObj %p defaultSc %p %s\n",
-    parentName, cl, ClassName(cl), methodObj, defaultSuperClass, ClassName(defaultSuperClass));*/
+  /*fprintf(stderr, "NSRequireParentObject %s cl %p (%s) defaultSc %p %s\n",
+    parentName, cl, ClassName(cl),  defaultSuperClass, ClassName(defaultSuperClass));*/
 
-  if (methodObj) {
+  if (defaultSuperClass && (methodObj = NsfMethodObj(&defaultSuperClass->object, NSF_c_requireobject_idx))) {
     /* call requireObject and try again */
     Tcl_Obj *ov[3];
     int result;

@@ -2246,8 +2246,11 @@ text
      we switched from approach 1 to approach 3
 - extended regression test
 
+- fixed potential crash with missing parent namespace
+
 
 TODO:
+
 - object parameter type forward:
    - regression test
    - reduce verbosity
