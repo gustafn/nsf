@@ -859,7 +859,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
      * track class activations
      */
     if (cl && cmd) {
-      Namespace *nsPtr = ((Command *)cmd)->nsPtr;
+      Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(cmd);
       cl->object.activationCount ++;
       /*fprintf(stderr, "CscInit %s %s activationCount %d cmd %s cmd ns %p (%s, refCount %d ++) "
 	      "obj ns %p parent %p\n",
@@ -872,7 +872,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
        * Incremement the namespace ptr in case Tcl tries to delete
        * this namespace during the invocation
        */
-      nsPtr->refCount ++;
+      NSNamespacePreserve(nsPtr);
     }
 
   }
@@ -961,7 +961,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
        tracking activations of classes
     */
     if (cscPtr->cl) {
-      Namespace *nsPtr = cscPtr->cmdPtr ? ((Command *)(cscPtr->cmdPtr))->nsPtr : NULL;
+      Tcl_Namespace *nsPtr = cscPtr->cmdPtr ? Tcl_Command_nsPtr(cscPtr->cmdPtr) : NULL;
 
       object = &cscPtr->cl->object;
       object->activationCount --;
