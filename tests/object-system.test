@@ -120,9 +120,14 @@ C copy X
 #? {X::slot info vars} __parameter
 ? {X info attributes} {{x 1} {y 2}}
 
+# actually, we want c1 to test below the recreation of c1 in another
+# object system
+? {C create c1} ::c1
+? {C create c2 {:method foo {} {;}}} ::c2
+
 #
 # tests for the dispatch command
- 
+# 
 Object create o
 o method foo {} {return goo}
 o method bar {x} {return goo-$x}
@@ -196,12 +201,16 @@ C + c1
 ? {::nsf::is metaclass ::c1} 0
 ? {::nsf::relation ::c1 class} ::C
 
-# destroy instance and class
+# destroy instance
 c1 -
 
 ? {::nsf::isobject ::c1} 0
 ? {::nsf::is class ::C} 1
 
+# recreate an nx object with a namespace
+C + c2
+
+# destroy class
 C -
 
 ? {::nsf::isobject ::C} 0

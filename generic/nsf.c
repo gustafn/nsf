@@ -224,6 +224,8 @@ NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name
 static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData,
 					  CONST char *name);
 static Tcl_Namespace *RequireObjNamespace(Tcl_Interp *interp, NsfObject *object);
+static void NSNamespacePreserve(Tcl_Namespace *nsPtr);
+static void NSNamespaceRelease(Tcl_Namespace *nsPtr);
 
 /* prototypes for filters and mixins */
 static void FilterComputeDefined(Tcl_Interp *interp, NsfObject *object);
@@ -3160,6 +3162,54 @@ RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
 /*
  * Namespace related commands
  */
+/*
+ *----------------------------------------------------------------------
+ * NSNamespacePreserve --
+ *
+ *    Increment namespace refcount
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NSNamespacePreserve(Tcl_Namespace *nsPtr) {
+  Tcl_Namespace_refCount(nsPtr)++;
+}
+/*
+ *----------------------------------------------------------------------
+ * NSNamespaceRelease --
+ *
+ *    Decrement namespace refcount and free namespace if necessary
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Free pot. memory
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NSNamespaceRelease(Tcl_Namespace *nsPtr) {
+
+  Tcl_Namespace_refCount(nsPtr)--;
+  if (Tcl_Namespace_refCount(nsPtr) == 0 && (Tcl_Namespace_flags(nsPtr) & NS_DEAD)) {
+    /* 
+     * The namespace refcount has reached 0, we have to free
+     * it. unfortunately, NamespaceFree() is not exported
+     */
+    /* fprintf(stderr, "HAVE TO FREE %p\n", nsPtr); */
+    /*NamespaceFree(nsPtr);*/
+    ckfree(nsPtr->fullName);
+    ckfree(nsPtr->name);
+    ckfree((char*)nsPtr);
+  }
+}
 
 /*
  *----------------------------------------------------------------------
@@ -9347,7 +9397,7 @@ NsfProcStubDeleteProc(ClientData clientData) {
     fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
 
   DECR_REF_COUNT(tcd->procName);
-  /* ParamDefsFree(tcd->paramDefs); */ /* seems not neccessary */
+  /* tcd->paramDefs is freed by NsfProcDeleteProc() */
   FREE(NsfProcClientData, tcd);
 }
 
@@ -9503,7 +9553,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  *    Tcl return code.
  *
  * Side effects:
- *    Adding 1 Tcl and 1 Tcl proc
+ *    Adding one Tcl command and one Tcl proc
  *
  *----------------------------------------------------------------------
  */
@@ -10867,6 +10917,9 @@ PrimitiveOInit(NsfObject *object, Tcl_Interp *interp, CONST char *name,
    * different object system).
    */
 
+  //fprintf(stderr, "nsPtr %p\n", nsPtr);
+  //fprintf(stderr, "nsPtr->flags %.6x\n", nsPtr ? (((Namespace *)nsPtr)->flags) : 0);
+
   if (nsPtr && (((Namespace *)nsPtr)->flags & NS_DYING)) {
     Tcl_Namespace *dummy1Ptr, *dummy2Ptr;
     const char *dummy;
@@ -10916,6 +10969,9 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   assert(isAbsolutePath(nameString));
 
   nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr, cl);
+  if (nsPtr) {
+    NSNamespacePreserve(nsPtr);
+  }
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
 				    (ClientData)object, TclDeletesObject);
 
@@ -10923,6 +10979,10 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
     Tcl_Command_refCount(object->id), nameString);*/
 
   PrimitiveOInit(object, interp, nameString, nsPtr, cl);
+  if (nsPtr) {
+    NSNamespaceRelease(nsPtr);
+  }
+
   object->cmdName = nameObj;
   /* convert cmdName to Tcl Obj of type cmdName */
   /*Tcl_GetCommandFromObj(interp, obj->cmdName);*/
@@ -11321,9 +11381,15 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
     fprintf(stderr, "Class alloc %p '%s'\n", cl, nameString);
   */
   nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr, cl);
+  if (nsPtr) {
+    NSNamespacePreserve(nsPtr);
+  }
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
-                                 (ClientData)cl, TclDeletesObject);
+				    (ClientData)cl, TclDeletesObject);
   PrimitiveOInit(object, interp, nameString, nsPtr, class);
+  if (nsPtr) {
+    NSNamespaceRelease(nsPtr);
+  }
   object->cmdName = nameObj;
 
   /* convert cmdName to Tcl Obj of type cmdName */

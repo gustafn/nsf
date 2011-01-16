@@ -2254,6 +2254,11 @@ text
 - added regression test
 - removed NSF_INFO
 
+- fixed potential access to freed memory (actually when checking if
+  namespace was removed by Tcl); found this problem when compiling Tcl
+  with SYSTEM_MALLOC (own modified version of tclThreadAlloc.c)
+- fixed memory leak (namespace names and structures)
+
 TODO:
 
 - object parameter type forward:

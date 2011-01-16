@@ -27,6 +27,8 @@
 #define Tcl_Namespace_parentPtr(nsPtr)   ((Namespace *)nsPtr)->parentPtr
 #define Tcl_Namespace_commandPathLength(nsPtr) ((Namespace *)nsPtr)->commandPathLength
 #define Tcl_Namespace_commandPathArray(nsPtr)  ((Namespace *)nsPtr)->commandPathArray
+#define Tcl_Namespace_refCount(nsPtr)  ((Namespace *)nsPtr)->refCount
+#define Tcl_Namespace_flags(nsPtr)  ((Namespace *)nsPtr)->flags
 
 
 #define Tcl_Command_refCount(cmd)      ((Command *)cmd)->refCount

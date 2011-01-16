@@ -868,8 +868,10 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
 	      nsPtr, nsPtr->fullName, nsPtr->refCount,
 	      cl->object.nsPtr,cl->object.nsPtr ? ((Namespace*)cl->object.nsPtr)->parentPtr : NULL);*/
 
-      /* incremement the namespace ptr in case tcl tries to delete this namespace
-	 during the invocation */
+      /* 
+       * Incremement the namespace ptr in case Tcl tries to delete
+       * this namespace during the invocation
+       */
       nsPtr->refCount ++;
     }
 
@@ -984,22 +986,8 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 	fprintf(stderr,"checkFree %p %s\n",object, ObjectName(object));
       }
 #endif
-      // TODO do we have a leak now?
-      if (0 && nsPtr) {
-	nsPtr->refCount--;
-	/*fprintf(stderr, "CscFinish parent %s activationCount %d flags %.4x refCount %d\n",
-	  nsPtr->fullName, nsPtr->activationCount, nsPtr->flags, nsPtr->refCount);*/
-	
-	if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
-	  /* the namespace refcount has reached 0, we have to free
-	     it. unfortunately, NamespaceFree() is not exported */
-	  /* TODO: remove me finally */
-	  fprintf(stderr, "HAVE TO FREE %p\n",nsPtr);
-	  /*NamespaceFree(nsPtr);*/
-	  ckfree(nsPtr->fullName);
-	  ckfree(nsPtr->name);
-	  ckfree((char*)nsPtr);
-	}
+      if (nsPtr) {
+	NSNamespaceRelease(nsPtr);
       }
     }
   }
