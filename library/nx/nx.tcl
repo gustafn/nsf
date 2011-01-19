@@ -1161,6 +1161,7 @@ namespace eval ::nx {
     # 
     if {[:info lookup method assign] ne "::nsf::classes::nx::Attribute::assign"} {return 1}
     if {[:info lookup method add] ne "::nsf::classes::nx::Attribute::add"} {return 1}
+    if {[:info lookup method get] ne "::nsf::classes::nx::Attribute::get"} {return 1}
     if {![info exists :incremental]} {return 0}
     #if {![:isMultivalued]} {return 0}
     #puts stderr "[self] ismultivalued"
@@ -1201,16 +1202,21 @@ namespace eval ::nx {
   }
 
   ::nx::Attribute protected method makeIncrementalOperations {} {
+    set options_single [:getParameterOptions]
+    if {[llength $options_single] == 0} {
+      # No need to make per-slot methods; the general rules on
+      # nx::Attribute are sufficient
+      return
+    }
     set options [:getParameterOptions -withMultiplicity true]
-    set body {::nsf::setvar $obj $var $value}
     lappend options slot=[::nsf::self]
+    set body {::nsf::setvar $obj $var $value}
     
     if {[:info lookup method assign] eq "::nsf::classes::nx::Attribute::assign"} {
       puts stderr ":public method assign [list obj var [:namedParameterSpec -prefix {} value $options]] $body"
       :public method assign [list obj var [:namedParameterSpec -prefix {} value $options]] $body
     }
     if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::Attribute::add"} {
-      set options_single [:getParameterOptions]
       lappend options_single slot=[::nsf::self]
       puts stderr ":public method add [list obj prop [:namedParameterSpec -prefix {} value $options_single] {pos 0}] {::nsf::next}"
       :public method add [list obj prop [:namedParameterSpec -prefix {} value $options_single] {pos 0}] {::nsf::next}

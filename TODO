@@ -2274,6 +2274,9 @@ text
 - updated regression test
 - updated class diagram
 
+- nx.tcl: needsForwarder is true, when method "get" is specified on a slot
+- nx.tcl: Don't generate per-slot add/assign handlers, when not needed
+
 TODO:
 
 - object parameter type forward:
