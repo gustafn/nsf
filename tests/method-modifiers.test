@@ -277,6 +277,7 @@ Test case attribute-method {
   ? {c1 d} "::c1: unable to dispatch method 'd'"
 
   ? {C A 2} 2
+  ? {C A} 2
   ? {C B} B2
   ? {C C} C2
   ? {C D} "Method 'D' unknown for ::C. Consider '::C create D ' instead of '::C D '"

@@ -2651,7 +2651,19 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
     HashVarFree(var);
   }
 
-  varTablePtr = object->nsPtr ? Tcl_Namespace_varTablePtr(object->nsPtr) : object->varTablePtr;
+  if (object->nsPtr) {
+    varTablePtr = Tcl_Namespace_varTablePtr(object->nsPtr);
+  } else if (object->varTablePtr) {
+    varTablePtr = object->varTablePtr;
+  } else {
+    /*
+     * In most situations, we have a varTablePtr through the clauses
+     * above. However, if someone redefines e.g. the method
+     * "configure" or "objectparameter", we might find an object with
+     * an still empty varTable, since these are lazy initiated.
+     */
+    varTablePtr = object->varTablePtr = VarHashTableCreate();
+  }
   assert(varTablePtr);
 
   resVarInfo->lastObject = object;
@@ -8652,17 +8664,6 @@ ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 }
 
 static int
-ConvertToRelation(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  NsfParam CONST *UNUSED(pPtr),
-		  ClientData *clientData, Tcl_Obj **outObjPtr) {
-  /* NsfRelationCmd is the real setter, which checks the values
-     according to the relation type (Class, List of Class, list of
-     filters; we treat it here just like a tclobj */
-  *clientData = (ClientData)objPtr;
-  *outObjPtr = objPtr;
-  return TCL_OK;
-}
-
-static int
 ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr,
 		   ClientData *clientData, Tcl_Obj **outObjPtr) {
   CONST char *value = ObjStr(objPtr);
@@ -8915,11 +8916,6 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     result = ParamOptionSetConverter(interp, paramPtr, "class", ConvertToClass);
     paramPtr->flags |= NSF_ARG_BASECLASS;
 
-  } else if (strncmp(option, "relation", 8) == 0) {
-    result = ParamOptionSetConverter(interp, paramPtr, "relation", ConvertToRelation);
-    paramPtr->flags |= NSF_ARG_RELATION;
-    /*paramPtr->type = "tclobj";*/
-
   } else if (strncmp(option, "parameter", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "parameter", ConvertToParameter);
 
@@ -9034,10 +9030,13 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     /* skip space from end */
     for (end = l; end>0 && isspace((int)argString[end-1]); end--);
     /* process last option */
-    result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr);
-    if (result != TCL_OK) {
-      goto param_error;
+    if (end-start > 0) {
+      result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr);
+      if (result != TCL_OK) {
+	goto param_error;
+      }
     }
+
   } else {
     /* no ':', the whole arg is the name, we have not options */
     NEW_STRING(paramPtr->name, argString, length);
@@ -16515,36 +16514,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
     if (newValue == NsfGlobalObjs[NSF___UNKNOWN__]) {
       /* nothing to do here */
-      continue;
-    }
-
-    /* previous code to handle relations */
-    if (paramPtr->converter == ConvertToRelation) {
-      ClientData relIdx;
-      Tcl_Obj *relationObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj,
-	*outObjPtr;
-      CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-      
-      /*
-       * Execute relation cmd in the context above the object frame,
-       * since the object frame changes the current namespace as
-       * well. References to classes with implicit namespaces might
-       * fail otherwise.
-       */
-      Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
-      result = ConvertToRelationtype(interp, relationObj, paramPtr, &relIdx, &outObjPtr);
-
-      if (result == TCL_OK) {
-        result = NsfRelationCmd(interp, object, PTR2INT(relIdx), newValue);
-      }
-      Tcl_Interp_varFramePtr(interp) = varFramePtr;
-
-      if (result != TCL_OK) {
-        Nsf_PopFrameObj(interp, framePtr);
-        ParseContextRelease(&pc);
-        goto configure_exit;
-      }
-      /* done with relation handling */
       continue;
     }
 

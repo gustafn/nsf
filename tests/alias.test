@@ -6,10 +6,10 @@ package require nx::test
 Test parameter count 10
 Test case alias-preliminaries { 
   
-  # The system methods of Object are either alias or forwarders
-  ? {lsort [::nx::ObjectParameterSlot info methods -methodtype alias]} {assign get}
-  ? {::nx::ObjectParameterSlot info method definition get} \
-      "::nx::ObjectParameterSlot public alias get ::nsf::setvar"
+  # The system methods of nx::Attribute are either alias or forwarders
+  ? {lsort [::nx::Attribute info methods -methodtype alias]} {assign get}
+  ? {::nx::Attribute info method definition get} \
+      "::nx::Attribute public alias get ::nsf::setvar"
 
   # define an alias and retrieve its definition
   set cmd "::nx::Object public alias set ::set"

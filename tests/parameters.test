@@ -249,10 +249,10 @@ Test case objectparameter {
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "-object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:relation,arg=class-mixin,slot=::nx::Class::slot::mixin -superclass:relation,slot=::nx::Class::slot::superclass -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:relation,arg=class-filter,slot=::nx::Class::slot::filter -attributes:alias -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
+      "-object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:alias -superclass:alias -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:alias -attributes:alias -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg __initcmd:initcmd,optional"
 
   ? {c1 eval {:objectparameter}} \
-      "-a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
+      "-a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -265,13 +265,13 @@ Test case reclass {
 
   c1 class Object
   ? {c1 eval :objectparameter} \
-      "-mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
+      "-volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
   
   Class create D -superclass C -attributes {d:required}
   D create d1 -d 100
   
   ? {d1 eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -287,27 +287,27 @@ Test case objparam-mixins {
   Class create M2 -attributes {b2}
   D mixin M
   ? {d1 eval :objectparameter} \
-      "-b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional" \
+      "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional" \
     "mixin added"
   M mixin M2
   ? {d1 eval :objectparameter} \
-      "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional" \
     "transitive mixin added"
   D mixin ""
   #we should have again the old interface
 
   ? {d1 eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
 
   C mixin M
   ? {d1 eval :objectparameter} \
-      "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional" \
     "mixin added"
   C mixin ""
   #we should have again the old interface
   
   ? {d1 eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -noinit:alias,arg=::nsf::methods::object::noinit,noarg -volatile:alias,noarg __initcmd:initcmd,optional" 
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional" 
 }
 
 #######################################################
@@ -365,10 +365,6 @@ Test case passed-arguments {
   ? {d1 foo -r 1 -x 1 -class D11} \
       {expected class but got "D11" for parameter "-class"} \
       "pass non-existing class"
-  
-  ? {D public method foo {a:relation} {}} \
-      {Parameter option 'relation' not allowed} \
-      "don't allow relation option as method parameter"
   
   ? {D public method foo {a:double} {return $a}} \
       {::nsf::classes::D::foo} \
@@ -428,7 +424,7 @@ Test case multivalued {
   ? {d1 foo {o d1 x}} \
       {invalid value in "o d1 x": expected object but got "x" for parameter "m"} \
       "multiple values"
-  
+
   Class create Foo -attributes {
     {ints:integer,1..*}
   }
@@ -438,7 +434,7 @@ Test case multivalued {
   # make slot incremental
   Foo::slot::ints eval {
     set :incremental 1
-    :optimize
+    :reconfigure
   }
 
   Foo create foo -ints {1 2}
@@ -842,19 +838,17 @@ Test case op-object-types {
   # TODO: we have no good interface for querying the slot notation for parameters
   proc ::parameterFromSlot {class objectparameter} {
     set slot ${class}::slot::$objectparameter
-    array set "" [$slot toParameterSpec $objectparameter]
-    return $(oparam)
+    return [$slot getParameterSpec]
   }
   
-  ? {::parameterFromSlot ParamTest o} "o:object"
-  ? {::parameterFromSlot ParamTest c} "c:class"
-  ? {::parameterFromSlot ParamTest c1} "c1:class,type=::MC"
-  ? {::parameterFromSlot ParamTest d} "d:object,type=::C"
-  ? {::parameterFromSlot ParamTest d1} "d1:object,type=::C"
-  #? {::parameterFromSlot ParamTest mix} "mix:hasmixin,arg=M,slot=::ParamTest::slot::mix"
-  ? {::parameterFromSlot ParamTest x} "x:object,1..* o"
-  ? {::parameterFromSlot ParamTest u} "u:upper,slot=::ParamTest::slot::u"
-  ? {::parameterFromSlot ParamTest us} "us:upper,1..*,slot=::ParamTest::slot::us"
+  ? {::parameterFromSlot ParamTest o} "-o:object"
+  ? {::parameterFromSlot ParamTest c} "-c:class"
+  ? {::parameterFromSlot ParamTest c1} "-c1:class,type=::MC"
+  ? {::parameterFromSlot ParamTest d} "-d:object,type=::C"
+  ? {::parameterFromSlot ParamTest d1} "-d1:object,type=::C"
+  ? {::parameterFromSlot ParamTest x} "-x:object,1..* o"
+  ? {::parameterFromSlot ParamTest u} "-u:upper,slot=::ParamTest::slot::u"
+  ? {::parameterFromSlot ParamTest us} "-us:upper,slot=::ParamTest::slot::us,1..*"
   
   ? {ParamTest create p -o o} ::p
   ? {ParamTest create p -o xxx} \
@@ -889,7 +883,7 @@ Test case op-object-types {
       {invalid value in "A B c": expected upper but got "c" for parameter "-us"}
   ParamTest::slot::us eval {
     set :incremental 1
-    :optimize
+    :reconfigure
   }
   ? {ParamTest create p -us {A B}} ::p
   ? {p us add C end} "A B C"
@@ -907,8 +901,8 @@ Test case op-object-types {
   #}
   ParamTest eval {
       :attribute os {
-	  :type object 
-	  :multivalued true
+	:type object 
+	:multiplicity 1..n
       }
   }
   
@@ -1087,7 +1081,7 @@ Test case setters {
 Test parameter count 1000
 Test case slot-optimizer {
 
-  Class create C -attributes {a b:integer c:integer,multivalued}
+  Class create C -attributes {a b:integer c:integer,0..n}
   
   C create c1 
   ? {c1 a 1} 1
@@ -1173,7 +1167,6 @@ Test case slot-traces {
     :attribute c {set :valuechangedcmd { ::nsf::setvar $obj $var 999 }}
     :create c1
   }
-
   ? {c1 a} 4
   ? {c1 b} 44
   ? {c1 c 5} 999

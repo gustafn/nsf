@@ -157,14 +157,14 @@ Class Article -slots {
 }
 
 Class publishes -slots {
-  Role create written_by -references Person -multivalued true
-  Role create has_published -references Paper -multivalued true
+  Role create written_by -references Person -multiplicity 0..n
+  Role create has_published -references Paper -multiplicity 0..n
 }
 
 Class Project -slots {
   Attribute create name
   Role create manager -references Person
-  Role create member -references Person -multivalued true
+  Role create member -references Person -multiplicity 0..n
 }
 
 puts [Person serialize]
@@ -266,7 +266,7 @@ o1 parametercmd y
 
 # maybe work directly on ::xotcl::Attribute would be nicer, when
 # ::xotcl::Attribute would be true alias for ::nx::Attribute ...
-::nx::Attribute mixin delete ::nx::Attribute::Optimizer
+#::nx::Attribute mixin delete ::nx::Attribute::Optimizer
 
 Class C1 -parameter {a {b 10} {c "Hello World"}}
 C1 c1 -a 1
@@ -283,7 +283,7 @@ Class C2 -slots {
   Attribute create c -default "Hello World"
 }
 C2 c2 -a 1
-? {c2 procsearch a} "::C2 instforward a"
+? {c2 procsearch a} "::C2 instparametercmd a"
 ? {c2 a} 1
 ? {c2 b} 10
 ? {c2 c} "Hello World"
@@ -292,7 +292,7 @@ C2 c2 -a 1
 ? {c2 a} 1 "new indirect parametercmd"
 ? {c2 a 1} 1 "new indirect parametercmd"
 
-::nx::Attribute mixin add ::nx::Attribute::Optimizer
+#::nx::Attribute mixin add ::nx::Attribute::Optimizer
 
 Class C3 -slots {
   Attribute create a 
@@ -334,8 +334,7 @@ a0 forward f4 puts hu
 ? {a0 procsearch f3} "::a0 proc f3"
 ? {a0 procsearch f4} "::a0 forward f4"
 ? {a0 procsearch set} "::xotcl::Object instcmd set"
-#? {A slot foo info lookup method assign} "::nsf::classes::nx::ObjectParameterSlot::assign"
-? {A::slot::foo info lookup method assign} "::nsf::classes::nx::ObjectParameterSlot::assign"
+? {A::slot::foo info lookup method assign} "::nsf::classes::nx::Attribute::assign"
 
 # redefine setter for foo of class A
 #A slot foo method assign {domain var val} ...
@@ -372,7 +371,7 @@ Test case req-param {
 Class Person -slots {
   Attribute create name
   Attribute create age -default 0
-  Attribute create projects -default {} -multivalued true -incremental true -allowempty true
+  Attribute create projects -default {} -multiplicity 0..n -incremental true
 }
 
 Person p1 -name "Gustaf"
@@ -416,7 +415,7 @@ p1 projects add ::project1
 }
 
 Person slots {
-  Attribute create projects -default "" -multivalued true -incremental true -type ::Project -allowempty true
+  Attribute create projects -default "" -multiplicity 0..n -incremental true -type ::Project
   Attribute create salary -type integer
 }
 
@@ -504,7 +503,7 @@ Test case assign-via-slots
 
 Class create A -slots {
   Attribute create foo -default 1 {
-    :public method assign { domain var value} {
+    :public method assign {domain var value} {
       if {$value < 0 || $value > 99} {
         error "$value is not in the range of 0 .. 99"
       }
@@ -517,9 +516,10 @@ A create a1
 ? {a1 foo 10} 10
 ? {a1 foo 20} 20
 ? {a1 foo} 20
+? {a1 foo -1} "-1 is not in the range of 0 .. 99"
 ? {catch {a1 foo -1}} 1
-? {catch {a1 foo 100}} 1
-? {catch {a1 foo 99}} 0
+? {a1 foo 100} "100 is not in the range of 0 .. 99"
+? {a1 foo 99} 99
 
 set x [Object new -set x 1 -contains {
   Object new -set x 1.1

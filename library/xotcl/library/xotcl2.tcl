@@ -363,13 +363,15 @@ namespace eval ::xotcl {
   Object instproc self {} {::xotcl::self}
 
   #
-  # objectparameter definition, backwards upward compatible. We use
+  # Method objectparameter, backwards upward compatible. We use
   # here the definition of parametersfromslots from nx.tcl
   #
   ::xotcl::Object instproc objectparameter {} {
-    set parameterdefinitions [::nsf::parametersfromslots [self]]
+    set parameterdefinitions [list]
+    foreach slot [::nsf::dispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
+      lappend parameterdefinitions [$slot getParameterSpec]
+    }
     lappend parameterdefinitions args
-    #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
     return $parameterdefinitions
   }
 
@@ -395,22 +397,20 @@ namespace eval ::xotcl {
     # if not specified
     ${os}::Object alloc ${os}::Class::slot
     ${os}::Object alloc ${os}::Object::slot
-    
     ::nx::RelationSlot create ${os}::Class::slot::superclass
     ::nsf::alias         ${os}::Class::slot::superclass assign ::nsf::relation
-    ::nx::RelationSlot create ${os}::Object::slot::class -multivalued false
+    ::nx::RelationSlot create ${os}::Object::slot::class
     ::nsf::alias         ${os}::Object::slot::class assign ::nsf::relation
-
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
-        -methodname object-mixin
+        -forwardername object-mixin
     ::nx::RelationSlot create ${os}::Object::slot::filter \
-        -methodname object-filter \
+        -forwardername object-filter \
         -elementtype ""
 
     ::nx::RelationSlot create ${os}::Class::slot::instmixin \
-        -methodname class-mixin
+        -forwardername class-mixin
     ::nx::RelationSlot create ${os}::Class::slot::instfilter \
-        -methodname class-filter \
+        -forwardername class-filter \
         -elementtype ""
   }
   register_system_slots ::xotcl

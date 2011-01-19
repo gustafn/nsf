@@ -2259,6 +2259,20 @@ text
   with SYSTEM_MALLOC (own modified version of tclThreadAlloc.c)
 - fixed memory leak (namespace names and structures)
 
+- nx.tcl:
+   * full rewrite of slot machinerie, much simpler structure
+   * relation handling via parameter aliases instread of pseudo converter
+   * mixinclass SlotOptimizer removed
+   * new class BootStrapAttributeSlot
+
+- ConvertToRelation() and handling of parametertype "relation"
+- Make CompiledColonVarFetch() more robust in case of 
+  half initialized objects (create vartable on the fly if needed)
+- allow empty parameter options in parameter parser
+- removed nsf::parametersfromslots (became simple, part of objectparameter now)
+- removed hardcoded objectparameter (attributes, volatile and noinit)
+- updated regression test
+
 TODO:
 
 - object parameter type forward:
@@ -2266,8 +2280,16 @@ TODO:
    - reduce verbosity
    - get rid of eager tcd creation
 
-- toParameterSpec: 
-   simplify, maybe different methods per class?
+- slotmachinerie 2
+  - update class diagrams
+  - naming "incremental", "reconfigure"
+  - check: 
+      slottest/t.023:   3.40 mms, o1 class
+      Warning: Arguments '{::M ::xotcl::Object}' to constructor of object ::__unknown are most likely not processed
+   - check, if substdefault/default (ObjectParameter) could work with e.g. alias; otherwise, move substdefault down
+     we could use ::nx::Object as e.g. default superclass
+   - should we deactivate add/delete for non-multivalued cases?
+
 
 - doc:
    NextScriptingLanguage/index.html: 
