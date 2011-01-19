@@ -1293,68 +1293,6 @@ namespace eval ::nx {
     eval $cmd
   }
 
-
-  ##################################################################
-  # Define a mixin class for optimizing slots
-  ##################################################################
-  # Class create ::nx::Attribute::Optimizer {
-
-  #   :public method method args  {set r [::nsf::next]; :optimize; return $r}
-  #   :public method forward args {set r [::nsf::next]; :optimize; return $r}
-  #   :protected method init args {set r [::nsf::next]; :optimize; return $r}
-
-  #   :public method optimize {} {
-  #     #puts stderr "OPTIMIZER ${:name} incremental -[info exists :incremental]"
-  #     if {![info exists :methodname]} {return}
-  #     if {${:per-object}} {
-  #       set perObject -per-object
-  #       set infokind object
-  #     } else {
-  #       set perObject ""
-  #       set infokind class
-  #     }
-  #     if {[::nsf::dispatch ${:domain} ::nsf::methods::${infokind}::info::method handle ${:name}] ne ""} {
-  #       #puts stderr "OPTIMIZER RESETTING ${:domain} slot ${:name}"
-  #       ::nsf::forward ${:domain} {*}$perObject ${:name} \
-  #           ${:manager} \
-  #           [list %1 [${:manager} defaultmethods]] %self \
-  #           ${:methodname}
-  #     }
-  #     #puts "*** stderr OPTIMIZER incremental [info exists :incremental] def '[set :defaultmethods]' nosetter [info exists :nosetter]"
-  #     if {[info exists :incremental] && ${:incremental}} return
-  #     if {[info exists :nosetter]} return
-  #     if {[set :defaultmethods] ne {get assign}} return
-
-  #     #
-  #     # Check, if the definition of "assign" and "get" are still the
-  #     # defaults. If this is not the case, we cannot replace them with
-  #     # the plain setters.
-  #     # 
-  #     set assignInfo [:info method definition [:info lookup method assign]]
-  #     #puts stderr "OPTIMIZER assign=$assignInfo//[lindex $assignInfo end]//[:info precedence]"
-  #     if {$assignInfo ne "::nx::ObjectParameterSlot public alias assign ::nsf::setvar" &&
-  #         [lindex $assignInfo end] ne {::nsf::setvar $obj $var $value} } return
-  #     #if {$assignInfo ne "::nx::ObjectParameterSlot public alias assign ::nsf::setvar"} return
-
-  #     set getInfo [:info method definition [:info lookup method get]]
-  #     if {$getInfo ne "::nx::ObjectParameterSlot public alias get ::nsf::setvar"} return
-
-  #     array set "" [:toParameterSpec ${:name}]
-  #     if {$(mparam) ne ""} {
-  #       set setterParam [lindex $(oparam) 0]
-  # 	# never pass substdefault to setter
-  # 	regsub -all ,substdefault $setterParam "" setterParam
-  #       #puts stderr "setterParam=$setterParam, op=$(oparam)"
-  #     } else {
-  #       set setterParam ${:name}
-  #     }
-  #     ::nsf::setter ${:domain} {*}$perObject $setterParam
-  #     #puts stderr "::nsf::setter ${:domain} {*}$perObject $setterParam"
-  #   }
-  # }
-  # # register the optimizer per default
-  # Attribute mixin add Attribute::Optimizer
-
   ##################################################################
   # Define method "attribute" for convenience
   ##################################################################
