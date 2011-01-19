@@ -2272,6 +2272,7 @@ text
 - removed nsf::parametersfromslots (became simple, part of objectparameter now)
 - removed hardcoded objectparameter (attributes, volatile and noinit)
 - updated regression test
+- updated class diagram
 
 TODO:
 
@@ -2281,7 +2282,6 @@ TODO:
    - get rid of eager tcd creation
 
 - slotmachinerie 2
-  - update class diagrams
   - naming "incremental", "reconfigure"
   - check: 
       slottest/t.023:   3.40 mms, o1 class
