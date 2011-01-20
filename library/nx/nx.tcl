@@ -807,6 +807,8 @@ namespace eval ::nx {
     {noarg}
     {disposition alias}
     {required false}
+    {default}
+    {initcmd}
     {substdefault false}
   }
 
@@ -864,10 +866,6 @@ namespace eval ::nx {
     if {![info exists :forwardername]} {
       set :forwardername ${:methodname}
     }
-    #puts stderr [list ::nsf::forward ${:domain} \
-		     {*}[expr {${:per-object} ? "-per-object" : ""}] \
-		     ${:name} ${:manager} [list %1 [${:manager} defaultmethods]] %self \
-		     ${:forwardername}]
     ::nsf::forward ${:domain} \
 	{*}[expr {${:per-object} ? "-per-object" : ""}] \
 	${:name} \
@@ -875,25 +873,43 @@ namespace eval ::nx {
 	[list %1 [${:manager} defaultmethods]] %self \
 	${:forwardername}
   }
-
-  ObjectParameterSlot protected method getParameterOptions {} {
+  
+  ObjectParameterSlot protected method getParameterOptions {{-withMultiplicity 0} {-withSubstdefault 0}} {
     #
     # Obtain a list of parameter options from slot object
     #
+    # "-withMultiplicity" is here a dummy parameter, since we have no
+    # multiplicty at the level of the ObjectParameter. We want to have
+    # the same interface as on Attribute.
     set options ${:disposition}
     if {${:name} ne ${:methodname}} {lappend options arg=${:methodname}}
     if {${:required}} {lappend options required}
+    if {$withSubstdefault && [info exists :substdefault] && ${:substdefault}} {
+      lappend options substdefault
+    }
     if {[info exists :noarg] && ${:noarg}} {lappend options noarg}
     return $options
   }
-
+  
   ObjectParameterSlot public method getParameterSpec {} {
     #
     # Get a full object parmeter specification from slot object
     #
-    return [list [:namedParameterSpec ${:name} [:getParameterOptions]]]
-  }
+    set options [:getParameterOptions -withMultiplicity true -withSubstdefault true]
+    if {[info exists :initcmd]} {
+      lappend options initcmd
+      return [list [:namedParameterSpec ${:name} $options] ${:initcmd}]
 
+    } elseif {[info exists :default]} {
+      # deactivated for now: || [string first {$} ${:default}] > -1
+      if {[string match {*\[*\]*} ${:default}]} {
+        lappend options substdefault
+      }
+      return [list [:namedParameterSpec ${:name} $options] ${:default}]
+    } else {
+      return [list [:namedParameterSpec ${:name} $options]]
+    }
+  }
 
   #################################################################
   # We have no working objectparameter yet, since it requires a
@@ -1010,7 +1026,8 @@ namespace eval ::nx {
     ::nsf::forward ${os}::Object class ::nsf::relation %self class
 
     # all other relation cmds are defined as slots
-    ::nx::RelationSlot create ${os}::Class::slot::superclass
+    ::nx::RelationSlot create ${os}::Class::slot::superclass \
+	-default ${os}::Object
 
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
 	-forwardername object-mixin    
@@ -1084,13 +1101,11 @@ namespace eval ::nx {
   createBootstrapAttributeSlots ::nx::Attribute {
     {arg}
     {convert false}
-    {default}
     {incremental}
     {multiplicity 1..1}
     {nosetter false}
     {type}
 
-    initcmd
     valuecmd
     defaultcmd
     valuechangedcmd
@@ -1132,23 +1147,6 @@ namespace eval ::nx {
     return $options
   }
 
-  ::nx::Attribute public method getParameterSpec {} {
-    set options [:getParameterOptions -withMultiplicity true -withSubstdefault true]
-    if {[info exists :initcmd]} {
-      lappend options initcmd
-      return [list [:namedParameterSpec ${:name} $options] ${:initcmd}]
-
-    } elseif {[info exists :default]} {
-      # deactivated for now: || [string first {$} ${:default}] > -1
-      if {[string match {*\[*\]*} ${:default}]} {
-        lappend options substdefault
-      }
-      return [list [:namedParameterSpec ${:name} $options] ${:default}]
-    } else {
-      return [list [:namedParameterSpec ${:name} $options]]
-    }
-  }
-  
   ::nx::Attribute protected method isMultivalued {} {
     return [string match {*..[n*]} ${:multiplicity}]
   }

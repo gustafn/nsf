@@ -249,7 +249,7 @@ Test case objectparameter {
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "-object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:alias -superclass:alias -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:alias -attributes:alias -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg __initcmd:initcmd,optional"
+      "-object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:alias {-superclass:alias ::nx::Object} -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:alias -attributes:alias -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg __initcmd:initcmd,optional"
 
   ? {c1 eval {:objectparameter}} \
       "-a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
@@ -1496,7 +1496,7 @@ Test case xotcl-list-notation {
 #
 # Test parameter alias and parameter forwarder
 #
-Test case parameter-without-data {
+Test case parameter-alias {
 
   Class create C {
     :attribute {x:alias}
@@ -1513,4 +1513,28 @@ Test case parameter-without-data {
   ? {c1 eval {set :foo}} "123 a b c F"
   ? {c1 eval {set :bar}} "aha"
   ? {lsort [c1 info lookup methods -source application]} "D bar foo x"
+}
+
+#
+# Test parameter alias and parameter forwarder
+#
+Test case parameter-alias-default {
+
+  Class create C {
+    :attribute {x1:alias "hugo"}
+    :attribute {{F:forward,arg=%self foo a %1 b c %method} "habicht"}
+    :attribute {x2:alias "[self]"}
+    :public method x1 args {set :x1 $args}
+    :public method x2 args {set :x2 $args}
+    :public method foo args {set :foo $args}
+    :create c1
+  }
+
+  ? {c1 eval {set :x1}} "hugo"
+  ? {c1 eval {set :foo}} "a habicht b c F"
+  ? {c1 eval {set :x2}} "::c1"
+  ? {lsort [c1 info lookup methods -source application]} "foo x1 x2"
+  ? {lsort [C info slots]} "::C::slot::F ::C::slot::x1 ::C::slot::x2"
+  ? {::C::slot::x1 getParameterSpec} {-x1:alias hugo}
+  ? {::C::slot::x2 getParameterSpec} {-x2:alias,substdefault {[self]}}
 }

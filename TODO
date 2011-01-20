@@ -2284,6 +2284,12 @@ text
   (and has different behavior depending on the number of buckets).
 - added regression test
 
+- nx.tcl: added default/initcmd for ObjectParameterSlot
+- added ::nx::Object as default for "superclass" slot
+  to make default superclass explicit
+- unified interface for getParameterOptions
+- extended regression test
+
 TODO:
 
 - object parameter type forward:
@@ -2296,9 +2302,10 @@ TODO:
   - check: 
       slottest/t.023:   3.40 mms, o1 class
       Warning: Arguments '{::M ::xotcl::Object}' to constructor of object ::__unknown are most likely not processed
-   - check, if substdefault/default (ObjectParameter) could work with e.g. alias; otherwise, move substdefault down
-     we could use ::nx::Object as e.g. default superclass
    - should we deactivate add/delete for non-multivalued cases?
+   - allow noarg+default/initcmd ?
+   - default/initcmd/subsdefault: can we simplify these?
+     or add messages for conflicting usages.
 
 
 - doc:
