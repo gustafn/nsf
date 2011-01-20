@@ -3395,7 +3395,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
      * uninitialized memory). Most probably Tcl_NextHashEntry() should
      * return 0;
      */
-    if (hPtr->tablePtr) {
+    if (cmdTablePtr->numEntries) {
       NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
     } else {
       /* 
