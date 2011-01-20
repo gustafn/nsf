@@ -1845,7 +1845,21 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
 
   for (hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch); hPtr; 
        hPtr = Tcl_NextHashEntry(&hSrch)) {
-    Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+    Tcl_Command cmd;
+    /*
+     * If a destroy of one element of the hash table triggers the
+     * destroy of another item, Tcl_NextHashEntry() can lead to a
+     * valid looking hPtr, when the next entry was already
+     * deleted. This seem to occur only, when there are more than 12
+     * hash entries in the table (multiple buckets). However, the
+     * valid looking hPtr might return garbage (looks like
+     * uninitialized memory). Most probably Tcl_NextHashEntry() should
+     * return 0;
+     */
+    if (!hPtr->tablePtr) {
+      break;
+    }
+    cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
     if (!Tcl_Command_cmdEpoch(cmd)) {
       char *oname = Tcl_GetHashKey(cmdTable, hPtr);
       Tcl_DString name;
