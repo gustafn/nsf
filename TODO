@@ -2289,6 +2289,7 @@ text
   to make default superclass explicit
 - unified interface for getParameterOptions
 - extended regression test
+- update class diagram of slots
 
 TODO:
 
