@@ -3412,7 +3412,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
    */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
-    if (hPtr->tablePtr) {
+    if (cmdTablePtr->numEntries) {
       NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
     } else {
       break;
