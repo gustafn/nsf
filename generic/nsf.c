@@ -914,7 +914,6 @@ NsfCleanupObject_(NsfObject *object) {
     assert(object->flags & NSF_DELETED);
 
     MEM_COUNT_FREE("NsfObject/NsfClass", object);
-
 #if defined(NSFOBJ_TRACE)
     fprintf(stderr, "CKFREE Object %p refcount=%d\n", object, object->refCount);
 #endif
@@ -3269,10 +3268,16 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName) {
 static void
 NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
 
-  /*fprintf(stderr, "NSDeleteChildren child %p (%s) epoch %d\n", 
-    cmd, Tcl_GetCommandName(interp, cmd), Tcl_Command_cmdEpoch(cmd));*/
+  /*fprintf(stderr, "NSDeleteChildren child flags %.6x\n", Tcl_Command_flags(cmd));
+  fprintf(stderr, "NSDeleteChildren child %p (%s) epoch %d\n", 
+  cmd, Tcl_GetCommandName(interp, cmd), Tcl_Command_cmdEpoch(cmd));*/
 
-  assert(Tcl_Command_cmdEpoch(cmd) == 0);
+  /* 
+   * In some situations (e.g. small buckets, less than 12 entries), we
+   * get from the cmd-table already deleted cmds; we had previously an
+   * assert(Tcl_Command_cmdEpoch(cmd) == 0);
+   * which will fail in such cases.
+   */
 
   if (!Tcl_Command_cmdEpoch(cmd)) {
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
@@ -3348,9 +3353,9 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
-
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "NSDeleteChildren %p %s\n", nsPtr, nsPtr->fullName);
+  fprintf(stderr, "NSDeleteChildren %p %s activationCount %d\n", 
+	  nsPtr, nsPtr->fullName, Tcl_Namespace_activationCount(nsPtr));
 #endif
 
   /* 
@@ -3358,20 +3363,60 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
    * object, but the reference.
    */
   Tcl_ForgetImport(interp, nsPtr, "*"); /* don't destroy namespace imported objects */
-  
+
+
+#if OBJDELETION_TRACE
+  /*
+   * Deletion is always tricky. Show, what elements should be deleted
+   * in this loop. The actually deleted elements might be acutally
+   * less, if a deletion of one item triggers the destroy of another
+   * item.
+   */
+  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
+       hPtr = Tcl_NextHashEntry(&hSrch)) {
+    Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+    fprintf(stderr, "will destroy %p %s\n", cmd, Tcl_GetCommandName(interp, cmd));
+  }
+#endif  
   /*
    * Second, delete the objects.
    */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
-    NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
+    /* Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+       fprintf(stderr, "NSDeleteChild %p table %p\n", cmd, hPtr->tablePtr);*/
+    /*
+     * If a destroy of one element of the hash table triggers the
+     * destroy of another item, Tcl_NextHashEntry() can lead to a
+     * valid looking hPtr, when the next entry was already
+     * deleted. This seem to occur only, when there are more than 12
+     * hash entries in the table (multiple buckets). However, the
+     * valid looking hPtr might return garbage (looks like
+     * uninitialized memory). Most probably Tcl_NextHashEntry() should
+     * return 0;
+     */
+    if (hPtr->tablePtr) {
+      NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
+    } else {
+      /* 
+       * In this situation even Tcl_NextHashEntry() produces an
+       * invalid read, so assume, everything is deleted 
+       */
+      break;
+    }
+    /*fprintf(stderr, "after: hSrch->tablePtr %p hSrch->nextEntryPtr %p hSrch->nextIndex %d\n", 
+      hSrch.tablePtr, hSrch.nextEntryPtr, hSrch.nextIndex);*/
   }
  /*
   * Finally, delete the classes.
    */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
-    NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
+    if (hPtr->tablePtr) {
+      NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
+    } else {
+      break;
+    }
   }
 }
 
@@ -10813,8 +10858,10 @@ PrimitiveODestroy(ClientData clientData) {
   if (Tcl_InterpDeleted(interp)) return;
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "  physical delete of %p id=%p destroyCalled=%d '%s'\n",
-          object, object->id, (object->flags & NSF_DESTROY_CALLED), ObjectName(object));
+  {Command *cmdPtr = object->id;
+  fprintf(stderr, "  physical delete of %p id=%p (cmd->refCount %d) destroyCalled=%d '%s'\n",
+          object, object->id, cmdPtr->refCount, (object->flags & NSF_DESTROY_CALLED), ObjectName(object));
+  }
 #endif
   CleanupDestroyObject(interp, object, 0);
 

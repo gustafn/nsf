@@ -2277,6 +2277,13 @@ text
 - nx.tcl: needsForwarder is true, when method "get" is specified on a slot
 - nx.tcl: Don't generate per-slot add/assign handlers, when not needed
 
+- nsf.c: fixed a nasty bug within namespace deletion, when a deletion
+  of one tcl cmd caused implicit deletions of other cmds in the same
+  namespace. The classical idiom for looking over hash tables with 
+  Tcl_GetHashValue() and Tcl_NextHashEntry(hSrch) can lead to crashes
+  (and has different behavior depending on the number of buckets).
+- added regression test
+
 TODO:
 
 - object parameter type forward:

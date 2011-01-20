@@ -677,4 +677,68 @@ Test case destroy-during-init {
   ::nx::Object filter ""
 }
 
+Test case nested-ordered-composite {
+  # The following test case an explicit deletion/redefinition of an
+  # toplevel object (o1) will cause the implicit deletion of a nested
+  # object o1::o2. The object o2 has as well several included objects,
+  # containing an "ordered composite". The deletion of the ordered
+  # compostite causes the (explicit) deletion of its siblings (all
+  # children of o1::o2). This is actually a stress test for the deletion
+  # of o2's namespace, since the loop over its children will be
+  # confronted with the deletion of indirectly deleted items (deleted by
+  # the deletion of the ordered composite).
+
+  Class create C {
+    :attribute os
+    :public method destroy {} {
+      #puts stderr "[self] destroy ${:os}"
+      foreach o [${:os}] {
+	if {[::nsf::isobject $o]} {
+	  #puts stderr "--D $o destroy"
+	  $o destroy
+	}
+	next
+      }
+    }
+  }
+  #
+  # 10 siblings of oc1:
+  # deletion order in bucket: 8 4 10 9 5 1 6 2 oc1 7 3
+  # oc1 deletes 7 and 3, fine
+  # ... loop might run into an epoched cmd -> might crash
+  #
+
+  set c 0
+  for {set i 0} {$i < 10} {incr i} {
+    set os [list]
+    for {set j 0} {$j < 10} {incr j} {lappend os ::o1::o2::[incr c]}
+    Object create ::o1
+    Object create ::o1::o2
+    foreach o $os {Object create $o}
+    C create ::o1::o2::oc1 -os $os
+    ? {llength [o1 info children]} 1
+    ? {llength [o1::o2 info children]} 11
+  }
+
+  ### 20 siblings of oc1 (has to be >12):
+  # deletion order in bucket: 17 18 1 20 19 2 3 4 5 6 7 8 9 19 11 oc1 12 13 14 15 16
+  # oc1 deletes 12 13 14 15 16
+  # after destroy of oc1 
+  #  a) NextHashEntry(hSearch) returns valid looking hPtr
+  #  b) Tcl_GetHashValue(hPtr) returns garbage (uninitialized memory?) instead of cmd
+  # --> might crash
+  # 
+  set c 0
+  for {set i 0} {$i < 10} {incr i} {
+    set os [list]
+    for {set j 0} {$j < 20} {incr j} {lappend os ::o1::o2::[incr c]}
+    Object create ::o1
+    Object create ::o1::o2
+    foreach o $os {Object create $o}
+    C create ::o1::o2::oc1 -os $os
+    ? {llength [o1 info children]} 1
+    ? {llength [o1::o2 info children]} 21
+  }
+}
+
 #puts stderr "==== EXIT ===="
