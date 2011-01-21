@@ -692,7 +692,7 @@ Test case nested-ordered-composite {
     :attribute os
     :public method destroy {} {
       #puts stderr "[self] destroy ${:os}"
-      foreach o [${:os}] {
+      foreach o ${:os} {
 	if {[::nsf::isobject $o]} {
 	  #puts stderr "--D $o destroy"
 	  $o destroy
