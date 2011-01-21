@@ -698,6 +698,7 @@ static void
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
+  /*fprintf(stderr, "CallStackClearCmdReferences %p\n", cmd);*/
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
@@ -860,12 +861,13 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
      */
     if (cl && cmd) {
       Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(cmd);
+      //Tcl_Namespace *nsPtr = cl->nsPtr;
       cl->object.activationCount ++;
-      /*fprintf(stderr, "CscInit %s %s activationCount %d cmd %s cmd ns %p (%s, refCount %d ++) "
+      /*fprintf(stderr, "CscInit class %s activationCount %d cmd %s cmd ns %p (%s, refCount %d ++) "
 	      "obj ns %p parent %p\n",
-	      msg, className(cl), cl->object.activationCount,
+	      ClassName(cl), cl->object.activationCount,
 	      Tcl_GetCommandName(object->teardown, cmd),
-	      nsPtr, nsPtr->fullName, nsPtr->refCount,
+	      nsPtr, nsPtr->fullName, Tcl_Namespace_refCount(nsPtr),
 	      cl->object.nsPtr,cl->object.nsPtr ? ((Namespace*)cl->object.nsPtr)->parentPtr : NULL);*/
 
       /* 
@@ -873,6 +875,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
        * this namespace during the invocation
        */
       NSNamespacePreserve(nsPtr);
+      /*fprintf(stderr, "NSNamespacePreserve %p\n", nsPtr);*/
     }
 
   }
@@ -961,12 +964,16 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
        tracking activations of classes
     */
     if (cscPtr->cl) {
-      Tcl_Namespace *nsPtr = cscPtr->cmdPtr ? Tcl_Command_nsPtr(cscPtr->cmdPtr) : NULL;
+      //Tcl_Namespace *nsPtr = cscPtr->cl->nsPtr;
+      Tcl_Namespace *nsPtr;
+
+      //fprintf(stderr, "CscFinish %p cmdPtr %p\n", cscPtr, cscPtr->cmdPtr);
+      nsPtr = cscPtr->cmdPtr ? Tcl_Command_nsPtr(cscPtr->cmdPtr) : NULL;
 
       object = &cscPtr->cl->object;
       object->activationCount --;
 
-      /*fprintf(stderr, "CscFinish check ac %d flags destroy %.6x success %.6x\n",
+      /*fprintf(stderr, "CscFinish class check ac %d flags destroy %.6x success %.6x\n",
 	      object->activationCount,
 	      object->flags & NSF_DESTROY_CALLED,
 	      object->flags & NSF_DESTROY_CALLED_SUCCESS);*/
@@ -987,6 +994,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
       }
 #endif
       if (nsPtr) {
+	/*fprintf(stderr, "NSNamespaceRelease %p\n", nsPtr);*/
 	NSNamespaceRelease(nsPtr);
       }
     }

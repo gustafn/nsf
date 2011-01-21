@@ -111,6 +111,7 @@
 #define NRE_CALLBACK_TRACE 1
 */
 
+
 /*
  * Sanity checks and dependencies for optional compile flags
  */

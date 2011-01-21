@@ -2291,7 +2291,15 @@ text
 - extended regression test
 - update class diagram of slots
 
+- new function Nsf_NextHashEntry() simular Tcl_NextHashEntry(),
+  but handles triggered hash entry deletions
+- fixed reference count in AliasDeleteObjectReference()
+
+
 TODO:
+
+- document value added replacements of Tcl functions
+
 
 - object parameter type forward:
    - regression test

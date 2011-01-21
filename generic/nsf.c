@@ -409,6 +409,7 @@ NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST
   Tcl_DStringFree(dsPtr);
 }
 
+
 /***********************************************************************
  * argv parsing
  ***********************************************************************/
@@ -604,9 +605,24 @@ NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method
 
 #include "nsfStack.c"
 
-/*
+
+/***********************************************************************
+ * value added replacements of Tcl functions
+ ***********************************************************************/
+static int
+Nsf_DeleteCommandFromToken(Tcl_Interp *interp, Tcl_Command cmd) {
+  CallStackClearCmdReferences(interp, cmd);
+  return Tcl_DeleteCommandFromToken(interp, cmd);
+}
+
+static Tcl_HashEntry *
+Nsf_NextHashEntry(Tcl_HashTable *tablePtr, Tcl_HashSearch *hSrchPtr) {
+  return tablePtr->numEntries < 1 ? NULL : Tcl_NextHashEntry(hSrchPtr);
+}
+
+/***********************************************************************
  * 12 extern callable routines for the preliminary C interface
- */
+ ***********************************************************************/
 extern Nsf_Object *
 NsfGetSelfObj(Tcl_Interp *interp) {
   return (Nsf_Object*) GetSelfObj(interp);
@@ -749,8 +765,8 @@ NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodNam
  */
 #if defined(NSFOBJ_TRACE)
 # define NsfObjectRefCountIncr(obj)					\
-  (obj)->refCount++;                                                    \
-  fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, obj->refCount, obj->cmdName?ObjStr(obj->cmdName):"no name"); \
+  ((NsfObject*)obj)->refCount++;					\
+  fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, ((NsfObject*)obj)->refCount, ((NsfObject*)obj)->cmdName?ObjStr(((NsfObject*)obj)->cmdName):"no name"); \
   MEM_COUNT_ALLOC("NsfObject RefCount", obj)
 # define NsfObjectRefCountDecr(obj)					\
   (obj)->refCount--;							\
@@ -772,7 +788,7 @@ ObjTrace(char *string, NsfObject *object) {
     fprintf(stderr, "--- %s tcl %p %s (%d %p) nsf %p (%d) %s \n", string,
             object->cmdName, object->cmdName->typePtr ? object->cmdName->typePtr->name : "NULL",
             object->cmdName->refCount, object->cmdName->internalRep.twoPtrValue.ptr1,
-            object, obj->refCount, ObjectName(object));
+            object, object->refCount, ObjectName(object));
   } else {
     fprintf(stderr, "--- No object: %s\n", string);
   }
@@ -906,7 +922,7 @@ DStringAppendQualName(Tcl_DString *dsPtr, Tcl_Namespace *nsPtr, CONST char* name
 static void
 NsfCleanupObject_(NsfObject *object) {
   NsfObjectRefCountDecr(object);
-  /* fprintf(stderr, "obj refCount of %p after decr %d\n",object,object->refCount);*/
+  /*fprintf(stderr, "NsfCleanupObject obj refCount of %p after decr %d\n",object,object->refCount);*/
 
   if (object->refCount <= 0) {
     /*fprintf(stderr, "NsfCleanupObject %p refcount %d\n", object, object->refCount);*/
@@ -2136,9 +2152,11 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_SOFT_DESTROY;
   /*fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
 
-  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; 
+       hPtr = Nsf_NextHashEntry(commandNameTable, &hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     NsfObject *object = GetObjectFromString(interp, key);
+
     /* fprintf(stderr, "key = %s %p %d\n",
        key, obj, obj && !NsfObjectIsClass(object)); */
     if (object && !NsfObjectIsClass(object)
@@ -2149,9 +2167,11 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
 
   /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
 
-  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; 
+       hPtr = Nsf_NextHashEntry(commandNameTable, &hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     NsfClass *cl = GetClassFromString(interp, key);
+
     if (cl && !(cl->object.flags & NSF_DESTROY_CALLED)) {
       DispatchDestroyMethod(interp, (NsfObject *)cl, 0);
     }
@@ -2336,7 +2356,7 @@ MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
       if (objHashTablePtr->buckets == objHashTablePtr->staticBuckets) {
         varHashTablePtr->buckets = varHashTablePtr->staticBuckets;
       }
-      for (hPtr = Tcl_FirstHashEntry(varHashTablePtr, &search);  hPtr;
+      for (hPtr = Tcl_FirstHashEntry(varHashTablePtr, &search); hPtr;
            hPtr = Tcl_NextHashEntry(&search)) {
         hPtr->tablePtr = varHashTablePtr;
       }
@@ -3381,71 +3401,53 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   /*
    * Second, delete the objects.
    */
+
+  /*
+   * If a destroy of one element of the hash table triggers the
+   * destroy of another item, Tcl_NextHashEntry() can lead to a valid
+   * looking hPtr, when the next entry was already deleted. This seem
+   * to occur only, when there are more than 12 hash entries in the
+   * table (multiple buckets). However, the valid looking hPtr might
+   * return garbage (looks like uninitialized memory). Most probably
+   * Tcl_NextHashEntry() should return NULL; therefore, we use
+   * Nsf_NextHashEntry() which checks for tablePtr->numEntries > 0.
+   */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
+       hPtr = Nsf_NextHashEntry(cmdTablePtr, &hSrch)) {
     /* Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
        fprintf(stderr, "NSDeleteChild %p table %p\n", cmd, hPtr->tablePtr);*/
-    /*
-     * If a destroy of one element of the hash table triggers the
-     * destroy of another item, Tcl_NextHashEntry() can lead to a
-     * valid looking hPtr, when the next entry was already
-     * deleted. This seem to occur only, when there are more than 12
-     * hash entries in the table (multiple buckets). However, the
-     * valid looking hPtr might return garbage (looks like
-     * uninitialized memory). Most probably Tcl_NextHashEntry() should
-     * return 0;
-     */
-    if (cmdTablePtr->numEntries) {
-      NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
-    } else {
-      /* 
-       * In this situation even Tcl_NextHashEntry() produces an
-       * invalid read, so assume, everything is deleted 
-       */
-      break;
-    }
-    /*fprintf(stderr, "after: hSrch->tablePtr %p hSrch->nextEntryPtr %p hSrch->nextIndex %d\n", 
-      hSrch.tablePtr, hSrch.nextEntryPtr, hSrch.nextIndex);*/
+    NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
   }
  /*
   * Finally, delete the classes.
    */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
-    if (cmdTablePtr->numEntries) {
-      NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
-    } else {
-      break;
-    }
+       hPtr = Nsf_NextHashEntry(cmdTablePtr, &hSrch)) {
+    NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
   }
 }
 
-static int
-Nsf_DeleteCommandFromToken(Tcl_Interp *interp, Tcl_Command cmd) {
-  CallStackClearCmdReferences(interp, cmd);
-  return Tcl_DeleteCommandFromToken(interp, cmd);
-}
 
 /*
  * delete all vars & procs in a namespace
  */
 static void
-NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
-  TclVarHashTable *varTablePtr = Tcl_Namespace_varTablePtr(ns);
-  Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(ns);
+NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
+  TclVarHashTable *varTablePtr = Tcl_Namespace_varTablePtr(nsPtr);
+  Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "NSCleanupNamespace %p\n", ns);
-  fprintf(stderr, "NSCleanupNamespace %p %.6x varTablePtr %p\n", ns, ((Namespace *)ns)->flags, varTablePtr);
+  fprintf(stderr, "NSCleanupNamespace %p flags %.6x\n", nsPtr, Tcl_Namespace_flags(nsPtr));
+  fprintf(stderr, "NSCleanupNamespace %p %.6x varTablePtr %p\n", nsPtr, ((Namespace *)nsPtr)->flags, varTablePtr);
 #endif
   /*
    * Delete all variables and initialize var table again
    * (DeleteVars frees the vartable)
    */
   TclDeleteVars((Interp *)interp, varTablePtr);
-  TclInitVarHashTable(varTablePtr, (Namespace *)ns);
+  TclInitVarHashTable(varTablePtr, (Namespace *)nsPtr);
 
   /*
    * Delete all user-defined procs in the namespace
@@ -3463,11 +3465,13 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
 	AliasDeleteObjectReference(interp, cmd);
 	continue;
       }
-      /* fprintf(stderr, "NSCleanupNamespace calls DeleteCommandFromToken for %p flags %.6x invokeObj %p obj %p\n",
-                cmd, ((Command *)cmd)->flags, invokeObj,object);
-        fprintf(stderr, "    cmd = %s\n", Tcl_GetCommandName(interp,cmd));
-        fprintf(stderr, "    nsPtr = %p\n", ((Command *)cmd)->nsPtr);
-        fprintf(stderr, "    flags %.6x\n", ((Namespace *)((Command *)cmd)->nsPtr)->flags);*/
+      /*fprintf(stderr, "NSCleanupNamespace calls DeleteCommandFromToken for %p flags %.6x\n",
+                cmd, ((Command *)cmd)->flags);
+      fprintf(stderr, "    cmd = %s\n", Tcl_GetCommandName(interp,cmd));
+      fprintf(stderr, "    nsPtr = %p\n", ((Command *)cmd)->nsPtr);
+      fprintf(stderr, "    epoch = %d\n", Tcl_Command_cmdEpoch(cmd));
+      fprintf(stderr, "    refCount = %d\n", Tcl_Command_refCount(cmd));
+      fprintf(stderr, "    flags %.6x\n", ((Namespace *)((Command *)cmd)->nsPtr)->flags);*/
 
       Nsf_DeleteCommandFromToken(interp, cmd);
   }
@@ -5542,8 +5546,6 @@ MixinResetOrderForInstances(NsfClass *cl) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
-  hPtr = Tcl_FirstHashEntry(&cl->instances, &hSrch);
-
   /*fprintf(stderr, "invalidating instances of class %s\n",
     ObjStr(clPtr->cl->object.cmdName));*/
 
@@ -5551,7 +5553,8 @@ MixinResetOrderForInstances(NsfClass *cl) {
      class mixin somewhere else and invalidate the objects of these as
      well -- */
 
-  for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+  for (hPtr = Tcl_FirstHashEntry(&cl->instances, &hSrch); hPtr; 
+       hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfObject *object = (NsfObject *)Tcl_GetHashKey(&cl->instances, hPtr);
     if (object
         && !(object->flags & NSF_DURING_DELETE)
@@ -5591,7 +5594,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   NsfClasses *saved = cl->order, *clPtr;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
-  Tcl_HashTable objTable, *commandTable = &objTable;
+  Tcl_HashTable objTable, *commandTable = &objTable, *instanceTablePtr;
 
   cl->order = NULL;
 
@@ -5600,17 +5603,19 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   */
   for (clPtr = ComputeOrder(cl, cl->order, Sub); clPtr; clPtr = clPtr->nextPtr) {
     Tcl_HashSearch hSrch;
-    Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
-      Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
+    //Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
+    //Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
+    Tcl_HashEntry *hPtr;
 
     /* reset mixin order for all objects having this class as per object mixin */
     ResetOrderOfClassesUsedAsMixins(clPtr->cl);
 
     /* fprintf(stderr, "invalidating instances of class %s\n", ObjStr(clPtr->cl->object.cmdName));
      */
-
-    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      NsfObject *object = (NsfObject *)Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
+    instanceTablePtr = &clPtr->cl->instances;
+    for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr; 
+	 hPtr = Tcl_NextHashEntry(&hSrch)) {
+      NsfObject *object = (NsfObject *)Tcl_GetHashKey(instanceTablePtr, hPtr);
       if (object->mixinOrder) { MixinResetOrder(object); }
       object->flags &= ~NSF_MIXIN_ORDER_VALID;
     }
@@ -7740,7 +7745,15 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
          * When we try to call a deleted object, the cmd (alias) is
          * automatically removed.
          */
-        Tcl_DeleteCommandFromToken(interp, cmd);
+	/*fprintf(stderr, "methodName %s FOUND deleted object with cmd %p my cscPtr %p\n", methodName, cmd, cscPtr);
+	fprintf(stderr, " .... cl %p\n", cscPtr->cl);
+	if (cscPtr->cl) {
+	  fprintf(stderr, ".... cl->nsPtr %p obj->nsPtr %p cmd->nsPtr %p\n", cscPtr->cl->nsPtr,
+		  (&(cscPtr->cl->object))->nsPtr, Tcl_Command_nsPtr(cscPtr->cmdPtr));
+		  }*/
+	assert(cscPtr->cmdPtr == cmd);
+	cscPtr->cmdPtr = NULL;
+        Nsf_DeleteCommandFromToken(interp, cmd);
         NsfCleanupObject(invokeObj, "alias-delete1");
         return NsfPrintError(interp, "Trying to dispatch deleted object via method '%s'",
                               methodName);
@@ -10839,7 +10852,7 @@ PrimitiveODestroy(ClientData clientData) {
 
   if (!object || !object->teardown) return;
 
-  /*fprintf(stderr, "****** PrimitiveODestroy %p flags %.6x\n", object, object->flags);*/
+  /*fprintf(stderr, "****** PrimitiveODestroy %p cmd %p flags %.6x\n", object, object->id, object->flags);*/
   assert(!(object->flags & NSF_DELETED));
 
   /* destroy must have been called already */
@@ -11215,10 +11228,11 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
      * We do not have to reclassing in case, cl is a root class
      */
     if ((cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
+      Tcl_HashTable *instanceTablePtr = &cl->instances;
 
-      hPtr = &cl->instances ? Tcl_FirstHashEntry(&cl->instances, &hSrch) : NULL;
-      for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-        NsfObject *inst = (NsfObject*)Tcl_GetHashKey(&cl->instances, hPtr);
+      for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr; 
+	   hPtr = Nsf_NextHashEntry(instanceTablePtr, &hSrch)) {
+        NsfObject *inst = (NsfObject*)Tcl_GetHashKey(instanceTablePtr, hPtr);
         /*fprintf(stderr, "    inst %p %s flags %.6x id %p baseClass %p %s\n",
 	  inst, ObjectName(inst), inst->flags, inst->id,baseClass,ClassName(baseClass));*/
         if (inst && inst != (NsfObject*)cl && !(inst->flags & NSF_DURING_DELETE) /*inst->id*/) {
@@ -13845,9 +13859,10 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
     return TCL_OK;
 
   } else {
-    hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch);
-
-    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    
+    for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch); 
+	 hPtr; 
+	 hPtr = Tcl_NextHashEntry(&hSrch)) {
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
       if (prefixLength) {Tcl_DStringTrunc(prefix, prefixLength);}
@@ -13938,10 +13953,12 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
     Tcl_Obj *list = Tcl_NewListObj(0, NULL);
     Tcl_HashSearch hSrch;
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(object->nsPtr);
-    Tcl_HashEntry *hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
+    Tcl_HashEntry *hPtr;
     char *key;
 
-    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); 
+	 hPtr; 
+	 hPtr = Tcl_NextHashEntry(&hSrch)) {
       key = Tcl_GetHashKey(cmdTablePtr, hPtr);
       if (!pattern || Tcl_StringMatch(key, pattern)) {
         Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
@@ -14181,8 +14198,9 @@ static int
 AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
   NsfObject *referencedObject = NsfGetObjectFromCmdPtr(cmd);
 
+  /*fprintf(stderr, "AliasDeleteObjectReference on %p obj %p\n", cmd, referencedObject);*/
   if (referencedObject
-      && referencedObject->refCount >= 2
+      && referencedObject->refCount > 0
       && cmd != referencedObject->id) {
     /*
      * The cmd is an aliased object, reduce the refcount of the
@@ -18180,7 +18198,7 @@ NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl,
   /*fprintf(stderr, "NsfClassInfoInstancesMethod: clo %d pattern %s match %p\n",
     withClosure, pattern, matchObject);*/
 
-  for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
+  for (hPtr = Tcl_FirstHashEntry(tablePtr, &search); hPtr;
        hPtr = Tcl_NextHashEntry(&search)) {
     NsfObject *inst = (NsfObject*) Tcl_GetHashKey(tablePtr, hPtr);
     /*fprintf(stderr, "match '%s' %p %p '%s'\n",
@@ -18528,7 +18546,8 @@ DeleteProcsAndVars(Tcl_Interp *interp) {
   Tcl_Command cmd;
   register Tcl_HashEntry *entryPtr;
 
-  for (entryPtr = Tcl_FirstHashEntry(varTablePtr, &search); entryPtr; entryPtr = Tcl_NextHashEntry(&search)) {
+  for (entryPtr = Tcl_FirstHashEntry(varTablePtr, &search); entryPtr; 
+       entryPtr = Tcl_NextHashEntry(&search)) {
     Tcl_Obj *nameObj;
     GetVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
     if (!TclIsVarUndefined(varPtr) || TclIsVarNamespaceVar(varPtr)) {
@@ -18536,7 +18555,8 @@ DeleteProcsAndVars(Tcl_Interp *interp) {
       Tcl_UnsetVar2(interp, ObjStr(nameObj), (char *)NULL, TCL_GLOBAL_ONLY);
     }
   }
-  for (entryPtr = Tcl_FirstHashEntry(cmdTablePtr, &search); entryPtr; entryPtr = Tcl_NextHashEntry(&search)) {
+  for (entryPtr = Tcl_FirstHashEntry(cmdTablePtr, &search); entryPtr; 
+       entryPtr = Tcl_NextHashEntry(&search)) {
     cmd = (Tcl_Command)Tcl_GetHashValue(entryPtr);
 
     if (Tcl_Command_objProc(cmd) == RUNTIME_STATE(interp)->objInterpProc) {
@@ -18637,7 +18657,8 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
    * imported commands and objects and will resolve potential loops in
    * the dependency graph. The result is a plain object/class tree.
    */
-  for (hPtr = Tcl_FirstHashEntry(commandNameTablePtr, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+  for (hPtr = Tcl_FirstHashEntry(commandNameTablePtr, &hSrch); hPtr; 
+       hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTablePtr, hPtr);
     object = GetObjectFromString(interp, key);
 
