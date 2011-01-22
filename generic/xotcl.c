@@ -1856,7 +1856,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
      * uninitialized memory). Most probably Tcl_NextHashEntry() should
      * return 0;
      */
-    if (!hPtr->tablePtr) {
+    if (cmdTable->numEntries < 1) {
       break;
     }
     cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
