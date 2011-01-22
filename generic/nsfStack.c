@@ -681,36 +681,6 @@ CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTa
 
 /*
  *----------------------------------------------------------------------
- * CallStackClearCmdReferences --
- *
- *    Clear all references to the specified cmd in the callstack
- *    contents.
- *
- * Results:
- *    None.
- *
- * Side effects:
- *    Updated stack.
- *
- *----------------------------------------------------------------------
- */
-static void
-CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
-  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-
-  /*fprintf(stderr, "CallStackClearCmdReferences %p\n", cmd);*/
-  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (cscPtr->cmdPtr == cmd) {
-        cscPtr->cmdPtr = NULL;
-      }
-    }
-  }
-}
-
-/*
- *----------------------------------------------------------------------
  * CallStackPopAll --
  *
  *    Unwind the stack and pop all callstack entries that are still
@@ -837,47 +807,36 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
 
   assert(cscPtr);
 
+  /*
+   *  When cmd is provided, the call is not an unknown, the method
+   *  will be executed and the object will be stacked. In these
+   *  cases, we maintain an activation count. 
+   */
   if (cmd) {
     /*
-     *  When cmd is provided, the call is not an unknown, the method
-     *  will be executed and the object will be stacked. In these
-     *  cases, we maintain an activation count. The fact that the
-     *  activation cound was incremented for this frame is noted via
-     *  NSF_CSC_OBJECT_ACTIVATED; callType is initialized in
-     *  CscAlloc()
-     */
-
-    cscPtr->flags |= NSF_CSC_OBJECT_ACTIVATED;
-
-    /*
-     * track object activations
+     * Track object activations
      */
     object->activationCount ++;
     /*fprintf(stderr, "CscInit %s method %s activationCount ++ (%s) --> %d\n",
 	    msg, cmd ? Tcl_GetCommandName(object->teardown,cmd) : "UNK", 
 	    ObjectName(object),  object->activationCount);*/
     /*
-     * track class activations
+     * Track class activations
      */
-    if (cl && cmd) {
-      Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(cmd);
-      //Tcl_Namespace *nsPtr = cl->nsPtr;
+    if (cl) {
+      /*
+       * handle class activation count
+       */
       cl->object.activationCount ++;
-      /*fprintf(stderr, "CscInit class %s activationCount %d cmd %s cmd ns %p (%s, refCount %d ++) "
-	      "obj ns %p parent %p\n",
-	      ClassName(cl), cl->object.activationCount,
-	      Tcl_GetCommandName(object->teardown, cmd),
-	      nsPtr, nsPtr->fullName, Tcl_Namespace_refCount(nsPtr),
-	      cl->object.nsPtr,cl->object.nsPtr ? ((Namespace*)cl->object.nsPtr)->parentPtr : NULL);*/
-
       /* 
        * Incremement the namespace ptr in case Tcl tries to delete
        * this namespace during the invocation
        */
-      NSNamespacePreserve(nsPtr);
+      NSNamespacePreserve(Tcl_Command_nsPtr(cmd));
       /*fprintf(stderr, "NSNamespacePreserve %p\n", nsPtr);*/
     }
 
+    NsfCommandPreserve(cmd);
   }
   cscPtr->flags        |= flags & NSF_CSC_COPY_FLAGS;
   cscPtr->self          = object;
@@ -886,7 +845,6 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
   cscPtr->objv          = NULL;
   cscPtr->filterStackEntry = object->filterStack;
   cscPtr->frameType     = frameType;
-
 
   /*fprintf(stderr, "CscInit %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg,
     object, ObjectName(object), cscPtr->flags, cscPtr->cmdPtr);*/
@@ -921,83 +879,59 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   flags = cscPtr->flags;
 
   /*fprintf(stderr, "CscFinish %p object %p %s flags %.6x cmdPtr %p\n",cscPtr,
-    object, ObjectName(object), flags, cscPtr->cmdPtr);*/
+    object, ObjectName(object), flags, cscPtr->cmdPtr); */
 
   /*
-   *  We cannot rely on the existence of cscPtr->cmdPtr (like in
-   *  initialize), since the cmd might have been deleted during the
-   *  activation.
+   *  In the cases, where an cmd was provided, we tracked in init the
+   *  activations. Release these activations now. Notem, that
+   *  cscPtr->cmdPtr might have been epoched, but it is still
+   *  available, since we used NsfCommandPreserve() in CscInit().
    */
-  if ((flags & NSF_CSC_OBJECT_ACTIVATED)) {
+  if (cscPtr->cmdPtr) {
     /*
-     * Tracking activations of objects
+     * Track object activations
      */
     object->activationCount --;
 
-    /*fprintf(stderr, "... activationCount -- (%s) --> %d\n",ObjectName(object),
-      object->activationCount);*/
-
-    /*fprintf(stderr, "decr activationCount for %s to %d object->flags %.6x dc %.6x succ %.6x\n",
+    /*fprintf(stderr, "CscFinish decr activationCount for %s to %d object->flags %.6x dc %.6x succ %.6x\n",
 	    ObjectName(cscPtr->self), cscPtr->self->activationCount, object->flags,
 	    object->flags & NSF_DESTROY_CALLED,
 	    object->flags & NSF_DESTROY_CALLED_SUCCESS
 	    );*/
+
     assert(object->activationCount > -1);
 
-    /*
-    if (((object->flags & NSF_DESTROY_CALLED_SUCCESS)>0) !=
-	((object->flags & NSF_DESTROY_CALLED)>0)) {
-      fprintf(stderr, "*** flags differ for obj %p\n", object);
-    }
-    */
-
-    if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED_SUCCESS && allowDestroy) {
+    if (object->activationCount < 1 && (object->flags & NSF_DESTROY_CALLED) && allowDestroy) {
+      /*fprintf(stderr, "CscFinish calls destroy object %p\n", object);*/
       CallStackDoDestroy(interp, object);
     }
-#if defined(OBJDELETION_TRACE)
-    else if (!allowDestroy) {
-      fprintf(stderr,"checkFree %p %s\n",object, ObjectName(object));
-    }
-#endif
 
     /*
-       tracking activations of classes
-    */
+     * Track class activations
+     */
     if (cscPtr->cl) {
-      //Tcl_Namespace *nsPtr = cscPtr->cl->nsPtr;
-      Tcl_Namespace *nsPtr;
+      NsfObject *clObject = &cscPtr->cl->object;
+      clObject->activationCount --;
 
-      //fprintf(stderr, "CscFinish %p cmdPtr %p\n", cscPtr, cscPtr->cmdPtr);
-      nsPtr = cscPtr->cmdPtr ? Tcl_Command_nsPtr(cscPtr->cmdPtr) : NULL;
+      /*fprintf(stderr, "CscFinish class %p %s check ac %d flags destroy %.6x success %.6x\n",
+	      clObject, ObjectName(clObject),
+	      clObject->activationCount,
+	      clObject->flags & NSF_DESTROY_CALLED,
+	      clObject->flags & NSF_DESTROY_CALLED_SUCCESS);*/
 
-      object = &cscPtr->cl->object;
-      object->activationCount --;
-
-      /*fprintf(stderr, "CscFinish class check ac %d flags destroy %.6x success %.6x\n",
-	      object->activationCount,
-	      object->flags & NSF_DESTROY_CALLED,
-	      object->flags & NSF_DESTROY_CALLED_SUCCESS);*/
-
-#if 0
-      // TODO remove block
-      if (((object->flags & NSF_DESTROY_CALLED_SUCCESS)>0) !=
-	  ((object->flags & NSF_DESTROY_CALLED)>0)) {
-	fprintf(stderr, "*** flags differ for class %p\n", object);
+      if (clObject->activationCount < 1 && clObject->flags & NSF_DESTROY_CALLED && allowDestroy) {
+	/* fprintf(stderr, "CscFinish calls destroy class %p\n", clObject);*/
+	CallStackDoDestroy(interp, clObject);
       }
-#endif
-      if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED_SUCCESS && allowDestroy) {
-	CallStackDoDestroy(interp, object);
-      }
-#if defined(OBJDELETION_TRACE)
-      else if (!allowDestroy) {
-	fprintf(stderr,"checkFree %p %s\n",object, ObjectName(object));
-      }
-#endif
-      if (nsPtr) {
-	/*fprintf(stderr, "NSNamespaceRelease %p\n", nsPtr);*/
-	NSNamespaceRelease(nsPtr);
-      }
+      /*
+       * Release the Namespace
+       */
+      NSNamespaceRelease(Tcl_Command_nsPtr(cscPtr->cmdPtr));
     }
+    /*
+     * Release the Command
+     */
+    NsfCommandRelease(cscPtr->cmdPtr);
   }
 
 #if defined(NRE)
@@ -1008,7 +942,22 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   /*fprintf(stderr, "CscFinish done\n");*/
 }
 
-
+/*
+ *----------------------------------------------------------------------
+ * BeginOfCallChain --
+ *
+ *    Experimental function to track the begin of a call chain.
+ *    Currently not used.
+ *
+ * Results:
+ *    Callframe ptr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+#if 0
 static Tcl_CallFrame *
 BeginOfCallChain(Tcl_Interp *interp, NsfObject *object) {
   Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), 
@@ -1034,3 +983,4 @@ BeginOfCallChain(Tcl_Interp *interp, NsfObject *object) {
   fprintf(stderr, "BeginOfCallChain returns %p\n", prevFramePtr);
   return prevFramePtr;
 }
+#endif

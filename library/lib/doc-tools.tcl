@@ -429,8 +429,7 @@ namespace eval ::nx::doc {
     # :forward owning_entity_class {% [[:info parent] info parent] }
     :method init args {
       :defaultmethods [list get append]
-      :multivalued true
-      :allowempty true
+      :multiplicity 0..n 
       set :incremental true
       # TODO: setting a default value leads to erratic behaviour;
       # needs to be verified -> @author returns ""

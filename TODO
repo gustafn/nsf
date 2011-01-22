@@ -2295,6 +2295,18 @@ text
   but handles triggered hash entry deletions
 - fixed reference count in AliasDeleteObjectReference()
 
+- nsf.c: changed handling of cmdPtrs in callstack content.
+   * we use now explicit reference counting using 
+     NsfCommandPreserve/NsfCommandRelease
+   * as a consequence, we do not need the following 
+     functions Nsf_DeleteCommandFromToken() and 
+     CallStackClearCmdReferences() any more.
+   * the flag NSF_CSC_OBJECT_ACTIVATED is not needed
+     anymore and was removed
+
+- removed a small memory leak when a destroy method of an object o
+  deletes its grandparents namespace, containing also this class of o
+  (and its methods). Significantly eased by the change above.
 
 TODO:
 
