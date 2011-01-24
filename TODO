@@ -2308,6 +2308,9 @@ text
   deletes its grandparents namespace, containing also this class of o
   (and its methods). Significantly eased by the change above.
 
+- use NsfCommandPreserve/NsfCommandRelease for tcd->aliasCmd as well.
+  In case of epoched cmdPointers, refetch the cmd and it client data.
+
 TODO:
 
 - document value added replacements of Tcl functions

@@ -282,6 +282,7 @@ static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name);
 
 static void NsfCommandPreserve(Tcl_Command cmd);
 static void NsfCommandRelease(Tcl_Command cmd);
+static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
 void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 
 
@@ -673,6 +674,7 @@ NsfCommandPreserve(Tcl_Command cmd) {
  */
 static void
 NsfCommandRelease(Tcl_Command cmd) {
+  /*fprintf(stderr,"NsfCommandRelease %p\n", cmd);*/
   TclCleanupCommandMacro((Command *)cmd);
   MEM_COUNT_FREE("command refCount", cmd);
 }
@@ -12357,6 +12359,9 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   return result;
 }
 
+static int NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
+		       CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
+
 static int
 NsfProcAliasMethod(ClientData clientData,
                      Tcl_Interp *interp, int objc,
@@ -12371,6 +12376,52 @@ NsfProcAliasMethod(ClientData clientData,
     return NsfPrintError(interp, "no object active for alias '%s'; "
 			 "don't call aliased methods via namespace paths",
 			 Tcl_GetCommandName(interp, tcd->aliasCmd));
+  }
+
+  if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
+    NsfObject *defObject = tcd->class ? &(tcd->class->object) : tcd->object;
+    Tcl_Obj **listElements, *entryObj, *targetObj;
+    int nrElements, withPer_object;
+    Tcl_Command cmd;
+    //int result, withFrame;
+
+    /*
+     * Get the targetObject. Currently, we can get it just via the
+     * alias array.
+     */
+    withPer_object = tcd->class ?  0 : 1;
+    //withFrame = (tcd->objProc == NsfObjscopedMethod);
+    entryObj = AliasGet(interp, defObject->cmdName, methodName, withPer_object);
+
+    Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
+    targetObj = listElements[nrElements-1];
+
+    //result = NsfAliasCmd(interp, defObject, withPer_object, methodName, withFrame, targetObj);
+
+    fprintf(stderr, "trying to dispatch an epoched cmd %p as %s -- cmdName %s\n", 
+	    tcd->aliasedCmd, methodName, ObjStr(targetObj));
+    /*
+     * Replace cmd and its objProc and clientData with a newly fetched
+     * version.
+     */
+    cmd = Tcl_GetCommandFromObj(interp, targetObj);
+    if (cmd == NULL) {
+      return NsfPrintError(interp, "target \"%s\" of alias %s apparently disappeared", 
+			   ObjStr(targetObj), methodName);
+    }
+    cmd = GetOriginalCommand(cmd);
+
+    NsfCommandRelease(tcd->aliasedCmd);
+    tcd->objProc    = Tcl_Command_objProc(cmd);
+    tcd->aliasedCmd = cmd;
+    tcd->clientData = Tcl_Command_objClientData(cmd);
+    NsfCommandPreserve(tcd->aliasedCmd);
+
+    DECR_REF_COUNT(entryObj);
+    /*
+     * Now, we should be able to proceed as plannded, we have an
+     * non-epoched aliasCmd.
+     */
   }
   return MethodDispatch((ClientData)self, interp, objc, objv, tcd->aliasedCmd, self, tcd->class,
                         methodName, 0, 0);
@@ -12420,7 +12471,7 @@ AliasCmdDeleteProc(ClientData clientData) {
     AliasDelete(tcd->interp, tcd->cmdName, methodName, tcd->class == NULL);
   }
 
-  /*fprintf(stderr, "AliasCmdDeleteProc\n");*/
+  /*fprintf(stderr, "AliasCmdDeleteProc aliasedCmd %p\n", tcd->aliasedCmd);*/
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   if (tcd->aliasedCmd) {
     Command *aliasedCmd = (Command *)(tcd->aliasedCmd);
@@ -12443,8 +12494,8 @@ AliasCmdDeleteProc(ClientData clientData) {
       }
       prevPtr = refPtr;
     }
+    NsfCommandRelease(tcd->aliasedCmd);
   }
-
   FREE(AliasCmdClientData, tcd);
 }
 
@@ -14431,6 +14482,8 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (newObjProc) {
     /* add a wrapper */
+    /*fprintf(stderr, "NsfAliasCmd cmd %p\n", cmd);*/
+    NsfCommandPreserve(cmd);
     tcd = NEW(AliasCmdClientData);
     tcd->cmdName    = object->cmdName;
     tcd->interp     = interp; /* just for deleting the associated variable */

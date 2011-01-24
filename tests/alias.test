@@ -394,12 +394,14 @@ proc ::foo args { return [current]->[current method]}
 ::nsf::alias C FOO ::foo
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
 ? {C info methods -methodtype alias} FOO
+# Rename target, such that alias points to an invalid item
+# Note that removing the target works differently (makes cleanup)
+# rename ::foo ""
 rename ::foo ::foo2
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
 ? {C info methods -methodtype alias} FOO
-? {c FOO} ::c->foo2
-? {C info method definition FOO} "::C public alias FOO ::foo"; # should be ::foo2 (!)
-
+? {c FOO} {target "::foo" of alias FOO apparently disappeared}
+? {C info method definition FOO} "::C public alias FOO ::foo"
 
 #
 # Check resolving of namespace imported classes
@@ -517,7 +519,7 @@ Test case proc-alias-compile {
   }
 
   #
-  # by calling "foo" outside the obejct/method context, we get a
+  # by calling "foo" outside the object/method context, we get a
   # byte-code without the compiled-local handler, colon-vars are not
   # recognized, :a refers to the argument
   ? {foo 1 2} 1
@@ -544,3 +546,5 @@ Test case proc-alias-compile {
   set :d 200
   ? {bar 3 4} 0-3-47
 }
+
+puts stderr ===EXIT
