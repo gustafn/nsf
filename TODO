@@ -2310,6 +2310,7 @@ text
 
 - use NsfCommandPreserve/NsfCommandRelease for tcd->aliasCmd as well.
   In case of epoched cmdPointers, refetch the cmd and it client data.
+- add regression test
 
 TODO:
 

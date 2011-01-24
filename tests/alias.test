@@ -547,4 +547,22 @@ Test case proc-alias-compile {
   ? {bar 3 4} 0-3-47
 }
 
-puts stderr ===EXIT
+#
+# test redefinition of a target proc
+#
+Test parameter count 1
+Test case alias-proc-refetch {
+
+  #
+  # initial definition 
+  #
+  proc target {} {return 1}
+  nx::Object create o {:public alias foo ::target}
+  ? {o foo} 1
+
+  #
+  # redefinition
+  #
+  proc ::target {} {return 2}
+  ? {o foo} 2
+}
