@@ -2310,7 +2310,13 @@ text
 
 - use NsfCommandPreserve/NsfCommandRelease for tcd->aliasCmd as well.
   In case of epoched cmdPointers, refetch the cmd and it client data.
-- add regression test
+- added regression tests
+
+- added flag to AliasGet() to leave optional error message if alias
+  data is removed
+- some cleanup in NsfProcAliasMethod(): handle not existing alias data,
+  more careful refcounting
+
 
 TODO:
 

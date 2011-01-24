@@ -263,7 +263,8 @@ static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 
 /* prototypes for alias management */
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
-static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
+static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, 
+			 int withPer_object, int leaveError);
 static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd);
 
 /* prototypes for (class) list handling */
@@ -12381,9 +12382,9 @@ NsfProcAliasMethod(ClientData clientData,
   if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
     NsfObject *defObject = tcd->class ? &(tcd->class->object) : tcd->object;
     Tcl_Obj **listElements, *entryObj, *targetObj;
-    int nrElements, withPer_object;
+    int result, nrElements, withPer_object;
     Tcl_Command cmd;
-    //int result, withFrame;
+    //int withFrame;
 
     /*
      * Get the targetObject. Currently, we can get it just via the
@@ -12391,7 +12392,11 @@ NsfProcAliasMethod(ClientData clientData,
      */
     withPer_object = tcd->class ?  0 : 1;
     //withFrame = (tcd->objProc == NsfObjscopedMethod);
-    entryObj = AliasGet(interp, defObject->cmdName, methodName, withPer_object);
+    entryObj = AliasGet(interp, defObject->cmdName, methodName, withPer_object, 1);
+    if (entryObj == NULL) {
+      return TCL_ERROR;
+    }
+    INCR_REF_COUNT(entryObj);
 
     Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
     targetObj = listElements[nrElements-1];
@@ -12406,8 +12411,10 @@ NsfProcAliasMethod(ClientData clientData,
      */
     cmd = Tcl_GetCommandFromObj(interp, targetObj);
     if (cmd == NULL) {
-      return NsfPrintError(interp, "target \"%s\" of alias %s apparently disappeared", 
-			   ObjStr(targetObj), methodName);
+      result = NsfPrintError(interp, "target \"%s\" of alias %s apparently disappeared", 
+			     ObjStr(targetObj), methodName);
+      DECR_REF_COUNT(entryObj);
+      return result;
     }
     cmd = GetOriginalCommand(cmd);
 
@@ -12475,6 +12482,9 @@ AliasCmdDeleteProc(ClientData clientData) {
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   if (tcd->aliasedCmd) {
     Command *aliasedCmd = (Command *)(tcd->aliasedCmd);
+
+    /*fprintf(stderr, "AliasCmdDeleteProc aliasedCmd %p epoch %d refCount %d\n", 
+      aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd), aliasedCmd->refCount);*/
     /*
      * Clear the aliasCmd from the imported-ref chain of the aliased
      * (or real) cmd.  This widely resembles what happens in the
@@ -13730,7 +13740,7 @@ ListMethod(Tcl_Interp *interp,
 
       entryObj = AliasGet(interp, defObject->cmdName,
 			  Tcl_GetCommandName(interp, cmd),
-			  regObject != defObject ? 1 : withPer_object);
+			  regObject != defObject ? 1 : withPer_object, 0);
       /*
       fprintf(stderr, "aliasGet %s -> %s/%s (%d) returned %p\n",
 	      ObjectName(defObject), methodName, Tcl_GetCommandName(interp, cmd),
@@ -13772,27 +13782,22 @@ ListMethod(Tcl_Interp *interp,
 	  case InfomethodsubcmdDefinitionIdx:
 	    {
 	      NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);
+
 	      assert(subObject);
 	      resultObj = Tcl_NewListObj(0, NULL);
-	      /* we can make
-		    <class> create <parent::child>
-		 or something similar to the other definition cmds
-                     <parent> createChild <child> <class>
-	      */
 	      AppendMethodRegistration(interp, resultObj, "create",
 				       &(subObject->cl)->object,
 				       ObjStr(subObject->cmdName), cmd, 0, 0, 0);
-	      /*
-	      AppendMethodRegistration(interp, resultObj, "subobject",
-				       object, methodName, cmd, 0, 0);
-	      Tcl_ListObjAppendElement(interp, resultObj, subObject->cmdName);*/
-
 	      Tcl_SetObjResult(interp, resultObj);
 	      break;
 	    }
 	  }
 	} else {
-	  /* should never happen */
+	  /* 
+	   * Should never happen 
+	   *
+	   * The warning is just a guess, so we don't raise an error here.
+	   */
 	  NsfLog(interp, NSF_LOG_WARN, "Could not obtain alias definition for %s. "
 		 "Maybe someone deleted the alias %s for object %s?",
 		 methodName, methodName, ObjectName(regObject));
@@ -13859,7 +13864,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
   *isObject = (resolvedProc == NsfObjDispatch);
 
   if (methodType == NSF_METHODTYPE_ALIAS) {
-    if (!(proc == NsfProcAliasMethod || AliasGet(interp, object->cmdName, methodName, withPer_object))) {
+    if (!(proc == NsfProcAliasMethod || AliasGet(interp, object->cmdName, methodName, withPer_object, 0))) {
       return 0;
     }
   } else {
@@ -14263,13 +14268,17 @@ AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int wi
 }
 
 static Tcl_Obj *
-AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object) {
+AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, int leaveError) {
   Tcl_DString ds, *dsPtr = &ds;
   Tcl_Obj *obj = Tcl_GetVar2Ex(interp, NsfGlobalStrings[NSF_ALIAS_ARRAY],
                                AliasIndex(dsPtr, cmdName, methodName, withPer_object),
                                TCL_GLOBAL_ONLY);
   /*fprintf(stderr, "aliasGet methodName '%s' returns %p\n", methodName, obj);*/
   Tcl_DStringFree(dsPtr);
+  if (obj == NULL && leaveError) {
+    NsfPrintError(interp, "Could not obtain alias definition for %s %s.",
+		  ObjStr(cmdName), methodName);
+  }
   return obj;
 }
 
@@ -14518,7 +14527,8 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     newCmd = FindMethod(nsPtr, methodName);
   }
 
-  if (newObjProc) {
+  // TODO remove 1 in expr when decided xxxx
+  if (1 && newObjProc) {
     /*
      * Define the reference chain like for 'namespace import' to
      *  obtain automatic deletes when the original command is deleted.
@@ -14527,6 +14537,8 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     refPtr->importedCmdPtr = (Command *) newCmd;
     refPtr->nextPtr = ((Command *) tcd->aliasedCmd)->importRefPtr;
     ((Command *) tcd->aliasedCmd)->importRefPtr = refPtr;
+    tcd->aliasCmd = newCmd;
+  } else if (newObjProc) {
     tcd->aliasCmd = newCmd;
   }
 

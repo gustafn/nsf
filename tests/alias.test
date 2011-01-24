@@ -392,16 +392,23 @@ C create c
 proc ::foo args { return [current]->[current method]}
 ? {info exists ::nsf::alias(::C,FOO,0)} 0
 ::nsf::alias C FOO ::foo
+::nsf::alias C FOO2 ::foo
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
-? {C info methods -methodtype alias} FOO
+? {lsort [C info methods -methodtype alias]} {FOO FOO2}
 # Rename target, such that alias points to an invalid item
 # Note that removing the target works differently (makes cleanup)
 # rename ::foo ""
 rename ::foo ::foo2
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
-? {C info methods -methodtype alias} FOO
+? {lsort [C info methods -methodtype alias]} {FOO FOO2}
 ? {c FOO} {target "::foo" of alias FOO apparently disappeared}
 ? {C info method definition FOO} "::C public alias FOO ::foo"
+unset ::nsf::alias(::C,FOO,0)
+? {c FOO} {Could not obtain alias definition for ::C FOO.}
+? {c FOO2} {target "::foo" of alias FOO2 apparently disappeared}
+#rename ::foo2 ::foo
+#? {c FOO} {Could not obtain alias definition for ::C FOO.}
+#? {c FOO2} {::c->foo}
 
 #
 # Check resolving of namespace imported classes
