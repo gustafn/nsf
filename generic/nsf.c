@@ -12371,7 +12371,7 @@ NsfProcAliasMethod(ClientData clientData,
   NsfObject *self = tcd->object;
   CONST char *methodName = ObjStr(objv[0]);
 
-  assert(tcd->object==GetSelfObj(interp));
+  assert(tcd->object == GetSelfObj(interp));
 
   if (self == NULL) {
     return NsfPrintError(interp, "no object active for alias '%s'; "
@@ -12426,10 +12426,11 @@ NsfProcAliasMethod(ClientData clientData,
 
     DECR_REF_COUNT(entryObj);
     /*
-     * Now, we should be able to proceed as plannded, we have an
+     * Now, we should be able to proceed as planned, we have an
      * non-epoched aliasCmd.
      */
   }
+
   return MethodDispatch((ClientData)self, interp, objc, objv, tcd->aliasedCmd, self, tcd->class,
                         methodName, 0, 0);
 }
@@ -12463,7 +12464,6 @@ SetterCmdDeleteProc(ClientData clientData) {
 static void
 AliasCmdDeleteProc(ClientData clientData) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-  ImportRef *refPtr, *prevPtr = NULL;
 
   /*
    * Since we just get the clientData, we have to obtain interp,
@@ -12481,6 +12481,9 @@ AliasCmdDeleteProc(ClientData clientData) {
   /*fprintf(stderr, "AliasCmdDeleteProc aliasedCmd %p\n", tcd->aliasedCmd);*/
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   if (tcd->aliasedCmd) {
+
+#if defined(WITH_IMPORT_REFS)
+    ImportRef *refPtr, *prevPtr = NULL;
     Command *aliasedCmd = (Command *)(tcd->aliasedCmd);
 
     /*fprintf(stderr, "AliasCmdDeleteProc aliasedCmd %p epoch %d refCount %d\n", 
@@ -12504,6 +12507,7 @@ AliasCmdDeleteProc(ClientData clientData) {
       }
       prevPtr = refPtr;
     }
+#endif
     NsfCommandRelease(tcd->aliasedCmd);
   }
   FREE(AliasCmdClientData, tcd);
@@ -14477,11 +14481,28 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   } else if (CmdIsProc(cmd)) {
     /*
-     * if we have a tcl proc|nsf-method as alias, then use the
+     * When we have a Tcl proc|nsf-method as alias, then use the
      * wrapper, which will be deleted automatically when the original
      * proc/method is deleted.
      */
     newObjProc = NsfProcAliasMethod;
+    
+    if (objProc == TclObjInterpProc) {
+      /*
+       * We have an alias to a tcl proc;
+       */
+      Proc *procPtr = (Proc *)Tcl_Command_objClientData(cmd);
+      Tcl_Obj *bodyObj = procPtr->bodyPtr;
+
+      if (bodyObj->typePtr == Nsf_OT_byteCodeType) {
+	/*
+	 * Flush old byte code
+	 */
+	fprintf(stderr, "flush byte code\n");
+	bodyObj->typePtr->freeIntRepProc(bodyObj);
+      }
+    }
+
     if (withFrame && withFrame != FrameDefaultIdx) {
       return NsfPrintError(interp, 
 			  "cannot use -frame object|method in alias for scripted command '%s'",
@@ -14505,7 +14526,8 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     deleteProc      = AliasCmdDeleteProc;
     if (tcd->cmdName) {INCR_REF_COUNT(tcd->cmdName);}
   } else {
-    /* call the command directly (must be a c-implemented command not
+    /* 
+     * Call the command directly (must be a c-implemented command not
      * depending on a volatile client data)
      */
     tcd = Tcl_Command_objClientData(cmd);
@@ -14527,8 +14549,9 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     newCmd = FindMethod(nsPtr, methodName);
   }
 
+#if defined(WITH_IMPORT_REFS)
   // TODO remove 1 in expr when decided xxxx
-  if (1 && newObjProc) {
+  if (newObjProc) {
     /*
      * Define the reference chain like for 'namespace import' to
      *  obtain automatic deletes when the original command is deleted.
@@ -14538,9 +14561,12 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     refPtr->nextPtr = ((Command *) tcd->aliasedCmd)->importRefPtr;
     ((Command *) tcd->aliasedCmd)->importRefPtr = refPtr;
     tcd->aliasCmd = newCmd;
-  } else if (newObjProc) {
+  } 
+#else
+  if (newObjProc) {
     tcd->aliasCmd = newCmd;
   }
+#endif
 
   if (newCmd) {
     AliasAdd(interp, object->cmdName, methodName, cl == NULL, ObjStr(cmdName));

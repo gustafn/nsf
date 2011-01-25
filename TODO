@@ -2317,6 +2317,10 @@ text
 - some cleanup in NsfProcAliasMethod(): handle not existing alias data,
   more careful refcounting
 
+- added experimental flag WITH_IMPORT_REFS to deactivate automated
+  alias deletion (seems, that this solves all issues we had before)
+- added flushing of bytecode on alias registration
+- added regression test
 
 TODO:
 
