@@ -1009,6 +1009,7 @@ namespace eval ::nx {
 
   RelationSlot public method add {obj prop value {pos 0}} {
     set oldSetting [::nsf::relation $obj $prop]
+    #puts stderr [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
     # use uplevel to avoid namespace surprises
     uplevel [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
   }

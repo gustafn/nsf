@@ -1,5 +1,5 @@
 # -*- Tcl -*-
-package require XOTcl; namespace import ::xotcl::*
+package require XOTcl; namespace import -force ::xotcl::*
 package require nx::test
 
 Test parameter count 1000
@@ -112,7 +112,8 @@ O o1
 ? {o1 class} "::O"
 o1 class Object
 ? {o1 class} "::xotcl::Object"
-? {catch {o1 class add M}} 1
+? {o1 objectparameter} "-mixin:alias -filter:alias -class:alias args"
+? {o1 class add M} {class: expected a class but got "::o1"}
 
 
 ? {O superclass} "::xotcl::Object"

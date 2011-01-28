@@ -1145,7 +1145,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     }
   }
 
-  /*fprintf(stderr, "try __unknown for %s, result so far is %d\n", objName, result);*/
+  /*fprintf(stderr, "try __unknown for '%s', result so far is %d\n", objName, result);*/
   if (baseClass) {
     Tcl_Obj *methodObj, *nameObj = isAbsolutePath(objName) ? objPtr :
       NameInNamespaceObj(interp, objName, CallingNameSpace(interp));
@@ -1154,11 +1154,10 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 
     methodObj = NsfMethodObj(&baseClass->object, NSF_c_requireobject_idx);
     if (methodObj) {
-      /*fprintf(stderr, "+++ calling __unknown for %s name=%s\n",
+      /*fprintf(stderr, "+++ calling __unknown for %s name '%s'\n",
 	ClassName(baseClass), ObjStr(nameObj));*/
-
       result = CallMethod((ClientData) baseClass, interp, methodObj,
-                          3, &nameObj, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
+                          3, &nameObj, NSF_CM_NO_UNKNOWN|NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
       if (result == TCL_OK) {
         result = GetClassFromObj(interp, objPtr, cl, NULL);
       }
@@ -7893,7 +7892,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	   * we pass the object as first argument of the unknown
 	   * handler.
 	   */
-
+	  fprintf(stderr, "next calls DispatchUnknownMethod\n");
 	  result = DispatchUnknownMethod(self, interp, objc, objv, object,
 					 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
 	}
@@ -8024,15 +8023,12 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   assert(object);
   assert(object->id);
 
-  /*fprintf(stderr, "ObjectDispatchFinalize %p %s.%s flags %.6x (%d) frame %.6x rst %d %s\n",
-	  cscPtr, ObjectName(object), methodName, flags,
-	  result, cscPtr->frameType, RUNTIME_STATE(interp)->unknown,
-	  msg);*/
+  /*fprintf(stderr, "ObjectDispatchFinalize %p %s flags %.6x (%d) frame %.6x rst %d\n",
+	  cscPtr, ObjectName(object), flags,
+	  result, cscPtr->frameType, RUNTIME_STATE(interp)->unknown);*/
 
   /*
-   * When the active command is deleted, the cmdPtr in the call stack
-   * content structure is set to NULL. We are not able to check
-   * parameter in such situations.
+   * Check the return value if wanted
    */
   if (result == TCL_OK && cscPtr->cmdPtr) {
     NsfParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr);
@@ -8043,8 +8039,8 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
 			      rst->doCheckResults, NULL);
     }
   } else {
-    /*fprintf(stderr, "We have no cmdPtr in cscPtr %p %s.%s",  cscPtr, ObjectName(object), methodName);
-      fprintf(stderr, "... cannot check return values!\n");*/
+    /*fprintf(stderr, "We have no cmdPtr in cscPtr %p %s",  cscPtr, ObjectName(object));
+    fprintf(stderr, "... cannot check return values!\n");*/
   }
 
 
@@ -8052,14 +8048,13 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
    * On success (no error occured) check for unknown cases.
    */
   if (result == TCL_OK) {
-
-    if ((flags & NSF_CSC_UNKNOWN)
+    
+    if ((flags & NSF_CSC_METHOD_IS_UNKNOWN)
 	|| ((cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) && rst->unknown)
 	) {
       result = DispatchUnknownMethod(object, interp,
 				     cscPtr->objc, cscPtr->objv, NULL, cscPtr->objv[0],
-				     NSF_CSC_IMMEDIATE
-				     /*flags&NSF_CSC_IMMEDIATE*/);
+				     (cscPtr->flags & NSF_CSC_CALL_NO_UNKNOWN)|NSF_CSC_IMMEDIATE);
       /*
        * Final reset of unknown flag
        */
@@ -8332,8 +8327,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     cscPtr = CscAlloc(interp, &csc, cmd);
     CscInit(cscPtr, object, cl, cmd, frameType, flags);
 
-    flags |= NSF_CSC_UNKNOWN;
-    cscPtr->flags |= NSF_CSC_UNKNOWN;
+    cscPtr->flags |= NSF_CSC_METHOD_IS_UNKNOWN;
+    if ((flags & NSF_CM_NO_UNKNOWN)) {
+      cscPtr->flags |= NSF_CSC_CALL_NO_UNKNOWN;
+    }
     cscPtr->objc = objc-shift;
     cscPtr->objv = objv+shift;
   }
@@ -8489,15 +8486,15 @@ DispatchUnknownMethod(ClientData clientData,
 	  delegator?objv[1]:NULL,
 	  delegator?ObjStr(objv[1]) : NULL );*/
 
-  if (unknownObj && methodObj != unknownObj && (flags & NSF_CM_NO_UNKNOWN) == 0) {
+  if (unknownObj && methodObj != unknownObj && (flags & NSF_CSC_CALL_NO_UNKNOWN) == 0) {
     /*
      * back off and try unknown;
      */
     int offset;
     ALLOC_ON_STACK(Tcl_Obj*, objc+3, tov);
 
-    /*fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s objc %d\n",
-	    ObjectName(object), ObjStr(methodObj), flags, NSF_CM_NO_UNKNOWN,
+    /*fprintf(stderr, "calling unknown for %s %s, flgs=%.6x,%.6x/%.6x isClass=%d %p %s objc %d\n",
+	    ObjectName(object), ObjStr(methodObj), flags, NSF_CM_NO_UNKNOWN,NSF_CSC_CALL_NO_UNKNOWN,
 	    NsfObjectIsClass(object), object, ObjectName(object), objc);*/
 
     tov[0] = object->cmdName;
@@ -8517,8 +8514,8 @@ DispatchUnknownMethod(ClientData clientData,
     FREE_ON_STACK(Tcl_Obj*, tov);
   } else { /* no unknown called, this is the built-in unknown handler */
 
-    /*fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n",
-      ObjStr(methodObj), 1, ObjStr(objv[1]));*/
+    fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n",
+      ObjStr(methodObj), 1, ObjStr(objv[1]));
     result = NsfPrintError(interp, "%s: unable to dispatch method '%s'",
 			   ObjectName(object), MethodName(objv[1]));
   }

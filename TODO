@@ -2322,10 +2322,13 @@ text
 - added flushing of bytecode on alias registration
 - added regression test
 
+- update slot uml diagram
+- fixed incorrect (unwanted) call to unknown that caused creation
+  of objects names __unknown when classes could not be resolved
+
 TODO:
 
 - document value added replacements of Tcl functions
-
 
 - object parameter type forward:
    - regression test
@@ -2335,13 +2338,11 @@ TODO:
 - slotmachinerie 2
   - naming "incremental", "reconfigure"
   - check: 
-      slottest/t.023:   3.40 mms, o1 class
-      Warning: Arguments '{::M ::xotcl::Object}' to constructor of object ::__unknown are most likely not processed
+      ? {o1 class add M} {class: expected a class but got "::o1"}
    - should we deactivate add/delete for non-multivalued cases?
    - allow noarg+default/initcmd ?
    - default/initcmd/subsdefault: can we simplify these?
      or add messages for conflicting usages.
-
 
 - doc:
    NextScriptingLanguage/index.html: 
