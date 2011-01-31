@@ -818,7 +818,7 @@ objects (and classes as well).</p></div>
 </div>
 <div class="sect2">
 <h3 id="_define_an_object_named_stack">2.2. Define an Object named stack</h3>
-<div class="paragraph"><p>The definition of the stack in <a href="#xmp-using-stack">Listing 3</a>
+<div class="paragraph"><p>The definition of the stack in <a href="#xmp-class-stack">Listing 2</a>
 is following the traditional object oriented approach, found in
 practically every object oriented programming language: Define a class
 with some methods, create instances from this class, and use the
@@ -2069,12 +2069,13 @@ and what kind of checks should be performed on these.</p></div>
 instance variables of objects are initialized and how these objects
 could be parameterized.</p></div>
 </div></div>
-<div class="paragraph"><p>Syntactically, object and method parameters are the same, although
-there are certain differences (e.g. some parameter options are only
-applicable for objects parameters, the list of object parameters is
-computed dynamically, object parameters are often used in combination
-with special setter methods, etc.).  Consider the following example,
-where we define two application classes with a few attributes.</p></div>
+<div class="paragraph"><p>Syntactically, object parameters and method parameters are the same,
+although there are certain differences (e.g. some parameter options
+are only applicable for objects parameters, the list of object
+parameters is computed dynamically from the class structures, object
+parameters are often used in combination with special setter methods,
+etc.).  Consider the following example, where we define the two
+application classes <tt>Person</tt> and <tt>Student</tt> with a few attributes.</p></div>
 <div class="paragraph" id="xmp-object-parameters"><div class="title">Listing 24: Object Parameters</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2113,6 +2114,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  24
  25
  26
+ 27
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-comment'>#
 </span><span class='nx-comment'># Define a class Person with attributes "name"
 </span><span class='nx-comment'># and "birthday"
@@ -2128,6 +2130,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Student -<span class='nx-keyword'>superclass</span> Person {
   :<span class='nx-keyword'>attribute</span> matnr:required
+  :<span class='nx-keyword'>attribute</span> {oncampus:boolean true}
 }
 
 <span class='nx-comment'>#
@@ -2142,7 +2145,8 @@ Student <span class='nx-keyword'>create</span> s1 -name Susan -matnr 4711
 <div class="paragraph"><p>The class <tt>Person</tt> has two attributes <tt>name</tt> and <tt>birthday</tt>, where the
 attribute <tt>name</tt> is required, the attribute <tt>birthday</tt> is not. The
 class <tt>Student</tt> is a subclass of <tt>Person</tt> with the additional required
-attribute <tt>matnr</tt>. (see <a href="#xmp-object-parameters">Listing 24</a>). The class diagram below visualizes these
+attribute <tt>matnr</tt> and an optional attribute <tt>oncampus</tt> with the
+default value <tt>true</tt> (see <a href="#xmp-object-parameters">Listing 24</a>). The class diagram below visualizes these
 definitions.</p></div>
 <div class="imageblock" id="img-slots" style="text-align:center;">
 <div class="content">
@@ -2152,10 +2156,36 @@ definitions.</p></div>
 </div>
 <div class="paragraph"><p></p></div>
 <div class="paragraph"><p>In NX, these definitions imply that instances of the class of <tt>Person</tt>
-have <tt>name</tt> and <tt>birthday</tt> as <em>non-positional object parameters</em>.
-Furthermore it implies that instances of <tt>Student</tt> will have at
-least the object parameters of <tt>Person</tt> augmented by the object
-parameters from <tt>Student</tt> (namely <tt>matnr</tt>).</p></div>
+have the attributes <tt>name</tt> and <tt>birthday</tt> as <em>non-positional object
+parameters</em>.  Furthermore it implies that instances of <tt>Student</tt> will
+have the object parameters of <tt>Person</tt> augmented with the object
+parameters from <tt>Student</tt> (namely <tt>matnr</tt> and <tt>oncampus</tt>).  Based on
+these object parameters, we can create a <tt>Person</tt> named <tt>Bob</tt> and a
+<tt>Student</tt> named <tt>Susan</tt> with the matriculation number <tt>4711</tt> (see line
+23 and 24 in <a href="#xmp-object-parameters">Listing 24</a>). After the object <tt>s1</tt> is created it has the
+instance variables <tt>name</tt>, <tt>matnr</tt> and <tt>oncampus</tt> (the latter is
+initialized with the default value).</p></div>
+<div class="sect3">
+<h4 id="_object_parameters_for_all_nx_objects">3.2.1. Object Parameters for all NX Objects</h4>
+<div class="paragraph"><p>The object parameters are not limited to the application defined
+attributes, also NX provides some definitions. Since <tt>Person</tt> is a
+subclass of <tt>nx::Object</tt> also the object parameters of <tt>nx::Object</tt>
+are inherited. In the introductory stack example, we used <tt>-mixin</tt>
+applied to an object to denote per-object mixins (see
+<a href="#xmp-using-class-safety">Listing 8</a>). Since <tt>mixin</tt>
+is defined as a parameter on <tt>nx::Object</tt> it can be used as an object
+parameter <tt>-mixin</tt> for all objects in NX. To put it in other words,
+every object can be configured to have per-object mixins. If we would
+remove this definition, this feature would be removed as well.</p></div>
+<div class="paragraph"><p>As shown in the introductory examples, every object can be configured
+via a scripted initialization block (the optional scripted block
+specified at object creation as last argument; see
+<a href="#xmp-object-stack">Listing 5</a> or
+<a href="#xmp-object-integer-stack">Listing 12</a>). The
+scripted block and its meaning are as well defined by the means of
+object parameters. However, this object parameter is positional (last
+argument) and optional (can be omitted). The following listing shows
+(simplified) the object parameters of <tt>Person p1</tt> and <tt>Student s1</tt>.</p></div>
 <div class="paragraph" id="xmp-object-parameter-list"><div class="title">Listing 26: Computed Actual Object Parameter (simplified)</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2176,43 +2206,88 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   6
   7
   8
-  9
- 10
- 11
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Object</span> parameter of p1:
-   -name:required -birthday -<span class='nx-keyword'>mixin</span>:relation -<span class='nx-keyword'>filter</span>:relation
-   ... __initcmd:initcmd,optional
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Object</span> parameter <span class='nx-keyword'>for</span> Person p1:
+   -name:required -birthday ...
+   -<span class='nx-keyword'>mixin</span>:<span class='nx-keyword'>alias</span> -<span class='nx-keyword'>filter</span>:<span class='nx-keyword'>alias</span> _:initcmd,optional
 
-<span class='nx-keyword'>Object</span> parameter of s1:
-   -matnr:required -name:required -birthday -<span class='nx-keyword'>mixin</span>:relation
-   -<span class='nx-keyword'>filter</span>:relation ... __initcmd:initcmd,optional
-
-<span class='nx-keyword'>Object</span> parameter of Student:
-   -<span class='nx-keyword'>mixin</span>:relation -<span class='nx-keyword'>filter</span>:relation -<span class='nx-keyword'>superclass</span>:relation
-   ... -attributes:<span class='nx-keyword'>method</span> __initcmd:initcmd,optional</pre></td></tr></table></div></div>
-<div class="paragraph"><p>describe inherited object parameter from nx::Object,
-describe object parameters for configuring the classes Student and
-Person,  &#8230;</p></div>
+<span class='nx-keyword'>Object</span> parameter <span class='nx-keyword'>for</span> Student s1:
+   -matnr:required {-oncampus:boolean true}
+   -name:required -birthday ...
+   -<span class='nx-keyword'>mixin</span>:<span class='nx-keyword'>alias</span> -<span class='nx-keyword'>filter</span>:<span class='nx-keyword'>alias</span> _:initcmd,optional</pre></td></tr></table></div></div>
+<div class="paragraph"><p>The object parameter type <tt>alias</tt> means that this parameter is an
+alias for the same-named method. The object parameter type <tt>initcmd</tt>
+says that the content of this variable will be executed in the context
+of the object being created (before the constructor <tt>init</tt> is called).
+More about the object parameter types later.</p></div>
+</div>
 <div class="sect3">
-<h4 id="_slot_classes_and_slot_objects">3.2.1. Slot Classes and Slot Objects</h4>
-<div class="paragraph"><p>In the previous section, we defined the scripted checker methods on a
-class named <tt>nx::Slot</tt>.
-In general NX offers the possibility to define
-value checkers not only for all usages of parameters but as well
-differently for method parameters or object parameters</p></div>
+<h4 id="_object_parameters_for_all_nx_classes">3.2.2. Object Parameters for all NX Classes</h4>
+<div class="paragraph"><p>Since classes are certain kind of objects, classes are parameterized
+in the same way as objects. A typical parameter for a class definition
+is the relation of the class to its superclass.In our example, we have
+specified, that <tt>Student</tt> has <tt>Person</tt> as superclass via the
+non-positional object parameter <tt>-superclass</tt>. If no superclass is
+specified for a class, the default superclass is
+<tt>nx::Object</tt>. Therefore <tt>nx::Object</tt> is the default value for the
+parameter <tt>superclass</tt>.</p></div>
+<div class="paragraph"><p>Another frequently used parameter for classes is <tt>-mixin</tt> to denote
+per-class mixins (see e.g. the introductory Stack example in
+<a href="#xmp-class-safestack">Listing 10</a>), which is defined in
+the same way.</p></div>
+<div class="paragraph"><p>Since <tt>Student</tt> is an instance of the meta-class <tt>nx::Class</tt> it
+inherits the object parameters from <tt>nx::Class</tt> (see class diagram
+<a href="#img-object-parameters">Figure 25</a>). Therefore, one can
+use e.g. <tt>-superclass</tt> in the definition of classes.</p></div>
+<div class="paragraph"><p>Since <tt>nx::Class</tt> is a subclass of <tt>nx::Object</tt>, the meta-class
+<tt>nx::Class</tt> inherits the parameter definitions from the most general
+class <tt>nx::Object</tt>. Therefore, every class might as well be configured
+with a scripted initialization block the same way as objects can be
+configured. We used actually this scripted initialization block in
+most examples for defining the methods of the class. The following
+listing shows (simplified) the parameters applicable for <tt>Class
+Student</tt>.</p></div>
+<div class="paragraph" id="xmp-class-parameter-list"><div class="title">Listing 27: Computed Parameters for a Class (simplified)</div><p></p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Object</span> parameter <span class='nx-keyword'>for</span> <span class='nx-keyword'>Class</span> Student:
+   -<span class='nx-keyword'>mixin</span>:<span class='nx-keyword'>alias</span> -<span class='nx-keyword'>filter</span>:<span class='nx-keyword'>alias</span> ...
+   {-<span class='nx-keyword'>superclass</span>:<span class='nx-keyword'>alias</span> ::<span class='nx-keyword'>nx::Object</span>} ...
+   -attributes:<span class='nx-keyword'>alias</span> _:initcmd,optional</pre></td></tr></table></div></div>
+</div>
+<div class="sect3">
+<h4 id="_additional_parameter_types_for_object_parameters">3.2.3. Additional Parameter Types for Object Parameters</h4>
+<div class="paragraph"><p>More detailed definition of the object parameter types comes here.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_slot_classes_and_slot_objects">3.2.4. Slot Classes and Slot Objects</h4>
+<div class="paragraph"><p>In one of the previous sections, we defined scripted (application
+defined) checker methods on a class named <tt>nx::Slot</tt>.  In general NX
+offers the possibility to define value checkers not only for all
+usages of parameters but as well differently for method parameters or
+object parameters</p></div>
 <div class="imageblock" id="img-slots" style="text-align:center;">
 <div class="content">
 <img src="slots.png" alt="slots.png" />
 </div>
-<div class="title">Figure 27. Slot Classes and Objects</div>
+<div class="title">Figure 28. Slot Classes and Objects</div>
 </div>
 <div class="paragraph"><p></p></div>
 </div>
 <div class="sect3">
-<h4 id="_special_object_parameters">3.2.2. Special Object Parameters</h4>
-</div>
-<div class="sect3">
-<h4 id="_attribute_slots">3.2.3. Attribute Slots</h4>
+<h4 id="_attribute_slots">3.2.5. Attribute Slots</h4>
 <div class="paragraph"><p>Still Missing</p></div>
 <div class="ulist"><ul>
 <li>
@@ -2329,7 +2404,7 @@ incremental slots
 <div id="footer">
 <div id="footer-text">
 Version 2.0<br />
-Last updated 2011-01-12 09:22:54 CET
+Last updated 2011-01-31 12:51:11 CET
 </div>
 </div>
 </body>

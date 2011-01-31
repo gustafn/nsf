@@ -96,7 +96,7 @@ namespace eval ::nx::pp {
       tell trace unset uplevel update upvar variable vwait while
       package
       public protected class-object
-      method attribute forward 
+      method alias attribute forward 
       my next new self current
       create init new destroy alloc dealloc
       class superclass mixin filter

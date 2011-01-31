@@ -237,7 +237,7 @@ objects (and classes as well).
 
 === Define an Object named stack
 
-The definition of the stack in <<xmp-using-stack, {xmp-using-stack}>>
+The definition of the stack in <<xmp-class-stack, {xmp-class-stack}>>
 is following the traditional object oriented approach, found in
 practically every object oriented programming language: Define a class
 with some methods, create instances from this class, and use the
@@ -1103,12 +1103,13 @@ instance variables of objects are initialized and how these objects
 could be parameterized.
 *****************************************************************************
 
-Syntactically, object and method parameters are the same, although
-there are certain differences (e.g. some parameter options are only
-applicable for objects parameters, the list of object parameters is
-computed dynamically, object parameters are often used in combination
-with special setter methods, etc.).  Consider the following example,
-where we define two application classes with a few attributes.
+Syntactically, object parameters and method parameters are the same,
+although there are certain differences (e.g. some parameter options
+are only applicable for objects parameters, the list of object
+parameters is computed dynamically from the class structures, object
+parameters are often used in combination with special setter methods,
+etc.).  Consider the following example, where we define the two
+application classes +Person+ and +Student+ with a few attributes.
 
 [[xmp-object-parameters]]
 .Listing {counter:figure-number}: Object Parameters
@@ -1130,6 +1131,7 @@ nx::Class create Person {
 #
 nx::Class create Student -superclass Person {  
   :attribute matnr:required
+  :attribute {oncampus:boolean true}
 }
 
 #
@@ -1146,7 +1148,8 @@ puts "The name of s1 is [s1 name]"
 The class +Person+ has two attributes +name+ and +birthday+, where the
 attribute +name+ is required, the attribute +birthday+ is not. The
 class +Student+ is a subclass of +Person+ with the additional required
-attribute +matnr+. (see <<xmp-object-parameters,
+attribute +matnr+ and an optional attribute +oncampus+ with the
+default value +true+ (see <<xmp-object-parameters,
 {xmp-object-parameters}>>). The class diagram below visualizes these
 definitions.
 
@@ -1155,48 +1158,118 @@ image::object-parameter.png[align="center",title="System and Application Classes
 {set:img-object-parameters:Figure {figure-number}}
 
 In NX, these definitions imply that instances of the class of +Person+
-have +name+ and +birthday+ as _non-positional object parameters_.
-Furthermore it implies that instances of +Student+ will have at
-least the object parameters of +Person+ augmented by the object
-parameters from +Student+ (namely +matnr+).
+have the attributes +name+ and +birthday+ as _non-positional object
+parameters_.  Furthermore it implies that instances of +Student+ will
+have the object parameters of +Person+ augmented with the object
+parameters from +Student+ (namely +matnr+ and +oncampus+).  Based on
+these object parameters, we can create a +Person+ named +Bob+ and a
++Student+ named +Susan+ with the matriculation number +4711+ (see line
+23 and 24 in <<xmp-object-parameters,
+{xmp-object-parameters}>>). After the object +s1+ is created it has the
+instance variables +name+, +matnr+ and +oncampus+ (the latter is
+initialized with the default value).
+
+==== Object Parameters for all NX Objects
+
+The object parameters are not limited to the application defined
+attributes, also NX provides some definitions. Since +Person+ is a
+subclass of +nx::Object+ also the object parameters of +nx::Object+
+are inherited. In the introductory stack example, we used +-mixin+
+applied to an object to denote per-object mixins (see
+<<xmp-using-class-safety, {xmp-using-class-safety}>>). Since +mixin+
+is defined as a parameter on +nx::Object+ it can be used as an object
+parameter +-mixin+ for all objects in NX. To put it in other words,
+every object can be configured to have per-object mixins. If we would
+remove this definition, this feature would be removed as well.
+
+As shown in the introductory examples, every object can be configured
+via a scripted initialization block (the optional scripted block
+specified at object creation as last argument; see
+<<xmp-object-stack, {xmp-object-stack}>> or
+<<xmp-object-integer-stack, {xmp-object-integer-stack}>>). The
+scripted block and its meaning are as well defined by the means of
+object parameters. However, this object parameter is positional (last
+argument) and optional (can be omitted). The following listing shows
+(simplified) the object parameters of +Person p1+ and +Student s1+.
 
 [[xmp-object-parameter-list]]
 .Listing {counter:figure-number}: Computed Actual Object Parameter (simplified)
 {set:xmp-object-parameter-list:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Object parameter of p1: 
-   -name:required -birthday -mixin:relation -filter:relation 
-   ... __initcmd:initcmd,optional
+Object parameter for Person p1: 
+   -name:required -birthday ... 
+   -mixin:alias -filter:alias _:initcmd,optional
 
-Object parameter of s1:
-   -matnr:required -name:required -birthday -mixin:relation 
-   -filter:relation ... __initcmd:initcmd,optional
-
-Object parameter of Student:
-   -mixin:relation -filter:relation -superclass:relation 
-   ... -attributes:method __initcmd:initcmd,optional
+Object parameter for Student s1:
+   -matnr:required {-oncampus:boolean true} 
+   -name:required -birthday ...
+   -mixin:alias -filter:alias _:initcmd,optional
 --------------------------------------------------
 
-describe inherited object parameter from nx::Object, 
-describe object parameters for configuring the classes Student and
-Person,  ...
+The object parameter type +alias+ means that this parameter is an
+alias for the same-named method. The object parameter type +initcmd+
+says that the content of this variable will be executed in the context
+of the object being created (before the constructor +init+ is called).
+More about the object parameter types later.
+
+==== Object Parameters for all NX Classes
+
+Since classes are certain kind of objects, classes are parameterized
+in the same way as objects. A typical parameter for a class definition
+is the relation of the class to its superclass.In our example, we have
+specified, that +Student+ has +Person+ as superclass via the
+non-positional object parameter +-superclass+. If no superclass is
+specified for a class, the default superclass is
++nx::Object+. Therefore +nx::Object+ is the default value for the
+parameter +superclass+. 
+
+Another frequently used parameter for classes is +-mixin+ to denote
+per-class mixins (see e.g. the introductory Stack example in
+<<xmp-class-safestack,{xmp-class-safestack}>>), which is defined in
+the same way.
+
+Since +Student+ is an instance of the meta-class +nx::Class+ it
+inherits the object parameters from +nx::Class+ (see class diagram
+<<img-object-parameters,{img-object-parameters}>>). Therefore, one can
+use e.g. +-superclass+ in the definition of classes.
+
+Since +nx::Class+ is a subclass of +nx::Object+, the meta-class
++nx::Class+ inherits the parameter definitions from the most general
+class +nx::Object+. Therefore, every class might as well be configured
+with a scripted initialization block the same way as objects can be
+configured. We used actually this scripted initialization block in
+most examples for defining the methods of the class. The following
+listing shows (simplified) the parameters applicable for +Class
+Student+.
+
+[[xmp-class-parameter-list]]
+.Listing {counter:figure-number}: Computed Parameters for a Class (simplified)
+{set:xmp-class-parameter-list:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+Object parameter for Class Student:
+   -mixin:alias -filter:alias ...
+   {-superclass:alias ::nx::Object} ...
+   -attributes:alias _:initcmd,optional
+--------------------------------------------------
+
+==== Additional Parameter Types for Object Parameters
+
+More detailed definition of the object parameter types comes here.
 
 ==== Slot Classes and Slot Objects
 
-In the previous section, we defined the scripted checker methods on a
-class named +nx::Slot+. 
-In general NX offers the possibility to define
-value checkers not only for all usages of parameters but as well
-differently for method parameters or object parameters
+In one of the previous sections, we defined scripted (application
+defined) checker methods on a class named +nx::Slot+.  In general NX
+offers the possibility to define value checkers not only for all
+usages of parameters but as well differently for method parameters or
+object parameters
 
 [[img-slots]]
 image::slots.png[align="center",title="Slot Classes and Objects"]
 {set:img-slots:Figure {figure-number}}
 
-
-
-==== Special Object Parameters
 
 ==== Attribute Slots
 

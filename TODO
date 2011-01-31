@@ -2328,6 +2328,8 @@ text
 - nsf::relation: fixed error message when receiving and invalid 
   class for relation type "class"
 
+- updated documentation
+
 TODO:
 
 - document value added replacements of Tcl functions
@@ -2339,12 +2341,10 @@ TODO:
 
 - slotmachinerie 2
   - naming "incremental", "reconfigure"
-  - check: 
-      ? {o1 class add M} {class: expected a class but got "::o1"}
-   - should we deactivate add/delete for non-multivalued cases?
-   - allow noarg+default/initcmd ?
-   - default/initcmd/subsdefault: can we simplify these?
-     or add messages for conflicting usages.
+  - should we deactivate add/delete for non-multivalued cases?
+  - allow noarg+default/initcmd ?
+  - default/initcmd/subsdefault: can we simplify these?
+    or add messages for conflicting usages.
 
 - doc:
    NextScriptingLanguage/index.html: 
@@ -2372,7 +2372,6 @@ TODO:
       * recreate should only be called internally, similarly "init" etc.
       * __unknown
     unknown is a hook for Object but a method for Class
-
 
 - do we need contains in nx?
 - are the oneline hook definitions like
