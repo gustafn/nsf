@@ -8514,8 +8514,9 @@ DispatchUnknownMethod(ClientData clientData,
     FREE_ON_STACK(Tcl_Obj*, tov);
   } else { /* no unknown called, this is the built-in unknown handler */
 
-    fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n",
-      ObjStr(methodObj), 1, ObjStr(objv[1]));
+    /*fprintf(stderr, "--- default error message for unknown method '%s' "
+      "to be dispatched on %s, objv[%d] %s\n",
+      ObjStr(methodObj), ObjectName(object), 1, ObjStr(objv[1]));*/
     result = NsfPrintError(interp, "%s: unable to dispatch method '%s'",
 			   ObjectName(object), MethodName(objv[1]));
   }
@@ -15912,7 +15913,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       return TCL_OK;
     }
     GetClassFromObj(interp, valueObj, &cl, object->cl);
-    if (!cl) return NsfObjErrType(interp, "class", object->cmdName, "a class", NULL);
+    if (!cl) return NsfObjErrType(interp, "class", valueObj, "a class", NULL);
     i = ChangeClass(interp, object, cl);
     if (i == TCL_OK) {
       Tcl_SetObjResult(interp, object->cl->object.cmdName);

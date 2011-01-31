@@ -2325,6 +2325,8 @@ text
 - update slot uml diagram
 - fixed incorrect (unwanted) call to unknown that caused creation
   of objects names __unknown when classes could not be resolved
+- nsf::relation: fixed error message when receiving and invalid 
+  class for relation type "class"
 
 TODO:
 
