@@ -1,13 +1,13 @@
 /* -*- Mode: c++ -*-
  *
- *  Extended Object Tcl (XOTcl)
+ *  Next Scripting Framework 
  *
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
  *  nsfProfile.c --
  *  
- *  Profiling information printout for XOTcl
+ *  Profiling information printout for Next Scripting Framework 
  *
  *  For profiling infos NSF_PROFILE (nsf.h) flag must be activated
  *  
@@ -46,13 +46,16 @@ NsfProfileFillTable(Tcl_HashTable* table, Tcl_DString* key,
 }
 
 void
-NsfProfileEvaluateData(Tcl_Interp* interp, long int startSec, long int startUsec,
-		    NsfObject* obj, NsfClass *cl, char *methodName) {
+NsfProfileEvaluateData(Tcl_Interp* interp, NsfCallStackContent *cscPtr) {
   double totalMicroSec;
-  struct timeval trt;
+  NsfObject* obj = cscPtr->self;
+  NsfClass *cl = cscPtr->cl;
+  long int startSec = cscPtr->startSec;
+  long int startUsec = cscPtr->startUsec;
+  CONST char *methodName = cscPtr->methodName;
   Tcl_DString objectKey, methodKey;
-
   NsfProfile* profile = &RUNTIME_STATE(interp)->profile;
+  struct timeval trt;
 
   gettimeofday(&trt, NULL);
 
@@ -61,7 +64,7 @@ NsfProfileEvaluateData(Tcl_Interp* interp, long int startSec, long int startUsec
 
   profile->overallTime += totalMicroSec;
 
-  if (obj->teardown == 0 || !obj->id || obj->destroyCalled) {
+  if (obj->teardown == 0 || !obj->id) {
     return;
   }
   Tcl_DStringInit(&objectKey);
@@ -71,15 +74,16 @@ NsfProfileEvaluateData(Tcl_Interp* interp, long int startSec, long int startUsec
   Tcl_DStringAppend(&methodKey, cl ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
   Tcl_DStringAppend(&methodKey, "->", 2);
   Tcl_DStringAppend(&methodKey, methodName, -1);
-  if (cl)
-    Tcl_DStringAppend(&methodKey, " (instproc)", 11);
-  else
-    Tcl_DStringAppend(&methodKey, " (proc)", 7);
+  if (cl) {
+    Tcl_DStringAppend(&methodKey, " method", 7);
+  } else {
+    Tcl_DStringAppend(&methodKey, " object method", 14);
+  }
 
   NsfProfileFillTable(&profile->objectData, &objectKey, totalMicroSec);
   NsfProfileFillTable(&profile->methodData, &methodKey, totalMicroSec);
   Tcl_DStringFree(&objectKey);
-  Tcl_StringFree(&methodKey);
+  Tcl_DStringFree(&methodKey);
 }
 
 void

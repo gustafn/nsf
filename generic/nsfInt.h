@@ -651,6 +651,11 @@ typedef struct NsfCallStackContent {
   int objc;
   unsigned short frameType;
   unsigned short flags;
+#if defined(NSF_PROFILE)
+  long int startUsec;
+  long int startSec;
+  CONST char *methodName;
+#endif
 } NsfCallStackContent;
 
 #define NSF_CSC_TYPE_PLAIN              0
@@ -777,8 +782,8 @@ extern void
 NsfProfileFillTable(Tcl_HashTable *table, Tcl_DString *key,
 		 double totalMicroSec);
 extern void
-NsfProfileEvaluateData(Tcl_Interp *interp, long int startSec, long int startUsec,
-		    NsfObject *obj, NsfClass *cl, char *methodName);
+NsfProfileEvaluateData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
+
 extern void
 NsfProfilePrintTable(Tcl_HashTable *table);
 

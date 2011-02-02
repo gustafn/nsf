@@ -71,7 +71,7 @@
 
 /* activate/deacticate profiling information at the end
    of running the program
-#define NSF_PROFILE
+#define NSF_PROFILE 1
 */
 
 /* are we developing?
@@ -151,6 +151,14 @@
   NsfCleanupObject_(object)
 # define CscFinish(interp,cscPtr,string)	\
   CscFinish_(interp, cscPtr)
+#endif
+
+#if defined(NSF_PROFILE)
+# define CscInit(cscPtr, object, cl, cmd, frametype, flags, method) \
+  CscInit_(cscPtr, object, cl, cmd, frametype, flags); cscPtr->methodName = (method);
+#else
+# define CscInit(cscPtr, object, cl, cmd, frametype, flags, methodName) \
+  CscInit_(cscPtr, object, cl, cmd, frametype, flags)
 #endif
 
 #if !defined(CHECK_ACTIVATION_COUNTS)

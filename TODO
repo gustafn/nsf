@@ -2329,8 +2329,15 @@ text
   class for relation type "class"
 
 - updated documentation
+- reanimated NSF_PROFILE (when activated, needs more stack and slows execution slightly down)
 
 TODO:
+
+- NSF_PROFILE
+  * provide an interface to clear and to output PROFILE data. 
+  * output should provide a cutoff value.
+  * most probably it has memory leak in multithreaded apps, 
+    since it was originally just developed for simple testing
 
 - document value added replacements of Tcl functions
 

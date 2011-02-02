@@ -243,7 +243,7 @@ static int IsSubType(NsfClass *subcl, NsfClass *cl);
 static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta);
 
 /* prototypes for call stack specific calls */
-NSF_INLINE static void CscInit(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
+NSF_INLINE static void CscInit_(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
 			       Tcl_Command cmd, int frameType, int flags);
 NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr);
 NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object);
@@ -7698,22 +7698,6 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   return result;
 }
 
-#if defined(NSF_PROFILE)
-/* TODO: should be adjusted to MethodDispatchCsc() */
-static int
-MethodDispatch(ClientData clientData, Tcl_Interp *interp,
-             int objc, Tcl_Obj *CONST objv[], Tcl_Command cmd, NsfObject *object, NsfClass *cl,
-             CONST char *methodName, int frameType) {
-  struct timeval trt;
-  long int startUsec = (gettimeofday(&trt, NULL), trt.tv_usec), startSec = trt.tv_sec;
-
-  result = __MethodDispatch__(clientData, interp, objc, objv, cmd, object, cl, methodName, frameType);
-  NsfProfileEvaluateData(interp, startSec, startUsec, object, cl, methodName);
-  return result;
-}
-# define MethodDispatch __MethodDispatch__
-#endif
-
 /*
  *----------------------------------------------------------------------
  * MethodDispatchCsc --
@@ -7973,7 +7957,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
    * cp == NULL && !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)
    * TODO: We could pass cmd==NULL, but is this worth it?
    */
-  CscInit(cscPtr, object, cl, cmd, frameType, flags);
+  CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
   result = MethodDispatchCsc(clientData, interp, objc, objv,
 			     cscPtr, methodName);
@@ -8213,7 +8197,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	/*fprintf(stderr, "mixinsearch returned an error for %p %s.%s\n",
 	  object, ObjectName(object),methodName);*/
 	cscPtr = CscAlloc(interp, &csc, NULL);
-	CscInit(cscPtr, object, cl, NULL, frameType, flags);
+	CscInit(cscPtr, object, cl, NULL, frameType, flags, methodName);
         goto exit_object_dispatch;
       }
       if (cmd) {
@@ -8300,7 +8284,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
      * We found the method to dispatch.
      */
     cscPtr = CscAlloc(interp, &csc, cmd);
-    CscInit(cscPtr, object, cl, cmd, frameType, flags);
+    CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
     if ((cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER)) {
       /* run filters not NRE enabled */
@@ -8325,7 +8309,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
      * The method to be dispatched is unknown
      */
     cscPtr = CscAlloc(interp, &csc, cmd);
-    CscInit(cscPtr, object, cl, cmd, frameType, flags);
+    CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
     cscPtr->flags |= NSF_CSC_METHOD_IS_UNKNOWN;
     if ((flags & NSF_CM_NO_UNKNOWN)) {
@@ -16739,7 +16723,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
       cscPtr->flags = 0;
-      CscInit(cscPtr, object, NULL /*cl*/, NULL /*cmd*/, NSF_CSC_TYPE_PLAIN, 0);
+      CscInit(cscPtr, object, NULL /*cl*/, NULL /*cmd*/, NSF_CSC_TYPE_PLAIN, 0, "configure");
       Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
 
       if (paramPtr->flags & NSF_ARG_INITCMD) {

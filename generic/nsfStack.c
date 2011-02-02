@@ -802,10 +802,20 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static void
-CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
+CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
 	Tcl_Command cmd, int frameType, int flags) {
+#if defined(NSF_PROFILE)
+  struct timeval trt;
+#endif
 
   assert(cscPtr);
+  
+#if defined(NSF_PROFILE)
+  gettimeofday(&trt, NULL);
+  
+  cscPtr->startUsec = trt.tv_usec;
+  cscPtr->startSec = trt.tv_sec;
+#endif
 
   /*
    *  When cmd is provided, the call is not an unknown, the method
@@ -874,6 +884,10 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
   assert(cscPtr);
   assert(cscPtr->self);
+
+#if defined(NSF_PROFILE)
+  NsfProfileEvaluateData(interp, cscPtr);
+#endif
 
   object = cscPtr->self;
   flags = cscPtr->flags;
