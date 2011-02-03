@@ -43,35 +43,30 @@
 	<div id="bd">
 	<div id="yui-main">
 	<div class="yui-b">
-	  [:? {[:info has type ::nx::doc::@package]} {
-	  [:include package.html.tmpl]
-	  } ? {[:info has type ::nx::doc::@class]} {
-	  [:include class.html.tmpl]
-	  } ? {[:info has type ::nx::doc::@object]} {
-	  [:include object.html.tmpl]
-	  } ? {[:info has type ::nx::doc::@command]} {
-	  [:include command.html.tmpl]
-	  } ? {[:info has type ::nx::doc::@project]} {
-	<div class="summary description">
-	  This is the API documentation for the 
-	  <a href="[:name]">[:name]</a> project.
-	  <p>Choose a package, object or command name from the list for more information.</p>
-	</div>
-	[:include glossary.html.tmpl]
-	}]
+	  [:? {[:info has type ::nx::doc::@project]} {
+	  <div class="summary description">
+	    This is the API documentation for the 
+	    <a href="[:name]">[:name]</a> project.
+	    <p>Choose a package, object or command name from the list for more information.</p>
+	  </div>
+	  [:include glossary]
+	  } - {
+	  <!-- delegate to the entity-specific template -->
+	  [:include]
+	  }]
 	</div> <!-- yui-b -->
-	</div> <!-- yui-main -->
-	<div class="yui-b">
-	  [:include leftbar.html.tmpl]
-	</div><!-- yui-b -->
-	</div><!-- bd -->
-	<div id="ft">
-	  <hr />
-        Copyright &copy; [clock format [clock seconds] -format "%Y"]
-	</div>
-</div>
-<script type="text/javascript">
+      </div> <!-- yui-main -->
+      <div class="yui-b">
+	[:include leftbar]
+      </div><!-- yui-b -->
+    </div><!-- bd -->
+    <div id="ft">
+      <hr />
+      Copyright &copy; [clock format [clock seconds] -format "%Y"]
+    </div>
+  </div>
+  <script type="text/javascript">
     ALL_YUI_PROPS = [:as_array_of_hashes];
-</script>
+  </script>
 </body>
 </html>

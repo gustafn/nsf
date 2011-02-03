@@ -171,9 +171,9 @@
     <div class="content">
       [:for method $class_methods {
       [:? {[info exists class_attrs] && [dict exists $class_attrs [$method name]]} {
-      [$method render -initscript [list set owning_attribute [dict get $class_attrs [$method name]]] attributemethod.html.tmpl]
+      [$method render -initscript [list set owning_attribute [dict get $class_attrs [$method name]]] -template attributemethod]
       } - {
-      [$method render method.html.tmpl]
+      [$method render]
       }] <!-- end-of-if -->
       }] <!-- end-of-for -->
     </div>
@@ -229,7 +229,7 @@
     <hr>
     <div class="content">
       [:for omethod $omethods {
-      [$omethod render method.html.tmpl]    
+      [$omethod render]    
       }] <!-- end-of-for -->
     </div>
   </div>

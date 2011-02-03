@@ -1113,7 +1113,7 @@ set project [processor process \
 ::nx::doc::make doc \
     -format html \
     $project \
-    -theme tmpl \
+    -theme yuidoc \
     -layout multifile \
     -outdir [::nsf::tmpdir]
 
@@ -1165,7 +1165,6 @@ dict for {probe t} $timings {
   puts stderr "\t$probe -> $t"
 }
 
-exit
 set project [::nx::doc::@project new \
 		 -name XOTcl2 \
 		 -url http://www.xotcl.org/ \
@@ -1181,8 +1180,8 @@ processor process \
 
 ::nx::doc::make doc \
     -format html \
-    -theme tmpl \
-    -project $project \
+    $project \
+    -theme yuidoc \
     -outdir [::nsf::tmpdir]
 
 # # # # # # # # # # # # # # # # # # # #

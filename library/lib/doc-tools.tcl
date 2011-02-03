@@ -1397,6 +1397,8 @@ namespace eval ::nx::doc {
 
   Class create TemplateData {
     
+    :attribute current_template_name
+
     :class-object attribute current_format
     :class-object attribute current_theme
     :public forward current_format [current] %method
@@ -1413,19 +1415,44 @@ namespace eval ::nx::doc {
 
     :method initialise {with_template_path} {
       :rendered_entity [current]
-      foreach {f t} [lrange [split $with_template_path .] end-1 end] break;
-      :current_format $f
-      :current_theme $t
+      :set_template_specifics {*}[split $with_template_path .]
+    }
+
+    :method set_template_specifics {
+      current_template_name:optional 
+      current_format:optional
+      current_theme:optional
+    } {
+      foreach prop [info vars] {
+	if {[info exists $prop] && [set $prop] ne ""} {
+	  :$prop [set $prop]
+	}
+      }
     }
 
     :public method read_tmpl {path} {
       if {[file pathtype $path] ne "absolute"} {
 	set assetdir [find_asset_path]
-	set tmpl [file join $assetdir $path]
+	#
+	# auto-complete partial template names
+	#
+	set path_as_list [concat {*}[split $path .]]
+	switch -- [llength $path_as_list] {
+	  1 { 
+	    lappend path_as_list [:current_format] [:current_theme] 
+	  }
+	  2 {
+	    lappend path_as_list [:current_theme]
+	  }
+	  3 {;}
+	  default {
+	    error "Wrong # of components in template name '$path'."
+	  }
+	}
+	set tmpl [file join $assetdir [join $path_as_list .]]
       } else {
 	set tmpl [file normalize $path]
       }
-      
       if {![[current class] eval [list info exists :templates($tmpl)]]} {
 	if {![file exists $tmpl] || ![file isfile $tmpl]} {
 	  error "The template file '$path' was not found."
@@ -1447,9 +1474,10 @@ namespace eval ::nx::doc {
     # to verify the existence of variables and simple loop constructs
     :public method render {
       {-initscript ""}
-      template 
+      {-template:substdefault "[namespace tail [:info class]]"}
       {entity:substdefault "[current]"}
     } {
+      $entity initialise $template
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
       set tmplscript [list subst [:read_tmpl $template]]
       #
@@ -1457,7 +1485,6 @@ namespace eval ::nx::doc {
       # figured out (as for the origin mechanism) we so keep track
       # of the actual rendered entity ... review later ...
       #
-      $entity initialise $template
       $entity render_start
       set content [$entity eval [subst -nocommands {
 	$initscript
@@ -1555,13 +1582,13 @@ namespace eval ::nx::doc {
       }
     }
     
-    :method include {template} {
+    :method include {{template:substdefault "[namespace tail [:info class]]"}} {
       uplevel 1 [list subst [:read_tmpl $template]]
     }
 
     :method listing {{-inline true} script} {
       set iscript [join [list [list set inline $inline] [list set script $script]] \n]
-      :render -initscript $iscript [current method].[:current_format].[:current_theme]
+      :render -initscript $iscript -template [current method].[:current_format].[:current_theme]
 
     }
 
@@ -1667,23 +1694,31 @@ namespace eval ::nx::doc {
       file delete -force $path
     }
     
+    :method place_assets {theme target} {
+      # TODO: provide include/exclude filters based on [lsearch -glob -not]
+      # set assets [lsearch -all -inline -glob -not $assets *.$ext]
+      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
+      file mkdir $target
+      if {$assets eq ""} return;
+      file copy -force -- {*}$assets $target
+    }
+
     :method "pick multifile" {
       project 
       tmpl 
       {-outdir [::nsf::tmpdir]}
     } {
       set ext [namespace tail [current]]
+      set theme [string trimleft [file extension $tmpl] .]
       set project_path [file join $outdir [string trimleft [$project name] :]]
       
       :remove -nocomplain $project_path
       
       if {![catch {file mkdir $project_path} msg]} {
-	set assets [glob -directory [::nx::doc::find_asset_path] *]
-	set assets [lsearch -all -inline -glob -not $assets *.$ext]
+
 	set target $project_path/assets
-	file mkdir $target
-	file copy -force -- {*}$assets $target
-	
+	:place_assets $theme $target
+
 	set values [concat {*}[dict values [$project navigatable_parts]]]
 	#
 	# Make sure that the @project entity is processed last.
@@ -1713,8 +1748,11 @@ namespace eval ::nx::doc {
     } {      
       set ext [namespace tail [current]]
       set fn [file join $outdir "[$project name].$ext"]
+      set theme [string trimleft [file extension $tmpl] .]
+      
       :remove -nocomplain $fn
       set content [:render $project $project $tmpl]
+      :place_assets $theme $outdir
       :write $content $fn
       puts stderr "$project written to $fn"
     }
@@ -1722,7 +1760,7 @@ namespace eval ::nx::doc {
     :public method run {
 	-project 
 	{-layout multifile} 
-	{-theme tmpl} 
+	{-theme yuidoc} 
 	args
       } {
       # 1. trigger validation
@@ -1759,7 +1797,7 @@ namespace eval ::nx::doc {
 	set project_entities \[list $top_level_entities\]
       }]
       $entity current_project $project
-      $entity render -initscript $init $tmpl
+      $entity render -initscript $init -template $tmpl
     }
 
     #
@@ -1913,7 +1951,7 @@ namespace eval ::nx::doc {
 	set iscript [join [list [list set title $pof[join $pathnames .]] \
 			       [list set source_anchor [join $pathnames { }]] \
 			       [list set top_entity $top_entity]] \n]
-	:render -initscript $iscript link.[:current_format].[:current_theme]
+	:render -initscript $iscript -template link.[:current_format].[:current_theme]
       }
       
       :public method as_text {} {
@@ -2067,7 +2105,7 @@ namespace eval ::nx::doc {
 			       [list set cssclass nsfdoc-gloss]] \n]
 	set res [:render \
 		     -initscript $iscript \
-		     link.[:current_format].[:current_theme]]
+		     -template link.[:current_format].[:current_theme]]
 	return $res
       }
     }; # NxDocRenderer::@glossary

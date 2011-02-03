@@ -78,9 +78,9 @@
   [:? {[info exists class_methods]} {
   [:for m $class_methods {
   [:? {[info exists class_attrs] && [dict exists $class_attrs [$m name]]} {
-  [$m render -initscript [list set owning_attribute [dict get $class_attrs [$m name]]] attributemethod.html.asciidoc]
+  [$m render -initscript [list set owning_attribute [dict get $class_attrs [$m name]]] -template attributemethod]
   } - {
-  [$m render method.html.asciidoc]
+  [$m render]
   }]
   }]
   }]
@@ -99,7 +99,7 @@
     </tt>
   </p>
   [:for om $omethods {
-  [$om render method.html.asciidoc]
+  [$om render]
   }]
 </div>
 }]
