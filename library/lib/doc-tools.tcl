@@ -570,9 +570,14 @@ namespace eval ::nx::doc {
 
     
     :public method "pinfo propagate" args {
-      :pinfo set {*}$args
-      set path [dict create {*}[:get_upward_path -attribute {set :name}]]
-      foreach p [dict keys $path] {
+      set path [dict create {*}[:get_upward_path \
+				-attribute {set :name}]]
+      foreach p [lreverse [dict keys $path]] {
+	#
+	# For now, we disallow upstream propagation if the receiving
+	# entity is missing ... as this would be pointless ...
+	#
+	if {[$p pinfo get -default "extra" status] eq "missing"} break;
 	$p pinfo set {*}$args
       }
     }
@@ -1175,9 +1180,11 @@ namespace eval ::nx::doc {
 	  return ::nsf::${scope}::[string trimleft [[:partof] name] :]::${:name}
 	}
 
+	# @method->validate()
 	:public method validate {} {
 	  set partof [:get_owning_partof]
-	  if {[info exists :pdata] && [:pinfo get -default complete status] ne "missing"} {
+	  if {[info exists :pdata] &&
+	      [:pinfo get -default complete status] ne "missing"} {
 	    #
 	    # Note: Some information on methods cannot be retrieved from
 	    # within the tracers as they might not be set local to the
@@ -1188,8 +1195,7 @@ namespace eval ::nx::doc {
 	    set prj [:current_project]
 	    set box [$prj sandbox]
 	    set obj [$partof name]
-
-	    #set mname [:get_combined name]
+	   
 	    if {[:pinfo exists bundle handle]} {
 	      set handle [:pinfo get bundle handle]
 	      :pinfo set bundle redefine-protected [$box eval [list ::nsf::methodproperty $obj $handle redefine-protected]]
@@ -1215,13 +1221,6 @@ namespace eval ::nx::doc {
 		$p pdata [lappend paraminfo status missing]
 	      }
 	    }
-	    #    if {[:pinfo exists bundle parameter]} {	    
-	    #      set actual_params [:pinfo get bundle parameter]
-	    #      if {$actual_params ne $params} {
-	    #	:pinfo propagate status mismatch
-	    #	:pinfo set validation "Parameter definition mismatch: $actual_params"
-	    #     }
-	    #  }
 	    
 	    if {![:pinfo exists bundle parametersyntax]} {
 	      :pinfo set bundle parametersyntax $params
@@ -1232,8 +1231,9 @@ namespace eval ::nx::doc {
 	    # upstream!
 	    next
 	  } else {
-	    # the method is missing -> this makes the owning object a mismatch
-	    ${:partof} pinfo propagate status mismatch 
+	    # To realise upward status propagation for submethods, use:
+	    # ${:partof} pinfo propagate status mismatch 
+	    $partof pinfo propagate status mismatch
 	  }
 	}
 	
@@ -1342,7 +1342,7 @@ namespace eval ::nx::doc {
 	}
 
 	
-
+	# @param->validate()
 	:public method validate {} {
 	  #
 	  # TODO: For now, we escape from @param validaton on command
@@ -1350,15 +1350,30 @@ namespace eval ::nx::doc {
 	  # available, so we would need to cook a substitute based on
 	  # the parametersyntax. Review later ...
 	  #
-	  if {${:name} eq "__out__" && [${:partof} info has type ::nx::doc::@command]} return;
-	  if {[info exists :pdata] && [:pinfo get -default complete status] ne "missing"} {
+	  if {${:name} eq "__out__" && \
+		  [${:partof} info has type ::nx::doc::@command]} return;
 
+	  #
+	  # Here, we escape from any parameter verification for
+	  # parameters on forwards & alias, as there is no basis for
+	  # comparison!
+	  #
+	  if {[${:partof} info has type ::nx::doc::@method] && \
+		  [${:partof} pinfo get bundle type] in [list forward alias]} {
+	    dict set :pdata status ""
+	    return;
+	  }
+
+	  if {[info exists :pdata] && \
+		  [:pinfo get -default complete status] ne "missing"} {
+	    
 	    # valid for both object and method parameters
 	    set pspec [:pinfo get -default "" bundle spec]
 	    if {[info exists :spec] && \
 		    ${:spec} ne $pspec} {
 	      :pinfo propagate status mismatch 
-	      :pinfo lappend validation "Specification mismatch. Expected: '${:spec}' Got: '$pspec'."
+	      :pinfo lappend validation "Specification mismatch. Expected: \
+						'${:spec}' Got: '$pspec'."
 	    }
 	    next
 	  } else {
@@ -1822,10 +1837,10 @@ namespace eval ::nx::doc {
       :public method statusmark {} {
 	set cls ""
 	set prj [:current_project]
+	set obj [:origin]
 	if {[$prj is_validated]} {
-	  if {[info exists :pdata]} {
-	    set cls [expr {[dict exists ${:pdata} status]?\
-			       [dict get ${:pdata} status]:""}]
+	  if {[$obj eval {info exists :pdata}]} {
+	    set cls [$obj pinfo get -default "" status]
 	  } else {
 	    set cls "extra"
 	  }
@@ -2148,9 +2163,13 @@ namespace eval ::nx::doc {
 	dict set hash access ${:@modifier}
 	return $hash
       }
-    }; # NxDocRenderer::@method
+    }; # html::@method
 
-  }; # NxDocTemplating
+    # MixinLayer::Mixin create [current]::@param -superclass [current]::Entity {
+    # }; # html::@method
+
+
+  }; # html
   
   #
   # Provide a simple HTML renderer. For now, we make our life simple
@@ -2414,7 +2433,6 @@ namespace eval ::nx::doc {
 
 	  proc __trace_pkg {} {
 
-	   #puts stderr ">>> INIT [package names]"
 	    #    ::interp hide "" source
 	    ::proc ::source {path} {
 	      set ns [uplevel [list namespace current]]
@@ -2786,7 +2804,10 @@ namespace eval ::nx::doc {
 	      	  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
 	      	  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
-		  
+		  if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]} _]} {
+		    dict set bundle parametersyntax $psyn
+		  }
+
 	      	  ::nx::doc::__at_register_command $handle \
 	      	      ->cmdtype @method \
 	      	      ->source [file normalize [info script]] \
@@ -3527,7 +3548,6 @@ namespace eval ::nx {
       #
       # 3) documentation processing
       #
-      #puts stderr ">>> CMDS [$box get_registered_commands]"
 
       # 3a) top-level processing
       foreach script $scripts {

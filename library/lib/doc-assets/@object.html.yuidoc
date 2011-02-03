@@ -17,6 +17,10 @@
   [:as_text]
 </div>
 
+[:? {[:pinfo exists validation]} {
+<span style='display:block; color: red'>[join [:pinfo get validation]]</span>
+}]
+
 [:?var :@object-attribute {
 [:!let obj_attrs [:!get -sortedby name -with name @object-attribute]]
 <div rel="yui:properties" resource="#properties">
