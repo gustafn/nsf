@@ -63,7 +63,7 @@ namespace eval ::nx::test {
         #[[current] slot $name] default $value
 	#:slot $name default $value
 	[self]::slot::$name default $value
-        ::nsf::invalidateobjectparameter [self]
+	[self]::slot::$name reconfigure
       } else {
 	return [[self]::slot::$name $name default]
       }

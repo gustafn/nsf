@@ -895,20 +895,23 @@ namespace eval ::nx {
     #
     # Get a full object parmeter specification from slot object
     #
-    set options [:getParameterOptions -withMultiplicity true -withSubstdefault true]
-    if {[info exists :initcmd]} {
-      lappend options initcmd
-      return [list [:namedParameterSpec ${:name} $options] ${:initcmd}]
-
-    } elseif {[info exists :default]} {
-      # deactivated for now: || [string first {$} ${:default}] > -1
-      if {[string match {*\[*\]*} ${:default}]} {
-        lappend options substdefault
+    if {![info exists :parameterSpec]} {
+      set options [:getParameterOptions -withMultiplicity true -withSubstdefault true]
+      if {[info exists :initcmd]} {
+	lappend options initcmd
+	set :parameterSpec [list [:namedParameterSpec ${:name} $options] ${:initcmd}]
+	
+      } elseif {[info exists :default]} {
+	# deactivated for now: || [string first {$} ${:default}] > -1
+	if {[string match {*\[*\]*} ${:default}]} {
+	  lappend options substdefault
+	}
+	set :parameterSpec  [list [:namedParameterSpec ${:name} $options] ${:default}]
+      } else {
+	set :parameterSpec  [list [:namedParameterSpec ${:name} $options]]
       }
-      return [list [:namedParameterSpec ${:name} $options] ${:default}]
-    } else {
-      return [list [:namedParameterSpec ${:name} $options]]
     }
+    return ${:parameterSpec}
   }
 
   #################################################################
@@ -1181,8 +1184,10 @@ namespace eval ::nx {
   }
 
   ::nx::Attribute public method reconfigure {} {
-    puts stderr "*** Should we reconfigure [self]???"
+    #puts stderr "*** Should we reconfigure [self]???"
+    unset -nocomplain :parameterSpec
     :makeAccessor
+    ::nsf::invalidateobjectparameter ${:domain}
   }
 
   ::nx::Attribute protected method init {} {
