@@ -345,6 +345,13 @@ CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   return NULL;
 }
 
+#if defined(NSF_PROFILE)
+NsfCallStackContent*
+NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
+  return CallStackGetTopFrame(interp, framePtrPtr);
+}
+#endif
+
 /*
  *----------------------------------------------------------------------
  * NsfCallStackFindLastInvocation --
