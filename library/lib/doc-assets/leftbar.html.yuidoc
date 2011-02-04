@@ -1,3 +1,5 @@
+[:!let self_owned_parts [[:origin] owned_parts -class ::nx::doc::StructuredEntity]]
+[:!let owned_parts [dict merge $project_entities $self_owned_parts]]
 <div class="nav">
 [:for feature [dict keys $owned_parts]  {
   <div id="[$feature name]List" class="module">
@@ -8,6 +10,13 @@
 	  [:? {[:info has type [$feature part_class]] && [current] eq $inst} {
 	  [:!let css "selected" ]
 	  }]
+	  [:? {[dict exists $self_owned_parts $feature]} {
+	  [:! lappend css [expr {[$inst pinfo get -default 0 bundle call-protected]?"protected":""}]]
+	  [:! lappend css [expr {[$inst !get @deprecated]?"deprecated":""}]]
+	  [:! lappend css [$inst statustoken]]
+	  [:!let css [linsert $css 0 filter]]
+	  }]
+	  [:!let css [join $css " "]]
 	  <li class="$css"><a href="[$inst href [current]]" title="[$inst print_name]">[:fit [$inst print_name] 30]</a></li>
 	  }]
     </ul>

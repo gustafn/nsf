@@ -46,7 +46,7 @@
 
 
 [:?var :@class-method {
-[:!let class_methods [:!get -sortedby name -where {${:@modifier} eq "public"} @class-method]]
+[:!let class_methods [:!get -sortedby name @class-method]]
 }]
 
 <div class="sect2">

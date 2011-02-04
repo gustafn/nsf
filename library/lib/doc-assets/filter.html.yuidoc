@@ -1,0 +1,10 @@
+<form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+  <fieldset>
+    <legend>Filters</legend>
+    <span class="classopts"><input type="checkbox" name="show_missing" id="show_missing" checked="checked" > <label for="show_missing">Show missing</label></span>
+    <span class="classopts"><input type="checkbox" name="show_mismatch" id="show_mismatch" checked="checked"> <label for="show_mismatch">Show mismatch</label></span>
+    <span class="classopts"><input type="checkbox" name="show_extra" id="show_extra" checked="checked"> <label for="show_extra">Show extra</label></span>
+    <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected"/> <label for="show_protected">Show protected</label></span>
+    <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated"/> <label for="show_deprecated">Show deprecated</label></span>
+  </fieldset>
+</form>

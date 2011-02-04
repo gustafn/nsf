@@ -132,50 +132,6 @@
 # @parameter className:optional
 # @return <<@gls class>> of the object
 
-# @class.method {Object __default_attribute_call_protection}
-#
-# @modifier protected
-
-# @class.method {Object __default_method_call_protection}
-#
-# @modifier protected
-
-# @class.method {Object __resolve_method_path}
-#
-# @modifier protected
-
-# @class.method {Object cleanup}
-#
-# @modifier protected
-
-# @class.method {Object defaultmethod}
-#
-# @modifier protected
-
-# @class.method {Object init}
-#
-# @modifier protected
-
-# @class.method {Object noinit}
-#
-# @modifier protected
-
-# @class.method {Object objectparameter}
-#
-# @modifier protected
-
-# @class.method {Object residualargs}
-#
-# @modifier protected
-
-# @class.method {Object uplevel}
-#
-# @modifier protected
-
-# @class.method {Object upvar}
-#
-# @modifier protected
-
 
 ########################################################################
 # ::nx::Class

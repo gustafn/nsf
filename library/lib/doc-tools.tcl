@@ -1047,6 +1047,8 @@ namespace eval ::nx::doc {
 
 	:public forward @method %self @object-method
 	:attribute @object-method -class ::nx::doc::PartAttribute {
+	  :pretty_name "Object method"
+	  :pretty_plural "Object methods"
 	  set :part_class ::nx::doc::@method
 	}
 
@@ -1122,7 +1124,6 @@ namespace eval ::nx::doc {
 	:attribute @syshook:boolean -class ::nx::doc::SwitchAttribute {
 	  set :default 0
 	}
-	:attribute {@modifier public} -class ::nx::doc::PartAttribute
 	:attribute @parameter -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
 	}
@@ -1298,7 +1299,6 @@ namespace eval ::nx::doc {
 	#   #
 	#   # @param partof Refers to the entity object which contains this part 
 	#   # @param name Stores the name of the documented parameter
-	#   # @modifier protected
 
 	#   set partof_fragment [:get_unqualified_name ${partof_name}]
 	#   return [:root_namespace]::${:tag}::${partof_fragment}::${name}
@@ -1519,6 +1519,11 @@ namespace eval ::nx::doc {
       return
     }
 
+    :method ! {cmd args} {
+      uplevel 1 [list ::$cmd {*}$args]
+      return
+    }
+
     :public method !get {-sortedby -with -where varname} {
       set origin [:origin]
       if {![$origin eval [list info exists :$varname]]} return
@@ -1531,7 +1536,6 @@ namespace eval ::nx::doc {
       if {[info exists where]} {
 	set l [list]
 	foreach item $r {
-	  #puts stderr ".... $item has modifier [$item eval {set :@modifier}]"
 	  if {[$item eval [list expr $where]]} {
 	    lappend l $item
 	  }
@@ -1834,18 +1838,24 @@ namespace eval ::nx::doc {
       # :public forward current_project [current] %method
 
       # :public forward print_name %current name
-      :public method statusmark {} {
-	set cls ""
-	set prj [:current_project]
+
+      :public method statustoken {} {
+	set token ""
 	set obj [:origin]
+	set prj [:current_project]
 	if {[$prj is_validated]} {
 	  if {[$obj eval {info exists :pdata}]} {
-	    set cls [$obj pinfo get -default "" status]
+	    set token [$obj pinfo get -default "" status]
 	  } else {
-	    set cls "extra"
+	    set token "extra"
 	  }
 	}
-	set status_mark "<span title=\"$cls\" class=\"status $cls\">&nbsp;</span>"
+	return $token
+      }
+
+      :public method statusmark {} {
+	set token [:statustoken]
+	set status_mark "<span title=\"$token\" class=\"status $token\">&nbsp;</span>"
       }
       :public method print_name {-status:switch} {
 	set status_mark [expr {$status?[:statusmark]:""}]
@@ -2160,7 +2170,7 @@ namespace eval ::nx::doc {
     MixinLayer::Mixin create [current]::@method -superclass [current]::Entity {
       :public method as_dict {partof feature} {
 	set hash [next]
-	dict set hash access ${:@modifier}
+	dict set hash access [expr {[:pinfo get -default 0 bundle call-protected]?"protected":""}]
 	return $hash
       }
     }; # html::@method
@@ -3363,10 +3373,6 @@ namespace eval ::nx {
 	#puts stderr "== TO GENERATE == [join [dict keys $generated_commands] \n]"
 	dict for {cmd info} $generated_commands {
 	  dict with info {
-	    #
-	    # TODO: for now, we assume objects beyond this point
-	    # ... relax later!
-	    #
 	    if {$cmdtype ni [list @command @object @class @method]} continue;
 	    if {$cmdtype eq "@object" && [string match *::slot::* $cmd]} {
 	      if {[dict exists $info bundle objtype] && [dict get $info bundle objtype] eq "ensemble"} continue;

@@ -16,7 +16,7 @@
 <div id="doc3" class="yui-t2">
 	<div id="hd">
         <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
-        <h3>${:name}&nbsp; 
+        <h3>${:name}
 	  [:? {[:info has type ::nx::doc::@package]} {
 	  <span class="subtitle">[:?var :@version {${:@version}} ]</span>
 	  } - {
@@ -27,7 +27,7 @@
         [:? {[:info has type ::nx::doc::@package]} {
 	   &gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
 	  } ? {[:info has type ::nx::doc::@class]} {
-	  &gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}</a>
+	  &gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}
 	  }]
         <form onsubmit="return false">
             <div id="propertysearch">
@@ -38,8 +38,6 @@
             </div>
         </form>
 	</div><!-- hd -->
-	[:!let self_owned_parts [[:origin] owned_parts -class ::nx::doc::StructuredEntity]]
-	[:!let owned_parts [dict merge $project_entities $self_owned_parts]]
 	<div id="bd">
 	<div id="yui-main">
 	<div class="yui-b">

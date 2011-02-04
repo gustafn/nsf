@@ -162,16 +162,25 @@ a:visited { color: #003399;}
     color: #98AAB1;
 }
 
-.deprecated, .private, .protected {
-    display: inherit;
-    /*    display: none;*/
+
+.filter.deprecated, 
+.filter.protected, 
+.filter.missing, 
+.filter.extra, 
+.filter.extra, 
+.filter.mismatch {
+    /*display: inherit;*/
+    display: none;
 }
 
-body.show_deprecated .deprecated,
-body.show_private .private,
-body.show_protected .protected {
+body.show_deprecated .filter.deprecated,
+body.show_protected .filter.protected,
+body.show_missing .filter.missing,
+body.show_extra .filter.extra,
+body.show_mismatch .filter.mismatch {
     display: inherit;
 }
+
 
 #splash_classList ul {
 	margin: 1em;
