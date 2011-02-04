@@ -668,7 +668,10 @@ namespace eval ::nx::serializer {
       set needed [list]
       foreach alias [$x ::nsf::methods::${where}::info::methods -methodtype alias -callprotection all -path] {
 	set definition [$x ::nsf::methods::${where}::info::method definition $alias]
-	set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]
+	# TODO look into the code, why we need the catch here. I found
+	# the problem with an object level alias for ns_cache_flush
+	set source ""
+	catch {set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]}
 	if {$source ne ""} {
 	  set obj [lindex $source 0]
 	  if {$obj eq $x} {
