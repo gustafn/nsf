@@ -14313,8 +14313,7 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
  * Begin generated Next Scripting commands
  *******************************************/
 /*
-nsfCmd __db_show_stack NsfShowStackCmd {
-}
+nsfCmd __db_show_stack NsfShowStackCmd {}
 */
 static int
 NsfShowStackCmd(Tcl_Interp *interp) {
@@ -14323,8 +14322,7 @@ NsfShowStackCmd(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {
-}
+nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {}
 */
 static int
 NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
@@ -14393,6 +14391,33 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
   /*fprintf(stderr, "all assertions passed\n");*/
   Tcl_DeleteHashTable(tablePtr);
 
+  return TCL_OK;
+}
+
+/*
+nsfCmd __profile_clear_data NsfProfileClearDataStub {}
+*/
+static int
+NsfProfileClearDataStub(Tcl_Interp *interp) {
+  NsfProfileClearData(interp);
+  return TCL_OK;
+}
+
+/*
+nsfCmd __profile_print_data NsfProfilePrintDataStub {}
+*/
+static int
+NsfProfilePrintDataStub(Tcl_Interp *interp) {
+  NsfProfilePrintData(interp);
+  return TCL_OK;
+}
+
+/*
+nsfCmd __profile_get_data NsfProfileGetDataStub {}
+*/
+static int
+NsfProfileGetDataStub(Tcl_Interp *interp) {
+  NsfProfileGetData(interp);
   return TCL_OK;
 }
 
@@ -14988,7 +15013,8 @@ NsfFinalizeObjCmd(Tcl_Interp *interp) {
   /*fprintf(stderr, "+++ call tcl-defined exit handler\n");  */
 
 #if defined(NSF_PROFILE)
-  NsfProfilePrintData(interp);
+  //NsfProfilePrintData(interp);
+  NsfProfileClearData(interp);
 #endif
   /*
    * evaluate user-defined exit handler
@@ -16723,7 +16749,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
       cscPtr->flags = 0;
-      CscInit(cscPtr, object, NULL /*cl*/, NULL /*cmd*/, NSF_CSC_TYPE_PLAIN, 0, "configure");
+      CscInit(cscPtr, object, object->cl /*cl*/, NULL /*cmd*/, NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
       Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
 
       if (paramPtr->flags & NSF_ARG_INITCMD) {
