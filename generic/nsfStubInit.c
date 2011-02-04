@@ -67,3 +67,11 @@ NsfStubs nsfStubs = {
 
 MODULE_SCOPE const NsfStubs * const nsfConstStubPtr;
 const NsfStubs * const nsfConstStubPtr = &nsfStubs;
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

@@ -148,3 +148,10 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
 }
 #endif
 
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

@@ -100,3 +100,11 @@ Nsf_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
       return actualVersion;
     }
 }
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */
