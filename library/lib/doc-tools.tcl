@@ -570,9 +570,14 @@ namespace eval ::nx::doc {
 
     
     :public method "pinfo propagate" args {
-      :pinfo set {*}$args
-      set path [dict create {*}[:get_upward_path -attribute {set :name}]]
-      foreach p [dict keys $path] {
+      set path [dict create {*}[:get_upward_path \
+				-attribute {set :name}]]
+      foreach p [lreverse [dict keys $path]] {
+	#
+	# For now, we disallow upstream propagation if the receiving
+	# entity is missing ... as this would be pointless ...
+	#
+	if {[$p pinfo get -default "extra" status] eq "missing"} break;
 	$p pinfo set {*}$args
       }
     }
@@ -1042,6 +1047,8 @@ namespace eval ::nx::doc {
 
 	:public forward @method %self @object-method
 	:attribute @object-method -class ::nx::doc::PartAttribute {
+	  :pretty_name "Object method"
+	  :pretty_plural "Object methods"
 	  set :part_class ::nx::doc::@method
 	}
 
@@ -1117,7 +1124,6 @@ namespace eval ::nx::doc {
 	:attribute @syshook:boolean -class ::nx::doc::SwitchAttribute {
 	  set :default 0
 	}
-	:attribute {@modifier public} -class ::nx::doc::PartAttribute
 	:attribute @parameter -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
 	}
@@ -1175,9 +1181,11 @@ namespace eval ::nx::doc {
 	  return ::nsf::${scope}::[string trimleft [[:partof] name] :]::${:name}
 	}
 
+	# @method->validate()
 	:public method validate {} {
 	  set partof [:get_owning_partof]
-	  if {[info exists :pdata] && [:pinfo get -default complete status] ne "missing"} {
+	  if {[info exists :pdata] &&
+	      [:pinfo get -default complete status] ne "missing"} {
 	    #
 	    # Note: Some information on methods cannot be retrieved from
 	    # within the tracers as they might not be set local to the
@@ -1188,8 +1196,7 @@ namespace eval ::nx::doc {
 	    set prj [:current_project]
 	    set box [$prj sandbox]
 	    set obj [$partof name]
-
-	    #set mname [:get_combined name]
+	   
 	    if {[:pinfo exists bundle handle]} {
 	      set handle [:pinfo get bundle handle]
 	      :pinfo set bundle redefine-protected [$box eval [list ::nsf::methodproperty $obj $handle redefine-protected]]
@@ -1215,13 +1222,6 @@ namespace eval ::nx::doc {
 		$p pdata [lappend paraminfo status missing]
 	      }
 	    }
-	    #    if {[:pinfo exists bundle parameter]} {	    
-	    #      set actual_params [:pinfo get bundle parameter]
-	    #      if {$actual_params ne $params} {
-	    #	:pinfo propagate status mismatch
-	    #	:pinfo set validation "Parameter definition mismatch: $actual_params"
-	    #     }
-	    #  }
 	    
 	    if {![:pinfo exists bundle parametersyntax]} {
 	      :pinfo set bundle parametersyntax $params
@@ -1232,8 +1232,9 @@ namespace eval ::nx::doc {
 	    # upstream!
 	    next
 	  } else {
-	    # the method is missing -> this makes the owning object a mismatch
-	    ${:partof} pinfo propagate status mismatch 
+	    # To realise upward status propagation for submethods, use:
+	    # ${:partof} pinfo propagate status mismatch 
+	    $partof pinfo propagate status mismatch
 	  }
 	}
 	
@@ -1298,7 +1299,6 @@ namespace eval ::nx::doc {
 	#   #
 	#   # @param partof Refers to the entity object which contains this part 
 	#   # @param name Stores the name of the documented parameter
-	#   # @modifier protected
 
 	#   set partof_fragment [:get_unqualified_name ${partof_name}]
 	#   return [:root_namespace]::${:tag}::${partof_fragment}::${name}
@@ -1342,7 +1342,7 @@ namespace eval ::nx::doc {
 	}
 
 	
-
+	# @param->validate()
 	:public method validate {} {
 	  #
 	  # TODO: For now, we escape from @param validaton on command
@@ -1350,15 +1350,30 @@ namespace eval ::nx::doc {
 	  # available, so we would need to cook a substitute based on
 	  # the parametersyntax. Review later ...
 	  #
-	  if {${:name} eq "__out__" && [${:partof} info has type ::nx::doc::@command]} return;
-	  if {[info exists :pdata] && [:pinfo get -default complete status] ne "missing"} {
+	  if {${:name} eq "__out__" && \
+		  [${:partof} info has type ::nx::doc::@command]} return;
 
+	  #
+	  # Here, we escape from any parameter verification for
+	  # parameters on forwards & alias, as there is no basis for
+	  # comparison!
+	  #
+	  if {[${:partof} info has type ::nx::doc::@method] && \
+		  [${:partof} pinfo get bundle type] in [list forward alias]} {
+	    dict set :pdata status ""
+	    return;
+	  }
+
+	  if {[info exists :pdata] && \
+		  [:pinfo get -default complete status] ne "missing"} {
+	    
 	    # valid for both object and method parameters
 	    set pspec [:pinfo get -default "" bundle spec]
 	    if {[info exists :spec] && \
 		    ${:spec} ne $pspec} {
 	      :pinfo propagate status mismatch 
-	      :pinfo lappend validation "Specification mismatch. Expected: '${:spec}' Got: '$pspec'."
+	      :pinfo lappend validation "Specification mismatch. Expected: \
+						'${:spec}' Got: '$pspec'."
 	    }
 	    next
 	  } else {
@@ -1397,6 +1412,8 @@ namespace eval ::nx::doc {
 
   Class create TemplateData {
     
+    :attribute current_template_name
+
     :class-object attribute current_format
     :class-object attribute current_theme
     :public forward current_format [current] %method
@@ -1413,19 +1430,44 @@ namespace eval ::nx::doc {
 
     :method initialise {with_template_path} {
       :rendered_entity [current]
-      foreach {f t} [lrange [split $with_template_path .] end-1 end] break;
-      :current_format $f
-      :current_theme $t
+      :set_template_specifics {*}[split $with_template_path .]
+    }
+
+    :method set_template_specifics {
+      current_template_name:optional 
+      current_format:optional
+      current_theme:optional
+    } {
+      foreach prop [info vars] {
+	if {[info exists $prop] && [set $prop] ne ""} {
+	  :$prop [set $prop]
+	}
+      }
     }
 
     :public method read_tmpl {path} {
       if {[file pathtype $path] ne "absolute"} {
 	set assetdir [find_asset_path]
-	set tmpl [file join $assetdir $path]
+	#
+	# auto-complete partial template names
+	#
+	set path_as_list [concat {*}[split $path .]]
+	switch -- [llength $path_as_list] {
+	  1 { 
+	    lappend path_as_list [:current_format] [:current_theme] 
+	  }
+	  2 {
+	    lappend path_as_list [:current_theme]
+	  }
+	  3 {;}
+	  default {
+	    error "Wrong # of components in template name '$path'."
+	  }
+	}
+	set tmpl [file join $assetdir [join $path_as_list .]]
       } else {
 	set tmpl [file normalize $path]
       }
-      
       if {![[current class] eval [list info exists :templates($tmpl)]]} {
 	if {![file exists $tmpl] || ![file isfile $tmpl]} {
 	  error "The template file '$path' was not found."
@@ -1447,9 +1489,10 @@ namespace eval ::nx::doc {
     # to verify the existence of variables and simple loop constructs
     :public method render {
       {-initscript ""}
-      template 
+      {-template:substdefault "[namespace tail [:info class]]"}
       {entity:substdefault "[current]"}
     } {
+      $entity initialise $template
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
       set tmplscript [list subst [:read_tmpl $template]]
       #
@@ -1457,7 +1500,6 @@ namespace eval ::nx::doc {
       # figured out (as for the origin mechanism) we so keep track
       # of the actual rendered entity ... review later ...
       #
-      $entity initialise $template
       $entity render_start
       set content [$entity eval [subst -nocommands {
 	$initscript
@@ -1477,6 +1519,11 @@ namespace eval ::nx::doc {
       return
     }
 
+    :method ! {cmd args} {
+      uplevel 1 [list ::$cmd {*}$args]
+      return
+    }
+
     :public method !get {-sortedby -with -where varname} {
       set origin [:origin]
       if {![$origin eval [list info exists :$varname]]} return
@@ -1489,7 +1536,6 @@ namespace eval ::nx::doc {
       if {[info exists where]} {
 	set l [list]
 	foreach item $r {
-	  #puts stderr ".... $item has modifier [$item eval {set :@modifier}]"
 	  if {[$item eval [list expr $where]]} {
 	    lappend l $item
 	  }
@@ -1555,13 +1601,13 @@ namespace eval ::nx::doc {
       }
     }
     
-    :method include {template} {
+    :method include {{template:substdefault "[namespace tail [:info class]]"}} {
       uplevel 1 [list subst [:read_tmpl $template]]
     }
 
     :method listing {{-inline true} script} {
       set iscript [join [list [list set inline $inline] [list set script $script]] \n]
-      :render -initscript $iscript [current method].[:current_format].[:current_theme]
+      :render -initscript $iscript -template [current method].[:current_format].[:current_theme]
 
     }
 
@@ -1667,23 +1713,31 @@ namespace eval ::nx::doc {
       file delete -force $path
     }
     
+    :method place_assets {theme target} {
+      # TODO: provide include/exclude filters based on [lsearch -glob -not]
+      # set assets [lsearch -all -inline -glob -not $assets *.$ext]
+      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
+      file mkdir $target
+      if {$assets eq ""} return;
+      file copy -force -- {*}$assets $target
+    }
+
     :method "pick multifile" {
       project 
       tmpl 
       {-outdir [::nsf::tmpdir]}
     } {
       set ext [namespace tail [current]]
+      set theme [string trimleft [file extension $tmpl] .]
       set project_path [file join $outdir [string trimleft [$project name] :]]
       
       :remove -nocomplain $project_path
       
       if {![catch {file mkdir $project_path} msg]} {
-	set assets [glob -directory [::nx::doc::find_asset_path] *]
-	set assets [lsearch -all -inline -glob -not $assets *.$ext]
+
 	set target $project_path/assets
-	file mkdir $target
-	file copy -force -- {*}$assets $target
-	
+	:place_assets $theme $target
+
 	set values [concat {*}[dict values [$project navigatable_parts]]]
 	#
 	# Make sure that the @project entity is processed last.
@@ -1713,8 +1767,11 @@ namespace eval ::nx::doc {
     } {      
       set ext [namespace tail [current]]
       set fn [file join $outdir "[$project name].$ext"]
+      set theme [string trimleft [file extension $tmpl] .]
+      
       :remove -nocomplain $fn
       set content [:render $project $project $tmpl]
+      :place_assets $theme $outdir
       :write $content $fn
       puts stderr "$project written to $fn"
     }
@@ -1722,7 +1779,7 @@ namespace eval ::nx::doc {
     :public method run {
 	-project 
 	{-layout multifile} 
-	{-theme tmpl} 
+	{-theme yuidoc} 
 	args
       } {
       # 1. trigger validation
@@ -1759,7 +1816,7 @@ namespace eval ::nx::doc {
 	set project_entities \[list $top_level_entities\]
       }]
       $entity current_project $project
-      $entity render -initscript $init $tmpl
+      $entity render -initscript $init -template $tmpl
     }
 
     #
@@ -1781,18 +1838,24 @@ namespace eval ::nx::doc {
       # :public forward current_project [current] %method
 
       # :public forward print_name %current name
-      :public method statusmark {} {
-	set cls ""
+
+      :public method statustoken {} {
+	set token ""
+	set obj [:origin]
 	set prj [:current_project]
 	if {[$prj is_validated]} {
-	  if {[info exists :pdata]} {
-	    set cls [expr {[dict exists ${:pdata} status]?\
-			       [dict get ${:pdata} status]:""}]
+	  if {[$obj eval {info exists :pdata}]} {
+	    set token [$obj pinfo get -default "" status]
 	  } else {
-	    set cls "extra"
+	    set token "extra"
 	  }
 	}
-	set status_mark "<span title=\"$cls\" class=\"status $cls\">&nbsp;</span>"
+	return $token
+      }
+
+      :public method statusmark {} {
+	set token [:statustoken]
+	set status_mark "<span title=\"$token\" class=\"status $token\">&nbsp;</span>"
       }
       :public method print_name {-status:switch} {
 	set status_mark [expr {$status?[:statusmark]:""}]
@@ -1913,7 +1976,7 @@ namespace eval ::nx::doc {
 	set iscript [join [list [list set title $pof[join $pathnames .]] \
 			       [list set source_anchor [join $pathnames { }]] \
 			       [list set top_entity $top_entity]] \n]
-	:render -initscript $iscript link.[:current_format].[:current_theme]
+	:render -initscript $iscript -template link.[:current_format].[:current_theme]
       }
       
       :public method as_text {} {
@@ -2067,7 +2130,7 @@ namespace eval ::nx::doc {
 			       [list set cssclass nsfdoc-gloss]] \n]
 	set res [:render \
 		     -initscript $iscript \
-		     link.[:current_format].[:current_theme]]
+		     -template link.[:current_format].[:current_theme]]
 	return $res
       }
     }; # NxDocRenderer::@glossary
@@ -2107,12 +2170,16 @@ namespace eval ::nx::doc {
     MixinLayer::Mixin create [current]::@method -superclass [current]::Entity {
       :public method as_dict {partof feature} {
 	set hash [next]
-	dict set hash access ${:@modifier}
+	dict set hash access [expr {[:pinfo get -default 0 bundle call-protected]?"protected":""}]
 	return $hash
       }
-    }; # NxDocRenderer::@method
+    }; # html::@method
 
-  }; # NxDocTemplating
+    # MixinLayer::Mixin create [current]::@param -superclass [current]::Entity {
+    # }; # html::@method
+
+
+  }; # html
   
   #
   # Provide a simple HTML renderer. For now, we make our life simple
@@ -2376,7 +2443,6 @@ namespace eval ::nx::doc {
 
 	  proc __trace_pkg {} {
 
-	   #puts stderr ">>> INIT [package names]"
 	    #    ::interp hide "" source
 	    ::proc ::source {path} {
 	      set ns [uplevel [list namespace current]]
@@ -2748,7 +2814,10 @@ namespace eval ::nx::doc {
 	      	  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
 	      	  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
-		  
+		  if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]} _]} {
+		    dict set bundle parametersyntax $psyn
+		  }
+
 	      	  ::nx::doc::__at_register_command $handle \
 	      	      ->cmdtype @method \
 	      	      ->source [file normalize [info script]] \
@@ -3304,10 +3373,6 @@ namespace eval ::nx {
 	#puts stderr "== TO GENERATE == [join [dict keys $generated_commands] \n]"
 	dict for {cmd info} $generated_commands {
 	  dict with info {
-	    #
-	    # TODO: for now, we assume objects beyond this point
-	    # ... relax later!
-	    #
 	    if {$cmdtype ni [list @command @object @class @method]} continue;
 	    if {$cmdtype eq "@object" && [string match *::slot::* $cmd]} {
 	      if {[dict exists $info bundle objtype] && [dict get $info bundle objtype] eq "ensemble"} continue;
@@ -3489,7 +3554,6 @@ namespace eval ::nx {
       #
       # 3) documentation processing
       #
-      #puts stderr ">>> CMDS [$box get_registered_commands]"
 
       # 3a) top-level processing
       foreach script $scripts {

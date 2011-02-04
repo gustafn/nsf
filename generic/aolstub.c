@@ -172,3 +172,11 @@ Ns_ModuleInit(char *hServer, char *hModule)
   return ret == TCL_OK ? NS_OK : NS_ERROR;
 }
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

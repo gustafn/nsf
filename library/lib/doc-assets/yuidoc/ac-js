@@ -1,16 +1,19 @@
 (function() {
-    var Event=YAHOO.util.Event,
+	var Event=YAHOO.util.Event,
         Dom=YAHOO.util.Dom,
         oACDS, oAutoComp,
         show = {
-            'private': false,
+            'missing': true,
+            'mismatch': true,
+            'extra': true,
             'protected': false,
             'deprecated': false
         };
 
 Event.onAvailable('yui-classopts-form', function() {
+/*Event.onDOMReady(function() {*/
     //Checkboxes are available..
-    var handleClick = function(e) {
+    var handleClick = function(e,onReady) {
         var id, checked = false;
         if (YAHOO.lang.isString(e)) {
             id = e;
@@ -35,21 +38,23 @@ Event.onAvailable('yui-classopts-form', function() {
 
     var checkCookie = function(id) {
         var value = YAHOO.util.Cookie.getSub('yuidoc', id),
-            el = Dom.get(id), checked = (value === 'checked');;
-
-        /*
-        if (value === 'checked') {
-            el.checked = true;
-        } else {
-            el.checked = false;
-        }
-        */
-
+        el = Dom.get(id), checked = false;
+	if (value === null) {
+	    /* there is no (sub-)cookie set, apply defaults */
+	    checked = el.defaultChecked;
+	} else {
+	    checked = (value === 'checked');
+	}
         el.checked = checked;
         return checked;
     };
 
-    var els = ['show_protected'],
+    var els = [
+    'show_protected',
+    'show_missing',
+    'show_mismatch',
+    'show_extra',
+    'show_deprecated'],
         reapplyHash = false;
 
     for (var i = 0; i < els.length; i++) {

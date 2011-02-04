@@ -185,3 +185,11 @@ NsfObjErrType(Tcl_Interp *interp,
   }
   return TCL_ERROR;
 }
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

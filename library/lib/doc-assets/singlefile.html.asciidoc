@@ -7,7 +7,7 @@
   </title>  
   <link rel="stylesheet" 
 	type="text/css" 
-	href="http://asciidoc.googlecode.com/hg/stylesheets/xhtml11.css" />
+	href="xhtml11.css" />
 </head>
 <style type="text/css">
 span.var {
@@ -47,7 +47,7 @@ font-style: italic;
     <h2 id="[$inst as_tag_id]">[$feature pretty_name] <tt>[$inst name]</tt></h2>
     <div class="sectionbody">
       [:? {[dict exists $tmpls [$inst info class]]} {
-      [$inst render [dict get $tmpls [$inst info class]]]
+      [$inst render]
       }]
     </div>
   </div>

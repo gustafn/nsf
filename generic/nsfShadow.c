@@ -424,3 +424,11 @@ int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
   FREE_ON_STACK(Tcl_Obj *, ov);
   return result;
 }
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

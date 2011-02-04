@@ -1,4 +1,6 @@
-<div class="${:@modifier}" rel="yui:method" resource="#method_${:name}">
+[:!let modifier [expr {[:pinfo get -default 0 bundle call-protected]?"protected":""}]]
+[:!let depr [expr {[:!get @deprecated]?"deprecated":""}]]
+<div class="filter $modifier [:statustoken] $depr" rel="yui:method" resource="#method_${:name}">
   <h4>
     <a name="[:href -local]">[:print_name -status]</a></h4>
   <div class="detail" >
@@ -15,7 +17,7 @@
       [:?var :@method {
       <hr/>
       [:for sm [:get_sub_methods] {
-      [$sm render -initscript [list set supermethod [current]] submethod.html.tmpl]
+      [$sm render -initscript [list set supermethod [current]] -template submethod]
       }]
       } - {
       [:?var :@parameter {
@@ -28,7 +30,7 @@
           </code>
 	  [$param statusmark]
           <span property="yui:description">[$param as_text]</span>
-	  <span style='display:block; color: red'>[$param pinfo get -default "" validation]</span>
+	  <span style='display:block; color: red'>[join [$param pinfo get -default "" validation]]</span>
 	  [:? {[$param eval {info exists :default}]} {
           <div class="default" property="yui:defaultValue">
             Default Value: [$param default]
@@ -46,7 +48,7 @@
           <code property="yui:return"> [:? {[$ret eval {info exists :spec}] && [$ret spec] ne ""} {[$ret spec]}]
         </code></dt>
         <dd property="yui:returnInfo">
-	  <span style='display:block; color: red'>[$ret pinfo get -default "" validation]</span>
+	  <span style='display:block; color: red'>[join [$ret pinfo get -default "" validation]]</span>
 	  [$ret as_text]
 	</dd>
       </dl>

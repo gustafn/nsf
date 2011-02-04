@@ -1,9 +1,4 @@
-<form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
-  <fieldset>
-    <legend>Filters</legend>
-    <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show protected</label></span>
-  </fieldset>
-</form>
+[:include filter]
 <h2>
   Object
   <b property="yui:name">[:print_name -status]</b>
@@ -17,6 +12,10 @@
   [:as_text]
 </div>
 
+[:? {[:pinfo exists validation]} {
+<span style='display:block; color: red'>[join [:pinfo get validation]]</span>
+}]
+
 [:?var :@object-attribute {
 [:!let obj_attrs [:!get -sortedby name -with name @object-attribute]]
 <div rel="yui:properties" resource="#properties">
@@ -27,7 +26,9 @@
       <div class="content" rel="yui:properties">
         <code>
           [:for attr [dict values $obj_attrs] {
+	  [:!let depr [expr {[$attr !get @deprecated]?"deprecated":""}]]
           <span rel="yui:property"
+		class="filter $depr [$attr statustoken]"
                 resource="#[$attr href -local]">                                        
             <a class=""
                href="#[$attr href -local]" property="yui:name"
@@ -40,7 +41,8 @@
     <hr>
     <div class="content">
       [:for attr [dict values $obj_attrs] {
-       <div rel="yui:property">
+      [:!let depr [expr {[$attr !get @deprecated]?"deprecated":""}]]
+      <div rel="yui:property" class="filter [$attr statustoken] $depr">
         <h4><a name="[$attr href -local]" property="yui:name">[$attr print_name -status]</a>
         </h4>
         <div class="detail">
@@ -81,9 +83,11 @@
           <div class="content" rel="yui:properties">
         <code>
           [:for m $omethods {
+          [:!let depr [expr {[$m !get @deprecated]?"deprecated":""}]]
           <span rel="yui:property"
-                resource="#[$m href -local]">                                        
-            <a class=""
+		class="filter $depr [$m statustoken]"
+		resource="#[$m href -local]">                                        
+            <a
                href="#[$m href -local]" property="yui:name"
                title="[$m name]">[$m name]</a>
           </span>
@@ -93,7 +97,7 @@
     <hr>
     <div class="content">
       [:for omethod $omethods {
-      [$omethod render method.html.tmpl]    
+      [$omethod render]    
       }] <!-- end-of-for -->
     </div>
   </div>

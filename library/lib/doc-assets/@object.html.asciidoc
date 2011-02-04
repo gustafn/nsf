@@ -14,7 +14,7 @@
     </tt>
   </p>
   [:for om $omethods {
-  [$om render method.html.asciidoc]
+  [$om render]
   }]
 </div>
 }]

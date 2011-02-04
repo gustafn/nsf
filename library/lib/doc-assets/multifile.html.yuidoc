@@ -16,7 +16,7 @@
 <div id="doc3" class="yui-t2">
 	<div id="hd">
         <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
-        <h3>${:name}&nbsp; 
+        <h3>${:name}
 	  [:? {[:info has type ::nx::doc::@package]} {
 	  <span class="subtitle">[:?var :@version {${:@version}} ]</span>
 	  } - {
@@ -27,7 +27,7 @@
         [:? {[:info has type ::nx::doc::@package]} {
 	   &gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
 	  } ? {[:info has type ::nx::doc::@class]} {
-	  &gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}</a>
+	  &gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}
 	  }]
         <form onsubmit="return false">
             <div id="propertysearch">
@@ -38,40 +38,33 @@
             </div>
         </form>
 	</div><!-- hd -->
-	[:!let self_owned_parts [[:origin] owned_parts -class ::nx::doc::StructuredEntity]]
-	[:!let owned_parts [dict merge $project_entities $self_owned_parts]]
 	<div id="bd">
 	<div id="yui-main">
 	<div class="yui-b">
-	  [:? {[:info has type ::nx::doc::@package]} {
-	  [:include package.html.tmpl]
-	  } ? {[:info has type ::nx::doc::@class]} {
-	  [:include class.html.tmpl]
-	  } ? {[:info has type ::nx::doc::@object]} {
-	  [:include object.html.tmpl]
-	  } ? {[:info has type ::nx::doc::@command]} {
-	  [:include command.html.tmpl]
-	  } ? {[:info has type ::nx::doc::@project]} {
-	<div class="summary description">
-	  This is the API documentation for the 
-	  <a href="[:name]">[:name]</a> project.
-	  <p>Choose a package, object or command name from the list for more information.</p>
-	</div>
-	[:include glossary.html.tmpl]
-	}]
+	  [:? {[:info has type ::nx::doc::@project]} {
+	  <div class="summary description">
+	    This is the API documentation for the 
+	    <a href="[:name]">[:name]</a> project.
+	    <p>Choose a package, object or command name from the list for more information.</p>
+	  </div>
+	  [:include glossary]
+	  } - {
+	  <!-- delegate to the entity-specific template -->
+	  [:include]
+	  }]
 	</div> <!-- yui-b -->
-	</div> <!-- yui-main -->
-	<div class="yui-b">
-	  [:include leftbar.html.tmpl]
-	</div><!-- yui-b -->
-	</div><!-- bd -->
-	<div id="ft">
-	  <hr />
-        Copyright &copy; [clock format [clock seconds] -format "%Y"]
-	</div>
-</div>
-<script type="text/javascript">
+      </div> <!-- yui-main -->
+      <div class="yui-b">
+	[:include leftbar]
+      </div><!-- yui-b -->
+    </div><!-- bd -->
+    <div id="ft">
+      <hr />
+      Copyright &copy; [clock format [clock seconds] -format "%Y"]
+    </div>
+  </div>
+  <script type="text/javascript">
     ALL_YUI_PROPS = [:as_array_of_hashes];
-</script>
+  </script>
 </body>
 </html>

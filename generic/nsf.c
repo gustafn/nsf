@@ -19214,7 +19214,7 @@ Nsf_Init(Tcl_Interp *interp) {
 
   Tcl_ResetResult(interp);
   Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
-
+  
   return TCL_OK;
 }
 
@@ -19225,3 +19225,10 @@ Nsf_SafeInit(Tcl_Interp *interp) {
   return Nsf_Init(interp);
 }
 
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * End:
+ */

@@ -1,4 +1,6 @@
-<div class="${:@modifier}" rel="yui:method" resource="#method_${:name}">
+[:!let modifier [expr {[:pinfo get -default 0 bundle call-protected]?"protected":""}]]
+[:!let depr [expr {[:!get @deprecated]?"deprecated":""}]]
+<div class="filter $modifier [:statustoken] $depr" rel="yui:method" resource="#method_${:name}">
   <h4>
     <a name="[:href -local]">[$owning_attribute print_name -status]</a></h4>
         <div class="detail" >
