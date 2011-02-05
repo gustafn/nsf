@@ -2344,6 +2344,17 @@ text
 - nsf.c: fix potential crash for epoched cmds
 - some minor updates for profiling support
 
+- The fix of yesterdays subst reference counting bug triggered an
+  other problem: If the last arg was "args", the flags array for
+  checking the need for decr of refcounts was not extended. There are
+  multiple possible fixes, i have just extended the flags array for
+  now as well.
+- When profiling is activated, perform now a more sane shutdown order,
+  all hash tables are now correctly freed.
+- Improve behavior, when object system creation fails
+- Drop function NsfProfilePrint()
+
+
 TODO:
 
 - serializer: check, why catch is needed for object-level alias 

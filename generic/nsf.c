@@ -484,19 +484,26 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
   if (requiredSize >= PARSE_CONTEXT_PREALLOC) {
     if (pcPtr->objv == &pcPtr->objv_static[1]) {
       /* realloc from preallocated memory */
-      pcPtr->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*) * requiredSize);
+      pcPtr->full_objv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*) * requiredSize);
+      pcPtr->flags     = (int*)      ckalloc(sizeof(int) * requiredSize);
       memcpy(pcPtr->full_objv, &pcPtr->objv_static[0], sizeof(Tcl_Obj*) * PARSE_CONTEXT_PREALLOC);
-      /*fprintf(stderr, "alloc %d new objv=%p pcPtr %p\n", requiredSize, pcPtr->full_objv, pcPtr);*/
+      memcpy(pcPtr->flags, &pcPtr->flags_static[0], sizeof(int) * PARSE_CONTEXT_PREALLOC);
+      /*fprintf(stderr, "extend %p alloc %d new objv=%p pcPtr %p\n", 
+	pcPtr, requiredSize, pcPtr->full_objv, pcPtr);*/
+
       pcPtr->status     |= NSF_PC_STATUS_FREE_OBJV;
     } else {
       /* realloc from mallocated memory */
       pcPtr->full_objv = (Tcl_Obj **)ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj*) * requiredSize);
-      /*fprintf(stderr, "realloc %d  new objv=%p pcPtr %p\n", requiredSize, pcPtr->full_objv, pcPtr);*/
+      pcPtr->flags     = (int*)      ckrealloc((char *)pcPtr->flags,     sizeof(int) * requiredSize);
+      /*fprintf(stderr, "extend %p realloc %d  new objv=%p pcPtr %p\n", 
+	pcPtr, requiredSize, pcPtr->full_objv, pcPtr);*/
     }
     pcPtr->objv = &pcPtr->full_objv[1];
   }
 
-  memcpy(pcPtr->objv + from, source, sizeof(Tcl_Obj *) * (elts));
+  memcpy(pcPtr->objv + from, source, sizeof(Tcl_Obj *) * elts);
+  memset(pcPtr->flags + from, 0, sizeof(int) * elts);
   pcPtr->objc += elts;
 
   /*NsfPrintObjv("AFTER:  ", pcPtr->objc, pcPtr->full_objv);*/
@@ -523,30 +530,39 @@ static void
 ParseContextRelease(ParseContext *pcPtr) {
   int status = pcPtr->status;
 
+  /*fprintf(stderr, "ParseContextRelease %p status %.6x %d elements\n", 
+    pcPtr, status, pcPtr->objc);*/
+
   if (status) {
     if (status & NSF_PC_STATUS_MUST_DECR) {
       int i;
       for (i = 0; i < pcPtr->objc-1; i++) {
+	/*fprintf(stderr, "ParseContextRelease %p check [%d] obj %p refCount %d (%s)\n", 
+	  pcPtr, i, pcPtr->objv[i], pcPtr->objv[i]->refCount, ObjStr(pcPtr->objv[i]));*/
 	if (pcPtr->flags[i] & NSF_PC_MUST_DECR) {
+	  assert(pcPtr->objv[i]->refCount > 0);
 	  DECR_REF_COUNT(pcPtr->objv[i]);
 	}
       }
     }
     
-    /* objv can be separately extended */
+    /* 
+     * Objv can be separately extended; also flags are extend when this
+     * happens.
+     */
     if (status & NSF_PC_STATUS_FREE_OBJV) {
       /*fprintf(stderr, "ParseContextRelease %p free %p %p\n", 
 	pcPtr, pcPtr->full_objv, pcPtr->clientData);*/
       ckfree((char *)pcPtr->full_objv);
+      ckfree((char *)pcPtr->flags);
     }
     /* 
-     * If the parameter definition was extended, both clientData and flags are
-     * extended.
+     * If the parameter definition was extended at creation time also
+     * clientData is extended.
      */
     if (status & NSF_PC_STATUS_FREE_CD) {
-      /*fprintf(stderr, "free clientdata and flags\n");*/
+      /*fprintf(stderr, "free clientdata for %p\n", pcPtr);*/
       ckfree((char *)pcPtr->clientData);
-      ckfree((char *)pcPtr->flags);
     }
   }
 }
@@ -14386,17 +14402,6 @@ NsfProfileClearDataStub(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd __profile_print_data NsfProfilePrintDataStub {}
-*/
-static int
-NsfProfilePrintDataStub(Tcl_Interp *interp) {
-#if defined(NSF_PROFILE)
-  NsfProfilePrintData(interp);
-#endif
-  return TCL_OK;
-}
-
-/*
 nsfCmd __profile_get_data NsfProfileGetDataStub {}
 */
 static int
@@ -14803,24 +14808,13 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
   thecls = PrimitiveCCreate(interp, class, NULL, NULL);
   /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
 
-#if defined(NSF_PROFILE)
-  NsfProfileInit(interp);
-#endif
-
   /* check whether Object and Class creation was successful */
   if (!theobj || !thecls) {
-    int i;
 
     if (thecls) PrimitiveCDestroy((ClientData) thecls);
     if (theobj) PrimitiveCDestroy((ClientData) theobj);
 
-    for (i = 0; i < nr_elements(NsfGlobalStrings); i++) {
-      DECR_REF_COUNT(NsfGlobalObjs[i]);
-    }
-    FREE(Tcl_Obj **, NsfGlobalObjs);
-    FREE(NsfRuntimeState, RUNTIME_STATE(interp));
     ObjectSystemFree(interp, osPtr);
-
     return NsfPrintError(interp, "Creation of object system failed");
   }
 
@@ -14997,10 +14991,6 @@ NsfFinalizeObjCmd(Tcl_Interp *interp) {
 
   /*fprintf(stderr, "+++ call tcl-defined exit handler\n");  */
 
-#if defined(NSF_PROFILE)
-  //NsfProfilePrintData(interp);
-  NsfProfileClearData(interp);
-#endif
   /*
    * evaluate user-defined exit handler
    */
@@ -18946,6 +18936,10 @@ ExitHandler(ClientData clientData) {
   }
   NsfStringIncrFree(&RUNTIME_STATE(interp)->iss);
 
+#if defined(NSF_PROFILE)
+  NsfProfileFree(interp);
+#endif
+
 #if defined(TCL_MEM_DEBUG)
   TclDumpMemoryInfo(stderr);
   Tcl_DumpActiveMemory("./nsfActiveMem");
@@ -19050,6 +19044,10 @@ Nsf_Init(Tcl_Interp *interp) {
   Tcl_SetAssocData(interp, "NsfRuntimeState", NULL, runtimeState);
 #else
   Tcl_Interp_globalNsPtr(interp)->clientData = runtimeState;
+#endif
+
+#if defined(NSF_PROFILE)
+  NsfProfileInit(interp);
 #endif
 
   RUNTIME_STATE(interp)->doFilters = 1;

@@ -781,8 +781,8 @@ NsfFreeObjectData(NsfClass *cl);
 
 #if defined(NSF_PROFILE)
 extern void NsfProfileEvaluateData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
-extern void NsfProfilePrintData(Tcl_Interp *interp);
 extern void NsfProfileInit(Tcl_Interp *interp);
+extern void NsfProfileFree(Tcl_Interp *interp);
 extern void NsfProfileClearData(Tcl_Interp *interp);
 extern void NsfProfileGetData(Tcl_Interp *interp);
 extern NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);

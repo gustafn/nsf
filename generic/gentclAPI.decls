@@ -20,7 +20,6 @@ array set ns {
 nsfCmd __db_show_stack NsfShowStackCmd {}
 nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {}
 nsfCmd __profile_clear NsfProfileClearDataStub {}
-nsfCmd __profile_print NsfProfilePrintDataStub {}
 nsfCmd __profile_get NsfProfileGetDataStub {}
 
 nsfCmd alias NsfAliasCmd {

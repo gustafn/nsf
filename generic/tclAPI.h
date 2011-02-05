@@ -243,7 +243,6 @@ static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 static int NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfProfileClearDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfProfilePrintDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -329,7 +328,6 @@ static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
 static int NsfProcCmd(Tcl_Interp *interp, int withAd, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfProfileClearDataStub(Tcl_Interp *interp);
 static int NsfProfileGetDataStub(Tcl_Interp *interp);
-static int NsfProfilePrintDataStub(Tcl_Interp *interp);
 static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
 static int NsfSelfCmd(Tcl_Interp *interp);
@@ -416,7 +414,6 @@ enum {
  NsfProcCmdIdx,
  NsfProfileClearDataStubIdx,
  NsfProfileGetDataStubIdx,
- NsfProfilePrintDataStubIdx,
  NsfQualifyObjCmdIdx,
  NsfRelationCmdIdx,
  NsfSelfCmdIdx,
@@ -1377,22 +1374,6 @@ NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 }
 
 static int
-NsfProfilePrintDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  (void)clientData;
-
-    
-
-      if (objc != 1) {
-	return ArgumentError(interp, "too many arguments:", 
-			     method_definitions[NsfProfilePrintDataStubIdx].paramDefs,
-			     NULL, objv[0]); 
-      } 
-    
-    return NsfProfilePrintDataStub(interp);
-
-}
-
-static int
 NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   (void)clientData;
 
@@ -2310,9 +2291,6 @@ static methodDefinition method_definitions[] = {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::__profile_get", NsfProfileGetDataStubStub, 0, {
-  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},
-{"::nsf::__profile_print", NsfProfilePrintDataStubStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::qualify", NsfQualifyObjCmdStub, 1, {

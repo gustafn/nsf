@@ -22,6 +22,21 @@ typedef struct NsfProfileData {
   long count;
 } NsfProfileData;
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileFillTable --
+ *
+ *    Insert or Update a keyed entry with provided microseconds and
+ *    update the counts for this entry.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Updated or created profile data entry
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
   NsfProfileData *value;
@@ -41,6 +56,24 @@ NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
   value->count ++;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileEvaluateData --
+ *
+ *    This function is invoked, when a call of a method ends. It
+ *    records profiling information based on the provided call stack
+ *    content and the caller. In particular, it records the time spent
+ *    in an object (identified with an objectKey) and the time spent
+ *    in the method (using methodKey).
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Updated or created profile data entries
+ *
+ *----------------------------------------------------------------------
+ */
 void
 NsfProfileEvaluateData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   double totalMicroSec;
@@ -105,62 +138,20 @@ NsfProfileEvaluateData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   Tcl_DStringFree(&methodKey);
 }
 
-static void
-NsfProfilePrintTable(Tcl_HashTable *table) {
-  Tcl_HashEntry *topValueHPtr;
-
-  assert(table);
-
-  do {
-    NsfProfileData *topValue;
-    Tcl_HashSearch hSrch;
-    Tcl_HashEntry *hPtr;
-    char *topKey = NULL;
-
-    topValueHPtr = NULL;
-    topValue = NULL;
-
-    for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr; 
-	 hPtr = Tcl_NextHashEntry(&hSrch)) {
-      NsfProfileData *value = (NsfProfileData *) Tcl_GetHashValue(hPtr);
-      if (value && 
-	  (!topValue || (topValue && value->microSec >= topValue->microSec))) {
-	topValue = value;
-	topValueHPtr = hPtr;
-	topKey = Tcl_GetHashKey(table, hPtr);
-      }
-    }
-
-    if (topValueHPtr) {
-      fprintf(stderr, "  %15ld %10ld   %s\n", topValue->microSec, topValue->count, topKey);
-      ckfree((char *) topValue);
-      Tcl_DeleteHashEntry(topValueHPtr);
-    }
-  } while (topValueHPtr);
-}
-
-void
-NsfProfilePrintData(Tcl_Interp *interp) {
-  NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
-  struct timeval trt;
-
-  fprintf(stderr, "------------------------------------------------------------------\n");
-  fprintf(stderr, "\nXOTcl Profile Information\n\n");
-  fprintf(stderr, "------------------------------------------------------------------\n");
-  fprintf(stderr, "Overall Elapsed Time              %ld\n", profilePtr->overallTime);
-  fprintf(stderr, "------------------------------------------------------------------\n");
-  fprintf(stderr, "     MICROSECONDS      COUNT   OBJECT-NAME\n");
-  NsfProfilePrintTable(&profilePtr->objectData);
-  fprintf(stderr, "------------------------------------------------------------------\n");
-  fprintf(stderr, "     MICROSECONDS      COUNT   (CL/OBJ)->METHOD-NAME\n");
-  NsfProfilePrintTable(&profilePtr->methodData);
-  fprintf(stderr, "------------------------------------------------------------------\n");
-
-  gettimeofday(&trt, NULL);
-  profilePtr->startSec = trt.tv_sec;
-  profilePtr->startUSec = trt.tv_usec;
-  profilePtr->overallTime = 0;
-}
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileClearTable --
+ *
+ *    Clear all data in a profile table.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    freed profile information.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static void
 NsfProfileClearTable(Tcl_HashTable *table) {
@@ -176,6 +167,21 @@ NsfProfileClearTable(Tcl_HashTable *table) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileClearData --
+ *
+ *    Flush all data in all profile tables and reset the time
+ *    counters.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    freed profile information.
+ *
+ *----------------------------------------------------------------------
+ */
 void
 NsfProfileClearData(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
@@ -190,6 +196,21 @@ NsfProfileClearData(Tcl_Interp *interp) {
   profilePtr->overallTime = 0;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileGetTable --
+ *
+ *    Return the profiling information for the specified profile table
+ *    in form of a Tcl list.
+ *
+ * Results:
+ *    Tcl List
+ *
+ * Side effects:
+ *    Nne.
+ *
+ *----------------------------------------------------------------------
+ */
 static Tcl_Obj*
 NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
@@ -211,6 +232,23 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
   return list;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileGetData --
+ *
+ *    Return recorded profiling information. This function returns a
+ *    list containing (a) the elapsed time since the last clear (or
+ *    init), (b) the cumulative time, (c) the list with the per-object
+ *    data and (d) the list with the method invocation data.
+ *
+ * Results:
+ *    Tcl List
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 void
 NsfProfileGetData(Tcl_Interp *interp) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
@@ -229,15 +267,29 @@ NsfProfileGetData(Tcl_Interp *interp) {
   Tcl_SetObjResult(interp, list);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileInit --
+ *
+ *    Initialize the profiling information. This is a one-time only
+ *    operation and initializes the hash table and the timing
+ *    results. The inverse operation is NsfProfileFree()
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 void 
 NsfProfileInit(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
 
-  Tcl_InitHashTable(&RUNTIME_STATE(interp)->profile.objectData,
-		    TCL_STRING_KEYS);
-  Tcl_InitHashTable(&RUNTIME_STATE(interp)->profile.methodData,
-		    TCL_STRING_KEYS);
+  Tcl_InitHashTable(&profilePtr->objectData, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&profilePtr->methodData, TCL_STRING_KEYS);
 
   gettimeofday(&trt, NULL);
   profilePtr->startSec = trt.tv_sec;
@@ -245,6 +297,29 @@ NsfProfileInit(Tcl_Interp *interp) {
   profilePtr->overallTime = 0;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileFree --
+ *
+ *    Free all profiling information. This is a one-time only
+ *    operation only. The inverse operation is NsfProfileInit().
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+void 
+NsfProfileFree(Tcl_Interp *interp) {
+  NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
+
+  NsfProfileClearData(interp);
+  Tcl_DeleteHashTable(&profilePtr->objectData);
+  Tcl_DeleteHashTable(&profilePtr->methodData);
+}
 #endif
 
 /*
