@@ -73,6 +73,7 @@
    of running the program
 #define NSF_PROFILE 1
 */
+//#define NSF_PROFILE 1
 
 /* are we developing?
 #define NSF_DEVELOPMENT 1
@@ -110,7 +111,6 @@
 #define CMD_RESOLVER_TRACE 1
 #define NRE_CALLBACK_TRACE 1
 */
-
 
 /*
  * Sanity checks and dependencies for optional compile flags

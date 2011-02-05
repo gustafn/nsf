@@ -600,7 +600,7 @@ typedef enum {
   NSF_GUARD_OPTION, NSF___UNKNOWN__, 
   /* Partly redefined Tcl commands; leave them together at the end */
   NSF_EXPR, NSF_FORMAT, NSF_INFO_BODY, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, 
-  NSF_RENAME, NSF_SUBST
+  NSF_RENAME
 } NsfGlobalNames;
 #if !defined(NSF_C)
 extern char *NsfGlobalStrings[];
@@ -620,7 +620,7 @@ char *NsfGlobalStrings[] = {
   "-guard", "__unknown__",
   /* tcl commands */
   "expr", "format", "::tcl::info::body", "::tcl::info::frame", "interp", "::tcl::string::is", 
-  "rename", "subst"
+  "rename"
 };
 #endif
 
@@ -704,6 +704,8 @@ typedef struct NsfCallStackContent {
 #if defined(NSF_PROFILE)
 typedef struct NsfProfile {
   long int overallTime;
+  long int startSec;
+  long int startUSec;
   Tcl_HashTable objectData;
   Tcl_HashTable methodData;
 } NsfProfile;
@@ -778,20 +780,12 @@ NsfFreeObjectData(NsfClass *cl);
  */
 
 #if defined(NSF_PROFILE)
-extern void
-NsfProfileFillTable(Tcl_HashTable *table, Tcl_DString *key,
-		 double totalMicroSec);
-extern void
-NsfProfileEvaluateData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
-
-extern void
-NsfProfilePrintTable(Tcl_HashTable *table);
-
-extern void
-NsfProfilePrintData(Tcl_Interp *interp);
-
-extern void
-NsfProfileInit(Tcl_Interp *interp);
+extern void NsfProfileEvaluateData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
+extern void NsfProfilePrintData(Tcl_Interp *interp);
+extern void NsfProfileInit(Tcl_Interp *interp);
+extern void NsfProfileClearData(Tcl_Interp *interp);
+extern void NsfProfileGetData(Tcl_Interp *interp);
+extern NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
 #endif
 
 /*

@@ -352,7 +352,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
     int initialized = (RUNTIME_STATE(interp)->tclCommands != NULL);
     assert(initialized == 0);
     RUNTIME_STATE(interp)->tclCommands = 
-      NEW_ARRAY(NsfShadowTclCommandInfo, NSF_SUBST - NSF_EXPR + 1);
+      NEW_ARRAY(NsfShadowTclCommandInfo, NSF_RENAME - NSF_EXPR + 1);
 
     /*fprintf(stderr, "+++ load tcl commands %d %d\n", load, initialized);*/
 
@@ -361,7 +361,6 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
        e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(), 
        which are not available in though the stub table */
     rc |= NsfReplaceCommand(interp, NSF_EXPR,       NULL, initialized);
-    rc |= NsfReplaceCommand(interp, NSF_SUBST,      NULL, initialized);
 #endif
     rc |= NsfReplaceCommand(interp, NSF_FORMAT,     NULL, initialized);
     rc |= NsfReplaceCommand(interp, NSF_INTERP,     NULL, initialized);

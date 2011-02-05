@@ -1030,11 +1030,12 @@ namespace eval ::nx {
     ::nsf::forward ${os}::Object class ::nsf::relation %self class
 
     # all other relation cmds are defined as slots
+
     ::nx::RelationSlot create ${os}::Class::slot::superclass \
 	-default ${os}::Object
 
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
-	-forwardername object-mixin    
+	-forwardername object-mixin
     ::nx::RelationSlot create ${os}::Object::slot::filter -elementtype "" \
 	-forwardername object-filter
 

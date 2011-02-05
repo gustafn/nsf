@@ -2331,7 +2331,23 @@ text
 - updated documentation
 - reanimated NSF_PROFILE (when activated, needs more stack and slows execution slightly down)
 
+- fixed a problem with object-level alias
+- nsf.c: provide low-level commands for managing profile data
+- nsfStack.c: provide hook to obtain callers information in profiling code
+
+- nx.tcl: provide caching for computed values of object slots to make
+  method objectparameter nearly twice as fast; direct changes on slots
+  require a reconfigure call.
+- nsf.c: removed SUBST from shadow commands (does not appear to be 
+  necessary any more)
+- nsf.c: fixing a memory leak (some substituted values were not freed correctly)
+- nsf.c: fix potential crash for epoched cmds
+- some minor updates for profiling support
+
 TODO:
+
+- serializer: check, why catch is needed for object-level alias 
+  (search for ns_cache_flush)
 
 - NSF_PROFILE
   * provide an interface to clear and to output PROFILE data. 

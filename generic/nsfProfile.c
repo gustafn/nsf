@@ -15,12 +15,13 @@
 
 #include "nsfInt.h"
 
+#if defined(NSF_PROFILE)
+
 typedef struct NsfProfileData {
   long microSec;
   long count;
 } NsfProfileData;
 
-#if defined(NSF_PROFILE)
 static void
 NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
   NsfProfileData *value;

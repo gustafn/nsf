@@ -887,7 +887,6 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
     NSF_EXITHANDLER_ON_SOFT_DESTROY;
   NsfObject *object;
-  int flags;
 
   assert(cscPtr);
   assert(cscPtr->self);
@@ -897,7 +896,6 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 #endif
 
   object = cscPtr->self;
-  flags = cscPtr->flags;
 
   /*fprintf(stderr, "CscFinish %p object %p %s flags %.6x cmdPtr %p\n",cscPtr,
     object, ObjectName(object), flags, cscPtr->cmdPtr); */

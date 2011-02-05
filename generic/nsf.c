@@ -60,13 +60,9 @@ int nsfMemCountInterpCounter = 0;
 #ifdef USE_TCL_STUBS
 # define Nsf_ExprObjCmd(clientData, interp, objc, objv)	\
   NsfCallCommand(interp, NSF_EXPR, objc, objv)
-# define Nsf_SubstObjCmd(clientData, interp, objc, objv)	\
-  NsfCallCommand(interp, NSF_SUBST, objc, objv)
 #else
 # define Nsf_ExprObjCmd(clientData, interp, objc, objv)	\
   Tcl_ExprObjCmd(clientData, interp, objc, objv)
-# define Nsf_SubstObjCmd(clientData, interp, objc, objv)	\
-  Tcl_SubstObjCmd(clientData, interp, objc, objv)
 #endif
 
 /*
@@ -530,7 +526,7 @@ ParseContextRelease(ParseContext *pcPtr) {
   if (status) {
     if (status & NSF_PC_STATUS_MUST_DECR) {
       int i;
-      for (i = 0; i < pcPtr->lastobjc; i++) {
+      for (i = 0; i < pcPtr->objc-1; i++) {
 	if (pcPtr->flags[i] & NSF_PC_MUST_DECR) {
 	  DECR_REF_COUNT(pcPtr->objv[i]);
 	}
@@ -539,10 +535,14 @@ ParseContextRelease(ParseContext *pcPtr) {
     
     /* objv can be separately extended */
     if (status & NSF_PC_STATUS_FREE_OBJV) {
-      /*fprintf(stderr, "ParseContextRelease %p free %p %p\n", pcPtr, pcPtr->full_objv, pcPtr->clientData);*/
+      /*fprintf(stderr, "ParseContextRelease %p free %p %p\n", 
+	pcPtr, pcPtr->full_objv, pcPtr->clientData);*/
       ckfree((char *)pcPtr->full_objv);
     }
-    /* if the parameter definition was extended, both clientData and flags are extended */
+    /* 
+     * If the parameter definition was extended, both clientData and flags are
+     * extended.
+     */
     if (status & NSF_PC_STATUS_FREE_CD) {
       /*fprintf(stderr, "free clientdata and flags\n");*/
       ckfree((char *)pcPtr->clientData);
@@ -1094,6 +1094,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 
   if (cmd) {
     cls = NsfGetClassFromCmdPtr(cmd);
+#if 1
     if (cls == NULL) {
       /*
        * We have a cmd, but no class; namesspace-imported classes are
@@ -1114,6 +1115,9 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 
       result = Tcl_GetAliasObj(interp, objName,
 			       &alias_interp, &alias_cmd_name, &alias_oc, &alias_ov);
+      Tcl_ResetResult(interp);
+      //fprintf(stderr, "alias retuns oc %s\n", alias_oc);
+
       /* we only want aliases with 0 args */
       if (result == TCL_OK && alias_oc == 0) {
 	cmd = NSFindCommand(interp, alias_cmd_name);
@@ -1122,11 +1126,13 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 	  cls = NsfGetClassFromCmdPtr(cmd);
 	}
       }
+
       /*fprintf(stderr, "..... final cmd %p, cls %p\n", cmd , cls);*/
       if (nameObj != objPtr) {
 	DECR_REF_COUNT(nameObj);
       }
     }
+#endif
     if (cls) {
       if (cl) *cl = cls;
       return TCL_OK;
@@ -6844,36 +6850,6 @@ VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *varName, CONST char
   return result;
 }
 
-/*
- *----------------------------------------------------------------------
- * SubstValue --
- *
- *    Perform subst on the provided value (Tcl_Obj)
- *
- * Results:
- *    Tcl result code.
- *
- * Side effects:
- *    Setting result of interp.
- *
- *----------------------------------------------------------------------
- */
-static int
-SubstValue(Tcl_Interp *interp, Tcl_Obj **value) {
-  Tcl_Obj *ov[2];
-  int result;
-
-  ov[1] = *value;
-  Tcl_ResetResult(interp);
-
-  result = Nsf_SubstObjCmd(NULL, interp, 2, ov);
-
-  if (result == TCL_OK) {
-    *value = Tcl_GetObjResult(interp);
-  }
-  return result;
-}
-
 #if defined(WITH_TCL_COMPILE)
 # include <tclCompile.h>
 #endif
@@ -8014,7 +7990,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   /*
    * Check the return value if wanted
    */
-  if (result == TCL_OK && cscPtr->cmdPtr) {
+  if (result == TCL_OK && cscPtr->cmdPtr && Tcl_Command_cmdEpoch(cscPtr->cmdPtr) == 0) {
     NsfParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr);
 
     if (paramDefs && paramDefs->returns) {
@@ -12364,7 +12340,7 @@ NsfProcAliasMethod(ClientData clientData,
   if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
     NsfObject *defObject = tcd->class ? &(tcd->class->object) : tcd->object;
     Tcl_Obj **listElements, *entryObj, *targetObj;
-    int result, nrElements, withPer_object;
+    int nrElements, withPer_object;
     Tcl_Command cmd;
     //int withFrame;
 
@@ -12393,7 +12369,7 @@ NsfProcAliasMethod(ClientData clientData,
      */
     cmd = Tcl_GetCommandFromObj(interp, targetObj);
     if (cmd == NULL) {
-      result = NsfPrintError(interp, "target \"%s\" of alias %s apparently disappeared", 
+      int result = NsfPrintError(interp, "target \"%s\" of alias %s apparently disappeared", 
 			     ObjStr(targetObj), methodName);
       DECR_REF_COUNT(entryObj);
       return result;
@@ -12830,10 +12806,14 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 
         /* we have a default, do we have to subst it? */
         if (pPtr->flags & NSF_ARG_SUBST_DEFAULT) {
-          int result = SubstValue(interp, &newValue);
-          if (result != TCL_OK) {
-            return result;
-          }
+	  Tcl_Obj *obj = Tcl_SubstObj(interp, newValue, TCL_SUBST_ALL);
+
+	  if (obj) {
+	     newValue = obj;
+	  } else {
+	    return TCL_ERROR;
+	  }
+	  
           /*fprintf(stderr, "attribute %s default %p %s => %p '%s'\n", pPtr->name,
                   pPtr->defaultValue, ObjStr(pPtr->defaultValue),
                   newValue, ObjStr(newValue));*/
@@ -14399,7 +14379,9 @@ nsfCmd __profile_clear_data NsfProfileClearDataStub {}
 */
 static int
 NsfProfileClearDataStub(Tcl_Interp *interp) {
+#if defined(NSF_PROFILE)
   NsfProfileClearData(interp);
+#endif
   return TCL_OK;
 }
 
@@ -14408,7 +14390,9 @@ nsfCmd __profile_print_data NsfProfilePrintDataStub {}
 */
 static int
 NsfProfilePrintDataStub(Tcl_Interp *interp) {
+#if defined(NSF_PROFILE)
   NsfProfilePrintData(interp);
+#endif
   return TCL_OK;
 }
 
@@ -14417,7 +14401,9 @@ nsfCmd __profile_get_data NsfProfileGetDataStub {}
 */
 static int
 NsfProfileGetDataStub(Tcl_Interp *interp) {
+#if defined(NSF_PROFILE)
   NsfProfileGetData(interp);
+#endif
   return TCL_OK;
 }
 
@@ -14557,7 +14543,6 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   }
 
 #if defined(WITH_IMPORT_REFS)
-  // TODO remove 1 in expr when decided xxxx
   if (newObjProc) {
     /*
      * Define the reference chain like for 'namespace import' to
@@ -16784,7 +16769,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       } else /* must be NSF_ARG_FORWARD */ {
 	Tcl_Obj *forwardSpec = paramPtr->converterArg ? paramPtr->converterArg : NULL; /* different default? */
 	Tcl_Obj **nobjv, *ov[3];
-	int nobjc, oc=1;
+	int nobjc;
 	
 	/*
 	 * The current implementation performs for every object
@@ -16809,6 +16794,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	} else {
 	  Tcl_Obj *methodObj = paramPtr->nameObj;
 	  ForwardCmdClientData *tcd = NULL;
+	  int oc = 1;
 
 	  result = ForwardProcessOptions(interp, methodObj,
 					 NULL /*withDefault*/, 0 /*withEarlybinding*/, 
