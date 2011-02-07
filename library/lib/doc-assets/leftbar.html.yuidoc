@@ -10,7 +10,7 @@
 	  [:? {[:info has type [$feature part_class]] && [current] eq $inst} {
 	  [:!let css "selected" ]
 	  }]
-	  [:? {[dict exists $self_owned_parts $feature]} {
+	  [:? {[info exists filter_available] && [dict exists $self_owned_parts $feature]} {
 	  [:! lappend css [expr {[$inst pinfo get -default 0 bundle call-protected]?"protected":""}]]
 	  [:! lappend css [expr {[$inst !get @deprecated]?"deprecated":""}]]
 	  [:! lappend css [$inst statustoken]]

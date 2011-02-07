@@ -8,7 +8,7 @@
     </p>
     [:?var :@method {
     [:for sm [:get_sub_methods] {
-    [$sm render -initscript [list set supermethod [current]] -template submethod]
+    [$sm render -initscript [list set supermethod [current]] submethod]
     }]
     } - {
     [:?var :@parameter {

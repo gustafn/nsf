@@ -1114,7 +1114,7 @@ set project [processor process \
     -format html \
     $project \
     -theme yuidoc \
-    -layout multifile \
+    -layout many-to-many \
     -outdir [::nsf::tmpdir]
 
 puts stderr >>>>>>>NextScriptingLanguage<<<<<<<<
@@ -1169,9 +1169,19 @@ dict set timings make.html.asciidoc [time {
     -format html \
     $project \
     -theme asciidoc \
-    -layout singlefile \
+    -layout 1-to-1 \
     -outdir [::nsf::tmpdir]
 } 1]
+
+dict set timings make.xowiki.yuidoc [time {
+::nx::doc::make doc \
+    -format xowiki \
+    $project \
+    -theme yuidoc \
+    -layout many-to-1 \
+    -outdir [::nsf::tmpdir]
+} 1]
+
 
 dict for {probe t} $timings {
   puts stderr "\t$probe -> $t"

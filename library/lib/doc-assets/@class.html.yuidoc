@@ -179,7 +179,7 @@
     <div class="content">
       [:for method $class_methods {
       [:? {[info exists class_attrs] && [dict exists $class_attrs [$method name]]} {
-      [$method render -initscript [list set owning_attribute [dict get $class_attrs [$method name]]] -template attributemethod]
+      [$method render -initscript [list set owning_attribute [dict get $class_attrs [$method name]]] attributemethod]
       } - {
       [$method render]
       }] <!-- end-of-if -->

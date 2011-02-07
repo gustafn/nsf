@@ -78,7 +78,7 @@
   [:? {[info exists class_methods]} {
   [:for m $class_methods {
   [:? {[info exists class_attrs] && [dict exists $class_attrs [$m name]]} {
-  [$m render -initscript [list set owning_attribute [dict get $class_attrs [$m name]]] -template attributemethod]
+  [$m render -initscript [list set owning_attribute [dict get $class_attrs [$m name]]] attributemethod]
   } - {
   [$m render]
   }]

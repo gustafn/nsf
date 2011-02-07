@@ -1412,12 +1412,13 @@ namespace eval ::nx::doc {
 
   Class create TemplateData {
     
-    :attribute current_template_name
+    #:attribute current_template_name
 
-    :class-object attribute current_format
-    :class-object attribute current_theme
-    :public forward current_format [current] %method
-    :public forward current_theme [current] %method
+    :class-object attribute renderer
+    :public forward renderer [current] %method
+
+    #:class-object attribute current_theme
+    #:public forward current_theme [current] %method
 
     #
     # TODO: For now, this acts as the counterweight to "origin",
@@ -1428,84 +1429,33 @@ namespace eval ::nx::doc {
     :class-object attribute rendered_entity:object,type=::nx::doc::Entity
     :public forward rendered_entity [current] %method
 
-    :method initialise {with_template_path} {
-      :rendered_entity [current]
-      :set_template_specifics {*}[split $with_template_path .]
-    }
-
-    :method set_template_specifics {
-      current_template_name:optional 
-      current_format:optional
-      current_theme:optional
-    } {
-      foreach prop [info vars] {
-	if {[info exists $prop] && [set $prop] ne ""} {
-	  :$prop [set $prop]
-	}
-      }
-    }
-
-    :public method read_tmpl {path} {
-      if {[file pathtype $path] ne "absolute"} {
-	set assetdir [find_asset_path]
-	#
-	# auto-complete partial template names
-	#
-	set path_as_list [concat {*}[split $path .]]
-	switch -- [llength $path_as_list] {
-	  1 { 
-	    lappend path_as_list [:current_format] [:current_theme] 
-	  }
-	  2 {
-	    lappend path_as_list [:current_theme]
-	  }
-	  3 {;}
-	  default {
-	    error "Wrong # of components in template name '$path'."
-	  }
-	}
-	set tmpl [file join $assetdir [join $path_as_list .]]
-      } else {
-	set tmpl [file normalize $path]
-      }
-      if {![[current class] eval [list info exists :templates($tmpl)]]} {
-	if {![file exists $tmpl] || ![file isfile $tmpl]} {
-	  error "The template file '$path' was not found."
-	}
-	set fh [open $tmpl r]
-	[current class] eval [list set :templates($tmpl) [read $fh]]
-	catch {close $fh}
-      }
-      
-      return [[current class] eval [list set :templates($tmpl)]]
-    }
-
-
     :public method render_start {} {;}
     :public method render_end {} {;}
-
+    
     # This mixin class realises a rudimentary templating language to
     # be used in nx::doc templates. It realises language expressions
     # to verify the existence of variables and simple loop constructs
     :public method render {
       {-initscript ""}
-      {-template:substdefault "[namespace tail [:info class]]"}
-      {entity:substdefault "[current]"}
+      -theme
+      {name:substdefault "[namespace tail [:info class]]"}
     } {
-      $entity initialise $template
+      :rendered_entity [current]
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
-      set tmplscript [list subst [:read_tmpl $template]]
+      # set tmplscript [list subst [:read_tmpl $template]]
+      set tmplscript [list subst [[:renderer] getTemplate $name \
+				      {*}[expr {[info exists theme]?$theme:""}]]]
       #
       # TODO: This looks awkward, however, till all requirements are
       # figured out (as for the origin mechanism) we so keep track
       # of the actual rendered entity ... review later ...
       #
-      $entity render_start
-      set content [$entity eval [subst -nocommands {
+      :render_start
+      set content [:eval [subst -nocommands {
 	$initscript
 	$tmplscript
       }]]
-      $entity render_end
+      :render_end
       return [string trim $content \n]
     }
     
@@ -1518,12 +1468,12 @@ namespace eval ::nx::doc {
       uplevel 1 [list ::set $var $value]
       return
     }
-
+    
     :method ! {cmd args} {
       uplevel 1 [list ::$cmd {*}$args]
       return
     }
-
+    
     :public method !get {-sortedby -with -where varname} {
       set origin [:origin]
       if {![$origin eval [list info exists :$varname]]} return
@@ -1532,7 +1482,7 @@ namespace eval ::nx::doc {
       } else {
 	set r [uplevel 1 [list $origin eval [list ::set :$varname] ]]
       }
-
+      
       if {[info exists where]} {
 	set l [list]
 	foreach item $r {
@@ -1542,7 +1492,7 @@ namespace eval ::nx::doc {
 	}
 	set r $l
       }  
-
+      
       if {[info exists with]} {
 	set l [list]
 	foreach item $r {
@@ -1550,7 +1500,7 @@ namespace eval ::nx::doc {
 	}
 	set r $l
       }
-
+      
       return $r
     }
 
@@ -1601,20 +1551,23 @@ namespace eval ::nx::doc {
       }
     }
     
-    :method include {{template:substdefault "[namespace tail [:info class]]"}} {
-      uplevel 1 [list subst [:read_tmpl $template]]
+    :method include {
+      -theme
+      {name:substdefault "[namespace tail [:info class]]"}
+    } {
+      uplevel 1 [list subst [[:renderer] getTemplate $name \
+				 {*}[expr {[info exists theme]?$theme:""}]]]
     }
-
+    
     :method listing {{-inline true} script} {
       set iscript [join [list [list set inline $inline] [list set script $script]] \n]
-      :render -initscript $iscript -template [current method].[:current_format].[:current_theme]
-
+      :render -initscript $iscript [current method]
     }
-
+    
     :method link args {
       error "Subclass responsibility: You must provide a method definition of '[current method]' in a proper subclass"
     }
-
+    
     set :markup_map(sub) { 
       "'''" "\[:listing \{" 
       "'''" "\}\]"
@@ -1689,17 +1642,95 @@ namespace eval ::nx::doc {
 
   }
 
-    #
-    # A default TemplateData implementation, targeting the derived YUI
-    # Doc templates.
-    # 
-
+  #
+  # A Renderer base class ...
+  #
   Class create Renderer -superclass MixinLayer {
+    
+    :attribute {extension "[namespace tail [current]]"}
+    :attribute extends:object,type=[current]
+    
+    #
+    # mixin-layer management
+    #
     
     :method init args {
       set :prefix "::nx::doc"
       next
     }
+    
+    :public method apply {} {
+      if {[info exists :extends]} {
+	${:extends} [current method]
+      }
+      next
+    }
+    
+    :public method revoke {} {
+      next
+      if {[info exists :extends]} {
+	${:extends} [current method]
+      }
+    }
+    
+    #
+    # template management
+    #
+    
+    :attribute current_theme
+    :protected attribute {templates {[dict create]}}
+    
+    :public method addTemplate {name theme body} {
+      dict set :templates $theme $name $body
+      return $body
+    }
+    :public method deleteTemplate {name theme} {
+      dict remove ${:templates} $theme $name
+    }
+    :public method getTemplate {
+	name 
+	{theme:substdefault "${:current_theme}"}
+      } {
+      if {[dict exists ${:templates} $theme $name]} {
+	return [dict get ${:templates} $theme $name]
+      } else {
+	#
+	# 1) if available, read-in template file lazily
+	#
+	set templateName $name.${:extension}.$theme
+	set body [:readAsset $templateName]
+	if {$body ne ""} {
+	  return [:addTemplate $name $theme $body]
+	}
+	#
+	# 2) resolve the template along the "extends" chain
+	#
+	if {[info exists :extends]} {
+	  return [${:extends} [current method] $name $theme]
+	}
+	#
+	# 3) if ending up here, report a missing template!
+	#
+	error "The template '$templateName' requested for \
+	        renderer '[namespace tail [current]]' is \
+		not available."
+      }
+    }
+				
+    :method readAsset {assetName} {
+      set assetDir [find_asset_path]
+      set assetPath [file join $assetDir $assetName]
+      if {[file exists $assetPath] && [file isfile $assetPath]} {
+	set fh [open $assetPath r]
+	set body [read $fh]
+	catch {close $fh}
+	return $body
+      }
+    }
+
+    #
+    # rendering
+    # 
 
     :method write {content path} {
       set fh [open $path w]
@@ -1712,112 +1743,126 @@ namespace eval ::nx::doc {
       }
       file delete -force $path
     }
-    
-    :method place_assets {theme target} {
-      # TODO: provide include/exclude filters based on [lsearch -glob -not]
-      # set assets [lsearch -all -inline -glob -not $assets *.$ext]
-      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
-      file mkdir $target
-      if {$assets eq ""} return;
-      file copy -force -- {*}$assets $target
-    }
 
-    :method "pick multifile" {
+    :method installAssets {project theme targetDir} {
+      error "Not implemented. Instance responsibility!"
+    }
+    
+    :method "layout many-to-1" {
       project 
-      tmpl 
+      theme
       {-outdir [::nsf::tmpdir]}
     } {
-      set ext [namespace tail [current]]
-      set theme [string trimleft [file extension $tmpl] .]
-      set project_path [file join $outdir [string trimleft [$project name] :]]
+      set fn [file join $outdir "[$project name].${:extension}"]
+      :remove -nocomplain $fn
       
+      set values [concat {*}[dict values [$project navigatable_parts]]]
+      lappend values $project
+      
+      set output [list]
+      foreach e $values {
+	lappend output [:render $project $e $theme]
+      }
+      :write [join $output \n\n] $fn
+      :installAssets $project $theme $fn
+      puts stderr "$e written to $fn"
+    }
+    
+    :method "layout many-to-many" {
+      project 
+      theme
+      {-outdir [::nsf::tmpdir]}
+    } {
+      set ext ${:extension}
+      
+      #
+      # 1) provide a per-project output directory
+      #
+      set project_path [file join $outdir [string trimleft [$project name] :]]
       :remove -nocomplain $project_path
       
       if {![catch {file mkdir $project_path} msg]} {
-
+	#
+	# 2) place the theme-specifc assets into the project directory
+	#
 	set target $project_path/assets
-	:place_assets $theme $target
+	:installAssets $project $theme $target
 
+	#
+	# 3) Set-up the list of entities to be processed. Note that in
+	# this layout, the @project entity is processed along with all
+	# the other entities, but *last*.
+	#
 	set values [concat {*}[dict values [$project navigatable_parts]]]
-	#
-	# Make sure that the @project entity is processed last.
-	#
 	lappend values $project
 
-	# Note: We trigger the validation of entities according to
-	# their pdata once for the entire entity hierarchy, starting
-	# from the root, i.e. the project entity.
 	foreach e $values {
 	  #
 	  # TODO: For now, in templates we (silently) assume that we act
 	  # upon structured entities only ...
 	  #
-	  if {![$e info has type ::nx::doc::StructuredEntity]} continue;
-	  set content [:render $project $e $tmpl]
+	  set content [:render $project $e $theme @project]
 	  :write $content [file join $project_path "[$e filename].$ext"]
 	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
 	}
       }
     }
 
-    :method "pick singlefile" {
-      project 
-      tmpl 
+    :method "layout 1-to-1" {
+      project
+      theme
       {-outdir "[::nsf::tmpdir]"}
     } {      
-      set ext [namespace tail [current]]
+      set ext ${:extension}
       set fn [file join $outdir "[$project name].$ext"]
-      set theme [string trimleft [file extension $tmpl] .]
       
       :remove -nocomplain $fn
-      set content [:render $project $project $tmpl]
-      :place_assets $theme $outdir
+      set content [:render $project $project $theme]
+      :installAssets $project $theme $outdir
       :write $content $fn
       puts stderr "$project written to $fn"
     }
 
     :public method run {
 	-project 
-	{-layout multifile} 
+	{-layout many-to-many} 
 	{-theme yuidoc} 
 	args
       } {
-      # 1. trigger validation
+      # TODO: Relocate trigger validation!
       $project validate
-      
-      # 2. verify whether there is ...
-      # i) a layout handler and
-      # ii) a template matching both the layout/theme specified      
-      set ext [namespace tail [current]]
-      set tmpl $layout.$ext.$theme      
-      set path_to_tmpl [file join [::nx::doc::find_asset_path] $tmpl]
-      if {![file exists $path_to_tmpl] || \
-	      [:info lookup method "pick $layout"] eq ""
-	    } {
-	error "Beware, $ext $layout output for theme '$theme' not supported."
-      }
-
-      # 3) proceed
+      # --
       :apply
-      :pick $layout $project $tmpl {*}$args
+      :current_theme $theme
+      :layout $layout $project $theme {*}$args
       :revoke
     }
     
-    :method render {project entity tmpl} {
+    :method render {project entity theme {tmplName ""}} {
       error "Not implemented. Instance responsibility!"
     }
   }
   
   Renderer create html {
-    :method render {project entity tmpl} {
+
+    :method render {project entity theme {tmplName ""}} {
       set top_level_entities [$project navigatable_parts]
       set init [subst {
 	set project $project
 	set project_entities \[list $top_level_entities\]
       }]
       $entity current_project $project
-      $entity render -initscript $init -template $tmpl
+      $entity renderer [current]
+      $entity render -initscript $init -theme $theme {*}$tmplName
     }
+
+    :method installAssets {project theme targetDir} {
+      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
+      file mkdir $targetDir
+      if {$assets eq ""} return;
+      file copy -force -- {*}$assets $targetDir
+    }
+
 
     #
     # The actual refinements delivered by the mixin layer
@@ -1976,7 +2021,7 @@ namespace eval ::nx::doc {
 	set iscript [join [list [list set title $pof[join $pathnames .]] \
 			       [list set source_anchor [join $pathnames { }]] \
 			       [list set top_entity $top_entity]] \n]
-	:render -initscript $iscript -template link.[:current_format].[:current_theme]
+	:render -initscript $iscript link
       }
       
       :public method as_text {} {
@@ -2128,9 +2173,7 @@ namespace eval ::nx::doc {
 			       [list set source_anchor $print_name] \
 			       [list set top_entity [current]] \
 			       [list set cssclass nsfdoc-gloss]] \n]
-	set res [:render \
-		     -initscript $iscript \
-		     -template link.[:current_format].[:current_theme]]
+	set res [:render -initscript $iscript link]
 	return $res
       }
     }; # NxDocRenderer::@glossary
@@ -2175,97 +2218,53 @@ namespace eval ::nx::doc {
       }
     }; # html::@method
 
-    # MixinLayer::Mixin create [current]::@param -superclass [current]::Entity {
-    # }; # html::@method
-
-
-  }; # html
+  }; # html renderer
   
   #
-  # Provide a simple HTML renderer. For now, we make our life simple
-  # by defining for the different supported docEntities different methods.
+  # An xowiki backend
   #
-  # We could think about a java-doc style renderer...
-  #
-  
-  Class create HtmlRenderer -superclass Renderer {
-    # render command pieces in the text
-    :method tt {text} {return <@TT>$text</@TT>}
 
-
-    :method render=@package {} {
-      puts "<LI>[:tt ${:name}] <br>\n[:text]"
-      set req [:@require]
-      if {$req ne ""} {
-	puts "   <UL>"
-	foreach r $req {puts "    <LI>$r</LI>"}
-	puts "   </UL>"
-      }
-      puts "</LI>\n"
-
-    }
-
-    #
-    # render xotcl commands
-    #
-    :method render=@command {} {
-      puts "<LI>[:tt ${:name}] <br>\n[:text]"
-      # set variants [sorted [:variants] name]
-      # if {$variants ne ""} {
-      # 	puts "   <UL>"
-      # 	foreach v $variants {puts "    <LI>[$v text]"}
-      # 	puts "   </UL>"
-      # }
-      set params [:@param]
-      if {$params ne ""} {
-	puts "   <UL>"
-	foreach v $params {puts "    <LI>[$v tt [$v name]] [$v text]"}
-	puts "   </UL>"
-      }
-      puts "</LI>\n"
-    }
-
-    #
-    # render next classes
-    #
-    :method render=@object {} {
-      puts "<LI>[:tt ${:name}] <br>\n[:text]"
-      if {[info exists :@method]} {
-	set methods [sorted [:@method] name]
-	if {$methods ne ""} {
-	  puts "<br>Methods of ${:name}:\n   <UL>"
-	  foreach m $methods {$v render}
-	  puts "   </UL>"
-	}
-      }
-      if {[info exists :@class-object-method]} {
-	set methods [sorted [:@class-object-method] name]
-	if {$methods ne ""} {
-	  puts "<br>Object methods of ${:name}:\n   <UL>"
-	  foreach m $methods {$v render}
-	  puts "   </UL>"
-	}
-      }
-      puts "</LI>\n"
-    }
-
-    #
-    # render next methods
-    #
-    :method render=@method {} {
-      puts "<LI>[:tt [:signature]] <br>\n[:text]"
-      set params [:@param]
-      if {$params ne ""} {
-	puts "   <UL>"
-	foreach v $params {puts "    <LI>[$v tt [$v name]] [$v text]"}
-	puts "   </UL>"
-      }
-      if {${:returns} ne ""} {
-	puts "   Returns: ${:@return}"
-      }
-      puts "\n"
+  namespace eval ::xowiki { 
+    Class create Page -attributes { 
+      {lang en} {description ""} {text ""} {nls_language en_US} 
+      {mime_type text/html} {title ""} name text 
     }
   }
+
+
+  Renderer create xowiki -extends [html] {
+    #
+    # yuidoc refinements
+    #
+    :addTemplate link yuidoc {
+      {{en:somePage}}
+    }
+
+    :method render {project entity theme {tmplName ""}} {
+      
+      package req nx::serializer
+      
+      set top_level_entities [$project navigatable_parts]
+      set init [subst {
+	set project $project
+	set project_entities \[list $top_level_entities\]
+      }]
+      $entity current_project $project
+      $entity renderer [current]
+      set content [$entity render -initscript $init -theme $theme body]
+      set p [::xowiki::Page new -name en:[$entity filename] \
+		 -title [$entity name] \
+		 -text [list $content text/html]]
+      return [$p serialize]
+    }
+
+    :method installAssets {project theme targetDir} {
+      #
+      # TODO: assets (js, css, img must be wrapped as ::xowiki::Files)
+      #
+    }
+
+  }; # xowiki renderer
 }
 
 #
