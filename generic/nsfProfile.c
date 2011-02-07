@@ -58,7 +58,7 @@ NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
 
 /*
  *----------------------------------------------------------------------
- * NsfProfileEvaluateData --
+ * NsfProfileRecordMethodData --
  *
  *    This function is invoked, when a call of a method ends. It
  *    records profiling information based on the provided call stack
@@ -75,20 +75,17 @@ NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
  *----------------------------------------------------------------------
  */
 void
-NsfProfileEvaluateData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
+NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   double totalMicroSec;
   NsfObject *obj = cscPtr->self;
   NsfClass *cl = cscPtr->cl;
-  long int startSec = cscPtr->startSec;
-  long int startUsec = cscPtr->startUsec;
-  CONST char *methodName = cscPtr->methodName;
   Tcl_DString methodKey, objectKey;
   NsfProfile *profile = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
 
   gettimeofday(&trt, NULL);
 
-  totalMicroSec = (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec);
+  totalMicroSec = (trt.tv_sec - cscPtr->startSec) * 1000000 + (trt.tv_usec - cscPtr->startUsec);
   profile->overallTime += totalMicroSec;
 
   if (obj->teardown == 0 || !obj->id) {
@@ -104,7 +101,7 @@ NsfProfileEvaluateData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   Tcl_DStringInit(&methodKey);
   Tcl_DStringAppend(&methodKey, cl ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
   Tcl_DStringAppend(&methodKey, " ", 1);
-  Tcl_DStringAppend(&methodKey, methodName, -1);
+  Tcl_DStringAppend(&methodKey, cscPtr->methodName, -1);
   if (cl) {
     Tcl_DStringAppend(&methodKey, " method", 7);
   } else {
@@ -116,12 +113,11 @@ NsfProfileEvaluateData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     if (cscPtrTop) {
       NsfClass *cl = cscPtrTop->cl;
       NsfObject *obj = cscPtrTop->self;
-      CONST char *methodName = cscPtrTop->methodName;
       
       Tcl_DStringAppend(&methodKey, " ", 1);
       Tcl_DStringAppend(&methodKey, cl ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
       Tcl_DStringAppend(&methodKey, " ", 1);
-      Tcl_DStringAppend(&methodKey, methodName, -1);
+      Tcl_DStringAppend(&methodKey, cscPtrTop->methodName, -1);
       if (cl) {
 	Tcl_DStringAppend(&methodKey, " method", 7);
       } else {
@@ -136,6 +132,35 @@ NsfProfileEvaluateData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   NsfProfileFillTable(&profile->methodData, Tcl_DStringValue(&methodKey), totalMicroSec);
   Tcl_DStringFree(&objectKey);
   Tcl_DStringFree(&methodKey);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfProfileRecordMethodData --
+ *
+ *    This function is invoked, when a call of a nsf::proc. It records
+ *    time spent and count per nsf::proc.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Updated or created profile data entries
+ *
+ *----------------------------------------------------------------------
+ */
+void
+NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec) {
+  NsfProfile *profile = &RUNTIME_STATE(interp)->profile;
+  double totalMicroSec;
+  struct timeval trt;
+
+  gettimeofday(&trt, NULL);
+
+  totalMicroSec = (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec);
+  profile->overallTime += totalMicroSec;
+
+  NsfProfileFillTable(&profile->procData, methodName, totalMicroSec);
 }
 
 /*
@@ -189,6 +214,7 @@ NsfProfileClearData(Tcl_Interp *interp) {
 
   NsfProfileClearTable(&profilePtr->objectData);
   NsfProfileClearTable(&profilePtr->methodData);
+  NsfProfileClearTable(&profilePtr->procData);
   
   gettimeofday(&trt, NULL);
   profilePtr->startSec = trt.tv_sec;
@@ -263,6 +289,7 @@ NsfProfileGetData(Tcl_Interp *interp) {
   Tcl_ListObjAppendElement(interp, list, Tcl_NewIntObj(profilePtr->overallTime));
   Tcl_ListObjAppendElement(interp, list, NsfProfileGetTable(interp, &profilePtr->objectData));
   Tcl_ListObjAppendElement(interp, list, NsfProfileGetTable(interp, &profilePtr->methodData));
+  Tcl_ListObjAppendElement(interp, list, NsfProfileGetTable(interp, &profilePtr->procData));
 
   Tcl_SetObjResult(interp, list);
 }
@@ -290,6 +317,7 @@ NsfProfileInit(Tcl_Interp *interp) {
 
   Tcl_InitHashTable(&profilePtr->objectData, TCL_STRING_KEYS);
   Tcl_InitHashTable(&profilePtr->methodData, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&profilePtr->procData, TCL_STRING_KEYS);
 
   gettimeofday(&trt, NULL);
   profilePtr->startSec = trt.tv_sec;
@@ -319,6 +347,7 @@ NsfProfileFree(Tcl_Interp *interp) {
   NsfProfileClearData(interp);
   Tcl_DeleteHashTable(&profilePtr->objectData);
   Tcl_DeleteHashTable(&profilePtr->methodData);
+  Tcl_DeleteHashTable(&profilePtr->procData);
 }
 #endif
 

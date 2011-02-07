@@ -708,6 +708,7 @@ typedef struct NsfProfile {
   long int startUSec;
   Tcl_HashTable objectData;
   Tcl_HashTable methodData;
+  Tcl_HashTable procData;
 } NsfProfile;
 #endif
 
@@ -780,7 +781,8 @@ NsfFreeObjectData(NsfClass *cl);
  */
 
 #if defined(NSF_PROFILE)
-extern void NsfProfileEvaluateData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
+extern void NsfProfileRecordMethodData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
+extern void NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec);
 extern void NsfProfileInit(Tcl_Interp *interp);
 extern void NsfProfileFree(Tcl_Interp *interp);
 extern void NsfProfileClearData(Tcl_Interp *interp);

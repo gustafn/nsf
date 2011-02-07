@@ -9500,7 +9500,6 @@ static int
 InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, int objc, Tcl_Obj *CONST objv[]) {
   int result;
 #if 1
-  (void)procNameObj;
   /*
    * For the time being, we call the shadowed proc defined with a
    * mutated name. It should be possible to compile and call the
@@ -9511,7 +9510,14 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, int objc, Tcl_Obj *
    */
   /*fprintf(stderr, "NsfProcStub: call proc arguments oc %d [0] '%s' \n",
     objc, ObjStr(objv[0]));*/
+# if defined(NSF_PROFILE)
+  struct timeval trt;
+  gettimeofday(&trt, NULL);
+# endif
   result = Tcl_EvalObjv(interp, objc, objv, 0);
+# if defined(NSF_PROFILE)
+  NsfProfileRecordProcData(interp, ObjStr(procNameObj), trt.tv_sec, trt.tv_usec);
+# endif
 #else
   //xxx - TODO: unfinished
   /* The code below is just copied from proc method dispatch and
