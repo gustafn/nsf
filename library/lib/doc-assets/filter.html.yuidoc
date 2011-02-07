@@ -1,3 +1,4 @@
+[:!let filter_available 1]
 <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
   <fieldset>
     <legend>Filters</legend>
