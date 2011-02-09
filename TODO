@@ -2354,6 +2354,12 @@ text
 - Improve behavior, when object system creation fails
 - Drop function NsfProfilePrint()
 
+- Altered Nsf_NextHashEntry() to re-init hSrchPtr when the number
+  of expected entries differs from the number of real entries. This
+  fixes a bug that Michael Aram detected, that happens when multiple
+  hash buckets exist, but on deletion of an hash entries triggers
+  some other deleted from the same hash table.
+- extended regression test.
 
 TODO:
 

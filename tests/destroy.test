@@ -739,6 +739,20 @@ Test case nested-ordered-composite {
     ? {llength [o1 info children]} 1
     ? {llength [o1::o2 info children]} 21
   }
+
+  # similar to above, but this time partial deletes occur
+  set c 0
+  for {set i 0} {$i < 10} {incr i} {
+    set os [list]
+    for {set j 0} {$j < 20} {incr j} {lappend os ::o1::o2::[incr c]}
+    Object create ::o1
+    Object create ::o1::o2
+    foreach o $os {Object create $o}
+    C create ::o1::o2::ocX -os {}
+    C create ::o1::o2::ocY -os $os
+    ? {llength [o1 info children]} 1
+    ? {llength [o1::o2 info children]} 22
+  }
 }
 
 #puts stderr "==== EXIT ===="

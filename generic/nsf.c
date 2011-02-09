@@ -634,16 +634,17 @@ NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method
  *----------------------------------------------------------------------
  * Nsf_NextHashEntry --
  *
- *    Function very similar to Tcl_NextHashEntry. If during the
- *    iteration of hash entries some of these entries are removed,
- *    Tcl_NextHashEntry() can lead to a valid looking but invalid
- *    hPtr, when the next entry was already deleted. This seem to
- *    occur only, when there are more than 12 hash entries in the
- *    table (multiple buckets).  Therefore, we use numEntries to 
- *    check, if it is sensible to return a an hash entry.
+ *    Function very similar to Tcl_NextHashEntry. If during the iteration of
+ *    hash entries some of these entries are removed, Tcl_NextHashEntry() can
+ *    lead to a valid looking but invalid hPtr, when the next entry was
+ *    already deleted. This seem to occur only, when there are more than 12
+ *    hash entries in the table (multiple buckets).  Therefore, we use
+ *    numEntries to check, if it is sensible to return a an hash entry. We can
+ *    trigger refetch of the hSrchPtr, when the number of expected entries
+ *    differs from the numbers of the actual entries.
  *
  * Results:
- *    Hash Entry.
+ *    Hash Entry or NULL.
  *
  * Side effects:
  *    None.
@@ -651,8 +652,16 @@ NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method
  *----------------------------------------------------------------------
  */
 static Tcl_HashEntry *
-Nsf_NextHashEntry(Tcl_HashTable *tablePtr, Tcl_HashSearch *hSrchPtr) {
-  return tablePtr->numEntries < 1 ? NULL : Tcl_NextHashEntry(hSrchPtr);
+Nsf_NextHashEntry(Tcl_HashTable *tablePtr, int expected, Tcl_HashSearch *hSrchPtr) {
+  /*fprintf(stderr, "Nsf_NextHashEntry %p expected %d numEntries %d\n", 
+    tablePtr, expected, tablePtr->numEntries);*/
+  if (tablePtr->numEntries < 1) {
+    return NULL;
+  } else if (tablePtr->numEntries != expected) {
+    return Tcl_FirstHashEntry(tablePtr, hSrchPtr);
+  } else {
+    return Tcl_NextHashEntry(hSrchPtr);
+  }
 }
 
 /*
@@ -2235,7 +2244,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
   /*fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
 
   for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; 
-       hPtr = Nsf_NextHashEntry(commandNameTable, &hSrch)) {
+       hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     NsfObject *object = GetObjectFromString(interp, key);
 
@@ -2250,7 +2259,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
   /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
 
   for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; 
-       hPtr = Nsf_NextHashEntry(commandNameTable, &hSrch)) {
+       hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     NsfClass *cl = GetClassFromString(interp, key);
 
@@ -3369,12 +3378,11 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName) {
  *
  *----------------------------------------------------------------------
  */
-static void
+static int
 NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
 
-  /*fprintf(stderr, "NSDeleteChildren child flags %.6x\n", Tcl_Command_flags(cmd));
-  fprintf(stderr, "NSDeleteChildren child %p (%s) epoch %d\n", 
-  cmd, Tcl_GetCommandName(interp, cmd), Tcl_Command_cmdEpoch(cmd));*/
+  /*fprintf(stderr, "NSDeleteChildren child %p flags %.6x epoch %d\n", 
+	  cmd, Tcl_Command_flags(cmd), Tcl_Command_cmdEpoch(cmd));*/
 
   /* 
    * In some situations (e.g. small buckets, less than 12 entries), we
@@ -3386,12 +3394,15 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
   if (!Tcl_Command_cmdEpoch(cmd)) {
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
 
+    /*fprintf(stderr, "NSDeleteChildren child %p (%s) epoch %d\n", 
+      cmd, Tcl_GetCommandName(interp, cmd), Tcl_Command_cmdEpoch(cmd));*/
+
     if (object == NULL) {
       /* 
        * This is just a plain Tcl command; let Tcl handle the
        * deletion.
        */
-      return;
+      return 0;
     }
 
     /*fprintf(stderr, "NSDeleteChild check %p %s true child %d\n",  
@@ -3401,7 +3412,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
     if (object->id == cmd) {
 
       if (deleteObjectsOnly && NsfObjectIsClass(object)) {
-	return;
+	return 0;
       }
 
       /*fprintf(stderr, "NSDeleteChild destroy %p %s\n", object, ObjectName(object));*/
@@ -3410,6 +3421,7 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
       if (RUNTIME_STATE(interp)->exitHandlerDestroyRound
 	  == NSF_EXITHANDLER_ON_PHYSICAL_DESTROY) {
 	PrimitiveDestroy((ClientData) object);
+	return 1;
       } else {
 	if (object->teardown && !(object->flags & NSF_DESTROY_CALLED)) {
 	  int result = DispatchDestroyMethod(interp, object, 0);
@@ -3427,13 +3439,15 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
 	      CallStackDestroyObject(interp, object);
 	    }
 	  }
+	  return 1;
 	}
       }
     } else {
       /*fprintf(stderr, "NSDeleteChild remove alias %p %s\n", object, Tcl_GetCommandName(interp, cmd));*/
-      AliasDeleteObjectReference(interp, cmd);
+      return AliasDeleteObjectReference(interp, cmd);
     }
-  } 
+  }
+  return 0;
 }
 
 /*
@@ -3456,6 +3470,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
+  int expected;
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "NSDeleteChildren %p %s activationCount %d\n", 
@@ -3481,7 +3496,8 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
     Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
     fprintf(stderr, "will destroy %p %s\n", cmd, Tcl_GetCommandName(interp, cmd));
   }
-#endif  
+#endif
+
   /*
    * Second, delete the objects.
    */
@@ -3492,17 +3508,20 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
    * Nsf_NextHashEntry(), which handles this case.
    */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
-       hPtr = Nsf_NextHashEntry(cmdTablePtr, &hSrch)) {
-    /* Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
-       fprintf(stderr, "NSDeleteChild %p table %p\n", cmd, hPtr->tablePtr);*/
-    NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
+       hPtr = Nsf_NextHashEntry(cmdTablePtr, expected, &hSrch)) {
+    /*Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+    fprintf(stderr, "NSDeleteChild %p table %p numEntries before %d\n", 
+    cmd, hPtr->tablePtr, cmdTablePtr->numEntries );*/
+    expected = cmdTablePtr->numEntries - 
+      NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
   }
  /*
   * Finally, delete the classes.
    */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
-       hPtr = Nsf_NextHashEntry(cmdTablePtr, &hSrch)) {
-    NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
+       hPtr = Nsf_NextHashEntry(cmdTablePtr, expected, &hSrch)) {
+    expected = cmdTablePtr->numEntries -
+      NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
   }
 }
 
@@ -11260,7 +11279,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
       Tcl_HashTable *instanceTablePtr = &cl->instances;
 
       for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr; 
-	   hPtr = Nsf_NextHashEntry(instanceTablePtr, &hSrch)) {
+	   hPtr = Tcl_NextHashEntry(&hSrch)) {
         NsfObject *inst = (NsfObject*)Tcl_GetHashKey(instanceTablePtr, hPtr);
         /*fprintf(stderr, "    inst %p %s flags %.6x id %p baseClass %p %s\n",
 	  inst, ObjectName(inst), inst->flags, inst->id,baseClass,ClassName(baseClass));*/
