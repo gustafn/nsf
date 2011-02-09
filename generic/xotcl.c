@@ -1846,6 +1846,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
   for (hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch); hPtr; 
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     Tcl_Command cmd;
+    int expected;
     /*
      * If a destroy of one element of the hash table triggers the
      * destroy of another item, Tcl_NextHashEntry() can lead to a
@@ -1859,6 +1860,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
     if (cmdTable->numEntries < 1) {
       break;
     }
+    expected = cmdTable->numEntries;
     cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
     if (!Tcl_Command_cmdEpoch(cmd)) {
       char *oname = Tcl_GetHashKey(cmdTable, hPtr);
@@ -1875,10 +1877,12 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
         /* in the exit handler physical destroy --> directly call destroy */
         if (RUNTIME_STATE(interp)->exitHandlerDestroyRound
             == XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY) {
-          if (XOTclObjectIsClass(obj))
+          if (XOTclObjectIsClass(obj)) {
             PrimitiveCDestroy((ClientData) obj);
-          else
+	  } else {
             PrimitiveODestroy((ClientData) obj);
+	  }
+	  expected --;
         } else {
           if (obj->teardown && obj->id &&
               !(obj->flags & XOTCL_DESTROY_CALLED)) {
@@ -1893,10 +1897,19 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
               }
               /*(void*) Tcl_DeleteCommandFromToken(interp, oid);*/
             }
+	    expected --;
           }
         }
       }
       DSTRING_FREE(&name);
+    }
+    /*
+     * If the hash table numEntries differs from expected, a deletion
+     * of one entry must have triggered other deletions. So we refetch
+     * the hSrch structure.
+     */
+    if (cmdTable->numEntries != expected) {
+      hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch);
     }
   }
 }

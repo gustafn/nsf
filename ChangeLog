@@ -1,13 +1,17 @@
+2011-02-09 <Gustaf.Neumann@wu-wien.ac.at>
+	* Backport of nsf to handle partial implicit deletes
+
 2011-01-20 <Gustaf.Neumann@wu-wien.ac.at>
 	* Change backport of fix below to a check of numEntries
-	
+
 2011-01-20 <Gustaf.Neumann@wu-wien.ac.at>
 	* Backport of fix for nsf : fixed a nasty bug within namespace
 	deletion, when a deletion of one tcl cmd caused implicit deletions
 	of other cmds in the same namespace. The classical idiom for
 	looking over hash tables with Tcl_GetHashValue() and
 	Tcl_NextHashEntry(hSrch) can lead to crashes (and has different
-	behavior depending on the number of buckets).
+	behavior depending on the number of buckets). This fix handles
+	complete implicit deletes.
 
 2010-12-26 <Gustaf.Neumann@wu-wien.ac.at>
    *  Make cppcheck happy
