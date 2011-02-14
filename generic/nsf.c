@@ -11621,16 +11621,24 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      */
     INCR_REF_COUNT(resultObj);
     Tcl_ListObjGetElements(interp, resultObj, &nobjc, &nobjv);
+
     /* 
      * Trying CallDirectly does not make much sense, since init is
      * already defined in predefined
      */
     methodObj = NsfMethodObj(object, NSF_o_init_idx);
+
+    /*
+     * Flag the call to "init" before the dispatch, such that a call to
+     * "configure" within init does not clear the already set instance
+     * variables.
+     */
+    object->flags |= NSF_INIT_CALLED;
+
     if (methodObj) {
       result = CallMethod((ClientData) object, interp, methodObj,
 			  nobjc+2, nobjv, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
     }
-    object->flags |= NSF_INIT_CALLED;
     DECR_REF_COUNT(resultObj);
   }
 
@@ -12561,6 +12569,12 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodNam
   /* fprintf(stderr, "CallConfigureMethod method %s->'%s' level %d, argc %d\n",
      ObjectName(object), methodName, level, argc);*/
 
+  /* 
+   * When configure gets "-init" passed, we call "init" and notice the fact it
+   * in the object's flags.
+   *
+   * TODO: don't check hard coded method name "init"
+   */
   if (isInitString(methodName)) {
     object->flags |= NSF_INIT_CALLED;
   }
@@ -16714,8 +16728,21 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * avoid overwriting with default values when e.g. "o configure"
      * is called lated without arguments.
      */
+    /*
+    fprintf(stderr, "param %s, INIT CALLED %d is default %d value = %s\n", 
+	    paramPtr->name, (object->flags & NSF_INIT_CALLED), 
+	    (pc.flags[i-1] & NSF_PC_IS_DEFAULT), 
+	    ObjStr(pc.full_objv[i]));
+    */
     if ((object->flags & NSF_INIT_CALLED) && (pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
-      continue;
+      Tcl_Obj *varObj;
+
+      if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) continue;
+      
+      varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
+      if (varObj) {
+	continue;
+      }
     }
 
     newValue = pc.full_objv[i];
@@ -16871,7 +16898,9 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 #if defined(CONFIGURE_ARGS_TRACE)
       fprintf(stderr, "*** %s SET %s '%s'\n", ObjectName(object), ObjStr(paramPtr->nameObj), ObjStr(newValue));
 #endif
-      /* Actually set instance variable */
+      /* 
+       * Actually set instance variable with the provided or default value.
+       */
       Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
     }
   }

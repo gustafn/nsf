@@ -2361,16 +2361,16 @@ text
   some other deleted from the same hash table.
 - extended regression test.
 
+- made default setting more compatible with XOTcl 1
+  * set variables to defaults only when not set already
+  * flag init_called already before init is called, not afterwards
+    (a call to "configure" within init does not clear the already
+    set instance variables)
+
 TODO:
 
 - serializer: check, why catch is needed for object-level alias 
   (search for ns_cache_flush)
-
-- NSF_PROFILE
-  * provide an interface to clear and to output PROFILE data. 
-  * output should provide a cutoff value.
-  * most probably it has memory leak in multithreaded apps, 
-    since it was originally just developed for simple testing
 
 - document value added replacements of Tcl functions
 
@@ -2385,6 +2385,9 @@ TODO:
   - allow noarg+default/initcmd ?
   - default/initcmd/subsdefault: can we simplify these?
     or add messages for conflicting usages.
+
+- CallConfigureMethod()
+   TODO: don't check hard coded method name 
 
 - doc:
    NextScriptingLanguage/index.html: 
