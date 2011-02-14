@@ -807,6 +807,29 @@ Test case substdefault-objparam {
   ? {b s3} "::b"
 }
 
+#
+# Test call of configure within constructor
+#
+Test case parameter-alias-default {
+
+  Class create C {
+    :attribute {a ""}
+    :attribute {b 1}
+
+    :method init {} {
+      :configure -b 1
+    }
+    :create c1
+    :create c2 -a 0
+  }
+
+  ? {::c1 eval {set :a}} ""
+  ? {::c1 eval {set :b}} 1
+  ? {::c2 eval {set :a}} 0
+  ? {::c2 eval {set :b}} 1
+}
+
+
 #######################################################
 # testing object types in object parameters
 #######################################################

@@ -2366,6 +2366,7 @@ text
   * flag init_called already before init is called, not afterwards
     (a call to "configure" within init does not clear the already
     set instance variables)
+- extend regression test
 
 TODO:
 
