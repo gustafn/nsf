@@ -2368,6 +2368,8 @@ text
     set instance variables)
 - extend regression test
 
+- configure: added flag --with-profile to enable profiling support
+
 TODO:
 
 - serializer: check, why catch is needed for object-level alias 

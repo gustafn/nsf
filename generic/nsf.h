@@ -73,7 +73,6 @@
    of running the program
 #define NSF_PROFILE 1
 */
-//#define NSF_PROFILE 1
 
 /* are we developing?
 #define NSF_DEVELOPMENT 1

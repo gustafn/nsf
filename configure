@@ -742,6 +742,7 @@ with_aolserver3
 with_actiweb
 with_all
 with_expat
+with_profile
 with_tcl
 with_tclinclude
 enable_threads
@@ -1401,6 +1402,8 @@ Optional Packages:
   --with-expat=sys assumes a system-wide expat installation,
            --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
            --without-expat falls back to the bundled expat installation
+  --with-profile=yes|no,
+	   --without-profile disables built with profile support
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files
@@ -2376,6 +2379,14 @@ if test "${with_expat+set}" = set; then :
   withval=$with_expat; with_expat=$withval
 else
   with_expat=bundle
+fi
+
+
+# Check whether --with-profile was given.
+if test "${with_profile+set}" = set; then :
+  withval=$with_profile; with_profile=$withval
+else
+  with_profile=no
 fi
 
 
@@ -5510,6 +5521,12 @@ else
    HAVE_TCL_COMPILE_H=""
 fi
 
+if test "$with_profile" = yes; then
+   NSF_PROFILE_FLAG="-DNSF_PROFILE=1"
+else
+   NSF_PROFILE_FLAG=""
+fi
+
 #-----------------------------------------------------------------------
 # __CHANGE__
 # Specify the C source files to compile in TEA_ADD_SOURCES,
@@ -5588,7 +5605,7 @@ fi
 
 
     PKG_CFLAGS="$PKG_CFLAGS -DNSF_VERSION=\\\"$NSF_VERSION\\\" -DNSF_PATCHLEVEL=\\\"$NSF_PATCH_LEVEL\\\" \
-	$AOL_DEFINES $HAVE_TCL_COMPILE_H"
+	$AOL_DEFINES $HAVE_TCL_COMPILE_H $NSF_PROFILE_FLAG"
 
 
 

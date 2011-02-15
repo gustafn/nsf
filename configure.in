@@ -48,6 +48,10 @@ AC_ARG_WITH(expat,
            --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
            --without-expat falls back to the bundled expat installation],
         [with_expat=$withval],[with_expat=bundle])
+AC_ARG_WITH(profile,
+        [  --with-profile=yes|no,
+	   --without-profile disables built with profile support],
+        [with_profile=$withval], [with_profile=no])
 
 subdirs=""
 
@@ -55,7 +59,7 @@ if test "$with_all" = yes; then
    with_actiweb=yes
    with_gdbm=yes
 fi
-   
+
 if test "$with_actiweb" = yes; then
    test_actiweb="test-actiweb"
    libdirs_actiweb="actiweb rdf registry store xml patterns"
@@ -171,6 +175,12 @@ else
    HAVE_TCL_COMPILE_H=""
 fi
 
+if test "$with_profile" = yes; then
+   NSF_PROFILE_FLAG="-DNSF_PROFILE=1"
+else
+   NSF_PROFILE_FLAG=""
+fi
+
 #-----------------------------------------------------------------------
 # __CHANGE__
 # Specify the C source files to compile in TEA_ADD_SOURCES,
@@ -188,7 +198,7 @@ TEA_ADD_HEADERS([generic/nsf.h generic/nsfInt.h generic/nsfDecls.h generic/nsfIn
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([-DNSF_VERSION=\\\"$NSF_VERSION\\\" -DNSF_PATCHLEVEL=\\\"$NSF_PATCH_LEVEL\\\" \
-	$AOL_DEFINES $HAVE_TCL_COMPILE_H])
+	$AOL_DEFINES $HAVE_TCL_COMPILE_H $NSF_PROFILE_FLAG])
 TEA_ADD_STUB_SOURCES([nsfStubLib.c])
 TEA_ADD_TCL_SOURCES([])
 
