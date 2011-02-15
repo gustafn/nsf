@@ -2371,18 +2371,39 @@ text
 - configure: added flag --with-profile to enable profiling support
 - cleanup and documentation of nsf-specific interp state 
 - nsf::configure: added an option "profile on|off" (per default off)
+- profiling: return object data with method information
+
+- the following is obsolete since valgrind 3.6
+=========== reminder for valgrind testing
+svn co svn://svn.valgrind.org/valgrind/tags/VALGRIND_3_5_0 valgrind
+
+curl http://bugsfiles.kde.org/attachment.cgi?id=36999 > 10.6.patch
+mv 10.6.patch ./valgrind
+
+cd valgrind
+patch -p0 < 10.6.patch
+
+./autogen.sh
+./configure ./configure --build=amd64-darwin
+make
+
+sudo make install
+====================
+
+
 
 TODO:
 
 - serializer: check, why catch is needed for object-level alias 
   (search for ns_cache_flush)
+- check cases of -flag=$value outside the context of nsf::procs
 
 - document value added replacements of Tcl functions
 
 - object parameter type forward:
    - regression test
    - reduce verbosity
-   - get rid of eager tcd creation
+   - get rid of eager tcd creation (optimization, can go to guture releases)
 
 - slotmachinerie 2
   - naming "incremental", "reconfigure"
@@ -2425,7 +2446,6 @@ TODO:
 - are the oneline hook definitions like
     Class protected class-object method __unknown {name} {}
   needed?
-- would be nice to remove noinit as a method and leave it as a objectparameter
 - ListDefinedMethods noMixins and inContext not defined yet.
 
 - nsf::proc 
@@ -2433,7 +2453,6 @@ TODO:
      for nsf::proc
    * scripted-method like implementation (like ProcMethodDispatch, not urgent)
    * toplevel (object less) introspection 
-   * memleak testing
 
 - "info method definition" for :attributes?
 
@@ -2548,21 +2567,7 @@ TODO "Kleinigkeiten"
 
 
 
-=========== reminder for valgrind testing
-svn co svn://svn.valgrind.org/valgrind/tags/VALGRIND_3_5_0 valgrind
 
-curl http://bugsfiles.kde.org/attachment.cgi?id=36999 > 10.6.patch
-mv 10.6.patch ./valgrind
-
-cd valgrind
-patch -p0 < 10.6.patch
-
-./autogen.sh
-./configure ./configure --build=amd64-darwin
-make
-
-sudo make install
-====================
 
 For future releases:
 

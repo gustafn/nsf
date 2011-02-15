@@ -94,9 +94,10 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
   Tcl_DStringInit(&objectKey);
   Tcl_DStringAppend(&objectKey, ObjectName(obj), -1);
-  Tcl_DStringAppend(&objectKey, " (", 1);
+  Tcl_DStringAppend(&objectKey, " ", 1);
   Tcl_DStringAppend(&objectKey, ClassName(obj->cl), -1);
-  Tcl_DStringAppend(&objectKey, " )", 1);
+  Tcl_DStringAppend(&objectKey, " ", 1);
+  Tcl_DStringAppend(&objectKey, cscPtr->methodName, -1);
 
   Tcl_DStringInit(&methodKey);
   Tcl_DStringAppend(&methodKey, cl ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
