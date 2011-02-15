@@ -713,42 +713,50 @@ typedef struct NsfProfile {
 #endif
 
 typedef struct NsfRuntimeState {
-  Tcl_Namespace *NsfClassesNS;
-  Tcl_Namespace *NsfNS;
   /*
-   * definitions of the main nsf objects
+   * The defined object systems
    */
   struct NsfObjectSystem *objectSystems;
-  Tcl_ObjCmdProc *objInterpProc;
-  Tcl_Obj **methodObjNames;
-  struct NsfShadowTclCommandInfo *tclCommands;
+  /*
+   * namespaces and cmds
+   */ 
+  Tcl_Namespace *NsfNS;           /* the ::nsf namespace */
+  Tcl_Namespace *NsfClassesNS;    /* the ::nsf::classes namespace, where classes are created physically */
+  Tcl_ObjCmdProc *objInterpProc;  /* cached result of TclGetObjInterpProc() */
+  Tcl_Command colonCmd;           /* cmdPtr of cmd ":" to dispatch via cmdResolver */
+  Proc fakeProc;                  /* dummy proc strucure, used for C-implemented methods with local scope */
+  Tcl_Command currentMixinCmdPtr; /* cmdPtr of currently active mixin, used for "info activemixin" */
+  Tcl_Obj **methodObjNames;       /* global objects of nsf */
+  struct NsfShadowTclCommandInfo *tclCommands; /* shadowed Tcl commands */
+
 #if defined(CHECK_ACTIVATION_COUNTS)
   NsfClasses *cscList;
 #endif
-  int errorCount;
-  /* these flags could move into a bitarray, but are used only once per interp*/
-  int unknown;
-  int doSoftrecreate;
-  int doKeepinitcmd;
-  int doCheckResults;
-  int doCheckArguments;
-  int doFilters;
+  int errorCount;        /* keep track of number of errors to avoid potential error loops */
+  int unknown;           /* keep track whether an unknown method is currently called */
+  int overloadedMethods; /* bitarray for tracking overloaded methods */
+  /* 
+   * Configure options. The following do*-flags could be moved into a
+   * bitarray, but we have only one state per interp, so the win on
+   * memory is very little.
+   */
   int debugLevel;
+  int doCheckArguments;
+  int doCheckResults;
+  int doFilters;
+  int doKeepinitcmd;
+  int doProfile;
+  int doSoftrecreate;
+  /*
+   * shutdown handling
+   */
   int exitHandlerDestroyRound;
-  int returnCode;
-  int overloadedMethods;
-  long newCounter;
-  NsfStringIncrStruct iss;
-  Proc fakeProc;
-  Tcl_Namespace *fakeNS;
-  NsfStubs *nsfStubs;
-  Tcl_CallFrame *varFramePtr;
-  Tcl_Command cmdPtr; /* used for ACTIVE_MIXIN */
-  Tcl_Command colonCmd;
+
 #if defined(NSF_PROFILE)
   NsfProfile profile;
 #endif
-  short guardCount;
+  NsfStringIncrStruct iss; /* used for new to create new symbols */
+  short guardCount;        /* keep track of guard invocations */
   ClientData clientData;
 } NsfRuntimeState;
 

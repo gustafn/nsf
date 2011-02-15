@@ -2338,6 +2338,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
       callDirectly = 0;
     } else if ((osPtr->definedMethods & flag) == 0) {
       /* not defined, we must call directly */
+      // TODO remove me
       fprintf(stderr, "Warning: CallDirectly object %s idx %s not defined\n",
 	      ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1);
     } else {
@@ -5793,7 +5794,7 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
   assert(object->flags & NSF_MIXIN_ORDER_VALID);
   /*MixinComputeDefined(interp, object);*/
   cmdList = SeekCurrent(object->mixinStack->currentCmdPtr, object->mixinOrder);
-  RUNTIME_STATE(interp)->cmdPtr = cmdList ? cmdList->cmdPtr : NULL;
+  RUNTIME_STATE(interp)->currentMixinCmdPtr = cmdList ? cmdList->cmdPtr : NULL;
 
   /*fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);*/
   /*CmdListPrint(interp, "MixinSearch CL = \n", cmdList);*/
@@ -8408,13 +8409,13 @@ static int
 DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
   int result;
   Tcl_Obj *methodObj;
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   /*
    * Don't call destroy after exit handler started physical
    * destruction, or when it was called already before
    */
-  if (RUNTIME_STATE(interp)->exitHandlerDestroyRound ==
-      NSF_EXITHANDLER_ON_PHYSICAL_DESTROY
+  if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_ON_PHYSICAL_DESTROY
       || (object->flags & NSF_DESTROY_CALLED)
       )
     return TCL_OK;
@@ -8439,11 +8440,11 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
      */
     NsfErrorContext(interp, "method destroy");
 
-    if (++RUNTIME_STATE(interp)->errorCount > 20) {
+    if (++rst->errorCount > 20) {
       Tcl_Panic("too many destroy errors occured. Endless loop?", NULL);
     }
-  } else if (RUNTIME_STATE(interp)->errorCount > 0) {
-    RUNTIME_STATE(interp)->errorCount--;
+  } else if (rst->errorCount > 0) {
+    rst->errorCount--;
   }
 
 #ifdef OBJDELETION_TRACE
@@ -9531,11 +9532,17 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, int objc, Tcl_Obj *
     objc, ObjStr(objv[0]));*/
 # if defined(NSF_PROFILE)
   struct timeval trt;
-  gettimeofday(&trt, NULL);
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+  if (rst->doProfile) {
+    gettimeofday(&trt, NULL);
+  }
 # endif
   result = Tcl_EvalObjv(interp, objc, objv, 0);
 # if defined(NSF_PROFILE)
-  NsfProfileRecordProcData(interp, ObjStr(procNameObj), trt.tv_sec, trt.tv_usec);
+  if (rst->doProfile) {
+    NsfProfileRecordProcData(interp, ObjStr(procNameObj), trt.tv_sec, trt.tv_usec);
+  }
 # endif
 #else
   //xxx - TODO: unfinished
@@ -11333,7 +11340,19 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
 }
 
 /*
- * do class initialization & namespace creation
+ *----------------------------------------------------------------------
+ * CleanupInitClass --
+ *
+ *    Basic initialization of a class, setting namespace, super- and
+ *    sub-classes, and setup optionally instances table.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Makes a class structure usuable.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 CleanupInitClass(Tcl_Interp *interp, NsfClass *cl, Tcl_Namespace *nsPtr,
@@ -11347,22 +11366,17 @@ CleanupInitClass(Tcl_Interp *interp, NsfClass *cl, Tcl_Namespace *nsPtr,
 #endif
 
   /*
-   * During init of Object and Class the theClass value is not set
+   * Record, that cl is a class and set its namespace
    */
-  /*
-    if (RUNTIME_STATE(interp)->theClass != 0) {
-       obj->type = RUNTIME_STATE(interp)->theClass;
-    }
-  */
   NsfObjectSetClass((NsfObject*)cl);
-
   cl->nsPtr = nsPtr;
 
   if (!softrecreate) {
-    /* subclasses are preserved during recreate, superclasses not (since
-       the creation statement defined the superclass, might be different
-       the second time)
-    */
+    /* 
+     * Subclasses are preserved during recreate, superclasses not (since the
+     * creation statement defined the superclass, might be different the
+     * second time)
+     */
     cl->sub = NULL;
   }
   cl->super = NULL;
@@ -14675,7 +14689,7 @@ NsfAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg)
 
 /*
 nsfCmd configure NsfConfigureCmd {
-  {-argName "configureoption" -required 1 -type "debug|filter|softrecreate|objectsystems|keepinitcmd|checkresult"}
+  {-argName "configureoption" -required 1 -type "debug|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -14726,7 +14740,10 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
 
     return TCL_OK;
   }
-
+  
+  /*
+   * All other configure options are boolean 
+   */
   if (valueObj) {
     int result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
     if (result != TCL_OK) {
@@ -14740,6 +14757,18 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
                       (RUNTIME_STATE(interp)->doFilters));
     if (valueObj) {
       RUNTIME_STATE(interp)->doFilters = bool;
+    }
+    break;
+
+  case ConfigureoptionProfileIdx:
+    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
+                      (RUNTIME_STATE(interp)->doProfile));
+    if (valueObj) {
+#if defined(NSF_PROFILE)
+      RUNTIME_STATE(interp)->doProfile = bool;
+#else
+      NsfLog(interp, NSF_LOG_WARN, "No profile support compiled in");
+#endif
     }
     break;
 
@@ -16174,8 +16203,8 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 
   case CurrentoptionActivemixinIdx: {
     NsfObject *object = NULL;
-    if (RUNTIME_STATE(interp)->cmdPtr) {
-      object = NsfGetObjectFromCmdPtr(RUNTIME_STATE(interp)->cmdPtr);
+    if (RUNTIME_STATE(interp)->currentMixinCmdPtr) {
+      object = NsfGetObjectFromCmdPtr(RUNTIME_STATE(interp)->currentMixinCmdPtr);
     }
     Tcl_SetObjResult(interp, object ? object->cmdName : NsfGlobalObjs[NSF_EMPTY]);
     break;
@@ -19074,7 +19103,9 @@ Nsf_Init(Tcl_Interp *interp) {
 
   MEM_COUNT_INIT();
 
-  /* init global variables for tcl types */
+  /* 
+   * Init global variables for Tcl_Obj types 
+   */
   NsfMutexLock(&initMutex);
   Nsf_OT_byteCodeType = Tcl_GetObjType("bytecode");
   Nsf_OT_tclCmdNameType = Tcl_GetObjType("cmdName");
@@ -19088,8 +19119,9 @@ Nsf_Init(Tcl_Interp *interp) {
   */
 
   /*
-   * Runtime State stored in the client data of the Interp's global
-   * Namespace in order to avoid global state information
+   * Runtime State stored in the client data of the Interp's global namespace
+   * in order to avoid global state information. All fields are per default
+   * set to zero.
    */
   runtimeState = (ClientData) NEW(NsfRuntimeState);
   memset(runtimeState, 0, sizeof(NsfRuntimeState));

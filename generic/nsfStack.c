@@ -892,7 +892,9 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   assert(cscPtr->self);
 
 #if defined(NSF_PROFILE)
-  NsfProfileRecordMethodData(interp, cscPtr);
+  if (RUNTIME_STATE(interp)->doProfile) {
+    NsfProfileRecordMethodData(interp, cscPtr);
+  }
 #endif
 
   object = cscPtr->self;

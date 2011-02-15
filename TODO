@@ -2369,6 +2369,8 @@ text
 - extend regression test
 
 - configure: added flag --with-profile to enable profiling support
+- cleanup and documentation of nsf-specific interp state 
+- nsf::configure: added an option "profile on|off" (per default off)
 
 TODO:
 
