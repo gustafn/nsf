@@ -2390,7 +2390,16 @@ make
 sudo make install
 ====================
 
-
+- doc:
+   * This package contains 12 classes.... 3 objects .... 
+     Why are all these marked with "mismatch"?
+   * (optional) protected method elimination in leftbar
+   * heading "Glossary" missing. 
+     It ist not clear, what the list of items is, when one sees index.html
+   * make quality checks (missing documentation, ...) optional?
+     how to deal with non-resolvable quality checks?
+   * provide a renderer for XOTcl @-notation to produce object structure
+     for the new doctool (makes the old documentation usabel, eg. for XOTcl2)
 
 TODO:
 
@@ -2416,26 +2425,27 @@ TODO:
    TODO: don't check hard coded method name 
 
 - doc:
-   NextScriptingLanguage/index.html: 
+    * integrate ::nx::doc::make with Makefile.in
+      (provide shell calls and, targets and dependencies)
 
-    * heading "Glossary" missing. 
-      It ist not clear, what the list of items is, when one sees index.html
+   NextScriptingLanguage/index.html: 
 
     * A short introductory text, what the "package"
       is whould be more well suited for the index page,
       moving glossary (index) to the left column.
       ..... Better to use "package_nx.html" as index.html
+      SS: I find that the glossary entries fit there because they
+      spawn the necessary vocabulary throughout the doc project.
 
     * glossary entries in nsf.nxd should be sorted (in the source)
      ...... Maybe, a single glossary.nxd file?
+     SS: Right now, the name of the nxd file derives from the the
+     script name. I mark this as TODO for the future.
 
     * provide a different flag for the generation of the documentation
       (-develop, .... or -final) to show/hide it.
+      SS: By "it", you refer to the glossary?
 
-   * This package contains 12 classes.... 3 objects .... 
-     Why are all these marked with "mismatch"?
-
-   * (optional) protected method elimination in leftbar
    * separate entries for methods and hooks (can't be called if not defined)?
     hooks: 
       * recreate should only be called internally, similarly "init" etc.
@@ -2500,21 +2510,6 @@ TODO:
         }
       }
 
-- documentation
-   - documentationssytem
-   - langref (xotcl 2.0 + next-scripting)
-   - tutorial (split)
-   - migration guide
-
-   doctools
-   - integrate ::nx::doc::make with Makefile.in
-     (provide shell calls and, targets and dependencies)
-   - make quality checks (missing documentation, ...) optional?
-     how to deal with non-resolvable quality checks?
-   - provide a renderer for XOTcl @-notation to produce object structure
-     for the new doctool (makes the old documentation usabel, eg. for XOTcl2)
-
-
 - library + apps
     - new directory structure DONE
     - work on binary packages of xotcl (store + xml)
@@ -2564,9 +2559,6 @@ TODO "Kleinigkeiten"
     return TCL_OK;
   }
 #endif
-
-
-
 
 
 For future releases:

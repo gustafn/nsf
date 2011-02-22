@@ -1,4 +1,7 @@
 [:?var :@glossary {
+ <div rel="yui:glossary" resource="#glossary">
+	    <div class="section glossary details">
+	      <h3 id="glossary">Glossary</h3>
 [:!let gls [:@glossary]]
 [:? {$gls ne ""} {
 [:!let entries [sorted $gls name]]
@@ -44,4 +47,6 @@
   </dd>
   }]
   }]
+  </div>
+ </div>
   }]
