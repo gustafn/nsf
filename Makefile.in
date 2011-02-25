@@ -80,6 +80,12 @@ mkinstalldirs= mkdir -p
 # are correct.
 #========================================================================
 
+#DTRACE_OBJ = nsfDTrace.o
+#DTRACE_OBJ = @DTRACE_OBJ@
+DTRACE_OBJ = 
+DTRACE_HDR = $(src_generic_dir)/nsfDTrace.h
+DTRACE_SRC = $(src_generic_dir)/nsfDTrace.d
+
 #========================================================================
 # The names of the source files is defined in the configure script.
 # The object files are used for linking into the final library.
@@ -89,7 +95,7 @@ mkinstalldirs= mkdir -p
 #========================================================================
 
 PKG_SOURCES	= @PKG_SOURCES@
-PKG_OBJECTS	= @PKG_OBJECTS@
+PKG_OBJECTS	= @PKG_OBJECTS@ ${DTRACE_OBJ}
 
 PKG_STUB_SOURCES = @PKG_STUB_SOURCES@
 PKG_STUB_OBJECTS = @PKG_STUB_OBJECTS@
@@ -164,6 +170,9 @@ STLIB_LD	= @STLIB_LD@
 TCL_DEFS	= @TCL_DEFS@
 TCL_BIN_DIR	= @TCL_BIN_DIR@
 TCL_SRC_DIR	= @TCL_SRC_DIR@
+#
+DTRACE          = dtrace
+#
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= @TCL_LIBS@
 
@@ -550,6 +559,17 @@ checkstubs:
 		done; \
 		if [ $$match -eq 0 ]; then echo $$i; fi \
 	done
+
+# DTrace support
+
+$(PKG_OBJECTS): $(DTRACE_HDR)
+
+$(DTRACE_HDR): $(DTRACE_SRC)
+	$(DTRACE) -h $(DTRACE_SWITCHES) -o $@ -s $(DTRACE_SRC)
+
+#$(DTRACE_OBJ): $(DTRACE_SRC) $(TCL_OBJS)
+#	$(DTRACE) -G $(DTRACE_SWITCHES) -o $@ -s $(DTRACE_SRC) $(TCL_OBJS)
+
 
 #========================================================================
 # End of user-definable section

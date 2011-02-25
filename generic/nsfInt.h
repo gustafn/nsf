@@ -28,8 +28,28 @@
 #endif
 
 #if defined(NSF_PROFILE)
-#  include <sys/time.h>
+# include <sys/time.h>
 #endif
+
+#if defined(NSF_DTRACE)
+# include "nsfDTrace.h"
+# if defined(__GNUC__) && __GNUC__ > 2
+/* Use gcc branch prediction hint to minimize cost of DTrace ENABLED checks. */
+#  define unlikely(x) (__builtin_expect((x), 0))
+# else
+#  define unlikely(x) (x)
+# endif
+# define NSF_DTRACE_METHOD_ENTRY_ENABLED()     		unlikely(NSF_METHOD_ENTRY_ENABLED())
+# define NSF_DTRACE_METHOD_RETURN_ENABLED()    		unlikely(NSF_METHOD_RETURN_ENABLED())
+# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3)	NSF_METHOD_ENTRY(a0, a1, a2, a3)
+# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2)          	NSF_METHOD_RETURN(a0, a1, a2)
+#else
+# define NSF_DTRACE_METHOD_ENTRY_ENABLED()     		0
+# define NSF_DTRACE_METHOD_RETURN_ENABLED()    		0
+# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3)       	{}
+# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2)      	{}
+#endif
+
 
 #ifdef DMALLOC
 #  include "dmalloc.h"
