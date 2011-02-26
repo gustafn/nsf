@@ -2415,6 +2415,12 @@ sudo make install
 
 TODO:
 
+dtrace:
+ - handle arguments
+ - skip cost of intro
+ - object creation
+ - setting dtroce.o file on sun/not mac
+
 - serializer: check, why catch is needed for object-level alias 
   (search for ns_cache_flush)
 - check cases of -flag=$value outside the context of nsf::procs
