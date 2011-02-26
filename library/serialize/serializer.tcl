@@ -581,7 +581,7 @@ namespace eval ::nx::serializer {
     :method collectVars o {
       set setcmd [list]
       foreach v [lsort [$o info vars]] {
-        if {![info exists :ignoreVarsRE] || ![regexp [set :ignoreVarsRE] ${o}::$v]} {
+        if {![info exists :ignoreVarsRE] || ![regexp ${:ignoreVarsRE} ${o}::$v]} {
           if {[$o eval [list ::array exists :$v]]} {
             lappend setcmd [list array set :$v [$o eval [list array get :$v]]]
           } else {
