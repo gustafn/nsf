@@ -171,10 +171,15 @@ if test "$with_profile" = yes; then
    AC_DEFINE(NSF_PROFILE, 1, [Are we building with profile support?])
 fi
 
+DTRACE_OBJ=
 if test "$enable_dtrace" = yes; then
    AC_DEFINE(NSF_DTRACE, 1, [Are we building with DTrace support?])
+   # Under Mac OS X, we need no nsfDTrace.o
+   if test "`uname -s`" != "Darwin" ; then
+      DTRACE_OBJ=nsfDTrace.o
+   fi
 fi
-
+AC_SUBST(DTRACE_OBJ)
 
 #-----------------------------------------------------------------------
 # __CHANGE__

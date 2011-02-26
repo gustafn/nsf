@@ -648,6 +648,7 @@ TCL_TOP_DIR_NATIVE
 TCL_INCLUDES
 PKG_OBJECTS
 PKG_SOURCES
+DTRACE_OBJ
 aol_prefix
 MATH_LIBS
 EGREP
@@ -5522,10 +5523,15 @@ $as_echo "#define NSF_PROFILE 1" >>confdefs.h
 
 fi
 
+DTRACE_OBJ=
 if test "$enable_dtrace" = yes; then
 
 $as_echo "#define NSF_DTRACE 1" >>confdefs.h
 
+   # Under Mac OS X, we need no nsfDTrace.o
+   if test "`uname -s`" != "Darwin" ; then
+      DTRACE_OBJ=nsfDTrace.o
+   fi
 fi
 
 

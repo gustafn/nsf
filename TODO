@@ -2408,6 +2408,7 @@ sudo make install
    * add some dtrace sample scripts
    * add dtrace header file dependency
    * add --enable-dtrace flag for configure
+   * --enable-dtrace sets DTRACE_OBJ on mac os x empty (since not needed for mac os x dtrace)
 
 - configure
    * make "configure --help" more pretty
@@ -2419,7 +2420,6 @@ dtrace:
  - handle arguments
  - skip cost of intro
  - object creation
- - setting dtroce.o file on sun/not mac
 
 - serializer: check, why catch is needed for object-level alias 
   (search for ns_cache_flush)
