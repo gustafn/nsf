@@ -41,13 +41,13 @@
 # endif
 # define NSF_DTRACE_METHOD_ENTRY_ENABLED()     		unlikely(NSF_METHOD_ENTRY_ENABLED())
 # define NSF_DTRACE_METHOD_RETURN_ENABLED()    		unlikely(NSF_METHOD_RETURN_ENABLED())
-# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3)	NSF_METHOD_ENTRY(a0, a1, a2, a3)
-# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2)          	NSF_METHOD_RETURN(a0, a1, a2)
+# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3, a4)	NSF_METHOD_ENTRY(a0, a1, a2, a3, a4)
+# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2, a3)      	NSF_METHOD_RETURN(a0, a1, a2, a3)
 #else
 # define NSF_DTRACE_METHOD_ENTRY_ENABLED()     		0
 # define NSF_DTRACE_METHOD_RETURN_ENABLED()    		0
-# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3)       	{}
-# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2)      	{}
+# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3, a4)   	{}
+# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2, a3)      	{}
 #endif
 
 
@@ -671,7 +671,7 @@ typedef struct NsfCallStackContent {
   int objc;
   unsigned short frameType;
   unsigned short flags;
-#if defined(NSF_PROFILE)
+#if defined(NSF_PROFILE) || defined(NSF_DTRACE)
   long int startUsec;
   long int startSec;
   CONST char *methodName;

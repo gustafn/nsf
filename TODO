@@ -2399,7 +2399,15 @@ sudo make install
    * make quality checks (missing documentation, ...) optional?
      how to deal with non-resolvable quality checks?
    * provide a renderer for XOTcl @-notation to produce object structure
-     for the new doctool (makes the old documentation usabel, eg. for XOTcl2)
+     for the new doctool (makes the old documentation usable, eg. for XOTcl2)
+
+- first steps towards DTRACE support
+- dtrace: 
+   * track objects in method invocations
+   * trace result codes in method-return 
+   * add some dtrace sample scripts
+   * add dtrace header file dependency
+
 
 TODO:
 

@@ -7475,7 +7475,7 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
     result = ObjectDispatchFinalize(interp, cscPtr, result /*, "NRE" , methodName*/);
 #endif
 
-    CscFinish(interp, cscPtr, "scripted finalize");
+    CscFinish(interp, cscPtr, result, "scripted finalize");
   }
 
   return result;
@@ -7562,7 +7562,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 	 */
 #if defined(NRE)
 	//CscListRemove(interp, cscPtr);
-	CscFinish(interp, cscPtr, "guard failed");
+	CscFinish(interp, cscPtr, result, "guard failed");
 #endif
 	return result;
       }
@@ -7641,7 +7641,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 #endif
   } else /* result != OK */ {
 #if defined(NRE)
-    CscFinish(interp, cscPtr, "nre, prep failed");
+    CscFinish(interp, cscPtr, result, "nre, prep failed");
 #endif
   }
 
@@ -7977,11 +7977,11 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 #if defined(NRE)
   if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE) == 0) {
     CscListRemove(interp, cscPtr);
-    CscFinish(interp, cscPtr, "csc cleanup");
+    CscFinish(interp, cscPtr, result, "csc cleanup");
   }
 #else
   CscListRemove(interp, cscPtr);
-  CscFinish(interp, cscPtr, "csc cleanup");
+  CscFinish(interp, cscPtr, result, "csc cleanup");
 #endif
 
   return result;
@@ -8340,7 +8340,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   if (!(cscPtr->flags & NSF_CSC_CALL_IS_NRE)) {
     result = ObjectDispatchFinalize(interp, cscPtr, result /*, "immediate" , methodName*/);
     CscListRemove(interp, cscPtr);
-    CscFinish(interp, cscPtr, "non-scripted finalize");
+    CscFinish(interp, cscPtr, result, "non-scripted finalize");
   }
 
   /*fprintf(stderr, "ObjectDispatch %s.%s returns %d\n",
@@ -16899,7 +16899,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        */
       Nsf_PopFrameCsc(interp, framePtr2);
       CscListRemove(interp, cscPtr);
-      CscFinish(interp, cscPtr, "converter object frame");
+      CscFinish(interp, cscPtr, result, "converter object frame");
       Tcl_Interp_varFramePtr(interp) = varFramePtr;
 
       /*fprintf(stderr, "NsfOConfigureMethod_ attribute %s evaluated %s => (%d)\n",

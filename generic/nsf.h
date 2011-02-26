@@ -138,23 +138,37 @@
 # define DO_CLEANUP
 #endif
 
+#ifdef NSF_DTRACE
+# define NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode) \
+  if (cscPtr->cmdPtr && NSF_DTRACE_METHOD_RETURN_ENABLED()) {		\
+    NSF_DTRACE_METHOD_RETURN(ObjectName(cscPtr->self),	\
+			     cscPtr->cl ? ClassName(cscPtr->cl) : ObjectName(cscPtr->self), \
+			     cscPtr->methodName, 	\
+			     retCode);			\
+  }
+#else
+# define NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode) {}
+#endif
+
 #ifdef NSF_DEVELOPMENT
 # define CHECK_ACTIVATION_COUNTS 1
 # define NsfCleanupObject(object,string)				\
   /*fprintf(stderr, "NsfCleanupObject %p %s\n",object,string);*/	\
   NsfCleanupObject_(object)
-# define CscFinish(interp,cscPtr,string)				\
+# define CscFinish(interp,cscPtr,retCode,string)			\
   /*fprintf(stderr, "CscFinish %p %s\n",cscPtr,string);*/		\
+  NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode);			\
   CscFinish_(interp, cscPtr)
 #else
 # define NDEBUG 1
-# define NsfCleanupObject(object,string)	\
+# define NsfCleanupObject(object,string)				\
   NsfCleanupObject_(object)
-# define CscFinish(interp,cscPtr,string)	\
+# define CscFinish(interp,cscPtr,retCode,string)			\
+  NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode);			\
   CscFinish_(interp, cscPtr)
 #endif
 
-#if defined(NSF_PROFILE)
+#if defined(NSF_PROFILE) || defined(NSF_DTRACE)
 # define CscInit(cscPtr, object, cl, cmd, frametype, flags, method) \
   CscInit_(cscPtr, object, cl, cmd, frametype, flags); cscPtr->methodName = (method);
 #else

@@ -23,20 +23,22 @@ provider nsf {
     /*
      *	nsf*:::method-entry probe
      *	    triggered immediately before method bytecode execution
-     *		arg0: class/object name			(string)
-     *		arg1: method name			(string)
-     *		arg2: number of arguments		(int)
-     *		arg3: array of proc argument objects	(Tcl_Obj**)
+     *		arg0: object name			(string)
+     *		arg1: class/object name			(string)
+     *		arg2: method name			(string)
+     *		arg3: number of arguments		(int)
+     *		arg4: array of proc argument objects	(Tcl_Obj**)
      */
-    probe method__entry(char *class, char* method, int objc, Tcl_Obj **objv);
+    probe method__entry(char* object, char *class, char* method, int objc, Tcl_Obj **objv);
     /*
      *	nsf*:::proc-return probe
      *	    triggered immediately after proc bytecode execution
-     *		arg0: class/object name			(string)
-     *		arg1: method name			(string)
-     *		arg2: return code			(int)
+     *		arg0: object name			(string)
+     *		arg1: class/object name			(string)
+     *		arg2: method name			(string)
+     *		arg3: return code			(int)
      */
-    probe method__return(char *class, char* name, int code);
+    probe method__return(char *object, char *class, char* name, int code);
     /*
      *	tcl*:::proc-result probe
      *	    triggered after proc-return probe and result processing

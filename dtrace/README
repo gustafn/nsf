@@ -1,0 +1,15 @@
+
+Run the script e.g. via the following command:
+
+   sudo dtrace -q -F -s dtrace/timestamps.d -c "./nxsh tests/object-system.test"
+
+Hints:
+
+* Make sure that a "package require nx" works for root as well
+  (install nx, or provide a TCLLIBPATH, etc.).  
+
+* If dtrace compliation fails (e.g. "... nsf*:::method-entry does not
+  match any probes", start an nxsh in a different window to make the
+  probes known to the kernel.
+
+-gustaf neumann

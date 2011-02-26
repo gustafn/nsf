@@ -727,7 +727,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
       /* Mask out IS_NRE, since Tcl_PopCallFrame takes care about TclStackFree */
       cscPtr->flags &= ~NSF_CSC_CALL_IS_NRE;
 #endif
-      CscFinish(interp, cscPtr, "popall");
+      CscFinish(interp, cscPtr, TCL_OK, "popall");
     } else if (frameFlags & FRAME_IS_NSF_OBJECT) {
       Tcl_CallFrame_varTablePtr(framePtr) = NULL;
     }
@@ -745,7 +745,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
 	 unstackedEntries = unstackedEntries->nextPtr, count ++) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)unstackedEntries->cl;
       CscListRemove(interp, cscPtr);
-      CscFinish(interp, cscPtr, "unwind");
+      CscFinish(interp, cscPtr, TCL_OK, "unwind");
     }
     
     if (count>0 && RUNTIME_STATE(interp)->debugLevel > 0) {
@@ -832,7 +832,8 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
   if (cmd) {
     if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
       // TODO: missing arg list
-      NSF_DTRACE_METHOD_ENTRY(cl ? ClassName(cl) : ObjectName(object), 
+      NSF_DTRACE_METHOD_ENTRY(ObjectName(object), 
+			      cl ? ClassName(cl) : ObjectName(object), 
 			      Tcl_GetCommandName(object->teardown,cmd),
 			      0, "");
     }
@@ -902,11 +903,6 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     NsfProfileRecordMethodData(interp, cscPtr);
   }
 #endif
-  if (NSF_DTRACE_METHOD_RETURN_ENABLED()) {
-    // TODO: missing returcode handling, currently just when cmdPtr is set
-    NSF_DTRACE_METHOD_RETURN(cscPtr->cl ? ClassName(cscPtr->cl) : ObjectName(cscPtr->self), 
-			     cscPtr->methodName, TCL_OK);
-  }
 
   object = cscPtr->self;
 
