@@ -740,9 +740,9 @@ enable_option_checking
 with_gdbm
 with_aolserver3
 with_actiweb
-with_all
 with_expat
 with_profile
+enable_dtrace
 with_tcl
 with_tclinclude
 enable_threads
@@ -1379,6 +1379,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-dtrace         build with dtrace (default: off)
   --enable-threads        build with threads
   --enable-shared         build and link with shared libraries (default: on)
   --enable-64bit          enable 64bit support (default: off)
@@ -1391,19 +1392,19 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-gdbm=GDBM_INCLUDE_DIR,GDBM_LIB_DIR
-            absolute path to gdbm.h and optionally the path to the library,
-           --without-gdbm disables build of Tcl Gdbm
-  --with-aolserver3=AOL_SERVER_DIR, (containing include ,...)
-           --without-aolserver3 disables build of AOLserver 3 module
-  --with-actiweb=yes|no,
-           --without-actiweb disables actiweb components
-  --with-all=yes|no,
-	   --without-all disables built of all
-  --with-expat=sys assumes a system-wide expat installation,
-           --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
-           --without-expat falls back to the bundled expat installation
-  --with-profile=yes|no,
-	   --without-profile disables built with profile support
+                          build with gdbm support; provide path to gdbm.h and
+                          optionally to the shared library (default: off)
+  --with-aolserver3=AOL_SERVER_DIR
+                          build an AOLserver 3 module; point to directory
+                          containing aolsever/include (default: off)
+  --with-actiweb=yes|no   build with actiweb components (default: off)
+  --with-expat            choose expat support; --with-expat=sys assumes a
+                          system-wide expat installation
+                          --with-expat=<INC_DIR,LIB_DIR> point to a custom
+                          expat installation, --without-expat falls back to
+                          the bundled expat installation
+  --with-profile=yes|no   --without-profile disables builds with profile
+                          support
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files
@@ -2366,14 +2367,6 @@ else
 fi
 
 
-# Check whether --with-all was given.
-if test "${with_all+set}" = set; then :
-  withval=$with_all; with_all=$withval
-else
-  with_all=no
-fi
-
-
 # Check whether --with-expat was given.
 if test "${with_expat+set}" = set; then :
   withval=$with_expat; with_expat=$withval
@@ -2389,13 +2382,15 @@ else
   with_profile=no
 fi
 
+# Check whether --enable-dtrace was given.
+if test "${enable_dtrace+set}" = set; then :
+  enableval=$enable_dtrace; enable_dtrace=$enableval
+else
+  enable_dtrace=no
+fi
+
 
 subdirs=""
-
-if test "$with_all" = yes; then
-   with_actiweb=yes
-   with_gdbm=yes
-fi
 
 if test "$with_actiweb" = yes; then
    test_actiweb="test-actiweb"
@@ -5526,6 +5521,13 @@ if test "$with_profile" = yes; then
 else
    NSF_PROFILE_FLAG=""
 fi
+
+if test "enable_dtrace" = yes; then
+
+$as_echo "#define NSF_DTRACE 1" >>confdefs.h
+
+fi
+
 
 #-----------------------------------------------------------------------
 # __CHANGE__

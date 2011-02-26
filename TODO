@@ -2407,7 +2407,9 @@ sudo make install
    * trace result codes in method-return 
    * add some dtrace sample scripts
    * add dtrace header file dependency
+   * add --enable-dtrace flag
 
+- make "configure --help" more pretty
 
 TODO:
 
