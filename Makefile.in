@@ -525,7 +525,7 @@ $(src_generic_dir)/tclAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)
 
 nsfStubInit.$(OBJEXT): $(PKG_HEADERS)
 nsfStubLib.$(OBJEXT): $(src_generic_dir)/nsfStubLib.c $(PKG_HEADERS)
-nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/tclAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c
+nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/tclAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c $(DTRACE_HDR)
 nsfError.$(OBJEXT): $(src_generic_dir)/nsfError.c $(PKG_HEADERS)
 nsfMetaData.$(OBJEXT): $(src_generic_dir)/nsfMetaData.c $(PKG_HEADERS)
 nsfObjectData.$(OBJEXT): $(src_generic_dir)/nsfObjectData.c $(PKG_HEADERS)
