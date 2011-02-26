@@ -2409,7 +2409,9 @@ sudo make install
    * add dtrace header file dependency
    * add --enable-dtrace flag for configure
 
-- make "configure --help" more pretty
+- configure
+   * make "configure --help" more pretty
+   * simplify configure.in
 
 TODO:
 

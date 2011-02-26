@@ -164,18 +164,14 @@ AC_SUBST(aol_prefix)
 #--------------------------------------------------------------------
 # check for tclCompile.h (needed, when compiled without full source)
 if test -f "$TCL_SRC_DIR/generic/tclCompile.h"; then
-   HAVE_TCL_COMPILE_H="-DHAVE_TCL_COMPILE_H=1"
-else
-   HAVE_TCL_COMPILE_H=""
+   AC_DEFINE(HAVE_TCL_COMPILE_H, 1, [Do we have tclCompile.h installed?])
 fi
 
 if test "$with_profile" = yes; then
-   NSF_PROFILE_FLAG="-DNSF_PROFILE=1"
-else
-   NSF_PROFILE_FLAG=""
+   AC_DEFINE(NSF_PROFILE, 1, [Are we building with profile support?])
 fi
 
-if test "enable_dtrace" = yes; then
+if test "$enable_dtrace" = yes; then
    AC_DEFINE(NSF_DTRACE, 1, [Are we building with DTrace support?])
 fi
 
@@ -197,7 +193,7 @@ TEA_ADD_HEADERS([generic/nsf.h generic/nsfInt.h generic/nsfDecls.h generic/nsfIn
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([-DNSF_VERSION=\\\"$NSF_VERSION\\\" -DNSF_PATCHLEVEL=\\\"$NSF_PATCH_LEVEL\\\" \
-	$AOL_DEFINES $HAVE_TCL_COMPILE_H $NSF_PROFILE_FLAG])
+	$AOL_DEFINES ])
 TEA_ADD_STUB_SOURCES([nsfStubLib.c])
 TEA_ADD_TCL_SOURCES([])
 
