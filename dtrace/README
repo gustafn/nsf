@@ -1,15 +1,109 @@
+DTrace provider for the Next Scripting Language
 
-Run the script e.g. via the following command:
+This is an implementation of a DTrace provider for the Next Scripting
+Language (nsf). The nsf provider is designed to be used with and
+without the DTrace support for Tcl. Therefore, nsf can be configured
+with --enable-trace also in cases where Tcl was compiled without it.
+
+To enable DTrace, run configure with the flag --enable-dtrace. The
+DTrace support for nsf was developed under Mac OS X, other platforms
+might require some fine tuning to get it running. Please report
+improvements back to the nsf developers.
+
+Once DTrace support is compiled into nsf, one can run D scripts like
+in the following example:
 
    sudo dtrace -q -F -s dtrace/timestamps.d -c "./nxsh tests/object-system.test"
 
-Hints:
+DTrace requires normally that dtrace is run with root permissions. In
+case the provided sample scrips in the dtrace directory don't work the
+following hints might help:
 
 * Make sure that a "package require nx" works for root as well
-  (install nx, or provide a TCLLIBPATH, etc.).  
+  (install nx, or provide a TCLLIBPATH, etc.).  You might want
+  to add e.g. the following line 
+      set auto_path [concat . $auto_path]
+  to the begin of the nxsh script
 
 * If dtrace compliation fails (e.g. "... nsf*:::method-entry does not
   match any probes", start an nxsh in a different window to make the
-  probes known to the kernel.
+  nsf provider and the probes known to the kernel.
 
 -gustaf neumann
+
+Examples
+
+% sudo dtrace -arch x86_64 -x bufsize=20m -F -s dtrace/execution-flow.d -c "./nxsh dtrace/sample.tcl" 2>&1
+
+dtrace: script 'dtrace/execution-flow.d' matched 8 probes
+dtrace: pid 65393 has exited
+CPU FUNCTION                                 
+  0  -> MethodDispatchCsc                     ::nx::Object ::nx::Class.create (2)
+  0    -> MethodDispatchCsc                   ::o ::nx::Object.public (4)
+  0      -> MethodDispatchCsc                 ::o ::nx::Object.method (3)
+  0        -> MethodDispatchCsc               ::o ::nx::Object.__resolve_method_path (2)
+  0        <- ObjectDispatch                  ::o ::nx::Object.__resolve_method_path -> 0
+  0        -> MethodDispatchCsc               ::o ::nx::Object.__default_method_call_protection (0)
+  0        <- ObjectDispatch                  ::o ::nx::Object.__default_method_call_protection -> 0
+  0      <- ObjectDispatch                    ::o ::nx::Object.method -> 0
+  0    <- ObjectDispatch                      ::o ::nx::Object.public -> 0
+  0    -> MethodDispatchCsc                   ::o ::nx::Object.init (0)
+  0    <- ObjectDispatch                      ::o ::nx::Object.init -> 0
+  0  <- ObjectDispatch                        ::nx::Object ::nx::Class.create -> 0
+  0  -> MethodDispatchCsc                     ::o ::o.foo (2)
+  0    -> MethodDispatchCsc                   ::o ::o.::incr (2)
+  0    <- ObjectDispatch                      ::o ::o.::incr -> 0
+  0  <- ObjectDispatch                        ::o ::o.foo -> 0
+
+% sudo dtrace -arch x86_64 -x bufsize=20m -F -s dtrace/execution-flow-args.d -c "./nxsh dtrace/sample.tcl" 2>&1
+dtrace: script 'dtrace/execution-flow-args.d' matched 8 probes
+dtrace: pid 65419 has exited
+
+CPU FUNCTION                                 
+  1  -> MethodDispatchCsc                     ::nx::Object ::nx::Class.create (2) o 
+  :public method foo {x y} {
+    [self] ::incr x 
+  1    -> MethodDispatchCsc                   ::o ::nx::Object.public (4) method foo
+  1      -> MethodDispatchCsc                 ::o ::nx::Object.method (3) foo x y
+  1        -> MethodDispatchCsc               ::o ::nx::Object.__resolve_method_path (2) -per-object foo
+  1        <- ObjectDispatch                  ::o ::nx::Object.__resolve_method_path -> 0
+  1        -> MethodDispatchCsc               ::o ::nx::Object.__default_method_call_protection (0)  
+  1        <- ObjectDispatch                  ::o ::nx::Object.__default_method_call_protection -> 0
+  1      <- ObjectDispatch                    ::o ::nx::Object.method -> 0
+  1    <- ObjectDispatch                      ::o ::nx::Object.public -> 0
+  1    -> MethodDispatchCsc                   ::o ::nx::Object.init (0)  
+  1    <- ObjectDispatch                      ::o ::nx::Object.init -> 0
+  1  <- ObjectDispatch                        ::nx::Object ::nx::Class.create -> 0
+  1  -> MethodDispatchCsc                     ::o ::o.foo (2) 1 2
+  1    -> MethodDispatchCsc                   ::o ::o.::incr (2) x 1
+  1    <- ObjectDispatch                      ::o ::o.::incr -> 0
+  1  <- ObjectDispatch                        ::o ::o.foo -> 0
+
+
+% sudo dtrace F -s dtrace/timestamps.d -c "./nxsh tests/object-system.test" 2>&1
+CPU FUNCTION                                 
+  0 | :END                                    
+::C            ::C                 class                  = 4249
+::M            ::M                 class                  = 4347
+::o            ::o                 class                  = 4435
+::m2           ::m2                class                  = 4444
+::M2           ::M2                class                  = 4462
+::C0           ::C0                class                  = 4501
+::c1           ::c1                class                  = 4611
+....
+
+% sudo dtrace -F -s dtrace/timestamps-q.d -c "./nxsh tests/object-system.test" 2>&1
+....
+  ::nx::Object                                        info                                              
+           value  ------------- Distribution ------------- count    
+            4096 |                                         0        
+            8192 |@@@@@@@@@@@@@@@@@@@@@@@@@                16       
+           16384 |@@@@@@@@@@@@@@@                          10       
+           32768 |                                         0        
+
+  ::nx::Object                                        objectparameter                                   
+           value  ------------- Distribution ------------- count    
+           32768 |                                         0        
+           65536 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@         4        
+          131072 |@@@@@@@@                                 1        
+          262144 |                                         0    
