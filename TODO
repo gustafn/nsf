@@ -2414,15 +2414,14 @@ sudo make install
    * make compliation clean
    * extended README file
    * handle self->tracing in D scripts (and in dtrace/sample.tcl, tests/object-system.tcl)
+   * add probes for object creation and freeing
+   * add sample d-script for object bookkeeping
 
 - configure
    * make "configure --help" more pretty
    * simplify configure.in
 
 TODO:
-
-dtrace:
- - object creation
 
 - serializer: check, why catch is needed for object-level alias 
   (search for ns_cache_flush)
@@ -2612,4 +2611,6 @@ For future releases:
      (either generailization or move to OpenACS/aolserver init/naviserver init)
 
   * NsfClassListAdd() and friends could be made generic
+
+  * Several of the tracing options in nsf.h could be replaced by DTrace
 
