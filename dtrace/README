@@ -23,7 +23,8 @@ following hints might help:
   (install nx, or provide a TCLLIBPATH, etc.).  You might want
   to add e.g. the following line 
       set auto_path [concat . $auto_path]
-  to the begin of the nxsh script
+  to the begin of the nxsh script, or add the path to the dtrace invocation
+  (see below)
 
 * If dtrace compliation fails (e.g. "... nsf*:::method-entry does not
   match any probes", start an nxsh in a different window to make the
@@ -33,7 +34,7 @@ following hints might help:
 
 Examples
 
-% sudo dtrace -arch x86_64 -x bufsize=20m -F -s dtrace/execution-flow.d -c "./nxsh dtrace/sample.tcl" 2>&1
+% sudo TCLLIBPATH=. dtrace -arch x86_64 -x bufsize=20m -F -s dtrace/execution-flow.d -c "./nxsh dtrace/sample.tcl"
 
 dtrace: script 'dtrace/execution-flow.d' matched 8 probes
 dtrace: pid 65393 has exited
@@ -55,7 +56,7 @@ CPU FUNCTION
   0    <- ObjectDispatch                      ::o ::o.::incr -> 0
   0  <- ObjectDispatch                        ::o ::o.foo -> 0
 
-% sudo dtrace -arch x86_64 -x bufsize=20m -F -s dtrace/execution-flow-args.d -c "./nxsh dtrace/sample.tcl" 2>&1
+% sudo TCLLIBPATH=. dtrace -arch x86_64 -x bufsize=20m -F -s dtrace/execution-flow-args.d -c "./nxsh dtrace/sample.tcl" 
 dtrace: script 'dtrace/execution-flow-args.d' matched 8 probes
 dtrace: pid 65419 has exited
 
@@ -80,7 +81,7 @@ CPU FUNCTION
   1  <- ObjectDispatch                        ::o ::o.foo -> 0
 
 
-% sudo dtrace F -s dtrace/timestamps.d -c "./nxsh tests/object-system.test" 2>&1
+% sudo TCLLIBPATH=. dtrace F -s dtrace/timestamps.d -c "./nxsh tests/object-system.test"
 CPU FUNCTION                                 
   0 | :END                                    
 ::C            ::C                 class                  = 4249
@@ -92,7 +93,7 @@ CPU FUNCTION
 ::c1           ::c1                class                  = 4611
 ....
 
-% sudo dtrace -F -s dtrace/timestamps-q.d -c "./nxsh tests/object-system.test" 2>&1
+% sudo TCLLIBPATH=. dtrace -F -s dtrace/timestamps-q.d -c "./nxsh tests/object-system.test"
 ....
   ::nx::Object                                        info                                              
            value  ------------- Distribution ------------- count    
