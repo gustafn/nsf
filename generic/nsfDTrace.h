@@ -15,6 +15,14 @@ extern "C" {
 
 #define NSF_TYPEDEFS "___dtrace_typedefs$nsf$v2$54636c5f4f626a"
 
+#define	NSF_CONFIGURE_PROBE(arg0, arg1) \
+do { \
+	__asm__ volatile(".reference " NSF_TYPEDEFS); \
+	__dtrace_probe$nsf$configure__probe$v1$63686172202a$63686172202a(arg0, arg1); \
+	__asm__ volatile(".reference " NSF_STABILITY); \
+} while (0)
+#define	NSF_CONFIGURE_PROBE_ENABLED() \
+	__dtrace_isenabled$nsf$configure__probe$v1()
 #define	NSF_METHOD_ENTRY(arg0, arg1, arg2, arg3, arg4) \
 do { \
 	__asm__ volatile(".reference " NSF_TYPEDEFS); \
@@ -57,6 +65,8 @@ do { \
 	__dtrace_isenabled$nsf$object__destroy$v1()
 
 
+extern void __dtrace_probe$nsf$configure__probe$v1$63686172202a$63686172202a(char *, char *);
+extern int __dtrace_isenabled$nsf$configure__probe$v1(void);
 extern void __dtrace_probe$nsf$method__entry$v1$63686172202a$63686172202a$63686172202a$696e74$54636c5f4f626a202a2a(char *, char *, char *, int, Tcl_Obj **);
 extern int __dtrace_isenabled$nsf$method__entry$v1(void);
 extern void __dtrace_probe$nsf$method__return$v1$63686172202a$63686172202a$63686172202a$696e74(char *, char *, char *, int);

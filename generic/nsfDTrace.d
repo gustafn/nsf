@@ -71,6 +71,14 @@ provider nsf {
      */
     probe object__destroy(char *class, char *object);
 
+    /***************************** nsf configure probe ******************************/
+    /*
+     *	nsf*:::configure-probe probe
+     *	    triggered when the ::nsf::configure is called
+     *		arg0-arg1: command arguments		(strings)
+     */
+    probe configure__probe(char *arg0, char *arg1);
+
 };
 
 /*

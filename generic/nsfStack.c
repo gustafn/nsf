@@ -830,13 +830,6 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
    *  cases, we maintain an activation count. 
    */
   if (cmd) {
-    if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
-      // TODO: missing arg list
-      NSF_DTRACE_METHOD_ENTRY(ObjectName(object), 
-			      cl ? ClassName(cl) : ObjectName(object), 
-			      Tcl_GetCommandName(object->teardown,cmd),
-			      0, "");
-    }
     /*
      * Track object activations
      */

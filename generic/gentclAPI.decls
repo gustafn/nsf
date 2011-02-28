@@ -35,7 +35,7 @@ nsfCmd assertion NsfAssertionCmd {
   {-argName "arg" -required 0 -type tclobj}
 }
 nsfCmd configure NsfConfigureCmd {
-  {-argName "configureoption" -required 1 -type "debug|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
+  {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
 nsfCmd createobjectsystem NsfCreateObjectSystemCmd {

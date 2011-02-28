@@ -143,7 +143,7 @@
   if (cscPtr->cmdPtr && NSF_DTRACE_METHOD_RETURN_ENABLED()) {		\
     NSF_DTRACE_METHOD_RETURN(ObjectName(cscPtr->self),	\
 			     cscPtr->cl ? ClassName(cscPtr->cl) : ObjectName(cscPtr->self), \
-			     cscPtr->methodName, 	\
+			     (char *)cscPtr->methodName,			\
 			     retCode);			\
   }
 #else

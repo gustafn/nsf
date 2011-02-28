@@ -7736,6 +7736,13 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
   int result;
 
+  if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
+    NSF_DTRACE_METHOD_ENTRY(ObjectName(object), 
+			    cscPtr->cl ? ClassName(cscPtr->cl) : ObjectName(object), 
+			    (char *)methodName,
+			    objc-1, (Tcl_Obj **)objv+1);
+  }
+
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", 
     methodName, cmd, cp, objc);*/
   assert(object->teardown);
@@ -14689,13 +14696,21 @@ NsfAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg)
 
 /*
 nsfCmd configure NsfConfigureCmd {
-  {-argName "configureoption" -required 1 -type "debug|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
+  {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
 static int
 NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
   int bool;
+
+  if (NSF_DTRACE_CONFIGURE_PROBE_ENABLED()) {
+    /* TODO: opts copied from tclAPI.h; maybe make global value? */
+    static CONST char *opts[] = {
+      "debug", "dtrace", "filter", "profile", "softrecreate", 
+      "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
+    NSF_DTRACE_CONFIGURE_PROBE((char *)opts[configureoption-1], valueObj ? ObjStr(valueObj) : NULL);
+  }
 
   if (configureoption == ConfigureoptionObjectsystemsIdx) {
     NsfObjectSystem *osPtr;

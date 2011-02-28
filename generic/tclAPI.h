@@ -85,12 +85,12 @@ static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfPara
   return result;
 }
   
-enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionFilterIdx, ConfigureoptionProfileIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepinitcmdIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
+enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionDtraceIdx, ConfigureoptionFilterIdx, ConfigureoptionProfileIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepinitcmdIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
 
 static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"debug", "filter", "profile", "softrecreate", "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
+  static CONST char *opts[] = {"debug", "dtrace", "filter", "profile", "softrecreate", "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -175,7 +175,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToMethodproperty, "class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|baseclasses"},
-  {ConvertToConfigureoption, "debug|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
+  {ConvertToConfigureoption, "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {NULL, NULL}
 };
