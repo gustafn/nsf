@@ -361,3 +361,23 @@ Test case class-object-attribute {
   ? {c1 a b} {expected integer but got "b" for parameter "a"}  
 }
 
+#
+# Test method deletion
+#
+Test parameter count 1
+
+Test case methoddelete {
+  nx::Class create C {
+    :public method foo {x} {return $x}
+    :public class-object method bar {x} {return $x}
+    :create c1
+  }
+  
+  ? {::nsf::methoddelete C x} "Object C: method x is not defined"
+  #? {::nsf::methoddelete C -per-object x} "Object C: method x is not defined"
+  ? {::nsf::methoddelete C foo} ""
+  ? {::nsf::methoddelete C foo} "Object C: method foo is not defined"
+  ? {::nsf::methoddelete C bar} "Object C: method bar is not defined"
+  ? {::nsf::methoddelete C -per-object bar} ""
+  #? {::nsf::methoddelete C -per-object bar} ""
+}

@@ -37,6 +37,26 @@ namespace eval ::nsf {
     }
   }
 
+  #
+  # proc for deleting methods
+  #
+  nsf::proc ::nsf::methoddelete {object:object -per-object:switch methodName} {
+    if {${per-object}} {
+      set handle [$object ::nsf::methods::object::info::method handle $methodName]
+    } else {
+      set handle [$object ::nsf::methods::class::info::method handle $methodName]
+    }
+    if {$handle ne ""} {
+      ::nsf::method $object {*}[expr {${per-object} ? "-per-object" : ""}] $methodName "" ""
+    } else {
+      error "Object $object: method $methodName is not defined"
+    }
+  }
+
+  #
+  # The following helper proc is used e.g. in OpenACS to pair
+  # introspection with nsf::procs.
+  #
   ::proc strip_proc_name {name} {
     if {[string match ::nsf::procs::* $name]} {
       return [string range $name 12 end]

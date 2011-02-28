@@ -2421,7 +2421,36 @@ sudo make install
    * make "configure --help" more pretty
    * simplify configure.in
 
+- added first version of "nsf::methoddelete"
+- extended regression test
+- updated TODO
+
 TODO:
+
+- explizites [::nsf::method delete] (sinngemäss), als ergänzung zum "{} {}"-idiom 
+  we could extend "::nsf::method obj methodname ...." towards a 
+  "::nsf::method create|destroy obj methodname ....", but this would
+  be an asymmetry for nsf::alice, nsf::forward, etc.
+
+  An option would be an ::nsf::methodelete in accoradance with methodproperty
+
+  nsfCmd methodproperty NsfMethodPropertyCmd {
+    {-argName "object" -required 1 -type object}
+    {-argName "-per-object"}
+    {-argName "methodName" -required 1 -type tclobj}
+
+- implemented above suggestion; two more issues:
+  * fix crash for non-existing per-object procs
+  * add "... method exists ...."
+  * document "nsf::methoddelete" (or find a better name for it)
+  * extend regression test
+
+- fix misleading error message:
+   nx::Class create C {
+    :public method foo {x} {return $x}
+    :public object method bar {x} {return $x}
+    :create c1
+   }
 
 - serializer: check, why catch is needed for object-level alias 
   (search for ns_cache_flush)
@@ -2432,7 +2461,7 @@ TODO:
 - object parameter type forward:
    - regression test
    - reduce verbosity
-   - get rid of eager tcd creation (optimization, can go to guture releases)
+   - get rid of eager tcd creation (optimization, can go to future releases)
 
 - slotmachinerie 2
   - naming "incremental", "reconfigure"
@@ -2494,19 +2523,9 @@ TODO:
    * migration guide
       3.8. Dispatch, Aliases, etc.: to be done or omitted
 
-- check performance implications of value conflict checker
+- check performance implications of value checker
 
-- explizites [::nsf::method delete] (sinngemäss), als ergänzung zum "{} {}"-idiom 
 - extend coro regression test
-
-- C-interface
-    * rework C-interface
-    * maybe for post-alpha, but we have be first clear
-      on scope and intention. A possibility would be
-      to provide all entries from gentclAPI, but we would
-      loose most likely static property and the newly
-      achieved ease of changing is effectively frozen 
-      by the stubs interface, which has to be stable.
 
 - nameing
 
@@ -2581,36 +2600,40 @@ TODO "Kleinigkeiten"
 #endif
 
 
-For future releases:
+For future releases (after first alpha/beta release)
 
-   * consider alternate method name/place for subcmds (and/or slots) on classes
+   * Consider alternate method name/place for subcmds (and/or slots) on classes
      - currently, there are potentail conflicts between slots and ensemble objects
      - provide a different place in the namesspaces could simplify this
-   
-   * argument passing of C functions is currently based on an
-     interpreter of the argument lists. It should be possible to turn
-     the interpreter into a compiler to speed up argument passing. But
-     maybe, this would bloat the code-size.
 
-   * canonical reps: 
-    "p:integer,multivalued" => "-name p -type integer -multivalued"
-    "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
+   * Ensembles
+     - It could be possible to reduce stack frames in ensembles. Just a
+       top ensemble frame could be sufficient.
+     - The full names for ensemble methods could be stored in the cmd tables
+       to make lookup faster.
 
-   * rework implict namespace completion (NameInNamespaceObj(), 
-     maybe based on BeginOfCallChain()).
-
-   * use parameter syntax in genTclAPI
-
-   * it could be possible to reduce stack frames in ensembles. Just a
-     top ensemble frame could be sufficient.
-
-  * the full names for ensemble methods could be stored in the cmd tables
-    to make lookup faster.
-
-  * serializer: handing of xo::at_cleanup in serializer 
+  * Serializer: handing of xo::at_cleanup in serializer 
      (either generailization or move to OpenACS/aolserver init/naviserver init)
 
-  * NsfClassListAdd() and friends could be made generic
-
-  * Several of the tracing options in nsf.h could be replaced by DTrace
+  * Parameter/argument handling
+    - Canonical parameter representations: 
+      "p:integer,multivalued" => "-name p -type integer -multivalued"
+      "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
+    - Argument passing of C functions is currently based on an
+      interpreter of the argument lists. It should be possible to turn
+      the interpreter into a compiler to speed up argument passing. But
+      maybe, this would bloat the code-size.
+    - Use parameter syntax in genTclAPI
+ 
+  * C-Code
+     * Several of the tracing options in nsf.h could be replaced by DTrace
+     * Rework implict namespace completion (NameInNamespaceObj(), 
+       maybe based on BeginOfCallChain()).
+     * Rework C-interface (maybe for post-alpha, but we have be first
+       clear on scope and intention. A possibility would be to provide
+       all entries from gentclAPI, but we would loose most likely
+       static property and the newly achieved ease of changing is
+       effectively frozen by the stubs interface, which has to be
+       stable.
+     * NsfClassListAdd() and friends could be made generic
 
