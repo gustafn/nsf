@@ -2409,6 +2409,11 @@ sudo make install
    * add dtrace header file dependency
    * add --enable-dtrace flag for configure
    * --enable-dtrace sets DTRACE_OBJ on mac os x empty (since not needed for mac os x dtrace)
+   * added "nsf::configure dtrace on|off" for skipping package initialization
+     (to be handled in D script)
+   * make compliation clean
+   * extended README file
+   * handle self->tracing in D scripts (and in dtrace/sample.tcl, tests/object-system.tcl)
 
 - configure
    * make "configure --help" more pretty
@@ -2417,8 +2422,6 @@ sudo make install
 TODO:
 
 dtrace:
- - handle arguments
- - skip cost of intro
  - object creation
 
 - serializer: check, why catch is needed for object-level alias 
