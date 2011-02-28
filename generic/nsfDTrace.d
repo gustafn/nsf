@@ -50,26 +50,19 @@ provider nsf {
 
     /***************************** Object probes ******************************/
     /*
-     *	nsf*:::object-create-start probe
+     *	nsf*:::object-create probe
      *	    triggered when an NSF object creation starts
-     *		arg0: class 			(string)
-     *		arg1: object 			(string)
+     *		arg0: object 			(string)
+     *		arg1: class 			(string)
      */
-    probe object__create_start(char *class, char *object);
-    /*
-     *	nsf*:::object-create-end probe
-     *	    triggered when an NSF object creation ends
-     *		arg0: class 			(string)
-     *		arg1: object 			(string)
-     */
-    probe object__create_end(char *class, char *object);
+    probe object__create(char *object, char *class);
    /*
-     *	nsf*:::object-destroy probe
-     *	    triggered whean an NSF object is destroyed
-     *		arg0: class 			(string)
-     *		arg1: object 			(string)
+     *	nsf*:::object-free probe
+     *	    triggered whean an NSF object is freeed
+     *		arg0: object 			(string)
+     *		arg1: class 			(string)
      */
-    probe object__destroy(char *class, char *object);
+    probe object__free(char *object, char *class);
 
     /***************************** nsf configure probe ******************************/
     /*

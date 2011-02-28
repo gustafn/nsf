@@ -1006,16 +1006,25 @@ DStringAppendQualName(Tcl_DString *dsPtr, Tcl_Namespace *nsPtr, CONST char* name
 
 static void
 NsfCleanupObject_(NsfObject *object) {
+
   NsfObjectRefCountDecr(object);
-  /*fprintf(stderr, "NsfCleanupObject obj refCount of %p after decr %d\n", object, object->refCount);*/
+  /*fprintf(stderr, "NsfCleanupObject obj refCount of %p after decr %d id %p interp %p flags %.6x\n", 
+    object, object->refCount, object->id, object->teardown, object->flags);*/
 
   if (object->refCount <= 0) {
     /*fprintf(stderr, "NsfCleanupObject %p refcount %d\n", object, object->refCount);*/
     assert(object->refCount == 0);
     assert(object->flags & NSF_DELETED);
 
-    MEM_COUNT_FREE("NsfObject/NsfClass", object);
+    /*
+     * During FinalObjectDeletion(), object->teardown is NULL, we cannot access
+     * the object and class names anymore.
+     */
+    if (object->teardown && NSF_DTRACE_OBJECT_FREE_ENABLED()) {
+      NSF_DTRACE_OBJECT_FREE(ObjectName(object), ClassName(object->cl));
+    }
 
+    MEM_COUNT_FREE("NsfObject/NsfClass", object);
 #if defined(NSFOBJ_TRACE)
     fprintf(stderr, "CKFREE Object %p refcount=%d\n", object, object->refCount);
 #endif
@@ -17413,6 +17422,10 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespa
 			 "(possibly parent namespace does not exist)",
 			 nameString);
   }
+
+  if (NSF_DTRACE_OBJECT_CREATE_ENABLED()) {
+    NSF_DTRACE_OBJECT_CREATE(ObjectName(newObj), ClassName(cl));
+  }
   
   Tcl_SetObjResult(interp, nameObj);
   return TCL_OK;
@@ -18854,8 +18867,13 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
   assert(object->activationCount == 0);
 
   if (object->id) {
-    /*fprintf(stderr, "cmd dealloc %p final delete refCount %d\n", 
+    /*fprintf(stderr, "  ... cmd dealloc %p final delete refCount %d\n", 
       object->id, Tcl_Command_refCount(object->id));*/
+
+    if (NSF_DTRACE_OBJECT_FREE_ENABLED()) {
+      NSF_DTRACE_OBJECT_FREE(ObjectName(object), ClassName(object->cl));
+    }
+
     Tcl_DeleteCommandFromToken(interp, object->id);
   }
 }
@@ -18937,9 +18955,10 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
 
       object = GetObjectFromString(interp, key);
       if (object && !NsfObjectIsClass(object) && !ObjectHasChildren(object)) {
-        /*fprintf(stderr, "  ... delete object %s %p, class=%s id %p\n", key, object,
-	  ClassName(object->cl), object->id);*/
-
+	/*if (object->id) {
+	  fprintf(stderr, "  ... delete object %s %p, class=%s id %p\n", key, object,
+		  ClassName(object->cl), object->id);
+		  }*/
         FreeUnsetTraceVariable(interp, object);
         if (object->id) FinalObjectDeletion(interp, object);
         Tcl_DeleteHashEntry(hPtr);

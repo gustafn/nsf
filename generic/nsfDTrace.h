@@ -39,30 +39,22 @@ do { \
 } while (0)
 #define	NSF_METHOD_RETURN_ENABLED() \
 	__dtrace_isenabled$nsf$method__return$v1()
-#define	NSF_OBJECT_CREATE_END(arg0, arg1) \
+#define	NSF_OBJECT_CREATE(arg0, arg1) \
 do { \
 	__asm__ volatile(".reference " NSF_TYPEDEFS); \
-	__dtrace_probe$nsf$object__create_end$v1$63686172202a$63686172202a(arg0, arg1); \
+	__dtrace_probe$nsf$object__create$v1$63686172202a$63686172202a(arg0, arg1); \
 	__asm__ volatile(".reference " NSF_STABILITY); \
 } while (0)
-#define	NSF_OBJECT_CREATE_END_ENABLED() \
-	__dtrace_isenabled$nsf$object__create_end$v1()
-#define	NSF_OBJECT_CREATE_START(arg0, arg1) \
+#define	NSF_OBJECT_CREATE_ENABLED() \
+	__dtrace_isenabled$nsf$object__create$v1()
+#define	NSF_OBJECT_FREE(arg0, arg1) \
 do { \
 	__asm__ volatile(".reference " NSF_TYPEDEFS); \
-	__dtrace_probe$nsf$object__create_start$v1$63686172202a$63686172202a(arg0, arg1); \
+	__dtrace_probe$nsf$object__free$v1$63686172202a$63686172202a(arg0, arg1); \
 	__asm__ volatile(".reference " NSF_STABILITY); \
 } while (0)
-#define	NSF_OBJECT_CREATE_START_ENABLED() \
-	__dtrace_isenabled$nsf$object__create_start$v1()
-#define	NSF_OBJECT_DESTROY(arg0, arg1) \
-do { \
-	__asm__ volatile(".reference " NSF_TYPEDEFS); \
-	__dtrace_probe$nsf$object__destroy$v1$63686172202a$63686172202a(arg0, arg1); \
-	__asm__ volatile(".reference " NSF_STABILITY); \
-} while (0)
-#define	NSF_OBJECT_DESTROY_ENABLED() \
-	__dtrace_isenabled$nsf$object__destroy$v1()
+#define	NSF_OBJECT_FREE_ENABLED() \
+	__dtrace_isenabled$nsf$object__free$v1()
 
 
 extern void __dtrace_probe$nsf$configure__probe$v1$63686172202a$63686172202a(char *, char *);
@@ -71,12 +63,10 @@ extern void __dtrace_probe$nsf$method__entry$v1$63686172202a$63686172202a$636861
 extern int __dtrace_isenabled$nsf$method__entry$v1(void);
 extern void __dtrace_probe$nsf$method__return$v1$63686172202a$63686172202a$63686172202a$696e74(char *, char *, char *, int);
 extern int __dtrace_isenabled$nsf$method__return$v1(void);
-extern void __dtrace_probe$nsf$object__create_end$v1$63686172202a$63686172202a(char *, char *);
-extern int __dtrace_isenabled$nsf$object__create_end$v1(void);
-extern void __dtrace_probe$nsf$object__create_start$v1$63686172202a$63686172202a(char *, char *);
-extern int __dtrace_isenabled$nsf$object__create_start$v1(void);
-extern void __dtrace_probe$nsf$object__destroy$v1$63686172202a$63686172202a(char *, char *);
-extern int __dtrace_isenabled$nsf$object__destroy$v1(void);
+extern void __dtrace_probe$nsf$object__create$v1$63686172202a$63686172202a(char *, char *);
+extern int __dtrace_isenabled$nsf$object__create$v1(void);
+extern void __dtrace_probe$nsf$object__free$v1$63686172202a$63686172202a(char *, char *);
+extern int __dtrace_isenabled$nsf$object__free$v1(void);
 
 #ifdef	__cplusplus
 }

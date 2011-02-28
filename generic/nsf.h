@@ -74,7 +74,6 @@
 #define NSF_PROFILE 1
 #define NSF_DTRACE 1
 */
-//#define NSF_DTRACE 1
 
 /* are we developing?
 #define NSF_DEVELOPMENT 1
