@@ -1,7 +1,8 @@
-/* 
+/* -*- D -*-
+ *
  * Execution flow trace with arguments
  *
- * Display execution flow between 
+ * Activate tracing between 
  *    ::nsf::configure dtrace on
  * and
  *    ::nsf::configure dtrace off
@@ -9,7 +10,7 @@
  * Since this D script accesses the C data structures it is sensitive
  * to the representation sizes of the data structures (e.g. pointers).
  * Make sure to call the script with the appropriate architecture flag
- * on Mac OS X, on SunOS, there is apparently a -32 or -64 flag.
+ * on Mac OS X; on SunOS, there is apparently a -32 or -64 flag.
  *
  * Example:
  *

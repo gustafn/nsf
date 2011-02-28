@@ -1,7 +1,8 @@
-/* 
+/* -*- D -*-
+ * 
  * Execution flow trace without arguments
  *
- * Display execution flow between 
+ * Activate tracing between 
  *    ::nsf::configure dtrace on
  * and
  *    ::nsf::configure dtrace off
