@@ -1,6 +1,8 @@
 # -*- Tcl -*-
 package require nx
 namespace import nx::*
+::nsf::configure dtrace on
+
 #
 # Basic tests of the object system, should not require Class Test,
 # since even class Test might not work at that time.
@@ -224,3 +226,4 @@ C -
 ::C destroy
 
 puts stderr ===EXIT
+::nsf::configure dtrace off
