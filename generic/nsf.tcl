@@ -17,11 +17,11 @@ namespace eval ::nsf {
   # support for method provide and method require
   #
 
-  proc ::nsf::provide_method {require_name definition {script ""}} {
+  proc ::nsf::method::provide {require_name definition {script ""}} {
     set ::nsf::methodIndex($require_name) [list definition $definition script $script]
   }
 
-  proc ::nsf::require_method {object name {per_object 0}} {
+  proc ::nsf::method::require {object name {per_object 0}} {
     set key ::nsf::methodIndex($name)
     if {[info exists $key]} {
       array set "" [set $key]
@@ -88,8 +88,8 @@ namespace eval ::nsf {
   #
   # provide some popular methods for "method require"
   #
-  ::nsf::provide_method autoname {::nsf::method::alias autoname ::nsf::methods::object::autoname}
-  ::nsf::provide_method exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
+  ::nsf::method::provide autoname {::nsf::method::alias autoname ::nsf::methods::object::autoname}
+  ::nsf::method::provide exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
 
   #
   # exit handlers

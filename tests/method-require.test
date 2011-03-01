@@ -13,13 +13,13 @@ Test case method-require {
   # producing these....
   #
   
-  nsf::provide_method append   {::nsf::method::alias  append -frame object ::append}
-  nsf::provide_method lappend  {::nsf::method::alias  lappend -frame object ::lappend}
-  nsf::provide_method set      {::nsf::method::alias  set -frame object ::set}
-  nsf::provide_method tcl::set {::nsf::method::alias  set -frame object ::set}
-  nsf::provide_method exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
-  nsf::provide_method foo      {::nsf::method::create foo {x y} {return x=$x,y=$y}}
-  nsf::provide_method x        {::nsf::mixin ::MIX} {
+  nsf::method::provide append   {::nsf::method::alias  append -frame object ::append}
+  nsf::method::provide lappend  {::nsf::method::alias  lappend -frame object ::lappend}
+  nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
+  nsf::method::provide tcl::set {::nsf::method::alias  set -frame object ::set}
+  nsf::method::provide exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
+  nsf::method::provide foo      {::nsf::method::create foo {x y} {return x=$x,y=$y}}
+  nsf::method::provide x        {::nsf::mixin ::MIX} {
     # here could be as well a package require, etc.
     ::nx::Class create ::MIX {:public method x {} {return x}}
   }

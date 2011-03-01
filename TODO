@@ -2438,6 +2438,8 @@ sudo make install
    ::nsf::alias          => ::nsf::method::alias
    ::nsf::forward        => ::nsf::method::forward
    ::nsf::setter         => ::nsf::method::setter
+   ::nsf::provide_method => ::nsf::method::provide
+   ::nsf::require_method => ::nsf::method::require
  (updated regression test, docs, ...)
 
 

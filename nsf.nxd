@@ -966,11 +966,11 @@
 # 					'''object-filter''' and
 # 					'''class-filter''').
 
-# @command provide_method
+# @command ::nsf::method::provide
 #
 # The command contributes an entry to a '''interp'''-wide method
 # repository (the method index) to be queried and harvested by
-# <<@command require_method>>. An entry consists of a unique
+# <<@command ::nsf::method::require>>. An entry consists of a unique
 # identifier, a definition script, and a setup script. Arbitrary
 # objects can request method definitions from this repository in a
 # disciplined manner. The idea of this method repository ressembles
@@ -985,9 +985,9 @@
 # 				before defining the method on the
 # 				requiring object.
 
-# @command require_method
+# @command ::nsf::method::require
 # 
-# As the counterpart of <<@command provide_method>>, the command allows
+# As the counterpart of <<@command ::nsf::method::provide>>, the command allows
 # you to require an method definition for the given object from the
 # '''interp'''-wide method repository.
 #

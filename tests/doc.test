@@ -1098,9 +1098,9 @@ set ::nsf::includes {
   ::nsf::isobject
   ::nsf::method
   ::nsf::method::property
-  ::nsf::provide_method
+  ::nsf::method::provide
   ::nsf::qualify
-  ::nsf::require_method
+  ::nsf::method::require
   ::nsf::setter
   ::nsf::setvar
 }

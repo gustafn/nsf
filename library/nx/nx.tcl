@@ -364,11 +364,11 @@ namespace eval ::nx {
       class-object {
 	set what [lindex $args 0]
 	if {$what eq "method"} {
-	  ::nsf::require_method [::nsf::self] [lindex $args 1] 1
+	  ::nsf::method::require [::nsf::self] [lindex $args 1] 1
 	}
       }
       method {
-	::nsf::require_method [::nsf::self] [lindex $args 0] 0
+	::nsf::method::require [::nsf::self] [lindex $args 0] 0
       }
       namespace {
 	::nsf::dispatch [::nsf::self] ::nsf::methods::object::requirenamespace
