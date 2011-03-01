@@ -424,6 +424,7 @@ typedef struct NsfStringIncrStruct {
 /* flags for ParseContext */
 #define NSF_PC_MUST_DECR		     0x0001
 #define NSF_PC_IS_DEFAULT		     0x0002
+#define NSF_PC_MUST_INVERT	     	     0x0010
 
 #define NSF_PC_STATUS_MUST_DECR		     0x0001
 #define NSF_PC_STATUS_FREE_OBJV		     0x0002

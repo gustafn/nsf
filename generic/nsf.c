@@ -12841,7 +12841,8 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *pPtr, 
       }
     }
   } else {
-    const char *valueString = ObjStr(objPtr);
+    CONST char *valueString = ObjStr(objPtr);
+
     if (pPtr->flags & NSF_ARG_ALLOW_EMPTY && *valueString == '\0') {
       result = ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
     } else {
@@ -12870,10 +12871,15 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 
     if (pcPtr->objv[i]) {
       /* we got an actual value, which was already checked by objv parser */
-      /*fprintf(stderr, "setting passed value for %s to '%s'\n", pPtr->name, ObjStr(pcPtr->objv[i]));*/
-      if (pPtr->converter == ConvertToSwitch) {
+
+      /*fprintf(stderr, "ArgumentDefaults setting passed value for %s to '%s'\n", 
+	pPtr->name, ObjStr(pcPtr->objv[i]));*/
+
+      if ((pcPtr->flags[i] & NSF_PC_MUST_INVERT) /*converter == ConvertToSwitch*/) {
         int bool;
         Tcl_GetBooleanFromObj(interp, pPtr->defaultValue, &bool);
+	/*fprintf(stderr, "+++ ArgumentDefaults inverts value for %s %.6x to %d\n", 
+	  pPtr->name, pcPtr->flags[i], !bool);*/
 	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool);
 	/*
 	 * incr refcount, otherwise the Tcl_Obj might be shared
@@ -13090,6 +13096,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
 	    /*fprintf(stderr, "...     flag '%s' o=%d p=%d, objc=%d nrArgs %d\n",
 	      argument, o, p, objc, nppPtr->nrArgs);*/
+
 	    if (nppPtr->flags & NSF_ARG_REQUIRED) nrReq++; else nrOpt++;
 
 	    /* 
@@ -13105,6 +13112,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		INCR_REF_COUNT(valueObj);
 		pcPtr->flags[j] |= NSF_PC_MUST_DECR;
 	      } else {
+		if (nppPtr->converter == ConvertToSwitch) {
+		  /*fprintf(stderr,"set MUST_INVERT for '%s' flags %.6x\n", 
+		    nppPtr->name, nppPtr->flags);*/
+		  pcPtr->flags[j] |= NSF_PC_MUST_INVERT;
+		}
 		valueObj = NsfGlobalObjs[NSF_ONE];
 	      }
 	    } else {
@@ -13137,6 +13149,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 			      &pcPtr->flags[j], &pcPtr->clientData[j], &pcPtr->objv[j]) != TCL_OK) {
 	      return TCL_ERROR;
 	    }
+	    
 	    /*
 	     * Provide warnings for double-settings.
 	     */

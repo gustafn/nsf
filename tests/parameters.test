@@ -1441,7 +1441,7 @@ Test case nsf-proc {
   # test inner namespace and handling of switches
   #
   nsf::proc ::nsf::mix {-per-object:switch -x:boolean} {
-    return [namespace current]-${per-object}-[info exists x]
+    return [namespace current]-${per-object}-[expr {[info exists x] ? $x : "NULL"}]
   }
 
   #
@@ -1469,8 +1469,12 @@ Test case nsf-proc {
   }
   
   Test parameter count 1
-  ? {::nsf::mix} "::nsf-0-0"
-  ? {::nsf::mix -per-object} "::nsf-1-0"
+  ? {::nsf::mix} "::nsf-0-NULL"
+  ? {::nsf::mix -per-object} "::nsf-1-NULL"
+  ? {::nsf::mix -x true} "::nsf-0-true"
+  ? {::nsf::mix -x false} "::nsf-0-false"
+  ? {::nsf::mix -per-object=1} "::nsf-1-NULL"
+  ? {::nsf::mix -per-object=0} "::nsf-0-NULL"
   ? {ad_returnredirect /url} "::-allow_complete_url_p html_p message target_url x-0-0"
   ? {ad_returnredirect -html /url} "::-allow_complete_url_p html_p message target_url x-1-0"
   ? {ad_returnredirect -html=0 /url} "::-allow_complete_url_p html_p message target_url x-0-0"

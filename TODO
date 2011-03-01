@@ -2443,6 +2443,11 @@ sudo make install
  (updated regression test, docs, ...)
 
 
+- Fixed cases of -flag=$value for type switch outside the context of 
+  "nsf::procs -ad"
+- extended regression test
+
+
 TODO:
 
 - fix misleading error message:
@@ -2454,7 +2459,6 @@ TODO:
 
 - serializer: check, why catch is needed for object-level alias 
   (search for ns_cache_flush)
-- check cases of -flag=$value outside the context of nsf::procs
 
 - document value added replacements of Tcl functions
 
