@@ -2426,8 +2426,10 @@ sudo make install
 - added first version of "nsf::methoddelete"
 - extended regression test
 - updated TODO
+
 - fixed potential crash with -param:switch
 - added "... info method exists ...."
+- updated migration guide
 
 TODO:
 
@@ -2444,8 +2446,6 @@ TODO:
     {-argName "methodName" -required 1 -type tclobj}
 
 - implemented above suggestion; two more issues:
-  * fix crash for non-existing per-object procs
-  * add "... method exists ...."
   * document "nsf::methoddelete" (or find a better name for it)
   * extend regression test
 

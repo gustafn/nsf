@@ -100,6 +100,7 @@ namespace eval ::nx::pp {
       my next new self current
       create init new destroy alloc dealloc
       class superclass mixin filter
+      methods lookup
       ::nx::Class nx::Class ::xotcl::Class xotcl::Class Class 
       ::nx::Object nx::Object ::xotcl::Object xotcl::Object Object 
       ::nx::Attribute nx::Attribute Attribute 

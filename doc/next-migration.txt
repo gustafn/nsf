@@ -1576,6 +1576,41 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |======================
 
+==== Check existence of a method
+
+NX provides multiple ways of checking, whether a method exists; one
+can use +info method exists+ to check, if a given method exists
+(return boolean), or one can use +info methods ?pattern?+, where
++pattern+ might be a single method name without wild-card
+characters. The method +info methods ?pattern?+ returns a list of
+matching names, which might be empty. These different methods appear
+appropriate depending on the context.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+/obj\|cls/ info [inst](commands\|procs\|parametercmd) ?pattern?
+----------------
+|[source,tcl]
+----------------
+/obj/ info method exists /methodName/
+/obj/ info methods /methodName/
+----------------
+|[source,tcl]
+----------------
+/obj\|cls/ info [inst](commands\|procs\|parametercmd) ?pattern?
+----------------
+|[source,tcl]
+----------------
+/cls/ ?class-object? info method exists /methodName/
+/cls/ ?class-object? info methods /methodName/
+----------------
+|======================
+
+
 ==== List callable methods
 
 In order to obtain for an object the set of artefacts defined in the
@@ -2085,6 +2120,7 @@ information, where mixins classes are mixed into.
 /cls/ info mixinof ?-closure? ?pattern?
 ----------------
 |======================
+
 
 ==== Check properties of object and classes
 
