@@ -2431,23 +2431,17 @@ sudo make install
 - added "... info method exists ...."
 - updated migration guide
 
+- changed named of method handling commands in nsf:
+   ::nsf::methodproperty => ::nsf::method::property
+   ::nsf::method         => ::nsf::method::create
+   ::nsf::methoddelete   => ::nsf::method::delete
+   ::nsf::alias          => ::nsf::method::alias
+   ::nsf::forward        => ::nsf::method::forward
+   ::nsf::setter         => ::nsf::method::setter
+ (updated regression test, docs, ...)
+
+
 TODO:
-
-- explizites [::nsf::method delete] (sinngemäss), als ergänzung zum "{} {}"-idiom 
-  we could extend "::nsf::method obj methodname ...." towards a 
-  "::nsf::method create|destroy obj methodname ....", but this would
-  be an asymmetry for nsf::alice, nsf::forward, etc.
-
-  An option would be an ::nsf::methodelete in accoradance with methodproperty
-
-  nsfCmd methodproperty NsfMethodPropertyCmd {
-    {-argName "object" -required 1 -type object}
-    {-argName "-per-object"}
-    {-argName "methodName" -required 1 -type tclobj}
-
-- implemented above suggestion; two more issues:
-  * document "nsf::methoddelete" (or find a better name for it)
-  * extend regression test
 
 - fix misleading error message:
    nx::Class create C {

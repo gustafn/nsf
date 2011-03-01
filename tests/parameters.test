@@ -558,7 +558,7 @@ Test case subst-default {
       "name arguments:parameter,0..* -returns body -precondition -postcondition" \
       "query instparams for scripted method 'method'"
   
-  ? {Object info method parameter ::nsf::forward} \
+  ? {Object info method parameter ::nsf::method::forward} \
       "object -per-object:switch method -default -earlybinding:switch -methodprefix -objframe:switch -onerror -verbose:switch target:optional args" \
       "query parameter for C-defined cmd 'nsf::forward'"
 
@@ -1063,18 +1063,18 @@ Test case setters {
   Object create o
   Class create C
   
-  ? {::nsf::setter ::o :a} {invalid setter name ":a" (must not start with a dash or colon)}
-  ? {::nsf::setter o a} "::o::a"
-  ? {::nsf::setter C c} "::nsf::classes::C::c"
+  ? {::nsf::method::setter ::o :a} {invalid setter name ":a" (must not start with a dash or colon)}
+  ? {::nsf::method::setter o a} "::o::a"
+  ? {::nsf::method::setter C c} "::nsf::classes::C::c"
   ? {o info method definition a} "::o public setter a"
   ? {o info method parameter a} "a"
   ? {o info method args a} "a"
   ? {C info method definition c} "::C public setter c"
   ? {o a 1} "1"
   
-  ? {::nsf::setter o a:integer} "::o::a"
-  ? {::nsf::setter o ints:integer,1..*} "::o::ints"
-  ? {::nsf::setter o o:object} "::o::o"
+  ? {::nsf::method::setter o a:integer} "::o::a"
+  ? {::nsf::method::setter o ints:integer,1..*} "::o::ints"
+  ? {::nsf::method::setter o o:object} "::o::o"
   
   ? {o info method handle ints} "::o::ints"
   ? {o info method definition ints} "::o public setter ints:integer,1..*"
@@ -1092,8 +1092,8 @@ Test case setters {
   ? {o ints {10 100 1000}} {10 100 1000}
   ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter "ints"}
   ? {o o o} o
-  ? {::nsf::setter o {d default}} {parameter "d" is not allowed to have default "default"}
-  ? {::nsf::setter o -x} {invalid setter name "-x" (must not start with a dash or colon)}
+  ? {::nsf::method::setter o {d default}} {parameter "d" is not allowed to have default "default"}
+  ? {::nsf::method::setter o -x} {invalid setter name "-x" (must not start with a dash or colon)}
 }
 
 
@@ -1385,7 +1385,7 @@ Test case setter-under-coloncmd-and-interpvarresolver {
   # variable :(
   
   Class create Omon
-  ::nsf::setter Omon a1
+  ::nsf::method::setter Omon a1
   
   namespace eval omon {}
   Omon create omon

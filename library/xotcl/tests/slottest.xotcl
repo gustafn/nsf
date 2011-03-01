@@ -180,18 +180,18 @@ p1 age 123
 
 Object o1
 o1 set i 0
-::nsf::alias o1 Incr -frame object ::incr
+::nsf::method::alias o1 Incr -frame object ::incr
 ? {o1 incr i} 1 "method incr"
 ? {o1 Incr i} 1002 "aliased tcl incr"
 ? {o1 incr i} 2003 "method incr"
 ? {o1 Incr i} 3004 "aliased tcl incr"
 
-::nsf::alias ::xotcl::Object Set -frame object ::set
+::nsf::method::alias ::xotcl::Object Set -frame object ::set
 ? {o1 set i 1} 1 "method set"
 ? {o1 set i} 1 "method set"
 ? {o1 Set i 1} 1 "aliased tcl set"
 ? {o1 Set i} 1 "aliased tcl set"
-::nsf::alias o1 Set -frame object ::set
+::nsf::method::alias o1 Set -frame object ::set
 ? {o1 Set i 1} 1 "aliased object tcl set"
 ? {o1 Set i} 1 "aliased object tcl set"
 
@@ -606,7 +606,7 @@ o1 myfdset y 103
 ? {o1 myfdset y} "get instvar value via forward -earlybinding"
 ? {o1 myfdset y 123} "set instvar value via forward -earlybinding"
 
-::nsf::alias o1 myset -frame object ::set
+::nsf::method::alias o1 myset -frame object ::set
 o1 myset x 101
 ? {o1 myset x} 101
 

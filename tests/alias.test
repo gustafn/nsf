@@ -42,7 +42,7 @@ Test case alias-simple {
   }
 
   Class create Foo
-  ? {::nsf::alias ::Foo foo ::nsf::classes::Base::foo} "::nsf::classes::Foo::foo"
+  ? {::nsf::method::alias ::Foo foo ::nsf::classes::Base::foo} "::nsf::classes::Foo::foo"
   
   ? {Foo info method definition foo} "::Foo public alias foo ::nsf::classes::Base::foo"
   
@@ -65,7 +65,7 @@ Test case alias-simple {
   
 
   Base public method foo {{-x 1}} {return $x}
-  ::nsf::alias ::Foo foo ::nsf::classes::Base::foo
+  ::nsf::method::alias ::Foo foo ::nsf::classes::Base::foo
   
   ? {Base info methods -methodtype scripted} {foo} "defined again"
   ? {Foo info methods -methodtype alias} {foo} "aliased again"
@@ -86,7 +86,7 @@ Test case alias-chaining {
   
   
   T public method foo args { return [current class]->[current method] }
-  ::nsf::alias T FOO ::nsf::classes::T::foo 
+  ::nsf::method::alias T FOO ::nsf::classes::T::foo 
   
   ? {t foo} ::T->foo
   ? {t FOO} ::T->foo
@@ -99,8 +99,8 @@ Test case alias-chaining {
   
   # puts stderr "double indirection"
   T public method foo args { return [current class]->[current method] }
-  ::nsf::alias T FOO ::nsf::classes::T::foo 
-  ::nsf::alias S BAR ::nsf::classes::T::FOO
+  ::nsf::method::alias T FOO ::nsf::classes::T::foo 
+  ::nsf::method::alias S BAR ::nsf::classes::T::FOO
   
   ? {T info methods -methodtype alias} "FOO"
   ? {T info method definition FOO} "::T public alias FOO ::nsf::classes::T::foo"
@@ -121,8 +121,8 @@ Test case alias-chaining {
   ? {S info methods} {BAR}
   
   T public method foo args { return [current class]->[current method] }
-  ::nsf::alias T FOO ::nsf::classes::T::foo 
-  ::nsf::alias S BAR ::nsf::classes::T::FOO
+  ::nsf::method::alias T FOO ::nsf::classes::T::foo 
+  ::nsf::method::alias S BAR ::nsf::classes::T::FOO
   
   ? {lsort [T info methods]} {FOO foo}
   ? {S info methods} {BAR}
@@ -136,9 +136,9 @@ Test case alias-chaining {
   
   T public method foo args { return [current class]->[current method] }
   T public class-object method bar args { return [current class]->[current method] }
-  ::nsf::alias T -per-object FOO ::nsf::classes::T::foo 
-  ::nsf::alias T -per-object BAR ::T::FOO 
-  ::nsf::alias T -per-object ZAP ::T::BAR 
+  ::nsf::method::alias T -per-object FOO ::nsf::classes::T::foo 
+  ::nsf::method::alias T -per-object BAR ::T::FOO 
+  ::nsf::method::alias T -per-object ZAP ::T::BAR 
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
@@ -190,8 +190,8 @@ Test case alias-per-object {
   # per-object methods as per-object aliases
   #
   T public class-object method m1 args { return [current class]->[current method] }
-  ::nsf::alias T -per-object M1 ::T::m1 
-  ::nsf::alias T -per-object M11 ::T::M1 
+  ::nsf::method::alias T -per-object M1 ::T::m1 
+  ::nsf::method::alias T -per-object M11 ::T::M1 
   ? {lsort [T class-object info methods]} {M1 M11 bar m1}
   ? {T m1} ->m1
   ? {T M1} ->m1
@@ -210,12 +210,12 @@ Test case alias-per-object {
   #
   
   proc foo args { return [current class]->[current method] }
-  ::nsf::alias T FOO1 ::foo 
-  ::nsf::alias T -per-object FOO2 ::foo
+  ::nsf::method::alias T FOO1 ::foo 
+  ::nsf::method::alias T -per-object FOO2 ::foo
   #
   # ! per-object alias referenced as per-class alias !
   #
-  ::nsf::alias T BAR ::T::FOO2
+  ::nsf::method::alias T BAR ::T::FOO2
   #WITH_IMPORT_REFS
   #? {lsort [T class-object info methods]} {FOO2 bar}
   ? {lsort [T class-object info methods]} {FOO2 M11 bar}
@@ -249,9 +249,9 @@ Test case alias-namespaced {
     proc bar2 args { upvar 2 _ __; return $__}
   }
   
-  ::nsf::alias T FOO ::ns1::foo
-  ::nsf::alias T BAR ::ns1::bar
-  ::nsf::alias T BAR2 ::ns1::bar2
+  ::nsf::method::alias T FOO ::ns1::foo
+  ::nsf::method::alias T BAR ::ns1::bar
+  ::nsf::method::alias T BAR2 ::ns1::bar2
   ? {lsort [T info methods]} {BAR BAR2 FOO}
   set ::_ GOTYA
   ? {t FOO} ::T->foo
@@ -269,12 +269,12 @@ Test case alias-namespaced {
   U create u
   ? {namespace exists ::U} 0
   U public class-object method zap args { return [current class]->[current method] }
-  ::nsf::alias ::U -per-object ZAP ::U::zap 
+  ::nsf::method::alias ::U -per-object ZAP ::U::zap 
   U require namespace
   ? {namespace exists ::U} 1
   
   U public class-object method bar args { return [current class]->[current method] }
-  ::nsf::alias U -per-object BAR ::U::bar
+  ::nsf::method::alias U -per-object BAR ::U::bar
   ? {lsort [U class-object info methods]} {BAR ZAP bar zap}
   ? {U BAR} ->bar
   ? {U ZAP} ->zap
@@ -306,8 +306,8 @@ Test case alias-dot-resolver {
 
   proc ::foo args { return [:bar ${:z}]-[set :z]-[:bar [set :z]] }
 
-  ::nsf::alias V FOO1 ::foo 
-  ::nsf::alias V -per-object FOO2 ::foo
+  ::nsf::method::alias V FOO1 ::foo 
+  ::nsf::method::alias V -per-object FOO2 ::foo
 
   ? {lsort [V class-object info methods]} {FOO2 bar}
   ? {lsort [V info methods]} {FOO1 bar}
@@ -323,7 +323,7 @@ Test case alias-dot-resolver {
 }
 
 #
-# Tests for the ::nsf::alias store, used for introspection for
+# Tests for the ::nsf::method::alias store, used for introspection for
 # aliases. The alias store (an associative variable) is mostly
 # necessary for for the direct aliases (e.g. aliases to C implemented
 # tcl commands), for which we have no stubs at the place where the
@@ -331,7 +331,7 @@ Test case alias-dot-resolver {
 #
 
 #
-# structure of the ::nsf::alias store:
+# structure of the ::nsf::method::alias store:
 # <object>,<alias_name>,<per_object> -> <aliased_cmd>
 #
 
@@ -344,8 +344,8 @@ o public method bar args {;}
 ? {array exists ::nsf::alias} 1 
 
 proc ::foo args {;}
-::nsf::alias ::o FOO ::foo
-::nsf::alias ::C FOO ::foo
+::nsf::method::alias ::o FOO ::foo
+::nsf::method::alias ::C FOO ::foo
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
 ? {array get ::nsf::alias ::o,FOO,1} "::o,FOO,1 ::foo"
@@ -353,7 +353,7 @@ proc ::foo args {;}
 ? {o info method definition FOO} "::o public alias FOO ::foo"
 ? {C info method definition FOO} "::C public alias FOO ::foo"
 
-::nsf::alias o FOO ::o::bar
+::nsf::method::alias o FOO ::o::bar
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
 ? {array get ::nsf::alias ::o,FOO,1} "::o,FOO,1 ::o::bar"
 ? {o info method definition FOO} "::o public alias FOO ::o::bar"
@@ -370,8 +370,8 @@ C public method FOO {} {}
 ? {array get ::nsf::alias ::C,FOO,0} ""
 ? {C info method definition FOO} ""
 
-::nsf::alias ::o BAR ::foo
-::nsf::alias ::C BAR ::foo  
+::nsf::method::alias ::o BAR ::foo
+::nsf::method::alias ::C BAR ::foo  
 
 # AliasDelete in AddObjectMethod
 ? {info exists ::nsf::alias(::o,BAR,1)} 1
@@ -384,15 +384,15 @@ C public method FOO {} {}
 ? {info exists ::nsf::alias(::C,BAR,0)} 0
 
 # AliasDelete in aliasCmdDeleteProc
-::nsf::alias o FOO ::foo
+::nsf::method::alias o FOO ::foo
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
 rename ::foo ""
 #WITH_IMPORT_REFS
 #? {info exists ::nsf::alias(::o,FOO,1)} 0
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
 
-::nsf::alias o FOO ::o::bar
-::nsf::alias o BAR ::o::FOO
+::nsf::method::alias o FOO ::o::bar
+::nsf::method::alias o BAR ::o::FOO
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
 ? {info exists ::nsf::alias(::o,BAR,1)} 1
 o public method bar {} {}
@@ -408,7 +408,7 @@ o public method bar {} {}
 #
 
 proc ::foo args {;}
-::nsf::alias C FOO ::foo
+::nsf::method::alias C FOO ::foo
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
 unset ::nsf::alias(::C,FOO,0)
 ? {info exists ::nsf::alias(::C,FOO,0)} 0
@@ -425,15 +425,15 @@ rename ::foo ""
 # test renaming of Tcl proc (actually sensed by the alias, though not
 # reflected by the alias definition store)
 # a) is this acceptable?
-# b) sync ::nsf::alias upon "info method definition" calls? is this feasible,
+# b) sync ::nsf::method::alias upon "info method definition" calls? is this feasible,
 # e.g. through rename traces?
 #
 
 C create c
 proc ::foo args { return [current]->[current method]}
 ? {info exists ::nsf::alias(::C,FOO,0)} 0
-::nsf::alias C FOO ::foo
-::nsf::alias C FOO2 ::foo
+::nsf::method::alias C FOO ::foo
+::nsf::method::alias C FOO2 ::foo
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
 ? {lsort [C info methods -methodtype alias]} {FOO FOO2}
 # Rename target, such that alias points to an invalid item
@@ -643,14 +643,14 @@ Test case alias-precompiled-proc {
   # without nsf context. If the byte code is not invalidated, the
   # compiled var resolver would not kick in, we would not be able to
   # set an instance variable.
-  ::nsf::alias ::C foo ::foo
+  ::nsf::method::alias ::C foo ::foo
   ? {c1 foo 2} 2
   ? {c1 vars} {a 2}
   
   #
   # Register an unused tcl proc.  Byte compilation happens within nsf
   # context, compiled var resolver works as expected.
-  ::nsf::alias ::C bar ::bar
+  ::nsf::method::alias ::C bar ::bar
   ? {c1 bar 2} 2
   ? {c1 vars} {a 2 b 2}
   

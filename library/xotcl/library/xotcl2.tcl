@@ -42,12 +42,13 @@ namespace eval ::xotcl {
   #
   namespace eval ::nx {}
   namespace eval ::nsf {}
+  namespace eval ::nsf::method::create {}
 
   #
   # get frequenly used primitiva into the ::xotcl namespace
   #
   namespace import ::nsf::configure ::nsf::my ::nsf::finalize ::nsf::interp
-  namespace import ::nsf::alias ::nsf::is ::nsf::relation
+  namespace import ::nsf::method::alias ::nsf::is ::nsf::relation
   interp alias {} ::xotcl::next {} ::nsf::xotclnext
 
   #
@@ -90,7 +91,7 @@ namespace eval ::xotcl {
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "setter" "requirenamespace"]} continue
-    ::nsf::alias Object $cmdName $cmd
+    ::nsf::method::alias Object $cmdName $cmd
   }
 
   #
@@ -214,7 +215,7 @@ namespace eval ::xotcl {
 
   # provide some Tcl-commands as methods for ::xotcl::Object
   foreach cmd {array append eval incr lappend set subst unset trace} {
-    ::nsf::alias Object $cmd -frame object ::$cmd
+    ::nsf::method::alias Object $cmd -frame object ::$cmd
   }
 
   # @method ::xotcl::Object#vwait
@@ -225,7 +226,7 @@ namespace eval ::xotcl {
   #
   # @param varName The name of the signalling object variable.
 
-  ::nsf::method Object vwait {varName} {
+  ::nsf::method::create Object vwait {varName} {
     if {[regexp {:[^:]*} $varName]} {
       error "invalid varName '$varName'; only plain or fully qualified variable names allowed"
     }
@@ -240,48 +241,48 @@ namespace eval ::xotcl {
   foreach cmd [info command ::nsf::methods::class::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "setter"]} continue
-    ::nsf::alias Class $cmdName $cmd
+    ::nsf::method::alias Class $cmdName $cmd
   }
 
   # protect some methods against redefinition
-  ::nsf::methodproperty Object destroy redefine-protected true
-  ::nsf::methodproperty Class  alloc   redefine-protected true
-  ::nsf::methodproperty Class  dealloc redefine-protected true
-  ::nsf::methodproperty Class  create  redefine-protected true
+  ::nsf::method::property Object destroy redefine-protected true
+  ::nsf::method::property Class  alloc   redefine-protected true
+  ::nsf::method::property Class  dealloc redefine-protected true
+  ::nsf::method::property Class  create  redefine-protected true
 
   #
   # define parametercmd and instparametercmd in terms of ::nsf::setter
   # define filterguard and instfilterguard in terms of filterguard
   # define mixinguard and instmixinguard in terms of mixinguard
   #
-  ::nsf::forward Object parametercmd ::nsf::setter %self -per-object
-  ::nsf::forward Class instparametercmd ::nsf::setter %self
+  ::nsf::method::forward Object parametercmd ::nsf::method::setter %self -per-object
+  ::nsf::method::forward Class instparametercmd ::nsf::method::setter %self
 
-  ::nsf::alias Object filterguard      ::nsf::methods::object::filterguard
-  ::nsf::alias Class  instfilterguard  ::nsf::methods::class::filterguard
+  ::nsf::method::alias Object filterguard      ::nsf::methods::object::filterguard
+  ::nsf::method::alias Class  instfilterguard  ::nsf::methods::class::filterguard
 
-  ::nsf::alias Object mixinguard       ::nsf::methods::object::mixinguard
-  ::nsf::alias Class  instmixinguard   ::nsf::methods::class::mixinguard
+  ::nsf::method::alias Object mixinguard       ::nsf::methods::object::mixinguard
+  ::nsf::method::alias Class  instmixinguard   ::nsf::methods::class::mixinguard
 
-  ::nsf::alias Object requireNamespace ::nsf::methods::object::requirenamespace
+  ::nsf::method::alias Object requireNamespace ::nsf::methods::object::requirenamespace
 
   # define instproc and proc
-  ::nsf::method Class instproc {
+  ::nsf::method::create Class instproc {
     name arguments:parameter,0..* body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::nsf::method [self] $name $arguments $body {*}$conditions
+    ::nsf::method::create [self] $name $arguments $body {*}$conditions
   }
 
-  ::nsf::method Object proc {
+  ::nsf::method::create Object proc {
     name arguments body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::nsf::method [self] -per-object $name $arguments $body {*}$conditions
+    ::nsf::method::create [self] -per-object $name $arguments $body {*}$conditions
   }
 
   # define a minimal implementation of "method"
@@ -300,8 +301,8 @@ namespace eval ::xotcl {
   #
   # We could nearly define forward via forwarder
   #
-  #    ::nsf::forward Object forward ::nsf::forward %self -per-object
-  #    ::nsf::forward Class instforward ::nsf::forward %self
+  #    ::nsf::method::forward Object forward ::nsf::method::forward %self -per-object
+  #    ::nsf::method::forward Class instforward ::nsf::method::forward %self
   #
   # but since we changed the name of -objscope in nsf to -objframe, we
   # have to provide the definition the hard way via methods.
@@ -320,7 +321,7 @@ namespace eval ::xotcl {
     if {$verbose} {lappend arglist -verbose}
     if {[info exists target]} {lappend arglist $target}
     if {[llength $args] > 0} {lappend arglist {*}$args}
-    set r [::nsf::forward [self] -per-object $method {*}$arglist]
+    set r [::nsf::method::forward [self] -per-object $method {*}$arglist]
     return $r
   }
 
@@ -338,7 +339,7 @@ namespace eval ::xotcl {
     if {$verbose} {lappend arglist -verbose}
     if {[info exists target]} {lappend arglist $target}
     if {[llength $args] > 0} {lappend arglist {*}$args}
-    set r [::nsf::forward [self] $method {*}$arglist]
+    set r [::nsf::method::forward [self] $method {*}$arglist]
     return $r
   }
   
@@ -378,7 +379,7 @@ namespace eval ::xotcl {
   #
   # Use parameter definition from next 
   # (same with classInfo parameter, see below)
-  ::nsf::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::attributes
+  ::nsf::method::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::attributes
 
   # We provide a default value for superclass (when no superclass is
   # specified explicitely) and metaclass, in case they should differ
@@ -398,9 +399,9 @@ namespace eval ::xotcl {
     ${os}::Object alloc ${os}::Class::slot
     ${os}::Object alloc ${os}::Object::slot
     ::nx::RelationSlot create ${os}::Class::slot::superclass
-    ::nsf::alias         ${os}::Class::slot::superclass assign ::nsf::relation
+    ::nsf::method::alias         ${os}::Class::slot::superclass assign ::nsf::relation
     ::nx::RelationSlot create ${os}::Object::slot::class
-    ::nsf::alias         ${os}::Object::slot::class assign ::nsf::relation
+    ::nsf::method::alias         ${os}::Object::slot::class assign ::nsf::relation
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
         -forwardername object-mixin
     ::nx::RelationSlot create ${os}::Object::slot::filter \
@@ -436,8 +437,8 @@ namespace eval ::xotcl {
   #  error $msg ""
   #}
 
-  ::nsf::alias Object info ::xotcl::objectInfo
-  ::nsf::alias Class info ::xotcl::classInfo
+  ::nsf::method::alias Object info ::xotcl::objectInfo
+  ::nsf::method::alias Class info ::xotcl::classInfo
 
   #
   # Backward compatibility info subcommands;
@@ -543,12 +544,12 @@ namespace eval ::xotcl {
   }
 
   # define temporary method "alias"
-  Object instproc alias {name cmd} {::nsf::alias [self] $name $cmd}
+  Object instproc alias {name cmd} {::nsf::method::alias [self] $name $cmd}
 
   objectInfo eval {
     :proc args {method}       {::xotcl::info_args object [self] $method}
     :proc body {methodName}   {my ::nsf::methods::object::info::method body $methodName}
-    :proc check {}            {::xotcl::checkoption_internal_to_xotcl1 [::nsf::assertion [self] check]}
+    :proc check {}            {::xotcl::checkoption_internal_to_xotcl1 [::nsf::method::assertion [self] check]}
     :alias class              ::nsf::methods::object::info::class
     :alias children           ::nsf::methods::object::info::children
     :proc commands {{pattern ""}} {
@@ -590,7 +591,7 @@ namespace eval ::xotcl {
       }
     }
     :alias hasnamespace       ::nsf::methods::object::info::hasnamespace
-    :proc invar {}            {::nsf::assertion [self] object-invar}
+    :proc invar {}            {::nsf::method::assertion [self] object-invar}
 
     :proc methods {
       -nocmds:switch -noprocs:switch -nomixins:switch -incontext:switch pattern:optional
@@ -624,7 +625,7 @@ namespace eval ::xotcl {
   # copy all methods from Object.info to Class.info
   #
   foreach m [objectInfo ::nsf::methods::object::info::methods] {
-    ::nsf::alias classInfo $m [objectInfo ::nsf::methods::object::info::method handle $m]
+    ::nsf::method::alias classInfo $m [objectInfo ::nsf::methods::object::info::method handle $m]
   }
 
   classInfo eval {
@@ -657,7 +658,7 @@ namespace eval ::xotcl {
 	return [my ::nsf::methods::class::info::forward {*}[self args]]
       }
     }
-    :proc instinvar {}        {::nsf::assertion [self] class-invar}
+    :proc instinvar {}        {::nsf::method::assertion [self] class-invar}
     :alias instmixin          ::nsf::methods::class::info::mixinclasses
     :alias instmixinguard     ::nsf::methods::class::info::mixinguard
     :proc instmixinof {-closure {pattern ""}} {
@@ -719,7 +720,7 @@ namespace eval ::xotcl {
 
   # definition of "contains", based on nx
 
-  ::nsf::alias Object contains ::nsf::classes::nx::Object::contains
+  ::nsf::method::alias Object contains ::nsf::classes::nx::Object::contains
   ::xotcl::Class instforward slots %self contains \
       -object {%::nsf::dispatch [::xotcl::self] -frame method ::subst [::xotcl::self]::slot}
 
@@ -786,10 +787,10 @@ namespace eval ::xotcl {
  
 
   Object instproc check {checkoptions} {
-    ::nsf::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
+    ::nsf::method::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
   }
-  Object instforward invar     ::nsf::assertion %self object-invar
-  Class  instforward instinvar ::nsf::assertion %self class-invar
+  Object instforward invar     ::nsf::method::assertion %self object-invar
+  Class  instforward instinvar ::nsf::method::assertion %self class-invar
 
   Object instproc abstract {methtype methname arglist} {
     if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
@@ -830,11 +831,11 @@ namespace eval ::xotcl {
   Object proc getExitHandler   {} {::nsf::exithandler get}
 
   # resue some definitions from next scripting
-  ::nsf::alias ::xotcl::Object copy ::nsf::classes::nx::Object::copy
-  ::nsf::alias ::xotcl::Object move ::nsf::classes::nx::Object::move
-  ::nsf::alias ::xotcl::Object defaultmethod ::nsf::classes::nx::Object::defaultmethod
+  ::nsf::method::alias ::xotcl::Object copy ::nsf::classes::nx::Object::copy
+  ::nsf::method::alias ::xotcl::Object move ::nsf::classes::nx::Object::move
+  ::nsf::method::alias ::xotcl::Object defaultmethod ::nsf::classes::nx::Object::defaultmethod
 
-  ::nsf::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
+  ::nsf::method::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {:requireNamespace; return [::xotcl::self]::$var}

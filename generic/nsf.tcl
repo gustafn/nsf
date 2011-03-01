@@ -8,8 +8,10 @@ namespace eval ::nsf {
   namespace export next current self
   
   # Symbols reused in XOTcl
-  
-  namespace export alias configure finalize interp is my relation
+  namespace eval ::nsf::method::create {
+    namespace export alias
+  }
+  namespace export configure finalize interp is my relation
 
   #
   # support for method provide and method require
@@ -40,10 +42,10 @@ namespace eval ::nsf {
   #
   # proc for deleting methods
   #
-  nsf::proc ::nsf::methoddelete {object:object -per-object:switch methodName} {
+  nsf::proc ::nsf::method::delete {object:object -per-object:switch methodName} {
     set scope [expr {${per-object} ? "object" : "class"}]
     if {[$object ::nsf::methods::${scope}::info::method exists $methodName]} {
-      ::nsf::method $object {*}[expr {${per-object} ? "-per-object" : ""}] $methodName "" ""
+      ::nsf::method::create $object {*}[expr {${per-object} ? "-per-object" : ""}] $methodName "" ""
     } else {
       error "Object $object: method $methodName is not defined"
     }
@@ -66,7 +68,7 @@ namespace eval ::nsf {
   #
   # ::nsf::mixin 
   #
-  # Provide a similar interface as for ::nsf::method, ::nsf::alias,
+  # Provide a similar interface as for ::nsf::method::create, ::nsf::method::alias,
   # etc..  Semantically, ::nsf::mxiin behaves like a "mixin add", but
   # can be used as well for deleting the mixin list (empty last
   # argument).
@@ -86,8 +88,8 @@ namespace eval ::nsf {
   #
   # provide some popular methods for "method require"
   #
-  ::nsf::provide_method autoname {::nsf::alias autoname ::nsf::methods::object::autoname}
-  ::nsf::provide_method exists   {::nsf::alias  exists ::nsf::methods::object::exists}
+  ::nsf::provide_method autoname {::nsf::method::alias autoname ::nsf::methods::object::autoname}
+  ::nsf::provide_method exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
 
   #
   # exit handlers

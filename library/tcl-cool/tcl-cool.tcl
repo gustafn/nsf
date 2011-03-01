@@ -43,7 +43,7 @@ package require nsf
 # An unattached method can be attached to an object or class by the
 # ::nsf::alias
 #
-#    ::nsf::alias class|obj ?-per-object? methodName cmdName
+#    ::nsf::method::alias class|obj ?-per-object? methodName cmdName
 #
 # The command registers a command ("cmdName") under a certain name
 # ("methodName") to an object or class (1st argument) to make the
@@ -80,17 +80,17 @@ namespace eval tcl-cool {
   #
   # These methods are defined by the means of ::nsf::forward
 
-  ::nsf::forward class method  ::nsf::method %self
-  ::nsf::forward class forward ::nsf::forward %self
+  ::nsf::method::forward class method  ::nsf::method::create %self
+  ::nsf::method::forward class forward ::nsf::method::forward %self
 
   # We could have defined the methods "method" and "forward" as well
   # by the means of ::nsf::method, such as
   #
-  #   ::nsf::method class method {methodName arguments body} {
-  #      return [::nsf::method [self] $methodName $arguments $body]
+  #   ::nsf::method::create class method {methodName arguments body} {
+  #      return [::nsf::method::create [self] $methodName $arguments $body]
   #   }
-  #   ::nsf::method class forward {methodName args} {
-  #     return [::nsf::forward [self] $methodName {*}$args]
+  #   ::nsf::method::create class forward {methodName args} {
+  #     return [::nsf::method::forward [self] $methodName {*}$args]
   #   }
   #
   # Sometimes using method is better to be selective on the arguments
@@ -104,9 +104,9 @@ namespace eval tcl-cool {
   #   - "forward" is a method for delegating calls to different objects
   #   - "methods" is an introspection method for showing the methods of an object
   #
-  ::nsf::alias   object variable ::nsf::methods::object::instvar
-  ::nsf::forward object forward  ::nsf::forward %self -per-object
-  ::nsf::alias   object methods  ::nsf::methods::object::info::lookupmethods
+  ::nsf::method::alias   object variable ::nsf::methods::object::instvar
+  ::nsf::method::forward object forward  ::nsf::method::forward %self -per-object
+  ::nsf::method::alias   object methods  ::nsf::methods::object::info::lookupmethods
 
   #
   # The method "create" defines, what happens, when a class or object 

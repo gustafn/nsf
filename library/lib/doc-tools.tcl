@@ -1199,8 +1199,8 @@ namespace eval ::nx::doc {
 	   
 	    if {[:pinfo exists bundle handle]} {
 	      set handle [:pinfo get bundle handle]
-	      :pinfo set bundle redefine-protected [$box eval [list ::nsf::methodproperty $obj $handle redefine-protected]]
-	      :pinfo set bundle call-protected [$box eval [list ::nsf::methodproperty $obj $handle call-protected]]
+	      :pinfo set bundle redefine-protected [$box eval [list ::nsf::method::property $obj $handle redefine-protected]]
+	      :pinfo set bundle call-protected [$box eval [list ::nsf::method::property $obj $handle call-protected]]
 	    }
 	    
 	    set params [list]
@@ -2607,7 +2607,7 @@ namespace eval ::nx::doc {
 	      array set sysmeths [concat {*}$m]
 	      set ::nx::doc::rootns [namespace qualifier $rootmclass]
 	      $rootmclass $sysmeths(-class.create) ${::nx::doc::rootns}::__Tracer
-	      ::nsf::method ${::nx::doc::rootns}::__Tracer \
+	      ::nsf::method::create ${::nx::doc::rootns}::__Tracer \
 		  $sysmeths(-class.create) {name args} {
 		    set obj [::nsf::next];
 		    set bundle [dict create]
@@ -2634,7 +2634,7 @@ namespace eval ::nx::doc {
 	      
 	      if {[info commands "::nx::Object"] ne ""} {
 		$rootmclass $sysmeths(-class.create) ${::nx::doc::rootns}::__ObjTracer
-		::nsf::method ${::nx::doc::rootns}::__ObjTracer \
+		::nsf::method::create ${::nx::doc::rootns}::__ObjTracer \
 		    __resolve_method_path {
 		      -per-object:switch 
 		      -verbose:switch 
@@ -2724,8 +2724,8 @@ namespace eval ::nx::doc {
 	      }
 	     
 
-	      rename ::nsf::method ::nsf::_%&method 
-	      ::interp invokehidden "" proc ::nsf::method {
+	      rename ::nsf::method::create ::nsf::_%&method 
+	      ::interp invokehidden "" proc ::nsf::method::create {
 		object
 		args
 	      } {
@@ -2739,7 +2739,7 @@ namespace eval ::nx::doc {
 		  }
 		  dict set bundle parametersyntax [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]
 		  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
-		  dict set bundle returns [::nsf::methodproperty ${::nx::doc::rootns}::__Tracer $handle returns]
+		  dict set bundle returns [::nsf::method::property ${::nx::doc::rootns}::__Tracer $handle returns]
 		  ::nx::doc::__at_register_command $handle \
 		      ->cmdtype @method \
 		      ->source [file normalize [info script]] \
@@ -2748,15 +2748,15 @@ namespace eval ::nx::doc {
 		return $handle
 	      }
 
-	      rename ::nsf::alias ::nsf::_%&alias 
-	      ::interp invokehidden "" proc ::nsf::alias {
+	      rename ::nsf::method::alias ::nsf::_%&alias 
+	      ::interp invokehidden "" proc ::nsf::method::alias {
 		args
 	      } {
 		set handle [uplevel [list ::nsf::_%&alias {*}$args]]
 		if {$handle ne ""} {
 		  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
-		  dict set bundle returns [::nsf::methodproperty ${::nx::doc::rootns}::__Tracer $handle returns]
+		  dict set bundle returns [::nsf::method::property ${::nx::doc::rootns}::__Tracer $handle returns]
 		  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
 		  if {![catch {set pa [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle]} _]} {
 		    foreach pspec $pa {
@@ -2804,8 +2804,8 @@ namespace eval ::nx::doc {
 		# }
 	      
 	      
-	      rename ::nsf::forward ::nsf::_%&forward 
-	      ::interp invokehidden "" proc ::nsf::forward {
+	      rename ::nsf::method::forward ::nsf::_%&forward 
+	      ::interp invokehidden "" proc ::nsf::method::forward {
 							    args
 							  } {
 	      	set handle [uplevel [list ::nsf::_%&forward {*}$args]]
@@ -2824,8 +2824,8 @@ namespace eval ::nx::doc {
 	      	} 
 	      }
 
-	      rename ::nsf::setter ::nsf::_%&setter
-	      ::interp invokehidden "" proc ::nsf::setter {
+	      rename ::nsf::method::setter ::nsf::_%&setter
+	      ::interp invokehidden "" proc ::nsf::method::setter {
 	      	args
 	      } {
 	      	set handle [uplevel [list ::nsf::_%&setter {*}$args]]

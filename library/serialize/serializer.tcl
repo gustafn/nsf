@@ -499,8 +499,8 @@ namespace eval ::nx::serializer {
         append cmd \
             [:frameWorkCmd ::nsf::relation $o object-mixin] \
             [:frameWorkCmd ::nsf::relation $o class-mixin] \
-            [:frameWorkCmd ::nsf::assertion $o object-invar] \
-            [:frameWorkCmd ::nsf::assertion $o class-invar]
+            [:frameWorkCmd ::nsf::method::assertion $o object-invar] \
+            [:frameWorkCmd ::nsf::method::assertion $o class-invar]
       }
       #puts stderr "*** array unset [nsf::current object] alias_dependency // size [array size :alias_dependency]"
       array unset :alias_dependency
@@ -509,9 +509,9 @@ namespace eval ::nx::serializer {
     
     :public method registerTrace {on} {
       if {$on} {
-        ::nsf::alias ${:rootClass}  __trace__ -frame object ::trace
+        ::nsf::method::alias ${:rootClass}  __trace__ -frame object ::trace
       } else {
-        ::nsf::method ${:rootClass} __trace__ {} {}
+        ::nsf::method::create ${:rootClass} __trace__ {} {}
       }
     }
 
@@ -756,8 +756,8 @@ namespace eval ::nx::serializer {
       } else {
 	set def [$o {*}$modifier info method definition $m]
 	set handle [$o {*}$modifier info method handle $m]
-	set returns [::nsf::methodproperty $o $handle returns]
-	if {$returns ne ""} {append def \n [list ::nsf::methodproperty $o $handle returns $returns]}
+	set returns [::nsf::method::property $o $handle returns]
+	if {$returns ne ""} {append def \n [list ::nsf::method::property $o $handle returns $returns]}
       }
       return $def
     }
@@ -788,7 +788,7 @@ namespace eval ::nx::serializer {
 
       append cmd \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
-          [:frameWorkCmd ::nsf::assertion $o object-invar]
+          [:frameWorkCmd ::nsf::method::assertion $o object-invar]
 
       if {[$o info has type ::nx::Slot]} {
         # Slots needs to be initialized to ensure
@@ -813,7 +813,7 @@ namespace eval ::nx::serializer {
       append cmd \
           [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
           [:frameWorkCmd ::nsf::relation $o class-mixin] \
-          [:frameWorkCmd ::nsf::assertion $o class-invar]
+          [:frameWorkCmd ::nsf::method::assertion $o class-invar]
       
       $s addPostCmd [:frameWorkCmd ::nsf::relation $o class-filter]
       return $cmd\n
@@ -848,7 +848,7 @@ namespace eval ::nx::serializer {
     }
 
     :public method serialize-all-end {s} {
-      return "[next]\n::nsf::alias ::xotcl::Object trace -frame object ::trace\n"
+      return "[next]\n::nsf::method::alias ::xotcl::Object trace -frame object ::trace\n"
     }
 
 
@@ -925,7 +925,7 @@ namespace eval ::nx::serializer {
       append cmd \
           [list $o eval [join [:collectVars $o] "\n   "]] \n \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
-          [:frameWorkCmd ::nsf::assertion $o object-invar]
+          [:frameWorkCmd ::nsf::method::assertion $o object-invar]
 
       $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
       return $cmd
@@ -949,12 +949,12 @@ namespace eval ::nx::serializer {
       # provide limited support for exporting aliases for XOTcl objects
       foreach i [$o ::nsf::methods::class::info::methods -methodtype alias -callprotection all] {
         set nxDef [$o ::nsf::methods::class::info::method definition $i]
-        append cmd [list ::nsf::alias $o {*}[lrange $nxDef 3 end]]\n
+        append cmd [list ::nsf::method::alias $o {*}[lrange $nxDef 3 end]]\n
       }
       append cmd \
           [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
           [:frameWorkCmd ::nsf::relation $o class-mixin] \
-          [:frameWorkCmd ::nsf::assertion $o class-invar]
+          [:frameWorkCmd ::nsf::method::assertion $o class-invar]
 
       $s addPostCmd [:frameWorkCmd ::nsf::relation $o class-filter]
       return $cmd

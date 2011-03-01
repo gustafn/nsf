@@ -2173,14 +2173,14 @@ static methodDefinition method_definitions[] = {
   {"-closure", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::alias", NsfAliasCmdStub, 5, {
+{"::nsf::method::alias", NsfAliasCmdStub, 5, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"cmdName", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::assertion", NsfAssertionCmdStub, 3, {
+{"::nsf::method::assertion", NsfAssertionCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"assertionsubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToAssertionsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arg", 0, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -2216,7 +2216,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::finalize", NsfFinalizeObjCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::forward", NsfForwardCmdStub, 11, {
+{"::nsf::method::forward", NsfForwardCmdStub, 11, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"method", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -2248,7 +2248,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::isobject", NsfIsObjectCmdStub, 1, {
   {"value", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::method", NsfMethodCmdStub, 8, {
+{"::nsf::method::create", NsfMethodCmdStub, 8, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-inner-namespace", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -2258,7 +2258,7 @@ static methodDefinition method_definitions[] = {
   {"-precondition", 0, 1, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-postcondition", 0, 1, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methodproperty", NsfMethodPropertyCmdStub, 5, {
+{"::nsf::method::property", NsfMethodPropertyCmdStub, 5, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -2309,7 +2309,7 @@ static methodDefinition method_definitions[] = {
   {"varName", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", 0, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::setter", NsfSetterCmdStub, 3, {
+{"::nsf::method::setter", NsfSetterCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"parameter", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

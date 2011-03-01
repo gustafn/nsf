@@ -100,8 +100,8 @@ Test case base {
   ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
   
 
-  ::nsf::methodproperty ::MC foo call-protected true
-  ::nsf::methodproperty ::MC bar2 call-protected false
+  ::nsf::method::property ::MC foo call-protected true
+  ::nsf::method::property ::MC bar2 call-protected false
   
   ? {lsort [MC info methods -methodtype scripted -callprotection public]} "bar2"
   ? {lsort [MC info methods -methodtype scripted -callprotection protected]} "bar1 foo"

@@ -1252,7 +1252,7 @@ accessor functions are used normally internally when object-specific
 parameters are defined (see Section 3.4).</p></div>
 <div class="paragraph"><p>In NX forwarders are called <tt>forward</tt>. NX does not provide an own
 method to define variable accessors, but uses the Next Scripting
-Framework primitive <tt>nsf::setter</tt> for it.</p></div>
+Framework primitive <tt>nsf::method::setter</tt> for it.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -1339,11 +1339,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># Define setter and getter methods
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C
-::nsf::setter C p1
-::nsf::setter C -per-object p2
+::nsf::<span class='nx-keyword'>method</span>::setter C p1
+::nsf::<span class='nx-keyword'>method</span>::setter C -per-object p2
 
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o
-::nsf::setter o p3</pre></div></div></div></td>
+::nsf::<span class='nx-keyword'>method</span>::setter o p3</pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -5666,7 +5666,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <h3 id="_assertions">3.9. Assertions</h3>
 <div class="paragraph"><p>In contrary to XOTcl, NX provides no pre-registered methods for
 assertion handling. All assertion handling can e performed via the
-Next Scripting primitive <tt>nsf::assertion</tt>.</p></div>
+Next Scripting primitive <tt>nsf::method::assertion</tt>.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -5705,7 +5705,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::assertion <span class='nx-placeholder'>/obj/</span> check <span class='nx-placeholder'>/checkptions/</span></pre></div></div></div></td>
+<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/obj/</span> check <span class='nx-placeholder'>/checkptions/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5731,7 +5731,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::assertion <span class='nx-placeholder'>/obj/</span> check</pre></div></div></div></td>
+<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/obj/</span> check</pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5757,7 +5757,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::assertion <span class='nx-placeholder'>/obj/</span> object-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
+<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/obj/</span> object-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5783,7 +5783,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::assertion <span class='nx-placeholder'>/obj/</span> object-invar</pre></div></div></div></td>
+<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/obj/</span> object-invar</pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5809,7 +5809,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::assertion <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span>-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
+<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span>-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5835,7 +5835,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::assertion <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span>-invar</pre></div></div></div></td>
+<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span>-invar</pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5861,7 +5861,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::assertion <span class='nx-placeholder'>/cls/</span> object-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
+<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/cls/</span> object-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5887,7 +5887,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::assertion <span class='nx-placeholder'>/cls/</span> object-invar</pre></div></div></div></td>
+<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/cls/</span> object-invar</pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -5963,9 +5963,9 @@ Bar b1</pre></div></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_calling_objects_via_method_interface">4.3. Calling objects via method interface</h3>
-<div class="paragraph"><p>Since the Next Scripting Framework supports the so-called ensemble
-objects, which ease the definition of sub-methods substantially,
+<h3 id="_calling_objects_via_method_interface">4.3. Calling Objects via Method Interface</h3>
+<div class="paragraph"><p>Since the Next Scripting Framework supports the so-called <em>ensemble
+objects</em>, which ease the definition of sub-methods substantially,
 objects registered as methods have different semantics. In XOTcl 1, it
 was possible to call e.g. a method foo of the slot object
 <tt>Foo::slot::ints</tt> via the following two interfaces the same way:</p></div>
@@ -5996,7 +5996,7 @@ default-setter <tt>initcmd</tt> was changed to <tt>defaultcmd</tt>. Code directl
 working on the slots objects has to be adapted.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_obsolete_commands">4.5. Obsolete commands</h3>
+<h3 id="_obsolete_commands">4.5. Obsolete Commands</h3>
 <div class="paragraph"><p>Parameter-classes were rarely used and have been replaced by the more
 general object parameterization. Therefore, <tt>cl info parameterclass</tt> has
 been removed.</p></div>
@@ -6031,7 +6031,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.0<br />
-Last updated 2011-03-01 08:51:09 CET
+Last updated 2011-03-01 10:16:35 CET
 </div>
 </div>
 </body>

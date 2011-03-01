@@ -183,8 +183,8 @@ puts stderr ===MINI-OBJECTSYSTEM
 ? {::nsf::relation ::class superclass} ::object
 
 # define non-standard methos to create/destroy objects and classes
-::nsf::alias ::class  + ::nsf::methods::class::create
-::nsf::alias ::object - ::nsf::methods::object::destroy
+::nsf::method::alias ::class  + ::nsf::methods::class::create
+::nsf::method::alias ::object - ::nsf::methods::object::destroy
 
 # create a class named C
 ::class + C

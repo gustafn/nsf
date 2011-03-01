@@ -430,7 +430,7 @@ parameters are defined (see Section 3.4).
 
 In NX forwarders are called +forward+. NX does not provide an own
 method to define variable accessors, but uses the Next Scripting
-Framework primitive +nsf::setter+ for it.
+Framework primitive +nsf::method::setter+ for it.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -475,11 +475,11 @@ o parametercmd p3
 # Define setter and getter methods
 
 Class create C
-::nsf::setter C p1
-::nsf::setter C -per-object p2
+::nsf::method::setter C p1
+::nsf::method::setter C -per-object p2
 
 Object create o 
-::nsf::setter o p3
+::nsf::method::setter o p3
 ----------------
 |======================
 
@@ -2337,7 +2337,7 @@ todo: to be done or omitted
 
 In contrary to XOTcl, NX provides no pre-registered methods for
 assertion handling. All assertion handling can e performed via the
-Next Scripting primitive +nsf::assertion+.
+Next Scripting primitive +nsf::method::assertion+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -2349,7 +2349,7 @@ Next Scripting primitive +nsf::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::assertion /obj/ check /checkptions/
+::nsf::method::assertion /obj/ check /checkptions/
 ----------------
 |[source,tcl]
 ----------------
@@ -2357,7 +2357,7 @@ Next Scripting primitive +nsf::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::assertion /obj/ check
+::nsf::method::assertion /obj/ check
 ----------------
 |[source,tcl]
 ----------------
@@ -2365,7 +2365,7 @@ Next Scripting primitive +nsf::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::assertion /obj/ object-invar /conditions/
+::nsf::method::assertion /obj/ object-invar /conditions/
 ----------------
 |[source,tcl]
 ----------------
@@ -2373,7 +2373,7 @@ Next Scripting primitive +nsf::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::assertion /obj/ object-invar
+::nsf::method::assertion /obj/ object-invar
 ----------------
 |[source,tcl]
 ----------------
@@ -2381,7 +2381,7 @@ Next Scripting primitive +nsf::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::assertion /cls/ class-invar /conditions/
+::nsf::method::assertion /cls/ class-invar /conditions/
 ----------------
 |[source,tcl]
 ----------------
@@ -2389,7 +2389,7 @@ Next Scripting primitive +nsf::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::assertion /cls/ class-invar
+::nsf::method::assertion /cls/ class-invar
 ----------------
 |[source,tcl]
 ----------------
@@ -2397,7 +2397,7 @@ Next Scripting primitive +nsf::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::assertion /cls/ object-invar /conditions/
+::nsf::method::assertion /cls/ object-invar /conditions/
 ----------------
 |[source,tcl]
 ----------------
@@ -2405,7 +2405,7 @@ Next Scripting primitive +nsf::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::assertion /cls/ object-invar
+::nsf::method::assertion /cls/ object-invar
 ----------------
 |======================
 
@@ -2462,10 +2462,10 @@ Bar b1
 ----------------
 
 
-=== Calling objects via method interface
+=== Calling Objects via Method Interface
 
-Since the Next Scripting Framework supports the so-called ensemble
-objects, which ease the definition of sub-methods substantially,
+Since the Next Scripting Framework supports the so-called _ensemble
+objects_, which ease the definition of sub-methods substantially,
 objects registered as methods have different semantics. In XOTcl 1, it
 was possible to call e.g. a method foo of the slot object
 `Foo::slot::ints` via the following two interfaces the same way:
@@ -2489,7 +2489,7 @@ objects of baseclass `::nx::Slot`. The name of the experimental
 default-setter `initcmd` was changed to `defaultcmd`. Code directly
 working on the slots objects has to be adapted.  
 
-=== Obsolete commands
+=== Obsolete Commands
 
 Parameter-classes were rarely used and have been replaced by the more
 general object parameterization. Therefore, `cl info parameterclass` has

@@ -1097,7 +1097,7 @@ set ::nsf::includes {
   ::nsf::importvar
   ::nsf::isobject
   ::nsf::method
-  ::nsf::methodproperty
+  ::nsf::method::property
   ::nsf::provide_method
   ::nsf::qualify
   ::nsf::require_method

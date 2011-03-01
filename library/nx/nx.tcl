@@ -41,11 +41,11 @@ namespace eval ::nx {
     if {$cmdName in [list "autoname" "cleanup" "exists" \
 			 "filterguard" "instvar" "mixinguard" \
 			 "noinit" "requirenamespace"]} continue
-    ::nsf::alias Object $cmdName $cmd 
+    ::nsf::method::alias Object $cmdName $cmd 
   }
   
   # provide ::eval as method for ::nx::Object
-  ::nsf::alias Object eval -frame method ::eval
+  ::nsf::method::alias Object eval -frame method ::eval
 
   #
   # class methods
@@ -56,36 +56,36 @@ namespace eval ::nx {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "filterguard" "mixinguard"]} continue
     # set tgt [Class ::nsf::methods::class::info::methods -methodtype alias -callprotection all $cmdName]
-    #if {$tgt ne "" && [::nsf::methodproperty Class $cmdName redefine-protected]} {
-    #  ::nsf::methodproperty Class $cmdName redefine-protected false
+    #if {$tgt ne "" && [::nsf::method::property Class $cmdName redefine-protected]} {
+    #  ::nsf::method::property Class $cmdName redefine-protected false
     #}
-    ::nsf::alias Class $cmdName $cmd 
+    ::nsf::method::alias Class $cmdName $cmd 
     unset cmdName
   }
 
   # set a few aliases as protected
   # "__next", if defined, should be added as well
   foreach cmd [list residualargs uplevel upvar] {
-    ::nsf::methodproperty Object $cmd call-protected 1
+    ::nsf::method::property Object $cmd call-protected 1
   }
 
   foreach cmd [list recreate] {
-    ::nsf::methodproperty Class $cmd call-protected 1
+    ::nsf::method::property Class $cmd call-protected 1
   }
   unset cmd
 
   # protect some methods against redefinition
-  ::nsf::methodproperty Object destroy redefine-protected true
-  ::nsf::methodproperty Class  alloc   redefine-protected true
-  ::nsf::methodproperty Class  dealloc redefine-protected true
-  ::nsf::methodproperty Class  create  redefine-protected true
+  ::nsf::method::property Object destroy redefine-protected true
+  ::nsf::method::property Class  alloc   redefine-protected true
+  ::nsf::method::property Class  dealloc redefine-protected true
+  ::nsf::method::property Class  create  redefine-protected true
 
   #
   # The method __resolve_method_path resolves a space separated path
   # of a method name and creates from the path the necessary ensemble
   # objects when needed.
   #
-  ::nsf::method Object __resolve_method_path {
+  ::nsf::method::create Object __resolve_method_path {
     -per-object:switch 
     -verbose:switch 
     path
@@ -106,7 +106,7 @@ namespace eval ::nx {
 	    if {$verbose} {puts stderr "... create object $o"}
 	    # We are on a class, and have to create an alias to be
 	    # accessible for objects
-	    ::nsf::alias $object $w $o
+	    ::nsf::method::alias $object $w $o
 	    if {$verbose} {puts stderr "... create alias $object $w $o"}
 	  } else {
 	    set o [EnsembleObject create ${object}::$w]
@@ -136,18 +136,18 @@ namespace eval ::nx {
     return [list object $object methodName $methodName]
   }
 
-  ::nsf::methodproperty Object __resolve_method_path call-protected true
+  ::nsf::method::property Object __resolve_method_path call-protected true
 
-  ::nsf::method Object __default_method_call_protection args {return false}
-  ::nsf::method Object __default_attribute_call_protection args {return false}
+  ::nsf::method::create Object __default_method_call_protection args {return false}
+  ::nsf::method::create Object __default_attribute_call_protection args {return false}
 
-  ::nsf::methodproperty Object __default_method_call_protection call-protected true
-  ::nsf::methodproperty Object __default_attribute_call_protection call-protected true
+  ::nsf::method::property Object __default_method_call_protection call-protected true
+  ::nsf::method::property Object __default_attribute_call_protection call-protected true
 
 
   # define method "method" for Class and Object
 
-  ::nsf::method Class method {
+  ::nsf::method::create Class method {
     name arguments:parameter,0..* -returns body -precondition -postcondition
   } {
     set conditions [list]
@@ -155,16 +155,16 @@ namespace eval ::nx {
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
     array set "" [:__resolve_method_path $name]
     #puts "class method $(object).$(methodName) [list $arguments] {...}"
-    set r [::nsf::method $(object) $(methodName) $arguments $body {*}$conditions]
+    set r [::nsf::method::create $(object) $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
       # the method was not deleted
-      ::nsf::methodproperty $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
-      if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
+      ::nsf::method::property $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
+      if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     }
     return $r
   }
 
-  ::nsf::method Object method {
+  ::nsf::method::create Object method {
     name arguments:parameter,0..* -returns body -precondition -postcondition
   } {
     set conditions [list]
@@ -172,11 +172,11 @@ namespace eval ::nx {
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
     array set "" [:__resolve_method_path -per-object $name]
     # puts "object method $(object).$(methodName) [list $arguments] {...}"
-    set r [::nsf::method $(object) -per-object $(methodName) $arguments $body {*}$conditions]
+    set r [::nsf::method::create $(object) -per-object $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
       # the method was not deleted
-      ::nsf::methodproperty $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
-      if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
+      ::nsf::method::property $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
+      if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     }
     return $r
   }
@@ -224,7 +224,7 @@ namespace eval ::nx {
 	Consider '[::nsf::self] create $m $args' instead of '[::nsf::self] $m $args'"
     }
     # protected is not yet defined
-    ::nsf::methodproperty [::nsf::self] unknown call-protected true
+    ::nsf::method::property [::nsf::self] unknown call-protected true
   }
 
 
@@ -235,7 +235,7 @@ namespace eval ::nx {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward)$}]
       if {$p == -1} {error "$args is not a method defining method"}
       set r [::nsf::dispatch [::nsf::current object] {*}$args]
-      if {$r ne ""} {::nsf::methodproperty [::nsf::self] $r call-protected false}
+      if {$r ne ""} {::nsf::method::property [::nsf::self] $r call-protected false}
       return $r
     }
 
@@ -244,7 +244,7 @@ namespace eval ::nx {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward)$}]
       if {$p == -1} {error "$args is not a method defining command"}
       set r [{*}:$args]
-      if {$r ne ""} {::nsf::methodproperty [::nsf::self] $r call-protected true}
+      if {$r ne ""} {::nsf::method::property [::nsf::self] $r call-protected true}
       return $r
     }
   }
@@ -276,8 +276,8 @@ namespace eval ::nx {
   #
   # We could do this simply as
   #
-  #   ::nsf::forward Object forward ::nsf::forward %self -per-object
-  #   ::nsf::forward Class forward ::nsf::forward %self
+  #   ::nsf::method::forward Object forward ::nsf::method::forward %self -per-object
+  #   ::nsf::method::forward Class forward ::nsf::method::forward %self
   #
   # but then, we would loose the option to use compound names
   #
@@ -295,10 +295,10 @@ namespace eval ::nx {
       # ... and remove it if found
       if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
     }
-    set r [::nsf::forward $(object) -per-object $(methodName) {*}$arguments]
-    ::nsf::methodproperty $(object) -per-object $r call-protected \
+    set r [::nsf::method::forward $(object) -per-object $(methodName) {*}$arguments]
+    ::nsf::method::property $(object) -per-object $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
+    if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     return $r
   }
   Class public method forward {    
@@ -314,10 +314,10 @@ namespace eval ::nx {
       # ... and remove it if found
       if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
     }
-    set r [::nsf::forward $(object) $(methodName) {*}$arguments]
-    ::nsf::methodproperty $(object) $r call-protected \
+    set r [::nsf::method::forward $(object) $(methodName) {*}$arguments]
+    ::nsf::method::property $(object) $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
+    if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     return $r
   }
 
@@ -339,21 +339,21 @@ namespace eval ::nx {
   Object public method alias {methodName -returns {-frame default} cmd} {
     array set "" [:__resolve_method_path -per-object $methodName]
     #puts "object alias $(object).$(methodName) $cmd"
-    set r [::nsf::alias $(object) -per-object $(methodName) \
+    set r [::nsf::method::alias $(object) -per-object $(methodName) \
 	       -frame $frame $cmd]
-    ::nsf::methodproperty $(object) -per-object $r call-protected \
+    ::nsf::method::property $(object) -per-object $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
+    if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     return $r
   }
 
   Class public method alias {methodName -returns {-frame default} cmd} {
     array set "" [:__resolve_method_path $methodName]
     #puts "class alias $(object).$(methodName) $cmd"
-    set r [::nsf::alias $(object) $(methodName) -frame $frame $cmd]
-    ::nsf::methodproperty $(object) $r call-protected \
+    set r [::nsf::method::alias $(object) $(methodName) -frame $frame $cmd]
+    ::nsf::method::property $(object) $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
+    if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     return $r
   }
 
@@ -385,7 +385,7 @@ namespace eval ::nx {
     if {[::nsf::isobject $object] && [namespace tail $object] eq "slot"} {
       set parent [$object ::nsf::methods::object::info::parent]
       return [expr {[::nsf::isobject $parent] 
-		    && [::nsf::methodproperty $parent -per-object slot slotcontainer]}]
+		    && [::nsf::method::property $parent -per-object slot slotcontainer]}]
     }
     return 0
   }
@@ -395,9 +395,9 @@ namespace eval ::nx {
     set slotContainer ${baseObject}::slot
     if {![::nsf::isobject $slotContainer]} {
       ::nx::Object alloc $slotContainer
-      ::nsf::methodproperty ${baseObject} -per-object slot call-protected true
-      ::nsf::methodproperty ${baseObject} -per-object slot redefine-protected true
-      ::nsf::methodproperty ${baseObject} -per-object slot slotcontainer true
+      ::nsf::method::property ${baseObject} -per-object slot call-protected true
+      ::nsf::method::property ${baseObject} -per-object slot redefine-protected true
+      ::nsf::method::property ${baseObject} -per-object slot slotcontainer true
       $slotContainer ::nsf::methods::object::requirenamespace
     }
     if {$name eq ""} {
@@ -710,7 +710,7 @@ namespace eval ::nx {
         ::nsf::setvar $slotObj default $default
         unset default
       }
-      ::nsf::setter $class $att
+      ::nsf::method::setter $class $att
     }
     
     #
@@ -866,7 +866,7 @@ namespace eval ::nx {
     if {![info exists :forwardername]} {
       set :forwardername ${:methodname}
     }
-    ::nsf::forward ${:domain} \
+    ::nsf::method::forward ${:domain} \
 	{*}[expr {${:per-object} ? "-per-object" : ""}] \
 	${:name} \
 	${:manager} \
@@ -960,7 +960,7 @@ namespace eval ::nx {
   #
   # create methods for slot operations assign/get/add/delete
   #
-  ::nsf::alias RelationSlot assign ::nsf::relation
+  ::nsf::method::alias RelationSlot assign ::nsf::relation
 
   RelationSlot protected method delete_value {obj prop old value} {
     #
@@ -1027,7 +1027,7 @@ namespace eval ::nx {
   proc register_system_slots {os} {
 
     # method "class" is a plain forwarder to relation (no slot)
-    ::nsf::forward ${os}::Object class ::nsf::relation %self class
+    ::nsf::method::forward ${os}::Object class ::nsf::relation %self class
 
     # all other relation cmds are defined as slots
 
@@ -1089,7 +1089,7 @@ namespace eval ::nx {
 	$obj info mixin guard $filter 
       }
     }
-    #::nsf::alias ::nx::Class::slot::object-filter guard ${os}::Object::slot::filter::guard
+    #::nsf::method::alias ::nx::Class::slot::object-filter guard ${os}::Object::slot::filter::guard
   }
 
   register_system_slots ::nx
@@ -1202,8 +1202,8 @@ namespace eval ::nx {
     set options [:getParameterOptions -withMultiplicity true]
     set setterParam ${:name}
     if {[llength $options]>0} {append setterParam :[join $options ,]}
-    #puts stderr [list ::nsf::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] $setterParam]
-    ::nsf::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] $setterParam
+    #puts stderr [list ::nsf::method::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] $setterParam]
+    ::nsf::method::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] $setterParam
   }
 
   ::nx::Attribute protected method makeIncrementalOperations {} {
@@ -1262,8 +1262,8 @@ namespace eval ::nx {
   #
   # implementation of forwarder operations: assign get add delete
   #
-  ::nsf::alias Attribute get ::nsf::setvar
-  ::nsf::alias Attribute assign ::nsf::setvar
+  ::nsf::method::alias Attribute get ::nsf::setvar
+  ::nsf::method::alias Attribute assign ::nsf::setvar
 
   Attribute public method add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
@@ -1312,7 +1312,7 @@ namespace eval ::nx {
 	       -class $class -initblock $initblock {*}$spec]
     if {$r ne ""} {
       set o [::nsf::self]
-      ::nsf::methodproperty $o $r call-protected \
+      ::nsf::method::property $o $r call-protected \
 	  [::nsf::dispatch $o __default_attribute_call_protection]
       return $r
     }
@@ -1323,7 +1323,7 @@ namespace eval ::nx {
 	       -class $class -per-object -initblock $initblock {*}$spec]
     if {$r ne ""} {
       set o [::nsf::self]
-      ::nsf::methodproperty $o -per-object $r call-protected \
+      ::nsf::method::property $o -per-object $r call-protected \
 	  [::nsf::dispatch $o __default_attribute_call_protection]
     }
     return $r    
@@ -1487,7 +1487,7 @@ namespace eval ::nx {
             # class object
             set obj $cl
             $cl superclass [$origin info superclass]
-            ::nsf::assertion $cl class-invar [::nsf::assertion $origin class-invar]
+            ::nsf::method::assertion $cl class-invar [::nsf::method::assertion $origin class-invar]
 	    ::nsf::relation $cl class-filter [::nsf::relation $origin class-filter]
 	    ::nsf::relation $cl class-mixin [::nsf::relation $origin class-mixin]
 	    :copyNSVarsAndCmds ::nsf::classes$origin ::nsf::classes$dest
@@ -1496,8 +1496,8 @@ namespace eval ::nx {
 	    set obj [[$origin info class] create $dest -noinit]
           }
 	  # copy object -> may be a class obj
-	  ::nsf::assertion $obj check [::nsf::assertion $origin check]
-	  ::nsf::assertion $obj object-invar [::nsf::assertion $origin object-invar]
+	  ::nsf::method::assertion $obj check [::nsf::method::assertion $origin check]
+	  ::nsf::method::assertion $obj object-invar [::nsf::method::assertion $origin object-invar]
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
             # reused in XOTcl, no "require" there, so use nsf primitiva
@@ -1509,12 +1509,12 @@ namespace eval ::nx {
 	}
 	:copyNSVarsAndCmds $origin $dest
 	foreach i [$origin ::nsf::methods::object::info::forward] {
-	  ::nsf::forward $dest -per-object $i {*}[$origin ::nsf::methods::object::info::forward -definition $i]
+	  ::nsf::method::forward $dest -per-object $i {*}[$origin ::nsf::methods::object::info::forward -definition $i]
 
 	}
 	if {[::nsf::is class $origin]} {
 	  foreach i [$origin ::nsf::methods::class::info::forward] {
-	    ::nsf::forward $dest $i {*}[$origin ::nsf::methods::class::info::forward -definition $i]
+	    ::nsf::method::forward $dest $i {*}[$origin ::nsf::methods::class::info::forward -definition $i]
 	  }
 	}
 	set traces [list]
@@ -1593,7 +1593,7 @@ namespace eval ::nx {
   #######################################################
 
   foreach m [Class info methods] {
-    ::nsf::methodproperty Class $m class-only true
+    ::nsf::method::property Class $m class-only true
   }
   unset m
 
@@ -1613,8 +1613,8 @@ namespace eval ::nx {
     #
     :method defaultMethodCallProtection {value:boolean,optional} {
       if {[info exists value]} {
-	::nsf::method Object __default_method_call_protection args [list return $value]
-	::nsf::methodproperty Object  __default_method_call_protection call-protected true
+	::nsf::method::create Object __default_method_call_protection args [list return $value]
+	::nsf::method::property Object  __default_method_call_protection call-protected true
       }
       return [::nsf::dispatch [::nx::self] __default_method_call_protection]
     }
@@ -1626,8 +1626,8 @@ namespace eval ::nx {
     #
     :method defaultAttributeCallProtection {value:boolean,optional} {
       if {[info exists value]} {
-	::nsf::method Object __default_attribute_call_protection args [list return $value]
-	::nsf::methodproperty Object  __default_attribute_call_protection call-protected true
+	::nsf::method::create Object __default_attribute_call_protection args [list return $value]
+	::nsf::method::property Object  __default_attribute_call_protection call-protected true
       }
       return [::nsf::dispatch [::nx::self] __default_attribute_call_protection]
     }

@@ -15658,7 +15658,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 #endif
 
             DSTRING_INIT(dsPtr);
-            Tcl_DStringAppendElement(dsPtr, "::nsf::method");
+            Tcl_DStringAppendElement(dsPtr, "::nsf::method::create");
             Tcl_DStringAppendElement(dsPtr, NSCutNsfClasses(toNsPtr->fullName));
             Tcl_DStringAppendElement(dsPtr, name);
             Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
@@ -15691,7 +15691,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             }
 
             DSTRING_INIT(dsPtr);
-            Tcl_DStringAppendElement(dsPtr, "::nsf::method");
+            Tcl_DStringAppendElement(dsPtr, "::nsf::method::create");
             Tcl_DStringAppendElement(dsPtr, toNsPtr->fullName);
             Tcl_DStringAppendElement(dsPtr, "-per-object");
             Tcl_DStringAppendElement(dsPtr, name);

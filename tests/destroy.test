@@ -5,7 +5,7 @@ package require nx::test
 
 Test parameter count 10
 
-::nsf::alias ::nx::Object set -frame object ::set
+::nsf::method::alias ::nx::Object set -frame object ::set
 
 Class create O -superclass Object {
   :method init {} {
@@ -437,7 +437,7 @@ Test case nesting-destroy {
 Test case deleting-aliased-object {
   Object create o
   Object create o2
-  ::nsf::alias o a o2
+  ::nsf::method::alias o a o2
   ? {o a} ::o2 "call object via alias"
   ? {o info method type a} alias
   ## the ensemble-object needs per-object methods
@@ -457,7 +457,7 @@ set case "deleting object with alias to object"
 Test case deleting-object-with-alias-to-object
 Object create o
 Object create o3
-::nsf::alias o x o3
+::nsf::method::alias o x o3
 o destroy
 ? {::nsf::isobject o} 0 "parent object gone"
 ? {::nsf::isobject o3} 1 "aliased object still here"
@@ -468,7 +468,7 @@ set case "create an alias, and delete cmd via aggregation"
 Test case create-alias-delete-via-aggregation
 Object create o
 Object create o3
-::nsf::alias o x o3
+::nsf::method::alias o x o3
 o::x destroy
 ? {::nsf::isobject o3} 0 "aliased object destroyed"
 o destroy
