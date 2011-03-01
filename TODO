@@ -2416,6 +2416,8 @@ sudo make install
    * handle self->tracing in D scripts (and in dtrace/sample.tcl, tests/object-system.tcl)
    * add probes for object creation and freeing
    * add sample d-script for object bookkeeping
+   * renamed object-create into object-alloc (counterpart of object-free, no confusion with create)
+   * fire probes as well for classes created by the object system
 
 - configure
    * make "configure --help" more pretty

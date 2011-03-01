@@ -39,14 +39,14 @@ do { \
 } while (0)
 #define	NSF_METHOD_RETURN_ENABLED() \
 	__dtrace_isenabled$nsf$method__return$v1()
-#define	NSF_OBJECT_CREATE(arg0, arg1) \
+#define	NSF_OBJECT_ALLOC(arg0, arg1) \
 do { \
 	__asm__ volatile(".reference " NSF_TYPEDEFS); \
-	__dtrace_probe$nsf$object__create$v1$63686172202a$63686172202a(arg0, arg1); \
+	__dtrace_probe$nsf$object__alloc$v1$63686172202a$63686172202a(arg0, arg1); \
 	__asm__ volatile(".reference " NSF_STABILITY); \
 } while (0)
-#define	NSF_OBJECT_CREATE_ENABLED() \
-	__dtrace_isenabled$nsf$object__create$v1()
+#define	NSF_OBJECT_ALLOC_ENABLED() \
+	__dtrace_isenabled$nsf$object__alloc$v1()
 #define	NSF_OBJECT_FREE(arg0, arg1) \
 do { \
 	__asm__ volatile(".reference " NSF_TYPEDEFS); \
@@ -63,8 +63,8 @@ extern void __dtrace_probe$nsf$method__entry$v1$63686172202a$63686172202a$636861
 extern int __dtrace_isenabled$nsf$method__entry$v1(void);
 extern void __dtrace_probe$nsf$method__return$v1$63686172202a$63686172202a$63686172202a$696e74(char *, char *, char *, int);
 extern int __dtrace_isenabled$nsf$method__return$v1(void);
-extern void __dtrace_probe$nsf$object__create$v1$63686172202a$63686172202a(char *, char *);
-extern int __dtrace_isenabled$nsf$object__create$v1(void);
+extern void __dtrace_probe$nsf$object__alloc$v1$63686172202a$63686172202a(char *, char *);
+extern int __dtrace_isenabled$nsf$object__alloc$v1(void);
 extern void __dtrace_probe$nsf$object__free$v1$63686172202a$63686172202a(char *, char *);
 extern int __dtrace_isenabled$nsf$object__free$v1(void);
 

@@ -14924,6 +14924,11 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
   AddInstance((NsfObject*)thecls, thecls);
   AddSuper(thecls, theobj);
 
+  if (NSF_DTRACE_OBJECT_ALLOC_ENABLED()) {
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject*)theobj)), ClassName(((NsfObject*)theobj)->cl));
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject*)thecls)), ClassName(((NsfObject*)thecls)->cl));
+  }
+
   return TCL_OK;
 }
 
@@ -17423,8 +17428,8 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespa
 			 nameString);
   }
 
-  if (NSF_DTRACE_OBJECT_CREATE_ENABLED()) {
-    NSF_DTRACE_OBJECT_CREATE(ObjectName(newObj), ClassName(cl));
+  if (NSF_DTRACE_OBJECT_ALLOC_ENABLED()) {
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName(newObj), ClassName(cl));
   }
   
   Tcl_SetObjResult(interp, nameObj);

@@ -50,12 +50,12 @@ provider nsf {
 
     /***************************** Object probes ******************************/
     /*
-     *	nsf*:::object-create probe
-     *	    triggered when an NSF object creation starts
+     *	nsf*:::object-alloc probe
+     *	    triggered when an NSF object is allocated
      *		arg0: object 			(string)
      *		arg1: class 			(string)
      */
-    probe object__create(char *object, char *class);
+    probe object__alloc(char *object, char *class);
    /*
      *	nsf*:::object-free probe
      *	    triggered whean an NSF object is freeed
