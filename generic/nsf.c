@@ -12875,6 +12875,12 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
         int bool;
         Tcl_GetBooleanFromObj(interp, pPtr->defaultValue, &bool);
 	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool);
+	/*
+	 * incr refcount, otherwise the Tcl_Obj might be shared
+	 */
+	INCR_REF_COUNT(pcPtr->objv[i]); 
+	pcPtr->flags[i] |= NSF_PC_MUST_DECR;
+	pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
       }
     } else {
       /* no valued passed, check if default is available */
@@ -13558,12 +13564,12 @@ ListMethod(Tcl_Interp *interp,
            int subcmd, int withPer_object) {
 
   assert(methodName);
-
-  /*fprintf(stderr, "ListMethod %s %s cmd %p subcmd %d per-object %d\n",
-    ObjectName(regObject), methodName, cmd, subcmd, withPer_object);*/
+  Tcl_ResetResult(interp);
 
   if (!cmd) {
-    Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
+    if (subcmd == InfomethodsubcmdExistsIdx) {
+      Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+    } 
   } else {
     Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
     int outputPerObject = 0;
@@ -13581,6 +13587,11 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdHandleIdx:
       {
 	Tcl_SetObjResult(interp, MethodHandleObj(regObject, withPer_object, methodName));
+	return TCL_OK;
+      }
+    case InfomethodsubcmdExistsIdx:
+      {
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
 	return TCL_OK;
       }
     case InfomethodsubcmdArgsIdx:
@@ -18216,7 +18227,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *typ
 
 /*
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
+  {-argName "infomethodsubcmd" -type "args|body|exists|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
@@ -18471,7 +18482,7 @@ NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 
 /*
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
+  {-argName "infomethodsubcmd" -type "args|body|exists|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
   {-argName "name" -required 1 -type tclobj}
 }
 */

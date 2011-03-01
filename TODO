@@ -2426,6 +2426,8 @@ sudo make install
 - added first version of "nsf::methoddelete"
 - extended regression test
 - updated TODO
+- fixed potential crash with -param:switch
+- added "... info method exists ...."
 
 TODO:
 

@@ -41,12 +41,8 @@ namespace eval ::nsf {
   # proc for deleting methods
   #
   nsf::proc ::nsf::methoddelete {object:object -per-object:switch methodName} {
-    if {${per-object}} {
-      set handle [$object ::nsf::methods::object::info::method handle $methodName]
-    } else {
-      set handle [$object ::nsf::methods::class::info::method handle $methodName]
-    }
-    if {$handle ne ""} {
+    set scope [expr {${per-object} ? "object" : "class"}]
+    if {[$object ::nsf::methods::${scope}::info::method exists $methodName]} {
       ::nsf::method $object {*}[expr {${per-object} ? "-per-object" : ""}] $methodName "" ""
     } else {
       error "Object $object: method $methodName is not defined"
