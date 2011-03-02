@@ -2483,13 +2483,6 @@ TODO:
 
    NextScriptingLanguage/index.html: 
 
-    * A short introductory text, what the "package"
-      is whould be more well suited for the index page,
-      moving glossary (index) to the left column.
-      ..... Better to use "package_nx.html" as index.html
-      SS: I find that the glossary entries fit there because they
-      spawn the necessary vocabulary throughout the doc project.
-
     * glossary entries in nsf.nxd should be sorted (in the source)
      ...... Maybe, a single glossary.nxd file?
      SS: Right now, the name of the nxd file derives from the the

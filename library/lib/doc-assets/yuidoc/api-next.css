@@ -1,0 +1,46 @@
+#bd {
+    border:none;
+}
+
+#yui-main .yui-b {
+    /*float:left;*/
+}
+#ft {
+    background:none;
+    border:none;
+}
+#yui-main .yui-b {
+    /*margin-left:327px;*/
+}
+h1 {
+    border-bottom:1px solid #89A618;
+    font-weight:bold;
+    margin-left:327px;
+    margin-top:0;
+    padding:0 0 25px;
+    font-size:123.1%;
+    margin-bottom:2em;
+    text-transform:uppercase;
+}
+
+#doc3 #bd {
+    margin-bottom:0;
+}
+.nav .module h4 {
+    background:transparent;
+    text-transform:uppercase;
+    color:#89A618;
+    font-weight:bold;
+    border:none;
+    border-bottom:1px solid #89A618;
+    display:block;
+}
+.nav .module {
+    border:none;
+}
+.summary {
+    background:#E7EDD3 url(/resources/openacs-nsf-theme/images/boxarrow.png) no-repeat scroll left 10px;
+    border-bottom:3px solid #89a618;
+    margin-bottom:1.5em;
+    padding:0.5em 40px;
+}
