@@ -2447,6 +2447,10 @@ sudo make install
   "nsf::procs -ad"
 - extended regression test
 
+- removed hardcoded name "init" from CallConfigureMethod()
+- improved documentation
+- removed isInitString()
+
 
 TODO:
 
@@ -2473,9 +2477,6 @@ TODO:
   - allow noarg+default/initcmd ?
   - default/initcmd/subsdefault: can we simplify these?
     or add messages for conflicting usages.
-
-- CallConfigureMethod()
-   TODO: don't check hard coded method name 
 
 - doc:
     * integrate ::nx::doc::make with Makefile.in
@@ -2521,8 +2522,6 @@ TODO:
       3.8. Dispatch, Aliases, etc.: to be done or omitted
 
 - check performance implications of value checker
-
-- extend coro regression test
 
 - nameing
 
@@ -2634,3 +2633,6 @@ For future releases (after first alpha/beta release)
        stable.
      * NsfClassListAdd() and friends could be made generic
 
+  * Coroutines
+     - extend coro regression test
+     - coro-enable nsf::proc
