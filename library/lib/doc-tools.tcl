@@ -498,7 +498,7 @@ namespace eval ::nx::doc {
     :public method get {obj prop} {
       set def [expr {[info exists :default]?${:default}:0}]
       if {[$obj eval [list set :$prop]] == $def} {
-	return [::nsf::setvar $obj $prop [expr {!$def}]]
+	return [::nsf::var::set $obj $prop [expr {!$def}]]
       }
       return [next]
     }
@@ -2667,7 +2667,7 @@ namespace eval ::nx::doc {
 		    if {[info commands "::nx::Class"] ne ""} {
 		      if {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Slot]} {
 			dict set bundle objtype slot
-			dict set bundle incremental [expr {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::RelationSlot] || ([::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Attribute] && [::nsf::existsvar $obj incremental] && [::nsf::setvar $obj incremental])}]
+			dict set bundle incremental [expr {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::RelationSlot] || ([::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Attribute] && [::nsf::var::exists $obj incremental] && [::nsf::var::set $obj incremental])}]
 		      }
 		      if {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::EnsembleObject]} {
 			dict set bundle objtype ensemble
@@ -2679,7 +2679,7 @@ namespace eval ::nx::doc {
 	      		->source [file normalize [info script]] \
 	      		->nsexported [::nx::doc::is_exported $obj] \
 			->bundle $bundle \
-	      		{*}[expr {[::nsf::existsvar $obj __initcmd] && [::nsf::setvar $obj __initcmd] ne ""?[list ->docstring [::nsf::setvar $obj __initcmd]]:[list]}]
+	      		{*}[expr {[::nsf::var::exists $obj __initcmd] && [::nsf::var::set $obj __initcmd] ne ""?[list ->docstring [::nsf::var::set $obj __initcmd]]:[list]}]
 	      	    return $obj
 	      	  }
 		::nsf::mixin $rootmclass ${::nx::doc::rootns}::__Tracer
@@ -2715,7 +2715,7 @@ namespace eval ::nx::doc {
 			  set handle [::nsf::dispatch $obj \
 					  ::nsf::methods::${scope}::info::method \
 					  handle $leg]
-			  if {![::nsf::existsvar [::nsf::current class] handles] || ![[::nsf::current class] eval [concat dict exists \${:handles} $handle]]} {
+			  if {![::nsf::var::exists [::nsf::current class] handles] || ![[::nsf::current class] eval [concat dict exists \${:handles} $handle]]} {
 			    dict set bundle handle $handle
 			    dict set bundle handleinfo [::nx::doc::handleinfo $handle]
 			    dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method type $handle]
@@ -2906,7 +2906,7 @@ namespace eval ::nx::doc {
 		      ->cmdtype @class \
 		      ->source [file normalize [info script]] \
 		      ->nsexported [::nx::doc::is_exported $r] \
-		      {*}[expr {[::nsf::existsvar $r __initcmd] && [::nsf::setvar $obj __initcmd] ne ""?[list ->docstring [::nsf::setvar $r __initcmd]]:[list]}]
+		      {*}[expr {[::nsf::var::exists $r __initcmd] && [::nsf::var::set $obj __initcmd] ne ""?[list ->docstring [::nsf::var::set $r __initcmd]]:[list]}]
 		}
 	      }
 

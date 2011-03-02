@@ -1091,10 +1091,10 @@ set ::nsf::includes {
   ::nsf::assertion
   ::nsf::createobjectsystem
   ::nsf::dispatch
-  ::nsf::existsvar
+  ::nsf::var::exists
   ::nsf::exithandler
   ::nsf::forward
-  ::nsf::importvar
+  ::nsf::var::import
   ::nsf::isobject
   ::nsf::method
   ::nsf::method::property
@@ -1102,7 +1102,7 @@ set ::nsf::includes {
   ::nsf::qualify
   ::nsf::method::require
   ::nsf::setter
-  ::nsf::setvar
+  ::nsf::var::set
 }
 
 set project [processor process \

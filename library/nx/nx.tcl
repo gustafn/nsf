@@ -707,7 +707,7 @@ namespace eval ::nx {
       #puts stderr "::nx::BootStrapAttributeSlot create $slotObj"
       ::nx::BootStrapAttributeSlot create $slotObj
       if {[info exists default]} {
-        ::nsf::setvar $slotObj default $default
+        ::nsf::var::set $slotObj default $default
         unset default
       }
       ::nsf::method::setter $class $att
@@ -723,14 +723,14 @@ namespace eval ::nx {
 
         # checking subclasses is not required during bootstrap
         foreach i [::nsf::dispatch $class ::nsf::methods::class::info::instances] {
-          if {![::nsf::existsvar $i $att]} {
+          if {![::nsf::var::exists $i $att]} {
             if {[string match {*\[*\]*} $default]} {
               set value [::nsf::dispatch $i -frame object ::eval subst $default]
             } else {
 	      set value $default
 	    }
-            ::nsf::setvar $i $att $value
-            #puts stderr "::nsf::setvar $i $att $value (second round)"
+            ::nsf::var::set $i $att $value
+            #puts stderr "::nsf::var::set $i $att $value (second round)"
           }
         }
         unset default
@@ -1118,8 +1118,8 @@ namespace eval ::nx {
 
   ::nx::Attribute protected method checkInstVar {} {
     if {${:per-object} && [info exists :default] } {
-      if {![::nsf::existsvar ${:domain} ${:name}]} {
-	::nsf::setvar ${:domain} ${:name} ${:default}
+      if {![::nsf::var::exists ${:domain} ${:name}]} {
+	::nsf::var::set ${:domain} ${:name} ${:default}
       }
     }
   }
@@ -1215,7 +1215,7 @@ namespace eval ::nx {
     }
     set options [:getParameterOptions -withMultiplicity true]
     lappend options slot=[::nsf::self]
-    set body {::nsf::setvar $obj $var $value}
+    set body {::nsf::var::set $obj $var $value}
     
     if {[:info lookup method assign] eq "::nsf::classes::nx::Attribute::assign"} {
       puts stderr ":public method assign [list obj var [:namedParameterSpec -prefix {} value $options]] $body"
@@ -1262,25 +1262,25 @@ namespace eval ::nx {
   #
   # implementation of forwarder operations: assign get add delete
   #
-  ::nsf::method::alias Attribute get ::nsf::setvar
-  ::nsf::method::alias Attribute assign ::nsf::setvar
+  ::nsf::method::alias Attribute get ::nsf::var::set
+  ::nsf::method::alias Attribute assign ::nsf::var::set
 
   Attribute public method add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
       puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"
       error "Property $prop of [set :domain] ist not multivalued"
     }
-    if {[::nsf::existsvar $obj $prop]} {
-      ::nsf::setvar $obj $prop [linsert [::nsf::setvar $obj $prop] $pos $value]
+    if {[::nsf::var::exists $obj $prop]} {
+      ::nsf::var::set $obj $prop [linsert [::nsf::var::set $obj $prop] $pos $value]
     } else {
-      ::nsf::setvar $obj $prop [list $value]
+      ::nsf::var::set $obj $prop [list $value]
     }
   }
 
   Attribute public method delete {-nocomplain:switch obj prop value} {
-    set old [::nsf::setvar $obj $prop]
+    set old [::nsf::var::set $obj $prop]
     set p [lsearch -glob $old $value]
-    if {$p>-1} {::nsf::setvar $obj $prop [lreplace $old $p $p]} else {
+    if {$p>-1} {::nsf::var::set $obj $prop [lreplace $old $p $p]} else {
       error "$value is not a $prop of $obj (valid are: $old)"
     }
   }
@@ -1292,15 +1292,15 @@ namespace eval ::nx {
     #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
     ::nsf::dispatch $obj -frame object \
 	::trace remove variable $var $op [list [::nsf::self] [::nsf::current method] $obj $cmd]
-    ::nsf::setvar $obj $var [$obj eval $cmd]
+    ::nsf::var::set $obj $var [$obj eval $cmd]
   }
   Attribute method __value_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
-    ::nsf::setvar $obj $var [$obj eval $cmd]
+    ::nsf::var::set $obj $var [$obj eval $cmd]
   }
   Attribute method __value_changed_cmd {obj cmd var sub op} {
     # puts stderr "**************************"
-    # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::nsf::setvar $obj $var]"
+    # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::nsf::var::set $obj $var]"
     eval $cmd
   }
 
@@ -1339,13 +1339,13 @@ namespace eval ::nx {
       ::nx::MetaSlot createFromParameterSpec [::nsf::self] {*}$arg
     }
     set slot [::nx::slotObj [::nsf::self]]
-    ::nsf::setvar $slot __parameter $arglist
+    ::nsf::var::set $slot __parameter $arglist
   }
 
   Class method "info attributes" {} {
     set slot [::nx::slotObj [::nsf::self]]
-    if {[::nsf::existsvar $slot __parameter]} {
-      return [::nsf::setvar $slot __parameter]
+    if {[::nsf::var::exists $slot __parameter]} {
+      return [::nsf::var::set $slot __parameter]
     }
     return ""
   }
@@ -1381,7 +1381,7 @@ namespace eval ::nx {
 
     :protected method init {} {
        :public method new {-childof args} {
-	 ::nsf::importvar [::nsf::current class] {container object} withclass
+	 ::nsf::var::import [::nsf::current class] {container object} withclass
 	 if {![::nsf::isobject $object]} {
 	   $withclass create $object
 	 }
@@ -1644,9 +1644,9 @@ namespace eval ::nx {
   # framework is faster than namespace-ensembles.
   #
   Object create ::nx::var {
-    :public alias exists ::nsf::existsvar 
-    :public alias import ::nsf::importvar
-    :public alias set ::nsf::setvar
+    :public alias exists ::nsf::var::exists 
+    :public alias import ::nsf::var::import
+    :public alias set ::nsf::var::set
   }
 
   #interp alias {} ::nx::self {} ::nsf::self

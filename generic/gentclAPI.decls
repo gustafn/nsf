@@ -40,16 +40,7 @@ nsfCmd dispatch NsfDispatchCmd {
 nsfCmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
-nsfCmd existsvar NsfExistsVarCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "varName" -required 1}
-}
 nsfCmd finalize NsfFinalizeObjCmd {
-}
-
-nsfCmd importvar NsfImportvarCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "args" -type args}
 }
 nsfCmd interp NsfInterpObjCmd {
   {-argName "name" -required 1}
@@ -147,17 +138,26 @@ nsfCmd relation NsfRelationCmd {
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
+
 nsfCmd current NsfCurrentCmd {
   {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
 nsfCmd self NsfSelfCmd {
 }
-nsfCmd setvar NsfSetVarCmd {
+
+nsfCmd "var::exists" NsfExistsVarCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "varName" -required 1}
+}
+nsfCmd "var::import" NsfImportvarCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "args" -type args}
+}
+nsfCmd "var::set" NsfSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
-
 
 #
 # object methods

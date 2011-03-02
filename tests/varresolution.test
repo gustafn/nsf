@@ -50,7 +50,7 @@ o objeval {
   # vartables on the stack
   :require namespace
   global g
-  ::nsf::importvar o2 i
+  ::nsf::var::import o2 i
   set x 1
   set :y 2
   set ::z 3
@@ -59,28 +59,28 @@ o objeval {
   set :a(:b) 1
   set :a(::c) 1
 }
-? {::nsf::importvar o2 j} \
+? {::nsf::var::import o2 j} \
     "importvar cannot import variable 'j' into method scope; not called from a method frame"
 
-o method foo {} {::nsf::importvar [current] :a}
+o method foo {} {::nsf::var::import [current] :a}
 ? {o foo} "variable name \":a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nsf::importvar [current] ::a}
+o method foo {} {::nsf::var::import [current] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nsf::importvar [current] a(:b)}
+o method foo {} {::nsf::var::import [current] a(:b)}
 ? {o foo} "can't make instance variable a(:b) on ::o: Variable cannot be an element in an array; use e.g. an alias."
 
-o method foo {} {::nsf::importvar [current] {a(:b) ab}}
+o method foo {} {::nsf::var::import [current] {a(:b) ab}}
 ? {o foo} ""
 
-o method foo {} {::nsf::existsvar [current] ::a}
+o method foo {} {::nsf::var::exists [current] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nsf::existsvar [current] a(:b)}
+o method foo {} {::nsf::var::exists [current] a(:b)}
 ? {o foo} 1
 
-o method foo {} {::nsf::existsvar [current] a(::c)}
+o method foo {} {::nsf::var::exists [current] a(::c)}
 ? {o foo} 1
 
 set ::o::Y 5
@@ -108,7 +108,7 @@ Object create o2 {set :i 1}
 Object create o {
   :require namespace
   global g
-  ::nsf::importvar o2 i
+  ::nsf::var::import o2 i
   set x 1
   set :y 2
   set ::z 3
@@ -172,7 +172,7 @@ o set x 1
 ? {::o set x} 3
 ? {namespace eval ::o {info exists x}} 1
 ? {::o unset x} ""
-? {::nsf::existsvar o x} 0
+? {::nsf::var::exists o x} 0
 ? {o eval {info exists :x}} 0
 ? {info vars ::x} ""
 ? {namespace eval ::o {info exists x}} 0
@@ -867,17 +867,17 @@ Test case interactions {
   set script {
     # early probing: reflects the compiled-only, unexecuted state
     set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
-		     [info exists :u] [::nsf::existsvar [::nsf::current] u] \
-		     [info exists :v] [::nsf::existsvar [::nsf::current] v] \
-		     [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+		     [info exists :u] [::nsf::var::exists [::nsf::current] u] \
+		     [info exists :v] [::nsf::var::exists [::nsf::current] v] \
+		     [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
     catch {set :u}
     set :v 1
     unset :x
     # late probing: reflects the (ideally) compiled, *executed* state
     append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
-			[info exists :u] [::nsf::existsvar [::nsf::current] u] \
-			[info exists :v] [::nsf::existsvar [::nsf::current] v] \
-			[info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+			[info exists :u] [::nsf::var::exists [::nsf::current] u] \
+			[info exists :v] [::nsf::var::exists [::nsf::current] v] \
+			[info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
     return $_
   }
 
@@ -916,13 +916,13 @@ Test case interactions {
     Object create o {
       :public method foo {} {
 	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
-			 [info exists w] [::nsf::existsvar [::nsf::current] w] \
-			 [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+			 [info exists w] [::nsf::var::exists [::nsf::current] w] \
+			 [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
 	variable w; # -> intention: a variable "w" in the effective namespace (e.g., "::ns1::w")
 	variable :x; # -> intention: a variable ":x" in the effective namespace (e.g., "::ns1:::x"!).
 	append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
-			      [info exists w] [::nsf::existsvar [::nsf::current] w] \
-			      [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+			      [info exists w] [::nsf::var::exists [::nsf::current] w] \
+			      [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
 	return $_
       }    
     }
@@ -934,20 +934,20 @@ Test case interactions {
 	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
 			 [namespace which -variable [namespace current]::w] \
 			 [info exists [namespace current]::w] \
-			 [info exists w] [::nsf::existsvar [::nsf::current] w] \
+			 [info exists w] [::nsf::var::exists [::nsf::current] w] \
 			 [namespace which -variable [namespace current]:::x] \
 			 [info exists [namespace current]:::x] \
-			 [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+			 [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
 	variable w 1; # -> intention: a variable "w" in the effective namespace (e.g., "::ns1::w")
 	variable :x 2; # -> intention: a variable ":x" in the effective namespace (e.g., "::ns1:::x"!).
 	append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
 			 [namespace which -variable [namespace current]::w] \
 			 [info exists [namespace current]::w] \
-			 [info exists w] [::nsf::existsvar [::nsf::current] w] \
+			 [info exists w] [::nsf::var::exists [::nsf::current] w] \
 			 [namespace which -variable [namespace current]:::x] \
 			      [info exists [namespace current]:::x] [namespace eval  [namespace current] {info exists :x}] \
 			      [namespace eval  [namespace current] {variable :x; info exists :x}] \
-			      [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+			      [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
 
 	append _ | [join [list [expr {$w eq [namespace eval [namespace current] {variable w; set w}]}] \
 			      [expr {${:x} eq [namespace eval [namespace current] {variable w; set :x}]}]] -]
@@ -982,7 +982,7 @@ Test case interactions {
 	set :aaa 2
 	append _ "-${:aaa}-[set :aaa]-[namespace eval [namespace current] {variable :aaa; set :aaa}]"
 	unset :aaa
-	append _ "-[info exists :aaa]-[namespace which -variable [namespace current]:::aaa]-[::nsf::existsvar [current] aaa]-[[current] eval {set :aaa}]"
+	append _ "-[info exists :aaa]-[namespace which -variable [namespace current]:::aaa]-[::nsf::var::exists [current] aaa]-[[current] eval {set :aaa}]"
 	return $_
       }
     }
@@ -1023,7 +1023,7 @@ Test case interactions {
       append _ "-${:aaa}-[set :aaa]-[[current] eval {set :aaa}]-[namespace eval [namespace current] {variable :aaa; info exists :aaa}]"
       variable :aaa 5
       unset :aaa
-      append _ "-[info exists :aaa]-[namespace which -variable [namespace current]:::aaa]-[::nsf::existsvar [current] aaa]-[namespace eval [namespace current] {variable :aaa; info exists :aaa}]-[namespace eval [namespace current] {variable :aaa; set :aaa}]"
+      append _ "-[info exists :aaa]-[namespace which -variable [namespace current]:::aaa]-[::nsf::var::exists [current] aaa]-[namespace eval [namespace current] {variable :aaa; info exists :aaa}]-[namespace eval [namespace current] {variable :aaa; set :aaa}]"
       return $_
     }} "1-1-1-1-2-2-2-0-0--0-1-5"
 

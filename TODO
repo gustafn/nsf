@@ -2431,7 +2431,7 @@ sudo make install
 - added "... info method exists ...."
 - updated migration guide
 
-- changed named of method handling commands in nsf:
+- changed names of method handling commands in nsf:
    ::nsf::methodproperty => ::nsf::method::property
    ::nsf::method         => ::nsf::method::create
    ::nsf::methoddelete   => ::nsf::method::delete
@@ -2450,6 +2450,11 @@ sudo make install
 - removed hardcoded name "init" from CallConfigureMethod()
 - improved documentation
 - removed isInitString()
+
+- changed names of var handling commands in nsf:
+   ::nsf::existsvar => ::nsf::var::exists
+   ::nsf::importvar => ::nsf::var::import
+   ::nsf::setvar    => ::nsf::var::set
 
 
 TODO:

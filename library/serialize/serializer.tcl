@@ -180,7 +180,7 @@ namespace eval ::nx::serializer {
       # we export the object tree.
       set oo $o
       while {1} {
-        if {[::nsf::existsvar [::nsf::current class] exportObjects($o)]} {
+        if {[::nsf::var::exists [::nsf::current class] exportObjects($o)]} {
           return 1
         }
         # we do this for object trees without object-less namespaces
@@ -585,7 +585,7 @@ namespace eval ::nx::serializer {
           if {[$o eval [list ::array exists :$v]]} {
             lappend setcmd [list array set :$v [$o eval [list array get :$v]]]
           } else {
-            lappend setcmd [list set :$v [::nsf::setvar $o $v]]
+            lappend setcmd [list set :$v [::nsf::var::set $o $v]]
           }
         }
       }

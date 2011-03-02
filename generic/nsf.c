@@ -14541,7 +14541,7 @@ NsfProfileGetDataStub(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd alias NsfAliasCmd {
+nsfCmd method::alias NsfAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}
   {-argName "methodName"}
@@ -14710,7 +14710,7 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 }
 
 /*
-nsfCmd assertion NsfAssertionCmd {
+nsfCmd method::assertion NsfAssertionCmd {
   {-argName "object" -type object}
   {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
@@ -15117,7 +15117,7 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
 }
 
 /*
-nsfCmd existsvar NsfExistsVarCmd {
+nsfCmd var::exists NsfExistsVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1}
 }
@@ -15174,7 +15174,7 @@ NsfFinalizeObjCmd(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd forward NsfForwardCmd {
+nsfCmd method::forward NsfForwardCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "method" -required 1 -type tclobj}
@@ -15230,7 +15230,7 @@ NsfForwardCmd(Tcl_Interp *interp,
 }
 
 /*
-nsfCmd importvar NsfImportvarCmd {
+nsfCmd var::import NsfImportvarCmd {
   {-argName "object" -type object}
   {-argName "args" -type args}
 }
@@ -15369,7 +15369,7 @@ NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 
 
 /*
-nsfCmd method NsfMethodCmd {
+nsfCmd method::create NsfMethodCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
@@ -15398,7 +15398,7 @@ NsfMethodCmd(Tcl_Interp *interp, NsfObject *object,
 }
 
 /*
-nsfCmd methodproperty NsfMethodPropertyCmd {
+nsfCmd ::method::property NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
@@ -16384,7 +16384,7 @@ NsfSelfCmd(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd setvar NsfSetVarCmd {
+nsfCmd var::set NsfSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
@@ -16401,7 +16401,7 @@ NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *v
 }
 
 /*
-nsfCmd setter NsfSetterCmd {
+nsfCmd method::setter NsfSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "parameter" -type tclobj}

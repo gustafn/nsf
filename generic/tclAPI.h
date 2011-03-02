@@ -2209,7 +2209,7 @@ static methodDefinition method_definitions[] = {
   {"command", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 0, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::existsvar", NsfExistsVarCmdStub, 2, {
+{"::nsf::var::exists", NsfExistsVarCmdStub, 2, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2229,7 +2229,7 @@ static methodDefinition method_definitions[] = {
   {"target", 0, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 0, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::importvar", NsfImportvarCmdStub, 2, {
+{"::nsf::var::import", NsfImportvarCmdStub, 2, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 0, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2304,7 +2304,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::self", NsfSelfCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::setvar", NsfSetVarCmdStub, 3, {
+{"::nsf::var::set", NsfSetVarCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", 0, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

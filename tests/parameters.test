@@ -1171,7 +1171,7 @@ Test case slot-traces {
   ::nx::Object create o {
     :attribute a {set :defaultcmd { set _ 4 } }
     :attribute b {set :valuecmd { set _ 44 } }
-    :attribute c {set :valuechangedcmd { ::nsf::setvar $obj $var 999 }}
+    :attribute c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
   }
 
   ? {o a} 4
@@ -1187,7 +1187,7 @@ Test case slot-traces {
   ::nx::Class create C {
     :attribute a {set :defaultcmd { set _ 4 } }
     :attribute b {set :valuecmd { set _ 44 } }
-    :attribute c {set :valuechangedcmd { ::nsf::setvar $obj $var 999 }}
+    :attribute c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
     :create c1
   }
   ? {c1 a} 4
