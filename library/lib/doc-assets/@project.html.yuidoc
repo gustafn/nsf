@@ -7,8 +7,8 @@
 	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css" />
 	<link rel="stylesheet" type="text/css" href="assets/api.css" />
 
-    <script type="text/javascript" src="assets/api-js"></script>
-    <script type="text/javascript" src="assets/ac-js"></script>
+    <script type="text/javascript" src="assets/api.js"></script>
+    <script type="text/javascript" src="assets/ac.js"></script>
 </head>
 <body id="yahoo-com">
 [:include body]

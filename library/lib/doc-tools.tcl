@@ -1720,8 +1720,15 @@ namespace eval ::nx::doc {
     :method readAsset {assetName} {
       set assetDir [find_asset_path]
       set assetPath [file join $assetDir $assetName]
-      if {[file exists $assetPath] && [file isfile $assetPath]} {
-	set fh [open $assetPath r]
+      return [:read $assetPath]
+    }
+
+    :method read {-binary:switch path} {
+      if {[file exists $path] && [file isfile $path]} {
+	set fh [open $path r]
+	if {$binary} {
+	  fconfigure $fh -encoding binary -translation binary
+	}
 	set body [read $fh]
 	catch {close $fh}
 	return $body
@@ -1733,7 +1740,7 @@ namespace eval ::nx::doc {
     # 
 
     :method write {content path} {
-      set fh [open $path w]
+      set fh [open $path a]
       puts $fh $content
       catch {close $fh}
     }
@@ -2029,7 +2036,7 @@ namespace eval ::nx::doc {
 	return [string map {"\n\n" "<br/><br/>"} $text]
       }
 
-      :public method href {-local:switch top_entity:optional} {
+      :method getBase {top_entity:optional} {
 	set path [dict create {*}[:get_upward_path -attribute {set :name}]]
 	set originator_top_entity [lindex [dict keys $path] 0]
 	if {![info exists top_entity] || [dict size $path] == 1} {
@@ -2041,11 +2048,16 @@ namespace eval ::nx::doc {
 	dict for {entity name} $path {
 	  lappend fragment_path [$entity filename]
 	} 
+	return [list $top_entity $fragment_path]
+      }
+
+      :public method href {-local:switch top_entity:optional} {
+	lassign [:getBase {*}[expr {[info exists top_entity]?$top_entity:""}]] base fragment_path
 	set fragments [join $fragment_path _]
 	if {$local} { 
 	  return $fragments
 	} else {
-	  set href "[$top_entity filename].html#$fragments"
+	  set href "[$base filename].html#$fragments"
 	  #puts stderr HREF=$href
 	  return $href
 	}
@@ -2229,6 +2241,7 @@ namespace eval ::nx::doc {
       {lang en} {description ""} {text ""} {nls_language en_US} 
       {mime_type text/html} {title ""} name text 
     }
+    Class create File -superclass Page
   }
 
 
@@ -2236,8 +2249,11 @@ namespace eval ::nx::doc {
     #
     # yuidoc refinements
     #
+    #<a class="$cssclass" title="$title" href="[:href $top_entity]">$source_anchor</a>
     :addTemplate link yuidoc {
-      {{en:somePage}}
+      [:! lassign [:getBase {*}[expr {[info exists top_entity]?$top_entity:""}]] base fragment_path]
+      [:!let basename [expr {[$base info has type ::nx::doc::@glossary]?"en:glossary#[$base name]":"en:[$base filename]#[join $fragment_path _]"}]]
+      \[\[$basename|$source_anchor\]\]
     }
 
     :method render {project entity theme {tmplName ""}} {
@@ -2251,7 +2267,7 @@ namespace eval ::nx::doc {
       }]
       $entity current_project $project
       $entity renderer [current]
-      set content [$entity render -initscript $init -theme $theme body]
+      set content [$entity render -initscript $init -theme $theme body-chunked]
       set p [::xowiki::Page new -name en:[$entity filename] \
 		 -title [$entity name] \
 		 -text [list $content text/html]]
@@ -2260,10 +2276,47 @@ namespace eval ::nx::doc {
 
     :method installAssets {project theme targetDir} {
       #
+      # render and append single glossary page to the output
+      #
+      
+      set top_level_entities [$project navigatable_parts]
+      set init [subst {
+	set project $project
+	set project_entities \[list $top_level_entities\]
+	set include glossary
+      }]
+
+      set c [$project render \
+		 -initscript $init \
+		 -theme $theme \
+		 body-chunked]
+      set p [::xowiki::Page new \
+		 -name en:glossary \
+		 -title Glossary \
+		 -text [list $c text/html]]
+      :write [$p serialize] $targetDir
+      #
       # TODO: assets (js, css, img must be wrapped as ::xowiki::Files)
       #
+      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
+      package req base64
+      array set mime {
+	js	application/x-javascript
+	css	text/css
+	png	image/png
+	gif	image/gif
+	jpg	image/jpg
+      }
+      foreach assetPath $assets {
+	set filename [file tail $assetPath]
+	set f [::xowiki::File new \
+		   -name file:$filename \
+		   -title $filename \
+		   -mime_type $mime([string trim [file extension $assetPath] "."])]
+	$f eval [list set :__file_content [::base64::encode [:read -binary $assetPath]]]
+	:write [$f serialize] $targetDir
+      }
     }
-
   }; # xowiki renderer
 }
 
