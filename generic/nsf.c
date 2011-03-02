@@ -12550,11 +12550,28 @@ AliasCmdDeleteProc(ClientData clientData) {
   FREE(AliasCmdClientData, tcd);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * IsDashArg --
+ *
+ *    Check, whether the provided argument (pointed to be the index firstArg)
+ *    starts with a "-", or is a list starting with a "-". The method returns
+ *    via **methodName the name of the dashed argument (without the dash).
+ *
+ * Results:
+ *    Enum value dashArgType.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
 
 static dashArgType
-IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, CONST char **methodName, int *objc, Tcl_Obj **objv[]) {
+IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, CONST char **methodName, 
+	  int *objc, Tcl_Obj **objv[]) {
   CONST char *flag;
   assert(obj);
 
@@ -12590,8 +12607,27 @@ IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, CONST char **methodNam
   return NO_DASH;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CallConfigureMethod --
+ *
+ *    Call a method provided as a string, and provide an error message. The
+ *    function notes as well, when the constructor is called via this
+ *    interface.  class of an object system. This method is called e.g. via
+ *    XOTcl's configure, interpretating arguments with a leading dash as
+ *    methods (now this logic is in NsfOResidualargsMethod).
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Maybe side effects from the called methods.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
-CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
+CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *initString, 
+		    CONST char *methodName,
                     int argc, Tcl_Obj *CONST argv[]) {
   int result;
   Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
@@ -12602,10 +12638,9 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodNam
   /* 
    * When configure gets "-init" passed, we call "init" and notice the fact it
    * in the object's flags.
-   *
-   * TODO: don't check hard coded method name "init"
    */
-  if (isInitString(methodName)) {
+
+  if (initString && *initString == *methodName && strcmp(methodName, initString) == 0) {
     object->flags |= NSF_INIT_CALLED;
   }
 
@@ -17202,15 +17237,26 @@ static int
 NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Obj **argv, **nextArgv, *resultObj;
   int i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
-  CONST char *methodName, *nextMethodName;
+  CONST char *methodName, *nextMethodName, *initString = NULL;
 
-  /* find arguments without leading dash */
+  /* skip arguments without leading dash */
   for (i=start; i < objc; i++) {
     if ((isdasharg = IsDashArg(interp, objv[i], 1, &methodName, &argc, &argv))) {
       break;
     }
   }
   normalArgs = i-1;
+
+  /*
+   * Get the init string; do it once, outside the loop.
+   */
+  if (i<objc) {
+    NsfObjectSystem *osPtr = GetObjectSystem(object);
+    Tcl_Obj *initObj = osPtr->methods[NSF_o_init_idx];
+    if (initObj) {
+      initString = ObjStr(initObj);
+    }
+  }
 
   for( ; i < objc;  argc=nextArgc, argv=nextArgv, methodName=nextMethodName) {
     Tcl_ResetResult(interp);
@@ -17222,7 +17268,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
             break;
           }
         }
-        result = CallConfigureMethod(interp, object, methodName, argc+1, objv+i+1);
+        result = CallConfigureMethod(interp, object, initString, methodName, argc+1, objv+i+1);
         if (result != TCL_OK) {
           return result;
 	}
@@ -17234,7 +17280,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
 	if (i<objc) {
 	  isdasharg = IsDashArg(interp, objv[i], 1, &nextMethodName, &nextArgc, &nextArgv);
         }
-	result = CallConfigureMethod(interp, object, methodName, argc+1, argv+1);
+	result = CallConfigureMethod(interp, object, initString, methodName, argc+1, argv+1);
 	if (result != TCL_OK) {
 	  return result;
         }

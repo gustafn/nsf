@@ -159,9 +159,6 @@ typedef struct NsfMemCounter {
 #define isCreateString(m) (\
 	*m   == 'c' && m[1] == 'r' && m[2] == 'e' && m[3] == 'a' && \
 	m[4] == 't' && m[5] == 'e' && m[6] == '\0')
-#define isInitString(m) (\
-	*m   == 'i' && m[1] == 'n' && m[2] == 'i' && m[3] == 't' && \
-	m[4] == '\0')
 #define isTypeString(m) (\
 	*m   == 't' && m[1] == 'y' && m[2] == 'p' && m[3] == 'e' && \
 	m[4] == '\0')
