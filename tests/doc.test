@@ -1117,6 +1117,13 @@ set project [processor process \
     -layout many-to-many \
     -outdir [::nsf::tmpdir]
 
+::nx::doc::make doc \
+    -format xowiki \
+    $project \
+    -theme yuidoc \
+    -layout many-to-1 \
+    -outdir [::nsf::tmpdir]
+
 puts stderr >>>>>>>NextScriptingLanguage<<<<<<<<
 
 set ::nx::excludes {
@@ -1204,6 +1211,13 @@ processor process \
     -format html \
     $project \
     -theme yuidoc \
+    -outdir [::nsf::tmpdir]
+
+::nx::doc::make doc \
+    -format xowiki \
+    $project \
+    -theme yuidoc \
+    -layout many-to-1 \
     -outdir [::nsf::tmpdir]
 
 # # # # # # # # # # # # # # # # # # # #
