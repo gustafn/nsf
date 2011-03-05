@@ -2456,15 +2456,12 @@ sudo make install
    ::nsf::importvar => ::nsf::var::import
    ::nsf::setvar    => ::nsf::var::set
 
+- improved misleading error message for method modifiers "public" and
+  "protected", as well as for "class-object"
+- extended regression test
 
 TODO:
 
-- fix misleading error message:
-   nx::Class create C {
-    :public method foo {x} {return $x}
-    :public object method bar {x} {return $x}
-    :create c1
-   }
 
 - serializer: check, why catch is needed for object-level alias 
   (search for ns_cache_flush)

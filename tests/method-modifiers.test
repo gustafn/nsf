@@ -381,3 +381,21 @@ Test case methoddelete {
   ? {::nsf::method::delete C -per-object bar} ""
   ? {::nsf::method::delete C -per-object bar} "Object C: method bar is not defined"
 }
+
+#
+# Test error message of method modifier
+#
+Test parameter count 1
+
+Test case errormessage {
+  nx::Class create C
+  ? {C public method foo {x} {return $x}} "::nsf::classes::C::foo"
+  ? {C public object method bar {x} {return $x}} \
+      "'object' is not a method defining method"
+  ? {C protected object method bar {x} {return $x}} \
+      "'object' is not a method defining method"
+  ? {C object method bar {x} {return $x}} \
+      {Method 'object' unknown for ::C. Consider '::C create object method bar x {return $x}' instead of '::C object method bar x {return $x}'}
+  ? {C public class-object object method bar {x} {return $x}} \
+      "'object' not allowed to be modified by 'class-object'"
+}

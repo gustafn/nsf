@@ -217,6 +217,7 @@ namespace eval ::nx {
       if {$what in [list "filterguard" "mixinguard"]} {
         return [::nsf::dispatch [::nsf::self] ::nsf::methods::object::$what {*}$args]
       }
+      error "'$what' not allowed to be modified by 'class-object'"
     }
     # define unknown handler for class
     :method unknown {m args} {
@@ -227,13 +228,16 @@ namespace eval ::nx {
     ::nsf::method::property [::nsf::self] unknown call-protected true
   }
 
+  # Well, class-object is not a method defining method either, but a modifier
+  array set ::nsf::methodDefiningMethod {method 1 alias 1 attribute 1 forward 1 class-object 1}
 
   Object eval {
 
     # method modifier "public"
     :method public {args} {
-      set p [lsearch -regexp $args {^(method|alias|attribute|forward)$}]
-      if {$p == -1} {error "$args is not a method defining method"}
+      if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
+	error "'[lindex $args 0]' is not a method defining method"
+      }
       set r [::nsf::dispatch [::nsf::current object] {*}$args]
       if {$r ne ""} {::nsf::method::property [::nsf::self] $r call-protected false}
       return $r
@@ -241,8 +245,9 @@ namespace eval ::nx {
 
     # method modifier "protected"
     :method protected {args} {
-      set p [lsearch -regexp $args {^(method|alias|attribute|forward)$}]
-      if {$p == -1} {error "$args is not a method defining command"}
+      if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
+	error "'[lindex $args 0]' is not a method defining method"
+      }
       set r [{*}:$args]
       if {$r ne ""} {::nsf::method::property [::nsf::self] $r call-protected true}
       return $r
