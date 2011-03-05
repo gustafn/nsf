@@ -2460,11 +2460,13 @@ sudo make install
   "protected", as well as for "class-object"
 - extended regression test
 
+- serializer: catch for object-level alias apparently 
+  not needed anymore (search for ns_cache_flush)
+- silence compilation when compiled without dtrace
+
+
+
 TODO:
-
-
-- serializer: check, why catch is needed for object-level alias 
-  (search for ns_cache_flush)
 
 - document value added replacements of Tcl functions
 

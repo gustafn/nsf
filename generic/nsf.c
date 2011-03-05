@@ -14772,6 +14772,7 @@ static int
 NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
   int bool;
 
+#if defined(NSF_DTRACE)
   if (NSF_DTRACE_CONFIGURE_PROBE_ENABLED()) {
     /* TODO: opts copied from tclAPI.h; maybe make global value? */
     static CONST char *opts[] = {
@@ -14779,6 +14780,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
       "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
     NSF_DTRACE_CONFIGURE_PROBE((char *)opts[configureoption-1], valueObj ? ObjStr(valueObj) : NULL);
   }
+#endif
 
   if (configureoption == ConfigureoptionObjectsystemsIdx) {
     NsfObjectSystem *osPtr;

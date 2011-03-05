@@ -671,7 +671,11 @@ namespace eval ::nx::serializer {
 	# TODO look into the code, why we need the catch here. I found
 	# the problem with an object level alias for ns_cache_flush
 	set source ""
-	catch {set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]}
+	set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]
+#	if {
+#	    [catch {set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]} errorMsg] } {
+#	  puts stderr "+++++ serializer: could not get definition of '[lindex $definition end]': $errorMsg"
+#	}
 	if {$source ne ""} {
 	  set obj [lindex $source 0]
 	  if {$obj eq $x} {
