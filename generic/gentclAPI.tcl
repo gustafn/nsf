@@ -97,14 +97,14 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       set if [list "NsfClass *cl"]
       append intro \
           "  NsfClass *cl =  NsfObjectToClass(clientData);" \n \
-          {  if (!cl) return NsfObjErrType(interp, NULL, objv[0], "Class", NULL);}
+          {  if (!cl) return NsfObjErrType(interp, NULL, clientData ? ((NsfObject*)clientData)->cmdName : NsfGlobalObjs[NSF_EMPTY], "Class", NULL);}
     }
     object {
       set a  [list obj]
       set if [list "NsfObject *obj"]
       append intro \
           "  NsfObject *obj =  (NsfObject *)clientData;" \n \
-          {  if (!obj) return NsfObjErrType(interp, NULL, objv[0], "Object", NULL);}
+          {  if (!obj) return NsfObjErrType(interp, NULL, clientData ? ((NsfObject*)clientData)->cmdName : NsfGlobalObjs[NSF_EMPTY], "Object", NULL);}
     }
     ""    {
       append intro "  (void)clientData;\n"

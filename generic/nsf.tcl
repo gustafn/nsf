@@ -30,9 +30,9 @@ namespace eval ::nsf {
       }
       if {$per_object} {
 	set cmd [linsert $(definition) 1 -per-object]
-	eval [linsert $cmd 1 $object]
+	return [eval [linsert $cmd 1 $object]]
       } else {
-        eval [linsert $(definition) 1 $object]
+        return [eval [linsert $(definition) 1 $object]]
       }
     } else {
       error "cannot require method $name for $object, method unknown"
@@ -69,7 +69,7 @@ namespace eval ::nsf {
   # ::nsf::mixin 
   #
   # Provide a similar interface as for ::nsf::method::create, ::nsf::method::alias,
-  # etc..  Semantically, ::nsf::mxiin behaves like a "mixin add", but
+  # etc..  Semantically, ::nsf::mixin behaves like a "mixin add", but
   # can be used as well for deleting the mixin list (empty last
   # argument).
   #
@@ -89,7 +89,7 @@ namespace eval ::nsf {
   # provide some popular methods for "method require"
   #
   ::nsf::method::provide autoname {::nsf::method::alias autoname ::nsf::methods::object::autoname}
-  ::nsf::method::provide exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
+  ::nsf::method::provide exists   {::nsf::method::alias exists   ::nsf::methods::object::exists}
 
   #
   # exit handlers

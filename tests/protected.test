@@ -81,11 +81,11 @@ C protected method foo {} {return [current method]}
 ? {catch {C method foo {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'foo' of ::C cannot be overwritten. Derive e.g. a sub-class!}
 # check a predefined protection
-? {catch {::nx::Class method dealloc {a b c} {...}}  errorMsg; set errorMsg} \
-    {Method 'dealloc' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!}
+? {catch {::nx::Class method create {a b c} {...}}  errorMsg; set errorMsg} \
+    {Method 'create' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!}
 # try to redefined via alias
-? {catch {::nsf::method::alias Class dealloc ::set}  errorMsg; set errorMsg} \
-    {Method 'dealloc' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!}
+? {catch {::nsf::method::alias Class create ::set}  errorMsg; set errorMsg} \
+    {Method 'create' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!}
 # try to redefine via forward
 ? {catch {C forward SET ::set}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!}

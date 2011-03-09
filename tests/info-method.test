@@ -69,7 +69,7 @@ Test case base {
   ? {::nx::Class info lookup methods -source application} ""
 
   set object_methods "alias attribute class configure contains copy destroy eval filter forward info method mixin move protected public require volatile"
-  set class_methods "alias alloc attribute attributes class class-object configure contains copy create dealloc destroy eval filter forward info method mixin move new protected public require superclass volatile"
+  set class_methods "alias attribute attributes class class-object configure contains copy create destroy eval filter forward info method mixin move new protected public require superclass volatile"
 
   ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
   ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods

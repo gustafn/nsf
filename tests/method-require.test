@@ -78,3 +78,14 @@ Test case parent-require {
   ? {::1::2::3::4 info class} "::C"
 }
 
+#
+# Test what happens if a class-specific method is registered and
+# called on an object.
+#
+Test case method-require-scope {
+
+  nx::Object create o
+  ::nsf::method::require o alloc
+  ? {o alloc x} {expected Class but got "::o"}
+
+}

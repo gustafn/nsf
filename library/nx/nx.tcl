@@ -19,7 +19,7 @@ namespace eval ::nx {
     -class.requireobject __unknown
     -object.configure configure
     -object.defaultmethod defaultmethod 
-    -object.destroy destroy 
+    -object.destroy destroy
     -object.init init
     -object.move move 
     -object.objectparameter objectparameter 
@@ -54,7 +54,7 @@ namespace eval ::nx {
   # provide the standard command set for Class
   foreach cmd [info command ::nsf::methods::class::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "filterguard" "mixinguard"]} continue
+    if {$cmdName in [list "filterguard" "mixinguard" "alloc" "dealloc"]} continue
     # set tgt [Class ::nsf::methods::class::info::methods -methodtype alias -callprotection all $cmdName]
     #if {$tgt ne "" && [::nsf::method::property Class $cmdName redefine-protected]} {
     #  ::nsf::method::property Class $cmdName redefine-protected false
@@ -76,9 +76,12 @@ namespace eval ::nx {
 
   # protect some methods against redefinition
   ::nsf::method::property Object destroy redefine-protected true
-  ::nsf::method::property Class  alloc   redefine-protected true
-  ::nsf::method::property Class  dealloc redefine-protected true
+  #::nsf::method::property Class  alloc   redefine-protected true
+  #::nsf::method::property Class  dealloc redefine-protected true
   ::nsf::method::property Class  create  redefine-protected true
+
+  ::nsf::method::provide alloc   {::nsf::method::alias alloc   ::nsf::methods::class::alloc}
+  ::nsf::method::provide dealloc {::nsf::method::alias dealloc ::nsf::methods::class::dealloc}
 
   #
   # The method __resolve_method_path resolves a space separated path
@@ -399,7 +402,7 @@ namespace eval ::nx {
     # Create slot container object if needed
     set slotContainer ${baseObject}::slot
     if {![::nsf::isobject $slotContainer]} {
-      ::nx::Object alloc $slotContainer
+      ::nx::Object ::nsf::methods::class::alloc $slotContainer
       ::nsf::method::property ${baseObject} -per-object slot call-protected true
       ::nsf::method::property ${baseObject} -per-object slot redefine-protected true
       ::nsf::method::property ${baseObject} -per-object slot slotcontainer true

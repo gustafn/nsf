@@ -2464,9 +2464,36 @@ sudo make install
   not needed anymore (search for ns_cache_flush)
 - silence compilation when compiled without dtrace
 
+- nx: 
+  * removed methods ::nx::Class.alloc and 
+    ::nx::Class.dealloc from predefined method-set
 
+  * added defintions such that these methods can be loaded via
+      ::nsf::method::require ::nx::Class alloc
+      ::nsf::method::require ::nx::Class dealloc
+
+  * make explicit that "method ... require" returns a method-handle
+
+  * removed misleading reference in error message, when a class-spefic
+    method was called on an object; solution is somewhat dangerous for
+    potentially unknwon client data
+
+  * added regression tests
 
 TODO:
+
+- when alloc|dealloc are loaded via require, we have
+  no redefined-protection on those. Since the script does not know,
+  on which class|object these are defined one cannot make assumption
+  on these. Problem?
+- The structure of the script body requires currently that 
+  "class|object ?-per-object?" is inserted at the 1nd pos.
+  This is not sufficient, if we would like to test in this 
+  script, whether the first arg is e.g. a class.
+- make pot.unknown client data more safe (see above)
+- check removal of more internal-callback methods
+- update method-summary and differences to xotcl
+  in tutorial/migration guide
 
 - document value added replacements of Tcl functions
 

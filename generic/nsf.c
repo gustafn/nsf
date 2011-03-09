@@ -2348,8 +2348,8 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
     } else if ((osPtr->definedMethods & flag) == 0) {
       /* not defined, we must call directly */
       // TODO remove me
-      fprintf(stderr, "Warning: CallDirectly object %s idx %s not defined\n",
-	      ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1);
+      /*fprintf(stderr, "Warning: CallDirectly object %s idx %s not defined\n",
+	ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1);*/
     } else {
       if (!(object->flags & NSF_FILTER_ORDER_VALID)) {
         FilterComputeDefined(interp, object);
