@@ -246,3 +246,36 @@
     </div>
   </div>
 </div>}]
+
+[:!let hooks [:!get -sortedby name @class-hook]]
+[:? {[llength $hooks] > 0} {
+<div rel="yui:methods" resource="#methods">
+  <div class="section method details">
+    <h3 id="methods">Hook methods</h3>
+    <div class="section field member"
+         rel="yui:member"  resource="#">
+      <div class="content" rel="yui:properties">
+        <code>
+          [:for m $hooks {
+	  [:!let modifier [expr {[$m pinfo get -default 0 bundle call-protected]?"protected":""}]]
+	  [:!let depr [expr {[$m !get @deprecated]?"deprecated":""}]]
+         <span rel="yui:property"
+	        class="filter $modifier [$m statustoken] $depr"
+                resource="#[$m href -local]">                                        
+            <a
+               href="#[$m href -local]" property="yui:name"
+               title="[$m name]">[$m name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    <hr>
+    <div class="content">
+      [:for method $hooks {
+      [$method render hookmethod]
+      }] <!-- end-of-for -->
+    </div>
+  </div>
+</div>
+}]

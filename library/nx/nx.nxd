@@ -187,7 +187,7 @@
 # Methods of ::nx::Class
 ########################################################################
 
-# @class.method {Class alloc}
+# @class.hook {Class alloc}
 #
 # Creates an uninitialized object. The method '''alloc''' is used by
 # <<@class.method "::nx::Class create">> to allocate an object and to
@@ -196,7 +196,6 @@
 # situations, an application developer may consider bypassing the
 # overall '''create''' mechanism to create uninitialized objects.
 #
-# @property syshook
 # @parameter objectName The designated object identifier assigned to the
 # object storage to be allocated.
 # @return The name of the allocated, uninitialized object
@@ -253,9 +252,8 @@
 # @parameter args arguments to be passed down to the object creation
 # procedure used to initialize the object.
 # @return The name of the created, fully initialized object.
-# @syshook
 
-# @class.method {Class dealloc}
+# @class.hook {Class dealloc}
 #
 # Marks objects for physical deletion in memory. Beware the fact
 # that calling '''dealloc''' does not necessarily cause the object
@@ -267,10 +265,9 @@
 # '''::nx::Class''', you may consider refining it in a subclass or
 # <<@gls mixincls>> for customizing the destruction process.
 #
-# @syshook
 # @parameter object The name of the object to be scheduled for deletion.
 
-# @class.method {Class recreate}
+# @class.hook {Class recreate}
 #
 # This method is called upon recreating an object. Recreation is the
 # scheme for resolving object naming conflicts in the dynamic and
@@ -304,7 +301,7 @@
 # @parameter args Arbitrary vector of arguments
 # @return The name of the recreated object
 
-# @class.method {Object residualargs}
+# @class.hook {Object residualargs}
 #
 # The implementation of the abstracted '''residualargs''' hook called
 # from within the '''interp''' when executing <<@class.method {Object
@@ -312,7 +309,6 @@
 # the object argument vector, to be forwarded to the constructor
 # <<@class.method {Object init}>>.
 #
-# @syshook
 # @parameter args
 
 # @class.method {Object cleanup}
@@ -326,7 +322,7 @@
 #
 # @syshook
 
-# @class.method {Class unknown}
+# @class.hook {Object unknown}
 #
 # A hook implementation of the abstracted '''unknown''' hook, called
 # from within the '''interp''' when the method argument could not
@@ -336,8 +332,6 @@
 # @parameter args	Contains the remainder of the original
 # 			argument vector of the indirected method
 # 			invocation
-#
-# @syshook
 
 # @command next
 #
@@ -347,7 +341,7 @@
 #
 # @use ::nsf::current
 
-# @class.method {Object configure}
+# @class.hook {Object configure}
 #
 # This method participates in the object creation process. It is
 # automatically invoked after having produced a new object by
@@ -361,11 +355,10 @@
 # "::nx::Object objectparameter">>).  The method '''configure'''
 # can be called at arbitrary times to "re-set" an object.
 #
-# @syshook
 # @parameter args The variable argument vector stores the object
 # parameters and their values
 
-# @class.method {Object defaultmethod}
+# @class.hook {Object defaultmethod}
 #
 # An abstracted hook method which is invoked upon calls to an object
 # without providing a method name to identify the receiver. In <<@gls
@@ -378,10 +371,8 @@
 # '''
 # This hook is a versatile extension mechanism to alter the standalone
 # use of Tcl commands representing objects.
-#
-# @syshook
 
-# @class.method {Object init}
+# @class.hook {Object init}
 #
 # An abstracted hook method which participates in the object creation
 # process controlled by <<@class.method {Class create}>>. It is
@@ -396,7 +387,6 @@
 # 			{Class new}>> or <<@class.method {Class
 # 			create}>>. See also <<@class.method {Object
 # 			residualargs}>>
-# @syshook
 
 # @class.method {Object destroy}
 #
@@ -429,9 +419,6 @@
 # Note, however, that '''destroy''' is protected against
 # application-level redefinition. You must refine it in a subclass
 # or a <<@gls mixin_class>>.
-#
-# @syshook
-
 
 # @class.method {Object uplevel}
 #
@@ -610,8 +597,6 @@
 # representing an object.
 #
 # @parameter newName The name of the target object
-# @syshook
-
 
 # @class.method {Class forward}
 #
@@ -629,6 +614,16 @@
 # @parameter name
 # @syshook
 
+# @class.hook {Class __unknown}
+#
+# This method is an abstracted hook method which is invoked from
+# within the language runtime upon resolving unknown classes. A class
+# is considered "unknown" when no so-named Tcl command is registered
+# with the current '''interp'''. The method can be replaced by
+# application-level implementations to realise application-specific
+# class name resolution and class acquisition schemes.
+#
+# @parameter name
 
 # @class.method {Object info}
 #
@@ -813,7 +808,7 @@
 # If set to '''true''', the accessor methods are registered with the
 # domain object scope only. It defaults to '''false'''.
 
-# @class.method {Object objectparameter}
+# @class.hook {Object objectparameter}
 #
 # An abstracted hook method which is primarily used from within the
 # object creation process, that is, the object configuration step
@@ -825,7 +820,6 @@
 # way. By providing custom hook implementations (by overloading),
 # developers can define their own object parametrisation scheme.
 #
-# @syshook
 # @parameter lastparameter 	Denotes the object parameter to be appended
 # 				to the overall object parameter
 # 				specification (i.e., at the last

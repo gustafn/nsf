@@ -1,0 +1,17 @@
+[:? {![info exists parts]} {
+[:!let parts [:navigatable_parts]]
+}] 
+[:for feature [dict keys $parts] {
+[:!let f [dict get $parts $feature]]
+<p>Contained [string tolower [$feature pretty_plural]]: [llength $f]</p>
+<div id="splash_classList">
+  <ul>
+    [:!let idx 0]
+    [:for finstance $f {
+    [:!let iscript [join [list [list set top_entity [:origin]] [list set source_anchor [$finstance print_name -status]] [list set title [$finstance print_name]] [list set cssclass ""]] \n]]
+    <li>[$finstance render -initscript $iscript link]</li>
+    [incr idx; return]
+    }]
+  </ul>
+</div>
+}]

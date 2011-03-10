@@ -33,7 +33,7 @@
         [:for src  [dict keys $refs] {
         <span rel="yui:property"
               resource="[$src href]"> 
-          [$src make_link [current]]
+	  [$src make_link [current]]
           <!--<a class=""
              href="[$src href]" property="yui:name"
              title="[$src name]">[$src name]</a>-->&nbsp;([dict get $refs $src])
