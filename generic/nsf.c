@@ -11661,10 +11661,10 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     object->flags |= NSF_INIT_CALLED;
 
     if (CallDirectly(interp, object, NSF_o_init_idx, &methodObj)) {
-      fprintf(stderr, "%s init directly\n", ObjectName(object));
+      //fprintf(stderr, "%s init directly\n", ObjectName(object));
       result = TCL_OK;
     } else {
-      fprintf(stderr, "%s init dispatch\n", ObjectName(object));
+      //fprintf(stderr, "%s init dispatch\n", ObjectName(object));
       result = CallMethod((ClientData) object, interp, methodObj,
 			  nobjc+2, nobjv, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
     }
