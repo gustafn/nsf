@@ -17,7 +17,6 @@ namespace eval ::nx {
     -class.dealloc dealloc
     -class.recreate recreate 
     -class.requireobject __unknown
-    -object.cleanup cleanup
     -object.configure configure
     -object.defaultmethod defaultmethod 
     -object.destroy destroy
