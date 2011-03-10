@@ -1,75 +1,12 @@
 <!-- Below, we assume that the template is evaluated in the context of --
   -- a @package instance -->
-<h3>Package: ${:name}
-  
-</h3>
+<h3>Package: ${:name} </h3>
 <div class="description summary">
   [:as_text]
 </div>
-
-
 [:?var :@require {
 <div class="content">
   Package requires: ${:@require}
 </div>
-} ]
-
-<div class="yui-gc">
-  <div class="yui-u first">
-    
-    [:?var :@class {
-        <p>This package contains [llength ${:@class}] classes:</p>
-    <script>
-      //var YUI_CLASS_LIST = classList;
-    </script>
-    <div id="splash_classList">
-      <ul>
-	[:!let idx 0]
-	[:for class [:!get -sortedby name @class] {
-	 <li><a href="[${class} filename].html" title="[${class} name]" id="class_$idx">[${class} print_name -status]</a></li>
-	[incr idx; return]
-	} ]
-      </ul>
-    </div>
-    } ] 
-
-    [:?var :@object {
-        <p>This package contains [llength ${:@object}] objects:</p>
-    <script>
-      //var YUI_CLASS_LIST = classList;
-    </script>
-    <div id="splash_classList">
-      <ul>
-	[:!let idx 0]
-	[:for obj [:!get -sortedby name @object] {
-	 <li><a href="[${obj} filename].html" title="[${obj} name]"
-	id="class_$idx">[${obj} print_name -status]</a></li>
-	[incr idx; return]
-	} ]
-      </ul>
-    </div>
-    } ] 
-
-
-    [:?var :@command {
-        <p>This package contains [llength ${:@command}] commands:</p>
-    <script>
-      //var YUI_CLASS_LIST = classList;
-    </script>
-    <div id="splash_classList">
-      <ul>
-	[:!let idx 0]
-	[:for cmd [:!get -sortedby name @command] {
-	 <li><a href="[${cmd} filename].html" title="[$cmd name]"
-	id="cmd_$idx">[$cmd print_name -status]</a></li>
-	[incr idx; return]
-	} ]
-      </ul>
-    </div>
-
-    } ] 
-  </div>
-  <div class="yui-u">
-    <!-- TODO: anything that goes here? -->
-  </div>
-</div>
+}]
+[:include overview]

@@ -13,8 +13,10 @@
     <div class="summary description">
       This is the API documentation for the 
       <a href="[:name]">[:name]</a> project.
-      <p>Choose a package, object or command name from the list for more information.</p>
+      <p>Choose a package, class, object or command name from the list for more information.</p>
     </div>
+    [:!let parts $project_entities]
+    [:include overview]
     } - {
     <!-- delegate to the entity-specific template -->
     [:include]

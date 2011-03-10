@@ -715,9 +715,10 @@ namespace eval ::nx::doc {
     }
 
     :public method owned_parts {
-	-class:object
+	{-class:object "::nx::Object"}
+	-where
       } {
-      set r [dict create]
+      set __owned_parts [dict create]
       foreach {s cls} [:part_attributes] {
 	#
 	# Note: For the time being, we skip over the bottom-most level of
@@ -728,15 +729,27 @@ namespace eval ::nx::doc {
 		[[$s part_class] info superclass -closure $class] eq ""} continue;
 	set accessor [$s name]
 	if {[info exists :$accessor]} {
-	  dict set r $s [sorted [:$accessor] name]
+	  set items [sorted [:$accessor] name]
+	  if {[info exists where]} {
+	    set l [list]
+	    foreach i $items {
+	      if {[$i eval [list expr $where]]} {
+		lappend l $i
+	      }
+	    }
+	    set items $l
+	  }
+	  if {$items ne ""} {
+	    dict set __owned_parts $s $items
+	  }
 	}
       }
-      return $r
+      return $__owned_parts
     }
-
+    
     :public method validate {} {
       next
-      dict for {s entities} [:owned_parts] {
+      dict for {s entities} [:owned_parts -where "!\${:@stashed}"] {
 	foreach e $entities {
 	  # TODO: for now, it is sufficient to escape @use chains
 	  # here. review later ...
@@ -1085,6 +1098,14 @@ namespace eval ::nx::doc {
 	
 	:public forward @method %self @class-method
 	:public forward @class-object-method %self @object-method
+
+	:public forward @hook %self @class-hook
+	:attribute @class-hook -class ::nx::doc::PartAttribute {
+	  :pretty_name "Hook method"
+	  :pretty_plural "Hook methods"
+	  set :part_class ::nx::doc::@method
+	}
+
 	:attribute @class-method -class ::nx::doc::PartAttribute {
 	  :pretty_name "Provided method"
 	  :pretty_plural "Provided methods"
@@ -1412,22 +1433,25 @@ namespace eval ::nx::doc {
 
   Class create TemplateData {
     
-    #:attribute current_template_name
-
     :class-object attribute renderer
     :public forward renderer [current] %method
 
-    #:class-object attribute current_theme
-    #:public forward current_theme [current] %method
+    :public forward rendered [current] %method
+    :class-object method "rendered push" {e:object,type=::nx::doc::Entity} {
+      if {![info exists :__rendered_entity]} {
+	set :__rendered_entity [list]
+      }
+      set :__rendered_entity [concat $e {*}${:__rendered_entity}]
+    }
 
-    #
-    # TODO: For now, this acts as the counterweight to "origin",
-    # when @use aliasing is used, processed_entity can be used to
-    # refer to the actual entity at the upper end of the aliasing
-    # chain. Verify, whether this is an acceptable approach ...
-    #
-    :class-object attribute rendered_entity:object,type=::nx::doc::Entity
-    :public forward rendered_entity [current] %method
+    :class-object method "rendered pop" {} {
+      set :__rendered_entity [lassign ${:__rendered_entity} e]
+      return $e
+    }
+
+    :class-object method "rendered top" {} {
+      return [lindex ${:__rendered_entity} 0]
+    }
 
     :public method render_start {} {;}
     :public method render_end {} {;}
@@ -1440,7 +1464,7 @@ namespace eval ::nx::doc {
       -theme
       {name:substdefault "[namespace tail [:info class]]"}
     } {
-      :rendered_entity [current]
+      :rendered push [current]
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
       # set tmplscript [list subst [:read_tmpl $template]]
       set tmplscript [list subst [[:renderer] getTemplate $name \
@@ -1456,6 +1480,7 @@ namespace eval ::nx::doc {
 	$tmplscript
       }]]
       :render_end
+      :rendered pop
       return [string trim $content \n]
     }
     
@@ -1483,20 +1508,26 @@ namespace eval ::nx::doc {
 	set r [uplevel 1 [list $origin eval [list ::set :$varname] ]]
       }
       
+      set where_clause "!\${:@stashed}"
       if {[info exists where]} {
-	set l [list]
-	foreach item $r {
-	  if {[$item eval [list expr $where]]} {
+	append where_clause "&& $where"
+      }
+      set l [list]
+      foreach item $r {
+	if {![::nsf::isobject $item] || ![$item info has type ::nx::doc::Entity]} {
+	  lappend l $item
+	} else {
+	  if {[[$item origin] eval [list expr $where_clause]]} {
 	    lappend l $item
 	  }
 	}
-	set r $l
-      }  
+      }
+      set r $l  
       
       if {[info exists with]} {
 	set l [list]
 	foreach item $r {
-	  lappend l [$item eval [list set :$with]] $item
+	  lappend l [[$item origin] eval [list set :$with]] $item
 	}
 	set r $l
       }
@@ -1547,7 +1578,7 @@ namespace eval ::nx::doc {
 	  }
 	  return [uplevel 1 [list subst $next_then]]
 	}
-	return [:$next {*}$args]
+	return [uplevel 1 [list [current] $next {*}$args]]
       }
     }
     
@@ -1949,12 +1980,14 @@ namespace eval ::nx::doc {
 	return "\[[join $js_array ,\n]\]"
       }
       
-      :method navigatable_parts {} {
+      :public method navigatable_parts {} {
 	#
 	# TODO: Should I wrap up delegating calls to the originator
 	# entity behind a unified interface (a gatekeeper?)
 	#
-	return [[:origin] owned_parts -class ::nx::doc::StructuredEntity]
+	return [[:origin] owned_parts \
+		    -where "!\${:@stashed}" \
+		    -class ::nx::doc::StructuredEntity]
       }
        
       :method listing {{-inline true} script} {
@@ -2000,7 +2033,7 @@ namespace eval ::nx::doc {
 	  set path [dict create {*}$path]
 	  set entities [dict keys $path]
 	  set id [lindex $entities end]
-	  return [$id render_link $tag [:rendered_entity] $path]
+	  return [$id render_link $tag [:rendered top] $path]
 	}
       }
 	
@@ -2094,7 +2127,7 @@ namespace eval ::nx::doc {
 	dict for {feature instances} $top_level_entities {
 	  if {[$feature name] eq "@package"} {
 	    foreach pkg $instances {
-	      dict for {pkg_feature pkg_feature_instances} [$pkg owned_parts] {
+	      dict for {pkg_feature pkg_feature_instances} [$pkg navigatable_parts] {
 		dict lappend top_level_entities $pkg_feature \
 		    {*}$pkg_feature_instances
 	      }
@@ -2369,19 +2402,29 @@ namespace eval ::nx::doc {
     # some callbacks invoked from within the sandbox interp
     #
 
+    :public method "cpackage pop" {} {
+      set :current_packages [lrange ${:current_packages} 0 end-1]
+    }
+    :public method "cpackage push" {p} {
+      lappend :current_packages [string tolower $p]
+    }
+    :public method "cpackage top" {} {
+      return [lindex ${:current_packages} end]
+    }
+
     :public method at_source {filepath} {
-      set cpackage [lindex ${:current_packages} end]
+      set cpackage [:cpackage top]
       if {$cpackage in ${:permissive_pkgs}} {
 	lappend :source $cpackage $filepath
       }
     }
 
-    :public method at_register_package {pkg_name} {
-      lappend :current_packages [string tolower $pkg_name]
+    :public method at_register_package {pkg_name version} {
+      dict set :registered_packages $pkg_name version $version
     }
-    :public method at_deregister_package {} {
-      set :current_packages [lrange ${:current_packages} 0 end-1]
-    }
+#    :public method at_deregister_package {} {
+#      set :current_packages [lrange ${:current_packages} 0 end-1]
+#    }
     # [list ->status:in,arg=complete|missing|prototype|mismatch,slot=[current] missing]
     :public method at_register_command [list \
 	name:fqn,slot=[current] \
@@ -2394,7 +2437,8 @@ namespace eval ::nx::doc {
      ] {
       # peek the currently processed package (if any)
       set storable_vars [info vars >*]
-      set cpackage [lindex ${:current_packages} end]
+      # set cpackage [lindex ${:current_packages} end]
+      set cpackage [:cpackage top]
       if {$cpackage in ${:permissive_pkgs}} {
 	dict set :registered_commands $name package $cpackage
 	foreach svar $storable_vars {
@@ -2404,7 +2448,7 @@ namespace eval ::nx::doc {
     }
 
     :public method at_deregister_command [list name:fqn,slot=[current]] {
-      set cpackage [lindex ${:current_packages} end]
+      set cpackage [:cpackage top]
       if {$cpackage in ${:permissive_pkgs}} {
 	dict unset :registered_commands $name
       }
@@ -2613,8 +2657,9 @@ namespace eval ::nx::doc {
 	      switch -glob -- $subcmd {
 		ifneeded {
 		  lassign $args pkg_name version script
-		  append wrapped_script "::nx::doc::__at_register_package $pkg_name;\n" $script "\n::nx::doc::__at_deregister_package;"
+		  append wrapped_script "::nx::doc::__cpackage push $pkg_name;\n" $script "\n::nx::doc::__cpackage pop;"
 		  set args [list $pkg_name $version $wrapped_script]
+		  ::nx::doc::__at_register_package $pkg_name $version
 		}
 	      } 
 	      interp invokehidden "" -namespace $ns package $subcmd {*}$args
@@ -2637,9 +2682,9 @@ namespace eval ::nx::doc {
 	    #::interp hide "" auto_import
 	    ::proc ::auto_import {pattern} {
 	      set ns [uplevel [list namespace current]]
-	      ::nx::doc::__at_register_package TCL_LIBRARY;
+	      ::nx::doc::__cpackage push TCL_LIBRARY;
 	      interp invokehidden "" -namespace $ns auto_import $pattern
-	      ::nx::doc::__at_deregister_package;
+	      ::nx::doc::__cpackage pop;
 	    }
 	  }
 	  proc __init {} {
@@ -2965,10 +3010,10 @@ namespace eval ::nx::doc {
 	  "" [current] at_register_command
       ::interp alias ${:interp} ::nx::doc::__at_deregister_command \
 	  "" [current] at_deregister_command
+      ::interp alias ${:interp} ::nx::doc::__cpackage \
+	  "" [current] cpackage
       ::interp alias ${:interp} ::nx::doc::__at_register_package \
 	  "" [current] at_register_package
-      ::interp alias ${:interp} ::nx::doc::__at_deregister_package \
-	  "" [current] at_deregister_package
       ::interp alias ${:interp} ::nx::doc::__at_source \
 	  "" [current] at_source
       next
@@ -3284,6 +3329,19 @@ namespace eval ::nx {
       }
     }
 
+    Mixin create [current]::@package {
+      :public method init args {
+	next
+	set prj [:current_project]
+	if {$prj ne ""} {
+	  set box [$prj sandbox]
+	  if {[$box eval [concat dict exists \${:registered_packages} ${:name}]]} {
+	    :pdata [$box eval [concat dict get \${:registered_packages} ${:name}]]
+	  }
+	}
+      }
+    }
+
     Mixin create [current]::@method -superclass [current]::Entity {
       :method init args {
 	next
@@ -3293,12 +3351,9 @@ namespace eval ::nx {
 	set prj [:current_project]
 	if {$prj ne ""} {
 	  set box [$prj sandbox]	  
-	  #puts stderr "--- ::nsf::dispatch $obj ::nsf::methods::${scope}::info::method handle $method_name"
-	  set script "array set \"\" \[$obj eval {:__resolve_method_path \"$method_name\"}\]; ::nsf::dispatch \$(object) ::nsf::methods::${scope}::info::method handle \$(methodName)"
+	  set script "if {\[::nsf::isobject $obj\]} {array set \"\" \[$obj eval {:__resolve_method_path \"$method_name\"}\]; ::nsf::dispatch \$(object) ::nsf::methods::${scope}::info::method handle \$(methodName)}"
 	  set cmdname [$box do $script]
 	  if {$cmdname ne "" && [$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
-	    #puts stderr "--- SETTING PDATA for [current] -> $cmdname"
-	    #puts stderr "[$box eval [concat dict get \${:registered_commands} $cmdname]]"
 	    :pdata [$box eval [concat dict get \${:registered_commands} $cmdname]]
 	  }
 	}
@@ -3400,6 +3455,11 @@ namespace eval ::nx {
 	  set nsfilters [list -not $exclude]
 	}
 	
+	#
+	# TODO: Add support for "generated" packages and their
+	# validation later on, i.e. a @package.validate() method.
+	#
+	
 	set generated_commands [dict merge \
 				    [$box get_registered_commands -types {
 				      @object 
@@ -3421,8 +3481,6 @@ namespace eval ::nx {
 	}
 	
 	# 2. generated entities (doc[no]->program[yes])
-	# => all registered_commands without doc entity
-	#puts stderr "== TO GENERATE == [join [dict keys $generated_commands] \n]"
 	dict for {cmd info} $generated_commands {
 	  dict with info {
 	    if {$cmdtype ni [list @command @object @class @method]} continue;
@@ -3569,9 +3627,9 @@ namespace eval ::nx {
 	  # 1-pass.
 	  #
 	  append 2pass \
-	      "::nx::doc::__at_register_package $pkg;\n" \
+	      "::nx::doc::__cpackage push $pkg;\n" \
 	      "source $src;\n" \
-	      "::nx::doc::__at_deregister_package;\n"
+	      "::nx::doc::__cpackage pop;\n"
 	}
 	$box do "::nx::doc::__init; $2pass" 
       }

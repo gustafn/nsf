@@ -1,4 +1,4 @@
-[:!let self_owned_parts [[:origin] owned_parts -class ::nx::doc::StructuredEntity]]
+[:!let self_owned_parts [:navigatable_parts]]
 [:!let owned_parts [dict merge $project_entities $self_owned_parts]]
 <div class="nav">
 [:for feature [dict keys $owned_parts]  {
@@ -17,9 +17,8 @@
 	  [:!let css [linsert $css 0 filter]]
 	  }]
 	  [:!let css [join $css " "]]
-	  [:!let iscript [join [list [list set top_entity [:origin]] [list set source_anchor [:fit [$inst print_name] 30]] [list set title [$inst print_name]]] \n]]
+	  [:!let iscript [join [list [list set top_entity [:origin]] [list set source_anchor [:fit [$inst print_name] 30]] [list set title [$inst print_name]] [list set cssclass ""]] \n]]
 	  <li class="$css">[$inst render -initscript $iscript link]</li>
-	  <!--<li class="$css"><a href="[$inst href [current]]" title="[$inst print_name]">[:fit [$inst print_name] 30]</a></li>-->
 	  }]
     </ul>
   </div>
