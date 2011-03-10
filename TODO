@@ -2480,6 +2480,18 @@ sudo make install
 
   * added regression tests
 
+  * removed methods ::nx::Class.recreate and 
+    ::nx::Class.recreate from predefined method-set
+    ::nx::Object.configure from predefined method-set
+
+
+  * added defintions such that these methods can be loaded via
+      ::nsf::method::require ::nx::Class recreate
+      ::nsf::method::require ::nx::Object configure
+
+nsf:
+  * added CallDirectly() wrapper for calls to "init"
+  
 TODO:
 
 - when alloc|dealloc are loaded via require, we have

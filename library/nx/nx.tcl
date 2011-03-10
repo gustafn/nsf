@@ -38,7 +38,7 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "cleanup" "exists" \
+    if {$cmdName in [list "autoname" "cleanup" "configure" "exists" \
 			 "filterguard" "instvar" "mixinguard" \
 			 "noinit" "requirenamespace"]} continue
     ::nsf::method::alias Object $cmdName $cmd 
@@ -54,7 +54,7 @@ namespace eval ::nx {
   # provide the standard command set for Class
   foreach cmd [info command ::nsf::methods::class::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "filterguard" "mixinguard" "alloc" "dealloc"]} continue
+    if {$cmdName in [list "filterguard" "mixinguard" "alloc" "dealloc" "recreate"]} continue
     # set tgt [Class ::nsf::methods::class::info::methods -methodtype alias -callprotection all $cmdName]
     #if {$tgt ne "" && [::nsf::method::property Class $cmdName redefine-protected]} {
     #  ::nsf::method::property Class $cmdName redefine-protected false
@@ -69,9 +69,6 @@ namespace eval ::nx {
     ::nsf::method::property Object $cmd call-protected 1
   }
 
-  foreach cmd [list recreate] {
-    ::nsf::method::property Class $cmd call-protected 1
-  }
   unset cmd
 
   # protect some methods against redefinition
@@ -80,8 +77,10 @@ namespace eval ::nx {
   #::nsf::method::property Class  dealloc redefine-protected true
   ::nsf::method::property Class  create  redefine-protected true
 
-  ::nsf::method::provide alloc   {::nsf::method::alias alloc   ::nsf::methods::class::alloc}
-  ::nsf::method::provide dealloc {::nsf::method::alias dealloc ::nsf::methods::class::dealloc}
+  ::nsf::method::provide alloc     {::nsf::method::alias alloc     ::nsf::methods::class::alloc}
+  ::nsf::method::provide dealloc   {::nsf::method::alias dealloc   ::nsf::methods::class::dealloc}
+  ::nsf::method::provide recreate  {::nsf::method::alias recreate  ::nsf::methods::class::recreate}
+  ::nsf::method::provide configure {::nsf::method::alias configure ::nsf::methods::object::configure}
 
   #
   # The method __resolve_method_path resolves a space separated path

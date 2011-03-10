@@ -11652,23 +11652,23 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     INCR_REF_COUNT(resultObj);
     Tcl_ListObjGetElements(interp, resultObj, &nobjc, &nobjv);
 
-    /* 
-     * Trying CallDirectly does not make much sense, since init is
-     * already defined in predefined
-     */
-    methodObj = NsfMethodObj(object, NSF_o_init_idx);
-
     /*
      * Flag the call to "init" before the dispatch, such that a call to
      * "configure" within init does not clear the already set instance
      * variables.
      */
+
     object->flags |= NSF_INIT_CALLED;
 
-    if (methodObj) {
+    if (CallDirectly(interp, object, NSF_o_init_idx, &methodObj)) {
+      fprintf(stderr, "%s init directly\n", ObjectName(object));
+      result = TCL_OK;
+    } else {
+      fprintf(stderr, "%s init dispatch\n", ObjectName(object));
       result = CallMethod((ClientData) object, interp, methodObj,
 			  nobjc+2, nobjv, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
     }
+
     DECR_REF_COUNT(resultObj);
   }
 

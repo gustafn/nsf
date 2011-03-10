@@ -812,6 +812,7 @@ Test case substdefault-objparam {
 #
 Test case parameter-alias-default {
 
+  ::nsf::method::require nx::Object configure
   Class create C {
     :attribute {a ""}
     :attribute {b 1}
