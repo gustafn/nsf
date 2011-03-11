@@ -23,7 +23,6 @@ namespace eval ::nx {
     -object.init init
     -object.move move 
     -object.objectparameter objectparameter 
-    -object.residualargs residualargs
     -object.unknown unknown
   }
 
@@ -40,7 +39,7 @@ namespace eval ::nx {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "autoname" "cleanup" "exists" \
 			 "filterguard" "instvar" "mixinguard" \
-			 "noinit" "requirenamespace"]} continue
+			 "noinit" "requirenamespace" "residualargs"]} continue
     ::nsf::method::alias Object $cmdName $cmd 
   }
   
@@ -65,7 +64,7 @@ namespace eval ::nx {
 
   # set a few aliases as protected
   # "__next", if defined, should be added as well
-  foreach cmd [list residualargs uplevel upvar] {
+  foreach cmd [list uplevel upvar] {
     ::nsf::method::property Object $cmd call-protected 1
   }
 

@@ -2495,6 +2495,7 @@ nsf:
  * reactivated "configure", since we plan to use it more prominently
  * added a configure flag for "class"
  * removed method "class" (should be used via "/obj/ configure -class ...")
+ * removed method residualargs from nx
   
 TODO:
 
