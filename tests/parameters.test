@@ -249,10 +249,10 @@ Test case objectparameter {
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "-object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:alias {-superclass:alias ::nx::Object} -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:alias -attributes:alias -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg __initcmd:initcmd,optional"
+      "-object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:alias {-superclass:alias ::nx::Object} -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:alias -attributes:alias -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg {{-class:forward,arg=::nsf::relation %self class}} __initcmd:initcmd,optional"
 
   ? {c1 eval {:objectparameter}} \
-      "-a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
+      "-a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias {{-class:forward,arg=::nsf::relation %self class}} -filter:alias __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -263,15 +263,15 @@ Test case reclass {
   Class create C -attributes {a {b:boolean} {c 1}}
   C create c1
 
-  c1 class Object
+  c1 configure -class Object
   ? {c1 eval :objectparameter} \
-      "-volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
+      "-volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias {{-class:forward,arg=::nsf::relation %self class}} -filter:alias __initcmd:initcmd,optional"
   
   Class create D -superclass C -attributes {d:required}
   D create d1 -d 100
   
   ? {d1 eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias {{-class:forward,arg=::nsf::relation %self class}} -filter:alias __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -287,27 +287,27 @@ Test case objparam-mixins {
   Class create M2 -attributes {b2}
   D mixin M
   ? {d1 eval :objectparameter} \
-      "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional" \
+      "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias {{-class:forward,arg=::nsf::relation %self class}} -filter:alias __initcmd:initcmd,optional" \
     "mixin added"
   M mixin M2
   ? {d1 eval :objectparameter} \
-      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias {{-class:forward,arg=::nsf::relation %self class}} -filter:alias __initcmd:initcmd,optional" \
     "transitive mixin added"
   D mixin ""
   #we should have again the old interface
 
   ? {d1 eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias {{-class:forward,arg=::nsf::relation %self class}} -filter:alias __initcmd:initcmd,optional"
 
   C mixin M
   ? {d1 eval :objectparameter} \
-      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias {{-class:forward,arg=::nsf::relation %self class}} -filter:alias __initcmd:initcmd,optional" \
     "mixin added"
   C mixin ""
   #we should have again the old interface
   
   ? {d1 eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -filter:alias __initcmd:initcmd,optional" 
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias {{-class:forward,arg=::nsf::relation %self class}} -filter:alias __initcmd:initcmd,optional" 
 }
 
 #######################################################

@@ -107,7 +107,7 @@ O mixin assign M ;# new name
 
 # "class" is not multivalued, therefore we should not add (or remove) add/delete 
 # from the set of subcommands...
-? {::nx::RelationSlot class} "::nx::MetaSlot"
+? {::nx::RelationSlot info class} "::nx::MetaSlot"
 O o1
 ? {o1 class} "::O"
 o1 class Object

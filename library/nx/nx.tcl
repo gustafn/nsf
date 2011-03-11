@@ -38,7 +38,7 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "cleanup" "configure" "exists" \
+    if {$cmdName in [list "autoname" "cleanup" "exists" \
 			 "filterguard" "instvar" "mixinguard" \
 			 "noinit" "requirenamespace"]} continue
     ::nsf::method::alias Object $cmdName $cmd 
@@ -1032,12 +1032,9 @@ namespace eval ::nx {
   # Register system slots
   ############################################
   proc register_system_slots {os} {
-
-    # method "class" is a plain forwarder to relation (no slot)
-    ::nsf::method::forward ${os}::Object class ::nsf::relation %self class
-
-    # all other relation cmds are defined as slots
-
+    #
+    # Most system slots are RelationSlots
+    #
     ::nx::RelationSlot create ${os}::Class::slot::superclass \
 	-default ${os}::Object
 
@@ -1060,10 +1057,22 @@ namespace eval ::nx {
     ::nx::ObjectParameterSlot create ${os}::Class::slot::object-filter \
 	-methodname "::nsf::classes::nx::Object::filter"
 
+    #
+    # Create object parameter slots for "attributes", "noninit" and "volatile"
+    #
     ::nx::ObjectParameterSlot create ${os}::Class::slot::attributes
     ::nx::ObjectParameterSlot create ${os}::Object::slot::noinit \
 	-methodname ::nsf::methods::object::noinit -noarg true
     ::nx::ObjectParameterSlot create ${os}::Object::slot::volatile -noarg true
+
+    #
+    # create "class" as a ObjectParameterSlot
+    #
+    # method "class" is a plain forwarder to relation (no slot)
+    #::nsf::method::forward ${os}::Object class ::nsf::relation %self class
+
+    ::nx::ObjectParameterSlot create ${os}::Object::slot::class \
+	-methodname "::nsf::relation %self class" -disposition forward
 
     #
     # Define method "guard" for mixin- and filter-slots of Object and Class
