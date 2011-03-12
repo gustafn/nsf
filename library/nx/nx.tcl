@@ -20,7 +20,7 @@ namespace eval ::nx {
     -object.configure configure
     -object.defaultmethod defaultmethod 
     -object.destroy destroy
-    -object.init init
+    -object.init {init ::nsf::methods::object::init}
     -object.move move 
     -object.objectparameter objectparameter 
     -object.unknown unknown
@@ -38,7 +38,7 @@ namespace eval ::nx {
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "autoname" "cleanup" "exists" \
-			 "filterguard" "instvar" "mixinguard" \
+			 "filterguard" "init" "instvar" "mixinguard" \
 			 "noinit" "requirenamespace" "residualargs"]} continue
     ::nsf::method::alias Object $cmdName $cmd 
   }
@@ -267,7 +267,7 @@ namespace eval ::nx {
     # }
     
     # "init" must exist on Object. per default it is empty.
-    :protected method init args {}
+    #:protected method init args {}
 
     # this method is called on calls to object without a specified method
     :protected method defaultmethod {} {::nsf::self}

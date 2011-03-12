@@ -2496,6 +2496,11 @@ nsf:
  * added a configure flag for "class"
  * removed method "class" (should be used via "/obj/ configure -class ...")
  * removed method residualargs from nx
+
+ * added C-implemented method "init" for orthogonality
+ * allow specification of system method handles in nsf::createobjectsystem
+ * automatically register alias, when system-method handle 
+   was provided and a same-named method is defined
   
 TODO:
 

@@ -262,6 +262,8 @@ static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodN
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, 
 			 int withPer_object, int leaveError);
 static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd);
+static int NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
+		       CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
 
 /* prototypes for (class) list handling */
 static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData);
@@ -2105,13 +2107,8 @@ ObjectSystemFree(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
   int i;
 
   for (i=0; i<=NSF_o_unknown_idx; i++) {
-    Tcl_Obj *methodObj = osPtr->methods[i];
-    /*fprintf(stderr, "ObjectSystemFree [%d] %p ", i, methodObj);*/
-    if (methodObj) {
-      /*fprintf(stderr, "%s refCount %d", ObjStr(methodObj), methodObj->refCount);*/
-      DECR_REF_COUNT(methodObj);
-    }
-    /*fprintf(stderr, "\n");*/
+    if (osPtr->methods[i]) { DECR_REF_COUNT(osPtr->methods[i]); }
+    if (osPtr->handles[i]) { DECR_REF_COUNT(osPtr->handles[i]); }
   }
 
   if (osPtr->rootMetaClass && osPtr->rootClass) {
@@ -2171,15 +2168,18 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
     for (i=0; i<=NSF_o_unknown_idx; i++) {
       Tcl_Obj *methodObj = osPtr->methods[i];
+
       if (methodObj && !strcmp(methodName, ObjStr(methodObj))) {
         int flag = 1<<i;
+	int rootClassMethod = *(Nsf_SytemMethodOpts[i]+1) == 'o';
+	
         if (osPtr->definedMethods & flag) {
 	  /* 
 	   *  If for some reason (e.g. reload) we redefine the base
 	   *  methods, these never count as overloads.
 	   */
-	  if ((*(Nsf_SytemMethodOpts[i]+1) == 'o' && object == &defOsPtr->rootClass->object)
-	      || (*(Nsf_SytemMethodOpts[i]+1) == 'c' && object == &defOsPtr->rootMetaClass->object) ) {
+	  if ((rootClassMethod && object == &defOsPtr->rootClass->object)
+	      || (!rootClassMethod && object == &defOsPtr->rootMetaClass->object) ) {
 	    /*fprintf(stderr, "+++ %s %.6x NOT overloading %s.%s %s (is root %d, is meta %d)\n", 
 		    ClassName(defOsPtr->rootClass), 
 		    osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i], 
@@ -2195,9 +2195,42 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	  }
         }
         if (osPtr == defOsPtr && ((osPtr->definedMethods & flag) == 0)) {
+	  /*
+	   * Mark the method das defined
+	   */
           osPtr->definedMethods |= flag;
           /*fprintf(stderr, "+++ %s %.6x defining %s.%s %s\n", ClassName(defOsPtr->rootClass),
 	    osPtr->definedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i]);*/
+	  
+	  /*
+	   * If there is a method-handle provided for this system method,
+	   * register it as a fallback unless the method being defined is
+	   * already at the root class.
+	   */
+	  if (osPtr->handles[i]) {
+	    NsfObject *defObject = rootClassMethod 
+	      ? &osPtr->rootClass->object 
+	      : &osPtr->rootMetaClass->object;
+	    
+	    if (defObject != object) {
+	      int result = NsfAliasCmd(interp, defObject, 0, methodName, 0, osPtr->handles[i]);
+	      
+	      NsfLog(interp, NSF_LOG_NOTICE, "Define automatically alias %s for %s", 
+		     ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
+	      /*
+	       * If the definition was ok, make the method protected.
+	       */
+	      if (result == TCL_OK) {
+		Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
+		Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
+		if (cmd) { Tcl_Command_flags(cmd) |= NSF_CMD_PROTECTED_METHOD; }
+		Tcl_ResetResult(interp);
+	      } else {
+		NsfLog(interp, NSF_LOG_WARN, "Could not define alias %s for %s", 
+		       ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
+	      }
+	    }
+	  }
         }
       }
     }
@@ -12397,9 +12430,6 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   return result;
 }
 
-static int NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
-		       CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
-
 static int
 NsfProcAliasMethod(ClientData clientData,
                      Tcl_Interp *interp, int objc,
@@ -14937,14 +14967,31 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
         return NsfPrintError(interp, "System methods must be provided as pairs");
       }
       for (i=0; i<oc; i += 2) {
+	Tcl_Obj *arg, **arg_ov;
+	int arg_oc = -1;
+
+	arg = ov[i+1];
         result = Tcl_GetIndexFromObj(interp, ov[i], Nsf_SytemMethodOpts, "system method", 0, &idx);
+	if (result == TCL_OK) {
+	  result = Tcl_ListObjGetElements(interp, arg, &arg_oc, &arg_ov);
+	}
         if (result != TCL_OK) {
           ObjectSystemFree(interp, osPtr);
           return NsfPrintError(interp, "invalid system method '%s'", ObjStr(ov[i]));
-        }
+        } else if (arg_oc < 1 || arg_oc > 2) {
+          ObjectSystemFree(interp, osPtr);
+          return NsfPrintError(interp, "invalid system method argument '%s'", ObjStr(ov[i]), ObjStr(arg));
+	}
         /*fprintf(stderr, "NsfCreateObjectSystemCmd [%d] = %p %s (max %d, given %d)\n",
           idx, ov[i+1], ObjStr(ov[i+1]), XO_unknown_idx, oc);*/
-        osPtr->methods[idx] = ov[i+1];
+
+	if (arg_oc == 1) {
+	  osPtr->methods[idx] = arg;
+	} else { /* (arg_oc == 2) */ 
+	  osPtr->methods[idx] = arg_ov[0];
+	  osPtr->handles[idx] = arg_ov[1];
+	  INCR_REF_COUNT(osPtr->handles[idx]);
+	}
         INCR_REF_COUNT(osPtr->methods[idx]);
       }
     } else {
@@ -17149,6 +17196,17 @@ NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter,
 
   return NsfPrintError(interp, "Filterguard: can't find filter %s on %s",
 		       filter, ObjectName(object));
+}
+
+/*
+objectMethod init NsfOInitMethod {
+  {-argName "args" -type allargs}
+}
+*/
+static int
+NsfOInitMethod(Tcl_Interp *UNUSED(interp), NsfObject *UNUSED(object), 
+	       int UNUSED(objc), Tcl_Obj *CONST UNUSED(objv[])) {
+  return TCL_OK;
 }
 
 /*

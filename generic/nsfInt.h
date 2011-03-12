@@ -603,6 +603,7 @@ typedef struct NsfObjectSystem {
   int overloadedMethods;
   int definedMethods;
   Tcl_Obj *methods[NSF_o_unknown_idx+1];
+  Tcl_Obj *handles[NSF_o_unknown_idx+1];
   struct NsfObjectSystem *nextPtr;
 } NsfObjectSystem;
 

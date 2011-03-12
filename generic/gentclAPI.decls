@@ -187,6 +187,10 @@ objectMethod filterguard NsfOFilterGuardMethod {
   {-argName "guard" -required 1 -type tclobj}
 }
 
+objectMethod init NsfOInitMethod {
+  {-argName "args" -type allargs}
+}
+
 objectMethod instvar NsfOInstvarMethod {
   {-argName "args" -type allargs}
 }
