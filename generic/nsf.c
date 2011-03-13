@@ -2199,6 +2199,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	   * Mark the method das defined
 	   */
           osPtr->definedMethods |= flag;
+
           /*fprintf(stderr, "+++ %s %.6x defining %s.%s %s\n", ClassName(defOsPtr->rootClass),
 	    osPtr->definedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i]);*/
 	  
@@ -2547,8 +2548,10 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
  */
 static CONST char *
 MethodName(Tcl_Obj *methodObj) {
-  char *methodName = ObjStr(methodObj);
+  char *methodName;;
 
+  assert(methodObj);
+  methodName = ObjStr(methodObj);
   if (FOR_COLON_RESOLVER(methodName)) {
     methodName ++;
   }
@@ -7937,7 +7940,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	   * we pass the object as first argument of the unknown
 	   * handler.
 	   */
-	  fprintf(stderr, "next calls DispatchUnknownMethod\n");
+	  /*fprintf(stderr, "next calls DispatchUnknownMethod\n");*/
 	  result = DispatchUnknownMethod(self, interp, objc, objv, object,
 					 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
 	}
@@ -8421,17 +8424,24 @@ static int
 DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp,
 		      Tcl_Obj *obj, int flags) {
   int result;
-  Tcl_Obj *methodObj = NsfMethodObj((NsfObject *)clientData, NSF_o_defaultmethod_idx);
+  Tcl_Obj *methodObj;
+  NsfObject *object = clientData;
 
-  if (methodObj) {
+  assert(clientData);
+
+  if (CallDirectly(interp, object, NSF_o_defaultmethod_idx, &methodObj)) {
+
+    Tcl_SetObjResult(interp, object->cmdName);
+    result = TCL_OK;
+
+  } else {
     Tcl_Obj *tov[2];
+
     tov[0] = obj;
     tov[1] = methodObj;
-
     result = ObjectDispatch(clientData, interp, 2, tov, flags|NSF_CM_NO_UNKNOWN);
-  } else {
-    result = TCL_OK;
   }
+
   return result;
 }
 
@@ -8525,17 +8535,20 @@ DispatchUnknownMethod(ClientData clientData,
   int result;
   NsfObject *object = (NsfObject*)clientData;
   Tcl_Obj *unknownObj = NsfMethodObj(object, NSF_o_unknown_idx);
+  CONST char *methodName = MethodName(methodObj);
 
-  /*fprintf(stderr, "compare unknownObj %p with methodObj %p '%s' %p %p %s\n",
+  /*fprintf(stderr, "compare unknownObj %p with methodObj %p '%s' %p %p %s -- %s\n",
 	  unknownObj, methodObj, ObjStr(methodObj), delegator,
 	  delegator?objv[1]:NULL,
-	  delegator?ObjStr(objv[1]) : NULL );*/
+	  delegator?ObjStr(objv[1]) : NULL,
+	  methodName);*/
 
-  if (unknownObj && methodObj != unknownObj && (flags & NSF_CSC_CALL_NO_UNKNOWN) == 0) {
+    if (unknownObj && methodObj != unknownObj && (flags & NSF_CSC_CALL_NO_UNKNOWN) == 0) {
     /*
      * back off and try unknown;
      */
-    int offset;
+    int offset, mustCopy = *(ObjStr(methodObj)) == ':';
+
     ALLOC_ON_STACK(Tcl_Obj*, objc+3, tov);
 
     /*fprintf(stderr, "calling unknown for %s %s, flgs=%.6x,%.6x/%.6x isClass=%d %p %s objc %d\n",
@@ -8549,19 +8562,27 @@ DispatchUnknownMethod(ClientData clientData,
       tov[2] = delegator->cmdName;
       offset ++;
     }
-    if (objc>0) {
-      memcpy(tov + offset, objv, sizeof(Tcl_Obj *)*(objc));
+    tov[offset] = mustCopy ? Tcl_NewStringObj(methodName, -1) : methodObj;
+    if (objc>1) {
+      memcpy(tov + offset + 1, objv + 1, sizeof(Tcl_Obj *) * (objc - 1));
     }
 
     flags &= ~NSF_CM_NO_SHIFT;
+    
+    /*fprintf(stderr, "call unknown via dispatch mustCopy %d delegator %p method %s (%s)\n", 
+      mustCopy, delegator, ObjStr(tov[offset]), ObjStr(methodObj));*/
+
+    INCR_REF_COUNT(tov[offset]);
     result = ObjectDispatch(clientData, interp, objc+offset, tov, flags|NSF_CM_NO_UNKNOWN);
+    DECR_REF_COUNT(tov[offset]);
 
     FREE_ON_STACK(Tcl_Obj*, tov);
   } else { /* no unknown called, this is the built-in unknown handler */
+      
+      /*fprintf(stderr, "--- default error message for unknown method '%s' "
+	    "to be dispatched on %s, objv[%d] %s\n",
+	    ObjStr(methodObj), ObjectName(object), 1, ObjStr(objv[1]));*/
 
-    /*fprintf(stderr, "--- default error message for unknown method '%s' "
-      "to be dispatched on %s, objv[%d] %s\n",
-      ObjStr(methodObj), ObjectName(object), 1, ObjStr(objv[1]));*/
     result = NsfPrintError(interp, "%s: unable to dispatch method '%s'",
 			   ObjectName(object), MethodName(objv[1]));
   }
@@ -14533,7 +14554,6 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
 	fprintf(stderr, "DEBUG obj %p %s activationcount %d on stack %d; "
 		"might be from non-stacked but active callstack content\n",
 		object, ObjectName(object), object->activationCount, count);
-
 	fprintf(stderr, "fixed count %d\n", count);
 	/*NsfShowStack(interp);*/
 	/*return NsfPrintError(interp, "wrong activation count for object %s", ObjectName(object));*/
@@ -14654,7 +14674,7 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 	/*
 	 * Flush old byte code
 	 */
-	fprintf(stderr, "flush byte code\n");
+	/*fprintf(stderr, "flush byte code\n");*/
 	bodyObj->typePtr->freeIntRepProc(bodyObj);
       }
     }
@@ -17196,17 +17216,6 @@ NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter,
 
   return NsfPrintError(interp, "Filterguard: can't find filter %s on %s",
 		       filter, ObjectName(object));
-}
-
-/*
-objectMethod init NsfOInitMethod {
-  {-argName "args" -type allargs}
-}
-*/
-static int
-NsfOInitMethod(Tcl_Interp *UNUSED(interp), NsfObject *UNUSED(object), 
-	       int UNUSED(objc), Tcl_Obj *CONST UNUSED(objv[])) {
-  return TCL_OK;
 }
 
 /*

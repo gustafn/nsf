@@ -160,6 +160,7 @@ Test case "filter-and-creation" {
   ? {Foo create ob} ::ob
 
   # make sure, no unknown handler exists
+  #? {::ob info lookup method unknown} "::nsf::classes::nx::Object::unknown"
   ? {::ob info lookup method unknown} ""
 
   ? {ob bar} {::ob: unable to dispatch method 'bar'}

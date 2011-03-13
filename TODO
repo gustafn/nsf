@@ -2501,7 +2501,19 @@ nsf:
  * allow specification of system method handles in nsf::createobjectsystem
  * automatically register alias, when system-method handle 
    was provided and a same-named method is defined
-  
+
+* provided a fast path implementation for "defaultmethod"
+* provided default system methods for "init", "defaultmethod" and "unknown"
+* provided handles for system methods "alloc", "dealloc", "recreate", and 
+  "defaultmethod"
+* strip in dispatch invocations of "unknown" potental leading colons
+* removed c-level implementation of init again, since scripted one can
+  be used now as well in registration of createobjectsystem
+* reduced verbosity
+* added defintions such that these methods can be loaded via
+    ::nsf::method::require ::nx::Object unknown
+
+
 TODO:
 
 - when alloc|dealloc are loaded via require, we have

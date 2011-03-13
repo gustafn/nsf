@@ -9,16 +9,18 @@ namespace eval ::nx {
   set ::nsf::bootstrap ::nx
 
   #
-  # First create the ::nx object system. 
+  # First create the ::nx object system. The interally called methods,
+  # which are not defined by default (from this script), must have
+  # method handles included.
   #
   ::nsf::createobjectsystem ::nx::Object ::nx::Class {
-    -class.alloc alloc 
+    -class.alloc {alloc ::nsf::methods::class::alloc} 
     -class.create create
-    -class.dealloc dealloc
-    -class.recreate recreate 
+    -class.dealloc {dealloc ::nsf::methods::class::dealloc}
+    -class.recreate {recreate ::nsf::methods::class::recreate}
     -class.requireobject __unknown
     -object.configure configure
-    -object.defaultmethod defaultmethod 
+    -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod}
     -object.destroy destroy
     -object.init {init ::nsf::methods::object::init}
     -object.move move 
@@ -42,10 +44,28 @@ namespace eval ::nx {
 			 "noinit" "requirenamespace" "residualargs"]} continue
     ::nsf::method::alias Object $cmdName $cmd 
   }
-  
+
+  #
   # provide ::eval as method for ::nx::Object
+  #
   ::nsf::method::alias Object eval -frame method ::eval
 
+  #
+  # Default Methods (referenced via createobjectsystem)
+  #
+  # Actually, we do not need an unknown handler, but if someone
+  # defines his own unknwon handler we define it automatically
+  proc ::nsf::methods::object::unknown {m args} {
+    error "[::nsf::self]: unable to dispatch method '$m'"
+  }
+  
+  # The default constructor
+  proc ::nsf::methods::object::init args {}
+
+  # This method can be called on calls to object without a specified
+  # method.
+  proc ::nsf::methods::object::defaultmethod {} {::nsf::self}
+  
   #
   # class methods
   #
@@ -80,6 +100,7 @@ namespace eval ::nx {
   ::nsf::method::provide dealloc   {::nsf::method::alias dealloc   ::nsf::methods::class::dealloc}
   ::nsf::method::provide recreate  {::nsf::method::alias recreate  ::nsf::methods::class::recreate}
   ::nsf::method::provide configure {::nsf::method::alias configure ::nsf::methods::object::configure}
+  ::nsf::method::provide unknown   {::nsf::method::alias unknown   ::nsf::methods::object::unknown}
 
   #
   # The method __resolve_method_path resolves a space separated path
@@ -256,21 +277,6 @@ namespace eval ::nx {
   }
 
   Object eval {
-
-    # Default unknown-handler for Object
-    #
-    # Actually, we do not need this unknown handler, but we could
-    # define it as follows:
-    #
-    # :protected method unknown {m args} {
-    #   error "[::nsf::self]: unable to dispatch method '$m'"
-    # }
-    
-    # "init" must exist on Object. per default it is empty.
-    #:protected method init args {}
-
-    # this method is called on calls to object without a specified method
-    :protected method defaultmethod {} {::nsf::self}
 
     # provide a placeholder for the bootup process. The real definition
     # is based on slots, which are not available at this point.

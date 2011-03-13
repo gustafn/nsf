@@ -833,7 +833,7 @@ namespace eval ::xotcl {
   # resue some definitions from next scripting
   ::nsf::method::alias ::xotcl::Object copy ::nsf::classes::nx::Object::copy
   ::nsf::method::alias ::xotcl::Object move ::nsf::classes::nx::Object::move
-  ::nsf::method::alias ::xotcl::Object defaultmethod ::nsf::classes::nx::Object::defaultmethod
+  #::nsf::method::alias ::xotcl::Object defaultmethod ::nsf::classes::nx::Object::defaultmethod
 
   ::nsf::method::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
 
