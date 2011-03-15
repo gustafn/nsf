@@ -39,8 +39,8 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "cleanup" "exists" \
-			 "filterguard" "init" "instvar" "mixinguard" \
+    if {$cmdName in [list "autoname" "cleanup" "class" "exists" \
+			 "filterguard" "instvar" "mixinguard" \
 			 "noinit" "requirenamespace" "residualargs"]} continue
     ::nsf::method::alias Object $cmdName $cmd 
   }
@@ -62,8 +62,8 @@ namespace eval ::nx {
   # The default constructor
   proc ::nsf::methods::object::init args {}
 
-  # This method can be called on calls to object without a specified
-  # method.
+  # This method can be called on invocations of the object without a
+  # specified method.
   proc ::nsf::methods::object::defaultmethod {} {::nsf::self}
   
   #
@@ -73,11 +73,8 @@ namespace eval ::nx {
   # provide the standard command set for Class
   foreach cmd [info command ::nsf::methods::class::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "filterguard" "mixinguard" "alloc" "dealloc" "recreate"]} continue
-    # set tgt [Class ::nsf::methods::class::info::methods -methodtype alias -callprotection all $cmdName]
-    #if {$tgt ne "" && [::nsf::method::property Class $cmdName redefine-protected]} {
-    #  ::nsf::method::property Class $cmdName redefine-protected false
-    #}
+    if {$cmdName in [list "filterguard" "mixinguard" \
+		     "alloc" "dealloc" "recreate" "superclass"]} continue
     ::nsf::method::alias Class $cmdName $cmd 
     unset cmdName
   }
@@ -276,12 +273,9 @@ namespace eval ::nx {
     }
   }
 
-  Object eval {
-
-    # provide a placeholder for the bootup process. The real definition
-    # is based on slots, which are not available at this point.
-    :protected method objectparameter {} {;}
-  }
+  # provide a placeholder for the bootup process. The real definition
+  # is based on slots, which are not available at this point.
+  Object protected method objectparameter {} {;}
 
   #
   # Define forward methods
@@ -719,6 +713,7 @@ namespace eval ::nx {
       #puts stderr "::nx::BootStrapAttributeSlot create $slotObj"
       ::nx::BootStrapAttributeSlot create $slotObj
       if {[info exists default]} {
+        #puts stderr "::nsf::var::set $slotObj default $default"
         ::nsf::var::set $slotObj default $default
         unset default
       }
@@ -1040,8 +1035,10 @@ namespace eval ::nx {
     #
     # Most system slots are RelationSlots
     #
-    ::nx::RelationSlot create ${os}::Class::slot::superclass \
-	-default ${os}::Object
+
+    ::nx::RelationSlot create ${os}::Class::slot::dummy
+    ${os}::Class::slot::dummy destroy
+    ::nsf::method::delete ${os}::Class dummy
 
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
 	-forwardername object-mixin
@@ -1075,9 +1072,20 @@ namespace eval ::nx {
     #
     # method "class" is a plain forwarder to relation (no slot)
     #::nsf::method::forward ${os}::Object class ::nsf::relation %self class
-
     ::nx::ObjectParameterSlot create ${os}::Object::slot::class \
+	-methodname "::nsf::methods::object::class" 
+    #::nx::ObjectParameterSlot create ${os}::Object::slot::class \
 	-methodname "::nsf::relation %self class" -disposition forward
+
+    #
+    # create "superclass" as a ObjectParameterSlot
+    #
+    #::nx::RelationSlot create ${os}::Class::slot::superclass -default ${os}::Object
+    #::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
+	-methodname "::nsf::methods::class::superclass" -default ${os}::Object
+    ::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
+	-methodname "::nsf::relation %self superclass" -disposition forward -default ${os}::Object
+
 
     #
     # Define method "guard" for mixin- and filter-slots of Object and Class
@@ -1507,7 +1515,7 @@ namespace eval ::nx {
             set cl [[$origin info class] create $dest -noinit]
             # class object
             set obj $cl
-            $cl superclass [$origin info superclass]
+            $cl configure -superclass [$origin info superclass]
             ::nsf::method::assertion $cl class-invar [::nsf::method::assertion $origin class-invar]
 	    ::nsf::relation $cl class-filter [::nsf::relation $origin class-filter]
 	    ::nsf::relation $cl class-mixin [::nsf::relation $origin class-mixin]
@@ -1598,7 +1606,7 @@ namespace eval ::nx {
           set scl [$subclass info superclass]
           if {[set index [lsearch -exact $scl [::nsf::self]]] != -1} {
             set scl [lreplace $scl $index $index $newName]
-	    $subclass superclass $scl
+	    $subclass configure -superclass $scl
           }
         }	
       }

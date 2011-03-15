@@ -69,7 +69,7 @@ Test case base {
   ? {::nx::Class info lookup methods -source application} ""
 
   set object_methods "alias attribute configure contains copy destroy eval filter forward info method mixin move protected public require volatile"
-  set class_methods "alias attribute attributes class-object configure contains copy create destroy eval filter forward info method mixin move new protected public require superclass volatile"
+  set class_methods "alias attribute attributes class-object configure contains copy create destroy eval filter forward info method mixin move new protected public require volatile"
 
   ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
   ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods
@@ -135,8 +135,8 @@ Test case callable {
     o mixin ::nx::Class
     ? {o info lookup method bar} "::nsf::classes::nx::Class::bar"
     ? {o info lookup methods bar} bar
-    ? {o info lookup methods superclass} ""
-    ? {o info lookup method superclass} ""
+    ? {o info lookup methods create} ""
+    ? {o info lookup method create} ""
     ? {o bar} Class.bar
 
     ? {o method foo {} {return o.foo}} "::o::foo"
@@ -149,7 +149,7 @@ Test case callable {
     ? {lsort [o info methods]} "A foo fwd is x"
 
     o method f args ::nx::next
-    ? {o info lookup methods superclass} ""
+    ? {o info lookup methods create} ""
     ? {o info lookup methods filter} "filter"
     ? {o info lookup method filter} "::nsf::classes::nx::Object::filter"
     ? {o filter f} ""
@@ -210,8 +210,8 @@ Test case callable {
     Foo class-object mixin delete ::Fly
     ? {Foo class-object info mixin classes} "::nx::Class"
 
-    ? {Foo info lookup methods superclass} "superclass"
-    ? {Foo info lookup method superclass} "::nsf::classes::nx::Class::superclass"
+    ? {Foo info lookup methods create} "create"
+    ? {Foo info lookup method create} "::nsf::classes::nx::Class::create"
     
     ? {o mixin ""} ""
 }
@@ -234,7 +234,7 @@ Test case slots {
   }
   
   D create d1
-  ? {D info lookup slots} "::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::superclass ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Class::slot::attributes ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::class"
+  ? {D info lookup slots} "::nx::Class::slot::superclass ::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Class::slot::attributes ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::class"
   ? {D info slots} "::D::slot::b ::D::slot::a2 ::D::slot::c"
   ? {::nx::Object info method parameter info} ""
 }
@@ -371,8 +371,7 @@ Test case info-methods-path {
     :public method "a c" {d c} {puts "a c"}
     :create c1
   }
-  nx::Class create D {
-    :superclass C
+  nx::Class create D -superclass C {
     :public method "string length" {s} {puts length}
     :public method "string compress" {s} {puts compress}
     :create d1

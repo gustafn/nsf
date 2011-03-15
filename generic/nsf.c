@@ -16818,6 +16818,16 @@ NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *object, int withInstance, int 
 }
 
 /*
+objectMethod class NsfOClassMethod {
+  {-argName "class" -required 0 -type tclobj}
+}
+*/
+static int
+NsfOClassMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *classObj) {
+  return NsfRelationCmd(interp, object, RelationtypeClassIdx, classObj);
+}
+
+/*
 objectMethod cleanup NsfOCleanupMethod {
 }
 */
@@ -17027,16 +17037,16 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	  result = ForwardProcessOptions(interp, methodObj,
 					 NULL /*withDefault*/, 0 /*withEarlybinding*/, 
 					 NULL /*withMethodprefix*/, 0 /*withObjframe*/, 
-					 NULL /*withOnerror*/, 1 /*withVerbose*/,
+					 NULL /*withOnerror*/, 0 /*withVerbose*/,
 					 nobjv[0], nobjc-1, nobjv+1, &tcd);
 	  if (result != TCL_OK) {
 	    if (tcd) ForwardCmdDeleteProc((ClientData)tcd);
 	    goto method_arg_done;
 	  }
 
-	  fprintf(stderr, "parameter %s forward spec <%s> After Options obj %s method %s\n", 
+	  /*fprintf(stderr, "parameter %s forward spec <%s> After Options obj %s method %s\n", 
 		  ObjStr(paramPtr->nameObj), ObjStr(forwardSpec), 
-		  ObjectName(object), ObjStr(methodObj));
+		  ObjectName(object), ObjStr(methodObj));*/
 
 	  tcd->object = object;
 	  ov[0] = methodObj;
@@ -17976,6 +17986,16 @@ NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj,
     return NsfPrintError(interp, "can't recreate non existing object %s", ObjStr(nameObj));
   }
   return RecreateObject(interp, cl, object, objc, objv);
+}
+
+/*
+classMethod superclass NsfCSuperclassMethod {
+  {-argName "superclasses" -required 0 -type tclobj}
+}
+*/
+static int
+NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *superclassesObj) {
+  return NsfRelationCmd(interp, &cl->object, RelationtypeSuperclassIdx, superclassesObj);
 }
 
 /***************************

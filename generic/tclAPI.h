@@ -206,6 +206,7 @@ static int NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, 
 static int NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -250,6 +251,7 @@ static int NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc,
 static int NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -291,6 +293,7 @@ static int NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *f
 static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *guard);
 static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName, int objc, Tcl_Obj *CONST objv[]);
+static int NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *superclasses);
 static int NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter);
 static int NsfClassInfoFiltermethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withGuards, CONST char *pattern);
 static int NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *cl, int withDefinition, CONST char *name);
@@ -335,6 +338,7 @@ static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName,
 static int NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
 static int NsfShowStackCmd(Tcl_Interp *interp);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
+static int NsfOClassMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *class);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *obj);
@@ -377,6 +381,7 @@ enum {
  NsfCMixinGuardMethodIdx,
  NsfCNewMethodIdx,
  NsfCRecreateMethodIdx,
+ NsfCSuperclassMethodIdx,
  NsfClassInfoFilterguardMethodIdx,
  NsfClassInfoFiltermethodsMethodIdx,
  NsfClassInfoForwardMethodIdx,
@@ -421,6 +426,7 @@ enum {
  NsfSetterCmdIdx,
  NsfShowStackCmdIdx,
  NsfOAutonameMethodIdx,
+ NsfOClassMethodIdx,
  NsfOCleanupMethodIdx,
  NsfOConfigureMethodIdx,
  NsfODestroyMethodIdx,
@@ -584,6 +590,22 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfCRecreateMethod(interp, cl, objectName, objc, objv);
 
   }
+}
+
+static int
+NsfCSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, NULL, clientData ? ((NsfObject*)clientData)->cmdName : NsfGlobalObjs[NSF_EMPTY], "Class", NULL);
+    
+
+      if (objc < 1 || objc > 2) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfCSuperclassMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfCSuperclassMethod(interp, cl, objc == 2 ? objv[1] : NULL);
+
 }
 
 static int
@@ -1506,6 +1528,22 @@ NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static int
+NsfOClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, NULL, clientData ? ((NsfObject*)clientData)->cmdName : NsfGlobalObjs[NSF_EMPTY], "Object", NULL);
+    
+
+      if (objc < 1 || objc > 2) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfOClassMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfOClassMethod(interp, obj, objc == 2 ? objv[1] : NULL);
+
+}
+
+static int
 NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, NULL, clientData ? ((NsfObject*)clientData)->cmdName : NsfGlobalObjs[NSF_EMPTY], "Object", NULL);
@@ -2122,6 +2160,9 @@ static methodDefinition method_definitions[] = {
   {"objectName", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 0, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
+{"::nsf::methods::class::superclass", NsfCSuperclassMethodStub, 1, {
+  {"superclasses", 0, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
 {"::nsf::methods::class::info::filterguard", NsfClassInfoFilterguardMethodStub, 1, {
   {"filter", NSF_ARG_REQUIRED, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2321,6 +2362,9 @@ static methodDefinition method_definitions[] = {
   {"-instance", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-reset", 0, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::methods::object::class", NsfOClassMethodStub, 1, {
+  {"class", 0, 0, ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::cleanup", NsfOCleanupMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

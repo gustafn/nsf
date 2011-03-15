@@ -168,6 +168,10 @@ objectMethod autoname NsfOAutonameMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 
+objectMethod class NsfOClassMethod {
+  {-argName "class" -required 0 -type tclobj}
+}
+
 objectMethod cleanup NsfOCleanupMethod {
 }
 
@@ -252,6 +256,10 @@ classMethod new NsfCNewMethod {
 classMethod recreate NsfCRecreateMethod {
   {-argName "objectName" -required 1 -type tclobj}
   {-argName "args" -type allargs}
+}
+
+classMethod superclass NsfCSuperclassMethod {
+  {-argName "superclasses" -required 0 -type tclobj}
 }
 
 #

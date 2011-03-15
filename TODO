@@ -2513,8 +2513,18 @@ nsf:
 * added defintions such that these methods can be loaded via
     ::nsf::method::require ::nx::Object unknown
 
+* added methods ::nsf::methods::object::class and 
+  ::nsf::methods::class::superclass in order to make faster and nicer
+  looking objectparameters (compared with forwarders)
+* nx: changed parameter -class to use ::nsf::methods::object::class
+* ns: fixed chicken egg problem of method objectparameter needing 
+  objectparameter by creating/destroying slot Class::slot::dummy; 
+  otherwise default values for slots would not be available
+* reduced verbosity of parameter forwarder
 
 TODO:
+- maybe the destructor of a slot should remove the setter/forwarder
+- how to delete attributes
 
 - when alloc|dealloc are loaded via require, we have
   no redefined-protection on those. Since the script does not know,
