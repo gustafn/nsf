@@ -10230,17 +10230,23 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    * If we are already in the precedence ordering, then advance
    * past our last point; otherwise (if clPtr==NULL) begin from the start.
    *
-   * When a mixin or filter chain reached its end, we have to search
-   * the obj-specific methods as well.
+   * When a mixin or filter chain reached its end, we have to check for
+   * absolute method names and search the obj-specific methods as well.
    */
-
-  if (object->nsPtr && endOfChain) {
-    *cmdPtr = FindMethod(object->nsPtr, *methodNamePtr);
+  if (endOfChain) {
+    if (**methodNamePtr == ':') {
+      *cmdPtr = Tcl_FindCommand(interp, *methodNamePtr, NULL, TCL_GLOBAL_ONLY);
+      /* fprintf(stderr, "NEXT found abolute cmd %s => %p\n", *methodNamePtr, *cmdPtr); */
+    } else if (object->nsPtr) {
+      *cmdPtr = FindMethod(object->nsPtr, *methodNamePtr);
+    } else {
+      *cmdPtr = NULL;
+    }
   } else {
     *cmdPtr = NULL;
   }
 
-  /* printf(stderr, "NEXT methodName %s *clPtr %p %s *cmd %p\n",
+  /*fprintf(stderr, "NEXT methodName %s *clPtr %p %s *cmd %p\n",
    *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr);*/
 
   if (!*cmdPtr) {

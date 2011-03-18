@@ -249,7 +249,7 @@ Test case objectparameter {
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "{{-superclass:forward,arg=::nsf::relation %self superclass} ::nx::Object} -object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:alias -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:alias -attributes:alias -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -class:alias,arg=::nsf::methods::object::class __initcmd:initcmd,optional"
+      "{-superclass:alias,arg=::nsf::methods::class::superclass ::nx::Object} -object-mixin:alias,arg=::nsf::classes::nx::Object::mixin -mixin:alias -object-filter:alias,arg=::nsf::classes::nx::Object::filter -filter:alias -attributes:alias -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -class:alias,arg=::nsf::methods::object::class __initcmd:initcmd,optional"
 
   ? {c1 eval {:objectparameter}} \
       "-a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional"

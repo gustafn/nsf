@@ -2537,7 +2537,7 @@ nsf:
   class should be straightforward.
 
 * various documentation updates (migration guide, nx tutorial)
-
+* fixed bad interaction between filter and parameter alias
 
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder

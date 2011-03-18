@@ -1081,9 +1081,9 @@ namespace eval ::nx {
     # create "superclass" as a ObjectParameterSlot
     #
     #::nx::RelationSlot create ${os}::Class::slot::superclass -default ${os}::Object
-    #::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
-	-methodname "::nsf::methods::class::superclass" -default ${os}::Object
     ::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
+	-methodname "::nsf::methods::class::superclass" -default ${os}::Object
+    #::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
 	-methodname "::nsf::relation %self superclass" -disposition forward -default ${os}::Object
 
 
