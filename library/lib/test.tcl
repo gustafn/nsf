@@ -34,7 +34,7 @@ namespace eval ::nx::test {
 
     set :count 0
 
-    :public class-object method case {name arg:optional} {
+    :public class method case {name arg:optional} {
       #
       # Experimental version of Test case, which (1) accepts test case as argument
       # and (2) destroys all created objects on exit (auto cleanup)
@@ -58,7 +58,7 @@ namespace eval ::nx::test {
       }
     }
 
-    :public class-object method parameter {name value:optional} {
+    :public class method parameter {name value:optional} {
       if {[info exists value]} {
         #[[current] slot $name] default $value
 	#:slot $name default $value
@@ -69,7 +69,7 @@ namespace eval ::nx::test {
       }
     }
 
-    :public class-object method new args {
+    :public class method new args {
       set testfile [file rootname [file tail [info script]]]
       if {[info exists :case]} {
 	if {![info exists :ccount(${:case})]} {set :ccount(${:case}) 0}
@@ -80,7 +80,7 @@ namespace eval ::nx::test {
       :create ${:name} -name ${:name} {*}$args
     }
 
-    :public class-object method run {} {
+    :public class method run {} {
       set startTime [clock clicks -milliseconds]
       foreach example [lsort [:info instances -closure]] {
 	$example run

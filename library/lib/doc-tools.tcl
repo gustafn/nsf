@@ -185,7 +185,7 @@ namespace eval ::nx::doc {
 
     namespace eval ::nx::doc::entities {}
 
-    :public class-object method normalise {tagpath names} {
+    :public class method normalise {tagpath names} {
       # puts stderr "tagpath $tagpath names $names"
       # 1) verify balancedness of 
       if {[llength $tagpath] != [llength $names]} {
@@ -204,7 +204,7 @@ namespace eval ::nx::doc {
 
     }
     
-    :public class-object method find {
+    :public class method find {
 	-strict:switch 
 	-all:switch 
 	tagpath 
@@ -520,7 +520,7 @@ namespace eval ::nx::doc {
       next [list [list @doc:optional __initcmd:initcmd,optional]]
     }
 
-    :class-object attribute current_project:object,type=::nx::doc::@project,0..1
+    :class attribute current_project:object,type=::nx::doc::@project,0..1
     :public forward current_project [current] %method
 
     :attribute partof:object,type=::nx::doc::StructuredEntity
@@ -765,7 +765,7 @@ namespace eval ::nx::doc {
   Class create ContainerEntity -superclass StructuredEntity {
     
     Class create [current]::Resolvable {
-      :class-object attribute container:object,type=[:info parent]
+      :class attribute container:object,type=[:info parent]
       :method get_fully_qualified_name {name} {
 	set container [[current class] container]
 	if {![string match "::*" $name]} {
@@ -856,14 +856,14 @@ namespace eval ::nx::doc {
       [current class]::Resolvable container [current]
 
       foreach {attr part_class} [:part_attributes] {
-	$part_class class-object mixin add [current class]::Containable
+	$part_class class mixin add [current class]::Containable
 	$part_class container [current]
       }
     }
 
     :method destroy {} {
       foreach {attr part_class} [:part_attributes] {
-	#$part_class class-object mixin add [current class]::Containable
+	#$part_class class mixin add [current class]::Containable
 	if {[$part_class eval {info exists :container}] && \
 		[$part_class container] eq [current]} {
 	  $part_class eval {unset :container}
@@ -1164,7 +1164,7 @@ namespace eval ::nx::doc {
 	  set :part_class ::nx::doc::@param
 	}
 
-	:public class-object method new {	       
+	:public class method new {	       
 	  -part_attribute:required
 	  -partof:object,type=::nx::doc::Entity
 	  -name:any,required
@@ -1311,11 +1311,11 @@ namespace eval ::nx::doc {
 	:attribute spec
 	:attribute default
 
-	:public class-object method id {partof_name scope name} {
+	:public class method id {partof_name scope name} {
 	  next [list [:get_unqualified_name ${partof_name}] $scope $name]
 	}
 	
-	# :class-object method id {partof_name name} {
+	# :class method id {partof_name name} {
 	#   # The method contains the parameter-specific name production rules.
 	#   #
 	#   # @param partof Refers to the entity object which contains this part 
@@ -1335,7 +1335,7 @@ namespace eval ::nx::doc {
 	# @param -name
 	# @param args
 
-	:public class-object method new {
+	:public class method new {
 		-part_attribute 
 		-partof:required
 		-name:any,required
@@ -1433,23 +1433,23 @@ namespace eval ::nx::doc {
 
   Class create TemplateData {
     
-    :class-object attribute renderer
+    :class attribute renderer
     :public forward renderer [current] %method
 
     :public forward rendered [current] %method
-    :class-object method "rendered push" {e:object,type=::nx::doc::Entity} {
+    :class method "rendered push" {e:object,type=::nx::doc::Entity} {
       if {![info exists :__rendered_entity]} {
 	set :__rendered_entity [list]
       }
       set :__rendered_entity [concat $e {*}${:__rendered_entity}]
     }
 
-    :class-object method "rendered pop" {} {
+    :class method "rendered pop" {} {
       set :__rendered_entity [lassign ${:__rendered_entity} e]
       return $e
     }
 
-    :class-object method "rendered top" {} {
+    :class method "rendered top" {} {
       return [lindex ${:__rendered_entity} 0]
     }
 
@@ -1916,8 +1916,8 @@ namespace eval ::nx::doc {
       # TODO: Why is call protection barfing when the protected target
       # is called from within a public forward. This should qualify as
       # a valid call site (from "within" the same object!), shouldn't it?
-      # :protected class-object attribute current_project:object,type=::nx::doc::@project
-      # :class-object attribute current_project:object,type=::nx::doc::@project
+      # :protected class attribute current_project:object,type=::nx::doc::@project
+      # :class attribute current_project:object,type=::nx::doc::@project
       # :public forward current_project [current] %method
 
       # :public forward print_name %current name
@@ -2361,21 +2361,21 @@ namespace eval ::nx::doc {
   namespace import -force ::nx::*
   Class create Sandbox {
 
-    :public class-object method type=in {name value arg} {
+    :public class method type=in {name value arg} {
       if {$value ni [split $arg |]} {
 	error "The value '$value' provided for parameter $name not permissible."
       }
       return $value
     }
 
-    :public class-object method type=fqn {name value} {
+    :public class method type=fqn {name value} {
       if {[string first "::" $value] != 0} {
 	error "The value '$value' must be a fully-qualified Tcl name."
       }
       return $value
     }
 
-    :public class-object method type=fpathtype {name value arg} {
+    :public class method type=fpathtype {name value arg} {
       #
       # Note: We might receive empty strings in case of [eval]s!
       #
@@ -2386,7 +2386,7 @@ namespace eval ::nx::doc {
       return $value
     }
 
-    :public class-object method type=nonempty {name value} {
+    :public class method type=nonempty {name value} {
       if {$value eq ""} {
 	error "An empty value is not allowed for parameter '$name'."
       }
@@ -3151,7 +3151,7 @@ namespace eval ::nx::doc::xodoc {
   # MetaClassToken	n/a
 
   Class create MetadataToken {
-    :class-object attribute analyzer
+    :class attribute analyzer
     :public forward analyzer [current] %method
     :method as {partof:object,type=::nx::doc::StructuredEntity} \
         -returns object,type=::nx::doc::Entity {
@@ -3963,7 +3963,7 @@ namespace eval ::nx::doc {
     }
     :attribute current_entity:object
     
-    :public class-object method process {
+    :public class method process {
 			      {-partof_entity ""}
 			      {-initial_section context}
 			      {-parsing_level 0}

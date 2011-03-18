@@ -302,7 +302,7 @@ namespace eval ::nx::serializer {
     # class object specfic methods
     ###############################
 
-    :public class-object method allChildren o {
+    :public class method allChildren o {
       # return o and all its children fully qualified
       set set [::nsf::dispatch $o -frame method ::nsf::current]
       foreach c [$o info children] {
@@ -311,21 +311,21 @@ namespace eval ::nx::serializer {
       return $set
     }
 
-    :public class-object method exportMethods list {
+    :public class method exportMethods list {
       foreach {o p m} $list {set :exportMethods([list $o $p $m]) 1}
     }
 
-    :public class-object method exportObjects list {
+    :public class method exportObjects list {
       foreach o $list {set :exportObjects($o) 1}
     }
 
-    :public class-object method exportedMethods {} {array names :exportMethods}
-    :public class-object method exportedObjects {} {array names :exportObjects}
+    :public class method exportedMethods {} {array names :exportMethods}
+    :public class method exportedObjects {} {array names :exportObjects}
 
-    :public class-object method resetPattern {} {array unset :ignorePattern}
-    :public class-object method addPattern {p} {set :ignorePattern($p) 1}
+    :public class method resetPattern {} {array unset :ignorePattern}
+    :public class method addPattern {p} {set :ignorePattern($p) 1}
     
-    :class-object method checkExportedMethods {} {
+    :class method checkExportedMethods {} {
       foreach k [array names :exportMethods] {
         foreach {o p m} $k break
         set ok 0
@@ -341,7 +341,7 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :class-object method checkExportedObject {} {
+    :class method checkExportedObject {} {
       foreach o [array names :exportObjects] {
         if {![::nsf::isobject $o]} {
           :warn "Serializer exportObject: ignore non-existing object $o"
@@ -355,7 +355,7 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :public class-object method all {-ignoreVarsRE -ignore} {
+    :public class method all {-ignoreVarsRE -ignore} {
       #
       # Remove objects which should not be included in the
       # blueprint. TODO: this is not the best place to do this, since
@@ -416,19 +416,19 @@ namespace eval ::nx::serializer {
       return $r
     }
 
-    :class-object method add_child_namespaces {ns} {
+    :class method add_child_namespaces {ns} {
       if {$ns eq "::nsf"} return
       lappend :namespaces $ns
       foreach n [namespace children $ns] {
 	:add_child_namespaces $n
       }
     }
-    :public class-object method application_namespaces {ns} {
+    :public class method application_namespaces {ns} {
       set :namespaces ""
       :add_child_namespaces $ns
       return ${:namespaces}
     }
-    :public class-object method export_nsfprocs {ns} {
+    :public class method export_nsfprocs {ns} {
       set result ""
       foreach n [:application_namespaces $ns] {
 	foreach p [:info methods -methodtype nsfproc ${n}::*] {
@@ -438,7 +438,7 @@ namespace eval ::nx::serializer {
       return $result
     }
 
-    :public class-object method methodSerialize {object method prefix} {
+    :public class method methodSerialize {object method prefix} {
       set s [:new -childof [::nsf::current object] -volatile]
       foreach oss [ObjectSystemSerializer info instances] {
         if {[$oss responsibleSerializer $object]} {
@@ -450,7 +450,7 @@ namespace eval ::nx::serializer {
       return $result
     }
 
-    :public class-object method deepSerialize {-ignoreVarsRE -ignore -map args} {
+    :public class method deepSerialize {-ignoreVarsRE -ignore -map args} {
       :resetPattern
       set s [:new -childof [::nsf::current object] -volatile]
       #$s volatile
@@ -783,7 +783,7 @@ namespace eval ::nx::serializer {
       } else {
 	append cmd [list [$o info class] create $objectName -noinit]\n
 	foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all -path]] {
-	  append cmd [:method-serialize $o $i "class-object"] "\n"
+	  append cmd [:method-serialize $o $i "class"] "\n"
 	}
       }
      

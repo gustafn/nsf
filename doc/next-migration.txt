@@ -1,7 +1,7 @@
 Migration Guide for the the Next Scripting Language
 ====================================================
 Gustaf Neumann <neumann@wu-wien.ac.at>
-v2.0, December 2010:
+v2.1, March 2011:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
@@ -69,17 +69,16 @@ the following respects:
   obsolete in NX (especially for importing instance variables). On the
   other hand, XOTcl is complete symmetrical in this respect.
 
-- The encapsulation of Next Scripting is stronger than in XOTcl but
-   still weak compared to languages like C++; a developer can still
-   access e.g. other variables via some idioms, but this _makes
-   accesses to other objects variables explicit_ and requires more
-   typing effort. Through the weak encapsulation a programmer should
-   be encouraged to implement methods to provide access to instance
-   variables.
+- The encapsulation of NX is stronger than in XOTcl but still weak
+   compared to languages like C++; a developer can still access other
+   objects' variables via some idioms, but NX _makes accesses to other
+   objects variables explicit_.  The requiredness to make these
+   accesses explicit should encourage developer to implement well
+   defined interfaces to provide access to instance variables.
 
 - The Next Scripting Language provides means of _method
-  protection_. Therefore developers have to define interfaces in order
-  to use methods from other objects.
+   protection_. Therefore developers have to define interfaces in
+   order to use methods from other objects.
 
 - The Next Scripting Language provides _scripted init blocks_ for
    objects and classes (replacement for the dangerous dash "-"
@@ -95,25 +94,24 @@ the following respects:
    Framework provides the same value checkers for positional argument
    of methods, as well as for object parameters (`-parameter` in XOTcl 1).
 
-- The Next Scripting Language has a much _smaller interface_ (less
-  predefined methods) than XOTcl:
-
-   * NX:
-[horizontal]
-Methods for Objects: :: 18
-Methods for Classes: :: 7
-Info methods for Objects: :: 14
-Info method for Classes: :: 6 
-
-   * XOTcl:
-[horizontal]
-Methods for Objects: :: 52
-Methods for Classes: :: 24
-Info methods for Objects: :: 25
-Info method for Classes: :: 24 
-
-- The naming of the methods in the The Next Scripting Language is much more
+- The naming of the methods in the Next Scripting Language is much more
   in line with the mainstream naming conventions in OO languages.
+
+- The Next Scripting Language has a much _smaller interface_ (less
+  predefined methods) than XOTcl (see Table 1), allthough the
+  expressability was increased in NX.
+
+.Comparison of the Number of Methods in NX and XOTcl
+[width="50%",frame="topbot",options="header,footer",cols="3,>1,>1"]
+|======================
+||NX|XOTcl
+|Methods for Objects           |17|  52
+|Methods for Classes           |  4|  24
+|Info-methods for Objects  |14|  25
+|Info-methods for Classes  |  6|  24
+|Total                                  | 41|125
+|======================
+
 
 Below is a small, introductory example showing an implementation of a
 class +Stack+ in NX and XOTcl. NX supports a block syntax, where the
@@ -169,7 +167,7 @@ Stack instproc init {} {
    set things ""
 } 
 
-Stack instproc  push {thing} {
+Stack instproc push {thing} {
    my instvar things
    set things [linsert $things 0 $thing] 
    return $thing
@@ -213,21 +211,14 @@ single script:
 
       package require XOTcl 2.0
 
-      # Import XOTcl into the current namespace
-      namespace import -force ::xotcl::*
-
-      # Define a class using XOTcl
-      Class C1
+     # Define a class using XOTcl
+      xotcl::Class C1
       C1 instproc foo {} {puts "hello world"}
 
       package require nx
 
-      # Import NX into the current namespace; 
-      # "Class" will be after the command "::nx::Class"
-      namespace import -force ::nx::*
-
-      # Define a class using NX
-      Class create C2 {
+     # Define a class using NX
+      nx::Class create C2 {
          :public method foo {} {puts "hello world"}
       }
    }
@@ -305,8 +296,8 @@ NX on the contrary uses the same term for defining inherited or
 object-specific methods. When the term (e.g. +method+) is used on a
 class, the method will be inherited (applicable to the instances of
 the class). When the term is used on an object, an object-specific
-method is defined. NX uses the method modifier +class-object+ to
-defined a class-method (method for the class-object).
+method is defined. NX uses the method modifier +class+ to
+define a class-specific method (method for the class object).
 
 Furthermore, both XOTcl and NX distinguish between scripted methods
 (section 3.2.1) and C-defined methods (section 3.2.2). Section 3.2.3
@@ -324,7 +315,7 @@ via separate top level calls (XOTcl and NX).
 
 |[source,tcl]
 ----------------
-# Define method 'foo' and class-object 
+# Define method 'foo' and class 
 # method 'bar' for a Class 'C' with separate 
 # toplevel commands
 
@@ -334,22 +325,22 @@ C proc bar args {...}
 ----------------
 |[source,tcl]
 ----------------
-# Define method and class-object method
+# Define method and class method
 # in the init-block of a class
 
 Class create C {
   :method foo args {...}
-  :class-object method bar args {...}
+  :class method bar args {...}
 }
 ----------------
 [source,tcl]
 ----------------
-# Define method and class-object method 
+# Define method and class method 
 # with separate commands
 
 Class create C
 C method foo args {...}
-C class-object method bar args {...}
+C class method bar args {...}
 ----------------
 
 |[source,tcl]
@@ -364,7 +355,7 @@ o proc foo args {...}
 
 |[source,tcl]
 ----------------
-# Define class-object method and set 
+# Define class method and set 
 # instance variable in the init-block of 
 # an object
 
@@ -375,7 +366,7 @@ Object create o {
 ----------------
 [source,tcl]
 ----------------
-# Define class-object method and set 
+# Define class method and set 
 # instance variable with separate 
 # commands
 
@@ -452,7 +443,7 @@ o forward f3 ...
 
 Class create C {
   :forward f1 ...
-  :class-object forward f2 ...
+  :class forward f2 ...
 }
 
 Object create o {
@@ -462,6 +453,10 @@ Object create o {
 
 |[source,tcl]
 ----------------
+# Define setter and getter methods in XOTcl.
+#
+# XOTcl provides methods for these.
+
 Class C
 C instparametercmd p1
 C parametercmd p2
@@ -472,7 +467,12 @@ o parametercmd p3
 
 |[source,tcl]
 ----------------
-# Define setter and getter methods
+# Define setter and getter methods in NX.
+#
+# NX does not provide own methods, but uses 
+# the low level framework commands, since
+# application developer will only seldomly 
+# need it.
 
 Class create C
 ::nsf::method::setter C p1
@@ -506,7 +506,7 @@ involve forwarding overhead.
 
 Class create C {
   :alias a1 ...
-  :class-object alias a2 ...
+  :class alias a2 ...
 }
 
 Object create o {
@@ -519,10 +519,10 @@ Object create o {
 [[method-protect-example]]
 ==== Method Modifiers and Method Protection
 
-NX supports the three method modifiers +class-object+, +public+ and
+NX supports the three method modifiers +class+, +public+ and
 +protected+. All method modifiers can be written in front of every method
-defining command. The method modifier +class-object+ is used to denote
-class-object specific methods (see above). The concept of method
+defining command. The method modifier +class+ is used to denote
+class-specific methods (see above). The concept of method
 protection is new in NX.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -533,7 +533,7 @@ protection is new in NX.
 ----------------
 # Method modifiers
 #
-#   "class-object",
+#   "class",
 #   "public", and
 #   "protected"
 #
@@ -541,32 +541,36 @@ protection is new in NX.
 ----------------
 |[source,tcl]
 ----------------
-# Method modifiers orthogonal over all kinds of methods
+# Method modifiers
 #
-# Method-definition-methods:
+#   "class",
+#   "public", and
+#   "protected"
+#
+# are applicable for all kinds of method 
+# defining methods:
+#
 #    method, forward, alias, attribute
 
 Class create C {
   :/method-definiton-method/ ...
   :public /method-definiton-method/ ...
   :protected /method-definiton-method/ ...
-  :class-object /method-definiton-method/ ...
-  :protected class-object /method-definiton-method/ ...
-  :public class-object /method-definiton-method/ ...
+  :class /method-definiton-method/ ...
+  :protected class /method-definiton-method/ ...
+  :public class /method-definiton-method/ ...
 }
 ----------------
 |======================
 
-While XOTcl does not provide method protection, in NX, all methods are
-defined per default as protected.
-
-NX allows to configure the default call protection in various
-ways. The command `::nx::configure defaultMethodCallProtection
-true|false` can be used to set the default call protection for
-scripted methods, forwarder and aliases, while `::nx::configure
-defaultAttributeCallProtection true|false` can set the default
-protection for attributes.
-
+XOTcl does not provide method protection. In NX, all methods are
+defined per default as protected. These defaults can be changed by the
+application developer in various ways. The command `::nx::configure
+defaultMethodCallProtection true|false` can be used to set the default
+call protection for scripted methods, forwarder and aliases, while
+`::nx::configure defaultAttributeCallProtection true|false` can set
+the default protection for attributes. The defaults can be overwritten
+also e.g. on a class level.
 
 === Resolvers
 
@@ -615,7 +619,7 @@ Class create C {
   }
 }
 Object create o {
-  :method baz {} {...}
+  :public method baz {} {...}
 }
 ----------------
 |======================
@@ -940,7 +944,7 @@ Foo create f1 -a 0
 Class create C {
   :attribute x
   :attribute {y 1}
-  :class-object attribute oa1
+  :class attribute oa1
 }
 
 Object create o {
@@ -1159,7 +1163,10 @@ c1 foo -x 1 -y a 2 3
 
 |[source,tcl]
 ----------------
-# n.a.
+# Only leading non-positional parameters
+# are available; no optional positional 
+# parameters, no value constraints on 
+# positional parameters, no multiplicity, ...
 ----------------
 |[source,tcl]
 ----------------
@@ -1213,7 +1220,7 @@ checkers, return value checkers can be turned on and off.
 
 |[source,tcl]
 ----------------
-# n.a.
+# No return value checking available
 ----------------
 |[source,tcl]
 ----------------
@@ -1240,7 +1247,7 @@ Class create C {
 
  # Define a method that has to return a 
  # non-empty list of objects
- :public class-object method instances {} \
+ :public class method instances {} \
     -returns object,1..n {
    return [:info instances]
   }
@@ -1261,7 +1268,7 @@ Therefore, in NX, if a +mixin+ is registered on the class-level, it is
 a per-class mixin, if the +mixin+ is registered on the object level,
 it is a object-level mixin. In both cases, the method +mixin+ is used.
 If a mixin is registered on the class object, one has to use the
-modifier +class-object+ (in the same way as e.g. for defining methods).
+modifier +class+ (in the same way as e.g. for defining methods).
 
 ==== Register Mixin Classes and Mixin Guards
 
@@ -1272,7 +1279,7 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 |[source,tcl]
 ----------------
 /cls/ instmixin ...
-/cls/ instmixinguard mixin /condition/
+/cls/ instmixinguard /mixin/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
@@ -1280,25 +1287,25 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 # a class
 
 /cls/ mixin ...
-/cls/ mixin guard mixin /condition/
+/cls/ mixin guard /mixin/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
 /cls/ mixin ...
-/cls/ mixin guard mixin /condition/
+/cls/ mixin guard /mixin/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
 # Register per-object mixin and guard for 
 # a class
 
-/cls/ class-object mixin ...
-/cls/ class-object mixin guard mixin /condition/
+/cls/ class mixin ...
+/cls/ class mixin guard /mixin/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
 /obj/ mixin ...
-/obj/ mixinguard mixin /condition/
+/obj/ mixinguard /mixin/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
@@ -1306,7 +1313,7 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 # an object
 
 /obj/ mixin ...
-/obj/ mixin guard mixin /condition/
+/obj/ mixin guard /mixin/ ?condition?
 ----------------
 |======================
 
@@ -1318,7 +1325,7 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 |[source,tcl]
 ----------------
 /cls/ instfilter ...
-/cls/ instfilterguard filter /condition/
+/cls/ instfilterguard /filter/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
@@ -1326,7 +1333,7 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 # a class
 
 /cls/ filter ...
-/cls/ filter guard filter /condition/
+/cls/ filter guard /filter/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
@@ -1338,13 +1345,13 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 # Register per-object filter and guard for 
 # a class
 
-/cls/ class-object filter ...
-/cls/ class-object filter guard filter /condition/
+/cls/ class filter ...
+/cls/ class filter guard /filter/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
 /obj/ filter ...
-/obj/ filterguard filter /condition/
+/obj/ filterguard /filter/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
@@ -1352,7 +1359,7 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 # an object
 
 /obj/ filter ...
-/obj/ filter guard filter /condition/
+/obj/ filter guard /filter/ ?condition?
 ----------------
 |======================
 
@@ -1366,8 +1373,11 @@ and has to use accordingly different sub-methods of +info+.
 In NX, one can use e.g. always +info method+ with a subcommand and the
 framework tries to hide the differences as far as possible. So, one
 can for example obtain with +info method parameter+ the parameters of
-scripted and C-implemented methods the same way. In addition, NX
-provides means to query the type of a method.
+scripted and C-implemented methods the same way, one one can get the
+definition of all methods via +info method definition+ and one can get
+an manual-like interface description via +info method
+parametersyntax+. In addition, NX provides means to query the type of
+a method, and NX allows to filter by the type of the method.
 
 ==== List methods defined by classes
 
@@ -1509,8 +1519,8 @@ returned methods.
 
 ==== List class object specific methods
 
-When class-object specific properties are queried, NX required to use
-the modifier +class-object+ (like for the definition of the methods).
+When class specific properties are queried, NX required to use
+the modifier +class+ (like for the definition of the methods).
 In all other respects, this section is identical to the previous one.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -1523,7 +1533,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info methods ?pattern?
+/cls/ class info methods ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1531,7 +1541,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info methods -methodtype setter ?pattern?
+/cls/ class info methods -methodtype setter ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1539,7 +1549,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info methods -methodtype scripted ?pattern?
+/cls/ class info methods -methodtype scripted ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1547,7 +1557,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info methods -methodtype alias ?pattern?
+/cls/ class info methods -methodtype alias ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1555,7 +1565,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info methods -methodtype forwarder ?pattern?
+/cls/ class info methods -methodtype forwarder ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1563,7 +1573,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info methods -methodtype object ?pattern?
+/cls/ class info methods -methodtype object ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1571,7 +1581,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info methods \
+/cls/ class info methods \
    -callprotection public\|protected ...
 ----------------
 |======================
@@ -1605,8 +1615,8 @@ appropriate depending on the context.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ ?class-object? info method exists /methodName/
-/cls/ ?class-object? info methods /methodName/
+/cls/ ?class? info method exists /methodName/
+/cls/ ?class? info methods /methodName/
 ----------------
 |======================
 
@@ -1867,7 +1877,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 |======================
 
 For definition of class object specific methods, use the modifier
-+class-object+ as shown in examples above.
++class+ as shown in examples above.
 
 ==== List Filter or Mixins
 
@@ -1907,7 +1917,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info filter methods \
+/cls/ class info filter methods \
    ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
@@ -1916,7 +1926,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info filter guard /name/
+/cls/ class info filter guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -1959,7 +1969,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info mixin classes \
+/cls/ class info mixin classes \
    ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
@@ -1968,7 +1978,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info mixin guard /name/
+/cls/ class info mixin guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -1992,7 +2002,7 @@ subcommands rather than using a flat namespace.
 
 ==== List definition of methods defined by aliases, setters or forwarders
 
-As mentioned earlier, +info method definition" can be used on every
+As mentioned earlier, +info method definition+ can be used on every
 kind of method.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -2043,7 +2053,7 @@ the method handle to the created method.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ ?class-object? info method handle /methodName/
+/cls/ ?class? info method handle /methodName/
 ----------------
 |======================
 
@@ -2070,7 +2080,7 @@ specified method.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ ?class-object? info method type /methodName/
+/cls/ ?class? info method type /methodName/
 ----------------
 |======================
 
@@ -2437,10 +2447,12 @@ The following changes for parameters could be regarded as bug-fixes.
 ==== Parameter usage without a value
 
 In XOTcl 1, it was possible to call a parameter method during object
-creation via the -param without a value (in the example below `-x`. 
+creation via the dash-interface without a value (in the example below `-x`). 
 
 [source,tcl]
 ----------------
+# XOTcl example
+
 Class Foo -parameter {x y}
 Foo f1 -x -y 1
 ----------------
@@ -2456,9 +2468,26 @@ incorrectly the parameter `x` (set via default from `Foo`), while in
 XOTcl 2, the variable won't be set.
 [source,tcl]
 ----------------
+# XOTcl example
+
 Class Foo -parameter {{x 1}}
 Class Bar -superclass Foo -parameter x
 Bar b1
+----------------
+
+==== Ignored Parameter definitions
+
+NX does not define the methods +class+ and +superclass+ but allows to
+alter the class/superclass via +configure+. The class and superclass
+can be certainly queried in all variants with +info class+ or +info superclass+.
+[source,tcl]
+----------------
+# NX example
+
+nx::Class create Foo
+Foo create f1
+# now oalter the class of object f1
+f1 configure -class nx::Object
 ----------------
 
 
@@ -2472,6 +2501,8 @@ was possible to call e.g. a method foo of the slot object
 
 [source,tcl]
 ----------------
+# XOTcl example
+
 Foo::slot::ints foo ...
 Foo slot ints foo ... 
 ----------------
@@ -2508,6 +2539,7 @@ into the Tcl command `::nsf::exithandler`:
 
 [source,tcl]
 ----------------
+# NX example
 ::nsf::exithandler set|get|unset ?arg?
 ----------------
 

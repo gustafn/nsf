@@ -95,11 +95,11 @@ namespace eval ::nx::pp {
       scan seek set socket source split stdin stderr stdout string subst switch 
       tell trace unset uplevel update upvar variable vwait while
       package
-      public protected class-object
+      public protected 
       method alias attribute forward 
       my next new self current
       create init new destroy alloc dealloc
-      class superclass mixin filter
+      class superclass mixin filter guard
       methods lookup
       ::nx::Class nx::Class ::xotcl::Class xotcl::Class Class 
       ::nx::Object nx::Object ::xotcl::Object xotcl::Object Object 

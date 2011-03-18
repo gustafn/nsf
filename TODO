@@ -2522,6 +2522,23 @@ nsf:
   otherwise default values for slots would not be available
 * reduced verbosity of parameter forwarder
 
+* Hopefully the last big naming change: 
+  Instead of writing "C class-object method foo {} {...}" 
+  one can write now "C class method foo {} {...}" to define
+  a class method named "foo" for class "C". This naming change
+  became possible by defining XOTcl's "class" (and "superclass")
+  as object parameter only. To change a class of an object o,
+  one has to use "o configure -class NEWCLASS". The term 
+  "object-class" looks alien to language beginners, the term
+  "class" is much more straightforward. Changing classes 
+  or superclasses is seldomly used by typicall application programs.
+
+  For already existing nx scripts, changing "object-class" into 
+  class should be straightforward.
+
+* various documentation updates (migration guide, nx tutorial)
+
+
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
 - how to delete attributes

@@ -85,7 +85,7 @@ namespace eval ::nx {
 
   #puts stderr =====1
   set c [Class create C -superclass Class {
-    :class-object method foo {} {;}
+    :class method foo {} {;}
   }]
   ? {set c} ::C
 

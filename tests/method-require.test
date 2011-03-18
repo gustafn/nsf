@@ -37,12 +37,12 @@ Test case method-require {
     :require method tcl::set
     
     # object methods:
-    :require class-object method lappend
+    :require class method lappend
     
     # a scripted method
-    :require class-object method foo
+    :require class method foo
     
-    :require class-object method x
+    :require class method x
     
     # looks as well ok:
     :require namespace
@@ -57,7 +57,7 @@ Test case method-require {
 }
 
 Test case parent-require { 
-  ::nx::Class public class-object method __unknown {name} {
+  ::nx::Class public class method __unknown {name} {
     #puts stderr "***** __unknown called with <$name>"
     ::nx::Object create $name
   }

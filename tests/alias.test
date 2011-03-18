@@ -135,53 +135,53 @@ Test case alias-chaining {
   ? {T info methods} {FOO}
   
   T public method foo args { return [current class]->[current method] }
-  T public class-object method bar args { return [current class]->[current method] }
+  T public class method bar args { return [current class]->[current method] }
   ::nsf::method::alias T -per-object FOO ::nsf::classes::T::foo 
   ::nsf::method::alias T -per-object BAR ::T::FOO 
   ::nsf::method::alias T -per-object ZAP ::T::BAR 
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
-  ? {lsort [T class-object info methods -methodtype alias]} {BAR FOO ZAP}
-  ? {lsort [T class-object info methods]} {BAR FOO ZAP bar}
+  ? {lsort [T class info methods -methodtype alias]} {BAR FOO ZAP}
+  ? {lsort [T class info methods]} {BAR FOO ZAP bar}
   ? {t foo} ::T->foo
-  ? {T class-object info method definition ZAP} {::T public class-object alias ZAP ::T::BAR}
+  ? {T class info method definition ZAP} {::T public class alias ZAP ::T::BAR}
   
   ? {T FOO} ->foo
   ? {T BAR} ->foo
   ? {T ZAP} ->foo
   ? {T bar} ->bar
-  T class-object method FOO {} {}
+  T class method FOO {} {}
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
-  ? {lsort [T class-object info methods]} {BAR ZAP bar}
+  ? {lsort [T class info methods]} {BAR ZAP bar}
   ? {T BAR} ->foo
   ? {T ZAP} ->foo
   rename ::T::BAR ""
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
-  ? {lsort [T class-object info methods]} {ZAP bar}
+  ? {lsort [T class info methods]} {ZAP bar}
   ? {T ZAP} ->foo; # is ok, still pointing to 'foo'
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
-  ? {lsort [T class-object info methods]} {ZAP bar}
+  ? {lsort [T class info methods]} {ZAP bar}
   ? {T ZAP} ->foo
   T public method foo {} {}
   #WITH_IMPORT_REFS
   #? {T info methods} {}
   ? {T info methods} {FOO}
   #WITH_IMPORT_REFS
-  #? {lsort [T class-object info methods]} {bar}
-  ? {lsort [T class-object info methods]} {ZAP bar}
+  #? {lsort [T class info methods]} {bar}
+  ? {lsort [T class info methods]} {ZAP bar}
 }
 
 Test case alias-per-object {
 
   Class create T {
-    :public class-object method bar args { return [current class]->[current method] }
+    :public class method bar args { return [current class]->[current method] }
     :create t
   }
   proc ::foo args { return [current class]->[current method] }
@@ -189,21 +189,21 @@ Test case alias-per-object {
   #
   # per-object methods as per-object aliases
   #
-  T public class-object method m1 args { return [current class]->[current method] }
+  T public class method m1 args { return [current class]->[current method] }
   ::nsf::method::alias T -per-object M1 ::T::m1 
   ::nsf::method::alias T -per-object M11 ::T::M1 
-  ? {lsort [T class-object info methods]} {M1 M11 bar m1}
+  ? {lsort [T class info methods]} {M1 M11 bar m1}
   ? {T m1} ->m1
   ? {T M1} ->m1
   ? {T M11} ->m1
-  T class-object method M1 {} {}
-  ? {lsort [T class-object info methods]} {M11 bar m1}
+  T class method M1 {} {}
+  ? {lsort [T class info methods]} {M11 bar m1}
   ? {T m1} ->m1
   ? {T M11} ->m1
-  T class-object method m1 {} {}
+  T class method m1 {} {}
   #WITH_IMPORT_REFS
-  #? {lsort [T class-object info methods]} {bar}
-  ? {lsort [T class-object info methods]} {M11 bar}
+  #? {lsort [T class info methods]} {bar}
+  ? {lsort [T class info methods]} {M11 bar}
   
   #
   # a proc as alias
@@ -217,8 +217,8 @@ Test case alias-per-object {
   #
   ::nsf::method::alias T BAR ::T::FOO2
   #WITH_IMPORT_REFS
-  #? {lsort [T class-object info methods]} {FOO2 bar}
-  ? {lsort [T class-object info methods]} {FOO2 M11 bar}
+  #? {lsort [T class info methods]} {FOO2 bar}
+  ? {lsort [T class info methods]} {FOO2 M11 bar}
   ? {lsort [T info methods]} {BAR FOO1}
   ? {T FOO2} ->foo
   ? {t FOO1} ::T->foo
@@ -228,8 +228,8 @@ Test case alias-per-object {
   #
   rename ::foo ""
   #WITH_IMPORT_REFS
-  #? {lsort [T class-object info methods]} {bar}
-  ? {lsort [T class-object info methods]} {FOO2 M11 bar}
+  #? {lsort [T class info methods]} {bar}
+  ? {lsort [T class info methods]} {FOO2 M11 bar}
   #WITH_IMPORT_REFS
   #? {lsort [T info methods]} {}
   ? {lsort [T info methods]} {BAR FOO1}
@@ -239,7 +239,7 @@ Test case alias-per-object {
 # namespaced procs + namespace deletion
 Test case alias-namespaced {
   Class create T {
-    :public class-object method bar args { return [current class]->[current method] }
+    :public class method bar args { return [current class]->[current method] }
     :create t
   }
   
@@ -268,19 +268,19 @@ Test case alias-namespaced {
   Class create U
   U create u
   ? {namespace exists ::U} 0
-  U public class-object method zap args { return [current class]->[current method] }
+  U public class method zap args { return [current class]->[current method] }
   ::nsf::method::alias ::U -per-object ZAP ::U::zap 
   U require namespace
   ? {namespace exists ::U} 1
   
-  U public class-object method bar args { return [current class]->[current method] }
+  U public class method bar args { return [current class]->[current method] }
   ::nsf::method::alias U -per-object BAR ::U::bar
-  ? {lsort [U class-object info methods]} {BAR ZAP bar zap}
+  ? {lsort [U class info methods]} {BAR ZAP bar zap}
   ? {U BAR} ->bar
   ? {U ZAP} ->zap
   namespace delete ::U
   ? {namespace exists ::U} 0
-  ? {lsort [U class-object info methods]} {}
+  ? {lsort [U class info methods]} {}
   ? {U info lookup methods BAR} ""
   ? {U info lookup methods ZAP} ""
   
@@ -294,7 +294,7 @@ Test case alias-dot-resolver {
   Class create V {
     set :z 1
     :public method bar {z} { return $z }
-    :public class-object method bar {z} { return $z }
+    :public class method bar {z} { return $z }
     :create v {
       set :z 2
     }
@@ -309,7 +309,7 @@ Test case alias-dot-resolver {
   ::nsf::method::alias V FOO1 ::foo 
   ::nsf::method::alias V -per-object FOO2 ::foo
 
-  ? {lsort [V class-object info methods]} {FOO2 bar}
+  ? {lsort [V class info methods]} {FOO2 bar}
   ? {lsort [V info methods]} {FOO1 bar}
 
   ? {V FOO2} 1-1-1
@@ -318,8 +318,8 @@ Test case alias-dot-resolver {
   ? {lsort [V info methods]} {bar}
   rename ::foo ""
   #WITH_IMPORT_REFS
-  #? {lsort [V class-object info methods]} {bar}
-  ? {lsort [V class-object info methods]} {FOO2 bar}
+  #? {lsort [V class info methods]} {bar}
+  ? {lsort [V class info methods]} {FOO2 bar}
 }
 
 #

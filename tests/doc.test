@@ -472,7 +472,7 @@ Test case mixed-mode-parsing {
 	
       }
       
-      :public class-object method foo {a b c} {
+      :public class method foo {a b c} {
 	# This describes the per-object foo method in the method body
 	#
 	# @parameter b Provides a second value (refined)
@@ -645,7 +645,7 @@ Test case tag-notations-extended {
       }
       
       # @.class-object-attribute attr2 Carries a short desc only
-      :class-object attribute attr2
+      :class attribute attr2
       
       # @.method foo
       #
@@ -661,7 +661,7 @@ Test case tag-notations-extended {
       #
       # This extended form allows to describe a method parameter with all
       # its structural features!
-      set barHandle [:public class-object method bar {p1} {
+      set barHandle [:public class method bar {p1} {
 	return [current method]-$p1-[current]
       }]
       
@@ -702,7 +702,7 @@ Test case tag-notations-extended {
 	:attribute p1
 	
 	# @..class-object-attribute p2
-	:class-object attribute p2
+	:class attribute p2
       }
       
       
@@ -716,7 +716,7 @@ Test case tag-notations-extended {
       # forwarder in the context of an owning @method object!)
       # 
       # @parameter p1 Some words on p1
-      :class-object alias "sub foo" $fooHandle
+      :class alias "sub foo" $fooHandle
       
       # @.method sub
       #
@@ -745,7 +745,7 @@ Test case tag-notations-extended {
       # @parameter p1 Some words on p1
       # @see anotherentity
       # @author ss@thinkersfoot.net
-      :class-object alias "sub foo2" $fooHandle
+      :class alias "sub foo2" $fooHandle
     }
   }
   
@@ -780,13 +780,13 @@ Test case tag-notations-extended {
 
   set entity [@object id ::C::foo]
   ? [list ::nsf::isobject $entity] 0
-  set entity [@attribute id $entity class-object p1]
+  set entity [@attribute id $entity class p1]
   ? [list ::nsf::isobject $entity] 0
   #  ? [list $entity info has type ::nx::doc::@attribute] 1
   #  ? [list $entity as_text] ".. is overruled by a long one ..."
 
   # --testing-- @class-object-attribute attr2 (its non-existance)
-  set entity [@attribute id [@class id ::C] class-object attr2]
+  set entity [@attribute id [@class id ::C] class attr2]
   ? [list ::nsf::isobject $entity] 0
   # --testing-- @child-class Foo (its non-existance)
   set entity [@class id ::C::Foo]
@@ -795,14 +795,14 @@ Test case tag-notations-extended {
   set entity [@method id ::C class foo]
   ? [list ::nsf::isobject $entity] 0
   # --testing-- @class-object-method.parameter {bar p1} (its non-existance)
-  set entity [@parameter id [@method id ::C class-object bar] "" p1]
+  set entity [@parameter id [@method id ::C class bar] "" p1]
   ? [list ::nsf::isobject $entity] 0
   # --testing-- @child-object.attribute {foo p1} (its non-existance)
   set cl [@class id ::C::Foo]
   ? [list ::nsf::isobject $entity] 0
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 0
-  set entity [@attribute id $cl class-object p2]
+  set entity [@attribute id $cl class p2]
   ? [list ::nsf::isobject $entity] 0
 
   #
@@ -837,7 +837,7 @@ Test case tag-notations-extended {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "'foo' needs to be defined before referencing any of its parts!"; # still empty!
-  set entity [@attribute id $entity class-object p1]
+  set entity [@attribute id $entity class p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
@@ -845,7 +845,7 @@ Test case tag-notations-extended {
   # b) newly added ...
   
   # --testing-- @class-object-attribute attr2
-  set entity [@attribute id [@class id ::C] class-object attr2]
+  set entity [@attribute id [@class id ::C] class attr2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "Carries a short desc only";
@@ -865,9 +865,9 @@ Test case tag-notations-extended {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] ""
   # --testing-- @class-object-method.parameter {bar p1} (its non-existance) It
-  # still cannot exist as a documented entity, as the class-object method
+  # still cannot exist as a documented entity, as the class method
   # has not been initialised before!
-  set entity [@parameter id [@method id ::C class-object bar] "" p1]
+  set entity [@parameter id [@method id ::C class bar] "" p1]
   ? [list ::nsf::isobject $entity] 0
   # --testing-- @child-class.attribute {foo p1} (its non-existance)
   # --testing-- @child-class.object-attribute {foo p2} (its non-existance)
@@ -876,7 +876,7 @@ Test case tag-notations-extended {
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] {This is equivalent to stating "@child-class.class-attribute {Foo p1}"}
-  set entity [@attribute id $cl class-object p2]
+  set entity [@attribute id $cl class p2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Y"
   
@@ -944,7 +944,7 @@ Test case tag-notations-extended {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "Adding a line for the first time (not processed in the initcmd phase!)"; # still empty!
-  set entity [@attribute id $entity class-object p1]
+  set entity [@attribute id $entity class p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This is equivalent to stating "@class-object-attribute p1"}
@@ -962,7 +962,7 @@ Test case tag-notations-extended {
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] {This is equivalent to stating "@class-attribute p1"; or '@class.object.attribute {::C Foo p1}' from the top-level.}
-  set entity [@attribute id $cl class-object p2]
+  set entity [@attribute id $cl class p2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] ""
   

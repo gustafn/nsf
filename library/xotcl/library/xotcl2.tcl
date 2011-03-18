@@ -62,7 +62,7 @@ namespace eval ::xotcl {
     }
     # provide minimal compatibility
     :public forward instproc %self public method
-    :public forward proc %self public class-object method
+    :public forward proc %self public class method
   }
 
   #
@@ -967,18 +967,18 @@ namespace eval ::xotcl {
     {export {}}
   } {
     
-    :public class-object method create {name args} {
+    :public class method create {name args} {
       set nq [namespace qualifiers $name]
       if {$nq ne "" && ![namespace exists $nq]} {Object create $nq}
       next
     }
 
-    :public class-object method extend {name args} {
+    :public class method extend {name args} {
       :require $name
 	$name configure {*}$args
     }
     
-    :public class-object method contains script {
+    :public class method contains script {
       if {[info exists :provide]} {
         package provide [set :provide] [set :version]
       } else {
@@ -1002,16 +1002,16 @@ namespace eval ::xotcl {
       }
     }
     
-    :public class-object method unknown args {
+    :public class method unknown args {
       #puts stderr "unknown: package $args"
       [set :packagecmd] {*}$args
     }
     
-    :public class-object method verbose value {
+    :public class method verbose value {
       set :verbose $value
     }
     
-    :public class-object method present args {
+    :public class method present args {
       if {$::tcl_version<8.3} {
         switch -exact -- [lindex $args 0] {
           -exact  {set pkg [lindex $args 1]}
@@ -1027,7 +1027,7 @@ namespace eval ::xotcl {
       }
     }
     
-    :public class-object method import {{-into ::} pkg} {
+    :public class method import {{-into ::} pkg} {
       :require $pkg
       namespace eval $into [subst -nocommands {
         #puts stderr "*** package import ${pkg}::* into [namespace current]"
@@ -1042,7 +1042,7 @@ namespace eval ::xotcl {
       }
     }
     
-    :public class-object method require args {
+    :public class method require args {
       #puts "XOTCL package require $args, current=[namespace current]"
       set prevComponent ${:component}
       if {[catch {set v [package present {*}$args]} msg]} {

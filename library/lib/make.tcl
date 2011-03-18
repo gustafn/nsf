@@ -159,7 +159,7 @@ if {![info exists argv] || $argv eq ""} {set argv -all}
 if {$argv eq "-n"} {set argv "-n -all"}
 
 Class create Script {
-  :public class-object method create args {
+  :public class method create args {
     lappend args {*}$::argv
     set s [next]
     set method [list]

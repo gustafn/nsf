@@ -1,7 +1,7 @@
 Tutorial for the Next Scripting Language
 ==========================================
 Gustaf Neumann <neumann@wu-wien.ac.at>, Stefan Sobernig <stefan.sobernig@wu.ac.at>
-v2.0, December 2010:
+v2.1, March 2011:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
@@ -15,18 +15,21 @@ Written for the Initial Release of the Next Scripting Framework.
 This document provides a tutorial for the Next Scripting 
 Language NX.
 *****************************************************************************
-The Next Scripting Language (NX) is a successor of XOTcl 1 and is
-based on 10 years of experience with XOTcl in projects containing
-several hundert thousand lines of code. While XOTcl was the first
-language designed to provide _language support for design patterns_,
-the focus of the Next Scripting Framework and NX are on combining this
-with _Language Oriented Programming_. In many respects, NX was
-designed to ease the learning of the language by novices (by using a
-more mainstream terminology, higher orthogonality of the methods, less
-predefined methods), to improve maintainability (remove sources of
-common errors) and to encourage developer to write better structured
-programs (to provide interfaces) especially for large projects, where
-many developers are involved.
+
+The Next Scripting Language (NX) is a highly flexible, Tcl
+<<Ousterhout 1990>> based object oriented scripting language. It is a
+successor of XOTcl 1 <<Neumann and Zdun 2000a>> and is based on 10
+years of experience with XOTcl in projects containing several hundert
+thousand lines of code. While XOTcl was the first language designed to
+provide _language support for design patterns_, the focus of the Next
+Scripting Framework and NX are on combining this with _Language
+Oriented Programming_. In many respects, NX was designed to ease the
+learning of the language by novices (by using a more mainstream
+terminology, higher orthogonality of the methods, less predefined
+methods), to improve maintainability (remove sources of common errors)
+and to encourage developer to write better structured programs (to
+provide interfaces) especially for large projects, where many
+developers are involved.
 
 The Next Scripting Language is based on the Next Scripting Framework
 which was developed based on the notion of language oriented
@@ -41,7 +44,7 @@ requires Tcl 8.5 or newer.
 
 == NX and its Roots
 
-Object oriented extensions of Tcl <<Ousterhout 1990>> have quite a
+Object oriented extensions of Tcl have quite a
 long history. Two of the most prominent early Tcl based OO languages
 were _incr Tcl_ (abbreviated as itcl) and Object Tcl (_OTcl_
 <<Wetherall and Lindblad 1995>>). While itcl provides a traditional
@@ -93,7 +96,7 @@ abstraction. Therefore, we define a common unit (a class) that defines
 and encapsulates the behavior of a stack and provides methods to a user
 of the data structure that abstract from the actual implementation.
 
-=== Define a Class Stack
+=== Define a Class "Stack"
 
 In our first example, we define a class named +Stack+ with the methods
 +push+ and +pop+. When an instance of the stack is created (e.g. a
@@ -181,7 +184,7 @@ provide an interface to the stack implementation.
 {set:xmp-using-stack:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-!#/bin/env tclsh
+#!/bin/env tclsh
 package require nx
  
 nx::Class create Stack {
@@ -235,7 +238,7 @@ specialization of +nx::Object+. +nx::Class+ provides methods for
 creating objects, such as the method +create+ which is used to create
 objects (and classes as well).
 
-=== Define an Object named stack
+=== Define an Object Named "stack"
 
 The definition of the stack in <<xmp-class-stack, {xmp-class-stack}>>
 is following the traditional object oriented approach, found in
@@ -554,8 +557,8 @@ for instances, managing object life-cycles; we will come to this later
 in more detail). Since classes are objects, we can define as well
 object-specific methods for the class objects. However, since
 +:method+ applied on classes defines methods for instances, we have to
-use the method-modifier +class-object+ to denote methods to be
-applied on the class itself. Note that class-object methods are not
+use the method-modifier +class+ to denote methods to be
+applied on the class itself. Note that class methods are not
 inherited to instances. These methods defined on the class object are
 actually exactly same as the object-specific methods in the examples
 above.
@@ -567,7 +570,7 @@ above.
 --------------------------------------------------
 nx::Class create Stack2 {
 
-    :class-object method available_stacks {} {
+    :public class method available_stacks {} {
       return [llength [:info instances]]
    }
 
@@ -595,7 +598,7 @@ puts [Stack available_stacks]
 
 The class +Stack2+ in <<xmp-stack2, {xmp-stack2}>> consists of the the
 earlier definition of the class +Stack+ extended by the
-class-object-specific method +available_stacks+, that returns the
+class-specific method +available_stacks+, that returns the
 current number of instances of the stack. The final command +puts+
 (line 26) prints 2 to the console.
 

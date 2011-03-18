@@ -533,8 +533,8 @@ footnotes: function () {
 <div id="header">
 <h1>Tutorial for the Next Scripting Language</h1>
 <span id="author">Gustaf Neumann &lt;neumann@wu-wien.ac.at&gt;, Stefan Sobernig &lt;stefan.sobernig@wu.ac.at&gt;</span><br />
-<span id="revnumber">version 2.0,</span>
-<span id="revdate">December 2010</span>
+<span id="revnumber">version 2.1,</span>
+<span id="revdate">March 2011</span>
 <br /><span id="revremark">Written for the Initial Release of the Next Scripting Framework.</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
@@ -550,18 +550,20 @@ footnotes: function () {
 <div class="paragraph"><p>This document provides a tutorial for the Next Scripting
 Language NX.</p></div>
 </div></div>
-<div class="paragraph"><p>The Next Scripting Language (NX) is a successor of XOTcl 1 and is
-based on 10 years of experience with XOTcl in projects containing
-several hundert thousand lines of code. While XOTcl was the first
-language designed to provide <em>language support for design patterns</em>,
-the focus of the Next Scripting Framework and NX are on combining this
-with <em>Language Oriented Programming</em>. In many respects, NX was
-designed to ease the learning of the language by novices (by using a
-more mainstream terminology, higher orthogonality of the methods, less
-predefined methods), to improve maintainability (remove sources of
-common errors) and to encourage developer to write better structured
-programs (to provide interfaces) especially for large projects, where
-many developers are involved.</p></div>
+<div class="paragraph"><p>The Next Scripting Language (NX) is a highly flexible, Tcl
+<a href="#Ousterhout 1990">[Ousterhout 1990]</a> based object oriented scripting language. It is a
+successor of XOTcl 1 <a href="#Neumann and Zdun 2000a">[Neumann and Zdun 2000a]</a> and is based on 10
+years of experience with XOTcl in projects containing several hundert
+thousand lines of code. While XOTcl was the first language designed to
+provide <em>language support for design patterns</em>, the focus of the Next
+Scripting Framework and NX are on combining this with <em>Language
+Oriented Programming</em>. In many respects, NX was designed to ease the
+learning of the language by novices (by using a more mainstream
+terminology, higher orthogonality of the methods, less predefined
+methods), to improve maintainability (remove sources of common errors)
+and to encourage developer to write better structured programs (to
+provide interfaces) especially for large projects, where many
+developers are involved.</p></div>
 <div class="paragraph"><p>The Next Scripting Language is based on the Next Scripting Framework
 which was developed based on the notion of language oriented
 programming. The Next Scripting Frameworks provides C-level support
@@ -577,7 +579,7 @@ requires Tcl 8.5 or newer.</p></div>
 <div class="sect1">
 <h2 id="_nx_and_its_roots">1. NX and its Roots</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Object oriented extensions of Tcl <a href="#Ousterhout 1990">[Ousterhout 1990]</a> have quite a
+<div class="paragraph"><p>Object oriented extensions of Tcl have quite a
 long history. Two of the most prominent early Tcl based OO languages
 were <em>incr Tcl</em> (abbreviated as itcl) and Object Tcl (<em>OTcl</em>
 <a href="#Wetherall and Lindblad 1995">[Wetherall and Lindblad 1995]</a>). While itcl provides a traditional
@@ -632,7 +634,7 @@ abstraction. Therefore, we define a common unit (a class) that defines
 and encapsulates the behavior of a stack and provides methods to a user
 of the data structure that abstract from the actual implementation.</p></div>
 <div class="sect2">
-<h3 id="_define_a_class_stack">2.1. Define a Class Stack</h3>
+<h3 id="_define_a_class_stack">2.1. Define a Class "Stack"</h3>
 <div class="paragraph"><p>In our first example, we define a class named <tt>Stack</tt> with the methods
 <tt>push</tt> and <tt>pop</tt>. When an instance of the stack is created (e.g. a
 concrete stack <tt>s1</tt>) the stack will be initialized via the constructor
@@ -764,7 +766,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  16
  17
  18
-</pre></td><td class='nx-body'><pre class='nx'>!<span class='nx-comment'>#/bin/env tclsh
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-comment'>#!/bin/env tclsh
 </span><span class='nx-keyword'>package</span> require nx
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack {
@@ -817,7 +819,7 @@ creating objects, such as the method <tt>create</tt> which is used to create
 objects (and classes as well).</p></div>
 </div>
 <div class="sect2">
-<h3 id="_define_an_object_named_stack">2.2. Define an Object named stack</h3>
+<h3 id="_define_an_object_named_stack">2.2. Define an Object Named "stack"</h3>
 <div class="paragraph"><p>The definition of the stack in <a href="#xmp-class-stack">Listing 2</a>
 is following the traditional object oriented approach, found in
 practically every object oriented programming language: Define a class
@@ -1246,8 +1248,8 @@ for instances, managing object life-cycles; we will come to this later
 in more detail). Since classes are objects, we can define as well
 object-specific methods for the class objects. However, since
 <tt>:method</tt> applied on classes defines methods for instances, we have to
-use the method-modifier <tt>class-object</tt> to denote methods to be
-applied on the class itself. Note that class-object methods are not
+use the method-modifier <tt>class</tt> to denote methods to be
+applied on the class itself. Note that class methods are not
 inherited to instances. These methods defined on the class object are
 actually exactly same as the object-specific methods in the examples
 above.</p></div>
@@ -1291,7 +1293,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  26
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack2 {
 
-    :<span class='nx-keyword'>class-object</span> <span class='nx-keyword'>method</span> available_stacks {} {
+    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> available_stacks {} {
       <span class='nx-keyword'>return</span> [<span class='nx-keyword'>llength</span> [:<span class='nx-keyword'>info</span> instances]]
    }
 
@@ -1317,7 +1319,7 @@ Stack <span class='nx-keyword'>create</span> s2
 <span class='nx-keyword'>puts</span> [Stack available_stacks]</pre></td></tr></table></div></div>
 <div class="paragraph"><p>The class <tt>Stack2</tt> in <a href="#xmp-stack2">Listing 14</a> consists of the the
 earlier definition of the class <tt>Stack</tt> extended by the
-class-object-specific method <tt>available_stacks</tt>, that returns the
+class-specific method <tt>available_stacks</tt>, that returns the
 current number of instances of the stack. The final command <tt>puts</tt>
 (line 26) prints 2 to the console.</p></div>
 <div class="imageblock" id="img-stack2" style="text-align:center;">
@@ -2403,8 +2405,8 @@ incremental slots
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 2.0<br />
-Last updated 2011-01-31 12:51:11 CET
+Version 2.1<br />
+Last updated 2011-03-18 10:30:20 CET
 </div>
 </div>
 </body>

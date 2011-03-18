@@ -27,18 +27,18 @@ Class create C {
   :protected alias protected_alias [C info method handle protected_method]
   
   # class-object
-  :class-object method plain_object_method {} {return [current method]}
-  :public class-object method public_object_method {} {return [current method]}
-  :protected class-object method protected_object_method {}  {return [current method]}
-  :class-object forward plain_object_forward %self plain_object_method
-  :public class-object forward public_object_forward %self public_object_method
-  :protected class-object forward protected_object_forward %self protected_object_method
-  :class-object attribute plain_object_setter 
-  :public class-object attribute public_object_setter 
-  :protected class-object attribute protected_object_setter 
-  :class-object alias plain_object_alias [:class-object info method handle plain_object_method]
-  :public class-object alias public_object_alias [:class-object info method handle public_object_method]
-  :protected class-object alias protected_object_alias [:class-object info method handle protected_object_method]
+  :class method plain_object_method {} {return [current method]}
+  :public class method public_object_method {} {return [current method]}
+  :protected class method protected_object_method {}  {return [current method]}
+  :class forward plain_object_forward %self plain_object_method
+  :public class forward public_object_forward %self public_object_method
+  :protected class forward protected_object_forward %self protected_object_method
+  :class attribute plain_object_setter 
+  :public class attribute public_object_setter 
+  :protected class attribute protected_object_setter 
+  :class alias plain_object_alias [:class info method handle plain_object_method]
+  :public class alias public_object_alias [:class info method handle public_object_method]
+  :protected class alias protected_object_alias [:class info method handle protected_object_method]
 }
 C create c1 {
   # methods
@@ -65,7 +65,7 @@ C public attribute s0
 C protected attribute s1
 ? {c1 s0 0} 0
 ? {::nsf::dispatch c1 s1 1} 1
-C class-object attribute s3
+C class attribute s3
 ? {C s3 3} 3
 
 # create a fresh object (different from c1)
@@ -104,7 +104,7 @@ Test case class-level-alias {
 
 ###########
 
-# scripted class-object level methods
+# scripted class level methods
 Test case scripted-class-object-level {
   ? {C plain_object_method} "plain_object_method"
   ? {C public_object_method} "public_object_method"
@@ -112,7 +112,7 @@ Test case scripted-class-object-level {
   ? {::nsf::dispatch C protected_object_method} "protected_object_method"
 }
 
-# class-object level forwards
+# class level forwards
 Test case class-object-level-forwards {
   ? {C plain_object_forward} "plain_object_method"
   ? {C public_object_forward} "public_object_method"
@@ -120,7 +120,7 @@ Test case class-object-level-forwards {
   ? {::nsf::dispatch C protected_object_forward} "protected_object_method"
 }
 
-# class-object level setter
+# class level setter
 Test case class-object-level-setter {
   ? {C plain_object_setter 1} "1"
   ? {C public_object_setter 2} "2"
@@ -128,7 +128,7 @@ Test case class-object-level-setter {
   ? {::nsf::dispatch C protected_object_setter 4} "4"
 }
 
-# class-object level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
+# class level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
 Test case class-object-level-alias {
   ? {C plain_object_alias} "plain_object_method"
   ? {C public_object_alias} "public_object_method"
@@ -171,7 +171,7 @@ Test case object-level-alias {
 
   ? {lsort [c1 info methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
-  ? {lsort [C class-object info methods]} \
+  ? {lsort [C class info methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
 }
 
@@ -200,12 +200,12 @@ Test case mixinguards {
   C mixin guard M {}
   ? {C info mixin guard M} ""
 
-  # now the same as class-object mixin and class-object mixin guard
-  C class-object mixin M
-  C class-object mixin guard M {1 == 1}
-  ? {C class-object info mixin guard M} "1 == 1"
-  C class-object mixin guard M {}
-  ? {C class-object info mixin guard M} ""
+  # now the same as class mixin and class mixin guard
+  C class mixin M
+  C class mixin guard M {1 == 1}
+  ? {C class info mixin guard M} "1 == 1"
+  C class mixin guard M {}
+  ? {C class info mixin guard M} ""
 }
 
 Test case mixin-via-objectparam {
@@ -213,11 +213,11 @@ Test case mixin-via-objectparam {
   Class create M1; Class create M2; Class create M3; Class create M4
   Class create C -mixin M1 -object-mixin M2 {
     :mixin add M3
-    :class-object mixin add M4
+    :class mixin add M4
   }
   
-  ? {lsort [C class-object info mixin classes]} "::M2 ::M4"
-  #? {lsort [C class-object info mixin classes]} "::M2"
+  ? {lsort [C class info mixin classes]} "::M2 ::M4"
+  #? {lsort [C class info mixin classes]} "::M2"
 
   ? {lsort [C info mixin classes]} "::M1 ::M3"
   #? {lsort [C info mixin classes]} "::M1"
@@ -261,13 +261,13 @@ Test case attribute-method {
     :public attribute {c c1}
     :protected attribute {d d1}
 
-    set X [:class-object attribute A]
+    set X [:class attribute A]
     ? [list set _ $X] "::C::A"
     
-    # class-object attribute with default
-    :class-object attribute {B B2}
-    :public class-object attribute {C C2}
-    :protected class-object attribute {D D2}
+    # class attribute with default
+    :class attribute {B B2}
+    :public class attribute {C C2}
+    :protected class attribute {D D2}
   }
 
   C create c1 -a 1
@@ -306,8 +306,8 @@ Test case subcmd {
      :method "Info args" {} {return [current object]-[current method]}
      :method "Info foo" {} {return [current object]-[current method]}
 
-     :class-object method "INFO filter guard" {a b} {return [current object]-[current method]}
-     :class-object method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+     :class method "INFO filter guard" {a b} {return [current object]-[current method]}
+     :class method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
    }
   
   ? {Foo INFO filter guard 1 2} ::Foo-guard
@@ -330,14 +330,14 @@ Test case subcmd {
 package req nx::serializer
 Test case class-object-attribute {
   Class create C {
-    :class-object attribute x
+    :class attribute x
     :attribute a:int
     :create c1
   }
   ? {C x 1} 1
   ? {C x} 1
   ? {C info methods} "a"
-  ? {C class-object info methods} x
+  ? {C class info methods} x
   ? {c1 a b} {expected integer but got "b" for parameter "a"}
  
   set s(C) [C serialize]
@@ -357,7 +357,7 @@ Test case class-object-attribute {
   # tests should work as again
   ? {C x} 1
   ? {C info methods} "a"
-  ? {C class-object info methods} x
+  ? {C class info methods} x
   ? {c1 a b} {expected integer but got "b" for parameter "a"}  
 }
 
@@ -369,7 +369,7 @@ Test parameter count 1
 Test case methoddelete {
   nx::Class create C {
     :public method foo {x} {return $x}
-    :public class-object method bar {x} {return $x}
+    :public class method bar {x} {return $x}
     :create c1
   }
   
@@ -396,6 +396,6 @@ Test case errormessage {
       "'object' is not a method defining method"
   ? {C object method bar {x} {return $x}} \
       {Method 'object' unknown for ::C. Consider '::C create object method bar x {return $x}' instead of '::C object method bar x {return $x}'}
-  ? {C public class-object object method bar {x} {return $x}} \
-      "'object' not allowed to be modified by 'class-object'"
+  ? {C public class object method bar {x} {return $x}} \
+      "'object' not allowed to be modified by 'class'"
 }

@@ -201,12 +201,12 @@ namespace eval ::nx {
   }
 
   #
-  # define method modifiers "class-object", and class level "unknown"
+  # define method modifiers "class", and class level "unknown"
   #
   Class eval {
 
     # method-modifier for object specific methos
-    :method class-object {what args} {
+    :method class {what args} {
       if {$what in [list "alias" "attribute" "forward" "method"]} {
         return [::nsf::dispatch [::nsf::self] ::nsf::classes::nx::Object::$what {*}$args]
       }
@@ -236,7 +236,7 @@ namespace eval ::nx {
       if {$what in [list "filterguard" "mixinguard"]} {
         return [::nsf::dispatch [::nsf::self] ::nsf::methods::object::$what {*}$args]
       }
-      error "'$what' not allowed to be modified by 'class-object'"
+      error "'$what' not allowed to be modified by 'class'"
     }
     # define unknown handler for class
     :method unknown {m args} {
@@ -247,8 +247,8 @@ namespace eval ::nx {
     ::nsf::method::property [::nsf::self] unknown call-protected true
   }
 
-  # Well, class-object is not a method defining method either, but a modifier
-  array set ::nsf::methodDefiningMethod {method 1 alias 1 attribute 1 forward 1 class-object 1}
+  # Well, class is not a method defining method either, but a modifier
+  array set ::nsf::methodDefiningMethod {method 1 alias 1 attribute 1 forward 1 class 1}
 
   Object eval {
 
@@ -335,7 +335,7 @@ namespace eval ::nx {
   # the ::ttrace mechanism for partial loading by Zoran.
   #
 
-  Class protected class-object method __unknown {name} {}
+  Class protected class method __unknown {name} {}
 
   # Add alias methods. cmdName for a method can be added via
   #   [... info method handle <methodName>]
@@ -367,7 +367,7 @@ namespace eval ::nx {
   #
   Object method require {what args} {
     switch -- $what {
-      class-object {
+      class {
 	set what [lindex $args 0]
 	if {$what eq "method"} {
 	  ::nsf::method::require [::nsf::self] [lindex $args 1] 1
@@ -571,7 +571,7 @@ namespace eval ::nx {
   # Definition of "abstract method foo ...."
   #
   # Deactivated for now. If we like to revive this method, it should
-  # be integrated with the method modifiers and the method "class-object"
+  # be integrated with the method modifiers and the method "class"
   #
   # Object method abstract {methtype -per-object:switch methname arglist} {
   #   if {$methtype ne "method"} {
@@ -603,7 +603,7 @@ namespace eval ::nx {
   Class create ::nx::MetaSlot
   ::nsf::relation MetaSlot superclass Class
   
-  MetaSlot class-object method requireClass {required:class old:class,0..1} {
+  MetaSlot class method requireClass {required:class old:class,0..1} {
     #
     # Combine two classes and return the more specialized one
     #
@@ -619,7 +619,7 @@ namespace eval ::nx {
     }
   }
 
-  MetaSlot public class-object method createFromParameterSpec {
+  MetaSlot public class method createFromParameterSpec {
     target 
     -per-object:switch 
     {-class ""}
@@ -1104,11 +1104,11 @@ namespace eval ::nx {
 	$obj info filter guard $filter 
       }
     }
-    ${os}::Object::slot::mixin method guard {obj prop filter guard:optional} {
+    ${os}::Object::slot::mixin method guard {obj prop mixin guard:optional} {
       if {[info exists guard]} {
-	::nsf::dispatch $obj ::nsf::methods::object::mixinguard $filter $guard
+	::nsf::dispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
       } else {
-	$obj info mixin guard $filter 
+	$obj info mixin guard $mixin
       }
     }
     ${os}::Class::slot::mixin method guard {obj prop filter guard:optional} {

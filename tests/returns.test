@@ -305,7 +305,7 @@ Test case int-returns-sugar {
 	:alias lappend -returns integer -frame object ::lappend
 	:forward ++ -returns integer ::expr 1 +
 	:forward | -returns integer ::append _ 
-	:public class-object method instances {} -returns object,1..n {:info instances}
+	:public class method instances {} -returns object,1..n {:info instances}
 	:create c1
     }
 

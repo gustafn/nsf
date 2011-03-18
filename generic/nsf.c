@@ -13640,7 +13640,7 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
 			     : Tcl_NewStringObj("public", 6));
   }
   if (withPer_object) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class-object", 12));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class", 5));
   }
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, -1));
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, -1));
