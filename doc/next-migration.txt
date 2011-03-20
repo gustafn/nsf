@@ -2475,7 +2475,7 @@ Class Bar -superclass Foo -parameter x
 Bar b1
 ----------------
 
-==== Ignored Parameter definitions
+==== Changing classes and superclasses
 
 NX does not define the methods +class+ and +superclass+ but allows to
 alter the class/superclass via +configure+. The class and superclass
@@ -2486,8 +2486,11 @@ can be certainly queried in all variants with +info class+ or +info superclass+.
 
 nx::Class create Foo
 Foo create f1
-# now oalter the class of object f1
+# now alter the class of object f1
 f1 configure -class nx::Object
+
+# alternate approach via Next Scripting Framework
+::nsf::relation f1 class ::nx::Object
 ----------------
 
 

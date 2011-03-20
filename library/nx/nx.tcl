@@ -10,8 +10,10 @@ namespace eval ::nx {
 
   #
   # First create the ::nx object system. The interally called methods,
-  # which are not defined by default (from this script), must have
-  # method handles included.
+  # which are not defined by in this script, must have method handles
+  # included. The methods "create", "configure", "destroy", "move" and
+  # "objectparameter" are defined in this script (either scripted, or
+  # aliases).
   #
   ::nsf::createobjectsystem ::nx::Object ::nx::Class {
     -class.alloc {alloc ::nsf::methods::class::alloc} 
