@@ -7794,7 +7794,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
   if (proc == TclObjInterpProc) {
 #if defined(NRE)
-    TEOV_callback *rootPtr = TOP_CB(interp);
+    NRE_callback *rootPtr = TOP_CB(interp);
 #endif
     /*
      * The cmd is a scripted method
@@ -8500,7 +8500,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
     NsfErrorContext(interp, "method destroy");
 
     if (++rst->errorCount > 20) {
-      Tcl_Panic("too many destroy errors occured. Endless loop?", NULL);
+      Tcl_Panic("too many destroy errors occured. Endless loop?");
     }
   } else if (rst->errorCount > 0) {
     rst->errorCount--;

@@ -2541,6 +2541,10 @@ nsf:
 
 * some documentation/todo updates
 
+* fix compilation for tcl-head in fossil
+* deactivate coro regression test, since it is apparently broken
+  for tcl-head in fossil (stack frame seems to be lost after a yield)
+
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
 - how to delete attributes?
