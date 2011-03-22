@@ -11163,8 +11163,13 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   if (nsPtr) {
     NSNamespacePreserve(nsPtr);
   }
+#if defined(NRE)
+  object->id = Tcl_NRCreateCommand(interp, nameString, NsfObjDispatch, NsfObjDispatch,
+				    (ClientData)object, TclDeletesObject);
+#else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
 				    (ClientData)object, TclDeletesObject);
+#endif
 
   /*fprintf(stderr, "cmd alloc %p %d (%s)\n", object->id, 
     Tcl_Command_refCount(object->id), nameString);*/
@@ -11583,8 +11588,14 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   if (nsPtr) {
     NSNamespacePreserve(nsPtr);
   }
+#if defined(NRE)
+  object->id = Tcl_NRCreateCommand(interp, nameString, NsfObjDispatch, NsfObjDispatch,
+				    (ClientData)cl, TclDeletesObject);
+#else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
 				    (ClientData)cl, TclDeletesObject);
+#endif
+
   PrimitiveOInit(object, interp, nameString, nsPtr, class);
   if (nsPtr) {
     NSNamespaceRelease(nsPtr);

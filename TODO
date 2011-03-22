@@ -2545,6 +2545,9 @@ nsf:
 * deactivate coro regression test, since it is apparently broken
   for tcl-head in fossil (stack frame seems to be lost after a yield)
 
+* make sure to create the cmds for objects with Tcl_NRCreateCommand()
+  to choose trampoline-path in the trunk version of Tcl
+
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
 - how to delete attributes?
