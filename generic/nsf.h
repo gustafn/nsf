@@ -155,7 +155,7 @@
   /*fprintf(stderr, "NsfCleanupObject %p %s\n",object,string);*/	\
   NsfCleanupObject_(object)
 # define CscFinish(interp,cscPtr,retCode,string)			\
-  /*fprintf(stderr, "CscFinish %p %s\n",cscPtr,string);*/		\
+  /*fprintf(stderr, "CscFinish %p %s\n",cscPtr,string);	*/		\
   NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode);			\
   CscFinish_(interp, cscPtr)
 #else

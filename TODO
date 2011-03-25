@@ -2548,6 +2548,12 @@ nsf:
 * make sure to create the cmds for objects with Tcl_NRCreateCommand()
   to choose trampoline-path in the trunk version of Tcl
 
+* The newest trunk version of Tcl in fossil has TclStackFree() and
+  TclStackAlloc() removed We had to substitute this
+  functions. Unfortunately, the lifetime of the strack structures has
+  changed, so we had shuffle some interals around.
+
+
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
 - how to delete attributes?

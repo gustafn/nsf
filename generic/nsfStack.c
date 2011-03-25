@@ -834,9 +834,9 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
      * Track object activations
      */
     object->activationCount ++;
-    /*fprintf(stderr, "CscInit %s method %s activationCount ++ (%s) --> %d\n",
-	    msg, cmd ? Tcl_GetCommandName(object->teardown,cmd) : "UNK", 
-	    ObjectName(object),  object->activationCount);*/
+    /*fprintf(stderr, "CscInit %p method %s activationCount ++ (%s) --> %d (cl %p)\n",
+	    cscPtr, cmd ? Tcl_GetCommandName(object->teardown,cmd) : "UNK", 
+	    ObjectName(object),  object->activationCount, cl);*/
     /*
      * Track class activations
      */
@@ -900,7 +900,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   object = cscPtr->self;
 
   /*fprintf(stderr, "CscFinish %p object %p %s flags %.6x cmdPtr %p\n",cscPtr,
-    object, ObjectName(object), flags, cscPtr->cmdPtr); */
+    object, ObjectName(object), cscPtr->flags, cscPtr->cmdPtr); */
 
   /*
    *  In the cases, where an cmd was provided, we tracked in init the

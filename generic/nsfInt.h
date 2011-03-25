@@ -726,6 +726,8 @@ typedef struct NsfCallStackContent {
 
 #if defined(NRE_SANE_PATCH)
 # define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr)
+# define TclStackFree(interp, ptr) ckfree(ptr)
+# define TclStackAlloc(interp, size) ckalloc(size)
 #else
 # define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr, 0)
 # define TEOV_callback NRE_callback
