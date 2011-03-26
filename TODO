@@ -2554,6 +2554,8 @@ nsf:
   changed, so we had shuffle some interals around.
 
 - nsf.c: remove unnecessary test when compiled without NRE
+- nsf.c: make sure, validCscPtr is always initialized
+- tested all regression tests with valgrind against tcl-trunk
 
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder

@@ -7797,7 +7797,6 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
    * The default assumption is that the CscPtr is valid after this function
    * finishes.
    */
-  *validCscPtr = 1;
 
   if (proc == TclObjInterpProc) {
 #if defined(NRE)
@@ -8021,7 +8020,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	       Tcl_Command cmd, NsfObject *object, NsfClass *cl,
 	       CONST char *methodName, int frameType, int flags) {
   NsfCallStackContent csc, *cscPtr;		
-  int result, validCscPtr;
+  int result, validCscPtr = 1;
 
   assert (object->teardown);
   assert (cmd);
@@ -8173,7 +8172,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   Tcl_Command cmd = NULL;
   Tcl_Obj *cmdName = object->cmdName, *methodObj, *cmdObj;
   NsfCallStackContent csc, *cscPtr = NULL;
-  int validCscPtr;
+  int validCscPtr = 1;
 
   if (flags & NSF_CM_NO_SHIFT) {
     shift = 0;
@@ -8390,7 +8389,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     /*
      * The method to be dispatched is unknown
      */
-    validCscPtr = 1;
     cscPtr = CscAlloc(interp, &csc, cmd);
     CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
     cscPtr->flags |= NSF_CSC_METHOD_IS_UNKNOWN;
