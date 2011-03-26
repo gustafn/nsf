@@ -2553,6 +2553,7 @@ nsf:
   functions. Unfortunately, the lifetime of the strack structures has
   changed, so we had shuffle some interals around.
 
+- nsf.c: remove unnecessary test when compiled without NRE
 
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder

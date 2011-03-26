@@ -7485,7 +7485,9 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
  */
 static int
 ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
+#if defined(NRE)
   ParseContext *pcPtr = data[0];
+#endif
   NsfCallStackContent *cscPtr = data[1];
   /*CONST char *methodName = data[2];*/
 #if defined(NSF_WITH_ASSERTIONS)
@@ -7512,17 +7514,17 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   }
 #endif
 
+#if defined(NRE)
   if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE)) {
     if (pcPtr) {
       ParseContextRelease(pcPtr);
       NsfTclStackFree(interp, pcPtr, "release parse context");
     }
-#if defined(NRE)
     result = ObjectDispatchFinalize(interp, cscPtr, result /*, "NRE" , methodName*/);
-#endif
 
     CscFinish(interp, cscPtr, result, "scripted finalize");
   }
+#endif
 
   return result;
 }
