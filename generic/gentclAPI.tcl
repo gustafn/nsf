@@ -27,7 +27,7 @@ proc createconverter {type argname} {
   subst {
 enum ${name}Idx {[join $enums {, }]};
 
-static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
+static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   $opts
@@ -54,6 +54,7 @@ proc genifd {parameterDefinitions} {
       "NULL"       {set converter String}
       "boolean"    {set converter Boolean}
       "switch"     {set converter Boolean}
+      "int"        {set converter Integer}
       "class"      {set converter Class}
       "object"     {set converter Object}
       "tclobj"     {set converter Tclobj}
@@ -74,7 +75,8 @@ proc genifd {parameterDefinitions} {
 #     } else {
 #       set default ""
 #     }
-    lappend l "{\"$argName\", $flags, $(-nrargs), ConvertTo$converter, NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
+    if {$converter in {Tclobj Integer String}} {set conv Nsf_ConvertTo$converter} else {set conv ConvertTo$converter}
+    lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
   }
   if {[llength $l] == 0} {
     return "{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
@@ -128,6 +130,7 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
           "class"      {set type "NsfClass *"}
           "object"     {set type "NsfObject *"}
           "tclobj"     {set type "Tcl_Obj *"}
+          "int"        {set type "int "}
           "*|*"        {set type "int "}
           default      {error "type '$(-type)' not allowed for parameter"}
         }
@@ -285,7 +288,7 @@ proc genstubs {} {
   } elseif {$nrArgs == 0} {
     append pre [subst -nocommands {
       if (objc != 1) {
-	return ArgumentError(interp, "too many arguments:", 
+	return NsfArgumentError(interp, "too many arguments:", 
 			     method_definitions[$d(idx)].paramDefs,
 			     NULL, objv[0]); 
       } 
@@ -303,7 +306,7 @@ proc genstubs {} {
     }
     append pre [subst -nocommands {
       if ($op) {
-	return ArgumentError(interp, "wrong # of arguments:", 
+	return NsfArgumentError(interp, "wrong # of arguments:", 
 			     method_definitions[$d(idx)].paramDefs,
 			     NULL, objv[0]); 
       }
@@ -330,36 +333,22 @@ proc genstubs {} {
     append stubDecls $stubDecl
   }
   
-  puts {
-typedef struct {
-  CONST char *methodName;
-  Tcl_ObjCmdProc *proc;
-  int nrParameters;
-  NsfParam paramDefs[12];
-} methodDefinition;
-   }
-   puts $::converter
-
-   set entries [list]
-   foreach c [array names ::createdConverter] {lappend entries "\{$::createdConverter($c)\}"}
-   puts [subst {
+  puts $::converter
+  
+  set entries [list]
+  foreach c [array names ::createdConverter] {lappend entries "\{$::createdConverter($c)\}"}
+  if {[llength $entries]>0} {
+    puts [subst {
 static enumeratorConverterEntry enumeratorConverterEntries\[\] = {
   [join $entries ",\n  "],
   {NULL, NULL}
 };
-   }]
+    }]
+  }
 
-   puts {
-static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
-                         NsfObject *obj, Tcl_Obj *procName,
-                         NsfParam CONST *paramPtr, int nrParameters, int doCheck,
-			 ParseContext *pc);
-
-static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
-			  NsfObject **matchObject, CONST char **pattern);
-
+  puts {
 /* just to define the symbol */
-static methodDefinition method_definitions[];
+static Nsf_methodDefinition method_definitions[];
   }
 
   set namespaces [list]
@@ -376,7 +365,7 @@ static methodDefinition method_definitions[];
   puts "enum {\n $enumString\n} NsfMethods;\n"
   puts $fns
   set definitionString [join $ifds ",\n"]
-  puts "static methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
+  puts "static Nsf_methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
 }
 
 proc methodDefinition {methodName methodType implementation parameterDefinitions {ns ""}} {
@@ -417,11 +406,13 @@ proc objectInfoMethod {methodName implementation parameterDefinitions} {
 proc classInfoMethod {methodName implementation parameterDefinitions} {
   methodDefinition $methodName classMethod $implementation $parameterDefinitions $::ns(classInfoMethod)
 }
-proc nsfCmd {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName nsfCmd $implementation $parameterDefinitions
+proc cmd {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName cmd $implementation $parameterDefinitions
 }
 
-source [file dirname [info script]]/gentclAPI.decls
+if {[llength $argv] == 1} {set decls $argv} {set decls generic/gentclAPI.decls}
+puts stderr "source $decls"
+source $decls
 
 genstubs
 puts stderr "[array size ::definitions] parsing stubs generated"

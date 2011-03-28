@@ -2557,9 +2557,25 @@ nsf:
 - nsf.c: make sure, validCscPtr is always initialized
 - tested all regression tests with valgrind against tcl-trunk
 
+- gentclAPI.tcl: 
+  * renamed "nsfCmd" to simply "cmd", since the code can generate arbitrary
+    tcl commands
+  * allow type "int" in the .decls files
+- nsf.c
+  * move several functions from "static" to "external" to make
+    the code generator usable for submodules as well
+
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
 - how to delete attributes?
+
+- Higher binary compatibility for future versions:
+  * It is not nice to have the full Nsf_Param structure in nsf.h
+    (required for Nsf_methodDefinition in the c code generator)
+  * It is not nice to have the full ParseContext structure in nsfmongo
+    (required for the allocation of the parse context in the stubs)
+  Adding fields to these structures would kill alder binaries
+- not all converters are already external symbols
 
 - when alloc|dealloc are loaded via require, we have
   no redefined-protection on those. Since the script does not know,

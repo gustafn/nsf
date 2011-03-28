@@ -235,16 +235,6 @@ typedef struct NsfMemCounter {
 # endif
 #endif
 
-#if defined(TCL_THREADS)
-# define NsfMutex Tcl_Mutex
-# define NsfMutexLock(a) Tcl_MutexLock(a)
-# define NsfMutexUnlock(a) Tcl_MutexUnlock(a)
-#else
-# define NsfMutex int
-# define NsfMutexLock(a)   (*(a))++
-# define NsfMutexUnlock(a) (*(a))--
-#endif
-
 #ifndef HAVE_STRNSTR
 char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #endif
@@ -453,29 +443,9 @@ typedef struct NsfStringIncrStruct {
 /*
  * object and class internals
  */
-struct NsfParam;
-typedef int (NsfTypeConverter)(Tcl_Interp *interp, 
-				 Tcl_Obj *obj,
-                                 struct NsfParam CONST *pPtr, 
-				 ClientData *clientData, 
-				 Tcl_Obj **outObjPtr);
-
-typedef struct NsfParam {
-  char *name;
-  int flags;
-  int nrArgs;
-  NsfTypeConverter *converter;
-  Tcl_Obj *converterArg;
-  Tcl_Obj *defaultValue;
-  CONST char *type;
-  Tcl_Obj *nameObj;
-  Tcl_Obj *converterName;
-  Tcl_Obj *paramObj;
-  Tcl_Obj *slotObj;
-} NsfParam;
 
 typedef struct NsfParamDefs {
-  NsfParam *paramsPtr;
+  Nsf_Param *paramsPtr;
   int nrParams;
   Tcl_Obj *slotObj;
   Tcl_Obj *returns;
@@ -904,9 +874,6 @@ void NsfStringIncrFree(NsfStringIncrStruct *iss);
 #define FRAME_IS_NSF_OBJECT  0x10000
 #define FRAME_IS_NSF_METHOD  0x20000
 #define FRAME_IS_NSF_CMETHOD 0x40000
-
-#define NSF_LOG_NOTICE 2
-#define NSF_LOG_WARN 1
 
 #if !defined(NDEBUG)
 /*# define NSF_INLINE*/

@@ -180,6 +180,15 @@
 # define CscListRemove(interp, cscPtr)
 #endif
 
+#if defined(TCL_THREADS)
+# define NsfMutex Tcl_Mutex
+# define NsfMutexLock(a) Tcl_MutexLock(a)
+# define NsfMutexUnlock(a) Tcl_MutexUnlock(a)
+#else
+# define NsfMutex int
+# define NsfMutexLock(a)   (*(a))++
+# define NsfMutexUnlock(a) (*(a))--
+#endif
 
 /* 
  * A special definition used to allow this header file to be included 
@@ -195,6 +204,10 @@
  * data structures for the internal use strucures NsfObject and 
  * NsfClass (both defined in NsfInt.h). Modification of elements 
  * visible elements must be mirrored in both incarnations.
+ *
+ * Warning: These structures are just containing a few public
+ * fields. These structures must not be used for querying the size or
+ * allocating the datastructures.
  */
 
 typedef struct Nsf_Object {
@@ -205,8 +218,53 @@ typedef struct Nsf_Class {
   struct Nsf_Object object;
 } Nsf_Class;
 
+typedef struct Nsf_ParseContext {
+  ClientData *clientData;
+  int status;
+} Nsf_ParseContext;
+
+struct Nsf_Param;
+typedef int (Nsf_TypeConverter)(Tcl_Interp *interp, 
+				 Tcl_Obj *obj,
+                                 struct Nsf_Param CONST *pPtr, 
+				 ClientData *clientData, 
+				 Tcl_Obj **outObjPtr);
 typedef struct Nsf_Param {
+  char *name;
+  int flags;
+  int nrArgs;
+  Nsf_TypeConverter *converter;
+  Tcl_Obj *converterArg;
+  Tcl_Obj *defaultValue;
+  CONST char *type;
+  Tcl_Obj *nameObj;
+  Tcl_Obj *converterName;
+  Tcl_Obj *paramObj;
+  Tcl_Obj *slotObj;
 } Nsf_Param;
+
+extern int 
+Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+		  Nsf_Object *object, Tcl_Obj *procNameObj,
+		  Nsf_Param CONST *paramPtr, int nrParams, int doCheck,
+		  Nsf_ParseContext *pcPtr);
+extern int
+NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
+		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj);
+
+#define NSF_LOG_NOTICE 2
+#define NSF_LOG_WARN 1
+
+extern void
+NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...);
+
+typedef struct Nsf_methodDefinition {
+  CONST char *methodName;
+  Tcl_ObjCmdProc *proc;
+  int nrParameters;
+  Nsf_Param paramDefs[12];
+} Nsf_methodDefinition;
+
 
 /*
  * Include the public function declarations that are accessible via

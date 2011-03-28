@@ -6,71 +6,70 @@
 
 # namespaces for types of methods
 array set ns {
-  nsfCmd           "::nsf"
+  cmd              "::nsf"
   objectMethod     "::nsf::methods::object"
   objectInfoMethod "::nsf::methods::object::info"
   classMethod      "::nsf::methods::class"
   classInfoMethod  "::nsf::methods::class::info"
-  checkMethod      "::nsf::cmd::ParameterType"
 }
 
 #
 # Next Scripting commands
 #
-nsfCmd __db_show_stack NsfShowStackCmd {}
-nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {}
-nsfCmd __profile_clear NsfProfileClearDataStub {}
-nsfCmd __profile_get NsfProfileGetDataStub {}
+cmd __db_show_stack NsfShowStackCmd {}
+cmd __db_run_assertions NsfDebugRunAssertionsCmd {}
+cmd __profile_clear NsfProfileClearDataStub {}
+cmd __profile_get NsfProfileGetDataStub {}
 
-nsfCmd configure NsfConfigureCmd {
+cmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
-nsfCmd createobjectsystem NsfCreateObjectSystemCmd {
+cmd createobjectsystem NsfCreateObjectSystemCmd {
   {-argName "rootClass" -required 1 -type tclobj}
   {-argName "rootMetaClass" -required 1 -type tclobj}
   {-argName "systemMethods" -required 0 -type tclobj}
 }
-nsfCmd dispatch NsfDispatchCmd {
+cmd dispatch NsfDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
-nsfCmd colon NsfColonCmd {
+cmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
-nsfCmd finalize NsfFinalizeObjCmd {
+cmd finalize NsfFinalizeObjCmd {
 }
-nsfCmd interp NsfInterpObjCmd {
+cmd interp NsfInterpObjCmd {
   {-argName "name" -required 1}
   {-argName "args" -type allargs}
 }
-nsfCmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
+cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
   {-argName "class" -required 1 -type class}
 }
-nsfCmd is NsfIsCmd {
+cmd is NsfIsCmd {
   {-argName "-complain"}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
 }
-nsfCmd isobject NsfIsObjectCmd {
+cmd isobject NsfIsObjectCmd {
   {-argName "value" -required 1 -type tclobj}
 }
 
-nsfCmd "method::alias" NsfAliasCmd {
+cmd "method::alias" NsfAliasCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0}
   {-argName "methodName" -required 1}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
-nsfCmd "method::assertion" NsfAssertionCmd {
+cmd "method::assertion" NsfAssertionCmd {
   {-argName "object" -required 1 -type object}
   {-argName "assertionsubcmd" -required 1 -nrargs 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 }
-nsfCmd "method::create" NsfMethodCmd {
+cmd "method::create" NsfMethodCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
@@ -80,7 +79,7 @@ nsfCmd "method::create" NsfMethodCmd {
   {-argName "-precondition"  -nrargs 1 -type tclobj}
   {-argName "-postcondition" -nrargs 1 -type tclobj}
 }
-nsfCmd "method::forward" NsfForwardCmd {
+cmd "method::forward" NsfForwardCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "method" -required 1 -type tclobj}
@@ -93,20 +92,20 @@ nsfCmd "method::forward" NsfForwardCmd {
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
 }
-nsfCmd "method::property" NsfMethodPropertyCmd {
+cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "methodproperty" -required 1 -type "class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj"}
   {-argName "value" -type tclobj}
 }
-nsfCmd "method::setter" NsfSetterCmd {
+cmd "method::setter" NsfSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "parameter" -required 1 -type tclobj}
 }
 
-nsfCmd proc NsfProcCmd {
+cmd proc NsfProcCmd {
   {-argName "-ad" -required 0}
   {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
@@ -114,46 +113,46 @@ nsfCmd proc NsfProcCmd {
 }
 
 
-nsfCmd my NsfMyCmd {
+cmd my NsfMyCmd {
   {-argName "-local"}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
-nsfCmd next NsfNextCmd {
+cmd next NsfNextCmd {
   {-argName "arguments" -required 0 -type tclobj}
 }
-nsfCmd nscopycmds NsfNSCopyCmdsCmd {
+cmd nscopycmds NsfNSCopyCmdsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
-nsfCmd nscopyvars NsfNSCopyVarsCmd {
+cmd nscopyvars NsfNSCopyVarsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
-nsfCmd qualify NsfQualifyObjCmd {
+cmd qualify NsfQualifyObjCmd {
   {-argName "objectName" -required 1 -type tclobj}
 }
-nsfCmd relation NsfRelationCmd {
+cmd relation NsfRelationCmd {
   {-argName "object"  -required 1 -type object}
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
 
-nsfCmd current NsfCurrentCmd {
+cmd current NsfCurrentCmd {
   {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
-nsfCmd self NsfSelfCmd {
+cmd self NsfSelfCmd {
 }
 
-nsfCmd "var::exists" NsfExistsVarCmd {
+cmd "var::exists" NsfExistsVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1}
 }
-nsfCmd "var::import" NsfImportvarCmd {
+cmd "var::import" NsfImportvarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "args" -type args}
 }
-nsfCmd "var::set" NsfSetVarCmd {
+cmd "var::set" NsfSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}

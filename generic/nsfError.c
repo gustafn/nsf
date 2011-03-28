@@ -12,7 +12,7 @@
  */
 
 #include "nsfInt.h"
-
+Tcl_Obj *NsfParamDefsSyntax(Nsf_Param CONST *paramPtr);
 
 /*
  *----------------------------------------------------------------------
@@ -160,14 +160,42 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
   return TCL_ERROR;
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfArgumentError --
+ *
+ *      Produce a wrong number of argument error based on a parameter definition
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
+              Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
+  Tcl_Obj *argStringObj = NsfParamDefsSyntax(paramPtr);
+
+  NsfObjWrongArgs(interp, errorMsg, cmdNameObj, methodObj, ObjStr(argStringObj));
+  DECR_REF_COUNT(argStringObj);
+
+  return TCL_ERROR;
+}
+
+
 extern int
 NsfObjErrType(Tcl_Interp *interp, 
 	      CONST char *context, 
 	      Tcl_Obj *value, 
 	      CONST char *type, 
-	      Nsf_Param CONST *pPtr) 
+	      Nsf_Param CONST *paramPtr) 
 {
-  NsfParam *paramPtr = (NsfParam *)pPtr;
   int named = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
   int returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);
 
