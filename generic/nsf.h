@@ -229,6 +229,10 @@ typedef int (Nsf_TypeConverter)(Tcl_Interp *interp,
                                  struct Nsf_Param CONST *pPtr, 
 				 ClientData *clientData, 
 				 Tcl_Obj **outObjPtr);
+Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass, 
+  Nsf_ConvertToInteger, Nsf_ConvertToObject, Nsf_ConvertToParameter, 
+  Nsf_ConvertToString, Nsf_ConvertToSwitch, Nsf_ConvertToTclobj;
+
 typedef struct Nsf_Param {
   char *name;
   int flags;

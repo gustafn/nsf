@@ -146,7 +146,7 @@ typedef struct {
   NsfObject *object;
 } ParseContext;
 
-static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd, ConvertToClass;
+static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd;
 
 typedef struct {
   Nsf_TypeConverter *converter;
@@ -7334,7 +7334,7 @@ ParamGetType(Nsf_Param CONST *paramPtr) {
   if (paramPtr->type) {
     if (paramPtr->converter == ConvertViaCmd) {
       result = paramPtr->type + 5;
-    } else if (paramPtr->converter == ConvertToClass && 
+    } else if (paramPtr->converter == Nsf_ConvertToClass && 
 	       (paramPtr->flags & (NSF_ARG_BASECLASS|NSF_ARG_METACLASS)) ) {
       if (paramPtr->flags & NSF_ARG_BASECLASS) {
 	result = "baseclass";
@@ -8761,8 +8761,8 @@ ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  Nsf_Param CONST *
   return TCL_OK;
 }
 
-static int
-ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int
+Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result, bool;
   result = Tcl_GetBooleanFromObj(interp, objPtr, &bool);
@@ -8792,10 +8792,10 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
   return result;
 }
 
-static int
-ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+int
+Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 			   ClientData *clientData, Tcl_Obj **outObjPtr) {
-  return ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
+  return Nsf_ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 
 static int
@@ -8834,8 +8834,8 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
   return TCL_ERROR;
 }
 
-static int
-ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+int
+Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 		ClientData *clientData, Tcl_Obj **outObjPtr) {
   *outObjPtr = objPtr;
   if (GetObjectFromObj(interp, objPtr, (NsfObject **)clientData) == TCL_OK) {
@@ -8844,8 +8844,8 @@ ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
   return NsfObjErrType(interp, NULL, objPtr, "object", (Nsf_Param *)pPtr);
 }
 
-static int
-ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+int
+Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   *outObjPtr = objPtr;
   if (GetClassFromObj(interp, objPtr, (NsfClass **)clientData, NULL) == TCL_OK) {
@@ -8854,8 +8854,8 @@ ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   return NsfObjErrType(interp, NULL, objPtr, "class", (Nsf_Param *)pPtr);
 }
 
-static int
-ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+int
+Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 		   ClientData *clientData, Tcl_Obj **outObjPtr) {
   CONST char *value = ObjStr(objPtr);
 
@@ -9080,7 +9080,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 			   "type \"switch\" only allowed for non-positional arguments",
 			   paramPtr->name);
     }
-    result = ParamOptionSetConverter(interp, paramPtr, "switch", ConvertToSwitch);
+    result = ParamOptionSetConverter(interp, paramPtr, "switch", Nsf_ConvertToSwitch);
     paramPtr->flags |= NSF_ARG_SWITCH;
     paramPtr->nrArgs = 0;
     assert(paramPtr->defaultValue == NULL);
@@ -9091,28 +9091,28 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     result = ParamOptionSetConverter(interp, paramPtr, "integer", Nsf_ConvertToInteger);
 
   } else if (strncmp(option, "boolean", 7) == 0) {
-    result = ParamOptionSetConverter(interp, paramPtr, "boolean", ConvertToBoolean);
+    result = ParamOptionSetConverter(interp, paramPtr, "boolean", Nsf_ConvertToBoolean);
 
   } else if (strncmp(option, "object", 6) == 0) {
-    result = ParamOptionSetConverter(interp, paramPtr, "object", ConvertToObject);
+    result = ParamOptionSetConverter(interp, paramPtr, "object", Nsf_ConvertToObject);
 
   } else if (strncmp(option, "class", 5) == 0) {
-    result = ParamOptionSetConverter(interp, paramPtr, "class", ConvertToClass);
+    result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
 
   } else if (strncmp(option, "metaclass", 9) == 0) {
-    result = ParamOptionSetConverter(interp, paramPtr, "class", ConvertToClass);
+    result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
     paramPtr->flags |= NSF_ARG_METACLASS;
 
   } else if (strncmp(option, "baseclass", 9) == 0) {
-    result = ParamOptionSetConverter(interp, paramPtr, "class", ConvertToClass);
+    result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
     paramPtr->flags |= NSF_ARG_BASECLASS;
 
   } else if (strncmp(option, "parameter", 9) == 0) {
-    result = ParamOptionSetConverter(interp, paramPtr, "parameter", ConvertToParameter);
+    result = ParamOptionSetConverter(interp, paramPtr, "parameter", Nsf_ConvertToParameter);
 
   } else if (optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
-    if (paramPtr->converter != ConvertToObject &&
-        paramPtr->converter != ConvertToClass)
+    if (paramPtr->converter != Nsf_ConvertToObject &&
+        paramPtr->converter != Nsf_ConvertToClass)
       return NsfPrintError(interp, "option type= only allowed for object or class");
     paramPtr->converterArg = Tcl_NewStringObj(option + 5, optionLength - 5);
     INCR_REF_COUNT(paramPtr->converterArg);
@@ -9269,7 +9269,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   /* postprocessing the parameter options */
 
   if (paramPtr->converter == NULL) {
-    /* ConvertToTclobj() is the default converter */
+    /* Nsf_ConvertToTclobj() is the default converter */
     paramPtr->converter = Nsf_ConvertToTclobj;
   } /*else if (paramPtr->converter == ConvertViaCmd) {*/
 
@@ -9855,11 +9855,11 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
        * a switch and (b) to name the automatic variable with the
        * prefix "_p".
        */
-      if (with_ad && pPtr->converter == ConvertToBoolean && pPtr->nrArgs == 1) {
+      if (with_ad && pPtr->converter == Nsf_ConvertToBoolean && pPtr->nrArgs == 1) {
 	/*fprintf(stderr, "... ad handling: proc %s param %s type %s nrargs %d default %p\n", 
 	  procName, pPtr->name, pPtr->type, pPtr->nrArgs, pPtr->defaultValue);*/
 	pPtr->nrArgs = 0;
-	/*pPtr->converter = ConvertToSwitch;*/
+	/*pPtr->converter = Nsf_ConvertToSwitch;*/
 	Tcl_AppendToObj(varNameObj, "_p", 2);
 	if (pPtr->defaultValue == NULL) {
 	  pPtr->defaultValue = Tcl_NewBooleanObj(0);
@@ -12987,7 +12987,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
       /*fprintf(stderr, "ArgumentDefaults setting passed value for %s to '%s'\n", 
 	pPtr->name, ObjStr(pcPtr->objv[i]));*/
 
-      if ((pcPtr->flags[i] & NSF_PC_MUST_INVERT) /*converter == ConvertToSwitch*/) {
+      if ((pcPtr->flags[i] & NSF_PC_MUST_INVERT) /*converter == Nsf_ConvertToSwitch*/) {
         int bool;
         Tcl_GetBooleanFromObj(interp, pPtr->defaultValue, &bool);
 	/*fprintf(stderr, "+++ ArgumentDefaults inverts value for %s %.6x to %d\n", 
@@ -13234,7 +13234,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		INCR_REF_COUNT(valueObj);
 		pcPtr->flags[j] |= NSF_PC_MUST_DECR;
 	      } else {
-		if (nppPtr->converter == ConvertToSwitch) {
+		if (nppPtr->converter == Nsf_ConvertToSwitch) {
 		  /*fprintf(stderr,"set MUST_INVERT for '%s' flags %.6x\n", 
 		    nppPtr->name, nppPtr->flags);*/
 		  pcPtr->flags[j] |= NSF_PC_MUST_INVERT;

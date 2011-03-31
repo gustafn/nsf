@@ -2565,6 +2565,9 @@ nsf:
   * move several functions from "static" to "external" to make
     the code generator usable for submodules as well
 
+* added flag ?-type ...? to "info lookup slots"
+* made all useful converters external symbols
+
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
 - how to delete attributes?
@@ -2575,7 +2578,7 @@ TODO:
   * It is not nice to have the full ParseContext structure in nsfmongo
     (required for the allocation of the parse context in the stubs)
   Adding fields to these structures would kill alder binaries
-- not all converters are already external symbols
+- not all converters have already external symbols
 
 - when alloc|dealloc are loaded via require, we have
   no redefined-protection on those. Since the script does not know,

@@ -474,9 +474,9 @@ namespace eval ::nx {
     :alias "info lookup filter"  ::nsf::methods::object::info::lookupfilter
     :alias "info lookup method"  ::nsf::methods::object::info::lookupmethod
     :alias "info lookup methods" ::nsf::methods::object::info::lookupmethods
-    :method "info lookup slots" {} {
+    :method "info lookup slots" {{-type ::nx::Slot}} {
       ::nsf::dispatch [::nsf::self] \
-	  ::nsf::methods::object::info::lookupslots -type ::nx::Slot
+	  ::nsf::methods::object::info::lookupslots -type $type
     }
     :alias "info children"         ::nsf::methods::object::info::children
     :alias "info class"            ::nsf::methods::object::info::class

@@ -75,7 +75,7 @@ proc genifd {parameterDefinitions} {
 #     } else {
 #       set default ""
 #     }
-    if {$converter in {Tclobj Integer String}} {set conv Nsf_ConvertTo$converter} else {set conv ConvertTo$converter}
+    if {$converter in {Tclobj Integer Boolean String Class Object}} {set conv Nsf_ConvertTo$converter} else {set conv ConvertTo$converter}
     lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
   }
   if {[llength $l] == 0} {
