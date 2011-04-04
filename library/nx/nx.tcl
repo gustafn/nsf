@@ -482,7 +482,6 @@ namespace eval ::nx {
     :alias "info class"            ::nsf::methods::object::info::class
     :alias "info filter guard"     ::nsf::methods::object::info::filterguard
     :alias "info filter methods"   ::nsf::methods::object::info::filtermethods
-    #:alias "info forward"          ::nsf::methods::object::info::forward
     :alias "info has mixin"        ::nsf::methods::object::info::hasmixin
     :alias "info has namespace"    ::nsf::methods::object::info::hasnamespace
     :alias "info has type"         ::nsf::methods::object::info::hastype
@@ -861,6 +860,16 @@ namespace eval ::nx {
     #
     if {[info exists :domain] && ${:domain} ne "" && [::nsf::is class ${:domain}]} {
       ::nsf::invalidateobjectparameter ${:domain}
+      #
+      # delete the accessor
+      #
+      if {${:per-object}} {
+	if {[${:domain} ::nsf::methods::object::info::method exists ${:name}]} {
+	  ::nsf::method::delete ${:domain} -per-object ${:name}
+	}
+      } elseif {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
+	::nsf::method::delete ${:domain} ${:name}
+      }
     }
     ::nsf::next
   }
@@ -882,7 +891,7 @@ namespace eval ::nx {
 	[list %1 [${:manager} defaultmethods]] %self \
 	${:forwardername}
   }
-  
+
   ObjectParameterSlot protected method getParameterOptions {{-withMultiplicity 0} {-withSubstdefault 0}} {
     #
     # Obtain a list of parameter options from slot object
@@ -1040,7 +1049,6 @@ namespace eval ::nx {
 
     ::nx::RelationSlot create ${os}::Class::slot::dummy
     ${os}::Class::slot::dummy destroy
-    ::nsf::method::delete ${os}::Class dummy
 
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
 	-forwardername object-mixin
