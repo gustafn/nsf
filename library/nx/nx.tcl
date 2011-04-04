@@ -492,10 +492,10 @@ namespace eval ::nx {
     :alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
-    :method "info slots" {} {
+    :method "info slots" {{-type ::nx::Slot}} {
       set slotContainer [::nsf::self]::slot
       if {[::nsf::isobject $slotContainer]} {
-	::nsf::dispatch $slotContainer ::nsf::methods::object::info::children -type ::nx::Slot
+	::nsf::dispatch $slotContainer ::nsf::methods::object::info::children -type $type
       }
     }
     :alias "info vars"           ::nsf::methods::object::info::vars

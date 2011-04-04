@@ -2567,6 +2567,7 @@ nsf:
 
 * added flag ?-type ...? to "info lookup slots"
 * made all useful converters external symbols
+* added flag ?-type ...? to "info slots"
 
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
