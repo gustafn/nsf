@@ -2570,6 +2570,7 @@ nsf:
 * added flag ?-type ...? to "info slots"
 * delete accessor when slot is destroyed
 * added pattern to "info slots"
+* added to "info slot /attName/"
 
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
