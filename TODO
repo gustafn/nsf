@@ -2569,6 +2569,7 @@ nsf:
 * made all useful converters external symbols
 * added flag ?-type ...? to "info slots"
 * delete accessor when slot is destroyed
+* added pattern to "info slots"
 
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder
