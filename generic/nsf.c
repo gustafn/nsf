@@ -2172,6 +2172,11 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
     for (i=0; i<=NSF_o_unknown_idx; i++) {
       Tcl_Obj *methodObj = osPtr->methods[i];
 
+      /*if (methodObj) {
+	fprintf(stderr,"ObjectSystemsCheckSystemMethod %s == %s %d\n", 
+		methodName, ObjStr(methodObj), strcmp(methodName, ObjStr(methodObj)));
+		}*/
+
       if (methodObj && !strcmp(methodName, ObjStr(methodObj))) {
         int flag = 1<<i;
 	int rootClassMethod = *(Nsf_SytemMethodOpts[i]+1) == 'o';
@@ -2203,8 +2208,9 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	   */
           osPtr->definedMethods |= flag;
 
-          /*fprintf(stderr, "+++ %s %.6x defining %s.%s %s\n", ClassName(defOsPtr->rootClass),
-	    osPtr->definedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i]);*/
+          /*fprintf(stderr, "+++ %s %.6x defining %s.%s %s osPtr %p defined %.8x flag %.8x\n", 
+		  ClassName(defOsPtr->rootClass),  osPtr->definedMethods, ObjectName(object), 
+		  methodName, Nsf_SytemMethodOpts[i], osPtr, osPtr->definedMethods, flag);*/
 	  
 	  /*
 	   * If there is a method-handle provided for this system method,
@@ -2218,6 +2224,12 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	    
 	    if (defObject != object) {
 	      int result = NsfAliasCmd(interp, defObject, 0, methodName, 0, osPtr->handles[i]);
+
+	      /* 
+	       * Since the defObject is not equals the overloaded method, the
+	       * definition above is effectively an overload of the alias.
+	       */
+	      osPtr->overloadedMethods |= flag;
 	      
 	      NsfLog(interp, NSF_LOG_NOTICE, "Define automatically alias %s for %s", 
 		     ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
@@ -2236,6 +2248,10 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	    }
 	  }
         }
+	/*
+	 * Every name is unique, no need to iterate further
+	 */
+	break;
       }
     }
   }
@@ -2372,9 +2388,13 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
   Tcl_Obj *methodObj;
 
   methodObj = osPtr->methods[methodIdx];
-  /*fprintf(stderr, "OS of %s is %s, method %s methodObj %p\n", 
+  /*fprintf(stderr, "OS of %s is %s, method %s methodObj %p osPtr %p defined %.8x %.8x overloaded %.8x %.8x flags %.8x\n", 
 	  ObjectName(object), ObjectName((&osPtr->rootClass->object)), 
-	  Nsf_SytemMethodOpts[methodIdx]+1, methodObj);*/
+	  Nsf_SytemMethodOpts[methodIdx]+1, methodObj,
+	  osPtr,
+	  osPtr->definedMethods, osPtr->definedMethods & (1 << methodIdx),
+	  osPtr->overloadedMethods, osPtr->overloadedMethods & (1 << methodIdx),
+	  1 << methodIdx );*/
 
   if (methodObj) {
     int flag = 1 << methodIdx;
@@ -2384,31 +2404,32 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
       callDirectly = 0;
     } else if ((osPtr->definedMethods & flag) == 0) {
       /* not defined, we must call directly */
-      // TODO remove me
       /*fprintf(stderr, "Warning: CallDirectly object %s idx %s not defined\n",
 	ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1);*/
     } else {
+#if DISPATCH_ALWAYS_DEFINED_METHODS
+      callDirectly = 0;
+#else 
       if (!(object->flags & NSF_FILTER_ORDER_VALID)) {
         FilterComputeDefined(interp, object);
       }
       /*fprintf(stderr, "CallDirectly object %s idx %s object flags %.6x %.6x \n",
-        ObjectName(object), sytemMethodOpts[methodIdx]+1,
-        (object->flags & NSF_FILTER_ORDER_DEFINED_AND_VALID),
-        NSF_FILTER_ORDER_DEFINED_AND_VALID
-        );*/
+	      ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1,
+	      (object->flags & NSF_FILTER_ORDER_DEFINED_AND_VALID),
+	      NSF_FILTER_ORDER_DEFINED_AND_VALID);*/
       if ((object->flags & NSF_FILTER_ORDER_DEFINED_AND_VALID) == NSF_FILTER_ORDER_DEFINED_AND_VALID) {
         /*fprintf(stderr, "CallDirectly object %s idx %s has filter \n",
 	  ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1);*/
         callDirectly = 0;
       }
+#endif
     }
   }
 
-#if 0
-  fprintf(stderr, "CallDirectly object %s idx %d returns %s => %d\n",
+  /*fprintf(stderr, "CallDirectly object %s idx %d returns %s => %d\n",
           ObjectName(object), methodIdx,
-          methodObj ? ObjStr(methodObj) : "(null)", callDirectly);
-#endif
+          methodObj ? ObjStr(methodObj) : "(null)", callDirectly);*/
+
   /* return the methodObj in every case */
   *methodObjPtr = methodObj;
   return callDirectly;
@@ -8447,16 +8468,16 @@ DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp,
   Tcl_Obj *methodObj;
   NsfObject *object = clientData;
 
-  assert(clientData);
+  assert(object);
 
   if (CallDirectly(interp, object, NSF_o_defaultmethod_idx, &methodObj)) {
-
+    fprintf(stderr, "DispatchDefaultMethod direct\n");
     Tcl_SetObjResult(interp, object->cmdName);
     result = TCL_OK;
 
   } else {
     Tcl_Obj *tov[2];
-
+    fprintf(stderr, "DispatchDefaultMethod dispatch\n");
     tov[0] = obj;
     tov[1] = methodObj;
     result = ObjectDispatch(clientData, interp, 2, tov, flags|NSF_CM_NO_UNKNOWN);

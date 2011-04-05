@@ -2565,12 +2565,21 @@ nsf:
   * move several functions from "static" to "external" to make
     the code generator usable for submodules as well
 
-* added flag ?-type ...? to "info lookup slots"
-* made all useful converters external symbols
-* added flag ?-type ...? to "info slots"
-* delete accessor when slot is destroyed
-* added pattern to "info slots"
-* added to "info slot /attName/"
+- added flag ?-type ...? to "info lookup slots"
+- made all useful converters external symbols
+- added flag ?-type ...? to "info slots"
+- delete accessor when slot is destroyed
+- added pattern to "info slots"
+- added to "info slot /attName/"
+
+- Fixed dispatch of defaultmethod for ensemble methods
+- Added compile flag DISPATCH_ALWAYS_DEFINED_METHODS (deactivated).
+  So far, nx just uses dispatch on overloads or filters, but not on
+  defines (possible to call e.g. "destroy" from a script, but
+  internally the direct dispatch is used, as long there is no
+  overload). The compileflag would force to use the slower 
+  dispatch always.
+- Extended regression test
 
 TODO:
 - maybe the destructor of a slot should remove the setter/forwarder

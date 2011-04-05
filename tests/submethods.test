@@ -38,6 +38,8 @@ Test case submethods {
   ? {o string toupper 2} \
       {Unable to dispatch sub-method "toupper" of ::o string; valid are: string info, string length, string tolower}
 
+  ? {o string} "Valid submethods of ::o string: info length tolower"
+
   ? {o foo a x} "x"
   ? {o foo a y} "y"
   ? {o foo a z} \
