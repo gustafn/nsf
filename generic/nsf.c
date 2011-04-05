@@ -2166,92 +2166,87 @@ ObjectSystemAdd(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
 static void
 ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfObject *object) {
   NsfObjectSystem *osPtr, *defOsPtr = GetObjectSystem(object);
-  int i;
 
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
+    int i, rootClassMethod, flag = 0;
+
     for (i=0; i<=NSF_o_unknown_idx; i++) {
       Tcl_Obj *methodObj = osPtr->methods[i];
 
-      /*if (methodObj) {
-	fprintf(stderr,"ObjectSystemsCheckSystemMethod %s == %s %d\n", 
-		methodName, ObjStr(methodObj), strcmp(methodName, ObjStr(methodObj)));
-		}*/
-
       if (methodObj && !strcmp(methodName, ObjStr(methodObj))) {
-        int flag = 1<<i;
-	int rootClassMethod = *(Nsf_SytemMethodOpts[i]+1) == 'o';
-	
-        if (osPtr->definedMethods & flag) {
-	  /* 
-	   *  If for some reason (e.g. reload) we redefine the base
-	   *  methods, these never count as overloads.
-	   */
-	  if ((rootClassMethod && object == &defOsPtr->rootClass->object)
-	      || (!rootClassMethod && object == &defOsPtr->rootMetaClass->object) ) {
-	    /*fprintf(stderr, "+++ %s %.6x NOT overloading %s.%s %s (is root %d, is meta %d)\n", 
-		    ClassName(defOsPtr->rootClass), 
-		    osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i], 
-		    object == &defOsPtr->rootClass->object, 
-		    object == &defOsPtr->rootMetaClass->object);*/
-	  } else {
-	    osPtr->overloadedMethods |= flag;
-	    /*fprintf(stderr, "+++ %s %.6x overloading %s.%s %s (is root %d, is meta %d)\n", 
-		    ClassName(defOsPtr->rootClass),
-		    osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i], 
-		    object == &defOsPtr->rootClass->object, 
-		    object == &defOsPtr->rootMetaClass->object);*/
-	  }
-        }
-        if (osPtr == defOsPtr && ((osPtr->definedMethods & flag) == 0)) {
-	  /*
-	   * Mark the method das defined
-	   */
-          osPtr->definedMethods |= flag;
-
-          /*fprintf(stderr, "+++ %s %.6x defining %s.%s %s osPtr %p defined %.8x flag %.8x\n", 
-		  ClassName(defOsPtr->rootClass),  osPtr->definedMethods, ObjectName(object), 
-		  methodName, Nsf_SytemMethodOpts[i], osPtr, osPtr->definedMethods, flag);*/
-	  
-	  /*
-	   * If there is a method-handle provided for this system method,
-	   * register it as a fallback unless the method being defined is
-	   * already at the root class.
-	   */
-	  if (osPtr->handles[i]) {
-	    NsfObject *defObject = rootClassMethod 
-	      ? &osPtr->rootClass->object 
-	      : &osPtr->rootMetaClass->object;
-	    
-	    if (defObject != object) {
-	      int result = NsfAliasCmd(interp, defObject, 0, methodName, 0, osPtr->handles[i]);
-
-	      /* 
-	       * Since the defObject is not equals the overloaded method, the
-	       * definition above is effectively an overload of the alias.
-	       */
-	      osPtr->overloadedMethods |= flag;
-	      
-	      NsfLog(interp, NSF_LOG_NOTICE, "Define automatically alias %s for %s", 
-		     ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
-	      /*
-	       * If the definition was ok, make the method protected.
-	       */
-	      if (result == TCL_OK) {
-		Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
-		Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
-		if (cmd) { Tcl_Command_flags(cmd) |= NSF_CMD_PROTECTED_METHOD; }
-		Tcl_ResetResult(interp);
-	      } else {
-		NsfLog(interp, NSF_LOG_WARN, "Could not define alias %s for %s", 
-		       ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
-	      }
-	    }
-	  }
-        }
-	/*
-	 * Every name is unique, no need to iterate further
-	 */
+        flag = 1<<i;
 	break;
+      }
+    }
+    if (flag == 0) continue;
+
+    rootClassMethod = *(Nsf_SytemMethodOpts[i]+1) == 'o';
+	
+    if (osPtr->definedMethods & flag) {
+      /* 
+       *  If for some reason (e.g. reload) we redefine the base
+       *  methods, these never count as overloads.
+       */
+      if ((rootClassMethod && object == &defOsPtr->rootClass->object)
+	  || (!rootClassMethod && object == &defOsPtr->rootMetaClass->object) ) {
+	/*fprintf(stderr, "+++ %s %.6x NOT overloading %s.%s %s (is root %d, is meta %d)\n", 
+	  ClassName(defOsPtr->rootClass), 
+	  osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i], 
+	  object == &defOsPtr->rootClass->object, 
+	  object == &defOsPtr->rootMetaClass->object);*/
+      } else {
+	osPtr->overloadedMethods |= flag;
+	/*fprintf(stderr, "+++ %s %.6x overloading %s.%s %s (is root %d, is meta %d)\n", 
+	  ClassName(defOsPtr->rootClass),
+	  osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i], 
+	  object == &defOsPtr->rootClass->object, 
+	  object == &defOsPtr->rootMetaClass->object);*/
+      }
+    }
+    if (osPtr == defOsPtr && ((osPtr->definedMethods & flag) == 0)) {
+      /*
+       * Mark the method das defined
+       */
+      osPtr->definedMethods |= flag;
+      
+      /*fprintf(stderr, "+++ %s %.6x defining %s.%s %s osPtr %p defined %.8x flag %.8x\n", 
+	ClassName(defOsPtr->rootClass),  osPtr->definedMethods, ObjectName(object), 
+	methodName, Nsf_SytemMethodOpts[i], osPtr, osPtr->definedMethods, flag);*/
+      
+      /*
+       * If there is a method-handle provided for this system method,
+       * register it as a fallback unless the method being defined is
+       * already at the root class.
+       */
+      if (osPtr->handles[i]) {
+	NsfObject *defObject = rootClassMethod 
+	  ? &osPtr->rootClass->object 
+	  : &osPtr->rootMetaClass->object;
+	
+	if (defObject != object) {
+	  int result = NsfAliasCmd(interp, defObject, 0, methodName, 0, osPtr->handles[i]);
+	  
+	  /* 
+	   * Since the defObject is not equals the overloaded method, the
+	   * definition above is effectively an overload of the alias.
+	   */
+	  osPtr->overloadedMethods |= flag;
+	  
+	  NsfLog(interp, NSF_LOG_NOTICE, "Define automatically alias %s for %s", 
+		 ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
+	  /*
+	   * If the definition was ok, make the method protected.
+	   */
+	  if (result == TCL_OK) {
+	    Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
+	    Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
+	    if (cmd) { Tcl_Command_flags(cmd) |= NSF_CMD_PROTECTED_METHOD; }
+	    Tcl_ResetResult(interp);
+	  } else {
+	    NsfLog(interp, NSF_LOG_WARN, "Could not define alias %s for %s", 
+		   ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
+	  }
+	}
       }
     }
   }

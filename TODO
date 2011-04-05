@@ -2560,7 +2560,7 @@ nsf:
 - gentclAPI.tcl: 
   * renamed "nsfCmd" to simply "cmd", since the code can generate arbitrary
     tcl commands
-  * allow type "int" in the .decls files
+  * allow type "int" in the .decl files
 - nsf.c
   * move several functions from "static" to "external" to make
     the code generator usable for submodules as well
@@ -2580,9 +2580,9 @@ nsf:
   overload). The compileflag would force to use the slower 
   dispatch always.
 - Extended regression test
+- Improve locality
 
 TODO:
-- maybe the destructor of a slot should remove the setter/forwarder
 - how to delete attributes?
 
 - Higher binary compatibility for future versions:
