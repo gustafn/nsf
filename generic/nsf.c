@@ -8466,13 +8466,13 @@ DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp,
   assert(object);
 
   if (CallDirectly(interp, object, NSF_o_defaultmethod_idx, &methodObj)) {
-    fprintf(stderr, "DispatchDefaultMethod direct\n");
+
     Tcl_SetObjResult(interp, object->cmdName);
     result = TCL_OK;
 
   } else {
     Tcl_Obj *tov[2];
-    fprintf(stderr, "DispatchDefaultMethod dispatch\n");
+
     tov[0] = obj;
     tov[1] = methodObj;
     result = ObjectDispatch(clientData, interp, 2, tov, flags|NSF_CM_NO_UNKNOWN);
