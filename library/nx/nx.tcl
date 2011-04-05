@@ -493,7 +493,7 @@ namespace eval ::nx {
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slot" {name} {
       set slot [::nsf::self]::slot::$name
-      if {[::nsf::isobject $slot]} {return $name}
+      if {[::nsf::isobject $slot]} {return $slot}
       return ""
     }
     :method "info slots" {{-type ::nx::Slot} {pattern ""}} {

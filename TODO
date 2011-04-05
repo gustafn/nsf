@@ -2582,6 +2582,8 @@ nsf:
 - Extended regression test
 - Improve locality
 
+- Let "info slot" return the slot object
+
 TODO:
 - how to delete attributes?
 
