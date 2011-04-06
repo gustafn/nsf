@@ -79,10 +79,16 @@ foreach p [Person find all -cond {age > 30}] {
   puts "\t$p:\t[$p name]"
 }
 
+#
+# Define a special find method for "Person" named "oldies"
+#
 Person public class method "find oldies" {} {
   return [:find all -cond {age > 30}]
 }
 
+#
+# Use the special find method
+#
 puts "\nFind oldies:"
 foreach p [Person find oldies] {
   puts "\t$p:\t[$p name]"
