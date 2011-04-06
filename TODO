@@ -2583,6 +2583,7 @@ nsf:
 - Improve locality
 
 - Let "info slot" return the slot object
+- nx::mongo: Initial commit of the experimental mongoDB interface for nx
 
 TODO:
 - how to delete attributes?
