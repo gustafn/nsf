@@ -28,10 +28,16 @@ In order to run the sample script,
 
   * run ./nxsh library/mongodb/example-nsf-mongo.tcl
  
-    The script has a few insert, query and delete statements, 
-    some of these are commented out.
+    The script is using the low level interface (nsf::mongo) and has a
+    few insert, query and delete statements, some of these are
+    commented out.
 
-After running the script, you should see output like the following
+ * run ./nxsh library/mongodb/example-nx-mongo.tcl
+ 
+    This example script is using the higher level object oriented
+    interface for nx (nx::mongo).
+
+After running the scripts, you should see output like the following
 
 -gustaf neumann
 
@@ -63,4 +69,50 @@ _id oid 4d9b0d56e7b0887e00000004 name string Victor a array {0 string x 1 string
 Embedded object has some value (info.y > 100)
 _id oid 4d9b0d56e7b0887e00000003 name string Franz info object {x integer 203 y integer 102} age integer 29
 
+Nsfmongo Exit
+===============================================================
+
+
+~/src/nsf-2.0.0% ./nxsh library/mongodb/example-nx-mongo.tcl 
+
+Query: {$query} object {name string Gustaf}
+_id oid 4d9c224135018d4500000000 name string Gustaf age integer 53 projects array {0 string nsf}
+
+Query: {$query} object {name string Gustaf}
+_id oid 4d9c224135018d4500000000 name string Gustaf age integer 55 projects array {0 string xowiki 1 string nsf}
+
+Project members of nsf:
+Query: {$query} object {projects string nsf}
+_id oid 4d9c224135018d4500000000 name string Gustaf age integer 55 projects array {0 string xowiki 1 string nsf}
+_id oid 4d9c224135018d4500000001 name string Stefan projects array {0 string nsf}
+	::nsf::__#5:	Gustaf
+	::nsf::__#6:	Stefan
+
+All Persons sorted by name (ascending):
+Query: {$query} object {} {$orderby} object {name int 1}
+_id oid 4d9c224135018d4500000003 name string Franz age integer 29 projects array {0 string gtat 1 string annobackend 2 string abc}
+_id oid 4d9c224135018d4500000000 name string Gustaf age integer 55 projects array {0 string xowiki 1 string nsf}
+_id oid 4d9c224135018d4500000002 name string Joe age integer 23 projects array {0 string abc}
+_id oid 4d9c224135018d4500000001 name string Stefan projects array {0 string nsf}
+	::nsf::__#7:	Franz
+	::nsf::__#8:	Gustaf
+	::nsf::__#9:	Joe
+	::nsf::__#A:	Stefan
+
+Members of Projects != 'abc' nsf sorted by name desc and age:
+Query: {$query} object {projects object {{$ne} string abc}} {$orderby} object {name int -1 age int 1}
+_id oid 4d9c224135018d4500000001 name string Stefan projects array {0 string nsf}
+_id oid 4d9c224135018d4500000000 name string Gustaf age integer 55 projects array {0 string xowiki 1 string nsf}
+	::nsf::__#B:	Stefan
+	::nsf::__#C:	Gustaf
+
+Find persons age > 30:
+Query: {$query} object {age object {{$gt} integer 30}}
+_id oid 4d9c224135018d4500000000 name string Gustaf age integer 55 projects array {0 string xowiki 1 string nsf}
+	::nsf::__#D:	Gustaf
+
+Find oldies:
+Query: {$query} object {age object {{$gt} integer 30}}
+_id oid 4d9c224135018d4500000000 name string Gustaf age integer 55 projects array {0 string xowiki 1 string nsf}
+	::nsf::__#E:	Gustaf
 Nsfmongo Exit
