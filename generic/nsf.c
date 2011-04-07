@@ -8161,6 +8161,34 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   return result;
 }
 
+/*#define INHERIT_CLASS_METHODS 1*/
+
+#if defined(INHERIT_CLASS_METHODS)
+static Tcl_Command
+NsfFindClassMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *methodName) {
+  Tcl_Command cmd;
+  NsfClasses *p;
+
+  /*fprintf(stderr, "NsfFindClassMethod %s %s\n", ClassName(cl), methodName);*/
+  if (cl->order == NULL) cl->order = TopoOrder(cl, Super);
+
+  for(p = cl->order; p; p = p->nextPtr) {
+    NsfClass *currentClass = p->cl;
+    Tcl_Namespace *nsPtr = currentClass->object.nsPtr;
+
+    /*fprintf(stderr, "1 check for obj ns in class %s => %p\n", 
+      ClassName(currentClass), nsPtr);*/
+    if (nsPtr) {
+      cmd = FindMethod(nsPtr, methodName);
+      /*fprintf(stderr, "1 lookup for method %s in class %s => %p\n", 
+	methodName, ClassName(currentClass), cmd);*/
+      if (cmd) {return cmd;}
+    }
+  }
+  return NULL;
+}
+#endif
+
 /*
  *----------------------------------------------------------------------
  * ObjectDispatch --
@@ -8349,6 +8377,13 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       /*fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
 	object, methodName, object->nsPtr, cmd);*/
     }
+#if defined(INHERIT_CLASS_METHODS)
+    /* this is not optimized yet, since current class might be checked twice,
+       but easier to maintain */
+    if ((flags & NSF_CM_NO_OBJECT_METHOD) == 0 && cmd == NULL && NsfObjectIsClass(object)) {
+      cmd = NsfFindClassMethod(interp, (NsfClass *)object, methodName);
+    }
+#endif
 
     if (cmd == NULL) {
       /* check for a method inherited from a class */
