@@ -8948,13 +8948,15 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   ov[2] = pPtr->nameObj;
   ov[3] = objPtr;
 
-  /*fprintf(stderr, "ConvertViaCmd call converter %s (refCount %d) on %s paramPtr %p\n",
-    ObjStr(pPtr->converterName), pPtr->converterName->refCount, ObjStr(ov[0]), pPtr);*/
   oc = 4;
   if (pPtr->converterArg) {
     ov[4] = pPtr->converterArg;
     oc++;
   }
+
+  /*fprintf(stderr, "ConvertViaCmd call converter %s (refCount %d) on %s paramPtr %p arg %p oc %d\n",
+	  ObjStr(pPtr->converterName), pPtr->converterName->refCount, ObjStr(ov[0]), 
+	  pPtr, pPtr->converterArg, oc);*/
 
   INCR_REF_COUNT(ov[1]);
   INCR_REF_COUNT(ov[2]);
