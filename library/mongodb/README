@@ -37,7 +37,14 @@ In order to run the sample script,
     This example script is using the higher level object oriented
     interface for nx (nx::mongo).
 
-After running the scripts, you should see output like the following
+After running the scripts, you should see output like the one below.
+
+   % /usr/local/bin/mongo
+   MongoDB shell version: 1.9.0-pre-
+   connecting to: test
+   > use tutorial
+   switched to db tutorial
+   > db.persons.find();
 
 -gustaf neumann
 

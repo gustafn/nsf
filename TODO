@@ -2585,6 +2585,8 @@ nsf:
 - Let "info slot" return the slot object
 - nx::mongo: Initial commit of the experimental mongoDB interface for nx
 
+- nx.tcl: fix handling of arg in converter
+
 TODO:
 - how to delete attributes?
 

@@ -6,10 +6,10 @@
 package require nx::mongo
 
 # Establish connection to the database
-set mongoConn [::mongo::connect]
+::nx::mongo::db connect
 
 # Make sure, we start always from scratch
-::mongo::remove $mongoConn tutorial.persons {}
+nx::mongo::db remove tutorial.persons {}
 
 #
 # Create the application class "Person"
