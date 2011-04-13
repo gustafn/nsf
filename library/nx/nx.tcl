@@ -1184,6 +1184,7 @@ namespace eval ::nx {
 	}
       }
     }
+    if {[info exists :arg]} {lappend options arg=${:arg}}
     if {${:required}} {lappend options required}
     if {${:convert}} {lappend options convert}
     if {$withMultiplicity && [info exists :multiplicity] && ${:multiplicity} ne "1..1"} {
@@ -1192,7 +1193,7 @@ namespace eval ::nx {
     if {$withSubstdefault && [info exists :substdefault] && ${:substdefault}} {
       lappend options substdefault
     }
-    #puts stderr "*** getParameterOptions [self] return $options"
+    #puts stderr "*** getParameterOptions [self] returns '$options'"
     return $options
   }
 
