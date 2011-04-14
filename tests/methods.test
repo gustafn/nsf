@@ -399,3 +399,25 @@ Test case errormessage {
   ? {C public class object method bar {x} {return $x}} \
       "'object' not allowed to be modified by 'class'"
 }
+
+#
+# test dispatch without object
+#
+Test case dispatch-without-object {
+
+  nx::Object create o {
+    # attribute defines a setter, we need a current object
+    :attribute {a v}
+    # the other methods don't require them as strong
+    :forward b ::o2 bar
+    :method foo {} {return [self]}
+  }
+  nx::Object create o2 {
+    :public method bar {} {return [self]}
+  }
+
+  # dispatch methods without current object 
+  ? ::o::a "Method ::o::a not dispatched on object; don't call aliased methods via namespace paths!"
+  ? ::o::b "::o2"
+  ? ::o::foo "No current object"
+}

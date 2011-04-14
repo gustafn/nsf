@@ -309,6 +309,7 @@ namespace eval ::nx {
     if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     return $r
   }
+
   Class public method forward {    
      method 
      -default -methodprefix -objframe:switch -onerror -returns -verbose:switch

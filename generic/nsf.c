@@ -12073,11 +12073,28 @@ NsfGetClassClientData(Nsf_Class *cli) {
   return (cl && cl->opt) ? cl->opt->clientData : NULL;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * SetInstVar --
+ *
+ *    Set an instance variable of the specified object to the given value.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Set instance variable.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj) {
-  Tcl_Obj *resultObj;
-  int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
   CallFrame frame, *framePtr = &frame;
+  Tcl_Obj *resultObj;
+  int flags;
+
+  assert(object);
+  flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
   Nsf_PushFrameObj(interp, object, framePtr);
 
   if (valueObj == NULL) {
@@ -12100,8 +12117,8 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   SetterCmdClientData *cd = (SetterCmdClientData*)clientData;
   NsfObject *object = cd->object;
 
-  if (!object) return NsfObjErrType(interp, "setter", objv[0], "object", NULL);
   if (objc > 2) return NsfObjWrongArgs(interp, "wrong # args", object->cmdName, objv[0], "?value?");
+  if (!object) return NsfNoDispatchObjectError(interp, ObjStr(objv[0]));
 
   if (cd->paramsPtr && objc == 2) {
     Tcl_Obj *outObjPtr;
@@ -12385,7 +12402,9 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
   int result, inputArg = 1;
 
-  if (!tcd || !tcd->object) return NsfObjErrType(interp, "forwarder", objv[0], "object", NULL);
+  if (!tcd || !tcd->object) {
+    return NsfNoDispatchObjectError(interp, "forwarder");
+  }
 
   if (tcd->passthrough) { /* two short cuts for simple cases */
     /* early binding, cmd *resolved, we have to care only for objscope */
@@ -12552,9 +12571,7 @@ NsfProcAliasMethod(ClientData clientData,
   assert(tcd->object == GetSelfObj(interp));
 
   if (self == NULL) {
-    return NsfPrintError(interp, "no object active for alias '%s'; "
-			 "don't call aliased methods via namespace paths",
-			 Tcl_GetCommandName(interp, tcd->aliasCmd));
+    return NsfNoDispatchObjectError(interp, Tcl_GetCommandName(interp, tcd->aliasCmd));
   }
 
   if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
@@ -16579,6 +16596,7 @@ NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj 
   }
 
   setterClientData = NEW(SetterCmdClientData);
+  setterClientData->object = NULL;
   setterClientData->paramsPtr = NULL;
   length = strlen(methodName);
 

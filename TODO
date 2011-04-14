@@ -2586,6 +2586,12 @@ nsf:
 - nx::mongo: Initial commit of the experimental mongoDB interface for nx
 
 - nx.tcl: fix handling of arg in converter
+- nx::mongo: 
+  * first step towards handling embedded objects
+  * one more example script: example-nx-bi.tcl
+
+- nsf:c: fix dispatch of setter without current method
+- extended regression tests
 
 TODO:
 - how to delete attributes?

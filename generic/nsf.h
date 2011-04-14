@@ -256,6 +256,9 @@ extern int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
 		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj);
 
+extern int
+NsfNoDispatchObjectError(Tcl_Interp *interp, char *methodName);
+
 #define NSF_LOG_NOTICE 2
 #define NSF_LOG_WARN 1
 

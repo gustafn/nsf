@@ -176,7 +176,6 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
  *
  *----------------------------------------------------------------------
  */
-
 int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
@@ -188,6 +187,27 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
   return TCL_ERROR;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfNoDispatchObjectError --
+ *
+ *      Produce a error message when method was not dispatched on an object
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
+int
+NsfNoDispatchObjectError(Tcl_Interp *interp, char *methodName) {
+  return NsfPrintError(interp, "Method %s not dispatched on object; "
+		       "don't call aliased methods via namespace paths!",
+		       methodName);
+}
 
 extern int
 NsfObjErrType(Tcl_Interp *interp, 
