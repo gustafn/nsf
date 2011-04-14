@@ -8,7 +8,7 @@ Ingredients:
 Compile or obtain mongodb (the database).
 Compile or obtain the mongo-c-driver (client interface)
 
-Assume, tcl is under /usr/local/ns/lib and the mongo-c-driver is under
+Assume, Tcl is under /usr/local/ns/lib and the mongo-c-driver is under
 /usr/local/src/mongo-c-driver/, then configre the nsf interface via 
 
    ./configure --with-tcl=/usr/local/ns/lib --with-nsf=../../ \

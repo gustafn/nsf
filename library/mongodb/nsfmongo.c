@@ -482,6 +482,56 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *host, int port) {
 }
 
 /*
+cmd query NsfMongoCount {
+  {-argName "conn" -required 1 -type tclobj}
+  {-argName "namespace" -required 1}
+  {-argName "query" -required 1 -type tclobj}
+}
+*/
+static int 
+NsfMongoCount(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, Tcl_Obj *queryObj) {
+  int objc, result;
+  Tcl_Obj **objv;
+  mongo_connection *connPtr = MongoGetConn(connObj);
+  char *db, *collection;
+  int count, length;
+  bson query[1];
+
+  if (connPtr == NULL)  {
+    return NsfObjErrType(interp, "", connObj, "connection", NULL);
+  }
+
+  result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
+  if (result != TCL_OK || (objc % 3 != 0)) {
+    return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
+  }
+  
+  BsonAppendObjv(interp, query, objc, objv);
+  
+  length = strlen(namespace)+1;
+  db = ckalloc(length);
+  memcpy(db, namespace, length);
+  collection = strchr(db, '.');
+
+  if (collection != NULL) {
+    /* successful */
+    *collection = '\0';
+    collection ++;
+    count = mongo_count(connPtr, db, collection, query);
+  } else {
+    count = 0;
+  }
+       
+  bson_destroy( query );
+  ckfree(db);
+
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(count));
+
+  return TCL_OK;
+}
+
+
+/*
 cmd index NsfMongoIndex {
   {-argName "conn" -required 1 -type tclobj}
   {-argName "namespace" -required 1}
@@ -531,7 +581,7 @@ cmd insert NsfMongoInsert {
 static int NsfMongoInsert(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, Tcl_Obj *valuesObj) {
   mongo_connection *connPtr = MongoGetConn(connObj);
   int i, objc, result;
-  Tcl_Obj **objv;
+  Tcl_Obj **objv, *resultObj;
   bson_buffer buf[1];
   bson b[1];
 
@@ -557,6 +607,10 @@ static int NsfMongoInsert(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *name
 
   bson_from_buffer( b, buf );
   mongo_insert(connPtr, namespace, b);
+  
+  resultObj = BsonToList(interp, b->data, 0);
+  Tcl_SetObjResult(interp, resultObj);
+
   bson_destroy(b);
 
   return TCL_OK;
@@ -595,7 +649,7 @@ NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, Tcl_O
   resultObj = Tcl_NewListObj(0, NULL);
 
   /* 
-   *  The la񓩌st field of mongo_find is options, semantics are described here
+   *  The last field of mongo_find is options, semantics are described here
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
   cursor = mongo_find( connPtr, namespace, query, NULL, withLimit, withSkip, 0 );

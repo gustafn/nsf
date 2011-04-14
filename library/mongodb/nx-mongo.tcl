@@ -15,6 +15,7 @@ namespace eval ::nx::mongo {
 
   ::nx::Object create ::nx::mongo::db {
     :public method connect {args} {set :mongoConn [::mongo::connect {*}$args]}
+    :public method count   {args} {::mongo::count  ${:mongoConn} {*}$args}
     :public method index   {args} {::mongo::index  ${:mongoConn} {*}$args}
     :public method insert  {args} {::mongo::insert ${:mongoConn} {*}$args}
     :public method remove  {args} {::mongo::remove ${:mongoConn} {*}$args}
@@ -88,15 +89,34 @@ namespace eval ::nx::mongo {
       }
     }
 
+    :public method remove {object value} {
+      if {[:isMultivalued]} {
+	set values [::nsf::var::set $object ${:name}]
+	set p [lsearch $values $value]
+	if {$p < 0} {
+	  error "$value not included in $object.$value ($values)"
+	}
+	set newValues [lreplace $values $p $p]
+	::nsf::var::set $object ${:name} $newValues
+      } else {
+	error "remove just implemented for multivalued slots"
+      }
+    }
+
     #
-    #
+    # Type converter for handling embedded objects. Makes sure to
+    # track "embedded in" relationship
     #
     :public method type=embedded {name value args} {
       set s [:uplevel self]
       puts stderr "assign $name '$value' args='$args' s=$s"
       if {[::nsf::isobject $value] && [::nsf::is class $args] && [$value info has type $args]} {
-	::nsf::var::set $value _embedded_in [list $s $name]
-	puts stderr [list ::nsf::var::set $value _embedded_in [list $s $name]]
+	::nsf::var::set $value __embedded_in [list $s $name]
+	::nsf::var::set $s __contains($value) 1
+	puts stderr "
+	::nsf::var::set $value __embedded_in [list $s $name]
+	::nsf::var::set $s __contains($value) 1
+"
       } else {
 	error "value '$value' for attribute $name is not of type $args"
       }
@@ -290,23 +310,80 @@ namespace eval ::nx::mongo {
       return $bson
     }
 
+    :method "bson pp_array" {{-indent 0} list} {
+      set result [list]
+      foreach {name type value} $list {
+	switch $type {
+	  object { lappend result "\{ [:bson pp -indent $indent $value] \}" }
+	  array { lappend result "\[ [:bson pp_array -indent $indent $value] \]" }
+	  default { lappend result [list $value]}
+	}
+      }
+      return [join $result ", "]
+    }
+
+    :method "bson pp" {{-indent 0} list} {
+      set result [list]
+      set nextIndent [expr {$indent + 2}]
+      foreach {name type value} $list {
+	set prefix "\n[string repeat { } $indent]$name: "
+	switch $type {
+	  object { lappend result "$prefix\{ [:bson pp -indent $nextIndent $value] \}" }
+	  array { lappend result "$prefix\[ [:bson pp_array -indent $nextIndent $value] \]" }
+	  default { lappend result $prefix[list $value]}
+	}
+      }
+      return [join $result ", "]
+    }
+
     #
     # embedded_in denotes that the object is embedded in another
     # object with a reference to the attribute
     #
     # :public method embedded_in {object attribute} {
-    #   set :_embedded_in [list $object $attribute]
+    #   set :__embedded_in [list $object $attribute]
     #   $object $attribute add [self] end
     # }
+
+    #
+    # destroy a mapped object from memory
+    #
+    :public method destroy {} {
+      if {[array exists :__contains]} {
+	# destroy embedded object
+	foreach o [array names :__contains] {
+	  puts "[self] contains $o -> destroy"
+	  $o destroy
+	}
+      }
+      if {[info exists :__embedded_in]} {
+	lassign ${:__embedded_in} parent att
+	::nsf::var::unset $parent __contains([self])
+      }
+      next
+    }
 
     #
     # delete the current object from the db
     #
     :public method delete {} {
-      set document [[:info class] document]
-      if {$document eq ""} {
-	set embeddedIn [...]
+      puts stderr "deleting [:serialize]"
+      if {[info exists :__embedded_in]} {
+	puts "[self] is embedded in ${:__embedded_in}"
+	lassign ${:__embedded_in} parent att
+	set slot [[$parent info class] get slot $att]
+	$slot remove $parent [self]
+	puts stderr [:serialize]
+	puts stderr "We must save parent $parent in mongo db"
+	:destroy
       } else {
+	puts "delete a non-embedded entry"
+	if {[info exists :_id]} {
+	  set document [[:info class] document]
+	  ::nx::mongo::db remove $document [list _id oid ${:_id}]
+	} else {
+	  error "[self]: object does not contain an _id; it can't be delete from the mongo db."
+	}
       }
     }
     
@@ -327,7 +404,9 @@ namespace eval ::nx::mongo {
 	  ::nx::mongo::db update $document [list _id oid ${:_id}] $bson
 	} else {
 	  puts stderr "we have to insert $bson"
-	  ::nx::mongo::db insert $document $bson
+	  puts stderr [:bson pp $bson]
+	  set r [::nx::mongo::db insert $document $bson]
+	  set :_id [lindex $r 2]
 	}
       }
     }

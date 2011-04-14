@@ -35,6 +35,9 @@ puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {pr
 puts stderr "\nAge > 30"
 puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}]] \n]
 
+puts stderr "\nCount Age > 30"
+puts  [::mongo::count $mongoConn tutorial.persons {age object {$gt int 30}}]
+
 puts stderr "\nArray 'a' contains 'x'"
 puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {a string "x"}]] \n]
 

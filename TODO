@@ -2593,6 +2593,16 @@ nsf:
 - nsf:c: fix dispatch of setter without current method
 - extended regression tests
 
+- nsf.c: added nsf::var::unset (provided so far just var::set)
+- nx::mongo: 
+  * added mongo::count
+  * obtain _id from mongo::insert
+  * added mongo::Object.delete method for embedded and
+    non-embedded objects
+  * handling of mongo-embedded objects when destroying objects
+  * simple bson pretty print function
+  * extended examples
+
 TODO:
 - how to delete attributes?
 

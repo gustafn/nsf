@@ -17,6 +17,12 @@ cmd connect NsfMongoConnect {
   {-argName "-port" -required 0 -nrargs 1 -type int}
 }
 
+cmd count NsfMongoCount {
+  {-argName "conn" -required 1 -type tclobj}
+  {-argName "namespace" -required 1}
+  {-argName "query" -required 1 -type tclobj}
+}
+
 cmd index NsfMongoIndex {
   {-argName "conn" -required 1 -type tclobj}
   {-argName "namespace" -required 1}
