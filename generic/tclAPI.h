@@ -233,6 +233,7 @@ static int NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 static int NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfUnsetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -320,6 +321,7 @@ static int NsfSelfCmd(Tcl_Interp *interp);
 static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value);
 static int NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
 static int NsfShowStackCmd(Tcl_Interp *interp);
+static int NsfUnsetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
 static int NsfOClassMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *class);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj);
@@ -408,6 +410,7 @@ enum {
  NsfSetVarCmdIdx,
  NsfSetterCmdIdx,
  NsfShowStackCmdIdx,
+ NsfUnsetVarCmdIdx,
  NsfOAutonameMethodIdx,
  NsfOClassMethodIdx,
  NsfOCleanupMethodIdx,
@@ -1490,6 +1493,26 @@ NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 }
 
 static int
+NsfUnsetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfUnsetVarCmdIdx].paramDefs, 
+                     method_definitions[NsfUnsetVarCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[1];
+
+    assert(pc.status == 0);
+    return NsfUnsetVarCmd(interp, object, varName);
+
+  }
+}
+
+static int
 NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
@@ -2340,6 +2363,10 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::nsf::__db_show_stack", NsfShowStackCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::var::unset", NsfUnsetVarCmdStub, 2, {
+  {"object", NSF_ARG_REQUIRED, 0, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"varName", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::autoname", NsfOAutonameMethodStub, 3, {
   {"-instance", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},

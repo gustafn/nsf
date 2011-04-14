@@ -157,6 +157,10 @@ cmd "var::set" NsfSetVarCmd {
   {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
+cmd "var::unset" NsfUnsetVarCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "varName" -required 1 -type tclobj}
+}
 
 #
 # object methods

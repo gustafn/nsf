@@ -12112,6 +12112,35 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
   return TCL_ERROR;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * UnsetInstVar --
+ *
+ *    Unset an instance variable of the specified object.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Variable unset.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+UnsetInstVar(Tcl_Interp *interp, NsfObject *object, CONST char* name) {
+  CallFrame frame, *framePtr = &frame;
+  int flags, result;
+
+  assert(object);
+  flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
+
+  Nsf_PushFrameObj(interp, object, framePtr);
+  result = Tcl_UnsetVar2(interp, name, NULL, flags);
+  Nsf_PopFrameObj(interp, framePtr);
+
+  return result;
+}
+
 static int
 NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   SetterCmdClientData *cd = (SetterCmdClientData*)clientData;
@@ -16573,6 +16602,23 @@ NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *v
   }
 
   return SetInstVar(interp, object, varname, valueObj);
+}
+
+/*
+nsfCmd var::unset NsfUnsetVarCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "varname" -required 1 -type tclobj}
+}
+*/
+static int
+NsfUnsetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varNameObj) {
+  char *varName = ObjStr(varNameObj);
+
+  if (CheckVarName(interp, varName) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  
+  return UnsetInstVar(interp, object, varName);
 }
 
 /*
