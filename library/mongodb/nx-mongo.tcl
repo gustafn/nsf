@@ -8,8 +8,11 @@ package require nsf::mongo
 package provide nx::mongo 0.2
 
 # todo: how to handle multiple connections; currently we have a single, global connection
-# todo: handle embedded bson objects
-# todo: handle named nx objects (e.g. attribute _oid?}
+# todo: make embedded spec nicer
+# todo: handle time stamps
+# todo: handle remove for non-multivalued embedded objects
+# todo: handle names of nx objects (e.g. attribute like __name)
+# todo: handle classes von nx objects (e.g. attribute like __class)
 
 namespace eval ::nx::mongo {
 
@@ -37,7 +40,6 @@ namespace eval ::nx::mongo {
       if {![info exists :mongotype]} {
 	set :mongotype string
 	if {[info exists :type]} {
-	  puts stderr "type of ${:name} is ${:type}"
 	  switch -glob ${:type} {
 	    "boolean" -
 	    "integer" {set :mongotype ${:type}}
@@ -46,7 +48,7 @@ namespace eval ::nx::mongo {
 	  #"::*" {set :mongotype object}
 	}
       }
-      puts stderr "mongo type of ${:name} is ${:mongotype} [info exists :type]"
+      #puts stderr "mongo type of ${:name} is ${:mongotype} [info exists :type]"
       next
     }
     
@@ -64,8 +66,16 @@ namespace eval ::nx::mongo {
 	  error "Attribute ${:name} should be multivalued, but it is not"
 	}
 	set result [list]
-	foreach {pos type v} $value {lappend result $v}
+	foreach {pos type v} $value {lappend result [:bson decode $type $v]}
 	return $result
+      } elseif {$bsontype eq "object"} {
+	#puts stderr "*** we have an object '$value', [:serialize]"
+	if {${:type} eq "embedded" && [info exists :arg]} {
+	  set value [${:arg} bson create $value]
+	  #puts stderr "*** ${:arg} bson create ==> $value"
+	} else {
+	  error "don't know how to decode object with value '$value'; [:serialize]"
+	}
       }
       return $value
     }
@@ -107,18 +117,14 @@ namespace eval ::nx::mongo {
     # Type converter for handling embedded objects. Makes sure to
     # track "embedded in" relationship
     #
-    :public method type=embedded {name value args} {
+    :public method type=embedded {name value arg} {
       set s [:uplevel self]
-      puts stderr "assign $name '$value' args='$args' s=$s"
-      if {[::nsf::isobject $value] && [::nsf::is class $args] && [$value info has type $args]} {
+      #puts stderr "check $name '$value' arg='$arg' s=$s"
+      if {[::nsf::isobject $value] && [::nsf::is class $arg] && [$value info has type $arg]} {
 	::nsf::var::set $value __embedded_in [list $s $name]
 	::nsf::var::set $s __contains($value) 1
-	puts stderr "
-	::nsf::var::set $value __embedded_in [list $s $name]
-	::nsf::var::set $s __contains($value) 1
-"
       } else {
-	error "value '$value' for attribute $name is not of type $args"
+	error "value '$value' for attribute $name is not of type $arg"
       }
     }
   }
@@ -181,7 +187,7 @@ namespace eval ::nx::mongo {
 	}
 	lappend result \$orderby object $bson
       }
-      puts "Query: $result"
+      #puts "Query: $result"
       return $result
     }
     
@@ -189,11 +195,20 @@ namespace eval ::nx::mongo {
       set objParams [list]
       foreach {att type value} $tuple {
 	set slot [:get slot $att]
+	#puts stderr "att $att type $type value $value => '$slot'"
 	lappend objParams -$att [$slot bson decode $type $value]
       }
       return $objParams
     }
     
+    :public method "bson create" {{-name ""} tuple} {
+      if {$name ne ""} {
+	return [:create $name {*}[:bson parameter $tuple]]
+      } else {
+	return [:new {*}[:bson parameter $tuple]]
+      }
+    }
+
     #
     # Overload method attribute to provide "::nx::mongo::Attribute" as a
     # default slot class
@@ -219,28 +234,30 @@ namespace eval ::nx::mongo {
       $p save
       $p destroy
     }
+
+    #
+    # The method "count" is similar to find, but returns just the
+    # number of tuples for the query.
+    #
+    :public method count {{-cond ""}} {
+      return [::nx::mongo::db count ${:document} $cond]
+    }
     
     #
     # The query interface consists currently of "find first" (returning
     # a single instance) and "find all" (returning a list of instances).
     #
     :public method "find first" {
-				 -instance 
+				 {-instance ""}
 				 {-cond ""}
 				 {-orderby ""} 
 			       } {
-      set fetched [::nx::mongo::db query ${:document} \
-		       [:bson query -cond $cond -orderby $orderby] \
-		       -limit 1]
-      puts "[join $fetched \n]"
-      foreach tuple $fetched {
-	if {[info exists instance]} {
-	  set o [:uplevel [list [self] create $instance {*}[:bson parameter $tuple]]]
-	  return $o
-	} else {
-	  return [:uplevel [list [self] new {*}[:bson parameter $tuple]]]
-	}
-      }
+      set tuple [lindex [::nx::mongo::db query ${:document} \
+			     [:bson query -cond $cond -orderby $orderby] \
+			     -limit 1] 0]
+      #puts "find first fetched: $tuple"
+      if {$instance ne ""} {set instance [:uplevel [list ::nsf::qualify $instance]]}
+      return [:bson create -name $instance $tuple]
     }
     
     :public method "find all" {
@@ -258,7 +275,7 @@ namespace eval ::nx::mongo {
 		       {*}$opts]
       puts "[join $fetched \n]"
       foreach tuple $fetched {
-	lappend result [:uplevel [list [self] new {*}[:bson parameter $tuple]]]
+	lappend result [:bson create $tuple]
       }
       return $result
     }
@@ -367,14 +384,14 @@ namespace eval ::nx::mongo {
     # delete the current object from the db
     #
     :public method delete {} {
-      puts stderr "deleting [:serialize]"
+      puts stderr "[self] delete"
       if {[info exists :__embedded_in]} {
 	puts "[self] is embedded in ${:__embedded_in}"
 	lassign ${:__embedded_in} parent att
 	set slot [[$parent info class] get slot $att]
 	$slot remove $parent [self]
-	puts stderr [:serialize]
-	puts stderr "We must save parent $parent in mongo db"
+	#puts stderr [:serialize]
+	puts stderr "[self] must save parent $parent in db"
 	:destroy
       } else {
 	puts "delete a non-embedded entry"
@@ -400,11 +417,10 @@ namespace eval ::nx::mongo {
       } else {
 	set bson [:bson encode]
 	if {[info exists :_id]} {
-	  #puts stderr "we have to update $bson"
+	  puts stderr "we have to update [:bson pp -indent 4 $bson]"
 	  ::nx::mongo::db update $document [list _id oid ${:_id}] $bson
 	} else {
-	  puts stderr "we have to insert $bson"
-	  puts stderr [:bson pp $bson]
+	  puts stderr "we have to insert [:bson pp -indent 4 $bson]"
 	  set r [::nx::mongo::db insert $document $bson]
 	  set :_id [lindex $r 2]
 	}

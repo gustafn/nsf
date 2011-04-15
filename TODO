@@ -2602,6 +2602,9 @@ nsf:
   * handling of mongo-embedded objects when destroying objects
   * simple bson pretty print function
   * extended examples
+  * handle fetch of embedded objects
+  * added method count for mongo mapped classes
+  * improve documentation
 
 TODO:
 - how to delete attributes?
