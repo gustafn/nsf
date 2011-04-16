@@ -6,7 +6,7 @@
 package require nx::mongo
 
 # Establish connection to the database
-::nx::mongo::db connect
+::nx::mongo::db connect -db "tutorial"
 
 # Make sure, we start always from scratch
 nx::mongo::db remove tutorial.persons {}
@@ -15,7 +15,6 @@ nx::mongo::db remove tutorial.persons {}
 # Create the application class "Person"
 #
 nx::mongo::Class create Person {
-  :document "tutorial.persons"
   :index name
 
   :attribute name:required
@@ -94,3 +93,17 @@ foreach p [Person find oldies] {
   puts "\t$p:\t[$p name]"
 }
 
+
+nx::mongo::Class create Users {
+  :attribute name:required
+}
+
+nx::mongo::Class create Post {
+  :attribute title:required
+  :attribute user_id
+}
+
+set u [Users new -name Smith]
+$u save
+set p [Post new -title "Hello World" -user_id [$u _id]]
+$p save

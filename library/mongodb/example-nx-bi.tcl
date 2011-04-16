@@ -29,11 +29,11 @@ package require nx::serializer
 package require nx::test
 
 # Establish connection to the database
-::nx::mongo::db connect
+::nx::mongo::db connect -db "tutorial"
 
 # Make sure, we start always from scratch, so remove everything from
 # the collection.
-nx::mongo::db remove tutorial.bi {}
+nx::mongo::db remove tutorial.comments {}
 
 #
 # Create the application classes based on the "Business Insider" data
@@ -44,7 +44,7 @@ nx::mongo::db remove tutorial.bi {}
 # "... delete ..." to add values to the attributes).
 #
 nx::mongo::Class create Comment {
-  # This class does not have a :document" spec, since it is embedded.
+  # This class does not have a :mongo_ns" spec, since it is embedded.
 
   :attribute author:required
   :attribute comment:required 
@@ -52,7 +52,6 @@ nx::mongo::Class create Comment {
 }
 
 nx::mongo::Class create Posting {
-  :document "tutorial.bi"
   :index tags
   :attribute title:required
   :attribute author:required
@@ -95,7 +94,7 @@ set c [lindex [$p comments] 1]
 $c delete
 
 # The delete operation destroy the embedded object and removes the
-# referece to it in the comments attribute.
+# reference to it in the comments attribute.
 ? [list llength [$p comments]] 1
 
 # The delete operation does not automatically persist the change,

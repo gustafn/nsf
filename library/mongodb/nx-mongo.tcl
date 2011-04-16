@@ -9,15 +9,18 @@ package provide nx::mongo 0.2
 
 # todo: how to handle multiple connections; currently we have a single, global connection
 # todo: make embedded spec nicer
-# todo: handle time stamps
 # todo: handle remove for non-multivalued embedded objects
-# todo: handle names of nx objects (e.g. attribute like __name)
-# todo: handle classes von nx objects (e.g. attribute like __class)
+# idea: handle names of nx objects (e.g. attribute like __name)
+# idea: handle classes von nx objects (e.g. attribute like __class)
 
 namespace eval ::nx::mongo {
 
   ::nx::Object create ::nx::mongo::db {
-    :public method connect {args} {set :mongoConn [::mongo::connect {*}$args]}
+    :attribute db
+    :public method connect {{-db test} args} {
+      set :db $db
+      set :mongoConn [::mongo::connect {*}$args]
+    }
     :public method count   {args} {::mongo::count  ${:mongoConn} {*}$args}
     :public method index   {args} {::mongo::index  ${:mongoConn} {*}$args}
     :public method insert  {args} {::mongo::insert ${:mongoConn} {*}$args}
@@ -132,10 +135,12 @@ namespace eval ::nx::mongo {
   ::nx::Class create ::nx::mongo::Class -superclass nx::Class {
     
     #
-    # Every mongo class can be configured with a document, from which
+    # Every mongo class can be configured with a mongo_ns, from which
     # its instance data is queried.
     #
-    :attribute document
+    :attribute mongo_ns
+    :attribute mongo_db
+    :attribute mongo_collection
     
     #
     # Provide helper methods to access from an external specifier
@@ -221,9 +226,10 @@ namespace eval ::nx::mongo {
     # index method
     #
     :public method index {att {-type 1}} {
+      if {![info exists :mongo_ns]} {:mongo_setup}
       # todo: 2d index will need a different type
-      #::mongo::index $::mongoConn ${:document} [list $att int $type]
-      db index ${:document} [list $att int $type]
+      #::mongo::index $::mongoConn ${:mongo_ns} [list $att int $type]
+      db index ${:mongo_ns} [list $att int $type]
     }
     
     #
@@ -240,7 +246,7 @@ namespace eval ::nx::mongo {
     # number of tuples for the query.
     #
     :public method count {{-cond ""}} {
-      return [::nx::mongo::db count ${:document} $cond]
+      return [::nx::mongo::db count ${:mongo_ns} $cond]
     }
     
     #
@@ -252,7 +258,7 @@ namespace eval ::nx::mongo {
 				 {-cond ""}
 				 {-orderby ""} 
 			       } {
-      set tuple [lindex [::nx::mongo::db query ${:document} \
+      set tuple [lindex [::nx::mongo::db query ${:mongo_ns} \
 			     [:bson query -cond $cond -orderby $orderby] \
 			     -limit 1] 0]
       #puts "find first fetched: $tuple"
@@ -270,7 +276,7 @@ namespace eval ::nx::mongo {
       set opts [list]
       if {[info exists limit]} {lappend opts -limit $limit}
       if {[info exists skip]} {lappend opts -skip $skip}
-      set fetched [::nx::mongo::db query ${:document} \
+      set fetched [::nx::mongo::db query ${:mongo_ns} \
 		       [:bson query -cond $cond -orderby $orderby] \
 		       {*}$opts]
       puts "[join $fetched \n]"
@@ -280,6 +286,27 @@ namespace eval ::nx::mongo {
       return $result
     }
     
+    :method mongo_setup {} {
+      #
+      # setup mongo_collection, mongo_db and mongo_ns
+      #
+      if {[info exists :mongo_ns]} {
+	puts stderr "mongo_ns is set to ${:mongo_ns}"
+	if {![regexp {^([^.]+)[.](.*)$} ${:mongo_ns} :mongo_db :mongo_collection]} {
+	  error "${:mongo_ns} does not contain a dot."
+	}
+      } else {
+	if {![info exists :mongo_collection]} {
+	  set :mongo_collection [string tolower [namespace tail [self]]]s
+	}
+	if {![info exists :mongo_db]} {
+	  set :mongo_db [::nx::mongo::db db]
+	}
+	set :mongo_ns ${:mongo_db}.${:mongo_collection}
+	puts stderr "mongo_ns is set to ${:mongo_ns}"
+      }
+    }
+
     #
     # When a mongo::Class is created, mixin the mongo::Object to make
     # "save" etc. available
@@ -287,6 +314,7 @@ namespace eval ::nx::mongo {
     
     :method init {} {
       :mixin add ::nx::mongo::Object
+      :mongo_setup
     }
     
     # :public method create args {
@@ -396,8 +424,8 @@ namespace eval ::nx::mongo {
       } else {
 	puts "delete a non-embedded entry"
 	if {[info exists :_id]} {
-	  set document [[:info class] document]
-	  ::nx::mongo::db remove $document [list _id oid ${:_id}]
+	  set mongo_ns [[:info class] mongo_ns]
+	  ::nx::mongo::db remove $mongo_ns [list _id oid ${:_id}]
 	} else {
 	  error "[self]: object does not contain an _id; it can't be delete from the mongo db."
 	}
@@ -409,19 +437,19 @@ namespace eval ::nx::mongo {
     # otherwise perform an insert
     #
     :public method save {} {
-      set document [[:info class] document]
-      if {$document eq ""} {
+      set mongo_ns [[:info class] mongo_ns]
+      if {$mongo_ns eq ""} {
 	# We could perform the delegation probably automatically, but
 	# for now we provide an error
-	error "No document specified for [:info class]. In case this is an embedded object, save the embedding one."
+	error "No mongo_ns specified for [:info class]. In case this is an embedded object, save the embedding one."
       } else {
 	set bson [:bson encode]
 	if {[info exists :_id]} {
 	  puts stderr "we have to update [:bson pp -indent 4 $bson]"
-	  ::nx::mongo::db update $document [list _id oid ${:_id}] $bson
+	  ::nx::mongo::db update $mongo_ns [list _id oid ${:_id}] $bson
 	} else {
 	  puts stderr "we have to insert [:bson pp -indent 4 $bson]"
-	  set r [::nx::mongo::db insert $document $bson]
+	  set r [::nx::mongo::db insert $mongo_ns $bson]
 	  set :_id [lindex $r 2]
 	}
       }

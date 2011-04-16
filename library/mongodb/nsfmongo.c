@@ -160,7 +160,6 @@ Tcl_Obj *
 BsonToList(Tcl_Interp *interp, const char *data , int depth) {
   bson_iterator i;
   const char *key, *tag;
-  bson_timestamp_t ts;
   char oidhex[25];
   Tcl_Obj *resultObj, *elemObj;
 
@@ -177,7 +176,8 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
 
     switch ( t ){
     case bson_int:    tag = "integer"; elemObj = Tcl_NewIntObj(bson_iterator_int( &i )); break;
-    case bson_long:   tag = "long";    elemObj = Tcl_NewIntObj(bson_iterator_long( &i )); break;
+    case bson_long:   tag = "long";    elemObj = Tcl_NewLongObj(bson_iterator_long( &i )); break;
+    case bson_date:   tag = "date";    elemObj = Tcl_NewLongObj(bson_iterator_date( &i )); break;
     case bson_double: tag = "double";  elemObj = Tcl_NewDoubleObj(bson_iterator_double( &i )); break;
     case bson_bool:   tag = "boolean"; elemObj = Tcl_NewBooleanObj(bson_iterator_bool( &i )); break;
     case bson_regex:  tag = "regex";   elemObj = Tcl_NewStringObj(bson_iterator_regex( &i ), -1); break;
@@ -189,13 +189,15 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
       elemObj = Tcl_NewStringObj(oidhex, -1);
       break;
     }
-    case bson_timestamp:
+    case bson_timestamp: {
+      bson_timestamp_t ts;
       tag = "timestamp";
       ts = bson_iterator_timestamp( &i );
       elemObj = Tcl_NewListObj(0, NULL);
-      Tcl_AppendObjToObj(elemObj, Tcl_NewIntObj(ts.i));
-      Tcl_AppendObjToObj(elemObj, Tcl_NewIntObj(ts.t));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(ts.t));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(ts.i));
       break;
+    }
     case bson_object: 
     case bson_array:
       tag = t == bson_object ? "object" : "array";
@@ -240,7 +242,9 @@ BsonTagToType(Tcl_Interp *interp, char *tag) {
   switch (firstChar) {
   case 'a': /* array */   return bson_array;
   case 'b': /* bool */    return bson_bool;
-  case 'd': /* double */  return bson_double;
+  case 'd': 
+    if (*(tag + 1) == 'a') /* date   */ return bson_date;
+    if (*(tag + 1) == 'o') /* double */ return bson_double;
   case 'i': /* integer */ return bson_int;
   case 'l': /* long */    return bson_long;
   case 'n': /* null */    return bson_null;
@@ -326,6 +330,14 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
     bson_append_regex(bbPtr, name, ObjStr(value), opts);
     break;
   }
+  case bson_date: {
+    long v;
+    result = Tcl_GetLongFromObj(interp, value, &v);
+    fprintf(stderr, "bson date v %ld result %d\n", v, result);
+    if (result != TCL_OK) break;
+    bson_append_date(bbPtr, name, v);
+    break;
+  }
   case bson_timestamp: {
     bson_timestamp_t v;
     Tcl_Obj **objv;
@@ -334,9 +346,9 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
     if (result != TCL_OK || objc != 2) {
       return NsfPrintError(interp, "invalid timestamp: %s", ObjStr(value));
     }
-    result = Tcl_GetIntFromObj(interp, objv[0], &v.i);
+    result = Tcl_GetIntFromObj(interp, objv[0], &v.t);
     if (result == TCL_OK) {
-      result = Tcl_GetIntFromObj(interp, objv[1], &v.t);
+      result = Tcl_GetIntFromObj(interp, objv[1], &v.i);
     }
     if (result != TCL_OK) break;
     bson_append_timestamp(bbPtr, name, &v);
