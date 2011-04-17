@@ -1,5 +1,7 @@
 #
-# This is an example how to use the nx mongo mapping.
+# This is an example how to use the nx mongo mapping.  We show here
+# single class mapped to the mongo db with sing and multivalued
+# scalars together with some querying options.
 #
 # Gustaf Neumann              fecit, April 2011
 #
@@ -93,17 +95,3 @@ foreach p [Person find oldies] {
   puts "\t$p:\t[$p name]"
 }
 
-
-nx::mongo::Class create Users {
-  :attribute name:required
-}
-
-nx::mongo::Class create Post {
-  :attribute title:required
-  :attribute user_id
-}
-
-set u [Users new -name Smith]
-$u save
-set p [Post new -title "Hello World" -user_id [$u _id]]
-$p save

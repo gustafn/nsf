@@ -2607,6 +2607,11 @@ nsf:
   * improve documentation
   * added handling of bson types for timestamps and dates
   * provide setup based on mongo_db, mongo_collection and mongo_ns
+  * implemented type "reference" similar to "embedded"
+  * all referenced objects are for the time being auto-dereferenced
+  * new method "show" for mongo mapped classes
+  * added two new example files example-nx-reference-many.tcl and
+    example-nx-reference-one.tcl
 
 TODO:
 
