@@ -8,11 +8,14 @@ package require nsf::mongo
 package provide nx::mongo 0.2
 
 # todo: how to handle multiple connections; currently we have a single, global connection
-# todo: make embedded, reference spec nicer
 # todo: all references are currently auto-fetched. make this optional
+# todo: If "emebds" or "references" are used, the object must be of 
+#       the specified classes, no subclasses allowed
+# todo: extend the query language syntax, e.g. regexp, ...
 # todo: handle remove for non-multivalued embedded objects
 # idea: handle names of nx objects (e.g. attribute like __name)
 # idea: handle classes von nx objects (e.g. attribute like __class)
+# todo: make "embedded", "reference" spec even nicer?
 
 namespace eval ::nx::mongo {
 
@@ -307,6 +310,7 @@ namespace eval ::nx::mongo {
     # default slot class
     #
     :public method attribute {spec {-class ::nx::mongo::Attribute} {initblock ""}} {
+      regsub -all {,type=} $spec {,arg=} spec
       next [list $spec -class $class $initblock]
     }
     

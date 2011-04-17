@@ -67,7 +67,7 @@ nx::mongo::Class create User {
 }
 nx::mongo::Class create Post {
   :attribute title
-  :attribute user:embedded,arg=::User
+  :attribute user:embedded,type=::User
 }
 
 Post insert -title "Hello embedded World" -user [User new -name Smith]
@@ -86,7 +86,7 @@ nx::mongo::Class create User {
 }
 nx::mongo::Class create Post {
   :attribute title
-  :attribute user:reference,arg=::User
+  :attribute user:reference,type=::User
 }
 
 Post insert -title "Hello referenced World" -user [User new -name Smith]
@@ -97,6 +97,10 @@ puts stderr "Name of user: [[$p user] name]\n"
 
 puts stderr "Content of the collection groups:"
 Post show
+
+######################################################################
+# Output
+######################################################################
 
 # Content of the collection groups:
 # {

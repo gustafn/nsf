@@ -70,7 +70,7 @@ nx::mongo::Class create Member {
 }
 nx::mongo::Class create Group {
   :attribute name
-  :attribute members:embedded,arg=::Member,0..n
+  :attribute members:embedded,type=::Member,0..n
 }
 
 Group insert -name "grp3" \
@@ -96,7 +96,7 @@ nx::mongo::Class create Member {
 }
 nx::mongo::Class create Group {
   :attribute name
-  :attribute members:reference,arg=::Member,0..n
+  :attribute members:reference,type=::Member,0..n
 }
 
 Group insert -name "grp4" \
@@ -114,6 +114,9 @@ puts stderr ""
 puts stderr "Content of collection groups:"
 Group show
 
+######################################################################
+# Output
+######################################################################
 # Content of collection groups:
 # {
 #     _id: 4daae3e492b5570e00000000, 

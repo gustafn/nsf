@@ -33,9 +33,9 @@ package require nx::test
 
 # Make sure, we start always from scratch, so remove everything from
 # the collection.
-nx::mongo::db remove tutorial.comments {}
+nx::mongo::db remove tutorial.postings {}
 
-#
+######################################################################
 # Create the application classes based on the "Business Insider" data
 # model. Note that instances of the class "Comment" can be embedded in
 # a posting (attribute "comments") as well as in an comment itself
@@ -44,11 +44,9 @@ nx::mongo::db remove tutorial.comments {}
 # "... delete ..." to add values to the attributes).
 #
 nx::mongo::Class create Comment {
-  # This class does not have a :mongo_ns" spec, since it is embedded.
-
   :attribute author:required
   :attribute comment:required 
-  :attribute replies:embedded,arg=::Comment,0..n {set :incremental 1}
+  :attribute replies:embedded,type=::Comment,0..n {set :incremental 1}
 }
 
 nx::mongo::Class create Posting {
@@ -56,11 +54,11 @@ nx::mongo::Class create Posting {
   :attribute title:required
   :attribute author:required
   :attribute ts:required
-  :attribute comments:embedded,arg=::Comment,0..n {set :incremental 1}
+  :attribute comments:embedded,type=::Comment,0..n {set :incremental 1}
   :attribute tags:0..n {set :incremental 1}
 }
 
-#
+######################################################################
 # Build a composite Posting instance based on the example above.
 #
 set p [Posting new -title "Too Big to Fail" -author "John S." \
@@ -137,6 +135,44 @@ $q save
 # We still have three entries in the database
 ? {Posting count} 3
 
-puts stderr [$q bson pp [$q eval {:bson encode}]]
+Posting show
 
 puts stderr ====EXIT
+######################################################################
+# Output
+######################################################################
+# {
+#     _id: 4daaeb04727b2b1000000000, 
+#     title: {Too Big to Fail}, 
+#     comments: [ { 
+#       author: {Ian White}, 
+#       comment: {Great Article!} }, { 
+#       replies: [ { 
+#         author: {Jane Smith}, 
+#         comment: scalable? } ], 
+#       author: {Joe Smith}, 
+#       comment: {But how fast is it?} } ], 
+#     author: {John S.}, 
+#     ts: {05-Nov-09 10:33}, 
+#     tags: [ finance, economy ]
+# }, {
+#     _id: 4daaeb04727b2b1000000001, 
+#     title: {Too Big to Fail}, 
+#     comments: [ { 
+#       author: {Ian White}, 
+#       comment: {Great Article!} } ], 
+#     author: {John S.}, 
+#     ts: {05-Nov-09 10:33}, 
+#     tags: [ finance, economy ]
+# }, {
+#     _id: 4daaeb04727b2b1000000002, 
+#     title: {Too Big to Fail}, 
+#     comments: [ { 
+#       author: {Ian White}, 
+#       comment: {Great Article!} }, { 
+#       author: {Gustaf N}, 
+#       comment: {This sounds pretty cool} } ], 
+#     author: {John S.}, 
+#     ts: {05-Nov-09 10:33}, 
+#     tags: [ nsf, nx, finance, economy ]
+# }

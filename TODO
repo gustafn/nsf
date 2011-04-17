@@ -2612,6 +2612,8 @@ nsf:
   * new method "show" for mongo mapped classes
   * added two new example files example-nx-reference-many.tcl and
     example-nx-reference-one.tcl
+  * replaced "arg" by "type" in spec for mongo attributes to make
+    spec less stange
 
 TODO:
 
