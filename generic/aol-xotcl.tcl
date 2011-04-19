@@ -34,7 +34,7 @@ if {[ns_info name] ne "NaviServer"} {
     foreach n $namespaces {
       if {$n ne "::nsf" && $n ne "::xotcl" && $n ne "::nx" 
 	  && ![string match "::nsf::*" $n]
-	  && ![::nsf::isobject $n]} {
+	  && ![::nsf::object::exists $n]} {
 	  lappend nslist $n
       }
     }

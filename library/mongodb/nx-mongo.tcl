@@ -162,7 +162,7 @@ namespace eval ::nx::mongo {
     :public method type=embedded {name value arg} {
       set s [:uplevel self]
       #puts stderr "check $name '$value' arg='$arg' s=$s"
-      if {[::nsf::isobject $value] && [::nsf::is class $arg] && [$value info has type $arg]} {
+      if {[::nsf::object::exists $value] && [::nsf::is class $arg] && [$value info has type $arg]} {
 	::nsf::var::set $value __embedded_in [list $s $name]
 	::nsf::var::set $s __contains($value) 1
       } else {
@@ -176,7 +176,7 @@ namespace eval ::nx::mongo {
     :public method type=reference {name value arg} {
       set s [:uplevel self]
       #puts stderr "check $name '$value' arg='$arg' s=$s"
-      if {[::nsf::isobject $value] && [::nsf::is class $arg] && [$value info has type $arg]} {
+      if {[::nsf::object::exists $value] && [::nsf::is class $arg] && [$value info has type $arg]} {
 	set ref [list $s $name]
 	if {[::nsf::var::exists $value __referenced_in]} {
 	  set refs [::nsf::var::set $value __referenced_in]
@@ -356,7 +356,7 @@ namespace eval ::nx::mongo {
 			     [:bson query -cond $cond -orderby $orderby] \
 			     -limit 1] 0]
       #puts "find first fetched: $tuple"
-      if {$instance ne ""} {set instance [:uplevel [list ::nsf::qualify $instance]]}
+      if {$instance ne ""} {set instance [:uplevel [list ::nsf::object::qualify $instance]]}
       return [:bson create -name $instance $tuple]
     }
     

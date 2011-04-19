@@ -175,7 +175,7 @@ Test case parsing {
   # TODO: Do not enforce space line between the context and immediate
   # part block (when description is skipped)?
   # 
-  # OR: For absolutely qualifying parts (e.g., outside of an initcmd block),
+  # OR: For absolutely object::qualifying parts (e.g., outside of an initcmd block),
   # do we need sequences of _two_ (or more) tag lines, e.g.
   # 
   # --
@@ -186,7 +186,7 @@ Test case parsing {
   # THEN, we can only discriminate between the context and an
   # immediate part section by requiring a space line!
   #
-  # Alternatively, we can use the @see like syntax for qualifying:
+  # Alternatively, we can use the @see like syntax for object::qualifying:
   # @param ::Foo#attr1 (I have a preference for this option).
   set block {
     {@command ::cc}
@@ -547,7 +547,7 @@ Test case tag-notations-basics {
   set cbp [CommentBlockParser process -parsing_level 2 -partof_entity $entity $block]
   ? [list $cbp status ? COMPLETED] 1
   set entity [$cbp current_entity]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "We have a tag notation sensitive to the parsing level"
   
@@ -758,52 +758,52 @@ Test case tag-notations-extended {
   
   # --testing-- "@class ::C"
   set entity [@class id ::C]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "The global description of ::C";
   # --testing-- "@class.attribute {::C attr1}"
   set entity [@attribute id $entity class attr1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "Here, we could also write '@class.class-attribute {::C attr1}', @attribute is a mere forwarder! In the context section, only one-liners are allowed!"
 
   # --testing-- "@class.object.attribute {::C foo p1} A short description is ..."
   # set entity [@attribute id $entity class attr1]
   # set entity [@object id -partof_name ::C -scope child foo]
-  # ? [list ::nsf::isobject $entity] 1
+  # ? [list ::nsf::object::exists $entity] 1
   # ? [list $entity info has type ::nx::doc::@object] 1
   # ? [list $entity as_text] ""
   # set entity [@attribute id $entity object p1]
-  # ? [list ::nsf::isobject $entity] 1
+  # ? [list ::nsf::object::exists $entity] 1
   # ? [list $entity info has type ::nx::doc::@attribute] 1
   # ? [list $entity as_text] ".. is overruled by a long one ..."
 
   set entity [@object id ::C::foo]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   set entity [@attribute id $entity class p1]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   #  ? [list $entity info has type ::nx::doc::@attribute] 1
   #  ? [list $entity as_text] ".. is overruled by a long one ..."
 
   # --testing-- @class-object-attribute attr2 (its non-existance)
   set entity [@attribute id [@class id ::C] class attr2]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   # --testing-- @child-class Foo (its non-existance)
   set entity [@class id ::C::Foo]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   # --testing -- @method foo (its non-existance)
   set entity [@method id ::C class foo]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   # --testing-- @class-object-method.parameter {bar p1} (its non-existance)
   set entity [@parameter id [@method id ::C class bar] "" p1]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   # --testing-- @child-object.attribute {foo p1} (its non-existance)
   set cl [@class id ::C::Foo]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   set entity [@attribute id $cl class p1]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   set entity [@attribute id $cl class p2]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
 
   #
   # 2) process the initcmd comments (PARSING LEVEL 1)
@@ -823,22 +823,22 @@ Test case tag-notations-extended {
   
   set entity [@class id ::C]
   ? $_ $entity
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "This is the initcmd-level description of ::C which overwrites the global description (see above)"
   
   set entity [@attribute id $entity class attr1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This is equivalent to writing "@class-attribute attr1"}
   
   
   set entity [@object id ::C::foo]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "'foo' needs to be defined before referencing any of its parts!"; # still empty!
   set entity [@attribute id $entity class p1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
   
@@ -846,61 +846,61 @@ Test case tag-notations-extended {
   
   # --testing-- @class-object-attribute attr2
   set entity [@attribute id [@class id ::C] class attr2]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "Carries a short desc only";
   
   # --testing-- @child-class Foo
   # TODO: provide a check against fully-qualified names in part specifications
   set entity [@class id ::C::Foo]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] {By providing a fully-qualified identifier ("::Foo") you leave the context of the initcmd-owning object, i.e. you would NOT refer to a nested class object named "Foo" anymore!}
   
   set entity [@attribute id [@class id ::C] class p1]
-  ? [list ::nsf::isobject $entity] 0; # should be 0 at this stage!
+  ? [list ::nsf::object::exists $entity] 0; # should be 0 at this stage!
   
   # --testing -- @method foo
   set entity [@method id ::C class foo]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] ""
   # --testing-- @class-object-method.parameter {bar p1} (its non-existance) It
   # still cannot exist as a documented entity, as the class method
   # has not been initialised before!
   set entity [@parameter id [@method id ::C class bar] "" p1]
-  ? [list ::nsf::isobject $entity] 0
+  ? [list ::nsf::object::exists $entity] 0
   # --testing-- @child-class.attribute {foo p1} (its non-existance)
   # --testing-- @child-class.object-attribute {foo p2} (its non-existance)
   set cl [@class id ::C::Foo]
-  ? [list ::nsf::isobject $cl] 1
+  ? [list ::nsf::object::exists $cl] 1
   set entity [@attribute id $cl class p1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] {This is equivalent to stating "@child-class.class-attribute {Foo p1}"}
   set entity [@attribute id $cl class p2]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "Y"
   
   set entity [@method id ::C class sub]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "The desc of the ensemble object 'sub'"
   
   set entity [@method id ::C class sub::bar]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "Only description available here ..."
   
   set entity [@method id ::C object sub]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "A brief desc"
   
   set entity [@method id ::C object sub::foo2]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@method] 1
   ? [list $entity as_text] "could allow both (@sub-method is the attribute name, @method is a forwarder in the context of an owning @method object!)"
   ? [list $entity @see] "anotherentity"
   # TODO: @author not supported for @method (fine so?)
   # ? [list $entity @author] "ss@thinkersfoot"
   set entity [@parameter id $entity "" p1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "Some words on p1"
   
   #
@@ -914,17 +914,17 @@ Test case tag-notations-extended {
   # methods ...
   
   set entity [@method id ::C class foo]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "Here goes some method-body-level description"
   set entity [@parameter id [@method id ::C class foo] "" p1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "The most specific level!"
   
   # attributes ...
   
   # attr1 
   set entity [@attribute id [@class id ::C] class attr1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This description does not apply to the object parameter "attr1" owned by the ::C class, rather it is a description of the attribute slot object! How should we deal with this situation? Should this level overwrite the top-level and initcmd-level descriptions?}
   
@@ -941,11 +941,11 @@ Test case tag-notations-extended {
   processor process=@object $project [@object id ::C::foo]
   
   set entity [@object id ::C::foo]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "Adding a line for the first time (not processed in the initcmd phase!)"; # still empty!
   set entity [@attribute id $entity class p1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This is equivalent to stating "@class-object-attribute p1"}
   
@@ -958,12 +958,12 @@ Test case tag-notations-extended {
   processor process=@class $project [@class id ::C::Foo]
   
   set cl [@class id ::C::Foo]
-  ? [list ::nsf::isobject $cl] 1
+  ? [list ::nsf::object::exists $cl] 1
   set entity [@attribute id $cl class p1]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] {This is equivalent to stating "@class-attribute p1"; or '@class.object.attribute {::C Foo p1}' from the top-level.}
   set entity [@attribute id $cl class p2]
-  ? [list ::nsf::isobject $entity] 1
+  ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] ""
   
   #
@@ -1095,11 +1095,11 @@ set ::nsf::includes {
   ::nsf::exithandler
   ::nsf::forward
   ::nsf::var::import
-  ::nsf::isobject
+  ::nsf::object::exists
   ::nsf::method
   ::nsf::method::property
   ::nsf::method::provide
-  ::nsf::qualify
+  ::nsf::object::qualify
   ::nsf::method::require
   ::nsf::setter
   ::nsf::var::set

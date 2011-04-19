@@ -143,7 +143,7 @@ namespace eval ::nx::doc {
       }
       foreach mixin [:info children -type [current class]::Mixin] {
 	set base "${:prefix}::[namespace tail $mixin]"
-	if {[::nsf::isobject $base]} {
+	if {[::nsf::object::exists $base]} {
 	  set scope [expr {[$mixin scope] eq "object" && \
 			       [$base info is class]?"class-object":""}]
 	  dict lappend :active_mixins $base $mixin
@@ -230,7 +230,7 @@ namespace eval ::nx::doc {
 	  #
 	  # TODO interp-aliasing objects under different command names
 	  # is currently not transparent to some ::nsf::* helpers,
-	  # such as ::nsf::isobject. Should this be changed?
+	  # such as ::nsf::object::exists. Should this be changed?
 	  #
 	  if {$cmd ne ""} {
 	    set cmd [namespace origin $cmd]
@@ -239,12 +239,12 @@ namespace eval ::nx::doc {
 	      set cmd $target
 	    }
 	  }
-	  if {$cmd eq "" || ![::nsf::isobject $cmd] || ![$cmd info has type Tag]} {
+	  if {$cmd eq "" || ![::nsf::object::exists $cmd] || ![$cmd info has type Tag]} {
 	    return [list 1 "The entity type '@$axis' is not available."]
 	  }
 	  set entity [@$axis id $value]
 	} else {
-	  if {$strict && ![::nsf::isobject $entity]} {
+	  if {$strict && ![::nsf::object::exists $entity]} {
 	    return [list 1 "The tag path '$tagpath' -> '$names' points to a non-existing documentation entity: '@$last_axis' -> '$last_name'"]
 	  }
       if {$all} {lappend entity_path $entity [$entity name]}
@@ -259,7 +259,7 @@ namespace eval ::nx::doc {
 	}
       }
 
-      if {$strict && $entity ne "" && ![::nsf::isobject $entity]} {
+      if {$strict && $entity ne "" && ![::nsf::object::exists $entity]} {
 	return [list 1 "The tag path '$tagpath' -> '$names' points to a non-existing documentation entity: '@$last_axis' -> '$last_name'"]
       }
       if {$all} {lappend entity_path $entity [$entity name]}
@@ -318,7 +318,7 @@ namespace eval ::nx::doc {
     
     :method createOrConfigure {id args} {
       namespace eval $id {}
-      if {[::nsf::isobject $id]} {
+      if {[::nsf::object::exists $id]} {
 	$id configure {*}$args
       } else {
 	:create $id {*}$args
@@ -663,8 +663,8 @@ namespace eval ::nx::doc {
 
     :public method origin {} {
       if {[info exists :@use]} {
-	#puts stderr ORIGIN(${:@use})=isobj-[::nsf::isobject ${:@use}]
-	if {![::nsf::isobject ${:@use}] || ![${:@use} info has type [:info class]]} {
+	#puts stderr ORIGIN(${:@use})=isobj-[::nsf::object::exists ${:@use}]
+	if {![::nsf::object::exists ${:@use}] || ![${:@use} info has type [:info class]]} {
 	  error "Referring to a non-existing doc entity or a doc entity of a different type."
 	}
 	return [${:@use} origin]
@@ -919,8 +919,7 @@ namespace eval ::nx::doc {
       # test environment more passive by checking for the existance
       # before calling destroy!
       #
-      if {[info exists :sandbox] && \
-	      [::nsf::isobject ${:sandbox}]} {
+      if {[info exists :sandbox] && [::nsf::object::exists ${:sandbox}]} {
 	${:sandbox} destroy
       }
       :current_project ""
@@ -1073,7 +1072,7 @@ namespace eval ::nx::doc {
 
 	:method undocumented {} {
 	  # TODO: for object methods and class methods
-	  if {![::nsf::isobject ${:name}]} {return ""}
+	  if {![::nsf::object::exists ${:name}]} {return ""}
 	  foreach m [${:name} info methods -callprotection public] {set available_method($m) 1}
 	  set methods ${:@method}
 	  if {[info exists :@param]} {set methods [concat ${:@method} ${:@param}]}
@@ -1514,7 +1513,7 @@ namespace eval ::nx::doc {
       }
       set l [list]
       foreach item $r {
-	if {![::nsf::isobject $item] || ![$item info has type ::nx::doc::Entity]} {
+	if {![::nsf::object::exists $item] || ![$item info has type ::nx::doc::Entity]} {
 	  lappend l $item
 	} else {
 	  if {[[$item origin] eval [list expr $where_clause]]} {
@@ -2987,8 +2986,8 @@ namespace eval ::nx::doc {
 		    foreach cmd [info commands $pattern] {
 		      if {![::nx::doc::is_exported $cmd]} continue;
 		      set type @command
-		      if {[info commands "::nsf::isobject"] ne "" &&\
-			      [::nsf::isobject $cmd]} {
+		      if {[info commands ::nsf::object::exists] ne "" &&\
+			      [::nsf::object::exists $cmd]} {
 			set type [expr {[::nsf::is class $cmd]?"@class":"@object"}]
 		      }
 		      set imported_name [string trimright $ns :]::[namespace tail $cmd]
@@ -3097,7 +3096,7 @@ namespace eval ::nx::doc {
 	    # (which is not always the case). refactor the code
 	    # accordingly.
 	    set ::nx::doc::rootns [namespace qualifier $rootmclass]
-	    if {[::nsf::isobject ${::nx::doc::rootns}::__Tracer]} {
+	    if {[::nsf::object::exists ${::nx::doc::rootns}::__Tracer]} {
 	      ${::nx::doc::rootns}::__Tracer $sysmeths(-object.destroy)
 	      ::nsf::relation $rootmclass class-mixin {}
 	    }
@@ -3351,7 +3350,7 @@ namespace eval ::nx {
 	set prj [:current_project]
 	if {$prj ne ""} {
 	  set box [$prj sandbox]	  
-	  set script "if {\[::nsf::isobject $obj\]} {array set \"\" \[$obj eval {:__resolve_method_path \"$method_name\"}\]; ::nsf::dispatch \$(object) ::nsf::methods::${scope}::info::method handle \$(methodName)}"
+	  set script "if {\[::nsf::object::exists $obj\]} {array set \"\" \[$obj eval {:__resolve_method_path \"$method_name\"}\]; ::nsf::dispatch \$(object) ::nsf::methods::${scope}::info::method handle \$(methodName)}"
 	  set cmdname [$box do $script]
 	  if {$cmdname ne "" && [$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
 	    :pdata [$box eval [concat dict get \${:registered_commands} $cmdname]]
@@ -4261,7 +4260,7 @@ namespace eval ::nx::doc {
 	   
 	    # TODO interp-aliasing objects under different command names
 	    # is currently not transparent to some ::nsf::* helpers,
-	    # such as ::nsf::isobject. Should this be changed?
+	    # such as ::nsf::object::exists. Should this be changed?
 	    #
 	    if {$cmd ne ""} {
 	      set cmd [namespace origin $cmd]
@@ -4271,7 +4270,7 @@ namespace eval ::nx::doc {
 	      }
 	    }
 	    
-	    if {$cmd eq "" || ![::nsf::isobject $cmd] || \
+	    if {$cmd eq "" || ![::nsf::object::exists $cmd] || \
 		    ![$cmd info has type Tag]} {
 	      
 	      ${:block_parser} cancel INVALIDTAG "The entity type '@$leaf(axis)' is not available."
@@ -4353,7 +4352,7 @@ namespace eval ::nx::doc {
 	:method parse@tag {line} {
 	  set r [next]
 #	  puts stderr GOT=$r
-	  if {[::nsf::isobject $r] && [$r info has type ::nx::doc::Entity]} {
+	  if {[::nsf::object::exists $r] && [$r info has type ::nx::doc::Entity]} {
 	    set :current_part $r
 	  }
 	  return $r

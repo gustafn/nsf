@@ -21,13 +21,13 @@ proc ? {cmd expected {msg ""}} {
 
 ? {::nsf::configure objectsystem} "{::nx::Object ::nx::Class {-class.alloc alloc -class.create create -class.dealloc dealloc -class.recreate recreate -class.requireobject __unknown -object.configure configure -object.defaultmethod defaultmethod -object.destroy destroy -object.init init -object.move move -object.objectparameter objectparameter -object.unknown unknown}}"
 
-? {::nsf::isobject Object} 1
+? {::nsf::object::exists Object} 1
 ? {::nsf::is class Object} 1
 ? {::nsf::is metaclass Object} 0
 ? {Object info superclass} ""
 ? {Object info class} ::nx::Class
 
-? {::nsf::isobject Class} 1
+? {::nsf::object::exists Class} 1
 ? {::nsf::is class Class} 1
 ? {::nsf::is metaclass Class} 1
 ? {Class info superclass} ::nx::Object
@@ -35,7 +35,7 @@ proc ? {cmd expected {msg ""}} {
 
 
 Object create o
-? {::nsf::isobject Object} 1
+? {::nsf::object::exists Object} 1
 ? {::nsf::is class o} 0
 ? {::nsf::is metaclass o} 0
 ? {o info class} ::nx::Object
@@ -50,27 +50,27 @@ Class create C0
 #? {lsort [Class info vars]} "__default_metaclass __default_superclass"
 
 Class create M -superclass ::nx::Class
-? {::nsf::isobject M} 1
+? {::nsf::object::exists M} 1
 ? {::nsf::is class M} 1
 ? {::nsf::is metaclass M} 1
 ? {M info superclass} ::nx::Class
 ? {M info class} ::nx::Class
 
 M create C
-? {::nsf::isobject C} 1
+? {::nsf::object::exists C} 1
 ? {::nsf::is class C} 1
 ? {::nsf::is metaclass C} 0
 ? {C info superclass} ::nx::Object
 ? {C info class} ::M
 
 C create c1
-? {::nsf::isobject c1} 1
+? {::nsf::object::exists c1} 1
 ? {::nsf::is class c1} 0
 ? {::nsf::is metaclass c1} 0
 ? {c1 info class} ::C
 
 Class create M2 -superclass M
-? {::nsf::isobject M2} 1
+? {::nsf::object::exists M2} 1
 ? {::nsf::is class M2} 1
 ? {::nsf::is metaclass M2} 1
 ? {M2 info superclass} ::M
@@ -83,7 +83,7 @@ M2 create m2
 # destroy meta-class M, reclass meta-class instances to the base
 # meta-class and set subclass of M to the root meta-class
 M destroy
-? {::nsf::isobject C} 1
+? {::nsf::object::exists C} 1
 ? {::nsf::is class C} 1
 ? {::nsf::is metaclass C} 0
 ? {C info superclass} ::nx::Object
@@ -97,7 +97,7 @@ M destroy
 
 # destroy class M, reclass class instances to the base class
 C destroy
-? {::nsf::isobject c1} 1
+? {::nsf::object::exists c1} 1
 ? {::nsf::is object c1} 1
 ? {::nsf::is class c1} 0
 ? {::nsf::is metaclass c1} 0
@@ -106,15 +106,15 @@ C destroy
 # basic attributes tests
 
 Class create C -attributes {{x 1} {y 2}}
-? {::nsf::isobject C} 1
-? {::nsf::isobject C::slot} 1
+? {::nsf::object::exists C} 1
+? {::nsf::object::exists C::slot} 1
 ? {C info children} ::C::slot
 
 C copy X
-? {::nsf::isobject X} 1
+? {::nsf::object::exists X} 1
 ? {X info vars} ""
 ? {C info vars} ""
-? {::nsf::isobject X::slot} 1
+? {::nsf::object::exists X::slot} 1
 
 #? {C::slot info vars} __parameter
 ? {C info attributes} {{x 1} {y 2}}
@@ -170,13 +170,13 @@ puts stderr ===MINI-OBJECTSYSTEM
 # create a minimal object system without internally dipatched methods
 ::nsf::createobjectsystem ::object ::class
 
-? {::nsf::isobject ::object} 1
+? {::nsf::object::exists ::object} 1
 ? {::nsf::is class ::object} 1
 ? {::nsf::is metaclass ::object} 0
 ? {::nsf::relation ::object class} ::class
 ? {::nsf::relation ::object superclass} ""
 
-? {::nsf::isobject ::class} 1
+? {::nsf::object::exists ::class} 1
 ? {::nsf::is class ::class} 1
 ? {::nsf::is metaclass ::class} 1
 ? {::nsf::relation ::class class} ::class
@@ -189,7 +189,7 @@ puts stderr ===MINI-OBJECTSYSTEM
 # create a class named C
 ::class + C
 
-? {::nsf::isobject ::C} 1
+? {::nsf::object::exists ::C} 1
 ? {::nsf::is class ::C} 1
 ? {::nsf::is metaclass ::C} 0
 ? {::nsf::relation ::C class} ::class
@@ -198,7 +198,7 @@ puts stderr ===MINI-OBJECTSYSTEM
 # create an instance of C
 C + c1
 
-? {::nsf::isobject ::c1} 1
+? {::nsf::object::exists ::c1} 1
 ? {::nsf::is class ::c1} 0
 ? {::nsf::is metaclass ::c1} 0
 ? {::nsf::relation ::c1 class} ::C
@@ -206,7 +206,7 @@ C + c1
 # destroy instance
 c1 -
 
-? {::nsf::isobject ::c1} 0
+? {::nsf::object::exists ::c1} 0
 ? {::nsf::is class ::C} 1
 
 # recreate an nx object with a namespace
@@ -215,7 +215,7 @@ C + c2
 # destroy class
 C -
 
-? {::nsf::isobject ::C} 0
+? {::nsf::object::exists ::C} 0
 
 ::nx::Class create ::C
 

@@ -347,8 +347,8 @@ Test case class-object-attribute {
   c1 destroy
   C destroy
 
-  ? {nsf::isobject c1} 0
-  ? {nsf::isobject C} 0
+  ? {nsf::object::exists c1} 0
+  ? {nsf::object::exists C} 0
 
   # create it from the serialized code
   eval $s(C)

@@ -2183,11 +2183,11 @@ naming using multiple layers of subcommands).
 ----------------
 |[source,tcl]
 ----------------
-/obj/ isobject /obj/
+/obj/ object::exists /obj/
 ----------------
 |[source,tcl]
 ----------------
-::nsf::isobject /obj/
+::nsf::object::exists /obj/
 ----------------
 |======================
 

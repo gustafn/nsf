@@ -2292,7 +2292,7 @@ static Nsf_methodDefinition method_definitions[] = {
   {"constraint", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::isobject", NsfIsObjectCmdStub, 1, {
+{"::nsf::object::exists", NsfIsObjectCmdStub, 1, {
   {"value", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::create", NsfMethodCmdStub, 8, {
@@ -2340,7 +2340,7 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::__profile_get", NsfProfileGetDataStubStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::qualify", NsfQualifyObjCmdStub, 1, {
+{"::nsf::object::qualify", NsfQualifyObjCmdStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::relation", NsfRelationCmdStub, 3, {

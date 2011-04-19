@@ -53,7 +53,7 @@ namespace eval ::nx::test {
         foreach o [Object info instances -closure] {
           if {[info exists pre_exist($o)]} continue
           #puts "must destroy $o"
-          if {[::nsf::isobject $o]} {$o destroy}
+          if {[::nsf::object::exists $o]} {$o destroy}
         }
       }
     }

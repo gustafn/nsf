@@ -391,9 +391,9 @@ namespace eval ::nx {
   # internally by nsf.
   #
   proc ::nx::isSlotContainer {object} {
-    if {[::nsf::isobject $object] && [namespace tail $object] eq "slot"} {
+    if {[::nsf::object::exists $object] && [namespace tail $object] eq "slot"} {
       set parent [$object ::nsf::methods::object::info::parent]
-      return [expr {[::nsf::isobject $parent] 
+      return [expr {[::nsf::object::exists $parent] 
 		    && [::nsf::method::property $parent -per-object slot slotcontainer]}]
     }
     return 0
@@ -402,7 +402,7 @@ namespace eval ::nx {
   proc ::nx::slotObj {baseObject {name ""}} {
     # Create slot container object if needed
     set slotContainer ${baseObject}::slot
-    if {![::nsf::isobject $slotContainer]} {
+    if {![::nsf::object::exists $slotContainer]} {
       ::nx::Object ::nsf::methods::class::alloc $slotContainer
       ::nsf::method::property ${baseObject} -per-object slot call-protected true
       ::nsf::method::property ${baseObject} -per-object slot redefine-protected true
@@ -494,12 +494,12 @@ namespace eval ::nx {
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slot" {name} {
       set slot [::nsf::self]::slot::$name
-      if {[::nsf::isobject $slot]} {return $slot}
+      if {[::nsf::object::exists $slot]} {return $slot}
       return ""
     }
     :method "info slots" {{-type ::nx::Slot} {pattern ""}} {
       set slotContainer [::nsf::self]::slot
-      if {[::nsf::isobject $slotContainer]} {
+      if {[::nsf::object::exists $slotContainer]} {
 	::nsf::dispatch $slotContainer ::nsf::methods::object::info::children -type $type {*}$pattern
       }
     }
@@ -1001,7 +1001,7 @@ namespace eval ::nx {
       # value contains no globbing meta characters, but elementtype is given
       if {[string first :: $value] == -1} {
 	# get fully qualified name
-        if {![::nsf::isobject $value]} {
+        if {![::nsf::object::exists $value]} {
           error "$value does not appear to be an object"
         }
         set value [::nsf::dispatch $value -frame method ::nsf::self]
@@ -1428,7 +1428,7 @@ namespace eval ::nx {
     :protected method init {} {
        :public method new {-childof args} {
 	 ::nsf::var::import [::nsf::current class] {container object} withclass
-	 if {![::nsf::isobject $object]} {
+	 if {![::nsf::object::exists $object]} {
 	   $withclass create $object
 	 }
 	 ::nsf::next [list -childof $object {*}$args]
@@ -1451,7 +1451,7 @@ namespace eval ::nx {
     cmds
   } {
     if {![info exists object]} {set object [::nsf::self]}
-    if {![::nsf::isobject $object]} {$class create $object}
+    if {![::nsf::object::exists $object]} {$class create $object}
     # reused in XOTcl, no "require" there, so use nsf primitiva
     ::nsf::dispatch $object ::nsf::methods::object::requirenamespace    
     if {$withnew} {
@@ -1487,7 +1487,7 @@ namespace eval ::nx {
       lappend :targetList $t
       #puts stderr "COPY makeTargetList $t target= ${:targetList}"
       # if it is an object without namespace, it is a leaf
-      if {[::nsf::isobject $t]} {
+      if {[::nsf::object::exists $t]} {
 	if {[::nsf::dispatch $t ::nsf::methods::object::info::hasnamespace]} {
 	  # make target list from all children
 	  set children [$t info children]
@@ -1499,7 +1499,7 @@ namespace eval ::nx {
       # now append all namespaces that are in the obj, but that
       # are not objects
       foreach c [namespace children $t] {
-        if {![::nsf::isobject $c]} {
+        if {![::nsf::object::exists $c]} {
           lappend children [namespace children $t]
         }
       }
@@ -1526,7 +1526,7 @@ namespace eval ::nx {
       #puts stderr "COPY will copy targetList = [set :targetList]"
       foreach origin [set :targetList] {
         set dest [:getDest $origin]
-        if {[::nsf::isobject $origin]} {
+        if {[::nsf::object::exists $origin]} {
           # copy class information
           if {[::nsf::is class $origin]} {
             set cl [[$origin info class] create $dest -noinit]
@@ -1574,7 +1574,7 @@ namespace eval ::nx {
 	      if {$domain eq $origin} {
 		set def [concat $dest [lrange $def 1 end]]
 	      }
-	      if {[::nsf::isobject $domain] && [$domain info has type ::nx::Slot]} {
+	      if {[::nsf::object::exists $domain] && [$domain info has type ::nx::Slot]} {
 		# slot traces are handled already by the slot mechanism
 		continue
 	      }
