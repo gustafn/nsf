@@ -2615,6 +2615,13 @@ nsf:
   * replaced "arg" by "type" in spec for mongo attributes to make
     spec less stange
 
+- nsf.c: made potentially unknown clientData more safe (error message,
+  when something is passed via clientData to a method expecting
+  an object/class as clientData).
+- renamed NsfNoDispatchObjectError() to NsfDispatchClientDataError(),
+  extended interface
+- Makefile.in: fixed name methods.test 
+
 TODO:
 
 - the scripted init block is called before init. If the default
@@ -2641,10 +2648,6 @@ TODO:
   "class|object ?-per-object?" is inserted at the 1nd pos.
   This is not sufficient, if we would like to test in this 
   script, whether the first arg is e.g. a class.
-
-- make potentially unknown clientData more safe (error message,
-  when something is passed via clientData to a method expecting
-  an object/class as clientData). Code is in gentclAPI.h
 
 - document value added replacements of Tcl functions
 

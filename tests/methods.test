@@ -417,7 +417,7 @@ Test case dispatch-without-object {
   }
 
   # dispatch methods without current object 
-  ? ::o::a "Method ::o::a not dispatched on object; don't call aliased methods via namespace paths!"
+  ? ::o::a "Method ::o::a not dispatched on valid object"
   ? ::o::b "::o2"
   ? ::o::foo "No current object"
 }

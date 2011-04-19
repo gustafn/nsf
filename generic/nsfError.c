@@ -203,10 +203,10 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  *----------------------------------------------------------------------
  */
 int
-NsfNoDispatchObjectError(Tcl_Interp *interp, CONST char *methodName) {
-  return NsfPrintError(interp, "Method %s not dispatched on object; "
-		       "don't call aliased methods via namespace paths!",
-		       methodName);
+NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, CONST char *what, CONST char *methodName) {
+  return NsfPrintError(interp, "Method %s not dispatched on valid %s%s",
+		       methodName, what,
+		       clientData ? "" : " ; don't call aliased methods via namespace paths!");
 }
 
 extern int
