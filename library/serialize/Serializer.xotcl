@@ -285,7 +285,9 @@ namespace eval ::xotcl::serializer {
   Serializer instproc allChildren o {
     set set $o
     foreach c [$o info children] {
-      eval lappend set [my allChildren $c]
+      foreach c2 [my allChildren $c] {
+	lappend set $c2
+      }
     }
     return $set
   }
