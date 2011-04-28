@@ -1,3 +1,7 @@
+2011-04-28 <Gustaf.Neumann@wu-wien.ac.at>
+	* serializer: fix allChildren to handle names with semicolons
+	* serializer: fix allInstances to handle names with semicolons
+
 2011-02-09 <Gustaf.Neumann@wu-wien.ac.at>
 	* Backport of nsf to handle partial implicit deletes
 

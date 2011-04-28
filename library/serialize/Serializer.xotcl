@@ -294,7 +294,9 @@ namespace eval ::xotcl::serializer {
   Serializer instproc allInstances C {
     set set [$C info instances]
     foreach sc [$C info subclass] {
-      eval lappend set [my allInstances $sc]
+      foreach c2 [my allInstances $sc] {
+	lappend set $c2
+      }
     }
     return $set
   }
