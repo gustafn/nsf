@@ -85,7 +85,7 @@ proc genifd {parameterDefinitions} {
   }
 }
 
-proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {
+proc gencall {methodName fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
       $introVar intro 
   set c [list]
@@ -99,14 +99,14 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       set if [list "NsfClass *cl"]
       append intro \
           "  NsfClass *cl =  NsfObjectToClass(clientData);" \n \
-          {  if (!cl) return NsfObjErrType(interp, NULL, clientData ? ((NsfObject*)clientData)->cmdName : NsfGlobalObjs[NSF_EMPTY], "Class", NULL);}
+          "  if (!cl) return NsfDispatchClientDataError(interp, clientData, \"class\", \"$methodName\");"
     }
     object {
       set a  [list obj]
       set if [list "NsfObject *obj"]
       append intro \
           "  NsfObject *obj =  (NsfObject *)clientData;" \n \
-          {  if (!obj) return NsfObjErrType(interp, NULL, clientData ? ((NsfObject*)clientData)->cmdName : NsfGlobalObjs[NSF_EMPTY], "Object", NULL);}
+          "  if (!obj) return NsfDispatchClientDataError(interp, clientData, \"object\", \"$methodName\");"
     }
     ""    {
       append intro "  (void)clientData;\n"
@@ -264,7 +264,7 @@ proc genstubs {} {
     set stubDecl "static int $d(stub)$::objCmdProc\n"
     set ifd "{\"$d(ns)::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
     
-    gencall $d(stub) $d(parameterDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
+    gencall $d(methodName) $d(stub) $d(parameterDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef];\n"
     if {$post ne ""} {
       append cDefs "\n    int returnCode;"

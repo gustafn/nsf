@@ -29,18 +29,18 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy";
 C method foo {} {
   puts stderr "==== $::case [current]"
   :destroy
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBBB"
-  ? {::nsf::isobject c1} 1 "$::case object still exists in proc"
+  ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 }
 C create c1
 c1 foo
 
-? {::nsf::isobject c1} 0 "$::case object deleted"
+? {::nsf::object::exists c1} 0 "$::case object deleted"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 
 
@@ -54,18 +54,18 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy b
 C method foo {} {
   puts stderr "==== $::case [current]"
   :destroy
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBBB"
-  ? {::nsf::isobject c1} 1 "$::case object still exists in proc"
+  ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 }
 C create c1
 c1 foo
 
-? {::nsf::isobject c1} 1 "$::case object deleted"
+? {::nsf::object::exists c1} 1 "$::case object deleted"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 
@@ -79,18 +79,18 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy";
 C method foo {} {
   puts stderr "==== $::case [current]"
   [:info class] create [current]
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBBB"
-  ? {::nsf::isobject c1} 1 "$::case object still exists in proc"
+  ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 0 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 }
 C create c1
 c1 foo
 
-? {::nsf::isobject c1} 1 "$::case object deleted"
+? {::nsf::object::exists c1} 1 "$::case object deleted"
 ? "set ::firstDestroy" 0 "firstDestroy called"
 
 #
@@ -105,18 +105,18 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy";
 C method foo {} {
   puts stderr "==== $::case [current]"
   rename [current] ""
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
-  ? {::nsf::isobject c1} 1 "$::case object still exists in proc"
+  ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 }
 C create c1
 c1 foo
 
-? {::nsf::isobject c1} 0 "$::case object still exists after proc"
+? {::nsf::object::exists c1} 0 "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 
@@ -132,11 +132,11 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy b
 C method foo {} {
   puts stderr "==== $::case [current]"
   rename [current] ""
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
-  ? {::nsf::isobject c1} 1 "$::case object still exists in proc"
+  ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 }
@@ -144,7 +144,7 @@ C create c1
 c1 foo
 
 #puts stderr ======[c1 set x]
-? {::nsf::isobject c1} 1 "$::case object still exists after proc"
+? {::nsf::object::exists c1} 1 "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 
@@ -160,18 +160,18 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy";
 C method foo {} {
   puts stderr "==== $::case [current]"
   rename o [current]
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
-  ? {::nsf::isobject c1} 1 "$::case object still exists in proc"
+  ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 0 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 }
 C create c1
 c1 foo
 
-? {::nsf::isobject c1} 1 "$::case object still exists after proc"
+? {::nsf::object::exists c1} 1 "$::case object still exists after proc"
 ? "set ::firstDestroy" 0 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 
@@ -191,7 +191,7 @@ C method foo {} {
 }
 C create c1
 c1 foo
-? {::nsf::isobject c1} 1 "$::case object still exists after proc"
+? {::nsf::object::exists c1} 1 "$::case object still exists after proc"
 ? "set ::firstDestroy" 0 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 
@@ -212,7 +212,7 @@ namespace eval ::test {
     puts stderr "==== $::case [current]"
     namespace delete ::test
     
-    puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+    puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
     :set x 1
     #
     # If the following line is commented in, the namespace is deleted
@@ -220,9 +220,9 @@ namespace eval ::test {
     #
     #? "[current] set x" 1 "$::case can still access [current]"
     puts stderr "BBB"
-    puts stderr "???? [current] exists [::nsf::isobject [current]]"
-    ? "::nsf::isobject [current]" 0 ;# WHY?
-    puts stderr "???? [current] exists [::nsf::isobject [current]]"
+    puts stderr "???? [current] exists [::nsf::object::exists [current]]"
+    ? "::nsf::object::exists [current]" 0 ;# WHY?
+    puts stderr "???? [current] exists [::nsf::object::exists [current]]"
     ? "set ::firstDestroy" 0 "firstDestroy called"
     ? "set ::ObjectDestroy" 0 "$::case destroy not yet called"
   }
@@ -230,10 +230,10 @@ namespace eval ::test {
 test::C create test::c1
 test::c1 foo
 
-? {::nsf::isobject test::c1} 0  "object still exists after proc"
+? {::nsf::object::exists test::c1} 0  "object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "destroy was called when poping stack frame"
-? {::nsf::isobject ::test::C} 0  "class still exists after proc"
+? {::nsf::object::exists ::test::C} 0  "class still exists after proc"
 ? {namespace exists ::test::C} 0  "namespace ::test::C still exists after proc"
 ? {namespace exists ::test} 1  "parent ::test namespace still exists after proc"
 ? {namespace exists ::xotcl::classes::test::C} 0  "namespace ::xotcl::classes::test::C still exists after proc"
@@ -252,7 +252,7 @@ namespace eval ::test {
   C method foo {} {
     puts stderr "==== $::case [current]"
     namespace delete ::test
-    puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+    puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
     :set x 1
     #
     # If the following line is commented in, the namespace is deleted
@@ -260,9 +260,9 @@ namespace eval ::test {
     #
     #? "[current] set x" 1 "$::case can still access [current]"
     puts stderr "BBBB"
-    puts stderr "???? [current] exists [::nsf::isobject [current]]"
-    ? "::nsf::isobject [current]" 0 "$::case object still exists in proc";# WHY?
-    puts stderr "???? [current] exists [::nsf::isobject [current]]"
+    puts stderr "???? [current] exists [::nsf::object::exists [current]]"
+    ? "::nsf::object::exists [current]" 0 "$::case object still exists in proc";# WHY?
+    puts stderr "???? [current] exists [::nsf::object::exists [current]]"
     ? "set ::firstDestroy" 0 "firstDestroy called"
     ? "set ::ObjectDestroy" 0  "ObjectDestroy called"; # NOT YET CALLED
   }
@@ -270,7 +270,7 @@ namespace eval ::test {
 test::C create test::c1
 test::c1 foo
 
-? {::nsf::isobject test::c1} 0  "$::case object still exists after proc"
+? {::nsf::object::exists test::c1} 0  "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"  ;# toplevel destroy was blocked
 
@@ -288,21 +288,21 @@ C method foo {} {
   puts stderr "==== $::case [current]"
   o destroy
   puts stderr "AAAA"
-  # the following isobject call has a problem in Tcl_GetCommandFromObj(), 
+  # the following object::exists call has a problem in Tcl_GetCommandFromObj(), 
   # which tries to access invalid memory
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBBB"
-  ? {::nsf::isobject ::o::c1} 0 "$::case object still exists in proc"
+  ? {::nsf::object::exists ::o::c1} 0 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 }
 C create o::c1
 o::c1 foo
 
-? {::nsf::isobject ::o::c1} 0 "$::case object o::c1 still exists after proc"
-? {::nsf::isobject o} 0 "$::case object o still exists after proc"
+? {::nsf::object::exists ::o::c1} 0 "$::case object o::c1 still exists after proc"
+? {::nsf::object::exists o} 0 "$::case object o still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 
@@ -319,18 +319,18 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy b
 C method foo {} {
   puts stderr "==== $::case [current]"
   o destroy
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
-  ? {::nsf::isobject ::o::c1} 0 "$::case object still exists in proc"
+  ? {::nsf::object::exists ::o::c1} 0 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 }
 C create o::c1
 o::c1 foo
 
-? {::nsf::isobject ::o::c1} 0 "$::case object still exists after proc"
+? {::nsf::object::exists ::o::c1} 0 "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 
@@ -347,18 +347,18 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy";
 C method foo {} {
   puts stderr "==== $::case [current]"
   proc [current] {args} {puts HELLO}
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
-  ? {::nsf::isobject c1} 0 "$::case object still exists in proc"
+  ? {::nsf::object::exists c1} 0 "$::case object still exists in proc"
 }
 C create c1
 c1 foo
 
-? {::nsf::isobject c1} 0 "$::case object still exists after proc"
+? {::nsf::object::exists c1} 0 "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 
@@ -374,7 +374,7 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy";
 C method foo {} {
   puts stderr "==== $::case [current]"
   C destroy
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
@@ -382,14 +382,14 @@ C method foo {} {
   ? [:info class] ::C "object reclassed?"
   ? "set ::firstDestroy" 0 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
-  ? {::nsf::isobject c1} 1 "object still exists in proc"
+  ? {::nsf::object::exists c1} 1 "object still exists in proc"
   #? {::nsf::is class ::C} 0 "class still exists in proc"
   ? {::nsf::is class ::C} 1 "class still exists in proc"
 }
 C create c1
 c1 foo
 
-? {::nsf::isobject c1} 1 "object still exists after proc"
+? {::nsf::object::exists c1} 1 "object still exists after proc"
 ? [c1 info class] ::nx::Object "after proc: object reclassed?"
 ? "set ::firstDestroy" 0 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -404,7 +404,7 @@ C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy";
 C method foo {} {
   puts stderr "==== $::case [current]"
   C destroy
-  puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+  puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
@@ -414,13 +414,13 @@ C method foo {} {
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
   ? [:info class] ::C "object reclassed"
   #? [:info class] ::xotcl::Object "object reclassed"
-  ? {::nsf::isobject ::C::c1} 1 "object still exists in proc"
+  ? {::nsf::object::exists ::C::c1} 1 "object still exists in proc"
   ? {::nsf::is class ::C} 1 "class still exists in proc"
 }
 C create ::C::c1
 C::c1 foo
-#puts stderr ======[::nsf::isobject ::C::c1]
-? {::nsf::isobject ::C::c1} 0 "object still exists after proc"
+#puts stderr ======[::nsf::object::exists ::C::c1]
+? {::nsf::object::exists ::C::c1} 0 "object still exists after proc"
 ? {::nsf::is class ::C} 0 "class still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
@@ -430,8 +430,8 @@ Test case nesting-destroy {
   Object create x
   Object create x::y
   x destroy
-  ? {::nsf::isobject x} 0 "parent object gone"
-  ? {::nsf::isobject x::y} 0 "child object gone"
+  ? {::nsf::object::exists x} 0 "parent object gone"
+  ? {::nsf::object::exists x::y} 0 "child object gone"
 }
 
 Test case deleting-aliased-object {
@@ -459,10 +459,10 @@ Object create o
 Object create o3
 ::nsf::method::alias o x o3
 o destroy
-? {::nsf::isobject o} 0 "parent object gone"
-? {::nsf::isobject o3} 1 "aliased object still here"
+? {::nsf::object::exists o} 0 "parent object gone"
+? {::nsf::object::exists o3} 1 "aliased object still here"
 o3 destroy
-? {::nsf::isobject o3} 0 "aliased object destroyed"
+? {::nsf::object::exists o3} 0 "aliased object destroyed"
 
 set case "create an alias, and delete cmd via aggregation"
 Test case create-alias-delete-via-aggregation
@@ -470,7 +470,7 @@ Object create o
 Object create o3
 ::nsf::method::alias o x o3
 o::x destroy
-? {::nsf::isobject o3} 0 "aliased object destroyed"
+? {::nsf::object::exists o3} 0 "aliased object destroyed"
 o destroy
 
 #
@@ -521,8 +521,8 @@ Test case create-alias-on-class-destroy-class {
   C alias b o
   C create c1
   C destroy
-  ? {::nsf::isobject o} 1 "object o still here"
-  ? {::nsf::isobject o3} 1 "object o3 still here"
+  ? {::nsf::object::exists o} 1 "object o still here"
+  ? {::nsf::object::exists o3} 1 "object o3 still here"
 }
 
 #
@@ -557,23 +557,23 @@ Test case namespace-import {
   }
   ? {::nsf::is class ::module::Foo} 1
   ? {::nsf::is class ::module::foo} 0
-  ? {::nsf::isobject ::module::foo} 1
+  ? {::nsf::object::exists ::module::foo} 1
   ? {::nsf::is class ::module} 1
 
   Object create ::o { :require namespace }
   namespace eval ::o {namespace import ::module::*}
 
   ? {::nsf::is class ::o::Foo} 1
-  ? {::nsf::isobject ::o::foo} 1
+  ? {::nsf::object::exists ::o::foo} 1
 
   # do not destroy namespace imported objects/classes
   ::o destroy
 
   ? {::nsf::is class ::o::Foo} 0
-  ? {::nsf::isobject ::o::foo} 0
+  ? {::nsf::object::exists ::o::foo} 0
 
   ? {::nsf::is class ::module::Foo} 1
-  ? {::nsf::isobject ::module::foo} 1
+  ? {::nsf::object::exists ::module::foo} 1
 
   ::module destroy
 }
@@ -587,7 +587,7 @@ namespace eval ::test {
   C method foo {} {
     puts stderr "==== $::case [current]"
     namespace delete ::test
-    puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
+    puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
     :set x 1
     #
     # If the following line is commented in, the namespace is deleted
@@ -595,19 +595,19 @@ namespace eval ::test {
     #
     #? "[current] set x" 1 "$::case can still access [current]"
     puts stderr "BBB"
-    puts stderr "???? [current] exists [::nsf::isobject [current]]"
-    ? "::nsf::isobject [current]" 0 ;# WHY?
-    puts stderr "???? [current] exists [::nsf::isobject [current]]"
+    puts stderr "???? [current] exists [::nsf::object::exists [current]]"
+    ? "::nsf::object::exists [current]" 0 ;# WHY?
+    puts stderr "???? [current] exists [::nsf::object::exists [current]]"
     ? "set ::firstDestroy" 0 "firstDestroy called"
     ? "set ::ObjectDestroy" 0 "$::case destroy not yet called"
   }
 }
 test::C create test::c1
 test::c1 foo
-? {::nsf::isobject test::c1} 0  "object still exists after proc"
+? {::nsf::object::exists test::c1} 0  "object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "destroy was called when poping stack frame"
-? {::nsf::isobject ::test::C} 0  "class still exists after proc"
+? {::nsf::object::exists ::test::C} 0  "class still exists after proc"
 ? {namespace exists ::test::C} 0  "namespace ::test::C still exists after proc"
 ? {namespace exists ::test} 1  "parent ::test namespace still exists after proc"
 ? {namespace exists ::xotcl::classes::test::C} 0  "namespace ::xotcl::classes::test::C still exists after proc"
@@ -693,7 +693,7 @@ Test case nested-ordered-composite {
     :public method destroy {} {
       #puts stderr "[self] destroy ${:os}"
       foreach o ${:os} {
-	if {[::nsf::isobject $o]} {
+	if {[::nsf::object::exists $o]} {
 	  #puts stderr "--D $o destroy"
 	  $o destroy
 	}

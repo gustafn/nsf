@@ -1,12 +1,14 @@
 #
-# This is an example how to use the nx mongo mapping.
+# This is an example how to use the nx mongo mapping.  We show here
+# single class mapped to the mongo db with sing and multivalued
+# scalars together with some querying options.
 #
 # Gustaf Neumann              fecit, April 2011
 #
 package require nx::mongo
 
 # Establish connection to the database
-::nx::mongo::db connect
+::nx::mongo::db connect -db "tutorial"
 
 # Make sure, we start always from scratch
 nx::mongo::db remove tutorial.persons {}
@@ -15,7 +17,6 @@ nx::mongo::db remove tutorial.persons {}
 # Create the application class "Person"
 #
 nx::mongo::Class create Person {
-  :document "tutorial.persons"
   :index name
 
   :attribute name:required

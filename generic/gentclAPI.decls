@@ -53,9 +53,6 @@ cmd is NsfIsCmd {
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
 }
-cmd isobject NsfIsObjectCmd {
-  {-argName "value" -required 1 -type tclobj}
-}
 
 cmd "method::alias" NsfAliasCmd {
   {-argName "object" -required 1 -type object}
@@ -129,7 +126,10 @@ cmd nscopyvars NsfNSCopyVarsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
-cmd qualify NsfQualifyObjCmd {
+cmd "object::exists" NsfIsObjectCmd {
+  {-argName "value" -required 1 -type tclobj}
+}
+cmd "object::qualify" NsfQualifyObjCmd {
   {-argName "objectName" -required 1 -type tclobj}
 }
 cmd relation NsfRelationCmd {

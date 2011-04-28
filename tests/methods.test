@@ -347,8 +347,8 @@ Test case class-object-attribute {
   c1 destroy
   C destroy
 
-  ? {nsf::isobject c1} 0
-  ? {nsf::isobject C} 0
+  ? {nsf::object::exists c1} 0
+  ? {nsf::object::exists C} 0
 
   # create it from the serialized code
   eval $s(C)
@@ -417,7 +417,7 @@ Test case dispatch-without-object {
   }
 
   # dispatch methods without current object 
-  ? ::o::a "Method ::o::a not dispatched on object; don't call aliased methods via namespace paths!"
+  ? ::o::a "Method ::o::a not dispatched on valid object"
   ? ::o::b "::o2"
   ? ::o::foo "No current object"
 }

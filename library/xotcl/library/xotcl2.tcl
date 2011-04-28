@@ -705,8 +705,8 @@ namespace eval ::xotcl {
   # remove temporary method "alias"
   Object instproc alias {} {}
 
- # emulation of isobject, isclass ...
-  Object instproc isobject    {{object:substdefault "[self]"}} {::nsf::isobject $object}
+ # emulation of object::exists, isclass ...
+  Object instproc isobject    {{object:substdefault "[self]"}} {::nsf::object::exists $object}
   Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::is class $class}
   Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::is metaclass $class}
   Object instproc ismixin     {class}  {

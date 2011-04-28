@@ -8,9 +8,9 @@ Test case dummy {
   ? {::namespace current} ::
   set o [Object create o]
 
-  ? {::nsf::isobject ::o} 1
+  ? {::nsf::object::exists ::o} 1
 }
-? {::nsf::isobject ::o} 0 
+? {::nsf::object::exists ::o} 0 
 
 #######################################################
 # parametercheck
@@ -24,8 +24,8 @@ Test case parametercheck {
   Class create M
   c1 mixin M
 
-  ? {::nsf::isobject o1} 1
-  ? {::nsf::isobject o1000} 0
+  ? {::nsf::object::exists o1} 1
+  ? {::nsf::object::exists o1000} 0
   
   ? {::nsf::is class C} 1
   ? {C info is class} 1

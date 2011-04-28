@@ -12147,7 +12147,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   NsfObject *object = cd->object;
 
   if (objc > 2) return NsfObjWrongArgs(interp, "wrong # args", object->cmdName, objv[0], "?value?");
-  if (!object) return NsfNoDispatchObjectError(interp, ObjStr(objv[0]));
+  if (!object) return NsfDispatchClientDataError(interp, clientData, "object", ObjStr(objv[0]));
 
   if (cd->paramsPtr && objc == 2) {
     Tcl_Obj *outObjPtr;
@@ -12432,7 +12432,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   int result, inputArg = 1;
 
   if (!tcd || !tcd->object) {
-    return NsfNoDispatchObjectError(interp, "forwarder");
+    return NsfDispatchClientDataError(interp, tcd, "object", "forwarder");
   }
 
   if (tcd->passthrough) { /* two short cuts for simple cases */
@@ -12600,7 +12600,8 @@ NsfProcAliasMethod(ClientData clientData,
   assert(tcd->object == GetSelfObj(interp));
 
   if (self == NULL) {
-    return NsfNoDispatchObjectError(interp, Tcl_GetCommandName(interp, tcd->aliasCmd));
+    return NsfDispatchClientDataError(interp, self, "object", 
+				      Tcl_GetCommandName(interp, tcd->aliasCmd));
   }
 
   if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {

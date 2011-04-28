@@ -398,7 +398,7 @@ test-nohttp: binaries libraries test-core test-xotcl
 test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/object-system.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/destroy.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/method-modifiers.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/methods.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/var-access.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/varresolution.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/info-method.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
