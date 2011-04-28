@@ -11,8 +11,9 @@ package provide nx::mongo 0.2
 # todo: make embedded spec nicer
 # todo: handle time stamps
 # todo: handle remove for non-multivalued embedded objects
-# todo: handle names of nx objects (e.g. attribute like __name)
-# todo: handle classes von nx objects (e.g. attribute like __class)
+# idea: handle names of nx objects (e.g. attribute like __name)
+# idea: handle classes von nx objects (e.g. attribute like __class)
+# idea: combine incremental slot operations with e.g. add -> $push, remove -> $pull
 
 namespace eval ::nx::mongo {
 
