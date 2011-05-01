@@ -332,8 +332,8 @@ namespace eval ::nx {
 
   #
   # The method __unknown is called in cases, where we try to resolve
-  # an unkown class. one could define a custom resolver with this name
-  # to load the class on the fly. After the call to __unknown, XOTcl
+  # an unkown class. One could define a custom resolver with this name
+  # to load the class on the fly. After the call to __unknown, nsf
   # tries to resolve the class again. This meachnism is used e.g. by
   # the ::ttrace mechanism for partial loading by Zoran.
   #
@@ -657,7 +657,7 @@ namespace eval ::nx {
           lappend opts -$useArgFor $argument
         } elseif {$property eq "optional"} {
 	  lappend opts -required 0
-        } elseif {$property in [list "alias" "forward"]} {
+        } elseif {$property in [list "alias" "forward" "initcmd"]} {
 	  set class [:requireClass ::nx::ObjectParameterSlot $class]
 	  lappend opts -disposition $property
 	  set class [:requireClass ::nx::ObjectParameterSlot $class]
@@ -690,7 +690,8 @@ namespace eval ::nx {
     } else {
       #puts stderr "*** Class for '$value' is $class"
     }
-    #puts stderr "*** $class create [::nx::slotObj $target $name] {*}$opts $initblock"
+
+    #puts stderr "*** [list $class create [::nx::slotObj $target $name] {*}$opts $initblock]"
     $class create [::nx::slotObj $target $name] {*}$opts $initblock
     return [::nsf::dispatch $target ::nsf::methods::${scope}::info::method handle $name]
   }
@@ -706,8 +707,8 @@ namespace eval ::nx {
   MetaSlot create ::nx::MethodParameterSlot
   ::nsf::relation MethodParameterSlot superclass Slot
 
-  # Create an object for dispatching method parameter specific value
-  # checkers
+  # Create a slot instance for dispatching method parameter specific
+  # value checkers
   MethodParameterSlot create ::nx::methodParameterSlot
   
   # use low level interface for defining slot values. Normally, this is
@@ -724,38 +725,46 @@ namespace eval ::nx {
         ::nsf::var::set $slotObj default $default
         unset default
       }
+      #
+      # register the standard setter
+      #
       ::nsf::method::setter $class $att
+      #
+      # set for every bootstrap attribute slot the position 0
+      #
+      ::nsf::var::set $slotObj position 0
     }
     
     #
     # Perform a second round to set default values for already defined
     # slot objects.
+    # 
+    # TODO: remove me, we don't seem to need this any more
     #
-    foreach att $definitions {
-      if {[llength $att]>1} {foreach {att default} $att break}
-      if {[info exists default]} {
-
-        # checking subclasses is not required during bootstrap
-        foreach i [::nsf::dispatch $class ::nsf::methods::class::info::instances] {
-          if {![::nsf::var::exists $i $att]} {
-            if {[string match {*\[*\]*} $default]} {
-              set value [::nsf::dispatch $i -frame object ::eval subst $default]
-            } else {
-	      set value $default
-	    }
-            ::nsf::var::set $i $att $value
-            #puts stderr "::nsf::var::set $i $att $value (second round)"
-          }
-        }
-        unset default
-      }
-    }
+    # foreach att $definitions {
+    #   if {[llength $att]>1} {foreach {att default} $att break}
+    #   if {[info exists default]} {
+    #     # checking subclasses is not required during bootstrap
+    #     foreach i [::nsf::dispatch $class ::nsf::methods::class::info::instances] {
+    #       if {![::nsf::var::exists $i $att]} {
+    #         if {[string match {*\[*\]*} $default]} {
+    #           set value [::nsf::dispatch $i -frame object ::eval subst $default]
+    #         } else {
+    # 	      set value $default
+    # 	    }
+    #         ::nsf::var::set $i $att $value
+    #         #puts stderr "::nsf::var::set $i $att $value (second round)"
+    #       }
+    #     }
+    #     unset default
+    #   }
+    # }
 
     #puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
     ::nsf::invalidateobjectparameter $class
   }
 
-  ObjectParameterSlot public method namedParameterSpec {{-prefix -} name options} {
+  ObjectParameterSlot public method namedParameterSpec {prefix name options} {
     #
     # Build a pos/nonpos parameter specification from name and option list
     #
@@ -783,14 +792,16 @@ namespace eval ::nx {
     # 
     # Bootstrap version of getParameter spec. Just bare essentials.
     #
+    set name [namespace tail [self]]
+    set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
     set options [list]
     if {[info exists :default]} {
       if {[string match {*\[*\]*} ${:default}]} {
         append options substdefault
       }
-      return [list [list [:namedParameterSpec [namespace tail [self]] $options]] ${:default}]
+      return [list [list [:namedParameterSpec $prefix $name $options]] ${:default}]
     }
-    return [list [:namedParameterSpec [namespace tail [self]] $options]]
+    return [list [:namedParameterSpec $prefix $name $options]]
   }
 
   BootStrapAttributeSlot protected method init {args} {
@@ -824,6 +835,8 @@ namespace eval ::nx {
     {default}
     {initcmd}
     {substdefault false}
+    {position 0}
+    {positional}
   }
 
   # TODO: check, if substdefault/default could work with e.g. alias; otherwise, move substdefault down
@@ -907,7 +920,11 @@ namespace eval ::nx {
     # the same interface as on Attribute.
     set options ${:disposition}
     if {${:name} ne ${:methodname}} {lappend options arg=${:methodname}}
-    if {${:required}} {lappend options required}
+    if {${:required}} {
+      lappend options required
+    } elseif {[info exists :positional] && ${:positional}} {
+      lappend options optional
+    }
     if {$withSubstdefault && [info exists :substdefault] && ${:substdefault}} {
       lappend options substdefault
     }
@@ -920,19 +937,20 @@ namespace eval ::nx {
     # Get a full object parmeter specification from slot object
     #
     if {![info exists :parameterSpec]} {
+      set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
       set options [:getParameterOptions -withMultiplicity true -withSubstdefault true]
       if {[info exists :initcmd]} {
 	lappend options initcmd
-	set :parameterSpec [list [:namedParameterSpec ${:name} $options] ${:initcmd}]
+	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] ${:initcmd}]
 	
       } elseif {[info exists :default]} {
 	# deactivated for now: || [string first {$} ${:default}] > -1
 	if {[string match {*\[*\]*} ${:default}]} {
 	  lappend options substdefault
 	}
-	set :parameterSpec  [list [:namedParameterSpec ${:name} $options] ${:default}]
+	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] ${:default}]
       } else {
-	set :parameterSpec  [list [:namedParameterSpec ${:name} $options]]
+	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options]]
       }
     }
     return ${:parameterSpec}
@@ -950,13 +968,22 @@ namespace eval ::nx {
   #
   ::nsf::invalidateobjectparameter MetaSlot
 
-  Object protected method objectparameter {{lastparameter __initcmd:initcmd,optional}} {
-    #puts stderr "... objectparameter for [::nsf::self]"
-    set parameterdefinitions [list]
+  Object protected method objectparameter {} {
+    # 
+    # Collect the object parameter slots in per-position lists to
+    # ensure partial ordering and avoid sorting.
+    #
     foreach slot [nsf::dispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
-      lappend parameterdefinitions [$slot getParameterSpec]
+      lappend defs([$slot position]) [$slot getParameterSpec]
     }
-    lappend parameterdefinitions {*}$lastparameter
+    #
+    # Fold the per-position lists into a common list
+    # parameterdefinitions, which is the result.
+    #
+    set parameterdefinitions [list]
+    foreach p [lsort [array names defs]] {
+      lappend parameterdefinitions {*}$defs($p)
+    }
     #puts stderr "*** parameter definition for [::nsf::self]: $parameterdefinitions"
     return $parameterdefinitions
   }
@@ -988,19 +1015,30 @@ namespace eval ::nx {
 
   RelationSlot protected method delete_value {obj prop old value} {
     #
-    # helper method for the delete operation
+    # Helper method for the delete operation, deleting a value from a
+    # relation slot list.
     #
     if {[string first * $value] > -1 || [string first \[ $value] > -1} {
-      # value contains globbing meta characters
+      #
+      # Value contains globbing meta characters.
+      #
       if {${:elementtype} ne "" && ![string match ::* $value]} {
-        # prefix glob pattern with ::, since all object names have leading ::
+	#
+        # Prefix glob pattern with ::, since all object names have
+        # leading "::"
+	#
         set value ::$value
       }
       return [lsearch -all -not -glob -inline $old $value]
     } elseif {${:elementtype} ne ""} {
-      # value contains no globbing meta characters, but elementtype is given
+      #
+      # Value contains no globbing meta characters, but elementtype is
+      # given.
+      #
       if {[string first :: $value] == -1} {
-	# get fully qualified name
+	#
+	# Obtain a fully qualified name.
+	#
         if {![::nsf::object::exists $value]} {
           error "$value does not appear to be an object"
         }
@@ -1014,8 +1052,10 @@ namespace eval ::nx {
     if {$p > -1} {
       return [lreplace $old $p $p]
     } else {
+      #
       # In the resulting list might be guards. If so, do another round
       # of checking to test the first list element.
+      #
       set new [list]
       set found 0
       foreach v $old {
@@ -1037,7 +1077,9 @@ namespace eval ::nx {
   RelationSlot public method add {obj prop value {pos 0}} {
     set oldSetting [::nsf::relation $obj $prop]
     #puts stderr [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
-    # use uplevel to avoid namespace surprises
+    #
+    # Use uplevel to avoid namespace surprises
+    #
     uplevel [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
   }
   
@@ -1084,24 +1126,29 @@ namespace eval ::nx {
     ::nx::ObjectParameterSlot create ${os}::Object::slot::volatile -noarg true
 
     #
-    # create "class" as a ObjectParameterSlot
+    # Define "class" as a ObjectParameterSlot defined as alias
     #
-    # method "class" is a plain forwarder to relation (no slot)
-    #::nsf::method::forward ${os}::Object class ::nsf::relation %self class
     ::nx::ObjectParameterSlot create ${os}::Object::slot::class \
 	-methodname "::nsf::methods::object::class" 
-    #::nx::ObjectParameterSlot create ${os}::Object::slot::class \
-	-methodname "::nsf::relation %self class" -disposition forward
 
     #
-    # create "superclass" as a ObjectParameterSlot
+    # Define "superclass" as a ObjectParameterSlot defined as alias
     #
-    #::nx::RelationSlot create ${os}::Class::slot::superclass -default ${os}::Object
     ::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
 	-methodname "::nsf::methods::class::superclass" -default ${os}::Object
-    #::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
-	-methodname "::nsf::relation %self superclass" -disposition forward -default ${os}::Object
 
+    #
+    # Define the initcmd as a positional ObjectParameterSlot
+    #
+    ::nx::ObjectParameterSlot create ${os}::Object::slot::__initcmd \
+	-disposition initcmd \
+	-positional true \
+	-position 1
+
+    #
+    # Make sure the invalidate all ObjectParameterSlots
+    #
+    ::nsf::invalidateobjectparameter ${os}::ObjectParameterSlot
 
     #
     # Define method "guard" for mixin- and filter-slots of Object and Class
@@ -1140,7 +1187,6 @@ namespace eval ::nx {
   register_system_slots ::nx
   proc ::nx::register_system_slots {} {}
 
-
   ############################################
   # Attribute slots
   ############################################
@@ -1172,7 +1218,9 @@ namespace eval ::nx {
   ::nx::Attribute protected method getParameterOptions {{-withMultiplicity 0} {-withSubstdefault 0}} {
     set options ""
     if {[info exists :type]} {
-      if {[string match ::* ${:type}]} {
+      if {${:type} eq "initcmd"} {
+	lappend options initcmd
+      } elseif {[string match ::* ${:type}]} {
 	lappend options [expr {[::nsf::is metaclass ${:type}] ? "class" : "object"}] type=${:type}
       } else {
 	lappend options ${:type}
@@ -1186,7 +1234,11 @@ namespace eval ::nx {
       }
     }
     if {[info exists :arg]} {lappend options arg=${:arg}}
-    if {${:required}} {lappend options required}
+    if {${:required}} {
+      lappend options required
+    } elseif {[info exists :positional] && ${:positional}} {
+      lappend options optional
+    }
     if {${:convert}} {lappend options convert}
     if {$withMultiplicity && [info exists :multiplicity] && ${:multiplicity} ne "1..1"} {
       lappend options ${:multiplicity}
@@ -1264,13 +1316,13 @@ namespace eval ::nx {
     set body {::nsf::var::set $obj $var $value}
     
     if {[:info lookup method assign] eq "::nsf::classes::nx::Attribute::assign"} {
-      puts stderr ":public method assign [list obj var [:namedParameterSpec -prefix {} value $options]] $body"
-      :public method assign [list obj var [:namedParameterSpec -prefix {} value $options]] $body
+      #puts stderr ":public method assign [list obj var [:namedParameterSpec {} value $options]] $body"
+      :public method assign [list obj var [:namedParameterSpec {} value $options]] $body
     }
     if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::Attribute::add"} {
       lappend options_single slot=[::nsf::self]
-      puts stderr ":public method add [list obj prop [:namedParameterSpec -prefix {} value $options_single] {pos 0}] {::nsf::next}"
-      :public method add [list obj prop [:namedParameterSpec -prefix {} value $options_single] {pos 0}] {::nsf::next}
+      #puts stderr ":public method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}"
+      :public method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
     } else {
       # TODO should we deactivate add/delete?
     }

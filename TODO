@@ -2624,6 +2624,14 @@ nsf:
 - nsf: renamed nsf::isobject to nsf::object::exists
 - nsf: renamed nsf::qualify to nsf::object::qualify
 
+- nx.tcl: added support for positional object parameter and
+  removed special handling of the last argument for the init block;
+  added attributes "position" and "positional" to ObjectParameterSlots,
+  removed last argument of method "objectparameter"
+- nx.tcl: simplified createBootstrapAttributeSlots 
+  (second round of default value setting seems not necessary)
+- nx.tcl: some cleanup
+
 
 TODO:
 
