@@ -2,11 +2,10 @@ package provide nx::test 1.0
 package require nx
 
 namespace eval ::nx::test {
-  namespace import ::nx::*
 
-  # @file Simple regression test support.
+  # @file Simple regression test support for XOTcl / NX
 
-  Class create Test {
+  nx::Class create Test {
     #
     # Class Test is used to configure test instances, which can 
     # be configured by the following parameters:
@@ -49,10 +48,8 @@ namespace eval ::nx::test {
       if {[info exists arg]} {
         foreach o [Object info instances -closure] {set pre_exist($o) 1}
         namespace eval :: [list [current] eval $arg]
-        #:eval $arg
         foreach o [Object info instances -closure] {
           if {[info exists pre_exist($o)]} continue
-          #puts "must destroy $o"
           if {[::nsf::object::exists $o]} {$o destroy}
         }
       }
@@ -60,8 +57,6 @@ namespace eval ::nx::test {
 
     :public class method parameter {name value:optional} {
       if {[info exists value]} {
-        #[[current] slot $name] default $value
-	#:slot $name default $value
 	[self]::slot::$name default $value
 	[self]::slot::$name reconfigure
       } else {
@@ -90,11 +85,6 @@ namespace eval ::nx::test {
     
     :public method call {msg cmd} {
       if {[:verbose]} {puts stderr "$msg: $cmd"}
-      #if {[catch {::namespace eval ${:namespace} $cmd} result]} {
-        #puts stderr ERROR=$result
-      #}
-      #puts stderr "$msg: $cmd => $result"
-      #return $result
       return [::namespace eval ${:namespace} $cmd]
     }
    
@@ -109,12 +99,8 @@ namespace eval ::nx::test {
         } else {
           if {[info exists :count]} {set c ${:count}} {set c 1000}
         }
-	if {[:verbose]} {
-	  puts stderr "running test $c times"
-	}
+	if {[:verbose]} {puts stderr "running test $c times"}
 	if {$c > 1} {
-	  #set r0 [time ${:cmd} $c]
-	  #puts stderr "time {time ${:cmd} $c}"
 	  set r1 [time {time {::namespace eval ${:namespace} ${:cmd}} $c}]
 	  regexp {^(-?[0-9]+) +} $r1 _ mS1
 	  set ms [expr {$mS1*1.0/$c}]
@@ -131,14 +117,12 @@ namespace eval ::nx::test {
       }
       if {[info exists :post]} {:call "post" ${:post}}
     }
-
   }
   ::namespace export Test
 }
 
 proc ? {cmd expected {msg ""}} {
   set namespace [uplevel {::namespace current}]
-  if {[string match ::xotcl* $namespace]} {set namespace ::}
   #puts stderr "eval in namespace $namespace"
   if {$msg ne ""} {
     set t [Test new -cmd $cmd -msg $msg -namespace $namespace]
