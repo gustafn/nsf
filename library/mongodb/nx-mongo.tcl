@@ -231,9 +231,9 @@ namespace eval ::nx::mongo {
     #
     # For interaction with bson structures, we provide on the class
     # level "bson query" (a small dsl for a more convenient syntax in
-    # bson queries) and "bson parameter" which translates from a bson
-    # structure (tuple) into a dashed parameter list used in object
-    # creation.
+    # bson queries), "bson atts (a simplifed attribute selection) and
+    # "bson parameter" which translates from a bson structure (tuple)
+    # into a dashed parameter list used in object creation.
     #
     
     :method "bson query" {{-cond ""} {-orderby ""}} {
@@ -260,7 +260,18 @@ namespace eval ::nx::mongo {
       #puts "Query: $result"
       return $result
     }
-    
+
+    :method "bson atts" {atts} {
+      set result {}
+      foreach {att value} $atts {
+	if {![string is integer -strict $value]} {
+	  error "$atts: $value should be integer"
+	}
+	lappend result $att int $value
+      }
+      return $result
+    }
+
     :method "bson parameter" {tuple} {
       #puts "bson parameter $tuple"
       set objParams [list]
@@ -350,11 +361,13 @@ namespace eval ::nx::mongo {
     #
     :public method "find first" {
 				 {-instance ""}
+				 {-atts ""}
 				 {-cond ""}
 				 {-orderby ""} 
 			       } {
       set tuple [lindex [::nx::mongo::db query ${:mongo_ns} \
 			     [:bson query -cond $cond -orderby $orderby] \
+			     -atts [:bson atts $atts] \
 			     -limit 1] 0]
       #puts "find first fetched: $tuple"
       if {$instance ne ""} {set instance [:uplevel [list ::nsf::object::qualify $instance]]}
@@ -362,6 +375,7 @@ namespace eval ::nx::mongo {
     }
     
     :public method "find all" {
+			       {-atts ""}
 			       {-cond ""} 
 			       {-orderby ""} 
 			       {-limit} 
@@ -373,6 +387,7 @@ namespace eval ::nx::mongo {
       if {[info exists skip]} {lappend opts -skip $skip}
       set fetched [::nx::mongo::db query ${:mongo_ns} \
 		       [:bson query -cond $cond -orderby $orderby] \
+		       -atts [:bson atts $atts] \
 		       {*}$opts]
       puts "[join $fetched \n]"
       foreach tuple $fetched {
@@ -382,6 +397,7 @@ namespace eval ::nx::mongo {
     }
 
     :public method show {
+			 {-atts ""}
 			 {-cond ""} 
 			 {-orderby ""} 
 			 {-limit} 
@@ -393,6 +409,7 @@ namespace eval ::nx::mongo {
       if {[info exists skip]} {lappend opts -skip $skip}
       set fetched [::nx::mongo::db query ${:mongo_ns} \
 		       [:bson query -cond $cond -orderby $orderby] \
+		       -atts [:bson atts $atts] \
 		       {*}$opts]
       set tuples [list]
       foreach tuple $fetched {

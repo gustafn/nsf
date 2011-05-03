@@ -41,6 +41,7 @@ cmd query NsfMongoQuery {
   {-argName "conn" -required 1 -type tclobj}
   {-argName "namespace" -required 1}
   {-argName "query" -required 1 -type tclobj}
+  {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
   {-argName "-limit" -required 0 -nrargs 1 -type int}
   {-argName "-skip" -required 0 -nrargs 1 -type int}
 }

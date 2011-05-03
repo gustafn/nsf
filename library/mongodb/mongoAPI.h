@@ -25,7 +25,7 @@ static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withReplica_set, Tcl_
 static int NsfMongoCount(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *query);
 static int NsfMongoIndex(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *attributes, int withDropdups, int withUnique);
 static int NsfMongoInsert(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *values);
-static int NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *query, int withLimit, int withSkip);
+static int NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
 static int NsfMongoRemove(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *condition);
 static int NsfMongoUpdate(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *cond, Tcl_Obj *values, int withUpsert, int withAll);
 
@@ -156,11 +156,12 @@ NsfMongoQueryStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     Tcl_Obj *conn = (Tcl_Obj *)pc.clientData[0];
     CONST char *namespace = (CONST char *)pc.clientData[1];
     Tcl_Obj *query = (Tcl_Obj *)pc.clientData[2];
-    int withLimit = (int )PTR2INT(pc.clientData[3]);
-    int withSkip = (int )PTR2INT(pc.clientData[4]);
+    Tcl_Obj *withAtts = (Tcl_Obj *)pc.clientData[3];
+    int withLimit = (int )PTR2INT(pc.clientData[4]);
+    int withSkip = (int )PTR2INT(pc.clientData[5]);
 
     assert(pc.status == 0);
-    return NsfMongoQuery(interp, conn, namespace, query, withLimit, withSkip);
+    return NsfMongoQuery(interp, conn, namespace, query, withAtts, withLimit, withSkip);
 
   }
 }
@@ -235,10 +236,11 @@ static Nsf_methodDefinition method_definitions[] = {
   {"namespace", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"values", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::query", NsfMongoQueryStub, 5, {
+{"::mongo::query", NsfMongoQueryStub, 6, {
   {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"namespace", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"query", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-atts", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-limit", 0, 1, Nsf_ConvertToInteger, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-skip", 0, 1, Nsf_ConvertToInteger, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

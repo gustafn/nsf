@@ -34,8 +34,12 @@ puts [join [::mongo::query $mongoConn tutorial.persons {}] \n]
 puts stderr "\nProject members of nsf sorted by name"
 puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {projects string nsf} \$orderby object {name int 1}]] \n]
 
-puts stderr "\nAge > 30"
+puts stderr "\nAge > 30 (all atts)"
 puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}]] \n]
+
+puts stderr "\nAge > 30 (only atts name and age)"
+puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}] \
+		 -atts {name int 1 age int 1}] \n]
 
 puts stderr "\nCount Age > 30"
 puts  [::mongo::count $mongoConn tutorial.persons {age object {$gt int 30}}]

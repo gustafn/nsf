@@ -747,45 +747,56 @@ cmd query NsfMongoQuery {
   {-argName "conn" -required 1 -type tclobj}
   {-argName "namespace" -required 1}
   {-argName "query" -required 1 -type tclobj}
+  {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
   {-argName "-limit" -required 0 -type int}
   {-argName "-skip" -required 0 -type int}
 }
 */
 static int 
-NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, Tcl_Obj *queryObj, 
+NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, 
+	      Tcl_Obj *queryObj, Tcl_Obj *withAttsObj,
 	      int withLimit, int withSkip) {
-  int objc, result;
-  Tcl_Obj **objv, *resultObj;
+  int objc1, objc2, result;
+  Tcl_Obj **objv1, **objv2, *resultObj;
   mongo_connection *connPtr = MongoGetConn(connObj);
   mongo_cursor *cursor;
   bson query[1];
-  bson empty[1];
+  bson atts[1];
 
   if (connPtr == NULL)  {
     return NsfObjErrType(interp, "", connObj, "connection", NULL);
   }
 
-  result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
+  result = Tcl_ListObjGetElements(interp, queryObj, &objc1, &objv1);
+  if (result != TCL_OK || (objc1 % 3 != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
   }
+  if (withAttsObj) {
+    result = Tcl_ListObjGetElements(interp, withAttsObj, &objc2, &objv2);
+    if (result != TCL_OK || (objc2 % 3 != 0)) {
+      return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(withAttsObj));
+    }
+  } else {
+    objc2 = 0;
+  }
 
-  BsonAppendObjv(interp, query, objc, objv);
-  bson_empty( empty );
+  BsonAppendObjv(interp, query, objc1, objv1);
+  BsonAppendObjv(interp, atts, objc2, objv2);
+
   resultObj = Tcl_NewListObj(0, NULL);
 
   /* 
    *  The last field of mongo_find is options, semantics are described here
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
-  cursor = mongo_find( connPtr, namespace, query, NULL, withLimit, withSkip, 0 );
+  cursor = mongo_find( connPtr, namespace, query, atts, withLimit, withSkip, 0 );
   while( mongo_cursor_next( cursor ) ) {
     Tcl_ListObjAppendElement(interp, resultObj, BsonToList(interp, (&cursor->current)->data, 0));
   }
 
   mongo_cursor_destroy( cursor );        
   bson_destroy( query );
-  bson_destroy( empty );
+  bson_destroy( atts );
 
   Tcl_SetObjResult(interp, resultObj);
 
