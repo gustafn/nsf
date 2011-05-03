@@ -1,7 +1,9 @@
 # -*- Tcl -*-
 # testing mixinof
-package require nx; namespace import ::nx::*
+package require nx
 package require nx::test
+namespace import ::nx::*
+Test parameter count 100
 
 ###########################################
 # testing simple per object mixins

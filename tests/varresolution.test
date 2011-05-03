@@ -2,11 +2,10 @@
 #
 # testing var resolution
 #
-package require nx; namespace import ::nx::*
+package require nx
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
-
-Test parameter count 1
+namespace import ::nx::*
 
 ::nsf::method::alias ::nx::Object objeval -frame object ::eval 
 ::nsf::method::alias ::nx::Object array -frame object ::array

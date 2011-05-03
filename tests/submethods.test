@@ -1,9 +1,10 @@
 # -*- Tcl -*-
 package req nx
-namespace import ::nx::*
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
+namespace import ::nx::*
 
+Test parameter count 100
 Test case submethods {
   #Object method unknown {} {}
   Object create o1   

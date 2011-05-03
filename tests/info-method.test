@@ -3,7 +3,7 @@ package req nx
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
 
-Test case base {
+nx::Test case base {
   nx::Object create o {
     :alias set ::set
   }
@@ -109,7 +109,7 @@ Test case base {
   ::nx::configure defaultMethodCallProtection false
 }
 
-Test case subobj {
+nx::Test case subobj {
   ::nx::Object create o {
     ::nx::Object create [::nx::self]::sub {
       :method foo {} {;}
@@ -122,7 +122,7 @@ Test case subobj {
   ? {o info method type subal} "alias"
 }
 
-Test case callable {
+nx::Test case callable {
     # define the same method for Object and Class
     ::nx::Object method bar {} {return Object.bar}
     ::nx::Class method bar {} {return Class.bar}
@@ -219,7 +219,7 @@ Test case callable {
 #
 # test info slots / info lookup slots
 #
-Test case slots {
+nx::Test case slots {
 
   nx::Class create C {
     :attribute a
@@ -242,7 +242,7 @@ Test case slots {
 #
 # test info submethod and method handles for submethods
 #
-Test case info-submethod {
+nx::Test case info-submethod {
 
   nx::Object create o {
     :method "foo a" {} {return a}
@@ -345,7 +345,7 @@ Test case info-submethod {
 #
 # test "info methods -path"
 #
-Test case info-methods-path {
+nx::Test case info-methods-path {
   #
   # test case on base class
   #
@@ -400,7 +400,7 @@ Test case info-methods-path {
 
 }
 
-Test case parametersyntax {
+nx::Test case parametersyntax {
   # a true method
   ? {::nx::Object info method parametersyntax method} "name arguments ?-returns value? body ?-precondition value? ?-postcondition value?"
   # a forwarder to ::nsf::relation; definition comes via ::nsf::parametersyntax

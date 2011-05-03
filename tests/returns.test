@@ -11,8 +11,8 @@ package require nx::test
 #
 ::nsf::configure checkresult true
 
-Test parameter count 10000
-Test case int-returns { 
+nx::Test parameter count 10000
+nx::Test case int-returns { 
     nx::Class create C {
 	# scripted method without paramdefs
 	:method bar-ok1 {a b} {return 1}
@@ -61,8 +61,8 @@ Test case int-returns {
 
 }
 
-Test parameter count 10
-Test case app-specific-returns { 
+nx::Test parameter count 10
+nx::Test case app-specific-returns { 
 
     ::nx::methodParameterSlot method type=range {name value arg} {
 	foreach {min max} [split $arg -] break
@@ -97,8 +97,8 @@ Test case app-specific-returns {
     ? {c1 lappend l e1} {Value 'e1' of parameter return-value not between 1 and 30}
 }
 
-Test parameter count 1000
-Test case converting-returns { 
+nx::Test parameter count 1000
+nx::Test case converting-returns { 
 
     ::nx::methodParameterSlot method type=sex {name value args} {
         #puts stderr "[current] slot specific converter"
@@ -153,8 +153,8 @@ Test case converting-returns {
 #
 ::nsf::configure checkresults false
 
-Test parameter count 1000
-Test case int-returns-nocheck { 
+::nx::Test parameter count 1000
+::nx::Test case int-returns-nocheck { 
     nx::Class create C {
 	# scripted method without paramdefs
 	:method bar-ok1 {a b} {return 1}
@@ -197,8 +197,8 @@ Test case int-returns-nocheck {
     ? {::nsf::method::property ::nx::Object method returns} ""
 }
 
-Test parameter count 10
-Test case app-specific-returns-nocheck { 
+::nx::Test parameter count 10
+::nx::Test case app-specific-returns-nocheck { 
 
     ::nx::methodParameterSlot method type=range {name value arg} {
 	foreach {min max} [split $arg -] break
@@ -233,8 +233,8 @@ Test case app-specific-returns-nocheck {
     ? {c1 lappend l e1} e1
 }
 
-Test parameter count 1000
-Test case converting-returns-nocheck { 
+::nx::Test parameter count 1000
+::nx::Test case converting-returns-nocheck { 
 
     ::nx::methodParameterSlot method type=sex {name value args} {
         #puts stderr "[current] slot specific converter"
@@ -293,7 +293,7 @@ Test case converting-returns-nocheck {
 
 ::nsf::configure checkresults true
 
-Test case int-returns-sugar { 
+::nx::Test case int-returns-sugar { 
     nx::Class create C {
 	# scripted method without paramdefs
 	:method bar-ok1 {a b} -returns integer {return 1}
@@ -352,7 +352,7 @@ Test case int-returns-sugar {
 
 }
 
-Test case empty-paramdefs-robustedness {
+::nx::Test case empty-paramdefs-robustedness {
   ::nx::Object create ku {
     # 1: Create an empty or checker-free parameter spec
     :method foo {} {;}

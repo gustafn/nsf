@@ -1,6 +1,7 @@
 # -*- Tcl -*-
-package require nx; namespace import ::nx::*
+package require nx
 package require nx::test
+namespace import ::nx::*
 
 ###########################################
 # trivial object delegation

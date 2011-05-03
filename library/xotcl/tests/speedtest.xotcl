@@ -1,8 +1,8 @@
 # -*- Tcl -*-
 #memory trace on
 package require XOTcl; namespace import ::xotcl::*
+package require nx::test; namespace import nx::Test
 
-package require nx::test
 Test parameter count 1000
 
 @ @File {description {

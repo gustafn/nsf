@@ -2,7 +2,7 @@
 package require XOTcl; namespace import -force ::xotcl::*
 package require nx::test
 
-Test parameter count 1000
+nx::Test parameter count 1000
 
 # what's new:
 #   - slots instances are manager objects for slot values
@@ -352,7 +352,7 @@ a1 foo 123 ;# calls overridden foosetter
 #puts [A serialize]
 
 ###################
-Test case req-param {
+nx::Test case req-param {
   ::xotcl::Class create C -parameter {y:required x:required}
   C instproc init args {set ::_ $args}
 
@@ -454,7 +454,7 @@ Person method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
 #######################################################
 # defaultcmd via slots
 #######################################################
-Test case defaultcmd
+nx::Test case defaultcmd
 set ::hu 0
 Class C -slots {
   Attribute create x -defaultcmd {incr ::hu; set x 101}
@@ -468,7 +468,7 @@ C c1
 #######################################################
 # nested contains
 #######################################################
-Test case nested-contains
+nx::Test case nested-contains
 
 Class Point -parameter {{x 100} {y 300}}
 Class Rectangle -parameter {color}
@@ -500,7 +500,7 @@ Rectangle r0 -color pink -contains {
 #######################################################
 # assign via slots
 #######################################################
-Test case assign-via-slots
+nx::Test case assign-via-slots
 
 Class create A -slots {
   Attribute create foo -default 1 {

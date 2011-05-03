@@ -1,7 +1,8 @@
 # -*- Tcl -*-
-package require nx; namespace import ::nx::*
+package require nx
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
+namespace import ::nx::*
 
 Test parameter count 10
 

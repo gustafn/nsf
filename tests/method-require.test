@@ -2,8 +2,8 @@
 package require nx
 package require nx::test
 
-Test parameter count 10
-Test case method-require { 
+nx::Test parameter count 10
+nx::Test case method-require { 
   
   #
   # A few method-provides
@@ -56,7 +56,7 @@ Test case method-require {
   ? {C x} x
 }
 
-Test case parent-require { 
+nx::Test case parent-require { 
   ::nx::Class public class method __unknown {name} {
     #puts stderr "***** __unknown called with <$name>"
     ::nx::Object create $name
@@ -82,7 +82,7 @@ Test case parent-require {
 # Test what happens if a class-specific method is registered and
 # called on an object.
 #
-Test case method-require-scope {
+nx::Test case method-require-scope {
 
   nx::Object create o
   ::nsf::method::require o alloc

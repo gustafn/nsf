@@ -1,11 +1,11 @@
 package provide nx::test 1.0
 package require nx
 
-namespace eval ::nx::test {
+namespace eval ::nx {
 
   # @file Simple regression test support for XOTcl / NX
 
-  nx::Class create Test {
+  nx::Class create nx::Test {
     #
     # Class Test is used to configure test instances, which can 
     # be configured by the following parameters:
@@ -24,7 +24,7 @@ namespace eval ::nx::test {
     :attribute {namespace ::}
     :attribute {verbose 0} 
     :attribute {expected 1} 
-    :attribute {count 100} 
+    :attribute {count 1} 
     :attribute msg 
     :attribute setResult 
     :attribute errorReport
@@ -125,14 +125,12 @@ proc ? {cmd expected {msg ""}} {
   set namespace [uplevel {::namespace current}]
   #puts stderr "eval in namespace $namespace"
   if {$msg ne ""} {
-    set t [Test new -cmd $cmd -msg $msg -namespace $namespace]
+    set t [nx::Test new -cmd $cmd -msg $msg -namespace $namespace]
   } else {
-    set t [Test new -cmd $cmd -namespace $namespace]
+    set t [nx::Test new -cmd $cmd -namespace $namespace]
   }
   $t expected $expected 
   $t run
   nsf::__db_run_assertions
 }
 
-
-namespace import ::nx::test::*

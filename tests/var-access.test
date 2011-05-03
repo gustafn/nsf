@@ -17,8 +17,8 @@ namespace eval ::nx::var1 {
   :alias set ::nsf::var::set
 }
 
-Test parameter count 10000
-Test case dummy {
+nx::Test parameter count 10000
+nx::Test case dummy {
   nx::Object create o {
     set :x 1
   }
