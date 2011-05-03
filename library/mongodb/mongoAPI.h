@@ -21,7 +21,7 @@ static int NsfMongoRemoveStub(ClientData clientData, Tcl_Interp *interp, int obj
 static int NsfMongoUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int NsfMongoClose(Tcl_Interp *interp, Tcl_Obj *conn);
-static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withHost, int withPort);
+static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withReplica_set, Tcl_Obj *withServer);
 static int NsfMongoCount(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *query);
 static int NsfMongoIndex(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *attributes, int withDropdups, int withUnique);
 static int NsfMongoInsert(Tcl_Interp *interp, Tcl_Obj *conn, CONST char *namespace, Tcl_Obj *values);
@@ -68,11 +68,11 @@ NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *withHost = (CONST char *)pc.clientData[0];
-    int withPort = (int )PTR2INT(pc.clientData[1]);
+    CONST char *withReplica_set = (CONST char *)pc.clientData[0];
+    Tcl_Obj *withServer = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMongoConnect(interp, withHost, withPort);
+    return NsfMongoConnect(interp, withReplica_set, withServer);
 
   }
 }
@@ -215,8 +215,8 @@ static Nsf_methodDefinition method_definitions[] = {
   {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::connect", NsfMongoConnectStub, 2, {
-  {"-host", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-port", 0, 1, Nsf_ConvertToInteger, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-replica-set", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-server", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::count", NsfMongoCountStub, 3, {
   {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},

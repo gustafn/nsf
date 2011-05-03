@@ -9,7 +9,7 @@ package require nsf::mongo
 #    > db.persons.find();
 #
 
-#set mongoConn [::mongo::connect -port 27017]
+#set mongoConn [::mongo::connect -server 127.0.0.1:27017]
 set mongoConn [::mongo::connect]
 
 if {1} {

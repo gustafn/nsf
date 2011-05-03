@@ -421,6 +421,70 @@ BsonAppendObjv(Tcl_Interp *interp, bson *bPtr, int objc, Tcl_Obj **objv) {
   return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfMongoGetHostPort --
+ *
+ *      Obtain from the provided string host and port. The provided
+ *      string might be of the form "host" or "host:port". The parts
+ *      are returned via arguments.
+ *
+ * Results:
+ *      Tcl result code and variables bufferPtr, hostPtr and portPtr.
+ *      If bufferPtr is not NULL, the caller must free it.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+/*
+The entries of the list might be "host" (dns or ip
+* addresses) or of the form "host:port".*/
+static int
+NsfMongoGetHostPort(CONST char *string, 
+		    char **bufferPtr, char CONST**hostPtr, int *portPtr) {
+  CONST char *colon, *host;
+  int port;
+
+  assert(string);
+  colon = strchr(string, ':');
+
+  if (colon) {
+    /*
+     * The passed string contained a colon; we must copy the entry,
+     * since string is read only.
+     */
+    int length = strlen(string) + 1;
+    int offset = colon-string;
+    char *buffer;
+
+    buffer = ckalloc(length);
+    *bufferPtr = buffer;
+    memcpy(buffer, string, length);
+    buffer[offset] = '\0';
+    host = buffer;
+    port = atoi(buffer+offset+1);
+    fprintf(stderr, "port=%d\n", port);
+  } else {
+    /*
+     * The passed string contained no colon.
+     */
+    *bufferPtr = NULL;
+    host = string;
+    port = 27017;
+  }
+
+  /*
+   * Return always host and port via arguments.
+   */
+  *hostPtr = host;
+  *portPtr = port;
+
+  return TCL_OK;
+}
+
 /***********************************************************************
  * Define the api functions
  ***********************************************************************/
@@ -450,36 +514,86 @@ NsfMongoClose(Tcl_Interp *interp, Tcl_Obj *connObj) {
 
 /*
 cmd connect NsfMongoConnect {
-  {-argName "-host" -required 0 -nrargs 1}
-  {-argName "-port" -required 0 -nrargs 1 -type int}
+  {-argName "-replica-set" -required 0 -nrargs 1}
+  {-argName "-server" -required 0 -nrargs 1 -type tclobj}
 }
 */
 static int 
-NsfMongoConnect(Tcl_Interp *interp, CONST char *host, int port) {
-  Tcl_HashEntry *hPtr;
-  char channelName[80];
-  int isNew;
+NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server) {
+  char channelName[80], *buffer = NULL;
+  int isNew, result, port, objc = 0;
   mongo_connection *connPtr;
-  mongo_connection_options opts[1];
   mongo_conn_return status;
+  Tcl_HashEntry *hPtr;
+  Tcl_Obj **objv;
+  CONST char *host;
 
-  strcpy(opts->host , host ? host : "127.0.0.1");
-  opts->port = port != 0 ? port : 27017;
+  if (server) {
+    result = Tcl_ListObjGetElements(interp, server, &objc, &objv);
+    if (result != TCL_OK) {
+      return NsfPrintError(interp, "The provided servers are not a well-formed list");
+    }
+  }
+
   connPtr = (mongo_connection *)ckalloc(sizeof(mongo_connection));
 
-  status = mongo_connect( connPtr, opts );
+  if (objc == 0) {
+    /*
+     * No -server argument or an empty list was provided; use the
+     * mongo default values.
+     */
+    status = mongo_connect( connPtr, "127.0.0.1", 27017 );
+
+  } else if (objc == 1 && replicaSet == NULL) {
+    /*
+     * A single element was provided to -server, we have no replica
+     * set specified.
+     */
+    NsfMongoGetHostPort(ObjStr(objv[0]), &buffer, &host, &port);
+    status = mongo_connect( connPtr, host, port );
+    if (buffer) {ckfree(buffer);}
+    
+  } else if (replicaSet) {
+    /*
+     * A list of 1 or more server was provided together with a replica
+     * set. 
+     */
+    int i;
+
+    mongo_replset_init_conn( connPtr, replicaSet);
+
+    for (i = 0; i < objc; i++) {
+      NsfMongoGetHostPort(ObjStr(objv[i]), &buffer, &host, &port);
+      mongo_replset_add_seed(connPtr, host, port );
+      if (buffer) {ckfree(buffer);}
+    }
+
+    status = mongo_replset_connect( connPtr );
+
+  } else {
+    ckfree((char *)connPtr);
+    return NsfPrintError(interp, "A list of servers was provided, but not name for the replica set");
+  }
+
+  /*
+   * Process the status from either mongo_connect() or
+   * mongo_replset_connect().
+   */
   if (status != mongo_conn_success) {
     char *errorMsg;
 
-    ckfree((char*)connPtr);
+    ckfree((char *)connPtr);
 
     switch (status) {
     case mongo_conn_bad_arg:    errorMsg = "bad arguments"; break;
     case mongo_conn_no_socket:  errorMsg = "no socket"; break;
     case mongo_conn_fail:       errorMsg = "connection failed"; break;
     case mongo_conn_not_master: errorMsg = "not master"; break;
+    case mongo_conn_bad_set_name: errorMsg = "replica set name doesn't match the existing replica set"; break;
+    case mongo_conn_cannot_find_primary: errorMsg = "cannot find primary"; break;
     default: errorMsg = "unknown Error"; break;
     }
+
     return NsfPrintError(interp, errorMsg);
   }
 

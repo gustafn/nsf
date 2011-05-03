@@ -3,7 +3,7 @@ Interface between mongoDB and the Next Scripting Framework
 
 Ingredients:
   https://github.com/mongodb/mongo
-  https://github.com/mongodb/mongo-c-driver
+  https://github.com/mongodb/mongo-c-driver (requires version v0.3 or better)
 
 Compile or obtain mongodb (the database).
 Compile or obtain the mongo-c-driver (client interface)
@@ -14,8 +14,11 @@ Assume, Tcl is under /usr/local/ns/lib and the mongo-c-driver is under
    ./configure --with-tcl=/usr/local/ns/lib --with-nsf=../../ \
    	       --with-mongo=/usr/local/src/mongo-c-driver/src/,/usr/local/src/mongo-c-driver
 
-I had to add MONGO_HAVE_STDINT to the EXTRA_FLAGS on MacOS X
+I had to add MONGO_HAVE_STDINT to the EXTRA_FLAGS 
+of library/mongodb/Makefile.in on MacOS X 
+
     EXTRA_CFLAGS	= @PKG_CFLAGS@ -DMONGO_HAVE_STDINT
+
 TODO: remove the hardcoded define flag in Makefile.in
 
 In order to run the sample script, 

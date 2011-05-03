@@ -2637,6 +2637,10 @@ nsf:
   * define Test as nx::Test
   * make Test parameter count 1 the default, change to higher numbers where needed
 
+- nsfmongo.c:
+  * upgrade to newest c-driver (verison 0.3) from git.
+  * support connection to replica sets
+
 TODO:
 
 - maybe change nx::Test to nx::test (user never has to know that nx::Test is a class).

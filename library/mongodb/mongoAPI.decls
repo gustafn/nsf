@@ -13,8 +13,8 @@ cmd close NsfMongoClose {
 }
 
 cmd connect NsfMongoConnect {
-  {-argName "-host" -required 0 -nrargs 1}
-  {-argName "-port" -required 0 -nrargs 1 -type int}
+  {-argName "-replica-set" -required 0 -nrargs 1}
+  {-argName "-server" -required 0 -nrargs 1 -type tclobj}
 }
 
 cmd count NsfMongoCount {
