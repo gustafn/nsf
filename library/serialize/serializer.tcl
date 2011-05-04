@@ -160,9 +160,9 @@ namespace eval ::nx::serializer {
 
     :method warn msg {
       if {[info command ns_log] ne ""} {
-        ns_log Warning $msg
+        ns_log Warning "serializer: $msg"
       } else {
-        puts stderr "Warning: $msg"
+        puts stderr "Warning: serializer: $msg"
       }
     }
 
@@ -668,14 +668,15 @@ namespace eval ::nx::serializer {
       set needed [list]
       foreach alias [$x ::nsf::methods::${where}::info::methods -methodtype alias -callprotection all -path] {
 	set definition [$x ::nsf::methods::${where}::info::method definition $alias]
-	# TODO look into the code, why we need the catch here. I found
-	# the problem with an object level alias for ns_cache_flush
-	set source ""
-	set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]
-#	if {
-#	    [catch {set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]} errorMsg] } {
-#	  puts stderr "+++++ serializer: could not get definition of '[lindex $definition end]': $errorMsg"
-#	}
+	set aliasedCmd [lindex $definition end]
+	#
+	# The aliasedCmd is fully qualified and could be a method
+	# handle or a primitive cmd.  For a primitive cmd, we have no
+	# alias dependency. Currently we check here only, of we can
+	# obtain the method definition for this handle. It would be
+	# better to use ::nsf::method::exists when implemented.
+	#
+	set source [::nx::Object ::nsf::methods::class::info::method definition $aliasedCmd]
 	if {$source ne ""} {
 	  set obj [lindex $source 0]
 	  if {$obj eq $x} {
@@ -685,10 +686,10 @@ namespace eval ::nx::serializer {
 	  }
 	}
       }
-      #if {[llength $needed]>0} {
-      #	puts stderr "aliases: $x needs $needed"
-      #	puts stderr "set alias-deps for $x - $handle - $needed"
-      #}
+      # if {[llength $needed]>0} {
+      #	 puts stderr "aliases: $x needs $needed"
+      #	 puts stderr "set alias-deps for $x - $handle - $needed"
+      # }
       set $handle $needed
       return $needed
     }
@@ -706,8 +707,8 @@ namespace eval ::nx::serializer {
     :method Object-needsNothing {x s} {
       set p [$x info parent]
       if {$p ne "::"  && [$s needsOneOf $p]} {return 0}
-      if {[$s needsOneOf [$x info class]]}  {return 0}
-      if {[$s needsOneOf [[$x info class] info slots]]}  {return 0}
+      if {[$s needsOneOf [$x info class]]}   {return 0}
+      if {[$s needsOneOf [$x ::nsf::methods::object::info::lookupslots]]} {return 0}
       if {[$s needsOneOf [:alias-dependency $x object]]} {return 0}
       return 1
     }
