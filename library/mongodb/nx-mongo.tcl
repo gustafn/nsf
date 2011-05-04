@@ -131,12 +131,16 @@ namespace eval ::nx::mongo {
       }
     }
 
-    :method "bson encode" {value} {
-      if {[:isMultivalued]} {
-	set c -1
-	set array [list]
-	foreach v $value {lappend array [incr c] {*}[:bson encodeValue $v]}
-	return [list array $array]
+    :method "bson encodeArray" {value} {
+      set c -1
+      set array [list]
+      foreach v $value {lappend array [incr c] {*}[:bson encodeValue $v]}
+      return [list array $array]
+    }
+
+    :public method "bson encode" {-array:switch value} {
+      if {[:isMultivalued] || $array} {
+	return [:bson encodeArray $value]
       } else {
 	return [:bson encodeValue $value]
       }
@@ -224,7 +228,7 @@ namespace eval ::nx::mongo {
     }
     
     :public method "get relop" {op} {
-      array set "" {< $lt > $gt <= $lte >= $gte != $ne}
+      array set "" {< $lt > $gt <= $lte >= $gte != $ne in $in all $all}
       return $($op)
     }
     
@@ -244,6 +248,9 @@ namespace eval ::nx::mongo {
 	"=" {lappend bson $att [$slot mongotype] $value}
 	">" - "<" - "<=" - ">=" - "!="  {
 	  lappend bson $att object [list [:get relop $op] [$slot mongotype] $value]
+	}
+	"in" - "all" {
+	  lappend bson $att object [list [:get relop $op] {*}[$slot bson encode -array $value]]
 	}
 	default {error "unknown operator $op"}
       }
@@ -329,11 +336,11 @@ namespace eval ::nx::mongo {
     #
     # index method
     #
-    :public method index {att {-type 1}} {
+    :public method index {att {-type 1} args} {
       if {![info exists :mongo_ns]} {:mongo_setup}
-      # todo: 2d index will need a different type
-      #::mongo::index $::mongoConn ${:mongo_ns} [list $att int $type]
-      db index ${:mongo_ns} [list $att int $type]
+      # todo: 2nd index will need a different type
+      # todo: multi-attribute indices
+      db index ${:mongo_ns} [list $att int $type] {*}$args
     }
     
     #

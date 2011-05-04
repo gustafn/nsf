@@ -1,8 +1,8 @@
 #
 # This is an introductory example how to use the nx mongo mapping for
 # referencing some object. We use here an example of an Posting having
-# a (possible compound) user as originator. All example work the same
-# way as well with with multivalued attributes.
+# a single (possible compound) user as originator. All example work
+# the same way as well with with multivalued attributes.
 #
 # Gustaf Neumann              fecit, May 2011
 #

@@ -28,14 +28,14 @@ nx::mongo::Class create Person {
 # Insert a tuple to the database via creating an object, saving and
 # destroying it:
 #
-set p [Person new -name Gustaf -projects nsf -age 53]
+set p [Person new -name Gustaf -projects {nsf nx nxmongo} -age 53]
 $p save; $p destroy
 
 #
 # The insert operation of above can be achieved with less typing via
 # the conveniance method "insert":
 #
-Person insert -name Stefan -projects nsf
+Person insert -name Stefan -projects {nsf nx}
 Person insert -name Joe -projects abc -age 23
 Person insert -name Franz -projects {gtat annobackend abc} -age 29
 
@@ -64,6 +64,17 @@ puts "\nProject members of nsf:"
 foreach p [Person find all -cond {projects = nsf}] {
   puts "\t$p:\t[$p name]"
 }
+
+puts "\nProject members of nsf or gtat:"
+foreach p [Person find all -cond {projects in {nsf gtat}}] {
+  puts "\t$p:\t[$p name]"
+}
+
+puts "\nProject members on both nsf and nxmongo:"
+foreach p [Person find all -cond {projects all {nsf nxmongo}}] {
+  puts "\t$p:\t[$p name]"
+}
+
 
 puts "\nAll Persons sorted by name (ascending):"
 foreach p [Person find all -orderby name] {

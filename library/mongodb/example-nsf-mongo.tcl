@@ -20,7 +20,7 @@ if {1} {
 						   classes array {0 object {$ref string courses $id oid 1}}]
   ::mongo::insert $mongoConn tutorial.persons [list name string Gustaf projects string nsf age int 53]
   ::mongo::insert $mongoConn tutorial.persons [list name string Stefan projects string nsf]
-  ::mongo::insert $mongoConn tutorial.persons [list name string Franz info object {x int 203 y int 102} age int 29]
+  ::mongo::insert $mongoConn tutorial.persons [list name string Franz info object {x int 203 y int 102} age int 29 projects string gtat]
   ::mongo::insert $mongoConn tutorial.persons [list name string Victor a array {0 string "x" 1 string "y"} age int 31]
   ::mongo::insert $mongoConn tutorial.persons [list name string Selim ts timestamp {1302945037 1} d date 1302947619279]
 
@@ -48,7 +48,10 @@ puts stderr "\nArray 'a' contains 'x'"
 puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {a string "x"}]] \n]
 
 puts stderr "\nEmbedded object has some value (info.y > 100)"
-puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {info.y object {$gt int 100}}]] \n]
+puts [join [::mongo::query $mongoConn tutorial.persons [list \$query object {info.y object {$gt int 100}}]] \n]
+
+puts stderr "\nProjects in {nsf gtat}"
+puts [join [::mongo::query $mongoConn tutorial.persons [list \$query object {projects object {$in array {0 string nsf 1 string gtat}}}]] \n]
 
 if {0} {
   puts stderr "\nDelete members of project abc"

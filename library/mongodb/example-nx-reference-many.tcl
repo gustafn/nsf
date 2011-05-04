@@ -52,8 +52,8 @@ Group insert -name "grp2" -members [list $id1 $id2]
 # Retrieve the entry from the database:
 set g [Group find first -cond {name = "grp2"}]
 set members [list]
-foreach m [$g members] {
-  lappend members [Member find first -cond [list _id = $m]]
+foreach m [Member find all -cond [list _id in [$g members]]] {
+  lappend members $m
 }
 puts stderr "Members of group [$g name]:"
 foreach m $members {puts stderr "\t[$m name]"}
