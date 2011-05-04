@@ -2642,8 +2642,34 @@ nsf:
   * support connection to replica sets
   * support attribute selection lists for ::mongo::query 
     (positive and negative selection)
+- nx-mango.tcl:
+  * support for unique indices
+  * support for query operators "in" and "all"
+
+- extended migration guide (introduction, feature lists, etc.)
+
+- serializer: 
+  * prefix warnings to ease tracking of warnings
+  * some cleanup for handling aliased methods
+
+- nsf.c:
+  * moved implementation of ::nsf::method::delete to C
+  * produce same error messages when methods are delete
+    via nsf::method::delete and nsf::method::create {} {}
+  * Prohibit deletion of methods during shutdown. Otherwise
+    when destructors delete methods, some other destructors
+    depending on these methods will fail. Cleanup deletes
+    all methods anyway.
+  * Provided alternative (faster) way of dispatching 
+    nsf::procs (can be tured off with NSF_INVOKE_SHADOWED_TRADITIONAL)
+  * renamed NsfMethodCmd() into NsfMethodCreateCmd() for consistency
+  * nsf works with OpenACS again (requires new nstrace.tcl, 
+    aolserver-openacs.tcl, and 01-debug-procs.tcl).
 
 TODO:
+
+- ::nsf::method::exists /handle/ -> check, if handle is a handle of a registered method
+  (to be be used in serializer alias-dependency)
 
 - maybe change nx::Test to nx::test (user never has to know that nx::Test is a class).
 - maybe move -count to the test case (but then a test-case less test needs a change of method)
@@ -2662,7 +2688,6 @@ TODO:
   * It is not nice to have the full ParseContext structure in nsfmongo
     (required for the allocation of the parse context in the stubs)
   Adding fields to these structures would kill alder binaries
-- not all converters have already external symbols
 
 - when alloc|dealloc are loaded via require, we have
   no redefined-protection on those. Since the script does not know,

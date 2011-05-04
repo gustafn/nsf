@@ -820,8 +820,8 @@ NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *metho
   if (object->nsPtr) {
     int rc = NSDeleteCmd(interp, object->nsPtr, methodName);
     if (rc < 0) {
-      return NsfPrintError(interp, "%s cannot delete method '%s' of object %s", 
-			   ObjectName(object), methodName, ObjectName(object));
+      return NsfPrintError(interp, "%s: cannot delete object specific method '%s'", 
+			   ObjectName(object), methodName);
     }
   }
   return TCL_OK;
@@ -7034,10 +7034,9 @@ ByteCompiled(Tcl_Interp *interp, unsigned short *flagsPtr,
  *----------------------------------------------------------------------
  */
 static int
-PushProcCallFrame(ClientData clientData, Tcl_Interp *interp,
+PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
 		  int objc, Tcl_Obj *CONST objv[],
                   NsfCallStackContent *cscPtr) {
-  Proc *procPtr = (Proc *) clientData;
   CallFrame *framePtr;
   int result;
 
@@ -7547,6 +7546,29 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 
   return result;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * ProcDispatchFinalize --
+ *
+ *    Finalization function for nsf::proc. Simplified version of
+ *    ProcMethodDispatchFinalize().
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    indirect effects by calling Tcl code
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
+  /*CONST char *methodName = data[0];
+  fprintf(stderr, "ProcDispatchFinalize of method %s\n", methodName);*/
+  return result;
+}
+
 
 /*
  *----------------------------------------------------------------------
@@ -9570,11 +9592,24 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
 			 ClassName(cl), nameStr, ObjStr(precondition));
   }
 
-  /* if both, args and body are empty strings, we delete the method */
   if (*argsStr == 0 && *bodyStr == 0) {
-    result = cl ?
-      NsfRemoveClassMethod(interp, (Nsf_Class *)cl, nameStr) :
-      NsfRemoveObjectMethod(interp, (Nsf_Object *)object, nameStr);
+    /* 
+     * Both, args and body are empty strings. This means we should delete the
+     * method.
+     */
+
+    if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
+      /*
+       * Don't delete methods via scripting during shutdown
+       */
+      result = cl ?
+	NsfRemoveClassMethod(interp, (Nsf_Class *)cl, nameStr) :
+	NsfRemoveObjectMethod(interp, (Nsf_Object *)object, nameStr);
+    } else {
+      /* fprintf(stderr, "don't delete method %s during shutdown\n", nameStr); */
+      result = TCL_OK;
+    }
+    
   } else {
 #if defined(NSF_WITH_ASSERTIONS)
     NsfAssertionStore *aStore = NULL;
@@ -9640,6 +9675,9 @@ NsfProcStubDeleteProc(ClientData clientData) {
     fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
 
   DECR_REF_COUNT(tcd->procName);
+  if (tcd->cmd) {
+    NsfCommandRelease(tcd->cmd);
+  }
   /* tcd->paramDefs is freed by NsfProcDeleteProc() */
   FREE(NsfProcClientData, tcd);
 }
@@ -9659,10 +9697,12 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
+// #define NSF_INVOKE_SHADOWED_TRADITIONAL 1
 static int
-InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, int objc, Tcl_Obj *CONST objv[]) {
+InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, int objc, Tcl_Obj *CONST objv[]) {
   int result;
-#if 1
+  // xxxxx
+#if defined(NSF_INVOKE_SHADOWED_TRADITIONAL)
   /*
    * For the time being, we call the shadowed proc defined with a
    * mutated name. It should be possible to compile and call the
@@ -9695,33 +9735,73 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, int objc, Tcl_Obj *
    * PushProcCallFrame()). So, the benefit is not sure, when we go
    * low-level here.
    */
+  CallFrame *framePtr;
   Proc *procPtr;
-  Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objv[0]);
+  unsigned short dummy;
+  CONST char *fullMethodName = ObjStr(procNameObj);
+
+  /* TODO check epoch */
+  /*fprintf(stderr, "fullMethodName %s, shortMethodName %s\n", fullMethodName, shortMethodName);*/
   
-  if (!cmd) {
-    return NsfPrintError(interp, "cannot lookup command '%s'", ObjStr(procNameObj));
+  if (Tcl_Command_cmdEpoch(cmd)) {
+#if 1
+    /*
+     * It seems, as someone messed around with the shadowed proc. For now, we
+     * give up.
+     */
+    return NsfPrintError(interp, "command '%s' is epoched", fullMethodName);
+#else
+    /*
+     * We could refetch the command ...
+     */
+
+    cmd = Tcl_GetCommandFromObj(interp, procNameObj);
+    if (!cmd) {
+      return NsfPrintError(interp, "cannot lookup command '%s'", fullMethodName);
+    }
+    if (!CmdIsProc(cmd)) {
+      return NsfPrintError(interp, "command '%s' is not a proc", fullMethodName);
+    }
+    /*
+     * ... and update the refcounts
+     */
+    NsfCommandRelease(tcd->cmd);
+    tcd->cmd = cmd;
+    NsfCommandPreserve(tcd->cmd);
+#endif
   }
-  if (!CmdIsProc(cmd)) {
-    return NsfPrintError(interp, "command '%s' is not a proc", ObjStr(procNameObj));
+
+  procPtr = (Proc *)Tcl_Command_objClientData(cmd);
+  result = TclPushStackFrame(interp, (Tcl_CallFrame **)&framePtr,
+			     (Tcl_Namespace *) procPtr->cmdPtr->nsPtr,
+			     (FRAME_IS_PROC));
+
+  if (result == TCL_OK) {
+    result = ByteCompiled(interp, &dummy, procPtr, fullMethodName);
   }
-  procPtr = (Proc*) Tcl_Command_objClientData(cmd);
-  /* todo: refactor PushProcCallFrame or duplicate to avoid cscPtr */
-  result = PushProcCallFrame(procPtr, interp, objc, objv, cscPtr);
+  if (result != TCL_OK) {
+    /* todo: really? error msg */
+    return result;
+  }
+
+  framePtr->objc = objc;
+  framePtr->objv = objv;
+  framePtr->procPtr = procPtr;
+
 # if defined(NRE)
   /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n",
     ObjectName(object), ObjStr(objv[0]));*/
-  Tcl_NRAddCallback(interp, ProcMethodDispatchFinalize,
-		    releasePc ? pcPtr : NULL, cscPtr, (ClientData)methodName, NULL);
-  cscPtr->flags |= NSF_CSC_CALL_IS_NRE;
-  result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
+  Tcl_NRAddCallback(interp, ProcDispatchFinalize,
+		    (ClientData)fullMethodName, NULL, NULL, NULL);
+  result = TclNRInterpProcCore(interp, procNameObj /*objv[0]*/, 1, &MakeProcError);
 # else
   ClientData data[3] = {
-    releasePc ? pcPtr : NULL,
-    cscPtr,
-    (ClientData)methodName
+    (ClientData)fullMethodName,
+    NULL,
+    NULL
   };
-  result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
-  result = ProcMethodDispatchFinalize(data, interp, result);
+  result = TclObjInterpProcCore(interp, procNameObj /*objv[0]*/, 1, &MakeProcError);
+  result = ProcDispatchFinalize(data, interp, result);
 # endif
 #endif
   return result;
@@ -9770,7 +9850,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 				    objc, tov);
 
     if (result == TCL_OK) {
-      result = InvokeShadowedProc(interp, tcd->procName, pcPtr->objc, pcPtr->full_objv);
+      result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr->objc, pcPtr->full_objv);
     } else {
       Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
       fprintf(stderr, "NsfProcStub: incorrect arguments (%s)\n", ObjStr(resultObj));
@@ -9848,7 +9928,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
      * we have a useful error message.
      */
     Tcl_DStringFree(dsPtr);
-    FREE(NsfProcClientData,tcd);
+    FREE(NsfProcClientData, tcd);
     return TCL_ERROR;
   }
 
@@ -9889,6 +9969,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->procName = procNameObj; 
   tcd->paramDefs = paramDefs;
   tcd->with_ad = with_ad;
+  tcd->cmd = NULL; 
   
   /*fprintf(stderr, "NsfAddParameterProc %s tcd %p paramdefs %p\n", 
     ObjStr(procNameObj), tcd, tcd->paramDefs);*/
@@ -9945,7 +10026,9 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
     Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, procNameObj);
     assert(procCmd);
     ((Command *)procCmd)->nsPtr = (Namespace *)cmdNsPtr;
-    
+    tcd->cmd = procCmd;
+    NsfCommandPreserve(tcd->cmd);
+
   } else {
     /* 
      * We could not define the shadowed proc. In this case, cleanup by
@@ -15574,7 +15657,7 @@ NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 
 
 /*
-nsfCmd method::create NsfMethodCmd {
+nsfCmd method::create NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
@@ -15586,7 +15669,7 @@ nsfCmd method::create NsfMethodCmd {
 }
 */
 static int
-NsfMethodCmd(Tcl_Interp *interp, NsfObject *object,
+NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object,
 	     int withInner_namespace, int withPer_object,
 	     Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body,
 	     Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
@@ -15600,6 +15683,21 @@ NsfMethodCmd(Tcl_Interp *interp, NsfObject *object,
   return MakeMethod(interp, object, cl, nameObj, arguments, body,
                     withPrecondition, withPostcondition,
                     withInner_namespace);
+}
+
+/*
+cmd "method::delete" NsfMethodDeleteCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
+  {-argName "methodName" -required 1 -type tclobj}
+}
+*/
+static int
+NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, 
+		   Tcl_Obj *methodNameObj) {
+  return NsfMethodCreateCmd(interp, object, 0, withPer_object, methodNameObj, 
+			    NsfGlobalObjs[NSF_EMPTY],  NsfGlobalObjs[NSF_EMPTY],
+			    NULL, NULL);
 }
 
 /*
@@ -15617,7 +15715,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   CONST char *methodName = ObjStr(methodObj), *methodName1 = NULL;
   NsfObject *regObject, *defObject;
   Tcl_DString ds, *dsPtr = &ds;
-  Tcl_Command cmd = NULL;
+  Tcl_Command cmd;
   NsfClass *cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
   int flag, fromClassNS = cl != NULL;
 
@@ -15630,7 +15728,8 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (!cmd) {
     Tcl_DStringFree(dsPtr);
-    return NsfPrintError(interp, "Cannot lookup object method '%s' for object %s", 
+    return NsfPrintError(interp, "Cannot lookup %smethod '%s' for %s", 
+			 cl == 0 ? "object " : "",
 			 methodName, ObjectName(object));
   }
   Tcl_DStringFree(dsPtr);
@@ -19283,7 +19382,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
         deleted++;
       }
     }
-    /* fprintf(stderr, "deleted %d Objects without dependencies\n", deleted);*/
+    /*fprintf(stderr, "deleted %d Objects without dependencies\n", deleted);*/
     if (deleted > 0) {
       continue;
     }

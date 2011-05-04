@@ -66,7 +66,12 @@ cmd "method::assertion" NsfAssertionCmd {
   {-argName "assertionsubcmd" -required 1 -nrargs 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 }
-cmd "method::create" NsfMethodCmd {
+cmd "method::delete" NsfMethodDeleteCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
+  {-argName "methodName" -required 1 -type tclobj}
+}
+cmd "method::create" NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}

@@ -524,6 +524,7 @@ typedef struct NsfClasses {
  */
 typedef struct NsfProcClientData {
   Tcl_Obj *procName;
+  Tcl_Command cmd;
   NsfParamDefs *paramDefs;
   int with_ad;
 } NsfProcClientData;

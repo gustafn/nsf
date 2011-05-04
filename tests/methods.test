@@ -374,13 +374,13 @@ Test case methoddelete {
     :create c1
   }
   
-  ? {::nsf::method::delete C x} "Object C: method x is not defined"
-  ? {::nsf::method::delete C -per-object x} "Object C: method x is not defined"
+  ? {::nsf::method::delete C x} "::C: cannot delete method 'x'"
+  ? {::nsf::method::delete C -per-object x} "::C: cannot delete object specific method 'x'"
   ? {::nsf::method::delete C foo} ""
-  ? {::nsf::method::delete C foo} "Object C: method foo is not defined"
-  ? {::nsf::method::delete C bar} "Object C: method bar is not defined"
+  ? {::nsf::method::delete C foo} "::C: cannot delete method 'foo'"
+  ? {::nsf::method::delete C bar} "::C: cannot delete method 'bar'"
   ? {::nsf::method::delete C -per-object bar} ""
-  ? {::nsf::method::delete C -per-object bar} "Object C: method bar is not defined"
+  ? {::nsf::method::delete C -per-object bar} "::C: cannot delete object specific method 'bar'"
 }
 
 #
