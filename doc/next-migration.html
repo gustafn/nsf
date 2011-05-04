@@ -585,87 +585,205 @@ trying to reduce maintenance costs.</p></div>
 <div class="paragraph"><p>We expect that many user will find it attractive to upgrade
 from XOTcl 1 to XOTcl 2, and some other users will upgrade to NX.
 This document focuses mainly on the differences between XOTcl 1 and
-NX, but addresses as well potential incompatibilitied between XOTcl 1
+NX, but addresses as well potential incompatibilities between XOTcl 1
 and XOTcl 2. For an introduction to NX, please consult the NX tutorial.</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_differences_between_xotcl_and_nx">1. Differences Between XOTcl and NX</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>In general, the Next Scripting Language (NX) differs from XOTcl in
-the following respects:</p></div>
+<div class="paragraph"><p>The Next Scripting Framework supports <em>Language Oriented Programming</em>
+by providing means to define potentially multiple object systems with
+different naming and functionality in a single interpreter.  This
+makes the Next Scripting Framework a powerful instrument for defining
+multiple languages such as e.g.  domain specific languages. This focus
+differs from XOTcl 1.</p></div>
+<div class="paragraph"><p>Technically, the language framework approach means that the languages
+implemented by the Next Scripting Framework (most prominently XOTcl 2
+and NX) are typically fully scripted and can be loaded via the usual
+Tcl <tt>package require</tt> mechanism.</p></div>
+<div class="paragraph"><p>Some of the new features below are provided by the Next Scripting
+Framework, some are implemented via the script files for XOTcl 2 and
+NX.</p></div>
+<div class="sect2">
+<h3 id="_features_of_nx">1.1. Features of NX</h3>
+<div class="paragraph"><p>In general, the Next Scripting Language (NX) differs from XOTcl
+in the following respects:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+<strong>Stronger Encapsulation:</strong> The Next Scripting Language favors
+  a <em>stronger form of encapsulation</em> than XOTcl. Calling the own
+  methods or accessing the own instance variables is typographically
+  easier and computationally faster than these operations on other
+  objects. This behavior is achieved via <em>resolvers</em>, which make some
+  methods necessary in XOTcl 1 obsolete in NX (especially for importing
+  instance variables).  The encapsulation of NX is stronger than in
+  XOTcl but still weak compared to languages like C++; a developer can
+  still access other objects' variables via some idioms, but NX <em>makes
+  accesses to other objects variables explicit</em>.  The requiredness to
+  make these accesses explicit should encourage developer to implement
+  well defined interfaces to provide access to instance variables.
+</p>
+</li>
+<li>
+<p>
+<strong>Additional Forms of Method Definition and Reuse:</strong>
+   The Next Scripting Language
+   provides much more orthogonal means to <em>define, reuse and
+   introspect</em> scripted and C-implemented methods.
+</p>
+<div class="olist loweralpha"><ol class="loweralpha">
+<li>
+<p>
+It is possible to use  NX <tt>alias</tt> to register methods
+     under arbitrary names for arbitrary objects or classes.
+</p>
+</li>
+<li>
+<p>
+NX provides means for <em>method protection</em> (method modifiers
+     <tt>public</tt> and <tt>protected</tt>). Therefore developers have to define
+     explicitly public interfaces in order to use methods from other
+     objects.
+</p>
+</li>
+<li>
+<p>
+One can  invoke in NX fully qualified methods to invoke
+     methods outside the precedence path.
+</p>
+</li>
+<li>
+<p>
+One can  define in NX <em>ensemble methods</em> (similar to
+     commands and subcommands) in a convenient way to provide
+     extensible, hierarchical naming of methods.
+</p>
+</li>
+<li>
+<p>
+One can use in NX the same interface to query (introspect)
+    C-implemented and  scripted methods/commands.
+</p>
+</li>
+</ol></div>
+</li>
+<li>
+<p>
+<strong>Orthogonal Parameterization:</strong>
+   The Next Scripting Language provides an <em>orthogonal framework for
+   parametrization</em> of methods and objects.
+</p>
+<div class="olist loweralpha"><ol class="loweralpha">
+<li>
+<p>
+In NX, the same argument parser is used for
+</p>
 <div class="ulist"><ul>
 <li>
 <p>
-The Next Scripting Language favors a <em>stronger form of
-  encapsulation</em> than XOTcl. Calling the own methods or accessing the
-  own instance variables is typographically easier and computationally
-  faster than these operations on other objects. This behavior is
-  achieved via resolversm which make some methods necessary in XOTcl
-  obsolete in NX (especially for importing instance variables). On the
-  other hand, XOTcl is complete symmetrical in this respect.
+Scripted Methods
 </p>
 </li>
 <li>
 <p>
-The encapsulation of NX is stronger than in XOTcl but still weak
-   compared to languages like C++; a developer can still access other
-   objects' variables via some idioms, but NX <em>makes accesses to other
-   objects variables explicit</em>.  The requiredness to make these
-   accesses explicit should encourage developer to implement well
-   defined interfaces to provide access to instance variables.
+C-implemented methods and Tcl commands
 </p>
 </li>
 <li>
 <p>
-The Next Scripting Language provides means of <em>method
-   protection</em>. Therefore developers have to define interfaces in
-   order to use methods from other objects.
-</p>
-</li>
-<li>
-<p>
-The Next Scripting Language provides <em>scripted init blocks</em> for
-   objects and classes (replacement for the dangerous dash "-"
-   mechanism in XOTcl that allows to set variables and invoke methods
-   upon object creation).
-</p>
-</li>
-<li>
-<p>
-The Next Scripting Language provides much more orthogonal means to
-   <em>define, reuse and introspect scripted and C-implemented methods</em>.
-</p>
-</li>
-<li>
-<p>
-The Next Scripting Language provides an <em>orthogonal framework for
-   parametrization of methods and objects</em>. While XOTcl 1 provided only
-   value-checkers for non-positional arguments for methods, the Next Scripting
-   Framework provides the same value checkers for positional argument
-   of methods, as well as for object parameters (<tt>-parameter</tt> in XOTcl 1).
-</p>
-</li>
-<li>
-<p>
-The naming of the methods in the Next Scripting Language is much more
-  in line with the mainstream naming conventions in OO languages.
-</p>
-</li>
-<li>
-<p>
-The Next Scripting Language has a much <em>smaller interface</em> (less
-  predefined methods) than XOTcl (see Table 1), allthough the
-  expressability was increased in NX.
+Object Parametrization
 </p>
 </li>
 </ul></div>
+</li>
+<li>
+<p>
+While XOTcl 1 provided only value-checkers for non-positional
+     arguments for methods, the Next Scripting Framework provides
+     the same value checkers for positional and non-positional
+     arguments of methods, as well as for positional and
+     non-positional object parameters (<tt>-parameter</tt> in
+     XOTcl 1).
+</p>
+</li>
+<li>
+<p>
+While XOTcl 1 supported only non-positional arguments at the
+    begin of the argument list, these can be used now at arbitrary
+    positions.
+</p>
+</li>
+</ol></div>
+</li>
+<li>
+<p>
+<strong>Value Checking:</strong>
+</p>
+<div class="olist loweralpha"><ol class="loweralpha">
+<li>
+<p>
+The Next Scripting Language supports checking of the <em>input
+     parmeters</em> and the <em>return values</em> of scripted and C-implemented
+     methods and commands.
+</p>
+</li>
+<li>
+<p>
+NX provides a set of predefined checkers (like e.g. <tt>integer</tt>,
+    <tt>boolean</tt>, <tt>object</tt>, &#8230;) which can be extended by the
+     applications.
+</p>
+</li>
+<li>
+<p>
+Value Checking can be used for <em>single</em> and <em>multi-valued</em>
+    parameters. One can e.g. define a list of integers
+    with at least one entry by the parameter specification
+    <tt>integer,1..n</tt>.
+</p>
+</li>
+<li>
+<p>
+Value Checking can be turned on/off globally or on the
+    method/command level.
+</p>
+</li>
+</ol></div>
+</li>
+<li>
+<p>
+<strong>Scripted Init Blocks:</strong> The Next Scripting Language provides
+   <em>scripted init blocks</em> for objects and classes (replacement for the
+   dangerous dash "-" mechanism in XOTcl that allows to set variables
+   and invoke methods upon object creation).
+</p>
+</li>
+<li>
+<p>
+<strong>More Conventional Naming for Predefined Methods:</strong> The naming of
+  the methods in the Next Scripting Language is much more in line with
+  the mainstream naming conventions in OO languages. While for example
+  XOTcl uses <tt>proc</tt> and <tt>instproc</tt> for object specific and inheritable
+  methods, NX uses simply <tt>method</tt>.
+</p>
+</li>
+<li>
+<p>
+<strong>Much smaller Interface:</strong> The Next Scripting Language has a much
+  <em>smaller interface</em> (i.e.  provides less predefined methods) than
+  XOTcl (see Table 1), although the expressability was increased in
+  NX.
+</p>
+</li>
+</ol></div>
 <div class="tableblock">
 <table rules="all"
 width="50%"
 frame="hsides"
 cellspacing="0" cellpadding="4">
-<caption class="title">Table 1. Comparison of the Number of Methods in NX and XOTcl</caption>
+<caption class="title">Table 1. Comparison of the Number of Predefined Methods in NX and XOTcl</caption>
 <col width="60%" />
 <col width="20%" />
 <col width="20%" />
@@ -707,16 +825,24 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
+<div class="paragraph"><p>This comparison list compares mostly XOTcl 1 with NX, some features
+are also available in XOTcl 2 (2a, 2c 2d, 3, 4).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_nx_and_xotcl_scripts">1.2. NX and XOTcl Scripts</h3>
 <div class="paragraph"><p>Below is a small, introductory example showing an implementation of a
-class <tt>Stack</tt> in NX and XOTcl. NX supports a block syntax, where the
-methods are defined during the creation of the class. The XOTcl syntax
-is slightly more redundant, since every definition of a method is a
-single toplevel command starting with the class name (also NX supports
-the style used in XOTcl).  In NX, all methods are per default
-protected (XOTcl does not support protection). In NX methods are
-defined in the definition of the class via <tt>:method</tt> or <tt>:public
-method</tt>. In XOTcl methods are defined via the <tt>instproc</tt> method.</p></div>
-<div class="paragraph"><p>Another difference is the notation to refere to instance variables. In
+class <tt>Stack</tt> in NX and XOTcl. The purpose of this first example is
+just a quick overview. We will go into much more detailed comparison
+in the next sections.</p></div>
+<div class="paragraph"><p>NX supports a block syntax, where the methods are defined during the
+creation of the class. The XOTcl syntax is slightly more redundant,
+since every definition of a method is a single toplevel command
+starting with the class name (also NX supports the style used in
+XOTcl).  In NX, all methods are per default protected (XOTcl does not
+support protection). In NX methods are defined in the definition of
+the class via <tt>:method</tt> or <tt>:public method</tt>. In XOTcl methods are
+defined via the <tt>instproc</tt> method.</p></div>
+<div class="paragraph"><p>Another difference is the notation to refer to instance variables. In
 NX, instance variable are named with a single colon in the front. In
 XOTcl, instance variables are imported using <tt>instvar</tt>.</p></div>
 <div class="tableblock">
@@ -804,10 +930,8 @@ Stack instproc pop {} {
 </table>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_using_xotcl_2_0_and_the_next_scripting_language_in_a_single_interpreter">2. Using XOTcl 2.0 and the Next Scripting Language in a Single Interpreter</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_using_xotcl_2_0_and_the_next_scripting_language_in_a_single_interpreter">1.3. Using XOTcl 2.0 and the Next Scripting Language in a Single Interpreter</h3>
 <div class="paragraph"><p>In general, the Next Scripting Framework supports multiple object
 systems concurrently. Effectively, every object system has different
 base classes for creating objects and classes. Therefore, these object
@@ -874,14 +998,15 @@ packages (if needed) and to import either the base classes (Object and
 Class) of XOTcl or NX into the current namespace.</p></div>
 </div>
 </div>
+</div>
 <div class="sect1">
-<h2 id="_xotcl_idioms_in_the_next_scripting_language">3. XOTcl Idioms in the Next Scripting Language</h2>
+<h2 id="_xotcl_idioms_in_the_next_scripting_language">2. XOTcl Idioms in the Next Scripting Language</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The following sections are intended for reader familiar with XOTcl and
 show, how certain language Idioms of XOTcl can be expressed in NX. In
 some cases, multiple possible realizations are listed</p></div>
 <div class="sect2">
-<h3 id="_defining_objects_and_classes">3.1. Defining Objects and Classes</h3>
+<h3 id="_defining_objects_and_classes">2.1. Defining Objects and Classes</h3>
 <div class="paragraph"><p>When creating objects or classes, one should use the method <tt>create</tt>
 explicitly. In XOTcl, a default <tt>unknown</tt> handler was provided for
 classes, which create for every unknown method invocation an
@@ -961,7 +1086,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect2">
-<h3 id="_defining_methods">3.2. Defining Methods</h3>
+<h3 id="_defining_methods">2.2. Defining Methods</h3>
 <div class="paragraph"><p>In general, both XOTcl and NX support methods on the object level
 (per-object methods, i.e. methods only applicable to a single object)
 and on the class level (methods inherited to instances of the
@@ -984,7 +1109,7 @@ define a class-specific method (method for the class object).</p></div>
 (section 3.2.1) and C-defined methods (section 3.2.2). Section 3.2.3
 introduces method protection, which is only supported by NX.</p></div>
 <div class="sect3">
-<h4 id="_scripted_methods_defined_in_the_init_block_of_a_class_object_or_with_separate_calls">3.2.1. Scripted Methods Defined in the Init-block of a Class/Object or with Separate Calls</h4>
+<h4 id="_scripted_methods_defined_in_the_init_block_of_a_class_object_or_with_separate_calls">2.2.1. Scripted Methods Defined in the Init-block of a Class/Object or with Separate Calls</h4>
 <div class="paragraph"><p>The following examples show the definition of a class and its methods
 in the init-block of a class (NX only), and the definition of methods
 via separate top level calls (XOTcl and NX).</p></div>
@@ -1118,7 +1243,7 @@ o <span class='nx-keyword'>method</span> foo args {...}</pre></div></div></div><
 </div>
 </div>
 <div class="sect3">
-<h4 id="_different_kinds_of_methods">3.2.2. Different Kinds of Methods</h4>
+<h4 id="_different_kinds_of_methods">2.2.2. Different Kinds of Methods</h4>
 <div class="paragraph"><p>This section describes various kinds of methods. The different kinds
 of methods are defined via different method-defining methods, which
 are summarized in the following table for XOTcl and NX.</p></div>
@@ -1354,7 +1479,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="method-protect-example">3.2.3. Method Modifiers and Method Protection</h4>
+<h4 id="method-protect-example">2.2.3. Method Modifiers and Method Protection</h4>
 <div class="paragraph"><p>NX supports the three method modifiers <tt>class</tt>, <tt>public</tt> and
 <tt>protected</tt>. All method modifiers can be written in front of every method
 defining command. The method modifier <tt>class</tt> is used to denote
@@ -1438,7 +1563,7 @@ also e.g. on a class level.</p></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_resolvers">3.3. Resolvers</h3>
+<h3 id="_resolvers">2.3. Resolvers</h3>
 <div class="paragraph"><p>The Next Scripting Framework defines Tcl resolvers for method and
 variable names to implement object specific behavior. Within the
 bodies of scripted methods these resolver treat variable and function
@@ -1449,7 +1574,7 @@ detailed examples.</p></div>
 <div class="paragraph"><p>Note that the resolvers of the Next Scripting Framework can be used in
 the XOTcl 2.* environment as well.</p></div>
 <div class="sect3">
-<h4 id="_invoking_methods">3.3.1. Invoking Methods</h4>
+<h4 id="_invoking_methods">2.3.1. Invoking Methods</h4>
 <div class="paragraph"><p>In XOTcl, a method of the same object can be invoked via <tt>my</tt>, or in
 general via using the name of the object in front of the method name.</p></div>
 <div class="paragraph"><p>In NX, the own methods are called via the method name prefixed with a
@@ -1516,7 +1641,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_accessing_own_instance_variables_from_method_bodies">3.3.2. Accessing Own Instance Variables from Method Bodies</h4>
+<h4 id="_accessing_own_instance_variables_from_method_bodies">2.3.2. Accessing Own Instance Variables from Method Bodies</h4>
 <div class="paragraph"><p>In general, the Next Scripting Language favors the access to an
 objects&#8217;s own instance variables over variable accesses of other
 objects. This means that in NX it is syntactically easier to access
@@ -1773,7 +1898,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_accessing_instance_variables_of_other_objects">3.3.3. Accessing Instance Variables of other Objects</h4>
+<h4 id="_accessing_instance_variables_of_other_objects">2.3.3. Accessing Instance Variables of other Objects</h4>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -1929,7 +2054,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect2">
-<h3 id="_parameters">3.4. Parameters</h3>
+<h3 id="_parameters">2.4. Parameters</h3>
 <div class="paragraph"><p>While XOTcl 1 had very limited forms of parameters, XOTcl 2 and NX
 provide a generalized and highly orthogonal parameter handling with
 various kinds of value constraints (also called value checker). We
@@ -1954,7 +2079,7 @@ return value checking
 </ul></div>
 <div class="paragraph"><p>based on the same mechanisms.</p></div>
 <div class="sect3">
-<h4 id="_object_parameters">3.4.1. Object Parameters</h4>
+<h4 id="_object_parameters">2.4.1. Object Parameters</h4>
 <div class="paragraph"><p>Object parameters are supported in XOTcl via the method
 <tt>parameter</tt>. Since the term "parameter" is underspecified, NX uses the
 term "attribute". To define multiple attributes in a short form, NX
@@ -2439,7 +2564,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_method_parameters">3.4.2. Method Parameters</h4>
+<h4 id="_method_parameters">2.4.2. Method Parameters</h4>
 <div class="paragraph"><p>The method parameters specifications in XOTcl 1 were limited and
 allowed only value constraints for non positional arguments.</p></div>
 <div class="paragraph"><p>NX and XOTcl 2 provide value constraints for all kind of method parameters.
@@ -2573,7 +2698,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_return_value_checking">3.4.3. Return Value Checking</h4>
+<h4 id="_return_value_checking">2.4.3. Return Value Checking</h4>
 <div class="paragraph"><p><em>Return value checking</em> is a functionality that was not yet available in
 XOTcl 1. A return value checker assures that a method returns always a
 value satisfying some value constraints. Return value checkers can be defined on
@@ -2652,7 +2777,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect2">
-<h3 id="_interceptors">3.5. Interceptors</h3>
+<h3 id="_interceptors">2.5. Interceptors</h3>
 <div class="paragraph"><p>XOTcl and NX allow the definition of the same set of interceptors,
 namely class- and object-level mixins and class- and object-level
 filters. The primary difference in NX is the naming, since NX
@@ -2663,7 +2788,7 @@ it is a object-level mixin. In both cases, the method <tt>mixin</tt> is used.
 If a mixin is registered on the class object, one has to use the
 modifier <tt>class</tt> (in the same way as e.g. for defining methods).</p></div>
 <div class="sect3">
-<h4 id="_register_mixin_classes_and_mixin_guards">3.5.1. Register Mixin Classes and Mixin Guards</h4>
+<h4 id="_register_mixin_classes_and_mixin_guards">2.5.1. Register Mixin Classes and Mixin Guards</h4>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -2776,7 +2901,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_register_filters_and_filter_guards">3.5.2. Register Filters and Filter Guards</h4>
+<h4 id="_register_filters_and_filter_guards">2.5.2. Register Filters and Filter Guards</h4>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -2890,7 +3015,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect2">
-<h3 id="_introspection">3.6. Introspection</h3>
+<h3 id="_introspection">2.6. Introspection</h3>
 <div class="paragraph"><p>In general, introspection in NX became more orthogonal and less
 dependent on the type of the method. In XOTcl it was e.g. necessary
 that a developer had to know, whether a method is e.g. scripted or not
@@ -2904,7 +3029,7 @@ an manual-like interface description via <tt>info method
 parametersyntax</tt>. In addition, NX provides means to query the type of
 a method, and NX allows to filter by the type of the method.</p></div>
 <div class="sect3">
-<h4 id="_list_methods_defined_by_classes">3.6.1. List methods defined by classes</h4>
+<h4 id="_list_methods_defined_by_classes">2.6.1. List methods defined by classes</h4>
 <div class="paragraph"><p>While XOTcl uses different names for obtaining different kinds of
 methods defined by a class, NX uses <tt>info methods</tt> in an orthogonal
 manner. NX allows as well to use the call protection to filter the
@@ -3110,7 +3235,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_methods_defined_by_objects">3.6.2. List methods defined by objects</h4>
+<h4 id="_list_methods_defined_by_objects">2.6.2. List methods defined by objects</h4>
 <div class="paragraph"><p>While XOTcl uses different names for obtaining different kinds of
 methods defined by an object, NX uses <tt>info methods</tt> in an orthogonal
 manner. NX allows as well to use the call protection to filter the
@@ -3316,7 +3441,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_class_object_specific_methods">3.6.3. List class object specific methods</h4>
+<h4 id="_list_class_object_specific_methods">2.6.3. List class object specific methods</h4>
 <div class="paragraph"><p>When class specific properties are queried, NX required to use
 the modifier <tt>class</tt> (like for the definition of the methods).
 In all other respects, this section is identical to the previous one.</p></div>
@@ -3522,7 +3647,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_check_existence_of_a_method">3.6.4. Check existence of a method</h4>
+<h4 id="_check_existence_of_a_method">2.6.4. Check existence of a method</h4>
 <div class="paragraph"><p>NX provides multiple ways of checking, whether a method exists; one
 can use <tt>info method exists</tt> to check, if a given method exists
 (return boolean), or one can use <tt>info methods ?pattern?</tt>, where
@@ -3603,7 +3728,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_callable_methods">3.6.5. List callable methods</h4>
+<h4 id="_list_callable_methods">2.6.5. List callable methods</h4>
 <div class="paragraph"><p>In order to obtain for an object the set of artefacts defined in the
  class hierarchy, NX uses <tt>info lookup</tt>. One can either lookup methods
  (via <tt>info lookup methods</tt>) or slots (via <tt>info lookup slots</tt>). The
@@ -3745,7 +3870,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_object_class_where_some_method_is_defined">3.6.6. List object/class where some method is defined</h4>
+<h4 id="_list_object_class_where_some_method_is_defined">2.6.6. List object/class where some method is defined</h4>
 <div class="paragraph"><p><tt>info lookup</tt> can be used as well to determine, where exactly an
  artefact is located. One can obtain this way a method handle, where
 a method or filter is defined.</p></div>
@@ -3825,7 +3950,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_definition_of_scripted_methods_defined_by_classes">3.6.7. List definition of scripted methods defined by classes</h4>
+<h4 id="_list_definition_of_scripted_methods_defined_by_classes">2.6.7. List definition of scripted methods defined by classes</h4>
 <div class="paragraph"><p>XOTcl contains a long list of <tt>info</tt> subcommands for different kinds of
 methods and for obtaining more detailed information about these
 methods.</p></div>
@@ -4065,7 +4190,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_definition_of_scripted_object_specific_methods">3.6.8. List definition of scripted object specific methods</h4>
+<h4 id="_list_definition_of_scripted_object_specific_methods">2.6.8. List definition of scripted object specific methods</h4>
 <div class="paragraph"><p>While XOTcl uses different names for info options for objects and
 classes (using the prefix "inst"), the names in NX are the same.</p></div>
 <div class="tableblock">
@@ -4297,7 +4422,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <tt>class</tt> as shown in examples above.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_list_filter_or_mixins">3.6.9. List Filter or Mixins</h4>
+<h4 id="_list_filter_or_mixins">2.6.9. List Filter or Mixins</h4>
 <div class="paragraph"><p>In NX all introspection options for filters are grouped under <tt>info
 filter</tt> and all introspection options for mixins are under <tt>info
 mixin</tt>. Therefore, NX follows here the approach of using hierarchical
@@ -4645,7 +4770,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_definition_of_methods_defined_by_aliases_setters_or_forwarders">3.6.10. List definition of methods defined by aliases, setters or forwarders</h4>
+<h4 id="_list_definition_of_methods_defined_by_aliases_setters_or_forwarders">2.6.10. List definition of methods defined by aliases, setters or forwarders</h4>
 <div class="paragraph"><p>As mentioned earlier, <tt>info method definition</tt> can be used on every
 kind of method.</p></div>
 <div class="tableblock">
@@ -4719,7 +4844,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_method_handles">3.6.11. List Method-Handles</h4>
+<h4 id="_list_method_handles">2.6.11. List Method-Handles</h4>
 <div class="paragraph"><p>NX supports  <em>method-handles</em> to provide means to obtain further
 information about a method or to change maybe some properties of a
 method. When a method is created, the method creating method returns
@@ -4795,7 +4920,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_type_of_a_method">3.6.12. List type of a method</h4>
+<h4 id="_list_type_of_a_method">2.6.12. List type of a method</h4>
 <div class="paragraph"><p>The method <tt>info method type</tt> is new in NX to obtain the type of the
 specified method.</p></div>
 <div class="tableblock">
@@ -4869,7 +4994,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_the_scope_of_mixin_classes">3.6.13. List the scope of mixin classes</h4>
+<h4 id="_list_the_scope_of_mixin_classes">2.6.13. List the scope of mixin classes</h4>
 <div class="paragraph"><p>NX provides a richer set of introspection options to obtain
 information, where mixins classes are mixed into.</p></div>
 <div class="tableblock">
@@ -4989,7 +5114,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_check_properties_of_object_and_classes">3.6.14. Check properties of object and classes</h4>
+<h4 id="_check_properties_of_object_and_classes">2.6.14. Check properties of object and classes</h4>
 <div class="paragraph"><p>Similar as noted before, NX uses rather a hierarchical approach of
 naming using multiple layers of subcommands).</p></div>
 <div class="tableblock">
@@ -5167,7 +5292,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_call_stack_introspection">3.6.15. Call-stack Introspection</h4>
+<h4 id="_call_stack_introspection">2.6.15. Call-stack Introspection</h4>
 <div class="paragraph"><p>Call-stack introspection is very similar in NX and XOTcl. NX uses for
 subcommand the term <tt>current</tt> instead of <tt>self</tt>, since <tt>self</tt> has a
 strong connotation to the current object. The term <tt>proc</tt> is renamed
@@ -5544,7 +5669,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect2">
-<h3 id="_other_predefined_methods">3.7. Other Predefined Methods</h3>
+<h3 id="_other_predefined_methods">2.7. Other Predefined Methods</h3>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -5616,11 +5741,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dispatch_aliases_etc">3.8. Dispatch, Aliases, etc.</h3>
+<h3 id="_dispatch_aliases_etc">2.8. Dispatch, Aliases, etc.</h3>
 <div class="paragraph"><p>todo: to be done or omitted</p></div>
 </div>
 <div class="sect2">
-<h3 id="_assertions">3.9. Assertions</h3>
+<h3 id="_assertions">2.9. Assertions</h3>
 <div class="paragraph"><p>In contrary to XOTcl, NX provides no pre-registered methods for
 assertion handling. All assertion handling can e performed via the
 Next Scripting primitive <tt>nsf::method::assertion</tt>.</p></div>
@@ -5851,7 +5976,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect2">
-<h3 id="_method_protection">3.10. Method Protection</h3>
+<h3 id="_method_protection">2.10. Method Protection</h3>
 <div class="paragraph"><p>As described <a href="#method-protect-example">above</a>, NX supports method
 protection via the method modifiers <tt>protected</tt> and <tt>public</tt>. A
 protected method can be only called from an object of that class,
@@ -5864,10 +5989,10 @@ determining the protection.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_incompatibilities_between_xotcl_1_and_xotcl_2">4. Incompatibilities between XOTcl 1 and XOTcl 2</h2>
+<h2 id="_incompatibilities_between_xotcl_1_and_xotcl_2">3. Incompatibilities between XOTcl 1 and XOTcl 2</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_resolvers_2">4.1. Resolvers</h3>
+<h3 id="_resolvers_2">3.1. Resolvers</h3>
 <div class="paragraph"><p>The resolvers (variable resolvers, function resolvers) of the Next
 Scripting Framework are used as well within XOTcl 2. When variable
 names or method names starting with a single colon are used in XOTcl 1
@@ -5875,10 +6000,10 @@ scripts, conflicts will arise with the resolver. These names must be
 replaced.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_parameters_2">4.2. Parameters</h3>
+<h3 id="_parameters_2">3.2. Parameters</h3>
 <div class="paragraph"><p>The following changes for parameters could be regarded as bug-fixes.</p></div>
 <div class="sect3">
-<h4 id="_parameter_usage_without_a_value">4.2.1. Parameter usage without a value</h4>
+<h4 id="_parameter_usage_without_a_value">3.2.1. Parameter usage without a value</h4>
 <div class="paragraph"><p>In XOTcl 1, it was possible to call a parameter method during object
 creation via the dash-interface without a value (in the example below <tt>-x</tt>).</p></div>
 <div class="listingblock">
@@ -5899,7 +6024,7 @@ Foo f1 -x -y 1</pre></div></div>
 <div class="paragraph"><p>Such cases are most likely mistakes. All parameter configurations in XOTcl 2 require an argument.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_ignored_parameter_definitions">4.2.2. Ignored Parameter definitions</h4>
+<h4 id="_ignored_parameter_definitions">3.2.2. Ignored Parameter definitions</h4>
 <div class="paragraph"><p>In XOTcl 1, a more specific parameter definition without a default was ignored
 when a more general parameter definition with a default was
 present. In the example below, the object <tt>b1</tt> contained in XOTcl 1
@@ -5923,7 +6048,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 Bar b1</pre></div></div>
 </div>
 <div class="sect3">
-<h4 id="_changing_classes_and_superclasses">4.2.3. Changing classes and superclasses</h4>
+<h4 id="_changing_classes_and_superclasses">3.2.3. Changing classes and superclasses</h4>
 <div class="paragraph"><p>NX does not define the methods <tt>class</tt> and <tt>superclass</tt> but allows to
 alter the class/superclass via <tt>configure</tt>. The class and superclass
 can be certainly queried in all variants with <tt>info class</tt> or <tt>info superclass</tt>.</p></div>
@@ -5950,7 +6075,7 @@ Foo <span class='nx-keyword'>create</span> f1
 </div>
 </div>
 <div class="sect2">
-<h3 id="_calling_objects_via_method_interface">4.3. Calling Objects via Method Interface</h3>
+<h3 id="_calling_objects_via_method_interface">3.3. Calling Objects via Method Interface</h3>
 <div class="paragraph"><p>Since the Next Scripting Framework supports the so-called <em>ensemble
 objects</em>, which ease the definition of sub-methods substantially,
 objects registered as methods have different semantics. In XOTcl 1, it
@@ -5978,26 +6103,26 @@ that in the second case the current object of method foo is now Foo
 instead of ints.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_slots">4.4. Slots</h3>
+<h3 id="_slots">3.4. Slots</h3>
 <div class="paragraph"><p>All slot objects (also XOTcl slot objects) are now next-scripting
 objects of baseclass <tt>::nx::Slot</tt>. The name of the experimental
 default-setter <tt>initcmd</tt> was changed to <tt>defaultcmd</tt>. Code directly
 working on the slots objects has to be adapted.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_obsolete_commands">4.5. Obsolete Commands</h3>
+<h3 id="_obsolete_commands">3.5. Obsolete Commands</h3>
 <div class="paragraph"><p>Parameter-classes were rarely used and have been replaced by the more
 general object parameterization. Therefore, <tt>cl info parameterclass</tt> has
 been removed.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_stronger_checking">4.6. Stronger Checking</h3>
+<h3 id="_stronger_checking">3.6. Stronger Checking</h3>
 <div class="paragraph"><p>The Next Scripting Framework performs stronger checking than XOTcl 1
 For example, the requiredness of slots in XOTcl 1 was just a
 comment, while XOTcl 2 enforces it.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_exit_handlers">4.7. Exit Handlers</h3>
+<h3 id="_exit_handlers">3.7. Exit Handlers</h3>
 <div class="paragraph"><p>The exit hander interface changed from a method of <tt>::xotcl::Object</tt>
 into the Tcl command <tt>::nsf::exithandler</tt>:</p></div>
 <div class="listingblock">
@@ -6021,7 +6146,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-04-19 12:59:59 CEST
+Last updated 2011-05-04 12:08:29 CEST
 </div>
 </div>
 </body>

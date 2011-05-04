@@ -52,56 +52,121 @@ trying to reduce maintenance costs.
 We expect that many user will find it attractive to upgrade
 from XOTcl 1 to XOTcl 2, and some other users will upgrade to NX.
 This document focuses mainly on the differences between XOTcl 1 and
-NX, but addresses as well potential incompatibilitied between XOTcl 1
+NX, but addresses as well potential incompatibilities between XOTcl 1
 and XOTcl 2. For an introduction to NX, please consult the NX tutorial.
 
 Differences Between XOTcl and NX
 -------------------------------
 
-In general, the Next Scripting Language (NX) differs from XOTcl in 
-the following respects:
+The Next Scripting Framework supports _Language Oriented Programming_
+by providing means to define potentially multiple object systems with
+different naming and functionality in a single interpreter.  This
+makes the Next Scripting Framework a powerful instrument for defining
+multiple languages such as e.g.  domain specific languages. This focus
+differs from XOTcl 1.
 
-- The Next Scripting Language favors a _stronger form of
-  encapsulation_ than XOTcl. Calling the own methods or accessing the
-  own instance variables is typographically easier and computationally
-  faster than these operations on other objects. This behavior is
-  achieved via resolversm which make some methods necessary in XOTcl
-  obsolete in NX (especially for importing instance variables). On the
-  other hand, XOTcl is complete symmetrical in this respect.
+Technically, the language framework approach means that the languages
+implemented by the Next Scripting Framework (most prominently XOTcl 2
+and NX) are typically fully scripted and can be loaded via the usual
+Tcl +package require+ mechanism.
 
-- The encapsulation of NX is stronger than in XOTcl but still weak
-   compared to languages like C++; a developer can still access other
-   objects' variables via some idioms, but NX _makes accesses to other
-   objects variables explicit_.  The requiredness to make these
-   accesses explicit should encourage developer to implement well
-   defined interfaces to provide access to instance variables.
+Some of the new features below are provided by the Next Scripting
+Framework, some are implemented via the script files for XOTcl 2 and
+NX.
 
-- The Next Scripting Language provides means of _method
-   protection_. Therefore developers have to define interfaces in
-   order to use methods from other objects.
+=== Features of NX
 
-- The Next Scripting Language provides _scripted init blocks_ for
-   objects and classes (replacement for the dangerous dash "-"
-   mechanism in XOTcl that allows to set variables and invoke methods
-   upon object creation).
+In general, the Next Scripting Language (NX) differs from XOTcl
+in the following respects:
 
-- The Next Scripting Language provides much more orthogonal means to
-   _define, reuse and introspect scripted and C-implemented methods_.
+. *Stronger Encapsulation:* The Next Scripting Language favors
+  a _stronger form of encapsulation_ than XOTcl. Calling the own
+  methods or accessing the own instance variables is typographically
+  easier and computationally faster than these operations on other
+  objects. This behavior is achieved via _resolvers_, which make some
+  methods necessary in XOTcl 1 obsolete in NX (especially for importing
+  instance variables).  The encapsulation of NX is stronger than in
+  XOTcl but still weak compared to languages like C++; a developer can
+  still access other objects' variables via some idioms, but NX _makes
+  accesses to other objects variables explicit_.  The requiredness to
+  make these accesses explicit should encourage developer to implement
+  well defined interfaces to provide access to instance variables.
 
-- The Next Scripting Language provides an _orthogonal framework for
-   parametrization of methods and objects_. While XOTcl 1 provided only
-   value-checkers for non-positional arguments for methods, the Next Scripting
-   Framework provides the same value checkers for positional argument
-   of methods, as well as for object parameters (`-parameter` in XOTcl 1).
+. *Additional Forms of Method Definition and Reuse:* 
+   The Next Scripting Language
+   provides much more orthogonal means to _define, reuse and
+   introspect_ scripted and C-implemented methods.
 
-- The naming of the methods in the Next Scripting Language is much more
-  in line with the mainstream naming conventions in OO languages.
+   .. It is possible to use  NX +alias+ to register methods
+     under arbitrary names for arbitrary objects or classes.
 
-- The Next Scripting Language has a much _smaller interface_ (less
-  predefined methods) than XOTcl (see Table 1), allthough the
-  expressability was increased in NX.
+   .. NX provides means for _method protection_ (method modifiers
+     +public+ and +protected+). Therefore developers have to define
+     explicitly public interfaces in order to use methods from other
+     objects.
 
-.Comparison of the Number of Methods in NX and XOTcl
+   .. One can  invoke in NX fully qualified methods to invoke 
+     methods outside the precedence path.
+
+   .. One can  define in NX _ensemble methods_ (similar to 
+     commands and subcommands) in a convenient way to provide
+     extensible, hierarchical naming of methods.
+
+  .. One can use in NX the same interface to query (introspect)
+    C-implemented and  scripted methods/commands.
+
+. *Orthogonal Parameterization:*
+   The Next Scripting Language provides an _orthogonal framework for
+   parametrization_ of methods and objects. 
+   .. In NX, the same argument parser is used for
+     * Scripted Methods
+     * C-implemented methods and Tcl commands
+     * Object Parametrization
+   ..  While XOTcl 1 provided only value-checkers for non-positional 
+     arguments for methods, the Next Scripting Framework provides 
+     the same value checkers for positional and non-positional
+     arguments of methods, as well as for positional and 
+     non-positional object parameters (`-parameter` in
+     XOTcl 1). 
+  .. While XOTcl 1 supported only non-positional arguments at the
+    begin of the argument list, these can be used now at arbitrary
+    positions.
+
+. *Value Checking:* 
+
+   .. The Next Scripting Language supports checking of the _input
+     parmeters_ and the _return values_ of scripted and C-implemented
+     methods and commands.
+
+   .. NX provides a set of predefined checkers (like e.g. +integer+,
+    +boolean+, +object+, ...) which can be extended by the
+     applications.
+
+  .. Value Checking can be used for _single_ and _multi-valued_
+    parameters. One can e.g. define a list of integers
+    with at least one entry by the parameter specification
+    +integer,1..n+.
+
+  .. Value Checking can be turned on/off globally or on the
+    method/command level.
+
+. *Scripted Init Blocks:* The Next Scripting Language provides
+   _scripted init blocks_ for objects and classes (replacement for the
+   dangerous dash "-" mechanism in XOTcl that allows to set variables
+   and invoke methods upon object creation).
+
+. *More Conventional Naming for Predefined Methods:* The naming of
+  the methods in the Next Scripting Language is much more in line with
+  the mainstream naming conventions in OO languages. While for example
+  XOTcl uses +proc+ and +instproc+ for object specific and inheritable
+  methods, NX uses simply +method+.
+
+. *Much smaller Interface:* The Next Scripting Language has a much
+  _smaller interface_ (i.e.  provides less predefined methods) than
+  XOTcl (see Table 1), although the expressability was increased in
+  NX.
+
+.Comparison of the Number of Predefined Methods in NX and XOTcl
 [width="50%",frame="topbot",options="header,footer",cols="3,>1,>1"]
 |======================
 ||NX|XOTcl
@@ -112,18 +177,26 @@ the following respects:
 |Total                                  | 41|125
 |======================
 
+This comparison list compares mostly XOTcl 1 with NX, some features
+are also available in XOTcl 2 (2a, 2c 2d, 3, 4).
+
+=== NX and XOTcl Scripts 
 
 Below is a small, introductory example showing an implementation of a
-class +Stack+ in NX and XOTcl. NX supports a block syntax, where the
-methods are defined during the creation of the class. The XOTcl syntax
-is slightly more redundant, since every definition of a method is a
-single toplevel command starting with the class name (also NX supports
-the style used in XOTcl).  In NX, all methods are per default
-protected (XOTcl does not support protection). In NX methods are
-defined in the definition of the class via +:method+ or +:public
-method+. In XOTcl methods are defined via the +instproc+ method.
+class +Stack+ in NX and XOTcl. The purpose of this first example is
+just a quick overview. We will go into much more detailed comparison
+in the next sections.
 
-Another difference is the notation to refere to instance variables. In
+NX supports a block syntax, where the methods are defined during the
+creation of the class. The XOTcl syntax is slightly more redundant,
+since every definition of a method is a single toplevel command
+starting with the class name (also NX supports the style used in
+XOTcl).  In NX, all methods are per default protected (XOTcl does not
+support protection). In NX methods are defined in the definition of
+the class via +:method+ or +:public method+. In XOTcl methods are
+defined via the +instproc+ method.
+
+Another difference is the notation to refer to instance variables. In
 NX, instance variable are named with a single colon in the front. In
 XOTcl, instance variables are imported using +instvar+.
 
@@ -181,8 +254,8 @@ Stack instproc pop {} {
 --------------------------------------------------
 |======================
 
-Using XOTcl 2.0 and the Next Scripting Language in a Single Interpreter
----------------------------------------------------------------------
+
+=== Using XOTcl 2.0 and the Next Scripting Language in a Single Interpreter
 
 In general, the Next Scripting Framework supports multiple object
 systems concurrently. Effectively, every object system has different
