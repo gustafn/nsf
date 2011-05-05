@@ -409,3 +409,38 @@ nx::Test case parametersyntax {
   ? {::nx::Object info method parametersyntax ::nx::next} "?arguments?"
   ? {::nx::Object info method parametersyntax ::nsf::xotclnext} "?--noArgs? ?arg ...?"
 }
+
+nx::Test case info-heritage {
+  Class create A
+  Class create B -superclass A
+  Class create M1
+  Class create M2 -superclass A
+  Class create M3
+
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+  ? {M1 info heritage} "::nx::Object"
+  ? {M2 info heritage} "::A ::nx::Object"
+
+  B mixin add M1
+
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::M1 ::A ::nx::Object"
+
+  B mixin M2
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::M2 ::A ::nx::Object"
+
+  B mixin A
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+
+  M3 mixin B
+  ? {B info heritage} "::A ::nx::Object"
+
+  A mixin M3
+  ? {A info heritage} "::M3 ::B ::M3 ::nx::Object"
+
+  B mixin M3
+  ? {B info heritage} "::M3 ::M3 ::M3 ::M3 ::M3 ::M3 ::A ::nx::Object"
+}
