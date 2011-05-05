@@ -2672,6 +2672,7 @@ nsf:
   * let result of "cls info heritage" return per-class mixins 
     as well, otherwise it would be useless, since 
     "cls info superclass -closure" would return the same
+  * replaced loops with NsfClassListFind()
 
 TODO:
 
@@ -2688,8 +2689,6 @@ TODO:
   c) provide an additional flag to obtain mixins (not nice, since base
      version is useless)
   
-- there are probably many more places, where NsfClassListFind() could be used.
-
 - ::nsf::method::exists /handle/ -> check, if handle is a handle of a registered method
   (to be be used in serializer alias-dependency)
 - profiling missing when NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.

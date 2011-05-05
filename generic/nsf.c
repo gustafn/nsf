@@ -5015,18 +5015,11 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
         if ((pl->cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
           NsfClassOpt *opt = pl->cl->opt;
           if (opt && opt->classmixins) {
-            /* compute transitively the (class) mixin classes of this
-               added class */
-            NsfClasses *cls;
-            int i, found = 0;
-            for (i=0, cls = *checkList; cls; i++, cls = cls->nextPtr) {
-              /* fprintf(stderr, "+++ c%d: %s\n", i, ClassName(cls->cl));*/
-              if (pl->cl == cls->cl) {
-                found = 1;
-                break;
-              }
-            }
-            if (!found) {
+            /* 
+	     * compute transitively the (class) mixin classes of this
+             * added class 
+	     */
+            if (!NsfClassListFind(*checkList, pl->cl)) {
               NsfClassListAdd(checkList, pl->cl, NULL);
               /*fprintf(stderr, "+++ transitive %s\n",
                 ObjStr(pl->cl->object.cmdName));*/
@@ -6863,10 +6856,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     for (j = i+1; j < oc; j++) {
       NsfClasses *dl = ComputeOrder(scl[j], scl[j]->order, Super);
       if (reversed) break;
-      while (dl) {
-	if (dl->cl == scl[i]) break;
-	dl = dl->nextPtr;
-      }
+      dl = NsfClassListFind(dl, scl[i]);
       if (dl) reversed = 1;
     }
   }
@@ -10290,7 +10280,7 @@ ComputeSlotObjects(Tcl_Interp *interp, NsfObject *object, NsfClass *type, int wi
   MEM_COUNT_ALLOC("Tcl_InitHashTable", slotTable);
 
   fullPrecendenceList = ComputePrecedenceList(interp, object, NULL /* pattern*/, 1, withRootClass);
-  for (pl=fullPrecendenceList; pl; pl = pl->nextPtr) {
+  for (pl = fullPrecendenceList; pl; pl = pl->nextPtr) {
     Tcl_DString ds, *dsPtr = &ds;
 
     DSTRING_INIT(dsPtr);
@@ -12015,20 +12005,13 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) {
 
 static int
 IsSubType(NsfClass *subcl, NsfClass *cl) {
-  NsfClasses *t;
-  int success = 1;
+
   assert(cl && subcl);
 
   if (cl != subcl) {
-    success = 0;
-    for (t = ComputeOrder(subcl, subcl->order, Super); t && t->cl; t = t->nextPtr) {
-      if (t->cl == cl) {
-        success = 1;
-        break;
-      }
-    }
+    return NsfClassListFind(ComputeOrder(subcl, subcl->order, Super), cl) != NULL;
   }
-  return success;
+  return 1;
 }
 
 static int
@@ -18864,9 +18847,8 @@ classInfoMethod heritage NsfClassInfoHeritageMethod {
 */
 static int
 NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern) {
-  NsfClasses *pl, *intrinsic;
+  NsfClasses *pl, *intrinsic,  *checkList = NULL, *mixinClasses = NULL;
   int withMixins = 1;
-  NsfClasses *checkList = NULL, *mixinClasses = NULL;
 
   Tcl_ResetResult(interp);
 
