@@ -161,6 +161,13 @@ in the following respects:
   XOTcl uses +proc+ and +instproc+ for object specific and inheritable
   methods, NX uses simply +method+.
 
+. *Profiling Support:* The Next Scripting Language provides now two
+  forms of profiling
+   * Profiling via a DTrace provider (examples are e.g. in the dtrace
+      subdirectory of the source tree)
+   * Significantly improved built-in profiling (results can be
+     processed in Tcl).
+
 . *Much smaller Interface:* The Next Scripting Language has a much
   _smaller interface_ (i.e.  provides less predefined methods) than
   XOTcl (see Table 1), although the expressability was increased in
