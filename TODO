@@ -2681,7 +2681,15 @@ TODO:
 - if the tests on the last two tests fails, we get an exception (should 
   go away, when the duplicates are eliminated).
 
+- what to do with "info heritage"
+  a) keep the new version (slightly incompatible in XOTcl)
+  b) provide a scripted compatible version in "info superclass"
+     (might be confusing, when using XOTcl and nx in the same script)
+  c) provide an additional flag to obtain mixins (not nice, since base
+     version is useless)
+  
 - there are probably many more places, where NsfClassListFind() could be used.
+
 - ::nsf::method::exists /handle/ -> check, if handle is a handle of a registered method
   (to be be used in serializer alias-dependency)
 - profiling missing when NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.
