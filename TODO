@@ -2666,10 +2666,13 @@ nsf:
   * nsf works with OpenACS again (requires new nstrace.tcl, 
     aolserver-openacs.tcl, and 01-debug-procs.tcl).
 
+- nsf.c: factor out ClassListAddPerClassMixins()
+
 TODO:
 
 - ::nsf::method::exists /handle/ -> check, if handle is a handle of a registered method
   (to be be used in serializer alias-dependency)
+- profiling missing when NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.
 
 - maybe change nx::Test to nx::test (user never has to know that nx::Test is a class).
 - maybe move -count to the test case (but then a test-case less test needs a change of method)

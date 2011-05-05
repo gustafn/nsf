@@ -5035,15 +5035,55 @@ MixinResetOrder(NsfObject *object) {
 }
 
 /*
- * Computes a linearized order of per-object and per-class mixins. Then
- * duplicates in the full list and with the class inheritance list of
- * 'obj' are eliminated.
- * The precendence rule is that the last occurence makes it into the
- * final list.
+ *----------------------------------------------------------------------
+ * ClassListAddPerClassMixins --
+ *
+ *    Append the class mixins to the proivded list. Check list is used to
+ *    eliminate potential duplicates.
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Appends potentially elements classList and checkList
+ *
+ *----------------------------------------------------------------------
  */
+static void 
+ClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *cl, 
+			   NsfClasses **classList, NsfClasses **checkList) {
+  /* append per-class mixins */
+  NsfClasses *pl;
+
+  for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
+    NsfClassOpt *clopt = pl->cl->opt;
+    if (clopt && clopt->classmixins) {
+      MixinComputeOrderFullList(interp, &clopt->classmixins, 
+				classList, checkList, 0);
+    }
+  }
+}
+
+/*
+ *----------------------------------------------------------------------
+ * MixinComputeOrder --
+ *
+ *    Compute a duplicate-free linearized order of per-object and per-class
+ *    mixins and the class inheritance.  The precendence rule is that the last
+ *    occurence makes it into the final list.
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    object->mixinOrder is updated.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static void
 MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
-  NsfClasses *fullList, *checkList = NULL, *mixinClasses = NULL, *nextCl, *pl,
+  NsfClasses *fullList, *checkList = NULL, *mixinClasses = NULL, *nextCl,
     *checker, *guardChecker;
 
   if (object->mixinOrder)  MixinResetOrder(object);
@@ -5055,13 +5095,9 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   }
 
   /* append per-class mixins */
-  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
-    NsfClassOpt *opt = pl->cl->opt;
-    if (opt && opt->classmixins) {
-      MixinComputeOrderFullList(interp, &opt->classmixins, &mixinClasses,
-                                &checkList, 0);
-    }
-  }
+  ClassListAddPerClassMixins(interp, object->cl, &mixinClasses, &checkList);
+  NsfClassListFree(checkList);
+
   fullList = mixinClasses;
 
   /* use no duplicates & no classes of the precedence order
@@ -6214,10 +6250,10 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
   if (!guardAdded) {
     /* search per-class filters */
     for (pl = ComputeOrder(object->cl, object->cl->order, Super); !guardAdded && pl; pl = pl->nextPtr) {
-      NsfClassOpt *opt = pl->cl->opt;
-      if (opt) {
+      NsfClassOpt *clopt = pl->cl->opt;
+      if (clopt) {
         guardAdded = GuardAddFromDefinitionList(dest, filterCmd,
-                                                opt->classfilters);
+                                                clopt->classfilters);
       }
     }
 
@@ -6593,10 +6629,10 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
     FilterComputeOrderFullList(interp, &object->opt->filters, &filterList);
   }
   /* append per-class filters */
-  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl=pl->nextPtr) {
-    NsfClassOpt *opt = pl->cl->opt;
-    if (opt && opt->classfilters) {
-      FilterComputeOrderFullList(interp, &opt->classfilters, &filterList);
+  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
+    NsfClassOpt *clopt = pl->cl->opt;
+    if (clopt && clopt->classfilters) {
+      FilterComputeOrderFullList(interp, &clopt->classfilters, &filterList);
     }
   }
 
@@ -11943,17 +11979,9 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) {
     int hasMCM = 0;
 
     /* has the class metaclass mixed in? */
-    for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
-      NsfClassOpt *clopt = pl->cl->opt;
-      if (clopt && clopt->classmixins) {
-	MixinComputeOrderFullList(interp,
-				  &clopt->classmixins,
-				  &mixinClasses,
-				  &checkList, 0);
-      }
-    }
+    ClassListAddPerClassMixins(interp, cl, &mixinClasses, &checkList);
 
-    for (mc=mixinClasses; mc; mc = mc->nextPtr) {
+    for (mc = mixinClasses; mc; mc = mc->nextPtr) {
       if (IsMetaClass(interp, mc->cl, 0)) {
 	hasMCM = 1;
 	break;
