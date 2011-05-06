@@ -2691,13 +2691,15 @@ nsf:
   * code cleanup
 - extended regression test
 
+- nsf.c:
+  * ensure that explicit per-object-mixins are kept at the front in "info
+    heritage" order and in "info precedence" when classes are added as
+    POMs and PCMs
+  * extended regression test
 
 TODO:
 
-- check again, of the nodup elimination in 
-  MixinComputeOrderFullList() is ok, maybe the duplicate elimination
-  in info heritage should be based on something like 
-  MixinComputeOrder() based on CmdListAdd()
+- MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 
 - if the check on eg. info-heritage-circular in test/info.method.tcl
   fails, we get an exception.

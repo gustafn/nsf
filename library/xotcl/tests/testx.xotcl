@@ -888,7 +888,7 @@ TestX mixinGuards -proc run {{n 20}} {
     Bird instmixin {{Fly -guard {[my age]>2 && ![my istype Penguine]}} Sing}
 
     foreach bird {tweedy pingo donald lora} { $bird fly }
-    
+
     ::errorCheck [set ::r] [list \
 	{::tweedy ::Parrot (1 years): how should i fly?} \
         {::pingo ::Penguine (5 years): how should i fly?} \
@@ -940,12 +940,12 @@ TestX mixinGuards -proc run {{n 20}} {
       lappend ::r "$i [eval $i]"
     }
 
-
-    ::errorCheck [set ::r] [list \
-	{Bird info instmixin -guards ::PCM-start {::Fly -guard {[my age]>2 && ![my istype Penguine]}} ::Sing ::PCM-end} \
-	{pingo info mixin -guards ::POM-start {::Fly -guard {[my age]>2}} ::Sing ::POM-end} \
-        {pingo info mixin -order -guards ::POM-start ::POM-end ::PCM-start {::Fly -guard {[my age]>2}} ::Sing ::PCM-end}] \
-	{Same Mixin Guard ... Info}
+  ::errorCheck [Bird info instmixin -guards] \
+	{::PCM-start {::Fly -guard {[my age]>2 && ![my istype Penguine]}} ::Sing ::PCM-end} pingo1
+  ::errorCheck [pingo info mixin -guards] \
+	{::POM-start {::Fly -guard {[my age]>2}} ::Sing ::POM-end} pingo2
+  ::errorCheck [pingo info mixin -order -guards] \
+	{::POM-start {::Fly -guard {[my age]>2}} ::Sing ::POM-end ::PCM-start ::PCM-end} pingo3
 
     set ::r ""
     pingo fly
@@ -2107,12 +2107,12 @@ TestX mixinTest -proc run {{n 10}} {
     B instmixin {M3 M1 M1 M4}
     b mixin {M1 M1 M4}
     
-    ::errorCheck [b info mixin] "::M1 ::M4" "Mixin Info: -no dups"
-    ::errorCheck [b info precedence] "::M3 ::M1 ::M4 ::M2 ::B ::A ::xotcl::Object" "Mixin Info: -no dups"
-    ::errorCheck [b info mixin -order] "::M3 ::M1 ::M4 ::M2" "Mixin Info: -order option"
+    ::errorCheck [b info mixin] "::M1 ::M4" "Mixin Info: -no dups1"
+    ::errorCheck [b info precedence] "::M1 ::M4 ::M3 ::M2 ::B ::A ::xotcl::Object" "Mixin Info: -no dups2"
+    ::errorCheck [b info mixin -order] "::M1 ::M4 ::M3 ::M2" "Mixin Info: -order option1"
     ::errorCheck [B info instmixin]-[b info mixin] "::M3 ::M1 ::M4-::M1 ::M4" "Mixin Info: no duplicates"
     B instmixin {}
-    ::errorCheck [b info mixin -order] "::M1 ::M4 ::M2" "Mixin Info: -order option"
+    ::errorCheck [b info mixin -order] "::M1 ::M4 ::M2" "Mixin Info: -order option2"
     
     set ::r ""
     Class X11 -instproc test {args} {
@@ -2287,6 +2287,10 @@ TestX mixinInheritanceTest -proc run {{n 10}} {
 
 	C c
 	c mixin {AppMixin3 AppMixin2}
+
+      ::errorCheck [c info precedence] \
+	    "::AppMixin3 ::AppMixin2 ::AppMixin1 ::RefinedMixin1 ::RefinedMixin2 ::GeneralMixin ::C ::A ::B ::xotcl::Object" \
+	    "mixin precedence"
 
 	set r [c aProc ARGS1 ARGS2]
 	::errorCheck $mixinResult \

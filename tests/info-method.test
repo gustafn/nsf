@@ -547,10 +547,15 @@ nx::Test case info-heritage-circular {
   ? {A info heritage} "::O ::nx::Object"
   ? {B info heritage} "::A ::O ::nx::Object"
   ? {M3 info heritage} "::B ::A ::O ::nx::Object"
+
   A mixin M3
+
   ? {A info heritage} "::B ::M3 ::O ::nx::Object"
   ? {B info heritage} "::M3 ::A ::O ::nx::Object"
-  ? {M3 info heritage} "::B ::A ::O ::nx::Object"
+
+  M3 create m1
+  ? {m1 info precedence} "::B ::A ::O ::M3 ::nx::Object"
+  ? {M3 info heritage}   "::B ::A ::O ::nx::Object"
 
   B mixin M3
   ? {B info heritage} "::M3 ::A ::O ::nx::Object"
@@ -609,7 +614,34 @@ nx::Test case info-heritage-multimix {
   # PCM, therefore the classes mixed in by POMS are not at the front
   # of the list.
   #
-  ? {b1 info precedence} "::M3 ::M1 ::M4 ::M2 ::B ::A ::nx::Object"
-  #? {b1 info precedence} "::M1 ::M4 ::M3 ::M2 ::B ::A ::nx::Object"
+  puts stderr =====1
+  #? {b1 info precedence} "::M3 ::M1 ::M4 ::M2 ::B ::A ::nx::Object"
+
+  ? {b1 info precedence} "::M1 ::M4 ::M3 ::M2 ::B ::A ::nx::Object"
+  puts stderr =====2
 }
 
+#
+# per-object mixin with implied classes
+#
+nx::Test case info-heritage-multimix {
+  Class create A
+  Class create B -superclass A
+  Class create C
+  Class create PCM -superclass A
+  C create c1
+
+  ? {c1 info precedence} "::C ::nx::Object"
+
+  # ::A is an implied class
+  c1 mixin B
+  ? {c1 info precedence} "::B ::A ::C ::nx::Object"
+
+  # ::A is as well implied by ::PCM
+  C mixin PCM
+  ? {C info heritage} "::PCM ::A ::nx::Object"
+
+  # ::A is not ordered after ::B but after ::PCM
+  ? {c1 info precedence} "::B ::PCM ::A ::C ::nx::Object"
+
+}
