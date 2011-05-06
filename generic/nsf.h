@@ -259,6 +259,9 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
 extern int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, 
 			   CONST char *what, CONST char *methodName);
+extern int
+NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what);
+
 
 #define NSF_LOG_NOTICE 2
 #define NSF_LOG_WARN 1

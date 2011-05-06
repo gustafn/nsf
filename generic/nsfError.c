@@ -32,8 +32,7 @@ Tcl_Obj *NsfParamDefsSyntax(Nsf_Param CONST *paramPtr);
  */
 
 extern void
-NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
-{
+NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc) {
   int      result, avail = dsPtr->spaceAvl, offset = dsPtr->length;
   va_list  ap;
   
@@ -70,8 +69,7 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
  *----------------------------------------------------------------------
  */
 extern void
-NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
-{
+NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
   int i;
   for (i=0; i<objc; i++) {
     Tcl_DStringAppendElement(dsPtr, ObjStr(objv[i]));
@@ -234,10 +232,14 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  *----------------------------------------------------------------------
  */
 extern int
-NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, CONST char *what, CONST char *methodName) {
-  return NsfPrintError(interp, "Method %s not dispatched on valid %s%s",
-		       methodName, what,
-		       clientData ? "" : " ; don't call aliased methods via namespace paths!");
+NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, 
+			   CONST char *what, CONST char *methodName) {
+  if (clientData) {
+    return NsfPrintError(interp, "Method %s not dispatched on valid %s",
+			 methodName, what);  
+  } else {
+    return NsfNoCurrentObjectError(interp, methodName);
+  }
 }
 
 /*

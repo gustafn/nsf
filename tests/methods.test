@@ -422,10 +422,10 @@ Test case dispatch-without-object {
   ? ::o::a "Method ::o::a not dispatched on valid object"
   ? ::o::b "::o2"
   ? ::o::foo "No current object; command called outside the context of a Next Scripting method"
-  ? ::o::x "Method x not dispatched on valid object ; don't call aliased methods via namespace paths!"
+  ? ::o::x "No current object; x called outside the context of a Next Scripting method"
   # make a regular call, provide tcd->object with a value
   ? {::o x} "::o"
   # check, if missing object is still detected
-  ? ::o::x "Method x not dispatched on valid object ; don't call aliased methods via namespace paths!"
+  ? ::o::x "No current object; x called outside the context of a Next Scripting method"
   ? self "No current object; command called outside the context of a Next Scripting method"
 }

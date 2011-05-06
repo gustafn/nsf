@@ -133,6 +133,7 @@ nx::Test case callable {
     ? {o bar} Object.bar
 
     o mixin ::nx::Class
+    ? {o info precedence} "::nx::Class ::nx::Object"
     ? {o info lookup method bar} "::nsf::classes::nx::Class::bar"
     ? {o info lookup methods bar} bar
     ? {o info lookup methods create} ""
@@ -413,9 +414,12 @@ nx::Test case parametersyntax {
 nx::Test case info-heritage {
   Class create A
   Class create B -superclass A
+  Class create BB -superclass B
+  Class create C -superclass A
+  Class create CC -superclass C
+  Class create D -superclass A
   Class create M1
   Class create M2 -superclass A
-  Class create M3
 
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::A ::nx::Object"
@@ -435,12 +439,166 @@ nx::Test case info-heritage {
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::A ::nx::Object"
 
-  M3 mixin B
-  ? {B info heritage} "::A ::nx::Object"
+  B mixin C
 
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::C ::A ::nx::Object"
+
+  B mixin ""
+
+  ? {BB info heritage} "::B ::A ::nx::Object"
+  BB mixin CC
+  ? {BB info heritage} "::CC ::C ::B ::A ::nx::Object"
+  BB mixin ""
+  ? {BB info heritage} "::B ::A ::nx::Object"
+}
+
+nx::Test case info-heritage-transitive {
+  Class create O
+  Class create A -superclass O
+  Class create B -superclass A
+  Class create C -superclass A
+  Class create D -superclass A
+
+  # transitive case
+  C mixin D
+  B mixin C
+  ? {C info heritage} "::D ::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+  ? {B info heritage} "::D ::C ::A ::O ::nx::Object"
+
+  # reset
+  C mixin ""
+  B mixin ""
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {C info heritage} "::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+
+
+  # transitve different order
+  B mixin C
+  C mixin D
+  ? {B info heritage} "::D ::C ::A ::O ::nx::Object"
+  ? {C info heritage} "::D ::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+
+
+  # reset
+  C mixin ""
+  B mixin ""
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {C info heritage} "::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+}
+
+
+nx::Test case info-heritage-circular {
+  Class create O
+  Class create A -superclass O
+  Class create B -superclass A
+  Class create BB -superclass B
+  Class create C -superclass A
+  Class create CC -superclass C
+  Class create D -superclass A
+  Class create M3
+  Class create M2 -superclass A
+  Class create M
+
+  # circular case
+  B mixin C
+  C mixin B
+  ? {B info heritage} "::C ::A ::O ::nx::Object"
+  ? {C info heritage} "::B ::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+
+  # reset
+  C mixin ""
+  B mixin ""
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {C info heritage} "::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"  
+
+  # indirect circular case
+  B mixin C
+  C mixin BB
+  ? {B info heritage} "::BB ::C ::A ::O ::nx::Object"
+  ? {C info heritage} "::BB ::B ::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+
+  # reset
+  C mixin ""
+  B mixin ""
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {C info heritage} "::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"  
+
+  M3 mixin B
+  ? {A info heritage} "::O ::nx::Object"
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {M3 info heritage} "::B ::A ::O ::nx::Object"
   A mixin M3
-  ? {A info heritage} "::M3 ::B ::M3 ::nx::Object"
+  ? {A info heritage} "::B ::M3 ::O ::nx::Object"
+  ? {B info heritage} "::M3 ::A ::O ::nx::Object"
+  ? {M3 info heritage} "::B ::A ::O ::nx::Object"
 
   B mixin M3
-  ? {B info heritage} "::M3 ::M3 ::M3 ::M3 ::M3 ::M3 ::A ::nx::Object"
+  ? {B info heritage} "::M3 ::A ::O ::nx::Object"
 }
+
+#
+# Mixin the same class twice, once per-class and one per-object.
+#
+nx::Test case info-heritage-simple-multimix {
+  Class create Agent
+  Class create MovementTest
+  Class create MovementLog
+  
+  Agent mixin MovementTest
+  Agent create a1 
+
+  ? {Agent info heritage} "::MovementTest ::nx::Object"
+  ? {a1 info precedence} "::MovementTest ::Agent ::nx::Object"
+
+  a1 mixin {MovementTest MovementLog}
+
+  ? {Agent info heritage} "::MovementTest ::nx::Object"
+  ? {a1 info precedence} "::MovementTest ::MovementLog ::Agent ::nx::Object"
+}
+
+nx::Test case info-heritage-multimix {
+  Class create A
+  Class create B -superclass A
+  Class create M1
+  Class create M2
+  Class create M3
+  Class create M4
+
+  B create b1
+  ? {B info heritage} "::A ::nx::Object"
+  ? {b1 info precedence} "::B ::A ::nx::Object"
+
+  A mixin {M1 M2}
+  ? {B info heritage} "::M1 ::M2 ::A ::nx::Object"
+  ? {b1 info precedence} "::M1 ::M2 ::B ::A ::nx::Object"
+  
+  b1 mixin {M1 M1 M4}
+  ? {b1 info precedence} "::M1 ::M4 ::M2 ::B ::A ::nx::Object"
+  ? {b1 info mixin classes} "::M1 ::M4"
+
+  B mixin {M3 M1 M1 M4}
+  ? {B info heritage} "::M3 ::M1 ::M4 ::M2 ::A ::nx::Object"
+
+  # The following looks strange, since the POMS are not at the front
+  # of the list. However, we have to deal here with conflicting
+  # goals. One one hand side multiple occurances of the same class in
+  # the precedence list are handled by keeping just the last
+  # occurance. This way, ::nx::Object (with e.g. method delete) is
+  # always at the end, although it is part of every class
+  # hierarchy. This rule in not compatible with the rule POM before
+  # PCM, therefore the classes mixed in by POMS are not at the front
+  # of the list.
+  #
+  ? {b1 info precedence} "::M3 ::M1 ::M4 ::M2 ::B ::A ::nx::Object"
+  #? {b1 info precedence} "::M1 ::M4 ::M3 ::M2 ::B ::A ::nx::Object"
+}
+

@@ -1746,9 +1746,12 @@ TestX mixinTest -proc run {{n 10}} {
 	"Instmixin: 'i4 moveAgent 3 4' failed"
     
     i4 mixin {MovementTest MovementLog}
-    
     i4 proc aaa args {puts TEST}
-    ::errorCheck [i4 procsearch moveAgent]-[i4 procsearch aaa]-[i4 procsearch set] "::MovementLog instproc moveAgent-::i4 proc aaa-::xotcl::Object instcmd set" "procsearch"
+
+    ::errorCheck [i4 info precedence]      "::MovementTest ::MovementLog ::InteractiveAgent3 ::Agent ::xotcl::Object" "precedence i4"
+    ::errorCheck [i4 procsearch moveAgent] "::MovementTest instproc moveAgent" "procsearch1"
+    ::errorCheck [i4 procsearch aaa]       "::i4 proc aaa" "procsearch2"
+    ::errorCheck [i4 procsearch set]       "::xotcl::Object instcmd set" "procsearch3"
 
     Class create A
     A instproc f1 {} {puts hu}
@@ -1772,7 +1775,7 @@ TestX mixinTest -proc run {{n 10}} {
     set mixinResult ""
     i4 moveAgent 5 6
     ::errorCheck $mixinResult \
-	-::i4-moveAgent-::MovementLog-::i4-otherProc-::MovementLog-::i4-otherProc-::Agent-::i4-moveAgent-::MovementTest-::i4-moveAgent-::InteractiveAgent3-::i4-moveAgent-::Agent \
+	-::i4-moveAgent-::MovementTest-::i4-moveAgent-::MovementLog-::i4-otherProc-::MovementLog-::i4-otherProc-::Agent-::i4-moveAgent-::InteractiveAgent3-::i4-moveAgent-::Agent \
 	"Instmixin: 'i4 moveAgent 5 6' failed"
     
     Class A
@@ -2104,10 +2107,12 @@ TestX mixinTest -proc run {{n 10}} {
     B instmixin {M3 M1 M1 M4}
     b mixin {M1 M1 M4}
     
-    ::errorCheck [b info mixin -order] "::M3 ::M4 ::M1 ::M2" "Mixin Info: -order option"
+    ::errorCheck [b info mixin] "::M1 ::M4" "Mixin Info: -no dups"
+    ::errorCheck [b info precedence] "::M3 ::M1 ::M4 ::M2 ::B ::A ::xotcl::Object" "Mixin Info: -no dups"
+    ::errorCheck [b info mixin -order] "::M3 ::M1 ::M4 ::M2" "Mixin Info: -order option"
     ::errorCheck [B info instmixin]-[b info mixin] "::M3 ::M1 ::M4-::M1 ::M4" "Mixin Info: no duplicates"
     B instmixin {}
-    ::errorCheck [b info mixin -order] "::M4 ::M1 ::M2" "Mixin Info: -order option"
+    ::errorCheck [b info mixin -order] "::M1 ::M4 ::M2" "Mixin Info: -order option"
     
     set ::r ""
     Class X11 -instproc test {args} {

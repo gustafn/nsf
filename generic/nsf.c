@@ -1330,6 +1330,46 @@ NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
 
 /*
  *----------------------------------------------------------------------
+ * NsfClassListNoDup --
+ *
+ *    Add class list entry to the specified list without duplicates. In case
+ *    the initial list is empty, *firstPtrPtr is updated as well.
+ *
+ * Results:
+ *    Returns address of next pointer.
+ *
+ * Side effects:
+ *    New list element is allocated.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static NsfClasses **
+NsfClassListNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData, int *new) {
+  NsfClasses *l = *firstPtrPtr, *element = NULL, **newPtr = &element;
+
+  if (l) {
+    for (; l->nextPtr && l->cl != cl; l = l->nextPtr);
+    newPtr = &l->nextPtr;
+  } else {
+    newPtr = firstPtrPtr;
+  }
+  
+  if (l == NULL || l->cl != cl) {
+    if (new) *new = 1;
+    element = NEW(NsfClasses);
+    element->cl = cl;
+    element->clientData = clientData;
+    element->nextPtr = NULL;
+    *newPtr = element;
+  } else {
+    if (new) *new = 0;
+  }
+  return newPtr;
+}
+
+/*
+ *----------------------------------------------------------------------
  * NsfClassListFind --
  *
  *    Find an element in the class list and return it if found.
@@ -1349,6 +1389,22 @@ NsfClassListFind(NsfClasses *classList, NsfClass *cl) {
   }
   return classList;
 }
+
+#if 1
+/* debugging purposes only */
+static void
+NsfClassListPrint(CONST char *title, NsfClasses *clsList) {
+  if (title) {
+    fprintf(stderr, "%s", title);
+  }
+  fprintf(stderr, " %p: ", clsList);
+  while (clsList) {
+    fprintf(stderr, "%p %s ", clsList->cl, ClassName(clsList->cl));
+    clsList = clsList->nextPtr;
+  }
+  fprintf(stderr, "\n");
+}
+#endif
 
 #if defined(CHECK_ACTIVATION_COUNTS)
 /*
@@ -4423,21 +4479,21 @@ CmdListReplaceCmd(NsfCmdList *replace, Tcl_Command cmd, NsfClass *clorobj) {
   NsfCommandRelease(del);
 }
 
-#if 0
+#if 1
 /** for debug purposes only */
 static void
 CmdListPrint(Tcl_Interp *interp, CONST char *title, NsfCmdList *cmdList) {
-  if (cmdList) {
-    fprintf(stderr, title);
+  if (title) {
+    fprintf(stderr, "%s %p:\n", title, cmdList);
   }
   while (cmdList) {
     fprintf(stderr, "   CL=%p, cmdPtr=%p %s, clorobj %p, clientData=%p\n",
             cmdList,
             cmdList->cmdPtr,
-            in ? Tcl_GetCommandName(interp, cmdList->cmdPtr) : "",
+            interp ? Tcl_GetCommandName(interp, cmdList->cmdPtr) : "",
             cmdList->clorobj,
             cmdList->clientData);
-    cmdList = cmdList->next;
+    cmdList = cmdList->nextPtr;
   }
 }
 #endif
@@ -5011,39 +5067,46 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
     NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
     if (mCl) {
       for (pl = ComputeOrder(mCl, mCl->order, Super); pl; pl = pl->nextPtr) {
-        /*fprintf(stderr, " %s, ", ObjStr(pl->cl->object.cmdName));*/
+        //fprintf(stderr, " %s, ", ClassName(pl->cl));
         if ((pl->cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
           NsfClassOpt *opt = pl->cl->opt;
           if (opt && opt->classmixins) {
             /* 
-	     * compute transitively the (class) mixin classes of this
-             * added class 
+	     * Compute transitively the (class) mixin classes of this
+             * added class.
 	     */
+	    /*fprintf(stderr, "find %p %s in checklist %p\n", pl->cl, ClassName(pl->cl), *checkList);*/
             if (!NsfClassListFind(*checkList, pl->cl)) {
               NsfClassListAdd(checkList, pl->cl, NULL);
-              /*fprintf(stderr, "+++ transitive %s\n",
-                ObjStr(pl->cl->object.cmdName));*/
+              /*fprintf(stderr, "+++ transitive %s\n", ClassName(pl->cl));*/
 
               MixinComputeOrderFullList(interp, &opt->classmixins, mixinClasses,
                                         checkList, level+1);
-            }
+            } else {
+              /*fprintf(stderr, "+++ dont add %s\n", ClassName(pl->cl));*/
+	    }
           }
-          /* fprintf(stderr, "+++ add to mixinClasses %p path: %s clPtr %p\n",
-             mixinClasses, ObjStr(pl->cl->object.cmdName), clPtr);*/
-          clPtr = NsfClassListAdd(clPtr, pl->cl, m->clientData);
+          /*fprintf(stderr, "+++ add to mixinClasses %p path: %s clPtr %p\n",
+	    mixinClasses, ClassName(pl->cl), clPtr);*/
+	  clPtr = NsfClassListNoDup(clPtr, pl->cl, m->clientData, NULL);
         }
       }
     }
   }
+
+  //NsfClassListPrint("MixinComputeOrderFullList final", *mixinClasses);
+  //NsfClassListPrint("MixinComputeOrderFullList check", *checkList);
+
   if (level == 0 && *checkList) {
     NsfClassListFree(*checkList);
     *checkList = NULL;
   }
+
 }
 
 static void
 MixinResetOrder(NsfObject *object) {
-  /*fprintf(stderr, "removeList %s \n", ObjectName(object));*/
+  /*fprintf(stderr, "MixinResetOrder for object %s \n", ObjectName(object));*/
   CmdListRemoveList(&object->mixinOrder, NULL /*GuardDel*/);
   object->mixinOrder = NULL;
 }
@@ -5072,7 +5135,7 @@ NsfClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *cl,
     NsfClassOpt *clopt = pl->cl->opt;
     if (clopt && clopt->classmixins) {
       MixinComputeOrderFullList(interp, &clopt->classmixins, 
-				classList, checkList, 0);
+				classList, checkList, 1);
     }
   }
 }
@@ -5103,11 +5166,18 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   /* append per-obj mixins */
   if (object->opt) {
     MixinComputeOrderFullList(interp, &object->opt->mixins, &mixinClasses,
-                              &checkList, 0);
+                              &checkList, 1);
   }
+  /*fprintf(stderr, "%s ", ObjectName(object));
+    NsfClassListPrint("MixinComputeOrder poms", mixinClasses);*/
 
   /* append per-class mixins */
   NsfClassListAddPerClassMixins(interp, object->cl, &mixinClasses, &checkList);
+
+  /*fprintf(stderr, "%s ", ObjectName(object));
+  NsfClassListPrint("MixinComputeOrder poms+pcms", mixinClasses);
+  CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
+
   NsfClassListFree(checkList);
 
   fullList = mixinClasses;
@@ -5118,17 +5188,21 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
    */
   while (mixinClasses) {
     NsfClass *cl = mixinClasses->cl;
+    
+    /*fprintf(stderr, "--- Work on %s\n", ClassName(cl));
+      CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
 
     checker = nextCl = mixinClasses->nextPtr;
-    /* fprintf(stderr, "--- checking %s\n", ObjStr(cl->object.cmdName));*/
-
     checker = NsfClassListFind(checker, cl);
+    /*fprintf(stderr, "--- checking %s found %p \n", ClassName(cl), checker);*/
+
     /*
      * if checker is set, it is a duplicate and ignored 
      */
     if (checker == NULL) {
       /* check object->cl hierachy */
       checker = NsfClassListFind(ComputeOrder(object->cl, object->cl->order, Super), cl);
+      /*fprintf(stderr, "--- checking 2 %s found %p \n", ClassName(cl), checker);*/
       /* 
        * if checker is set, it was found in the class hierarchy and it is ignored 
        */
@@ -5136,9 +5210,12 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
     if (checker == NULL) {
       /* add the class to the mixinOrder list */
       NsfCmdList *new;
-      /* fprintf(stderr, "--- adding to mixinlist %s\n",
-         ObjStr(cl->object.cmdName));*/
+
+      /*fprintf(stderr, "--- adding to mixinOrder %s to cmdlist %p of object %s\n", 
+	ClassName(cl), object->mixinOrder, ObjectName(object));*/
       new = CmdListAdd(&object->mixinOrder, cl->object.id, NULL, /*noDuplicates*/ 0);
+      /*CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
+
       /*
        * We require the first matching guard of the full list in the new
        * client data
@@ -5333,7 +5410,7 @@ GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *start
 	     "nsPtr->flags %.6x (instance of %s)\n", 
 	     inst, inst->flags, inst->activationCount, 
 	     ObjectName(inst), inst->id, cmdPtr->flags, cmdPtr->nsPtr ? cmdPtr->nsPtr->flags : 0,
-	     ObjStr(startCl->object.cmdName));*/
+	     ClassName(startCl));*/
 
     Tcl_CreateHashEntry(destTablePtr, ObjectName(inst), &new);
     
@@ -5449,7 +5526,7 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *
 			      pattern, matchObject);
     if (rc) {return rc;}
   }
-  /*fprintf(stderr, "check subclasses of %s done\n", ObjStr(startCl->object.cmdName));*/
+  /*fprintf(stderr, "check subclasses of %s done\n", ClassName(startCl));*/
 
   if (startCl->opt) {
     NsfCmdList *m;
@@ -5461,12 +5538,11 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *
 
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
-      /*fprintf(stderr, "check %s mixinof %s\n",
-        ClassName(cl), ObjStr(startCl->object.cmdName));*/
+      /*fprintf(stderr, "check %s mixinof %s\n", ClassName(cl), ClassName((startCl)));*/
       rc = GetAllObjectMixinsOf(interp, destTablePtr, cl, isMixin, appendResult,
 				pattern, matchObject);
       /* fprintf(stderr, "check %s mixinof %s done\n",
-      ClassName(cl), ObjStr(startCl->object.cmdName));*/
+	 ClassName(cl), ClassName(startCl));*/
       if (rc) {return rc;}
     }
   }
@@ -5639,7 +5715,7 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *sta
 
       if (new) {
         /* fprintf(stderr, "class mixin GetAllClassMixins for: %s (%s)\n",
-	   ClassName(cl), ObjStr(startCl->object.cmdName)); */
+	   ClassName(cl), ClassName(startCl)); */
         rc = GetAllClassMixins(interp, destTablePtr, cl, withGuards,
 			       pattern, matchObject);
         if (rc) {return rc;}
@@ -5653,7 +5729,7 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *sta
    */
   for (sc = startCl->super; sc; sc = sc->nextPtr) {
     /* fprintf(stderr, "Superclass GetAllClassMixins for %s (%s)\n",
-       ObjStr(sc->cl->object.cmdName), ObjStr(startCl->object.cmdName)); */
+       ClassName(sc->cl), ClassName(startCl)); */
     rc = GetAllClassMixins(interp, destTablePtr, sc->cl, withGuards,
 			   pattern, matchObject);
     if (rc) {return rc;}
@@ -5743,8 +5819,7 @@ MixinResetOrderForInstances(NsfClass *cl) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
-  /*fprintf(stderr, "invalidating instances of class %s\n",
-    ObjStr(clPtr->cl->object.cmdName));*/
+  /*fprintf(stderr, "invalidating instances of class %s\n", ClassName(clPtr->cl));*/
 
   /* Here we should check, whether this class is used as an object or
      class mixin somewhere else and invalidate the objects of these as
@@ -5807,7 +5882,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
     /* reset mixin order for all objects having this class as per object mixin */
     ResetOrderOfClassesUsedAsMixins(clPtr->cl);
 
-    /* fprintf(stderr, "invalidating instances of class %s\n", ObjStr(clPtr->cl->object.cmdName));
+    /* fprintf(stderr, "invalidating instances of class %s\n", ClassName(clPtr));
      */
     instanceTablePtr = &clPtr->cl->instances;
     for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr; 
@@ -5832,7 +5907,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfClass *ncl = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
-    /*fprintf(stderr, "Got %s, reset for ncl %p\n", ncl?ObjStr(ncl->object.cmdName):"NULL", ncl);*/
+    /*fprintf(stderr, "Got %s, reset for ncl %p\n", ncl?ClassName(ncl):"NULL", ncl);*/
     if (ncl) {
       MixinResetOrderForInstances(ncl);
       /* this place seems to be sufficient to invalidate the computed object parameter definitions */
@@ -6589,7 +6664,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
           if (pi) {
             CmdListAdd(filterList, pi, pl->cl, /*noDuplicates*/ 0);
             /*
-              fprintf(stderr, " %s::%s, ", ObjStr(pl->cl->object.cmdName), simpleName);
+              fprintf(stderr, " %s::%s, ", ClassName(pl->cl), simpleName);
             */
           }
         }
@@ -15429,7 +15504,7 @@ static int
 NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
   if (!self) {
-    NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
+    return NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
   }
   /* fprintf(stderr, "Colon dispatch %s.%s\n", ObjectName(self),ObjStr(nobjv[0]));*/
   return ObjectDispatch(self, interp, nobjc, nobjv, NSF_CM_NO_SHIFT);
@@ -15886,7 +15961,7 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
   int result;
 
   if (!self) {
-    NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
+    return NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
   }
 
   if (withLocal) {
@@ -17972,7 +18047,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
   /*fprintf(stderr, "+++ createspecifiedName '%s', nameString '%s', newObject=%p ismeta(%s) %d, ismeta(%s) %d\n",
           specifiedName, nameString, newObject,
           ClassName(cl), IsMetaClass(interp, cl, 1),
-          newObject ? ObjStr(newObject->cl->object.cmdName) : "NULL",
+          newObject ? ClassName(newObject->cl) : "NULL",
           newObject ? IsMetaClass(interp, newObject->cl, 1) : NULL
           );*/
 

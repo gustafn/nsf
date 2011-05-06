@@ -2681,13 +2681,26 @@ nsf:
 - nx.tcl: replace loops ::nsf::methods::[object|class]::* 
   by explict command registrations
 
+- nsf.c:
+  * added NsfClassListNoDup() to allow just single inserts
+  * added NsfClassListPrint() for debugging
+  * info heritage returns no duplicates
+  * added prototype for NsfNoCurrentObjectError()
+  * report "no current object" when no object is 
+    passed to a method.
+  * code cleanup
+- extended regression test
+
+
 TODO:
 
-- the last two results of "info heritage" in info-method.test are not
-  what we want (e.g. ::M3 ::B ::M3 ::nx::Object); would not be surprised
-  if the same problem occursn somewhere else
-- if the tests on the last two tests fails, we get an exception (should 
-  go away, when the duplicates are eliminated).
+- check again, of the nodup elimination in 
+  MixinComputeOrderFullList() is ok, maybe the duplicate elimination
+  in info heritage should be based on something like 
+  MixinComputeOrder() based on CmdListAdd()
+
+- if the check on eg. info-heritage-circular in test/info.method.tcl
+  fails, we get an exception.
 
 - what to do with "info heritage"
   a) keep the new version (slightly incompatible in XOTcl)
