@@ -145,7 +145,7 @@ namespace eval ::nx::doc {
 	set base "${:prefix}::[namespace tail $mixin]"
 	if {[::nsf::object::exists $base]} {
 	  set scope [expr {[$mixin scope] eq "object" && \
-			       [$base info is class]?"class-object":""}]
+			       [$base info is class]?"class":""}]
 	  dict lappend :active_mixins $base $mixin
 	  $base {*}$scope mixin add $mixin
 	}
@@ -156,7 +156,7 @@ namespace eval ::nx::doc {
       dict for {base mixins} ${:active_mixins} {
 	foreach m $mixins {
 	  set scope [expr {[$m scope] eq "object" && \
-			       [$base info is class]?"class-object":""}]
+			       [$base info is class]?"class":""}]
 	  $base {*}$scope mixin delete $m
 	}
       }
@@ -464,7 +464,8 @@ namespace eval ::nx::doc {
 		     -name [lindex $value 0] \
 		     -partof $domain \
 		     -part_attribute [current] \
-		     -@doc [lrange $value 1 end]]
+		     [lrange $value 1 end]]
+	#-@doc [lrange $value 1 end]]
       }
       return $value
     }
@@ -516,9 +517,9 @@ namespace eval ::nx::doc {
 
     # every Entity must be created with a "@doc" value and can have
     # an optional initcmd 
-    :method objectparameter args {
-      next [list [list @doc:optional __initcmd:initcmd,optional]]
-    }
+    #:method objectparameter args {
+      #next [list [list @doc:optional __initcmd:initcmd,optional]]
+    #}
 
     :class attribute current_project:object,type=::nx::doc::@project,0..1
     :public forward current_project [current] %method
@@ -598,7 +599,11 @@ namespace eval ::nx::doc {
       return [concat {*}$path]
     }
 
-    :attribute @doc:0..* {set :incremental 1}
+    :attribute @doc:0..* {
+      set :incremental 1
+      set :positional true
+      set :position 1
+    }
     :attribute @see -class ::nx::doc::PartAttribute
 
     :attribute @deprecated:boolean -class ::nx::doc::SwitchAttribute {
@@ -1064,9 +1069,9 @@ namespace eval ::nx::doc {
 	  set :part_class ::nx::doc::@method
 	}
 
-	:public forward @attribute %self @class-object-attribute
+	:public forward @attribute %self @object-attribute
 	#:forward @param %self @object-param
-	:attribute @class-object-attribute -class ::nx::doc::PartAttribute {
+	:attribute @object-attribute -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
 	}
 
@@ -1095,8 +1100,8 @@ namespace eval ::nx::doc {
 	  set :part_class ::nx::doc::@param
 	}
 	
-	:public forward @method %self @class-method
 	:public forward @class-object-method %self @object-method
+	:public forward @class-object-attribute %self @object-attribute
 
 	:public forward @hook %self @class-hook
 	:attribute @class-hook -class ::nx::doc::PartAttribute {
@@ -1105,6 +1110,7 @@ namespace eval ::nx::doc {
 	  set :part_class ::nx::doc::@method
 	}
 
+	:public forward @method %self @class-method
 	:attribute @class-method -class ::nx::doc::PartAttribute {
 	  :pretty_name "Provided method"
 	  :pretty_plural "Provided methods"
@@ -2387,7 +2393,9 @@ namespace eval ::nx::doc {
 
     :public class method type=nonempty {name value} {
       if {$value eq ""} {
-	error "An empty value is not allowed for parameter '$name'."
+	return \
+	    -code error \
+	    "An empty value is not allowed for parameter '$name'."
       }
       return $value
     }
@@ -2431,7 +2439,7 @@ namespace eval ::nx::doc {
         ->source:fpathtype,arg=absolute,slot=[current] \
 	{->nsexported:boolean 0} \
 	{->nsimported:boolean 0} \
-        ->docstring:optional,nonempty,slot=[current] \
+        ->docstring:optional,slot=[current] \
 	->bundle
      ] {
       # peek the currently processed package (if any)
@@ -2795,7 +2803,7 @@ namespace eval ::nx::doc {
 		    set obj $modifier 
 		    set scope ""
 		    set name ""
-		  } elseif {$modifier eq "class-object"} {
+		  } elseif {$modifier eq "class"} {
 		    set scope $modifier
 		    set name [lindex $definition 4]
 		  } else {
@@ -3841,7 +3849,7 @@ namespace eval ::nx {
 	    [$box do [list ${name} info method body $methodName]]
       }
       
-      :process=@object $project $entity class-object
+      :process=@object $project $entity class
       
     }
     
@@ -3858,7 +3866,8 @@ namespace eval ::nx {
       foreach methodName [$box do [list ${name} {*}$scope info methods\
 				       -methodtype scripted \
 				       -callprotection public]] {
-	set tag [join [list {*}$scope method] -]
+	
+	set tag [join [list {*}[expr {$scope eq "class"?"class-object":""}] method] -]
 	# set id [$entity @$tag $methodName]
 	:readin \
 	    -partof_entity $entity \
@@ -3952,7 +3961,7 @@ namespace eval ::nx::doc {
       set :incremental 1
       :public method assign {domain prop value} {
 	set current_entity [$domain current_entity]
-	set scope [expr {[$current_entity info is class]?"class-object mixin":"mixin"}]
+	set scope [expr {[$current_entity info is class]?"class mixin":"mixin"}]
 	#	puts stderr "Switching: [$current_entity {*}$scope] --> target $value"
 	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity {*}$scope]} {
 	  $current_entity {*}$scope delete [:get $domain $prop]
@@ -4063,7 +4072,7 @@ namespace eval ::nx::doc {
       # 	${:current_entity} {*}$scope mixin delete ${:processed_section}
       # }
 
-      set scope [expr {[${:current_entity} info is class]?"class-object":""}]
+      set scope [expr {[${:current_entity} info is class]?"class":""}]
       set mixins [${:current_entity} {*}$scope info mixin classes]
       if {${:processed_section} in $mixins} {
 	set idx [lsearch -exact $mixins ${:processed_section}]

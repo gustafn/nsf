@@ -603,6 +603,12 @@ Test case tag-notations-extended {
     #
     # @attribute attr1 Here we can only provide a description block for object parameters
     
+    # @class.object-method {::C sub}
+    #
+    # For now, we have to declare a family of sub methods explicitly
+    # (allows for providing some overview, shared description)
+
+
     # @class.attribute {::C attr1} Here, we could also write '@class.class-attribute \{::C attr1\}', @attribute is a mere forwarder! In the context section, only one-liners are allowed!
     
     # @class.object.attribute {::C foo p1} A short description is ...
@@ -657,6 +663,11 @@ Test case tag-notations-extended {
 	return [current method]-$p1-[current]
       }]
       
+      # @.object-method bar
+      #
+      # Before referring to its parts, an entity must exist; so
+      # declare eagerly ...
+
       # @.class-object-method.parameter {bar p1}
       #
       # This extended form allows to describe a method parameter with all
@@ -786,7 +797,7 @@ Test case tag-notations-extended {
   #  ? [list $entity as_text] ".. is overruled by a long one ..."
 
   # --testing-- @class-object-attribute attr2 (its non-existance)
-  set entity [@attribute id [@class id ::C] class attr2]
+  set entity [@attribute id [@class id ::C] object attr2]
   ? [list ::nsf::object::exists $entity] 0
   # --testing-- @child-class Foo (its non-existance)
   set entity [@class id ::C::Foo]
@@ -802,13 +813,14 @@ Test case tag-notations-extended {
   ? [list ::nsf::object::exists $entity] 0
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::object::exists $entity] 0
-  set entity [@attribute id $cl class p2]
+  set entity [@attribute id $cl object p2]
   ? [list ::nsf::object::exists $entity] 0
 
   #
   # 2) process the initcmd comments (PARSING LEVEL 1)
   #
   
+  puts stderr -----INITCMD------
   ::nsf::configure keepinitcmd true
   eval $script
   ::nsf::configure keepinitcmd false
@@ -818,7 +830,6 @@ Test case tag-notations-extended {
 	     -tag @class \
 	     -name ::C \
 	     [::C eval {set :__initcmd}]] _ processed_entities
-  
   # a) existing, but modified ...
   
   set entity [@class id ::C]
@@ -837,7 +848,7 @@ Test case tag-notations-extended {
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "'foo' needs to be defined before referencing any of its parts!"; # still empty!
-  set entity [@attribute id $entity class p1]
+  set entity [@attribute id $entity object p1]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
@@ -845,7 +856,7 @@ Test case tag-notations-extended {
   # b) newly added ...
   
   # --testing-- @class-object-attribute attr2
-  set entity [@attribute id [@class id ::C] class attr2]
+  set entity [@attribute id [@class id ::C] object attr2]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "Carries a short desc only";
@@ -876,7 +887,7 @@ Test case tag-notations-extended {
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] {This is equivalent to stating "@child-class.class-attribute {Foo p1}"}
-  set entity [@attribute id $cl class p2]
+  set entity [@attribute id $cl object p2]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "Y"
   
@@ -944,7 +955,7 @@ Test case tag-notations-extended {
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "Adding a line for the first time (not processed in the initcmd phase!)"; # still empty!
-  set entity [@attribute id $entity class p1]
+  set entity [@attribute id $entity object p1]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This is equivalent to stating "@class-object-attribute p1"}
@@ -962,7 +973,7 @@ Test case tag-notations-extended {
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] {This is equivalent to stating "@class-attribute p1"; or '@class.object.attribute {::C Foo p1}' from the top-level.}
-  set entity [@attribute id $cl class p2]
+  set entity [@attribute id $cl object p2]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] ""
   
