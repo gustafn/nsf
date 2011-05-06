@@ -43,7 +43,8 @@ namespace eval ::nx {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "autoname" "cleanup" "class" "exists" \
 			 "filterguard" "instvar" "mixinguard" \
-			 "noinit" "requirenamespace" "residualargs"]} continue
+			 "noinit" "requirenamespace" "residualargs" \
+			 "unknown" "init" "defaultmethod"]} continue
     ::nsf::method::alias Object $cmdName $cmd 
   }
 
