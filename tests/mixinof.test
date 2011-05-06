@@ -281,70 +281,73 @@ foreach o {M C a1 b1 c1} {
 ###########################################
 # testing simple per class mixins with redefinition
 ###########################################
-Test case pcm-redefine
-Class create A
-Class create B -mixin A
-Class create C -superclass B
-C create c1
-
-? {B mixin} ::A
-? {B info mixin classes} ::A
-? {A info mixinof -scope class} ::B
-? {c1 info precedence} "::A ::C ::B ::nx::Object"
-? {B info heritage} "::nx::Object"
-? {C info heritage} "::B ::nx::Object"
-
-Class create B -mixin A
-
-? {B info heritage} "::nx::Object"
-? {C info heritage} "::nx::Object"
-? {B mixin} ::A
-? {B info mixin classes} ::A
-? {A info mixinof} ::B
-? {c1 info precedence} "::C ::nx::Object"
-
-B destroy
-? {A info mixinof} ""
-? {c1 info precedence} "::C ::nx::Object"
-
-A destroy
-C destroy 
-c1 destroy
+Test case pcm-redefine {
+  Class create A
+  Class create B -mixin A
+  Class create C -superclass B
+  C create c1
+  
+  ? {B mixin} ::A
+  ? {B info mixin classes} ::A
+  ? {A info mixinof -scope class} ::B
+  ? {c1 info precedence} "::A ::C ::B ::nx::Object"
+  ? {B info superclass -closure} "::nx::Object"
+  ? {C info superclass -closure} "::B ::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+  ? {C info heritage} "::A ::B ::nx::Object"
+  
+  Class create B -mixin A
+  
+  ? {B info superclass -closure} "::nx::Object"
+  ? {C info superclass -closure} "::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+  ? {C info heritage} "::nx::Object"
+  ? {B mixin} ::A
+  ? {B info mixin classes} ::A
+  ? {A info mixinof} ::B
+  ? {c1 info precedence} "::C ::nx::Object"
+  
+  B destroy
+  ? {A info mixinof} ""
+  ? {c1 info precedence} "::C ::nx::Object"
+}
 
 
 ###########################################
 # testing simple per class mixins with 
 # redefinition and softrecreate
 ###########################################
-Test case pcm-redefine-soft
-::nsf::configure softrecreate true
-Class create A
-Class create B -mixin A
-Class create C -superclass B
-C create c1
+Test case pcm-redefine-soft {
+  ::nsf::configure softrecreate true
+  Class create A
+  Class create B -mixin A
+  Class create C -superclass B
+  C create c1
+  
+  ? {B mixin} ::A
+  ? {B info mixin classes} ::A
+  ? {A info mixinof -scope class} ::B
+  ? {c1 info precedence} "::A ::C ::B ::nx::Object"
+  ? {B info superclass -closure} "::nx::Object"
+  ? {C info superclass -closure} "::B ::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+  ? {C info heritage} "::A ::B ::nx::Object"
+  
+  Class create B -mixin A
 
-? {B mixin} ::A
-? {B info mixin classes} ::A
-? {A info mixinof -scope class} ::B
-? {c1 info precedence} "::A ::C ::B ::nx::Object"
-? {C info heritage} "::B ::nx::Object"
-? {B info heritage} "::nx::Object"
+  ? {B info superclass -closure} "::nx::Object"
+  ? {C info superclass -closure} "::B ::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+  ? {C info heritage} "::A ::B ::nx::Object"
+  ? {B info mixin classes} ::A
+  ? {A info mixinof -scope class} ::B
+  ? {c1 info precedence} "::A ::C ::B ::nx::Object"
+  
+  B destroy
+  ? {A info mixinof -scope class} ""
+  ? {c1 info precedence} "::C ::nx::Object"
 
-Class create B -mixin A
-? {C info heritage} "::B ::nx::Object"
-? {B info heritage} "::nx::Object"
-? {B info mixin classes} ::A
-? {A info mixinof -scope class} ::B
-? {c1 info precedence} "::A ::C ::B ::nx::Object"
-
-B destroy
-? {A info mixinof -scope class} ""
-? {c1 info precedence} "::C ::nx::Object"
-
-A destroy
-C destroy 
-c1 destroy
-
+}
 
 ###########################################
 # test of recreate with same superclass, 

@@ -2666,10 +2666,29 @@ nsf:
   * nsf works with OpenACS again (requires new nstrace.tcl, 
     aolserver-openacs.tcl, and 01-debug-procs.tcl).
 
-- nsf.c: factor out ClassListAddPerClassMixins()
+- nsf.c: 
+  * factor out NsfClassListAddPerClassMixins()
+  * factor out NsfClassListFind()
+  * let result of "cls info heritage" return per-class mixins 
+    as well, otherwise it would be useless, since 
+    "cls info superclass -closure" would return the same
+  * replaced loops with NsfClassListFind()
 
 TODO:
 
+- the last two results of "info heritage" in info-method.test are not
+  what we want (e.g. ::M3 ::B ::M3 ::nx::Object); would not be surprised
+  if the same problem occursn somewhere else
+- if the tests on the last two tests fails, we get an exception (should 
+  go away, when the duplicates are eliminated).
+
+- what to do with "info heritage"
+  a) keep the new version (slightly incompatible in XOTcl)
+  b) provide a scripted compatible version in "info superclass"
+     (might be confusing, when using XOTcl and nx in the same script)
+  c) provide an additional flag to obtain mixins (not nice, since base
+     version is useless)
+  
 - ::nsf::method::exists /handle/ -> check, if handle is a handle of a registered method
   (to be be used in serializer alias-dependency)
 - profiling missing when NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.

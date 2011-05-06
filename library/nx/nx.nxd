@@ -198,7 +198,7 @@
 #
 # @parameter objectName The designated object identifier assigned to the
 # object storage to be allocated.
-# @return The name of the allocated, uninitialized object
+# @return The fully qualified name of the allocated, uninitialized object
 
 # @class.method {Class create}
 #
@@ -251,7 +251,7 @@
 # @parameter name The designated identifier on the class or the object to be created.
 # @parameter args arguments to be passed down to the object creation
 # procedure used to initialize the object.
-# @return The name of the created, fully initialized object.
+# @return The fully qualified name of the created object.
 
 # @class.hook {Class dealloc}
 #
