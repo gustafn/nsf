@@ -12704,17 +12704,18 @@ NsfProcAliasMethod(ClientData clientData,
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
   NsfObject *self = GetSelfObj(interp);
   CONST char *methodName = ObjStr(objv[0]);
+
   if (!self) {
     return NsfPrintError(interp, "Cannot resolve 'self', "
 			 "probably called outside the context of a Next Scripting Object");
   }
 
-  assert(tcd->object == self);
-
-  if (self == NULL) {
+  if (!tcd->object) {
     return NsfDispatchClientDataError(interp, tcd->object, "object", 
 				      Tcl_GetCommandName(interp, tcd->aliasCmd));
   }
+
+  assert(tcd->object == self);
 
   if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
     NsfObject *defObject = tcd->class ? &(tcd->class->object) : tcd->object;
