@@ -576,6 +576,10 @@ nx::Test case info-heritage-simple-multimix {
   ? {a1 info precedence} "::MovementTest ::MovementLog ::Agent ::nx::Object"
 }
 
+#
+# Mixin several classes at several class levels and on the object
+# level
+#
 nx::Test case info-heritage-multimix {
   Class create A
   Class create B -superclass A
