@@ -251,14 +251,14 @@ libraries: libraries-pkgindex
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi;
 
-libraries-pkgindex:
+libraries-pkgindex: pkgIndex.tcl
 	@$(TCLSH) $(src_lib_dir_native)/lib/make.tcl -dir $(src_lib_dir_native) -all
 
 fulldoc: doc pdf
 # use language reference as sample file to trigger generation of documentation files
 doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
 
-$(xotcl_target_doc_dir)/langRef-xotcl.html: $(xotcl_src_doc_dir)/langRef.xotcl $(XODOC_SOURCE)
+$(xotcl_target_doc_dir)/langRef-xotcl.html: pkgIndex.tcl $(xotcl_src_doc_dir)/langRef.xotcl $(XODOC_SOURCE)
 	@docs=""; \
 	for i in $(XODOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
 	$(TCLSH) $(xotcl_src_lib_dir)/lib/makeDoc.xotcl \
