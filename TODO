@@ -2676,22 +2676,6 @@ nsf:
 
 TODO:
 
-- Harmonising no-self-object error messages: Currently, we have at
-  least two (or even three) different variants of an intentionally
-  single message:
-  * No current object
-  * Cannot resolve 'self', probably called outside the context of a Next Scripting Object
-  * (in NsfDispatchClientDataError(), a confusingly similar wording is
-    used: "not dispatched on valid object").
-- Refactoring the inline occurrences of NsfPrintError() into a custom
-  function, e.g., NsfSelfObjectError()?
-- Looking, for instance, at NsfProcAliasMethod(). I might be missing
-  the obvious, but does it make sense to differentiate between
-  GetSelfObj(interp) == NULL and tcd->object == NULL?! What is the
-  difference between NsfDispatchClientDataError() and a prospective
-  NsfSelfObjectError(), anyways?! ClientData representing the
-  definition (provider) object, and self the receiver object?
-
 - the last two results of "info heritage" in info-method.test are not
   what we want (e.g. ::M3 ::B ::M3 ::nx::Object); would not be surprised
   if the same problem occursn somewhere else

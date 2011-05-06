@@ -31,7 +31,7 @@ Tcl_Obj *NsfParamDefsSyntax(Nsf_Param CONST *paramPtr);
  *----------------------------------------------------------------------
  */
 
-void
+extern void
 NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
 {
   int      result, avail = dsPtr->spaceAvl, offset = dsPtr->length;
@@ -69,7 +69,7 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
  *
  *----------------------------------------------------------------------
  */
-void
+extern void
 NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
 {
   int i;
@@ -94,8 +94,7 @@ NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
  *
  *----------------------------------------------------------------------
  */
-
-int
+extern int
 NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...) {
   va_list ap;
   Tcl_DString ds;
@@ -112,7 +111,23 @@ NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...) {
   return TCL_ERROR;
 }
 
-int
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfErrInProc --
+ *
+ *      Produce a general error message when an error occurs in a scripted nsf
+ *      method.
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
+extern int
 NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
                Tcl_Obj *clName, CONST char *procName) {
   Tcl_DString errMsg;
@@ -137,7 +152,23 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
   return TCL_ERROR;
 }
 
-int
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfObjWrongArgs --
+ *
+ *      Produce a general error message when a nsf method is called with an
+ *      invalid argument list (wrong number of arguments).
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
+extern int
 NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, 
 		Tcl_Obj *methodName, char *arglist) {
   int need_space = 0;
@@ -176,7 +207,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
  *
  *----------------------------------------------------------------------
  */
-int
+extern int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
   Tcl_Obj *argStringObj = NsfParamDefsSyntax(paramPtr);
@@ -202,13 +233,50 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  *
  *----------------------------------------------------------------------
  */
-int
+extern int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, CONST char *what, CONST char *methodName) {
   return NsfPrintError(interp, "Method %s not dispatched on valid %s%s",
 		       methodName, what,
 		       clientData ? "" : " ; don't call aliased methods via namespace paths!");
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfNoDispatchObjectError --
+ *
+ *      Produce a error message when method was not dispatched on an object
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
+extern int
+NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what) {
+  return NsfPrintError(interp, "No current object; %s called outside the context of a Next Scripting method",
+		       what ? what : "command");
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfObjErrType --
+ *
+ *      Produce a general error message when a nsf method is called with an
+ *      invalid value for some argument.
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
 extern int
 NsfObjErrType(Tcl_Interp *interp, 
 	      CONST char *context, 

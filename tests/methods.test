@@ -412,6 +412,7 @@ Test case dispatch-without-object {
     # the other methods don't require them as strong
     :forward b ::o2 bar
     :method foo {} {return [self]}
+    :alias x ::o::foo
   }
   nx::Object create o2 {
     :public method bar {} {return [self]}
@@ -420,5 +421,11 @@ Test case dispatch-without-object {
   # dispatch methods without current object 
   ? ::o::a "Method ::o::a not dispatched on valid object"
   ? ::o::b "::o2"
-  ? ::o::foo "No current object"
+  ? ::o::foo "No current object; command called outside the context of a Next Scripting method"
+  ? ::o::x "Method x not dispatched on valid object ; don't call aliased methods via namespace paths!"
+  # make a regular call, provide tcd->object with a value
+  ? {::o x} "::o"
+  # check, if missing object is still detected
+  ? ::o::x "Method x not dispatched on valid object ; don't call aliased methods via namespace paths!"
+  ? self "No current object; command called outside the context of a Next Scripting method"
 }

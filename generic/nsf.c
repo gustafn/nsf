@@ -8413,7 +8413,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	 *  {1} Class ::State
 	 *  {2} Class ::State -parameter x
 	 */
-	NsfLog(interp, NSF_LOG_NOTICE, "Don't invoke object %s this way. Register object via alias...", methodName);
+	NsfLog(interp, NSF_LOG_NOTICE, 
+	       "Don't invoke object %s this way. Register object via alias...", 
+	       methodName);
 	cmd = NULL;
 
       } else if (IsClassNsName(methodName)) {
@@ -12494,6 +12496,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   NsfObject *object = tcd->object;
   CallFrame frame, *framePtr = &frame;
 
+  tcd->object = NULL;
+
   if (tcd->verbose) {
     Tcl_Obj *cmd = Tcl_NewListObj(objc, objv);
     fprintf(stderr, "forwarder calls '%s'\n", ObjStr(cmd));
@@ -12702,34 +12706,31 @@ NsfProcAliasMethod(ClientData clientData,
                      Tcl_Interp *interp, int objc,
                      Tcl_Obj *CONST objv[]) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-  NsfObject *self = GetSelfObj(interp);
   CONST char *methodName = ObjStr(objv[0]);
+  NsfObject *self;
+
+  assert(tcd);
+  self = tcd->object;
 
   if (!self) {
-    return NsfPrintError(interp, "Cannot resolve 'self', "
-			 "probably called outside the context of a Next Scripting Object");
-  }
-
-  if (!tcd->object) {
-    return NsfDispatchClientDataError(interp, tcd->object, "object", 
+    return NsfDispatchClientDataError(interp, self, "object", 
 				      Tcl_GetCommandName(interp, tcd->aliasCmd));
   }
+  tcd->object = NULL;
 
-  assert(tcd->object == self);
+  assert(self == GetSelfObj(interp));
 
   if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
-    NsfObject *defObject = tcd->class ? &(tcd->class->object) : tcd->object;
+    NsfObject *defObject = tcd->class ? &(tcd->class->object) : self;
     Tcl_Obj **listElements, *entryObj, *targetObj;
     int nrElements, withPer_object;
     Tcl_Command cmd;
-    //int withFrame;
 
     /*
      * Get the targetObject. Currently, we can get it just via the
      * alias array.
      */
     withPer_object = tcd->class ?  0 : 1;
-    //withFrame = (tcd->objProc == NsfObjscopedMethod);
     entryObj = AliasGet(interp, defObject->cmdName, methodName, withPer_object, 1);
     if (entryObj == NULL) {
       return TCL_ERROR;
@@ -12739,10 +12740,10 @@ NsfProcAliasMethod(ClientData clientData,
     Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
     targetObj = listElements[nrElements-1];
 
-    //result = NsfAliasCmd(interp, defObject, withPer_object, methodName, withFrame, targetObj);
+    NsfLog(interp, NSF_LOG_NOTICE, 
+	   "trying to dispatch an epoched cmd %p as %s -- cmdName %s\n",
+	   tcd->aliasedCmd, methodName, ObjStr(targetObj));
 
-    fprintf(stderr, "trying to dispatch an epoched cmd %p as %s -- cmdName %s\n", 
-	    tcd->aliasedCmd, methodName, ObjStr(targetObj));
     /*
      * Replace cmd and its objProc and clientData with a newly fetched
      * version.
@@ -12781,6 +12782,7 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   int result;
 
   /*fprintf(stderr, "objscopedMethod obj=%p %s, ptr=%p\n", object, ObjectName(object), tcd->objProc);*/
+  tcd->object = NULL;
 
   Nsf_PushFrameObj(interp, object, framePtr);
   result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
@@ -14942,7 +14944,7 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     tcd = NEW(AliasCmdClientData);
     tcd->cmdName    = object->cmdName;
     tcd->interp     = interp; /* just for deleting the associated variable */
-    tcd->object     = object;
+    tcd->object     = NULL;
     tcd->class	    = cl ? (NsfClass *) object : NULL;
     tcd->objProc    = objProc;
     tcd->aliasedCmd = cmd;
@@ -15427,8 +15429,7 @@ static int
 NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
   if (!self) {
-    return NsfPrintError(interp, "Cannot resolve 'self', "
-			 "probably called outside the context of a Next Scripting Object");
+    NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
   }
   /* fprintf(stderr, "Colon dispatch %s.%s\n", ObjectName(self),ObjStr(nobjv[0]));*/
   return ObjectDispatch(self, interp, nobjc, nobjv, NSF_CM_NO_SHIFT);
@@ -15527,6 +15528,7 @@ NsfForwardCmd(Tcl_Interp *interp,
       NULL : (NsfClass *)object;
 
     tcd->object = object;
+
     if (cl == NULL) {
       result = NsfAddObjectMethod(interp, (Nsf_Object *)object, methodName,
                                     (Tcl_ObjCmdProc*)NsfForwardMethod,
@@ -15884,8 +15886,7 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
   int result;
 
   if (!self) {
-    return NsfPrintError(interp, "Cannot resolve 'self', "
-			 "probably called outside the context of a Next Scripting Object");
+    NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
   }
 
   if (withLocal) {
@@ -16565,19 +16566,17 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   Tcl_CallFrame *framePtr;
   int result = TCL_OK;
 
-  /*fprintf(stderr, "getSelfObj returns %p\n", object); NsfShowStack(interp);*/
-
   if (selfoption == 0 || selfoption == CurrentoptionObjectIdx) {
     if (object) {
       Tcl_SetObjResult(interp, object->cmdName);
       return TCL_OK;
     } else {
-      return NsfPrintError(interp,  "No current object");
+      return NsfNoCurrentObjectError(interp, NULL);
     }
   }
 
   if (!object && selfoption != CurrentoptionCallinglevelIdx) {
-    return NsfPrintError(interp,  "No current object");
+    return NsfNoCurrentObjectError(interp, NULL);
   }
 
   switch (selfoption) {
@@ -16713,7 +16712,7 @@ NsfSelfCmd(Tcl_Interp *interp) {
     Tcl_SetObjResult(interp, object->cmdName);
     return TCL_OK;
   } else {
-    return NsfPrintError(interp,  "No current object");
+    return NsfNoCurrentObjectError(interp, NULL);
   }
 }
 
