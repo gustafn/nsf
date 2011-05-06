@@ -2674,6 +2674,13 @@ nsf:
     "cls info superclass -closure" would return the same
   * replaced loops with NsfClassListFind()
 
+- nsf.c:
+  * handle direct dispatches for aliased methods
+  * new generalized error message: NsfNoCurrentObjectError()
+
+- nx.tcl: replace loops ::nsf::methods::[object|class]::* 
+  by explict command registrations
+
 TODO:
 
 - the last two results of "info heritage" in info-method.test are not

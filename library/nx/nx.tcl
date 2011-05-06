@@ -39,14 +39,11 @@ namespace eval ::nx {
   #
   # provide the standard command set for ::nx::Object
   #
-  foreach cmd [info command ::nsf::methods::object::*] {
-    set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "cleanup" "class" "exists" \
-			 "filterguard" "instvar" "mixinguard" \
-			 "noinit" "requirenamespace" "residualargs" \
-			 "unknown" "init" "defaultmethod"]} continue
-    ::nsf::method::alias Object $cmdName $cmd 
-  }
+  ::nsf::method::alias Object volatile  ::nsf::methods::object::volatile 
+  ::nsf::method::alias Object configure ::nsf::methods::object::configure 
+  ::nsf::method::alias Object upvar     ::nsf::methods::object::upvar 
+  ::nsf::method::alias Object destroy   ::nsf::methods::object::destroy 
+  ::nsf::method::alias Object uplevel   ::nsf::methods::object::uplevel
 
   #
   # provide ::eval as method for ::nx::Object
@@ -74,13 +71,8 @@ namespace eval ::nx {
   #
   
   # provide the standard command set for Class
-  foreach cmd [info command ::nsf::methods::class::*] {
-    set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "filterguard" "mixinguard" \
-		     "alloc" "dealloc" "recreate" "superclass"]} continue
-    ::nsf::method::alias Class $cmdName $cmd 
-    unset cmdName
-  }
+  ::nsf::method::alias Class create ::nsf::methods::class::create 
+  ::nsf::method::alias Class new ::nsf::methods::class::new
 
   # set a few aliases as protected
   # "__next", if defined, should be added as well
