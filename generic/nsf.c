@@ -12702,13 +12702,17 @@ NsfProcAliasMethod(ClientData clientData,
                      Tcl_Interp *interp, int objc,
                      Tcl_Obj *CONST objv[]) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-  NsfObject *self = tcd->object;
+  NsfObject *self = GetSelfObj(interp);
   CONST char *methodName = ObjStr(objv[0]);
+  if (!self) {
+    return NsfPrintError(interp, "Cannot resolve 'self', "
+			 "probably called outside the context of a Next Scripting Object");
+  }
 
-  assert(tcd->object == GetSelfObj(interp));
+  assert(tcd->object == self);
 
   if (self == NULL) {
-    return NsfDispatchClientDataError(interp, self, "object", 
+    return NsfDispatchClientDataError(interp, tcd->object, "object", 
 				      Tcl_GetCommandName(interp, tcd->aliasCmd));
   }
 
@@ -15423,7 +15427,7 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
   if (!self) {
     return NsfPrintError(interp, "Cannot resolve 'self', "
-			 "probably called outside the context of an Next Scripting Object");
+			 "probably called outside the context of a Next Scripting Object");
   }
   /* fprintf(stderr, "Colon dispatch %s.%s\n", ObjectName(self),ObjStr(nobjv[0]));*/
   return ObjectDispatch(self, interp, nobjc, nobjv, NSF_CM_NO_SHIFT);
@@ -15880,7 +15884,7 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
 
   if (!self) {
     return NsfPrintError(interp, "Cannot resolve 'self', "
-			 "probably called outside the context of an Next Scripting Object");
+			 "probably called outside the context of a Next Scripting Object");
   }
 
   if (withLocal) {
