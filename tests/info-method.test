@@ -401,6 +401,9 @@ nx::Test case info-methods-path {
 
 }
 
+#
+# Test parameter syntax for a methods and cmds
+#
 nx::Test case parametersyntax {
   # a true method
   ? {::nx::Object info method parametersyntax method} "name arguments ?-returns value? body ?-precondition value? ?-postcondition value?"
@@ -411,6 +414,9 @@ nx::Test case parametersyntax {
   ? {::nx::Object info method parametersyntax ::nsf::xotclnext} "?--noArgs? ?arg ...?"
 }
 
+#
+# Test info heritage, base cases
+#
 nx::Test case info-heritage {
   Class create A
   Class create B -superclass A
@@ -453,6 +459,9 @@ nx::Test case info-heritage {
   ? {BB info heritage} "::B ::A ::nx::Object"
 }
 
+#
+# Test transitive per-class mixins
+#
 nx::Test case info-heritage-transitive {
   Class create O
   Class create A -superclass O
@@ -491,7 +500,9 @@ nx::Test case info-heritage-transitive {
   ? {D info heritage} "::A ::O ::nx::Object"
 }
 
-
+#
+# Test circular mixins
+#
 nx::Test case info-heritage-circular {
   Class create O
   Class create A -superclass O
