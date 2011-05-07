@@ -1345,27 +1345,27 @@ NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
  */
 
 static NsfClasses **
-NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData, int *new) {
-  NsfClasses *l = *firstPtrPtr, *element = NULL, **newPtr = &element;
+NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData, int *isNewPtr) {
+  NsfClasses *clPtr = *firstPtrPtr, **nextPtr;
 
-  if (l) {
-    for (; l->nextPtr && l->cl != cl; l = l->nextPtr);
-    newPtr = &l->nextPtr;
+  if (clPtr) {
+    for (; clPtr->nextPtr && clPtr->cl != cl; clPtr = clPtr->nextPtr);
+    nextPtr = &clPtr->nextPtr;
   } else {
-    newPtr = firstPtrPtr;
+    nextPtr = firstPtrPtr;
   }
   
-  if (l == NULL || l->cl != cl) {
-    if (new) *new = 1;
-    element = NEW(NsfClasses);
+  if (*nextPtr == NULL) {
+    NsfClasses *element = NEW(NsfClasses);
     element->cl = cl;
     element->clientData = clientData;
     element->nextPtr = NULL;
-    *newPtr = element;
+    *nextPtr = element;
+    if (isNewPtr) *isNewPtr = 1;
   } else {
-    if (new) *new = 0;
+    if (isNewPtr) *isNewPtr = 0;
   }
-  return newPtr;
+  return nextPtr;
 }
 
 /*
