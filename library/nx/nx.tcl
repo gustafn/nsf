@@ -538,9 +538,12 @@ namespace eval ::nx {
     :alias "info mixin guard"    ::nsf::methods::class::info::mixinguard
     :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
-    :method "info slots" {{-type ::nx::Slot} pattern:optional} {
+    :method "info slots" {{-type ::nx::Slot} -closure:switch -source pattern:optional} {
       set cmd [list ::nsf::methods::class::info::slots -type $type]
+      if {[info exists source]} {lappend cmd -source $source}
+      if {$closure} {lappend cmd -closure}
       if {[info exists pattern]} {lappend cmd $pattern}
+      puts stderr XXXXCMD=[list $cmd]
       ::nsf::my {*}$cmd
     }
     :alias "info subclass"       ::nsf::methods::class::info::subclass
@@ -970,6 +973,8 @@ namespace eval ::nx {
     # Collect the object parameter slots in per-position lists to
     # ensure partial ordering and avoid sorting.
     #
+    #set class [::nsf::relation [self] class]
+    #foreach slot [nsf::dispatch $class ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {}
     foreach slot [nsf::dispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
       lappend defs([$slot position]) [$slot getParameterSpec]
     }

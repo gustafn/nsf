@@ -318,6 +318,7 @@ objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "pattern" -required 0}
 }
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
   {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
@@ -401,8 +402,9 @@ classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
 }
 classInfoMethod slots NsfClassInfoSlotsMethod {
   {-argName "-closure"}
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
   {-argName "-type" -required 0 -nrargs 1 -type class}
-}
+ }
 classInfoMethod subclass NsfClassInfoSubclassMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}

@@ -2709,10 +2709,15 @@ nsf:
 - nsf.c
   * first version of c-bases "info slots" for classes
   * switch "-closure" just for class info method
+  * added switch "-source" to "info slots -closure" 
+    and "info lookup slots" 
+    (similar to "info lookup methods")
+  * extended regression test
 
 TODO:
 - missing in c-based "info slots": 
   * handling of pattern (needed?)
+  * handle source (as well in "info lookup slots")
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
   * base objectparameter on "info slots"
 

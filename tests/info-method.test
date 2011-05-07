@@ -233,11 +233,24 @@ nx::Test case slots {
     :class attribute a2
     :method "sub foo" args {;}
   }
+
+  ? {D info lookup slots} "::nx::Class::slot::superclass ::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Class::slot::attributes ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::__initcmd ::nx::Object::slot::class"
+
+  C create c1
+  ? {c1 info precedence} "::C ::nx::Object"
+  ? {C info heritage} "::nx::Object"
+  ? {C info slots -closure -source application} "::C::slot::a ::C::slot::b"
+  ? {C info slots -closure} "::C::slot::a ::C::slot::b ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+  ? {C info slots} "::C::slot::a ::C::slot::b"
   
   D create d1
-  ? {D info lookup slots} "::nx::Class::slot::superclass ::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Class::slot::attributes ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::__initcmd ::nx::Object::slot::class"
   ? {D info slots} "::D::slot::b ::D::slot::a2 ::D::slot::c"
+  ? {D info slots -closure -source application} "::D::slot::b ::D::slot::a2 ::D::slot::c ::C::slot::a"
+
   ? {::nx::Object info method parameter info} ""
+
+  ? {d1 info precedence} "::D ::C ::nx::Object"
+  ? {d1 info lookup slots} "::D::slot::b ::D::slot::a2 ::D::slot::c ::C::slot::a ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 }
 
 #

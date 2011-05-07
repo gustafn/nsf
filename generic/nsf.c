@@ -286,6 +286,7 @@ static void NsfCommandPreserve(Tcl_Command cmd);
 static void NsfCommandRelease(Tcl_Command cmd);
 static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
 void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
+static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 
 
 /*
@@ -10355,6 +10356,7 @@ StripBodyPrefix(CONST char *body) {
   return body;
 }
 
+
 /*
  *----------------------------------------------------------------------
  * ComputeSlotObjects --
@@ -10370,7 +10372,8 @@ StripBodyPrefix(CONST char *body) {
  *----------------------------------------------------------------------
  */
 static NsfObjects *
-ComputeSlotObjects(Tcl_Interp *interp, NsfClasses *precedenceList, NsfClass *type) {
+ComputeSlotObjects(Tcl_Interp *interp, NsfClasses *precedenceList, 
+		   int withSource, NsfClass *type) {
   NsfObjects *slotObjects = NULL, **npl = &slotObjects;
   NsfObject *childObject, *tmpObject;
   Tcl_HashTable slotTable;
@@ -10381,6 +10384,8 @@ ComputeSlotObjects(Tcl_Interp *interp, NsfClasses *precedenceList, NsfClass *typ
 
   for (clPtr = precedenceList; clPtr; clPtr = clPtr->nextPtr) {
     Tcl_DString ds, *dsPtr = &ds;
+    
+    if (!MethodSourceMatches(withSource, clPtr->cl, NULL)) continue;
 
     DSTRING_INIT(dsPtr);
     Tcl_DStringAppend(dsPtr, ClassName(clPtr->cl), -1);
@@ -14319,20 +14324,22 @@ ListMethod(Tcl_Interp *interp,
   return TCL_OK;
 }
 
-static int
-ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
-  int result, isProtected = Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD;
-  if (withCallprotection == CallprotectionNULL) {
-    withCallprotection = CallprotectionPublicIdx;
-  }
-  switch (withCallprotection) {
-  case CallprotectionAllIdx: result = 1; break;
-  case CallprotectionPublicIdx: result = (isProtected == 0); break;
-  case CallprotectionProtectedIdx: result = (isProtected != 0); break;
-  default: result = 1;
-  }
-  return result;
-}
+
+/*
+ *----------------------------------------------------------------------
+ * MethodSourceMatches --
+ *
+ *    Check, whether the provided class or object (mutually exclusive) matches
+ *    with the required method source (typically all|application|baseclasses).
+ *
+ * Results:
+ *    Returns true or false
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object) {
   int isBaseClass;
@@ -14356,6 +14363,24 @@ static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object) 
   }
   return 0;
 }
+
+
+/*
+ *----------------------------------------------------------------------
+ * MethodTypeMatches --
+ *
+ *    Check, whether the provided method (specified as a cmd) matches with the
+ *    required method type (typically
+ *    all|scripted|builtin|alias|forwarder|object|setter).
+ *
+ * Results:
+ *    Returns true or false
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static int
 MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
@@ -14400,6 +14425,37 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
     /* NsfObjscopedMethod ??? */
   }
   return 1;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ProtectionMatches --
+ *
+ *    Check, whether the provided method (specified as a cmd) matches with the
+ *    required call-protection (typically all|protected|public).
+ *
+ * Results:
+ *    Returns true or false
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
+  int result, isProtected = Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD;
+  if (withCallprotection == CallprotectionNULL) {
+    withCallprotection = CallprotectionPublicIdx;
+  }
+  switch (withCallprotection) {
+  case CallprotectionAllIdx: result = 1; break;
+  case CallprotectionPublicIdx: result = (isProtected == 0); break;
+  case CallprotectionProtectedIdx: result = (isProtected != 0); break;
+  default: result = 1;
+  }
+  return result;
 }
 
 /*
@@ -18735,17 +18791,19 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
   {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 */
 static int
-NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *type) {
+NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object, int withSource, NsfClass *type) {
   NsfObjects *pl, *slotObjects;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   NsfClasses *fullPrecendenceList;
 
   fullPrecendenceList = ComputePrecedenceList(interp, object, NULL /* pattern*/, 1, 1);
-  slotObjects = ComputeSlotObjects(interp, fullPrecendenceList, type);
+  if (withSource == 0) {withSource = 1;}
+  slotObjects = ComputeSlotObjects(interp, fullPrecendenceList, withSource, type);
 
   for (pl=slotObjects; pl; pl = pl->nextPtr) {
     Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
@@ -19198,11 +19256,13 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, 
 /*
 classInfoMethod slots NsfClassInfoSlotsMethod {
   {-argName "-closure"}
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 */
 static int
-NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, NsfClass *type) {
+NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class, 
+			int withClosure, int withSource, NsfClass *type) {
   NsfClasses *clPtr, *intrinsic,  *checkList = NULL, *mixinClasses = NULL, 
     *precedenceList = NULL;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
@@ -19219,14 +19279,16 @@ NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, Ns
 	NsfClassListAdd(&precedenceList, clPtr->cl, NULL);
       }
     }
+    NsfClassListAdd(&precedenceList, class, NULL);
     for (clPtr = intrinsic->nextPtr; clPtr; clPtr = clPtr->nextPtr) {
       NsfClassListAdd(&precedenceList, clPtr->cl, NULL);
     }
   } else {
     NsfClassListAdd(&precedenceList, class, NULL);
   }
-
-  slotObjects = ComputeSlotObjects(interp, precedenceList, type);
+  //NsfClassListPrint("precedence", precedenceList);
+  if (withSource == 0) {withSource = 1;}
+  slotObjects = ComputeSlotObjects(interp, precedenceList, withSource, type);
 
   for (pl = slotObjects; pl; pl = pl->nextPtr) {
     Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
