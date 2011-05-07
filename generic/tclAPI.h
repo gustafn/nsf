@@ -200,6 +200,7 @@ static int NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *inte
 static int NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -289,6 +290,7 @@ static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withC
 static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withScope, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin);
+static int NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, NsfClass *withType);
 static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
 static int NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
@@ -379,6 +381,7 @@ enum {
  NsfClassInfoMixinOfMethodIdx,
  NsfClassInfoMixinclassesMethodIdx,
  NsfClassInfoMixinguardMethodIdx,
+ NsfClassInfoSlotsMethodIdx,
  NsfClassInfoSubclassMethodIdx,
  NsfClassInfoSuperclassMethodIdx,
  NsfAliasCmdIdx,
@@ -839,6 +842,26 @@ NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
     assert(pc.status == 0);
     return NsfClassInfoMixinguardMethod(interp, cl, mixin);
+
+  }
+}
+
+static int
+NsfClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "slots");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoSlotsMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoSlotsMethodIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int withClosure = (int )PTR2INT(pc.clientData[0]);
+    NsfClass *withType = (NsfClass *)pc.clientData[1];
+
+    assert(pc.status == 0);
+    return NsfClassInfoSlotsMethod(interp, cl, withClosure, withType);
 
   }
 }
@@ -2237,6 +2260,10 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::nsf::methods::class::info::mixinguard", NsfClassInfoMixinguardMethodStub, 1, {
   {"mixin", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::methods::class::info::slots", NsfClassInfoSlotsMethodStub, 2, {
+  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::subclass", NsfClassInfoSubclassMethodStub, 2, {
   {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},

@@ -399,6 +399,10 @@ classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
   {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
 }
+classInfoMethod slots NsfClassInfoSlotsMethod {
+  {-argName "-closure"}
+  {-argName "-type" -required 0 -nrargs 1 -type class}
+}
 classInfoMethod subclass NsfClassInfoSubclassMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}

@@ -633,7 +633,7 @@ nx::Test case info-heritage-multimix {
   C mixin PCM
   ? {C info heritage} "::PCM ::A ::nx::Object"
   ? {C info mixin classes} "::PCM"
-  ? {C info mixin classes -order} "" ;# ????
+  ? {C info mixin classes -order} "" ;# ???? why no warning
   ? {C info mixin classes -heritage} "::PCM ::A"
   ? {C info mixin classes -closure} "::PCM"
 
@@ -672,7 +672,9 @@ nx::Test case info-heritage-transitive-pcm {
   ? {B info mixin classes} "::PCMB"
   ? {C info mixin classes} ""
 
-  # the classes mixed transitive into this class
+  # the classes mixed transitive into this class; This answer the
+  # question, what classes were mixed in explicitly into the mixin
+  # hierarchy by the application program
   ? {B info mixin classes -closure} "::PCMB"
   # since C is a specialization of B, it includes transitively B's closure
   ? {C info mixin classes -closure} "::PCMB"

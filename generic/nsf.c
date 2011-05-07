@@ -10355,25 +10355,35 @@ StripBodyPrefix(CONST char *body) {
   return body;
 }
 
-
+/*
+ *----------------------------------------------------------------------
+ * ComputeSlotObjects --
+ *
+ *    Compute the list of slots for a given precedence list (class list).
+ *
+ * Results:
+ *    A list of NsfObjects or NULL
+ *
+ * Side effects:
+ *    Returned List has to be freed by the caller
+ *
+ *----------------------------------------------------------------------
+ */
 static NsfObjects *
-ComputeSlotObjects(Tcl_Interp *interp, NsfObject *object, NsfClass *type, int withRootClass) {
+ComputeSlotObjects(Tcl_Interp *interp, NsfClasses *precedenceList, NsfClass *type) {
   NsfObjects *slotObjects = NULL, **npl = &slotObjects;
-  NsfClasses *pl, *fullPrecendenceList;
   NsfObject *childObject, *tmpObject;
   Tcl_HashTable slotTable;
-
-  assert(object);
+  NsfClasses *clPtr;
 
   Tcl_InitHashTable(&slotTable, TCL_STRING_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", slotTable);
 
-  fullPrecendenceList = ComputePrecedenceList(interp, object, NULL /* pattern*/, 1, withRootClass);
-  for (pl = fullPrecendenceList; pl; pl = pl->nextPtr) {
+  for (clPtr = precedenceList; clPtr; clPtr = clPtr->nextPtr) {
     Tcl_DString ds, *dsPtr = &ds;
 
     DSTRING_INIT(dsPtr);
-    Tcl_DStringAppend(dsPtr, ClassName(pl->cl), -1);
+    Tcl_DStringAppend(dsPtr, ClassName(clPtr->cl), -1);
     Tcl_DStringAppend(dsPtr, "::slot", 6);
     tmpObject = GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
     if (tmpObject) {
@@ -10404,10 +10414,11 @@ ComputeSlotObjects(Tcl_Interp *interp, NsfObject *object, NsfClass *type, int wi
   Tcl_DeleteHashTable(&slotTable);
   MEM_COUNT_FREE("Tcl_InitHashTable", slotTable);
 
-  NsfClassListFree(fullPrecendenceList);
-
   return slotObjects;
 }
+
+
+
 
 static NsfClass *
 FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
@@ -18731,13 +18742,18 @@ static int
 NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *type) {
   NsfObjects *pl, *slotObjects;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+  NsfClasses *fullPrecendenceList;
 
-  slotObjects = ComputeSlotObjects(interp, object, type, 1);
+  fullPrecendenceList = ComputePrecedenceList(interp, object, NULL /* pattern*/, 1, 1);
+  slotObjects = ComputeSlotObjects(interp, fullPrecendenceList, type);
+
   for (pl=slotObjects; pl; pl = pl->nextPtr) {
     Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
   }
 
+  NsfClassListFree(fullPrecendenceList);
   NsfObjectListFree(slotObjects);
+
   Tcl_SetObjResult(interp, list);
   return TCL_OK;
 }
@@ -18942,19 +18958,15 @@ classInfoMethod heritage NsfClassInfoHeritageMethod {
 static int
 NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern) {
   NsfClasses *pl, *intrinsic,  *checkList = NULL, *mixinClasses = NULL;
-  int withMixins = 1;
 
   Tcl_ResetResult(interp);
-
   intrinsic = ComputeOrder(cl, cl->order, Super);
 
-  if (withMixins) {
-    NsfClassListAddPerClassMixins(interp, cl, &mixinClasses, &checkList);
-    for (pl = mixinClasses; pl; pl = pl->nextPtr) {
-      if (NsfClassListFind(pl->nextPtr, pl->cl) == NULL &&
-	  NsfClassListFind(intrinsic, pl->cl) == NULL) {
-	AppendMatchingElement(interp, pl->cl->object.cmdName, pattern);
-      }
+  NsfClassListAddPerClassMixins(interp, cl, &mixinClasses, &checkList);
+  for (pl = mixinClasses; pl; pl = pl->nextPtr) {
+    if (NsfClassListFind(pl->nextPtr, pl->cl) == NULL &&
+	NsfClassListFind(intrinsic, pl->cl) == NULL) {
+      AppendMatchingElement(interp, pl->cl->object.cmdName, pattern);
     }
   }
 
@@ -19182,6 +19194,53 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, 
   }
   return TCL_OK;
 }
+
+/*
+classInfoMethod slots NsfClassInfoSlotsMethod {
+  {-argName "-closure"}
+  {-argName "-type" -required 0 -nrargs 1 -type class}
+}
+*/
+static int
+NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, NsfClass *type) {
+  NsfClasses *clPtr, *intrinsic,  *checkList = NULL, *mixinClasses = NULL, 
+    *precedenceList = NULL;
+  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+  NsfObjects *pl, *slotObjects;
+
+  Tcl_ResetResult(interp);
+  intrinsic = ComputeOrder(class, class->order, Super);
+  
+  if (withClosure) {
+    NsfClassListAddPerClassMixins(interp, class, &mixinClasses, &checkList);
+    for (clPtr = mixinClasses; clPtr; clPtr = clPtr->nextPtr) {
+      if (NsfClassListFind(clPtr->nextPtr, clPtr->cl) == NULL &&
+	  NsfClassListFind(intrinsic, clPtr->cl) == NULL) {
+	NsfClassListAdd(&precedenceList, clPtr->cl, NULL);
+      }
+    }
+    for (clPtr = intrinsic->nextPtr; clPtr; clPtr = clPtr->nextPtr) {
+      NsfClassListAdd(&precedenceList, clPtr->cl, NULL);
+    }
+  } else {
+    NsfClassListAdd(&precedenceList, class, NULL);
+  }
+
+  slotObjects = ComputeSlotObjects(interp, precedenceList, type);
+
+  for (pl = slotObjects; pl; pl = pl->nextPtr) {
+    Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
+  }
+
+  NsfClassListFree(precedenceList);
+  NsfClassListFree(mixinClasses);
+  NsfClassListFree(checkList);
+  NsfObjectListFree(slotObjects);
+
+  Tcl_SetObjResult(interp, list);
+  return TCL_OK;
+}
+
 
 /*
 classInfoMethod subclass NsfClassInfoSubclassMethod {

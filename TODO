@@ -2706,8 +2706,18 @@ nsf:
     (was only there for "/obj/ info mixin classes")
   * extended regression test
 
+- nsf.c
+  * first version of c-bases "info slots" for classes
+  * switch "-closure" just for class info method
 
 TODO:
+- missing in c-based "info slots": 
+  * handling of pattern (needed?)
+  * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
+  * base objectparameter on "info slots"
+
+- The following is unsafe, but used in nx.tcl (and maybe as well by xotcl2.tcl)
+  obj method foo {{x ""}} { bar ... {*}$x  }
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 

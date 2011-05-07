@@ -531,7 +531,6 @@ namespace eval ::nx {
     :alias "info lookup"         ::nx::Object::slot::__info::lookup
     :alias "info filter guard"   ::nsf::methods::class::info::filterguard
     :alias "info filter methods" ::nsf::methods::class::info::filtermethods
-    #:alias "info forward"        ::nsf::methods::class::info::forward
     :alias "info has"            ::nx::Object::slot::__info::has
     :alias "info heritage"       ::nsf::methods::class::info::heritage
     :alias "info instances"      ::nsf::methods::class::info::instances
@@ -539,6 +538,11 @@ namespace eval ::nx {
     :alias "info mixin guard"    ::nsf::methods::class::info::mixinguard
     :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
+    :method "info slots" {{-type ::nx::Slot} pattern:optional} {
+      set cmd [list ::nsf::methods::class::info::slots -type $type]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      ::nsf::my {*}$cmd
+    }
     :alias "info subclass"       ::nsf::methods::class::info::subclass
     :alias "info superclass"     ::nsf::methods::class::info::superclass
   }
