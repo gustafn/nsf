@@ -1330,7 +1330,7 @@ NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
 
 /*
  *----------------------------------------------------------------------
- * NsfClassListNoDup --
+ * NsfClassListAddNoDup --
  *
  *    Add class list entry to the specified list without duplicates. In case
  *    the initial list is empty, *firstPtrPtr is updated as well.
@@ -1345,7 +1345,7 @@ NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
  */
 
 static NsfClasses **
-NsfClassListNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData, int *new) {
+NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData, int *new) {
   NsfClasses *l = *firstPtrPtr, *element = NULL, **newPtr = &element;
 
   if (l) {
@@ -5065,30 +5065,30 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
 
   for (m = *mixinList; m; m = m->nextPtr) {
     NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
+
     if (mCl) {
       for (pl = ComputeOrder(mCl, mCl->order, Super); pl; pl = pl->nextPtr) {
-        //fprintf(stderr, " %s, ", ClassName(pl->cl));
         if ((pl->cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
           NsfClassOpt *opt = pl->cl->opt;
-          if (opt && opt->classmixins) {
-            /* 
-	     * Compute transitively the (class) mixin classes of this
-             * added class.
-	     */
-	    /*fprintf(stderr, "find %p %s in checklist %p\n", pl->cl, ClassName(pl->cl), *checkList);*/
-            if (!NsfClassListFind(*checkList, pl->cl)) {
-              NsfClassListAdd(checkList, pl->cl, NULL);
-              /*fprintf(stderr, "+++ transitive %s\n", ClassName(pl->cl));*/
 
-              MixinComputeOrderFullList(interp, &opt->classmixins, mixinClasses,
-                                        checkList, level+1);
-            } else {
-              /*fprintf(stderr, "+++ dont add %s\n", ClassName(pl->cl));*/
+	  //fprintf(stderr, "find %p %s in checklist 1 %p\n", pl->cl, ClassName(pl->cl), *checkList);
+	  if (NsfClassListFind(*checkList, pl->cl)) {
+	    //fprintf(stderr, "+++ never add %s\n", ClassName(pl->cl));
+	  } else {
+	    if (opt && opt->classmixins) {
+	      /* 
+	       * Compute transitively the (class) mixin classes of this
+	       * added class.
+	       */
+	      NsfClassListAdd(checkList, pl->cl, NULL);
+	      /*fprintf(stderr, "+++ transitive %s\n", ClassName(pl->cl));*/
+	      MixinComputeOrderFullList(interp, &opt->classmixins, mixinClasses,
+					checkList, level+1);
 	    }
-          }
-          /*fprintf(stderr, "+++ add to mixinClasses %p path: %s clPtr %p\n",
-	    mixinClasses, ClassName(pl->cl), clPtr);*/
-	  clPtr = NsfClassListNoDup(clPtr, pl->cl, m->clientData, NULL);
+	    /*fprintf(stderr, "+++ add to mixinClasses %p path: %s clPtr %p\n",
+	      mixinClasses, ClassName(pl->cl), clPtr);*/
+	    clPtr = NsfClassListAddNoDup(clPtr, pl->cl, m->clientData, NULL);
+	  }
         }
       }
     }
@@ -5158,18 +5158,33 @@ NsfClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *cl,
  */
 static void
 MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
-  NsfClasses *fullList, *checkList = NULL, *mixinClasses = NULL, *nextCl,
-    *checker, *guardChecker;
+  NsfClasses *fullList, *checkList = NULL, *mixinClasses = NULL, *clPtr;
 
   if (object->mixinOrder)  MixinResetOrder(object);
 
-  /* append per-obj mixins */
+  /* Append per-obj mixins */
   if (object->opt) {
+    NsfCmdList *m;
+    
     MixinComputeOrderFullList(interp, &object->opt->mixins, &mixinClasses,
                               &checkList, 1);
+    /* 
+     * Add per-object mixins to checkList to avoid that theses classes in the
+     * class mixins. 
+     *
+     * TODO: we could add this already in MixinComputeOrderFullList() if we
+     * provide an additional flag.
+     */
+    for (m = object->opt->mixins; m; m = m->nextPtr) {
+      NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
+      if (mCl) {
+	NsfClassListAddNoDup(&checkList, mCl, NULL, NULL);
+      }
+    }
   }
   /*fprintf(stderr, "%s ", ObjectName(object));
-    NsfClassListPrint("MixinComputeOrder poms", mixinClasses);*/
+  NsfClassListPrint("MixinComputeOrder poms", mixinClasses);
+  NsfClassListPrint("MixinComputeOrder poms checkList", checkList);*/
 
   /* append per-class mixins */
   NsfClassListAddPerClassMixins(interp, object->cl, &mixinClasses, &checkList);
@@ -5179,22 +5194,20 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
 
   NsfClassListFree(checkList);
-
   fullList = mixinClasses;
 
   /* 
    * Don't add duplicates or classes of the precedence order to the resulting
    * list.
    */
-  while (mixinClasses) {
-    NsfClass *cl = mixinClasses->cl;
+  for (clPtr = mixinClasses; clPtr; clPtr = clPtr->nextPtr) {
+    NsfClass *cl = clPtr->cl;
+    NsfClasses *checker;
     
     /*fprintf(stderr, "--- Work on %s\n", ClassName(cl));
       CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
 
-    checker = nextCl = mixinClasses->nextPtr;
-    checker = NsfClassListFind(checker, cl);
-    /*fprintf(stderr, "--- checking %s found %p \n", ClassName(cl), checker);*/
+    checker = NsfClassListFind(clPtr->nextPtr, cl);
 
     /*
      * if checker is set, it is a duplicate and ignored 
@@ -5202,7 +5215,6 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
     if (checker == NULL) {
       /* check object->cl hierachy */
       checker = NsfClassListFind(ComputeOrder(object->cl, object->cl->order, Super), cl);
-      /*fprintf(stderr, "--- checking 2 %s found %p \n", ClassName(cl), checker);*/
       /* 
        * if checker is set, it was found in the class hierarchy and it is ignored 
        */
@@ -5220,12 +5232,12 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
        * We require the first matching guard of the full list in the new
        * client data
        */
-      guardChecker = NsfClassListFind(fullList, cl);
-      if (guardChecker) {
-	new->clientData = guardChecker->clientData;
+      checker = NsfClassListFind(fullList, cl);
+      if (checker) {
+	new->clientData = checker->clientData;
       }
     }
-    mixinClasses = nextCl;
+    
   }
 
   /* ... and free the memory of the full list */
@@ -18936,7 +18948,8 @@ NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern
   if (withMixins) {
     NsfClassListAddPerClassMixins(interp, cl, &mixinClasses, &checkList);
     for (pl = mixinClasses; pl; pl = pl->nextPtr) {
-      if (!NsfClassListFind(intrinsic, pl->cl)) {
+      if (NsfClassListFind(pl->nextPtr, pl->cl) == NULL &&
+	  NsfClassListFind(intrinsic, pl->cl) == NULL) {
 	AppendMatchingElement(interp, pl->cl->object.cmdName, pattern);
       }
     }
