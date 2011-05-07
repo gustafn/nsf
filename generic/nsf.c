@@ -18799,22 +18799,25 @@ NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 /*
 objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
   {-argName "-guards"}
-  {-argName "-order"}
+  {-argName "-heritage"}
   {-argName "pattern" -type objpattern}
+}
 }
 */
 static int
 NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *object,
-                                   int withGuards, int withOrder,
-                                   CONST char *patternString, NsfObject *patternObj) {
+			     int withGuards, int withHeritage, 
+			     CONST char *patternString, NsfObject *patternObj) {
 
-  if (withOrder) {
+  if (withHeritage) {
     if (!(object->flags & NSF_MIXIN_ORDER_VALID)) {
       MixinComputeDefined(interp, object);
     }
     return MixinInfo(interp, object->mixinOrder, patternString, withGuards, patternObj);
   }
-  return object->opt ? MixinInfo(interp, object->opt->mixins, patternString, withGuards, patternObj) : TCL_OK;
+  return object->opt ? 
+    MixinInfo(interp, object->opt->mixins, patternString, withGuards, patternObj) : 
+    TCL_OK;
 }
 
 /*
@@ -19075,17 +19078,31 @@ NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *class,
 classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {
   {-argName "-closure"}
   {-argName "-guards"}
+  {-argName "-heritage"}
   {-argName "pattern" -type objpattern}
 }
 */
 static int
 NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *class,
-			       int withClosure, int withGuards,
+			       int withClosure, int withGuards, int withHeritage,
 			       CONST char *patternString, NsfObject *patternObj) {
   NsfClassOpt *opt = class->opt;
   int rc;
 
-  if (withClosure) {
+  if (withHeritage) { 
+    NsfClasses *checkList = NULL, *mixinClasses = NULL, *clPtr;
+
+    if (withGuards) {
+      return NsfPrintError(interp, "-guards cannot be used together with -heritage\n");
+    }
+    
+    NsfClassListAddPerClassMixins(interp, class, &mixinClasses, &checkList);
+    for (clPtr = mixinClasses; clPtr; clPtr = clPtr->nextPtr) {
+      if (NsfClassListFind(clPtr->nextPtr, clPtr->cl)) continue;
+      AppendMatchingElement(interp, clPtr->cl->object.cmdName, patternString);
+    }
+
+  } else if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
     MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
     Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);

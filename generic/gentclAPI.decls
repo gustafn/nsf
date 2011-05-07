@@ -335,7 +335,7 @@ objectInfoMethod methods NsfObjInfoMethodsMethod {
 
 objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
   {-argName "-guards"}
-  {-argName "-order"}
+  {-argName "-heritage"}
   {-argName "pattern" -type objpattern}
 }
 objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {
@@ -388,6 +388,7 @@ classInfoMethod methods NsfClassInfoMethodsMethod {
 classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {
   {-argName "-closure"}
   {-argName "-guards"}
+  {-argName "-heritage"}
   {-argName "pattern" -type objpattern}
 }
 classInfoMethod mixinguard NsfClassInfoMixinguardMethod {

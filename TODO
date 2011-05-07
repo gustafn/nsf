@@ -2697,6 +2697,16 @@ nsf:
     POMs and PCMs
   * extended regression test
 
+- nsf.c:
+  * renamed old flag "-order" of "info mixin classes" to "-heritage"
+    since it computes same heritage as in "info heritage" (but
+    potentially for a list of classes)
+  * added compatibility layer for xotcl2 
+  * added lost option "-heritage" to "/cls/ info mixin classes"
+    (was only there for "/obj/ info mixin classes")
+  * extended regression test
+
+
 TODO:
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList

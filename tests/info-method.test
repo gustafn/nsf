@@ -436,25 +436,27 @@ nx::Test case info-heritage {
 
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::M1 ::A ::nx::Object"
+  ? {B info mixin classes -closure} "::M1"
 
   B mixin M2
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::M2 ::A ::nx::Object"
+  ? {B info mixin classes -closure} "::M2"
 
   B mixin A
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::A ::nx::Object"
 
   B mixin C
-
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::C ::A ::nx::Object"
 
   B mixin ""
-
   ? {BB info heritage} "::B ::A ::nx::Object"
+
   BB mixin CC
   ? {BB info heritage} "::CC ::C ::B ::A ::nx::Object"
+
   BB mixin ""
   ? {BB info heritage} "::B ::A ::nx::Object"
 }
@@ -607,22 +609,7 @@ nx::Test case info-heritage-multimix {
 
   B mixin {M3 M1 M1 M4}
   ? {B info heritage} "::M3 ::M1 ::M4 ::M2 ::A ::nx::Object"
-
-  # The following looks strange, since the POMS are not at the front
-  # of the list. However, we have to deal here with conflicting
-  # goals. One one hand side multiple occurances of the same class in
-  # the precedence list are handled by keeping just the last
-  # occurance. This way, ::nx::Object (with e.g. method delete) is
-  # always at the end, although it is part of every class
-  # hierarchy. This rule in not compatible with the rule POM before
-  # PCM, therefore the classes mixed in by POMS are not at the front
-  # of the list.
-  #
-  puts stderr =====1
-  #? {b1 info precedence} "::M3 ::M1 ::M4 ::M2 ::B ::A ::nx::Object"
-
   ? {b1 info precedence} "::M1 ::M4 ::M3 ::M2 ::B ::A ::nx::Object"
-  puts stderr =====2
 }
 
 #
@@ -640,12 +627,103 @@ nx::Test case info-heritage-multimix {
   # ::A is an implied class
   c1 mixin B
   ? {c1 info precedence} "::B ::A ::C ::nx::Object"
+  ? {c1 info mixin classes -heritage} "::B ::A"
 
   # ::A is as well implied by ::PCM
   C mixin PCM
   ? {C info heritage} "::PCM ::A ::nx::Object"
+  ? {C info mixin classes} "::PCM"
+  ? {C info mixin classes -order} "" ;# ????
+  ? {C info mixin classes -heritage} "::PCM ::A"
+  ? {C info mixin classes -closure} "::PCM"
 
   # ::A is not ordered after ::B but after ::PCM
   ? {c1 info precedence} "::B ::PCM ::A ::C ::nx::Object"
+  ? {c1 info mixin classes -heritage} "::B ::PCM ::A"
+}
+
+#
+# transitive per-class mixins with implied classes
+#
+nx::Test case info-heritage-transitive-pcm {
+  Class create A
+  Class create B -superclass A
+  Class create C -superclass B
+  Class create PCMA -superclass A
+  Class create PCMB -superclass PCMA
+  Class create PCMC -superclass PCMB
+  Class create TPCMA
+  Class create TPCMB -superclass TPCMA
+  C create c1
+
+  ? {C info heritage} "::B ::A ::nx::Object"
+  ? {c1 info precedence} "::C ::B ::A ::nx::Object"
+
+  B mixin PCMB
+  
+  # heritage includes implied classes
+  ? {C info heritage} "::PCMB ::PCMA ::B ::A ::nx::Object"
+
+  # precedence includes implied classes from mixins or intrinsic
+  # classes
+  ? {c1 info precedence} "::PCMB ::PCMA ::C ::B ::A ::nx::Object"
+
+  # just the classes mixed explicitly into this class
+  ? {B info mixin classes} "::PCMB"
+  ? {C info mixin classes} ""
+
+  # the classes mixed transitive into this class
+  ? {B info mixin classes -closure} "::PCMB"
+  # since C is a specialization of B, it includes transitively B's closure
+  ? {C info mixin classes -closure} "::PCMB"
+
+  # the explicit and implicit mixin classes
+  ? {B info mixin classes -heritage} "::PCMB ::PCMA ::A"
+  # since C is a specialization of B, it inherits the classes from B
+  ? {C info mixin classes -heritage} "::PCMB ::PCMA ::A"
+
+  PCMB mixin TPCMB
+
+  # heritage includes implied classes
+  ? {C info heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::B ::A ::nx::Object"
+
+  # precedence includes implied classes from mixins or intrinsic
+  # classes
+  ? {c1 info precedence} "::TPCMB ::TPCMA ::PCMB ::PCMA ::C ::B ::A ::nx::Object"
+
+  # just the classes mixed explicitly into this class
+  ? {B info mixin classes} "::PCMB"
+  ? {C info mixin classes} ""
+
+  # the classes mixed transitive into this class
+  ? {B info mixin classes -closure} "::PCMB ::TPCMB"
+  # since C is a specialization of B, it includes transitively B's closure
+  ? {C info mixin classes -closure} "::PCMB ::TPCMB"
+
+  # the explicit and implicit mixin classes
+  ? {B info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+  # since C is a specialization of B, it inherits the classes from B
+  ? {C info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+
+  C mixin PCMC
+
+  # heritage includes implied classes
+  ? {C info heritage} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::B ::A ::nx::Object"
+
+  # precedence includes implied classes from mixins or intrinsic
+  # classes
+  ? {c1 info precedence} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::C ::B ::A ::nx::Object"
+
+  # just the classes mixed explicitly into this class
+  ? {B info mixin classes} "::PCMB"
+  ? {C info mixin classes} "::PCMC"
+
+  # the classes mixed transitive into this class
+  ? {B info mixin classes -closure} "::PCMB ::TPCMB"
+  ? {C info mixin classes -closure} "::PCMC ::TPCMB ::PCMB"
+
+  # the explicit and implicit mixin classes
+  ? {B info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+  ? {C info mixin classes -heritage} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
 
 }

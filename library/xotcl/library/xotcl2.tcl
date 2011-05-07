@@ -606,7 +606,13 @@ namespace eval ::xotcl {
       my {*}$cmd
     }
 
-    :alias mixin              ::nsf::methods::object::info::mixinclasses
+    :proc mixin {-order:switch -guards:switch pattern:optional} {
+      set cmd ::nsf::methods::object::info::mixinclasses
+      if {$order} {lappend cmd "-heritage"}
+      if {$guards} {lappend cmd "-guards"}
+      if {[info exists pattern]} {lappend cmd $pattern}
+      my {*}$cmd
+    }
     :alias mixinguard         ::nsf::methods::object::info::mixinguard
     :proc nonposargs {method} {::xotcl::info_nonposargs object [self] $method}
     :proc parametercmd {name} {::nsf::classes::nx::Object::setter [self] $name}
@@ -659,7 +665,13 @@ namespace eval ::xotcl {
       }
     }
     :proc instinvar {}        {::nsf::method::assertion [self] class-invar}
-    :alias instmixin          ::nsf::methods::class::info::mixinclasses
+    :proc instmixin {-order:switch -guards:switch pattern:optional} {
+      set cmd ::nsf::methods::class::info::mixinclasses
+      if {$order} {lappend cmd "-heritage"}
+      if {$guards} {lappend cmd "-guards"}
+      if {[info exists pattern]} {lappend cmd $pattern}
+      my {*}$cmd
+    }
     :alias instmixinguard     ::nsf::methods::class::info::mixinguard
     :proc instmixinof {-closure {pattern ""}} {
       my ::nsf::methods::class::info::mixinof -scope class \

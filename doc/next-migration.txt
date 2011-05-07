@@ -2033,7 +2033,7 @@ subcommands rather than using a flat namespace.
 |[source,tcl]
 ----------------
 /obj/ info mixin classes \
-   ?-guards? ?-order? ?pattern?
+   ?-guards? ?-heritage? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -2050,7 +2050,7 @@ subcommands rather than using a flat namespace.
 |[source,tcl]
 ----------------
 /cls/ class info mixin classes \
-   ?-guards? ?-order? ?pattern?
+   ?-guards? ?-heritage? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -2068,7 +2068,7 @@ subcommands rather than using a flat namespace.
 |[source,tcl]
 ----------------
 /cls/ info mixin classes \
-   ?-guards? ?-order? ?pattern?
+   ?-closure?  ?-guards? ?-heritage? ?pattern?
 ----------------
 |[source,tcl]
 ----------------

@@ -287,7 +287,7 @@ static int NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *cl, int wit
 static int NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *cl, int infomethodsubcmd, Tcl_Obj *name);
 static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withCallprotection, int withIncontext, int withMethodtype, int withNomixins, int withPath, CONST char *pattern);
 static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withScope, CONST char *patternString, NsfObject *patternObj);
-static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, CONST char *patternString, NsfObject *patternObj);
+static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin);
 static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
@@ -354,7 +354,7 @@ static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int
 static int NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType);
 static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int infomethodsubcmd, Tcl_Obj *name);
 static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withIncontext, int withMethodtype, int withNomixins, int withPath, CONST char *pattern);
-static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withOrder, CONST char *patternString, NsfObject *patternObj);
+static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObj);
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *obj, int withIntrinsic, CONST char *pattern);
@@ -801,12 +801,13 @@ NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, in
   } else {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     int withGuards = (int )PTR2INT(pc.clientData[1]);
+    int withHeritage = (int )PTR2INT(pc.clientData[2]);
     CONST char *patternString = NULL;
     NsfObject *patternObj = NULL;
-    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
     int returnCode;
 
-    if (GetMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObj, &patternString) == -1) {
+    if (GetMatchObject(interp, pattern, objc>3 ? objv[3] : NULL, &patternObj, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT(pattern);
       }
@@ -814,7 +815,7 @@ NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, in
     }
           
     assert(pc.status == 0);
-    returnCode = NsfClassInfoMixinclassesMethod(interp, cl, withClosure, withGuards, patternString, patternObj);
+    returnCode = NsfClassInfoMixinclassesMethod(interp, cl, withClosure, withGuards, withHeritage, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
@@ -2066,7 +2067,7 @@ NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     return TCL_ERROR;
   } else {
     int withGuards = (int )PTR2INT(pc.clientData[0]);
-    int withOrder = (int )PTR2INT(pc.clientData[1]);
+    int withHeritage = (int )PTR2INT(pc.clientData[1]);
     CONST char *patternString = NULL;
     NsfObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
@@ -2080,7 +2081,7 @@ NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     }
           
     assert(pc.status == 0);
-    returnCode = NsfObjInfoMixinclassesMethod(interp, obj, withGuards, withOrder, patternString, patternObj);
+    returnCode = NsfObjInfoMixinclassesMethod(interp, obj, withGuards, withHeritage, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
@@ -2228,9 +2229,10 @@ static Nsf_methodDefinition method_definitions[] = {
   {"-scope", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToScope, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 0, ConvertToObjpattern, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::class::info::mixinclasses", NsfClassInfoMixinclassesMethodStub, 3, {
+{"::nsf::methods::class::info::mixinclasses", NsfClassInfoMixinclassesMethodStub, 4, {
   {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-heritage", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 0, ConvertToObjpattern, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::mixinguard", NsfClassInfoMixinguardMethodStub, 1, {
@@ -2509,7 +2511,7 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::nsf::methods::object::info::mixinclasses", NsfObjInfoMixinclassesMethodStub, 3, {
   {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-order", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-heritage", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 0, ConvertToObjpattern, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::mixinguard", NsfObjInfoMixinguardMethodStub, 1, {
