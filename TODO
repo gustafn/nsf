@@ -2713,13 +2713,13 @@ nsf:
     and "info lookup slots" 
     (similar to "info lookup methods")
   * extended regression test
+  * base objectparameter on "info slots"
 
 TODO:
 - missing in c-based "info slots": 
   * handling of pattern (needed?)
   * handle source (as well in "info lookup slots")
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
-  * base objectparameter on "info slots"
 
 - The following is unsafe, but used in nx.tcl (and maybe as well by xotcl2.tcl)
   obj method foo {{x ""}} { bar ... {*}$x  }

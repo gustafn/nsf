@@ -543,7 +543,6 @@ namespace eval ::nx {
       if {[info exists source]} {lappend cmd -source $source}
       if {$closure} {lappend cmd -closure}
       if {[info exists pattern]} {lappend cmd $pattern}
-      puts stderr XXXXCMD=[list $cmd]
       ::nsf::my {*}$cmd
     }
     :alias "info subclass"       ::nsf::methods::class::info::subclass
@@ -973,9 +972,9 @@ namespace eval ::nx {
     # Collect the object parameter slots in per-position lists to
     # ensure partial ordering and avoid sorting.
     #
-    #set class [::nsf::relation [self] class]
-    #foreach slot [nsf::dispatch $class ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {}
-    foreach slot [nsf::dispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
+    set class [::nsf::relation [self] class]
+    foreach slot [nsf::dispatch $class ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
+      #foreach slot [nsf::dispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {}
       lappend defs([$slot position]) [$slot getParameterSpec]
     }
     #
