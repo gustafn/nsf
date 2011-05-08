@@ -1755,7 +1755,8 @@ In order to obtain for an object the set of artefacts defined in the
 |[source,tcl]
 ----------------
 # List slot objects defined for obj
-/obj/ info lookup slots ?-type /type/? ?-source all|application|baseclasses?
+/obj/ info lookup slots ?-type /type/? ?-source
+all|application|baseclasses? ?pattern?
 # Returns list of slot objects of specified type (class) and origin
 ----------------
 |======================

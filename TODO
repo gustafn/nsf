@@ -2715,11 +2715,23 @@ nsf:
   * extended regression test
   * base objectparameter on "info slots"
 
+- nsf.c
+  * added "pattern" to "info lookup slots"
+  * added "pattern" to "info slots"
+  * extended regression test
+
 TODO:
 - missing in c-based "info slots": 
-  * handling of pattern (needed?)
-  * handle source (as well in "info lookup slots")
+  * handle object specific "info slots"
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
+  * "info slots" is not in the migration guide
+
+- TODO: why do we have to use ::info in the "info" ensemble?
+  see nx.tcl
+    :method "info lookup slots" {{-type ::nx::Slot} -source pattern:optional} {
+      set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
+      ...
+     }
 
 - The following is unsafe, but used in nx.tcl (and maybe as well by xotcl2.tcl)
   obj method foo {{x ""}} { bar ... {*}$x  }

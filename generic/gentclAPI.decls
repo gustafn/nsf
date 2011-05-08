@@ -320,6 +320,7 @@ objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
   {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
   {-argName "-type" -required 0 -nrargs 1 -type class}
+  {-argName "pattern" -required 0}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|exists|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"}
@@ -331,7 +332,7 @@ objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-nomixins"}
   {-argName "-path"}
-  {-argName "pattern"}
+  {-argName "pattern" -required 0}
 }
 
 objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
@@ -404,6 +405,7 @@ classInfoMethod slots NsfClassInfoSlotsMethod {
   {-argName "-closure"}
   {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
   {-argName "-type" -required 0 -nrargs 1 -type class}
+  {-argName "pattern" -required 0}
  }
 classInfoMethod subclass NsfClassInfoSubclassMethod {
   {-argName "-closure"}

@@ -241,8 +241,35 @@ nx::Test case slots {
   ? {C info heritage} "::nx::Object"
   ? {C info slots -closure -source application} "::C::slot::a ::C::slot::b"
   ? {C info slots -closure} "::C::slot::a ::C::slot::b ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+
   ? {C info slots} "::C::slot::a ::C::slot::b"
+
+  # Test patterns for "info slots"
+  # Partial name, no metachars
+  ? {C info slots -closure mixin} "::nx::Object::slot::mixin"
+  # Partial name with metachars
+  ? {C info slots -closure *in*} \
+      "::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd"
+  # Fully qualified name, no metachars
+  ? {C info slots -closure ::nx::Object::slot::mixin} "::nx::Object::slot::mixin"
+  # Fully qualified name, with metachars
+  # The following command returns the same as "C info slots"
+  ? {C info slots -closure ::C::*} "::C::slot::a ::C::slot::b"
+  # The following command returns the slots of D inherited from
+  # C. Slot "b" is shadoed by D.
+  ? {D info slots -closure ::C::*} "::C::slot::a"
   
+  # Test patterns for "info lookup slots"
+  # Partial name, no metachars
+  ? {c1 info lookup slots mixin} "::nx::Object::slot::mixin"
+  # Partial name with metachars
+  ? {c1 info lookup slots *in*} \
+      "::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd"
+  # Fully qualified name, no metachars
+  ? {c1 info lookup slots ::nx::Object::slot::mixin} "::nx::Object::slot::mixin"
+  # Fully qualified name, with metachars
+  ? {c1 info lookup slots ::C::*} "::C::slot::a ::C::slot::b"
+
   D create d1
   ? {D info slots} "::D::slot::b ::D::slot::a2 ::D::slot::c"
   ? {D info slots -closure -source application} "::D::slot::b ::D::slot::a2 ::D::slot::c ::C::slot::a"
@@ -251,6 +278,11 @@ nx::Test case slots {
 
   ? {d1 info precedence} "::D ::C ::nx::Object"
   ? {d1 info lookup slots} "::D::slot::b ::D::slot::a2 ::D::slot::c ::C::slot::a ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+
+  # Fully qualified name, with metachars
+  # The following command returns the slots of D inherited from
+  # C. Slot "b" is shadoed by D.
+  ? {d1 info lookup slots ::C::*} "::C::slot::a"
 }
 
 #

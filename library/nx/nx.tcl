@@ -468,9 +468,12 @@ namespace eval ::nx {
     :alias "info lookup filter"  ::nsf::methods::object::info::lookupfilter
     :alias "info lookup method"  ::nsf::methods::object::info::lookupmethod
     :alias "info lookup methods" ::nsf::methods::object::info::lookupmethods
-    :method "info lookup slots" {{-type ::nx::Slot}} {
-      ::nsf::dispatch [::nsf::self] \
-	  ::nsf::methods::object::info::lookupslots -type $type
+    :method "info lookup slots" {{-type ::nx::Slot} -source pattern:optional} {
+      set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
+      # TODO: why do we have to use here ::info?
+      if {[::info exists source]} {lappend cmd -source $source}
+      if {[::info exists pattern]} {lappend cmd $pattern}
+      return [::nsf::my {*}$cmd]
     }
     :alias "info children"         ::nsf::methods::object::info::children
     :alias "info class"            ::nsf::methods::object::info::class
