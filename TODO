@@ -2725,6 +2725,10 @@ nsf:
    "info slot handle /name/"
    "info slot parameter /name/" 
 
+- nsf.c: Since the method "objectparameter" is just based on the class
+  (and object parameters are invalidates as well over the class), we
+  moved the method from obj to class to avoid potential confusions
+
 TODO:
 
 - missing in c-based "info slots": 

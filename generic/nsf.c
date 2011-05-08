@@ -17154,11 +17154,11 @@ ParamSetFromAny(
  */
 
 static int
-GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfObject *object,
+GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass *class,
                              NsfParsedParam *parsedParamPtr) {
   int result;
   Tcl_Obj *rawConfArgs;
-  NsfParsedParam *clParsedParamPtr = object->cl->parsedParamPtr;
+  NsfParsedParam *clParsedParamPtr = class->parsedParamPtr;
 
   /*
    * Parameter definitions are cached in the class, for which
@@ -17188,11 +17188,11 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfObject
      * There is no parameter definition available, get a new one in
      * the the string representation.
      */
-    Tcl_Obj *methodObj = NsfMethodObj(object, NSF_o_objectparameter_idx);
+    Tcl_Obj *methodObj = NsfMethodObj(&class->object, NSF_c_objectparameter_idx);
 
     if (methodObj) {
       /* fprintf(stderr, "=== calling %s objectparameter\n", ObjectName(object));*/
-      result = CallMethod((ClientData) object, interp, methodObj,
+      result = CallMethod((ClientData) class, interp, methodObj,
 			  2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
 
       if (result == TCL_OK) {
@@ -17211,7 +17211,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfObject
 	  NsfParsedParam *ppDefPtr = NEW(NsfParsedParam);
 	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
 	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
-	  object->cl->parsedParamPtr = ppDefPtr;
+	  class->parsedParamPtr = ppDefPtr;
 	}
 	DECR_REF_COUNT(rawConfArgs);
       }
@@ -17366,7 +17366,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 #endif
 
   /* Get the object parameter definition */
-  result = GetObjectParameterDefinition(interp, objv[0], object, &parsedParam);
+  result = GetObjectParameterDefinition(interp, objv[0], object->cl, &parsedParam);
   if (result != TCL_OK || !parsedParam.paramDefs) {
     /*fprintf(stderr, "... nothing to do for method %s\n", ObjStr(objv[0]));*/
     goto configure_exit;

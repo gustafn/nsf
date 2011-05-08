@@ -24,6 +24,7 @@ namespace eval ::xotcl {
     -class.alloc alloc 
     -class.create create
     -class.dealloc dealloc
+    -class.objectparameter objectparameter 
     -class.recreate recreate 
     -class.requireobject __unknown 
     -object.configure configure 
@@ -32,7 +33,6 @@ namespace eval ::xotcl {
     -object.destroy destroy 
     -object.init init 
     -object.move move 
-    -object.objectparameter objectparameter 
     -object.residualargs residualargs
     -object.unknown unknown
   }
@@ -367,9 +367,9 @@ namespace eval ::xotcl {
   # Method objectparameter, backwards upward compatible. We use
   # here the definition of parametersfromslots from nx.tcl
   #
-  ::xotcl::Object instproc objectparameter {} {
+  ::xotcl::Class instproc objectparameter {} {
     set parameterdefinitions [list]
-    foreach slot [::nsf::dispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
+    foreach slot [nsf::dispatch [self] ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
       lappend parameterdefinitions [$slot getParameterSpec]
     }
     lappend parameterdefinitions args

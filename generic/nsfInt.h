@@ -533,6 +533,7 @@ typedef enum SystemMethodsIdx {
   NSF_c_alloc_idx, 
   NSF_c_create_idx, 
   NSF_c_dealloc_idx,
+  NSF_c_objectparameter_idx, 
   NSF_c_recreate_idx, 
   NSF_c_requireobject_idx, 
   NSF_o_cleanup_idx, 
@@ -541,7 +542,6 @@ typedef enum SystemMethodsIdx {
   NSF_o_destroy_idx, 
   NSF_o_init_idx, 
   NSF_o_move_idx, 
-  NSF_o_objectparameter_idx, 
   NSF_o_residualargs_idx,
   NSF_o_unknown_idx
 } SystemMethodsIdx;
@@ -553,6 +553,7 @@ CONST char *Nsf_SytemMethodOpts[] = {
   "-class.alloc", 
   "-class.create", 
   "-class.dealloc",
+  "-class.objectparameter", 
   "-class.recreate", 
   "-class.requireobject",
   "-object.cleanup", 
@@ -561,7 +562,6 @@ CONST char *Nsf_SytemMethodOpts[] = {
   "-object.destroy", 
   "-object.init", 
   "-object.move", 
-  "-object.objectparameter", 
   "-object.residualargs", 
   "-object.unknown",  
   NULL

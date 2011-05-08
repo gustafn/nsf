@@ -19,6 +19,7 @@ namespace eval ::nx {
     -class.alloc {alloc ::nsf::methods::class::alloc} 
     -class.create create
     -class.dealloc {dealloc ::nsf::methods::class::dealloc}
+    -class.objectparameter objectparameter 
     -class.recreate {recreate ::nsf::methods::class::recreate}
     -class.requireobject __unknown
     -object.configure configure
@@ -26,7 +27,6 @@ namespace eval ::nx {
     -object.destroy destroy
     -object.init {init ::nsf::methods::object::init}
     -object.move move 
-    -object.objectparameter objectparameter 
     -object.unknown unknown
   }
 
@@ -270,7 +270,7 @@ namespace eval ::nx {
 
   # provide a placeholder for the bootup process. The real definition
   # is based on slots, which are not available at this point.
-  Object protected method objectparameter {} {;}
+  Class protected method objectparameter {} {;}
 
   #
   # Define forward methods
@@ -977,14 +977,12 @@ namespace eval ::nx {
   #
   ::nsf::invalidateobjectparameter MetaSlot
 
-  Object protected method objectparameter {} {
+  Class protected method objectparameter {} {
     # 
     # Collect the object parameter slots in per-position lists to
     # ensure partial ordering and avoid sorting.
     #
-    set class [::nsf::relation [self] class]
-    foreach slot [nsf::dispatch $class ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
-      #foreach slot [nsf::dispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {}
+    foreach slot [nsf::dispatch [self] ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
       lappend defs([$slot position]) [$slot getParameterSpec]
     }
     #
