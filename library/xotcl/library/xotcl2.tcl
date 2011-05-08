@@ -552,8 +552,10 @@ namespace eval ::xotcl {
     :proc check {}            {::xotcl::checkoption_internal_to_xotcl1 [::nsf::method::assertion [self] check]}
     :alias class              ::nsf::methods::object::info::class
     :alias children           ::nsf::methods::object::info::children
-    :proc commands {{pattern ""}} {
-      my ::nsf::methods::object::info::methods -methodtype all {*}$pattern
+    :proc commands {pattern:optional} {
+      set cmd [list ::nsf::methods::object::info::methods -methodtype all]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [my {*}$cmd]
     }
     :proc default {method arg varName} {
       # pass varName to be able produce the right error message
@@ -619,8 +621,10 @@ namespace eval ::xotcl {
     :alias parent             ::nsf::methods::object::info::parent
     :proc post {methodName}   {my ::nsf::methods::object::info::method post $methodName}
     :proc pre  {methodName}   {my ::nsf::methods::object::info::method pre  $methodName}
-    :proc procs {{pattern ""}} {
-      my ::nsf::methods::object::info::methods -methodtype scripted {*}$pattern
+    :proc procs {pattern:optional} {
+      set cmd [list ::nsf::methods::object::info::methods -methodtype scripted]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [my {*}$cmd]
     }
     :alias slots              ::nx::Object::slot::__info::slots
     :alias precedence         ::nsf::methods::object::info::precedence
@@ -647,7 +651,11 @@ namespace eval ::xotcl {
 
     :proc instargs {method}   {::xotcl::info_args class [self] $method}
     :proc instbody {methodName} {my ::nsf::methods::class::info::method body $methodName}
-    :proc instcommands {{pattern ""}}  {my ::nsf::methods::class::info::methods {*}$pattern}
+    :proc instcommands {pattern:optional}  {
+      set cmd [list ::nsf::methods::class::info::methods]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [my {*}$cmd]
+    }
     :proc instdefault {method arg varName} {
       set r [::xotcl::info_default class [self] $method $arg $varName]
       return $r
@@ -664,7 +672,7 @@ namespace eval ::xotcl {
 	return [my ::nsf::methods::class::info::forward {*}[self args]]
       }
     }
-    :proc instinvar {}        {::nsf::method::assertion [self] class-invar}
+    :proc instinvar {} {::nsf::method::assertion [self] class-invar}
     :proc instmixin {-order:switch -guards:switch pattern:optional} {
       set cmd ::nsf::methods::class::info::mixinclasses
       if {$order} {lappend cmd "-heritage"}
@@ -673,25 +681,31 @@ namespace eval ::xotcl {
       my {*}$cmd
     }
     :alias instmixinguard     ::nsf::methods::class::info::mixinguard
-    :proc instmixinof {-closure {pattern ""}} {
-      my ::nsf::methods::class::info::mixinof -scope class \
-	  {*}[expr {$closure ? "-closure" : ""}] \
-	  {*}$pattern
+    :proc instmixinof {-closure:switch pattern:optional} {
+      set cmd [list ::nsf::methods::class::info::mixinof -scope class]
+      if {$closure} {lappend cmd -closure}
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [my {*}$cmd]
     }
-    :proc instparametercmd {{pattern ""}} {
-      my ::nsf::methods::class::info::methods -methodtype setter {*}$pattern
+    :proc instparametercmd {pattern:optional} {
+      set cmd [list ::nsf::methods::class::info::methods -methodtype setter]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [my {*}$cmd]
     }
     :proc instnonposargs {method} {::xotcl::info_nonposargs class [self] $method}
     :proc instpost {methodName}   {my ::nsf::methods::class::info::method postcondition $methodName}
     :proc instpre  {methodName}   {my ::nsf::methods::class::info::method precondition  $methodName}
 
-    :proc instprocs {{pattern ""}} {
-      my ::nsf::methods::class::info::methods -methodtype scripted {*}$pattern
+    :proc instprocs {pattern:optional} {
+      set cmd [list ::nsf::methods::class::info::methods -methodtype scripted]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [my {*}$cmd]
     }
-    :proc mixinof {-closure:switch {pattern ""}} {
-      my ::nsf::methods::class::info::mixinof -scope object \
-	  {*}[expr {$closure ? "-closure" : ""}] \
-	  {*}$pattern
+    :proc mixinof {-closure:switch pattern:optional} {
+      set cmd [list ::nsf::methods::class::info::mixinof -scope object]
+      if {$closure} {lappend cmd -closure}
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [my {*}$cmd]
     }
     :alias parameter          ::nx::Class::slot::__info::attributes
     :alias subclass           ::nsf::methods::class::info::subclass

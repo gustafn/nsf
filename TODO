@@ -2720,6 +2720,8 @@ nsf:
   * added "pattern" to "info slots"
   * extended regression test
 
+- nx.tcl, xotcl2.tcl: removed unsafe {*}$pattern
+
 TODO:
 - missing in c-based "info slots": 
   * handle object specific "info slots"
@@ -2732,9 +2734,6 @@ TODO:
       set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
       ...
      }
-
-- The following is unsafe, but used in nx.tcl (and maybe as well by xotcl2.tcl)
-  obj method foo {{x ""}} { bar ... {*}$x  }
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 

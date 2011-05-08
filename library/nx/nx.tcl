@@ -493,10 +493,12 @@ namespace eval ::nx {
       if {[::nsf::object::exists $slot]} {return $slot}
       return ""
     }
-    :method "info slots" {{-type ::nx::Slot} {pattern ""}} {
+    :method "info slots" {{-type ::nx::Slot} pattern:optional} {
       set slotContainer [::nsf::self]::slot
       if {[::nsf::object::exists $slotContainer]} {
-	::nsf::dispatch $slotContainer ::nsf::methods::object::info::children -type $type {*}$pattern
+	set cmd [list ::nsf::methods::object::info::children -type $type]
+	if {[::info exists pattern]} {lappend cmd $pattern}
+	return [::nsf::my {*}$cmd]
       }
     }
     :alias "info vars"           ::nsf::methods::object::info::vars
@@ -546,7 +548,7 @@ namespace eval ::nx {
       if {[info exists source]} {lappend cmd -source $source}
       if {$closure} {lappend cmd -closure}
       if {[info exists pattern]} {lappend cmd $pattern}
-      ::nsf::my {*}$cmd
+      return [::nsf::my {*}$cmd]
     }
     :alias "info subclass"       ::nsf::methods::class::info::subclass
     :alias "info superclass"     ::nsf::methods::class::info::superclass
