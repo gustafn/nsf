@@ -2721,12 +2721,17 @@ nsf:
   * extended regression test
 
 - nx.tcl, xotcl2.tcl: removed unsafe {*}$pattern
+- added:
+   "info slot handle /name/"
+   "info slot parameter /name/" 
 
 TODO:
+
 - missing in c-based "info slots": 
   * handle object specific "info slots"
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
   * "info slots" is not in the migration guide
+  * "info slot" is not in the migration guide
 
 - TODO: why do we have to use ::info in the "info" ensemble?
   see nx.tcl

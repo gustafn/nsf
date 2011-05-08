@@ -488,9 +488,14 @@ namespace eval ::nx {
     :alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
-    :method "info slot" {name} {
-      set slot [::nsf::self]::slot::$name
+    :method "info slot handle" {name} {
+      if {![string match :* $name]} {set slot [::nsf::self]::slot::$name}
       if {[::nsf::object::exists $slot]} {return $slot}
+      return ""
+    }
+    :method "info slot parameter" {name} {
+      if {![string match :* $name]} {set slot [::nsf::self]::slot::$name}
+      if {[::nsf::object::exists $slot]} {return [$slot getParameterSpec]}
       return ""
     }
     :method "info slots" {{-type ::nx::Slot} pattern:optional} {
