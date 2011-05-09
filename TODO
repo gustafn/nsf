@@ -2746,8 +2746,7 @@ TODO:
 - missing in c-based "info slots": 
   * handle object specific "info slots"
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
-  * "info slots" is not in the migration guide
-  * "info slot" is not in the migration guide
+  * "info slots", "info parameter" is not in the migration guide
 
 - TODO: why do we have to use ::info in the "info" ensemble?
   see nx.tcl
