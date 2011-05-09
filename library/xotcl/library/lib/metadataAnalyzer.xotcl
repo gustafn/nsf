@@ -453,7 +453,7 @@ namespace eval ::xotcl::metadataAnalyzer {
     AnalyzerCmd instproc unknown args {
 	my instvar analyzerObj onOff
 
-      puts stderr "AnalyzerCmd: [self args]"
+	# puts stderr "AnalyzerCmd: [self args]"
 
 	if {!$onOff} {return [next]}
 
