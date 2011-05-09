@@ -2729,6 +2729,18 @@ nsf:
   (and object parameters are invalidates as well over the class), we
   moved the method from obj to class to avoid potential confusions
 
+- nsf:c
+  * added C-implemented class level method 
+    "info objectparameter list|name|parameter|parametersyntax"
+  * added enum to handle different print styles for parameters
+  * renamed ParamDefsList() to ParamDefsNames(), added true ParamDefsList()
+
+- nx.tcl:
+  * removed "info slot handle" and "info slot parameter"
+  * added "info parameter spec", "info parameter list", 
+    "info parameter name", and "info parameter syntax"
+  * extended regression test
+
 TODO:
 
 - missing in c-based "info slots": 

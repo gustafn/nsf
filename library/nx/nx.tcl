@@ -488,16 +488,6 @@ namespace eval ::nx {
     :alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
-    :method "info slot handle" {name} {
-      if {![string match :* $name]} {set slot [::nsf::self]::slot::$name}
-      if {[::nsf::object::exists $slot]} {return $slot}
-      return ""
-    }
-    :method "info slot parameter" {name} {
-      if {![string match :* $name]} {set slot [::nsf::self]::slot::$name}
-      if {[::nsf::object::exists $slot]} {return [$slot getParameterSpec]}
-      return ""
-    }
     :method "info slots" {{-type ::nx::Slot} pattern:optional} {
       set slotContainer [::nsf::self]::slot
       if {[::nsf::object::exists $slotContainer]} {
@@ -548,6 +538,27 @@ namespace eval ::nx {
     :alias "info mixin guard"    ::nsf::methods::class::info::mixinguard
     :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
+    :method "info parameter spec" {name:optional} {
+      if {[::info exists name]} {
+	return [::nsf::my ::nsf::methods::class::info::objectparameter parameter $name]
+      }
+      return [:objectparameter]
+    }
+    :method "info parameter list" {name:optional} {
+      set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter list]
+      if {[::info exists name]} {lappend cmd $name}
+      return [::nsf::my {*}$cmd]
+    }
+    :method "info parameter name" {name:optional} {
+      set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter name]
+      if {[::info exists name]} {lappend cmd $name}
+      return [::nsf::my {*}$cmd]
+    }
+    :method "info parameter syntax" {name:optional} {
+      set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter parametersyntax]
+      if {[::info exists name]} {lappend cmd $name}
+      return [::nsf::my {*}$cmd]
+    }
     :method "info slots" {{-type ::nx::Slot} -closure:switch -source pattern:optional} {
       set cmd [list ::nsf::methods::class::info::slots -type $type]
       if {[info exists source]} {lappend cmd -source $source}
@@ -1445,14 +1456,14 @@ namespace eval ::nx {
     foreach arg $arglist {
       ::nx::MetaSlot createFromParameterSpec [::nsf::self] {*}$arg
     }
-    set slot [::nx::slotObj [::nsf::self]]
-    ::nsf::var::set $slot __parameter $arglist
+    set slotContainer [::nx::slotObj [::nsf::self]]
+    ::nsf::var::set $slotContainer __parameter $arglist
   }
 
   Class method "info attributes" {} {
-    set slot [::nx::slotObj [::nsf::self]]
-    if {[::nsf::var::exists $slot __parameter]} {
-      return [::nsf::var::set $slot __parameter]
+    set slotContainer [::nx::slotObj [::nsf::self]]
+    if {[::nsf::var::exists $slotContainer __parameter]} {
+      return [::nsf::var::set $slotContainer __parameter]
     }
     return ""
   }

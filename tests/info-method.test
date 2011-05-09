@@ -208,6 +208,7 @@ nx::Test case callable {
     ? {Foo class mixin guard ::Fly {1}} ""
     ? {Foo class info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
     ? {Foo class info mixin classes -guards Fly} "{::Fly -guard 1}"
+
     Foo class mixin delete ::Fly
     ? {Foo class info mixin classes} "::nx::Class"
 
@@ -386,6 +387,38 @@ nx::Test case info-submethod {
       "::nsf::classes::nx::Object::info lookup methods"
 
   ? {o info method handle "foo b"} "::o::foo b"
+}
+
+#
+# test info slot parameter|parametersyntax 
+#
+nx::Test case info-slot-parametersyntax {
+
+  nx::Class create C {
+    :attribute a
+    :attribute {b 1}
+  }
+  
+  nx::Class create D -superclass C {
+    :attribute {b 2}
+    :attribute c
+    :class attribute a2
+    :method "sub foo" args {;}
+  }
+
+  ? {C info parameter syntax} "?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin value? ?-class value? ?-filter value? ?__initcmd?"
+  ? {C info parameter syntax a} "?-a value?"
+
+  ? {C info parameter spec} "-a {-b 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional"
+
+  ? {C info parameter list} "-a -b -volatile -noinit -mixin -class -filter __initcmd"
+  ? {C info parameter name} "a b volatile noinit mixin class filter __initcmd"
+
+  ? {C info parameter spec b} "{-b 1}"
+  ? {D info parameter spec b} "{-b 2}"
+
+  ? {D info parameter list} "-b -a2 -c -a -volatile -noinit -mixin -class -filter __initcmd"
+  ? {D info parameter name} "b a2 c a volatile noinit mixin class filter __initcmd"
 }
 
 #
