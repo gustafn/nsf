@@ -401,6 +401,10 @@ classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
   {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
 }
+classInfoMethod objectparameter NsfClassInfoObjectparameterMethod {
+  {-argName "infoobjectparametersubcmd" -type "list|name|parameter|parametersyntax" -required 1}
+  {-argName "pattern" -required 0}
+}
 classInfoMethod slots NsfClassInfoSlotsMethod {
   {-argName "-closure"}
   {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}

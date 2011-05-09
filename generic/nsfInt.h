@@ -635,6 +635,10 @@ typedef struct NsfShadowTclCommandInfo {
 } NsfShadowTclCommandInfo;
 typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} NsfShadowOperations;
 
+
+typedef enum {NSF_PARAMS_NAMES, NSF_PARAMS_LIST, 
+	      NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX} NsfParamsPrintStyle;
+
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
 		     int objc, Tcl_Obj *CONST objv[]);
 int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load);
