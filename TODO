@@ -2753,7 +2753,7 @@ nsf:
   * The namespaces within plain scripted methods and scripted
     ensemble objects are now the same. 
   * Extended regression test
-
+  * Code cleanup and documentation
 
 TODO:
 
