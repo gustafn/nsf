@@ -2741,7 +2741,7 @@ nsf:
     "info parameter name", and "info parameter syntax"
   * extended regression test
 
--nsf.c:
+- nsf.c:
 
   * Added argument "-reg-object" to ::nsf::method::create to
     distinguish between a registration and a definition object for
@@ -2755,13 +2755,15 @@ nsf:
   * Extended regression test
   * Code cleanup and documentation
 
--nx.tcl: 
+- nx.tcl: 
   * added method "delete" to delete methods and attributes
   * extended regression test
 
+- nsf.c: removed all but one occurrance of Tcl_AppendElement()
 
 TODO:
 
+- remove the last occurance of Tcl_AppendElement()
 - missing in c-based "info slots": 
   * handle object specific "info slots"
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")

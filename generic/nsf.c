@@ -4781,11 +4781,21 @@ AssertionAppendPrePost(Tcl_Interp *interp, Tcl_DString *dsPtr, NsfProcAssertion 
 static int
 AssertionListCheckOption(Tcl_Interp *interp, NsfObject *object) {
   NsfObjectOpt *opt = object->opt;
+  Tcl_Obj *resultObj;
+
   if (!opt) return TCL_OK;
-  if (opt->checkoptions & CHECK_OBJINVAR) Tcl_AppendElement(interp, "object-invar");
-  if (opt->checkoptions & CHECK_CLINVAR)  Tcl_AppendElement(interp, "class-invar");
-  if (opt->checkoptions & CHECK_PRE)      Tcl_AppendElement(interp, "pre");
-  if (opt->checkoptions & CHECK_POST)     Tcl_AppendElement(interp, "post");
+
+  resultObj = Tcl_GetObjResult(interp);
+
+  if (opt->checkoptions & CHECK_OBJINVAR) 
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object-invar", -1));
+  if (opt->checkoptions & CHECK_CLINVAR)
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class-invar", -1));
+  if (opt->checkoptions & CHECK_PRE)
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("pre", -1));
+  if (opt->checkoptions & CHECK_POST)
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("post", -1));
+
   return TCL_OK;
 }
 
@@ -5346,7 +5356,7 @@ static void
 AppendMatchingElement(Tcl_Interp *interp, Tcl_Obj *nameObj, CONST char *pattern) {
   CONST char *string = ObjStr(nameObj);
   if (!pattern || Tcl_StringMatch(string, pattern)) {
-    Tcl_AppendElement(interp, string);
+    Tcl_ListObjAppendElement(interp, Tcl_GetObjResult(interp), nameObj);
   }
 }
 
@@ -5535,13 +5545,15 @@ AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfCla
   if (*new) {
     if (appendResult) {
       if (!pattern || Tcl_StringMatch(ClassName(cl), pattern)) {
-        Tcl_Obj *l = Tcl_NewListObj(0, NULL);
+        Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
         Tcl_Obj *g = (Tcl_Obj *) clientData;
-        Tcl_ListObjAppendElement(interp, l, cl->object.cmdName);
-        Tcl_ListObjAppendElement(interp, l, NsfGlobalObjs[NSF_GUARD_OPTION]);
-        Tcl_ListObjAppendElement(interp, l, g);
-	Tcl_AppendElement(interp, ObjStr(l));
-	DECR_REF_COUNT(l);
+	DECR_REF_COUNT(listObj);
+        Tcl_ListObjAppendElement(interp, listObj, cl->object.cmdName);
+        Tcl_ListObjAppendElement(interp, listObj, NsfGlobalObjs[NSF_GUARD_OPTION]);
+        Tcl_ListObjAppendElement(interp, listObj, g);
+	/* Tcl_ListObjAppendElement(interp, Tcl_GetObjResult(interp), listObj);*/
+	Tcl_AppendElement(interp, ObjStr(listObj));
+	DECR_REF_COUNT(listObj);
       }
     }
     if (matchObject && matchObject == (NsfObject *)cl) {
@@ -7680,7 +7692,7 @@ ParamGetDomain(Nsf_Param CONST *paramPtr) {
 
 Tcl_Obj *
 NsfParamDefsSyntax(Nsf_Param CONST *paramPtr) {
-  Tcl_Obj *argStringObj = Tcl_NewStringObj("", 0);
+  Tcl_Obj *argStringObj = Tcl_NewObj();
   Nsf_Param CONST *pPtr;
 
   for (pPtr = paramPtr; pPtr->name; pPtr++) {
@@ -8989,7 +9001,7 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 static Tcl_Obj *
 AddPrefixToBody(Tcl_Obj *body, int paramDefs, NsfParsedParam *paramPtr) {
-  Tcl_Obj *resultBody = Tcl_NewStringObj("", 0);
+  Tcl_Obj *resultBody = Tcl_NewObj();
 
   INCR_REF_COUNT(resultBody);
 
@@ -14864,6 +14876,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
   char *key;
   int new, isObject, methodTypeMatch;
   int prefixLength = prefix ? Tcl_DStringLength(prefix) : 0;
+  Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
 
   assert(tablePtr);
   
@@ -14894,10 +14907,10 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
         if (dups) {
           Tcl_CreateHashEntry(dups, key, &new);
           if (new) {
-            Tcl_AppendElement(interp, key);
+            Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
           }
         } else {
-          Tcl_AppendElement(interp, key);
+	  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
         }
       }
     }
@@ -14959,7 +14972,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
         Tcl_CreateHashEntry(dups, key, &new);
         if (!new) continue;
       }
-      Tcl_AppendElement(interp, key);
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
     }
   }
   /*fprintf(stderr, "listkeys returns '%s'\n", ObjStr(Tcl_GetObjResult(interp)));*/
@@ -19309,12 +19322,15 @@ static int
 NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
                                         int withIntrinsicOnly, CONST char *pattern) {
   NsfClasses *precedenceList = NULL, *pl;
+  Tcl_Obj *resultObj = Tcl_NewObj();
 
   precedenceList = ComputePrecedenceList(interp, object, pattern, !withIntrinsicOnly, 1);
   for (pl = precedenceList; pl; pl = pl->nextPtr) {
-    Tcl_AppendElement(interp, ClassName(pl->cl));
+    Tcl_ListObjAppendElement(interp, resultObj, pl->cl->object.cmdName);
   }
   NsfClassListFree(precedenceList);
+
+  Tcl_SetObjResult(interp, resultObj);
   return TCL_OK;
 }
 
