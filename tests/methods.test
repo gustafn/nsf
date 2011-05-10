@@ -524,3 +524,103 @@ nx::Test case nested-scopes {
   ? {c1 info bar foo} "::o-::info"
 }
 
+#
+# Test deletion of object-specific methods/attributes via delete
+# method
+# a) test attributes
+# b) test simple methods
+# c) test ensemble methods
+#
+nx::Test case delete-per-object {
+  Object create o1 {
+    :attribute a1
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo a1"
+  ? {o1 info children} "::o1::info ::o1::slot"
+
+  ? {o1 delete bar} "::o1: cannot delete object specific method 'bar'"
+
+  ? {o1 delete a1} ""
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo"
+
+  ? {o1 delete foo} ""
+  ? {o1 info methods -path} "{info foo} {info bar foo}"
+
+  ? {o1 delete "info foo"} ""
+  ? {o1 info methods -path} "{info bar foo}"
+
+  ? {o1 delete "info bar foo"} ""
+  ? {o1 info methods -path} ""
+}
+
+#
+# Test deletion of per-object methods/attributes defined on classes
+# via the delete method
+# a) test attributes
+# b) test simple methods
+# c) test ensemble methods
+#
+nx::Test case delete-per-object-on-class {
+  Class create C {
+    :class attribute a1
+    :public class method foo {} {return [namespace current]-[namespace which info]}
+    :public class method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public class method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {C class info methods -path} "{info foo} {info bar foo} foo a1"
+  ? {C info children} "::C::info ::C::slot"
+
+  ? {C delete -per-object bar} "::C: cannot delete object specific method 'bar'"
+
+  ? {C delete -per-object a1} ""
+  ? {C class info methods -path} "{info foo} {info bar foo} foo"
+
+  ? {C delete -per-object foo} ""
+  ? {C class info methods -path} "{info foo} {info bar foo}"
+
+  ? {C delete -per-object "info foo"} ""
+  ? {C class info methods -path} "{info bar foo}"
+
+  ? {C delete -per-object "info bar foo"} ""
+  ? {C class info methods -path} ""
+}
+
+
+#
+# Test deletion of methods/attributes defined on classes via the
+# delete method
+# a) test attributes
+# b) test simple methods
+# c) test ensemble methods
+#
+nx::Test case delete-class-level-method {
+  Class create C {
+    :attribute a1
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {C info methods -path} "{info foo} {info bar foo} foo a1"
+  ? {C info children} "::C::slot"
+
+  ? {C delete bar} "::C: cannot delete method 'bar'"
+
+  ? {C delete a1} ""
+  ? {C info methods -path} "{info foo} {info bar foo} foo"
+
+  ? {C delete foo} ""
+  ? {C info methods -path} "{info foo} {info bar foo}"
+
+  ? {C delete "info foo"} ""
+  ? {C info methods -path} "{info bar foo}"
+
+  ? {C delete "info bar foo"} ""
+  ? {C info methods -path} ""
+}
+

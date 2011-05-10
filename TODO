@@ -2755,6 +2755,9 @@ nsf:
   * Extended regression test
   * Code cleanup and documentation
 
+-nx.tcl: 
+  * added method "delete" to delete methods and attributes
+  * extended regression test
 
 TODO:
 

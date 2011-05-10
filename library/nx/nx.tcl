@@ -368,6 +368,43 @@ namespace eval ::nx {
     return $r
   }
 
+  #
+  # Deletion method for attributes and plain methods
+  #
+
+  Object public method delete {methodName} {
+    # call explicitly the per-object variant of "info slots"
+    set slot [::nsf::my "::nx::Object::slot::__info::slots" $methodName]
+    #
+    # If we have a slot (e.g. an attribute) we simply delete it. The
+    # destructor of the slot removes the accessor.
+    #
+    if {$slot ne ""} {
+      $slot destroy
+    } else {
+      array set "" [:__resolve_method_path -per-object $methodName]
+      ::nsf::method::delete $(object) -per-object $(methodName)
+    }
+  }
+  Class public method delete {-per-object:switch methodName} {
+    if {${per-object}} {
+      # call explicitly the per-object variant of "delete"
+      return [::nsf::my ::nsf::classes::nx::Object::delete $methodName]
+    } else {
+      set slot [:info slots $methodName]
+      #
+      # If we have a slot (e.g. an attribute) we simply delete it. The
+      # destructor of the slot removes the accessor.
+      #
+      if {$slot ne ""} {
+	$slot destroy
+      } else {
+	array set "" [:__resolve_method_path $methodName]
+	::nsf::method::delete $(object) $(methodName)
+      }
+    }
+  }
+  
   # Add method "require"
   #
   Object method require {what args} {
@@ -502,7 +539,7 @@ namespace eval ::nx {
       if {[::nsf::object::exists $slotContainer]} {
 	set cmd [list ::nsf::methods::object::info::children -type $type]
 	if {[info exists pattern]} {lappend cmd $pattern}
-	return [::nsf::my {*}$cmd]
+	return [$slotContainer {*}$cmd]
       }
     }
     :alias "info vars"           ::nsf::methods::object::info::vars
@@ -906,8 +943,10 @@ namespace eval ::nx {
     # When slot objects are destroyed, invalidate the object
     # parameters to reflect the changes
     #
-    if {[info exists :domain] && ${:domain} ne "" && [::nsf::is class ${:domain}]} {
-      ::nsf::invalidateobjectparameter ${:domain}
+    if {[info exists :domain] && ${:domain} ne ""} {
+      if {[::nsf::is class ${:domain}]} {
+	::nsf::invalidateobjectparameter ${:domain}
+      }
       #
       # delete the accessor
       #
