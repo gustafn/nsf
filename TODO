@@ -2759,16 +2759,17 @@ nsf:
   * added method "delete" to delete methods and attributes
   * extended regression test
 
-- nsf.c: removed all but one occurrance of Tcl_AppendElement()
+- nsf.c: removed all but one occurrence of Tcl_AppendElement()
+- nsf.c: removed all occurrences of Tcl_AppendElement()
+- nsf.c: passed around resultObj explicitly
 
 TODO:
 
-- remove the last occurance of Tcl_AppendElement()
 - missing in c-based "info slots": 
   * handle object specific "info slots"
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
   * "info slots", "info parameter" is not in the migration guide
-  * add method delte to the migration guide
+  * add method delete to the migration guide
 
 - shouldn't GetMatchObject() return -1 instead of 1?
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList

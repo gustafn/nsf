@@ -5342,7 +5342,8 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
  *----------------------------------------------------------------------
  * AppendMatchingElement --
  *
- *    Call AppendElement for values matching the specified pattern
+ *    Call AppendElement to the resultObj for values matching the specified
+ *    pattern.
  *
  * Results:
  *    void
@@ -5353,10 +5354,10 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
  *----------------------------------------------------------------------
  */
 static void
-AppendMatchingElement(Tcl_Interp *interp, Tcl_Obj *nameObj, CONST char *pattern) {
+AppendMatchingElement(Tcl_Interp *interp, Tcl_Obj *resultObj, Tcl_Obj *nameObj, CONST char *pattern) {
   CONST char *string = ObjStr(nameObj);
   if (!pattern || Tcl_StringMatch(string, pattern)) {
-    Tcl_ListObjAppendElement(interp, Tcl_GetObjResult(interp), nameObj);
+    Tcl_ListObjAppendElement(interp, resultObj, nameObj);
   }
 }
 
@@ -5376,16 +5377,18 @@ AppendMatchingElement(Tcl_Interp *interp, Tcl_Obj *nameObj, CONST char *pattern)
  *----------------------------------------------------------------------
  */
 static int
-AppendMatchingElementsFromCmdList(Tcl_Interp *interp, NsfCmdList *cmdl,
+AppendMatchingElementsFromCmdList(Tcl_Interp *interp, NsfCmdList *cmdl, 
+				  Tcl_Obj *resultObj,
                                   CONST char *pattern, NsfObject *matchObject) {
   int rc = 0;
+
   for ( ; cmdl; cmdl = cmdl->nextPtr) {
     NsfObject *object = NsfGetObjectFromCmdPtr(cmdl->cmdPtr);
     if (object) {
       if (matchObject == object) {
         return 1;
       } else {
-        AppendMatchingElement(interp, object->cmdName, pattern);
+        AppendMatchingElement(interp, resultObj, object->cmdName, pattern);
       }
     }
   }
@@ -5411,6 +5414,7 @@ static int
 AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
 				  CONST char *pattern, NsfObject *matchObject) {
   int rc = 0;
+  Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
 
   for ( ; cls; cls = cls->nextPtr) {
     NsfObject *object = (NsfObject *)cls->cl;
@@ -5422,7 +5426,7 @@ AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
         return 1;
         break;
       } else {
-        AppendMatchingElement(interp, object->cmdName, pattern);
+        AppendMatchingElement(interp, resultObj, object->cmdName, pattern);
       }
     }
   }
@@ -5507,7 +5511,8 @@ GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *start
  *----------------------------------------------------------------------
  */
 static int
-AddToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfObject *object, int *new,
+AddToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, 
+	       Tcl_Obj *resultSet, NsfObject *object, int *new,
 	       int appendResult, CONST char *pattern, NsfObject *matchObject) {
   Tcl_CreateHashEntry(destTablePtr, (char *)object, new);
   if (*new) {
@@ -5515,7 +5520,7 @@ AddToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfObject *objec
       return 1;
     }
     if (appendResult) {
-      AppendMatchingElement(interp, object->cmdName, pattern);
+      AppendMatchingElement(interp, resultSet, object->cmdName, pattern);
     }
   }
   return 0;
@@ -5523,11 +5528,11 @@ AddToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfObject *objec
 
 /*
  *----------------------------------------------------------------------
- * AddToResultSet --
+ * AddToResultSetWithGuards --
  *
  *    Helper function to add classes with guards to the result set
- *    (implemented as a hash table), flagging test for matchObject as
- *    result.
+ *    (implemented as a hash table, full version as a Tcl list), flagging test
+ *    for matchObject as result.
  *
  * Results:
  *    1 iff a matching object was provided and it was found; 0 otherwise
@@ -5538,7 +5543,8 @@ AddToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfObject *objec
  *----------------------------------------------------------------------
  */
 static int
-AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *cl,
+AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, 
+			 Tcl_Obj *resultSet, NsfClass *cl,
 			 ClientData clientData, int *new, int appendResult,
 			 CONST char *pattern, NsfObject *matchObject) {
   Tcl_CreateHashEntry(destTablePtr, (char *)cl, new);
@@ -5547,12 +5553,11 @@ AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfCla
       if (!pattern || Tcl_StringMatch(ClassName(cl), pattern)) {
         Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
         Tcl_Obj *g = (Tcl_Obj *) clientData;
-	DECR_REF_COUNT(listObj);
+	INCR_REF_COUNT(listObj);
         Tcl_ListObjAppendElement(interp, listObj, cl->object.cmdName);
         Tcl_ListObjAppendElement(interp, listObj, NsfGlobalObjs[NSF_GUARD_OPTION]);
         Tcl_ListObjAppendElement(interp, listObj, g);
-	/* Tcl_ListObjAppendElement(interp, Tcl_GetObjResult(interp), listObj);*/
-	Tcl_AppendElement(interp, ObjStr(listObj));
+	Tcl_ListObjAppendElement(interp, resultSet, listObj);
 	DECR_REF_COUNT(listObj);
       }
     }
@@ -5582,8 +5587,8 @@ AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfCla
  *----------------------------------------------------------------------
  */
 static int
-GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startCl,
-		     int isMixin,
+GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
+		     Tcl_Obj *resultSet, NsfClass *startCl, int isMixin,
 		     int appendResult, CONST char *pattern, NsfObject *matchObject) {
   int rc = 0, new = 0;
   NsfClasses *sc;
@@ -5595,7 +5600,8 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *
    * check all subclasses of startCl for mixins
    */
   for (sc = startCl->sub; sc; sc = sc->nextPtr) {
-    rc = GetAllObjectMixinsOf(interp, destTablePtr, sc->cl, isMixin, appendResult,
+    rc = GetAllObjectMixinsOf(interp, destTablePtr, resultSet,
+			      sc->cl, isMixin, appendResult,
 			      pattern, matchObject);
     if (rc) {return rc;}
   }
@@ -5612,7 +5618,8 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
       /*fprintf(stderr, "check %s mixinof %s\n", ClassName(cl), ClassName((startCl)));*/
-      rc = GetAllObjectMixinsOf(interp, destTablePtr, cl, isMixin, appendResult,
+      rc = GetAllObjectMixinsOf(interp, destTablePtr, resultSet,
+				cl, isMixin, appendResult,
 				pattern, matchObject);
       /* fprintf(stderr, "check %s mixinof %s done\n",
 	 ClassName(cl), ClassName(startCl));*/
@@ -5635,7 +5642,8 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *
       object = NsfGetObjectFromCmdPtr(m->cmdPtr);
       assert(object);
 
-      rc = AddToResultSet(interp, destTablePtr, object, &new, appendResult,
+      rc = AddToResultSet(interp, destTablePtr, resultSet, 
+			  object, &new, appendResult,
 			  pattern, matchObject);
       if (rc == 1) {return rc;}
     }
@@ -5662,9 +5670,10 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *
  *----------------------------------------------------------------------
  */
 static int
-GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
-		    /*@notnull@*/ NsfClass *startCl, int isMixin,
-                    int appendResult, CONST char *pattern, NsfObject *matchObject) {
+GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, 
+		    Tcl_Obj *resultSet, /*@notnull@*/ NsfClass *startCl, 
+		    int isMixin, int appendResult, 
+		    CONST char *pattern, NsfObject *matchObject) {
   int rc = 0, new = 0;
   NsfClass *cl;
   NsfClasses *sc;
@@ -5678,8 +5687,9 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
    * the startCl is a per class mixin, add it to the result set
    */
   if (isMixin) {
-    rc = AddToResultSet(interp, destTablePtr, &startCl->object, &new, appendResult,
-			pattern, matchObject);
+    rc = AddToResultSet(interp, destTablePtr, resultSet,
+			&startCl->object, &new, 
+			appendResult, pattern, matchObject);
     if (rc == 1) {return rc;}
 
     /*
@@ -5698,8 +5708,9 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
       }
 #endif
       assert(sc->cl != startCl);
-      rc = GetAllClassMixinsOf(interp, destTablePtr, sc->cl, isMixin, appendResult,
-			       pattern, matchObject);
+      rc = GetAllClassMixinsOf(interp, destTablePtr, resultSet, 
+			       sc->cl, isMixin, 
+			       appendResult, pattern, matchObject);
       if (rc) {
 	return rc;
       }
@@ -5720,13 +5731,15 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
 
-      rc = AddToResultSet(interp, destTablePtr, &cl->object, &new, appendResult,
-			  pattern, matchObject);
+      rc = AddToResultSet(interp, destTablePtr, resultSet,
+			  &cl->object, &new, 
+			  appendResult, pattern, matchObject);
       if (rc == 1) {return rc;}
       if (new) {
         /*fprintf(stderr, "... new\n");*/
-        rc = GetAllClassMixinsOf(interp, destTablePtr, cl, 1, appendResult,
-				 pattern, matchObject);
+        rc = GetAllClassMixinsOf(interp, destTablePtr, resultSet,
+				 cl, 1, 
+				 appendResult, pattern, matchObject);
         if (rc) {return rc;}
       }
     }
@@ -5753,7 +5766,8 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
  */
 
 static int
-GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startCl,
+GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, 
+		  Tcl_Obj *resultObj, NsfClass *startCl,
 		  int withGuards, CONST char *pattern, NsfObject *matchObject) {
   int rc = 0, new = 0;
   NsfClass *cl;
@@ -5777,19 +5791,22 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *sta
 
       if ((withGuards) && (m->clientData)) {
         /* fprintf(stderr, "AddToResultSetWithGuards: %s\n", ClassName(cl)); */
-        rc = AddToResultSetWithGuards(interp, destTablePtr, cl, m->clientData, &new, 1,
-				      pattern, matchObject);
+        rc = AddToResultSetWithGuards(interp, destTablePtr, resultObj,
+				      cl, m->clientData, &new, 
+				      1, pattern, matchObject);
       } else {
         /* fprintf(stderr, "AddToResultSet: %s\n", ClassName(cl)); */
-	rc = AddToResultSet(interp, destTablePtr, &cl->object, &new, 1,
-			    pattern, matchObject);
+	rc = AddToResultSet(interp, destTablePtr, resultObj,
+			    &cl->object, &new, 
+			    1, pattern, matchObject);
       }
       if (rc == 1) {return rc;}
 
       if (new) {
         /* fprintf(stderr, "class mixin GetAllClassMixins for: %s (%s)\n",
 	   ClassName(cl), ClassName(startCl)); */
-        rc = GetAllClassMixins(interp, destTablePtr, cl, withGuards,
+        rc = GetAllClassMixins(interp, destTablePtr, resultObj,
+			       cl, withGuards,
 			       pattern, matchObject);
         if (rc) {return rc;}
       }
@@ -5803,7 +5820,8 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *sta
   for (sc = startCl->super; sc; sc = sc->nextPtr) {
     /* fprintf(stderr, "Superclass GetAllClassMixins for %s (%s)\n",
        ClassName(sc->cl), ClassName(startCl)); */
-    rc = GetAllClassMixins(interp, destTablePtr, sc->cl, withGuards,
+    rc = GetAllClassMixins(interp, destTablePtr, resultObj,
+			   sc->cl, withGuards,
 			   pattern, matchObject);
     if (rc) {return rc;}
   }
@@ -5975,7 +5993,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   */
   Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-  GetAllClassMixinsOf(interp, commandTable, cl, 1, 0, NULL, NULL);
+  GetAllClassMixinsOf(interp, commandTable, Tcl_GetObjResult(interp),
+		      cl, 1, 0, NULL, NULL);
 
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -6196,6 +6215,7 @@ MixinInfo(Tcl_Interp *interp, NsfCmdList *m, CONST char *pattern,
     }
     m = m->nextPtr;
   }
+
   Tcl_SetObjResult(interp, list);
   return TCL_OK;
 }
@@ -15666,7 +15686,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
       RUNTIME_STATE(interp)->debugLevel = level;
     }
     Tcl_SetIntObj(Tcl_GetObjResult(interp),
-                      RUNTIME_STATE(interp)->debugLevel);
+		  RUNTIME_STATE(interp)->debugLevel);
 
     return TCL_OK;
   }
@@ -19414,27 +19434,29 @@ classInfoMethod heritage NsfClassInfoHeritageMethod {
 static int
 NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern) {
   NsfClasses *pl, *intrinsic,  *checkList = NULL, *mixinClasses = NULL;
+  Tcl_Obj *resultObj;
 
-  Tcl_ResetResult(interp);
+  resultObj = Tcl_NewObj();
   intrinsic = ComputeOrder(cl, cl->order, Super);
 
   NsfClassListAddPerClassMixins(interp, cl, &mixinClasses, &checkList);
   for (pl = mixinClasses; pl; pl = pl->nextPtr) {
     if (NsfClassListFind(pl->nextPtr, pl->cl) == NULL &&
 	NsfClassListFind(intrinsic, pl->cl) == NULL) {
-      AppendMatchingElement(interp, pl->cl->object.cmdName, pattern);
+      AppendMatchingElement(interp, resultObj, pl->cl->object.cmdName, pattern);
     }
   }
 
   if (intrinsic) {
     for (pl = intrinsic->nextPtr; pl; pl = pl->nextPtr) {
-      AppendMatchingElement(interp, pl->cl->object.cmdName, pattern);
+      AppendMatchingElement(interp, resultObj, pl->cl->object.cmdName, pattern);
     }
   }
 
   NsfClassListFree(mixinClasses);
   NsfClassListFree(checkList);
 
+  Tcl_SetObjResult(interp, resultObj);
   return TCL_OK;
 }
 
@@ -19443,7 +19465,7 @@ NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern
  * String key hashtable
  */
 static int
-NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl,
+NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl, Tcl_Obj *resultObj,
 			     int withClosure, CONST char *pattern, NsfObject *matchObject) {
   Tcl_HashTable *tablePtr = &startCl->instances;
   NsfClasses *sc;
@@ -19460,14 +19482,14 @@ NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl,
     /*fprintf(stderr, "match '%s' %p %p '%s'\n",
       ObjectName(matchObject), matchObject, inst, ObjectName(inst));*/
     if (matchObject && inst == matchObject) {
-      Tcl_SetObjResult(interp, matchObject->cmdName);
+      Tcl_SetStringObj(resultObj, ObjStr(matchObject->cmdName), -1);
       return 1;
     }
-    AppendMatchingElement(interp, inst->cmdName, pattern);
+    AppendMatchingElement(interp, resultObj, inst->cmdName, pattern);
   }
   if (withClosure) {
     for (sc = startCl->sub; sc; sc = sc->nextPtr) {
-      rc = NsfClassInfoInstancesMethod1(interp, sc->cl, withClosure, pattern, matchObject);
+      rc = NsfClassInfoInstancesMethod1(interp, sc->cl, resultObj, withClosure, pattern, matchObject);
       if (rc) break;
     }
   }
@@ -19483,7 +19505,11 @@ classInfoMethod instances NsfClassInfoInstancesMethod {
 static int
 NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 			    int withClosure, CONST char *pattern, NsfObject *matchObject) {
-  NsfClassInfoInstancesMethod1(interp, startCl, withClosure, pattern, matchObject);
+  Tcl_Obj *resultObj = Tcl_NewObj();
+
+  NsfClassInfoInstancesMethod1(interp, startCl, resultObj, withClosure, pattern, matchObject);
+  Tcl_SetObjResult(interp, resultObj);
+
   return TCL_OK;
 }
 
@@ -19555,7 +19581,11 @@ NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *class,
 			       int withClosure, int withGuards, int withHeritage,
 			       CONST char *patternString, NsfObject *patternObj) {
   NsfClassOpt *opt = class->opt;
+  Tcl_Obj *resultObj;
   int rc;
+
+  Tcl_ResetResult(interp);
+  resultObj = Tcl_GetObjResult(interp);
 
   if (withHeritage) { 
     NsfClasses *checkList = NULL, *mixinClasses = NULL, *clPtr;
@@ -19567,19 +19597,23 @@ NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *class,
     NsfClassListAddPerClassMixins(interp, class, &mixinClasses, &checkList);
     for (clPtr = mixinClasses; clPtr; clPtr = clPtr->nextPtr) {
       if (NsfClassListFind(clPtr->nextPtr, clPtr->cl)) continue;
-      AppendMatchingElement(interp, clPtr->cl->object.cmdName, patternString);
+      AppendMatchingElement(interp, resultObj, clPtr->cl->object.cmdName, patternString);
     }
-
+    
   } else if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
+
     MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
     Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-    rc = GetAllClassMixins(interp, commandTable, class, withGuards, patternString, patternObj);
+    rc = GetAllClassMixins(interp, commandTable, resultObj, 
+			   class, withGuards, 
+			   patternString, patternObj);
     if (patternObj && rc && !withGuards) {
       Tcl_SetObjResult(interp, rc ? patternObj->cmdName : NsfGlobalObjs[NSF_EMPTY]);
-    }
+    } 
     Tcl_DeleteHashTable(commandTable);
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
+
   } else {
     rc = opt ? MixinInfo(interp, opt->classmixins, patternString, withGuards, patternObj) : TCL_OK;
   }
@@ -19609,6 +19643,10 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, 
 			  CONST char *patternString, NsfObject *patternObj) {
   NsfClassOpt *opt = class->opt;
   int perClass, perObject, rc = TCL_OK;
+  Tcl_Obj *resultObj;
+
+  Tcl_ResetResult(interp);
+  resultObj = Tcl_GetObjResult(interp);
 
   if (withScope == ScopeNULL || withScope == ScopeAllIdx) {
     perClass = 1;
@@ -19623,22 +19661,26 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, 
 
   if (opt && !withClosure) {
     if (perClass) {
-      rc = AppendMatchingElementsFromCmdList(interp, opt->isClassMixinOf, patternString, patternObj);
+      rc = AppendMatchingElementsFromCmdList(interp, opt->isClassMixinOf, resultObj,
+					     patternString, patternObj);
       if (rc && patternObj) {goto finished;}
     }
     if (perObject) {
-      rc = AppendMatchingElementsFromCmdList(interp, opt->isObjectMixinOf, patternString, patternObj);
+      rc = AppendMatchingElementsFromCmdList(interp, opt->isObjectMixinOf, resultObj,
+					     patternString, patternObj);
     }
   } else if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
     MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
     Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
     if (perClass) {
-      rc = GetAllClassMixinsOf(interp, commandTable, class, 0, 1, patternString, patternObj);
+      rc = GetAllClassMixinsOf(interp, commandTable, resultObj,
+			       class, 0, 1, patternString, patternObj);
       if (rc && patternObj) {goto finished;}
     }
     if (perObject) {
-      rc = GetAllObjectMixinsOf(interp, commandTable, class, 0, 1, patternString, patternObj);
+      rc = GetAllObjectMixinsOf(interp, commandTable, resultObj,
+				class, 0, 1, patternString, patternObj);
     }
     Tcl_DeleteHashTable(commandTable);
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
@@ -19647,6 +19689,8 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, 
  finished:
   if (patternObj) {
     Tcl_SetObjResult(interp, rc ? patternObj->cmdName : NsfGlobalObjs[NSF_EMPTY]);
+  } else {
+    Tcl_SetObjResult(interp, resultObj);
   }
   return TCL_OK;
 }
