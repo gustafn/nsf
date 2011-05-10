@@ -10207,6 +10207,128 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
  **************************************************************************/
 
 
+
+/*
+ *----------------------------------------------------------------------
+ * ForwardCmdDeleteProc --
+ *
+ *    This Tcl_CmdDeleteProc is called, when a forward method is deleted
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Frees client data of the setter command.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+ForwardCmdDeleteProc(ClientData clientData) {
+  ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
+  if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
+  if (tcd->subcommands) {DECR_REF_COUNT(tcd->subcommands);}
+  if (tcd->onerror)     {DECR_REF_COUNT(tcd->onerror);}
+  if (tcd->prefix)      {DECR_REF_COUNT(tcd->prefix);}
+  if (tcd->args)        {DECR_REF_COUNT(tcd->args);}
+  FREE(forwardCmdClientData, tcd);
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ * SetterCmdDeleteProc --
+ *
+ *    This Tcl_CmdDeleteProc is called, when a setter method is deleted
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Frees client data of the setter command.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+SetterCmdDeleteProc(ClientData clientData) {
+  SetterCmdClientData *setterClientData = (SetterCmdClientData *)clientData;
+
+  if (setterClientData->paramsPtr) {
+    ParamsFree(setterClientData->paramsPtr);
+  }
+  FREE(SetterCmdClientData, setterClientData);
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ * AliasCmdDeleteProc --
+ *
+ *    This Tcl_CmdDeleteProc is called, when an alias method is deleted
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Frees client data of the setter command.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+AliasCmdDeleteProc(ClientData clientData) {
+  AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
+
+  /*
+   * Since we just get the clientData, we have to obtain interp,
+   * object, methodName and per-object from tcd; the obj might be
+   * deleted already. We need as well at least still the global
+   * namespace.
+   */
+  if (tcd->interp &&
+      ((Interp *)(tcd->interp))->globalNsPtr &&
+      RUNTIME_STATE(tcd->interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_ON_PHYSICAL_DESTROY) {
+    CONST char *methodName = Tcl_GetCommandName(tcd->interp, tcd->aliasCmd);
+    AliasDelete(tcd->interp, tcd->cmdName, methodName, tcd->class == NULL);
+  }
+
+  /*fprintf(stderr, "AliasCmdDeleteProc aliasedCmd %p\n", tcd->aliasedCmd);*/
+  if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
+  if (tcd->aliasedCmd) {
+
+#if defined(WITH_IMPORT_REFS)
+    ImportRef *refPtr, *prevPtr = NULL;
+    Command *aliasedCmd = (Command *)(tcd->aliasedCmd);
+
+    /*fprintf(stderr, "AliasCmdDeleteProc aliasedCmd %p epoch %d refCount %d\n", 
+      aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd), aliasedCmd->refCount);*/
+    /*
+     * Clear the aliasCmd from the imported-ref chain of the aliased
+     * (or real) cmd.  This widely resembles what happens in the
+     * DeleteImportedCmd() (see tclNamesp.c), however, as we do not
+     * provide for ImportedCmdData client data etc., we cannot
+     * directly use it.
+     */
+    for (refPtr = aliasedCmd->importRefPtr; refPtr; refPtr = refPtr->nextPtr) {
+      if (refPtr->importedCmdPtr == (Command *) tcd->aliasCmd) {
+        if (prevPtr == NULL) {
+          aliasedCmd->importRefPtr = refPtr->nextPtr;
+        } else {
+          prevPtr->nextPtr = refPtr->nextPtr;
+        }
+        ckfree((char *) refPtr);
+        break;
+      }
+      prevPtr = refPtr;
+    }
+#endif
+    NsfCommandRelease(tcd->aliasedCmd);
+  }
+  FREE(AliasCmdClientData, tcd);
+}
+
+
 static int
 GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
                 NsfObject **matchObject, CONST char **pattern) {
@@ -13092,126 +13214,6 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   Nsf_PopFrameObj(interp, framePtr);
 
   return result;
-}
-
-/*
- *----------------------------------------------------------------------
- * ForwardCmdDeleteProc --
- *
- *    This Tcl_CmdDeleteProc is called, when a forward method is deleted
- *
- * Results:
- *    None.
- *
- * Side effects:
- *    Frees client data of the setter command.
- *
- *----------------------------------------------------------------------
- */
-
-static void
-ForwardCmdDeleteProc(ClientData clientData) {
-  ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
-  if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
-  if (tcd->subcommands) {DECR_REF_COUNT(tcd->subcommands);}
-  if (tcd->onerror)     {DECR_REF_COUNT(tcd->onerror);}
-  if (tcd->prefix)      {DECR_REF_COUNT(tcd->prefix);}
-  if (tcd->args)        {DECR_REF_COUNT(tcd->args);}
-  FREE(forwardCmdClientData, tcd);
-}
-
-
-/*
- *----------------------------------------------------------------------
- * SetterCmdDeleteProc --
- *
- *    This Tcl_CmdDeleteProc is called, when a setter method is deleted
- *
- * Results:
- *    None.
- *
- * Side effects:
- *    Frees client data of the setter command.
- *
- *----------------------------------------------------------------------
- */
-
-static void
-SetterCmdDeleteProc(ClientData clientData) {
-  SetterCmdClientData *setterClientData = (SetterCmdClientData *)clientData;
-
-  if (setterClientData->paramsPtr) {
-    ParamsFree(setterClientData->paramsPtr);
-  }
-  FREE(SetterCmdClientData, setterClientData);
-}
-
-
-/*
- *----------------------------------------------------------------------
- * AliasCmdDeleteProc --
- *
- *    This Tcl_CmdDeleteProc is called, when an alias method is deleted
- *
- * Results:
- *    None.
- *
- * Side effects:
- *    Frees client data of the setter command.
- *
- *----------------------------------------------------------------------
- */
-
-static void
-AliasCmdDeleteProc(ClientData clientData) {
-  AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-
-  /*
-   * Since we just get the clientData, we have to obtain interp,
-   * object, methodName and per-object from tcd; the obj might be
-   * deleted already. We need as well at least still the global
-   * namespace.
-   */
-  if (tcd->interp &&
-      ((Interp *)(tcd->interp))->globalNsPtr &&
-      RUNTIME_STATE(tcd->interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_ON_PHYSICAL_DESTROY) {
-    CONST char *methodName = Tcl_GetCommandName(tcd->interp, tcd->aliasCmd);
-    AliasDelete(tcd->interp, tcd->cmdName, methodName, tcd->class == NULL);
-  }
-
-  /*fprintf(stderr, "AliasCmdDeleteProc aliasedCmd %p\n", tcd->aliasedCmd);*/
-  if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
-  if (tcd->aliasedCmd) {
-
-#if defined(WITH_IMPORT_REFS)
-    ImportRef *refPtr, *prevPtr = NULL;
-    Command *aliasedCmd = (Command *)(tcd->aliasedCmd);
-
-    /*fprintf(stderr, "AliasCmdDeleteProc aliasedCmd %p epoch %d refCount %d\n", 
-      aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd), aliasedCmd->refCount);*/
-    /*
-     * Clear the aliasCmd from the imported-ref chain of the aliased
-     * (or real) cmd.  This widely resembles what happens in the
-     * DeleteImportedCmd() (see tclNamesp.c), however, as we do not
-     * provide for ImportedCmdData client data etc., we cannot
-     * directly use it.
-     */
-    for (refPtr = aliasedCmd->importRefPtr; refPtr; refPtr = refPtr->nextPtr) {
-      if (refPtr->importedCmdPtr == (Command *) tcd->aliasCmd) {
-        if (prevPtr == NULL) {
-          aliasedCmd->importRefPtr = refPtr->nextPtr;
-        } else {
-          prevPtr->nextPtr = refPtr->nextPtr;
-        }
-        ckfree((char *) refPtr);
-        break;
-      }
-      prevPtr = refPtr;
-    }
-#endif
-    NsfCommandRelease(tcd->aliasedCmd);
-  }
-  FREE(AliasCmdClientData, tcd);
 }
 
 /*
