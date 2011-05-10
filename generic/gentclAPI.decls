@@ -75,6 +75,7 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
+  {-argName "-reg-object" -required 0 -nrargs 1 -type object}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}

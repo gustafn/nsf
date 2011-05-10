@@ -1971,7 +1971,7 @@ _ added option noforwarder to RelationSlots
 - Extended regression test
 
 - make handling of redefinitions in system methods more robust
-- follow Tcl nameing convention (uppercase functions)
+- follow Tcl naming convention (uppercase functions)
 
 - Don't allow to call objects as methods (for the time being) via
   absolute names. Otherwise, in line {2} below, ::State is
@@ -1981,7 +1981,7 @@ _ added option noforwarder to RelationSlots
      {2} Class ::State -parameter x
 
 - Converted migration guide to asciidoc
-- Overhaul of serveral sections in asciidoc
+- Overhaul of several sections in asciidoc
 - Developed styles for nx for migration guide (.css and source-highlight)
 
 - fixed bug in xotcl 2.0 "info forward"
@@ -1995,8 +1995,8 @@ _ added option noforwarder to RelationSlots
 - xotcl2.tcl: cleanup of forward implementation
 - xotcl2.tcl: provide debug version of default init method
 
-- nsf.c: aquire parameter structure for returns more lazyly
-  (otherwise, a serializer handling returns would aquire the
+- nsf.c: acquire parameter structure for returns more lazily
+  (otherwise, a serializer handling returns would acquire the
   structure for every argument)
 - extend regression test
 
@@ -2038,13 +2038,13 @@ _ added option noforwarder to RelationSlots
 - further cleanup of error procs: eliminated NsfObjErrArgCnt()
 - improve error message, when too many arguments are passed
 
-- extended und overworked mirgration guide (added e.g. multiplicity)
+- extended und overworked migration guide (added e.g. multiplicity)
 - extended regression test
 
 - added returns handling for nx in serializer
 - extended regression test
 
-- provide warning if nonpositional argument is passed more than once
+- provide warning if non-positional argument is passed more than once
 
 - made error messages more consistent
 - improved error messages for "returns" and "nsf::is" (omit parameter name)
@@ -2066,7 +2066,7 @@ doctools
 - use tcl parametersyntax for short description of commands/methods
 
 - deal with interally-called methods (can be overloaded by the application)
-      * user-called and interanlly called (e.g. from "create" or "new")
+      * user-called and internally called (e.g. from "create" or "new")
         XO_c_create_idx, XO_o_destroy_idx, XO_o_move_idx, 
      * not documented yet:
         XO_c_requireobject_idx, XO_o_defaultmethod_idx, XO_o_init_idx, 
@@ -2134,7 +2134,7 @@ text
   for procs) and allows the same introspection interface (info method
   parameter|parametersyntax, ...)
 
-- removed unneded functions: NsfComputePrecedence(), NsfComputeDependents(),
+- removed unneeded functions: NsfComputePrecedence(), NsfComputeDependents(),
   Nsf_SetVar2Ex(), NsfOSetInstVar(), Nsf_ObjGetVar2(), NsfOGetInstVar(), 
   qNsfCreateObject()
 - removed unneeded external declarations: NsfClassListAdd() NsfClassListFree()
@@ -2261,7 +2261,7 @@ text
 
 - nx.tcl:
    * full rewrite of slot machinerie, much simpler structure
-   * relation handling via parameter aliases instread of pseudo converter
+   * relation handling via parameter aliases instead of pseudo converter
    * mixinclass SlotOptimizer removed
    * new class BootStrapAttributeSlot
 
@@ -2411,7 +2411,7 @@ sudo make install
    * --enable-dtrace sets DTRACE_OBJ on mac os x empty (since not needed for mac os x dtrace)
    * added "nsf::configure dtrace on|off" for skipping package initialization
      (to be handled in D script)
-   * make compliation clean
+   * make compilation clean
    * extended README file
    * handle self->tracing in D scripts (and in dtrace/sample.tcl, tests/object-system.tcl)
    * add probes for object creation and freeing
@@ -2468,7 +2468,7 @@ sudo make install
   * removed methods ::nx::Class.alloc and 
     ::nx::Class.dealloc from predefined method-set
 
-  * added defintions such that these methods can be loaded via
+  * added definitions such that these methods can be loaded via
       ::nsf::method::require ::nx::Class alloc
       ::nsf::method::require ::nx::Class dealloc
 
@@ -2476,7 +2476,7 @@ sudo make install
 
   * removed misleading reference in error message, when a class-spefic
     method was called on an object; solution is somewhat dangerous for
-    potentially unknwon client data
+    potentially unknown client data
 
   * added regression tests
 
@@ -2485,7 +2485,7 @@ sudo make install
     ::nx::Object.configure from predefined method-set
 
 
-  * added defintions such that these methods can be loaded via
+  * added definitions such that these methods can be loaded via
       ::nsf::method::require ::nx::Class recreate
       ::nsf::method::require ::nx::Object configure
 
@@ -2506,11 +2506,11 @@ nsf:
 * provided default system methods for "init", "defaultmethod" and "unknown"
 * provided handles for system methods "alloc", "dealloc", "recreate", and 
   "defaultmethod"
-* strip in dispatch invocations of "unknown" potental leading colons
+* strip in dispatch invocations of "unknown" potential leading colons
 * removed c-level implementation of init again, since scripted one can
   be used now as well in registration of createobjectsystem
 * reduced verbosity
-* added defintions such that these methods can be loaded via
+* added definitions such that these methods can be loaded via
     ::nsf::method::require ::nx::Object unknown
 
 * added methods ::nsf::methods::object::class and 
@@ -2531,7 +2531,7 @@ nsf:
   one has to use "o configure -class NEWCLASS". The term 
   "object-class" looks alien to language beginners, the term
   "class" is much more straightforward. Changing classes 
-  or superclasses is seldomly used by typicall application programs.
+  or superclasses is seldomly used by typical application programs.
 
   For already existing nx scripts, changing "object-class" into 
   class should be straightforward.
@@ -2551,7 +2551,7 @@ nsf:
 * The newest trunk version of Tcl in fossil has TclStackFree() and
   TclStackAlloc() removed We had to substitute this
   functions. Unfortunately, the lifetime of the strack structures has
-  changed, so we had shuffle some interals around.
+  changed, so we had shuffle some internals around.
 
 - nsf.c: remove unnecessary test when compiled without NRE
 - nsf.c: make sure, validCscPtr is always initialized
@@ -2613,7 +2613,7 @@ nsf:
   * added two new example files example-nx-reference-many.tcl and
     example-nx-reference-one.tcl
   * replaced "arg" by "type" in spec for mongo attributes to make
-    spec less stange
+    spec less strange
 
 - nsf.c: made potentially unknown clientData more safe (error message,
   when something is passed via clientData to a method expecting
@@ -2638,7 +2638,7 @@ nsf:
   * make Test parameter count 1 the default, change to higher numbers where needed
 
 - nsfmongo.c:
-  * upgrade to newest c-driver (verison 0.3) from git.
+  * upgrade to newest c-driver (version 0.3) from git.
   * support connection to replica sets
   * support attribute selection lists for ::mongo::query 
     (positive and negative selection)
@@ -2679,7 +2679,7 @@ nsf:
   * new generalized error message: NsfNoCurrentObjectError()
 
 - nx.tcl: replace loops ::nsf::methods::[object|class]::* 
-  by explict command registrations
+  by explicit command registrations
 
 - nsf.c:
   * added NsfClassListNoDup() to allow just single inserts
@@ -2741,19 +2741,26 @@ nsf:
     "info parameter name", and "info parameter syntax"
   * extended regression test
 
+-nsf.c:
+
+  * Added argument "-reg-object" to ::nsf::method::create to
+    distinguish between a registration and a definition object for
+    ensemble methods, similar as on other places.  If no reg-object is
+    provided, it is the same as the definition object.  One should
+    take care that the registration objects are deleted after the
+    definition objects, which is the case for the usages of the
+    reg-objects in nx/xotcl.
+  * The namespaces within plain scripted methods and scripted
+    ensemble objects are now the same. 
+  * Extended regression test
+
+
 TODO:
 
 - missing in c-based "info slots": 
   * handle object specific "info slots"
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
   * "info slots", "info parameter" is not in the migration guide
-
-- TODO: why do we have to use ::info in the "info" ensemble?
-  see nx.tcl
-    :method "info lookup slots" {{-type ::nx::Slot} -source pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
-      ...
-     }
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 
@@ -2893,6 +2900,8 @@ TODO:
     * website-struktur
     * org. tutorial (bzw teile davon) ala book 
       or wiki (features als kategorien|tags|sections|directories)
+
+
 
 Ein paar Punkte im folgenden könnten obsolet sein:
 

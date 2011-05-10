@@ -106,8 +106,10 @@ namespace eval ::nx {
   } {
     set object [::nsf::self]
     set methodName $path
-    if {[string first " " $path]} {
+    set regObject ""
+    if {[string first " " $path] > -1} {
       set methodName [lindex $path end]
+      set regObject $object
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
 	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}] 
@@ -147,7 +149,7 @@ namespace eval ::nx {
       }
       #puts stderr "... final object $object method $methodName"
     }
-    return [list object $object methodName $methodName]
+    return [list object $object methodName $methodName regObject $regObject]
   }
 
   ::nsf::method::property Object __resolve_method_path call-protected true
@@ -169,10 +171,13 @@ namespace eval ::nx {
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
     array set "" [:__resolve_method_path $name]
     #puts "class method $(object).$(methodName) [list $arguments] {...}"
-    set r [::nsf::method::create $(object) $(methodName) $arguments $body {*}$conditions]
+    set r [::nsf::method::create $(object) \
+	       {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
+	       $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
       # the method was not deleted
-      ::nsf::method::property $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
+      ::nsf::method::property $(object) $r call-protected \
+	  [::nsf::dispatch $(object) __default_method_call_protection]
       if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     }
     return $r
@@ -186,10 +191,14 @@ namespace eval ::nx {
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
     array set "" [:__resolve_method_path -per-object $name]
     # puts "object method $(object).$(methodName) [list $arguments] {...}"
-    set r [::nsf::method::create $(object) -per-object $(methodName) $arguments $body {*}$conditions]
+    set r [::nsf::method::create $(object) \
+	       {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
+	       -per-object \
+	       $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
       # the method was not deleted
-      ::nsf::method::property $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
+      ::nsf::method::property $(object) $r call-protected \
+	  [::nsf::dispatch $(object) __default_method_call_protection]
       if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
     }
     return $r
@@ -471,8 +480,8 @@ namespace eval ::nx {
     :method "info lookup slots" {{-type ::nx::Slot} -source pattern:optional} {
       set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
       # TODO: why do we have to use here ::info?
-      if {[::info exists source]} {lappend cmd -source $source}
-      if {[::info exists pattern]} {lappend cmd $pattern}
+      if {[info exists source]} {lappend cmd -source $source}
+      if {[info exists pattern]} {lappend cmd $pattern}
       return [::nsf::my {*}$cmd]
     }
     :alias "info children"         ::nsf::methods::object::info::children
@@ -492,7 +501,7 @@ namespace eval ::nx {
       set slotContainer [::nsf::self]::slot
       if {[::nsf::object::exists $slotContainer]} {
 	set cmd [list ::nsf::methods::object::info::children -type $type]
-	if {[::info exists pattern]} {lappend cmd $pattern}
+	if {[info exists pattern]} {lappend cmd $pattern}
 	return [::nsf::my {*}$cmd]
       }
     }
@@ -539,24 +548,24 @@ namespace eval ::nx {
     :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
     :method "info parameter spec" {name:optional} {
-      if {[::info exists name]} {
+      if {[info exists name]} {
 	return [::nsf::my ::nsf::methods::class::info::objectparameter parameter $name]
       }
       return [:objectparameter]
     }
     :method "info parameter list" {name:optional} {
       set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter list]
-      if {[::info exists name]} {lappend cmd $name}
+      if {[info exists name]} {lappend cmd $name}
       return [::nsf::my {*}$cmd]
     }
     :method "info parameter name" {name:optional} {
       set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter name]
-      if {[::info exists name]} {lappend cmd $name}
+      if {[info exists name]} {lappend cmd $name}
       return [::nsf::my {*}$cmd]
     }
     :method "info parameter syntax" {name:optional} {
       set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter parametersyntax]
-      if {[::info exists name]} {lappend cmd $name}
+      if {[info exists name]} {lappend cmd $name}
       return [::nsf::my {*}$cmd]
     }
     :method "info slots" {{-type ::nx::Slot} -closure:switch -source pattern:optional} {

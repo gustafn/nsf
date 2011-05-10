@@ -1391,7 +1391,7 @@ NsfClassListFind(NsfClasses *classList, NsfClass *cl) {
   return classList;
 }
 
-#if 1
+#if 0
 /* debugging purposes only */
 static void
 NsfClassListPrint(CONST char *title, NsfClasses *clsList) {
@@ -4480,7 +4480,7 @@ CmdListReplaceCmd(NsfCmdList *replace, Tcl_Command cmd, NsfClass *clorobj) {
   NsfCommandRelease(del);
 }
 
-#if 1
+#if 0
 /** for debug purposes only */
 static void
 CmdListPrint(Tcl_Interp *interp, CONST char *title, NsfCmdList *cmdList) {
@@ -9647,16 +9647,17 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *args,
 static int
 MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
-         Tcl_Obj *postcondition, NsfObject *object,
-         int withPer_object, int clsns) {
+         Tcl_Obj *postcondition, NsfObject *defObject, NsfObject *regObject,
+         int withPer_object, int withInner_namespace) {
   Tcl_CallFrame frame, *framePtr = &frame;
   CONST char *methodName = ObjStr(nameObj);
   NsfParsedParam parsedParam;
   Tcl_Obj *ov[4];
   int result;
 
+  if (regObject == NULL) {regObject = defObject;}
   /* Check, if we are allowed to redefine the method */
-  result = CanRedefineCmd(interp, nsPtr, object, methodName);
+  result = CanRedefineCmd(interp, nsPtr, defObject, methodName);
   if (result == TCL_OK) {
     /* Yes, so obtain an method parameter definitions */
     result = ParamDefsParse(interp, nameObj, args, NSF_DISALLOWED_ARG_METHOD_PARAMETER, &parsedParam);
@@ -9696,26 +9697,28 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     Proc *procPtr = FindProcMethod(nsPtr, methodName);
     if (procPtr) {
       /* modify the cmd of the proc to set the current namespace for the body */
-      if (clsns) {
+      if (withInner_namespace) {
         /*
          * Set the namespace of the method as inside of the class
          */
-        if (!object->nsPtr) {
-          MakeObjNamespace(interp, object);
+        if (!regObject->nsPtr) {
+          MakeObjNamespace(interp, regObject);
         }
-        /*fprintf(stderr, "obj %s\n", ObjectName(object));
-          fprintf(stderr, "ns %p object->ns %p\n", ns, object->nsPtr);
-          fprintf(stderr, "ns %s object->ns %s\n", ns->fullName, object->nsPtr->fullName);*/
-        procPtr->cmdPtr->nsPtr = (Namespace*) object->nsPtr;
+        /*fprintf(stderr, "obj %s\n", ObjectName(defObject));
+	fprintf(stderr, "ns %p defObject->ns %p\n", nsPtr, defObject->nsPtr);
+	fprintf(stderr, "ns %s defObject->ns %s\n", nsPtr->fullName, defObject->nsPtr->fullName);
+	fprintf(stderr, "old %s\n", procPtr->cmdPtr->nsPtr->fullName);*/
+        procPtr->cmdPtr->nsPtr = (Namespace *)regObject->nsPtr;
       } else {
         /*
-         * Set the namespace of the method to the same namespace the class has
-       */
-        procPtr->cmdPtr->nsPtr = ((Command *)object->id)->nsPtr;
+         * Set the namespace of the method to the same namespace the cmd of
+         * the defObject has.
+	 */
+        procPtr->cmdPtr->nsPtr = ((Command *)regObject->id)->nsPtr;
       }
 
       ParamDefsStore((Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
-      Tcl_SetObjResult(interp, MethodHandleObj(object, withPer_object, methodName));
+      Tcl_SetObjResult(interp, MethodHandleObj(defObject, withPer_object, methodName));
       result = TCL_OK;
     }
   }
@@ -9736,10 +9739,10 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
 }
 
 static int
-MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj,
-           Tcl_Obj *args, Tcl_Obj *body,
+MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject, 
+	   NsfClass *cl, Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body,
            Tcl_Obj *precondition, Tcl_Obj *postcondition,
-           int clsns) {
+           int withInner_namespace) {
   CONST char *argsStr = ObjStr(args), *bodyStr = ObjStr(body), *nameStr = ObjStr(nameObj);
   int result;
 
@@ -9761,7 +9764,7 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
        */
       result = cl ?
 	NsfRemoveClassMethod(interp, (Nsf_Class *)cl, nameStr) :
-	NsfRemoveObjectMethod(interp, (Nsf_Object *)object, nameStr);
+	NsfRemoveObjectMethod(interp, (Nsf_Object *)defObject, nameStr);
     } else {
       /* fprintf(stderr, "don't delete method %s during shutdown\n", nameStr); */
       result = TCL_OK;
@@ -9778,20 +9781,20 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
 	}
         aStore = opt->assertions;
       } else {
-        NsfObjectOpt *opt = NsfRequireObjectOpt(object);
+        NsfObjectOpt *opt = NsfRequireObjectOpt(defObject);
         if (!opt->assertions) {
           opt->assertions = AssertionCreateStore();
 	}
         aStore = opt->assertions;
       }
     }
-    result = MakeProc(cl ? cl->nsPtr : object->nsPtr, aStore,
+    result = MakeProc(cl ? cl->nsPtr : defObject->nsPtr, aStore,
 		      interp, nameObj, args, body, precondition, postcondition,
-		      object, cl == NULL, clsns);
+		      defObject, regObject, cl == NULL, withInner_namespace);
 #else
-    result = MakeProc(cl ? cl->nsPtr : object->nsPtr, NULL,
+    result = MakeProc(cl ? cl->nsPtr : defObject->nsPtr, NULL,
 		      interp, nameObj, args, body, NULL, NULL,
-		      object, cl == NULL, clsns);
+		      defObject, regObject, cl == NULL, withInner_namespace);
 #endif
   }
 
@@ -9800,7 +9803,7 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
     FilterInvalidateObjOrders(interp, cl);
   } else {
     /* could be a filter => recompute filter order */
-    FilterComputeDefined(interp, object);
+    FilterComputeDefined(interp, defObject);
   }
 
   return result;
@@ -15917,6 +15920,7 @@ nsfCmd method::create NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
+  {-argName "-reg-object" -required 0 -nrargs 1 -type object}
   {-argName "name" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
@@ -15925,18 +15929,19 @@ nsfCmd method::create NsfMethodCreateCmd {
 }
 */
 static int
-NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object,
-	     int withInner_namespace, int withPer_object,
+NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject, 
+	     int withInner_namespace, int withPer_object, NsfObject *regObject,
 	     Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body,
 	     Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
   NsfClass *cl =
-    (withPer_object || ! NsfObjectIsClass(object)) ?
-    NULL : (NsfClass *)object;
+    (withPer_object || ! NsfObjectIsClass(defObject)) ?
+    NULL : (NsfClass *)defObject;
 
   if (cl == 0) {
-    RequireObjNamespace(interp, object);
+    RequireObjNamespace(interp, defObject);
   }
-  return MakeMethod(interp, object, cl, nameObj, arguments, body,
+  return MakeMethod(interp, defObject, regObject, cl, 
+		    nameObj, arguments, body,
                     withPrecondition, withPostcondition,
                     withInner_namespace);
 }
@@ -15951,7 +15956,7 @@ cmd "method::delete" NsfMethodDeleteCmd {
 static int
 NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, 
 		   Tcl_Obj *methodNameObj) {
-  return NsfMethodCreateCmd(interp, object, 0, withPer_object, methodNameObj, 
+  return NsfMethodCreateCmd(interp, object, 0, withPer_object, NULL, methodNameObj, 
 			    NsfGlobalObjs[NSF_EMPTY],  NsfGlobalObjs[NSF_EMPTY],
 			    NULL, NULL);
 }
@@ -19421,7 +19426,7 @@ NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class,
   } else {
     NsfClassListAdd(&precedenceList, class, NULL);
   }
-  //NsfClassListPrint("precedence", precedenceList);
+  /* NsfClassListPrint("precedence", precedenceList);*/
   if (withSource == 0) {withSource = 1;}
   slotObjects = ComputeSlotObjects(interp, precedenceList, 
 				   withSource, type, pattern);

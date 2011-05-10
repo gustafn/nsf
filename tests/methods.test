@@ -429,3 +429,98 @@ Test case dispatch-without-object {
   ? ::o::x "No current object; x called outside the context of a Next Scripting method"
   ? self "No current object; command called outside the context of a Next Scripting method"
 }
+
+
+#
+# Test the current namespaces and resolution for
+# a) top-level methods
+# b) ensemble methods on level 1
+# c) ensemble methods on level 2
+#
+nx::Test case scopes {
+  Object create o1 {
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {o1 foo} "::-::info"
+  ? {o1 info foo} "::-::info"
+  ? {o1 info bar foo} "::-::info"
+
+  Class create C {
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :create c1
+  }
+
+  ? {c1 foo} "::-::info"
+  ? {c1 info foo} "::-::info"
+  ? {c1 info bar foo} "::-::info"
+}
+
+#
+# Test the current namespaces and resolution for methods
+# registered on a object in a certain namespace
+# a) top-level methods
+# b) ensemble methods on level 1
+# c) ensemble methods on level 2
+#
+nx::Test case namespaced-scopes {
+
+  namespace eval ::ns {
+    Object create o1 {
+      :public method foo {} {return [namespace current]-[namespace which info]}
+      :public method "info foo" {} {return [namespace current]-[namespace which info]}
+      :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    }
+    Class create C {
+      :public method foo {} {return [namespace current]-[namespace which info]}
+      :public method "info foo" {} {return [namespace current]-[namespace which info]}
+      :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+      :create c1
+    }
+  }
+
+  ? {ns::o1 foo} "::ns-::info"
+  ? {ns::o1 info foo} "::ns-::info"
+  ? {ns::o1 info bar foo} "::ns-::info"
+
+  ? {ns::c1 foo} "::ns-::info"
+  ? {ns::c1 info foo} "::ns-::info"
+  ? {ns::c1 info bar foo} "::ns-::info"
+}
+
+
+#
+# Test the current namespaces and resolution for methods
+# registered on a sub object
+# a) top-level methods
+# b) ensemble methods on level 1
+# c) ensemble methods on level 2
+#
+nx::Test case nested-scopes {
+  Object create o 
+  Object create o::o1 {
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {o::o1 foo} "::o-::info"
+  ? {o::o1 info foo} "::o-::info"
+  ? {o::o1 info bar foo} "::o-::info"
+
+  Class create o::C {
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :create c1
+  }
+
+  ? {c1 foo} "::o-::info"
+  ? {c1 info foo} "::o-::info"
+  ? {c1 info bar foo} "::o-::info"
+}
+
