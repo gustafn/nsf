@@ -2763,6 +2763,7 @@ TODO:
   * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
   * "info slots", "info parameter" is not in the migration guide
 
+- shouldn't GetMatchObject() return -1 instead of 1?
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 
 - if the check on eg. info-heritage-circular in test/info.method.tcl

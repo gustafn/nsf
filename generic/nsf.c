@@ -1046,8 +1046,24 @@ NsfCleanupObject_(NsfObject *object) {
  *  Tcl_Obj functions for objects
  */
 
+/*
+ *----------------------------------------------------------------------
+ * TclObjIsNsfObject --
+ *
+ *    Check, if the provided Tcl_Obj is bound to a nsf object. If so, return
+ *    the NsfObject in the third argument.
+ *
+ * Results:
+ *    True or false, 
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+
 static int
-IsNsfTclObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
+TclObjIsNsfObject(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   Tcl_ObjType CONST86 *cmdType = objPtr->typePtr;
   if (cmdType == Nsf_OT_tclCmdNameType) {
     Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
@@ -1062,9 +1078,22 @@ IsNsfTclObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   return 0;
 }
 
-/* Lookup an Next Scripting object from the given objPtr, preferably
- * from an object of type "cmdName". objPtr might be converted in this
- * process.
+
+/*
+ *----------------------------------------------------------------------
+ * GetObjectFromObj --
+ *
+ *    Lookup an Next Scripting object from the given objPtr, preferably from
+ *    an object of type "cmdName". On success the NsfObject is returned in the
+ *    third argument. The objPtr might be converted by this function.  
+ *
+ * Results:
+ *    True or false, 
+ *
+ * Side effects:
+ *    object type of objPtr might be changed
+ *
+ *----------------------------------------------------------------------
  */
 
 static int
@@ -1119,6 +1148,25 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   }
   return result;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * GetClassFromObj --
+ *
+ *    Lookup an Next Scripting class from the given objPtr. If the class could
+ *    not be directly converted, the function calls the requireobject method
+ *    (in XOTcl __unknown) to fetch the class on demand and retries the
+ *    conversion.  On success the NsfClass is returned in the third
+ *    argument. The objPtr might be converted by this function.
+ *
+ * Results:
+ *    True or false, 
+ *
+ * Side effects:
+ *    object type of objPtr might be changed
+ *
+ *----------------------------------------------------------------------
+ */
 
 static int
 GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
@@ -5952,6 +6000,61 @@ MixinComputeDefined(Tcl_Interp *interp, NsfObject *object) {
   }
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ * ComputePrecedenceList --
+ *
+ *    Returns the precedence list for the provided object.  The precedence
+ *    list can optionally include the mixins and the root class. If pattern is
+ *    provided, this is used as well for filtering. The caller has to free the
+ *    resulting list via NsfClassListFree();
+ *
+ * Results:
+ *    Precendence list inf form of a class list.
+ *
+ * Side effects:
+ *    Allocated class list.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static NsfClasses *
+ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
+		      int withMixins, int withRootClass) {
+  NsfClasses *precedenceList = NULL, *pcl, **npl = &precedenceList;
+
+  if (withMixins) {
+    if (!(object->flags & NSF_MIXIN_ORDER_VALID)) {
+      MixinComputeDefined(interp, object);
+    }
+    if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
+      NsfCmdList *ml = object->mixinOrder;
+
+      while (ml) {
+	NsfClass *mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
+	if (pattern) {
+	  if (!Tcl_StringMatch(ClassName(mixin), pattern)) continue;
+	}
+	npl = NsfClassListAdd(npl, mixin, NULL);
+	ml = ml->nextPtr;
+      }
+    }
+  }
+
+  pcl = ComputeOrder(object->cl, object->cl->order, Super);
+  for (; pcl; pcl = pcl->nextPtr) {
+    if (withRootClass == 0 && pcl->cl->object.flags & NSF_IS_ROOT_CLASS) {
+      continue;
+    }
+    if (pattern && !Tcl_StringMatch(ClassName(pcl->cl), pattern)) {
+      continue;
+    }
+    npl = NsfClassListAdd(npl, pcl->cl, NULL);
+  }
+  return precedenceList;
+}
+
 /*
  * Walk through the command list until the current command is reached.
  * return the next entry.
@@ -10328,13 +10431,30 @@ AliasCmdDeleteProc(ClientData clientData) {
   FREE(AliasCmdClientData, tcd);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * GetMatchObject --
+ *
+ *    Helper method used by tclAPI.h and the info methods to check if the the
+ *    Tcl_Obj patternObj was provided and can be looked up. If this is the
+ *    case, wild card matching etc. does not have to be performed, but just
+ *    the properties of the object have to be tested.
+ *
+ * Results:
+ *    0 or 1, potentially the matchObject.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static int
 GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
                 NsfObject **matchObject, CONST char **pattern) {
   if (patternObj) {
     *pattern = ObjStr(patternObj);
-    if (IsNsfTclObj(interp, patternObj, matchObject)) {
+    if (TclObjIsNsfObject(interp, patternObj, matchObject)) {
     } else if (patternObj == origObj && **pattern != ':') {
       /* no meta chars, but no appropriate nsf object found, so
          return empty; we could check above with NoMetaChars(pattern)
@@ -10345,6 +10465,23 @@ GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
   }
   return 0;
 }
+
+
+/*
+ *----------------------------------------------------------------------
+ * ForwardProcessOptions --
+ *
+ *    Process the options provided by the forward method and turn these into
+ *    the ForwardCmdClientData structure.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Allocated and initialized ForwardCmdClientData
+ *
+ *----------------------------------------------------------------------
+ */
 
 static int
 ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
@@ -10453,41 +10590,20 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
   return result;
 }
 
-static NsfClasses *
-ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
-		      int withMixins, int withRootClass) {
-  NsfClasses *precedenceList = NULL, *pcl, **npl = &precedenceList;
-
-  if (withMixins) {
-    if (!(object->flags & NSF_MIXIN_ORDER_VALID)) {
-      MixinComputeDefined(interp, object);
-    }
-    if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
-      NsfCmdList *ml = object->mixinOrder;
-
-      while (ml) {
-	NsfClass *mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
-	if (pattern) {
-	  if (!Tcl_StringMatch(ClassName(mixin), pattern)) continue;
-	}
-	npl = NsfClassListAdd(npl, mixin, NULL);
-	ml = ml->nextPtr;
-      }
-    }
-  }
-
-  pcl = ComputeOrder(object->cl, object->cl->order, Super);
-  for (; pcl; pcl = pcl->nextPtr) {
-    if (withRootClass == 0 && pcl->cl->object.flags & NSF_IS_ROOT_CLASS) {
-      continue;
-    }
-    if (pattern && !Tcl_StringMatch(ClassName(pcl->cl), pattern)) {
-      continue;
-    }
-    npl = NsfClassListAdd(npl, pcl->cl, NULL);
-  }
-  return precedenceList;
-}
+/*
+ *----------------------------------------------------------------------
+ * StripBodyPrefix --
+ *
+ *    Strip the prefix of the body, which might have been added by nsf.
+ *
+ * Results:
+ *    The string of the body without the prefix.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static CONST char *
 StripBodyPrefix(CONST char *body) {
@@ -12860,7 +12976,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (tcd->objProc) {
     /* fprintf(stderr, "CallForwarder Tcl_NRCallObjProc %p\n", clientData);*/
     result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
-  } else if (IsNsfTclObj(interp, tcd->cmdName, (NsfObject**)&clientData)) {
+  } else if (TclObjIsNsfObject(interp, tcd->cmdName, (NsfObject**)&clientData)) {
     /*fprintf(stderr, "CallForwarder NsfObjDispatch object %s, objc=%d\n",
       ObjStr(tcd->cmdName), objc);*/
     if (objc > 1) {
