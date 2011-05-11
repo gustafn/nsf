@@ -3,7 +3,63 @@ package req nx
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
 
-nx::Test case base {
+#
+# Test info superclass with closure and patterns (with and without
+# wildcards, prefixed or not, success or not).
+#
+nx::Test case info-superclass {
+  nx::Class create C
+  nx::Class create D -superclass C
+
+  # no patterns
+  ? {D info superclass} "::C"
+  ? {D info superclass -closure} "::C ::nx::Object"
+
+  # fully qualified pattern, no wild-card characters, success
+  ? {D info superclass ::C} "::C"
+  ? {D info superclass -closure ::C} "::C"
+
+  # unprefixed pattern, no wild-card characters, success
+  ? {D info superclass C} "::C"
+  ? {D info superclass -closure C} "::C"
+
+  # fully qualified pattern, no wild-card characters, no success
+  ? {D info superclass ::D} ""
+  ? {D info superclass -closure ::D} ""
+  ? {D info superclass ::Dx} ""
+  ? {D info superclass -closure ::Dx} ""
+
+  # unprefixed pattern, no wild-card characters, no success
+  ? {D info superclass D} ""
+  ? {D info superclass -closure D} ""
+  ? {D info superclass Dx} ""
+  ? {D info superclass -closure Dx} ""
+
+  # fully qualified pattern, wild-card characters, success
+  ? {D info superclass ::*} "::C"
+  ? {D info superclass -closure ::C*} "::C"
+  ? {D info superclass -closure ::*} "::C ::nx::Object"
+  ? {D info superclass -closure ::nx*} "::nx::Object"
+
+  # unprefixed pattern, wild-card characters, success
+  ? {D info superclass C*} "::C"
+  ? {D info superclass -closure *} "::C ::nx::Object"
+  ? {D info superclass -closure nx*} "::nx::Object"
+
+  # fully qualified pattern, wild-card characters, no success
+  ? {D info superclass ::*D} ""
+  ? {D info superclass -closure ::*D} ""
+
+  # unprefixed pattern, wild-card characters, no success
+  ? {D info superclass C*x} ""
+  ? {D info superclass -closure C*x} ""
+}
+
+#
+# Test "info method", base cases
+#
+
+nx::Test case info-method-base {
   nx::Object create o {
     :alias set ::set
   }

@@ -5420,9 +5420,10 @@ AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
     NsfObject *object = (NsfObject *)cls->cl;
     if (object) {
       if (matchObject && object == matchObject) {
-        /* we have a matchObject and it is identical to obj,
-           just return true and don't continue search
-        */
+        /* 
+	 * We have a matchObject and it is identical to obj,
+         * just return true and don't continue search
+	 */
         return 1;
         break;
       } else {
@@ -9313,14 +9314,38 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ConvertToObjpattern --
+ *
+ *    This function obtains a Tcl_Obj *, which contains the pattern if an Next
+ *    Scripting Object. When this pattern contains no meta characters, we
+ *    check if the object exists. If it exists, the Tcl_Obj is converted to
+ *    the cmd-type. If it does not exit, the function using this pattern will
+ *    fail. If the pattern contains meta characters, we prepend to the pattern
+ *    "::" if necessary to avoid errors, if one specifies a pattern object
+ *    without the prefix. In this case, the patternObj is is of plain type.
+ *    The resulting patternObj has always the refcount incremented, which has
+ *    to be decremented by the caller.x
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Incremented refcount for the patternObj.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *UNUSED(pPtr),
-			       ClientData *clientData, Tcl_Obj **outObjPtr) {
+		    ClientData *clientData, Tcl_Obj **outObjPtr) {
   Tcl_Obj *patternObj = objPtr;
   CONST char *pattern = ObjStr(objPtr);
 
   if (NoMetaChars(pattern)) {
-    /* we have no meta characters, we try to check for an existing object */
+    /* 
+     * We have no meta characters, we try to check for an existing object
+     */
     NsfObject *object = NULL;
     GetObjectFromObj(interp, objPtr, &object);
     if (object) {
@@ -10473,7 +10498,10 @@ AliasCmdDeleteProc(ClientData clientData) {
  *    the properties of the object have to be tested.
  *
  * Results:
- *    0 or 1, potentially the matchObject.
+ *    0 or 1 or -1, potentially the matchObject (when 0 is returned)
+ *    0: we have wild-card characters, iterate to get matches
+ *    1: we have an existing object
+ *   -1: we no wild-card characters and a non-existing object
  *
  * Side effects:
  *    None.
@@ -10487,12 +10515,10 @@ GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
   if (patternObj) {
     *pattern = ObjStr(patternObj);
     if (TclObjIsNsfObject(interp, patternObj, matchObject)) {
-    } else if (patternObj == origObj && **pattern != ':') {
-      /* no meta chars, but no appropriate nsf object found, so
-         return empty; we could check above with NoMetaChars(pattern)
-         as well, but the only remaining case are leading colons and
-         metachars. */
       return 1;
+    }
+    if (patternObj == origObj && **pattern != ':') {
+      return -1;
     }
   }
   return 0;
@@ -15170,6 +15196,10 @@ ListSuperclasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClo
   if (pattern &&
       ConvertToObjpattern(interp, pattern, NULL, (ClientData *)&patternObj, &outObjPtr) == TCL_OK) {
     if (GetMatchObject(interp, patternObj, pattern, &matchObject, &patternString) == -1) {
+      /*
+       * The pattern has no meta chars and does not correspond to an existing
+       * object. Therefore, it can't be a superclass.
+       */
       if (patternObj) {
 	DECR_REF_COUNT(patternObj);
       }
@@ -19824,7 +19854,7 @@ NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosure,
     class->order = NULL;
     subclasses = ComputeOrder(class, class->order, Sub);
     class->order = saved;
-    rc = AppendMatchingElementsFromClasses(interp, subclasses ? subclasses->nextPtr:NULL,
+    rc = AppendMatchingElementsFromClasses(interp, subclasses ? subclasses->nextPtr : NULL,
 					   patternString, patternObj);
     NsfClassListFree(subclasses);
   } else {
