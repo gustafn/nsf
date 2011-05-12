@@ -525,8 +525,9 @@ nx::Test case nested-scopes {
 }
 
 #
-# Test deletion of object-specific methods/attributes via delete
-# method
+# Test deletion of object-specific methods/attributes via "delete
+# method" and "delete attribute"
+#
 # a) test attributes
 # b) test simple methods
 # c) test ensemble methods
@@ -534,26 +535,40 @@ nx::Test case nested-scopes {
 nx::Test case delete-per-object {
   Object create o1 {
     :attribute a1
+    :attribute a2
     :public method foo {} {return [namespace current]-[namespace which info]}
     :public method "info foo" {} {return [namespace current]-[namespace which info]}
     :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
   }
 
-  ? {o1 info methods -path} "{info foo} {info bar foo} foo a1"
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo a1 a2"
   ? {o1 info children} "::o1::info ::o1::slot"
 
-  ? {o1 delete bar} "::o1: cannot delete object specific method 'bar'"
+  ? {o1 delete method bar} "::o1: cannot delete object specific method 'bar'"
+  # For a1, we have a method and an attribute. We can delete the
+  # method without the slot.
+  ? {o1 delete method a1} ""
+  # After the deletion of the accessor, the slot exists still
+  ? {o1::slot info children} "::o1::slot::a1 ::o1::slot::a2"
+  # If we perform now a "delete attribute", the slot will be removed.
+  ? {o1 delete attribute a1} ""
+  ? {o1::slot info children} "::o1::slot::a2"
 
-  ? {o1 delete a1} ""
+  # try to delete the attribute again:
+  ? {o1 delete attribute a1} "::o1: cannot delete object specific attribute 'a1'"
+
+
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo a2"
+  ? {o1 delete attribute a2} ""
   ? {o1 info methods -path} "{info foo} {info bar foo} foo"
 
-  ? {o1 delete foo} ""
+  ? {o1 delete method foo} ""
   ? {o1 info methods -path} "{info foo} {info bar foo}"
 
-  ? {o1 delete "info foo"} ""
+  ? {o1 delete method "info foo"} ""
   ? {o1 info methods -path} "{info bar foo}"
 
-  ? {o1 delete "info bar foo"} ""
+  ? {o1 delete method "info bar foo"} ""
   ? {o1 info methods -path} ""
 }
 
@@ -575,18 +590,19 @@ nx::Test case delete-per-object-on-class {
   ? {C class info methods -path} "{info foo} {info bar foo} foo a1"
   ? {C info children} "::C::info ::C::slot"
 
-  ? {C delete -per-object bar} "::C: cannot delete object specific method 'bar'"
+  ? {C class delete method bar} "::C: cannot delete object specific method 'bar'"
 
-  ? {C delete -per-object a1} ""
+  ? {C class delete attribute a1} ""
   ? {C class info methods -path} "{info foo} {info bar foo} foo"
+  ? {C class delete attribute a1} "::C: cannot delete object specific attribute 'a1'"
 
-  ? {C delete -per-object foo} ""
+  ? {C class delete method foo} ""
   ? {C class info methods -path} "{info foo} {info bar foo}"
 
-  ? {C delete -per-object "info foo"} ""
+  ? {C class delete method "info foo"} ""
   ? {C class info methods -path} "{info bar foo}"
 
-  ? {C delete -per-object "info bar foo"} ""
+  ? {C class delete method "info bar foo"} ""
   ? {C class info methods -path} ""
 }
 
@@ -609,18 +625,20 @@ nx::Test case delete-class-level-method {
   ? {C info methods -path} "{info foo} {info bar foo} foo a1"
   ? {C info children} "::C::slot"
 
-  ? {C delete bar} "::C: cannot delete method 'bar'"
+  ? {C delete method bar} "::C: cannot delete method 'bar'"
 
-  ? {C delete a1} ""
+  ? {C delete attribute a1} ""
   ? {C info methods -path} "{info foo} {info bar foo} foo"
 
-  ? {C delete foo} ""
+  ? {C delete attribute a1} "::C: cannot delete attribute 'a1'"
+
+  ? {C delete method foo} ""
   ? {C info methods -path} "{info foo} {info bar foo}"
 
-  ? {C delete "info foo"} ""
+  ? {C delete method "info foo"} ""
   ? {C info methods -path} "{info bar foo}"
 
-  ? {C delete "info bar foo"} ""
+  ? {C delete method "info bar foo"} ""
   ? {C info methods -path} ""
 }
 

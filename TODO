@@ -2765,6 +2765,16 @@ nsf:
 - nsf.c: fix and document GetMatchObject()
 - extend regression test
 
+- nx.tcl: 
+  * splitted method "delete" into a "delete method" and 
+    "delete attribute"
+  * remove flag "-per-object" in method "delete"
+  * delete per-object methods of classes with
+    "/cls/ class delete method name" and
+    "/cls/ class delete attribute name"
+  * extended regression test
+
+
 TODO:
 
 - missing in c-based "info slots": 
@@ -2778,12 +2788,8 @@ TODO:
 - if the check on eg. info-heritage-circular in test/info.method.tcl
   fails, we get an exception.
 
-- what to do with "info heritage"
-  a) keep the new version (slightly incompatible in XOTcl)
-  b) provide a scripted compatible version in "info superclass"
-     (might be confusing, when using XOTcl and nx in the same script)
-  c) provide an additional flag to obtain mixins (not nice, since base
-     version is useless)
+- what to do with "info heritage":
+  document changed results in cases of per-class mixins in migratin guide
   
 - ::nsf::method::exists /handle/ -> check, if handle is a handle of a registered method
   (to be be used in serializer alias-dependency)

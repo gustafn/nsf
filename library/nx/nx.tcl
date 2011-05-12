@@ -237,9 +237,16 @@ namespace eval ::nx {
 	  }
 	}
       }
+
       if {$what in [list "filterguard" "mixinguard"]} {
         return [::nsf::dispatch [::nsf::self] ::nsf::methods::object::$what {*}$args]
       }
+
+      if {$what eq "delete"} {
+	return [::nsf::dispatch [::nsf::self] \
+		    ::nx::Object::slot::__delete::[lindex $args 0] {*}[lrange $args 1 end]]
+      }
+
       error "'$what' not allowed to be modified by 'class'"
     }
     # define unknown handler for class
@@ -368,43 +375,7 @@ namespace eval ::nx {
     return $r
   }
 
-  #
-  # Deletion method for attributes and plain methods
-  #
 
-  Object public method delete {methodName} {
-    # call explicitly the per-object variant of "info slots"
-    set slot [::nsf::my "::nx::Object::slot::__info::slots" $methodName]
-    #
-    # If we have a slot (e.g. an attribute) we simply delete it. The
-    # destructor of the slot removes the accessor.
-    #
-    if {$slot ne ""} {
-      $slot destroy
-    } else {
-      array set "" [:__resolve_method_path -per-object $methodName]
-      ::nsf::method::delete $(object) -per-object $(methodName)
-    }
-  }
-  Class public method delete {-per-object:switch methodName} {
-    if {${per-object}} {
-      # call explicitly the per-object variant of "delete"
-      return [::nsf::my ::nsf::classes::nx::Object::delete $methodName]
-    } else {
-      set slot [:info slots $methodName]
-      #
-      # If we have a slot (e.g. an attribute) we simply delete it. The
-      # destructor of the slot removes the accessor.
-      #
-      if {$slot ne ""} {
-	$slot destroy
-      } else {
-	array set "" [:__resolve_method_path $methodName]
-	::nsf::method::delete $(object) $(methodName)
-      }
-    }
-  }
-  
   # Add method "require"
   #
   Object method require {what args} {
@@ -424,9 +395,13 @@ namespace eval ::nx {
     }
   }
 
+
+  ######################################################################
+  # Basic definitions for slots
+  ######################################################################
   #
-  # isSlotContainer tests, whether the provided object is a slot
-  # container based on the methodproperty slotcontainer, used
+  # The function isSlotContainer tests, whether the provided object is
+  # a slot container based on the methodproperty slotcontainer, used
   # internally by nsf.
   #
   proc ::nx::isSlotContainer {object} {
@@ -438,6 +413,12 @@ namespace eval ::nx {
     return 0
   }
 
+  #
+  # The function slotObj ensures that the slot container for the provided
+  # baseObject exists. It returns either the name of the slotContainer
+  # (when no slot name was provided) or the fully qualified name of
+  # the slot object.
+  #
   proc ::nx::slotObj {baseObject {name ""}} {
     # Create slot container object if needed
     set slotContainer ${baseObject}::slot
@@ -453,8 +434,10 @@ namespace eval ::nx {
     }
     return ${slotContainer}::$name
   }
-
-  # allocate system slot parents
+  
+  #
+  # Allocate system slot containers
+  #
   ::nx::slotObj ::nx::Class
   ::nx::slotObj ::nx::Object
 
@@ -502,7 +485,36 @@ namespace eval ::nx {
 
     # end of EnsembleObject
   }
-  
+
+  ######################################################################
+  # Now we are able to create ensemble methods
+  ######################################################################
+
+  #
+  # Deletion method for attributes and plain methods
+  #
+
+  Object public method "delete attribute" {name} {
+    # call explicitly the per-object variant of "info slots"
+    set slot [::nsf::my "::nx::Object::slot::__info::slots" $name]
+    if {$slot eq ""} {error "[self]: cannot delete object specific attribute '$name'"}
+    $slot destroy
+  }
+  Object public method "delete method" {name} {
+    array set "" [:__resolve_method_path -per-object $name]
+    ::nsf::method::delete $(object) -per-object $(methodName)
+  }
+
+  Class public method "delete attribute" {name} {
+    set slot [:info slots $name]
+    if {$slot eq ""} {error "[self]: cannot delete attribute '$name'"}
+    $slot destroy
+  }
+  Class public method "delete method" {name} {
+    array set "" [:__resolve_method_path $name]
+    ::nsf::method::delete $(object) $(methodName)
+  }
+ 
 
   ########################
   # Info definition
