@@ -108,9 +108,10 @@ in the following respects:
    .. One can  invoke in NX fully qualified methods to invoke 
      methods outside the precedence path.
 
-   .. One can  define in NX _ensemble methods_ (similar to 
-     commands and subcommands) in a convenient way to provide
-     extensible, hierarchical naming of methods.
+   .. One can define in NX _hierachical method names_ (similar to
+     commands and subcommands, called method ensembles) in a
+     convenient way to provide extensible, hierarchical naming of
+     methods.
 
   .. One can use in NX the same interface to query (introspect)
     C-implemented and  scripted methods/commands.
@@ -177,11 +178,11 @@ in the following respects:
 [width="50%",frame="topbot",options="header,footer",cols="3,>1,>1"]
 |======================
 ||NX|XOTcl
-|Methods for Objects           |17|  52
-|Methods for Classes           |  4|  24
+|Methods for Objects           |18|  51
+|Methods for Classes           |  4|  23
 |Info-methods for Objects  |14|  25
-|Info-methods for Classes  |  6|  24
-|Total                                  | 41|125
+|Info-methods for Classes  |  7|  24
+|Total                                  | 43|123
 |======================
 
 This comparison list compares mostly XOTcl 1 with NX, some features
