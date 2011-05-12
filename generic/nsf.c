@@ -17590,14 +17590,14 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
     Tcl_Obj *methodObj = NsfMethodObj(&class->object, NSF_c_objectparameter_idx);
 
     if (methodObj) {
-      /* fprintf(stderr, "=== calling %s objectparameter\n", ObjectName(object));*/
+      /*fprintf(stderr, "=== calling %s objectparameter\n", ClassName(class));*/
       result = CallMethod((ClientData) class, interp, methodObj,
 			  2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
 
       if (result == TCL_OK) {
 	rawConfArgs = Tcl_GetObjResult(interp);
 	/*fprintf(stderr, ".... rawConfArgs for %s => '%s'\n",
-	  ObjectName(object), ObjStr(rawConfArgs));*/
+	  ClassName(class), ObjStr(rawConfArgs));*/
 	INCR_REF_COUNT(rawConfArgs);
 	
 	/* 
@@ -19744,9 +19744,11 @@ NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *class,
 
   result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], 
 					    class, &parsedParam);
-  if (result != TCL_OK) {
+
+  if (result != TCL_OK || !parsedParam.paramDefs) {
     return result;
   }
+  
   paramsPtr = parsedParam.paramDefs->paramsPtr;
 
   /*
