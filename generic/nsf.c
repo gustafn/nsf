@@ -10681,7 +10681,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
   slotContainerObject = GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
 
   if (slotContainerObject && slotContainerObject->nsPtr &&
-      //(slotContainerObject->flags & NSF_IS_SLOT_CONTAINER) &&
+      (slotContainerObject->flags & NSF_IS_SLOT_CONTAINER) &&
       1) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;

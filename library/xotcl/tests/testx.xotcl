@@ -2899,11 +2899,11 @@ TestX recreation -proc run {{n 10}} {
   append ::recreateResult "[C info instprocs] +"
    if {$i > 0} {
      errorCheck [set ::recreateResult] \
-       "*recreate ::xotcl::Class ::R* *recreate ::xotcl::Class <::R> ::R * *recreate ::C ::c1 -b 2* *recreate ::C <::c1> ::c1 * +b, +*recreate ::xotcl::Class ::C* *recreate ::xotcl::Class <::C> ::C * +w, +" \
+       "*recreate ::xotcl::Class ::R* *recreate ::xotcl::Class <::R> ::R * *recreate ::C ::c1 -b 2* *recreate ::C <::c1> ::c1 * +b, +*recreate ::xotcl::Class ::C* *recreate ::xotcl::Class <::C> ::C * +w __default_superclass __default_metaclass, +" \
        "Var/proc recreate delete failed (n)"
    } else {
      errorCheck [set ::recreateResult] \
-       "*recreate ::C ::c1 -b 2* *recreate ::C <::c1> ::c1 * +b, +*recreate ::xotcl::Class ::C* *recreate ::xotcl::Class <::C> ::C * +w, +" \
+       "*recreate ::C ::c1 -b 2* *recreate ::C <::c1> ::c1 * +b, +*recreate ::xotcl::Class ::C* *recreate ::xotcl::Class <::C> ::C * +w __default_superclass __default_metaclass, +" \
        "Var/proc recreate delete failed (0)"
    }
   global recreateMixinResult
@@ -3171,7 +3171,7 @@ smallScripts proc run {{n 20}} {
     ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract check extractConfigureArg f filtersearch forward hasclass init isclass ismetaclass ismixin isobject istype method myProc myProc2 objproc proc procsearch self setFilter signature unknown vwait" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances check extractConfigureArg f filtersearch forward hasclass init instforward instproc isclass ismetaclass ismixin isobject istype method objectparameter proc procsearch self setFilter signature unknown uses vwait" "B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances check extractConfigureArg f filtersearch forward hasclass init instforward instproc isclass ismetaclass ismixin isobject istype method objectparameter proc procsearch self setFilter signature slots unknown uses vwait" "B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}

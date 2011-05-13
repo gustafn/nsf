@@ -1521,7 +1521,6 @@ namespace eval ::nx {
   # attributes based on a list of parameter specifications.
   ##################################################################
   Class public method attributes arglist {
-    puts stderr "+++ attributes calls nx::slotObj"
     set slotContainer [::nx::slotObj [::nsf::self]]  
     foreach arg $arglist {
       ::nx::MetaSlot createFromParameterSpec [::nsf::self] {*}$arg

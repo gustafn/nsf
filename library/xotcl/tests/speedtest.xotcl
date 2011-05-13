@@ -15,7 +15,7 @@ set ccount 20
 #set ocount 1014
 #set ocount [expr {$ccount + 206}]
 #set ocount [expr {$ccount + 15}]
-set ocount [expr {$ccount + 7}]
+set ocount [expr {$ccount + 5}]
 
 Class M1; Class M2
 Class C -parameter {{p 99} {q 98} r}

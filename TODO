@@ -2794,6 +2794,9 @@ nsf:
    * fixed "info slots" in xotcl2
    * extended regression test
 
+- nsf.c: require NSF_IS_SLOT_CONTAINER for slot-container
+
+
 TODO:
 
 - adding of other slotcontainer properties in copy (see nx.tcl)

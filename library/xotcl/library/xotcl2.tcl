@@ -396,12 +396,12 @@ namespace eval ::xotcl {
   proc register_system_slots {os} {
     # We need explicit ::xotcl prefixes, since they are always skipped
     # if not specified
-    ${os}::Object alloc ${os}::Class::slot
-    ${os}::Object alloc ${os}::Object::slot
+    ::nx::slotObj ${os}::Class
+    ::nx::slotObj ${os}::Object
     ::nx::RelationSlot create ${os}::Class::slot::superclass
-    ::nsf::method::alias         ${os}::Class::slot::superclass assign ::nsf::relation
+    ::nsf::method::alias      ${os}::Class::slot::superclass assign ::nsf::relation
     ::nx::RelationSlot create ${os}::Object::slot::class
-    ::nsf::method::alias         ${os}::Object::slot::class assign ::nsf::relation
+    ::nsf::method::alias      ${os}::Object::slot::class assign ::nsf::relation
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
         -forwardername object-mixin
     ::nx::RelationSlot create ${os}::Object::slot::filter \
@@ -749,11 +749,14 @@ namespace eval ::xotcl {
 		  [::nsf::dispatch [self] ::nsf::methods::object::info::hastype $class]}]
   }
 
-  # definition of "contains", based on nx
-
+  # definition of "xotcl::Object contains", based on nx
   ::nsf::method::alias Object contains ::nsf::classes::nx::Object::contains
-  ::xotcl::Class instforward slots %self contains \
-      -object {%::nsf::dispatch [::xotcl::self] -frame method ::subst [::xotcl::self]::slot}
+
+  # definition of "xotcl::Class slots", based on contains
+  ::xotcl::Class instproc slots {cmd} {
+    set slotContainer [::nx::slotObj [self]]
+    uplevel [list [self] contains -object $slotContainer $cmd]
+  }
 
   # assertion handling
   proc checkoption_xotcl1_to_internal checkoptions {
