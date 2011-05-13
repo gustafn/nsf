@@ -2774,8 +2774,12 @@ nsf:
     "/cls/ class delete attribute name"
   * extended regression test
 
+- added test cases for "info slots"
+
 
 TODO:
+
+- handle same-named per-object and provided slots for Class objects
 
 - missing in c-based "info slots": 
   * handle object specific "info slots"

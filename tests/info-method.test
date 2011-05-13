@@ -274,6 +274,36 @@ nx::Test case callable {
     ? {o mixin ""} ""
 }
 
+
+#
+# test info slots / info lookup slots
+#
+nx::Test case info-slots {
+
+  nx::Class create C {
+    :attribute a
+    :attribute {b 1}
+  }
+  
+  nx::Class create D -superclass C {
+    :attribute {b 2}
+    :attribute c
+    :class attribute a2
+    :method "sub foo" args {;}
+    :create d1 {
+      :attribute a3
+    }
+  }
+
+  ? {C info slots} "::C::slot::a ::C::slot::b"
+  ? {D class info slots} "::D::slot::a2"
+  ? {d1 info slots} "::d1::slot::a3"
+  # "a2" should not be included in the test cases below"
+  ? {D info slots} "::D::slot::b ::D::slot::a2 ::D::slot::c"
+  ? {d1 info lookup slots -source application} "::D::slot::b ::D::slot::a2 ::D::slot::c ::C::slot::a"
+  ? {D info slots -closure -source application} "::D::slot::b ::D::slot::a2 ::D::slot::c ::C::slot::a"
+}
+
 #
 # test info slots / info lookup slots
 #

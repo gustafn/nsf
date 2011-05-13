@@ -551,7 +551,11 @@ namespace eval ::nx {
       if {[::nsf::object::exists $slotContainer]} {
 	set cmd [list ::nsf::methods::object::info::children -type $type]
 	if {[info exists pattern]} {lappend cmd $pattern}
-	return [$slotContainer {*}$cmd]
+	set result [list]
+	foreach slot [$slotContainer {*}$cmd] {
+	  if {[$slot per-object]} { lappend result $slot }
+	}
+	return $result
       }
     }
     :alias "info vars"           ::nsf::methods::object::info::vars
