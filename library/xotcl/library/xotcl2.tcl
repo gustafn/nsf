@@ -396,22 +396,18 @@ namespace eval ::xotcl {
   proc register_system_slots {os} {
     # We need explicit ::xotcl prefixes, since they are always skipped
     # if not specified
-    ::nx::slotObj ${os}::Class
-    ::nx::slotObj ${os}::Object
-    ::nx::RelationSlot create ${os}::Class::slot::superclass
-    ::nsf::method::alias      ${os}::Class::slot::superclass assign ::nsf::relation
-    ::nx::RelationSlot create ${os}::Object::slot::class
-    ::nsf::method::alias      ${os}::Object::slot::class assign ::nsf::relation
-    ::nx::RelationSlot create ${os}::Object::slot::mixin \
-        -forwardername object-mixin
-    ::nx::RelationSlot create ${os}::Object::slot::filter \
-        -forwardername object-filter \
-        -elementtype ""
+    set cSlotContainer [::nx::slotObj ${os}::Class]
+    set oSlotContainer [::nx::slotObj ${os}::Object]
+    ::nx::RelationSlot create ${cSlotContainer}::superclass
+    ::nsf::method::alias      ${cSlotContainer}::superclass assign ::nsf::relation
+    ::nx::RelationSlot create ${oSlotContainer}::class
+    ::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
 
-    ::nx::RelationSlot create ${os}::Class::slot::instmixin \
-        -forwardername class-mixin
-    ::nx::RelationSlot create ${os}::Class::slot::instfilter \
-        -forwardername class-filter \
+    ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin
+    ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
+        -elementtype ""
+    ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin
+    ::nx::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
         -elementtype ""
   }
   register_system_slots ::xotcl
