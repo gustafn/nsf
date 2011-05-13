@@ -2791,6 +2791,9 @@ nsf:
 
 TODO:
 
+- adding of other slotcontainer properties in copy (see nx.tcl)
+- remove debug output from parameters.test and nx.tcl
+
 - missing in c-based "info slots": 
   * handle object specific "info slots" in C?
   * "info slots", "info parameter" are not in the migration guide

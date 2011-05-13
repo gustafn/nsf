@@ -425,10 +425,11 @@ namespace eval ::nx {
     set slotContainer ${baseObject}::$container
     if {![::nsf::object::exists $slotContainer]} {
       ::nx::Object ::nsf::methods::class::alloc $slotContainer
+      $slotContainer ::nsf::methods::object::requirenamespace
       ::nsf::method::property ${baseObject} -per-object $container call-protected true
       ::nsf::method::property ${baseObject} -per-object $container redefine-protected true
+      #puts stderr "::nsf::method::property ${baseObject} -per-object $container slotcontainer true"
       ::nsf::method::property ${baseObject} -per-object $container slotcontainer true
-      $slotContainer ::nsf::methods::object::requirenamespace
     }
     if {[info exists name]} {
       return ${slotContainer}::$name
@@ -1520,11 +1521,11 @@ namespace eval ::nx {
   # attributes based on a list of parameter specifications.
   ##################################################################
   Class public method attributes arglist {
-  
+    puts stderr "+++ attributes calls nx::slotObj"
+    set slotContainer [::nx::slotObj [::nsf::self]]  
     foreach arg $arglist {
       ::nx::MetaSlot createFromParameterSpec [::nsf::self] {*}$arg
     }
-    set slotContainer [::nx::slotObj [::nsf::self]]
     ::nsf::var::set $slotContainer __parameter $arglist
   }
 
@@ -1702,6 +1703,14 @@ namespace eval ::nx {
 	  foreach i [$origin ::nsf::methods::class::info::forward] {
 	    ::nsf::method::forward $dest $i {*}[$origin ::nsf::methods::class::info::forward -definition $i]
 	  }
+	}
+	set parent [$origin ::nsf::methods::object::info::parent]
+	set method [namespace tail $origin]
+	if {$parent ne "::" && [::nsf::method::property $parent -per-object $method slotcontainer]} {
+	  #puts stderr "$origin.$method is a slot container"
+	  set p [$dest ::nsf::methods::object::info::parent]
+	  ::nsf::method::property $p -per-object $method slotcontainer true
+	  # TODO: add other slotcontainer properties as well, we should make a proc
 	}
 
 	set traces [list]

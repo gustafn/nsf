@@ -1514,7 +1514,11 @@ Test case xotcl-list-notation {
   Test parameter count 1
 
   package req XOTcl
+  puts stderr ====1-[xotcl::Class ::nsf::methods::object::info::lookupmethod parameter]
+  puts stderr ====1-[nx::Object info method definition ::nsf::classes::xotcl::Class::parameter]
+  puts stderr ====1-[nx::Object info method definition ::nsf::classes::nx::Class::attributes]
   xotcl::Class create CC -parameter {package_id parameter_declaration user_id}
+  puts stderr ====2
 
   # first, without list notation
   ? {CC create cc -package_id 123 -parameter_declaration o -user_id 4} "::cc"

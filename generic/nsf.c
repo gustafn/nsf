@@ -10680,7 +10680,9 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
   Tcl_DStringAppend(dsPtr, prefix, -1);
   slotContainerObject = GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
 
-  if (slotContainerObject && slotContainerObject->nsPtr) {
+  if (slotContainerObject && slotContainerObject->nsPtr &&
+      //(slotContainerObject->flags & NSF_IS_SLOT_CONTAINER) &&
+      1) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(slotContainerObject->nsPtr);
@@ -19213,7 +19215,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   /*
    * First add the per-object slot objects
    */
-  if (1 && MethodSourceMatches(withSource, NULL, object)) {
+  if (MethodSourceMatches(withSource, NULL, object)) {
     AddSlotObjects(interp, object, "::per-object-slot", &slotTable,
 		   withSource, type, pattern, listObj);
   }
