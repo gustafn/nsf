@@ -2798,6 +2798,7 @@ nsf:
 - nx.tcl: ne proc ::nx::setSlotContainerProperties to handle slot
   container properties in a uniform way 
 - reduce verbosity
+- nx.tcl: improve code documentation
 
 TODO:
 
