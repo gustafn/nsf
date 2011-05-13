@@ -2784,20 +2784,17 @@ nsf:
    * removed obsolete type NsfObjects
    * transformed ComputeSlotObjects() into a more generic AddSlotObjects()
      that can handle per-object slots as well
+
 - nx.tcl:
    * generalized slot object handling.
    * extended regression test
 
-
 TODO:
 
-- handle same-named per-object and provided slots for Class objects
-
 - missing in c-based "info slots": 
-  * handle object specific "info slots"
-  * regression tests (eg. "$cls class info slots" vs. "$cls info slots", "-closure")
-  * "info slots", "info parameter" is not in the migration guide
-  * add method delete to the migration guide
+  * handle object specific "info slots" in C?
+  * "info slots", "info parameter" are not in the migration guide
+  * add method "delete method" and "delete attribute" to the migration guide
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 

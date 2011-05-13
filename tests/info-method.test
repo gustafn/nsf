@@ -296,13 +296,13 @@ nx::Test case info-slots {
   }
 
   ? {C info slots} "::C::slot::a ::C::slot::b"
+  ? {D info slots} "::D::slot::b ::D::slot::c"
+  ? {D info slots -closure -source application} "::D::slot::b ::D::slot::c ::C::slot::a"
+  ? {d1 info lookup slots -source application} "::d1::per-object-slot::a3 ::D::slot::b ::D::slot::c ::C::slot::a"
+
   ? {D class info slots} "::D::per-object-slot::a2"
   ? {d1 info slots} "::d1::per-object-slot::a3"
-
-  ? {D info slots} "::D::slot::b ::D::slot::c"
-
-  ? {d1 info lookup slots -source application} "::d1::per-object-slot::a3 ::D::slot::b ::D::slot::c ::C::slot::a"
-  ? {D info slots -closure -source application} "::D::slot::b ::D::slot::c ::C::slot::a"
+  ? {C class info slots} ""
 }
 
 #
