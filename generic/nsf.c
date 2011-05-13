@@ -1499,29 +1499,6 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
 }
 #endif
 
-void
-NsfObjectListFree(NsfObjects *sl) {
-  NsfObjects *n;
-  for (; sl; sl = n) {
-    n = sl->nextPtr;
-    FREE(NsfObjects, sl);
-  }
-}
-
-NsfObjects**
-NsfObjectListAdd(NsfObjects **cList, NsfObject *object) {
-  NsfObjects *l = *cList, *element = NEW(NsfObjects);
-  element->obj = object;
-  element->nextPtr = NULL;
-
-  if (l) {
-    while (l->nextPtr) l = l->nextPtr;
-    l->nextPtr = element;
-  } else
-    *cList = element;
-  return &(element->nextPtr);
-}
-
 
 /*
  * precedence ordering functions
@@ -10674,112 +10651,93 @@ StripBodyPrefix(CONST char *body) {
 
 /*
  *----------------------------------------------------------------------
- * ComputeSlotObjects --
+ * AddSlotObjects --
  *
- *    Compute the list of slots for a given precedence list (class list).
+ *    Compute the slot objects (children of the slot container) for a provided
+ *    object. The objects can be filtered via a pattern.
  *
  * Results:
- *    A list of NsfObjects or NULL
+ *    The function appends results to the provide listObj
  *
  * Side effects:
- *    Returned List has to be freed by the caller
+ *    Might add as well to the hash table to avoid duplicates
  *
  *----------------------------------------------------------------------
  */
-static NsfObjects *
-ComputeSlotObjects(Tcl_Interp *interp, NsfClasses *precedenceList, 
-		   int withSource, NsfClass *type, 
-		   CONST char *pattern) {
-  NsfObjects *slotObjects = NULL, **npl = &slotObjects;
-  Tcl_HashTable slotTable;
-  NsfClasses *clPtr;
-  int fullQualPattern = 0;
+static void
+AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
+	       Tcl_HashTable *slotTablePtr,
+	       int withSource, NsfClass *type, CONST char *pattern,
+	       Tcl_Obj *listObj) {
+  NsfObject *childObject, *slotContainerObject;
+  Tcl_DString ds, *dsPtr = &ds;
+  int fullQualPattern = (pattern && *pattern == ':');
 
-  Tcl_InitHashTable(&slotTable, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", slotTable);
+  /*fprintf(stderr, "AddSlotObjects parent %s prefix %s\n", ObjectName(parent), prefix);*/
 
-  if (pattern && *pattern == ':') {
-    fullQualPattern = 1;
-  }
+  DSTRING_INIT(dsPtr);
+  Tcl_DStringAppend(dsPtr, ObjectName(parent), -1);
+  Tcl_DStringAppend(dsPtr, prefix, -1);
+  slotContainerObject = GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
 
-  for (clPtr = precedenceList; clPtr; clPtr = clPtr->nextPtr) {
-    Tcl_DString ds, *dsPtr = &ds;
-    NsfObject *childObject, *slotContainerObject;
-    
-    if (!MethodSourceMatches(withSource, clPtr->cl, NULL)) continue;
+  if (slotContainerObject && slotContainerObject->nsPtr) {
+    Tcl_HashSearch hSrch;
+    Tcl_HashEntry *hPtr;
+    Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(slotContainerObject->nsPtr);
+    Tcl_Command cmd;
+    int new;
 
-    DSTRING_INIT(dsPtr);
-    Tcl_DStringAppend(dsPtr, ClassName(clPtr->cl), -1);
-    Tcl_DStringAppend(dsPtr, "::slot", 6);
-    slotContainerObject = GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
-    if (slotContainerObject) {
-      Tcl_HashSearch hSrch;
-      Tcl_HashEntry *hPtr;
-      Tcl_HashTable *cmdTablePtr;
-      Tcl_Command cmd;
-      int new;
+    hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
+    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+      char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
 
-      if (!slotContainerObject->nsPtr) continue;
-      cmdTablePtr = Tcl_Namespace_cmdTablePtr(slotContainerObject->nsPtr);
+      /* 
+       * Check, if we have and entry with this key already processed. We
+       * never want to report shadowed entries.
+       */
+      Tcl_CreateHashEntry(slotTablePtr, key, &new);
+      if (!new) continue;
+      
+      /*
+       * Obtain the childObject
+       */
+      cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
+      childObject = NsfGetObjectFromCmdPtr(cmd);
+      if (!childObject) continue;
 
-      hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
-      for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-	char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
-
+      /* 
+       * Check the pattern.
+       */
+      if (pattern) {
+	int match;
 	/* 
-	 * Check, if we have and entry with this key already processed. We
-	 * never want to report shadowed entries.
+	 * If the pattern looks like fully qualified, we match against the
+	 * fully qualified name.
 	 */
-	Tcl_CreateHashEntry(&slotTable, key, &new);
-	if (!new) continue;
+	match = fullQualPattern ?
+	  Tcl_StringMatch(ObjectName(childObject), pattern) :
+	  Tcl_StringMatch(key, pattern);
 	
-	/*
-	 * Obtain the childObject
-	 */
-	cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
-	childObject = NsfGetObjectFromCmdPtr(cmd);
-
-	/* 
-	 * Check the pattern.
-	 */
-	if (pattern) {
-	  int match;
-	  /* 
-	   * If the pattern looks like fully qualified, we match against the
-	   * fully qualified name.
-	   */
-	  match = fullQualPattern ?
-	    Tcl_StringMatch(ObjectName(childObject), pattern) :
-	    Tcl_StringMatch(key, pattern);
-	  
-	  if (!match) {
-	    continue;
-	  }
-	}
-	
-	/* 
-	 * Check, if the entry is from the right type 
-	 */
-	if (type && !IsSubType(childObject->cl, type)) {
+	if (!match) {
 	  continue;
 	}
-	
-	/*
-	 * Add finaly the entry to the returned list.
-	 */
-	npl = NsfObjectListAdd(npl, childObject);
       }
+      
+      /* 
+       * Check, if the entry is from the right type 
+       */
+      if (type && !IsSubType(childObject->cl, type)) {
+	continue;
+      }
+      
+      /*
+       * Add finaly the entry to the returned list.
+       */
+      Tcl_ListObjAppendElement(interp, listObj, childObject->cmdName);
     }
-    DSTRING_FREE(dsPtr);
   }
-
-  Tcl_DeleteHashTable(&slotTable);
-  MEM_COUNT_FREE("Tcl_InitHashTable", slotTable);
-
-  return slotObjects;
+  DSTRING_FREE(dsPtr);
 }
-
-
 
 
 static NsfClass *
@@ -19242,22 +19200,40 @@ static int
 NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object, 
 			    int withSource, NsfClass *type, 
 			    CONST char *pattern) {
-  NsfObjects *pl, *slotObjects;
-  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-  NsfClasses *fullPrecendenceList;
+  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
+  NsfClasses *precendenceList, *clPtr;
+  Tcl_HashTable slotTable;
 
-  fullPrecendenceList = ComputePrecedenceList(interp, object, NULL /* pattern*/, 1, 1);
+  precendenceList = ComputePrecedenceList(interp, object, NULL /* pattern*/, 1, 1);
   if (withSource == 0) {withSource = 1;}
-  slotObjects = ComputeSlotObjects(interp, fullPrecendenceList, withSource, type, pattern);
 
-  for (pl=slotObjects; pl; pl = pl->nextPtr) {
-    Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
+  Tcl_InitHashTable(&slotTable, TCL_STRING_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", slotTable);
+
+  /*
+   * First add the per-object slot objects
+   */
+  if (1 && MethodSourceMatches(withSource, NULL, object)) {
+    AddSlotObjects(interp, object, "::per-object-slot", &slotTable,
+		   withSource, type, pattern, listObj);
   }
 
-  NsfClassListFree(fullPrecendenceList);
-  NsfObjectListFree(slotObjects);
+  /*
+   * Then add the class provided slot objects
+   */
+  for (clPtr = precendenceList; clPtr; clPtr = clPtr->nextPtr) {
+    if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
+      AddSlotObjects(interp, &clPtr->cl->object, "::slot", &slotTable,
+		     withSource, type, pattern, listObj);
+    }
+  }
 
-  Tcl_SetObjResult(interp, list);
+  Tcl_DeleteHashTable(&slotTable);
+  MEM_COUNT_FREE("Tcl_InitHashTable", slotTable);
+
+  NsfClassListFree(precendenceList);
+  Tcl_SetObjResult(interp, listObj);
+
   return TCL_OK;
 }
 
@@ -19799,15 +19775,18 @@ static int
 NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class, 
 			int withClosure, int withSource, NsfClass *type,
 			CONST char *pattern) {
-  NsfClasses *clPtr, *intrinsic,  *checkList = NULL, *mixinClasses = NULL, 
-    *precedenceList = NULL;
-  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-  NsfObjects *pl, *slotObjects;
+  NsfClasses *clPtr, *intrinsic,  *precedenceList = NULL;
+  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
+  Tcl_HashTable slotTable;
 
   Tcl_ResetResult(interp);
   intrinsic = ComputeOrder(class, class->order, Super);
   
   if (withClosure) {
+    NsfClasses *checkList = NULL, *mixinClasses = NULL;
+    /*
+     * Compute the closure: first the transitive mixin classes...
+     */
     NsfClassListAddPerClassMixins(interp, class, &mixinClasses, &checkList);
     for (clPtr = mixinClasses; clPtr; clPtr = clPtr->nextPtr) {
       if (NsfClassListFind(clPtr->nextPtr, clPtr->cl) == NULL &&
@@ -19815,28 +19794,41 @@ NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class,
 	NsfClassListAdd(&precedenceList, clPtr->cl, NULL);
       }
     }
+    /*
+     * ... followed by the intrinsic classes
+     */
     NsfClassListAdd(&precedenceList, class, NULL);
     for (clPtr = intrinsic->nextPtr; clPtr; clPtr = clPtr->nextPtr) {
       NsfClassListAdd(&precedenceList, clPtr->cl, NULL);
     }
+    NsfClassListFree(checkList);
+    NsfClassListFree(mixinClasses);
+
   } else {
     NsfClassListAdd(&precedenceList, class, NULL);
   }
   /* NsfClassListPrint("precedence", precedenceList);*/
   if (withSource == 0) {withSource = 1;}
-  slotObjects = ComputeSlotObjects(interp, precedenceList, 
-				   withSource, type, pattern);
 
-  for (pl = slotObjects; pl; pl = pl->nextPtr) {
-    Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
+  /*
+   * Use a hash table to eliminate potential duplicates.
+   */ 
+  Tcl_InitHashTable(&slotTable, TCL_STRING_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", slotTable);
+
+  for (clPtr = precedenceList; clPtr; clPtr = clPtr->nextPtr) {
+    if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
+      AddSlotObjects(interp, &clPtr->cl->object, "::slot", &slotTable,
+		     withSource, type, pattern, listObj);
+    }
   }
 
+  Tcl_DeleteHashTable(&slotTable);
+  MEM_COUNT_FREE("Tcl_InitHashTable", slotTable);
+  
   NsfClassListFree(precedenceList);
-  NsfClassListFree(mixinClasses);
-  NsfClassListFree(checkList);
-  NsfObjectListFree(slotObjects);
+  Tcl_SetObjResult(interp, listObj);
 
-  Tcl_SetObjResult(interp, list);
   return TCL_OK;
 }
 

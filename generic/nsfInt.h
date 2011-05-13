@@ -482,11 +482,6 @@ typedef struct NsfObject {
   short activationCount;
 } NsfObject;
 
-typedef struct NsfObjects {
-  struct NsfObject *obj;
-  struct NsfObjects *nextPtr;
-} NsfObjects;
-
 typedef struct NsfClassOpt {
   NsfCmdList *classfilters;
   NsfCmdList *classmixins;

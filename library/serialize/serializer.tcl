@@ -216,7 +216,9 @@ namespace eval ::nx::serializer {
           set oss [set :serializer($c)]
           if {[$oss needsNothing $c [::nsf::current object]]} {
             lappend :level($stratum) $c
-          }
+          } else {
+	    #puts stderr "$c needs something from $set"
+	  }
         }
         if {[set :level($stratum)] eq ""} {
           set :level($stratum) $set
@@ -706,9 +708,10 @@ namespace eval ::nx::serializer {
 
     :method Object-needsNothing {x s} {
       set p [$x info parent]
+      set cl [$x info class]
       if {$p ne "::"  && [$s needsOneOf $p]} {return 0}
-      if {[$s needsOneOf [$x info class]]}   {return 0}
-      if {[$s needsOneOf [$x ::nsf::methods::object::info::lookupslots]]} {return 0}
+      if {[$s needsOneOf $cl]} {return 0}
+      if {[$s needsOneOf [$cl ::nsf::methods::class::info::slots -closure -source application]]} {return 0}
       if {[$s needsOneOf [:alias-dependency $x object]]} {return 0}
       return 1
     }

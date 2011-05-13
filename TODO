@@ -2776,6 +2776,18 @@ nsf:
 
 - added test cases for "info slots"
 
+- nsf.c:
+   * handling of same named per-object and provided slots for Class objects
+   * per-object slots are saved now under <obj>::per-object-slot::*
+   * returning correct results when per-object slots are used
+   * removed obsolete functions: NsfObjectListFree(), NsfObjectListAdd()
+   * removed obsolete type NsfObjects
+   * transformed ComputeSlotObjects() into a more generic AddSlotObjects()
+     that can handle per-object slots as well
+- nx.tcl:
+   * generalized slot object handling.
+   * extended regression test
+
 
 TODO:
 

@@ -402,13 +402,14 @@ namespace eval ::nx {
   #
   # The function isSlotContainer tests, whether the provided object is
   # a slot container based on the methodproperty slotcontainer, used
-  # internally by nsf.
+  # internally by the serializer.
   #
   proc ::nx::isSlotContainer {object} {
-    if {[::nsf::object::exists $object] && [namespace tail $object] eq "slot"} {
+    set container [namespace tail $object]
+    if {[::nsf::object::exists $object] && $container in {slot per-object-slot}} {
       set parent [$object ::nsf::methods::object::info::parent]
       return [expr {[::nsf::object::exists $parent] 
-		    && [::nsf::method::property $parent -per-object slot slotcontainer]}]
+		    && [::nsf::method::property $parent -per-object $container slotcontainer]}]
     }
     return 0
   }
@@ -419,20 +420,20 @@ namespace eval ::nx {
   # (when no slot name was provided) or the fully qualified name of
   # the slot object.
   #
-  proc ::nx::slotObj {baseObject {name ""}} {
+  nsf::proc ::nx::slotObj {{-container slot} baseObject name:optional} {
     # Create slot container object if needed
-    set slotContainer ${baseObject}::slot
+    set slotContainer ${baseObject}::$container
     if {![::nsf::object::exists $slotContainer]} {
       ::nx::Object ::nsf::methods::class::alloc $slotContainer
-      ::nsf::method::property ${baseObject} -per-object slot call-protected true
-      ::nsf::method::property ${baseObject} -per-object slot redefine-protected true
-      ::nsf::method::property ${baseObject} -per-object slot slotcontainer true
+      ::nsf::method::property ${baseObject} -per-object $container call-protected true
+      ::nsf::method::property ${baseObject} -per-object $container redefine-protected true
+      ::nsf::method::property ${baseObject} -per-object $container slotcontainer true
       $slotContainer ::nsf::methods::object::requirenamespace
     }
-    if {$name eq ""} {
-      return ${slotContainer}
+    if {[info exists name]} {
+      return ${slotContainer}::$name
     }
-    return ${slotContainer}::$name
+    return ${slotContainer}
   }
   
   #
@@ -496,7 +497,7 @@ namespace eval ::nx {
 
   Object public method "delete attribute" {name} {
     # call explicitly the per-object variant of "info slots"
-    set slot [::nsf::my "::nx::Object::slot::__info::slots" $name]
+    set slot [::nsf::my ::nx::Object::slot::__info::slots $name]
     if {$slot eq ""} {error "[self]: cannot delete object specific attribute '$name'"}
     $slot destroy
   }
@@ -547,7 +548,7 @@ namespace eval ::nx {
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slots" {{-type ::nx::Slot} pattern:optional} {
-      set slotContainer [::nsf::self]::slot
+      set slotContainer [::nsf::self]::per-object-slot
       if {[::nsf::object::exists $slotContainer]} {
 	set cmd [list ::nsf::methods::object::info::children -type $type]
 	if {[info exists pattern]} {lappend cmd $pattern}
@@ -763,8 +764,10 @@ namespace eval ::nx {
     if {${per-object}} {
       lappend opts -per-object true
       set scope object
+      set container per-object-slot
     } else {
       set scope class
+      set container slot
     }
 
     if {$class eq ""} {
@@ -773,8 +776,8 @@ namespace eval ::nx {
       #puts stderr "*** Class for '$value' is $class"
     }
 
-    #puts stderr "*** [list $class create [::nx::slotObj $target $name] {*}$opts $initblock]"
-    $class create [::nx::slotObj $target $name] {*}$opts $initblock
+    #puts stderr "*** [list $class create [::nx::slotObj -container $container $target $name] {*}$opts $initblock]"
+    $class create [::nx::slotObj -container $container $target $name] {*}$opts $initblock
     return [::nsf::dispatch $target ::nsf::methods::${scope}::info::method handle $name]
   }
 
@@ -904,7 +907,7 @@ namespace eval ::nx {
 
   createBootstrapAttributeSlots ::nx::ObjectParameterSlot {
     {name "[namespace tail [::nsf::self]]"}
-    {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::nsf::self]] 1]"}
+    {domain "[lindex [regexp -inline {^(.*)::(per-object-slot|slot)::[^:]+$} [::nsf::self]] 1]"}
     {manager "[::nsf::self]"}
     {per-object false}
     {methodname}
@@ -963,6 +966,7 @@ namespace eval ::nx {
       if {[::nsf::is class ${:domain}]} {
 	::nsf::invalidateobjectparameter ${:domain}
       }
+      #puts stderr "*** slot destroy of [self], domain ${:domain} per-object ${:per-object}"
       #
       # delete the accessor
       #
@@ -1644,7 +1648,7 @@ namespace eval ::nx {
       # itself
       foreach c $children {
         :makeTargetList $c
-      } 
+      }
     }
 
     :method copyNSVarsAndCmds {orig dest} {
@@ -1677,7 +1681,7 @@ namespace eval ::nx {
 	    # create obj
 	    set obj [[$origin info class] create $dest -noinit]
           }
-	  # copy object -> may be a class obj
+	  # copy object -> might be a class obj
 	  ::nsf::method::assertion $obj check [::nsf::method::assertion $origin check]
 	  ::nsf::method::assertion $obj object-invar [::nsf::method::assertion $origin object-invar]
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
@@ -1699,6 +1703,7 @@ namespace eval ::nx {
 	    ::nsf::method::forward $dest $i {*}[$origin ::nsf::methods::class::info::forward -definition $i]
 	  }
 	}
+
 	set traces [list]
 	foreach var [$origin info vars] {
 	  set cmds [::nsf::dispatch $origin -frame object ::trace info variable $var]
@@ -1723,8 +1728,23 @@ namespace eval ::nx {
       # alter 'domain' and 'manager' in slot objects
       foreach origin [set :targetList] {
 	set dest [:getDest $origin]
-	foreach oldslot [$origin info slots] {
-	  set newslot [::nx::slotObj $dest [namespace tail $oldslot]]
+	set slots [list]
+	#
+	# get class specific slots
+	#
+	if {[::nsf::is class $origin]} {
+	  set slots [$origin ::nx::Class::slot::__info::slots]
+	}
+	#
+	# append object specific slots
+	#
+	foreach slot [$origin ::nx::Object::slot::__info::slots] {
+	  lappend slots $slot
+	}
+	#puts stderr "replacing domain and manager from <$origin> to <$dest> in slots <$slots>"
+	foreach oldslot $slots {
+	  set container [expr {[$oldslot per-object] ? "per-object-slot" : "slot"}]
+	  set newslot [::nx::slotObj -container $container $dest [namespace tail $oldslot]]
 	  if {[$oldslot domain] eq $origin}   {$newslot domain $dest}
 	  if {[$oldslot manager] eq $oldslot} {$newslot manager $newslot}
 	  $newslot eval :init

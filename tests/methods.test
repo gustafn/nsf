@@ -542,21 +542,20 @@ nx::Test case delete-per-object {
   }
 
   ? {o1 info methods -path} "{info foo} {info bar foo} foo a1 a2"
-  ? {o1 info children} "::o1::info ::o1::slot"
+  ? {o1 info children} "::o1::info ::o1::per-object-slot"
 
   ? {o1 delete method bar} "::o1: cannot delete object specific method 'bar'"
   # For a1, we have a method and an attribute. We can delete the
   # method without the slot.
   ? {o1 delete method a1} ""
   # After the deletion of the accessor, the slot exists still
-  ? {o1::slot info children} "::o1::slot::a1 ::o1::slot::a2"
-  # If we perform now a "delete attribute", the slot will be removed.
+  ? {o1::per-object-slot info children} "::o1::per-object-slot::a1 ::o1::per-object-slot::a2"
+  # If we perform now a "delete attribute a1", the slot will be removed.
   ? {o1 delete attribute a1} ""
-  ? {o1::slot info children} "::o1::slot::a2"
+  ? {o1::per-object-slot info children} "::o1::per-object-slot::a2"
 
   # try to delete the attribute again:
   ? {o1 delete attribute a1} "::o1: cannot delete object specific attribute 'a1'"
-
 
   ? {o1 info methods -path} "{info foo} {info bar foo} foo a2"
   ? {o1 delete attribute a2} ""
@@ -585,10 +584,11 @@ nx::Test case delete-per-object-on-class {
     :public class method foo {} {return [namespace current]-[namespace which info]}
     :public class method "info foo" {} {return [namespace current]-[namespace which info]}
     :public class method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :attribute a2
   }
 
   ? {C class info methods -path} "{info foo} {info bar foo} foo a1"
-  ? {C info children} "::C::info ::C::slot"
+  ? {C info children} "::C::info ::C::slot ::C::per-object-slot"
 
   ? {C class delete method bar} "::C: cannot delete object specific method 'bar'"
 
@@ -604,6 +604,9 @@ nx::Test case delete-per-object-on-class {
 
   ? {C class delete method "info bar foo"} ""
   ? {C class info methods -path} ""
+
+  ? {C info methods} "a2"
+  ? {C info slots} "::C::slot::a2"
 }
 
 
