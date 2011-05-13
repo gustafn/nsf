@@ -2795,12 +2795,11 @@ nsf:
    * extended regression test
 
 - nsf.c: require NSF_IS_SLOT_CONTAINER for slot-container
-
+- nx.tcl: ne proc ::nx::setSlotContainerProperties to handle slot
+  container properties in a uniform way 
+- reduce verbosity
 
 TODO:
-
-- adding of other slotcontainer properties in copy (see nx.tcl)
-- remove debug output from parameters.test and nx.tcl
 
 - missing in c-based "info slots": 
   * handle object specific "info slots" in C?

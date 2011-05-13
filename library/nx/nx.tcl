@@ -414,6 +414,15 @@ namespace eval ::nx {
     return 0
   }
 
+  proc ::nx::setSlotContainerProperties {baseObject containerName} {
+    set slotContainer ${baseObject}::$containerName
+    $slotContainer ::nsf::methods::object::requirenamespace
+    ::nsf::method::property $baseObject -per-object $containerName call-protected true
+    ::nsf::method::property $baseObject -per-object $containerName redefine-protected true
+    #puts stderr "::nsf::method::property $baseObject -per-object $containerName slotcontainer true"
+    ::nsf::method::property $baseObject -per-object $containerName slotcontainer true
+  }
+
   #
   # The function slotObj ensures that the slot container for the provided
   # baseObject exists. It returns either the name of the slotContainer
@@ -425,11 +434,7 @@ namespace eval ::nx {
     set slotContainer ${baseObject}::$container
     if {![::nsf::object::exists $slotContainer]} {
       ::nx::Object ::nsf::methods::class::alloc $slotContainer
-      $slotContainer ::nsf::methods::object::requirenamespace
-      ::nsf::method::property ${baseObject} -per-object $container call-protected true
-      ::nsf::method::property ${baseObject} -per-object $container redefine-protected true
-      #puts stderr "::nsf::method::property ${baseObject} -per-object $container slotcontainer true"
-      ::nsf::method::property ${baseObject} -per-object $container slotcontainer true
+      ::nx::setSlotContainerProperties $baseObject $container
     }
     if {[info exists name]} {
       return ${slotContainer}::$name
@@ -1695,24 +1700,30 @@ namespace eval ::nx {
 	}
 	:copyNSVarsAndCmds $origin $dest
 	foreach i [$origin ::nsf::methods::object::info::forward] {
-	  ::nsf::method::forward $dest -per-object $i {*}[$origin ::nsf::methods::object::info::forward -definition $i]
+	  ::nsf::method::forward $dest -per-object $i \
+	      {*}[$origin ::nsf::methods::object::info::forward -definition $i]
 
 	}
 	if {[::nsf::is class $origin]} {
 	  foreach i [$origin ::nsf::methods::class::info::forward] {
-	    ::nsf::method::forward $dest $i {*}[$origin ::nsf::methods::class::info::forward -definition $i]
+	    ::nsf::method::forward $dest $i \
+		{*}[$origin ::nsf::methods::class::info::forward -definition $i]
 	  }
 	}
-	set parent [$origin ::nsf::methods::object::info::parent]
-	set method [namespace tail $origin]
-	if {$parent ne "::" && [::nsf::method::property $parent -per-object $method slotcontainer]} {
-	  #puts stderr "$origin.$method is a slot container"
-	  set p [$dest ::nsf::methods::object::info::parent]
-	  ::nsf::method::property $p -per-object $method slotcontainer true
-	  # TODO: add other slotcontainer properties as well, we should make a proc
+
+	#
+	# Check, if $origin is a slot container. If yes, set the same
+	# properties on $dest
+	#
+	set base [$origin ::nsf::methods::object::info::parent]
+	set container [namespace tail $origin]
+	if {$base ne "::" && [::nsf::method::property $base -per-object $container slotcontainer]} {
+	  ::nx::setSlotContainerProperties [$dest ::nsf::methods::object::info::parent] $container
 	}
 
-	set traces [list]
+	#
+	# transfer the traces
+	#
 	foreach var [$origin info vars] {
 	  set cmds [::nsf::dispatch $origin -frame object ::trace info variable $var]
 	  if {$cmds ne ""} {
@@ -1733,7 +1744,10 @@ namespace eval ::nx {
 	}
 	#puts stderr "====="
       }
+
+      #
       # alter 'domain' and 'manager' in slot objects
+      #
       foreach origin [set :targetList] {
 	set dest [:getDest $origin]
 	set slots [list]
