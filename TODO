@@ -2789,6 +2789,11 @@ nsf:
    * generalized slot object handling.
    * extended regression test
 
+- xotcl2:tcl
+   * made "info heritage" in xotcl2 compatible with xotcl1
+   * fixed "info slots" in xotcl2
+   * extended regression test
+
 TODO:
 
 - adding of other slotcontainer properties in copy (see nx.tcl)

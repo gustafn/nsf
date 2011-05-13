@@ -144,6 +144,24 @@ O2 superclass delete ::O
 #
 ::xotcl::MetaSlot create Role -superclass Attribute -parameter {references}
 
+::nx::Test case info-slots-heritage {
+  ::xotcl::Class create C -parameter {c1 c2}
+  ::xotcl::Class create D -superclass C -parameter {c2 c3}
+
+  ? {C info heritage} "::xotcl::Object"
+  ? {D info heritage} "::C ::xotcl::Object"
+  
+  # xotcl info heritage should not see the mixins
+  C instmixin [::xotcl::Class create M]
+  ? {C info superclass -closure} "::xotcl::Object"
+  ? {D info superclass -closure} "::C ::xotcl::Object"
+  ? {D info heritage} "::C ::xotcl::Object"
+
+  ? {C info slots} "::C::slot::c1 ::C::slot::c2"
+  ? {D info slots} "::D::slot::c2 ::D::slot::c3"
+  ? {D info slots -closure -source application} "::D::slot::c2 ::D::slot::c3 ::C::slot::c1"
+}
+
 ######################
 # application classes
 ######################

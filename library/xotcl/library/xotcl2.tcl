@@ -646,7 +646,11 @@ namespace eval ::xotcl {
       #puts "--- var '$varName' level=[info level]"
       return $r
     }
-    :alias heritage           ::nsf::methods::class::info::heritage
+    :proc heritage {pattern:optional} {
+      set cmd [list ::nsf::methods::class::info::superclass -closure]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [my {*}$cmd]	
+    }
     :alias instances          ::nsf::methods::class::info::instances
 
     :proc instargs {method}   {::xotcl::info_args class [self] $method}
@@ -708,6 +712,7 @@ namespace eval ::xotcl {
       return [my {*}$cmd]
     }
     :alias parameter          ::nx::Class::slot::__info::attributes
+    :alias slots              ::nx::Class::slot::__info::slots
     :alias subclass           ::nsf::methods::class::info::subclass
     :alias superclass         ::nsf::methods::class::info::superclass
   }
