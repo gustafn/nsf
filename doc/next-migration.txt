@@ -2071,6 +2071,9 @@ For definition of class object specific methods, use the modifier
 # Return the full parameter specs
 /cls/ info parameter spec ?name?
 
+# Return the slot object(s)
+/cls/ info parameter slot ?name?
+
 # Return in the Tcl parameter syntax
 /cls/ info parameter syntax ?name?
 ----------------

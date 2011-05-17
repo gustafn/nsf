@@ -649,6 +649,11 @@ namespace eval ::nx {
       if {[info exists name]} {lappend cmd $name}
       return [::nsf::my {*}$cmd]
     }
+    :method "info parameter slot" {name:optional} {
+      set cmd [list ::nsf::methods::class::info::slots -type ::nx::Slot -closure]
+      if {[info exists name]} {lappend cmd $name}
+      return [::nsf::my {*}$cmd]
+    }
     :method "info slots" {{-type ::nx::Slot} -closure:switch -source pattern:optional} {
       set cmd [list ::nsf::methods::class::info::slots -type $type]
       if {[info exists source]} {lappend cmd -source $source}

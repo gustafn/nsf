@@ -2814,6 +2814,10 @@ nsf:
   values, therefore mixin add|... return now as well the 
   actual values
 
+- nx.tcl: added "info parameter slot" to return slotobject(s)
+- added "info parameter slot" to migration guide
+- extended regression test
+
 
 TODO:
 
