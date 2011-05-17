@@ -653,6 +653,42 @@ call protection for scripted methods, forwarder and aliases, while
 the default protection for attributes. The defaults can be overwritten
 also e.g. on a class level.
 
+
+
+[[method-deletion]]
+==== Method and Attribute Deletion
+
+NX provides an explicit +delete+ method for the deletion of methods
+and attributes.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# XOTcl provides only method deletion with 
+# the equivalent of  Tcl's "proc foo {} {}"
+/obj/ proc foo {} {}
+/cls/ instproc foo {} {}
+
+# No support for attribute deletion
+----------------
+|[source,tcl]
+----------------
+# Deletion of Methods 
+#
+/obj/ delete method /name/
+/cls/ ?class? delete method /name/
+
+# Deletion of Attributes
+/obj/ delete attribute /name/
+/cls/ ?class? delete attribute /name/
+----------------
+|======================
+
+
+
 === Resolvers
 
 The Next Scripting Framework defines Tcl resolvers for method and
@@ -1094,8 +1130,8 @@ performance sensitive.
 
 |[source,tcl]
 ----------------
-# Value constraints for parameter 
-# not available 
+# No value constraints for parameter 
+# available 
 ----------------
 |[source,tcl]
 ----------------
@@ -1756,13 +1792,16 @@ In order to obtain for an object the set of artefacts defined in the
 |[source,tcl]
 ----------------
 # List slot objects defined for obj
-/obj/ info lookup slots ?-type /type/? ?-source
-all|application|baseclasses? ?pattern?
-# Returns list of slot objects of specified type (class) and origin
+# -source might be all\|application\|baseclasses
+# -type is the class of the slot object
+
+/obj/ info lookup slots ?-type ...? ?-source ... ?pattern?
+
+# Returns list of slot objects
 ----------------
 |======================
 
-==== List object/class where some method is defined
+==== List object/class where a specified method is defined
 
 +info lookup+ can be used as well to determine, where exactly an
  artefact is located. One can obtain this way a method handle, where 
@@ -1961,6 +2000,85 @@ classes (using the prefix "inst"), the names in NX are the same.
 For definition of class object specific methods, use the modifier
 +class+ as shown in examples above.
 
+
+==== List Slots
+
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+# Return  list of slots objects defined on the
+# object or class
+#
+# -source might be all\|application\|baseclasses
+# -type is the class of the slot object
+# -closure includes slots of superclasses
+
+/obj/ info slots ?-type ...? ?pattern?
+/cls/ class info slots ?-type ...? ?pattern?
+/cls/ info slots ?-type ...? ?-source ...? ?-closure? ?pattern?
+----------------
+|[source,tcl]
+----------------
+# n.a.
+----------------
+# List reachable slot objects defined for obj
+# -source might be all\|application\|baseclasses
+# -type is the class of the slot object
+
+/obj/ info lookup slots ?-type ...? ?-source ... ?pattern?
+
+# Returns list of slot objects
+----------------
+|======================
+
+
+
+==== List Object parameters
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+# Return  parameter(s) provided by class for 
+# its instances; defines, how objects of this
+# class can be configured. If name is provided
+# only the named object parameter is returned
+# otherwise the full list. 
+#
+#
+# Return object parameters with leading dashes
+# for non-positional object parameters and 
+# defaults
+/cls/ info parameter list ?name?
+
+# Return just the names of the parameters
+/cls/ info parameter name ?name?
+
+# Return the full parameter specs
+/cls/ info parameter spec ?name?
+
+# Return in the Tcl parameter syntax
+/cls/ info parameter syntax ?name?
+----------------
+|======================
+
+
+
+
 ==== List Filter or Mixins
 
 In NX all introspection options for filters are grouped under +info
@@ -2098,14 +2216,7 @@ kind of method.
 |[source,tcl]
 ----------------
 /obj/ info method definition /methodName/
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
----------------
-/cls/ info method definition /methodName/
+/cls/ ?class? info method definition /methodName/
 ----------------
 |======================
 
@@ -2128,13 +2239,6 @@ the method handle to the created method.
 |[source,tcl]
 ----------------
 /obj/ info method handle /methodName/
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 /cls/ ?class? info method handle /methodName/
 ----------------
 |======================
@@ -2575,6 +2679,11 @@ f1 configure -class nx::Object
 ::nsf::relation f1 class ::nx::Object
 ----------------
 
+==== Info heritage
++info heritage+ returns in XOTcl 1 the transitive superclass
+hierarchy, which is equivalent with +info superclass -closure+ and
+therefore not necessary. In XOTcl 2 (and NX), +info heritage+ includes
+as well the transitive per-class mixins.
 
 === Calling Objects via Method Interface
 
