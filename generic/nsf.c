@@ -10681,8 +10681,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
   slotContainerObject = GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
 
   if (slotContainerObject && slotContainerObject->nsPtr &&
-      (slotContainerObject->flags & NSF_IS_SLOT_CONTAINER) &&
-      1) {
+      (slotContainerObject->flags & NSF_IS_SLOT_CONTAINER)) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(slotContainerObject->nsPtr);
@@ -17038,6 +17037,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
       MixinComputeDefined(interp, object);
       FilterComputeDefined(interp, object);
+
       break;
     }
 
@@ -17109,6 +17109,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     break;
 
   }
+  NsfRelationCmd(interp, object, relationtype, NULL);
   return TCL_OK;
 }
 
