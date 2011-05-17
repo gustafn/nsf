@@ -1,3 +1,4 @@
+[:!let prefix [expr {[[:get_owning_partof] pinfo get -default 0 bundle ismetaclass] ? "cls": "obj"}]]
 [:!let name [:get_combined name]]
 <dl>
   <hr/>
@@ -5,7 +6,7 @@
     <span id="[:as_tag_id]">$name</span>
   </dt>
   <dd>
-    <p><tt><span class="var">obj</span> <strong>$name</strong> <span class="var">[:pinfo get -default "" bundle parametersyntax]</span></tt>
+    <p><tt><span class="var">$prefix</span> <strong>$name</strong> <span class="var">[:pinfo get -default "" bundle parametersyntax]</span></tt>
     </p>
     [:?var :@parameter {
     <div class="title">Parameters</div>

@@ -1130,6 +1130,27 @@ namespace eval ::nx::doc {
 	    next
 	  }
 	}
+	:public method validate {} {
+	  next
+	  #
+	  # TODO: Certain metadata could also be valid in "missing"
+	  # state, e.g., paramtersyntax? Re-arrange later ...
+	  #
+	  if {[info exists :pdata] &&
+	      [:pinfo get -default complete status] ne "missing"} {
+	    #
+	    # Note: Some metadata on classes cannot be retrieved from
+	    # within the tracers, as they might not be set local to the
+	    # class definition. Hence, we gather them at this point.
+	    #
+	    set prj [:current_project]
+	    set box [$prj sandbox]
+	    set statement [list ::nsf::dispatch ${:name} \
+		::nsf::methods::class::info::objectparameter \
+		parametersyntax]
+	    :pinfo set bundle parametersyntax [$box eval $statement]
+	  }
+	}
       }
   
   Class create PartEntity -superclass Entity {
@@ -1313,7 +1334,8 @@ namespace eval ::nx::doc {
   #
   PartTag create @param \
       -superclass PartEntity {
-	:attribute spec
+	#:attribute spec
+	:attribute @spec -class ::nx::doc::PartAttribute
 	:attribute default
 
 	:public class method id {partof_name scope name} {
@@ -1350,7 +1372,7 @@ namespace eval ::nx::doc {
 	  set spec ""
 	  regexp {^(.*):(.*)$} $name _ name spec
 	  :createOrConfigure [:id $partof [$part_attribute scope] $name] \
-	      -spec $spec \
+	      -@spec $spec \
 	      -name $name \
 	      -partof $partof \
 	      {*}[expr {$def ne "" ? "-default $def" : ""}] \
@@ -2274,7 +2296,8 @@ namespace eval ::nx::doc {
   # An xowiki backend
   #
 
-  namespace eval ::xowiki { 
+  namespace eval ::xowiki {
+    namespace import -force ::nx::*
     Class create Page -attributes { 
       {lang en} {description ""} {text ""} {nls_language en_US} 
       {mime_type text/html} {title ""} name text 
@@ -2542,8 +2565,6 @@ namespace eval ::nx::doc {
 		return [list $name [list $spec $default]]
 	      }
 
-
-
 	  proc __trace_pkg {} {
 
 	    #    ::interp hide "" source
@@ -2640,13 +2661,35 @@ namespace eval ::nx::doc {
 
 	      foreach {cmd isexported} $delta_commands {
 		set bundle [dict create]
-		if {![catch {set syntax [::nsf::dispatch $rootclass ::nsf::methods::object::info::method parametersyntax $cmd]} _]} {
-		  dict set bundle parametersyntax $syntax
-		} 
+		set infoMethod ::nsf::methods::object::info::method
+		if {[::nsf::object::exists $cmd]} {
+		  #
+		  # TODO: Only classes are provided with parametersyntax
+		  # info. Is this sufficient?!
+		  #
+		  if {[::nsf::is class $cmd]} {
 
-		if {![catch {set pa [::nsf::dispatch $rootclass ::nsf::methods::object::info::method parameter $cmd]} _]} {
-		  foreach pspec $pa {
-		    dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
+		    dict set bundle parametersyntax [::nsf::dispatch $cmd \
+			::nsf::methods::class::info::objectparameter \
+			parametersyntax]
+		    #
+		    # TODO: Are the parameters needed for objects???
+		    #
+		    # dict set bundle parameter [::nsf::dispatch $cmd \
+		    # 	::nsf::methods::class::info::objectparameter \
+		    # 	parameter]
+		  }
+		} else {
+		  if {![catch {set syntax [::nsf::dispatch $rootclass $infoMethod \
+			 parametersyntax $cmd]} _]} {
+		    dict set bundle parametersyntax $syntax
+		  }
+		  
+		  if {![catch {set pa [::nsf::dispatch $rootclass $infoMethod \
+					parameter $cmd]} _]} {
+		    foreach pspec $pa {
+		      dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
+		    }
 		  }
 		}
 
@@ -2724,6 +2767,7 @@ namespace eval ::nx::doc {
 		      if {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::EnsembleObject]} {
 			dict set bundle objtype ensemble
 		      }
+		      dict set bundle ismetaclass [::nsf::is metaclass $obj]
 		    }
 	      	    set cmdtype [expr {[::nsf::is class $obj]?"@class":"@object"}]
 	      	    ::nx::doc::__at_register_command $obj \
@@ -2953,12 +2997,15 @@ namespace eval ::nx::doc {
 		args
 	      } {
 		uplevel [list ::nsf::_%&createobjectsystem $rootclass $rootmclass {*}$args]
+		
 		foreach r [list $rootclass $rootmclass] {
+		  dict set bundle ismetaclass [::nsf::is metaclass $r]
 		  ::nx::doc::__at_register_command $r \
 		      ->cmdtype @class \
 		      ->source [file normalize [info script]] \
 		      ->nsexported [::nx::doc::is_exported $r] \
-		      {*}[expr {[::nsf::var::exists $r __initcmd] && [::nsf::var::set $obj __initcmd] ne ""?[list ->docstring [::nsf::var::set $r __initcmd]]:[list]}]
+		      {*}[expr {[::nsf::var::exists $r __initcmd] && [::nsf::var::set $obj __initcmd] ne ""?[list ->docstring [::nsf::var::set $r __initcmd]]:[list]}] \
+		      ->bundle $bundle
 		}
 	      }
 

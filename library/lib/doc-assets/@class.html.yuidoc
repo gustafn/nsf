@@ -11,6 +11,14 @@
     </span>
   }]
 </h2>
+<div class="section">
+<code>
+  ${:name}
+  <strong property="yui:name">create</strong>
+  <span class="var">obj</span>
+  <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
+</code>
+</div>
 
 [:?var :@see {
 <div class="deprecated"><strong>See also:</strong>${:@see}</div>

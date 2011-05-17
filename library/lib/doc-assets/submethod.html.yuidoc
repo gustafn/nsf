@@ -1,10 +1,11 @@
 [:!let name [:get_combined name]]
+[:!let prefix [expr {[[:get_owning_partof] pinfo get -default 0 bundle ismetaclass] ? "cls": "obj"}]]
 <div rel="yui:property">
   <h4><a name="[:href -local]" property="yui:name">$name[:statusmark]</a>
   </h4>
   <div class="detail">
-    <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
-      <span class="var">obj</span>
+    <code>[:? {[info exists :@return] && [${:@return} @spec] ne ""} {&nbsp;:&nbsp;<span property="yui:type">[${:@return} @spec]</span>} ]
+      <span class="var">$prefix</span>
       <strong property="yui:name">$name</strong>
       <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
     </code>
@@ -16,7 +17,7 @@
 	[:for param ${:@parameter} {
 	<dd rel="yui:parameter">
 	  <code><span property="yui:name">[$param name]</span>
-	    [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+	    [:? {[$param eval {info exists :@spec}] && [$param @spec] ne ""} {&nbsp;:&nbsp;<span property="yui:type">[$param @spec]</span>}]
 	  </code>
 	  [$param statusmark]
 	  <span property="yui:description">[$param as_text]</span>

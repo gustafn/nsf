@@ -6,7 +6,7 @@
 </div>
 <span style='display:block; color: red'>[join [:pinfo get -default "" validation] <br>]</span>
 <div class="detail" >
-  <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
+  <code>[:? {[info exists :@return] && [${:@return} @spec] ne ""} {&lt;<span property="yui:type">[${:@return} @spec]</span>&gt;} ]
     <strong style="font-weight: bold;" property="yui:name">${:name}</strong>
     <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
   </code>    
@@ -37,7 +37,7 @@
             <h4><a name="command_[$sub name]" property="yui:name">[$sub print_name]</a>
             </h4>
             <div class="detail">
-	      <code>[:? {[$sub eval {info exists :@return}] && [[$sub @return] spec] ne ""} {&lt;<span property="yui:type">[[$sub @return] spec]</span>&gt;} ]
+	      <code>[:? {[$sub eval {info exists :@return}] && [[$sub @return] @spec] ne ""} {&lt;<span property="yui:type">[[$sub @return] @spec]</span>&gt;} ]
 		<strong property="yui:name">${:name} [$sub name]</strong>
 		[$sub pinfo get -default "" bundle parametersyntax]
 	      </code>
@@ -49,7 +49,7 @@
 		  [:for param  [$sub !get @parameter] {
 		  <dd rel="yui:parameter">
 		    <code><span property="yui:name">[$param name]</span>
-		      [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+		      [:? {[$param eval {info exists :@spec}] && [$param @spec] ne ""} {&lt;<span property="yui:type">[$param @spec]</span>&gt;}]
 		    </code>
 		    <span property="yui:description">[$param as_text]</span>
 	<span style='display:block; color: red'>[join [$param pinfo get -default "" validation] <br>]</span>
@@ -85,7 +85,7 @@
       [:for param [:!get @parameter] {
       <dd rel="yui:parameter">
 	<code><span property="yui:name">[$param name]</span>
-          [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+          [:? {[$param eval {info exists :@spec}] && [$param @spec] ne ""} {&lt;<span property="yui:type">[$param @spec]</span>&gt;}]
 	</code>
 	[$param statusmark]
 	<span property="yui:description">[$param as_text]</span>

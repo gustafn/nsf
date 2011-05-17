@@ -65,6 +65,7 @@
 # Register the specified class(es) as per-object <<@glspl
 # mixin_class>>.  Every mixin must be an existing class.
 #
+# @spec object,type=::nx::Class
 
 # @class.attribute {Object noinit}
 #
