@@ -350,6 +350,10 @@ objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
   {-argName "-intrinsic"}
   {-argName "pattern" -required 0}
 }
+objectInfoMethod slots NsfObjInfoSlotsMethod {
+  {-argName "-type" -required 0 -nrargs 1 -type class}
+  {-argName "pattern" -required 0}
+}
 objectInfoMethod vars NsfObjInfoVarsMethod {
   {-argName "pattern" -required 0}
 }

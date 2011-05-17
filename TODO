@@ -2800,6 +2800,9 @@ nsf:
 - reduce verbosity
 - nx.tcl: improve code documentation
 
+-nsf.c: added c-implementation of "/object/ info slots" to
+  share implementation details and reduce scattering
+
 TODO:
 
 - missing in c-based "info slots": 

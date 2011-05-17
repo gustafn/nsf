@@ -285,6 +285,7 @@ static int NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *i
 static int NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName);
@@ -376,6 +377,7 @@ static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int 
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *obj, int withIntrinsic, CONST char *pattern);
+static int NsfObjInfoSlotsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *pattern);
 
 enum {
@@ -468,6 +470,7 @@ enum {
  NsfObjInfoMixinguardMethodIdx,
  NsfObjInfoParentMethodIdx,
  NsfObjInfoPrecedenceMethodIdx,
+ NsfObjInfoSlotsMethodIdx,
  NsfObjInfoVarsMethodIdx
 } NsfMethods;
 
@@ -2211,6 +2214,26 @@ NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 }
 
 static int
+NsfObjInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "slots");
+  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[NsfObjInfoSlotsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoSlotsMethodIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfClass *withType = (NsfClass *)pc.clientData[0];
+    CONST char *pattern = (CONST char *)pc.clientData[1];
+
+    assert(pc.status == 0);
+    return NsfObjInfoSlotsMethod(interp, obj, withType, pattern);
+
+  }
+}
+
+static int
 NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
@@ -2600,6 +2623,10 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::nsf::methods::object::info::precedence", NsfObjInfoPrecedenceMethodStub, 2, {
   {"-intrinsic", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::methods::object::info::slots", NsfObjInfoSlotsMethodStub, 2, {
+  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::vars", NsfObjInfoVarsMethodStub, 1, {

@@ -10692,13 +10692,15 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
     hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
-
-      /* 
-       * Check, if we have and entry with this key already processed. We
-       * never want to report shadowed entries.
-       */
-      Tcl_CreateHashEntry(slotTablePtr, key, &new);
-      if (!new) continue;
+      
+      if (slotTablePtr) {
+	/* 
+	 * Check, if we have and entry with this key already processed. We
+	 * never want to report shadowed entries.
+	 */
+	Tcl_CreateHashEntry(slotTablePtr, key, &new);
+	if (!new) continue;
+      }
       
       /*
        * Obtain the childObject
@@ -19361,6 +19363,25 @@ NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
   Tcl_SetObjResult(interp, resultObj);
   return TCL_OK;
 }
+
+/*
+objectInfoMethod slots NsfObjInfoSlotsMethod {
+  {-argName "-type" -required 0 -nrargs 1 -type class}
+  {-argName "pattern" -required 0}
+}
+*/
+static int
+NsfObjInfoSlotsMethod(Tcl_Interp *interp, NsfObject *object, 
+		      NsfClass *type, CONST char *pattern) {
+  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
+  
+  AddSlotObjects(interp, object, "::per-object-slot", NULL,
+		 SourceAllIdx, type, pattern, listObj);
+
+  Tcl_SetObjResult(interp, listObj);
+  return TCL_OK;
+}
+
 
 /*
 objectInfoMethod vars NsfObjInfoVarsMethod {

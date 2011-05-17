@@ -579,16 +579,9 @@ namespace eval ::nx {
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slots" {{-type ::nx::Slot} pattern:optional} {
-      set slotContainer [::nsf::self]::per-object-slot
-      if {[::nsf::object::exists $slotContainer]} {
-	set cmd [list ::nsf::methods::object::info::children -type $type]
-	if {[info exists pattern]} {lappend cmd $pattern}
-	set result [list]
-	foreach slot [$slotContainer {*}$cmd] {
-	  if {[$slot per-object]} { lappend result $slot }
-	}
-	return $result
-      }
+      set cmd [list ::nsf::methods::object::info::slots -type $type]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [::nsf::my {*}$cmd]
     }
     :alias "info vars"           ::nsf::methods::object::info::vars
   }
