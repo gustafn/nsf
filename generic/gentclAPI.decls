@@ -20,6 +20,7 @@ cmd __db_show_stack NsfShowStackCmd {}
 cmd __db_run_assertions NsfDebugRunAssertionsCmd {}
 cmd __profile_clear NsfProfileClearDataStub {}
 cmd __profile_get NsfProfileGetDataStub {}
+cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}
 
 cmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
@@ -54,14 +55,14 @@ cmd is NsfIsCmd {
   {-argName "value" -required 1 -type tclobj}
 }
 
-cmd "method::alias" NsfAliasCmd {
+cmd "method::alias" NsfMethodAliasCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0}
   {-argName "methodName" -required 1}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
-cmd "method::assertion" NsfAssertionCmd {
+cmd "method::assertion" NsfMethodAssertionCmd {
   {-argName "object" -required 1 -type object}
   {-argName "assertionsubcmd" -required 1 -nrargs 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
@@ -82,7 +83,7 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "-precondition"  -nrargs 1 -type tclobj}
   {-argName "-postcondition" -nrargs 1 -type tclobj}
 }
-cmd "method::forward" NsfForwardCmd {
+cmd "method::forward" NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "method" -required 1 -type tclobj}
@@ -105,7 +106,7 @@ cmd "method::property" NsfMethodPropertyCmd {
 cmd "method::registered" NsfMethodRegisteredCmd {
   {-argName "handle" -required 1 -type tclobj}
 }
-cmd "method::setter" NsfSetterCmd {
+cmd "method::setter" NsfMethodSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "parameter" -required 1 -type tclobj}

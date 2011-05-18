@@ -2827,6 +2827,9 @@ nsf:
   or empty.
 - extended regression test
 
+- bring defined commands in the source code in alphabetical order
+- generate interface for NsfUnsetUnknownArgsCmd()
+- delete some obsolete code
 
 TODO:
 
