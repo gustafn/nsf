@@ -5,6 +5,7 @@ v2.1, March 2011:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
+:toclevels: 3
 :icons:
 :numbered:
 :website: http://www.xotcl.org/
