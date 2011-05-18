@@ -2822,6 +2822,12 @@ nsf:
 - migration-guide: add third level to toc
 - fix regression test for 8.6 to use nx prefix
 
+- nsf.c: added cmd "::nsd::method::registered /handle/" that returns
+  the object on which the method identified by the handle was registered,
+  or empty.
+- extended regression test
+
+
 TODO:
 
 - add "link" form 2.4 (parameters) to "info parameters"
@@ -2829,10 +2835,11 @@ TODO:
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 
 - if the check on eg. info-heritage-circular in test/info.method.tcl
-  fails, we get an exception.
+  reports a warning on exit, if  we get an exception.
+- should be be concerned about message like
+  DEBUG obj 0x100227960 ::nx::Object activationcount 2 on stack 3; might be from non-stacked but active callstack content
+ in the regression test?
 
-- ::nsf::method::exists /handle/ -> check, if handle is a handle of a registered method
-  (to be be used in serializer alias-dependency)
 - profiling missing when NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.
 
 - maybe change nx::Test to nx::test (user never has to know that nx::Test is a class).

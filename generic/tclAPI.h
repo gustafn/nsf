@@ -237,6 +237,7 @@ static int NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int obj
 static int NsfMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodDeleteCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMethodRegisteredCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -329,6 +330,7 @@ static int NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *value);
 static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
+static int NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *handle);
 static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodName, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
@@ -422,6 +424,7 @@ enum {
  NsfMethodCreateCmdIdx,
  NsfMethodDeleteCmdIdx,
  NsfMethodPropertyCmdIdx,
+ NsfMethodRegisteredCmdIdx,
  NsfMyCmdIdx,
  NsfNSCopyCmdsCmdIdx,
  NsfNSCopyVarsCmdIdx,
@@ -1340,6 +1343,22 @@ NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfMethodPropertyCmd(interp, object, withPer_object, methodName, methodproperty, value);
 
   }
+}
+
+static int
+NsfMethodRegisteredCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
+
+    
+
+      if (objc != 2) {
+	return NsfArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfMethodRegisteredCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfMethodRegisteredCmd(interp, objc == 2 ? objv[1] : NULL);
+
 }
 
 static int
@@ -2441,6 +2460,9 @@ static Nsf_methodDefinition method_definitions[] = {
   {"methodName", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"methodproperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToMethodproperty, NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", 0, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::method::registered", NsfMethodRegisteredCmdStub, 1, {
+  {"handle", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::my", NsfMyCmdStub, 3, {
   {"-local", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL},

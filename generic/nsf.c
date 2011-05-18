@@ -16431,6 +16431,33 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 }
 
 /*
+cmd "method::registered" NsfMethodRegisteredCmd {
+  {-argName "handle" -required 1 -type tclobj}
+}
+*/
+static int
+NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *methodNameObj) {
+  NsfObject *regObject, *defObject;
+  CONST char *methodName1 = NULL;
+  int fromClassNS = 0;
+  Tcl_DString ds, *dsPtr = &ds;
+  Tcl_Command cmd;
+
+  Tcl_DStringInit(dsPtr);
+  cmd = ResolveMethodName(interp, NULL, methodNameObj,
+			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+  /*
+   * In case the provided cmd is fully qualified and refers to a registered
+   * method, the function returns the object, on which the method was
+   * registed.
+   */
+  Tcl_SetObjResult(interp, (cmd && regObject) ? regObject->cmdName : NsfGlobalObjs[NSF_EMPTY]);
+
+  Tcl_DStringFree(dsPtr);
+  return TCL_OK;
+}
+
+/*
 nsfCmd my NsfMyCmd {
   {-argName "-local"}
   {-argName "method" -required 1 -type tclobj}

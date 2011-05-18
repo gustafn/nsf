@@ -102,6 +102,9 @@ cmd "method::property" NsfMethodPropertyCmd {
   {-argName "methodproperty" -required 1 -type "class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj"}
   {-argName "value" -type tclobj}
 }
+cmd "method::registered" NsfMethodRegisteredCmd {
+  {-argName "handle" -required 1 -type tclobj}
+}
 cmd "method::setter" NsfSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}

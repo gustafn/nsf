@@ -674,17 +674,15 @@ namespace eval ::nx::serializer {
 	#
 	# The aliasedCmd is fully qualified and could be a method
 	# handle or a primitive cmd.  For a primitive cmd, we have no
-	# alias dependency. Currently we check here only, of we can
-	# obtain the method definition for this handle. It would be
-	# better to use ::nsf::method::exists when implemented.
+	# alias dependency. If the cmd is registed on an object, we
+	# report the dependency.
 	#
-	set source [::nx::Object ::nsf::methods::class::info::method definition $aliasedCmd]
-	if {$source ne ""} {
-	  set obj [lindex $source 0]
-	  if {$obj eq $x} {
+	set regObj [::nsf::method::registered $aliasedCmd]
+	if {$regObj ne ""} {
+	  if {$regObj eq $x} {
 	    :warn "Dependency for alias $alias from $x to $x not handled (no guarantee on method order)"
 	  } else {
-	    lappend needed [lindex $source 0]
+	    lappend needed $regObj
 	  }
 	}
       }

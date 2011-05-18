@@ -898,3 +898,37 @@ nx::Test case info-heritage-transitive-pcm {
   ? {C info mixin classes -heritage} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
 
 }
+
+#
+# ::nsf::method::ishandle
+#
+nx::Test case method-isregistered {
+  
+  ? {::nsf::method::registered c} ""
+  ? {::nsf::method::registered info} ""
+  ? {::nsf::method::registered ::info} ""
+
+  Class create C {
+    :method bar {} {return bar}
+    set h1 [:info method handle bar]
+    ? [list set _ $h1] "::nsf::classes::C::bar"
+    ? [list [self] info method handle bar] "::nsf::classes::C::bar"
+
+    ? [list ::nsf::method::registered $h1] ::C
+
+    :class method bar {} {return bar}
+    set h2 [:class info method handle bar]
+    ? [list [self] class info method handle bar] "::C::bar"
+
+    ? [list ::nsf::method::registered $h2] ::C
+  }
+
+  Object create o {
+    :method bar {} {return bar}
+    set h1 [:info method handle bar]
+    ? [list set _ $h1] "::o::bar"
+    ? [list [self] info method handle bar] "::o::bar"
+
+    ? [list ::nsf::method::registered $h1] ::o
+  }
+}
