@@ -8,7 +8,7 @@ if {[info command yield] eq ""} return
 #
 # Test coroutine / yield
 #
-Test case number-generator {
+nx::Test case number-generator {
   nx::Object create ::numbers {
     # set instance variable used in coroutine
     set :delta 2
@@ -38,7 +38,7 @@ Test case number-generator {
 #
 # apply
 #
-Test case apply {
+nx::Test case apply {
 
   # Register apply as an alias
   ::nx::Object public alias apply ::apply
