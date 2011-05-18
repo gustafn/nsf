@@ -2831,9 +2831,16 @@ nsf:
 - generate interface for NsfUnsetUnknownArgsCmd()
 - delete some obsolete code
 
-TODO:
+- added "link" from 2.4 (parameters) to "info parameters" in migration
+  guide
 
-- add "link" form 2.4 (parameters) to "info parameters"
+
+TODO:
+- evaluate the folloging change
+  * make disposition an option of abritraty other types for objectparameters
+  * we could have a type e.g. class, which is checked as usual before calling
+    the disposition method
+  * this way we can handle "type" info in "info parameter syntax" automatically
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 

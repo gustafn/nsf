@@ -9482,7 +9482,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else if (optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
     if (paramPtr->converter != Nsf_ConvertToObject &&
         paramPtr->converter != Nsf_ConvertToClass)
-      return NsfPrintError(interp, "option type= only allowed for object or class");
+	return NsfPrintError(interp, "option type= only allowed for object or class");
     paramPtr->converterArg = Tcl_NewStringObj(option + 5, optionLength - 5);
     INCR_REF_COUNT(paramPtr->converterArg);
 

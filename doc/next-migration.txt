@@ -942,8 +942,8 @@ While XOTcl 1 had very limited forms of parameters, XOTcl 2 and NX
 provide a generalized and highly orthogonal parameter handling with
 various kinds of value constraints (also called value checker). We
 divide the parameters into _Object Parameters_ (parameters used for
-initializing objects and classes, specified in XOTcl via the method
-+parameter+) and _Method Parameters_ (parameters passed to
+initializing objects and classes, specified in XOTcl primarily via the
+method +parameter+) and _Method Parameters_ (parameters passed to
 methods). The Next Scripting Framework provide a unified,
 C-implemented infrastructure to handle both, object and method
 parameters.
@@ -957,10 +957,14 @@ based on the same mechanisms.
 
 ==== Object Parameters
 
-Object parameters are supported in XOTcl via the method
-+parameter+. Since the term "parameter" is underspecified, NX uses the
-term "attribute". To define multiple attributes in a short form, NX
-provides the method +attributes+.
+Object parameters are used for specifying, how objects should be
+initialized (what parameters can be passed in for initialization, what
+default values are provided, etc.).  Object parameters are supported
+in XOTcl primarily via the method +parameter+, which is used to define
+multiple parameters via a list of parameter specifications. Since the
+term "parameter" is underspecified, NX uses the term "attribute". To
+define multiple attributes in a short form, NX provides the method
++attributes+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1235,10 +1239,17 @@ Class create Foo {
 ----------------
 |======================
 
+The Object parameters provided by a class for the initialization of
+instances can be introspected via +/cls/ info parameter+ (see
+<<info_parameter>>).
+
 ==== Method Parameters
 
-The method parameters specifications in XOTcl 1 were limited and
-allowed only value constraints for non positional arguments. 
+Method paramters are used to sepcify the interface of a single method
+(what kind of values may be passed to a method, what default values
+are provided etc.).  The method parameters specifications in XOTcl 1
+were limited and allowed only value constraints for non positional
+arguments.
 
 NX and XOTcl 2 provide value constraints for all kind of method parameters.
 While XOTcl 1 required non-positional arguments to be listed in front of
@@ -2041,7 +2052,7 @@ For definition of class object specific methods, use the modifier
 |======================
 
 
-
+[[info_parameter]]
 ==== List Object parameters
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]

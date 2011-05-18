@@ -1023,6 +1023,7 @@ namespace eval ::nx {
     # multiplicty at the level of the ObjectParameter. We want to have
     # the same interface as on Attribute.
     set options ${:disposition}
+    #if {[info exists :elementtype]} {lappend options type=${:elementtype}}
     if {${:name} ne ${:methodname}} {lappend options arg=${:methodname}}
     if {${:required}} {
       lappend options required
@@ -1107,7 +1108,7 @@ namespace eval ::nx {
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
 
   createBootstrapAttributeSlots ::nx::RelationSlot {
-    {elementtype ::nx::Class}
+    {elementtype class}
     {nosetter false}
   }
 
@@ -1153,9 +1154,6 @@ namespace eval ::nx {
           error "$value does not appear to be an object"
         }
         set value [::nsf::dispatch $value -frame method ::nsf::self]
-      }
-      if {![::nsf::is class ${:elementtype}]} {
-        error "$value does not appear to be of type ${:elementtype}"
       }
     }
     set p [lsearch -exact $old $value]

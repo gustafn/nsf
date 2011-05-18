@@ -2140,8 +2140,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 provide a generalized and highly orthogonal parameter handling with
 various kinds of value constraints (also called value checker). We
 divide the parameters into <em>Object Parameters</em> (parameters used for
-initializing objects and classes, specified in XOTcl via the method
-<tt>parameter</tt>) and <em>Method Parameters</em> (parameters passed to
+initializing objects and classes, specified in XOTcl primarily via the
+method <tt>parameter</tt>) and <em>Method Parameters</em> (parameters passed to
 methods). The Next Scripting Framework provide a unified,
 C-implemented infrastructure to handle both, object and method
 parameters.</p></div>
@@ -2161,10 +2161,14 @@ return value checking
 <div class="paragraph"><p>based on the same mechanisms.</p></div>
 <div class="sect3">
 <h4 id="_object_parameters">2.4.1. Object Parameters</h4>
-<div class="paragraph"><p>Object parameters are supported in XOTcl via the method
-<tt>parameter</tt>. Since the term "parameter" is underspecified, NX uses the
-term "attribute". To define multiple attributes in a short form, NX
-provides the method <tt>attributes</tt>.</p></div>
+<div class="paragraph"><p>Object parameters are used for specifying, how objects should be
+initialized (what parameters can be passed in for initialization, what
+default values are provided, etc.).  Object parameters are supported
+in XOTcl primarily via the method <tt>parameter</tt>, which is used to define
+multiple parameters via a list of parameter specifications. Since the
+term "parameter" is underspecified, NX uses the term "attribute". To
+define multiple attributes in a short form, NX provides the method
+<tt>attributes</tt>.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -2643,11 +2647,17 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </tbody>
 </table>
 </div>
+<div class="paragraph"><p>The Object parameters provided by a class for the initialization of
+instances can be introspected via <tt>/cls/ info parameter</tt> (see
+<a href="#info_parameter">[info_parameter]</a>).</p></div>
 </div>
 <div class="sect3">
 <h4 id="_method_parameters">2.4.2. Method Parameters</h4>
-<div class="paragraph"><p>The method parameters specifications in XOTcl 1 were limited and
-allowed only value constraints for non positional arguments.</p></div>
+<div class="paragraph"><p>Method paramters are used to sepcify the interface of a single method
+(what kind of values may be passed to a method, what default values
+are provided etc.).  The method parameters specifications in XOTcl 1
+were limited and allowed only value constraints for non positional
+arguments.</p></div>
 <div class="paragraph"><p>NX and XOTcl 2 provide value constraints for all kind of method parameters.
 While XOTcl 1 required non-positional arguments to be listed in front of
 positional arguments, this limitation is lifted in XOTcl 2.</p></div>
@@ -4562,7 +4572,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_object_parameters">2.6.10. List Object parameters</h4>
+<h4 id="info_parameter">2.6.10. List Object parameters</h4>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -4618,6 +4628,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 <span class='nx-comment'># Return the full parameter specs
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter spec <span class='nx-placeholder'>?name?</span>
+
+<span class='nx-comment'># Return the slot object(s)
+</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter slot <span class='nx-placeholder'>?name?</span>
 
 <span class='nx-comment'># Return in the Tcl parameter syntax
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter syntax <span class='nx-placeholder'>?name?</span></pre></div></div></div></td>
@@ -6308,7 +6321,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-05-18 10:31:18 CEST
+Last updated 2011-05-18 14:13:36 CEST
 </div>
 </div>
 </body>
