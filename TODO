@@ -2810,6 +2810,10 @@ nsf:
   * included "delete method"
   * included "delete attribute"
 
+- nsf.c: changes to use trunk-branch with and without TclStackAlloc()
+- migration-guide: add third level to toc
+- fix regression test for 8.6 to use nx prefix
+
 TODO:
 
 - add "link" form 2.4 (parameters) to "info parameters"
