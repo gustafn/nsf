@@ -328,7 +328,7 @@ Test new \
 Test new \
     -count 100 \
     -cmd  {c mixin add M1} \
-    -expected "" \
+    -expected "::M1" \
     -post {c mixin ""}
 
 Test new \

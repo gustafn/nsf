@@ -2810,6 +2810,14 @@ nsf:
   * included "delete method"
   * included "delete attribute"
 
+- nsf.c: NsfRelationCmd() returns per default list of actual 
+  values, therefore mixin add|... return now as well the 
+  actual values
+
+- nx.tcl: added "info parameter slot" to return slotobject(s)
+- added "info parameter slot" to migration guide
+- extended regression test
+
 - nsf.c: changes to use trunk-branch with and without TclStackAlloc()
 - migration-guide: add third level to toc
 - fix regression test for 8.6 to use nx prefix

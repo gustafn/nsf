@@ -1,10 +1,11 @@
+[:!let prefix [expr {[[:get_owning_partof] pinfo get -default 0 bundle ismetaclass] ? "cls": "obj"}]]
 <div class="dlist">
   <hr/>
   <dt class="hdlist1">
     <span id="[:as_tag_id]">${:name}</span>
   </dt>
   <dd>
-    <p><tt><span class="var">obj</span> <strong>${:name}</strong>
+    <p><tt><span class="var">$prefix</span> <strong>${:name}</strong>
     <span class="var">?value?</span></tt></p>
     [$owning_attribute as_text]
     <div class="title">Parameters</div>
@@ -24,7 +25,7 @@
 	${:name} add
       </dt>
       <dd>
-	<p><tt><span class="var">obj</span> <strong>${:name} add</strong> <span class="var">value</span></tt></p>
+	<p><tt><span class="var">$prefix</span> <strong>${:name} add</strong> <span class="var">value</span></tt></p>
 	<div class="title">Parameters</div>
 	<dl>
 	  <dt><tt>value</tt></dt>
@@ -38,7 +39,7 @@
 	${:name} delete
       </dt>
       <dd>
-	<p><tt><span class="var">obj</span> <strong>${:name} delete</strong> <span class="var">value</span></tt></p>
+	<p><tt><span class="var">$prefix</span> <strong>${:name} delete</strong> <span class="var">value</span></tt></p>
 	<div class="title">Parameters</div>
 	<dl>
 	  <dt><tt>value</tt></dt>

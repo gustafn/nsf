@@ -209,7 +209,7 @@ nx::Test case callable {
     ? {o info lookup methods create} ""
     ? {o info lookup methods filter} "filter"
     ? {o info lookup method filter} "::nsf::classes::nx::Object::filter"
-    ? {o filter f} ""
+    ? {o filter f} "f"
     ? {o filter guard f { 1 == 1 }} ""
     ? {o info filter guard f} " 1 == 1 "
     ? {o filter guard f} " 1 == 1 "
@@ -229,7 +229,7 @@ nx::Test case callable {
 
     ? {Foo class method f args ::nx::next} "::Foo::f"
     ? {Foo class method f2 args ::nx::next} "::Foo::f2"
-    ? {Foo class filter {f f2}} ""
+    ? {Foo class filter {f f2}} "f f2"
     ? {Foo class info filter methods} "f f2"
     ? {Foo class filter guard f {2 == 2}} ""
     ? {Foo class info filter guard f} "2 == 2"
@@ -500,9 +500,13 @@ nx::Test case info-slot-parametersyntax {
 
   ? {C info parameter list} "-a -b -volatile -noinit -mixin -class -filter __initcmd"
   ? {C info parameter name} "a b volatile noinit mixin class filter __initcmd"
+  ? {lsort [C info parameter slot]} "::C::slot::a ::C::slot::b ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter ::nx::Object::slot::mixin ::nx::Object::slot::noinit ::nx::Object::slot::volatile"
 
   ? {C info parameter spec b} "{-b 1}"
   ? {D info parameter spec b} "{-b 2}"
+  ? {D info parameter slot b} "::D::slot::b"
+  ? {D info parameter slot a} "::C::slot::a"
+  ? {D info parameter slot class} "::nx::Object::slot::class"
 
   ? {D info parameter list} "-b -c -a -volatile -noinit -mixin -class -filter __initcmd"
   ? {D info parameter name} "b c a volatile noinit mixin class filter __initcmd"

@@ -1,11 +1,13 @@
 [:!let modifier [expr {[:pinfo get -default 0 bundle call-protected]?"protected":""}]]
+[:!let prefix [expr {[[:get_owning_partof] pinfo get -default 0 bundle ismetaclass] ? "cls": "obj"}]] 
 [:!let depr [expr {[:!get @deprecated]?"deprecated":""}]]
+
 <div class="filter $modifier [:statustoken] $depr" rel="yui:method" resource="#method_${:name}">
   <h4>
     <a name="[:href -local]">[$owning_attribute print_name -status]</a></h4>
         <div class="detail" >
-          <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
-	    <span class="var">obj</span> <strong property="yui:name">${:name}</strong> <span class="var">?value?</span>
+          <code>
+	    <span class="var">$prefix</span> <strong property="yui:name">${:name}</strong> <span class="var">?value?</span>
 	    <br/>
 	  </code>
            <div class="description" property="yui:description">
@@ -26,33 +28,36 @@
 	     <dl rel="yui:parameters">
 	       <dt>Parameters:</dt>
 	       <dd rel="yui:parameter">
-		 <code><span property="yui:name">value</span>&nbsp;&lt;<span property="yui:type">optional</span>&gt;
+		 [:!let spec "optional"]
+		 [:?objvar $owning_attribute @spec {
+		 [:!let spec [join [list $spec {*}[$owning_attribute @spec]] ,]]
+		 }]
+		 <code><span property="yui:name">value</span>&nbsp;:&nbsp;<span property="yui:type">$spec</span>
 		 </code>
-		 <span property="yui:description">If provided, list of values to
-		 be set for the attribute ${:name}</span>
+		 <span property="yui:description">If provided, the
+		 attribute ${:name} is set to <i>value</i>. If omitted, the current attribute
+		 value is returned.</span>
 	       </dd>
 	     </dl>
-
-	     [:?objvar $owning_attribute @return {
+	     [:?objvar $owning_attribute @spec {
 	     <dl>
                <dt>Returns:
-                 <code property="yui:return">[:? {[${:@return} eval {info exists :spec}] && [${:@return} spec] ne ""} {[${:@return} spec]}]
+                 <code property="yui:type">[:? {[$owning_attribute @spec] ne ""} {[$owning_attribute @spec]}]
                </code></dt>
-               <dd property="yui:returnInfo">[${:@return} as_text]</dd>
              </dl>
 	     }]
             
 	    <dl>
-              <dt>Type:</dt>
-	      <dd property="yui:typeInfo">[:pinfo get bundle type]</dd><dd property="yui:typeInfo">attribute accessor/mutator</dd>
+              <dt>Implementation details:</dt>
+	      <dd property="yui:typeInfo">[:pinfo get bundle type]</dd><dd property="yui:typeInfo">attribute getter/setter</dd>
 	      <dl>
 		
 		<dl>
-		  <dt>Protection:</dt>
 		  [:? {[:pinfo get -default 0 bundle redefine-protected]} {
+		  <dt>Protection:</dt>
 		  <dd>redefine-protected</dd>
-		  }]
 		</dl>
+		}]
 		[:? {[$owning_attribute pinfo get -default 0 bundle incremental]} {
 		<hr />
 		<!-- depict essentials of the incremental interface -->
@@ -60,8 +65,8 @@
 		  <h4><a name="[:href -local]" property="yui:name">${:name} add</a>
 		  </h4>
 		  <div class="detail">
-		    <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
-		      <span class="var">obj</span>
+		    <code>
+		      <span class="var">$prefix</span>
 		      <strong property="yui:name">${:name} add</strong>
 		      <span class="var">value</span>
 		    </code>
@@ -69,16 +74,20 @@
 		      <dl rel="yui:parameters">
 			<dt>Parameters:</dt>
 			<dd rel="yui:parameter">
-			  <code><span property="yui:name">value</span>&nbsp;&lt;<span property="yui:type">required</span>&gt;
+			  <code><span property="yui:name">value</span>
+			    [:?objvar $owning_attribute @spec {
+			    [:? {[$owning_attribute @spec] ne ""} {&nbsp;:&nbsp; <span property="yui:type">[$owning_attribute @spec]</span>}]
+			    }]
+
 			  </code>
-			  <span property="yui:description">...</span>
+			  <!--<span property="yui:description">...</span>-->
 			</dd>
 		      </dl>
-		      <dl>
+		      <!-- <dl>
 			<dt>Returns:</dt>
 			<dd property="yui:returnInfo">The element
 			  added to the list</dd>
-		      </dl>
+		      </dl> -->
 		    </div>
 		  </div>	
 		  <hr />
@@ -88,7 +97,7 @@
 		  <h4><a name="[:href -local]" property="yui:name">${:name} delete</a>
 		  </h4>
 		  <div class="detail">
-		    <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
+		    <code>
 		      <span class="var">obj</span>
 		      <strong property="yui:name">${:name} delete</strong>
 		      <span class="var">value</span>
@@ -97,16 +106,19 @@
 		      <dl rel="yui:parameters">
 			<dt>Parameters:</dt>
 			<dd rel="yui:parameter">
-			  <code><span property="yui:name">value</span>&nbsp;&lt;<span property="yui:type">required</span>&gt;
+			  <code><span property="yui:name">value</span>
+			    [:?objvar $owning_attribute @spec {
+			    [:? {[$owning_attribute @spec] ne ""} {&nbsp;:&nbsp; <span property="yui:type">[$owning_attribute @spec]</span>}]
+			    }]
 			  </code>
-			  <span property="yui:description">...</span>
+			  <!--<span property="yui:description">...</span>-->
 			</dd>
 		      </dl>
-		      <dl>
+		      <!--<dl>
 			<dt>Returns:</dt>
 			<dd property="yui:returnInfo">The element
 			  deleted from the the list</dd>
-		      </dl>
+		      </dl>-->
 		    </div>
 		  </div>	
 		</div>

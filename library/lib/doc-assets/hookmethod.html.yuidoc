@@ -10,7 +10,7 @@
   <h4>
     <a name="[:href -local]">[:print_name]$status</a></h4>
   <div class="detail" >
-    <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
+    <code>[:? {[info exists :@return] && [${:@return} @spec] ne ""} {&lt;<span property="yui:type">[${:@return} @spec]</span>&gt;} ]
        <span class="var">obj</span>
        <strong property="yui:name">${:name}</strong>
         <span class="var">$paramspec</span>
@@ -26,7 +26,7 @@
 	[:for param [:!get @parameter] {
 	<dd rel="yui:parameter">
           <code><span property="yui:name">[$param print_name]</span>
-            [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+            [:? {[$param eval {info exists :@spec}] && [$param @spec] ne ""} {&lt;<span property="yui:type">[$param @spec]</span>&gt;}]
           </code>
 	  [:? {[:statustoken] ne "extra"} {
 	  [$param statusmark]
@@ -47,7 +47,7 @@
       <dl>
         <dt>Returns:
 	  [:!let ret [:!get @return]]
-          <code property="yui:return"> [:? {[$ret eval {info exists :spec}] && [$ret spec] ne ""} {[$ret spec]}]
+          <code property="yui:return"> [:? {[$ret eval {info exists :@spec}] && [$ret @spec] ne ""} {[$ret @spec]}]
         </code></dt>
         <dd property="yui:returnInfo">
 	  <span style='display:block; color: red'>[join [$ret pinfo get -default "" validation]]</span>

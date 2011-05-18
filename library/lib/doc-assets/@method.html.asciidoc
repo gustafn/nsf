@@ -1,10 +1,11 @@
+[:!let prefix [expr {[[:get_owning_partof] pinfo get -default 0 bundle ismetaclass] ? "cls": "obj"}]]
 <div class="dlist">
   <hr/>
   <dt class="hdlist1">
     <span id="[:as_tag_id]">[:name]</span>
   </dt>
   <dd>
-    <p><tt><span class="var">obj</span> <strong>[:name]</strong> <span class="var">[:pinfo get -default "" bundle parametersyntax]</span></tt>
+    <p><tt><span class="var">$prefix</span> <strong>[:name]</strong> <span class="var">[:pinfo get -default "" bundle parametersyntax]</span></tt>
     </p>
     [:?var :@method {
     [:for sm [:get_sub_methods] {
