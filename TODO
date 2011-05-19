@@ -2836,6 +2836,8 @@ nsf:
 - remove alias warnings from gcc under ubuntu (4.2.4)
 
 - nsf.c: fixed possible crash in tcl8.6 with nsfprocs, still one inconsistency
+- nsf.c: fixed bad interaction between mixins and ensembles in tcl8.6
+
 
 TODO:
 - evaluate the folloging change

@@ -8102,8 +8102,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 			    objc-1, (Tcl_Obj **)objv+1);
   }
 
-  /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", 
-    methodName, cmd, cp, objc);*/
+  /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d cscPtr %p flags %.6x\n", 
+    methodName, cmd, cp, objc, cscPtr, cscPtr->flags);*/
   assert(object->teardown);
 
   /* 
@@ -8218,12 +8218,12 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	     * already.
 	     */
 
-	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s csc %p\n",
-	      ObjectName(object),methodName, cscPtr);*/
+	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s cscPtr %p base flags %.6x\n",
+	      ObjectName(object),methodName, cscPtr, (0xFF & cscPtr->flags));*/
 	    result = MethodDispatch(object, interp, objc-1, objv+1,
 				    cmd, object, NULL, methodName,
 				    cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
-				    cscPtr->flags|NSF_CSC_IMMEDIATE);
+				    (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
 	    goto obj_dispatch_ok;
 	  }
 	}
@@ -8308,6 +8308,9 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
     return CmdMethodDispatch(clientData, interp, objc, objv, methodName, object, cmd, NULL);
   }
+
+  /*fprintf(stderr, "cmdMethodDispatch %s.%s, cscPtr %p objflags %.6x\n",
+    ObjectName(object), methodName, cscPtr, object->flags); */
 
   return CmdMethodDispatch(cp, interp, objc, objv, methodName, object, cmd, cscPtr);
 }
@@ -8442,9 +8445,10 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   /*
    * Resetting mixin and filter stacks
    */
+
   if ((flags & NSF_CSC_MIXIN_STACK_PUSHED) && object->mixinStack) {
-    /*fprintf(stderr, "MixinStackPop %s.%s %p %s\n",
-      ObjectName(object),methodName, object->mixinStack, msg);*/
+    /* fprintf(stderr, "MixinStackPop %s.%s %p %s\n",
+       ObjectName(object), methodName, object->mixinStack, msg);*/
     MixinStackPop(object);
   }
   if ((flags & NSF_CSC_FILTER_STACK_PUSHED) && object->filterStack) {
@@ -8592,6 +8596,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
+  /*fprintf(stderr, "MixinStackPush check for %p %s.%s objflags %.6x == %d\n",
+	  object,ObjectName(object),methodName, objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID,
+	  (objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID);*/
   /*
    * Check if a mixed in method has to be called.
    */
@@ -8725,6 +8732,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cscPtr->objc = objc-shift;
       cscPtr->objv = objv+shift;
     }
+
+    /*fprintf(stderr, "MethodDispatch %s.%s %p flags %.6x cscPtr %p\n",
+	    ObjectName(object), methodName, object->mixinStack, cscPtr->flags, 
+	    cscPtr);*/
 
     result = MethodDispatchCsc(clientData, interp, objc-shift, objv+shift,
 			       cscPtr, methodName, &validCscPtr);
@@ -11385,8 +11396,6 @@ FindSelfNext(Tcl_Interp *interp) {
 
   result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
                    &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
-  fprintf(stderr, "findSelfNext %s object %p (%s) cl %p returns cmd %p\n",
-	  methodName, object, ObjectName(object), cl, cmd);
   if (cmd) {
     Tcl_SetObjResult(interp, MethodHandleObj(cl ? (NsfObject *)cl : object,
 					     cl == NULL, methodName));

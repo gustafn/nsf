@@ -75,7 +75,6 @@ namespace eval ::xotcl {
 	"" {uplevel ::nsf::self}
 	next {
 	  set handle [uplevel ::nsf::current $arg]
-	  puts stderr handle=$handle
 	  method_handle_to_xotcl $handle
 	}
 	default {uplevel ::nsf::current $arg}
