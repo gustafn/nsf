@@ -11371,9 +11371,23 @@ NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_O
   return result;
 }
 
-
 /*
- * "self" object command
+ *----------------------------------------------------------------------
+ * FindSelfNext --
+ *
+ *    This function is called via [current next] to set the result of the
+ *    interp to the method which would be called by [next]. If there are more
+ *    shadowed methods along the precedence path, it sets the result of the
+ *    next method in form of a method handle. If there are no more shadowed
+ *    procs, the result is set to empty.
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    Set Tcl result.
+ *
+ *----------------------------------------------------------------------
  */
 
 static int
@@ -11402,6 +11416,22 @@ FindSelfNext(Tcl_Interp *interp) {
   }
   return result;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * ComputeLevelObj --
+ *
+ *    This function comptes a fresh Tcl_Obj refering to the interp level. The
+ *    caller has to care about freeing the returned Tcl_Obj.
+ *
+ * Results:
+ *    Tcl_Obj *
+ *
+ * Side effects:
+ *    Allocates a new Tcl_Obj
+ *
+ *----------------------------------------------------------------------
+ */
 
 static Tcl_Obj *
 ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
