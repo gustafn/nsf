@@ -3835,13 +3835,11 @@ NSCheckColons(CONST char *name, size_t l) {
  */
 static Tcl_Namespace*
 NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name) {
-  Tcl_Namespace *nsPtr;
-  Namespace *dummy1Ptr, *dummy2Ptr;
+  Namespace *dummy1Ptr, *dummy2Ptr, *nsPtr;
   const char *dummy;
 
   TclGetNamespaceForQualName(interp, name, NULL, TCL_FIND_ONLY_NS|TCL_CREATE_NS_IF_UNKNOWN, 
-			     (Namespace **)&nsPtr,
-			     &dummy1Ptr, &dummy2Ptr, &dummy);
+			     &nsPtr, &dummy1Ptr, &dummy2Ptr, &dummy);
 
   if (nsPtr->deleteProc != NSNamespaceDeleteProc) {
     /* reuse the namespace */
@@ -3855,7 +3853,7 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name)
   }
 
   MEM_COUNT_ALLOC("TclNamespace", nsPtr);
-  return nsPtr;
+  return (Tcl_Namespace *)nsPtr;
 }
 
 /*
@@ -3937,8 +3935,8 @@ NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName, NsfClass *cl) 
  *----------------------------------------------------------------------
  */
 NSF_INLINE static Tcl_Namespace *
-NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *parentNsPtr, NsfClass *cl) {
-  Tcl_Namespace *nsPtr, *dummy1Ptr, dummy2Ptr;
+NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *parentNsPtr1, NsfClass *cl) {
+  Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr, *parentNsPtr = (Namespace *)parentNsPtr1;
   CONST char *parentName, *dummy, *n;
   Tcl_DString ds, *dsPtr = &ds;
   int parentNameLength;
@@ -3953,8 +3951,7 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
    */
   TclGetNamespaceForQualName(interp, nameString, NULL, 
 			     TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
-			     (Namespace **)&nsPtr,
-			     (Namespace **)&dummy1Ptr, (Namespace **)&dummy1Ptr, &dummy);
+			     &nsPtr, &dummy1Ptr, &dummy2Ptr, &dummy);
   /*fprintf(stderr, 
 	  "beforecreate calls TclGetNamespaceForQualName with %s => %p (%s) %p %s %p %s %p %s\n", 
 	  nameString, nsPtr, nsPtr ? nsPtr->fullName : "",
@@ -3969,7 +3966,7 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
    */
 
   if (parentNsPtr == NULL && nsPtr) {
-    parentNsPtr = (Tcl_Namespace *)Tcl_Namespace_parentPtr(nsPtr);
+    parentNsPtr = Tcl_Namespace_parentPtr(nsPtr);
   }
 
   if (parentNsPtr) {
@@ -4005,8 +4002,8 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
     } else if (nsPtr == NULL && parentNsPtr == NULL) {
       TclGetNamespaceForQualName(interp, parentName, NULL,
 				 TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
-				 (Namespace **)&parentNsPtr, (Namespace **)&dummy1Ptr, 
-				 (Namespace **)&dummy2Ptr, &dummy);
+				 &parentNsPtr, &dummy1Ptr, 
+				 &dummy2Ptr, &dummy);
       if (parentNsPtr == NULL) {
 	/*fprintf(stderr, "===== calling NSRequireParentObject %s %p\n", parentName, cl);*/
 	NSRequireParentObject(interp, parentName, cl);
@@ -4018,7 +4015,7 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
     }
   }
 
-  return nsPtr;
+  return (Tcl_Namespace *)nsPtr;
 }
 
 
@@ -7278,7 +7275,7 @@ static int
 PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
 		  int objc, Tcl_Obj *CONST objv[],
                   NsfCallStackContent *cscPtr) {
-  CallFrame *framePtr;
+  Tcl_CallFrame *framePtr;
   int result;
 
   /*
@@ -7298,10 +7295,10 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
     return result;
   }
 
-  framePtr->objc = objc;
-  framePtr->objv = objv;
-  framePtr->procPtr = procPtr;
-  framePtr->clientData = cscPtr;
+  Tcl_CallFrame_objc(framePtr) = objc;
+  Tcl_CallFrame_objv(framePtr) = objv;
+  Tcl_CallFrame_procPtr(framePtr) = procPtr;
+  Tcl_CallFrame_clientData(framePtr) = cscPtr;
 
   return ByteCompiled(interp, &cscPtr->flags, procPtr, ObjStr(objv[0]));
 }
@@ -10032,7 +10029,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, in
    * PushProcCallFrame()). So, the benefit is not sure, when we go
    * low-level here.
    */
-  CallFrame *framePtr;
+  Tcl_CallFrame *framePtr;
   Proc *procPtr;
   unsigned short dummy;
   CONST char *fullMethodName = ObjStr(procNameObj);
@@ -10069,7 +10066,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, in
   }
 
   procPtr = (Proc *)Tcl_Command_objClientData(cmd);
-  result = TclPushStackFrame(interp, (Tcl_CallFrame **)&framePtr,
+  result = TclPushStackFrame(interp, &framePtr,
 			     (Tcl_Namespace *) procPtr->cmdPtr->nsPtr,
 			     (FRAME_IS_PROC));
 
@@ -10081,9 +10078,9 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, in
     return result;
   }
 
-  framePtr->objc = objc;
-  framePtr->objv = objv;
-  framePtr->procPtr = procPtr;
+  Tcl_CallFrame_objc(framePtr) = objc;
+  Tcl_CallFrame_objv(framePtr) = objv;
+  Tcl_CallFrame_procPtr(framePtr) = procPtr;
 
 # if defined(NRE)
   /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n",
@@ -10252,12 +10249,12 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
    * it does not exist.
    */
   {
-    Tcl_Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr;
+    Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr;
     const char *dummy;
     /* create the target namespace, if it does not exist */
     TclGetNamespaceForQualName(interp, ObjStr(procNameObj), NULL, TCL_CREATE_NS_IF_UNKNOWN, 
-			       (Namespace **)&nsPtr, (Namespace **)&dummy1Ptr, 
-			       (Namespace **)&dummy2Ptr, &dummy);
+			       &nsPtr, &dummy1Ptr, 
+			       &dummy2Ptr, &dummy);
   }
 
   /*
@@ -11790,12 +11787,12 @@ PrimitiveOInit(NsfObject *object, Tcl_Interp *interp, CONST char *name,
   //fprintf(stderr, "nsPtr->flags %.6x\n", nsPtr ? (((Namespace *)nsPtr)->flags) : 0);
 
   if (nsPtr && (((Namespace *)nsPtr)->flags & NS_DYING)) {
-    Tcl_Namespace *dummy1Ptr, *dummy2Ptr;
+    Namespace *dummy1Ptr, *dummy2Ptr, *nsPtr1 = (Namespace *)nsPtr;
     const char *dummy;
     TclGetNamespaceForQualName(interp, name, 
 			       NULL, TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
-			       (Namespace **)&nsPtr,
-			       (Namespace **)&dummy1Ptr, (Namespace **)&dummy2Ptr, &dummy);
+			       &nsPtr1, &dummy1Ptr, &dummy2Ptr, &dummy);
+    nsPtr = (Tcl_Namespace *)nsPtr1;
     /*fprintf(stderr, "PrimitiveOInit %p calls TclGetNamespaceForQualName with %s => %p given %p object->nsPtr %p\n", 
 	    object, name, 
 	    nsPtr, nsPtr, object->nsPtr);*/
@@ -13036,7 +13033,6 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
 static int
 CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ClientData clientData;
   int result;
   NsfObject *object = tcd->object;
   CallFrame frame, *framePtr = &frame;
@@ -13054,13 +13050,13 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (tcd->objProc) {
     /* fprintf(stderr, "CallForwarder Tcl_NRCallObjProc %p\n", clientData);*/
     result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
-  } else if (TclObjIsNsfObject(interp, tcd->cmdName, (NsfObject**)&clientData)) {
+  } else if (TclObjIsNsfObject(interp, tcd->cmdName, &object)) {
     /*fprintf(stderr, "CallForwarder NsfObjDispatch object %s, objc=%d\n",
       ObjStr(tcd->cmdName), objc);*/
     if (objc > 1) {
-      result = ObjectDispatch(clientData, interp, objc, objv, NSF_CSC_IMMEDIATE);
+      result = ObjectDispatch(object, interp, objc, objv, NSF_CSC_IMMEDIATE);
     } else {
-      result = DispatchDefaultMethod(clientData, interp, objv[0], NSF_CSC_IMMEDIATE);
+      result = DispatchDefaultMethod(object, interp, objv[0], NSF_CSC_IMMEDIATE);
     }
   } else {
     /*fprintf(stderr, "CallForwarder: no nsf object %s\n", ObjStr(tcd->cmdName));*/
@@ -15162,15 +15158,13 @@ ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
   Tcl_DString ds, *dsPtr = NULL;
 
   if (pattern && *pattern == ':' && *(pattern + 1) == ':') {
-
-    Tcl_Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr;
+    Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr;
     CONST char *remainder;
 
     /*fprintf(stderr, "we have a colon pattern '%s' methodtype %.6x\n", pattern, methodType);*/
 
     TclGetNamespaceForQualName(interp, pattern, NULL, 0, 
-			       (Namespace **)&nsPtr,
-			       (Namespace **)&dummy1Ptr, (Namespace **)&dummy2Ptr, &remainder);
+			       &nsPtr, &dummy1Ptr, &dummy2Ptr, &remainder);
     /*fprintf(stderr, 
 	    "TclGetNamespaceForQualName with %s => (%p %s) (%p %s) (%p %s) (%p %s)\n", 
 	    pattern, 
@@ -15211,10 +15205,12 @@ ListSuperclasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClo
   NsfObject *matchObject = NULL;
   Tcl_Obj *patternObj = NULL, *outObjPtr;
   CONST char *patternString = NULL;
+  ClientData clientData;
   int rc;
 
   if (pattern &&
-      ConvertToObjpattern(interp, pattern, NULL, (ClientData *)&patternObj, &outObjPtr) == TCL_OK) {
+      ConvertToObjpattern(interp, pattern, NULL, &clientData, &outObjPtr) == TCL_OK) {
+    patternObj = (Tcl_Obj *)clientData;
     if (GetMatchObject(interp, patternObj, pattern, &matchObject, &patternString) == -1) {
       /*
        * The pattern has no meta chars and does not correspond to an existing

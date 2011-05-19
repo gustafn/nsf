@@ -2833,6 +2833,7 @@ nsf:
 
 - added "link" from 2.4 (parameters) to "info parameters" in migration
   guide
+- remove alias warnings from gcc under ubuntu (4.2.4)
 
 
 TODO:
