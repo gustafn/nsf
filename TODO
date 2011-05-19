@@ -2838,6 +2838,7 @@ nsf:
 - nsf.c: fixed possible crash in tcl8.6 with nsfprocs, still one inconsistency
 - nsf.c: fixed bad interaction between mixins and ensembles in tcl8.6
 - nsf.c: document two more functions
+- nsf.c: removed unneeded casts to (ClientData)
 
 TODO:
 - evaluate the folloging change
