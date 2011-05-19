@@ -5069,6 +5069,7 @@ MixinStackPush(NsfObject *object) {
   h->currentCmdPtr = NULL;
   h->nextPtr = object->mixinStack;
   object->mixinStack = h;
+  /*fprintf(stderr, "MixinStackPush %p %s\n", object, ObjectName(object));*/
   return 1;
 }
 
@@ -5078,7 +5079,7 @@ MixinStackPush(NsfObject *object) {
 static void
 MixinStackPop(NsfObject *object) {
   register NsfMixinStack *h = object->mixinStack;
-
+  /*fprintf(stderr, "MixinStackPop %p %s\n", object, ObjectName(object));*/
   object->mixinStack = h->nextPtr;
   FREE(NsfMixinStack, h);
 }
@@ -7829,8 +7830,14 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
  */
 static int
 ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
+  ParseContext *pcPtr = data[1];
   /*CONST char *methodName = data[0];
-  fprintf(stderr, "ProcDispatchFinalize of method %s\n", methodName);*/
+
+    fprintf(stderr, "ProcDispatchFinalize of method %s\n", methodName);*/
+
+  ParseContextRelease(pcPtr);
+  NsfTclStackFree(interp, pcPtr, "proc dispatch finialize release parse context");
+
   return result;
 }
 
@@ -8392,9 +8399,10 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   assert(object);
   assert(object->id);
 
-  /*fprintf(stderr, "ObjectDispatchFinalize %p %s flags %.6x (%d) frame %.6x rst %d\n",
+  /*fprintf(stderr, "ObjectDispatchFinalize %p %s flags %.6x (%d) frame %.6x unk %d m %s\n",
 	  cscPtr, ObjectName(object), flags,
-	  result, cscPtr->frameType, RUNTIME_STATE(interp)->unknown);*/
+	  result, cscPtr->frameType, RUNTIME_STATE(interp)->unknown,
+	  cscPtr->cmdPtr ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : "");*/
 
   /*
    * Check the return value if wanted
@@ -9993,17 +10001,16 @@ NsfProcStubDeleteProc(ClientData clientData) {
  */
 // #define NSF_INVOKE_SHADOWED_TRADITIONAL 1
 static int
-InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, int objc, Tcl_Obj *CONST objv[]) {
+InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr) {
+  Tcl_Obj *CONST *objv = pcPtr->full_objv;
+  int objc = pcPtr->objc;
   int result;
-  // xxxxx
+
 #if defined(NSF_INVOKE_SHADOWED_TRADITIONAL)
   /*
    * For the time being, we call the shadowed proc defined with a
    * mutated name. It should be possible to compile and call the
    * proc body directly, similar as for scripted methods. 
-   * 
-   * TODO: check implications with NRE and Tcl 8.6, maybe a
-   * finalize function is needed as well.
    */
   /*fprintf(stderr, "NsfProcStub: call proc arguments oc %d [0] '%s' \n",
     objc, ObjStr(objv[0]));*/
@@ -10021,21 +10028,19 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, in
     NsfProfileRecordProcData(interp, ObjStr(procNameObj), trt.tv_sec, trt.tv_usec);
   }
 # endif
+  ParseContextRelease(pcPtr);
+  NsfTclStackFree(interp, pcPtr, "release parse context");
 #else
-  //xxx - TODO: unfinished
-  /* The code below is just copied from proc method dispatch and
-   * needs some refactoring to be used on procs. We need here as
-   * well a Proc structure for ByteCompile (called from
-   * PushProcCallFrame()). So, the benefit is not sure, when we go
-   * low-level here.
+  /* 
+   * The code below is derived from the scripted method dispatch and just
+   * slightly adapted to remove object dependencies.
    */
-  Tcl_CallFrame *framePtr;
-  Proc *procPtr;
-  unsigned short dummy;
   CONST char *fullMethodName = ObjStr(procNameObj);
+  Tcl_CallFrame *framePtr;
+  unsigned short dummy;
+  Proc *procPtr;
 
-  /* TODO check epoch */
-  /*fprintf(stderr, "fullMethodName %s, shortMethodName %s\n", fullMethodName, shortMethodName);*/
+  /*fprintf(stderr, "fullMethodName %s epoch %d\n", fullMethodName, Tcl_Command_cmdEpoch(cmd));*/
   
   if (Tcl_Command_cmdEpoch(cmd)) {
 #if 1
@@ -10074,7 +10079,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, in
     result = ByteCompiled(interp, &dummy, procPtr, fullMethodName);
   }
   if (result != TCL_OK) {
-    /* todo: really? error msg */
+    /* todo: really? error msg? */
     return result;
   }
 
@@ -10083,18 +10088,18 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, in
   Tcl_CallFrame_procPtr(framePtr) = procPtr;
 
 # if defined(NRE)
-  /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n",
-    ObjectName(object), ObjStr(objv[0]));*/
+  /*fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n",
+    ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj));*/
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
-		    (ClientData)fullMethodName, NULL, NULL, NULL);
-  result = TclNRInterpProcCore(interp, procNameObj /*objv[0]*/, 1, &MakeProcError);
+		    (ClientData)fullMethodName, pcPtr, NULL, NULL);
+  result = TclNRInterpProcCore(interp, procNameObj, 1, &MakeProcError);
 # else
   ClientData data[3] = {
     (ClientData)fullMethodName,
-    NULL,
+    pcPtr,
     NULL
   };
-  result = TclObjInterpProcCore(interp, procNameObj /*objv[0]*/, 1, &MakeProcError);
+  result = TclObjInterpProcCore(interp, procNameObj, 1, &MakeProcError);
   result = ProcDispatchFinalize(data, interp, result);
 # endif
 #endif
@@ -10144,14 +10149,15 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 				    objc, tov);
 
     if (result == TCL_OK) {
-      result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr->objc, pcPtr->full_objv);
+      result = InvokeShadowedProc(interp, tcd->procName, tcd->cmd, pcPtr);
     } else {
-      Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
-      fprintf(stderr, "NsfProcStub: incorrect arguments (%s)\n", ObjStr(resultObj));
+      /*Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+      fprintf(stderr, "NsfProcStub: incorrect arguments (%s)\n", ObjStr(resultObj));*/
+      ParseContextRelease(pcPtr);
+      NsfTclStackFree(interp, pcPtr, "release parse context");
     }
 
-    ParseContextRelease(pcPtr);
-    NsfTclStackFree(interp, pcPtr, "release parse context");
+    /*fprintf(stderr, "NsfProcStub free on stack %p\n", tov);*/
     FREE_ON_STACK(Tcl_Obj *, tov);
   } else {
     fprintf(stderr, "no parameters\n");
@@ -10850,7 +10856,8 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
       object->filterStack &&
       object->filterStack->currentCmdPtr) {
     *cmdPtr = FilterSearchProc(interp, object, currentCmdPtr, clPtr);
-    /* fprintf(stderr, "EndOfChain? cmd=%p\n",*cmd);*/
+
+    /*fprintf(stderr, "EndOfChain? cmd=%p\n",*cmdPtr);*/
     /*  NsfCallStackDump(interp); NsfStackDump(interp);*/
 
     if (*cmdPtr == NULL) {
@@ -10879,7 +10886,9 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
   assert(objflags & NSF_MIXIN_ORDER_VALID);
   /* otherwise: MixinComputeDefined(interp, object); */
 
-  if ((objflags & NSF_MIXIN_ORDER_VALID) && object->mixinStack) {
+  /*fprintf(stderr, "... mixinstack %p => %p\n", object, object->mixinStack);*/
+
+  if (object->mixinStack) {
     int result = MixinSearchProc(interp, object, *methodNamePtr, clPtr, currentCmdPtr, cmdPtr);
     if (result != TCL_OK) {
       return result;
@@ -10922,7 +10931,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
   }
 
   /*fprintf(stderr, "NEXT methodName %s *clPtr %p %s *cmd %p\n",
-   *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr);*/
+   *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr); */
 
   if (!*cmdPtr) {
     NsfClasses *pl;
@@ -11376,6 +11385,8 @@ FindSelfNext(Tcl_Interp *interp) {
 
   result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
                    &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
+  fprintf(stderr, "findSelfNext %s object %p (%s) cl %p returns cmd %p\n",
+	  methodName, object, ObjectName(object), cl, cmd);
   if (cmd) {
     Tcl_SetObjResult(interp, MethodHandleObj(cl ? (NsfObject *)cl : object,
 					     cl == NULL, methodName));
