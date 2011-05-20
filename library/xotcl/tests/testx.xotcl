@@ -1113,7 +1113,7 @@ TestX filterSimpleObserver -proc run {{n 20}} {
 	set ::baseLevel [info level]
 
 
-	if {0 != [expr {[info level] - $::baseLevel}]} {
+	if {0 != [info level] - $::baseLevel} {
 		puts stderr "FAILED - [self] -- Simple Observer - info level in filtered proc\n\
                  expected 0, got [expr {[info level] - $::baseLevel}]"
 		exit
