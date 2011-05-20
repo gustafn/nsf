@@ -245,6 +245,7 @@ typedef struct Nsf_Param {
   Tcl_Obj *converterName;
   Tcl_Obj *paramObj;
   Tcl_Obj *slotObj;
+  Tcl_Obj *method;
 } Nsf_Param;
 
 extern int 

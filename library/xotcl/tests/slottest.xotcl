@@ -112,7 +112,7 @@ O o1
 ? {o1 class} "::O"
 o1 class Object
 ? {o1 class} "::xotcl::Object"
-? {Object objectparameter} "-mixin:alias -filter:alias -class:alias args"
+? {Object objectparameter} "-mixin:alias,0..n -filter:alias,0..n -class:class,alias args"
 ? {o1 class add M} {class: expected a class but got "M ::xotcl::Object"}
 
 

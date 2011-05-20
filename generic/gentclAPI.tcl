@@ -68,24 +68,22 @@ proc genifd {parameterDefinitions} {
 	append flags |NSF_ARG_IS_ENUMERATION
       }
     }
-    # this does not work, since initializer element is not constant.
-#     if {[info exists (-default)]} {
-#       puts stderr "default of $argName = '$(-default)'"
-#       set default ", Tcl_NewStringObj(\"$(-default)\",-1)"
-#     } else {
-#       set default ""
-#     }
-    if {$converter in {Tclobj Integer Boolean String Class Object}} {set conv Nsf_ConvertTo$converter} else {set conv ConvertTo$converter}
-    lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
+    if {$converter in {Tclobj Integer Boolean String Class Object}} {
+      set conv Nsf_ConvertTo$converter
+    } else {
+      set conv ConvertTo$converter
+    }
+    lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
   }
   if {[llength $l] == 0} {
-    return "{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
+    return "{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
   } else {
     return [join $l ",\n  "]
   }
 }
 
-proc gencall {methodName fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {
+proc gencall {methodName fn parameterDefinitions clientData 
+	      cDefsVar ifDefVar arglistVar preVar postVar introVar} {
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
       $introVar intro 
   set c [list]

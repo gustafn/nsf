@@ -758,7 +758,6 @@ namespace eval ::nx {
     } else {
       set properties [string range $value [expr {$colonPos+1}] end]
       set name [string range $value 0 [expr {$colonPos -1}]]
-      set useArgFor arg
       foreach property [split $properties ,] {
         if {$property in [list "required" "convert" "nosetter" "substdefault" "noarg"]} {
 	  if {$property in "convert" } {
@@ -771,14 +770,15 @@ namespace eval ::nx {
           if {![string match ::* $type]} {set type ::$type}
         } elseif {[string match arg=* $property]} {
           set argument [string range $property 4 end]
-          lappend opts -$useArgFor $argument
+          lappend opts -arg $argument
+        } elseif {[string match method=* $property]} {
+          lappend opts -methodname [string range $property 7 end]
         } elseif {$property eq "optional"} {
 	  lappend opts -required 0
         } elseif {$property in [list "alias" "forward" "initcmd"]} {
 	  set class [:requireClass ::nx::ObjectParameterSlot $class]
 	  lappend opts -disposition $property
 	  set class [:requireClass ::nx::ObjectParameterSlot $class]
-	  set useArgFor methodname
         } elseif {[regexp {([01])[.][.]([1n*])} $property _ minOccurance maxOccurance]} {
 	  lappend opts -multiplicity $property
         } else {
@@ -934,6 +934,8 @@ namespace eval ::nx {
     {substdefault false}
     {position 0}
     {positional}
+    {elementtype}
+    {multiplicity 1..1}
   }
 
   # TODO: check, if substdefault/default could work with e.g. alias; otherwise, move substdefault down
@@ -1019,12 +1021,13 @@ namespace eval ::nx {
     #
     # Obtain a list of parameter options from slot object
     #
-    # "-withMultiplicity" is here a dummy parameter, since we have no
-    # multiplicty at the level of the ObjectParameter. We want to have
-    # the same interface as on Attribute.
-    set options ${:disposition}
-    #if {[info exists :elementtype]} {lappend options type=${:elementtype}}
-    if {${:name} ne ${:methodname}} {lappend options arg=${:methodname}}
+    set options [list]
+    if {[info exists :elementtype] && ${:elementtype} ni {{} mixin}} {
+      lappend options ${:elementtype}
+      #puts stderr "+++ [self] added elementtype ${:elementtype}"
+    }
+    lappend options ${:disposition}
+    if {${:name} ne ${:methodname}} {lappend options method=${:methodname}}
     if {${:required}} {
       lappend options required
     } elseif {[info exists :positional] && ${:positional}} {
@@ -1034,6 +1037,10 @@ namespace eval ::nx {
       lappend options substdefault
     }
     if {[info exists :noarg] && ${:noarg}} {lappend options noarg}
+    if {$withMultiplicity && [info exists :multiplicity] && ${:multiplicity} ne "1..1"} {
+      #puts stderr "### [self] added multiplicity ${:multiplicity}"
+      lappend options ${:multiplicity}
+    }
     return $options
   }
   
@@ -1108,8 +1115,8 @@ namespace eval ::nx {
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
 
   createBootstrapAttributeSlots ::nx::RelationSlot {
-    {elementtype class}
     {nosetter false}
+    {multiplicity 1..n}
   }
 
   RelationSlot protected method init {} {
@@ -1133,7 +1140,8 @@ namespace eval ::nx {
       #
       # Value contains globbing meta characters.
       #
-      if {${:elementtype} ne "" && ![string match ::* $value]} {
+      if {[info exists :elementtype] && ${:elementtype} ne "" 
+	  && ![string match ::* $value]} {
 	#
         # Prefix glob pattern with ::, since all object names have
         # leading "::"
@@ -1141,7 +1149,7 @@ namespace eval ::nx {
         set value ::$value
       }
       return [lsearch -all -not -glob -inline $old $value]
-    } elseif {${:elementtype} ne ""} {
+    } elseif {[info exists :elementtype] && ${:elementtype} ne ""} {
       #
       # Value contains no globbing meta characters, but elementtype is
       # given.
@@ -1208,13 +1216,13 @@ namespace eval ::nx {
     ${os}::Class::slot::dummy destroy
 
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
-	-forwardername object-mixin
-    ::nx::RelationSlot create ${os}::Object::slot::filter -elementtype "" \
+	-forwardername object-mixin -elementtype class
+    ::nx::RelationSlot create ${os}::Object::slot::filter \
 	-forwardername object-filter
 
     ::nx::RelationSlot create ${os}::Class::slot::mixin \
-	-forwardername class-mixin
-    ::nx::RelationSlot create ${os}::Class::slot::filter -elementtype "" \
+	-forwardername class-mixin -elementtype class
+    ::nx::RelationSlot create ${os}::Class::slot::filter \
         -forwardername class-filter
 
     #
@@ -1222,7 +1230,7 @@ namespace eval ::nx {
     # of per-object mixins and filters for classes.
     #
     ::nx::ObjectParameterSlot create ${os}::Class::slot::object-mixin \
-	-methodname "::nsf::classes::nx::Object::mixin"
+	-methodname "::nsf::classes::nx::Object::mixin" -elementtype class
     ::nx::ObjectParameterSlot create ${os}::Class::slot::object-filter \
 	-methodname "::nsf::classes::nx::Object::filter"
 
@@ -1238,13 +1246,16 @@ namespace eval ::nx {
     # Define "class" as a ObjectParameterSlot defined as alias
     #
     ::nx::ObjectParameterSlot create ${os}::Object::slot::class \
-	-methodname "::nsf::methods::object::class" 
+	-methodname "::nsf::methods::object::class" -elementtype class
 
     #
     # Define "superclass" as a ObjectParameterSlot defined as alias
     #
     ::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
-	-methodname "::nsf::methods::class::superclass" -default ${os}::Object
+	-methodname "::nsf::methods::class::superclass" \
+	-elementtype class \
+	-multiplicity 1..n \
+	-default ${os}::Object
 
     #
     # Define the initcmd as a positional ObjectParameterSlot

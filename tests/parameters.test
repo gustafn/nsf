@@ -249,7 +249,7 @@ Test case objectparameter {
   C create c1
  
   ? {C eval :objectparameter} \
-      "-a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional"
+      "-a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional"
 
   ? {c1 eval :objectparameter} \
       "::c1: unable to dispatch method 'objectparameter'"
@@ -276,7 +276,7 @@ Test case reclass {
       "::D::slot::d ::C::slot::a ::C::slot::b ::C::slot::c"
   
   ? {D eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -293,29 +293,29 @@ Test case objparam-mixins {
   D mixin M
 
   ? {D eval :objectparameter} \
-      "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional" \
+      "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional" \
     "mixin added"
 
   M mixin M2
 
   ? {D eval :objectparameter} \
-      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional" \
     "transitive mixin added"
   D mixin ""
   #we should have again the old interface
 
   ? {D eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional"
 
   C mixin M
   ? {D eval :objectparameter} \
-      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional" \
     "mixin added"
   C mixin ""
   #we should have again the old interface
   
   ? {D eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional" 
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional" 
 }
 
 #######################################################
@@ -1035,7 +1035,7 @@ Test case allow-empty {
   o public method foo {x:integer,0..1 y:integer os:object,1..*} {return $x}
   ? {o foo 1 2 {o1 "" o2}} {invalid value in "o1 "" o2": expected object but got "" for parameter "os"} \
       "list contains empty value"
-  ? {o foo "" 2 {}} {invalid parameter value: list is not allowed to be empty} \
+  ? {o foo "" 2 {}} {invalid parameter value for os: list is not allowed to be empty} \
       "empty int, empty list of objects"
 }
 #######################################################
@@ -1536,8 +1536,8 @@ Test case parameter-alias {
 
   Class create C {
     :attribute {x:alias}
-    :attribute {A:alias,arg=bar}
-    :attribute {{F:forward,arg=%self foo %1 a b c %method}}
+    :attribute {A:alias,method=bar}
+    :attribute {{F:forward,method=%self foo %1 a b c %method}}
     :attribute {D def}
     :public method x args {set :x $args}
     :public method foo args {set :foo $args}
@@ -1558,7 +1558,7 @@ Test case parameter-alias-default {
 
   Class create C {
     :attribute {x1:alias "hugo"}
-    :attribute {{F:forward,arg=%self foo a %1 b c %method} "habicht"}
+    :attribute {{F:forward,method=%self foo a %1 b c %method} "habicht"}
     :attribute {x2:alias "[self]"}
     :public method x1 args {set :x1 $args}
     :public method x2 args {set :x2 $args}
@@ -1596,7 +1596,7 @@ Test case parameter-object-mixin-dependency {
 
   ? {C info slots -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 
-  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional"
+  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional"
 
   #
   # invalidate object parameter and expect that the per-class mixin
@@ -1610,7 +1610,7 @@ Test case parameter-object-mixin-dependency {
 
   ? {C info slots -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 
-  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -noinit:alias,arg=::nsf::methods::object::noinit,noarg -mixin:alias -class:alias,arg=::nsf::methods::object::class -filter:alias __initcmd:initcmd,optional"
+  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:class,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional"
 
   # should not require b1
   ? {C create c2} ::c2

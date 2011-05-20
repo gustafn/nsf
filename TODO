@@ -2840,12 +2840,19 @@ nsf:
 - nsf.c: document two more functions
 - nsf.c: removed unneeded casts to (ClientData)
 
+- nsf.c: generalized disposition handling (forward, alias, initcmd) for 
+  object parameter
+   * disposition is now an option for object parameters rather than
+     than an own type. Therefore, one can check the arguments passed
+     to the disposition cases
+   * changed specification of name of method from arg= to method=
+   * this way "type" info in "info parameter syntax" is handled automatically
+
 TODO:
-- evaluate the folloging change
-  * make disposition an option of abritraty other types for objectparameters
-  * we could have a type e.g. class, which is checked as usual before calling
-    the disposition method
-  * this way we can handle "type" info in "info parameter syntax" automatically
+- maybe: define a type for converting mixins+guards
+- add explicit regression tests for disposition + types
+- check refcounting for dispo+types
+- maybe: add a dispoition=pipe
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 

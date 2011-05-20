@@ -400,15 +400,16 @@ namespace eval ::xotcl {
     set oSlotContainer [::nx::slotObj ${os}::Object]
     ::nx::RelationSlot create ${cSlotContainer}::superclass
     ::nsf::method::alias      ${cSlotContainer}::superclass assign ::nsf::relation
-    ::nx::RelationSlot create ${oSlotContainer}::class
+    ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1
     ::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
-
-    ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin
+    ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
+	-elementtype mixin -multiplicity 0..n
     ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
-        -elementtype ""
-    ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin
+	-multiplicity 0..n
+    ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin \
+	-elementtype mixin -multiplicity 0..n
     ::nx::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
-        -elementtype ""
+	-multiplicity 0..n
   }
   register_system_slots ::xotcl
   proc ::xotcl::register_system_slots {} {}

@@ -193,7 +193,6 @@ static int DispatchUnknownMethod(ClientData clientData, Tcl_Interp *interp,
 
 NSF_INLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
                                       Tcl_Obj *CONST objv[], int flags);
-//TODO remove string, methodName
 NSF_INLINE static int ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
 					     int result /*, char *string , CONST char *methodName*/);
 
@@ -7343,6 +7342,7 @@ ParamsFree(Nsf_Param *paramsPtr) {
     if (paramPtr->converterArg) {DECR_REF_COUNT(paramPtr->converterArg);}
     if (paramPtr->paramObj) {DECR_REF_COUNT(paramPtr->paramObj);}
     if (paramPtr->slotObj) {DECR_REF_COUNT(paramPtr->slotObj);}
+    if (paramPtr->method) {DECR_REF_COUNT(paramPtr->method);}
   }
   FREE(Nsf_Param*, paramsPtr);
 }
@@ -9071,7 +9071,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   Tcl_Obj *objv[3];
   int result;
 
-  if (pPtr->converterArg && (pPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == 0) {
+  if (pPtr->converterArg) {
     /*fprintf(stderr, "ConvertToTclobj %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
 
     objv[1] = pPtr->converterArg;
@@ -9432,9 +9432,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     /* check upper bound */
     option = dotdot + 2;
     if (*option == '*' || *option == 'n') {
-      if ((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_SWITCH)) != 0) {
+      if ((paramPtr->flags & (NSF_ARG_SWITCH)) != 0) {
 	return NsfPrintError(interp, 
-			     "upper bound of multiplicity of '%c' not allowed for \"alias\", \"forward\", \"initcmd\", \"relation\" or \"switch\"\n", *option);
+			     "upper bound of multiplicity of '%c' not allowed for \"switch\"\n", *option);
       }
       paramPtr->flags |= NSF_ARG_MULTIVALUED;
     } else if (*option != '1') {
@@ -9449,13 +9449,12 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->nrArgs = 0;
 
   } else if (optionLength >= 4 && strncmp(option, "arg=", 4) == 0) {
-    if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_RELATION)) == 0
-        && paramPtr->converter != ConvertViaCmd) {
+    if (paramPtr->converter != ConvertViaCmd) {
       fprintf(stderr, "type %s flags %.6x\n", paramPtr->type, paramPtr->flags);
       return NsfPrintError(interp, 
-			   "option arg= only allowed for \"alias\", \"forward\", \"relation\" or user-defined converter");
+			   "option arg= only allowed for user-defined converter");
     }
-    paramPtr->converterArg =  Tcl_NewStringObj(option + 4, optionLength - 4);
+    paramPtr->converterArg = Tcl_NewStringObj(option + 4, optionLength - 4);
     INCR_REF_COUNT(paramPtr->converterArg);
 
   } else if (strncmp(option, "switch", 6) == 0) {
@@ -9505,6 +9504,13 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else if (optionLength >= 6 && strncmp(option, "slot=", 5) == 0) {
     paramPtr->slotObj = Tcl_NewStringObj(option + 5, optionLength - 5);
     INCR_REF_COUNT(paramPtr->slotObj);
+
+  } else if (optionLength >= 6 && strncmp(option, "method=", 7) == 0) {
+    if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == 0) {
+      return NsfPrintError(interp, "option method= only allowed for \"alias\" or \"forward\"");
+    }
+    paramPtr->method = Tcl_NewStringObj(option + 7, optionLength - 7);
+    INCR_REF_COUNT(paramPtr->method);
 
   } else {
     int i, found = -1;
@@ -13730,7 +13736,9 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
     }
 
     if (objc == 0 && ((pPtr->flags & NSF_ARG_ALLOW_EMPTY) == 0)) {
-      return NsfPrintError(interp, "invalid parameter value: list is not allowed to be empty");
+      return NsfPrintError(interp, 
+			   "invalid parameter value for %s: list is not allowed to be empty",
+			   pPtr->name);
     }
 
     /*
@@ -13741,14 +13749,8 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
 
     for (i=0; i<objc; i++) {
       Tcl_Obj *elementObjPtr;
-      const char *valueString = ObjStr(ov[i]);
 
-      if (0 && /* TODO: REMOVE ME */ pPtr->flags & NSF_ARG_ALLOW_EMPTY && *valueString == '\0') {
-	result = Nsf_ConvertToString(interp, ov[i], pPtr, clientData, &elementObjPtr);
-      } else {
-	result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
-      }
-
+      result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
       if (result == TCL_OK || result == TCL_CONTINUE) {
         if (ov[i] != elementObjPtr) {
           /*
@@ -13858,9 +13860,10 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
         /*fprintf(stderr, "==> setting default value '%s' for var '%s' flag %d type %s conv %p\n",
                 ObjStr(newValue), pPtr->name, pPtr->flags & NSF_ARG_INITCMD,
                 pPtr->type, pPtr->converter);*/
-
-        /* Check the default value, unless we have an INITCMD, ALIAS or FORWARD */
-        if ((pPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == 0) {
+        /* 
+	 * Check the default value, unless we have nothing to check 
+	 */
+        if (pPtr->type || (pPtr->flags & NSF_ARG_MULTIVALUED)) {
           int mustDecrList = 0;
           if (ArgumentCheck(interp, newValue, pPtr,
 			    RUNTIME_STATE(interp)->doCheckArguments,
@@ -13889,7 +13892,11 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	      pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
             }
 	  }
-        }
+        } else {
+	  /*fprintf(stderr, "Param %s default %s type %s\n",
+	    pPtr->name, ObjStr(pPtr->defaultValue), pPtr->type);*/
+	  assert(pPtr->type ? pPtr->defaultValue == NULL : 1);
+	}
       } else if (pPtr->flags & NSF_ARG_REQUIRED) {
         return NsfPrintError(interp, "%s%s%s: required argument '%s' is missing",
 			     pcPtr->object ? ObjectName(pcPtr->object) : "",
@@ -16197,7 +16204,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   if (newObjProc) {
     /*
      * Define the reference chain like for 'namespace import' to
-     *  obtain automatic deletes when the original command is deleted.
+     * obtain automatic deletes when the original command is deleted.
      */
     ImportRef *refPtr = (ImportRef *) ckalloc(sizeof(ImportRef));
     refPtr->importedCmdPtr = (Command *) newCmd;
@@ -17954,10 +17961,17 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     if ((object->flags & NSF_INIT_CALLED) && (pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
       Tcl_Obj *varObj;
 
+      /*
+       * NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD do not set instance
+       * variables, so we do not have to check for existing variables.
+       */
       if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) continue;
       
       varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
       if (varObj) {
+	/* 
+	 * The value exists already, ignore this parameter.
+	 */
 	continue;
       }
     }
@@ -17993,7 +18007,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
       cscPtr->flags = 0;
-      CscInit(cscPtr, object, object->cl /*cl*/, NULL /*cmd*/, NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
+      CscInit(cscPtr, object, object->cl /*cl*/, NULL /*cmd*/, 
+	      NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
       Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
 
       if (paramPtr->flags & NSF_ARG_INITCMD) {
@@ -18012,9 +18027,9 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
 	
 	/* 
-	 * If arg= was given, use it as method name 
+	 * If method= was given, use it as method name 
 	 */
-	methodObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj;
+	methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
 
         if (paramPtr->nrArgs == 1) {
           ov[oc] = newValue;
@@ -18026,7 +18041,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 				       ov[0], oc, &ov[1], NSF_CSC_IMMEDIATE);
 	
       } else /* must be NSF_ARG_FORWARD */ {
-	Tcl_Obj *forwardSpec = paramPtr->converterArg ? paramPtr->converterArg : NULL; /* different default? */
+	Tcl_Obj *forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */
 	Tcl_Obj **nobjv, *ov[3];
 	int nobjc;
 	
