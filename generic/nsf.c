@@ -5054,8 +5054,136 @@ AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_O
 
 
 
+/***********************************************************************
+ * Mixin support 
+ ***********************************************************************/
+
 /*
- * Per-Object-Mixins
+ * Mixinspec type begin
+ */
+typedef struct {
+  NsfClass *class;
+  Tcl_Obj *guardObj;
+} MixinSpec;
+
+static Tcl_DupInternalRepProc	MixinspecDupInteralRep;
+static Tcl_FreeInternalRepProc	MixinspecFreeInternalRep;
+static Tcl_UpdateStringProc	MixinspecUpdateString;
+static Tcl_SetFromAnyProc       MixinspecSetFromAny;
+
+static Tcl_ObjType mixinspecObjType = {
+    "nsfMixinspec",			/* name */
+    MixinspecFreeInternalRep,		/* freeIntRepProc */
+    MixinspecDupInteralRep,		/* dupIntRepProc */
+    MixinspecUpdateString,		/* updateStringProc */
+    MixinspecSetFromAny			/* setFromAnyProc */
+};
+
+/* 
+ * Dummy placeholder, should never be called.
+ */
+static void
+MixinspecUpdateString(Tcl_Obj *objPtr) {
+  Tcl_Panic("MixinspecUpdateString %s of type %s should not be called", "updateStringProc",
+	    objPtr->typePtr->name);
+}
+
+/* 
+ * Dummy placeholder, should never be called.
+ */
+static void
+MixinspecDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *UNUSED(dupPtr)) {
+  Tcl_Panic("MixinspecDupInteralRep %s of type %s should not be called", "dupStringProc",
+	    srcPtr->typePtr->name);
+}
+
+/* 
+ * freeIntRepProc
+ */
+static void
+MixinspecFreeInternalRep(
+    register Tcl_Obj *objPtr)	/* Mixinspec structure object with internal
+				 * representation to free. */
+{
+  MixinSpec *mixinSpecPtr = (MixinSpec *)objPtr->internalRep.twoPtrValue.ptr1;
+
+  if (mixinSpecPtr != NULL) {
+    /*fprintf(stderr, "MixinspecFreeInternalRep freeing mixinSpec %p class %p guard %p\n",
+      mixinSpecPtr, mixinSpecPtr->class, mixinSpecPtr->guardObj);*/
+    /*
+     * Decrement refCounts
+     */
+    NsfObjectRefCountDecr(&(mixinSpecPtr->class)->object);
+    if (mixinSpecPtr->guardObj) {DECR_REF_COUNT(mixinSpecPtr->guardObj);}
+
+    /*
+     * ... and free structure
+     */
+    FREE(MixinSpec, mixinSpecPtr);
+  }
+}
+
+/* 
+ * setFromAnyProc
+ */
+static int
+MixinspecSetFromAny(
+    Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
+    register Tcl_Obj *objPtr)	/* The object to convert. */
+{
+  NsfClass *mixin = NULL;
+  Tcl_Obj *guardObj = NULL, *nameObj;
+  int oc; Tcl_Obj **ov;
+  MixinSpec *mixinSpecPtr;
+
+  if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
+    if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
+      nameObj = ov[0];
+      guardObj = ov[2];
+      /*fprintf(stderr, "mixinadd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
+    } else if (oc == 1) {
+      nameObj = ov[0];
+    } else {
+      return TCL_ERROR;
+    }
+  } else {
+    return TCL_ERROR;
+  }
+
+  /* we have no baseclass, we have to pass NULL as last argument */
+  if (GetClassFromObj(interp, nameObj, &mixin, NULL) != TCL_OK) {
+    return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
+  }
+  
+  /*
+   * Conversion was ok.
+   * Allocate structure ... 
+   */
+  mixinSpecPtr = NEW(MixinSpec);
+  /*
+   * ... and increment refCounts
+   */
+  NsfObjectRefCountIncr((&mixin->object));
+  if (guardObj) {INCR_REF_COUNT(guardObj);}
+
+  mixinSpecPtr->class = mixin;
+  mixinSpecPtr->guardObj = guardObj;
+
+  /*fprintf(stderr, "MixinspecSetFromAny alloc mixinSpec %p class %p guard %p\n",
+    mixinSpecPtr, mixinSpecPtr->class, mixinSpecPtr->guardObj);*/
+
+  /*
+   * Free origninal rep and store structure as internal representation.
+   */
+  TclFreeIntRep(objPtr);
+  objPtr->internalRep.twoPtrValue.ptr1 = (void *)mixinSpecPtr;
+  objPtr->internalRep.twoPtrValue.ptr2 = NULL;
+  objPtr->typePtr = &mixinspecObjType;
+
+  return TCL_OK;
+}
+/*
+ * Mixinspec type end
  */
 
 /*
@@ -5104,9 +5232,10 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
         if ((pl->cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
           NsfClassOpt *opt = pl->cl->opt;
 
-	  //fprintf(stderr, "find %p %s in checklist 1 %p\n", pl->cl, ClassName(pl->cl), *checkList);
+	  /* fprintf(stderr, "find %p %s in checklist 1 %p\n", 
+	     pl->cl, ClassName(pl->cl), *checkList);*/
 	  if (NsfClassListFind(*checkList, pl->cl)) {
-	    //fprintf(stderr, "+++ never add %s\n", ClassName(pl->cl));
+	    /*fprintf(stderr, "+++ never add %s\n", ClassName(pl->cl));*/
 	  } else {
 	    if (opt && opt->classmixins) {
 	      /* 
@@ -5127,16 +5256,26 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
     }
   }
 
-  //NsfClassListPrint("MixinComputeOrderFullList final", *mixinClasses);
-  //NsfClassListPrint("MixinComputeOrderFullList check", *checkList);
-
   if (level == 0 && *checkList) {
     NsfClassListFree(*checkList);
     *checkList = NULL;
   }
-
 }
 
+/*
+ *----------------------------------------------------------------------
+ * MixinResetOrder --
+ *
+ *    Free the mixin order of the provided object if it exists.
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Frees potentially the mixinOrder list.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 MixinResetOrder(NsfObject *object) {
   /*fprintf(stderr, "MixinResetOrder for object %s \n", ObjectName(object));*/
@@ -5161,7 +5300,7 @@ MixinResetOrder(NsfObject *object) {
  */
 static void 
 NsfClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *cl, 
-			   NsfClasses **classList, NsfClasses **checkList) {
+			      NsfClasses **classList, NsfClasses **checkList) {
   NsfClasses *pl;
 
   for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
@@ -5279,8 +5418,21 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   /*CmdListPrint(interp, "mixin order\n", obj->mixinOrder);*/
 }
 
+
 /*
- * add a mixin class to 'mixinList' by appending it
+ *----------------------------------------------------------------------
+ * MixinAdd --
+ *
+ *    Add a mixinspec (mixin class with a potential guard) provided as a
+ *    Tcl_Obj* to 'mixinList' by appending it to the provided cmdList.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Potentially allocating cmd list elements added to the mixinList
+ *
+ *----------------------------------------------------------------------
  */
 static int
 MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass *baseClass) {
@@ -5289,17 +5441,32 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
   int ocName; Tcl_Obj **ovName;
   NsfCmdList *new;
 
-  if (Tcl_ListObjGetElements(interp, nameObj, &ocName, &ovName) == TCL_OK && ocName > 1) {
-    if (ocName == 3 && !strcmp(ObjStr(ovName[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
-      nameObj = ovName[0];
-      guardObj = ovName[2];
-      /*fprintf(stderr, "mixinadd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
-    } /*else return NsfPrintError(interp, "mixin registration '%s' has too many elements", 
-	ObjStr(name));*/
-  }
+  /*fprintf(stderr, "MixinAdd gets obj %p type %p %s\n", nameObj, nameObj->typePtr, 
+    nameObj->typePtr?nameObj->typePtr->name : "NULL");*/
+  /*
+   * When the provided nameObj is of type mixinspecObjType, the nsf specific
+   * converter was called already and we can simply obtain the mixin class and
+   * the guard from the internal representation.
+   */
+  if (nameObj->typePtr == &mixinspecObjType) {
+    MixinSpec *mixinSpecPtr =  nameObj->internalRep.twoPtrValue.ptr1;
+    
+    guardObj = mixinSpecPtr->guardObj;
+    mixin = mixinSpecPtr->class;
 
-  if (GetClassFromObj(interp, nameObj, &mixin, baseClass) != TCL_OK) {
-    return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
+  } else {
+    if (Tcl_ListObjGetElements(interp, nameObj, &ocName, &ovName) == TCL_OK && ocName > 1) {
+      if (ocName == 3 && !strcmp(ObjStr(ovName[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
+	nameObj = ovName[0];
+	guardObj = ovName[2];
+	/*fprintf(stderr, "mixinadd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
+      } /*else return NsfPrintError(interp, "mixin registration '%s' has too many elements", 
+	  ObjStr(name));*/
+    }
+
+    if (GetClassFromObj(interp, nameObj, &mixin, baseClass) != TCL_OK) {
+      return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
+    }
   }
   new = CmdListAdd(mixinList, mixin->object.id, NULL, /*noDuplicates*/ 1);
 
@@ -9214,6 +9381,19 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 }
 
 int
+Nsf_ConvertToMixinspec(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+	       ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int result;
+  *outObjPtr = objPtr;
+  ///yyyyy
+  result = Tcl_ConvertToType(interp, objPtr, &mixinspecObjType);
+  if (result == TCL_OK) {
+    return result;
+  }
+  return NsfObjErrType(interp, NULL, objPtr, "mixinspec", (Nsf_Param *)pPtr);
+}
+
+int
 Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 		   ClientData *clientData, Tcl_Obj **outObjPtr) {
   CONST char *value = ObjStr(objPtr);
@@ -9490,6 +9670,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else if (strncmp(option, "baseclass", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
     paramPtr->flags |= NSF_ARG_BASECLASS;
+
+  } else if (strncmp(option, "mixinspec", 9) == 0) {
+    result = ParamOptionSetConverter(interp, paramPtr, "mixinspec", Nsf_ConvertToMixinspec);
 
   } else if (strncmp(option, "parameter", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "parameter", Nsf_ConvertToParameter);
@@ -15439,8 +15622,8 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
     }
 
     assert(object);
-    assert(object->refCount>0);
-    assert(object->cmdName->refCount>0);
+    assert(object->refCount > 0);
+    assert(object->cmdName->refCount > 0);
     assert(object->activationCount >= 0);
 
 
@@ -17587,7 +17770,7 @@ ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *UNUSED(dupPtr)) {
 }
 
 static Tcl_ObjType paramObjType = {
-    "nsfParam",			/* name */
+    "nsfParam",				/* name */
     ParamFreeInternalRep,		/* freeIntRepProc */
     ParamDupInteralRep,			/* dupIntRepProc */
     ParamUpdateString,			/* updateStringProc */

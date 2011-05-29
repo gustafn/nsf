@@ -2848,8 +2848,13 @@ nsf:
    * changed specification of name of method from arg= to method=
    * this way "type" info in "info parameter syntax" is handled automatically
 
+- nsf.c: 
+  * added a new converter for converting mixins with guards (named mixinspec)
+  * used mixinspec in nx.tcl and xotcl2.tcl
+  * extended nx regression test.
+
+
 TODO:
-- maybe: define a type for converting mixins+guards
 - add explicit regression tests for disposition + types
 - check refcounting for dispo+types
 - maybe: add a dispoition=pipe

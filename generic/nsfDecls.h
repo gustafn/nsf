@@ -181,7 +181,7 @@ typedef struct NsfStubs {
     struct NsfStubHooks *hooks;
 
     int (*nsf_Init) (Tcl_Interp *interp); /* 0 */
-    void *reserved1;
+    VOID *reserved1;
     struct Nsf_Class * (*nsfIsClass) (Tcl_Interp *interp, ClientData cd); /* 2 */
     struct Nsf_Object * (*nsfGetObject) (Tcl_Interp *interp, CONST char *name); /* 3 */
     struct Nsf_Class * (*nsfGetClass) (Tcl_Interp *interp, CONST char *name); /* 4 */

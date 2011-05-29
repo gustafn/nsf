@@ -772,8 +772,8 @@ TestX filterGuards -proc run {{n 20}} {
       B instproc f1 args {next}
       B instproc f2 args {next}
       B b
-      B instfilter {{f1  -guard {[self] eq "::b"}} {f2  -guard 0} f1}
-      b filter {{f1  -guard {[self] eq "::b"}} {f2  -guard 0}}
+      B instfilter {{f1 -guard {[self] eq "::b"}} {f2 -guard 0} f1}
+      b filter {{f1 -guard {[self] eq "::b"}} {f2 -guard 0}}
 
       ::errorCheck [B info instfilter] {f1 f2} "info filter order a"
       ::errorCheck [B info instfilter -guards] {f1 {f2 -guard 0}} "info filter order b"

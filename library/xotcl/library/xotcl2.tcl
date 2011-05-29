@@ -403,11 +403,11 @@ namespace eval ::xotcl {
     ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1
     ::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
     ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
-	-elementtype mixin -multiplicity 0..n
+	-elementtype mixinspec -multiplicity 0..n
     ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
 	-multiplicity 0..n
     ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin \
-	-elementtype mixin -multiplicity 0..n
+	-elementtype mixinspec -multiplicity 0..n
     ::nx::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
 	-multiplicity 0..n
   }
