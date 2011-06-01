@@ -2856,6 +2856,15 @@ nsf:
 * added profiling support for nsf::proc when
   NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.
 
+
+- removal of unneeded flags "-incontext" and "-nomixins" from
+   * /obj/ info methods
+   * /cls/ info methods
+  These flags are correct for "info lookup", but unneeded for 
+  "info methods"
++ cleanup of ListDefinedMethods()
+
+
 TODO:
 - add explicit regression tests for disposition + types
 - check refcounting for dispo+types
@@ -2881,8 +2890,6 @@ TODO:
   be set in the "init". But this won't be available in the init block.
   This is not nice in the mongo case, where one has "mongo_ns",
   "mongo_db" and "mongo_collection" which are related variables.
-
-- how to delete attributes?
 
 - Higher binary compatibility for future versions:
   * It is not nice to have the full Nsf_Param structure in nsf.h
@@ -2938,7 +2945,6 @@ TODO:
 - are the oneline hook definitions like
     Class protected class-object method __unknown {name} {}
   needed?
-- ListDefinedMethods noMixins and inContext not defined yet.
 
 - nsf::proc 
    * check, if there are parameter types that should not be applicable 

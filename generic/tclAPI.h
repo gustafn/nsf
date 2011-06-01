@@ -304,7 +304,7 @@ static int NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *cl, int withD
 static int NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern);
 static int NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *cl, int infomethodsubcmd, Tcl_Obj *name);
-static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withCallprotection, int withIncontext, int withMethodtype, int withNomixins, int withPath, CONST char *pattern);
+static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withCallprotection, int withMethodtype, int withPath, CONST char *pattern);
 static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withScope, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin);
@@ -376,7 +376,7 @@ static int NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_
 static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withIncontext, int withMethodtype, int withNomixins, int withPath, int withSource, CONST char *pattern);
 static int NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *obj, int withSource, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int infomethodsubcmd, Tcl_Obj *name);
-static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withIncontext, int withMethodtype, int withNomixins, int withPath, CONST char *pattern);
+static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withMethodtype, int withPath, CONST char *pattern);
 static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObj);
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
@@ -770,14 +770,12 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     return TCL_ERROR;
   } else {
     int withCallprotection = (int )PTR2INT(pc.clientData[0]);
-    int withIncontext = (int )PTR2INT(pc.clientData[1]);
-    int withMethodtype = (int )PTR2INT(pc.clientData[2]);
-    int withNomixins = (int )PTR2INT(pc.clientData[3]);
-    int withPath = (int )PTR2INT(pc.clientData[4]);
-    CONST char *pattern = (CONST char *)pc.clientData[5];
+    int withMethodtype = (int )PTR2INT(pc.clientData[1]);
+    int withPath = (int )PTR2INT(pc.clientData[2]);
+    CONST char *pattern = (CONST char *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfClassInfoMethodsMethod(interp, cl, withCallprotection, withIncontext, withMethodtype, withNomixins, withPath, pattern);
+    return NsfClassInfoMethodsMethod(interp, cl, withCallprotection, withMethodtype, withPath, pattern);
 
   }
 }
@@ -2149,14 +2147,12 @@ NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return TCL_ERROR;
   } else {
     int withCallprotection = (int )PTR2INT(pc.clientData[0]);
-    int withIncontext = (int )PTR2INT(pc.clientData[1]);
-    int withMethodtype = (int )PTR2INT(pc.clientData[2]);
-    int withNomixins = (int )PTR2INT(pc.clientData[3]);
-    int withPath = (int )PTR2INT(pc.clientData[4]);
-    CONST char *pattern = (CONST char *)pc.clientData[5];
+    int withMethodtype = (int )PTR2INT(pc.clientData[1]);
+    int withPath = (int )PTR2INT(pc.clientData[2]);
+    CONST char *pattern = (CONST char *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfObjInfoMethodsMethod(interp, obj, withCallprotection, withIncontext, withMethodtype, withNomixins, withPath, pattern);
+    return NsfObjInfoMethodsMethod(interp, obj, withCallprotection, withMethodtype, withPath, pattern);
 
   }
 }
@@ -2342,11 +2338,9 @@ static Nsf_methodDefinition method_definitions[] = {
   {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"name", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::class::info::methods", NsfClassInfoMethodsMethodStub, 6, {
+{"::nsf::methods::class::info::methods", NsfClassInfoMethodsMethodStub, 4, {
   {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-incontext", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-nomixins", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2646,11 +2640,9 @@ static Nsf_methodDefinition method_definitions[] = {
   {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"name", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::object::info::methods", NsfObjInfoMethodsMethodStub, 6, {
+{"::nsf::methods::object::info::methods", NsfObjInfoMethodsMethodStub, 4, {
   {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-incontext", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-nomixins", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

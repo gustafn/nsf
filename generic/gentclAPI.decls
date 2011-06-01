@@ -333,9 +333,7 @@ objectInfoMethod method NsfObjInfoMethodMethod {
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-incontext"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
-  {-argName "-nomixins"}
   {-argName "-path"}
   {-argName "pattern" -required 0}
 }
@@ -390,9 +388,7 @@ classInfoMethod method NsfClassInfoMethodMethod {
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-incontext"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
-  {-argName "-nomixins"}
   {-argName "-path"}
   {-argName "pattern"}
 }

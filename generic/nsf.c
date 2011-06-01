@@ -275,7 +275,7 @@ static void NsfClassListFree(NsfClasses *firstPtr);
 static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj);
 static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 			      int withPer_object, int methodType, int withCallproctection,
-			      int withExpand, int noMixins, int inContext);
+			      int withExpand);
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
 			       NsfCallStackContent *cscPtr, int freeArgumentVector);
@@ -14812,7 +14812,7 @@ ListMethod(Tcl_Interp *interp,
 	  NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);
 	  if (subObject) {
 	    return ListDefinedMethods(interp, subObject, NULL, 1 /* per-object */,
-				      NSF_METHODTYPE_ALL, CallprotectionAllIdx, 0, 1, 0);
+				      NSF_METHODTYPE_ALL, CallprotectionAllIdx, 0);
 	  }
 	}
 	/* all other cases return emtpy */
@@ -15405,7 +15405,7 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
  *
  *      List the methods defined by the specified object/class
  *      according to the filtering options (types, pattern,
- *      pretection, etc.). The result is placed into the interp
+ *      protection, etc.). The result is placed into the interp
  *      result.
  *
  * Results:
@@ -15419,7 +15419,7 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 static int
 ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
                    int withPer_object, int methodType, int withCallproctection,
-                   int withExpand, int noMixins, int inContext) {
+                   int withExpand) {
   Tcl_HashTable *cmdTablePtr;
   Tcl_DString ds, *dsPtr = NULL;
 
@@ -19640,9 +19640,7 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
 /*
 objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-incontext"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-nomixins"}
   {-argName "-path"}
   {-argName "pattern"}
 }
@@ -19650,14 +19648,12 @@ objectInfoMethod methods NsfObjInfoMethodsMethod {
 static int
 NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 			int withCallproctection, 
-			int withIncontext, 
 			int withMethodtype, 
-			int withNomixins, 
 			int withPath,
 			CONST char *pattern) {
   return ListDefinedMethods(interp, object, pattern, 1 /* per-object */,
                             AggregatedMethodType(withMethodtype), withCallproctection,
-                            withPath, withNomixins, withIncontext);
+                            withPath);
 }
 
 /*
@@ -19942,9 +19938,7 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 /*
 classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-incontext"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-nomixins"}
   {-argName "-path"}
   {-argName "pattern"}
 }
@@ -19952,14 +19946,12 @@ classInfoMethod methods NsfClassInfoMethodsMethod {
 static int
 NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *class,
 			  int withCallproctection, 
-			  int withIncontext, 
 			  int withMethodtype, 
-			  int withNomixins, 
 			  int withPath,
 			  CONST char *pattern) {
   return ListDefinedMethods(interp, &class->object, pattern, 0 /* per-object */,
                             AggregatedMethodType(withMethodtype), withCallproctection,
-			    withPath, withNomixins, withIncontext);
+			    withPath); 
 }
 
 /*
