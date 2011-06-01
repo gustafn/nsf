@@ -2853,6 +2853,8 @@ nsf:
   * used mixinspec in nx.tcl and xotcl2.tcl
   * extended nx regression test.
 
+* added profiling support for nsf::proc when
+  NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.
 
 TODO:
 - add explicit regression tests for disposition + types
@@ -2866,8 +2868,6 @@ TODO:
 - should be be concerned about message like
   DEBUG obj 0x100227960 ::nx::Object activationcount 2 on stack 3; might be from non-stacked but active callstack content
  in the regression test?
-
-- profiling missing when NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.
 
 - maybe change nx::Test to nx::test (user never has to know that nx::Test is a class).
 - maybe move -count to the test case (but then a test-case less test needs a change of method)

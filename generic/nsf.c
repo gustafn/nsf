@@ -7998,9 +7998,19 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 static int
 ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[1];
+  long int startUsec = (long int)data[2];
+  long int startSec = (long int)data[3];
   /*CONST char *methodName = data[0];
 
     fprintf(stderr, "ProcDispatchFinalize of method %s\n", methodName);*/
+
+# if defined(NSF_PROFILE)
+  char *methodName = data[0];
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  if (rst->doProfile) {
+    NsfProfileRecordProcData(interp, methodName, startSec, startUsec);
+  }
+# endif
 
   ParseContextRelease(pcPtr);
   NsfTclStackFree(interp, pcPtr, "proc dispatch finialize release parse context");
@@ -8152,7 +8162,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n",
       ObjectName(object), ObjStr(objv[0]));*/
     Tcl_NRAddCallback(interp, ProcMethodDispatchFinalize,
-		      releasePc ? pcPtr : NULL, cscPtr, methodName, NULL);
+		      releasePc ? pcPtr : NULL, cscPtr, (ClientData)methodName, NULL);
     cscPtr->flags |= NSF_CSC_CALL_IS_NRE;
     result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
 #else
@@ -10206,6 +10216,15 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   int objc = pcPtr->objc;
   int result;
 
+#if defined(NSF_PROFILE)
+  struct timeval trt;
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+  if (rst->doProfile) {
+    gettimeofday(&trt, NULL);
+  }
+#endif
+
 #if defined(NSF_INVOKE_SHADOWED_TRADITIONAL)
   /*
    * For the time being, we call the shadowed proc defined with a
@@ -10214,14 +10233,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
    */
   /*fprintf(stderr, "NsfProcStub: call proc arguments oc %d [0] '%s' \n",
     objc, ObjStr(objv[0]));*/
-# if defined(NSF_PROFILE)
-  struct timeval trt;
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
-  if (rst->doProfile) {
-    gettimeofday(&trt, NULL);
-  }
-# endif
   result = Tcl_EvalObjv(interp, objc, objv, 0);
 # if defined(NSF_PROFILE)
   if (rst->doProfile) {
@@ -10291,13 +10303,27 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   /*fprintf(stderr, "CALL TclNRInterpProcCore proc '%s' %s nameObj %p %s\n",
     ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj));*/
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
-		    fullMethodName, pcPtr, NULL, NULL);
+		    (ClientData)fullMethodName, pcPtr, 
+#if defined(NSF_PROFILE)
+		    (ClientData)(unsigned long)trt.tv_usec, 
+		    (ClientData)(unsigned long)trt.tv_sec
+#else
+		    NULL, 
+		    NULL
+#endif
+		    );
   result = TclNRInterpProcCore(interp, procNameObj, 1, &MakeProcError);
 # else
-  ClientData data[3] = {
+  ClientData data[4] = {
     (ClientData)fullMethodName,
     pcPtr,
+#if defined(NSF_PROFILE)
+    (ClientData)(unsigned long)trt.tv_usec, 
+    (ClientData)(unsigned long)trt.tv_sec
+#else
+    NULL, 
     NULL
+#endif
   };
   result = TclObjInterpProcCore(interp, procNameObj, 1, &MakeProcError);
   result = ProcDispatchFinalize(data, interp, result);
@@ -11428,7 +11454,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 	 * to call NextInvokeFinalize manually on return.
 	 */
 	Tcl_NRAddCallback(interp, NextInvokeFinalize,
-			  freeArgumentVector ? objv : NULL, cscPtr, NULL, NULL);
+			  freeArgumentVector ? (ClientData)objv : NULL, cscPtr, NULL, NULL);
 	return MethodDispatch(object, interp, objc, objv, cmd,
 			      object, cl, methodName, frameType, flags);
       } else {

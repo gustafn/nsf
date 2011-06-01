@@ -31,26 +31,26 @@
 
 typedef struct NsfIntStubs {
     int magic;
-    struct NsfIntStubHooks *hooks;
+    const struct NsfIntStubHooks *hooks;
 
 } NsfIntStubs;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern NsfIntStubs *nsfIntStubsPtr;
+extern const NsfIntStubs *nsfIntStubsPtr;
 #ifdef __cplusplus
 }
 #endif
 
-#if defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS)
+#if defined(USE_NSF_STUBS)
 
 /*
  * Inline function declarations:
  */
 
 
-#endif /* defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS) */
+#endif /* defined(USE_NSF_STUBS) */
 
 /* !END!: Do not edit above this line. */
 

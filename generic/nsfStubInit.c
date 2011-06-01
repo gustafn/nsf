@@ -24,20 +24,20 @@
 
 /* !BEGIN!: Do not edit below this line. */
 
-NsfIntStubs nsfIntStubs = {
+static const NsfIntStubs nsfIntStubs = {
     TCL_STUB_MAGIC,
-    NULL,
+    0,
 };
 
-static NsfStubHooks nsfStubHooks = {
+static const NsfStubHooks nsfStubHooks = {
     &nsfIntStubs
 };
 
-NsfStubs nsfStubs = {
+const NsfStubs nsfStubs = {
     TCL_STUB_MAGIC,
     &nsfStubHooks,
     Nsf_Init, /* 0 */
-    NULL, /* 1 */
+    0, /* 1 */
     NsfIsClass, /* 2 */
     NsfGetObject, /* 3 */
     NsfGetClass, /* 4 */
