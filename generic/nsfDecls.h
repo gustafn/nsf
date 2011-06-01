@@ -25,91 +25,163 @@
  * Exported function declarations:
  */
 
+#ifndef Nsf_Init_TCL_DECLARED
+#define Nsf_Init_TCL_DECLARED
 /* 0 */
 EXTERN int		Nsf_Init(Tcl_Interp *interp);
+#endif
 /* Slot 1 is reserved */
+#ifndef NsfIsClass_TCL_DECLARED
+#define NsfIsClass_TCL_DECLARED
 /* 2 */
 EXTERN struct Nsf_Class * NsfIsClass(Tcl_Interp *interp, ClientData cd);
+#endif
+#ifndef NsfGetObject_TCL_DECLARED
+#define NsfGetObject_TCL_DECLARED
 /* 3 */
 EXTERN struct Nsf_Object * NsfGetObject(Tcl_Interp *interp, CONST char *name);
+#endif
+#ifndef NsfGetClass_TCL_DECLARED
+#define NsfGetClass_TCL_DECLARED
 /* 4 */
 EXTERN struct Nsf_Class * NsfGetClass(Tcl_Interp *interp, CONST char *name);
+#endif
+#ifndef NsfDeleteObject_TCL_DECLARED
+#define NsfDeleteObject_TCL_DECLARED
 /* 5 */
 EXTERN int		NsfDeleteObject(Tcl_Interp *interp,
 				struct Nsf_Object *obj);
+#endif
+#ifndef NsfRemoveObjectMethod_TCL_DECLARED
+#define NsfRemoveObjectMethod_TCL_DECLARED
 /* 6 */
 EXTERN int		NsfRemoveObjectMethod(Tcl_Interp *interp,
 				struct Nsf_Object *obj, CONST char *nm);
+#endif
+#ifndef NsfRemoveClassMethod_TCL_DECLARED
+#define NsfRemoveClassMethod_TCL_DECLARED
 /* 7 */
 EXTERN int		NsfRemoveClassMethod(Tcl_Interp *interp,
 				struct Nsf_Class *cl, CONST char *nm);
+#endif
+#ifndef Nsf_ObjSetVar2_TCL_DECLARED
+#define Nsf_ObjSetVar2_TCL_DECLARED
 /* 8 */
 EXTERN Tcl_Obj *	Nsf_ObjSetVar2(struct Nsf_Object *obj,
 				Tcl_Interp *interp, Tcl_Obj *name1,
 				Tcl_Obj *name2, Tcl_Obj *value, int flgs);
+#endif
+#ifndef Nsf_ObjGetVar2_TCL_DECLARED
+#define Nsf_ObjGetVar2_TCL_DECLARED
 /* 9 */
 EXTERN Tcl_Obj *	Nsf_ObjGetVar2(struct Nsf_Object *obj,
 				Tcl_Interp *interp, Tcl_Obj *name1,
 				Tcl_Obj *name2, int flgs);
+#endif
+#ifndef Nsf_UnsetVar2_TCL_DECLARED
+#define Nsf_UnsetVar2_TCL_DECLARED
 /* 10 */
 EXTERN int		Nsf_UnsetVar2(struct Nsf_Object *obj,
 				Tcl_Interp *interp, CONST char *name1,
 				CONST char *name2, int flgs);
+#endif
+#ifndef NsfDStringPrintf_TCL_DECLARED
+#define NsfDStringPrintf_TCL_DECLARED
 /* 11 */
 EXTERN void		NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt,
 				va_list apSrc);
+#endif
+#ifndef NsfPrintError_TCL_DECLARED
+#define NsfPrintError_TCL_DECLARED
 /* 12 */
 EXTERN int		NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...);
+#endif
+#ifndef NsfErrInProc_TCL_DECLARED
+#define NsfErrInProc_TCL_DECLARED
 /* 13 */
 EXTERN int		NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
 				Tcl_Obj *clName, CONST char *procName);
+#endif
+#ifndef NsfObjErrType_TCL_DECLARED
+#define NsfObjErrType_TCL_DECLARED
 /* 14 */
 EXTERN int		NsfObjErrType(Tcl_Interp *interp,
 				CONST char *context, Tcl_Obj *value,
 				CONST char *type, Nsf_Param CONST *pPtr);
+#endif
+#ifndef NsfStackDump_TCL_DECLARED
+#define NsfStackDump_TCL_DECLARED
 /* 15 */
 EXTERN void		NsfStackDump(Tcl_Interp *interp);
+#endif
+#ifndef NsfSetObjClientData_TCL_DECLARED
+#define NsfSetObjClientData_TCL_DECLARED
 /* 16 */
 EXTERN void		NsfSetObjClientData(Nsf_Object *obj, ClientData data);
+#endif
+#ifndef NsfGetObjClientData_TCL_DECLARED
+#define NsfGetObjClientData_TCL_DECLARED
 /* 17 */
 EXTERN ClientData	NsfGetObjClientData(Nsf_Object *obj);
+#endif
+#ifndef NsfSetClassClientData_TCL_DECLARED
+#define NsfSetClassClientData_TCL_DECLARED
 /* 18 */
 EXTERN void		NsfSetClassClientData(Nsf_Class *cl, ClientData data);
+#endif
+#ifndef NsfGetClassClientData_TCL_DECLARED
+#define NsfGetClassClientData_TCL_DECLARED
 /* 19 */
 EXTERN ClientData	NsfGetClassClientData(Nsf_Class *cl);
+#endif
+#ifndef NsfRequireObjNamespace_TCL_DECLARED
+#define NsfRequireObjNamespace_TCL_DECLARED
 /* 20 */
 EXTERN void		NsfRequireObjNamespace(Tcl_Interp *interp,
 				Nsf_Object *obj);
+#endif
+#ifndef NsfCallMethodWithArgs_TCL_DECLARED
+#define NsfCallMethodWithArgs_TCL_DECLARED
 /* 21 */
 EXTERN int		NsfCallMethodWithArgs(ClientData cd,
 				Tcl_Interp *interp, Tcl_Obj *method,
 				Tcl_Obj *arg, int objc,
 				Tcl_Obj *CONST objv[], int flags);
+#endif
+#ifndef NsfAddObjectMethod_TCL_DECLARED
+#define NsfAddObjectMethod_TCL_DECLARED
 /* 22 */
 EXTERN int		NsfAddObjectMethod(Tcl_Interp *interp,
 				struct Nsf_Object *obj, CONST char *nm,
 				Tcl_ObjCmdProc *proc, ClientData cd,
 				Tcl_CmdDeleteProc *dp, int flags);
+#endif
+#ifndef NsfAddClassMethod_TCL_DECLARED
+#define NsfAddClassMethod_TCL_DECLARED
 /* 23 */
 EXTERN int		NsfAddClassMethod(Tcl_Interp *interp,
 				struct Nsf_Class *cl, CONST char *nm,
 				Tcl_ObjCmdProc *proc, ClientData cd,
 				Tcl_CmdDeleteProc *dp, int flags);
+#endif
+#ifndef NsfCreate_TCL_DECLARED
+#define NsfCreate_TCL_DECLARED
 /* 24 */
 EXTERN int		NsfCreate(Tcl_Interp *in, Nsf_Class *class,
 				Tcl_Obj *name, int objc,
 				Tcl_Obj *CONST objv[]);
+#endif
 
 typedef struct NsfStubHooks {
-    const struct NsfIntStubs *nsfIntStubs;
+    struct NsfIntStubs *nsfIntStubs;
 } NsfStubHooks;
 
 typedef struct NsfStubs {
     int magic;
-    const struct NsfStubHooks *hooks;
+    struct NsfStubHooks *hooks;
 
     int (*nsf_Init) (Tcl_Interp *interp); /* 0 */
-    void (*reserved1)(void);
+    VOID *reserved1;
     struct Nsf_Class * (*nsfIsClass) (Tcl_Interp *interp, ClientData cd); /* 2 */
     struct Nsf_Object * (*nsfGetObject) (Tcl_Interp *interp, CONST char *name); /* 3 */
     struct Nsf_Class * (*nsfGetClass) (Tcl_Interp *interp, CONST char *name); /* 4 */
@@ -138,68 +210,116 @@ typedef struct NsfStubs {
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern const NsfStubs *nsfStubsPtr;
+extern NsfStubs *nsfStubsPtr;
 #ifdef __cplusplus
 }
 #endif
 
-#if defined(USE_NSF_STUBS)
+#if defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS)
 
 /*
  * Inline function declarations:
  */
 
+#ifndef Nsf_Init
 #define Nsf_Init \
 	(nsfStubsPtr->nsf_Init) /* 0 */
+#endif
 /* Slot 1 is reserved */
+#ifndef NsfIsClass
 #define NsfIsClass \
 	(nsfStubsPtr->nsfIsClass) /* 2 */
+#endif
+#ifndef NsfGetObject
 #define NsfGetObject \
 	(nsfStubsPtr->nsfGetObject) /* 3 */
+#endif
+#ifndef NsfGetClass
 #define NsfGetClass \
 	(nsfStubsPtr->nsfGetClass) /* 4 */
+#endif
+#ifndef NsfDeleteObject
 #define NsfDeleteObject \
 	(nsfStubsPtr->nsfDeleteObject) /* 5 */
+#endif
+#ifndef NsfRemoveObjectMethod
 #define NsfRemoveObjectMethod \
 	(nsfStubsPtr->nsfRemoveObjectMethod) /* 6 */
+#endif
+#ifndef NsfRemoveClassMethod
 #define NsfRemoveClassMethod \
 	(nsfStubsPtr->nsfRemoveClassMethod) /* 7 */
+#endif
+#ifndef Nsf_ObjSetVar2
 #define Nsf_ObjSetVar2 \
 	(nsfStubsPtr->nsf_ObjSetVar2) /* 8 */
+#endif
+#ifndef Nsf_ObjGetVar2
 #define Nsf_ObjGetVar2 \
 	(nsfStubsPtr->nsf_ObjGetVar2) /* 9 */
+#endif
+#ifndef Nsf_UnsetVar2
 #define Nsf_UnsetVar2 \
 	(nsfStubsPtr->nsf_UnsetVar2) /* 10 */
+#endif
+#ifndef NsfDStringPrintf
 #define NsfDStringPrintf \
 	(nsfStubsPtr->nsfDStringPrintf) /* 11 */
+#endif
+#ifndef NsfPrintError
 #define NsfPrintError \
 	(nsfStubsPtr->nsfPrintError) /* 12 */
+#endif
+#ifndef NsfErrInProc
 #define NsfErrInProc \
 	(nsfStubsPtr->nsfErrInProc) /* 13 */
+#endif
+#ifndef NsfObjErrType
 #define NsfObjErrType \
 	(nsfStubsPtr->nsfObjErrType) /* 14 */
+#endif
+#ifndef NsfStackDump
 #define NsfStackDump \
 	(nsfStubsPtr->nsfStackDump) /* 15 */
+#endif
+#ifndef NsfSetObjClientData
 #define NsfSetObjClientData \
 	(nsfStubsPtr->nsfSetObjClientData) /* 16 */
+#endif
+#ifndef NsfGetObjClientData
 #define NsfGetObjClientData \
 	(nsfStubsPtr->nsfGetObjClientData) /* 17 */
+#endif
+#ifndef NsfSetClassClientData
 #define NsfSetClassClientData \
 	(nsfStubsPtr->nsfSetClassClientData) /* 18 */
+#endif
+#ifndef NsfGetClassClientData
 #define NsfGetClassClientData \
 	(nsfStubsPtr->nsfGetClassClientData) /* 19 */
+#endif
+#ifndef NsfRequireObjNamespace
 #define NsfRequireObjNamespace \
 	(nsfStubsPtr->nsfRequireObjNamespace) /* 20 */
+#endif
+#ifndef NsfCallMethodWithArgs
 #define NsfCallMethodWithArgs \
 	(nsfStubsPtr->nsfCallMethodWithArgs) /* 21 */
+#endif
+#ifndef NsfAddObjectMethod
 #define NsfAddObjectMethod \
 	(nsfStubsPtr->nsfAddObjectMethod) /* 22 */
+#endif
+#ifndef NsfAddClassMethod
 #define NsfAddClassMethod \
 	(nsfStubsPtr->nsfAddClassMethod) /* 23 */
+#endif
+#ifndef NsfCreate
 #define NsfCreate \
 	(nsfStubsPtr->nsfCreate) /* 24 */
+#endif
 
-#endif /* defined(USE_NSF_STUBS) */
+#endif /* defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS) */
 
 /* !END!: Do not edit above this line. */
 

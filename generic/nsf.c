@@ -7998,13 +7998,13 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 static int
 ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[1];
-  long int startUsec = (long int)data[2];
-  long int startSec = (long int)data[3];
   /*CONST char *methodName = data[0];
 
     fprintf(stderr, "ProcDispatchFinalize of method %s\n", methodName);*/
 
 # if defined(NSF_PROFILE)
+  long int startUsec = (long int)data[2];
+  long int startSec = (long int)data[3];
   char *methodName = data[0];
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
   if (rst->doProfile) {
