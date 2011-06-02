@@ -2864,6 +2864,8 @@ nsf:
 - cleanup of ListDefinedMethods()
 
 - nsf.c: use NsfObjectRefCountIncr() instead of object->refCount++
+- nsf.c: fix small memory leak for nsf::is in error cases
+
 
 TODO:
 - add explicit regression tests for disposition + types

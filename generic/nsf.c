@@ -248,8 +248,8 @@ static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl);
 static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   NsfObject *object, int pushFrame, NsfParamDefs *paramDefs,
                                   Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
-static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,
-			  const char *varNamePrefix, int doCheck, Nsf_Param **paramPtrPtr);
+static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
+			  const char *argNamePrefix, int doCheck, Nsf_Param **paramPtrPtr);
 static void ParamDefsFree(NsfParamDefs *paramDefs);
 static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
@@ -9514,7 +9514,6 @@ Nsf_ConvertToMixinspec(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pP
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
   *outObjPtr = objPtr;
-  ///yyyyy
   result = Tcl_ConvertToType(interp, objPtr, &mixinspecObjType);
   if (result == TCL_OK) {
     return result;
@@ -17982,25 +17981,34 @@ ParamSetFromAny2(
                       NSF_DISALLOWED_ARG_VALUECHECK /* disallowed options */,
                       paramWrapperPtr->paramPtr, &possibleUnknowns, 
 		      &plainParams, &nrNonposArgs);
-  /* Here, we want to treat currently unknown user level converters as
-     error.
-  */
+  /* 
+   * We treat currently unknown user level converters as error.
+   */
   if (paramWrapperPtr->paramPtr->flags & NSF_ARG_CURRENTLY_UNKNOWN) {
-    ParamsFree(paramWrapperPtr->paramPtr);
-    FREE(NsfParamWrapper, paramWrapperPtr);
     result = TCL_ERROR;
-  } else if (result == TCL_OK) {
-    /*fprintf(stderr, "ParamSetFromAny2 sets unnamed %p\n",paramWrapperPtr->paramPtr);*/
-
+  }
+  
+  if (result == TCL_OK) {
+    /*
+     * In success cases, the memory allocated by this function is freed via
+     * the tcl_obj type.
+     */
     paramWrapperPtr->paramPtr->flags |= NSF_ARG_UNNAMED;
     if (*(paramWrapperPtr->paramPtr->name) == 'r') {
       paramWrapperPtr->paramPtr->flags |= NSF_ARG_IS_RETURNVALUE;
-      /*fprintf(stderr, "ParamSetFromAny2 sets returnvalue %p\n",paramWrapperPtr->paramPtr);*/
+      /*fprintf(stderr, "ParamSetFromAny2 sets returnvalue %p\n",
+	paramWrapperPtr->paramPtr);*/
     }
     TclFreeIntRep(objPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)paramWrapperPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = &paramObjType;
+  } else {
+    /*
+     * In error cases, free manually memory allocated by this function.
+     */
+    ParamsFree(paramWrapperPtr->paramPtr);
+    FREE(NsfParamWrapper, paramWrapperPtr);
   }
 
   DECR_REF_COUNT(fullParamObj);
@@ -18104,26 +18112,52 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParameterCheck --
+ *
+ *    Check the provided valueObj against the parameter specification provided
+ *    in the second argument (paramObjPtr), when doCheck is true. This
+ *    function is used e.g. by nsf::is, where only the right hand side of a
+ *    parameter specification (after the colon) is specified. The argument
+ *    Name (before the colon in a parameter spec) is provided via
+ *    argNamePrefix. The converted parameter structure is returned optionally
+ *    via the last argument.
+ *
+ * Results:
+ *    Tcl return code, parsed structure in last argument
+ *
+ * Side effects:
+ *    Converts potentially tcl_obj type of paramObjPtr
+ *
+ *----------------------------------------------------------------------
+ */
+
 static int
-ParameterCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,
-	       const char *varNamePrefix, int doCheck, Nsf_Param **paramPtrPtr) {
+ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
+	       const char *argNamePrefix, int doCheck, Nsf_Param **paramPtrPtr) {
+  Nsf_Param *paramPtr;
   NsfParamWrapper *paramWrapperPtr;
   Tcl_Obj *outObjPtr = NULL;
-  Nsf_Param *paramPtr;
   ClientData checkedData;
   int result, flags = 0;
 
   /*fprintf(stderr, "ParamSetFromAny %s value %p %s\n",
-    ObjStr(objPtr), valueObj, ObjStr(valueObj));*/
+    ObjStr(paramObjPtr), valueObj, ObjStr(valueObj));*/
 
-  if (objPtr->typePtr == &paramObjType) {
-    paramWrapperPtr = (NsfParamWrapper *) objPtr->internalRep.twoPtrValue.ptr1;
+  if (paramObjPtr->typePtr == &paramObjType) {
+    paramWrapperPtr = (NsfParamWrapper *) paramObjPtr->internalRep.twoPtrValue.ptr1;
   } else {
-    result = ParamSetFromAny2(interp, varNamePrefix, objPtr);
+    /*
+     * We could use in principle Tcl_ConvertToType(..., &paramObjType) instead
+     * of checking the type manually, be we want to pass the argNamePrefix
+     * explicitly.
+     */
+    result = ParamSetFromAny2(interp, argNamePrefix, paramObjPtr);
     if (result == TCL_OK) {
-      paramWrapperPtr = (NsfParamWrapper *) objPtr->internalRep.twoPtrValue.ptr1;
+      paramWrapperPtr = (NsfParamWrapper *) paramObjPtr->internalRep.twoPtrValue.ptr1;
     } else {
-      return NsfPrintError(interp, "invalid value constraints \"%s\"", ObjStr(objPtr));
+      return NsfPrintError(interp, "invalid value constraints \"%s\"", ObjStr(paramObjPtr));
     }
   }
   paramPtr = paramWrapperPtr->paramPtr;
