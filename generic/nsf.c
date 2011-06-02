@@ -1078,7 +1078,6 @@ TclObjIsNsfObject(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   return 0;
 }
 
-
 /*
  *----------------------------------------------------------------------
  * GetObjectFromObj --
@@ -1260,6 +1259,59 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   }
 
   return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * IsObjectOfType --
+ *
+ *    Check, if the provided NsfObject is of a cetain type. The arguments
+ *    "what" and "objPtr" are just used for the error messages. objPtr is the
+ *    value from which the object was converted from.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj *objPtr,
+			Nsf_Param CONST *pPtr) {
+  NsfClass *cl;
+  Tcl_DString ds, *dsPtr = &ds;
+
+  if ((pPtr->flags & NSF_ARG_BASECLASS) && !IsBaseClass((NsfClass *)object)) {
+    what = "baseclass";
+    goto type_error;
+  }
+  if ((pPtr->flags & NSF_ARG_METACLASS) && !IsMetaClass(interp, (NsfClass *)object, 1)) {
+    what = "metaclass";
+    goto type_error;
+  }
+
+  if (pPtr->converterArg == NULL) {
+    return TCL_OK;
+  }
+  if ((GetClassFromObj(interp, pPtr->converterArg, &cl, NULL) == TCL_OK)
+      && IsSubType(object->cl, cl)) {
+    return TCL_OK;
+  }
+
+ type_error:
+  DSTRING_INIT(dsPtr);
+  Tcl_DStringAppend(dsPtr, what, -1);
+  if (pPtr->converterArg) {
+    Tcl_DStringAppend(dsPtr, " of type ", -1);
+    Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
+  }
+  NsfObjErrType(interp, NULL, objPtr, Tcl_DStringValue(dsPtr), (Nsf_Param *)pPtr);
+  DSTRING_FREE(dsPtr);
+
+  return TCL_ERROR;
 }
 
 /*
@@ -9339,10 +9391,26 @@ NoMetaChars(CONST char *pattern) {
   return 1;
 }
 
+/***********************************************************************
+ * Nsf_TypeConverter
+ ***********************************************************************/
+
 /*
- * type converter
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToString --
+ *
+ *    Minimal Nsf_TypeConverter setting the client data (passed to C
+ *    functions) to the ObjStr of the object.
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
  */
-/* we could define parameterTypes with a converter, setter, canCheck, name */
+
 int
 Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param CONST *UNUSED(pPtr),
 			   ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -9351,6 +9419,45 @@ Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param CONST
   return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ConvertToNothing --
+ *
+ *    Minimalistic Nsf_TypeConverter, even setting the client data (passed to
+ *    C functions).
+ *
+ * Results:
+ *    Tcl result code, **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  Nsf_Param CONST *UNUSED(pPtr),
+		 ClientData *UNUSED(clientData), Tcl_Obj **outObjPtr) {
+  *outObjPtr = objPtr;
+  return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToTclobj --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    passed Tcl_Obj. Optionally this converter checks if the Tcl_Obj has
+ *    permissible content via the Tcl "string is" checkers.
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 enum stringTypeIdx {StringTypeAlnum, StringTypeAlpha, StringTypeAscii, StringTypeBoolean, StringTypeControl,
 		    StringTypeDigit, StringTypeDouble, StringTypeFalse,StringTypeGraph, StringTypeInteger,
 		    StringTypeLower, StringTypePrint, StringTypePunct, StringTypeSpace, StringTypeTrue, 
@@ -9409,12 +9516,22 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   return result;
 }
 
-static int
-ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  Nsf_Param CONST *UNUSED(pPtr),
-		 ClientData *UNUSED(clientData), Tcl_Obj **outObjPtr) {
-  *outObjPtr = objPtr;
-  return TCL_OK;
-}
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToBoolean --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    interal repesentation of a boolean. This converter checks the passed
+ *    value via Tcl_GetBooleanFromObj().
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 int
 Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
@@ -9430,6 +9547,23 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
   *outObjPtr = objPtr;
   return result;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToInteger --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    interal repesentation of an integer. This converter checks the passed
+ *    value via Tcl_GetIntFromObj().
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 int
 Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
@@ -9447,47 +9581,47 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToSwitch --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    interal repesentation of an Boolean. This converter simply calls
+ *    Tcl_ConvertToBoolean(). The distinction between "switch" and boolean is
+ *    made on the semantics of which arguments/defaults are passed to the real
+ *    converter.
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 int
 Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 			   ClientData *clientData, Tcl_Obj **outObjPtr) {
   return Nsf_ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 
-static int
-IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj *objPtr,
-			Nsf_Param CONST *pPtr) {
-  NsfClass *cl;
-  Tcl_DString ds, *dsPtr = &ds;
-
-  if ((pPtr->flags & NSF_ARG_BASECLASS) && !IsBaseClass((NsfClass *)object)) {
-    what = "baseclass";
-    goto type_error;
-  }
-  if ((pPtr->flags & NSF_ARG_METACLASS) && !IsMetaClass(interp, (NsfClass *)object, 1)) {
-    what = "metaclass";
-    goto type_error;
-  }
-
-  if (pPtr->converterArg == NULL) {
-    return TCL_OK;
-  }
-  if ((GetClassFromObj(interp, pPtr->converterArg, &cl, NULL) == TCL_OK)
-      && IsSubType(object->cl, cl)) {
-    return TCL_OK;
-  }
-
- type_error:
-  DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, what, -1);
-  if (pPtr->converterArg) {
-    Tcl_DStringAppend(dsPtr, " of type ", -1);
-    Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
-  }
-  NsfObjErrType(interp, NULL, objPtr, Tcl_DStringValue(dsPtr), (Nsf_Param *)pPtr);
-  DSTRING_FREE(dsPtr);
-
-  return TCL_ERROR;
-}
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToObject --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    interal repesentation of an object. This converter checks the passed
+ *    value via IsObjectOfType().
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 int
 Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
@@ -9499,6 +9633,23 @@ Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
   return NsfObjErrType(interp, NULL, objPtr, "object", (Nsf_Param *)pPtr);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToClass --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    interal repesentation of a class. This converter checks the passed
+ *    value via IsObjectOfType().
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 int
 Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -9509,6 +9660,24 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   return NsfObjErrType(interp, NULL, objPtr, "class", (Nsf_Param *)pPtr);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToMixinspec --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    Tcl_Obj. This nsf type converter checks the passed value via the
+ *    mixinspecObjType() tcl_obj converter, which provides an internal
+ *    representation for the client function.
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 int
 Nsf_ConvertToMixinspec(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -9516,10 +9685,29 @@ Nsf_ConvertToMixinspec(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pP
   *outObjPtr = objPtr;
   result = Tcl_ConvertToType(interp, objPtr, &mixinspecObjType);
   if (result == TCL_OK) {
+    *clientData = objPtr;
     return result;
   }
   return NsfObjErrType(interp, NULL, objPtr, "mixinspec", (Nsf_Param *)pPtr);
 }
+
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToParameter --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    Tcl_Obj. This nsf type converter checks if the provided value could be a
+ *    valid parameter spec (i.e. start with no ":", is not an unnamed spec
+ *    "-:int"). This converter performs just a rough syntactic check.
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 int
 Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
@@ -9528,7 +9716,7 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPt
 
   *outObjPtr = objPtr;
   /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/
-  if (*value == ':' || (*value == '-' && *(value + 1) == ':')) {
+  if (*value == ':' ||  (*value == '-' && *(value + 1) == ':')) {
     return NsfObjErrType(interp, NULL, objPtr, pPtr->type, (Nsf_Param *)pPtr);
   }
 
@@ -9536,6 +9724,23 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPt
   *outObjPtr = objPtr;
   return TCL_OK;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * ConvertViaCmd --
+ *
+ *    Nsf_TypeConverter calling a used-defined checking/conversion
+ *    function. It sets the client data (passed to C functions) to the
+ *    Tcl_Obj. 
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static int
 ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
