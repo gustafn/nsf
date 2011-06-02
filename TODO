@@ -2856,14 +2856,14 @@ nsf:
 * added profiling support for nsf::proc when
   NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.
 
-
 - removal of unneeded flags "-incontext" and "-nomixins" from
    * /obj/ info methods
    * /cls/ info methods
   These flags are correct for "info lookup", but unneeded for 
   "info methods"
-+ cleanup of ListDefinedMethods()
+- cleanup of ListDefinedMethods()
 
+- nsf.c: use NsfObjectRefCountIncr() instead of object->refCount++
 
 TODO:
 - add explicit regression tests for disposition + types

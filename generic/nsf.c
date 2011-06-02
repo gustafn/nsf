@@ -856,7 +856,8 @@ NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodNam
 #if defined(NSFOBJ_TRACE)
 # define NsfObjectRefCountIncr(obj)					\
   ((NsfObject *)obj)->refCount++;					\
-  fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, ((NsfObject *)obj)->refCount, ((NsfObject *)obj)->cmdName?ObjStr(((NsfObject *)obj)->cmdName):"no name"); \
+  fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, ((NsfObject *)obj)->refCount, \
+	((NsfObject *)obj)->cmdName?ObjStr(((NsfObject *)obj)->cmdName):"no name"); \
   MEM_COUNT_ALLOC("NsfObject RefCount", obj)
 # define NsfObjectRefCountDecr(obj)					\
   (obj)->refCount--;							\
@@ -4381,7 +4382,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
      * from Tcl. We make sure via refcounting that the object
      * structure is kept until after DeleteCommandFromToken().
      */
-    object->refCount ++;
+    NsfObjectRefCountIncr(object);
 
     PrimitiveDestroy(object);
 
@@ -8845,7 +8846,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
    * this function.
    */
   INCR_REF_COUNT(cmdName);
-  object->refCount ++;
+  NsfObjectRefCountIncr(object);
 
   /*fprintf(stderr, "obj refCount of %p after incr %d (ObjectDispatch) %s\n",
     object,object->refCount, methodName);*/
@@ -12747,7 +12748,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
    * Make sure, the object survives initialization; the initcmd might
    * destroy it.
    */
-  object->refCount ++;
+  NsfObjectRefCountIncr(object);
 
   /*
    * call configure method
