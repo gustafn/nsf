@@ -1050,8 +1050,6 @@ Test case allow-empty {
   ? {o foo "" 2 {o1 o2}} "" "first is empty"
   ? {o foo 1 "" {o1 o2}} {expected integer but got "" for parameter "y"} "second is empty"
   ? {o foo 1 2 {}} 1 "empty list"
-  # TODO allowempty change
-  #? {o foo 1 2 {o1 "" o2}} 1 "list contains empty value"
 
   ? {o info method parameter foo} "x:integer,0..1 y:integer os:object,0..*"
 

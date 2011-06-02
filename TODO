@@ -2942,14 +2942,10 @@ TODO:
     unknown is a hook for Object but a method for Class
 
 - do we need contains in nx?
-- are the oneline hook definitions like
-    Class protected class-object method __unknown {name} {}
-  needed?
 
 - nsf::proc 
    * check, if there are parameter types that should not be applicable 
      for nsf::proc
-   * scripted-method like implementation (like ProcMethodDispatch, not urgent)
    * toplevel (object less) introspection 
 
 - "info method definition" for :attributes?
@@ -2976,15 +2972,6 @@ TODO:
         package require nx
         package require nx::test
         namespace import ::nx::*
-
-    * parameter option allowempty is a little longish; we should
-      choose probably a shorter name
-
-      Object create o {
-        :method foo {x:integer,allowempty y:integer os:object,multivalued,allowempty} {
-          return $x
-        }
-      }
 
 - library + apps
     - new directory structure DONE

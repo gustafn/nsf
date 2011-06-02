@@ -5970,6 +5970,21 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
   return rc;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * RemoveFromClassMixinsOf --
+ *
+ *    Remove the class (provided as a cmd) from all isClassMixinOf definitions
+ *    from the provided classes (provided as cmdlist). 
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Deletes potentially some entries in the isClassMixinOf lists.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static void
 RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
@@ -5989,6 +6004,22 @@ RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * RemoveFromObjectMixinsOf --
+ *
+ *    Remove the class (provided as a cmd) from all isObjectMixinOf definitions
+ *    from the provided classes (provided as cmdlist). 
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Deletes potentially some entries in the isObjectMixinOf lists.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static void
 RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
   for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
@@ -6005,6 +6036,22 @@ RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
     } /* else fprintf(stderr, "CleanupDestroyObject %s: NULL pointer in mixins!\n", ObjectName(object)); */
   }
 }
+
+/*
+ *----------------------------------------------------------------------
+ * RemoveFromClassmixins --
+ *
+ *    Remove the class (provided as a cmd) from all classmixins lists
+ *    from the provided classes (provided as cmdlist). 
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Deletes potentially some entries in the classmixins lists.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static void
 RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
@@ -6024,8 +6071,23 @@ RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * RemoveFromObjectMixins --
+ *
+ *    Remove the class (provided as a cmd) from all object mixin lists
+ *    from the provided classes (provided as cmdlist). 
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Deletes potentially some entries in the objectmixins lists.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
-RemoveFromMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
   for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
     NsfObject *nobj = NsfGetObjectFromCmdPtr(cmdlist->cmdPtr);
     NsfObjectOpt *objopt = nobj ? nobj->opt : NULL;
@@ -6044,7 +6106,19 @@ RemoveFromMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
 
 
 /*
- * Reset mixin order for instances of a class
+ *----------------------------------------------------------------------
+ * MixinResetOrderForInstances --
+ *
+ *    Reset the per-object mixin order for the instances of the provided
+ *    class.
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Deletes potentially the mixin list for the objects.
+ *
+ *----------------------------------------------------------------------
  */
 
 static void
@@ -6070,7 +6144,21 @@ MixinResetOrderForInstances(NsfClass *cl) {
   }
 }
 
-/* reset mixin order for all objects having this class as per object mixin */
+/*
+ *----------------------------------------------------------------------
+ * ResetOrderOfClassesUsedAsMixins --
+ *
+ *    Reset the per-object mixin order for all objects having this class as
+ *    per-object mixin.
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Deletes potentially the mixin list for the objects.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 ResetOrderOfClassesUsedAsMixins(NsfClass *cl) {
   /*fprintf(stderr, "ResetOrderOfClassesUsedAsMixins %s - %p\n",
@@ -6088,12 +6176,24 @@ ResetOrderOfClassesUsedAsMixins(NsfClass *cl) {
   }
 }
 
-
-
 /*
- * if the class hierarchy or class mixins have changed ->
- * invalidate mixin entries in all dependent instances
+ *----------------------------------------------------------------------
+ * MixinInvalidateObjOrders --
+ *
+ *    Reset mixin order for all instances of the class and the instances of
+ *    its subclasses. This function is typically callled, when the the class
+ *    hierarchy or the class mixins have changed and invalidate mixin entries
+ *    in all dependent instances.
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Deletes potentially the mixin list for the objects and classes.
+ *
+ *----------------------------------------------------------------------
  */
+
 static void
 MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   NsfClasses *saved = cl->order, *clPtr;
@@ -6103,16 +6203,16 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
 
   cl->order = NULL;
 
-  /* reset mixin order for all instances of the class and the
-     instances of its subclasses
-  */
+  /* 
+   * Iterate over the subclass hierarchy.
+   */
   for (clPtr = ComputeOrder(cl, cl->order, Sub); clPtr; clPtr = clPtr->nextPtr) {
     Tcl_HashSearch hSrch;
-    //Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
-    //Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
     Tcl_HashEntry *hPtr;
 
-    /* reset mixin order for all objects having this class as per object mixin */
+    /* 
+     * Reset mixin order for all objects having this class as per object mixin 
+     */
     ResetOrderOfClassesUsedAsMixins(clPtr->cl);
 
     /* fprintf(stderr, "invalidating instances of class %s\n", ClassName(clPtr));
@@ -6129,10 +6229,11 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   NsfClassListFree(cl->order);
   cl->order = saved;
 
-  /* Reset mixin order for all objects having this class as a per
-     class mixin.  This means that we have to work through
-     the class mixin hierarchy with its corresponding instances.
-  */
+  /* 
+   * Reset the mixin order for all objects having this class as a per class
+   * mixin.  This means that we have to work through the class mixin hierarchy
+   * with its corresponding instances.
+   */
   Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
   GetAllClassMixinsOf(interp, commandTable, Tcl_GetObjResult(interp),
@@ -6144,7 +6245,10 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
     /*fprintf(stderr, "Got %s, reset for ncl %p\n", ncl?ClassName(ncl):"NULL", ncl);*/
     if (ncl) {
       MixinResetOrderForInstances(ncl);
-      /* this place seems to be sufficient to invalidate the computed object parameter definitions */
+      /* 
+       * This place seems to be sufficient to invalidate the computed object
+       * parameter definitions.
+       */
       /*fprintf(stderr, "MixinInvalidateObjOrders via class mixin %s calls ifd invalidate \n", ClassName(ncl));*/
       NsfInvalidateObjectParameterCmd(interp, ncl);
     }
@@ -6154,13 +6258,27 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
 }
 
 /*
- * the mixin order is either
- *   DEFINED (there are mixins on the instance),
- *   NONE    (there are no mixins for the instance),
- *   or INVALID (a class re-strucuturing has occured, thus it is not clear
- *               whether mixins are defined or not).
- * If it is INVALID MixinComputeDefined can be used to compute the order
- * and set the instance to DEFINED or NONE
+ *----------------------------------------------------------------------
+ * MixinComputeDefined --
+ *
+ *    This function computes the mixin order for the provided object and
+ *    adjusts the mixin flags accordingly. The mixin order is either
+ *
+ *       DEFINED (there are mixins on the instance),
+ *       NONE    (there are no mixins for the instance),
+ *       or INVALID (a class re-strucuturing has occured, 
+ *               thus it is not clear whether mixins are defined or not).
+ *
+ *    If the mixin order is INVALID, MixinComputeDefined can be used to
+ *    compute the order and set the instance to DEFINED or NONE
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Might alter the mixin order.
+ *
+ *----------------------------------------------------------------------
  */
 static void
 MixinComputeDefined(Tcl_Interp *interp, NsfObject *object) {
@@ -6172,7 +6290,6 @@ MixinComputeDefined(Tcl_Interp *interp, NsfObject *object) {
     object->flags &= ~NSF_MIXIN_ORDER_DEFINED;
   }
 }
-
 
 /*
  *----------------------------------------------------------------------
@@ -6193,7 +6310,8 @@ MixinComputeDefined(Tcl_Interp *interp, NsfObject *object) {
  */
 
 static NsfClasses *
-ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
+ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object, 
+		      CONST char *pattern, 
 		      int withMixins, int withRootClass) {
   NsfClasses *precedenceList = NULL, *pcl, **npl = &precedenceList;
 
@@ -12258,7 +12376,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
       /*
        *  Remove this class from all mixin lists and clear the isObjectMixinOf list
        */
-      RemoveFromMixins(clopt->id, clopt->isObjectMixinOf);
+      RemoveFromObjectMixins(clopt->id, clopt->isObjectMixinOf);
       CmdListRemoveList(&clopt->isObjectMixinOf, GuardDel);
 
       /*
