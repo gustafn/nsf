@@ -5203,7 +5203,10 @@ MixinregSetFromAny(
     return TCL_ERROR;
   }
 
-  /* we have no baseclass, we have to pass NULL as last argument */
+  /* 
+   * Since we do not know the baseclass, we have to pass NULL as last
+   * argument.
+   */
   if (GetClassFromObj(interp, nameObj, &mixin, NULL) != TCL_OK) {
     return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
   }

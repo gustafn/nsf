@@ -13,6 +13,61 @@
 
 #include "nsfInt.h"
 
+/*
+ *----------------------------------------------------------------------
+ * strnstr --
+ *
+ *    Implementation of strnstr() for platforms not providing it via their C
+ *    library. The function strnstr locates the first occurance of a substring
+ *    in a null-terminated string
+ *
+ * Results:
+ *    Strbstring or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+#ifndef HAVE_STRNSTR
+char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
+  char *p;
+  size_t remainder, needle_len;
+
+  if (*needle == '\0') {
+    return (char *)buffer;
+  }
+
+  needle_len = strlen(needle);
+  for (p = (char *)buffer, remainder = buffer_len; 
+       p != NULL; 
+       p = memchr(p + 1, *needle, remainder-1)) {
+    remainder = buffer_len - (p - buffer);
+    if (remainder < needle_len) break;
+    if (strncmp(p, needle, needle_len) == 0) {
+      return p;
+    }
+  }
+
+  return NULL;
+}
+#endif
+
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ltoa --
+ *
+ *    Convert a long value into a string; this function is a fast 
+ *    version of sprintf(buf,"%ld",l);
+ *
+ * Results:
+ *    String containing decimal value of the provided parameter.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 char *
 Nsf_ltoa(char *buf, long i, int *len)  /* fast version of sprintf(buf,"%ld",l); */ {
   int nr_written, negative;
@@ -40,6 +95,21 @@ Nsf_ltoa(char *buf, long i, int *len)  /* fast version of sprintf(buf,"%ld",l); 
   return string;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfStringIncr --
+ *
+ *    Increment a value on a number system with the provided alphabet. The
+ *    intention of the function is to generate compact new symbols.
+ *
+ * Results:
+ *    New symbol in form of a string.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static char *alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 static int blockIncrement = 8;
@@ -48,7 +118,6 @@ static char *alphabet = "ab";
 static int blockIncrement = 2;
 */
 static unsigned char chartable[255] = {0};
-
 
 char *
 NsfStringIncr(NsfStringIncrStruct *iss) {
@@ -94,6 +163,22 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
   return iss->start;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfStringIncrInit, NsfStringIncrFree --
+ *
+ *    Support function for NsfStringIncr(). NsfStringIncrInit() function is
+ *    called before NsfStringIncr() can be used on this buffer,
+ *    NsfStringIncrFree() terminates usage.
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Initializes the .
+ *
+ *----------------------------------------------------------------------
+ */
 
 void
 NsfStringIncrInit(NsfStringIncrStruct *iss) {
@@ -124,29 +209,7 @@ NsfStringIncrFree(NsfStringIncrStruct *iss) {
 }
 
 
-#ifndef HAVE_STRNSTR
-char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
-  char *p;
-  size_t remainder, needle_len;
 
-  if (*needle == '\0') {
-    return (char *)buffer;
-  }
-
-  needle_len = strlen(needle);
-  for (p = (char *)buffer, remainder = buffer_len; 
-       p != NULL; 
-       p = memchr(p + 1, *needle, remainder-1)) {
-    remainder = buffer_len - (p - buffer);
-    if (remainder < needle_len) break;
-    if (strncmp(p, needle, needle_len) == 0) {
-      return p;
-    }
-  }
-
-  return NULL;
-}
-#endif
 
 /*
  * Local Variables:
