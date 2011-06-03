@@ -5112,32 +5112,32 @@ AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_O
  ***********************************************************************/
 
 /*
- * Mixinspec type begin
+ * Mixinreg type begin
  */
 typedef struct {
   NsfClass *class;
   Tcl_Obj *guardObj;
-} MixinSpec;
+} MixinReg;
 
-static Tcl_DupInternalRepProc	MixinspecDupInteralRep;
-static Tcl_FreeInternalRepProc	MixinspecFreeInternalRep;
-static Tcl_UpdateStringProc	MixinspecUpdateString;
-static Tcl_SetFromAnyProc       MixinspecSetFromAny;
+static Tcl_DupInternalRepProc	MixinregDupInteralRep;
+static Tcl_FreeInternalRepProc	MixinregFreeInternalRep;
+static Tcl_UpdateStringProc	MixinregUpdateString;
+static Tcl_SetFromAnyProc       MixinregSetFromAny;
 
-static Tcl_ObjType mixinspecObjType = {
-    "nsfMixinspec",			/* name */
-    MixinspecFreeInternalRep,		/* freeIntRepProc */
-    MixinspecDupInteralRep,		/* dupIntRepProc */
-    MixinspecUpdateString,		/* updateStringProc */
-    MixinspecSetFromAny			/* setFromAnyProc */
+static Tcl_ObjType mixinregObjType = {
+    "nsfMixinreg",			/* name */
+    MixinregFreeInternalRep,		/* freeIntRepProc */
+    MixinregDupInteralRep,		/* dupIntRepProc */
+    MixinregUpdateString,		/* updateStringProc */
+    MixinregSetFromAny			/* setFromAnyProc */
 };
 
 /* 
  * Dummy placeholder, should never be called.
  */
 static void
-MixinspecUpdateString(Tcl_Obj *objPtr) {
-  Tcl_Panic("MixinspecUpdateString %s of type %s should not be called", "updateStringProc",
+MixinregUpdateString(Tcl_Obj *objPtr) {
+  Tcl_Panic("MixinregUpdateString %s of type %s should not be called", "updateStringProc",
 	    objPtr->typePtr->name);
 }
 
@@ -5145,8 +5145,8 @@ MixinspecUpdateString(Tcl_Obj *objPtr) {
  * Dummy placeholder, should never be called.
  */
 static void
-MixinspecDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *UNUSED(dupPtr)) {
-  Tcl_Panic("MixinspecDupInteralRep %s of type %s should not be called", "dupStringProc",
+MixinregDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *UNUSED(dupPtr)) {
+  Tcl_Panic("MixinregDupInteralRep %s of type %s should not be called", "dupStringProc",
 	    srcPtr->typePtr->name);
 }
 
@@ -5154,25 +5154,25 @@ MixinspecDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *UNUSED(dupPtr)) {
  * freeIntRepProc
  */
 static void
-MixinspecFreeInternalRep(
-    register Tcl_Obj *objPtr)	/* Mixinspec structure object with internal
+MixinregFreeInternalRep(
+    register Tcl_Obj *objPtr)	/* Mixinreg structure object with internal
 				 * representation to free. */
 {
-  MixinSpec *mixinSpecPtr = (MixinSpec *)objPtr->internalRep.twoPtrValue.ptr1;
+  MixinReg *mixinRegPtr = (MixinReg *)objPtr->internalRep.twoPtrValue.ptr1;
 
-  if (mixinSpecPtr != NULL) {
-    /*fprintf(stderr, "MixinspecFreeInternalRep freeing mixinSpec %p class %p guard %p\n",
-      mixinSpecPtr, mixinSpecPtr->class, mixinSpecPtr->guardObj);*/
+  if (mixinRegPtr != NULL) {
+    /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p\n",
+      mixinRegPtr, mixinRegPtr->class, mixinRegPtr->guardObj);*/
     /*
      * Decrement refCounts
      */
-    NsfObjectRefCountDecr(&(mixinSpecPtr->class)->object);
-    if (mixinSpecPtr->guardObj) {DECR_REF_COUNT(mixinSpecPtr->guardObj);}
+    NsfObjectRefCountDecr(&(mixinRegPtr->class)->object);
+    if (mixinRegPtr->guardObj) {DECR_REF_COUNT(mixinRegPtr->guardObj);}
 
     /*
      * ... and free structure
      */
-    FREE(MixinSpec, mixinSpecPtr);
+    FREE(MixinReg, mixinRegPtr);
   }
 }
 
@@ -5180,14 +5180,14 @@ MixinspecFreeInternalRep(
  * setFromAnyProc
  */
 static int
-MixinspecSetFromAny(
+MixinregSetFromAny(
     Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
     register Tcl_Obj *objPtr)	/* The object to convert. */
 {
   NsfClass *mixin = NULL;
   Tcl_Obj *guardObj = NULL, *nameObj;
   int oc; Tcl_Obj **ov;
-  MixinSpec *mixinSpecPtr;
+  MixinReg *mixinRegPtr;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
     if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
@@ -5212,31 +5212,31 @@ MixinspecSetFromAny(
    * Conversion was ok.
    * Allocate structure ... 
    */
-  mixinSpecPtr = NEW(MixinSpec);
+  mixinRegPtr = NEW(MixinReg);
   /*
    * ... and increment refCounts
    */
   NsfObjectRefCountIncr((&mixin->object));
   if (guardObj) {INCR_REF_COUNT(guardObj);}
 
-  mixinSpecPtr->class = mixin;
-  mixinSpecPtr->guardObj = guardObj;
+  mixinRegPtr->class = mixin;
+  mixinRegPtr->guardObj = guardObj;
 
-  /*fprintf(stderr, "MixinspecSetFromAny alloc mixinSpec %p class %p guard %p\n",
-    mixinSpecPtr, mixinSpecPtr->class, mixinSpecPtr->guardObj);*/
+  /*fprintf(stderr, "MixinregSetFromAny alloc mixinReg %p class %p guard %p\n",
+    mixinRegPtr, mixinRegPtr->class, mixinRegPtr->guardObj);*/
 
   /*
    * Free origninal rep and store structure as internal representation.
    */
   TclFreeIntRep(objPtr);
-  objPtr->internalRep.twoPtrValue.ptr1 = (void *)mixinSpecPtr;
+  objPtr->internalRep.twoPtrValue.ptr1 = (void *)mixinRegPtr;
   objPtr->internalRep.twoPtrValue.ptr2 = NULL;
-  objPtr->typePtr = &mixinspecObjType;
+  objPtr->typePtr = &mixinregObjType;
 
   return TCL_OK;
 }
 /*
- * Mixinspec type end
+ * Mixinreg type end
  */
 
 /*
@@ -5476,7 +5476,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * MixinAdd --
  *
- *    Add a mixinspec (mixin class with a potential guard) provided as a
+ *    Add a mixinreg (mixin class with a potential guard) provided as a
  *    Tcl_Obj* to 'mixinList' by appending it to the provided cmdList.
  *
  * Results:
@@ -5497,15 +5497,15 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
   /*fprintf(stderr, "MixinAdd gets obj %p type %p %s\n", nameObj, nameObj->typePtr, 
     nameObj->typePtr?nameObj->typePtr->name : "NULL");*/
   /*
-   * When the provided nameObj is of type mixinspecObjType, the nsf specific
+   * When the provided nameObj is of type mixinregObjType, the nsf specific
    * converter was called already and we can simply obtain the mixin class and
    * the guard from the internal representation.
    */
-  if (nameObj->typePtr == &mixinspecObjType) {
-    MixinSpec *mixinSpecPtr =  nameObj->internalRep.twoPtrValue.ptr1;
+  if (nameObj->typePtr == &mixinregObjType) {
+    MixinReg *mixinRegPtr =  nameObj->internalRep.twoPtrValue.ptr1;
     
-    guardObj = mixinSpecPtr->guardObj;
-    mixin = mixinSpecPtr->class;
+    guardObj = mixinRegPtr->guardObj;
+    mixin = mixinRegPtr->class;
 
   } else {
     if (Tcl_ListObjGetElements(interp, nameObj, &ocName, &ovName) == TCL_OK && ocName > 1) {
@@ -9662,11 +9662,11 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 
 /*
  *----------------------------------------------------------------------
- * Nsf_ConvertToMixinspec --
+ * Nsf_ConvertToMixinreg --
  *
  *    Nsf_TypeConverter setting the client data (passed to C functions) to the
  *    Tcl_Obj. This nsf type converter checks the passed value via the
- *    mixinspecObjType() tcl_obj converter, which provides an internal
+ *    mixinregObjType() tcl_obj converter, which provides an internal
  *    representation for the client function.
  *
  * Results:
@@ -9679,16 +9679,16 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
  */
 
 int
-Nsf_ConvertToMixinspec(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
   *outObjPtr = objPtr;
-  result = Tcl_ConvertToType(interp, objPtr, &mixinspecObjType);
+  result = Tcl_ConvertToType(interp, objPtr, &mixinregObjType);
   if (result == TCL_OK) {
     *clientData = objPtr;
     return result;
   }
-  return NsfObjErrType(interp, NULL, objPtr, "mixinspec", (Nsf_Param *)pPtr);
+  return NsfObjErrType(interp, NULL, objPtr, "mixinreg", (Nsf_Param *)pPtr);
 }
 
 /*
@@ -10004,8 +10004,8 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     result = ParamOptionSetConverter(interp, paramPtr, "class", Nsf_ConvertToClass);
     paramPtr->flags |= NSF_ARG_BASECLASS;
 
-  } else if (strncmp(option, "mixinspec", 9) == 0) {
-    result = ParamOptionSetConverter(interp, paramPtr, "mixinspec", Nsf_ConvertToMixinspec);
+  } else if (strncmp(option, "mixinreg", 8) == 0) {
+    result = ParamOptionSetConverter(interp, paramPtr, "mixinreg", Nsf_ConvertToMixinreg);
 
   } else if (strncmp(option, "parameter", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "parameter", Nsf_ConvertToParameter);

@@ -2865,7 +2865,7 @@ nsf:
 
 - nsf.c: use NsfObjectRefCountIncr() instead of object->refCount++
 - nsf.c: fix small memory leak for nsf::is in error cases
-
+- renamed converter from "mixinspec" to "mixinreg"
 
 TODO:
 - add explicit regression tests for disposition + types

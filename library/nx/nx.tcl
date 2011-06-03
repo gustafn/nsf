@@ -1216,12 +1216,12 @@ namespace eval ::nx {
     ${os}::Class::slot::dummy destroy
 
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
-	-forwardername object-mixin -elementtype mixinspec
+	-forwardername object-mixin -elementtype mixinreg
     ::nx::RelationSlot create ${os}::Object::slot::filter \
 	-forwardername object-filter
 
     ::nx::RelationSlot create ${os}::Class::slot::mixin \
-	-forwardername class-mixin -elementtype mixinspec
+	-forwardername class-mixin -elementtype mixinreg
     ::nx::RelationSlot create ${os}::Class::slot::filter \
         -forwardername class-filter
 
@@ -1230,7 +1230,7 @@ namespace eval ::nx {
     # of per-object mixins and filters for classes.
     #
     ::nx::ObjectParameterSlot create ${os}::Class::slot::object-mixin \
-	-methodname "::nsf::classes::nx::Object::mixin" -elementtype mixinspec
+	-methodname "::nsf::classes::nx::Object::mixin" -elementtype mixinreg
     ::nx::ObjectParameterSlot create ${os}::Class::slot::object-filter \
 	-methodname "::nsf::classes::nx::Object::filter"
 

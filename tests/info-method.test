@@ -493,10 +493,10 @@ nx::Test case info-slot-parametersyntax {
     :method "sub foo" args {;}
   }
 
-  ? {C info parameter syntax} "?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin mixinspec ...? ?-class class? ?-filter value ...? ?__initcmd?"
+  ? {C info parameter syntax} "?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter value ...? ?__initcmd?"
   ? {C info parameter syntax a} "?-a value?"
 
-  ? {C info parameter spec} "-a {-b 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinspec,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional"
+  ? {C info parameter spec} "-a {-b 1} -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:alias,1..n __initcmd:initcmd,optional"
 
   ? {C info parameter list} "-a -b -volatile -noinit -mixin -class -filter __initcmd"
   ? {C info parameter name} "a b volatile noinit mixin class filter __initcmd"
