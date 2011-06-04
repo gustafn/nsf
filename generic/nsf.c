@@ -1150,13 +1150,46 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
 
 /*
  *----------------------------------------------------------------------
+ * NsfCallUnkownHandler --
+ *
+ *    Call ::nsf::unkown; this function is typically called, when an unknown 
+ *    object or class is passed as an argument.
+ *
+ * Results:
+ *    Tcl result code
+ *
+ * Side effects:
+ *    Called handler might side effect.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+NsfCallUnkownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
+  int result = 0;
+  Tcl_Obj *ov[3];
+
+  /*fprintf(stderr, "try ::nsf::unknown for '%s'\n", ObjStr(nameObj));*/
+
+  ov[0] = NsfGlobalObjs[NSF_UNKNOWN_HANDLER];
+  ov[1] = nameObj;
+
+  INCR_REF_COUNT(ov[1]);
+  result = Tcl_EvalObjv(interp, 2, ov, 0);
+  DECR_REF_COUNT(ov[1]);
+
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
  * GetClassFromObj --
  *
  *    Lookup an Next Scripting class from the given objPtr. If the class could
- *    not be directly converted, the function calls the requireobject method
- *    (in XOTcl __unknown) to fetch the class on demand and retries the
- *    conversion.  On success the NsfClass is returned in the third
- *    argument. The objPtr might be converted by this function.
+ *    not be directly converted and withUnknown is true, the function calls
+ *    the unknown function (::nsf::unknown) to fetch the class on demand and
+ *    retries the conversion.  On success the NsfClass is returned in the
+ *    third argument. The objPtr might be converted by this function.
  *
  * Results:
  *    True or false, 
@@ -1169,7 +1202,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
 
 static int
 GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
-		     NsfClass **cl, NsfClass *baseClass) {
+		NsfClass **cl, int withUnknown) {
   NsfObject *object;
   NsfClass *cls = NULL;
   int result = TCL_OK;
@@ -1177,16 +1210,16 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   Tcl_Command cmd;
 
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
-  /*fprintf(stderr, "GetClassFromObj %p %s base %p cmd %p\n", objPtr, objName, baseClass, cmd);*/
+  /*fprintf(stderr, "GetClassFromObj %p %s unknown %d cmd %p\n", objPtr, objName, withUnknown, cmd);*/
 
   if (cmd) {
     cls = NsfGetClassFromCmdPtr(cmd);
 #if 1
     if (cls == NULL) {
       /*
-       * We have a cmd, but no class; namesspace-imported classes are
-       * already resolved, but we have to care, if a class is
-       * "imported" via "interp alias".
+       * We have a cmd, but no class; namespace-imported classes are already
+       * resolved, but we have to care, if a class is "imported" via "interp
+       * alias".
        */
       Tcl_Interp *alias_interp;
       const char *alias_cmd_name;
@@ -1197,7 +1230,6 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       if (!isAbsolutePath(objName)) {
 	nameObj = NameInNamespaceObj(interp, objName, CallingNameSpace(interp));
 	objName = ObjStr(nameObj);
-	/* adjust path for documented nx.tcl */
       }
 
       result = Tcl_GetAliasObj(interp, objName,
@@ -1205,7 +1237,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       Tcl_ResetResult(interp);
       //fprintf(stderr, "alias retuns oc %s\n", alias_oc);
 
-      /* we only want aliases with 0 args */
+      /* we only want interp-aliases with 0 args */
       if (result == TCL_OK && alias_oc == 0) {
 	cmd = NSFindCommand(interp, alias_cmd_name);
 	/*fprintf(stderr, "..... alias arg 0 '%s' cmd %p\n", alias_cmd_name, cmd);*/
@@ -1238,24 +1270,19 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     }
   }
 
-  /*fprintf(stderr, "try __unknown for '%s', result so far is %d\n", objName, result);*/
-  if (baseClass) {
-    Tcl_Obj *methodObj, *nameObj = isAbsolutePath(objName) ? objPtr :
-      NameInNamespaceObj(interp, objName, CallingNameSpace(interp));
+  if (withUnknown) {
 
-    INCR_REF_COUNT(nameObj);
-
-    methodObj = NsfMethodObj(&baseClass->object, NSF_c_requireobject_idx);
-    if (methodObj) {
-      /*fprintf(stderr, "+++ calling __unknown for %s name '%s'\n",
-	ClassName(baseClass), ObjStr(nameObj));*/
-      result = CallMethod(baseClass, interp, methodObj,
-                          3, &nameObj, NSF_CM_NO_UNKNOWN|NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
-      if (result == TCL_OK) {
-        result = GetClassFromObj(interp, objPtr, cl, NULL);
-      }
+    result = NsfCallUnkownHandler(interp, isAbsolutePath(objName) ? objPtr :
+				  NameInNamespaceObj(interp, 
+						     objName, 
+						     CallingNameSpace(interp)));
+    
+    if (result == TCL_OK) {
+      /* Retry, but now, the last argument (withUnknown) has to be 0 */
+      result = GetClassFromObj(interp, objPtr, cl, 0);
     }
-    DECR_REF_COUNT(nameObj);
+    /*fprintf(stderr, "... ::nsf::unknown for '%s', 
+      result %d cl %p\n", objName, result, cl);*/
   }
 
   return result;
@@ -1296,7 +1323,7 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
   if (pPtr->converterArg == NULL) {
     return TCL_OK;
   }
-  if ((GetClassFromObj(interp, pPtr->converterArg, &cl, NULL) == TCL_OK)
+  if ((GetClassFromObj(interp, pPtr->converterArg, &cl, 0) == TCL_OK)
       && IsSubType(object->cl, cl)) {
     return TCL_OK;
   }
@@ -3912,8 +3939,8 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name)
  *----------------------------------------------------------------------
  * NSRequireParentObject --
  *
- *    Try to require a parent object (e.g. during ttrace).  This function tries
- *    to load a parent object via __unknown, in case such a method is defined.
+ *    Try to require a parent object (e.g. during ttrace).  This function
+ *    tries to load a parent object via ::nsf::unknown.
  *
  * Results:
  *    returns 1 on success
@@ -3924,40 +3951,21 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name)
  *----------------------------------------------------------------------
  */
 static int
-NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName, NsfClass *cl) {
-  NsfClass *defaultSuperClass = DefaultSuperClass(interp, cl, cl->object.cl, 1);
-  Tcl_Obj *methodObj;
-  int rc = 0;
+NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName) {
+  int result;
   
-  /*fprintf(stderr, "NSRequireParentObject %s cl %p (%s) defaultSc %p %s\n",
-    parentName, cl, ClassName(cl),  defaultSuperClass, ClassName(defaultSuperClass));*/
+  result = NsfCallUnkownHandler(interp, Tcl_NewStringObj(parentName, -1));
 
-  if (defaultSuperClass && (methodObj = NsfMethodObj(&defaultSuperClass->object, NSF_c_requireobject_idx))) {
-    /* call requireObject and try again */
-    Tcl_Obj *ov[3];
-    int result;
-
-    ov[0] = defaultSuperClass->object.cmdName;
-    ov[1] = methodObj;
-    ov[2] = Tcl_NewStringObj(parentName, -1);
-    INCR_REF_COUNT(ov[2]);
-
-    /*fprintf(stderr, "+++ parent... calling %s __unknown for %s\n", 
-      ClassName(defaultSuperClass), ObjStr(ov[2]));*/
-
-    result = Tcl_EvalObjv(interp, 3, ov, 0);
-    if (result == TCL_OK) {
-      NsfObject *parentObj = (NsfObject *) GetObjectFromString(interp, parentName);
-      if (parentObj) {
-	RequireObjNamespace(interp, parentObj);
-      }
-      rc = (Tcl_FindNamespace(interp, parentName,
-			      (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) != NULL);
+  if (result == TCL_OK) {
+    NsfObject *parentObj = (NsfObject *) GetObjectFromString(interp, parentName);
+    if (parentObj) {
+      RequireObjNamespace(interp, parentObj);
     }
-    DECR_REF_COUNT(ov[2]);
+    result = (Tcl_FindNamespace(interp, parentName,
+			    (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) != NULL);
   }
-  
-  return rc;
+  return result;
+ 
 }
 
 /*
@@ -3987,7 +3995,7 @@ NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName, NsfClass *cl) 
  *----------------------------------------------------------------------
  */
 NSF_INLINE static Tcl_Namespace *
-NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *parentNsPtr1, NsfClass *cl) {
+NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *parentNsPtr1) {
   Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr, *parentNsPtr = (Namespace *)parentNsPtr1;
   CONST char *parentName, *dummy, *n;
   Tcl_DString ds, *dsPtr = &ds;
@@ -4031,7 +4039,9 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
       parentNsPtr->fullName, nameString, parentName);*/
   } else {
     n = nameString + strlen(nameString);
-    /*search for last '::'*/
+    /* 
+     * search for last '::' 
+     */
     while ((*n != ':' || *(n-1) != ':') && n-1 > nameString) {n--; }
     if (*n == ':' && n > nameString && *(n-1) == ':') {n--;}
     parentNameLength = n-nameString;
@@ -4058,7 +4068,7 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
 				 &dummy2Ptr, &dummy);
       if (parentNsPtr == NULL) {
 	/*fprintf(stderr, "===== calling NSRequireParentObject %s %p\n", parentName, cl);*/
-	NSRequireParentObject(interp, parentName, cl);
+	NSRequireParentObject(interp, parentName);
       }
     }
 
@@ -5112,10 +5122,15 @@ AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_O
  ***********************************************************************/
 
 /*
- * Mixinreg type begin
+ * Mixinreg type
+ *
+ * The mixin reg type is an Tcl_Obj type carrying a class and a guard
+ * object. The string representation might have the form "/cls/" or "/cls/
+ * -guard /expr/". When no guard expression is provided (first form), the
+ * guard entry is NULL.
  */
 typedef struct {
-  NsfClass *class;
+  NsfClass *mixin;
   Tcl_Obj *guardObj;
 } MixinReg;
 
@@ -5166,7 +5181,7 @@ MixinregFreeInternalRep(
     /*
      * Decrement refCounts
      */
-    NsfObjectRefCountDecr(&(mixinRegPtr->class)->object);
+    NsfObjectRefCountDecr(&(mixinRegPtr->mixin)->object);
     if (mixinRegPtr->guardObj) {DECR_REF_COUNT(mixinRegPtr->guardObj);}
 
     /*
@@ -5204,10 +5219,9 @@ MixinregSetFromAny(
   }
 
   /* 
-   * Since we do not know the baseclass, we have to pass NULL as last
-   * argument.
+   * Try to resolve unknowns
    */
-  if (GetClassFromObj(interp, nameObj, &mixin, NULL) != TCL_OK) {
+  if (GetClassFromObj(interp, nameObj, &mixin, 1) != TCL_OK) {
     return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
   }
   
@@ -5222,14 +5236,15 @@ MixinregSetFromAny(
   NsfObjectRefCountIncr((&mixin->object));
   if (guardObj) {INCR_REF_COUNT(guardObj);}
 
-  mixinRegPtr->class = mixin;
+  mixinRegPtr->mixin = mixin;
   mixinRegPtr->guardObj = guardObj;
 
   /*fprintf(stderr, "MixinregSetFromAny alloc mixinReg %p class %p guard %p\n",
-    mixinRegPtr, mixinRegPtr->class, mixinRegPtr->guardObj);*/
+    mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj);*/
 
   /*
-   * Free origninal rep and store structure as internal representation.
+   * Free the old interal representation and store own structure as internal
+   * representation.
    */
   TclFreeIntRep(objPtr);
   objPtr->internalRep.twoPtrValue.ptr1 = (void *)mixinRegPtr;
@@ -5492,40 +5507,26 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
  */
 static int
 MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass *baseClass) {
-  NsfClass *mixin;
+  MixinReg *mixinRegPtr;
   Tcl_Obj *guardObj = NULL;
-  int ocName; Tcl_Obj **ovName;
   NsfCmdList *new;
 
   /*fprintf(stderr, "MixinAdd gets obj %p type %p %s\n", nameObj, nameObj->typePtr, 
     nameObj->typePtr?nameObj->typePtr->name : "NULL");*/
   /*
    * When the provided nameObj is of type mixinregObjType, the nsf specific
-   * converter was called already and we can simply obtain the mixin class and
-   * the guard from the internal representation.
+   * converter was called already; otherwise call the converter here.
    */
-  if (nameObj->typePtr == &mixinregObjType) {
-    MixinReg *mixinRegPtr =  nameObj->internalRep.twoPtrValue.ptr1;
-    
-    guardObj = mixinRegPtr->guardObj;
-    mixin = mixinRegPtr->class;
-
-  } else {
-    if (Tcl_ListObjGetElements(interp, nameObj, &ocName, &ovName) == TCL_OK && ocName > 1) {
-      if (ocName == 3 && !strcmp(ObjStr(ovName[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
-	nameObj = ovName[0];
-	guardObj = ovName[2];
-	/*fprintf(stderr, "mixinadd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
-      } /*else return NsfPrintError(interp, "mixin registration '%s' has too many elements", 
-	  ObjStr(name));*/
-    }
-
-    if (GetClassFromObj(interp, nameObj, &mixin, baseClass) != TCL_OK) {
-      return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
+  if (nameObj->typePtr != &mixinregObjType) {
+    if (Tcl_ConvertToType(interp, nameObj, &mixinregObjType) != TCL_OK) {
+      return TCL_ERROR;
     }
   }
-  new = CmdListAdd(mixinList, mixin->object.id, NULL, /*noDuplicates*/ 1);
 
+  mixinRegPtr =  nameObj->internalRep.twoPtrValue.ptr1;
+  guardObj = mixinRegPtr->guardObj;
+
+  new = CmdListAdd(mixinList, mixinRegPtr->mixin->object.id, NULL, /*noDuplicates*/ 1);
   if (guardObj) {
     GuardAdd(new, guardObj);
   } else if (new->clientData) {
@@ -7380,7 +7381,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
 
   scl = NEW_ARRAY(NsfClass*, oc);
   for (i = 0; i < oc; i++) {
-    if (GetClassFromObj(interp, ov[i], &scl[i], baseClass) != TCL_OK) {
+    if (GetClassFromObj(interp, ov[i], &scl[i], 1) != TCL_OK) {
       FREE(NsfClass**, scl);
       return NsfObjErrType(interp, "superclass", arg, "a list of classes", NULL);
     }
@@ -9657,7 +9658,7 @@ int
 Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   *outObjPtr = objPtr;
-  if (GetClassFromObj(interp, objPtr, (NsfClass **)clientData, NULL) == TCL_OK) {
+  if (GetClassFromObj(interp, objPtr, (NsfClass **)clientData, 0) == TCL_OK) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "class", objPtr, pPtr);
   }
   return NsfObjErrType(interp, NULL, objPtr, "class", (Nsf_Param *)pPtr);
@@ -12425,7 +12426,7 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   assert(object); /* ckalloc panics, if malloc fails */
   assert(isAbsolutePath(nameString));
 
-  nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr, cl);
+  nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr);
   if (nsPtr) {
     NSNamespacePreserve(nsPtr);
   }
@@ -12485,7 +12486,7 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
 					NsfGlobalObjs[NSF_DEFAULTSUPERCLASS], NULL, 0);
 
     if (resultObj) {
-      if (GetClassFromObj(interp, resultObj, &resultClass, NULL) != TCL_OK) {
+      if (GetClassFromObj(interp, resultObj, &resultClass, 0) != TCL_OK) {
 	NsfPrintError(interp, "default superclass is not a class");
       }
       /* fprintf(stderr, "DefaultSuperClass for %s got from var %s\n", ClassName(cl), ObjStr(nameObj)); */
@@ -12850,7 +12851,7 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   /*
     fprintf(stderr, "Class alloc %p '%s'\n", cl, nameString);
   */
-  nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr, cl);
+  nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr);
   if (nsPtr) {
     NSNamespacePreserve(nsPtr);
   }
@@ -16241,8 +16242,8 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
   class = isAbsolutePath(className) ? Class :
     NameInNamespaceObj(interp, className, CallingNameSpace(interp));
 
-  GetClassFromObj(interp, object, &theobj, NULL);
-  GetClassFromObj(interp, class, &thecls, NULL);
+  GetClassFromObj(interp, object, &theobj, 0);
+  GetClassFromObj(interp, class, &thecls, 0);
 
   if (theobj || thecls) {
     ObjectSystemFree(interp, osPtr);
@@ -17673,7 +17674,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       Tcl_SetObjResult(interp, object->cl->object.cmdName);
       return TCL_OK;
     }
-    GetClassFromObj(interp, valueObj, &cl, object->cl);
+    GetClassFromObj(interp, valueObj, &cl, 1);
     if (!cl) return NsfObjErrType(interp, "class", valueObj, "a class", NULL);
     i = ChangeClass(interp, object, cl);
     if (i == TCL_OK) {
@@ -17693,7 +17694,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     if (valueObj == NULL) {
       return NsfPrintError(interp, "metaclass must be specified as third argument");
     }
-    GetClassFromObj(interp, valueObj, &metaClass, NULL);
+    GetClassFromObj(interp, valueObj, &metaClass, 0);
     if (!metaClass) return NsfObjErrType(interp, "rootclass", valueObj, "class", NULL);
 
     cl->object.flags |= NSF_IS_ROOT_CLASS;

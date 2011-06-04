@@ -2867,7 +2867,29 @@ nsf:
 - nsf.c: fix small memory leak for nsf::is in error cases
 - renamed converter from "mixinspec" to "mixinreg"
 
+- Use mixinregObjType as well in NsfRelationCmd(), so this is the only
+  place, where mixin and guards are processed. 
+- Since the type converter converts Tcl-Objs, we have less context
+  information (e.g. we have no base class, on which we can decide to
+  call e.g. __unknown on on of the objects systems).  - because of the
+  point above, i removed ::xotcl::Class->__unknown and
+  ::nx::Class->__unknown in favor of a global proc ::nsf::unknown, for
+  which unknown handlers can be registered
+- GetClassFromObj() receives as last argument "withUnknown" instead of
+  baseClass to indicate, when unknown should be tried.
+- new function NsfCallUnkownHandler()
+
+
 TODO:
+
+- in method-require.test
+  # TODO: make me more pretty
+  set ::nsf::unknown(nx) {::nx::Class __unknown}
+- nicer registration of unknown handlers needed?
+- remove
+  #Class protected class method __unknown {name} {}
+
+
 - add explicit regression tests for disposition + types
 - check refcounting for dispo+types
 - maybe: add a dispoition=pipe

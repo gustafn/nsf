@@ -26,7 +26,6 @@ namespace eval ::xotcl {
     -class.dealloc dealloc
     -class.objectparameter objectparameter 
     -class.recreate recreate 
-    -class.requireobject __unknown 
     -object.configure configure 
     -object.cleanup cleanup
     -object.defaultmethod defaultmethod 
@@ -866,7 +865,9 @@ namespace eval ::xotcl {
   ::nsf::method::alias ::xotcl::Object move ::nsf::classes::nx::Object::move
   #::nsf::method::alias ::xotcl::Object defaultmethod ::nsf::classes::nx::Object::defaultmethod
 
-  ::nsf::method::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
+  #::nsf::method::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
+  ::nsf::method::create ::xotcl::Class -per-object __unknown {name} {}
+  set ::nsf::unknown(xotcl) {::xotcl::Class __unknown}
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {:requireNamespace; return [::xotcl::self]::$var}

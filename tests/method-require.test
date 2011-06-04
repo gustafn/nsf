@@ -57,10 +57,14 @@ nx::Test case method-require {
 }
 
 nx::Test case parent-require { 
+  
   ::nx::Class public class method __unknown {name} {
     #puts stderr "***** __unknown called with <$name>"
     ::nx::Object create $name
   }
+  # TODO: make me more pretty
+  set ::nsf::unknown(nx) {::nx::Class __unknown}
+
   nx::Class create C
 
   ? {C create ::o::o} "::o::o"

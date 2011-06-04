@@ -21,7 +21,6 @@ namespace eval ::nx {
     -class.dealloc {dealloc ::nsf::methods::class::dealloc}
     -class.objectparameter objectparameter 
     -class.recreate {recreate ::nsf::methods::class::recreate}
-    -class.requireobject __unknown
     -object.configure configure
     -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod}
     -object.destroy destroy
@@ -362,8 +361,7 @@ namespace eval ::nx {
   # tries to resolve the class again. This meachnism is used e.g. by
   # the ::ttrace mechanism for partial loading by Zoran.
   ######################################################################
-
-  Class protected class method __unknown {name} {}
+  #Class protected class method __unknown {name} {}
 
   ######################################################################
   # Provde method "alias" 

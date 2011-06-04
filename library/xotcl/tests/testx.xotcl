@@ -3345,14 +3345,15 @@ TestX objectReferences -proc run {{n 20}} {
   catch {UnknownClass destroy}
   set ::utest ""
   Class proc __unknown args {
+    #puts stderr ===UNK-$args
     lappend ::utest $args
     set x [Class $args]
     set r [$x]
     #puts r=$r
     return $r
   }
-  Class O  -superclass UnknownClass
 
+  Class O  -superclass UnknownClass
   ::errorCheck $::utest ::UnknownClass "__unknown 1"
   
   Object o

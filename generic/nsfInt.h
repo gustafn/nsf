@@ -529,7 +529,6 @@ typedef enum SystemMethodsIdx {
   NSF_c_dealloc_idx,
   NSF_c_objectparameter_idx, 
   NSF_c_recreate_idx, 
-  NSF_c_requireobject_idx, 
   NSF_o_cleanup_idx, 
   NSF_o_configure_idx, 
   NSF_o_defaultmethod_idx, 
@@ -549,7 +548,6 @@ CONST char *Nsf_SytemMethodOpts[] = {
   "-class.dealloc",
   "-class.objectparameter", 
   "-class.recreate", 
-  "-class.requireobject",
   "-object.cleanup", 
   "-object.configure", 
   "-object.defaultmethod", 
@@ -594,6 +592,7 @@ typedef enum {
   NSF_ALIAS, NSF_ARGS, NSF_CMD, NSF_FILTER, NSF_FORWARD, 
   NSF_METHOD, NSF_OBJECT, NSF_SETTER, NSF_VALUECHECK,
   NSF_GUARD_OPTION, NSF___UNKNOWN__, 
+  NSF_UNKNOWN_HANDLER,
   /* Partly redefined Tcl commands; leave them together at the end */
   NSF_EXPR, NSF_FORMAT, NSF_INFO_BODY, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, 
   NSF_RENAME
@@ -614,6 +613,8 @@ char *NsfGlobalStrings[] = {
   "alias", "args", "cmd", "filter",  "forward", 
   "method", "object", "setter", "valuecheck",
   "-guard", "__unknown__",
+  /* nsf tcl commands */
+  "::nsf::unknown",
   /* tcl commands */
   "expr", "format", "::tcl::info::body", "::tcl::info::frame", "interp", "::tcl::string::is", 
   "rename"

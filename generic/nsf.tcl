@@ -79,7 +79,23 @@ namespace eval ::nsf {
   ::nsf::method::provide autoname {::nsf::method::alias autoname ::nsf::methods::object::autoname}
   ::nsf::method::provide exists   {::nsf::method::alias exists   ::nsf::methods::object::exists}
 
+  ######################################################################
+  # unknown handler for objects and classes
   #
+  proc ::nsf::unknown {name} {
+    foreach {key handler} [array get ::nsf::unknown] {
+      set result [uplevel [list {*}$handler $name]]
+      if {$result ne ""} {
+	return $result
+      }
+    }
+    return ""
+  }
+  # Example unknown handler:
+  # set ::nsf::unknown(xotcl) {::xotcl::Class __unknown}
+
+
+  ######################################################################
   # exit handlers
   #
   proc ::nsf::exithandler {args} {
