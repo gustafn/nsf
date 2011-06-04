@@ -763,12 +763,7 @@ CFLAGS
 LDFLAGS
 LIBS
 CPPFLAGS
-CC
-LDFLAGS
-LIBS
-CPPFLAGS
-CPP
-CPPFLAGS'
+CPP'
 
 
 # Initialize some variables set by options.
@@ -5548,7 +5543,7 @@ fi
 
 
     vars="nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
-	nsfTrace.c nsfUtil.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
+	nsfTrace.c nsfUtil.c nsfObj.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
     for i in $vars; do
 	case $i in
 	    \$*)

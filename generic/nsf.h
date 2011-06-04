@@ -263,6 +263,9 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 extern int
 NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what);
 
+extern int
+NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
+		   Nsf_Class **clPtr, int withUnknown);
 
 #define NSF_LOG_NOTICE 2
 #define NSF_LOG_WARN 1

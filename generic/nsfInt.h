@@ -623,6 +623,10 @@ char *NsfGlobalStrings[] = {
 
 #define NsfGlobalObjs RUNTIME_STATE(interp)->methodObjNames
 
+/* obj types */
+extern Tcl_ObjType NsfMixinregObjType;
+int NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj);
+
 /* Next Scripting ShadowTclCommands */
 typedef struct NsfShadowTclCommandInfo {
   TclObjCmdProcType proc;
@@ -780,6 +784,28 @@ extern int
 NsfUnsetObjectData(struct NsfObject *obj, struct NsfClass *cl);
 extern void
 NsfFreeObjectData(NsfClass *cl);
+#endif
+
+/*
+ *  NsfObject Reference Accounting
+ */
+#if defined(NSFOBJ_TRACE)
+# define NsfObjectRefCountIncr(obj)					\
+  ((NsfObject *)obj)->refCount++;					\
+  fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, ((NsfObject *)obj)->refCount, \
+	((NsfObject *)obj)->cmdName?ObjStr(((NsfObject *)obj)->cmdName):"no name"); \
+  MEM_COUNT_ALLOC("NsfObject RefCount", obj)
+# define NsfObjectRefCountDecr(obj)					\
+  (obj)->refCount--;							\
+  fprintf(stderr, "RefCountDecr %p count=%d\n", obj, obj->refCount);	\
+  MEM_COUNT_FREE("NsfObject RefCount", obj)
+#else
+# define NsfObjectRefCountIncr(obj)           \
+  (obj)->refCount++;                            \
+  MEM_COUNT_ALLOC("NsfObject RefCount", obj)
+# define NsfObjectRefCountDecr(obj)           \
+  (obj)->refCount--;                            \
+  MEM_COUNT_FREE("NsfObject RefCount", obj)
 #endif
 
 /*

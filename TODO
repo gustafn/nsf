@@ -2879,6 +2879,7 @@ nsf:
   baseClass to indicate, when unknown should be tried.
 - new function NsfCallUnkownHandler()
 
+- moved mixin reg type converter to a new file (nsfObj.c)
 
 TODO:
 

@@ -209,6 +209,7 @@ static void NsfCleanupObject_(NsfObject *object);
 /* prototypes for object and command lookup */
 static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name);
 static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name);
+static int GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, NsfClass **clPtr, int withUnknown);
 static void GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startClass);
 NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName);
 
@@ -711,7 +712,7 @@ NsfCommandRelease(Tcl_Command cmd) {
 }
 
 /***********************************************************************
- * 12 extern callable routines for the preliminary C interface
+ * Extern callable routines for the preliminary C interface
  ***********************************************************************/
 extern Nsf_Object *
 NsfGetSelfObj(Tcl_Interp *interp) {
@@ -724,6 +725,11 @@ NsfGetObject(Tcl_Interp *interp, CONST char *name) {
 extern Nsf_Class *
 NsfGetClass(Tcl_Interp *interp, CONST char *name) {
   return (Nsf_Class *)GetClassFromString(interp, name);
+}
+extern int
+NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
+		   Nsf_Class **clPtr, int withUnknown) {
+  return GetClassFromObj(interp, objPtr, (NsfClass **)clPtr, withUnknown);
 }
 extern Nsf_Class *
 NsfIsClass(Tcl_Interp *UNUSED(interp), ClientData clientData) {
@@ -849,28 +855,6 @@ NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodNam
   return TCL_OK;
 }
 
-
-/*
- *  NsfObject Reference Accounting
- */
-#if defined(NSFOBJ_TRACE)
-# define NsfObjectRefCountIncr(obj)					\
-  ((NsfObject *)obj)->refCount++;					\
-  fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, ((NsfObject *)obj)->refCount, \
-	((NsfObject *)obj)->cmdName?ObjStr(((NsfObject *)obj)->cmdName):"no name"); \
-  MEM_COUNT_ALLOC("NsfObject RefCount", obj)
-# define NsfObjectRefCountDecr(obj)					\
-  (obj)->refCount--;							\
-  fprintf(stderr, "RefCountDecr %p count=%d\n", obj, obj->refCount);	\
-  MEM_COUNT_FREE("NsfObject RefCount", obj)
-#else
-# define NsfObjectRefCountIncr(obj)           \
-  (obj)->refCount++;                            \
-  MEM_COUNT_ALLOC("NsfObject RefCount", obj)
-# define NsfObjectRefCountDecr(obj)           \
-  (obj)->refCount--;                            \
-  MEM_COUNT_FREE("NsfObject RefCount", obj)
-#endif
 
 #if defined(NSFOBJ_TRACE)
 void
@@ -1202,7 +1186,7 @@ NsfCallUnkownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
 
 static int
 GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
-		NsfClass **cl, int withUnknown) {
+		NsfClass **clPtr, int withUnknown) {
   NsfObject *object;
   NsfClass *cls = NULL;
   int result = TCL_OK;
@@ -1253,7 +1237,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     }
 #endif
     if (cls) {
-      if (cl) *cl = cls;
+      if (clPtr) *clPtr = cls;
       return TCL_OK;
     }
   }
@@ -1262,7 +1246,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   if (result == TCL_OK) {
     cls = NsfObjectToClass(object);
     if (cls) {
-      if (cl) *cl = cls;
+      if (clPtr) *clPtr = cls;
       return TCL_OK;
     } else {
       /* flag, that we could not convert so far */
@@ -1271,7 +1255,6 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   }
 
   if (withUnknown) {
-
     result = NsfCallUnkownHandler(interp, isAbsolutePath(objName) ? objPtr :
 				  NameInNamespaceObj(interp, 
 						     objName, 
@@ -1279,7 +1262,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     
     if (result == TCL_OK) {
       /* Retry, but now, the last argument (withUnknown) has to be 0 */
-      result = GetClassFromObj(interp, objPtr, cl, 0);
+      result = GetClassFromObj(interp, objPtr, clPtr, 0);
     }
     /*fprintf(stderr, "... ::nsf::unknown for '%s', 
       result %d cl %p\n", objName, result, cl);*/
@@ -5122,142 +5105,6 @@ AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_O
  ***********************************************************************/
 
 /*
- * Mixinreg type
- *
- * The mixin reg type is an Tcl_Obj type carrying a class and a guard
- * object. The string representation might have the form "/cls/" or "/cls/
- * -guard /expr/". When no guard expression is provided (first form), the
- * guard entry is NULL.
- */
-typedef struct {
-  NsfClass *mixin;
-  Tcl_Obj *guardObj;
-} MixinReg;
-
-static Tcl_DupInternalRepProc	MixinregDupInteralRep;
-static Tcl_FreeInternalRepProc	MixinregFreeInternalRep;
-static Tcl_UpdateStringProc	MixinregUpdateString;
-static Tcl_SetFromAnyProc       MixinregSetFromAny;
-
-static Tcl_ObjType mixinregObjType = {
-    "nsfMixinreg",			/* name */
-    MixinregFreeInternalRep,		/* freeIntRepProc */
-    MixinregDupInteralRep,		/* dupIntRepProc */
-    MixinregUpdateString,		/* updateStringProc */
-    MixinregSetFromAny			/* setFromAnyProc */
-};
-
-/* 
- * Dummy placeholder, should never be called.
- */
-static void
-MixinregUpdateString(Tcl_Obj *objPtr) {
-  Tcl_Panic("MixinregUpdateString %s of type %s should not be called", "updateStringProc",
-	    objPtr->typePtr->name);
-}
-
-/* 
- * Dummy placeholder, should never be called.
- */
-static void
-MixinregDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *UNUSED(dupPtr)) {
-  Tcl_Panic("MixinregDupInteralRep %s of type %s should not be called", "dupStringProc",
-	    srcPtr->typePtr->name);
-}
-
-/* 
- * freeIntRepProc
- */
-static void
-MixinregFreeInternalRep(
-    register Tcl_Obj *objPtr)	/* Mixinreg structure object with internal
-				 * representation to free. */
-{
-  MixinReg *mixinRegPtr = (MixinReg *)objPtr->internalRep.twoPtrValue.ptr1;
-
-  if (mixinRegPtr != NULL) {
-    /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p\n",
-      mixinRegPtr, mixinRegPtr->class, mixinRegPtr->guardObj);*/
-    /*
-     * Decrement refCounts
-     */
-    NsfObjectRefCountDecr(&(mixinRegPtr->mixin)->object);
-    if (mixinRegPtr->guardObj) {DECR_REF_COUNT(mixinRegPtr->guardObj);}
-
-    /*
-     * ... and free structure
-     */
-    FREE(MixinReg, mixinRegPtr);
-  }
-}
-
-/* 
- * setFromAnyProc
- */
-static int
-MixinregSetFromAny(
-    Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
-    register Tcl_Obj *objPtr)	/* The object to convert. */
-{
-  NsfClass *mixin = NULL;
-  Tcl_Obj *guardObj = NULL, *nameObj;
-  int oc; Tcl_Obj **ov;
-  MixinReg *mixinRegPtr;
-
-  if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
-    if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
-      nameObj = ov[0];
-      guardObj = ov[2];
-      /*fprintf(stderr, "mixinadd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
-    } else if (oc == 1) {
-      nameObj = ov[0];
-    } else {
-      return TCL_ERROR;
-    }
-  } else {
-    return TCL_ERROR;
-  }
-
-  /* 
-   * Try to resolve unknowns
-   */
-  if (GetClassFromObj(interp, nameObj, &mixin, 1) != TCL_OK) {
-    return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
-  }
-  
-  /*
-   * Conversion was ok.
-   * Allocate structure ... 
-   */
-  mixinRegPtr = NEW(MixinReg);
-  /*
-   * ... and increment refCounts
-   */
-  NsfObjectRefCountIncr((&mixin->object));
-  if (guardObj) {INCR_REF_COUNT(guardObj);}
-
-  mixinRegPtr->mixin = mixin;
-  mixinRegPtr->guardObj = guardObj;
-
-  /*fprintf(stderr, "MixinregSetFromAny alloc mixinReg %p class %p guard %p\n",
-    mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj);*/
-
-  /*
-   * Free the old interal representation and store own structure as internal
-   * representation.
-   */
-  TclFreeIntRep(objPtr);
-  objPtr->internalRep.twoPtrValue.ptr1 = (void *)mixinRegPtr;
-  objPtr->internalRep.twoPtrValue.ptr2 = NULL;
-  objPtr->typePtr = &mixinregObjType;
-
-  return TCL_OK;
-}
-/*
- * Mixinreg type end
- */
-
-/*
  * push a mixin stack information on this object
  */
 static int
@@ -5507,26 +5354,25 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
  */
 static int
 MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass *baseClass) {
-  MixinReg *mixinRegPtr;
-  Tcl_Obj *guardObj = NULL;
+  NsfClass *mixinCl;
+  Tcl_Obj *guardObj;
   NsfCmdList *new;
 
   /*fprintf(stderr, "MixinAdd gets obj %p type %p %s\n", nameObj, nameObj->typePtr, 
     nameObj->typePtr?nameObj->typePtr->name : "NULL");*/
   /*
-   * When the provided nameObj is of type mixinregObjType, the nsf specific
+   * When the provided nameObj is of type NsfMixinregObjType, the nsf specific
    * converter was called already; otherwise call the converter here.
    */
-  if (nameObj->typePtr != &mixinregObjType) {
-    if (Tcl_ConvertToType(interp, nameObj, &mixinregObjType) != TCL_OK) {
+  if (nameObj->typePtr != &NsfMixinregObjType) {
+    if (Tcl_ConvertToType(interp, nameObj, &NsfMixinregObjType) != TCL_OK) {
       return TCL_ERROR;
     }
   }
 
-  mixinRegPtr =  nameObj->internalRep.twoPtrValue.ptr1;
-  guardObj = mixinRegPtr->guardObj;
+  NsfMixinregGet(nameObj, &mixinCl, &guardObj);
 
-  new = CmdListAdd(mixinList, mixinRegPtr->mixin->object.id, NULL, /*noDuplicates*/ 1);
+  new = CmdListAdd(mixinList, mixinCl->object.id, NULL, /*noDuplicates*/ 1);
   if (guardObj) {
     GuardAdd(new, guardObj);
   } else if (new->clientData) {
@@ -9670,7 +9516,7 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
  *
  *    Nsf_TypeConverter setting the client data (passed to C functions) to the
  *    Tcl_Obj. This nsf type converter checks the passed value via the
- *    mixinregObjType() tcl_obj converter, which provides an internal
+ *    NsfMixinregObjType tcl_obj converter, which provides an internal
  *    representation for the client function.
  *
  * Results:
@@ -9687,7 +9533,7 @@ Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPt
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
   *outObjPtr = objPtr;
-  result = Tcl_ConvertToType(interp, objPtr, &mixinregObjType);
+  result = Tcl_ConvertToType(interp, objPtr, &NsfMixinregObjType);
   if (result == TCL_OK) {
     *clientData = objPtr;
     return result;

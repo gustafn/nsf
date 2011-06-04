@@ -1,6 +1,6 @@
 /* 
  *  
- *  Extended Object Tcl (XOTcl)
+ *  Next Scripting Framework
  *
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *

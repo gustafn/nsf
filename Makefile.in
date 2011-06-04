@@ -531,6 +531,7 @@ nsfObjectData.$(OBJEXT): $(src_generic_dir)/nsfObjectData.c $(PKG_HEADERS)
 nsfProfile.$(OBJEXT): $(src_generic_dir)/nsfProfile.c $(PKG_HEADERS)
 nsfTrace.$(OBJEXT): $(src_generic_dir)/nsfTrace.c $(PKG_HEADERS)
 nsfUtil.$(OBJEXT): $(src_generic_dir)/nsfUtil.c $(PKG_HEADERS)
+nsfObj.$(OBJEXT): $(src_generic_dir)/nsfObj.c $(PKG_HEADERS)
 nsfShadow.$(OBJEXT): $(src_generic_dir)/nsfShadow.c $(PKG_HEADERS)
 aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
 
