@@ -2880,9 +2880,14 @@ nsf:
 - new function NsfCallUnkownHandler()
 
 - moved mixin reg type converter to a new file (nsfObj.c)
+- added NsfFilterregObjType, to provide a converter for filter 
+  registration similar to mixin registrations
+- replaced dummy dupIntRepProc and updateStringProc in nsfObj.c by NULL
+
 
 TODO:
 
+- fix memory leak in info-method test
 - in method-require.test
   # TODO: make me more pretty
   set ::nsf::unknown(nx) {::nx::Class __unknown}

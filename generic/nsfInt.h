@@ -627,6 +627,9 @@ char *NsfGlobalStrings[] = {
 extern Tcl_ObjType NsfMixinregObjType;
 int NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj);
 
+extern Tcl_ObjType NsfFilterregObjType;
+int NsfFilterregGet(Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj);
+
 /* Next Scripting ShadowTclCommands */
 typedef struct NsfShadowTclCommandInfo {
   TclObjCmdProcType proc;

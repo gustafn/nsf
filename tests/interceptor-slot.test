@@ -9,109 +9,121 @@ Class create M {
 }
 Class create M2
 Class create C 
-
-? {C info lookup method mixin} "::nsf::classes::nx::Class::mixin"
-C mixin M
-? {C info precedence} "::nx::Class ::nx::Object"
-? {C mixin} "::M"
-? {C info mixin classes} "::M"
 C create c1
-? {c1 info precedence} "::M ::C ::nx::Object"
-C mixin add M2
-? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
-C mixin delete M2
-? {c1 info precedence} "::M ::C ::nx::Object"
-C mixin delete M
-? {C info mixin classes} ""
-C mixin ::M
-C mixin {}
-? {C info mixin classes} ""
+
+#
+# test mixin method
+#
+Test case mixin-method {
+  ? {C info lookup method mixin} "::nsf::classes::nx::Class::mixin"
+  ? {C mixin M} ::M
+  ? {C info precedence} "::nx::Class ::nx::Object"
+  ? {C mixin} "::M"
+  ? {C info mixin classes} "::M"
+  ? {c1 info precedence} "::M ::C ::nx::Object"
+  ? {C mixin add M2} "::M2 ::M"
+  ? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
+  ? {C mixin delete M2} "::M"
+  ? {c1 info precedence} "::M ::C ::nx::Object"
+  ? {C mixin delete M} ""
+  ? {C info mixin classes} ""
+  ? {C mixin ::M} "::M"
+  ? {C mixin {}} ""
+  ? {C info mixin classes} ""
+}
 
 #
 # test nsf::mixin interface
 #
-::nsf::mixin C ::M
-? {C info mixin classes} "::M"
-::nsf::mixin C ::M2
-? {C info mixin classes} "::M2 ::M"
-::nsf::mixin C ""
-? {C info mixin classes} ""
+Test case nsf-mixin {
+  ? {::nsf::mixin C ::M} "::M"
+  ? {C info mixin classes} "::M"
+  ? {::nsf::mixin C ::M2} "::M2 ::M"
+  ? {C info mixin classes} "::M2 ::M"
+  ? {::nsf::mixin C ""} ""
+  ? {C info mixin classes} ""
+}
 
+#
 # per-object mixins
-? {c1 info precedence} "::C ::nx::Object"
-c1 mixin add M
-? {::nsf::relation c1 object-mixin} ::M
-? {catch {c1 mixin UNKNOWN}} 1
-? {::nsf::relation c1 object-mixin} "::M"
+#
+Test case per-object-mixin {
+  ? {c1 info precedence} "::C ::nx::Object"
+  ? {c1 mixin add M} ::M
+  ? {::nsf::relation c1 object-mixin} ::M
+  ? {catch {c1 mixin UNKNOWN}} 1
+  ? {::nsf::relation c1 object-mixin} "::M"
 
-# add again the same mixin
-c1 mixin add M
-? {c1 info precedence} "::M ::C ::nx::Object"
-c1 mixin add M2
-? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
-c1 mixin delete M
-? {c1 info precedence} "::M2 ::C ::nx::Object"
-c1 mixin delete M2
-? {c1 info precedence} "::C ::nx::Object"
+  # add again the same mixin
+  ? {c1 mixin add M} {::M}
+  ? {c1 info precedence} "::M ::C ::nx::Object"
+  ? {c1 mixin add M2} "::M2 ::M"
+  ? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
+  ? {c1 mixin delete M} "::M2"
+  ? {c1 info precedence} "::M2 ::C ::nx::Object"
+  ? {c1 mixin delete M2} ""
+  ? {c1 info precedence} "::C ::nx::Object"
+}
 
 #
 # adding, removing per-object mixins for classes through relation
 # "object-mixin"
 #
-::nsf::relation C object-mixin M
-? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C class info mixin classes} "::M"
-::nsf::relation C object-mixin ""
-? {C info precedence} "::nx::Class ::nx::Object"
+Test case object-mixin-relation {
+  ? {::nsf::relation C object-mixin M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+  ? {C class info mixin classes} "::M"
+  ? {::nsf::relation C object-mixin ""} ""
+  ? {C info precedence} "::nx::Class ::nx::Object"
+}
 
 #
 # adding, removing per-object mixins for classes through slot
 # "object-mixin"
 #
-# C object-mixin M
-# ? {C info precedence} "::M ::nx::Class ::nx::Object"
-# ? {C class info mixin classes} "::M"
-# C object-mixin ""
-# ? {C info precedence} "::nx::Class ::nx::Object"
+ # C object-mixin M
+ # ? {C info precedence} "::M ::nx::Class ::nx::Object"
+ # ? {C class info mixin classes} "::M"
+ # C object-mixin ""
+ # ? {C info precedence} "::nx::Class ::nx::Object"
 
 #
-# add and remove class mixin for classes via modifier "object" and
+# add and remove class mixin for classes via modifier "class" and
 # "mixin"
 #
-C class mixin M
-? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C class info mixin classes} "::M"
-C class mixin ""
-? {C info precedence} "::nx::Class ::nx::Object"
+Test case class+mixin {
+  ? {C class mixin M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+  ? {C class info mixin classes} "::M"
+  ? {C class mixin ""} ""
+  ? {C info precedence} "::nx::Class ::nx::Object"
+}
 
 #
 #  add and remove class mixin for classes via class mixin add
 #
-C class mixin add M
-? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C class info mixin classes} "::M"
-C class mixin ""
-? {C info precedence} "::nx::Class ::nx::Object"
+Test case class+mixin-add {
+  ? {C class mixin add M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+  ? {C class info mixin classes} "::M"
+  ? {C class mixin ""} ""
+  ? {C info precedence} "::nx::Class ::nx::Object"
+  
+  ? {C class mixin add M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+  ? {::nsf::relation C object-mixin} ::M
+  ? {catch {C class mixin add UNKNOWN}} 1
+  ? {::nsf::relation C object-mixin} "::M"
+  ? {C class mixin ""} ""
+  ? {C info precedence} "::nx::Class ::nx::Object"
 
-#
-# adding per-object mixins for classes via "object mixin add M"
-#
-C class mixin add M 
-? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {::nsf::relation C object-mixin} ::M
-? {catch {C class mixin add UNKNOWN}} 1
-? {::nsf::relation C object-mixin} "::M"
-C class mixin ""
-? {C info precedence} "::nx::Class ::nx::Object"
+  ? {C class mixin M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
 
-#
-# adding per-object mixins for classes via "object mixin M"
-#
-C class mixin M 
-? {C info precedence} "::M ::nx::Class ::nx::Object"
+  # forwarder with 0 arguments + flag
+  ? {C class mixin} "::M"
+}
 
-# forwarder with 0 arguments + flag
-? {C class mixin} "::M"
 
 
 Test case mixin-add {

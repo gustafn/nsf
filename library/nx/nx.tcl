@@ -1020,7 +1020,7 @@ namespace eval ::nx {
     # Obtain a list of parameter options from slot object
     #
     set options [list]
-    if {[info exists :elementtype] && ${:elementtype} ni {{} mixin}} {
+    if {[info exists :elementtype] && ${:elementtype} ne {}} {
       lappend options ${:elementtype}
       #puts stderr "+++ [self] added elementtype ${:elementtype}"
     }
@@ -1138,7 +1138,7 @@ namespace eval ::nx {
       #
       # Value contains globbing meta characters.
       #
-      if {[info exists :elementtype] && ${:elementtype} ne "" 
+      if {[info exists :elementtype] && ${:elementtype} eq "mixinreg" 
 	  && ![string match ::* $value]} {
 	#
         # Prefix glob pattern with ::, since all object names have
@@ -1147,10 +1147,10 @@ namespace eval ::nx {
         set value ::$value
       }
       return [lsearch -all -not -glob -inline $old $value]
-    } elseif {[info exists :elementtype] && ${:elementtype} ne ""} {
+    } elseif {[info exists :elementtype] && ${:elementtype} eq "mixinreg"} {
       #
-      # Value contains no globbing meta characters, but elementtype is
-      # given.
+      # Value contains no globbing meta characters, and elementtype could be
+      # fully qualified
       #
       if {[string first :: $value] == -1} {
 	#
@@ -1216,12 +1216,12 @@ namespace eval ::nx {
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
 	-forwardername object-mixin -elementtype mixinreg
     ::nx::RelationSlot create ${os}::Object::slot::filter \
-	-forwardername object-filter
+	-forwardername object-filter -elementtype filterreg
 
     ::nx::RelationSlot create ${os}::Class::slot::mixin \
 	-forwardername class-mixin -elementtype mixinreg
     ::nx::RelationSlot create ${os}::Class::slot::filter \
-        -forwardername class-filter
+        -forwardername class-filter -elementtype filterreg
 
     #
     # Create two convenience object parameters to allow configuration
@@ -1230,7 +1230,7 @@ namespace eval ::nx {
     ::nx::ObjectParameterSlot create ${os}::Class::slot::object-mixin \
 	-methodname "::nsf::classes::nx::Object::mixin" -elementtype mixinreg
     ::nx::ObjectParameterSlot create ${os}::Class::slot::object-filter \
-	-methodname "::nsf::classes::nx::Object::filter"
+	-methodname "::nsf::classes::nx::Object::filter" -elementtype filterreg
 
     #
     # Create object parameter slots for "attributes", "noninit" and "volatile"

@@ -6700,28 +6700,36 @@ GuardList(Tcl_Interp *interp, NsfCmdList *frl, CONST char *interceptorName) {
  * append a filter command to the 'filterList' of an obj/class
  */
 static int
-FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *nameObj,
+FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
           NsfObject *startingObject, NsfClass *startingClass) {
-  Tcl_Command cmd;
-  int ocName; Tcl_Obj **ovName;
+  Tcl_Obj *filterObj = NULL;
   Tcl_Obj *guardObj = NULL;
+  Tcl_Command cmd;
   NsfCmdList *new;
   NsfClass *cl;
 
-  if (Tcl_ListObjGetElements(interp, nameObj, &ocName, &ovName) == TCL_OK && ocName > 1) {
-    if (ocName == 3 && !strcmp(ObjStr(ovName[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
-      nameObj = ovName[0];
-      guardObj = ovName[2];
+  /*
+   * When the provided nameObj is of type NsfFilterregObjType, the nsf specific
+   * converter was called already; otherwise call the converter here.
+   */
+  if (filterregObj->typePtr != &NsfFilterregObjType) {
+    /*fprintf(stderr, "FilterAdd: convert %s in FilterAdd\n", ObjStr(filterregObj));*/
+    if (Tcl_ConvertToType(interp, filterregObj, &NsfFilterregObjType) != TCL_OK) {
+      return TCL_ERROR;
     }
+  } else {
+    /*fprintf(stderr, "FilterAdd: %s already converted\n", ObjStr(filterregObj));*/
   }
 
-  if (!(cmd = FilterSearch(ObjStr(nameObj), startingObject, startingClass, &cl))) {
+  NsfFilterregGet(filterregObj, &filterObj, &guardObj);
+
+  if (!(cmd = FilterSearch(ObjStr(filterObj), startingObject, startingClass, &cl))) {
     if (startingObject) {
       return NsfPrintError(interp, "object filter: can't find filterproc '%s' on %s ",
-			   ObjStr(nameObj), ObjectName(startingObject));
+			   ObjStr(filterObj), ObjectName(startingObject));
     } else {
       return NsfPrintError(interp, "class filter: can't find filterproc '%s' on %s ",
-			   ObjStr(nameObj), ClassName(startingClass));
+			   ObjStr(filterObj), ClassName(startingClass));
     }
   }
 
@@ -9512,6 +9520,37 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 
 /*
  *----------------------------------------------------------------------
+ * Nsf_ConvertToFilterreg --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    Tcl_Obj. This nsf type converter checks the passed value via the
+ *    NsfFilterregObjType tcl_obj converter, which provides an internal
+ *    representation for the client function.
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int
+Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+	       ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int result;
+  *outObjPtr = objPtr;
+  result = Tcl_ConvertToType(interp, objPtr, &NsfFilterregObjType);
+  if (result == TCL_OK) {
+    *clientData = objPtr;
+    return result;
+  }
+  return NsfObjErrType(interp, NULL, objPtr, "filterreg", (Nsf_Param *)pPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
  * Nsf_ConvertToMixinreg --
  *
  *    Nsf_TypeConverter setting the client data (passed to C functions) to the
@@ -9856,6 +9895,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (strncmp(option, "mixinreg", 8) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "mixinreg", Nsf_ConvertToMixinreg);
+
+ } else if (strncmp(option, "filterreg", 9) == 0) {
+    result = ParamOptionSetConverter(interp, paramPtr, "filterreg", Nsf_ConvertToFilterreg);
 
   } else if (strncmp(option, "parameter", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "parameter", Nsf_ConvertToParameter);
