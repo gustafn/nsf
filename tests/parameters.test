@@ -1675,6 +1675,7 @@ Test case bignums {
 
   ? [list string is wideinteger [expr {wide(2 ** 64)}]] 1
   ? {o bar [expr {wide(2 ** 63)}]} "-9223372036854775808"
+  ? {o bar [expr {wide(2 ** 64)}]} "0"
 
   #
   # In Tcl 8.5, "bignums" have to be checked with "double"
