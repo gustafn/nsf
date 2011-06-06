@@ -20235,6 +20235,9 @@ NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *class,
       if (NsfClassListFind(clPtr->nextPtr, clPtr->cl)) continue;
       AppendMatchingElement(interp, resultObj, clPtr->cl->object.cmdName, patternString);
     }
+
+    NsfClassListFree(checkList);
+    NsfClassListFree(mixinClasses);
     
   } else if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
