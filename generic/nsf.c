@@ -726,11 +726,6 @@ extern Nsf_Class *
 NsfGetClass(Tcl_Interp *interp, CONST char *name) {
   return (Nsf_Class *)GetClassFromString(interp, name);
 }
-extern int
-NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
-		   Nsf_Class **clPtr, int withUnknown) {
-  return GetClassFromObj(interp, objPtr, (NsfClass **)clPtr, withUnknown);
-}
 extern Nsf_Class *
 NsfIsClass(Tcl_Interp *UNUSED(interp), ClientData clientData) {
   if (clientData && NsfObjectIsClass((NsfObject *)clientData)) {
@@ -1271,6 +1266,14 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   return result;
 }
 
+/*
+ * Version of GetClassFromObj() with external symbol
+ */
+extern int
+NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
+		   NsfClass **clPtr, int withUnknown) {
+  return GetClassFromObj(interp, objPtr, clPtr, withUnknown);
+}
 /*
  *----------------------------------------------------------------------
  * IsObjectOfType --

@@ -98,7 +98,7 @@ MixinregSetFromAny(
   /* 
    * Try to resolve unknowns
    */
-  if (NsfGetClassFromObj(interp, nameObj, (Nsf_Class **)&mixin, 1) != TCL_OK) {
+  if (NsfGetClassFromObj(interp, nameObj, &mixin, 1) != TCL_OK) {
     return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
   }
   

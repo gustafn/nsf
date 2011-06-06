@@ -885,6 +885,10 @@ int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 		     int objc, Tcl_Obj *CONST objv[]);
 #endif
 
+extern int
+NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
+		   NsfClass **clPtr, int withUnknown);
+
 int
 NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
 		 int objc, Tcl_Obj *CONST objv[]);
