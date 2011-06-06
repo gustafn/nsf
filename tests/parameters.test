@@ -1637,3 +1637,52 @@ Test case parameter-object-mixin-dependency {
   ? {C create c2} ::c2
  
 }
+
+
+#
+# Test integer, wideinteger and bignums
+#
+Test parameter count 10000
+Test case bignums {
+
+  ::nx::Object create o {
+    :public method foo {x:int} { return $x }
+    :public method bar {x:wideinteger} { return $x }
+    :public method baz {x:double} { return $x }
+  }
+
+  #
+  # In Tcl 8.5, "integer" means 32 bit integer
+  #
+  ? [list string is integer [expr {2 ** 31}]] 1
+  ? [list string is integer [expr {2 ** 32}]] 0
+  ? {o foo [expr {2 ** 16}]} "65536"
+  ? {o foo [expr {2 ** 31}]} "2147483648"
+  ? {o foo [expr {2 ** 32}]} {expected integer but got "4294967296" for parameter "x"}
+
+  ? [list string is integer [expr {2 ** 63}]] 0
+  ? [list string is integer [expr {2 ** 64}]] 0
+  ? {o foo [expr {2 ** 63}]} {expected integer but got "9223372036854775808" for parameter "x"}
+  ? {o foo [expr {2 ** 64}]} {expected integer but got "18446744073709551616" for parameter "x"}
+
+  #
+  # In Tcl 8.5, "wideinteger" means 64 bit integer
+  #
+  ? [list string is wideinteger [expr {2 ** 63}]] 1
+  ? [list string is wideinteger [expr {2 ** 64}]] 0
+  ? {o bar [expr {2 ** 63}]} "9223372036854775808"
+  ? {o bar [expr {2 ** 64}]} {expected wideinteger but got "18446744073709551616" for parameter "x"}
+
+  ? [list string is wideinteger [expr {wide(2 ** 64)}]] 1
+  ? {o bar [expr {wide(2 ** 63)}]} "-9223372036854775808"
+
+  #
+  # In Tcl 8.5, "bignums" have to be checked with "double"
+  #
+  ? [list string is double [expr {2 ** 63}]] 1
+  ? [list string is double [expr {2 ** 64}]] 1
+  ? {o baz [expr {2 ** 63}]} "9223372036854775808"
+  ? {o baz [expr {2 ** 64}]} "18446744073709551616"
+  ? {o baz [expr {2 ** 128}]} "340282366920938463463374607431768211456"
+
+}

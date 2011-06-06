@@ -9426,7 +9426,8 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
 int
 Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int result, i;
+  int result;
+  int i;
 
   result = Tcl_GetIntFromObj(interp, objPtr, &i);
 

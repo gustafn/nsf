@@ -2885,6 +2885,7 @@ nsf:
 - replaced dummy dupIntRepProc and updateStringProc in nsfObj.c by NULL
 
 - fixed memory leak in "... info mixin classes -heritage"
+- added tests for integer, wideinteger and bignums
 
 TODO:
 
