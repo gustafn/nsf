@@ -2890,6 +2890,13 @@ nsf:
 - added value checker type int32 (similar to "string is integer") and
   changed value checker "integer" to accept all integers
 
+- library/mongodb:
+   * use type int32
+   * updated to new nx/nsf interfaces
+   * updated for mongo-c-driver post 0.3 
+     (supporting result MONGO_OK for mongo_cursor_next)
+   * factored out "mongo cond" from "mongo query"
+
 TODO:
 
 

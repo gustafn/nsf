@@ -172,7 +172,7 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
     if ( t == 0 )
       break;
     key = bson_iterator_key( &i );
-    /*fprintf(stderr, "key %s t %d string %d\n", key, t, bson_string);*/
+    /*fprintf(stderr, "BsonToList: key %s t %d string %d\n", key, t, bson_string);*/
 
     switch ( t ){
     case bson_int:    tag = "integer"; elemObj = Tcl_NewIntObj(bson_iterator_int( &i )); break;
@@ -206,7 +206,7 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
     default:
       tag = "unknown";
       elemObj = Tcl_NewStringObj("", 0);
-      fprintf( stderr , "unknown type : %d\n" , t );
+      fprintf( stderr , "BsonToList: unknown type %d\n" , t );
     }
 
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
@@ -257,7 +257,7 @@ BsonTagToType(Tcl_Interp *interp, char *tag) {
   case 't': /* timestamp */ return bson_timestamp;
   }
 
-  NsfLog(interp, NSF_LOG_WARN, "Treat unknown tag '%s' as string", tag);
+  NsfLog(interp, NSF_LOG_WARN, "BsonTagToType: Treat unknown tag '%s' as string", tag);
   return bson_string;
 }
 
@@ -281,7 +281,7 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
   int result = TCL_OK;
   bson_type t = BsonTagToType(interp, tag);
 
-  /*fprintf(stderr, "add name %s tag %s value '%s'\n", name, tag, ObjStr(value));*/
+  /*fprintf(stderr, "BsonAppend: add name %s tag %s value '%s'\n", name, tag, ObjStr(value));*/
 
   switch ( t ){
   case bson_string: 
@@ -359,16 +359,16 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
     int i, objc;
     Tcl_Obj **objv;
 
-    bson_buffer *(*bsonStartFn)( bson_buffer *b, const char *name);
-    bsonStartFn = (t == bson_object) ? bson_append_start_object : bson_append_start_array;
-
     result = Tcl_ListObjGetElements(interp, value, &objc, &objv);
     if (result != TCL_OK || objc % 3 != 0) {
       return NsfPrintError(interp, "invalid %s value contain multiple of 3 elements %s", tag, ObjStr(value));
     }
 
-    (*bsonStartFn)( bbPtr, name);
-
+    if (t == bson_object) {
+      bson_append_start_object(bbPtr, name);
+    } else {
+      bson_append_start_array(bbPtr, name);
+    }
     for (i = 0; i< objc; i += 3) {
       /*fprintf(stderr, "value %s, i %d, [0]: %s, [1]: %s, [2]: %s\n", ObjStr(value), i,
 	ObjStr(objv[i]),  ObjStr(objv[i+1]), ObjStr(objv[i+2]));*/
@@ -466,7 +466,6 @@ NsfMongoGetHostPort(CONST char *string,
     buffer[offset] = '\0';
     host = buffer;
     port = atoi(buffer+offset+1);
-    fprintf(stderr, "port=%d\n", port);
   } else {
     /*
      * The passed string contained no colon.
@@ -748,8 +747,8 @@ cmd query NsfMongoQuery {
   {-argName "namespace" -required 1}
   {-argName "query" -required 1 -type tclobj}
   {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
-  {-argName "-limit" -required 0 -type int}
-  {-argName "-skip" -required 0 -type int}
+  {-argName "-limit" -required 0 -type int32}
+  {-argName "-skip" -required 0 -type int32}
 }
 */
 static int 
@@ -762,6 +761,9 @@ NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace,
   mongo_cursor *cursor;
   bson query[1];
   bson atts[1];
+
+  /*fprintf(stderr, "NsfMongoQuery: namespace %s withLimit %d withSkip %d\n", 
+    namespace, withLimit, withSkip);*/
 
   if (connPtr == NULL)  {
     return NsfObjErrType(interp, "", connObj, "connection", NULL);
@@ -780,6 +782,7 @@ NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace,
     objc2 = 0;
   }
 
+  /* fprintf(stderr, "query # %d, atts # %d\n", objc1, objc2); */
   BsonAppendObjv(interp, query, objc1, objv1);
   BsonAppendObjv(interp, atts, objc2, objv2);
 
@@ -790,7 +793,7 @@ NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace,
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
   cursor = mongo_find( connPtr, namespace, query, atts, withLimit, withSkip, 0 );
-  while( mongo_cursor_next( cursor ) ) {
+  while( mongo_cursor_next( cursor ) == MONGO_OK ) {
     Tcl_ListObjAppendElement(interp, resultObj, BsonToList(interp, (&cursor->current)->data, 0));
   }
 

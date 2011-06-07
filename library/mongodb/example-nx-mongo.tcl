@@ -40,6 +40,16 @@ Person insert -name Joe -projects abc -age 23
 Person insert -name Franz -projects {gtat annobackend abc} -age 29
 
 #
+# Quick check of the results: count all persons and count the persons
+# named Gustaf
+#
+set count [Person count]
+puts "We have $count Persons in the database"
+
+set count [Person count -cond {name = Gustaf}]
+puts "We have $count Persons named Gustaf"
+
+#
 # Lookup a single Person, create an instance of the object ...
 #
 set p [Person find first -cond {name = Gustaf}]

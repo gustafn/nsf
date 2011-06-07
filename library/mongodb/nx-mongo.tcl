@@ -220,7 +220,7 @@ namespace eval ::nx::mongo {
     :method "get slot" {att} {
       set classes [concat [self] [:info mixin classes] [:info heritage]]
       foreach cls $classes {
-	set slot [$cls info slot $att]
+	set slot [$cls info slots $att]
 	if {$slot ne ""} {
 	  return $slot
 	}
@@ -234,28 +234,38 @@ namespace eval ::nx::mongo {
     
     #
     # For interaction with bson structures, we provide on the class
-    # level "bson query" (a small dsl for a more convenient syntax in
-    # bson queries), "bson atts (a simplifed attribute selection) and
+    # level "bson cond" (a small dsl for a more convenient syntax in
+    # bson queries), "bson query" (combining conditions with
+    # ordering), "bson atts (a simplifed attribute selection) and
     # "bson parameter" which translates from a bson structure (tuple)
     # into a dashed parameter list used in object creation.
     #
-    
-    :method "bson query" {{-cond ""} {-orderby ""}} {
+
+    :method "bson cond" {cond} {
+      #puts "bson cond $cond"
       set bson [list]
       foreach {att op value} $cond {
 	set slot [:get slot $att]
-      switch $op {
-	"=" {lappend bson $att [$slot mongotype] $value}
-	">" - "<" - "<=" - ">=" - "!="  {
-	  lappend bson $att object [list [:get relop $op] [$slot mongotype] $value]
+	switch $op {
+	  "=" {lappend bson $att [$slot mongotype] $value}
+	  ">" - "<" - "<=" - ">=" - "!="  {
+	    lappend bson $att object [list [:get relop $op] [$slot mongotype] $value]
+	  }
+	  "in" - "all" {
+	    lappend bson $att object [list [:get relop $op] {*}[$slot bson encode -array $value]]
+	  }
+	  default {error "unknown operator $op"}
 	}
-	"in" - "all" {
-	  lappend bson $att object [list [:get relop $op] {*}[$slot bson encode -array $value]]
-	}
-	default {error "unknown operator $op"}
       }
-      }
+      #puts "bson cond <$cond> => $bson"
+      return $bson
+    }
+    
+    :method "bson query" {{-cond ""} {-orderby ""}} {
+      #puts "bson query -cond <$cond> -orderby <$orderby>"
+      set bson [:bson cond $cond]
       set result [list \$query object $bson]
+
       if {[llength $orderby] > 0} {
 	set bson [list]
 	foreach attspec $orderby {
@@ -264,7 +274,7 @@ namespace eval ::nx::mongo {
 	}
 	lappend result \$orderby object $bson
       }
-      #puts "Query: $result"
+      #puts "bson query -cond <$cond> -orderby <$orderby> => $result"
       return $result
     }
 
@@ -280,13 +290,14 @@ namespace eval ::nx::mongo {
     }
 
     :method "bson parameter" {tuple} {
-      #puts "bson parameter $tuple"
+      #puts "bson parameter: <$tuple>"
       set objParams [list]
       foreach {att type value} $tuple {
 	set slot [:get slot $att]
 	#puts stderr "att $att type $type value $value => '$slot'"
 	lappend objParams -$att [$slot bson decode $type $value]
       }
+      #puts "bson parameter <$tuple> => $objParams"
       return $objParams
     }
     
@@ -359,7 +370,7 @@ namespace eval ::nx::mongo {
     # number of tuples for the query.
     #
     :public method count {{-cond ""}} {
-      return [::nx::mongo::db count ${:mongo_ns} $cond]
+      return [::nx::mongo::db count ${:mongo_ns} [:bson cond $cond]]
     }
     
     #
