@@ -9411,7 +9411,7 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
 
 /*
  *----------------------------------------------------------------------
- * Nsf_ConvertToInteger --
+ * Nsf_ConvertToInt32 --
  *
  *    Nsf_TypeConverter setting the client data (passed to C functions) to the
  *    interal repesentation of an integer. This converter checks the passed
@@ -9425,10 +9425,9 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
  *
  *----------------------------------------------------------------------
  */
-
 int
-Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+		   ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
   int i;
 
@@ -9436,6 +9435,40 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
 
   if (result == TCL_OK) {
     *clientData = (ClientData)INT2PTR(i);
+    *outObjPtr = objPtr;
+  } else {
+    NsfObjErrType(interp, NULL, objPtr, "int32", (Nsf_Param *)pPtr);
+  }
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * Nsf_ConvertToInteger --
+ *
+ *    Nsf_TypeConverter setting the client data (passed to C functions) to the
+ *    TclObj containng the bignum value. This converter checks the passed
+ *    value via Tcl_GetBignumFromObj().
+ *
+ * Results:
+ *    Tcl result code, *clientData and **outObjPtr
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+#include <tclTomMath.h>
+int
+Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+		     ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int result;
+  mp_int bignumValue;
+
+  result = Tcl_GetBignumFromObj(interp,	objPtr, &bignumValue);
+  
+  if (result == TCL_OK) {
+    *clientData = (ClientData)objPtr;
     *outObjPtr = objPtr;
   } else {
     NsfObjErrType(interp, NULL, objPtr, "integer", (Nsf_Param *)pPtr);
@@ -9879,6 +9912,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (strncmp(option, "integer", MAX(3,optionLength)) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "integer", Nsf_ConvertToInteger);
+
+  } else if (strncmp(option, "int32", 5) == 0) {
+    result = ParamOptionSetConverter(interp, paramPtr, "int32", Nsf_ConvertToInt32);
 
   } else if (strncmp(option, "boolean", 7) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "boolean", Nsf_ConvertToBoolean);

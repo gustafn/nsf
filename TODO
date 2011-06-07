@@ -2887,6 +2887,9 @@ nsf:
 - fixed memory leak in "... info mixin classes -heritage"
 - added tests for integer, wideinteger and bignums
 
+- added value checker type int32 (similar to "string is integer") and
+  changed value checker "integer" to accept all integers
+
 TODO:
 
 

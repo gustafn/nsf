@@ -1647,6 +1647,7 @@ Test case bignums {
 
   ::nx::Object create o {
     :public method foo {x:int} { return $x }
+    :public method foo32 {x:int32} { return $x }
     :public method bar {x:wideinteger} { return $x }
     :public method baz {x:double} { return $x }
   }
@@ -1658,12 +1659,20 @@ Test case bignums {
   ? [list string is integer [expr {2 ** 32}]] 0
   ? {o foo [expr {2 ** 16}]} "65536"
   ? {o foo [expr {2 ** 31}]} "2147483648"
-  ? {o foo [expr {2 ** 32}]} {expected integer but got "4294967296" for parameter "x"}
+  #? {o foo [expr {2 ** 32}]} {expected integer but got "4294967296" for parameter "x"}
+  ? {o foo [expr {2 ** 32}]} "4294967296"
+
 
   ? [list string is integer [expr {2 ** 63}]] 0
   ? [list string is integer [expr {2 ** 64}]] 0
-  ? {o foo [expr {2 ** 63}]} {expected integer but got "9223372036854775808" for parameter "x"}
-  ? {o foo [expr {2 ** 64}]} {expected integer but got "18446744073709551616" for parameter "x"}
+  #? {o foo [expr {2 ** 63}]} {expected integer but got "9223372036854775808" for parameter "x"}
+  #? {o foo [expr {2 ** 64}]} {expected integer but got "18446744073709551616" for parameter "x"}
+  ? {o foo [expr {2 ** 63}]} "9223372036854775808"
+  ? {o foo [expr {2 ** 64}]} "18446744073709551616"
+  ? {o foo [expr {2 ** 128}]} "340282366920938463463374607431768211456"
+
+  ? {o foo32 [expr {2 ** 31}]} "2147483648"
+  ? {o foo32 [expr {2 ** 32}]} {expected int32 but got "4294967296" for parameter "x"}
 
   #
   # In Tcl 8.5, "wideinteger" means 64 bit integer

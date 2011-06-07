@@ -55,6 +55,7 @@ proc genifd {parameterDefinitions} {
       "boolean"    {set converter Boolean}
       "switch"     {set converter Boolean}
       "int"        {set converter Integer}
+      "int32"      {set converter Int32}
       "class"      {set converter Class}
       "object"     {set converter Object}
       "tclobj"     {set converter Tclobj}
@@ -68,7 +69,7 @@ proc genifd {parameterDefinitions} {
 	append flags |NSF_ARG_IS_ENUMERATION
       }
     }
-    if {$converter in {Tclobj Integer Boolean String Class Object}} {
+    if {$converter in {Tclobj Integer Int32 Boolean String Class Object}} {
       set conv Nsf_ConvertTo$converter
     } else {
       set conv ConvertTo$converter
@@ -128,7 +129,8 @@ proc gencall {methodName fn parameterDefinitions clientData
           "class"      {set type "NsfClass *"}
           "object"     {set type "NsfObject *"}
           "tclobj"     {set type "Tcl_Obj *"}
-          "int"        {set type "int "}
+          "int"        {set type "Tcl_Obj *"}
+          "int32"      {set type "int "}
           "*|*"        {set type "int "}
           default      {error "type '$(-type)' not allowed for parameter"}
         }

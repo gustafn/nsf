@@ -72,7 +72,7 @@ VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
   return varPtr;
 }
 
-static TclVarHashTable *
+static NSF_INLINE TclVarHashTable *
 VarHashTableCreate() {
   TclVarHashTable *varTablePtr = (TclVarHashTable *) ckalloc(sizeof(TclVarHashTable));
   TclInitVarHashTable(varTablePtr, NULL);
