@@ -9489,7 +9489,7 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
       //foo();
 
       /* for some unknown reasons, the folloing call crashes */
-      //mp_clear(&bignumValue);
+      mp_clear(&bignumValue);
 
       //fprintf(stderr, "call clear DONE\n");
     }
@@ -20942,6 +20942,9 @@ Nsf_Init(Tcl_Interp *interp) {
 
 #ifdef USE_TCL_STUBS
   if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
+    return TCL_ERROR;
+  }
+  if (Tcl_TomMath_InitStubs(interp, "8.1") == NULL) {
     return TCL_ERROR;
   }
 #endif
