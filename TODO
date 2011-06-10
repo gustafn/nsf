@@ -2897,9 +2897,11 @@ nsf:
      (supporting result MONGO_OK for mongo_cursor_next)
    * factored out "mongo cond" from "mongo query"
 
+- fixing part of the memleak introduced for bignum handling above
+  (for some unknown reasons, we see crashes from mp_clear)
+- extend regression test
+
 TODO:
-
-
 - in method-require.test
   # TODO: make me more pretty
   set ::nsf::unknown(nx) {::nx::Class __unknown}

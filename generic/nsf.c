@@ -161,7 +161,8 @@ static enumeratorConverterEntry enumeratorConverterEntries[];
 static Tcl_ObjType CONST86
   *Nsf_OT_byteCodeType = NULL,
   *Nsf_OT_tclCmdNameType = NULL,
-  *Nsf_OT_listType = NULL;
+  *Nsf_OT_listType = NULL,
+  *Nsf_OT_intType = NULL;
 
 /*
  * Function prototypes
@@ -9458,15 +9459,42 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
  *
  *----------------------------------------------------------------------
  */
+//void foo() {;}
+
 #include <tclTomMath.h>
 int
 Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 		     ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
-  mp_int bignumValue;
 
-  result = Tcl_GetBignumFromObj(interp,	objPtr, &bignumValue);
-  
+  //fprintf(stderr, "type is on call %p %s value %s\n", 
+  //	  objPtr->typePtr, objPtr->typePtr? objPtr->typePtr->name:"NULL", ObjStr(objPtr));
+
+  /*
+   * Try to short_cut common cases to avoid conversion to bignums, since
+   * Tcl_GetBignumFromObj returns a value, which has to be freed.
+   */
+  if (objPtr->typePtr == Nsf_OT_intType) {
+    //fprintf(stderr, "shortcut\n");
+    result = TCL_OK;
+  } else {
+    mp_int bignumValue;
+    result = Tcl_GetBignumFromObj(interp, objPtr, &bignumValue);
+
+    //fprintf(stderr, "type after call %p %s\n", 
+    //  objPtr->typePtr, objPtr->typePtr? objPtr->typePtr->name:"NULL");
+
+    if (result == TCL_OK) {
+      //fprintf(stderr, "call clear used %d alloc %d sign %d dp %p\n", bignumValue.used, bignumValue.alloc, bignumValue.sign, bignumValue.dp);
+      //foo();
+
+      /* for some unknown reasons, the folloing call crashes */
+      //mp_clear(&bignumValue);
+
+      //fprintf(stderr, "call clear DONE\n");
+    }
+  }
+
   if (result == TCL_OK) {
     *clientData = (ClientData)objPtr;
     *outObjPtr = objPtr;
@@ -20929,8 +20957,28 @@ Nsf_Init(Tcl_Interp *interp) {
    */
   NsfMutexLock(&initMutex);
   Nsf_OT_byteCodeType = Tcl_GetObjType("bytecode");
+  assert(Nsf_OT_byteCodeType);
+
   Nsf_OT_tclCmdNameType = Tcl_GetObjType("cmdName");
+  assert(Nsf_OT_tclCmdNameType);
+
   Nsf_OT_listType = Tcl_GetObjType("list");
+  assert(Nsf_OT_listType);
+
+  Nsf_OT_intType = Tcl_GetObjType("int");
+  assert(Nsf_OT_intType);
+#if 0
+  {
+    mp_int bignumValue = {NULL};
+    Tcl_Obj *objPtr;
+
+    // also this crashes
+    mp_init(&bignumValue);
+    objPtr = Tcl_NewBignumObj(&bignumValue);
+    Nsf_OT_bignumType = objPtr->typePtr;
+  }
+  assert(Nsf_OT_bignumType);
+#endif
   NsfMutexUnlock(&initMutex);
 
   /*
