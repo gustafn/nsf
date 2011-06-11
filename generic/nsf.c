@@ -162,6 +162,8 @@ static Tcl_ObjType CONST86
   *Nsf_OT_byteCodeType = NULL,
   *Nsf_OT_tclCmdNameType = NULL,
   *Nsf_OT_listType = NULL,
+  *Nsf_OT_doubleType = NULL,
+//*Nsf_OT_bignumType = NULL,
   *Nsf_OT_intType = NULL;
 
 /*
@@ -9467,31 +9469,32 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
 		     ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
 
-  //fprintf(stderr, "type is on call %p %s value %s\n", 
-  //	  objPtr->typePtr, objPtr->typePtr? objPtr->typePtr->name:"NULL", ObjStr(objPtr));
-
   /*
    * Try to short_cut common cases to avoid conversion to bignums, since
    * Tcl_GetBignumFromObj returns a value, which has to be freed.
    */
-  if (objPtr->typePtr == Nsf_OT_intType) {
-    //fprintf(stderr, "shortcut\n");
+  if (objPtr->typePtr == Nsf_OT_intType /*|| objPtr->typePtr == Nsf_OT_bignumType*/) {
+    //fprintf(stderr, "shortcut OK\n");
     result = TCL_OK;
+  } else if (objPtr->typePtr == Nsf_OT_doubleType) {
+    //fprintf(stderr, "shortcut NOT OK\n");
+    result = TCL_ERROR;
   } else {
     mp_int bignumValue;
+
+    //if (objPtr->typePtr) {
+    //  fprintf(stderr, "type is on call %p %s value %s bignum %p\n", 
+    //      objPtr->typePtr, objPtr->typePtr? objPtr->typePtr->name:"NULL", ObjStr(objPtr),
+    //	      Nsf_OT_bignumType);
+    //}
+
     result = Tcl_GetBignumFromObj(interp, objPtr, &bignumValue);
 
     //fprintf(stderr, "type after call %p %s\n", 
-    //  objPtr->typePtr, objPtr->typePtr? objPtr->typePtr->name:"NULL");
+    //	    objPtr->typePtr, objPtr->typePtr? objPtr->typePtr->name:"NULL");
 
     if (result == TCL_OK) {
-      //fprintf(stderr, "call clear used %d alloc %d sign %d dp %p\n", bignumValue.used, bignumValue.alloc, bignumValue.sign, bignumValue.dp);
-      //foo();
-
-      /* for some unknown reasons, the folloing call crashes */
       mp_clear(&bignumValue);
-
-      //fprintf(stderr, "call clear DONE\n");
     }
   }
 
@@ -20970,15 +20973,20 @@ Nsf_Init(Tcl_Interp *interp) {
 
   Nsf_OT_intType = Tcl_GetObjType("int");
   assert(Nsf_OT_intType);
+
+  Nsf_OT_doubleType = Tcl_GetObjType("double");
+  assert(Nsf_OT_doubleType);
+
 #if 0
   {
-    mp_int bignumValue = {NULL};
+    mp_int bignumValue;
     Tcl_Obj *objPtr;
 
-    // also this crashes
     mp_init(&bignumValue);
     objPtr = Tcl_NewBignumObj(&bignumValue);
     Nsf_OT_bignumType = objPtr->typePtr;
+    DECR_REF_COUNT(objPtr);
+    //mp_clear(&bignumValue);
   }
   assert(Nsf_OT_bignumType);
 #endif

@@ -2901,6 +2901,9 @@ nsf:
   (for some unknown reasons, we see crashes from mp_clear)
 - extend regression test
 
+- improve bignum conversion handling further
+- found memleak in tcl
+
 TODO:
 - in method-require.test
   # TODO: make me more pretty

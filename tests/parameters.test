@@ -1673,6 +1673,7 @@ Test case bignums {
 
   ? {o foo [expr {wide(2 ** 63)}]} "-9223372036854775808"
 
+  ? {o foo [expr {2.0}]} {expected integer but got "2.0" for parameter "x"}
   ? {o foo [expr {2.0 * 2}]} {expected integer but got "4.0" for parameter "x"}
   ? {o foo [expr {2.0 ** 128}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
   ? {o foo [expr {(2 ** 128)*1.0}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
