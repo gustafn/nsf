@@ -1642,7 +1642,7 @@ Test case parameter-object-mixin-dependency {
 #
 # Test integer, wideinteger and bignums
 #
-Test parameter count 1
+Test parameter count 1000
 Test case bignums {
 
   ::nx::Object create o {
