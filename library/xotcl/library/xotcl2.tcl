@@ -867,7 +867,7 @@ namespace eval ::xotcl {
 
   #::nsf::method::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
   ::nsf::method::create ::xotcl::Class -per-object __unknown {name} {}
-  set ::nsf::unknown(xotcl) {::xotcl::Class __unknown}
+  ::nsf::unknown::add xotcl {::xotcl::Class __unknown}
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {:requireNamespace; return [::xotcl::self]::$var}

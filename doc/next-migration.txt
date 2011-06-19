@@ -325,11 +325,11 @@ Defining Objects and Classes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When creating objects or classes, one should use the method +create+
-explicitly. In XOTcl, a default +unknown+ handler was provided for
+explicitly. In XOTcl, a default +unknown+ method handler was provided for
 classes, which create for every unknown method invocation an
 object/class with the name of the invoked method. This technique was
 convenient, but as well dangerous, since typos in method names lead
-easily to unexpected behavior. This default unknown handler is not
+easily to unexpected behavior. This default unknown method handler is not
 provided in NX (but can certainly be provided as a one-liner in NX by
 the application).
 

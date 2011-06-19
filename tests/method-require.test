@@ -62,8 +62,7 @@ nx::Test case parent-require {
     #puts stderr "***** __unknown called with <$name>"
     ::nx::Object create $name
   }
-  # TODO: make me more pretty
-  set ::nsf::unknown(nx) {::nx::Class __unknown}
+  ::nsf::unknown::add nx {::nx::Class __unknown}
 
   nx::Class create C
 

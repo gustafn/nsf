@@ -355,15 +355,6 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # The method __unknown is called in cases, where we try to resolve
-  # an unkown class. One could define a custom resolver with this name
-  # to load the class on the fly. After the call to __unknown, nsf
-  # tries to resolve the class again. This meachnism is used e.g. by
-  # the ::ttrace mechanism for partial loading by Zoran.
-  ######################################################################
-  #Class protected class method __unknown {name} {}
-
-  ######################################################################
   # Provde method "alias" 
   #
   # -frame object|method make only sense for c-defined cmds,

@@ -1287,6 +1287,96 @@ Still Missing
 - incremental slots
 
 
+== Miscellaneous
+
+=== Unknown Handlers
+
+NX provides two kinds of unknown handlers:
+
+- Unknown handlers for methods
+- Unknown handlers for objects and classes
+
+==== Unknown Handlers for Methods
+
+Object and classes might be equipped
+with a method +unknown+ which is called in cases, where an unknown
+method is called. The method unknown receives as first argument the
+called method followed by the provided arguments 
+
+[[xmp-unknown-method]]
+.Listing {counter:figure-number}: Unknown Method Handler
+{set:xmp-unknown-method:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+::nx::Object create o {
+  :method unknown {called_method args} {
+    puts "Unknown method '$called_method' called"
+  }
+}
+
+# Invoke an unknown method for object o:
+o foo 1 2 3
+
+# Output will be: "Unknown method 'foo' called"
+--------------------------------------------------
+
+Without any provision of an unknown method handler, an error will be
+raised, when an unknown method is called.
+
+==== Unknown Handlers for Objects and Classes
+
+The next scripting framework provides in addition to unknown method
+handlers also a means to dynamically create objects and classes, when
+these are referenced. This happens e.g. when superclasses, mixins, or
+parent objects are referenced. This mechanism can be used to implement
+e.g. lazy loading of these classes.  Nsf allows to register multiple
+unknown handlers, each identified by a key (a unique name, different
+from the keys of other unknown handlers).
+
+[[xmp-unknown-class]]
+.Listing {counter:figure-number}: Unknown Class Handler
+{set:xmp-unknown-class:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+::nx::Class public class method __unknown {name} {
+  # A very simple unknown handler, showing just how
+  # the mechanism works.
+  puts "***** __unknown called with <$name>"
+  ::nx::Class create $name
+}
+
+# Register an unknown handler as a method of ::nx::Class
+::nsf::unknown::add nx {::nx::Class __unknown}
+
+::nx::Object create o {
+  # The class M is unknown at this point
+
+  :mixin add M
+  # The line above has triggered the unknown class handler, 
+  # class M is now defined
+
+  puts [:info mixin classes]
+  # The output will be:
+  #     ***** __unknown called with <::M>
+  #     ::M
+}
+--------------------------------------------------
+
+The Next Scripting Framework allows to add, query, delete and list unknown handlers.
+
+[[xmp-unknown-registgration]]
+.Listing {counter:figure-number}: Unknown Handler registration
+{set:xmp-unknown-registgration:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+# Interface for unknown handlers:
+# nsf::unknown::add /key/ /handler/
+# nsf::unknown::get /key/
+# nsf::unknown::delete /key/
+# nsf::unknown::keys
+--------------------------------------------------
+
+
 [bibliography]
 .References
 

@@ -91,8 +91,15 @@ namespace eval ::nsf {
     }
     return ""
   }
+  namespace eval ::nsf::unknown {
+    proc add {key handler} {set ::nsf::unknown($key) $handler}
+    proc get {key}         {return $::nsf::unknown($key)}
+    proc delete {key}      {array unset ::nsf::unknown($key)}
+    proc keys {}           {array names ::nsf::unknown}
+  }
+
   # Example unknown handler:
-  # set ::nsf::unknown(xotcl) {::xotcl::Class __unknown}
+  # ::nsf::unknown::add xotcl {::xotcl::Class __unknown}
 
 
   ######################################################################

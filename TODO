@@ -2904,14 +2904,12 @@ nsf:
 - improve bignum conversion handling further
 - found memleak in tcl
 
-TODO:
-- in method-require.test
-  # TODO: make me more pretty
-  set ::nsf::unknown(nx) {::nx::Class __unknown}
-- nicer registration of unknown handlers needed?
-- remove
-  #Class protected class method __unknown {name} {}
+- provided nicer registration and inspection interface for unknown handlers
+- added documentation for unknown handlers in tutorial
+- cleanup of __unknown
 
+
+TODO:
 
 - add explicit regression tests for disposition + types
 - check refcounting for dispo+types
