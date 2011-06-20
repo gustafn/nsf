@@ -7907,7 +7907,7 @@ NsfParamDefsSyntax(Nsf_Param CONST *paramPtr) {
     } else {
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
       Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
-      if (pPtr->nrArgs >0) {
+      if (pPtr->nrArgs > 0 && *pPtr->name == '-') {
 	Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
 	Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
 	if (pPtr->flags & NSF_ARG_MULTIVALUED) {
@@ -9996,6 +9996,19 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else {
     int i, found = -1;
 
+    if (paramPtr->converter || 
+	(paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_INITCMD))) {
+      Tcl_Obj *obj = Tcl_NewStringObj(option, optionLength);
+      NsfPrintError(interp, "Parameter option '%s' unknown for parameter type %s", 
+		    ObjStr(obj),
+		    paramPtr->converter ? paramPtr->type : 
+		    paramPtr->flags & NSF_ARG_ALIAS ? "alias" :
+		    paramPtr->flags & NSF_ARG_FORWARD ? "forward" :
+		    "initcmd");
+      DECR_REF_COUNT(obj);
+      return TCL_ERROR;
+    } 
+
     for (i=0; stringTypeOpts[i]; i++) {
       /* Do not allow abbreviations, so the additional strlen checks
 	 for a full match */
@@ -10022,6 +10035,14 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     return NsfPrintError(interp, "Parameter option '%s' not allowed", option);
   }
 
+  if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) {
+    return NsfPrintError(interp, "Parameter options alias and forward can be not used together");
+  } else if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) == (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) {
+    return NsfPrintError(interp, "Parameter options alias and initcmd can be not used together");
+  } else if ((paramPtr->flags & (NSF_ARG_FORWARD|NSF_ARG_INITCMD)) == (NSF_ARG_FORWARD|NSF_ARG_INITCMD)) {
+    return NsfPrintError(interp, "Parameter options forward and initcmd can be not used together");
+  }
+
   return result;
 }
 
@@ -10046,11 +10067,15 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   argString = ObjStr(npav[0]);
   length = strlen(argString);
 
-  isNonposArgument = *argString == '-';
+  /* 
+   * Per default parameter have exactly one argument; types without arguments
+   * (like "switch") have to set their nrArgs explicitly.
+   */
+  paramPtr->nrArgs = 1;
 
+  isNonposArgument = *argString == '-';
   if (isNonposArgument) {
     argName = argString+1;
-    paramPtr->nrArgs = 1; /* per default 1 argument, switches set their arg numbers */
     (*nrNonposArgs) ++;
   } else {
     argName = argString;
@@ -18484,12 +18509,12 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * avoid overwriting with default values when e.g. "o configure"
      * is called lated without arguments.
      */
-    /*
-    fprintf(stderr, "param %s, INIT CALLED %d is default %d value = %s\n", 
+    
+    /*fprintf(stderr, "param %s, INIT CALLED %d is default %d value = %s\n", 
 	    paramPtr->name, (object->flags & NSF_INIT_CALLED), 
 	    (pc.flags[i-1] & NSF_PC_IS_DEFAULT), 
-	    ObjStr(pc.full_objv[i]));
-    */
+	    ObjStr(pc.full_objv[i]));*/
+    
     if ((object->flags & NSF_INIT_CALLED) && (pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
       Tcl_Obj *varObj;
 
@@ -18518,7 +18543,10 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       continue;
     }
 
-    /* special setter for init commands */
+    /* 
+     * Special setter methods, calling method; handle types "initcmd", "alias"
+     * and "forward".
+     */
     if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) {
       CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
       NsfCallStackContent csc, *cscPtr = &csc;
@@ -18559,7 +18587,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
 	
 	/* 
-	 * If method= was given, use it as method name 
+	 * If "method=" was given, use it as method name 
 	 */
 	methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
 
@@ -18567,8 +18595,10 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
           ov[oc] = newValue;
           oc ++;
         }
-	/*fprintf(stderr, "call **alias with methodObj %s.%s oc %d\n", 
-	  ObjectName(object), ObjStr(methodObj), oc);*/
+
+	/*fprintf(stderr, "call alias with methodObj %s.%s oc %d, nrArgs %d %s\n", 
+	  ObjectName(object), ObjStr(methodObj), oc, paramPtr->nrArgs, ObjStr(newValue));*/
+
         result = NsfCallMethodWithArgs(object, interp, methodObj,
 				       ov[0], oc, &ov[1], NSF_CSC_IMMEDIATE);
 	

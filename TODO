@@ -2908,6 +2908,10 @@ nsf:
 - added documentation for unknown handlers in tutorial
 - cleanup of __unknown
 
+- added handling for provided arguments to positional object parameters with
+  disposition alias and forward
+- provided better error messages for unknown parameter options
+- provided error messages for multiple disposition parameters
 
 TODO:
 

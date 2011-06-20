@@ -661,7 +661,7 @@ Test case user-types {
   
   # define type twice
   ? {D public method foo {a:int,range,arg=1-3} {return a=$a}} \
-      "Refuse to redefine parameter converter to use type=range" \
+      "Parameter option 'range' unknown for parameter type integer" \
       "invalid value"
   #
   # handling of arg with spaces/arg as list
