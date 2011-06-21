@@ -9997,7 +9997,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     int i, found = -1;
 
     if (paramPtr->converter || 
-	(paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_INITCMD))) {
+	(paramPtr->flags & NSF_ARG_METHOD_INVOCATION)) {
       Tcl_Obj *obj = Tcl_NewStringObj(option, optionLength);
       NsfPrintError(interp, "Parameter option '%s' unknown for parameter type %s", 
 		    ObjStr(obj),
@@ -18522,7 +18522,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD do not set instance
        * variables, so we do not have to check for existing variables.
        */
-      if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) continue;
+      if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) continue;
       
       varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
       if (varObj) {
@@ -18547,7 +18547,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * Special setter methods, calling method; handle types "initcmd", "alias"
      * and "forward".
      */
-    if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD)) {
+    if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
       CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
       NsfCallStackContent csc, *cscPtr = &csc;
       CallFrame frame2, *framePtr2 = &frame2;
