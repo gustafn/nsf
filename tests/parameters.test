@@ -12,6 +12,19 @@ Test case dummy {
 }
 ? {::nsf::object::exists ::o} 0 
 
+#
+# simple test case for parameter passing
+#
+nx::Test case syntax {
+  ::nx::Class create C
+  ? {::nsf::method::alias C} \
+      {required argument 'methodName' is missing, should be:
+	::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName}
+  ? {::nsf::method::alias C foo ::set} "::nsf::classes::C::foo"
+  ? {::nsf::method::alias C foo ::set 1} \
+      {Invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
+}
+
 #######################################################
 # parametercheck
 #######################################################
@@ -154,10 +167,10 @@ Test case multiple-method-checkers {
 }
 
 #######################################################
-# parametercheck
+# param manager
 #######################################################
 Test parameter count 10000
-Test case parametercheck {
+Test case param-manager {
 
   Object create ::paramManager {
     :method type=sex {name value} {

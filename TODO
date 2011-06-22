@@ -2924,6 +2924,9 @@ nsf:
    * switched parameter logic from default for nrargs from 0 to 1
    * simplified logic to detect additional arguments in argument parser
    * improved error message for missing required argument
+- regression tests:
+   * added disposition.test
+   * extended regression test
 
 TODO:
 
