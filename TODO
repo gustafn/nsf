@@ -2915,6 +2915,16 @@ nsf:
 
 - reduce redundancy by introducing macro NSF_ARG_METHOD_INVOCATION
 
+- gentclAPI.tcl: 
+   * renamed "nrArgs" to "nrParams"
+   * switched default for nrargs from 0 to 1
+- gentclAPI.decls: 
+   * added "-nrargs 0" where needed
+-nsf.c:
+   * switched parameter logic from default for nrargs from 0 to 1
+   * simplified logic to detect additional arguments in argument parser
+   * improved error message for missing required argument
+
 TODO:
 
 - add explicit regression tests for disposition + types

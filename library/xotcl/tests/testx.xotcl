@@ -4014,17 +4014,20 @@ TestX create nonposargs -proc run {{n 20}} {
   catch {
     o y
   } m
-  errorCheck $m {not enough arguments: should be "::o y ?-x value? ?-a value? a b"} "wrong \# check 2"
+  errorCheck $m {required argument 'a' is missing, should be:
+	::o y ?-x value? ?-a value? a b} "wrong \# check 2"
 
   catch {
     o y -x 1
   } m
-  errorCheck $m {::o y: required argument 'a' is missing} "wrong \# check 3"
+  errorCheck $m {required argument 'a' is missing, should be:
+	::o y ?-x value? ?-a value? a b} "wrong \# check 3"
 
   catch {
     o z1 a 1 2 3
   } m
-  errorCheck $m {::o z1: required argument 'x' is missing} "required missing"
+  errorCheck $m {required argument 'x' is missing, should be:
+	::o z1 -x ?-a value? a ?arg ...?} "required missing"
   errorCheck [o z1 -x 1  a 1 2 3] "1 -- 1 2 3" "invocation 1"
   errorCheck [o z2 -x 2  a 1 2 3] "2 -- a 1 2 3 -- 1  -- 1 2" "invocation 2"
   catch {
@@ -4103,7 +4106,8 @@ TestX create nonposargs -proc run {{n 20}} {
   oa foo "---"
   catch {oa foo "--"} msg
   
-  errorCheck $msg "::oa foo: required argument 'b' is missing" "Non-pos arg: double dash alone"
+  errorCheck $msg {required argument 'b' is missing, should be:
+	::oa foo ?-a value? b} "Non-pos arg: double dash alone"
 	
   Class C
   C create c1
