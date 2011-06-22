@@ -433,6 +433,9 @@ nx::Test case alias-noarg {
   ? {c1 eval {info exists :x}} 0
 }
 
+#
+# check inticmd + noarg (should not be allowed)
+#
 nx::Test case alias-noarg {
   Class create C {
     :public class method setObjectParams {spec} {
@@ -446,6 +449,4 @@ nx::Test case alias-noarg {
   
   C setObjectParams {initcmd:initcmd,noarg}
   ? {C create c1} {option noarg only allowed for parameter type "alias"}
-
 }
-#### initcmd noarg
