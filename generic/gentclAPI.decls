@@ -33,7 +33,7 @@ cmd createobjectsystem NsfCreateObjectSystemCmd {
 }
 cmd dispatch NsfDispatchCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
+  {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
@@ -50,55 +50,55 @@ cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
   {-argName "class" -required 1 -type class}
 }
 cmd is NsfIsCmd {
-  {-argName "-complain"}
+  {-argName "-complain"  -nrargs 0}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
 }
 
 cmd "method::alias" NsfMethodAliasCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object" -required 0}
+  {-argName "-per-object" -required 0 -nrargs 0}
   {-argName "methodName" -required 1}
-  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
+  {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
 cmd "method::assertion" NsfMethodAssertionCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "assertionsubcmd" -required 1 -nrargs 1 -type "check|object-invar|class-invar"}
+  {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 }
 cmd "method::delete" NsfMethodDeleteCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object"}
+  {-argName "-per-object" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
 }
 cmd "method::create" NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-inner-namespace"}
-  {-argName "-per-object"}
-  {-argName "-reg-object" -required 0 -nrargs 1 -type object}
+  {-argName "-inner-namespace" -nrargs 0}
+  {-argName "-per-object" -nrargs 0}
+  {-argName "-reg-object" -required 0 -type object}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
-  {-argName "-precondition"  -nrargs 1 -type tclobj}
-  {-argName "-postcondition" -nrargs 1 -type tclobj}
+  {-argName "-precondition"  -type tclobj}
+  {-argName "-postcondition" -type tclobj}
 }
 cmd "method::forward" NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object"}
+  {-argName "-per-object" -nrargs 0}
   {-argName "method" -required 1 -type tclobj}
-  {-argName "-default" -nrargs 1 -type tclobj}
-  {-argName "-earlybinding"}
-  {-argName "-methodprefix" -nrargs 1 -type tclobj}
-  {-argName "-objframe"}
-  {-argName "-onerror" -nrargs 1 -type tclobj}
-  {-argName "-verbose"}
+  {-argName "-default" -type tclobj}
+  {-argName "-earlybinding" -nrargs 0}
+  {-argName "-methodprefix" -type tclobj}
+  {-argName "-objframe" -nrargs 0}
+  {-argName "-onerror" -type tclobj}
+  {-argName "-verbose" -nrargs 0}
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
 }
 cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object"}
+  {-argName "-per-object" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "methodproperty" -required 1 -type "class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj"}
   {-argName "value" -type tclobj}
@@ -108,12 +108,12 @@ cmd "method::registered" NsfMethodRegisteredCmd {
 }
 cmd "method::setter" NsfMethodSetterCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object"}
+  {-argName "-per-object" -nrargs 0}
   {-argName "parameter" -required 1 -type tclobj}
 }
 
 cmd proc NsfProcCmd {
-  {-argName "-ad" -required 0}
+  {-argName "-ad" -required 0  -nrargs 0}
   {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
@@ -121,7 +121,7 @@ cmd proc NsfProcCmd {
 
 
 cmd my NsfMyCmd {
-  {-argName "-local"}
+  {-argName "-local" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
@@ -176,8 +176,8 @@ cmd "var::unset" NsfUnsetVarCmd {
 # object methods
 #
 objectMethod autoname NsfOAutonameMethod {
-  {-argName "-instance"}
-  {-argName "-reset"}
+  {-argName "-instance" -nrargs 0}
+  {-argName "-reset"  -nrargs 0}
   {-argName "name" -required 1 -type tclobj}
 }
 
@@ -262,7 +262,7 @@ classMethod mixinguard NsfCMixinGuardMethod {
 }
 
 classMethod new NsfCNewMethod {
-  {-argName "-childof" -type object -nrargs 1}
+  {-argName "-childof" -type object}
   {-argName "args" -required 0 -type args}
 }
 
@@ -279,7 +279,7 @@ classMethod superclass NsfCSuperclassMethod {
 # info object methods
 #
 objectInfoMethod children NsfObjInfoChildrenMethod {
-  {-argName "-type" -required 0 -nrargs 1 -type class}
+  {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod class NsfObjInfoClassMethod {
@@ -288,12 +288,12 @@ objectInfoMethod filterguard NsfObjInfoFilterguardMethod {
   {-argName "fileName" -required 1}
 }
 objectInfoMethod filtermethods NsfObjInfoFiltermethodsMethod {
-  {-argName "-guards"}
-  {-argName "-order"}
+  {-argName "-guards" -nrargs 0}
+  {-argName "-order" -nrargs 0}
   {-argName "pattern"}
 }
 objectInfoMethod forward NsfObjInfoForwardMethod {
-  {-argName "-definition"}
+  {-argName "-definition" -nrargs 0}
   {-argName "name"}
 }
 objectInfoMethod hasmixin NsfObjInfoHasMixinMethod {
@@ -314,17 +314,17 @@ objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-incontext"}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-nomixins"}
-  {-argName "-path"}
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
+  {-argName "-callprotection" -type "all|protected|public" -default all}
+  {-argName "-incontext" -nrargs 0}
+  {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-nomixins" -nrargs 0}
+  {-argName "-path" -nrargs 0}
+  {-argName "-source" -type "all|application|baseclasses"}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
-  {-argName "-type" -required 0 -nrargs 1 -type class}
+  {-argName "-source" -type "all|application|baseclasses" -default all}
+  {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
@@ -332,15 +332,15 @@ objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
-  {-argName "-path"}
+  {-argName "-callprotection" -type "all|protected|public" -default public}
+  {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
+  {-argName "-path" -nrargs 0}
   {-argName "pattern" -required 0}
 }
 
 objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
-  {-argName "-guards"}
-  {-argName "-heritage"}
+  {-argName "-guards" -nrargs 0}
+  {-argName "-heritage" -nrargs 0}
   {-argName "pattern" -type objpattern}
 }
 objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {
@@ -349,11 +349,11 @@ objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {
 objectInfoMethod parent NsfObjInfoParentMethod {
 }
 objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
-  {-argName "-intrinsic"}
+  {-argName "-intrinsic" -nrargs 0}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod slots NsfObjInfoSlotsMethod {
-  {-argName "-type" -required 0 -nrargs 1 -type class}
+  {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod vars NsfObjInfoVarsMethod {
@@ -367,18 +367,18 @@ classInfoMethod filterguard NsfClassInfoFilterguardMethod {
   {-argName "filter" -required 1}
 }
 classInfoMethod filtermethods NsfClassInfoFiltermethodsMethod {
-  {-argName "-guards"}
+  {-argName "-guards" -nrargs 0}
   {-argName "pattern"}
 }
 classInfoMethod forward NsfClassInfoForwardMethod {
-  {-argName "-definition"}
+  {-argName "-definition" -nrargs 0}
   {-argName "name"}
 }
 classInfoMethod heritage NsfClassInfoHeritageMethod {
   {-argName "pattern"}
 }
 classInfoMethod instances NsfClassInfoInstancesMethod {
-  {-argName "-closure"}
+  {-argName "-closure" -nrargs 0}
   {-argName "pattern" -type objpattern}
 }
 
@@ -387,23 +387,23 @@ classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
-  {-argName "-path"}
+  {-argName "-callprotection" -type "all|protected|public" -default public}
+  {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
+  {-argName "-path" -nrargs 0}
   {-argName "pattern"}
 }
 classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {
-  {-argName "-closure"}
-  {-argName "-guards"}
-  {-argName "-heritage"}
+  {-argName "-closure" -nrargs 0}
+  {-argName "-guards" -nrargs 0}
+  {-argName "-heritage" -nrargs 0}
   {-argName "pattern" -type objpattern}
 }
 classInfoMethod mixinguard NsfClassInfoMixinguardMethod {
   {-argName "mixin"  -required 1}
 }
 classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
-  {-argName "-closure"}
-  {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
+  {-argName "-closure" -nrargs 0}
+  {-argName "-scope" -required 0 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
 }
 classInfoMethod objectparameter NsfClassInfoObjectparameterMethod {
@@ -411,17 +411,17 @@ classInfoMethod objectparameter NsfClassInfoObjectparameterMethod {
   {-argName "pattern" -required 0}
 }
 classInfoMethod slots NsfClassInfoSlotsMethod {
-  {-argName "-closure"}
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
-  {-argName "-type" -required 0 -nrargs 1 -type class}
+  {-argName "-closure" -nrargs 0}
+  {-argName "-source" -type "all|application|baseclasses" -default all}
+  {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
  }
 classInfoMethod subclass NsfClassInfoSubclassMethod {
-  {-argName "-closure"}
+  {-argName "-closure" -nrargs 0}
   {-argName "pattern" -type objpattern}
 }
 classInfoMethod superclass NsfClassInfoSuperclassMethod {
-  {-argName "-closure"}
+  {-argName "-closure" -nrargs 0}
   {-argName "pattern" -type tclobj}
 }
 
