@@ -404,11 +404,11 @@ namespace eval ::xotcl {
     ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
 	-elementtype mixinreg -multiplicity 0..n
     ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
-	-multiplicity 0..n
+	-elementtype filterreg -multiplicity 0..n
     ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin \
 	-elementtype mixinreg -multiplicity 0..n
     ::nx::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
-	-multiplicity 0..n
+	-elementtype filterreg -multiplicity 0..n
   }
   register_system_slots ::xotcl
   proc ::xotcl::register_system_slots {} {}
