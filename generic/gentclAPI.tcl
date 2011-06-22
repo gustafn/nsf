@@ -120,12 +120,14 @@ proc gencall {methodName fn parameterDefinitions clientData
     set cVar 1
     set (-argName) [string map [list - _] $(-argName)]
     if {[regexp {^_(.*)$} $(-argName) _ switchName]} {
+      # non positional args
       set varName with[string totitle $switchName]
       set calledArg $varName
       set type "int "
       if {$(-nrargs) == 1} {
         switch -glob $(-type) {
-          ""           {set type "CONST char *"}
+          ""           {#set type "CONST char *"
+}
           "class"      {set type "NsfClass *"}
           "object"     {set type "NsfObject *"}
           "tclobj"     {set type "Tcl_Obj *"}
@@ -260,9 +262,9 @@ proc genstubs {} {
   foreach key [lsort [array names ::definitions]] {
     array set d $::definitions($key)
     lappend enums $d(idx)
-    set nrArgs [llength $d(parameterDefinitions)]
+    set nrParams [llength $d(parameterDefinitions)]
     set stubDecl "static int $d(stub)$::objCmdProc\n"
-    set ifd "{\"$d(ns)::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
+    set ifd "{\"$d(ns)::$d(methodName)\", $d(stub), $nrParams, {\n  [genifd $d(parameterDefinitions)]}\n}"
     
     gencall $d(methodName) $d(stub) $d(parameterDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef];\n"
@@ -275,17 +277,17 @@ proc genstubs {} {
       set call "return [implArgList $d(implementation) {} $arglist];"
     }
     
-    #if {$nrArgs == 1} { puts stderr "$d(stub) => '$arglist' cDefs=$cDefs ifd=$ifDef" }
-    if {$nrArgs == 1 && $arglist eq "objc, objv"} {
+    #if {$nrParams == 1} { puts stderr "$d(stub) => '$arglist' cDefs=$cDefs ifd=$ifDef" }
+    if {$nrParams == 1 && $arglist eq "objc, objv"} {
       # TODO we would not need to generate a stub at all.... 
-      #set ifd "{\"$d(ns)::$d(methodName)\", $d(implementation), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
+      #set ifd "{\"$d(ns)::$d(methodName)\", $d(implementation), $nrParams, {\n  [genifd $d(parameterDefinitions)]}\n}"
       #set stubDecl "static int $d(implementation)$::objCmdProc\n"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
-    } elseif {$nrArgs == 1 && $arglist eq "obj, objc, objv"} {
+    } elseif {$nrParams == 1 && $arglist eq "obj, objc, objv"} {
       # no need to call objv parser
       #puts stderr "$d(stub) => '$arglist'"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
-  } elseif {$nrArgs == 0} {
+  } elseif {$nrParams == 0} {
     append pre [subst -nocommands {
       if (objc != 1) {
 	return NsfArgumentError(interp, "too many arguments:", 
@@ -294,7 +296,7 @@ proc genstubs {} {
       } 
     }]
     append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
-  } elseif {$nrArgs == 1 && [string match "Tcl_Obj *" $cDefs]} {
+  } elseif {$nrParams == 1 && [string match "Tcl_Obj *" $cDefs]} {
 
     array set defs [list -required 0]
     array set defs [lindex $d(parameterDefinitions) 0]
@@ -383,7 +385,7 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   }
   set completed [list]
   foreach parameterDefinition $parameterDefinitions {
-    array set "" {-required 0 -nrargs 0 -type ""}
+    array set "" {-required 0 -nrargs 1 -type ""}
     array set "" $parameterDefinition
     lappend completed [array get ""]
   }
