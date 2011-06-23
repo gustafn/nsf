@@ -408,7 +408,7 @@ namespace eval ::nx {
   ######################################################################
   #
   # The function isSlotContainer tests, whether the provided object is
-  # a slot container based on the methodproperty slotcontainer, used
+  # a slot container based on the method property slotcontainer, used
   # internally by the serializer.
   #
   proc ::nx::isSlotContainer {object} {

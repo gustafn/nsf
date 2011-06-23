@@ -2928,6 +2928,18 @@ nsf:
    * added disposition.test
    * extended regression test
 
+- xotcl2: use filterreg instead of plain arg for registration of filters
+
+- nsf.c:
+   * improved source code documentation
+   * added parameter option "args" in order to get eventually rid of 
+     hard-wired residual args.
+   * improved a few error messages
+   * fixed object parameters consisting only of plain parameters 
+     (previously, no parameters were returned in this case, e.g. 
+     for method parameters; but object parameter code depends on it)
+- extended and updated regression tests
+
 TODO:
 
 - add explicit regression tests for disposition + types

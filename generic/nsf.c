@@ -604,10 +604,28 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfCallMethodWithArgs --
+ *
+ *      Call method (passed in methodObj) on the object, with the always
+ *      provided arg1 and the optional remaining args (passed vis objv).  This
+ *      way, we save the memcopy in case no argument or an single argument are
+ *      provided (common cases).
+ *
+ * Results:
+ *      Tcl result.
+ *
+ * Side effects:
+ *      Called method might side effect.
+ *
+ *----------------------------------------------------------------------
+ */
+
 extern int
-NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj, Tcl_Obj *arg,
-		      int givenobjc, Tcl_Obj *CONST objv[], int flags) {
-  NsfObject *object = (NsfObject *) clientData;
+NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj, 
+		      Tcl_Obj *arg1, int givenobjc, Tcl_Obj *CONST objv[], int flags) {
   int objc = givenobjc + 2;
   int result;
   ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
@@ -616,7 +634,7 @@ NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method
   tov[0] = object->cmdName;
   tov[1] = methodObj;
   if (objc>2) {
-    tov[2] = arg;
+    tov[2] = arg1;
   }
   if (objc>3) {
     memcpy(tov+3, objv, sizeof(Tcl_Obj *)*(objc-3));
@@ -624,9 +642,8 @@ NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method
 
   /*fprintf(stderr, "%%%% CallMethodWithArgs cmdname=%s, method=%s, arg1 %s objc=%d\n",
 	  ObjStr(tov[0]), ObjStr(tov[1]), 
-	  objc>2 ? ObjStr(tov[2]) : "",
-	  objc);*/
-  result = ObjectDispatch(clientData, interp, objc, tov, flags);
+	  objc>2 ? ObjStr(tov[2]) : "",  objc);*/
+  result = ObjectDispatch(object, interp, objc, tov, flags);
 
   FREE_ON_STACK(Tcl_Obj*, tov);
   return result;
@@ -7579,9 +7596,9 @@ ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs) {
 
   if (cmdPtr->deleteProc != NsfProcDeleteProc) {
     NsfProcContext *ctxPtr = NEW(NsfProcContext);
-
-    /*fprintf(stderr, "paramDefsStore replace deleteProc %p by %p\n",
-      cmdPtr->deleteProc, NsfProcDeleteProc);*/
+    
+    /*fprintf(stderr, "ParamDefsStore %p replace deleteProc %p by %p\n",
+      paramDefs, cmdPtr->deleteProc, NsfProcDeleteProc);*/
 
     ctxPtr->oldDeleteData = (Proc *)cmdPtr->deleteData;
     ctxPtr->oldDeleteProc = cmdPtr->deleteProc;
@@ -7590,7 +7607,7 @@ ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs) {
     cmdPtr->deleteData = ctxPtr;
     return TCL_OK;
   } else {
-    /*fprintf(stderr, "paramDefsStore cmd %p has already NsfProcDeleteProc deleteData %p\n",
+    /*fprintf(stderr, "ParamDefsStore cmd %p has already NsfProcDeleteProc deleteData %p\n",
       cmd, cmdPtr->deleteData);*/
     if (cmdPtr->deleteData) {
       NsfProcContext *ctxPtr = cmdPtr->deleteData;
@@ -7680,13 +7697,13 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
     if (pPtr -> paramObj) {
       innerListObj = pPtr->paramObj;
     } else {
-      /* We need this part only for C-defined parameter definitions,
-         defined via genTclAPI.
-
-         TODO: we could streamline this by defining as well C-API via
-         the same syntax as for accepted for tcl obj types
-         "nsfParam"
-      */
+      /* 
+       * We need this part only for C-defined parameter definitions, defined
+       * via genTclAPI.
+       *
+       * TODO: we could streamline this by defining as well C-API via the same
+       * syntax as for accepted for tcl obj types "nsfParam"
+       */
       int isNonpos = *pPtr->name == '-';
       int outputRequired = (isNonpos && (pPtr->flags & NSF_ARG_REQUIRED));
       int outputOptional = (!isNonpos && !(pPtr->flags & NSF_ARG_REQUIRED)
@@ -9847,14 +9864,32 @@ static int
 ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
                         CONST char *typeName, Nsf_TypeConverter *converter) {
   if (paramPtr->converter) {
-    return NsfPrintError(interp, "Refuse to redefine parameter converter to use %s",
-			 typeName);
+    return NsfPrintError(interp, "Refuse to redefine parameter type of '%s' from type '%s' to type '%s'",
+			 paramPtr->name, paramPtr->type, typeName);
   }
   paramPtr->converter = converter;
   paramPtr->nrArgs = 1;
   paramPtr->type = typeName;
   return TCL_OK;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * ParamOptionParse --
+ *
+ *    Parse a single parameter option of a parameter. The parameter option
+ *    string is passed in as second argument, the sizes start and remainder
+ *    flag the offsets in the string. As a result, the fields of the parameter
+ *    structure are updated.
+ *
+ * Results:
+ *    Tcl result code, updated fields in the Nsf_Param structure.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static int
 ParamOptionParse(Tcl_Interp *interp, CONST char *argString, 
@@ -9870,9 +9905,10 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else {
     optionLength = firstComma - option;
   }
-
-  /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%d) disallowed %.6x\n",
+  
+  /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
     paramPtr->name, option, remainder, disallowedOptions);*/
+  
   if (strncmp(option, "required", MAX(3,optionLength)) == 0) {
     paramPtr->flags |= NSF_ARG_REQUIRED;
 
@@ -9915,10 +9951,16 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (strncmp(option, "noarg", 5) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0) {
-      return NsfPrintError(interp, "option noarg only allowed for parameter type \"alias\"");
+      return NsfPrintError(interp, "option \"noarg\" only allowed for parameter type \"alias\"");
     }
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
+
+  } else if (strncmp(option, "args", 4) == 0) {
+    if ((paramPtr->flags & NSF_ARG_ALIAS) == 0) {
+      return NsfPrintError(interp, "option \"args\" only allowed for parameter type \"alias\"");
+    }
+    result = ParamOptionSetConverter(interp, paramPtr, "args", ConvertToNothing);
 
   } else if (optionLength >= 4 && strncmp(option, "arg=", 4) == 0) {
     if (paramPtr->converter != ConvertViaCmd) {
@@ -10046,6 +10088,22 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamParse --
+ *
+ *    Parse a a single parameter with a possible default provided in the form
+ *    of an Tcl_Obj.
+ *
+ * Results:
+ *    Tcl result code
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static int
 ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowedFlags,
            Nsf_Param *paramPtr, int *possibleUnknowns, int *plainParams, int *nrNonposArgs) {
@@ -10126,7 +10184,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     }
 
   } else {
-    /* no ':', the whole arg is the name, we have not options */
+    /* no ':', the whole arg is the name, we have no options */
     NEW_STRING(paramPtr->name, argString, length);
     if (isNonposArgument) {
       paramPtr->nameObj = Tcl_NewStringObj(argName, length-1);
@@ -10158,8 +10216,9 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
      */
     paramPtr->flags &= ~NSF_ARG_REQUIRED;
   } else if (paramPtr->flags & NSF_ARG_SUBST_DEFAULT) {
-    NsfPrintError(interp, "parameter option substdefault specified for parameter \"%s\""
-		  " without default value", paramPtr->name);
+    result = NsfPrintError(interp, 
+			   "parameter option substdefault specified for parameter \"%s\""
+			   " without default value", paramPtr->name);
     goto param_error;
   }
 
@@ -10168,7 +10227,14 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   if (paramPtr->converter == NULL) {
     /* Nsf_ConvertToTclobj() is the default converter */
     paramPtr->converter = Nsf_ConvertToTclobj;
-  } /*else if (paramPtr->converter == ConvertViaCmd) {*/
+  } else if (paramPtr->converter == ConvertToNothing) {
+    if (paramPtr->flags & (NSF_ARG_ALLOW_EMPTY|NSF_ARG_MULTIVALUED)) {
+      result = NsfPrintError(interp, 
+			     "Multiplicity settings for variable argument parameter \"%s\" not allowed",
+			     paramPtr->name);
+      goto param_error;
+    }
+  }
 
   if ((paramPtr->slotObj || paramPtr->converter == ConvertViaCmd) && paramPtr->type) {
     Tcl_Obj *converterNameObj;
@@ -10249,18 +10315,38 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   return TCL_ERROR;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamDefsParse --
+ *
+ *    Parse a list of parameters in the form of Tcl_Objs into a parsedParamPtr
+ *    structure (last argument). The argument allowedOptions is used to flag,
+ *    what parameter options are generally allowed (typically different for
+ *    method and object parameters). Unless forceParamdefs is set, the parsed
+ *    parameter structure is only returned when needed (i.e. when not all
+ *    parameters are plain parameters).
+ *
+ * Results:
+ *    Tcl result code, parsedParameter structure in last argument (allocated 
+ *    by the caller).
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
-ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *args,
-               int allowedOptinons, NsfParsedParam *parsedParamPtr) {
+ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
+               int allowedOptinons, int forceParamdefs, NsfParsedParam *parsedParamPtr) {
   Tcl_Obj **argsv;
   int result, argsc;
 
   parsedParamPtr->paramDefs = NULL;
   parsedParamPtr->possibleUnknowns = 0;
 
-  result = Tcl_ListObjGetElements(interp, args, &argsc, &argsv);
+  result = Tcl_ListObjGetElements(interp, paramSpecObjs, &argsc, &argsv);
   if (result != TCL_OK) {
-    return NsfPrintError(interp, "cannot break down non-positional args: %s", ObjStr(args));
+    return NsfPrintError(interp, "cannot break down non-positional args: %s", ObjStr(paramSpecObjs));
   }
 
   if (argsc > 0) {
@@ -10273,6 +10359,11 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *args,
     for (i=0; i < argsc; i++, paramPtr++) {
       result = ParamParse(interp, procNameObj, argsv[i], allowedOptinons,
 			  paramPtr, &possibleUnknowns, &plainParams, &nrNonposArgs);
+      if (result == TCL_OK && paramPtr->converter == ConvertToNothing && i < argsc-1) {
+	result =  NsfPrintError(interp, 
+				"parameter option \"args\" invalid for parameter \"%s\"; only allowed for last parameter", 
+				paramPtr->name);
+      }
       if (result != TCL_OK) {
         ParamsFree(paramsPtr);
         return result;
@@ -10284,12 +10375,11 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *args,
       }
     }
 
-
     /*
      * If all arguments are good old Tcl arguments, there is no need
      * to use the parameter definition structure.
      */
-    if (plainParams == argsc) {
+    if (plainParams == argsc && !forceParamdefs) {
       ParamsFree(paramsPtr);
       return TCL_OK;
     }
@@ -10334,7 +10424,9 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   result = CanRedefineCmd(interp, nsPtr, defObject, methodName);
   if (result == TCL_OK) {
     /* Yes, so obtain an method parameter definitions */
-    result = ParamDefsParse(interp, nameObj, args, NSF_DISALLOWED_ARG_METHOD_PARAMETER, &parsedParam);
+    result = ParamDefsParse(interp, nameObj, args, 
+			    NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
+			    &parsedParam);
   }
   if (result != TCL_OK) {
     return result;
@@ -14734,7 +14826,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   for (; pPtr->name; pPtr++) {}
 
   /* 
-   * is last argument a vararg? 
+   * Is the last argument a vararg? 
    */
   pPtr--;
   if (pPtr->converter == ConvertToNothing) {
@@ -16449,7 +16541,7 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
       arg = NULL;
       objv = NULL;
     }
-    result = NsfCallMethodWithArgs(object, interp, command, arg,
+    result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object, command, arg,
 				   nobjc, objv, NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE);
   }
 
@@ -17551,7 +17643,9 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments
    * Parse argument list "arguments" to determine if we should provide
    * nsf parameter handling.
    */
-  result = ParamDefsParse(interp, nameObj, arguments, NSF_DISALLOWED_ARG_METHOD_PARAMETER, &parsedParam);
+  result = ParamDefsParse(interp, nameObj, arguments, 
+			  NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
+			  &parsedParam);
   if (result != TCL_OK) {
     return result;
   }
@@ -18312,7 +18406,8 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
 	 * representation.
 	 */
 	result = ParamDefsParse(interp, procNameObj, rawConfArgs,
-				NSF_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
+				NSF_DISALLOWED_ARG_OBJECT_PARAMETER, 1,
+				parsedParamPtr);
 	if (result == TCL_OK) {
 	  NsfParsedParam *ppDefPtr = NEW(NsfParsedParam);
 	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
@@ -18488,10 +18583,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 #if 0
   fprintf(stderr, "NsfOConfigureMethod %s %d ",ObjectName(object), objc);
 
-  for(i=0; i<objc; i++) {
-    /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
-    fprintf(stderr, " o[%d]=%s,", i, ObjStr(objv[i]));
-  }
+  for(i=0; i<objc; i++) {fprintf(stderr, " o[%d]=%s,", i, ObjStr(objv[i]));}
   fprintf(stderr, "\n");
 #endif
 
@@ -18499,7 +18591,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   result = GetObjectParameterDefinition(interp, objv[0], object->cl, &parsedParam);
   if (result != TCL_OK || !parsedParam.paramDefs) {
     /*fprintf(stderr, "... nothing to do for method %s\n", ObjStr(objv[0]));*/
-    goto configure_exit;
+    return result;
   }
 
   /* Push frame to allow for [self] and make instvars of obj accessible as locals */
@@ -18512,14 +18604,13 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
   if (result != TCL_OK) {
     Nsf_PopFrameObj(interp, framePtr);
-    ParseContextRelease(&pc);
     goto configure_exit;
   }
 
   /*
-   * At this point, the arguments are valid (according to the
-   * parameter definitions) and the defaults are set. Now we have to
-   * apply the arguments (mostly setting instance variables).
+   * At this point, the arguments are tested to be valid (according to the
+   * parameter definitions) and the defaults are set. Now we have to apply the
+   * arguments (mostly setting instance variables).
    */
 #if defined(CONFIGURE_ARGS_TRACE)
   fprintf(stderr, "*** POPULATE OBJ '%s': nr of parsed args %d\n", ObjectName(object), pc.objc);
@@ -18542,8 +18633,9 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       Tcl_Obj *varObj;
 
       /*
-       * NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD do not set instance
-       * variables, so we do not have to check for existing variables.
+       * Object parameter method calls (NSF_ARG_METHOD_INVOCATION set) do not
+       * set instance variables, so we do not have to check for existing
+       * variables.
        */
       if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
 	continue;
@@ -18608,7 +18700,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
 
       } else if (paramPtr->flags & NSF_ARG_ALIAS) {
-        Tcl_Obj *ov[2], *methodObj;
+        Tcl_Obj *methodObj, **ovPtr, *ov0;
         int oc = 0;   
 	
 	/*
@@ -18623,17 +18715,53 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	 */
 	methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
 
-        if (paramPtr->nrArgs == 1) {
-          ov[oc] = newValue;
-          oc ++;
-        }
-
+	/*fprintf(stderr, "ALIAS %s, nrargs %d converter %p toNothing %d i %d oc %d,  pcPtr->lastobjc %d\n",
+		paramPtr->name, paramPtr->nrArgs, paramPtr->converter, 
+		paramPtr->converter == ConvertToNothing,
+		i, objc,  pc.lastobjc);*/
+	if (paramPtr->converter == ConvertToNothing) {
+	  /*
+	   * We are using the varargs interface; pass all remaining args into
+	   * the called method.
+	   */
+	  if (newValue == paramPtr->defaultValue) {
+	    /*
+	     * use the default
+	     */
+	    if (Tcl_ListObjGetElements(interp, paramPtr->defaultValue, &oc, &ovPtr) != TCL_OK) {
+	      goto method_arg_done;
+	    }
+	    ov0 = *ovPtr;
+	    ovPtr ++;
+	  } else {
+	    /*
+	     * use actual args
+	     */
+	    ov0 = objv[pc.lastobjc];
+	    ovPtr = (Tcl_Obj **)&objv[pc.lastobjc + 1];
+	    oc = objc - pc.lastobjc;
+	  }
+	} else {
+	  /*
+	   * A simple alias, receives no (when noarg was specified) or a
+	   * single argument (default).
+	   */
+	  if (paramPtr->nrArgs == 1) {
+	    oc = 1;
+	    ov0 = newValue;
+	  } else {
+	    oc = 0;
+	    ov0 = NULL;
+	  }
+	  ovPtr = NULL;
+	}
+	  
 	/*fprintf(stderr, "call alias %s with methodObj %s.%s oc %d, nrArgs %d '%s'\n", 
 		paramPtr->name, ObjectName(object), ObjStr(methodObj), oc, 
 		paramPtr->nrArgs, ObjStr(newValue));*/
 
-        result = NsfCallMethodWithArgs(object, interp, methodObj,
-				       ov[0], oc, &ov[1], NSF_CSC_IMMEDIATE);
+        result = NsfCallMethodWithArgs(interp, (Nsf_Object*)object, methodObj,
+				       ov0, oc, ovPtr, NSF_CSC_IMMEDIATE);
 	
       } else /* must be NSF_ARG_FORWARD */ {
 	Tcl_Obj *forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */
@@ -18707,7 +18835,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       if (result != TCL_OK) {
         Nsf_PopFrameObj(interp, framePtr);
-        ParseContextRelease(&pc);
         goto configure_exit;
       }
 
@@ -18745,6 +18872,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
   Nsf_PopFrameObj(interp, framePtr);
   remainingArgsc = pc.objc - paramDefs->nrParams;
+  
+  /*fprintf(stderr, "%s varargs? %d remaining %d\n",  ObjStr(objv[0]), pc.varArgs, remainingArgsc);*/
 
   /*
    * Call residualargs when we have varargs and left over arguments
@@ -18755,23 +18884,24 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     if (CallDirectly(interp, object, NSF_o_residualargs_idx, &methodObj)) {
       i -= 2;
       if (methodObj) {pc.full_objv[i] = methodObj;}
+      /*fprintf(stderr, ".... call residual args directly\n");*/
       result = NsfOResidualargsMethod(interp, object, remainingArgsc+1, pc.full_objv + i);
     } else {
+      /*fprintf(stderr, ".... dispatch residual args\n");*/
       result = CallMethod(object, interp,
                           methodObj, remainingArgsc+2, pc.full_objv + i-1, NSF_CSC_IMMEDIATE);
     }
 
     if (result != TCL_OK) {
-      ParseContextRelease(&pc);
       goto configure_exit;
     }
   } else {
+    assert(remainingArgsc <= 1);
     Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
   }
 
-  ParseContextRelease(&pc);
-
  configure_exit:
+  ParseContextRelease(&pc);
   return result;
 }
 
@@ -18811,7 +18941,7 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
       result = DoDealloc(interp, object);
     } else {
       /*fprintf(stderr, "call dealloc\n");*/
-      result = NsfCallMethodWithArgs(object->cl, interp, methodObj,
+      result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object->cl, methodObj,
 				     object->cmdName, 1, NULL, NSF_CSC_IMMEDIATE);
       if (result != TCL_OK) {
         /*

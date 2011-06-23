@@ -50,13 +50,13 @@ EXTERN struct Nsf_Class * NsfGetClass(Tcl_Interp *interp, CONST char *name);
 #define NsfDeleteObject_TCL_DECLARED
 /* 5 */
 EXTERN int		NsfDeleteObject(Tcl_Interp *interp,
-				struct Nsf_Object *obj);
+				struct Nsf_Object *object);
 #endif
 #ifndef NsfRemoveObjectMethod_TCL_DECLARED
 #define NsfRemoveObjectMethod_TCL_DECLARED
 /* 6 */
 EXTERN int		NsfRemoveObjectMethod(Tcl_Interp *interp,
-				struct Nsf_Object *obj, CONST char *nm);
+				struct Nsf_Object *object, CONST char *nm);
 #endif
 #ifndef NsfRemoveClassMethod_TCL_DECLARED
 #define NsfRemoveClassMethod_TCL_DECLARED
@@ -67,21 +67,21 @@ EXTERN int		NsfRemoveClassMethod(Tcl_Interp *interp,
 #ifndef Nsf_ObjSetVar2_TCL_DECLARED
 #define Nsf_ObjSetVar2_TCL_DECLARED
 /* 8 */
-EXTERN Tcl_Obj *	Nsf_ObjSetVar2(struct Nsf_Object *obj,
+EXTERN Tcl_Obj *	Nsf_ObjSetVar2(struct Nsf_Object *object,
 				Tcl_Interp *interp, Tcl_Obj *name1,
 				Tcl_Obj *name2, Tcl_Obj *value, int flgs);
 #endif
 #ifndef Nsf_ObjGetVar2_TCL_DECLARED
 #define Nsf_ObjGetVar2_TCL_DECLARED
 /* 9 */
-EXTERN Tcl_Obj *	Nsf_ObjGetVar2(struct Nsf_Object *obj,
+EXTERN Tcl_Obj *	Nsf_ObjGetVar2(struct Nsf_Object *object,
 				Tcl_Interp *interp, Tcl_Obj *name1,
 				Tcl_Obj *name2, int flgs);
 #endif
 #ifndef Nsf_UnsetVar2_TCL_DECLARED
 #define Nsf_UnsetVar2_TCL_DECLARED
 /* 10 */
-EXTERN int		Nsf_UnsetVar2(struct Nsf_Object *obj,
+EXTERN int		Nsf_UnsetVar2(struct Nsf_Object *object,
 				Tcl_Interp *interp, CONST char *name1,
 				CONST char *name2, int flgs);
 #endif
@@ -117,12 +117,13 @@ EXTERN void		NsfStackDump(Tcl_Interp *interp);
 #ifndef NsfSetObjClientData_TCL_DECLARED
 #define NsfSetObjClientData_TCL_DECLARED
 /* 16 */
-EXTERN void		NsfSetObjClientData(Nsf_Object *obj, ClientData data);
+EXTERN void		NsfSetObjClientData(Nsf_Object *object,
+				ClientData data);
 #endif
 #ifndef NsfGetObjClientData_TCL_DECLARED
 #define NsfGetObjClientData_TCL_DECLARED
 /* 17 */
-EXTERN ClientData	NsfGetObjClientData(Nsf_Object *obj);
+EXTERN ClientData	NsfGetObjClientData(Nsf_Object *object);
 #endif
 #ifndef NsfSetClassClientData_TCL_DECLARED
 #define NsfSetClassClientData_TCL_DECLARED
@@ -138,13 +139,13 @@ EXTERN ClientData	NsfGetClassClientData(Nsf_Class *cl);
 #define NsfRequireObjNamespace_TCL_DECLARED
 /* 20 */
 EXTERN void		NsfRequireObjNamespace(Tcl_Interp *interp,
-				Nsf_Object *obj);
+				Nsf_Object *object);
 #endif
 #ifndef NsfCallMethodWithArgs_TCL_DECLARED
 #define NsfCallMethodWithArgs_TCL_DECLARED
 /* 21 */
-EXTERN int		NsfCallMethodWithArgs(ClientData cd,
-				Tcl_Interp *interp, Tcl_Obj *method,
+EXTERN int		NsfCallMethodWithArgs(Tcl_Interp *interp,
+				Nsf_Object *object, Tcl_Obj *method,
 				Tcl_Obj *arg, int objc,
 				Tcl_Obj *CONST objv[], int flags);
 #endif
@@ -152,7 +153,7 @@ EXTERN int		NsfCallMethodWithArgs(ClientData cd,
 #define NsfAddObjectMethod_TCL_DECLARED
 /* 22 */
 EXTERN int		NsfAddObjectMethod(Tcl_Interp *interp,
-				struct Nsf_Object *obj, CONST char *nm,
+				struct Nsf_Object *object, CONST char *nm,
 				Tcl_ObjCmdProc *proc, ClientData cd,
 				Tcl_CmdDeleteProc *dp, int flags);
 #endif
@@ -185,24 +186,24 @@ typedef struct NsfStubs {
     struct Nsf_Class * (*nsfIsClass) (Tcl_Interp *interp, ClientData cd); /* 2 */
     struct Nsf_Object * (*nsfGetObject) (Tcl_Interp *interp, CONST char *name); /* 3 */
     struct Nsf_Class * (*nsfGetClass) (Tcl_Interp *interp, CONST char *name); /* 4 */
-    int (*nsfDeleteObject) (Tcl_Interp *interp, struct Nsf_Object *obj); /* 5 */
-    int (*nsfRemoveObjectMethod) (Tcl_Interp *interp, struct Nsf_Object *obj, CONST char *nm); /* 6 */
+    int (*nsfDeleteObject) (Tcl_Interp *interp, struct Nsf_Object *object); /* 5 */
+    int (*nsfRemoveObjectMethod) (Tcl_Interp *interp, struct Nsf_Object *object, CONST char *nm); /* 6 */
     int (*nsfRemoveClassMethod) (Tcl_Interp *interp, struct Nsf_Class *cl, CONST char *nm); /* 7 */
-    Tcl_Obj * (*nsf_ObjSetVar2) (struct Nsf_Object *obj, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, Tcl_Obj *value, int flgs); /* 8 */
-    Tcl_Obj * (*nsf_ObjGetVar2) (struct Nsf_Object *obj, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, int flgs); /* 9 */
-    int (*nsf_UnsetVar2) (struct Nsf_Object *obj, Tcl_Interp *interp, CONST char *name1, CONST char *name2, int flgs); /* 10 */
+    Tcl_Obj * (*nsf_ObjSetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, Tcl_Obj *value, int flgs); /* 8 */
+    Tcl_Obj * (*nsf_ObjGetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, int flgs); /* 9 */
+    int (*nsf_UnsetVar2) (struct Nsf_Object *object, Tcl_Interp *interp, CONST char *name1, CONST char *name2, int flgs); /* 10 */
     void (*nsfDStringPrintf) (Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc); /* 11 */
     int (*nsfPrintError) (Tcl_Interp *interp, CONST char *fmt, ...); /* 12 */
     int (*nsfErrInProc) (Tcl_Interp *interp, Tcl_Obj *objName, Tcl_Obj *clName, CONST char *procName); /* 13 */
     int (*nsfObjErrType) (Tcl_Interp *interp, CONST char *context, Tcl_Obj *value, CONST char *type, Nsf_Param CONST *pPtr); /* 14 */
     void (*nsfStackDump) (Tcl_Interp *interp); /* 15 */
-    void (*nsfSetObjClientData) (Nsf_Object *obj, ClientData data); /* 16 */
-    ClientData (*nsfGetObjClientData) (Nsf_Object *obj); /* 17 */
+    void (*nsfSetObjClientData) (Nsf_Object *object, ClientData data); /* 16 */
+    ClientData (*nsfGetObjClientData) (Nsf_Object *object); /* 17 */
     void (*nsfSetClassClientData) (Nsf_Class *cl, ClientData data); /* 18 */
     ClientData (*nsfGetClassClientData) (Nsf_Class *cl); /* 19 */
-    void (*nsfRequireObjNamespace) (Tcl_Interp *interp, Nsf_Object *obj); /* 20 */
-    int (*nsfCallMethodWithArgs) (ClientData cd, Tcl_Interp *interp, Tcl_Obj *method, Tcl_Obj *arg, int objc, Tcl_Obj *CONST objv[], int flags); /* 21 */
-    int (*nsfAddObjectMethod) (Tcl_Interp *interp, struct Nsf_Object *obj, CONST char *nm, Tcl_ObjCmdProc *proc, ClientData cd, Tcl_CmdDeleteProc *dp, int flags); /* 22 */
+    void (*nsfRequireObjNamespace) (Tcl_Interp *interp, Nsf_Object *object); /* 20 */
+    int (*nsfCallMethodWithArgs) (Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *method, Tcl_Obj *arg, int objc, Tcl_Obj *CONST objv[], int flags); /* 21 */
+    int (*nsfAddObjectMethod) (Tcl_Interp *interp, struct Nsf_Object *object, CONST char *nm, Tcl_ObjCmdProc *proc, ClientData cd, Tcl_CmdDeleteProc *dp, int flags); /* 22 */
     int (*nsfAddClassMethod) (Tcl_Interp *interp, struct Nsf_Class *cl, CONST char *nm, Tcl_ObjCmdProc *proc, ClientData cd, Tcl_CmdDeleteProc *dp, int flags); /* 23 */
     int (*nsfCreate) (Tcl_Interp *in, Nsf_Class *class, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]); /* 24 */
 } NsfStubs;

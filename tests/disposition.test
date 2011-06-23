@@ -214,7 +214,7 @@ nx::Test case basics {
   dict set types object [list testvalue ::C mtype integer msg $msg ]
   
   dict set types class [list testvalue ::C mtype boolean msg $msg]
-  dict set types object,type=::Class \
+  dict set types object,type=::nx::Class \
       [list testvalue ::C  mtype object,type=::C \
 	   msg "expected object of type ::C but got \"::C\"\
 		for parameter \"x\""] 
@@ -227,7 +227,7 @@ nx::Test case basics {
 	set :[current method] $x
       }
       ::C setObjectParams [list [list -foo:alias,$t]]
-      ? "::nsf::is $t \[\[::C new -foo $testvalue\] eval {set :foo}\]" 1
+      ? "::nsf::is $t \[\[::C new -foo $testvalue\] eval {set :foo}\]" 1 "check: -foo:alias,$t"
     }
   }
 
@@ -448,5 +448,123 @@ nx::Test case alias-noarg {
   }
   
   C setObjectParams {initcmd:initcmd,noarg}
-  ? {C create c1} {option noarg only allowed for parameter type "alias"}
+  ? {C create c1} {option "noarg" only allowed for parameter type "alias"}
 }
+
+#
+# check alias + args
+#
+nx::Test case alias-args {
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+    :public method Residualargs args {
+      puts stderr "aliased RESIDUALARGS <[llength $args]>"
+      puts stderr "....... <$args>"
+      set :args $args
+
+    }
+    :public method residualargs args {
+      puts stderr "residualargs <$args>"
+    }
+  }
+  C copy D
+  
+  # TODO: check the meaning of these
+  C setObjectParams {args}
+  D setObjectParams {-a args}
+
+  # Configure object parameters to call method Residualargs with
+  # option args when args is used
+  C setObjectParams {args:alias,method=Residualargs,args}
+  D setObjectParams {-a args:alias,method=Residualargs,args}
+
+  # If no residual args are provided, the method residualargs is not
+  # called. This is the same rule as for all other consuming object
+  # parameter dispatches
+  puts stderr =====1c
+  ? {C create c1} {::c1}
+  ? {c1 eval {info exists :args}} 0
+  puts stderr =====1d
+  ? {D create c1} {::c1}
+  ? {c1 eval {info exists :args}} 0
+  puts stderr =====done
+
+  # Residual args are provided, the method residualargs is
+  # called. 
+  puts stderr =====2c
+  ? {C create c1 1 2 3} {::c1}
+  ? {c1 eval {info exists :args}} 1
+  ? {c1 eval {set :args}} {1 2 3}
+  puts stderr =====2d
+  ? {D create c1 1 2 3} {::c1}
+  ? {c1 eval {info exists :args}} 1
+  ? {c1 eval {set :args}} {1 2 3}
+  puts stderr =====done
+
+  #
+  # Provide a default for args.
+  #
+  puts stderr =====3a
+  C setObjectParams {{args:alias,method=Residualargs,args {hello world}}}
+
+  # use the default
+  ? {C create c1} {::c1}
+  ? {c1 eval {info exists :args}} 1
+  ? {c1 eval {set :args}} {hello world}
+  
+  # override the default
+  ? {C create c1 a b c} {::c1}
+  ? {c1 eval {info exists :args}} 1
+  ? {c1 eval {set :args}} {a b c}
+  puts stderr =====3b
+
+  #
+  # don't allow other types for parameter option "args"
+  #
+  puts stderr =====3a
+  C setObjectParams {{args:alias,int,method=Residualargs,args {hello world}}}
+  ? {C create c1} {Refuse to redefine parameter type of 'args' from type 'integer' to type 'args'}
+  ? {c1 eval {info exists :args}} 0
+  C setObjectParams {{args:int,alias,method=Residualargs,args {hello world}}}
+  ? {C create c1} {Refuse to redefine parameter type of 'args' from type 'integer' to type 'args'}
+  ? {c1 eval {info exists :args}} 0
+
+  #
+  # don't allow multiplicity settings for parameter option "args"
+  #
+  puts stderr =====4a
+  C setObjectParams {{args:alias,method=Residualargs,0..n,args {hello world}}}
+  ? {C create c1} {Multiplicity settings for variable argument parameter "args" not allowed}
+  ? {c1 eval {info exists :args}} 0
+
+  C setObjectParams {args:alias,method=Residualargs,args,1..n}
+  ? {C create c1} {Multiplicity settings for variable argument parameter "args" not allowed}
+  ? {c1 eval {info exists :args}} 0
+  
+  #
+  # make sure, parameter with parameter option "args" is used in last parameter
+  #
+  puts stderr =====5a
+  C setObjectParams {a:alias,method=Residualargs,args -b:integer}
+  ? {C create c1 hello world} {parameter option "args" invalid for parameter "a"; only allowed for last parameter}
+  ? {c1 eval {info exists :args}} 0
+}
+
+exit
+
+# check inticmd + noarg (should not be allowed)
+#
+nx::Test case xotcl-residualargs {
+  package req XOTcl
+  puts stderr =====3
+  ? {::xotcl::Class create XD -set x 1} "::XD"
+  #? {c1 eval {info exists :args}} 0
+  ? {XD objectparameter} "-mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args"
+}
+puts stderr ===exit

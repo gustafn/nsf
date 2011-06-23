@@ -211,8 +211,8 @@ Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
     Tcl_Obj *methodObj = object ? NsfMethodObj(object, NSF_o_move_idx) : NULL;
     if (object && methodObj) {
-      return NsfCallMethodWithArgs((ClientData)object, interp,
-                                     methodObj, objv[2], 1, 0, NSF_CSC_IMMEDIATE);
+      return NsfCallMethodWithArgs(interp, (Nsf_Object *)object,
+				   methodObj, objv[2], 1, 0, NSF_CSC_IMMEDIATE);
     }
   }
 
