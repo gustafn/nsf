@@ -213,47 +213,47 @@ NsfMongoUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 static Nsf_methodDefinition method_definitions[] = {
 {"::mongo::close", NsfMongoCloseStub, 1, {
-  {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::connect", NsfMongoConnectStub, 2, {
   {"-replica-set", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-server", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::count", NsfMongoCountStub, 3, {
-  {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"query", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::index", NsfMongoIndexStub, 5, {
-  {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"attributes", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"attributes", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-dropdups", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-unique", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::insert", NsfMongoInsertStub, 3, {
-  {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"values", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"values", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::query", NsfMongoQueryStub, 6, {
-  {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"query", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-atts", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-limit", 0, 1, Nsf_ConvertToInt32, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-skip", 0, 1, Nsf_ConvertToInt32, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::remove", NsfMongoRemoveStub, 3, {
-  {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"condition", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"condition", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::update", NsfMongoUpdateStub, 6, {
-  {"conn", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"cond", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"values", NSF_ARG_REQUIRED, 0, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"cond", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"values", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-upsert", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-all", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },{NULL}

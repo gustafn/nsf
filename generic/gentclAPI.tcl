@@ -126,8 +126,7 @@ proc gencall {methodName fn parameterDefinitions clientData
       set type "int "
       if {$(-nrargs) == 1} {
         switch -glob $(-type) {
-          ""           {#set type "CONST char *"
-}
+          ""           {set type "CONST char *"}
           "class"      {set type "NsfClass *"}
           "object"     {set type "NsfObject *"}
           "tclobj"     {set type "Tcl_Obj *"}
