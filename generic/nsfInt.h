@@ -449,6 +449,7 @@ typedef struct NsfStringIncrStruct {
 typedef struct NsfParamDefs {
   Nsf_Param *paramsPtr;
   int nrParams;
+  int refCount;
   Tcl_Obj *slotObj;
   Tcl_Obj *returns;
 } NsfParamDefs;
@@ -538,7 +539,6 @@ typedef enum SystemMethodsIdx {
   NSF_o_destroy_idx, 
   NSF_o_init_idx, 
   NSF_o_move_idx, 
-  NSF_o_residualargs_idx,
   NSF_o_unknown_idx
 } SystemMethodsIdx;
 
@@ -557,7 +557,6 @@ CONST char *Nsf_SytemMethodOpts[] = {
   "-object.destroy", 
   "-object.init", 
   "-object.move", 
-  "-object.residualargs", 
   "-object.unknown",  
   NULL
 };

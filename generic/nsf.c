@@ -181,7 +181,6 @@ static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, 
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object);
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
 static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object);
-static int NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
 static int MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 			  int objc, Tcl_Obj *CONST objv[],
 			  Tcl_Command cmd, NsfObject *object, NsfClass *cl,
@@ -253,7 +252,8 @@ static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
 static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
 			  const char *argNamePrefix, int doCheck, Nsf_Param **paramPtrPtr);
-static void ParamDefsFree(NsfParamDefs *paramDefs);
+static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs);
+static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs);
 static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
                          NsfObject *obj, Tcl_Obj *procName,
@@ -693,7 +693,7 @@ Nsf_NextHashEntry(Tcl_HashTable *tablePtr, int expected, Tcl_HashSearch *hSrchPt
  *----------------------------------------------------------------------
  * NsfCommandPreserve --
  *
- *    Increment Tcl's command refcount
+ *    Increment Tcl's command refCount
  *
  * Results:
  *    void
@@ -713,7 +713,7 @@ NsfCommandPreserve(Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * NsfCommandRelease --
  *
- *    Decrement Tcl command refcount and free it if necessary
+ *    Decrement Tcl command refCount and free it if necessary
  *
  * Results:
  *    void
@@ -1030,7 +1030,7 @@ NsfCleanupObject_(NsfObject *object) {
 
     MEM_COUNT_FREE("NsfObject/NsfClass", object);
 #if defined(NSFOBJ_TRACE)
-    fprintf(stderr, "CKFREE Object %p refcount=%d\n", object, object->refCount);
+    fprintf(stderr, "CKFREE Object %p refCount=%d\n", object, object->refCount);
 #endif
 #if !defined(NDEBUG)
     memset(object, 0, sizeof(NsfObject));
@@ -1351,7 +1351,7 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
  * NameInNamespaceObj --
  *
  *    Create a fully qualified name in the provided namespace or in
- *    the current namespace in form of an Tcl_Obj (with 0 refcount);
+ *    the current namespace in form of an Tcl_Obj (with 0 refCount);
  *
  * Results:
  *    Tcl_Obj containing fully qualified name
@@ -2923,7 +2923,7 @@ typedef struct nsfResolvedVarInfo {
  *----------------------------------------------------------------------
  * HashVarFree --
  *
- *    Free hashed variables based on refcount.
+ *    Free hashed variables based on refCount.
  *
  * Results:
  *    None.
@@ -3541,7 +3541,7 @@ RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  * NSNamespacePreserve --
  *
- *    Increment namespace refcount
+ *    Increment namespace refCount
  *
  * Results:
  *    void
@@ -3560,7 +3560,7 @@ NSNamespacePreserve(Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  * NSNamespaceRelease --
  *
- *    Decrement namespace refcount and free namespace if necessary
+ *    Decrement namespace refCount and free namespace if necessary
  *
  * Results:
  *    void
@@ -3577,7 +3577,7 @@ NSNamespaceRelease(Tcl_Namespace *nsPtr) {
   Tcl_Namespace_refCount(nsPtr)--;
   if (Tcl_Namespace_refCount(nsPtr) == 0 && (Tcl_Namespace_flags(nsPtr) & NS_DEAD)) {
     /* 
-     * The namespace refcount has reached 0, we have to free
+     * The namespace refCount has reached 0, we have to free
      * it. unfortunately, NamespaceFree() is not exported
      */
     /* fprintf(stderr, "HAVE TO FREE %p\n", nsPtr); */
@@ -4446,7 +4446,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
     /* 
      * PrimitiveDestroy() has to be before DeleteCommandFromToken(),
      * otherwise e.g. unset traces on this object cannot be executed
-     * from Tcl. We make sure via refcounting that the object
+     * from Tcl. We make sure via refCounting that the object
      * structure is kept until after DeleteCommandFromToken().
      */
     NsfObjectRefCountIncr(object);
@@ -4457,7 +4457,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
       Tcl_Obj *savedResultObj = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedResultObj);
       /*fprintf(stderr, "    before DeleteCommandFromToken %p object flags %.6x\n", oid, object->flags);*/
-      /*fprintf(stderr, "cmd dealloc %p refcount %d dodestroy \n", oid, Tcl_Command_refCount(oid));*/
+      /*fprintf(stderr, "cmd dealloc %p refCount %d dodestroy \n", oid, Tcl_Command_refCount(oid));*/
       Tcl_DeleteCommandFromToken(interp, oid); /* this can change the result */
       /*fprintf(stderr, "    after DeleteCommandFromToken %p %.6x\n", oid, ((Command *)oid)->flags);*/
       Tcl_SetObjResult(interp, savedResultObj);
@@ -7533,7 +7533,7 @@ NsfProcDeleteProc(ClientData clientData) {
   (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
   if (ctxPtr->paramDefs) {
     /*fprintf(stderr, "free ParamDefs %p\n", ctxPtr->paramDefs);*/
-    ParamDefsFree(ctxPtr->paramDefs);
+    ParamDefsRefCountDecr(ctxPtr->paramDefs);
   }
   /*fprintf(stderr, "free %p\n", ctxPtr);*/
   FREE(NsfProcContext, ctxPtr);
@@ -7552,7 +7552,8 @@ ParamsFree(Nsf_Param *paramsPtr) {
 
   /*fprintf(stderr, "ParamsFree %p\n", paramsPtr);*/
   for (paramPtr=paramsPtr; paramPtr->name; paramPtr++) {
-    /*fprintf(stderr, ".... paramPtr = %p, name=%s, defaultValue %p\n", paramPtr, paramPtr->name, paramPtr->defaultValue);*/
+    /*fprintf(stderr, ".... paramPtr = %p, name=%s, defaultValue %p\n", 
+      paramPtr, paramPtr->name, paramPtr->defaultValue);*/
     if (paramPtr->name) ckfree(paramPtr->name);
     if (paramPtr->nameObj) {DECR_REF_COUNT(paramPtr->nameObj);}
     if (paramPtr->defaultValue) {DECR_REF_COUNT(paramPtr->defaultValue);}
@@ -7628,11 +7629,27 @@ ParamDefsNew() {
 
   return paramDefs;
 }
-
+/*
+ *----------------------------------------------------------------------
+ * ParamDefsFree --
+ *
+ *    Actually free the parameter definitions. Since the parameter definitions
+ *    are refcounted, this function should be just called via
+ *    ParamDefsRefCountDecr.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Free the parameter definitions.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static void
 ParamDefsFree(NsfParamDefs *paramDefs) {
-  /*fprintf(stderr, "ParamDefsFree %p returns %p\n", paramDefs, paramDefs->returns);*/
+  /*fprintf(stderr, "ParamDefsFree %p slotObj %p returns %p\n", 
+    paramDefs, paramDefs->slotObj, paramDefs->returns);*/
 
   if (paramDefs->paramsPtr) {
     ParamsFree(paramDefs->paramsPtr);
@@ -7640,6 +7657,40 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
   if (paramDefs->slotObj) {DECR_REF_COUNT(paramDefs->slotObj);}
   if (paramDefs->returns) {DECR_REF_COUNT(paramDefs->returns);}
   FREE(NsfParamDefs, paramDefs);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ParamDefsRefCountIncr --
+ * ParamDefsRefCountDecr --
+ *
+ *    Perform book keeping on the parameter definitions. RefCounting is
+ *    necessary, since it might be possible that during the processing of the
+ *    e.g. object parameters, these might be redefined (when an object
+ *    parameter calls a method, redefining the
+ *    strucures). ParamDefsRefCountDecr() is responsible for actually freeing
+ *    the structure.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    No direct.
+ *
+ *----------------------------------------------------------------------
+ */
+
+
+static void
+ParamDefsRefCountIncr(NsfParamDefs *paramDefs) {
+  paramDefs->refCount ++;
+}
+static void
+ParamDefsRefCountDecr(NsfParamDefs *paramDefs) {
+  paramDefs->refCount --;
+  if (paramDefs->refCount < 1) {
+    ParamDefsFree(paramDefs);
+  }
 }
 
 /*
@@ -7957,7 +8008,7 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
   /*fprintf(stderr, "ParsedParamFree %p, npargs %p\n", 
    parsedParamPtr, parsedParamPtr->paramDefs);*/
   if (parsedParamPtr->paramDefs) {
-    ParamDefsFree(parsedParamPtr->paramDefs);
+    ParamDefsRefCountDecr(parsedParamPtr->paramDefs);
   }
   FREE(NsfParsedParam, parsedParamPtr);
 }
@@ -9807,14 +9858,14 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
  *    fail. If the pattern contains meta characters, we prepend to the pattern
  *    "::" if necessary to avoid errors, if one specifies a pattern object
  *    without the prefix. In this case, the patternObj is is of plain type.
- *    The resulting patternObj has always the refcount incremented, which has
+ *    The resulting patternObj has always the refCount incremented, which has
  *    to be decremented by the caller.x
  *
  * Results:
  *    Tcl result code.
  *
  * Side effects:
- *    Incremented refcount for the patternObj.
+ *    Incremented refCount for the patternObj.
  *
  *----------------------------------------------------------------------
  */
@@ -10368,6 +10419,8 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
         ParamsFree(paramsPtr);
         return result;
       }
+      /* every parameter must have at least a name set */
+      assert(paramPtr->name);
     }
     if (nrNonposArgs > 0 && argsc > 1) {
       for (i=0; i < argsc; i++) {
@@ -10688,7 +10741,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
       return NsfPrintError(interp, "command '%s' is not a proc", fullMethodName);
     }
     /*
-     * ... and update the refcounts
+     * ... and update the refCounts
      */
     NsfCommandRelease(tcd->cmd);
     tcd->cmd = cmd;
@@ -14500,7 +14553,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	    /*
 	     * The output Tcl_Obj differs from the input, so the
 	     * Tcl_Obj was converted; in case we have set prevously
-	     * must_decr on newValue, we decr the refcount on newValue
+	     * must_decr on newValue, we decr the refCount on newValue
 	     * here and clear the flag.
 	     */
 	    if (mustDecrNewValue) {
@@ -15028,7 +15081,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 	mdPtr->methodName);*/
       
       if (((Command *)cmd)->objProc == mdPtr->proc) {
-	NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters, NULL, NULL};
+	NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, NULL, NULL};
 	Tcl_Obj *list = ListParamDefs(interp, paramDefs.paramsPtr, printStyle);
 	
 	Tcl_SetObjResult(interp, list);
@@ -16027,7 +16080,7 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
       && referencedObject->refCount > 0
       && cmd != referencedObject->id) {
     /*
-     * The cmd is an aliased object, reduce the refcount of the
+     * The cmd is an aliased object, reduce the refCount of the
      * object, delete the cmd.
      */
     /*fprintf(stderr, "remove alias %s to %s\n",
@@ -16760,7 +16813,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
      * When we register an alias for an object, we have to take care to
      * handle cases, where the aliased object is destroyed and the
      * alias points to nowhere. We realize this via using the object
-     * refcount.
+     * refCount.
      */
     /*fprintf(stderr, "registering an object %p\n", tcd);*/
 
@@ -18413,6 +18466,9 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
 	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
 	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
 	  class->parsedParamPtr = ppDefPtr;
+	  if (ppDefPtr->paramDefs) {
+	    ParamDefsRefCountIncr(ppDefPtr->paramDefs);
+	  }
 	}
 	DECR_REF_COUNT(rawConfArgs);
       }
@@ -18478,7 +18534,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
   if (paramPtrPtr) *paramPtrPtr = paramPtr;
 
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheck, &flags, &checkedData, &outObjPtr);
-  /*fprintf(stderr, "ParamSetFromAny paramPtr %p final refcount of wrapper %d can free %d\n",
+  /*fprintf(stderr, "ParamSetFromAny paramPtr %p final refCount of wrapper %d can free %d\n",
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree);*/
 
   if (paramWrapperPtr->refCount == 0) {
@@ -18572,7 +18628,7 @@ objectMethod configure NsfOConfigureMethod {
 
 static int
 NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
-  int result, i, remainingArgsc;
+  int result, i, remainingArgsc, varArgsProcessed = 0;
   NsfParsedParam parsedParam;
   Nsf_Param *paramPtr;
   NsfParamDefs *paramDefs;
@@ -18581,9 +18637,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   CallFrame frame, *framePtr = &frame;
 
 #if 0
-  fprintf(stderr, "NsfOConfigureMethod %s %d ",ObjectName(object), objc);
-
-  for(i=0; i<objc; i++) {fprintf(stderr, " o[%d]=%s,", i, ObjStr(objv[i]));}
+  fprintf(stderr, "NsfOConfigureMethod %s %2d ",ObjectName(object), objc);
+  for(i=0; i<objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
   fprintf(stderr, "\n");
 #endif
 
@@ -18599,6 +18654,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
   /* Process the actual arguments based on the parameter definitions */
   paramDefs = parsedParam.paramDefs;
+  ParamDefsRefCountIncr(paramDefs);
   result = ProcessMethodArguments(&pc, interp, object, 0, paramDefs, 
 				  NsfGlobalObjs[NSF_CONFIGURE], objc, objv);
 
@@ -18719,6 +18775,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 		paramPtr->name, paramPtr->nrArgs, paramPtr->converter, 
 		paramPtr->converter == ConvertToNothing,
 		i, objc,  pc.lastobjc);*/
+
 	if (paramPtr->converter == ConvertToNothing) {
 	  /*
 	   * We are using the varargs interface; pass all remaining args into
@@ -18741,6 +18798,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	    ovPtr = (Tcl_Obj **)&objv[pc.lastobjc + 1];
 	    oc = objc - pc.lastobjc;
 	  }
+	  varArgsProcessed = 1;
 	} else {
 	  /*
 	   * A simple alias, receives no (when noarg was specified) or a
@@ -18873,34 +18931,22 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   Nsf_PopFrameObj(interp, framePtr);
   remainingArgsc = pc.objc - paramDefs->nrParams;
   
-  /*fprintf(stderr, "%s varargs? %d remaining %d\n",  ObjStr(objv[0]), pc.varArgs, remainingArgsc);*/
-
   /*
-   * Call residualargs when we have varargs and left over arguments
+   * Check, if varargs were processed. In case of varargs, we return the
+   * result of the varargs cmd (to preserve XOTcl compatibility); otherwise,
+   * return empty.
    */
   if (pc.varArgs && remainingArgsc > 0) {
-    Tcl_Obj *methodObj;
 
-    if (CallDirectly(interp, object, NSF_o_residualargs_idx, &methodObj)) {
-      i -= 2;
-      if (methodObj) {pc.full_objv[i] = methodObj;}
-      /*fprintf(stderr, ".... call residual args directly\n");*/
-      result = NsfOResidualargsMethod(interp, object, remainingArgsc+1, pc.full_objv + i);
-    } else {
-      /*fprintf(stderr, ".... dispatch residual args\n");*/
-      result = CallMethod(object, interp,
-                          methodObj, remainingArgsc+2, pc.full_objv + i-1, NSF_CSC_IMMEDIATE);
-    }
+    assert(varArgsProcessed);
 
-    if (result != TCL_OK) {
-      goto configure_exit;
-    }
   } else {
-    assert(remainingArgsc <= 1);
     Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
   }
-
+  
  configure_exit:
+
+  ParamDefsRefCountDecr(paramDefs);
   ParseContextRelease(&pc);
   return result;
 }
@@ -19090,6 +19136,12 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   int i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
   CONST char *methodName, *nextMethodName, *initString = NULL;
 
+#if 0
+  fprintf(stderr, "NsfOResidualargsMethod %s %2d ",ObjectName(object), objc);
+  for(i=0; i<objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
+  fprintf(stderr, "\n");
+#endif
+
   /* skip arguments without leading dash */
   for (i=start; i < objc; i++) {
     if ((isdasharg = IsDashArg(interp, objv[i], 1, &methodName, &argc, &argv))) {
@@ -19203,7 +19255,7 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *UNUSED(object), int objc, Tcl_O
     /*
      * More than one argument: concatenate them together with spaces
      * between, then evaluate the result.  Tcl_EvalObjEx will delete
-     * the object when it decrements its refcount after eval'ing it.
+     * the object when it decrements its refCount after eval'ing it.
      */
     Tcl_Obj *objPtr = Tcl_ConcatObj(objc, objv);
     result = Tcl_EvalObjEx(interp, objPtr, TCL_EVAL_DIRECT);
@@ -19529,7 +19581,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
 
     ObjTrace("CREATE", newObject);
 
-    /* in case, the object is destroyed during initialization, we incr refcount */
+    /* in case, the object is destroyed during initialization, we incr refCount */
     INCR_REF_COUNT(nameObj);
     result = DoObjInitialization(interp, newObject, objc, objv);
     /*fprintf(stderr, "DoObjInitialization %p %s (id %p) returned %d\n",
@@ -20631,7 +20683,7 @@ NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *class,
   int result;
 
   result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], 
-					    class, &parsedParam);
+					class, &parsedParam);
 
   if (result != TCL_OK || !parsedParam.paramDefs) {
     return result;
@@ -20870,16 +20922,16 @@ static void
 FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
   /* 
    * If a call to exit happens from a higher stack frame, the object
-   * refcount might not be decremented correctly. If we are in the
+   * refCount might not be decremented correctly. If we are in the
    * physical destroy round, we can set the counter to an appropriate
    * value to ensure deletion.
    */
   if (object->refCount != 1) {
     if (object->refCount > 1) {
-      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refcount for obj %p refcount %d  (name %s)",
+      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refCount for obj %p refCount %d  (name %s)",
 	     object, object->refCount, ObjectName(object));
     } else {
-      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refcount for obj %p refcount %d",
+      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refCount for obj %p refCount %d",
 	     object, object->refCount);
     }
     object->refCount = 1;

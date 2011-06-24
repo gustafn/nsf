@@ -556,15 +556,26 @@ nx::Test case alias-args {
   ? {c1 eval {info exists :args}} 0
 }
 
-exit
 
-# check inticmd + noarg (should not be allowed)
+# check xotcl with residual args
 #
 nx::Test case xotcl-residualargs {
   package req XOTcl
-  puts stderr =====3
+
   ? {::xotcl::Class create XD -set x 1} "::XD"
   #? {c1 eval {info exists :args}} 0
-  ? {XD objectparameter} "-mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args"
+  ? {XD objectparameter} "-mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args:alias,method=residualargs,args"
+
+  #
+  # test passing arguments to init
+  #
+  ::XD instproc init args {
+    set :args $args
+  }
+  
+  ::XD create x1 1 2 3 -set x 1
+  ? {x1 exists x} 1
+  ? {x1 exists args} 1
+  ? {x1 set args} {1 2 3}
 }
-puts stderr ===exit
+#puts stderr ===exit

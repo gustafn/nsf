@@ -2933,12 +2933,21 @@ nsf:
 - nsf.c:
    * improved source code documentation
    * added parameter option "args" in order to get eventually rid of 
-     hard-wired residual args.
+     hard-wired call to residualargs.
    * improved a few error messages
    * fixed object parameters consisting only of plain parameters 
      (previously, no parameters were returned in this case, e.g. 
      for method parameters; but object parameter code depends on it)
 - extended and updated regression tests
+
+- nsf.c:
+   * added refcounting to parameter definitions (needed, when 
+     aliased object parameter redefined the actual objectparameters)
+   * removed hardcoded call to remaining args
+   * switched implentation of xotcl2 to use object parameter with
+     parameter option "args"
+   * removed residualargs from object system definition
+   * extended regression test 
 
 TODO:
 

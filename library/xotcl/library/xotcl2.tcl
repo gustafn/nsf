@@ -32,7 +32,6 @@ namespace eval ::xotcl {
     -object.destroy destroy 
     -object.init init 
     -object.move move 
-    -object.residualargs residualargs
     -object.unknown unknown
   }
 
@@ -371,12 +370,12 @@ namespace eval ::xotcl {
     foreach slot [nsf::dispatch [self] ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
       lappend parameterdefinitions [$slot getParameterSpec]
     }
-    lappend parameterdefinitions args
+    lappend parameterdefinitions args:alias,method=residualargs,args
     return $parameterdefinitions
   }
 
   #
-  # Use parameter definition from next 
+  # Use parameter definition from nx 
   # (same with classInfo parameter, see below)
   ::nsf::method::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::attributes
 
