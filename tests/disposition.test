@@ -557,6 +557,31 @@ nx::Test case alias-args {
 }
 
 
+
+nx::Test case alias-init {
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+    :method init {} {
+      incr :y
+    }
+  }
+
+  # call init between -a and -b
+  C setObjectParams {-a init:alias,noarg -b:integer}
+  ? {C create c1} {::c1}
+  # "init" should be called only once
+  ? {c1 eval {set :y}} 1
+}
+#puts stderr ===exit
+#exit
+
+#
 # check xotcl with residual args
 #
 nx::Test case xotcl-residualargs {
@@ -578,4 +603,32 @@ nx::Test case xotcl-residualargs {
   ? {x1 exists args} 1
   ? {x1 set args} {1 2 3}
 }
+
+
+nx::Test parameter count 100000
+nx::Test case xotcl-residualargs {
+
+  ::xotcl::Class create XC -parameter {a b c}
+  ::XC instproc init args {set :x $args; incr :y}
+
+  ::nx::Class create C {
+    :attribute a
+    :attribute b
+    :attribute c
+    :method init args {set :x $args; incr :y}
+  }
+  
+  ? {XC create xc1 -a 1} ::xc1
+  ? {XC create xc2 x y -a 1} ::xc2
+
+  ? {C create c1 -a 1} ::c1
+  ? {xc2 eval {info exists :a}} 1
+  ? {xc2 eval {set :x}} {x y}
+  ? {xc2 eval {set :y}} 1
+  ? {c1 eval {info exists :a}} 1
+  ? {c1 eval {set :y}} 1
+}
+
+# TODO: what todo with object parameter inspection for names with alias, forward... "names" do not always correspond with vars set.
 #puts stderr ===exit
+

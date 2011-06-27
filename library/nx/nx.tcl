@@ -1249,10 +1249,20 @@ namespace eval ::nx {
     #
     # Define the initcmd as a positional ObjectParameterSlot
     #
+#    ::nx::ObjectParameterSlot create ${os}::Object::slot::__init \
+#	-disposition alias \
+#	-methodname "init" \
+#	-noarg true \
+#	-positional true \
+#	-position 1
+
+    #
+    # Define the initcmd as a positional ObjectParameterSlot
+    #
     ::nx::ObjectParameterSlot create ${os}::Object::slot::__initcmd \
 	-disposition initcmd \
 	-positional true \
-	-position 1
+	-position 2
 
     #
     # Make sure the invalidate all ObjectParameterSlots

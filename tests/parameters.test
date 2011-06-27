@@ -970,19 +970,23 @@ Test case op-object-types {
       {expected object but got "xxx" for parameter "o"} \
       "value is not an object"
 
-  #ParamTest slots {
-  #  ::nx::Attribute create os -type object -multivalued true
-  #}
+  #
+  # define multivalued attribute "os" via instance variables of the
+  # slot object
+  #
   ParamTest eval {
-      :attribute os {
-	:type object 
-	:multiplicity 1..n
-      }
+    :attribute os {
+      :type object 
+      :multiplicity 1..n
+    }
   }
-  
+
+  ? {ParamTest info method definition os} "::ParamTest public setter os:object,1..n"
+
   ? {p os o} \
       "o" \
       "value is a list of objects (1 element)"
+
   ? {p os {o c1 d1}} \
       "o c1 d1" \
       "value is a list of objects (multiple elements)"

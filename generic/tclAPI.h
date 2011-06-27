@@ -230,7 +230,6 @@ static int NsfImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -243,10 +242,12 @@ static int NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 static int NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjectExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjectInitializedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjectQualifyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfProfileClearDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -324,7 +325,6 @@ static int NsfImportvarCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl
 static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *class);
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraint, Tcl_Obj *value);
-static int NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *value);
 static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
 static int NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int assertionsubcmd, Tcl_Obj *arg);
 static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
@@ -337,10 +337,12 @@ static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodName, int 
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
+static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
+static int NsfObjectInitializedCmd(Tcl_Interp *interp, NsfObject *objectName);
+static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfProcCmd(Tcl_Interp *interp, int withAd, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfProfileClearDataStub(Tcl_Interp *interp);
 static int NsfProfileGetDataStub(Tcl_Interp *interp);
-static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
 static int NsfSelfCmd(Tcl_Interp *interp);
 static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value);
@@ -419,7 +421,6 @@ enum {
  NsfInterpObjCmdIdx,
  NsfInvalidateObjectParameterCmdIdx,
  NsfIsCmdIdx,
- NsfIsObjectCmdIdx,
  NsfMethodAliasCmdIdx,
  NsfMethodAssertionCmdIdx,
  NsfMethodCreateCmdIdx,
@@ -432,10 +433,12 @@ enum {
  NsfNSCopyCmdsCmdIdx,
  NsfNSCopyVarsCmdIdx,
  NsfNextCmdIdx,
+ NsfObjectExistsCmdIdx,
+ NsfObjectInitializedCmdIdx,
+ NsfObjectQualifyCmdIdx,
  NsfProcCmdIdx,
  NsfProfileClearDataStubIdx,
  NsfProfileGetDataStubIdx,
- NsfQualifyObjCmdIdx,
  NsfRelationCmdIdx,
  NsfSelfCmdIdx,
  NsfSetVarCmdIdx,
@@ -1188,22 +1191,6 @@ NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 }
 
 static int
-NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  (void)clientData;
-
-    
-
-      if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:", 
-			     method_definitions[NsfIsObjectCmdIdx].paramDefs,
-			     NULL, objv[0]); 
-      }
-    
-    return NsfIsObjectCmd(interp, objc == 2 ? objv[1] : NULL);
-
-}
-
-static int
 NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
@@ -1460,6 +1447,57 @@ NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 }
 
 static int
+NsfObjectExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
+
+    
+
+      if (objc != 2) {
+	return NsfArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfObjectExistsCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfObjectExistsCmd(interp, objc == 2 ? objv[1] : NULL);
+
+}
+
+static int
+NsfObjectInitializedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfObjectInitializedCmdIdx].paramDefs, 
+                     method_definitions[NsfObjectInitializedCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *objectName = (NsfObject *)pc.clientData[0];
+
+    assert(pc.status == 0);
+    return NsfObjectInitializedCmd(interp, objectName);
+
+  }
+}
+
+static int
+NsfObjectQualifyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
+
+    
+
+      if (objc != 2) {
+	return NsfArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfObjectQualifyCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfObjectQualifyCmd(interp, objc == 2 ? objv[1] : NULL);
+
+}
+
+static int
 NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
@@ -1510,22 +1548,6 @@ NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, T
       } 
     
     return NsfProfileGetDataStub(interp);
-
-}
-
-static int
-NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  (void)clientData;
-
-    
-
-      if (objc != 2) {
-	return NsfArgumentError(interp, "wrong # of arguments:", 
-			     method_definitions[NsfQualifyObjCmdIdx].paramDefs,
-			     NULL, objv[0]); 
-      }
-    
-    return NsfQualifyObjCmd(interp, objc == 2 ? objv[1] : NULL);
 
 }
 
@@ -2423,9 +2445,6 @@ static Nsf_methodDefinition method_definitions[] = {
   {"constraint", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::object::exists", NsfIsObjectCmdStub, 1, {
-  {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},
 {"::nsf::method::alias", NsfMethodAliasCmdStub, 5, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -2498,6 +2517,15 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
+{"::nsf::object::exists", NsfObjectExistsCmdStub, 1, {
+  {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::object::initialized", NsfObjectInitializedCmdStub, 1, {
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::object::qualify", NsfObjectQualifyCmdStub, 1, {
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
 {"::nsf::proc", NsfProcCmdStub, 4, {
   {"-ad", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -2509,9 +2537,6 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::nsf::__profile_get", NsfProfileGetDataStubStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},
-{"::nsf::object::qualify", NsfQualifyObjCmdStub, 1, {
-  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::relation", NsfRelationCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},

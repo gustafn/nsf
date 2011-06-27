@@ -112,19 +112,22 @@ cmd "method::setter" NsfMethodSetterCmd {
   {-argName "parameter" -required 1 -type tclobj}
 }
 
-cmd proc NsfProcCmd {
-  {-argName "-ad" -required 0  -nrargs 0}
-  {-argName "procName" -required 1 -type tclobj}
-  {-argName "arguments" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
+cmd "object::exists" NsfObjectExistsCmd {
+  {-argName "value" -required 1 -type tclobj}
 }
-
+cmd "object::initialized" NsfObjectInitializedCmd {
+  {-argName "objectName" -required 1 -type object}
+}
+cmd "object::qualify" NsfObjectQualifyCmd {
+  {-argName "objectName" -required 1 -type tclobj}
+}
 
 cmd my NsfMyCmd {
   {-argName "-local" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
+
 cmd next NsfNextCmd {
   {-argName "arguments" -required 0 -type tclobj}
 }
@@ -136,11 +139,12 @@ cmd nscopyvars NsfNSCopyVarsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
-cmd "object::exists" NsfIsObjectCmd {
-  {-argName "value" -required 1 -type tclobj}
-}
-cmd "object::qualify" NsfQualifyObjCmd {
-  {-argName "objectName" -required 1 -type tclobj}
+
+cmd proc NsfProcCmd {
+  {-argName "-ad" -required 0  -nrargs 0}
+  {-argName "procName" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
 }
 cmd relation NsfRelationCmd {
   {-argName "object"  -required 1 -type object}

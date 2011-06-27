@@ -2949,7 +2949,26 @@ nsf:
    * removed residualargs from object system definition
    * extended regression test 
 
+- nsf.c:
+   * Don't output non-consuming procs (which are always called) 
+     via parametersyntax (shows, what a user can input)
+   * additional command ::nsf::object::initialized to check whether 
+     an object is already initialized
+   * new function DispatchInitMethod() similar to DispatchDefaultMethod()
+   * let residualargs call init directly instead of doing it the inidrect way
+   * provided ability to call init with object parameters at arbitrary
+     times
+   * switch from Tcl_ObjCmdProc style interface (ClientData first) 
+     to a C stype interface for DispatchDefaultMethod(), DispatchUnknownMethod()
+   * bring cmd definitions for nsf::object in right order
+- extended regression test
+
+
 TODO:
+- do we have to adjust the documentation in xotcl2 for object initialization?
+- maybe optional arg (true) to ::nsf::object::initialized 
+  to generalize -noinit
+- nsf.c: change "nsfCmd" to "cmd"
 
 - add explicit regression tests for disposition + types
 - check refcounting for dispo+types

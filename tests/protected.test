@@ -74,29 +74,44 @@ C protected method foo {} {return [current method]}
 ? {c2 bar-SET} 1
 ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 
+#
+# Define SET and foo as redefined-protected
+#
 ? {::nsf::method::property C SET redefine-protected true} 1
-? {catch {C method SET {a b c} {...}}  errorMsg; set errorMsg} \
-    {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!}
 ? {::nsf::method::property C foo redefine-protected true} 1
-? {catch {C method foo {a b c} {...}}  errorMsg; set errorMsg} \
-    {Method 'foo' of ::C cannot be overwritten. Derive e.g. a sub-class!}
+
+? {C method SET {a b c} {...}} \
+    {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
+    "redefine method SET"
+
+? {C method foo {a b c} {...}} \
+    {Method 'foo' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
+    "redefine method foo"
+
 # check a predefined protection
-? {catch {::nx::Class method create {a b c} {...}}  errorMsg; set errorMsg} \
-    {Method 'create' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!}
-# try to redefined via alias
-? {catch {::nsf::method::alias Class create ::set}  errorMsg; set errorMsg} \
-    {Method 'create' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!}
+? {::nx::Class method create {a b c} {...}} \
+    {Method 'create' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!} \
+    "redefine method create"
+
+# try to redefine predefined protected method via alias
+? {::nsf::method::alias Class create ::set} \
+    {Method 'create' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!} \
+    "redefine alias create"
+
 # try to redefine via forward
-? {catch {C forward SET ::set}  errorMsg; set errorMsg} \
-    {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!}
+? {C forward SET ::set} \
+    {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
+    "redefine forward SET"
+
 # try to redefine via setter
-? {catch {C attribute SET}  errorMsg; set errorMsg} \
-    {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!}
+? {C attribute SET} \
+    {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
+    "redefine attribute SET"
 
 # overwrite-protect object specific method
 Object create o
 o method foo {} {return 13}
 ::nsf::method::property o foo redefine-protected true
-? {catch {o method foo {} {return 14}} errorMsg; set errorMsg} \
+? {o method foo {} {return 14}} \
     {Method 'foo' of ::o cannot be overwritten. Derive e.g. a sub-class!}
 

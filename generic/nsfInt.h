@@ -582,7 +582,7 @@ typedef struct NsfObjectSystem {
  */
 
 typedef enum {
-  NSF_EMPTY, NSF_ONE,
+  NSF_EMPTY, NSF_ZERO, NSF_ONE,
   /* methods called internally */
   NSF_CONFIGURE, 
   /* var names */
@@ -603,7 +603,7 @@ typedef enum {
 extern char *NsfGlobalStrings[];
 #else
 char *NsfGlobalStrings[] = {
-  "", "1", 
+  "", "0", "1", 
   /* methods called internally */
   "configure", 
   /* var names */
