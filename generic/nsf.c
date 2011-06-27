@@ -10078,7 +10078,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     if (paramPtr->converter != ConvertViaCmd) {
       fprintf(stderr, "type %s flags %.6x\n", paramPtr->type, paramPtr->flags);
       return NsfPrintError(interp,
-			   "option arg= only allowed for user-defined converter");
+			   "Parameter option 'arg=' only allowed for user-defined converter");
     }
     paramPtr->converterArg = Tcl_NewStringObj(option + 4, optionLength - 4);
     INCR_REF_COUNT(paramPtr->converterArg);
@@ -10132,7 +10132,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else if (optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
     if (paramPtr->converter != Nsf_ConvertToObject &&
         paramPtr->converter != Nsf_ConvertToClass)
-	return NsfPrintError(interp, "option type= only allowed for object or class");
+	return NsfPrintError(interp, "Parameter option 'type=' only allowed for parameter types 'object' and 'class'");
     paramPtr->converterArg = Tcl_NewStringObj(option + 5, optionLength - 5);
     INCR_REF_COUNT(paramPtr->converterArg);
 
@@ -10142,7 +10142,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (optionLength >= 6 && strncmp(option, "method=", 7) == 0) {
     if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == 0) {
-      return NsfPrintError(interp, "option method= only allowed for \"alias\" or \"forward\"");
+      return NsfPrintError(interp, "Parameter option 'method=' only allowed for parameter types 'alias' and 'forward'");
     }
     paramPtr->method = Tcl_NewStringObj(option + 7, optionLength - 7);
     INCR_REF_COUNT(paramPtr->method);
@@ -10150,16 +10150,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else {
     int i, found = -1;
 
-    if (paramPtr->converter ||
-	(paramPtr->flags & NSF_ARG_METHOD_INVOCATION)) {
-      Tcl_Obj *obj = Tcl_NewStringObj(option, optionLength);
-      NsfPrintError(interp, "Parameter option '%s' unknown for parameter type %s",
-		    ObjStr(obj),
-		    paramPtr->converter ? paramPtr->type :
-		    paramPtr->flags & NSF_ARG_ALIAS ? "alias" :
-		    paramPtr->flags & NSF_ARG_FORWARD ? "forward" :
-		    "initcmd");
-      DECR_REF_COUNT(obj);
+    if (paramPtr->converter) {
+      NsfPrintError(interp, "Parameter option '%s' unknown for parameter type '%s'",
+		    option, paramPtr->type);
       return TCL_ERROR;
     }
 
@@ -10178,7 +10171,20 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
       paramPtr->converterArg =  Tcl_NewStringObj(stringTypeOpts[i], -1);
       INCR_REF_COUNT(paramPtr->converterArg);
     } else {
-      /* must be a converter defined via method */
+      
+      /* option identifies a user-defined converter, implemented as a method;
+	 user-defined converters are not permitted under the parameter types
+	 alias, forward, and initcmd */
+            
+      if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION)) {
+	NsfPrintError(interp, "Parameter option '%s' not allowed for parameter type '%s'",
+		      option,
+		      paramPtr->flags & NSF_ARG_ALIAS ? "alias" :
+		      paramPtr->flags & NSF_ARG_FORWARD ? "forward" :
+		      "initcmd");
+	return TCL_ERROR;
+      }
+      
       paramPtr->converterName = ParamCheckObj(option, optionLength);
       INCR_REF_COUNT(paramPtr->converterName);
       result = ParamOptionSetConverter(interp, paramPtr, ObjStr(paramPtr->converterName), ConvertViaCmd);
@@ -10190,11 +10196,11 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   }
 
   if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) {
-    return NsfPrintError(interp, "Parameter options alias and forward can be not used together");
+    return NsfPrintError(interp, "Parameter types 'alias' and 'forward' can be not used together");
   } else if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) == (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) {
-    return NsfPrintError(interp, "Parameter options alias and initcmd can be not used together");
+    return NsfPrintError(interp, "Parameter types 'alias' and 'initcmd' can be not used together");
   } else if ((paramPtr->flags & (NSF_ARG_FORWARD|NSF_ARG_INITCMD)) == (NSF_ARG_FORWARD|NSF_ARG_INITCMD)) {
-    return NsfPrintError(interp, "Parameter options forward and initcmd can be not used together");
+    return NsfPrintError(interp, "Parameter types 'forward' and 'initcmd' can be not used together");
   }
 
   return result;

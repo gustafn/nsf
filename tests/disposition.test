@@ -37,13 +37,18 @@ nx::Test case basics {
     }
   }
 
-  #
-  # Restricted to object parameters only?
-  #
   foreach paramType {forward alias} {
+    #
+    # Restricted to object parameters only?
+    #
     set msg "Parameter option '$paramType' not allowed"
     ? [list C method m1 -foo:$paramType {;}] $msg
     ? [list C method m1 foo:$paramType {;}] $msg
+    
+    #
+    # Not applicable in parametercheck
+    #
+    ? [list ::nsf::is $paramType $msg] "invalid value constraints \"$paramType\""
   }
 
   
@@ -257,25 +262,40 @@ nx::Test case basics {
     ? {C new} "Parameter option 'switch' not allowed"
     
     C setObjectParams [list [list -foo:$disposition,xxx]]
-    ? {C new} "Parameter option 'xxx' unknown for parameter type $disposition"
+    ? {C new} "Parameter option 'xxx' not allowed for parameter type '$disposition'"
 
     C setObjectParams [list [list -foo:$disposition,relation]]
-    ? {C new} "Parameter option 'relation' unknown for parameter type $disposition"
+    ? {C new} "Parameter option 'relation' not allowed for parameter type '$disposition'"
+
+    C setObjectParams [list [list -foo:$disposition,type=::C]]
+    ? {C new} "Parameter option 'type=' only allowed for parameter types 'object' and 'class'"
+
+    #
+    # The 'arg=...' option should not be used, consider using 'method=...'
+    #
+    C setObjectParams [list [list -foo:$disposition,arg=BOOM]]
+    ? {C new} "Parameter option 'arg=' only allowed for user-defined converter"
+
   }
 
+  #
+  # The option 'method=...' applies to disposition types only
+  #
+  C setObjectParams [list [list -foo:initcmd,method=BOOM]]
+  ? {C new} "Parameter option 'method=' only allowed for parameter types 'alias' and 'forward'"
+  
   C setObjectParams [list [list -foo:alias,forward]]
-  ? {C new} "Parameter options alias and forward can be not used together"
+  ? {C new} "Parameter types 'alias' and 'forward' can be not used together"
 
   C setObjectParams [list [list -foo:forward,alias]]
-  ? {C new} "Parameter options alias and forward can be not used together"
+  ? {C new} "Parameter types 'alias' and 'forward' can be not used together"
 
   C setObjectParams [list [list -foo:alias,initcmd]]
-  ? {C new} "Parameter options alias and initcmd can be not used together"
+  ? {C new} "Parameter types 'alias' and 'initcmd' can be not used together"
 
   C setObjectParams [list [list -foo:forward,initcmd]]
-  ? {C new} "Parameter options forward and initcmd can be not used together"
+  ? {C new} "Parameter types 'forward' and 'initcmd' can be not used together"
 
-  C setObjectParams [list [list -foo:forward,initcmd]]
 
   # Remains to be done ...
   # INTERACTIONS with the return value checker
@@ -288,6 +308,69 @@ nx::Test case basics {
   # 
   # allowempty
   # 
+}
+
+nx::Test case dispo-multiplicities {
+  Class create S {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+    :public method foo {args} {
+      set :foo $args
+      return $args
+    }
+  }
+
+  #
+  # On multiplicity classes ...
+  # 
+  # ... implying a Tcl list value: 1..*, 0..* 
+  # ... implying a Tcl word value: 1..1, 0..1
+  #
+
+  S setObjectParams {-foo:alias,1..*,boolean}
+  S method foo {x:0..1,boolean} {
+    set :foo $x
+  }
+  ? {[S new -foo [list f f]] eval {info exists :foo}} \
+      "expected boolean but got \"f f\" for parameter \"x\""
+
+  S setObjectParams {-foo:alias,1..*,integer}
+  S method foo {x:1..1,integer} {
+    set :foo $x
+  }
+  ? {[S new -foo [list a 1]] eval {info exists :foo}} \
+      "invalid value in \"a 1\": expected integer but got \"a\" for parameter \"-foo\""
+  ? {[S new -foo [list 0 1]] eval {info exists :foo}} \
+      "expected integer but got \"0 1\" for parameter \"x\""
+  ? {[S new -foo [list]] eval {info exists :foo}} \
+      "invalid parameter value for -foo: list is not allowed to be empty"
+  ? {[S new -foo 5] eval {info exists :foo}} 1
+  ? {[S new -foo f] eval {info exists :foo}} \
+      "invalid value in \"f\": expected integer but got \"f\" for parameter \"-foo\""
+
+  S setObjectParams {-foo:alias,0..*,false}
+  S method foo {x:0..1,false} {
+    set :foo $x
+  }
+
+  ? {[S new -foo [list a 1]] eval {info exists :foo}} \
+      "invalid value in \"a 1\": expected false but got \"a\" for parameter \"-foo\""
+
+  ? {[S new -foo [list f 0]] eval {info exists :foo}} \
+      "expected false but got \"f 0\" for parameter \"x\""
+
+  ? {[S new -foo [list t]] eval {info exists :foo}} \
+      "invalid value in \"t\": expected false but got \"t\" for parameter \"-foo\""
+
+  ? {[S new -foo [list f]] eval {info exists :foo}} 1
+
+  ? {[S new -foo [list]] eval {info exists :foo}} 1
+
 }
 
 nx::Test case alias-noarg {
@@ -487,30 +570,23 @@ nx::Test case alias-args {
   # If no residual args are provided, the method residualargs is not
   # called. This is the same rule as for all other consuming object
   # parameter dispatches
-  puts stderr =====1c
   ? {C create c1} {::c1}
   ? {c1 eval {info exists :args}} 0
-  puts stderr =====1d
   ? {D create c1} {::c1}
   ? {c1 eval {info exists :args}} 0
-  puts stderr =====done
 
   # Residual args are provided, the method residualargs is
   # called. 
-  puts stderr =====2c
   ? {C create c1 1 2 3} {::c1}
   ? {c1 eval {info exists :args}} 1
   ? {c1 eval {set :args}} {1 2 3}
-  puts stderr =====2d
   ? {D create c1 1 2 3} {::c1}
   ? {c1 eval {info exists :args}} 1
   ? {c1 eval {set :args}} {1 2 3}
-  puts stderr =====done
 
   #
   # Provide a default for args.
   #
-  puts stderr =====3a
   C setObjectParams {{args:alias,method=Residualargs,args {hello world}}}
 
   # use the default
@@ -522,12 +598,10 @@ nx::Test case alias-args {
   ? {C create c1 a b c} {::c1}
   ? {c1 eval {info exists :args}} 1
   ? {c1 eval {set :args}} {a b c}
-  puts stderr =====3b
 
   #
   # don't allow other types for parameter option "args"
   #
-  puts stderr =====3a
   C setObjectParams {{args:alias,int,method=Residualargs,args {hello world}}}
   ? {C create c1} {Refuse to redefine parameter type of 'args' from type 'integer' to type 'args'}
   ? {c1 eval {info exists :args}} 0
@@ -538,7 +612,6 @@ nx::Test case alias-args {
   #
   # don't allow multiplicity settings for parameter option "args"
   #
-  puts stderr =====4a
   C setObjectParams {{args:alias,method=Residualargs,0..n,args {hello world}}}
   ? {C create c1} {Multiplicity settings for variable argument parameter "args" not allowed}
   ? {c1 eval {info exists :args}} 0
@@ -550,7 +623,6 @@ nx::Test case alias-args {
   #
   # make sure, parameter with parameter option "args" is used in last parameter
   #
-  puts stderr =====5a
   C setObjectParams {a:alias,method=Residualargs,args -b:integer}
   ? {C create c1 hello world} {parameter option "args" invalid for parameter "a"; only allowed for last parameter}
   ? {c1 eval {info exists :args}} 0
