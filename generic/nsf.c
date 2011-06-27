@@ -10151,8 +10151,10 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     int i, found = -1;
 
     if (paramPtr->converter) {
+      Tcl_Obj *obj = Tcl_NewStringObj(option,optionLength);
       NsfPrintError(interp, "Parameter option '%s' unknown for parameter type '%s'",
-		    option, paramPtr->type);
+		    ObjStr(obj), paramPtr->type);
+      DECR_REF_COUNT(obj);
       return TCL_ERROR;
     }
 
