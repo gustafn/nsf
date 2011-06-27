@@ -41,6 +41,7 @@ static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST
 }
 
 proc genifd {parameterDefinitions} {
+  #puts stderr $parameterDefinitions
   set l [list]
   foreach parameterDefinition $parameterDefinitions {
     array set "" $parameterDefinition
@@ -142,6 +143,7 @@ proc gencall {methodName fn parameterDefinitions clientData
       switch -glob $(-type) {
         ""           {set type "CONST char *"}
         "boolean"    {set type "int "}
+        "int32"      {set type "int "}
         "class"      {set type "NsfClass *"}
         "object"     {set type "NsfObject *"}
         "tclobj"     {set type "Tcl_Obj *"}

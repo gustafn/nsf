@@ -2970,6 +2970,11 @@ nsf:
 - renamed tclAPI.h to nsfAPI.h
 - added nsf.m4 to git for the time being
 
+- mongdb:
+  * added preliminary gridfs interface 
+  * refactored some code
+  * added new types for "gridfs" and "gridfile"
+  * added new example file example-nsf-gridfs.tcl
 
 TODO:
 - do we have to adjust the documentation in xotcl2 for object initialization?

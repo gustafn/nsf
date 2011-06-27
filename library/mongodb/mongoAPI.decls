@@ -1,17 +1,16 @@
+# -*- Tcl -*-
+#
+# API declarations for the nsf mongo interface
+#
+
 # namespaces for types of methods
 array set ns {
-  cmd              "::mongo"
-  objectMethod     "::nsf::methods::object"
-  objectInfoMethod "::nsf::methods::object::info"
-  classMethod      "::nsf::methods::class"
-  classInfoMethod  "::nsf::methods::class::info"
-  checkMethod      "::nsf::cmd::ParameterType"
+  cmd  "::mongo"
 }
 
 cmd close NsfMongoClose {
   {-argName "conn" -required 1 -type tclobj}
 }
-
 cmd connect NsfMongoConnect {
   {-argName "-replica-set" -required 0 -nrargs 1}
   {-argName "-server" -required 0 -nrargs 1 -type tclobj}
@@ -61,3 +60,53 @@ cmd update NsfMongoUpdate {
   {-argName "-all" -required 0 -nrargs 0}
 }
 
+#
+# GridFS
+#
+cmd gridfs::open NsfMongoGridFSOpen {
+  {-argName "conn" -required 1 -type tclobj}
+  {-argName "dbname" -required 1}
+  {-argName "prefix" -required 1}
+}
+
+cmd gridfs::store_file NsfMongoGridFSStoreFile {
+  {-argName "gfs" -required 1 -type tclobj}
+  {-argName "filename" -required 1}
+  {-argName "remotename" -required 1}
+  {-argName "contenttype" -required 1}
+}
+
+cmd gridfs::remove_file NsfMongoGridFSRemoveFile {
+  {-argName "gfs" -required 1 -type tclobj}
+  {-argName "filename" -required 1}
+}
+
+cmd gridfs::close NsfMongoGridFSClose {
+  {-argName "gfs" -required 1 -type tclobj}
+}
+
+#
+# GridFile
+#
+
+cmd gridfile::close NsfMongoGridFileClose {
+  {-argName "gridfile" -required 1 -type tclobj}
+}
+
+cmd gridfile::get_contentlength NsfMongoGridFileGetContentlength {
+  {-argName "gridfile" -required 1 -type tclobj}
+}
+cmd gridfile::get_contenttype NsfMongoGridFileGetContentType {
+  {-argName "gridfile" -required 1 -type tclobj}
+}
+cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {
+  {-argName "gridfile" -required 1 -type tclobj}
+}
+cmd gridfile::open NsfMongoGridFileOpen {
+  {-argName "gfs" -required 1 -type tclobj}
+  {-argName "filename" -required 1}
+}
+cmd gridfile::read NsfMongoGridFileRead {
+  {-argName "gridfile" -required 1 -type tclobj}
+  {-argName "size" -required 1 -type int32}
+}

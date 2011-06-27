@@ -19,14 +19,17 @@
 #include <string.h>
 #include "bson.h"
 #include "mongo.h"
+#include <gridfs.h>
 
 #include <tcl.h>
 #include <assert.h>
 #include <nsf.h>
 
-static Tcl_HashTable mongoConnsHashTable, *mongoConnsHashTablePtr = &mongoConnsHashTable;
+static Tcl_HashTable mongoHashTable, *mongoHashTablePtr = &mongoHashTable;
 static NsfMutex mongoMutex = 0;
 static int mongoConns = 0;
+static int mongoGridFSCount = 0;
+static int mongoGridFileCount = 0;
 
 /***********************************************************************
  * The following definitions should not be here, but they are included
@@ -111,33 +114,99 @@ static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 /*
  *----------------------------------------------------------------------
  *
- * MongoGetConn --
+ * MongoHashAdd --
  *
- *      Obtain a mongo connection from the hash table key returned via
- *      NsfMongoConnect.
+ *      Add an entry to our locally maintained hash table and set its
+ *      value to the provided valuePtr. The keys are generated based
+ *      on the passed formatString and counter.
  *
  * Results:
- *      mongo connection or NULL if not found/invalid.
+ *      Void.
  *
  * Side effects:
  *      None.
  *
  *----------------------------------------------------------------------
  */
-mongo_connection *
-MongoGetConn(Tcl_Obj *connObj) {
-  mongo_connection *connPtr = NULL;
+static void
+MongoHashAdd(char *buffer, CONST char *formatString, int *counterPtr, void *valuePtr) {
   Tcl_HashEntry *hPtr;
-  
+  int isNew;
+
   NsfMutexLock(&mongoMutex);
-  hPtr = Tcl_CreateHashEntry(mongoConnsHashTablePtr, ObjStr(connObj), NULL);
-
-  if (hPtr) {
-    connPtr = Tcl_GetHashValue(hPtr);
-  }
+  sprintf(buffer, formatString, (*counterPtr)++);
+  hPtr = Tcl_CreateHashEntry(mongoHashTablePtr, buffer, &isNew);
   NsfMutexUnlock(&mongoMutex);
+  Tcl_SetHashValue(hPtr, valuePtr);
+}
 
-  return connPtr;
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * MongoHashGet --
+ *
+ *      Get an entry to our locally maintained hash table and make
+ *      sure that the prefix matches (this ensures that the right type
+ *      of entry is obtained). If the prefix does not match, or there
+ *      is no such entry in the table, the function returns NULL.
+ *
+ * Results:
+ *      valuePtr or NULL.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static void *
+MongoHashGet(char *key, char *prefix) {
+  Tcl_HashEntry *hPtr;
+  void *valuePtr = NULL;
+
+  /* make sure to return the right type of hash entry */
+  if (strncmp(prefix, key, strlen(prefix)) == 0) {
+
+    NsfMutexLock(&mongoMutex);
+    hPtr = Tcl_CreateHashEntry(mongoHashTablePtr, key, NULL);
+    
+    if (hPtr) {
+      valuePtr = Tcl_GetHashValue(hPtr);
+    }
+    NsfMutexUnlock(&mongoMutex);
+  }
+  return valuePtr;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * MongoHashDelete --
+ *
+ *      Delete an hash entry from our locally maintained hash table
+ *      free the associated memory, if valuePtr is provided.
+ *
+ * Results:
+ *      valuePtr or NULL.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+MongoHashDelete(CONST char *key, void *valuePtr) {
+  Tcl_HashEntry *hPtr;
+
+  if (valuePtr) {
+    ckfree((char *)valuePtr);
+  }
+
+  NsfMutexLock(&mongoMutex);
+  hPtr = Tcl_CreateHashEntry(mongoHashTablePtr, key, NULL);
+  assert(hPtr);
+  Tcl_DeleteHashEntry(hPtr);
+  NsfMutexUnlock(&mongoMutex);
 }
 
 /*
@@ -206,7 +275,7 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
     default:
       tag = "unknown";
       elemObj = Tcl_NewStringObj("", 0);
-      fprintf( stderr , "BsonToList: unknown type %d\n" , t );
+      NsfLog(interp, NSF_LOG_WARN, "BsonToList: unknown type %d", t);
     }
 
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
@@ -333,7 +402,6 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
   case bson_date: {
     long v;
     result = Tcl_GetLongFromObj(interp, value, &v);
-    fprintf(stderr, "bson date v %ld result %d\n", v, result);
     if (result != TCL_OK) break;
     bson_append_date(bbPtr, name, v);
     break;
@@ -495,18 +563,11 @@ cmd close NsfMongoClose {
 */
 static int 
 NsfMongoClose(Tcl_Interp *interp, Tcl_Obj *connObj) {
-  mongo_connection *connPtr = MongoGetConn(connObj);
+  mongo_connection *connPtr = MongoHashGet(ObjStr(connObj), "mongo_conn");
 
   if (connPtr) {
-    Tcl_HashEntry *hPtr;
-
     mongo_destroy(connPtr);
-    ckfree((char *)connPtr);
-
-    NsfMutexLock(&mongoMutex);
-    hPtr = Tcl_CreateHashEntry(mongoConnsHashTablePtr, ObjStr(connObj), NULL);
-    Tcl_DeleteHashEntry(hPtr);
-    NsfMutexUnlock(&mongoMutex);
+    MongoHashDelete(ObjStr(connObj), connPtr);
   }
   return TCL_OK;
 }
@@ -520,10 +581,9 @@ cmd connect NsfMongoConnect {
 static int 
 NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server) {
   char channelName[80], *buffer = NULL;
-  int isNew, result, port, objc = 0;
+  int result, port, objc = 0;
   mongo_connection *connPtr;
   mongo_conn_return status;
-  Tcl_HashEntry *hPtr;
   Tcl_Obj **objv;
   CONST char *host;
 
@@ -596,13 +656,9 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server) {
     return NsfPrintError(interp, errorMsg);
   }
 
-  NsfMutexLock(&mongoMutex);
-  sprintf(channelName, "mongo_conn%d", mongoConns++);  
-  hPtr = Tcl_CreateHashEntry(mongoConnsHashTablePtr, channelName, &isNew);
-  NsfMutexUnlock(&mongoMutex);
-  Tcl_SetHashValue(hPtr, connPtr);
-
+  MongoHashAdd(channelName, "mongo_conn%d", &mongoConns, connPtr);
   Tcl_SetObjResult(interp, Tcl_NewStringObj(channelName, -1));
+
   return TCL_OK;
 }
 
@@ -617,7 +673,7 @@ static int
 NsfMongoCount(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, Tcl_Obj *queryObj) {
   int objc, result;
   Tcl_Obj **objv;
-  mongo_connection *connPtr = MongoGetConn(connObj);
+  mongo_connection *connPtr =  MongoHashGet(ObjStr(connObj), "mongo_conn");
   char *db, *collection;
   int count, length;
   bson query[1];
@@ -668,7 +724,7 @@ cmd index NsfMongoIndex {
 static int 
 NsfMongoIndex(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, Tcl_Obj *attributesObj, 
 	      int withDropdups, int withUnique) {
-  mongo_connection *connPtr = MongoGetConn(connObj);
+  mongo_connection *connPtr = MongoHashGet(ObjStr(connObj), "mongo_conn");
   bson_bool_t success;
   int objc, result, options = 0;
   Tcl_Obj **objv;
@@ -704,7 +760,7 @@ cmd insert NsfMongoInsert {
 }
 */
 static int NsfMongoInsert(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, Tcl_Obj *valuesObj) {
-  mongo_connection *connPtr = MongoGetConn(connObj);
+  mongo_connection *connPtr = MongoHashGet(ObjStr(connObj), "mongo_conn");
   int i, objc, result;
   Tcl_Obj **objv, *resultObj;
   bson_buffer buf[1];
@@ -757,7 +813,7 @@ NsfMongoQuery(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace,
 	      int withLimit, int withSkip) {
   int objc1, objc2, result;
   Tcl_Obj **objv1, **objv2, *resultObj;
-  mongo_connection *connPtr = MongoGetConn(connObj);
+  mongo_connection *connPtr = MongoHashGet(ObjStr(connObj), "mongo_conn");
   mongo_cursor *cursor;
   bson query[1];
   bson atts[1];
@@ -817,7 +873,7 @@ static int
 NsfMongoRemove(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace, Tcl_Obj *conditionObj) {
   int objc, result;
   Tcl_Obj **objv;
-  mongo_connection *connPtr = MongoGetConn(connObj);
+  mongo_connection *connPtr = MongoHashGet(ObjStr(connObj), "mongo_conn");
   bson query[1];
 
   if (connPtr == NULL)  {
@@ -851,7 +907,7 @@ NsfMongoUpdate(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace,
 	       Tcl_Obj *conditionObj, Tcl_Obj *valuesObj, int withUpsert, int withAll) {
   int objc, result, options = 0;
   Tcl_Obj **objv;
-  mongo_connection *connPtr = MongoGetConn(connObj);
+  mongo_connection *connPtr = MongoHashGet(ObjStr(connObj), "mongo_conn");
   bson cond[1], values[1];
 
   if (connPtr == NULL)  {
@@ -880,6 +936,238 @@ NsfMongoUpdate(Tcl_Interp *interp, Tcl_Obj *connObj, CONST char *namespace,
   return TCL_OK;
 }
 
+/***********************************************************************
+ * GridFS interface
+ ***********************************************************************/
+/*
+cmd gridfs::open NsfMongoGridFSOpen {
+  {-argName "conn" -required 1 -type tclobj}
+  {-argName "dbname" -required 1}
+  {-argName "prefix" -required 1}
+}
+*/
+
+static int
+NsfMongoGridFSOpen(Tcl_Interp *interp, Tcl_Obj *connObj, 
+		   CONST char *dbname, CONST char *prefix) {
+  char buffer[80];
+  gridfs *gfsPtr;
+  mongo_connection *connPtr = MongoHashGet(ObjStr(connObj), "mongo_conn");
+
+  if (connPtr == NULL)  {
+    return NsfObjErrType(interp, "", connObj, "connection", NULL);
+  }
+
+  gfsPtr = (gridfs *)ckalloc(sizeof(gridfs));
+  gridfs_init(connPtr, dbname, prefix, gfsPtr);
+
+  MongoHashAdd(buffer, "mongo_fs%d", &mongoGridFSCount, gfsPtr);
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+
+  return TCL_OK;
+}
+
+
+/*
+cmd gridfs::remove_file NsfMongoGridFSRemoveFile {
+  {-argName "gfs" -required 1 -type tclobj}
+  {-argName "filename" -required 1}
+}
+*/
+static int 
+NsfMongoGridFSRemoveFile(Tcl_Interp *interp, Tcl_Obj *gridFSObj, 
+			CONST char *filename) {
+  gridfs *gridfsPtr = MongoHashGet(ObjStr(gridFSObj), "mongo_fs");
+
+  if (gridfsPtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFSObj, "GridFS", NULL);
+  }
+
+  /* the current interfaces does not return a status ! */
+  gridfs_remove_filename(gridfsPtr, filename);
+
+  return TCL_OK;
+}
+
+/*
+cmd gridfs::store_file NsfMongoGridFSStoreFile {
+  {-argName "gfs" -required 1 -type tclobj}
+  {-argName "filename" -required 1}
+  {-argName "remotename" -required 1}
+  {-argName "contenttype" -required 1}
+}
+*/
+static int 
+NsfMongoGridFSStoreFile(Tcl_Interp *interp, Tcl_Obj *gridFSObj, 
+			CONST char *filename, CONST char *remotename, 
+			CONST char *contenttype) {
+  gridfs *gridfsPtr = MongoHashGet(ObjStr(gridFSObj), "mongo_fs");
+  bson b;
+
+  if (gridfsPtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFSObj, "GridFS", NULL);
+  }
+  
+  b = gridfs_store_file(gridfsPtr, filename, remotename, contenttype);
+
+  Tcl_SetObjResult(interp, BsonToList(interp, b.data, 0));
+  
+  return TCL_OK;
+}
+
+/*
+cmd gridfs::close NsfMongoGridFSClose {
+  {-argName "gfs" -required 1 -type tclobj}
+}
+*/
+static int 
+NsfMongoGridFSClose(Tcl_Interp *interp, Tcl_Obj *gridFSObj) {
+  gridfs *gridfsPtr = MongoHashGet(ObjStr(gridFSObj), "mongo_fs");
+
+  if (gridfsPtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFSObj, "GridFS", NULL);
+  }
+
+  gridfs_destroy(gridfsPtr);
+  MongoHashDelete(ObjStr(gridFSObj), gridfsPtr);
+
+  return TCL_OK;
+}
+
+/***********************************************************************
+ * GridFile interface
+ ***********************************************************************/
+
+/*
+cmd gridfile::close NsfMongoGridFileClose {
+  {-argName "gridfile" -required 1 -type tclobj}
+}
+*/
+static int 
+NsfMongoGridFileClose(Tcl_Interp *interp, Tcl_Obj *gridFileObj) {
+  gridfile* gridFilePtr = MongoHashGet(ObjStr(gridFileObj), "mongo_file");
+
+  if (gridFilePtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFileObj, "GridFile", NULL);
+  }
+
+  gridfile_destroy(gridFilePtr);
+  MongoHashDelete(ObjStr(gridFileObj), gridFilePtr);
+
+  return TCL_OK;
+}
+
+/*
+cmd gridfile::get_contentlength NsfMongoGridFileGetContentlength {
+  {-argName "gridfile" -required 1 -type tclobj}
+}
+*/
+static int 
+NsfMongoGridFileGetContentlength(Tcl_Interp *interp, Tcl_Obj *gridFileObj) {
+  gridfile* gridFilePtr = MongoHashGet(ObjStr(gridFileObj), "mongo_file");
+  gridfs_offset len;
+
+  if (gridFilePtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFileObj, "GridFile", NULL);
+  }
+  len = gridfile_get_contentlength(gridFilePtr);
+  Tcl_SetObjResult(interp, Tcl_NewLongObj(len));
+
+  return TCL_OK;
+}
+
+/*
+cmd gridfile::get_contenttype NsfMongoGridFileGetContentType {
+  {-argName "gridfile" -required 1 -type tclobj}
+}
+*/
+static int 
+NsfMongoGridFileGetContentType(Tcl_Interp *interp, Tcl_Obj *gridFileObj) {
+  gridfile* gridFilePtr = MongoHashGet(ObjStr(gridFileObj), "mongo_file");
+  CONST char *contentType;
+
+  if (gridFilePtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFileObj, "GridFile", NULL);
+  }
+  contentType = gridfile_get_contenttype(gridFilePtr);
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(contentType, -1));
+
+  return TCL_OK;
+}
+
+/*
+cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {
+  {-argName "gridfile" -required 1 -type tclobj}
+}
+*/
+static int 
+NsfMongoGridFileGetMetaData(Tcl_Interp *interp, Tcl_Obj *gridFileObj) {
+  gridfile* gridFilePtr = MongoHashGet(ObjStr(gridFileObj), "mongo_file");
+  bson b;
+
+  if (gridFilePtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFileObj, "GridFile", NULL);
+  }
+  b = gridfile_get_metadata(gridFilePtr);
+  Tcl_SetObjResult(interp, BsonToList(interp, b.data, 0));
+
+  return TCL_OK;
+}
+
+/*
+cmd gridfile::open NsfMongoGridFileOpen {
+  {-argName "gfs" -required 1 -type tclobj}
+  {-argName "filename" -required 1}
+}
+*/
+static int 
+NsfMongoGridFileOpen(Tcl_Interp *interp, Tcl_Obj *gridFSObj, 
+		     CONST char *filename) {
+  char buffer[80];
+  gridfs *gridfsPtr = MongoHashGet(ObjStr(gridFSObj), "mongo_fs");
+  gridfile* gridFilePtr;
+  int result;
+
+  if (gridfsPtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFSObj, "GridFS", NULL);
+  }
+
+  gridFilePtr = (gridfile *)ckalloc(sizeof(gridfile));
+  result = gridfs_find_filename(gridfsPtr, filename, gridFilePtr);
+
+  if (result == 1) {
+    MongoHashAdd(buffer, "mongo_file%d", &mongoGridFileCount, gridFilePtr); 
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+  } else {
+    ckfree((char *)gridFilePtr);
+    Tcl_ResetResult(interp);
+  }
+
+  return TCL_OK;
+}
+
+/*
+cmd gridfile::read NsfMongoGridFileRead {
+  {-argName "gridfile" -required 1 -type tclobj}
+  {-argName "size" -required 1 -type int}
+}
+*/
+static int 
+NsfMongoGridFileRead(Tcl_Interp *interp, Tcl_Obj *gridFileObj, int size) {
+  gridfile* gridFilePtr = MongoHashGet(ObjStr(gridFileObj), "mongo_file");
+  int readSize;
+  char *buffer;
+
+  if (gridFilePtr == NULL)  {
+    return NsfObjErrType(interp, "", gridFileObj, "GridFile", NULL);
+  }
+  buffer = ckalloc(size);
+  readSize = gridfile_read(gridFilePtr, size, buffer);
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, readSize));
+  ckfree(buffer);
+
+  return TCL_OK;
+}
 
 /***********************************************************************
  * Finally, provide the necessary Tcl package interface.
@@ -919,7 +1207,7 @@ Nsfmongo_Init(Tcl_Interp * interp) {
 
     Tcl_CreateExitHandler(Nsfmongo_Exit, interp);
     NsfMutexLock(&mongoMutex);
-    Tcl_InitHashTable(mongoConnsHashTablePtr, TCL_STRING_KEYS);
+    Tcl_InitHashTable(mongoHashTablePtr, TCL_STRING_KEYS);
     NsfMutexUnlock(&mongoMutex);
 
     /* create all method commands (will use the namespaces above) */
