@@ -2963,6 +2963,8 @@ nsf:
    * bring cmd definitions for nsf::object in right order
 - extended regression test
 
+- genAPI.decls and nsf.c: bring cmds in same order
+- nsf.c: align naming conventions
 
 TODO:
 - do we have to adjust the documentation in xotcl2 for object initialization?

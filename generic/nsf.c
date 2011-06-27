@@ -12022,52 +12022,6 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 
 /*
  *----------------------------------------------------------------------
- * NsfNextCmd --
- *
- *    nsf::next calls the next shadowed method. It might get a single
- *    argument which is used as argument vector for that method. If no
- *    argument is provided, the argument vector of the last invocation
- *    is used.
- *
- * Results:
- *    Tcl return code
- *
- * Side effects:
- *    The invoked method might produce side effects
- *
- *----------------------------------------------------------------------
- */
-/*
-nsfCmd next NsfNextCmd {
-  {-argName "arguments" -required 0 -type tclobj}
-}
-*/
-static int
-NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
-  int freeArgumentVector, oc, nobjc, result;
-  NsfCallStackContent *cscPtr;
-  CONST char *methodName;
-  Tcl_Obj **nobjv, **ov;
-
-  if (arguments) {
-    /* Arguments were provided. */
-    int result = Tcl_ListObjGetElements(interp, arguments, &oc, &ov);
-    if (result != TCL_OK) {return result;}
-  } else {
-    /* No arguments were provided. */
-    oc = -1;
-  }
-
-  result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName,
-			    &nobjc, &nobjv, &freeArgumentVector);
-  if (result == TCL_OK) {
-    result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
-  }
-  return result;
-}
-
-/*
- *----------------------------------------------------------------------
  * NsfNextObjCmd --
  *
  *    nsf::xotclnext is for backwards compatibility to the next
@@ -16143,8 +16097,9 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
 /***********************************************************************
  * Begin generated Next Scripting commands
  ***********************************************************************/
+
 /*
-nsfCmd __db_show_stack NsfShowStackCmd {}
+cmd __db_show_stack NsfShowStackCmd {}
 */
 static int
 NsfShowStackCmd(Tcl_Interp *interp) {
@@ -16153,7 +16108,7 @@ NsfShowStackCmd(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {}
+cmd __db_run_assertions NsfDebugRunAssertionsCmd {}
 */
 static int
 NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
@@ -16225,7 +16180,7 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd __profile_clear_data NsfProfileClearDataStub {}
+cmd __profile_clear_data NsfProfileClearDataStub {}
 */
 static int
 NsfProfileClearDataStub(Tcl_Interp *interp) {
@@ -16236,7 +16191,7 @@ NsfProfileClearDataStub(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd __profile_get_data NsfProfileGetDataStub {}
+cmd __profile_get_data NsfProfileGetDataStub {}
 */
 static int
 NsfProfileGetDataStub(Tcl_Interp *interp) {
@@ -16292,7 +16247,7 @@ NsfUnsetUnknownArgsCmd(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd configure NsfConfigureCmd {
+cmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
@@ -16423,7 +16378,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
 
 
 /*
-nsfCmd createobjectsystem NsfCreateObjectSystemCmd {
+cmd createobjectsystem NsfCreateObjectSystemCmd {
   {-argName "rootClass" -required 1 -type tclobj}
   {-argName "rootMetaClass" -required 1 -type tclobj}
   {-argName "systemMethods" -required 0 -type tclobj}
@@ -16540,7 +16495,7 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 }
 
 /*
-nsfCmd dispatch NsfDispatchCmd {
+cmd dispatch NsfDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "command" -required 1 -type tclobj}
@@ -16649,7 +16604,7 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
 }
 
 /*
-nsfCmd colon NsfColonCmd {
+cmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
 */
@@ -16664,12 +16619,9 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
 }
 
 /*
-nsfCmd finalize NsfFinalizeObjCmd {
+cmd finalize NsfFinalizeObjCmd {
 }
 */
-/*
- * ::nsf::finalize command
- */
 static int
 NsfFinalizeObjCmd(Tcl_Interp *interp) {
   int result;
@@ -16704,7 +16656,7 @@ NsfFinalizeObjCmd(Tcl_Interp *interp) {
 
 
 /*
-nsfCmd interp NsfInterpObjCmd {
+cmd interp NsfInterpObjCmd {
   {-argName "name"}
   {-argName "args" -type allargs}
 }
@@ -16739,7 +16691,7 @@ NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST o
 }
 
 /*
-nsfCmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
+cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
   {-argName "class" -type class}
 }
 */
@@ -16755,7 +16707,7 @@ NsfInvalidateObjectParameterCmd(Tcl_Interp *UNUSED(interp), NsfClass *cl) {
 }
 
 /*
-nsfCmd is NsfIsCmd {
+cmd is NsfIsCmd {
   {-argName "-complain"}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
@@ -16792,55 +16744,7 @@ NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraintObj, Tcl_Obj *
 }
 
 /*
-cmd "object::exists" NsfObjectExistsCmd {
-  {-argName "value" -required 1 -type tclobj}
-}
-*/
-static int
-NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
-  NsfObject *object;
-
-  /*
-   * Pass the object as Tcl_Obj, since we do not want to raise an error in
-   * case the object does not exist.
-   */
-  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), GetObjectFromObj(interp, valueObj, &object) == TCL_OK);
-  return TCL_OK;
-}
-
-/*
-cmd "object::initialized" NsfObjectInitializedCmd {
-  {-argName "objectName" -required 1 -type object}
-}
-*/
-static int
-NsfObjectInitializedCmd(Tcl_Interp *interp, NsfObject *object) {
-  
-  Tcl_SetObjResult(interp, 
-		   NsfGlobalObjs[(object->flags & NSF_INIT_CALLED) ? 
-				 NSF_ONE : NSF_ZERO]);
-  return TCL_OK;
-}
-
-/*
-cmd "object::qualify" NsfObjectQualifyCmd {
-  {-argName "objectName" -required 1 -type tclobj}
-}
-*/
-static int
-NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *nameObj) {
-  CONST char *nameString = ObjStr(nameObj);
-
-  if (isAbsolutePath(nameString)) {
-    Tcl_SetObjResult(interp, nameObj);
-  } else {
-    Tcl_SetObjResult(interp, NameInNamespaceObj(interp, nameString, CallingNameSpace(interp)));
-  }
-  return TCL_OK;
-}
-
-/*
-nsfCmd method::alias NsfMethodAliasCmd {
+cmd method::alias NsfMethodAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}
   {-argName "methodName"}
@@ -17009,7 +16913,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 }
 
 /*
-nsfCmd method::assertion NsfMethodAssertionCmd {
+cmd method::assertion NsfMethodAssertionCmd {
   {-argName "object" -type object}
   {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
@@ -17062,7 +16966,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj
 }
 
 /*
-nsfCmd method::create NsfMethodCreateCmd {
+cmd method::create NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
@@ -17108,7 +17012,7 @@ NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 }
 
 /*
-nsfCmd method::forward NsfMethodForwardCmd {
+cmd method::forward NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "method" -required 1 -type tclobj}
@@ -17165,7 +17069,7 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
 }
 
 /*
-nsfCmd ::method::property NsfMethodPropertyCmd {
+cmd ::method::property NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
@@ -17333,7 +17237,7 @@ NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *methodNameObj) {
 }
 
 /*
-nsfCmd method::setter NsfMethodSetterCmd {
+cmd method::setter NsfMethodSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "parameter" -type tclobj}
@@ -17397,8 +17301,62 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
   return result;
 }
 
+
+
+
+
+
 /*
-nsfCmd my NsfMyCmd {
+cmd "object::exists" NsfObjectExistsCmd {
+  {-argName "value" -required 1 -type tclobj}
+}
+*/
+static int
+NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
+  NsfObject *object;
+
+  /*
+   * Pass the object as Tcl_Obj, since we do not want to raise an error in
+   * case the object does not exist.
+   */
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), GetObjectFromObj(interp, valueObj, &object) == TCL_OK);
+  return TCL_OK;
+}
+
+/*
+cmd "object::initialized" NsfObjectInitializedCmd {
+  {-argName "objectName" -required 1 -type object}
+}
+*/
+static int
+NsfObjectInitializedCmd(Tcl_Interp *interp, NsfObject *object) {
+  
+  Tcl_SetObjResult(interp, 
+		   NsfGlobalObjs[(object->flags & NSF_INIT_CALLED) ? 
+				 NSF_ONE : NSF_ZERO]);
+  return TCL_OK;
+}
+
+/*
+cmd "object::qualify" NsfObjectQualifyCmd {
+  {-argName "objectName" -required 1 -type tclobj}
+}
+*/
+static int
+NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *nameObj) {
+  CONST char *nameString = ObjStr(nameObj);
+
+  if (isAbsolutePath(nameString)) {
+    Tcl_SetObjResult(interp, nameObj);
+  } else {
+    Tcl_SetObjResult(interp, NameInNamespaceObj(interp, nameString, CallingNameSpace(interp)));
+  }
+  return TCL_OK;
+}
+
+
+/*
+cmd my NsfMyCmd {
   {-argName "-local"}
   {-argName "method" -required 1 -type tclobj}
   {-argName "args" -type args}
@@ -17443,8 +17401,55 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
   return result;
 }
 
+
 /*
-nsfCmd namespace_copycmds NsfNSCopyCmdsCmd {
+ *----------------------------------------------------------------------
+ * NsfNextCmd --
+ *
+ *    nsf::next calls the next shadowed method. It might get a single
+ *    argument which is used as argument vector for that method. If no
+ *    argument is provided, the argument vector of the last invocation
+ *    is used.
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    The invoked method might produce side effects
+ *
+ *----------------------------------------------------------------------
+ */
+/*
+cmd next NsfNextCmd {
+  {-argName "arguments" -required 0 -type tclobj}
+}
+*/
+static int
+NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
+  int freeArgumentVector, oc, nobjc, result;
+  NsfCallStackContent *cscPtr;
+  CONST char *methodName;
+  Tcl_Obj **nobjv, **ov;
+
+  if (arguments) {
+    /* Arguments were provided. */
+    int result = Tcl_ListObjGetElements(interp, arguments, &oc, &ov);
+    if (result != TCL_OK) {return result;}
+  } else {
+    /* No arguments were provided. */
+    oc = -1;
+  }
+
+  result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName,
+			    &nobjc, &nobjv, &freeArgumentVector);
+  if (result == TCL_OK) {
+    result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
+  }
+  return result;
+}
+
+/*
+cmd nscopycmds NsfNSCopyCmdsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
@@ -17651,7 +17656,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 }
 
 /*
-nsfCmd namespace_copyvars NsfNSCopyVars {
+cmd nscopyvars NsfNSCopyVars {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
@@ -17764,7 +17769,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 }
 
 /*
-nsfCmd proc NsfProcCmd {
+cmd proc NsfProcCmd {
   {-argName "-ad" -required 0}
   {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
@@ -17811,7 +17816,7 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments
 }
 
 /*
-nsfCmd relation NsfRelationCmd {
+cmd relation NsfRelationCmd {
   {-argName "object" -type object}
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
@@ -18066,7 +18071,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 }
 
 /*
-nsfCmd current NsfCurrentCmd {
+cmd current NsfCurrentCmd {
   {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
 */
@@ -18212,7 +18217,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 }
 
 /*
-nsfCmd self NsfSelfCmd {
+cmd self NsfSelfCmd {
 }
 */
 static int
@@ -18228,13 +18233,13 @@ NsfSelfCmd(Tcl_Interp *interp) {
 }
 
 /*
-nsfCmd var::exists NsfExistsVarCmd {
+cmd var::exists NsfVarExistsCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1}
 }
 */
 static int
-NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varName) {
+NsfVarExistsCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varName) {
 
   if (CheckVarName(interp, varName) != TCL_OK) {
     return TCL_ERROR;
@@ -18245,13 +18250,13 @@ NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varName) {
 }
 
 /*
-nsfCmd var::import NsfImportvarCmd {
+cmd var::import NsfVarImportCmd {
   {-argName "object" -type object}
   {-argName "args" -type args}
 }
 */
 static int
-NsfImportvar(Tcl_Interp *interp, NsfObject *object, const char *cmdName, int objc, Tcl_Obj *CONST objv[]) {
+NsfVarImport(Tcl_Interp *interp, NsfObject *object, const char *cmdName, int objc, Tcl_Obj *CONST objv[]) {
   int i, result = TCL_OK;
 
   for (i=0; i<objc && result == TCL_OK; i++) {
@@ -18277,19 +18282,19 @@ NsfImportvar(Tcl_Interp *interp, NsfObject *object, const char *cmdName, int obj
 }
 
 static int
-NsfImportvarCmd(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
-  return NsfImportvar(interp, object, "importvar", objc, objv);
+NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
+  return NsfVarImport(interp, object, "importvar", objc, objv);
 }
 
 /*
-nsfCmd var::set NsfSetVarCmd {
+cmd var::set NsfVarSetCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
 */
 static int
-NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *valueObj) {
+NsfVarSetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *valueObj) {
 
   if (CheckVarName(interp, ObjStr(varname)) != TCL_OK) {
     return TCL_ERROR;
@@ -18299,13 +18304,13 @@ NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *v
 }
 
 /*
-nsfCmd var::unset NsfUnsetVarCmd {
+cmd var::unset NsfVarUnsetCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1 -type tclobj}
 }
 */
 static int
-NsfUnsetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varNameObj) {
+NsfVarUnsetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varNameObj) {
   char *varName = ObjStr(varNameObj);
 
   if (CheckVarName(interp, varName) != TCL_OK) {
@@ -19148,7 +19153,7 @@ NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONS
 			 ObjectName(object));
   }
 
-  result = NsfImportvar(interp, object, ObjStr(objv[0]), objc-1, objv+1);
+  result = NsfVarImport(interp, object, ObjStr(objv[0]), objc-1, objv+1);
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
 }

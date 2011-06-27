@@ -55,6 +55,9 @@ cmd is NsfIsCmd {
   {-argName "value" -required 1 -type tclobj}
 }
 
+#
+# method cmds
+#
 cmd "method::alias" NsfMethodAliasCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0}
@@ -67,11 +70,6 @@ cmd "method::assertion" NsfMethodAssertionCmd {
   {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 }
-cmd "method::delete" NsfMethodDeleteCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-per-object" -nrargs 0}
-  {-argName "methodName" -required 1 -type tclobj}
-}
 cmd "method::create" NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace" -nrargs 0}
@@ -82,6 +80,11 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "body" -required 1 -type tclobj}
   {-argName "-precondition"  -type tclobj}
   {-argName "-postcondition" -type tclobj}
+}
+cmd "method::delete" NsfMethodDeleteCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object" -nrargs 0}
+  {-argName "methodName" -required 1 -type tclobj}
 }
 cmd "method::forward" NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
@@ -112,6 +115,9 @@ cmd "method::setter" NsfMethodSetterCmd {
   {-argName "parameter" -required 1 -type tclobj}
 }
 
+#
+# object cmds
+#
 cmd "object::exists" NsfObjectExistsCmd {
   {-argName "value" -required 1 -type tclobj}
 }
@@ -122,12 +128,12 @@ cmd "object::qualify" NsfObjectQualifyCmd {
   {-argName "objectName" -required 1 -type tclobj}
 }
 
+
 cmd my NsfMyCmd {
   {-argName "-local" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
-
 cmd next NsfNextCmd {
   {-argName "arguments" -required 0 -type tclobj}
 }
@@ -158,20 +164,23 @@ cmd current NsfCurrentCmd {
 cmd self NsfSelfCmd {
 }
 
-cmd "var::exists" NsfExistsVarCmd {
+#
+# var cmds
+#
+cmd "var::exists" NsfVarExistsCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1}
 }
-cmd "var::import" NsfImportvarCmd {
+cmd "var::import" NsfVarImportCmd {
   {-argName "object" -required 1 -type object}
   {-argName "args" -type args}
 }
-cmd "var::set" NsfSetVarCmd {
+cmd "var::set" NsfVarSetCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
-cmd "var::unset" NsfUnsetVarCmd {
+cmd "var::unset" NsfVarUnsetCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
 }
