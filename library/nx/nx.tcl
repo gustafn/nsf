@@ -2,6 +2,7 @@ package provide nx 2.0
 package require nsf
 
 namespace eval ::nx {
+  namespace eval ::nsf {}; # make pkg indexer happy
   #
   # By setting the variable bootstrap, we can check later, whether we
   # are in bootstrapping mode
@@ -32,7 +33,6 @@ namespace eval ::nx {
   #
   # get frequenly used primitiva from the next scripting framework 
   #
-  namespace eval ::nsf {}; # make pkg indexer happy
   namespace import ::nsf::next ::nsf::current ::nsf::self
 
   #
@@ -53,6 +53,9 @@ namespace eval ::nx {
   # Default Methods (referenced via createobjectsystem)
   ######################################################################
   
+  namespace eval ::nsf::methods {}; # make pkg indexer happy
+  namespace eval ::nsf::methods::object {}; # make pkg indexer happy
+
   # Actually, we do not need an unknown handler, but if someone
   # defines his own unknwon handler we define it automatically
   proc ::nsf::methods::object::unknown {m args} {
@@ -79,7 +82,6 @@ namespace eval ::nx {
   foreach cmd [list uplevel upvar] {
     ::nsf::method::property Object $cmd call-protected 1
   }
-
   unset cmd
 
   # protect some methods against redefinition
@@ -1857,7 +1859,7 @@ namespace eval ::nx {
   foreach m [Class info methods] {
     ::nsf::method::property Class $m class-only true
   }
-  unset m
+  if {[info exists m]} {unset m}
 
   ######################################################################
   # some utilities
