@@ -2966,15 +2966,22 @@ nsf:
 - genAPI.decls and nsf.c: bring cmds in same order
 - nsf.c: align naming conventions
 
+- renamed gentclAPI.decls to nsfAPI.decls
+- renamed tclAPI.h to nsfAPI.h
+- added nsf.m4 to git for the time being
+
+
 TODO:
 - do we have to adjust the documentation in xotcl2 for object initialization?
 - maybe optional arg (true) to ::nsf::object::initialized 
   to generalize -noinit
-- nsf.c: change "nsfCmd" to "cmd"
+
+- nsf.m4 seems to be currently unused (SC_PATH_NSFCONFIG and SC_LOAD_NSFCONFIG)
+  Should we delete it?
 
 - add explicit regression tests for disposition + types
 - check refcounting for dispo+types
-- maybe: add a dispoition=pipe
+- maybe: add a disposition=pipe
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 

@@ -11285,7 +11285,7 @@ AliasCmdDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  * GetMatchObject --
  *
- *    Helper method used by tclAPI.h and the info methods to check if the the
+ *    Helper method used by nsfAPI.h and the info methods to check if the the
  *    Tcl_Obj patternObj was provided and can be looked up. If this is the
  *    case, wild card matching etc. does not have to be performed, but just
  *    the properties of the object have to be tested.
@@ -14337,7 +14337,7 @@ CallingNameSpace(Tcl_Interp *interp) {
  * argument handling
  ***********************************/
 
-#include "tclAPI.h"
+#include "nsfAPI.h"
 
 static int
 ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int *flags,

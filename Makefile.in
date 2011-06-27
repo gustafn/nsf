@@ -520,12 +520,12 @@ install-shells:
 $(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.tcl $(src_generic_dir)/nsf.tcl
 	(cd $(src_generic_dir); $(TCLSH) mk_predefined.tcl nsf.tcl > predefined.h)
 
-$(src_generic_dir)/tclAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/gentclAPI.decls
-	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl > $(src_generic_dir)/tclAPI.h
+$(src_generic_dir)/nsfAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/nsfAPI.decls
+	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/nsfAPI.decls > $(src_generic_dir)/nsfAPI.h
 
 nsfStubInit.$(OBJEXT): $(PKG_HEADERS)
 nsfStubLib.$(OBJEXT): $(src_generic_dir)/nsfStubLib.c $(PKG_HEADERS)
-nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/tclAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c $(DTRACE_HDR)
+nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/nsfAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c $(DTRACE_HDR)
 nsfError.$(OBJEXT): $(src_generic_dir)/nsfError.c $(PKG_HEADERS)
 nsfMetaData.$(OBJEXT): $(src_generic_dir)/nsfMetaData.c $(PKG_HEADERS)
 nsfObjectData.$(OBJEXT): $(src_generic_dir)/nsfObjectData.c $(PKG_HEADERS)
