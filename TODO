@@ -2979,6 +2979,7 @@ nsf:
 - nsf.c: no good reason to disallow user defined types for for alias, 
   forward or initcmd
 
+- library/nx/nx-zip.tcl: added a zip file generator as package
 
 TODO:
 - do we have to adjust the documentation in xotcl2 for object initialization?
