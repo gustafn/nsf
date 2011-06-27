@@ -10174,19 +10174,11 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
       INCR_REF_COUNT(paramPtr->converterArg);
     } else {
       
-      /* option identifies a user-defined converter, implemented as a method;
-	 user-defined converters are not permitted under the parameter types
-	 alias, forward, and initcmd */
-            
-      if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION)) {
-	NsfPrintError(interp, "Parameter option '%s' not allowed for parameter type '%s'",
-		      option,
-		      paramPtr->flags & NSF_ARG_ALIAS ? "alias" :
-		      paramPtr->flags & NSF_ARG_FORWARD ? "forward" :
-		      "initcmd");
-	return TCL_ERROR;
-      }
-      
+      /* 
+       * The parameter option is still unknown. We assume that the parameter
+       * option identifies a user-defined argument checker, implemented as a
+       * method.
+       */
       paramPtr->converterName = ParamCheckObj(option, optionLength);
       INCR_REF_COUNT(paramPtr->converterName);
       result = ParamOptionSetConverter(interp, paramPtr, ObjStr(paramPtr->converterName), ConvertViaCmd);

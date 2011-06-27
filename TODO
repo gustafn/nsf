@@ -2976,6 +2976,10 @@ nsf:
   * added new types for "gridfs" and "gridfile"
   * added new example file example-nsf-gridfs.tcl
 
+- nsf.c: no good reason to disallow user defined types for for alias, 
+  forward or initcmd
+
+
 TODO:
 - do we have to adjust the documentation in xotcl2 for object initialization?
 - maybe optional arg (true) to ::nsf::object::initialized 

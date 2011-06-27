@@ -236,6 +236,10 @@ nx::Test case basics {
     }
   }
 
+  ::C public method baz {x} {
+    return $x
+  }
+
   dict for {t tdict} $types {
     dict with tdict {
       ::C public method foo [list x:$mtype] {
@@ -257,15 +261,32 @@ nx::Test case basics {
   ### some time ago (such as e.g. "relation").
   ###
 
+  #
+  # define a user defined parameter type
+  #
+  ::nx::methodParameterSlot method type=mytype {name value} {
+    if {$value < 1 || $value > 3} {
+      error "Value '$value' of parameter $name is not between 1 and 3"
+    }
+  }
+
+  array set script {alias "method=baz" forward "method=%self %method"}
   foreach disposition [list alias forward] {
     C setObjectParams [list [list -foo:$disposition,switch]]
-    ? {C new} "Parameter option 'switch' not allowed"
+    ? {C new} "Parameter option 'switch' not allowed" \
+	"switch not allowed for $disposition"
     
-    C setObjectParams [list [list -foo:$disposition,xxx]]
-    ? {C new} "Parameter option 'xxx' not allowed for parameter type '$disposition'"
+    C setObjectParams [list [list -baz:$disposition,mytype,$script($disposition)]]
+    ? {C new -baz 1} "::__%&singleton" \
+	"disposition $disposition, user defined type, valid value"
 
-    C setObjectParams [list [list -foo:$disposition,relation]]
-    ? {C new} "Parameter option 'relation' not allowed for parameter type '$disposition'"
+    C setObjectParams [list [list -baz:$disposition,mytype,$script($disposition)]]
+    ? {C new -baz 0} "Value '0' of parameter baz is not between 1 and 3" \
+	"disposition $disposition, user defined type, invalid value"
+
+    C setObjectParams [list [list -foo:$disposition,xxx]]
+    ? {C new} "::__%&singleton" \
+	"disposition $disposition, unknown user defined type - just a warning"
 
     C setObjectParams [list [list -foo:$disposition,type=::C]]
     ? {C new} "Parameter option 'type=' only allowed for parameter types 'object' and 'class'"
