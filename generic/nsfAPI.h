@@ -2310,219 +2310,219 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
 static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
-  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::create", NsfCCreateMethodStub, 2, {
-  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::dealloc", NsfCDeallocMethodStub, 1, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::filterguard", NsfCFilterGuardMethodStub, 2, {
-  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::mixinguard", NsfCMixinGuardMethodStub, 2, {
-  {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::new", NsfCNewMethodStub, 2, {
-  {"-childof", 0, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-childof", 0, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"args",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::recreate", NsfCRecreateMethodStub, 2, {
-  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::superclass", NsfCSuperclassMethodStub, 1, {
-  {"superclasses", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"superclasses", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::filterguard", NsfClassInfoFilterguardMethodStub, 1, {
-  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::filtermethods", NsfClassInfoFiltermethodsMethodStub, 2, {
-  {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::forward", NsfClassInfoForwardMethodStub, 2, {
-  {"-definition", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"name", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-definition", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"name", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::heritage", NsfClassInfoHeritageMethodStub, 1, {
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::instances", NsfClassInfoInstancesMethodStub, 2, {
-  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::method", NsfClassInfoMethodMethodStub, 2, {
-  {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,"args|body|definition|exists|handle|parameter|parametersyntax|type|precondition|postcondition|submethods",NULL,NULL,NULL,NULL,NULL},
+  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::methods", NsfClassInfoMethodsMethodStub, 4, {
-  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,"all|protected|public",NULL,NULL,NULL,NULL,NULL},
+  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,"all|scripted|builtin|alias|forwarder|object|setter|nsfproc",NULL,NULL,NULL,NULL,NULL},
+  {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::mixinof", NsfClassInfoMixinOfMethodStub, 3, {
-  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-scope", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToScope, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-scope", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToScope, NULL,NULL,"all|class|object",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::mixinclasses", NsfClassInfoMixinclassesMethodStub, 4, {
-  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-heritage", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-heritage", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::mixinguard", NsfClassInfoMixinguardMethodStub, 1, {
-  {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::objectparameter", NsfClassInfoObjectparameterMethodStub, 2, {
-  {"infoobjectparametersubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfoobjectparametersubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"infoobjectparametersubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfoobjectparametersubcmd, NULL,NULL,"list|name|parameter|parametersyntax",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::slots", NsfClassInfoSlotsMethodStub, 4, {
-  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,"all|application|baseclasses",NULL,NULL,NULL,NULL,NULL},
+  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::subclass", NsfClassInfoSubclassMethodStub, 2, {
-  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::superclass", NsfClassInfoSuperclassMethodStub, 2, {
-  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::colon", NsfColonCmdStub, 1, {
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::configure", NsfConfigureCmdStub, 2, {
-  {"configureoption", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToConfigureoption, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"configureoption", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToConfigureoption, NULL,NULL,"debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments",NULL,NULL,NULL,NULL,NULL},
+  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::createobjectsystem", NsfCreateObjectSystemCmdStub, 3, {
-  {"rootClass", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"rootMetaClass", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"systemMethods", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"rootClass", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"rootMetaClass", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"systemMethods", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::current", NsfCurrentCmdStub, 1, {
-  {"currentoption", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCurrentoption, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"currentoption", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCurrentoption, NULL,NULL,"proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::dispatch", NsfDispatchCmdStub, 4, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"command", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,"method|object|default",NULL,NULL,NULL,NULL,NULL},
+  {"command", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"args",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::finalize", NsfFinalizeObjCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::interp", NsfInterpObjCmdStub, 2, {
-  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::invalidateobjectparameter", NsfInvalidateObjectParameterCmdStub, 1, {
-  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::is", NsfIsCmdStub, 3, {
-  {"-complain", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"constraint", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-complain", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"constraint", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::alias", NsfMethodAliasCmdStub, 5, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"cmdName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,"method|object|default",NULL,NULL,NULL,NULL,NULL},
+  {"cmdName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::assertion", NsfMethodAssertionCmdStub, 3, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"assertionsubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToAssertionsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"arg", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"assertionsubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToAssertionsubcmd, NULL,NULL,"check|object-invar|class-invar",NULL,NULL,NULL,NULL,NULL},
+  {"arg", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::create", NsfMethodCreateCmdStub, 9, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-inner-namespace", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-reg-object", 0, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-precondition", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-postcondition", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-inner-namespace", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-reg-object", 0, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"-precondition", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"-postcondition", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::delete", NsfMethodDeleteCmdStub, 3, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::forward", NsfMethodForwardCmdStub, 11, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"method", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-default", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-earlybinding", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-methodprefix", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-objframe", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-onerror", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-verbose", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"target", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"method", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"-default", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"-earlybinding", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-methodprefix", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"-objframe", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-onerror", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"-verbose", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"target", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"args",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::property", NsfMethodPropertyCmdStub, 5, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"methodproperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodproperty, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"methodproperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodproperty, NULL,NULL,"class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj",NULL,NULL,NULL,NULL,NULL},
+  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::registered", NsfMethodRegisteredCmdStub, 1, {
-  {"handle", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"handle", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::setter", NsfMethodSetterCmdStub, 3, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"parameter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"parameter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::my", NsfMyCmdStub, 3, {
-  {"-local", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-local", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"args",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::nscopycmds", NsfNSCopyCmdsCmdStub, 2, {
-  {"fromNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"toNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"fromNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"toNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::nscopyvars", NsfNSCopyVarsCmdStub, 2, {
-  {"fromNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"toNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"fromNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"toNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::next", NsfNextCmdStub, 1, {
-  {"arguments", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"arguments", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::object::exists", NsfObjectExistsCmdStub, 1, {
-  {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::object::initialized", NsfObjectInitializedCmdStub, 1, {
-  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::object::qualify", NsfObjectQualifyCmdStub, 1, {
-  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::proc", NsfProcCmdStub, 4, {
-  {"-ad", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-ad", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::__profile_clear", NsfProfileClearDataStubStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -2531,9 +2531,9 @@ static Nsf_methodDefinition method_definitions[] = {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::relation", NsfRelationCmdStub, 3, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"relationtype", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToRelationtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"relationtype", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToRelationtype, NULL,NULL,"object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass",NULL,NULL,NULL,NULL,NULL},
+  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::self", NsfSelfCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -2545,52 +2545,52 @@ static Nsf_methodDefinition method_definitions[] = {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::var::exists", NsfVarExistsCmdStub, 2, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::var::import", NsfVarImportCmdStub, 2, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"args",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::var::set", NsfVarSetCmdStub, 3, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::var::unset", NsfVarUnsetCmdStub, 2, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::autoname", NsfOAutonameMethodStub, 3, {
-  {"-instance", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-reset", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-instance", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-reset", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::class", NsfOClassMethodStub, 1, {
-  {"class", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"class", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::cleanup", NsfOCleanupMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::configure", NsfOConfigureMethodStub, 1, {
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::destroy", NsfODestroyMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::exists", NsfOExistsMethodStub, 1, {
-  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::filterguard", NsfOFilterGuardMethodStub, 2, {
-  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::instvar", NsfOInstvarMethodStub, 1, {
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::mixinguard", NsfOMixinGuardMethodStub, 2, {
-  {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL},
+  {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::noinit", NsfONoinitMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -2599,99 +2599,99 @@ static Nsf_methodDefinition method_definitions[] = {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::residualargs", NsfOResidualargsMethodStub, 1, {
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::uplevel", NsfOUplevelMethodStub, 1, {
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::upvar", NsfOUpvarMethodStub, 1, {
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::volatile", NsfOVolatileMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::children", NsfObjInfoChildrenMethodStub, 2, {
-  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::class", NsfObjInfoClassMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
-  {"fileName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"fileName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
-  {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-order", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-order", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::forward", NsfObjInfoForwardMethodStub, 2, {
-  {"-definition", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"name", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-definition", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"name", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::hasmixin", NsfObjInfoHasMixinMethodStub, 1, {
-  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::hastype", NsfObjInfoHasTypeMethodStub, 1, {
-  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::hasnamespace", NsfObjInfoHasnamespaceMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::is", NsfObjInfoIsMethodStub, 1, {
-  {"objectkind", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToObjectkind, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"objectkind", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToObjectkind, NULL,NULL,"class|baseclass|metaclass",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::lookupfilter", NsfObjInfoLookupFilterMethodStub, 1, {
-  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::lookupmethod", NsfObjInfoLookupMethodMethodStub, 1, {
-  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::lookupmethods", NsfObjInfoLookupMethodsMethodStub, 7, {
-  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-incontext", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-nomixins", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,"all|protected|public",NULL,NULL,NULL,NULL,NULL},
+  {"-incontext", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,"all|scripted|builtin|alias|forwarder|object|setter",NULL,NULL,NULL,NULL,NULL},
+  {"-nomixins", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,"all|application|baseclasses",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::lookupslots", NsfObjInfoLookupSlotsMethodStub, 3, {
-  {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,"all|application|baseclasses",NULL,NULL,NULL,NULL,NULL},
+  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::method", NsfObjInfoMethodMethodStub, 2, {
-  {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,"args|body|definition|exists|handle|parameter|parametersyntax|type|precondition|postcondition|submethods",NULL,NULL,NULL,NULL,NULL},
+  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,"tclobj",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::methods", NsfObjInfoMethodsMethodStub, 4, {
-  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,"all|protected|public",NULL,NULL,NULL,NULL,NULL},
+  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,"all|scripted|builtin|alias|forwarder|object|setter|nsfproc",NULL,NULL,NULL,NULL,NULL},
+  {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::mixinclasses", NsfObjInfoMixinclassesMethodStub, 3, {
-  {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-heritage", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"-heritage", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::mixinguard", NsfObjInfoMixinguardMethodStub, 1, {
-  {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::parent", NsfObjInfoParentMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::precedence", NsfObjInfoPrecedenceMethodStub, 2, {
-  {"-intrinsic", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-intrinsic", 0, 0, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::slots", NsfObjInfoSlotsMethodStub, 2, {
-  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::vars", NsfObjInfoVarsMethodStub, 1, {
-  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,"",NULL,NULL,NULL,NULL,NULL}}
 },{NULL}
 };
 

@@ -9717,6 +9717,8 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   return NsfObjErrType(interp, NULL, objPtr, "class", (Nsf_Param *)pPtr);
 }
 
+
+
 /*
  *----------------------------------------------------------------------
  * Nsf_ConvertToFilterreg --
@@ -10149,39 +10151,61 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else {
     int i, found = -1;
+    Tcl_DString ds, *dsPtr = &ds;
+
+    Tcl_DStringInit(dsPtr);
+    Tcl_DStringAppend(dsPtr, option, optionLength);
 
     if (paramPtr->converter) {
-      Tcl_Obj *obj = Tcl_NewStringObj(option,optionLength);
       NsfPrintError(interp, "Parameter option '%s' unknown for parameter type '%s'",
-		    ObjStr(obj), paramPtr->type);
-      DECR_REF_COUNT(obj);
+		    Tcl_DStringValue(dsPtr), paramPtr->type);
+      Tcl_DStringFree(dsPtr);
       return TCL_ERROR;
     }
 
-    for (i=0; stringTypeOpts[i]; i++) {
-      /* Do not allow abbreviations, so the additional strlen checks
-	 for a full match */
-      if (strncmp(option, stringTypeOpts[i], optionLength) == 0
-	  && strlen(stringTypeOpts[i]) == optionLength) {
-	found = i;
-	break;
-      }
-    }
-    if (found > -1) {
-      /* converter is stringType */
-      result = ParamOptionSetConverter(interp, paramPtr, "stringtype", Nsf_ConvertToTclobj);
-      paramPtr->converterArg =  Tcl_NewStringObj(stringTypeOpts[i], -1);
-      INCR_REF_COUNT(paramPtr->converterArg);
-    } else {
-      
-      /* 
-       * The parameter option is still unknown. We assume that the parameter
-       * option identifies a user-defined argument checker, implemented as a
-       * method.
+    if (Nsf_PointerTypeLookup(interp, Tcl_DStringValue(dsPtr))) {
+      /*
+       * Check, if the option refers to a pointer converter
        */
-      paramPtr->converterName = ParamCheckObj(option, optionLength);
-      INCR_REF_COUNT(paramPtr->converterName);
-      result = ParamOptionSetConverter(interp, paramPtr, ObjStr(paramPtr->converterName), ConvertViaCmd);
+      fprintf(stderr, "param %s ptr %p type %s\n", paramPtr->name, paramPtr, Tcl_DStringValue(dsPtr));
+      ParamOptionSetConverter(interp, paramPtr,  Tcl_DStringValue(dsPtr), Nsf_ConvertToPointer);
+      Tcl_DStringFree(dsPtr);
+
+    } else {
+
+      /*
+       * The option is still unkown, check the Tcl string-is checkers
+       */
+      Tcl_DStringFree(dsPtr);
+
+      for (i=0; stringTypeOpts[i]; i++) {
+	/* 
+	 * Do not allow abbreviations, so the additional strlen checks
+	 * for a full match 
+	 */
+	if (strncmp(option, stringTypeOpts[i], optionLength) == 0
+	    && strlen(stringTypeOpts[i]) == optionLength) {
+	  found = i;
+	  break;
+	}
+      }
+
+      if (found > -1) {
+	/* converter is stringType */
+	result = ParamOptionSetConverter(interp, paramPtr, "stringtype", Nsf_ConvertToTclobj);
+	paramPtr->converterArg =  Tcl_NewStringObj(stringTypeOpts[i], -1);
+	INCR_REF_COUNT(paramPtr->converterArg);
+      } else {
+	
+	/* 
+	 * The parameter option is still unknown. We assume that the parameter
+	 * option identifies a user-defined argument checker, implemented as a
+	 * method.
+	 */
+	paramPtr->converterName = ParamCheckObj(option, optionLength);
+	INCR_REF_COUNT(paramPtr->converterName);
+	result = ParamOptionSetConverter(interp, paramPtr, ObjStr(paramPtr->converterName), ConvertViaCmd);
+      }
     }
   }
 
@@ -21225,6 +21249,11 @@ ExitHandler(ClientData clientData) {
   }
   NsfStringIncrFree(&RUNTIME_STATE(interp)->iss);
 
+  /*
+   * Free all data in the pointer converter
+   */
+  Nsf_PointerExit(interp);
+
 #if defined(NSF_PROFILE)
   NsfProfileFree(interp);
 #endif
@@ -21333,6 +21362,11 @@ Nsf_Init(Tcl_Interp *interp) {
 
   NsfMutexUnlock(&initMutex);
 
+
+  /*
+   * Initialize the pointer converter
+   */
+  Nsf_PointerInit(interp);
   /*
     fprintf(stderr, "SIZES: obj=%d, tcl_obj=%d, DString=%d, class=%d, namespace=%d, command=%d, HashTable=%d\n",
     sizeof(NsfObject), sizeof(Tcl_Obj), sizeof(Tcl_DString), sizeof(NsfClass),

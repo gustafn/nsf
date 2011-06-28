@@ -2981,6 +2981,18 @@ nsf:
 
 - library/nx/nx-zip.tcl: added a zip file generator as package
 
+- nsf.c:
+  * new file nsfPointer.c
+  * generic new value checker ConvertToPointer to handle c-level
+    conversions (which can be registed from nsf extensions)
+  * extern defined interface for the pointer converter:
+    Nsf_PointerTypeLookup(), Nsf_PointerTypeRegister(),
+    Nsf_PointerAdd(), Nsf_PointerDelete(), 
+    Nsf_PointerInit(), Nsf_PointerExit().
+- library mongodb
+  * changed mongoAPI to pointer converter interface
+
+
 TODO:
 - do we have to adjust the documentation in xotcl2 for object initialization?
 - maybe optional arg (true) to ::nsf::object::initialized 

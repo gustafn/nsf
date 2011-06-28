@@ -69,13 +69,20 @@ proc genifd {parameterDefinitions} {
         set (-argName) $type
 	append flags |NSF_ARG_IS_ENUMERATION
       }
+      default {
+	if {[info exists ::ptrConverter($type)]} {
+	  set converter Pointer
+	} else {
+	  error "unknown type $type"
+	}
+      }
     }
-    if {$converter in {Tclobj Integer Int32 Boolean String Class Object}} {
+    if {$converter in {Tclobj Integer Int32 Boolean String Class Object Pointer}} {
       set conv Nsf_ConvertTo$converter
     } else {
       set conv ConvertTo$converter
     }
-    lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
+    lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,\"$(-type)\",NULL,NULL,NULL,NULL,NULL}"
   }
   if {[llength $l] == 0} {
     return "{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
@@ -184,7 +191,13 @@ proc gencall {methodName fn parameterDefinitions clientData
         }
         *|* {set type "int "}
         default  {
-          error "type '$(-type)' not allowed for argument"
+	  if {[info exists ::ptrConverter($(-type))]} {
+	    set type "$(-type) *"
+	    set varName "$(-type)Ptr"
+	    set calledArg $varName
+	  } else {
+	    error "type '$(-type)' not allowed for argument"
+	  }
         }
       }
     }

@@ -232,7 +232,8 @@ typedef int (Nsf_TypeConverter)(Tcl_Interp *interp,
 Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass, 
   Nsf_ConvertToInteger, Nsf_ConvertToInt32,
   Nsf_ConvertToObject, Nsf_ConvertToParameter, 
-  Nsf_ConvertToString, Nsf_ConvertToSwitch, Nsf_ConvertToTclobj;
+  Nsf_ConvertToString, Nsf_ConvertToSwitch, 
+  Nsf_ConvertToTclobj, Nsf_ConvertToPointer;
 
 typedef struct Nsf_Param {
   char *name;
@@ -264,11 +265,29 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 extern int
 NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what);
 
+/*
+ * logging
+ */
 #define NSF_LOG_NOTICE 2
 #define NSF_LOG_WARN 1
 
 extern void
 NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...);
+
+/*
+ * Nsf Pointer converter interface
+ */
+
+extern int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr);
+extern int Nsf_PointerDelete(void *valuePtr);
+extern void Nsf_PointerInit(Tcl_Interp *interp);
+extern void Nsf_PointerExit(Tcl_Interp *interp);
+extern void *Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName);
+extern int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr);
+
+/*
+ * methodDefinition
+ */
 
 typedef struct Nsf_methodDefinition {
   CONST char *methodName;

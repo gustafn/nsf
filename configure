@@ -5543,7 +5543,7 @@ fi
 
 
     vars="nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
-	nsfTrace.c nsfUtil.c nsfObj.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
+	nsfTrace.c nsfUtil.c nsfObj.c nsfPointer.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
     for i in $vars; do
 	case $i in
 	    \$*)
