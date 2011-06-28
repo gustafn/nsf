@@ -14414,7 +14414,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
 
     if (objc == 0 && ((pPtr->flags & NSF_ARG_ALLOW_EMPTY) == 0)) {
       return NsfPrintError(interp,
-			   "invalid parameter value for %s: list is not allowed to be empty",
+			   "invalid value for parameter '%s': list is not allowed to be empty",
 			   pPtr->name);
     }
 

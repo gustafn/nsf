@@ -356,7 +356,7 @@ nx::Test case dispo-multiplicities {
   ? {[S new -foo [list 0 1]] eval {info exists :foo}} \
       "expected integer but got \"0 1\" for parameter \"x\""
   ? {[S new -foo [list]] eval {info exists :foo}} \
-      "invalid parameter value for -foo: list is not allowed to be empty"
+      "invalid value for parameter '-foo': list is not allowed to be empty"
   ? {[S new -foo 5] eval {info exists :foo}} 1
   ? {[S new -foo f] eval {info exists :foo}} \
       "invalid value in \"f\": expected integer but got \"f\" for parameter \"-foo\""
@@ -515,12 +515,10 @@ nx::Test case alias-noarg {
     }
     :public method foo {args} {
       set :foo $args
-      #puts stderr FOO
       return $args
     }
     :public method bar {args} {
       set :bar $args
-      #puts stderr BAR
       return $args
     }
   }
