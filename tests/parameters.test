@@ -1079,7 +1079,7 @@ Test case allow-empty {
   o public method foo {x:integer,0..1 y:integer os:object,1..*} {return $x}
   ? {o foo 1 2 {o1 "" o2}} {invalid value in "o1 "" o2": expected object but got "" for parameter "os"} \
       "list contains empty value"
-  ? {o foo "" 2 {}} {invalid parameter value for os: list is not allowed to be empty} \
+  ? {o foo "" 2 {}} {invalid value for parameter 'os': list is not allowed to be empty} \
       "empty int, empty list of objects"
 }
 #######################################################

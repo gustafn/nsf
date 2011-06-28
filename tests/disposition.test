@@ -316,19 +316,6 @@ nx::Test case basics {
 
   C setObjectParams [list [list -foo:forward,initcmd]]
   ? {C new} "Parameter types 'forward' and 'initcmd' can be not used together"
-
-
-  # Remains to be done ...
-  # INTERACTIONS with the return value checker
-  #
-  
-  #
-  # uplevel, upvar (with forward, with different target method types)
-  #
-
-  # 
-  # allowempty
-  # 
 }
 
 nx::Test case dispo-multiplicities {
@@ -369,7 +356,7 @@ nx::Test case dispo-multiplicities {
   ? {[S new -foo [list 0 1]] eval {info exists :foo}} \
       "expected integer but got \"0 1\" for parameter \"x\""
   ? {[S new -foo [list]] eval {info exists :foo}} \
-      "invalid parameter value for -foo: list is not allowed to be empty"
+      "invalid value for parameter '-foo': list is not allowed to be empty"
   ? {[S new -foo 5] eval {info exists :foo}} 1
   ? {[S new -foo f] eval {info exists :foo}} \
       "invalid value in \"f\": expected integer but got \"f\" for parameter \"-foo\""
@@ -394,6 +381,129 @@ nx::Test case dispo-multiplicities {
 
 }
 
+nx::Test case dispo-returns {
+  Class create R {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+  }
+
+  #
+  # Alias/forward dispositions are unavailable as parameter types of return checkers
+  #
+  set methods(raz) [R public class method raz {} {;}]
+  foreach dispoSpec {
+    alias,noarg 
+    alias,method=xxx 
+    {forward,method=%self xxx} 
+    initcmd
+  } {
+    ::nsf::method::property R $methods(raz) returns $dispoSpec
+    ? {R raz} "invalid value constraints \"$dispoSpec\""
+  }
+  
+
+  #
+  # Interactions between disposition types and the return value checkers
+  #
+  ::nsf::configure checkresults true
+  # --
+  
+  R setObjectParams -foo:alias,true
+
+  set methods(foo) [R public method foo {x:true} -returns false  {
+    set :foo $x
+  }]
+
+  ? {[R new] foo t} "expected false but got \"t\" as return value"
+
+
+  R setObjectParams [list -foo:alias,true bar:alias,false]
+
+  ::nsf::method::property R $methods(foo) returns boolean
+
+  set methods(bar) [R public method bar {y:false} -returns true  {
+    set :bar $y
+  }]
+
+  ? {[R new -foo t f] eval {info exists :bar}} "expected true but got \"f\" as return value"
+
+  R setObjectParams [list -foo:alias,true bar:alias,false \
+			 [list baz:alias,wideinteger,substdefault {[expr {2 ** 63}]}]]
+
+  ::nsf::method::property R $methods(bar) returns boolean
+  set methods(baz) [R public method baz {z:wideinteger} -returns int32  {
+    set :baz $z
+  }]
+  
+  ? {[R new -foo t f [expr {2 ** 31}]] eval {info exists :foo}} 1
+  ? {[R new -foo t f] eval {info exists :baz}} "expected int32 but got \"[expr {2 ** 63}]\" as return value"
+  ? {[R new -foo t f] eval {info exists :baz}} "expected int32 but got \"[expr {2 ** 63}]\" as return value"
+
+  ::nsf::method::property R $methods(baz) returns wideinteger
+  ? {string is wideinteger [[R new -foo t f] eval {set :baz}]} 1
+}
+
+nx::Test case dispo-callstack {
+  Class create Callee {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+  }
+
+  #
+  # uplevel, upvar (with alias and forward)
+  #
+  Callee public method call {{-level 2} x} {
+    #
+    # The callstack positioning corresponds to the one of
+    # alias/forward target methods in general:
+    # Level -1 -> C-level frame 
+    # Level -2 -> Actual caller frame
+    #
+    # Note: Like any aliased methods, target methods of alias
+    # parameters do not have full callstack transparency (e.g., in a
+    # direct call to the target method, level -1 would resolve to the
+    # caller frame)
+    #
+    # ::nsf::__db_show_stack
+    uplevel $level [list set ix $x]
+    upvar $level $x _
+    incr _
+  }
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+    {{{-ah:forward,method=uplevel %self call -level 1}} {{call:forward,method=uplevel %self %method -level 1} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    namespace eval __ {
+      ? {info exists X} 0
+      ? {info exists ix} 0
+      ? {Callee new; info exists ix} 1
+      ? {set X} 1
+      ? {Callee new; info exists X} 1
+      ? {Callee new; set X} 3
+      ? {Callee new; set ix} X
+      ? {Callee new -ah X X; set ix} X
+      ? {set X} 6
+      ? {info exists Y} 0
+      ? {Callee new -ah X Y; set Y} 1
+      ? {set X} 7
+      ? {set ix} Y
+    }
+    namespace delete __
+  }
+}
+
 nx::Test case alias-noarg {
   Class create C {
     :public class method setObjectParams {spec} {
@@ -405,12 +515,10 @@ nx::Test case alias-noarg {
     }
     :public method foo {args} {
       set :foo $args
-      #puts stderr FOO
       return $args
     }
     :public method bar {args} {
       set :bar $args
-      #puts stderr BAR
       return $args
     }
   }
