@@ -1728,22 +1728,33 @@ Test case bignums {
 
 }
 
-nx::Test case reconfigure-default {
+nx::Test case reconfigure-perobj-default {
   Object create o
   ? {o eval {info exists :a}} 0
   o attribute {a oldvalue}
   ? {o eval {info exists :a}} 1
   ? {o a} oldvalue
   #
-  # Kind of unintuitive, we first have to unset the objvar, then call
-  # reconfigure ... Can we hide the reconfigure in e.g. the slot objs
-  # recreate step? Or provide defaults to the ::nsf::method::setter?
+  # By unsetting the var, upon recreating the attribute slot (or
+  # calling reconfigure upon the attribute) we can trigger
+  # a re-assignment of the default value.
   #
   o eval {unset :a}
   ? {o eval {info exists :a}} 0
-  o attribute {a newvalue} {
-    :reconfigure
-  }
+  #
+  # re-assignment of the default is handled by init
+  #
+  o attribute {a newvalue}
   ? {o eval {info exists :a}} 1
   ? {o a} newvalue
+  o eval {unset :a}
+  ? {o eval {info exists :a}} 0
+  [o info slots a] default anothervalue
+  ? {o eval {info exists :a}} 0
+  #
+  # re-assignment must be requested by a reconfigure call
+  #
+  [o info slots a] reconfigure
+  ? {o eval {info exists :a}} 1
+  ? {o a} anothervalue
 }
