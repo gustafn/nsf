@@ -115,7 +115,7 @@ Nsf_PointerGet(char *key, CONST char *prefix) {
  *
  *----------------------------------------------------------------------
  */
-static char *
+static Tcl_HashEntry *
 Nsf_PointerGetHptr(void *valuePtr) {
   Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
