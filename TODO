@@ -3000,8 +3000,17 @@ nsf:
   * use "-withObj" in mongodb interface
   * adapted regression test
 
+- mongodb interface:
+  * mongo::gridfile::seek: added a seek command for gridfiles
+  * added example for the low-level interface to shwo how 
+    to access gridfs via the plain mongodb interface, how
+    to add some additional metadata (e.g. dublin core meta
+    data) and how to retrieve this via the gridfile interface
 
 TODO:
+- extend mongo::gridfs::store_file with a switch -metadata to
+  pass metadata together at gridfs file creation time
+
 - do we have to adjust the documentation in xotcl2 for object initialization?
 - maybe optional arg (true) to ::nsf::object::initialized 
   to generalize -noinit

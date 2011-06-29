@@ -887,6 +887,9 @@ NsfMongoGridFSClose(Tcl_Interp *interp, gridfs *gridfsPtr, Tcl_Obj *gridfsObj) {
 
 /***********************************************************************
  * GridFile interface
+ *
+ * Currently offsets and sizes are limited to 32bit integers, we should
+ * relax this later.
  ***********************************************************************/
 
 /*
@@ -989,6 +992,22 @@ NsfMongoGridFileRead(Tcl_Interp *interp, gridfile *gridFilePtr, int size) {
   readSize = gridfile_read(gridFilePtr, size, buffer);
   Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, readSize));
   ckfree(buffer);
+
+  return TCL_OK;
+}
+
+/*
+cmd "gridfile::seek" NsfMongoGridFileSeek {
+  {-argName "file" -required 1 -type gridfile}
+  {-argName "offset" -required 1 -type int32}
+}
+*/
+static int 
+NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *gridFilePtr, int offset) {
+  int pos;
+
+  pos = gridfile_seek(gridFilePtr, offset);
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(pos));
 
   return TCL_OK;
 }

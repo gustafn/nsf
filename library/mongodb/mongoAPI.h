@@ -19,6 +19,7 @@ static int NsfMongoGridFileGetContentlengthStub(ClientData clientData, Tcl_Inter
 static int NsfMongoGridFileGetMetaDataStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoInsertStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoQueryStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -38,6 +39,7 @@ static int NsfMongoGridFileGetContentlength(Tcl_Interp *interp, gridfile *filePt
 static int NsfMongoGridFileGetMetaData(Tcl_Interp *interp, gridfile *filePtr);
 static int NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *fsPtr, CONST char *filename);
 static int NsfMongoGridFileRead(Tcl_Interp *interp, gridfile *filePtr, int size);
+static int NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *filePtr, int size);
 static int NsfMongoIndex(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *attributes, int withDropdups, int withUnique);
 static int NsfMongoInsert(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *values);
 static int NsfMongoQuery(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
@@ -58,6 +60,7 @@ enum {
  NsfMongoGridFileGetMetaDataIdx,
  NsfMongoGridFileOpenIdx,
  NsfMongoGridFileReadIdx,
+ NsfMongoGridFileSeekIdx,
  NsfMongoIndexIdx,
  NsfMongoInsertIdx,
  NsfMongoQueryIdx,
@@ -325,6 +328,26 @@ NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 }
 
 static int
+NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMongoGridFileSeekIdx].paramDefs, 
+                     method_definitions[NsfMongoGridFileSeekIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    gridfile *filePtr = (gridfile *)pc.clientData[0];
+    int size = (int )PTR2INT(pc.clientData[1]);
+
+    assert(pc.status == 0);
+    return NsfMongoGridFileSeek(interp, filePtr, size);
+
+  }
+}
+
+static int
 NsfMongoIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
@@ -485,6 +508,10 @@ static Nsf_methodDefinition method_definitions[] = {
   {"filename", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::read", NsfMongoGridFileReadStub, 2, {
+  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
+  {"size", NSF_ARG_REQUIRED, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::gridfile::seek", NsfMongoGridFileSeekStub, 2, {
   {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
   {"size", NSF_ARG_REQUIRED, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },

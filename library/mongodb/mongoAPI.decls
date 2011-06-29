@@ -95,24 +95,28 @@ cmd gridfs::close NsfMongoGridFSClose {
 # GridFile
 #
 
-cmd gridfile::close NsfMongoGridFileClose {
+cmd "gridfile::close" NsfMongoGridFileClose {
   {-argName "file" -required 1 -type gridfile -withObj 1}
 }
 
-cmd gridfile::get_contentlength NsfMongoGridFileGetContentlength {
+cmd "gridfile::get_contentlength" NsfMongoGridFileGetContentlength {
   {-argName "file" -required 1 -type gridfile}
 }
-cmd gridfile::get_contenttype NsfMongoGridFileGetContentType {
+cmd "gridfile::get_contenttype" NsfMongoGridFileGetContentType {
   {-argName "file" -required 1 -type gridfile}
 }
-cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {
+cmd "gridfile::get_metadata" NsfMongoGridFileGetMetaData {
   {-argName "file" -required 1 -type gridfile}
 }
-cmd gridfile::open NsfMongoGridFileOpen {
+cmd "gridfile::open" NsfMongoGridFileOpen {
   {-argName "fs" -required 1 -type gridfs}
   {-argName "filename" -required 1}
 }
-cmd gridfile::read NsfMongoGridFileRead {
+cmd "gridfile::read" NsfMongoGridFileRead {
   {-argName "file" -required 1 -type gridfile}
   {-argName "size" -required 1 -type int32}
+}
+cmd "gridfile::seek" NsfMongoGridFileSeek {
+  {-argName "file" -required 1 -type gridfile}
+  {-argName "offset" -required 1 -type int32}
 }
