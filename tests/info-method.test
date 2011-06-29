@@ -460,6 +460,9 @@ nx::Test case info-submethod {
 
   ? {nx::Object info method parameter "info lookup methods"} \
       "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
+  ? {nx::Object info method parametersyntax "info lookup methods"} \
+      "?-callprotection all|protected|public? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?pattern?"
+
   ? {o info method parameter "foo b"} "x:int y:upper"
 
   ? {nx::Object info method parameter ::nx::Object::slot::__info::lookup::methods} \

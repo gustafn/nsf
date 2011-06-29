@@ -461,15 +461,15 @@ NsfMongoGetHostPort(CONST char *string,
 
 /*
 cmd close NsfMongoClose {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo_connection -withObj 1}
 }
 */
 static int 
-NsfMongoClose(Tcl_Interp *interp, mongo_connection *connPtr) {
+NsfMongoClose(Tcl_Interp *interp, mongo_connection *connPtr, Tcl_Obj *connObj) {
 
   if (connPtr) {
     mongo_destroy(connPtr);
-    Nsf_PointerDelete(connPtr);
+    Nsf_PointerDelete(ObjStr(connObj), connPtr);
   }
   return TCL_OK;
 }
@@ -873,14 +873,14 @@ NsfMongoGridFSStoreFile(Tcl_Interp *interp, gridfs *gridfsPtr,
 
 /*
 cmd gridfs::close NsfMongoGridFSClose {
-  {-argName "gfs" -required 1 -type gridfs}
+  {-argName "gfs" -required 1 -type gridfs -withObj 1}
 }
 */
 static int 
-NsfMongoGridFSClose(Tcl_Interp *interp, gridfs *gridfsPtr) {
+NsfMongoGridFSClose(Tcl_Interp *interp, gridfs *gridfsPtr, Tcl_Obj *gridfsObj) {
 
   gridfs_destroy(gridfsPtr);
-  Nsf_PointerDelete(gridfsPtr);
+  Nsf_PointerDelete(ObjStr(gridfsObj), gridfsPtr);
 
   return TCL_OK;
 }
@@ -891,14 +891,14 @@ NsfMongoGridFSClose(Tcl_Interp *interp, gridfs *gridfsPtr) {
 
 /*
 cmd gridfile::close NsfMongoGridFileClose {
-  {-argName "file" -required 1 -type gridfile}
+  {-argName "file" -required 1 -type gridfile -withObj 1}
 }
 */
 static int 
-NsfMongoGridFileClose(Tcl_Interp *interp, gridfile* gridFilePtr) {
+NsfMongoGridFileClose(Tcl_Interp *interp, gridfile* gridFilePtr, Tcl_Obj *gridFileObj) {
 
   gridfile_destroy(gridFilePtr);
-  Nsf_PointerDelete(gridFilePtr);
+  Nsf_PointerDelete(ObjStr(gridFileObj), gridFilePtr);
 
   return TCL_OK;
 }

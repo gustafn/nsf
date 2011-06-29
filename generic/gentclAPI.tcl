@@ -82,7 +82,16 @@ proc genifd {parameterDefinitions} {
     } else {
       set conv ConvertTo$converter
     }
-    lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,\"$(-type)\",NULL,NULL,NULL,NULL,NULL}"
+    switch -glob -- $(-type) {
+      "*|*" -
+      "tclobj" - 
+      "args" - 
+      "" {set typeString NULL}
+      default {
+	set typeString "\"$(-type)\""
+      }
+    }
+    lappend l "{\"$argName\", $flags, $(-nrargs), $conv, NULL,NULL,$typeString,NULL,NULL,NULL,NULL,NULL}"
   }
   if {[llength $l] == 0} {
     return "{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
@@ -193,8 +202,13 @@ proc gencall {methodName fn parameterDefinitions clientData
         default  {
 	  if {[info exists ::ptrConverter($(-type))]} {
 	    set type "$(-type) *"
-	    set varName "$(-type)Ptr"
+	    set varName "${varName}Ptr"
 	    set calledArg $varName
+	    if {$(-withObj)} {
+	      append calledArg [subst -nocommands {,pc.objv[$i]}]
+	      lappend if "$type$varName" "Tcl_Obj *$(-argName)Obj"
+	      set ifSet 1
+	    }
 	  } else {
 	    error "type '$(-type)' not allowed for argument"
 	  }
@@ -399,7 +413,7 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   }
   set completed [list]
   foreach parameterDefinition $parameterDefinitions {
-    array set "" {-required 0 -nrargs 1 -type ""}
+    array set "" {-required 0 -nrargs 1 -type "" -withObj 0}
     array set "" $parameterDefinition
     lappend completed [array get ""]
   }

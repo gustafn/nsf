@@ -2992,6 +2992,14 @@ nsf:
 - library mongodb
   * changed mongoAPI to pointer converter interface
 
+- C-code generator:
+  * additional parameter swith "-withObj" to allow passing
+    of internal representation and the according TclObj *
+  * c-implemented methods: report types in "info parameter" for
+    more builtin types.
+  * use "-withObj" in mongodb interface
+  * adapted regression test
+
 
 TODO:
 - do we have to adjust the documentation in xotcl2 for object initialization?

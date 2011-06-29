@@ -15,7 +15,7 @@ array set ptrConverter {
 
 
 cmd close NsfMongoClose {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo_connection -withObj 1}
 }
 cmd connect NsfMongoConnect {
   {-argName "-replica-set" -required 0 -nrargs 1}
@@ -88,7 +88,7 @@ cmd gridfs::remove_file NsfMongoGridFSRemoveFile {
 }
 
 cmd gridfs::close NsfMongoGridFSClose {
-  {-argName "gfs" -required 1 -type gridfs}
+  {-argName "gfs" -required 1 -type gridfs -withObj 1}
 }
 
 #
@@ -96,7 +96,7 @@ cmd gridfs::close NsfMongoGridFSClose {
 #
 
 cmd gridfile::close NsfMongoGridFileClose {
-  {-argName "file" -required 1 -type gridfile}
+  {-argName "file" -required 1 -type gridfile -withObj 1}
 }
 
 cmd gridfile::get_contentlength NsfMongoGridFileGetContentlength {

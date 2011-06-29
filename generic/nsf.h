@@ -279,7 +279,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...);
  */
 
 extern int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr);
-extern int Nsf_PointerDelete(void *valuePtr);
+extern int Nsf_PointerDelete(CONST char *key, void *valuePtr);
 extern void Nsf_PointerInit(Tcl_Interp *interp);
 extern void Nsf_PointerExit(Tcl_Interp *interp);
 extern void *Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName);

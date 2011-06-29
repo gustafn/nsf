@@ -135,8 +135,10 @@ Nsf_PointerGetHptr(void *valuePtr) {
  *
  * Nsf_PointerDelete --
  *
- *      Delete an hash entry from our locally maintained hash table
- *      free the associated memory, if valuePtr is provided.
+ *      Delete an hash entry from our locally maintained hash table and
+ *      free the associated memory, if the heas entry is
+ *      found. Normally, the key should be provided. If the key is not
+ *      available, we perform a reverse lookup from the hash table.
  *
  * Results:
  *      valuePtr or NULL.
@@ -147,13 +149,16 @@ Nsf_PointerGetHptr(void *valuePtr) {
  *----------------------------------------------------------------------
  */
 int
-Nsf_PointerDelete(void *valuePtr) {
+Nsf_PointerDelete(CONST char *key, void *valuePtr) {
   Tcl_HashEntry *hPtr;
   int result;
 
-  NsfMutexLock(&pointerMutex);
+  assert(valuePtr);
 
-  hPtr = Nsf_PointerGetHptr(valuePtr);
+  NsfMutexLock(&pointerMutex);
+  hPtr = key 
+    ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL) 
+    : Nsf_PointerGetHptr(valuePtr);
   if (hPtr) {
     ckfree((char *)valuePtr);
     Tcl_DeleteHashEntry(hPtr);
