@@ -117,7 +117,7 @@ namespace eval ::nx {
 	#puts stderr "check $object info methods $path @ <$w>"
 	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}] 
 	if {[::nsf::dispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} {
-	  #
+ 	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
 	  #
 	  if {$scope eq "class"} {
@@ -1409,8 +1409,11 @@ namespace eval ::nx {
   ::nx::Attribute public method reconfigure {} {
     #puts stderr "*** Should we reconfigure [self]???"
     unset -nocomplain :parameterSpec
+    :checkInstVar
     :makeAccessor
-    ::nsf::invalidateobjectparameter ${:domain}
+    if {[::nsf::is class ${:domain}]} {
+      ::nsf::invalidateobjectparameter ${:domain}
+    }
   }
 
   ::nx::Attribute protected method init {} {

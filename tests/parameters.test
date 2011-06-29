@@ -1727,3 +1727,23 @@ Test case bignums {
   ? {o baz [expr {2 ** 128}]} "340282366920938463463374607431768211456"
 
 }
+
+nx::Test case reconfigure-default {
+  Object create o
+  ? {o eval {info exists :a}} 0
+  o attribute {a oldvalue}
+  ? {o eval {info exists :a}} 1
+  ? {o a} oldvalue
+  #
+  # Kind of unintuitive, we first have to unset the objvar, then call
+  # reconfigure ... Can we hide the reconfigure in e.g. the slot objs
+  # recreate step? Or provide defaults to the ::nsf::method::setter?
+  #
+  o eval {unset :a}
+  ? {o eval {info exists :a}} 0
+  o attribute {a newvalue} {
+    :reconfigure
+  }
+  ? {o eval {info exists :a}} 1
+  ? {o a} newvalue
+}
