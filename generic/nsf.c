@@ -7378,14 +7378,14 @@ CheckVarName(Tcl_Interp *interp, const char *varNameString) {
 
 static int
 VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *varName, CONST char *index,
-          int triggerTrace, int requireDefined) {
+          int flags) {
   CallFrame frame, *framePtr = &frame;
   Var *varPtr, *arrayPtr;
   int result;
 
   Nsf_PushFrameObj(interp, object, framePtr);
 
-  if (triggerTrace) {
+  if (flags & NSF_VAR_TRIGGER_TRACE) {
     varPtr = TclVarTraceExists(interp, varName);
   } else {
     int flags = (index == NULL) ? TCL_PARSE_PART1 : 0;
@@ -7393,14 +7393,16 @@ VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *varName, CONST char
                           /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
   }
   /*
-    fprintf(stderr, "VarExists %s varPtr %p requireDefined %d, triggerTrace %d, isundef %d\n",
+    fprintf(stderr, "VarExists %s varPtr %p flags %.4x isundef %d\n",
     varName,
     varPtr,
-    requireDefined, triggerTrace,
+    flags,
     varPtr ? TclIsVarUndefined(varPtr) : NULL);
   */
-  result = (varPtr && (!requireDefined || !TclIsVarUndefined(varPtr)));
-
+  result = (varPtr && ((flags & NSF_VAR_REQUIRE_DEFINED) == 0 || !TclIsVarUndefined(varPtr)));
+  if (result && (flags & NSF_VAR_ISARRAY) && !TclIsVarArray(varPtr)) {
+    result = 0;
+  }
   Nsf_PopFrameObj(interp, framePtr);
 
   return result;
@@ -11546,7 +11548,14 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
        */
       cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
       childObject = NsfGetObjectFromCmdPtr(cmd);
-      if (!childObject) continue;
+      
+      /* 
+       * Report just the already fully initialized slot objects, not the one
+       * being right now created.
+       */
+      if (!childObject || (childObject->flags & NSF_INIT_CALLED) == 0) {
+	continue;
+      }
 
       /*
        * Check the pattern.
@@ -16721,7 +16730,6 @@ cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
 */
 static int
 NsfInvalidateObjectParameterCmd(Tcl_Interp *UNUSED(interp), NsfClass *cl) {
-
   if (cl->parsedParamPtr) {
     /*fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr);*/
     ParsedParamFree(cl->parsedParamPtr);
@@ -18258,17 +18266,21 @@ NsfSelfCmd(Tcl_Interp *interp) {
 
 /*
 cmd var::exists NsfVarExistsCmd {
+  {-argName "-array" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1}
 }
 */
 static int
-NsfVarExistsCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varName) {
+NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, CONST char *varName) {
+  int flags =  
+    NSF_VAR_TRIGGER_TRACE|NSF_VAR_REQUIRE_DEFINED|
+    (withArray ? NSF_VAR_ISARRAY : 0);
 
   if (CheckVarName(interp, varName) != TCL_OK) {
     return TCL_ERROR;
   }
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), VarExists(interp, object, varName, NULL, 1, 1));
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), VarExists(interp, object, varName, NULL, flags));
 
   return TCL_OK;
 }
@@ -18527,6 +18539,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
    * Check, if there is already a parameter definition available for
    * creating objects of this class.
    */
+
   if (clParsedParamPtr) {
     parsedParamPtr->paramDefs = clParsedParamPtr->paramDefs;
     parsedParamPtr->possibleUnknowns = clParsedParamPtr->possibleUnknowns;
@@ -19125,7 +19138,9 @@ objectMethod exists NsfOExistsMethod {
 */
 static int
 NsfOExistsMethod(Tcl_Interp *interp, NsfObject *object, CONST char *var) {
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), VarExists(interp, object, var, NULL, 1, 1));
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), 
+		VarExists(interp, object, var, NULL, 
+			  NSF_VAR_TRIGGER_TRACE|NSF_VAR_REQUIRE_DEFINED));
   return TCL_OK;
 }
 
@@ -20463,7 +20478,7 @@ NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, CONST char *pattern)
   okList = Tcl_NewListObj(0, NULL);
   for (i=0; i<length; i++) {
     Tcl_ListObjIndex(interp, varlist, i, &element);
-    if (VarExists(interp, object, ObjStr(element), NULL, 0, 1)) {
+    if (VarExists(interp, object, ObjStr(element), NULL, NSF_VAR_REQUIRE_DEFINED)) {
       Tcl_ListObjAppendElement(interp, okList, element);
     } else {
       /*fprintf(stderr, "must ignore '%s' %d\n", ObjStr(element), i);*/

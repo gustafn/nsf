@@ -584,7 +584,11 @@ namespace eval ::nx::serializer {
       set setcmd [list]
       foreach v [lsort [$o info vars]] {
         if {![info exists :ignoreVarsRE] || ![regexp ${:ignoreVarsRE} ${o}::$v]} {
-          if {[$o eval [list ::array exists :$v]]} {
+	  if {[::nsf::var::exists $o $v] == 0} {
+	    puts stderr "strange, [list $o info vars] returned $v, but it does not seem to exist"
+	    continue
+	  }
+          if {[::nsf::var::exists -array $o $v]} {
             lappend setcmd [list array set :$v [$o eval [list array get :$v]]]
           } else {
             lappend setcmd [list set :$v [::nsf::var::set $o $v]]

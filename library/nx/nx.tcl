@@ -994,6 +994,7 @@ namespace eval ::nx {
     #
     # intended to be called on RelationSlot or AttributeSlot
     #
+
     if {![info exists :forwardername]} {
       set :forwardername ${:methodname}
     }
@@ -1058,6 +1059,7 @@ namespace eval ::nx {
     }
     return ${:parameterSpec}
   }
+
 
   ######################################################################
   # We have no working objectparameter yet, since it requires a
@@ -1203,9 +1205,6 @@ namespace eval ::nx {
     #
     # Most system slots are RelationSlots
     #
-    ::nx::RelationSlot create ${os}::Class::slot::dummy
-    ${os}::Class::slot::dummy destroy
-
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
 	-forwardername object-mixin -elementtype mixinreg
     ::nx::RelationSlot create ${os}::Object::slot::filter \
@@ -1305,8 +1304,23 @@ namespace eval ::nx {
     #::nsf::method::alias ::nx::Class::slot::object-filter guard ${os}::Object::slot::filter::guard
   }
 
+
   register_system_slots ::nx
   proc ::nx::register_system_slots {} {}
+  
+  #
+  # With a special purpose eval, we could avoid the need for
+  # reconfigure for slot changes via eval (two cases in the regression
+  # test). However, most of the eval uses are from various reading
+  # purposes, so maybe this is an overkill.
+  #
+  #::nx::ObjectParameterSlot public method eval {cmd} {
+  #  set r [next]
+  #  #puts stderr "eval on slot [self] $cmd -> $r"
+  #  :reconfigure
+  #  return $r
+  #}
+     
 
   ######################################################################
   # Attribute slots
@@ -1519,7 +1533,7 @@ namespace eval ::nx {
 
   Attribute public method add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
-      puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"
+      #puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"
       error "Property $prop of [set :domain] ist not multivalued"
     }
     if {[::nsf::var::exists $obj $prop]} {
@@ -1602,6 +1616,7 @@ namespace eval ::nx {
 
   # remove helper proc
   proc createBootstrapAttributeSlots {} {}
+
 
   ######################################################################
   # Create a mixin class to overload method "new" such it does not

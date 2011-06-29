@@ -3007,6 +3007,15 @@ nsf:
     to add some additional metadata (e.g. dublin core meta
     data) and how to retrieve this via the gridfile interface
 
+- nsf.c: 
+   * report only fully initialized slot objects via "info slots" to
+     avoid chicken-egg problem during method "objectparameter"
+   * added flag -array to ::nsf::var::exists to check, whether
+     the variable is an array (to avoid "o eval {array exists ...}"
+     in the serializer.
+   * provided flags to VarExists instead of multiple args
+   * don't add new pointer entries in Nsf_PointerTypeLookup()
+
 TODO:
 - extend mongo::gridfs::store_file with a switch -metadata to
   pass metadata together at gridfs file creation time

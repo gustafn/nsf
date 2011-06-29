@@ -806,7 +806,7 @@ nx::Test case xotcl-residualargs {
 }
 
 
-nx::Test parameter count 100000
+nx::Test parameter count 1000
 nx::Test case xotcl-residualargs {
 
   ::xotcl::Class create XC -parameter {a b c}

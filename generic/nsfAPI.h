@@ -345,7 +345,7 @@ static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtyp
 static int NsfSelfCmd(Tcl_Interp *interp);
 static int NsfShowStackCmd(Tcl_Interp *interp);
 static int NsfUnsetUnknownArgsCmd(Tcl_Interp *interp);
-static int NsfVarExistsCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varName);
+static int NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, CONST char *varName);
 static int NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfVarSetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value);
 static int NsfVarUnsetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName);
@@ -1592,11 +1592,12 @@ NsfVarExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    NsfObject *object = (NsfObject *)pc.clientData[0];
-    CONST char *varName = (CONST char *)pc.clientData[1];
+    int withArray = (int )PTR2INT(pc.clientData[0]);
+    NsfObject *object = (NsfObject *)pc.clientData[1];
+    CONST char *varName = (CONST char *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfVarExistsCmd(interp, object, varName);
+    return NsfVarExistsCmd(interp, withArray, object, varName);
 
   }
 }
@@ -2544,7 +2545,8 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::__unset_unknown_args", NsfUnsetUnknownArgsCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::var::exists", NsfVarExistsCmdStub, 2, {
+{"::nsf::var::exists", NsfVarExistsCmdStub, 3, {
+  {"-array", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

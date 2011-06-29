@@ -697,6 +697,10 @@ typedef struct NsfCallStackContent {
 #define NSF_CM_NO_PROTECT 4
 #define NSF_CM_NO_OBJECT_METHOD 8
 
+#define NSF_VAR_TRIGGER_TRACE    1
+#define NSF_VAR_REQUIRE_DEFINED  2
+#define NSF_VAR_ISARRAY          4
+
 #if defined(NRE)
 # define NsfImmediateFromCallerFlags(flags) \
   (((flags) & (NSF_CSC_CALL_IS_NRE|NSF_CSC_IMMEDIATE)) == NSF_CSC_CALL_IS_NRE ? 0 : NSF_CSC_IMMEDIATE)

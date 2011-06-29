@@ -255,10 +255,9 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPt
 void *
 Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName) {
   Tcl_HashEntry *hPtr;
-  int isNew;
 
   NsfMutexLock(&pointerMutex);
-  hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, typeName, &isNew);
+  hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, typeName, NULL);
   NsfMutexUnlock(&pointerMutex);
   
   if (hPtr) {

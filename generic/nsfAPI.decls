@@ -168,6 +168,7 @@ cmd self NsfSelfCmd {
 # var cmds
 #
 cmd "var::exists" NsfVarExistsCmd {
+  {-argName "-array" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1}
 }
