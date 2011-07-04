@@ -188,7 +188,6 @@ Test case colondispatch {
   ? {o :foo} "::o: methodname ':foo' must not start with a colon" 
   ? {o eval :foo} "::o: unable to dispatch method 'foo'" 
 }
-exit
 
 Test case mixinguards {
   # define a Class C and mixin class M

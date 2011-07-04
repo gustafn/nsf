@@ -66,7 +66,7 @@ Test case multiple-args {
 ###########################################
 Test case mixin-via-forward {
     Object create mixin {
-      :method unknown {m args} {puts stderr ARGS=[current args]; return [concat [current] $m $args]}
+      :method unknown {m args} {return [concat [current] $m $args]}
     }
 
     Object create obj {
@@ -74,7 +74,6 @@ Test case mixin-via-forward {
     }
 
     ? {obj Mixin add M1} [list ::mixin add ::obj M1]
-  exit
     ? {catch {obj Mixin}} 1
     
     obj public forward Mixin mixin "%1 {Getter Setter}" %self
