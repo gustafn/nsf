@@ -589,20 +589,31 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr, Tcl_Obj *method
   /* 
    *  Append all ensemble names to the specified list obj 
    */
-  for (framePtr = Tcl_CallFrame_callerPtr(framePtr), elements = 1;
+  for (framePtr = Tcl_CallFrame_callerPtr(framePtr), elements = 0;
        Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_METHOD);
-       framePtr = Tcl_CallFrame_callerPtr(framePtr), elements ++) {
+       framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr);
     assert(cscPtr);
-    Tcl_ListObjAppendElement(interp, methodPathObj, 
-			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
-    if ((cscPtr->flags & NSF_CSC_TYPE_ENSEMBLE) == 0) break;
+
+    /* 
+     * Beware configure transparency: NsfOConfigureMethod() pushes a CMETHOD
+     * frame with a NULL cmdPtr in its callstack content, especially for
+     * providing callstack transparency for alias parameters. If not bypassing
+     * this special-purpose frame, we end up with erroreneous method path
+     * introspection: Method paths would be reported with preceding empty
+     * string elements!
+     */
+     if (cscPtr->cmdPtr) {
+       Tcl_ListObjAppendElement(interp, methodPathObj, 
+				Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
+       elements++;
+     }
+     if ((cscPtr->flags & NSF_CSC_TYPE_ENSEMBLE) == 0) break;
   }
   /* 
    *  The resulting list has reveresed order. If there are multiple
    *  arguments, reverse the list to obtain the right order.
    */
-
   if (elements > 1) {
     int oc, i;
     Tcl_Obj **ov;
