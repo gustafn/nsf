@@ -458,7 +458,8 @@ CallStackUseActiveFrame(Tcl_Interp *interp, callFrameContext *ctx) {
   /* Get the first active non object frame */
   framePtr = CallStackGetActiveProcFrame(inFramePtr);
 
-  /*fprintf(stderr,"... use frameptr %p \n", framePtr);*/
+  /*fprintf(stderr,"... CallStackUseActiveFrame uses varFramePtr %p (%d)\n", 
+    framePtr, inFramePtr == framePtr);*/
 
   if (inFramePtr == framePtr) {
     /* call frame pointers are fine */

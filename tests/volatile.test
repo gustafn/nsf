@@ -1,0 +1,85 @@
+# -*- Tcl -*-
+package req nx::test
+package req XOTcl
+
+#
+# Wrapper to call a command in a proc/method
+#
+proc bar {args} {
+  set c [{*}$args]
+  set empty [expr {[info command $c] eq ""}]
+  ? [list set _ $empty] 0 "bar: $c destroyed too early"
+  return $c
+}
+
+#
+# Create NX objects with volatile through the wrapper
+#
+proc foon {} {
+  #puts stderr ====2
+  set c [bar C create c1 -volatile {:method destroy {} {#puts "[self] destroy";next}}]
+  ? [list info command $c] "" "foon: $c destroyed too late"
+
+  #puts stderr ====3
+  set c [bar C new -volatile {:method destroy {} {#puts "[self] destroy";next}}]
+  ? [list info command $c] "" "foon: $c destroyed too late"
+}
+
+#
+# Create XOTcl objects with volatile through the wrapper
+#
+proc foox {} {
+  #puts stderr ====1
+  set c [bar XC c1 -volatile -proc destroy {} {#puts "[self] destroy";next}]
+  ? [list info command $c] "" "foox: $c destroyed too late"
+
+  #puts stderr ====2
+  set c [bar XC create c1 -volatile -proc destroy {} {#puts "[self] destroy";next}]
+  ? [list info command $c] "" "foox: $c destroyed too late"
+
+  #puts stderr ====3
+  set c [bar XC new -volatile -proc destroy {} {#puts "[self] destroy";next}]
+  ? [list info command $c] "" "foox: $c destroyed too late"
+}
+
+#
+# Producer classes in NX and XOTcl 
+#
+::nx::Class create C
+::xotcl::Class create XC
+
+# 
+# Create a NX class using foox, foon, and bar as methods
+#
+nx::Class create D {
+  #
+  # call volatile in nsf method bar
+  #
+  :method bar {args} [info body ::bar]
+  :public method foox {} [string map [list bar :bar] [info body ::foox]]
+  :public method foon {} [string map [list bar :bar] [info body ::foon]]
+  #
+  # call volatile in tcl proc bar
+  #
+  :public method foox2 {} [info body ::foox]
+  :public method foon2 {} [info body ::foon]
+}
+
+D create d1
+nx::Test case methods-methods {
+  d1 foox
+  d1 foon
+}
+
+nx::Test case methods-procs {
+  d1 foox2
+  d1 foon2
+}
+
+#
+# Call just in tcl procs
+#
+nx::Test case procs-procs {
+  ::foox
+  ::foon
+}

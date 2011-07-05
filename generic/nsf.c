@@ -14823,10 +14823,12 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	     * Provide warnings for double-settings.
 	     */
 	    if (pcPtr->flags[j] & NSF_ARG_SET) {
-	      NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once (%s%s%s)",
+	      Tcl_Obj *cmdLineObj = Tcl_NewListObj(objc-1, objv+1);
+	      NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once (%s%s%s %s)",
 		     nppPtr->name,
 		     object ? ObjectName(object) : "", object ? " method " : "",
-		     ObjStr(procNameObj));
+		     ObjStr(procNameObj), ObjStr(cmdLineObj));
+	      DECR_REF_COUNT(cmdLineObj);
 	    }
 	    pcPtr->flags[j] |= NSF_ARG_SET;
 
@@ -18881,8 +18883,9 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	 * does not use this as a base frame, and methods like
 	 * activelevel ignore it.
 	 */
+	//yyyy
 	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
-	
+
 	/*
 	 * If "method=" was given, use it as method name
 	 */
@@ -19261,6 +19264,28 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   CONST char *methodName, *nextMethodName, *initString = NULL;
   Tcl_Obj **argv, **nextArgv;
 
+  //yyyy
+  CallFrame *savedVarFramePtr = Tcl_Interp_varFramePtr(interp);
+  CallFrame *callerPtr = savedVarFramePtr->callerPtr;
+  if (callerPtr->callerPtr) { callerPtr = callerPtr->callerPtr;}
+
+  // We seem to have problems in cases, -volatile is called via unknown
+  // TODO: fixme, the comparison with "unknown" can't be the solution
+  if ((Tcl_CallFrame_isProcCallFrame(callerPtr) & FRAME_IS_NSF_METHOD)) {
+    NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(callerPtr);
+    CONST char *methodName = cscPtr && cscPtr->cmdPtr ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : "";
+    if (strcmp(methodName, "unknown") == 0) {
+      //fprintf(stderr, "ONE MORE\n");
+      if (callerPtr->callerPtr) { callerPtr = callerPtr->callerPtr;}
+    }
+  }
+
+  callerPtr = (CallFrame *)CallStackGetActiveProcFrame((Tcl_CallFrame *)callerPtr);
+
+  //fprintf(stderr, "CHANGE FRAME to %p\n", callerPtr);
+  //NsfShowStack(interp);
+  Tcl_Interp_varFramePtr(interp) = callerPtr;
+
 #if 0
   fprintf(stderr, "NsfOResidualargsMethod %s %2d ",ObjectName(object), objc);
   for(i=0; i<objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
@@ -19326,6 +19351,8 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
    * Call init with residual args in case it was not called yet
    */
   result = DispatchInitMethod(interp, object, normalArgs, objv+1, 0);
+
+  Tcl_Interp_varFramePtr(interp) = savedVarFramePtr;
 
   /*
    * Return the non-processed leading arguments (XOTcl convention)
@@ -19473,8 +19500,9 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
     NsfObjectOpt *opt = NsfRequireObjectOpt(object);
 
     /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName,
-      Tcl_Interp_varFramePtr(interp));
-      NsfShowStack(interp);*/
+	    Tcl_Interp_varFramePtr(interp));
+            NsfShowStack(interp);*/
+
     result = Tcl_TraceVar(interp, vn, TCL_TRACE_UNSETS,
 			  (Tcl_VarTraceProc *)NsfUnsetTrace,
                           objPtr);

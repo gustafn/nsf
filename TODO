@@ -3016,7 +3016,15 @@ nsf:
    * provided flags to VarExists instead of multiple args
    * don't add new pointer entries in Nsf_PointerTypeLookup()
 
+- preliminary fix for volatile called through redsidual args
+- new regression test file volatile.test
+
+
 TODO:
+
+- fix the comparison with "unknown" in residual args 
+  (2 places marked with "//yyyy" )
+
 - extend mongo::gridfs::store_file with a switch -metadata to
   pass metadata together at gridfs file creation time
 
