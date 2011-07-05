@@ -800,7 +800,8 @@ nx::Test case dispo-configure-transparency {
   ? {[C create c] FOO} "::c-FOO"
   C setObjectParams [list [list FOO:alias,noarg ""]]
   # UNPATCHED:
-  # ? {C create c} "::c-FOO"
+  # ? {C create c} "::c-{} FOO"
+  ? {C create c} "::c-FOO"
   C public method "show me" {} {
     set :msg [::nsf::current]-[::nsf::current methodpath]
   }

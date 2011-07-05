@@ -8554,7 +8554,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	   * we pass the object as first argument of the unknown
 	   * handler.
 	   */
-	  fprintf(stderr, "next calls DispatchUnknownMethod\n");
+	  /*fprintf(stderr, "next calls DispatchUnknownMethod\n");*/
 	  Tcl_Obj *callInfoObj = Tcl_NewListObj(0,NULL);
 	  Tcl_ListObjAppendList(interp,
 				callInfoObj,
