@@ -119,7 +119,7 @@ void NsfShowStack(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * Nsf_PushFrameObj, Nsf_PopFrameObj --
  *
- *    Push or pop a frame with a callstack content as a OBJECT
+ *    Push or pop a frame with a callstack content as an OBJECT
  *    frame.
  *
  * Results:
@@ -550,20 +550,31 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
   NsfCallStackContent *cscPtr = NULL;
 
   assert(framePtr);
-  for (varFramePtr = Tcl_CallFrame_callerPtr(framePtr);
-       Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_CMETHOD;
+  for (/* Skipping the starting frame, assumingly a "leaf" frame in an ensemle dispatch */
+       varFramePtr = Tcl_CallFrame_callerPtr(framePtr);
+       Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_CMETHOD; 
        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
     assert(cscPtr);
+    
+    /*fprintf(stderr,"	--- frame %p cmdPtr %p NSF_CSC_TYPE_ENSEMBLE %d NSF_CSC_CALL_IS_ENSEMBLE %d \
+			 NSF_CSC_TYPE_INACTIVE %d\n",
+	    varFramePtr,
+	    cscPtr->cmdPtr,
+	    (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0,
+	    (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0,
+	    (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
     /*
-     * The test for CALL_IS_ENSEMBLE is just a saftey belt
+     * The "root" frame in a callstack branch resulting from an ensemble
+     * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
+     * /is/ NSF_CSC_CALL_IS_ENSEMBLE.
      */
-    if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
+    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0 && 
+	(cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) break;
   }
   if (framePtrPtr) {
     *framePtrPtr = varFramePtr;
   }
-
   return cscPtr;
 }
 
@@ -590,26 +601,39 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr, Tcl_Obj *method
   /* 
    *  Append all ensemble names to the specified list obj 
    */
-  for (framePtr = Tcl_CallFrame_callerPtr(framePtr), elements = 0;
+  for (/* Skipping the starting frame, assumingly a "leaf" frame in an ensemle dispatch */ 
+       framePtr = Tcl_CallFrame_callerPtr(framePtr), elements = 0;
        Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_METHOD);
        framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
+    
     NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr);
     assert(cscPtr);
+    
+    /*fprintf(stderr,	"--- frame %p cmdPtr %p cmd %s NSF_CSC_TYPE_ENSEMBLE %d \
+			NSF_CSC_CALL_IS_ENSEMBLE %d NSF_CSC_TYPE_INACTIVE %d\n",
+	    framePtr,
+	    cscPtr->cmdPtr,
+	    Tcl_GetCommandName(interp, cscPtr->cmdPtr),
+	    (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0,
+	    (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0,
+	    (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
 
-    /* 
-     * Beware configure transparency: NsfOConfigureMethod() pushes a CMETHOD
-     * frame with a NULL cmdPtr in its callstack content, especially for
-     * providing callstack transparency for alias parameters. If not bypassing
-     * this special-purpose frame, we end up with erroreneous method path
-     * introspection: Method paths would be reported with preceding empty
-     * string elements!
+    /* Do not record any INACTIVE frames in the method path */
+    if ((cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) continue;
+
+    Tcl_ListObjAppendElement(interp, methodPathObj, 
+			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
+    elements++;
+    
+    /*
+     * The "root" frame in a callstack branch resulting from an ensemble
+     * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
+     * /is/ NSF_CSC_CALL_IS_ENSEMBLE.
      */
-     if (cscPtr->cmdPtr) {
-       Tcl_ListObjAppendElement(interp, methodPathObj, 
-				Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
-       elements++;
-     }
-     if ((cscPtr->flags & NSF_CSC_TYPE_ENSEMBLE) == 0) break;
+    
+    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0 && 
+	(cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) break;
+    
   }
   /* 
    *  The resulting list has reveresed order. If there are multiple

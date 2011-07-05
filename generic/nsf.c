@@ -8390,7 +8390,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   }
 
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d cscPtr %p flags %.6x\n",
-     methodName, cmd, cp, objc, cscPtr, cscPtr->flags);*/
+    methodName, cmd, cp, objc, cscPtr, cscPtr->flags);*/
   assert(object->teardown);
 
   /*
@@ -8548,11 +8548,15 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	  ObjectName(self),methodName, ObjectName(object), cscPtr, result, rst->unknown);*/
 	if (rst->unknown) {
 	  /*
-	   * The appropriate unknown class is registered on the
-	   * EnsembleObject class, from where it is currently not
-	   * possible to determine the true calling object. Therefore,
-	   * we pass the object as first argument of the unknown
-	   * handler.
+	   * Unknown handling: We trigger a dispatch to an unknown method. The
+	   * appropriate unknown handler is either provided for the current
+	   * object (at the class or the mixin level), or the default unknown
+	   * handler takes it from there. The application-level unknown
+	   * handler cannot determine the top-level calling object (referred
+	   * to as the delegator). Therefore, we assemble all the neccesssary
+	   * call data as the first argument passed to the unknown
+	   * handler. Call data include the calling object (delegator), the
+	   * method path, and the unknown final method.
 	   */
 	  /*fprintf(stderr, "next calls DispatchUnknownMethod\n");*/
 	  Tcl_Obj *callInfoObj = Tcl_NewListObj(0,NULL);
@@ -11806,9 +11810,12 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      * locate the appropriate callstack content and continue next on
      * that.
      */
+    fprintf(stderr,">>> input framePtr %p input cscPtr %p\n",framePtr,cscPtr);
     cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
     assert(cscPtr);
     inEnsemble = 1;
+    fprintf(stderr,">>> framePtr %p cscPtr %p\n",framePtr,cscPtr);
+    fprintf(stderr,"cscPtr->objv[0] %s\n",cscPtr->objv[0]?ObjStr(cscPtr->objv[0]):NULL);
     *methodNamePtr = ObjStr(cscPtr->objv[0]);
   } else {
     inEnsemble = 0;
@@ -11964,8 +11971,8 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
   result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
                             &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
 
-  /*fprintf(stderr, "NEXT search on %s.%s cl %p cmd %p endOfFilterChain %d result %d\n",
-    ObjectName(object), methodName, cl, cmd, endOfFilterChain, result);*/
+  /*fprintf(stderr, "NEXT search on %s.%s cl %p cmd %p endOfFilterChain %d result %d IS OK %d\n",
+    ObjectName(object), methodName, cl, cmd, endOfFilterChain, result, (result == TCL_OK));*/
 
   if (result != TCL_OK) {
     goto next_search_and_invoke_cleanup;

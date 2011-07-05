@@ -780,6 +780,76 @@ nx::Test case alias-init {
   ? {c1 eval {set :y}} 1
 }
 
+nx::Test case submethods-via-aliasparams {
+  #
+  # Could move to submethods.test?
+  #
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      if {[info exists :objectparams]} {
+	return ${:objectparams} 
+      }
+    }
+  }
+
+  # A depth-1 submethod ...
+  C public method "FOO foo" {} {
+    set :msg "[::nsf::current]--[::nsf::current methodpath]--[::nsf::current method]"
+  }
+
+  # A depth-2 submethod ...
+  C public method "BAR BOO buu" {} {
+    set :msg "[::nsf::current]--[::nsf::current methodpath]--[::nsf::current method]"
+  }
+
+
+  # // Ordinary dispatch //
+  # The message send below expands into the following callstack
+  # structure (when viewed at from within foo(), N is the anonymous
+  # call site)
+  #
+  # N+3 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
+  # N+2 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
+  # N+1 |:TclFrame|			e.g. cmd, [namespace eval], [apply] 
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  #
+  # Submethod levels greater than 1 turn into intermittent frames:
+  # N+4 |:CscFrame @Type(ENSEMBLE) |			<-- buu (leaf)
+  # N+3 |:CscFrame @Type(ENSEMBLE) @Call(ENSEMBLE)|	<-- BOO (intermittent)
+  # N+2 |:CscFrame @Call(ENSEMBLE) |			<-- BAR (root)
+  # N+1 |:TclFrame|	
+  #  
+  ? {
+    [C create c3] BAR BOO buu; # N
+    c3 eval {set :msg}
+  } "::c3--BAR BOO--buu" 
+
+
+  # // Parameter (alias) dispatch //
+  # 
+  # In contrast to an ordinary dispatch, a parameter dispatch results
+  # in a different callstack structure, due to the interferring
+  # configure():
+  #
+  # N+5 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)
+  # N+4 |:CscFrame @Call(ENSEMBLE)|		<-- FOO (root)
+  # N+3 |:CscFrame @INACTIVE|			<-- (INNER configure() frame)
+  # N+2 |:ObjFrame|				<-- ::c2 (OUTER configure() frame)
+  # N+1 |:TclFrame|		
+  C setObjectParams [list FOO:alias]
+  ? {
+    [C create c2 foo] eval {set :msg}; # N
+  } "::c2--FOO--foo" 
+}
+
 nx::Test case dispo-configure-transparency {
   Class create C {
     :public class method setObjectParams {spec} {
@@ -810,6 +880,65 @@ nx::Test case dispo-configure-transparency {
   # UNPATCHED:
   # ? {[C create c -show me] eval {set :msg}} "::c-{} show"
   ? {[C create c -show me] eval {set :msg}} "::c-show"
+
+  #
+  # ... with mixin indirection
+  #
+  
+  # ... at the calling object level / configure() ...
+  Class create M {
+    :public method configure args {
+      next;
+    }
+    :public method foo args {
+      next;
+    }
+  }
+
+  C setObjectParams [list [list FOO:alias,noarg ""]]
+  C mixin add M
+  ? {C create c} "::c-FOO"
+
+  # ... at the called object level
+
+  Object create ::callee {
+    :public method foo {} {
+      error [::nsf::current]-[::nsf::current methodpath]
+    }
+  }
+
+  ::nsf::method::alias C FOO ::callee
+
+
+
+  C setObjectParams [list [list FOO:alias,noarg ""]]
+  ? {C create c} "::c" "Defaultmethod of calle is invoked ..."
+  C setObjectParams [list [list FOO:alias "foo"]]
+  ? {C create c} "::c-FOO" "foo leaf method is selected ..."
+  ::callee mixin add M
+  ? {C create c} "::c-FOO" "With mixin ..."
+
+  #
+  # ... at the calling object level / ensemble path
+  #
+  # This scenario effectively stacks additional call frames to be
+  # traversed by CallStackMethodPath(). However, these frames precede
+  # the first ensemble frame, that's why they are skipped by
+  # CallStackMethodPath().
+  
+  M eval {
+    :public method FOO args {
+      puts stderr "!!!!! FOO MIXIN ...."
+      next;
+    }
+  }
+
+  ? {C create c} "::c-FOO" "With mixin ..."
+  
+  #
+  # ... with filter indirection
+  #
+
 }
 
 nx::Test case dispo-object-targets {
@@ -914,14 +1043,14 @@ nx::Test case dispo-object-targets {
   ? {T create tt YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
   ::obj mixin UnknownHandler
   ? {T create tt YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
-      "sending the msg: tt->z(::obj)->{}()"
+      "sending the msg: tt->z(::obj)->YYY()"
 
   ::obj mixin {}
   T setObjectParams [list -z:alias]
   ? {T create tt -z YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
   ::obj mixin UnknownHandler
   ? {T create tt -z YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
-      "sending the msg: tt->z(::obj)->{}()"
+      "sending the msg: tt->z(::obj)->YYY()"
     
   #
   # [current methodpath] & empty selector strings:
@@ -975,7 +1104,7 @@ nx::Test case dispo-object-targets {
   
 }
 
-# exit
+exit
 
 #
 # check xotcl with residual args
