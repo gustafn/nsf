@@ -66,9 +66,9 @@ Test case multiple-args {
 ###########################################
 Test case mixin-via-forward {
     Object create mixin {
-	:method unknown {m args} {return [concat [current] $m $args]}
+      :method unknown {m args} {return [concat [current] $m $args]}
     }
- 
+
     Object create obj {
 	:public forward Mixin mixin %1 %self
     }

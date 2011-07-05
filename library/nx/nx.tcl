@@ -487,14 +487,16 @@ namespace eval ::nx {
     #    in nsf when calling e.g. "unknown" (such that a subcmd
     #    "unknown" does not interfere with the method "unknown").
     #
-    :protected method unknown {obj m args} {
-      set path [current methodpath]
-      #puts stderr "+++ UNKNOWN obj $obj '$m' $args // path '[current methodpath]'"
+    :protected method unknown {callInfo args} {
+      set path [lrange $callInfo 1 end-1]; # set path [current methodpath]
+      set m [lindex $callInfo end]
+      set obj [lindex $callInfo 0]
+      # puts stderr "+++ UNKNOWN ARGS=[current args] obj $obj '$m' callInfo=$callInfo args=$args // path '[current methodpath]'"
       if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]} errorMsg]} {
 	set valid ""
 	puts stderr "+++ UNKNOWN raises error $errorMsg"
       }
-      set ref "\"[lindex $args 0]\" of $obj $path"
+      set ref "\"$m\" of $obj $path"
       error "Unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
     }
     

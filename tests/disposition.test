@@ -779,12 +779,208 @@ nx::Test case alias-init {
   # "init" should be called only once
   ? {c1 eval {set :y}} 1
 }
-#puts stderr ===exit
-#exit
+
+nx::Test case dispo-configure-transparency {
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      if {[info exists :objectparams]} {
+       return ${:objectparams} 
+      }
+    }
+  }
+  
+  ::proc foo {} {
+    error [::nsf::current]-[::nsf::current methodpath]
+  }
+  ::nsf::method::alias C FOO ::foo
+  ? {[C create c] FOO} "::c-FOO"
+  C setObjectParams [list [list FOO:alias,noarg ""]]
+  # UNPATCHED:
+  # ? {C create c} "::c-{} FOO"
+  ? {C create c} "::c-FOO"
+  C public method "show me" {} {
+    set :msg [::nsf::current]-[::nsf::current methodpath]
+  }
+  C setObjectParams [list -show:alias]
+  ? {[C create c -show me] eval {info exists :msg}} 1
+  # UNPATCHED:
+  # ? {[C create c -show me] eval {set :msg}} "::c-{} show"
+  ? {[C create c -show me] eval {set :msg}} "::c-show"
+}
+
+nx::Test case dispo-object-targets {
+  Object create obj
+  Class create C
+  Class create T {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      if {[info exists :objectparams]} {
+       return ${:objectparams} 
+      }
+    }
+  }
+  
+  #
+  # 1. Behavioural baseline: An alias method binding an object
+  #
+  set methods(z) [::nsf::method::alias T z ::obj]
+  ? {[T new] z} ::obj "Aliased dispatch to defaultmethod"
+  ? {[T new] z uff} "::obj: unable to dispatch method 'uff'" \
+      "Aliased dispatch to unknown method (default unknown handler)"
+
+  Class create UnknownHandler {
+    :method unknown {callInfo args} {
+      #
+      # callInfo is a Tcl list. For ensemble dispatches, it contains
+      # the complete message: delegator <ensemble ...> <unknown method>; for
+      # ordinary dispatches, the list has a single element: <unknown
+      # method>
+      #
+      # methodpath [current methodpath]
+      # puts stderr "CALLINFO='$callInfo' args=$args"
+      switch [llength $callInfo] {
+	1 {
+	  error "UNKNOWNMETHOD-$callInfo"
+	}
+	default {
+	  set delegator [lindex $callInfo 0]
+	  set unknownMethod [lindex $callInfo end]
+	  set path [lrange $callInfo 1 end-1]
+	  error "CURRENT-[current]-DELEGATOR-$delegator-UNKNOWNMETHOD-$unknownMethod-PATH-$path"
+	}
+      }
+    }
+  }
+
+  ::obj mixin UnknownHandler
+  ? {[T create t] z uff} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-uff-PATH-z" \
+      "Aliased dispatch to unknown method (custom unknown handler)"
+  
+  set x [UnknownHandler create handledObj]
+  set methods(ix) [::nsf::method::alias ::obj ix $x]
+  
+  ? {[T create t] z ix baff} "CURRENT-$x-DELEGATOR-::t-UNKNOWNMETHOD-baff-PATH-z ix" \
+      "Aliased dispatch to unknown method (custom unknown handler)" 
+
+  #
+  # 2. Obj targets via alias disposition parameters
+  #
+
+  #
+  # a) direct dispatch (non-aliased) with fully qualified selector (::*)
+  #
+  ::obj mixin {}
+  T setObjectParams x:alias,method=::obj
+  ? {T create t XXX} "::t: unable to dispatch method '::obj'" "FQ dispatch with default unknown handler"
+
+  ::T mixin UnknownHandler
+  ? {T create t XXX} "UNKNOWNMETHOD-::obj" "FQ dispatch with custom unknown handler"
+
+  #
+  # b) calls to the defaultmethod of the aliased object
+  #
+  UnknownHandler method defaultmethod {} {
+    set :defaultmethod 1
+  }
+  ::obj mixin UnknownHandler
+  T setObjectParams [list [list z:alias,noarg ""]]
+  ? {T create t; ::obj eval {info exists :defaultmethod}} 1 \
+      "Calling defaultmethod via alias+noarg combo with empty default"
+  T setObjectParams [list [list z:alias,noarg "XXX"]]
+  ? {T create t; ::obj eval {info exists :defaultmethod}} 1 \
+      "Calling defaultmethod via alias+noarg non-empty with \
+	default combo (default is not passed)"
+  #
+  # b) intermediary object aliases, non-fully qualified selector 
+  #
+  
+  T setObjectParams [list [list z:alias,noarg ""]]
+  ? {T create tt} ::tt "sending the msg: tt->z()"
+  #
+  # ISSUE: positional objparam + alias + noarg -> what's the point?
+  # noarg & ?z? are irritating, ?z? should not be printed!
+  #
+  ? {T create t XXX} "Invalid argument 'XXX', maybe too many arguments; should be \"::t configure ?z?\""
+
+  ::obj mixin {}
+  T setObjectParams [list z:alias]
+  ? {T create tt YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
+  ::obj mixin UnknownHandler
+  ? {T create tt YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
+      "sending the msg: tt->z(::obj)->{}()"
+
+  ::obj mixin {}
+  T setObjectParams [list -z:alias]
+  ? {T create tt -z YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
+  ::obj mixin UnknownHandler
+  ? {T create tt -z YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
+      "sending the msg: tt->z(::obj)->{}()"
+    
+  #
+  # [current methodpath] & empty selector strings:
+  #
+
+  ::obj mixin {}
+  T setObjectParams [list z:alias]
+  ? {T create tt ""} "::obj: unable to dispatch method ''" "sending the msg: tt->z->{}()"
+  ::obj mixin UnknownHandler
+  ? {T create tt ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z->{}()"
+  exit 
+  T setObjectParams [list -z:alias]
+  ? {T create tt -z ""} ::tt "sending the msg: tt->z()"
+
+  #
+  # ISSUE: Any direct dispatch with a FQ selector is forbidden, why?
+  #
+
+  ::T mixin {}
+  ? [list [T create t] $methods(z) XXX] \
+      "::t: unable to dispatch method '::nsf::classes::T::z'"
+  
+  #
+  # This it at least consistent :)
+  #
+  T setObjectParams x:alias,method=$methods(z)
+  ? {T create t XXX} "::t: unable to dispatch method '$methods(z)'" \
+      "Non-object FQ selector with default unknown handler"
+  ::T mixin UnknownHandler
+  ? {T create t XXX} "UNKNOWNMETHOD-::nsf::classes::T::z" \
+      "Non-object FQ selector with custom unknown handler"
+
+  #
+  # A Tcl proc is allowed?!
+  #
+  proc ::baz {x} {
+    set :baz $x
+  }
+  T setObjectParams x:alias,method=::baz
+  ? {[T create t XXX] eval {info exists :baz}} 1
+  ? {[T create t XXX] eval {set :baz}} XXX
+  
+  
+  #
+  # TBD: nested objects
+  #
+
+  #
+  # TBD: object-system methods
+  #
+  
+}
+
+# exit
 
 #
 # check xotcl with residual args
 #
+
 nx::Test case xotcl-residualargs {
   package req XOTcl
 
