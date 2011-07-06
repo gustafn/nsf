@@ -798,12 +798,13 @@ nx::Test case submethods-via-aliasparams {
 
   # A depth-1 submethod ...
   C public method "FOO foo" {} {
-    set :msg "[::nsf::current]--[::nsf::current methodpath]--[::nsf::current method]"
+    # next
+    append :msg "[::nsf::current]--[::nsf::current methodpath]--[::nsf::current method]"
   }
 
   # A depth-2 submethod ...
   C public method "BAR BOO buu" {} {
-    set :msg "[::nsf::current]--[::nsf::current methodpath]--[::nsf::current method]"
+    append :msg "[::nsf::current]--[::nsf::current methodpath]--[::nsf::current method]"
   }
 
 
@@ -847,7 +848,152 @@ nx::Test case submethods-via-aliasparams {
   C setObjectParams [list FOO:alias]
   ? {
     [C create c2 foo] eval {set :msg}; # N
-  } "::c2--FOO--foo" 
+  } "::c2--FOO--foo"
+
+  #
+  # 1) Interleaving @Type(INACTIVE) frames through indirection
+  #
+  # a) Ahead of the ensemble "root" frame (i.e., indirection at the
+  # level the receiver object)
+  #
+  
+  Class create M1 {
+    :public method FOO args {
+      next
+    }
+  }
+
+  C mixin M1
+
+  # N+4 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
+  # N+3 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
+  # N+2 |:CscFrame @INACTIVE|		<-- M1.FOO
+  # N+1 |:TclFrame|	
+
+  C setObjectParams [list]
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  # N+6 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)
+  # N+5 |:CscFrame @Call(ENSEMBLE)|		<-- FOO (root)
+  # N+4 |:CscFrame @INACTIVE|			<-- M1.FOO
+  # N+3 |:CscFrame @INACTIVE|			<-- (INNER configure() frame)
+  # N+2 |:ObjFrame|				<-- ::c2 (OUTER configure() frame)
+  # N+1 |:TclFrame|		
+
+  C setObjectParams [list FOO:alias]
+  ? {
+    [C create c2 foo] eval {set :msg}; # N
+  } "::c2--FOO--foo"
+
+  # ... the filter variant ...
+  C mixin {}
+  C public method intercept args {
+    next
+  }
+  C filter intercept
+
+  # N+4 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
+  # N+3 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
+  # N+2 |:CscFrame @INACTIVE|		<-- intercept
+  # N+1 |:TclFrame|	
+  C setObjectParams [list]
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  # N+6 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)
+  # N+5 |:CscFrame @Call(ENSEMBLE)|		<-- FOO (root)
+  # N+4 |:CscFrame @INACTIVE|			<-- intercept
+  # N+3 |:CscFrame @INACTIVE|			<-- (INNER configure() frame)
+  # N+2 |:ObjFrame|				<-- ::c2 (OUTER configure() frame)
+  # N+1 |:TclFrame|		
+
+  C setObjectParams [list FOO:alias]
+  ? {
+    [C create c2 foo] eval {set :msg}; # N
+  } "::c2--FOO--foo"
+  
+
+  C filter ""
+  # / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+  # b) Between root and intermittent or inbetween the set of
+  # intermittent frames (i.e., indirection at the level of
+  # container/ensemble objects)
+  
+  # NOTE: Filters and mixins registered for the container object do
+  # not interleave in ensemble dispatches ... the dispatch lookup
+  # (along the next path) always starts at the top-level
+  # (calling) object. As a result, there are no intermediate frames to
+  # be expected ...
+  Class create M2 {
+    :public method foo args {
+      return "[current class]--[next]"
+    }
+  }
+
+  C::slot::__FOO mixin M2
+  ? {C::slot::__FOO foo} "::M2--::C::slot::__FOO----foo"
+  C::slot::__FOO eval {unset :msg}
+
+  C setObjectParams [list]
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  C::slot::__FOO mixin {}
+  C::slot::__FOO public method intercept {} {
+    return "[current]--[next]"
+  }
+  C::slot::__FOO filter intercept
+  ? {C::slot::__FOO foo} "::C::slot::__FOO--::C::slot::__FOO----foo"
+
+  C setObjectParams [list]
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  # --
+
+  Class create M2 {
+    :public method "FOO foo" args {
+      append :msg "(1)--[current next]"
+      next
+      puts stderr ++++++++++++++++++
+      append :msg "--(3)--[current class]--[current methodpath]--[current]"
+      puts stderr ++++++++++++++++++
+    }
+  }
+
+  C mixin M2
+
+  # N+4 |:CscFrame @Type(ENSEMBLE) |		<-- C.FOO.foo (leaf)
+  # N+2 |:CscFrame @Call(ENSEMBLE) |		<-- C.FOO (root)
+  # N+3 |:CscFrame @INACTIVE @Type(ENSEMBLE)|	<-- M2.FOO.foo
+  # N+2 |:CscFrame @INACTIVE @Call(ENSEMBLE) |	<-- M2.FOO
+  # N+1 |:TclFrame|	
+  C setObjectParams [list]
+  ? {
+    puts stderr "/ / / / / / / / / / / "
+    [C create c1] FOO foo; # N
+    puts stderr "/ / / / / / / / / / / "
+    c1 eval {set :msg}
+  } "(1)--::c1--FOO--foo--(3)--::M2--FOO--::c1"
+
+  C mixin {}
+  
+  #
+  # TODO: [current class] in M2 FOO foo does not resolve!
+  #
+  # TODO: ensemble next (in submethod) + container filter -> leads to unknown ...
+  #
+  exit
+  
 }
 
 nx::Test case dispo-configure-transparency {

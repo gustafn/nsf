@@ -601,6 +601,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr, Tcl_Obj *method
   /* 
    *  Append all ensemble names to the specified list obj 
    */
+
   for (/* Skipping the starting frame, assumingly a "leaf" frame in an ensemle dispatch */ 
        framePtr = Tcl_CallFrame_callerPtr(framePtr), elements = 0;
        Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_METHOD);

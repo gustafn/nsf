@@ -8493,22 +8493,22 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	  /*fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
 	  if (cmd) {
 	    /*
-	     * In order to allow next to be called on the
-	     * ensemble-method, a call-frame entry is needed. The
-	     * associated calltype is flagged as an ensemble to be
-	     * able to distinguish frames during next.
+	     * In order to allow [next] to be called in an ensemble method,
+	     * an extra callframe is needed. This CSC frame is typed as
+	     * NSF_CSC_TYPE_ENSEMBLE. Note that the associated call is flagged
+	     * additionally (NSF_CSC_CALL_IS_ENSEMBLE; see above) to be able
+	     * to identify ensemble-specific frames during [next] execution.
 	     *
-	     * The invocation requires NSF_CSC_IMMEDIATE to ensure,
-	     * that scripted methods are executed before the ensemble
-	     * ends. If they would be exeecuted lated, their parent
-	     * frame (CMETHOD) would have disappeared from the stack
-	     * already.
+	     * The dispatch requires NSF_CSC_IMMEDIATE to be set, ensuring
+	     * that scripted methods are executed before the ensemble ends. If
+	     * they were executed later, they would find their parent frame
+	     * (CMETHOD) being popped from the stack already.
 	     */
 
-	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s cscPtr %p base flags %.6x\n",
-	      ObjectName(object),methodName, cscPtr, (0xFF & cscPtr->flags));*/
+	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s cscPtr %p base flags %.6x cl %s\n",
+	      ObjectName(object),methodName, cscPtr, (0xFF & cscPtr->flags),cscPtr->cl?ObjStr(cscPtr->cl->object.cmdName):NULL);*/
 	    result = MethodDispatch(object, interp, objc-1, objv+1,
-				    cmd, object, NULL, methodName,
+				    cmd, object, cscPtr->cl, methodName,
 				    cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
 				    (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
 	    goto obj_dispatch_ok;
@@ -11810,12 +11810,9 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      * locate the appropriate callstack content and continue next on
      * that.
      */
-    fprintf(stderr,">>> input framePtr %p input cscPtr %p\n",framePtr,cscPtr);
     cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
     assert(cscPtr);
     inEnsemble = 1;
-    fprintf(stderr,">>> framePtr %p cscPtr %p\n",framePtr,cscPtr);
-    fprintf(stderr,"cscPtr->objv[0] %s\n",cscPtr->objv[0]?ObjStr(cscPtr->objv[0]):NULL);
     *methodNamePtr = ObjStr(cscPtr->objv[0]);
   } else {
     inEnsemble = 0;
@@ -12060,8 +12057,8 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
      * handle this case.
      */
 
-    /*fprintf(stderr, "--- no cmd, csc %p frameType %.6x callType %.6x endOfFilterChain %d\n",
-      cscPtr, cscPtr->frameType, cscPtr->flags, endOfFilterChain);*/
+    /*fprintf(stderr, "--- no cmd, csc %p frameType %.6x callType %.6x endOfFilterChain %d NSF_CSC_CALL_IS_ENSEMBLE %d\n",
+      cscPtr, cscPtr->frameType, cscPtr->flags, endOfFilterChain,(cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)!=0);*/
     rst->unknown = endOfFilterChain || (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE);
     /*fprintf(stderr, "******** setting unknown to %d\n",  rst->unknown );*/
   }

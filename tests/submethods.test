@@ -338,5 +338,48 @@ namespace eval ::ns1 {
   ? {obj foo} ::nx::Object
 }
 
+nx::Test case submethods-as-filters {
+  #
+  # submethods as filters?
+  #
+  #set h [C public method "BAR bar" args {
+  # next
+  #}]
+  #C filter {{BAR bar}}
+}
+
+nx::Test case submethods-current-introspection {
+  #
+  # [current] & [current class]
+  #
+  Object create o
+  o public method "FOO foo" {} {
+    return "-[current]-[current class]-"
+  }
+  ? {o FOO foo} -::o--
+  
+  Class create C
+  C public method "FOO foo" {} {
+    return "-[current]-[current class]-"
+  }
+  C create c
+  ? {c FOO foo} -::c-::C-
+
+  C mixin [Class create M1 {
+    :public method "FOO foo" {} {
+      return "-[current]-[current class][next]"
+    }
+  }]
+
+  ? {c FOO foo} -::c-::M1-::c-::C-
+  
+  o mixin ::M1
+  ? {o FOO foo} -::o-::M1-::o--
+  
+  #
+  # TODO: [current callingmethod], [current calledmethod]
+  #
+}
+
 
 
