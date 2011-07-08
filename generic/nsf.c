@@ -18766,7 +18766,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   Tcl_Obj *newValue, *initMethodObj;
   CONST char *initString;
   ParseContext pc;
-  CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame, *callSiteVarFramePtr;
 
 #if 0
   fprintf(stderr, "NsfOConfigureMethod %s %2d ",ObjectName(object), objc);
@@ -18786,6 +18786,39 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   } else {
     initString = ObjStr(initMethodObj);
   }
+
+  
+  /* 
+     Uplevel awareness: 
+
+     The effective call site of the configure() method (e.g., a proc or a
+     method) can result from upleveling the object creation procedure; and,
+     thus, the *effective* call site can deviate from the *declaring* call
+     site (e.g. as in XOTcl2's unknown indirection). In such a scenario, the
+     configure() dispatch finds itself in a particular callstack
+     configuration: The top-most frame reflects the declaring call site
+     (interp->framePtr), while the effective call site (interp->varFramePtr)
+     is identified by a lower callstack level. In this case, the interp
+     signals two different call frame contexts at this point (interp->framePtr
+     != interp->varFramePtr).
+
+     At the time of writing, the configure() method is to introduce one or
+     even two special-purpose frames: an object and a CSC/CMETHOD frame. By
+     pushing these two frames using the Tcl Callstack API, the interp state
+     concerning the call frame contexts is updated, effectively losing the
+     info about any preceding uplevel. This loss would result in misbehaviour
+     when crawling the callstack, with the callstack traversals taking the
+     current var frame as starting point.
+
+     Therefore, we record a) whether there was a preceding uplevel
+     (identifiable through deviating interp->framePtr and interp->varFramePtr)
+     and, in case, b) the ruling variable frame context. The preserved call
+     frame reference can later be used to restore the uplevel'ed call frame
+     context.
+  */
+  callSiteVarFramePtr = ((CallFrame *)Tcl_Interp_varFramePtr(interp) != 
+			 (CallFrame *)Tcl_Interp_framePtr(interp)) ? Tcl_Interp_varFramePtr(interp) : NULL; 
+    
 
 
   /* Push frame to allow for [self] and make instvars of obj accessible as locals */
@@ -18884,7 +18917,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * CMETHOD frame.
        */
 
-      Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
+      Tcl_Interp_varFramePtr(interp) = varFramePtr->callerVarPtr;
       cscPtr->flags = 0;
       CscInit(cscPtr, object, object->cl /*cl*/, NULL /*cmd*/,
 	      NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
@@ -18898,15 +18931,25 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
         Tcl_Obj *methodObj, **ovPtr, *ov0;
 	CONST char *methodString;
         int oc = 0;
-	
+
+	/*
+	  Restore the var frame context as found at the original call site of
+	  configure(). Note that we do not have to revert this context change
+	  when leaving this configure() context because a surrounding
+	  [uplevel] will correct the callstack context for us ...
+	 */
+
+	if (callSiteVarFramePtr) {
+	  Tcl_Interp_varFramePtr(interp) = callSiteVarFramePtr;
+	}
+
 	/*
 	 * Mark the current frame as inactive such that e.g. volatile
 	 * does not use this as a base frame, and methods like
 	 * activelevel ignore it.
-	 */
-	//yyyy
+	 */	
 	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
-
+	
 	/*
 	 * If "method=" was given, use it as method name
 	 */
@@ -19285,28 +19328,6 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   CONST char *methodName, *nextMethodName, *initString = NULL;
   Tcl_Obj **argv, **nextArgv;
 
-  //yyyy
-  CallFrame *savedVarFramePtr = Tcl_Interp_varFramePtr(interp);
-  CallFrame *callerPtr = savedVarFramePtr->callerPtr;
-  if (callerPtr->callerPtr) { callerPtr = callerPtr->callerPtr;}
-
-  // We seem to have problems in cases, -volatile is called via unknown
-  // TODO: fixme, the comparison with "unknown" can't be the solution
-  if ((Tcl_CallFrame_isProcCallFrame(callerPtr) & FRAME_IS_NSF_METHOD)) {
-    NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(callerPtr);
-    CONST char *methodName = cscPtr && cscPtr->cmdPtr ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : "";
-    if (strcmp(methodName, "unknown") == 0) {
-      //fprintf(stderr, "ONE MORE\n");
-      if (callerPtr->callerPtr) { callerPtr = callerPtr->callerPtr;}
-    }
-  }
-
-  callerPtr = (CallFrame *)CallStackGetActiveProcFrame((Tcl_CallFrame *)callerPtr);
-
-  //fprintf(stderr, "CHANGE FRAME to %p\n", callerPtr);
-  //NsfShowStack(interp);
-  Tcl_Interp_varFramePtr(interp) = callerPtr;
-
 #if 0
   fprintf(stderr, "NsfOResidualargsMethod %s %2d ",ObjectName(object), objc);
   for(i=0; i<objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
@@ -19372,8 +19393,6 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
    * Call init with residual args in case it was not called yet
    */
   result = DispatchInitMethod(interp, object, normalArgs, objv+1, 0);
-
-  Tcl_Interp_varFramePtr(interp) = savedVarFramePtr;
 
   /*
    * Return the non-processed leading arguments (XOTcl convention)
@@ -19521,9 +19540,8 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
     NsfObjectOpt *opt = NsfRequireObjectOpt(object);
 
     /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName,
-	    Tcl_Interp_varFramePtr(interp));
-            NsfShowStack(interp);*/
-
+      Tcl_Interp_varFramePtr(interp));
+      NsfShowStack(interp);*/
     result = Tcl_TraceVar(interp, vn, TCL_TRACE_UNSETS,
 			  (Tcl_VarTraceProc *)NsfUnsetTrace,
                           objPtr);
