@@ -18767,7 +18767,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   Tcl_Obj *newValue, *initMethodObj;
   CONST char *initString;
   ParseContext pc;
-  CallFrame frame, *framePtr = &frame, *callSiteVarFramePtr;
+  CallFrame frame, *framePtr = &frame, *uplevelVarFramePtr;
 
 #if 0
   fprintf(stderr, "NsfOConfigureMethod %s %2d ",ObjectName(object), objc);
@@ -18809,7 +18809,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      concerning the call frame contexts is updated, effectively losing the
      info about any preceding uplevel. This loss would result in misbehaviour
      when crawling the callstack, with the callstack traversals taking the
-     current var frame as starting point.
+     current variable frame as starting point.
 
      Therefore, we record a) whether there was a preceding uplevel
      (identifiable through deviating interp->framePtr and interp->varFramePtr)
@@ -18817,7 +18817,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      frame reference can later be used to restore the uplevel'ed call frame
      context.
   */
-  callSiteVarFramePtr = ((CallFrame *)Tcl_Interp_varFramePtr(interp) != 
+  uplevelVarFramePtr = ((CallFrame *)Tcl_Interp_varFramePtr(interp) != 
 			 (CallFrame *)Tcl_Interp_framePtr(interp)) ? Tcl_Interp_varFramePtr(interp) : NULL; 
     
 
@@ -18934,21 +18934,20 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
         int oc = 0;
 
 	/*
-	  Restore the var frame context as found at the original call site of
+	  Restore the variable frame context as found at the original call site of
 	  configure(). Note that we do not have to revert this context change
 	  when leaving this configure() context because a surrounding
 	  [uplevel] will correct the callstack context for us ...
 	 */
 
-	if (callSiteVarFramePtr) {
-	  Tcl_Interp_varFramePtr(interp) = callSiteVarFramePtr;
+	if (uplevelVarFramePtr) {
+	  Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
 	}
 
 	/*
-	 * Mark the current frame as inactive such that e.g. volatile
-	 * does not use this as a base frame, and methods like
-	 * activelevel ignore it.
-	 */	
+	 * Mark the intermittent CSC frame as INACTIVE, so that, e.g.,
+	 * callstack traversals seeking active frames ignore it.
+	 */
 	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
 	
 	/*
@@ -19069,6 +19068,12 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	    ov[oc] = newValue;
 	    oc ++;
 	  }
+
+	  /*
+	   * Mark the intermittent CSC frame as INACTIVE, so that, e.g.,
+	   * callstack traversals seeking active frames ignore it.
+	   */	
+	  cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
 
 	  result = NsfForwardMethod(tcd, interp, oc, ov);
 	  ForwardCmdDeleteProc(tcd);

@@ -502,6 +502,121 @@ nx::Test case dispo-callstack {
     }
     namespace delete __
   }
+   
+  #
+  # TODO: Test missing elements for method declarations:
+  # /cls/ public class {} {} ...
+  #
+
+  # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+  # Test the ACTIVE/INACTIVE transparency for the method-variants of
+  # uplevel|upvar
+  #
+
+  Callee public class method run {} {
+    set self [self]
+    set objparams [:objectparameter]
+    #
+    # The ? helper by default performs a [namespace eval] in the ::
+    # namespace, so the uplevel|upvar would happen in a different,
+    # non-testable callstack branch. Therefore, we have to build the
+    # tests around this limitation (for now)
+    #
+    ? [list set _ [info exists X]] 0
+    ? [list set _ [info exists ix]] 0
+    $self new
+    ? [list set _ [info exists ix]] 1 "after 1. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [set X]] 1 "after 1. uplevel/upvar calls ('$objparams')"
+    $self new
+    ? [list set _ [info exists X]] 1 "after 2. uplevel/upvar calls ('$objparams')"
+    $self new
+    ? [list set _ [set X]] 3 "after 3. uplevel/upvar calls ('$objparams')"
+    $self new
+    ? [list set _ [set ix]] X "after 4. uplevel/upvar calls ('$objparams')"
+    $self new -ah X X;
+    ? [list set _ [set ix]] X "after 5. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [set X]] 6 "after 5. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [info exists Y]] 0
+    $self new -ah X Y;
+    ? [list set _ [set Y]] 1 "after 6. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [set X]] 7 "after 6. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [set ix]] Y
+  }
+  
+  # {{{-ah:forward,method=uplevel %self call -level 1}} {{call:forward,method=uplevel %self %method -level 1} X}}
+
+  #
+  # a) NSF/Nx methods upvar() and uplevel()
+  #
+
+  Callee public method call {x} {
+    :uplevel [list set ix $x]
+    :upvar $x _
+    incr _
+  }
+
+ 
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    Callee run
+  }
+
+  #
+  # b) [current callinglevel]
+  # 
+  # ... with [uplevel [current callinglevel]] being equivalent to
+  # using NSF/Nx methods upvar() and uplevel() directly.
+  #
+
+  Callee public method call {x} {
+    # ::nsf::__db_show_stack
+    uplevel [current callinglevel] [list set ix $x]
+    upvar [current callinglevel] $x _
+    incr _
+  }
+
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    Callee run
+  }
+
+  #
+  # c) [current activelevel]
+  #
+  # ... Currently, in the current testing scenario, there is no
+  # effective difference between #activelevel and #callinglevel, both
+  # skip INACTIVE frames.
+
+  Callee mixin [Class new {:public method call args { next }}]
+
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    Callee run
+  }
+
+  Callee public method call {x} {
+    uplevel [current activelevel] [list set ix $x]
+    upvar [current activelevel] $x _
+    incr _
+  }
+
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    Callee run
+  }
+
 }
 
 nx::Test case alias-noarg {
@@ -992,7 +1107,6 @@ nx::Test case submethods-via-aliasparams {
   #
   # TODO: ensemble next (in submethod) + container filter -> leads to unknown ...
   #
-  exit
   
 }
 
@@ -1207,9 +1321,8 @@ nx::Test case dispo-object-targets {
   ? {T create tt ""} "::obj: unable to dispatch method ''" "sending the msg: tt->z->{}()"
   ::obj mixin UnknownHandler
   ? {T create tt ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z->{}()"
-  exit 
   T setObjectParams [list -z:alias]
-  ? {T create tt -z ""} ::tt "sending the msg: tt->z()"
+  ? {T create tt -z ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z()"
 
   #
   # ISSUE: Any direct dispatch with a FQ selector is forbidden, why?
@@ -1249,8 +1362,6 @@ nx::Test case dispo-object-targets {
   #
   
 }
-
-exit
 
 #
 # check xotcl with residual args
@@ -1301,6 +1412,38 @@ nx::Test case xotcl-residualargs {
   ? {c1 eval {set :y}} 1
 }
 
-# TODO: what todo with object parameter inspection for names with alias, forward... "names" do not always correspond with vars set.
-#puts stderr ===exit
+nx::Test case xotcl-residualargs-upleveling {
+  #
+  # Test callstack resolution for upvar/uplevel in
+  # parameter-dispatched methods under residualargs() ...
+  #
+  package req XOTcl
+
+  xotcl::Class C -proc onTheFly {name args} {
+    ? [list set _ [info exists ix]] 0
+    ? [list set _ [info exists Y]] 0
+    set c [[self] $name {*}$args]
+    ? [list set _ [info exists ix]] 1
+    ? [list set _ [set ix]] Y
+    ? [list set _ [info exists Y]] 1
+    ? [list set _ [set Y]] 1
+    return $c
+  } -instproc call {x} {
+    # ::nsf::__db_show_stack
+    my uplevel [list set ix $x]
+    my upvar $x _
+    incr _
+  } -instproc call2 {x} {
+    # ::nsf::__db_show_stack
+    uplevel [self callinglevel] [list set ix $x]
+    upvar [self callinglevel] $x _
+    incr _
+  }
+  
+  C onTheFly c1 -call Y
+  C onTheFly c1 -call2 Y 
+}
+
+# TODO: what todo with object parameter inspection for names with
+# alias, forward... "names" do not always correspond with vars set.
 

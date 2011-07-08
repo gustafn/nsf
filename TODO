@@ -3019,11 +3019,38 @@ nsf:
 - preliminary fix for volatile called through redsidual args
 - new regression test file volatile.test
 
+- fix the comparison with "unknown" in residual args 
+  (2 places marked with "//yyyy" )
 
 TODO:
 
-- fix the comparison with "unknown" in residual args 
-  (2 places marked with "//yyyy" )
+- Revise callstack introspection/intercession, i.e., [current
+  activelevel] vs. [current callinglevel] vs. uplevel()/upvar():
+  
+  Currently, there are some inconsistencies when comparing activelevel
+  and callinglevel: 
+  
+  1. Both skip INACTIVE frames: This has implications for the notion
+  of an "activelevel" introspection as such (especially when comparing
+  with their semantics in XOTcl 1.*); also, we cannot access INACTIVE
+  (mixin, filter) frames anymore using uplevel|upvar (whether this is
+  needed is another issue, but at least, this breaks XOTcl 1.*
+  semantics, as callinglevel resolved to such INACTIVE frame contexts).
+  2. The uplevel()/upvar() methods default to uplevel+callinglevel
+  semantics, so they borrow their issues from 1)
+  3. For now, we do not support callstack-transparent upleveling into
+  non-NSF frames, such as Tcl namespace + proc (apply) frames.
+
+  Approaches:
+  a) Revise the current [current] subcmd scheme: callinglevel
+  vs. activelevel vs. ...?
+  b) Provide a more generic, filter-based [current callinglevel] (?)
+  subcmd which allows for applying different bitmask filters
+  c) Provide the necessary callstack info in [info frame] and make
+  replacements for [current activelevel] & [current callinglevel]
+  scriptable ...
+  d) support for out/inout argument parsing strategies (however, this
+  would rather replace [upvar], what about [uplevel] indirection?)
 
 - extend mongo::gridfs::store_file with a switch -metadata to
   pass metadata together at gridfs file creation time
