@@ -8324,9 +8324,10 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
   if (cscPtr) {
     /*
-     * We have a call stack content, but the following dispatch will
-     * by itself not stack it; in order to get e.g. self working, we
-     * have to stack at least an FRAME_IS_NSF_OBJECT.
+     * We have a callstack content, but the requested dispatch will not store
+     * the callstack content in a corresponding callframe on its own. To get,
+     * for example, self introspection working for the requested dispatch, we
+     * introduce a CMETHOD frame.
      */
     /*fprintf(stderr, "Nsf_PushFrameCsc %s %s\n",ObjectName(object), methodName);*/
     Nsf_PushFrameCsc(interp, cscPtr, framePtr);
@@ -14255,11 +14256,11 @@ IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, CONST char **methodNam
  *----------------------------------------------------------------------
  * CallConfigureMethod --
  *
- *    Call a method provided as a string, and provide an error message. The
- *    function notes as well, when the constructor is called via this
- *    interface.  class of an object system. This method is called e.g. via
- *    XOTcl's configure, interpretating arguments with a leading dash as
- *    methods (now this logic is in NsfOResidualargsMethod).
+ *    Call a method identified by a string selector; or provide an error
+ *    message. This dispatcher function records as well contructor (init)
+ *    calls via this interface. The dispatcher is used in XOTcl's
+ *    configure(), interpretating arguments with a leading dash as method dispatches. 
+ *    This behaviour is now implemented in NsfOResidualargsMethod().
  *
  * Results:
  *    Tcl result code.
