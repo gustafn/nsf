@@ -1666,7 +1666,6 @@ Test case parameter-object-mixin-dependency {
 # Test integer, wideinteger and bignums
 #
 Test parameter count 1000
-set ::tcl_precision 17
 Test case bignums {
 
   ::nx::Object create o {
@@ -1699,8 +1698,27 @@ Test case bignums {
 
   ? {o foo [expr {2.0}]} {expected integer but got "2.0" for parameter "x"}
   ? {o foo [expr {2.0 * 2}]} {expected integer but got "4.0" for parameter "x"}
+
+  #
+  # Note: In Tcl version less or equal 8.5.9 (to be precise, before
+  # fossil check-in 769801ace1) there is a rounding issue for
+  # doubles. It can be worked around by setting the tcl precision
+  # level sufficiently high (see below). With check-in 769801ace1, or
+  # with the 8.5.10 release version of Tcl, this work-around becomes
+  # obsolete.
+  #
+  if {[::package vcompare [::info patchlevel] 8.5.9] < 1} {
+    set ::nsf::savedTclPrecision $::tcl_precision
+    set ::tcl_precision 17
+  }
+  
   ? {o foo [expr {2.0 ** 128}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
   ? {o foo [expr {(2 ** 128)*1.0}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
+
+  if {[info exists ::nsf::savedTclPrecision]} {
+    set ::tcl_precision $::nsf::savedTclPrecision
+    unset ::nsf::savedTclPrecision
+  }
 
   ? {o foo32 [expr {2 ** 31}]} "2147483648"
   ? {o foo32 [expr {2 ** 32}]} {expected int32 but got "4294967296" for parameter "x"}

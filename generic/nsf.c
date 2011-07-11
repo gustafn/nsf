@@ -21344,7 +21344,7 @@ ExitHandler(ClientData clientData) {
 #endif
 
 #if defined(TCL_MEM_DEBUG)
-  TclDumpMemoryInfo(stderr);
+  TclDumpMemoryInfo((ClientData) stderr, 0);
   Tcl_DumpActiveMemory("./nsfActiveMem");
   /* Tcl_GlobalEval(interp, "puts {checkmem to checkmemFile};
      checkmem checkmemFile"); */
@@ -21421,7 +21421,7 @@ Nsf_Init(Tcl_Interp *interp) {
 #endif
 
 #if defined(TCL_MEM_DEBUG)
-  TclDumpMemoryInfo(stderr);
+  TclDumpMemoryInfo((ClientData) stderr, 0);
 #endif
 
   MEM_COUNT_INIT();
