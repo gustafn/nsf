@@ -645,3 +645,35 @@ nx::Test case delete-class-level-method {
   ? {C info methods -path} ""
 }
 
+#
+# simple unknown tests; 
+# ensemble unknown tests are in submethods.test
+#
+nx::Test case test-simple-unknown {
+
+  #
+  # calling unknown with a plain "method" without arguments
+  #
+  ::nx::Class create A {
+    :class method unknown args {? [list set _ $args] "hello"}
+  }
+  A hello
+
+  #
+  # calling unknown with a plain "method" with arguments
+  #
+  ::nx::Class create B {
+    :class method unknown args {? [list set _ $args] "hello world"}
+  }
+  B hello world
+
+  #
+  # calling unknown with a method with spaces
+  #
+  ::nx::Class create C {
+    :class method unknown args {? [list set _ $args] "{hello world}"}
+  }
+  C {hello world}
+
+
+}

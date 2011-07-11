@@ -3020,7 +3020,12 @@ nsf:
 - new regression test file volatile.test
 
 - fix the comparison with "unknown" in residual args 
-  (2 places marked with "//yyyy" )
+
+- provide backward compatibility for unknwon method (when
+  method contains spaces).
+- some minor cleanup
+- extended regression test
+
 
 TODO:
 
