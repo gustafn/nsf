@@ -57,7 +57,7 @@ namespace eval ::nx {
   namespace eval ::nsf::methods::object {}; # make pkg indexer happy
 
   # Actually, we do not need an unknown handler, but if someone
-  # defines his own unknwon handler we define it automatically
+  # defines his own unknown handler we define it automatically
   proc ::nsf::methods::object::unknown {m args} {
     error "[::nsf::self]: unable to dispatch method '$m'"
   }

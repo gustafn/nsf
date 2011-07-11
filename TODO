@@ -2877,7 +2877,7 @@ nsf:
   which unknown handlers can be registered
 - GetClassFromObj() receives as last argument "withUnknown" instead of
   baseClass to indicate, when unknown should be tried.
-- new function NsfCallUnkownHandler()
+- new function NsfCallUnknownHandler()
 
 - moved mixin reg type converter to a new file (nsfObj.c)
 - added NsfFilterregObjType, to provide a converter for filter 
@@ -3021,11 +3021,11 @@ nsf:
 
 - fix the comparison with "unknown" in residual args 
 
-- provide backward compatibility for unknwon method (when
+- provide backward compatibility for unknown method (when
   method contains spaces).
 - some minor cleanup
 - extended regression test
-
+- fix typos in string "unknown" (unknwon, unkown)
 
 TODO:
 

@@ -1148,9 +1148,9 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
 
 /*
  *----------------------------------------------------------------------
- * NsfCallUnkownHandler --
+ * NsfCallUnknownHandler --
  *
- *    Call ::nsf::unkown; this function is typically called, when an unknown
+ *    Call ::nsf::unknown; this function is typically called, when an unknown
  *    object or class is passed as an argument.
  *
  * Results:
@@ -1163,7 +1163,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
  */
 
 static int
-NsfCallUnkownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
+NsfCallUnknownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
   int result = 0;
   Tcl_Obj *ov[3];
 
@@ -1269,10 +1269,10 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   }
 
   if (withUnknown) {
-    result = NsfCallUnkownHandler(interp, isAbsolutePath(objName) ? objPtr :
-				  NameInNamespaceObj(interp,
-						     objName,
-						     CallingNameSpace(interp)));
+    result = NsfCallUnknownHandler(interp, isAbsolutePath(objName) ? objPtr :
+				   NameInNamespaceObj(interp,
+						      objName,
+						      CallingNameSpace(interp)));
 
     if (result == TCL_OK) {
       /* Retry, but now, the last argument (withUnknown) has to be 0 */
@@ -3959,7 +3959,7 @@ static int
 NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName) {
   int result;
 
-  result = NsfCallUnkownHandler(interp, Tcl_NewStringObj(parentName, -1));
+  result = NsfCallUnknownHandler(interp, Tcl_NewStringObj(parentName, -1));
 
   if (result == TCL_OK) {
     NsfObject *parentObj = (NsfObject *) GetObjectFromString(interp, parentName);
@@ -10196,7 +10196,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     } else {
 
       /*
-       * The option is still unkown, check the Tcl string-is checkers
+       * The option is still unknown, check the Tcl string-is checkers
        */
       Tcl_DStringFree(dsPtr);
 
