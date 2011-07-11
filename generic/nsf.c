@@ -10173,7 +10173,6 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     INCR_REF_COUNT(paramPtr->method);
 
   } else {
-    int i, found = -1;
     Tcl_DString ds, *dsPtr = &ds;
 
     Tcl_DStringInit(dsPtr);
@@ -10190,11 +10189,11 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
       /*
        * Check, if the option refers to a pointer converter
        */
-      fprintf(stderr, "param %s ptr %p type %s\n", paramPtr->name, paramPtr, Tcl_DStringValue(dsPtr));
       ParamOptionSetConverter(interp, paramPtr,  Tcl_DStringValue(dsPtr), Nsf_ConvertToPointer);
       Tcl_DStringFree(dsPtr);
 
     } else {
+      int i, found = -1;
 
       /*
        * The option is still unknown, check the Tcl string-is checkers

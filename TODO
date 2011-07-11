@@ -3026,6 +3026,8 @@ nsf:
 - some minor cleanup
 - extended regression test
 - fix typos in string "unknown" (unknwon, unkown)
+- reduce verbosity
+- redoce scope of variables
 
 TODO:
 
