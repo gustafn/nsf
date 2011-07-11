@@ -58,7 +58,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
  * Nsf_ltoa --
  *
  *    Convert a long value into a string; this function is a fast 
- *    version of sprintf(buf,"%ld",l);
+ *    version of sprintf(buf, "%ld", l);
  *
  * Results:
  *    String containing decimal value of the provided parameter.
@@ -69,7 +69,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
  *----------------------------------------------------------------------
  */
 char *
-Nsf_ltoa(char *buf, long i, int *len)  /* fast version of sprintf(buf,"%ld",l); */ {
+Nsf_ltoa(char *buf, long i, int *len) {
   int nr_written, negative;
   char tmp[LONG_AS_STRING], *pointer = &tmp[1], *string, *p;
   *tmp = 0;

@@ -102,7 +102,7 @@ NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
   NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
   int result = TCL_OK;
 
-  /*fprintf(stderr,"NsfReplaceCommand %d\n",name);*/
+  /*fprintf(stderr,"NsfReplaceCommand %d\n", name);*/
   cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
   
   if (cmd == NULL) {
@@ -114,7 +114,7 @@ NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
 	ti->proc = objProc;
 	ti->clientData = Tcl_Command_objClientData(cmd);
       } else if (ti->proc != objProc) {
-	/*fprintf(stderr, "we have to refetch command for %s\n",NsfGlobalStrings[name]);*/
+	/*fprintf(stderr, "we have to refetch command for %s\n", NsfGlobalStrings[name]);*/
 	ti->proc = objProc;
 	ti->clientData = Tcl_Command_objClientData(cmd);
       }
@@ -406,13 +406,13 @@ int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
 	    int objc, Tcl_Obj *CONST objv[]) {
   int result;
   NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
-  ALLOC_ON_STACK(Tcl_Obj*,objc, ov);
+  ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
   /*
    {int i;
     fprintf(stderr,"calling %s (%p %p) in %p, objc=%d ",
-	    NsfGlobalStrings[name],ti,ti->proc, interp, objc);
+	    NsfGlobalStrings[name], ti, ti->proc, interp, objc);
             for(i=0;i<objc;i++){fprintf(stderr, "'%s' ", ObjStr(objv[i]));}
-    fprintf(stderr,"\n");
+    fprintf(stderr, "\n");
   } 
   */
   ov[0] = NsfGlobalObjs[name];

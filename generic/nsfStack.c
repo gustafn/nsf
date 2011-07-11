@@ -132,7 +132,7 @@ void NsfShowStack(Tcl_Interp *interp) {
  */
 
 static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *framePtr) {
-  /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrameObj) frame %p\n",framePtr);*/
+  /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrameObj) frame %p\n", framePtr);*/
   if (object->nsPtr) {
     Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, object->nsPtr,
                       0|FRAME_IS_NSF_OBJECT);
@@ -179,7 +179,7 @@ static void
 Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, CallFrame *framePtr) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
   /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
-    framePtr, cscPtr, Tcl_GetCommandName(interp,cscPtr->cmdPtr));*/
+    framePtr, cscPtr, Tcl_GetCommandName(interp, cscPtr->cmdPtr));*/
 
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, Tcl_CallFrame_nsPtr(varFramePtr),
 		    FRAME_IS_PROC|FRAME_IS_NSF_CMETHOD);
@@ -285,7 +285,7 @@ GetSelfObj(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   /*fprintf(stderr, "GetSelfObj interp has frame %p and varframe %p\n",
-    Tcl_Interp_framePtr(interp),Tcl_Interp_varFramePtr(interp));*/
+    Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));*/
 
   for (; varFramePtr; varFramePtr =
 	 
@@ -465,7 +465,7 @@ CallStackUseActiveFrame(Tcl_Interp *interp, callFrameContext *ctx) {
     ctx->frameSaved = 0;
   } else {
     ctx->varFramePtr = inFramePtr;
-    /*fprintf(stderr, "CallStackUseActiveFrame stores %p\n",framePtr);*/
+    /*fprintf(stderr, "CallStackUseActiveFrame stores %p\n", framePtr);*/
     Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
     ctx->frameSaved = 1;
   }
@@ -825,7 +825,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
   cscPtr->flags = 0;
 #endif
 
-  /*fprintf(stderr, "CscAlloc allocated %p\n",cscPtr);*/
+  /*fprintf(stderr, "CscAlloc allocated %p\n", cscPtr);*/
   return cscPtr;
 }
 
@@ -871,7 +871,7 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
      */
     object->activationCount ++;
     /*fprintf(stderr, "CscInit %p method %s activationCount ++ (%s) --> %d (cl %p)\n",
-	    cscPtr, cmd ? Tcl_GetCommandName(object->teardown,cmd) : "UNK", 
+	    cscPtr, cmd ? Tcl_GetCommandName(object->teardown, cmd) : "UNK", 
 	    ObjectName(object),  object->activationCount, cl);*/
     /*
      * Track class activations
@@ -899,7 +899,7 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
   cscPtr->filterStackEntry = object->filterStack;
   cscPtr->frameType     = frameType;
 
-  /*fprintf(stderr, "CscInit %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg,
+  /*fprintf(stderr, "CscInit %p (%s) object %p %s flags %.6x cmdPtr %p\n", cscPtr, msg,
     object, ObjectName(object), cscPtr->flags, cscPtr->cmdPtr);*/
 }
 
@@ -935,7 +935,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
   object = cscPtr->self;
 
-  /*fprintf(stderr, "CscFinish %p object %p %s flags %.6x cmdPtr %p\n",cscPtr,
+  /*fprintf(stderr, "CscFinish %p object %p %s flags %.6x cmdPtr %p\n", cscPtr,
     object, ObjectName(object), cscPtr->flags, cscPtr->cmdPtr); */
 
   /*

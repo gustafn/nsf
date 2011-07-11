@@ -28,14 +28,14 @@ NsfStackDump(Tcl_Interp *interp) {
     NsfNewObj(cmdObj);
     fprintf(stderr, "\tFrame=%p ", f);
     if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
-      fprintf(stderr,"caller %p ",Tcl_CallFrame_callerPtr(f));
-      fprintf(stderr,"callerV %p ",Tcl_CallFrame_callerVarPtr(f));
-      Tcl_GetCommandFullName(interp, (Tcl_Command)  f->procPtr->cmdPtr, cmdObj);
+      fprintf(stderr,"caller %p ", Tcl_CallFrame_callerPtr(f));
+      fprintf(stderr,"callerV %p ", Tcl_CallFrame_callerVarPtr(f));
+      Tcl_GetCommandFullName(interp, (Tcl_Command)f->procPtr->cmdPtr, cmdObj);
       fprintf(stderr, "%s (%p) lvl=%d\n", ObjStr(cmdObj), f->procPtr->cmdPtr, f->level);
       DECR_REF_COUNT(cmdObj);
     } else {
         if (f && f->varTablePtr) {
-            fprintf(stderr, "var_table = %p ",f->varTablePtr);
+            fprintf(stderr, "var_table = %p ", f->varTablePtr);
         }
         fprintf(stderr, "- \n");
     }
@@ -64,8 +64,8 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   int j; 
   fprintf(stderr, "%s", string);
   for (j = 0; j < objc; j++) {
-    /*fprintf(stderr, "  objv[%d]=%s, ",j, objv[j] ? ObjStr(objv[j]) : "NULL");*/
-    fprintf(stderr, "  objv[%d]=%s %p, ",j, objv[j] ? ObjStr(objv[j]) : "NULL", objv[j]);
+    /*fprintf(stderr, "  objv[%d]=%s, ", j, objv[j] ? ObjStr(objv[j]) : "NULL");*/
+    fprintf(stderr, "  objv[%d]=%s %p, ", j, objv[j] ? ObjStr(objv[j]) : "NULL", objv[j]);
   }
   fprintf(stderr, "\n");
 }
@@ -79,9 +79,9 @@ NsfMemCountAlloc(char *id, void *p) {
   Tcl_HashEntry *hPtr;
   hPtr = Tcl_CreateHashEntry(table, id, &new);
 #ifdef NSF_MEM_TRACE
-  fprintf(stderr, "+++ alloc %s %p\n",id,p);
+  fprintf(stderr, "+++ alloc %s %p\n", id, p);
 #endif
-  /*fprintf(stderr,"+++alloc '%s'\n",id);*/
+  /*fprintf(stderr,"+++alloc '%s'\n", id);*/
   if (new) {
     entry = (NsfMemCounter*)ckalloc(sizeof(NsfMemCounter));
     entry->count = 1;
@@ -101,7 +101,7 @@ NsfMemCountFree(char *id, void *p) {
   Tcl_HashTable *table = &nsfMemCount;
   Tcl_HashEntry *hPtr;
 #ifdef NSF_MEM_TRACE
-  fprintf(stderr, "+++ free %s %p\n",id,p);
+  fprintf(stderr, "+++ free %s %p\n", id, p);
 #endif
 
   hPtr = Tcl_FindHashEntry(table, id);

@@ -78,7 +78,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   int code, wordIdx;
   /*
   fprintf(stderr, "****** selfDispatchCompile words=%d tokens=%d, avail=%d\n",
-	  parsePtr->numWords,parsePtr->numTokens,parsePtr->tokensAvailable);
+	  parsePtr->numWords, parsePtr->numTokens, parsePtr->tokensAvailable);
   */
 
   if (parsePtr->numWords > 255) 
@@ -92,7 +92,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 
     /*
     fprintf(stderr,"  %d: %p token type=%d size=%d\n",
-	    wordIdx,tokenPtr,tokenPtr->type,tokenPtr->size );
+	    wordIdx, tokenPtr, tokenPtr->type, tokenPtr->size );
     */
     if (tokenPtr->type == TCL_TOKEN_SIMPLE_WORD) {
       TclEmitPush(TclRegisterLiteral(envPtr, tokenPtr->start,
@@ -100,12 +100,12 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
       envPtr->maxStackDepth = 1;
       /*
       fprintf(stderr,"  %d: simple '%s' components=%d\n",
-	      wordIdx,tokenPtr->start, tokenPtr->numComponents);
+	      wordIdx, tokenPtr->start, tokenPtr->numComponents);
       */
     } else {
       /*
       fprintf(stderr,"  %d NOT simple '%s' components=%d\n",
-	      wordIdx,tokenPtr->start, tokenPtr->numComponents);
+	      wordIdx, tokenPtr->start, tokenPtr->numComponents);
       */
       code = TclCompileTokens(interp, tokenPtr+1,
 			      tokenPtr->numComponents, envPtr);
@@ -115,7 +115,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
     }
   }
 
-  /*fprintf(stderr, "maxdepth=%d, onStack=%d\n",envPtr->maxStackDepth,wordIdx);
+  /*fprintf(stderr, "maxdepth=%d, onStack=%d\n", envPtr->maxStackDepth, wordIdx);
    */
   TclEmitInstInt1(instructions[INST_SELF_DISPATCH].bytecode, wordIdx, envPtr);
   envPtr->maxStackDepth = 0;
