@@ -147,21 +147,21 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
     /*fprintf(stderr, "BsonToList: key %s t %d string %d\n", key, t, bson_string);*/
 
     switch ( t ){
-    case bson_int:    tag = "integer"; elemObj = Tcl_NewIntObj(bson_iterator_int( &i )); break;
-    case bson_long:   tag = "long";    elemObj = Tcl_NewLongObj(bson_iterator_long( &i )); break;
-    case bson_date:   tag = "date";    elemObj = Tcl_NewLongObj(bson_iterator_date( &i )); break;
-    case bson_double: tag = "double";  elemObj = Tcl_NewDoubleObj(bson_iterator_double( &i )); break;
-    case bson_bool:   tag = "boolean"; elemObj = Tcl_NewBooleanObj(bson_iterator_bool( &i )); break;
-    case bson_regex:  tag = "regex";   elemObj = Tcl_NewStringObj(bson_iterator_regex( &i ), -1); break;
-    case bson_string: tag = "string";  elemObj = Tcl_NewStringObj(bson_iterator_string( &i ), -1); break;
-    case bson_null:   tag = "null";    elemObj = Tcl_NewStringObj("null", 4); break;
-    case bson_oid: {
+    case BSON_INT:    tag = "integer"; elemObj = Tcl_NewIntObj(bson_iterator_int( &i )); break;
+    case BSON_LONG:   tag = "long";    elemObj = Tcl_NewLongObj(bson_iterator_long( &i )); break;
+    case BSON_DATE:   tag = "date";    elemObj = Tcl_NewLongObj(bson_iterator_date( &i )); break;
+    case BSON_DOUBLE: tag = "double";  elemObj = Tcl_NewDoubleObj(bson_iterator_double( &i )); break;
+    case BSON_BOOL:   tag = "boolean"; elemObj = Tcl_NewBooleanObj(bson_iterator_bool( &i )); break;
+    case BSON_REGEX:  tag = "regex";   elemObj = Tcl_NewStringObj(bson_iterator_regex( &i ), -1); break;
+    case BSON_STRING: tag = "string";  elemObj = Tcl_NewStringObj(bson_iterator_string( &i ), -1); break;
+    case BSON_NULL:   tag = "null";    elemObj = Tcl_NewStringObj("null", 4); break;
+    case BSON_OID: {
       tag = "oid";
       bson_oid_to_string(bson_iterator_oid(&i), oidhex); 
       elemObj = Tcl_NewStringObj(oidhex, -1);
       break;
     }
-    case bson_timestamp: {
+    case BSON_TIMESTAMP: {
       bson_timestamp_t ts;
       tag = "timestamp";
       ts = bson_iterator_timestamp( &i );
@@ -170,9 +170,9 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
       Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(ts.i));
       break;
     }
-    case bson_object: 
-    case bson_array:
-      tag = t == bson_object ? "object" : "array";
+    case BSON_OBJECT: 
+    case BSON_ARRAY:
+      tag = t == BSON_OBJECT ? "object" : "array";
       elemObj = BsonToList(interp, bson_iterator_value( &i ) , depth + 1 );
       break;
     default:
@@ -212,25 +212,25 @@ BsonTagToType(Tcl_Interp *interp, char *tag) {
   char firstChar = *tag;
   
   switch (firstChar) {
-  case 'a': /* array */   return bson_array;
-  case 'b': /* bool */    return bson_bool;
+  case 'a': /* array */   return BSON_ARRAY;
+  case 'b': /* bool */    return BSON_BOOL;
   case 'd': 
-    if (*(tag + 1) == 'a') /* date   */ return bson_date;
-    if (*(tag + 1) == 'o') /* double */ return bson_double;
-  case 'i': /* integer */ return bson_int;
-  case 'l': /* long */    return bson_long;
-  case 'n': /* null */    return bson_null;
+    if (*(tag + 1) == 'a') /* date   */ return BSON_DATE;
+    if (*(tag + 1) == 'o') /* double */ return BSON_DOUBLE;
+  case 'i': /* integer */ return BSON_INT;
+  case 'l': /* long */    return BSON_LONG;
+  case 'n': /* null */    return BSON_NULL;
   case 'o': 
-    if  (*(tag + 1) == 'i') /* oid */ return bson_oid;
-    if  (*(tag + 1) == 'b') /* object */ return bson_object;
+    if  (*(tag + 1) == 'i') /* oid */ return BSON_OID;
+    if  (*(tag + 1) == 'b') /* object */ return BSON_OBJECT;
     break;
-  case 'r': /* regex */   return bson_regex;
-  case 's': /* string */  return bson_string;
-  case 't': /* timestamp */ return bson_timestamp;
+  case 'r': /* regex */   return BSON_REGEX;
+  case 's': /* string */  return BSON_STRING;
+  case 't': /* timestamp */ return BSON_TIMESTAMP;
   }
 
   NsfLog(interp, NSF_LOG_WARN, "BsonTagToType: Treat unknown tag '%s' as string", tag);
-  return bson_string;
+  return BSON_STRING;
 }
 
 /*
@@ -256,60 +256,60 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
   /*fprintf(stderr, "BsonAppend: add name %s tag %s value '%s'\n", name, tag, ObjStr(value));*/
 
   switch ( t ){
-  case bson_string: 
+  case BSON_STRING: 
     bson_append_string(bbPtr, name, ObjStr(value)); 
     break;
-  case bson_int: {
+  case BSON_INT: {
     int v;
     result = Tcl_GetIntFromObj(interp, value, &v);
     if (result != TCL_OK) break;
     bson_append_int(bbPtr, name, v);
     break;
   }
-  case bson_double: {
+  case BSON_DOUBLE: {
     double v;
     result = Tcl_GetDoubleFromObj(interp, value, &v);
     if (result != TCL_OK) break;
     bson_append_double(bbPtr, name, v);
     break;
   }
-  case bson_bool: {
+  case BSON_BOOL: {
     int v;
     result = Tcl_GetBooleanFromObj(interp, value, &v);
     if (result != TCL_OK) break;
     bson_append_bool(bbPtr, name, v);
     break;
   }
-  case bson_long: {
+  case BSON_LONG: {
     long v;
     result = Tcl_GetLongFromObj(interp, value, &v);
     if (result != TCL_OK) break;
     bson_append_long(bbPtr, name, v);
     break;
   }
-  case bson_null: {
+  case BSON_NULL: {
     bson_append_null(bbPtr, name);
     break;
   }
-  case bson_oid: {
+  case BSON_OID: {
     bson_oid_t v;
     bson_oid_from_string(&v, ObjStr(value));
     bson_append_oid(bbPtr, name, &v);
     break;
   }
-  case bson_regex: {
+  case BSON_REGEX: {
     char *opts = ""; /* TODO: how to handle regex opts? */
     bson_append_regex(bbPtr, name, ObjStr(value), opts);
     break;
   }
-  case bson_date: {
+  case BSON_DATE: {
     long v;
     result = Tcl_GetLongFromObj(interp, value, &v);
     if (result != TCL_OK) break;
     bson_append_date(bbPtr, name, v);
     break;
   }
-  case bson_timestamp: {
+  case BSON_TIMESTAMP: {
     bson_timestamp_t v;
     Tcl_Obj **objv;
     int objc = 0;
@@ -325,8 +325,8 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
     bson_append_timestamp(bbPtr, name, &v);
     break;
   }
-  case bson_object: 
-  case bson_array: {
+  case BSON_OBJECT: 
+  case BSON_ARRAY: {
     int i, objc;
     Tcl_Obj **objv;
 
@@ -335,7 +335,7 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
       return NsfPrintError(interp, "invalid %s value contain multiple of 3 elements %s", tag, ObjStr(value));
     }
 
-    if (t == bson_object) {
+    if (t == BSON_OBJECT) {
       bson_append_start_object(bbPtr, name);
     } else {
       bson_append_start_array(bbPtr, name);
@@ -478,14 +478,15 @@ NsfMongoClose(Tcl_Interp *interp, mongo_connection *connPtr, Tcl_Obj *connObj) {
 cmd connect NsfMongoConnect {
   {-argName "-replica-set" -required 0 -nrargs 1}
   {-argName "-server" -required 0 -nrargs 1 -type tclobj}
+  {-argName "-timeout" -required 0 -nrargs 1 -type int32}
 }
 */
 static int 
-NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server) {
+NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int withTimeout) {
   char channelName[80], *buffer = NULL;
   int result, port, objc = 0;
   mongo_connection *connPtr;
-  mongo_conn_return status;
+  int status;
   Tcl_Obj **objv;
   CONST char *host;
 
@@ -540,24 +541,37 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server) {
    * Process the status from either mongo_connect() or
    * mongo_replset_connect().
    */
-  if (status != mongo_conn_success) {
+  if (status != MONGO_OK) {
     char *errorMsg;
 
     ckfree((char *)connPtr);
 
     switch (status) {
-    case mongo_conn_bad_arg:    errorMsg = "bad arguments"; break;
-    case mongo_conn_no_socket:  errorMsg = "no socket"; break;
-    case mongo_conn_fail:       errorMsg = "connection failed"; break;
-    case mongo_conn_not_master: errorMsg = "not master"; break;
-    case mongo_conn_bad_set_name: errorMsg = "replica set name doesn't match the existing replica set"; break;
-    case mongo_conn_cannot_find_primary: errorMsg = "cannot find primary"; break;
+    case MONGO_CONN_BAD_ARG:    errorMsg = "bad arguments"; break;
+    case MONGO_CONN_NO_SOCKET:  errorMsg = "no socket"; break;
+    case MONGO_CONN_FAIL:       errorMsg = "connection failed"; break;
+    case MONGO_CONN_NOT_MASTER: errorMsg = "not master"; break;
+    case MONGO_CONN_BAD_SET_NAME: errorMsg = "replica set name doesn't match the existing replica set"; break;
+    case MONGO_CONN_CANNOT_FIND_PRIMARY: errorMsg = "cannot find primary"; break;
     default: errorMsg = "unknown Error"; break;
     }
 
     return NsfPrintError(interp, errorMsg);
   }
 
+  if (withTimeout > 0) {
+    /* 
+     * setting connection timeout - measured in  milliseconds
+     */
+    if (mongo_conn_set_timeout(connPtr, withTimeout) != MONGO_OK) {
+      return NsfPrintError(interp, "setting connection timeout failed");
+    }
+  }
+
+  /* 
+   * Make an entry in the symbol table and return entry name it as
+   * result.
+   */
   Nsf_PointerAdd(interp, channelName, "mongo_connection", connPtr);
   Tcl_SetObjResult(interp, Tcl_NewStringObj(channelName, -1));
 

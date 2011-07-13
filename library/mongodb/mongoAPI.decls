@@ -20,6 +20,7 @@ cmd close NsfMongoClose {
 cmd connect NsfMongoConnect {
   {-argName "-replica-set" -required 0 -nrargs 1}
   {-argName "-server" -required 0 -nrargs 1 -type tclobj}
+  {-argName "-timeout" -required 0 -nrargs 1 -type int32}
 }
 
 cmd count NsfMongoCount {

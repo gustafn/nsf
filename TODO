@@ -3035,6 +3035,10 @@ nsf:
 
 - first draft of separation of attribute -> variable + accessor
 
+- library/mongodb:
+   * updated to current interface in git HEAD
+   * added flag timeout to mongo::connect
+
 TODO:
  - maybe use (position == -1) instead of (objectparameter == false) to save common vars
  - optimization of plain variable in per-object case

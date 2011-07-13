@@ -27,7 +27,7 @@ static int NsfMongoRemoveStub(ClientData clientData, Tcl_Interp *interp, int obj
 static int NsfMongoUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int NsfMongoClose(Tcl_Interp *interp, mongo_connection *connPtr, Tcl_Obj *connObj);
-static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withReplica_set, Tcl_Obj *withServer);
+static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withReplica_set, Tcl_Obj *withServer, int withTimeout);
 static int NsfMongoCount(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *query);
 static int NsfMongoGridFSClose(Tcl_Interp *interp, gridfs *gfsPtr, Tcl_Obj *gfsObj);
 static int NsfMongoGridFSOpen(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *dbname, CONST char *prefix);
@@ -39,7 +39,7 @@ static int NsfMongoGridFileGetContentlength(Tcl_Interp *interp, gridfile *filePt
 static int NsfMongoGridFileGetMetaData(Tcl_Interp *interp, gridfile *filePtr);
 static int NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *fsPtr, CONST char *filename);
 static int NsfMongoGridFileRead(Tcl_Interp *interp, gridfile *filePtr, int size);
-static int NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *filePtr, int size);
+static int NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *filePtr, int offset);
 static int NsfMongoIndex(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *attributes, int withDropdups, int withUnique);
 static int NsfMongoInsert(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *values);
 static int NsfMongoQuery(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
@@ -101,9 +101,10 @@ NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   } else {
     CONST char *withReplica_set = (CONST char *)pc.clientData[0];
     Tcl_Obj *withServer = (Tcl_Obj *)pc.clientData[1];
+    int withTimeout = (int )PTR2INT(pc.clientData[2]);
 
     assert(pc.status == 0);
-    return NsfMongoConnect(interp, withReplica_set, withServer);
+    return NsfMongoConnect(interp, withReplica_set, withServer, withTimeout);
 
   }
 }
@@ -339,10 +340,10 @@ NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return TCL_ERROR;
   } else {
     gridfile *filePtr = (gridfile *)pc.clientData[0];
-    int size = (int )PTR2INT(pc.clientData[1]);
+    int offset = (int )PTR2INT(pc.clientData[1]);
 
     assert(pc.status == 0);
-    return NsfMongoGridFileSeek(interp, filePtr, size);
+    return NsfMongoGridFileSeek(interp, filePtr, offset);
 
   }
 }
@@ -464,9 +465,10 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::mongo::close", NsfMongoCloseStub, 1, {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo_connection",NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::connect", NsfMongoConnectStub, 2, {
+{"::mongo::connect", NsfMongoConnectStub, 3, {
   {"-replica-set", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-server", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-server", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-timeout", 0, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::count", NsfMongoCountStub, 3, {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo_connection",NULL,NULL,NULL,NULL,NULL},
@@ -513,7 +515,7 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::mongo::gridfile::seek", NsfMongoGridFileSeekStub, 2, {
   {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
-  {"size", NSF_ARG_REQUIRED, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+  {"offset", NSF_ARG_REQUIRED, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::index", NsfMongoIndexStub, 5, {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo_connection",NULL,NULL,NULL,NULL,NULL},
