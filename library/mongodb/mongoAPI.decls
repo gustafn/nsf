@@ -33,7 +33,9 @@ cmd index NsfMongoIndex {
   {-argName "conn" -required 1 -type mongo_connection}
   {-argName "namespace" -required 1}
   {-argName "attributes" -required 1 -type tclobj}
+  {-argName "-background" -required 0 -nrargs 0}
   {-argName "-dropdups" -required 0 -nrargs 0}
+  {-argName "-sparse" -required 0 -nrargs 0}
   {-argName "-unique" -required 0 -nrargs 0}
 }
 

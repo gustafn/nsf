@@ -40,7 +40,7 @@ static int NsfMongoGridFileGetMetaData(Tcl_Interp *interp, gridfile *filePtr);
 static int NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *fsPtr, CONST char *filename);
 static int NsfMongoGridFileRead(Tcl_Interp *interp, gridfile *filePtr, int size);
 static int NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *filePtr, int offset);
-static int NsfMongoIndex(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *attributes, int withDropdups, int withUnique);
+static int NsfMongoIndex(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *attributes, int withBackground, int withDropdups, int withSparse, int withUnique);
 static int NsfMongoInsert(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *values);
 static int NsfMongoQuery(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
 static int NsfMongoRemove(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *condition);
@@ -362,11 +362,13 @@ NsfMongoIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     mongo_connection *connPtr = (mongo_connection *)pc.clientData[0];
     CONST char *namespace = (CONST char *)pc.clientData[1];
     Tcl_Obj *attributes = (Tcl_Obj *)pc.clientData[2];
-    int withDropdups = (int )PTR2INT(pc.clientData[3]);
-    int withUnique = (int )PTR2INT(pc.clientData[4]);
+    int withBackground = (int )PTR2INT(pc.clientData[3]);
+    int withDropdups = (int )PTR2INT(pc.clientData[4]);
+    int withSparse = (int )PTR2INT(pc.clientData[5]);
+    int withUnique = (int )PTR2INT(pc.clientData[6]);
 
     assert(pc.status == 0);
-    return NsfMongoIndex(interp, connPtr, namespace, attributes, withDropdups, withUnique);
+    return NsfMongoIndex(interp, connPtr, namespace, attributes, withBackground, withDropdups, withSparse, withUnique);
 
   }
 }
@@ -517,11 +519,13 @@ static Nsf_methodDefinition method_definitions[] = {
   {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
   {"offset", NSF_ARG_REQUIRED, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::index", NsfMongoIndexStub, 5, {
+{"::mongo::index", NsfMongoIndexStub, 7, {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo_connection",NULL,NULL,NULL,NULL,NULL},
   {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"attributes", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-background", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-dropdups", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-sparse", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-unique", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::insert", NsfMongoInsertStub, 3, {

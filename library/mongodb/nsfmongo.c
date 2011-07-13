@@ -628,13 +628,21 @@ cmd index NsfMongoIndex {
   {-argName "conn" -required 1 -type mongo_connection}
   {-argName "namespace" -required 1}
   {-argName "attributes" -required 1 -type tclobj}
+  {-argName "-background" -required 0 -nrargs 0}
   {-argName "-dropdups" -required 0 -nrargs 0}
+  {-argName "-sparse" -required 0 -nrargs 0}
   {-argName "-unique" -required 0 -nrargs 0}
 }
 */
 static int 
-NsfMongoIndex(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *attributesObj, 
-	      int withDropdups, int withUnique) {
+NsfMongoIndex(Tcl_Interp *interp, 
+	      mongo_connection *connPtr, 
+	      CONST char *namespace, 
+	      Tcl_Obj *attributesObj, 
+	      int withBackground, 
+	      int withDropdups, 
+	      int withSparse, 
+	      int withUnique) {
   bson_bool_t success;
   int objc, result, options = 0;
   Tcl_Obj **objv;
@@ -645,8 +653,10 @@ NsfMongoIndex(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespa
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(attributesObj));
   }
   BsonAppendObjv(interp, keys, objc, objv);
-  if (withDropdups) {options |= MONGO_INDEX_DROP_DUPS;}
-  if (withUnique) {options |= MONGO_INDEX_UNIQUE;}
+  if (withBackground) {options |= MONGO_INDEX_BACKGROUND;}
+  if (withDropdups)   {options |= MONGO_INDEX_DROP_DUPS;}
+  if (withSparse)     {options |= MONGO_INDEX_SPARSE;}
+  if (withUnique)     {options |= MONGO_INDEX_UNIQUE;}
 
   success = mongo_create_index(connPtr, namespace, keys, options, out);
   bson_destroy(keys);
