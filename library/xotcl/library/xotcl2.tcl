@@ -248,6 +248,7 @@ namespace eval ::xotcl {
   ::nsf::method::property Class  dealloc redefine-protected true
   ::nsf::method::property Class  create  redefine-protected true
 
+
   #
   # define parametercmd and instparametercmd in terms of ::nsf::setter
   # define filterguard and instfilterguard in terms of filterguard
@@ -340,7 +341,8 @@ namespace eval ::xotcl {
     set r [::nsf::method::forward [self] $method {*}$arglist]
     return $r
   }
-  
+
+ 
   Class instproc unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
     uplevel [list [self] create {*}$args]
@@ -373,6 +375,13 @@ namespace eval ::xotcl {
     lappend parameterdefinitions args:alias,method=residualargs,args
     return $parameterdefinitions
   }
+
+  ######################################################################
+  # Define default attribute protection before calling :attribute
+  ######################################################################
+  ::nsf::method::create ::xotcl::Object __default_attribute_call_protection args {return false}
+  ::nsf::method::property ::xotcl::Object __default_attribute_call_protection call-protected true
+
 
   #
   # Use parameter definition from nx 

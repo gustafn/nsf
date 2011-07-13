@@ -1389,7 +1389,7 @@ nx::Test case xotcl-residualargs {
 
 
 nx::Test parameter count 1000
-nx::Test case xotcl-residualargs {
+nx::Test case xotcl-residualargs2 {
 
   ::xotcl::Class create XC -parameter {a b c}
   ::XC instproc init args {set :x $args; incr :y}

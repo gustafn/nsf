@@ -741,10 +741,11 @@ namespace eval ::nx {
     -per-object:switch 
     {-class ""}
     {-initblock ""} 
+    {-defaultopts ""}
     value
     default:optional
   } {
-    set opts [list]
+    set opts $defaultopts
     set colonPos [string first : $value]
     if {$colonPos == -1} {
       set name $value
@@ -851,6 +852,7 @@ namespace eval ::nx {
       # set for every bootstrap attribute slot the position 0
       #
       ::nsf::var::set $slotObj position 0
+      ::nsf::var::set $slotObj objectparameter 1
     }
     
     #puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
@@ -921,6 +923,7 @@ namespace eval ::nx {
     {forwardername}
     {defaultmethods {get assign}}
     {accessor false}
+    {objectparameter true}
     {noarg}
     {disposition alias}
     {required false}
@@ -1087,7 +1090,11 @@ namespace eval ::nx {
     # ensure partial ordering and avoid sorting.
     #
     foreach slot [nsf::dispatch [self] ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
-      lappend defs([$slot position]) [$slot getParameterSpec]
+      if {[::nsf::var::exists $slot objectparameter] && [::nsf::var::set $slot objectparameter]} {
+	lappend defs([$slot position]) [$slot getParameterSpec]
+      } else {
+	#puts stderr "== no objectparameter for $slot !"
+      }
     }
     #
     # Fold the per-position lists into a common list
@@ -1411,17 +1418,22 @@ namespace eval ::nx {
     return 1
   }
 
-  ::nx::Attribute protected method makeAccessor {} {
+  ::nx::Attribute public method makeAccessor {} {
     if {!${:accessor}} {
       #puts stderr "Do not register forwarder ${:domain} ${:name}" 
-      return
+      return 0
     }   
     if {[:needsForwarder]} {
-      :makeForwarder
+      set handle [:makeForwarder]
       :makeIncrementalOperations
     } else {
-      :makeSetter
+      set handle [:makeSetter]
     }
+    ::nsf::method::property ${:domain} \
+	{*}[expr {${:per-object} ? "-per-object" : ""}] \
+	$handle call-protected \
+	[::nsf::dispatch ${:domain} __default_attribute_call_protection]
+    return 1
   }
 
   ::nx::Attribute public method reconfigure {} {
@@ -1582,15 +1594,73 @@ namespace eval ::nx {
     return $r    
   }
 
+  nx::Object method variable {
+			     {-class ""} 
+			     {-initblock ""} 
+			     {-objectparameter false}
+			     {-accessor false}
+			     spec 
+			     default:optional
+			   } {
+    set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
+	       -per-object \
+	       -class $class \
+	       -initblock $initblock \
+	       -defaultopts [list -accessor $accessor -objectparameter $objectparameter] \
+	       $spec \
+	       {*}[expr {[info exists default] ? [list $default] : ""}]]
+    return $r
+  }
+
+  Object method attribute {spec {-class ""} {initblock ""}} {
+    set r [[self] ::nsf::classes::nx::Object::variable \
+	       -class $class \
+	       -initblock $initblock \
+	       -accessor true \
+	       -objectparameter true \
+	       {*}$spec]
+    return $r
+  }
+
+  nx::Class method variable {
+			     {-class ""} 
+			     {-initblock ""} 
+			     {-objectparameter false}
+			     {-accessor false}
+			     spec 
+			     default:optional
+			   } {
+    set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
+	       -class $class \
+	       -initblock $initblock \
+	       -defaultopts [list -accessor $accessor -objectparameter $objectparameter] \
+	       $spec \
+	       {*}[expr {[info exists default] ? [list $default] : ""}]]
+    return $r
+  }
+  
+  Class method attribute {spec {-class ""} {initblock ""}} {
+    set r [[self] ::nsf::classes::nx::Class::variable \
+	       -class $class \
+	       -initblock $initblock \
+	       -accessor true \
+	       -objectparameter true \
+	       {*}$spec]
+    return $r
+  }
+
+
   ######################################################################
   # Define method "attributes" for convenience to define multiple
   # attributes based on a list of parameter specifications.
   ######################################################################
 
   Class public method attributes arglist {
-    set slotContainer [::nx::slotObj [::nsf::self]]  
+    set slotContainer [::nx::slotObj [::nsf::self]]
+    puts stderr slotContainer=$slotContainer
     foreach arg $arglist {
-      ::nx::MetaSlot createFromParameterSpec [::nsf::self] {*}$arg
+      #::nx::MetaSlot createFromParameterSpec [::nsf::self] {*}$arg
+      [self] ::nsf::classes::nx::Class::attribute $arg
     }
     ::nsf::var::set $slotContainer __parameter $arglist
   }
@@ -1693,7 +1763,7 @@ namespace eval ::nx {
 
     :method makeTargetList {t} {
       lappend :targetList $t
-      #puts stderr "COPY makeTargetList $t target= ${:targetList}"
+      #puts stderr "COPY makeTargetList $t targetList '${:targetList}'"
       # if it is an object without namespace, it is a leaf
       if {[::nsf::object::exists $t]} {
 	if {[::nsf::dispatch $t ::nsf::methods::object::info::hasnamespace]} {
@@ -1720,6 +1790,7 @@ namespace eval ::nx {
     }
 
     :method copyNSVarsAndCmds {orig dest} {
+      puts stderr "::nsf::nscopyvars $orig $dest"
       ::nsf::nscopyvars $orig $dest
       ::nsf::nscopycmds $orig $dest
     }
@@ -1886,7 +1957,6 @@ namespace eval ::nx {
   ######################################################################
   # some utilities
   ######################################################################
-
   # 
   # Provide mechanisms to configure nx
   #
