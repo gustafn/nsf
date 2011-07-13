@@ -9313,20 +9313,19 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
     FREE_ON_STACK(Tcl_Obj*, tov);
     
   } else { /* no unknown called, this is the built-in unknown handler */
-    Tcl_Obj *tailMethodObj;
+    Tcl_Obj *tailMethodObj = NULL;
+
     if (objc > 1) {
       int length;
-      if (Tcl_ListObjLength(interp, objv[1],&length) == TCL_OK && length > 0) {
+
+      if (Tcl_ListObjLength(interp, objv[1], &length) == TCL_OK && length > 0) {
 	Tcl_ListObjIndex(interp, objv[1], length - 1, &tailMethodObj);
       }
     }
     
-    /* fprintf(stderr, "--- default error message for unknown method '%s' "
-       "to be dispatched on %s, objv[%d] %s /methodName %s\n",
-       ObjStr(methodObj), ObjectName(object), 1, ObjStr(objv[1]), methodName);*/
     result = NsfPrintError(interp, "%s: unable to dispatch method '%s'",
-			   ObjectName(object), /*methodName*/ tailMethodObj ? 
-			   MethodName(tailMethodObj) : methodName);
+			   ObjectName(object), 
+			   tailMethodObj ? MethodName(tailMethodObj) : methodName);
   }
 
   return result;
