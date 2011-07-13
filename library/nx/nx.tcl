@@ -752,11 +752,13 @@ namespace eval ::nx {
       set properties [string range $value [expr {$colonPos+1}] end]
       set name [string range $value 0 [expr {$colonPos -1}]]
       foreach property [split $properties ,] {
-        if {$property in [list "required" "convert" "nosetter" "substdefault" "noarg"]} {
+        if {$property in [list "required" "convert" "substdefault" "noarg"]} {
 	  if {$property in "convert" } {
 	    set class [:requireClass ::nx::Attribute $class]
 	  }
           lappend opts -$property 1
+        } elseif {[string match accessor=* $property]} {
+          lappend opts -accessor [string range $property 9 end]
         } elseif {[string match type=* $property]} {
 	  set class [:requireClass ::nx::Attribute $class]
           set type [string range $property 5 end]
@@ -918,7 +920,7 @@ namespace eval ::nx {
     {methodname}
     {forwardername}
     {defaultmethods {get assign}}
-    {nosetter true}
+    {accessor false}
     {noarg}
     {disposition alias}
     {required false}
@@ -1110,13 +1112,13 @@ namespace eval ::nx {
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
 
   createBootstrapAttributeSlots ::nx::RelationSlot {
-    {nosetter false}
+    {accessor true}
     {multiplicity 1..n}
   }
 
   RelationSlot protected method init {} {
     ::nsf::next
-    if {!${:nosetter}} {
+    if {${:accessor}} {
       :makeForwarder
     }
   }
@@ -1336,7 +1338,7 @@ namespace eval ::nx {
     {convert false}
     {incremental}
     {multiplicity 1..1}
-    {nosetter false}
+    {accessor true}
     {type}
 
     valuecmd
@@ -1410,7 +1412,7 @@ namespace eval ::nx {
   }
 
   ::nx::Attribute protected method makeAccessor {} {
-    if {${:nosetter}} {
+    if {!${:accessor}} {
       #puts stderr "Do not register forwarder ${:domain} ${:name}" 
       return
     }   

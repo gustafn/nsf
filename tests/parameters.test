@@ -1177,7 +1177,7 @@ Test case slot-optimizer {
 
 Test parameter count 10
 Test case slot-nosetter {
-  Class create C -attributes {a b:integer,nosetter {c:nosetter ""}}
+  Class create C -attributes {a b:integer,accessor=false {c:accessor=false ""}}
   
   ? {C create c1 -a 1 -b 2} ::c1
   ? {c1 info vars} "a b c"
