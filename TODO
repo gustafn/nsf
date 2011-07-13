@@ -3038,7 +3038,7 @@ nsf:
 - library/mongodb:
    * updated to current interface in git HEAD
    * added flag timeout to mongo::connect
-   * added new index uptions "-sparse" and "-background"
+   * added new index options "-sparse" and "-background"
 
 TODO:
  - maybe use (position == -1) instead of (objectparameter == false) to save common vars
