@@ -116,8 +116,9 @@ cmd "object::dispatch" NsfObjectDispatchCmd {
 cmd "object::exists" NsfObjectExistsCmd {
   {-argName "value" -required 1 -type tclobj}
 }
-cmd "object::initialized" NsfObjectInitializedCmd {
+cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer" -required 1}
 }
 cmd "object::qualify" NsfObjectQualifyCmd {
   {-argName "objectName" -required 1 -type tclobj}

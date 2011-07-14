@@ -3044,6 +3044,8 @@ nsf:
   renamed "nsf::createobjectsystem" => "nsf::objectsystem::create"
   renamed "nsf::unknown" => "nsf::object::unknown"
   renamed "nsf::dispatch" => "nsf::object::dispatch"
+- generalized "nsf::object::initialized" to
+  nsf::object::property objectName initialized|class|rootmetaclass|rootclass|slotcontainer
 
 
 TODO:
@@ -3053,6 +3055,8 @@ TODO:
  - testing variable/attribute
  - maybe change default
    createBootstrapAttributeSlots ::nx::Attribute {accessor true} -> false
+
+
 
 
 - Revise callstack introspection/intercession, i.e., [current

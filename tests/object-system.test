@@ -22,7 +22,7 @@ proc ? {cmd expected {msg ""}} {
 ? {::nsf::configure objectsystem} "{::nx::Object ::nx::Class {-class.alloc alloc -class.create create -class.dealloc dealloc -class.objectparameter objectparameter -class.recreate recreate -object.configure configure -object.defaultmethod defaultmethod -object.destroy destroy -object.init init -object.move move -object.unknown unknown}}"
 
 ? {::nsf::object::exists Object} 1
-? {::nsf::object::initialized Object} 1
+? {::nsf::object::property Object initialized} 1
 ? {::nsf::is class Object} 1
 ? {::nsf::is metaclass Object} 0
 ? {Object info superclass} ""
@@ -45,9 +45,9 @@ Object create o
 
 Object create o2 {
   ? {::nsf::object::exists ::o2} 1
-  ? {::nsf::object::initialized ::o2} 0
+  ? {::nsf::object::property ::o2 initialized} 0
 }
-? {::nsf::object::initialized ::o2} 1
+? {::nsf::object::property ::o2 initialized}  1
 
 Class create C0
 ? {::nsf::is class C0} 1

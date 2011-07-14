@@ -142,6 +142,19 @@ static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
   return result;
 }
   
+enum ObjectpropertyIdx {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertySlotcontainerIdx};
+
+static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "slotcontainer", NULL};
+  (void)pPtr;
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectproperty", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+  
 enum RelationtypeIdx {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
 
 static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
@@ -182,6 +195,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|baseclasses"},
   {ConvertToConfigureoption, "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
+  {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|slotcontainer"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {NULL, NULL}
 };
@@ -240,7 +254,7 @@ static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int o
 static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfObjectInitializedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectQualifyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectSystemCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -335,7 +349,7 @@ static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
 static int NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
-static int NsfObjectInitializedCmd(Tcl_Interp *interp, NsfObject *objectName);
+static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectproperty);
 static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods);
 static int NsfProcCmd(Tcl_Interp *interp, int withAd, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
@@ -431,7 +445,7 @@ enum {
  NsfNextCmdIdx,
  NsfObjectDispatchCmdIdx,
  NsfObjectExistsCmdIdx,
- NsfObjectInitializedCmdIdx,
+ NsfObjectPropertyCmdIdx,
  NsfObjectQualifyCmdIdx,
  NsfObjectSystemCreateCmdIdx,
  NsfProcCmdIdx,
@@ -1403,20 +1417,21 @@ NsfObjectExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static int
-NsfObjectInitializedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfObjectInitializedCmdIdx].paramDefs, 
-                     method_definitions[NsfObjectInitializedCmdIdx].nrParameters, 1,
+                     method_definitions[NsfObjectPropertyCmdIdx].paramDefs, 
+                     method_definitions[NsfObjectPropertyCmdIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     NsfObject *objectName = (NsfObject *)pc.clientData[0];
+    int objectproperty = (int )PTR2INT(pc.clientData[1]);
 
     assert(pc.status == 0);
-    return NsfObjectInitializedCmd(interp, objectName);
+    return NsfObjectPropertyCmd(interp, objectName, objectproperty);
 
   }
 }
@@ -2508,8 +2523,9 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::object::exists", NsfObjectExistsCmdStub, 1, {
   {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::object::initialized", NsfObjectInitializedCmdStub, 1, {
-  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL}}
+{"::nsf::object::property", NsfObjectPropertyCmdStub, 2, {
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"objectproperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToObjectproperty, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::object::qualify", NsfObjectQualifyCmdStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

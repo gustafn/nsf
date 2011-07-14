@@ -3086,7 +3086,7 @@ CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
  *    tclProc.c:InitResolvedLocals()). It registers two handlers for a
  *    given, colon-prefixed variable found in the script: the actual
  *    variable fetcher and a variable cleanup handler. The variable
- *    fetcher is executed whenever a Tcl call frame is intialised and
+ *    fetcher is executed whenever a Tcl call frame is intialized and
  *    the array of compiled locals is constructed (see also
  *    InitResolvedLocals()).
  *
@@ -17256,15 +17256,25 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 }
 
 /*
-cmd "object::initialized" NsfObjectInitializedCmd {
+cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer" -required 1}
 }
 */
 static int
-NsfObjectInitializedCmd(Tcl_Interp *interp, NsfObject *object) {
+NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty) {
+  int flags = 0;;
+
+  switch (objectproperty) {
+  case ObjectpropertyInitializedIdx: flags = NSF_INIT_CALLED; break;
+  case ObjectpropertyClassIdx: flags = NSF_IS_CLASS; break;
+  case ObjectpropertyRootmetaclassIdx: flags = NSF_IS_ROOT_META_CLASS; break;
+  case ObjectpropertyRootclassIdx: flags = NSF_IS_ROOT_CLASS; break;
+  case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; break;
+  }
   
-  Tcl_SetObjResult(interp, 
-		   NsfGlobalObjs[(object->flags & NSF_INIT_CALLED) ? 
+   Tcl_SetObjResult(interp, 
+		   NsfGlobalObjs[(object->flags & flags) ? 
 				 NSF_ONE : NSF_ZERO]);
   return TCL_OK;
 }
