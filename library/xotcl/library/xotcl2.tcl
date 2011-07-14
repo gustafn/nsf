@@ -20,7 +20,7 @@ namespace eval ::xotcl {
   # ::xotcl::Object and ::xotcl::Class and defines these as root class
   # of the object system and as root meta class.
   #
-  ::nsf::createobjectsystem ::xotcl::Object ::xotcl::Class {
+  ::nsf::objectsystem::create ::xotcl::Object ::xotcl::Class {
     -class.alloc alloc 
     -class.create create
     -class.dealloc dealloc
@@ -369,7 +369,7 @@ namespace eval ::xotcl {
   #
   ::xotcl::Class instproc objectparameter {} {
     set parameterdefinitions [list]
-    foreach slot [nsf::dispatch [self] ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
+    foreach slot [nsf::object::dispatch [self] ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
       lappend parameterdefinitions [$slot getParameterSpec]
     }
     lappend parameterdefinitions args:alias,method=residualargs,args
@@ -571,13 +571,13 @@ namespace eval ::xotcl {
       set guardsFlag [expr {$guards ? "-guards" : ""}]
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
-        set def [::nsf::dispatch [::nsf::current object] \
+        set def [::nsf::object::dispatch [::nsf::current object] \
 		     ::nsf::methods::object::info::filtermethods -order \
 		     {*}$guardsFlag \
 		     {*}$patternArg]
         set def [method_handles_to_xotcl $def]
       } else {
-        set def [::nsf::dispatch [::nsf::current object] \
+        set def [::nsf::object::dispatch [::nsf::current object] \
 		     ::nsf::methods::object::info::filtermethods \
 		     {*}$guardsFlag \
 		     {*}$patternArg]
@@ -750,7 +750,7 @@ namespace eval ::xotcl {
   }
   Object instproc istype      {class}  {
     return [expr {[::nsf::is class $class] && 
-		  [::nsf::dispatch [self] ::nsf::methods::object::info::hastype $class]}]
+		  [::nsf::object::dispatch [self] ::nsf::methods::object::info::hastype $class]}]
   }
 
   # definition of "xotcl::Object contains", based on nx
@@ -845,16 +845,16 @@ namespace eval ::xotcl {
   # support for XOTcl specific convenience routines
   Object instproc hasclass cl {
     if {![::nsf::is class $cl]} {return 0}
-    if {[::nsf::dispatch [self] ::nsf::methods::object::info::hasmixin $cl]} {return 1}
-    ::nsf::dispatch [self] ::nsf::methods::object::info::hastype $cl
+    if {[::nsf::object::dispatch [self] ::nsf::methods::object::info::hasmixin $cl]} {return 1}
+    ::nsf::object::dispatch [self] ::nsf::methods::object::info::hastype $cl
   }
   Object instproc filtersearch {filter} {
-    set handle [::nsf::dispatch [::nsf::current object] \
+    set handle [::nsf::object::dispatch [::nsf::current object] \
 		    ::nsf::methods::object::info::lookupfilter $filter]
     return [method_handle_to_xotcl $handle]
   }
   Object instproc procsearch {name} {
-    set handle [::nsf::dispatch [::nsf::current object] \
+    set handle [::nsf::object::dispatch [::nsf::current object] \
 		    ::nsf::methods::object::info::lookupmethod $name]
     return [method_handle_to_xotcl $handle]
   }
@@ -875,7 +875,7 @@ namespace eval ::xotcl {
 
   #::nsf::method::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
   ::nsf::method::create ::xotcl::Class -per-object __unknown {name} {}
-  ::nsf::unknown::add xotcl {::xotcl::Class __unknown}
+  ::nsf::object::unknown::add xotcl {::xotcl::Class __unknown}
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {:requireNamespace; return [::xotcl::self]::$var}
@@ -1026,7 +1026,7 @@ namespace eval ::xotcl {
       }
       namespace eval [::xotcl::self] {namespace import ::xotcl::*}
       #namespace eval [::xotcl::self] $script
-      #::nsf::dispatch [::xotcl::self] -frame method ::apply [list {} $script [::xotcl::self]]
+      #::nsf::object::dispatch [::xotcl::self] -frame method ::apply [list {} $script [::xotcl::self]]
       ::apply [list {} $script [::xotcl::self]]
 
       foreach e [set :export] {

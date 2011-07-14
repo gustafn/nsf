@@ -26,17 +26,6 @@ cmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
-cmd createobjectsystem NsfCreateObjectSystemCmd {
-  {-argName "rootClass" -required 1 -type tclobj}
-  {-argName "rootMetaClass" -required 1 -type tclobj}
-  {-argName "systemMethods" -required 0 -type tclobj}
-}
-cmd dispatch NsfDispatchCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
-  {-argName "command" -required 1 -type tclobj}
-  {-argName "args"  -type args}
-}
 cmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
@@ -118,6 +107,12 @@ cmd "method::setter" NsfMethodSetterCmd {
 #
 # object cmds
 #
+cmd "object::dispatch" NsfObjectDispatchCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
+  {-argName "command" -required 1 -type tclobj}
+  {-argName "args"  -type args}
+}
 cmd "object::exists" NsfObjectExistsCmd {
   {-argName "value" -required 1 -type tclobj}
 }
@@ -128,6 +123,14 @@ cmd "object::qualify" NsfObjectQualifyCmd {
   {-argName "objectName" -required 1 -type tclobj}
 }
 
+#
+# objectsystem cmds
+#
+cmd "objectsystem::create" NsfObjectSystemCreateCmd {
+  {-argName "rootClass" -required 1 -type tclobj}
+  {-argName "rootMetaClass" -required 1 -type tclobj}
+  {-argName "systemMethods" -required 0 -type tclobj}
+}
 
 cmd my NsfMyCmd {
   {-argName "-local" -nrargs 0}

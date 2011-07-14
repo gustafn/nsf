@@ -27,7 +27,7 @@ C create c2
 
 ::nsf::method::property C SET call-protected true
 ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
-? {::nsf::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+? {::nsf::object::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
 ? {c1 foo} {foo}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}
@@ -37,7 +37,7 @@ C create c2
 
 ::nsf::method::property C foo call-protected true
 ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
-? {::nsf::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+? {::nsf::object::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
 ? {c1 bar} {bar} "other method work"
 ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 ? {c1 bar-SET} {1} "internal call of protected C implementend method"
@@ -54,7 +54,7 @@ C create c2
 ? {::nsf::method::property C foo call-protected} 0
 
 ? {c1 SET x 3} 3
-? {::nsf::dispatch c1 SET x 2} {2} 
+? {::nsf::object::dispatch c1 SET x 2} {2} 
 ? {c1 foo} {foo}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}
@@ -66,7 +66,7 @@ C create c2
 C protected method foo {} {return [current method]}
 ? {::nsf::method::property C SET call-protected} 0
 ? {c1 SET x 3} 3
-? {::nsf::dispatch c1 SET x 4} {4} 
+? {::nsf::object::dispatch c1 SET x 4} {4} 
 ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}

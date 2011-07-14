@@ -82,8 +82,8 @@ namespace eval ::nsf {
   ######################################################################
   # unknown handler for objects and classes
   #
-  proc ::nsf::unknown {name} {
-    foreach {key handler} [array get ::nsf::unknown] {
+  proc ::nsf::object::unknown {name} {
+    foreach {key handler} [array get ::nsf::object::unknown] {
       set result [uplevel [list {*}$handler $name]]
       if {$result ne ""} {
 	return $result
@@ -91,15 +91,15 @@ namespace eval ::nsf {
     }
     return ""
   }
-  namespace eval ::nsf::unknown {
-    proc add {key handler} {set ::nsf::unknown($key) $handler}
-    proc get {key}         {return $::nsf::unknown($key)}
-    proc delete {key}      {array unset ::nsf::unknown($key)}
-    proc keys {}           {array names ::nsf::unknown}
+  namespace eval ::nsf::object::unknown {
+    proc add {key handler} {set ::nsf::object::unknown($key) $handler}
+    proc get {key}         {return $::nsf::object::unknown($key)}
+    proc delete {key}      {array unset ::nsf::object::unknown($key)}
+    proc keys {}           {array names ::nsf::object::unknown}
   }
 
   # Example unknown handler:
-  # ::nsf::unknown::add xotcl {::xotcl::Class __unknown}
+  # ::nsf::object::unknown::add xotcl {::xotcl::Class __unknown}
 
 
   ######################################################################

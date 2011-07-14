@@ -616,7 +616,7 @@ char *NsfGlobalStrings[] = {
   "method", "object", "setter", "valuecheck",
   "-guard", "__unknown__",
   /* nsf tcl commands */
-  "::nsf::unknown",
+  "::nsf::object::unknown",
   /* tcl commands */
   "expr", "format", "::tcl::info::body", "::tcl::info::frame", "interp", "::tcl::string::is", 
   "rename"

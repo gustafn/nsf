@@ -1100,8 +1100,8 @@ set ::nsf::includes {
   ::nsf::relation
   ::nsf::tmpdir
   ::nsf::assertion
-  ::nsf::createobjectsystem
-  ::nsf::dispatch
+  ::nsf::objectsystem::create
+  ::nsf::object::dispatch
   ::nsf::var::exists
   ::nsf::exithandler
   ::nsf::forward

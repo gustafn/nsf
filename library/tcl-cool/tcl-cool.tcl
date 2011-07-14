@@ -25,7 +25,7 @@ package require nsf
 #
 # Two unexported commands for OO-language designer
 #   ::nsf::alias
-#   ::nsf::createobjectsystem
+#   ::nsf::objectsystem::create
 #   ::nsf::forward
 #   ::nsf::method
 #   ::nsf::relation
@@ -61,7 +61,7 @@ namespace eval tcl-cool {
   # In a first step, we create two base classes of TclCOOL, 
   # namely "object" and "class" in the current namespace:
 
-  ::nsf::createobjectsystem object class
+  ::nsf::objectsystem::create object class
 
   # We have now the two base classes defined as Tcl commands. Now we
   # can define methods for these newly defined classes
@@ -113,7 +113,7 @@ namespace eval tcl-cool {
   # is created. First the object is allocated, then the constructor is called.
   #
   class method create {name args} {
-    set obj [::nsf::dispatch [self] ::nsf::methods::class::alloc $name]
+    set obj [::nsf::object::dispatch [self] ::nsf::methods::class::alloc $name]
     $obj init {*}$args
     return $obj
   }

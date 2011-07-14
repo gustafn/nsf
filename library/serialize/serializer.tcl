@@ -187,7 +187,7 @@ namespace eval ::nx::serializer {
         if {![::nsf::object::exists $o]} {
           return 0
         }
-        set o [::nsf::dispatch $o ::nsf::methods::object::info::parent]
+        set o [::nsf::object::dispatch $o ::nsf::methods::object::info::parent]
       }
     }
     
@@ -306,7 +306,7 @@ namespace eval ::nx::serializer {
 
     :public class method allChildren o {
       # return o and all its children fully qualified
-      set set [::nsf::dispatch $o -frame method ::nsf::current]
+      set set [::nsf::object::dispatch $o -frame method ::nsf::current]
       foreach c [$o info children] {
         lappend set {*}[:allChildren $c]
       }
@@ -521,13 +521,13 @@ namespace eval ::nx::serializer {
     # Handle association between objects and responsible serializers
     #
     :public method responsibleSerializer {object} {
-      return [::nsf::dispatch $object ::nsf::methods::object::info::hastype ${:rootClass}]
+      return [::nsf::object::dispatch $object ::nsf::methods::object::info::hastype ${:rootClass}]
     }
 
     :public method registerSerializer {s instances} {
       # Communicate responsibility to serializer object $s
       foreach i $instances {
-        if {![::nsf::dispatch $i ::nsf::methods::object::info::hastype ${:rootClass}]} continue
+        if {![::nsf::object::dispatch $i ::nsf::methods::object::info::hastype ${:rootClass}]} continue
         $s setObjectSystemSerializer $i [::nsf::current object]
       }
     }
@@ -556,14 +556,14 @@ namespace eval ::nx::serializer {
         foreach {o p m} $k break
 	if {![::nsf::object::exists $o]} {
 	  :warn "$o is not an object"
-	} elseif {[::nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
+	} elseif {[::nsf::object::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
 	  set :exportMethods($k) 1
 	}
       }
       foreach o [Serializer exportedObjects] {
 	if {![::nsf::object::exists $o]} {
 	  :warn "$o is not an object"
-	} elseif {[nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
+	} elseif {[nsf::object::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
 	  set :exportObjects($o) 1
 	}
       }
@@ -576,7 +576,7 @@ namespace eval ::nx::serializer {
     ###############################    
 
     :method classify {o} {
-      if {[::nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootMetaClass}]} \
+      if {[::nsf::object::dispatch $o ::nsf::methods::object::info::hastype ${:rootMetaClass}]} \
           {return Class} {return Object}
     }
 
@@ -782,7 +782,7 @@ namespace eval ::nx::serializer {
       }
 
       :collect-var-traces $o $s
-      set objectName [::nsf::dispatch $o -frame method ::nsf::current object]
+      set objectName [::nsf::object::dispatch $o -frame method ::nsf::current object]
       set isSlotContainer [::nx::isSlotContainer $objectName]
       if {$isSlotContainer} {
 	append cmd [list ::nx::slotObj [$o ::nsf::methods::object::info::parent]]\n
@@ -921,7 +921,7 @@ namespace eval ::nx::serializer {
 
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create [::nsf::dispatch $o -frame method ::nsf::current object]]
+      append cmd [list [$o info class] create [::nsf::object::dispatch $o -frame method ::nsf::current object]]
       append cmd " -noinit\n"
       foreach i [$o ::nsf::methods::object::info::methods -methodtype scripted -callprotection all] {
         append cmd [:method-serialize $o $i ""] "\n"

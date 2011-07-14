@@ -1150,7 +1150,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
  *----------------------------------------------------------------------
  * NsfCallUnknownHandler --
  *
- *    Call ::nsf::unknown; this function is typically called, when an unknown
+ *    Call ::nsf::object::unknown; this function is typically called, when an unknown
  *    object or class is passed as an argument.
  *
  * Results:
@@ -1167,7 +1167,7 @@ NsfCallUnknownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
   int result = 0;
   Tcl_Obj *ov[3];
 
-  /*fprintf(stderr, "try ::nsf::unknown for '%s'\n", ObjStr(nameObj));*/
+  /*fprintf(stderr, "try ::nsf::object::unknown for '%s'\n", ObjStr(nameObj));*/
 
   ov[0] = NsfGlobalObjs[NSF_UNKNOWN_HANDLER];
   ov[1] = nameObj;
@@ -1185,9 +1185,9 @@ NsfCallUnknownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
  *
  *    Lookup an Next Scripting class from the given objPtr. If the class could
  *    not be directly converted and withUnknown is true, the function calls
- *    the unknown function (::nsf::unknown) to fetch the class on demand and
- *    retries the conversion.  On success the NsfClass is returned in the
- *    third argument. The objPtr might be converted by this function.
+ *    the unknown function (::nsf::object::unknown) to fetch the class on
+ *    demand and retries the conversion.  On success the NsfClass is returned
+ *    in the third argument. The objPtr might be converted by this function.
  *
  * Results:
  *    True or false,
@@ -1278,7 +1278,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       /* Retry, but now, the last argument (withUnknown) has to be 0 */
       result = GetClassFromObj(interp, objPtr, clPtr, 0);
     }
-    /*fprintf(stderr, "... ::nsf::unknown for '%s',
+    /*fprintf(stderr, "... ::nsf::object::unknown for '%s',
       result %d cl %p\n", objName, result, cl);*/
   }
 
@@ -3945,7 +3945,7 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name)
  * NSRequireParentObject --
  *
  *    Try to require a parent object (e.g. during ttrace).  This function
- *    tries to load a parent object via ::nsf::unknown.
+ *    tries to load a parent object via ::nsf::object::unknown.
  *
  * Results:
  *    returns 1 on success
@@ -16431,232 +16431,6 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
 
 
 /*
-cmd createobjectsystem NsfCreateObjectSystemCmd {
-  {-argName "rootClass" -required 1 -type tclobj}
-  {-argName "rootMetaClass" -required 1 -type tclobj}
-  {-argName "systemMethods" -required 0 -type tclobj}
-}
-*/
-static int
-NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tcl_Obj *systemMethodsObj) {
-  NsfClass *theobj = NULL, *thecls = NULL;
-  Tcl_Obj *object, *class;
-  char *objectName = ObjStr(Object);
-  char *className = ObjStr(Class);
-  NsfObjectSystem *osPtr = NEW(NsfObjectSystem);
-
-  memset(osPtr, 0, sizeof(NsfObjectSystem));
-
-  object = isAbsolutePath(objectName) ? Object :
-    NameInNamespaceObj(interp, objectName, CallingNameSpace(interp));
-  class = isAbsolutePath(className) ? Class :
-    NameInNamespaceObj(interp, className, CallingNameSpace(interp));
-
-  GetClassFromObj(interp, object, &theobj, 0);
-  GetClassFromObj(interp, class, &thecls, 0);
-
-  if (theobj || thecls) {
-    ObjectSystemFree(interp, osPtr);
-    NsfLog(interp, NSF_LOG_WARN, "Base class '%s' exists already; ignoring definition",
-	   theobj ? objectName : className);
-    return TCL_OK;
-  }
-
-  if (systemMethodsObj) {
-    int oc, idx, result;
-    Tcl_Obj **ov;
-
-    if ((result = Tcl_ListObjGetElements(interp, systemMethodsObj, &oc, &ov)) == TCL_OK) {
-      int i;
-
-      if (oc % 2) {
-        ObjectSystemFree(interp, osPtr);
-        return NsfPrintError(interp, "System methods must be provided as pairs");
-      }
-      for (i=0; i<oc; i += 2) {
-	Tcl_Obj *arg, **arg_ov;
-	int arg_oc = -1;
-
-	arg = ov[i+1];
-        result = Tcl_GetIndexFromObj(interp, ov[i], Nsf_SytemMethodOpts, "system method", 0, &idx);
-	if (result == TCL_OK) {
-	  result = Tcl_ListObjGetElements(interp, arg, &arg_oc, &arg_ov);
-	}
-        if (result != TCL_OK) {
-          ObjectSystemFree(interp, osPtr);
-          return NsfPrintError(interp, "invalid system method '%s'", ObjStr(ov[i]));
-        } else if (arg_oc < 1 || arg_oc > 2) {
-          ObjectSystemFree(interp, osPtr);
-          return NsfPrintError(interp, "invalid system method argument '%s'", ObjStr(ov[i]), ObjStr(arg));
-	}
-        /*fprintf(stderr, "NsfCreateObjectSystemCmd [%d] = %p %s (max %d, given %d)\n",
-          idx, ov[i+1], ObjStr(ov[i+1]), XO_unknown_idx, oc);*/
-
-	if (arg_oc == 1) {
-	  osPtr->methods[idx] = arg;
-	} else { /* (arg_oc == 2) */
-	  osPtr->methods[idx] = arg_ov[0];
-	  osPtr->handles[idx] = arg_ov[1];
-	  INCR_REF_COUNT(osPtr->handles[idx]);
-	}
-        INCR_REF_COUNT(osPtr->methods[idx]);
-      }
-    } else {
-      ObjectSystemFree(interp, osPtr);
-      return NsfPrintError(interp, "Provided system methods are not a proper list");
-    }
-  }
-  /*
-     Create a basic object system with the basic root class Object and
-     the basic metaclass Class, and store them in the RUNTIME STATE if
-     successful
-  */
-  theobj = PrimitiveCCreate(interp, object, NULL, NULL);
-  thecls = PrimitiveCCreate(interp, class, NULL, NULL);
-  /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
-
-  /* check whether Object and Class creation was successful */
-  if (!theobj || !thecls) {
-
-    if (thecls) PrimitiveCDestroy(thecls);
-    if (theobj) PrimitiveCDestroy(theobj);
-
-    ObjectSystemFree(interp, osPtr);
-    return NsfPrintError(interp, "Creation of object system failed");
-  }
-
-  theobj->osPtr = osPtr;
-  thecls->osPtr = osPtr;
-  osPtr->rootClass = theobj;
-  osPtr->rootMetaClass = thecls;
-
-  theobj->object.flags |= NSF_IS_ROOT_CLASS|NSF_INIT_CALLED;
-  thecls->object.flags |= NSF_IS_ROOT_META_CLASS|NSF_INIT_CALLED;
-
-  ObjectSystemAdd(interp, osPtr);
-
-  AddInstance((NsfObject *)theobj, thecls);
-  AddInstance((NsfObject *)thecls, thecls);
-  AddSuper(thecls, theobj);
-
-  if (NSF_DTRACE_OBJECT_ALLOC_ENABLED()) {
-    NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject *)theobj)), ClassName(((NsfObject *)theobj)->cl));
-    NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject *)thecls)), ClassName(((NsfObject *)thecls)->cl));
-  }
-
-  return TCL_OK;
-}
-
-/*
-cmd dispatch NsfDispatchCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
-  {-argName "command" -required 1 -type tclobj}
-  {-argName "args"  -type args}
-}
-*/
-static int
-NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
-                 Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  int result;
-  CONST char *methodName = ObjStr(command);
-
-  /*fprintf(stderr, "Dispatch obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
-
-  /*
-   * If the specified method is a fully qualified cmd name like
-   * e.g. ::nsf::cmd::Class::alloc, this method is called on the
-   * specified <Class|Object>, no matter whether it was registered on
-   * it.
-   */
-
-  if (*methodName == ':') {
-    Tcl_Command cmd, importedCmd;
-    CallFrame frame, *framePtr = &frame;
-    int flags = 0;
-
-    /*
-     * We have an absolute name. We assume, the name is the name of a
-     * Tcl command, that will be dispatched. If "withFrame == instance" is
-     * specified, a callstack frame is pushed to make instvars
-     * accessible for the command.
-     */
-
-    cmd = Tcl_GetCommandFromObj(interp, command);
-    /* fprintf(stderr, "colon name %s cmd %p\n", methodName, cmd);*/
-
-    if (cmd && (importedCmd = TclGetOriginalCommand(cmd))) {
-      cmd = importedCmd;
-    }
-
-    if (cmd == NULL) {
-      return NsfPrintError(interp, "cannot lookup command '%s'", methodName);
-    }
-
-    if (withFrame && withFrame != FrameDefaultIdx) {
-      Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
-      if (proc == TclObjInterpProc ||
-	  proc == NsfForwardMethod ||
-	  proc == NsfObjscopedMethod ||
-	  proc == NsfSetterMethod ||
-	  proc == NsfObjDispatch) {
-	return NsfPrintError(interp, "cannot use -frame object|method in dispatch for command '%s'",
-			     methodName);
-      }
-
-      if (withFrame == FrameObjectIdx) {
-	Nsf_PushFrameObj(interp, object, framePtr);
-	flags = NSF_CSC_IMMEDIATE;
-      } else if (withFrame == FrameMethodIdx) {
-	flags = NSF_CSC_FORCE_FRAME|NSF_CSC_IMMEDIATE;
-      }
-    }
-    /*
-     * Since we know, that we are always called with a full argument
-     * vector, we can include the cmd name in the objv by using
-     * nobjv-1; this way, we avoid a memcpy()
-     */
-    result = MethodDispatch(object, interp,
-			    nobjc+1, nobjv-1, cmd, object,
-			    NULL /*NsfClass *cl*/,
-			    Tcl_GetCommandName(interp, cmd),
-			    NSF_CSC_TYPE_PLAIN, flags);
-    if (withFrame == FrameObjectIdx) {
-      Nsf_PopFrameObj(interp, framePtr);
-    }
-  } else {
-    /*
-     * No colons in command name, use method from the precedence
-     * order, with filters etc. -- strictly speaking unneccessary,
-     * since we could dispatch the method also without
-     * NsfDispatchCmd(), but it can be used to invoke protected
-     * methods. 'withFrame == FrameObjectIdx' is here a no-op.
-     */
-
-    Tcl_Obj *arg;
-    Tcl_Obj *CONST *objv;
-
-    if (withFrame && withFrame != FrameDefaultIdx) {
-      return NsfPrintError(interp,
-			   "cannot use -frame object|method in dispatch for plain method name '%s'",
-			   methodName);
-    }
-
-    if (nobjc >= 1) {
-      arg = nobjv[0];
-      objv = nobjv+1;
-    } else {
-      arg = NULL;
-      objv = NULL;
-    }
-    result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object, command, arg,
-				   nobjc, objv, NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE);
-  }
-
-  return result;
-}
-
-/*
 cmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
@@ -17355,8 +17129,114 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
 
 
 
+/*
+cmd "object::dispatch" NsfObjectDispatchCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
+  {-argName "command" -required 1 -type tclobj}
+  {-argName "args"  -type args}
+}
+*/
+static int
+NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
+                 Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  int result;
+  CONST char *methodName = ObjStr(command);
 
+  /*fprintf(stderr, "Dispatch obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
 
+  /*
+   * If the specified method is a fully qualified cmd name like
+   * e.g. ::nsf::cmd::Class::alloc, this method is called on the
+   * specified <Class|Object>, no matter whether it was registered on
+   * it.
+   */
+
+  if (*methodName == ':') {
+    Tcl_Command cmd, importedCmd;
+    CallFrame frame, *framePtr = &frame;
+    int flags = 0;
+
+    /*
+     * We have an absolute name. We assume, the name is the name of a
+     * Tcl command, that will be dispatched. If "withFrame == instance" is
+     * specified, a callstack frame is pushed to make instvars
+     * accessible for the command.
+     */
+
+    cmd = Tcl_GetCommandFromObj(interp, command);
+    /* fprintf(stderr, "colon name %s cmd %p\n", methodName, cmd);*/
+
+    if (cmd && (importedCmd = TclGetOriginalCommand(cmd))) {
+      cmd = importedCmd;
+    }
+
+    if (cmd == NULL) {
+      return NsfPrintError(interp, "cannot lookup command '%s'", methodName);
+    }
+
+    if (withFrame && withFrame != FrameDefaultIdx) {
+      Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+      if (proc == TclObjInterpProc ||
+	  proc == NsfForwardMethod ||
+	  proc == NsfObjscopedMethod ||
+	  proc == NsfSetterMethod ||
+	  proc == NsfObjDispatch) {
+	return NsfPrintError(interp, "cannot use -frame object|method in dispatch for command '%s'",
+			     methodName);
+      }
+
+      if (withFrame == FrameObjectIdx) {
+	Nsf_PushFrameObj(interp, object, framePtr);
+	flags = NSF_CSC_IMMEDIATE;
+      } else if (withFrame == FrameMethodIdx) {
+	flags = NSF_CSC_FORCE_FRAME|NSF_CSC_IMMEDIATE;
+      }
+    }
+    /*
+     * Since we know, that we are always called with a full argument
+     * vector, we can include the cmd name in the objv by using
+     * nobjv-1; this way, we avoid a memcpy()
+     */
+    result = MethodDispatch(object, interp,
+			    nobjc+1, nobjv-1, cmd, object,
+			    NULL /*NsfClass *cl*/,
+			    Tcl_GetCommandName(interp, cmd),
+			    NSF_CSC_TYPE_PLAIN, flags);
+    if (withFrame == FrameObjectIdx) {
+      Nsf_PopFrameObj(interp, framePtr);
+    }
+  } else {
+    /*
+     * No colons in command name, use method from the precedence
+     * order, with filters etc. -- strictly speaking unneccessary,
+     * since we could dispatch the method also without
+     * NsfDispatchCmd(), but it can be used to invoke protected
+     * methods. 'withFrame == FrameObjectIdx' is here a no-op.
+     */
+
+    Tcl_Obj *arg;
+    Tcl_Obj *CONST *objv;
+
+    if (withFrame && withFrame != FrameDefaultIdx) {
+      return NsfPrintError(interp,
+			   "cannot use -frame object|method in dispatch for plain method name '%s'",
+			   methodName);
+    }
+
+    if (nobjc >= 1) {
+      arg = nobjv[0];
+      objv = nobjv+1;
+    } else {
+      arg = NULL;
+      objv = NULL;
+    }
+    result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object, command, arg,
+				   nobjc, objv, NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE);
+  }
+
+  return result;
+}
 
 /*
 cmd "object::exists" NsfObjectExistsCmd {
@@ -17403,6 +17283,123 @@ NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *nameObj) {
   } else {
     Tcl_SetObjResult(interp, NameInNamespaceObj(interp, nameString, CallingNameSpace(interp)));
   }
+  return TCL_OK;
+}
+
+/*
+cmd "objectsystem::create" NsfObjectSystemCreateCmd {
+  {-argName "rootClass" -required 1 -type tclobj}
+  {-argName "rootMetaClass" -required 1 -type tclobj}
+  {-argName "systemMethods" -required 0 -type tclobj}
+}
+*/
+static int
+NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tcl_Obj *systemMethodsObj) {
+  NsfClass *theobj = NULL, *thecls = NULL;
+  Tcl_Obj *object, *class;
+  char *objectName = ObjStr(Object);
+  char *className = ObjStr(Class);
+  NsfObjectSystem *osPtr = NEW(NsfObjectSystem);
+
+  memset(osPtr, 0, sizeof(NsfObjectSystem));
+
+  object = isAbsolutePath(objectName) ? Object :
+    NameInNamespaceObj(interp, objectName, CallingNameSpace(interp));
+  class = isAbsolutePath(className) ? Class :
+    NameInNamespaceObj(interp, className, CallingNameSpace(interp));
+
+  GetClassFromObj(interp, object, &theobj, 0);
+  GetClassFromObj(interp, class, &thecls, 0);
+
+  if (theobj || thecls) {
+    ObjectSystemFree(interp, osPtr);
+    NsfLog(interp, NSF_LOG_WARN, "Base class '%s' exists already; ignoring definition",
+	   theobj ? objectName : className);
+    return TCL_OK;
+  }
+
+  if (systemMethodsObj) {
+    int oc, idx, result;
+    Tcl_Obj **ov;
+
+    if ((result = Tcl_ListObjGetElements(interp, systemMethodsObj, &oc, &ov)) == TCL_OK) {
+      int i;
+
+      if (oc % 2) {
+        ObjectSystemFree(interp, osPtr);
+        return NsfPrintError(interp, "System methods must be provided as pairs");
+      }
+      for (i=0; i<oc; i += 2) {
+	Tcl_Obj *arg, **arg_ov;
+	int arg_oc = -1;
+
+	arg = ov[i+1];
+        result = Tcl_GetIndexFromObj(interp, ov[i], Nsf_SytemMethodOpts, "system method", 0, &idx);
+	if (result == TCL_OK) {
+	  result = Tcl_ListObjGetElements(interp, arg, &arg_oc, &arg_ov);
+	}
+        if (result != TCL_OK) {
+          ObjectSystemFree(interp, osPtr);
+          return NsfPrintError(interp, "invalid system method '%s'", ObjStr(ov[i]));
+        } else if (arg_oc < 1 || arg_oc > 2) {
+          ObjectSystemFree(interp, osPtr);
+          return NsfPrintError(interp, "invalid system method argument '%s'", ObjStr(ov[i]), ObjStr(arg));
+	}
+        /*fprintf(stderr, "NsfCreateObjectSystemCmd [%d] = %p %s (max %d, given %d)\n",
+          idx, ov[i+1], ObjStr(ov[i+1]), XO_unknown_idx, oc);*/
+
+	if (arg_oc == 1) {
+	  osPtr->methods[idx] = arg;
+	} else { /* (arg_oc == 2) */
+	  osPtr->methods[idx] = arg_ov[0];
+	  osPtr->handles[idx] = arg_ov[1];
+	  INCR_REF_COUNT(osPtr->handles[idx]);
+	}
+        INCR_REF_COUNT(osPtr->methods[idx]);
+      }
+    } else {
+      ObjectSystemFree(interp, osPtr);
+      return NsfPrintError(interp, "Provided system methods are not a proper list");
+    }
+  }
+  /*
+     Create a basic object system with the basic root class Object and
+     the basic metaclass Class, and store them in the RUNTIME STATE if
+     successful
+  */
+  theobj = PrimitiveCCreate(interp, object, NULL, NULL);
+  thecls = PrimitiveCCreate(interp, class, NULL, NULL);
+  /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
+
+  /* check whether Object and Class creation was successful */
+  if (!theobj || !thecls) {
+
+    if (thecls) PrimitiveCDestroy(thecls);
+    if (theobj) PrimitiveCDestroy(theobj);
+
+    ObjectSystemFree(interp, osPtr);
+    return NsfPrintError(interp, "Creation of object system failed");
+  }
+
+  theobj->osPtr = osPtr;
+  thecls->osPtr = osPtr;
+  osPtr->rootClass = theobj;
+  osPtr->rootMetaClass = thecls;
+
+  theobj->object.flags |= NSF_IS_ROOT_CLASS|NSF_INIT_CALLED;
+  thecls->object.flags |= NSF_IS_ROOT_META_CLASS|NSF_INIT_CALLED;
+
+  ObjectSystemAdd(interp, osPtr);
+
+  AddInstance((NsfObject *)theobj, thecls);
+  AddInstance((NsfObject *)thecls, thecls);
+  AddSuper(thecls, theobj);
+
+  if (NSF_DTRACE_OBJECT_ALLOC_ENABLED()) {
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject *)theobj)), ClassName(((NsfObject *)theobj)->cl));
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject *)thecls)), ClassName(((NsfObject *)thecls)->cl));
+  }
+
   return TCL_OK;
 }
 
