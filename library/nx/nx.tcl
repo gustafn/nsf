@@ -736,23 +736,21 @@ namespace eval ::nx {
     }
   }
 
-  MetaSlot public class method createFromParameterSpec {
-    target 
-    -per-object:switch 
+  MetaSlot public class method parseParameterSpec {
     {-class ""}
-    {-initblock ""} 
     {-defaultopts ""}
-    value
+    spec
     default:optional
   } {
     set opts $defaultopts
-    set colonPos [string first : $value]
+    set colonPos [string first : $spec]
     if {$colonPos == -1} {
-      set name $value
+      set name $spec
+      set parameterOptions ""
     } else {
-      set properties [string range $value [expr {$colonPos+1}] end]
-      set name [string range $value 0 [expr {$colonPos -1}]]
-      foreach property [split $properties ,] {
+      set parameterOptions [string range $spec [expr {$colonPos+1}] end]
+      set name [string range $spec 0 [expr {$colonPos -1}]]
+      foreach property [split $parameterOptions ,] {
         if {$property in [list "required" "convert" "substdefault" "noarg"]} {
 	  if {$property in "convert" } {
 	    set class [:requireClass ::nx::Attribute $class]
@@ -787,7 +785,22 @@ namespace eval ::nx {
       if {$type eq "switch"} {error "switch is not allowed as type for object parameter $name"}
       lappend opts -type $type
     }
+    return [list $name $parameterOptions $class $opts]
+  }
 
+  MetaSlot public class method createFromParameterSpec {
+    target 
+    -per-object:switch 
+    {-class ""}
+    {-initblock ""} 
+    {-defaultopts ""}
+    spec
+    default:optional
+  } {
+
+    lassign [:parseParameterSpec -class $class -defaultopts $defaultopts $spec] \
+	name parameterOptions class opts
+    
     if {[info exists default]} {
       lappend opts -default $default
     }
@@ -1356,6 +1369,10 @@ namespace eval ::nx {
   ::nx::Attribute protected method checkInstVar {} {
     if {${:per-object} && [info exists :default] } {
       if {![::nsf::var::exists ${:domain} ${:name}]} {
+	set options [:getParameterOptions -withMultiplicity true]
+	if {[llength $options] > 0} {
+	  ::nsf::is -complain [join $options ,] ${:default}
+	}
 	::nsf::var::set ${:domain} ${:name} ${:default}
       }
     }
@@ -1572,44 +1589,69 @@ namespace eval ::nx {
   # Define method "attribute" for convenience
   ######################################################################
 
-  Class method attribute {spec {-class ""} {initblock ""}} {
-    set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
-	       -class $class -initblock $initblock {*}$spec]
-    if {$r ne ""} {
-      set o [::nsf::self]
-      ::nsf::method::property $o $r call-protected \
-	  [::nsf::object::dispatch $o __default_attribute_call_protection]
-      return $r
-    }
-  }
+  # Class method attribute {spec {-class ""} {initblock ""}} {
+  #   set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
+  # 	       -class $class -initblock $initblock {*}$spec]
+  #   if {$r ne ""} {
+  #     set o [::nsf::self]
+  #     ::nsf::method::property $o $r call-protected \
+  # 	  [::nsf::object::dispatch $o __default_attribute_call_protection]
+  #     return $r
+  #   }
+  # }
 
-  Object method attribute {spec {-class ""} {initblock ""}} {
-    set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
-	       -class $class -per-object -initblock $initblock {*}$spec]
-    if {$r ne ""} {
-      set o [::nsf::self]
-      ::nsf::method::property $o -per-object $r call-protected \
-	  [::nsf::object::dispatch $o __default_attribute_call_protection]
-    }
-    return $r    
-  }
+  # Object method attribute {spec {-class ""} {initblock ""}} {
+  #   set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
+  # 	       -class $class -per-object -initblock $initblock {*}$spec]
+  #   if {$r ne ""} {
+  #     set o [::nsf::self]
+  #     ::nsf::method::property $o -per-object $r call-protected \
+  # 	  [::nsf::object::dispatch $o __default_attribute_call_protection]
+  #   }
+  #   return $r    
+  # }
 
   nx::Object method variable {
-			     {-class ""} 
-			     {-initblock ""} 
-			     {-objectparameter false}
-			     {-accessor false}
-			     spec 
-			     default:optional
-			   } {
-    set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
-	       -per-object \
-	       -class $class \
-	       -initblock $initblock \
-	       -defaultopts [list -accessor $accessor -objectparameter $objectparameter] \
-	       $spec \
-	       {*}[expr {[info exists default] ? [list $default] : ""}]]
-    return $r
+     {-class ""} 
+     {-initblock ""} 
+     {-array:switch}
+     {-accessor:boolean false}
+     spec 
+     value:optional
+   } {
+    #
+    # when do we need a slot
+    # currently: 
+    #  - when accessors are needed 
+    #    (serializer uses slot object to create accessors)
+    # in general:
+    #  - when initblock is non empty
+    #
+
+    #puts stderr "Object variable $spec accessor $accessor"
+
+    if {$initblock eq "" && !$accessor} {
+      lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
+	  name parameterOptions class opts
+
+      if {[info exists value]} {
+	if {$parameterOptions ne ""} {
+	  #puts stderr "::nsf::is $parameterOptions $value"
+	  ::nsf::is -complain $parameterOptions $value
+	} else {
+	  set name $spec
+	}
+	set :$name $value
+      }
+      return
+    }
+    return [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
+		-per-object \
+		-class $class \
+		-initblock $initblock \
+		-defaultopts [list -accessor $accessor -objectparameter false] \
+		$spec \
+		{*}[expr {[info exists value] ? [list $value] : ""}]]
   }
 
   Object method attribute {spec {-class ""} {initblock ""}} {
@@ -1617,7 +1659,6 @@ namespace eval ::nx {
 	       -class $class \
 	       -initblock $initblock \
 	       -accessor true \
-	       -objectparameter true \
 	       {*}$spec]
     return $r
   }
@@ -1630,6 +1671,7 @@ namespace eval ::nx {
 			     spec 
 			     default:optional
 			   } {
+    #puts stderr "Class variable $spec"
     set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 	       -class $class \
 	       -initblock $initblock \

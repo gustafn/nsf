@@ -1775,42 +1775,69 @@ nx::Test case reconfigure-perobj-default {
   [o info slots a] reconfigure
   ? {o eval {info exists :a}} 1
   ? {o a} anothervalue
+}
 
-  #
-  # Object parameters (specified e.g. via attributes) are defined to
-  # configure fresh objects (therefore, the definition is on the class
-  # level). Therefore, object-level object parameter do not fulfill
-  # this purpose, since they can only be defined, *after* the object
-  # is created. 
-  #
-  # In general, object parameters have creational aspects (providing
-  # configurations for the object creation, such as e.g. defaults, and
-  # configurations) and object-lifetime aspects (valid through the
-  # lifetime of objects, such as e.g. setters/checkers). 
-  #
-  # Object-level attributes cannot be used for the creational aspects
+#
+# Object parameters (specified e.g. via attributes) are defined to
+# configure fresh objects (therefore, the definition is on the class
+# level). Therefore, object-level object parameter do not fulfill
+# this purpose, since they can only be defined, *after* the object
+# is created. 
+#
+# In general, object parameters have creational aspects (providing
+# configurations for the object creation, such as e.g. defaults, and
+# configurations) and object-lifetime aspects (valid through the
+# lifetime of objects, such as e.g. setters/checkers). 
+#
+# Object-level attributes cannot be used for the creational aspects
   # of object parameters.
-  #
-  # Strengths of object-level parameters:
-  # - same interface as class-level attributes
-  # - can use same meta-data mechanisms as for class-level attributes
-  #   (e.g database types, attribute name in the database, persistence
-  #   information, ...)
+#
+# Strengths of object-level parameters:
+# - same interface as class-level attributes
+# - can use same meta-data mechanisms as for class-level attributes
+#   (e.g database types, attribute name in the database, persistence
+#   information, ...)
   # - can use same setters/checkers as for class-level attributes
-  # - can use as well incremental as for class-level attributes
-  #
-  # Shortcomings of object-level parameters:
-  # - no nice introspection: 
-  #   "info parameter ...." is defined on cls, not on obj
-  # - default handling is not the same as for classes level attributes
-  #   (we have already some special mechanisms to set instance
-  #   attributes, if they do not exist)
-  # - object-level parameters cannot be used in a "configure" 
-  #   of the object, since configure allows the same signature
-  #   as on object creation, all object parameters are cached
-  #   on the class level
-  # - Since configure does not include object-level parameters,
-  #   positional object level parameters do not make sense, since they
-  #   cannot be called.
-  
+# - can use as well incremental as for class-level attributes
+#
+# Shortcomings of object-level parameters:
+# - no nice introspection: 
+#   "info parameter ...." is defined on cls, not on obj
+# - default handling is not the same as for classes level attributes
+#   (we have already some special mechanisms to set instance
+#   attributes, if they do not exist)
+# - object-level parameters cannot be used in a "configure" 
+#   of the object, since configure allows the same signature
+#   as on object creation, all object parameters are cached
+#   on the class level
+# - Since configure does not include object-level parameters,
+#   positional object level parameters do not make sense, since they
+#   cannot be called.
+
+nx::Test case variable {
+
+  nx::Object create ::enterprise {
+    # set 2 variables, one via variable, one via attribute
+    ? [list [self] variable captain1 "James Kirk"] ""
+    ? [list [self] attribute [list captain2 "Jean Luc"]] "::enterprise::captain2"
+
+    # in both cases, we expect instance variables
+    ? [list [self] eval {set :captain1}] "James Kirk"
+    ? [list [self] eval {set :captain2}] "Jean Luc"
+
+    # just for the attribute, we have accessors
+    ? [list [self] info lookup method  captain1] ""
+    ? [list [self] info lookup method  captain2] "::enterprise::captain2"
+
+    # set variable with a value checker
+    ? [list [self] variable x1:int 1] ""
+    ? [list [self] attribute [list x2:int 2]] "::enterprise::x2"
+
+    # set variable with a value checker and an invalid value
+    ? [list [self] variable y1:int a] {expected integer but got "a"}
+    ? [list [self] attribute [list y2:int b]] {expected integer but got "b"}
+
+    # more tests, e.g. multiplicity and user-defined type
+  }
+
 }

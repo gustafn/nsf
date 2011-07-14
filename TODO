@@ -3029,7 +3029,7 @@ nsf:
 - reduce verbosity
 - reduce scope of variables
 
-- reamed ObjectParameterSlot attribute from nosetter => accessor
+- renamed ObjectParameterSlot attribute from nosetter => accessor
   (positive formulation)
 - nsf.c: make sure to always initialize variables
 
@@ -3047,8 +3047,24 @@ nsf:
 - generalized "nsf::object::initialized" to
   nsf::object::property objectName initialized|class|rootmetaclass|rootclass|slotcontainer
 
+- nx: factor out method createFromParameterSpec
+- method variable:
+  * check default value 
+  * added shortcut, when no slot object is needed
+  * extended regression test
 
 TODO:
+ - provide warning, when method variable is a noop 
+   (e.g. no value provided and no accessor is wanted)
+ - call user defined setter in object parameters?
+ - set value always in per-object variable method? probably yes.
+ - set value always in per-object attribute method? probably yes.
+ - should we change interface for default value in attribute? 
+   probably not, same interface is used in methodparameters as well
+ - we could rename "attribute" to "property" to make distinction between
+   "variable" and "attribute/property" as well ("a property is a 
+   variable with accessors")
+
  - maybe use (position == -1) instead of (objectparameter == false) to save common vars
  - optimization of plain variable in per-object case
  - cleanup variable/attribute
@@ -3056,7 +3072,10 @@ TODO:
  - maybe change default
    createBootstrapAttributeSlots ::nx::Attribute {accessor true} -> false
 
-
+#::nsf::var::exists ?-array? object varName
+#::nsf::var::import object ?arg ...?
+#::nsf::var::set ?-array? object varName ?value?
+#::nsf::var::unset ?-array? object varName 
 
 
 - Revise callstack introspection/intercession, i.e., [current
