@@ -3056,7 +3056,7 @@ nsf:
 TODO:
  - provide warning, when method variable is a noop 
    (e.g. no value provided and no accessor is wanted)
- - call user defined setter in object parameters?
+ - add test for class-level variable
  - set value always in per-object variable method? probably yes.
  - set value always in per-object attribute method? probably yes.
  - should we change interface for default value in attribute? 
@@ -3064,6 +3064,7 @@ TODO:
  - we could rename "attribute" to "property" to make distinction between
    "variable" and "attribute/property" as well ("a property is a 
    variable with accessors")
+ - call user defined setter in object parameters?
 
  - maybe use (position == -1) instead of (objectparameter == false) to save common vars
  - optimization of plain variable in per-object case

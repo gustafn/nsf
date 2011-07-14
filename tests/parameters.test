@@ -1817,6 +1817,10 @@ nx::Test case reconfigure-perobj-default {
 nx::Test case variable {
 
   nx::Object create ::enterprise {
+
+    # just to get a reference value for the timing
+    ? [list [self] eval {set :dummy 1}] "1"
+
     # set 2 variables, one via variable, one via attribute
     ? [list [self] variable captain1 "James Kirk"] ""
     ? [list [self] attribute [list captain2 "Jean Luc"]] "::enterprise::captain2"
