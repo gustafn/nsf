@@ -22,7 +22,7 @@ of library/mongodb/Makefile.in on MacOS X
 TODO: remove the hardcoded define flag in Makefile.in
 
 In order to run the sample script, 
-  * first start the mongdb (mongod)
+  * first start the mongdb (eg. mongod)
 
   * go to your nsf source directory
 

@@ -553,7 +553,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
     case MONGO_CONN_NOT_MASTER: errorMsg = "not master"; break;
     case MONGO_CONN_BAD_SET_NAME: errorMsg = "replica set name doesn't match the existing replica set"; break;
     case MONGO_CONN_CANNOT_FIND_PRIMARY: errorMsg = "cannot find primary"; break;
-    default: errorMsg = "unknown Error"; break;
+    default: errorMsg = "unknown error (maybe server not running)"; break;
     }
 
     return NsfPrintError(interp, errorMsg);
