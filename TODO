@@ -3059,10 +3059,12 @@ nsf:
 - extended regression test
 - added support for "class variable"
 - added tests for "variable" + multiplicity and "class variable"
+- provide error message, when method variable is a noop 
+  (e.g. no value provided and no accessor is wanted)
+
 
 TODO:
- - provide warning, when method variable is a noop 
-   (e.g. no value provided and no accessor is wanted)
+ - variable and incremental, test for user-defined types
  - should we change interface for default value in attribute? 
    probably not, same interface is used in methodparameters as well
  - Should we leave "variable" and "attribute" as it ist?

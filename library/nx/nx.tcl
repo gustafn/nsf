@@ -1646,6 +1646,8 @@ namespace eval ::nx {
 	  set name $spec
 	}
 	set :$name $value
+      } else {
+	error "Variable definition for '$name' (without default and accessor) is useless"
       }
       return
     }

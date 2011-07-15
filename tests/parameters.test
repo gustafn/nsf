@@ -1861,8 +1861,10 @@ nx::Test case variable {
     ? [list [self] attribute -nocomplain [list xm2:int,1..n {1 2a 3}]] \
 	{invalid value in "1 2a 3": expected integer but got "2a"}
 
-    # more tests, e.g. multiplicity and user-defined type
-    # incremental, 
+    # useless definition
+    ? [list [self] variable dummy:int] {Variable definition for 'dummy' (without default and accessor) is useless}
+
+    # more tests, e.g. user-defined type and incremental
   }
 
   nx::Class create C {
