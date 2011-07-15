@@ -1862,9 +1862,34 @@ nx::Test case variable {
 	{invalid value in "1 2a 3": expected integer but got "2a"}
 
     # useless definition
-    ? [list [self] variable dummy:int] {Variable definition for 'dummy' (without default and accessor) is useless}
+    ? [list [self] variable dummy:int] \
+	{Variable definition for 'dummy' (without default and accessor) is useless}
 
-    # more tests, e.g. user-defined type and incremental
+    #
+    # define an application specific converter
+    #
+    ::nx::ObjectParameterSlot method type=range {name value arg} {
+      lassign [split $arg -] min max
+      if {$value < $min || $value > $max} {
+	error "Value '$value' of parameter $name not between $min and $max"
+      }
+      return $value
+    }
+    
+    #
+    # Test usage of application specific converter in "variable" and
+    # "attribute"; invalid value
+    ? [list [self] variable -nocomplain r1:range,arg=1-10 11] \
+	{Value '11' of parameter value not between 1 and 10}
+    ? [list [self] attribute -nocomplain [list r2:range,arg=1-10 11]] \
+	{Value '11' of parameter value not between 1 and 10}
+
+    # valid value
+    ? [list [self] variable  -nocomplain r1:range,arg=1-10 5] ""
+    ? [list [self] attribute -nocomplain [list r2:range,arg=1-10 5]] \
+	{::enterprise::r2}
+  
+    # more tests, e.g. incremental
   }
 
   nx::Class create C {

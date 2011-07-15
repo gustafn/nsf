@@ -3061,10 +3061,12 @@ nsf:
 - added tests for "variable" + multiplicity and "class variable"
 - provide error message, when method variable is a noop 
   (e.g. no value provided and no accessor is wanted)
+- added tests for object specific "variable" and "attribute
+  + application defined value checker
 
 
 TODO:
- - variable and incremental, test for user-defined types
+ - variable and incremental
  - should we change interface for default value in attribute? 
    probably not, same interface is used in methodparameters as well
  - Should we leave "variable" and "attribute" as it ist?
@@ -3082,7 +3084,6 @@ TODO:
  - call user defined setter in object parameters?
 
  - maybe use (position == -1) instead of (objectparameter == false) to save common vars
- - optimization of plain variable in per-object case
  - cleanup variable/attribute
  - testing variable/attribute
  - maybe change default
