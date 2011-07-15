@@ -3057,17 +3057,26 @@ nsf:
 - set only fresh variables via per-object method "variable" and "attribute"
 - added flag -concomplain to per-object method "variable" and "attribute"
 - extended regression test
-
+- added support for "class variable"
+- added tests for "variable" + multiplicity and "class variable"
 
 TODO:
  - provide warning, when method variable is a noop 
    (e.g. no value provided and no accessor is wanted)
- - add test for class-level variable
  - should we change interface for default value in attribute? 
    probably not, same interface is used in methodparameters as well
- - we could rename "attribute" to "property" to make distinction between
-   "variable" and "attribute/property" as well ("a property is a 
-   variable with accessors")
+ - Should we leave "variable" and "attribute" as it ist?
+   options:
+     (a) leave it as it is
+     (b) use "property" instead of "attribute"
+         ("a property is a variable with accessors"),
+         some tribute to beans terminology
+     (c) use "parameter" instead of "attribute",
+         since providing accessors means make the
+         variable an object parameter
+     (d) use "attribute" instead of "variable"
+         Variable is the tcl term, attribute is the UML term
+     (e) others?
  - call user defined setter in object parameters?
 
  - maybe use (position == -1) instead of (objectparameter == false) to save common vars

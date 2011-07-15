@@ -219,7 +219,7 @@ namespace eval ::nx {
 
     # method-modifier for object specific methos
     :method class {what args} {
-      if {$what in [list "alias" "attribute" "forward" "method"]} {
+      if {$what in [list "alias" "attribute" "forward" "method" "variable"]} {
         return [::nsf::object::dispatch [::nsf::self] ::nsf::classes::nx::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
@@ -1673,13 +1673,13 @@ namespace eval ::nx {
   }
 
   nx::Class method variable {
-			     {-class ""} 
-			     {-initblock ""} 
-			     {-objectparameter false}
-			     {-accessor false}
-			     spec 
-			     default:optional
-			   } {
+     {-class ""} 
+     {-initblock ""} 
+     {-objectparameter false}
+     {-accessor false}
+     spec 
+     default:optional
+   } {
     #puts stderr "Class variable $spec"
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \

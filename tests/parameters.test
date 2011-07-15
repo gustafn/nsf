@@ -1847,8 +1847,36 @@ nx::Test case variable {
     ? [list [self] variable x1:int 1] {Object ::enterprise has already an instance variable named 'x1'}
     ? [list [self] attribute [list x2:int 2]] {Object ::enterprise has already an instance variable named 'x2'}
 
+    # set variable with a value checker, multiple
+    ? [list [self] variable  -nocomplain xm1:int,1..n {1 2 3}] ""
+    ? [list [self] attribute -nocomplain [list xm2:int,1..n {1 2 3}]] "::enterprise::xm2"
+
+    # in both cases, we expect instance variables
+    ? [list [self] eval {set :xm1}] "1 2 3"
+    ? [list [self] eval {set :xm2}] "1 2 3"
+
+    # set variable with a value checker, multiple with invalid value
+    ? [list [self] variable  -nocomplain xm1:int,1..n {1 2a 3}] \
+	{invalid value in "1 2a 3": expected integer but got "2a"}
+    ? [list [self] attribute -nocomplain [list xm2:int,1..n {1 2a 3}]] \
+	{invalid value in "1 2a 3": expected integer but got "2a"}
+
     # more tests, e.g. multiplicity and user-defined type
     # incremental, 
+  }
+
+  nx::Class create C {
+    # set 2 variables, one via variable, one via attribute
+    ? [list [self] class variable -nocomplain v "v0"] ""
+    ? [list [self] class attribute -nocomplain [list a "a0"]] "::C::a"
+
+    # in both cases, we expect instance variables
+    ? [list [self] eval {set :v}] "v0"
+    ? [list [self] eval {set :a}] "a0"
+
+    # check variable with value constraint
+    ? [list [self] class variable -nocomplain x:int "0"] ""
+    ? [list [self] class variable -nocomplain y:int "a0"] {expected integer but got "a0"}
   }
 
 }
