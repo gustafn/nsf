@@ -8571,9 +8571,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	   * method path, and the unknown final method.
 	   */
 	  Tcl_Obj *callInfoObj = Tcl_NewListObj(1, &object->cmdName);
-	  Tcl_Obj *methodPathObj = CallStackMethodPath(interp, 
-						       (Tcl_CallFrame *)framePtr, 
-						       Tcl_NewListObj(0, NULL));
+	  Tcl_Obj *methodPathObj = CallStackMethodPath(interp, (Tcl_CallFrame *)framePtr);
 
 	  /*fprintf(stderr, "next calls DispatchUnknownMethod\n");*/
 	  Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
@@ -18178,7 +18176,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 
   case CurrentoptionMethodpathIdx:
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
-    Tcl_SetObjResult(interp, CallStackMethodPath(interp, framePtr, Tcl_NewListObj(0, NULL)));
+    Tcl_SetObjResult(interp, CallStackMethodPath(interp, framePtr));
     break;
 
   case CurrentoptionClassIdx: /* class subcommand */
@@ -18231,14 +18229,12 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
 
   case CurrentoptionCallingmethodIdx:
-  case CurrentoptionCallingprocIdx:
-    cscPtr = NsfCallStackFindLastInvocation(interp, 1, &framePtr);
-    Tcl_Obj *resultObj = NsfGlobalObjs[NSF_EMPTY];
-    if (cscPtr && cscPtr->cmdPtr) {
-      Tcl_Obj *methodNameObj = NULL;
+  case CurrentoptionCallingprocIdx: {
+    Tcl_Obj *resultObj;
 
-      methodNameObj = resultObj = 
-	Tcl_NewStringObj((char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1);
+    cscPtr = NsfCallStackFindLastInvocation(interp, 1, &framePtr);
+    if (cscPtr && cscPtr->cmdPtr) {
+      Tcl_Obj *methodNameObj = Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1);
       /* 
        * By checking the characteristic frame and call type pattern for "leaf"
        * ensemble dispatches, we make sure that the method path is only
@@ -18247,18 +18243,22 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
        */
       if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) && 
 	  (cscPtr->flags & NSF_CSC_CALL_IS_COMPILE) == 0) {
-	resultObj = CallStackMethodPath(interp, framePtr, Tcl_NewListObj(0, NULL));
+	resultObj = CallStackMethodPath(interp, framePtr);
 	result = Tcl_ListObjAppendElement(interp, resultObj, methodNameObj);
 	if (result != TCL_OK) {
 	  DECR_REF_COUNT(resultObj);
 	  DECR_REF_COUNT(methodNameObj);
 	  break;
 	}
+      } else {
+	resultObj = methodNameObj;
       }
+    } else {
+      resultObj = NsfGlobalObjs[NSF_EMPTY];
     }
     Tcl_SetObjResult(interp, resultObj);
     break;
-
+  }
   case CurrentoptionCallingclassIdx:
     cscPtr = NsfCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetObjResult(interp, cscPtr && cscPtr->cl ? cscPtr->cl->object.cmdName :

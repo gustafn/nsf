@@ -592,13 +592,14 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
  *----------------------------------------------------------------------
  */
 static Tcl_Obj*
-CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr, Tcl_Obj *methodPathObj) {
+CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
   int elements;
   Tcl_Obj *resultObj;
+  Tcl_Obj *methodPathObj = Tcl_NewListObj(0, NULL);
 
   assert(framePtr);
   /* 
-   *  Append all ensemble names to the specified list obj 
+   * Append all ensemble names to the specified list obj 
    */
 
   for (/* Skipping the starting frame, assumingly a "leaf" frame in an ensemle dispatch */ 
@@ -667,7 +668,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr, Tcl_Obj *method
 
 /*
  *----------------------------------------------------------------------
- * CallStackMethodPath --
+ * FilterActiveOnObj --
  *
  *    Check, if there is an active filter on "obj" using the specified
  *    cmd.
