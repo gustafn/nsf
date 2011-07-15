@@ -375,10 +375,58 @@ nx::Test case submethods-current-introspection {
   
   o mixin ::M1
   ? {o FOO foo} -::o-::M1-::o--
+
+  o mixin {}
+  C mixin {}
+
+  #
+  # limit [current methodpath] to collect only ensemble methods?
+  #
+
+  o eval {
+    :public method faz {} {return [concat [current methodpath] [current method]]}
+    ? [list set _ [:faz]] "faz"
+  }
+
+  #
+  # [current callingmethod] & [current callingclass]
+  #
+
+  o eval {
+    set body {? [list set _ [:bar]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    :public method "FOO foo" {} $body
+    :public method "BAR BUU boo" {} $body
+    :public method baz {} $body
+
+    :method bar {} {
+      return "[current callingclass]-[current callingobject]-[current callingmethod]"
+    }
+
+    :FOO foo
+    :BAR BUU boo
+    :baz
+  }
+
+  C eval {
+    set body {? [list set _ [:bar]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    :public method "FOO foo" {} $body
+    :public method "BAR BUU boo" {} $body
+    :public method baz {} $body
+
+    :method bar {} {
+      return "[current callingclass]-[current callingobject]-[current callingmethod]"
+    }
+
+    set c [:new]
+    $c FOO foo
+    $c BAR BUU boo
+    $c baz
+  }
+
+  #
+  # [current calledmethod]
+  #
   
-  #
-  # TODO: [current callingmethod], [current calledmethod]
-  #
 }
 
 

@@ -8471,9 +8471,20 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
       }
 
       /*
+       * Make sure, that the current call is marked as an ensemble call, both
+       * for dispatching to the defaultmethod and for dispatching the method
+       * interface of the given object. Otherwise, current introspection
+       * specific to submethods fails (e.g., a [current methodpath] in the
+       * defaultmethod).
+       */
+      cscPtr->flags |= NSF_CSC_CALL_IS_ENSEMBLE;
+
+      /*
        * The client data cp is still the obj of the called method
        */
+      
       /*fprintf(stderr, "ensemble dispatch %s objc %d\n", methodName, objc);*/
+      
       if (objc < 2) {
 	CallFrame frame, *framePtr = &frame;
 	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
@@ -8486,7 +8497,6 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
 	cscPtr->objc = objc;
 	cscPtr->objv = objv;
-	cscPtr->flags |= NSF_CSC_CALL_IS_ENSEMBLE;
 	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
 
 	if (self->nsPtr) {
@@ -18168,8 +18178,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 
   case CurrentoptionMethodpathIdx:
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
-    Tcl_SetObjResult(interp,
-		     CallStackMethodPath(interp, framePtr, Tcl_NewListObj(0, NULL)));
+    Tcl_SetObjResult(interp, CallStackMethodPath(interp, framePtr, Tcl_NewListObj(0, NULL)));
     break;
 
   case CurrentoptionClassIdx: /* class subcommand */
@@ -18223,9 +18232,31 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 
   case CurrentoptionCallingmethodIdx:
   case CurrentoptionCallingprocIdx:
-    cscPtr = NsfCallStackFindLastInvocation(interp, 1, NULL);
-    Tcl_SetResult(interp, cscPtr ? (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr) : "",
-		  TCL_VOLATILE);
+    cscPtr = NsfCallStackFindLastInvocation(interp, 1, &framePtr);
+    Tcl_Obj *resultObj = NsfGlobalObjs[NSF_EMPTY];
+    if (cscPtr && cscPtr->cmdPtr) {
+      Tcl_Obj *methodNameObj = NULL;
+
+      methodNameObj = resultObj = 
+	Tcl_NewStringObj((char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1);
+      /* 
+       * By checking the characteristic frame and call type pattern for "leaf"
+       * ensemble dispatches, we make sure that the method path is only
+       * reported for these cases. Otherwise, we constrain the result to the
+       * method name.
+       */
+      if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) && 
+	  (cscPtr->flags & NSF_CSC_CALL_IS_COMPILE) == 0) {
+	resultObj = CallStackMethodPath(interp, framePtr, Tcl_NewListObj(0, NULL));
+	result = Tcl_ListObjAppendElement(interp, resultObj, methodNameObj);
+	if (result != TCL_OK) {
+	  DECR_REF_COUNT(resultObj);
+	  DECR_REF_COUNT(methodNameObj);
+	  break;
+	}
+      }
+    }
+    Tcl_SetObjResult(interp, resultObj);
     break;
 
   case CurrentoptionCallingclassIdx:

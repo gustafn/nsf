@@ -501,8 +501,8 @@ namespace eval ::nx {
     }
     
     :protected method defaultmethod {} {
-      set obj [uplevel {self}]
-      set path [current methodpath]
+      set obj [uplevel {::nsf::current}]
+      set path [::nsf::current methodpath]
       set l [string length $path]
       set submethods [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]
       foreach sm $submethods {set results([lindex [string range $sm $l+1 end] 0]) 1}
