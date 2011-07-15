@@ -821,7 +821,6 @@ namespace eval ::nx {
 
     #puts stderr "*** [list $class create [::nx::slotObj -container $container $target $name] {*}$opts $initblock]"
     $class create [::nx::slotObj -container $container $target $name] {*}$opts $initblock
-    return [::nsf::object::dispatch $target ::nsf::methods::${scope}::info::method handle $name]
   }
 
 }
@@ -1366,16 +1365,15 @@ namespace eval ::nx {
     valuechangedcmd
   }
 
-  ::nx::Attribute protected method checkInstVar {} {
-    if {${:per-object} && [info exists :default] } {
-      if {![::nsf::var::exists ${:domain} ${:name}]} {
-	set options [:getParameterOptions -withMultiplicity true]
-	if {[llength $options] > 0} {
-	  ::nsf::is -complain [join $options ,] ${:default}
-	}
-	::nsf::var::set ${:domain} ${:name} ${:default}
-      }
+  ::nx::Attribute public method setCheckedInstVar {-nocomplain:switch value} {
+    if {[::nsf::var::exists ${:domain} ${:name}] && !$nocomplain} {
+      error "Object ${:domain} has already an instance variable named '${:name}'"
     }
+    set options [:getParameterOptions -withMultiplicity true]
+    if {[llength $options] > 0} {
+      ::nsf::is -complain [join $options ,] $value
+    }
+    ::nsf::var::set ${:domain} ${:name} ${:default}
   }
 
   ::nx::Attribute protected method getParameterOptions {
@@ -1456,8 +1454,10 @@ namespace eval ::nx {
   ::nx::Attribute public method reconfigure {} {
     #puts stderr "*** Should we reconfigure [self]???"
     unset -nocomplain :parameterSpec
-    :checkInstVar
     :makeAccessor
+    if {${:per-object} && [info exists :default]} {
+      :setCheckedInstVar -nocomplain=[info exists :nocomplain] ${:default}
+    }
     if {[::nsf::is class ${:domain}]} {
       ::nsf::invalidateobjectparameter ${:domain}
     }
@@ -1465,7 +1465,6 @@ namespace eval ::nx {
 
   ::nx::Attribute protected method init {} {
     next
-    :checkInstVar
     :makeAccessor
     :handleTraces
   }
@@ -1616,6 +1615,7 @@ namespace eval ::nx {
      {-initblock ""} 
      {-array:switch}
      {-accessor:boolean false}
+     {-nocomplain:switch}
      spec 
      value:optional
    } {
@@ -1628,13 +1628,17 @@ namespace eval ::nx {
     #  - when initblock is non empty
     #
 
-    #puts stderr "Object variable $spec accessor $accessor"
+    #puts stderr "Object variable $spec accessor $accessor nocomplain $nocomplain"
 
     if {$initblock eq "" && !$accessor} {
+      # get name an list of parameter options
       lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
 	  name parameterOptions class opts
 
       if {[info exists value]} {
+	if {[info exists :$name] && !$nocomplain} {
+	  error "Object [self] has already an instance variable named '$name'"
+	}
 	if {$parameterOptions ne ""} {
 	  #puts stderr "::nsf::is $parameterOptions $value"
 	  ::nsf::is -complain $parameterOptions $value
@@ -1645,18 +1649,23 @@ namespace eval ::nx {
       }
       return
     }
-    return [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
-		-per-object \
-		-class $class \
-		-initblock $initblock \
-		-defaultopts [list -accessor $accessor -objectparameter false] \
-		$spec \
-		{*}[expr {[info exists value] ? [list $value] : ""}]]
+    set slot [::nx::MetaSlot createFromParameterSpec [self] \
+		  -per-object \
+		  -class $class \
+		  -initblock $initblock \
+		  -defaultopts [list -accessor $accessor -objectparameter false] \
+		  $spec \
+		  {*}[expr {[info exists value] ? [list $value] : ""}]]
+
+    if {$nocomplain} {$slot eval {set :nocomplain 1}}
+    if {[info exists value]} {$slot setCheckedInstVar -nocomplain=$nocomplain $value}
+    return [::nsf::object::dispatch [self] ::nsf::methods::object::info::method handle [$slot name]]
   }
 
-  Object method attribute {spec {-class ""} {initblock ""}} {
+  Object method attribute {-nocomplain:switch spec {-class ""} {initblock ""}} {
     set r [[self] ::nsf::classes::nx::Object::variable \
 	       -class $class \
+	       -nocomplain=$nocomplain \
 	       -initblock $initblock \
 	       -accessor true \
 	       {*}$spec]
@@ -1672,13 +1681,13 @@ namespace eval ::nx {
 			     default:optional
 			   } {
     #puts stderr "Class variable $spec"
-    set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
-	       -class $class \
-	       -initblock $initblock \
-	       -defaultopts [list -accessor $accessor -objectparameter $objectparameter] \
-	       $spec \
-	       {*}[expr {[info exists default] ? [list $default] : ""}]]
-    return $r
+    set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
+		  -class $class \
+		  -initblock $initblock \
+		  -defaultopts [list -accessor $accessor -objectparameter $objectparameter] \
+		  $spec \
+		  {*}[expr {[info exists default] ? [list $default] : ""}]]
+    return [::nsf::object::dispatch [self] ::nsf::methods::class::info::method handle [$slot name]]
   }
   
   Class method attribute {spec {-class ""} {initblock ""}} {
@@ -1700,7 +1709,6 @@ namespace eval ::nx {
   Class public method attributes arglist {
     set slotContainer [::nx::slotObj [::nsf::self]]
     foreach arg $arglist {
-      #::nx::MetaSlot createFromParameterSpec [::nsf::self] {*}$arg
       [self] ::nsf::classes::nx::Class::attribute $arg
     }
     ::nsf::var::set $slotContainer __parameter $arglist

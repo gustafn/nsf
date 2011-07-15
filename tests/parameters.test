@@ -1772,7 +1772,9 @@ nx::Test case reconfigure-perobj-default {
   #
   # re-assignment must be requested by a reconfigure call
   #
+  puts stderr ====1
   [o info slots a] reconfigure
+  puts stderr ====2
   ? {o eval {info exists :a}} 1
   ? {o a} anothervalue
 }
@@ -1822,8 +1824,8 @@ nx::Test case variable {
     ? [list [self] eval {set :dummy 1}] "1"
 
     # set 2 variables, one via variable, one via attribute
-    ? [list [self] variable captain1 "James Kirk"] ""
-    ? [list [self] attribute [list captain2 "Jean Luc"]] "::enterprise::captain2"
+    ? [list [self] variable -nocomplain captain1 "James Kirk"] ""
+    ? [list [self] attribute -nocomplain [list captain2 "Jean Luc"]] "::enterprise::captain2"
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :captain1}] "James Kirk"
@@ -1834,14 +1836,19 @@ nx::Test case variable {
     ? [list [self] info lookup method  captain2] "::enterprise::captain2"
 
     # set variable with a value checker
-    ? [list [self] variable x1:int 1] ""
-    ? [list [self] attribute [list x2:int 2]] "::enterprise::x2"
+    ? [list [self] variable  -nocomplain x1:int 1] ""
+    ? [list [self] attribute -nocomplain [list x2:int 2]] "::enterprise::x2"
 
     # set variable with a value checker and an invalid value
     ? [list [self] variable y1:int a] {expected integer but got "a"}
     ? [list [self] attribute [list y2:int b]] {expected integer but got "b"}
 
+    # set variable again, without -nocomplain
+    ? [list [self] variable x1:int 1] {Object ::enterprise has already an instance variable named 'x1'}
+    ? [list [self] attribute [list x2:int 2]] {Object ::enterprise has already an instance variable named 'x2'}
+
     # more tests, e.g. multiplicity and user-defined type
+    # incremental, 
   }
 
 }

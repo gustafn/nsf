@@ -3053,12 +3053,16 @@ nsf:
   * added shortcut, when no slot object is needed
   * extended regression test
 
+- nx::Attribute: changed method 'checkInstVar' to 'setCheckedInstVar'
+- set only fresh variables via per-object method "variable" and "attribute"
+- added flag -concomplain to per-object method "variable" and "attribute"
+- extended regression test
+
+
 TODO:
  - provide warning, when method variable is a noop 
    (e.g. no value provided and no accessor is wanted)
  - add test for class-level variable
- - set value always in per-object variable method? probably yes.
- - set value always in per-object attribute method? probably yes.
  - should we change interface for default value in attribute? 
    probably not, same interface is used in methodparameters as well
  - we could rename "attribute" to "property" to make distinction between
