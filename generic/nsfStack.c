@@ -618,6 +618,14 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr, Tcl_Obj *method
 	    (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0,
 	    (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE) != 0);*/
 
+    /* 
+     * The "ensemble" call type, we find applied to all intermediate and leaf
+     * ensemble frames. By filtering according to the ensemble call type, we
+     * effectively omit leaf ensemble and non-ensemble frames from being
+     * reported.
+     */
+    if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
+
     /* Do not record any INACTIVE frames in the method path */
     if ((cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) continue;
 
@@ -628,11 +636,10 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr, Tcl_Obj *method
     /*
      * The "root" frame in a callstack branch resulting from an ensemble
      * dispatch is not typed as an NSF_CSC_TYPE_ENSEMBLE frame, the call type
-     * /is/ NSF_CSC_CALL_IS_ENSEMBLE.
+     * /is/ NSF_CSC_CALL_IS_ENSEMBLE (as checked above).
      */
     
-    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0 && 
-	(cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) break;
+    if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) == 0) break;
     
   }
   /* 

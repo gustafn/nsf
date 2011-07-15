@@ -1124,23 +1124,26 @@ nx::Test case dispo-configure-transparency {
   }
   
   ::proc foo {} {
-    error [::nsf::current]-[::nsf::current methodpath]
+    error [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
   }
+  #
+  # TODO: Currently, [current method] resolves to the name of the
+  # aliased, not the alias cmd. So, we do not have "alias
+  # transparency". Revise?
+  #
   ::nsf::method::alias C FOO ::foo
-  ? {[C create c] FOO} "::c-FOO"
+  ? {[C create c] FOO} "::c--foo"
   C setObjectParams [list [list FOO:alias,noarg ""]]
-  # UNPATCHED:
-  # ? {C create c} "::c-{} FOO"
-  ? {C create c} "::c-FOO"
+  ? {C create c} "::c--foo"
   C public method "show me" {} {
-    set :msg [::nsf::current]-[::nsf::current methodpath]
+    set :msg [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
   }
   C setObjectParams [list -show:alias]
   ? {[C create c -show me] eval {info exists :msg}} 1
   # UNPATCHED:
   # ? {[C create c -show me] eval {set :msg}} "::c-{} show"
-  ? {[C create c -show me] eval {set :msg}} "::c-show"
-
+  ? {[C create c -show me] eval {set :msg}} "::c-show-me"
+  exit
   #
   # ... with mixin indirection
   #
