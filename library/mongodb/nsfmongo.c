@@ -30,7 +30,7 @@
  */
 static int gridfsCount = 0;
 static int gridfileCount = 0;
-static int mongo_connectionCount = 0;
+static int mongoCount = 0;
 
 /***********************************************************************
  * The following definitions should not be here, but they are included
@@ -249,7 +249,7 @@ BsonTagToType(Tcl_Interp *interp, char *tag) {
  *----------------------------------------------------------------------
  */
 static int
-BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Obj *value) {
+BsonAppend(Tcl_Interp *interp, bson *bbPtr, char *name, char *tag, Tcl_Obj *value) {
   int result = TCL_OK;
   bson_type t = BsonTagToType(interp, tag);
 
@@ -376,18 +376,16 @@ BsonAppend(Tcl_Interp *interp, bson_buffer *bbPtr, char *name, char *tag, Tcl_Ob
 static int
 BsonAppendObjv(Tcl_Interp *interp, bson *bPtr, int objc, Tcl_Obj **objv) {
   int i;
-  bson_buffer buf[1];
 
-  bson_buffer_init(buf);
+  bson_init(bPtr);
   for (i = 0; i < objc; i += 3) {
     char *name = ObjStr(objv[i]);
     char *tag = ObjStr(objv[i+1]);
     Tcl_Obj *value = objv[i+2];
     /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n", name, tag, ObjStr(value));*/
-    BsonAppend(interp, buf, name, tag, value);
+    BsonAppend(interp, bPtr, name, tag, value);
   }
-
-  bson_from_buffer(bPtr, buf);
+  bson_finish(bPtr);
   
   return TCL_OK;
 }
@@ -461,11 +459,11 @@ NsfMongoGetHostPort(CONST char *string,
 
 /*
 cmd close NsfMongoClose {
-  {-argName "conn" -required 1 -type mongo_connection -withObj 1}
+  {-argName "conn" -required 1 -type mongo -withObj 1}
 }
 */
 static int 
-NsfMongoClose(Tcl_Interp *interp, mongo_connection *connPtr, Tcl_Obj *connObj) {
+NsfMongoClose(Tcl_Interp *interp, mongo *connPtr, Tcl_Obj *connObj) {
 
   if (connPtr) {
     mongo_destroy(connPtr);
@@ -485,7 +483,7 @@ static int
 NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int withTimeout) {
   char channelName[80], *buffer = NULL;
   int result, port, objc = 0;
-  mongo_connection *connPtr;
+  mongo *connPtr;
   int status;
   Tcl_Obj **objv;
   CONST char *host;
@@ -497,7 +495,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
     }
   }
 
-  connPtr = (mongo_connection *)ckalloc(sizeof(mongo_connection));
+  connPtr = (mongo *)ckalloc(sizeof(mongo));
 
   if (objc == 0) {
     /*
@@ -522,7 +520,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
      */
     int i;
 
-    mongo_replset_init_conn( connPtr, replicaSet);
+    mongo_replset_init( connPtr, replicaSet );
 
     for (i = 0; i < objc; i++) {
       NsfMongoGetHostPort(ObjStr(objv[i]), &buffer, &host, &port);
@@ -563,7 +561,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
     /* 
      * setting connection timeout - measured in  milliseconds
      */
-    if (mongo_conn_set_timeout(connPtr, withTimeout) != MONGO_OK) {
+    if (mongo_set_op_timeout(connPtr, withTimeout) != MONGO_OK) {
       return NsfPrintError(interp, "setting connection timeout failed");
     }
   }
@@ -572,7 +570,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
    * Make an entry in the symbol table and return entry name it as
    * result.
    */
-  Nsf_PointerAdd(interp, channelName, "mongo_connection", connPtr);
+  Nsf_PointerAdd(interp, channelName, "mongo", connPtr);
   Tcl_SetObjResult(interp, Tcl_NewStringObj(channelName, -1));
 
   return TCL_OK;
@@ -580,13 +578,13 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
 
 /*
 cmd query NsfMongoCount {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "query" -required 1 -type tclobj}
 }
 */
 static int 
-NsfMongoCount(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *queryObj) {
+NsfMongoCount(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *queryObj) {
   int objc, result;
   Tcl_Obj **objv;
   char *db, *collection;
@@ -625,7 +623,7 @@ NsfMongoCount(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespa
 
 /*
 cmd index NsfMongoIndex {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "attributes" -required 1 -type tclobj}
   {-argName "-background" -required 0 -nrargs 0}
@@ -636,7 +634,7 @@ cmd index NsfMongoIndex {
 */
 static int 
 NsfMongoIndex(Tcl_Interp *interp, 
-	      mongo_connection *connPtr, 
+	      mongo *connPtr, 
 	      CONST char *namespace, 
 	      Tcl_Obj *attributesObj, 
 	      int withBackground, 
@@ -671,15 +669,15 @@ NsfMongoIndex(Tcl_Interp *interp,
 
 /*
 cmd insert NsfMongoInsert {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "values" -required 1 -type tclobj}
 }
 */
-static int NsfMongoInsert(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *valuesObj) {
+static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *valuesObj) {
   int i, objc, result;
   Tcl_Obj **objv, *resultObj;
-  bson_buffer buf[1];
+  //bson buf[1];
   bson b[1];
 
   result = Tcl_ListObjGetElements(interp, valuesObj, &objc, &objv);
@@ -687,18 +685,20 @@ static int NsfMongoInsert(Tcl_Interp *interp, mongo_connection *connPtr, CONST c
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(valuesObj));
   }
     
-  bson_buffer_init(buf);
-  bson_append_new_oid(buf, "_id");
+  //bson_init(buf);
+  bson_init(b);
+  bson_append_new_oid(b, "_id");
 
   for (i = 0; i < objc; i += 3) {
     char *name = ObjStr(objv[i]);
     char *tag = ObjStr(objv[i+1]);
     Tcl_Obj *value = objv[i+2];
     /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n", name, tag, ObjStr(value));*/
-    BsonAppend(interp, buf, name, tag, value);
+    BsonAppend(interp, b, name, tag, value);
   }
 
-  bson_from_buffer( b, buf );
+  bson_finish(b);
+  //bson_from_buffer( b, buf );
   mongo_insert(connPtr, namespace, b);
   
   resultObj = BsonToList(interp, b->data, 0);
@@ -711,7 +711,7 @@ static int NsfMongoInsert(Tcl_Interp *interp, mongo_connection *connPtr, CONST c
 
 /*
 cmd query NsfMongoQuery {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "query" -required 1 -type tclobj}
   {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
@@ -720,7 +720,7 @@ cmd query NsfMongoQuery {
 }
 */
 static int 
-NsfMongoQuery(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, 
+NsfMongoQuery(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, 
 	      Tcl_Obj *queryObj, Tcl_Obj *withAttsObj,
 	      int withLimit, int withSkip) {
   int objc1, objc2, result;
@@ -771,13 +771,13 @@ NsfMongoQuery(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespa
 
 /*
 cmd remove NsfMongoRemove {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "condition" -required 1 -type tclobj}
 }
 */
 static int 
-NsfMongoRemove(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, Tcl_Obj *conditionObj) {
+NsfMongoRemove(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *conditionObj) {
   int objc, result;
   Tcl_Obj **objv;
   bson query[1];
@@ -796,7 +796,7 @@ NsfMongoRemove(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namesp
 
 /*
 cmd insert NsfMongoUpdate {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "cond" -required 1 -type tclobj}
   {-argName "values" -required 1 -type tclobj}
@@ -805,7 +805,7 @@ cmd insert NsfMongoUpdate {
 }
 */
 static int 
-NsfMongoUpdate(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namespace, 
+NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, 
 	       Tcl_Obj *conditionObj, Tcl_Obj *valuesObj, int withUpsert, int withAll) {
   int objc, result, options = 0;
   Tcl_Obj **objv;
@@ -838,14 +838,14 @@ NsfMongoUpdate(Tcl_Interp *interp, mongo_connection *connPtr, CONST char *namesp
  ***********************************************************************/
 /*
 cmd gridfs::open NsfMongoGridFSOpen {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "dbname" -required 1}
   {-argName "prefix" -required 1}
 }
 */
 
 static int
-NsfMongoGridFSOpen(Tcl_Interp *interp, mongo_connection *connPtr, 
+NsfMongoGridFSOpen(Tcl_Interp *interp, mongo *connPtr, 
 		   CONST char *dbname, CONST char *prefix) {
   char buffer[80];
   gridfs *gfsPtr;
@@ -889,8 +889,10 @@ NsfMongoGridFSStoreFile(Tcl_Interp *interp, gridfs *gridfsPtr,
 			CONST char *filename, CONST char *remotename, 
 			CONST char *contenttype) {
   bson b = gridfs_store_file(gridfsPtr, filename, remotename, contenttype);
+  
+  /* currently, the result is broken;
+     Tcl_SetObjResult(interp, BsonToList(interp, b.data, 0));*/
 
-  Tcl_SetObjResult(interp, BsonToList(interp, b.data, 0));
   
   return TCL_OK;
 }
@@ -1079,7 +1081,7 @@ Nsfmongo_Init(Tcl_Interp * interp) {
      */
     Nsf_PointerTypeRegister(interp, "gridfs", &gridfsCount);
     Nsf_PointerTypeRegister(interp, "gridfile", &gridfileCount);
-    Nsf_PointerTypeRegister(interp, "mongo_connection", &mongo_connectionCount);
+    Nsf_PointerTypeRegister(interp, "mongo", &mongoCount);
 
     /* create all method commands (will use the namespaces above) */
     for (i=0; i < nr_elements(method_definitions)-1; i++) {

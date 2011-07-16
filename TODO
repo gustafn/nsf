@@ -3064,6 +3064,8 @@ nsf:
 - added tests for object specific "variable" and "attribute
   + application defined value checker
 
+- library/mongodb:
+   * updated to current interface in git HEAD
 
 TODO:
  - variable and incremental

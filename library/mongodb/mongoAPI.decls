@@ -8,14 +8,14 @@ array set ns {
   cmd  "::mongo"
 }
 array set ptrConverter {
-  mongo_connection 1
+  mongo 1
   gridfs 1
   gridfile 1
 }
 
 
 cmd close NsfMongoClose {
-  {-argName "conn" -required 1 -type mongo_connection -withObj 1}
+  {-argName "conn" -required 1 -type mongo -withObj 1}
 }
 cmd connect NsfMongoConnect {
   {-argName "-replica-set" -required 0 -nrargs 1}
@@ -24,13 +24,13 @@ cmd connect NsfMongoConnect {
 }
 
 cmd count NsfMongoCount {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "query" -required 1 -type tclobj}
 }
 
 cmd index NsfMongoIndex {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "attributes" -required 1 -type tclobj}
   {-argName "-background" -required 0 -nrargs 0}
@@ -40,13 +40,13 @@ cmd index NsfMongoIndex {
 }
 
 cmd insert NsfMongoInsert {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "values" -required 1 -type tclobj}
 }
 
 cmd query NsfMongoQuery {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "query" -required 1 -type tclobj}
   {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
@@ -55,13 +55,13 @@ cmd query NsfMongoQuery {
 }
 
 cmd remove NsfMongoRemove {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "condition" -required 1 -type tclobj}
 }
 
 cmd update NsfMongoUpdate {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "cond" -required 1 -type tclobj}
   {-argName "values" -required 1 -type tclobj}
@@ -73,7 +73,7 @@ cmd update NsfMongoUpdate {
 # GridFS
 #
 cmd gridfs::open NsfMongoGridFSOpen {
-  {-argName "conn" -required 1 -type mongo_connection}
+  {-argName "conn" -required 1 -type mongo}
   {-argName "dbname" -required 1}
   {-argName "prefix" -required 1}
 }
