@@ -3067,8 +3067,23 @@ nsf:
 - library/mongodb:
    * updated to current interface in git HEAD
 
+- nx.tcl: added switch "incremental" to "variable" and "attribute"
+- added regression test
+
+
 TODO:
- - variable and incremental
+ - more regression tests for incremental + variable/attribute
+
+ - placement of switched and parameters:
+   currently we have:
+    /obj/ attribute ?-incremental? ?-nocomplain? spec ?-class value? ?initblock?
+    /obj/ variable ?-class value? ?-initblock value? ?-accessor boolean? ?-array? ?-incremental? ?-nocomplain? spec ?value?
+
+    /cls/ attribute ?-incremental? spec ?-class value? ?initblock?
+    /cls/ variable ?-class value? ?-incremental? ?-initblock value? ?-objectparameter value? ?-accessor value? spec ?default?
+
+   should we switch from "-class" to "-slotclass"?
+
  - should we change interface for default value in attribute? 
    probably not, same interface is used in methodparameters as well
  - Should we leave "variable" and "attribute" as it ist?

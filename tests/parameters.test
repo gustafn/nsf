@@ -1888,8 +1888,14 @@ nx::Test case variable {
     ? [list [self] variable  -nocomplain r1:range,arg=1-10 5] ""
     ? [list [self] attribute -nocomplain [list r2:range,arg=1-10 5]] \
 	{::enterprise::r2}
-  
-    # more tests, e.g. incremental
+
+    # testing incremental
+    ? [list [self] variable -incremental -nocomplain i:int,0..* {}] "::enterprise::i"
+    :i add 1
+    ? [list [self] i] "1"
+    :i add 2
+    ? [list [self] i] "2 1"
+    ? [list [self] i add a] {expected integer but got "a" for parameter "value"}
   }
 
   nx::Class create C {

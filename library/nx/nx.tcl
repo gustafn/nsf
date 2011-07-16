@@ -1613,8 +1613,9 @@ namespace eval ::nx {
   nx::Object method variable {
      {-class ""} 
      {-initblock ""} 
-     {-array:switch}
      {-accessor:boolean false}
+     {-array:switch}
+     {-incremental:switch}
      {-nocomplain:switch}
      spec 
      value:optional
@@ -1630,6 +1631,13 @@ namespace eval ::nx {
 
     #puts stderr "Object variable $spec accessor $accessor nocomplain $nocomplain"
 
+    if {$incremental} {
+      # incremental implies accessor
+      set accessor true
+      append initblock {
+	set :incremental 1
+      }
+    }
     if {$initblock eq "" && !$accessor} {
       # get name an list of parameter options
       lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
@@ -1664,9 +1672,16 @@ namespace eval ::nx {
     return [::nsf::object::dispatch [self] ::nsf::methods::object::info::method handle [$slot name]]
   }
 
-  Object method attribute {-nocomplain:switch spec {-class ""} {initblock ""}} {
+  Object method attribute {
+    -incremental:switch 
+    -nocomplain:switch 
+    spec 
+    {-class ""} 
+    {initblock ""}
+  } {
     set r [[self] ::nsf::classes::nx::Object::variable \
 	       -class $class \
+	       -incremental=$incremental \
 	       -nocomplain=$nocomplain \
 	       -initblock $initblock \
 	       -accessor true \
@@ -1675,13 +1690,21 @@ namespace eval ::nx {
   }
 
   nx::Class method variable {
-     {-class ""} 
+     {-class ""}
+     -incremental:switch
      {-initblock ""} 
      {-objectparameter false}
      {-accessor false}
      spec 
      default:optional
    } {
+    if {$incremental} {
+      # incremental implies accessor
+      set accessor true
+      append initblock {
+	set :incremental 1
+      }
+    }
     #puts stderr "Class variable $spec"
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \
@@ -1692,9 +1715,10 @@ namespace eval ::nx {
     return [::nsf::object::dispatch [self] ::nsf::methods::class::info::method handle [$slot name]]
   }
   
-  Class method attribute {spec {-class ""} {initblock ""}} {
+  Class method attribute {-incremental:switch spec {-class ""} {initblock ""}} {
     set r [[self] ::nsf::classes::nx::Class::variable \
 	       -class $class \
+	       -incremental=$incremental \
 	       -initblock $initblock \
 	       -accessor true \
 	       -objectparameter true \
