@@ -31,14 +31,19 @@
 # include <sys/time.h>
 #endif
 
+#if defined(__GNUC__) && __GNUC__ > 2
+/* Use gcc branch prediction hint to minimize cost of e.g. DTrace
+ * ENABLED checks. 
+ */
+#  define unlikely(x) (__builtin_expect((x), 0))
+#  define likely(x) (__builtin_expect((x), 1))
+#else
+#  define unlikely(x) (x)
+#  define likely(x) (x)
+#endif
+
 #if defined(NSF_DTRACE)
 # include "nsfDTrace.h"
-# if defined(__GNUC__) && __GNUC__ > 2
-/* Use gcc branch prediction hint to minimize cost of DTrace ENABLED checks. */
-#  define unlikely(x) (__builtin_expect((x), 0))
-# else
-#  define unlikely(x) (x)
-# endif
 # define NSF_DTRACE_METHOD_ENTRY_ENABLED()     		unlikely(NSF_METHOD_ENTRY_ENABLED())
 # define NSF_DTRACE_METHOD_RETURN_ENABLED()    		unlikely(NSF_METHOD_RETURN_ENABLED())
 # define NSF_DTRACE_OBJECT_ALLOC_ENABLED()		unlikely(NSF_OBJECT_ALLOC_ENABLED())

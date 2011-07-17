@@ -317,7 +317,7 @@ GetSelfObj(Tcl_Interp *interp) {
 
 /*
  *----------------------------------------------------------------------
- * CallStackGetTopFrame --
+ * CallStackGetTopFrame, CallStackGetTopFrame0, NsfCallStackGetTopFrame --
  *
  *    Return the topmost invocation of a (scripted or nonleaf) method
  *
@@ -342,6 +342,17 @@ CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
       }
   }
   if (framePtrPtr) *framePtrPtr = NULL;
+  return NULL;
+}
+
+static NsfCallStackContent*
+CallStackGetTopFrame0(Tcl_Interp *interp) {
+  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+      if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+        return (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      }
+  }
   return NULL;
 }
 

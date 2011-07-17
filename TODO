@@ -3070,6 +3070,8 @@ nsf:
 - nx.tcl: added switch "incremental" to "variable" and "attribute"
 - added regression test
 
+- nsf.c: improve performance (branch prediction) by using
+  likely/unlikely macros for gcc
 
 TODO:
  - more regression tests for incremental + variable/attribute
