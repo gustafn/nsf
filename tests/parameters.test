@@ -1772,9 +1772,7 @@ nx::Test case reconfigure-perobj-default {
   #
   # re-assignment must be requested by a reconfigure call
   #
-  puts stderr ====1
   [o info slots a] reconfigure
-  puts stderr ====2
   ? {o eval {info exists :a}} 1
   ? {o a} anothervalue
 }
@@ -1816,7 +1814,10 @@ nx::Test case reconfigure-perobj-default {
 #   positional object level parameters do not make sense, since they
 #   cannot be called.
 
-nx::Test case variable {
+#
+# test object level attribute and variable
+#
+nx::Test case object-level-variable {
 
   nx::Object create ::enterprise {
 
@@ -1891,15 +1892,21 @@ nx::Test case variable {
 
     # testing incremental
     ? [list [self] variable -incremental -nocomplain i:int,0..* {}] "::enterprise::i"
+    ? [list [self] attribute -incremental -nocomplain j:int,0..* {}] "::enterprise::j"
     :i add 1
+    :j add 1
     ? [list [self] i] "1"
+    ? [list [self] j] "1"
     :i add 2
+    :j add 2
     ? [list [self] i] "2 1"
+    ? [list [self] j] "2 1"
     ? [list [self] i add a] {expected integer but got "a" for parameter "value"}
+    ? [list [self] j add a] {expected integer but got "a" for parameter "value"}
   }
 
   nx::Class create C {
-    # set 2 variables, one via variable, one via attribute
+    # set 2 class variables, one via variable, one via attribute
     ? [list [self] class variable -nocomplain v "v0"] ""
     ? [list [self] class attribute -nocomplain [list a "a0"]] "::C::a"
 
@@ -1912,4 +1919,50 @@ nx::Test case variable {
     ? [list [self] class variable -nocomplain y:int "a0"] {expected integer but got "a0"}
   }
 
+}
+
+#
+# test class level attribute and variable
+#
+nx::Test case class-level-variable {
+  nx::Class create C {
+
+    # define 2 class-level variables, one via variable, one via attribute
+    :variable v v0
+    :attribute {a a0}
+
+    # create an instance
+    :create c1
+  }
+    
+  # in both cases, we expect instance variables for c1
+  ? {lsort [c1 info vars]} {a v}
+  ? {c1 eval {set :v}} "v0"
+  ? {c1 eval {set :a}} "a0"
+
+  #
+  # We expect a specifiable object parameter for "a" but not for "v".
+  # The parameter for v can be obtained via spec, but is not listed in
+  # "info parameter syntax" or "info parameter spec".
+  #
+  ? {C info parameter list a} "-a"
+  ? {C info parameter spec a} "{-a a0}"
+  ? {C info parameter syntax a} "?-a value?"
+
+  ? {C info parameter spec v} "{-v:noconfig v0}"
+  ? {C info parameter list v} ""
+  ? {C info parameter syntax v} ""
+
+  # TODO: the error message for the invalid object parameter should be
+  # improved. The problem is, that "-v" is passed to the initcmd, so
+  # just "10" is invalid.
+  ? {C create c2 -a 10} ::c2
+  ? {C create c2 -v 10} \
+      {Invalid argument '10', maybe too many arguments; should be "::c2 configure ?-a value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"}
+
+  #
+  # We expect a setter for "a" but not for "v". 
+  #
+  ? {c1 info lookup method a} "::nsf::classes::C::a"
+  ? {c1 info lookup method v} ""
 }

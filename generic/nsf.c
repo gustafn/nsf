@@ -7796,6 +7796,8 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
         ParamDefsFormatOption(nameStringObj, "forward", &colonWritten, &first);
       } else if ((pPtr->flags & NSF_ARG_NOARG)) {
         ParamDefsFormatOption(nameStringObj, "noarg", &colonWritten, &first);
+      } else if ((pPtr->flags & NSF_ARG_NOCONFIG)) {
+        ParamDefsFormatOption(nameStringObj, "noconfig", &colonWritten, &first);
       }
 
       innerListObj = Tcl_NewListObj(0, NULL);
@@ -7832,7 +7834,9 @@ ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
   Nsf_Param CONST *pPtr;
 
   for (pPtr = paramsPtr; pPtr->name; pPtr++) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(pPtr->name, -1));
+    if ((pPtr->flags & NSF_ARG_NOCONFIG) == 0) {
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(pPtr->name, -1));
+    }
   }
   return listObj;
 }
@@ -7963,6 +7967,13 @@ NsfParamDefsSyntax(Nsf_Param CONST *paramPtr) {
   Nsf_Param CONST *pPtr;
 
   for (pPtr = paramPtr; pPtr->name; pPtr++) {
+
+    if ((pPtr->flags & NSF_ARG_NOCONFIG)) {
+      /* 
+       * Don't output non-configurable parameters
+       */
+      continue;
+    }
     if (pPtr != paramPtr) {
       /* 
        * Don't output non-consuming parameters (i.e. positional, and no args)
@@ -10102,6 +10113,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
 
+  } else if (strncmp(option, "noconfig", 8) == 0) {
+    paramPtr->flags |= NSF_ARG_NOCONFIG;
+
   } else if (strncmp(option, "args", 4) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0) {
       return NsfPrintError(interp, "option \"args\" only allowed for parameter type \"alias\"");
@@ -10244,7 +10258,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     return NsfPrintError(interp, "Parameter option '%s' not allowed", option);
   }
 
-  if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) {
+  if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) && (paramPtr->flags & NSF_ARG_NOCONFIG)) {
+    return NsfPrintError(interp, "Option 'noconfig' cannot used together with this type of object parameter");
+  } else if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) {
     return NsfPrintError(interp, "Parameter types 'alias' and 'forward' can be not used together");
   } else if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) == (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) {
     return NsfPrintError(interp, "Parameter types 'alias' and 'initcmd' can be not used together");
@@ -14766,7 +14782,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	     */
 	    for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
 	      if (nppPtr->nrArgs > 0) continue;
-	      if (ch1 == nppPtr->name[1]
+	      if ((nppPtr->flags & NSF_ARG_NOCONFIG) == 0
+		  && ch1 == nppPtr->name[1]
 		  && strncmp(argument, nppPtr->name, equalOffset) == 0
 		  && *(nppPtr->name+equalOffset) == '\0') {
 		found = 1;
@@ -14779,7 +14796,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	     * the parameter definitions.
 	     */
 	    for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
-	      if (ch1 == nppPtr->name[1]
+	      if ((nppPtr->flags & NSF_ARG_NOCONFIG) == 0 
+		  && ch1 == nppPtr->name[1]
 		  && strcmp(argument, nppPtr->name) == 0) {
 		found = 1;
 		break;
@@ -18974,12 +18992,11 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
         int oc = 0;
 
 	/*
-	  Restore the variable frame context as found at the original call site of
-	  configure(). Note that we do not have to revert this context change
-	  when leaving this configure() context because a surrounding
-	  [uplevel] will correct the callstack context for us ...
+	 * Restore the variable frame context as found at the original call
+	 * site of configure(). Note that we do not have to revert this
+	 * context change when leaving this configure() context because a
+	 * surrounding [uplevel] will correct the callstack context for us ...
 	 */
-
 	if (uplevelVarFramePtr) {
 	  Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
 	}

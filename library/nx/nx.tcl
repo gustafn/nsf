@@ -864,7 +864,7 @@ namespace eval ::nx {
       # set for every bootstrap attribute slot the position 0
       #
       ::nsf::var::set $slotObj position 0
-      ::nsf::var::set $slotObj objectparameter 1
+      ::nsf::var::set $slotObj configparameter 1
     }
     
     #puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
@@ -935,7 +935,7 @@ namespace eval ::nx {
     {forwardername}
     {defaultmethods {get assign}}
     {accessor false}
-    {objectparameter true}
+    {configparameter true}
     {noarg}
     {disposition alias}
     {required false}
@@ -1027,7 +1027,7 @@ namespace eval ::nx {
 
   ObjectParameterSlot protected method getParameterOptions {
     {-withMultiplicity 0} 
-    {-withSubstdefault 0}
+    {-forObjectParameter 0}
   } {
     #
     # Obtain a list of parameter options from slot object
@@ -1044,8 +1044,10 @@ namespace eval ::nx {
     } elseif {[info exists :positional] && ${:positional}} {
       lappend options optional
     }
-    if {$withSubstdefault && [info exists :substdefault] && ${:substdefault}} {
-      lappend options substdefault
+    if {$forObjectParameter} {
+      if {[info exists :substdefault] && ${:substdefault}} {
+	lappend options substdefault
+      }
     }
     if {[info exists :noarg] && ${:noarg}} {lappend options noarg}
     if {$withMultiplicity && [info exists :multiplicity] && ${:multiplicity} ne "1..1"} {
@@ -1061,7 +1063,7 @@ namespace eval ::nx {
     #
     if {![info exists :parameterSpec]} {
       set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
-      set options [:getParameterOptions -withMultiplicity true -withSubstdefault true]
+      set options [:getParameterOptions -withMultiplicity true -forObjectParameter true]
       if {[info exists :initcmd]} {
 	lappend options initcmd
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] ${:initcmd}]
@@ -1102,11 +1104,7 @@ namespace eval ::nx {
     # ensure partial ordering and avoid sorting.
     #
     foreach slot [nsf::object::dispatch [self] ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
-      if {[::nsf::var::exists $slot objectparameter] && [::nsf::var::set $slot objectparameter]} {
-	lappend defs([$slot position]) [$slot getParameterSpec]
-      } else {
-	#puts stderr "== no objectparameter for $slot !"
-      }
+      lappend defs([$slot position]) [$slot getParameterSpec]
     }
     #
     # Fold the per-position lists into a common list
@@ -1378,7 +1376,7 @@ namespace eval ::nx {
 
   ::nx::Attribute protected method getParameterOptions {
     {-withMultiplicity 0} 
-    {-withSubstdefault 0}
+    {-forObjectParameter 0}
   } {
     set options ""
     if {[info exists :type]} {
@@ -1407,8 +1405,13 @@ namespace eval ::nx {
     if {$withMultiplicity && [info exists :multiplicity] && ${:multiplicity} ne "1..1"} {
       lappend options ${:multiplicity}
     }
-    if {$withSubstdefault && [info exists :substdefault] && ${:substdefault}} {
-      lappend options substdefault
+    if {$forObjectParameter} {
+      if {[info exists :substdefault] && ${:substdefault}} {
+	lappend options substdefault
+      }
+      if {[info exists :configparameter] && !${:configparameter}} {
+	lappend options noconfig
+      }
     }
     #puts stderr "*** getParameterOptions [self] returns '$options'"
     return $options
@@ -1588,41 +1591,19 @@ namespace eval ::nx {
   # Define method "attribute" for convenience
   ######################################################################
 
-  # Class method attribute {spec {-class ""} {initblock ""}} {
-  #   set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
-  # 	       -class $class -initblock $initblock {*}$spec]
-  #   if {$r ne ""} {
-  #     set o [::nsf::self]
-  #     ::nsf::method::property $o $r call-protected \
-  # 	  [::nsf::object::dispatch $o __default_attribute_call_protection]
-  #     return $r
-  #   }
-  # }
-
-  # Object method attribute {spec {-class ""} {initblock ""}} {
-  #   set r [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
-  # 	       -class $class -per-object -initblock $initblock {*}$spec]
-  #   if {$r ne ""} {
-  #     set o [::nsf::self]
-  #     ::nsf::method::property $o -per-object $r call-protected \
-  # 	  [::nsf::object::dispatch $o __default_attribute_call_protection]
-  #   }
-  #   return $r    
-  # }
-
   nx::Object method variable {
+     {-accessor:switch}
      {-class ""} 
-     {-initblock ""} 
-     {-accessor:boolean false}
-     {-array:switch}
      {-incremental:switch}
+     {-initblock ""} 
      {-nocomplain:switch}
      spec 
      value:optional
    } {
     #
-    # when do we need a slot
-    # currently: 
+    # This method creates sometimes a slot, sometimes not
+    # (optimization).  We need a slot currently in the following
+    # situations:
     #  - when accessors are needed 
     #    (serializer uses slot object to create accessors)
     # in general:
@@ -1632,12 +1613,13 @@ namespace eval ::nx {
     #puts stderr "Object variable $spec accessor $accessor nocomplain $nocomplain"
 
     if {$incremental} {
-      # incremental implies accessor
+      # the usage of "-incremental" implies "-accessor"
       set accessor true
       append initblock {
 	set :incremental 1
       }
     }
+
     if {$initblock eq "" && !$accessor} {
       # get name an list of parameter options
       lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
@@ -1663,7 +1645,7 @@ namespace eval ::nx {
 		  -per-object \
 		  -class $class \
 		  -initblock $initblock \
-		  -defaultopts [list -accessor $accessor -objectparameter false] \
+		  -defaultopts [list -accessor $accessor -configparameter false] \
 		  $spec \
 		  {*}[expr {[info exists value] ? [list $value] : ""}]]
 
@@ -1673,55 +1655,59 @@ namespace eval ::nx {
   }
 
   Object method attribute {
+    {-class ""} 
     -incremental:switch 
     -nocomplain:switch 
     spec 
-    {-class ""} 
     {initblock ""}
   } {
     set r [[self] ::nsf::classes::nx::Object::variable \
+	       -accessor=true \
 	       -class $class \
 	       -incremental=$incremental \
-	       -nocomplain=$nocomplain \
 	       -initblock $initblock \
-	       -accessor true \
+	       -nocomplain=$nocomplain \
 	       {*}$spec]
     return $r
   }
 
   nx::Class method variable {
+     {-accessor:switch}
      {-class ""}
+     {-configparameter:switch}
      -incremental:switch
      {-initblock ""} 
-     {-objectparameter false}
-     {-accessor false}
      spec 
      default:optional
    } {
     if {$incremental} {
-      # incremental implies accessor
+      # the usage of "-incremental" implies "-accessor"
       set accessor true
       append initblock {
 	set :incremental 1
       }
     }
-    #puts stderr "Class variable $spec"
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \
 		  -initblock $initblock \
-		  -defaultopts [list -accessor $accessor -objectparameter $objectparameter] \
+		  -defaultopts [list -accessor $accessor -configparameter $configparameter] \
 		  $spec \
 		  {*}[expr {[info exists default] ? [list $default] : ""}]]
     return [::nsf::object::dispatch [self] ::nsf::methods::class::info::method handle [$slot name]]
   }
   
-  Class method attribute {-incremental:switch spec {-class ""} {initblock ""}} {
+  nx::Class method attribute {
+    {-class ""}
+    -incremental:switch 
+    spec  
+    {initblock ""}
+  } {
     set r [[self] ::nsf::classes::nx::Class::variable \
+	       -accessor=true \
 	       -class $class \
+	       -configparameter=true \
 	       -incremental=$incremental \
 	       -initblock $initblock \
-	       -accessor true \
-	       -objectparameter true \
 	       {*}$spec]
     return $r
   }

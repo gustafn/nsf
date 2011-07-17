@@ -1079,9 +1079,9 @@ nx::Test case submethods-via-aliasparams {
     :public method "FOO foo" args {
       append :msg "(1)--[current next]"
       next
-      puts stderr ++++++++++++++++++
+      #puts stderr ++++++++++++++++++
       append :msg "--(3)--[current class]--[current methodpath]--[current]"
-      puts stderr ++++++++++++++++++
+      #puts stderr ++++++++++++++++++
     }
   }
 
@@ -1094,9 +1094,9 @@ nx::Test case submethods-via-aliasparams {
   # N+1 |:TclFrame|	
   C setObjectParams [list]
   ? {
-    puts stderr "/ / / / / / / / / / / "
+    #puts stderr "/ / / / / / / / / / / "
     [C create c1] FOO foo; # N
-    puts stderr "/ / / / / / / / / / / "
+    #puts stderr "/ / / / / / / / / / / "
     c1 eval {set :msg}
   } "(1)--::c1--FOO--foo--(3)--::M2--FOO--::c1"
 

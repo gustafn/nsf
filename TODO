@@ -3073,23 +3073,27 @@ nsf:
 - nsf.c: improve performance (branch prediction) by using
   likely/unlikely macros for gcc
 
+- nx.tcl:
+  * added support for "variable" on the class-level
+  * added flag "noconfig" to object parameter options
+  * parameters with "noconfig" are omitted in 
+    "info parameter syntax" and "info parameter list"
+  * used switches for all configurable boolean options for 
+    "variable" and "attribute"
+  * regularized the interface of "variable" and "attribute"
+  * extended regression test
+
+
 TODO:
- - more regression tests for incremental + variable/attribute
+ - add "delete variable" analogous to "delete attribute"
+ - interface of "variable" and "attribute":
+   * add switch -array for "variable"?
+   * should we switch from "-class" to "-slotclass"?
+   * should we change interface for default value in attribute? 
+     probably not, same interface is used in methodparameters as well
 
- - placement of switched and parameters:
-   currently we have:
-    /obj/ attribute ?-incremental? ?-nocomplain? spec ?-class value? ?initblock?
-    /obj/ variable ?-class value? ?-initblock value? ?-accessor boolean? ?-array? ?-incremental? ?-nocomplain? spec ?value?
-
-    /cls/ attribute ?-incremental? spec ?-class value? ?initblock?
-    /cls/ variable ?-class value? ?-incremental? ?-initblock value? ?-objectparameter value? ?-accessor value? spec ?default?
-
-   should we switch from "-class" to "-slotclass"?
-
- - should we change interface for default value in attribute? 
-   probably not, same interface is used in methodparameters as well
- - Should we leave "variable" and "attribute" as it ist?
-   options:
+ - Should we leave "variable" and "attribute" as it is, or
+   switch the names to something better? Some options:
      (a) leave it as it is
      (b) use "property" instead of "attribute"
          ("a property is a variable with accessors"),
@@ -3101,12 +3105,6 @@ TODO:
          Variable is the tcl term, attribute is the UML term
      (e) others?
  - call user defined setter in object parameters?
-
- - maybe use (position == -1) instead of (objectparameter == false) to save common vars
- - cleanup variable/attribute
- - testing variable/attribute
- - maybe change default
-   createBootstrapAttributeSlots ::nx::Attribute {accessor true} -> false
 
 #::nsf::var::exists ?-array? object varName
 #::nsf::var::import object ?arg ...?
