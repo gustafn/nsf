@@ -12073,16 +12073,38 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 			    object, cl, methodName, frameType, 0);
 #endif
   } else if (result == TCL_OK) {
+    NsfCallStackContent *topCscPtr = NULL;
+    int isLeafNext;
+    
     /*
-     * We could not find a cmd, but there was no error on the call.
-     * When we are at the end of a filter-chain, or within a next from
-     * an ensemble, set the unknown flag to allow higher levels to
-     * handle this case.
+     * We could not find a cmd, yet the dispatch attempt did not result
+     * in an error. This means that we find ourselves in either of three
+     * situations at this point:
+     *
+     * 1) A next cmd (NsfNextCmd()) at the end of a filter chain: Dispatch to
+     * unknown as there is no implementation of for the requested selector
+     * available.  2) A next cmd from within a leaf submethod (a "leaf next"):
+     * Remain silent, do not dispatch to unknown.  3) MethodDispatchCsc()
+     * realises the actual "ensemble next": Dispatch to unknown, the
+     * requested sub-selector is not resolvable to a cmd.
+     *
+     * For the cases 1) and 3), set the interp's unknown flag signalling to
+     * higher levels (e.g., in MethodDispatchCsc(), in NsfNextCmd()) the need
+     * for dispatching to unknown.
      */
+    
+    topCscPtr = CallStackGetTopFrame(interp, NULL);
+    assert(topCscPtr);
+    
+    /* case 2 */
+    isLeafNext = (cscPtr != topCscPtr) && (topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) && 
+      (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0;
 
-    /*fprintf(stderr, "--- no cmd, csc %p frameType %.6x callType %.6x endOfFilterChain %d NSF_CSC_CALL_IS_ENSEMBLE %d\n",
-      cscPtr, cscPtr->frameType, cscPtr->flags, endOfFilterChain,(cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)!=0);*/
-    rst->unknown = endOfFilterChain || (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE);
+    /*fprintf(stderr, "--- no cmd, csc %p frameType %.6x callType %.6x endOfFilterChain %d NSF_CSC_CALL_IS_ENSEMBLE %d NSF_CSC_TYPE_ENSEMBLE % d NSF_CSC_CALL_IS_NEXT %d rst->unknown %d isLeafNext %d\n", cscPtr, cscPtr->frameType, cscPtr->flags, endOfFilterChain, (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0, (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0, (cscPtr->flags & NSF_CSC_CALL_IS_NEXT) != 0, rst->unknown, isLeafNext);*/
+    
+    rst->unknown = /* case 1 */ endOfFilterChain || 
+      /* case 3 */ (!isLeafNext && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)); 
+
     /*fprintf(stderr, "******** setting unknown to %d\n",  rst->unknown );*/
   }
 

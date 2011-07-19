@@ -338,6 +338,33 @@ namespace eval ::ns1 {
   ? {obj foo} ::nx::Object
 }
 
+#
+# Leaf next: Do not trigger unknown handling (see also
+# NextSearchAndInvoke())
+#
+
+nx::Test case leaf-next-in-submethods {
+  Object create container {
+    set :x 0
+    :public method "FOO bar" {} { 
+      incr :x; next; # a "leaf next" 
+    }
+    :public method intercept args { 
+      incr :x; next; # a "filter next" 
+    }
+    :filter intercept
+    :FOO bar
+    # Rationale: A call count > 2 would indicate that the leaf next
+    # triggers a further call into filter ...
+    ? [list set _ ${:x}] 2
+  }
+}
+
+# :public method intercept {} { next }
+# -> TODO: wrong # args: should be ":FOO" ... trim the colon!
+
+
+
 nx::Test case submethods-and-filters {
   #
   # submethods as filters?

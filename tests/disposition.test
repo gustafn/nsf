@@ -1100,14 +1100,7 @@ nx::Test case submethods-via-aliasparams {
     c1 eval {set :msg}
   } "(1)--::c1--FOO--foo--(3)--::M2--FOO--::c1"
 
-  C mixin {}
-  
-  #
-  # TODO: [current class] in M2 FOO foo does not resolve!
-  #
-  # TODO: ensemble next (in submethod) + container filter -> leads to unknown ...
-  #
-  
+  C mixin {}  
 }
 
 nx::Test case dispo-configure-transparency {
