@@ -3094,6 +3094,22 @@ TODO:
 
  - Should we leave "variable" and "attribute" as it is, or
    switch the names to something better? Some options:
+
+ - [obj/cls info method handle "FOO foo"] does neither return a proper
+   submethod handle nor any valid handle ... needs a fix.
+
+ - NsfObjWrongArgs() & friends is not aware of submethods. Error
+   messages print with the leaf method names only, e.g.: "anObj method
+   ..." instead of " anObj info method ..." etc.
+
+ - The following leads to a crash in the ExitHandler:
+       Object create o {exit -1} 
+
+ - variable and incremental, test for user-defined types
+ - should we change interface for default value in attribute? 
+   probably not, same interface is used in methodparameters as well
+ - Should we leave "variable" and "attribute" as it ist?
+   options:
      (a) leave it as it is
      (b) use "property" instead of "attribute"
          ("a property is a variable with accessors"),
@@ -3110,7 +3126,6 @@ TODO:
 #::nsf::var::import object ?arg ...?
 #::nsf::var::set ?-array? object varName ?value?
 #::nsf::var::unset ?-array? object varName 
-
 
 - Revise callstack introspection/intercession, i.e., [current
   activelevel] vs. [current callinglevel] vs. uplevel()/upvar():

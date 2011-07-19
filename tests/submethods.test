@@ -338,7 +338,7 @@ namespace eval ::ns1 {
   ? {obj foo} ::nx::Object
 }
 
-nx::Test case submethods-as-filters {
+nx::Test case submethods-and-filters {
   #
   # submethods as filters?
   #
@@ -398,14 +398,39 @@ nx::Test case submethods-current-introspection {
     :public method "BAR BUU boo" {} $body
     :public method baz {} $body
 
-    :method bar {} {
-      return "[current callingclass]-[current callingobject]-[current callingmethod]"
-    }
+    set calleeBody {return "[current callingclass]-[current callingobject]-[current callingmethod]"}
+    :method bar {} $calleeBody
+
+    :FOO foo
+    :BAR BUU boo
+    :baz
+
+    :method "a b" {} $calleeBody
+    set body {? [list set _ [:a b]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    :public method "FOO foo" {} $body
+    :public method "BAR BUU boo" {} $body
+    :public method baz {} $body
+
+    :FOO foo
+    :BAR BUU boo
+    :baz
+
+    # TODO: :method "a b c" {} $calleeBody; FAILS -> "can't append to scripted"
+    :method "x y z" {} $calleeBody;
+    set body {? [list set _ [:x y z]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    :public method "FOO foo" {} $body
+    :public method "BAR BUU boo" {} $body
+    :public method baz {} $body
 
     :FOO foo
     :BAR BUU boo
     :baz
   }
+  
+  #
+  # Make sure that [current callingclass] works for submethods, as
+  # expected
+  #
 
   C eval {
     set body {? [list set _ [:bar]] [current class]-[current]-[concat [current methodpath] [current method]]}
@@ -425,9 +450,50 @@ nx::Test case submethods-current-introspection {
 
   #
   # [current calledmethod]
+  # [current calledclass]
   #
+  # Note: In my reading, [current calledmethod] cannot be made aware
+  # of the methodpath of a submethod call being intercepted. This is
+  # due to the callstack structure at the time of executing the filter
+  # stack which is entirely agnostic of the submethod dispatch (this
+  # dispatch has not occurred yet). For the same reason, we cannot
+  # record the method path in the filter stack structure.
+  #
+  # From the filter method's perspective, the submethod selectors
+  # ("foo" and "BUU boo" below) are simply arguments provided to the
+  # top-level method. They can only be processed as part of the
+  # filter-local argv.
+
+  Class create Z {
+    :class attribute msg
+    :method intercept args {
+      [current class] eval [list set :msg [list [current methodpath] \
+					       [current calledmethod] \
+					       [current calledclass] \
+					       [current next]]]
+      next
+    }
+    
+  }
   
+  set c [Z new]
+
+  Z filter intercept
+
+  foreach selector [list "FOO foo" "BAR BUU boo" "baz"] {
+    Z public method $selector {} {;}
+    set root [lindex $selector 0]
+    set mh [Z info method handle $root]
+    $c {*}$selector
+    ? [list set _ [join [Z msg] -]] -$root-::Z-$mh
+  }
+
+  Z filter {}  
+
 }
+
+
+
 
 
 
