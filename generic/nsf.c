@@ -11959,16 +11959,17 @@ NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
  *----------------------------------------------------------------------
  * NextSearchAndInvoke --
  *
- *    The function is called with a final argument vector and searches
- *    for an possible shadowed method. In case is successful, it
- *    updates the continuation context (filter flags etc), invokes
- *    the found method, and performs cleanup.
+ *    The function is called with a final argument vector and searches for a
+ *    possibly shadowed method. If a target method is found, this dispatcher
+ *    function updates the continuation context (filter flags etc.), invokes
+ *    upon the target method, and performs a cleanup.
  *
  * Results:
  *    Tcl return code
  *
  * Side effects:
- *    The invoked method might produce side effects
+ *    The invoked method might produce side effects. Also, the interp's unknown
+ *    state may be modified.
  *
  *----------------------------------------------------------------------
  */
@@ -12082,7 +12083,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
      * situations at this point:
      *
      * 1) A next cmd (NsfNextCmd()) at the end of a filter chain: Dispatch to
-     * unknown as there is no implementation of for the requested selector
+     * unknown as there is no implementation for the requested selector
      * available.  2) A next cmd from within a leaf submethod (a "leaf next"):
      * Remain silent, do not dispatch to unknown.  3) MethodDispatchCsc()
      * realises the actual "ensemble next": Dispatch to unknown, the
