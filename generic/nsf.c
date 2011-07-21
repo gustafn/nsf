@@ -1567,13 +1567,13 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
     for (entryPtr = *firstPtrPtr; entryPtr; prevPtr = entryPtr, entryPtr = entryPtr->nextPtr) {
       if ((void *)entryPtr->cl == key) {
 	/* found entry */
-	if (prevPtr) {
-	  /* later item */
-	  prevPtr->nextPtr = entryPtr->nextPtr;
-	} else {
-	  /* first item */
-	  *firstPtrPtr = entryPtr->nextPtr;
-	}
+	  if (prevPtr) {
+	    /* later item */
+	    prevPtr->nextPtr = entryPtr->nextPtr;
+	  } else {
+	    /* first item */
+	    *firstPtrPtr = entryPtr->nextPtr;
+	  }
 	break;
       }
     }
@@ -1581,6 +1581,7 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
 
   return entryPtr;
 }
+
 #endif
 
 
@@ -8681,11 +8682,11 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 #if defined(NRE)
   if (validCscPtr) {
     //fprintf(stderr, "forced finalize 2 cscPtr %p\n", cscPtr);
-    CscListRemove(interp, cscPtr);
+    CscListRemove(interp, cscPtr, NULL);
     CscFinish(interp, cscPtr, result, "csc cleanup");
   }
 #else
-  CscListRemove(interp, cscPtr);
+  CscListRemove(interp, cscPtr, NULL);
   CscFinish(interp, cscPtr, result, "csc cleanup");
 #endif
 
@@ -9093,7 +9094,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
     //fprintf(stderr, "forced finalize 1 cscPtr %p objc %d %p\n", cscPtr, cscPtr->objc, cscPtr->objv);
     result = ObjectDispatchFinalize(interp, cscPtr, result /*, "immediate" , methodName*/);
-    CscListRemove(interp, cscPtr);
+    CscListRemove(interp, cscPtr, NULL);
     CscFinish(interp, cscPtr, result, "non-scripted finalize");
   }
 
@@ -19165,12 +19166,12 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * varFramePtr to the previous value.
        */
       Nsf_PopFrameCsc(interp, framePtr2);
-      CscListRemove(interp, cscPtr);
+      CscListRemove(interp, cscPtr, NULL);
       CscFinish(interp, cscPtr, result, "converter object frame");
       Tcl_Interp_varFramePtr(interp) = varFramePtr;
 
-      /*fprintf(stderr, "NsfOConfigureMethod_ attribute %s evaluated %s => (%d)\n",
-        ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
+      /* fprintf(stderr, "NsfOConfigureMethod_ attribute %s evaluated %s => (%d)\n",
+	 ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
 
       if (result != TCL_OK) {
         Nsf_PopFrameObj(interp, framePtr);
