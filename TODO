@@ -3083,6 +3083,9 @@ nsf:
   * regularized the interface of "variable" and "attribute"
   * extended regression test
 
+ - FIXED: The following leads to a crash in the ExitHandler:
+   
+   Object create o {exit -1} 
 
 TODO:
  - add "delete variable" analogous to "delete attribute"
@@ -3101,9 +3104,6 @@ TODO:
  - NsfObjWrongArgs() & friends is not aware of submethods. Error
    messages print with the leaf method names only, e.g.: "anObj method
    ..." instead of " anObj info method ..." etc.
-
- - The following leads to a crash in the ExitHandler:
-       Object create o {exit -1} 
 
  - variable and incremental, test for user-defined types
  - should we change interface for default value in attribute? 
