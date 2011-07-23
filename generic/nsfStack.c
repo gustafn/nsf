@@ -6,13 +6,13 @@ static NsfClasses * NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key);
  *----------------------------------------------------------------------
  * CscListAdd --
  *
- *    Add csc entry to the list of unstack entries
+ *    Add an entry to the list of unstacked CSC entries.
  *
  * Results:
  *    none
  *
  * Side effects:
- *    list element added
+ *    List element added
  *
  *----------------------------------------------------------------------
  */
@@ -25,23 +25,27 @@ CscListAdd(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
  *----------------------------------------------------------------------
  * CscListRemove --
  *
- *    Remove csc entry from the list of unstack entries
+ *    Removes an entry from the list of unstacked CSC entries.
  *
  * Results:
  *    true on success or 0
  *
- * Side effects:
- *    list element potentially removed and freed
+ * Side effects: 
+ *    
+ *    List element potentially removed and freed. If a list turns
+ *    empty, the interp's state is updated.
  *
  *----------------------------------------------------------------------
  */
 static int
-CscListRemove(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
-  NsfClasses *entryPtr;
-
-  entryPtr = NsfClassListUnlink(&RUNTIME_STATE(interp)->cscList, cscPtr);
+CscListRemove(Tcl_Interp *interp, NsfCallStackContent *cscPtr, NsfClasses **cscListPtrPtr) {
+  NsfClasses *entryPtr, **cscList = &RUNTIME_STATE(interp)->cscList;
+  entryPtr = NsfClassListUnlink(cscList, cscPtr);
   if (entryPtr) {
     FREE(NsfClasses, entryPtr);
+  }
+  if (cscListPtrPtr != NULL) {
+    *cscListPtrPtr = *cscList;
   }
   return (entryPtr != NULL);
 }
@@ -793,14 +797,15 @@ static void CallStackPopAll(Tcl_Interp *interp) {
 
 #if defined(CHECK_ACTIVATION_COUNTS)
   { int count = 0;
-    NsfClasses *unstackedEntries;
+    NsfClasses *unstackedEntries = RUNTIME_STATE(interp)->cscList, *nextCscPtr = unstackedEntries;
 
-    for (unstackedEntries = RUNTIME_STATE(interp)->cscList; 
-	 unstackedEntries; 
-	 unstackedEntries = unstackedEntries->nextPtr, count ++) {
-      NsfCallStackContent *cscPtr = (NsfCallStackContent *)unstackedEntries->cl;
-      CscListRemove(interp, cscPtr);
+    while (nextCscPtr) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)nextCscPtr->cl;
+      CscListRemove(interp, cscPtr, &unstackedEntries);
       CscFinish(interp, cscPtr, TCL_OK, "unwind");
+      
+      count ++;
+      nextCscPtr = unstackedEntries ? unstackedEntries->nextPtr : NULL; 
     }
     
     if (count>0 && RUNTIME_STATE(interp)->debugLevel > 0) {
