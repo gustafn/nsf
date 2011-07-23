@@ -13512,6 +13512,59 @@ SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *val
 
 /*
  *----------------------------------------------------------------------
+ * SetInstArray --
+ *
+ *    Set an instance variable array of the specified object to the given
+ *    value. This function performs essentially an "array set" or "array get"
+ *    operation.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Set instance variable.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+SetInstArray(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj) {
+  CallFrame frame, *framePtr = &frame;
+  int result;
+  Tcl_Obj *ov[4];
+
+  assert(object);
+  //flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
+  Nsf_PushFrameObj(interp, object, framePtr);
+  
+  ov[0] = NsfGlobalObjs[NSF_ARRAY];
+  ov[2] = nameObj;
+
+  INCR_REF_COUNT(nameObj);
+  if (valueObj == NULL) {
+    /*
+     * perform an array get
+     */
+    ov[1] = NsfGlobalObjs[NSF_GET];
+    result = Tcl_EvalObjv(interp, 3, ov, 0);
+  } else {
+    /*
+     * perform an array get
+     */
+    ov[1] = NsfGlobalObjs[NSF_SET];
+    ov[3] = valueObj;
+    INCR_REF_COUNT(valueObj);
+    result = Tcl_EvalObjv(interp, 4, ov, 0);
+    DECR_REF_COUNT(valueObj);
+  }
+  DECR_REF_COUNT(nameObj);
+  Nsf_PopFrameObj(interp, framePtr);
+
+  return result;
+}
+
+
+/*
+ *----------------------------------------------------------------------
  * UnsetInstVar --
  *
  *    Unset an instance variable of the specified object.
@@ -18406,19 +18459,24 @@ NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST 
 
 /*
 cmd var::set NsfVarSetCmd {
+  {-argName "-array" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
 */
 static int
-NsfVarSetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *valueObj) {
+NsfVarSetCmd(Tcl_Interp *interp, int withArray,
+	     NsfObject *object, Tcl_Obj *varname, Tcl_Obj *valueObj) {
 
   if (CheckVarName(interp, ObjStr(varname)) != TCL_OK) {
     return TCL_ERROR;
   }
-
-  return SetInstVar(interp, object, varname, valueObj);
+  if (withArray) {
+    return SetInstArray(interp, object, varname, valueObj);
+  } else {
+    return SetInstVar(interp, object, varname, valueObj);
+  }
 }
 
 /*

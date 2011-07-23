@@ -17,6 +17,46 @@ namespace eval ::nx::var1 {
   :alias set ::nsf::var::set
 }
 
+
+nx::Test case set+array {
+  nx::Object create o1
+  
+  # first set a scalar variable
+  ? {nsf::var::set o1 x 100} "100"
+  ? {nsf::var::set o1 x} "100"
+
+  # now, set an array variable; "nsf::var::set -array" is a wrapper
+  # around "array set" or "array get"
+  ? {nsf::var::set -array o1 a {a 1 y 2}} ""
+  ? {nsf::var::set -array o1 a} "y 2 a 1"
+
+  # We have now a scalar and an array variable set.
+  ? {lsort [o1 info vars]} "a x"
+
+  # "x" is a variable, but not an array
+  ? {nsf::var::exists o1 x} 1
+  ? {nsf::var::exists -array o1 x} 0
+  
+  # "a" is a variable and an array
+  ? {nsf::var::exists -array o1 a} 1
+  ? {nsf::var::exists o1 a} 1
+
+  # we unset the array
+  ? {nsf::var::unset o1 a} ""
+  ? {nsf::var::exists o1 a} 0
+  ? {nsf::var::exists -array o1 a} 0
+
+  # now, just the scalar is left
+  ? {o1 info vars} "x"
+  ? {nsf::var::exists o1 x} 1
+  ? {nsf::var::exists -array o1 x} 0
+
+  # we unset the scalar
+  ? {nsf::var::unset o1 x} ""
+  ? {nsf::var::exists o1 x} 0
+  ? {nsf::var::exists -array o1 x} 0
+}
+
 nx::Test parameter count 10000
 nx::Test case dummy {
   nx::Object create o {

@@ -589,7 +589,7 @@ namespace eval ::nx::serializer {
 	    continue
 	  }
           if {[::nsf::var::exists -array $o $v]} {
-            lappend setcmd [list array set :$v [$o eval [list array get :$v]]]
+            lappend setcmd [list array set :$v [::nsf::var::set -array $o $v]]
           } else {
             lappend setcmd [list set :$v [::nsf::var::set $o $v]]
           }

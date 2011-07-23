@@ -361,7 +361,7 @@ static int NsfShowStackCmd(Tcl_Interp *interp);
 static int NsfUnsetUnknownArgsCmd(Tcl_Interp *interp);
 static int NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, CONST char *varName);
 static int NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int NsfVarSetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value);
+static int NsfVarSetCmd(Tcl_Interp *interp, int withArray, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value);
 static int NsfVarUnsetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
 static int NsfOClassMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *class);
@@ -1647,12 +1647,13 @@ NsfVarSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    NsfObject *object = (NsfObject *)pc.clientData[0];
-    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+    int withArray = (int )PTR2INT(pc.clientData[0]);
+    NsfObject *object = (NsfObject *)pc.clientData[1];
+    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfVarSetCmd(interp, object, varName, value);
+    return NsfVarSetCmd(interp, withArray, object, varName, value);
 
   }
 }
@@ -2570,7 +2571,8 @@ static Nsf_methodDefinition method_definitions[] = {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::var::set", NsfVarSetCmdStub, 3, {
+{"::nsf::var::set", NsfVarSetCmdStub, 4, {
+  {"-array", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

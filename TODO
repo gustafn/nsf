@@ -3083,6 +3083,15 @@ nsf:
   * regularized the interface of "variable" and "attribute"
   * extended regression test
 
+- nsf.c:
+  * added flag "-array" to nsf::var::set such we have
+    now "::nsf::var::set ?-array? object varName ?value?"
+    With "-array", nsf::var::set behaves like "array get"
+    or "array set" (on instance variables)
+  * use "::nsf::var::set -array" in serializer symmetrically
+    to scalar case
+  * extended regression test
+
 
 TODO:
  - add "delete variable" analogous to "delete attribute"
@@ -3105,11 +3114,6 @@ TODO:
          Variable is the tcl term, attribute is the UML term
      (e) others?
  - call user defined setter in object parameters?
-
-#::nsf::var::exists ?-array? object varName
-#::nsf::var::import object ?arg ...?
-#::nsf::var::set ?-array? object varName ?value?
-#::nsf::var::unset ?-array? object varName 
 
 
 - Revise callstack introspection/intercession, i.e., [current

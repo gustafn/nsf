@@ -600,7 +600,7 @@ typedef enum {
   /* constants */
   NSF_ALIAS, NSF_ARGS, NSF_CMD, NSF_FILTER, NSF_FORWARD, 
   NSF_METHOD, NSF_OBJECT, NSF_SETTER, NSF_VALUECHECK,
-  NSF_GUARD_OPTION, NSF___UNKNOWN__, 
+  NSF_GUARD_OPTION, NSF___UNKNOWN__, NSF_ARRAY, NSF_GET, NSF_SET,
   NSF_UNKNOWN_HANDLER,
   /* Partly redefined Tcl commands; leave them together at the end */
   NSF_EXPR, NSF_FORMAT, NSF_INFO_BODY, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, 
@@ -621,7 +621,7 @@ char *NsfGlobalStrings[] = {
   /* constants */
   "alias", "args", "cmd", "filter",  "forward", 
   "method", "object", "setter", "valuecheck",
-  "-guard", "__unknown__",
+  "-guard", "__unknown__", "::array", "get", "set",
   /* nsf tcl commands */
   "::nsf::object::unknown",
   /* tcl commands */

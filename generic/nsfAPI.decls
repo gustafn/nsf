@@ -181,6 +181,7 @@ cmd "var::import" NsfVarImportCmd {
   {-argName "args" -type args}
 }
 cmd "var::set" NsfVarSetCmd {
+  {-argName "-array" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
