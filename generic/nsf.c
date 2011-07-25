@@ -289,7 +289,11 @@ static void NsfCommandRelease(Tcl_Command cmd);
 static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
 void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
+static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
 
+#ifdef DO_FULL_CLEANUP
+static void DeleteProcsAndVars(Tcl_Interp *interp);
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -2312,7 +2316,7 @@ ObjectSystemFree(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
     FinalObjectDeletion(interp, &osPtr->rootMetaClass->object);
   }
 
-  FREE(NsfObjectSystem *, osPtr);
+  FREE(NsfObjectSystem, osPtr);
 }
 
 /*
@@ -2533,6 +2537,11 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
     nPtr = osPtr->nextPtr;
     ObjectSystemFree(interp, osPtr);
   }
+
+#ifdef DO_CLEANUP
+  /* finally, free all nsfprocs */
+  DeleteNsfProcs(interp, NULL);
+#endif
 
   return TCL_OK;
 }
@@ -7622,6 +7631,21 @@ ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs) {
   return TCL_ERROR;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamDefsNew --
+ *
+ *    Allocate a new paramDefs structure and initialize it with zeros. The
+ *    allocated structure should be freed with ParamDefsFree().
+ *
+ * Results:
+ *    pointer to paramDefs structure
+ *
+ * Side effects:
+ *    Allocating memory
+ *
+ *----------------------------------------------------------------------
+ */
 static NsfParamDefs *
 ParamDefsNew() {
   NsfParamDefs *paramDefs;
@@ -10494,7 +10518,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
 
  param_error:
   ckfree((char *)paramPtr->name);
-  paramPtr->name = NULL
+  paramPtr->name = NULL;
   DECR_REF_COUNT(paramPtr->nameObj);
   return TCL_ERROR;
 }
@@ -10586,8 +10610,8 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
     paramDefs = ParamDefsNew();
     paramDefs->paramsPtr = paramsPtr;
     paramDefs->nrParams = paramPtr-paramsPtr;
-    /*fprintf(stderr, "method %s ifsize %d, possible unknowns = %d,\n",
-      procName, paramPtr-paramDefsPtr, possibleUnknowns);*/
+    /*fprintf(stderr, "method %s paramDefs %p ifsize %ld, possible unknowns = %d,\n",
+      ObjStr(procNameObj), paramDefs, paramPtr-paramsPtr, possibleUnknowns);*/
     parsedParamPtr->paramDefs = paramDefs;
     parsedParamPtr->possibleUnknowns = possibleUnknowns;
   }
@@ -16583,6 +16607,8 @@ NsfFinalizeObjCmd(Tcl_Interp *interp) {
 # endif
   /*fprintf(stderr, "CLEANUP TOP NS\n");*/
   Tcl_Export(interp, RUNTIME_STATE(interp)->NsfNS, "", 1);
+  MEM_COUNT_FREE("TclNamespace",RUNTIME_STATE(interp)->NsfClassesNS);
+  MEM_COUNT_FREE("TclNamespace",RUNTIME_STATE(interp)->NsfNS);
   Tcl_DeleteNamespace(RUNTIME_STATE(interp)->NsfClassesNS);
   Tcl_DeleteNamespace(RUNTIME_STATE(interp)->NsfNS);
 #endif
@@ -17123,7 +17149,9 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 	  ParamDefsStore(cmd, paramDefs);
 	  /*fprintf(stderr, "new param defs %p for cmd %p %s\n", paramDefs, cmd, methodName);*/
 	}
-	objPtr = methodproperty == MethodpropertySlotobjIdx ? &paramDefs->slotObj : &paramDefs->returns;
+	objPtr = 
+	  methodproperty == MethodpropertySlotobjIdx ?
+	  &paramDefs->slotObj : &paramDefs->returns;
 
 	/* Set a new value; if there is already a value, free it */
 	if (*objPtr) {
@@ -20503,7 +20531,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   if (withSource == 0) {withSource = 1;}
 
   Tcl_InitHashTable(&slotTable, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", slotTable);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", &slotTable);
 
   /*
    * First add the per-object slot objects
@@ -20524,7 +20552,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   }
 
   Tcl_DeleteHashTable(&slotTable);
-  MEM_COUNT_FREE("Tcl_InitHashTable", slotTable);
+  MEM_COUNT_FREE("Tcl_InitHashTable", &slotTable);
 
   NsfClassListFree(precendenceList);
   Tcl_SetObjResult(interp, listObj);
@@ -21123,7 +21151,7 @@ NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class,
    * Use a hash table to eliminate potential duplicates.
    */
   Tcl_InitHashTable(&slotTable, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", slotTable);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", &slotTable);
 
   for (clPtr = precedenceList; clPtr; clPtr = clPtr->nextPtr) {
     if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
@@ -21133,7 +21161,7 @@ NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class,
   }
 
   Tcl_DeleteHashTable(&slotTable);
-  MEM_COUNT_FREE("Tcl_InitHashTable", slotTable);
+  MEM_COUNT_FREE("Tcl_InitHashTable", &slotTable);
 
   NsfClassListFree(precedenceList);
   Tcl_SetObjResult(interp, listObj);
@@ -21195,12 +21223,14 @@ NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosur
 static void
 DeleteProcsAndVars(Tcl_Interp *interp) {
   Tcl_Namespace *nsPtr = Tcl_GetGlobalNamespace(interp);
-  Tcl_HashTable *varTablePtr = nsPtr ? Tcl_Namespace_varTablePtr(ns) : NULL;
-  Tcl_HashTable *cmdTablePtr = nsPtr ? Tcl_Namespace_cmdTablePtr(ns) : NULL;
+  Tcl_HashTable *varTablePtr = nsPtr ? (Tcl_HashTable *)Tcl_Namespace_varTablePtr(nsPtr) : NULL;
+  Tcl_HashTable *cmdTablePtr = nsPtr ? Tcl_Namespace_cmdTablePtr(nsPtr) : NULL;
   Tcl_HashSearch search;
   Var *varPtr;
   Tcl_Command cmd;
   register Tcl_HashEntry *entryPtr;
+
+  fprintf(stderr, "DeleteProcsAndVars\n");
 
   for (entryPtr = Tcl_FirstHashEntry(varTablePtr, &search); entryPtr;
        entryPtr = Tcl_NextHashEntry(&search)) {
@@ -21228,17 +21258,114 @@ DeleteProcsAndVars(Tcl_Interp *interp) {
 
 
 #ifdef DO_CLEANUP
+/*
+ *----------------------------------------------------------------------
+ *
+ * DeleteNsfProcs --
+ *
+ *      Delete all nsfprocs in the namespaces rooted by the second
+ *      argument. If it is NULL, the globale namespace is used a root of the
+ *      namespace tree. The function is necessary to trigger the freeing of
+ *      the parameter defs.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Deletion of nsfprocs.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
+  Tcl_HashTable *cmdTablePtr, *childTablePtr;
+  register Tcl_HashEntry *entryPtr;
+  Tcl_HashSearch search;
+  Tcl_Command cmd;
+  
+  if (nsPtr == NULL) {
+    nsPtr = Tcl_GetGlobalNamespace(interp);
+  }
+
+  assert(nsPtr);
+  /*fprintf(stderr, "### DeleteNsfProcs current namespace '%s'\n", 
+    nsPtr ? nsPtr->fullName : "NULL");*/
+
+  cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
+  childTablePtr = Tcl_Namespace_childTablePtr(nsPtr);
+
+  for (entryPtr = Tcl_FirstHashEntry(cmdTablePtr, &search); entryPtr;
+       entryPtr = Tcl_NextHashEntry(&search)) {
+    cmd = (Tcl_Command)Tcl_GetHashValue(entryPtr);
+    if (Tcl_Command_objProc(cmd) == NsfProcStub) {
+      /*fprintf(stderr, "cmdname = %s cmd %p\n",
+	Tcl_GetHashKey(cmdTablePtr, entryPtr), cmd);*/
+      Tcl_DeleteCommandFromToken(interp, cmd);
+    }
+  }
+  for (entryPtr = Tcl_FirstHashEntry(childTablePtr, &search); entryPtr;
+       entryPtr = Tcl_NextHashEntry(&search)) {
+    Tcl_Namespace *childNsPtr = (Tcl_Namespace *) Tcl_GetHashValue(entryPtr);
+    DeleteNsfProcs(interp, childNsPtr);
+  }   
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * ClassHasSubclasses --
+ *
+ *      Check, whether the given class has subclasses.
+ *
+ * Results:
+ *      boolean
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ClassHasSubclasses(NsfClass *cl) {
   return (cl->sub != NULL);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * ClassHasInstances --
+ *
+ *      Check, whether the given class has instances.
+ *
+ * Results:
+ *      boolean
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ClassHasInstances(NsfClass *cl) {
   Tcl_HashSearch hSrch;
   return (Tcl_FirstHashEntry(&cl->instances, &hSrch) != NULL);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * ObjectHasChildren --
+ *
+ *      Check, whether the given object has children
+ *
+ * Results:
+ *      boolean
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ObjectHasChildren(NsfObject *object) {
   Tcl_Namespace *ns = object->nsPtr;
@@ -21485,6 +21612,9 @@ ExitHandler(ClientData clientData) {
   NsfProfileFree(interp);
 #endif
 
+  FREE(Tcl_Obj**, NsfGlobalObjs);
+  FREE(NsfRuntimeState, RUNTIME_STATE(interp));
+
 #if defined(TCL_MEM_DEBUG)
   TclDumpMemoryInfo((ClientData) stderr, 0);
   Tcl_DumpActiveMemory("./nsfActiveMem");
@@ -21492,9 +21622,6 @@ ExitHandler(ClientData clientData) {
      checkmem checkmemFile"); */
 #endif
   MEM_COUNT_DUMP();
-
-  FREE(Tcl_Obj**, NsfGlobalObjs);
-  FREE(NsfRuntimeState, RUNTIME_STATE(interp));
 
   Tcl_Interp_flags(interp) = flags;
   Tcl_Release(interp);

@@ -3095,6 +3095,14 @@ nsf:
     to scalar case
   * extended regression test
 
+- nsf.c:
+   * fixing compliation with NSF_MEM_COUNT
+   * New function DeleteProcsAndVars() to trigger deletion of
+     ParamDefs (fixes a small mmemory leak);
+   * improved comments
+    
+
+
 TODO:
  - add "delete variable" analogous to "delete attribute"
  - interface of "variable" and "attribute":
@@ -3102,20 +3110,6 @@ TODO:
    * should we switch from "-class" to "-slotclass"?
    * should we change interface for default value in attribute? 
      probably not, same interface is used in methodparameters as well
-
- - Should we leave "variable" and "attribute" as it is, or
-   switch the names to something better? Some options:
-
- - [obj/cls info method handle "FOO foo"] does neither return a proper
-   submethod handle nor any valid handle ... needs a fix.
-
- - NsfObjWrongArgs() & friends is not aware of submethods. Error
-   messages print with the leaf method names only, e.g.: "anObj method
-   ..." instead of " anObj info method ..." etc.
-
- - variable and incremental, test for user-defined types
- - should we change interface for default value in attribute? 
-   probably not, same interface is used in methodparameters as well
  - Should we leave "variable" and "attribute" as it ist?
    options:
      (a) leave it as it is
@@ -3129,6 +3123,13 @@ TODO:
          Variable is the tcl term, attribute is the UML term
      (e) others?
  - call user defined setter in object parameters?
+
+ - [obj/cls info method handle "FOO foo"] does neither return a proper
+   submethod handle nor any valid handle ... needs a fix.
+
+ - NsfObjWrongArgs() & friends is not aware of submethods. Error
+   messages print with the leaf method names only, e.g.: "anObj method
+   ..." instead of " anObj info method ..." etc.
 
 - Revise callstack introspection/intercession, i.e., [current
   activelevel] vs. [current callinglevel] vs. uplevel()/upvar():

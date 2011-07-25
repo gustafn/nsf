@@ -87,7 +87,6 @@
 #endif
 
 #ifdef NSF_MEM_COUNT
-Tcl_HashTable nsfMemCount;
 extern int nsfMemCountInterpCounter;
 typedef struct NsfMemCounter {
   int peak;
@@ -97,6 +96,7 @@ typedef struct NsfMemCounter {
 #  define MEM_COUNT_FREE(id,p) NsfMemCountFree(id,p)
 #  define MEM_COUNT_INIT() \
       if (nsfMemCountInterpCounter == 0) { \
+        extern Tcl_HashTable nsfMemCount; \
         Tcl_InitHashTable(&nsfMemCount, TCL_STRING_KEYS); \
         nsfMemCountInterpCounter = 1; \
       }

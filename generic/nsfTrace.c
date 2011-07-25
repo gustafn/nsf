@@ -71,6 +71,9 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
 }
 
 #ifdef NSF_MEM_COUNT
+Tcl_HashTable nsfMemCount;
+
+
 void 
 NsfMemCountAlloc(char *id, void *p) {
   int new;
