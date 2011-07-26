@@ -433,7 +433,7 @@ NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST
  *
  *      Initialize a ParseContext with default values and allocate
  *      memory if needed. Every ParseContext has to be initialized
- *      before usage and has to be freed with ParseContextRelease.
+ *      before usage and has to be freed with ParseContextRelease().
  *
  * Results:
  *      None.
@@ -550,10 +550,11 @@ ParseContextRelease(ParseContext *pcPtr) {
       int i;
       for (i = 0; i < pcPtr->objc-1; i++) {
 	/*fprintf(stderr, "ParseContextRelease %p check [%d] obj %p refCount %d (%s)\n",
-	  pcPtr, i, pcPtr->objv[i], pcPtr->objv[i]->refCount, ObjStr(pcPtr->objv[i]));*/
+		pcPtr, i, pcPtr->objv[i], pcPtr->objv[i]->refCount, 
+		ObjStr(pcPtr->objv[i]));*/
 	if (pcPtr->flags[i] & NSF_PC_MUST_DECR) {
 	  assert(pcPtr->objv[i]->refCount > 0);
-	  DECR_REF_COUNT(pcPtr->objv[i]);
+	  DECR_REF_COUNT2("valueObj", pcPtr->objv[i]);
 	}
       }
     }
@@ -811,7 +812,7 @@ NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj,
   int result;
   ALLOC_ON_STACK(Tcl_Obj *, objc+2, ov);
 
-  INCR_REF_COUNT(nameObj);
+  INCR_REF_COUNT2("nameObj", nameObj);
 
   ov[0] = NULL;
   ov[1] = nameObj;
@@ -821,7 +822,7 @@ NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj,
   result = NsfCCreateMethod(interp, cl, ObjStr(nameObj), objc+2, ov);
 
   FREE_ON_STACK(Tcl_Obj*, ov);
-  DECR_REF_COUNT(nameObj);
+  DECR_REF_COUNT2("nameObj", nameObj);
 
   return result;
 }
@@ -2300,11 +2301,11 @@ GetObjectSystem(NsfObject *object) {
 
 static void
 ObjectSystemFree(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
-  int i;
+  int idx;
 
-  for (i=0; i<=NSF_o_unknown_idx; i++) {
-    if (osPtr->methods[i]) { DECR_REF_COUNT(osPtr->methods[i]); }
-    if (osPtr->handles[i]) { DECR_REF_COUNT(osPtr->handles[i]); }
+  for (idx=0; idx<=NSF_o_unknown_idx; idx++) {
+    if (osPtr->methods[idx]) { DECR_REF_COUNT(osPtr->methods[idx]); }
+    if (osPtr->handles[idx]) { DECR_REF_COUNT(osPtr->handles[idx]); }
   }
 
   if (osPtr->rootMetaClass && osPtr->rootClass) {
@@ -2922,12 +2923,12 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *UNUSE
  *
  *********************************************************/
 
-typedef struct nsfResolvedVarInfo {
+typedef struct NsfResolvedVarInfo {
   Tcl_ResolvedVarInfo vInfo;        /* This must be the first element. */
   NsfObject *lastObject;
   Tcl_Var var;
   Tcl_Obj *nameObj;
-} nsfResolvedVarInfo;
+} NsfResolvedVarInfo;
 
 /*
  *----------------------------------------------------------------------
@@ -2982,7 +2983,7 @@ HashVarFree(Tcl_Var var) {
 
 static Tcl_Var
 CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
-  nsfResolvedVarInfo *resVarInfo = (nsfResolvedVarInfo *)vinfoPtr;
+  NsfResolvedVarInfo *resVarInfo = (NsfResolvedVarInfo *)vinfoPtr;
   NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
   NsfObject *object = cscPtr ? cscPtr->self : NULL;
   TclVarHashTable *varTablePtr;
@@ -3078,11 +3079,11 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
  */
 static void
 CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
-  nsfResolvedVarInfo *resVarInfo = (nsfResolvedVarInfo *)vInfoPtr;
+  NsfResolvedVarInfo *resVarInfo = (NsfResolvedVarInfo *)vInfoPtr;
 
   DECR_REF_COUNT(resVarInfo->nameObj);
   if (resVarInfo->var) {HashVarFree(resVarInfo->var);}
-  ckfree((char *) vInfoPtr);
+  FREE(NsfResolvedVarInfo, vInfoPtr);
 }
 
 /*
@@ -3131,15 +3132,15 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
 #endif
 
   if (object && FOR_COLON_RESOLVER(name)) {
-    nsfResolvedVarInfo *vInfoPtr = (nsfResolvedVarInfo *) ckalloc(sizeof(nsfResolvedVarInfo));
+    NsfResolvedVarInfo *resVarInfo = NEW(NsfResolvedVarInfo);
 
-    vInfoPtr->vInfo.fetchProc = CompiledColonVarFetch;
-    vInfoPtr->vInfo.deleteProc = CompiledColonVarFree; /* if NULL, tcl does a ckfree on proc clean up */
-    vInfoPtr->lastObject = NULL;
-    vInfoPtr->var = NULL;
-    vInfoPtr->nameObj = Tcl_NewStringObj(name+1, length-1);
-    INCR_REF_COUNT(vInfoPtr->nameObj);
-    *rPtr = (Tcl_ResolvedVarInfo *)vInfoPtr;
+    resVarInfo->vInfo.fetchProc = CompiledColonVarFetch;
+    resVarInfo->vInfo.deleteProc = CompiledColonVarFree; /* if NULL, tcl does a ckfree on proc clean up */
+    resVarInfo->lastObject = NULL;
+    resVarInfo->var = NULL;
+    resVarInfo->nameObj = Tcl_NewStringObj(name+1, length-1);
+    INCR_REF_COUNT(resVarInfo->nameObj);
+    *rPtr = (Tcl_ResolvedVarInfo *)resVarInfo;
 
     return TCL_OK;
   }
@@ -4353,7 +4354,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       Tcl_UnsetVar2(interp, NsfGlobalStrings[NSF_AUTONAMES], ObjStr(nameObj), flgs);
     }
     resultObj = NsfGlobalObjs[NSF_EMPTY];
-    INCR_REF_COUNT(resultObj);
+    INCR_REF_COUNT2("autoname", resultObj);
   } else {
     int mustCopy = 1, format = 0;
 
@@ -4369,14 +4370,14 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       if (isupper((int)firstChar)) {
         buffer[0] = tolower((int)firstChar);
         resultObj = Tcl_NewStringObj(buffer, 1);
-        INCR_REF_COUNT(resultObj);
+        INCR_REF_COUNT2("autoname", resultObj);
         Tcl_AppendLimitedToObj(resultObj, nextChars, -1, INT_MAX, NULL);
         mustCopy = 0;
       }
     }
     if (mustCopy) {
       resultObj = Tcl_DuplicateObj(nameObj);
-      INCR_REF_COUNT(resultObj);
+      INCR_REF_COUNT2("autoname", resultObj);
       /*
         fprintf(stderr, "*** copy %p %s = %p\n", name, ObjStr(name), resultObj);
       */
@@ -4412,7 +4413,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       }
       DECR_REF_COUNT(resultObj);
       resultObj = Tcl_DuplicateObj(Tcl_GetObjResult(interp));
-      INCR_REF_COUNT(resultObj);
+      INCR_REF_COUNT2("autoname", resultObj);
       Tcl_SetObjResult(interp, savedResultObj);
       DECR_REF_COUNT(savedResultObj);
       FREE_ON_STACK(Tcl_Obj*, ov);
@@ -8082,9 +8083,7 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
  */
 static int
 ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
-#if defined(NRE)
   ParseContext *pcPtr = data[0];
-#endif
   NsfCallStackContent *cscPtr = data[1];
   /*CONST char *methodName = data[2];*/
 #if defined(NSF_WITH_ASSERTIONS)
@@ -8092,9 +8091,9 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   NsfObjectOpt *opt = object->opt;
 #endif
 
-  /*fprintf(stderr, "ProcMethodDispatchFinalize %s flags %.6x isNRE %d\n",
+  /*fprintf(stderr, "ProcMethodDispatchFinalize %s flags %.6x isNRE %d pcPtr %p\n",
 	  ObjectName(object),
-	  cscPtr->flags, (cscPtr->flags & NSF_CSC_CALL_IS_NRE));*/
+	  cscPtr->flags, (cscPtr->flags & NSF_CSC_CALL_IS_NRE), pcPtr);*/
 
 #if defined(NSF_WITH_ASSERTIONS)
   if (opt && object->teardown && (opt->checkoptions & CHECK_POST)) {
@@ -8120,6 +8119,10 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
     result = ObjectDispatchFinalize(interp, cscPtr, result /*, "NRE" , methodName*/);
 
     CscFinish(interp, cscPtr, result, "scripted finalize");
+  }
+#else
+  if (pcPtr) {
+    ParseContextRelease(pcPtr);
   }
 #endif
 
@@ -8159,7 +8162,7 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 # endif
 
   ParseContextRelease(pcPtr);
-  NsfTclStackFree(interp, pcPtr, "proc dispatch finialize release parse context");
+  NsfTclStackFree(interp, pcPtr, "nsf::proc dispatch finialize release parse context");
 
   return result;
 }
@@ -9421,11 +9424,27 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
  *  Proc-Creation
  */
 
+/*
+ *----------------------------------------------------------------------
+ * AddPrefixToBody --
+ *
+ *    Create a fresh TclObj* containing the body with an potential prefix.
+ *    The caller has to decrement the refcount on this Tcl_Obj*.
+ *
+ * Results:
+ *    Tcl_Obj
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static Tcl_Obj *
 AddPrefixToBody(Tcl_Obj *body, int paramDefs, NsfParsedParam *paramPtr) {
   Tcl_Obj *resultBody = Tcl_NewObj();
 
-  INCR_REF_COUNT(resultBody);
+  INCR_REF_COUNT2("resultBody", resultBody);
 
   if (paramDefs && paramPtr->possibleUnknowns > 0) {
     Tcl_AppendStringsToObj(resultBody, "::nsf::__unset_unknown_args\n", (char *) NULL);
@@ -10638,7 +10657,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
 			    NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
 			    &parsedParam);
   }
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
 
@@ -10709,7 +10728,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   if (parsedParam.paramDefs) {
     DECR_REF_COUNT(ov[2]);
   }
-  DECR_REF_COUNT(ov[3]);
+  DECR_REF_COUNT2("resultBody", ov[3]);
 
   return result;
 }
@@ -10810,7 +10829,7 @@ NsfProcStubDeleteProc(ClientData clientData) {
   /*fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
     fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
 
-  DECR_REF_COUNT(tcd->procName);
+  DECR_REF_COUNT2("procNameObj",tcd->procName);
   if (tcd->cmd) {
     NsfCommandRelease(tcd->cmd);
   }
@@ -11098,7 +11117,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   DStringAppendQualName(dsPtr, cmdNsPtr, Tcl_GetCommandName(interp, cmd));
   procNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
 
-  INCR_REF_COUNT(procNameObj); /* will be freed, when NsfProcStub is deleted */
+  INCR_REF_COUNT2("procNameObj", procNameObj); /* will be freed, when NsfProcStub is deleted */
 
   /*
    * Make sure to create the target namespace under "::nsf::procs::", if
@@ -11165,7 +11184,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
   result = Tcl_ProcObjCmd(0, interp, 4, ov);
   DECR_REF_COUNT(argList);
-  DECR_REF_COUNT(ov[3]);
+  DECR_REF_COUNT2("resultBody", ov[3]);
 
   if (result == TCL_OK) {
     /*
@@ -13678,7 +13697,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
       result = SetInstVar(interp, object, objv[0], outObjPtr);
 
       if (flags & NSF_PC_MUST_DECR) {
-        DECR_REF_COUNT(outObjPtr);
+        DECR_REF_COUNT2("valueObj", outObjPtr);
       }
     }
     return result;
@@ -14556,7 +14575,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST 
       NsfPrintError(interp, "invalid value in \"%s\": %s", ObjStr(objPtr), ObjStr(resultObj));
       *flags &= ~NSF_PC_MUST_DECR;
       *outObjPtr = objPtr;
-      DECR_REF_COUNT(*outObjPtr);
+      DECR_REF_COUNT2("valueObj", *outObjPtr);
       DECR_REF_COUNT(resultObj);
       break;
     }
@@ -14669,9 +14688,10 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool);
 	/*
 	 * Perform bookkeeping to avoid that someone releases the new obj
-	 * before we are done.
+	 * before we are done. The according DECR is performed by
+	 * ParseContextRelease() 
 	 */
-	INCR_REF_COUNT(pcPtr->objv[i]);
+	INCR_REF_COUNT2("valueObj", pcPtr->objv[i]);
 	pcPtr->flags[i] |= NSF_PC_MUST_DECR;
 	pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
       }
@@ -14706,7 +14726,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
                   newValue, ObjStr(newValue));*/
 
           /* The according DECR is performed by ParseContextRelease() */
-          INCR_REF_COUNT(newValue);
+          INCR_REF_COUNT2("valueObj", newValue);
           mustDecrNewValue = 1;
           pcPtr->flags[i] |= NSF_PC_MUST_DECR;
           pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
@@ -14737,7 +14757,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	     * here and clear the flag.
 	     */
 	    if (mustDecrNewValue) {
-	      DECR_REF_COUNT(newValue);
+	      DECR_REF_COUNT2("valueObj", newValue);
 	      pcPtr->flags[i] &= ~NSF_PC_MUST_DECR;
 	    }
             /*
@@ -14927,7 +14947,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
 	      if (valueInArgument) {
 		valueObj = Tcl_NewStringObj(valueInArgument+1,-1);
-		INCR_REF_COUNT(valueObj);
+		INCR_REF_COUNT2("valueObj", valueObj);
 		pcPtr->flags[j] |= NSF_PC_MUST_DECR;
 	      } else {
 		if (nppPtr->converter == Nsf_ConvertToSwitch) {
@@ -18846,7 +18866,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
   }
 
   if (flags & NSF_PC_MUST_DECR) {
-    DECR_REF_COUNT(outObjPtr);
+    DECR_REF_COUNT2("valueObj", outObjPtr);
   }
 
   return result;
@@ -18870,7 +18890,7 @@ NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *object, int withInstance, int 
   Tcl_Obj *autoname = AutonameIncr(interp, nameObj, object, withInstance, withReset);
   if (autoname) {
     Tcl_SetObjResult(interp, autoname);
-    DECR_REF_COUNT(autoname);
+    DECR_REF_COUNT2("autoname", autoname);
 
     return TCL_OK;
   }

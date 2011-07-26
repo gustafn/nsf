@@ -3100,6 +3100,14 @@ nsf:
    * New function DeleteProcsAndVars() to trigger deletion of
      ParamDefs (fixes a small memory leak);
    * improved comments
+   * improved INCR_REF_COUNT/DECR_REF_COUNT for easier
+     tracking of potential refcount errors
+   * added macros DECR_REF_COUNT2() and INCR_REF_COUNT2()
+     for easing the association of refcounts to locations
+     in the code by providing names for refcounts.
+   * fixed a refcount bug for valueObjs in non-NRE-enabled
+     versions in the argument vector of scripted methods
+     (found via INCR_REF_COUNT2/DECR_REF_COUNT2)
     
 
 

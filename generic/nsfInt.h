@@ -217,7 +217,7 @@ typedef struct NsfMemCounter {
 # define NSF_INLINE
 # define NsfNewObj(A) A=Tcl_NewObj()
 # define DECR_REF_COUNT(A) \
-	MEM_COUNT_FREE("INCR_REF_COUNT",A); Tcl_DecrRefCount(A)
+	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); Tcl_DecrRefCount(A)
 #else
 /*
  * This was defined to be inline for anything !sun or __IBMC__ >= 0x0306,
@@ -231,12 +231,17 @@ typedef struct NsfMemCounter {
 # ifdef USE_TCL_STUBS
 #  define NsfNewObj(A) A=Tcl_NewObj()
 #  define DECR_REF_COUNT(A) \
-	MEM_COUNT_FREE("INCR_REF_COUNT",A); assert((A)->refCount > -1); \
+	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); assert((A)->refCount > -1); \
+        Tcl_DecrRefCount(A)
+#  define DECR_REF_COUNT2(name,A)					\
+	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); assert((A)->refCount > -1); \
         Tcl_DecrRefCount(A)
 # else
 #  define NsfNewObj(A) TclNewObj(A)
 #  define DECR_REF_COUNT(A) \
-	MEM_COUNT_FREE("INCR_REF_COUNT",A); TclDecrRefCount(A)
+	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); TclDecrRefCount(A)
+#  define DECR_REF_COUNT2(name,A)				\
+	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); TclDecrRefCount(A)
 # endif
 #endif
 
@@ -246,7 +251,8 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 
 #define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
 
-#define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT",A); Tcl_IncrRefCount(A)
+#define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT"#A,A); Tcl_IncrRefCount(A)
+#define INCR_REF_COUNT2(name,A) MEM_COUNT_ALLOC("INCR_REF_COUNT-" name,A); Tcl_IncrRefCount(A)
 
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,obj) \
