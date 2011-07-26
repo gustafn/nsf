@@ -109,7 +109,8 @@ NsfMemCountFree(char *id, void *p) {
 
   hPtr = Tcl_FindHashEntry(table, id);
   if (!hPtr) {
-    fprintf(stderr, "******** MEM COUNT ALERT: Trying to free <%s>, but was not allocated\n", id);
+    fprintf(stderr, "******** MEM COUNT ALERT: Trying to free %p <%s>, "
+	    "but was not allocated\n", p, id);
     return;
   }
   entry = (NsfMemCounter *)Tcl_GetHashValue(hPtr);

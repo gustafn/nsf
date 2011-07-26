@@ -11280,7 +11280,7 @@ ForwardCmdDeleteProc(ClientData clientData) {
   if (tcd->onerror)     {DECR_REF_COUNT(tcd->onerror);}
   if (tcd->prefix)      {DECR_REF_COUNT(tcd->prefix);}
   if (tcd->args)        {DECR_REF_COUNT(tcd->args);}
-  FREE(forwardCmdClientData, tcd);
+  FREE(ForwardCmdClientData, tcd);
 }
 
 
@@ -11435,7 +11435,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
                        Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
                        int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
                        Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
-                       ForwardCmdClientData **tcdp) {
+                       ForwardCmdClientData **tcdPtr) {
   ForwardCmdClientData *tcd;
   int i, result = 0;
 
@@ -11530,7 +11530,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
  forward_process_options_exit:
   /*fprintf(stderr, "forward args = %p, name = '%s'\n", tcd->args, ObjStr(tcd->cmdName));*/
   if (result == TCL_OK) {
-    *tcdp = tcd;
+    *tcdPtr = tcd;
   } else {
     ForwardCmdDeleteProc(tcd);
   }
