@@ -3115,6 +3115,7 @@ nsf:
      in error cases.
    * added explicit INCR_REF_COUNTs on Tcl_Objs
      with 0-refCount to ease debugging
+   * added explicit names for refcounting for "paramDefsObj"
     
 
 

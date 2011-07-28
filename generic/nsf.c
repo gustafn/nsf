@@ -7728,8 +7728,8 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
   if (paramDefs->paramsPtr) {
     ParamsFree(paramDefs->paramsPtr);
   }
-  if (paramDefs->slotObj) {DECR_REF_COUNT(paramDefs->slotObj);}
-  if (paramDefs->returns) {DECR_REF_COUNT(paramDefs->returns);}
+  if (paramDefs->slotObj) {DECR_REF_COUNT2("paramDefsObj", paramDefs->slotObj);}
+  if (paramDefs->returns) {DECR_REF_COUNT2("paramDefsObj", paramDefs->returns);}
   FREE(NsfParamDefs, paramDefs);
 }
 
@@ -17340,14 +17340,14 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
 	/* Set a new value; if there is already a value, free it */
 	if (*objPtr) {
-	  DECR_REF_COUNT(*objPtr);
+	  DECR_REF_COUNT2("paramDefsObj", *objPtr);
 	}
 	if (*valueString == '\0') {
 	  /* set the value to NULL */
 	  *objPtr = NULL;
 	} else {
 	  *objPtr = valueObj;
-	  INCR_REF_COUNT(*objPtr);
+	  INCR_REF_COUNT2("paramDefsObj", *objPtr);
 	}
       }
       break;
