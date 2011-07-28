@@ -3125,6 +3125,9 @@ TODO:
     # TODO: currently, we need to converter (or a converter on nx::Slot), since
     # variable uses nsf::is and attribute uses the slot obj. method variable should
     # be changed to use the slotobj as well.
+ - dispsition.test: 
+    * remove/check exit (see comments in the file)
+    * handle exit from eval/inticmd with proper refcounts
 
  - add "delete variable" analogous to "delete attribute"
  - interface of "variable" and "attribute":

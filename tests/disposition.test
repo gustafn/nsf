@@ -1136,7 +1136,22 @@ nx::Test case dispo-configure-transparency {
   # UNPATCHED:
   # ? {[C create c -show me] eval {set :msg}} "::c-{} show"
   ? {[C create c -show me] eval {set :msg}} "::c-show-me"
-  exit
+
+  
+  #
+  # TODO: 
+  #
+  #  - Stefan, why is the exit here? is the work in progress?  If it
+  #    is removed, some tests below fail. So, i used "if 0" in the
+  #    meantime...
+  #
+  #  - an exit from the initCmd still leaves some garbage around (some
+  #    refcounts are not correct, see warning message and counters,
+  #    when NSF_MEM_COUNT is turned on.
+  #
+  #exit
+
+  if {0} {
   #
   # ... with mixin indirection
   #
@@ -1194,7 +1209,7 @@ nx::Test case dispo-configure-transparency {
   #
   # ... with filter indirection
   #
-
+}
 }
 
 nx::Test case dispo-object-targets {
