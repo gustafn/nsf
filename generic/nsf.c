@@ -14039,7 +14039,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
  add_to_freelist:
   if (!*freeList) {
     *freeList = Tcl_NewListObj(1, out);
-    INCR_REF_COUNT(*freeList);
+    INCR_REF_COUNT2("freeList", *freeList);
   } else {
     Tcl_ListObjAppendElement(interp, *freeList, *out);
   }
@@ -14162,7 +14162,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
     return result;
 
   } else {
-    Tcl_Obj **ov, *freeList=NULL;
+    Tcl_Obj **ov, *freeList = NULL;
     int j, outputincr, outputArg = 0, firstPosArg=1,
       totalargs = objc + tcd->nr_args + 3;
 
@@ -14307,7 +14307,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
 
     if (tcd->prefix) {DECR_REF_COUNT(ov[1]);}
   exitforwardmethod:
-    if (freeList)    {DECR_REF_COUNT(freeList);}
+    if (freeList)    {DECR_REF_COUNT2("freeList", freeList);}
 
     FREE_ON_STACK(int, objvmap);
     FREE_ON_STACK(Tcl_Obj*, OV);

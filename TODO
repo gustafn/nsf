@@ -3116,7 +3116,8 @@ nsf:
    * added explicit INCR_REF_COUNTs on Tcl_Objs
      with 0-refCount to ease debugging
    * added explicit names for refcounting for "paramDefsObj"
-    
+   * added explicit names for refcounting for "freeList" (for forwaders)
+
 
 
 TODO:
@@ -3125,7 +3126,7 @@ TODO:
     # TODO: currently, we need to converter (or a converter on nx::Slot), since
     # variable uses nsf::is and attribute uses the slot obj. method variable should
     # be changed to use the slotobj as well.
- - dispsition.test: 
+ - disposition.test: 
     * remove/check exit (see comments in the file)
     * handle exit from eval/inticmd with proper refcounts
 
