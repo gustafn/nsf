@@ -3117,18 +3117,34 @@ nsf:
      with 0-refCount to ease debugging
    * added explicit names for refcounting for "paramDefsObj"
    * added explicit names for refcounting for "freeList" (for forwaders)
-
+   * provide debug-refcounts for "NSNamespace"
+   * provide debug-refcounts for "nextArgumentVector"
 
 
 TODO:
 
  - from parameters.test
-    # TODO: currently, we need to converter (or a converter on nx::Slot), since
+    # TODO: currently, we need two converters (or a converter on nx::Slot), since
     # variable uses nsf::is and attribute uses the slot obj. method variable should
     # be changed to use the slotobj as well.
  - disposition.test: 
     * remove/check exit (see comments in the file)
     * handle exit from eval/inticmd with proper refcounts
+ - check ckalloc/ckfree, whether these should be moved to
+   NEW/FREE.
+ - nsf-refcounts on TclNamespace are not correct, when namespaces
+   are deleted by tcl. Maybe this is not a problem, but we have to check.
+
+     Test case explicit-namespace-free {
+        Object create o {:method foo {} {return 1}}
+        namespace delete ::o
+     }
+ - fix mem_count on alias.test (currently 1) and destroy.test (-2),
+   most probably related with the point above
+ - fix mem_count on testx (currently 3)
+ - fix mem_count on contains.test (currently 3)
+ - fix mem_count on slottest.test (currently 4)
+ - fix mem_count on xocomm.test (currently 26)
 
  - add "delete variable" analogous to "delete attribute"
  - interface of "variable" and "attribute":

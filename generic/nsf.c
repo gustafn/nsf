@@ -745,8 +745,8 @@ NsfCommandPreserve(Tcl_Command cmd) {
 static void
 NsfCommandRelease(Tcl_Command cmd) {
   /*fprintf(stderr,"NsfCommandRelease %p\n", cmd);*/
-  TclCleanupCommandMacro((Command *)cmd);
   MEM_COUNT_FREE("command.refCount", cmd);
+  TclCleanupCommandMacro((Command *)cmd);
 }
 
 /***********************************************************************
@@ -3009,7 +3009,7 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
 #if defined(VAR_RESOLVER_TRACE)
   int flags = var ? ((Var *)var)->flags : 0;
   fprintf(stderr,"CompiledColonVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
-	  ObjStr(resVarInfo->nameObj), var, flags, flags&VAR_DEAD_HASH);
+	  ObjStr(resVarInfo->nameObj), var, flags, flags & VAR_DEAD_HASH);
 #endif
 
   /*
@@ -3581,6 +3581,7 @@ RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
 static void
 NSNamespacePreserve(Tcl_Namespace *nsPtr) {
   assert(nsPtr);
+  MEM_COUNT_ALLOC("NSNamespace", nsPtr);
   Tcl_Namespace_refCount(nsPtr)++;
 }
 /*
@@ -3601,13 +3602,14 @@ static void
 NSNamespaceRelease(Tcl_Namespace *nsPtr) {
 
   assert(nsPtr);
+  MEM_COUNT_FREE("NSNamespace", nsPtr);
   Tcl_Namespace_refCount(nsPtr)--;
   if (Tcl_Namespace_refCount(nsPtr) == 0 && (Tcl_Namespace_flags(nsPtr) & NS_DEAD)) {
     /*
      * The namespace refCount has reached 0, we have to free
      * it. unfortunately, NamespaceFree() is not exported
      */
-    /* fprintf(stderr, "HAVE TO FREE %p\n", nsPtr); */
+    fprintf(stderr, "HAVE TO FREE %p\n", nsPtr); 
     /*NamespaceFree(nsPtr);*/
     ckfree(nsPtr->fullName);
     ckfree(nsPtr->name);
@@ -11999,8 +12001,9 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       methodNameLength = 1 + cscPtr->objc - oc;
       nobjc = objc + methodNameLength;
       nobjv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * nobjc);
+      MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
-       * copy the ensemble name
+       * copy the ensemble path name
        */
       memcpy((char *)nobjv, cscPtr->objv, sizeof(Tcl_Obj *) * methodNameLength);
 
@@ -12008,6 +12011,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       methodNameLength = 1;
       nobjc = objc + methodNameLength;
       nobjv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * nobjc);
+      MEM_COUNT_ALLOC("nextArgumentVector", nobjv);
       /*
        * copy the method name
        */
@@ -12084,6 +12088,7 @@ NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 
   if (nobjv) {
     DECR_REF_COUNT(nobjv[0]);
+    MEM_COUNT_FREE("nextArgumentVector", nobjv);
     ckfree((char *)nobjv);
   }
 
