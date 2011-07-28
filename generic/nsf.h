@@ -97,6 +97,8 @@
 #define NSF_MEM_COUNT 1
 */
 //#define NSF_MEM_COUNT 1
+//#define NSF_MEM_TRACE 1
+//#define PARSE_TRACE 1
 
 /* turn  tracing output on/off
 #define NSFOBJ_TRACE 1

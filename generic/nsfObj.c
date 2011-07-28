@@ -59,7 +59,7 @@ MixinregFreeInternalRep(
      * Decrement refCounts
      */
     NsfObjectRefCountDecr(&(mixinRegPtr->mixin)->object);
-    if (mixinRegPtr->guardObj) {DECR_REF_COUNT(mixinRegPtr->guardObj);}
+    if (mixinRegPtr->guardObj) {DECR_REF_COUNT2("mixinRegPtr->guardObj", mixinRegPtr->guardObj);}
 
     /*
      * ... and free structure
@@ -111,7 +111,7 @@ MixinregSetFromAny(
    * ... and increment refCounts
    */
   NsfObjectRefCountIncr((&mixin->object));
-  if (guardObj) {INCR_REF_COUNT(guardObj);}
+  if (guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", guardObj);}
 
   mixinRegPtr->mixin = mixin;
   mixinRegPtr->guardObj = guardObj;
@@ -208,8 +208,8 @@ FilterregFreeInternalRep(
     /*
      * Decrement refCounts
      */
-    DECR_REF_COUNT(filterregPtr->filterObj);
-    if (filterregPtr->guardObj) {DECR_REF_COUNT(filterregPtr->guardObj);}
+    DECR_REF_COUNT2("filterregPtr->filterObj", filterregPtr->filterObj);
+    if (filterregPtr->guardObj) {DECR_REF_COUNT2("filterregPtr->guardObj", filterregPtr->guardObj);}
 
     /*
      * ... and free structure
@@ -253,8 +253,8 @@ FilterregSetFromAny(
   /*
    * ... and increment refCounts
    */
-  INCR_REF_COUNT(filterObj);
-  if (guardObj) {INCR_REF_COUNT(guardObj);}
+  INCR_REF_COUNT2("filterregPtr->filterObj", filterObj);
+  if (guardObj) {INCR_REF_COUNT2("filterregPtr->guardObj", guardObj);}
 
   filterregPtr->filterObj = filterObj;
   filterregPtr->guardObj = guardObj;

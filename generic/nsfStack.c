@@ -596,7 +596,8 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
  *----------------------------------------------------------------------
  * CallStackMethodPath --
  *
- *    Return the method path of the current ensemble.
+ *    Return the method path of the current ensemble in a Tcl_Obj with
+ *    refCount 0.
  *
  * Results:
  *    Tcl_Obj containing the method path
@@ -666,6 +667,7 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     int oc, i;
     Tcl_Obj **ov;
     
+    INCR_REF_COUNT(methodPathObj);
     Tcl_ListObjGetElements(interp, methodPathObj, &oc, &ov);
     resultObj = Tcl_NewListObj(0, NULL);
 

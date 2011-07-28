@@ -317,15 +317,15 @@ static int NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST
 static int NsfClassInfoFiltermethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withGuards, CONST char *pattern);
 static int NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *cl, int withDefinition, CONST char *name);
 static int NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern);
-static int NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObj);
+static int NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *cl, int infomethodsubcmd, Tcl_Obj *name);
 static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withCallprotection, int withMethodtype, int withPath, CONST char *pattern);
-static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withScope, CONST char *patternString, NsfObject *patternObj);
-static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObj);
+static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withScope, CONST char *patternString, NsfObject *patternObject);
+static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin);
 static int NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *cl, int infoobjectparametersubcmd, CONST char *pattern);
 static int NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withSource, NsfClass *withType, CONST char *pattern);
-static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObj);
+static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
@@ -393,7 +393,7 @@ static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int
 static int NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *obj, int withSource, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int infomethodsubcmd, Tcl_Obj *name);
 static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withMethodtype, int withPath, CONST char *pattern);
-static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObj);
+static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObject);
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *obj, int withIntrinsic, CONST char *pattern);
@@ -734,22 +734,22 @@ NsfClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   } else {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     CONST char *patternString = NULL;
-    NsfObject *patternObj = NULL;
+    NsfObject *patternObject = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
     int returnCode;
 
-    if (GetMatchObject(interp, pattern, objc>1 ? objv[1] : NULL, &patternObj, &patternString) == -1) {
+    if (GetMatchObject(interp, pattern, objc>1 ? objv[1] : NULL, &patternObject, &patternString) == -1) {
       if (pattern) {
-        DECR_REF_COUNT(pattern);
+        DECR_REF_COUNT2("patternObj", pattern);
       }
       return TCL_OK;
     }
           
     assert(pc.status == 0);
-    returnCode = NsfClassInfoInstancesMethod(interp, cl, withClosure, patternString, patternObj);
+    returnCode = NsfClassInfoInstancesMethod(interp, cl, withClosure, patternString, patternObject);
 
     if (pattern) {
-      DECR_REF_COUNT(pattern);
+      DECR_REF_COUNT2("patternObj", pattern);
     }
     return returnCode;
   }
@@ -811,22 +811,22 @@ NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     int withScope = (int )PTR2INT(pc.clientData[1]);
     CONST char *patternString = NULL;
-    NsfObject *patternObj = NULL;
+    NsfObject *patternObject = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
     int returnCode;
 
-    if (GetMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObj, &patternString) == -1) {
+    if (GetMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObject, &patternString) == -1) {
       if (pattern) {
-        DECR_REF_COUNT(pattern);
+        DECR_REF_COUNT2("patternObj", pattern);
       }
       return TCL_OK;
     }
           
     assert(pc.status == 0);
-    returnCode = NsfClassInfoMixinOfMethod(interp, cl, withClosure, withScope, patternString, patternObj);
+    returnCode = NsfClassInfoMixinOfMethod(interp, cl, withClosure, withScope, patternString, patternObject);
 
     if (pattern) {
-      DECR_REF_COUNT(pattern);
+      DECR_REF_COUNT2("patternObj", pattern);
     }
     return returnCode;
   }
@@ -847,22 +847,22 @@ NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, in
     int withGuards = (int )PTR2INT(pc.clientData[1]);
     int withHeritage = (int )PTR2INT(pc.clientData[2]);
     CONST char *patternString = NULL;
-    NsfObject *patternObj = NULL;
+    NsfObject *patternObject = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
     int returnCode;
 
-    if (GetMatchObject(interp, pattern, objc>3 ? objv[3] : NULL, &patternObj, &patternString) == -1) {
+    if (GetMatchObject(interp, pattern, objc>3 ? objv[3] : NULL, &patternObject, &patternString) == -1) {
       if (pattern) {
-        DECR_REF_COUNT(pattern);
+        DECR_REF_COUNT2("patternObj", pattern);
       }
       return TCL_OK;
     }
           
     assert(pc.status == 0);
-    returnCode = NsfClassInfoMixinclassesMethod(interp, cl, withClosure, withGuards, withHeritage, patternString, patternObj);
+    returnCode = NsfClassInfoMixinclassesMethod(interp, cl, withClosure, withGuards, withHeritage, patternString, patternObject);
 
     if (pattern) {
-      DECR_REF_COUNT(pattern);
+      DECR_REF_COUNT2("patternObj", pattern);
     }
     return returnCode;
   }
@@ -942,22 +942,22 @@ NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   } else {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     CONST char *patternString = NULL;
-    NsfObject *patternObj = NULL;
+    NsfObject *patternObject = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
     int returnCode;
 
-    if (GetMatchObject(interp, pattern, objc>1 ? objv[1] : NULL, &patternObj, &patternString) == -1) {
+    if (GetMatchObject(interp, pattern, objc>1 ? objv[1] : NULL, &patternObject, &patternString) == -1) {
       if (pattern) {
-        DECR_REF_COUNT(pattern);
+        DECR_REF_COUNT2("patternObj", pattern);
       }
       return TCL_OK;
     }
           
     assert(pc.status == 0);
-    returnCode = NsfClassInfoSubclassMethod(interp, cl, withClosure, patternString, patternObj);
+    returnCode = NsfClassInfoSubclassMethod(interp, cl, withClosure, patternString, patternObject);
 
     if (pattern) {
-      DECR_REF_COUNT(pattern);
+      DECR_REF_COUNT2("patternObj", pattern);
     }
     return returnCode;
   }
@@ -2210,22 +2210,22 @@ NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     int withGuards = (int )PTR2INT(pc.clientData[0]);
     int withHeritage = (int )PTR2INT(pc.clientData[1]);
     CONST char *patternString = NULL;
-    NsfObject *patternObj = NULL;
+    NsfObject *patternObject = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
     int returnCode;
 
-    if (GetMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObj, &patternString) == -1) {
+    if (GetMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObject, &patternString) == -1) {
       if (pattern) {
-        DECR_REF_COUNT(pattern);
+        DECR_REF_COUNT2("patternObj", pattern);
       }
       return TCL_OK;
     }
           
     assert(pc.status == 0);
-    returnCode = NsfObjInfoMixinclassesMethod(interp, obj, withGuards, withHeritage, patternString, patternObj);
+    returnCode = NsfObjInfoMixinclassesMethod(interp, obj, withGuards, withHeritage, patternString, patternObject);
 
     if (pattern) {
-      DECR_REF_COUNT(pattern);
+      DECR_REF_COUNT2("patternObj", pattern);
     }
     return returnCode;
   }

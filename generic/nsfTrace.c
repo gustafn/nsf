@@ -93,8 +93,9 @@ NsfMemCountAlloc(char *id, void *p) {
   } else {
     entry = (NsfMemCounter*) Tcl_GetHashValue(hPtr);
     entry->count++;
-    if (entry->count > entry->peak)
+    if (entry->count > entry->peak) {
       entry->peak = entry->count;
+    }
   }
 }
 

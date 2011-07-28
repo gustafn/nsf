@@ -179,21 +179,21 @@ proc gencall {methodName fn parameterDefinitions clientData
         }
         "objpattern" {
           set type "Tcl_Obj *"
-          lappend c "CONST char *${varName}String = NULL;" "NsfObject *${varName}Obj = NULL;"
-          set calledArg "${varName}String, ${varName}Obj"
-          lappend if "CONST char *${varName}String" "NsfObject *${varName}Obj"
+          lappend c "CONST char *${varName}String = NULL;" "NsfObject *${varName}Object = NULL;"
+          set calledArg "${varName}String, ${varName}Object"
+          lappend if "CONST char *${varName}String" "NsfObject *${varName}Object"
           set ifSet 1
           append pre [subst -nocommands {
-    if (GetMatchObject(interp, ${varName}, objc>$i ? objv[$i] : NULL, &${varName}Obj, &${varName}String) == -1) {
+    if (GetMatchObject(interp, ${varName}, objc>$i ? objv[$i] : NULL, &${varName}Object, &${varName}String) == -1) {
       if (${varName}) {
-        DECR_REF_COUNT(${varName});
+        DECR_REF_COUNT2("patternObj", ${varName});
       }
       return TCL_OK;
     }
           }]
 	  append post [subst -nocommands {
     if (${varName}) {
-      DECR_REF_COUNT(${varName});
+      DECR_REF_COUNT2("patternObj", ${varName});
     }
          }]
 	  # end of obj pattern

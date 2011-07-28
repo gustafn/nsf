@@ -211,7 +211,7 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
   Tcl_Obj *argStringObj = NsfParamDefsSyntax(paramPtr);
 
   NsfObjWrongArgs(interp, errorMsg, cmdNameObj, methodObj, ObjStr(argStringObj));
-  DECR_REF_COUNT(argStringObj);
+  DECR_REF_COUNT2("paramDefsObj", argStringObj);
 
   return TCL_ERROR;
 }

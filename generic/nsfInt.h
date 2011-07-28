@@ -252,7 +252,9 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
 
 #define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT"#A,A); Tcl_IncrRefCount(A)
-#define INCR_REF_COUNT2(name,A) MEM_COUNT_ALLOC("INCR_REF_COUNT-" name,A); Tcl_IncrRefCount(A)
+#define INCR_REF_COUNT2(name,A) \
+  /*fprintf(stderr, "c '%s'\n", ObjStr(A));*/				\
+  MEM_COUNT_ALLOC("INCR_REF_COUNT-" name,A); Tcl_IncrRefCount(A)
 
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,obj) \
@@ -816,18 +818,18 @@ NsfFreeObjectData(NsfClass *cl);
   ((NsfObject *)obj)->refCount++;					\
   fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, ((NsfObject *)obj)->refCount, \
 	((NsfObject *)obj)->cmdName?ObjStr(((NsfObject *)obj)->cmdName):"no name"); \
-  MEM_COUNT_ALLOC("NsfObject RefCount", obj)
+  MEM_COUNT_ALLOC("NsfObject.refCount", obj)
 # define NsfObjectRefCountDecr(obj)					\
   (obj)->refCount--;							\
   fprintf(stderr, "RefCountDecr %p count=%d\n", obj, obj->refCount);	\
-  MEM_COUNT_FREE("NsfObject RefCount", obj)
+  MEM_COUNT_FREE("NsfObject.refCount", obj)
 #else
 # define NsfObjectRefCountIncr(obj)           \
   (obj)->refCount++;                            \
-  MEM_COUNT_ALLOC("NsfObject RefCount", obj)
+  MEM_COUNT_ALLOC("NsfObject.refCount", obj)
 # define NsfObjectRefCountDecr(obj)           \
   (obj)->refCount--;                            \
-  MEM_COUNT_FREE("NsfObject RefCount", obj)
+  MEM_COUNT_FREE("NsfObject.refCount", obj)
 #endif
 
 /*

@@ -3108,10 +3108,23 @@ nsf:
    * fixed a refcount bug for valueObjs in non-NRE-enabled
      versions in the argument vector of scripted methods
      (found via INCR_REF_COUNT2/DECR_REF_COUNT2)
+
+- nsf.c:
+   * refined refcounting debugging
+   * fixed various refcounting bugs, especially 
+     in error cases.
+   * added explicit INCR_REF_COUNTs on Tcl_Objs
+     with 0-refCount to ease debugging
     
 
 
 TODO:
+
+ - from parameters.test
+    # TODO: currently, we need to converter (or a converter on nx::Slot), since
+    # variable uses nsf::is and attribute uses the slot obj. method variable should
+    # be changed to use the slotobj as well.
+
  - add "delete variable" analogous to "delete attribute"
  - interface of "variable" and "attribute":
    * add switch -array for "variable"?
