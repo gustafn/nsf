@@ -140,7 +140,7 @@ typedef struct {
   ClientData clientData_static[PARSE_CONTEXT_PREALLOC];
   Tcl_Obj *objv_static[PARSE_CONTEXT_PREALLOC+1];
   int flags_static[PARSE_CONTEXT_PREALLOC+1];
-  int lastobjc;
+  int lastObjc;
   int objc;
   int varArgs;
   NsfObject *object;
@@ -292,7 +292,7 @@ static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
 
 #ifdef DO_FULL_CLEANUP
-static void DeleteProcsAndVars(Tcl_Interp *interp);
+static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
 #endif
 
 /*
@@ -457,7 +457,9 @@ ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *proc
   } else {
     pcPtr->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *)*(objc+1));
     pcPtr->flags      = (int *)ckalloc(sizeof(int)*(objc+1));
+    MEM_COUNT_ALLOC("pcPtr.objv", pcPtr->full_objv);
     pcPtr->clientData = (ClientData *)ckalloc(sizeof(ClientData)*objc);
+    MEM_COUNT_ALLOC("pcPtr.clientData", pcPtr->clientData);
     /*fprintf(stderr, "ParseContextMalloc %d objc, %p %p\n", objc, pcPtr->full_objv, pcPtr->clientData);*/
     memset(pcPtr->full_objv, 0, sizeof(Tcl_Obj *)*(objc+1));
     memset(pcPtr->flags, 0, sizeof(int)*(objc+1));
@@ -498,6 +500,7 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
       /* realloc from preallocated memory */
       pcPtr->full_objv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * requiredSize);
       pcPtr->flags     = (int *)     ckalloc(sizeof(int) * requiredSize);
+      MEM_COUNT_ALLOC("pcPtr.objv", pcPtr->full_objv);
       memcpy(pcPtr->full_objv, &pcPtr->objv_static[0], sizeof(Tcl_Obj *) * PARSE_CONTEXT_PREALLOC);
       memcpy(pcPtr->flags, &pcPtr->flags_static[0], sizeof(int) * PARSE_CONTEXT_PREALLOC);
       /*fprintf(stderr, "extend %p alloc %d new objv=%p pcPtr %p\n",
@@ -547,32 +550,74 @@ ParseContextRelease(ParseContext *pcPtr) {
 	  pcPtr, status, pcPtr->objc, msg);*/
 
 #if !defined(NDEBUG)
-  /*
-   * make sure, that the status is always correctly updated
-   */
-  if (status == 0 || (status & NSF_PC_STATUS_MUST_DECR) == 0) {
+  {
+    /*
+     * Perform a general consistency check: although the conents of the parse
+     * context are at release time sometimes only partially initializized, the
+     * following holds true for ensuring correct release of Tcl_Objs:
+     *
+     *  1) if one of the objv-flags has  NSF_PC_MUST_DECR set,
+     *     then the status flag NSF_PC_STATUS_MUST_DECR has to 
+     *     be set as well.
+     *
+     *  2) if objc>0 then for all objv entries having a flag
+     *     different from 0  must have a
+     *     TCL_OBJ in the vector.
+     *
+     *  3) for preallocated objvs, all elements of the objv 
+     *     after the argument vector must be 0 or 
+     *     NSF_PC_IS_DEFAULT (sanity check)
+     */
+    /*
+     * (1) make sure, that the status correctly reflects MUST_DECR
+     */
     int i;
-    for (i = 0; i < pcPtr->objc-1; i++) {
-      assert((pcPtr->flags[i] & NSF_PC_MUST_DECR) == 0);
+
+    if (status == 0 || (status & NSF_PC_STATUS_MUST_DECR) == 0) {
+      for (i = 0; i < pcPtr->objc - 1; i++) {
+	assert((pcPtr->flags[i] & NSF_PC_MUST_DECR) == 0);
+      }
+    }
+    
+    /*
+     * (2) make sure, Tcl_Objs are set when needed for reclaming memory
+     */
+    if (pcPtr->objc > 0) {
+      /*fprintf(stderr, "%s ", ObjStr(pcPtr->full_objv[0]));*/
+      for (i = 0; i < pcPtr->objc - 1; i++) {
+	if (pcPtr->flags[i]) {
+	  assert(pcPtr->objv[i]);
+	  /*fprintf(stderr, "[%d]%s %.6x ", i, ObjStr(pcPtr->objv[i]), pcPtr->flags[i]);*/
+	}
+      }
+    }
+    /* 
+     * (3) All later flags must be empty or DEFAULT
+     */
+    if (pcPtr->full_objv == &pcPtr->objv_static[0] && pcPtr->objc > 0) {
+      for (i = pcPtr->objc - 1; i < PARSE_CONTEXT_PREALLOC; i++) {
+	assert(pcPtr->flags[i] == 0 || pcPtr->flags[i] == NSF_PC_IS_DEFAULT);
+      }
     }
   }
 #endif
-
+    
   if (status) {
     if (status & NSF_PC_STATUS_MUST_DECR) {
       int i;
       /*fprintf(stderr, "ParseContextRelease %p loop from 0 to %d\n", pcPtr, pcPtr->objc-1);*/
-      for (i = 0; i <= pcPtr->objc-1; i++) {
+      for (i = 0; i < pcPtr->objc - 1; i++) {
 	/*fprintf(stderr, "ParseContextRelease %p check [%d] obj %p flags %.6x & %p\n",
 		pcPtr, i, pcPtr->objv[i], 
 		pcPtr->flags[i], &(pcPtr->flags[i]));*/
 	if (pcPtr->flags[i] & NSF_PC_MUST_DECR) {
+	  assert(pcPtr->objv[i]);
 	  assert(pcPtr->objv[i]->refCount > 0);
 	  /*fprintf(stderr, "... decr ref count on %p\n", pcPtr->objv[i]);*/
 	  DECR_REF_COUNT2("valueObj", pcPtr->objv[i]);
 	}
       }
-    } 
+    }
     /*
      * Objv can be separately extended; also flags are extend when this
      * happens.
@@ -580,6 +625,7 @@ ParseContextRelease(ParseContext *pcPtr) {
     if (status & NSF_PC_STATUS_FREE_OBJV) {
       /*fprintf(stderr, "ParseContextRelease %p free %p %p\n",
 	pcPtr, pcPtr->full_objv, pcPtr->clientData);*/
+      MEM_COUNT_FREE("pcPtr.objv", pcPtr->full_objv);
       ckfree((char *)pcPtr->full_objv);
       ckfree((char *)pcPtr->flags);
     }
@@ -589,6 +635,7 @@ ParseContextRelease(ParseContext *pcPtr) {
      */
     if (status & NSF_PC_STATUS_FREE_CD) {
       /*fprintf(stderr, "free clientdata for %p\n", pcPtr);*/
+      MEM_COUNT_FREE("pcPtr.clientData", pcPtr->clientData);
       ckfree((char *)pcPtr->clientData);
     }
   }
@@ -2542,7 +2589,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
   FreeAllNsfObjectsAndClasses(interp, commandNameTable);
 
 # ifdef DO_FULL_CLEANUP
-  DeleteProcsAndVars(interp);
+  DeleteProcsAndVars(interp, Tcl_GetGlobalNamespace(interp));
 # endif
 #endif
 
@@ -3609,7 +3656,7 @@ NSNamespaceRelease(Tcl_Namespace *nsPtr) {
      * The namespace refCount has reached 0, we have to free
      * it. unfortunately, NamespaceFree() is not exported
      */
-    fprintf(stderr, "HAVE TO FREE %p\n", nsPtr); 
+    fprintf(stderr, "HAVE TO FREE namespace %p\n", nsPtr); 
     /*NamespaceFree(nsPtr);*/
     ckfree(nsPtr->fullName);
     ckfree(nsPtr->name);
@@ -11330,9 +11377,6 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
   if (object && pushFrame) {
     Nsf_PopFrameObj(interp, framePtr);
   }
-  if (result != TCL_OK) {
-    return result;
-  }
 
   /*
    * Set objc of the parse context to the number of defined parameters.
@@ -11340,13 +11384,18 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
    * where argument values are passed to the call in absence of var
    * args ('args'). Treating "args is more involved (see below).
    */
+  // TODO: do we need setting of  pcPtr->objc earlier? yyyy
   pcPtr->objc = paramDefs->nrParams + 1;
+
+  if (result != TCL_OK) {
+    return result;
+  }
 
   if (pcPtr->varArgs) {
     /*
      * The last argument was "args".
      */
-    int elts = objc - pcPtr->lastobjc;
+    int elts = objc - pcPtr->lastObjc;
 
     if (elts == 0) {
       /*
@@ -11361,7 +11410,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
        */
 
       /*NsfPrintObjv("actual:  ", objc, objv);*/
-      ParseContextExtendObjv(pcPtr, paramDefs->nrParams, elts-1, objv + 1 + pcPtr->lastobjc);
+      ParseContextExtendObjv(pcPtr, paramDefs->nrParams, elts-1, objv + 1 + pcPtr->lastObjc);
     } else {
       /*
        * A single argument was passed to "args". There is no need to
@@ -14864,6 +14913,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	  if (obj) {
 	     newValue = obj;
 	  } else {
+	    pcPtr->flags[i] = 0;
 	    return TCL_ERROR;
 	  }
 	
@@ -15245,7 +15295,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       i++; pPtr++;
     }
   }
-  pcPtr->lastobjc = pPtr->name ? o : o-1;
+  pcPtr->lastObjc = pPtr->name ? o : o-1;
   pcPtr->objc = i + 1;
 
   /*
@@ -15269,7 +15319,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     Tcl_DString ds, *dsPtr = &ds;
     DSTRING_INIT(dsPtr);
     Tcl_DStringAppend(dsPtr, "Invalid argument '", -1);
-    Tcl_DStringAppend(dsPtr, ObjStr(objv[pcPtr->lastobjc+1]), -1);
+    Tcl_DStringAppend(dsPtr, ObjStr(objv[pcPtr->lastObjc+1]), -1);
     Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
     NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
 		     object ? object->cmdName : NULL,
@@ -19026,10 +19076,9 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheck, &flags, &checkedData, &outObjPtr);
   /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d can free %d flags %.6x\n",
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree, flags);*/
-  //yyyy;
 
   if (paramWrapperPtr->refCount == 0) {
-    fprintf(stderr, "ParamSetFromAny paramPtr %p manual free\n", paramPtr);
+    fprintf(stderr, "#### ParamSetFromAny paramPtr %p manual free\n", paramPtr);
     ParamsFree(paramWrapperPtr->paramPtr);
     FREE(NsfParamWrapper, paramWrapperPtr);
   } else {
@@ -19322,10 +19371,10 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
 	methodString = ObjStr(methodObj);
 
-	/*fprintf(stderr, "ALIAS %s, nrargs %d converter %p toNothing %d i %d oc %d,  pcPtr->lastobjc %d\n",
+	/*fprintf(stderr, "ALIAS %s, nrargs %d converter %p toNothing %d i %d oc %d,  pcPtr->lastObjc %d\n",
 		paramPtr->name, paramPtr->nrArgs, paramPtr->converter,
 		paramPtr->converter == ConvertToNothing,
-		i, objc,  pc.lastobjc);*/
+		i, objc,  pc.lastObjc);*/
 
 	if (paramPtr->converter == ConvertToNothing) {
 	  /*
@@ -19345,9 +19394,9 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	    /*
 	     * use actual args
 	     */
-	    ov0 = objv[pc.lastobjc];
-	    ovPtr = (Tcl_Obj **)&objv[pc.lastobjc + 1];
-	    oc = objc - pc.lastobjc;
+	    ov0 = objv[pc.lastObjc];
+	    ovPtr = (Tcl_Obj **)&objv[pc.lastObjc + 1];
+	    oc = objc - pc.lastObjc;
 	  }
 	  varArgsProcessed = 1;
 	} else {
@@ -21421,16 +21470,30 @@ NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosur
 #ifdef DO_FULL_CLEANUP
 /* delete global variables and procs */
 static void
-DeleteProcsAndVars(Tcl_Interp *interp) {
-  Tcl_Namespace *nsPtr = Tcl_GetGlobalNamespace(interp);
-  Tcl_HashTable *varTablePtr = nsPtr ? (Tcl_HashTable *)Tcl_Namespace_varTablePtr(nsPtr) : NULL;
-  Tcl_HashTable *cmdTablePtr = nsPtr ? Tcl_Namespace_cmdTablePtr(nsPtr) : NULL;
+DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
+  Tcl_HashTable *varTablePtr, *cmdTablePtr, *childTablePtr;
   Tcl_HashSearch search;
-  Var *varPtr;
   Tcl_Command cmd;
+  Var *varPtr;
   register Tcl_HashEntry *entryPtr;
 
-  fprintf(stderr, "DeleteProcsAndVars\n");
+  assert(nsPtr);
+
+  //fprintf(stderr, "DeleteProcsAndVars in %s\n", nsPtr->fullName);
+
+  varTablePtr = (Tcl_HashTable *)Tcl_Namespace_varTablePtr(nsPtr);
+  cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
+  childTablePtr = Tcl_Namespace_childTablePtr(nsPtr);
+
+  /* 
+   * Deleting the procs and vars in the child namespaces does not seem to be
+   * necessary, but we do it anyway
+   */
+  for (entryPtr = Tcl_FirstHashEntry(childTablePtr, &search); entryPtr;
+       entryPtr = Tcl_NextHashEntry(&search)) {
+    Tcl_Namespace *childNsPtr = (Tcl_Namespace *) Tcl_GetHashValue(entryPtr);
+    DeleteProcsAndVars(interp, childNsPtr);
+  }
 
   for (entryPtr = Tcl_FirstHashEntry(varTablePtr, &search); entryPtr;
        entryPtr = Tcl_NextHashEntry(&search)) {

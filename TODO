@@ -3120,6 +3120,14 @@ nsf:
    * provide debug-refcounts for "NSNamespace"
    * provide debug-refcounts for "nextArgumentVector"
 
+nsf.c:
+   * change DeleteProcsAndVars, such it deletes procs and vars
+     explicitely in all namespaces
+   * added more sanity checks for parameterContexts,
+     testing in ParseContextRelease() in DEBUG mode
+   * provide debug-refcounts for "pcPtr.objv"
+   * provide debug-refcounts for "pcPtr.clientData"
+
 
 TODO:
 
@@ -3139,12 +3147,24 @@ TODO:
         Object create o {:method foo {} {return 1}}
         namespace delete ::o
      }
- - fix mem_count on alias.test (currently 1) and destroy.test (-2),
-   most probably related with the point above
- - fix mem_count on testx (currently 3)
- - fix mem_count on contains.test (currently 3)
- - fix mem_count on slottest.test (currently 4)
- - fix mem_count on xocomm.test (currently 26)
+ - fix mem_count on alias.test (currently 1 / 1) and destroy.test (-2/-2),
+   most probably related with the point above; values after slash: new 
+   deletion of all procs and vars in all namespaces
+ - fix mem_count on contains.test (currently 4 / 4)
+   the minimal script seems to be the following and is related
+   to the following message
+   Warning: Have to fix refCount for obj 0x100924210 refCount 2  (name ::nx::Class::slot::__info)
+   =======================
+      package require nx
+      package forget nx
+      package req nx
+      puts stderr ====EXIT
+      exit
+   =======================
+
+ - fix mem_count on testx (currently 3 / -1 (TclNamespace))
+ - fix mem_count on slottest.test (currently 4 / 0)
+ - fix mem_count on xocomm.test (currently 26 / 26)
 
  - add "delete variable" analogous to "delete attribute"
  - interface of "variable" and "attribute":

@@ -603,7 +603,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     NsfObject *withChildof = (NsfObject *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCNewMethod(interp, cl, withChildof, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfCNewMethod(interp, cl, withChildof, objc-pc.lastObjc, objv+pc.lastObjc);
 
   }
 }
@@ -1238,7 +1238,7 @@ NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     Tcl_Obj *target = (Tcl_Obj *)pc.clientData[9];
 
     assert(pc.status == 0);
-    return NsfMethodForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjframe, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfMethodForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjframe, withOnerror, withVerbose, target, objc-pc.lastObjc, objv+pc.lastObjc);
 
   }
 }
@@ -1318,7 +1318,7 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMyCmd(interp, withLocal, methodName, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfMyCmd(interp, withLocal, methodName, objc-pc.lastObjc, objv+pc.lastObjc);
 
   }
 }
@@ -1395,7 +1395,7 @@ NsfObjectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfObjectDispatchCmd(interp, object, withFrame, command, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfObjectDispatchCmd(interp, object, withFrame, command, objc-pc.lastObjc, objv+pc.lastObjc);
 
   }
 }
@@ -1631,7 +1631,7 @@ NsfVarImportCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     NsfObject *object = (NsfObject *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfVarImportCmd(interp, object, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfVarImportCmd(interp, object, objc-pc.lastObjc, objv+pc.lastObjc);
 
   }
 }

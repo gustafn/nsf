@@ -165,7 +165,7 @@ proc gencall {methodName fn parameterDefinitions clientData
         "tclobj"     {set type "Tcl_Obj *"}
         "args"       {
           set type "int "
-          set calledArg "objc-pc.lastobjc, objv+pc.lastobjc"
+          set calledArg "objc-pc.lastObjc, objv+pc.lastObjc"
           lappend if "int nobjc" "Tcl_Obj *CONST nobjv\[\]"
           set ifSet 1
           set cVar 0
