@@ -38,14 +38,14 @@ CscListAdd(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
  *----------------------------------------------------------------------
  */
 static int
-CscListRemove(Tcl_Interp *interp, NsfCallStackContent *cscPtr, NsfClasses **cscListPtrPtr) {
+CscListRemove(Tcl_Interp *interp, NsfCallStackContent *cscPtr, NsfClasses **cscListPtr) {
   NsfClasses *entryPtr, **cscList = &RUNTIME_STATE(interp)->cscList;
   entryPtr = NsfClassListUnlink(cscList, cscPtr);
   if (entryPtr) {
     FREE(NsfClasses, entryPtr);
   }
-  if (cscListPtrPtr != NULL) {
-    *cscListPtrPtr = *cscList;
+  if (cscListPtr != NULL) {
+    *cscListPtr = *cscList;
   }
   return (entryPtr != NULL);
 }
@@ -896,6 +896,7 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
      * Track object activations
      */
     object->activationCount ++;
+    MEM_COUNT_ALLOC("object.activationCount",object);
     /*fprintf(stderr, "CscInit %p method %s activationCount ++ (%s) --> %d (cl %p)\n",
 	    cscPtr, cmd ? Tcl_GetCommandName(object->teardown, cmd) : "UNK", 
 	    ObjectName(object),  object->activationCount, cl);*/
@@ -907,6 +908,7 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
        * handle class activation count
        */
       cl->object.activationCount ++;
+      MEM_COUNT_ALLOC("class.activationCount", cl);
       /* 
        * Incremement the namespace ptr in case Tcl tries to delete
        * this namespace during the invocation
@@ -975,6 +977,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
      * Track object activations
      */
     object->activationCount --;
+    MEM_COUNT_FREE("object.activationCount", object);
 
     /*fprintf(stderr, "CscFinish decr activationCount for %s to %d object->flags %.6x dc %.6x succ %.6x\n",
 	    ObjectName(cscPtr->self), cscPtr->self->activationCount, object->flags,
@@ -995,7 +998,8 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     if (cscPtr->cl) {
       NsfObject *clObject = &cscPtr->cl->object;
       clObject->activationCount --;
-
+      MEM_COUNT_FREE("class.activationCount", clObject);
+      
       /*fprintf(stderr, "CscFinish class %p %s check ac %d flags destroy %.6x success %.6x\n",
 	      clObject, ObjectName(clObject),
 	      clObject->activationCount,

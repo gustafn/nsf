@@ -153,7 +153,14 @@
 #endif
 
 #ifdef NSF_DEVELOPMENT
-# define CHECK_ACTIVATION_COUNTS 1
+/*
+ * The activation counts checking is best performed via the MEM_COUNT
+ * macros. In case, the MEM_COUNT macros indicate a problem, setting
+ * CHECK_ACTIVATION_COUNTS might help to locate the problem more
+ * precisely. The CHECK_ACTIVATION_COUNTS tester might however still
+ * report false positives.
+ */
+/*# define CHECK_ACTIVATION_COUNTS 1*/
 # define NsfCleanupObject(object,string)				\
   /*fprintf(stderr, "NsfCleanupObject %p %s\n",object,string);*/	\
   NsfCleanupObject_(object)
@@ -180,7 +187,7 @@
 
 #if !defined(CHECK_ACTIVATION_COUNTS)
 # define CscListAdd(interp, cscPtr)
-# define CscListRemove(interp, cscPtr)
+# define CscListRemove(interp, cscPtr, cscListPtr)
 #endif
 
 #if defined(TCL_THREADS)

@@ -2748,6 +2748,7 @@ NsfRequireClassOpt(/*@notnull@*/ NsfClass *cl) {
 
 static void
 MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
+
 #ifdef NAMESPACE_TRACE
   fprintf(stderr, "+++ MakeObjNamespace for %s\n", ObjectName(object));
 #endif
@@ -3144,6 +3145,11 @@ static void
 CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
   NsfResolvedVarInfo *resVarInfo = (NsfResolvedVarInfo *)vInfoPtr;
 
+#if defined(VAR_RESOLVER_TRACE)
+  fprintf(stderr, "CompiledColonVarFree %p for variable '%s'\n", 
+	  resVarInfo, ObjStr(resVarInfo->nameObj));
+#endif
+
   DECR_REF_COUNT(resVarInfo->nameObj);
   if (resVarInfo->var) {HashVarFree(resVarInfo->var);}
   FREE(NsfResolvedVarInfo, vInfoPtr);
@@ -3198,11 +3204,18 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
     NsfResolvedVarInfo *resVarInfo = NEW(NsfResolvedVarInfo);
 
     resVarInfo->vInfo.fetchProc = CompiledColonVarFetch;
-    resVarInfo->vInfo.deleteProc = CompiledColonVarFree; /* if NULL, tcl does a ckfree on proc clean up */
+    resVarInfo->vInfo.deleteProc = CompiledColonVarFree; /* if NULL, Tcl does a ckfree on proc clean up */
     resVarInfo->lastObject = NULL;
     resVarInfo->var = NULL;
     resVarInfo->nameObj = Tcl_NewStringObj(name+1, length-1);
     INCR_REF_COUNT(resVarInfo->nameObj);
+
+#if defined(VAR_RESOLVER_TRACE)
+    fprintf(stderr, "... resVarInfo %p nameObj %p '%s' obj %p %s\n",
+	    resVarInfo, resVarInfo->nameObj, ObjStr(resVarInfo->nameObj), 
+	    object, ObjectName(object));
+#endif
+
     *rPtr = (Tcl_ResolvedVarInfo *)resVarInfo;
 
     return TCL_OK;
@@ -7534,6 +7547,18 @@ ByteCompiled(Tcl_Interp *interp, unsigned short *flagsPtr,
 	|| (codePtr->nsPtr != nsPtr)
 	|| (codePtr->nsEpoch != nsPtr->resolverEpoch)) {
 
+#if defined (VAR_RESOLVER_TRACE)
+      fprintf(stderr, "ByteCompiled bytecode not valid proc %p cmd %p method %s\n",
+	      procPtr, procPtr->cmdPtr, Tcl_GetCommandName(interp, procPtr->cmdPtr));
+      {
+	CompiledLocal *localPtr = procPtr->firstLocalPtr;
+	for (; localPtr != NULL; localPtr = localPtr->nextPtr) {
+	  fprintf(stderr, "... local %p '%s' resolveInfo %p deleteProc %p\n",
+		  localPtr, localPtr->name, localPtr->resolveInfo, 
+		  localPtr->resolveInfo ? localPtr->resolveInfo->deleteProc : NULL);
+	}
+      }
+#endif
       goto doCompilation;
     }
     return TCL_OK;
@@ -7543,6 +7568,7 @@ ByteCompiled(Tcl_Interp *interp, unsigned short *flagsPtr,
 # if defined(HAVE_TCL_COMPILE_H)
   doCompilation:
 # endif
+
     *flagsPtr |= NSF_CSC_CALL_IS_COMPILE;
     result = TclProcCompileProc(interp, procPtr, bodyObj,
                               (Namespace *) nsPtr, "body of proc",
@@ -7595,6 +7621,9 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
   Tcl_CallFrame_objv(framePtr) = objv;
   Tcl_CallFrame_procPtr(framePtr) = procPtr;
   Tcl_CallFrame_clientData(framePtr) = cscPtr;
+
+  /*fprintf(stderr, "Stack Frame %p procPtr %p compiledLocals %p firstLocal %p\n",
+    framePtr, procPtr, Tcl_CallFrame_compiledLocals(framePtr), procPtr->firstLocalPtr);*/
 
   return ByteCompiled(interp, &cscPtr->flags, procPtr, ObjStr(objv[0]));
 }
@@ -11339,7 +11368,6 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
      * We could not define the shadowed proc. In this case, cleanup by
      * removing the stub cmd.
      */
-    fprintf(stderr, "Delete token\n");
     Tcl_DeleteCommandFromToken(interp, cmd);
   }
 
@@ -12584,8 +12612,24 @@ NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
 /*
  * bring an object into a state, as after initialization
  */
+/*
+ *----------------------------------------------------------------------
+ * CleanupDestroyObject --
+ *
+ *    Perform cleanup of object; after the function is executed, the object is
+ *    in the same fresh state as after initialization.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Possibly freeing memory.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
+
   /*fprintf(stderr, "CleanupDestroyObject obj %p softrecreate %d nsPtr %p\n",
     object, softrecreate, object->nsPtr);*/
 
@@ -18886,6 +18930,11 @@ ParamSetFromAny2(
                       NSF_DISALLOWED_ARG_VALUECHECK /* disallowed options */,
                       paramWrapperPtr->paramPtr, &possibleUnknowns,
 		      &plainParams, &nrNonposArgs);
+#if defined(DEBUG86B2)
+  fprintf(stderr, "ParamParse3 %s paramPtr %p returned ok? %d\n", 
+	  ObjStr(fullParamObj),
+	  paramWrapperPtr->paramPtr, result==TCL_OK);
+#endif
   /*
    * We treat currently unknown user level converters as error.
    */
@@ -18901,8 +18950,6 @@ ParamSetFromAny2(
     paramWrapperPtr->paramPtr->flags |= NSF_ARG_UNNAMED;
     if (*(paramWrapperPtr->paramPtr->name) == 'r') {
       paramWrapperPtr->paramPtr->flags |= NSF_ARG_IS_RETURNVALUE;
-      /*fprintf(stderr, "ParamSetFromAny2 sets returnvalue %p\n",
-	paramWrapperPtr->paramPtr);*/
     }
     TclFreeIntRep(objPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)paramWrapperPtr;
@@ -19052,7 +19099,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
   ClientData checkedData;
   int result, flags = 0;
 
-  /*fprintf(stderr, "ParamSetFromAny %s value %p %s\n",
+  /*fprintf(stderr, "ParameterCheck %s value %p %s\n",
     ObjStr(paramObjPtr), valueObj, ObjStr(valueObj));*/
 
   if (paramObjPtr->typePtr == &paramObjType) {
@@ -19078,7 +19125,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree, flags);*/
 
   if (paramWrapperPtr->refCount == 0) {
-    fprintf(stderr, "#### ParamSetFromAny paramPtr %p manual free\n", paramPtr);
+    fprintf(stderr, "#### ParamSetFromAny2 paramPtr %p manual free\n", paramPtr);
     ParamsFree(paramWrapperPtr->paramPtr);
     FREE(NsfParamWrapper, paramWrapperPtr);
   } else {
@@ -21743,6 +21790,10 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
 	    AliasDeleteObjectReference(interp, cmd);
 	    continue;
 	  }
+	  /*fprintf(stderr, "Class %p %s deletes cmd %p %s\n", 
+	    object, ObjectName(object), cmd, Tcl_GetCommandName(interp, cmd));*/
+	  /*Tcl_DeleteCommandFromToken(interp, cmd);
+	    deleted ++;	  */
         }
       }
     }
@@ -21769,8 +21820,8 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
       object = GetObjectFromString(interp, key);
       if (object && !NsfObjectIsClass(object) && !ObjectHasChildren(object)) {
 	/*if (object->id) {
-	  fprintf(stderr, "  ... delete object %s %p, class=%s id %p\n", key, object,
-		  ClassName(object->cl), object->id);
+	  fprintf(stderr, "  ... delete object %s %p, class=%s id %p ns %p\n", key, object,
+		  ClassName(object->cl), object->id, object->nsPtr);
 		  }*/
         FreeUnsetTraceVariable(interp, object);
         if (object->id) FinalObjectDeletion(interp, object);
@@ -21799,9 +21850,11 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
           && !IsBaseClass(cl)
           ) {
         /*fprintf(stderr, "  ... delete class %s %p\n", key, cl); */
-        FreeUnsetTraceVariable(interp, &cl->object);
-        if (cl->object.id) FinalObjectDeletion(interp, &cl->object);
 
+        FreeUnsetTraceVariable(interp, &cl->object);
+        if (cl->object.id) {
+	  FinalObjectDeletion(interp, &cl->object);
+	}
         Tcl_DeleteHashEntry(hPtr);
         deleted++;
       }

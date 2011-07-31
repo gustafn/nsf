@@ -3128,8 +3128,61 @@ nsf.c:
    * provide debug-refcounts for "pcPtr.objv"
    * provide debug-refcounts for "pcPtr.clientData"
 
+nsf.c:
+   * provide debug-refcounts for "class.activationCount"
+   * provide debug-refcounts for "object.activationCount"
+   * deactivated CHECK_ACTIVATION_COUNTS oer default
+   * tested refcounts with Tcl 8.6b2, found bug in Tcl and submitted patch to sourceforge
+
+
 
 TODO:
+ - zzz why is the method recompiled for /tmp/sp.tcl ? 
+   debug output with VAR_RESOLVER_TRACE
+=================================================
+# -*- Tcl -*-
+package require XOTcl; namespace import ::xotcl::*
+package require nx::test; namespace import nx::Test
+
+Class C; C c
+Class D -superclass C
+D instproc init args {}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class E1; Class X -instmixin {D E E1}} \
+    -cmd {X info instmixin ::E*} \
+    -expected {::E ::E1} \
+    -post {foreach o {D E E1 X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class X -instmixin {D E}} \
+    -cmd {X info instmixin ::E*} \
+    -expected {::E} \
+    -post {foreach o {D E X} {$o destroy}}
+
+Test run; exit
+=================================================
+
+ - strange refcounting bug in 8.6b2 bug-is-86.tcl
+   where 2 refcounted items are not freed (value:class,
+   issued from nx.tcl around line 120). Compile for more
+   info with DEBUG86B2
+=================================================
+# -*- Tcl -*-
+package req nx
+package require nx::test
+
+nx::Test case ensemble-next-with-colon-prefix {
+  nx::Object create obj {
+    :public method foo {} { return [:info class] }     
+    #:public method bar {} { return [:info] }
+    :method info {} {;}
+  }
+  ? {obj foo} {wrong # args: should be ":info"}
+}
+=================================================
 
  - from parameters.test
     # TODO: currently, we need two converters (or a converter on nx::Slot), since
