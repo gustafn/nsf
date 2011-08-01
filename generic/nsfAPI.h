@@ -362,7 +362,7 @@ static int NsfUnsetUnknownArgsCmd(Tcl_Interp *interp);
 static int NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, CONST char *varName);
 static int NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfVarSetCmd(Tcl_Interp *interp, int withArray, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value);
-static int NsfVarUnsetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName);
+static int NsfVarUnsetCmd(Tcl_Interp *interp, int withNocomplain, NsfObject *object, Tcl_Obj *varName);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
 static int NsfOClassMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *class);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj);
@@ -1669,11 +1669,12 @@ NsfVarUnsetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    NsfObject *object = (NsfObject *)pc.clientData[0];
-    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[1];
+    int withNocomplain = (int )PTR2INT(pc.clientData[0]);
+    NsfObject *object = (NsfObject *)pc.clientData[1];
+    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfVarUnsetCmd(interp, object, varName);
+    return NsfVarUnsetCmd(interp, withNocomplain, object, varName);
 
   }
 }
@@ -2577,7 +2578,8 @@ static Nsf_methodDefinition method_definitions[] = {
   {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::var::unset", NsfVarUnsetCmdStub, 2, {
+{"::nsf::var::unset", NsfVarUnsetCmdStub, 3, {
+  {"-nocomplain", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

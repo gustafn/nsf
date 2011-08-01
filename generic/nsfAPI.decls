@@ -187,6 +187,7 @@ cmd "var::set" NsfVarSetCmd {
   {-argName "value" -required 0 -type tclobj}
 }
 cmd "var::unset" NsfVarUnsetCmd {
+  {-argName "-nocomplain" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
 }

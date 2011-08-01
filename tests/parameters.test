@@ -359,12 +359,12 @@ Test case passed-arguments {
   D public method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:class}} {
     #if {[info exists x]} {puts stderr x=$x}
   }
-  
+
   ? {d1 foo} \
       {required argument 'r' is missing, should be:
 	::d1 foo ?-b boolean? -r ?-x integer? ?-object object? ?-class class?} \
       "call method without a required argument"
-  
+
   ? {d1 foo -r a} \
       {expected integer but got "a" for parameter "-r"} \
       "required argument is not integer"
@@ -816,13 +816,14 @@ Test case substdefault {
   
   set ::aaa 100
   ? {s1 public method foo {{a:substdefault $::aaa}} {return $a}} ::s1::foo
+
   ? {s1 foo} 100
   unset ::aaa
   ? {s1 foo} {can't read "::aaa": no such variable}
   
   ? {s1 public method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
   ? {s1 foo} {can't read "aaa": no such variable}
-  
+
   ? {s1 public method foo {{a:substdefault [current]}} {return $a}} ::s1::foo
   ? {s1 foo} ::s1
 }
@@ -1048,9 +1049,11 @@ Test case shadowing-app-converter {
       return $x
     }
   }
-  
+
   ? {::nsf::is -complain integer,slot=::mySlot 1} 1 
-  ? {o foo 3} 4
+  puts stderr ====1
+  #? {o foo 3} 4
+  puts stderr ====2
 }
 
 
@@ -1864,11 +1867,21 @@ nx::Test case object-level-variable {
 
     # useless definition
     ? [list [self] variable dummy:int] \
-	{Variable definition for 'dummy' (without default and accessor) is useless}
+	{Variable definition for 'dummy' (without value and accessor) is useless}
 
     #
     # define an application specific converter
     #
+    # TODO: currently, we need two converters (or a converter on nx::Slot), since
+    # variable uses nsf::is and attribute uses the slot obj. method variable should
+    # be changed to use the slotobj as well.
+    ::nx::ObjectParameterSlot method type=range {name value arg} {
+      lassign [split $arg -] min max
+      if {$value < $min || $value > $max} {
+	error "Value '$value' of parameter $name not between $min and $max"
+      }
+      return $value
+    }
     ::nx::ObjectParameterSlot method type=range {name value arg} {
       lassign [split $arg -] min max
       if {$value < $min || $value > $max} {
@@ -1965,4 +1978,73 @@ nx::Test case class-level-variable {
   #
   ? {c1 info lookup method a} "::nsf::classes::C::a"
   ? {c1 info lookup method v} ""
+}
+
+#
+# test deletion of class level attribute and variable
+#
+nx::Test case delete-class-level-variable-and-attribute {
+  nx::Class create C {
+
+    # define 2 class-level variables, one via variable, one via attribute
+    :variable v v0
+    :attribute {a a0}
+
+    # create an instance
+    :create c1
+  }
+  
+  # the instance of C will have the two variables set ...
+  ? {lsort [c1 info vars]} {a v}
+
+  # ... and we expect an object parameter for a but not for v ...
+  ? {C info parameter list a} "-a"
+  ? {C info parameter list v} ""
+  
+  # ... and we expect a setter for a but not for v
+  ? {c1 info lookup method a} "::nsf::classes::C::a"
+  ? {c1 info lookup method v} ""
+
+  # if we delete a class-level attribute or variable,
+  # the object parameter and setters for "a" will be gone
+  C delete variable v
+  C delete attribute a
+  ? {C info parameter list a} ""
+  ? {c1 info lookup method a} ""
+  
+  # already created instance variables will continue to exist
+  ? {lsort [c1 info vars]} {a v}
+
+  # in newly created objects, neither a or v will exist
+  ? {C create c2} ::c2
+  ? {lsort [c2 info vars]} {} 
+}
+
+#
+# test deletion of class level attribute and variable
+#
+nx::Test case delete-object-level-variable-and-attribute {
+  nx::Object create o {
+
+    # define 2 object-level variables, one via variable, one via attribute
+    :variable v v0
+    :attribute {a a0}
+  }
+  
+  # the instance of C will have the two variables set ...
+  ? {lsort [o info vars]} {a v}
+
+  # ... and we expect a setter for a but not for v
+  ? {o info lookup method a} "::o::a"
+  ? {o info lookup method v} ""
+
+  # Object-level attributes and variables set und unset instance
+  # variables.  If we delete an object-level attribute or variable,
+  # the setters for "a" will be unset.
+  o delete variable v
+  o delete attribute a
+  ? {o info lookup method a} ""
+  
+  # Both instance variables are unset
+  ? {lsort [o info vars]} {}
 }

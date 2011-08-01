@@ -13844,18 +13844,19 @@ SetInstArray(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arrayNameObj, Tcl_O
  *----------------------------------------------------------------------
  */
 static int
-UnsetInstVar(Tcl_Interp *interp, NsfObject *object, CONST char *name) {
+UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, CONST char *name) {
   CallFrame frame, *framePtr = &frame;
   int flags, result;
 
   assert(object);
-  flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
+  flags = withNocomplain ? 0 : TCL_LEAVE_ERR_MSG;
+  if (object->nsPtr) {flags |= TCL_NAMESPACE_ONLY;}
 
   Nsf_PushFrameObj(interp, object, framePtr);
   result = Tcl_UnsetVar2(interp, name, NULL, flags);
   Nsf_PopFrameObj(interp, framePtr);
 
-  return result;
+  return withNocomplain ? TCL_OK : result;
 }
 
 /*
@@ -18817,19 +18818,20 @@ NsfVarSetCmd(Tcl_Interp *interp, int withArray,
 
 /*
 cmd var::unset NsfVarUnsetCmd {
+  {-argName "-nocomplain" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1 -type tclobj}
 }
 */
 static int
-NsfVarUnsetCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varNameObj) {
+NsfVarUnsetCmd(Tcl_Interp *interp, int withNocomplain, NsfObject *object, Tcl_Obj *varNameObj) {
   char *varName = ObjStr(varNameObj);
 
   if (CheckVarName(interp, varName) != TCL_OK) {
     return TCL_ERROR;
   }
 
-  return UnsetInstVar(interp, object, varName);
+  return UnsetInstVar(interp, withNocomplain, object, varName);
 }
 /***********************************************************************
  * End generated Next Scripting  commands
@@ -21361,7 +21363,8 @@ NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *class,
 
   /*
    * If a single paramter name is given, we construct a filtered parameter
-   * list on the fly and provide it to the output functions.
+   * list on the fly and provide it to the output functions. Note, that the
+   * first matching parameter is queried.
    */
   if (name) {
     Nsf_Param CONST *pPtr;
@@ -21373,6 +21376,13 @@ NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *class,
 	paramList[1].name = NULL;
 	break;
       }
+    }
+    if (paramsPtr == parsedParam.paramDefs->paramsPtr) {
+      /* 
+       * The named parameter was NOT found 
+       */
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
+      return TCL_OK;
     }
   }
 

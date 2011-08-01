@@ -115,7 +115,10 @@ namespace eval ::nx {
       set regObject $object
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
+	# TODO: for debugging of submethods.test in tcl 8.6b2 
+	#puts stderr ===nx118
 	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}] 
+	#puts stderr ===nx119
 	if {[::nsf::object::dispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} {
  	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
@@ -511,7 +514,6 @@ namespace eval ::nx {
 
     # end of EnsembleObject
   }
-
   ######################################################################
   # Now we are able to use ensemble methods in the definition of NX
   ######################################################################
@@ -519,12 +521,28 @@ namespace eval ::nx {
   #
   # Method for deletion of attributes and plain methods
   #
-
   Object public method "delete attribute" {name} {
     # call explicitly the per-object variant of "info slots"
     set slot [::nsf::my ::nx::Object::slot::__info::slots $name]
     if {$slot eq ""} {error "[self]: cannot delete object specific attribute '$name'"}
     $slot destroy
+    nsf::var::unset -nocomplain [self] $name
+  }
+  Object public method "delete variable" {name} {
+    # First remove the instanstance variable and complain, if it does
+    # not exist.
+    if {[nsf::var::exists [self] $name]} {
+      nsf::var::unset [self] $name
+    } else {
+      error "[self]: object does not have an instance variable '$name'"
+    }
+    # call explicitly the per-object variant of "info slots"
+    set slot [::nsf::my ::nx::Object::slot::__info::slots $name]
+
+    if {$slot ne ""} {
+      # it is not a slot-less variable
+      $slot destroy
+    }
   }
   Object public method "delete method" {name} {
     array set "" [:__resolve_method_path -per-object $name]
@@ -536,12 +554,12 @@ namespace eval ::nx {
     if {$slot eq ""} {error "[self]: cannot delete attribute '$name'"}
     $slot destroy
   }
+  Class public alias "delete variable" ::nx::Class::slot::__delete::attribute
   Class public method "delete method" {name} {
     array set "" [:__resolve_method_path $name]
     ::nsf::method::delete $(object) $(methodName)
   }
  
-
   ######################################################################
   # Info definition
   ######################################################################
@@ -628,17 +646,17 @@ namespace eval ::nx {
       return [:objectparameter]
     }
     :method "info parameter list" {name:optional} {
-      set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter list]
+      set cmd [list ::nsf::methods::class::info::objectparameter list]
       if {[info exists name]} {lappend cmd $name}
       return [::nsf::my {*}$cmd]
     }
     :method "info parameter name" {name:optional} {
-      set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter name]
+      set cmd [list ::nsf::methods::class::info::objectparameter name]
       if {[info exists name]} {lappend cmd $name}
       return [::nsf::my {*}$cmd]
     }
     :method "info parameter syntax" {name:optional} {
-      set cmd [list ::nsf::my ::nsf::methods::class::info::objectparameter parametersyntax]
+      set cmd [list ::nsf::methods::class::info::objectparameter parametersyntax]
       if {[info exists name]} {lappend cmd $name}
       return [::nsf::my {*}$cmd]
     }
@@ -1080,7 +1098,6 @@ namespace eval ::nx {
     }
     return ${:parameterSpec}
   }
-
 
   ######################################################################
   # We have no working objectparameter yet, since it requires a
@@ -1621,6 +1638,9 @@ namespace eval ::nx {
     }
 
     if {$initblock eq "" && !$accessor} {
+      #
+      # build a slot-less variable
+      #
       # get name an list of parameter options
       lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
 	  name parameterOptions class opts
@@ -1637,10 +1657,13 @@ namespace eval ::nx {
 	}
 	set :$name $value
       } else {
-	error "Variable definition for '$name' (without default and accessor) is useless"
+	error "Variable definition for '$name' (without value and accessor) is useless"
       }
       return
     }
+    #
+    # create variable via a slot object
+    #
     set slot [::nx::MetaSlot createFromParameterSpec [self] \
 		  -per-object \
 		  -class $class \
