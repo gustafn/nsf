@@ -3153,9 +3153,15 @@ nsf.c:
 - nx.tcl:
   * fixed copy for object created with new
   * copy returns now the fully qualified name of the copied object
+  * extended regression test
 
 
 TODO:
+ - implementation of [C copy] (without a 2nd argument, 
+   create object via new)
+ - look at "require method" + public / protected
+   => "require public method"?
+
  - zzz why is the method recompiled for /tmp/sp.tcl ? 
    debug output with VAR_RESOLVER_TRACE
 =================================================

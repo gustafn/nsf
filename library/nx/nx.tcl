@@ -1885,7 +1885,7 @@ namespace eval ::nx {
     }
   
     :method copyTargets {} {
-      puts stderr "COPY will copy targetList = [set :targetList]"
+      #puts stderr "COPY will copy targetList = [set :targetList]"
       set objs {}
       foreach origin [set :targetList] {
         set dest [:getDest $origin]
@@ -1964,7 +1964,6 @@ namespace eval ::nx {
 	  }
 	}
 	#puts stderr "====="
-	puts stderr "could return <$obj>"
       }
 
       #
