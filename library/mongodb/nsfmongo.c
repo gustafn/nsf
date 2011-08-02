@@ -135,7 +135,7 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
   char oidhex[25];
   Tcl_Obj *resultObj, *elemObj;
 
-  bson_iterator_init( &i , data );
+  bson_iterator_from_buffer( &i , data );
   resultObj = Tcl_NewListObj(0, NULL);
 
   while ( bson_iterator_next( &i ) ){

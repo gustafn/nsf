@@ -3133,43 +3133,22 @@ nsf.c:
    * provide debug-refcounts for "object.activationCount"
    * deactivated CHECK_ACTIVATION_COUNTS oer default
    * tested refcounts with Tcl 8.6b2, found bug in Tcl and submitted patch to sourceforge
-
-=============================================================
-Tcl 8.6b2 has a memory leak when re-bytecompiling procs. The cleanup-section in function TclProcCompileProc() (in file tclProc.c) iterates over "old" compiledLocals and frees it blindly (see below: ckfree(toFree)). However, the resolveInfo can contain data, and might point to to a deleteProc. i discovered the issue when using resolvers. The cleanup is handled correctly in TclProcCleanupProc() and in a similar way in InitResolvedLocals(). To ease maintenance one should factor out a common small c-function to handle the cleanup of compiled locals. The issue does not exist in Tcl 8.5.*. The following patch fixes the issue, and runs clean with valgrind.
-
--gustaf neumann
-PS: i have submitted the bugreport already yesterday, but it did not show up so far. Maybe, there is something broken at sourceforge, so i try again. I hope, this will not generate a duplicate entry.
-
---- generic/tclProc.c-orig	2011-07-31 18:16:22.000000000 +0200
-+++ generic/tclProc.c	2011-07-31 18:17:05.000000000 +0200
-@@ -2063,6 +2063,15 @@
- 		CompiledLocal *toFree = clPtr;
- 
- 		clPtr = clPtr->nextPtr;
-+
-+		if (toFree->resolveInfo) {
-+		    if (toFree->resolveInfo->deleteProc) {
-+			toFree->resolveInfo->deleteProc(toFree->resolveInfo);
-+		    } else {
-+			ckfree(toFree->resolveInfo);
-+		    }
-+		}
-+
- 		ckfree(toFree);
- 	    }
- 	    procPtr->numCompiledLocals = procPtr->numArgs;
-=============================================================
+     http://sourceforge.net/tracker/?func=detail&aid=3383616&group_id=10894&atid=110894
 
 - nsf.c:
   * fixed a bug in "info parameter list|... name" when the named
     parameter is not found (returns now empty, before, it was
     returing the full list).
   * added flag "-nocomplain" to nsf::var::unset
+
 - nx.tcl
   * added "delete variable" analogous to "delete attribute"
   * unset instance variable for object-level "delete attribute"
   * extended regression test
 
+- library/mongodb:
+   * updated to current interface in git HEAD (resp. 
+     "git checkout v0.4")
 
 TODO:
  - zzz why is the method recompiled for /tmp/sp.tcl ? 
