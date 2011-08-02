@@ -1885,7 +1885,8 @@ namespace eval ::nx {
     }
   
     :method copyTargets {} {
-      #puts stderr "COPY will copy targetList = [set :targetList]"
+      puts stderr "COPY will copy targetList = [set :targetList]"
+      set objs {}
       foreach origin [set :targetList] {
         set dest [:getDest $origin]
         if {[::nsf::object::exists $origin]} {
@@ -1915,6 +1916,7 @@ namespace eval ::nx {
 	} else {
 	  namespace eval $dest {}
 	}
+	lappend objs $obj
 	:copyNSVarsAndCmds $origin $dest
 	foreach i [$origin ::nsf::methods::object::info::forward] {
 	  ::nsf::method::forward $dest -per-object $i \
@@ -1934,7 +1936,9 @@ namespace eval ::nx {
 	#
 	set base [$origin ::nsf::methods::object::info::parent]
 	set container [namespace tail $origin]
-	if {$base ne "::" && [::nsf::method::property $base -per-object $container slotcontainer]} {
+	if {[::nsf::object::exists $base] 
+	    && [::nsf::method::property $base -per-object $container slotcontainer]
+	  } {
 	  ::nx::setSlotContainerProperties [$dest ::nsf::methods::object::info::parent] $container
 	}
 
@@ -1960,6 +1964,7 @@ namespace eval ::nx {
 	  }
 	}
 	#puts stderr "====="
+	puts stderr "could return <$obj>"
       }
 
       #
@@ -1989,6 +1994,7 @@ namespace eval ::nx {
 	  $newslot eval :init
 	}
       }
+      return [lindex $objs 0]
     }
     
     :public method copy {obj dest} {
@@ -2001,13 +2007,13 @@ namespace eval ::nx {
 
   }
 
-  Object public method copy newName {
+  Object public method copy {newName} {
     if {[string compare [string trimleft $newName :] [string trimleft [::nsf::self] :]]} {
       [CopyHandler new -volatile] copy [::nsf::self] $newName
     }
   }
 
-  Object public method move newName {
+  Object public method move {newName} {
     if {[string trimleft $newName :] ne [string trimleft [::nsf::self] :]} {
       if {$newName ne ""} {
         :copy $newName

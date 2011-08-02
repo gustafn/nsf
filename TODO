@@ -3150,6 +3150,11 @@ nsf.c:
    * updated to current interface in git HEAD (resp. 
      "git checkout v0.4")
 
+- nx.tcl:
+  * fixed copy for object created with new
+  * copy returns now the fully qualified name of the copied object
+
+
 TODO:
  - zzz why is the method recompiled for /tmp/sp.tcl ? 
    debug output with VAR_RESOLVER_TRACE
