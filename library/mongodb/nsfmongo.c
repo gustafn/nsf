@@ -888,12 +888,13 @@ static int
 NsfMongoGridFSStoreFile(Tcl_Interp *interp, gridfs *gridfsPtr, 
 			CONST char *filename, CONST char *remotename, 
 			CONST char *contenttype) {
-  bson b = gridfs_store_file(gridfsPtr, filename, remotename, contenttype);
+  int result = gridfs_store_file(gridfsPtr, filename, remotename, contenttype);
   
-  /* currently, the result is broken;
+  /* currently, we do not get the bson structure;
      Tcl_SetObjResult(interp, BsonToList(interp, b.data, 0));*/
 
-  
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(result == MONGO_OK));
+
   return TCL_OK;
 }
 

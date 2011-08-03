@@ -3155,6 +3155,7 @@ nsf.c:
   * copy returns now the fully qualified name of the copied object
   * extended regression test
 
+- library/mongodb:updated to current interface in git HEAD 
 
 TODO:
  - implementation of [C copy] (without a 2nd argument, 
