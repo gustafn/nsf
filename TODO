@@ -3162,12 +3162,18 @@ nsf.c:
      set x [o copy]
 - extended regression test
 
-TODO:
- - implementation of [C copy] (without a 2nd argument, 
-   create object via new)
- - look at "require method" + public / protected
-   => "require public method"?
+- nx.tcl:
+  * added protected and public for "require method"
+    The following forms are now valid
+      "... require public method"
+      "... require protected method"
+      "... require method"
+      "... require public class method"
+      "... require protected class method"
+      "... require class method"
+   * extended regression test
 
+TODO:
  - zzz why is the method recompiled for /tmp/sp.tcl ? 
    debug output with VAR_RESOLVER_TRACE
 =================================================

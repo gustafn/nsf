@@ -19,7 +19,16 @@ nx::Test case method-require {
   nsf::method::provide tcl::set {::nsf::method::alias  set -frame object ::set}
   nsf::method::provide exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
   nsf::method::provide foo      {::nsf::method::create foo {x y} {return x=$x,y=$y}}
-  nsf::method::provide x        {::nsf::mixin ::MIX} {
+
+  #
+  # Provide an example for an application defined method provider
+  #
+  nsf::proc ::get_mixin {object -per-object:switch mixinClass methodName} {
+    ::nsf::mixin $object -per-object=${per-object} $mixinClass
+    return [$mixinClass info method handle $methodName]
+  }
+  # use the method provider
+  nsf::method::provide x        {::get_mixin ::MIX x} {
     # here could be as well a package require, etc.
     ::nx::Class create ::MIX {:public method x {} {return x}}
   }
@@ -34,26 +43,54 @@ nx::Test case method-require {
     
     # required names can be different from registered names; if there
     # are multiple set methods, we could point to the right one
-    :require method tcl::set
+    ? [list [self] require method tcl::set] "::nsf::classes::C::set"
     
-    # object methods:
-    :require class method lappend
+    # class methods
+    ? [list [self] require class method lappend] "::C::lappend"
     
-    # a scripted method
-    :require class method foo
-    
-    :require class method x
+    # a scripted class method
+    ? [list [self] require class method foo] "::C::foo"
+    ? [list [self] require class method x] "::nsf::classes::MIX::x"
+    ? [list [self] require method x] "::nsf::classes::MIX::x"
     
     # looks as well ok:
-    :require namespace
+    ? [list [self] require namespace] ""
   }
+
+  #
+  # Try protected and public
+  #
+  ? {C require public method lappend} ::nsf::classes::C::lappend
+  ? {::nsf::method::property C lappend call-protected} 0
+
+  ? {C require protected method lappend} ::nsf::classes::C::lappend
+  ? {::nsf::method::property C lappend call-protected} 1
   
+  ? {C require protected class method set} ::C::set
+  ? {::nsf::method::property C ::C::set call-protected} 1
+  #
+  # call these methods
+  #
   C create c1
   ? {c1 set x 100} 100
   ? {c1 exists x} 1
   ? {C lappend some_list e1 e2} "e1 e2"
   ? {C foo 1 2} x=1,y=2
   ? {C x} x
+
+  #
+  # Definitions directly on object
+  #
+  Object create o1
+  ? {o1 require method set} ::o1::set
+  ? {o1 require method x} ::nsf::classes::MIX::x
+
+  ? {o1 require public method lappend} ::o1::lappend
+  ? {::nsf::method::property o1 lappend call-protected} 0
+
+  ? {o1 require protected method lappend} ::o1::lappend
+  ? {::nsf::method::property o1 lappend call-protected} 1
+
 }
 
 nx::Test case parent-require { 
@@ -90,5 +127,4 @@ nx::Test case method-require-scope {
   nx::Object create o
   ::nsf::method::require o alloc
   ? {o alloc x} {Method alloc not dispatched on valid class}
-
 }

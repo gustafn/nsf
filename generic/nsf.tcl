@@ -22,6 +22,14 @@ namespace eval ::nsf {
   }
 
   proc ::nsf::method::require {object name {per_object 0}} {
+    #
+    # On a method require, the optional script is evaluated and the
+    # "definition" gets inserted
+    # - on posiiton 1 the actual object
+    # - on posiiton 2 optionally "-per-object"
+    #
+    # The definition cmd must return the method handle.
+    #
     set key ::nsf::methodIndex($name)
     if {[info exists $key]} {
       array set "" [set $key]

@@ -392,14 +392,29 @@ namespace eval ::nx {
 
   Object method require {what args} {
     switch -- $what {
+      public -
+      protected {
+	set next [lindex $args 0]
+	if {$next ni {"class" "method"}} {
+	  error "public or procected must be followed by 'class' or 'method'"
+	}
+	set result [:require {*}$args]
+	#puts stderr "[list :require {*}$args] => $result"
+	::nsf::method::property [self] $result call-protected [expr {$what eq "protected"}]
+	return $result
+      }
       class {
 	set what [lindex $args 0]
-	if {$what eq "method"} {
-	  ::nsf::method::require [::nsf::self] [lindex $args 1] 1
+	if {$what ne "method"} {
+	  error "'class' must be followed by 'method'"
 	}
+	set methodName [lindex $args 1]
+	::nsf::method::require [::nsf::self] $methodName 1
+	return [:info lookup method $methodName]
       }
       method {
-	::nsf::method::require [::nsf::self] [lindex $args 0] 0
+	set methodName [lindex $args 0]
+	return [::nsf::method::require [::nsf::self] $methodName 0]
       }
       namespace {
 	::nsf::object::dispatch [::nsf::self] ::nsf::methods::object::requirenamespace
