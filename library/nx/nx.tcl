@@ -1879,9 +1879,13 @@ namespace eval ::nx {
     }
 
     # construct destination obj name from old qualified ns name
-    :method getDest origin {
-      set tail [string range $origin [set :objLength] end]
-      return ::[string trimleft [set :dest]$tail :]
+    :method getDest {origin} {
+      if {${:dest} eq ""} {
+	return ""
+      } else {
+	set tail [string range $origin [set :objLength] end]
+	return ::[string trimleft [set :dest]$tail :]
+      }
     }
   
     :method copyTargets {} {
@@ -1890,20 +1894,21 @@ namespace eval ::nx {
       foreach origin [set :targetList] {
         set dest [:getDest $origin]
         if {[::nsf::object::exists $origin]} {
+	  if {$dest eq ""} {
+	    set obj [[$origin info class] new -noinit]
+	    set dest [set :dest $obj]
+	  } else {
+	    set obj [[$origin info class] create $dest -noinit]
+	  }
           # copy class information
           if {[::nsf::is class $origin]} {
-            set cl [[$origin info class] create $dest -noinit]
-            # class object
-            set obj $cl
-            $cl configure -superclass [$origin info superclass]
-            ::nsf::method::assertion $cl class-invar [::nsf::method::assertion $origin class-invar]
-	    ::nsf::relation $cl class-filter [::nsf::relation $origin class-filter]
-	    ::nsf::relation $cl class-mixin [::nsf::relation $origin class-mixin]
+	    # obj is a class, copy class specific information
+            $obj configure -superclass [$origin info superclass]
+            ::nsf::method::assertion $obj class-invar [::nsf::method::assertion $origin class-invar]
+	    ::nsf::relation $obj class-filter [::nsf::relation $origin class-filter]
+	    ::nsf::relation $obj class-mixin [::nsf::relation $origin class-mixin]
 	    :copyNSVarsAndCmds ::nsf::classes$origin ::nsf::classes$dest
-	  } else {
-	    # create obj
-	    set obj [[$origin info class] create $dest -noinit]
-          }
+	  }
 	  # copy object -> might be a class obj
 	  ::nsf::method::assertion $obj check [::nsf::method::assertion $origin check]
 	  ::nsf::method::assertion $obj object-invar [::nsf::method::assertion $origin object-invar]
@@ -1996,7 +2001,7 @@ namespace eval ::nx {
       return [lindex $objs 0]
     }
     
-    :public method copy {obj dest} {
+    :public method copy {obj {dest ""}} {
       #puts stderr "[::nsf::self] copy <$obj> <$dest>"
       set :objLength [string length $obj]
       set :dest $dest
@@ -2006,7 +2011,7 @@ namespace eval ::nx {
 
   }
 
-  Object public method copy {newName} {
+  Object public method copy {{newName ""}} {
     if {[string compare [string trimleft $newName :] [string trimleft [::nsf::self] :]]} {
       [CopyHandler new -volatile] copy [::nsf::self] $newName
     }

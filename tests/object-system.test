@@ -126,6 +126,11 @@ Class create C -attributes {{x 1} {y 2}}
 ? {set c1 [C new]} "::nsf::__#1"
 ? {c1 copy c2} "::c2"
 
+# copy without new name
+? {c2 copy} ::nsf::__#4
+? {set C [C copy]} ::nsf::__#6
+? {::nsf::object::exists ${C}::slot} 1
+
 #? {C::slot info vars} __parameter
 ? {C info attributes} {{x 1} {y 2}}
 

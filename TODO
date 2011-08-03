@@ -3156,6 +3156,11 @@ nsf.c:
   * extended regression test
 
 - library/mongodb:updated to current interface in git HEAD 
+- nx.tcl: implemented copy without a provided name. If argument
+  of copy is omitted, the copied object is created with a fresh
+  name (i.e. created with the method "new"). Example
+     set x [o copy]
+- extended regression test
 
 TODO:
  - implementation of [C copy] (without a 2nd argument, 
