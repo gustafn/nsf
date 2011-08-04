@@ -3176,6 +3176,8 @@ nsf.c:
 - library/mongodb:
   * replaced NsfMongoGetHostPort() with the newly available 
     function mongo_parse_host()
+  * updated error codes according to git head
+  * factored out mapping of error code to string
 
 TODO:
  - zzz why is the method recompiled for /tmp/sp.tcl ? 

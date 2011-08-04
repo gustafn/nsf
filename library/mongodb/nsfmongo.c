@@ -390,6 +390,30 @@ BsonAppendObjv(Tcl_Interp *interp, bson *bPtr, int objc, Tcl_Obj **objv) {
   return TCL_OK;
 }
 
+static char *
+ErrorMsg(int status) {
+
+    switch (status) {
+    case MONGO_CONN_NO_SOCKET:    return "Could not create socket"; 
+    case MONGO_CONN_FAIL:         return "An error occured while calling connect()";
+    case MONGO_CONN_ADDR_FAIL:    return "An error occured while calling getaddrinfo()";
+    case MONGO_CONN_NOT_MASTER:   return "Connected to a non-master node (read-only)"; 
+    case MONGO_CONN_BAD_SET_NAME: return "Given replica set name doesn't match this replica set"; 
+    case MONGO_CONN_NO_PRIMARY:   return "Can't find primary in replica set"; 
+
+    case MONGO_IO_ERROR:          return "An error occurred while reading or writing on socket";
+    case MONGO_READ_SIZE_ERROR:   return "The response is not the expected length"; 
+    case MONGO_COMMAND_FAILED:    return "The command returned with 'ok' value of 0";
+    case MONGO_CURSOR_EXHAUSTED:  return "The cursor has no more results";
+    case MONGO_CURSOR_INVALID:    return "The cursor has timed out or is not recognized"; 
+    case MONGO_CURSOR_PENDING:    return "Tailable cursor still alive but no data"; 
+    case MONGO_BSON_INVALID:      return "BSON not valid for the specified op"; 
+    case MONGO_BSON_NOT_FINISHED: return "BSON object has not been finished"; 
+
+    default: return "Unknown error (maybe server not running)"; 
+    }
+}
+
 /***********************************************************************
  * Define the api functions
  ***********************************************************************/
@@ -477,21 +501,8 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
    * mongo_replset_connect().
    */
   if (status != MONGO_OK) {
-    char *errorMsg;
-
     ckfree((char *)connPtr);
-
-    switch (status) {
-    case MONGO_CONN_BAD_ARG:    errorMsg = "bad arguments"; break;
-    case MONGO_CONN_NO_SOCKET:  errorMsg = "no socket"; break;
-    case MONGO_CONN_FAIL:       errorMsg = "connection failed"; break;
-    case MONGO_CONN_NOT_MASTER: errorMsg = "not master"; break;
-    case MONGO_CONN_BAD_SET_NAME: errorMsg = "replica set name doesn't match the existing replica set"; break;
-    case MONGO_CONN_CANNOT_FIND_PRIMARY: errorMsg = "cannot find primary"; break;
-    default: errorMsg = "unknown error (maybe server not running)"; break;
-    }
-
-    return NsfPrintError(interp, errorMsg);
+    return NsfPrintError(interp, ErrorMsg(status));
   }
 
   if (withTimeout > 0) {
@@ -499,6 +510,7 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
      * setting connection timeout - measured in  milliseconds
      */
     if (mongo_set_op_timeout(connPtr, withTimeout) != MONGO_OK) {
+      ckfree((char *)connPtr);
       return NsfPrintError(interp, "setting connection timeout failed");
     }
   }
