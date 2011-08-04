@@ -16,8 +16,9 @@ array set ns {
 #
 # Next Scripting commands
 #
-cmd __db_show_stack NsfShowStackCmd {}
+cmd __db_compile_epoch NsfDebugCompileEpoch {}
 cmd __db_run_assertions NsfDebugRunAssertionsCmd {}
+cmd __db_show_stack NsfShowStackCmd {}
 cmd __profile_clear NsfProfileClearDataStub {}
 cmd __profile_get NsfProfileGetDataStub {}
 cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}

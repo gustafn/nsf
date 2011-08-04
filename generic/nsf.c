@@ -7547,9 +7547,15 @@ ByteCompiled(Tcl_Interp *interp, unsigned short *flagsPtr,
 	|| (codePtr->nsPtr != nsPtr)
 	|| (codePtr->nsEpoch != nsPtr->resolverEpoch)) {
 
-#if defined (VAR_RESOLVER_TRACE)
+#if defined(VAR_RESOLVER_TRACE)
       fprintf(stderr, "ByteCompiled bytecode not valid proc %p cmd %p method %s\n",
 	      procPtr, procPtr->cmdPtr, Tcl_GetCommandName(interp, procPtr->cmdPtr));
+      fprintf(stderr, "    %d %d %d %d\n",
+	      ((Interp *) *codePtr->interpHandle != iPtr),
+	       (codePtr->compileEpoch != iPtr->compileEpoch),
+	       (codePtr->nsPtr != nsPtr),
+	       (codePtr->nsEpoch != nsPtr->resolverEpoch));
+	      
       {
 	CompiledLocal *localPtr = procPtr->firstLocalPtr;
 	for (; localPtr != NULL; localPtr = localPtr->nextPtr) {
@@ -16569,6 +16575,17 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
 /***********************************************************************
  * Begin generated Next Scripting commands
  ***********************************************************************/
+
+/*
+cmd __db_compile_epoch NsfDebugCompileEpoch {}
+ */
+static int 
+NsfDebugCompileEpoch(Tcl_Interp *interp) {
+  Interp *iPtr = (Interp *) interp;
+
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(iPtr->compileEpoch));
+  return TCL_OK;
+}
 
 /*
 cmd __db_show_stack NsfShowStackCmd {}

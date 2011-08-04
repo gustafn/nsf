@@ -3179,6 +3179,9 @@ nsf.c:
   * updated error codes according to git head
   * factored out mapping of error code to string
 
+- nsf.c:
+  added cmd __db_compile_epoch for compile-epoch introspection
+
 TODO:
  - zzz why is the method recompiled for /tmp/sp.tcl ? 
    debug output with VAR_RESOLVER_TRACE

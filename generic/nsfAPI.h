@@ -235,6 +235,7 @@ static int NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *i
 static int NsfColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfDebugCompileEpochStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -330,6 +331,7 @@ static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int wi
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
+static int NsfDebugCompileEpoch(Tcl_Interp *interp);
 static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp);
 static int NsfFinalizeObjCmd(Tcl_Interp *interp);
 static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
@@ -426,6 +428,7 @@ enum {
  NsfColonCmdIdx,
  NsfConfigureCmdIdx,
  NsfCurrentCmdIdx,
+ NsfDebugCompileEpochIdx,
  NsfDebugRunAssertionsCmdIdx,
  NsfFinalizeObjCmdIdx,
  NsfInterpObjCmdIdx,
@@ -1030,6 +1033,22 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     return NsfCurrentCmd(interp, currentoption);
 
   }
+}
+
+static int
+NsfDebugCompileEpochStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
+
+    
+
+      if (objc != 1) {
+	return NsfArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfDebugCompileEpochIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
+    return NsfDebugCompileEpoch(interp);
+
 }
 
 static int
@@ -2425,6 +2444,9 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::nsf::current", NsfCurrentCmdStub, 1, {
   {"currentoption", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCurrentoption, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__db_compile_epoch", NsfDebugCompileEpochStub, 0, {
+  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
