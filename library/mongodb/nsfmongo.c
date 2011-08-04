@@ -390,69 +390,6 @@ BsonAppendObjv(Tcl_Interp *interp, bson *bPtr, int objc, Tcl_Obj **objv) {
   return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- *
- * NsfMongoGetHostPort --
- *
- *      Obtain from the provided string host and port. The provided
- *      string might be of the form "host" or "host:port". The parts
- *      are returned via arguments.
- *
- * Results:
- *      Tcl result code and variables bufferPtr, hostPtr and portPtr.
- *      If bufferPtr is not NULL, the caller must free it.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-/*
-The entries of the list might be "host" (dns or ip
-* addresses) or of the form "host:port".*/
-static int
-NsfMongoGetHostPort(CONST char *string, 
-		    char **bufferPtr, char CONST**hostPtr, int *portPtr) {
-  CONST char *colon, *host;
-  int port;
-
-  assert(string);
-  colon = strchr(string, ':');
-
-  if (colon) {
-    /*
-     * The passed string contained a colon; we must copy the entry,
-     * since string is read only.
-     */
-    int length = strlen(string) + 1;
-    int offset = colon-string;
-    char *buffer;
-
-    buffer = ckalloc(length);
-    *bufferPtr = buffer;
-    memcpy(buffer, string, length);
-    buffer[offset] = '\0';
-    host = buffer;
-    port = atoi(buffer+offset+1);
-  } else {
-    /*
-     * The passed string contained no colon.
-     */
-    *bufferPtr = NULL;
-    host = string;
-    port = 27017;
-  }
-
-  /*
-   * Return always host and port via arguments.
-   */
-  *hostPtr = host;
-  *portPtr = port;
-
-  return TCL_OK;
-}
-
 /***********************************************************************
  * Define the api functions
  ***********************************************************************/
@@ -482,11 +419,11 @@ cmd connect NsfMongoConnect {
 static int 
 NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int withTimeout) {
   char channelName[80], *buffer = NULL;
-  int result, port, objc = 0;
+  mongo_host_port host_port;
+  int result, objc = 0;
   mongo *connPtr;
   int status;
   Tcl_Obj **objv;
-  CONST char *host;
 
   if (server) {
     result = Tcl_ListObjGetElements(interp, server, &objc, &objv);
@@ -509,8 +446,8 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
      * A single element was provided to -server, we have no replica
      * set specified.
      */
-    NsfMongoGetHostPort(ObjStr(objv[0]), &buffer, &host, &port);
-    status = mongo_connect( connPtr, host, port );
+    mongo_parse_host(ObjStr(objv[0]), &host_port);
+    status = mongo_connect( connPtr, host_port.host, host_port.port );
     if (buffer) {ckfree(buffer);}
     
   } else if (replicaSet) {
@@ -523,8 +460,8 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
     mongo_replset_init( connPtr, replicaSet );
 
     for (i = 0; i < objc; i++) {
-      NsfMongoGetHostPort(ObjStr(objv[i]), &buffer, &host, &port);
-      mongo_replset_add_seed(connPtr, host, port );
+      mongo_parse_host(ObjStr(objv[i]), &host_port);
+      mongo_replset_add_seed(connPtr, host_port.host, host_port.port );
       if (buffer) {ckfree(buffer);}
     }
 

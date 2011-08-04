@@ -3173,6 +3173,10 @@ nsf.c:
       "... require class method"
    * extended regression test
 
+- library/mongodb:
+  * replaced NsfMongoGetHostPort() with the newly available 
+    function mongo_parse_host()
+
 TODO:
  - zzz why is the method recompiled for /tmp/sp.tcl ? 
    debug output with VAR_RESOLVER_TRACE
