@@ -80,7 +80,7 @@ typedef struct NsfProcContext {
   ClientData oldDeleteData;
   Tcl_CmdDeleteProc *oldDeleteProc;
   NsfParamDefs *paramDefs;
-  INTERP_DECL1;
+  INTERP_MEMBER_DECL
 } NsfProcContext;
 
 /*
@@ -96,7 +96,7 @@ typedef struct TclCmdClientData {
 typedef struct SetterCmdClientData {
   NsfObject *object;
   Nsf_Param *paramsPtr;
-  INTERP_DECL1;
+  INTERP_MEMBER_DECL
 } SetterCmdClientData;
 
 typedef struct ForwardCmdClientData {
@@ -115,7 +115,7 @@ typedef struct ForwardCmdClientData {
   Tcl_Obj *prefix;
   int nr_subcommands;
   Tcl_Obj *subcommands;
-  INTERP_DECL1;
+  INTERP_MEMBER_DECL
 } ForwardCmdClientData;
 
 typedef struct AliasCmdClientData {
@@ -2995,7 +2995,7 @@ typedef struct NsfResolvedVarInfo {
   NsfObject *lastObject;
   Tcl_Var var;
   Tcl_Obj *nameObj;
-  INTERP_DECL1;
+  INTERP_MEMBER_DECL
 } NsfResolvedVarInfo;
 
 /*
@@ -11130,29 +11130,31 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     ObjStr(objv[0]), fullMethodName, procNameObj, ObjStr(procNameObj));*/
   Tcl_NRAddCallback(interp, ProcDispatchFinalize,
 		    (ClientData)fullMethodName, pcPtr,
-#if defined(NSF_PROFILE)
+#  if defined(NSF_PROFILE)
 		    (ClientData)(unsigned long)trt.tv_usec,
 		    (ClientData)(unsigned long)trt.tv_sec
-#else
+#  else
 		    NULL,
 		    NULL
-#endif
+#  endif
 		    );
   result = TclNRInterpProcCore(interp, procNameObj, 1, &MakeProcError);
 # else
+  {
   ClientData data[4] = {
     (ClientData)fullMethodName,
     pcPtr,
-#if defined(NSF_PROFILE)
+#  if defined(NSF_PROFILE)
     (ClientData)(unsigned long)trt.tv_usec,
     (ClientData)(unsigned long)trt.tv_sec
-#else
+#  else
     NULL,
     NULL
-#endif
+#  endif
   };
   result = TclObjInterpProcCore(interp, procNameObj, 1, &MakeProcError);
   result = ProcDispatchFinalize(data, interp, result);
+  }
 # endif
 #endif
   return result;
@@ -18882,7 +18884,7 @@ typedef struct NsfParamWrapper {
   Nsf_Param *paramPtr;
   int refCount;
   int canFree;
-  INTERP_DECL1;
+  INTERP_MEMBER_DECL
 } NsfParamWrapper;
 
 static Tcl_DupInternalRepProc	ParamDupInteralRep;
