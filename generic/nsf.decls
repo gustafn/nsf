@@ -77,16 +77,16 @@ declare 15 generic {
   void NsfStackDump (Tcl_Interp *interp)
 }
 declare 16 generic {
-  void NsfSetObjClientData(Nsf_Object *object, ClientData data)
+  void NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object, ClientData data)
 }
 declare 17 generic {
-  ClientData NsfGetObjClientData(Nsf_Object *object)
+  ClientData NsfGetObjClientData(Tcl_Interp *interp, Nsf_Object *object)
 }
 declare 18 generic {
-  void NsfSetClassClientData(Nsf_Class *cl, ClientData data)
+  void NsfSetClassClientData(Tcl_Interp *interp, Nsf_Class *cl, ClientData data)
 }
 declare 19 generic {
-  ClientData NsfGetClassClientData(Nsf_Class *cl)
+  ClientData NsfGetClassClientData(Tcl_Interp *interp, Nsf_Class *cl)
 }
 declare 20 generic {
   void NsfRequireObjNamespace(Tcl_Interp *interp, Nsf_Object *object)

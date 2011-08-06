@@ -117,23 +117,26 @@ EXTERN void		NsfStackDump(Tcl_Interp *interp);
 #ifndef NsfSetObjClientData_TCL_DECLARED
 #define NsfSetObjClientData_TCL_DECLARED
 /* 16 */
-EXTERN void		NsfSetObjClientData(Nsf_Object *object,
-				ClientData data);
+EXTERN void		NsfSetObjClientData(Tcl_Interp *interp,
+				Nsf_Object *object, ClientData data);
 #endif
 #ifndef NsfGetObjClientData_TCL_DECLARED
 #define NsfGetObjClientData_TCL_DECLARED
 /* 17 */
-EXTERN ClientData	NsfGetObjClientData(Nsf_Object *object);
+EXTERN ClientData	NsfGetObjClientData(Tcl_Interp *interp,
+				Nsf_Object *object);
 #endif
 #ifndef NsfSetClassClientData_TCL_DECLARED
 #define NsfSetClassClientData_TCL_DECLARED
 /* 18 */
-EXTERN void		NsfSetClassClientData(Nsf_Class *cl, ClientData data);
+EXTERN void		NsfSetClassClientData(Tcl_Interp *interp,
+				Nsf_Class *cl, ClientData data);
 #endif
 #ifndef NsfGetClassClientData_TCL_DECLARED
 #define NsfGetClassClientData_TCL_DECLARED
 /* 19 */
-EXTERN ClientData	NsfGetClassClientData(Nsf_Class *cl);
+EXTERN ClientData	NsfGetClassClientData(Tcl_Interp *interp,
+				Nsf_Class *cl);
 #endif
 #ifndef NsfRequireObjNamespace_TCL_DECLARED
 #define NsfRequireObjNamespace_TCL_DECLARED
@@ -197,10 +200,10 @@ typedef struct NsfStubs {
     int (*nsfErrInProc) (Tcl_Interp *interp, Tcl_Obj *objName, Tcl_Obj *clName, CONST char *procName); /* 13 */
     int (*nsfObjErrType) (Tcl_Interp *interp, CONST char *context, Tcl_Obj *value, CONST char *type, Nsf_Param CONST *pPtr); /* 14 */
     void (*nsfStackDump) (Tcl_Interp *interp); /* 15 */
-    void (*nsfSetObjClientData) (Nsf_Object *object, ClientData data); /* 16 */
-    ClientData (*nsfGetObjClientData) (Nsf_Object *object); /* 17 */
-    void (*nsfSetClassClientData) (Nsf_Class *cl, ClientData data); /* 18 */
-    ClientData (*nsfGetClassClientData) (Nsf_Class *cl); /* 19 */
+    void (*nsfSetObjClientData) (Tcl_Interp *interp, Nsf_Object *object, ClientData data); /* 16 */
+    ClientData (*nsfGetObjClientData) (Tcl_Interp *interp, Nsf_Object *object); /* 17 */
+    void (*nsfSetClassClientData) (Tcl_Interp *interp, Nsf_Class *cl, ClientData data); /* 18 */
+    ClientData (*nsfGetClassClientData) (Tcl_Interp *interp, Nsf_Class *cl); /* 19 */
     void (*nsfRequireObjNamespace) (Tcl_Interp *interp, Nsf_Object *object); /* 20 */
     int (*nsfCallMethodWithArgs) (Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *method, Tcl_Obj *arg, int objc, Tcl_Obj *CONST objv[], int flags); /* 21 */
     int (*nsfAddObjectMethod) (Tcl_Interp *interp, struct Nsf_Object *object, CONST char *nm, Tcl_ObjCmdProc *proc, ClientData cd, Tcl_CmdDeleteProc *dp, int flags); /* 22 */

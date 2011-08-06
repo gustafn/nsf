@@ -871,7 +871,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static void
-CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
+CscInit_(INTERP_DECL /*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
 	Tcl_Command cmd, int frameType, int flags) {
 #if defined(NSF_PROFILE)
   struct timeval trt;
@@ -913,11 +913,11 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
        * Incremement the namespace ptr in case Tcl tries to delete
        * this namespace during the invocation
        */
-      NSNamespacePreserve(Tcl_Command_nsPtr(cmd));
+      NSNamespacePreserve(INTERP Tcl_Command_nsPtr(cmd));
       /*fprintf(stderr, "NSNamespacePreserve %p\n", nsPtr);*/
     }
 
-    NsfCommandPreserve(cmd);
+    NsfCommandPreserve(INTERP cmd);
   }
   cscPtr->flags        |= flags & NSF_CSC_COPY_FLAGS;
   cscPtr->self          = object;
@@ -1013,12 +1013,12 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
       /*
        * Release the Namespace
        */
-      NSNamespaceRelease(Tcl_Command_nsPtr(cscPtr->cmdPtr));
+      NSNamespaceRelease(INTERP Tcl_Command_nsPtr(cscPtr->cmdPtr));
     }
     /*
      * Release the Command
      */
-    NsfCommandRelease(cscPtr->cmdPtr);
+    NsfCommandRelease(INTERP cscPtr->cmdPtr);
   }
 
 #if defined(NRE)

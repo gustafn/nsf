@@ -3182,12 +3182,17 @@ nsf.c:
 - nsf.c:
   added cmd __db_compile_epoch for compile-epoch introspection
 
-TODO:
- - zzz why is the method recompiled for /tmp/sp.tcl ? 
-   debug output with VAR_RESOLVER_TRACE
+ - Mystery solved, why in the script below the interp>compileEpoch is
+   incremented, when D is redefined, but in other cases not.  In the
+   script below the method D.init is compiled by tcl, since it has a
+   trivial body. Therefore, a redefinition of D will remove this
+   compiled body and all its potential usages. Therefore the
+   interp->epoch is incremented. If the body is e.g.  "return", the
+   epoch is not incremented (observed with Tcl 8.5.10)
+
 =================================================
 # -*- Tcl -*-
-package require XOTcl; namespace import ::xotcl::*
+package require XOTcl; namespace import -force ::xotcl::*
 package require nx::test; namespace import nx::Test
 
 Class C; C c
@@ -3196,7 +3201,9 @@ D instproc init args {}
 
 Test new \
     -count 100 \
-    -pre {Class D; Class E; Class E1; Class X -instmixin {D E E1}} \
+    -pre {
+      puts stderr ===create-D;Class create D; puts stderr ===D-created;
+      Class E; Class E1; Class X -instmixin {D E E1}} \
     -cmd {X info instmixin ::E*} \
     -expected {::E ::E1} \
     -post {foreach o {D E E1 X} {$o destroy}}
@@ -3211,6 +3218,18 @@ Test new \
 Test run; exit
 =================================================
 
+- nsf.c: 
+  * enabled MEM_COUNT debugging for multi-threaded
+    apps. We collect the MEM_COUNT statistics now
+    per interp. Therefore, we have to pass around
+    "interp" in case where alloc() and free() 
+    or refCount functions are used (textually,
+    a big change)
+  * verified, that nsf runs clean in aolserver/naviserver
+    (all INCR_REF_COUNTS all balanced)
+
+
+TODO:
  - strange refcounting bug in 8.6b2 bug-is-86.tcl
    where 2 refcounted items are not freed (value:class,
    issued from nx.tcl around line 120). Compile with DEBUG86B2

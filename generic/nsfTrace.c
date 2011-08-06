@@ -75,12 +75,15 @@ Tcl_HashTable nsfMemCount;
 
 
 void 
-NsfMemCountAlloc(char *id, void *p) {
+NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *p) {
   int new;
   NsfMemCounter *entry;
-  Tcl_HashTable *table = &nsfMemCount;
+  Tcl_HashTable *tablePtr = &RUNTIME_STATE(interp)->memCountTable;
+  //Tcl_HashTable *tablePtr = &nsfMemCount;
   Tcl_HashEntry *hPtr;
-  hPtr = Tcl_CreateHashEntry(table, id, &new);
+
+  assert(interp);
+  hPtr = Tcl_CreateHashEntry(tablePtr, id, &new);
 #ifdef NSF_MEM_TRACE
   fprintf(stderr, "+++ alloc %s %p\n", id, p);
 #endif
@@ -100,15 +103,17 @@ NsfMemCountAlloc(char *id, void *p) {
 }
 
 void
-NsfMemCountFree(char *id, void *p) {
+NsfMemCountFree(Tcl_Interp *interp, char *id, void *p) {
   NsfMemCounter *entry;
-  Tcl_HashTable *table = &nsfMemCount;
+  //Tcl_HashTable *tablePtr = &nsfMemCount;
+  Tcl_HashTable *tablePtr = &RUNTIME_STATE(interp)->memCountTable;
   Tcl_HashEntry *hPtr;
 #ifdef NSF_MEM_TRACE
   fprintf(stderr, "+++ free %s %p\n", id, p);
 #endif
 
-  hPtr = Tcl_FindHashEntry(table, id);
+  assert(interp);
+  hPtr = Tcl_FindHashEntry(tablePtr, id);
   if (!hPtr) {
     fprintf(stderr, "******** MEM COUNT ALERT: Trying to free %p <%s>, "
 	    "but was not allocated\n", p, id);
@@ -119,29 +124,42 @@ NsfMemCountFree(char *id, void *p) {
 }
 
 void
-NsfMemCountDump() {
-  Tcl_HashTable *table = &nsfMemCount;
+NsfMemCountInit(Tcl_Interp *interp) {
+  Tcl_HashTable *tablePtr = &RUNTIME_STATE(interp)->memCountTable;
+
+  Tcl_InitHashTable(tablePtr, TCL_STRING_KEYS);
+#if 0
+  extern Tcl_HashTable nsfMemCount;
+  Tcl_InitHashTable(&nsfMemCount, TCL_STRING_KEYS);
+#endif
+}
+
+void
+NsfMemCountRelease(Tcl_Interp *interp) {
+  Tcl_HashTable *tablePtr = &RUNTIME_STATE(interp)->memCountTable;
   Tcl_HashSearch search;
   Tcl_HashEntry *hPtr;
   int count = 0;
 
+#if 0
   nsfMemCountInterpCounter--;
   if (nsfMemCountInterpCounter != 0) {
     return;
   }
+#endif
 
-  fprintf(stderr, "******** XOTcl MEM Count *********\n*  count peak\n");
+  fprintf(stderr, "******** NSF MEM Count *********\n*  count peak\n");
 
-  for (hPtr = Tcl_FirstHashEntry(table, &search);  hPtr != NULL;
+  for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&search)) {
-    char *id = Tcl_GetHashKey(table, hPtr);
+    char *id = Tcl_GetHashKey(tablePtr, hPtr);
     NsfMemCounter *entry = (NsfMemCounter*)  Tcl_GetHashValue(hPtr);
     count += entry->count;
     fprintf(stderr, "* %4d %6d %s\n", entry->count, entry->peak, id);
     ckfree ((char*) entry);
   }
   
-  Tcl_DeleteHashTable(table);
+  Tcl_DeleteHashTable(tablePtr);
   
   fprintf(stderr, "******** Count Overall = %d\n", count);
 }

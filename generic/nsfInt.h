@@ -92,27 +92,27 @@ typedef struct NsfMemCounter {
   int peak;
   int count;
 } NsfMemCounter;
-#  define MEM_COUNT_ALLOC(id,p) NsfMemCountAlloc(id,p)
-#  define MEM_COUNT_FREE(id,p) NsfMemCountFree(id,p)
-#  define MEM_COUNT_INIT() \
-      if (nsfMemCountInterpCounter == 0) { \
-        extern Tcl_HashTable nsfMemCount; \
-        Tcl_InitHashTable(&nsfMemCount, TCL_STRING_KEYS); \
-        nsfMemCountInterpCounter = 1; \
-      }
-#  define MEM_COUNT_DUMP() NsfMemCountDump(interp)
-#  define MEM_COUNT_OPEN_FRAME()
-/*if (obj->varTable) noTableBefore = 0*/
-#  define MEM_COUNT_CLOSE_FRAME()
-/*      if (obj->varTable && noTableBefore) \
-	NsfMemCountAlloc("obj->varTable",NULL)*/
+#  define INTERP interp,
+#  define INTERP1 interp
+#  define INTERP_DECL Tcl_Interp *interp,
+#  define INTERP_DECL1 Tcl_Interp *interp
+#  define INTERP_MEMBER_GET(ptr) Tcl_Interp *interp = (ptr)->interp;
+#  define INTERP_MEMBER_SET(ptr, value) (ptr)->interp = (value);
+#  define MEM_COUNT_ALLOC(id,p) NsfMemCountAlloc(interp, id, p)
+#  define MEM_COUNT_FREE(id,p) NsfMemCountFree(interp, id, p)
+#  define MEM_COUNT_INIT(interp) NsfMemCountInit(interp)
+#  define MEM_COUNT_RELEASE(interp) NsfMemCountRelease(interp)
 #else
+#  define INTERP
+#  define INTERP1
+#  define INTERP_DECL
+#  define INTERP_DECL1
+#  define INTERP_MEMBER_GET(ptr)
+#  define INTERP_MEMBER_SET(ptr, value)
 #  define MEM_COUNT_ALLOC(id,p)
 #  define MEM_COUNT_FREE(id,p)
-#  define MEM_COUNT_INIT()
-#  define MEM_COUNT_DUMP()
-#  define MEM_COUNT_OPEN_FRAME()
-#  define MEM_COUNT_CLOSE_FRAME()
+#  define MEM_COUNT_INIT(interp)
+#  define MEM_COUNT_RELEASE(interp)
 #endif
 
 /*
@@ -339,7 +339,7 @@ typedef struct NsfCmdList {
   struct NsfCmdList *nextPtr;
 } NsfCmdList;
 
-typedef void (NsfFreeCmdListClientData) _ANSI_ARGS_((NsfCmdList*));
+typedef void (NsfFreeCmdListClientData) _ANSI_ARGS_((INTERP_DECL NsfCmdList*));
 
 /* for incr string */
 typedef struct NsfStringIncrStruct {
@@ -540,6 +540,7 @@ typedef struct NsfProcClientData {
   Tcl_Command cmd;
   NsfParamDefs *paramDefs;
   int with_ad;
+  INTERP_DECL1;
 } NsfProcClientData;
 
 typedef enum SystemMethodsIdx {
@@ -792,6 +793,9 @@ typedef struct NsfRuntimeState {
   NsfStringIncrStruct iss; /* used for new to create new symbols */
   short guardCount;        /* keep track of guard invocations */
   ClientData clientData;
+#if defined(NSF_MEM_COUNT)
+  Tcl_HashTable memCountTable;
+#endif
 } NsfRuntimeState;
 
 #define NSF_EXITHANDLER_OFF 0
@@ -858,9 +862,9 @@ extern NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_Call
  * MEM Counting
  */
 #ifdef NSF_MEM_COUNT
-void NsfMemCountAlloc(char *id, void *);
-void NsfMemCountFree(char *id, void *);
-void NsfMemCountDump();
+void NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *);
+void NsfMemCountFree(Tcl_Interp *interp, char *id, void *);
+void NsfMemCountRelease(Tcl_Interp *interp);
 #endif /* NSF_MEM_COUNT */
 
 /*
