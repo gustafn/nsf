@@ -7684,7 +7684,7 @@ ParamsNew(INTERP_DECL int nr) {
 static void
 ParamFree(INTERP_DECL Nsf_Param *paramPtr) {
   /*fprintf(stderr, "ParamFree %p\n", paramPtr);*/
-  if (paramPtr->name) ckfree(paramPtr->name);
+  if (paramPtr->name) {STRING_FREE("paramPtr->name", paramPtr->name);}
   if (paramPtr->nameObj) {DECR_REF_COUNT(paramPtr->nameObj);}
   if (paramPtr->defaultValue) {DECR_REF_COUNT(paramPtr->defaultValue);}
   if (paramPtr->converterName) {DECR_REF_COUNT2("converterNameObj", paramPtr->converterName);}
@@ -9607,8 +9607,6 @@ AddPrefixToBody(INTERP_DECL Tcl_Obj *body, int paramDefs, NsfParsedParam *paramP
   return resultBody;
 }
 
-#define NEW_STRING(target, p, l)  target = ckalloc(l+1); strncpy(target, p, l); *((target)+l) = '\0'
-
 NSF_INLINE static int
 NoMetaChars(CONST char *pattern) {
   register char c;
@@ -10540,7 +10538,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     size_t l, start, end;
 
     /* get parameter name */
-    NEW_STRING(paramPtr->name, argString, j);
+    STRING_NEW(paramPtr->name, argString, j);
     paramPtr->nameObj = Tcl_NewStringObj(argName, isNonposArgument ? j-1 : j);
     INCR_REF_COUNT(paramPtr->nameObj);
 
@@ -10573,7 +10571,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
 
   } else {
     /* no ':', the whole arg is the name, we have no options */
-    NEW_STRING(paramPtr->name, argString, length);
+    STRING_NEW(paramPtr->name, argString, length);
     if (isNonposArgument) {
       paramPtr->nameObj = Tcl_NewStringObj(argName, length-1);
     } else {
@@ -21989,7 +21987,7 @@ ExitHandler(ClientData clientData) {
      checkmem checkmemFile"); */
 #endif
   MEM_COUNT_RELEASE(interp);
-  ckfree(RUNTIME_STATE(interp));
+  ckfree((char *) RUNTIME_STATE(interp));
 
   Tcl_Interp_flags(interp) = flags;
   Tcl_Release(interp);

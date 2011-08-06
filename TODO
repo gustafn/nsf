@@ -3227,9 +3227,14 @@ Test run; exit
     a big change)
   * verified, that nsf runs clean in aolserver/naviserver
     (all INCR_REF_COUNTS all balanced)
-
+  * added paramPtr->name to MEM_COUNT tracing
+  * renamed NEW_STRING to STRING_NEW
+  * added STRING_FREE, calling MEM_COUNT macros
+  * checked all ckfree in nsf.c, everything allocated 
+    is covered by the MEM_COUNT macros
 
 TODO:
+
  - strange refcounting bug in 8.6b2 bug-is-86.tcl
    where 2 refcounted items are not freed (value:class,
    issued from nx.tcl around line 120). Compile with DEBUG86B2
@@ -3256,8 +3261,7 @@ nx::Test case ensemble-next-with-colon-prefix {
  - disposition.test: 
     * remove/check exit (see comments in the file)
     * handle exit from eval/inticmd with proper refcounts
- - check ckalloc/ckfree, whether these should be moved to
-   NEW/FREE.
+
  - nsf-refcounts on TclNamespace are not correct, when namespaces
    are deleted by tcl. Maybe this is not a problem, but we have to check.
 

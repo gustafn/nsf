@@ -117,6 +117,10 @@ typedef struct NsfMemCounter {
 #  define MEM_COUNT_RELEASE(interp)
 #endif
 
+# define STRING_NEW(target, p, l)  target = ckalloc(l+1); strncpy(target, p, l); *((target)+l) = '\0'; \
+  MEM_COUNT_ALLOC(#target, target)
+# define STRING_FREE(key, p)  MEM_COUNT_FREE(key, p); ckfree((p))
+
 /*
  * Tries to use gcc __attribute__ unused and mangles the name, so the
  * attribute could not be used, if declared as unused.
@@ -866,6 +870,7 @@ extern NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_Call
 #ifdef NSF_MEM_COUNT
 void NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *);
 void NsfMemCountFree(Tcl_Interp *interp, char *id, void *);
+void NsfMemCountInit(Tcl_Interp *interp);
 void NsfMemCountRelease(Tcl_Interp *interp);
 #endif /* NSF_MEM_COUNT */
 
