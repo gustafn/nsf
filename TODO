@@ -3182,13 +3182,13 @@ nsf.c:
 - nsf.c:
   added cmd __db_compile_epoch for compile-epoch introspection
 
- - Mystery solved, why in the script below the interp>compileEpoch is
-   incremented, when D is redefined, but in other cases not.  In the
-   script below the method D.init is compiled by tcl, since it has a
-   trivial body. Therefore, a redefinition of D will remove this
-   compiled body and all its potential usages. Therefore the
-   interp->epoch is incremented. If the body is e.g.  "return", the
-   epoch is not incremented (observed with Tcl 8.5.10)
+- Mystery solved, why in the script below the interp>compileEpoch is
+  incremented, when D is redefined, but in other cases not.  In the
+  script below the method D.init is compiled by tcl, since it has a
+  trivial body. Therefore, a redefinition of D will remove this
+  compiled body and all its potential usages. Therefore the
+  interp->epoch is incremented. If the body is e.g.  "return", the
+  epoch is not incremented (observed with Tcl 8.5.10)
 
 =================================================
 # -*- Tcl -*-
@@ -3235,6 +3235,9 @@ Test run; exit
 
 - nsf.c: fixed autoname problem with code from tcl trunk
 
+- disposition.test: 
+  * remove/check exit (see comments in the file)
+
 TODO:
 
  - strange refcounting bug in 8.6b2 bug-is-86.tcl
@@ -3261,7 +3264,6 @@ nx::Test case ensemble-next-with-colon-prefix {
     # variable uses nsf::is and attribute uses the slot obj. method variable should
     # be changed to use the slotobj as well.
  - disposition.test: 
-    * remove/check exit (see comments in the file)
     * handle exit from eval/inticmd with proper refcounts
 
  - nsf-refcounts on TclNamespace are not correct, when namespaces

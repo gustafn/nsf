@@ -1138,20 +1138,6 @@ nx::Test case dispo-configure-transparency {
   ? {[C create c -show me] eval {set :msg}} "::c-show-me"
 
   #
-  # TODO: 
-  #
-  #  - Stefan, why is the exit here? is this work in progress?  If it
-  #    is removed, some tests below fail. So, i used "if 0" in the
-  #    meantime...
-  #
-  #  - an exit from the initCmd still leaves some garbage around: some
-  #    refcounts are not correct, see warning message and counters,
-  #    when NSF_MEM_COUNT is turned on.
-  #
-  #exit
-
-  if {0} {
-  #
   # ... with mixin indirection
   #
   
@@ -1163,11 +1149,17 @@ nx::Test case dispo-configure-transparency {
     :public method foo args {
       next;
     }
+    :public method FOO args {
+      error [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
+    }
+
   }
 
   C setObjectParams [list [list FOO:alias,noarg ""]]
   C mixin add M
-  ? {C create c} "::c-FOO"
+  ? {C create c} "::c--FOO"
+  C mixin {}
+
 
   # ... at the called object level
 
@@ -1178,8 +1170,6 @@ nx::Test case dispo-configure-transparency {
   }
 
   ::nsf::method::alias C FOO ::callee
-
-
 
   C setObjectParams [list [list FOO:alias,noarg ""]]
   ? {C create c} "::c" "Defaultmethod of calle is invoked ..."
@@ -1206,9 +1196,8 @@ nx::Test case dispo-configure-transparency {
   ? {C create c} "::c-FOO" "With mixin ..."
   
   #
-  # ... with filter indirection
+  # ... with filter indirection: tbd
   #
-}
 }
 
 nx::Test case dispo-object-targets {
