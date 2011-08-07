@@ -2258,9 +2258,9 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *name, XOTclObject *obj,
       valueObject = Tcl_DuplicateObj(valueObject);
     }
     Tcl_SetLongObj(valueObject, autoname_counter);
+    Tcl_ObjSetVar2(interp, XOTclGlobalObjects[XOTE_AUTONAMES], name, 
+		   valueObject, flgs);
   }
-  Tcl_ObjSetVar2(interp, XOTclGlobalObjects[XOTE_AUTONAMES], name, 
-                 valueObject, flgs);
   
   if (resetOpt) {
     if (valueObject) { /* we have an entry */

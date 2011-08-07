@@ -1,3 +1,6 @@
+2011-08-07 <Gustaf.Neumann@wu-wien.ac.at>
+	* backport of autoname fix from nsf
+	
 2011-04-28 <Gustaf.Neumann@wu-wien.ac.at>
 	* serializer: fix allChildren to handle names with semicolons
 	* serializer: fix allInstances to handle names with semicolons

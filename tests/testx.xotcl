@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.36 2007/10/12 19:53:32 neumann Exp $
+# -*- Tcl -*-
 package require XOTcl 1
 namespace import -force xotcl::*
 
@@ -1646,6 +1646,9 @@ TestX mixinTest -proc run {{n 10}} {
     i4 mixin {MovementTest MovementLog}
     
     i4 proc aaa args {puts TEST}
+
+    ::errorCheck [i4 info precedence]      "::MovementLog ::MovementTest ::InteractiveAgent3 ::Agent ::xotcl::Object" "precedence i4"
+
     ::errorCheck [i4 procsearch moveAgent]-[i4 procsearch aaa]-[i4 procsearch set] "::MovementLog instproc moveAgent-::i4 proc aaa-::xotcl::Object instcmd set" "procsearch"
 
     Class create A
