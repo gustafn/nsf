@@ -4422,6 +4422,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
   valueObj = Tcl_ObjGetVar2(interp, NsfGlobalObjs[NSF_AUTONAMES], nameObj, flgs);
   if (valueObj) {
     long autoname_counter;
+
     /* should probably do an overflow check here */
     Tcl_GetLongFromObj(interp, valueObj, &autoname_counter);
     autoname_counter++;
@@ -4429,9 +4430,9 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       valueObj = Tcl_DuplicateObj(valueObj);
     }
     Tcl_SetLongObj(valueObj, autoname_counter);
+    Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_AUTONAMES], nameObj,
+		   valueObj, flgs);
   }
-  Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_AUTONAMES], nameObj,
-		 valueObj, flgs);
 
   if (resetOpt) {
     if (valueObj) { /* we have an entry */

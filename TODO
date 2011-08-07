@@ -3233,6 +3233,8 @@ Test run; exit
   * checked all ckfree in nsf.c, everything allocated 
     is covered by the MEM_COUNT macros
 
+- nsf.c: fixed autoname problem with code from tcl trunk
+
 TODO:
 
  - strange refcounting bug in 8.6b2 bug-is-86.tcl
