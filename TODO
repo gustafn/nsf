@@ -3250,6 +3250,9 @@ Test run; exit
 - improved error message for invalid parameter specs (with leading colons)
 - extended regression test
 
+- library/mongodb:updated to current interface in git HEAD 
+
+
 
 TODO:
 

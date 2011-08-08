@@ -401,12 +401,9 @@ ErrorMsg(int status) {
     case MONGO_CONN_BAD_SET_NAME: return "Given replica set name doesn't match this replica set"; 
     case MONGO_CONN_NO_PRIMARY:   return "Can't find primary in replica set"; 
 
-    case MONGO_IO_ERROR:          return "An error occurred while reading or writing on socket";
+    case MONGO_IO_ERROR:          return "An error occurred while reading or writing on the socket";
     case MONGO_READ_SIZE_ERROR:   return "The response is not the expected length"; 
     case MONGO_COMMAND_FAILED:    return "The command returned with 'ok' value of 0";
-    case MONGO_CURSOR_EXHAUSTED:  return "The cursor has no more results";
-    case MONGO_CURSOR_INVALID:    return "The cursor has timed out or is not recognized"; 
-    case MONGO_CURSOR_PENDING:    return "Tailable cursor still alive but no data"; 
     case MONGO_BSON_INVALID:      return "BSON not valid for the specified op"; 
     case MONGO_BSON_NOT_FINISHED: return "BSON object has not been finished"; 
 
