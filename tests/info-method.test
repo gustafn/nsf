@@ -438,17 +438,36 @@ nx::Test case info-submethod {
   ? {lsort [C class info method submethods "foo"]} "x y"
   ? {lsort [C class info method submethods "foo x"]} ""
 
+  #
+  # method handles for ensemble methods
+  #
   ? {C info method handle "bar"} {::nsf::classes::C::bar}
   ? {C info method handle "bar a"} {::nsf::classes::C::bar a}
   ? {C info method handle "bar baz y"} {::nsf::classes::C::bar baz y}
 
+  #
+  # test whether the handles for ensemble methods work
+  #
+  ? {C info method parameter [C info method handle "bar"]} ""
+  ? {C info method parameter [C info method handle "bar b"]} "x:int y:upper"
+  ? {C info method parameter [C info method handle "bar baz y"]} "x:int y:upper"
+  
+  #
+  # check methods paths as method specifications
+  #
   ? {C info method definition "bar b"} {::C public method {bar b} {x:int y:upper} {return b}}
   ? {C info method definition "::nsf::classes::C::bar b"}  {::C public method {bar b} {x:int y:upper} {return b}}
   ? {o2 info method definition "::nsf::classes::C::bar b"} {::C public method {bar b} {x:int y:upper} {return b}}
 
+  #
+  # test class modifier on handles
+  #
   ? {C class info method handle "foo"}   {::C::foo}
   ? {C class info method handle "foo x"} {::C::foo x}
 
+  #
+  # info method definition with method paths
+  #
   ? {C class info method definition "::C::foo x"} {::C public class method {foo x} z:int {return z}}
   ? {C info method definition "::C::foo x"}        {::C public class method {foo x} z:int {return z}}
   ? {o2 info method definition "::C::foo x"}       {::C public class method {foo x} z:int {return z}}
@@ -458,6 +477,9 @@ nx::Test case info-submethod {
   ? {C info method definition "::nsf::classes::C::bar baz y"} \
       {::C public method {bar baz y} {x:int y:upper} {return y}}
 
+  #
+  # test "info method parameter"
+  #
   ? {nx::Object info method parameter "info lookup methods"} \
       "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
   ? {nx::Object info method parametersyntax "info lookup methods"} \

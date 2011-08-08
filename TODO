@@ -3243,6 +3243,8 @@ Test run; exit
   2 test are still open with tcl 8.5.10 (contains.test and xotcomm.test)
 - documented functions in nsfTrace.c
 - updated next-tutorial to the current naming conventions
+- added tests for using submethod handles
+
 
 TODO:
 
@@ -3306,9 +3308,6 @@ nx::Test case ensemble-next-with-colon-prefix {
      (e) others?
 
  - call user defined setter in object parameters?
-
- - [obj/cls info method handle "FOO foo"] does neither return a proper
-   submethod handle nor any valid handle ... needs a fix.
 
  - NsfObjWrongArgs() & friends is not aware of submethods. Error
    messages print with the leaf method names only, e.g.: "anObj method
