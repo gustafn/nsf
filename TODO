@@ -3286,7 +3286,8 @@ nx::Test case ensemble-next-with-colon-prefix {
  - fix mem_count on xocomm.test (currently 26 / 26)
 
  - interface of "variable" and "attribute":
-   * add switch -array for "variable"?
+   * add switch -array for "variable"? (Just setting is trivial,
+     handling setters and incremental setter is more work)
    * should we switch from "-class" to "-slotclass"?
    * should we change interface for default value in attribute? 
      probably not, same interface is used in methodparameters as well
@@ -3305,8 +3306,6 @@ nx::Test case ensemble-next-with-colon-prefix {
      (e) others?
 
  - call user defined setter in object parameters?
- - add flag -array to "variable" (just setting is trivial,
-   handling setters and incremental setter is more work)
 
  - [obj/cls info method handle "FOO foo"] does neither return a proper
    submethod handle nor any valid handle ... needs a fix.
