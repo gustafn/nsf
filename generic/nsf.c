@@ -53,10 +53,6 @@ MODULE_SCOPE const NsfStubs * const nsfConstStubPtr;
 # endif
 #endif
 
-#ifdef NSF_MEM_COUNT
-int nsfMemCountInterpCounter = 0;
-#endif
-
 #ifdef USE_TCL_STUBS
 # define Nsf_ExprObjCmd(clientData, interp, objc, objv)	\
   NsfCallCommand(interp, NSF_EXPR, objc, objv)
@@ -128,6 +124,19 @@ typedef struct AliasCmdClientData {
   Tcl_Command aliasedCmd;
   Tcl_Command aliasCmd;
 } AliasCmdClientData;
+
+/*
+ * When NSF_MEM_COUNT is set, we want to trace as well the mem-count frees
+ * associated with the interp. Therefore, we need in this case a special
+ * client data structure.
+ */
+#ifdef NSF_MEM_COUNT
+typedef struct NsfNamespaceClientData {
+  NsfObject *object;
+  Tcl_Namespace *nsPtr;
+  Tcl_Interp *interp;
+} NsfNamespaceClientData;
+#endif
 
 /*
  * Argv parsing specific definitions
@@ -221,7 +230,7 @@ NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *metho
 static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *CallingNameSpace(Tcl_Interp *interp);
 NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name);
-static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData,
+static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object,
 					  CONST char *name);
 static Tcl_Namespace *RequireObjNamespace(Tcl_Interp *interp, NsfObject *object);
 static int NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName);
@@ -3923,16 +3932,31 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   }
 }
 
-
 static void
 NSNamespaceDeleteProc(ClientData clientData) {
-  /* dummy for ns identification by pointer comparison */
+#ifdef NSF_MEM_COUNT
+  NsfNamespaceClientData *nsClientData = (NsfNamespaceClientData *)clientData;
+  NsfObject *object;
+
+  assert(clientData);
+  /*fprintf(stderr, "NSNamespaceDeleteProc cd %p\n", clientData);
+    fprintf(stderr, "... nsPtr %p name '%s'\n", nsClientData->nsPtr, nsClientData->nsPtr->fullName);*/
+
+  object = nsClientData->object;
+  INTERP_MEMBER_GET(nsClientData)
+
+  ckfree((char *)nsClientData);
+#else
   NsfObject *object = (NsfObject *) clientData;
+#endif
+
+  assert(object);
+
   /*fprintf(stderr, "namespacedeleteproc obj=%p ns=%p\n",
     clientData, object ? object->nsPtr : NULL);*/
-  if (object) {
-    object->nsPtr = NULL;
-  }
+
+  MEM_COUNT_FREE("NSNamespace", object->nsPtr);
+  object->nsPtr = NULL;
 }
 
 void
@@ -3959,7 +3983,7 @@ Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
 
   /*fprintf(stderr, "to %d. \n", ((Namespace *)nsPtr)->activationCount);*/
 
-  MEM_COUNT_FREE("TclNamespace", nsPtr);
+  //MEM_COUNT_FREE("TclNamespace", nsPtr);
   if (Tcl_Namespace_deleteProc(nsPtr)) {
     /*fprintf(stderr, "calling deteteNamespace %s\n", nsPtr->fullName);*/
     Tcl_DeleteNamespace(nsPtr);
@@ -4013,7 +4037,7 @@ NSCheckColons(CONST char *name, size_t l) {
  *----------------------------------------------------------------------
  */
 static Tcl_Namespace*
-NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name) {
+NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, CONST char *name) {
   Namespace *dummy1Ptr, *dummy2Ptr, *nsPtr;
   const char *dummy;
 
@@ -4021,17 +4045,36 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name)
 			     &nsPtr, &dummy1Ptr, &dummy2Ptr, &dummy);
 
   if (nsPtr->deleteProc != NSNamespaceDeleteProc) {
-    /* reuse the namespace */
+    /* 
+     * Avoid hijacking a namespace with different client data 
+     */
     if (nsPtr->deleteProc || nsPtr->clientData) {
       Tcl_Panic("Namespace '%s' exists already with delProc %p and clientData %p; "
 		"Can only convert a plain Tcl namespace into an nsf namespace, my delete Proc %p",
 		name, nsPtr->deleteProc, nsPtr->clientData, NSNamespaceDeleteProc);
     }
-    nsPtr->clientData = clientData;
-    nsPtr->deleteProc = (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc;
+
+    {
+#ifdef NSF_MEM_COUNT
+      NsfNamespaceClientData *nsClientData = (NsfNamespaceClientData *)ckalloc(sizeof(NsfNamespaceClientData));
+
+      nsClientData->object = object;
+      nsClientData->nsPtr = (Tcl_Namespace *)nsPtr;
+      INTERP_MEMBER_SET(nsClientData, interp)
+      nsPtr->clientData = nsClientData;
+
+      /*fprintf(stderr, "Adding NsfNamespaceClientData nsPtr %p cd %p name '%s'\n", 
+	nsPtr, nsClientData, nsPtr->fullName);*/
+#else
+      nsPtr->clientData = object;
+#endif
+      nsPtr->deleteProc = (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc;
+    }
+    MEM_COUNT_ALLOC("NSNamespace", nsPtr);
+  } else {
+    fprintf(stderr, "NSGetFreshNamespace: reusing namespace %p %s\n", nsPtr, nsPtr->fullName);
   }
 
-  MEM_COUNT_ALLOC("TclNamespace", nsPtr);
   return (Tcl_Namespace *)nsPtr;
 }
 
@@ -13317,7 +13360,6 @@ PrimitiveCDestroy(ClientData clientData) {
 
   /*fprintf(stderr, "primitive cdestroy calls deletenamespace for obj %p, nsPtr %p flags %.6x\n",
     cl, saved, ((Namespace *)saved)->flags);*/
-  saved->clientData = NULL;
   Nsf_DeleteNamespace(interp, saved);
   /*fprintf(stderr, "primitive cdestroy %p DONE\n", cl);*/
   return;
@@ -13339,7 +13381,7 @@ PrimitiveCInit(NsfClass *cl, Tcl_Interp *interp, CONST char *name) {
                         RUNTIME_STATE(interp)->NsfClassesNS, 0) != TCL_OK) {
     return;
   }
-  nsPtr = NSGetFreshNamespace(interp, cl, name);
+  nsPtr = NSGetFreshNamespace(interp, &cl->object, name);
   Tcl_PopCallFrame(interp);
 
   CleanupInitClass(interp, cl, nsPtr, 0, 0);
@@ -16966,9 +17008,6 @@ NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST o
     if (Nsf_Init(slave) == TCL_ERROR) {
       return TCL_ERROR;
     }
-#ifdef NSF_MEM_COUNT
-    nsfMemCountInterpCounter++;
-#endif
   }
   return TCL_OK;
 }

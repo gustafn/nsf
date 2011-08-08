@@ -3238,6 +3238,11 @@ Test run; exit
 - disposition.test: 
   * remove/check exit (see comments in the file)
 
+- fixed book-keeping for TclNamespace refcounting such that now
+  alias.test, destroy.test and test.xotcl run now clean,
+  2 test are still open with tcl 8.5.10 (contains.test and xotcomm.test)
+
+
 TODO:
 
  - strange refcounting bug in 8.6b2 bug-is-86.tcl
@@ -3266,16 +3271,6 @@ nx::Test case ensemble-next-with-colon-prefix {
  - disposition.test: 
     * handle exit from eval/inticmd with proper refcounts
 
- - nsf-refcounts on TclNamespace are not correct, when namespaces
-   are deleted by tcl. Maybe this is not a problem, but we have to check.
-
-     Test case explicit-namespace-free {
-        Object create o {:method foo {} {return 1}}
-        namespace delete ::o
-     }
- - fix mem_count on alias.test (currently 1 / 1) and destroy.test (-2/-2),
-   most probably related with the point above; values after slash: new 
-   deletion of all procs and vars in all namespaces
  - fix mem_count on contains.test (currently 4 / 4)
    the minimal script seems to be the following and is related
    to the following message
@@ -3287,9 +3282,6 @@ nx::Test case ensemble-next-with-colon-prefix {
       puts stderr ====EXIT
       exit
    =======================
-
- - fix mem_count on testx (currently 3 / -1 (TclNamespace))
- - fix mem_count on slottest.test (currently 4 / 0)
  - fix mem_count on xocomm.test (currently 26 / 26)
 
  - interface of "variable" and "attribute":
@@ -3297,6 +3289,7 @@ nx::Test case ensemble-next-with-colon-prefix {
    * should we switch from "-class" to "-slotclass"?
    * should we change interface for default value in attribute? 
      probably not, same interface is used in methodparameters as well
+
  - Should we leave "variable" and "attribute" as it ist?
    options:
      (a) leave it as it is
@@ -3309,7 +3302,10 @@ nx::Test case ensemble-next-with-colon-prefix {
      (d) use "attribute" instead of "variable"
          Variable is the tcl term, attribute is the UML term
      (e) others?
+
  - call user defined setter in object parameters?
+ - add flag -array to "variable" (just setting is trivial,
+   handling setters and incremental setter is more work)
 
  - [obj/cls info method handle "FOO foo"] does neither return a proper
    submethod handle nor any valid handle ... needs a fix.
@@ -3356,14 +3352,13 @@ nx::Test case ensemble-next-with-colon-prefix {
 - nsf.m4 seems to be currently unused (SC_PATH_NSFCONFIG and SC_LOAD_NSFCONFIG)
   Should we delete it?
 
-- add explicit regression tests for disposition + types
-- check refcounting for dispo+types
 - maybe: add a disposition=pipe
 
 - MixinComputeOrderFullList() could receive a flag to store source classes in checkList
 
 - if the check on eg. info-heritage-circular in test/info.method.tcl
-  reports a warning on exit, if  we get an exception.
+  reports a warning on exit, if we get an exception.
+
 - should be be concerned about message like
   DEBUG obj 0x100227960 ::nx::Object activationcount 2 on stack 3; might be from non-stacked but active callstack content
  in the regression test?
@@ -3375,12 +3370,6 @@ nx::Test case ensemble-next-with-colon-prefix {
   Still needed? Already replaced by new doctool? 
   Does it have to run on make? Can doctool run on Make?
   
-- the scripted init block is called before init. If the default
-  setting of the default parameters depend on each other, this has to
-  be set in the "init". But this won't be available in the init block.
-  This is not nice in the mongo case, where one has "mongo_ns",
-  "mongo_db" and "mongo_collection" which are related variables.
-
 - Higher binary compatibility for future versions:
   * It is not nice to have the full Nsf_Param structure in nsf.h
     (required for Nsf_methodDefinition in the c code generator)
@@ -3392,6 +3381,7 @@ nx::Test case ensemble-next-with-colon-prefix {
   no redefined-protection on those. Since the script does not know,
   on which class|object these are defined one cannot make assumption
   on these. Problem?
+
 - The structure of the script body requires currently that 
   "class|object ?-per-object?" is inserted at the 1nd pos.
   This is not sufficient, if we would like to test in this 
