@@ -3242,7 +3242,7 @@ Test run; exit
   alias.test, destroy.test and test.xotcl run now clean,
   2 test are still open with tcl 8.5.10 (contains.test and xotcomm.test)
 - documented functions in nsfTrace.c
-
+- updated next-tutorial to the current naming conventions
 
 TODO:
 

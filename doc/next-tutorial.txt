@@ -1346,7 +1346,7 @@ from the keys of other unknown handlers).
 }
 
 # Register an unknown handler as a method of ::nx::Class
-::nsf::unknown::add nx {::nx::Class __unknown}
+::nsf::object::unknown::add nx {::nx::Class __unknown}
 
 ::nx::Object create o {
   # The class M is unknown at this point
@@ -1370,10 +1370,10 @@ The Next Scripting Framework allows to add, query, delete and list unknown handl
 [source,tcl,numbers]
 --------------------------------------------------
 # Interface for unknown handlers:
-# nsf::unknown::add /key/ /handler/
-# nsf::unknown::get /key/
-# nsf::unknown::delete /key/
-# nsf::unknown::keys
+# nsf::object::unknown::add /key/ /handler/
+# nsf::object::unknown::get /key/
+# nsf::object::unknown::delete /key/
+# nsf::object::unknown::keys
 --------------------------------------------------
 
 
