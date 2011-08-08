@@ -1981,6 +1981,21 @@ nx::Test case class-level-variable {
 }
 
 #
+# test classes with single variable definitions, and illegal names
+#
+nx::Test case single-variable {
+  ? {Class create C {
+    :variable v 1
+    :create c1
+  }} ::C
+  ? {c1 info vars} v
+  
+  ? {Class create D {
+    :variable :v 1
+  }} {leading colon in ':v' not allowed as in parameter specification 'spec'}
+}
+
+#
 # test deletion of class level attribute and variable
 #
 nx::Test case delete-class-level-variable-and-attribute {

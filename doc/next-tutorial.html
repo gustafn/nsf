@@ -818,8 +818,8 @@ of the data structure that abstract from the actual implementation.</p></div>
 <h3 id="_define_a_class_stack">2.1. Define a Class "Stack"</h3>
 <div class="paragraph"><p>In our first example, we define a class named <tt>Stack</tt> with the methods
 <tt>push</tt> and <tt>pop</tt>. When an instance of the stack is created (e.g. a
-concrete stack <tt>s1</tt>) the stack will be initialized via the constructor
-<tt>init</tt>.</p></div>
+concrete stack <tt>s1</tt>) the stack will contain an instance variable named
+<tt>things</tt> initialized with the an empty list.</p></div>
 <div class="paragraph" id="xmp-class-stack"><div class="title">Listing 2: Class Stack</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -851,17 +851,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  17
  18
  19
- 20
- 21
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack {
 
    <span class='nx-comment'>#
 </span>   <span class='nx-comment'># Stack of Things
 </span>   <span class='nx-comment'>#
 </span>
-   :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
-     <span class='nx-keyword'>set</span> :things <span class='nx-string'>""</span>
-   }
+   :<span class='nx-keyword'>variable</span> things {}
 
    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
       <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
@@ -880,28 +876,29 @@ stack placed between curly braces and contains here just the method
 definitions. Methods of the class are defined via <tt>:method</tt> followed
 by the name of the method, an argument list and the body of the
 method, consisting of Tcl and NX statements.</p></div>
-<div class="paragraph"><p>The first method is the constructor <tt>init</tt>, where the Tcl command <tt>set</tt>
-is used to set the instance variable <tt>things</tt> to empty. The leading
-colon of the variable denotes that the variable is an instance variable
-and belongs to instances of this class. If multiple stack instances
-are created, every one of these will have a different variable. The
-instance variable <tt>things</tt> is used in our example as a list for the
-internal representation of the stack. We define in a next step the
-methods to access and modify this list structure. A user of the stack
-using the the provided methods does not have to have any knowledge
-about the name or the structure of the internal representation.</p></div>
+<div class="paragraph"><p>When an instance of <tt>Stack</tt> is created, it will contain an instance
+variable named <tt>things</tt>. If several <tt>Stack</tt> instances are created,
+each of the instances will have their own (same-named but different)
+instance variable. The instance variable <tt>things</tt> is used in our
+example as a list for the internal representation of the stack. We
+define in a next step the methods to access and modify this list
+structure. A user of the stack using the the provided methods does not
+have to have any knowledge about the name or the structure of the
+internal representation (the instance variable <tt>things</tt>).</p></div>
 <div class="paragraph"><p>The method <tt>push</tt> receives an argument <tt>thing</tt> which should be placed
 on the stack. Note that we do not have to specify the type of the
 element on the stack, so we can push strings as well as numbers or
-other kind of things. When an element is pushed, we add this element
+other kind of things.</p></div>
+<div class="paragraph"><p>When an element is pushed, we add this element
 as the first element to the list <tt>things</tt>. We insert the element using
 the Tcl command <tt>linsert</tt> which receives the list as first element,
 the position where the element should be added as second and the new
 element as third argument. To access the value of the instance
-variable we use the dollar operator followed by the name. Since the
+variable we use the dollar operator followed by the name. Instance
+varibables are preceded with a colon <tt>:</tt>. Since the
 name contains a colon (to denote that the variable is an instance
-variable), Tcl requires us to put braces around the name. Since
-<tt>linsert</tt> and its arguments are placed between square brackets, the
+variable), Tcl requires us to put braces around the name. The command
+<tt>linsert</tt> and its arguments are placed between square brackets, therefore
 function is called and returns the new list. The result is assigned
 again to the instance variable <tt>things</tt> which is updated this way.
 Finally the method <tt>push</tt> returns the pushed thing using the <tt>return</tt>
@@ -1045,7 +1042,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  15
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> stack {
 
-   <span class='nx-keyword'>set</span> :things <span class='nx-string'>""</span>
+   :<span class='nx-keyword'>variable</span> things {}
 
    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
       <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
@@ -1070,10 +1067,8 @@ First, we use <tt>nx::Object</tt> instead of <tt>nx::Class</tt> to denote
 </li>
 <li>
 <p>
-Secondly, we do not need a constructor (which is called at the time
-   an instance of a class is created), since we do not create a class
-   here. Instead, we can set the instance variable <tt>things</tt> directly
-   for this object (the object <tt>stack</tt>).
+As in the example above, we use <tt>:variable</tt> to define the
+  instance variable <tt>things</tt>  for this object (the object <tt>stack</tt>).
 </p>
 </li>
 </ul></div>
@@ -1156,8 +1151,6 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  22
  23
  24
- 25
- 26
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Safety {
 
   <span class='nx-comment'>#
@@ -1165,13 +1158,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  <span class='nx-comment'># instance variable named "count" that keeps track of
 </span>  <span class='nx-comment'># the number of stacked elements. The methods of
 </span>  <span class='nx-comment'># this class have the same names and argument lists
-</span>  <span class='nx-comment'># and will shadow the methods of class Stack.
+</span>  <span class='nx-comment'># as the methods of Stack; these methods "shadow"
+</span>  <span class='nx-comment'># the methods of class Stack.
 </span>  <span class='nx-comment'>#
 </span>
-  :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} { <span class='nx-comment'># Constructor
-</span>    <span class='nx-keyword'>set</span> :count 0
-    <span class='nx-keyword'>next</span>
-  }
+  :<span class='nx-keyword'>variable</span> count 0
 
   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
     <span class='nx-keyword'>incr</span> :count
@@ -1470,17 +1461,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  22
  23
  24
- 25
- 26
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack2 {
 
     :<span class='nx-keyword'>public</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> available_stacks {} {
       <span class='nx-keyword'>return</span> [<span class='nx-keyword'>llength</span> [:<span class='nx-keyword'>info</span> instances]]
    }
 
-   :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
-     <span class='nx-keyword'>set</span> :things <span class='nx-string'>""</span>
-   }
+   :<span class='nx-keyword'>variable</span> things {}
 
    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
       <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
@@ -2738,7 +2725,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-08-08 16:08:10 CEST
+Last updated 2011-08-08 17:35:56 CEST
 </div>
 </div>
 </body>

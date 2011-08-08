@@ -100,8 +100,8 @@ of the data structure that abstract from the actual implementation.
 
 In our first example, we define a class named +Stack+ with the methods
 +push+ and +pop+. When an instance of the stack is created (e.g. a
-concrete stack +s1+) the stack will be initialized via the constructor
-+init+.
+concrete stack +s1+) the stack will contain an instance variable named
++things+ initialized with the an empty list.
 
 [[xmp-class-stack]]
 .Listing {counter:figure-number}: Class Stack
@@ -113,10 +113,8 @@ nx::Class create Stack {
    #
    # Stack of Things
    #
-
-   :method init {} {
-     set :things ""
-   } 
+   
+   :variable things {}
 
    :public method push {thing} {
       set :things [linsert ${:things} 0 $thing] 
@@ -138,29 +136,31 @@ definitions. Methods of the class are defined via +:method+ followed
 by the name of the method, an argument list and the body of the
 method, consisting of Tcl and NX statements.
 
-The first method is the constructor +init+, where the Tcl command +set+
-is used to set the instance variable +things+ to empty. The leading
-colon of the variable denotes that the variable is an instance variable
-and belongs to instances of this class. If multiple stack instances
-are created, every one of these will have a different variable. The
-instance variable +things+ is used in our example as a list for the
-internal representation of the stack. We define in a next step the
-methods to access and modify this list structure. A user of the stack
-using the the provided methods does not have to have any knowledge
-about the name or the structure of the internal representation.
+When an instance of +Stack+ is created, it will contain an instance
+variable named +things+. If several +Stack+ instances are created,
+each of the instances will have their own (same-named but different)
+instance variable. The instance variable +things+ is used in our
+example as a list for the internal representation of the stack. We
+define in a next step the methods to access and modify this list
+structure. A user of the stack using the the provided methods does not
+have to have any knowledge about the name or the structure of the
+internal representation (the instance variable +things+).
 
 The method +push+ receives an argument +thing+ which should be placed
 on the stack. Note that we do not have to specify the type of the
 element on the stack, so we can push strings as well as numbers or
-other kind of things. When an element is pushed, we add this element
+other kind of things. 
+
+When an element is pushed, we add this element
 as the first element to the list +things+. We insert the element using
 the Tcl command +linsert+ which receives the list as first element,
 the position where the element should be added as second and the new
 element as third argument. To access the value of the instance
-variable we use the dollar operator followed by the name. Since the
+variable we use the dollar operator followed by the name. Instance
+varibables are preceded with a colon +:+. Since the
 name contains a colon (to denote that the variable is an instance
-variable), Tcl requires us to put braces around the name. Since
-+linsert+ and its arguments are placed between square brackets, the
+variable), Tcl requires us to put braces around the name. The command
++linsert+ and its arguments are placed between square brackets, therefore
 function is called and returns the new list. The result is assigned
 again to the instance variable +things+ which is updated this way.
 Finally the method +push+ returns the pushed thing using the +return+
@@ -265,7 +265,7 @@ object for which they are defined.
 --------------------------------------------------
 nx::Object create stack {
 
-   set :things ""
+   :variable things {}
 
    :public method push {thing} {
       set :things [linsert ${:things} 0 $thing] 
@@ -287,10 +287,8 @@ following points are different.
 - First, we use +nx::Object+ instead of +nx::Class+ to denote
   that we want to create a generic object, not a class.
 
-- Secondly, we do not need a constructor (which is called at the time
-   an instance of a class is created), since we do not create a class
-   here. Instead, we can set the instance variable +things+ directly
-   for this object (the object +stack+).
+- As in the example above, we use +:variable+ to define the
+  instance variable +things+  for this object (the object +stack+).
 
 The definition for the methods +push+ and +pop+ are the same as
 before, but this times they are object specify. All methods defined on
@@ -350,13 +348,11 @@ nx::Class create Safety {
   # instance variable named "count" that keeps track of
   # the number of stacked elements. The methods of 
   # this class have the same names and argument lists
-  # and will shadow the methods of class Stack.
+  # as the methods of Stack; these methods "shadow"
+  # the methods of class Stack.
   #
         
-  :method init {} { # Constructor
-    set :count 0
-    next
-  } 
+  :variable count 0
 
   :public method push {thing} {
     incr :count
@@ -574,9 +570,7 @@ nx::Class create Stack2 {
       return [llength [:info instances]]
    }
 
-   :method init {} {
-     set :things ""
-   } 
+   :variable things {}
 
    :public method push {thing} {
       set :things [linsert ${:things} 0 $thing] 

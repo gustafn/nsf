@@ -1629,7 +1629,7 @@ namespace eval ::nx {
      {-incremental:switch}
      {-initblock ""} 
      {-nocomplain:switch}
-     spec 
+     spec:parameter
      value:optional
    } {
     #
@@ -1696,7 +1696,7 @@ namespace eval ::nx {
     {-class ""} 
     -incremental:switch 
     -nocomplain:switch 
-    spec 
+     spec:parameter
     {initblock ""}
   } {
     set r [[self] ::nsf::classes::nx::Object::variable \
@@ -1715,7 +1715,7 @@ namespace eval ::nx {
      {-configparameter:switch}
      -incremental:switch
      {-initblock ""} 
-     spec 
+     spec:parameter
      default:optional
    } {
     if {$incremental} {
@@ -1737,7 +1737,7 @@ namespace eval ::nx {
   nx::Class method attribute {
     {-class ""}
     -incremental:switch 
-    spec  
+    spec:parameter
     {initblock ""}
   } {
     set r [[self] ::nsf::classes::nx::Class::variable \

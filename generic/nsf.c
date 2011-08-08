@@ -10089,7 +10089,9 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPt
   *outObjPtr = objPtr;
   /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/
   if (*value == ':' ||  (*value == '-' && *(value + 1) == ':')) {
-    return NsfObjErrType(interp, NULL, objPtr, pPtr->type, (Nsf_Param *)pPtr);
+    return NsfPrintError(interp, "leading colon in '%s' not allowed as in parameter specification '%s'",
+			 ObjStr(objPtr), pPtr->name);
+    //NsfObjErrType(interp, NULL, objPtr, pPtr->type, (Nsf_Param *)pPtr);
   }
 
   *clientData = (char *)ObjStr(objPtr);

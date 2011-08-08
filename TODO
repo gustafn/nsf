@@ -3245,6 +3245,11 @@ Test run; exit
 - updated next-tutorial to the current naming conventions
 - added tests for using submethod handles
 
+- changed Stack example in tutorial from constructor to :variable
+- allow just valid specs for :attribute and :variable methods
+- improved error message for invalid parameter specs (with leading colons)
+- extended regression test
+
 
 TODO:
 
