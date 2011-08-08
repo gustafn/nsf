@@ -1,18 +1,35 @@
 /* -*- Mode: c++ -*-
  *  
- *  Extended Object Tcl (XOTcl)
+ *  Next Scripting Framework 
  *
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
  *  nsfTrace.c --
  *  
- *  Tracing facilities for XOTcl
+ *  Tracing facilities for the Next Scripting Framework 
  *  
  */
 
 #include "nsfInt.h"
 #include "nsfAccessInt.h"
+
+/*
+ *----------------------------------------------------------------------
+ * NsfStackDump --
+ *
+ *    Write the current callstack with various debugging infos to stderr. This
+ *    function is primarily for debugging proposes of the C implmenentation of
+ *    nsf.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Debugging output
+ *
+ *----------------------------------------------------------------------
+ */
 
 void
 NsfStackDump(Tcl_Interp *interp) {
@@ -59,6 +76,22 @@ NsfStackDump(Tcl_Interp *interp) {
   DECR_REF_COUNT(varCmdObj);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfStackDump --
+ *
+ *    Print the provided argument vector to stderr. This function is primarily
+ *    for debugging proposes of the C implmenentation of nsf.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Debugging output
+ *
+ *----------------------------------------------------------------------
+ */
+
 void 
 NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   int j; 
@@ -71,15 +104,27 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
 }
 
 #ifdef NSF_MEM_COUNT
-Tcl_HashTable nsfMemCount;
-
-
+/*
+ *----------------------------------------------------------------------
+ * NsfMemCountAlloc --
+ *
+ *    Bookkeeping function for memory und refcount debugging. This function
+ *    records the allocation of memory resources. The accompanying function is
+ *    NsfMemCountFree().
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Updateing Hash table
+ *
+ *----------------------------------------------------------------------
+ */
 void 
 NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *p) {
   int new;
   NsfMemCounter *entry;
   Tcl_HashTable *tablePtr = &RUNTIME_STATE(interp)->memCountTable;
-  //Tcl_HashTable *tablePtr = &nsfMemCount;
   Tcl_HashEntry *hPtr;
 
   assert(interp);
@@ -102,10 +147,26 @@ NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *p) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfMemCountFree --
+ *
+ *    Bookkeeping function for memory und refcount debugging. This function
+ *    records the deallocation of memory resources. The accompanying function
+ *    is NsfMemCountAlloc().
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Updateing Hash table
+ *
+ *----------------------------------------------------------------------
+ */
+
 void
 NsfMemCountFree(Tcl_Interp *interp, char *id, void *p) {
   NsfMemCounter *entry;
-  //Tcl_HashTable *tablePtr = &nsfMemCount;
   Tcl_HashTable *tablePtr = &RUNTIME_STATE(interp)->memCountTable;
   Tcl_HashEntry *hPtr;
 #ifdef NSF_MEM_TRACE
@@ -123,17 +184,45 @@ NsfMemCountFree(Tcl_Interp *interp, char *id, void *p) {
   entry->count--;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfMemCountInit --
+ *
+ *    Initialize book-keeping for memory und refcount debugging. The
+ *    bookkeeping is realized via a per-interp hash table.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Initializes a hash table
+ *
+ *----------------------------------------------------------------------
+ */
 void
 NsfMemCountInit(Tcl_Interp *interp) {
   Tcl_HashTable *tablePtr = &RUNTIME_STATE(interp)->memCountTable;
 
   Tcl_InitHashTable(tablePtr, TCL_STRING_KEYS);
-#if 0
-  extern Tcl_HashTable nsfMemCount;
-  Tcl_InitHashTable(&nsfMemCount, TCL_STRING_KEYS);
-#endif
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfMemCountRelease --
+ *
+ *    Terminate book-keeping for memory und refcount debugging. This function
+ *    prints the resulting book-information to stderr, in case of paired
+ *    allocs/frees and incr-ref-counts and dec-ref-counts, the Overall count
+ *    should be 0.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Deletes the book-keeping hash table, outputs to stderr
+ *
+ *----------------------------------------------------------------------
+ */
 void
 NsfMemCountRelease(Tcl_Interp *interp) {
   Tcl_HashTable *tablePtr = &RUNTIME_STATE(interp)->memCountTable;
