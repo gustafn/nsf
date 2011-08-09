@@ -499,7 +499,7 @@ Test case subst-default {
     {d "literal $d"}
   }
 
-  ? {Bar attribute ss:switch} "switch is not allowed as type for object parameter ss"
+  ? {Bar attribute ss:switch} ""
 
   Bar create bar1
   #puts stderr [bar1 objectparameter]
@@ -2062,4 +2062,46 @@ nx::Test case delete-object-level-variable-and-attribute {
   
   # Both instance variables are unset
   ? {lsort [o info vars]} {}
+}
+
+#
+# Testing object parameter switch
+#
+
+nx::Test case object-parameter-switch {
+
+  ? {::nx::Class create C {
+    :attribute foo:switch
+    :create c1
+  }} "::C"
+
+  # when the parameter is not specified, the default is false, an
+  # instance variable is set
+  ? {lsort [c1 info vars]} {foo}
+  ? {c1 eval {set :foo}} {0}
+
+  # when the parameter is specified, the instance variable has a value
+  # of true (i.e. 1)
+  C create c2 -foo
+  ? {lsort [c2 info vars]} {foo}
+  ? {c2 eval {set :foo}} {1}
+
+  # One can pass false as well
+  C create c3 -foo=false
+  ? {lsort [c3 info vars]} {foo}
+  ? {c3 eval {set :foo}} {false}
+
+  # The inverted case, 
+  C attribute {foo2:switch true}
+  C create c4
+  ? {lsort [c4 info vars]} {foo foo2}
+  ? {c4 eval {set :foo2}} {true}
+  C create c5 -foo2
+  ? {lsort [c5 info vars]} {foo foo2}
+  ? {c5 eval {set :foo2}} {0}
+
+  # Object case, not very useful, boolean would be perfectly fine.
+  ? {::nx::Object create o1 {
+    :variable bar:switch 0
+  }} {invalid value constraints "switch"}
 }

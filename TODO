@@ -3252,7 +3252,11 @@ Test run; exit
 
 - library/mongodb:updated to current interface in git HEAD 
 
-
+-nsf.c:
+  * move to greedy assert to an inner scope ("info method ...")
+  * allow testwise "switch" as object parameter (when it is used, 
+    accessors are deactivated for this attribute)
+  * extended regression test
 
 TODO:
 

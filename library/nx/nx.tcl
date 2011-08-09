@@ -775,7 +775,8 @@ namespace eval ::nx {
     spec
     default:optional
   } {
-    set opts $defaultopts
+    array set opt $defaultopts
+    set opts ""
     set colonPos [string first : $spec]
     if {$colonPos == -1} {
       set name $spec
@@ -790,7 +791,7 @@ namespace eval ::nx {
 	  }
           lappend opts -$property 1
         } elseif {[string match accessor=* $property]} {
-          lappend opts -accessor [string range $property 9 end]
+	  set opt(-accessor) [string range $property 9 end]
         } elseif {[string match type=* $property]} {
 	  set class [:requireClass ::nx::Attribute $class]
           set type [string range $property 5 end]
@@ -815,9 +816,11 @@ namespace eval ::nx {
     }
 
     if {[info exists type]} {
-      if {$type eq "switch"} {error "switch is not allowed as type for object parameter $name"}
+      #if {$type eq "switch"} {error "switch is not allowed as type for object parameter $name"}
+      if {$type eq "switch"} {set opt(-accessor) false}
       lappend opts -type $type
     }
+    lappend opts {*}[array get opt]
     return [list $name $parameterOptions $class $opts]
   }
 
@@ -1418,7 +1421,8 @@ namespace eval ::nx {
 	lappend options [expr {[::nsf::is metaclass ${:type}] ? "class" : "object"}] type=${:type}
       } else {
 	lappend options ${:type}
-	if {${:type} ni [list "" "boolean" "integer" "object" "class" \
+	if {${:type} ni [list "" "switch" \
+			     "boolean" "integer" "object" "class" \
 			     "metaclass" "baseclass" "parameter" \
 			     "alnum" "alpha" "ascii" "control" "digit" "double" \
 			     "false" "graph" "lower" "print" "punct" "space" "true" \
@@ -1469,6 +1473,7 @@ namespace eval ::nx {
   }
 
   ::nx::Attribute public method makeAccessor {} {
+
     if {!${:accessor}} {
       #puts stderr "Do not register forwarder ${:domain} ${:name}" 
       return 0

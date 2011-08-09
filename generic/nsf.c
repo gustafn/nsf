@@ -10380,6 +10380,8 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 			  "invalid parameter type \"switch\" for argument \"%s\"; "
 			   "type \"switch\" only allowed for non-positional arguments",
 			   paramPtr->name);
+    } else if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
+      return NsfPrintError(interp, "Parameter invocation types cannot be used with option 'switch'");
     }
     result = ParamOptionSetConverter(interp, paramPtr, "switch", Nsf_ConvertToSwitch);
     paramPtr->flags |= NSF_ARG_SWITCH;
@@ -10509,12 +10511,12 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) && (paramPtr->flags & NSF_ARG_NOCONFIG)) {
     return NsfPrintError(interp, "Option 'noconfig' cannot used together with this type of object parameter");
   } else if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) {
-    return NsfPrintError(interp, "Parameter types 'alias' and 'forward' can be not used together");
+    return NsfPrintError(interp, "Parameter types 'alias' and 'forward' cannot be used together");
   } else if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) == (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) {
-    return NsfPrintError(interp, "Parameter types 'alias' and 'initcmd' can be not used together");
+    return NsfPrintError(interp, "Parameter types 'alias' and 'initcmd' cannot be used together");
   } else if ((paramPtr->flags & (NSF_ARG_FORWARD|NSF_ARG_INITCMD)) == (NSF_ARG_FORWARD|NSF_ARG_INITCMD)) {
-    return NsfPrintError(interp, "Parameter types 'forward' and 'initcmd' can be not used together");
-  }
+    return NsfPrintError(interp, "Parameter types 'forward' and 'initcmd' cannot be used together");
+  } 
 
   return result;
 }
@@ -15756,7 +15758,6 @@ ListMethod(Tcl_Interp *interp,
 	   CONST char *methodName, Tcl_Command cmd,
            int subcmd, int withPer_object) {
 
-  assert(methodName);
   Tcl_ResetResult(interp);
 
   if (!cmd) {
@@ -15768,6 +15769,7 @@ ListMethod(Tcl_Interp *interp,
     int outputPerObject = 0;
     Tcl_Obj *resultObj;
 
+    assert(methodName);
     if (!NsfObjectIsClass(regObject)) {
       withPer_object = 1;
       /* don't output "object" modifier, if regObject is not a class */
@@ -19119,7 +19121,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
       result = CallMethod(class, interp, methodObj,
 			  2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
 
-      if (result == TCL_OK) {
+      if (likely(result == TCL_OK)) {
 	rawConfArgs = Tcl_GetObjResult(interp);
 	/*fprintf(stderr, ".... rawConfArgs for %s => '%s'\n",
 	  ClassName(class), ObjStr(rawConfArgs));*/
@@ -19132,7 +19134,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
 	result = ParamDefsParse(interp, procNameObj, rawConfArgs,
 				NSF_DISALLOWED_ARG_OBJECT_PARAMETER, 1,
 				parsedParamPtr);
-	if (result == TCL_OK) {
+	if (likely(result == TCL_OK)) {
 	  NsfParsedParam *ppDefPtr = NEW(NsfParsedParam);
 	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
 	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
@@ -19332,33 +19334,23 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   }
   
   /* 
-     Uplevel awareness: 
-
-     The effective call site of the configure() method (e.g., a proc or a
-     method) can result from upleveling the object creation procedure; and,
-     thus, the *effective* call site can deviate from the *declaring* call
-     site (e.g. as in XOTcl2's unknown indirection). In such a scenario, the
-     configure() dispatch finds itself in a particular callstack
-     configuration: The top-most frame reflects the declaring call site
-     (interp->framePtr), while the effective call site (interp->varFramePtr)
-     is identified by a lower callstack level. In this case, the interp
-     signals two different call frame contexts at this point (interp->framePtr
-     != interp->varFramePtr).
-
-     At the time of writing, the configure() method is to introduce one or
-     even two special-purpose frames: an object and a CSC/CMETHOD frame. By
-     pushing these two frames using the Tcl Callstack API, the interp state
-     concerning the call frame contexts is updated, effectively losing the
-     info about any preceding uplevel. This loss would result in misbehaviour
-     when crawling the callstack, with the callstack traversals taking the
-     current variable frame as starting point.
-
-     Therefore, we record a) whether there was a preceding uplevel
-     (identifiable through deviating interp->framePtr and interp->varFramePtr)
-     and, in case, b) the ruling variable frame context. The preserved call
-     frame reference can later be used to restore the uplevel'ed call frame
-     context.
+   * The effective call site of the configure() method (e.g., a proc or a
+   * method) can result from upleveling the object creation procedure;
+   * therefore, the *effective* call site can deviate from the *declaring*
+   * call site (e.g. as in XOTcl2's unknown method). In such a scenario, the
+   * configure() dispatch finds itself in a particular callstack
+   * configuration: The top-most frame reflects the declaring call site
+   * (interp->framePtr), while the effective call site (interp->varFramePtr)
+   * is identified by a lower callstack level.
+   *
+   * Since configure pushes an object frame (for accessing the instance
+   * variables) and sometimes a CMETHOD frame (for method invocations) we
+   * record a) whether there was a preceding uplevel (identifiable through
+   * deviating interp->framePtr and interp->varFramePtr) and, in case, b) the
+   * ruling variable frame context. The preserved callframe reference can
+   * later be used to restore the uplevel'ed call frame context.
   */
+
   uplevelVarFramePtr = 
     (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp) != Tcl_Interp_framePtr(interp) 
     ? Tcl_Interp_varFramePtr(interp) 
@@ -19398,10 +19390,10 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * avoid overwriting with default values when e.g. "o configure"
      * is called lated without arguments.
      */
-    /*fprintf(stderr, "[%d] param %s, object init called %d is default %d value = '%s'\n",
+    /*fprintf(stderr, "[%d] param %s, object init called %d is default %d value = '%s' nrArgs %d\n",
 	    i, paramPtr->name, (object->flags & NSF_INIT_CALLED),
 	    (pc.flags[i-1] & NSF_PC_IS_DEFAULT),
-	    ObjStr(pc.full_objv[i]));*/
+	    ObjStr(pc.full_objv[i]), paramPtr->nrArgs);*/
 
     if ((object->flags & NSF_INIT_CALLED) && (pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
       Tcl_Obj *varObj;

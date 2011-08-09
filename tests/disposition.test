@@ -273,7 +273,7 @@ nx::Test case basics {
   array set script {alias "method=baz" forward "method=%self %method"}
   foreach disposition [list alias forward] {
     C setObjectParams [list [list -foo:$disposition,switch]]
-    ? {C new} "Parameter option 'switch' not allowed" \
+    ? {C new} "Parameter invocation types cannot be used with option 'switch'" \
 	"switch not allowed for $disposition"
     
     C setObjectParams [list [list -baz:$disposition,mytype,$script($disposition)]]
@@ -306,16 +306,16 @@ nx::Test case basics {
   ? {C new} "Parameter option 'method=' only allowed for parameter types 'alias' and 'forward'"
   
   C setObjectParams [list [list -foo:alias,forward]]
-  ? {C new} "Parameter types 'alias' and 'forward' can be not used together"
+  ? {C new} "Parameter types 'alias' and 'forward' cannot be used together"
 
   C setObjectParams [list [list -foo:forward,alias]]
-  ? {C new} "Parameter types 'alias' and 'forward' can be not used together"
+  ? {C new} "Parameter types 'alias' and 'forward' cannot be used together"
 
   C setObjectParams [list [list -foo:alias,initcmd]]
-  ? {C new} "Parameter types 'alias' and 'initcmd' can be not used together"
+  ? {C new} "Parameter types 'alias' and 'initcmd' cannot be used together"
 
   C setObjectParams [list [list -foo:forward,initcmd]]
-  ? {C new} "Parameter types 'forward' and 'initcmd' can be not used together"
+  ? {C new} "Parameter types 'forward' and 'initcmd' cannot be used together"
 }
 
 nx::Test case dispo-multiplicities {
