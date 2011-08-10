@@ -1422,7 +1422,7 @@ namespace eval ::nx {
 	lappend options [expr {[::nsf::is metaclass $type] ? "class" : "object"}] type=$type
       } else {
 	lappend options $type
-	if {$type ni [list "" "switch" \
+	if {$type ni [list "" \
 			     "boolean" "integer" "object" "class" \
 			     "metaclass" "baseclass" "parameter" \
 			     "alnum" "alpha" "ascii" "control" "digit" "double" \
