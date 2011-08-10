@@ -499,7 +499,7 @@ Test case subst-default {
     {d "literal $d"}
   }
 
-  ? {Bar attribute ss:switch} ""
+  ? {Bar attribute ss:switch} "::nsf::classes::Bar::ss"
 
   Bar create bar1
   #puts stderr [bar1 objectparameter]
@@ -2064,44 +2064,59 @@ nx::Test case delete-object-level-variable-and-attribute {
   ? {lsort [o info vars]} {}
 }
 
-#
-# Testing object parameter switch
-#
 
 nx::Test case object-parameter-switch {
 
+  # Create a class with an attribute of type switch and an instance of
+  # the class
   ? {::nx::Class create C {
     :attribute foo:switch
     :create c1
   }} "::C"
 
-  # when the parameter is not specified, the default is false, an
-  # instance variable is set
+  # When the object parameter is not specified at creation time, the
+  # default is false, an instance variable is set with this value
   ? {lsort [c1 info vars]} {foo}
   ? {c1 eval {set :foo}} {0}
 
-  # when the parameter is specified, the instance variable has a value
-  # of true (i.e. 1)
+  # Object parameter of type "switch" are more tricky, since e.g. a
+  # setter with 0 arguments is a getter. When a setter is built, it
+  # uses the parameter type boolean instead.
+  ? {C info methods} "foo"
+  ? {c1 info lookup method foo} "::nsf::classes::C::foo"
+  ? {c1 foo} 0
+  ? {c1 foo 1} 1
+  ? {c1 foo} 1
+
+  # When the object parameter is specified, the instance variable has
+  # a value of true (i.e. 1)
   C create c2 -foo
   ? {lsort [c2 info vars]} {foo}
   ? {c2 eval {set :foo}} {1}
 
-  # One can pass false as well
+  # One can pass false (and other values) with the = notation as well
   C create c3 -foo=false
   ? {lsort [c3 info vars]} {foo}
   ? {c3 eval {set :foo}} {false}
 
-  # The inverted case, 
-  C attribute {foo2:switch true}
+  # In the inverted case, the switch has a default of "true". If the
+  # switch is specified, the valus is "false"
+  C attribute {foo2:switch 1}
   C create c4
   ? {lsort [c4 info vars]} {foo foo2}
-  ? {c4 eval {set :foo2}} {true}
+  ? {c4 eval {set :foo2}} {1}
   C create c5 -foo2
   ? {lsort [c5 info vars]} {foo foo2}
   ? {c5 eval {set :foo2}} {0}
 
-  # Object case, not very useful, boolean would be perfectly fine.
+  # Object case: variables of type "switch" are like variables of type
+  # boolean, except that without the specified value argument
+  # (variable foo below), it sets the the variable to "false".
   ? {::nx::Object create o1 {
-    :variable bar:switch 0
-  }} {invalid value constraints "switch"}
+    :variable foo:switch
+    :variable bar:switch 1
+  }} ::o1
+  ? {o1 eval {set :foo}} 0
+  ? {o1 eval {set :bar}} 1
+
 }

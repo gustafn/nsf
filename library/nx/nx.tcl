@@ -817,7 +817,6 @@ namespace eval ::nx {
 
     if {[info exists type]} {
       #if {$type eq "switch"} {error "switch is not allowed as type for object parameter $name"}
-      if {$type eq "switch"} {set opt(-accessor) false}
       lappend opts -type $type
     }
     lappend opts {*}[array get opt]
@@ -1415,13 +1414,15 @@ namespace eval ::nx {
   } {
     set options ""
     if {[info exists :type]} {
-      if {${:type} eq "initcmd"} {
+      set type ${:type}
+      if {$type eq "switch" && !$forObjectParameter} {set type boolean}
+      if {$type eq "initcmd"} {
 	lappend options initcmd
-      } elseif {[string match ::* ${:type}]} {
-	lappend options [expr {[::nsf::is metaclass ${:type}] ? "class" : "object"}] type=${:type}
+      } elseif {[string match ::* $type]} {
+	lappend options [expr {[::nsf::is metaclass $type] ? "class" : "object"}] type=$type
       } else {
-	lappend options ${:type}
-	if {${:type} ni [list "" "switch" \
+	lappend options $type
+	if {$type ni [list "" "switch" \
 			     "boolean" "integer" "object" "class" \
 			     "metaclass" "baseclass" "parameter" \
 			     "alnum" "alpha" "ascii" "control" "digit" "double" \
@@ -1665,17 +1666,21 @@ namespace eval ::nx {
       lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
 	  name parameterOptions class opts
 
+      set isSwitch [regsub {\mswitch\M} $parameterOptions boolean parameterOptions]
       if {[info exists value]} {
 	if {[info exists :$name] && !$nocomplain} {
 	  error "Object [self] has already an instance variable named '$name'"
 	}
 	if {$parameterOptions ne ""} {
-	  #puts stderr "::nsf::is $parameterOptions $value"
+	  #puts stderr "*** ::nsf::is $parameterOptions $value // opts=$opts"
+	  # we rely here that the nsf::is error message expresses the implementation limits
 	  ::nsf::is -complain $parameterOptions $value
 	} else {
 	  set name $spec
 	}
 	set :$name $value
+      } elseif {$isSwitch} {
+	set :$name 0
       } else {
 	error "Variable definition for '$name' (without value and accessor) is useless"
       }

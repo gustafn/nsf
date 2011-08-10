@@ -3258,6 +3258,10 @@ Test run; exit
     accessors are deactivated for this attribute)
   * extended regression test
 
+- nx.tcl: extended object-parameter "switch" implementation:
+  now, accessors of type boolean are created, when type "switch" is used.
+
+
 TODO:
 
  - strange refcounting bug in 8.6b2 bug-is-86.tcl
