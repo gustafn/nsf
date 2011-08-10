@@ -15784,6 +15784,13 @@ ListMethod(Tcl_Interp *interp,
 	Tcl_SetObjResult(interp, MethodHandleObj(regObject, withPer_object, methodName));
 	return TCL_OK;
       }
+    case InfomethodsubcmdOriginIdx:
+      {
+	Tcl_SetObjResult(interp, MethodHandleObj(defObject, 
+						 NsfObjectIsClass(defObject) ? withPer_object : 1, 
+						 Tcl_GetCommandName(interp, cmd)));
+	return TCL_OK;
+      }
     case InfomethodsubcmdExistsIdx:
       {
 	Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
@@ -20933,11 +20940,10 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|exists|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
+  {-argName "infomethodsubcmd" -type "args|body|exists|definition|handle|origin|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
-
 static int
 NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
 		       int subcmd, Tcl_Obj *methodNameObj) {
@@ -21230,11 +21236,10 @@ NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 
 /*
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|exists|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
+  {-argName "infomethodsubcmd" -type "args|body|exists|definition|handle|origin|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
-
 static int
 NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 			 int subcmd, Tcl_Obj *methodNameObj) {
@@ -21248,8 +21253,8 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
   cmd = ResolveMethodName(interp, class->nsPtr, methodNameObj,
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
   /*fprintf(stderr,
-	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p fromClass %d cmd %p method %s\n",
-	  &class->object, regObject, defObject, fromClassNS, cmd, methodName1);*/
+	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p %s fromClass %d cmd %p method %s\n",
+	  &class->object, regObject, defObject, ObjectName(defObject), fromClassNS, cmd, methodName1);*/
   result = ListMethod(interp,
 		      regObject ? regObject : &class->object,
 		      defObject ? defObject : &class->object,

@@ -1,10 +1,10 @@
 
-enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdExistsIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx};
+enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdExistsIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdOriginIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx};
 
 static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"args", "body", "definition", "exists", "handle", "parameter", "parametersyntax", "type", "precondition", "postcondition", "submethods", NULL};
+  static CONST char *opts[] = {"args", "body", "definition", "exists", "handle", "origin", "parameter", "parametersyntax", "type", "precondition", "postcondition", "submethods", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -185,7 +185,7 @@ static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CO
 static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToScope, "all|class|object"},
   {ConvertToInfoobjectparametersubcmd, "list|name|parameter|parametersyntax"},
-  {ConvertToInfomethodsubcmd, "args|body|definition|exists|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"},
+  {ConvertToInfomethodsubcmd, "args|body|definition|exists|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"},
   {ConvertToCallprotection, "all|protected|public"},
   {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"},
   {ConvertToFrame, "method|object|default"},
