@@ -2081,7 +2081,7 @@ nx::Test case object-parameter-switch {
 
   # Object parameter of type "switch" are more tricky, since e.g. a
   # setter with 0 arguments is a getter. When a setter is built, it
-  # uses the parameter type boolean instead.
+  # uses the parameter type "boolean" instead.
   ? {C info methods} "foo"
   ? {c1 info lookup method foo} "::nsf::classes::C::foo"
   ? {c1 foo} 0
@@ -2093,6 +2093,7 @@ nx::Test case object-parameter-switch {
   C create c2 -foo
   ? {lsort [c2 info vars]} {foo}
   ? {c2 eval {set :foo}} {1}
+  ? {c1 foo} 1
 
   # One can pass false (and other values) with the = notation as well
   C create c3 -foo=false
