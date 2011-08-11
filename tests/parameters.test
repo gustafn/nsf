@@ -26,6 +26,8 @@ nx::Test case syntax {
 
   ? {::nsf::method::alias C foo ::set 1} \
       {Invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
+
+  ? {C eval {:attribute x -class D}} {Invalid argument 'D', maybe too many arguments; should be "::C attribute ?-class value? ?-incremental? spec ?initblock?"} "Test whether the colon prefix is suppressed"
 }
 
 #######################################################

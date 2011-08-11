@@ -1,17 +1,18 @@
-/* -*- Mode: c++ -*-
- *  
- *  Extended Object Tcl (XOTcl)
+/*  
+ *  Next Scripting Framework
  *
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
  *  nsfError.c --
  *  
- *  error return functions for XOTcl
+ *  error return functions for the Next Scripting Framework
  *  
  */
 
 #include "nsfInt.h"
+
+/* function prototypes */
 Tcl_Obj *NsfParamDefsSyntax(INTERP_DECL Nsf_Param CONST *paramPtr);
 
 /*
@@ -178,7 +179,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
   }
   if (methodName) {
     if (need_space) Tcl_AppendResult(interp, " ", (char *) NULL);
-    Tcl_AppendResult(interp, ObjStr(methodName), (char *) NULL);
+    Tcl_AppendResult(interp, MethodName(methodName), (char *) NULL);
     need_space = 1;
   }
   if (arglist != NULL) {

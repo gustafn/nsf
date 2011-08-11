@@ -2840,9 +2840,9 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
  *
  *----------------------------------------------------------------------
  */
-static CONST char *
+CONST char *
 MethodName(Tcl_Obj *methodObj) {
-  char *methodName;;
+  char *methodName;
 
   assert(methodObj);
   methodName = ObjStr(methodObj);
