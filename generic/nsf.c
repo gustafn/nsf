@@ -12536,7 +12536,6 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   switch (level) {
   case CALLING_LEVEL: NsfCallStackFindLastInvocation(interp, 1, &framePtr); break;
   case ACTIVE_LEVEL:  NsfCallStackFindActiveFrame(interp,    1, &framePtr); break;
-  default: framePtr = NULL;
   }
 
   if (framePtr) {
@@ -12546,7 +12545,6 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
 
     buffer[0] = '#';
     Nsf_ltoa(buffer+1, (long)Tcl_CallFrame_level(framePtr), &l);
-    /*fprintf(stderr, "*** framePtr=%p buffer %s\n", framePtr, buffer);*/
     resultObj = Tcl_NewStringObj(buffer, l+1);
   } else {
     /* If not called from an nsf frame, return 1 as default */
