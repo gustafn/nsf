@@ -7,10 +7,10 @@ namespace import ::nx::*
 Test parameter count 10
 Test case alias-preliminaries { 
   
-  # The system methods of nx::Attribute are either alias or forwarders
-  ? {lsort [::nx::Attribute info methods -methodtype alias]} {assign get}
-  ? {::nx::Attribute info method definition get} \
-      "::nx::Attribute public alias get ::nsf::var::set"
+  # The system methods of nx::VariableSlot are either alias or forwarders
+  ? {lsort [::nx::VariableSlot info methods -methodtype alias]} {assign get}
+  ? {::nx::VariableSlot info method definition get} \
+      "::nx::VariableSlot public alias get ::nsf::var::set"
 
   # define an alias and retrieve its definition
   set cmd "::nx::Object public alias set ::set"

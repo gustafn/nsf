@@ -20,8 +20,8 @@ nx::mongo::db remove tutorial.members {}
 # a name and not more attributes.
 #
 nx::mongo::Class create Group {
-  :attribute name
-  :attribute members:0..n
+  :property name
+  :property members:0..n
 }
 
 Group insert -name "grp1" -members {gustaf stefan}
@@ -32,17 +32,17 @@ puts stderr "Members of group: [$g members]\n"
 
 ######################################################################
 # The second approach to implement references to other objects via an
-# attribute pointing to the object ids of other objects. This is
+# property pointing to the object ids of other objects. This is
 # similar to the classical datbase approach. When the object is
 # fetched, the application developer has to care about
 # fetching/dereferencing the referenced objects.
 #
 nx::mongo::Class create Member {
-  :attribute name
+  :property name
 }
 nx::mongo::Class create Group {
-  :attribute name
-  :attribute members:0..n
+  :property name
+  :property members:0..n
 }
 
 set id1 [Member insert -name gustaf] 
@@ -66,11 +66,11 @@ puts stderr ""
 # loaded, the appropriate object structure is created automatically.
 #
 nx::mongo::Class create Member {
-  :attribute name
+  :property name
 }
 nx::mongo::Class create Group {
-  :attribute name
-  :attribute members:embedded,type=::Member,0..n
+  :property name
+  :property members:embedded,type=::Member,0..n
 }
 
 Group insert -name "grp3" \
@@ -92,11 +92,11 @@ puts stderr ""
 # and maintaining the reference lists.
 #
 nx::mongo::Class create Member {
-  :attribute name
+  :property name
 }
 nx::mongo::Class create Group {
-  :attribute name
-  :attribute members:reference,type=::Member,0..n
+  :property name
+  :property members:reference,type=::Member,0..n
 }
 
 Group insert -name "grp4" \

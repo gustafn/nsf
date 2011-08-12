@@ -73,8 +73,8 @@ nx::Test case info-method-base {
     :class forward add1 expr 1 +
     :class forward fpo ::o
     
-    :attribute s 
-    :class attribute spo
+    :property s 
+    :class property spo
     
     :alias a ::set
     :class alias apo ::puts
@@ -124,8 +124,8 @@ nx::Test case info-method-base {
   ? {::nx::Object info lookup methods -source application} ""
   ? {::nx::Class info lookup methods -source application} ""
 
-  set object_methods "alias attribute configure contains copy delete destroy eval filter forward info method mixin move protected public require variable volatile"
-  set class_methods "alias attribute attributes class configure contains copy create delete destroy eval filter forward info method mixin move new protected public require variable volatile"
+  set object_methods "alias configure contains copy delete destroy eval filter forward info method mixin move property protected public require variable volatile"
+  set class_methods "alias class configure contains copy create delete destroy eval filter forward info method mixin move new property protected public require variable volatile"
 
   ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
   ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods
@@ -198,10 +198,10 @@ nx::Test case callable {
 
     ? {o method foo {} {return o.foo}} "::o::foo"
     ? {o alias is ::nsf::is} "::o::is"
-    ? {o attribute x} "::o::x"
+    ? {o property x} "::o::x"
     ? {lsort [o info methods]} "foo is x"
 
-    ? {o attribute A} ::o::A
+    ? {o property A} ::o::A
     ? {o forward fwd ::set} ::o::fwd
     ? {lsort [o info methods]} "A foo fwd is x"
 
@@ -281,17 +281,17 @@ nx::Test case callable {
 nx::Test case info-slots {
 
   nx::Class create C {
-    :attribute a
-    :attribute {b 1}
+    :property a
+    :property {b 1}
   }
   
   nx::Class create D -superclass C {
-    :attribute {b 2}
-    :attribute c
-    :class attribute a2
+    :property {b 2}
+    :property c
+    :class property a2
     :method "sub foo" args {;}
     :create d1 {
-      :attribute a3
+      :property a3
     }
   }
 
@@ -311,18 +311,18 @@ nx::Test case info-slots {
 nx::Test case slots {
 
   nx::Class create C {
-    :attribute a
-    :attribute {b 1}
+    :property a
+    :property {b 1}
   }
   
   nx::Class create D -superclass C {
-    :attribute {b 2}
-    :attribute c
-    :class attribute a2
+    :property {b 2}
+    :property c
+    :class property a2
     :method "sub foo" args {;}
   }
 
-  ? {D info lookup slots} "::D::per-object-slot::a2 ::nx::Class::slot::superclass ::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Class::slot::attributes ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::__initcmd ::nx::Object::slot::class"
+  ? {D info lookup slots} "::D::per-object-slot::a2 ::nx::Class::slot::superclass ::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::__initcmd ::nx::Object::slot::class"
 
   C create c1
   ? {c1 info precedence} "::C ::nx::Object"
@@ -507,14 +507,14 @@ nx::Test case info-submethod {
 nx::Test case info-slot-parametersyntax {
 
   nx::Class create C {
-    :attribute a
-    :attribute {b 1}
+    :property a
+    :property {b 1}
   }
   
   nx::Class create D -superclass C {
-    :attribute {b 2}
-    :attribute c
-    :class attribute a2
+    :property {b 2}
+    :property c
+    :class property a2
     :method "sub foo" args {;}
   }
 

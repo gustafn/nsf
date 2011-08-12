@@ -3261,8 +3261,44 @@ Test run; exit
 - nx.tcl: extended object-parameter "switch" implementation:
   now, accessors of type boolean are created, when type "switch" is used.
 
+- nsf.c: implemented "... info method origin ..." which returns the
+  implementation handle (in contrast to the registration handle) of 
+  a method.
+
+- nx.tcl
+   * renamed "attribute" to "property"
+   * renamed "defaultAttributeCallProtection" to "defaultPropertyCallProtection"
+   * renamed "nx::Attribute" to ""nx::VariableSlot"
+   * renamed "BootStrapAttributeSlot" to "BootStrapVariableSlot"
+   * renamed "createBootstrapAttributeSlots" to "createBootstrapVariableSlots"
+   * removed method attributes
+   * implemented old attributes definition in xotcl2 as parameter
+
+
 
 TODO:
+ - nx: 
+   * maybe provide a replacement for -attributes, but without the magic variable.
+   * introspection of properties 
+       * before we had ? {C info attributes} {{x 1} {y 2}}
+       * now we have
+           Object method "info slots" {{-type ::nx::Slot} pattern:optional} {..}
+           Class method "info slots" {{-type ::nx::Slot} -closure:switch -source pattern:optional} {..}
+           returning slot objects, but no nice way.
+           e.g. Class method "info parameter list" {name:optional} {...}
+           gets the value from the object parameters, but has no way to filter e.g. for -source, -type etc.
+       * do we need an "info property"?
+
+  * rename "info parameter spec" into "info parameter definition"?
+
+ - add "property" and "attribute" into migration guide
+
+ - incremental: 
+   flag -incremental
+   {set :incremental 1}
+   => parameter option?
+
+ - doc/langRef2.xotcl vs library/xotcl/doc/langRef.xotcl
 
  - strange refcounting bug in 8.6b2 bug-is-86.tcl
    where 2 refcounted items are not freed (value:class,

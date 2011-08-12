@@ -27,9 +27,9 @@ proc ? {cmd expected {msg ""}} {
 # arbitrary "-" calls
 #
 Class create Tree {
-  :attribute label
-  :attribute contains:alias
-  :attribute foo:alias
+  :property label
+  :property contains:alias
+  :property foo:alias
   :public method foo {arg} {set :x $arg}
 }
 set y [Tree new -foo hu]

@@ -38,24 +38,24 @@ nx::mongo::db remove tutorial.postings {}
 ######################################################################
 # Create the application classes based on the "Business Insider" data
 # model. Note that instances of the class "Comment" can be embedded in
-# a posting (attribute "comments") as well as in an comment itself
-# (attribute "replies"). All comments are in this example multivalued
+# a posting (property "comments") as well as in an comment itself
+# (property "replies"). All comments are in this example multivalued
 # and incremental (i.e. one can use slot methods "... add ..." and
 # "... delete ..." to add values to the attributes).
 #
 nx::mongo::Class create Comment {
-  :attribute author:required
-  :attribute comment:required 
-  :attribute replies:embedded,type=::Comment,0..n {set :incremental 1}
+  :property author:required
+  :property comment:required 
+  :property replies:embedded,type=::Comment,0..n {set :incremental 1}
 }
 
 nx::mongo::Class create Posting {
   :index tags
-  :attribute title:required
-  :attribute author:required
-  :attribute ts:required
-  :attribute comments:embedded,type=::Comment,0..n {set :incremental 1}
-  :attribute tags:0..n {set :incremental 1}
+  :property title:required
+  :property author:required
+  :property ts:required
+  :property comments:embedded,type=::Comment,0..n {set :incremental 1}
+  :property tags:0..n {set :incremental 1}
 }
 
 ######################################################################
@@ -92,7 +92,7 @@ set c [lindex [$p comments] 1]
 $c delete
 
 # The delete operation destroy the embedded object and removes the
-# reference to it in the comments attribute.
+# reference to it in the comments property.
 ? [list llength [$p comments]] 1
 
 # The delete operation does not automatically persist the change,

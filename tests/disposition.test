@@ -9,7 +9,7 @@ package require nx::test
 nx::Test case basics {
 
   Class create C {
-    :class attribute [list inst "::__%&singleton"]
+    :class property [list inst "::__%&singleton"]
     :method foo {x} {
       #puts stderr [current method]
       set :[current method] $x
@@ -1389,14 +1389,15 @@ nx::Test case xotcl-residualargs {
 
 nx::Test parameter count 1000
 nx::Test case xotcl-residualargs2 {
-
+  puts stderr ====1-[::xotcl::Class info instprocs]
   ::xotcl::Class create XC -parameter {a b c}
+  puts stderr ====2
   ::XC instproc init args {set :x $args; incr :y}
 
   ::nx::Class create C {
-    :attribute a
-    :attribute b
-    :attribute c
+    :property a
+    :property b
+    :property c
     :method init args {set :x $args; incr :y}
   }
   

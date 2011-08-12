@@ -161,13 +161,13 @@ namespace eval ::nx {
   ::nsf::method::property Object __resolve_method_path call-protected true
 
   ######################################################################
-  # Define default method and attribute protection
+  # Define default method and property protection
   ######################################################################
   ::nsf::method::create Object __default_method_call_protection args {return false}
-  ::nsf::method::create Object __default_attribute_call_protection args {return false}
+  ::nsf::method::create Object __default_property_call_protection args {return false}
 
   ::nsf::method::property Object __default_method_call_protection call-protected true
-  ::nsf::method::property Object __default_attribute_call_protection call-protected true
+  ::nsf::method::property Object __default_property_call_protection call-protected true
 
   ######################################################################
   # Define method "method" for Class and Object
@@ -222,7 +222,7 @@ namespace eval ::nx {
 
     # method-modifier for object specific methos
     :method class {what args} {
-      if {$what in [list "alias" "attribute" "forward" "method" "variable"]} {
+      if {$what in [list "alias" "property" "forward" "method" "variable"]} {
         return [::nsf::object::dispatch [::nsf::self] ::nsf::classes::nx::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
@@ -274,7 +274,7 @@ namespace eval ::nx {
   ######################################################################
 
   # Well, class is not a method defining method either, but a modifier
-  array set ::nsf::methodDefiningMethod {method 1 alias 1 attribute 1 forward 1 class 1}
+  array set ::nsf::methodDefiningMethod {method 1 alias 1 property 1 forward 1 class 1}
 
   ######################################################################
   # Provide method modifiers for ::nx::Object
@@ -534,12 +534,12 @@ namespace eval ::nx {
   ######################################################################
 
   #
-  # Method for deletion of attributes and plain methods
+  # Method for deletion of properties, variables and plain methods
   #
-  Object public method "delete attribute" {name} {
+  Object public method "delete property" {name} {
     # call explicitly the per-object variant of "info slots"
     set slot [::nsf::my ::nx::Object::slot::__info::slots $name]
-    if {$slot eq ""} {error "[self]: cannot delete object specific attribute '$name'"}
+    if {$slot eq ""} {error "[self]: cannot delete object specific property '$name'"}
     $slot destroy
     nsf::var::unset -nocomplain [self] $name
   }
@@ -564,12 +564,12 @@ namespace eval ::nx {
     ::nsf::method::delete $(object) -per-object $(methodName)
   }
 
-  Class public method "delete attribute" {name} {
+  Class public method "delete property" {name} {
     set slot [:info slots $name]
-    if {$slot eq ""} {error "[self]: cannot delete attribute '$name'"}
+    if {$slot eq ""} {error "[self]: cannot delete property '$name'"}
     $slot destroy
   }
-  Class public alias "delete variable" ::nx::Class::slot::__delete::attribute
+  Class public alias "delete variable" ::nx::Class::slot::__delete::property
   Class public method "delete method" {name} {
     array set "" [:__resolve_method_path $name]
     ::nsf::method::delete $(object) $(methodName)
@@ -787,13 +787,13 @@ namespace eval ::nx {
       foreach property [split $parameterOptions ,] {
         if {$property in [list "required" "convert" "substdefault" "noarg"]} {
 	  if {$property in "convert" } {
-	    set class [:requireClass ::nx::Attribute $class]
+	    set class [:requireClass ::nx::VariableSlot $class]
 	  }
           lappend opts -$property 1
         } elseif {[string match accessor=* $property]} {
 	  set opt(-accessor) [string range $property 9 end]
         } elseif {[string match type=* $property]} {
-	  set class [:requireClass ::nx::Attribute $class]
+	  set class [:requireClass ::nx::VariableSlot $class]
           set type [string range $property 5 end]
           if {![string match ::* $type]} {set type ::$type}
         } elseif {[string match arg=* $property]} {
@@ -849,7 +849,7 @@ namespace eval ::nx {
     }
 
     if {$class eq ""} {
-      set class ::nx::Attribute
+      set class ::nx::VariableSlot
     } else {
       #puts stderr "*** Class for '$value' is $class"
     }
@@ -880,12 +880,12 @@ namespace eval ::nx {
   # use low level interface for defining slot values. Normally, this is
   # done via slot objects, which are defined later.
 
-  proc createBootstrapAttributeSlots {class definitions} {
+  proc createBootstrapVariableSlots {class definitions} {
     foreach att $definitions {
       if {[llength $att]>1} {foreach {att default} $att break}
       set slotObj [::nx::slotObj $class $att] 
-      #puts stderr "::nx::BootStrapAttributeSlot create $slotObj"
-      ::nx::BootStrapAttributeSlot create $slotObj
+      #puts stderr "::nx::BootStrapVariableSlot create $slotObj"
+      ::nx::BootStrapVariableSlot create $slotObj
       if {[info exists default]} {
         #puts stderr "::nsf::var::set $slotObj default $default"
         ::nsf::var::set $slotObj default $default
@@ -896,7 +896,7 @@ namespace eval ::nx {
       #
       ::nsf::method::setter $class $att
       #
-      # set for every bootstrap attribute slot the position 0
+      # set for every bootstrap property slot the position 0
       #
       ::nsf::var::set $slotObj position 0
       ::nsf::var::set $slotObj configparameter 1
@@ -921,15 +921,15 @@ namespace eval ::nx {
   # Define slots for slots
   ######################################################################
   #
-  # We would like to have attribute slots during bootstrap to
+  # We would like to have property slots during bootstrap to
   # configure the slots itself (e.g. a relation slot object). This is
   # however a chicken/egg problem, so we use a very simple class for
-  # defining slots for slots, called BootStrapAttributeSlot.
+  # defining slots for slots, called BootStrapVariableSlot.
   #
-  MetaSlot create ::nx::BootStrapAttributeSlot
-  ::nsf::relation BootStrapAttributeSlot superclass ObjectParameterSlot
+  MetaSlot create ::nx::BootStrapVariableSlot
+  ::nsf::relation BootStrapVariableSlot superclass ObjectParameterSlot
 
-  BootStrapAttributeSlot public method getParameterSpec {} {
+  BootStrapVariableSlot public method getParameterSpec {} {
     # 
     # Bootstrap version of getParameter spec. Just bare essentials.
     #
@@ -945,7 +945,7 @@ namespace eval ::nx {
     return [list [:namedParameterSpec $prefix $name $options]]
   }
 
-  BootStrapAttributeSlot protected method init {args} {
+  BootStrapVariableSlot protected method init {args} {
     #
     # Empty constructor; do nothing, intentionally without "next"
     #
@@ -954,14 +954,14 @@ namespace eval ::nx {
   ######################################################################
   # configure nx::Slot
   ######################################################################
-  createBootstrapAttributeSlots ::nx::Slot {
+  createBootstrapVariableSlots ::nx::Slot {
   }
 
   ######################################################################
   # configure nx::ObjectParameterSlot
   ######################################################################
 
-  createBootstrapAttributeSlots ::nx::ObjectParameterSlot {
+  createBootstrapVariableSlots ::nx::ObjectParameterSlot {
     {name "[namespace tail [::nsf::self]]"}
     {domain "[lindex [regexp -inline {^(.*)::(per-object-slot|slot)::[^:]+$} [::nsf::self]] 1]"}
     {manager "[::nsf::self]"}
@@ -1046,7 +1046,7 @@ namespace eval ::nx {
     # Build forwarder from the source object class ($domain) to the slot
     # to delegate read and update operations
     #
-    # intended to be called on RelationSlot or AttributeSlot
+    # intended to be called on RelationSlot or VariableSlot
     #
 
     if {![info exists :forwardername]} {
@@ -1162,7 +1162,7 @@ namespace eval ::nx {
   MetaSlot create ::nx::RelationSlot
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
 
-  createBootstrapAttributeSlots ::nx::RelationSlot {
+  createBootstrapVariableSlots ::nx::RelationSlot {
     {accessor true}
     {multiplicity 1..n}
   }
@@ -1282,7 +1282,7 @@ namespace eval ::nx {
     #
     # Create object parameter slots for "attributes", "noninit" and "volatile"
     #
-    ::nx::ObjectParameterSlot create ${os}::Class::slot::attributes
+    #::nx::ObjectParameterSlot create ${os}::Class::slot::attributes
     ::nx::ObjectParameterSlot create ${os}::Object::slot::noinit \
 	-methodname ::nsf::methods::object::noinit -noarg true
     ::nx::ObjectParameterSlot create ${os}::Object::slot::volatile -noarg true
@@ -1378,13 +1378,13 @@ namespace eval ::nx {
      
 
   ######################################################################
-  # Attribute slots
+  # Variable slots
   ######################################################################
   ::nsf::invalidateobjectparameter MetaSlot
   
-  MetaSlot create ::nx::Attribute -superclass ::nx::ObjectParameterSlot
+  MetaSlot create ::nx::VariableSlot -superclass ::nx::ObjectParameterSlot
 
-  createBootstrapAttributeSlots ::nx::Attribute {
+  createBootstrapVariableSlots ::nx::VariableSlot {
     {arg}
     {convert false}
     {incremental}
@@ -1397,7 +1397,7 @@ namespace eval ::nx {
     valuechangedcmd
   }
 
-  ::nx::Attribute public method setCheckedInstVar {-nocomplain:switch value} {
+  ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch value} {
     if {[::nsf::var::exists ${:domain} ${:name}] && !$nocomplain} {
       error "Object ${:domain} has already an instance variable named '${:name}'"
     }
@@ -1408,7 +1408,7 @@ namespace eval ::nx {
     ::nsf::var::set ${:domain} ${:name} ${:default}
   }
 
-  ::nx::Attribute protected method getParameterOptions {
+  ::nx::VariableSlot protected method getParameterOptions {
     {-withMultiplicity 0} 
     {-forObjectParameter 0}
   } {
@@ -1454,26 +1454,26 @@ namespace eval ::nx {
     return $options
   }
 
-  ::nx::Attribute protected method isMultivalued {} {
+  ::nx::VariableSlot protected method isMultivalued {} {
     return [string match {*..[n*]} ${:multiplicity}]
   }
 
-  ::nx::Attribute protected method needsForwarder {} {
+  ::nx::VariableSlot protected method needsForwarder {} {
     #
     # We just forward, when 
     #   * "assign" and "add" are still untouched, or
     #   * or incremental is specified
     # 
-    if {[:info lookup method assign] ne "::nsf::classes::nx::Attribute::assign"} {return 1}
-    if {[:info lookup method add] ne "::nsf::classes::nx::Attribute::add"} {return 1}
-    if {[:info lookup method get] ne "::nsf::classes::nx::Attribute::get"} {return 1}
+    if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {return 1}
+    if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
+    if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
     if {![info exists :incremental]} {return 0}
     #if {![:isMultivalued]} {return 0}
     #puts stderr "[self] ismultivalued"
     return 1
   }
 
-  ::nx::Attribute public method makeAccessor {} {
+  ::nx::VariableSlot public method makeAccessor {} {
 
     if {!${:accessor}} {
       #puts stderr "Do not register forwarder ${:domain} ${:name}" 
@@ -1488,11 +1488,11 @@ namespace eval ::nx {
     ::nsf::method::property ${:domain} \
 	{*}[expr {${:per-object} ? "-per-object" : ""}] \
 	$handle call-protected \
-	[::nsf::object::dispatch ${:domain} __default_attribute_call_protection]
+	[::nsf::object::dispatch ${:domain} __default_property_call_protection]
     return 1
   }
 
-  ::nx::Attribute public method reconfigure {} {
+  ::nx::VariableSlot public method reconfigure {} {
     #puts stderr "*** Should we reconfigure [self]???"
     unset -nocomplain :parameterSpec
     :makeAccessor
@@ -1504,35 +1504,35 @@ namespace eval ::nx {
     }
   }
 
-  ::nx::Attribute protected method init {} {
+  ::nx::VariableSlot protected method init {} {
     next
     :makeAccessor
     :handleTraces
   }
 
-  ::nx::Attribute protected method makeSetter {} {
+  ::nx::VariableSlot protected method makeSetter {} {
     set options [:getParameterOptions -withMultiplicity true]
     set setterParam ${:name}
     if {[llength $options]>0} {append setterParam :[join $options ,]}
     ::nsf::method::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] $setterParam
   }
 
-  ::nx::Attribute protected method makeIncrementalOperations {} {
+  ::nx::VariableSlot protected method makeIncrementalOperations {} {
     set options_single [:getParameterOptions]
     if {[llength $options_single] == 0} {
       # No need to make per-slot methods; the general rules on
-      # nx::Attribute are sufficient
+      # nx::VariableSlot are sufficient
       return
     }
     set options [:getParameterOptions -withMultiplicity true]
     lappend options slot=[::nsf::self]
     set body {::nsf::var::set $obj $var $value}
     
-    if {[:info lookup method assign] eq "::nsf::classes::nx::Attribute::assign"} {
+    if {[:info lookup method assign] eq "::nsf::classes::nx::VariableSlot::assign"} {
       #puts stderr ":public method assign [list obj var [:namedParameterSpec {} value $options]] $body"
       :public method assign [list obj var [:namedParameterSpec {} value $options]] $body
     }
-    if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::Attribute::add"} {
+    if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::VariableSlot::add"} {
       lappend options_single slot=[::nsf::self]
       #puts stderr ":public method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}"
       :public method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
@@ -1542,10 +1542,10 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # Handle Attribute traces
+  # Handle variable traces
   ######################################################################
 
-  ::nx::Attribute protected method handleTraces {} {
+  ::nx::VariableSlot protected method handleTraces {} {
     # essentially like before
     set __initcmd ""
     set trace {::nsf::object::dispatch [::nsf::self] -frame object ::trace}
@@ -1577,34 +1577,35 @@ namespace eval ::nx {
   #
   # Implementation of methods called by the traces 
   #
-  Attribute method __default_from_cmd {obj cmd var sub op} {
+  ::nx::VariableSlot method __default_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
     ::nsf::object::dispatch $obj -frame object \
 	::trace remove variable $var $op [list [::nsf::self] [::nsf::current method] $obj $cmd]
     ::nsf::var::set $obj $var [$obj eval $cmd]
   }
-  Attribute method __value_from_cmd {obj cmd var sub op} {
+  ::nx::VariableSlot method __value_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
     ::nsf::var::set $obj $var [$obj eval $cmd]
   }
-  Attribute method __value_changed_cmd {obj cmd var sub op} {
+  ::nx::VariableSlot method __value_changed_cmd {obj cmd var sub op} {
     # puts stderr "**************************"
     # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::nsf::var::set $obj $var]"
     eval $cmd
   }
 
   ######################################################################
-  # Implementation of (incremental) forwarder operations for Attributes: 
+  # Implementation of (incremental) forwarder operations for 
+  # VariableSlots: 
   #  - assign 
   #  - get 
   #  - add 
   #  - delete
   ######################################################################
   
-  ::nsf::method::alias Attribute get ::nsf::var::set
-  ::nsf::method::alias Attribute assign ::nsf::var::set
+  ::nsf::method::alias ::nx::VariableSlot get ::nsf::var::set
+  ::nsf::method::alias ::nx::VariableSlot assign ::nsf::var::set
 
-  Attribute public method add {obj prop value {pos 0}} {
+  ::nx::VariableSlot public method add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
       #puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"
       error "Property $prop of [set :domain] ist not multivalued"
@@ -1616,7 +1617,7 @@ namespace eval ::nx {
     }
   }
 
-  Attribute public method delete {-nocomplain:switch obj prop value} {
+  ::nx::VariableSlot public method delete {-nocomplain:switch obj prop value} {
     set old [::nsf::var::set $obj $prop]
     set p [lsearch -glob $old $value]
     if {$p>-1} {::nsf::var::set $obj $prop [lreplace $old $p $p]} else {
@@ -1626,7 +1627,7 @@ namespace eval ::nx {
 
 
   ######################################################################
-  # Define method "attribute" for convenience
+  # Define method "property" for convenience
   ######################################################################
 
   nx::Object method variable {
@@ -1702,7 +1703,7 @@ namespace eval ::nx {
     return [::nsf::object::dispatch [self] ::nsf::methods::object::info::method handle [$slot name]]
   }
 
-  Object method attribute {
+  Object method property {
     {-class ""} 
     -incremental:switch 
     -nocomplain:switch 
@@ -1744,7 +1745,7 @@ namespace eval ::nx {
     return [::nsf::object::dispatch [self] ::nsf::methods::class::info::method handle [$slot name]]
   }
   
-  nx::Class method attribute {
+  nx::Class method property {
     {-class ""}
     -incremental:switch 
     spec:parameter
@@ -1766,21 +1767,21 @@ namespace eval ::nx {
   # attributes based on a list of parameter specifications.
   ######################################################################
 
-  Class public method attributes arglist {
-    set slotContainer [::nx::slotObj [::nsf::self]]
-    foreach arg $arglist {
-      [self] ::nsf::classes::nx::Class::attribute $arg
-    }
-    ::nsf::var::set $slotContainer __parameter $arglist
-  }
+  # Class public method attributes arglist {
+  #   set slotContainer [::nx::slotObj [::nsf::self]]
+  #   foreach arg $arglist {
+  #     [self] ::nsf::classes::nx::Class::property $arg
+  #   }
+  #   ::nsf::var::set $slotContainer __parameter $arglist
+  # }
 
-  Class method "info attributes" {} {
-    set slotContainer [::nx::slotObj [::nsf::self]]
-    if {[::nsf::var::exists $slotContainer __parameter]} {
-      return [::nsf::var::set $slotContainer __parameter]
-    }
-    return ""
-  }
+  # Class method "info attributes" {} {
+  #   set slotContainer [::nx::slotObj [::nsf::self]]
+  #   if {[::nsf::var::exists $slotContainer __parameter]} {
+  #     return [::nsf::var::set $slotContainer __parameter]
+  #   }
+  #   return ""
+  # }
   
   ######################################################################
   # Minimal definition of a value checker that permits every value
@@ -1798,7 +1799,7 @@ namespace eval ::nx {
   ######################################################################
 
   # remove helper proc
-  proc createBootstrapAttributeSlots {} {}
+  proc createBootstrapVariableSlots {} {}
 
 
   ######################################################################
@@ -1809,8 +1810,8 @@ namespace eval ::nx {
 
   Class create ::nx::ScopedNew -superclass ::nx::Class {
   
-    :attribute {withclass ::nx::Object}
-    :attribute container
+    :property {withclass ::nx::Object}
+    :property container
 
     :protected method init {} {
        :public method new {-childof args} {
@@ -1866,9 +1867,9 @@ namespace eval ::nx {
 
   Class create ::nx::CopyHandler {
 
-    :attribute {targetList ""}
-    :attribute {dest ""}
-    :attribute objLength
+    :property {targetList ""}
+    :property {dest ""}
+    :property objLength
 
     :method makeTargetList {t} {
       lappend :targetList $t
@@ -2096,21 +2097,21 @@ namespace eval ::nx {
     #
     # Set the default method protection for nx methods. This
     # protection level is used per default for definitions of
-    # attributes and setters
+    # properties and setters
     #
-    :method defaultAttributeCallProtection {value:boolean,optional} {
+    :method defaultPropertyCallProtection {value:boolean,optional} {
       if {[info exists value]} {
-	::nsf::method::create Object __default_attribute_call_protection args [list return $value]
-	::nsf::method::property Object  __default_attribute_call_protection call-protected true
+	::nsf::method::create Object __default_property_call_protection args [list return $value]
+	::nsf::method::property Object  __default_property_call_protection call-protected true
       }
-      return [::nsf::object::dispatch [::nx::self] __default_attribute_call_protection]
+      return [::nsf::object::dispatch [::nx::self] __default_property_call_protection]
     }
   }
   #
   # Make the default protected methods
   #
   ::nx::configure defaultMethodCallProtection true
-  ::nx::configure defaultAttributeCallProtection false
+  ::nx::configure defaultPropertyCallProtection false
 
   #
   # Provide an ensemble-like interface to the ::nsf primitiva to

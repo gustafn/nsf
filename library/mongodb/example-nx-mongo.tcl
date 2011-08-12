@@ -19,9 +19,9 @@ nx::mongo::db remove tutorial.persons {}
 nx::mongo::Class create Person {
   :index name
 
-  :attribute name:required
-  :attribute projects:0..n {set :incremental 1}
-  :attribute age:integer
+  :property name:required
+  :property projects:0..n {set :incremental 1}
+  :property age:integer
 }
 
 #

@@ -1106,7 +1106,7 @@ are only applicable for objects parameters, the list of object
 parameters is computed dynamically from the class structures, object
 parameters are often used in combination with special setter methods,
 etc.).  Consider the following example, where we define the two
-application classes +Person+ and +Student+ with a few attributes.
+application classes +Person+ and +Student+ with a few properties.
 
 [[xmp-object-parameters]]
 .Listing {counter:figure-number}: Object Parameters
@@ -1114,21 +1114,21 @@ application classes +Person+ and +Student+ with a few attributes.
 [source,tcl,numbers]
 --------------------------------------------------
 #
-# Define a class Person with attributes "name" 
+# Define a class Person with properties "name" 
 # and "birthday"
 #
 nx::Class create Person {  
-  :attribute name:required
-  :attribute birthday
+  :property name:required
+  :property birthday
 }
 
 #
 # Define a class Student as specialization of Person 
-# with and additional attribute
+# with and additional property
 #
 nx::Class create Student -superclass Person {  
-  :attribute matnr:required
-  :attribute {oncampus:boolean true}
+  :property matnr:required
+  :property {oncampus:boolean true}
 }
 
 #
@@ -1138,14 +1138,14 @@ nx::Class create Student -superclass Person {
 Person create p1 -name Bob
 Student create s1 -name Susan -matnr 4711
 
-# Access attributes via setter methods
+# Access property value via accessor method
 puts "The name of s1 is [s1 name]"
 --------------------------------------------------
 
-The class +Person+ has two attributes +name+ and +birthday+, where the
-attribute +name+ is required, the attribute +birthday+ is not. The
+The class +Person+ has two properties +name+ and +birthday+, where the
+property +name+ is required, the property +birthday+ is not. The
 class +Student+ is a subclass of +Person+ with the additional required
-attribute +matnr+ and an optional attribute +oncampus+ with the
+property +matnr+ and an optional property +oncampus+ with the
 default value +true+ (see <<xmp-object-parameters,
 {xmp-object-parameters}>>). The class diagram below visualizes these
 definitions.
@@ -1155,7 +1155,7 @@ image::object-parameter.png[align="center",title="System and Application Classes
 {set:img-object-parameters:Figure {figure-number}}
 
 In NX, these definitions imply that instances of the class of +Person+
-have the attributes +name+ and +birthday+ as _non-positional object
+have the properties +name+ and +birthday+ as _non-positional object
 parameters_.  Furthermore it implies that instances of +Student+ will
 have the object parameters of +Person+ augmented with the object
 parameters from +Student+ (namely +matnr+ and +oncampus+).  Based on
@@ -1169,7 +1169,7 @@ initialized with the default value).
 ==== Object Parameters for all NX Objects
 
 The object parameters are not limited to the application defined
-attributes, also NX provides some definitions. Since +Person+ is a
+properties, also NX provides some definitions. Since +Person+ is a
 subclass of +nx::Object+ also the object parameters of +nx::Object+
 are inherited. In the introductory stack example, we used +-mixin+
 applied to an object to denote per-object mixins (see
@@ -1248,7 +1248,6 @@ Student+.
 Object parameter for Class Student:
    -mixin:alias -filter:alias ...
    {-superclass:alias ::nx::Object} ...
-   -attributes:alias _:initcmd,optional
 --------------------------------------------------
 
 ==== Additional Parameter Types for Object Parameters

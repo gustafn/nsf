@@ -1,3 +1,4 @@
+# -*- tcl -*-
 source [file dirname [info script]]/xodoc-tools.xotcl
 
 namespace eval ::xodoc-tools {

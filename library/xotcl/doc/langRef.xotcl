@@ -1,4 +1,4 @@
-# $Id: langRef.xotcl,v 1.18 2007/09/05 19:09:22 neumann Exp $
+# -*- tcl -*-
 package provide XOTcl-langRef 1.6.4
 package require XOTcl
 
@@ -1512,9 +1512,9 @@ namespace import -force ::xotcl::@
 
 @ Class ::xotcl::Slot -superclass Object {
   description {
-    A slot is a meta-object that manages property-changes of
-    objects. A property is either an attribute or a role of an
-    relation (e.g. in system slots). 
+    A slot is a meta-object that manages changes of properties of
+    objects. A property is either an attribute or a relation 
+    (defined in the system slots). 
     The predefined system slots are <tt>class</tt>, 
     <tt>superclass</tt>, <tt>mixin</tt>, <tt>instmixin</tt>, 
     <tt>filter</tt>, <tt>instfilter</tt>. These slots appear
@@ -1556,7 +1556,7 @@ namespace import -force ::xotcl::@
     <tr><td>-valuechangedcmd <td>specify a Tcl command to be executed whenever the variable is changed</td></tr>
     </table>
 
-    <p>Example of a class definition with three attribute slots:</p>
+    <p>Example of a class definition with three property slots:</p>
 <@pre CLASS="code">
   <@tt>Class</tt> Person <tt>-slots</tt> {
     <tt>Attribute</tt> name

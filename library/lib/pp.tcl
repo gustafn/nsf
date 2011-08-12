@@ -23,9 +23,9 @@ namespace eval ::nx::pp {
   # the parsed content, and a CSS class for HTML rendering.
   #
   nx::Class create State {
-    :attribute {text ""}
-    :attribute {cssClass "[namespace tail [nx::self]]"}
-    :attribute {prevState "[default]"}
+    :property {text ""}
+    :property {cssClass "[namespace tail [nx::self]]"}
+    :property {prevState "[default]"}
     
     :public method start {char} {
       # Start output in a state by initializing the text buffer.
@@ -96,14 +96,14 @@ namespace eval ::nx::pp {
       tell trace unset uplevel update upvar variable vwait while
       package
       public protected 
-      method alias attribute forward delete
+      method alias property forward delete
       my next new self current
       create init new destroy alloc dealloc
       class superclass mixin filter guard
       methods lookup
       ::nx::Class nx::Class ::xotcl::Class xotcl::Class Class 
       ::nx::Object nx::Object ::xotcl::Object xotcl::Object Object 
-      ::nx::Attribute nx::Attribute Attribute 
+      ::nx::VariableSlot nx::VariableSlot Attribute 
       Object
     } \\M|\\m]\\M)
 

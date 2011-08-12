@@ -3171,7 +3171,7 @@ smallScripts proc run {{n 20}} {
     ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract check extractConfigureArg f filtersearch forward hasclass init isclass ismetaclass ismixin isobject istype method myProc myProc2 objproc proc procsearch self setFilter signature unknown vwait" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances check extractConfigureArg f filtersearch forward hasclass init instforward instproc isclass ismetaclass ismixin isobject istype method objectparameter proc procsearch self setFilter signature slots unknown uses vwait" "B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances check extractConfigureArg f filtersearch forward hasclass init instforward instproc isclass ismetaclass ismixin isobject istype method objectparameter parameter proc procsearch self setFilter signature slots unknown uses vwait" "B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}

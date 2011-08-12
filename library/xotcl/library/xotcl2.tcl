@@ -53,9 +53,9 @@ namespace eval ::xotcl {
   # create ::xotcl::MetaSlot for better compatibility with XOTcl 1
   #
   ::nx::Class create ::xotcl::MetaSlot -superclass ::nx::MetaSlot {
-    :attribute parameter
+    :property parameter
     :method init {} {
-      if {[info exists :parameter]} {:attributes ${:parameter}}
+      if {[info exists :parameter]} {my ::nsf::classes::xotcl::Class::parameter ${:parameter}}
       next
     }
     # provide minimal compatibility
@@ -66,7 +66,7 @@ namespace eval ::xotcl {
   #
   # Create ::xotcl::Attribute for compatibility
   #
-  ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::Attribute
+  ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot
 
   proc ::xotcl::self {{arg ""}} {
       switch $arg {
@@ -377,16 +377,28 @@ namespace eval ::xotcl {
   }
 
   ######################################################################
-  # Define default attribute protection before calling :attribute
+  # Define default property protection before calling :property
   ######################################################################
-  ::nsf::method::create ::xotcl::Object __default_attribute_call_protection args {return false}
-  ::nsf::method::property ::xotcl::Object __default_attribute_call_protection call-protected true
+  ::nsf::method::create ::xotcl::Object __default_property_call_protection args {return false}
+  ::nsf::method::property ::xotcl::Object __default_property_call_protection call-protected true
 
 
   #
   # Use parameter definition from nx 
   # (same with classInfo parameter, see below)
-  ::nsf::method::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::attributes
+  #::nsf::method::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::attributes
+
+  ::xotcl::Class instproc parameter {arglist} {
+    puts stderr HU
+    set slotContainer [::nx::slotObj [::nsf::self]]
+    foreach arg $arglist {
+      puts stderr "[self] ::nsf::classes::nx::Class::property $arg"
+      [self] ::nsf::classes::nx::Class::property $arg
+    }
+    ::nsf::var::set $slotContainer __parameter $arglist
+  }
+
+
 
   # We provide a default value for superclass (when no superclass is
   # specified explicitely) and metaclass, in case they should differ
@@ -715,7 +727,15 @@ namespace eval ::xotcl {
       if {[info exists pattern]} {lappend cmd $pattern}
       return [my {*}$cmd]
     }
-    :alias parameter          ::nx::Class::slot::__info::attributes
+    #:alias parameter          ::nx::Class::slot::__info::attributes
+    :proc parameter {} {
+      set slotContainer [::nx::slotObj [::nsf::self]]
+      if {[::nsf::var::exists $slotContainer __parameter]} {
+	return [::nsf::var::set $slotContainer __parameter]
+      }
+      return ""
+    }
+  
     :alias slots              ::nx::Class::slot::__info::slots
     :alias subclass           ::nsf::methods::class::info::subclass
     :alias superclass         ::nsf::methods::class::info::superclass
@@ -1000,12 +1020,12 @@ namespace eval ::xotcl {
     }
   }
 
-  ::nx::Class create ::xotcl::package -superclass ::nx::Class -attributes {
-    provide
-    {version 1.0}
-    {autoexport {}}
-    {export {}}
-  } {
+  ::nx::Class create ::xotcl::package -superclass ::nx::Class {
+
+    :property provide
+    :property {version 1.0}
+    :property {autoexport {}}
+    :property {export {}}
     
     :public class method create {name args} {
       set nq [namespace qualifiers $name]
@@ -1160,7 +1180,7 @@ namespace eval ::xotcl {
 
 }
 
-if {[::nsf::configure debug] > 1} {
+if {[::nsf::configure debug] > 0} {
   foreach ns {::xotcl} {
     puts "vars of $ns: [info vars ${ns}::*]"
     puts stderr "$ns exports: [namespace eval $ns {lsort [namespace export]}]"

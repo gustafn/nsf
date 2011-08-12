@@ -16,13 +16,13 @@ nx::mongo::db remove tutorial.users {}
 nx::mongo::db remove tutorial.posts {}
 
 ######################################################################
-# The first approach to implement references simply as an attribute.
+# The first approach to implement references simply as an property.
 # This is just feasible in cases, where the user has just a name and
 # not more attributes.
 #
 nx::mongo::Class create Post {
-  :attribute title
-  :attribute user
+  :property title
+  :property user
 }
 
 Post insert -title "Hello trivial World" -user smith
@@ -33,17 +33,17 @@ puts stderr "Name of user: [$p user]\n"
 
 ######################################################################
 # The second approach to implement references to other objects via an
-# attribute pointing to the object id of an other object. This is the
+# property pointing to the object id of an other object. This is the
 # classical datbase approach. When the object is fetched, the
 # application developer has to care about fetching/dereferencing the
 # referenced object.
 #
 nx::mongo::Class create User {
-  :attribute name
+  :property name
 }
 nx::mongo::Class create Post {
-  :attribute title
-  :attribute user_id
+  :property title
+  :property user_id
 }
 
 # The method "insert" returns the object id of the newly created
@@ -63,11 +63,11 @@ puts stderr "Name of user: [$u name]\n"
 # loaded, the appropriate object structure is created automatically.
 #
 nx::mongo::Class create User {
-  :attribute name
+  :property name
 }
 nx::mongo::Class create Post {
-  :attribute title
-  :attribute user:embedded,type=::User
+  :property title
+  :property user:embedded,type=::User
 }
 
 Post insert -title "Hello embedded World" -user [User new -name Smith]
@@ -82,11 +82,11 @@ puts stderr "Name of user: [[$p user] name]\n"
 # and maintaining the reference lists.
 #
 nx::mongo::Class create User {
-  :attribute name
+  :property name
 }
 nx::mongo::Class create Post {
-  :attribute title
-  :attribute user:reference,type=::User
+  :property title
+  :property user:reference,type=::User
 }
 
 Post insert -title "Hello referenced World" -user [User new -name Smith]

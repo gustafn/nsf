@@ -19,17 +19,17 @@ namespace eval ::nx {
     #
     # The defined tests can be executed by [:cmd "Test run"]
 
-    :attribute {name ""}
-    :attribute cmd 
-    :attribute {namespace ::}
-    :attribute {verbose 0} 
-    :attribute {expected 1} 
-    :attribute {count 1} 
-    :attribute msg 
-    :attribute setResult 
-    :attribute errorReport
-    :attribute pre 
-    :attribute post
+    :property {name ""}
+    :property cmd 
+    :property {namespace ::}
+    :property {verbose 0} 
+    :property {expected 1} 
+    :property {count 1} 
+    :property msg 
+    :property setResult 
+    :property errorReport
+    :property pre 
+    :property post
 
     set :count 0
 

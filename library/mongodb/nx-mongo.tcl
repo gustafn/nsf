@@ -13,15 +13,15 @@ package provide nx::mongo 0.2
 #       the specified classes, no subclasses allowed
 # todo: extend the query language syntax, e.g. regexp, ...
 # todo: handle remove for non-multivalued embedded objects
-# idea: handle names of nx objects (e.g. attribute like __name)
-# idea: handle classes von nx objects (e.g. attribute like __class)
+# idea: handle names of nx objects (e.g. property like __name)
+# idea: handle classes von nx objects (e.g. property like __class)
 # idea: combine incremental slot operations with e.g. add -> $push, remove -> $pull
 # todo: make "embedded", "reference" spec even nicer?
 
 namespace eval ::nx::mongo {
 
   ::nx::Object create ::nx::mongo::db {
-    :attribute db
+    :property db
     :public method connect {{-db test} args} {
       set :db $db
       set :mongoConn [::mongo::connect {*}$args]
@@ -35,10 +35,10 @@ namespace eval ::nx::mongo {
   }
   
   #######################################################################
-  # nx::mongo::Attribute is a specialized attribute slot
+  # nx::mongo::Attribute is a specialized property slot
   #
-  ::nx::MetaSlot create ::nx::mongo::Attribute -superclass ::nx::Attribute {
-    :attribute mongotype
+  ::nx::MetaSlot create ::nx::mongo::Attribute -superclass ::nx::VariableSlot {
+    :property mongotype
     
     :protected method init {} {
       #
@@ -171,7 +171,7 @@ namespace eval ::nx::mongo {
 	::nsf::var::set $value __embedded_in [list $s $name]
 	::nsf::var::set $s __contains($value) 1
       } else {
-	error "value '$value' for attribute $name is not of type $arg"
+	error "value '$value' for property $name is not of type $arg"
       }
     }
     #
@@ -191,7 +191,7 @@ namespace eval ::nx::mongo {
 	}
 	::nsf::var::set $value __referenced_in $refs
       } else {
-	error "value '$value' for attribute $name is not of type $arg"
+	error "value '$value' for property $name is not of type $arg"
       }
     }
   }
@@ -207,13 +207,13 @@ namespace eval ::nx::mongo {
     # Every mongo class can be configured with a mongo_ns, from which
     # its instance data is queried.
     #
-    :attribute mongo_ns
-    :attribute mongo_db
-    :attribute mongo_collection
+    :property mongo_ns
+    :property mongo_db
+    :property mongo_collection
     
     #
     # Provide helper methods to access from an external specifier
-    # (attribute name or operator name) internal representations
+    # (property name or operator name) internal representations
     # (eg. mongo type, or mongo operator).
     #
     
@@ -236,7 +236,7 @@ namespace eval ::nx::mongo {
     # For interaction with bson structures, we provide on the class
     # level "bson cond" (a small dsl for a more convenient syntax in
     # bson queries), "bson query" (combining conditions with
-    # ordering), "bson atts (a simplifed attribute selection) and
+    # ordering), "bson atts (a simplifed property selection) and
     # "bson parameter" which translates from a bson structure (tuple)
     # into a dashed parameter list used in object creation.
     #
@@ -336,10 +336,10 @@ namespace eval ::nx::mongo {
     }
 
     #
-    # Overload method attribute to provide "::nx::mongo::Attribute" as a
+    # Overload method property to provide "::nx::mongo::Attribute" as a
     # default slot class
     #
-    :public method attribute {spec {-class ::nx::mongo::Attribute} {initblock ""}} {
+    :public method property {spec {-class ::nx::mongo::Attribute} {initblock ""}} {
       regsub -all {,type=} $spec {,arg=} spec
       next [list $spec -class $class $initblock]
     }
@@ -350,7 +350,7 @@ namespace eval ::nx::mongo {
     :public method index {att {-type 1} args} {
       if {![info exists :mongo_ns]} {:mongo_setup}
       # todo: 2nd index will need a different type
-      # todo: multi-attribute indices
+      # todo: multi-property indices
       db index ${:mongo_ns} [list $att int $type] {*}$args
     }
     
@@ -475,9 +475,9 @@ namespace eval ::nx::mongo {
   ::nx::Class create ::nx::mongo::Object {
     
     #
-    # _id is the special attribute maintained by mongoDB
+    # _id is the special property maintained by mongoDB
     #
-    :attribute _id -class ::nx::mongo::Attribute {
+    :property _id -class ::nx::mongo::Attribute {
       set :mongotype oid
     }
 

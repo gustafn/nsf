@@ -278,7 +278,7 @@ o destroy
 # tests for the compiled var resolver on Class
 ###############################################
 Test case var-resolver-class
-Class create C -attributes {{x 1}}
+Class create C {:property {x 1}}
 C create c1
 C method foo {x} {set :y 2; return ${:x},${:y}}
 C method bar {} {return ${:x},${:y}}
@@ -302,7 +302,7 @@ C destroy
 # tests for the compiled var resolver with eval
 ###############################################
 Test case compiled-var-resolver
-Class create C -attributes {{x 1}}
+Class create C {:property {x 1}}
 C create c1
 C method foo {x} {
   set :y 2; 
@@ -1116,7 +1116,7 @@ Test case after-next {
   # actual frame would be skipped in useActiveFrames below in :instvar).
   #
   Class create FormPage {
-    :attribute package_id
+    :property package_id
     :public method initialize_loaded_object {} {;}
   }
 

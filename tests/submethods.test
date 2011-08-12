@@ -492,7 +492,7 @@ nx::Test case submethods-current-introspection {
   # filter-local argv.
 
   Class create Z {
-    :class attribute msg
+    :class property msg
     :method intercept args {
       [current class] eval [list set :msg [list [current methodpath] \
 					       [current calledmethod] \

@@ -104,9 +104,9 @@ C protected method foo {} {return [current method]}
     "redefine forward SET"
 
 # try to redefine via setter
-? {C attribute SET} \
+? {C property SET} \
     {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
-    "redefine attribute SET"
+    "redefine property SET"
 
 # overwrite-protect object specific method
 Object create o

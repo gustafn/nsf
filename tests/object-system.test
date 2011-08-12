@@ -112,7 +112,10 @@ C destroy
 
 # basic attributes tests
 
-Class create C -attributes {{x 1} {y 2}}
+Class create C {
+  :property {x 1} 
+  :property {y 2}
+}
 ? {::nsf::object::exists C} 1
 ? {::nsf::object::exists C::slot} 1
 ? {C info children} ::C::slot
@@ -132,10 +135,14 @@ Class create C -attributes {{x 1} {y 2}}
 ? {::nsf::object::exists ${C}::slot} 1
 
 #? {C::slot info vars} __parameter
-? {C info attributes} {{x 1} {y 2}}
+#? {C info attributes} {{x 1} {y 2}}
+? {C info parameter spec x} {{-x 1}}
+? {C info parameter spec y} {{-y 2}}
 
 #? {X::slot info vars} __parameter
-? {X info attributes} {{x 1} {y 2}}
+#? {X info attributes} {{x 1} {y 2}}
+? {X info parameter spec x} {{-x 1}}
+? {X info parameter spec y} {{-y 2}}
 
 # actually, we want c1 to test below the recreation of c1 in another
 # object system

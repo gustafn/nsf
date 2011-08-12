@@ -329,7 +329,7 @@ Test case parsing {
     {}
     {some text on the class entity}
     {}
-    {@class-attribute attr1 Here! we check whether we can get a valid description block}
+    {@class-property attr1 Here! we check whether we can get a valid description block}
     {for text spanning multiple lines}
   }
 
@@ -340,9 +340,9 @@ Test case parsing {
   ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "some text on the class entity";
-  ? [list llength [$entity @attribute]] 1
-  ? [list [$entity @attribute] info has type ::nx::doc::@param] 1
-  ? [list [$entity @attribute] as_text] "Here! we check whether we can get a valid description block for text spanning multiple lines"
+  ? [list llength [$entity @property]] 1
+  ? [list [$entity @property] info has type ::nx::doc::@param] 1
+  ? [list [$entity @property] as_text] "Here! we check whether we can get a valid description block for text spanning multiple lines"
 
 }
 
@@ -360,15 +360,15 @@ Test case in-situ-basics {
       # @author gustaf.neumann@wu-wien.ac.at
       # @author ssoberni@wu.ac.at
       
-      # @.attribute attr1 
+      # @.property attr1 
       #
-      # This attribute 1 is wonderful
+      # This property 1 is wonderful
       #
-      # @see ::nx::Attribute
+      # @see ::nx::VariableSlot
       # @see ::nx::MetaSlot
-      :attribute attr1
-      :attribute attr2
-      :attribute attr3
+      :property attr1
+      :property attr2
+      :property attr3
       
       # @.method foo
       #
@@ -389,10 +389,10 @@ Test case in-situ-basics {
   ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
-  set entity [@attribute id [@class id ::Foo] class attr1]
+  set entity [@property id [@class id ::Foo] class attr1]
   ? [list ::nsf::is object $entity] 1
-  ? [list $entity info has type ::nx::doc::@attribute] 1
-  ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
+  ? [list $entity info has type ::nx::doc::@property] 1
+  ? [list $entity @see] "::nx::VariableSlot ::nx::MetaSlot";
   
   set entity [@method id ::Foo class foo]
   ? [list [@class id ::Foo] @method] $entity
@@ -427,11 +427,11 @@ Test case mixed-mode-parsing {
     # @author gustaf.neumann@wu-wien.ac.at
     # @author ssoberni@wu.ac.at
     
-    # @class.attribute {::Bar attr1}
+    # @class.property {::Bar attr1}
     #
-    # This attribute 1 is wonderful
+    # This property 1 is wonderful
     #
-    # @see ::nx::Attribute
+    # @see ::nx::VariableSlot
     # @see ::nx::MetaSlot
     
     # @class.class-method {::Bar foo}
@@ -454,9 +454,9 @@ Test case mixed-mode-parsing {
     }
     Class create Bar {
       
-      :attribute attr1
-      :attribute attr2
-      :attribute attr3
+      :property attr1
+      :property attr2
+      :property attr3
 	
       # @.method foo
       #
@@ -492,10 +492,10 @@ Test case mixed-mode-parsing {
   
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
-  set entity [@attribute id [@class id ::Bar] class attr1]
+  set entity [@property id [@class id ::Bar] class attr1]
   ? [list ::nsf::is object $entity] 1
-  ? [list $entity info has type ::nx::doc::@attribute] 1
-  ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
+  ? [list $entity info has type ::nx::doc::@property] 1
+  ? [list $entity @see] "::nx::VariableSlot ::nx::MetaSlot";
   
   set entity [@method id ::Bar class foo]
   ? [list [@class id ::Bar] @method] $entity
@@ -562,7 +562,7 @@ Test case tag-notations-basics {
   # This fails because we do not allow uninitialised/non-existing
   # entity objects (@object o) along the resolution path ...
   set block {
-    {@class.object.attribute {::C o attr1} We have an invalid specification}
+    {@class.object.property {::C o attr1} We have an invalid specification}
   }
   
   set cbp [CommentBlockParser process $block]
@@ -570,11 +570,11 @@ Test case tag-notations-basics {
   #  ? [list $cbp message] "The tag 'object' is not supported for the entity type '@class'"
   
   set block {
-    {@class.method.attribute attr1 We have an imbalanced specification (the names are underspecified!)}
+    {@class.method.property attr1 We have an imbalanced specification (the names are underspecified!)}
   }
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
-  ? [list $cbp message] "Imbalanced tag line spec: 'class method attribute' vs. 'attr1'"
+  ? [list $cbp message] "Imbalanced tag line spec: 'class method property' vs. 'attr1'"
   
   # For now, we do not verify and use a fixed scope of permissive tag
   # names. So, punctuation errors or typos are most probably reported
@@ -601,7 +601,7 @@ Test case tag-notations-extended {
     #
     # The global description of ::C
     #
-    # @attribute attr1 Here we can only provide a description block for object parameters
+    # @property attr1 Here we can only provide a description block for object parameters
     
     # @class.object-method {::C sub}
     #
@@ -609,9 +609,9 @@ Test case tag-notations-extended {
     # (allows for providing some overview, shared description)
 
 
-    # @class.attribute {::C attr1} Here, we could also write '@class.class-attribute \{::C attr1\}', @attribute is a mere forwarder! In the context section, only one-liners are allowed!
+    # @class.property {::C attr1} Here, we could also write '@class.class-property \{::C attr1\}', @property is a mere forwarder! In the context section, only one-liners are allowed!
     
-    # @class.object.attribute {::C foo p1} A short description is ...
+    # @class.object.property {::C foo p1} A short description is ...
     #
     # .. is overruled by a long one ...
     
@@ -622,14 +622,14 @@ Test case tag-notations-extended {
     # namespace!
     #
     # ISSUE: If specifying an axis ".object", we would have to define
-    # a part attribute @object on @class and @object. However, @object
+    # a part property @object on @class and @object. However, @object
     # would be ambiguous now: It could be called in a freestanding
     # (absolute) manner AND in a contextualised manner (in an initcmd
     # script). In the latter case, it would fail because we would have
     # to provide a FQ'ed name (which defeats the purpose of a nested =
     # contextualised notation).
     # 
-    # SO: for now, we introduce a part attribute child-object (and
+    # SO: for now, we introduce a part property child-object (and
     # child-class?) to discrimate between the two situations ...
     #
     # TODO: How to register this so created @object entity as nested
@@ -639,19 +639,19 @@ Test case tag-notations-extended {
       # This is the initcmd-level description of ::C which overwrites the
       # global description (see above)
       
-      # @.attribute attr1
+      # @.property attr1
       #
-      # This is equivalent to writing "@class-attribute attr1"
-      :attribute attr1 {
+      # This is equivalent to writing "@class-property attr1"
+      :property attr1 {
 	# This description does not apply to the object parameter
 	# "attr1" owned by the ::C class, rather it is a description
-	# of the attribute slot object! How should we deal with this
+	# of the property slot object! How should we deal with this
 	# situation? Should this level overwrite the top-level and
 	# initcmd-level descriptions?
       }
       
-      # @.class-object-attribute attr2 Carries a short desc only
-      :class attribute attr2
+      # @.class-object-property attr2 Carries a short desc only
+      :class property attr2
       
       # @.method foo
       #
@@ -678,7 +678,7 @@ Test case tag-notations-extended {
       
       # @.object foo 'foo' needs to be defined before referencing any of its parts!
       
-      # @.object.attribute {foo p1}
+      # @.object.property {foo p1}
       #
       # The first element in the name list is resolved into a fully
       # qualified (absolute) entity, based on the object owning the
@@ -686,10 +686,10 @@ Test case tag-notations-extended {
       Object create [current]::foo {
 	# Adding a line for the first time (not processed in the initcmd phase!)
 	
-	# @..attribute p1
+	# @..property p1
 	# 
-	# This is equivalent to stating "@class-object-attribute p1"
-	:attribute p1
+	# This is equivalent to stating "@class-object-property p1"
+	:property p1
       }
       
       # @.class Foo X
@@ -698,22 +698,22 @@ Test case tag-notations-extended {
       # context of the initcmd-owning object, i.e. you would NOT refer to 
       # a nested class object named "Foo" anymore!
       
-      # @.class.attribute {Foo p1}
+      # @.class.property {Foo p1}
       #
-      # This is equivalent to stating "@child-class.class-attribute {Foo p1}"
+      # This is equivalent to stating "@child-class.class-property {Foo p1}"
       
-      # @.class.class-object-attribute {Foo p2} Y
+      # @.class.class-object-property {Foo p2} Y
       Class create [current]::Foo {
 	
-	# @..attribute p1
+	# @..property p1
 	# 
 	#
-	# This is equivalent to stating "@class-attribute p1"; or
-	# '@class.object.attribute {::C Foo p1}' from the top-level.
-	:attribute p1
+	# This is equivalent to stating "@class-property p1"; or
+	# '@class.object.property {::C Foo p1}' from the top-level.
+	:property p1
 	
-	# @..class-object-attribute p2
-	:class attribute p2
+	# @..class-object-property p2
+	:class property p2
       }
       
       
@@ -723,7 +723,7 @@ Test case tag-notations-extended {
       # "@method.method.method ...") or "submethod" (i.e.,
       # "@method.submethod.submethod ...")? ISSUE: Should it be sub* with
       # "-" (to correspond to "@class-object-method", "@class-method")? Also, we
-      # could allow both (@sub-method is the attribute name, @method is a
+      # could allow both (@sub-method is the property name, @method is a
       # forwarder in the context of an owning @method object!)
       # 
       # @parameter p1 Some words on p1
@@ -750,7 +750,7 @@ Test case tag-notations-extended {
       
       # @.class-object-method {"sub foo2"}
       #
-      # could allow both (@sub-method is the attribute name, @method is a
+      # could allow both (@sub-method is the property name, @method is a
       # forwarder in the context of an owning @method object!)
       # 
       # @parameter p1 Some words on p1
@@ -772,32 +772,32 @@ Test case tag-notations-extended {
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "The global description of ::C";
-  # --testing-- "@class.attribute {::C attr1}"
-  set entity [@attribute id $entity class attr1]
+  # --testing-- "@class.property {::C attr1}"
+  set entity [@property id $entity class attr1]
   ? [list ::nsf::object::exists $entity] 1
-  ? [list $entity info has type ::nx::doc::@attribute] 1
-  ? [list $entity as_text] "Here, we could also write '@class.class-attribute {::C attr1}', @attribute is a mere forwarder! In the context section, only one-liners are allowed!"
+  ? [list $entity info has type ::nx::doc::@property] 1
+  ? [list $entity as_text] "Here, we could also write '@class.class-property {::C attr1}', @property is a mere forwarder! In the context section, only one-liners are allowed!"
 
-  # --testing-- "@class.object.attribute {::C foo p1} A short description is ..."
-  # set entity [@attribute id $entity class attr1]
+  # --testing-- "@class.object.property {::C foo p1} A short description is ..."
+  # set entity [@property id $entity class attr1]
   # set entity [@object id -partof_name ::C -scope child foo]
   # ? [list ::nsf::object::exists $entity] 1
   # ? [list $entity info has type ::nx::doc::@object] 1
   # ? [list $entity as_text] ""
-  # set entity [@attribute id $entity object p1]
+  # set entity [@property id $entity object p1]
   # ? [list ::nsf::object::exists $entity] 1
-  # ? [list $entity info has type ::nx::doc::@attribute] 1
+  # ? [list $entity info has type ::nx::doc::@property] 1
   # ? [list $entity as_text] ".. is overruled by a long one ..."
 
   set entity [@object id ::C::foo]
   ? [list ::nsf::object::exists $entity] 0
-  set entity [@attribute id $entity class p1]
+  set entity [@property id $entity class p1]
   ? [list ::nsf::object::exists $entity] 0
-  #  ? [list $entity info has type ::nx::doc::@attribute] 1
+  #  ? [list $entity info has type ::nx::doc::@property] 1
   #  ? [list $entity as_text] ".. is overruled by a long one ..."
 
-  # --testing-- @class-object-attribute attr2 (its non-existance)
-  set entity [@attribute id [@class id ::C] object attr2]
+  # --testing-- @class-object-property attr2 (its non-existance)
+  set entity [@property id [@class id ::C] object attr2]
   ? [list ::nsf::object::exists $entity] 0
   # --testing-- @child-class Foo (its non-existance)
   set entity [@class id ::C::Foo]
@@ -808,12 +808,12 @@ Test case tag-notations-extended {
   # --testing-- @class-object-method.parameter {bar p1} (its non-existance)
   set entity [@parameter id [@method id ::C class bar] "" p1]
   ? [list ::nsf::object::exists $entity] 0
-  # --testing-- @child-object.attribute {foo p1} (its non-existance)
+  # --testing-- @child-object.property {foo p1} (its non-existance)
   set cl [@class id ::C::Foo]
   ? [list ::nsf::object::exists $entity] 0
-  set entity [@attribute id $cl class p1]
+  set entity [@property id $cl class p1]
   ? [list ::nsf::object::exists $entity] 0
-  set entity [@attribute id $cl object p2]
+  set entity [@property id $cl object p2]
   ? [list ::nsf::object::exists $entity] 0
 
   #
@@ -838,27 +838,27 @@ Test case tag-notations-extended {
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "This is the initcmd-level description of ::C which overwrites the global description (see above)"
   
-  set entity [@attribute id $entity class attr1]
+  set entity [@property id $entity class attr1]
   ? [list ::nsf::object::exists $entity] 1
-  ? [list $entity info has type ::nx::doc::@attribute] 1
-  ? [list $entity as_text] {This is equivalent to writing "@class-attribute attr1"}
+  ? [list $entity info has type ::nx::doc::@property] 1
+  ? [list $entity as_text] {This is equivalent to writing "@class-property attr1"}
   
   
   set entity [@object id ::C::foo]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "'foo' needs to be defined before referencing any of its parts!"; # still empty!
-  set entity [@attribute id $entity object p1]
+  set entity [@property id $entity object p1]
   ? [list ::nsf::object::exists $entity] 1
-  ? [list $entity info has type ::nx::doc::@attribute] 1
+  ? [list $entity info has type ::nx::doc::@property] 1
   ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
   
   # b) newly added ...
   
-  # --testing-- @class-object-attribute attr2
-  set entity [@attribute id [@class id ::C] object attr2]
+  # --testing-- @class-object-property attr2
+  set entity [@property id [@class id ::C] object attr2]
   ? [list ::nsf::object::exists $entity] 1
-  ? [list $entity info has type ::nx::doc::@attribute] 1
+  ? [list $entity info has type ::nx::doc::@property] 1
   ? [list $entity as_text] "Carries a short desc only";
   
   # --testing-- @child-class Foo
@@ -868,7 +868,7 @@ Test case tag-notations-extended {
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] {By providing a fully-qualified identifier ("::Foo") you leave the context of the initcmd-owning object, i.e. you would NOT refer to a nested class object named "Foo" anymore!}
   
-  set entity [@attribute id [@class id ::C] class p1]
+  set entity [@property id [@class id ::C] class p1]
   ? [list ::nsf::object::exists $entity] 0; # should be 0 at this stage!
   
   # --testing -- @method foo
@@ -880,14 +880,14 @@ Test case tag-notations-extended {
   # has not been initialised before!
   set entity [@parameter id [@method id ::C class bar] "" p1]
   ? [list ::nsf::object::exists $entity] 0
-  # --testing-- @child-class.attribute {foo p1} (its non-existance)
-  # --testing-- @child-class.object-attribute {foo p2} (its non-existance)
+  # --testing-- @child-class.property {foo p1} (its non-existance)
+  # --testing-- @child-class.object-property {foo p2} (its non-existance)
   set cl [@class id ::C::Foo]
   ? [list ::nsf::object::exists $cl] 1
-  set entity [@attribute id $cl class p1]
+  set entity [@property id $cl class p1]
   ? [list ::nsf::object::exists $entity] 1
-  ? [list $entity as_text] {This is equivalent to stating "@child-class.class-attribute {Foo p1}"}
-  set entity [@attribute id $cl object p2]
+  ? [list $entity as_text] {This is equivalent to stating "@child-class.class-property {Foo p1}"}
+  set entity [@property id $cl object p2]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] "Y"
   
@@ -906,7 +906,7 @@ Test case tag-notations-extended {
   set entity [@method id ::C object sub::foo2]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@method] 1
-  ? [list $entity as_text] "could allow both (@sub-method is the attribute name, @method is a forwarder in the context of an owning @method object!)"
+  ? [list $entity as_text] "could allow both (@sub-method is the property name, @method is a forwarder in the context of an owning @method object!)"
   ? [list $entity @see] "anotherentity"
   # TODO: @author not supported for @method (fine so?)
   # ? [list $entity @author] "ss@thinkersfoot"
@@ -915,7 +915,7 @@ Test case tag-notations-extended {
   ? [list $entity as_text] "Some words on p1"
   
   #
-  # 3a) process the attribute initcmds and method bodies (PARSING LEVEL 2)!
+  # 3a) process the property initcmds and method bodies (PARSING LEVEL 2)!
   #  
   
   set project [@project new -name "_%@"]
@@ -934,10 +934,10 @@ Test case tag-notations-extended {
   # attributes ...
   
   # attr1 
-  set entity [@attribute id [@class id ::C] class attr1]
+  set entity [@property id [@class id ::C] class attr1]
   ? [list ::nsf::object::exists $entity] 1
-  ? [list $entity info has type ::nx::doc::@attribute] 1
-  ? [list $entity as_text] {This description does not apply to the object parameter "attr1" owned by the ::C class, rather it is a description of the attribute slot object! How should we deal with this situation? Should this level overwrite the top-level and initcmd-level descriptions?}
+  ? [list $entity info has type ::nx::doc::@property] 1
+  ? [list $entity as_text] {This description does not apply to the object parameter "attr1" owned by the ::C class, rather it is a description of the property slot object! How should we deal with this situation? Should this level overwrite the top-level and initcmd-level descriptions?}
   
   #
   # 3b) nested objects/ classes (PARSING LEVEL 2)!
@@ -955,10 +955,10 @@ Test case tag-notations-extended {
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "Adding a line for the first time (not processed in the initcmd phase!)"; # still empty!
-  set entity [@attribute id $entity object p1]
+  set entity [@property id $entity object p1]
   ? [list ::nsf::object::exists $entity] 1
-  ? [list $entity info has type ::nx::doc::@attribute] 1
-  ? [list $entity as_text] {This is equivalent to stating "@class-object-attribute p1"}
+  ? [list $entity info has type ::nx::doc::@property] 1
+  ? [list $entity as_text] {This is equivalent to stating "@class-object-property p1"}
   
   processor readin \
       -docstring \
@@ -970,10 +970,10 @@ Test case tag-notations-extended {
   
   set cl [@class id ::C::Foo]
   ? [list ::nsf::object::exists $cl] 1
-  set entity [@attribute id $cl class p1]
+  set entity [@property id $cl class p1]
   ? [list ::nsf::object::exists $entity] 1
-  ? [list $entity as_text] {This is equivalent to stating "@class-attribute p1"; or '@class.object.attribute {::C Foo p1}' from the top-level.}
-  set entity [@attribute id $cl object p2]
+  ? [list $entity as_text] {This is equivalent to stating "@class-property p1"; or '@class.object.property {::C Foo p1}' from the top-level.}
+  set entity [@property id $cl object p2]
   ? [list ::nsf::object::exists $entity] 1
   ? [list $entity as_text] ""
   
@@ -1017,12 +1017,12 @@ Test case switch-parts {
       # @author ssoberni@wu.ac.at
       # @deprecated
       
-      # @.attribute attr1 
+      # @.property attr1 
       #
-      # This attribute 1 will be invisibile in the generated doc
+      # This property 1 will be invisibile in the generated doc
       #
       # @stashed
-      :attribute attr1
+      :property attr1
       
       # @.method foo
       #
@@ -1049,7 +1049,7 @@ Test case switch-parts {
   ? [list $cl eval {set :@stashed}] 0
   ? [list $cl @author] ssoberni@wu.ac.at
   
-  set entity [@attribute id $cl class attr1]
+  set entity [@property id $cl class attr1]
   ? [list $entity eval {set :@deprecated}] 0
   ? [list $entity eval {set :@stashed}] 1
   ? [list $entity @stashed] 1
@@ -1145,7 +1145,7 @@ set ::nx::excludes {
 }
 
 # lappend ::nx::excludes {*}::nsf::classes::nx::Object::[join {
-#   __default_attribute_call_protection
+#   __default_property_call_protection
 #   __default_method_call_protection
 #   __resolve_method_path
 #   cleanup

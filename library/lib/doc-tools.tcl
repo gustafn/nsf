@@ -131,7 +131,7 @@ namespace eval ::nx::doc {
 
 
   Class create MixinLayer {
-    :attribute {prefix ""}
+    :property {prefix ""}
     :public method init {} {
       set :active_mixins [dict create]
       next
@@ -164,7 +164,7 @@ namespace eval ::nx::doc {
     }
     
     Class create [current]::Mixin -superclass Class {
-      :attribute {scope class}
+      :property {scope class}
     }
   }
 
@@ -180,8 +180,8 @@ namespace eval ::nx::doc {
     # @param root_namespace You may choose your own root-level
     # namespace hosting the namespace hierarchy of entity objects
 
-    :attribute {tag {[string trimleft [string tolower [namespace tail [current]]] @]}}
-    :attribute {root_namespace "::nx::doc::entities"}
+    :property {tag {[string trimleft [string tolower [namespace tail [current]]] @]}}
+    :property {root_namespace "::nx::doc::entities"}
 
     namespace eval ::nx::doc::entities {}
 
@@ -414,17 +414,17 @@ namespace eval ::nx::doc {
   # part_class is given, the values will be transformed accordingly
   # before being pushed into the internal storage.
 
-  ::nx::MetaSlot create PartAttribute -superclass ::nx::Attribute {
+  ::nx::MetaSlot create PartAttribute -superclass ::nx::VariableSlot {
 
     # @param part_class
     # 
-    # The attribute slot refers to a concrete subclass of Part which
-    # describes the parts being managed by the attribute slot.
-    :attribute part_class:optional,class
-    :attribute scope
+    # The property refers to a concrete subclass of Part which
+    # describes the parts being managed by the property.
+    :property part_class:optional,class
+    :property scope
 
-    :attribute {pretty_name {[string totitle [string trimleft [namespace tail [current]] @]]}}
-    :attribute {pretty_plural {[string totitle [string trimleft [namespace tail [current]] @]]}}
+    :property {pretty_name {[string totitle [string trimleft [namespace tail [current]] @]]}}
+    :property {pretty_plural {[string totitle [string trimleft [namespace tail [current]] @]]}}
 
     # :forward owning_entity_class {% [[:info parent] info parent] }
     :method init args {
@@ -444,7 +444,7 @@ namespace eval ::nx::doc {
     :public method id {domain prop value} {
       #puts stderr "PARTATTRIBUTE-ID: [current args]"
       if {![info exists :part_class]} {
-	error "Requested id generation from a simple part attribute!"
+	error "Requested id generation from a simple part property!"
       }
       return [${:part_class} id [$domain name] ${:scope} $value]
     }
@@ -491,7 +491,7 @@ namespace eval ::nx::doc {
     }
   }
   
-  ::nx::MetaSlot create SwitchAttribute -superclass ::nx::Attribute {
+  ::nx::MetaSlot create SwitchAttribute -superclass ::nx::VariableSlot {
     :public method init args {
       set :defaultmethods [list get get]
       next
@@ -513,7 +513,7 @@ namespace eval ::nx::doc {
     # @param name
     #
     # gives you the name (i.e., the Nx object identifier) of the documented entity
-    :attribute name:any,required
+    :property name:any,required
 
     # every Entity must be created with a "@doc" value and can have
     # an optional initcmd 
@@ -521,11 +521,11 @@ namespace eval ::nx::doc {
       #next [list [list @doc:optional __initcmd:initcmd,optional]]
     #}
 
-    :class attribute current_project:object,type=::nx::doc::@project,0..1
+    :class property current_project:object,type=::nx::doc::@project,0..1
     :public forward current_project [current] %method
 
-    :attribute partof:object,type=::nx::doc::StructuredEntity
-    :attribute part_attribute:object,type=::nx::doc::PartAttribute
+    :property partof:object,type=::nx::doc::StructuredEntity
+    :property part_attribute:object,type=::nx::doc::PartAttribute
  
     #
     # TODO: the pdata/pinfo/validate combo only makes sense for
@@ -537,7 +537,7 @@ namespace eval ::nx::doc {
 	return ${:name}
       }
 
-    :attribute pdata
+    :property pdata
     :public method validate {} {
       if {[info exists :pdata] && \
 	      [:pinfo get -default complete status] ne "missing"} {
@@ -599,31 +599,31 @@ namespace eval ::nx::doc {
       return [concat {*}$path]
     }
 
-    :attribute @doc:0..* {
+    :property @doc:0..* {
       set :incremental 1
       set :positional true
       set :position 1
     }
-    :attribute @see -class ::nx::doc::PartAttribute
+    :property @see -class ::nx::doc::PartAttribute
 
-    :attribute @deprecated:boolean -class ::nx::doc::SwitchAttribute {
+    :property @deprecated:boolean -class ::nx::doc::SwitchAttribute {
       set :default 0
     }
-    :attribute @stashed:boolean -class ::nx::doc::SwitchAttribute {
+    :property @stashed:boolean -class ::nx::doc::SwitchAttribute {
       set :default 0
     }
-    :attribute @c-implemented:boolean -class ::nx::doc::SwitchAttribute {
+    :property @c-implemented:boolean -class ::nx::doc::SwitchAttribute {
       set :default 0
     }
 
-    # :attribute @properties -class ::nx::doc::PartAttribute
+    # :property @properties -class ::nx::doc::PartAttribute
     :public method @property {props} {
       foreach prop $props {
 	:@$prop
       }
     }
 
-    :attribute @use {
+    :property @use {
       :public method assign {domain prop value} {
 	# @command nx
 	#
@@ -701,9 +701,9 @@ namespace eval ::nx::doc {
   }
 
   Tag create @glossary -superclass Entity {
-    :attribute @pretty_name
-    :attribute @pretty_plural
-    :attribute @acronym
+    :property @pretty_name
+    :property @pretty_plural
+    :property @acronym
   }
 
 
@@ -770,7 +770,7 @@ namespace eval ::nx::doc {
   Class create ContainerEntity -superclass StructuredEntity {
     
     Class create [current]::Resolvable {
-      :class attribute container:object,type=[:info parent]
+      :class property container:object,type=[:info parent]
       :method get_fully_qualified_name {name} {
 	set container [[current class] container]
 	if {![string match "::*" $name]} {
@@ -783,9 +783,9 @@ namespace eval ::nx::doc {
     }
 
     Class create [current]::Containable {
-      # TODO: check the interaction of required, per-object attribute and ::nsf::assertion
-      #:object attribute container:object,type=[:info parent],required
-      :attribute container:object,type=[:info parent]
+      # TODO: check the interaction of required, per-object property and ::nsf::assertion
+      #:object property container:object,type=[:info parent],required
+      :property container:object,type=[:info parent]
       :method create args {
 	#
 	# Note: preserve the container currently set at this callstack
@@ -823,34 +823,34 @@ namespace eval ::nx::doc {
 
     }
     # Note: The default "" corresponds to the top-level namespace "::"!
-    :attribute {@namespace ""}
+    :property {@namespace ""}
 
-    :attribute @class -class ::nx::doc::PartAttribute {
+    :property @class -class ::nx::doc::PartAttribute {
       :pretty_name "Class"
       :pretty_plural "Classes"
       set :part_class ::nx::doc::@class
     }
-    :attribute @object -class ::nx::doc::PartAttribute {
+    :property @object -class ::nx::doc::PartAttribute {
       :pretty_name "Object"
       :pretty_plural "Objects"
       set :part_class ::nx::doc::@object
     }
    
-    :attribute @command -class ::nx::doc::PartAttribute {
+    :property @command -class ::nx::doc::PartAttribute {
       :pretty_name "Command"
       :pretty_plural "Commands"
       set :part_class ::nx::doc::@command
     }
 
-    # :attribute @class:object,type=::nx::doc::@class,multivalued {
+    # :property @class:object,type=::nx::doc::@class,multivalued {
     #   set :incremental 1
     # }
 
-    # :attribute @object:object,type=::nx::doc::@object,multivalued {
+    # :property @object:object,type=::nx::doc::@object,multivalued {
     #   set :incremental 1
     # }
 
-    # :attribute @command:object,type=::nx::doc::@command,multivalued {
+    # :property @command:object,type=::nx::doc::@command,multivalued {
     #   set :incremental 1
     # }
 
@@ -887,18 +887,18 @@ namespace eval ::nx::doc {
 
   Tag create @project -superclass ContainerEntity {
 
-    :attribute sandbox:object,type=::nx::doc::Sandbox
-    :attribute sources
+    :property sandbox:object,type=::nx::doc::Sandbox
+    :property sources
 
-    :attribute url
-    :attribute license
-    :attribute creationdate
-    :attribute {version ""}
+    :property url
+    :property license
+    :property creationdate
+    :property {version ""}
     
-    :attribute {is_validated 0} 
-    :attribute depends:0..*,object,type=[current]
+    :property {is_validated 0} 
+    :property depends:0..*,object,type=[current]
     
-    :attribute @glossary -class ::nx::doc::PartAttribute {
+    :property @glossary -class ::nx::doc::PartAttribute {
       set :part_class ::nx::doc::@glossary
       :public method get {domain prop} {
 	set l [next]
@@ -911,7 +911,7 @@ namespace eval ::nx::doc {
       }
     }
 
-    :attribute @package -class ::nx::doc::PartAttribute {
+    :property @package -class ::nx::doc::PartAttribute {
       :pretty_name "Package"
       :pretty_plural "Packages"
       set :part_class ::nx::doc::@package
@@ -960,15 +960,15 @@ namespace eval ::nx::doc {
   #
 
   Tag create @package -superclass ContainerEntity {
-    :attribute @require -class ::nx::doc::PartAttribute
-    :attribute @version -class ::nx::doc::PartAttribute
+    :property @require -class ::nx::doc::PartAttribute
+    :property @version -class ::nx::doc::PartAttribute
   }
 
   QualifierTag create @command -superclass StructuredEntity {
-    :attribute @parameter -class ::nx::doc::PartAttribute {
+    :property @parameter -class ::nx::doc::PartAttribute {
       set :part_class ::nx::doc::@param
     }
-    :attribute @return -class ::nx::doc::PartAttribute {
+    :property @return -class ::nx::doc::PartAttribute {
       :method require_part {domain prop value} {
 	set value [expr {![string match ":*" $value] ? "__out__: $value": "__out__$value"}]
 	next [list $domain $prop $value]
@@ -977,11 +977,11 @@ namespace eval ::nx::doc {
     }
 
     :public forward @sub-command %self @command
-    :attribute @command -class ::nx::doc::PartAttribute {
+    :property @command -class ::nx::doc::PartAttribute {
       :pretty_name "Subcommand"
       :pretty_plural "Subcommands"
       :public method id {domain prop value} { 
-	# TODO: [${:part_class}] resolves to the attribute slot
+	# TODO: [${:part_class}] resolves to the property slot
 	# object, not the global @command object. is this intended, in
 	# line with the intended semantics?
 	return [${:part_class} [current method] \
@@ -1033,15 +1033,15 @@ namespace eval ::nx::doc {
   QualifierTag create @object \
       -superclass StructuredEntity \
       -mixin ContainerEntity::Containable {
-	:attribute @author -class ::nx::doc::PartAttribute 
+	:property @author -class ::nx::doc::PartAttribute 
 
 	:public forward @object %self @child-object
-	:attribute @child-object -class ::nx::doc::PartAttribute {
+	:property @child-object -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@object
 	  :public method id {domain prop value} {
 #	    puts stderr "CHILD-OBJECT: [current args]"
 	    # if {![info exists :part_class]} {
-	    #   error "Requested id generation from a simple part attribute!"
+	    #   error "Requested id generation from a simple part property!"
 	    # }
 	    return [${:part_class} id [join [list [$domain name] $value] ::]]
 #	    return [${:part_class} id -partof_name [$domain name] -scope ${:scope} $value]
@@ -1050,12 +1050,12 @@ namespace eval ::nx::doc {
 	}
 
 	:public forward @class %self @child-class
-	:attribute @child-class -class ::nx::doc::PartAttribute {
+	:property @child-class -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@class
 	  :public method id {domain prop value} {
 	    #puts stderr "CHILD-CLASS: [current args]"
 	    # if {![info exists :part_class]} {
-	    #   error "Requested id generation from a simple part attribute!"
+	    #   error "Requested id generation from a simple part property!"
 	    # }
 	    return [${:part_class} id [join [list [$domain name] $value] ::]]
 	    #return [${:part_class} id -partof_name [$domain name] -scope ${:scope} $value]
@@ -1063,15 +1063,15 @@ namespace eval ::nx::doc {
 	}
 
 	:public forward @method %self @object-method
-	:attribute @object-method -class ::nx::doc::PartAttribute {
+	:property @object-method -class ::nx::doc::PartAttribute {
 	  :pretty_name "Object method"
 	  :pretty_plural "Object methods"
 	  set :part_class ::nx::doc::@method
 	}
 
-	:public forward @attribute %self @object-attribute
+	:public forward @property %self @object-property
 	#:forward @param %self @object-param
-	:attribute @object-attribute -class ::nx::doc::PartAttribute {
+	:property @object-property -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
 	}
 
@@ -1091,27 +1091,27 @@ namespace eval ::nx::doc {
 
   QualifierTag create @class \
       -superclass @object {
-	:attribute @superclass -class ::nx::doc::PartAttribute
+	:property @superclass -class ::nx::doc::PartAttribute
 	
-	:public forward @attribute %self @class-attribute
-	:attribute @class-attribute -class ::nx::doc::PartAttribute {
-	  :pretty_name "Per-class attribute"
+	:public forward @property %self @class-property
+	:property @class-property -class ::nx::doc::PartAttribute {
+	  :pretty_name "Per-class property"
 	  :pretty_plural "Per-class attributes"
 	  set :part_class ::nx::doc::@param
 	}
 	
 	:public forward @class-object-method %self @object-method
-	:public forward @class-object-attribute %self @object-attribute
+	:public forward @class-object-property %self @object-property
 
 	:public forward @hook %self @class-hook
-	:attribute @class-hook -class ::nx::doc::PartAttribute {
+	:property @class-hook -class ::nx::doc::PartAttribute {
 	  :pretty_name "Hook method"
 	  :pretty_plural "Hook methods"
 	  set :part_class ::nx::doc::@method
 	}
 
 	:public forward @method %self @class-method
-	:attribute @class-method -class ::nx::doc::PartAttribute {
+	:property @class-method -class ::nx::doc::PartAttribute {
 	  :pretty_name "Provided method"
 	  :pretty_plural "Provided methods"
 	  set :part_class ::nx::doc::@method
@@ -1154,8 +1154,8 @@ namespace eval ::nx::doc {
       }
   
   Class create PartEntity -superclass Entity {
-    :attribute partof:object,type=::nx::doc::StructuredEntity,required
-    :attribute part_attribute:object,type=::nx::doc::PartAttribute,required
+    :property partof:object,type=::nx::doc::StructuredEntity,required
+    :property part_attribute:object,type=::nx::doc::PartAttribute,required
   }
  
 
@@ -1168,13 +1168,13 @@ namespace eval ::nx::doc {
   #
   PartTag create @method \
       -superclass StructuredEntity {
-	:attribute @syshook:boolean -class ::nx::doc::SwitchAttribute {
+	:property @syshook:boolean -class ::nx::doc::SwitchAttribute {
 	  set :default 0
 	}
-	:attribute @parameter -class ::nx::doc::PartAttribute {
+	:property @parameter -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
 	}
-	:attribute @return -class ::nx::doc::PartAttribute {
+	:property @return -class ::nx::doc::PartAttribute {
 	  #
 	  # TODO: @return spec fragments should be nameless,
 	  # conceptually. They represent "out" parameters with each
@@ -1209,7 +1209,7 @@ namespace eval ::nx::doc {
 	:public forward @class-method %self @method
 	:public forward @class-object-method %self @method
 	:public forward @sub-method %self @method
-	:attribute @method -class ::nx::doc::PartAttribute {
+	:property @method -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@method
 	  :public method id {domain prop name} {
 	    # TODO: ${:part_class} resolves to the local slot
@@ -1334,9 +1334,9 @@ namespace eval ::nx::doc {
   #
   PartTag create @param \
       -superclass PartEntity {
-	#:attribute spec
-	:attribute @spec -class ::nx::doc::PartAttribute
-	:attribute default
+	#:property spec
+	:property @spec -class ::nx::doc::PartAttribute
+	:property default
 
 	:public class method id {partof_name scope name} {
 	  next [list [:get_unqualified_name ${partof_name}] $scope $name]
@@ -1434,7 +1434,7 @@ namespace eval ::nx::doc {
   # Provide two interp-wide aliases for @param. This is mere syntactic
   # sugar!
   #
-  interp alias {} ::nx::doc::@attribute {} ::nx::doc::@param
+  interp alias {} ::nx::doc::@property {} ::nx::doc::@param
   interp alias {} ::nx::doc::@parameter {} ::nx::doc::@param
 
   #
@@ -1451,7 +1451,7 @@ namespace eval ::nx::doc {
   interp alias {} ::nx::doc::@acrfirst {} ::nx::doc::@glossary  
 
   namespace export CommentBlockParser @command @object @class @package \
-      @project @method @attribute @parameter @ MixinLayer
+      @project @method @property @parameter @ MixinLayer
 }
 
 
@@ -1460,7 +1460,7 @@ namespace eval ::nx::doc {
 
   Class create TemplateData {
     
-    :class attribute renderer
+    :class property renderer
     :public forward renderer [current] %method
 
     :public forward rendered [current] %method
@@ -1705,8 +1705,8 @@ namespace eval ::nx::doc {
   #
   Class create Renderer -superclass MixinLayer {
     
-    :attribute {extension "[namespace tail [current]]"}
-    :attribute extends:object,type=[current]
+    :property {extension "[namespace tail [current]]"}
+    :property extends:object,type=[current]
     
     #
     # mixin-layer management
@@ -1735,8 +1735,8 @@ namespace eval ::nx::doc {
     # template management
     #
     
-    :attribute current_theme
-    :protected attribute {templates {[dict create]}}
+    :property current_theme
+    :protected property {templates {[dict create]}}
     
     :public method addTemplate {name theme body} {
       dict set :templates $theme $name $body
@@ -1935,7 +1935,7 @@ namespace eval ::nx::doc {
 
     MixinLayer::Mixin create [current]::Entity -superclass TemplateData {
       #
-      # TODO: Would it be useful to allow attribute slots to describe
+      # TODO: Would it be useful to allow property slots to describe
       # a per-class-object state, while the accessor/mutator methods
       # are defined on the per-class level. It feels like the class
       # instance variables in Smalltalk ...
@@ -1943,8 +1943,8 @@ namespace eval ::nx::doc {
       # TODO: Why is call protection barfing when the protected target
       # is called from within a public forward. This should qualify as
       # a valid call site (from "within" the same object!), shouldn't it?
-      # :protected class attribute current_project:object,type=::nx::doc::@project
-      # :class attribute current_project:object,type=::nx::doc::@project
+      # :protected class property current_project:object,type=::nx::doc::@project
+      # :class property current_project:object,type=::nx::doc::@project
       # :public forward current_project [current] %method
 
       # :public forward print_name %current name
@@ -2082,7 +2082,7 @@ namespace eval ::nx::doc {
 	  set entities [lrange $entities 1 end]
 	}
 	#return "<a href=\"[$id href $top_entity]\">$pof[join $pathnames .]</a>"
-	# GN TODO: Maybe a nicer "title" attribute via method title?
+	# GN TODO: Maybe a nicer "title" property via method title?
 	#return "<a class='nsfdoc-link' title='$pof[join $pathnames .]' \
 	#	href='[$id href $top_entity]'>[join $pathnames { }]</a>"
 	set iscript [join [list [list set title $pof[join $pathnames .]] \
@@ -2423,8 +2423,8 @@ namespace eval ::nx::doc {
       return $value
     }
 
-    :protected attribute {current_packages "*"}
-    :attribute {permissive_pkgs:1..* "*"} {
+    :protected property {current_packages "*"}
+    :property {permissive_pkgs:1..* "*"} {
       set :incremental 1
     }
 
@@ -2762,7 +2762,7 @@ namespace eval ::nx::doc {
 		    if {[info commands "::nx::Class"] ne ""} {
 		      if {[::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Slot]} {
 			dict set bundle objtype slot
-			dict set bundle incremental [expr {[::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::RelationSlot] || ([::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Attribute] && [::nsf::var::exists $obj incremental] && [::nsf::var::set $obj incremental])}]
+			dict set bundle incremental [expr {[::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::RelationSlot] || ([::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::VariableSlot] && [::nsf::var::exists $obj incremental] && [::nsf::var::set $obj incremental])}]
 		      }
 		      if {[::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::EnsembleObject]} {
 			dict set bundle objtype ensemble
@@ -3072,9 +3072,9 @@ namespace eval ::nx::doc {
 	  "" [current] at_source
       next
     }
-    :protected attribute {interp ""}; # the default empty string points to the current interp
+    :protected property {interp ""}; # the default empty string points to the current interp
 
-    :attribute registered_commands
+    :property registered_commands
 
     :public method get_companions {} {
       set companions [dict create]
@@ -3205,7 +3205,7 @@ namespace eval ::nx::doc::xodoc {
   # MetaClassToken	n/a
 
   Class create MetadataToken {
-    :class attribute analyzer
+    :class property analyzer
     :public forward analyzer [current] %method
     :method as {partof:object,type=::nx::doc::StructuredEntity} \
         -returns object,type=::nx::doc::Entity {
@@ -3973,10 +3973,10 @@ namespace eval ::nx::doc {
   #
   Class create CommentBlockParser {
 
-    :attribute {parsing_level:integer 0}
+    :property {parsing_level:integer 0}
 
-    :attribute {message ""}
-    :attribute {status:in "COMPLETED"} {
+    :property {message ""}
+    :property {status:in "COMPLETED"} {
 
       set :incremental 1
       
@@ -4004,7 +4004,7 @@ namespace eval ::nx::doc {
       }
     }
 
-    :attribute processed_section  {
+    :property processed_section  {
       set :incremental 1
       :public method assign {domain prop value} {
 	set current_entity [$domain current_entity]
@@ -4016,7 +4016,7 @@ namespace eval ::nx::doc {
 	$current_entity {*}$scope add [next [list $domain $prop $value]]
       }
     }
-    :attribute current_entity:object
+    :property current_entity:object
     
     :public class method process {
 			      {-partof_entity ""}
@@ -4070,7 +4070,7 @@ namespace eval ::nx::doc {
       :processed_section [$initial_section]
 
       # TODO: currently, default values are not initialised for
-      # attribute slots defined in mixin classes; so do it manually
+      # property slots defined in mixin classes; so do it manually
       # for the time being.
       ${:current_entity} current_comment_line_type ""
 
@@ -4133,15 +4133,15 @@ namespace eval ::nx::doc {
   
   Class create CommentBlockParsingState -superclass Class {
     
-    :attribute next_comment_section
-    :attribute comment_line_transitions:required
+    :property next_comment_section
+    :property comment_line_transitions:required
     
   }
   
   Class create CommentSection {
 
-    :attribute block_parser:object,type=::nx::doc::CommentBlockParser
-    :attribute {current_comment_line_type ""}
+    :property block_parser:object,type=::nx::doc::CommentBlockParser
+    :property {current_comment_line_type ""}
 
     set :line_types {
       tag {regexp -- {^\s*@[^[:space:]@]+} $line}
@@ -4344,7 +4344,8 @@ namespace eval ::nx::doc {
 	    set entity [@$leaf(axis) new -name $leaf(name) {*}$args]
 	  } else {
 	    if {[$entity info lookup methods -source application @$leaf(axis)] eq ""} {
-	      ${:block_parser} cancel INVALIDTAG "The tag '$leaf(axis)' is not supported for the entity type '[namespace tail [$entity info class]]'"
+	      ${:block_parser} cancel INVALIDTAG \
+		  "The tag '$leaf(axis)' is not supported for the entity type '[namespace tail [$entity info class]]'"
 	    }
 	    set entity [$entity @$leaf(axis) [list $leaf(name) {*}$args]]
 	  }

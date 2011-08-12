@@ -650,8 +650,8 @@ defined per default as protected. These defaults can be changed by the
 application developer in various ways. The command `::nx::configure
 defaultMethodCallProtection true|false` can be used to set the default
 call protection for scripted methods, forwarder and aliases, while
-`::nx::configure defaultAttributeCallProtection true|false` can set
-the default protection for attributes. The defaults can be overwritten
+`::nx::configure defaultPropertyCallProtection true|false` can set
+the default protection for properties. The defaults can be overwritten
 also e.g. on a class level.
 
 
@@ -1042,8 +1042,8 @@ Foo f1 -a 0
 # scripted configuration)
 
 Class create Foo {
-   :attribute a
-   :attribute {b 1}
+   :property a
+   :property {b 1}
 }
 
 # Create instance of the class Foo
@@ -1064,13 +1064,13 @@ Foo create f1 -a 0
 # and object level
 
 Class create C {
-  :attribute x
-  :attribute {y 1}
+  :property x
+  :property {y 1}
   :class attribute oa1
 }
 
 Object create o {
-  :attribute oa2
+  :property oa2
 }
 ----------------
 
@@ -1101,7 +1101,7 @@ Class Person -slots {
 # attribute specific type checker
 
 Class create Person {
-  :attribute sex {
+  :property sex {
     :type "sex"
     :method type=sex {name value} {
       switch -glob $value {
@@ -1162,8 +1162,8 @@ Class create Foo -attributes {
 [source,tcl]
 ----------------
 Class create Foo {
-   :attribute a:boolean
-   :attribute {b:integer 1}
+   :property a:boolean
+   :property {b:integer 1}
 }
 ----------------
 |======================
@@ -1199,8 +1199,8 @@ Class create Foo -attributes {
 ----------------
 
 Class create Foo {
-   :attribute a:required
-   :attribute b:boolean,required
+   :property a:required
+   :property b:boolean,required
 }
 ----------------
 |======================
@@ -1232,9 +1232,9 @@ Class create Foo -attributes {
 [source,tcl]
 ----------------
 Class create Foo {
-  :attribute {ints:integer,0..n ""}
-  :attribute objs:object,1..n 
-  :attribute obj:object,0..1
+  :property {ints:integer,0..n ""}
+  :property objs:object,1..n 
+  :property obj:object,0..1
 }
 ----------------
 |======================

@@ -284,8 +284,8 @@ o1 parametercmd y
 # }
 
 # maybe work directly on ::xotcl::Attribute would be nicer, when
-# ::xotcl::Attribute would be true alias for ::nx::Attribute ...
-#::nx::Attribute mixin delete ::nx::Attribute::Optimizer
+# ::xotcl::Attribute would be true alias for ::nx::VariableSlot ...
+#::nx::VariableSlot mixin delete ::nx::VariableSlot::Optimizer
 
 Class C1 -parameter {a {b 10} {c "Hello World"}}
 C1 c1 -a 1
@@ -311,7 +311,7 @@ C2 c2 -a 1
 ? {c2 a} 1 "new indirect parametercmd"
 ? {c2 a 1} 1 "new indirect parametercmd"
 
-#::nx::Attribute mixin add ::nx::Attribute::Optimizer
+#::nx::VariableSlot mixin add ::nx::VariableSlot::Optimizer
 
 Class C3 -slots {
   Attribute create a 
@@ -353,7 +353,7 @@ a0 forward f4 puts hu
 ? {a0 procsearch f3} "::a0 proc f3"
 ? {a0 procsearch f4} "::a0 forward f4"
 ? {a0 procsearch set} "::xotcl::Object instcmd set"
-? {A::slot::foo info lookup method assign} "::nsf::classes::nx::Attribute::assign"
+? {A::slot::foo info lookup method assign} "::nsf::classes::nx::VariableSlot::assign"
 
 # redefine setter for foo of class A
 #A slot foo method assign {domain var val} ...

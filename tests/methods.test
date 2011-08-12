@@ -18,9 +18,9 @@ Class create C {
   :protected forward protected_forward %self protected_method
 
   # setter
-  :attribute plain_setter 
-  :public attribute public_setter 
-  :protected attribute protected_setter 
+  :property plain_setter 
+  :public property public_setter 
+  :protected property protected_setter 
 
   # alias
   :alias plain_alias [C info method handle plain_method]
@@ -34,9 +34,9 @@ Class create C {
   :class forward plain_object_forward %self plain_object_method
   :public class forward public_object_forward %self public_object_method
   :protected class forward protected_object_forward %self protected_object_method
-  :class attribute plain_object_setter 
-  :public class attribute public_object_setter 
-  :protected class attribute protected_object_setter 
+  :class property plain_object_setter 
+  :public class property public_object_setter 
+  :protected class property protected_object_setter 
   :class alias plain_object_alias [:class info method handle plain_object_method]
   :public class alias public_object_alias [:class info method handle public_object_method]
   :protected class alias protected_object_alias [:class info method handle protected_object_method]
@@ -53,20 +53,20 @@ C create c1 {
   :protected forward protected_object_forward %self protected_object_method
 
   # setter
-  :attribute plain_object_setter 
-  :public attribute public_object_setter 
-  :protected attribute protected_object_setter 
+  :property plain_object_setter 
+  :public property public_object_setter 
+  :protected property protected_object_setter 
 
   # alias
   :alias plain_object_alias [:info method handle plain_object_method]
   :public alias public_object_alias [:info method handle public_object_method]
   :protected alias protected_object_alias [:info method handle protected_object_method]
 }
-C public attribute s0
-C protected attribute s1
+C public property s0
+C protected property s1
 ? {c1 s0 0} 0
 ? {::nsf::object::dispatch c1 s1 1} 1
-C class attribute s3
+C class property s3
 ? {C s3 3} 3
 
 # create a fresh object (different from c1)
@@ -248,27 +248,27 @@ Test case next-from-nonpos-args {
 }
 
 # 
-# test method attribute with protected/public
+# test method property with protected/public
 # 
-Test case attribute-method {
+Test case property-method {
 
   Class create C {
-    set x [:attribute a]
+    set x [:property a]
 
     ? [list set _ $x] "::nsf::classes::C::a"
 
-    # attribute with default
-    :attribute {b b1}
-    :public attribute {c c1}
-    :protected attribute {d d1}
+    # property with default
+    :property {b b1}
+    :public property {c c1}
+    :protected property {d d1}
 
-    set X [:class attribute A]
+    set X [:class property A]
     ? [list set _ $X] "::C::A"
     
-    # class attribute with default
-    :class attribute {B B2}
-    :public class attribute {C C2}
-    :protected class attribute {D D2}
+    # class property with default
+    :class property {B B2}
+    :public class property {C C2}
+    :protected class property {D D2}
   }
 
   C create c1 -a 1
@@ -284,13 +284,13 @@ Test case attribute-method {
   ? {C D} "Method 'D' unknown for ::C. Consider '::C create D ' instead of '::C D '"
 
   Object create o {
-    set x [:attribute a]
+    set x [:property a]
     ? [list set _ $x] "::o::a"
 
-    # attribute with default
-    :attribute {b b1}
-    :public attribute {c c1}
-    :protected attribute {d d1}
+    # property with default
+    :property {b b1}
+    :public property {c c1}
+    :protected property {d d1}
   }
   ? {o a 2} 2
   ? {o b} b1
@@ -329,10 +329,10 @@ Test case subcmd {
 }
 
 package req nx::serializer
-Test case class-object-attribute {
+Test case class-object-property {
   Class create C {
-    :class attribute x
-    :attribute a:int
+    :class property x
+    :property a:int
     :create c1
   }
   ? {C x 1} 1
@@ -407,8 +407,8 @@ Test case errormessage {
 Test case dispatch-without-object {
 
   nx::Object create o {
-    # attribute defines a setter, we need a current object
-    :attribute {a v}
+    # property defines a setter, we need a current object
+    :property {a v}
     # the other methods don't require them as strong
     :forward b ::o2 bar
     :method foo {} {return [self]}
@@ -526,7 +526,7 @@ nx::Test case nested-scopes {
 
 #
 # Test deletion of object-specific methods/attributes via "delete
-# method" and "delete attribute"
+# method" and "delete property"
 #
 # a) test attributes
 # b) test simple methods
@@ -534,8 +534,8 @@ nx::Test case nested-scopes {
 #
 nx::Test case delete-per-object {
   Object create o1 {
-    :attribute a1
-    :attribute a2
+    :property a1
+    :property a2
     :public method foo {} {return [namespace current]-[namespace which info]}
     :public method "info foo" {} {return [namespace current]-[namespace which info]}
     :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
@@ -545,20 +545,20 @@ nx::Test case delete-per-object {
   ? {o1 info children} "::o1::info ::o1::per-object-slot"
 
   ? {o1 delete method bar} "::o1: cannot delete object specific method 'bar'"
-  # For a1, we have a method and an attribute. We can delete the
+  # For a1, we have a method and an property. We can delete the
   # method without the slot.
   ? {o1 delete method a1} ""
   # After the deletion of the accessor, the slot exists still
   ? {o1::per-object-slot info children} "::o1::per-object-slot::a1 ::o1::per-object-slot::a2"
-  # If we perform now a "delete attribute a1", the slot will be removed.
-  ? {o1 delete attribute a1} ""
+  # If we perform now a "delete property a1", the slot will be removed.
+  ? {o1 delete property a1} ""
   ? {o1::per-object-slot info children} "::o1::per-object-slot::a2"
 
-  # try to delete the attribute again:
-  ? {o1 delete attribute a1} "::o1: cannot delete object specific attribute 'a1'"
+  # try to delete the property again:
+  ? {o1 delete property a1} "::o1: cannot delete object specific property 'a1'"
 
   ? {o1 info methods -path} "{info foo} {info bar foo} foo a2"
-  ? {o1 delete attribute a2} ""
+  ? {o1 delete property a2} ""
   ? {o1 info methods -path} "{info foo} {info bar foo} foo"
 
   ? {o1 delete method foo} ""
@@ -580,11 +580,11 @@ nx::Test case delete-per-object {
 #
 nx::Test case delete-per-object-on-class {
   Class create C {
-    :class attribute a1
+    :class property a1
     :public class method foo {} {return [namespace current]-[namespace which info]}
     :public class method "info foo" {} {return [namespace current]-[namespace which info]}
     :public class method "info bar foo" {} {return [namespace current]-[namespace which info]}
-    :attribute a2
+    :property a2
   }
 
   ? {C class info methods -path} "{info foo} {info bar foo} foo a1"
@@ -592,9 +592,9 @@ nx::Test case delete-per-object-on-class {
 
   ? {C class delete method bar} "::C: cannot delete object specific method 'bar'"
 
-  ? {C class delete attribute a1} ""
+  ? {C class delete property a1} ""
   ? {C class info methods -path} "{info foo} {info bar foo} foo"
-  ? {C class delete attribute a1} "::C: cannot delete object specific attribute 'a1'"
+  ? {C class delete property a1} "::C: cannot delete object specific property 'a1'"
 
   ? {C class delete method foo} ""
   ? {C class info methods -path} "{info foo} {info bar foo}"
@@ -619,7 +619,7 @@ nx::Test case delete-per-object-on-class {
 #
 nx::Test case delete-class-level-method {
   Class create C {
-    :attribute a1
+    :property a1
     :public method foo {} {return [namespace current]-[namespace which info]}
     :public method "info foo" {} {return [namespace current]-[namespace which info]}
     :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
@@ -630,10 +630,10 @@ nx::Test case delete-class-level-method {
 
   ? {C delete method bar} "::C: cannot delete method 'bar'"
 
-  ? {C delete attribute a1} ""
+  ? {C delete property a1} ""
   ? {C info methods -path} "{info foo} {info bar foo} foo"
 
-  ? {C delete attribute a1} "::C: cannot delete attribute 'a1'"
+  ? {C delete property a1} "::C: cannot delete property 'a1'"
 
   ? {C delete method foo} ""
   ? {C info methods -path} "{info foo} {info bar foo}"

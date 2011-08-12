@@ -1,5 +1,7 @@
 package require nx
+puts stderr "package req XOTcl"
 package require XOTcl 2.0
+puts stderr "package req XOTcl DONE"
 package provide nx::serializer 1.0
 
 # For the time being, we require classical XOTcl.
@@ -141,8 +143,9 @@ namespace eval ::nx::serializer {
   # Serializer Class, independent from Object System
   ###########################################################################
 
-  Class create Serializer -attributes {ignoreVarsRE} {
-    
+  Class create Serializer {
+    :property igroreVarsRE
+
     :method ignore args {
       # Ignore the objects passed via args.
       # :skip is used for filtering only in the topological sort.
@@ -734,7 +737,7 @@ namespace eval ::nx::serializer {
       set intro [subst {
 	package require nx
 	::nx::configure defaultMethodCallProtection [::nx::configure defaultMethodCallProtection]
-	::nx::configure defaultAttributeCallProtection [::nx::configure defaultAttributeCallProtection]
+	::nx::configure defaultPropertyCallProtection [::nx::configure defaultPropertyCallProtection]
       }]
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::nx::Object"} {
         append intro "\n" "namespace import -force ::nx::*"
@@ -980,7 +983,6 @@ namespace eval ::nx::serializer {
     #  ::xotcl::Object instproc contains
     #}
   }
-
 
   namespace export Serializer
   namespace eval :: "namespace import -force [namespace current]::*"

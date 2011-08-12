@@ -432,7 +432,7 @@ NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fram
 
   /* search for first active frame and set tcl frame pointers */
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & /*FRAME_IS_NSF_METHOD*/ (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (!(cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         /* we found the highest active frame */

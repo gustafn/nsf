@@ -22,7 +22,7 @@ Test case delegation {
 ###########################################
 Test case inscope {
     Class create X {
-	:attribute {x 1}
+	:property {x 1}
 	:public forward Incr -objframe incr
     }
 

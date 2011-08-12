@@ -35,7 +35,11 @@ Test parameter count 1000
 Test case parametercheck {
 
   Object create o1
-  Class create C -attributes {a {b:boolean} {c 1}}
+  Class create C {
+    :property a 
+    :property {b:boolean} 
+    :property {c 1}
+  }
   C create c1 
   Class create M
   c1 mixin M
@@ -243,7 +247,7 @@ Test case param-manager {
 #     {elementtype ::nx::Class}
 # } -- sample instances: class superclass, mixin filter
 #
-# ::nx::Attribute -superclass ::xotcl::Slot {
+# ::nx::VariableSlot -superclass ::xotcl::Slot {
 #     {value_check once}
 #     defaultcmd
 #     valuecmd
@@ -261,7 +265,11 @@ Test case param-manager {
 Test parameter count 10
 Test case objectparameter {
 
-  Class create C -attributes {a {b:boolean} {c 1}}
+  Class create C {
+    :property a 
+    :property {b:boolean} 
+    :property {c 1}
+  }
   C create c1
  
   ? {C eval :objectparameter} \
@@ -276,7 +284,11 @@ Test case objectparameter {
 #######################################################
 Test case reclass {
 
-  Class create C -attributes {a {b:boolean} {c 1}}
+  Class create C {
+    :property a 
+    :property {b:boolean} 
+    :property {c 1}
+  }
   C create c1
 
   ? {c1 info lookup slots -source application} "::C::slot::a ::C::slot::b ::C::slot::c"
@@ -285,7 +297,7 @@ Test case reclass {
 
   ? {c1 info lookup slots -source application} ""
   
-  Class create D -superclass C -attributes {d:required}
+  Class create D -superclass C {:property d:required}
   D create d1 -d 100
 
   ? {d1 info lookup slots -source application} \
@@ -300,12 +312,24 @@ Test case reclass {
 #######################################################
 Test case objparam-mixins {
 
-  Class create C -attributes {a {b:boolean} {c 1}}
-  Class create D -superclass C -attributes {d:required}
+  Class create C {
+    :property a 
+    :property {b:boolean} 
+    :property {c 1}
+  }
+  Class create D -superclass C {
+    :property d:required
+  }
   D create d1 -d 100
 
-  Class create M -attributes {m1 m2 b}
-  Class create M2 -attributes {b2}
+  Class create M {
+    :property m1 
+    :property m2 
+    :property b
+  }
+  Class create M2 {
+    :property b2
+  }
   D mixin M
 
   ? {D eval :objectparameter} \
@@ -340,8 +364,12 @@ Test case objparam-mixins {
 
 Test case passed-arguments {
 
-  Class create C -attributes {a {b:boolean} {c 1}}
-  Class create D -superclass C -attributes {d:required}
+  Class create C {
+    :property a 
+    :property b:boolean
+    :property {c 1}
+  }
+  Class create D -superclass C {:property d:required}
 
   ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
   ? {catch {D create d1}} 1 "create d1 without required argument given"
@@ -452,8 +480,8 @@ Test case multivalued {
       {invalid value in "o d1 x": expected object but got "x" for parameter "m"} \
       "multiple values"
 
-  Class create Foo -attributes {
-    {ints:integer,1..*}
+  Class create Foo {
+    :property ints:integer,1..*
   }
   ? {Foo create foo -ints {1 2}} "::foo"
   ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter "-ints"}
@@ -475,8 +503,8 @@ Test case multivalued {
 Test case subst-default {
   
   Class create D {
-    :attribute {c 1}
-    :attribute {d 2}
+    :property {c 1}
+    :property {d 2}
 
     :create d1
 
@@ -492,14 +520,14 @@ Test case subst-default {
   
   ? {d1 bar -c 1} {::d1-[current]-1-2} "substdefault in method parameter"
   
-  Class create Bar -superclass D -attributes {
-    {s "[current]"} 
-    {literal "\\[current\\]"} 
-    {c "[:info class]"} 
-    {d "literal $d"}
+  Class create Bar -superclass D {
+    :property {s "[current]"} 
+    :property {literal "\\[current\\]"} 
+    :property {c "[:info class]"} 
+    :property {d "literal $d"}
   }
 
-  ? {Bar attribute ss:switch} "::nsf::classes::Bar::ss"
+  ? {Bar property ss:switch} "::nsf::classes::Bar::ss"
 
   Bar create bar1
   #puts stderr [bar1 objectparameter]
@@ -605,7 +633,7 @@ Test case subst-default {
 #######################################################
 Test case user-types {
 
-  Class create D -attributes d
+  Class create D {:property d}
   D create d1
 
   # create a userdefined type
@@ -704,7 +732,7 @@ Test case user-types {
 Test case mp-object-types {
 
   Class create C
-  Class create D -superclass C -attributes d
+  Class create D -superclass C {:property d}
 
   Class create M
   Class create M2
@@ -778,7 +806,11 @@ Test case mp-object-types {
 #######################################################
 Test case substdefault {
 
-  Class create S -attributes {{x 1} {y b} {z {1 2 3}}}
+  Class create S {
+    :property {x 1} 
+    :property {y b} 
+    :property {z {1 2 3}}
+  }
   S create s1 {
     :public method foo {{y:substdefault ${:x}}} {
       return $y
@@ -836,16 +868,16 @@ Test case substdefault-objparam {
   Class create Bar {
 
     # simple, implicit substdefault
-    :attribute {s0 "[current]"}
+    :property {s0 "[current]"}
 
     # explicit substdefault
-    :attribute {s1:substdefault "[current]"}
+    :property {s1:substdefault "[current]"}
     
     # unneeded double substdefault
-    :attribute {s2:substdefault,substdefault "[current]"}
+    :property {s2:substdefault,substdefault "[current]"}
 
     # substdefault with incremental
-    :attribute {s3:substdefault "[current]"} {
+    :property {s3:substdefault "[current]"} {
       # Bypassing the Optimizer helps after applying the patch (solving step 1)
       set :incremental 1
     }
@@ -865,8 +897,8 @@ Test case parameter-alias-default {
 
   ::nsf::method::require nx::Object configure
   Class create C {
-    :attribute {a ""}
-    :attribute {b 1}
+    :property {a ""}
+    :property {b 1}
 
     :method init {} {
       :configure -b 1
@@ -888,7 +920,7 @@ Test case parameter-alias-default {
 Test case op-object-types {
 
   Class create C
-  Class create D -superclass C -attributes d
+  Class create D -superclass C {:property d}
 
   Class create MC -superclass Class
   MC create MC1
@@ -897,17 +929,17 @@ Test case op-object-types {
   C create c1 -mixin M
   Object create o
   
-  Class create ParamTest -attributes {
-    o:object
-    c:class
-    c1:class,type=::MC
-    d:object,type=::C
-    d1:object,type=C
-    m:metaclass
-    b:baseclass
-    u:upper
-    us:upper,1..*
-    {x:object,1..* {o}}
+  Class create ParamTest {
+    :property o:object
+    :property c:class
+    :property c1:class,type=::MC
+    :property d:object,type=::C
+    :property d1:object,type=C
+    :property m:metaclass
+    :property b:baseclass
+    :property u:upper
+    :property us:upper,1..*
+    :property {x:object,1..* {o}}
   }
   
   # TODO: we have no good interface for querying the slot notation for parameters
@@ -972,11 +1004,11 @@ Test case op-object-types {
       "value is not an object"
 
   #
-  # define multivalued attribute "os" via instance variables of the
+  # define multivalued property "os" via instance variables of the
   # slot object
   #
   ParamTest eval {
-    :attribute os {
+    :property os {
       :type object 
       :multiplicity 1..n
     }
@@ -1091,7 +1123,7 @@ Test case allow-empty {
 Test case slot-specfic-converter {
 
   Class create Person {
-    :attribute sex {
+    :property sex {
       :type "sex"
       :convert true
       :method type=sex {name value} {
@@ -1160,7 +1192,11 @@ Test case setters {
 Test parameter count 1000
 Test case slot-optimizer {
 
-  Class create C -attributes {a b:integer c:integer,0..n}
+  Class create C {
+    :property a 
+    :property b:integer 
+    :property c:integer,0..n
+  }
   
   C create c1 
   ? {c1 a 1} 1
@@ -1180,7 +1216,11 @@ Test case slot-optimizer {
 
 Test parameter count 10
 Test case slot-nosetter {
-  Class create C -attributes {a b:integer,accessor=false {c:accessor=false ""}}
+  Class create C {
+    :property a 
+    :property b:integer,accessor=false 
+    :property {c:accessor=false ""}
+  }
   
   ? {C create c1 -a 1 -b 2} ::c1
   ? {c1 info vars} "a b c"
@@ -1225,9 +1265,9 @@ Test case check-arguments {
 
 Test case slot-traces {
   ::nx::Object create o {
-    :attribute a {set :defaultcmd { set _ 4 } }
-    :attribute b {set :valuecmd { set _ 44 } }
-    :attribute c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+    :property a {set :defaultcmd { set _ 4 } }
+    :property b {set :valuecmd { set _ 44 } }
+    :property c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
   }
 
   ? {o a} 4
@@ -1241,9 +1281,9 @@ Test case slot-traces {
   ? {o c 5} 999
 
   ::nx::Class create C {
-    :attribute a {set :defaultcmd { set _ 4 } }
-    :attribute b {set :valuecmd { set _ 44 } }
-    :attribute c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+    :property a {set :defaultcmd { set _ 4 } }
+    :property b {set :valuecmd { set _ 44 } }
+    :property c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
     :create c1
   }
   ? {c1 a} 4
@@ -1400,7 +1440,7 @@ Test case check-arguments {
 #
 Test case dont-reset-to-defaults {
   Class create C {
-    :attribute {a 1}
+    :property {a 1}
     :create c1
   }
   ? {c1 a} 1
@@ -1458,8 +1498,8 @@ Test case setter-under-coloncmd-and-interpvarresolver {
 
 Test case req-param {
   ::nx::Class create C {
-    :attribute y:required
-    :attribute x:required
+    :property y:required
+    :property x:required
     :method init args {set ::_ $args}
   }
 
@@ -1480,8 +1520,8 @@ Test case req-param {
 #
 Test case nsf-subdefault {
   nx::Class create C {
-    :attribute {n1 "[namespace tail [::nsf::self]]"}
-    :attribute {n2:any "[namespace tail [::nsf::self]]"}
+    :property {n1 "[namespace tail [::nsf::self]]"}
+    :property {n2:any "[namespace tail [::nsf::self]]"}
     :create c1
   }
   ? {c1 n1} c1
@@ -1582,10 +1622,10 @@ Test case xotcl-list-notation {
 Test case parameter-alias {
 
   Class create C {
-    :attribute {x:alias}
-    :attribute {A:alias,method=bar}
-    :attribute {{F:forward,method=%self foo %1 a b c %method}}
-    :attribute {D def}
+    :property {x:alias}
+    :property {A:alias,method=bar}
+    :property {{F:forward,method=%self foo %1 a b c %method}}
+    :property {D def}
     :public method x args {set :x $args}
     :public method foo args {set :foo $args}
     :public method bar args {set :bar $args}
@@ -1604,9 +1644,9 @@ Test case parameter-alias {
 Test case parameter-alias-default {
 
   Class create C {
-    :attribute {x1:alias "hugo"}
-    :attribute {{F:forward,method=%self foo a %1 b c %method} "habicht"}
-    :attribute {x2:alias "[self]"}
+    :property {x1:alias "hugo"}
+    :property {{F:forward,method=%self foo a %1 b c %method} "habicht"}
+    :property {x2:alias "[self]"}
     :public method x1 args {set :x1 $args}
     :public method x2 args {set :x2 $args}
     :public method foo args {set :foo $args}
@@ -1627,14 +1667,14 @@ Test case parameter-alias-default {
 #
 Test case parameter-object-mixin-dependency {
   Class create C {
-    :attribute a1
+    :property a1
     :create c1 {
-      :attribute a2
+      :property a2
     }
   }
 
   Class create M {
-    :attribute b1:required
+    :property b1:required
   }
   
   c1 mixin M
@@ -1752,12 +1792,12 @@ Test case bignums {
 nx::Test case reconfigure-perobj-default {
   Object create o
   ? {o eval {info exists :a}} 0
-  o attribute {a oldvalue}
+  o property {a oldvalue}
   ? {o eval {info exists :a}} 1
   ? {o a} oldvalue
   #
-  # By unsetting the var, upon recreating the attribute slot (or
-  # calling reconfigure upon the attribute) we can trigger
+  # By unsetting the var, upon recreating the property slot (or
+  # calling reconfigure upon the property) we can trigger
   # a re-assignment of the default value.
   #
   o eval {unset :a}
@@ -1765,7 +1805,7 @@ nx::Test case reconfigure-perobj-default {
   #
   # re-assignment of the default is handled by init
   #
-  o attribute {a newvalue}
+  o property {a newvalue}
   ? {o eval {info exists :a}} 1
   ? {o a} newvalue
   o eval {unset :a}
@@ -1798,7 +1838,7 @@ nx::Test case reconfigure-perobj-default {
 # Strengths of object-level parameters:
 # - same interface as class-level attributes
 # - can use same meta-data mechanisms as for class-level attributes
-#   (e.g database types, attribute name in the database, persistence
+#   (e.g database types, property name in the database, persistence
 #   information, ...)
   # - can use same setters/checkers as for class-level attributes
 # - can use as well incremental as for class-level attributes
@@ -1818,7 +1858,7 @@ nx::Test case reconfigure-perobj-default {
 #   cannot be called.
 
 #
-# test object level attribute and variable
+# test object level property and variable
 #
 nx::Test case object-level-variable {
 
@@ -1827,33 +1867,33 @@ nx::Test case object-level-variable {
     # just to get a reference value for the timing
     ? [list [self] eval {set :dummy 1}] "1"
 
-    # set 2 variables, one via variable, one via attribute
+    # set 2 variables, one via variable, one via property
     ? [list [self] variable -nocomplain captain1 "James Kirk"] ""
-    ? [list [self] attribute -nocomplain [list captain2 "Jean Luc"]] "::enterprise::captain2"
+    ? [list [self] property -nocomplain [list captain2 "Jean Luc"]] "::enterprise::captain2"
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :captain1}] "James Kirk"
     ? [list [self] eval {set :captain2}] "Jean Luc"
 
-    # just for the attribute, we have accessors
+    # just for the property, we have accessors
     ? [list [self] info lookup method  captain1] ""
     ? [list [self] info lookup method  captain2] "::enterprise::captain2"
 
     # set variable with a value checker
     ? [list [self] variable  -nocomplain x1:int 1] ""
-    ? [list [self] attribute -nocomplain [list x2:int 2]] "::enterprise::x2"
+    ? [list [self] property -nocomplain [list x2:int 2]] "::enterprise::x2"
 
     # set variable with a value checker and an invalid value
     ? [list [self] variable y1:int a] {expected integer but got "a"}
-    ? [list [self] attribute [list y2:int b]] {expected integer but got "b"}
+    ? [list [self] property [list y2:int b]] {expected integer but got "b"}
 
     # set variable again, without -nocomplain
     ? [list [self] variable x1:int 1] {Object ::enterprise has already an instance variable named 'x1'}
-    ? [list [self] attribute [list x2:int 2]] {Object ::enterprise has already an instance variable named 'x2'}
+    ? [list [self] property [list x2:int 2]] {Object ::enterprise has already an instance variable named 'x2'}
 
     # set variable with a value checker, multiple
     ? [list [self] variable  -nocomplain xm1:int,1..n {1 2 3}] ""
-    ? [list [self] attribute -nocomplain [list xm2:int,1..n {1 2 3}]] "::enterprise::xm2"
+    ? [list [self] property -nocomplain [list xm2:int,1..n {1 2 3}]] "::enterprise::xm2"
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :xm1}] "1 2 3"
@@ -1862,7 +1902,7 @@ nx::Test case object-level-variable {
     # set variable with a value checker, multiple with invalid value
     ? [list [self] variable  -nocomplain xm1:int,1..n {1 2a 3}] \
 	{invalid value in "1 2a 3": expected integer but got "2a"}
-    ? [list [self] attribute -nocomplain [list xm2:int,1..n {1 2a 3}]] \
+    ? [list [self] property -nocomplain [list xm2:int,1..n {1 2a 3}]] \
 	{invalid value in "1 2a 3": expected integer but got "2a"}
 
     # useless definition
@@ -1873,7 +1913,7 @@ nx::Test case object-level-variable {
     # define an application specific converter
     #
     # TODO: currently, we need two converters (or a converter on nx::Slot), since
-    # variable uses nsf::is and attribute uses the slot obj. method variable should
+    # variable uses nsf::is and property uses the slot obj. method variable should
     # be changed to use the slotobj as well.
     ::nx::ObjectParameterSlot method type=range {name value arg} {
       lassign [split $arg -] min max
@@ -1892,20 +1932,20 @@ nx::Test case object-level-variable {
     
     #
     # Test usage of application specific converter in "variable" and
-    # "attribute"; invalid value
+    # "property"; invalid value
     ? [list [self] variable -nocomplain r1:range,arg=1-10 11] \
 	{Value '11' of parameter value not between 1 and 10}
-    ? [list [self] attribute -nocomplain [list r2:range,arg=1-10 11]] \
+    ? [list [self] property -nocomplain [list r2:range,arg=1-10 11]] \
 	{Value '11' of parameter value not between 1 and 10}
 
     # valid value
     ? [list [self] variable  -nocomplain r1:range,arg=1-10 5] ""
-    ? [list [self] attribute -nocomplain [list r2:range,arg=1-10 5]] \
+    ? [list [self] property -nocomplain [list r2:range,arg=1-10 5]] \
 	{::enterprise::r2}
 
     # testing incremental
     ? [list [self] variable -incremental -nocomplain i:int,0..* {}] "::enterprise::i"
-    ? [list [self] attribute -incremental -nocomplain j:int,0..* {}] "::enterprise::j"
+    ? [list [self] property -incremental -nocomplain j:int,0..* {}] "::enterprise::j"
     :i add 1
     :j add 1
     ? [list [self] i] "1"
@@ -1919,9 +1959,9 @@ nx::Test case object-level-variable {
   }
 
   nx::Class create C {
-    # set 2 class variables, one via variable, one via attribute
+    # set 2 class variables, one via variable, one via property
     ? [list [self] class variable -nocomplain v "v0"] ""
-    ? [list [self] class attribute -nocomplain [list a "a0"]] "::C::a"
+    ? [list [self] class property -nocomplain [list a "a0"]] "::C::a"
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :v}] "v0"
@@ -1935,14 +1975,14 @@ nx::Test case object-level-variable {
 }
 
 #
-# test class level attribute and variable
+# test class level property and variable
 #
 nx::Test case class-level-variable {
   nx::Class create C {
 
-    # define 2 class-level variables, one via variable, one via attribute
+    # define 2 class-level variables, one via variable, one via property
     :variable v v0
-    :attribute {a a0}
+    :property {a a0}
 
     # create an instance
     :create c1
@@ -1996,14 +2036,14 @@ nx::Test case single-variable {
 }
 
 #
-# test deletion of class level attribute and variable
+# test deletion of class level property and variable
 #
-nx::Test case delete-class-level-variable-and-attribute {
+nx::Test case delete-class-level-variable-and-property {
   nx::Class create C {
 
-    # define 2 class-level variables, one via variable, one via attribute
+    # define 2 class-level variables, one via variable, one via property
     :variable v v0
-    :attribute {a a0}
+    :property {a a0}
 
     # create an instance
     :create c1
@@ -2020,10 +2060,10 @@ nx::Test case delete-class-level-variable-and-attribute {
   ? {c1 info lookup method a} "::nsf::classes::C::a"
   ? {c1 info lookup method v} ""
 
-  # if we delete a class-level attribute or variable,
+  # if we delete a class-level property or variable,
   # the object parameter and setters for "a" will be gone
   C delete variable v
-  C delete attribute a
+  C delete property a
   ? {C info parameter list a} ""
   ? {c1 info lookup method a} ""
   
@@ -2036,14 +2076,14 @@ nx::Test case delete-class-level-variable-and-attribute {
 }
 
 #
-# test deletion of class level attribute and variable
+# test deletion of class level property and variable
 #
-nx::Test case delete-object-level-variable-and-attribute {
+nx::Test case delete-object-level-variable-and-property {
   nx::Object create o {
 
-    # define 2 object-level variables, one via variable, one via attribute
+    # define 2 object-level variables, one via variable, one via property
     :variable v v0
-    :attribute {a a0}
+    :property {a a0}
   }
   
   # the instance of C will have the two variables set ...
@@ -2054,10 +2094,10 @@ nx::Test case delete-object-level-variable-and-attribute {
   ? {o info lookup method v} ""
 
   # Object-level attributes and variables set und unset instance
-  # variables.  If we delete an object-level attribute or variable,
+  # variables.  If we delete an object-level property or variable,
   # the setters for "a" will be unset.
   o delete variable v
-  o delete attribute a
+  o delete property a
   ? {o info lookup method a} ""
   
   # Both instance variables are unset
@@ -2067,10 +2107,10 @@ nx::Test case delete-object-level-variable-and-attribute {
 
 nx::Test case object-parameter-switch {
 
-  # Create a class with an attribute of type switch and an instance of
+  # Create a class with an property of type switch and an instance of
   # the class
   ? {::nx::Class create C {
-    :attribute foo:switch
+    :property foo:switch
     :create c1
   }} "::C"
 
@@ -2102,7 +2142,7 @@ nx::Test case object-parameter-switch {
 
   # In the inverted case, the switch has a default of "true". If the
   # switch is specified, the valus is "false"
-  C attribute {foo2:switch 1}
+  C property {foo2:switch 1}
   C create c4
   ? {lsort [c4 info vars]} {foo foo2}
   ? {c4 eval {set :foo2}} {1}

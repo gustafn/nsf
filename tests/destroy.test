@@ -690,7 +690,7 @@ Test case nested-ordered-composite {
   # the deletion of the ordered composite).
 
   Class create C {
-    :attribute os
+    :property os
     :public method destroy {} {
       #puts stderr "[self] destroy ${:os}"
       foreach o ${:os} {
