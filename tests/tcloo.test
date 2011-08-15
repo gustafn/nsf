@@ -1,0 +1,270 @@
+# -*- Tcl -*-
+package req nx
+package req nx::test
+
+# 
+# export | unexport 
+#
+# TclOO provides a bulk declarator to export (i.e., make
+# visibile and accessible) and to unexport (i.e., make invisible and
+# inaccesible) method features of an object, a class, or a class
+# hierarchy. Note that export and unexport go beyond applying mere
+# visibility/accessibility modifiers; it is also about extending or
+# reducing the public method interface of an object along the
+# linearisation path (or of derived, intermediary classes in an
+# inheritance hierarchy). This export|unexport can be realised by
+# assembling some NSF building blocks: method call protection,
+# selective next forwarding, ...
+# 
+# Internally, exporting a TclOO method means adding to its C-level
+# rep's flags PUBLIC_METHOD; unexporting consists of withdrawing it
+# (again). An unexported, non-public TclOO method can only me invoked
+# upon through a self send (i.e., the my command). This corresponds
+# somewhat to NSF's call protection property. In addition, [export] or
+# [unexport] extends the method record of an object (or class) type in
+# case the method to be exported or to be unexported has not yet been
+# defined (on the exporting or unexporting object or class). These
+# "extension methods", however, are mere method stubs, they do not
+# contain a method implementation (a proc). Without any invokable
+# method impl, they are skipped during method dispatch (as in an
+# implicit next call). Using the method stubs, the public interface
+# (i.e., the interface dispatchable through an object's Tcl_command)
+# can be extended or shrinked by selectively enabling or disabling
+# shadowed (inherited) method implementations along the instande-of or
+# the inheritance relationships. Exported or unexported, yet
+# unimplemented methods are treated as unknowns.
+#
+# Below is a prototype implementation of the export|unexport feature
+# for NSF/Nx. The realisation is complete as testable through the
+# respective TclOO test cases in oo.test, test cases 4.1-4.6. The
+# export|unexport stub methods are fully reported by NSF/Nx method
+# introspection, as they are in TclOO.
+
+nsf::proc methodExport {current {-perObject:switch false} {-callProtected:switch false} args} {
+  set scope [expr {$perObject?"object":"class"}]
+  foreach m $args {
+    set methodHandle [::nsf::object::dispatch $current \
+			  ::nsf::methods::${scope}::info::method handle $m]
+    if {$methodHandle eq ""} {
+      set methodHandle [::nsf::method::create $current {*}[expr {$perObject?"-per-object":""}] $m args {
+	if {[::nsf::current next] eq ""} {
+	  return -code error "[::nsf::current]: unable to dispatch method '[::nsf::current method]'"
+	}
+	::nsf::next
+      }]
+    }
+    ::nsf::method::property $current $methodHandle call-protected $callProtected
+  }
+  return
+}
+
+nx::Object public method export args {
+  methodExport [::nsf::current] -perObject {*}$args
+}
+
+nx::Class public method export args {
+  methodExport [::nsf::current] {*}$args
+}
+
+nx::Object public method unexport args {
+  methodExport [::nsf::current] -perObject -callProtected {*}$args
+}
+
+nx::Class public method unexport args {
+  methodExport [::nsf::current] -callProtected {*}$args
+}
+
+nx::Class create ExportUnexportUtil {
+  :public method class {what args} {
+    if {$what in {export unexport}} {
+      return [::nsf::object::dispatch [current] ::nsf::classes::nx::Object::$what {*}$args]
+    }
+    ::nsf::next
+  }
+}
+nx::Class mixin add ExportUnexportUtil
+
+nx::Test case export {
+  #
+  # Exporting existing, non-inherited method (see TclOO tests,
+  # oo.test, oo-4.1)
+  #
+  
+  set o [nx::Object new]
+  $o method Foo {} { return [::nsf::current method]} 
+  ? [list $o Foo] "$o: unable to dispatch method 'Foo'"
+  ? [list $o eval {:Foo}] Foo
+  $o export Foo
+  ? [list $o Foo] "Foo"
+  ? [list $o eval {:Foo}] Foo  
+
+  #
+  # A solitary, preemptive [export]: In TclOO, [::oo::define export]
+  # creates a method record entry which does not have any
+  # implementation (body) attached and which is deprived of its property of
+  # a PUBLIC_METHOD.  This non-implemented, body-less method (if not
+  # succeeded by an implemented one) will be reported as unknown
+  # method (see e.g. TclOO tests, oo.test, oo-4.3)
+  #
+  # As we actually simulate the TclOO non-implemented method record
+  # entries by full-fledged NSF methods, with a specific body (a next
+  # call), we need to handle the solitary case, i.e., the case when
+  # there is no method implementation available. We do so by
+  # inspecting whether there is a next method to be called; if not, we
+  # throw an unknown error.
+  #
+  ? [list $o bar] "$o: unable to dispatch method 'bar'" "bar is neither defined, nor declared exported"
+  $o export bar
+  ? [list $o bar] "$o: unable to dispatch method 'bar'" "bar is exported, yet not defined anywhere"
+  ? [list $o eval {:bar}] "$o: unable to dispatch method 'bar'" "bar is exported, yet not defined anywhere (self send)"
+
+  #
+  # Exporting a per-class method from one of the class' instances (see
+  # TclOO tests, oo.test, oo-4.4)
+  #
+
+  Class create testClass {
+    # protected (non-exported) by default
+    :method Good {} { return ok }
+    :method Fine {} { return OK }
+    :method Finest {} {return ko }
+    
+    :create testObject
+  }
+  ? {testObject Good} "::testObject: unable to dispatch method 'Good'"
+  ? {testObject eval {:Good}} ok
+  testObject export Good
+  ? {testObject Good} ok
+
+  #
+  # Exporting a per-class method from within the class
+  #
+
+  ? {testObject Fine} "::testObject: unable to dispatch method 'Fine'"
+  ? {testObject eval {:Fine}} OK
+  testClass export Fine
+  ? {testObject Fine} OK
+  ? {testObject eval {:Fine}} OK
+
+  #
+  # Exporting a per-class method by a subclass
+  #
+
+  Class create anotherTestClass -superclass testClass {
+    :create anotherTestObject
+  }
+  ? {anotherTestObject Finest} "::anotherTestObject: unable to dispatch method 'Finest'"
+  anotherTestClass export Finest
+  ? {anotherTestObject Finest} ko
+
+  #
+  # export creates ordinary methods, to be replaced by subsequent
+  # once, see TclOO tests, oo.test, oo-4.5
+  #
+
+  nx::Object create bran {
+    :export foo
+    :public method foo {} {return ok}
+  }
+
+  ? {bran foo} ok
+  bran eval {
+    :unexport foo
+  }
+  ? {bran foo} "::bran: unable to dispatch method 'foo'"
+
+}
+
+nx::Test case unexport {
+
+  # A solitary, preemptive [unexport]: see description for the
+  # corresponding [export] case
+
+  set p [Object new]
+  ? [list $p bar] "$p: unable to dispatch method 'bar'" 
+  $p unexport bar
+  ? [list $p bar] "$p: unable to dispatch method 'bar'"
+  ? [list $p eval {:bar}] "$p: unable to dispatch method 'bar'"
+  
+  #
+  # unexport existing, non-inherited method (see TclOO tests:
+  # oo.test/oo-4.2)
+  #
+  set o [nx::Object new]
+  $o public method foo {} { return [::nsf::current method]} 
+  ? [list $o foo] foo
+  ? [list $o eval {:foo}] foo
+  $o unexport foo
+  ? [list $o foo] "$o: unable to dispatch method 'foo'" "foo was made 'protected'"
+  ? [list $o eval {:foo}] foo "foo is still available for self sends"
+
+  #
+  # unexport any (e.g., inherited) methods
+  #
+  Class create C {
+    :public method foo {} {return ok}
+  }
+
+  set c [C new]
+  ? [list $c foo] ok
+  ? [list $c eval {:foo}] ok
+  $c unexport foo
+  ? [list $c foo] "$c: unable to dispatch method 'foo'" "created a protected dummy"
+  ? [list $c eval {:foo}] ok "foo is still available for self sends (through a next send in the dummy)"
+
+  #
+  # unexport existing method at the class level
+  #
+  
+  C eval {
+    :public method bar {} {return OK} 
+    :public method baz {} {return ko}
+  }
+  ? [list $c bar] OK
+  ? [list $c eval {:bar}] OK
+  C unexport bar
+  ? [list $c bar] "$c: unable to dispatch method 'bar'" "created a protected dummy"
+  ? [list $c eval {:bar}] OK "bar is still available for self sends (through a next send in the dummy)"
+
+  #
+  # unexport any (e.g., an inherited) method at the class level
+  #
+
+  nx::Class create D -superclass C
+  set d [D new]
+  ? [list $d bar] "$d: unable to dispatch method 'bar'" "shielded by protected dummy at the level of class C"
+  ? [list $d eval {:bar}] OK
+  ? [list $d baz] ko
+  D unexport baz
+  ? [list $d baz] "$d: unable to dispatch method 'baz'"
+  ? [list $d eval {:baz}] ko
+
+  #
+  # unexport creates ordinary methods, to be fully replaced by subsequent
+  # method declarations, see TclOO tests, oo.test, oo-4.6
+  #
+
+  Class create testClass2 {
+    :unexport foo
+    :public method foo {} {return ok}
+  }
+  ? {[testClass2 new] foo} ok
+
+  #
+  # http://rosettacode.org/wiki/Abstract_type
+  #
+  nx::Class create AbstractQueue {
+    :method enqueue item {
+      error "not implemented"
+    }
+    :method dequeue {} {
+      error "not implemented"
+    }
+    
+    :class unexport create new
+  }
+
+  ? {AbstractQueue new} {Method 'new' unknown for ::AbstractQueue. Consider '::AbstractQueue create new ' instead of '::AbstractQueue new '}
+  ? {AbstractQueue create aQueue} {Method 'create' unknown for ::AbstractQueue. Consider '::AbstractQueue create create aQueue' instead of '::AbstractQueue create aQueue'}
+  
+}
