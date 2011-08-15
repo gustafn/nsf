@@ -3297,16 +3297,15 @@ Test run; exit
    * added "/obj/ info properties" (alias to "/obj/ info slot definition")
    * extended regression test
 
+- nx.tcl:
+  * added parameter option incremental for "property" and "variable"
+  * removed the nonpos argument "-incremental" from "property" and "variable"
+  * adapted regression test for these cases
 
 
 TODO:
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.
-
- - incremental: 
-   flag -incremental
-   {set :incremental 1}
-   => parameter option?
 
  - naming of slot classes 
    * should we switch from "-class" to "-slotclass"?

@@ -817,6 +817,9 @@ namespace eval ::nx {
 	  set opt(-accessor) 0
         } elseif {$property eq "noconfig"} {
 	  set opt(-config) 0
+        } elseif {$property eq "incremental"} {
+	  set opt(-accessor) 1
+	  lappend opts -incremental 1
         } elseif {[string match type=* $property]} {
 	  set class [:requireClass ::nx::VariableSlot $class]
           set type [string range $property 5 end]
@@ -845,6 +848,7 @@ namespace eval ::nx {
       lappend opts -type $type
     }
     lappend opts {*}[array get opt]
+    #puts stderr "[self] *** parseParameterSpec [list $name $parameterOptions $class $opts]"
     return [list $name $parameterOptions $class $opts]
   }
 
@@ -1671,7 +1675,6 @@ namespace eval ::nx {
   nx::Object method variable {
      {-accessor:switch}
      {-class ""} 
-     {-incremental:switch}
      {-initblock ""} 
      {-nocomplain:switch}
      spec:parameter
@@ -1683,41 +1686,38 @@ namespace eval ::nx {
     # situations:
     #  - when accessors are needed 
     #    (serializer uses slot object to create accessors)
-    # in general:
     #  - when initblock is non empty
     #
 
     #puts stderr "Object variable $spec accessor $accessor nocomplain $nocomplain"
 
-    if {$incremental} {
+    # get name and list of parameter options
+    lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
+	name parameterOptions class options
+    array set opts $options
+
+    if {[info exists opts(-incremental)]} {
       # the usage of "-incremental" implies "-accessor"
       set accessor true
-      append initblock {
-	set :incremental 1
-      }
     }
 
     if {$initblock eq "" && !$accessor} {
       #
-      # build a slot-less variable
+      # we can build a slot-less variable
       #
-      # get name an list of parameter options
-      lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
-	  name parameterOptions class opts
-
       set isSwitch [regsub {\mswitch\M} $parameterOptions boolean parameterOptions]
       if {[info exists value]} {
 	if {[info exists :$name] && !$nocomplain} {
 	  error "Object [self] has already an instance variable named '$name'"
 	}
 	if {$parameterOptions ne ""} {
-	  #puts stderr "*** ::nsf::is $parameterOptions $value // opts=$opts"
+	  #puts stderr "*** ::nsf::is $parameterOptions $value // opts=$options"
 	  # we rely here that the nsf::is error message expresses the implementation limits
-	  if {[string match *nonconfig* $parameterOptions]} {
-	    set options {}
-	    foreach o [split $parameterOptions ,] {if {$o ne "noconfig"} {lappend options $o}}
-	    set parameterOptions [join $options ,]
+	  set noptions {}
+	  foreach o [split $parameterOptions ,] {
+	    if {$o ne "noconfig"} {lappend noptions $o}
 	  }
+	  set parameterOptions [join $noptions ,]
 	  ::nsf::is -complain $parameterOptions $value
 	} else {
 	  set name $spec
@@ -1748,7 +1748,6 @@ namespace eval ::nx {
 
   Object method property {
     {-class ""} 
-    -incremental:switch 
     -nocomplain:switch 
      spec:parameter
     {initblock ""}
@@ -1756,7 +1755,6 @@ namespace eval ::nx {
     set r [[self] ::nsf::classes::nx::Object::variable \
 	       -accessor=true \
 	       -class $class \
-	       -incremental=$incremental \
 	       -initblock $initblock \
 	       -nocomplain=$nocomplain \
 	       {*}$spec]
@@ -1767,18 +1765,10 @@ namespace eval ::nx {
      {-accessor:switch}
      {-class ""}
      {-config:switch}
-     -incremental:switch
      {-initblock ""} 
      spec:parameter
      default:optional
    } {
-    if {$incremental} {
-      # the usage of "-incremental" implies "-accessor"
-      set accessor true
-      append initblock {
-	set :incremental 1
-      }
-    }
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \
 		  -initblock $initblock \
@@ -1790,7 +1780,6 @@ namespace eval ::nx {
   
   nx::Class method property {
     {-class ""}
-    -incremental:switch 
     spec:parameter
     {initblock ""}
   } {
@@ -1798,7 +1787,6 @@ namespace eval ::nx {
 	       -accessor=true \
 	       -class $class \
 	       -config=true \
-	       -incremental=$incremental \
 	       -initblock $initblock \
 	       {*}$spec]
     return $r

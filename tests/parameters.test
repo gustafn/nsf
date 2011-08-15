@@ -27,7 +27,7 @@ nx::Test case syntax {
   ? {::nsf::method::alias C foo ::set 1} \
       {Invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
 
-  ? {C eval {:property x -class D}} {Invalid argument 'D', maybe too many arguments; should be "::C property ?-class value? ?-incremental? spec ?initblock?"} "Test whether the colon prefix is suppressed"
+  ? {C eval {:property x -class D}} {Invalid argument 'D', maybe too many arguments; should be "::C property ?-class value? spec ?initblock?"} "Test whether the colon prefix is suppressed"
 }
 
 #######################################################
@@ -879,10 +879,7 @@ Test case substdefault-objparam {
     :property {s2:substdefault,substdefault "[current]"}
 
     # substdefault with incremental
-    :property {s3:substdefault "[current]"} {
-      # Bypassing the Optimizer helps after applying the patch (solving step 1)
-      set :incremental 1
-    }
+    :property {s3:substdefault,incremental "[current]"}
   }
 
   Bar create ::b
@@ -1946,8 +1943,8 @@ nx::Test case object-level-variable {
 	{::enterprise::r2}
 
     # testing incremental
-    ? [list [self] variable -incremental -nocomplain i:int,0..* {}] "::enterprise::i"
-    ? [list [self] property -incremental -nocomplain j:int,0..* {}] "::enterprise::j"
+    ? [list [self] variable -nocomplain i:int,0..*,incremental {}] "::enterprise::i"
+    ? [list [self] property -nocomplain j:int,0..*,incremental {}] "::enterprise::j"
     :i add 1
     :j add 1
     ? [list [self] i] "1"
@@ -2221,7 +2218,7 @@ Test case object-info-slots-types {
     # In case we require an accessor or e.g. incremental, slot objects
     # are created; incremental implies accessor
     :variable -accessor v1 100
-    :variable -incremental v2 100
+    :variable v2:incremental 100
   }
 
   # only the variables with slots show up in "info slot ..." 
