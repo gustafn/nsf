@@ -1218,8 +1218,8 @@ Test parameter count 10
 Test case slot-nosetter {
   Class create C {
     :property a 
-    :property b:integer,accessor=false 
-    :property {c:accessor=false ""}
+    :property b:integer,noaccessor
+    :property {c:noaccessor ""}
   }
   
   ? {C create c1 -a 1 -b 2} ::c1
@@ -1657,7 +1657,7 @@ Test case parameter-alias-default {
   ? {c1 eval {set :foo}} "a habicht b c F"
   ? {c1 eval {set :x2}} "::c1"
   ? {lsort [c1 info lookup methods -source application]} "foo x1 x2"
-  ? {lsort [C info slots]} "::C::slot::F ::C::slot::x1 ::C::slot::x2"
+  ? {lsort [C info slot objects]} "::C::slot::F ::C::slot::x1 ::C::slot::x2"
   ? {::C::slot::x1 getParameterSpec} {-x1:alias hugo}
   ? {::C::slot::x2 getParameterSpec} {-x2:alias,substdefault {[self]}}
 }
@@ -1681,7 +1681,7 @@ Test case parameter-object-mixin-dependency {
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
 
-  ? {C info slots -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+  ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 
   ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional"
 
@@ -1695,7 +1695,7 @@ Test case parameter-object-mixin-dependency {
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
 
-  ? {C info slots -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+  ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 
   ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional"
 
@@ -1810,12 +1810,12 @@ nx::Test case reconfigure-perobj-default {
   ? {o a} newvalue
   o eval {unset :a}
   ? {o eval {info exists :a}} 0
-  [o info slots a] default anothervalue
+  [o info slot objects a] default anothervalue
   ? {o eval {info exists :a}} 0
   #
   # re-assignment must be requested by a reconfigure call
   #
-  [o info slots a] reconfigure
+  [o info slot objects a] reconfigure
   ? {o eval {info exists :a}} 1
   ? {o a} anothervalue
 }
@@ -1996,13 +1996,14 @@ nx::Test case class-level-variable {
   #
   # We expect a specifiable object parameter for "a" but not for "v".
   # The parameter for v can be obtained via spec, but is not listed in
-  # "info parameter syntax" or "info parameter spec".
+  # "info parameter syntax" or "info parameter definition".
   #
   ? {C info parameter list a} "-a"
-  ? {C info parameter spec a} "{-a a0}"
+  ? {C info parameter definition a} "{-a a0}"
   ? {C info parameter syntax a} "?-a value?"
 
-  ? {C info parameter spec v} "{-v:noconfig v0}"
+  ? {C info parameter definition v} ""
+  ? {C info slot definition v} "{v:noaccessor,noconfig v0}"
   ? {C info parameter list v} ""
   ? {C info parameter syntax v} ""
 
@@ -2104,6 +2105,9 @@ nx::Test case delete-object-level-variable-and-property {
   ? {lsort [o info vars]} {}
 }
 
+#
+# Testing object parameters of type "switch"
+#
 
 nx::Test case object-parameter-switch {
 
@@ -2159,5 +2163,35 @@ nx::Test case object-parameter-switch {
   }} ::o1
   ? {o1 eval {set :foo}} 0
   ? {o1 eval {set :bar}} 1
+}
 
+#
+# Test slots with configparameter true/false, accessor true/false
+# against "info slot definition" and "info parameter"
+#
+Test case info-slots-types {
+  Class create C {
+    # variable has no config parameter and no accessor
+    :variable v 100
+  }
+
+  # "v" does not show up in "info parameter" 
+  ? {C info parameter list} "-volatile -noinit -mixin -class -filter __initcmd"
+  ? {C info parameter names} "volatile noinit mixin class filter __initcmd"
+
+  # "v" does show up in "info slot" 
+  ? {C info slot objects} "::C::slot::v"
+  ? {C info slot definition} "{v:noaccessor,noconfig 100}"
+
+  Class create D {
+    :property {p:noaccessor 200}
+  }
+
+  # "p" does show up in "info parameter" 
+  ? {D info parameter list} "-p -volatile -noinit -mixin -class -filter __initcmd"
+  ? {D info parameter names} "p volatile noinit mixin class filter __initcmd"
+
+  # "p" does show up in "info slot" 
+  ? {D info slot objects} "::D::slot::p"
+  ? {D info slot definition} "{p:noaccessor 200}"
 }

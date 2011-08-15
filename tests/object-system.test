@@ -136,13 +136,15 @@ Class create C {
 
 #? {C::slot info vars} __parameter
 #? {C info attributes} {{x 1} {y 2}}
-? {C info parameter spec x} {{-x 1}}
-? {C info parameter spec y} {{-y 2}}
+? {C info parameter definition x} {{-x 1}}
+? {C info parameter definition y} {{-y 2}}
 
 #? {X::slot info vars} __parameter
 #? {X info attributes} {{x 1} {y 2}}
-? {X info parameter spec x} {{-x 1}}
-? {X info parameter spec y} {{-y 2}}
+? {X info parameter definition x} {{-x 1}}
+? {X info parameter definition y} {{-y 2}}
+? {X info properties} {{x 1} {y 2}}
+? {X info properties -closure *a*} {volatile:alias,noarg,noaccessor class:class,alias,method=::nsf::methods::object::class,noaccessor}
 
 # actually, we want c1 to test below the recreation of c1 in another
 # object system

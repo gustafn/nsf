@@ -220,7 +220,7 @@ namespace eval ::nx::mongo {
     :method "get slot" {att} {
       set classes [concat [self] [:info mixin classes] [:info heritage]]
       foreach cls $classes {
-	set slot [$cls info slots $att]
+	set slot [$cls info slot objects $att]
 	if {$slot ne ""} {
 	  return $slot
 	}

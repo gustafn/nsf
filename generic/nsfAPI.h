@@ -229,7 +229,7 @@ static int NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *inte
 static int NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoObjectparameterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -303,7 +303,7 @@ static int NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *i
 static int NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfObjInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName);
@@ -325,7 +325,7 @@ static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withC
 static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin);
 static int NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *cl, int infoobjectparametersubcmd, CONST char *pattern);
-static int NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withSource, NsfClass *withType, CONST char *pattern);
+static int NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withSource, NsfClass *withType, CONST char *pattern);
 static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
@@ -399,7 +399,7 @@ static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int 
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *obj, int withIntrinsic, CONST char *pattern);
-static int NsfObjInfoSlotsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
+static int NsfObjInfoSlotobjectsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *pattern);
 
 enum {
@@ -422,7 +422,7 @@ enum {
  NsfClassInfoMixinclassesMethodIdx,
  NsfClassInfoMixinguardMethodIdx,
  NsfClassInfoObjectparameterMethodIdx,
- NsfClassInfoSlotsMethodIdx,
+ NsfClassInfoSlotobjectsMethodIdx,
  NsfClassInfoSubclassMethodIdx,
  NsfClassInfoSuperclassMethodIdx,
  NsfColonCmdIdx,
@@ -496,7 +496,7 @@ enum {
  NsfObjInfoMixinguardMethodIdx,
  NsfObjInfoParentMethodIdx,
  NsfObjInfoPrecedenceMethodIdx,
- NsfObjInfoSlotsMethodIdx,
+ NsfObjInfoSlotobjectsMethodIdx,
  NsfObjInfoVarsMethodIdx
 } NsfMethods;
 
@@ -911,13 +911,13 @@ NsfClassInfoObjectparameterMethodStub(ClientData clientData, Tcl_Interp *interp,
 }
 
 static int
-NsfClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   NsfClass *cl =  NsfObjectToClass(clientData);
-  if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "slots");
+  if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "slotobjects");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
-                     method_definitions[NsfClassInfoSlotsMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoSlotsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoSlotobjectsMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoSlotobjectsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -927,7 +927,7 @@ NsfClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     CONST char *pattern = (CONST char *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfClassInfoSlotsMethod(interp, cl, withClosure, withSource, withType, pattern);
+    return NsfClassInfoSlotobjectsMethod(interp, cl, withClosure, withSource, withType, pattern);
 
   }
 }
@@ -2307,13 +2307,13 @@ NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 }
 
 static int
-NsfObjInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
-  if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "slots");
+  if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "slotobjects");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfObjInfoSlotsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoSlotsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoSlotobjectsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoSlotobjectsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2321,7 +2321,7 @@ NsfObjInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     CONST char *pattern = (CONST char *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfObjInfoSlotsMethod(interp, obj, withType, pattern);
+    return NsfObjInfoSlotobjectsMethod(interp, obj, withType, pattern);
 
   }
 }
@@ -2421,7 +2421,7 @@ static Nsf_methodDefinition method_definitions[] = {
   {"infoobjectparametersubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfoobjectparametersubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::class::info::slots", NsfClassInfoSlotsMethodStub, 4, {
+{"::nsf::methods::class::info::slotobjects", NsfClassInfoSlotobjectsMethodStub, 4, {
   {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
@@ -2730,7 +2730,7 @@ static Nsf_methodDefinition method_definitions[] = {
   {"-intrinsic", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::object::info::slots", NsfObjInfoSlotsMethodStub, 2, {
+{"::nsf::methods::object::info::slotobjects", NsfObjInfoSlotobjectsMethodStub, 2, {
   {"-type", 0, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

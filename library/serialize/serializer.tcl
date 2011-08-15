@@ -706,7 +706,7 @@ namespace eval ::nx::serializer {
       set scs [$x info superclass]
       if {[$s needsOneOf $scs]} {return 0}
       if {[$s needsOneOf [::nsf::relation $x class-mixin]]} {return 0}
-      foreach sc $scs {if {[$s needsOneOf [$sc info slots]]} {return 0}}
+      foreach sc $scs {if {[$s needsOneOf [$sc ::nsf::methods::class::info::slotobjects]]} {return 0}}
       if {[$s needsOneOf [:alias-dependency $x class]]} {return 0}
       return 1
     }
@@ -716,7 +716,7 @@ namespace eval ::nx::serializer {
       set cl [$x info class]
       if {$p ne "::"  && [$s needsOneOf $p]} {return 0}
       if {[$s needsOneOf $cl]} {return 0}
-      if {[$s needsOneOf [$cl ::nsf::methods::class::info::slots -closure -source application]]} {return 0}
+      if {[$s needsOneOf [$cl ::nsf::methods::class::info::slotobjects -closure -source application]]} {return 0}
       if {[$s needsOneOf [:alias-dependency $x object]]} {return 0}
       return 1
     }

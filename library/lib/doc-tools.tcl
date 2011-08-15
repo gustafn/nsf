@@ -3858,7 +3858,7 @@ namespace eval ::nx {
       set name [$entity name]
       set box [$project sandbox]
       # attributes
-      foreach slot [$box do [list $name info slots]] {
+      foreach slot [$box do [list $name info slot objects]] {
 	if {[$box do [list $slot eval {info exists :__initcmd}]]} {
 	  #
 	  # TODO: Here, we eagerly create doc entities, is this an issue?

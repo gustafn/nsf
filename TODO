@@ -3272,7 +3272,24 @@ Test run; exit
    * renamed "BootStrapAttributeSlot" to "BootStrapVariableSlot"
    * renamed "createBootstrapAttributeSlots" to "createBootstrapVariableSlots"
    * removed method attributes
-   * implemented old attributes definition in xotcl2 as parameter
+   * implemented old "attributes" definition in xotcl2 as method "parameter"
+
+- nx.tcl
+   * renamed "info parameter name" to "info parameter names" (since it returns a list of names)
+   * renamed "info parameter name" to "info parameter names" (since it returns a list of names)
+   * renamed "info slots" to "info slot objects"
+   * additional method "info slot definition"
+   * additional method "info slot name"
+   * additional method "info properties" (alias to "info slot definition")
+   * removed "info parameter slot"
+   * use term "noaccessor" and "noconfig" to deactivate accessors or object-parameters
+     in property definitions
+   * don't show slots with noconfig in "info parameter names"
+   * don't show slots with noconfig in "info parameter definition"
+   * renamed slot property "configparam" to "config"
+   * renamed "::nsf::methods::class::info::slots" to "::nsf::methods::class::info::slotobjects"
+   * additional public method ObjectParameterSlot.getPropertyDefinition 
+   * updated and extended regression test
 
 
 

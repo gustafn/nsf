@@ -369,7 +369,7 @@ namespace eval ::xotcl {
   #
   ::xotcl::Class instproc objectparameter {} {
     set parameterdefinitions [list]
-    foreach slot [nsf::object::dispatch [self] ::nsf::methods::class::info::slots -closure -type ::nx::Slot] {
+    foreach slot [nsf::object::dispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
       lappend parameterdefinitions [$slot getParameterSpec]
     }
     lappend parameterdefinitions args:alias,method=residualargs,args
@@ -389,10 +389,9 @@ namespace eval ::xotcl {
   #::nsf::method::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::attributes
 
   ::xotcl::Class instproc parameter {arglist} {
-    puts stderr HU
     set slotContainer [::nx::slotObj [::nsf::self]]
     foreach arg $arglist {
-      puts stderr "[self] ::nsf::classes::nx::Class::property $arg"
+      #puts stderr "[self] ::nsf::classes::nx::Class::property $arg"
       [self] ::nsf::classes::nx::Class::property $arg
     }
     ::nsf::var::set $slotContainer __parameter $arglist
@@ -642,7 +641,7 @@ namespace eval ::xotcl {
       if {[info exists pattern]} {lappend cmd $pattern}
       return [my {*}$cmd]
     }
-    :alias slots              ::nx::Object::slot::__info::slots
+    :alias slots              ::nsf::methods::object::info::slotobjects
     :alias precedence         ::nsf::methods::object::info::precedence
     :alias vars               ::nsf::methods::object::info::vars
   }
@@ -736,7 +735,7 @@ namespace eval ::xotcl {
       return ""
     }
   
-    :alias slots              ::nx::Class::slot::__info::slots
+    :alias slots              ::nsf::methods::class::info::slotobjects
     :alias subclass           ::nsf::methods::class::info::subclass
     :alias superclass         ::nsf::methods::class::info::superclass
   }
@@ -1180,7 +1179,7 @@ namespace eval ::xotcl {
 
 }
 
-if {[::nsf::configure debug] > 0} {
+if {[::nsf::configure debug] > 1} {
   foreach ns {::xotcl} {
     puts "vars of $ns: [info vars ${ns}::*]"
     puts stderr "$ns exports: [namespace eval $ns {lsort [namespace export]}]"

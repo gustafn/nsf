@@ -3109,9 +3109,9 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   } else {
     /*
      * In most situations, we have a varTablePtr through the clauses
-     * above. However, if someone redefines e.g. the method
-     * "configure" or "objectparameter", we might find an object with
-     * an still empty varTable, since these are lazy initiated.
+     * above. However, if someone redefines e.g. the method "configure" or
+     * "objectparameter", we might find an object with an still empty
+     * varTable, since these are lazy initiated.
      */
     varTablePtr = object->varTablePtr = VarHashTableCreate();
   }
@@ -3370,9 +3370,9 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *U
   } else {
     /*
      * In most situations, we have a varTablePtr through the clauses
-     * above. However, if someone redefines e.g. the method
-     * "configure" or "objectparameter", we might find an object with
-     * an still empty varTable, since these are lazy initiated.
+     * above. However, if someone redefines e.g. the method "configure" or
+     * "objectparameter", we might find an object with an still empty
+     * varTable, since these are lazy initiated.
      */
     varTablePtr = object->varTablePtr = VarHashTableCreate();
   }
@@ -7960,6 +7960,9 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
   INCR_REF_COUNT2("paramDefsObj", listObj);
 
   for (paramPtr = paramsPtr; paramPtr->name; paramPtr++) {
+    if (paramPtr->flags & NSF_ARG_NOCONFIG) {
+      continue;
+    }
     if (paramPtr -> paramObj) {
       innerListObj = paramPtr->paramObj;
     } else {
@@ -8078,7 +8081,9 @@ ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
 
   INCR_REF_COUNT2("paramDefsObj", listObj);
   for (paramPtr = paramsPtr; paramPtr->name; paramPtr++) {
-    Tcl_ListObjAppendElement(interp, listObj, paramPtr->nameObj);
+    if ((paramPtr->flags & NSF_ARG_NOCONFIG) == 0) {
+      Tcl_ListObjAppendElement(interp, listObj, paramPtr->nameObj);
+    }
   }
   return listObj;
 }
@@ -10356,6 +10361,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->nrArgs = 0;
 
   } else if (strncmp(option, "noconfig", 8) == 0) {
+    if (disallowedOptions != NSF_DISALLOWED_ARG_OBJECT_PARAMETER) {
+      return NsfPrintError(interp, "Parameter option 'noconfig' only allowed for object parameters");
+    }
     paramPtr->flags |= NSF_ARG_NOCONFIG;
 
   } else if (strncmp(option, "args", 4) == 0) {
@@ -21055,13 +21063,13 @@ NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
 }
 
 /*
-objectInfoMethod slots NsfObjInfoSlotsMethod {
+objectInfoMethod slotobjects NsfObjInfoSlotobjectsMethod {
   {-argName "-type" -required 0 -nrargs 1 -type class}
   {-argName "pattern" -required 0}
 }
 */
 static int
-NsfObjInfoSlotsMethod(Tcl_Interp *interp, NsfObject *object,
+NsfObjInfoSlotobjectsMethod(Tcl_Interp *interp, NsfObject *object,
 		      NsfClass *type, CONST char *pattern) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
 
@@ -21456,7 +21464,7 @@ NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *class,
     }
     if (paramsPtr == parsedParam.paramDefs->paramsPtr) {
       /* 
-       * The named parameter was NOT found 
+       * The named parameter was NOT found, so return "".
        */
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
       return TCL_OK;
@@ -21484,7 +21492,7 @@ NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *class,
 }
 
 /*
-classInfoMethod slots NsfClassInfoSlotsMethod {
+classInfoMethod slots NsfClassInfoSlotobjectsMethod {
   {-argName "-closure"}
   {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "-type" -required 0 -nrargs 1 -type class}
@@ -21492,7 +21500,7 @@ classInfoMethod slots NsfClassInfoSlotsMethod {
 }
 */
 static int
-NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class,
+NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
 			int withClosure, int withSource, NsfClass *type,
 			CONST char *pattern) {
   NsfClasses *clPtr, *intrinsic,  *precedenceList = NULL;

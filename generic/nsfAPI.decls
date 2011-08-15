@@ -373,7 +373,7 @@ objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
   {-argName "-intrinsic" -nrargs 0}
   {-argName "pattern" -required 0}
 }
-objectInfoMethod slots NsfObjInfoSlotsMethod {
+objectInfoMethod slotobjects NsfObjInfoSlotobjectsMethod {
   {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
 }
@@ -431,7 +431,7 @@ classInfoMethod objectparameter NsfClassInfoObjectparameterMethod {
   {-argName "infoobjectparametersubcmd" -type "list|name|parameter|parametersyntax" -required 1}
   {-argName "pattern" -required 0}
 }
-classInfoMethod slots NsfClassInfoSlotsMethod {
+classInfoMethod slotobjects NsfClassInfoSlotobjectsMethod {
   {-argName "-closure" -nrargs 0}
   {-argName "-source" -type "all|application|baseclasses" -default all}
   {-argName "-type" -required 0 -type class}

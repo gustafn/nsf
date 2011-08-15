@@ -229,7 +229,7 @@ Test case ensemble-partial-next {
 
   # defaultcmd has to return also subcmds of other shadowed ensembles
   ? {lsort [o1 info has]} "Valid submethods of ::o1 info has: mixin namespace something type"
-  ? {lsort [o1 info]} "Valid submethods of ::o1 info: children class filter has info is lookup method methods mixin parent precedence slots vars"
+  ? {lsort [o1 info]} "Valid submethods of ::o1 info: children class filter has info is lookup method methods mixin parent precedence slot vars"
 
   # returning methodpath in ensemble
   ? {o1 info has something path} "info has something path"
@@ -519,8 +519,22 @@ nx::Test case submethods-current-introspection {
 
 }
 
+#
+#
+#
+nx::Test case current-args {
+  nx::Class create C {
+    :method foo {{-x 1} z:optional} {return [current args]}
+    :method "bar foo" {{-x 1} z:optional} {return [current args]}
+    :create c1
+  }
+  ? {c1 foo} ""
+  ? {c1 bar foo} ""
 
+  ? {c1 foo -x 2} "-x 2"
+  ? {c1 bar foo -x 2} "-x 2"
 
+}
 
 
 
