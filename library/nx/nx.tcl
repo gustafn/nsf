@@ -604,11 +604,25 @@ namespace eval ::nx {
     :alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
-    :method "info slot objects" {{-type ::nx::Slot} pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::slotobjects -type $type]
-      if {[info exists pattern]} {lappend cmd $pattern}
-      return [::nsf::my {*}$cmd]
+    :method "info slot definition" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
+      set result {}
+      foreach slot [::nsf::my ::nsf::methods::object::info::slotobjects {*}[current args]] {
+	lappend result [$slot getPropertyDefinition]
+      }
+      return $result
     }
+    :method "info slot name" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
+      set result {}
+      foreach slot [::nsf::my ::nsf::methods::object::info::slotobjects {*}[current args]] {
+	lappend result [$slot name]
+      }
+      return $result
+    }
+    :method "info slot objects" {{-type ::nx::Slot} pattern:optional} {
+      return [::nsf::my ::nsf::methods::object::info::slotobjects {*}[current args]]
+    }
+    # "info properties" is a short form of "info slot definition"
+    :alias "info properties"     ::nx::Object::slot::__info::slot::definition
     :alias "info vars"           ::nsf::methods::object::info::vars
   }
 
@@ -685,7 +699,6 @@ namespace eval ::nx {
     :method "info slot definition" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
       foreach slot [::nsf::my ::nsf::methods::class::info::slotobjects {*}[current args]] {
-	# ssss
 	lappend result [$slot getPropertyDefinition]
       }
       return $result
@@ -693,7 +706,6 @@ namespace eval ::nx {
     :method "info slot name" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
       foreach slot [::nsf::my ::nsf::methods::class::info::slotobjects {*}[current args]] {
-	# ssss
 	lappend result [$slot name]
       }
       return $result
@@ -803,8 +815,8 @@ namespace eval ::nx {
           lappend opts -$property 1
         } elseif {$property eq "noaccessor"} {
 	  set opt(-accessor) 0
-        } elseif {[string match config=* $property]} {
-	  set opt(-config) [string range $property 7 end]
+        } elseif {$property eq "noconfig"} {
+	  set opt(-config) 0
         } elseif {[string match type=* $property]} {
 	  set class [:requireClass ::nx::VariableSlot $class]
           set type [string range $property 5 end]
@@ -1133,7 +1145,6 @@ namespace eval ::nx {
   ObjectParameterSlot public method getPropertyDefinition {} {
     set options [:getParameterOptions -withMultiplicity true]
     if {[info exists :positional]} {lappend options positional}
-    # sssss
     if {!${:accessor}} {lappend options noaccessor}
     if {!${:config}} {lappend options noconfig}
     if {[info exists :default]} {
@@ -1702,6 +1713,11 @@ namespace eval ::nx {
 	if {$parameterOptions ne ""} {
 	  #puts stderr "*** ::nsf::is $parameterOptions $value // opts=$opts"
 	  # we rely here that the nsf::is error message expresses the implementation limits
+	  if {[string match *nonconfig* $parameterOptions]} {
+	    set options {}
+	    foreach o [split $parameterOptions ,] {if {$o ne "noconfig"} {lappend options $o}}
+	    set parameterOptions [join $options ,]
+	  }
 	  ::nsf::is -complain $parameterOptions $value
 	} else {
 	  set name $spec

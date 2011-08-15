@@ -2171,29 +2171,76 @@ nx::Test case object-parameter-switch {
 # Test slots with configparameter true/false, accessor true/false
 # against "info slot definition" and "info parameter"
 #
-Test case info-slots-types {
+Test case class-info-slots-types {
+  #
+  # "/cls/ info slot ..." shows all slots, including variables
+  # "/cls/ info parameter ..." shows the parameter available for object parameterization
+  #
   Class create C {
     # variable has no config parameter and no accessor
     :variable v 100
   }
 
-  # "v" does not show up in "info parameter" 
+  # "v" does NOT show up in "info parameter" 
   ? {C info parameter list} "-volatile -noinit -mixin -class -filter __initcmd"
   ? {C info parameter names} "volatile noinit mixin class filter __initcmd"
 
-  # "v" does show up in "info slot" 
+  # "v" does show up in "info slot ..." 
   ? {C info slot objects} "::C::slot::v"
   ? {C info slot definition} "{v:noaccessor,noconfig 100}"
 
   Class create D {
-    :property {p:noaccessor 200}
+    :property {p0 200}
+    :property {p1:noaccessor 201}
+    :property {p2:noaccessor,noconfig 202}
+    :property {p3:noconfig 203}
   }
 
-  # "p" does show up in "info parameter" 
-  ? {D info parameter list} "-p -volatile -noinit -mixin -class -filter __initcmd"
-  ? {D info parameter names} "p volatile noinit mixin class filter __initcmd"
+  # "p2" and "p3" do NOT show up in "info parameter" 
+  ? {D info parameter list} "-p0 -p1 -volatile -noinit -mixin -class -filter __initcmd"
+  ? {D info parameter names} "p0 p1 volatile noinit mixin class filter __initcmd"
 
-  # "p" does show up in "info slot" 
-  ? {D info slot objects} "::D::slot::p"
-  ? {D info slot definition} "{p:noaccessor 200}"
+  # "p1" and "p2" do NOT show up in "info methods" 
+  ? {D info methods} "p0 p3"
+
+  # all properties show up in "info slot" 
+  ? {D info slot objects} "::D::slot::p0 ::D::slot::p1 ::D::slot::p2 ::D::slot::p3"
+  ? {D info slot definition} "{p0 200} {p1:noaccessor 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+  ? {D info properties} "{p0 200} {p1:noaccessor 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+
+}
+
+
+Test case object-info-slots-types {
+  #
+  # "/obj/ info slot ..." shows all slots, including variables
+  #
+  Object create o1 {
+    # plain object variable has no slot object
+    :variable v0 100
+    # In case we require an accessor or e.g. incremental, slot objects
+    # are created; incremental implies accessor
+    :variable -accessor v1 100
+    :variable -incremental v2 100
+  }
+
+  # only the variables with slots show up in "info slot ..." 
+  ? {o1 info slot objects} "::o1::per-object-slot::v2 ::o1::per-object-slot::v1"
+  ? {o1 info slot definition} "{v2:noconfig 100} {v1:noconfig 100}"
+
+  Object create o2 {
+    :property {p0 200}
+    :property {p1:noaccessor 201}
+    :property {p2:noaccessor,noconfig 202}
+    :property {p3:noconfig 203}
+  }
+
+  # "p1" and "p2" do NOT show up in "info methods" 
+  ? {o2 info methods} "p0 p3"
+
+  # all properties show up in "info slot" 
+  ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p2 ::o2::per-object-slot::p3"
+  ? {o2 info slot definition} "{p0:noconfig 200} {p1:noaccessor,noconfig 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+  ? {o2 info properties} "{p0:noconfig 200} {p1:noaccessor,noconfig 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+
 }

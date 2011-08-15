@@ -3291,29 +3291,40 @@ Test run; exit
    * additional public method ObjectParameterSlot.getPropertyDefinition 
    * updated and extended regression test
 
+- nx.tcl:
+   * added "/obj/ info slot definition"
+   * added "/obj/ info slot name"
+   * added "/obj/ info properties" (alias to "/obj/ info slot definition")
+   * extended regression test
+
 
 
 TODO:
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.
-   * introspection of properties 
-       * before we had ? {C info attributes} {{x 1} {y 2}}
-       * now we have
-           Object method "info slots" {{-type ::nx::Slot} pattern:optional} {..}
-           Class method "info slots" {{-type ::nx::Slot} -closure:switch -source pattern:optional} {..}
-           returning slot objects, but no nice way.
-           e.g. Class method "info parameter list" {name:optional} {...}
-           gets the value from the object parameters, but has no way to filter e.g. for -source, -type etc.
-       * do we need an "info property"?
-
-  * rename "info parameter spec" into "info parameter definition"?
-
- - add "property" and "attribute" into migration guide
 
  - incremental: 
    flag -incremental
    {set :incremental 1}
    => parameter option?
+
+ - naming of slot classes 
+   * should we switch from "-class" to "-slotclass"?
+
+    o1 property ?-class value? ?-incremental? ?-nocomplain? spec ?initblock?
+    o1 variable ?-accessor? ?-class value? ?-incremental? ?-initblock value? ?-nocomplain? spec ?value?
+
+   * the introspection interface uses "-type", meaning "class or subclass"
+
+    o1 info lookup slots ?-type value? ?-source value? ?pattern?
+    o1 info properties ?-type value? ?-closure? ?-source value? ?pattern?
+    o1 info slot definition ?-type value? ?-closure? ?-source value? ?pattern?
+    o1 info slot name ?-type value? ?-closure? ?-source value? ?pattern?
+    o1 info slot objects ?-type value? ?pattern?
+
+    o1 info children ?-type class? ?pattern?
+
+ - add "property" and "attribute" and "info property" and "info slot ..." to migration guide
 
  - doc/langRef2.xotcl vs library/xotcl/doc/langRef.xotcl
 
@@ -3359,22 +3370,6 @@ nx::Test case ensemble-next-with-colon-prefix {
  - interface of "variable" and "attribute":
    * add switch -array for "variable"? (Just setting is trivial,
      handling setters and incremental setter is more work)
-   * should we switch from "-class" to "-slotclass"?
-   * should we change interface for default value in attribute? 
-     probably not, same interface is used in methodparameters as well
-
- - Should we leave "variable" and "attribute" as it ist?
-   options:
-     (a) leave it as it is
-     (b) use "property" instead of "attribute"
-         ("a property is a variable with accessors"),
-         some tribute to beans terminology
-     (c) use "parameter" instead of "attribute",
-         since providing accessors means make the
-         variable an object parameter
-     (d) use "attribute" instead of "variable"
-         Variable is the tcl term, attribute is the UML term
-     (e) others?
 
  - call user defined setter in object parameters?
 
