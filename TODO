@@ -3302,6 +3302,11 @@ Test run; exit
   * removed the nonpos argument "-incremental" from "property" and "variable"
   * adapted regression test for these cases
 
+- new folder example-scripts
+   * Added 8 of the rosetta examples and one classical OTcl example
+   * all examples are tested via regression test
+   * all examples are pretty-printed via asciidoc
+
 
 TODO:
  - nx: 
