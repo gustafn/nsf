@@ -604,15 +604,16 @@ namespace eval ::nx::doc {
       set :positional true
       set :position 1
     }
-    :property @see -class ::nx::doc::PartAttribute
 
-    :property @deprecated:boolean -class ::nx::doc::SwitchAttribute {
+    :property -class ::nx::doc::PartAttribute @see
+
+    :property -class ::nx::doc::SwitchAttribute @deprecated:boolean {
       set :default 0
     }
-    :property @stashed:boolean -class ::nx::doc::SwitchAttribute {
+    :property -class ::nx::doc::SwitchAttribute @stashed:boolean {
       set :default 0
     }
-    :property @c-implemented:boolean -class ::nx::doc::SwitchAttribute {
+    :property -class ::nx::doc::SwitchAttribute @c-implemented:boolean {
       set :default 0
     }
 
@@ -825,18 +826,19 @@ namespace eval ::nx::doc {
     # Note: The default "" corresponds to the top-level namespace "::"!
     :property {@namespace ""}
 
-    :property @class -class ::nx::doc::PartAttribute {
+    :property -class ::nx::doc::PartAttribute @class {
       :pretty_name "Class"
       :pretty_plural "Classes"
       set :part_class ::nx::doc::@class
     }
-    :property @object -class ::nx::doc::PartAttribute {
+
+    :property -class ::nx::doc::PartAttribute @object {
       :pretty_name "Object"
       :pretty_plural "Objects"
       set :part_class ::nx::doc::@object
     }
    
-    :property @command -class ::nx::doc::PartAttribute {
+    :property -class ::nx::doc::PartAttribute @command {
       :pretty_name "Command"
       :pretty_plural "Commands"
       set :part_class ::nx::doc::@command
@@ -898,7 +900,7 @@ namespace eval ::nx::doc {
     :property {is_validated 0} 
     :property depends:0..*,object,type=[current]
     
-    :property @glossary -class ::nx::doc::PartAttribute {
+    :property -class ::nx::doc::PartAttribute @glossary {
       set :part_class ::nx::doc::@glossary
       :public method get {domain prop} {
 	set l [next]
@@ -911,7 +913,7 @@ namespace eval ::nx::doc {
       }
     }
 
-    :property @package -class ::nx::doc::PartAttribute {
+    :property -class ::nx::doc::PartAttribute @package {
       :pretty_name "Package"
       :pretty_plural "Packages"
       set :part_class ::nx::doc::@package
@@ -960,15 +962,15 @@ namespace eval ::nx::doc {
   #
 
   Tag create @package -superclass ContainerEntity {
-    :property @require -class ::nx::doc::PartAttribute
-    :property @version -class ::nx::doc::PartAttribute
+    :property -class ::nx::doc::PartAttribute @require
+    :property -class ::nx::doc::PartAttribute @version
   }
 
   QualifierTag create @command -superclass StructuredEntity {
-    :property @parameter -class ::nx::doc::PartAttribute {
+    :property -class ::nx::doc::PartAttribute @parameter {
       set :part_class ::nx::doc::@param
     }
-    :property @return -class ::nx::doc::PartAttribute {
+    :property -class ::nx::doc::PartAttribute @return {
       :method require_part {domain prop value} {
 	set value [expr {![string match ":*" $value] ? "__out__: $value": "__out__$value"}]
 	next [list $domain $prop $value]
@@ -977,7 +979,8 @@ namespace eval ::nx::doc {
     }
 
     :public forward @sub-command %self @command
-    :property @command -class ::nx::doc::PartAttribute {
+
+    :property -class ::nx::doc::PartAttribute @command {
       :pretty_name "Subcommand"
       :pretty_plural "Subcommands"
       :public method id {domain prop value} { 
@@ -1033,10 +1036,12 @@ namespace eval ::nx::doc {
   QualifierTag create @object \
       -superclass StructuredEntity \
       -mixin ContainerEntity::Containable {
-	:property @author -class ::nx::doc::PartAttribute 
+
+	:property -class ::nx::doc::PartAttribute @author 
 
 	:public forward @object %self @child-object
-	:property @child-object -class ::nx::doc::PartAttribute {
+
+	:property -class ::nx::doc::PartAttribute @child-object {
 	  set :part_class ::nx::doc::@object
 	  :public method id {domain prop value} {
 #	    puts stderr "CHILD-OBJECT: [current args]"
@@ -1050,7 +1055,8 @@ namespace eval ::nx::doc {
 	}
 
 	:public forward @class %self @child-class
-	:property @child-class -class ::nx::doc::PartAttribute {
+
+	:property -class ::nx::doc::PartAttribute @child-class {
 	  set :part_class ::nx::doc::@class
 	  :public method id {domain prop value} {
 	    #puts stderr "CHILD-CLASS: [current args]"
@@ -1063,7 +1069,8 @@ namespace eval ::nx::doc {
 	}
 
 	:public forward @method %self @object-method
-	:property @object-method -class ::nx::doc::PartAttribute {
+
+	:property -class ::nx::doc::PartAttribute @object-method {
 	  :pretty_name "Object method"
 	  :pretty_plural "Object methods"
 	  set :part_class ::nx::doc::@method
@@ -1071,7 +1078,8 @@ namespace eval ::nx::doc {
 
 	:public forward @property %self @object-property
 	#:forward @param %self @object-param
-	:property @object-property -class ::nx::doc::PartAttribute {
+
+	:property -class ::nx::doc::PartAttribute @object-attribute {
 	  set :part_class ::nx::doc::@param
 	}
 
@@ -1091,11 +1099,13 @@ namespace eval ::nx::doc {
 
   QualifierTag create @class \
       -superclass @object {
-	:property @superclass -class ::nx::doc::PartAttribute
+
+	:property -class ::nx::doc::PartAttribute @superclass
 	
-	:public forward @property %self @class-property
-	:property @class-property -class ::nx::doc::PartAttribute {
-	  :pretty_name "Per-class property"
+	:public forward @attribute %self @class-attribute
+
+	:property -class ::nx::doc::PartAttribute @class-attribute {
+	  :pretty_name "Per-class attribute"
 	  :pretty_plural "Per-class attributes"
 	  set :part_class ::nx::doc::@param
 	}
@@ -1104,14 +1114,16 @@ namespace eval ::nx::doc {
 	:public forward @class-object-property %self @object-property
 
 	:public forward @hook %self @class-hook
-	:property @class-hook -class ::nx::doc::PartAttribute {
+
+	:property -class ::nx::doc::PartAttribute @class-hook {
 	  :pretty_name "Hook method"
 	  :pretty_plural "Hook methods"
 	  set :part_class ::nx::doc::@method
 	}
 
 	:public forward @method %self @class-method
-	:property @class-method -class ::nx::doc::PartAttribute {
+
+	:property -class ::nx::doc::PartAttribute @class-method {
 	  :pretty_name "Provided method"
 	  :pretty_plural "Provided methods"
 	  set :part_class ::nx::doc::@method
@@ -1168,13 +1180,14 @@ namespace eval ::nx::doc {
   #
   PartTag create @method \
       -superclass StructuredEntity {
-	:property @syshook:boolean -class ::nx::doc::SwitchAttribute {
+
+	:property -class ::nx::doc::SwitchAttribute @syshook:boolean {
 	  set :default 0
 	}
-	:property @parameter -class ::nx::doc::PartAttribute {
+	:property -class ::nx::doc::PartAttribute @parameter {
 	  set :part_class ::nx::doc::@param
 	}
-	:property @return -class ::nx::doc::PartAttribute {
+	:property -class ::nx::doc::PartAttribute @return {
 	  #
 	  # TODO: @return spec fragments should be nameless,
 	  # conceptually. They represent "out" parameters with each
@@ -1209,7 +1222,8 @@ namespace eval ::nx::doc {
 	:public forward @class-method %self @method
 	:public forward @class-object-method %self @method
 	:public forward @sub-method %self @method
-	:property @method -class ::nx::doc::PartAttribute {
+
+	:property -class ::nx::doc::PartAttribute @method {
 	  set :part_class ::nx::doc::@method
 	  :public method id {domain prop name} {
 	    # TODO: ${:part_class} resolves to the local slot
@@ -1334,8 +1348,9 @@ namespace eval ::nx::doc {
   #
   PartTag create @param \
       -superclass PartEntity {
+
 	#:property spec
-	:property @spec -class ::nx::doc::PartAttribute
+	:property -class ::nx::doc::PartAttribute @spec
 	:property default
 
 	:public class method id {partof_name scope name} {
@@ -2971,6 +2986,7 @@ namespace eval ::nx::doc {
 	      	      ->source [file normalize [info script]] \
 	      	      ->bundle $bundle
 	      	} 
+		return $handle
 	      }
 
 	      rename ::nsf::method::setter ::nsf::_%&setter
@@ -2983,11 +2999,12 @@ namespace eval ::nx::doc {
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
 	      	  dict set bundle type [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
 		  
-	      	  ::nx::doc::__at_register_command $handle \
+		  ::nx::doc::__at_register_command $handle \
 	      	      ->cmdtype @method \
 	      	      ->source [file normalize [info script]] \
-	      	      ->bundle $bundle
-	      	} 
+		      ->bundle $bundle
+	      	}
+		return $handle
 	      }
 
 	    rename ::nsf::objectsystem::create ::nsf::_%&createobjectsystem 
