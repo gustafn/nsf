@@ -225,6 +225,7 @@ COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(C
 
 EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/bagel.html \
+	$(src_doc_dir)/example-scripts/rosetta-abstract-type.html \
 	$(src_doc_dir)/example-scripts/rosetta-classes.html \
 	$(src_doc_dir)/example-scripts/rosetta-constraint-genericity.html \
 	$(src_doc_dir)/example-scripts/rosetta-delegates.html \
@@ -435,7 +436,7 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/contains.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/tcloo.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/bagel.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-singleton.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-abstract-type.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-classes.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-constraint-genericity.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-delegates.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
@@ -444,6 +445,8 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-polymorphism.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-serialization.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-singleton.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-singleton.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+
 test-xotcl: $(TCLSH_PROG)
 	$(TCLSH) $(xotcl_src_test_dir)/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(xotcl_src_test_dir)/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)

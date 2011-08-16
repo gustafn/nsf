@@ -26,9 +26,11 @@ nx::Class create Circle -superclass Point {
 
 # === Demonstrating the behavior in a shell: 
 
-# Create a point:
+# Create a point and get the print string:
 ? {set p [Point new -x 1.0 -y 2.0]} "::nsf::__#0"
 ? {$p print} "Point(1.0,2.0)"
+
+# Get the x coordinate of this point:
 ? {$p x} "1.0"
 
 # Create a circle:

@@ -3306,6 +3306,7 @@ Test run; exit
    * Added 8 of the rosetta examples and one classical OTcl example
    * all examples are tested via regression test
    * all examples are pretty-printed via asciidoc
+   * added example rosetta-abstract-type.tcl
 
 
 TODO:
