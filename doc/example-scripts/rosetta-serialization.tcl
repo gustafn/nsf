@@ -32,7 +32,7 @@ nx::Class create Animal -superclass Being {
 #    +i am Fido alive true+ 
 #
 # Serialize the animals to a file
-? {set f [open /tmp/dump w]} "file5"
+set f [open /tmp/dump w]
 ? {foreach i [Animal info instances] { puts $f [$i serialize] }} ""
 ? {close $f} ""
 
