@@ -3308,13 +3308,11 @@ Test run; exit
    * all examples are pretty-printed via asciidoc
    * added example rosetta-abstract-type.tcl
    * added example rosetta-unknown-method.tcl
+   * added ./apps/utils/source-doc-beautifier.tcl
+   * fixed the file-handle output/formatting in rosetta-serialization.tcl; using proc "!"
 
 
 TODO:
- - example-scripts:
-   * add ./apps/utils/source-doc-beautifier.tcl to the repository
-   * fix the file-handle output/formatting in rosetta-serialization.tcl
-
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.
 

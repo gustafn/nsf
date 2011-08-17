@@ -6,13 +6,13 @@ package req nx
 package req nx::test
 
 #
-# Modelled after the Python version
+# Modelled after the Python version:
 #
 
 nx::Class create Example {
   
-  :public method foo {} {return "This is foo"}
-  :public method bar {} {return "This is bar"}
+  :public method foo {} {return "This is foo."}
+  :public method bar {} {return "This is bar."}
 
   :method unknown {method args} {
     set result "Tried to handle unknown method '$method'."
@@ -28,7 +28,10 @@ nx::Class create Example {
 # Create an instance of Example
 ? {set e [Example new]} "::nsf::__#0"
 
-? {$e foo} "This is foo"
-? {$e bar} "This is bar"
+? {$e foo} "This is foo."
+
+? {$e bar} "This is bar."
+
 ? {$e grill} "Tried to handle unknown method 'grill'."
+
 ? {$e ding dong} "Tried to handle unknown method 'ding'. It had arguments 'dong'."

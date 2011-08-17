@@ -4,6 +4,7 @@
 #
 package req nx
 package req nx::test
+proc ! args {uplevel {*}$args}
 package req nx::serializer
 
 nx::Class create Being {
@@ -32,7 +33,7 @@ nx::Class create Animal -superclass Being {
 #    +i am Fido alive true+ 
 #
 # Serialize the animals to a file
-set f [open /tmp/dump w]
+! {set f [open /tmp/dump w]}
 ? {foreach i [Animal info instances] { puts $f [$i serialize] }} ""
 ? {close $f} ""
 
