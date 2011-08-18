@@ -205,7 +205,61 @@ Test case "filter-and-creation" {
   ? {ob2 baz} {}
 
 }
-puts stderr ======EXIT
+
+#
+# Test the next-path with just intrinsic classes in cases where a
+# method handle is used for method dispatch
+#
+
+nx::Test case intrinsic+method-handles {
+  Class create A {:public method foo {} {return "A [next]"}}
+  Class create B -superclass A {:public method foo {} {return "B [next]"}}
+  Class create C -superclass B {:public method foo {} {return "C [next]"}}
+  
+  C create c1
+  ? {c1 foo} "C B A "
+  ? {c1 [C info method origin foo]} "C B A "
+  ? {c1 [B info method origin foo]} "B A "
+  ? {c1 [A info method origin foo]} "A "
+    
+}
+
+#
+# Test the next-path with mixin classes in cases where a
+# method handle is used for method dispatch
+#
+
+nx::Test case mixins+method-handles {
+  #
+  # Just mixin classes
+  #
+  Class create A {:public method foo {} {return "A [next]"}}
+  Class create B {:public method foo {} {return "B [next]"}}
+  Class create C {:public method foo {} {return "C [next]"}}
+
+  Class create X -mixin {C B A}
+  X create c1
+  ? {c1 foo} "C B A "
+  ? {c1 [C info method origin foo]} "C B A "
+  ? {c1 [B info method origin foo]} "B A "
+  ? {c1 [A info method origin foo]} "A "
+  
+  #
+  # Intrinsic classes and mixin classes
+  #
+
+  Class create Y {:public method foo {} {return "Y [next]"}}
+  Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
+
+  Z create c1 -mixin {C B A}
+  ? {c1 foo} "C B A Z Y "
+  ? {c1 [C info method origin foo]} "C B A Z Y "
+  ? {c1 [B info method origin foo]} "B A Z Y "
+  ? {c1 [A info method origin foo]} "A Z Y "
+  ? {c1 [Z info method origin foo]} "Z Y "
+  ? {c1 [Y info method origin foo]} "Y "
+
+}
 
 
 

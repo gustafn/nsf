@@ -3311,6 +3311,11 @@ Test run; exit
    * added ./apps/utils/source-doc-beautifier.tcl
    * fixed the file-handle output/formatting in rosetta-serialization.tcl; using proc "!"
 
+- nsf.c:
+   * fixed next path computation in cases where command handles 
+     are used to refer to methods in the current mixin order.
+   * extended regression test
+
 
 TODO:
  - nx: 

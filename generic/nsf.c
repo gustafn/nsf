@@ -6411,37 +6411,106 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
 }
 
 /*
- * Walk through the command list until the current command is reached.
- * return the next entry.
+ *----------------------------------------------------------------------
+ * SeekCurrent --
  *
+ *    Walk through the command list until the provided command is reached.
+ *    return the next entry. If the provided cmd is NULL, then return the
+ *    first entry.
+ *
+ * Results:
+ *    Command list pointer or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
  */
 static NsfCmdList *
-SeekCurrent(Tcl_Command currentCmd, register NsfCmdList *cmdl) {
-  if (currentCmd) {
-    /* go forward to current class */
-    for (; cmdl; cmdl = cmdl->nextPtr) {
-      if (cmdl->cmdPtr == currentCmd) {
-        return cmdl->nextPtr;
+SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) {
+
+  if (cmd) {
+    for (; cmdListPtr; cmdListPtr = cmdListPtr->nextPtr) {
+      if (cmdListPtr->cmdPtr == cmd) {
+        return cmdListPtr->nextPtr;
       }
     }
-  }
-  return cmdl;
+    return NULL;
+  } 
+  return cmdListPtr;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CanInvokeMixinMethod --
+ *
+ *    Check, whether the provided cmd is allowed to be dispatch in a mixin.
+ *
+ * Results:
+ *    Tcl result code or NSF_CHECK_FAILED in case, search should continue
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, NsfCmdList *cmdList) {
+  int result = TCL_OK;
+
+  if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
+    /* 
+     * The command is not applicable for objects (i.e. might crash,
+     * since it expects a class record); therefore skip it
+     */
+    return NSF_CHECK_FAILED;
+  }
+  
+  if (cmdList->clientData && !RUNTIME_STATE(interp)->guardCount) {
+    /*fprintf(stderr, "guardcall\n");*/
+    result = GuardCall(object, interp, (Tcl_Obj *)cmdList->clientData, NULL);
+  }
+  return result;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ * MixinSearchProc --
+ *
+ *    Search for a methodname in the mixin list of the provided
+ *    object. According to the state of the mixin stack it start the search
+ *    from the beginning of from the last dispatched method shadowed method on
+ *    the mixin path.
+ *
+ * Results:
+ *    Tcl result code.
+ *    Returns as well always cmd (maybe NULL) in cmdPtr.
+ *    Returns on success as well the class and the currentCmdPointer
+ *    for continuation in next.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 /*
  * before we can perform a mixin dispatch, MixinSearchProc seeks the
  * current mixin and the relevant calling information
  */
 static int
-MixinSearchProc(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
+MixinSearchProc(Tcl_Interp *interp, NsfObject *object, 
+		CONST char *methodName, Tcl_Obj *methodObj,
                 NsfClass **clPtr, Tcl_Command *currentCmdPtr, Tcl_Command *cmdPtr) {
   Tcl_Command cmd = NULL;
   NsfCmdList *cmdList;
-  NsfClass *cl;
+  NsfClass *cl = NULL;
   int result = TCL_OK;
 
   assert(object);
   assert(object->mixinStack);
+  assert(methodName);
 
   /* ensure that the mixin order is not invalid, otherwise compute order */
   assert(object->flags & NSF_MIXIN_ORDER_VALID);
@@ -6449,58 +6518,125 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
   cmdList = SeekCurrent(object->mixinStack->currentCmdPtr, object->mixinOrder);
   RUNTIME_STATE(interp)->currentMixinCmdPtr = cmdList ? cmdList->cmdPtr : NULL;
 
-  /*fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);*/
-  /*CmdListPrint(interp, "MixinSearch CL = \n", cmdList);*/
+  /*fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);
+    CmdListPrint(interp, "MixinSearch CL = \n", cmdList);*/
 
-  for (; cmdList; cmdList = cmdList->nextPtr) {
+  if (*methodName == ':') {
+    Tcl_DString ds, *dsPtr = &ds;
+    Tcl_Command cmd1, lastCmdPtr = NULL;
+    NsfClass *cl1;
+    NsfObject *regObject, *defObject;
+    CONST char *methodName1;
+    int fromClassNS = 0;
 
-    if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
-      continue;
-    }
-    cl = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
-    assert(cl);
     /*
-      fprintf(stderr, "+++ MixinSearch %s->%s in %p cmdPtr %p clientData %p\n",
-      ObjectName(object), methodName, cmdList,
-      cmdList->cmdPtr, cmdList->clientData);
-    */
-    cmd = FindMethod(cl->nsPtr, methodName);
-    if (cmd == NULL) {
-      continue;
+     * We have an abolute name provided. We have to check, whether the
+     * absolute refers of a class in the mixin list of the current object. If
+     * so, we have to advance the current cmd pointer to this cmd to allow
+     * next to start from this point.
+     */
+    
+    if (methodObj == NULL) {
+      methodObj = Tcl_NewStringObj(methodName, -1);
     }
 
-    if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD) {
-      /*fprintf(stderr, "we found class specific method %s on class %s object %s, isclass %d\n",
-	methodName, ClassName(cl), ObjectName(object), NsfObjectIsClass(object));*/
-      if (!NsfObjectIsClass(object)) {
-	/* the command is not for us; skip it */
+    INCR_REF_COUNT(methodObj);
+    Tcl_DStringInit(dsPtr);
+    cmd1 = ResolveMethodName(interp, NULL, methodObj,
+			     dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+    if (cmd1 && regObject) {
+      /*
+       * The absolute name was found and refers to a name in a class. We
+       * iterate over the mixin list and search for the class.
+       */
+      for (; cmdList; cmdList = cmdList->nextPtr) {
+	if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) { continue; }
+	cl1 = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
+	assert(cl1);
+	lastCmdPtr = cmdList->cmdPtr;
+
+	if ((NsfObject *)cl1 == regObject) {
+	  /*
+	   * The class was found.
+	   */
+	  result = CanInvokeMixinMethod(interp, object, cmd1, cmdList);
+	  /*
+	   * No matter, what the result is, stop the search through the mixin
+	   * classes here.
+	   */
+	  if (result == NSF_CHECK_FAILED) {
+	    result = TCL_OK;
+	    cmd1 = NULL;
+	  }
+
+	  cmd = cmd1;
+	  cl = cl1;
+	  break;
+	}
+      }
+    } 
+    Tcl_DStringFree(dsPtr);
+    DECR_REF_COUNT(methodObj);
+
+    if (cl) {
+      assert(cmdList);
+      /*
+       * on success: return class and cmdList->cmdPtr;
+       */
+      *clPtr = cl;
+      *currentCmdPtr = cmdList->cmdPtr;
+      /*fprintf(stderr, "mixinsearch returns %p (cl %s)\n", cmd, ClassName(cl));*/
+      
+    } else {
+      /*
+       * We did not find the absolute entry in the mixins.  Set the
+       * currentCmdPtr (on the mixin stack) to the last entry to flag, that
+       * the mixin list should not started again on a next.
+       */
+      *currentCmdPtr = lastCmdPtr;
+    }
+  
+    *cmdPtr = cmd;
+    return result;
+
+  } else {
+
+    for (; cmdList; cmdList = cmdList->nextPtr) {
+      
+      if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
+	continue;
+      }
+      cl = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
+      assert(cl);
+      /*
+	fprintf(stderr, "+++ MixinSearch %s->%s in %p cmdPtr %p clientData %p\n",
+	ObjectName(object), methodName, cmdList,
+	cmdList->cmdPtr, cmdList->clientData);
+      */
+      cmd = FindMethod(cl->nsPtr, methodName);
+      if (cmd == NULL) {
+	continue;
+      }
+      
+      result = CanInvokeMixinMethod(interp, object, cmd, cmdList);
+      if (unlikely(result == TCL_ERROR)) {
+	return result;
+      } else if (result == NSF_CHECK_FAILED) {
+	result = TCL_OK;
 	cmd = NULL;
 	continue;
       }
-    }
 
-    if (cmdList->clientData) {
-      if (!RUNTIME_STATE(interp)->guardCount) {
-	/*fprintf(stderr, "guardcall\n");*/
-	result = GuardCall(object, interp, (Tcl_Obj *)cmdList->clientData, NULL);
-      }
-    }
-    if (result == TCL_OK) {
       /*
-       * on success: compute mixin call data
+       * cmd was found and is applicable. We return class and cmdPtr.
        */
       *clPtr = cl;
       *currentCmdPtr = cmdList->cmdPtr;
       /*fprintf(stderr, "mixinsearch returns %p (cl %s)\n", cmd, ClassName(cl));*/
       break;
-    } else if (result == TCL_ERROR) {
-      break;
-    } else {
-      if (result == NSF_CHECK_FAILED) result = TCL_OK;
-      cmd = NULL;
     }
+    
   }
-
   *cmdPtr = cmd;
   return result;
 }
@@ -7842,6 +7978,8 @@ ParamDefsNew(INTERP_DECL1) {
 
   return paramDefs;
 }
+
+
 /*
  *----------------------------------------------------------------------
  * ParamDefsFree --
@@ -9170,9 +9308,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       /*
        * The entry is just searched and pushed on the stack when we
        * have no filter; in the filter case, the search happens in
-       * next
+       * next.
        */
-      result = MixinSearchProc(interp, object, methodName, &cl,
+      result = MixinSearchProc(interp, object, methodName, methodObj, &cl,
                                &object->mixinStack->currentCmdPtr, &cmd);
       if (result != TCL_OK) {
 	/*fprintf(stderr, "mixinsearch returned an error for %p %s.%s\n",
@@ -9187,12 +9325,16 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
-  /* check if an absolute method name was provided */
-  if (unlikely(*methodName == ':')) {
+  /* 
+   * Check if an absolute method name was provided 
+   */
+  if (unlikely(cmd == NULL && *methodName == ':')) {
+
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
     if (cmd) {
       Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
 
+      /*fprintf(stderr, "absolute lookup of %s returned %p\n", ObjStr(methodObj), cmd);*/
       if (procPtr == NsfObjDispatch) {
 	/*
 	 * Don't allow to call objects as methods (for the time being)
@@ -12023,8 +12165,10 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
   /*fprintf(stderr, "... mixinstack %p => %p\n", object, object->mixinStack);*/
 
   if (object->mixinStack) {
-    int result = MixinSearchProc(interp, object, *methodNamePtr, clPtr, currentCmdPtr, cmdPtr);
-    if (result != TCL_OK) {
+    int result = MixinSearchProc(interp, object, *methodNamePtr, NULL, 
+				 clPtr, currentCmdPtr, cmdPtr);
+
+    if (unlikely(result != TCL_OK)) {
       return result;
     }
 
@@ -17429,17 +17573,16 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, cl ? cl->nsPtr : object->nsPtr, methodObj,
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-
+  Tcl_DStringFree(dsPtr);
   /*fprintf(stderr, "methodProperty for method '%s' prop %d value %s => cl %p cmd %p\n",
     methodName, methodproperty, valueObj ? ObjStr(valueObj) : "NULL", cl, cmd);*/
 
+
   if (!cmd) {
-    Tcl_DStringFree(dsPtr);
     return NsfPrintError(interp, "Cannot lookup %smethod '%s' for %s",
 			 cl == 0 ? "object " : "",
 			 methodName, ObjectName(object));
   }
-  Tcl_DStringFree(dsPtr);
 
   switch (methodproperty) {
   case MethodpropertyClass_onlyIdx: /* fall through */
