@@ -3316,6 +3316,11 @@ Test run; exit
      are used to refer to methods in the current mixin order.
    * extended regression test
 
+- nx.tcl:
+  * made "/cls/ class ..." using ensemble methods and therefore extensible.
+  * This introduces some definition order dependencies in nx.tcl and
+    some redundancy ("class filter" and "class mixin"), but maybe 
+    this can be eliminated.
 
 TODO:
  - nx: 

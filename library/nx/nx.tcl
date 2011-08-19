@@ -215,51 +215,11 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # Define method modifiers "class", and class level "unknown"
+  # Define method "unknown"
   ######################################################################
 
   Class eval {
 
-    # method-modifier for object specific methos
-    :method class {what args} {
-      if {$what in [list "alias" "property" "forward" "method" "variable"]} {
-        return [::nsf::object::dispatch [::nsf::self] ::nsf::classes::nx::Object::$what {*}$args]
-      }
-      if {$what in [list "info"]} {
-        return [::nsf::object::dispatch [::nsf::self] ::nx::Object::slot::__info \
-		    [lindex $args 0] {*}[lrange $args 1 end]]
-      }
-      if {$what in [list "filter" "mixin"]} {
-	# 
-	# It would be much easier, to do a 
-	#
-	#    return [:object-$what {*}$args]
-	#
-	# here. However, since we removed "object-mixin" and friends
-	# from the registered methods, we have to emulate the work of
-	# the forwarder.
-	#
-	switch [llength $args] {
-	  0 {return [::nsf::relation [::nsf::self] object-$what]}
-	  1 {return [::nsf::relation [::nsf::self] object-$what {*}$args]}
-	  default {return [::nx::Object::slot::$what [lindex $args 0] \
-			       [::nsf::self] object-$what \
-			       {*}[lrange $args 1 end]]
-	  }
-	}
-      }
-
-      if {$what in [list "filterguard" "mixinguard"]} {
-        return [::nsf::object::dispatch [::nsf::self] ::nsf::methods::object::$what {*}$args]
-      }
-
-      if {$what eq "delete"} {
-	return [::nsf::object::dispatch [::nsf::self] \
-		    ::nx::Object::slot::__delete::[lindex $args 0] {*}[lrange $args 1 end]]
-      }
-
-      error "'$what' not allowed to be modified by 'class'"
-    }
     # define unknown handler for class
     :method unknown {m args} {
       error "Method '$m' unknown for [::nsf::self].\
@@ -360,7 +320,7 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # Provde method "alias" 
+  # Provide method "alias" 
   #
   # -frame object|method make only sense for c-defined cmds,
   ######################################################################
@@ -574,6 +534,15 @@ namespace eval ::nx {
     array set "" [:__resolve_method_path $name]
     ::nsf::method::delete $(object) $(methodName)
   }
+
+  #
+  # provide aliases for "class delete"
+  #
+  ::nx::Class eval {
+    :alias "class delete property" ::nx::Object::slot::__delete::property
+    :alias "class delete variable" ::nx::Object::slot::__delete::variable
+    :alias "class delete method" ::nx::Object::slot::__delete::method
+  }
  
   ######################################################################
   # Info definition
@@ -763,6 +732,43 @@ namespace eval ::nx {
   #   }
   # }
 
+  #
+  # Provide basic "class ...." functionality. The aliases require the
+  # RHS to be defined.
+  #
+
+  ::nx::Class eval {
+
+    :alias "class alias" ::nsf::classes::nx::Object::alias
+    :alias "class forward" ::nsf::classes::nx::Object::forward
+    :alias "class method" ::nsf::classes::nx::Object::method
+    :alias "class info" ::nx::Object::slot::__info
+
+    :method "class filter" args {
+      set what filter
+      switch [llength $args] {
+	0 {return [::nsf::relation [::nsf::self] object-$what]}
+	1 {return [::nsf::relation [::nsf::self] object-$what {*}$args]}
+	default {return [::nx::Object::slot::$what [lindex $args 0] \
+			     [::nsf::self] object-$what \
+			     {*}[lrange $args 1 end]]
+	}
+      }
+    }
+    :method "class mixin" args {
+      set what mixin
+      switch [llength $args] {
+	0 {return [::nsf::relation [::nsf::self] object-$what]}
+	1 {return [::nsf::relation [::nsf::self] object-$what {*}$args]}
+	default {return [::nx::Object::slot::$what [lindex $args 0] \
+			     [::nsf::self] object-$what \
+			     {*}[lrange $args 1 end]]
+	}
+      }
+    }
+    :alias "class filterguard" ::nsf::methods::object::filterguard
+    :alias "class mixinguard" ::nsf::methods::object::mixinguard
+  }
 
   ######################################################################
   # MetaSlot definitions
@@ -1792,6 +1798,14 @@ namespace eval ::nx {
     return $r
   }
 
+  #
+  # provide aliases for "class property" and "class variable"
+  #
+  ::nx::Class eval {
+    :alias "class property" ::nsf::classes::nx::Object::property
+    :alias "class variable" ::nsf::classes::nx::Object::variable
+  }
+
 
   ######################################################################
   # Define method "attributes" for convenience to define multiple
@@ -1813,6 +1827,7 @@ namespace eval ::nx {
   #   }
   #   return ""
   # }
+
   
   ######################################################################
   # Minimal definition of a value checker that permits every value
