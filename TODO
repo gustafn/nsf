@@ -3322,7 +3322,15 @@ Test run; exit
     some redundancy ("class filter" and "class mixin"), but maybe 
     this can be eliminated.
 
+- nsf.c:
+  * fixed "nsf::my -local ..." (never worked in nsf)
+  * added regression test
+
+
 TODO:
+ - test next + dispatch
+ - test "my -local" vs dispatch
+
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.
 

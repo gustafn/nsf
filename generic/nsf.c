@@ -18090,15 +18090,18 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
   }
 
   if (withLocal) {
-    NsfClass *cl = self->cl;
     CONST char *methodName = ObjStr(methodObj);
-    Tcl_Command cmd = FindMethod(cl->nsPtr, methodName);
+    NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
+    NsfClass *cl = cscPtr ? cscPtr->cl : NULL;
+    Tcl_Command cmd = cl ? FindMethod(cl->nsPtr, methodName) :  FindMethod(self->nsPtr, methodName);
     if (cmd == NULL) {
-      return NsfPrintError(interp, "%s: unable to dispatch local method '%s' in class %s",
-			   ObjectName(self), methodName, ClassName(cl));
+      return NsfPrintError(interp, "%s: unable to dispatch local method '%s' in %s %s",
+			   ObjectName(self), methodName, 
+			   cl ? "class" : "object",
+			   cl ? ClassName(cl) : ObjectName(self));
     }
-    result = MethodDispatch(self, interp, nobjc+2, nobjv, cmd, self, cl,
-			    methodName, 0, 0);
+    result = MethodDispatch(self, interp, nobjc+1, nobjv-1, cmd, self, cl,
+			    methodName, 0, NSF_CSC_IMMEDIATE);
   } else {
 #if 0
     /* TODO attempt to make "my" NRE-enabled, failed so far (crash in mixinInheritanceTest) */
