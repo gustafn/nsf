@@ -3326,10 +3326,13 @@ Test run; exit
   * fixed "nsf::my -local ..." (never worked in nsf)
   * added regression test
 
+- documenting current behavior
+  * test method-handle + next + dispatch (unwanted)
+  * test "my -local" vs my + method handle
+  * test "my -local" vs dispatch + method handle
+
 
 TODO:
- - test next + dispatch
- - test "my -local" vs dispatch
 
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.

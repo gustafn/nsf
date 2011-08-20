@@ -168,3 +168,45 @@ nx::Test case object-my-local {
   ? {o1 foo2} "M2 M o1"
 
 }
+
+#
+# test nsf::my + patch instead of "nsf::my -local" on classes
+#
+
+nx::Test case my+handle-instead-of-my-local {
+  nx::Class create Base {
+    :protected method privateMethod {a b} { expr {$a + $b} }
+    :public method foo {a b} { nsf::my [Base info method handle privateMethod] $a $b }
+  }
+    
+  nx::Class create Sub -superclass Base {
+    :public method bar {a b} { nsf::my [Sub info method handle privateMethod] $a $b }
+    :public method privateMethod {a b} { expr {$a * $b} }
+
+    :create s1
+  }
+
+  ? {s1 foo 3 4} 7
+  ? {s1 bar 3 4} 12
+} 
+
+#
+# test object::dispatch instead of "nsf::my -local" on classes
+#
+
+nx::Test case dispatch-instead-of-my-local {
+  nx::Class create Base {
+    :protected method privateMethod {a b} { expr {$a + $b} }
+    :public method foo {a b} { nsf::object::dispatch [self] [Base info method handle privateMethod] $a $b }
+  }
+    
+  nx::Class create Sub -superclass Base {
+    :public method bar {a b} { nsf::object::dispatch [self] [Sub info method handle privateMethod] $a $b }
+    :public method privateMethod {a b} { expr {$a * $b} }
+
+    :create s1
+  }
+
+  ? {s1 foo 3 4} 7
+  ? {s1 bar 3 4} 12
+}  
