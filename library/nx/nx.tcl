@@ -479,12 +479,13 @@ namespace eval ::nx {
       set path [lrange $callInfo 1 end-1]; # set path [current methodpath]
       set m [lindex $callInfo end]
       set obj [lindex $callInfo 0]
-      # puts stderr "+++ UNKNOWN ARGS=[current args] obj $obj '$m' callInfo=$callInfo args=$args // path '[current methodpath]'"
+      #puts stderr "### [list $obj ::nsf::methods::object::info::lookupmethods -path \"$path *\"]"
       if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]} errorMsg]} {
 	set valid ""
 	puts stderr "+++ UNKNOWN raises error $errorMsg"
       }
       set ref "\"$m\" of $obj $path"
+puts stderr "***VALID <[lsort $valid]>"
       error "Unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
     }
     

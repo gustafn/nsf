@@ -8885,7 +8885,10 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
 	if (self->nsPtr) {
 	  cmd = FindMethod(self->nsPtr, methodName);
-	  /*fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
+
+	  /*fprintf(stderr, "... objv[0] %s method %p %s csc %p\n", 
+	    ObjStr(objv[0]), cmd, methodName, cscPtr); */
+
 	  if (cmd) {
 	    /*
 	     * In order to allow [next] to be called in an ensemble method,
@@ -8901,8 +8904,10 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	     */
 
 	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s cscPtr %p base flags %.6x cl %s\n",
-	      ObjectName(object), methodName, cscPtr, 
-	      (0xFF & cscPtr->flags), cscPtr->cl?ObjStr(cscPtr->cl->object.cmdName):NULL);*/
+		    ObjectName(object), methodName, cscPtr, 
+		    (0xFF & cscPtr->flags), 
+		    cscPtr->cl ? ObjStr(cscPtr->cl->object.cmdName) : NULL);*/
+
 	    result = MethodDispatch(object, interp, objc-1, objv+1,
 				    cmd, object, cscPtr->cl, methodName,
 				    cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
@@ -8958,11 +8963,12 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	  Tcl_Obj *methodPathObj = CallStackMethodPath(interp, (Tcl_CallFrame *)framePtr);
 
 	  INCR_REF_COUNT(methodPathObj);
-	  /*fprintf(stderr, "next calls DispatchUnknownMethod\n");*/
 	  Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
-	  DECR_REF_COUNT(methodPathObj);
-	  Tcl_ListObjAppendElement(interp, callInfoObj, objv[0]);
+
+	  Tcl_ListObjAppendElement(interp, callInfoObj, Tcl_NewStringObj(MethodName(objv[0]), -1));
 	  Tcl_ListObjAppendElement(interp, callInfoObj, objv[1]);
+
+	  DECR_REF_COUNT(methodPathObj);
 
 	  result = DispatchUnknownMethod(interp, self, objc-1, objv+1, callInfoObj,
 					 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
@@ -9037,8 +9043,8 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   assert (object->teardown);
   assert (cmd);
 
-  /*fprintf(stderr, "MethodDispatch method '%s.%s' objc %d flags %.6x call %d\n",
-     ObjectName(object), methodName, objc, flags, call); */
+  /*fprintf(stderr, "MethodDispatch method '%s.%s' objc %d flags %.6x\n",
+    ObjectName(object), methodName, objc, flags); */
 
   cscPtr = CscAlloc(interp, &csc, cmd);
 
@@ -9242,8 +9248,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
-  /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s\n",
-    object ? ObjectName(object) : NULL, objc, cmdObj ? ObjStr(cmdObj) : NULL, methodName);*/
+  /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s shift %d\n",
+	  object ? ObjectName(object) : NULL, 
+	  objc, cmdObj ? ObjStr(cmdObj) : NULL, 
+	  methodName, shift);*/
+
   objflags = object->flags; /* avoid stalling */
 
   /*
@@ -12585,8 +12594,6 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
     isLeafNext = (cscPtr != topCscPtr) && (topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) && 
       (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0;
 
-    /*fprintf(stderr, "--- no cmd, csc %p frameType %.6x callType %.6x endOfFilterChain %d NSF_CSC_CALL_IS_ENSEMBLE %d NSF_CSC_TYPE_ENSEMBLE % d NSF_CSC_CALL_IS_NEXT %d rst->unknown %d isLeafNext %d\n", cscPtr, cscPtr->frameType, cscPtr->flags, endOfFilterChain, (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0, (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) != 0, (cscPtr->flags & NSF_CSC_CALL_IS_NEXT) != 0, rst->unknown, isLeafNext);*/
-    
     rst->unknown = /* case 1 */ endOfFilterChain || 
       /* case 3 */ (!isLeafNext && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)); 
 
@@ -17829,13 +17836,15 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
 cmd "object::dispatch" NsfObjectDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
+  {-argName "-system" -required 0 -nrargs 0}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
 */
 static int
-NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
-                 Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
+NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, 
+		     int withFrame, int withSystem,
+		     Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   CONST char *methodName = ObjStr(command);
 
@@ -17913,11 +17922,16 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
 
     Tcl_Obj *arg;
     Tcl_Obj *CONST *objv;
+    int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE;
 
     if (withFrame && withFrame != FrameDefaultIdx) {
       return NsfPrintError(interp,
 			   "cannot use -frame object|method in dispatch for plain method name '%s'",
 			   methodName);
+    }
+
+    if (withSystem) {
+      flags |= NSF_CM_SYSTEM_METHOD;
     }
 
     if (nobjc >= 1) {
@@ -17928,7 +17942,7 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
       objv = NULL;
     }
     result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object, command, arg,
-				   nobjc, objv, NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE);
+				   nobjc, objv, flags);
   }
 
   return result;
@@ -18112,13 +18126,16 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 
 /*
 cmd my NsfMyCmd {
-  {-argName "-local"}
+  {-argName "-local" -nrargs 0}
+  {-argName "-system" -nrargs 0}
   {-argName "method" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
 */
 static int
-NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
+NsfMyCmd(Tcl_Interp *interp, 
+	 int withLocal, int withSystem, Tcl_Obj *methodObj, 
+	 int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
   int result;
 
@@ -18131,6 +18148,11 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
     NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
     NsfClass *cl = cscPtr ? cscPtr->cl : NULL;
     Tcl_Command cmd = cl ? FindMethod(cl->nsPtr, methodName) :  FindMethod(self->nsPtr, methodName);
+
+    if (withSystem) {
+      return NsfPrintError(interp, "flags '-local' and '-systemÄ are mutual exclusive");
+    }
+
     if (cmd == NULL) {
       return NsfPrintError(interp, "%s: unable to dispatch local method '%s' in %s %s",
 			   ObjectName(self), methodName, 
@@ -18140,9 +18162,9 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
     result = MethodDispatch(self, interp, nobjc+1, nobjv-1, cmd, self, cl,
 			    methodName, 0, NSF_CSC_IMMEDIATE);
   } else {
+    int flags;
 #if 0
     /* TODO attempt to make "my" NRE-enabled, failed so far (crash in mixinInheritanceTest) */
-    int flags;
     NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
     if (!cscPtr || self != cscPtr->self) {
       flags = NSF_CSC_IMMEDIATE;
@@ -18151,8 +18173,11 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
       fprintf(stderr, "XXX MY %s.%s frame has flags %.6x -> next-flags %.6x\n",
 	      ObjectName(self), ObjStr(methodObj), cscPtr->flags, flags);
     }
+    if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
     result = CallMethod(self, interp, methodObj, nobjc+2, nobjv, flags);
 #else
+    flags = NSF_CSC_IMMEDIATE;
+    if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
     result = CallMethod(self, interp, methodObj, nobjc+2, nobjv, NSF_CSC_IMMEDIATE);
 #endif
   }

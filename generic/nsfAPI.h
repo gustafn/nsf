@@ -345,11 +345,11 @@ static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPe
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
 static int NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *handle);
 static int NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
-static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodName, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfMyCmd(Tcl_Interp *interp, int withLocal, int withSystem, Tcl_Obj *methodName, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
-static int NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
 static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectproperty);
 static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
@@ -1334,10 +1334,11 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     return TCL_ERROR;
   } else {
     int withLocal = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[1];
+    int withSystem = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfMyCmd(interp, withLocal, methodName, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfMyCmd(interp, withLocal, withSystem, methodName, objc-pc.lastObjc, objv+pc.lastObjc);
 
   }
 }
@@ -1411,10 +1412,11 @@ NsfObjectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   } else {
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withFrame = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
+    int withSystem = (int )PTR2INT(pc.clientData[2]);
+    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfObjectDispatchCmd(interp, object, withFrame, command, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfObjectDispatchCmd(interp, object, withFrame, withSystem, command, objc-pc.lastObjc, objv+pc.lastObjc);
 
   }
 }
@@ -2522,8 +2524,9 @@ static Nsf_methodDefinition method_definitions[] = {
   {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"parameter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::my", NsfMyCmdStub, 3, {
+{"::nsf::my", NsfMyCmdStub, 4, {
   {"-local", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-system", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2538,9 +2541,10 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::object::dispatch", NsfObjectDispatchCmdStub, 4, {
+{"::nsf::object::dispatch", NsfObjectDispatchCmdStub, 5, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-system", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"command", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

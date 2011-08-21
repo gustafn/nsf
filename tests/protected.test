@@ -211,3 +211,50 @@ nx::Test case dispatch-instead-of-my-local {
   ? {s1 foo 3 4} 7
   ? {s1 bar 3 4} 12
 }  
+
+#
+# Test -system flag on dispatch with explicit receiver
+#
+nx::Test case system-flag {
+
+  #
+  # create an object, which overloads some system behavior
+  #
+  nx::Object create o1 {
+    :public method info {} {return "overloads system info"}
+    :public method destroy {} {return "overloads system destroy"}
+    :variable v 1
+  }
+  
+  ? {o1 info} "overloads system info"
+  ? {o1 ::nx::Object::slot::__info::vars} "v"
+  ? {o1 [nx::Object info method origin "info vars"]} "v"
+  ? {o1 -system info vars} "v"
+  ? {nsf::object::dispatch o1 -system info vars} "v"
+  
+  ? {o1 destroy} "overloads system destroy"
+  ? {nsf::object::exists o1} 1
+  ? {o1 -system destroy} ""
+  ? {nsf::object::exists o1} 0
+  
+  #
+  # create a class, which overloads some system behavior
+  #
+  nx::Class create C {
+    :public method info {} {return "overloads system info"}
+    :public method destroy {} {return "overloads system destroy"}
+    :variable v 1
+    :create c1
+  }
+
+  ? {c1 info} "overloads system info"
+  ? {c1 ::nx::Object::slot::__info::vars} "v"
+  ? {c1 [nx::Object info method origin "info vars"]} "v"
+  ? {c1 -system info vars} "v"
+  ? {nsf::object::dispatch c1 -system info vars} "v"
+  
+  ? {c1 destroy} "overloads system destroy"
+  ? {nsf::object::exists c1} 1
+  ? {c1 -system destroy} ""
+  ? {nsf::object::exists c1} 0
+}

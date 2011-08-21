@@ -3337,6 +3337,12 @@ Test run; exit
     dispatches are forbidden, ignored in mixins
     and next; 
   * extended regression test
+  * fixed name path in unknown called from ensemble
+    methods (erroneous colon could show up)
+  * added -system flag to:
+    - ordinary dispatch (e.g. "o1 -system info vars")
+    - nsf::object::dispatch with plain methodName
+    - nsf::my (mutual exclusive with -local)
 
 TODO:
  - private: 

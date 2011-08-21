@@ -124,8 +124,8 @@ nx::Test case info-method-base {
   ? {::nx::Object info lookup methods -source application} ""
   ? {::nx::Class info lookup methods -source application} ""
 
-  set object_methods "alias configure contains copy delete destroy eval filter forward info method mixin move property protected public require variable volatile"
-  set class_methods "alias class configure contains copy create delete destroy eval filter forward info method mixin move new property protected public require variable volatile"
+  set object_methods "alias configure contains copy delete destroy eval filter forward info method mixin move private property protected public require variable volatile"
+  set class_methods "alias class configure contains copy create delete destroy eval filter forward info method mixin move new private property protected public require variable volatile"
 
   ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
   ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods

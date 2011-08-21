@@ -109,10 +109,11 @@ cmd "method::setter" NsfMethodSetterCmd {
 # object cmds
 #
 cmd "object::dispatch" NsfObjectDispatchCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
+  {-argName "object"  -required 1 -type object}
+  {-argName "-frame"  -required 0 -type "method|object|default" -default "default"}
+  {-argName "-system" -required 0 -nrargs 0}
   {-argName "command" -required 1 -type tclobj}
-  {-argName "args"  -type args}
+  {-argName "args"    -type args}
 }
 cmd "object::exists" NsfObjectExistsCmd {
   {-argName "value" -required 1 -type tclobj}
@@ -136,6 +137,7 @@ cmd "objectsystem::create" NsfObjectSystemCreateCmd {
 
 cmd my NsfMyCmd {
   {-argName "-local" -nrargs 0}
+  {-argName "-system" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
