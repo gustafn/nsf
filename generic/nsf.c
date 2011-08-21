@@ -1006,8 +1006,13 @@ NSTail(CONST char *string) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static int
-IsClassNsName(CONST char *string) {
-  return (strncmp((string), "::nsf::classes", 14) == 0);
+IsClassNsName(CONST char *string, CONST char **cont) {
+  assert(string);
+  if (*string == ':' && strncmp((string), "::nsf::classes", 14) == 0) {
+    if (cont) {*cont = string + 14;}
+    return 1;
+  }
+  return 0;
 }
 
 /*
@@ -1047,12 +1052,11 @@ NSCutNsfClasses(CONST char *string) {
  */
 NSF_INLINE static NsfObject *
 GetObjectFromNsName(Tcl_Interp *interp, CONST char *string, int *fromClassNS) {
-  /*
+  CONST char *className;
 
-   */
-  if (IsClassNsName(string)) {
+  if (IsClassNsName(string, &className)) {
     *fromClassNS = 1;
-    return (NsfObject *)GetClassFromString(interp, NSCutNsfClasses(string));
+    return (NsfObject *)GetClassFromString(interp, className);
   } else {
     *fromClassNS = 0;
     return GetObjectFromString(interp, string);
@@ -1858,7 +1862,7 @@ GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name
 
   if (*nameString == ':') {
     cmd = Tcl_GetCommandFromObj(interp, name);
-    *fromClassNS = IsClassNsName(nameString);
+    *fromClassNS = IsClassNsName(nameString, NULL);
   } else {
     cmd = nsPtr ? FindMethod(nsPtr, nameString) : NULL;
   }
@@ -9212,25 +9216,31 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   NsfCallStackContent csc, *cscPtr = NULL;
   int validCscPtr = 1;
 
+  /* none of the higher copy-flags must be passed */
+  assert((flags & (NSF_CSC_COPY_FLAGS & 0xFF00)) == 0);
+
   if (unlikely(flags & NSF_CM_NO_SHIFT)) {
     shift = 0;
     cmdObj = cmdName;
     methodObj = objv[0];
     methodName = MethodName(methodObj);
   } else {
-    assert(objc>1);
-    shift = 1;
+    assert(objc > 1);
     cmdObj = objv[0];
-    methodObj = objv[1];
-    methodName =  ObjStr(methodObj);
+    methodName = ObjStr(objv[1]);
+    if (*methodName == '-' && strcmp(methodName + 1, "system") == 0) {
+      flags |=  NSF_CM_SYSTEM_METHOD;
+      shift = 2;
+    } else {
+      shift = 1;
+    }
+    methodObj = objv[shift];
+    methodName = ObjStr(methodObj);
     if (FOR_COLON_RESOLVER(methodName)) {
       return NsfPrintError(interp, "%s: methodname '%s' must not start with a colon",
 			   ObjectName(object), methodName);
     }
   }
-
-  /* none of the higher copy-flags must be passed */
-  assert((flags & (NSF_CSC_COPY_FLAGS & 0xFF00)) == 0);
 
   /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s\n",
     object ? ObjectName(object) : NULL, objc, cmdObj ? ObjStr(cmdObj) : NULL, methodName);*/
@@ -9293,7 +9303,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   /*
    * Check if a mixed in method has to be called.
    */
-  if ((objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
+  if ((objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID &&
+      (flags & NSF_CM_SYSTEM_METHOD) == 0) {
 
     /*
      * The current logic allocates first an entry on the per-object
@@ -9335,6 +9346,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
     if (cmd) {
       Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
+      CONST char *className;
 
       /*fprintf(stderr, "absolute lookup of %s returned %p\n", ObjStr(methodObj), cmd);*/
       if (procPtr == NsfObjDispatch) {
@@ -9353,8 +9365,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	       methodName);
 	cmd = NULL;
 
-      } else if (IsClassNsName(methodName)) {
-	CONST char *className = NSCutNsfClasses(methodName);
+      } else if (IsClassNsName(methodName, &className)) {
+	/*
+	 * Supply class cl with the with the class containing the method for
+	 * proper continuation in a "next".
+	 */
 	CONST char *mn = Tcl_GetCommandName(interp, cmd);
 	Tcl_DString ds, *dsPtr = &ds;
 
@@ -9371,7 +9386,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
    */
   if (likely(cmd == NULL)) {
     /* do we have a object-specific proc? */
-    if (object->nsPtr && (flags & NSF_CM_NO_OBJECT_METHOD) == 0) {
+    if (object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0) {
       cmd = FindMethod(object->nsPtr, methodName);
       /*fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
 	object, methodName, object->nsPtr, cmd);*/
@@ -9390,7 +9405,18 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       if (unlikely(currentClass->order == NULL)) {
 	currentClass->order = TopoOrder(INTERP currentClass, Super);
       }
-      cl = SearchPLMethod(currentClass->order, methodName, &cmd);
+      if (unlikely(flags & NSF_CM_SYSTEM_METHOD)) {
+	NsfClasses *classList = currentClass->order;
+	/*
+	 * Skip entries until the first base class.
+	 */
+	for (; classList;  classList = classList->nextPtr) {
+	  if (IsBaseClass(classList->cl)) {break;}
+	}
+	cl = SearchPLMethod(classList, methodName, &cmd);
+      } else {
+	cl = SearchPLMethod(currentClass->order, methodName, &cmd);
+      }
     }
   }
 
