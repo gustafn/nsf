@@ -246,8 +246,8 @@ namespace eval ::nx {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
       }
-      set r [::nsf::object::dispatch [::nsf::current object] {*}$args]
-      if {$r ne ""} {::nsf::method::property [::nsf::self] $r call-protected false}
+      set r [{*}:$args]
+      if {$r ne ""} {::nsf::method::property [self] $r call-protected false}
       return $r
     }
 
@@ -257,7 +257,17 @@ namespace eval ::nx {
 	error "'[lindex $args 0]' is not a method defining method"
       }
       set r [{*}:$args]
-      if {$r ne ""} {::nsf::method::property [::nsf::self] $r call-protected true}
+      if {$r ne ""} {::nsf::method::property [self] $r call-protected true}
+      return $r
+    }
+
+    # method modifier "private"
+    :method private {args} {
+      if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
+	error "'[lindex $args 0]' is not a method defining method"
+      }
+      set r [{*}:$args]
+      if {$r ne ""} {::nsf::method::property [self] $r call-private true}
       return $r
     }
   }

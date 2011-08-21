@@ -128,19 +128,20 @@ nx::Test case redefined-protected {
 
 nx::Test case class-my-local {
   nx::Class create Base {
-    :protected method privateMethod {a b} { expr {$a + $b} }
-    :public method foo {a b} { nsf::my -local privateMethod $a $b }
+    :private method baz {a b} { expr {$a + $b} }
+    :public method foo {a b} { nsf::my -local baz $a $b }
   }
     
   nx::Class create Sub -superclass Base {
-    :public method bar {a b} { nsf::my -local privateMethod $a $b }
-    :public method privateMethod {a b} { expr {$a * $b} }
+    :public method bar {a b} { nsf::my -local baz $a $b }
+    :private method baz {a b} { expr {$a * $b} }
 
     :create s1
   }
 
   ? {s1 foo 3 4} 7
   ? {s1 bar 3 4} 12
+  ? {s1 baz 3 4} {::s1: unable to dispatch method 'baz'}
 }  
 
 #

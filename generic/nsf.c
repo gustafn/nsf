@@ -2509,7 +2509,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	  if (result == TCL_OK) {
 	    Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
 	    Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
-	    if (cmd) { Tcl_Command_flags(cmd) |= NSF_CMD_PROTECTED_METHOD; }
+	    if (cmd) { Tcl_Command_flags(cmd) |= NSF_CMD_CALL_PROTECTED_METHOD; }
 	    Tcl_ResetResult(interp);
 	  } else {
 	    NsfLog(interp, NSF_LOG_WARN, "Could not define alias %s for %s",
@@ -6458,8 +6458,10 @@ SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) {
 static int
 CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, NsfCmdList *cmdList) {
   int result = TCL_OK;
+  int cmdFlags = Tcl_Command_flags(cmd);
 
-  if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
+  if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) ||
+      ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) && !NsfObjectIsClass(object))) {
     /* 
      * The command is not applicable for objects (i.e. might crash,
      * since it expects a class record); therefore skip it
@@ -9398,16 +9400,23 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
    * treat it as unknown.
    */
 
-  if (cmd && (Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD) &&
-      (flags & (NSF_CM_NO_UNKNOWN|NSF_CM_NO_PROTECT)) == 0) {
-    NsfObject *lastSelf = GetSelfObj(interp);
+  if (cmd) {
+    int cmdFlags = Tcl_Command_flags(cmd);
 
-    if (unlikely(object != lastSelf)) {
-      NsfLog(interp, NSF_LOG_WARN, "'%s %s' fails since method %s.%s is protected",
-	     ObjectName(object), methodName,
-	     cl ? ClassName(cl) : ObjectName(object), methodName);
+    if (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) {
       /* reset cmd, since it is still unknown */
       cmd = NULL;
+    } else if ((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) &&
+	       (flags & (NSF_CM_NO_UNKNOWN|NSF_CM_NO_PROTECT)) == 0) {
+      NsfObject *lastSelf = GetSelfObj(interp);
+      
+      if (unlikely(object != lastSelf)) {
+	NsfLog(interp, NSF_LOG_WARN, "'%s %s' fails since method %s.%s is protected",
+	       ObjectName(object), methodName,
+	       cl ? ClassName(cl) : ObjectName(object), methodName);
+	/* reset cmd, since it is still unknown */
+	cmd = NULL;
+      }
     }
   }
 
@@ -15881,7 +15890,7 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   if (withProtection) {
     Tcl_ListObjAppendElement(interp, listObj,
-			     Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD
+			     Tcl_Command_flags(cmd) & NSF_CMD_CALL_PROTECTED_METHOD
 			     ? Tcl_NewStringObj("protected", 9)
 			     : Tcl_NewStringObj("public", 6));
   }
@@ -16344,7 +16353,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
 
 static int
 ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
-  int result, isProtected = Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD;
+  int result, isProtected = Tcl_Command_flags(cmd) & NSF_CMD_CALL_PROTECTED_METHOD;
   if (withCallprotection == CallprotectionNULL) {
     withCallprotection = CallprotectionPublicIdx;
   }
@@ -17556,7 +17565,7 @@ cmd ::method::property NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodproperty" -required 1 -type "class-only|protected|redefine-protected|returns|slotcontainer|slotobj"}
+  {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotcontainer|slotobj"}
   {-argName "value" -type tclobj}
 }
 */
@@ -17586,12 +17595,14 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   switch (methodproperty) {
   case MethodpropertyClass_onlyIdx: /* fall through */
+  case MethodpropertyCall_privateIdx:  /* fall through */
   case MethodpropertyCall_protectedIdx:  /* fall through */
   case MethodpropertyRedefine_protectedIdx:  /* fall through */
     {
       switch (methodproperty) {
       case MethodpropertyClass_onlyIdx: flag = NSF_CMD_CLASS_ONLY_METHOD; break;
-      case MethodpropertyCall_protectedIdx:  flag = NSF_CMD_PROTECTED_METHOD; break;
+      case MethodpropertyCall_privateIdx:  flag = NSF_CMD_CALL_PRIVATE_METHOD; break;
+      case MethodpropertyCall_protectedIdx:  flag = NSF_CMD_CALL_PROTECTED_METHOD; break;
       case MethodpropertyRedefine_protectedIdx: flag = NSF_CMD_REDEFINE_PROTECTED_METHOD; break;
       default: flag = 0;
       }

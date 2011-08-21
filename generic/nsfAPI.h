@@ -129,12 +129,12 @@ static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Par
   return result;
 }
   
-enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_protectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx, MethodpropertySlotcontainerIdx, MethodpropertySlotobjIdx};
+enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_privateIdx, MethodpropertyCall_protectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx, MethodpropertySlotcontainerIdx, MethodpropertySlotobjIdx};
 
 static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"class-only", "call-protected", "redefine-protected", "returns", "slotcontainer", "slotobj", NULL};
+  static CONST char *opts[] = {"class-only", "call-private", "call-protected", "redefine-protected", "returns", "slotcontainer", "slotobj", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodproperty", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -191,7 +191,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToFrame, "method|object|default"},
   {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"},
   {ConvertToObjectkind, "class|baseclass|metaclass"},
-  {ConvertToMethodproperty, "class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj"},
+  {ConvertToMethodproperty, "class-only|call-private|call-protected|redefine-protected|returns|slotcontainer|slotobj"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|baseclasses"},
   {ConvertToConfigureoption, "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},

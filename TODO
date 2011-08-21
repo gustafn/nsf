@@ -3331,8 +3331,17 @@ Test run; exit
   * test "my -local" vs my + method handle
   * test "my -local" vs dispatch + method handle
 
+- nsf.c:
+  * added preliminary/minimal "private" support
+  * private can be called via "my -local", direct
+    dispatches are forbidden, ignored in mixins
+    and next; 
+  * extended regression test
 
 TODO:
+ - private: 
+   * make it mutual exclusive with protected.
+   * more tests
 
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.
