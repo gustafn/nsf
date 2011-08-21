@@ -223,6 +223,8 @@ static void NsfCleanupObject_(INTERP_DECL NsfObject *object);
 static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name);
 static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name);
 static int GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, NsfClass **clPtr, int withUnknown);
+static NsfObject *GetObjectScreenedByCmdName(Tcl_Interp *interp, Tcl_Command cmdPtr);
+static NsfObject *GetObjectFromCmdTable(Tcl_Interp *interp, Tcl_Command searchCmdPtr, Tcl_HashTable *hTablePtr, CONST char **key);
 static void GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startClass);
 NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName);
 
@@ -2571,15 +2573,29 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
 
   /***** SOFT DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_SOFT_DESTROY;
-  /*fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
+  /* fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
 
   for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     NsfObject *object = GetObjectFromString(interp, key);
+    /*
+     * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
+     * needed because objects can be hidden and re-exposed under a different
+     * command name which is not reported back to the object system by the
+     * [interp hide|expose] mechanism. Yet, we want to attempt a destroy dispatch on
+     * hidden and re-exposed objects (e.g., to trigger application-level
+     * destructors, to have the objects marked with NSF_DESTROY_CALLED).
+     */
+    if (object == NULL) {
+      Tcl_Command objectCmdPtr;
 
-    /* fprintf(stderr, "key = %s %p %d\n",
-       key, obj, obj && !NsfObjectIsClass(object)); */
+      objectCmdPtr = (Tcl_Command)Tcl_GetHashValue(hPtr);
+      object = GetObjectScreenedByCmdName(interp, objectCmdPtr);
+    }
+
+    /*fprintf(stderr, "key = %s %p %d\n",
+      key, object, object && !NsfObjectIsClass(object));*/
     if (object && !NsfObjectIsClass(object)
         && !(object->flags & NSF_DESTROY_CALLED)) {
       DispatchDestroyMethod(interp, object, 0);
@@ -2592,7 +2608,24 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     NsfClass *cl = GetClassFromString(interp, key);
+    
+    /*
+     * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
+     * needed because objects can be hidden and re-exposed under a different
+     * command name which is not reported back to the object system by the
+     * [interp hide|expose] mechanism. Yet, we want to attempt a destroy dispatch on
+     * hidden objects (e.g., to trigger application-level destructors, to have
+     * the objects marked with NSF_DESTROY_CALLED).
+     */
+    if (cl == NULL) {
+      Tcl_Command objectCmdPtr;
+      NsfObject *hiddenObject;
 
+      objectCmdPtr = (Tcl_Command)Tcl_GetHashValue(hPtr);
+      hiddenObject = GetObjectScreenedByCmdName(interp, objectCmdPtr);
+      cl = hiddenObject && NsfObjectIsClass(hiddenObject) ? (NsfClass *)hiddenObject : NULL;
+    }
+    
     if (cl && !(cl->object.flags & NSF_DESTROY_CALLED)) {
       DispatchDestroyMethod(interp, (NsfObject *)cl, 0);
     }
@@ -4264,6 +4297,99 @@ NSFindCommand(Tcl_Interp *interp, CONST char *name) {
 
 /*
  *----------------------------------------------------------------------
+ * GetObjectFromCmdTable --
+ *
+ *    Allows for looking up objects in command tables (e.g., namespace cmd
+ *    tables, the interp's hidden cmd table) based on their command pointer
+ *    (rather than their command name key).
+ *
+ * Results:
+ *    NsfObject* or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static NsfObject *
+GetObjectFromCmdTable(Tcl_Interp *interp /* needed? */, Tcl_Command searchCmdPtr, 
+		      Tcl_HashTable *hTablePtr, CONST char **key) {
+  Tcl_HashSearch search;
+  Tcl_HashEntry *hPtr;
+  Tcl_Command needleCmdPtr;
+  
+  if (searchCmdPtr == NULL || hTablePtr == NULL) return NULL;
+  for (hPtr = Tcl_FirstHashEntry(hTablePtr, &search); 
+       hPtr != NULL; 
+       hPtr = Tcl_NextHashEntry(&search)) {
+    needleCmdPtr = (Tcl_Command)Tcl_GetHashValue(hPtr);
+    if (needleCmdPtr == searchCmdPtr) {
+      if (key != NULL) {
+	*key = (char *)Tcl_GetHashKey(hTablePtr, hPtr);
+      }
+      return needleCmdPtr && Tcl_Command_objProc(needleCmdPtr) == NsfObjDispatch ? 
+	(NsfObject *)Tcl_Command_objClientData(needleCmdPtr) : NULL;
+    }
+  }
+  return NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * GetObjectScreenedByCmdName --
+ *
+ *    Provides for a reverse lookup of *hidden* object structures based on
+ *    their commands. This helper is needed for handling hidden and
+ *    re-exposed objects during the shutdown and the cleanup of object
+ *    systems. See GetAllInstances(), ObjectSystemsCleanup(), and
+ *    FreeAllNsfObjectsAndClasses()
+ *
+ * Results:
+ *    NsfObject* or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static NsfObject * 
+GetObjectScreenedByCmdName(Tcl_Interp *interp, Tcl_Command cmdPtr) {
+  Interp *iPtr = (Interp *) interp;
+  NsfObject *screenedObject;
+  CONST char *cmdName;
+
+  /* 
+   * We can provide a shortcut, knowing that a) exposed cmds have an epoch
+   * counter > 0, and b) the commands originating namespace must be the global
+   * one. See also Tcl_HideCommand() and Tcl_ExposeCommand().
+   */
+  if (cmdPtr == NULL || Tcl_Command_cmdEpoch(cmdPtr) == 0 || 
+      ((Command *)cmdPtr)->nsPtr != iPtr->globalNsPtr) return NULL;
+
+  /* 
+   * 1) Reverse lookup object in the interp's hidden command table. We start
+   * off with the hidden cmds as we suspect their number being smaller than
+   * the re-exposed ones, living in the global namespace 
+   */
+  screenedObject = GetObjectFromCmdTable(interp, cmdPtr, iPtr->hiddenCmdTablePtr, &cmdName);
+  if (screenedObject == NULL) {
+    /* 2) Reverse lookup object in the interp's global command table */
+    screenedObject = GetObjectFromCmdTable(interp, cmdPtr, &iPtr->globalNsPtr->cmdTable, &cmdName);
+  }
+
+#if !defined(NDEBUG)
+  if (screenedObject) {
+    fprintf(stderr, "SCREENED OBJECT %s found: object %p (%s) cmd %p\n", cmdName, screenedObject, 
+	    ObjectName(screenedObject), cmdPtr);
+  }
+#endif
+  return screenedObject;
+}
+
+/*
+ *----------------------------------------------------------------------
  * GetObjectFromString --
  *
  *    Lookup an object from a given string. The function performs a
@@ -5662,7 +5788,7 @@ static void
 GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startCl) {
   NsfClasses *sc;
   Tcl_HashSearch search;
-  Tcl_HashEntry *hPtr;
+  Tcl_HashEntry *hPtr, *hPtr2;
   Tcl_HashTable *tablePtr = &startCl->instances;
 
   for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
@@ -5687,6 +5813,16 @@ GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *start
 #if !defined(NDEBUG)
     {
       NsfObject *object = GetObjectFromString(interp, ObjectName(inst));
+      /*
+       * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
+       * needed because objects can be hidden or re-exposed under a different
+       * name which is not reported back to the object system by the [interp
+       * hide|expose] mechanism. However, we still want to process hidden and
+       * re-exposed objects during cleanup like ordinary, exposed ones.
+       */
+      if (object == NULL) {
+	object = GetObjectScreenedByCmdName(interp, inst->id);
+      }
       assert(object);
     }
 #endif
@@ -5697,7 +5833,17 @@ GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *start
 	     ObjectName(inst), inst->id, cmdPtr->flags, cmdPtr->nsPtr ? cmdPtr->nsPtr->flags : 0,
 	     ClassName(startCl));*/
 
-    Tcl_CreateHashEntry(destTablePtr, ObjectName(inst), &new);
+    hPtr2 = Tcl_CreateHashEntry(destTablePtr, ObjectName(inst), &new);
+    /*
+     * HIDDEN OBJECTS: To be able to lookup hidden and re-exposed objects by
+     * their command pointers, we need to preserve them in the result
+     * table. Otherwise, pointer-based lookups in the cleanup procedures
+     * (ObjectSystemsCleanup(), FreeAllNsfObjectsAndClasses()) would not be
+     * possible.
+     */
+    if (new) {
+      Tcl_SetHashValue(hPtr2, (ClientData)inst->id);
+    }
 
   }
   for (sc = startCl->sub; sc; sc = sc->nextPtr) {
@@ -5822,8 +5968,15 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
     NsfClass *cl;
     for (m = startCl->opt->isClassMixinOf; m; m = m->nextPtr) {
 
-      /* we should have no deleted commands in the list */
-      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
+      /* 
+       * HIDDEN OBJECTS: We may encounter situations in which the assertion
+       * about an cmdEpoch == 0 is too strict. Hidden and re-exposed commands
+       * have a cmdEpoch > 0. See Tcl_HideCommand() and
+       * Tcl_ExposeCommand(). Later uses of the command pointer collected here
+       * (e.g., dispatches) must verify the epoch or perform a safety check by
+       * refetching the command token.
+       */
+      assert(m->cmdPtr); /* assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0); */
 
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
@@ -5845,9 +5998,15 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
     NsfObject *object;
 
     for (m = startCl->opt->isObjectMixinOf; m; m = m->nextPtr) {
-
-      /* we should have no deleted commands in the list */
-      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
+      /* 
+       * HIDDEN OBJECTS: We may encounter situations in which the assertion
+       * about an cmdEpoch == 0 is too strict. Hidden and re-exposed commands
+       * have a cmdEpoch > 0. See Tcl_HideCommand() and
+       * Tcl_ExposeCommand(). Later uses of the command pointer collected here
+       * (e.g., dispatches) must verify the epoch or perform a safety check by
+       * refetching the command token.
+       */
+      assert(m->cmdPtr); /* assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0); */
 
       object = NsfGetObjectFromCmdPtr(m->cmdPtr);
       assert(object);
@@ -5935,8 +6094,15 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 
     for (m = startCl->opt->isClassMixinOf; m; m = m->nextPtr) {
 
-      /* we should have no deleted commands in the list */
-      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
+      /* 
+       * HIDDEN OBJECTS: We may encounter situations in which the assertion
+       * about an cmdEpoch == 0 is too strict. Hidden and re-exposed commands
+       * have a cmdEpoch > 0. See Tcl_HideCommand() and
+       * Tcl_ExposeCommand(). Later uses of the command pointer collected here
+       * (e.g., dispatches) must verify the epoch or perform a safety check by
+       * refetching the command token.
+       */
+      assert(m->cmdPtr); /* assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0); */
 
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
@@ -5991,8 +6157,15 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 
     for (m = startCl->opt->classmixins; m; m = m->nextPtr) {
 
-      /* we should have no deleted commands in the list */
-      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
+      /* 
+       * HIDDEN OBJECTS: We may encounter situations in which the assertion
+       * about an cmdEpoch == 0 is too strict. Hidden and re-exposed commands
+       * have a cmdEpoch > 0. See Tcl_HideCommand() and
+       * Tcl_ExposeCommand(). Later uses of the command pointer collected here
+       * (e.g., dispatches) must verify the epoch or perform a safety check by
+       * refetching the command token.
+       */
+      assert(m->cmdPtr); /* assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0); */
 
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
@@ -16872,6 +17045,7 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
 
   /* collect all instances from all object systems */
   Tcl_InitHashTable(tablePtr, TCL_STRING_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", &tablePtr);
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
     GetAllInstances(interp, tablePtr, osPtr->rootClass);
   }
@@ -16879,9 +17053,16 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
   for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(tablePtr, hPtr);
     NsfObject *object = GetObjectFromString(interp, key);
-
-    if (!object) {
-      fprintf(stderr,"key %s\n", key);
+    /*
+     * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
+     * needed because objects can be hidden and re-exposed under a different
+     * name which is not reported back to the object system by the [interp
+     * hide|expose] mechanism. Yet, we want to process them here ...
+     */
+    if (object == NULL) {
+      Tcl_Command objectCmdPtr;
+      objectCmdPtr = (Tcl_Command)Tcl_GetHashValue(hPtr);
+      object = GetObjectScreenedByCmdName(interp, objectCmdPtr);
     }
 
     assert(object);
@@ -16927,6 +17108,7 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
   }
   /*fprintf(stderr, "all assertions passed\n");*/
   Tcl_DeleteHashTable(tablePtr);
+  MEM_COUNT_FREE("Tcl_InitHashTable", &tablePtr);
 
   return TCL_OK;
 }
@@ -22062,7 +22244,18 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTablePtr, hPtr);
     object = GetObjectFromString(interp, key);
-
+    /*
+     * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
+     * needed because objects can be hidden and re-exposed under a different
+     * command name which is not reported back to the object system by the
+     * [interp hide|expose] mechanism. Yet, we want to perform the standard cleanup
+     * procedure on hidden objects.
+     */
+    if (object == NULL) {
+      Tcl_Command objectCmdPtr;
+      objectCmdPtr = (Tcl_Command)Tcl_GetHashValue(hPtr);
+      object = GetObjectScreenedByCmdName(interp, objectCmdPtr);
+    }
     /* delete per-object methods */
     if (object && object->nsPtr) {
       for (hPtr2 = Tcl_FirstHashEntry(Tcl_Namespace_cmdTablePtr(object->nsPtr), &hSrch2); hPtr2;
@@ -22119,8 +22312,21 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
     for (hPtr = Tcl_FirstHashEntry(commandNameTablePtr, &hSrch); hPtr;
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(commandNameTablePtr, hPtr);
-
       object = GetObjectFromString(interp, key);
+      /*
+       * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
+       * needed because objects can be hidden and re-exposed under a different
+       * command name which is not reported back to the object system by the
+       * [interp hide|expose] mechanism. Yet, we want to perform the standard cleanup
+       * procedure on hidden objects.
+       */
+      if (object == NULL) {
+	Tcl_Command objectCmdPtr;
+	
+	objectCmdPtr = (Tcl_Command)Tcl_GetHashValue(hPtr);
+	object = GetObjectScreenedByCmdName(interp, objectCmdPtr);
+      }
+
       if (object && !NsfObjectIsClass(object) && !ObjectHasChildren(object)) {
 	/*if (object->id) {
 	  fprintf(stderr, "  ... delete object %s %p, class=%s id %p ns %p\n", key, object,
@@ -22144,6 +22350,22 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(commandNameTablePtr, hPtr);
       NsfClass *cl = GetClassFromString(interp, key);
+
+      /*
+       * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
+       * needed because objects can be hidden and re-exposed under a different
+       * command name which is not reported back to the object system by the
+       * [interp hide|expose] mechanism. Yet, we want to perform the standard
+       * cleanup procedure on hidden objects.
+       */
+      if (cl == NULL) {
+	Tcl_Command objectCmdPtr;
+	NsfObject *hiddenObject;
+	
+	objectCmdPtr = (Tcl_Command)Tcl_GetHashValue(hPtr);
+	hiddenObject = GetObjectScreenedByCmdName(interp, objectCmdPtr);
+	cl = hiddenObject && NsfObjectIsClass(hiddenObject) ? (NsfClass *)hiddenObject : NULL;
+      }
 
       /*fprintf(stderr, "cl key = %s %p\n", key, cl);*/
       if (cl

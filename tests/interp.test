@@ -1,0 +1,465 @@
+# -*- Tcl -*-
+package req nx::test
+
+proc traceStderr args {
+  puts ">>> traceStderr HA! $args"
+}
+
+nx::Test case hidden-cmds {
+
+  #
+  # Create a slave interp for testing
+  #
+  set i [interp create]
+
+  #
+  # Some baseline
+  #
+
+  $i eval {
+    proc foo {} {;}
+  }
+  $i hide foo
+
+  ? [list $i eval [list info commands ::nx::Object]] ""
+  $i eval [list package req nx]
+  ? [list $i eval [list info commands ::nx::Object]] ::nx::Object
+  #
+  # Tcl's hiding mechansim only applies to objects/classes in the
+  # top-level namespace. So any non-globally namespaced ones and
+  # nested objects are not concerned ...
+  #
+  $i eval {nx::Object create ::o {
+    :public method baz {} { return KO }
+    :public method destroy {} {
+      #
+      # sets a global variable for tracing the processing of the
+      # app-level destructor!
+      #
+      set ::[namespace tail [::nsf::current object]] [::nsf::current class] 
+      next
+    }
+  }}
+  $i eval {nx::Class create ::C {
+    :public method destroy {} {
+      #
+      # sets a global variable for tracing the processing of the
+      # app-level destructor!
+      #
+      set ::[namespace tail [::nsf::current object]] [::nsf::current class]
+      next
+    }
+
+    :public method bar {} {
+      return OK
+    }
+  }}
+  $i eval {nx::Class create ::M {
+    :public method foo {} {
+      return [::nsf::current object]-[:info class]-[::nsf::current class]
+    }
+  }}
+  ? [list $i eval [list info commands ::o]] ::o
+  ? [list $i eval [list info commands ::C]] ::C
+  ? [list $i eval [list info commands ::M]] ::M
+  
+  #
+  # [interp hide] performs a partial and widely silent deletion
+  # (Tcl_HideCommand(); note, while the idea resembles that of a
+  # non-deleting rename, there is no C-level trace available!). The
+  # object's Tcl_command cmdEpoch counter is increased. However,
+  # hiding does not prune the command structure, nor does is the cmd's
+  # client data touched. It is merely re-assigned to another,
+  # interp-wide hash table. The object's command is no valid dispatch
+  # target anymore ...
+  #
+
+  ? [list interp hidden $i] "foo"
+  $i hide o
+  ? [list interp hidden $i] "foo o"
+  ? [list $i eval [list ::o]] "invalid command name \"::o\""
+  ? [list $i eval [list info commands ::o]] ""
+
+  ? [list interp eval $i [list ::C create ::c]] ::c
+  # set some relationships to test later ...
+  ? [list interp eval $i [list ::C mixin add ::M]] ::M
+  ? [list interp eval $i [list ::C class mixin add ::M]] ::M
+
+  $i hide C
+  ? [list interp eval $i [list ::C create ::c2]] {invalid command name "::C"}
+
+  #
+  # However, the object structure is effectively preserved within the
+  # object system and object relations are intact, e.g., the object is
+  # still reported as an instance of a class.
+  #
+
+  ? [list $i eval [list nx::Object info instances ::o]] "::o"
+  ? [list interp invokehidden $i o ::nsf::methods::object::info::class] "::nx::Object"
+  ? [list interp invokehidden $i o info class] "::nx::Object"
+
+  ? [list interp eval $i {c info class}] ::C
+  ? [list interp eval $i {c info class}] ::C
+  ? [list interp invokehidden $i C info instances ::c] ::c
+  ? [list interp invokehidden $i C info mixin classes] ::M
+  # Note, for all introspections that do *not* try to convert the
+  # Tcl_Obj into an object or a class, but treat it as a pattern (or
+  # the like) we are fine ...
+  ? [list $i eval {M info mixinof ::C}] "::C ::C"
+  ? [list $i eval {M info mixinof -scope class ::C}] "::C"
+  ? [list $i eval {M info mixinof -scope object ::C}] "::C"
+
+  # dispatch to object-provided method (with the object being hidden)
+  ? [list interp eval $i {c bar}] OK
+
+  
+  # dispatch to class-provided methods (with the class being hidden)
+  ? [list interp eval $i {c bar}] OK
+
+  # dispatch to mixed-in methods (which do basic introspection on the hidden object) ...
+  ? [list interp invokehidden $i C foo] ::C-::nx::Class-::M
+  ? [list interp eval $i {c foo}] ::c-::C-::M
+  
+  #
+  # 1) Implicit destruction (through NSF's exit handler)
+  #
+  # An important characteristic of a hidden cmd is that it is cleaned
+  # up later than ordinary, exposed (and namespaced) commands; see
+  # DeleteInterpProc(). Hidden commands are processed during a interp
+  # shutdown *after* the exit handler returned! 
+  # 
+  # For testing, we shutdown the NSF object systems in our slave
+  # interp by using ::nsf::finalize; to do some smoke testing of the
+  # cleanup results. As for the cleanup procedre, this is equivalent
+  # to: interp delete $i
+  $i eval {::nsf::finalize}
+  
+  ? [list $i eval {interp hidden}] foo
+  ? [list $i eval [list info commands ::o]] ""
+  ? [list $i eval [list info commands ::C]] ""
+  
+  #
+  # Were the app-level destructors called effectively?
+  #
+  ? [list $i eval { info exists ::o }] 1
+  ? [list $i eval { set ::o }] ""
+  ? [list $i eval { info exists ::c }] 1
+  ? [list $i eval { set ::c }] ::C
+
+
+  interp delete $i
+
+  #
+  # 2) Explicit destruction
+  #
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create ::o2 {
+      :public method destroy {} {
+	next
+	return ok
+      }
+    }}
+  
+  ? [list interp eval $i {
+    list [interp hidden] \
+	[info commands ::o2] \
+	[nx::Object info instances ::o2] \
+	[::nsf::object::exists ::o2]
+  }] {{} ::o2 ::o2 1}
+  
+  $i hide o2
+
+  ? [list interp eval $i {
+    list [interp hidden] \
+	[info commands ::o2] \
+	[nx::Object info instances ::o2] \
+	[::nsf::object::exists ::o2]
+  }] {o2 {} ::o2 0}
+
+  ? [list interp invokehidden $i o2 destroy] "ok"
+  
+  ? [list interp eval $i {
+    list [interp hidden] \
+	[info commands ::o2] \
+	[nx::Object info instances ::o2] \
+	[::nsf::object::exists ::o2]
+  }] {{} {} {} 0}
+
+  #
+  # 3) hide and re-expose
+  #
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	incr ::[namespace tail [current]] 
+	return OK
+      }
+      :public method foo {} {
+	return [list [current object] [current class] [:info class] [[current] info class]]
+      }
+    }
+    interp hide {} o
+  }
+
+  ? [list interp eval $i {
+    list [interp hidden] \
+  	[info commands ::o] \
+  	[nx::Object info instances ::o] \
+  	[::nsf::object::exists ::o]
+  }] {o {} ::o 0} "Check hidden state"
+
+  interp expose $i o
+  ? [list interp eval $i {
+    list [interp hidden] \
+  	[info commands ::o] \
+  	[nx::Object info instances ::o] \
+  	[::nsf::object::exists ::o]
+  }] {{} ::o ::o 1} "Check re-exposed state"
+  
+  #
+  # Is the object "alive"?
+  #
+  ? [list $i eval {::o foo}] {::o {} ::nx::Object ::nx::Object}
+
+  $i eval {::nsf::finalize}
+  
+  # Was the destructor called?
+  ? [list interp eval $i {info exists ::o}] 1
+  ? [list interp eval $i {set ::o}] 1
+  
+  ? [list interp eval $i {
+    list [interp hidden] \
+  	[info commands ::o]
+  }] {{} {}} "Check cleaned-up state"
+
+  interp delete $i 
+
+  # 4) hide/re-expose with "command renaming"
+  
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	incr ::[namespace tail [current]] 
+	return OK
+      }
+      :public method foo {} {
+	catch {[current] info class} msg
+	return [list [current object] [current class] [:info class] $msg]
+      }
+    }
+    interp hide {} o O
+  }
+
+  ? [list interp eval $i {
+    list [interp hidden] \
+  	[info commands ::o] \
+  	[nx::Object info instances ::o] \
+  	[::nsf::object::exists ::o]
+  }] {O {} ::o 0} "Check hidden state -> object command renamed"
+
+  ? [list interp invokehidden $i O foo] {::o {} ::nx::Object {invalid command name "::o"}}
+
+  interp expose $i O OO
+
+  ? [list interp eval $i {OO foo}] {::o {} ::nx::Object {invalid command name "::o"}}
+
+  ? [list interp eval $i {
+    list [interp hidden] \
+	[info commands ::o] \
+  	[info commands ::OO] \
+  	[nx::Object info instances ::o] \
+	[nx::Object info instances ::OO] \
+  	[::nsf::object::exists ::o] \
+	[::nsf::object::exists ::OO]
+  }] {{} {} ::OO ::o ::o 0 1} "Check re-exposed state -> object command renamed again"; # should be {} {} ::OO ::o {} 0 1
+  
+  $i eval {::nsf::finalize}
+  
+  # Was the destructor called?
+  ? [list interp eval $i {info exists ::o}] 1
+  ? [list interp eval $i {set ::o}] 1
+  
+  ? [list interp eval $i {
+    list [interp hidden] \
+  	[info commands ::o]
+  }] {{} {}} "Check cleaned-up state"
+
+  interp delete $i 
+
+  # 5) Rename namespaced object to global one and hide ...
+  
+  set i [interp create]
+  $i eval { 
+    package req nx
+    namespace eval ::ns1 {
+      nx::Object create o {
+	:public method destroy {} {
+	  incr ::[namespace tail [current]] 
+	  return OK
+	}
+      }
+    }
+  }
+  
+  ? [list $i hide ::ns1::o] {cannot use namespace qualifiers in hidden command token (rename)}
+  $i eval {::rename ::ns1::o ::X}
+  ? [list interp eval $i {
+    list [interp hidden] \
+	[info commands ::X] \
+	[nx::Object info instances ::X] \
+	[::nsf::object::exists ::X]
+  }] {{} ::X ::X 1}
+  $i eval {interp hide {} X}
+  ? [list interp eval $i {
+    list [interp hidden] \
+	[info commands ::X] \
+	[nx::Object info instances ::X] \
+	[::nsf::object::exists ::X]
+  }] {X {} ::X 0}
+  $i eval {::nsf::finalize}
+  ? [list interp eval $i {info exists ::X}] 1
+  ? [list interp eval $i {set ::X}] 1
+  interp delete $i
+
+  #
+  # 6) Deletion order
+  #
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	incr ::[namespace tail [current]] 
+	interp invokehidden {} C destroy
+	next
+      }
+    }
+
+    nx::Class create ::C {
+      :public class method destroy {} {
+	incr ::[namespace tail [current]] 
+	next
+      }
+    }
+
+  }
+  $i hide o
+  $i hide C
+  $i eval {::nsf::finalize}
+  ? [list interp eval $i {info exists ::C}] 1
+  ? [list interp eval $i {set ::C}] 1
+  ? [list interp eval $i {info exists ::o}] 1
+  ? [list interp eval $i {set ::o}] 1
+  interp delete $i
+
+  # 8a) Some stumbling blocks in destructors: [error] in app-level destroy
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	error BAFF!
+      }
+    }
+    interp hide {} o
+  }
+  
+  ? [list interp eval $i {::rename ::o ""}] {can't delete "::o": command doesn't exist}
+
+  ? [list interp invokehidden $i o destroy] "BAFF!"
+  ? [list interp eval $i {
+    list [interp hidden] \
+	[info commands ::o] \
+	[nx::Object info instances ::o] \
+	[::nsf::object::exists ::o]
+  }] {o {} ::o 0}
+  $i eval {::nsf::finalize}
+  ? [list interp eval $i {
+    list [interp hidden] \
+	[info commands ::o]
+  }] {{} {}}
+  interp delete $i
+
+  # 3b) Some stumbling blocks in destructors: [interp hide] in app-level destroy
+  set i [interp create]
+  $i eval { 
+    package req nx
+    proc ::bar {} {
+      interp hide {} bar;
+      return 1
+    }
+    
+    nx::Object create ::o {
+      :public method destroy {} {
+	#
+	# Would not be an issue in safe interps, as [interp hide] &
+	# friends are disallowed ...
+	#
+	set res [catch {interp hide {} o} msg]
+	#
+	# TODO: a simple, uncaught 'interp hide {} o' leads to a lookup issue
+	# and weird error handling; however, the cleanup is not
+	# affected ...
+	#
+
+	next
+	return OK
+      }
+    }
+  }
+  
+  ? [list interp eval $i {::bar}] 1
+  ? [list interp eval $i {::o destroy}] OK
+  ? [list interp eval $i {
+    list [interp hidden] \
+  	[info commands ::o] \
+  	[nx::Object info instances ::o] \
+  	[::nsf::object::exists ::o]
+  }] {bar {} {} 0}
+  interp delete $i
+
+  # 3b) Some stumbling blocks in destructors: [interp hide] in app-level destroy
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	catch {::rename [current] ""} msg
+	next
+	return $msg
+      }
+    }
+    interp hide {} o
+  }
+  
+  # ? [list interp eval $i {::o destroy}] OK; weird error message when channeling back the error info!
+  ? [list interp invokehidden $i o destroy] {can't delete "::o": command doesn't exist};
+  ? [list interp eval $i {
+    list [interp hidden] \
+  	[info commands ::o] \
+  	[nx::Object info instances ::o] \
+  	[::nsf::object::exists ::o]
+  }] {{} {} {} 0}
+  interp delete $i 
+}
+
+#
+# TODO: 
+# - [::nsf::current calledclass] seems broken -> returns NULL as string value?!
+# - renames to "" in destroy run into an endless loop: 
+# nx::Object create ::o {
+#    :public method destroy {} {
+# 	::rename [current] ""
+# 	next
+#       }
+#     :destroy
+#     }
+# #
