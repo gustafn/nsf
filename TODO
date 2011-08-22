@@ -3235,9 +3235,6 @@ Test run; exit
 
 - nsf.c: fixed autoname problem with code from tcl trunk
 
-- disposition.test: 
-  * remove/check exit (see comments in the file)
-
 - fixed book-keeping for TclNamespace refcounting such that now
   alias.test, destroy.test and test.xotcl run now clean,
   2 test are still open with tcl 8.5.10 (contains.test and xotcomm.test)
@@ -3356,6 +3353,10 @@ Test run; exit
   * added flag "-keepvars" to nsf::finalize for handling cases in interp.test
   * reactivated tests and simplified interp.test
 
+  - disposition.test: 
+  * remove/check exit (see comments in the file)
+ - disposition.test: 
+    * handle exit from eval/inticmd with proper refcounts
 
 TODO:
  - private: 
@@ -3408,8 +3409,6 @@ nx::Test case ensemble-next-with-colon-prefix {
     # TODO: currently, we need two converters (or a converter on nx::Slot), since
     # variable uses nsf::is and attribute uses the slot obj. method variable should
     # be changed to use the slotobj as well.
- - disposition.test: 
-    * handle exit from eval/inticmd with proper refcounts
 
  - fix mem_count on contains.test (currently 4 / 4)
    the minimal script seems to be the following and is related

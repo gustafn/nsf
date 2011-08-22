@@ -113,7 +113,23 @@ namespace eval ::nx {
 	puts stderr "'${:expected}', got\n'$r'"
 	puts stderr "\tin test file [info script]"
 	if {[info exists :errorReport]} {eval [set :errorReport]}
-	exit -1
+	#
+	# Gracefully unwind the callstack built-up to this point, by
+	# using [return]. At the top-most callstack level, we return
+	# with TCL_OK which will end the script evaluation without any
+	# error handling noise. We simply stop. By first returning to
+	# the very top of the callstack, we allow NSF to cleanup
+	# behind itself at the various dispatch levels
+	# (ObjectDispatch, MethodDispatch(), ...).
+	#
+	# Using [exit -1] directly leaves us with a partially unwinded
+	# callstack and a significant amount of garbage in certain
+	# situations (e.g., failing ? statements in initscripts). This is
+	# because of the "non-returning" character of Tcl_Exit which
+	# effectively skips the cleanup blocks throughout the NSF method
+	# dispatch chain.
+	#
+	return -level [expr {[info level]-1}] -code ok; # exit -1
       }
       if {[info exists :post]} {:call "post" ${:post}}
     }
