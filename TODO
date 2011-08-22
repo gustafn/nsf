@@ -3344,6 +3344,15 @@ Test run; exit
     - nsf::object::dispatch with plain methodName
     - nsf::my (mutual exclusive with -local)
 
+- nsf.c:
+  * change mem-count statistics from per-interp to per-thread 
+  * generalized GetObjectFromCmdTable() to ReverseLookupCmdFromCmdTable()
+  * changed GetObjectScreenedByCmdName() to GetHiddenObjectFromCmd()
+  * modularized interp.test to locate potential problems faster
+  * partly simplified interp.test syntactically
+  * deacivated a few tests in interp.test for the time being 
+    (runs commands after finalize)
+
 TODO:
  - private: 
    * make it mutual exclusive with protected.
