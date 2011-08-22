@@ -3352,6 +3352,7 @@ Test run; exit
   * partly simplified interp.test syntactically
   * deacivated a few tests in interp.test for the time being 
     (runs commands after finalize)
+  * re-established assertion checking for deleted cmds in cmd lists
 
 TODO:
  - private: 

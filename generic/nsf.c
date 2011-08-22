@@ -5973,17 +5973,11 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
   if (startCl->opt) {
     NsfCmdList *m;
     NsfClass *cl;
+
     for (m = startCl->opt->isClassMixinOf; m; m = m->nextPtr) {
 
-      /* 
-       * HIDDEN OBJECTS: We may encounter situations in which the assertion
-       * about an cmdEpoch == 0 is too strict. Hidden and re-exposed commands
-       * have a cmdEpoch > 0. See Tcl_HideCommand() and
-       * Tcl_ExposeCommand(). Later uses of the command pointer collected here
-       * (e.g., dispatches) must verify the epoch or perform a safety check by
-       * refetching the command token.
-       */
-      assert(m->cmdPtr); /* assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0); */
+      /* we should have no deleted commands in the list */ 
+      assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
 
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
@@ -6005,15 +5999,9 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
     NsfObject *object;
 
     for (m = startCl->opt->isObjectMixinOf; m; m = m->nextPtr) {
-      /* 
-       * HIDDEN OBJECTS: We may encounter situations in which the assertion
-       * about an cmdEpoch == 0 is too strict. Hidden and re-exposed commands
-       * have a cmdEpoch > 0. See Tcl_HideCommand() and
-       * Tcl_ExposeCommand(). Later uses of the command pointer collected here
-       * (e.g., dispatches) must verify the epoch or perform a safety check by
-       * refetching the command token.
-       */
-      assert(m->cmdPtr); /* assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0); */
+
+      /* we should have no deleted commands in the list */ 
+      assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
 
       object = NsfGetObjectFromCmdPtr(m->cmdPtr);
       assert(object);
@@ -6100,16 +6088,9 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
     NsfCmdList *m;
 
     for (m = startCl->opt->isClassMixinOf; m; m = m->nextPtr) {
-
-      /* 
-       * HIDDEN OBJECTS: We may encounter situations in which the assertion
-       * about an cmdEpoch == 0 is too strict. Hidden and re-exposed commands
-       * have a cmdEpoch > 0. See Tcl_HideCommand() and
-       * Tcl_ExposeCommand(). Later uses of the command pointer collected here
-       * (e.g., dispatches) must verify the epoch or perform a safety check by
-       * refetching the command token.
-       */
-      assert(m->cmdPtr); /* assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0); */
+      
+      /* we should have no deleted commands in the list */ 
+      assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
 
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
@@ -6164,15 +6145,8 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 
     for (m = startCl->opt->classmixins; m; m = m->nextPtr) {
 
-      /* 
-       * HIDDEN OBJECTS: We may encounter situations in which the assertion
-       * about an cmdEpoch == 0 is too strict. Hidden and re-exposed commands
-       * have a cmdEpoch > 0. See Tcl_HideCommand() and
-       * Tcl_ExposeCommand(). Later uses of the command pointer collected here
-       * (e.g., dispatches) must verify the epoch or perform a safety check by
-       * refetching the command token.
-       */
-      assert(m->cmdPtr); /* assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0); */
+      /* we should have no deleted commands in the list */ 
+      assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
 
       cl = NsfGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
