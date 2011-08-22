@@ -307,7 +307,7 @@ static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
 
 #ifdef DO_FULL_CLEANUP
-static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
+static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars);
 #endif
 
 /*
@@ -2544,7 +2544,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
  *----------------------------------------------------------------------
  */
 static int
-ObjectSystemsCleanup(Tcl_Interp *interp) {
+ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
   Tcl_HashTable objTable, *commandNameTable = &objTable;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
@@ -2634,7 +2634,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
   FreeAllNsfObjectsAndClasses(interp, commandNameTable);
 
 # ifdef DO_FULL_CLEANUP
-  DeleteProcsAndVars(interp, Tcl_GetGlobalNamespace(interp));
+  DeleteProcsAndVars(interp, Tcl_GetGlobalNamespace(interp), withKeepvars);
 # endif
 #endif
 
@@ -10523,7 +10523,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
        */
       *outObjPtr = Tcl_GetObjResult(interp);
       INCR_REF_COUNT2("valueObj", *outObjPtr);
-      //fprintf(stderr, "**** NSF_ARG_IS_CONVERTER\n"); ///yyyy;
+      /*fprintf(stderr, "**** NSF_ARG_IS_CONVERTER\n");*/
     }
     *clientData = (ClientData) *outObjPtr;
 
@@ -15234,7 +15234,6 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
   if (doCheck == 0 && (pPtr->flags & (NSF_ARG_IS_CONVERTER|NSF_ARG_INITCMD)) == 0) {
     /*fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n", pPtr->name, pPtr->flags);*/
     *clientData = ObjStr(objPtr);
-    //*flags = 0; //yyyy;
     return TCL_OK;
   }
 
@@ -15302,7 +15301,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
 	    pPtr->name, pPtr->type, pPtr->flags & NSF_ARG_IS_CONVERTER, pPtr->flags, 
 	    objPtr != *outObjPtr, objPtr, *outObjPtr, result == TCL_OK);*/
     if ((pPtr->flags & NSF_ARG_IS_CONVERTER) && objPtr != *outObjPtr) {
-      *flags |= NSF_PC_MUST_DECR;//yyyy
+      *flags |= NSF_PC_MUST_DECR;
     } else {
       /* 
        * If the output obj differs from the input obj, ensure we have
@@ -17306,11 +17305,12 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
 }
 
 /*
-cmd finalize NsfFinalizeObjCmd {
+cmd finalize NsfFinalizeCmd {
+  {-argName "-keepvars" -required 0 -nrargs 0}
 }
 */
 static int
-NsfFinalizeObjCmd(Tcl_Interp *interp) {
+NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   int result;
 
   /*fprintf(stderr, "+++ call tcl-defined exit handler\n");  */
@@ -17326,7 +17326,7 @@ NsfFinalizeObjCmd(Tcl_Interp *interp) {
             Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
-  ObjectSystemsCleanup(interp);
+  ObjectSystemsCleanup(interp, withKeepvars);
 
 #ifdef DO_CLEANUP
 # if defined(CHECK_ACTIVATION_COUNTS)
@@ -21981,7 +21981,7 @@ NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosur
 #ifdef DO_FULL_CLEANUP
 /* delete global variables and procs */
 static void
-DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
+DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars) {
   Tcl_HashTable *varTablePtr, *cmdTablePtr, *childTablePtr;
   Tcl_HashSearch search;
   Tcl_Command cmd;
@@ -22003,18 +22003,21 @@ DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   for (entryPtr = Tcl_FirstHashEntry(childTablePtr, &search); entryPtr;
        entryPtr = Tcl_NextHashEntry(&search)) {
     Tcl_Namespace *childNsPtr = (Tcl_Namespace *) Tcl_GetHashValue(entryPtr);
-    DeleteProcsAndVars(interp, childNsPtr);
+    DeleteProcsAndVars(interp, childNsPtr, withKeepvars);
   }
 
-  for (entryPtr = Tcl_FirstHashEntry(varTablePtr, &search); entryPtr;
-       entryPtr = Tcl_NextHashEntry(&search)) {
-    Tcl_Obj *nameObj;
-    GetVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
-    if (!TclIsVarUndefined(varPtr) || TclIsVarNamespaceVar(varPtr)) {
-      /* fprintf(stderr, "unsetting var %s\n", ObjStr(nameObj));*/
-      Tcl_UnsetVar2(interp, ObjStr(nameObj), (char *)NULL, TCL_GLOBAL_ONLY);
+  if (!withKeepvars) {
+    for (entryPtr = Tcl_FirstHashEntry(varTablePtr, &search); entryPtr;
+	 entryPtr = Tcl_NextHashEntry(&search)) {
+      Tcl_Obj *nameObj;
+      GetVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
+      if (!TclIsVarUndefined(varPtr) || TclIsVarNamespaceVar(varPtr)) {
+	/* fprintf(stderr, "unsetting var %s\n", ObjStr(nameObj));*/
+	Tcl_UnsetVar2(interp, ObjStr(nameObj), (char *)NULL, TCL_GLOBAL_ONLY);
+      }
     }
   }
+
   for (entryPtr = Tcl_FirstHashEntry(cmdTablePtr, &search); entryPtr;
        entryPtr = Tcl_NextHashEntry(&search)) {
     cmd = (Tcl_Command)Tcl_GetHashValue(entryPtr);
@@ -22209,7 +22212,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
   NsfObject *object;
   int deleted = 0;
 
-  fprintf(stderr, "FreeAllNsfObjectsAndClasses in %p\n", interp);
+  /*fprintf(stderr, "FreeAllNsfObjectsAndClasses in %p\n", interp);*/
 
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_PHYSICAL_DESTROY;
 
@@ -22405,7 +22408,7 @@ ExitHandler(ClientData clientData) {
   CallStackPopAll(interp);
 
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
-    NsfFinalizeObjCmd(interp);
+    NsfFinalizeCmd(interp, 0);
   }
 
   /* must be before freeing of NsfGlobalObjs */

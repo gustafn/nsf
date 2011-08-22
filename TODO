@@ -3353,6 +3353,9 @@ Test run; exit
   * deacivated a few tests in interp.test for the time being 
     (runs commands after finalize)
   * re-established assertion checking for deleted cmds in cmd lists
+  * added flag "-keepvars" to nsf::finalize for handling cases in interp.test
+  * reactivated tests and simplified in interp.test
+
 
 TODO:
  - private: 

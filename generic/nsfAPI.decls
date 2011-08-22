@@ -30,7 +30,8 @@ cmd configure NsfConfigureCmd {
 cmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
-cmd finalize NsfFinalizeObjCmd {
+cmd finalize NsfFinalizeCmd {
+  {-argName "-keepvars" -required 0 -nrargs 0}
 }
 cmd interp NsfInterpObjCmd {
   {-argName "name" -required 1}

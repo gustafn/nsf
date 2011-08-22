@@ -237,7 +237,7 @@ static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDebugCompileEpochStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -333,7 +333,7 @@ static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *val
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
 static int NsfDebugCompileEpoch(Tcl_Interp *interp);
 static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp);
-static int NsfFinalizeObjCmd(Tcl_Interp *interp);
+static int NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars);
 static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *class);
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraint, Tcl_Obj *value);
@@ -430,7 +430,7 @@ enum {
  NsfCurrentCmdIdx,
  NsfDebugCompileEpochIdx,
  NsfDebugRunAssertionsCmdIdx,
- NsfFinalizeObjCmdIdx,
+ NsfFinalizeCmdIdx,
  NsfInterpObjCmdIdx,
  NsfInvalidateObjectParameterCmdIdx,
  NsfIsCmdIdx,
@@ -1068,19 +1068,22 @@ NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
 }
 
 static int
-NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
   (void)clientData;
 
-    
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfFinalizeCmdIdx].paramDefs, 
+                     method_definitions[NsfFinalizeCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int withKeepvars = (int )PTR2INT(pc.clientData[0]);
 
-      if (objc != 1) {
-	return NsfArgumentError(interp, "too many arguments:", 
-			     method_definitions[NsfFinalizeObjCmdIdx].paramDefs,
-			     NULL, objv[0]); 
-      } 
-    
-    return NsfFinalizeObjCmd(interp);
+    assert(pc.status == 0);
+    return NsfFinalizeCmd(interp, withKeepvars);
 
+  }
 }
 
 static int
@@ -2453,8 +2456,8 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::finalize", NsfFinalizeObjCmdStub, 0, {
-  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+{"::nsf::finalize", NsfFinalizeCmdStub, 1, {
+  {"-keepvars", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::interp", NsfInterpObjCmdStub, 2, {
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
