@@ -44,14 +44,18 @@ namespace eval ::nx {
       #
       # Current limitations: just for nx::Objects, no method/mixin cleanup/var cleanup
       #
-      set :case $name
-      if {[info exists arg]} {
-        foreach o [Object info instances -closure] {set pre_exist($o) 1}
-        namespace eval :: [list [current] eval $arg]
-        foreach o [Object info instances -closure] {
-          if {[info exists pre_exist($o)]} continue
-          if {[::nsf::object::exists $o]} {$o destroy}
-        }
+      set :case $name 
+      if {[catch {
+	if {[info exists arg]} {
+	  foreach o [Object info instances -closure] {set pre_exist($o) 1}
+	  namespace eval :: [list [current] eval $arg]
+	  foreach o [Object info instances -closure] {
+	    if {[info exists pre_exist($o)]} continue
+	    if {[::nsf::object::exists $o]} {$o destroy}
+	  }
+	}
+      } errorMsg]} {
+	return -code error -errorInfo $errorMsg
       }
     }
 
@@ -129,7 +133,10 @@ namespace eval ::nx {
 	# effectively skips the cleanup blocks throughout the NSF method
 	# dispatch chain.
 	#
-	return -level [expr {[info level]-1}] -code ok; # exit -1
+
+	#return -level [expr {[info level]-1}] -code ok; # exit -1
+	return -code error
+
       }
       if {[info exists :post]} {:call "post" ${:post}}
     }
@@ -149,4 +156,6 @@ proc ? {cmd expected {msg ""}} {
   $t run
   nsf::__db_run_assertions
 }
+
+
 
