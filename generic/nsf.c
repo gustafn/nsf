@@ -9473,9 +9473,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cmd = FindMethod(object->nsPtr, methodName);
     }
 
-    fprintf(stderr, "ObjectDispatch NSF_CM_LOCAL_METHOD obj %s methodName %s => cl %p %s cmd %p \n",
+    /*fprintf(stderr, "ObjectDispatch NSF_CM_LOCAL_METHOD obj %s methodName %s => cl %p %s cmd %p \n",
 	    object ? ObjectName(object) : NULL, 
-	    methodName, cl, cl ? ClassName(cl) : "NONE", cmd);
+	    methodName, cl, cl ? ClassName(cl) : "NONE", cmd);*/
 
   } else if (*methodName == ':') {
     NsfObject *regObject, *defObject;
