@@ -4910,8 +4910,23 @@ CmdListRemoveFromList(NsfCmdList **cmdList, NsfCmdList *delCL) {
 }
 
 /*
- * remove all command pointers from a list that have a bumped epoch
+ *----------------------------------------------------------------------
+ * CmdListRemoveDeleted --
+ *
+ *    Remove all command pointers from a command list which are marked
+ *    "deleted". The condition for deletion is the presence of the flag
+ *    CMD_IS_DELETED, with the flag bit being set by
+ *    Tcl_DeleteCommandFromToken().
+ *
+ * Results:
+ *    The cmd list filtered for non-deleted commands
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
  */
+
 static void
 CmdListRemoveDeleted(INTERP_DECL NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
   NsfCmdList *f = *cmdList, *del;
