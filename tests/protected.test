@@ -223,6 +223,7 @@ nx::Test case system-flag {
   nx::Object create o1 {
     :public method info {} {return "overloads system info"}
     :public method destroy {} {return "overloads system destroy"}
+    :public method method args {return "overloads method method"}
     :variable v 1
   }
   
@@ -231,6 +232,9 @@ nx::Test case system-flag {
   ? {o1 [nx::Object info method origin "info vars"]} "v"
   ? {o1 -system info vars} "v"
   ? {nsf::object::dispatch o1 -system info vars} "v"
+
+  ? {o1 method foo {} {return foo}} "overloads method method"
+  ? {o1 -system public method foo {} {return foo}} "::o1::foo"
   
   ? {o1 destroy} "overloads system destroy"
   ? {nsf::object::exists o1} 1
@@ -309,8 +313,8 @@ nx::Test case class-my-local+next {
   ? {i1 foo2 4 5} 9
     
   nx::Class create Sub -superclass Intermediate {
-    :public method bar {a b} { puts stderr "Sub.bar->local.baz";nsf::my -local baz $a $b }
-    :private method baz {a b} { puts stderr "Sub.private.baz";expr {$a * $b} }
+    :public method bar {a b} { nsf::my -local baz $a $b }
+    :private method baz {a b} { expr {$a * $b} }
 
     :create s1
   }
