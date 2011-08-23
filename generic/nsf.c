@@ -3729,7 +3729,8 @@ NSNamespaceRelease(INTERP_DECL Tcl_Namespace *nsPtr) {
      * The namespace refCount has reached 0, we have to free
      * it. unfortunately, NamespaceFree() is not exported
      */
-    fprintf(stderr, "HAVE TO FREE namespace %p\n", nsPtr); 
+    /*fprintf(stderr, "HAVE TO FREE namespace %p\n", nsPtr); */
+
     /*NamespaceFree(nsPtr);*/
     ckfree(nsPtr->fullName);
     ckfree(nsPtr->name);

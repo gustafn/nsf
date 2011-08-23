@@ -1,7 +1,5 @@
 package require nx
-puts stderr "package req XOTcl"
 package require XOTcl 2.0
-puts stderr "package req XOTcl DONE"
 package provide nx::serializer 1.0
 
 # For the time being, we require classical XOTcl.

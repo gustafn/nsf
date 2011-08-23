@@ -485,7 +485,6 @@ namespace eval ::nx {
 	puts stderr "+++ UNKNOWN raises error $errorMsg"
       }
       set ref "\"$m\" of $obj $path"
-puts stderr "***VALID <[lsort $valid]>"
       error "Unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
     }
     
