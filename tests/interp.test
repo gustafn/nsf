@@ -117,7 +117,9 @@ nx::Test case hidden-cmds {
   ? {interp eval $i {c bar}} OK
 
   # dispatch to mixed-in methods (which do basic introspection on the hidden object) ...
-  ? {interp invokehidden $i C foo} ::C-::nx::Class-::M
+  if {$::tcl_version < 8.6} {
+    ? {interp invokehidden $i C foo} ::C-::nx::Class-::M
+  }
   ? {interp eval $i {c foo}} ::c-::C-::M
   
   #
@@ -186,11 +188,13 @@ nx::Test case hidden-cmds+explicit-delete {
   ? {$i eval {nx::Object info instances ::o2}} ::o2
   ? {$i eval {nsf::object::exists ::o2}} 0
 
-  ? {interp invokehidden $i o2 destroy} "ok"
+  if {$::tcl_version < 8.6} {
+    ? {interp invokehidden $i o2 destroy} "ok"
+    ? {$i eval {interp hidden}} ""
+    ? {$i eval {nx::Object info instances ::o2}} ""
+  }
 
-  ? {$i eval {interp hidden}} ""
   ? {$i eval {info commands ::o2}} ""
-  ? {$i eval {nx::Object info instances ::o2}} ""
   ? {$i eval {nsf::object::exists ::o2}} 0
 }
 
@@ -277,13 +281,15 @@ nx::Test case command-renaming {
   ? {interp eval $i {nx::Object info instances ::o}} ::o
   ? {interp eval $i {nsf::object::exists ::o}} 0
 
-  ? {interp invokehidden $i O foo} \
-      {::o {} ::nx::Object {invalid command name "::o"}}
+  if {$::tcl_version < 8.6} {
+    ? {interp invokehidden $i O foo} \
+	{::o {} ::nx::Object {invalid command name "::o"}}
+  }
 
   interp expose $i O OO
 
-  ? {interp eval $i {OO foo}} \
-      {::o {} ::nx::Object {invalid command name "::o"}}
+    ? {interp eval $i {OO foo}} \
+	{::o {} ::nx::Object {invalid command name "::o"}}
 
   ? {interp eval $i {interp hidden}} ""
   ? {interp eval $i {info commands ::o}} ""
@@ -408,7 +414,9 @@ nx::Test case error-in-destroy-1 {
   ? {interp eval $i {::rename ::o ""}} \
       {can't delete "::o": command doesn't exist}
 
-  ? {interp invokehidden $i o destroy} "BAFF!"
+  if {$::tcl_version < 8.6} {
+    ? {interp invokehidden $i o destroy} "BAFF!"
+  }
 
   ? {interp eval $i {interp hidden}} "o"
   ? {interp eval $i {info commands ::o}} ""
@@ -489,12 +497,14 @@ nx::Test case error-in-destroy-3 {
 
   ? {interp eval $i {::o destroy}} {invalid command name "::o"}
 
-  ? {interp invokehidden $i o destroy} \
-      {can't delete "::o": command doesn't exist}
+  if {$::tcl_version < 8.6} {
+    ? {interp invokehidden $i o destroy} \
+	{can't delete "::o": command doesn't exist}
+    ? {interp eval $i {interp hidden}} ""
+    ? {interp eval $i {nx::Object info instances ::o}} ""
+  }
 
-  ? {interp eval $i {interp hidden}} ""
   ? {interp eval $i {info commands ::o}} ""
-  ? {interp eval $i {nx::Object info instances ::o}} ""
   ? {interp eval $i {nsf::object::exists ::o}} 0
 
   interp delete $i 

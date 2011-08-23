@@ -3374,6 +3374,9 @@ Test run; exit
 
 
 TODO:
+ - fix interp.test for tcl 8.6
+ - fix xocomm.test for tcl 8.6
+
  - private: 
    * make it mutual exclusive with protected.
    * more tests
