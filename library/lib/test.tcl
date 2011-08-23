@@ -45,17 +45,14 @@ namespace eval ::nx {
       # Current limitations: just for nx::Objects, no method/mixin cleanup/var cleanup
       #
       set :case $name 
-      if {[catch {
-	if {[info exists arg]} {
-	  foreach o [Object info instances -closure] {set pre_exist($o) 1}
-	  namespace eval :: [list [current] eval $arg]
-	  foreach o [Object info instances -closure] {
-	    if {[info exists pre_exist($o)]} continue
-	    if {[::nsf::object::exists $o]} {$o destroy}
-	  }
+
+      if {[info exists arg]} {
+	foreach o [Object info instances -closure] {set pre_exist($o) 1}
+	namespace eval :: [list [current] eval $arg]
+	foreach o [Object info instances -closure] {
+	  if {[info exists pre_exist($o)]} continue
+	  if {[::nsf::object::exists $o]} {$o destroy}
 	}
-      } errorMsg]} {
-	return -code error -errorInfo $errorMsg
       }
     }
 
@@ -118,24 +115,13 @@ namespace eval ::nx {
 	puts stderr "\tin test file [info script]"
 	if {[info exists :errorReport]} {eval [set :errorReport]}
 	#
-	# Gracefully unwind the callstack built-up to this point, by
-	# using [return]. At the top-most callstack level, we return
-	# with TCL_OK which will end the script evaluation without any
-	# error handling noise. We simply stop. By first returning to
-	# the very top of the callstack, we allow NSF to cleanup
-	# behind itself at the various dispatch levels
-	# (ObjectDispatch, MethodDispatch(), ...).
-	#
-	# Using [exit -1] directly leaves us with a partially unwinded
-	# callstack and a significant amount of garbage in certain
-	# situations (e.g., failing ? statements in initscripts). This is
-	# because of the "non-returning" character of Tcl_Exit which
-	# effectively skips the cleanup blocks throughout the NSF method
-	# dispatch chain.
-	#
+	# Make sure that the script exits with an error code, but
+	# unwind the callstack via return with an error code.  Using
+	# [exit -1] would leave us with a partially unwinded callstack
+	# with garbage complicating debugging (e.g. MEM_COUNT
+	# statistics would indicate unbalanced refCounts, etc.).
 
-	#return -level [expr {[info level]-1}] -code ok; # exit -1
-	return -code error
+	return -level [expr {[info level]-1}] -code error 
 
       }
       if {[info exists :post]} {:call "post" ${:post}}
