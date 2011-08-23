@@ -509,3 +509,252 @@ nx::Test case error-in-destroy-3 {
 
   interp delete $i 
 }
+
+#
+# see NsfProcAliasMethod():
+# Tcl_Command_cmdEpoch(tcd->aliasedCmd)
+#
+nx::Test case hidden-procs-as-aliases {
+  #
+  # 1) hide alias proc targets
+  #
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    ::proc ::FOO args {return OK}
+    nx::Object create o {
+      :public alias foo ::FOO
+    }
+  }
+  
+  ? {$i eval {o foo}} OK
+  ? {$i hidden} ""
+  $i hide FOO
+  ? {$i hidden} FOO
+  #
+  # For now, we do not allow to dispatch to hidden proc targets
+  # through their method aliases as this would counteract the idea of
+  # hiding cmds from a (safe) slave interp. As the NSF aliasing works
+  # unrestrictedly in child (safe) interps (as opposed to [interp
+  # invokehidden]), this would derail the essentials of the hiding
+  # mechanism.
+  #
+  ? {$i eval {o foo}} {target "::FOO" of alias foo apparently disappeared}
+  #
+  # When exposing it again (e.g., from the master interp), we can
+  # dispatch again; note this is currently limited to the exposing
+  # under the original command name (!)
+  #
+  $i expose FOO
+  ? {$i hidden} ""
+  ? {$i eval {o foo}} OK
+
+  $i hide FOO
+  ? {$i hidden} FOO
+  
+  #
+  # Limitation: Currently, exposing a hidden target command under a
+  # *different* name will not re-establish the alias. This is due to
+  # the way NsfProcAliasMethod() is currently implemented: Rebinding
+  # an epoched cmd (which holds for renamed as well as
+  # hidden/re-exposed cmds) is currently based on the command name
+  # stored in the ::nsf::alias array. This metadata store is not
+  # maintained during [interp hide|expose] operations. Using a
+  # pointer-based (reverse) lookup based on tcd->aliasedCmd would be
+  # possible (I did it testwise), but then we would have to revise the
+  # current behaviour of NsfProcAliasMethod() for target proc
+  # renamings also. A non-deleting [rename] currently also interrupts
+  # an alias binding.  See the relevant tests on [rename ::foo ::foo2]
+  # in tests/alias.test. To be consistent, and because [interp
+  # hide|expose] is a two-step [rename], technically, we keep the
+  # current behaviour.
+  #
+  $i expose FOO OOF
+
+  ? {$i hidden} ""
+  ? {$i eval {o foo}} {target "::FOO" of alias foo apparently disappeared}
+  
+  #
+  # Due to the alias-specific lookup scheme (::nsf::alias), we could fix
+  # the alias manually after a command-renaming hide|expose operation:
+  #
+
+  ? {$i eval {info exists ::nsf::alias(::o,foo,1)}} 1
+  ? {$i eval {set ::nsf::alias(::o,foo,1)}} "::FOO"
+  ? {$i eval {set ::nsf::alias(::o,foo,1) ::OOF}} "::OOF"
+  ? {$i eval {info commands ::OOF}} ::OOF
+  ? {$i eval {o foo}} OK
+
+  interp delete $i
+  unset i  
+
+}
+
+nx::Test case hidden-objects-as-aliases {
+  #
+  # 2) hide alias object targets
+  #
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create x {
+      :public method foo {} {return OK}
+    }
+    nx::Object create dongo {
+      :public alias bar ::x
+    }
+  }
+
+  #
+  # Objects as intermediary aliases are transparent when being
+  # hidden|exposed; hiding and exposing them (under differing command
+  # names) do not affect the dispatch behaviour; this is due to the
+  # ensemble dispatch strategy ...
+  # 
+
+  ? {$i hidden} ""
+  ? {$i eval {dongo bar foo}} OK
+  $i hide x
+  ? {$i hidden} x
+  ? {$i eval {dongo bar foo}} OK
+  ? {$i eval {x foo}} {invalid command name "x"}
+  ? {$i invokehidden x foo} OK
+  $i expose x
+  ? {$i hidden} ""
+  ? {$i eval {dongo bar foo}} OK
+  ? {$i eval {x foo}} OK
+
+  $i hide x X
+  ? {$i hidden} X
+  ? {$i eval {dongo bar foo}} OK
+  ? {$i eval {X foo}} {invalid command name "X"}
+  ? {$i invokehidden X foo} OK
+
+  $i expose X XX
+  ? {$i hidden} ""
+  ? {$i eval {dongo bar foo}} OK
+  ? {$i eval {XX foo}} OK
+
+  #
+  # Hiding of leaf methods (e.g., ::o::foo) is not an issue because
+  # hiding|exposing is limited to global commands
+  #
+
+  ? {$i hide ::o::foo} "cannot use namespace qualifiers in hidden command token (rename)"
+  
+  interp delete $i
+  unset i
+}
+
+#
+# MixinSearchProc()
+#
+
+nx::Test case hidden-mixins-procsearch {
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create x {
+      :public method foo {} {return OK}
+    }
+    nx::Class create M {
+      :public method foo {} {
+	return <[current class]>[next]<[current class]>
+      }
+    }
+    x mixin M
+  }
+
+  ? {$i eval {x foo}} <::M>OK<::M>
+
+  #
+  # Hiding M as a command should not affect *existing* mixin
+  # relations! 
+  #
+  
+  $i hide M
+  ? {$i hidden} M
+  ? {$i eval {x foo}} <::M>OK<::M> "with hidden mixin"
+  $i expose M
+  ? {$i hidden} ""
+  ? {$i eval {x foo}} <::M>OK<::M> "with re-exposed mixin"
+  
+  $i hide M m
+  ? {$i eval {x foo}} <::M>OK<::M> "with hidden mixin (renamed command)"
+  $i expose m MM
+  ? {$i eval {x foo}} <::M>OK<::M> "with re-exposed mixin (renamed command)"
+
+  #
+  # However, modifying mixin axes is hindered, because of
+  # the underlying relation machinery (::nsf::relation,
+  # RelationSlot->add(), etc.) is relying on exposed command names
+  # (i.e., command and object look-ups based on
+  # Tcl_GetCommandFromToken(), GetObjectFromString() usage).
+  #
+  
+  $i hide MM M
+  $i eval {nx::Class create ::M2}
+  ? {$i eval {x mixin add M2}} {mixin: expected a class as mixin but got "::M"}
+  ? {$i invokehidden M mixin add M2} {expected object but got "::M" for parameter "object"}
+
+  interp delete $i
+  unset i
+}
+
+#
+# MixinComputeOrderFullList() & friends (due to
+# CmdListRemoveDeleted()
+#
+nx::Test case hidden-mixins-mixinlists {
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create o
+    nx::Class create M1 
+    nx::Class create M2
+    nx::Class create M3
+    o mixin {M1 M2}
+  }
+
+  ? {$i eval {o info precedence}} "::M1 ::M2 ::nx::Object"
+  ? {$i eval {o info mixin classes}} {::M1 ::M2}
+  ? {$i hidden} ""
+  $i hide M1
+  ? {$i hidden} M1
+  $i eval {M2 mixin add M3}
+  ? {$i eval {o info precedence}} "::M1 ::M3 ::M2 ::nx::Object"
+  #
+  # Now, have the mixin list invalidated; The next time we request the list,
+  # the mixin assembly machinery will have to deal with the hidden
+  # mixin; and properly include it.
+  #
+  # We need to destroy one mixin explicitly (or add one as a per-class
+  # mixin, or the like), as the mixin modification API would stumble
+  # over the hidden mixin object ...
+  #
+  $i eval {::M2 destroy}
+  ? {$i eval {o info precedence}} "::M1 ::nx::Object"
+  ? {$i eval {o info mixin classes}} "::M1"
+  ? {$i invokehidden M1 info mixinof} "::o"
+
+  interp delete $i
+  unset i
+
+  # $i eval {
+  #   nx::Class create ::M2
+  #   # catch {x mixin add ::M2} msg
+  #   # puts stderr -----msg=$msg
+  #   # TODO: force an invalidation of the mixin order!
+  #   #
+  #   catch { interp invokehidden {} M mixin add M2 } msg
+  #   puts stderr -----msg=$msg,$::errorInfo
+  # }
+  # ? {$i eval {x info precedence}} "::M ::nx::Object"
+  # ? {$i eval {x info mixin classes}} ::M  
+}
+
+
