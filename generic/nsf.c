@@ -2187,8 +2187,8 @@ SearchPLMethod(register NsfClasses *pl, CONST char *methodName,
 	Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
 	
 	if (Tcl_Command_flags(cmd) & flags) {
-	  fprintf(stderr, "skipped cmd %p flags %.6x & %.6x => %.6x\n", 
-		  cmd, flags, Tcl_Command_flags(cmd), Tcl_Command_flags(cmd) & flags);
+	  /*fprintf(stderr, "skipped cmd %p flags %.6x & %.6x => %.6x\n", 
+	    cmd, flags, Tcl_Command_flags(cmd), Tcl_Command_flags(cmd) & flags);*/
 	  continue;
 	}
 	*cmdPtr = cmd;
