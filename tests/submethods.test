@@ -497,7 +497,7 @@ nx::Test case submethods-current-introspection {
       [current class] eval [list set :msg [list [current methodpath] \
 					       [current calledmethod] \
 					       [current calledclass] \
-					       [current next]]]
+					       [current nextmethod]]]
       next
     }
     

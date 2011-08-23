@@ -12904,7 +12904,7 @@ NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_O
  *----------------------------------------------------------------------
  * FindSelfNext --
  *
- *    This function is called via [current next] to set the result of the
+ *    This function is called via [current nextmethod] to set the result of the
  *    interp to the method which would be called by [next]. If there are more
  *    shadowed methods along the precedence path, it sets the result of the
  *    next method in form of a method handle. If there are no more shadowed
@@ -19252,7 +19252,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case CurrentoptionNextIdx:
+  case CurrentoptionNextmethodIdx:
     result = FindSelfNext(interp);
     break;
   }
