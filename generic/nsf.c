@@ -9382,6 +9382,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       } else if (strcmp(methodName + 1, "local") == 0) {
 	flags |=  NSF_CM_LOCAL_METHOD;
 	shift = 2;
+      } else if (strcmp(methodName + 1, "intrinsic") == 0) {
+	flags |=  NSF_CM_INTRINSIC_METHOD;
+	shift = 2;
       } else {
 	shift = 1;
       }
@@ -9540,7 +9543,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
    * Check if a mixed in method has to be called.
    */
   if ((objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID 
-      && (flags & NSF_CM_SYSTEM_METHOD) == 0 
+      && (flags & (NSF_CM_SYSTEM_METHOD|NSF_CM_INTRINSIC_METHOD)) == 0 
       && ((flags & NSF_CM_LOCAL_METHOD) == 0 || cl)) {
 
     /*
@@ -12391,16 +12394,16 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
   }
 
   /*
-   *  Next in Mixins
+   *  Next in Mixins requires that we have already a mixinStack, and the
+   *  current frame is not a plain frame.
    */
   assert(objflags & NSF_MIXIN_ORDER_VALID);
-  /* otherwise: MixinComputeDefined(interp, object); */
 
-  /*fprintf(stderr, "... mixinstack %p => %p\n", object, object->mixinStack);*/
-
-  if (object->mixinStack) {
+  if (object->mixinStack && cscPtr->frameType) {
     int result = MixinSearchProc(interp, object, *methodNamePtr, NULL, 
 				 clPtr, currentCmdPtr, cmdPtr);
+
+    /* fprintf(stderr, "next in mixins %s frameType %.6x\n", *methodNamePtr, cscPtr->frameType); */
 
     if (unlikely(result != TCL_OK)) {
       return result;
@@ -18040,11 +18043,11 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
 }
 
 
-
 /*
 cmd "object::dispatch" NsfObjectDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
+  {-argName "-intrinsic" -required 0 -nrargs 0}
   {-argName "-local" -required 0 -nrargs 0}
   {-argName "-system" -required 0 -nrargs 0}
   {-argName "command" -required 1 -type tclobj}
@@ -18053,7 +18056,7 @@ cmd "object::dispatch" NsfObjectDispatchCmd {
 */
 static int
 NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, 
-		     int withFrame, int withLocal, int withSystem,
+		     int withFrame, int withIntrinsic, int withLocal, int withSystem,
 		     Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   CONST char *methodName = ObjStr(command);
@@ -18140,6 +18143,7 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 			   methodName);
     }
 
+    if (withIntrinsic) {flags |= NSF_CM_INTRINSIC_METHOD;}
     if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
     if (withLocal) {flags |= NSF_CM_LOCAL_METHOD;}
 
@@ -18335,6 +18339,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 
 /*
 cmd my NsfMyCmd {
+  {-argName "-intrinsic" -nrargs 0}
   {-argName "-local" -nrargs 0}
   {-argName "-system" -nrargs 0}
   {-argName "method" -required 1 -type tclobj}
@@ -18343,8 +18348,8 @@ cmd my NsfMyCmd {
 */
 static int
 NsfMyCmd(Tcl_Interp *interp, 
-	 int withLocal, int withSystem, Tcl_Obj *methodObj, 
-	 int nobjc, Tcl_Obj *CONST nobjv[]) {
+	 int withIntrinsic, int withLocal, int withSystem, 
+	 Tcl_Obj *methodObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
   int flags, result;
 
@@ -18366,13 +18371,15 @@ NsfMyCmd(Tcl_Interp *interp,
     fprintf(stderr, "XXX MY %s.%s frame has flags %.6x -> next-flags %.6x\n",
 	    ObjectName(self), ObjStr(methodObj), cscPtr->flags, flags);
   }
-  if (withLocal) {flags |= NSF_CM_LOCAL_METHOD;}
-  if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
+  if (withIntrinsic) {flags |= NSF_CM_INTRINSIC_METHOD;}
+  if (withLocal)     {flags |= NSF_CM_LOCAL_METHOD;}
+  if (withSystem)    {flags |= NSF_CM_SYSTEM_METHOD;}
   result = CallMethod(self, interp, methodObj, nobjc+2, nobjv, flags);
 #else
   flags = NSF_CSC_IMMEDIATE;
-  if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
-  if (withLocal) {flags |= NSF_CM_LOCAL_METHOD;}
+  if (withIntrinsic) {flags |= NSF_CM_INTRINSIC_METHOD;}
+  if (withLocal)     {flags |= NSF_CM_LOCAL_METHOD;}
+  if (withSystem)    {flags |= NSF_CM_SYSTEM_METHOD;}
   result = CallMethod(self, interp, methodObj, nobjc+2, nobjv, flags);
 #endif
 

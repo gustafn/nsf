@@ -3361,7 +3361,7 @@ Test run; exit
   * integrated "-local" and fully qualified handling with ObjectDispatch 
     to ensure proper behavior of mixins/next etc.
   * added "/obj/ -local ..." similar to "/obj/ -system ..."
-  * added "nsf::object::disapatch /obj/ -local ..." similar to "/obj/ -local ..."
+  * added "nsf::object::dispatch /obj/ -local ..." similar to "/obj/ -local ..."
   * extended regression test (next from -local, 
     fully qualified names, private methods, "...dispatch -local")
   * provide error message for "/obj/ -system"
@@ -3370,6 +3370,12 @@ Test run; exit
   * make calls from "protected", "public", and "private" system calls,
     such that "obj -system protected method foo {} ..." works, even
     when obj has a method named "method".
+  * extended regression test
+
+- nsf.c:
+  * added "/obj/ -intrinsic ..." similar to "/obj/ -system ..."
+  * added "nsf::my /obj/ -intrinsic ..." similar to "/obj/ -intrinsic ..."
+  * added "nsf::object::dispatch /obj/ -intrinsic ..." similar to "/obj/ -intrinsic ..."
   * extended regression test
 
 

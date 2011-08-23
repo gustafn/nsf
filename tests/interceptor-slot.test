@@ -328,5 +328,86 @@ nx::Test case mixins+method-handles {
 }
 
 
+#
+# Test the next-path with mixin classes in cases where a
+# method handle is used for method dispatch
+#
+
+nx::Test case mixins+method-handles+intrinsic {
+  #
+  # Just mixin classes
+  #
+  Class create A {:public method foo {} {return "A [next]"}}
+  Class create B {:public method foo {} {return "B [next]"}}
+  Class create C {:public method foo {} {return "C [next]"}}
+
+  Class create X -mixin {C B A} {
+    :public method foo {} {return "X [next]"}
+  }
+  X create c1
+  ? {c1 foo} "C B A X "
+  ? {c1 -intrinsic foo} "X "
+
+  
+  #
+  # Intrinsic classes and mixin classes
+  #
+
+  Class create Y {:public method foo {} {return "Y [next]"}}
+  Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
+
+  Z create c1 -mixin {C B A}
+  ? {c1 foo} "C B A Z Y "
+  ? {c1 -intrinsic foo} "Z Y "
+
+  # 
+  # check, whether the context of "my -intrinsic" is correct
+  #
+  A public method bar {} {nsf::my -intrinsic foo}
+  B public method bar {} {nsf::my -intrinsic foo}
+  C public method bar {} {nsf::my -intrinsic foo}
+  Y public method bar {} {nsf::my -intrinsic foo}
+  Z public method bar {} {nsf::my -intrinsic foo}
+
+  ? {c1 info precedence} "::C ::B ::A ::Z ::Y ::nx::Object"
+  ? {c1 bar} "Z Y "
+  ? {c1 [C info method origin bar]} "Z Y "
+  ? {c1 [B info method origin bar]} "Z Y "
+  ? {c1 [A info method origin bar]} "Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Z Y "
+
+  # 
+  # check, whether the context of "[self] -intrinsic" is correct
+  #
+  A public method bar {} {[self] -intrinsic foo}
+  B public method bar {} {[self] -intrinsic foo}
+  C public method bar {} {[self] -intrinsic foo}
+  Y public method bar {} {[self] -intrinsic foo}
+  Z public method bar {} {[self] -intrinsic foo}
+
+  ? {c1 bar} "Z Y "
+  ? {c1 [C info method origin bar]} "Z Y "
+  ? {c1 [B info method origin bar]} "Z Y "
+  ? {c1 [A info method origin bar]} "Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Z Y "
+
+  # 
+  # check, whether the context of "nsf::object::dispatch [self] -intrinsic" is correct
+  #
+  A public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
+  B public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
+  C public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
+  Y public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
+  Z public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
+
+  ? {c1 bar} "Z Y "
+  ? {c1 [C info method origin bar]} "Z Y "
+  ? {c1 [B info method origin bar]} "Z Y "
+  ? {c1 [A info method origin bar]} "Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Z Y "
+}
 
 
