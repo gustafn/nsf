@@ -9388,10 +9388,13 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     } else {
       shift = 1;
     }
+    if (shift >= objc) {
+      return NsfPrintError(interp, "no method name specified");
+    }
     methodObj = objv[shift];
     methodName = ObjStr(methodObj);
     if (FOR_COLON_RESOLVER(methodName)) {
-      return NsfPrintError(interp, "%s: methodname '%s' must not start with a colon",
+      return NsfPrintError(interp, "%s: method name '%s' must not start with a colon",
 			   ObjectName(object), methodName);
     }
   }

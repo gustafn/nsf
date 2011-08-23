@@ -183,9 +183,9 @@ Test case colondispatch {
     #:public method foo args {;}
     :public method bar args {;}
   }
-  ? {o :bar} "::o: methodname ':bar' must not start with a colon" 
+  ? {o :bar} "::o: method name ':bar' must not start with a colon" 
   ? {o eval :bar} "" 
-  ? {o :foo} "::o: methodname ':foo' must not start with a colon" 
+  ? {o :foo} "::o: method name ':foo' must not start with a colon" 
   ? {o eval :foo} "::o: unable to dispatch method 'foo'" 
 }
 

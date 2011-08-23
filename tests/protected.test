@@ -233,6 +233,8 @@ nx::Test case system-flag {
   ? {o1 -system info vars} "v"
   ? {nsf::object::dispatch o1 -system info vars} "v"
 
+  ? {o1 -system} "no method name specified"
+
   ? {o1 method foo {} {return foo}} "overloads method method"
   ? {o1 -system public method foo {} {return foo}} "::o1::foo"
   

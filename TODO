@@ -3364,6 +3364,7 @@ Test run; exit
   * added "nsf::object::disapatch /obj/ -local ..." similar to "/obj/ -local ..."
   * extended regression test (next from -local, 
     fully qualified names, private methods, "...dispatch -local")
+  * provide error message for "/obj/ -system"
 
 - nx.tcl:
   * make calls from "protected", "public", and "private" system calls,
