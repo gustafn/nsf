@@ -1,0 +1,49 @@
+# -*- Tcl -*-
+package req nx::test
+
+#
+# [::nsf::current calledclass]
+#
+
+nx::Test case current-calledclass {
+  Object create o {
+    :public method foo {} {
+      return [current calledclass]
+    }
+  }
+  ? {o foo} ""
+  Class create C {
+    :public class method bar {} {
+      return [current calledclass]
+    }
+    :public method foo {} {
+      return [current calledclass]
+    }
+  }
+  ? {[C new] foo} ::C
+  ? {C bar} ""
+  
+  C eval {
+    :public method intercept {} {
+      return @[current calledclass]@
+    }
+    :filter add intercept
+  }
+  ? {[C new] foo} @::C@
+
+  C eval {
+    :filter {}
+    :public method baz {} {
+      return [current calledclass]
+    }
+  }
+
+  Class create M {
+    :public method baz {} {
+      return [list [current calledclass] [next]]
+    }
+  }
+  C mixin add M
+
+  ? {[C new] baz} {::C ::C}
+}

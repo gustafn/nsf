@@ -120,10 +120,9 @@ namespace eval ::nx {
 	#
 	# Gracefully unwind the callstack built-up to this point, by
 	# using [return]. At the top-most callstack level, we return
-	# with TCL_OK which will end the script evaluation without any
-	# error handling noise. We simply stop. By first returning to
-	# the very top of the callstack, we allow NSF to cleanup
-	# behind itself at the various dispatch levels
+	# with TCL_ERROR which will end the script evaluation. By
+	# first returning to the very top of the callstack, we allow
+	# NSF to cleanup behind itself at the various dispatch levels
 	# (ObjectDispatch, MethodDispatch(), ...).
 	#
 	# Using [exit -1] directly leaves us with a partially unwinded
@@ -133,9 +132,9 @@ namespace eval ::nx {
 	# effectively skips the cleanup blocks throughout the NSF method
 	# dispatch chain.
 	#
-
-	#return -level [expr {[info level]-1}] -code ok; # exit -1
-	return -code error
+	
+	# exit -1 
+	return -code error; # return -level [expr {[info level]-1}] -code error
 
       }
       if {[info exists :post]} {:call "post" ${:post}}
