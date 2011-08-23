@@ -3353,10 +3353,18 @@ Test run; exit
   * added flag "-keepvars" to nsf::finalize for handling cases in interp.test
   * reactivated tests and simplified interp.test
 
-  - disposition.test: 
+- disposition.test: 
   * remove/check exit (see comments in the file)
- - disposition.test: 
-    * handle exit from eval/inticmd with proper refcounts
+  * handle exit from eval/inticmd with proper refcounts
+
+- nsf.c:
+  * integrated "-local" and fully qualified handling with ObjectDispatch 
+    to ensure proper behavior of mixins/next etc.
+  * added "/obj/ -local ..." similar to "/obj/ -system ..."
+  * added "nsf::object::disapatch /obj/ -local ..." similar to "/obj/ -local ..."
+  * extended regression test (next from -local, 
+    fully qualified names, private methods, "...dispatch -local")
+
 
 TODO:
  - private: 

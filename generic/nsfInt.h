@@ -683,8 +683,8 @@ typedef struct NsfCallStackContent {
   NsfFilterStack *filterStackEntry;
   Tcl_Obj *CONST* objv;
   int objc;
+  unsigned int flags;
   unsigned short frameType;
-  unsigned short flags;
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
   long int startUsec;
   long int startSec;
@@ -701,26 +701,30 @@ typedef struct NsfCallStackContent {
 #define NSF_CSC_TYPE_GUARD           0x10
 #define NSF_CSC_TYPE_ENSEMBLE        0x20
 
-#define NSF_CSC_CALL_IS_NEXT             1
-#define NSF_CSC_CALL_IS_GUARD            2
-#define NSF_CSC_CALL_IS_ENSEMBLE         4
-#define NSF_CSC_CALL_IS_COMPILE          8
-#define NSF_CSC_IMMEDIATE           0x0020
-#define NSF_CSC_FORCE_FRAME         0x0040
-#define NSF_CSC_CALL_NO_UNKNOWN     0x0080
-#define NSF_CSC_CALL_IS_NRE         0x0100
-#define NSF_CSC_MIXIN_STACK_PUSHED  0x0400
-#define NSF_CSC_FILTER_STACK_PUSHED 0x0800
-#define NSF_CSC_METHOD_IS_UNKNOWN   0x1000
-#define NSF_CSC_CALL_IS_TRANSPARENT 0x2000
+#define NSF_CSC_CALL_IS_NEXT               1
+#define NSF_CSC_CALL_IS_GUARD              2
+#define NSF_CSC_CALL_IS_ENSEMBLE           4
+#define NSF_CSC_CALL_IS_COMPILE            8
+
+
+#define NSF_CSC_IMMEDIATE           0x000100
+#define NSF_CSC_FORCE_FRAME         0x000200
+#define NSF_CSC_CALL_NO_UNKNOWN     0x000400
+#define NSF_CSC_CALL_IS_NRE         0x002000
+#define NSF_CSC_MIXIN_STACK_PUSHED  0x004000
+#define NSF_CSC_FILTER_STACK_PUSHED 0x008000
+#define NSF_CSC_METHOD_IS_UNKNOWN   0x010000 
+#define NSF_CSC_CALL_IS_TRANSPARENT 0x020000
 #define NSF_CSC_COPY_FLAGS          (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CSC_IMMEDIATE|NSF_CSC_CALL_IS_TRANSPARENT|NSF_CSC_FORCE_FRAME)
 
 /* flags for call method */
-#define NSF_CM_NO_UNKNOWN        0x01
-#define NSF_CM_NO_SHIFT          0x02
-#define NSF_CM_NO_PROTECT        0x04
-#define NSF_CM_NO_OBJECT_METHOD  0x08
-#define NSF_CM_SYSTEM_METHOD     0x10
+#define NSF_CM_NO_UNKNOWN           0x000001
+#define NSF_CM_NO_SHIFT             0x000002
+#define NSF_CM_NO_PROTECT           0x000004
+#define NSF_CM_NO_OBJECT_METHOD     0x000008
+#define NSF_CM_SYSTEM_METHOD        0x000010
+#define NSF_CM_LOCAL_METHOD         0x000020
+#define NSF_CM_INTRINSIC_METHOD     0x000040
 
 #define NSF_VAR_TRIGGER_TRACE    1
 #define NSF_VAR_REQUIRE_DEFINED  2

@@ -2166,24 +2166,36 @@ FindProcMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
  *----------------------------------------------------------------------
  */
 static NsfClass *
-SearchPLMethod(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr) {
+SearchPLMethod(register NsfClasses *pl, CONST char *methodName, 
+	       Tcl_Command *cmdPtr, int flags) {
+
   /* Search the precedence list (class hierarchy) */
-#if 1
-  for (; pl;  pl = pl->nextPtr) {
-    register Tcl_HashEntry *entryPtr =
-      Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
-    if (entryPtr != NULL) {
-      *cmdPtr = (Tcl_Command) Tcl_GetHashValue(entryPtr);
-      return pl->cl;
+  if (likely(flags == 0)) {
+    for (; pl;  pl = pl->nextPtr) {
+      register Tcl_HashEntry *entryPtr =
+	Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
+      if (entryPtr != NULL) {
+	*cmdPtr = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+	return pl->cl;
+      }
+    }
+  } else {
+    for (; pl;  pl = pl->nextPtr) {
+      register Tcl_HashEntry *entryPtr =
+	Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
+      if (entryPtr != NULL) {
+	Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+	
+	if (Tcl_Command_flags(cmd) & flags) {
+	  fprintf(stderr, "skipped cmd %p flags %.6x & %.6x => %.6x\n", 
+		  cmd, flags, Tcl_Command_flags(cmd), Tcl_Command_flags(cmd) & flags);
+	  continue;
+	}
+	*cmdPtr = cmd;
+	return pl->cl;
+      }
     }
   }
-#else
-  for (; pl;  pl = pl->nextPtr) {
-    if ((*cmdPtr = FindMethod(pl->cl->nsPtr, methodName))) {
-      return pl->cl;
-    }
-  }
-#endif
   return NULL;
 }
 
@@ -2208,7 +2220,7 @@ SearchPLMethod(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmd
 static NsfClass *
 SearchCMethod(INTERP_DECL /*@notnull@*/ NsfClass *cl, CONST char *methodName, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod(ComputeOrder(INTERP cl, cl->order, Super), methodName, cmdPtr);
+  return SearchPLMethod(ComputeOrder(INTERP cl, cl->order, Super), methodName, cmdPtr, 0);
 }
 
 /*
@@ -2232,7 +2244,7 @@ static NsfClass *
 SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 		    Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod(ComputeOrder(INTERP cl, cl->order, Super), ObjStr(methodObj), cmdPtr);
+  return SearchPLMethod(ComputeOrder(INTERP cl, cl->order, Super), ObjStr(methodObj), cmdPtr, 0);
 }
 
 /*
@@ -6618,7 +6630,7 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
   int result = TCL_OK;
   int cmdFlags = Tcl_Command_flags(cmd);
 
-  if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) ||
+  if (/*(cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) ||*/
       ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) && !NsfObjectIsClass(object))) {
     /* 
      * The command is not applicable for objects (i.e. might crash,
@@ -6642,7 +6654,8 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
  *    Search for a methodname in the mixin list of the provided
  *    object. According to the state of the mixin stack it start the search
  *    from the beginning of from the last dispatched method shadowed method on
- *    the mixin path.
+ *    the mixin path. If a class *cl and a *cmdPtr are provided, the function
+ *    only succeeds, when the class is a mixin class.
  *
  * Results:
  *    Tcl result code.
@@ -6654,10 +6667,6 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
  *    None.
  *
  *----------------------------------------------------------------------
- */
-/*
- * before we can perform a mixin dispatch, MixinSearchProc seeks the
- * current mixin and the relevant calling information
  */
 static int
 MixinSearchProc(Tcl_Interp *interp, NsfObject *object, 
@@ -6672,80 +6681,55 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
   assert(object->mixinStack);
   assert(methodName);
 
-  /* ensure that the mixin order is not invalid, otherwise compute order */
+  /* ensure that the mixin order is valid */
   assert(object->flags & NSF_MIXIN_ORDER_VALID);
-  /*MixinComputeDefined(interp, object);*/
+
   cmdList = SeekCurrent(object->mixinStack->currentCmdPtr, object->mixinOrder);
   RUNTIME_STATE(interp)->currentMixinCmdPtr = cmdList ? cmdList->cmdPtr : NULL;
 
-  /*fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);
-    CmdListPrint(interp, "MixinSearch CL = \n", cmdList);*/
+  /*fprintf(stderr,"searching for '%s' in %p\n", methodName, cmdList);
+  CmdListPrint(interp, "MixinSearch CL = \n", cmdList);*/
 
-  if (*methodName == ':') {
-    Tcl_DString ds, *dsPtr = &ds;
-    Tcl_Command cmd1, lastCmdPtr = NULL;
-    NsfClass *cl1;
-    NsfObject *regObject, *defObject;
-    CONST char *methodName1;
-    int fromClassNS = 0;
+  if (unlikely(*clPtr && *cmdPtr)) {
+    Tcl_Command lastCmdPtr = NULL; 
 
-    /*
-     * We have an abolute name provided. We have to check, whether the
-     * absolute refers of a class in the mixin list of the current object. If
-     * so, we have to advance the current cmd pointer to this cmd to allow
-     * next to start from this point.
-     */
-    
-    if (methodObj == NULL) {
-      methodObj = Tcl_NewStringObj(methodName, -1);
-    }
+    /*fprintf(stderr, "... new branch\n");*/
 
-    INCR_REF_COUNT(methodObj);
-    Tcl_DStringInit(dsPtr);
-    cmd1 = ResolveMethodName(interp, NULL, methodObj,
-			     dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-    if (cmd1 && regObject) {
-      /*
-       * The absolute name was found and refers to a name in a class. We
-       * iterate over the mixin list and search for the class.
-       */
-      for (; cmdList; cmdList = cmdList->nextPtr) {
-	if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) { continue; }
-	cl1 = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
-	assert(cl1);
-	lastCmdPtr = cmdList->cmdPtr;
+    for (; cmdList; cmdList = cmdList->nextPtr) {
+      NsfClass *cl1;
 
-	if ((NsfObject *)cl1 == regObject) {
-	  /*
-	   * The class was found.
-	   */
-	  result = CanInvokeMixinMethod(interp, object, cmd1, cmdList);
-	  /*
-	   * No matter, what the result is, stop the search through the mixin
-	   * classes here.
-	   */
-	  if (result == NSF_CHECK_FAILED) {
-	    result = TCL_OK;
-	    cmd1 = NULL;
-	  }
+      if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) { continue; }
+      cl1 = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
+      assert(cl1);
+      lastCmdPtr = cmdList->cmdPtr;
 
-	  cmd = cmd1;
+      if (cl1 == *clPtr) {
+	/*
+	 * The wanted class was found. Check guards and permissions to
+	 * determine whether we can invoke this method.
+	 */
+	result = CanInvokeMixinMethod(interp, object, *cmdPtr, cmdList);
+
+	if (likely(result == TCL_OK)) {
 	  cl = cl1;
-	  break;
+	} else if (result == NSF_CHECK_FAILED) {
+	  result = TCL_OK;
 	}
+	/*
+	 * No matter, what the result is, stop the search through the mixin
+	 * classes here.
+	 */
+	break;
       }
-    } 
-    Tcl_DStringFree(dsPtr);
-    DECR_REF_COUNT(methodObj);
-
+    }
+    
     if (cl) {
       assert(cmdList);
       /*
        * on success: return class and cmdList->cmdPtr;
        */
-      *clPtr = cl;
       *currentCmdPtr = cmdList->cmdPtr;
-      /*fprintf(stderr, "mixinsearch returns %p (cl %s)\n", cmd, ClassName(cl));*/
+      /*fprintf(stderr, "... mixinsearch success returns %p (cl %s)\n", cmd, ClassName(cl));*/
       
     } else {
       /*
@@ -6753,10 +6737,11 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
        * currentCmdPtr (on the mixin stack) to the last entry to flag, that
        * the mixin list should not started again on a next.
        */
+      *cmdPtr = NULL;
       *currentCmdPtr = lastCmdPtr;
+      /*fprintf(stderr, "... mixinsearch success failure %p (cl %s)\n", cmd, ClassName(cl));*/
     }
-  
-    *cmdPtr = cmd;
+    
     return result;
 
   } else {
@@ -6779,6 +6764,7 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
       }
       
       result = CanInvokeMixinMethod(interp, object, cmd, cmdList);
+
       if (unlikely(result == TCL_ERROR)) {
 	return result;
       } else if (result == NSF_CHECK_FAILED) {
@@ -7869,7 +7855,7 @@ MakeProcError(
 }
 
 static int
-ByteCompiled(Tcl_Interp *interp, unsigned short *flagsPtr,
+ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
 	     Proc *procPtr, CONST char *procName) {
   Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
   Tcl_Obj *bodyObj = procPtr->bodyPtr;
@@ -9377,7 +9363,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   int validCscPtr = 1;
 
   /* none of the higher copy-flags must be passed */
-  assert((flags & (NSF_CSC_COPY_FLAGS & 0xFF00)) == 0);
+  assert((flags & (NSF_CSC_COPY_FLAGS & 0xFFF000)) == 0);
 
   if (unlikely(flags & NSF_CM_NO_SHIFT)) {
     shift = 0;
@@ -9388,9 +9374,16 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     assert(objc > 1);
     cmdObj = objv[0];
     methodName = ObjStr(objv[1]);
-    if (*methodName == '-' && strcmp(methodName + 1, "system") == 0) {
-      flags |=  NSF_CM_SYSTEM_METHOD;
-      shift = 2;
+    if (unlikely(*methodName == '-')) {
+      if (strcmp(methodName + 1, "system") == 0) {
+	flags |=  NSF_CM_SYSTEM_METHOD;
+	shift = 2;
+      } else if (strcmp(methodName + 1, "local") == 0) {
+	flags |=  NSF_CM_LOCAL_METHOD;
+	shift = 2;
+      } else {
+	shift = 1;
+      }
     } else {
       shift = 1;
     }
@@ -9460,14 +9453,91 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
+  if ((flags & NSF_CM_LOCAL_METHOD)) {
+    /*
+     * We require a local method. If the local method is found, we set always
+     * the cmd and sometimes the class (if it is a class specific method).
+     */
+    NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
+
+    if (unlikely(cscPtr1 == NULL)) {
+      return NsfPrintError(interp, "local flag only allowed when called from a method body");
+    } 
+    if (cscPtr1->cl) {
+      cmd = FindMethod(cscPtr1->cl->nsPtr, methodName);
+      if (cmd) {
+	cl = cscPtr1->cl;
+      }
+    } else {
+      cmd = FindMethod(object->nsPtr, methodName);
+    }
+
+    fprintf(stderr, "ObjectDispatch NSF_CM_LOCAL_METHOD obj %s methodName %s => cl %p %s cmd %p \n",
+	    object ? ObjectName(object) : NULL, 
+	    methodName, cl, cl ? ClassName(cl) : "NONE", cmd);
+
+  } else if (*methodName == ':') {
+    NsfObject *regObject, *defObject;
+    Tcl_DString ds, *dsPtr = &ds;
+    CONST char *methodName1;
+    int fromClassNS = 0;
+
+    /*
+     * We have fully qualified name provided. Determine the class and/or
+     * object on which the method was registered.
+     */
+    
+    if (methodObj == NULL) {
+      methodObj = Tcl_NewStringObj(methodName, -1);
+    }
+
+    INCR_REF_COUNT(methodObj);
+    Tcl_DStringInit(dsPtr);
+    cmd = ResolveMethodName(interp, NULL, methodObj,
+			     dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+    Tcl_DStringFree(dsPtr);
+    if (cmd) {
+      if (regObject) {
+	if (NsfObjectIsClass(regObject)) {
+	  cl = (NsfClass *)regObject;
+	}
+      } else {
+	Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
+
+	/*fprintf(stderr, "fully qualified lookup of %s returned %p\n", ObjStr(methodObj), cmd);*/
+	if (procPtr == NsfObjDispatch) {
+	  /*
+	   * Don't allow to call objects as methods (for the time being)
+	   * via fully qualified names. Otherwise, in line {2} below, ::State
+	   * is interpreted as an ensemble object, and the method
+	   * "unknown" won't be called (in the XOTcl tradition) and
+	   * wierd things will happen.
+	   *
+	   *  {1} Class ::State
+	   *  {2} Class ::State -parameter x
+	   */
+	  NsfLog(interp, NSF_LOG_NOTICE,
+		 "Don't invoke object %s this way. Register object via alias...",
+		 methodName);
+	  cmd = NULL;
+	}
+      }
+    }
+
+    /*fprintf(stderr, "ObjectDispatch fully qualified obj %s methodName %s => cl %p cmd %p \n",
+	     object ? ObjectName(object) : NULL, 
+	     methodName, cl, cmd);*/
+  }
+
   /*fprintf(stderr, "MixinStackPush check for %p %s.%s objflags %.6x == %d\n",
 	  object, ObjectName(object), methodName, objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID,
 	  (objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID);*/
   /*
    * Check if a mixed in method has to be called.
    */
-  if ((objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID &&
-      (flags & NSF_CM_SYSTEM_METHOD) == 0) {
+  if ((objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID 
+      && (flags & NSF_CM_SYSTEM_METHOD) == 0 
+      && ((flags & NSF_CM_LOCAL_METHOD) == 0 || cl)) {
 
     /*
      * The current logic allocates first an entry on the per-object
@@ -9481,13 +9551,14 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     flags |= NSF_CSC_MIXIN_STACK_PUSHED;
 
     if (frameType != NSF_CSC_TYPE_ACTIVE_FILTER) {
+      Tcl_Command cmd1 = cmd;
       /*
        * The entry is just searched and pushed on the stack when we
        * have no filter; in the filter case, the search happens in
        * next.
        */
       result = MixinSearchProc(interp, object, methodName, methodObj, &cl,
-                               &object->mixinStack->currentCmdPtr, &cmd);
+                               &object->mixinStack->currentCmdPtr, &cmd1);
       if (result != TCL_OK) {
 	/*fprintf(stderr, "mixinsearch returned an error for %p %s.%s\n",
 	  object, ObjectName(object), methodName);*/
@@ -9495,58 +9566,18 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	CscInit(INTERP cscPtr, object, cl, NULL, frameType, flags, methodName);
         goto exit_object_dispatch;
       }
-      if (cmd) {
+      if (cmd1) {
         frameType = NSF_CSC_TYPE_ACTIVE_MIXIN;
-      }
-    }
-  }
-
-  /* 
-   * Check if an absolute method name was provided 
-   */
-  if (unlikely(cmd == NULL && *methodName == ':')) {
-
-    cmd = Tcl_GetCommandFromObj(interp, methodObj);
-    if (cmd) {
-      Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
-      CONST char *className;
-
-      /*fprintf(stderr, "absolute lookup of %s returned %p\n", ObjStr(methodObj), cmd);*/
-      if (procPtr == NsfObjDispatch) {
-	/*
-	 * Don't allow to call objects as methods (for the time being)
-	 * via absolute names. Otherwise, in line {2} below, ::State
-	 * is interpreted as an ensemble object, and the method
-	 * "unknown" won't be called (in the XOTcl tradition) and
-	 * wierd things will happen.
-	 *
-	 *  {1} Class ::State
-	 *  {2} Class ::State -parameter x
-	 */
-	NsfLog(interp, NSF_LOG_NOTICE,
-	       "Don't invoke object %s this way. Register object via alias...",
-	       methodName);
-	cmd = NULL;
-
-      } else if (IsClassNsName(methodName, &className)) {
-	/*
-	 * Supply class cl with the with the class containing the method for
-	 * proper continuation in a "next".
-	 */
-	CONST char *mn = Tcl_GetCommandName(interp, cmd);
-	Tcl_DString ds, *dsPtr = &ds;
-
-	DSTRING_INIT(dsPtr);
-	Tcl_DStringAppend(dsPtr, className, strlen(className) - strlen(mn) - 2);
-	cl = (NsfClass *)GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
-	DSTRING_FREE(dsPtr);
-      }
+	cmd = cmd1;
+      } 	
     }
   }
 
   /*
-   * If no filter/mixin is found => do ordinary method lookup
+   * If no fully qualified method name/filter/mixin was found then perform
+   * ordinary method lookup.
    */
+
   if (likely(cmd == NULL)) {
     /* do we have a object-specific proc? */
     if (object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0) {
@@ -9576,9 +9607,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	for (; classList;  classList = classList->nextPtr) {
 	  if (IsBaseClass(classList->cl)) {break;}
 	}
-	cl = SearchPLMethod(classList, methodName, &cmd);
+	cl = SearchPLMethod(classList, methodName, &cmd, NSF_CMD_CALL_PROTECTED_METHOD);
       } else {
-	cl = SearchPLMethod(currentClass->order, methodName, &cmd);
+	cl = SearchPLMethod(currentClass->order, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
       }
     }
   }
@@ -9591,8 +9622,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   if (cmd) {
     int cmdFlags = Tcl_Command_flags(cmd);
-
-    if (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) {
+    if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) && (flags & NSF_CM_LOCAL_METHOD) == 0) {
       /* reset cmd, since it is still unknown */
       cmd = NULL;
     } else if ((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) &&
@@ -11469,7 +11499,6 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
    */
   CONST char *fullMethodName = ObjStr(procNameObj);
   Tcl_CallFrame *framePtr;
-  unsigned short dummy;
   Proc *procPtr;
 
   /*fprintf(stderr, "fullMethodName %s epoch %d\n", fullMethodName, Tcl_Command_cmdEpoch(cmd));*/
@@ -11508,6 +11537,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
 			     (FRAME_IS_PROC));
 
   if (result == TCL_OK) {
+    unsigned int dummy;
     result = ByteCompiled(interp, &dummy, procPtr, fullMethodName);
   }
   if (result != TCL_OK) {
@@ -12316,6 +12346,8 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
                  int *endOfFilterChain, Tcl_Command *currentCmdPtr) {
   int endOfChain = 0, objflags;
 
+  /*fprintf(stderr, "NextSearchMethod for %s called with cl %p\n", *methodNamePtr, *clPtr);*/
+
   /*
    *  Next in filters
    */
@@ -12381,6 +12413,8 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
     }
   }
 
+
+
   /*fprintf(stderr, "nextsearch: object %s nsPtr %p endOfChain %d\n",
     ObjectName(object), object->nsPtr, endOfChain);*/
 
@@ -12391,7 +12425,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    * past our last point; otherwise (if clPtr==NULL) begin from the start.
    *
    * When a mixin or filter chain reached its end, we have to check for
-   * absolute method names and search the obj-specific methods as well.
+   * fully qualified method names and search the obj-specific methods as well.
    */
   if (endOfChain) {
     if (**methodNamePtr == ':') {
@@ -12399,6 +12433,9 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
       /* fprintf(stderr, "NEXT found abolute cmd %s => %p\n", *methodNamePtr, *cmdPtr); */
     } else if (object->nsPtr) {
       *cmdPtr = FindMethod(object->nsPtr, *methodNamePtr);
+      if (*cmdPtr && (Tcl_Command_flags(*cmdPtr) & NSF_CMD_CALL_PRIVATE_METHOD)) {
+	*cmdPtr = NULL;
+      }
     } else {
       *cmdPtr = NULL;
     }
@@ -12410,18 +12447,25 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr); */
 
   if (!*cmdPtr) {
-    NsfClasses *pl;
+    NsfClasses *pl = ComputeOrder(INTERP object->cl, object->cl->order, Super);
+    NsfClass *cl = *clPtr;
 
-    for (pl = ComputeOrder(INTERP object->cl, object->cl->order, Super); *clPtr && pl; pl = pl->nextPtr) {
-      if (pl->cl == *clPtr) {
-        *clPtr = NULL;
+    if (cl) {
+      /*
+       * Skip until actual class
+       */
+      for ( ; pl; pl = pl->nextPtr) {
+	if (pl->cl == cl) {
+	  pl = pl->nextPtr;
+	  break;
+	}
       }
     }
 
     /*
-     * search for a further class method
+     * Search for a further class method
      */
-    *clPtr = SearchPLMethod(pl, *methodNamePtr, cmdPtr);
+    *clPtr = SearchPLMethod(pl, *methodNamePtr, cmdPtr, NSF_CMD_CALL_PRIVATE_METHOD);
 
   } else {
     *clPtr = NULL;
@@ -12625,7 +12669,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 		    int objc, Tcl_Obj *CONST objv[],
 		    NsfCallStackContent *cscPtr,
 		    int freeArgumentVector) {
-  Tcl_Command cmd, currentCmd = NULL;
+  Tcl_Command cmd = NULL, currentCmd = NULL;
   int result, isMixinEntry = 0, isFilterEntry = 0,
     endOfFilterChain = 0;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
@@ -12836,7 +12880,7 @@ NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_O
 static int
 FindSelfNext(Tcl_Interp *interp) {
   NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
-  Tcl_Command cmd, currentCmd = NULL;
+  Tcl_Command cmd = NULL, currentCmd = NULL;
   int result, isMixinEntry = 0,
     isFilterEntry = 0,
     endOfFilterChain = 0;
@@ -17997,6 +18041,7 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
 cmd "object::dispatch" NsfObjectDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
+  {-argName "-local" -required 0 -nrargs 0}
   {-argName "-system" -required 0 -nrargs 0}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
@@ -18004,7 +18049,7 @@ cmd "object::dispatch" NsfObjectDispatchCmd {
 */
 static int
 NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, 
-		     int withFrame, int withSystem,
+		     int withFrame, int withLocal, int withSystem,
 		     Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   CONST char *methodName = ObjStr(command);
@@ -18024,10 +18069,10 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
     int flags = 0;
 
     /*
-     * We have an absolute name. We assume, the name is the name of a
+     * We have a fully qualified name. We assume, the name is the name of a
      * Tcl command, that will be dispatched. If "withFrame == instance" is
-     * specified, a callstack frame is pushed to make instvars
-     * accessible for the command.
+     * specified, a callstack frame is pushed to make instvars accessible for
+     * the command.
      */
 
     cmd = Tcl_GetCommandFromObj(interp, command);
@@ -18091,9 +18136,8 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 			   methodName);
     }
 
-    if (withSystem) {
-      flags |= NSF_CM_SYSTEM_METHOD;
-    }
+    if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
+    if (withLocal) {flags |= NSF_CM_LOCAL_METHOD;}
 
     if (nobjc >= 1) {
       arg = nobjv[0];
@@ -18298,50 +18342,36 @@ NsfMyCmd(Tcl_Interp *interp,
 	 int withLocal, int withSystem, Tcl_Obj *methodObj, 
 	 int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
-  int result;
+  int flags, result;
 
   if (!self) {
     return NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
   }
 
-  if (withLocal) {
-    CONST char *methodName = ObjStr(methodObj);
-    NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
-    NsfClass *cl = cscPtr ? cscPtr->cl : NULL;
-    Tcl_Command cmd = cl ? FindMethod(cl->nsPtr, methodName) :  FindMethod(self->nsPtr, methodName);
-
-    if (withSystem) {
-      return NsfPrintError(interp, "flags '-local' and '-systemÄ are mutual exclusive");
-    }
-
-    if (cmd == NULL) {
-      return NsfPrintError(interp, "%s: unable to dispatch local method '%s' in %s %s",
-			   ObjectName(self), methodName, 
-			   cl ? "class" : "object",
-			   cl ? ClassName(cl) : ObjectName(self));
-    }
-    result = MethodDispatch(self, interp, nobjc+1, nobjv-1, cmd, self, cl,
-			    methodName, 0, NSF_CSC_IMMEDIATE);
-  } else {
-    int flags;
-#if 0
-    /* TODO attempt to make "my" NRE-enabled, failed so far (crash in mixinInheritanceTest) */
-    NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
-    if (!cscPtr || self != cscPtr->self) {
-      flags = NSF_CSC_IMMEDIATE;
-    } else {
-      flags = NsfImmediateFromCallerFlags(cscPtr->flags);
-      fprintf(stderr, "XXX MY %s.%s frame has flags %.6x -> next-flags %.6x\n",
-	      ObjectName(self), ObjStr(methodObj), cscPtr->flags, flags);
-    }
-    if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
-    result = CallMethod(self, interp, methodObj, nobjc+2, nobjv, flags);
-#else
-    flags = NSF_CSC_IMMEDIATE;
-    if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
-    result = CallMethod(self, interp, methodObj, nobjc+2, nobjv, flags);
-#endif
+  if (withSystem && withLocal) {
+    return NsfPrintError(interp, "flags '-local' and '-system' are mutual exclusive");
   }
+
+#if 0
+  /* TODO attempt to make "my" NRE-enabled, failed so far (crash in mixinInheritanceTest) */
+  NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
+  if (!cscPtr || self != cscPtr->self) {
+    flags = NSF_CSC_IMMEDIATE;
+  } else {
+    flags = NsfImmediateFromCallerFlags(cscPtr->flags);
+    fprintf(stderr, "XXX MY %s.%s frame has flags %.6x -> next-flags %.6x\n",
+	    ObjectName(self), ObjStr(methodObj), cscPtr->flags, flags);
+  }
+  if (withLocal) {flags |= NSF_CM_LOCAL_METHOD;}
+  if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
+  result = CallMethod(self, interp, methodObj, nobjc+2, nobjv, flags);
+#else
+  flags = NSF_CSC_IMMEDIATE;
+  if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
+  if (withLocal) {flags |= NSF_CM_LOCAL_METHOD;}
+  result = CallMethod(self, interp, methodObj, nobjc+2, nobjv, flags);
+#endif
+
   return result;
 }
 

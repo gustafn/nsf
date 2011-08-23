@@ -142,7 +142,7 @@ nx::Test case class-my-local {
   ? {s1 foo 3 4} 7
   ? {s1 bar 3 4} 12
   ? {s1 baz 3 4} {::s1: unable to dispatch method 'baz'}
-}  
+}
 
 #
 # test "nsf::my -local" on objects
@@ -171,7 +171,7 @@ nx::Test case object-my-local {
 }
 
 #
-# test nsf::my + patch instead of "nsf::my -local" on classes
+# test nsf::my + path instead of "nsf::my -local" on classes
 #
 
 nx::Test case my+handle-instead-of-my-local {
@@ -257,4 +257,79 @@ nx::Test case system-flag {
   ? {nsf::object::exists c1} 1
   ? {c1 -system destroy} ""
   ? {nsf::object::exists c1} 0
+}
+
+#
+# Check my-local + private + next
+#
+# Never call a private method via "next", but allow "next" from
+# private methods
+#
+
+nx::Test case class-my-local+next {
+
+  nx::Class create Base {
+    :private method baz {a b} { expr {$a + $b} }
+    :protected method baz2 {a b} { expr {$a + $b} }
+    :public method foo {a b} { nsf::my -local baz $a $b }
+    :create b1
+  }
+  # we can call Base.baz only through Base.foo
+  ? {b1 foo 4 5} 9
+  ? {b1 baz 4 5} {::b1: unable to dispatch method 'baz'}
+
+  # Define and register a mixin class, where method "foo" is calling a
+  # private method via "my -local"
+  nx::Class create Mix {
+    :private method baz {a b} { expr {$a ** $b} }
+    :public method foo {a b} { nsf::my -local baz $a $b }
+  }
+
+  b1 mixin add Mix
+
+  # we can call Mix.baz only through Mix.foo
+  ? {b1 foo 4 5} 1024
+  ? {b1 baz 4 5} {::b1: unable to dispatch method 'baz'}
+
+  #
+  # the private method has a next
+  #
+  nx::Class create Intermediate -superclass Base {
+    :private method baz {a b} { next }
+    :private method baz2 {a b} { next }
+    :public method foo {a b} { nsf::my -local baz $a $b }
+    :public method foo2 {a b} { nsf::my -local baz2 $a $b }
+    :create i1
+  }
+
+  # next in the private method reaches a private method, which is ignored
+  ? {i1 foo 4 5} ""
+  ? {i1 baz 4 5} {::i1: unable to dispatch method 'baz'}
+  # next in the private method reaches a non-private method, which is honored
+  ? {i1 foo2 4 5} 9
+    
+  nx::Class create Sub -superclass Intermediate {
+    :public method bar {a b} { puts stderr "Sub.bar->local.baz";nsf::my -local baz $a $b }
+    :private method baz {a b} { puts stderr "Sub.private.baz";expr {$a * $b} }
+
+    :create s1
+  }
+
+  # next in the private method reaches a private method, which is ignored
+  ? {s1 foo 4 5} ""
+  ? {s1 baz 4 5} {::s1: unable to dispatch method 'baz'}
+  # next in the private method reaches a non-private method, which is honored
+  ? {s1 foo2 4 5} 9
+  ? {s1 bar 4 5} 20
+
+  # add per-class mixin
+  Sub mixin add Mix
+
+  # foo is shadowed in the mixin and calls the mixin-private method
+  ? {s1 foo 4 5} 1024
+  ? {s1 baz 4 5} {::s1: unable to dispatch method 'baz'}
+
+  # next in the private method reaches a non-private method, which is honored
+  ? {s1 foo2 4 5} 9
+  ? {s1 bar 4 5} 20
 }

@@ -206,6 +206,8 @@ Test case "filter-and-creation" {
 
 }
 
+
+Test parameter count 1
 #
 # Test the next-path with just intrinsic classes in cases where a
 # method handle is used for method dispatch
@@ -226,7 +228,19 @@ nx::Test case intrinsic+method-handles {
   ? {nsf::object::dispatch c1 foo} "C B A "
   ? {nsf::object::dispatch c1 [C info method origin foo]} "C C B A "
   ? {nsf::object::dispatch c1 [B info method origin foo]} "B C B A "
-  ? {nsf::object::dispatch c1 [A info method origin foo]} "A C B A "    
+  ? {nsf::object::dispatch c1 [A info method origin foo]} "A C B A "
+
+  # 
+  # check, whether the context of "my -local" is correct
+  #
+  A public method bar {} {nsf::my -local foo}
+  B public method bar {} {nsf::my -local foo}
+  C public method bar {} {nsf::my -local foo}
+
+  ? {c1 bar} "C B A "
+  ? {c1 [C info method origin bar]} "C B A "
+  ? {c1 [B info method origin bar]} "B A "
+  ? {c1 [A info method origin bar]} "A "
 }
 
 #
@@ -264,6 +278,53 @@ nx::Test case mixins+method-handles {
   ? {c1 [Z info method origin foo]} "Z Y "
   ? {c1 [Y info method origin foo]} "Y "
 
+  # 
+  # check, whether the context of "my -local" is correct
+  #
+  A public method bar {} {nsf::my -local foo}
+  B public method bar {} {nsf::my -local foo}
+  C public method bar {} {nsf::my -local foo}
+  Y public method bar {} {nsf::my -local foo}
+  Z public method bar {} {nsf::my -local foo}
+
+  ? {c1 bar} "C B A Z Y "
+  ? {c1 [C info method origin bar]} "C B A Z Y "
+  ? {c1 [B info method origin bar]} "B A Z Y "
+  ? {c1 [A info method origin bar]} "A Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Y "
+
+  # 
+  # check, whether the context of "[self] -local" is correct
+  #
+  A public method bar {} {[self] -local foo}
+  B public method bar {} {[self] -local foo}
+  C public method bar {} {[self] -local foo}
+  Y public method bar {} {[self] -local foo}
+  Z public method bar {} {[self] -local foo}
+
+  ? {c1 bar} "C B A Z Y "
+  ? {c1 [C info method origin bar]} "C B A Z Y "
+  ? {c1 [B info method origin bar]} "B A Z Y "
+  ? {c1 [A info method origin bar]} "A Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Y "
+
+  # 
+  # check, whether the context of "nsf::object::dispatch [self] -local" is correct
+  #
+  A public method bar {} {nsf::object::dispatch [self] -local foo}
+  B public method bar {} {nsf::object::dispatch [self] -local foo}
+  C public method bar {} {nsf::object::dispatch [self] -local foo}
+  Y public method bar {} {nsf::object::dispatch [self] -local foo}
+  Z public method bar {} {nsf::object::dispatch [self] -local foo}
+
+  ? {c1 bar} "C B A Z Y "
+  ? {c1 [C info method origin bar]} "C B A Z Y "
+  ? {c1 [B info method origin bar]} "B A Z Y "
+  ? {c1 [A info method origin bar]} "A Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Y "
 }
 
 

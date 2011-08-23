@@ -1304,6 +1304,7 @@ nx::Test case dispo-object-targets {
   ? {T create tt YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
       "sending the msg: tt->z(::obj)->YYY()"
 
+
   ::obj mixin {}
   T setObjectParams [list -z:alias]
   ? {T create tt -z YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
@@ -1323,22 +1324,20 @@ nx::Test case dispo-object-targets {
   T setObjectParams [list -z:alias]
   ? {T create tt -z ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z()"
 
+
   #
-  # ISSUE: Any direct dispatch with a FQ selector is forbidden, why?
+  # Dispatch with a method handle
   #
 
   ::T mixin {}
   ? [list [T create t] $methods(z) XXX] \
-      "::t: unable to dispatch method '::nsf::classes::T::z'"
+      "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z"
   
-  #
-  # This it at least consistent :)
-  #
   T setObjectParams x:alias,method=$methods(z)
-  ? {T create t XXX} "::t: unable to dispatch method '$methods(z)'" \
+  ? {T create t XXX} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z" \
       "Non-object FQ selector with default unknown handler"
   ::T mixin UnknownHandler
-  ? {T create t XXX} "UNKNOWNMETHOD-::nsf::classes::T::z" \
+  ? {T create t XXX} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z" \
       "Non-object FQ selector with custom unknown handler"
 
   #
