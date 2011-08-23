@@ -19131,10 +19131,11 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     }
     break;
 
-  case CurrentoptionCalledclassIdx:
-    Tcl_SetResult(interp, ClassName(FindCalledClass(interp, object)), TCL_VOLATILE);
+  case CurrentoptionCalledclassIdx: {
+    NsfClass *cl = FindCalledClass(interp, object);
+    Tcl_SetObjResult(interp, cl ? cl->object.cmdName : NsfGlobalObjs[NSF_EMPTY]);
     break;
-
+  }
   case CurrentoptionCallingmethodIdx:
   case CurrentoptionCallingprocIdx: {
     Tcl_Obj *resultObj;

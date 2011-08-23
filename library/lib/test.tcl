@@ -122,7 +122,6 @@ namespace eval ::nx {
 	# statistics would indicate unbalanced refCounts, etc.).
 
 	return -level [expr {[info level]-1}] -code error 
-
       }
       if {[info exists :post]} {:call "post" ${:post}}
     }

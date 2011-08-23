@@ -499,16 +499,3 @@ nx::Test case error-in-destroy-3 {
 
   interp delete $i 
 }
-
-#
-# TODO: 
-# - [current calledclass] seems broken -> returns NULL as string value?!
-# - renames to "" in destroy run into an endless loop: 
-# nx::Object create ::o {
-#   :public method destroy {} {
-#     ::rename [current] ""
-#     next
-#   }
-#   :destroy
-# }
-# #
