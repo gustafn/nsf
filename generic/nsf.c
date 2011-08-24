@@ -76,7 +76,6 @@ typedef struct NsfProcContext {
   ClientData oldDeleteData;
   Tcl_CmdDeleteProc *oldDeleteProc;
   NsfParamDefs *paramDefs;
-  INTERP_MEMBER_DECL
 } NsfProcContext;
 
 /*
@@ -92,7 +91,6 @@ typedef struct TclCmdClientData {
 typedef struct SetterCmdClientData {
   NsfObject *object;
   Nsf_Param *paramsPtr;
-  INTERP_MEMBER_DECL
 } SetterCmdClientData;
 
 typedef struct ForwardCmdClientData {
@@ -111,7 +109,6 @@ typedef struct ForwardCmdClientData {
   Tcl_Obj *prefix;
   int nr_subcommands;
   Tcl_Obj *subcommands;
-  INTERP_MEMBER_DECL
 } ForwardCmdClientData;
 
 typedef struct AliasCmdClientData {
@@ -217,7 +214,7 @@ static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object);
 static void PrimitiveCDestroy(ClientData clientData);
 static void PrimitiveODestroy(ClientData clientData);
 static void PrimitiveDestroy(ClientData clientData);
-static void NsfCleanupObject_(INTERP_DECL NsfObject *object);
+static void NsfCleanupObject_(NsfObject *object);
 
 /* prototypes for object and command lookup */
 static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name);
@@ -237,25 +234,25 @@ static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object,
 					  CONST char *name);
 static Tcl_Namespace *RequireObjNamespace(Tcl_Interp *interp, NsfObject *object);
 static int NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName);
-static void NSNamespacePreserve(INTERP_DECL Tcl_Namespace *nsPtr);
-static void NSNamespaceRelease(INTERP_DECL Tcl_Namespace *nsPtr);
+static void NSNamespacePreserve(Tcl_Namespace *nsPtr);
+static void NSNamespaceRelease(Tcl_Namespace *nsPtr);
 
 /* prototypes for filters and mixins */
 static void FilterComputeDefined(Tcl_Interp *interp, NsfObject *object);
 static void MixinComputeDefined(Tcl_Interp *interp, NsfObject *object);
-NSF_INLINE static void GuardAdd(INTERP_DECL NsfCmdList *filterCL, Tcl_Obj *guardObj);
+NSF_INLINE static void GuardAdd(NsfCmdList *filterCL, Tcl_Obj *guardObj);
 static int GuardCall(NsfObject *object, Tcl_Interp *interp,
                      Tcl_Obj *guardObj, NsfCallStackContent *cscPtr);
-static void GuardDel(INTERP_DECL NsfCmdList *filterCL);
+static void GuardDel(NsfCmdList *filterCL);
 
 /* properties of objects and classes */
 static int IsBaseClass(NsfClass *cl);
 static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins);
-static int IsSubType(INTERP_DECL NsfClass *subcl, NsfClass *cl);
+static int IsSubType(NsfClass *subcl, NsfClass *cl);
 static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta);
 
 /* prototypes for call stack specific calls */
-NSF_INLINE static void CscInit_(INTERP_DECL NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
+NSF_INLINE static void CscInit_(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
 			       Tcl_Command cmd, int frameType, int flags);
 NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr);
 NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object);
@@ -267,8 +264,8 @@ static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
 static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
 			  const char *argNamePrefix, int doCheck, Nsf_Param **paramPtrPtr);
-static void ParamDefsRefCountIncr(INTERP_DECL NsfParamDefs *paramDefs);
-static void ParamDefsRefCountDecr(INTERP_DECL NsfParamDefs *paramDefs);
+static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs);
+static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs);
 static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
@@ -286,8 +283,8 @@ static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_
 			     CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
 
 /* prototypes for (class) list handling */
-static NsfClasses ** NsfClassListAdd(INTERP_DECL NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData);
-static void NsfClassListFree(INTERP_DECL NsfClasses *firstPtr);
+static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData);
+static void NsfClassListFree(NsfClasses *firstPtr);
 
 /* misc prototypes */
 static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj);
@@ -297,10 +294,10 @@ static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char 
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
 			       NsfCallStackContent *cscPtr, int freeArgumentVector);
-static void AssertionRemoveProc(INTERP_DECL NsfAssertionStore *aStore, CONST char *name);
+static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name);
 
-static void NsfCommandPreserve(INTERP_DECL Tcl_Command cmd);
-static void NsfCommandRelease(INTERP_DECL Tcl_Command cmd);
+static void NsfCommandPreserve(Tcl_Command cmd);
+static void NsfCommandRelease(Tcl_Command cmd);
 static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
 void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
@@ -459,7 +456,7 @@ NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST
  *----------------------------------------------------------------------
  */
 static void
-ParseContextInit(INTERP_DECL ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *procName) {
+ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
     /* the single larger memset below .... */
     memset(pcPtr, 0, sizeof(ParseContext));
@@ -505,7 +502,7 @@ ParseContextInit(INTERP_DECL ParseContext *pcPtr, int objc, NsfObject *object, T
  *----------------------------------------------------------------------
  */
 static void
-ParseContextExtendObjv(INTERP_DECL ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[]) {
+ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[]) {
   int requiredSize = from + elts + 1;
 
   /*NsfPrintObjv("BEFORE: ", pcPtr->objc, pcPtr->full_objv);*/
@@ -557,7 +554,7 @@ ParseContextExtendObjv(INTERP_DECL ParseContext *pcPtr, int from, int elts, Tcl_
  *----------------------------------------------------------------------
  */
 static void
-ParseContextRelease(INTERP_DECL ParseContext *pcPtr) {
+ParseContextRelease(ParseContext *pcPtr) {
   int status = pcPtr->status;
 
   /*fprintf(stderr, "ParseContextRelease %p status %.6x %d elements, "
@@ -785,7 +782,7 @@ Nsf_NextHashEntry(Tcl_HashTable *tablePtr, int expected, Tcl_HashSearch *hSrchPt
  *----------------------------------------------------------------------
  */
 static void
-NsfCommandPreserve(INTERP_DECL Tcl_Command cmd) {
+NsfCommandPreserve(Tcl_Command cmd) {
   Tcl_Command_refCount(cmd)++;
   MEM_COUNT_ALLOC("command.refCount", cmd);
 }
@@ -805,7 +802,7 @@ NsfCommandPreserve(INTERP_DECL Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 static void
-NsfCommandRelease(INTERP_DECL Tcl_Command cmd) {
+NsfCommandRelease(Tcl_Command cmd) {
   /*fprintf(stderr,"NsfCommandRelease %p\n", cmd);*/
   MEM_COUNT_FREE("command.refCount", cmd);
   TclCleanupCommandMacro((Command *)cmd);
@@ -914,7 +911,7 @@ NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *metho
 
 #if defined(NSF_WITH_ASSERTIONS)
   if (object->opt) {
-    AssertionRemoveProc(INTERP object->opt->assertions, methodName);
+    AssertionRemoveProc(object->opt->assertions, methodName);
   }
 #endif
 
@@ -939,7 +936,7 @@ NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodNam
 
 #if defined(NSF_WITH_ASSERTIONS)
   if (opt && opt->assertions) {
-    AssertionRemoveProc(INTERP opt->assertions, methodName);
+    AssertionRemoveProc(opt->assertions, methodName);
   }
 #endif
 
@@ -1094,7 +1091,7 @@ DStringAppendQualName(Tcl_DString *dsPtr, Tcl_Namespace *nsPtr, CONST char *name
 }
 
 static void
-NsfCleanupObject_(INTERP_DECL NsfObject *object) {
+NsfCleanupObject_(NsfObject *object) {
 
   NsfObjectRefCountDecr(object);
   /*fprintf(stderr, "NsfCleanupObject obj refCount of %p after decr %d id %p interp %p flags %.6x\n",
@@ -1415,7 +1412,7 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
     return TCL_OK;
   }
   if ((GetClassFromObj(interp, pPtr->converterArg, &cl, 0) == TCL_OK)
-      && IsSubType(INTERP object->cl, cl)) {
+      && IsSubType(object->cl, cl)) {
     return TCL_OK;
   }
 
@@ -1481,7 +1478,7 @@ NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  */
 static NsfClasses *
-NsfReverseClasses(INTERP_DECL NsfClasses *sl) {
+NsfReverseClasses(NsfClasses *sl) {
   NsfClasses *firstPtr = NULL;
   for (; sl; sl = sl->nextPtr) {
     NsfClasses *element = NEW(NsfClasses);
@@ -1508,7 +1505,7 @@ NsfReverseClasses(INTERP_DECL NsfClasses *sl) {
  *----------------------------------------------------------------------
  */
 static void
-NsfClassListFree(INTERP_DECL NsfClasses *sl) {
+NsfClassListFree(NsfClasses *sl) {
   NsfClasses *n;
   for (; sl; sl = n) {
     n = sl->nextPtr;
@@ -1533,7 +1530,7 @@ NsfClassListFree(INTERP_DECL NsfClasses *sl) {
  */
 
 static NsfClasses **
-NsfClassListAdd(INTERP_DECL NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
+NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
   NsfClasses *l = *firstPtrPtr, *element = NEW(NsfClasses);
   element->cl = cl;
   element->clientData = clientData;
@@ -1564,7 +1561,7 @@ NsfClassListAdd(INTERP_DECL NsfClasses **firstPtrPtr, NsfClass *cl, ClientData c
  */
 
 static NsfClasses **
-NsfClassListAddNoDup(INTERP_DECL NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData, int *isNewPtr) {
+NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData, int *isNewPtr) {
   NsfClasses *clPtr = *firstPtrPtr, **nextPtr;
 
   if (clPtr) {
@@ -1684,7 +1681,7 @@ static NsfClasses *
 Sub(NsfClass *cl) { return cl->sub; }
 
 static int
-TopoSort(INTERP_DECL NsfClass *cl, NsfClass *baseClass, NsfClasses *(*next)(NsfClass *)) {
+TopoSort(NsfClass *cl, NsfClass *baseClass, NsfClasses *(*next)(NsfClass *)) {
   /*NsfClasses *sl = (*next)(cl);*/
   NsfClasses *sl = next == Super ? cl->super : cl->sub;
   NsfClasses *pl;
@@ -1699,7 +1696,7 @@ TopoSort(INTERP_DECL NsfClass *cl, NsfClass *baseClass, NsfClasses *(*next)(NsfC
   for (; sl; sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
-    if (sc->color == WHITE && !TopoSort(INTERP sc, baseClass, next)) {
+    if (sc->color == WHITE && !TopoSort(sc, baseClass, next)) {
       cl->color = WHITE;
       if (cl == baseClass) {
         register NsfClasses *pc;
@@ -1721,28 +1718,28 @@ TopoSort(INTERP_DECL NsfClass *cl, NsfClass *baseClass, NsfClasses *(*next)(NsfC
 }
 
 static NsfClasses *
-TopoOrder(INTERP_DECL NsfClass *cl, NsfClasses *(*next)(NsfClass *)) {
-  if (TopoSort(INTERP cl, cl, next)) {
+TopoOrder(NsfClass *cl, NsfClasses *(*next)(NsfClass *)) {
+  if (TopoSort(cl, cl, next)) {
     return cl->order;
   }
-  NsfClassListFree(INTERP cl->order);
+  NsfClassListFree(cl->order);
   return cl->order = NULL;
 }
 
 static NsfClasses *
-ComputeOrder(INTERP_DECL NsfClass *cl, NsfClasses *order, NsfClasses *(*direction)(NsfClass *)) {
+ComputeOrder(NsfClass *cl, NsfClasses *order, NsfClasses *(*direction)(NsfClass *)) {
   if (likely(order != NULL)) {
     return order;
   }
-  return cl->order = TopoOrder(INTERP cl, direction);
+  return cl->order = TopoOrder(cl, direction);
 }
 
 static void
-FlushPrecedencesOnSubclasses(INTERP_DECL NsfClass *cl) {
+FlushPrecedencesOnSubclasses(NsfClass *cl) {
   NsfClasses *pc;
-  NsfClassListFree(INTERP cl->order);
+  NsfClassListFree(cl->order);
   cl->order = NULL;
-  pc = ComputeOrder(INTERP cl, cl->order, Sub);
+  pc = ComputeOrder(cl, cl->order, Sub);
 
   /*
    * ordering doesn't matter here - we're just using TopoSort
@@ -1751,10 +1748,10 @@ FlushPrecedencesOnSubclasses(INTERP_DECL NsfClass *cl) {
 
   if (pc) pc = pc->nextPtr;
   for (; pc; pc = pc->nextPtr) {
-    NsfClassListFree(INTERP pc->cl->order);
+    NsfClassListFree(pc->cl->order);
     pc->cl->order = NULL;
   }
-  NsfClassListFree(INTERP cl->order);
+  NsfClassListFree(cl->order);
   cl->order = NULL;
 }
 
@@ -1784,7 +1781,7 @@ RemoveInstance(NsfObject *object, NsfClass *cl) {
  */
 
 static void
-AS(INTERP_DECL NsfClass *s, NsfClasses **sl) {
+AS(NsfClass *s, NsfClasses **sl) {
   register NsfClasses *l = *sl;
   while (l && l->cl != s) l = l->nextPtr;
   if (!l) {
@@ -1796,18 +1793,18 @@ AS(INTERP_DECL NsfClass *s, NsfClasses **sl) {
 }
 
 static void
-AddSuper(INTERP_DECL NsfClass *cl, NsfClass *super) {
+AddSuper(NsfClass *cl, NsfClass *super) {
   if (cl && super) {
     /*
      * keep corresponding sub in step with super
      */
-    AS(INTERP super, &cl->super);
-    AS(INTERP cl, &super->sub);
+    AS(super, &cl->super);
+    AS(cl, &super->sub);
   }
 }
 
 static int
-RemoveSuper1(INTERP_DECL NsfClass *s, NsfClasses **sl) {
+RemoveSuper1(NsfClass *s, NsfClasses **sl) {
   NsfClasses *l = *sl;
 
   if (!l) return 0;
@@ -1827,12 +1824,12 @@ RemoveSuper1(INTERP_DECL NsfClass *s, NsfClasses **sl) {
 }
 
 static int
-RemoveSuper(INTERP_DECL NsfClass *cl, NsfClass *super) {
+RemoveSuper(NsfClass *cl, NsfClass *super) {
   /*
    * keep corresponding sub in step with super
    */
-  int sp = RemoveSuper1(INTERP super, &cl->super);
-  int sb = RemoveSuper1(INTERP cl, &super->sub);
+  int sp = RemoveSuper1(super, &cl->super);
+  int sb = RemoveSuper1(cl, &super->sub);
 
   return sp && sb;
 }
@@ -2218,9 +2215,9 @@ SearchPLMethod(register NsfClasses *pl, CONST char *methodName,
  *----------------------------------------------------------------------
  */
 static NsfClass *
-SearchCMethod(INTERP_DECL /*@notnull@*/ NsfClass *cl, CONST char *methodName, Tcl_Command *cmdPtr) {
+SearchCMethod(/*@notnull@*/ NsfClass *cl, CONST char *methodName, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod(ComputeOrder(INTERP cl, cl->order, Super), methodName, cmdPtr, 0);
+  return SearchPLMethod(ComputeOrder(cl, cl->order, Super), methodName, cmdPtr, 0);
 }
 
 /*
@@ -2244,7 +2241,7 @@ static NsfClass *
 SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 		    Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod(ComputeOrder(INTERP cl, cl->order, Super), ObjStr(methodObj), cmdPtr, 0);
+  return SearchPLMethod(ComputeOrder(cl, cl->order, Super), ObjStr(methodObj), cmdPtr, 0);
 }
 
 /*
@@ -2274,7 +2271,7 @@ SearchComplexCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 
   assert(cl);
 
-  for (pl = ComputeOrder(INTERP cl, cl->order, Super); pl;  pl = pl->nextPtr) {
+  for (pl = ComputeOrder(cl, cl->order, Super); pl;  pl = pl->nextPtr) {
     NsfObject *regObject, *defObject;
     Tcl_Command cmd;
 
@@ -2403,7 +2400,7 @@ ObjectSystemFree(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
   }
 
   if (osPtr->rootMetaClass && osPtr->rootClass) {
-    RemoveSuper(INTERP osPtr->rootMetaClass, osPtr->rootClass);
+    RemoveSuper(osPtr->rootMetaClass, osPtr->rootClass);
     RemoveInstance((NsfObject *)osPtr->rootMetaClass, osPtr->rootMetaClass);
     RemoveInstance((NsfObject *)osPtr->rootClass, osPtr->rootMetaClass);
 
@@ -2781,7 +2778,7 @@ NsfMethodObj(NsfObject *object, int methodIdx) {
  */
 
 static NsfObjectOpt *
-NsfRequireObjectOpt(INTERP_DECL NsfObject *object) {
+NsfRequireObjectOpt(NsfObject *object) {
   if (!object->opt) {
     object->opt = NEW(NsfObjectOpt);
     memset(object->opt, 0, sizeof(NsfObjectOpt));
@@ -2790,7 +2787,7 @@ NsfRequireObjectOpt(INTERP_DECL NsfObject *object) {
 }
 
 static NsfClassOpt *
-NsfRequireClassOpt(INTERP_DECL /*@notnull@*/ NsfClass *cl) {
+NsfRequireClassOpt(/*@notnull@*/ NsfClass *cl) {
   assert(cl);
   if (!cl->opt) {
     cl->opt = NEW(NsfClassOpt);
@@ -3049,7 +3046,6 @@ typedef struct NsfResolvedVarInfo {
   NsfObject *lastObject;
   Tcl_Var var;
   Tcl_Obj *nameObj;
-  INTERP_MEMBER_DECL
 } NsfResolvedVarInfo;
 
 /*
@@ -3202,7 +3198,6 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
 static void
 CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
   NsfResolvedVarInfo *resVarInfo = (NsfResolvedVarInfo *)vInfoPtr;
-  INTERP_MEMBER_GET(resVarInfo)
 
 #if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "CompiledColonVarFree %p for variable '%s'\n", 
@@ -3267,7 +3262,6 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
     resVarInfo->lastObject = NULL;
     resVarInfo->var = NULL;
     resVarInfo->nameObj = Tcl_NewStringObj(name+1, length-1);
-    INTERP_MEMBER_SET(resVarInfo, interp)
     INCR_REF_COUNT(resVarInfo->nameObj);
 
 #if defined(VAR_RESOLVER_TRACE)
@@ -3699,7 +3693,7 @@ RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
  *----------------------------------------------------------------------
  */
 static void
-NSNamespacePreserve(INTERP_DECL Tcl_Namespace *nsPtr) {
+NSNamespacePreserve(Tcl_Namespace *nsPtr) {
   assert(nsPtr);
   MEM_COUNT_ALLOC("NSNamespace", nsPtr);
   Tcl_Namespace_refCount(nsPtr)++;
@@ -3719,7 +3713,7 @@ NSNamespacePreserve(INTERP_DECL Tcl_Namespace *nsPtr) {
  *----------------------------------------------------------------------
  */
 static void
-NSNamespaceRelease(INTERP_DECL Tcl_Namespace *nsPtr) {
+NSNamespaceRelease(Tcl_Namespace *nsPtr) {
 
   assert(nsPtr);
   MEM_COUNT_FREE("NSNamespace", nsPtr);
@@ -3989,7 +3983,6 @@ NSNamespaceDeleteProc(ClientData clientData) {
     fprintf(stderr, "... nsPtr %p name '%s'\n", nsClientData->nsPtr, nsClientData->nsPtr->fullName);*/
 
   object = nsClientData->object;
-  INTERP_MEMBER_GET(nsClientData)
 
   ckfree((char *)nsClientData);
 #else
@@ -4106,7 +4099,6 @@ NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, CONST char *name) {
 
       nsClientData->object = object;
       nsClientData->nsPtr = (Tcl_Namespace *)nsPtr;
-      INTERP_MEMBER_SET(nsClientData, interp)
       nsPtr->clientData = nsClientData;
 
       /*fprintf(stderr, "Adding NsfNamespaceClientData nsPtr %p cd %p name '%s'\n", 
@@ -4747,7 +4739,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
       Tcl_SetObjResult(interp, savedResultObj);
       DECR_REF_COUNT(savedResultObj);
     }
-    NsfCleanupObject(INTERP object, "CallStackDoDestroy");
+    NsfCleanupObject(object, "CallStackDoDestroy");
   }
 }
 
@@ -4802,7 +4794,7 @@ CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object) {
  * Cmd List Add/Remove ... returns the new element
  */
 static NsfCmdList *
-CmdListAdd(INTERP_DECL NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicates) {
+CmdListAdd(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicates) {
   NsfCmdList *l = *cList, *new;
 
   /*
@@ -4830,7 +4822,7 @@ CmdListAdd(INTERP_DECL NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int
    */
   new = NEW(NsfCmdList);
   new->cmdPtr = c;
-  NsfCommandPreserve(INTERP new->cmdPtr);
+  NsfCommandPreserve(new->cmdPtr);
   new->clientData = NULL;
   new->clorobj = clorobj;
   new->nextPtr = NULL;
@@ -4845,12 +4837,12 @@ CmdListAdd(INTERP_DECL NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int
 }
 
 static void
-CmdListReplaceCmd(INTERP_DECL NsfCmdList *replace, Tcl_Command cmd, NsfClass *clorobj) {
+CmdListReplaceCmd(NsfCmdList *replace, Tcl_Command cmd, NsfClass *clorobj) {
   Tcl_Command del = replace->cmdPtr;
   replace->cmdPtr = cmd;
   replace->clorobj = clorobj;
-  NsfCommandPreserve(INTERP cmd);
-  NsfCommandRelease(INTERP del);
+  NsfCommandPreserve(cmd);
+  NsfCommandRelease(del);
 }
 
 #if 0
@@ -4876,11 +4868,11 @@ CmdListPrint(Tcl_Interp *interp, CONST char *title, NsfCmdList *cmdList) {
  * physically delete an entry 'del'
  */
 static void
-CmdListDeleteCmdListEntry(INTERP_DECL NsfCmdList *del, NsfFreeCmdListClientData *freeFct) {
+CmdListDeleteCmdListEntry(NsfCmdList *del, NsfFreeCmdListClientData *freeFct) {
   if (freeFct) {
-    (*freeFct)(INTERP del);
+    (*freeFct)(del);
   }
-  NsfCommandRelease(INTERP del->cmdPtr);
+  NsfCommandRelease(del->cmdPtr);
   FREE(NsfCmdList, del);
 }
 
@@ -4928,7 +4920,7 @@ CmdListRemoveFromList(NsfCmdList **cmdList, NsfCmdList *delCL) {
  */
 
 static void
-CmdListRemoveDeleted(INTERP_DECL NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
+CmdListRemoveDeleted(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
   NsfCmdList *f = *cmdList, *del;
   while (f) {
     /* 
@@ -4943,7 +4935,7 @@ CmdListRemoveDeleted(INTERP_DECL NsfCmdList **cmdList, NsfFreeCmdListClientData 
       del = f;
       f = f->nextPtr;
       del = CmdListRemoveFromList(cmdList, del);
-      CmdListDeleteCmdListEntry(INTERP del, freeFct);
+      CmdListDeleteCmdListEntry(del, freeFct);
     } else
       f = f->nextPtr;
   }
@@ -4954,17 +4946,17 @@ CmdListRemoveDeleted(INTERP_DECL NsfCmdList **cmdList, NsfFreeCmdListClientData 
  * delete all cmds with given context class object
  */
 static void
-CmdListRemoveContextClassFromList(INTERP_DECL NsfCmdList **cmdList, NsfClass *clorobj,
+CmdListRemoveContextClassFromList(NsfCmdList **cmdList, NsfClass *clorobj,
                                   NsfFreeCmdListClientData *freeFct) {
   NsfCmdList *c, *del = NULL;
   /*
-    CmdListRemoveDeleted(INTERP cmdList, freeFct);
+    CmdListRemoveDeleted(cmdList, freeFct);
   */
   c = *cmdList;
   while (c && c->clorobj == clorobj) {
     del = c;
     *cmdList = c->nextPtr;
-    CmdListDeleteCmdListEntry(INTERP del, freeFct);
+    CmdListDeleteCmdListEntry(del, freeFct);
     c = *cmdList;
   }
 
@@ -4978,7 +4970,7 @@ CmdListRemoveContextClassFromList(INTERP_DECL NsfCmdList **cmdList, NsfClass *cl
       if (c->nextPtr == del) {
 	c->nextPtr = del->nextPtr;
       }
-      CmdListDeleteCmdListEntry(INTERP del, freeFct);
+      CmdListDeleteCmdListEntry(del, freeFct);
     }
     c = c->nextPtr;
   }
@@ -4988,12 +4980,12 @@ CmdListRemoveContextClassFromList(INTERP_DECL NsfCmdList **cmdList, NsfClass *cl
  * free the memory of a whole 'cmdList'
  */
 static void
-CmdListRemoveList(INTERP_DECL NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
+CmdListRemoveList(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
   NsfCmdList *del;
   while (*cmdList) {
     del = *cmdList;
     *cmdList = (*cmdList)->nextPtr;
-    CmdListDeleteCmdListEntry(INTERP del, freeFct);
+    CmdListDeleteCmdListEntry(del, freeFct);
   }
 }
 
@@ -5066,7 +5058,7 @@ CheckConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
  */
 
 static void
-TclObjListFreeList(INTERP_DECL NsfTclObjList *list) {
+TclObjListFreeList(NsfTclObjList *list) {
   NsfTclObjList *del;
   while (list) {
     del = list;
@@ -5077,7 +5069,7 @@ TclObjListFreeList(INTERP_DECL NsfTclObjList *list) {
 }
 
 static Tcl_Obj *
-TclObjListNewElement(INTERP_DECL NsfTclObjList **list, Tcl_Obj *ov) {
+TclObjListNewElement(NsfTclObjList **list, Tcl_Obj *ov) {
   NsfTclObjList *elt = NEW(NsfTclObjList);
   INCR_REF_COUNT2("listContent", ov);
   elt->content = ov;
@@ -5095,7 +5087,7 @@ AssertionNewList(Tcl_Interp *interp, Tcl_Obj *aObj) {
     if (oc > 0) {
       int i;
       for (i=oc-1; i>=0; i--) {
-        TclObjListNewElement(INTERP &last, ov[i]);
+        TclObjListNewElement(&last, ov[i]);
       }
     }
   }
@@ -5157,15 +5149,15 @@ AssertionFindProcs(NsfAssertionStore *aStore, CONST char *name) {
 }
 
 static void
-AssertionRemoveProc(INTERP_DECL NsfAssertionStore *aStore, CONST char *name) {
+AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name) {
   Tcl_HashEntry *hPtr;
   if (aStore) {
     hPtr = Tcl_CreateHashEntry(&aStore->procs, name, NULL);
     if (hPtr) {
       NsfProcAssertion *procAss =
         (NsfProcAssertion *) Tcl_GetHashValue(hPtr);
-      TclObjListFreeList(INTERP procAss->pre);
-      TclObjListFreeList(INTERP procAss->post);
+      TclObjListFreeList(procAss->pre);
+      TclObjListFreeList(procAss->post);
       FREE(NsfProcAssertion, procAss);
       Tcl_DeleteHashEntry(hPtr);
     }
@@ -5179,7 +5171,7 @@ AssertionAddProc(Tcl_Interp *interp, CONST char *name, NsfAssertionStore *aStore
   Tcl_HashEntry *hPtr = NULL;
   NsfProcAssertion *procs = NEW(NsfProcAssertion);
 
-  AssertionRemoveProc(INTERP aStore, name);
+  AssertionRemoveProc(aStore, name);
   procs->pre = AssertionNewList(interp, pre);
   procs->post = AssertionNewList(interp, post);
   hPtr = Tcl_CreateHashEntry(&aStore->procs, name, &new);
@@ -5189,7 +5181,7 @@ AssertionAddProc(Tcl_Interp *interp, CONST char *name, NsfAssertionStore *aStore
 }
 
 static NsfAssertionStore *
-AssertionCreateStore(INTERP_DECL1) {
+AssertionCreateStore() {
   NsfAssertionStore *aStore = NEW(NsfAssertionStore);
   aStore->invariants = NULL;
   Tcl_InitHashTable(&aStore->procs, TCL_STRING_KEYS);
@@ -5198,7 +5190,7 @@ AssertionCreateStore(INTERP_DECL1) {
 }
 
 static void
-AssertionRemoveStore(INTERP_DECL NsfAssertionStore *aStore) {
+AssertionRemoveStore(NsfAssertionStore *aStore) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
@@ -5209,11 +5201,11 @@ AssertionRemoveStore(INTERP_DECL NsfAssertionStore *aStore) {
        * AssertionRemoveProc calls Tcl_DeleteHashEntry(hPtr), thus
        * we get the FirstHashEntry afterwards again to proceed
        */
-      AssertionRemoveProc(INTERP aStore, Tcl_GetHashKey(&aStore->procs, hPtr));
+      AssertionRemoveProc(aStore, Tcl_GetHashKey(&aStore->procs, hPtr));
     }
     Tcl_DeleteHashTable(&aStore->procs);
     MEM_COUNT_FREE("Tcl_InitHashTable", &aStore->procs);
-    TclObjListFreeList(INTERP aStore->invariants);
+    TclObjListFreeList(aStore->invariants);
     FREE(NsfAssertionStore, aStore);
   }
 }
@@ -5322,7 +5314,7 @@ AssertionCheckInvars(Tcl_Interp *interp, NsfObject *object,
 
   if (result != TCL_ERROR && checkoptions & CHECK_CLINVAR) {
     NsfClasses *clPtr;
-    clPtr = ComputeOrder(INTERP object->cl, object->cl->order, Super);
+    clPtr = ComputeOrder(object->cl, object->cl->order, Super);
     while (clPtr && result != TCL_ERROR) {
       NsfAssertionStore *aStore = (clPtr->cl->opt) ? clPtr->cl->opt->assertions : NULL;
       if (aStore) {
@@ -5369,7 +5361,7 @@ AssertionCheck(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
 
 static int
 AssertionSetCheckOptions(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arg) {
-  NsfObjectOpt *opt = NsfRequireObjectOpt(INTERP object);
+  NsfObjectOpt *opt = NsfRequireObjectOpt(object);
   int ocArgs;
   Tcl_Obj **ovArgs;
   opt->checkoptions = CHECK_NONE;
@@ -5418,9 +5410,9 @@ AssertionSetCheckOptions(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arg) {
 static void
 AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_Obj *arg) {
   if (*assertions) {
-    TclObjListFreeList(INTERP (*assertions)->invariants);
+    TclObjListFreeList((*assertions)->invariants);
   } else {
-    *assertions = AssertionCreateStore(INTERP1);
+    *assertions = AssertionCreateStore();
   }
   (*assertions)->invariants = AssertionNewList(interp, arg);
 }
@@ -5437,7 +5429,7 @@ AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_O
  * push a mixin stack information on this object
  */
 static int
-MixinStackPush(INTERP_DECL NsfObject *object) {
+MixinStackPush(NsfObject *object) {
   register NsfMixinStack *h = NEW(NsfMixinStack);
 
   h->currentCmdPtr = NULL;
@@ -5451,7 +5443,7 @@ MixinStackPush(INTERP_DECL NsfObject *object) {
  * pop a mixin stack information on this object
  */
 static void
-MixinStackPop(INTERP_DECL NsfObject *object) {
+MixinStackPop(NsfObject *object) {
   register NsfMixinStack *h = object->mixinStack;
   /*fprintf(stderr, "MixinStackPop %p %s\n", object, ObjectName(object));*/
   object->mixinStack = h->nextPtr;
@@ -5469,13 +5461,13 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
   NsfCmdList *m;
   NsfClasses *pl, **clPtr = mixinClasses;
 
-  CmdListRemoveDeleted(INTERP mixinList, GuardDel);
+  CmdListRemoveDeleted(mixinList, GuardDel);
 
   for (m = *mixinList; m; m = m->nextPtr) {
     NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
 
     if (mCl) {
-      for (pl = ComputeOrder(INTERP mCl, mCl->order, Super); pl; pl = pl->nextPtr) {
+      for (pl = ComputeOrder(mCl, mCl->order, Super); pl; pl = pl->nextPtr) {
         if ((pl->cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
           NsfClassOpt *opt = pl->cl->opt;
 
@@ -5489,14 +5481,14 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
 	       * Compute transitively the (class) mixin classes of this
 	       * added class.
 	       */
-	      NsfClassListAdd(INTERP checkList, pl->cl, NULL);
+	      NsfClassListAdd(checkList, pl->cl, NULL);
 	      /*fprintf(stderr, "+++ transitive %s\n", ClassName(pl->cl));*/
 	      MixinComputeOrderFullList(interp, &opt->classmixins, mixinClasses,
 					checkList, level+1);
 	    }
 	    /*fprintf(stderr, "+++ add to mixinClasses %p path: %s clPtr %p\n",
 	      mixinClasses, ClassName(pl->cl), clPtr);*/
-	    clPtr = NsfClassListAddNoDup(INTERP clPtr, pl->cl, m->clientData, NULL);
+	    clPtr = NsfClassListAddNoDup(clPtr, pl->cl, m->clientData, NULL);
 	  }
         }
       }
@@ -5504,7 +5496,7 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
   }
 
   if (level == 0 && *checkList) {
-    NsfClassListFree(INTERP *checkList);
+    NsfClassListFree(*checkList);
     *checkList = NULL;
   }
 }
@@ -5524,9 +5516,9 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
  *----------------------------------------------------------------------
  */
 static void
-MixinResetOrder(INTERP_DECL NsfObject *object) {
+MixinResetOrder(NsfObject *object) {
   /*fprintf(stderr, "MixinResetOrder for object %s \n", ObjectName(object));*/
-  CmdListRemoveList(INTERP &object->mixinOrder, NULL /*GuardDel*/);
+  CmdListRemoveList(&object->mixinOrder, NULL /*GuardDel*/);
   object->mixinOrder = NULL;
 }
 
@@ -5550,7 +5542,7 @@ NsfClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *cl,
 			      NsfClasses **classList, NsfClasses **checkList) {
   NsfClasses *pl;
 
-  for (pl = ComputeOrder(INTERP cl, cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
     NsfClassOpt *clopt = pl->cl->opt;
     if (clopt && clopt->classmixins) {
       MixinComputeOrderFullList(interp, &clopt->classmixins,
@@ -5579,7 +5571,7 @@ static void
 MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   NsfClasses *fullList, *checkList = NULL, *mixinClasses = NULL, *clPtr;
 
-  if (object->mixinOrder)  MixinResetOrder(INTERP object);
+  if (object->mixinOrder)  MixinResetOrder(object);
 
   /* Append per-obj mixins */
   if (object->opt) {
@@ -5597,7 +5589,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
     for (m = object->opt->mixins; m; m = m->nextPtr) {
       NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
       if (mCl) {
-	NsfClassListAddNoDup(INTERP &checkList, mCl, NULL, NULL);
+	NsfClassListAddNoDup(&checkList, mCl, NULL, NULL);
       }
     }
   }
@@ -5612,7 +5604,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   NsfClassListPrint("MixinComputeOrder poms+pcms", mixinClasses);
   CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
 
-  NsfClassListFree(INTERP checkList);
+  NsfClassListFree(checkList);
   fullList = mixinClasses;
 
   /*
@@ -5633,7 +5625,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
      */
     if (checker == NULL) {
       /* check object->cl hierachy */
-      checker = NsfClassListFind(ComputeOrder(INTERP object->cl, object->cl->order, Super), cl);
+      checker = NsfClassListFind(ComputeOrder(object->cl, object->cl->order, Super), cl);
       /*
        * if checker is set, it was found in the class hierarchy and it is ignored
        */
@@ -5644,7 +5636,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
 
       /*fprintf(stderr, "--- adding to mixinOrder %s to cmdlist %p of object %s\n",
 	ClassName(cl), object->mixinOrder, ObjectName(object));*/
-      new = CmdListAdd(INTERP &object->mixinOrder, cl->object.id, NULL, /*noDuplicates*/ 0);
+      new = CmdListAdd(&object->mixinOrder, cl->object.id, NULL, /*noDuplicates*/ 0);
       /*CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
 
       /*
@@ -5660,7 +5652,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   }
 
   /* ... and free the memory of the full list */
-  NsfClassListFree(INTERP fullList);
+  NsfClassListFree(fullList);
 
   /*CmdListPrint(interp, "mixin order\n", obj->mixinOrder);*/
 }
@@ -5701,11 +5693,11 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
 
   NsfMixinregGet(nameObj, &mixinCl, &guardObj);
 
-  new = CmdListAdd(INTERP mixinList, mixinCl->object.id, NULL, /*noDuplicates*/ 1);
+  new = CmdListAdd(mixinList, mixinCl->object.id, NULL, /*noDuplicates*/ 1);
   if (guardObj) {
-    GuardAdd(INTERP new, guardObj);
+    GuardAdd(new, guardObj);
   } else if (new->clientData) {
-    GuardDel(INTERP new);
+    GuardDel(new);
   }
 
   return TCL_OK;
@@ -6245,7 +6237,7 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
  */
 
 static void
-RemoveFromClassMixinsOf(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromClassMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
 
   for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
     NsfClass *ncl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
@@ -6256,7 +6248,7 @@ RemoveFromClassMixinsOf(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
         /* fprintf(stderr, "Removing class %s from isClassMixinOf of class %s\n",
            ClassName(cl), ObjStr(NsfGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
         del = CmdListRemoveFromList(&nclopt->isClassMixinOf, del);
-        CmdListDeleteCmdListEntry(INTERP del, GuardDel);
+        CmdListDeleteCmdListEntry(del, GuardDel);
       }
     }
   }
@@ -6279,7 +6271,7 @@ RemoveFromClassMixinsOf(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
  */
 
 static void
-RemoveFromObjectMixinsOf(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
   for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
     NsfClass *cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
     NsfClassOpt *clopt = cl ? cl->opt : NULL;
@@ -6289,7 +6281,7 @@ RemoveFromObjectMixinsOf(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
         /* fprintf(stderr, "Removing object %s from isObjectMixinOf of Class %s\n",
            ObjectName(object), ObjStr(NsfGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
         del = CmdListRemoveFromList(&clopt->isObjectMixinOf, del);
-        CmdListDeleteCmdListEntry(INTERP del, GuardDel);
+        CmdListDeleteCmdListEntry(del, GuardDel);
       }
     } /* else fprintf(stderr, "CleanupDestroyObject %s: NULL pointer in mixins!\n", ObjectName(object)); */
   }
@@ -6312,7 +6304,7 @@ RemoveFromObjectMixinsOf(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
  */
 
 static void
-RemoveFromClassmixins(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
   for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
     NsfClass *cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
     NsfClassOpt *clopt = cl ? cl->opt : NULL;
@@ -6322,8 +6314,8 @@ RemoveFromClassmixins(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
         del = CmdListRemoveFromList(&clopt->classmixins, del);
-        CmdListDeleteCmdListEntry(INTERP del, GuardDel);
-	if (cl->object.mixinOrder) MixinResetOrder(INTERP &cl->object);
+        CmdListDeleteCmdListEntry(del, GuardDel);
+	if (cl->object.mixinOrder) MixinResetOrder(&cl->object);
       }
     }
   }
@@ -6345,7 +6337,7 @@ RemoveFromClassmixins(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
  *----------------------------------------------------------------------
  */
 static void
-RemoveFromObjectMixins(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
+RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
   for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
     NsfObject *nobj = NsfGetObjectFromCmdPtr(cmdlist->cmdPtr);
     NsfObjectOpt *objopt = nobj ? nobj->opt : NULL;
@@ -6355,8 +6347,8 @@ RemoveFromObjectMixins(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
         del = CmdListRemoveFromList(&objopt->mixins, del);
-        CmdListDeleteCmdListEntry(INTERP del, GuardDel);
-	if (nobj->mixinOrder) MixinResetOrder(INTERP nobj);
+        CmdListDeleteCmdListEntry(del, GuardDel);
+	if (nobj->mixinOrder) MixinResetOrder(nobj);
       }
     }
   }
@@ -6380,7 +6372,7 @@ RemoveFromObjectMixins(INTERP_DECL Tcl_Command cmd, NsfCmdList *cmdlist) {
  */
 
 static void
-MixinResetOrderForInstances(INTERP_DECL NsfClass *cl) {
+MixinResetOrderForInstances(NsfClass *cl) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
@@ -6396,7 +6388,7 @@ MixinResetOrderForInstances(INTERP_DECL NsfClass *cl) {
     if (object
         && !(object->flags & NSF_DURING_DELETE)
         && (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID)) {
-      MixinResetOrder(INTERP object);
+      MixinResetOrder(object);
       object->flags &= ~NSF_MIXIN_ORDER_VALID;
     }
   }
@@ -6418,7 +6410,7 @@ MixinResetOrderForInstances(INTERP_DECL NsfClass *cl) {
  *----------------------------------------------------------------------
  */
 static void
-ResetOrderOfClassesUsedAsMixins(INTERP_DECL NsfClass *cl) {
+ResetOrderOfClassesUsedAsMixins(NsfClass *cl) {
   /*fprintf(stderr, "ResetOrderOfClassesUsedAsMixins %s - %p\n",
     ClassName(cl), cl->opt);*/
 
@@ -6427,7 +6419,7 @@ ResetOrderOfClassesUsedAsMixins(INTERP_DECL NsfClass *cl) {
     for (ml = cl->opt->isObjectMixinOf; ml; ml = ml->nextPtr) {
       NsfObject *object = NsfGetObjectFromCmdPtr(ml->cmdPtr);
       if (object) {
-        if (object->mixinOrder) { MixinResetOrder(INTERP object); }
+        if (object->mixinOrder) { MixinResetOrder(object); }
         object->flags &= ~NSF_MIXIN_ORDER_VALID;
       }
     }
@@ -6464,14 +6456,14 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   /*
    * Iterate over the subclass hierarchy.
    */
-  for (clPtr = ComputeOrder(INTERP cl, cl->order, Sub); clPtr; clPtr = clPtr->nextPtr) {
+  for (clPtr = ComputeOrder(cl, cl->order, Sub); clPtr; clPtr = clPtr->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
 
     /*
      * Reset mixin order for all objects having this class as per object mixin
      */
-    ResetOrderOfClassesUsedAsMixins(INTERP clPtr->cl);
+    ResetOrderOfClassesUsedAsMixins(clPtr->cl);
 
     /* fprintf(stderr, "invalidating instances of class %s\n", ClassName(clPtr));
      */
@@ -6479,12 +6471,12 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
     for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr;
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *)Tcl_GetHashKey(instanceTablePtr, hPtr);
-      if (object->mixinOrder) { MixinResetOrder(INTERP object); }
+      if (object->mixinOrder) { MixinResetOrder(object); }
       object->flags &= ~NSF_MIXIN_ORDER_VALID;
     }
   }
 
-  NsfClassListFree(INTERP cl->order);
+  NsfClassListFree(cl->order);
   cl->order = saved;
 
   /*
@@ -6502,7 +6494,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
     NsfClass *ncl = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
     /*fprintf(stderr, "Got %s, reset for ncl %p\n", ncl?ClassName(ncl):"NULL", ncl);*/
     if (ncl) {
-      MixinResetOrderForInstances(INTERP ncl);
+      MixinResetOrderForInstances(ncl);
       /*
        * This place seems to be sufficient to invalidate the computed object
        * parameter definitions.
@@ -6585,13 +6577,13 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
 	if (pattern) {
 	  if (!Tcl_StringMatch(ClassName(mixin), pattern)) continue;
 	}
-	npl = NsfClassListAdd(INTERP npl, mixin, NULL);
+	npl = NsfClassListAdd(npl, mixin, NULL);
 	ml = ml->nextPtr;
       }
     }
   }
 
-  pcl = ComputeOrder(INTERP object->cl, object->cl->order, Super);
+  pcl = ComputeOrder(object->cl, object->cl->order, Super);
   for (; pcl; pcl = pcl->nextPtr) {
     if (withRootClass == 0 && pcl->cl->object.flags & NSF_IS_ROOT_CLASS) {
       continue;
@@ -6599,7 +6591,7 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
     if (pattern && !Tcl_StringMatch(ClassName(pcl->cl), pattern)) {
       continue;
     }
-    npl = NsfClassListAdd(INTERP npl, pcl->cl, NULL);
+    npl = NsfClassListAdd(npl, pcl->cl, NULL);
   }
   return precedenceList;
 }
@@ -6867,12 +6859,12 @@ MixinInfo(Tcl_Interp *interp, NsfCmdList *m, CONST char *pattern,
  */
 
 static Tcl_Command
-MixinSearchMethodByName(INTERP_DECL NsfCmdList *mixinList, CONST char *name, NsfClass **cl) {
+MixinSearchMethodByName(NsfCmdList *mixinList, CONST char *name, NsfClass **cl) {
   Tcl_Command cmd;
 
   for (; mixinList;  mixinList = mixinList->nextPtr) {
     NsfClass *foundCl = NsfGetClassFromCmdPtr(mixinList->cmdPtr);
-    if (foundCl && SearchCMethod(INTERP foundCl, name, &cmd)) {
+    if (foundCl && SearchCMethod(foundCl, name, &cmd)) {
       if (cl) *cl = foundCl;
       return cmd;
     }
@@ -6894,7 +6886,7 @@ MixinSearchMethodByName(INTERP_DECL NsfCmdList *mixinList, CONST char *name, Nsf
  */
 
 static Tcl_Command
-FilterSearch(INTERP_DECL CONST char *name, NsfObject *startingObject,
+FilterSearch(CONST char *name, NsfObject *startingObject,
              NsfClass *startingClass, NsfClass **cl) {
   Tcl_Command cmd = NULL;
 
@@ -6911,7 +6903,7 @@ FilterSearch(INTERP_DECL CONST char *name, NsfObject *startingObject,
      * search for filters on object mixins
      */
     if (opt && opt->mixins) {
-      if ((cmd = MixinSearchMethodByName(INTERP opt->mixins, name, cl))) {
+      if ((cmd = MixinSearchMethodByName(opt->mixins, name, cl))) {
         return cmd;
       }
     }
@@ -6923,7 +6915,7 @@ FilterSearch(INTERP_DECL CONST char *name, NsfObject *startingObject,
   if (startingClass) {
     NsfClassOpt *opt = startingClass->opt;
     if (opt && opt->classmixins) {
-      if ((cmd = MixinSearchMethodByName(INTERP opt->classmixins, name, cl))) {
+      if ((cmd = MixinSearchMethodByName(opt->classmixins, name, cl))) {
         return cmd;
       }
     }
@@ -6944,12 +6936,12 @@ FilterSearch(INTERP_DECL CONST char *name, NsfObject *startingObject,
    * ok, no filter on obj or mixins -> search class
    */
   if (startingClass) {
-    *cl = SearchCMethod(INTERP startingClass, name, &cmd);
+    *cl = SearchCMethod(startingClass, name, &cmd);
     if (!*cl) {
       /*
        * If no filter is found yet -> search the meta-class
        */
-      *cl = SearchCMethod(INTERP startingClass->object.cl, name, &cmd);
+      *cl = SearchCMethod(startingClass->object.cl, name, &cmd);
     }
   }
   return cmd;
@@ -7010,7 +7002,7 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
 */
 
 static void
-GuardDel(INTERP_DECL NsfCmdList *CL) {
+GuardDel(NsfCmdList *CL) {
   /*fprintf(stderr, "GuardDel %p clientData = %p\n",
     CL, CL? CL->clientData : NULL);*/
   if (CL && CL->clientData) {
@@ -7020,9 +7012,9 @@ GuardDel(INTERP_DECL NsfCmdList *CL) {
 }
 
 NSF_INLINE static void
-GuardAdd(INTERP_DECL NsfCmdList *CL, Tcl_Obj *guardObj) {
+GuardAdd(NsfCmdList *CL, Tcl_Obj *guardObj) {
   if (guardObj) {
-    GuardDel(INTERP CL);
+    GuardDel(CL);
     if (strlen(ObjStr(guardObj)) != 0) {
       INCR_REF_COUNT2("guardObj", guardObj);
       CL->clientData = guardObj;
@@ -7071,13 +7063,13 @@ GuardCall(NsfObject *object, Tcl_Interp *interp, Tcl_Obj *guardObj, NsfCallStack
 }
 
 static int
-GuardAddFromDefinitionList(INTERP_DECL NsfCmdList *dest, Tcl_Command interceptorCmd,
+GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
                            NsfCmdList *interceptorDefList) {
   NsfCmdList *h;
   if (interceptorDefList) {
     h = CmdListFindCmdInList(interceptorCmd, interceptorDefList);
     if (h) {
-      GuardAdd(INTERP dest, (Tcl_Obj *) h->clientData);
+      GuardAdd(dest, (Tcl_Obj *) h->clientData);
       /*
        * 1 means we have added a guard successfully "interceptorCmd"
        */
@@ -7107,7 +7099,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
     for (ml = object->mixinOrder; ml && !guardAdded; ml = ml->nextPtr) {
       mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
       if (mixin && mixin->opt) {
-        guardAdded = GuardAddFromDefinitionList(INTERP dest, filterCmd,
+        guardAdded = GuardAddFromDefinitionList(dest, filterCmd,
                                                 mixin->opt->classfilters);
       }
     }
@@ -7116,16 +7108,16 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
   /* search per-object filters */
   opt = object->opt;
   if (!guardAdded && opt && opt->filters) {
-    guardAdded = GuardAddFromDefinitionList(INTERP dest, filterCmd, 
+    guardAdded = GuardAddFromDefinitionList(dest, filterCmd, 
 					    opt->filters);
   }
 
   if (!guardAdded) {
     /* search per-class filters */
-    for (pl = ComputeOrder(INTERP object->cl, object->cl->order, Super); !guardAdded && pl; pl = pl->nextPtr) {
+    for (pl = ComputeOrder(object->cl, object->cl->order, Super); !guardAdded && pl; pl = pl->nextPtr) {
       NsfClassOpt *clopt = pl->cl->opt;
       if (clopt) {
-        guardAdded = GuardAddFromDefinitionList(INTERP dest, filterCmd,
+        guardAdded = GuardAddFromDefinitionList(dest, filterCmd,
                                                 clopt->classfilters);
       }
     }
@@ -7145,7 +7137,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
         CmdListFindNameInList(interp, (char *) Tcl_GetCommandName(interp, filterCmd),
                               object->filterOrder);
       if (registeredFilter) {
-        GuardAdd(INTERP dest, (Tcl_Obj *) registeredFilter->clientData);
+        GuardAdd(dest, (Tcl_Obj *) registeredFilter->clientData);
       }
     }
   }
@@ -7203,7 +7195,7 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
 
   NsfFilterregGet(filterregObj, &filterObj, &guardObj);
 
-  if (!(cmd = FilterSearch(INTERP ObjStr(filterObj), startingObject, startingClass, &cl))) {
+  if (!(cmd = FilterSearch(ObjStr(filterObj), startingObject, startingClass, &cl))) {
     if (startingObject) {
       return NsfPrintError(interp, "object filter: can't find filterproc '%s' on %s ",
 			   ObjStr(filterObj), ObjectName(startingObject));
@@ -7215,12 +7207,12 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
 
   /*fprintf(stderr, " +++ adding filter %s cl %p\n", ObjStr(nameObj), cl);*/
 
-  new = CmdListAdd(INTERP filterList, cmd, cl, /*noDuplicates*/ 1);
+  new = CmdListAdd(filterList, cmd, cl, /*noDuplicates*/ 1);
 
   if (guardObj) {
-    GuardAdd(INTERP new, guardObj);
+    GuardAdd(new, guardObj);
   } else if (new->clientData) {
-    GuardDel(INTERP new);
+    GuardDel(new);
   }
 
   return TCL_OK;
@@ -7230,8 +7222,8 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
  * reset the filter order cached in obj->filterOrder
  */
 static void
-FilterResetOrder(INTERP_DECL NsfObject *object) {
-  CmdListRemoveList(INTERP &object->filterOrder, GuardDel);
+FilterResetOrder(NsfObject *object) {
+  CmdListRemoveList(&object->filterOrder, GuardDel);
   object->filterOrder = NULL;
 }
 
@@ -7248,16 +7240,16 @@ FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
   NsfCmdList *cmdList, *del;
   NsfClass *cl = NULL;
 
-  CmdListRemoveDeleted(INTERP filters, GuardDel);
+  CmdListRemoveDeleted(filters, GuardDel);
   for (cmdList = *filters; cmdList; ) {
     simpleName = (char *) Tcl_GetCommandName(interp, cmdList->cmdPtr);
-    cmd = FilterSearch(INTERP simpleName, startingObject, startingClass, &cl);
+    cmd = FilterSearch(simpleName, startingObject, startingClass, &cl);
     if (cmd == NULL) {
       del = CmdListRemoveFromList(filters, cmdList);
       cmdList = cmdList->nextPtr;
-      CmdListDeleteCmdListEntry(INTERP del, GuardDel);
+      CmdListDeleteCmdListEntry(del, GuardDel);
     } else if (cmd != cmdList->cmdPtr) {
-      CmdListReplaceCmd(INTERP cmdList, cmd, cl);
+      CmdListReplaceCmd(cmdList, cmd, cl);
       cmdList = cmdList->nextPtr;
     } else {
       cmdList = cmdList->nextPtr;
@@ -7280,7 +7272,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   NsfClasses *saved = cl->order, *clPtr, *savePtr;
 
   cl->order = NULL;
-  savePtr = clPtr = ComputeOrder(INTERP cl, cl->order, Sub);
+  savePtr = clPtr = ComputeOrder(cl, cl->order, Sub);
   cl->order = saved;
 
   for ( ; clPtr; clPtr = clPtr->nextPtr) {
@@ -7294,7 +7286,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
     }
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *)Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
-      FilterResetOrder(INTERP object);
+      FilterResetOrder(object);
       object->flags &= ~NSF_FILTER_ORDER_VALID;
 
       /* recalculate the commands of all object filter registrations */
@@ -7303,7 +7295,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
       }
     }
   }
-  NsfClassListFree(INTERP savePtr);
+  NsfClassListFree(savePtr);
 }
 
 /*
@@ -7313,7 +7305,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
  * class cl
  */
 static void
-FilterRemoveDependentFilterCmds(INTERP_DECL NsfClass *cl, NsfClass *removeClass) {
+FilterRemoveDependentFilterCmds(NsfClass *cl, NsfClass *removeClass) {
   NsfClasses *saved = cl->order, *clPtr;
   cl->order = NULL;
 
@@ -7321,23 +7313,23 @@ FilterRemoveDependentFilterCmds(INTERP_DECL NsfClass *cl, NsfClass *removeClass)
     cl, ClassName(cl),
     removeClass, ObjStr(removeClass->object.cmdName));*/
 
-  for (clPtr = ComputeOrder(INTERP cl, cl->order, Sub); clPtr; clPtr = clPtr->nextPtr) {
+  for (clPtr = ComputeOrder(cl, cl->order, Sub); clPtr; clPtr = clPtr->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
       Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
     NsfClassOpt *opt = clPtr->cl->opt;
     if (opt) {
-      CmdListRemoveContextClassFromList(INTERP &opt->classfilters, removeClass, GuardDel);
+      CmdListRemoveContextClassFromList(&opt->classfilters, removeClass, GuardDel);
     }
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *) Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
       if (object->opt) {
-        CmdListRemoveContextClassFromList(INTERP &object->opt->filters, removeClass, GuardDel);
+        CmdListRemoveContextClassFromList(&object->opt->filters, removeClass, GuardDel);
       }
     }
   }
 
-  NsfClassListFree(INTERP cl->order);
+  NsfClassListFree(cl->order);
   cl->order = saved;
 }
 
@@ -7439,12 +7431,12 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
   /*
    * ensure that no epoched command is in the filters list
    */
-  CmdListRemoveDeleted(INTERP filters, GuardDel);
+  CmdListRemoveDeleted(filters, GuardDel);
 
   for (f = *filters; f; f = f->nextPtr) {
     simpleName = (char *) Tcl_GetCommandName(interp, f->cmdPtr);
     fcl = f->clorobj;
-    CmdListAdd(INTERP filterList, f->cmdPtr, fcl, /*noDuplicates*/ 0);
+    CmdListAdd(filterList, f->cmdPtr, fcl, /*noDuplicates*/ 0);
 
     if (fcl && !NsfObjectIsClass(&fcl->object)) {
       /* get the class from the object for per-object filter */
@@ -7453,7 +7445,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
 
     /* if we have a filter class -> search up the inheritance hierarchy*/
     if (fcl) {
-      pl = ComputeOrder(INTERP fcl, fcl->order, Super);
+      pl = ComputeOrder(fcl, fcl->order, Super);
       if (pl && pl->nextPtr) {
         /* don't search on the start class again */
         pl = pl->nextPtr;
@@ -7461,7 +7453,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
         for(; pl; pl = pl->nextPtr) {
           Tcl_Command pi = FindMethod(pl->cl->nsPtr, simpleName);
           if (pi) {
-            CmdListAdd(INTERP filterList, pi, pl->cl, /*noDuplicates*/ 0);
+            CmdListAdd(filterList, pi, pl->cl, /*noDuplicates*/ 0);
             /*
               fprintf(stderr, " %s::%s, ", ClassName(pl->cl), simpleName);
             */
@@ -7484,7 +7476,7 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   NsfCmdList *filterList = NULL, *next, *checker, *newlist;
   NsfClasses *pl;
 
-  if (object->filterOrder) FilterResetOrder(INTERP object);
+  if (object->filterOrder) FilterResetOrder(object);
   /*
     fprintf(stderr, "<Filter Order obj=%s> List: ", ObjectName(object));
   */
@@ -7510,7 +7502,7 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
     FilterComputeOrderFullList(interp, &object->opt->filters, &filterList);
   }
   /* append per-class filters */
-  for (pl = ComputeOrder(INTERP object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     NsfClassOpt *clopt = pl->cl->opt;
     if (clopt && clopt->classfilters) {
       FilterComputeOrderFullList(interp, &clopt->classfilters, &filterList);
@@ -7529,7 +7521,7 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
       checker = checker->nextPtr;
     }
     if (checker == NULL) {
-      newlist = CmdListAdd(INTERP &object->filterOrder, filterList->cmdPtr, filterList->clorobj,
+      newlist = CmdListAdd(&object->filterOrder, filterList->cmdPtr, filterList->clorobj,
                            /*noDuplicates*/ 0);
       GuardAddInheritedGuards(interp, newlist, object, filterList->cmdPtr);
       /*
@@ -7541,7 +7533,7 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
 
     }
 
-    CmdListDeleteCmdListEntry(INTERP filterList, GuardDel);
+    CmdListDeleteCmdListEntry(filterList, GuardDel);
 
     filterList = next;
   }
@@ -7574,7 +7566,7 @@ FilterComputeDefined(Tcl_Interp *interp, NsfObject *object) {
  * push a filter stack information on this object
  */
 static int
-FilterStackPush(INTERP_DECL NsfObject *object, Tcl_Obj *calledProc) {
+FilterStackPush(NsfObject *object, Tcl_Obj *calledProc) {
   register NsfFilterStack *h = NEW(NsfFilterStack);
 
   h->currentCmdPtr = NULL;
@@ -7589,7 +7581,7 @@ FilterStackPush(INTERP_DECL NsfObject *object, Tcl_Obj *calledProc) {
  * pop a filter stack information on this object
  */
 static void
-FilterStackPop(INTERP_DECL NsfObject *object) {
+FilterStackPop(NsfObject *object) {
   register NsfFilterStack *h = object->filterStack;
   object->filterStack = h->nextPtr;
 
@@ -7623,7 +7615,7 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   }
 
   /* search per-class filters */
-  for (pl = ComputeOrder(INTERP object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     NsfClassOpt *opt = pl->cl->opt;
     if (opt && opt->classfilters) {
       if (CmdListFindCmdInList(cmd, opt->classfilters)) {
@@ -7693,7 +7685,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   int reversed = 0;
   int i, j;
 
-  filterCheck = ComputeOrder(INTERP cl, cl->order, Super);
+  filterCheck = ComputeOrder(cl, cl->order, Super);
   /*
    * we have to remove all dependent superclass filter referenced
    * by class or one of its subclasses
@@ -7705,7 +7697,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     filterCheck = filterCheck->nextPtr;
   }
   for (; filterCheck; filterCheck = filterCheck->nextPtr) {
-    FilterRemoveDependentFilterCmds(INTERP cl, filterCheck->cl);
+    FilterRemoveDependentFilterCmds(cl, filterCheck->cl);
   }
 
   /* invalidate all interceptors orders of instances of this
@@ -7728,7 +7720,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   for (i = 0; i < oc; i++) {
     if (reversed) break;
     for (j = i+1; j < oc; j++) {
-      NsfClasses *dl = ComputeOrder(INTERP scl[j], scl[j]->order, Super);
+      NsfClasses *dl = ComputeOrder(scl[j], scl[j]->order, Super);
       if (reversed) break;
       dl = NsfClassListFind(dl, scl[i]);
       if (dl) reversed = 1;
@@ -7762,29 +7754,29 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     osl = NEW(NsfClasses);
     osl->cl = sc;
     osl->nextPtr = l;
-    (void)RemoveSuper(INTERP cl, cl->super->cl);
+    (void)RemoveSuper(cl, cl->super->cl);
   }
   for (i=0; i < oc; i++) {
-    AddSuper(INTERP cl, scl[i]);
+    AddSuper(cl, scl[i]);
   }
   FREE(NsfClass**, scl);
-  FlushPrecedencesOnSubclasses(INTERP cl);
+  FlushPrecedencesOnSubclasses(cl);
 
-  if (!ComputeOrder(INTERP cl, cl->order, Super)) {
+  if (!ComputeOrder(cl, cl->order, Super)) {
     NsfClasses *l;
     /*
      * cycle in the superclass graph, backtrack
      */
     while (cl->super) {
-      (void)RemoveSuper(INTERP cl, cl->super->cl);
+      (void)RemoveSuper(cl, cl->super->cl);
     }
     for (l = osl; l; l = l->nextPtr) {
-      AddSuper(INTERP cl, l->cl);
+      AddSuper(cl, l->cl);
     }
-    NsfClassListFree(INTERP osl);
+    NsfClassListFree(osl);
     return NsfObjErrType(interp, "superclass", arg, "a cycle-free graph", NULL);
   }
-  NsfClassListFree(INTERP osl);
+  NsfClassListFree(osl);
 
   /* if there are no more super classes add the Object
      class as superclasses */
@@ -7792,7 +7784,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
 #if 0
   if (cl->super == NULL) {
     fprintf(stderr, "SuperClassAdd super of '%s' is NULL\n", ClassName(cl));
-    /*AddSuper(INTERP cl, RUNTIME_STATE(interp)->theObject);*/
+    /*AddSuper(cl, RUNTIME_STATE(interp)->theObject);*/
   }
 #endif
 
@@ -8012,19 +8004,18 @@ GetVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
 void
 NsfProcDeleteProc(ClientData clientData) {
   NsfProcContext *ctxPtr = (NsfProcContext *)clientData;
-  INTERP_MEMBER_GET(ctxPtr)
 
   (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
   if (ctxPtr->paramDefs) {
     /*fprintf(stderr, "free ParamDefs %p\n", ctxPtr->paramDefs);*/
-    ParamDefsRefCountDecr(INTERP ctxPtr->paramDefs);
+    ParamDefsRefCountDecr(ctxPtr->paramDefs);
   }
   /*fprintf(stderr, "free %p\n", ctxPtr);*/
   FREE(NsfProcContext, ctxPtr);
 }
 
 static Nsf_Param *
-ParamsNew(INTERP_DECL int nr) {
+ParamsNew(int nr) {
   Nsf_Param *paramsPtr = NEW_ARRAY(Nsf_Param, nr+1);
   memset(paramsPtr, 0, sizeof(Nsf_Param)*(nr+1));
   return paramsPtr;
@@ -8044,7 +8035,7 @@ ParamsNew(INTERP_DECL int nr) {
  *----------------------------------------------------------------------
  */
 static void
-ParamFree(INTERP_DECL Nsf_Param *paramPtr) {
+ParamFree(Nsf_Param *paramPtr) {
   /*fprintf(stderr, "ParamFree %p\n", paramPtr);*/
   if (paramPtr->name) {STRING_FREE("paramPtr->name", paramPtr->name);}
   if (paramPtr->nameObj) {DECR_REF_COUNT(paramPtr->nameObj);}
@@ -8070,12 +8061,12 @@ ParamFree(INTERP_DECL Nsf_Param *paramPtr) {
  *----------------------------------------------------------------------
  */
 static void
-ParamsFree(INTERP_DECL Nsf_Param *paramsPtr) {
+ParamsFree(Nsf_Param *paramsPtr) {
   Nsf_Param *paramPtr;
 
   /*fprintf(stderr, "ParamsFree %p\n", paramsPtr);*/
   for (paramPtr=paramsPtr; paramPtr->name; paramPtr++) {
-    ParamFree(INTERP paramPtr);
+    ParamFree(paramPtr);
   }
   FREE(Nsf_Param*, paramsPtr);
 }
@@ -8106,7 +8097,7 @@ ParamDefsGet(Tcl_Command cmdPtr) {
  *----------------------------------------------------------------------
  */
 static int
-ParamDefsStore(INTERP_DECL Tcl_Command cmd, NsfParamDefs *paramDefs) {
+ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs) {
   Command *cmdPtr = (Command *)cmd;
 
   if (cmdPtr->deleteProc != NsfProcDeleteProc) {
@@ -8120,7 +8111,6 @@ ParamDefsStore(INTERP_DECL Tcl_Command cmd, NsfParamDefs *paramDefs) {
     cmdPtr->deleteProc = NsfProcDeleteProc;
     ctxPtr->paramDefs = paramDefs;
     cmdPtr->deleteData = ctxPtr;
-    INTERP_MEMBER_SET(ctxPtr, interp)
 
     return TCL_OK;
   } else {
@@ -8151,7 +8141,7 @@ ParamDefsStore(INTERP_DECL Tcl_Command cmd, NsfParamDefs *paramDefs) {
  *----------------------------------------------------------------------
  */
 static NsfParamDefs *
-ParamDefsNew(INTERP_DECL1) {
+ParamDefsNew() {
   NsfParamDefs *paramDefs;
 
   paramDefs = NEW(NsfParamDefs);
@@ -8180,12 +8170,12 @@ ParamDefsNew(INTERP_DECL1) {
  */
 
 static void
-ParamDefsFree(INTERP_DECL NsfParamDefs *paramDefs) {
+ParamDefsFree(NsfParamDefs *paramDefs) {
   /*fprintf(stderr, "ParamDefsFree %p slotObj %p returns %p\n",
     paramDefs, paramDefs->slotObj, paramDefs->returns);*/
 
   if (paramDefs->paramsPtr) {
-    ParamsFree(INTERP paramDefs->paramsPtr);
+    ParamsFree(paramDefs->paramsPtr);
   }
   if (paramDefs->slotObj) {DECR_REF_COUNT2("paramDefsObj", paramDefs->slotObj);}
   if (paramDefs->returns) {DECR_REF_COUNT2("paramDefsObj", paramDefs->returns);}
@@ -8215,14 +8205,14 @@ ParamDefsFree(INTERP_DECL NsfParamDefs *paramDefs) {
 
 
 static void
-ParamDefsRefCountIncr(INTERP_DECL NsfParamDefs *paramDefs) {
+ParamDefsRefCountIncr(NsfParamDefs *paramDefs) {
   paramDefs->refCount ++;
 }
 static void
-ParamDefsRefCountDecr(INTERP_DECL NsfParamDefs *paramDefs) {
+ParamDefsRefCountDecr(NsfParamDefs *paramDefs) {
   paramDefs->refCount --;
   if (paramDefs->refCount < 1) {
-    ParamDefsFree(INTERP paramDefs);
+    ParamDefsFree(paramDefs);
   }
 }
 
@@ -8502,7 +8492,7 @@ ParamGetDomain(Nsf_Param CONST *paramPtr) {
  */
 
 Tcl_Obj *
-NsfParamDefsSyntax(INTERP_DECL Nsf_Param CONST *paramsPtr) {
+NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) {
   Tcl_Obj *argStringObj = Tcl_NewObj();
   Nsf_Param CONST *pPtr;
 
@@ -8565,11 +8555,11 @@ NsfParamDefsSyntax(INTERP_DECL Nsf_Param CONST *paramsPtr) {
  *----------------------------------------------------------------------
  */
 static void
-ParsedParamFree(INTERP_DECL NsfParsedParam *parsedParamPtr) {
+ParsedParamFree(NsfParsedParam *parsedParamPtr) {
   /*fprintf(stderr, "ParsedParamFree %p, npargs %p\n",
    parsedParamPtr, parsedParamPtr->paramDefs);*/
   if (parsedParamPtr->paramDefs) {
-    ParamDefsRefCountDecr(INTERP parsedParamPtr->paramDefs);
+    ParamDefsRefCountDecr(parsedParamPtr->paramDefs);
   }
   FREE(NsfParsedParam, parsedParamPtr);
 }
@@ -8629,7 +8619,7 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 #if defined(NRE)
   if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE)) {
     if (pcPtr) {
-      ParseContextRelease(INTERP pcPtr);
+      ParseContextRelease(pcPtr);
       NsfTclStackFree(interp, pcPtr, "release parse context");
     }
     result = ObjectDispatchFinalize(interp, cscPtr, result /*, "NRE" , methodName*/);
@@ -8638,7 +8628,7 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   }
 #else
   if (pcPtr) {
-    ParseContextRelease(INTERP pcPtr);
+    ParseContextRelease(pcPtr);
   }
 #endif
 
@@ -8677,7 +8667,7 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   }
 # endif
 
-  ParseContextRelease(INTERP pcPtr);
+  ParseContextRelease(pcPtr);
   NsfTclStackFree(interp, pcPtr, "nsf::proc dispatch finialize release parse context");
 
   return result;
@@ -8799,12 +8789,12 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
       result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, cscPtr);
     } else {
 #if defined(NRE)
-      ParseContextRelease(INTERP pcPtr);
+      ParseContextRelease(pcPtr);
       NsfTclStackFree(interp, pcPtr, "parse context (proc prep failed)");
       pcPtr = NULL;
 #else
       //fprintf(stderr, "error\n");
-      ParseContextRelease(INTERP pcPtr);
+      ParseContextRelease(pcPtr);
 #endif
     }
   } else {
@@ -9025,7 +9015,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	assert(cscPtr->cmdPtr == cmd);
         Tcl_DeleteCommandFromToken(interp, cmd);
 
-        NsfCleanupObject(INTERP invokeObj, "alias-delete1");
+        NsfCleanupObject(invokeObj, "alias-delete1");
         return NsfPrintError(interp, "Trying to dispatch deleted object via method '%s'",
                               methodName);
       }
@@ -9229,7 +9219,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
    * cp == NULL && !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)
    * TODO: We could pass cmd==NULL, but is this worth it?
    */
-  CscInit(INTERP cscPtr, object, cl, cmd, frameType, flags, methodName);
+  CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
   result = MethodDispatchCsc(clientData, interp, objc, objv,
 			     cscPtr, methodName, &validCscPtr);
@@ -9327,12 +9317,12 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   if ((flags & NSF_CSC_MIXIN_STACK_PUSHED) && object->mixinStack) {
     /* fprintf(stderr, "MixinStackPop %s.%s %p %s\n",
        ObjectName(object), methodName, object->mixinStack, msg);*/
-    MixinStackPop(INTERP object);
+    MixinStackPop(object);
   }
   if ((flags & NSF_CSC_FILTER_STACK_PUSHED) && object->filterStack) {
     /* fprintf(stderr, "FilterStackPop %s.%s %p %s\n",
        ObjectName(object), methodName, object->filterStack, msg);*/
-    FilterStackPop(INTERP object);
+    FilterStackPop(object);
   }
 
   return result;
@@ -9347,7 +9337,7 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *methodName) {
   NsfClasses *p;
 
   /*fprintf(stderr, "NsfFindClassMethod %s %s\n", ClassName(cl), methodName);*/
-  if (cl->order == NULL) cl->order = TopoOrder(INTERP cl, Super);
+  if (cl->order == NULL) cl->order = TopoOrder(cl, Super);
 
   for(p = cl->order; p; p = p->nextPtr) {
     NsfClass *currentClass = p->cl;
@@ -9482,7 +9472,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
       if (!cscPtr1 ||
 	  (object != cscPtr1->self || (cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER))) {
-	FilterStackPush(INTERP object, methodObj);
+	FilterStackPush(object, methodObj);
 	flags |= NSF_CSC_FILTER_STACK_PUSHED;
 
 	cmd = FilterSearchProc(interp, object, &object->filterStack->currentCmdPtr, &cl);
@@ -9596,7 +9586,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
      * larger.
      */
 
-    MixinStackPush(INTERP object);
+    MixinStackPush(object);
     flags |= NSF_CSC_MIXIN_STACK_PUSHED;
 
     if (frameType != NSF_CSC_TYPE_ACTIVE_FILTER) {
@@ -9612,7 +9602,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	/*fprintf(stderr, "mixinsearch returned an error for %p %s.%s\n",
 	  object, ObjectName(object), methodName);*/
 	cscPtr = CscAlloc(interp, &csc, NULL);
-	CscInit(INTERP cscPtr, object, cl, NULL, frameType, flags, methodName);
+	CscInit(cscPtr, object, cl, NULL, frameType, flags, methodName);
         goto exit_object_dispatch;
       }
       if (cmd1) {
@@ -9646,7 +9636,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       /* check for a method inherited from a class */
       NsfClass *currentClass = object->cl;
       if (unlikely(currentClass->order == NULL)) {
-	currentClass->order = TopoOrder(INTERP currentClass, Super);
+	currentClass->order = TopoOrder(currentClass, Super);
       }
       if (unlikely(flags & NSF_CM_SYSTEM_METHOD)) {
 	NsfClasses *classList = currentClass->order;
@@ -9709,7 +9699,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
      * We found the method to dispatch.
      */
     cscPtr = CscAlloc(interp, &csc, cmd);
-    CscInit(INTERP cscPtr, object, cl, cmd, frameType, flags, methodName);
+    CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
     if ((cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER)) {
       /* run filters not NRE enabled */
@@ -9738,7 +9728,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
      * The method to be dispatched is unknown
      */
     cscPtr = CscAlloc(interp, &csc, cmd);
-    CscInit(INTERP cscPtr, object, cl, cmd, frameType, flags, methodName);
+    CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
     cscPtr->flags |= NSF_CSC_METHOD_IS_UNKNOWN;
     if ((flags & NSF_CM_NO_UNKNOWN)) {
       cscPtr->flags |= NSF_CSC_CALL_NO_UNKNOWN;
@@ -9763,7 +9753,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   /*fprintf(stderr, "ObjectDispatch %s.%s returns %d\n",
     ObjectName(object), methodName, result);*/
 
-  NsfCleanupObject(INTERP object, "ObjectDispatch");
+  NsfCleanupObject(object, "ObjectDispatch");
   /*fprintf(stderr, "ObjectDispatch call NsfCleanupObject %p DONE\n", object);*/
   DECR_REF_COUNT(cmdName); /* must be after last dereferencing of obj */
 
@@ -10078,7 +10068,7 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
  */
 
 static Tcl_Obj *
-AddPrefixToBody(INTERP_DECL Tcl_Obj *body, int paramDefs, NsfParsedParam *paramPtr) {
+AddPrefixToBody(Tcl_Obj *body, int paramDefs, NsfParsedParam *paramPtr) {
   Tcl_Obj *resultBody = Tcl_NewObj();
 
   INCR_REF_COUNT2("resultBody", resultBody);
@@ -11207,7 +11197,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   return TCL_OK;
 
  param_error:
-  ParamFree(INTERP paramPtr);
+  ParamFree(paramPtr);
   paramPtr->name = NULL;
 
   return TCL_ERROR;
@@ -11252,7 +11242,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
     int i, possibleUnknowns = 0, plainParams = 0, nrNonposArgs = 0;
     NsfParamDefs *paramDefs;
 
-    paramPtr = paramsPtr = ParamsNew(INTERP argsc);
+    paramPtr = paramsPtr = ParamsNew(argsc);
 
     for (i=0; i < argsc; i++, paramPtr++) {
       result = ParamParse(interp, procNameObj, argsv[i], allowedOptinons,
@@ -11263,7 +11253,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
 				paramPtr->name);
       }
       if (result != TCL_OK) {
-        ParamsFree(INTERP paramsPtr);
+        ParamsFree(paramsPtr);
         return result;
       }
       /* every parameter must have at least a name set */
@@ -11280,7 +11270,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
      * to use the parameter definition structure.
      */
     if (plainParams == argsc && !forceParamdefs) {
-      ParamsFree(INTERP paramsPtr);
+      ParamsFree(paramsPtr);
       return TCL_OK;
     }
     /*
@@ -11297,7 +11287,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
       lastParamPtr->flags &= ~NSF_ARG_REQUIRED;
     }
 
-    paramDefs = ParamDefsNew(INTERP1);
+    paramDefs = ParamDefsNew();
     paramDefs->paramsPtr = paramsPtr;
     paramDefs->nrParams = paramPtr-paramsPtr;
     /*fprintf(stderr, "method %s paramDefs %p ifsize %ld, possible unknowns = %d,\n",
@@ -11349,10 +11339,10 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     ov[2] = argList;
     INCR_REF_COUNT(ov[2]);
     /*fprintf(stderr, "final arglist = <%s>\n", ObjStr(argList)); */
-    ov[3] = AddPrefixToBody(INTERP body, 1, &parsedParam);
+    ov[3] = AddPrefixToBody(body, 1, &parsedParam);
   } else { /* no parameter handling needed */
     ov[2] = args;
-    ov[3] = AddPrefixToBody(INTERP body, 0, &parsedParam);
+    ov[3] = AddPrefixToBody(body, 0, &parsedParam);
   }
 
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
@@ -11383,7 +11373,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
         procPtr->cmdPtr->nsPtr = ((Command *)regObject->id)->nsPtr;
       }
 
-      ParamDefsStore(INTERP (Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
+      ParamDefsStore((Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
       Tcl_SetObjResult(interp, MethodHandleObj(defObject, withPer_object, methodName));
       result = TCL_OK;
     }
@@ -11441,15 +11431,15 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
     NsfAssertionStore *aStore = NULL;
     if (precondition || postcondition) {
       if (cl) {
-        NsfClassOpt *opt = NsfRequireClassOpt(INTERP cl);
+        NsfClassOpt *opt = NsfRequireClassOpt(cl);
         if (!opt->assertions) {
-          opt->assertions = AssertionCreateStore(INTERP1);
+          opt->assertions = AssertionCreateStore();
 	}
         aStore = opt->assertions;
       } else {
-        NsfObjectOpt *opt = NsfRequireObjectOpt(INTERP defObject);
+        NsfObjectOpt *opt = NsfRequireObjectOpt(defObject);
         if (!opt->assertions) {
-          opt->assertions = AssertionCreateStore(INTERP1);
+          opt->assertions = AssertionCreateStore();
 	}
         aStore = opt->assertions;
       }
@@ -11496,14 +11486,13 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
 static void
 NsfProcStubDeleteProc(ClientData clientData) {
   NsfProcClientData *tcd = clientData;
-  INTERP_MEMBER_GET(tcd)
 
   /*fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
     fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
 
   DECR_REF_COUNT2("procNameObj",tcd->procName);
   if (tcd->cmd) {
-    NsfCommandRelease(INTERP tcd->cmd);
+    NsfCommandRelease(tcd->cmd);
   }
   /* tcd->paramDefs is freed by NsfProcDeleteProc() */
   FREE(NsfProcClientData, tcd);
@@ -11555,7 +11544,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     NsfProfileRecordProcData(interp, ObjStr(procNameObj), trt.tv_sec, trt.tv_usec);
   }
 # endif
-  ParseContextRelease(INTERP pcPtr);
+  ParseContextRelease(pcPtr);
   NsfTclStackFree(interp, pcPtr, "release parse context");
 #else
   /*
@@ -11590,9 +11579,9 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
     /*
      * ... and update the refCounts
      */
-    NsfCommandRelease(INTERP tcd->cmd);
+    NsfCommandRelease(tcd->cmd);
     tcd->cmd = cmd;
-    NsfCommandPreserve(INTERP tcd->cmd);
+    NsfCommandPreserve(tcd->cmd);
 #endif
   }
 
@@ -11696,7 +11685,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     } else {
       /*Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
       fprintf(stderr, "NsfProcStub: incorrect arguments (%s)\n", ObjStr(resultObj));*/
-      ParseContextRelease(INTERP pcPtr);
+      ParseContextRelease(pcPtr);
       NsfTclStackFree(interp, pcPtr, "release parse context");
     }
 
@@ -11763,7 +11752,6 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
    * needed as the inner namespace of the shadowed proc.
    */
   tcd = NEW(NsfProcClientData);
-  INTERP_MEMBER_SET(tcd, interp)
   cmd = Tcl_CreateObjCommand(interp, procName, NsfProcStub,
 			     tcd, NsfProcStubDeleteProc);
   if (cmd == NULL) {
@@ -11777,7 +11765,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   }
 
   cmdNsPtr = Tcl_Command_nsPtr(cmd);
-  ParamDefsStore(INTERP cmd, paramDefs);
+  ParamDefsStore(cmd, paramDefs);
 
   /*fprintf(stderr, "NsfAddParameterProc procName '%s' define cmd '%s' %p in namespace %s\n",
     procName, Tcl_GetCommandName(interp, cmd), cmd, cmdNsPtr->fullName);*/
@@ -11852,7 +11840,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   ov[0] = NULL;
   ov[1] = procNameObj;
   ov[2] = argList;
-  ov[3] = AddPrefixToBody(INTERP body, 1, parsedParamPtr);
+  ov[3] = AddPrefixToBody(body, 1, parsedParamPtr);
 
   /*fprintf(stderr, "NsfAddParameterProc define proc %s arglist '%s'\n",
     ObjStr(ov[1]), ObjStr(ov[2])); */
@@ -11871,7 +11859,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
     assert(procCmd);
     ((Command *)procCmd)->nsPtr = (Namespace *)cmdNsPtr;
     tcd->cmd = procCmd;
-    NsfCommandPreserve(INTERP tcd->cmd);
+    NsfCommandPreserve(tcd->cmd);
 
   } else {
     /*
@@ -11948,7 +11936,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
        */
 
       /*NsfPrintObjv("actual:  ", objc, objv);*/
-      ParseContextExtendObjv(INTERP pcPtr, paramDefs->nrParams, elts-1, objv + 1 + pcPtr->lastObjc);
+      ParseContextExtendObjv(pcPtr, paramDefs->nrParams, elts-1, objv + 1 + pcPtr->lastObjc);
     } else {
       /*
        * A single argument was passed to "args". There is no need to
@@ -11982,7 +11970,6 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
 static void
 ForwardCmdDeleteProc(ClientData clientData) {
   ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
-  INTERP_MEMBER_GET(tcd)
 
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   if (tcd->subcommands) {DECR_REF_COUNT(tcd->subcommands);}
@@ -12011,10 +11998,9 @@ ForwardCmdDeleteProc(ClientData clientData) {
 static void
 SetterCmdDeleteProc(ClientData clientData) {
   SetterCmdClientData *setterClientData = (SetterCmdClientData *)clientData;
-  INTERP_MEMBER_GET(setterClientData)
 
   if (setterClientData->paramsPtr) {
-    ParamsFree(INTERP setterClientData->paramsPtr);
+    ParamsFree(setterClientData->paramsPtr);
   }
   FREE(SetterCmdClientData, setterClientData);
 }
@@ -12038,7 +12024,6 @@ SetterCmdDeleteProc(ClientData clientData) {
 static void
 AliasCmdDeleteProc(ClientData clientData) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-  INTERP_MEMBER_GET(tcd)
 
   /*
    * Since we just get the clientData, we have to obtain interp,
@@ -12083,7 +12068,7 @@ AliasCmdDeleteProc(ClientData clientData) {
       prevPtr = refPtr;
     }
 #endif
-    NsfCommandRelease(INTERP tcd->aliasedCmd);
+    NsfCommandRelease(tcd->aliasedCmd);
   }
   FREE(AliasCmdClientData, tcd);
 }
@@ -12152,7 +12137,6 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 
   tcd = NEW(ForwardCmdClientData);
   memset(tcd, 0, sizeof(ForwardCmdClientData));
-  INTERP_MEMBER_SET(tcd, interp)
   
   if (withDefault) {
     Tcl_DString ds, *dsPtr = &ds;
@@ -12360,7 +12344,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
       /*
        * Check, if the entry is from the right type
        */
-      if (type && !IsSubType(INTERP childObject->cl, type)) {
+      if (type && !IsSubType(childObject->cl, type)) {
 	continue;
       }
 
@@ -12398,7 +12382,7 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
     }
   }
 
-  return SearchCMethod(INTERP object->cl, methodName, &cmd);
+  return SearchCMethod(object->cl, methodName, &cmd);
 }
 
 /*
@@ -12512,7 +12496,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr); */
 
   if (!*cmdPtr) {
-    NsfClasses *pl = ComputeOrder(INTERP object->cl, object->cl->order, Super);
+    NsfClasses *pl = ComputeOrder(object->cl, object->cl->order, Super);
     NsfClass *cl = *clPtr;
 
     if (cl) {
@@ -13185,7 +13169,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
   if (object->opt) {
     NsfObjectOpt *opt = object->opt;
 #if defined(NSF_WITH_ASSERTIONS)
-    AssertionRemoveStore(INTERP opt->assertions);
+    AssertionRemoveStore(opt->assertions);
     opt->assertions = NULL;
 #endif
 
@@ -13193,19 +13177,19 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
       /*
        *  Remove this object from all per object mixin lists and clear the mixin list
        */
-      RemoveFromObjectMixinsOf(INTERP object->id, opt->mixins);
+      RemoveFromObjectMixinsOf(object->id, opt->mixins);
 
-      CmdListRemoveList(INTERP &opt->mixins, GuardDel);
-      CmdListRemoveList(INTERP &opt->filters, GuardDel);
+      CmdListRemoveList(&opt->mixins, GuardDel);
+      CmdListRemoveList(&opt->filters, GuardDel);
       FREE(NsfObjectOpt, opt);
       opt = object->opt = 0;
     }
   }
 
   object->flags &= ~NSF_MIXIN_ORDER_VALID;
-  if (object->mixinOrder)  MixinResetOrder(INTERP object);
+  if (object->mixinOrder)  MixinResetOrder(object);
   object->flags &= ~NSF_FILTER_ORDER_VALID;
-  if (object->filterOrder) FilterResetOrder(INTERP object);
+  if (object->filterOrder) FilterResetOrder(object);
 }
 
 /*
@@ -13304,10 +13288,10 @@ PrimitiveODestroy(ClientData clientData) {
   CleanupDestroyObject(interp, object, 0);
 
   while (object->mixinStack)
-    MixinStackPop(INTERP object);
+    MixinStackPop(object);
 
   while (object->filterStack)
-    FilterStackPop(INTERP object);
+    FilterStackPop(object);
 
   object->teardown = NULL;
   if (object->nsPtr) {
@@ -13322,7 +13306,7 @@ PrimitiveODestroy(ClientData clientData) {
   ObjTrace("ODestroy", object);
 
   DECR_REF_COUNT(object->cmdName);
-  NsfCleanupObject(INTERP object, "PrimitiveODestroy");
+  NsfCleanupObject(object, "PrimitiveODestroy");
 
 }
 
@@ -13454,7 +13438,7 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
 
   nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr);
   if (nsPtr) {
-    NSNamespacePreserve(INTERP nsPtr);
+    NSNamespacePreserve(nsPtr);
   }
 #if defined(NRE)
   object->id = Tcl_NRCreateCommand(interp, nameString, NsfObjDispatch, NsfObjDispatch,
@@ -13469,7 +13453,7 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
 
   PrimitiveOInit(object, interp, nameString, nsPtr, cl);
   if (nsPtr) {
-    NSNamespaceRelease(INTERP nsPtr);
+    NSNamespaceRelease(nsPtr);
   }
 
   object->cmdName = nameObj;
@@ -13599,36 +13583,36 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
      *  Remove this class from all isClassMixinOf lists and clear the
      *  class mixin list
      */
-    RemoveFromClassMixinsOf(INTERP clopt->id, clopt->classmixins);
+    RemoveFromClassMixinsOf(clopt->id, clopt->classmixins);
 
-    CmdListRemoveList(INTERP &clopt->classmixins, GuardDel);
+    CmdListRemoveList(&clopt->classmixins, GuardDel);
     /*MixinInvalidateObjOrders(interp, cl);*/
 
-    CmdListRemoveList(INTERP &clopt->classfilters, GuardDel);
+    CmdListRemoveList(&clopt->classfilters, GuardDel);
     /*FilterInvalidateObjOrders(interp, cl);*/
 
     if (!recreate) {
       /*
        *  Remove this class from all mixin lists and clear the isObjectMixinOf list
        */
-      RemoveFromObjectMixins(INTERP clopt->id, clopt->isObjectMixinOf);
-      CmdListRemoveList(INTERP &clopt->isObjectMixinOf, GuardDel);
+      RemoveFromObjectMixins(clopt->id, clopt->isObjectMixinOf);
+      CmdListRemoveList(&clopt->isObjectMixinOf, GuardDel);
 
       /*
        *  Remove this class from all class mixin lists and clear the
        *  isClassMixinOf list
        */
-      RemoveFromClassmixins(INTERP clopt->id, clopt->isClassMixinOf);
-      CmdListRemoveList(INTERP &clopt->isClassMixinOf, GuardDel);
+      RemoveFromClassmixins(clopt->id, clopt->isClassMixinOf);
+      CmdListRemoveList(&clopt->isClassMixinOf, GuardDel);
     }
 
     /*
      * Remove dependent filters of this class from all subclasses
      */
-    FilterRemoveDependentFilterCmds(INTERP cl, cl);
+    FilterRemoveDependentFilterCmds(cl, cl);
 
 #if defined(NSF_WITH_ASSERTIONS)
-    AssertionRemoveStore(INTERP clopt->assertions);
+    AssertionRemoveStore(clopt->assertions);
     clopt->assertions = NULL;
 #endif
 
@@ -13686,8 +13670,8 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
    * has a different superclass. So we have to flush the precedence
    * list on a recreate as well.
    */
-  FlushPrecedencesOnSubclasses(INTERP cl);
-  while (cl->super) (void)RemoveSuper(INTERP cl, cl->super->cl);
+  FlushPrecedencesOnSubclasses(cl);
+  while (cl->super) (void)RemoveSuper(cl, cl->super->cl);
 
   if (!softrecreate) {
     /*
@@ -13696,7 +13680,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
 
     while (cl->sub) {
       NsfClass *subClass = cl->sub->cl;
-      (void)RemoveSuper(INTERP subClass, cl);
+      (void)RemoveSuper(subClass, cl);
       /*
        * If there are no more super classes add the Object
        * class as superclasses
@@ -13705,10 +13689,10 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
       if (subClass->super == 0 && (cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
 	/* fprintf(stderr,"subClass %p %s baseClass %p %s\n",
 	   cl, ClassName(cl), baseClass, ClassName(baseClass)); */
-	AddSuper(INTERP subClass, baseClass);
+	AddSuper(subClass, baseClass);
       }
     }
-    /*(void)RemoveSuper(INTERP cl, cl->super->cl);*/
+    /*(void)RemoveSuper(cl, cl->super->cl);*/
   }
 
 }
@@ -13758,7 +13742,7 @@ CleanupInitClass(Tcl_Interp *interp, NsfClass *cl, Tcl_Namespace *nsPtr,
   /* Look for a configured default superclass */
   defaultSuperclass = DefaultSuperClass(interp, cl, cl->object.cl, 0);
   if (cl != defaultSuperclass) {
-    AddSuper(INTERP cl, defaultSuperclass);
+    AddSuper(cl, defaultSuperclass);
   }
 
   cl->color = WHITE;
@@ -13878,7 +13862,7 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   */
   nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr);
   if (nsPtr) {
-    NSNamespacePreserve(INTERP nsPtr);
+    NSNamespacePreserve(nsPtr);
   }
 #if defined(NRE)
   object->id = Tcl_NRCreateCommand(interp, nameString, NsfObjDispatch, NsfObjDispatch,
@@ -13890,7 +13874,7 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
 
   PrimitiveOInit(object, interp, nameString, nsPtr, class);
   if (nsPtr) {
-    NSNamespaceRelease(INTERP nsPtr);
+    NSNamespaceRelease(nsPtr);
   }
   object->cmdName = nameObj;
 
@@ -14026,7 +14010,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     }
   }
 
-  NsfCleanupObject(INTERP object, "obj init");
+  NsfCleanupObject(object, "obj init");
   DECR_REF_COUNT(savedObjResult);
   return result;
 }
@@ -14054,7 +14038,7 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) {
   }
 
   /* is the class a subclass of a meta-class? */
-  for (pl = ComputeOrder(INTERP cl, cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
     if (HasMetaProperty(pl->cl)) {
       return 1;
     }
@@ -14073,8 +14057,8 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) {
 	break;
       }
     }
-    NsfClassListFree(INTERP mixinClasses);
-    NsfClassListFree(INTERP checkList);
+    NsfClassListFree(mixinClasses);
+    NsfClassListFree(checkList);
     /*fprintf(stderr, "has MC returns %d, mixinClasses = %p\n",
       hasMCM, mixinClasses);*/
 
@@ -14086,12 +14070,12 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) {
 }
 
 static int
-IsSubType(INTERP_DECL NsfClass *subcl, NsfClass *cl) {
+IsSubType(NsfClass *subcl, NsfClass *cl) {
 
   assert(cl && subcl);
 
   if (cl != subcl) {
-    return NsfClassListFind(ComputeOrder(INTERP subcl, subcl->order, Super), cl) != NULL;
+    return NsfClassListFind(ComputeOrder(subcl, subcl->order, Super), cl) != NULL;
   }
   return 1;
 }
@@ -14243,7 +14227,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *o
 extern void
 NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object1, ClientData data) {
   NsfObject *object = (NsfObject *) object1;
-  NsfObjectOpt *opt = NsfRequireObjectOpt(INTERP object);
+  NsfObjectOpt *opt = NsfRequireObjectOpt(object);
   opt->clientData = data;
 }
 extern ClientData
@@ -14254,7 +14238,7 @@ NsfGetObjClientData(Tcl_Interp *interp, Nsf_Object *object1) {
 extern void
 NsfSetClassClientData(Tcl_Interp *interp, Nsf_Class *cli, ClientData data) {
   NsfClass *cl = (NsfClass *) cli;
-  NsfRequireClassOpt(INTERP cl);
+  NsfRequireClassOpt(cl);
   cl->opt->clientData = data;
 }
 extern ClientData
@@ -15013,11 +14997,11 @@ NsfProcAliasMethod(ClientData clientData,
     }
     cmd = GetOriginalCommand(cmd);
 
-    NsfCommandRelease(INTERP tcd->aliasedCmd);
+    NsfCommandRelease(tcd->aliasedCmd);
     tcd->objProc    = Tcl_Command_objProc(cmd);
     tcd->aliasedCmd = cmd;
     tcd->clientData = Tcl_Command_objClientData(cmd);
-    NsfCommandPreserve(INTERP tcd->aliasedCmd);
+    NsfCommandPreserve(tcd->aliasedCmd);
 
     DECR_REF_COUNT(entryObj);
     /*
@@ -15264,7 +15248,7 @@ CallingNameSpace(Tcl_Interp *interp) {
 #include "nsfAPI.h"
 
 static void
-ArgumentResetRefCounts(INTERP_DECL struct Nsf_Param CONST *pPtr, Tcl_Obj *valueObj) {
+ArgumentResetRefCounts(struct Nsf_Param CONST *pPtr, Tcl_Obj *valueObj) {
   if ((pPtr->flags & NSF_ARG_IS_CONVERTER)) {
     //fprintf(stderr, "manually decrementing CONVERTER %p\n", valueObj);
     DECR_REF_COUNT2("valueObj", valueObj);
@@ -15309,7 +15293,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST 
        * decrement it here, since we want the valuObj reclaimed when the list
        * containing the valueObj is freed.
        */
-      ArgumentResetRefCounts(INTERP pPtr, elementObjPtr); 
+      ArgumentResetRefCounts(pPtr, elementObjPtr); 
     } else { 
       Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
 
@@ -15383,7 +15367,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
            * the version of this handler building an output list. But first,
            * we have to reset the refcounts from the first conversion.
 	   */
-	  ArgumentResetRefCounts(INTERP pPtr, elementObjPtr);
+	  ArgumentResetRefCounts(pPtr, elementObjPtr);
           *flags |= NSF_PC_MUST_DECR;
           result = ArgumentCheckHelper(interp, objPtr, pPtr, flags, clientData, outObjPtr);
           break;
@@ -15544,7 +15528,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	  assert(pPtr->type ? pPtr->defaultValue == NULL : 1);
 	}
       } else if (pPtr->flags & NSF_ARG_REQUIRED) {
-	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(INTERP ifd);
+	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(ifd);
 
         NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
 		      pPtr->nameObj ? ObjStr(pPtr->nameObj) : pPtr->name,
@@ -15602,7 +15586,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   int i, o, flagCount, dashdash = 0, nrDashdash = 0;
   Nsf_Param CONST *pPtr;
 
-  ParseContextInit(INTERP pcPtr, nrParams, object, objv[0]);
+  ParseContextInit(pcPtr, nrParams, object, objv[0]);
 
 #if defined(PARSE_TRACE)
   fprintf(stderr, "PARAMETER ");
@@ -15983,7 +15967,7 @@ ListParamDefs(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfParamsPrintStyl
   case NSF_PARAMS_PARAMETER: listObj = ParamDefsFormat(interp, paramsPtr); break;
   case NSF_PARAMS_LIST:      listObj = ParamDefsList(interp, paramsPtr); break;
   case NSF_PARAMS_NAMES:     listObj = ParamDefsNames(interp, paramsPtr); break;
-  case NSF_PARAMS_SYNTAX:    listObj = NsfParamDefsSyntax(INTERP paramsPtr); break;
+  case NSF_PARAMS_SYNTAX:    listObj = NsfParamDefsSyntax(paramsPtr); break;
   default: listObj = NULL;
   }
 
@@ -16813,7 +16797,7 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 
     if ((childObject = GetObjectFromString(interp, pattern)) &&
         (!classesOnly || NsfObjectIsClass(childObject)) &&
-	(!type || IsSubType(INTERP childObject->cl, type)) &&
+	(!type || IsSubType(childObject->cl, type)) &&
         (Tcl_Command_nsPtr(childObject->id) == object->nsPtr)  /* true children */
         ) {
       Tcl_SetObjResult(interp, childObject->cmdName);
@@ -16842,7 +16826,7 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 
         if ((childObject = NsfGetObjectFromCmdPtr(cmd)) &&
             (!classesOnly || NsfObjectIsClass(childObject)) &&
-	    (!type || IsSubType(INTERP childObject->cl, type)) &&
+	    (!type || IsSubType(childObject->cl, type)) &&
             (Tcl_Command_nsPtr(childObject->id) == object->nsPtr)  /* true children */
             ) {
           Tcl_ListObjAppendElement(interp, list, childObject->cmdName);
@@ -16977,13 +16961,13 @@ ListSuperclasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClo
   }
 
   if (withClosure) {
-    NsfClasses *pl = ComputeOrder(INTERP cl, cl->order, Super);
+    NsfClasses *pl = ComputeOrder(cl, cl->order, Super);
     if (pl) pl=pl->nextPtr;
     rc = AppendMatchingElementsFromClasses(interp, pl, patternString, matchObject);
   } else {
-    NsfClasses *clSuper = NsfReverseClasses(INTERP cl->super);
+    NsfClasses *clSuper = NsfReverseClasses(cl->super);
     rc = AppendMatchingElementsFromClasses(interp, clSuper, patternString, matchObject);
-    NsfClassListFree(INTERP clSuper);
+    NsfClassListFree(clSuper);
   }
 
   if (matchObject) {
@@ -17090,7 +17074,7 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
      */
     /*fprintf(stderr, "remove alias %s to %s\n",
       Tcl_GetCommandName(interp, cmd), ObjectName(referencedObject));*/
-    NsfCleanupObject(INTERP referencedObject, "AliasDeleteObjectReference");
+    NsfCleanupObject(referencedObject, "AliasDeleteObjectReference");
     Tcl_DeleteCommandFromToken(interp, cmd);
     return 1;
   }
@@ -17494,7 +17478,7 @@ static int
 NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl) {
   if (cl->parsedParamPtr) {
     /*fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr);*/
-    ParsedParamFree(INTERP cl->parsedParamPtr);
+    ParsedParamFree(cl->parsedParamPtr);
     cl->parsedParamPtr = NULL;
   }
   return TCL_OK;
@@ -17636,7 +17620,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   if (newObjProc) {
     /* add a wrapper */
     /*fprintf(stderr, "NsfMethodAliasCmd cmd %p\n", cmd);*/
-    NsfCommandPreserve(INTERP cmd);
+    NsfCommandPreserve(cmd);
     tcd = NEW(AliasCmdClientData);
     tcd->cmdName    = object->cmdName;
     tcd->interp     = interp; /* just for deleting the associated variable */
@@ -17736,7 +17720,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj
 
   case AssertionsubcmdObject_invarIdx:
     if (arg) {
-      NsfObjectOpt *opt = NsfRequireObjectOpt(INTERP object);
+      NsfObjectOpt *opt = NsfRequireObjectOpt(object);
       AssertionSetInvariants(interp, &opt->assertions, arg);
     } else {
       if (object->opt && object->opt->assertions) {
@@ -17748,7 +17732,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj
   case AssertionsubcmdClass_invarIdx:
     class = (NsfClass *)object;
     if (arg) {
-      NsfClassOpt *opt = NsfRequireClassOpt(INTERP class);
+      NsfClassOpt *opt = NsfRequireClassOpt(class);
       AssertionSetInvariants(interp, &opt->assertions, arg);
     } else {
       if (class->opt && class->opt->assertions) {
@@ -17996,8 +17980,8 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
 	if (paramDefs == NULL) {
 	  /* acquire new paramDefs */
-	  paramDefs = ParamDefsNew(INTERP1);
-	  ParamDefsStore(INTERP cmd, paramDefs);
+	  paramDefs = ParamDefsNew();
+	  ParamDefsStore(cmd, paramDefs);
 	  /*fprintf(stderr, "new param defs %p for cmd %p %s\n", paramDefs, cmd, methodName);*/
 	}
 	objPtr = 
@@ -18073,7 +18057,7 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
   setterClientData = NEW(SetterCmdClientData);
   setterClientData->object = NULL;
   setterClientData->paramsPtr = NULL;
-  INTERP_MEMBER_SET(setterClientData, interp)
+
   length = strlen(methodName);
 
   for (j=0; j<length; j++) {
@@ -18084,7 +18068,7 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
     /* looks as if we have a parameter specification */
     int result, possibleUnknowns = 0, plainParams = 0, nrNonposArgs = 0;
 
-    setterClientData->paramsPtr = ParamsNew(INTERP 1);
+    setterClientData->paramsPtr = ParamsNew(1);
     result = ParamParse(interp, NsfGlobalObjs[NSF_SETTER], parameter,
                         NSF_DISALLOWED_ARG_SETTER|NSF_ARG_HAS_DEFAULT,
                         setterClientData->paramsPtr, &possibleUnknowns,
@@ -18412,7 +18396,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 
   AddInstance((NsfObject *)theobj, thecls);
   AddInstance((NsfObject *)thecls, thecls);
-  AddSuper(INTERP thecls, theobj);
+  AddSuper(thecls, theobj);
 
   if (NSF_DTRACE_OBJECT_ALLOC_ENABLED()) {
     NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject *)theobj)), ClassName(((NsfObject *)theobj)->cl));
@@ -18650,7 +18634,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
 #if defined(NSF_WITH_ASSERTIONS)
             if (procs) {
-              NsfRequireClassOpt(INTERP cl);
+              NsfRequireClassOpt(cl);
               AssertionAppendPrePost(interp, dsPtr, procs);
             }
 #endif
@@ -18684,7 +18668,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
 #if defined(NSF_WITH_ASSERTIONS)
             if (procs) {
-              NsfRequireObjectOpt(INTERP object);
+              NsfRequireObjectOpt(object);
               AssertionAppendPrePost(interp, dsPtr, procs);
             }
 #endif
@@ -18935,7 +18919,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     if (Tcl_ListObjGetElements(interp, valueObj, &oc, &ov) != TCL_OK) {
       return TCL_ERROR;
     }
-    objopt = NsfRequireObjectOpt(INTERP object);
+    objopt = NsfRequireObjectOpt(object);
     break;
 
   case RelationtypeClass_mixinIdx:
@@ -18954,7 +18938,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     if (Tcl_ListObjGetElements(interp, valueObj, &oc, &ov) != TCL_OK) {
       return TCL_ERROR;
     }
-    clopt = NsfRequireClassOpt(INTERP cl);
+    clopt = NsfRequireClassOpt(cl);
     break;
 
   case RelationtypeSuperclassIdx:
@@ -19017,7 +19001,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
       for (i = 0; i < oc; i++) {
         if (MixinAdd(interp, &newMixinCmdList, ov[i], object->cl->object.cl) != TCL_OK) {
-          CmdListRemoveList(INTERP &newMixinCmdList, GuardDel);
+          CmdListRemoveList(&newMixinCmdList, GuardDel);
           return TCL_ERROR;
         }
       }
@@ -19033,11 +19017,11 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
               /* fprintf(stderr, "Removing object %s from isObjectMixinOf of class %s\n",
                  ObjectName(object), ObjStr(NsfGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
               del = CmdListRemoveFromList(&clopt->isObjectMixinOf, del);
-              CmdListDeleteCmdListEntry(INTERP del, GuardDel);
+              CmdListDeleteCmdListEntry(del, GuardDel);
             }
           }
         }
-        CmdListRemoveList(INTERP &objopt->mixins, GuardDel);
+        CmdListRemoveList(&objopt->mixins, GuardDel);
       }
 
       object->flags &= ~NSF_MIXIN_ORDER_VALID;
@@ -19059,8 +19043,8 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
         if (nObject) {
           /* fprintf(stderr, "Registering object %s to isObjectMixinOf of class %s\n",
              ObjectName(object), ObjectName(nObject)); */
-          nclopt = NsfRequireClassOpt(INTERP (NsfClass *)nObject);
-          CmdListAdd(INTERP &nclopt->isObjectMixinOf, object->id, NULL, /*noDuplicates*/ 1);
+          nclopt = NsfRequireClassOpt((NsfClass *)nObject);
+          CmdListAdd(&nclopt->isObjectMixinOf, object->id, NULL, /*noDuplicates*/ 1);
         } /* else fprintf(stderr, "Problem registering %s as a mixinof of %s\n",
              ObjStr(ov[i]), ClassName(cl)); */
       }
@@ -19074,7 +19058,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
   case RelationtypeObject_filterIdx:
 
     if (objopt->filters) {
-      CmdListRemoveList(INTERP &objopt->filters, GuardDel);
+      CmdListRemoveList(&objopt->filters, GuardDel);
     }
     object->flags &= ~NSF_FILTER_ORDER_VALID;
     for (i = 0; i < oc; i ++) {
@@ -19091,13 +19075,13 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
       for (i = 0; i < oc; i++) {
         if (MixinAdd(interp, &newMixinCmdList, ov[i], cl->object.cl) != TCL_OK) {
-          CmdListRemoveList(INTERP &newMixinCmdList, GuardDel);
+          CmdListRemoveList(&newMixinCmdList, GuardDel);
           return TCL_ERROR;
         }
       }
       if (clopt->classmixins) {
-        RemoveFromClassMixinsOf(INTERP cl->object.id, clopt->classmixins);
-        CmdListRemoveList(INTERP &clopt->classmixins, GuardDel);
+        RemoveFromClassMixinsOf(cl->object.id, clopt->classmixins);
+        CmdListRemoveList(&clopt->classmixins, GuardDel);
       }
 
       MixinInvalidateObjOrders(interp, cl);
@@ -19117,8 +19101,8 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
         if (nObject) {
           /* fprintf(stderr, "Registering class %s to isClassMixinOf of class %s\n",
              ClassName(cl), ObjectName(nObject)); */
-          nclopt = NsfRequireClassOpt(INTERP (NsfClass *) nObject);
-          CmdListAdd(INTERP &nclopt->isClassMixinOf, cl->object.id, NULL, /*noDuplicates*/ 1);
+          nclopt = NsfRequireClassOpt((NsfClass *) nObject);
+          CmdListAdd(&nclopt->isClassMixinOf, cl->object.id, NULL, /*noDuplicates*/ 1);
         } /* else fprintf(stderr, "Problem registering %s as a class-mixin of %s\n",
              ObjStr(ov[i]), ClassName(cl)); */
       }
@@ -19128,7 +19112,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
   case RelationtypeClass_filterIdx:
 
     if (clopt->classfilters) {
-      CmdListRemoveList(INTERP &clopt->classfilters, GuardDel);
+      CmdListRemoveList(&clopt->classfilters, GuardDel);
     }
     FilterInvalidateObjOrders(interp, cl);
     for (i = 0; i < oc; i ++) {
@@ -19438,7 +19422,6 @@ typedef struct NsfParamWrapper {
   Nsf_Param *paramPtr;
   int refCount;
   int canFree;
-  INTERP_MEMBER_DECL
 } NsfParamWrapper;
 
 static Tcl_DupInternalRepProc	ParamDupInteralRep;
@@ -19477,10 +19460,9 @@ ParamFreeInternalRep(
     /* fprintf(stderr, "ParamFreeInternalRep freeing wrapper %p paramPtr %p refCount %dcanFree %d\n",
             paramWrapperPtr, paramWrapperPtr->paramPtr, paramWrapperPtr->refCount,
             paramWrapperPtr->canFree);*/
-    INTERP_MEMBER_GET(paramWrapperPtr)
 
     if (paramWrapperPtr->canFree) {
-      ParamsFree(INTERP paramWrapperPtr->paramPtr);
+      ParamsFree(paramWrapperPtr->paramPtr);
       FREE(NsfParamWrapper, paramWrapperPtr);
     } else {
       paramWrapperPtr->refCount--;
@@ -19516,10 +19498,9 @@ ParamSetFromAny2(
   int result, possibleUnknowns = 0, plainParams = 0, nrNonposArgs = 0;
   NsfParamWrapper *paramWrapperPtr = NEW(NsfParamWrapper);
 
-  paramWrapperPtr->paramPtr = ParamsNew(INTERP 1);
+  paramWrapperPtr->paramPtr = ParamsNew(1);
   paramWrapperPtr->refCount = 1;
   paramWrapperPtr->canFree = 0;
-  INTERP_MEMBER_SET(paramWrapperPtr, interp)
   /*fprintf(stderr, "allocating  %p\n", paramWrapperPtr->paramPtr);*/
 
   Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), -1, INT_MAX, NULL);
@@ -19557,7 +19538,7 @@ ParamSetFromAny2(
     /*
      * In error cases, free manually memory allocated by this function.
      */
-    ParamsFree(INTERP paramWrapperPtr->paramPtr);
+    ParamsFree(paramWrapperPtr->paramPtr);
     FREE(NsfParamWrapper, paramWrapperPtr);
   }
 
@@ -19652,7 +19633,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
 	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
 	  class->parsedParamPtr = ppDefPtr;
 	  if (ppDefPtr->paramDefs) {
-	    ParamDefsRefCountIncr(INTERP ppDefPtr->paramDefs);
+	    ParamDefsRefCountIncr(ppDefPtr->paramDefs);
 	  }
 	}
 	DECR_REF_COUNT(rawConfArgs);
@@ -19724,7 +19705,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
 
   if (paramWrapperPtr->refCount == 0) {
     fprintf(stderr, "#### ParamSetFromAny2 paramPtr %p manual free\n", paramPtr);
-    ParamsFree(INTERP paramWrapperPtr->paramPtr);
+    ParamsFree(paramWrapperPtr->paramPtr);
     FREE(NsfParamWrapper, paramWrapperPtr);
   } else {
     paramWrapperPtr->canFree = 1;
@@ -19876,7 +19857,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
   /* Process the actual arguments based on the parameter definitions */
   paramDefs = parsedParam.paramDefs;
-  ParamDefsRefCountIncr(INTERP paramDefs);
+  ParamDefsRefCountIncr(paramDefs);
   result = ProcessMethodArguments(&pc, interp, object, 0, paramDefs,
 				  NsfGlobalObjs[NSF_CONFIGURE], objc, objv);
 
@@ -19971,7 +19952,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       Tcl_Interp_varFramePtr(interp) = varFramePtr->callerVarPtr;
       cscPtr->flags = 0;
-      CscInit(INTERP cscPtr, object, object->cl /*cl*/, NULL /*cmd*/,
+      CscInit(cscPtr, object, object->cl /*cl*/, NULL /*cmd*/,
 	      NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
       Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
 
@@ -20192,8 +20173,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
  configure_exit:
 
-  ParamDefsRefCountDecr(INTERP paramDefs);
-  ParseContextRelease(INTERP &pc);
+  ParamDefsRefCountDecr(paramDefs);
+  ParseContextRelease(&pc);
   return result;
 }
 
@@ -20282,9 +20263,9 @@ NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter,
     NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->filters);
     if (h) {
       if (h->clientData) {
-        GuardDel(INTERP (NsfCmdList *) h);
+        GuardDel((NsfCmdList *) h);
       }
-      GuardAdd(INTERP h, guardObj);
+      GuardAdd(h, guardObj);
       object->flags &= ~NSF_FILTER_ORDER_VALID;
       return TCL_OK;
     }
@@ -20339,9 +20320,9 @@ NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *mixin, Tcl_
 	NsfCmdList *h = CmdListFindCmdInList(mixinCmd, opt->mixins);
 	if (h) {
 	  if (h->clientData) {
-	    GuardDel(INTERP (NsfCmdList *) h);
+	    GuardDel((NsfCmdList *) h);
 	  }
-	  GuardAdd(INTERP h, guardObj);
+	  GuardAdd(h, guardObj);
 	  object->flags &= ~NSF_MIXIN_ORDER_VALID;
 	  return TCL_OK;
 	}
@@ -20593,7 +20574,7 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   vn = NSTail(fullName);
 
   if (Tcl_SetVar2(interp, vn, NULL, fullName, 0)) {
-    NsfObjectOpt *opt = NsfRequireObjectOpt(INTERP object);
+    NsfObjectOpt *opt = NsfRequireObjectOpt(object);
 
     /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName,
       Tcl_Interp_varFramePtr(interp));
@@ -20886,9 +20867,9 @@ NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl,
     NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->classfilters);
     if (h) {
       if (h->clientData) {
-	GuardDel(INTERP h);
+	GuardDel(h);
       }
-      GuardAdd(INTERP h, guardObj);
+      GuardAdd(h, guardObj);
       FilterInvalidateObjOrders(interp, cl);
       return TCL_OK;
     }
@@ -20918,9 +20899,9 @@ NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *
 	NsfCmdList *h = CmdListFindCmdInList(mixinCmd, opt->classmixins);
 	if (h) {
 	  if (h->clientData) {
-	    GuardDel(INTERP (NsfCmdList *) h);
+	    GuardDel((NsfCmdList *) h);
 	  }
-	  GuardAdd(INTERP h, guardObj);
+	  GuardAdd(h, guardObj);
 	  MixinInvalidateObjOrders(interp, cl);
 	  return TCL_OK;
 	}
@@ -21218,7 +21199,7 @@ objectInfoMethod hastype NsfObjInfoHasTypeMethod {
 */
 static int
 NsfObjInfoHasTypeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *typeClass) {
-  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), IsSubType(INTERP object->cl, typeClass));
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), IsSubType(object->cl, typeClass));
   return TCL_OK;
 }
 
@@ -21384,7 +21365,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
   }
 
   /* append method keys from inheritance order */
-  for (pl = ComputeOrder(INTERP object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr);
     if (!MethodSourceMatches(withSource, pl->cl, NULL)) continue;
     ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType,
@@ -21437,7 +21418,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   Tcl_DeleteHashTable(&slotTable);
   MEM_COUNT_FREE("Tcl_InitHashTable", &slotTable);
 
-  NsfClassListFree(INTERP precendenceList);
+  NsfClassListFree(precendenceList);
   Tcl_SetObjResult(interp, listObj);
 
   return TCL_OK;
@@ -21555,7 +21536,7 @@ NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
   for (pl = precedenceList; pl; pl = pl->nextPtr) {
     Tcl_ListObjAppendElement(interp, resultObj, pl->cl->object.cmdName);
   }
-  NsfClassListFree(INTERP precedenceList);
+  NsfClassListFree(precedenceList);
 
   Tcl_SetObjResult(interp, resultObj);
   return TCL_OK;
@@ -21663,7 +21644,7 @@ NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern
   Tcl_Obj *resultObj;
 
   resultObj = Tcl_NewObj();
-  intrinsic = ComputeOrder(INTERP cl, cl->order, Super);
+  intrinsic = ComputeOrder(cl, cl->order, Super);
 
   NsfClassListAddPerClassMixins(interp, cl, &mixinClasses, &checkList);
   for (pl = mixinClasses; pl; pl = pl->nextPtr) {
@@ -21679,8 +21660,8 @@ NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern
     }
   }
 
-  NsfClassListFree(INTERP mixinClasses);
-  NsfClassListFree(INTERP checkList);
+  NsfClassListFree(mixinClasses);
+  NsfClassListFree(checkList);
 
   Tcl_SetObjResult(interp, resultObj);
   return TCL_OK;
@@ -21821,8 +21802,8 @@ NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *class,
       AppendMatchingElement(interp, resultObj, clPtr->cl->object.cmdName, patternString);
     }
 
-    NsfClassListFree(INTERP checkList);
-    NsfClassListFree(INTERP mixinClasses);
+    NsfClassListFree(checkList);
+    NsfClassListFree(mixinClasses);
 
   } else if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
@@ -21981,7 +21962,7 @@ NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *class,
     listObj = ParamDefsFormat(interp, paramsPtr);
     break;
   case InfoobjectparametersubcmdParametersyntaxIdx:
-    listObj = NsfParamDefsSyntax(INTERP paramsPtr);
+    listObj = NsfParamDefsSyntax(paramsPtr);
     break;
   }
   Tcl_SetObjResult(interp, listObj);
@@ -22007,7 +21988,7 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
   Tcl_HashTable slotTable;
 
   Tcl_ResetResult(interp);
-  intrinsic = ComputeOrder(INTERP class, class->order, Super);
+  intrinsic = ComputeOrder(class, class->order, Super);
 
   if (withClosure) {
     NsfClasses *checkList = NULL, *mixinClasses = NULL;
@@ -22018,21 +21999,21 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
     for (clPtr = mixinClasses; clPtr; clPtr = clPtr->nextPtr) {
       if (NsfClassListFind(clPtr->nextPtr, clPtr->cl) == NULL &&
 	  NsfClassListFind(intrinsic, clPtr->cl) == NULL) {
-	NsfClassListAdd(INTERP &precedenceList, clPtr->cl, NULL);
+	NsfClassListAdd(&precedenceList, clPtr->cl, NULL);
       }
     }
     /*
      * ... followed by the intrinsic classes
      */
-    NsfClassListAdd(INTERP &precedenceList, class, NULL);
+    NsfClassListAdd(&precedenceList, class, NULL);
     for (clPtr = intrinsic->nextPtr; clPtr; clPtr = clPtr->nextPtr) {
-      NsfClassListAdd(INTERP &precedenceList, clPtr->cl, NULL);
+      NsfClassListAdd(&precedenceList, clPtr->cl, NULL);
     }
-    NsfClassListFree(INTERP checkList);
-    NsfClassListFree(INTERP mixinClasses);
+    NsfClassListFree(checkList);
+    NsfClassListFree(mixinClasses);
 
   } else {
-    NsfClassListAdd(INTERP &precedenceList, class, NULL);
+    NsfClassListAdd(&precedenceList, class, NULL);
   }
   /* NsfClassListPrint("precedence", precedenceList);*/
   if (withSource == 0) {withSource = 1;}
@@ -22053,7 +22034,7 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
   Tcl_DeleteHashTable(&slotTable);
   MEM_COUNT_FREE("Tcl_InitHashTable", &slotTable);
 
-  NsfClassListFree(INTERP precedenceList);
+  NsfClassListFree(precedenceList);
   Tcl_SetObjResult(interp, listObj);
 
   return TCL_OK;
@@ -22073,11 +22054,11 @@ NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosure,
   if (withClosure) {
     NsfClasses *saved = class->order, *subclasses;
     class->order = NULL;
-    subclasses = ComputeOrder(INTERP class, class->order, Sub);
+    subclasses = ComputeOrder(class, class->order, Sub);
     class->order = saved;
     rc = AppendMatchingElementsFromClasses(interp, subclasses ? subclasses->nextPtr : NULL,
 					   patternString, patternObj);
-    NsfClassListFree(INTERP subclasses);
+    NsfClassListFree(subclasses);
   } else {
     rc = AppendMatchingElementsFromClasses(interp, class->sub, patternString, patternObj);
   }

@@ -3382,7 +3382,10 @@ Test run; exit
   * simplified permission handling
   * made private/protected mutual exclusive
   * extended regression test for private methods
-
+  * per-thread MEM_COUNT tested with aolserver/naviserver
+  * removed INTERP macros for MEM_COUNT (since we use now
+    per-thread tables instead of per-interp tables as in the
+    first implementation)
 
 TODO:
  - fix interp.test for tcl 8.6

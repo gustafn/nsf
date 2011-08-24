@@ -92,25 +92,11 @@ typedef struct NsfMemCounter {
   int peak;
   int count;
 } NsfMemCounter;
-#  define INTERP interp,
-#  define INTERP1 interp
-#  define INTERP_DECL Tcl_Interp *interp,
-#  define INTERP_DECL1 Tcl_Interp *interp
-#  define INTERP_MEMBER_DECL Tcl_Interp *interp;
-#  define INTERP_MEMBER_GET(ptr) Tcl_Interp *interp = (ptr)->interp;
-#  define INTERP_MEMBER_SET(ptr, value) (ptr)->interp = (value);
 #  define MEM_COUNT_ALLOC(id,p) NsfMemCountAlloc(interp, id, p)
 #  define MEM_COUNT_FREE(id,p) NsfMemCountFree(interp, id, p)
 #  define MEM_COUNT_INIT(interp) NsfMemCountInit(interp)
 #  define MEM_COUNT_RELEASE(interp) NsfMemCountRelease(interp)
 #else
-#  define INTERP
-#  define INTERP1
-#  define INTERP_DECL
-#  define INTERP_DECL1
-#  define INTERP_MEMBER_DECL
-#  define INTERP_MEMBER_GET(ptr)
-#  define INTERP_MEMBER_SET(ptr, value)
 #  define MEM_COUNT_ALLOC(id,p)
 #  define MEM_COUNT_FREE(id,p)
 #  define MEM_COUNT_INIT(interp)
@@ -345,7 +331,7 @@ typedef struct NsfCmdList {
   struct NsfCmdList *nextPtr;
 } NsfCmdList;
 
-typedef void (NsfFreeCmdListClientData) _ANSI_ARGS_((INTERP_DECL NsfCmdList*));
+typedef void (NsfFreeCmdListClientData) _ANSI_ARGS_((NsfCmdList*));
 
 /* for incr string */
 typedef struct NsfStringIncrStruct {
@@ -548,7 +534,6 @@ typedef struct NsfProcClientData {
   Tcl_Command cmd;
   NsfParamDefs *paramDefs;
   int with_ad;
-  INTERP_MEMBER_DECL
 } NsfProcClientData;
 
 typedef enum SystemMethodsIdx {

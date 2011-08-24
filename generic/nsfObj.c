@@ -29,7 +29,6 @@
 typedef struct {
   NsfClass *mixin;
   Tcl_Obj *guardObj;
-  INTERP_DECL1;
 } MixinReg;
 
 static Tcl_FreeInternalRepProc	MixinregFreeInternalRep;
@@ -54,7 +53,6 @@ MixinregFreeInternalRep(
   MixinReg *mixinRegPtr = (MixinReg *)objPtr->internalRep.twoPtrValue.ptr1;
 
   if (mixinRegPtr != NULL) {
-    INTERP_MEMBER_GET(mixinRegPtr)
 
     /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p\n",
       mixinRegPtr, mixinRegPtr->class, mixinRegPtr->guardObj);*/
@@ -110,10 +108,9 @@ MixinregSetFromAny(
    * Allocate structure ... 
    */
   mixinRegPtr = NEW(MixinReg);
-
   mixinRegPtr->mixin = mixin;
   mixinRegPtr->guardObj = guardObj;
-  INTERP_MEMBER_SET(mixinRegPtr, interp)
+
   /*
    * ... and increment refCounts
    */
@@ -182,7 +179,6 @@ NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj) {
 typedef struct {
   Tcl_Obj *filterObj;
   Tcl_Obj *guardObj;
-  INTERP_DECL1;
 } Filterreg;
 
 static Tcl_FreeInternalRepProc	FilterregFreeInternalRep;
@@ -208,7 +204,6 @@ FilterregFreeInternalRep(
   Filterreg *filterregPtr = (Filterreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
   if (filterregPtr != NULL) {
-    INTERP_MEMBER_GET(filterregPtr)
 
     /*fprintf(stderr, "FilterregFreeInternalRep freeing filterreg %p class %p guard %p\n",
       filterregPtr, filterregPtr->class, filterregPtr->guardObj);*/
@@ -259,7 +254,6 @@ FilterregSetFromAny(
 
   filterregPtr->filterObj = filterObj;
   filterregPtr->guardObj = guardObj;
-  INTERP_MEMBER_SET(filterregPtr, interp)
 
   /*
    * ... and increment refCounts

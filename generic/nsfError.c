@@ -13,7 +13,7 @@
 #include "nsfInt.h"
 
 /* function prototypes */
-Tcl_Obj *NsfParamDefsSyntax(INTERP_DECL Nsf_Param CONST *paramPtr);
+Tcl_Obj *NsfParamDefsSyntax(Nsf_Param CONST *paramPtr);
 
 /*
  *----------------------------------------------------------------------
@@ -209,7 +209,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
 extern int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
-  Tcl_Obj *argStringObj = NsfParamDefsSyntax(INTERP paramPtr);
+  Tcl_Obj *argStringObj = NsfParamDefsSyntax(paramPtr);
 
   NsfObjWrongArgs(interp, errorMsg, cmdNameObj, methodObj, ObjStr(argStringObj));
   DECR_REF_COUNT2("paramDefsObj", argStringObj);
