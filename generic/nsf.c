@@ -9545,6 +9545,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	if (NsfObjectIsClass(regObject)) {
 	  cl = (NsfClass *)regObject;
 	}
+	/* ignore permissions for fully qualified method names */
+	flags |= NSF_CM_IGNORE_PERMISSIONS;
       } else {
 	Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
 
@@ -9552,18 +9554,21 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	if (procPtr == NsfObjDispatch) {
 	  /*
 	   * Don't allow to call objects as methods (for the time being)
-	   * via fully qualified names. Otherwise, in line {2} below, ::State
+	   * via fully qualified names. Otherwise, in line [2] below, ::State
 	   * is interpreted as an ensemble object, and the method
 	   * "unknown" won't be called (in the XOTcl tradition) and
 	   * wierd things will happen.
 	   *
-	   *  {1} Class ::State
-	   *  {2} Class ::State -parameter x
+	   *  [1] Class ::State
+	   *  [2] Class ::State -parameter x
 	   */
 	  NsfLog(interp, NSF_LOG_NOTICE,
 		 "Don't invoke object %s this way. Register object via alias...",
 		 methodName);
 	  cmd = NULL;
+	} else {
+	  /* ignore permissions for fully qualified method names */
+	  flags |= NSF_CM_IGNORE_PERMISSIONS;
 	}
       }
     }
@@ -9659,18 +9664,32 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   }
 
   /*
-   * Check, whether we have a protected method, and whether the
-   * protected method, called on a different object. In this case, we
-   * treat it as unknown.
+   * If we have a command, check the permissions, unless
+   * NSF_CM_IGNORE_PERMISSIONS is set. Note, that NSF_CM_IGNORE_PERMISSIONS is
+   * set currently for fully qualified cmd names and in nsf::object::dispatch.
    */
 
-  if (cmd) {
+  if (cmd && (flags & NSF_CM_IGNORE_PERMISSIONS) == 0) {
     int cmdFlags = Tcl_Command_flags(cmd);
-    if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) && (flags & NSF_CM_LOCAL_METHOD) == 0) {
-      /* reset cmd, since it is still unknown */
+
+    /*
+     * Private methods can be called when "-local" was used.
+     *
+     * Protected methods can be called, when calling object == called object.
+     */
+
+    if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) 
+	&& ((flags & NSF_CM_LOCAL_METHOD) == 0)
+	) {
+      /* reset cmd, treat it as unknown */
+      //NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
+
+      NsfLog(interp, NSF_LOG_WARN, "'%s %s' fails since method %s.%s is private",
+	     ObjectName(object), methodName,
+	     cl ? ClassName(cl) : ObjectName(object), methodName);
       cmd = NULL;
-    } else if ((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) &&
-	       (flags & (NSF_CM_NO_UNKNOWN|NSF_CM_NO_PROTECT)) == 0) {
+
+    } else if ((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD)) {
       NsfObject *lastSelf = GetSelfObj(interp);
       
       if (unlikely(object != lastSelf)) {
@@ -9784,7 +9803,8 @@ DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object,
 
     tov[0] = obj;
     tov[1] = methodObj;
-    result = ObjectDispatch(object, interp, 2, tov, flags|NSF_CM_NO_UNKNOWN);
+    result = ObjectDispatch(object, interp, 2, tov, 
+			    flags|NSF_CM_NO_UNKNOWN|NSF_CM_IGNORE_PERMISSIONS);
   }
 
   return result;
@@ -9836,7 +9856,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
   if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
     result = NsfODestroyMethod(interp, object);
   } else {
-    result = CallMethod(object, interp, methodObj, 2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE|flags);
+    result = CallMethod(object, interp, methodObj, 2, 0, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE|flags);
   }
   if (result != TCL_OK) {
     /*
@@ -9904,7 +9924,7 @@ DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
     } else {
       /*fprintf(stderr, "%s init dispatch\n", ObjectName(object));*/
       result = CallMethod(object, interp, methodObj,
-			  objc+2, objv, flags|NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
+			  objc+2, objv, flags|NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
     }
 
   } else {
@@ -9972,7 +9992,8 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
     /*fprintf(stderr, "call unknown via dispatch mustCopy %d delegator %p method %s (%s)\n",
       mustCopy, delegator, ObjStr(tov[offset]), ObjStr(methodObj));*/
     
-    result = ObjectDispatch(object, interp, objc+2, tov, flags|NSF_CM_NO_UNKNOWN);
+    result = ObjectDispatch(object, interp, objc+2, tov, 
+			    flags|NSF_CM_NO_UNKNOWN|NSF_CM_IGNORE_PERMISSIONS);
 
     DECR_REF_COUNT(callInfoObj);
     FREE_ON_STACK(Tcl_Obj*, tov);
@@ -10577,7 +10598,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 
   /* result = Tcl_EvalObjv(interp, oc, ov, 0); */
   GetObjectFromObj(interp, ov[0], &object);
-  result = ObjectDispatch(object, interp, oc, ov, NSF_CSC_IMMEDIATE|NSF_CM_NO_PROTECT);
+  result = ObjectDispatch(object, interp, oc, ov, NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
 
   DECR_REF_COUNT(ov[1]);
   DECR_REF_COUNT(ov[2]);
@@ -15139,7 +15160,7 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *initStrin
   Tcl_ResetResult(interp);
   INCR_REF_COUNT(methodObj);
   result = CallMethod(object, interp, methodObj, argc, argv,
-		      NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE);
+		      NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
   DECR_REF_COUNT(methodObj);
 
   /*fprintf(stderr, "method  '%s' called args: %d o=%p, result=%d %d\n",
@@ -17881,21 +17902,37 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   case MethodpropertyCall_protectedIdx:  /* fall through */
   case MethodpropertyRedefine_protectedIdx:  /* fall through */
     {
+      int clearFlag = 0;
+
       switch (methodproperty) {
-      case MethodpropertyClass_onlyIdx: flag = NSF_CMD_CLASS_ONLY_METHOD; break;
-      case MethodpropertyCall_privateIdx:  flag = NSF_CMD_CALL_PRIVATE_METHOD; break;
-      case MethodpropertyCall_protectedIdx:  flag = NSF_CMD_CALL_PROTECTED_METHOD; break;
-      case MethodpropertyRedefine_protectedIdx: flag = NSF_CMD_REDEFINE_PROTECTED_METHOD; break;
+      case MethodpropertyClass_onlyIdx: 
+	flag = NSF_CMD_CLASS_ONLY_METHOD; 
+	break;
+      case MethodpropertyCall_privateIdx:
+	clearFlag = NSF_CMD_CALL_PROTECTED_METHOD;
+	flag = NSF_CMD_CALL_PRIVATE_METHOD; 
+	break;
+      case MethodpropertyCall_protectedIdx:  
+	clearFlag = NSF_CMD_CALL_PRIVATE_METHOD;
+	flag = NSF_CMD_CALL_PROTECTED_METHOD; 
+	break;
+      case MethodpropertyRedefine_protectedIdx: 
+	flag = NSF_CMD_REDEFINE_PROTECTED_METHOD; 
+	break;
       default: flag = 0;
       }
 
       if (valueObj) {
 	int bool, result;
+
 	result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
 	if (result != TCL_OK) {
 	  return result;
 	}
 	if (bool) {
+	  if (clearFlag) {
+	    Tcl_Command_flags(cmd) &= ~clearFlag;
+	  }
 	  Tcl_Command_flags(cmd) |= flag;
 	} else {
 	  Tcl_Command_flags(cmd) &= ~flag;
@@ -18125,6 +18162,11 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
      * the command.
      */
 
+    if (withIntrinsic || withSystem || withLocal) {
+      return NsfPrintError(interp, "cannot use flag '-intrisic', '-local', or '-system'"
+			   " with fully qualified method name");
+    }
+
     cmd = Tcl_GetCommandFromObj(interp, command);
     /* fprintf(stderr, "colon name %s cmd %p\n", methodName, cmd);*/
 
@@ -18178,7 +18220,7 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 
     Tcl_Obj *arg;
     Tcl_Obj *CONST *objv;
-    int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE;
+    int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS;
 
     if (withFrame && withFrame != FrameDefaultIdx) {
       return NsfPrintError(interp,
@@ -18197,6 +18239,7 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
       arg = NULL;
       objv = NULL;
     }
+
     result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object, command, arg,
 				   nobjc, objv, flags);
   }
@@ -19588,7 +19631,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
     if (methodObj) {
       /*fprintf(stderr, "=== calling %s objectparameter\n", ClassName(class));*/
       result = CallMethod(class, interp, methodObj,
-			  2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
+			  2, 0, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
 
       if (likely(result == TCL_OK)) {
 	rawConfArgs = Tcl_GetObjResult(interp);
@@ -20755,7 +20798,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
       result = RecreateObject(interp, cl, newObject, objc, nobjv);
     } else {
       result = CallMethod(cl, interp, methodObj,
-                          objc+1, nobjv+1, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
+                          objc+1, nobjv+1, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
     }
     if (result != TCL_OK) {
       goto create_method_exit;
@@ -20998,7 +21041,7 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
       fprintf(stderr, "RECREATE calls method cleanup for object %p %s OS %s\n",
               object, ObjectName(object), ObjectName((&osPtr->rootClass->object)));*/
       result = CallMethod(object, interp, methodObj,
-                          2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
+                          2, 0, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
     }
   }
 

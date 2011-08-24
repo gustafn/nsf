@@ -122,6 +122,85 @@ nx::Test case redefined-protected {
       {Method 'foo' of ::o cannot be overwritten. Derive e.g. a sub-class!}
 }
 
+
+#
+# test private
+#
+nx::Test case private {
+  nx::Class create B {
+    :private method p1 {} {return B.p1}
+    :private method p2 {} {return B.p2}
+    :public  method p3 {} {return B.p3}
+    :public  method p4 {} {return B.p4}
+    :create b1
+  }
+  nx::Class create C -superclass B {
+    :private method p1 {} {return "C.p1 [next]"}
+    :public  method p2 {} {return "C.p2 [next]"}
+    :private method p3 {} {return "C.p3 [next]"}
+    :public  method p4 {} {return "C.p4 [next]"}
+    :create c1
+  }
+  nx::Class create D -superclass C {
+    :public method p1 {} {return "D.p1 [next]"}
+    :public method p2 {} {return "D.p2 [next]"}
+    :public method p3 {} {return "D.p3 [next]"}
+    :public method p4 {} {return "D.p4 [next]"}
+    :create d1
+  }
+
+  # called         shadowed 
+  # C.p1  private  B.p1 private
+  # C.p2  public   B.p2 private
+  # C.p3  private  B.p3 public
+  # C.p4  public   B.p4 public
+
+  ? {c1 p1} "::c1: unable to dispatch method 'p1'"
+  ? {c1 p2} "C.p2 "
+  ? {c1 p3} "B.p3"
+  ? {c1 p4} "C.p4 B.p4"
+
+  # called        shadowed       shadowed 
+  # D.p1 public   C.p1  private  B.p1 private
+  # D.p2 public   C.p2  public   B.p2 private
+  # D.p3 public   C.p3  private  B.p3 public
+  # D.p4 public   C.p4  public   B.p4 public
+
+  ? {d1 p1} "D.p1 "
+  ? {d1 p2} "D.p2 C.p2 "
+  ? {d1 p3} "D.p3 B.p3"
+  ? {d1 p4} "D.p4 C.p4 B.p4"
+
+  # add on B calls to local
+  C eval {
+    :public method q1 {} {nsf::my -local p1}
+    :public method q3 {} {nsf::my -local p3}
+  }
+  # all chains start with C, since local resolve works
+  ? {c1 q1} "C.p1 "
+  ? {c1 q3} "C.p3 B.p3"
+  
+  # calls via method handles allows us to dispatch private methods,
+  # results like "-local" resolves above
+  ? {c1 [C info method handle p1]} "C.p1 "
+  ? {c1 [C info method handle p3]} "C.p3 B.p3"
+
+  # calls via method handles allows us to dispatch private methods,
+  # results like "-local" resolves above
+  ? {nsf::object::dispatch c1 [C info method handle p1]} "C.p1 "
+  ? {nsf::object::dispatch c1 [C info method handle p3]} "C.p3 B.p3"
+  
+  # we can't call the private method via dispatch, since the private
+  # methods are removed from the search for methods
+  ? {nsf::object::dispatch c1 p1} "::c1: unable to dispatch method 'p1'"
+  ? {nsf::object::dispatch c1 p3} "B.p3"
+
+  # via dispatch, the local flag uses (as always) the context of the
+  # currently execting class, which is not provided below
+  ? {nsf::object::dispatch c1 -local p1} "::c1: unable to dispatch method 'p1'"
+
+}
+
 #
 # test "nsf::my -local" on classes
 #
@@ -176,13 +255,13 @@ nx::Test case object-my-local {
 
 nx::Test case my+handle-instead-of-my-local {
   nx::Class create Base {
-    :protected method privateMethod {a b} { expr {$a + $b} }
+    :private method privateMethod {a b} { expr {$a + $b} }
     :public method foo {a b} { nsf::my [Base info method handle privateMethod] $a $b }
   }
     
   nx::Class create Sub -superclass Base {
     :public method bar {a b} { nsf::my [Sub info method handle privateMethod] $a $b }
-    :public method privateMethod {a b} { expr {$a * $b} }
+    :private method privateMethod {a b} { expr {$a * $b} }
 
     :create s1
   }
@@ -197,13 +276,13 @@ nx::Test case my+handle-instead-of-my-local {
 
 nx::Test case dispatch-instead-of-my-local {
   nx::Class create Base {
-    :protected method privateMethod {a b} { expr {$a + $b} }
+    :private method privateMethod {a b} { expr {$a + $b} }
     :public method foo {a b} { nsf::object::dispatch [self] [Base info method handle privateMethod] $a $b }
   }
     
   nx::Class create Sub -superclass Base {
     :public method bar {a b} { nsf::object::dispatch [self] [Sub info method handle privateMethod] $a $b }
-    :public method privateMethod {a b} { expr {$a * $b} }
+    :private method privateMethod {a b} { expr {$a * $b} }
 
     :create s1
   }

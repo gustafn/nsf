@@ -720,7 +720,7 @@ typedef struct NsfCallStackContent {
 /* flags for call method */
 #define NSF_CM_NO_UNKNOWN           0x000001
 #define NSF_CM_NO_SHIFT             0x000002
-#define NSF_CM_NO_PROTECT           0x000004
+#define NSF_CM_IGNORE_PERMISSIONS   0x000004
 #define NSF_CM_NO_OBJECT_METHOD     0x000008
 #define NSF_CM_SYSTEM_METHOD        0x000010
 #define NSF_CM_LOCAL_METHOD         0x000020
