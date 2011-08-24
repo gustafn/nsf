@@ -3386,12 +3386,16 @@ Test run; exit
   * removed INTERP macros for MEM_COUNT (since we use now
     per-thread tables instead of per-interp tables as in the
     first implementation)
+  * re-enabled transparency of private method in mixins
+  * added transparency for per-object private methods
+  * extended regression test
 
 TODO:
  - fix interp.test for tcl 8.6
  - fix xocomm.test for tcl 8.6
 
  - private: 
+   * needed fails since method %s.%s is private ?
    * maybe let private imply protected
    * tests for private + mixins
    * tests for object-specific private methods

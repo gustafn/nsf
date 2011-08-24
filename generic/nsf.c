@@ -6646,7 +6646,7 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
   int result = TCL_OK;
   int cmdFlags = Tcl_Command_flags(cmd);
 
-  if (/*(cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) ||*/
+  if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) ||
       ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) && !NsfObjectIsClass(object))) {
     /* 
      * The command is not applicable for objects (i.e. might crash,
@@ -9623,6 +9623,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cmd = FindMethod(object->nsPtr, methodName);
       /*fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
 	object, methodName, object->nsPtr, cmd);*/
+      if (cmd 
+	  && (flags & ( NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0 
+	  && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD)) {
+	cmd = NULL;
+      }
     }
 #if defined(INHERIT_CLASS_METHODS)
     /* this is not optimized yet, since current class might be checked twice,

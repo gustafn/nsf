@@ -124,6 +124,115 @@ nx::Test case redefined-protected {
 
 
 #
+# Use case for private:
+# Hide "helper methods of e.g. mixin"
+#
+nx::Test case private-helper {
+
+  nx::Class create B {
+    :public method bar {} {return "B.bar [next]"}
+    :public method baz {} {return "B.baz [next]"}
+    :create b1 {
+      :public method baz {} {return "b1.baz [next]"}
+    }
+  }
+  nx::Class create C -superclass B {
+    :public method bar {} {return "C.bar [next]"}
+    :public method baz {} {return "C.baz [next]"}
+    :create c1 {
+      :public method baz {} {return "c1.baz [next]"}
+    }
+  }
+
+  # Behavior without mixin with private methods
+  ? {b1 bar} "B.bar "
+  ? {b1 baz} "b1.baz B.baz "
+
+  ? {c1 bar} "C.bar B.bar "
+  ? {c1 baz} "c1.baz C.baz B.baz "
+
+  #
+  # Define a mixin with helper methods "bar" and "baz". The helper
+  # methods are defined as private to avoid interference.
+  #
+  nx::Class create M {
+    :public method foo {} {nsf::my -local bar}
+    :private method bar {} {nsf::my -local baz}
+    :private method baz {} {return "M.baz"}
+  }
+
+  # Behavior with mixin . THe private helper methods are "invisible"
+  # for invocation and next path.
+
+  B mixin add M
+
+  ? {b1 bar} "B.bar "
+  ? {b1 baz} "b1.baz B.baz "
+
+  ? {c1 bar} "C.bar B.bar "
+  ? {c1 baz} "c1.baz C.baz B.baz "
+
+  ? {b1 foo} "M.baz"
+  ? {c1 foo} "M.baz"
+}
+
+
+#
+# Use case for private:
+# Hide "helper object specific helper methods"
+#
+nx::Test case object-private-helper {
+
+  nx::Class create B {
+    :public method bar {} {return "B.bar [next]"}
+    :public method baz {} {return "B.baz [next]"}
+    :create b1 {
+      :public  method foo {} {nsf::my -local bar}
+      :private method bar {} {nsf::my -local baz}
+      :private method baz {} {return "b1.baz"}
+    }
+  }
+  nx::Class create C -superclass B {
+    :public method bar {} {return "C.bar [next]"}
+    :public method baz {} {return "C.baz [next]"}
+    :create c1 {
+      :public  method foo {} {nsf::my -local bar}
+      :private method bar {} {nsf::my -local baz}
+      :private method baz {} {return "c1.baz"}
+    }
+  }
+
+  # Behavior of per-object helper methods, which are invisible for
+  # invocation through "bar" and "baz"
+
+  ? {b1 bar} "B.bar "
+  ? {b1 baz} "B.baz "
+  ? {b1 foo} "b1.baz"
+
+  ? {c1 bar} "C.bar B.bar "
+  ? {c1 baz} "C.baz B.baz "
+  ? {c1 foo} "c1.baz"
+
+  #
+  # define a mixin class which shadows "bar" and "baz"
+  #
+  nx::Class create M {
+    :public method bar {} {return "M.bar [next]"}
+    :public method baz {} {return "M.baz [next]"}
+  }
+  B mixin add M
+
+  ? {b1 bar} "M.bar B.bar "
+  ? {b1 baz} "M.baz B.baz "
+  ? {b1 foo} "b1.baz"
+
+  ? {c1 bar} "M.bar C.bar B.bar "
+  ? {c1 baz} "M.baz C.baz B.baz "
+  ? {c1 foo} "c1.baz"
+}
+
+
+#
 # test private
 #
 nx::Test case private {
@@ -200,6 +309,9 @@ nx::Test case private {
   ? {nsf::object::dispatch c1 -local p1} "::c1: unable to dispatch method 'p1'"
 
 }
+
+
+
 
 #
 # test "nsf::my -local" on classes
