@@ -47,3 +47,23 @@ nx::Test case current-calledclass {
 
   ? {[C new] baz} {::C ::C}
 }
+
+#
+# [::nsf::current calledclass]
+#
+nx::Test case current-calledmethod {
+  set body {
+    return [list [current nextmethod] {*}[next]]
+  }
+  Object create o
+  set mh [o public method foo {} $body]
+  
+  ? {o foo} {{}}
+
+  Class create M 
+  set mh2 [M public method foo {} $body]
+  M filter add foo
+  o mixin M
+
+  ? {o foo} [list $mh2 $mh {}]
+}

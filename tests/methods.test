@@ -231,13 +231,13 @@ Test case next-from-nonpos-args {
   
   Object create o {
     :method bar {-y:required -x:required} {
-      #puts stderr "+++ o x=$x, y=$y [current args] ... next [current next]"
+      #puts stderr "+++ o x=$x, y=$y [current args] ... next [current nextmethod]"
       return [list x $x y $y [current args]]
     }
   }
   Class create M {
     :method bar {-x:required -y:required} {
-      #puts stderr "+++ M x=$x, y=$y [current args] ... next [current next]"
+      #puts stderr "+++ M x=$x, y=$y [current args] ... next [current nextmethod]"
       return [list x $x y $y [current args] -- {*}[next]]
     }
   }

@@ -4910,13 +4910,36 @@ CmdListRemoveFromList(NsfCmdList **cmdList, NsfCmdList *delCL) {
 }
 
 /*
- * remove all command pointers from a list that have a bumped epoch
+ *----------------------------------------------------------------------
+ * CmdListRemoveDeleted --
+ *
+ *    Remove all command pointers from a command list which are marked
+ *    "deleted". The condition for deletion is the presence of the flag
+ *    CMD_IS_DELETED, with the flag bit being set by
+ *    Tcl_DeleteCommandFromToken().
+ *
+ * Results:
+ *    The cmd list filtered for non-deleted commands
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
  */
+
 static void
-CmdListRemoveEpoched(INTERP_DECL NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
+CmdListRemoveDeleted(INTERP_DECL NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
   NsfCmdList *f = *cmdList, *del;
   while (f) {
-    if (Tcl_Command_cmdEpoch(f->cmdPtr)) {
+    /* 
+     * HIDDEN OBJECTS: For supporting hidden mixins, we cannot rely on the
+     * cmdEpoch as indicator of the deletion status of a cmd because the epoch
+     * counters of hidden and re-exposed commands are bumped. Despite of this,
+     * their object structures remain valid. We resort to the use of the
+     * per-cmd flag CMD_IS_DELETED, set upon processing a command in
+     * Tcl_DeleteCommandFromToken().
+     */
+    if (Tcl_Command_flags(f->cmdPtr) & CMD_IS_DELETED /* Tcl_Command_cmdEpoch(f->cmdPtr) */) {
       del = f;
       f = f->nextPtr;
       del = CmdListRemoveFromList(cmdList, del);
@@ -4935,7 +4958,7 @@ CmdListRemoveContextClassFromList(INTERP_DECL NsfCmdList **cmdList, NsfClass *cl
                                   NsfFreeCmdListClientData *freeFct) {
   NsfCmdList *c, *del = NULL;
   /*
-    CmdListRemoveEpoched(INTERP cmdList, freeFct);
+    CmdListRemoveDeleted(INTERP cmdList, freeFct);
   */
   c = *cmdList;
   while (c && c->clorobj == clorobj) {
@@ -5446,7 +5469,7 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
   NsfCmdList *m;
   NsfClasses *pl, **clPtr = mixinClasses;
 
-  CmdListRemoveEpoched(INTERP mixinList, GuardDel);
+  CmdListRemoveDeleted(INTERP mixinList, GuardDel);
 
   for (m = *mixinList; m; m = m->nextPtr) {
     NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
@@ -5511,7 +5534,7 @@ MixinResetOrder(INTERP_DECL NsfObject *object) {
  *----------------------------------------------------------------------
  * NsfClassListAddPerClassMixins --
  *
- *    Append the class mixins to the proivded list. CheckList is used to
+ *    Append the class mixins to the provided list. CheckList is used to
  *    eliminate potential duplicates.
  *
  * Results:
@@ -6652,11 +6675,10 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
  *----------------------------------------------------------------------
  * MixinSearchProc --
  *
- *    Search for a methodname in the mixin list of the provided
- *    object. According to the state of the mixin stack it start the search
- *    from the beginning of from the last dispatched method shadowed method on
- *    the mixin path. If a class *cl and a *cmdPtr are provided, the function
- *    only succeeds, when the class is a mixin class.
+ *    Search for a method name in the mixin list of the provided
+ *    object. Depending on the state of the mixin stack, the search starts
+ *    at the beginning or at the last dispatched, shadowed method on
+ *    the mixin path.
  *
  * Results:
  *    Tcl result code.
@@ -6698,8 +6720,16 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
 
     for (; cmdList; cmdList = cmdList->nextPtr) {
       NsfClass *cl1;
-
-      if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) { continue; }
+      
+      /* 
+       * HIDDEN OBJECTS: For supporting hidden mixins, we cannot rely on the
+       * cmdEpoch as indicator of the deletion status of a cmd because the
+       * epoch counters of hidden and re-exposed commands are bumped. Despite
+       * of this, their object structures remain valid.
+       */
+      if (Tcl_Command_flags(cmdList->cmdPtr) & CMD_IS_DELETED
+	  /*Tcl_Command_cmdEpoch(cmdList->cmdPtr)*/) { continue; }
+      
       cl1 = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
       assert(cl1);
       lastCmdPtr = cmdList->cmdPtr;
@@ -6748,8 +6778,13 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
   } else {
 
     for (; cmdList; cmdList = cmdList->nextPtr) {
-      
-      if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
+      /* 
+       * HIDDEN OBJECTS: For supporting hidden mixins, we cannot rely on the
+       * cmdEpoch as indicator of the deletion status of a cmd because the
+       * epoch counters of hidden and re-exposed commands are bumped. Despite
+       * of this, their object structures remain valid.
+       */
+      if (Tcl_Command_flags(cmdList->cmdPtr) & CMD_IS_DELETED /*Tcl_Command_cmdEpoch(cmdList->cmdPtr)*/) {
 	continue;
       }
       cl = NsfGetClassFromCmdPtr(cmdList->cmdPtr);
@@ -7213,7 +7248,7 @@ FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
   NsfCmdList *cmdList, *del;
   NsfClass *cl = NULL;
 
-  CmdListRemoveEpoched(INTERP filters, GuardDel);
+  CmdListRemoveDeleted(INTERP filters, GuardDel);
   for (cmdList = *filters; cmdList; ) {
     simpleName = (char *) Tcl_GetCommandName(interp, cmdList->cmdPtr);
     cmd = FilterSearch(INTERP simpleName, startingObject, startingClass, &cl);
@@ -7404,7 +7439,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
   /*
    * ensure that no epoched command is in the filters list
    */
-  CmdListRemoveEpoched(INTERP filters, GuardDel);
+  CmdListRemoveDeleted(INTERP filters, GuardDel);
 
   for (f = *filters; f; f = f->nextPtr) {
     simpleName = (char *) Tcl_GetCommandName(interp, f->cmdPtr);
@@ -12869,7 +12904,7 @@ NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_O
  *----------------------------------------------------------------------
  * FindSelfNext --
  *
- *    This function is called via [current next] to set the result of the
+ *    This function is called via [current nextmethod] to set the result of the
  *    interp to the method which would be called by [next]. If there are more
  *    shadowed methods along the precedence path, it sets the result of the
  *    next method in form of a method handle. If there are no more shadowed
@@ -19221,7 +19256,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case CurrentoptionNextIdx:
+  case CurrentoptionNextmethodIdx:
     result = FindSelfNext(interp);
     break;
   }

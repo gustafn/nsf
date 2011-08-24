@@ -1077,7 +1077,7 @@ nx::Test case submethods-via-aliasparams {
 
   Class create M2 {
     :public method "FOO foo" args {
-      append :msg "(1)--[current next]"
+      append :msg "(1)--[current nextmethod]"
       next
       #puts stderr ++++++++++++++++++
       append :msg "--(3)--[current class]--[current methodpath]--[current]"

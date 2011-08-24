@@ -72,7 +72,7 @@ namespace eval ::xotcl {
       switch $arg {
 	"" {uplevel ::nsf::self}
 	next {
-	  set handle [uplevel ::nsf::current $arg]
+	  set handle [uplevel ::nsf::current nextmethod]
 	  method_handle_to_xotcl $handle
 	}
 	default {uplevel ::nsf::current $arg}
