@@ -1082,9 +1082,7 @@ Test case shadowing-app-converter {
   }
 
   ? {::nsf::is -complain integer,slot=::mySlot 1} 1 
-  puts stderr ====1
-  #? {o foo 3} 4
-  puts stderr ====2
+  ? {o foo 3} 4
 }
 
 
