@@ -11730,7 +11730,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   NsfParamDefs *paramDefs = parsedParamPtr->paramDefs;
   Tcl_Namespace *cmdNsPtr;
   NsfProcClientData *tcd;
-  Tcl_Obj *argList = Tcl_NewListObj(0, NULL);
+  Tcl_Obj *argList;
   Tcl_Obj *procNameObj;
   Tcl_DString ds, *dsPtr = &ds;
   Nsf_Param *paramPtr;
