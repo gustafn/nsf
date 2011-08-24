@@ -451,7 +451,6 @@ Test case deleting-aliased-object {
   ? {o a set x} 10     "set var via alias"
   o2 destroy
   ? {o a info vars} "Trying to dispatch deleted object via method 'a'" "1st call on deleted object"
-  puts stderr ====1
   ? {o a info vars} "::o: unable to dispatch method 'a'" "2nd call on deleted object"
 }
 
