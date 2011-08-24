@@ -18063,6 +18063,10 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 
   /*fprintf(stderr, "Dispatch obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
 
+  if (withIntrinsic + withLocal + withSystem > 1) {
+    return NsfPrintError(interp, "flags '-intrinsic', '-local' and '-system' are mutual exclusive");
+  }
+
   /*
    * If the specified method is a fully qualified cmd name like
    * e.g. ::nsf::cmd::Class::alloc, this method is called on the
@@ -18357,8 +18361,8 @@ NsfMyCmd(Tcl_Interp *interp,
     return NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
   }
 
-  if (withSystem && withLocal) {
-    return NsfPrintError(interp, "flags '-local' and '-system' are mutual exclusive");
+  if (withIntrinsic + withLocal + withSystem > 1) {
+    return NsfPrintError(interp, "flags '-intrinsic', '-local' and '-system' are mutual exclusive");
   }
 
 #if 0
