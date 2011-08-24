@@ -9538,6 +9538,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     cmd = ResolveMethodName(interp, NULL, methodObj,
 			     dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
     Tcl_DStringFree(dsPtr);
+    DECR_REF_COUNT(methodObj);
+
     if (cmd) {
       if (regObject) {
 	if (NsfObjectIsClass(regObject)) {
@@ -18098,7 +18100,9 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 
   /*fprintf(stderr, "Dispatch obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
 
-  if (withIntrinsic + withLocal + withSystem > 1) {
+  if ((withIntrinsic && withLocal)
+      || (withIntrinsic && withSystem) 
+      || (withLocal && withSystem)) {
     return NsfPrintError(interp, "flags '-intrinsic', '-local' and '-system' are mutual exclusive");
   }
 
@@ -18396,7 +18400,9 @@ NsfMyCmd(Tcl_Interp *interp,
     return NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
   }
 
-  if (withIntrinsic + withLocal + withSystem > 1) {
+  if ((withIntrinsic && withLocal)
+      || (withIntrinsic && withSystem) 
+      || (withLocal && withSystem)) {
     return NsfPrintError(interp, "flags '-intrinsic', '-local' and '-system' are mutual exclusive");
   }
 
