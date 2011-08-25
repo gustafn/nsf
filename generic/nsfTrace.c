@@ -119,7 +119,7 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
  *----------------------------------------------------------------------
  */
 static Tcl_HashTable * 
-NsfMemCountGetTable(Tcl_Interp *interp, int **initialized) {
+NsfMemCountGetTable(int **initialized) {
   static Tcl_ThreadDataKey memCountTableKey;
   static Tcl_ThreadDataKey memCountFlagKey;
   Tcl_HashTable *tablePtr;
@@ -148,10 +148,10 @@ NsfMemCountGetTable(Tcl_Interp *interp, int **initialized) {
  *----------------------------------------------------------------------
  */
 void 
-NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *p) {
+NsfMemCountAlloc(char *id, void *p) {
   int new, *tableInitialized;
   NsfMemCounter *entry;
-  Tcl_HashTable *tablePtr = NsfMemCountGetTable(interp, &tableInitialized);
+  Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
   Tcl_HashEntry *hPtr;
 
   if (!*tableInitialized) {
@@ -159,7 +159,6 @@ NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *p) {
     return;
   }
 
-  assert(interp);
   hPtr = Tcl_CreateHashEntry(tablePtr, id, &new);
 #ifdef NSF_MEM_TRACE
   fprintf(stderr, "+++ alloc %s %p\n", id, p);
@@ -197,10 +196,10 @@ NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *p) {
  */
 
 void
-NsfMemCountFree(Tcl_Interp *interp, char *id, void *p) {
+NsfMemCountFree(char *id, void *p) {
   NsfMemCounter *entry;
   int *tableInitialized;
-  Tcl_HashTable *tablePtr = NsfMemCountGetTable(interp, &tableInitialized);
+  Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
   Tcl_HashEntry *hPtr;
 
   if (!*tableInitialized) {
@@ -211,7 +210,6 @@ NsfMemCountFree(Tcl_Interp *interp, char *id, void *p) {
   fprintf(stderr, "+++ free %s %p\n", id, p);
 #endif
 
-  assert(interp);
   hPtr = Tcl_FindHashEntry(tablePtr, id);
   if (!hPtr) {
     fprintf(stderr, "******** MEM COUNT ALERT: Trying to free %p <%s>, "
@@ -238,9 +236,9 @@ NsfMemCountFree(Tcl_Interp *interp, char *id, void *p) {
  *----------------------------------------------------------------------
  */
 void
-NsfMemCountInit(Tcl_Interp *interp) {
+NsfMemCountInit() {
   int *tableInitialized;
-  Tcl_HashTable *tablePtr = NsfMemCountGetTable(interp, &tableInitialized);
+  Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
 
   if (!*tableInitialized) {
     Tcl_InitHashTable(tablePtr, TCL_STRING_KEYS);
@@ -270,19 +268,19 @@ NsfMemCountInit(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 void
-NsfMemCountRelease(Tcl_Interp *interp) {
+NsfMemCountRelease() {
   int *tableInitialized;
-  Tcl_HashTable *tablePtr = NsfMemCountGetTable(interp, &tableInitialized);
+  Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
   Tcl_HashSearch search;
   Tcl_HashEntry *hPtr;
   int count = 0;
 
 #ifdef NSF_MEM_TRACE
-  fprintf(stderr, "+++ release interp %p count %d\n", interp, *tableInitialized);
+  fprintf(stderr, "+++ release count %d\n", *tableInitialized);
 #endif
 
   if (!*tableInitialized) {
-    fprintf(stderr, "+++ release called on uninitialized/free hash table, interp %p\n", interp);
+    fprintf(stderr, "+++ release called on uninitialized/free hash table\n");
     return;
   } 
 

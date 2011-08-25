@@ -92,15 +92,15 @@ typedef struct NsfMemCounter {
   int peak;
   int count;
 } NsfMemCounter;
-#  define MEM_COUNT_ALLOC(id,p) NsfMemCountAlloc(interp, id, p)
-#  define MEM_COUNT_FREE(id,p) NsfMemCountFree(interp, id, p)
-#  define MEM_COUNT_INIT(interp) NsfMemCountInit(interp)
-#  define MEM_COUNT_RELEASE(interp) NsfMemCountRelease(interp)
+#  define MEM_COUNT_ALLOC(id,p) NsfMemCountAlloc(id, p)
+#  define MEM_COUNT_FREE(id,p) NsfMemCountFree(id, p)
+#  define MEM_COUNT_INIT() NsfMemCountInit()
+#  define MEM_COUNT_RELEASE() NsfMemCountRelease()
 #else
 #  define MEM_COUNT_ALLOC(id,p)
 #  define MEM_COUNT_FREE(id,p)
-#  define MEM_COUNT_INIT(interp)
-#  define MEM_COUNT_RELEASE(interp)
+#  define MEM_COUNT_INIT()
+#  define MEM_COUNT_RELEASE()
 #endif
 
 # define STRING_NEW(target, p, l)  target = ckalloc(l+1); strncpy(target, p, l); *((target)+l) = '\0'; \
@@ -791,9 +791,6 @@ typedef struct NsfRuntimeState {
   NsfStringIncrStruct iss; /* used for new to create new symbols */
   short guardCount;        /* keep track of guard invocations */
   ClientData clientData;
-#if defined(NSF_MEM_COUNT)
-  Tcl_HashTable memCountTable;
-#endif
 } NsfRuntimeState;
 
 #define NSF_EXITHANDLER_OFF 0
@@ -860,10 +857,10 @@ extern NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_Call
  * MEM Counting
  */
 #ifdef NSF_MEM_COUNT
-void NsfMemCountAlloc(Tcl_Interp *interp, char *id, void *);
-void NsfMemCountFree(Tcl_Interp *interp, char *id, void *);
-void NsfMemCountInit(Tcl_Interp *interp);
-void NsfMemCountRelease(Tcl_Interp *interp);
+void NsfMemCountAlloc(char *id, void *);
+void NsfMemCountFree(char *id, void *);
+void NsfMemCountInit();
+void NsfMemCountRelease();
 #endif /* NSF_MEM_COUNT */
 
 /*

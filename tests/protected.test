@@ -214,7 +214,8 @@ nx::Test case object-private-helper {
   ? {c1 foo} "c1.baz"
 
   #
-  # define a mixin class which shadows "bar" and "baz"
+  # Define a mixin class which shadows "bar" and "baz".  The behavior
+  # of the object-methods with its private methods is not affected.
   #
   nx::Class create M {
     :public method bar {} {return "M.bar [next]"}

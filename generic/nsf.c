@@ -22553,7 +22553,7 @@ ExitHandler(ClientData clientData) {
   /* Tcl_GlobalEval(interp, "puts {checkmem to checkmemFile};
      checkmem checkmemFile"); */
 #endif
-  MEM_COUNT_RELEASE(interp);
+  MEM_COUNT_RELEASE();
   ckfree((char *) RUNTIME_STATE(interp));
 
   Tcl_Interp_flags(interp) = flags;
@@ -22645,7 +22645,7 @@ Nsf_Init(Tcl_Interp *interp) {
    * first call to the MEM_COUNT macros (including e.g. INCR_REF_COUNT), but
    * it requires that the runtimeState is already associated with the interp.
    */
-  MEM_COUNT_INIT(interp);
+  MEM_COUNT_INIT();
 
   /*
    * Init global variables for Tcl_Obj types
