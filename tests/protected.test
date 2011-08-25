@@ -26,24 +26,24 @@ nx::Test case call-protected {
   ? {c1 bar-foo} {foo}
 
   ::nsf::method::property C SET call-protected true
-  ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
+  ? {c1 SET x 1} {::c1: unable to dispatch method 'SET'}
   ? {::nsf::object::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
   ? {c1 foo} {foo}
   ? {c1 bar} {bar}
   ? {c1 bar-SET} {1}
   ? {c1 bar-foo} {foo}
-  ? {catch {c2 bar-SET} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
+  ? {c2 bar-SET} {::c1: unable to dispatch method 'SET'}
   ? {c2 bar-foo} {foo}
 
   ::nsf::method::property C foo call-protected true
-  ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
+  ? {c1 SET x 1} {::c1: unable to dispatch method 'SET'}
   ? {::nsf::object::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
   ? {c1 bar} {bar} "other method work"
-  ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
+  ? {c1 foo} {::c1: unable to dispatch method 'foo'}
   ? {c1 bar-SET} {1} "internal call of protected C implementend method"
   ? {c1 bar-foo} {foo} "internal call of protected Tcl implemented method"
-  ? {catch {c2 bar-SET} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
-  ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
+  ? {c2 bar-SET} {::c1: unable to dispatch method 'SET'}
+  ? {c2 bar-foo} {::c1: unable to dispatch method 'foo'}
 
   # unset call protected
   ? {::nsf::method::property C SET call-protected} 1
@@ -64,16 +64,43 @@ nx::Test case call-protected {
 
   # define a protected method
   C protected method foo {} {return [current method]}
+
   ? {::nsf::method::property C SET call-protected} 0
   ? {c1 SET x 3} 3
   ? {::nsf::object::dispatch c1 SET x 4} {4} 
-  ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
+  ? {c1 foo} {::c1: unable to dispatch method 'foo'}
   ? {c1 bar} {bar}
   ? {c1 bar-SET} {1}
   ? {c1 bar-foo} foo
   ? {c2 bar-SET} 1
-  ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
+  ? {c2 bar-foo} {::c1: unable to dispatch method 'foo'}
 }
+
+#
+# Check protection + filter
+#
+# Allow to call methods as filters even if these are protected or
+# private.
+#
+nx::Test case protected+filter {
+  nx::Class create C {
+    :method f1 args { next }
+    :private method f2 args { next }
+    :public method foo {} { return foo}
+  }
+
+  C create c1
+  ? {c1 foo} foo
+
+  # add a protected filter
+  c1 filter add f1
+  ? {c1 foo} foo
+
+  # add a private filter
+  c1 filter add f2
+  ? {c1 foo} foo
+}
+
 
 nx::Test case redefined-protected {
   nx::Class create C {

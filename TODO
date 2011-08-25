@@ -3390,6 +3390,11 @@ Test run; exit
   * added transparency for per-object private methods
   * extended regression test
 
+- nsf.c:
+  * allow protected and private methods to be used as filters
+  * added regression tests
+  * some cleanup in regression tests
+
 TODO:
  - fix interp.test for tcl 8.6
  - fix xocomm.test for tcl 8.6
@@ -3400,6 +3405,7 @@ TODO:
    * tests for private + mixins
    * tests for object-specific private methods
    * flag "-local" in dispatch is maybe confusing
+   * -local and filter
 
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.

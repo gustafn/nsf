@@ -9477,15 +9477,16 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
 	cmd = FilterSearchProc(interp, object, &object->filterStack->currentCmdPtr, &cl);
 	if (cmd) {
-	  /*fprintf(stderr, "filterSearchProc returned cmd %p\n", cmd);*/
+	  /*fprintf(stderr, "*** filterSearchProc returned cmd %p\n", cmd);*/
 	  frameType = NSF_CSC_TYPE_ACTIVE_FILTER;
 	  methodName = (char *)Tcl_GetCommandName(interp, cmd);
+	  flags |= NSF_CM_IGNORE_PERMISSIONS;
 	}
       }
     }
   }
 
-  if ((flags & NSF_CM_LOCAL_METHOD)) {
+  if (cmd == NULL && (flags & NSF_CM_LOCAL_METHOD)) {
     /*
      * We require a local method. If the local method is found, we set always
      * the cmd and sometimes the class (if it is a class specific method).
