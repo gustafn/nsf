@@ -90,6 +90,7 @@ namespace eval ::nx {
     }
    
     :public method run args {
+      :exitOn
       if {[info exists :pre]} {:call "pre" ${:pre}}
       if {![info exists :msg]} {set :msg ${:cmd}}
       set gotError [catch {:call "run" ${:cmd}} r]
@@ -120,12 +121,32 @@ namespace eval ::nx {
 	# [exit -1] would leave us with a partially unwinded callstack
 	# with garbage complicating debugging (e.g. MEM_COUNT
 	# statistics would indicate unbalanced refCounts, etc.).
-
-	return -level [expr {[info level]-1}] -code error 
+	:exit -1
       }
       if {[info exists :post]} {:call "post" ${:post}}
+      :exitOff
     }
+
+    :public method exit {{statuscode "1"}} {
+      array set map {1 ok -1 error}
+      set errorcode $map($statuscode)
+      :exitOff
+      return -code $errorcode -level [expr {[info level]-1}] "Test was exited with code $statuscode"
+    }
+
+    :public method exitOn {} {
+      interp hide {} exit; 
+      interp alias {} ::exit {} [current] exit
+    }
+
+    :public method exitOff {} {
+      interp alias {} ::exit {}
+      interp expose {} exit; 
+    }
+
+
   }
+
   ::namespace export Test
 }
 

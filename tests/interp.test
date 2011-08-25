@@ -743,18 +743,6 @@ nx::Test case hidden-mixins-mixinlists {
 
   interp delete $i
   unset i
-
-  # $i eval {
-  #   nx::Class create ::M2
-  #   # catch {x mixin add ::M2} msg
-  #   # puts stderr -----msg=$msg
-  #   # TODO: force an invalidation of the mixin order!
-  #   #
-  #   catch { interp invokehidden {} M mixin add M2 } msg
-  #   puts stderr -----msg=$msg,$::errorInfo
-  # }
-  # ? {$i eval {x info precedence}} "::M ::nx::Object"
-  # ? {$i eval {x info mixin classes}} ::M  
 }
 
 

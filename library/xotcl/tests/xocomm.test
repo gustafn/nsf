@@ -101,7 +101,7 @@ nx::Test new -msg "Get protected resource ... " -count 1 \
 nx::Test new -msg terminate -count 1 \
     -setResult {set x 1} \
     -cmd [list SimpleRequest r0 -url http://$protectedhostport/exit] \
-    -post exit
+    -post {set ::forever 1; exit}
 
 after 1000 {nx::Test run}
 catch {vwait forever}
