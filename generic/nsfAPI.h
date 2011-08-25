@@ -349,7 +349,7 @@ static int NsfMyCmd(Tcl_Interp *interp, int withIntrinsic, int withLocal, int wi
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
-static int NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, int withIntrinsic, int withLocal, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, int withIntrinsic, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
 static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectproperty);
 static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
@@ -1417,12 +1417,11 @@ NsfObjectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withFrame = (int )PTR2INT(pc.clientData[1]);
     int withIntrinsic = (int )PTR2INT(pc.clientData[2]);
-    int withLocal = (int )PTR2INT(pc.clientData[3]);
-    int withSystem = (int )PTR2INT(pc.clientData[4]);
-    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[5];
+    int withSystem = (int )PTR2INT(pc.clientData[3]);
+    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
-    return NsfObjectDispatchCmd(interp, object, withFrame, withIntrinsic, withLocal, withSystem, command, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfObjectDispatchCmd(interp, object, withFrame, withIntrinsic, withSystem, command, objc-pc.lastObjc, objv+pc.lastObjc);
 
   }
 }
@@ -2548,11 +2547,10 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::object::dispatch", NsfObjectDispatchCmdStub, 7, {
+{"::nsf::object::dispatch", NsfObjectDispatchCmdStub, 6, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-intrinsic", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-local", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-system", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"command", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

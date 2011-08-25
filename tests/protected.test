@@ -493,17 +493,17 @@ nx::Test case system-flag {
   ? {o1 info} "overloads system info"
   ? {o1 ::nx::Object::slot::__info::vars} "v"
   ? {o1 [nx::Object info method origin "info vars"]} "v"
-  ? {o1 -system info vars} "v"
+  #? {o1 -system info vars} "v"
   ? {nsf::object::dispatch o1 -system info vars} "v"
 
-  ? {o1 -system} "no method name specified"
+  #? {o1 -system} "no method name specified"
 
   ? {o1 method foo {} {return foo}} "overloads method method"
-  ? {o1 -system public method foo {} {return foo}} "::o1::foo"
+  ? {nsf::object::dispatch o1 -system public method foo {} {return foo}} "::o1::foo"
   
   ? {o1 destroy} "overloads system destroy"
   ? {nsf::object::exists o1} 1
-  ? {o1 -system destroy} ""
+  ? {nsf::object::dispatch o1 -system destroy} ""
   ? {nsf::object::exists o1} 0
   
   #
@@ -519,12 +519,13 @@ nx::Test case system-flag {
   ? {c1 info} "overloads system info"
   ? {c1 ::nx::Object::slot::__info::vars} "v"
   ? {c1 [nx::Object info method origin "info vars"]} "v"
-  ? {c1 -system info vars} "v"
+  #? {c1 -system info vars} "v"
   ? {nsf::object::dispatch c1 -system info vars} "v"
   
   ? {c1 destroy} "overloads system destroy"
   ? {nsf::object::exists c1} 1
-  ? {c1 -system destroy} ""
+  #? {c1 -system destroy} ""
+  ? {nsf::object::dispatch c1 -system destroy} ""
   ? {nsf::object::exists c1} 0
 }
 

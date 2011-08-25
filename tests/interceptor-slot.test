@@ -294,37 +294,6 @@ nx::Test case mixins+method-handles {
   ? {c1 [Z info method origin bar]} "Z Y "
   ? {c1 [Y info method origin bar]} "Y "
 
-  # 
-  # check, whether the context of "[self] -local" is correct
-  #
-  A public method bar {} {[self] -local foo}
-  B public method bar {} {[self] -local foo}
-  C public method bar {} {[self] -local foo}
-  Y public method bar {} {[self] -local foo}
-  Z public method bar {} {[self] -local foo}
-
-  ? {c1 bar} "C B A Z Y "
-  ? {c1 [C info method origin bar]} "C B A Z Y "
-  ? {c1 [B info method origin bar]} "B A Z Y "
-  ? {c1 [A info method origin bar]} "A Z Y "
-  ? {c1 [Z info method origin bar]} "Z Y "
-  ? {c1 [Y info method origin bar]} "Y "
-
-  # 
-  # check, whether the context of "nsf::object::dispatch [self] -local" is correct
-  #
-  A public method bar {} {nsf::object::dispatch [self] -local foo}
-  B public method bar {} {nsf::object::dispatch [self] -local foo}
-  C public method bar {} {nsf::object::dispatch [self] -local foo}
-  Y public method bar {} {nsf::object::dispatch [self] -local foo}
-  Z public method bar {} {nsf::object::dispatch [self] -local foo}
-
-  ? {c1 bar} "C B A Z Y "
-  ? {c1 [C info method origin bar]} "C B A Z Y "
-  ? {c1 [B info method origin bar]} "B A Z Y "
-  ? {c1 [A info method origin bar]} "A Z Y "
-  ? {c1 [Z info method origin bar]} "Z Y "
-  ? {c1 [Y info method origin bar]} "Y "
 }
 
 
@@ -346,7 +315,7 @@ nx::Test case mixins+method-handles+intrinsic {
   }
   X create c1
   ? {c1 foo} "C B A X "
-  ? {c1 -intrinsic foo} "X "
+  ? {nsf::object::dispatch c1 -intrinsic foo} "X "
 
   
   #
@@ -358,7 +327,7 @@ nx::Test case mixins+method-handles+intrinsic {
 
   Z create c1 -mixin {C B A}
   ? {c1 foo} "C B A Z Y "
-  ? {c1 -intrinsic foo} "Z Y "
+  ? {nsf::object::dispatch c1 -intrinsic foo} "Z Y "
 
   # 
   # check, whether the context of "my -intrinsic" is correct
@@ -370,22 +339,6 @@ nx::Test case mixins+method-handles+intrinsic {
   Z public method bar {} {nsf::my -intrinsic foo}
 
   ? {c1 info precedence} "::C ::B ::A ::Z ::Y ::nx::Object"
-  ? {c1 bar} "Z Y "
-  ? {c1 [C info method origin bar]} "Z Y "
-  ? {c1 [B info method origin bar]} "Z Y "
-  ? {c1 [A info method origin bar]} "Z Y "
-  ? {c1 [Z info method origin bar]} "Z Y "
-  ? {c1 [Y info method origin bar]} "Z Y "
-
-  # 
-  # check, whether the context of "[self] -intrinsic" is correct
-  #
-  A public method bar {} {[self] -intrinsic foo}
-  B public method bar {} {[self] -intrinsic foo}
-  C public method bar {} {[self] -intrinsic foo}
-  Y public method bar {} {[self] -intrinsic foo}
-  Z public method bar {} {[self] -intrinsic foo}
-
   ? {c1 bar} "Z Y "
   ? {c1 [C info method origin bar]} "Z Y "
   ? {c1 [B info method origin bar]} "Z Y "

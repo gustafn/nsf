@@ -9402,28 +9402,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     methodName = MethodName(methodObj);
   } else {
     assert(objc > 1);
+    shift = 1;
     cmdObj = objv[0];
     methodName = ObjStr(objv[1]);
-    if (unlikely(*methodName == '-')) {
-      if (strcmp(methodName + 1, "system") == 0) {
-	flags |=  NSF_CM_SYSTEM_METHOD;
-	shift = 2;
-      } else if (strcmp(methodName + 1, "local") == 0) {
-	flags |=  NSF_CM_LOCAL_METHOD;
-	shift = 2;
-      } else if (strcmp(methodName + 1, "intrinsic") == 0) {
-	flags |=  NSF_CM_INTRINSIC_METHOD;
-	shift = 2;
-      } else {
-	shift = 1;
-      }
-    } else {
-      shift = 1;
-    }
-    if (shift >= objc) {
-      return NsfPrintError(interp, "no method name specified");
-    }
-    methodObj = objv[shift];
+    methodObj = objv[1];
     methodName = ObjStr(methodObj);
     if (FOR_COLON_RESOLVER(methodName)) {
       return NsfPrintError(interp, "%s: method name '%s' must not start with a colon",
@@ -18115,7 +18097,6 @@ cmd "object::dispatch" NsfObjectDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "-intrinsic" -required 0 -nrargs 0}
-  {-argName "-local" -required 0 -nrargs 0}
   {-argName "-system" -required 0 -nrargs 0}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
@@ -18123,17 +18104,15 @@ cmd "object::dispatch" NsfObjectDispatchCmd {
 */
 static int
 NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, 
-		     int withFrame, int withIntrinsic, int withLocal, int withSystem,
+		     int withFrame, int withIntrinsic, int withSystem,
 		     Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   CONST char *methodName = ObjStr(command);
 
   /*fprintf(stderr, "Dispatch obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
 
-  if ((withIntrinsic && withLocal)
-      || (withIntrinsic && withSystem) 
-      || (withLocal && withSystem)) {
-    return NsfPrintError(interp, "flags '-intrinsic', '-local' and '-system' are mutual exclusive");
+  if (withIntrinsic && withSystem) {
+    return NsfPrintError(interp, "flags '-intrinsic' and '-system' are mutual exclusive");
   }
 
   /*
@@ -18155,8 +18134,8 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
      * the command.
      */
 
-    if (withIntrinsic || withSystem || withLocal) {
-      return NsfPrintError(interp, "cannot use flag '-intrisic', '-local', or '-system'"
+    if (withIntrinsic || withSystem) {
+      return NsfPrintError(interp, "cannot use flag '-intrisic' or '-system'"
 			   " with fully qualified method name");
     }
 
@@ -18223,7 +18202,6 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 
     if (withIntrinsic) {flags |= NSF_CM_INTRINSIC_METHOD;}
     if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
-    if (withLocal) {flags |= NSF_CM_LOCAL_METHOD;}
 
     if (nobjc >= 1) {
       arg = nobjv[0];
