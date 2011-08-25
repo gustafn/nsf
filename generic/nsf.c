@@ -7644,13 +7644,17 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
 
   *currentCmd = NULL;
 
-  /* Ensure that the filter order is not invalid, otherwise compute order
-     FilterComputeDefined(interp, object);
-  */
+  /* 
+   * Ensure that the filter order is not invalid, otherwise compute order
+   * FilterComputeDefined(interp, object);
+   */
   assert(object->flags & NSF_FILTER_ORDER_VALID);
+
   cmdList = SeekCurrent(object->filterStack->currentCmdPtr, object->filterOrder);
 
   while (cmdList) {
+    /*fprintf(stderr, "FilterSearchProc found %s\n", 
+      Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr));*/
     if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
       cmdList = cmdList->nextPtr;
     } else if (FilterActiveOnObj(interp, object, cmdList->cmdPtr)) {
@@ -10037,10 +10041,6 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
   NsfStackDump(interp);
 #endif
 
-#ifdef CALLSTACK_TRACE
-  NsfCallStackDump(interp);
-#endif
-
   if (objc > 1) {
     /*
      * Normal dispatch; we must not use NSF_CSC_IMMEDIATE here,
@@ -12418,8 +12418,8 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
       object->filterStack->currentCmdPtr) {
     *cmdPtr = FilterSearchProc(interp, object, currentCmdPtr, clPtr);
 
-    /*fprintf(stderr, "EndOfChain? cmd=%p\n",*cmdPtr);*/
-    /*  NsfCallStackDump(interp); NsfStackDump(interp);*/
+    /*fprintf(stderr, "FilterSearchProc returned cmd %p\n", *cmdPtr);
+      NsfShowStack(interp);*/
 
     if (*cmdPtr == NULL) {
       if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
@@ -12468,8 +12468,6 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
     }
   }
 
-
-
   /*fprintf(stderr, "nextsearch: object %s nsPtr %p endOfChain %d\n",
     ObjectName(object), object->nsPtr, endOfChain);*/
 
@@ -12489,6 +12487,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
     } else if (object->nsPtr) {
       *cmdPtr = FindMethod(object->nsPtr, *methodNamePtr);
       if (*cmdPtr && (Tcl_Command_flags(*cmdPtr) & NSF_CMD_CALL_PRIVATE_METHOD)) {
+	/*fprintf(stderr, "NEXT found private cmd %s => %p\n", *methodNamePtr, *cmdPtr);*/
 	*cmdPtr = NULL;
       }
     } else {
@@ -12498,8 +12497,8 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
     *cmdPtr = NULL;
   }
 
-  /*fprintf(stderr, "NEXT methodName %s *clPtr %p %s *cmd %p\n",
-   *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr); */
+  /*fprintf(stderr, "NEXT methodName %s *clPtr %p %s *cmd %p cscPtr->flags %.6x\n",
+   *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr, cscPtr->flags); */
 
   if (!*cmdPtr) {
     NsfClasses *pl = ComputeOrder(object->cl, object->cl->order, Super);
@@ -12518,9 +12517,13 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
     }
 
     /*
-     * Search for a further class method
+     * Search for a further class method. When we are called from an active
+     * filter and the call had the -local flag set, then allow to call private methods.
      */
-    *clPtr = SearchPLMethod(pl, *methodNamePtr, cmdPtr, NSF_CMD_CALL_PRIVATE_METHOD);
+    *clPtr = SearchPLMethod(pl, *methodNamePtr, cmdPtr, 
+			    ((cscPtr->flags & NSF_CM_LOCAL_METHOD) && 
+			     cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) 
+			    ? 0 : NSF_CMD_CALL_PRIVATE_METHOD);
 
   } else {
     *clPtr = NULL;

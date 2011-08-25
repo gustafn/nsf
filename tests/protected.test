@@ -259,6 +259,50 @@ nx::Test case object-private-helper {
   ? {c1 foo} "c1.baz"
 }
 
+#
+# Check local + filter
+#
+nx::Test case local+filter {
+  nx::Class create C {
+    :method f1 args { return "f1 [next]" }
+    :public method foo {} { return "C.foo [nsf::my -local bar]"}
+    :private method bar {} { return "bar"}
+    :public  method baz {} { return "C.baz [next]"}
+  }
+  nx::Class create D -superclass C {
+    :public method baz {} { return "D.baz [next]"}
+  }
+
+  D create d1
+  ? {d1 baz} "D.baz C.baz "
+  ? {d1 foo} "C.foo bar"
+  ? {d1 bar} "::d1: unable to dispatch method 'bar'"
+
+  # add a filter; be sure that we still can call the private -local
+  # method
+  d1 filter add f1
+  ? {d1 baz} "f1 D.baz C.baz "
+  ? {d1 foo} "f1 C.foo f1 bar"
+  ? {d1 bar} "::d1: unable to dispatch method 'bar'"
+
+  # remove the filter
+  d1 filter ""
+  # define call to private method via method handle
+  C public method foo {} { return "C.foo [[self] [C info method handle bar]]"}
+
+  # the behavior without filter, should be like above
+  ? {d1 baz} "D.baz C.baz "
+  ? {d1 foo} "C.foo bar"
+  ? {d1 bar} "::d1: unable to dispatch method 'bar'"
+
+  # add a filter; be sure that we still can call the private method
+  d1 filter add f1
+  ? {d1 baz} "f1 D.baz C.baz "
+  ? {d1 foo} "f1 C.foo f1 bar"
+  ? {d1 bar} "::d1: unable to dispatch method 'bar'"
+}
+
+
 
 #
 # test private

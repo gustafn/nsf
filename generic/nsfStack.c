@@ -79,13 +79,14 @@ void NsfShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)");
             }*/
   framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
+  fprintf(stderr, "...         varFrame  flags       clientData lvl               ns\n");
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     int frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
     NsfCallStackContent *cscPtr =
       (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) ?
       ((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
 
-    fprintf(stderr, "... var frame %p flags %.6x cd %p lvl %d ns %p %s ov %s %d",
+    fprintf(stderr, "... %16p %.6x %16p %3d %16p %s ov %s %d",
             framePtr, frameFlags,
             Tcl_CallFrame_clientData(framePtr),
             Tcl_CallFrame_level(framePtr),
@@ -93,7 +94,7 @@ void NsfShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_objc(framePtr) && 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
             Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
     if (cscPtr) {
-      fprintf(stderr, " csc %p frameType %.4x callType %.4x (%s.%p %s)\n",
+      fprintf(stderr, " csc %p frameType %.4x flags %.6x (%s.%p %s)\n",
 	      cscPtr,
               cscPtr ? cscPtr->frameType : -1,
               cscPtr ? cscPtr->flags : -1,

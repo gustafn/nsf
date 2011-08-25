@@ -3394,6 +3394,8 @@ Test run; exit
   * allow protected and private methods to be used as filters
   * added regression tests
   * some cleanup in regression tests
+  * added support for calling private methods via -local and filters
+  * extended regression test for private + filters
 
 TODO:
  - fix interp.test for tcl 8.6
@@ -3405,7 +3407,6 @@ TODO:
    * tests for private + mixins
    * tests for object-specific private methods
    * flag "-local" in dispatch is maybe confusing
-   * -local and filter
 
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.

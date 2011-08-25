@@ -102,7 +102,6 @@
 
 /* turn  tracing output on/off
 #define NSFOBJ_TRACE 1
-#define CALLSTACK_TRACE 1
 #define NAMESPACE_TRACE 1
 #define OBJDELETION_TRACE 1
 #define STACK_TRACE 1
