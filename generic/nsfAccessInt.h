@@ -38,6 +38,9 @@
    Tcl_GetCommandInfoFromToken(cmd, infoPtr) */
 #define Tcl_Command_nsPtr(cmd)         ((Tcl_Namespace*)(((Command *)cmd)->nsPtr))
 #define Tcl_Command_objProc(cmd)       ((Command *)cmd)->objProc
+#if defined(NRE)
+# define Tcl_Command_nreProc(cmd)       ((Command *)cmd)->nreProc
+#endif
 #define Tcl_Command_objClientData(cmd) ((Command *)cmd)->objClientData
 #define Tcl_Command_proc(cmd)          ((Command *)cmd)->proc
 #define Tcl_Command_clientData(cmd)    ((Command *)cmd)->clientData

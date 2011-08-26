@@ -3401,6 +3401,9 @@ Test run; exit
   * removed flag "-local" from nsf::object::dispatch
   * made nsf::my and nsf::object::dispatch available in the nx namespace
 
+- nsf.c:
+  * factored out CmdIsNsfObject() for NRE handling with slave interpreters.
+  * added flag ZSE_NRE_PROC for using nreProc instead of objProc
 
 TODO:
  - fix interp.test for tcl 8.6

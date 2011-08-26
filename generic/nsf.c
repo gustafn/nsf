@@ -3922,6 +3922,34 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CmdIsNsfObject --
+ *
+ *    Check whether the provided cmd refers to an NsfObject or Class.
+ *
+ * Results:
+ *    Boolean
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+CmdIsNsfObject(Tcl_Command cmd) {
+  assert(cmd);
+#if defined(NRE)
+# if defined(USE_NRE_PROC)
+  return Tcl_Command_nreProc(cmd) == NsfObjDispatch;
+# else
+  return Tcl_Command_objProc(cmd) == NsfObjDispatch;
+# endif
+#else
+  return Tcl_Command_objProc(cmd) == NsfObjDispatch;
+#endif
+}
+
 
 /*
  * delete all vars & procs in a namespace
@@ -3950,9 +3978,8 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
       Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
-      Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
 
-      if (proc == NsfObjDispatch) {
+      if (CmdIsNsfObject(cmd)) {
 	/*
 	 * Sub-objects should not be deleted here to preseve children
 	 * deletion order. Just delete aliases.
@@ -4419,10 +4446,11 @@ GetObjectFromString(Tcl_Interp *interp, CONST char *name) {
   /*fprintf(stderr, "GetObjectFromString name = '%s'\n", name);*/
   cmd = NSFindCommand(interp, name);
 
-  if (cmd && Tcl_Command_objProc(cmd) == NsfObjDispatch) {
-    /*fprintf(stderr, "GetObjectFromString cd %p\n", Tcl_Command_objClientData(cmd));*/
+  if (cmd && CmdIsNsfObject(cmd)) {
+    /*fprintf(stderr, "GetObjectFromString %s => %p\n", name, Tcl_Command_objClientData(cmd));*/
     return (NsfObject *)Tcl_Command_objClientData(cmd);
   }
+  /*fprintf(stderr, "GetObjectFromString %s => NULL\n", name);*/
   return NULL;
 }
 
@@ -8998,7 +9026,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      * The cmd has client data or we force the frame either via
      * cmd-flag or csc-flag
      */
-    if (proc == NsfObjDispatch) {
+    if (CmdIsNsfObject(cmd)) {
       /*
        * invoke an aliased object (ensemble object) via method interface
        */
@@ -9525,10 +9553,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	/* ignore permissions for fully qualified method names */
 	flags |= NSF_CM_IGNORE_PERMISSIONS;
       } else {
-	Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
-
 	/*fprintf(stderr, "fully qualified lookup of %s returned %p\n", ObjStr(methodObj), cmd);*/
-	if (procPtr == NsfObjDispatch) {
+	if (CmdIsNsfObject(cmd)) {
 	  /*
 	   * Don't allow to call objects as methods (for the time being)
 	   * via fully qualified names. Otherwise, in line [2] below, ::State
@@ -12198,13 +12224,13 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
       result = NsfPrintError(interp, "cannot lookup command '%s'", ObjStr(tcd->cmdName));
       goto forward_process_options_exit;
     }
-    tcd->objProc = Tcl_Command_objProc(cmd);
-    if (tcd->objProc == NsfObjDispatch     /* don't do direct invoke on nsf objects */
-        || tcd->objProc == TclObjInterpProc  /* don't do direct invoke on tcl procs */
+    if (CmdIsNsfObject(cmd)     /* don't do direct invoke on nsf objects */
+        || Tcl_Command_objProc(cmd) == TclObjInterpProc  /* don't do direct invoke on tcl procs */
         ) {
       /* silently ignore earlybinding flag */
       tcd->objProc = NULL;
     } else {
+      tcd->objProc = Tcl_Command_objProc(cmd);
       tcd->clientData = Tcl_Command_objClientData(cmd);
     }
   }
@@ -13432,7 +13458,13 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
     NSNamespacePreserve(nsPtr);
   }
 #if defined(NRE)
-  object->id = Tcl_NRCreateCommand(interp, nameString, NsfObjDispatch, NsfObjDispatch,
+  object->id = Tcl_NRCreateCommand(interp, nameString, 
+# if defined(USE_NRE_PROC)
+				   NULL,
+# else
+				   NsfObjDispatch, 
+# endif
+				   NsfObjDispatch,
 				   object, TclDeletesObject);
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
@@ -13856,7 +13888,13 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
     NSNamespacePreserve(nsPtr);
   }
 #if defined(NRE)
-  object->id = Tcl_NRCreateCommand(interp, nameString, NsfObjDispatch, NsfObjDispatch,
+  object->id = Tcl_NRCreateCommand(interp, nameString, 
+# if defined(USE_NRE_PROC)
+				   NULL,
+# else
+				   NsfObjDispatch, 
+# endif
+				   NsfObjDispatch,
 				   cl, TclDeletesObject);
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
@@ -16106,10 +16144,10 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
     }
   }
 
-  if (((Command *)cmd)->objProc == NsfForwardMethod) {
+  if (Tcl_Command_objProc(cmd) == NsfForwardMethod) {
     return NsfPrintError(interp, "info params: could not obtain parameter definition for forwarder '%s'",
 			 methodName);
-  } else if (((Command *)cmd)->objProc != NsfObjDispatch) {
+  } else if (!CmdIsNsfObject(cmd)) {
     return NsfPrintError(interp, "info params: could not obtain parameter definition for method '%s'",
 			 methodName);
   } else {
@@ -16119,6 +16157,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 
   {
     Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
+
     INCR_REF_COUNT(methodObj);
     NsfObjErrType(interp, "info params", methodObj, "a method name", NULL);
     DECR_REF_COUNT(methodObj);
@@ -16270,7 +16309,7 @@ ListMethod(Tcl_Interp *interp,
       }
     case InfomethodsubcmdSubmethodsIdx:
       {
-	if (procPtr == NsfObjDispatch) {
+	if (CmdIsNsfObject(cmd)) {
 	  NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);
 	  if (subObject) {
 	    return ListDefinedMethods(interp, subObject, NULL, 1 /* per-object */,
@@ -16466,7 +16505,7 @@ ListMethod(Tcl_Interp *interp,
         }
       } else {
 	/* check, to be on the safe side */
-	if (procPtr == NsfObjDispatch) {
+	if (CmdIsNsfObject(cmd)) {
 	  /* the command is an object */
 	  switch (subcmd) {
 	  case InfomethodsubcmdTypeIdx:
@@ -16574,7 +16613,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
    * Return always state isObject, since the cmd might be an ensemble,
    * where we have to search further
    */
-  *isObject = (resolvedProc == NsfObjDispatch);
+  *isObject = CmdIsNsfObject(importedCmd);
 
   if (methodType == NSF_METHODTYPE_ALIAS) {
     if (!(proc == NsfProcAliasMethod || AliasGet(interp, object->cmdName, methodName, withPer_object, 0))) {
@@ -16592,7 +16631,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
       if ((methodType & NSF_METHODTYPE_FORWARDER) == 0) return 0;
     } else if (resolvedProc == NsfSetterMethod) {
       if ((methodType & NSF_METHODTYPE_SETTER) == 0) return 0;
-    } else if (resolvedProc == NsfObjDispatch) {
+    } else if (*isObject) {
       if ((methodType & NSF_METHODTYPE_OBJECT) == 0) return 0;
     } else if (resolvedProc == NsfProcStub) {
       if ((methodType & NSF_METHODTYPE_NSFPROC) == 0) return 0;
@@ -17564,7 +17603,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     newObjProc = NsfObjscopedMethod;
   }
 
-  if (objProc == NsfObjDispatch) {
+  if (CmdIsNsfObject(cmd)) {
     /*
      * When we register an alias for an object, we have to take care to
      * handle cases, where the aliased object is destroyed and the
@@ -18156,7 +18195,7 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 	  proc == NsfForwardMethod ||
 	  proc == NsfObjscopedMethod ||
 	  proc == NsfSetterMethod ||
-	  proc == NsfObjDispatch) {
+	  CmdIsNsfObject(cmd)) {
 	return NsfPrintError(interp, "cannot use -frame object|method in dispatch for command '%s'",
 			     methodName);
       }
@@ -22341,7 +22380,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
            hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
         Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
         if (cmd) {
-	  if (Tcl_Command_objProc(cmd) == NsfObjDispatch) {
+	  if (CmdIsNsfObject(cmd)) {
 	    AliasDeleteObjectReference(interp, cmd);
 	    continue;
 	  }
@@ -22360,16 +22399,10 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
 				      &hSrch2); hPtr2;
            hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
         Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
-        if (cmd) {
-	  if (Tcl_Command_objProc(cmd) == NsfObjDispatch) {
-	    AliasDeleteObjectReference(interp, cmd);
-	    continue;
-	  }
-	  /*fprintf(stderr, "Class %p %s deletes cmd %p %s\n", 
-	    object, ObjectName(object), cmd, Tcl_GetCommandName(interp, cmd));*/
-	  /*Tcl_DeleteCommandFromToken(interp, cmd);
-	    deleted ++;	  */
-        }
+        if (cmd && CmdIsNsfObject(cmd)) {
+	  AliasDeleteObjectReference(interp, cmd);
+	  continue;
+	}
       }
     }
 
