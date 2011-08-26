@@ -4,14 +4,11 @@ namespace eval ::nsf {
   #
   # Symbols reused in the next scripting language
   
-  
-  namespace export next current self
-  
-  # Symbols reused in XOTcl
-  namespace eval ::nsf::method::create {
-    namespace export alias
-  }
-  namespace export configure finalize interp is my relation
+  namespace export \
+      next current self configure finalize interp is my relation
+ 
+  namespace eval ::nsf::object {namespace export dispatch}
+  namespace eval ::nsf::method::create {namespace export alias}
 
   #
   # support for method provide and method require

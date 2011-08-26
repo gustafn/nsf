@@ -3399,6 +3399,8 @@ Test run; exit
   * removed "-local", "-system" and "-intrinsic" from plain dispatch
     (like e.g. "o1 -system method")
   * removed flag "-local" from nsf::object::dispatch
+  * made nsf::my and nsf::object::dispatch available in the nx namespace
+
 
 TODO:
  - fix interp.test for tcl 8.6
@@ -3408,7 +3410,6 @@ TODO:
    * needed fails since method %s.%s is private ?
    * maybe let private imply protected
    * make sure nsf::dispatch works sufficiently similar to plain dispatch
-   * make nsf::my and nsf::object::dispatch available in the nx namespace
    * document private in migration guide tutorial
 
  - nx: 

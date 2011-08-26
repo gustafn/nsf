@@ -3,6 +3,8 @@ package require nsf
 
 namespace eval ::nx {
   namespace eval ::nsf {}; # make pkg indexer happy
+  namespace eval ::nsf::object {}; # make pkg indexer happy
+
   #
   # By setting the variable bootstrap, we can check later, whether we
   # are in bootstrapping mode
@@ -33,7 +35,8 @@ namespace eval ::nx {
   #
   # get frequenly used primitiva from the next scripting framework 
   #
-  namespace import ::nsf::next ::nsf::current ::nsf::self
+  namespace export next current self configure finalize interp is my relation
+  namespace import ::nsf::next ::nsf::current ::nsf::self ::nsf::my ::nsf::object::dispatch
 
   #
   # provide the standard command set for ::nx::Object
