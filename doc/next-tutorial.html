@@ -776,15 +776,15 @@ per-class mixins.</p></div>
 <div class="paragraph"><p>XOTcl was so far released in more than 30 versions. It is described in
 its detail in more than 20 papers and serves as a basis for other
 object systems like TclOO [Donal ???]. The scripting language <em>NX</em> and
-the <em>Next Scripting Framework</em> NSF 2009] extend the basic ideas of
-XOTcl by providing support for <em>language-oriented programming</em>. The
-the Next Scripting Framework supports multiple object systems
-concurrently. Effectively, every object system has different base
-classes for creating objects and classes. Therefore, these object
-systems can have different different interfaces and can follow
-different naming conventions for built-in methods. Currently, the Next
-Scripting Framework is packaged with three object systems: NX, XOTcl
-2.0, and TclCool (the language introduced by TIP#279).</p></div>
+the <em>Next Scripting Framework</em> <a href="#Neumann and Sobernig 2009">[Neumann and Sobernig 2009]</a> extend
+the basic ideas of XOTcl by providing support for <em>language-oriented
+programming</em>. The the Next Scripting Framework supports multiple
+object systems concurrently. Effectively, every object system has
+different base classes for creating objects and classes. Therefore,
+these object systems can have different different interfaces and can
+follow different naming conventions for built-in methods. Currently,
+the Next Scripting Framework is packaged with three object systems:
+NX, XOTcl 2.0, and TclCool (the language introduced by TIP#279).</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
 <img src="languages.png" alt="Languages" width="500" />
@@ -2245,7 +2245,7 @@ are only applicable for objects parameters, the list of object
 parameters is computed dynamically from the class structures, object
 parameters are often used in combination with special setter methods,
 etc.).  Consider the following example, where we define the two
-application classes <tt>Person</tt> and <tt>Student</tt> with a few attributes.</p></div>
+application classes <tt>Person</tt> and <tt>Student</tt> with a few properties.</p></div>
 <div class="paragraph" id="xmp-object-parameters"><div class="title">Listing 24: Object Parameters</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2286,21 +2286,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  26
  27
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-comment'>#
-</span><span class='nx-comment'># Define a class Person with attributes "name"
+</span><span class='nx-comment'># Define a class Person with properties "name"
 </span><span class='nx-comment'># and "birthday"
 </span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Person {
-  :<span class='nx-keyword'>attribute</span> name:required
-  :<span class='nx-keyword'>attribute</span> birthday
+  :<span class='nx-keyword'>property</span> name:required
+  :<span class='nx-keyword'>property</span> birthday
 }
 
 <span class='nx-comment'>#
 </span><span class='nx-comment'># Define a class Student as specialization of Person
-</span><span class='nx-comment'># with and additional attribute
+</span><span class='nx-comment'># with and additional property
 </span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Student -<span class='nx-keyword'>superclass</span> Person {
-  :<span class='nx-keyword'>attribute</span> matnr:required
-  :<span class='nx-keyword'>attribute</span> {oncampus:boolean true}
+  :<span class='nx-keyword'>property</span> matnr:required
+  :<span class='nx-keyword'>property</span> {oncampus:boolean true}
 }
 
 <span class='nx-comment'>#
@@ -2310,12 +2310,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>Person <span class='nx-keyword'>create</span> p1 -name Bob
 Student <span class='nx-keyword'>create</span> s1 -name Susan -matnr 4711
 
-<span class='nx-comment'># Access attributes via setter methods
+<span class='nx-comment'># Access property value via accessor method
 </span><span class='nx-keyword'>puts</span> <span class='nx-string'>"The name of s1 is [s1 name]"</span></pre></td></tr></table></div></div>
-<div class="paragraph"><p>The class <tt>Person</tt> has two attributes <tt>name</tt> and <tt>birthday</tt>, where the
-attribute <tt>name</tt> is required, the attribute <tt>birthday</tt> is not. The
+<div class="paragraph"><p>The class <tt>Person</tt> has two properties <tt>name</tt> and <tt>birthday</tt>, where the
+property <tt>name</tt> is required, the property <tt>birthday</tt> is not. The
 class <tt>Student</tt> is a subclass of <tt>Person</tt> with the additional required
-attribute <tt>matnr</tt> and an optional attribute <tt>oncampus</tt> with the
+property <tt>matnr</tt> and an optional property <tt>oncampus</tt> with the
 default value <tt>true</tt> (see <a href="#xmp-object-parameters">Listing 24</a>). The class diagram below visualizes these
 definitions.</p></div>
 <div class="imageblock" id="img-slots" style="text-align:center;">
@@ -2326,7 +2326,7 @@ definitions.</p></div>
 </div>
 <div class="paragraph"><p></p></div>
 <div class="paragraph"><p>In NX, these definitions imply that instances of the class of <tt>Person</tt>
-have the attributes <tt>name</tt> and <tt>birthday</tt> as <em>non-positional object
+have the properties <tt>name</tt> and <tt>birthday</tt> as <em>non-positional object
 parameters</em>.  Furthermore it implies that instances of <tt>Student</tt> will
 have the object parameters of <tt>Person</tt> augmented with the object
 parameters from <tt>Student</tt> (namely <tt>matnr</tt> and <tt>oncampus</tt>).  Based on
@@ -2338,7 +2338,7 @@ initialized with the default value).</p></div>
 <div class="sect3">
 <h4 id="_object_parameters_for_all_nx_objects">3.2.1. Object Parameters for all NX Objects</h4>
 <div class="paragraph"><p>The object parameters are not limited to the application defined
-attributes, also NX provides some definitions. Since <tt>Person</tt> is a
+properties, also NX provides some definitions. Since <tt>Person</tt> is a
 subclass of <tt>nx::Object</tt> also the object parameters of <tt>nx::Object</tt>
 are inherited. In the introductory stack example, we used <tt>-mixin</tt>
 applied to an object to denote per-object mixins (see
@@ -2431,11 +2431,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <table class='nx'><tr><td class='nx-linenr'><pre>  1
   2
   3
-  4
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Object</span> parameter <span class='nx-keyword'>for</span> <span class='nx-keyword'>Class</span> Student:
    -<span class='nx-keyword'>mixin</span>:<span class='nx-keyword'>alias</span> -<span class='nx-keyword'>filter</span>:<span class='nx-keyword'>alias</span> ...
-   {-<span class='nx-keyword'>superclass</span>:<span class='nx-keyword'>alias</span> ::<span class='nx-keyword'>nx::Object</span>} ...
-   -attributes:<span class='nx-keyword'>alias</span> _:initcmd,optional</pre></td></tr></table></div></div>
+   {-<span class='nx-keyword'>superclass</span>:<span class='nx-keyword'>alias</span> ::<span class='nx-keyword'>nx::Object</span>} ...</pre></td></tr></table></div></div>
 </div>
 <div class="sect3">
 <h4 id="_additional_parameter_types_for_object_parameters">3.2.3. Additional Parameter Types for Object Parameters</h4>
@@ -2645,6 +2643,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="ulist bibliography"><div class="title">References</div><ul>
 <li>
 <p>
+[<a id="Neumann and Sobernig 2009"></a> Gustaf Neumann, Stefan Sobernig: XOTcl 2.0 - A Ten-Year Retrospective and Outlook, in: Proceedings of the Sixteenth Annual Tcl/Tk Conference, Portland, Oregon, October, 2009
+</p>
+</li>
+<li>
+<p>
 [<a id="Zdun"></a>] U. Zdun, M. Strembeck, G. Neumann:
   Object-Based and Class-Based Composition of Transitive Mixins,
   Information and Software Technology, 49(8) 2007 .
@@ -2725,7 +2728,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-08-08 17:35:56 CEST
+Last updated 2011-08-26 12:10:00 CEST
 </div>
 </div>
 </body>

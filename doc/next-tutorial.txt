@@ -62,15 +62,15 @@ per-class mixins.
 XOTcl was so far released in more than 30 versions. It is described in
 its detail in more than 20 papers and serves as a basis for other
 object systems like TclOO [Donal ???]. The scripting language _NX_ and
-the _Next Scripting Framework_ NSF 2009] extend the basic ideas of
-XOTcl by providing support for _language-oriented programming_. The
-the Next Scripting Framework supports multiple object systems
-concurrently. Effectively, every object system has different base
-classes for creating objects and classes. Therefore, these object
-systems can have different different interfaces and can follow
-different naming conventions for built-in methods. Currently, the Next
-Scripting Framework is packaged with three object systems: NX, XOTcl
-2.0, and TclCool (the language introduced by TIP#279).
+the _Next Scripting Framework_ <<Neumann and Sobernig 2009>> extend
+the basic ideas of XOTcl by providing support for _language-oriented
+programming_. The the Next Scripting Framework supports multiple
+object systems concurrently. Effectively, every object system has
+different base classes for creating objects and classes. Therefore,
+these object systems can have different different interfaces and can
+follow different naming conventions for built-in methods. Currently,
+the Next Scripting Framework is packaged with three object systems:
+NX, XOTcl 2.0, and TclCool (the language introduced by TIP#279).
 
 image::languages.png[align="center",width=500,title="Language History of the Next Scripting Language",alt="Languages"]
 {set:img-languages:Figure {figure-number}}
@@ -1372,6 +1372,8 @@ The Next Scripting Framework allows to add, query, delete and list unknown handl
 
 [bibliography]
 .References
+
+- [[[Neumann and Sobernig 2009]] Gustaf Neumann, Stefan Sobernig: XOTcl 2.0 - A Ten-Year Retrospective and Outlook, in: Proceedings of the Sixteenth Annual Tcl/Tk Conference, Portland, Oregon, October, 2009
 
 - [[[Zdun, Strembeck, Neumann 2007]]] U. Zdun, M. Strembeck, G. Neumann:
   Object-Based and Class-Based Composition of Transitive Mixins,
