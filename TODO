@@ -3405,6 +3405,10 @@ Test run; exit
   * factored out CmdIsNsfObject() for NRE handling with slave interpreters.
   * added flag ZSE_NRE_PROC for using nreProc instead of objProc
 
+- nsf.c
+  * implemented NsfObjDispatchNRE and NsfObjDispatch
+  * this fixed all issues of tcl8.6 and interp.test (xocomm still hangs in 8.6)
+
 TODO:
  - fix interp.test for tcl 8.6
  - fix xocomm.test for tcl 8.6

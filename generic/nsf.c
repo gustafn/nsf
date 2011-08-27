@@ -3939,15 +3939,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
 static int
 CmdIsNsfObject(Tcl_Command cmd) {
   assert(cmd);
-#if defined(NRE)
-# if defined(USE_NRE_PROC)
-  return Tcl_Command_nreProc(cmd) == NsfObjDispatch;
-# else
   return Tcl_Command_objProc(cmd) == NsfObjDispatch;
-# endif
-#else
-  return Tcl_Command_objProc(cmd) == NsfObjDispatch;
-#endif
 }
 
 
@@ -10042,8 +10034,21 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
  *
  *----------------------------------------------------------------------
  */
+#if defined(NRE)
+Tcl_ObjCmdProc NsfObjDispatchNRE;
+extern int 
+NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  return Tcl_NRCallObjProc(interp, NsfObjDispatchNRE, clientData, objc, objv);
+}
+extern int
+NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+
+#else
+
 extern int
 NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+
+#endif
   int result;
 #ifdef STACK_TRACE
   NsfStackDump(interp);
@@ -13459,12 +13464,8 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   }
 #if defined(NRE)
   object->id = Tcl_NRCreateCommand(interp, nameString, 
-# if defined(USE_NRE_PROC)
-				   NULL,
-# else
 				   NsfObjDispatch, 
-# endif
-				   NsfObjDispatch,
+				   NsfObjDispatchNRE,
 				   object, TclDeletesObject);
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
@@ -13889,12 +13890,8 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   }
 #if defined(NRE)
   object->id = Tcl_NRCreateCommand(interp, nameString, 
-# if defined(USE_NRE_PROC)
-				   NULL,
-# else
 				   NsfObjDispatch, 
-# endif
-				   NsfObjDispatch,
+				   NsfObjDispatchNRE,
 				   cl, TclDeletesObject);
 #else
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
