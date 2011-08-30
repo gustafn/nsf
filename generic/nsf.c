@@ -16196,7 +16196,9 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   if (withProtection) {
     Tcl_ListObjAppendElement(interp, listObj,
-			     Tcl_Command_flags(cmd) & NSF_CMD_CALL_PROTECTED_METHOD
+			     Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD
+			     ? Tcl_NewStringObj("private", 7) 
+			     : Tcl_Command_flags(cmd) & NSF_CMD_CALL_PROTECTED_METHOD
 			     ? Tcl_NewStringObj("protected", 9)
 			     : Tcl_NewStringObj("public", 6));
   }
@@ -17913,18 +17915,18 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   case MethodpropertyCall_protectedIdx:  /* fall through */
   case MethodpropertyRedefine_protectedIdx:  /* fall through */
     {
-      int clearFlag = 0;
+      int impliedSetFlag = 0, impliedClearFlag = 0;
 
       switch (methodproperty) {
       case MethodpropertyClass_onlyIdx: 
 	flag = NSF_CMD_CLASS_ONLY_METHOD; 
 	break;
       case MethodpropertyCall_privateIdx:
-	clearFlag = NSF_CMD_CALL_PROTECTED_METHOD;
 	flag = NSF_CMD_CALL_PRIVATE_METHOD; 
+	impliedSetFlag = NSF_CMD_CALL_PROTECTED_METHOD; 
 	break;
       case MethodpropertyCall_protectedIdx:  
-	clearFlag = NSF_CMD_CALL_PRIVATE_METHOD;
+	impliedClearFlag = NSF_CMD_CALL_PRIVATE_METHOD;
 	flag = NSF_CMD_CALL_PROTECTED_METHOD; 
 	break;
       case MethodpropertyRedefine_protectedIdx: 
@@ -17941,12 +17943,21 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 	  return result;
 	}
 	if (bool) {
-	  if (clearFlag) {
-	    Tcl_Command_flags(cmd) &= ~clearFlag;
-	  }
+	  /*
+	   * set flag
+	   */
 	  Tcl_Command_flags(cmd) |= flag;
+	  if (impliedSetFlag) {
+	    Tcl_Command_flags(cmd) |= impliedSetFlag;
+	  }
 	} else {
+	  /*
+	   * clear flag
+	   */
 	  Tcl_Command_flags(cmd) &= ~flag;
+	  if (impliedClearFlag) {
+	    Tcl_Command_flags(cmd) &= ~impliedClearFlag;
+	  }
 	}
       }
       Tcl_SetIntObj(Tcl_GetObjResult(interp), (Tcl_Command_flags(cmd) & flag) != 0);

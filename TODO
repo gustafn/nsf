@@ -3409,13 +3409,19 @@ Test run; exit
   * implemented NsfObjDispatchNRE and NsfObjDispatch
   * this fixed all issues of tcl8.6 and interp.test (xocomm still hangs in 8.6)
 
+- nsf.c:
+  * "private" implies now "protected". This means, setting "private"
+    sets as well "protected", unsetting "protected" unsets "private"
+  * make sure the "... method definition" of private methods is returned as "private"
+  * extended regression test
+
+
 TODO:
  - fix interp.test for tcl 8.6
  - fix xocomm.test for tcl 8.6
 
  - private: 
    * needed fails since method %s.%s is private ?
-   * maybe let private imply protected
    * make sure nsf::dispatch works sufficiently similar to plain dispatch
    * document private in migration guide tutorial
 

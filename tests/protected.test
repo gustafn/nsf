@@ -600,3 +600,38 @@ nx::Test case class-my-local+next {
   ? {s1 foo2 4 5} 9
   ? {s1 bar 4 5} 20
 }
+
+#
+# Test setting / clearing private and protected flags
+#
+
+nx::Test case call-protected-flags {
+  Class create C
+
+  C protected method foo {} {return foo}
+  ? {::nsf::method::property C foo call-protected} 1
+  ? {::nsf::method::property C foo call-private} 0
+  ? {C info method definition foo} "::C protected method foo {} {return foo}"
+
+  C public method foo {} {return foo}
+  ? {::nsf::method::property C foo call-protected} 0
+  ? {::nsf::method::property C foo call-private} 0
+  ? {C info method definition foo} "::C public method foo {} {return foo}"
+
+  C private method foo {} {return foo}
+  ? {::nsf::method::property C foo call-protected} 1
+  ? {::nsf::method::property C foo call-private} 1
+  ? {C info method definition foo} "::C private method foo {} {return foo}"
+
+  ? {::nsf::method::property C foo call-private false} 0
+  ? {::nsf::method::property C foo call-protected} 1
+  ? {::nsf::method::property C foo call-private} 0
+
+  ? {::nsf::method::property C foo call-private true} 1
+  ? {::nsf::method::property C foo call-protected} 1
+  ? {::nsf::method::property C foo call-private} 1
+
+  ? {::nsf::method::property C foo call-protected false} 0
+  ? {::nsf::method::property C foo call-protected} 0
+  ? {::nsf::method::property C foo call-private} 0
+}
