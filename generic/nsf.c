@@ -2069,9 +2069,30 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
  */
 
 static int
-CmdIsProc(Tcl_Command cmd) {
+NSF_INLINE CmdIsProc(Tcl_Command cmd) {
   /* In 8.6: TclIsProc((Command *)cmd) is not equiv to the definition below */
+  assert(cmd);
   return (Tcl_Command_objProc(cmd) == TclObjInterpProc);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * CmdIsNsfObject --
+ *
+ *    Check whether the provided cmd refers to an NsfObject or Class.
+ *
+ * Results:
+ *    Boolean
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+NSF_INLINE static int
+CmdIsNsfObject(Tcl_Command cmd) {
+  assert(cmd);
+  return Tcl_Command_objProc(cmd) == NsfObjDispatch;
 }
 
 /*
@@ -2163,34 +2184,40 @@ FindProcMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
  *----------------------------------------------------------------------
  */
 static NsfClass *
+SearchPLMethod0(register NsfClasses *pl, CONST char *methodName, 
+		Tcl_Command *cmdPtr) {
+
+  /* Search the precedence list (class hierarchy) */
+  for (; pl;  pl = pl->nextPtr) {
+    register Tcl_HashEntry *entryPtr =
+      Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
+    if (entryPtr != NULL) {
+      *cmdPtr = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+      return pl->cl;
+    }
+  }
+
+  return NULL;
+}
+
+static NsfClass *
 SearchPLMethod(register NsfClasses *pl, CONST char *methodName, 
 	       Tcl_Command *cmdPtr, int flags) {
 
   /* Search the precedence list (class hierarchy) */
-  if (likely(flags == 0)) {
-    for (; pl;  pl = pl->nextPtr) {
-      register Tcl_HashEntry *entryPtr =
-	Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
-      if (entryPtr != NULL) {
-	*cmdPtr = (Tcl_Command) Tcl_GetHashValue(entryPtr);
-	return pl->cl;
+  for (; pl;  pl = pl->nextPtr) {
+    register Tcl_HashEntry *entryPtr =
+      Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
+    if (entryPtr != NULL) {
+      Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+      
+      if (Tcl_Command_flags(cmd) & flags) {
+	/*fprintf(stderr, "skipped cmd %p flags %.6x & %.6x => %.6x\n", 
+	  cmd, flags, Tcl_Command_flags(cmd), Tcl_Command_flags(cmd) & flags);*/
+	continue;
       }
-    }
-  } else {
-    for (; pl;  pl = pl->nextPtr) {
-      register Tcl_HashEntry *entryPtr =
-	Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
-      if (entryPtr != NULL) {
-	Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
-	
-	if (Tcl_Command_flags(cmd) & flags) {
-	  /*fprintf(stderr, "skipped cmd %p flags %.6x & %.6x => %.6x\n", 
-	    cmd, flags, Tcl_Command_flags(cmd), Tcl_Command_flags(cmd) & flags);*/
-	  continue;
-	}
-	*cmdPtr = cmd;
-	return pl->cl;
-      }
+      *cmdPtr = cmd;
+      return pl->cl;
     }
   }
   return NULL;
@@ -2217,7 +2244,7 @@ SearchPLMethod(register NsfClasses *pl, CONST char *methodName,
 static NsfClass *
 SearchCMethod(/*@notnull@*/ NsfClass *cl, CONST char *methodName, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod(ComputeOrder(cl, cl->order, Super), methodName, cmdPtr, 0);
+  return SearchPLMethod0(ComputeOrder(cl, cl->order, Super), methodName, cmdPtr);
 }
 
 /*
@@ -2241,7 +2268,7 @@ static NsfClass *
 SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 		    Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod(ComputeOrder(cl, cl->order, Super), ObjStr(methodObj), cmdPtr, 0);
+  return SearchPLMethod0(ComputeOrder(cl, cl->order, Super), ObjStr(methodObj), cmdPtr);
 }
 
 /*
@@ -3923,27 +3950,6 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
 }
 
 /*
- *----------------------------------------------------------------------
- * CmdIsNsfObject --
- *
- *    Check whether the provided cmd refers to an NsfObject or Class.
- *
- * Results:
- *    Boolean
- *
- * Side effects:
- *    None.
- *
- *----------------------------------------------------------------------
- */
-static int
-CmdIsNsfObject(Tcl_Command cmd) {
-  assert(cmd);
-  return Tcl_Command_objProc(cmd) == NsfObjDispatch;
-}
-
-
-/*
  * delete all vars & procs in a namespace
  */
 static void
@@ -4384,8 +4390,8 @@ GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr) {
    * counter > 0, and b) the commands originating namespace must be the global
    * one. See also Tcl_HideCommand() and Tcl_ExposeCommand().
    */
-  if (Tcl_Command_cmdEpoch(cmdPtr) == 0 || 
-      ((Command *)cmdPtr)->nsPtr != iPtr->globalNsPtr) {
+  if (likely(Tcl_Command_cmdEpoch(cmdPtr) == 0 || 
+	     ((Command *)cmdPtr)->nsPtr != iPtr->globalNsPtr)) {
     return NULL;
   }
 
