@@ -9678,25 +9678,28 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   if (cmd && (flags & NSF_CM_IGNORE_PERMISSIONS) == 0) {
     int cmdFlags = Tcl_Command_flags(cmd);
 
-    /*
-     * Private methods can be called when "-local" was used.
-     *
-     * Protected methods can be called, when calling object == called object.
-     */
-
+#if !defined(NDEBUG)
     if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) 
 	&& ((flags & NSF_CM_LOCAL_METHOD) == 0)
 	) {
-      /* reset cmd, treat it as unknown */
-      //NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
+      /*
+       * Private methods can be only called with the "-local" flag. All cases
+       * handling private methods should be covered above (e.g. by setting
+       * NSF_CM_IGNORE_PERMISSIONS, or by filtering private methods in method
+       * search. So, this branch should never by executed.
+       */
 
-      NsfLog(interp, NSF_LOG_WARN, "'%s %s' fails since method %s.%s is private",
-	     ObjectName(object), methodName,
-	     cl ? ClassName(cl) : ObjectName(object), methodName);
+      assert(0);
       cmd = NULL;
 
-    } else if ((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD)) {
+    } else 
+#endif
+    if ((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD)) {
       NsfObject *lastSelf = GetSelfObj(interp);
+
+      /*
+       * Protected methods can be called, when calling object == called object.
+       */
       
       if (unlikely(object != lastSelf)) {
 	NsfLog(interp, NSF_LOG_WARN, "'%s %s' fails since method %s.%s is protected",
@@ -9718,9 +9721,12 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
     if ((cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER)) {
-      /* run filters not NRE enabled */
+      /* run filters is not NRE enabled */
       cscPtr->flags |= NSF_CSC_IMMEDIATE;
-      /* needed for invoking UNKNOWN from ProcMethodDispatchFinalize() */
+      /*
+       * Setting cscPtr->objc and cscPtr->objv is needed for invoking UNKNOWN
+       * from ProcMethodDispatchFinalize()
+       */
       cscPtr->objc = objc-shift;
       cscPtr->objv = objv+shift;
     }

@@ -3415,13 +3415,14 @@ Test run; exit
   * make sure the "... method definition" of private methods is returned as "private"
   * extended regression test
 
+- nsf.c:
+  * removed warning about resetting cmd to 0 for private method invocations.
 
 TODO:
  - fix interp.test for tcl 8.6
  - fix xocomm.test for tcl 8.6
 
  - private: 
-   * needed fails since method %s.%s is private ?
    * make sure nsf::dispatch works sufficiently similar to plain dispatch
    * document private in migration guide tutorial
 
