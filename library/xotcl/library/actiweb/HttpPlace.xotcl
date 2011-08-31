@@ -26,7 +26,7 @@ namespace eval ::xotcl::actiweb::httpPlace {
 	{root $::env(HOME)/public_html}
 	{port 8086}
 	{redirect [list]}
-	{logdir $::xotcl::logdir} 
+	{logdir "[set ::xotcl::logdir]"} 
 	{host localhost}
 	{allowImmigrationHosts ""}
 	persistenceFile persistenceDir bccFile bccDir dbPackage
