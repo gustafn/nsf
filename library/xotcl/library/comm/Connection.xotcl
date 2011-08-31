@@ -156,14 +156,21 @@ namespace eval ::xotcl::comm::connection {
 	return $n
     }
     Connection instproc read {} {
-	#my showCall
-	my instvar socket
-	if {[catch {set result [::read $socket [::fconfigure $socket -buffersize]]} msg]} {
+      # my showCall
+      my instvar socket
+      #
+      # Make sure that the platform file descriptor underneath Tcl's
+      # channel abstraction (e.g., the unix socket) is, in fact, set to
+      # its non-blocking mode. Currently, there is a regression in Tcl
+      # 8.6b2 for channels created using [socket -async]. See Tcl bug
+      # tracker, artifact #3401422.
+      #
+      ::fconfigure $socket -blocking 0
+      if {[catch {set result [::read $socket [::fconfigure $socket -buffersize]]} msg]} {
 	    my set error $msg 
 	    return ""
 	}
-	#my showMsg Done
-	return $result
+      return $result
     }
     Connection instproc readSize {length} {
 	if {[catch {set result [::read [my socket] $length]} msg]} {
