@@ -3418,9 +3418,11 @@ Test run; exit
 - nsf.c:
   * removed warning about resetting cmd to 0 for private method invocations.
 
+- fix interp.test for tcl 8.6
+- fix xocomm.test for tcl 8.6
+- fix mem_count on xocomm.test (currently 26 / 26)
+
 TODO:
- - fix interp.test for tcl 8.6
- - fix xocomm.test for tcl 8.6
 
  - private: 
    * make sure nsf::dispatch works sufficiently similar to plain dispatch
@@ -3484,7 +3486,7 @@ nx::Test case ensemble-next-with-colon-prefix {
       puts stderr ====EXIT
       exit
    =======================
- - fix mem_count on xocomm.test (currently 26 / 26)
+
 
  - interface of "variable" and "attribute":
    * add switch -array for "variable"? (Just setting is trivial,
