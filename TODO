@@ -3418,9 +3418,11 @@ Test run; exit
 - nsf.c:
   * removed warning about resetting cmd to 0 for private method invocations.
 
-- fix interp.test for tcl 8.6
-- fix xocomm.test for tcl 8.6
-- fix mem_count on xocomm.test (currently 26 / 26)
+- fixed interp.test for tcl 8.6
+- fixed xocomm.test for tcl 8.6
+- fixed mem_count on xocomm.test (was 26 / 26)
+
+- nsf.c: small performance improvements
 
 TODO:
 

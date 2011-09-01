@@ -1892,23 +1892,28 @@ GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name
 static NsfObject *
 GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 	     CONST char **methodName1, int *fromClassNS) {
-  NsfObject *regObject = NULL;
+  NsfObject *regObject;
+  CONST char *procName;
+  size_t objNameLength;
 
-  if (cmd && *methodName == ':') {
-    CONST char *procName = Tcl_GetCommandName(interp, cmd);
-    size_t objNameLength = strlen(methodName) - strlen(procName) - 2;
+  assert(methodName && *methodName == ':');
+  assert(cmd);
 
-    if (objNameLength > 0) {
-      Tcl_DString ds, *dsPtr = &ds;
-      /* obtain parent name */
-      Tcl_DStringInit(dsPtr);
-      Tcl_DStringAppend(dsPtr, methodName, objNameLength);
-      regObject = GetObjectFromNsName(interp, Tcl_DStringValue(dsPtr), fromClassNS);
-      if (regObject) {
-	*methodName1 = procName;
-      }
-      Tcl_DStringFree(dsPtr);
+  procName = Tcl_GetCommandName(interp, cmd);
+  objNameLength = strlen(methodName) - strlen(procName) - 2;
+
+  if (objNameLength > 0) {
+    Tcl_DString ds, *dsPtr = &ds;
+    /* obtain parent name */
+    Tcl_DStringInit(dsPtr);
+    Tcl_DStringAppend(dsPtr, methodName, objNameLength);
+    regObject = GetObjectFromNsName(interp, Tcl_DStringValue(dsPtr), fromClassNS);
+    if (regObject) {
+      *methodName1 = procName;
     }
+      Tcl_DStringFree(dsPtr);
+  } else {
+    regObject = NULL;
   }
 
   /*fprintf(stderr, "GetRegObject cmd %p methodName '%s' => %p\n", cmd, methodName, regObject);*/
@@ -1947,6 +1952,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
     Tcl_Namespace *parentNsPtr;
     NsfObject *ensembleObject;
     Tcl_Obj *methodHandleObj;
+    CONST char *firstElementString;
     int oc, i;
     Tcl_Obj **ov;
 
@@ -1968,7 +1974,12 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
      * the regObject on the first element of the list. If we can't,
      * then the current object is the regObject.
      */
-    *regObject = GetRegObject(interp, cmd, ObjStr(ov[0]), methodName1, fromClassNS);
+    firstElementString = ObjStr(ov[0]);
+    if (*firstElementString == ':') {
+      *regObject = GetRegObject(interp, cmd, firstElementString, methodName1, fromClassNS);
+    } else {
+      *regObject = NULL;
+    }
 
     /*fprintf(stderr, "... regObject object '%s' reg %p, fromClassNS %d\n",
       ObjectName(referencedObject), *regObject, *fromClassNS);*/
@@ -2033,15 +2044,18 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 
   } else if (*methodName == ':') {
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
-    referencedObject = GetRegObject(interp, cmd, methodName, methodName1, fromClassNS);
-    *regObject = referencedObject;
-    *defObject = referencedObject;
-    *methodName1 = Tcl_GetCommandName(interp, cmd);
-    if (referencedObject == NULL) {
+    if (likely(cmd != NULL)) {
+      referencedObject = GetRegObject(interp, cmd, methodName, methodName1, fromClassNS);
+      *regObject = referencedObject;
+      *defObject = referencedObject;
+      *methodName1 = Tcl_GetCommandName(interp, cmd);
+    } else {
       /*
        * The cmd was not registered on an object or class, but we
        * still report back the cmd (might be e.g. a primitive cmd).
        */
+      *regObject = NULL;
+      *defObject = NULL;
     }
   } else {
     *methodName1 = methodName;
@@ -15419,9 +15433,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
       }
     }
   } else {
-    CONST char *valueString = ObjStr(objPtr);
-
-    if (pPtr->flags & NSF_ARG_ALLOW_EMPTY && *valueString == '\0') {
+    if (pPtr->flags & NSF_ARG_ALLOW_EMPTY && *(ObjStr(objPtr)) == '\0') {
       result = Nsf_ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
     } else {
       result = (*pPtr->converter)(interp, objPtr, pPtr, clientData, outObjPtr);
@@ -15442,7 +15454,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
     }
   }
 
-  if (result == TCL_CONTINUE) {
+  if (unlikely(result == TCL_CONTINUE)) {
     *flags |= NSF_ARG_WARN;
     result = TCL_OK;
   }
@@ -15657,7 +15669,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
        * We expect now a non-positional (named) parameter, starting
        * with a "-"; such arguments can be given in an arbitrary
        * order.  Therefore we iterate over the actual argument list
-       * unti we find a matching flag.
+       * until we find a matching flag.
        */
       for (p = o; p < objc; p++) {
         argument = ObjStr(objv[p]);
@@ -15899,7 +15911,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
    * Is the last argument a vararg?
    */
   pPtr--;
-  if (pPtr->converter == ConvertToNothing) {
+  if (unlikely(pPtr->converter == ConvertToNothing)) {
     pcPtr->varArgs = 1;
     /*fprintf(stderr, "last arg of proc '%s' is varargs\n", ObjStr(procNameObj));*/
   }
