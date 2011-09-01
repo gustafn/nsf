@@ -117,7 +117,6 @@ cmd "method::setter" NsfMethodSetterCmd {
 #
 cmd "object::dispatch" NsfObjectDispatchCmd {
   {-argName "object"     -required 1 -type object}
-  {-argName "-frame"     -required 0 -type "method|object|default" -default "default"}
   {-argName "-intrinsic" -required 0 -nrargs 0}
   {-argName "-system"    -required 0 -nrargs 0}
   {-argName "command"    -required 1 -type tclobj}

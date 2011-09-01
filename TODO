@@ -3428,7 +3428,6 @@ Test run; exit
 
 TODO:
  - private: 
-   * make sure nsf::dispatch works sufficiently similar to plain dispatch
    * document private in migration guide tutorial
 
  - nx: 
