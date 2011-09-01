@@ -76,7 +76,7 @@ Test case parametercheck {
   ? {c1 info has type C1} {expected class but got "C1" for parameter "class"}
 
   ? {c1 ::nsf::methods::object::info::hastype C} 1
-  ? {::nsf::object::dispatch c1 ::nsf::methods::object::info::hastype C} 1
+  ? {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C} 1
 
   ? {::nsf::is object o1} 1
   ? {::nsf::is object o100} 0
@@ -1342,9 +1342,9 @@ Test parameter count 100
 
 Test case checktype {
   nx::Object create o {
-    :public method f01 {} {::nsf::object::dispatch o ::nsf::methods::object::info::hastype ::nx::Object}
-    :public method f02 {} {::nsf::object::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
-    :public method f03 {} {::nsf::object::dispatch o ::nsf::methods::object::info::hastype       Object}
+    :public method f01 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype ::nx::Object}
+    :public method f02 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
+    :public method f03 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype       Object}
 
     :public method f11 {} {::nsf::is object,type=::nx::Object o}
     :public method f12 {} {::nsf::is object,type=nx::Object o}
@@ -1366,18 +1366,18 @@ Test case checktype {
 namespace eval foo {
   nx::Class create C {
     :create c1
-    :public method f21 {} {::nsf::object::dispatch c1 ::nsf::methods::object::info::hastype Object}
-    :public method f22 {} {::nsf::object::dispatch c1 ::nsf::methods::object::info::hastype C}
+    :public method f21 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype Object}
+    :public method f22 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
     :public method f31 {} {::nsf::is object,type=Object c1}
     :public method f32 {} {::nsf::is object,type=C c1}
   }
   
   nx::Object create o {
-    :public method f01 {} {::nsf::object::dispatch c1 ::nsf::methods::object::info::hastype ::nx::Object}
-    :public method f02 {} {::nsf::object::dispatch c1 ::nsf::methods::object::info::hastype   nx::Object}
-    :public method f03 {} {::nsf::object::dispatch c1 ::nsf::methods::object::info::hastype       Object}
-    :public method f04 {} {::nsf::object::dispatch c1 ::nsf::methods::object::info::hastype foo::C}
-    :public method f05 {} {::nsf::object::dispatch c1 ::nsf::methods::object::info::hastype C}
+    :public method f01 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype ::nx::Object}
+    :public method f02 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype   nx::Object}
+    :public method f03 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype       Object}
+    :public method f04 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype foo::C}
+    :public method f05 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
 
     :public method f11 {} {::nsf::is object,type=::nx::Object c1}
     :public method f12 {} {::nsf::is object,type=nx::Object c1}

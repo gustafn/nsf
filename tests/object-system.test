@@ -159,20 +159,20 @@ o method foo {} {return goo}
 o method bar {x} {return goo-$x}
 
 # dispatch without colon names
-::nsf::object::dispatch o eval set :x 1
+::nsf::dispatch o eval set :x 1
 ? {o info vars} x "simple dispatch has set variable x"
 ? {::nx::var set o x} 1 "simple dispatch has set variable x to 1"
-? {::nsf::object::dispatch o foo} "goo" "simple dispatch with one arg works"
-? {::nsf::object::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
+? {::nsf::dispatch o foo} "goo" "simple dispatch with one arg works"
+? {::nsf::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
 o destroy
 
 # dispatch with colon names
 Object create o {set :x 1}
-::nsf::object::dispatch ::o ::incr x
+::nsf::dispatch ::o ::incr x
 ? {o eval {set :x}} 1 "cmd dispatch without -frame object did not modify the instance variable"
-::nsf::method::dispatch ::o -frame object ::incr x
+::nsf::directdispatch ::o -frame object ::incr x
 ? {o eval {set :x}} 2 "cmd dispatch -frame object modifies the instance variable"
-? {catch {::nsf::object::dispatch ::o -frame object ::xxx x}} 1 "cmd dispatch with unknown command"
+? {catch {::nsf::dispatch ::o -frame object ::xxx x}} 1 "cmd dispatch with unknown command"
 o destroy
 
 Object create o {
@@ -183,9 +183,9 @@ Object create o {
     return $results
   }
 }
-::nsf::method::dispatch o ::eval {set x1 1; set :y1 1}
-::nsf::method::dispatch o -frame method ::eval {set x2 1; set :y2 1}
-::nsf::method::dispatch o -frame object ::eval {set x3 1; set :y3 1}
+::nsf::directdispatch o ::eval {set x1 1; set :y1 1}
+::nsf::directdispatch o -frame method ::eval {set x2 1; set :y2 1}
+::nsf::directdispatch o -frame object ::eval {set x3 1; set :y3 1}
 ? {o foo} "x1 0 y1 0 x2 0 y2 1 x3 1 y3 1"
 o destroy
 

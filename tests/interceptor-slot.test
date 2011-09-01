@@ -225,10 +225,10 @@ nx::Test case intrinsic+method-handles {
   ? {c1 [A info method origin foo]} "A "
 
   # we expect same results via dispatch with fully qualified names
-  ? {nsf::object::dispatch c1 foo} "C B A "
-  ? {nsf::object::dispatch c1 [C info method origin foo]} "C B A "
-  ? {nsf::object::dispatch c1 [B info method origin foo]} "B A "
-  ? {nsf::object::dispatch c1 [A info method origin foo]} "A "
+  ? {nsf::dispatch c1 foo} "C B A "
+  ? {nsf::dispatch c1 [C info method origin foo]} "C B A "
+  ? {nsf::dispatch c1 [B info method origin foo]} "B A "
+  ? {nsf::dispatch c1 [A info method origin foo]} "A "
 
   # 
   # check, whether the context of "my -local" is correct
@@ -315,7 +315,7 @@ nx::Test case mixins+method-handles+intrinsic {
   }
   X create c1
   ? {c1 foo} "C B A X "
-  ? {nsf::object::dispatch c1 -intrinsic foo} "X "
+  ? {nsf::dispatch c1 -intrinsic foo} "X "
 
   
   #
@@ -327,7 +327,7 @@ nx::Test case mixins+method-handles+intrinsic {
 
   Z create c1 -mixin {C B A}
   ? {c1 foo} "C B A Z Y "
-  ? {nsf::object::dispatch c1 -intrinsic foo} "Z Y "
+  ? {nsf::dispatch c1 -intrinsic foo} "Z Y "
 
   # 
   # check, whether the context of "my -intrinsic" is correct
@@ -347,13 +347,13 @@ nx::Test case mixins+method-handles+intrinsic {
   ? {c1 [Y info method origin bar]} "Z Y "
 
   # 
-  # check, whether the context of "nsf::object::dispatch [self] -intrinsic" is correct
+  # check, whether the context of "nsf::dispatch [self] -intrinsic" is correct
   #
-  A public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
-  B public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
-  C public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
-  Y public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
-  Z public method bar {} {nsf::object::dispatch [self] -intrinsic foo}
+  A public method bar {} {nsf::dispatch [self] -intrinsic foo}
+  B public method bar {} {nsf::dispatch [self] -intrinsic foo}
+  C public method bar {} {nsf::dispatch [self] -intrinsic foo}
+  Y public method bar {} {nsf::dispatch [self] -intrinsic foo}
+  Z public method bar {} {nsf::dispatch [self] -intrinsic foo}
 
   ? {c1 bar} "Z Y "
   ? {c1 [C info method origin bar]} "Z Y "

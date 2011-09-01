@@ -18166,7 +18166,7 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
 
 /* TODO: move me */
 /*
-cmd "method::dispatch" NsfMethodDispatchCmd {
+cmd "directdispatch" NsfDirectDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "command" -required 1 -type tclobj}
@@ -18174,7 +18174,7 @@ cmd "method::dispatch" NsfMethodDispatchCmd {
 }
 */
 static int
-NsfMethodDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, 
+NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, 
 		     Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   CONST char *methodName = ObjStr(commandObj);
@@ -18275,7 +18275,7 @@ NsfMethodDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
 
 
 /*
-cmd "object::dispatch" NsfObjectDispatchCmd {
+cmd "dispatch" NsfDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-intrinsic" -required 0 -nrargs 0}
   {-argName "-system" -required 0 -nrargs 0}
@@ -18284,7 +18284,7 @@ cmd "object::dispatch" NsfObjectDispatchCmd {
 }
 */
 static int
-NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, 
+NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, 
 		     int withIntrinsic, int withSystem,
 		     Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS|NSF_CM_NO_SHIFT;

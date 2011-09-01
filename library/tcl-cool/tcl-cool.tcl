@@ -113,7 +113,7 @@ namespace eval tcl-cool {
   # is created. First the object is allocated, then the constructor is called.
   #
   class method create {name args} {
-    set obj [::nsf::object::dispatch [self] ::nsf::methods::class::alloc $name]
+    set obj [::nsf::dispatch [self] ::nsf::methods::class::alloc $name]
     $obj init {*}$args
     return $obj
   }

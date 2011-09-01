@@ -1101,7 +1101,7 @@ set ::nsf::includes {
   ::nsf::tmpdir
   ::nsf::assertion
   ::nsf::objectsystem::create
-  ::nsf::object::dispatch
+  ::nsf::dispatch
   ::nsf::var::exists
   ::nsf::exithandler
   ::nsf::forward

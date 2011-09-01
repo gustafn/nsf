@@ -237,6 +237,8 @@ static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDebugCompileEpochStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -245,7 +247,6 @@ static int NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int 
 static int NsfMethodAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodDeleteCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMethodDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodRegisteredCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -254,7 +255,6 @@ static int NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 static int NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfObjectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectQualifyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -334,6 +334,8 @@ static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *val
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
 static int NsfDebugCompileEpoch(Tcl_Interp *interp);
 static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp);
+static int NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrinsic, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars);
 static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *class);
@@ -342,7 +344,6 @@ static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_
 static int NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int assertionsubcmd, Tcl_Obj *arg);
 static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName);
-static int NsfMethodDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjframe, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
 static int NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *handle);
@@ -351,7 +352,6 @@ static int NsfMyCmd(Tcl_Interp *interp, int withIntrinsic, int withLocal, int wi
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
-static int NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrinsic, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
 static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectproperty);
 static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
@@ -432,6 +432,8 @@ enum {
  NsfCurrentCmdIdx,
  NsfDebugCompileEpochIdx,
  NsfDebugRunAssertionsCmdIdx,
+ NsfDirectDispatchCmdIdx,
+ NsfDispatchCmdIdx,
  NsfFinalizeCmdIdx,
  NsfInterpObjCmdIdx,
  NsfInvalidateObjectParameterCmdIdx,
@@ -440,7 +442,6 @@ enum {
  NsfMethodAssertionCmdIdx,
  NsfMethodCreateCmdIdx,
  NsfMethodDeleteCmdIdx,
- NsfMethodDispatchCmdIdx,
  NsfMethodForwardCmdIdx,
  NsfMethodPropertyCmdIdx,
  NsfMethodRegisteredCmdIdx,
@@ -449,7 +450,6 @@ enum {
  NsfNSCopyCmdsCmdIdx,
  NsfNSCopyVarsCmdIdx,
  NsfNextCmdIdx,
- NsfObjectDispatchCmdIdx,
  NsfObjectExistsCmdIdx,
  NsfObjectPropertyCmdIdx,
  NsfObjectQualifyCmdIdx,
@@ -1071,6 +1071,49 @@ NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
 }
 
 static int
+NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfDirectDispatchCmdIdx].paramDefs, 
+                     method_definitions[NsfDirectDispatchCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withFrame = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
+
+    assert(pc.status == 0);
+    return NsfDirectDispatchCmd(interp, object, withFrame, command, objc-pc.lastObjc, objv+pc.lastObjc);
+
+  }
+}
+
+static int
+NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfDispatchCmdIdx].paramDefs, 
+                     method_definitions[NsfDispatchCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withIntrinsic = (int )PTR2INT(pc.clientData[1]);
+    int withSystem = (int )PTR2INT(pc.clientData[2]);
+    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[3];
+
+    assert(pc.status == 0);
+    return NsfDispatchCmd(interp, object, withIntrinsic, withSystem, command, objc-pc.lastObjc, objv+pc.lastObjc);
+
+  }
+}
+
+static int
 NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
@@ -1241,27 +1284,6 @@ NsfMethodDeleteCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static int
-NsfMethodDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-  (void)clientData;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfMethodDispatchCmdIdx].paramDefs, 
-                     method_definitions[NsfMethodDispatchCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    NsfObject *object = (NsfObject *)pc.clientData[0];
-    int withFrame = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
-
-    assert(pc.status == 0);
-    return NsfMethodDispatchCmd(interp, object, withFrame, command, objc-pc.lastObjc, objv+pc.lastObjc);
-
-  }
-}
-
-static int
 NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
@@ -1425,28 +1447,6 @@ NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
     
     return NsfNextCmd(interp, objc == 2 ? objv[1] : NULL);
 
-}
-
-static int
-NsfObjectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-  (void)clientData;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfObjectDispatchCmdIdx].paramDefs, 
-                     method_definitions[NsfObjectDispatchCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    NsfObject *object = (NsfObject *)pc.clientData[0];
-    int withIntrinsic = (int )PTR2INT(pc.clientData[1]);
-    int withSystem = (int )PTR2INT(pc.clientData[2]);
-    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[3];
-
-    assert(pc.status == 0);
-    return NsfObjectDispatchCmd(interp, object, withIntrinsic, withSystem, command, objc-pc.lastObjc, objv+pc.lastObjc);
-
-  }
 }
 
 static int
@@ -2481,6 +2481,19 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
+{"::nsf::directdispatch", NsfDirectDispatchCmdStub, 4, {
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"command", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::dispatch", NsfDispatchCmdStub, 5, {
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-intrinsic", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-system", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"command", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
 {"::nsf::finalize", NsfFinalizeCmdStub, 1, {
   {"-keepvars", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2523,12 +2536,6 @@ static Nsf_methodDefinition method_definitions[] = {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},
-{"::nsf::method::dispatch", NsfMethodDispatchCmdStub, 4, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"command", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::forward", NsfMethodForwardCmdStub, 11, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
@@ -2575,13 +2582,6 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},
-{"::nsf::object::dispatch", NsfObjectDispatchCmdStub, 5, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"-intrinsic", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-system", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"command", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::object::exists", NsfObjectExistsCmdStub, 1, {
   {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

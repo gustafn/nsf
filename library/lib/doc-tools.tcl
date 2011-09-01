@@ -1157,7 +1157,7 @@ namespace eval ::nx::doc {
 	    #
 	    set prj [:current_project]
 	    set box [$prj sandbox]
-	    set statement [list ::nsf::object::dispatch ${:name} \
+	    set statement [list ::nsf::dispatch ${:name} \
 		::nsf::methods::class::info::objectparameter \
 		parametersyntax]
 	    :pinfo set bundle parametersyntax [$box eval $statement]
@@ -2684,23 +2684,23 @@ namespace eval ::nx::doc {
 		  #
 		  if {[::nsf::is class $cmd]} {
 
-		    dict set bundle parametersyntax [::nsf::object::dispatch $cmd \
+		    dict set bundle parametersyntax [::nsf::dispatch $cmd \
 			::nsf::methods::class::info::objectparameter \
 			parametersyntax]
 		    #
 		    # TODO: Are the parameters needed for objects???
 		    #
-		    # dict set bundle parameter [::nsf::object::dispatch $cmd \
+		    # dict set bundle parameter [::nsf::dispatch $cmd \
 		    # 	::nsf::methods::class::info::objectparameter \
 		    # 	parameter]
 		  }
 		} else {
-		  if {![catch {set syntax [::nsf::object::dispatch $rootclass $infoMethod \
+		  if {![catch {set syntax [::nsf::dispatch $rootclass $infoMethod \
 			 parametersyntax $cmd]} _]} {
 		    dict set bundle parametersyntax $syntax
 		  }
 		  
-		  if {![catch {set pa [::nsf::object::dispatch $rootclass $infoMethod \
+		  if {![catch {set pa [::nsf::dispatch $rootclass $infoMethod \
 					parameter $cmd]} _]} {
 		    foreach pspec $pa {
 		      dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
@@ -2775,11 +2775,11 @@ namespace eval ::nx::doc {
 		    set obj [::nsf::next];
 		    set bundle [dict create]
 		    if {[info commands "::nx::Class"] ne ""} {
-		      if {[::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Slot]} {
+		      if {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Slot]} {
 			dict set bundle objtype slot
-			dict set bundle incremental [expr {[::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::RelationSlot] || ([::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::VariableSlot] && [::nsf::var::exists $obj incremental] && [::nsf::var::set $obj incremental])}]
+			dict set bundle incremental [expr {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::RelationSlot] || ([::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::VariableSlot] && [::nsf::var::exists $obj incremental] && [::nsf::var::set $obj incremental])}]
 		      }
-		      if {[::nsf::object::dispatch $obj ::nsf::methods::object::info::hastype ::nx::EnsembleObject]} {
+		      if {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::EnsembleObject]} {
 			dict set bundle objtype ensemble
 		      }
 		      dict set bundle ismetaclass [::nsf::is metaclass $obj]
@@ -2823,19 +2823,19 @@ namespace eval ::nx::doc {
 			    set scope object
 			  }
 			 
-			  set handle [::nsf::object::dispatch $obj \
+			  set handle [::nsf::dispatch $obj \
 					  ::nsf::methods::${scope}::info::method \
 					  handle $leg]
 			  if {![::nsf::var::exists [::nsf::current class] handles] || ![[::nsf::current class] eval [concat dict exists \${:handles} $handle]]} {
 			    dict set bundle handle $handle
 			    dict set bundle handleinfo [::nx::doc::handleinfo $handle]
-			    dict set bundle type [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method type $handle]
-			    if {![catch {set pa [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method parameter $handle]} _]} {
+			    dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method type $handle]
+			    if {![catch {set pa [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method parameter $handle]} _]} {
 			      foreach pspec $pa {
 				dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
 			      }
 			    }
-			    if {![catch {set psyn [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method parametersyntax $handle]} _]} {
+			    if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method parametersyntax $handle]} _]} {
 			      dict set bundle parametersyntax $psyn
 			    }
 			    ::nx::doc::__at_register_command $handle \
@@ -2854,7 +2854,7 @@ namespace eval ::nx::doc {
 	      }
 	      }
 	      ::interp invokehidden "" proc ::nx::doc::handleinfo {handle} {
-		set definition [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method definition $handle]
+		set definition [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method definition $handle]
 		if {$definition ne ""} {
 		  set obj [lindex $definition 0]
 		  set modifier [lindex $definition 2]
@@ -2898,11 +2898,11 @@ namespace eval ::nx::doc {
 		  set bundle [dict create]
 		  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
-		  foreach pspec [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle] {
+		  foreach pspec [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle] {
 		    dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
 		  }
-		  dict set bundle parametersyntax [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]
-		  dict set bundle type [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
+		  dict set bundle parametersyntax [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]
+		  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
 		  dict set bundle returns [::nsf::method::property ${::nx::doc::rootns}::__Tracer $handle returns]
 		  ::nx::doc::__at_register_command $handle \
 		      ->cmdtype @method \
@@ -2921,13 +2921,13 @@ namespace eval ::nx::doc {
 		  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
 		  dict set bundle returns [::nsf::method::property ${::nx::doc::rootns}::__Tracer $handle returns]
-		  dict set bundle type [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
-		  if {![catch {set pa [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle]} _]} {
+		  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
+		  if {![catch {set pa [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle]} _]} {
 		    foreach pspec $pa {
 		      dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
 		    }
 		  }
-		  if {![catch {set psyn [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]} _]} {
+		  if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]} _]} {
 		    dict set bundle parametersyntax $psyn
 		  }
 
@@ -2976,8 +2976,8 @@ namespace eval ::nx::doc {
 	      	if {$handle ne ""} {
 	      	  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
-	      	  dict set bundle type [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
-		  if {![catch {set psyn [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]} _]} {
+	      	  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
+		  if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]} _]} {
 		    dict set bundle parametersyntax $psyn
 		  }
 
@@ -2997,7 +2997,7 @@ namespace eval ::nx::doc {
 	      	if {$handle ne ""} {
 	      	  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
-	      	  dict set bundle type [::nsf::object::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
+	      	  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
 		  
 		  ::nx::doc::__at_register_command $handle \
 	      	      ->cmdtype @method \
@@ -3422,7 +3422,7 @@ namespace eval ::nx {
 	set prj [:current_project]
 	if {$prj ne ""} {
 	  set box [$prj sandbox]	  
-	  set script "if {\[::nsf::object::exists $obj\]} {array set \"\" \[$obj eval {:__resolve_method_path \"$method_name\"}\]; ::nsf::object::dispatch \$(object) ::nsf::methods::${scope}::info::method handle \$(methodName)}"
+	  set script "if {\[::nsf::object::exists $obj\]} {array set \"\" \[$obj eval {:__resolve_method_path \"$method_name\"}\]; ::nsf::dispatch \$(object) ::nsf::methods::${scope}::info::method handle \$(methodName)}"
 	  set cmdname [$box do $script]
 	  if {$cmdname ne "" && [$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
 	    :pdata [$box eval [concat dict get \${:registered_commands} $cmdname]]

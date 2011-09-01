@@ -43,7 +43,7 @@ package req nx::test
 nsf::proc methodExport {current {-perObject:switch false} {-callProtected:switch false} args} {
   set scope [expr {$perObject?"object":"class"}]
   foreach m $args {
-    set methodHandle [::nsf::object::dispatch $current \
+    set methodHandle [::nsf::dispatch $current \
 			  ::nsf::methods::${scope}::info::method handle $m]
     if {$methodHandle eq ""} {
       set methodHandle [::nsf::method::create $current {*}[expr {$perObject?"-per-object":""}] $m args {
@@ -77,7 +77,7 @@ nx::Class public method unexport args {
 nx::Class create ExportUnexportUtil {
   :public method class {what args} {
     if {$what in {export unexport}} {
-      return [::nsf::object::dispatch [current] ::nsf::classes::nx::Object::$what {*}$args]
+      return [::nsf::dispatch [current] ::nsf::classes::nx::Object::$what {*}$args]
     }
     ::nsf::next
   }

@@ -3424,7 +3424,8 @@ Test run; exit
 
 - nsf.c: small performance improvements
 - nsf.c: experimental implementation of ::nsf::method::dispatch
-
+- renamed "nsf::method::dispatch" to "nsf::directdispatch"
+- renamed "nsf::object::dispatch" to "nsf::dispatch"
 
 TODO:
  - private: 

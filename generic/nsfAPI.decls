@@ -30,6 +30,19 @@ cmd configure NsfConfigureCmd {
 cmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
+cmd "directdispatch" NsfDirectDispatchCmd {
+  {-argName "object"     -required 1 -type object}
+  {-argName "-frame"     -required 0 -type "method|object|default" -default "default"}
+  {-argName "command"    -required 1 -type tclobj}
+  {-argName "args"       -type args}
+}
+cmd "dispatch" NsfDispatchCmd {
+  {-argName "object"     -required 1 -type object}
+  {-argName "-intrinsic" -required 0 -nrargs 0}
+  {-argName "-system"    -required 0 -nrargs 0}
+  {-argName "command"    -required 1 -type tclobj}
+  {-argName "args"       -type args}
+}
 cmd finalize NsfFinalizeCmd {
   {-argName "-keepvars" -required 0 -nrargs 0}
 }
@@ -72,12 +85,6 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "-precondition"  -type tclobj}
   {-argName "-postcondition" -type tclobj}
 }
-cmd "method::dispatch" NsfMethodDispatchCmd {
-  {-argName "object"     -required 1 -type object}
-  {-argName "-frame"     -required 0 -type "method|object|default" -default "default"}
-  {-argName "command"    -required 1 -type tclobj}
-  {-argName "args"       -type args}
-}
 cmd "method::delete" NsfMethodDeleteCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -nrargs 0}
@@ -115,13 +122,6 @@ cmd "method::setter" NsfMethodSetterCmd {
 #
 # object cmds
 #
-cmd "object::dispatch" NsfObjectDispatchCmd {
-  {-argName "object"     -required 1 -type object}
-  {-argName "-intrinsic" -required 0 -nrargs 0}
-  {-argName "-system"    -required 0 -nrargs 0}
-  {-argName "command"    -required 1 -type tclobj}
-  {-argName "args"       -type args}
-}
 cmd "object::exists" NsfObjectExistsCmd {
   {-argName "value" -required 1 -type tclobj}
 }

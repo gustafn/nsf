@@ -5,9 +5,8 @@ namespace eval ::nsf {
   # Symbols reused in the next scripting language
   
   namespace export \
-      next current self configure finalize interp is my relation
+      next current self configure finalize interp is my relation dispatch
  
-  namespace eval ::nsf::object {namespace export dispatch}
   namespace eval ::nsf::method::create {namespace export alias}
 
   #
