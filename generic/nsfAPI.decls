@@ -72,6 +72,12 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "-precondition"  -type tclobj}
   {-argName "-postcondition" -type tclobj}
 }
+cmd "method::dispatch" NsfMethodDispatchCmd {
+  {-argName "object"     -required 1 -type object}
+  {-argName "-frame"     -required 0 -type "method|object|default" -default "default"}
+  {-argName "command"    -required 1 -type tclobj}
+  {-argName "args"       -type args}
+}
 cmd "method::delete" NsfMethodDeleteCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -nrargs 0}

@@ -170,7 +170,7 @@ o destroy
 Object create o {set :x 1}
 ::nsf::object::dispatch ::o ::incr x
 ? {o eval {set :x}} 1 "cmd dispatch without -frame object did not modify the instance variable"
-::nsf::object::dispatch ::o -frame object ::incr x
+::nsf::method::dispatch ::o -frame object ::incr x
 ? {o eval {set :x}} 2 "cmd dispatch -frame object modifies the instance variable"
 ? {catch {::nsf::object::dispatch ::o -frame object ::xxx x}} 1 "cmd dispatch with unknown command"
 o destroy
@@ -183,9 +183,9 @@ Object create o {
     return $results
   }
 }
-::nsf::object::dispatch o ::eval {set x1 1; set :y1 1}
-::nsf::object::dispatch o -frame method ::eval {set x2 1; set :y2 1}
-::nsf::object::dispatch o -frame object ::eval {set x3 1; set :y3 1}
+::nsf::method::dispatch o ::eval {set x1 1; set :y1 1}
+::nsf::method::dispatch o -frame method ::eval {set x2 1; set :y2 1}
+::nsf::method::dispatch o -frame object ::eval {set x3 1; set :y3 1}
 ? {o foo} "x1 0 y1 0 x2 0 y2 1 x3 1 y3 1"
 o destroy
 

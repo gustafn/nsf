@@ -18163,6 +18163,106 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
 }
 
 
+/* TODO: move me */
+/*
+cmd "method::dispatch" NsfMethodDispatchCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
+  {-argName "command" -required 1 -type tclobj}
+  {-argName "args"  -type args}
+}
+*/
+static int
+NsfMethodDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, 
+		     Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  int result;
+  CONST char *methodName = ObjStr(command);
+  Tcl_Command cmd, importedCmd;
+  CallFrame frame, *framePtr = &frame;
+  Tcl_ObjCmdProc *proc;
+  int flags = 0;
+  int useCmdDispatch = 1;
+
+  /*fprintf(stderr, "MethodDispatch obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
+
+  if (*methodName != ':') {
+    return NsfPrintError(interp, "method name '%s' must be fully qualified", methodName);
+  }
+
+  /*
+   * We have a fully qualified name of a Tcl command that will be dispatched. 
+   */
+
+  cmd = Tcl_GetCommandFromObj(interp, command);
+  if (likely(cmd != NULL)) {
+    importedCmd = TclGetOriginalCommand(cmd);
+    if (unlikely(importedCmd != NULL)) {
+      cmd = importedCmd;
+    }
+  }
+
+  if (unlikely(cmd == NULL)) {
+    return NsfPrintError(interp, "cannot lookup command '%s'", methodName);
+  }
+
+  proc = Tcl_Command_objProc(cmd);
+  if (proc == TclObjInterpProc ||
+      proc == NsfForwardMethod ||
+      proc == NsfObjscopedMethod ||
+      proc == NsfSetterMethod ||
+      CmdIsNsfObject(cmd)) {
+
+    if (withFrame && withFrame != FrameDefaultIdx) {
+      return NsfPrintError(interp, "cannot use -frame object|method in dispatch for command '%s'",
+			   methodName);
+    }
+    useCmdDispatch = 0;
+  } else {
+    if (withFrame == FrameMethodIdx) {
+      useCmdDispatch = 0;
+    } else {
+      useCmdDispatch = 1;
+    }
+  }
+
+
+  if (withFrame == FrameObjectIdx) {
+    Nsf_PushFrameObj(interp, object, framePtr);
+    flags = NSF_CSC_IMMEDIATE;
+  }
+  /*
+   * Since we know, that we are always called with a full argument
+   * vector, we can include the cmd name in the objv by using
+   * nobjv-1; this way, we avoid a memcpy()
+   */
+  if (useCmdDispatch) {
+    result = CmdMethodDispatch(object, interp, nobjc+1, nobjv-1, 
+			       Tcl_GetCommandName(interp, cmd), object, cmd, NULL);
+  } else {
+
+    /* 
+     * If "withFrame == instance" is specified, a callstack frame is pushed to
+     * make instvars accessible for the command.
+     */
+    if (withFrame == FrameMethodIdx) {
+      flags = NSF_CSC_FORCE_FRAME|NSF_CSC_IMMEDIATE;
+    }
+
+    result = MethodDispatch(object, interp,
+			    nobjc+1, nobjv-1, cmd, object,
+			    NULL /*NsfClass *cl*/,
+			    Tcl_GetCommandName(interp, cmd),
+			    NSF_CSC_TYPE_PLAIN, flags);
+  }
+
+  if (withFrame == FrameObjectIdx) {
+    Nsf_PopFrameObj(interp, framePtr);
+  }
+
+  return result;
+}
+
+
 /*
 cmd "object::dispatch" NsfObjectDispatchCmd {
   {-argName "object" -required 1 -type object}
@@ -18193,7 +18293,7 @@ NsfObjectDispatchCmd(Tcl_Interp *interp, NsfObject *object,
    * it.
    */
 
-  if (*methodName == ':') {
+  if (0 && *methodName == ':') {
     Tcl_Command cmd, importedCmd;
     CallFrame frame, *framePtr = &frame;
     int flags = 0;

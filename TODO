@@ -3423,9 +3423,10 @@ Test run; exit
 - fixed mem_count on xocomm.test (was 26 / 26)
 
 - nsf.c: small performance improvements
+- nsf.c: experimental implementation of ::nsf::method::dispatch
+
 
 TODO:
-
  - private: 
    * make sure nsf::dispatch works sufficiently similar to plain dispatch
    * document private in migration guide tutorial

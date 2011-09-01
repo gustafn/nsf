@@ -122,7 +122,7 @@ namespace eval ::nx {
 	#puts stderr ===nx118
 	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}] 
 	#puts stderr ===nx119
-	if {[::nsf::object::dispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} {
+	if {[::nsf::method::dispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} {
  	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
 	  #
@@ -143,8 +143,8 @@ namespace eval ::nx {
 	  # The accessor method exists already, check, if it is
 	  # appropriate for extending.
 	  #
-	  set type [::nsf::object::dispatch $object ::nsf::methods::${scope}::info::method type $w]
-	  set definition [::nsf::object::dispatch $object ::nsf::methods::${scope}::info::method definition $w]
+	  set type [::nsf::method::dispatch $object ::nsf::methods::${scope}::info::method type $w]
+	  set definition [::nsf::method::dispatch $object ::nsf::methods::${scope}::info::method definition $w]
 	  if {$scope eq "class"} {
 	    if {$type ne "alias"} {error "can't append to $type"}
 	    if {$definition eq ""} {error "definition must not be empty"}
@@ -391,7 +391,7 @@ namespace eval ::nx {
 	return [::nsf::method::require [::nsf::self] $methodName 0]
       }
       namespace {
-	::nsf::object::dispatch [::nsf::self] ::nsf::methods::object::requirenamespace
+	::nsf::method::dispatch [::nsf::self] ::nsf::methods::object::requirenamespace
       }
     }
   }
@@ -625,7 +625,7 @@ namespace eval ::nx {
   # "package forget". We clear "info method" for ::nx::Object to avoid
   # confusions in the copy loop below, which uses method "method".
   #
-  if {[::nsf::object::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods "method"] ne ""} {
+  if {[::nsf::method::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods "method"] ne ""} {
     Object method "info method" {} {}
   }
 
@@ -633,9 +633,9 @@ namespace eval ::nx {
   # Copy all info methods except the subobjects to
   # ::nx::Class::slot::__info
   #
-  foreach m [::nsf::object::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods] {
-    if {[::nsf::object::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method type $m] eq "object"} continue
-    set definition [::nsf::object::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method definition $m]
+  foreach m [::nsf::method::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods] {
+    if {[::nsf::method::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method type $m] eq "object"} continue
+    set definition [::nsf::method::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method definition $m]
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
     unset definition
   }
@@ -704,9 +704,9 @@ namespace eval ::nx {
   ######################################################################
   
   proc ::nx::infoOptions {obj} {
-    #puts stderr "INFO INFO $obj -> '[::nsf::object::dispatch $obj ::nsf::methods::object::info::methods -methodtype all]'"
+    #puts stderr "INFO INFO $obj -> '[::nsf::method::dispatch $obj ::nsf::methods::object::info::methods -methodtype all]'"
     set methods [list]
-    foreach name [::nsf::object::dispatch $obj ::nsf::methods::object::info::methods] {
+    foreach name [::nsf::method::dispatch $obj ::nsf::methods::object::info::methods] {
       if {$name eq "unknown"} continue
       lappend methods $name
     }
@@ -1041,7 +1041,7 @@ namespace eval ::nx {
     # Report just application specific methods not starting with "__"
     #
     set methods [list]
-    foreach m [::nsf::object::dispatch [::nsf::self] \
+    foreach m [::nsf::method::dispatch [::nsf::self] \
 		   ::nsf::methods::object::info::lookupmethods -source application] {
       if {[string match __* $m]} continue
       lappend methods $m
@@ -1199,7 +1199,7 @@ namespace eval ::nx {
     # Collect the object parameter slots in per-position lists to
     # ensure partial ordering and avoid sorting.
     #
-    foreach slot [nsf::object::dispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
+    foreach slot [nsf::method::dispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
       lappend defs([$slot position]) [$slot getParameterSpec]
     }
     #
@@ -1271,7 +1271,7 @@ namespace eval ::nx {
         if {![::nsf::object::exists $value]} {
           error "$value does not appear to be an object"
         }
-        set value [::nsf::object::dispatch $value -frame method ::nsf::self]
+        set value [::nsf::method::dispatch $value -frame method ::nsf::self]
       }
     }
     set p [lsearch -exact $old $value]
@@ -1392,28 +1392,28 @@ namespace eval ::nx {
     #
     ${os}::Object::slot::filter method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
-	::nsf::object::dispatch $obj ::nsf::methods::object::filterguard $filter $guard
+	::nsf::method::dispatch $obj ::nsf::methods::object::filterguard $filter $guard
       } else {
 	$obj info filter guard $filter 
       }
     }
     ${os}::Class::slot::filter method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
-	::nsf::object::dispatch $obj ::nsf::methods::class::filterguard $filter $guard
+	::nsf::method::dispatch $obj ::nsf::methods::class::filterguard $filter $guard
       } else {
 	$obj info filter guard $filter 
       }
     }
     ${os}::Object::slot::mixin method guard {obj prop mixin guard:optional} {
       if {[info exists guard]} {
-	::nsf::object::dispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
+	::nsf::method::dispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
       } else {
 	$obj info mixin guard $mixin
       }
     }
     ${os}::Class::slot::mixin method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
-	::nsf::object::dispatch $obj ::nsf::methods::class::mixinguard $filter $guard
+	::nsf::method::dispatch $obj ::nsf::methods::class::mixinguard $filter $guard
       } else {
 	$obj info mixin guard $filter 
       }
@@ -1610,7 +1610,7 @@ namespace eval ::nx {
   ::nx::VariableSlot protected method handleTraces {} {
     # essentially like before
     set __initcmd ""
-    set trace {::nsf::object::dispatch [::nsf::self] -frame object ::trace}
+    set trace {::nsf::method::dispatch [::nsf::self] -frame object ::trace}
     # There might be already default values registered on the
     # class. If so, defaultcmd is ignored.
     if {[info exists :default]} {
@@ -1641,7 +1641,7 @@ namespace eval ::nx {
   #
   ::nx::VariableSlot method __default_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
-    ::nsf::object::dispatch $obj -frame object \
+    ::nsf::method::dispatch $obj -frame object \
 	::trace remove variable $var $op [list [::nsf::self] [::nsf::current method] $obj $cmd]
     ::nsf::var::set $obj $var [$obj eval $cmd]
   }
@@ -1763,7 +1763,7 @@ namespace eval ::nx {
 
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
     if {[info exists value]} {$slot setCheckedInstVar -nocomplain=$nocomplain $value}
-    return [::nsf::object::dispatch [self] ::nsf::methods::object::info::method handle [$slot name]]
+    return [::nsf::method::dispatch [self] ::nsf::methods::object::info::method handle [$slot name]]
   }
 
   Object method property {
@@ -1795,7 +1795,7 @@ namespace eval ::nx {
 		  -defaultopts [list -accessor $accessor -config $config] \
 		  $spec \
 		  {*}[expr {[info exists default] ? [list $default] : ""}]]
-    return [::nsf::object::dispatch [self] ::nsf::methods::class::info::method handle [$slot name]]
+    return [::nsf::method::dispatch [self] ::nsf::methods::class::info::method handle [$slot name]]
   }
   
   nx::Class method property {
@@ -1901,7 +1901,7 @@ namespace eval ::nx {
     if {![info exists object]} {set object [::nsf::self]}
     if {![::nsf::object::exists $object]} {$class create $object}
     # reused in XOTcl, no "require" there, so use nsf primitiva
-    ::nsf::object::dispatch $object ::nsf::methods::object::requirenamespace    
+    ::nsf::method::dispatch $object ::nsf::methods::object::requirenamespace    
     if {$withnew} {
       set m [ScopedNew new -container $object -withclass $class]
       $m volatile
@@ -1936,7 +1936,7 @@ namespace eval ::nx {
       #puts stderr "COPY makeTargetList $t targetList '${:targetList}'"
       # if it is an object without namespace, it is a leaf
       if {[::nsf::object::exists $t]} {
-	if {[::nsf::object::dispatch $t ::nsf::methods::object::info::hasnamespace]} {
+	if {[::nsf::method::dispatch $t ::nsf::methods::object::info::hasnamespace]} {
 	  # make target list from all children
 	  set children [$t info children]
         } else {
@@ -2001,8 +2001,8 @@ namespace eval ::nx {
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
             # reused in XOTcl, no "require" there, so use nsf primitiva
-	  if {[::nsf::object::dispatch $origin ::nsf::methods::object::info::hasnamespace]} {
-	    ::nsf::object::dispatch $obj ::nsf::methods::object::requirenamespace
+	  if {[::nsf::method::dispatch $origin ::nsf::methods::object::info::hasnamespace]} {
+	    ::nsf::method::dispatch $obj ::nsf::methods::object::requirenamespace
 	  }
 	} else {
 	  namespace eval $dest {}
@@ -2037,7 +2037,7 @@ namespace eval ::nx {
 	# transfer the traces
 	#
 	foreach var [$origin info vars] {
-	  set cmds [::nsf::object::dispatch $origin -frame object ::trace info variable $var]
+	  set cmds [::nsf::method::dispatch $origin -frame object ::trace info variable $var]
 	  if {$cmds ne ""} {
 	    foreach cmd $cmds {
 	      foreach {op def} $cmd break

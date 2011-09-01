@@ -369,7 +369,7 @@ namespace eval ::xotcl {
   #
   ::xotcl::Class instproc objectparameter {} {
     set parameterdefinitions [list]
-    foreach slot [nsf::object::dispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
+    foreach slot [nsf::method::dispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
       lappend parameterdefinitions [$slot getParameterSpec]
     }
     lappend parameterdefinitions args:alias,method=residualargs,args
@@ -582,13 +582,13 @@ namespace eval ::xotcl {
       set guardsFlag [expr {$guards ? "-guards" : ""}]
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
-        set def [::nsf::object::dispatch [::nsf::current object] \
+        set def [::nsf::method::dispatch [::nsf::current object] \
 		     ::nsf::methods::object::info::filtermethods -order \
 		     {*}$guardsFlag \
 		     {*}$patternArg]
         set def [method_handles_to_xotcl $def]
       } else {
-        set def [::nsf::object::dispatch [::nsf::current object] \
+        set def [::nsf::method::dispatch [::nsf::current object] \
 		     ::nsf::methods::object::info::filtermethods \
 		     {*}$guardsFlag \
 		     {*}$patternArg]
@@ -769,7 +769,7 @@ namespace eval ::xotcl {
   }
   Object instproc istype      {class}  {
     return [expr {[::nsf::is class $class] && 
-		  [::nsf::object::dispatch [self] ::nsf::methods::object::info::hastype $class]}]
+		  [::nsf::method::dispatch [self] ::nsf::methods::object::info::hastype $class]}]
   }
 
   # definition of "xotcl::Object contains", based on nx
@@ -864,16 +864,16 @@ namespace eval ::xotcl {
   # support for XOTcl specific convenience routines
   Object instproc hasclass cl {
     if {![::nsf::is class $cl]} {return 0}
-    if {[::nsf::object::dispatch [self] ::nsf::methods::object::info::hasmixin $cl]} {return 1}
-    ::nsf::object::dispatch [self] ::nsf::methods::object::info::hastype $cl
+    if {[::nsf::method::dispatch [self] ::nsf::methods::object::info::hasmixin $cl]} {return 1}
+    ::nsf::method::dispatch [self] ::nsf::methods::object::info::hastype $cl
   }
   Object instproc filtersearch {filter} {
-    set handle [::nsf::object::dispatch [::nsf::current object] \
+    set handle [::nsf::method::dispatch [::nsf::current object] \
 		    ::nsf::methods::object::info::lookupfilter $filter]
     return [method_handle_to_xotcl $handle]
   }
   Object instproc procsearch {name} {
-    set handle [::nsf::object::dispatch [::nsf::current object] \
+    set handle [::nsf::method::dispatch [::nsf::current object] \
 		    ::nsf::methods::object::info::lookupmethod $name]
     return [method_handle_to_xotcl $handle]
   }
@@ -1045,7 +1045,7 @@ namespace eval ::xotcl {
       }
       namespace eval [::xotcl::self] {namespace import ::xotcl::*}
       #namespace eval [::xotcl::self] $script
-      #::nsf::object::dispatch [::xotcl::self] -frame method ::apply [list {} $script [::xotcl::self]]
+      #::nsf::method::dispatch [::xotcl::self] -frame method ::apply [list {} $script [::xotcl::self]]
       ::apply [list {} $script [::xotcl::self]]
 
       foreach e [set :export] {

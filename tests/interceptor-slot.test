@@ -224,11 +224,11 @@ nx::Test case intrinsic+method-handles {
   ? {c1 [B info method origin foo]} "B A "
   ? {c1 [A info method origin foo]} "A "
 
-  # documententing unwanted behavior
+  # we expect same results via dispatch with fully qualified names
   ? {nsf::object::dispatch c1 foo} "C B A "
-  ? {nsf::object::dispatch c1 [C info method origin foo]} "C C B A "
-  ? {nsf::object::dispatch c1 [B info method origin foo]} "B C B A "
-  ? {nsf::object::dispatch c1 [A info method origin foo]} "A C B A "
+  ? {nsf::object::dispatch c1 [C info method origin foo]} "C B A "
+  ? {nsf::object::dispatch c1 [B info method origin foo]} "B A "
+  ? {nsf::object::dispatch c1 [A info method origin foo]} "A "
 
   # 
   # check, whether the context of "my -local" is correct

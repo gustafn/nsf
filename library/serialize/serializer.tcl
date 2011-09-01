@@ -307,7 +307,7 @@ namespace eval ::nx::serializer {
 
     :public class method allChildren o {
       # return o and all its children fully qualified
-      set set [::nsf::object::dispatch $o -frame method ::nsf::current]
+      set set [::nsf::method::dispatch $o -frame method ::nsf::current]
       foreach c [$o info children] {
         lappend set {*}[:allChildren $c]
       }
@@ -783,7 +783,7 @@ namespace eval ::nx::serializer {
       }
 
       :collect-var-traces $o $s
-      set objectName [::nsf::object::dispatch $o -frame method ::nsf::current object]
+      set objectName [::nsf::method::dispatch $o -frame method ::nsf::current object]
       set isSlotContainer [::nx::isSlotContainer $objectName]
       if {$isSlotContainer} {
 	append cmd [list ::nx::slotObj [$o ::nsf::methods::object::info::parent]]\n
@@ -922,7 +922,7 @@ namespace eval ::nx::serializer {
 
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create [::nsf::object::dispatch $o -frame method ::nsf::current object]]
+      append cmd [list [$o info class] create [::nsf::method::dispatch $o -frame method ::nsf::current object]]
       append cmd " -noinit\n"
       foreach i [$o ::nsf::methods::object::info::methods -methodtype scripted -callprotection all] {
         append cmd [:method-serialize $o $i ""] "\n"
