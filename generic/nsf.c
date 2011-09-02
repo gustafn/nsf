@@ -3103,9 +3103,9 @@ typedef struct NsfResolvedVarInfo {
  *
  *----------------------------------------------------------------------
  */
-static void
+NSF_INLINE static void
 HashVarFree(Tcl_Var var) {
-  if (VarHashRefCount(var) < 2) {
+  if (unlikely(VarHashRefCount(var) < 2)) {
     /*fprintf(stderr,"#### free %p\n", var);*/
     ckfree((char *) var);
   } else {
@@ -3144,7 +3144,7 @@ static Tcl_Var
 CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   NsfResolvedVarInfo *resVarInfo = (NsfResolvedVarInfo *)vinfoPtr;
   NsfCallStackContent *cscPtr = CallStackGetTopFrame0(interp);
-  NsfObject *object = cscPtr ? cscPtr->self : NULL;
+  NsfObject *object;
   TclVarHashTable *varTablePtr;
   Tcl_Var var = resVarInfo->var;
   int new;
@@ -3154,6 +3154,12 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   fprintf(stderr,"CompiledColonVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
 	  ObjStr(resVarInfo->nameObj), var, flags, flags & VAR_DEAD_HASH);
 #endif
+
+  if (likely(cscPtr != NULL)) {
+    object = cscPtr->self;
+  } else {
+    object = NULL;
+  }
 
   /*
    * We cache lookups based on nsf objects; we have to care about
@@ -10165,7 +10171,7 @@ int
 Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param CONST *UNUSED(pPtr),
 			   ClientData *clientData, Tcl_Obj **outObjPtr) {
   *clientData = (char *)ObjStr(objPtr);
-  *outObjPtr = objPtr;
+  assert(*outObjPtr == objPtr);
   return TCL_OK;
 }
 
@@ -10188,6 +10194,7 @@ Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param CONST
 static int
 ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  Nsf_Param CONST *UNUSED(pPtr),
 		 ClientData *UNUSED(clientData), Tcl_Obj **outObjPtr) {
+  assert(*outObjPtr == objPtr);
   *outObjPtr = objPtr;
   return TCL_OK;
 }
@@ -10262,7 +10269,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 #endif
     *clientData = objPtr;
   }
-  *outObjPtr = objPtr;
+  assert(*outObjPtr == objPtr);
   return result;
 }
 
@@ -10294,7 +10301,7 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
   } else {
     NsfObjErrType(interp, NULL, objPtr, "boolean", pPtr);
   }
-  *outObjPtr = objPtr;
+  assert(*outObjPtr == objPtr);
   return result;
 }
 
@@ -10324,7 +10331,7 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 
   if (result == TCL_OK) {
     *clientData = (ClientData)INT2PTR(i);
-    *outObjPtr = objPtr;
+    assert(*outObjPtr == objPtr);
   } else {
     NsfObjErrType(interp, NULL, objPtr, "int32", (Nsf_Param *)pPtr);
   }
@@ -10389,7 +10396,7 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
 
   if (result == TCL_OK) {
     *clientData = (ClientData)objPtr;
-    *outObjPtr = objPtr;
+    assert(*outObjPtr == objPtr);
   } else {
     NsfObjErrType(interp, NULL, objPtr, "integer", (Nsf_Param *)pPtr);
   }
@@ -10441,7 +10448,7 @@ Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 int
 Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 		ClientData *clientData, Tcl_Obj **outObjPtr) {
-  *outObjPtr = objPtr;
+  assert(*outObjPtr = objPtr);
   if (GetObjectFromObj(interp, objPtr, (NsfObject **)clientData) == TCL_OK) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "object", objPtr, pPtr);
   }
@@ -10468,7 +10475,7 @@ Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 int
 Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
-  *outObjPtr = objPtr;
+  assert(*outObjPtr == objPtr);
   if (GetClassFromObj(interp, objPtr, (NsfClass **)clientData, 0) == TCL_OK) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "class", objPtr, pPtr);
   }
@@ -10499,7 +10506,8 @@ int
 Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
-  *outObjPtr = objPtr;
+
+  assert(*outObjPtr == objPtr);
   result = Tcl_ConvertToType(interp, objPtr, &NsfFilterregObjType);
   if (result == TCL_OK) {
     *clientData = objPtr;
@@ -10530,7 +10538,8 @@ int
 Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
-  *outObjPtr = objPtr;
+
+  assert(*outObjPtr == objPtr);
   result = Tcl_ConvertToType(interp, objPtr, &NsfMixinregObjType);
   if (result == TCL_OK) {
     *clientData = objPtr;
@@ -10562,7 +10571,7 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPt
 		   ClientData *clientData, Tcl_Obj **outObjPtr) {
   CONST char *value = ObjStr(objPtr);
 
-  *outObjPtr = objPtr;
+  assert(*outObjPtr == objPtr);
   /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/
   if (*value == ':' ||  (*value == '-' && *(value + 1) == ':')) {
     return NsfPrintError(interp, "leading colon in '%s' not allowed as in parameter specification '%s'",
@@ -10571,7 +10580,7 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPt
   }
 
   *clientData = (char *)ObjStr(objPtr);
-  *outObjPtr = objPtr;
+
   return TCL_OK;
 }
 
@@ -10640,7 +10649,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   DECR_REF_COUNT(ov[2]);
 
   /* per default, the input arg is the output arg */
-  *outObjPtr = objPtr;
+  assert(*outObjPtr == objPtr);
 
   if (result == TCL_OK) {
     /*fprintf(stderr, "ConvertViaCmd could convert %s to '%s' paramPtr %p, is_converter %d\n",
@@ -10724,6 +10733,10 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *UNUSED
     INCR_REF_COUNT2("patternObj", patternObj);
   }
   *clientData = (ClientData)patternObj;
+  /* The following assert does not hold here, since we 
+     have a direct call to the converter
+     assert(*outObjPtr == objPtr); */
+
   *outObjPtr = objPtr;
   return TCL_OK;
 }
@@ -15327,13 +15340,13 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST 
   INCR_REF_COUNT2("valueObj", *outObjPtr);
 
   for (i=0; i<objc; i++) {
-    Tcl_Obj *elementObjPtr;
-    const char *valueString = ObjStr(ov[i]);
+    Tcl_Obj *elementObjPtr = ov[i];
+    const char *valueString = ObjStr(elementObjPtr);
 
     if (pPtr->flags & NSF_ARG_ALLOW_EMPTY && *valueString == '\0') {
-      result = Nsf_ConvertToString(interp, ov[i], pPtr, clientData, &elementObjPtr);
+      result = Nsf_ConvertToString(interp, elementObjPtr, pPtr, clientData, &elementObjPtr);
     } else {
-      result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
+      result = (*pPtr->converter)(interp, elementObjPtr, pPtr, clientData, &elementObjPtr);
     }
 
     /*fprintf(stderr, "ArgumentCheckHelper convert %s result %d (%s)\n",
@@ -15408,9 +15421,9 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
      * helper function
      */
     for (i=0; i<objc; i++) {
-      Tcl_Obj *elementObjPtr;
+      Tcl_Obj *elementObjPtr = ov[i];
 
-      result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
+      result = (*pPtr->converter)(interp, elementObjPtr, pPtr, clientData, &elementObjPtr);
       if (likely(result == TCL_OK || result == TCL_CONTINUE)) {
         if (ov[i] != elementObjPtr) {
           fprintf(stderr, "ArgumentCheck: switch to output list construction for value %s\n",
@@ -15434,6 +15447,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
       }
     }
   } else {
+    assert(objPtr == *outObjPtr);
     if (pPtr->flags & NSF_ARG_ALLOW_EMPTY && *(ObjStr(objPtr)) == '\0') {
       result = Nsf_ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
     } else {

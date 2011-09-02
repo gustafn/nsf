@@ -350,7 +350,7 @@ CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   return NULL;
 }
 
-static NsfCallStackContent*
+NSF_INLINE static NsfCallStackContent*
 CallStackGetTopFrame0(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
