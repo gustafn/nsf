@@ -180,7 +180,7 @@ static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
  *----------------------------------------------------------------------
  */
 
-static void 
+NSF_INLINE static void 
 Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, CallFrame *framePtr) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
   /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
@@ -192,7 +192,7 @@ Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, CallFrame *fra
   Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
 }
 
-static void 
+NSF_INLINE static void 
 Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *UNUSED(framePtr)) {
   /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTablePtr = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/

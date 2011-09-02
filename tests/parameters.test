@@ -2030,7 +2030,7 @@ nx::Test case single-variable {
   
   ? {Class create D {
     :variable :v 1
-  }} {leading colon in ':v' not allowed as in parameter specification 'spec'}
+  }} {leading colon in ':v' not allowed in parameter specification 'spec'}
 }
 
 #

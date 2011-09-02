@@ -1726,7 +1726,7 @@ TopoOrder(NsfClass *cl, NsfClasses *(*next)(NsfClass *)) {
   return cl->order = NULL;
 }
 
-static NsfClasses *
+NSF_INLINE static NsfClasses *
 ComputeOrder(NsfClass *cl, NsfClasses *order, NsfClasses *(*direction)(NsfClass *)) {
   if (likely(order != NULL)) {
     return order;
@@ -1737,6 +1737,7 @@ ComputeOrder(NsfClass *cl, NsfClasses *order, NsfClasses *(*direction)(NsfClass 
 static void
 FlushPrecedencesOnSubclasses(NsfClass *cl) {
   NsfClasses *pc;
+
   NsfClassListFree(cl->order);
   cl->order = NULL;
   pc = ComputeOrder(cl, cl->order, Sub);
@@ -2198,8 +2199,7 @@ FindProcMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
  *----------------------------------------------------------------------
  */
 static NsfClass *
-SearchPLMethod0(register NsfClasses *pl, CONST char *methodName, 
-		Tcl_Command *cmdPtr) {
+SearchPLMethod0(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr) {
 
   /* Search the precedence list (class hierarchy) */
   for (; pl;  pl = pl->nextPtr) {
@@ -8121,7 +8121,7 @@ ParamsFree(Nsf_Param *paramsPtr) {
   FREE(Nsf_Param*, paramsPtr);
 }
 
-static NsfParamDefs *
+NSF_INLINE static NsfParamDefs *
 ParamDefsGet(Tcl_Command cmdPtr) {
   assert(cmdPtr);
   if (Tcl_Command_deleteProc(cmdPtr) == NsfProcDeleteProc) {
@@ -8834,7 +8834,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     cscPtr->objc = objc;
     cscPtr->objv = (Tcl_Obj **)objv;
 
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       releasePc = 1;
       result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, cscPtr);
     } else {
@@ -8866,7 +8866,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
  prep_done:
 #endif
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
 #if defined(NRE)
     /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n",
       ObjectName(object), ObjStr(objv[0]));*/
@@ -8932,13 +8932,10 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
      */
     /*fprintf(stderr, "Nsf_PushFrameCsc %s %s\n", ObjectName(object), Tcl_GetCommandName(cmd));*/
     Nsf_PushFrameCsc(interp, cscPtr, framePtr);
-  }
-
-  /*fprintf(stderr, "CmdMethodDispatch obj %p %p %s\n", obj, methodName, Tcl_GetCommandName(cmd));*/
-  result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmd), cp, objc, objv);
-
-  if (cscPtr) {
+    result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmd), cp, objc, objv);
     Nsf_PopFrameCsc(interp, framePtr);
+  } else {
+    result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmd), cp, objc, objv);
   }
 
 #if defined(NSF_WITH_ASSERTIONS)
@@ -9329,7 +9326,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   /*
    * Check the return value if wanted
    */
-  if (result == TCL_OK && cscPtr->cmdPtr && Tcl_Command_cmdEpoch(cscPtr->cmdPtr) == 0) {
+  if (likely(result == TCL_OK && cscPtr->cmdPtr && Tcl_Command_cmdEpoch(cscPtr->cmdPtr) == 0)) {
     NsfParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr);
 
     if (paramDefs && paramDefs->returns) {
@@ -9891,7 +9888,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
   } else {
     result = CallMethod(object, interp, methodObj, 2, 0, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE|flags);
   }
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     /*
      * The object might be already gone here, since we have no stack frame.
      * Therefore, we can't even use nsf::current object safely.
@@ -10238,7 +10235,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
     objv[2] = objPtr;
 
     result = NsfCallCommand(interp, NSF_IS, 3, objv);
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       int success;
       Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &success);
       if (success == 1) {
@@ -10329,7 +10326,7 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 
   result = Tcl_GetIntFromObj(interp, objPtr, &i);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     *clientData = (ClientData)INT2PTR(i);
     assert(*outObjPtr == objPtr);
   } else {
@@ -10394,7 +10391,7 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
     }
   }
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     *clientData = (ClientData)objPtr;
     assert(*outObjPtr == objPtr);
   } else {
@@ -10448,8 +10445,8 @@ Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 int
 Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 		ClientData *clientData, Tcl_Obj **outObjPtr) {
-  assert(*outObjPtr = objPtr);
-  if (GetObjectFromObj(interp, objPtr, (NsfObject **)clientData) == TCL_OK) {
+  assert(*outObjPtr == objPtr);
+  if (likely(GetObjectFromObj(interp, objPtr, (NsfObject **)clientData) == TCL_OK)) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "object", objPtr, pPtr);
   }
   return NsfObjErrType(interp, NULL, objPtr, "object", (Nsf_Param *)pPtr);
@@ -10476,7 +10473,7 @@ int
 Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   assert(*outObjPtr == objPtr);
-  if (GetClassFromObj(interp, objPtr, (NsfClass **)clientData, 0) == TCL_OK) {
+  if (likely(GetClassFromObj(interp, objPtr, (NsfClass **)clientData, 0) == TCL_OK)) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "class", objPtr, pPtr);
   }
   return NsfObjErrType(interp, NULL, objPtr, "class", (Nsf_Param *)pPtr);
@@ -10509,7 +10506,7 @@ Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pP
 
   assert(*outObjPtr == objPtr);
   result = Tcl_ConvertToType(interp, objPtr, &NsfFilterregObjType);
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     *clientData = objPtr;
     return result;
   }
@@ -10541,7 +10538,7 @@ Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPt
 
   assert(*outObjPtr == objPtr);
   result = Tcl_ConvertToType(interp, objPtr, &NsfMixinregObjType);
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     *clientData = objPtr;
     return result;
   }
@@ -10574,9 +10571,8 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPt
   assert(*outObjPtr == objPtr);
   /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/
   if (*value == ':' ||  (*value == '-' && *(value + 1) == ':')) {
-    return NsfPrintError(interp, "leading colon in '%s' not allowed as in parameter specification '%s'",
+    return NsfPrintError(interp, "leading colon in '%s' not allowed in parameter specification '%s'",
 			 ObjStr(objPtr), pPtr->name);
-    //NsfObjErrType(interp, NULL, objPtr, pPtr->type, (Nsf_Param *)pPtr);
   }
 
   *clientData = (char *)ObjStr(objPtr);
@@ -10651,7 +10647,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   /* per default, the input arg is the output arg */
   assert(*outObjPtr == objPtr);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     /*fprintf(stderr, "ConvertViaCmd could convert %s to '%s' paramPtr %p, is_converter %d\n",
 	    ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)), pPtr,
 	    pPtr->flags & NSF_ARG_IS_CONVERTER);*/
@@ -11041,7 +11037,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   INCR_REF_COUNT(paramPtr->paramObj);
 
   result = Tcl_ListObjGetElements(interp, arg, &npac, &npav);
-  if (result != TCL_OK || npac < 1 || npac > 2) {
+  if (unlikely(result != TCL_OK || npac < 1 || npac > 2)) {
     DECR_REF_COUNT(paramPtr->paramObj);
     return NsfPrintError(interp, "wrong # of elements in parameter definition for method '%s'"
 			 " (should be 1 or 2 list elements): %s",
@@ -11091,7 +11087,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
 	/* skip space from end */
         for (end = l; end>0 && isspace((int)argString[end-1]); end--);
         result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr);
-        if (result != TCL_OK) {
+        if (unlikely(result != TCL_OK)) {
           goto param_error;
         }
         l++;
@@ -11104,7 +11100,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     /* process last option */
     if (end-start > 0) {
       result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr);
-      if (result != TCL_OK) {
+      if (unlikely(result != TCL_OK)) {
 	goto param_error;
       }
     }
@@ -11180,7 +11176,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     result = GetObjectFromObj(interp, paramPtr->slotObj ? paramPtr->slotObj :
 			      NsfGlobalObjs[NSF_METHOD_PARAMETER_SLOT_OBJ],
 			      &paramObject);
-    if (result != TCL_OK) {
+    if (unlikely(result != TCL_OK)) {
       goto param_error;
     }
     if (paramPtr->converterName == NULL) {
@@ -11214,7 +11210,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
         paramPtr->converterName = converterNameObj;
         paramPtr->converter = NULL;
         result = ParamOptionSetConverter(interp, paramPtr, converterNameString, ConvertViaCmd);
-	if (result != TCL_OK) {
+	if (unlikely(result != TCL_OK)) {
 	  if (converterNameObj != paramPtr->converterName) {
 	    DECR_REF_COUNT2("converterNameObj", converterNameObj);
 	  }
@@ -11292,7 +11288,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
   parsedParamPtr->possibleUnknowns = 0;
 
   result = Tcl_ListObjGetElements(interp, paramSpecObjs, &argsc, &argsv);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return NsfPrintError(interp, "cannot break down non-positional args: %s", ObjStr(paramSpecObjs));
   }
 
@@ -11311,7 +11307,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
 				"parameter option \"args\" invalid for parameter \"%s\"; only allowed for last parameter",
 				paramPtr->name);
       }
-      if (result != TCL_OK) {
+      if (unlikely(result != TCL_OK)) {
         ParamsFree(paramsPtr);
         return result;
       }
@@ -11649,7 +11645,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
 			     (Tcl_Namespace *) procPtr->cmdPtr->nsPtr,
 			     (FRAME_IS_PROC));
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     unsigned int dummy;
     result = ByteCompiled(interp, &dummy, procPtr, fullMethodName);
   }
@@ -12284,7 +12280,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 
  forward_process_options_exit:
   /*fprintf(stderr, "forward args = %p, name = '%s'\n", tcd->args, ObjStr(tcd->cmdName));*/
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     *tcdPtr = tcd;
   } else {
     ForwardCmdDeleteProc(tcd);
@@ -12963,7 +12959,7 @@ NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_O
 
   result = NextGetArguments(interp, objc-1, &objv[1], &cscPtr, &methodName,
 			    &nobjc, &nobjv, &freeArgumentVector);
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
   }
   return result;
@@ -13398,7 +13394,7 @@ DoDealloc(Tcl_Interp *interp, NsfObject *object) {
           object->id, object->opt);*/
 
   result = FreeUnsetTraceVariable(interp, object);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
 
@@ -13560,7 +13556,7 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
 					NsfGlobalObjs[NSF_DEFAULTSUPERCLASS], NULL, 0);
 
     if (resultObj) {
-      if (GetClassFromObj(interp, resultObj, &resultClass, 0) != TCL_OK) {
+      if (unlikely(GetClassFromObj(interp, resultObj, &resultClass, 0) != TCL_OK)) {
 	NsfPrintError(interp, "default superclass is not a class");
       }
       /* fprintf(stderr, "DefaultSuperClass for %s got from var %s\n", ClassName(cl), ObjStr(nameObj)); */
@@ -14063,7 +14059,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     result = CallMethod(object, interp, methodObj, objc, objv+2, NSF_CSC_IMMEDIATE);
   }
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     /*
      * Call constructor when needed
      */
@@ -14071,7 +14067,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       result = DispatchInitMethod(interp, object, 0, NULL, 0);
     }
 
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       Tcl_SetObjResult(interp, savedObjResult);
     }
   }
@@ -14469,7 +14465,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 			   RUNTIME_STATE(interp)->doCheckArguments,
 			   &flags, &checkedData, &outObjPtr);
 
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       result = SetInstVar(interp, object, objv[0], outObjPtr);
     }
 
@@ -15332,7 +15328,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST 
   assert(*flags & NSF_PC_MUST_DECR);
 
   result = Tcl_ListObjGetElements(interp, objPtr, &objc, &ov);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
 
@@ -15556,9 +15552,9 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	 */
         if (pPtr->type || (pPtr->flags & NSF_ARG_MULTIVALUED)) {
           int mustDecrList = 0;
-          if (ArgumentCheck(interp, newValue, pPtr,
-			    RUNTIME_STATE(interp)->doCheckArguments,
-			    &mustDecrList, &checkedData, &pcPtr->objv[i]) != TCL_OK) {
+          if (unlikely(ArgumentCheck(interp, newValue, pPtr,
+				     RUNTIME_STATE(interp)->doCheckArguments,
+				     &mustDecrList, &checkedData, &pcPtr->objv[i]) != TCL_OK)) {
 	    if (mustDecrNewValue) {
 	      DECR_REF_COUNT2("valueObj", newValue);
 	      pcPtr->flags[i] &= ~NSF_PC_MUST_DECR;
@@ -17458,7 +17454,7 @@ cmd colon NsfColonCmd {
 static int
 NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
-  if (!self) {
+  if (unlikely(self == NULL)) {
     return NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
   }
   /* fprintf(stderr, "Colon dispatch %s.%s\n", ObjectName(self), ObjStr(nobjv[0]));*/
