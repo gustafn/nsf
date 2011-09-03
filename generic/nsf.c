@@ -1673,17 +1673,11 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
  */
 
 enum colors { WHITE, GRAY, BLACK };
-
-static NsfClasses *
-Super(NsfClass *cl) { return cl->super; }
-
-static NsfClasses *
-Sub(NsfClass *cl) { return cl->sub; }
+typedef enum { SUPER_CLASSES, SUB_CLASSES } ClassDirection;
 
 static int
-TopoSort(NsfClass *cl, NsfClass *baseClass, NsfClasses *(*next)(NsfClass *)) {
-  /*NsfClasses *sl = (*next)(cl);*/
-  NsfClasses *sl = next == Super ? cl->super : cl->sub;
+TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction) {
+  NsfClasses *sl = direction == SUPER_CLASSES ? cl->super : cl->sub;
   NsfClasses *pl;
 
   /*
@@ -1696,7 +1690,7 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, NsfClasses *(*next)(NsfClass *)) {
   for (; sl; sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
-    if (sc->color == WHITE && !TopoSort(sc, baseClass, next)) {
+    if (sc->color == WHITE && !TopoSort(sc, baseClass, direction)) {
       cl->color = WHITE;
       if (cl == baseClass) {
         register NsfClasses *pc;
@@ -1717,9 +1711,9 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, NsfClasses *(*next)(NsfClass *)) {
   return 1;
 }
 
-static NsfClasses *
-TopoOrder(NsfClass *cl, NsfClasses *(*next)(NsfClass *)) {
-  if (TopoSort(cl, cl, next)) {
+NSF_INLINE static NsfClasses *
+TopoOrder(NsfClass *cl, ClassDirection direction) {
+  if (TopoSort(cl, cl, direction)) {
     return cl->order;
   }
   NsfClassListFree(cl->order);
@@ -1727,9 +1721,9 @@ TopoOrder(NsfClass *cl, NsfClasses *(*next)(NsfClass *)) {
 }
 
 NSF_INLINE static NsfClasses *
-ComputeOrder(NsfClass *cl, NsfClasses *order, NsfClasses *(*direction)(NsfClass *)) {
-  if (likely(order != NULL)) {
-    return order;
+ComputeOrder(NsfClass *cl, ClassDirection direction) {
+  if (likely(cl->order != NULL)) {
+    return cl->order;
   }
   return cl->order = TopoOrder(cl, direction);
 }
@@ -1740,7 +1734,7 @@ FlushPrecedencesOnSubclasses(NsfClass *cl) {
 
   NsfClassListFree(cl->order);
   cl->order = NULL;
-  pc = ComputeOrder(cl, cl->order, Sub);
+  pc = ComputeOrder(cl, SUB_CLASSES);
 
   /*
    * ordering doesn't matter here - we're just using TopoSort
@@ -2258,7 +2252,7 @@ SearchPLMethod(register NsfClasses *pl, CONST char *methodName,
 static NsfClass *
 SearchCMethod(/*@notnull@*/ NsfClass *cl, CONST char *methodName, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod0(ComputeOrder(cl, cl->order, Super), methodName, cmdPtr);
+  return SearchPLMethod0(ComputeOrder(cl, SUPER_CLASSES), methodName, cmdPtr);
 }
 
 /*
@@ -2282,7 +2276,7 @@ static NsfClass *
 SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 		    Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod0(ComputeOrder(cl, cl->order, Super), ObjStr(methodObj), cmdPtr);
+  return SearchPLMethod0(ComputeOrder(cl, SUPER_CLASSES), ObjStr(methodObj), cmdPtr);
 }
 
 /*
@@ -2312,7 +2306,7 @@ SearchComplexCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 
   assert(cl);
 
-  for (pl = ComputeOrder(cl, cl->order, Super); pl;  pl = pl->nextPtr) {
+  for (pl = ComputeOrder(cl, SUPER_CLASSES); pl;  pl = pl->nextPtr) {
     NsfObject *regObject, *defObject;
     Tcl_Command cmd;
 
@@ -5360,7 +5354,7 @@ AssertionCheckInvars(Tcl_Interp *interp, NsfObject *object,
 
   if (result != TCL_ERROR && checkoptions & CHECK_CLINVAR) {
     NsfClasses *clPtr;
-    clPtr = ComputeOrder(object->cl, object->cl->order, Super);
+    clPtr = ComputeOrder(object->cl, SUPER_CLASSES);
     while (clPtr && result != TCL_ERROR) {
       NsfAssertionStore *aStore = (clPtr->cl->opt) ? clPtr->cl->opt->assertions : NULL;
       if (aStore) {
@@ -5513,7 +5507,7 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
     NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
 
     if (mCl) {
-      for (pl = ComputeOrder(mCl, mCl->order, Super); pl; pl = pl->nextPtr) {
+      for (pl = ComputeOrder(mCl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
         if ((pl->cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
           NsfClassOpt *opt = pl->cl->opt;
 
@@ -5588,7 +5582,7 @@ NsfClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *cl,
 			      NsfClasses **classList, NsfClasses **checkList) {
   NsfClasses *pl;
 
-  for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(cl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
     NsfClassOpt *clopt = pl->cl->opt;
     if (clopt && clopt->classmixins) {
       MixinComputeOrderFullList(interp, &clopt->classmixins,
@@ -5671,7 +5665,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
      */
     if (checker == NULL) {
       /* check object->cl hierachy */
-      checker = NsfClassListFind(ComputeOrder(object->cl, object->cl->order, Super), cl);
+      checker = NsfClassListFind(ComputeOrder(object->cl, SUPER_CLASSES), cl);
       /*
        * if checker is set, it was found in the class hierarchy and it is ignored
        */
@@ -6502,7 +6496,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   /*
    * Iterate over the subclass hierarchy.
    */
-  for (clPtr = ComputeOrder(cl, cl->order, Sub); clPtr; clPtr = clPtr->nextPtr) {
+  for (clPtr = ComputeOrder(cl, SUB_CLASSES); clPtr; clPtr = clPtr->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
 
@@ -6629,7 +6623,7 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
     }
   }
 
-  pcl = ComputeOrder(object->cl, object->cl->order, Super);
+  pcl = ComputeOrder(object->cl, SUPER_CLASSES);
   for (; pcl; pcl = pcl->nextPtr) {
     if (withRootClass == 0 && pcl->cl->object.flags & NSF_IS_ROOT_CLASS) {
       continue;
@@ -7160,7 +7154,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
 
   if (!guardAdded) {
     /* search per-class filters */
-    for (pl = ComputeOrder(object->cl, object->cl->order, Super); !guardAdded && pl; pl = pl->nextPtr) {
+    for (pl = ComputeOrder(object->cl, SUPER_CLASSES); !guardAdded && pl; pl = pl->nextPtr) {
       NsfClassOpt *clopt = pl->cl->opt;
       if (clopt) {
         guardAdded = GuardAddFromDefinitionList(dest, filterCmd,
@@ -7318,7 +7312,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   NsfClasses *saved = cl->order, *clPtr, *savePtr;
 
   cl->order = NULL;
-  savePtr = clPtr = ComputeOrder(cl, cl->order, Sub);
+  savePtr = clPtr = ComputeOrder(cl, SUB_CLASSES);
   cl->order = saved;
 
   for ( ; clPtr; clPtr = clPtr->nextPtr) {
@@ -7359,7 +7353,7 @@ FilterRemoveDependentFilterCmds(NsfClass *cl, NsfClass *removeClass) {
     cl, ClassName(cl),
     removeClass, ObjStr(removeClass->object.cmdName));*/
 
-  for (clPtr = ComputeOrder(cl, cl->order, Sub); clPtr; clPtr = clPtr->nextPtr) {
+  for (clPtr = ComputeOrder(cl, SUB_CLASSES); clPtr; clPtr = clPtr->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
       Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
@@ -7491,7 +7485,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
 
     /* if we have a filter class -> search up the inheritance hierarchy*/
     if (fcl) {
-      pl = ComputeOrder(fcl, fcl->order, Super);
+      pl = ComputeOrder(fcl, SUPER_CLASSES);
       if (pl && pl->nextPtr) {
         /* don't search on the start class again */
         pl = pl->nextPtr;
@@ -7548,7 +7542,7 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
     FilterComputeOrderFullList(interp, &object->opt->filters, &filterList);
   }
   /* append per-class filters */
-  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(object->cl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
     NsfClassOpt *clopt = pl->cl->opt;
     if (clopt && clopt->classfilters) {
       FilterComputeOrderFullList(interp, &clopt->classfilters, &filterList);
@@ -7661,7 +7655,7 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   }
 
   /* search per-class filters */
-  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(object->cl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
     NsfClassOpt *opt = pl->cl->opt;
     if (opt && opt->classfilters) {
       if (CmdListFindCmdInList(cmd, opt->classfilters)) {
@@ -7735,7 +7729,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   int reversed = 0;
   int i, j;
 
-  filterCheck = ComputeOrder(cl, cl->order, Super);
+  filterCheck = ComputeOrder(cl, SUPER_CLASSES);
   /*
    * we have to remove all dependent superclass filter referenced
    * by class or one of its subclasses
@@ -7770,7 +7764,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   for (i = 0; i < oc; i++) {
     if (reversed) break;
     for (j = i+1; j < oc; j++) {
-      NsfClasses *dl = ComputeOrder(scl[j], scl[j]->order, Super);
+      NsfClasses *dl = ComputeOrder(scl[j], SUPER_CLASSES);
       if (reversed) break;
       dl = NsfClassListFind(dl, scl[i]);
       if (dl) reversed = 1;
@@ -7812,7 +7806,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   FREE(NsfClass**, scl);
   FlushPrecedencesOnSubclasses(cl);
 
-  if (!ComputeOrder(cl, cl->order, Super)) {
+  if (!ComputeOrder(cl, SUPER_CLASSES)) {
     NsfClasses *l;
     /*
      * cycle in the superclass graph, backtrack
@@ -9385,9 +9379,7 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *methodName) {
   NsfClasses *p;
 
   /*fprintf(stderr, "NsfFindClassMethod %s %s\n", ClassName(cl), methodName);*/
-  if (cl->order == NULL) cl->order = TopoOrder(cl, Super);
-
-  for(p = cl->order; p; p = p->nextPtr) {
+  for(p = ComputeOrder(cl, SUPER_CLASSES); p; p = p->nextPtr) {
     NsfClass *currentClass = p->cl;
     Tcl_Namespace *nsPtr = currentClass->object.nsPtr;
 
@@ -9670,7 +9662,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       /* check for a method inherited from a class */
       NsfClass *currentClass = object->cl;
       if (unlikely(currentClass->order == NULL)) {
-	currentClass->order = TopoOrder(currentClass, Super);
+	currentClass->order = TopoOrder(currentClass, SUPER_CLASSES);
       }
       if (unlikely(flags & NSF_CM_SYSTEM_METHOD)) {
 	NsfClasses *classList = currentClass->order;
@@ -9680,7 +9672,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	for (; classList;  classList = classList->nextPtr) {
 	  if (IsBaseClass(classList->cl)) {break;}
 	}
-	cl = SearchPLMethod(classList, methodName, &cmd, NSF_CMD_CALL_PROTECTED_METHOD);
+	cl = SearchPLMethod(classList, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
       } else {
 	cl = SearchPLMethod(currentClass->order, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
       }
@@ -12550,7 +12542,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr, cscPtr->flags); */
 
   if (!*cmdPtr) {
-    NsfClasses *pl = ComputeOrder(object->cl, object->cl->order, Super);
+    NsfClasses *pl = ComputeOrder(object->cl, SUPER_CLASSES);
     NsfClass *cl = *clPtr;
 
     if (cl) {
@@ -13035,6 +13027,7 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   switch (level) {
   case CALLING_LEVEL: NsfCallStackFindLastInvocation(interp, 1, &framePtr); break;
   case ACTIVE_LEVEL:  NsfCallStackFindActiveFrame(interp,    1, &framePtr); break;
+  default: framePtr = NULL; /* silence compiler */
   }
 
   if (framePtr) {
@@ -14100,7 +14093,7 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) {
   }
 
   /* is the class a subclass of a meta-class? */
-  for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(cl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
     if (HasMetaProperty(pl->cl)) {
       return 1;
     }
@@ -14137,7 +14130,7 @@ IsSubType(NsfClass *subcl, NsfClass *cl) {
   assert(cl && subcl);
 
   if (cl != subcl) {
-    return NsfClassListFind(ComputeOrder(subcl, subcl->order, Super), cl) != NULL;
+    return NsfClassListFind(ComputeOrder(subcl, SUPER_CLASSES), cl) != NULL;
   }
   return 1;
 }
@@ -17025,7 +17018,7 @@ ListSuperclasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClo
   }
 
   if (withClosure) {
-    NsfClasses *pl = ComputeOrder(cl, cl->order, Super);
+    NsfClasses *pl = ComputeOrder(cl, SUPER_CLASSES);
     if (pl) pl=pl->nextPtr;
     rc = AppendMatchingElementsFromClasses(interp, pl, patternString, matchObject);
   } else {
@@ -21456,7 +21449,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
   }
 
   /* append method keys from inheritance order */
-  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(object->cl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr);
     if (!MethodSourceMatches(withSource, pl->cl, NULL)) continue;
     ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType,
@@ -21735,7 +21728,7 @@ NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern
   Tcl_Obj *resultObj;
 
   resultObj = Tcl_NewObj();
-  intrinsic = ComputeOrder(cl, cl->order, Super);
+  intrinsic = ComputeOrder(cl, SUPER_CLASSES);
 
   NsfClassListAddPerClassMixins(interp, cl, &mixinClasses, &checkList);
   for (pl = mixinClasses; pl; pl = pl->nextPtr) {
@@ -22079,7 +22072,7 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
   Tcl_HashTable slotTable;
 
   Tcl_ResetResult(interp);
-  intrinsic = ComputeOrder(class, class->order, Super);
+  intrinsic = ComputeOrder(class, SUPER_CLASSES);
 
   if (withClosure) {
     NsfClasses *checkList = NULL, *mixinClasses = NULL;
@@ -22145,7 +22138,7 @@ NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosure,
   if (withClosure) {
     NsfClasses *saved = class->order, *subclasses;
     class->order = NULL;
-    subclasses = ComputeOrder(class, class->order, Sub);
+    subclasses = ComputeOrder(class, SUB_CLASSES);
     class->order = saved;
     rc = AppendMatchingElementsFromClasses(interp, subclasses ? subclasses->nextPtr : NULL,
 					   patternString, patternObj);
