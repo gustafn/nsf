@@ -95,9 +95,9 @@ namespace eval ::nx::pp {
       scan seek set socket source split stdin stderr stdout string subst switch 
       tell trace unset uplevel update upvar variable vwait while
       package
-      public protected 
+      public protected private
       method alias property forward delete
-      my next new self current
+      my next new self current dispatch
       create init new destroy alloc dealloc
       class superclass mixin filter guard
       methods lookup
