@@ -3429,12 +3429,17 @@ Test run; exit
 
 - nsf.c:
   * added permissable value "private" to flag "-callprotection" for
-    "info lookup method" and "info methods".
+    "info lookup method" and "inbfo methods".
   * extended regression test
+
+- doc:
+  * fixed naming of "attribute" in migration guide
+  * added "private" to migration guide
+  * some textual improvements in migration guide
 
 TODO:
  - private: 
-   * document private in migration guide tutorial
+   * document private in tutorial
 
  - nx: 
    * maybe provide a replacement for -attributes, but without the magic variable.

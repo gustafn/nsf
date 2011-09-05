@@ -102,9 +102,9 @@ in the following respects:
      under arbitrary names for arbitrary objects or classes.
 
    .. NX provides means for _method protection_ (method modifiers
-     +public+ and +protected+). Therefore developers have to define
-     explicitly public interfaces in order to use methods from other
-     objects.
+     +public+, +protected+ and +private+). Therefore developers have
+     to define explicitly public interfaces in order to use methods
+     from other objects.
 
    .. One can  invoke in NX fully qualified methods to invoke 
      methods outside the precedence path.
@@ -179,11 +179,11 @@ in the following respects:
 [width="50%",frame="topbot",options="header,footer",cols="3,>1,>1"]
 |======================
 ||NX|XOTcl
-|Methods for Objects           |18|  51
-|Methods for Classes           |  4|  23
-|Info-methods for Objects  |14|  25
-|Info-methods for Classes  |  7|  24
-|Total                                  | 43|123
+|Methods for Objects           |20|  51
+|Methods for Classes           |  3|  24
+|Info-methods for Objects  |15|  25
+|Info-methods for Classes  |  6|  24
+|Total                                  | 44|124
 |======================
 
 This comparison list compares mostly XOTcl 1 with NX, some features
@@ -220,9 +220,7 @@ Class create Stack {
    # Stack of Things
    #
 
-   :method init {} {
-     set :things ""
-   } 
+   :variable things ""
 
    :public method push {thing} {
       set :things [linsert ${:things} 0 $thing] 
@@ -489,7 +487,7 @@ are summarized in the following table for XOTcl and NX.
 #     method
 #     forward
 #     alias
-#     attribute
+#     property
 #
 # All these methods return method-handles.
 ----------------
@@ -601,11 +599,11 @@ Object create o {
 [[method-protect-example]]
 ==== Method Modifiers and Method Protection
 
-NX supports the three method modifiers +class+, +public+ and
-+protected+. All method modifiers can be written in front of every method
-defining command. The method modifier +class+ is used to denote
-class-specific methods (see above). The concept of method
-protection is new in NX.
+NX supports four method modifiers +class+, +public+, +protected+ and
++private+. All method modifiers can be written in front of every
+method defining command. The method modifier +class+ is used to denote
+class-specific methods (see above). The concept of method protection
+is new in NX.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -616,8 +614,9 @@ protection is new in NX.
 # Method modifiers
 #
 #   "class",
-#   "public", and
-#   "protected"
+#   "public", 
+#   "protected", and
+#   "private"
 #
 # are not available
 ----------------
@@ -626,27 +625,33 @@ protection is new in NX.
 # Method modifiers
 #
 #   "class",
-#   "public", and
+#   "public",
 #   "protected"
 #
 # are applicable for all kinds of method 
 # defining methods:
 #
-#    method, forward, alias, attribute
-
+#    method, forward, alias, property
+#
+# The modifier "private" is available for
+#
+#    method, forward, alias
+#
 Class create C {
   :/method-definiton-method/ ...
   :public /method-definiton-method/ ...
   :protected /method-definiton-method/ ...
+  :private /method-definiton-method/ ...
   :class /method-definiton-method/ ...
-  :protected class /method-definiton-method/ ...
   :public class /method-definiton-method/ ...
+  :protected class /method-definiton-method/ ...
+  :private class /method-definiton-method/ ...
 }
 ----------------
 |======================
 
 XOTcl does not provide method protection. In NX, all methods are
-defined per default as protected. These defaults can be changed by the
+defined per default as protected. This default can be changed by the
 application developer in various ways. The command `::nx::configure
 defaultMethodCallProtection true|false` can be used to set the default
 call protection for scripted methods, forwarder and aliases, while
@@ -654,13 +659,47 @@ call protection for scripted methods, forwarder and aliases, while
 the default protection for properties. The defaults can be overwritten
 also e.g. on a class level.
 
+NX provides means for method hiding via the method modifier
++private+. Hidden methods can be invoked only via +my -local +
+which means: "call the specified method defined in the same
+class/object as the currently executing method". 
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# XOTcl provides no means for method hiding
+----------------
+|[source,tcl]
+----------------
+# Hiding of methods via "private"
+#
+nx::Class create Base {
+  :private method baz {a b} { expr {$a + $b} }
+  :public method foo {a b} { my -local baz $a $b }
+}
+    
+nx::Class create Sub -superclass Base {
+  :public method bar {a b} { my -local baz $a $b }
+  :private method baz {a b} { expr {$a * $b} }
+
+  :create s1
+}
+
+s1 foo 3 4  ;# returns 7
+s1 bar 3 4  ;# returns 12
+s1 baz 3 4  ;# unable to dispatch method 'baz'
+----------------
+|======================
 
 
 [[method-deletion]]
-==== Method and Attribute Deletion
+==== Method and Property Deletion
 
 NX provides an explicit +delete+ method for the deletion of methods
-and attributes.
+and properties.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -673,7 +712,7 @@ and attributes.
 /obj/ proc foo {} {}
 /cls/ instproc foo {} {}
 
-# No support for attribute deletion
+# No support for property deletion
 ----------------
 |[source,tcl]
 ----------------
@@ -682,9 +721,9 @@ and attributes.
 /obj/ delete method /name/
 /cls/ ?class? delete method /name/
 
-# Deletion of Attributes
-/obj/ delete attribute /name/
-/cls/ ?class? delete attribute /name/
+# Deletion of Properties
+/obj/ delete property /name/
+/cls/ ?class? delete property /name/
 ----------------
 |======================
 
@@ -887,7 +926,7 @@ Class create C {
 ----------------
 # Set instance variable of object obj to a 
 # value via resolver 
-# (preferred way: define attribute on obj)
+# (preferred way: define property on obj)
 
 /obj/ eval [list set /:varName/ ?value?]
 ----------------
@@ -939,32 +978,138 @@ set /varName/ [/obj/ eval {set /:otherVar/}]
 === Parameters
 
 While XOTcl 1 had very limited forms of parameters, XOTcl 2 and NX
-provide a generalized and highly orthogonal parameter handling with
-various kinds of value constraints (also called value checker). We
-divide the parameters into _Object Parameters_ (parameters used for
-initializing objects and classes, specified in XOTcl primarily via the
-method +parameter+) and _Method Parameters_ (parameters passed to
-methods). The Next Scripting Framework provide a unified,
-C-implemented infrastructure to handle both, object and method
-parameters.
+provide a generalized and highly orthogonal parameter machinery
+handling various kinds of value constraints (also called value
+checkers). Parameters are used to specify, 
 
-Furthermore, the Next Scripting Framework provides
+- how objects and classes are initialized (we call these parameter types
+   _Object Parameters_), and
+- what values can be passed to methods (we call these _Method
+   Parameters_).
 
-- unified parameter checking (for object and method parameters) and 
-- return value checking
+Furthermore, parameters might be positional or non-positional, they
+might be optional or required, they might have a defined multiplicity,
+and value-types, they might be introspected, etc. The Next Scripting
+Framework provide a unified, C-implemented infrastructure to handle
+both, object and method parameters in the same way with a high degree
+of orthogonality.
 
-based on the same mechanisms.
+Object Parameters were specified in XOTcl 1 primarily via the method
++parameter+ in a rather limited way, XOTcl 1 only supported
+non-positional parameters in front of positional ones, there were no
+value constraints for positional parameters, no distinction between
+optional and required, or multiplicity.
 
-==== Object Parameters
+Furthermore, the Next Scripting Framework provides optionally _Return
+Value Checking_ based on the same mechanism to check whether some
+methods return always the values as specified.
 
-Object parameters are used for specifying, how objects should be
-initialized (what parameters can be passed in for initialization, what
-default values are provided, etc.).  Object parameters are supported
-in XOTcl primarily via the method +parameter+, which is used to define
-multiple parameters via a list of parameter specifications. Since the
-term "parameter" is underspecified, NX uses the term "attribute". To
-define multiple attributes in a short form, NX provides the method
-+attributes+.
+==== Instance Variables and Object Parameters
+
+Object parameters are used for specifying, how objects are
+initialized (i.e. how instance variables are initialized, what
+parameters can be passed in for initialization, what default values
+are used, etc.).  Object parameters are supported in XOTcl primarily
+via the method +parameter+, which is used in XOTcl to define multiple
+parameters via a list of parameter specifications. Since the term
+"parameter" is underspecified, NX uses a more differentiated
+terminology. NX distinguishes between instance variables with
+accessors (also called properties) and instance variables without
+accessors. To define a property, NX uses the method +property+, to
+define an instance variable without accessor, it uses the method
++variable+.  To define multiple properties in a short form (similar to
+XOTcl's +parameter+), NX provides the method +properties+.
+
+In a first step, we show the initialization of instance variables
+without accessors (using +variable+ in NX), and then the definition of 
+instance variables with accessors (using +property+).
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# Define that instances of the class have 
+# a instance variables "x" and "y" initialized
+# with some values
+
+Class Foo
+Foo instproc init args {
+   instvar x y
+   set x 1
+   set y 2
+}
+
+# Create instance of the class Foo
+Foo f1
+
+# Object f1 has instance variables 
+# x == 1 and y == 2
+----------------
+|[source,tcl]
+----------------
+
+# The method "variable" is similar in syntax 
+# to Tcl's "variable" command. During object 
+# creation, the definition are used for the 
+# initialization of the object.
+
+Class create Foo {
+  :variable x 1
+  :variable y 2
+}
+
+# Create instance of the class Foo
+Foo create f1
+
+# Object f1 has instance variables 
+# x == 1 and y == 2
+----------------
+|======================
+
+While XOTcl follows a procedural way to initialize variables via the
+constructor +init+, NX follows a more declarative approach. Note, that
+the variable definitions are inherited from superclasses, which is
+straightforward in NX, while in XOTcl, the constructor has to call
+explicitly the constructor of its superclasses.
+
+It is certainly as well possible to use constructors in NX in the same
+way as in XOTcl.
+
+NX uses the same mechanism to define class variables or object
+variables.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# No syntactic support for creating 
+# class variables
+----------------
+|[source,tcl]
+----------------
+
+# Define a class variable "V" with value 100 and
+# an instance variable "x". "class variable" works 
+# similar to "class method".
+
+Class create Foo {
+  :class variable V 100
+  :variable x 1
+}
+----------------
+|======================
+
+In the next step, we define properties, i.e. variables with accessors.
+
+XOTcl uses the method +parameter+ is a shortcut for creating multiple
+properties. For every parameter definition, XOTcl creates as well a
+slot object, keeping an extensible set of meta-data for every
+parameter.  Slot objects can be as well created in XOTcl directly via
+the method +slots+. NX provides a similar method named +properties+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -980,7 +1125,8 @@ Class Foo -parameter {a {b 1}}
 # Create instance of the class Foo
 Foo f1 -a 0
 
-# Object f1 has a == 0 and b == 1
+# Object f1 has instance variables 
+# a == 0 and b == 1
 ----------------
 |[source,tcl]
 ----------------
@@ -988,24 +1134,23 @@ Foo f1 -a 0
 # (short form); "a" has no default, 
 # "b" has default "1"
 
-Class create Foo -attributes {a {b 1}}
+Class create Foo -properties {a {b 1}}
 
 # Create instance of the class Foo
 Foo create f1 -a 0
 
-# Object f1 has a == 0 and b == 1
+# Object f1 has instance variables 
+# a == 0 and b == 1
 ----------------
 |======================
 
-In XOTcl the method +parameter+ is a shortcut for creating multiple
-slot objects. Slot objects can be as well created in XOTcl directly
-via the method +slots+ to provide a much richer set of
-meta-data for every attribute. 
-
-To make the definition of attributes more orthogonal, NX uses the
-method +attribute+ which can be used as well on the class and on the
-object level. When an attribute is created, NX does actually three
-things:
+Since every property defines a slot object, NX provides as well a
+scripted initialization for every slot object. Therefore, NX uses
++property+ to define a single property, similar in syntax to method
+parameters (a braced pair to denote a variable with a default).  The
+method +property+ can be used in NX on the class and on the object
+level (in XOTcl: just on the class level). When an property is
+created, NX does actually three things:
 
 . Create a slot object, which can be specified in more detail
   using the init-block of the slot object
@@ -1015,41 +1160,62 @@ things:
 . register an accessor function (setter), for wich the usual
   protection levels (+public+ or +protected+) can be used.
 
+The method +variable+ in NX is similar to +property+, but it creates
+only slot objects in cases where needed, and it does not provide
+object parameters or accessors.
+
+We show first the definition of properties simliar to the
+functionality provided as well by XOTcl and show afterwards how to use
+value constraints, optional parameters, etc. in NX.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
 
 |[source,tcl]
 ----------------
-# Object parameter specified via slots
+# Object parameters specified via slots
 
 Class Foo -slots {
    Attribute a
    Attribute b -default 1
 }
 
-# Create instance of the class Foo
+# Create instance of the class Foo and
+# provide a value for instance variable "a"
 Foo f1 -a 0
 
 # Object f1 has a == 0 and b == 1
 
+# Use the setter to alter instance variable "b"
+f1 b 100
+
+# Use the accessor to output the value
+puts [f1 b]
 ----------------
 
 |[source,tcl]
 ----------------
-# Object parameter specified via attribute 
-# methods (supports method modifiers and 
-# scripted configuration)
+# Object parameters specified via the method 
+# "property" (supports method modifiers and 
+# scripted configuration; see below)
 
 Class create Foo {
    :property a
    :property {b 1}
 }
 
-# Create instance of the class Foo
+# Create instance of the class Foo and
+# provide a value for instance variable "a"
 Foo create f1 -a 0
 
 # Object f1 has a == 0 and b == 1
+
+# Use the setter to alter instance variable "b"
+f1 b 100
+
+# Use the accessor to output the value
+puts [f1 b]
 ----------------
 
 
@@ -1060,17 +1226,17 @@ Foo create f1 -a 0
 
 |[source,tcl]
 ----------------
-# Define object parameter at the class 
-# and object level
+# Define a class property and an object
+# property
 
 Class create C {
   :property x
   :property {y 1}
-  :class attribute oa1
+  :class property cp
 }
 
 Object create o {
-  :property oa2
+  :property op
 }
 ----------------
 
@@ -1097,8 +1263,8 @@ Class Person -slots {
 |[source,tcl]
 ----------------
 # Object parameter with scripted 
-# definition (init-block), defining an 
-# attribute specific type checker
+# definition (init-block), defining a
+# property specific type checker
 
 Class create Person {
   :property sex {
@@ -1123,7 +1289,6 @@ for non-positional arguments).
 NX supports _value constraints_ (value-checkers) for object and method
 parameters in an orthogonal manner. NX provides a predefined set of
 value checkers, which can be extended by the application developer.
-
 In NX, the _value checking is optional_. This means that it is possible to
 develop e.g. which a large amount of value-checking and deploy the
 script with value checking turned off, if the script is highly
@@ -1150,11 +1315,11 @@ performance sensitive.
 # All parameter value checkers can be turned on 
 # and off.
 #
-# Define a boolean attribute and an integer 
-# attribute with a default firstly via "attributes", 
-# then with multiple "attribute"  statements.
+# Define a boolean property and an integer 
+# property with a default firstly via "properties", 
+# then with multiple "property"  statements.
 
-Class create Foo -attributes {
+Class create Foo -properties {
    a:boolean
    {b:integer 1}
 }
@@ -1171,10 +1336,11 @@ Class create Foo {
 In XOTcl all object parameters were _optional_. Required parameters have
 to be passed to the constructor of the object.
 
-NX allows to define _optional_ and _required_ object
-attributes. Therefore, object parameters can be used as the single
-mechanism to parameterize objects. The constructors do not require any
-parameters.
+NX allows to define _optional_ and _required_ object parameters (as
+well as method parameters). Therefore, object parameters can be used
+as the single mechanism to parameterize objects. It is in NX not
+necessary (and per default not possible) to pass arguments to the
+constructor.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1187,10 +1353,10 @@ parameters.
 |[source,tcl]
 ----------------
 # Required parameter:
-# Define a required attribute "a" and a 
-# required boolean attribute "b"
+# Define a required property "a" and a 
+# required boolean property "b"
 
-Class create Foo -attributes {
+Class create Foo -properties {
    a:required
    b:boolean,required
 }
@@ -1222,11 +1388,14 @@ every specified value, the value checkers are applied.
 |[source,tcl]
 ----------------
 # Parameter with multiplicity
+#   ints is a list of integers, with default
+#   objs is a non-empty list of objects
+#   obj is a single object, maybe empty
 
-Class create Foo -attributes {
-  {ints:integer,0..n ""} ;# list of integers, with default
-   objs:object,1..n       ;# non-empty list of objects
-   obj:object,0..1        ;# single object, maybe empty
+Class create Foo -properties {
+  {ints:integer,0..n ""}
+   objs:object,1..n
+   obj:object,0..1
 }
 ----------------
 [source,tcl]
@@ -1245,7 +1414,7 @@ instances can be introspected via +/cls/ info parameter+ (see
 
 ==== Method Parameters
 
-Method paramters are used to sepcify the interface of a single method
+Method parameters are used to specify the interface of a single method
 (what kind of values may be passed to a method, what default values
 are provided etc.).  The method parameters specifications in XOTcl 1
 were limited and allowed only value constraints for non positional
@@ -1312,17 +1481,17 @@ Class create C {
   # positional parameters with value constraints
   :public method m2 {a:integer b:boolean} {
     #...
-  } 
+  }
 
   # optional positional parameter (trailing)
   :public method set {varName value:optional} {
     # ....
-   } 
+  }
 
   # parameter with multiplicity
   :public method m3 {-objs:object,1..n c:class,0..1} {
     # ...
-   } 
+  } 
 
   # In general, the same list of value 
   # constraints as for object parameter is 
@@ -1337,10 +1506,11 @@ Class create C {
 
 ==== Return Value Checking
 
-_Return value checking_ is a functionality that was not yet available in
-XOTcl 1. A return value checker assures that a method returns always a
-value satisfying some value constraints. Return value checkers can be defined on
-all forms of methods (scripted or C-implemented). Like for other value
+_Return value checking_ is a functionality available in the Next
+Scripting Framework, that was not yet available in XOTcl 1. A return
+value checker assures that a method returns always a value satisfying
+some value constraints. Return value checkers can be defined on all
+forms of methods (scripted or C-implemented). Like for other value
 checkers, return value checkers can be turned on and off.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -1731,7 +1901,9 @@ appropriate depending on the context.
 
 |[source,tcl]
 ----------------
-/obj\|cls/ info [inst](commands\|procs\|parametercmd) ?pattern?
+/obj\|cls/ info \
+   [inst](commands\|procs\|parametercmd) \
+   ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1740,7 +1912,9 @@ appropriate depending on the context.
 ----------------
 |[source,tcl]
 ----------------
-/obj\|cls/ info [inst](commands\|procs\|parametercmd) ?pattern?
+/obj\|cls/ info \
+   [inst](commands\|procs\|parametercmd) \
+   ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -2627,7 +2801,7 @@ protection via the method modifiers `protected` and `public`. A
 protected method can be only called from an object of that class,
 while public methods can be called from every object. The method
 protection can be used to every kind of method, such as e.g. scripted
-methods, aliases, forwarders, or attributes. For invocations,
+methods, aliases, forwarders, or accessors. For invocations,
 the most specific definition (might be a mixin) is used for
 determining the protection.
 
