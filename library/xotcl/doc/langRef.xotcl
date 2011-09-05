@@ -5,6 +5,20 @@ package require XOTcl
 namespace eval ::xotcl {}
 namespace import -force ::xotcl::@
 
+# catch {
+# @ XXX x x
+# } msg
+
+# puts stderr $::errorInfo
+if {$::tcl_version >= 8.6} {
+  #
+  # Without this [namespace which] (or any other [namespace *]
+  # command, the previously ::nxdoc::@ is called, rather than the
+  # imported ::xotcl::@?!?!
+  #
+  namespace which @
+}
+
 @ @File {
   description {
     XOTcl language reference. Describes predefined objects and classes.
