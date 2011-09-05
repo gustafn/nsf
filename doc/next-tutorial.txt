@@ -1373,47 +1373,47 @@ The Next Scripting Framework allows to add, query, delete and list unknown handl
 [bibliography]
 .References
 
-- [[[Neumann and Sobernig 2009]] Gustaf Neumann, Stefan Sobernig: XOTcl 2.0 - A Ten-Year Retrospective and Outlook, in: Proceedings of the Sixteenth Annual Tcl/Tk Conference, Portland, Oregon, October, 2009
+- [[Neumann and Sobernig 2009]] Gustaf Neumann, Stefan Sobernig: XOTcl 2.0 - A Ten-Year Retrospective and Outlook, in: Proceedings of the Sixteenth Annual Tcl/Tk Conference, Portland, Oregon, October, 2009
 
-- [[[Zdun, Strembeck, Neumann 2007]]] U. Zdun, M. Strembeck, G. Neumann:
+- [[Zdun, Strembeck, Neumann 2007]] U. Zdun, M. Strembeck, G. Neumann:
   Object-Based and Class-Based Composition of Transitive Mixins,
   Information and Software Technology, 49(8) 2007 .
 
-- [[[Neumann and Zdun 1999a]]] G. Neumann and U. Zdun. Filters as a
+- [[Neumann and Zdun 1999a]] G. Neumann and U. Zdun: Filters as a
    language support for design patterns in object-oriented scripting
    languages. In Proceedings of COOTS'99, 5th Conference on
    Object-Oriented Technologies and Systems, San Diego, May 1999.
 
-- [[[Neumann and Zdun 1999b]]] G. Neumann and U. Zdun. Implementing
+- [[Neumann and Zdun 1999b]] G. Neumann and U. Zdun: Implementing
    object-specific design patterns using per-object mixins. In Proc. of
    NOSA`99, Second Nordic Workshop on Software Architecture, Ronneby,
    Sweden, August 1999.
 
-- [[[Neumann and Zdun 1999c]]] G. Neumann and U. Zdun. Enhancing
+- [[Neumann and Zdun 1999c]] G. Neumann and U. Zdun: Enhancing
    object-based system composition through per-object mixins. In
    Proceedings of Asia-Pacific Software Engineering Conference (APSEC),
    Takamatsu, Japan, December 1999.
 
-- [[[Neumann and Zdun 2000a]]] G. Neumann and U. Zdun. XOTCL, an
+- [[Neumann and Zdun 2000a]] G. Neumann and U. Zdun: XOTCL, an
    object-oriented scripting language. In Proceedings of Tcl2k: The
    7th USENIX Tcl/Tk Conference, Austin, Texas, February 2000.
 
-- [[[Neumann and Zdun 2000b]]] G. Neumann and U. Zdun. Towards the Usage
+- [[Neumann and Zdun 2000b]] G. Neumann and U. Zdun: Towards the Usage
    of Dynamic Object Aggregations as a Form of Composition In:
    Proceedings of Symposium of Applied Computing (SAC'00), Como,
    Italy, Mar 19-21, 2000.
 
-- [[[Neumann and Sobernig 2009]]] G. Neumann, S. Sobernig: XOTcl 2.0 - A
+- [[Neumann and Sobernig 2009]] G. Neumann, S. Sobernig: XOTcl 2.0 - A
    Ten-Year Retrospective and Outlook, in: Proceedings of the Sixteenth
    Annual Tcl/Tk Conference, Portland, Oregon, October, 2009.
 
-- [[[Ousterhout 1990]]] J. K. Ousterhout. Tcl: An embeddable command
+- [[Ousterhout 1990]] J. K. Ousterhout: Tcl: An embeddable command
    language. In Proc. of the 1990 Winter USENIX Conference, January 1990.
 
-- [[[Ousterhout 1998]]] J. K. Ousterhout. Scripting: Higher Level
+- [[Ousterhout 1998]] J. K. Ousterhout: Scripting: Higher Level
    Programming for the 21st Century, IEEE Computer 31(3), March 1998.
 
-- [[[Wetherall and Lindblad 1995]]] D. Wetherall and C. J. Lindblad. Extending Tcl for
+- [[Wetherall and Lindblad 1995]] D. Wetherall and C. J. Lindblad: Extending Tcl for
    Dynamic Object-Oriented Programming. Proc. of the Tcl/Tk Workshop '95,
    July 1995.
 
