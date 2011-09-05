@@ -3437,12 +3437,19 @@ Test run; exit
   * added "private" to migration guide
   * some textual improvements in migration guide
 
+ - nx: 
+  * added namespace "nx::internal"
+  * delete procs via "rename to emtpy" instead of 
+    "defining procs with empty argumentes and body"
+  * provided "-properties" as a replacement for -attributes, 
+    but without magic variable
+  * extended regression test
+
 TODO:
  - private: 
    * document private in tutorial
 
- - nx: 
-   * maybe provide a replacement for -attributes, but without the magic variable.
+
 
  - naming of slot classes 
    * should we switch from "-class" to "-slotclass"?

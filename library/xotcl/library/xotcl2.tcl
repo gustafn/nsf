@@ -430,7 +430,8 @@ namespace eval ::xotcl {
 	-elementtype filterreg -multiplicity 0..n
   }
   register_system_slots ::xotcl
-  proc ::xotcl::register_system_slots {} {}
+  # remove temporary proc
+  rename register_system_slots ""
 
   ########################
   # Info definition
@@ -741,8 +742,8 @@ namespace eval ::xotcl {
   }
 
   # define "info info"
-  objectInfo method info {} {::nx::infoOptions ::xotcl::objectInfo}
-  classInfo  method info {} {::nx::infoOptions ::xotcl::classInfo}
+  objectInfo method info {} {::nx::internal::infoOptions ::xotcl::objectInfo}
+  classInfo  method info {} {::nx::internal::infoOptions ::xotcl::classInfo}
 
   # define "info unknown"
   objectInfo proc unknown {method args} {

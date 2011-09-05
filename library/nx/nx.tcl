@@ -4,6 +4,7 @@ package require nsf
 namespace eval ::nx {
   namespace eval ::nsf {}; # make pkg indexer happy
   namespace eval ::nsf::object {}; # make pkg indexer happy
+  namespace eval ::nx::internal {}; # make pkg indexer happy
 
   #
   # By setting the variable bootstrap, we can check later, whether we
@@ -416,10 +417,10 @@ namespace eval ::nx {
   }
 
   #
-  # The function nx::setSlotContainerProperties set the method
+  # The function nx::internal::setSlotContainerProperties set the method
   # properties for slot containers
   #
-  proc ::nx::setSlotContainerProperties {baseObject containerName} {
+  proc ::nx::internal::setSlotContainerProperties {baseObject containerName} {
     set slotContainer ${baseObject}::$containerName
     $slotContainer ::nsf::methods::object::requirenamespace
     ::nsf::method::property $baseObject -per-object $containerName call-protected true
@@ -434,12 +435,12 @@ namespace eval ::nx {
   # slotContainer (when no slot name was provided) or the fully
   # qualified name of the slot object.
   #
-  nsf::proc ::nx::slotObj {{-container slot} baseObject name:optional} {
+  ::nsf::proc ::nx::slotObj {{-container slot} baseObject name:optional} {
     # Create slot container object if needed
     set slotContainer ${baseObject}::$container
     if {![::nsf::object::exists $slotContainer]} {
       ::nx::Object ::nsf::methods::class::alloc $slotContainer
-      ::nx::setSlotContainerProperties $baseObject $container
+      ::nx::internal::setSlotContainerProperties $baseObject $container
     }
     if {[info exists name]} {
       return ${slotContainer}::$name
@@ -703,7 +704,7 @@ namespace eval ::nx {
   # Define "info info" and "info unknown"
   ######################################################################
   
-  proc ::nx::infoOptions {obj} {
+  proc ::nx::internal::infoOptions {obj} {
     #puts stderr "INFO INFO $obj -> '[::nsf::directdispatch $obj ::nsf::methods::object::info::methods -methodtype all]'"
     set methods [list]
     foreach name [::nsf::directdispatch $obj ::nsf::methods::object::info::methods] {
@@ -717,8 +718,8 @@ namespace eval ::nx {
     error "[::nsf::self] unknown info option \"$method\"; [$obj info info]"
   }
 
-  Object method "info info" {} {::nx::infoOptions ::nx::Object::slot::__info}
-  Class  method "info info" {} {::nx::infoOptions ::nx::Class::slot::__info}
+  Object method "info info" {} {::nx::internal::infoOptions ::nx::Object::slot::__info}
+  Class  method "info info" {} {::nx::internal::infoOptions ::nx::Class::slot::__info}
   
   # finally register method "method" (otherwise, we cannot use "method" above)
   Object alias "info method" ::nsf::methods::object::info::method
@@ -926,8 +927,9 @@ namespace eval ::nx {
   # value checkers
   MethodParameterSlot create ::nx::methodParameterSlot
   
-  # use low level interface for defining slot values. Normally, this is
-  # done via slot objects, which are defined later.
+  # Define a temporary, low level interface for defining slot
+  # values. Normally, this is done via slot objects, which are defined
+  # later. The proc is removed later in this script.
 
   proc createBootstrapVariableSlots {class definitions} {
     foreach att $definitions {
@@ -1318,6 +1320,9 @@ namespace eval ::nx {
   # Register system slots
   ######################################################################
 
+  # Define a temporary, low level interface for defining system slots.
+  # The proc is removed later in this script.
+
   proc register_system_slots {os} {
     #
     # Most system slots are RelationSlots
@@ -1342,9 +1347,8 @@ namespace eval ::nx {
 	-methodname "::nsf::classes::nx::Object::filter" -elementtype filterreg
 
     #
-    # Create object parameter slots for "attributes", "noninit" and "volatile"
+    # Create object parameter slots for "noninit" and "volatile"
     #
-    #::nx::ObjectParameterSlot create ${os}::Class::slot::attributes
     ::nx::ObjectParameterSlot create ${os}::Object::slot::noinit \
 	-methodname ::nsf::methods::object::noinit -noarg true
     ::nx::ObjectParameterSlot create ${os}::Object::slot::volatile -noarg true
@@ -1423,7 +1427,9 @@ namespace eval ::nx {
 
 
   register_system_slots ::nx
-  proc ::nx::register_system_slots {} {}
+
+  # remove helper proc
+  rename register_system_slots ""
   
   #
   # With a special purpose eval, we could avoid the need for
@@ -1822,27 +1828,16 @@ namespace eval ::nx {
 
 
   ######################################################################
-  # Define method "attributes" for convenience to define multiple
-  # attributes based on a list of parameter specifications.
+  # Define method "properties" for convenience to define multiple
+  # properties based on a list of parameter specifications.
   ######################################################################
 
-  # Class public method attributes arglist {
-  #   set slotContainer [::nx::slotObj [::nsf::self]]
-  #   foreach arg $arglist {
-  #     [self] ::nsf::classes::nx::Class::property $arg
-  #   }
-  #   ::nsf::var::set $slotContainer __parameter $arglist
-  # }
+  proc ::nx::internal::addProperties {arglist} {
+    foreach arg $arglist {:property $arg}
+  }
+  ::nx::ObjectParameterSlot create ::nx::Class::slot::properties \
+      -methodname "::nx::internal::addProperties"
 
-  # Class method "info attributes" {} {
-  #   set slotContainer [::nx::slotObj [::nsf::self]]
-  #   if {[::nsf::var::exists $slotContainer __parameter]} {
-  #     return [::nsf::var::set $slotContainer __parameter]
-  #   }
-  #   return ""
-  # }
-
-  
   ######################################################################
   # Minimal definition of a value checker that permits every value
   # without warnings. The primary purpose of this value checker is to
@@ -1859,8 +1854,7 @@ namespace eval ::nx {
   ######################################################################
 
   # remove helper proc
-  proc createBootstrapVariableSlots {} {}
-
+  rename ::nx::createBootstrapVariableSlots ""
 
   ######################################################################
   # Create a mixin class to overload method "new" such it does not
@@ -2030,7 +2024,7 @@ namespace eval ::nx {
 	if {[::nsf::object::exists $base] 
 	    && [::nsf::method::property $base -per-object $container slotcontainer]
 	  } {
-	  ::nx::setSlotContainerProperties [$dest ::nsf::methods::object::info::parent] $container
+	  ::nx::internal::setSlotContainerProperties [$dest ::nsf::methods::object::info::parent] $container
 	}
 
 	#

@@ -322,7 +322,7 @@ nx::Test case slots {
     :method "sub foo" args {;}
   }
 
-  ? {D info lookup slots} "::D::per-object-slot::a2 ::nx::Class::slot::superclass ::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::__initcmd ::nx::Object::slot::class"
+  ? {D info lookup slots} "::D::per-object-slot::a2 ::nx::Class::slot::properties ::nx::Class::slot::superclass ::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::__initcmd ::nx::Object::slot::class"
 
   C create c1
   ? {c1 info precedence} "::C ::nx::Object"

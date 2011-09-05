@@ -1199,16 +1199,6 @@ Test case slot-optimizer {
   ? {c1 a 1} 1
   ? {c1 b 1} 1
   ? {c1 c 1} 1
-
-  # before: 1st case: setter, 2&3: forward
-  #slot-optimizer.001:	  1.50 mms, c1 a 1
-  #slot-optimizer.002:	  3.30 mms, c1 b 1
-  #slot-optimizer.003:	  3.40 mms, c1 c 1
-  #
-  # after: 1st, 2nd, 3rd case: setter 
-  #slot-optimizer.001:	  1.50 mms, c1 a 1
-  #slot-optimizer.002:	  1.50 mms, c1 b 1
-  #slot-optimizer.003:	  1.60 mms, c1 c 1
 }
 
 Test parameter count 10
@@ -2237,5 +2227,39 @@ Test case object-info-slots-types {
   ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p2 ::o2::per-object-slot::p3"
   ? {o2 info slot definition} "{p0:noconfig 200} {p1:noaccessor,noconfig 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
   ? {o2 info properties} "{p0:noconfig 200} {p1:noaccessor,noconfig 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+
+}
+
+#
+# testing method properties
+#
+nx::Test case properties {
+
+  # simple properties
+  Class create Foo -properties {a {b 1}}
+  
+  ? {Foo info properties} "a {b 1}"
+
+  # properties with value checker
+  Class create Foo -properties {
+    a:boolean
+    {b:integer 1}
+  }
+  ? {Foo info properties} "a:boolean {b:integer 1}"
+
+  # required/optional properties
+  Class create Foo -properties {
+    a:required
+    b:boolean,required
+  }  
+  ? {Foo info properties} "a:required b:boolean,required"
+
+  # properties with multiplicity
+  Class create Foo -properties {
+    {ints:integer,0..n ""}
+    objs:object,1..n
+    obj:object,0..1
+  }
+  ? {Foo info properties} "objs:object,1..n {ints:integer,0..n {}} obj:object,0..1"
 
 }
