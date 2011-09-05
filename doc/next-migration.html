@@ -736,7 +736,7 @@ incompatibilities beween XOTcl 1 and XOTcl 2.</p></div>
 </div></div>
 <div class="paragraph"><p>The Next Scripting Language (NX) is a successor of XOTcl 1 and is
 based on 10 years of experience with XOTcl in projects containing
-several hundert thousand lines of code.  While XOTcl was the first
+several hundert thousand lines of code. While XOTcl was the first
 language designed to provide language support for design patterns, the
 focus of the Next Scripting Framework and NX are on combining this
 with Language Oriented Programming. In many respects, NX was designed
@@ -751,7 +751,7 @@ which was developed based on the notion of language oriented
 programming. The Next Scripting Frameworks provides C-level support
 for defining and hosting multiple object systems in a single Tcl
 interpreter. The whole definition of NX is fully scripted
-(e.g. defined in <tt>nx.tcl</tt>).  The Next Scripting Framework is shipped
+(e.g. defined in <tt>nx.tcl</tt>). The Next Scripting Framework is shipped
 with three language definitions, containing NX and XOTcl 2.  Most of
 the existing XOTcl 1 programs can be used without modification in the
 Next Scripting Framework by using XOTcl 2. The Next Scripting
@@ -817,7 +817,7 @@ in the following respects:</p></div>
 <div class="olist loweralpha"><ol class="loweralpha">
 <li>
 <p>
-It is possible to use  NX <tt>alias</tt> to register methods
+It is possible to use NX <tt>alias</tt> to register methods
      under arbitrary names for arbitrary objects or classes.
 </p>
 </li>
@@ -831,7 +831,7 @@ NX provides means for <em>method protection</em> (method modifiers
 </li>
 <li>
 <p>
-One can  invoke in NX fully qualified methods to invoke
+One can invoke in NX fully qualified methods to invoke
      methods outside the precedence path.
 </p>
 </li>
@@ -846,7 +846,7 @@ One can define in NX <em>hierachical method names</em> (similar to
 <li>
 <p>
 One can use in NX the same interface to query (introspect)
-    C-implemented and  scripted methods/commands.
+    C-implemented and scripted methods/commands.
 </p>
 </li>
 </ol></div>
@@ -1862,7 +1862,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-comment'># XOTcl provides only method deletion with
-</span><span class='nx-comment'># the equivalent of  Tcl's "proc foo {} {}"
+</span><span class='nx-comment'># the equivalent of Tcl's "proc foo {} {}"
 </span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>proc</span> foo {} {}
 <span class='nx-placeholder'>/cls/</span> instproc foo {} {}
 
@@ -1987,7 +1987,7 @@ Import instance variables via <tt>instvar</tt> and access variables via <tt>$var
 </li>
 <li>
 <p>
-Set or get instance  variables via <tt>my set varName ?value?</tt> or other
+Set or get instance variables via <tt>my set varName ?value?</tt> or other
    variable accessing methods registered on <tt>xotcl::Object</tt> such as
    <tt>append</tt>, <tt>lappend</tt>, <tt>incr</tt>, etc.
 </p>
@@ -1995,7 +1995,7 @@ Set or get instance  variables via <tt>my set varName ?value?</tt> or other
 <li>
 <p>
 Register same-named accessor functions and set/get values
-   of instance variables via  <tt>my varName ?value?</tt>
+   of instance variables via <tt>my varName ?value?</tt>
 </p>
 </li>
 </ul></div>
@@ -2896,8 +2896,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-comment'># Predefined value constraints:
 </span><span class='nx-comment'>#    object, class, alnum, alpha, ascii, boolean,
-</span><span class='nx-comment'>#    control,  digit, double, false, graph, integer,
-</span><span class='nx-comment'>#    lower, parameter, print, punct,  space, true,
+</span><span class='nx-comment'>#    control, digit, double, false, graph, integer,
+</span><span class='nx-comment'>#    lower, parameter, print, punct, space, true,
 </span><span class='nx-comment'>#    upper, wordchar, xdigit
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># User defined value constraints are possible.
@@ -2906,7 +2906,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># Define a boolean property and an integer
 </span><span class='nx-comment'># property with a default firstly via "properties",
-</span><span class='nx-comment'># then with multiple "property"  statements.
+</span><span class='nx-comment'># then with multiple "property" statements.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -properties {
    a:boolean
@@ -4391,7 +4391,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># -source might be all|application|baseclasses
 </span><span class='nx-comment'># -type is the class of the slot object
 </span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots ?-type ...? ?-<span class='nx-keyword'>source</span> ... <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots <span class='nx-placeholder'>?-type ...?</span> ?-<span class='nx-keyword'>source</span> ... <span class='nx-placeholder'>?pattern?</span>
 
 <span class='nx-comment'># Returns list of slot objects</span></pre></div></div></div></td>
 </tr>
@@ -4952,7 +4952,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <tt>class</tt> as shown in examples above.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_list_slots">2.6.9. List Slots</h4>
+<h4 id="_list_slots_and_their_definitions">2.6.9. List Slots and their definitions</h4>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -4991,16 +4991,116 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Return  list of slots objects defined on the
+<pre class='nx'><span class='nx-comment'># Return list of slots objects defined on the
 </span><span class='nx-comment'># object or class
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># -source might be all|application|baseclasses
 </span><span class='nx-comment'># -type is the class of the slot object
 </span><span class='nx-comment'># -closure includes slots of superclasses
 </span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> slots ?-type ...? <span class='nx-placeholder'>?pattern?</span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>info</span> slots ?-type ...? <span class='nx-placeholder'>?pattern?</span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slots ?-type ...? ?-<span class='nx-keyword'>source</span> ...? <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> slot objects <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>info</span> slot objects <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot objects \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+</tr>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># List definition of slots
+</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> slot definition \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>info</span> slot definition \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot definition \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+</tr>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># List names of slots
+</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> slot names \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>info</span> slot names \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot names \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+</tr>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># List reachable slot objects defined for obj
+</span><span class='nx-comment'># -source might be all|application|baseclasses
+</span><span class='nx-comment'># -type is the class of the slot object
+</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots \
+   <span class='nx-placeholder'>?-type ...?</span> ?-<span class='nx-keyword'>source</span> ... <span class='nx-placeholder'>?pattern?</span>
+
+<span class='nx-comment'># Returns list of slot objects</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -5046,7 +5146,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Return  parameter(s) provided by class for
+<pre class='nx'><span class='nx-comment'># Return parameter(s) provided by class for
 </span><span class='nx-comment'># its instances; defines, how objects of this
 </span><span class='nx-comment'># class can be configured. If name is provided
 </span><span class='nx-comment'># only the named object parameter is returned
@@ -5059,10 +5159,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter <span class='nx-keyword'>list</span> <span class='nx-placeholder'>?name?</span>
 
 <span class='nx-comment'># Return just the names of the parameters
-</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter name <span class='nx-placeholder'>?name?</span>
+</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter names <span class='nx-placeholder'>?name?</span>
 
 <span class='nx-comment'># Return the full parameter specs
-</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter spec <span class='nx-placeholder'>?name?</span>
+</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter definition <span class='nx-placeholder'>?name?</span>
 
 <span class='nx-comment'># Return the slot object(s)
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter slot <span class='nx-placeholder'>?name?</span>
@@ -5390,7 +5490,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>mixin</span> classes \
-   <span class='nx-placeholder'>?-closure?</span>  <span class='nx-placeholder'>?-guards?</span> <span class='nx-placeholder'>?-heritage?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+   <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-guards?</span> <span class='nx-placeholder'>?-heritage?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5473,7 +5573,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 <div class="sect3">
 <h4 id="_list_method_handles">2.6.13. List Method-Handles</h4>
-<div class="paragraph"><p>NX supports  <em>method-handles</em> to provide means to obtain further
+<div class="paragraph"><p>NX supports <em>method-handles</em> to provide means to obtain further
 information about a method or to change maybe some properties of a
 method. When a method is created, the method creating method returns
 the method handle to the created method.</p></div>
@@ -6756,7 +6856,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-09-05 10:10:31 CEST
+Last updated 2011-09-05 13:18:52 CEST
 </div>
 </div>
 </body>

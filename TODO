@@ -3436,6 +3436,9 @@ Test run; exit
   * fixed naming of "attribute" in migration guide
   * added "private" to migration guide
   * some textual improvements in migration guide
+  * fixed spacing in documentation
+  * fixed documentation of "info slot objects", "info slot names",
+    "info slot definition"
 
  - nx: 
   * added namespace "nx::internal"
@@ -3444,12 +3447,17 @@ Test run; exit
   * provided "-properties" as a replacement for -attributes, 
     but without magic variable
   * extended regression test
+  * changed "info slot name" to "info slot names" 
+    (like "info parameter names")
+
+- library/lib/pp.tcl: improved handling of placeholders
+  
+
+
 
 TODO:
  - private: 
    * document private in tutorial
-
-
 
  - naming of slot classes 
    * should we switch from "-class" to "-slotclass"?
@@ -3568,7 +3576,6 @@ nx::Test case ensemble-next-with-colon-prefix {
  in the regression test?
 
 - maybe change nx::Test to nx::test (user never has to know that nx::Test is a class).
-- maybe move -count to the test case (but then a test-case less test needs a change of method)
 
 - what to do with metadata analyzer? 
   Still needed? Already replaced by new doctool? 
@@ -3631,8 +3638,6 @@ nx::Test case ensemble-next-with-colon-prefix {
    * check, if there are parameter types that should not be applicable 
      for nsf::proc
    * toplevel (object less) introspection 
-
-- "info method definition" for :attributes?
 
 - ".... info methods -methodtype scripted ....." and "info lookup
   method -methodtype ..."  vs. "info method type ...."; spricht was

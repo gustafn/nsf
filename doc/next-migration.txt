@@ -20,7 +20,7 @@ incompatibilities beween XOTcl 1 and XOTcl 2.
 
 The Next Scripting Language (NX) is a successor of XOTcl 1 and is
 based on 10 years of experience with XOTcl in projects containing
-several hundert thousand lines of code.  While XOTcl was the first
+several hundert thousand lines of code. While XOTcl was the first
 language designed to provide language support for design patterns, the
 focus of the Next Scripting Framework and NX are on combining this
 with Language Oriented Programming. In many respects, NX was designed
@@ -36,7 +36,7 @@ which was developed based on the notion of language oriented
 programming. The Next Scripting Frameworks provides C-level support
 for defining and hosting multiple object systems in a single Tcl
 interpreter. The whole definition of NX is fully scripted
-(e.g. defined in +nx.tcl+).  The Next Scripting Framework is shipped
+(e.g. defined in +nx.tcl+). The Next Scripting Framework is shipped
 with three language definitions, containing NX and XOTcl 2.  Most of
 the existing XOTcl 1 programs can be used without modification in the
 Next Scripting Framework by using XOTcl 2. The Next Scripting
@@ -98,7 +98,7 @@ in the following respects:
    provides much more orthogonal means to _define, reuse and
    introspect_ scripted and C-implemented methods.
 
-   .. It is possible to use  NX +alias+ to register methods
+   .. It is possible to use NX +alias+ to register methods
      under arbitrary names for arbitrary objects or classes.
 
    .. NX provides means for _method protection_ (method modifiers
@@ -106,7 +106,7 @@ in the following respects:
      to define explicitly public interfaces in order to use methods
      from other objects.
 
-   .. One can  invoke in NX fully qualified methods to invoke 
+   .. One can invoke in NX fully qualified methods to invoke 
      methods outside the precedence path.
 
    .. One can define in NX _hierachical method names_ (similar to
@@ -115,7 +115,7 @@ in the following respects:
      methods.
 
   .. One can use in NX the same interface to query (introspect)
-    C-implemented and  scripted methods/commands.
+    C-implemented and scripted methods/commands.
 
 . *Orthogonal Parameterization:*
    The Next Scripting Language provides an _orthogonal framework for
@@ -708,7 +708,7 @@ and properties.
 |[source,tcl]
 ----------------
 # XOTcl provides only method deletion with 
-# the equivalent of  Tcl's "proc foo {} {}"
+# the equivalent of Tcl's "proc foo {} {}"
 /obj/ proc foo {} {}
 /cls/ instproc foo {} {}
 
@@ -794,11 +794,11 @@ In XOTcl, the following approaches are used to access instance
 variables:
 
 - Import instance variables via +instvar+ and access variables via +$varName+
-- Set or get instance  variables via +my set varName ?value?+ or other 
+- Set or get instance variables via +my set varName ?value?+ or other 
    variable accessing methods registered on +xotcl::Object+ such as
    +append+, +lappend+, +incr+, etc.
 - Register same-named accessor functions and set/get values 
-   of instance variables via  +my varName ?value?+
+   of instance variables via +my varName ?value?+
 
 In NX, the favored approach to access instance variables is to use
 the name resolvers, although it is as well possible to import
@@ -1307,8 +1307,8 @@ performance sensitive.
 ----------------
 # Predefined value constraints: 
 #    object, class, alnum, alpha, ascii, boolean, 
-#    control,  digit, double, false, graph, integer, 
-#    lower, parameter, print, punct,  space, true, 
+#    control, digit, double, false, graph, integer, 
+#    lower, parameter, print, punct, space, true, 
 #    upper, wordchar, xdigit
 #
 # User defined value constraints are possible.
@@ -1317,7 +1317,7 @@ performance sensitive.
 #
 # Define a boolean property and an integer 
 # property with a default firstly via "properties", 
-# then with multiple "property"  statements.
+# then with multiple "property" statements.
 
 Class create Foo -properties {
    a:boolean
@@ -2187,7 +2187,7 @@ For definition of class object specific methods, use the modifier
 +class+ as shown in examples above.
 
 
-==== List Slots
+==== List Slots and their definitions
 
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -2200,26 +2200,60 @@ For definition of class object specific methods, use the modifier
 ----------------
 |[source,tcl]
 ----------------
-# Return  list of slots objects defined on the
+# Return list of slots objects defined on the
 # object or class
 #
 # -source might be all\|application\|baseclasses
 # -type is the class of the slot object
 # -closure includes slots of superclasses
 
-/obj/ info slots ?-type ...? ?pattern?
-/cls/ class info slots ?-type ...? ?pattern?
-/cls/ info slots ?-type ...? ?-source ...? ?-closure? ?pattern?
+/obj/ info slot objects ?-type ...? ?pattern?
+/cls/ class info slot objects ?-type ...? ?pattern?
+/cls/ info slot objects \
+   ?-type value? ?-closure? ?-source value? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
 # n.a.
 ----------------
+|[source,tcl]
+----------------
+# List definition of slots 
+
+/obj/ info slot definition \
+   ?-type value? ?-closure? ?-source value? ?pattern?
+/cls/ class info slot definition \
+   ?-type value? ?-closure? ?-source value? ?pattern?
+/cls/ info slot definition \
+   ?-type value? ?-closure? ?-source value? ?pattern?
+----------------
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+# List names of slots 
+
+/obj/ info slot names \
+   ?-type value? ?-closure? ?-source value? ?pattern?
+/cls/ class info slot names \
+   ?-type value? ?-closure? ?-source value? ?pattern?
+/cls/ info slot names \
+   ?-type value? ?-closure? ?-source value? ?pattern?
+----------------
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
 # List reachable slot objects defined for obj
 # -source might be all\|application\|baseclasses
 # -type is the class of the slot object
 
-/obj/ info lookup slots ?-type ...? ?-source ... ?pattern?
+/obj/ info lookup slots \
+   ?-type ...? ?-source ... ?pattern?
 
 # Returns list of slot objects
 ----------------
@@ -2239,7 +2273,7 @@ For definition of class object specific methods, use the modifier
 ----------------
 |[source,tcl]
 ----------------
-# Return  parameter(s) provided by class for 
+# Return parameter(s) provided by class for 
 # its instances; defines, how objects of this
 # class can be configured. If name is provided
 # only the named object parameter is returned
@@ -2252,10 +2286,10 @@ For definition of class object specific methods, use the modifier
 /cls/ info parameter list ?name?
 
 # Return just the names of the parameters
-/cls/ info parameter name ?name?
+/cls/ info parameter names ?name?
 
 # Return the full parameter specs
-/cls/ info parameter spec ?name?
+/cls/ info parameter definition ?name?
 
 # Return the slot object(s)
 /cls/ info parameter slot ?name?
@@ -2377,7 +2411,7 @@ subcommands rather than using a flat namespace.
 |[source,tcl]
 ----------------
 /cls/ info mixin classes \
-   ?-closure?  ?-guards? ?-heritage? ?pattern?
+   ?-closure? ?-guards? ?-heritage? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -2412,7 +2446,7 @@ kind of method.
 
 ==== List Method-Handles
 
-NX supports  _method-handles_ to provide means to obtain further
+NX supports _method-handles_ to provide means to obtain further
 information about a method or to change maybe some properties of a
 method. When a method is created, the method creating method returns
 the method handle to the created method.
@@ -2901,19 +2935,19 @@ instead of ints.
 All slot objects (also XOTcl slot objects) are now next-scripting
 objects of baseclass `::nx::Slot`. The name of the experimental
 default-setter `initcmd` was changed to `defaultcmd`. Code directly
-working on the slots objects has to be adapted.  
+working on the slots objects has to be adapted. 
 
 === Obsolete Commands
 
 Parameter-classes were rarely used and have been replaced by the more
 general object parameterization. Therefore, `cl info parameterclass` has
-been removed.  
+been removed. 
 
 === Stronger Checking
 
 The Next Scripting Framework performs stronger checking than XOTcl 1
 For example, the requiredness of slots in XOTcl 1 was just a
-comment, while XOTcl 2 enforces it.  
+comment, while XOTcl 2 enforces it. 
 
 === Exit Handlers
 
