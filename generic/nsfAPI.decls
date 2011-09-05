@@ -345,7 +345,7 @@ objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
-  {-argName "-callprotection" -type "all|protected|public" -default all}
+  {-argName "-callprotection" -type "all|public|protected|private" -default all}
   {-argName "-incontext" -nrargs 0}
   {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-nomixins" -nrargs 0}
@@ -363,7 +363,7 @@ objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
-  {-argName "-callprotection" -type "all|protected|public" -default public}
+  {-argName "-callprotection" -type "all|public|protected|private" -default all}
   {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-path" -nrargs 0}
   {-argName "pattern" -required 0}
@@ -418,7 +418,7 @@ classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
-  {-argName "-callprotection" -type "all|protected|public" -default public}
+  {-argName "-callprotection" -type "all|public|protected|private" -default all}
   {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-path" -nrargs 0}
   {-argName "pattern"}

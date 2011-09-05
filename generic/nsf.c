@@ -16676,7 +16676,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
  * ProtectionMatches --
  *
  *    Check, whether the provided method (specified as a cmd) matches with the
- *    required call-protection (typically all|protected|public).
+ *    required call-protection (typically all|public|protected|private).
  *
  * Results:
  *    Returns true or false
@@ -16689,14 +16689,21 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
 
 static int
 ProtectionMatches(int withCallprotection, Tcl_Command cmd) {
-  int result, isProtected = Tcl_Command_flags(cmd) & NSF_CMD_CALL_PROTECTED_METHOD;
+  int result, isProtected, isPrivate, cmdFlags;
+
+  assert(cmd);
+  cmdFlags = Tcl_Command_flags(cmd);
+  isProtected = (cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD) != 0;
+  isPrivate = (cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) != 0;
+
   if (withCallprotection == CallprotectionNULL) {
     withCallprotection = CallprotectionPublicIdx;
   }
   switch (withCallprotection) {
   case CallprotectionAllIdx: result = 1; break;
   case CallprotectionPublicIdx: result = (isProtected == 0); break;
-  case CallprotectionProtectedIdx: result = (isProtected != 0); break;
+  case CallprotectionProtectedIdx: result = isProtected && !isPrivate; break;
+  case CallprotectionPrivateIdx: result = isPrivate; break;
   default: result = 1;
   }
   return result;
@@ -21375,7 +21382,7 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *met
 
 /*
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
+  {-argName "-callprotection" -nrargs 1 -type "all|public|protected|private" -default all}
   {-argName "-incontext"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
@@ -21540,7 +21547,7 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod methods NsfObjInfoMethodsMethod {
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
+  {-argName "-callprotection" -type "all|public|protected|private" -default all}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-path"}
   {-argName "pattern"}
@@ -21837,7 +21844,7 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 
 /*
 classInfoMethod methods NsfClassInfoMethodsMethod {
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
+  {-argName "-callprotection" -type "all|public|protected|private" -default all}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-path"}
   {-argName "pattern"}

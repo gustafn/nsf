@@ -12,12 +12,12 @@ static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Pa
   return result;
 }
   
-enum CallprotectionIdx {CallprotectionNULL, CallprotectionAllIdx, CallprotectionProtectedIdx, CallprotectionPublicIdx};
+enum CallprotectionIdx {CallprotectionNULL, CallprotectionAllIdx, CallprotectionPublicIdx, CallprotectionProtectedIdx, CallprotectionPrivateIdx};
 
 static int ConvertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"all", "protected", "public", NULL};
+  static CONST char *opts[] = {"all", "public", "protected", "private", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-callprotection", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -186,7 +186,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToScope, "all|class|object"},
   {ConvertToInfoobjectparametersubcmd, "list|name|parameter|parametersyntax"},
   {ConvertToInfomethodsubcmd, "args|body|definition|exists|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"},
-  {ConvertToCallprotection, "all|protected|public"},
+  {ConvertToCallprotection, "all|public|protected|private"},
   {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"},
   {ConvertToFrame, "method|object|default"},
   {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"},

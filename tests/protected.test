@@ -330,6 +330,13 @@ nx::Test case private {
     :create d1
   }
 
+  # check introspection and "-callprotection" filter
+  ? {lsort [C info methods]} "p2 p4"
+  ? {lsort [C info methods -callprotection all]} "p1 p2 p3 p4"
+  ? {lsort [C info methods -callprotection public]} "p2 p4"
+  ? {lsort [C info methods -callprotection protected]} ""
+  ? {lsort [C info methods -callprotection private]} "p1 p3"
+
   # called         shadowed 
   # C.p1  private  B.p1 private
   # C.p2  public   B.p2 private

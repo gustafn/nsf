@@ -3427,6 +3427,11 @@ Test run; exit
 - renamed "nsf::method::dispatch" to "nsf::directdispatch"
 - renamed "nsf::object::dispatch" to "nsf::dispatch"
 
+- nsf.c:
+  * added permissable value "private" to flag "-callprotection" for
+    "info lookup method" and "info methods".
+  * extended regression test
+
 TODO:
  - private: 
    * document private in migration guide tutorial
