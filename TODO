@@ -3452,7 +3452,9 @@ Test run; exit
 
 - library/lib/pp.tcl: improved handling of placeholders
   
-
+- doc: 
+  * added section about ":variable" to the tutorial
+  * fixed a few outdated places in tutorial
 
 
 TODO:

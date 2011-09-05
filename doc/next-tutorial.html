@@ -1068,7 +1068,7 @@ First, we use <tt>nx::Object</tt> instead of <tt>nx::Class</tt> to denote
 <li>
 <p>
 As in the example above, we use <tt>:variable</tt> to define the
-  instance variable <tt>things</tt>  for this object (the object <tt>stack</tt>).
+  instance variable <tt>things</tt> for this object (the object <tt>stack</tt>).
 </p>
 </li>
 </ul></div>
@@ -1463,7 +1463,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  24
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack2 {
 
-    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> available_stacks {} {
+   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> available_stacks {} {
       <span class='nx-keyword'>return</span> [<span class='nx-keyword'>llength</span> [:<span class='nx-keyword'>info</span> instances]]
    }
 
@@ -1665,7 +1665,7 @@ parameters and therefore the value of <tt>-y</tt> is passed to <tt>a</tt>.</p></
 parameters are optional (they can be left out). By using parameter
 options, we can as well define positional parameters, which are
 optional, and non-positional parameters, which are required.</p></div>
-<div class="paragraph" id="xmp-optional-req"><div class="title">Listing 17: Optional and Required Parameters</div><p></p></div>
+<div class="paragraph" id="xmp-optional-req"><div class="title">Listing 17: Optional and Required Method Parameters</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1744,7 +1744,7 @@ invoke <tt>bar</tt> without it, the system will raise an exception.</p></div>
 <div class="paragraph"><p>Optional parameters might have a default value, which will be used,
 when not value is provided for this parameter.  Default values can be
 specified for positional and non-positional parameters.</p></div>
-<div class="paragraph" id="xmp-default-value"><div class="title">Listing 18: Parameters with Default Values</div><p></p></div>
+<div class="paragraph" id="xmp-default-value"><div class="title">Listing 18: Method Parameters with Default Values</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1834,7 +1834,7 @@ for all method and object parameters. In the next step, we show how to
 use these value-checkers for checking permissible values for method
 parameters. Then we will show, how to provide more detailed value
 constraints.</p></div>
-<div class="paragraph" id="xmp-value-check"><div class="title">Listing 20: Parameters with Value Constraints</div><p></p></div>
+<div class="paragraph" id="xmp-value-check"><div class="title">Listing 20: Method Parameters with Value Constraints</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1982,7 +1982,7 @@ or of one of its subclasses or instances. We will address such cases
 in the next sections. In the following example we define two new
 value checkers on class <tt>nx::Slot</tt>. The first value checker is called
 <tt>groupsize</tt>, the second one is called <tt>choice</tt>.</p></div>
-<div class="paragraph" id="xmp-user-types"><div class="title">Listing 22: Scripted Value Checker</div><p></p></div>
+<div class="paragraph" id="xmp-user-types"><div class="title">Listing 22: Scripted Value Checker for Method Parameters</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2119,7 +2119,7 @@ specification in the form <em>lower-bound</em>..<em>upper-bound</em>. If no
 multiplicity is defined the default multiplicity is <tt>1..1</tt>, which
 means: provide exactly one (atomic) value (this was the case in the
 previous examples).</p></div>
-<div class="paragraph" id="xmp-multiplicity"><div class="title">Listing 23: Parameters with Explicit Multiplicity</div><p></p></div>
+<div class="paragraph" id="xmp-multiplicity"><div class="title">Listing 23: Method Parameters with Explicit Multiplicity</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2338,10 +2338,10 @@ initialized with the default value).</p></div>
 <div class="sect3">
 <h4 id="_object_parameters_for_all_nx_objects">3.2.1. Object Parameters for all NX Objects</h4>
 <div class="paragraph"><p>The object parameters are not limited to the application defined
-properties, also NX provides some definitions. Since <tt>Person</tt> is a
-subclass of <tt>nx::Object</tt> also the object parameters of <tt>nx::Object</tt>
-are inherited. In the introductory stack example, we used <tt>-mixin</tt>
-applied to an object to denote per-object mixins (see
+properties, also NX provides some predefined definitions. Since
+<tt>Person</tt> is a subclass of <tt>nx::Object</tt> also the object parameters of
+<tt>nx::Object</tt> are inherited. In the introductory stack example, we used
+<tt>-mixin</tt> applied to an object to denote per-object mixins (see
 <a href="#xmp-using-class-safety">Listing 8</a>). Since <tt>mixin</tt>
 is defined as a parameter on <tt>nx::Object</tt> it can be used as an object
 parameter <tt>-mixin</tt> for all objects in NX. To put it in other words,
@@ -2354,7 +2354,7 @@ specified at object creation as last argument; see
 <a href="#xmp-object-integer-stack">Listing 12</a>). The
 scripted block and its meaning are as well defined by the means of
 object parameters. However, this object parameter is positional (last
-argument) and optional (can be omitted). The following listing shows
+argument) and optional (it can be omitted). The following listing shows
 (simplified) the object parameters of <tt>Person p1</tt> and <tt>Student s1</tt>.</p></div>
 <div class="paragraph" id="xmp-object-parameter-list"><div class="title">Listing 26: Computed Actual Object Parameter (simplified)</div><p></p></div>
 <div class="listingblock">
@@ -2378,17 +2378,19 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   8
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Object</span> parameter <span class='nx-keyword'>for</span> Person p1:
    -name:required -birthday ...
-   -<span class='nx-keyword'>mixin</span>:<span class='nx-keyword'>alias</span> -<span class='nx-keyword'>filter</span>:<span class='nx-keyword'>alias</span> _:initcmd,optional
+   -<span class='nx-keyword'>mixin</span>:mixinreg,<span class='nx-keyword'>alias</span>,1..n -<span class='nx-keyword'>filter</span>:filterreg,<span class='nx-keyword'>alias</span>,1..n _:initcmd,optional
 
 <span class='nx-keyword'>Object</span> parameter <span class='nx-keyword'>for</span> Student s1:
    -matnr:required {-oncampus:boolean true}
    -name:required -birthday ...
-   -<span class='nx-keyword'>mixin</span>:<span class='nx-keyword'>alias</span> -<span class='nx-keyword'>filter</span>:<span class='nx-keyword'>alias</span> _:initcmd,optional</pre></td></tr></table></div></div>
-<div class="paragraph"><p>The object parameter type <tt>alias</tt> means that this parameter is an
-alias for the same-named method. The object parameter type <tt>initcmd</tt>
-says that the content of this variable will be executed in the context
-of the object being created (before the constructor <tt>init</tt> is called).
-More about the object parameter types later.</p></div>
+   -<span class='nx-keyword'>mixin</span>:mixinreg,<span class='nx-keyword'>alias</span>,1..n -<span class='nx-keyword'>filter</span>:filterreg,<span class='nx-keyword'>alias</span>,1..n _:initcmd,optional</pre></td></tr></table></div></div>
+<div class="paragraph"><p>The actual values can be optained via introspection via <tt>Person info
+parameter definition</tt>. The object parameter types <tt>mixinreg</tt> and
+<tt>filterreg</tt> are for converting definitions of filters and mixins.  The
+object parameter type <tt>initcmd</tt> says that the content of this variable
+will be executed in the context of the object being created (before
+the constructor <tt>init</tt> is called).  More about the object parameter
+types later.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_object_parameters_for_all_nx_classes">3.2.2. Object Parameters for all NX Classes</h4>
@@ -2432,15 +2434,203 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   2
   3
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Object</span> parameter <span class='nx-keyword'>for</span> <span class='nx-keyword'>Class</span> Student:
-   -<span class='nx-keyword'>mixin</span>:<span class='nx-keyword'>alias</span> -<span class='nx-keyword'>filter</span>:<span class='nx-keyword'>alias</span> ...
-   {-<span class='nx-keyword'>superclass</span>:<span class='nx-keyword'>alias</span> ::<span class='nx-keyword'>nx::Object</span>} ...</pre></td></tr></table></div></div>
+   -<span class='nx-keyword'>mixin</span>:mixinreg,<span class='nx-keyword'>alias</span>,1..n -<span class='nx-keyword'>filter</span>:filterreg,<span class='nx-keyword'>alias</span>,1..n ...
+   {-<span class='nx-keyword'>superclass</span>:<span class='nx-keyword'>class</span>,<span class='nx-keyword'>alias</span>,1..n ::<span class='nx-keyword'>nx::Object</span>} ...</pre></td></tr></table></div></div>
+<div class="paragraph"><p>The actual values can be obtained via introspection via <tt>nx::Class info
+parameter definition</tt>.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_additional_parameter_types_for_object_parameters">3.2.3. Additional Parameter Types for Object Parameters</h4>
+<h4 id="_defining_instance_variables">3.2.3. Defining Instance Variables</h4>
+<div class="paragraph"><p>In general, NX allows to create, modify or unset instance variables on
+the fly by using e.g. the Tcl commands <tt>set</tt> and <tt>unset</tt> together with
+variable names prefixed by a single colon (<tt>:</tt>).  Note that</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+a variable without any colon prefix refers typically to a
+   method-scoped variable (the variable is created at the begin of the
+   invocation of the method and deleted, when the method ends),
+</p>
+</li>
+<li>
+<p>
+a variable with a single colon prefix refers to an instance variable
+   (the variable is part of the object, when the object is destroyed,
+   the variable is deleted as well, and that
+</p>
+</li>
+<li>
+<p>
+a variable with two leading colons refers to a global variable
+  (the lifespan ends when te variable is explicitly unset
+  or the script ends). Also variables in Tcl namespaces are
+  global variables.
+</p>
+</li>
+</ul></div>
+<div class="paragraph" id="xmp-var-resolver"><div class="title">Listing 28: Scopes of Variables</div><p></p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
+
+  :<span class='nx-keyword'>method</span> foo args {...}
+    <span class='nx-comment'># Method scoped variable a
+</span>    <span class='nx-keyword'>set</span> a 1
+    <span class='nx-comment'># Instance variable b
+</span>    <span class='nx-keyword'>set</span> :b 2
+    <span class='nx-comment'># Global variable/namespaced variable c
+</span>    <span class='nx-keyword'>set</span> ::c 3
+  }
+}</pre></td></tr></table></div></div>
+<div class="paragraph"><p><a href="#xmp-var-resolver">Listing 28</a> shows a method <tt>foo</tt>
+of some class <tt>C</tt> referring to differently scoped variables.</p></div>
+<div class="paragraph"><p>So, in general, there is no need to define or declare instance
+variables in NX. However, in some cases, a definition is useful. For
+example, one can define properties on classes, which are inherited to
+subclasses, and which are used during object initialization.  As shown
+in the example class <tt>Student</tt>, properties can have defaults, which
+are used as well during initialization.</p></div>
+<div class="paragraph"><p>In short, a <em>property</em> is an instance variable with accessors, where
+the property definition might carry as well value-constraints and a
+default value.</p></div>
+<div class="paragraph"><p>In some cases one would like to define instance variables without
+accessors, e.g. for keeping the internal state of an object.  For this
+purpose, one can use the predefined method <tt>variable</tt>, which is in
+many respects similar to <tt>property</tt>. One difference is, that
+<tt>property</tt> uses the same syntax as for method parameters, and
+<tt>variable</tt> receives the default value as a separate argument (similar
+to the <tt>variable</tt> command in Tcl. The introductory Stack example in in
+<a href="#xmp-class-stack">Listing 2</a> used already the method
+<tt>variable</tt>.</p></div>
+<div class="paragraph" id="xmp-variable"><div class="title">Listing 29: Declaring Variables</div><p></p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Base {
+  :<span class='nx-keyword'>variable</span> x 1
+  <span class='nx-comment'># ...
+</span>}
+
+<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Derived -<span class='nx-keyword'>superclass</span> Base {
+  :<span class='nx-keyword'>variable</span> y 2
+  <span class='nx-comment'># ...
+</span>}
+
+<span class='nx-comment'># Create instance of the class Derived
+</span>Derived <span class='nx-keyword'>create</span> d1
+
+<span class='nx-comment'># Object d1 has instance variables
+</span><span class='nx-comment'># x == 1 and y == 2</span></pre></td></tr></table></div></div>
+<div class="paragraph"><p>Note that the variable definitions are inherited in the same way as
+properties. The example in <a href="#xmp-variable">Listing 29</a> shows a
+class <tt>Derived</tt> that inherits from <tt>Base</tt>. When an instance <tt>d1</tt> is
+created, it will contain the two instance variables <tt>x</tt> and <tt>y</tt>.</p></div>
+<div class="paragraph" id="xmp-constructor"><div class="title">Listing 30: Setting Variables in the Constructor</div><p></p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Base2 {
+ <span class='nx-comment'># ...
+</span> :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
+   <span class='nx-keyword'>set</span> :x 1
+   <span class='nx-comment'># ....
+</span> }
+}
+
+<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Derived2 -<span class='nx-keyword'>superclass</span> Base2 {
+ <span class='nx-comment'># ...
+</span> :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
+   <span class='nx-keyword'>set</span> :y 2
+   <span class='nx-keyword'>next</span>
+   <span class='nx-comment'># ....
+</span> }
+}
+
+<span class='nx-comment'># Create instance of the class Derived2
+</span>Derived2 <span class='nx-keyword'>create</span> d2</pre></td></tr></table></div></div>
+<div class="paragraph"><p>In many other object oriented languages, the instance variables are
+initialized by the constructor, similar to class <tt>Derived2</tt> in
+<a href="#xmp-constructor">Listing 30</a> . This approach is certainly
+as well possible in NX. Note however, that the approach using
+constructors requires an explicit method chaining between the
+constructors and is less declarative.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_additional_parameter_types_for_object_parameters">3.2.4. Additional Parameter Types for Object Parameters</h4>
 <div class="paragraph"><p>More detailed definition of the object parameter types comes here.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_slot_classes_and_slot_objects">3.2.4. Slot Classes and Slot Objects</h4>
+<h4 id="_slot_classes_and_slot_objects">3.2.5. Slot Classes and Slot Objects</h4>
 <div class="paragraph"><p>In one of the previous sections, we defined scripted (application
 defined) checker methods on a class named <tt>nx::Slot</tt>.  In general NX
 offers the possibility to define value checkers not only for all
@@ -2450,12 +2640,12 @@ object parameters</p></div>
 <div class="content">
 <img src="slots.png" alt="slots.png" />
 </div>
-<div class="title">Figure 28. Slot Classes and Objects</div>
+<div class="title">Figure 31. Slot Classes and Objects</div>
 </div>
 <div class="paragraph"><p></p></div>
 </div>
 <div class="sect3">
-<h4 id="_attribute_slots">3.2.5. Attribute Slots</h4>
+<h4 id="_attribute_slots">3.2.6. Attribute Slots</h4>
 <div class="paragraph"><p>Still Missing</p></div>
 <div class="ulist"><ul>
 <li>
@@ -2494,10 +2684,15 @@ incremental slots
 </div>
 </div>
 <div class="sect1">
-<h2 id="_miscellaneous">4. Miscellaneous</h2>
+<h2 id="_method_protection">4. Method Protection</h2>
+<div class="sectionbody">
+</div>
+</div>
+<div class="sect1">
+<h2 id="_miscellaneous">5. Miscellaneous</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_unknown_handlers">4.1. Unknown Handlers</h3>
+<h3 id="_unknown_handlers">5.1. Unknown Handlers</h3>
 <div class="paragraph"><p>NX provides two kinds of unknown handlers:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -2512,12 +2707,12 @@ Unknown handlers for objects and classes
 </li>
 </ul></div>
 <div class="sect3">
-<h4 id="_unknown_handlers_for_methods">4.1.1. Unknown Handlers for Methods</h4>
+<h4 id="_unknown_handlers_for_methods">5.1.1. Unknown Handlers for Methods</h4>
 <div class="paragraph"><p>Object and classes might be equipped
 with a method <tt>unknown</tt> which is called in cases, where an unknown
 method is called. The method unknown receives as first argument the
 called method followed by the provided arguments</p></div>
-<div class="paragraph" id="xmp-unknown-method"><div class="title">Listing 29: Unknown Method Handler</div><p></p></div>
+<div class="paragraph" id="xmp-unknown-method"><div class="title">Listing 32: Unknown Method Handler</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2553,7 +2748,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 raised, when an unknown method is called.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_unknown_handlers_for_objects_and_classes">4.1.2. Unknown Handlers for Objects and Classes</h4>
+<h4 id="_unknown_handlers_for_objects_and_classes">5.1.2. Unknown Handlers for Objects and Classes</h4>
 <div class="paragraph"><p>The next scripting framework provides in addition to unknown method
 handlers also a means to dynamically create objects and classes, when
 these are referenced. This happens e.g. when superclasses, mixins, or
@@ -2561,7 +2756,7 @@ parent objects are referenced. This mechanism can be used to implement
 e.g. lazy loading of these classes.  Nsf allows to register multiple
 unknown handlers, each identified by a key (a unique name, different
 from the keys of other unknown handlers).</p></div>
-<div class="paragraph" id="xmp-unknown-class"><div class="title">Listing 30: Unknown Class Handler</div><p></p></div>
+<div class="paragraph" id="xmp-unknown-class"><div class="title">Listing 33: Unknown Class Handler</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2618,7 +2813,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  <span class='nx-comment'>#     ::M
 </span>}</pre></td></tr></table></div></div>
 <div class="paragraph"><p>The Next Scripting Framework allows to add, query, delete and list unknown handlers.</p></div>
-<div class="paragraph" id="xmp-unknown-registgration"><div class="title">Listing 31: Unknown Handler registration</div><p></p></div>
+<div class="paragraph" id="xmp-unknown-registgration"><div class="title">Listing 34: Unknown Handler registration</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2728,7 +2923,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-09-05 10:16:33 CEST
+Last updated 2011-09-05 14:56:39 CEST
 </div>
 </div>
 </body>

@@ -288,7 +288,7 @@ following points are different.
   that we want to create a generic object, not a class.
 
 - As in the example above, we use +:variable+ to define the
-  instance variable +things+  for this object (the object +stack+).
+  instance variable +things+ for this object (the object +stack+).
 
 The definition for the methods +push+ and +pop+ are the same as
 before, but this times they are object specify. All methods defined on
@@ -351,14 +351,14 @@ nx::Class create Safety {
   # as the methods of Stack; these methods "shadow"
   # the methods of class Stack.
   #
-        
+  
   :variable count 0
 
   :public method push {thing} {
     incr :count
     next
   }
-  
+
   :public method pop {} {
     if {${:count} == 0} then { error "Stack empty!" }
     incr :count -1
@@ -566,7 +566,7 @@ above.
 --------------------------------------------------
 nx::Class create Stack2 {
 
-    :public class method available_stacks {} {
+   :public class method available_stacks {} {
       return [llength [:info instances]]
    }
 
@@ -576,7 +576,7 @@ nx::Class create Stack2 {
       set :things [linsert ${:things} 0 $thing] 
       return $thing
    }
-  
+
    :public method pop {} {
       set top [lindex ${:things} 0]
       set :things [lrange ${:things} 1 end]
@@ -710,7 +710,7 @@ options, we can as well define positional parameters, which are
 optional, and non-positional parameters, which are required.
 
 [[xmp-optional-req]]
-.Listing {counter:figure-number}: Optional and Required Parameters
+.Listing {counter:figure-number}: Optional and Required Method Parameters
 {set:xmp-optional-req:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
@@ -768,7 +768,7 @@ when not value is provided for this parameter.  Default values can be
 specified for positional and non-positional parameters.
 
 [[xmp-default-value]]
-.Listing {counter:figure-number}: Parameters with Default Values
+.Listing {counter:figure-number}: Method Parameters with Default Values
 {set:xmp-default-value:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
@@ -833,7 +833,7 @@ parameters. Then we will show, how to provide more detailed value
 constraints.
 
 [[xmp-value-check]]
-.Listing {counter:figure-number}: Parameters with Value Constraints
+.Listing {counter:figure-number}: Method Parameters with Value Constraints
 {set:xmp-value-check:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
@@ -926,7 +926,7 @@ value checkers on class +nx::Slot+. The first value checker is called
 +groupsize+, the second one is called +choice+.
 
 [[xmp-user-types]]
-.Listing {counter:figure-number}: Scripted Value Checker
+.Listing {counter:figure-number}: Scripted Value Checker for Method Parameters
 {set:xmp-user-types:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
@@ -1021,7 +1021,7 @@ means: provide exactly one (atomic) value (this was the case in the
 previous examples).
 
 [[xmp-multiplicity]]
-.Listing {counter:figure-number}: Parameters with Explicit Multiplicity
+.Listing {counter:figure-number}: Method Parameters with Explicit Multiplicity
 {set:xmp-multiplicity:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
@@ -1117,7 +1117,7 @@ application classes +Person+ and +Student+ with a few properties.
 # Define a class Person with properties "name" 
 # and "birthday"
 #
-nx::Class create Person {  
+nx::Class create Person {
   :property name:required
   :property birthday
 }
@@ -1126,7 +1126,7 @@ nx::Class create Person {
 # Define a class Student as specialization of Person 
 # with and additional property
 #
-nx::Class create Student -superclass Person {  
+nx::Class create Student -superclass Person {
   :property matnr:required
   :property {oncampus:boolean true}
 }
@@ -1169,10 +1169,10 @@ initialized with the default value).
 ==== Object Parameters for all NX Objects
 
 The object parameters are not limited to the application defined
-properties, also NX provides some definitions. Since +Person+ is a
-subclass of +nx::Object+ also the object parameters of +nx::Object+
-are inherited. In the introductory stack example, we used +-mixin+
-applied to an object to denote per-object mixins (see
+properties, also NX provides some predefined definitions. Since
++Person+ is a subclass of +nx::Object+ also the object parameters of
++nx::Object+ are inherited. In the introductory stack example, we used
++-mixin+ applied to an object to denote per-object mixins (see
 <<xmp-using-class-safety, {xmp-using-class-safety}>>). Since +mixin+
 is defined as a parameter on +nx::Object+ it can be used as an object
 parameter +-mixin+ for all objects in NX. To put it in other words,
@@ -1186,7 +1186,7 @@ specified at object creation as last argument; see
 <<xmp-object-integer-stack, {xmp-object-integer-stack}>>). The
 scripted block and its meaning are as well defined by the means of
 object parameters. However, this object parameter is positional (last
-argument) and optional (can be omitted). The following listing shows
+argument) and optional (it can be omitted). The following listing shows
 (simplified) the object parameters of +Person p1+ and +Student s1+.
 
 [[xmp-object-parameter-list]]
@@ -1196,19 +1196,21 @@ argument) and optional (can be omitted). The following listing shows
 --------------------------------------------------
 Object parameter for Person p1: 
    -name:required -birthday ... 
-   -mixin:alias -filter:alias _:initcmd,optional
+   -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n _:initcmd,optional
 
 Object parameter for Student s1:
    -matnr:required {-oncampus:boolean true} 
    -name:required -birthday ...
-   -mixin:alias -filter:alias _:initcmd,optional
+   -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n _:initcmd,optional
 --------------------------------------------------
 
-The object parameter type +alias+ means that this parameter is an
-alias for the same-named method. The object parameter type +initcmd+
-says that the content of this variable will be executed in the context
-of the object being created (before the constructor +init+ is called).
-More about the object parameter types later.
+The actual values can be optained via introspection via +Person info
+parameter definition+. The object parameter types +mixinreg+ and
++filterreg+ are for converting definitions of filters and mixins.  The
+object parameter type +initcmd+ says that the content of this variable
+will be executed in the context of the object being created (before
+the constructor +init+ is called).  More about the object parameter
+types later.
 
 ==== Object Parameters for all NX Classes
 
@@ -1246,9 +1248,134 @@ Student+.
 [source,tcl,numbers]
 --------------------------------------------------
 Object parameter for Class Student:
-   -mixin:alias -filter:alias ...
-   {-superclass:alias ::nx::Object} ...
+   -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n ...
+   {-superclass:class,alias,1..n ::nx::Object} ...
 --------------------------------------------------
+
+The actual values can be obtained via introspection via +nx::Class info
+parameter definition+.
+
+==== Defining Instance Variables
+
+In general, NX allows to create, modify or unset instance variables on
+the fly by using e.g. the Tcl commands +set+ and +unset+ together with
+variable names prefixed by a single colon (+:+).  Note that 
+
+- a variable without any colon prefix refers typically to a
+   method-scoped variable (the variable is created at the begin of the
+   invocation of the method and deleted, when the method ends),
+
+- a variable with a single colon prefix refers to an instance variable
+   (the variable is part of the object, when the object is destroyed,
+   the variable is deleted as well, and that
+
+- a variable with two leading colons refers to a global variable
+  (the lifespan ends when te variable is explicitly unset 
+  or the script ends). Also variables in Tcl namespaces are
+  global variables.
+
+[[xmp-var-resolver]]
+.Listing {counter:figure-number}: Scopes of Variables
+{set:xmp-var-resolver:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+Class create C {
+
+  :method foo args {...}
+    # Method scoped variable a
+    set a 1
+    # Instance variable b
+    set :b 2
+    # Global variable/namespaced variable c
+    set ::c 3
+  }
+}
+--------------------------------------------------
+
+<<xmp-var-resolver, {xmp-var-resolver}>> shows a method +foo+
+of some class +C+ referring to differently scoped variables.
+
+So, in general, there is no need to define or declare instance
+variables in NX. However, in some cases, a definition is useful. For
+example, one can define properties on classes, which are inherited to
+subclasses, and which are used during object initialization.  As shown
+in the example class +Student+, properties can have defaults, which
+are used as well during initialization.
+
+In short, a _property_ is an instance variable with accessors, where
+the property definition might carry as well value-constraints and a
+default value. 
+
+In some cases one would like to define instance variables without
+accessors, e.g. for keeping the internal state of an object.  For this
+purpose, one can use the predefined method +variable+, which is in
+many respects similar to +property+. One difference is, that
++property+ uses the same syntax as for method parameters, and
++variable+ receives the default value as a separate argument (similar
+to the +variable+ command in Tcl. The introductory Stack example in in
+<<xmp-class-stack, {xmp-class-stack}>> used already the method
++variable+.
+
+[[xmp-variable]]
+.Listing {counter:figure-number}: Declaring Variables
+{set:xmp-variable:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+Class create Base {
+  :variable x 1
+  # ...
+}
+
+Class create Derived -superclass Base {
+  :variable y 2
+  # ...
+}
+
+# Create instance of the class Derived
+Derived create d1
+
+# Object d1 has instance variables
+# x == 1 and y == 2
+--------------------------------------------------
+
+Note that the variable definitions are inherited in the same way as
+properties. The example in <<xmp-variable, {xmp-variable}>> shows a
+class +Derived+ that inherits from +Base+. When an instance +d1+ is
+created, it will contain the two instance variables +x+ and +y+. 
+
+[[xmp-constructor]]
+.Listing {counter:figure-number}: Setting Variables in the Constructor
+{set:xmp-constructor:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+Class create Base2 {
+ # ...
+ :method init {} {
+   set :x 1
+   # ....
+ }
+}
+
+Class create Derived2 -superclass Base2 {
+ # ...
+ :method init {} {
+   set :y 2
+   next
+   # ....
+ }
+}
+
+# Create instance of the class Derived2
+Derived2 create d2
+--------------------------------------------------
+
+In many other object oriented languages, the instance variables are
+initialized by the constructor, similar to class +Derived2+ in
+<<xmp-constructor, {xmp-constructor}>> . This approach is certainly
+as well possible in NX. Note however, that the approach using
+constructors requires an explicit method chaining between the
+constructors and is less declarative.
+
 
 ==== Additional Parameter Types for Object Parameters
 
@@ -1278,6 +1405,8 @@ Still Missing
 - subst rules
 - converter
 - incremental slots
+
+== Method Protection
 
 
 == Miscellaneous
