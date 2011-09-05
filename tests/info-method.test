@@ -553,7 +553,7 @@ nx::Test case info-methods-path {
   ? {lsort [::nx::Object info methods "slots"]} ""
   ? {lsort [::nx::Object info methods "*slots*"]} ""
   ? {lsort [::nx::Object info methods -path "*slot*"]} \
-      "{info lookup slots} {info slot definition} {info slot name} {info slot objects}"
+      "{info lookup slots} {info slot definition} {info slot names} {info slot objects}"
   ? {lsort [::nx::Object info methods -path "*filter*"]} \
       "filter {info filter guard} {info filter methods} {info lookup filter}"
 

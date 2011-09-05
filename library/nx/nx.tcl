@@ -595,7 +595,7 @@ namespace eval ::nx {
       }
       return $result
     }
-    :method "info slot name" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
+    :method "info slot names" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
       foreach slot [::nsf::my ::nsf::methods::object::info::slotobjects {*}[current args]] {
 	lappend result [$slot name]
@@ -687,7 +687,7 @@ namespace eval ::nx {
       }
       return $result
     }
-    :method "info slot name" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
+    :method "info slot names" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
       foreach slot [::nsf::my ::nsf::methods::class::info::slotobjects {*}[current args]] {
 	lappend result [$slot name]
