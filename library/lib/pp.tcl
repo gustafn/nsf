@@ -107,12 +107,14 @@ namespace eval ::nx::pp {
       Object
     } \\M|\\m]\\M)
 
-    set :re(placeholder) {([/?][-a-zA-Z0-9:]+[/?])}
+    set :re(placeholder1) {([/][a-zA-Z0-9:]+?[/])}
+    set :re(placeholder2) {([?][^ ][-a-zA-Z0-9: .]+?[?])}
 
     :public method flush {} {
       set html [string map [list & {&amp;} < {&lt;} > {&gt;}] ${:text}]
       regsub -all [set :re(keyword)] $html {<span class='nx-keyword'>\1</span>} html
-      regsub -all [set :re(placeholder)] $html {<span class='nx-placeholder'>\1</span>} html
+      regsub -all [set :re(placeholder1)] $html {<span class='nx-placeholder'>\1</span>} html
+      regsub -all [set :re(placeholder2)] $html {<span class='nx-placeholder'>\1</span>} html
       nx::pp puts -nonewline [:cssWrap $html]
       set :text ""
     }
