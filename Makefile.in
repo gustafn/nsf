@@ -194,7 +194,7 @@ EXTRA_PATH	= $(top_builddir):$(TCL_BIN_DIR)
 TCLSH_ENV	= TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library` \
 		  @LD_LIBRARY_PATH_VAR@="$(EXTRA_PATH):$(@LD_LIBRARY_PATH_VAR@)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
-		  TCLLIBPATH="$(top_builddir) ${srcdir}"
+		  TCLLIBPATH="$(top_builddir) ${srcdir} $(TCLLIBPATH)"
 TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 #TCLSH		= $(TCLSH_ENV) valgrind --dsymutil=yes $(TCLSH_PROG)
@@ -275,6 +275,45 @@ libraries-pkgindex: pkgIndex.tcl
 full-doc: doc pdf example-doc
 # use language reference as sample file to trigger generation of documentation files
 doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
+
+YUIDOC_OUTPUT = \
+	$(target_doc_dir)/$(PACKAGE_NAME)/index.html \
+	$(target_doc_dir)/nx/index.html \
+	$(xotcl_target_doc_dir)/XOTcl-langRef/index.html
+
+yuidoc: pkgIndex.tcl $(YUIDOC_OUTPUT)
+
+$(target_doc_dir)/$(PACKAGE_NAME)/index.html: 
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle $(PACKAGE_NAME) \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(target_doc_dir) "package:$(PACKAGE_NAME)"
+
+$(target_doc_dir)/nx/index.html:
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle nx \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(target_doc_dir) "package:nx"
+
+$(xotcl_target_doc_dir)/XOTcl-langRef/index.html:
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle XOTcl-langRef \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(xotcl_target_doc_dir) "@package:XOTcl-langRef"
+
+XOWIKI_OUTPUT = \
+	$(target_doc_dir)/$(PACKAGE_NAME).xowiki \
+	$(target_doc_dir)/nx.xowiki \
+	$(xotcl_target_doc_dir)/XOTcl-langRef.xowiki
+
+xowiki: pkgIndex.tcl $(XOWIKI_OUTPUT)
+
+$(xotcl_target_doc_dir)/XOTcl-langRef.xowiki : 
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle $(basename $(notdir $@)) \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(@D) -format xowiki -layout many-to-1 "@package:$(basename $(notdir $@))"
+
+%.xowiki : 
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle $(*F) \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(@D) -format xowiki -layout many-to-1 "package:$(*F)"
 
 example-doc: $(EXAMPLE_SCRIPTS)
 
@@ -616,9 +655,12 @@ $(DTRACE_OBJ): $(DTRACE_SRC) $(TCL_OBJS)
 # variable in configure.in
 #========================================================================
 
-clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES) $(installed_shells) pkgIndex.tcl ./receiver \
-		$(xotcl_target_doc_dir)/*-xotcl.html
+cleandoc:  
+	-rm -rf $(xotcl_target_doc_dir)/*-xotcl.html $(dir $(YUIDOC_OUTPUT)) $(XOWIKI_OUTPUT)
+
+clean: cleandoc
+	-rm -rf $(BINARIES) $(CLEANFILES) $(installed_shells) pkgIndex.tcl ./receiver
+
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \

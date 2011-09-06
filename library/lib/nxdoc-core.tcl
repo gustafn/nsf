@@ -23,7 +23,8 @@
 # @require nx
 # @version 0.1
  
-package provide nx::doc 0.1
+package provide nx::doc 1.0
+namespace eval ::nx::doc {}
 
 package require nx
 package require nx::pp
@@ -116,7 +117,7 @@ namespace eval ::nx::doc {
     return [dict create {*}[concat {*}[lsort -integer -index 1 -decreasing $haystack]]]
   }
     
-  proc find_asset_path {{subdir library/lib/doc-assets}} {
+  proc find_asset_path {{subdir library/lib/nxdoc-assets}} {
       # This helper tries to identify the file system path of the
       # asset ressources.
       #
@@ -455,11 +456,11 @@ namespace eval ::nx::doc {
 		[$value info has type ${:part_class}]} {
 	  return $value
 	}
-	 # puts stderr "NEWWWWWW ${:part_class} new \
-	 # 	     -name [lindex $value 0] \
-	 # 	     -partof $domain \
-	 # 	     -part_attribute [current] \
-	 # 	     -@doc [lrange $value 1 end]"
+	  # puts stderr "NEWWWWWW ${:part_class} new \
+	  # 	     -name [lindex $value 0] \
+	  # 	     -partof $domain \
+	  # 	     -part_attribute [current] \
+	  # 	     -@doc [lrange $value 1 end]"
 	return  [${:part_class} new \
 		     -name [lindex $value 0] \
 		     -partof $domain \
@@ -669,7 +670,7 @@ namespace eval ::nx::doc {
 
     :public method origin {} {
       if {[info exists :@use]} {
-	#puts stderr ORIGIN(${:@use})=isobj-[::nsf::object::exists ${:@use}]
+	# puts stderr ORIGIN(${:@use})=isobj-[::nsf::object::exists ${:@use}]
 	if {![::nsf::object::exists ${:@use}] || ![${:@use} info has type [:info class]]} {
 	  error "Referring to a non-existing doc entity or a doc entity of a different type."
 	}
@@ -856,17 +857,16 @@ namespace eval ::nx::doc {
     #   set :incremental 1
     # }
 
-    :method init {} {
-      next
+    # :method init {} {
+    #   next
 
-      QualifierTag mixin add [current class]::Resolvable
-      [current class]::Resolvable container [current]
-
-      foreach {attr part_class} [:part_attributes] {
-	$part_class class mixin add [current class]::Containable
-	$part_class container [current]
-      }
-    }
+    #   QualifierTag mixin add [current class]::Resolvable
+    #   [current class]::Resolvable container [current]
+    #   foreach {attr part_class} [:part_attributes] {
+    #   	$part_class class mixin add [current class]::Containable
+    #   	$part_class container [current]
+    #   }
+    # }
 
     :method destroy {} {
       foreach {attr part_class} [:part_attributes] {
@@ -1079,7 +1079,7 @@ namespace eval ::nx::doc {
 	:public forward @property %self @object-property
 	#:forward @param %self @object-param
 
-	:property -class ::nx::doc::PartAttribute @object-attribute {
+	:property -class ::nx::doc::PartAttribute @object-property {
 	  set :part_class ::nx::doc::@param
 	}
 
@@ -1102,9 +1102,9 @@ namespace eval ::nx::doc {
 
 	:property -class ::nx::doc::PartAttribute @superclass
 	
-	:public forward @attribute %self @class-attribute
+	:public forward @property %self @class-property
 
-	:property -class ::nx::doc::PartAttribute @class-attribute {
+	:property -class ::nx::doc::PartAttribute @class-property {
 	  :pretty_name "Per-class attribute"
 	  :pretty_plural "Per-class attributes"
 	  set :part_class ::nx::doc::@param
@@ -1922,479 +1922,7 @@ namespace eval ::nx::doc {
       error "Not implemented. Instance responsibility!"
     }
   }
-  
-  Renderer create html {
-
-    :method render {project entity theme {tmplName ""}} {
-      set top_level_entities [$project navigatable_parts]
-      set init [subst {
-	set project $project
-	set project_entities \[list $top_level_entities\]
-      }]
-      $entity current_project $project
-      $entity renderer [current]
-      $entity render -initscript $init -theme $theme {*}$tmplName
-    }
-
-    :method installAssets {project theme targetDir} {
-      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
-      file mkdir $targetDir
-      if {$assets eq ""} return;
-      file copy -force -- {*}$assets $targetDir
-    }
-
-
-    #
-    # The actual refinements delivered by the mixin layer
-    #
-
-    MixinLayer::Mixin create [current]::Entity -superclass TemplateData {
-      #
-      # TODO: Would it be useful to allow property slots to describe
-      # a per-class-object state, while the accessor/mutator methods
-      # are defined on the per-class level. It feels like the class
-      # instance variables in Smalltalk ...
-      #
-      # TODO: Why is call protection barfing when the protected target
-      # is called from within a public forward. This should qualify as
-      # a valid call site (from "within" the same object!), shouldn't it?
-      # :protected class property current_project:object,type=::nx::doc::@project
-      # :class property current_project:object,type=::nx::doc::@project
-      # :public forward current_project [current] %method
-
-      # :public forward print_name %current name
-
-      :public method statustoken {} {
-	set token ""
-	set obj [:origin]
-	set prj [:current_project]
-	if {[$prj is_validated]} {
-	  if {[$obj eval {info exists :pdata}]} {
-	    set token [$obj pinfo get -default "" status]
-	  } else {
-	    set token "extra"
-	  }
-	}
-	return $token
-      }
-
-      :public method statusmark {} {
-	set token [:statustoken]
-	set status_mark "<span title=\"$token\" class=\"status $token\">&nbsp;</span>"
-      }
-      :public method print_name {-status:switch} {
-	set status_mark [expr {$status?[:statusmark]:""}]
-	return "${:name}$status_mark"
-      }
-
-      :method fit {str max {placeholder "..."}} {
-	if {[llength [split $str ""]] < $max} {
-	  return $str;
-	}
-	set redux [llength [split $placeholder ""]]
-	set margin [expr {($max-$redux)/2}]
-	return "[string range $str 0 [expr {$margin-1}]]$placeholder[string range $str end-[expr {$margin+1}] end]"
-      }
-      
-      :public method as_dict {partof feature} {
-	set hash [dict create]
-	dict set hash access ""
-	dict set hash host [$partof name]
-	dict set hash name [:print_name]
-#	dict set hash url "[$partof filename].html#[string trimleft [$feature name] @]_${:name}"
-	dict set hash url "[:href $partof]"
-	dict set hash type [$feature pretty_name]
-	return $hash
-      }
-
-      :method as_array_of_hashes {} {
-	set features [:navigatable_parts]
-	set js_array [list]
-	dict for {feature instances} $features {
-	  foreach inst $instances {
-	    set d [$inst as_dict [current] $feature]
-	    set js_hash {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
-	    dict with d {
-	      lappend js_array [subst $js_hash]
-	    }
-	  }
-	}
-	return "\[[join $js_array ,\n]\]"
-      }
-      
-      :public method navigatable_parts {} {
-	#
-	# TODO: Should I wrap up delegating calls to the originator
-	# entity behind a unified interface (a gatekeeper?)
-	#
-	return [[:origin] owned_parts \
-		    -where "!\${:@stashed}" \
-		    -class ::nx::doc::StructuredEntity]
-      }
-       
-      :method listing {{-inline true} script} {
-	set listing $script
-	if {!$inline} {
-	  set listing [string trimright [nx::pp render [string trimright $script " \r\n"]] "\n"]
-	}
-	next [list -inline $inline $listing]
-      }
-      
-      :method link=tclcmd {cmd} {
-	#
-	# TODO: allow the parametrization of the reference URL at the
-	# project level ...
-	#
-	return "<a href=\"http://www.tcl.tk/man/tcl8.5/TclCmd/${cmd}.htm\"><code>$cmd</code></a>"
-      }
-
-      :method link {tag value} {
-	set unresolvable "<a href=\"#\">?</a>"
-	if {[string first @ $tag] != 0} {
-	  set m [current method]=$tag
-	  if {[:info lookup methods \
-		   -source application \
-		   -callprotection public $m] eq ""} {
-	    return $unresolvable
-	  }
-	  return [:$m $value]
-	} else {
-	  set names $value
-	  set tagpath [split [string trimleft $tag @] .]
-	  lassign [::nx::doc::Tag normalise $tagpath $names] err res
-	  if {$err} {
-	    # puts stderr RES=$res
-	    return $unresolvable;
-	  }
-	  lassign [::nx::doc::Tag find -all -strict {*}$res] err path
-	  if {$err || $path eq ""} {
-	    # puts stderr "FAILED res $path (err-$err-id-[expr {$path eq ""}])"
-	    return $unresolvable;
-	  }
-	  
-	  set path [dict create {*}$path]
-	  set entities [dict keys $path]
-	  set id [lindex $entities end]
-	  return [$id render_link $tag [:rendered top] $path]
-	}
-      }
-	
-      :public method make_link {source} {
-	  set path [dict create {*}[:get_upward_path -attribute {set :name}]]
-	  set tag [[:info class] tag]
-	return [:render_link $tag $source $path]
-      }
-
-      :public method render_link {tag source path} {
-	set id [current]
-	set pathnames [dict values $path]
-	set entities [dict keys $path]
-	set top_entity [lindex $entities 0]
-	set pof ""
-	if {$top_entity ne $id} {
-	  set pof "[$top_entity name]#"
-	  set pathnames [lrange $pathnames 1 end]
-	  set entities [lrange $entities 1 end]
-	}
-	#return "<a href=\"[$id href $top_entity]\">$pof[join $pathnames .]</a>"
-	# GN TODO: Maybe a nicer "title" property via method title?
-	#return "<a class='nsfdoc-link' title='$pof[join $pathnames .]' \
-	#	href='[$id href $top_entity]'>[join $pathnames { }]</a>"
-	set iscript [join [list [list set title $pof[join $pathnames .]] \
-			       [list set source_anchor [join $pathnames { }]] \
-			       [list set top_entity $top_entity]] \n]
-	:render -initscript $iscript link
-      }
-      
-      :public method as_text {} {
-	set text [expr {[:origin] ne [current]?[[:origin] as_text]:[next]}]
-	return [string map {"\n\n" "<br/><br/>"} $text]
-      }
-
-      :method getBase {top_entity:optional} {
-	set path [dict create {*}[:get_upward_path -attribute {set :name}]]
-	set originator_top_entity [lindex [dict keys $path] 0]
-	if {![info exists top_entity] || [dict size $path] == 1} {
-	  set top_entity $originator_top_entity
-	}
-	dict unset path $originator_top_entity
-	set fragment_path [list]
-	#puts stderr FRAGMENTPATH=$path
-	dict for {entity name} $path {
-	  lappend fragment_path [$entity filename]
-	} 
-	return [list $top_entity $fragment_path]
-      }
-
-      :public method href {-local:switch top_entity:optional} {
-	lassign [:getBase {*}[expr {[info exists top_entity]?$top_entity:""}]] base fragment_path
-	set fragments [join $fragment_path _]
-	if {$local} { 
-	  return $fragments
-	} else {
-	  set href "[$base filename].html#$fragments"
-	  #puts stderr HREF=$href
-	  return $href
-	}
-      }
-
-      :public method filename {} {
-	if {[info exists :partof]} {
-	  return [string trimleft [${:part_attribute} name] @]_${:name}
-	} else {
-	  return [[:info class] tag]_[string trimleft [string map {:: __} ${:name}] "_"]
-	}
-      }
-
-      :public method as_tag_id {} {
-	set tagclass [:info class]
-	set tail [$tagclass get_tail_name [current]]
-	set tname [string trimleft [string map {:: _} $tail] "_"]
-	return [$tagclass tag]__$tname
-      }
-
-
-    }; # NxDocTemplating::Entity
-
-    MixinLayer::Mixin create [current]::@project -superclass [current]::Entity {
-      :public method filename {} {
-	return "index"
-      }
-      :public method navigatable_parts {} {
-	#
-	# TODO: Should I wrap up delegating calls to the originator
-	# entity behind a unified interface (a gatekeeper?)
-	#
-	set top_level_entities [next]
-	dict for {feature instances} $top_level_entities {
-	  if {[$feature name] eq "@package"} {
-	    foreach pkg $instances {
-	      dict for {pkg_feature pkg_feature_instances} [$pkg navigatable_parts] {
-		dict lappend top_level_entities $pkg_feature \
-		    {*}$pkg_feature_instances
-	      }
-	    }
-	  }
-	}
-	return $top_level_entities
-      }
-      
-    }
-    
-    MixinLayer::Mixin create [current]::@glossary -superclass [current]::Entity {
-
-      :public method print_name {} {
-	return [expr {[info exists :@acronym]?${:@acronym}:${:@pretty_name}}]
-      }
-
-      array set :tags {
-	@gls		{
-	  set print_name [string tolower ${:@pretty_name} 0 0]
-	  set title ${:@pretty_name}
-	}
-	@Gls		{
-	  set print_name [string toupper ${:@pretty_name} 0 0]
-	  set title ${:@pretty_name}
-	}
-	@glspl		{
-	  set print_name [string tolower ${:@pretty_plural} 0 0]
-	  set title ${:@pretty_plural}
-	}
-	@Glspl 		{
-	  set print_name [string toupper ${:@pretty_plural} 0 0]
-	  set title ${:@pretty_plural}
-	}
-	@acr		{
-	  set acronym(short) 1
-	}
-	@acrfirst	{
-	  set acronym(long) 1
-	}
-
-      }
-      
-      :public method href {-local:switch top_entity:optional} {
-	set fragments "#${:name}"
-	if {$local} { 
-	  return $fragments
-	} else {
-	  return "[[:current_project] filename].html$fragments"
-	}
-
-      }
-
-      :public method render_link {tag source path} {
-	# tag-specific rendering
-	set acronym(long) 0
-	set acronym(short) 0
-	set print_name ${:@pretty_name}
-	set title ${:@pretty_name}
-	if {[[current class] eval [list info exists :tags($tag)]]} {
-	  eval [[current class] eval [list set :tags($tag)]]
-	}
-	if {[info exists :@acronym]} {
-	  #
-	  # First occurrance of an acronym entry!
-	  #
-	  if {!$acronym(short) && ($acronym(long) || ![info exists :refs] || \
-				       ![dict exists ${:refs} [:current_project] $source])} {
-	    set print_name "$print_name (${:@acronym})"
-	  } else {
-	    set title $print_name
-	    set print_name ${:@acronym}
-	    set anchor "<a href=\"[:href]\" title=\"$title\" class='nsfdoc-gloss'>$print_name</a>"
-	    # TODO: Re-provide the <abbrv> environment
-	    #set res "<abbr title=\"$title\">$anchor</abbr>" 
-	  }
-	}
-
-	# record for reverse references
-	if {![info exists :refs]} {
-	  set :refs [dict create]
-	}
-	dict update :refs [:current_project] prj {
-	  dict incr prj $source
-	}
-
-	set iscript [join [list [list set title $title] \
-			       [list set source_anchor $print_name] \
-			       [list set top_entity [current]] \
-			       [list set cssclass nsfdoc-gloss]] \n]
-	set res [:render -initscript $iscript link]
-	return $res
-      }
-    }; # NxDocRenderer::@glossary
-
-    MixinLayer::Mixin create [current]::@class -superclass [current]::Entity {
-      :method inherited {member} {
-	set inherited [dict create]
-	set prj [:current_project]
-	if {![$prj eval {info exists :sandbox}]} return;
-	set box [$prj sandbox]
-	set exp "expr {\[::nsf::is class ${:name}\]?\[lreverse \[${:name} info heritage\]\]:\"\"}"
-	set ipath [$box do $exp]
-	foreach c [concat $ipath ${:name}] {
-	  set entity [[:info class] id $c]
-	  if {![::nsf::is object $entity]} continue; 
-	  set origin [$entity origin]
-	  if {$origin ni [concat {*}[dict values [$prj navigatable_parts]]]} continue;
-	  
-	  if {[$origin eval [list info exists :${member}]]} {
-	    dict set inherited $entity [$entity !get \
-					    -sortedby name \
-					    -with name $member]
-	    if {[info exists previous_entity]} {
-	      dict set inherited $previous_entity \
-		  [dict remove [dict get $inherited $previous_entity] \
-		       {*}[dict keys [dict get $inherited $entity]]]
-	    }
-	  }
-	  set previous_entity $entity
-	}
-	dict unset inherited [current]
-	return $inherited
-      }
-    }
-
-
-    MixinLayer::Mixin create [current]::@method -superclass [current]::Entity {
-      :public method as_dict {partof feature} {
-	set hash [next]
-	dict set hash access [expr {[:pinfo get -default 0 bundle call-protected]?"protected":""}]
-	return $hash
-      }
-    }; # html::@method
-
-  }; # html renderer
-  
-  #
-  # An xowiki backend
-  #
-
-  namespace eval ::xowiki {
-    namespace import -force ::nx::*
-    Class create Page -attributes { 
-      {lang en} {description ""} {text ""} {nls_language en_US} 
-      {mime_type text/html} {title ""} name text 
-    }
-    Class create File -superclass Page
-  }
-
-
-  Renderer create xowiki -extends [html] {
-    #
-    # yuidoc refinements
-    #
-    #<a class="$cssclass" title="$title" href="[:href $top_entity]">$source_anchor</a>
-    :addTemplate link yuidoc {
-      [:! lassign [:getBase {*}[expr {[info exists top_entity]?$top_entity:""}]] base fragment_path]
-      [:!let basename [expr {[$base info has type ::nx::doc::@glossary]?"en:glossary#[$base name]":"en:[$base filename]#[join $fragment_path _]"}]]
-      \[\[$basename|$source_anchor\]\]
-    }
-
-    :method render {project entity theme {tmplName ""}} {
-      
-      package req nx::serializer
-      
-      set top_level_entities [$project navigatable_parts]
-      set init [subst {
-	set project $project
-	set project_entities \[list $top_level_entities\]
-      }]
-      $entity current_project $project
-      $entity renderer [current]
-      set content [$entity render -initscript $init -theme $theme body-chunked]
-      set p [::xowiki::Page new -name en:[$entity filename] \
-		 -title [$entity name] \
-		 -text [list $content text/html]]
-      return [$p serialize]
-    }
-
-    :method installAssets {project theme targetDir} {
-      #
-      # render and append single glossary page to the output
-      #
-      
-      set top_level_entities [$project navigatable_parts]
-      set init [subst {
-	set project $project
-	set project_entities \[list $top_level_entities\]
-	set include glossary
-      }]
-
-      set c [$project render \
-		 -initscript $init \
-		 -theme $theme \
-		 body-chunked]
-      set p [::xowiki::Page new \
-		 -name en:glossary \
-		 -title Glossary \
-		 -text [list $c text/html]]
-      :write [$p serialize] $targetDir
-      #
-      # TODO: assets (js, css, img must be wrapped as ::xowiki::Files)
-      #
-      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
-      package req base64
-      array set mime {
-	js	application/x-javascript
-	css	text/css
-	png	image/png
-	gif	image/gif
-	jpg	image/jpg
-      }
-      foreach assetPath $assets {
-	set filename [file tail $assetPath]
-	set f [::xowiki::File new \
-		   -name file:$filename \
-		   -title $filename \
-		   -mime_type $mime([string trim [file extension $assetPath] "."])]
-	$f eval [list set :__file_content [::base64::encode [:read -binary $assetPath]]]
-	:write [$f serialize] $targetDir
-      }
-    }
-  }; # xowiki renderer
-}
+}  
 
 #
 # sandboxing
@@ -2461,8 +1989,18 @@ namespace eval ::nx::doc {
       set cpackage [:cpackage top]
       if {$cpackage in ${:permissive_pkgs}} {
 	lappend :source $cpackage $filepath
+      } else {
+	dict set :deps $filepath $cpackage
       }
     }
+
+    :public method at_load {filepath} {
+      set cpackage [:cpackage top]
+      if {$cpackage ne ${:permissive_pkgs}} {
+	dict set :deps $filepath $cpackage
+      }
+    }
+
 
     :public method at_register_package {pkg_name version} {
       dict set :registered_packages $pkg_name version $version
@@ -2661,6 +2199,8 @@ namespace eval ::nx::doc {
 	      
 	      lassign $delta_pkg pkg_name filepath
 	      set filepath [file normalize $filepath]
+
+	      ::nx::doc::__at_load $filepath
 
 	      # TODO: Temporary hack to reflect that we provide for a
 	      # helper objsys to retrieve command parameter specs and
@@ -3087,22 +2627,18 @@ namespace eval ::nx::doc {
 	  "" [current] at_register_package
       ::interp alias ${:interp} ::nx::doc::__at_source \
 	  "" [current] at_source
+      ::interp alias ${:interp} ::nx::doc::__at_load \
+	  "" [current] at_load
+
       next
     }
     :protected property {interp ""}; # the default empty string points to the current interp
 
     :property registered_commands
 
-    :public method get_companions {} {
-      set companions [dict create]
-      dict for {cmd props} ${:registered_commands} {
-	dict with props {
-	  # $source, $package
-	  dict set companions $source $package
-	}
-      }
+    :public method getCompanions {identifiers} {
       set scripts [list]
-      dict for {source pkg} $companions {
+      dict for {source pkg} $identifiers {
 	set rootname [file rootname $source]
 	set dir [file dirname $source]
 	set companion $rootname.nxd
@@ -3119,6 +2655,18 @@ namespace eval ::nx::doc {
 	}
       }
       return $scripts
+
+    }
+
+    :public method get_companions {} {
+      set companions [dict create]
+      dict for {cmd props} ${:registered_commands} {
+	dict with props {
+	  # $source, $package
+	  dict set companions $source $package
+	}
+      }
+      return [:getCompanions $companions]
     }
 
     :public method get_registered_commands {
@@ -3392,13 +2940,26 @@ namespace eval ::nx {
 	if {$prj ne ""} {
 	  set box [$prj sandbox]	  
 	  set cmdname [:get_fqn_command_name]
-	  if {[$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
+	  if {[$box eval {info exists :registered_commands}] && \
+		  [$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
 	    :pdata [$box eval [concat dict get \${:registered_commands} $cmdname]]
 	  }
 	}
 	[[current class] info parent] at_processed [current]
       }
     }
+
+    Mixin create [current]::ContainerEntity {
+      :method init {} {
+	next
+	::nx::doc::QualifierTag mixin add ::nx::doc::ContainerEntity::Resolvable
+	::nx::doc::ContainerEntity::Resolvable container [current]
+	foreach {attr part_class} [:part_attributes] {
+	  $part_class class mixin add ::nx::doc::ContainerEntity::Containable
+	  $part_class container [current]
+	}
+      }
+    }    
 
     Mixin create [current]::@package {
       :public method init args {
@@ -3562,7 +3123,7 @@ namespace eval ::nx {
 	      set obj [namespace qualifiers [namespace qualifiers $cmd]]
 	      if {![dict exists $map $obj]} continue;
 	      set partof_entity [dict get $map $obj]
-	      set entity [$partof_entity @[join [list {*}${scope} attribute] -] $name]
+	      set entity [$partof_entity @[join [list {*}${scope} property] -] $name]
 	    } elseif {$cmdtype eq "@method"} {
 	      lassign [dict get $bundle handleinfo] obj scope name
 	      # ! we assume the partof entity is present or has been generated
@@ -3609,7 +3170,7 @@ namespace eval ::nx {
       $box permissive_pkgs [string tolower $pkgs]
       set 1pass ""
       foreach pkg $pkgs {
-	if {[catch {package req $pkg} _]} {
+	if {[catch {namespace eval :: [list package req $pkg]} _]} {
 	  error "Tcl package '$pkg' cannot be found."
 	}
 	append 1pass "package req $pkg\n"
@@ -3632,9 +3193,10 @@ namespace eval ::nx {
 	# export TCLLIBPATH=". ./library/xotcl/library/lib"
 	#
 	package req xotcl::xodoc
+	namespace eval :: {namespace import -force ::xotcl::@}
 	
 	set docdb [XODoc new]
-	::xotcl::@ set analyzerObj $docdb
+	::@ set analyzerObj $docdb
 	foreach {pkg src} [$box eval {set :source}] {
 	  $docdb analyzeFile $src
 	}
@@ -3655,16 +3217,27 @@ namespace eval ::nx {
         if {[llength $ft] > 1} {
           error "Too many xodoc file tokens processed. Expecting just one!"
         }
-        
+
+	$project @namespace "::xotcl"
+	::nx::doc::QualifierTag mixin add ::nx::doc::ContainerEntity::Resolvable
+	::nx::doc::ContainerEntity::Resolvable container $project
+
+	foreach {attr part_class} [$project part_attributes] {
+	  $part_class class mixin add ::nx::doc::ContainerEntity::Containable
+	  $part_class container $project
+	}
+
         set partof $project
         if {$ft ne ""} {
           set pkg [$ft emit $project]
           lappend provided_entities $pkg
           set partof $pkg
         }
+
 	foreach token [::xotcl::metadataAnalyzer::ObjToken allinstances] {
 	  lappend provided_entities [$token emit $partof]
 	}
+
         return $provided_entities
       }
     }
@@ -3703,6 +3276,19 @@ namespace eval ::nx {
 	      "::nx::doc::__cpackage pop;\n"
 	}
 	$box do "::nx::doc::__init; $2pass" 
+      }
+      
+      foreach {attr part_class} [$project part_attributes] {
+	$part_class class mixin add ::nx::doc::ContainerEntity::Containable
+	$part_class container $project
+      }
+
+      set deps_entities [list]
+      foreach dep [$box getCompanions [$box eval {set :deps}]] {
+	lappend deps_entities {*}[:readin $dep]
+      }
+      foreach de $deps_entities {
+	$de @stashed
       }
 
       set scripts [$box get_companions]
@@ -3893,7 +3479,7 @@ namespace eval ::nx {
 	  :readin \
 	      -partof_entity $entity \
 	      -docstring \
-	      -tag @${scope}-attribute \
+	      -tag @${scope}-property \
 	      -name [$box do [list $slot name]] \
 	      -parsing_level 2 \
 	      [$box do [list $slot eval {set :__initcmd}]]
@@ -3974,6 +3560,7 @@ namespace eval ::nx::doc {
       project:object,type=::nx::doc::@project
       args
     } {
+      package req nx::doc::$format
       $format run -project $project {*}$args
     }
   }

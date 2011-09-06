@@ -1,0 +1,84 @@
+#!/usr/local/src/tcl8.6-fossil/unix/tclsh
+#!/bin/env tclsh
+
+package req nx::doc 1.0
+
+namespace eval ::nx::doc {
+  namespace import -force ::nx::*
+  Class create CLI {
+    
+    #
+    # rendering
+    #
+    :property {outdir "."}
+    :property {format "html"}
+    :property {theme "yuidoc"}
+    :property {layout "many-to-many"}
+    
+    #
+    # doc project
+    #
+    :property doctitle
+    :property {docversion 0.1}
+    :property docurl
+    :property docbaseurl
+    :property {validation:switch false}
+    
+    #
+    # input
+    #
+    :property sourcepath
+    :property {includes ""}
+    :property {excludes ""}
+    :protected property sources:1..* {
+      set :config false
+    }
+
+    #
+    # auxiliary 
+    #
+
+    :protected method ... args {
+      :sources [concat {*}[split $args :]]
+    }
+
+    :protected class method objectparameter {} {
+      foreach slot [:info slot objects -type ::nx::VariableSlot] {
+	lappend defs([$slot position]) [$slot getParameterSpec]
+      }
+      set parameterdefinitions [list]
+      foreach p [lsort [array names defs]] {
+	lappend parameterdefinitions {*}$defs($p)
+      }
+      return [concat $parameterdefinitions ...:alias,args]
+    }
+    
+    :protected method init {} {
+      set prj [@project new \
+		   -name ${:doctitle} \
+		   -url ${:docurl} \
+		   -version ${:docversion} \
+		   -sources ${:sources}]
+      
+      processor process \
+	  -sandboxed \
+	  {*}[expr {${:validation}?"-validate":""}] \
+	  -include ${:includes} $prj
+      
+      make doc \
+	  -format ${:format} \
+	  $prj \
+	  -theme ${:theme} \
+	  -layout ${:layout} \
+	  -outdir ${:outdir}
+    }
+  }
+  namespace export CLI
+}
+
+namespace import -force ::nx::doc::CLI
+#
+# nxdoc -outdir /tmp/ -format html -theme yuidoc package:nsf
+#
+CLI new {*}$argv
+
