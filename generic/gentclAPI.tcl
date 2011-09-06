@@ -398,14 +398,15 @@ static Nsf_methodDefinition method_definitions[];
   puts "static Nsf_methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
 }
 
-proc methodDefinition {methodName methodType implementation parameterDefinitions {ns ""}} {
+proc methodDefinition {methodName methodType implementation parameterDefinitions options} {
+  array set opts [list -ns $::ns($methodType)]
+  array set opts $options
   set d(methodName) $methodName
   set d(implementation) $implementation
   set d(stub) ${implementation}Stub
   set d(idx) ${implementation}Idx
   set d(methodType) $methodType
-  if {$ns eq ""} {set ns $::ns($methodType)}
-  set d(ns) $ns
+  set d(ns) $opts(-ns)
   switch $methodType {
     classMethod  {set d(clientData) class}
     objectMethod {set d(clientData) object}
@@ -419,30 +420,34 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   }
   set d(parameterDefinitions) $completed
   set ::definitions($d(methodType)-$d(implementation)-$d(methodName)) [array get d]
+  puts $::nxdocIndex [list set ::nxdoc::include($d(ns)::$d(methodName)) $opts(-nxdoc)]
 }
 
-proc checkMethod {methodName implementation parameterDefinitions} {
-  methodDefinition type=$methodName checkMethod $implementation $parameterDefinitions
+proc checkMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+  methodDefinition type=$methodName checkMethod $implementation $parameterDefinitions $options
 }
-proc classMethod {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName classMethod $implementation $parameterDefinitions
+proc classMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+  methodDefinition $methodName classMethod $implementation $parameterDefinitions $options
 }
-proc objectMethod {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName objectMethod $implementation $parameterDefinitions
+proc objectMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+  methodDefinition $methodName objectMethod $implementation $parameterDefinitions $options
 }
-proc objectInfoMethod {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName objectMethod $implementation $parameterDefinitions $::ns(objectInfoMethod)
+proc objectInfoMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+  lappend options -ns $::ns(objectInfoMethod) 
+  methodDefinition $methodName objectMethod $implementation $parameterDefinitions $options
 }
-proc classInfoMethod {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName classMethod $implementation $parameterDefinitions $::ns(classInfoMethod)
+proc classInfoMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+  lappend options -ns $::ns(classInfoMethod) 
+  methodDefinition $methodName classMethod $implementation $parameterDefinitions $options
 }
-proc cmd {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName cmd $implementation $parameterDefinitions
+proc cmd {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+  methodDefinition $methodName cmd $implementation $parameterDefinitions $options
 }
 
 if {[llength $argv] == 1} {set decls $argv} {set decls generic/gentclAPI.decls}
-puts stderr "source $decls"
+set ::nxdocIndex [open [file root $decls].nxdocindex w]
 source $decls
+close $::nxdocIndex
 
 genstubs
 puts stderr "[array size ::definitions] parsing stubs generated"

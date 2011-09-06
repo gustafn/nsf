@@ -19,14 +19,14 @@ array set ns {
 cmd __db_compile_epoch NsfDebugCompileEpoch {}
 cmd __db_run_assertions NsfDebugRunAssertionsCmd {}
 cmd __db_show_stack NsfShowStackCmd {}
-cmd __profile_clear NsfProfileClearDataStub {}
+cmd __profile_clear NsfProfileClearDataStub {} 
 cmd __profile_get NsfProfileGetDataStub {}
 cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}
 
 cmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
-}
+} {-nxdoc 1}
 cmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
@@ -42,14 +42,14 @@ cmd "dispatch" NsfDispatchCmd {
   {-argName "-system"    -required 0 -nrargs 0}
   {-argName "command"    -required 1 -type tclobj}
   {-argName "args"       -type args}
-}
+} {-nxdoc 1}
 cmd finalize NsfFinalizeCmd {
   {-argName "-keepvars" -required 0 -nrargs 0}
-}
+} {-nxdoc 1}
 cmd interp NsfInterpObjCmd {
   {-argName "name" -required 1}
   {-argName "args" -type allargs}
-}
+} {-nxdoc 1}
 cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
   {-argName "class" -required 1 -type class}
 }
@@ -57,7 +57,7 @@ cmd is NsfIsCmd {
   {-argName "-complain"  -nrargs 0}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 
 #
 # method cmds
@@ -68,12 +68,12 @@ cmd "method::alias" NsfMethodAliasCmd {
   {-argName "methodName" -required 1}
   {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
   {-argName "cmdName" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 cmd "method::assertion" NsfMethodAssertionCmd {
   {-argName "object" -required 1 -type object}
   {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
-}
+} {-nxdoc 1}
 cmd "method::create" NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace" -nrargs 0}
@@ -84,12 +84,12 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "body" -required 1 -type tclobj}
   {-argName "-precondition"  -type tclobj}
   {-argName "-postcondition" -type tclobj}
-}
+} {-nxdoc 1}
 cmd "method::delete" NsfMethodDeleteCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 cmd "method::forward" NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -nrargs 0}
@@ -102,36 +102,36 @@ cmd "method::forward" NsfMethodForwardCmd {
   {-argName "-verbose" -nrargs 0}
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
-}
+} {-nxdoc 1}
 cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotcontainer|slotobj"}
   {-argName "value" -type tclobj}
-}
+} {-nxdoc 1}
 cmd "method::registered" NsfMethodRegisteredCmd {
   {-argName "handle" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 cmd "method::setter" NsfMethodSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -nrargs 0}
   {-argName "parameter" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 
 #
 # object cmds
 #
 cmd "object::exists" NsfObjectExistsCmd {
   {-argName "value" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
   {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer" -required 1}
-}
+} {-nxdoc 1}
 cmd "object::qualify" NsfObjectQualifyCmd {
   {-argName "objectName" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 
 #
 # objectsystem cmds
@@ -140,7 +140,7 @@ cmd "objectsystem::create" NsfObjectSystemCreateCmd {
   {-argName "rootClass" -required 1 -type tclobj}
   {-argName "rootMetaClass" -required 1 -type tclobj}
   {-argName "systemMethods" -required 0 -type tclobj}
-}
+} {-nxdoc 1}
 
 cmd my NsfMyCmd {
   {-argName "-intrinsic" -nrargs 0}
@@ -148,10 +148,10 @@ cmd my NsfMyCmd {
   {-argName "-system"    -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "args"       -type args}
-}
+} {-nxdoc 1}
 cmd next NsfNextCmd {
   {-argName "arguments" -required 0 -type tclobj}
-}
+} {-nxdoc 1}
 cmd nscopycmds NsfNSCopyCmdsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
@@ -166,18 +166,18 @@ cmd proc NsfProcCmd {
   {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 cmd relation NsfRelationCmd {
   {-argName "object"  -required 1 -type object}
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
-}
+} {-nxdoc 1}
 
 cmd current NsfCurrentCmd {
   {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"}
-}
+} {-nxdoc 1}
 cmd self NsfSelfCmd {
-}
+} {-nxdoc 1}
 
 #
 # var cmds
@@ -186,22 +186,22 @@ cmd "var::exists" NsfVarExistsCmd {
   {-argName "-array" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1}
-}
+} {-nxdoc 1}
 cmd "var::import" NsfVarImportCmd {
   {-argName "object" -required 1 -type object}
   {-argName "args" -type args}
-}
+} {-nxdoc 1}
 cmd "var::set" NsfVarSetCmd {
   {-argName "-array" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
-}
+} {-nxdoc 1}
 cmd "var::unset" NsfVarUnsetCmd {
   {-argName "-nocomplain" -required 0 -nrargs 0}
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 
 #
 # object methods

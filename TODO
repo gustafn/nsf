@@ -3464,6 +3464,19 @@ Test run; exit
   * make use of Tcl_Obj type in ResolveMethodName() to reduce 
     number of string operations
 
+- gentclAPI.tcl:
+  * added option handling for every cmd/method/... 
+  * added option "-nxdoc" for outputting an index 
+    to ease maintenance in nxdoc
+
+- nsf.nxd:
+  * adapted to new namings
+  * tend to use fully qualified names (make maintenance easier)
+  * bring cmds to an alphabetical order (make maintenance easier)
+  * add optical separators between doc items to ease reading
+
+
+
 
 TODO:
  - private: 
