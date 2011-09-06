@@ -17669,16 +17669,83 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   }
 
   if (CmdIsNsfObject(cmd)) {
+    Tcl_Command oldCmd = NULL;
+    Tcl_Namespace *lookupNsPtr = NULL;
+    NsfObject *oldTargetObject = NULL, *newTargetObject =  (NsfObject *)Tcl_Command_objClientData(cmd);
+    
     /*
-     * When we register an alias for an object, we have to take care to
-     * handle cases, where the aliased object is destroyed and the
-     * alias points to nowhere. We realize this via using the object
-     * refCount.
+     * We need to perform a defensive lookup of a previously defined
+     * object-alias under the given methodName.
      */
-    /*fprintf(stderr, "registering an object %p\n", tcd);*/
 
-    NsfObjectRefCountIncr((NsfObject *)Tcl_Command_objClientData(cmd));
+    lookupNsPtr = cl ? cl->nsPtr : object->nsPtr;
+    oldCmd = lookupNsPtr ? FindMethod(lookupNsPtr, methodName) : NULL;
+    if (oldCmd != NULL && CmdIsNsfObject(oldCmd)) {
+      oldTargetObject = NsfGetObjectFromCmdPtr(oldCmd);
+    }
 
+    /*
+     * When registering an object as an alias method, we must handle cases of
+     * already destroyed alias targets. An object might have been destroyed
+     * and the alias is left dangling. We do so by bumping the target object's
+     * ref counter.
+     *
+     * BEWARE: Imagine a simplistic scenario such as:
+     *
+     * 		Object create ::foo
+     *		Object create ::o {
+     *			:alias FOO ::foo
+     *			:alias FOO ::foo
+     *			:alias FOO ::foo
+     *		}
+     *
+     * Here, without verifying whether one and the same object (::foo) has
+     * already been registered as an alias method (FOO), each alias
+     * registration would lead to an increment of ::foo's ref counter. As
+     * there is no corresponding decrement for each registration, we would end
+     * up with a skewed ref count. 
+     */
+    if (oldTargetObject == NULL ||  oldTargetObject != newTargetObject) {
+      /*fprintf(stderr,"BUMPING oldTargetObject %p (%s) VS. newTargetObject %p (%s) --- rc %d\n", 
+	      oldTargetObject != NULL ? oldTargetObject : NULL, oldTargetObject != NULL ? ObjectName(oldTargetObject) : "n/a", 
+	      newTargetObject, ObjectName(newTargetObject), 
+	      newTargetObject->refCount);*/
+      NsfObjectRefCountIncr(newTargetObject);
+    }
+
+    /*
+     * Likewise, there is the risk of finding an aliased object having been "recreated"
+     * in an unnoticed manner, e.g.:
+     *
+     * nx::Object create ::o
+     * nx::Object create ::baff
+     * nx::Object create ::baff::child
+     * 
+     * ::o alias X ::baff::child
+     * 
+     * # NsfDeleteChild() cannot (!) not perform an AliasDeleteObjectReference() for the o.X() alias (or the like!)
+     * nx::Object create ::baff; 
+     * 
+     * nx::Object create ::baff::child; # the child is reborn!
+     * ::o alias X ::baff::child; # a new alias cmd is created, leaving the old object reference leaking!
+     *
+     * In my understanding, we cannot perform an alias-object cleanup in
+     * NsfDeleteChild(), because we can only do so from the perspective of the
+     * registration object. A reverse lookup through AliasGet() won't help,
+     * because a token-based command lookup will give us the *new* cmd for the
+     * same-named object! Therefore, I suggest the lazy cleanup below. This
+     * cleanup will only fire if another ::nsf::method::alias statement is
+     * evaluated on the recreated, yet same-named object. If this is not done,
+     * the fix above for "taming" the ref counts on identical object targets
+     * has guaranteed that the aliased, but vanished object will be cleaned up
+     * properly.
+     */
+    
+    if (oldTargetObject != NULL && oldTargetObject->flags & NSF_DELETED) {
+      /* fprintf(stderr, "--- CLEARING OLD OBJ: %p %s\n", oldTargetObject, ObjectName(oldTargetObject));*/
+      AliasDeleteObjectReference(interp, oldCmd);
+    }
+    
     /*newObjProc = NsfProcAliasMethod;*/
 
   } else if (CmdIsProc(cmd)) {
@@ -18706,7 +18773,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
      */
     cmd = Tcl_FindCommand(interp, oldName, NULL, TCL_GLOBAL_ONLY);
     if (cmd == NULL) {
-      NsfPrintError(interp, "can't copy \"%s\": commend doesn't exist", oldName);
+      NsfPrintError(interp, "can't copy \"%s\": command doesn't exist", oldName);
       DECR_REF_COUNT(newFullCmdName);
       DECR_REF_COUNT(oldFullCmdName);
       return TCL_ERROR;
