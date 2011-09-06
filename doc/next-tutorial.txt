@@ -149,22 +149,21 @@ internal representation (the instance variable +things+).
 The method +push+ receives an argument +thing+ which should be placed
 on the stack. Note that we do not have to specify the type of the
 element on the stack, so we can push strings as well as numbers or
-other kind of things. 
-
-When an element is pushed, we add this element
+other kind of things. When an element is pushed, we add this element
 as the first element to the list +things+. We insert the element using
 the Tcl command +linsert+ which receives the list as first element,
 the position where the element should be added as second and the new
 element as third argument. To access the value of the instance
-variable we use the dollar operator followed by the name. Instance
-varibables are preceded with a colon +:+. Since the
-name contains a colon (to denote that the variable is an instance
-variable), Tcl requires us to put braces around the name. The command
-+linsert+ and its arguments are placed between square brackets, therefore
-function is called and returns the new list. The result is assigned
-again to the instance variable +things+ which is updated this way.
-Finally the method +push+ returns the pushed thing using the +return+
-statement.
+variable we use Tcl's the dollar operator followed by the name. The
+names of instance variables are preceded with a colon +:+. Since the
+name contains a non-plain character, Tcl requires us to put braces
+around the name. The command +linsert+ and its arguments are placed
+between square brackets. This means that the function is called and
+returns the new list, where the new element is inserted at the first
+position (index 0) in the list +things+. The result of the +linsert+
+function is assigned again to the instance variable +things+ which is
+updated this way.  Finally the method +push+ returns the pushed thing
+using the +return+ statement.
 
 The method +pop+ returns the most recently stacked element and removes
 it from the stack. Therefore, it takes the first element from the list
@@ -608,10 +607,215 @@ common root class is often omitted from the class diagrams.
 
 == Basic Language Features of NX
 
+=== Variables and Properties
+
+In general, NX does not need variable declarations. It allows to
+create, modify or variables on the fly by using e.g. the Tcl commands
++set+ and +unset+. Depending on the variable name (or more precisely,
+depending on the prefix consisting of colons +:+), a variable is
+either local to a method, or an instance variable, or a global
+variable.  The rules are:
+
+- A variable without any colon prefix refers typically to a
+   method scoped variable (the variable is created at the begin of the
+   invocation of the method and deleted, when the method ends);
+   In the example below, the variable +a+ is method scoped.
+
+- A variable with a single colon prefix refers to an instance variable
+   (the variable is part of the object, when the object is destroyed,
+   the variable is deleted as well. In the example below, the variable
+   +b+ is an instance variable.
+
+- a variable with two leading colons refers to a global variable (the
+  lifespan ends when te variable is explicitly unset or the script
+  ends). Also variables in placed in Tcl namespaces are global
+  variables. In the example below, the variable +c+ is a global
+  variable.
+
+[[xmp-var-resolver]]
+.Listing {counter:figure-number}: Scopes of Variables
+{set:xmp-var-resolver:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+Class create Foo {
+
+  :method foo args {...}
+    # Method scoped variable a
+    set a 1
+    # Instance variable b
+    set :b 2
+    # Global variable/namespaced variable c
+    set ::c 3
+  }
+}
+--------------------------------------------------
+
+<<xmp-var-resolver, {xmp-var-resolver}>> shows a method +foo+
+of some class +Foo+ referring to differently scoped variables.
+
+
+==== Properties: Instance Variables with Accessors
+
+So, in general, there is no need to define or declare instance
+variables in NX. However, in some cases, a definition is useful. For
+example, one can define properties on classes, which are inherited to
+subclasses, and which are used during object initialization. Consider
+the following example:
+
+[[xmp-properties]]
+.Listing {counter:figure-number}: Properties
+{set:xmp-properties:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+#
+# Define a class Person with properties "name" 
+# and "birthday"
+#
+nx::Class create Person {
+  :property name:required
+  :property birthday
+}
+
+#
+# Define a class Student as specialization of Person 
+# with additional properties
+#
+nx::Class create Student -superclass Person {
+  :property matnr:required
+  :property {oncampus:boolean true}
+}
+
+#
+# Create instances using object parameters
+# for the initialization
+#
+Person create p1 -name Bob
+Student create s1 -name Susan -matnr 4711
+
+# Access property value via accessor method
+puts "The name of s1 is [s1 name]"
+--------------------------------------------------
+
+We define here a class named +Person+ with two properties, namely
+ +name+ and birthday.
+
+We refer with the term _property_ to an instance variable with
+accessors, where the property definition might carry as well
+value-constraints and a default value.
+
+When the class +Person+ is defined, NX provides as well automatically
+accessors. Accessors are methods named like the variables, which are
+used to access (to read and write) the underlying instance
+variables. Therefore, in our example, the class +Person+ has two
+methods implied by the +property+ definition, namely the method +name+
+and the method +birthday+.
+
+The class +Student+ is defined as a specialization of +Person+ with
+two additional properties, namely +matnr+ and +oncampus+. The property
++matnr+ is required (it has to be provided, when an instance of this
+class is created), and the property +oncampus+ is boolean, and is per
+default set to +true+. Note that the class +Student+ inherits the
+properties of +Person+, therefore it will have 4 properties in total.
+
+The property definitions are also used for providing +object
+parameters+. These are non-positional parameters provided during
+object creation to supply values to the instance variables. In our
+listing, we create an instance of +Person+ using the object parameter
++name+ and provide the value of +Bob+ to the instance variable +name+.
+Similarly, we create an instance of +Student+ using the two object
+parameters +name+ and +matnr+. Finally we use the accessor method
++name+ to obtain the value of the instance variable +name+ of object
++s1+.
+
+==== Instance Variables without Accessors
+
+In some cases one would like to define instance variables without
+accessors, e.g. for keeping the internal state of an object.  For this
+purpose, one can use the predefined method +variable+, which is in
+many respects similar to +property+. One difference is, that
++property+ uses the same syntax as for method parameters, and
++variable+ receives the default value as a separate argument (similar
+to the +variable+ command in Tcl. The introductory Stack example in in
+<<xmp-class-stack, {xmp-class-stack}>> used already the method
++variable+.
+
+[[xmp-variable]]
+.Listing {counter:figure-number}: Declaring Variables
+{set:xmp-variable:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+Class create Base {
+  :variable x 1
+  # ...
+}
+
+Class create Derived -superclass Base {
+  :variable y 2
+  # ...
+}
+
+# Create instance of the class Derived
+Derived create d1
+
+# Object d1 has instance variables
+# x == 1 and y == 2
+--------------------------------------------------
+
+Note that the variable definitions are inherited in the same way as
+properties. The example in <<xmp-variable, {xmp-variable}>> shows a
+class +Derived+ that inherits from +Base+. When an instance +d1+ is
+created, it will contain the two instance variables +x+ and +y+. 
+
+[[xmp-constructor]]
+.Listing {counter:figure-number}: Setting Variables in the Constructor
+{set:xmp-constructor:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+Class create Base2 {
+ # ...
+ :method init {} {
+   set :x 1
+   # ....
+ }
+}
+
+Class create Derived2 -superclass Base2 {
+ # ...
+ :method init {} {
+   set :y 2
+   next
+   # ....
+ }
+}
+
+# Create instance of the class Derived2
+Derived2 create d2
+--------------------------------------------------
+
+In many other object oriented languages, the instance variables are
+initialized solely by the constructor, similar to class +Derived2+ in
+<<xmp-constructor, {xmp-constructor}>> . This approach is certainly as
+well possible in NX. Note however, that the approach using
+constructors requires an explicit method chaining between the
+constructors and is less declarative.
+
+=== Method Definitions
+==== Scripted Methods 
+==== C-implemented Methods
+==== Method-Aliases
+=== Method Protection
+=== Scopes of Methods 
+==== Inherited Methods
+==== Class Methods
+==== Object Methods
+
+
 === Parameters
 
 NX provides a generalized mechanism for passing values to either
-methods or to objects as initializers. 
+methods (we refer to these as _method parameters_) or to objects
+(these are called _object parameters_). Both kind of parameters 
+might have different features, such as:
 
 - Positional and non-positional parameters
 - Required and non-required parameters
@@ -621,14 +825,21 @@ methods or to objects as initializers.
 
 TODO: complete list above and provide a short summary of the section
 
+Before we discuss method and object parameters in more detail, we
+describe the parameter features in the subsequent sections based on
+method parameters.
+
 ==== Positional and Non-Positional Parameters
 
-In general, we distinguish between _positional_ and _non-positional_
-parameters. When we call a method with positional parameters, the
-meaning of the parameters (the association with the argument in the
-argument list of the method) is determined by its position. When we
-call a method with non-positional parameters, their meaning is
-determined via a name passed with the argument during invocation.
+If the position of a parameter in the list of formal arguments
+(e.g. passed to a function) is significant for its meaning, this is a
+_positional_ parameter. If the meaning of the parameter is independent
+of its postion, this is a _non-positional_ parameter. When we call a
+method with positional parameters, the meaning of the parameters (the
+association with the argument in the argument list of the method) is
+determined by its position. When we call a method with non-positional
+parameters, their meaning is determined via a name passed with the
+argument during invocation.
 
 [[xmp-posnonpos]]
 .Listing {counter:figure-number}: Positional and Non-Positional Method Parameters
@@ -1072,7 +1283,11 @@ orthogonal with the other parameter features and can be used as well
 for multiple parameters, non-positional parameter, default values,
 etc.
 
-=== Method and Object Parameters
+== Advanced Language Features
+
+=== Objects, Classes and Meta-Classes
+
+=== Details on Method and Object Parameters
 
 The parameter specifications are used in NX for the following
 purposes. They are used for
@@ -1255,129 +1470,8 @@ Object parameter for Class Student:
 The actual values can be obtained via introspection via +nx::Class info
 parameter definition+.
 
-==== Defining Instance Variables
 
-In general, NX allows to create, modify or unset instance variables on
-the fly by using e.g. the Tcl commands +set+ and +unset+ together with
-variable names prefixed by a single colon (+:+).  Note that 
-
-- a variable without any colon prefix refers typically to a
-   method-scoped variable (the variable is created at the begin of the
-   invocation of the method and deleted, when the method ends),
-
-- a variable with a single colon prefix refers to an instance variable
-   (the variable is part of the object, when the object is destroyed,
-   the variable is deleted as well, and that
-
-- a variable with two leading colons refers to a global variable
-  (the lifespan ends when te variable is explicitly unset 
-  or the script ends). Also variables in Tcl namespaces are
-  global variables.
-
-[[xmp-var-resolver]]
-.Listing {counter:figure-number}: Scopes of Variables
-{set:xmp-var-resolver:Listing {figure-number}}
-[source,tcl,numbers]
---------------------------------------------------
-Class create C {
-
-  :method foo args {...}
-    # Method scoped variable a
-    set a 1
-    # Instance variable b
-    set :b 2
-    # Global variable/namespaced variable c
-    set ::c 3
-  }
-}
---------------------------------------------------
-
-<<xmp-var-resolver, {xmp-var-resolver}>> shows a method +foo+
-of some class +C+ referring to differently scoped variables.
-
-So, in general, there is no need to define or declare instance
-variables in NX. However, in some cases, a definition is useful. For
-example, one can define properties on classes, which are inherited to
-subclasses, and which are used during object initialization.  As shown
-in the example class +Student+, properties can have defaults, which
-are used as well during initialization.
-
-In short, a _property_ is an instance variable with accessors, where
-the property definition might carry as well value-constraints and a
-default value. 
-
-In some cases one would like to define instance variables without
-accessors, e.g. for keeping the internal state of an object.  For this
-purpose, one can use the predefined method +variable+, which is in
-many respects similar to +property+. One difference is, that
-+property+ uses the same syntax as for method parameters, and
-+variable+ receives the default value as a separate argument (similar
-to the +variable+ command in Tcl. The introductory Stack example in in
-<<xmp-class-stack, {xmp-class-stack}>> used already the method
-+variable+.
-
-[[xmp-variable]]
-.Listing {counter:figure-number}: Declaring Variables
-{set:xmp-variable:Listing {figure-number}}
-[source,tcl,numbers]
---------------------------------------------------
-Class create Base {
-  :variable x 1
-  # ...
-}
-
-Class create Derived -superclass Base {
-  :variable y 2
-  # ...
-}
-
-# Create instance of the class Derived
-Derived create d1
-
-# Object d1 has instance variables
-# x == 1 and y == 2
---------------------------------------------------
-
-Note that the variable definitions are inherited in the same way as
-properties. The example in <<xmp-variable, {xmp-variable}>> shows a
-class +Derived+ that inherits from +Base+. When an instance +d1+ is
-created, it will contain the two instance variables +x+ and +y+. 
-
-[[xmp-constructor]]
-.Listing {counter:figure-number}: Setting Variables in the Constructor
-{set:xmp-constructor:Listing {figure-number}}
-[source,tcl,numbers]
---------------------------------------------------
-Class create Base2 {
- # ...
- :method init {} {
-   set :x 1
-   # ....
- }
-}
-
-Class create Derived2 -superclass Base2 {
- # ...
- :method init {} {
-   set :y 2
-   next
-   # ....
- }
-}
-
-# Create instance of the class Derived2
-Derived2 create d2
---------------------------------------------------
-
-In many other object oriented languages, the instance variables are
-initialized by the constructor, similar to class +Derived2+ in
-<<xmp-constructor, {xmp-constructor}>> . This approach is certainly
-as well possible in NX. Note however, that the approach using
-constructors requires an explicit method chaining between the
-constructors and is less declarative.
-
-
-==== Additional Parameter Types for Object Parameters
+==== User defined Parameter Types
 
 More detailed definition of the object parameter types comes here.
 
@@ -1406,10 +1500,9 @@ Still Missing
 - converter
 - incremental slots
 
-== Method Protection
-
-
 == Miscellaneous
+
+=== Profiling
 
 === Unknown Handlers
 
