@@ -1903,10 +1903,10 @@ GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
     Tcl_DStringInit(dsPtr);
     Tcl_DStringAppend(dsPtr, methodName, objNameLength);
     regObject = GetObjectFromNsName(interp, Tcl_DStringValue(dsPtr), fromClassNS);
-    if (regObject) {
+    if (regObject && methodName1) {
       *methodName1 = procName;
     }
-      Tcl_DStringFree(dsPtr);
+    Tcl_DStringFree(dsPtr);
   } else {
     regObject = NULL;
   }
@@ -1939,17 +1939,45 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 		  NsfObject **regObject,
 		  NsfObject **defObject,
 		  CONST char **methodName1, int *fromClassNS) {
-  Tcl_Command cmd;
-  NsfObject *referencedObject;
   char *methodName = ObjStr(methodObj);
+  NsfObject *referencedObject;
+  int containsSpace;
+  Tcl_Command cmd;
 
-  if (strchr(methodName, ' ')) {
+  /*
+  fprintf(stderr,"methodName '%s' comp %d type %s\n", 
+  methodName, strchr(methodName, ' ')>0, methodObj->typePtr ? methodObj->typePtr->name : "(none)");*/
+
+  if (methodObj->typePtr == Nsf_OT_listType) {
+    int length; 
+    Tcl_ListObjLength(interp, methodObj, &length);
+    containsSpace = length > 1;
+  } else if (methodObj->typePtr == Nsf_OT_tclCmdNameType) {
+    containsSpace = 0;
+  } else {
+    containsSpace = strchr(methodName, ' ') > 0;
+  }
+
+#if !defined(NDBUG)
+  if (containsSpace) {
+    assert(strchr(methodName, ' ') > 0);
+  } else {
+    assert(strchr(methodName, ' ') == 0);
+  }
+#endif
+
+  if (containsSpace) {
+    CONST char *firstElementString;
     Tcl_Namespace *parentNsPtr;
     NsfObject *ensembleObject;
-    Tcl_Obj *methodHandleObj;
-    CONST char *firstElementString;
+    Tcl_Obj *methodHandleObj, **ov;
     int oc, i;
-    Tcl_Obj **ov;
+
+    /* 
+     * When the methodName is required, we have to proivde a methodNameDS as
+     * well.
+     */
+    assert(methodName1 == NULL || methodNameDs != NULL);
 
     /*fprintf(stderr, "name '%s' contains space \n", methodName);*/
 
@@ -1957,9 +1985,9 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 	|| ((referencedObject = GetEnsembeObjectFromName(interp, nsPtr, ov[0],
 							 &cmd, fromClassNS)) == NULL)
 	) {
-      *methodName1 = NULL;
-      *regObject = NULL;
-      *defObject = NULL;
+      if (methodName1) {*methodName1 = NULL;}
+      if (regObject) {*regObject = NULL;}
+      if (defObject) {*defObject = NULL;}
       return NULL;
     }
 
@@ -1971,9 +1999,11 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
      */
     firstElementString = ObjStr(ov[0]);
     if (*firstElementString == ':') {
-      *regObject = GetRegObject(interp, cmd, firstElementString, methodName1, fromClassNS);
+      NsfObject *registrationObject;
+      registrationObject = GetRegObject(interp, cmd, firstElementString, methodName1, fromClassNS);
+      if (regObject) {*regObject = registrationObject;}
     } else {
-      *regObject = NULL;
+      if (regObject) {*regObject = NULL;}
     }
 
     /*fprintf(stderr, "... regObject object '%s' reg %p, fromClassNS %d\n",
@@ -1985,11 +2015,14 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
      */
     methodHandleObj = Tcl_DuplicateObj(referencedObject->cmdName);
     INCR_REF_COUNT(methodHandleObj);
-    Tcl_DStringAppend(methodNameDs, Tcl_GetCommandName(interp, cmd), -1);
+
+    if (methodNameDs) {
+      Tcl_DStringAppend(methodNameDs, Tcl_GetCommandName(interp, cmd), -1);
+    }
     parentNsPtr = NULL;
 
     /*
-     * Iterate over the objects and append to the handle and methodObj
+     * Iterate over the objects and append to the methodNameDs and methodHandleObj
      */
     for (i = 1; i < oc; i++) {
       cmd = Tcl_GetCommandFromObj(interp, methodHandleObj);
@@ -1997,9 +2030,9 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 
       if (!ensembleObject) {
 	DECR_REF_COUNT(methodHandleObj);
-	*methodName1 = NULL;
-	*regObject = NULL;
-	*defObject = NULL;
+	if (methodName1) {*methodName1 = NULL;}
+	if (regObject) {*regObject = NULL;}
+	if (defObject) {*defObject = NULL;}
 	return NULL;
       }
 
@@ -2015,14 +2048,16 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 
       Tcl_AppendLimitedToObj(methodHandleObj, "::", 2, INT_MAX, NULL);
       Tcl_AppendLimitedToObj(methodHandleObj, ObjStr(ov[i]), -1, INT_MAX, NULL);
-      Tcl_DStringAppendElement(methodNameDs, ObjStr(ov[i]));
+      if (methodNameDs) {
+	Tcl_DStringAppendElement(methodNameDs, ObjStr(ov[i]));
+      }
     }
 
     /*
      * cmd contains now the parent-obj, on which the method was
      * defined. Get from this cmd the defObj.
      */
-    *defObject = NsfGetObjectFromCmdPtr(cmd);
+    if (defObject) {*defObject = NsfGetObjectFromCmdPtr(cmd);}
 
     /*fprintf(stderr, "... handle '%s' last cmd %p defObject %p\n",
       ObjStr(methodHandleObj), cmd, *defObject);*/
@@ -2032,31 +2067,37 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
      * final methodName,
      */
     cmd = Tcl_GetCommandFromObj(interp, methodHandleObj);
-    *methodName1 = Tcl_DStringValue(methodNameDs);
+    if (methodName1) {*methodName1 = Tcl_DStringValue(methodNameDs);}
 
-    /*fprintf(stderr, "... methodname1 '%s' cmd %p\n", *methodName1, cmd);*/
+    /*fprintf(stderr, "... methodname1 '%s' cmd %p\n", Tcl_DStringValue(methodNameDs), cmd);*/
     DECR_REF_COUNT(methodHandleObj);
 
   } else if (*methodName == ':') {
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
     if (likely(cmd != NULL)) {
       referencedObject = GetRegObject(interp, cmd, methodName, methodName1, fromClassNS);
-      *regObject = referencedObject;
-      *defObject = referencedObject;
-      *methodName1 = Tcl_GetCommandName(interp, cmd);
+      if (regObject) {*regObject = referencedObject;}
+      if (defObject) {*defObject = referencedObject;}
+      if (methodName1 && *methodName1 == NULL) {
+	/* 
+	 * The return value for the method name is required and was not
+	 * computed by GetRegObject()
+	 */
+	*methodName1 = Tcl_GetCommandName(interp, cmd);
+      }
     } else {
       /*
        * The cmd was not registered on an object or class, but we
        * still report back the cmd (might be e.g. a primitive cmd).
        */
-      *regObject = NULL;
-      *defObject = NULL;
+      if (regObject) {*regObject = NULL;}
+      if (defObject) {*defObject = NULL;}
     }
   } else {
-    *methodName1 = methodName;
+    if (methodName1) {*methodName1 = methodName;}
     cmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
-    *regObject = NULL;
-    *defObject = NULL;
+    if (regObject) {*regObject = NULL;}
+    if (defObject) {*defObject = NULL;}
   }
 
   return cmd;
@@ -2300,21 +2341,13 @@ static NsfClass *
 SearchComplexCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 		     Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
   NsfClasses *pl;
-  CONST char *methodName1 = NULL;
-  Tcl_DString ds, *dsPtr = &ds;
   int fromClassNS = 1;
 
   assert(cl);
 
   for (pl = ComputeOrder(cl, SUPER_CLASSES); pl;  pl = pl->nextPtr) {
-    NsfObject *regObject, *defObject;
-    Tcl_Command cmd;
-
-    Tcl_DStringInit(dsPtr);
-    cmd = ResolveMethodName(interp, pl->cl->nsPtr, methodObj,
-			    dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-    Tcl_DStringFree(dsPtr);
-
+    Tcl_Command cmd = ResolveMethodName(interp, pl->cl->nsPtr, methodObj,
+					NULL, NULL, NULL, NULL, &fromClassNS);
     if (cmd) {
       *cmdPtr = cmd;
       return pl->cl;
@@ -2345,8 +2378,8 @@ SearchComplexCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 static Tcl_Command
 ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj, NsfClass **pcl) {
   Tcl_Command cmd = NULL;
-  Tcl_DString ds, *dsPtr = &ds;
   int containsSpace = strchr(ObjStr(methodObj), ' ') != NULL;
+
   NsfClass *(*lookupFunction)(Tcl_Interp *interp, NsfClass *cl,
 			      Tcl_Obj *methodObj, Tcl_Command *cmdPtr) =
     containsSpace ? SearchComplexCMethod : SearchSimpleCMethod;
@@ -2371,13 +2404,9 @@ ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj, NsfC
 
   if (!cmd && object->nsPtr) {
     int fromClassNS = 0;
-    NsfObject *regObject, *defObject;
-    CONST char *methodName1 = NULL;
 
-    Tcl_DStringInit(dsPtr);
     cmd = ResolveMethodName(interp, object->nsPtr, methodObj,
-			    dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-    Tcl_DStringFree(dsPtr);
+			    NULL, NULL, NULL, NULL, &fromClassNS);
   }
 
   if (!cmd && object->cl) {
@@ -2486,14 +2515,19 @@ ObjectSystemAdd(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
 static void
 ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfObject *object) {
   NsfObjectSystem *osPtr, *defOsPtr = GetObjectSystem(object);
+  char firstChar;
+  
+  assert(methodName);
+  firstChar = *methodName;
 
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
     int i, rootClassMethod, flag = 0;
 
     for (i=0; i<=NSF_o_unknown_idx; i++) {
       Tcl_Obj *methodObj = osPtr->methods[i];
+      CONST char *methodString = methodObj ? ObjStr(methodObj) : NULL;
 
-      if (methodObj && !strcmp(methodName, ObjStr(methodObj))) {
+      if (methodString && *methodString == firstChar && !strcmp(methodName, methodString)) {
         flag = 1<<i;
 	break;
       }
@@ -9533,8 +9567,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   } else if (*methodName == ':') {
     NsfObject *regObject, *defObject;
-    Tcl_DString ds, *dsPtr = &ds;
-    CONST char *methodName1;
     int fromClassNS = 0;
 
     /*
@@ -9547,10 +9579,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
 
     INCR_REF_COUNT(methodObj);
-    Tcl_DStringInit(dsPtr);
     cmd = ResolveMethodName(interp, NULL, methodObj,
-			     dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-    Tcl_DStringFree(dsPtr);
+			    NULL, &regObject, &defObject, NULL, &fromClassNS);
     DECR_REF_COUNT(methodObj);
 
     if (cmd) {
@@ -17923,17 +17953,14 @@ cmd ::method::property NsfMethodPropertyCmd {
 static int
 NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 		     Tcl_Obj *methodObj, int methodproperty, Tcl_Obj *valueObj) {
-  CONST char *methodName = ObjStr(methodObj), *methodName1 = NULL;
-  NsfObject *regObject, *defObject;
-  Tcl_DString ds, *dsPtr = &ds;
+  CONST char *methodName = ObjStr(methodObj);
+  NsfObject *defObject;
   Tcl_Command cmd;
   NsfClass *cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
   int flag, fromClassNS = cl != NULL;
-
-  Tcl_DStringInit(dsPtr);
+  
   cmd = ResolveMethodName(interp, cl ? cl->nsPtr : object->nsPtr, methodObj,
-			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-  Tcl_DStringFree(dsPtr);
+			  NULL, NULL, &defObject, NULL, &fromClassNS);
   /*fprintf(stderr, "methodProperty for method '%s' prop %d value %s => cl %p cmd %p\n",
     methodName, methodproperty, valueObj ? ObjStr(valueObj) : "NULL", cl, cmd);*/
 
@@ -18087,15 +18114,13 @@ cmd "method::registered" NsfMethodRegisteredCmd {
 */
 static int
 NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *methodNameObj) {
-  NsfObject *regObject, *defObject;
-  CONST char *methodName1 = NULL;
+  NsfObject *regObject;
   int fromClassNS = 0;
-  Tcl_DString ds, *dsPtr = &ds;
   Tcl_Command cmd;
 
-  Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, NULL, methodNameObj,
-			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+			  NULL, &regObject, NULL, NULL, &fromClassNS);
+
   /*
    * In case the provided cmd is fully qualified and refers to a registered
    * method, the function returns the object, on which the method was
@@ -18103,7 +18128,6 @@ NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *methodNameObj) {
    */
   Tcl_SetObjResult(interp, (cmd && regObject) ? regObject->cmdName : NsfGlobalObjs[NSF_EMPTY]);
 
-  Tcl_DStringFree(dsPtr);
   return TCL_OK;
 }
 
@@ -22684,6 +22708,8 @@ RegisterExitHandlers(ClientData clientData) {
  * Tcl extension initialization routine
  */
 
+#include <google/profiler.h>
+
 extern int
 Nsf_Init(Tcl_Interp *interp) {
   ClientData runtimeState;
@@ -22692,7 +22718,9 @@ Nsf_Init(Tcl_Interp *interp) {
   /*NsfCompEnv *interpstructions = NsfGetCompEnv();*/
 #endif
   static NsfMutex initMutex = 0;
-
+#if 0
+  ProfilerStart("profiler");
+#endif
 #ifdef USE_TCL_STUBS
   if (Tcl_InitStubs(interp, "8.5", 0) == NULL) {
     return TCL_ERROR;

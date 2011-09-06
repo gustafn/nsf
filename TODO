@@ -3456,6 +3456,14 @@ Test run; exit
   * added section about ":variable" to the tutorial
   * fixed a few outdated places in tutorial
 
+- nsf.c:
+  * reduce eagerness of methodName computation in ResolveMethodName()
+    and GetRegObject()
+  * reduce eagerness of DString computation in ResolveMethodName()
+  * use conditional assignments in ResolveMethodName()
+  * make use of Tcl_Obj type in ResolveMethodName() to reduce 
+    number of string operations
+
 
 TODO:
  - private: 
