@@ -22708,7 +22708,9 @@ RegisterExitHandlers(ClientData clientData) {
  * Tcl extension initialization routine
  */
 
+#if 0
 #include <google/profiler.h>
+#endif
 
 extern int
 Nsf_Init(Tcl_Interp *interp) {
