@@ -3475,12 +3475,17 @@ Test run; exit
   * bring cmds to an alphabetical order (make maintenance easier)
   * add optical separators between doc items to ease reading
 
+- fixed mem_count on contains.test
 
+- nsf.c:
+  * minor cleanup
+  * added regression tests
 
 
 TODO:
  - private: 
    * document private in tutorial
+ - add "property" and "attribute" and "info property" and "info slot ..." to migration guide
 
  - naming of slot classes 
    * should we switch from "-class" to "-slotclass"?
@@ -3497,8 +3502,6 @@ TODO:
     o1 info slot objects ?-type value? ?pattern?
 
     o1 info children ?-type class? ?pattern?
-
- - add "property" and "attribute" and "info property" and "info slot ..." to migration guide
 
  - doc/langRef2.xotcl vs library/xotcl/doc/langRef.xotcl
 
@@ -3525,19 +3528,6 @@ nx::Test case ensemble-next-with-colon-prefix {
     # TODO: currently, we need two converters (or a converter on nx::Slot), since
     # variable uses nsf::is and attribute uses the slot obj. method variable should
     # be changed to use the slotobj as well.
-
- - fix mem_count on contains.test (currently 4 / 4)
-   the minimal script seems to be the following and is related
-   to the following message
-   Warning: Have to fix refCount for obj 0x100924210 refCount 2  (name ::nx::Class::slot::__info)
-   =======================
-      package require nx
-      package forget nx
-      package req nx
-      puts stderr ====EXIT
-      exit
-   =======================
-
 
  - interface of "variable" and "attribute":
    * add switch -array for "variable"? (Just setting is trivial,

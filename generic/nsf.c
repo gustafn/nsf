@@ -9070,19 +9070,17 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      */
     if (CmdIsNsfObject(cmd)) {
       /*
-       * invoke an aliased object (ensemble object) via method interface
+       * Invoke an aliased object (ensemble object) via method interface.
        */
-      NsfRuntimeState *rst = RUNTIME_STATE(interp);
       NsfObject *invokeObj = (NsfObject *)cp;
 
       if (invokeObj->flags & NSF_DELETED) {
         /*
-         * When we try to call a deleted object, the cmd (alias) is
-         * automatically removed. Note that the cmd might be still
-         * referenced in various entries in the callstack. The
-         * reference counting on these elements takes care that the
-         * cmdPtr is deleted on a pop operation (although we do a
-         * Tcl_DeleteCommandFromToken() below.
+         * When we try to invoke a deleted object, the cmd (alias) is
+         * automatically removed. Note that the cmd might be still referenced
+         * in various entries in the callstack. The reference counting on
+         * these elements takes care that the cmdPtr is deleted on a pop
+         * operation (although we do a Tcl_DeleteCommandFromToken() below.
          */
 	/*fprintf(stderr, "methodName %s FOUND deleted object with cmd %p my cscPtr %p\n",
 	  methodName, cmd, cscPtr);*/
@@ -9184,10 +9182,12 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	  result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
 				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 	}
-	
+
 	/*fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n",
-	  ObjectName(self), methodName, ObjectName(object), cscPtr, result, rst->unknown);*/
-	if (rst->unknown) {
+	  ObjectName(self), methodName, ObjectName(object), cscPtr, result, 
+	  RUNTIME_STATE(interp)->unknown); */
+
+	if (RUNTIME_STATE(interp)->unknown) {
 	  /*
 	   * Unknown handling: We trigger a dispatch to an unknown method. The
 	   * appropriate unknown handler is either provided for the current
@@ -9564,7 +9564,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	    methodName, cl, cl ? ClassName(cl) : "NONE", cmd);*/
 
   } else if (*methodName == ':') {
-    NsfObject *regObject, *defObject;
+    NsfObject *regObject;
     int fromClassNS = 0;
 
     /*
@@ -9578,7 +9578,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
     INCR_REF_COUNT(methodObj);
     cmd = ResolveMethodName(interp, NULL, methodObj,
-			    NULL, &regObject, &defObject, NULL, &fromClassNS);
+			    NULL, &regObject, NULL, NULL, &fromClassNS);
     DECR_REF_COUNT(methodObj);
 
     if (cmd) {
@@ -17666,85 +17666,76 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   }
 
   if (CmdIsNsfObject(cmd)) {
-    Tcl_Command oldCmd = NULL;
-    Tcl_Namespace *lookupNsPtr = NULL;
-    NsfObject *oldTargetObject = NULL, *newTargetObject =  (NsfObject *)Tcl_Command_objClientData(cmd);
+    Tcl_Command oldCmd;
+    Tcl_Namespace *lookupNsPtr;
+    NsfObject *oldTargetObject, *newTargetObject;
     
+    newTargetObject =  (NsfObject *)Tcl_Command_objClientData(cmd);
+    assert(newTargetObject);
+
     /*
      * We need to perform a defensive lookup of a previously defined
      * object-alias under the given methodName.
      */
-
     lookupNsPtr = cl ? cl->nsPtr : object->nsPtr;
     oldCmd = lookupNsPtr ? FindMethod(lookupNsPtr, methodName) : NULL;
-    if (oldCmd != NULL && CmdIsNsfObject(oldCmd)) {
+    if (oldCmd != NULL) {
       oldTargetObject = NsfGetObjectFromCmdPtr(oldCmd);
+    } else {
+      oldTargetObject = NULL;
     }
 
     /*
-     * When registering an object as an alias method, we must handle cases of
-     * already destroyed alias targets. An object might have been destroyed
-     * and the alias is left dangling. We do so by bumping the target object's
-     * ref counter.
+     * Bump the object reference counter when the new target object is
+     * different from the old one. Note, that the old target object might be
+     * NULL, in case the object is used here first.
      *
-     * BEWARE: Imagine a simplistic scenario such as:
+     * The following scenario shows a first registration of a reference
+     * followed by a redefinition. Only in the first case, the reference
+     * counter is increased.
      *
      * 		Object create ::foo
      *		Object create ::o {
-     *			:alias FOO ::foo
-     *			:alias FOO ::foo
-     *			:alias FOO ::foo
+     *		   :alias FOO ::foo
+     *		   :alias FOO ::foo
      *		}
      *
-     * Here, without verifying whether one and the same object (::foo) has
-     * already been registered as an alias method (FOO), each alias
-     * registration would lead to an increment of ::foo's ref counter. As
-     * there is no corresponding decrement for each registration, we would end
-     * up with a skewed ref count. 
      */
-    if (oldTargetObject == NULL ||  oldTargetObject != newTargetObject) {
-      /*fprintf(stderr,"BUMPING oldTargetObject %p (%s) VS. newTargetObject %p (%s) --- rc %d\n", 
-	      oldTargetObject != NULL ? oldTargetObject : NULL, oldTargetObject != NULL ? ObjectName(oldTargetObject) : "n/a", 
-	      newTargetObject, ObjectName(newTargetObject), 
-	      newTargetObject->refCount);*/
+    if (oldTargetObject != newTargetObject) {
       NsfObjectRefCountIncr(newTargetObject);
+    } else {
+      /*fprintf(stderr, "--- don't incr refcount on obj %p %s\n", 
+	newTargetObject, ObjectName(newTargetObject));*/
     }
 
     /*
-     * Likewise, there is the risk of finding an aliased object having been "recreated"
-     * in an unnoticed manner, e.g.:
+     * The old target object might be already stale (i.e. destroyed, but kept
+     * alive by the reference counter). In this case, we have to decrement the
+     * object reference counter and release this object here.
      *
-     * nx::Object create ::o
-     * nx::Object create ::baff
-     * nx::Object create ::baff::child
-     * 
-     * ::o alias X ::baff::child
-     * 
-     * # NsfDeleteChild() cannot (!) not perform an AliasDeleteObjectReference() for the o.X() alias (or the like!)
-     * nx::Object create ::baff; 
-     * 
-     * nx::Object create ::baff::child; # the child is reborn!
-     * ::o alias X ::baff::child; # a new alias cmd is created, leaving the old object reference leaking!
+     *   nx::Object create ::x
+     *   nx::Object create ::o {:alias X ::x}
      *
-     * In my understanding, we cannot perform an alias-object cleanup in
-     * NsfDeleteChild(), because we can only do so from the perspective of the
-     * registration object. A reverse lookup through AliasGet() won't help,
-     * because a token-based command lookup will give us the *new* cmd for the
-     * same-named object! Therefore, I suggest the lazy cleanup below. This
-     * cleanup will only fire if another ::nsf::method::alias statement is
-     * evaluated on the recreated, yet same-named object. If this is not done,
-     * the fix above for "taming" the ref counts on identical object targets
-     * has guaranteed that the aliased, but vanished object will be cleaned up
-     * properly.
+     * Destroy the object and create it new
+     *
+     *   x destroy
+     *   nx::Object create ::x
+     *
+     * The recreation of the alias has to decrement the reference counter on
+     * the old object ::x
+     *
+     *   o alias X ::x
+     *
+     * The test below is exactly the same as for invokes on destroyed aliased
+     * objects in ObjectDispatchCsc().
      */
-    
     if (oldTargetObject != NULL && oldTargetObject->flags & NSF_DELETED) {
-      /* fprintf(stderr, "--- CLEARING OLD OBJ: %p %s\n", oldTargetObject, ObjectName(oldTargetObject));*/
+      /*fprintf(stderr, "--- releasing destroyed object %p refCount %d\n", 
+	oldTargetObject, oldTargetObject->refCount);*/
+      assert(oldTargetObject->refCount > 0);
       AliasDeleteObjectReference(interp, oldCmd);
     }
     
-    /*newObjProc = NsfProcAliasMethod;*/
-
   } else if (CmdIsProc(cmd)) {
     /*
      * When we have a Tcl proc|nsf-method as alias, then use the

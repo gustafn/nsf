@@ -666,3 +666,67 @@ Test case alias-precompiled-proc {
   ? {c1 baz} 4
   ? {c1 vars} {a 2 b 4}
 }
+
+#
+# Testing aliases to objects and reference counting.
+# Check the effects via MEM_COUNT...
+#
+nx::Test case refcount-object-alias-recreate {
+
+  nx::Object create ::x
+  nx::Object create ::o {
+    :alias X ::x
+    ? {o info method definition X} "::o protected alias X ::x"
+    :alias X ::x
+    ? {o info method definition X} "::o protected alias X ::x"
+  }
+}
+
+nx::Test case refount-destroy-delete1 {
+  nx::Object create ::x
+  nx::Object create ::o {:alias X ::x}
+
+  ? {o info method definition X} "::o protected alias X ::x"
+
+  # destroy the object, make sure it does not exist anymore
+  ? {x destroy} ""
+  ? {nsf::object::exists x} 0
+
+  # The alias lookup does still work
+  ? {o info method definition X} "::o protected alias X ::x"
+
+  # Create the referenced object new
+  nx::Object create ::x
+  
+  # Recreation of the alias, must free refcount to the old object
+  ? {::o alias X ::x} "::o::X"
+
+  # Recreate the object. On recreation, the object is not freed,
+  # therefore we test the reference counter is aleady set, and must
+  # nor be incremented
+  nx::Object create ::x
+  ? {::o alias X ::x} "::o::X"
+}
+
+nx::Test case refount-destroy-delete2 {
+  nx::Object create ::o
+  nx::Object create ::baff
+  nx::Object create ::baff::child
+
+  ::o alias X ::baff::child
+  ? {nsf::object::exists ::baff::child} 1
+  ? {o info method definition X} "::o protected alias X ::baff::child"
+
+  nx::Object create ::baff
+  ? {nsf::object::exists ::baff::child} 0
+
+  # The alias lookup does still work
+  ? {o info method definition X} "::o protected alias X ::baff::child"
+
+  # Create the child new
+  nx::Object create ::baff::child
+  ? {nsf::object::exists ::baff::child} 1
+  
+  # Recreation of the alias, must free refcount to the old object
+  ? {::o alias X ::baff::child} "::o::X"
+}
