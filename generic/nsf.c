@@ -17629,10 +17629,11 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
   Tcl_CmdDeleteProc *deleteProc = NULL;
   AliasCmdClientData *tcd = NULL; /* make compiler happy */
-  Tcl_Command cmd, newCmd = NULL;
+  Tcl_Command cmd, oldCmd, newCmd = NULL;
   Tcl_Namespace *nsPtr;
   int flags, result;
   NsfClass *cl = (withPer_object || ! NsfObjectIsClass(object)) ? NULL : (NsfClass *)object;
+  NsfObject *oldTargetObject, *newTargetObject;
 
   cmd = Tcl_GetCommandFromObj(interp, cmdName);
   if (cmd == NULL) {
@@ -17665,49 +17666,18 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     newObjProc = NsfObjscopedMethod;
   }
 
-  if (CmdIsNsfObject(cmd)) {
-    Tcl_Command oldCmd;
-    Tcl_Namespace *lookupNsPtr;
-    NsfObject *oldTargetObject, *newTargetObject;
-    
-    newTargetObject =  (NsfObject *)Tcl_Command_objClientData(cmd);
-    assert(newTargetObject);
+  /*
+   * We need to perform a defensive lookup of a previously defined
+   * object-alias under the given methodName.
+   */
+  nsPtr = cl ? cl->nsPtr : object->nsPtr;
+  oldCmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
+  newTargetObject = NsfGetObjectFromCmdPtr(cmd);
 
-    /*
-     * We need to perform a defensive lookup of a previously defined
-     * object-alias under the given methodName.
-     */
-    lookupNsPtr = cl ? cl->nsPtr : object->nsPtr;
-    oldCmd = lookupNsPtr ? FindMethod(lookupNsPtr, methodName) : NULL;
-    if (oldCmd != NULL) {
-      oldTargetObject = NsfGetObjectFromCmdPtr(oldCmd);
-    } else {
-      oldTargetObject = NULL;
-    }
-
-    /*
-     * Bump the object reference counter when the new target object is
-     * different from the old one. Note, that the old target object might be
-     * NULL, in case the object is used here first.
-     *
-     * The following scenario shows a first registration of a reference
-     * followed by a redefinition. Only in the first case, the reference
-     * counter is increased.
-     *
-     * 		Object create ::foo
-     *		Object create ::o {
-     *		   :alias FOO ::foo
-     *		   :alias FOO ::foo
-     *		}
-     *
-     */
-    if (oldTargetObject != newTargetObject) {
-      NsfObjectRefCountIncr(newTargetObject);
-    } else {
-      /*fprintf(stderr, "--- don't incr refcount on obj %p %s\n", 
-	newTargetObject, ObjectName(newTargetObject));*/
-    }
-
+  if (oldCmd != NULL) {
+    oldTargetObject = NsfGetObjectFromCmdPtr(oldCmd);
+    /*fprintf(stderr, "oldTargetObject %p flags %.6x newTargetObject %p\n", 
+      oldTargetObject, oldTargetObject ? oldTargetObject->flags : 0, newTargetObject);*/
     /*
      * The old target object might be already stale (i.e. destroyed, but kept
      * alive by the reference counter). In this case, we have to decrement the
@@ -17729,11 +17699,38 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
      * The test below is exactly the same as for invokes on destroyed aliased
      * objects in ObjectDispatchCsc().
      */
-    if (oldTargetObject != NULL && oldTargetObject->flags & NSF_DELETED) {
-      /*fprintf(stderr, "--- releasing destroyed object %p refCount %d\n", 
-	oldTargetObject, oldTargetObject->refCount);*/
+    if (oldTargetObject != NULL && oldTargetObject != newTargetObject) {
       assert(oldTargetObject->refCount > 0);
+      /*fprintf(stderr, "--- releasing old target object %p refCount %d\n", 
+	oldTargetObject, oldTargetObject->refCount);*/
       AliasDeleteObjectReference(interp, oldCmd);
+    }
+  } else {
+    oldTargetObject = NULL;
+  }
+
+  if (newTargetObject) {
+    /*
+     * Bump the object reference counter when the new target object is
+     * different from the old one. Note, that the old target object might be
+     * NULL, in case the object is used here first.
+     *
+     * The following scenario shows a first registration of a reference
+     * followed by a redefinition. Only in the first case, the reference
+     * counter is increased.
+     *
+     * 		Object create ::foo
+     *		Object create ::o {
+     *		   :alias FOO ::foo
+     *		   :alias FOO ::foo
+     *		}
+     *
+     */
+    if (oldTargetObject != newTargetObject) {
+      NsfObjectRefCountIncr(newTargetObject);
+    } else {
+      /*fprintf(stderr, "--- don't incr refcount on obj %p %s\n", 
+	newTargetObject, ObjectName(newTargetObject));*/
     }
     
   } else if (CmdIsProc(cmd)) {

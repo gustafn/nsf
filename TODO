@@ -3480,6 +3480,7 @@ Test run; exit
 - nsf.c:
   * minor cleanup
   * added regression tests
+  * fixed recration of object alias with a alias to a different cmd
 
 
 TODO:

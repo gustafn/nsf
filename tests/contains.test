@@ -95,7 +95,7 @@ namespace eval ::nx {
   #puts stderr =====3
 }
 
-#puts ====NX
+puts ====NX
 package forget nx
 package req nx
 
@@ -104,10 +104,6 @@ package require XOTcl
 package forget XOTcl
 package require XOTcl
 
-########################################################################
-# trigger the call of "cleanup" to work via method dispatch
-::xotcl::Object create o1
-o1 proc cleanup {} {return}
 
 ########################################################################
 #
@@ -120,6 +116,10 @@ o1 proc cleanup {} {return}
 ? {catch {::xotcl::Class create C0 -superclass ::nx::Object} errorMsg} 1
 ? {set ::errorMsg} {class "::C0" has a different object system as class  "::nx::Object"}
 ::nx::Class create C1 -superclass ::nx::Object
+
+# trigger the call of "cleanup" to work via method dispatch
+::xotcl::Object create o1
+o1 proc cleanup {} {puts stderr "CLEANUP"; return}
 
 #C0 create c0
 #C0 create c0
