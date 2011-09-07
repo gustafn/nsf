@@ -800,15 +800,321 @@ constructors requires an explicit method chaining between the
 constructors and is less declarative.
 
 === Method Definitions
+
+The basic building blocks of an object oriented program are objects,
+classes, which contain named pieces of code, the methods.
+
+=========================================== 
+*Methods* are subroutines (pieces of code) associated with objects 
+and/or classes. Every method has a name, it receives arguments and 
+returns a value.
+===========================================
+
+There are as well other program units, which are not associated with
+objects or classes. Examples for such units are Tcl procs or Tcl
+commands.
+
+Methods might have different scopes, defining, on which kind of
+objects these methods are applicable. We describe this later in more
+detail. For the time being, we deal here with methods defined on
+classes, which are applicable for the instance of these classes.
+
 ==== Scripted Methods 
+
+Since NX is a scripting language, most methods are most likely
+scripted methods, where the method body contains Tcl code.
+
+[[xmp-fido1]]
+.Listing {counter:figure-number}: Scripted method
+{set:xmp-fido1:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+# Define a class
+nx::Class create Dog {
+
+  # Define a scripted method for the class
+  :public method bark {} {
+    puts "[self] Bark, bark, bark."
+  }
+}
+
+# Create an instance of the class
+Dog create fido
+
+# The following line prints "::fido Bark, bark, bark."
+fido bark
+--------------------------------------------------
+
+In the example above we create a class +Dog+ with a scripted method
+named +bark+. The method body defines the code, which is executed when
+the method is invoked. In this example, the method +bar+ will print
+out a line on the terminal starting with the object name (determined
+by the built in command +self+ followed by "Bark, bark, bark.".
+This method is defined on a class (the class contains the method) and
+applicable to instances of the class (here the instance +fido+).
+
 ==== C-implemented Methods
+
+Not all of the methods usable in NX are scripted methods. There are
+for example predefined methods, that we used already in our examples,
+which are implemented in C. For example, in <<xmp-fido1,{xmp-fido1}>>
+we used the method +create+ to create the class +Dog+ and to create
+the dog instance +fido+. 
+
+Also application developer might define their own functions in C, but
+this is an advanced topic, not covered here. However, application
+developer might reuse some generic C code to define their own
+C-implemented methods. Such methods are for example _accessors_,
+_forwarders_ and _aliases_.
+
+=========================================== 
+An *accessor* is a (in most cases) C-implemented method to access
+instance variables of an object. A call to an accessor with no arguments
+uses the accessor as a getter, obtaining the value of the associated
+variable. A call to an accessor with an argument uses it as a setter,
+setting the value of the associated variable.
+===========================================
+
+We used accessors as well already in the section about properties,
+which define accessors automatically.
+
+[[xmp-fido2]]
+.Listing {counter:figure-number}: Accessor Methods
+{set:xmp-fido2:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create Dog {
+ :public method bark {} { puts "[self] Bark, bark, bark." }
+ :method init {} { Tail create [self]::tail}
+}
+
+nx::Class create Tail {
+  :property {length:double 5}
+  :public method wag {} {return Joy}
+}
+
+# Create an instance of the class
+Dog create fido
+
+# Use the accessor "length" as a getter, to obtain the value
+# of a property. The following call returns the length of the 
+# tail of fido
+fido::tail length
+
+# Use the accessor "length" as a setter, to alter the value
+# of a property. The following call changes the length of 
+# the tail of fido
+fido::tail length 10
+
+# Proving an invalid values will raise an error
+fido::tail length "Hello"
+--------------------------------------------------
+
+<<xmp-fido2,{xmp-fido2}>> shows an extended example, where every doc
+has a tail. The object +tail+ is created as a subobject of the dog in
+the constructor +init+. The subobject can be accessed by providing the
+full name of the subobject +fido::tail+. The method +length+ is an
+C-implemented accessor, that enforces the value constraint (here a
+floating point number, since length uses the value constraint +double+).
+
+[[xmp-fido3]]
+.Listing {counter:figure-number}: Forwarder Methods
+{set:xmp-fido3:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create Dog {
+  :public method bark {} { puts "[self] Bark, bark, bark." }
+  :method init {} { 
+    Tail create [self]::tail
+    :public forward wag [self]::tail wag
+  }
+}
+
+nx::Class create Tail {
+  :property {length 5}
+  :public method wag {} {return Joy}
+}
+
+# Create an instance of the class
+Dog create fido
+
+# The invocation of "fido wag" is delegated to "fido::tail wag".
+# Therefore, the following method returns "Joy".
+fido wag
+--------------------------------------------------
+
+<<xmp-fido3,{xmp-fido3}>> again extends the example by adding a
+forwarder named +wag+ to the object (e.g. +fido+) that redirects all
+calls of the form +fido wag+ with arbitrary arguments to the subobject
++fido::tail+.
+
+=========================================== 
+A *forwarder* is a
+C-implemented method to redirect an invocation for a certain method
+to either a method of other object or to some other method of the
+same object. Forwarding an invocation of a method to some other
+object is a means of delegation.
+===========================================
+
+The functionality of the forwarder can be certainly as well be
+implemented as a scripted method, but for the most common cases, the
+forward implementation is more efficient, and the +forward+ method
+expresses the intention of the developer.
+
+The forwarder have several options to change e.g. the order of the
+arguments, to substitute certain patterns in the argument list
+etc. This will be described in later sections.
+
 ==== Method-Aliases
+
+=========================================== 
+A *method alias* is a means to register an existing method, a Tcl proc or
+command under as a method with a certain name on a class or object.
+===========================================
+
+In some way, the method alias is a restricted form of a forwarder, but
+it does not support delegation to different objects and argument
+reordering. The advantage of the method alias is it has close to zero
+overhead, especially for aliasing c-implemented methods, since the
+methods are simple registered under a different name.
+
+[[xmp-fido4]]
+.Listing {counter:figure-number}: Method-Alias
+{set:xmp-fido4:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create Dog {
+  :public method bark {} { puts "[self] Bark, bark, bark." }
+
+  # Define a public alias for the method "bark"
+  :public alias warn [:info method handle bark]
+  # ...
+}
+
+# Create an instance of the class
+Dog create fido
+
+# The following line prints "::fido Bark, bark, bark."
+fido warn 
+--------------------------------------------------
+
+<<xmp-fido4,{xmp-fido4}>> extends the last example by defining an
+alias for the method "bark". The example just shows the bare
+mechanism. In general, method aliases are a very powerful means
+for reusing pre-existing functionality. The full object system of NX
+and XOTcl2 is built from aliases, where e.g. the same functionality is
+available in NX and XOTcl2 under different names. Method aliases are
+as well a means for implementing traits in NX.
+
 === Method Protection
+
+All kinds of methods might have different kind of protections in NX.
+The call-protection defines from which calling context methods might
+be called. The Next Scripting Framework supports as well redefinition
+protection for methods. 
+
+NX distinguished between _public_, _protected_ and _private_ methods,
+where the default call-protection is "protected".
+
+=========================================== 
+A *public* method can be
+called from every context. A *protected* method can only be invoked
+from the same object. A *private* method can be only invoked from
+methods defined on the same entity (e.g. defined on the same class)
+via +my -local+.
+===========================================
+
+All kind of methods protection are applicable for all kind of methods,
+either scripted or C-implemented.
+
+The distinction between public and protected is an instrument to
+define an interface for classes. Public methods are for consumer of
+the classes. Public methods define the intended ways of reusing
+classes and objects for consumers. Protected methods are intended for
+the implementor of the class or subclasses and not for public
+usage. The distinction between protected and public reduces the
+coupling between consumers and the implementation and offers more
+flexibility to the developer.
+
+[[xmp-protected-method]]
+.Listing {counter:figure-number}: Protected Methods
+{set:xmp-protected-method:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create Foo {
+
+  # Define a public method
+  :public method foo {} {
+    # ....
+    return [:helper]
+  }
+
+  # Define a protected method
+  :method helper {} {
+     return 1
+  }
+}
+
+# Create an instance of the class:
+Foo create f1
+
+# The invocation of the public method "foo" returns 1
+f1 foo
+
+# The invocation of the protected method "helper" raises an error:
+f1 helper
+--------------------------------------------------
+
+Note that we could have as well used +:protected method helper ...+
+in the above example, but we can omit +protected+, since it is the default
+method call protection. 
+
+The method call-protection of _private_ goes one step further and
+helps to hide implementation details also for implementors of
+subclasses. Private methods are a means for avoiding unanticipated name
+clashes. Consider the following example:
+
+[[xmp-private-method]]
+.Listing {counter:figure-number}: Private Methods
+{set:xmp-private-method:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create Base {
+  :private method helper {a b} { expr {$a + $b} }
+  :public method foo {a b} { my -local helper $a $b }
+}
+    
+nx::Class create Sub -superclass Base {
+  :public method bar {a b} { my -local helper $a $b }
+  :private method helper {a b} { expr {$a * $b} }
+  :create s1
+}
+
+s1 foo 3 4     ;# returns 7
+s1 bar 3 4     ;# returns 12
+s1 helper 3 4  ;# raises error: unable to dispatch method helper
+--------------------------------------------------
+
+The base class implements a public method +foo+ using the helper
+method named +helper+. Also the derived class implements a public
+method +bar+, which is also using a helper method named +helper+. When
+we create an instance +s1+ from the derived class, we can call the
+method +foo+ which uses in turn the private method of the base
+class. Therefore, +foo+ called with the arguments 3 and 4 returns its
+sum. If we would not have used +my -local+ for invoking the helper,
++s1+ would have tried to call the helper of +Sub+, which would be
+incorrect. For all other purposes, the private methods are "invisible"
+in all situations, e.g. when mixins are used, or within the
++next+-path, etc.
+
 === Scopes of Methods 
 ==== Inherited Methods
 ==== Class Methods
 ==== Object Methods
 
+=== Ensemble Methods 
+
+...
 
 === Parameters
 
@@ -1365,7 +1671,7 @@ default value +true+ (see <<xmp-object-parameters,
 {xmp-object-parameters}>>). The class diagram below visualizes these
 definitions.
 
-[[img-slots]]
+[[img-object-parameters]]
 image::object-parameter.png[align="center",title="System and Application Classes"]
 {set:img-object-parameters:Figure {figure-number}}
 
@@ -1594,8 +1900,6 @@ The Next Scripting Framework allows to add, query, delete and list unknown handl
 
 [bibliography]
 .References
-
-- [[Neumann and Sobernig 2009]] Gustaf Neumann, Stefan Sobernig: XOTcl 2.0 - A Ten-Year Retrospective and Outlook, in: Proceedings of the Sixteenth Annual Tcl/Tk Conference, Portland, Oregon, October, 2009
 
 - [[Zdun, Strembeck, Neumann 2007]] U. Zdun, M. Strembeck, G. Neumann:
   Object-Based and Class-Based Composition of Transitive Mixins,
