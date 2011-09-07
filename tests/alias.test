@@ -675,13 +675,28 @@ nx::Test case refcount-object-alias-recreate1 {
   #
   # alias recreate with the same object
   #
-
+  
   nx::Object create ::x
+  # per-object aliases
+
   nx::Object create ::o {
     :alias X ::x
     ? {o info method definition X} "::o protected alias X ::x"
     :alias X ::x
     ? {o info method definition X} "::o protected alias X ::x"
+  }
+
+  # per-class aliases
+  nx::Class create ::C {
+    :alias A1 ::x
+    ? {C info method definition A1} "::C protected alias A1 ::x"
+    :alias A1 ::x
+    ? {C info method definition A1} "::C protected alias A1 ::x"
+
+    :class alias A2 ::x
+    ? {C class info method definition A2} "::C protected class alias A2 ::x"
+    :class alias A2 ::x
+    ? {C class info method definition A2} "::C protected class alias A2 ::x"
   }
 }
 

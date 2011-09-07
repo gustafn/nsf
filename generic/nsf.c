@@ -2190,6 +2190,8 @@ GetTclProcFromCommand(Tcl_Command cmd) {
 NSF_INLINE static Tcl_Command
 FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
   register Tcl_HashEntry *entryPtr;
+
+  assert(nsPtr);
   if ((entryPtr = Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(nsPtr), methodName, NULL))) {
     return (Tcl_Command) Tcl_GetHashValue(entryPtr);
   }
@@ -2213,7 +2215,10 @@ FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
 
 static Proc *
 FindProcMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
-  Tcl_Command cmd = FindMethod(nsPtr, methodName);
+  Tcl_Command cmd;
+
+  assert (nsPtr);
+  cmd = FindMethod(nsPtr, methodName);
   return cmd ? GetTclProcFromCommand(cmd) : NULL;
 }
 
@@ -4539,7 +4544,10 @@ GetClassFromString(Tcl_Interp *interp, CONST char *name) {
 static int
 CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONST char *methodName) {
   int result, ok;
-  Tcl_Command cmd = FindMethod(nsPtr, methodName);
+  Tcl_Command cmd;
+
+  assert(nsPtr);
+  cmd = FindMethod(nsPtr, methodName);
 
   ok = cmd ? (Tcl_Command_flags(cmd) & NSF_CMD_REDEFINE_PROTECTED_METHOD) == 0 : 1;
   if (ok) {
@@ -9555,7 +9563,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       if (cmd) {
 	cl = cscPtr1->cl;
       }
-    } else {
+    } else if (object->nsPtr) {
       cmd = FindMethod(object->nsPtr, methodName);
     }
 
@@ -17678,31 +17686,17 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     oldTargetObject = NsfGetObjectFromCmdPtr(oldCmd);
     /*fprintf(stderr, "oldTargetObject %p flags %.6x newTargetObject %p\n", 
       oldTargetObject, oldTargetObject ? oldTargetObject->flags : 0, newTargetObject);*/
+
     /*
-     * The old target object might be already stale (i.e. destroyed, but kept
-     * alive by the reference counter). In this case, we have to decrement the
-     * object reference counter and release this object here.
-     *
-     *   nx::Object create ::x
-     *   nx::Object create ::o {:alias X ::x}
-     *
-     * Destroy the object and create it new
-     *
-     *   x destroy
-     *   nx::Object create ::x
-     *
-     * The recreation of the alias has to decrement the reference counter on
-     * the old object ::x
-     *
-     *   o alias X ::x
-     *
-     * The test below is exactly the same as for invokes on destroyed aliased
-     * objects in ObjectDispatchCsc().
+     * We might have to decrement the reference counter on an previously
+     * aliased object. Decrement the reference count to the old aliased object
+     * only, when it is different to the new target Object.
      */
+
     if (oldTargetObject != NULL && oldTargetObject != newTargetObject) {
-      assert(oldTargetObject->refCount > 0);
       /*fprintf(stderr, "--- releasing old target object %p refCount %d\n", 
 	oldTargetObject, oldTargetObject->refCount);*/
+      assert(oldTargetObject->refCount > 0);
       AliasDeleteObjectReference(interp, oldCmd);
     }
   } else {
@@ -17711,26 +17705,13 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (newTargetObject) {
     /*
-     * Bump the object reference counter when the new target object is
-     * different from the old one. Note, that the old target object might be
-     * NULL, in case the object is used here first.
-     *
-     * The following scenario shows a first registration of a reference
-     * followed by a redefinition. Only in the first case, the reference
-     * counter is increased.
-     *
-     * 		Object create ::foo
-     *		Object create ::o {
-     *		   :alias FOO ::foo
-     *		   :alias FOO ::foo
-     *		}
-     *
+     * Thew new alias is pointing to an nsf object. Increment the object
+     * reference counter of the new aliased object only when the new target
+     * object is different from the old one. Note, that the old target object
+     * might be NULL in case the object is used here the first time.
      */
     if (oldTargetObject != newTargetObject) {
       NsfObjectRefCountIncr(newTargetObject);
-    } else {
-      /*fprintf(stderr, "--- don't incr refcount on obj %p %s\n", 
-	newTargetObject, ObjectName(newTargetObject));*/
     }
     
   } else if (CmdIsProc(cmd)) {
