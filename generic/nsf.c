@@ -7760,7 +7760,6 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   NsfClasses *filterCheck, *osl = NULL;
   NsfObjectSystem *osPtr;
   NsfClass **scl;
-  int reversed = 0;
   int i, j;
 
   filterCheck = ComputeOrder(cl, SUPER_CLASSES);
@@ -7778,8 +7777,10 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     FilterRemoveDependentFilterCmds(cl, filterCheck->cl);
   }
 
-  /* invalidate all interceptors orders of instances of this
-     and of all depended classes */
+  /* 
+   * Invalidate all interceptors orders of instances of this and of all
+   * depended classes.
+   */
   MixinInvalidateObjOrders(interp, cl);
   FilterInvalidateObjOrders(interp, cl);
 
@@ -7792,21 +7793,17 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   }
 
   /*
-   * check that superclasses don't precede their classes
+   * Check that superclasses don't precede their classes.
    */
-
   for (i = 0; i < oc; i++) {
-    if (reversed) break;
     for (j = i+1; j < oc; j++) {
       NsfClasses *dl = ComputeOrder(scl[j], SUPER_CLASSES);
-      if (reversed) break;
       dl = NsfClassListFind(dl, scl[i]);
-      if (dl) reversed = 1;
+      if (dl) {
+	FREE(NsfClass**, scl);
+	return NsfObjErrType(interp, "superclass", arg, "classes in dependence order", NULL);
+      }
     }
-  }
-
-  if (reversed) {
-    return NsfObjErrType(interp, "superclass", arg, "classes in dependence order", NULL);
   }
 
   /*
@@ -7817,7 +7814,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   for (i = 0; i < oc; i++) {
     if (osPtr != GetObjectSystem(&scl[i]->object)) {
       FREE(NsfClass**, scl);
-      return NsfPrintError(interp, "class \"%s\" has different object system as class  \"%s\"",
+      return NsfPrintError(interp, "class \"%s\" has a different object system as class  \"%s\"",
 			   ClassName(cl), ClassName(scl[i]));
     }
   }
