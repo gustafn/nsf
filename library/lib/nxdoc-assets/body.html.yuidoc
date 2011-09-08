@@ -1,5 +1,21 @@
-<div id="doc3" class="yui-t2">
+<div id="doc4">
 	<div id="hd">
+    	<div id="logo">	
+		<!--  -->
+		<a href="/next-scripting/xowiki/about"><img src="assets/nsf-logo-green.png" style="margin-left:0px;margin-top:46px;" alt="next scripting framework" /></a>
+	</div>
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div><!-- hd -->
+	<div id="bd">
+	<div id="yui-main">
+	<div class="yui-b">
         <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
         <h3>${:name}
 	  [:? {[:info has type ::nx::doc::@package]} {
@@ -14,18 +30,12 @@
 	  } ? {[:info has type ::nx::doc::@class]} {
 	  &gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}
 	  }]
-        <form onsubmit="return false">
-            <div id="propertysearch">
-                Search: <input autocomplete="off" id="searchinput" />
-                <div id="searchresults">
-                    &nbsp;
-                </div>
-            </div>
-        </form>
-	</div><!-- hd -->
-	<div id="bd">
-	<div id="yui-main">
-	<div class="yui-b">
+
+	<div class="yui-gd">
+	  <div class="yui-u first">
+	[:include leftbar]
+	  </div> <!-- yui-u first -->
+	  <div class="yui-u">
 	  [:? {[:info has type ::nx::doc::@project]} {
 	  <div class="summary description">
 	    This is the API documentation for the 
@@ -37,13 +47,12 @@
 	  <!-- delegate to the entity-specific template -->
 	  [:include]
 	  }]
+	  </div> <!-- yui-u -->
+	</div> <!-- yui-gd -->
 	</div> <!-- yui-b -->
-      </div> <!-- yui-main -->
-      <div class="yui-b">
-	[:include leftbar]
-      </div><!-- yui-b -->
-    </div><!-- bd -->
-    <div id="ft">
+	</div> <!-- yui-main -->
+	</div><!-- bd -->
+	<div id="ft">
       <hr />
       Copyright &copy; [clock format [clock seconds] -format "%Y"]
     </div>

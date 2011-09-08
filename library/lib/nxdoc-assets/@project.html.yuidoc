@@ -4,8 +4,11 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 	<title>API: ${:name} [:?var classname {$classname}] [:?var filename {$filename}] (A Next Library)</title>
 
-	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css" />
-	<link rel="stylesheet" type="text/css" href="assets/api.css" />
+    <link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css" />
+    <link rel="stylesheet" type="text/css" href="assets/base.css" />
+    <link rel="stylesheet" type="text/css" href="assets/green.css" />
+    <link rel="stylesheet" type="text/css" href="assets/api.css" />
+    <link rel="stylesheet" type="text/css" href="assets/api-next.css"/>
 
     <script type="text/javascript" src="assets/api.js"></script>
     <script type="text/javascript" src="assets/ac.js"></script>

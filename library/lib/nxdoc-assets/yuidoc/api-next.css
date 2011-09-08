@@ -39,7 +39,7 @@ h1 {
     border:none;
 }
 .summary {
-    background:#E7EDD3 url(/resources/openacs-nsf-theme/images/boxarrow.png) no-repeat scroll left 10px;
+    background:#E7EDD3 url(assets/boxarrow.png) no-repeat scroll left 10px;
     border-bottom:3px solid #89a618;
     margin-bottom:1.5em;
     padding:0.5em 40px;
