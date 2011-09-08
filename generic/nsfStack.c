@@ -949,8 +949,6 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
  */
 NSF_INLINE static void
 CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
-  int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
-    NSF_EXITHANDLER_ON_SOFT_DESTROY;
   NsfObject *object;
 
   assert(cscPtr);
@@ -974,6 +972,8 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
    *  available, since we used NsfCommandPreserve() in CscInit().
    */
   if (cscPtr->cmdPtr) {
+    int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
+      NSF_EXITHANDLER_ON_SOFT_DESTROY;
     /*
      * Track object activations
      */
