@@ -11,7 +11,7 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
-define(NsfVersion, 2.0.0)
+define(NsfVersion, 2.0a1)
 AC_INIT([nsf], [NsfVersion])
 
 #--------------------------------------------------------------------
@@ -89,9 +89,8 @@ AC_SUBST(subdirs)
 # the script changeXOTclVersion
 NSF_MAJOR_VERSION=2
 NSF_MINOR_VERSION=0
-NSF_RELEASE_SERIAL=0
 
-NSF_PATCH_LEVEL=${NSF_MAJOR_VERSION}.${NSF_MINOR_VERSION}.${NSF_RELEASE_SERIAL}
+NSF_PATCH_LEVEL=$PACKAGE_VERSION
 
 NSF_VERSION=${NSF_MAJOR_VERSION}.${NSF_MINOR_VERSION}
 NODOT_VERSION=${NSF_MAJOR_VERSION}${NSF_MINOR_VERSION}

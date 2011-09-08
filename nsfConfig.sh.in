@@ -13,9 +13,7 @@
 
 # Version number.
 NSF_VERSION='@NSF_VERSION@'
-NSF_MAJOR_VERSION='@NSF_MAJOR_VERSION@'
-NSF_MINOR_VERSION='@NSF_MINOR_VERSION@'
-NSF_RELEASE_LEVEL='@NSF_RELEASE_LEVEL@'
+NSF_PATCH_LEVEL='@NSF_PATCH_LEVEL@'
 
 # String to pass to compiles to pick up includes during build
 # (i.e., assuming nothing has been installed)

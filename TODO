@@ -3485,6 +3485,15 @@ Test run; exit
 - xotcl2.tcl:
   * added a backward compatible ::xotcl::alias method
 
+- Switched to the tcl numbering scheme. Version is now 2.0a1
+  Warning: From the Tcl point of view, this is a regression in 
+  numbering relative to the previous 2.0.0. Make sure to
+  remove old releases from you installation path like e.g.
+
+   rm -rf /usr/local/lib/libnsf2.0.0* /usr/local/lib/nsf2.0.0
+
+
+
 TODO:
  - private: 
    * document private in tutorial
