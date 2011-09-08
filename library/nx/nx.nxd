@@ -872,22 +872,20 @@
 # '''filter''' returns the list of current filters
 # registered with the class
 
-# @class Attribute
+# @class VariableSlot
 #
-# Attribute <<@glspl slot>> are used to manage the access, mutation,
-# and querying of instance variables. One defines attribute slots for
+# VariableSlot <<@glspl slot>> are used to manage the access, mutation,
+# and querying of instance variables. One defines variable slots for
 # objects and classes usually via the helper method <<@class.method
-# "::nx::Object attribute">> The following example defines a class
-# with three attribute slots. The attribute '''salary''' has a default
-# of '''0''', the attribute '''projects''' has the empty list as
-# default and is defined as multivalued.
+# "::nx::Object property">> The following example defines a class
+# with three variable slots. The property '''salary''' has a default
+# of '''0''', the property '''projects''' has the empty list as
+# default and is defined as multivalued and incremental.
 # '''
 # Class create Person {
-#   :attribute name
-#   :attribute {salary:integer 0}
-#   :attribute {projects:multivalued ""} {
-#     set :incremental true
-#   }
+#   :property name
+#   :property {salary:integer 0}
+#   :property {projects:multivalued,incremental ""}
 # }
 # '''
 #
