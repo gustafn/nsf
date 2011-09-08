@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded XOTcl 2.0 [list source [file join $dir xotcl2.tcl]]
+package ifneeded XOTcl 2.0a1 [list source [file join $dir xotcl2.tcl]]

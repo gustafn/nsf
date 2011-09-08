@@ -8,5 +8,5 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded nx 2.0 [list source [file join $dir nx.tcl]]
+package ifneeded nx 2.0a1 [list source [file join $dir nx.tcl]]
 package ifneeded nx::zip 1.0 [list source [file join $dir nx-zip.tcl]]

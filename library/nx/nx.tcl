@@ -1,5 +1,5 @@
-package provide nx 2.0
 package require nsf
+package provide nx 2.0a1
 
 namespace eval ::nx {
   namespace eval ::nsf {}; # make pkg indexer happy

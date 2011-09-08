@@ -3492,6 +3492,8 @@ Test run; exit
 
    rm -rf /usr/local/lib/libnsf2.0.0* /usr/local/lib/nsf2.0.0
 
+- use same version numbers in nsf, nx and xotcl2
+
 
 
 TODO:
