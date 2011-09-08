@@ -706,7 +706,7 @@ install: function(toclevels) {
 }
 
 }
-asciidoc.install(3);
+asciidoc.install(4);
 /*]]>*/
 </script>
 </head>
@@ -2222,9 +2222,14 @@ sum. If we would not have used <tt>my -local</tt> for invoking the helper,
 incorrect. For all other purposes, the private methods are "invisible"
 in all situations, e.g. when mixins are used, or within the
 <tt>next</tt>-path, etc.</p></div>
+<div class="paragraph"><p>By using <tt>my -local</tt> for the invocaton it is possible to call just the
+local definition of the method. If we would call the method as usual,
+the resoultion order would be the same as usual, starting with
+filters, mixins, per-object methods and the full intrinsic class
+hierarchy.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_scopes_of_methods">3.4. Scopes of Methods</h3>
+<h3 id="_method_scopes">3.4. Method Scopes</h3>
 <div class="sect3">
 <h4 id="_inherited_methods">3.4.1. Inherited Methods</h4>
 </div>
@@ -2945,11 +2950,17 @@ etc.</p></div>
 <div class="sect1">
 <h2 id="_advanced_language_features">4. Advanced Language Features</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>&#8230;</p></div>
 <div class="sect2">
 <h3 id="_objects_classes_and_meta_classes">4.1. Objects, Classes and Meta-Classes</h3>
+<div class="paragraph"><p>&#8230;</p></div>
 </div>
 <div class="sect2">
-<h3 id="_details_on_method_and_object_parameters">4.2. Details on Method and Object Parameters</h3>
+<h3 id="_resolution_order_and_next_path">4.2. Resolution Order and Next-Path</h3>
+<div class="paragraph"><p>&#8230;</p></div>
+</div>
+<div class="sect2">
+<h3 id="_details_on_method_and_object_parameters">4.3. Details on Method and Object Parameters</h3>
 <div class="paragraph"><p>The parameter specifications are used in NX for the following
 purposes. They are used for</p></div>
 <div class="ulist"><ul>
@@ -3083,7 +3094,7 @@ these object parameters, we can create a <tt>Person</tt> named <tt>Bob</tt> and 
 instance variables <tt>name</tt>, <tt>matnr</tt> and <tt>oncampus</tt> (the latter is
 initialized with the default value).</p></div>
 <div class="sect3">
-<h4 id="_object_parameters_for_all_nx_objects">4.2.1. Object Parameters for all NX Objects</h4>
+<h4 id="_object_parameters_for_all_nx_objects">4.3.1. Object Parameters for all NX Objects</h4>
 <div class="paragraph"><p>The object parameters are not limited to the application defined
 properties, also NX provides some predefined definitions. Since
 <tt>Person</tt> is a subclass of <tt>nx::Object</tt> also the object parameters of
@@ -3140,7 +3151,7 @@ the constructor <tt>init</tt> is called).  More about the object parameter
 types later.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_object_parameters_for_all_nx_classes">4.2.2. Object Parameters for all NX Classes</h4>
+<h4 id="_object_parameters_for_all_nx_classes">4.3.2. Object Parameters for all NX Classes</h4>
 <div class="paragraph"><p>Since classes are certain kind of objects, classes are parameterized
 in the same way as objects. A typical parameter for a class definition
 is the relation of the class to its superclass.In our example, we have
@@ -3187,11 +3198,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 parameter definition</tt>.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_user_defined_parameter_types">4.2.3. User defined Parameter Types</h4>
+<h4 id="_user_defined_parameter_types">4.3.3. User defined Parameter Types</h4>
 <div class="paragraph"><p>More detailed definition of the object parameter types comes here.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_slot_classes_and_slot_objects">4.2.4. Slot Classes and Slot Objects</h4>
+<h4 id="_slot_classes_and_slot_objects">4.3.4. Slot Classes and Slot Objects</h4>
 <div class="paragraph"><p>In one of the previous sections, we defined scripted (application
 defined) checker methods on a class named <tt>nx::Slot</tt>.  In general NX
 offers the possibility to define value checkers not only for all
@@ -3206,7 +3217,7 @@ object parameters</p></div>
 <div class="paragraph"><p></p></div>
 </div>
 <div class="sect3">
-<h4 id="_attribute_slots">4.2.5. Attribute Slots</h4>
+<h4 id="_attribute_slots">4.3.5. Attribute Slots</h4>
 <div class="paragraph"><p>Still Missing</p></div>
 <div class="ulist"><ul>
 <li>
@@ -3477,7 +3488,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-09-07 22:47:49 CEST
+Last updated 2011-09-07 23:01:54 CEST
 </div>
 </div>
 </body>
