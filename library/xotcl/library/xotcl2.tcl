@@ -900,6 +900,24 @@ namespace eval ::xotcl {
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {:requireNamespace; return [::xotcl::self]::$var}
 
+  #
+  # Provide a backward compatible version of ::xotcl::alias
+  #
+  ::nsf::proc ::xotcl::alias {
+    obj:object 
+    methodName 
+    -per-object:switch 
+    -objscope:switch 
+    target
+  } {
+    ::nsf::method::alias \
+	$obj \
+	{*}[expr {${per-object} ? "-per-object" : ""}] \
+	$methodName \
+	{*}[expr {${objscope} ? "-frame object" : ""}] \
+	$target
+  }
+
   Object create ::xotcl::config
   config proc load {obj file} {
     source $file

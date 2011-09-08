@@ -3482,11 +3482,14 @@ Test run; exit
   * added regression tests
   * fixed recration of object alias with a alias to a different cmd
 
+- xotcl2.tcl:
+  * added a backward compatible ::xotcl::alias method
 
 TODO:
  - private: 
    * document private in tutorial
  - add "property" and "attribute" and "info property" and "info slot ..." to migration guide
+ - add traits package
 
  - naming of slot classes 
    * should we switch from "-class" to "-slotclass"?
