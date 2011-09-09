@@ -2634,7 +2634,7 @@ namespace eval ::nx::doc {
     }
     :protected property {interp ""}; # the default empty string points to the current interp
 
-    :property registered_commands
+    :public property registered_commands
 
     :public method getCompanions {identifiers} {
       set scripts [list]
@@ -2677,7 +2677,7 @@ namespace eval ::nx::doc {
       } {
       if {[info exists nspatterns]} {
 	set opts [join $nspatterns |]
-	#	set nspatterns "^($opts)\[^\:\]*\$"
+	# set nspatterns "^($opts)\[^\:\]*\$"
 	set nspatterns "^($opts)\$"
       }
       dict filter ${:registered_commands} script {cmd props} {
@@ -3059,9 +3059,19 @@ namespace eval ::nx {
 	dict lappend sources $type $name
       }
 
+
+      set nsFilters [list]
+      if {[info exists include] && $include ne ""} {
+	set nsFilters [list $include]
+      }
+      if {[info exists exclude] && $exclude ne ""} {
+	set nsFilters [list -not $exclude]
+      }
+
+
       set provided_entities [list]
       dict for {type instances} $sources {
-	lappend provided_entities {*}[:[current method]=$type $project $instances]
+	lappend provided_entities {*}[:[current method]=$type $project $instances {*}$nsFilters]
       }
 
       if {$validate} {
@@ -3079,13 +3089,6 @@ namespace eval ::nx {
 	#puts stderr "NSF: [join [dict keys [$box get_registered_commands -exported -types @command]] \n]"
 	# ISSUE: -exported turns out to be a weak filter criterion, it
 	# excludes slot objects from being processed!
-	set nsfilters [list]
-	if {[info exists include] && $include ne ""} {
-	  set nsfilters [list $include]
-	}
-	if {[info exists exclude] && $exclude ne ""} {
-	  set nsfilters [list -not $exclude]
-	}
 	
 	#
 	# TODO: Add support for "generated" packages and their
@@ -3097,10 +3100,13 @@ namespace eval ::nx {
 				      @object 
 				      @class 
 				      @command
-				    } {*}$nsfilters] \
+				    }] \
 				    [$box get_registered_commands -types {
 				      @method
-				    } {*}$nsfilters]]
+				    }]]
+
+	puts stderr generated_commands=$generated_commands
+	puts stderr present_entities=$present_entities
 	set map [dict create]
 	foreach pe $present_entities {
 	  if {[$pe pinfo exists bundle handle]} {
@@ -3242,7 +3248,7 @@ namespace eval ::nx {
       }
     }
       
-    :protected method process=package {project pkgs} {
+    :protected method process=package {project pkgs nsFilters:optional} {
       set box [$project sandbox]
       $box permissive_pkgs $pkgs
       set 1pass ""
@@ -3277,6 +3283,16 @@ namespace eval ::nx {
 	}
 	$box do "::nx::doc::__init; $2pass" 
       }
+
+      #
+      # filter registered commands for includes/excludes 
+      #
+      if {[info exists nsFilters]} {
+	$box registered_commands [$box get_registered_commands $nsFilters]
+      }
+
+      puts stderr REGISTERED_COMMANDS=[dict keys [$box registered_commands]]
+
       
       foreach {attr part_class} [$project part_attributes] {
 	$part_class class mixin add ::nx::doc::ContainerEntity::Containable
@@ -3293,6 +3309,7 @@ namespace eval ::nx {
 
       set scripts [$box get_companions]
       set provided_entities [list]
+
       foreach script $scripts {
 	lappend provided_entities {*}[:readin $script] 
       }
@@ -4027,6 +4044,39 @@ namespace eval ::nx::doc {
 	}
 	# :method parse@space {line} {;}
       }
+
+  ::nsf::proc mkIndex {{-documentAll:switch 0} -indexfiles:0..* {-outdir "[pwd]"} args} {
+
+    if {![llength $args]} {
+      set args *.tcl
+    }
+
+    set scripts [list]
+    foreach file [glob -- {*}$args] {
+      set file [file normalize $file]
+      if {[file readable $file]} {
+	lappend scripts $file
+      }
+    }
+
+    if {![llength $scripts]} return;
+
+    set sbox [Sandbox new -interp [interp create]]
+    $sbox do [list package req nx]
+    $sbox do [list ::nx::doc::__init]
+
+    set cmds [list]
+    foreach script $scripts {
+      $sbox do [list source $script]
+      puts stderr >>>[$sbox get_registered_commands -types {@command @object @class}]
+      lappend cmds {*}[dict keys [$sbox get_registered_commands -types {@command @object @class}]]
+    }
+    
+    foreach cmd $cmds {
+      puts stderr "set ::nxdoc::include($cmd) $documentAll"
+    }
+  }
+  
 }
 
 # puts stderr "Doc Tools loaded: [info command ::nx::doc::*]"
