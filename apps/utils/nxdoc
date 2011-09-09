@@ -40,7 +40,7 @@ namespace eval ::nx::doc {
     #
 
     :private method barf {msg} {
-      return -code error "NXDOC: $msg"
+      return -code error "NXDoc: $msg"
     }
 
     :protected method ... args {

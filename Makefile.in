@@ -284,19 +284,22 @@ YUIDOC_OUTPUT = \
 yuidoc: pkgIndex.tcl $(YUIDOC_OUTPUT)
 
 $(target_doc_dir)/$(PACKAGE_NAME)/index.html: $(PACKAGE_NAME).nxd
-	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle $(PACKAGE_NAME) \
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(PACKAGE_NAME) \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(target_doc_dir) "package:$(PACKAGE_NAME)"
+	-outdir $(target_doc_dir) -indexfiles generic/nxdocIndex -- "package:$(PACKAGE_NAME)"
 
 $(target_doc_dir)/nx/index.html: library/nx/nx.nxd $(PACKAGE_NAME).nxd
-	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle nx \
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle nx \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(target_doc_dir) "package:nx"
+	-outdir $(target_doc_dir) -indexfiles "library/nx/nxdocIndex" -- "package:nx"
 
 $(xotcl_target_doc_dir)/XOTcl-langRef/index.html: library/xotcl/doc/langRef.xotcl 
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle XOTcl-langRef \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
 	-outdir $(xotcl_target_doc_dir) "@package:XOTcl-langRef"
+
+yuidoc-dev: NXDFLAGS := -validation
+yuidoc-dev: yuidoc
 
 XOWIKI_OUTPUT = \
 	$(target_doc_dir)/$(PACKAGE_NAME).xowiki \
@@ -306,20 +309,26 @@ XOWIKI_OUTPUT = \
 xowiki: pkgIndex.tcl $(XOWIKI_OUTPUT)
 
 $(target_doc_dir)/$(PACKAGE_NAME).xowiki : $(PACKAGE_NAME).nxd
-	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle $(basename $(notdir $@)) \
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(basename $(notdir $@)) \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(@D) -format xowiki -layout many-to-1 "package:$(basename $(notdir $@))"
+	-outdir $(@D) -format xowiki -layout many-to-1 -indexfiles "generic/nxdocIndex" \
+	-- "package:$(basename $(notdir $@))"
 
 
 $(target_doc_dir)/nx.xowiki : library/nx/nx.nxd $(PACKAGE_NAME).nxd
-	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle $(basename $(notdir $@)) \
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(basename $(notdir $@)) \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(@D) -format xowiki -layout many-to-1 "package:$(basename $(notdir $@))"
+	-outdir $(@D) -format xowiki -layout many-to-1 -indexfiles "library/nx/nxdocIndex" \
+	-- "package:$(basename $(notdir $@))"
 
 $(xotcl_target_doc_dir)/XOTcl-langRef.xowiki : library/xotcl/doc/langRef.xotcl
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle $(basename $(notdir $@)) \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
 	-outdir $(@D) -format xowiki -layout many-to-1 "@package:$(basename $(notdir $@))"
+
+xowiki-dev: NXDFLAGS := -validation
+xowiki-dev: xowiki
+
 
 example-doc: $(EXAMPLE_SCRIPTS)
 
