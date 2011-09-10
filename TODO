@@ -3494,6 +3494,8 @@ Test run; exit
 
 - use same version numbers in nsf, nx and xotcl2
 
+- library/lib/nx-zip.tcl: refactored implementqtion, 
+  improved utf-8 file-name handling (which is a mess in pkzip)
 
 
 TODO:

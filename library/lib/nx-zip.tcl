@@ -2,20 +2,34 @@
 # Zip file generator - Create a Zip-file from a list of input file names
 #
 # This implementation is based on the zip file builder of Artur
-# Trzewik (http://wiki.tcl.tk/15158), but was simplified, commented
-# and extended, based on Trf and translated to NX 
+# Trzewik (http://wiki.tcl.tk/15158), but was simplified, refactored,
+# commented and extended, based on Trf and translated to NX; for
+# details about the format, see
+# http://www.pkware.com/documents/casestudies/APPNOTE.TXT
 #
 # by Gustaf Neumann (June 2011)
 #
 
 package require nx
 package require Trf
-package provide nx::zip 1.0
+package provide nx::zip 1.1
 
 namespace eval ::nx::zip {
 
   nx::Class create Archive {
-    
+    #
+    # The public interface of the class archive contains the methods
+    #
+    #   - addFile    (add a file from the filesystem to the archive)
+    #   - addString  (add the file-content from a string to the archive)
+    #
+    #    - writeToZipFile    (produce a Zip file)
+    #    - ns_returnZipFile  (return a zip file via aolserver ns_return) 
+    #
+    #    - writeToStream     (for already opened and configured 
+    #                        output streams
+    #
+
     #
     # Add a file from the file system to the zip archive
     #
@@ -43,13 +57,13 @@ namespace eval ::nx::zip {
     #
     :public method writeToZipFile {zipFileName} {
       set fout [open $zipFileName w]
-      fconfigure $fout -encoding binary -translation binary
+      fconfigure $fout -translation binary -encoding binary
       :writeToStream $fout
       close $fout
     }
 
     #
-    # return  the added files in aolserver/naviserver to the client
+    # return the added files via aolserver/naviserver to the client
     #
     :public method ns_returnZipFile {zipFileName} {
       ns_write "HTTP/1.0 200 OK\r\nContent-type: application/zip\r\n"
@@ -67,19 +81,68 @@ namespace eval ::nx::zip {
     :public method writeToStream {outputStream} {
       set :outputStream $outputStream
 
+      #
+      # Write all files to the outout stream
+      #
       set descriptionList [list]
       foreach {type in fnOut} ${:files} {
-	lappend descriptionList [:addToStream $type $in $fnOut]
+	lappend descriptionList [:addSingleFile $type $in $fnOut]
       }
-
+      #
+      # we have no 
+      #  - archive descryption header
+      #  - archive extra data record
+      #
+      # Add the central directory
+      #
       set :cdOffset ${:written}
       foreach {type in fnOut} ${:files} desc $descriptionList {
-	:writeCentralFileHeader $fnOut {*}$desc
+	array set "" $desc
+       
+	# For every file, it contains again part of the information of
+	# the local file headers, but with some additional information
+	# such as a the "version made by", comment, ...
+
+	set comment ""
+	set platform 0 ;# dos/windows
+	#if {$::tcl_platform(platform) ne "windows"} {
+	#  set platform 3 ;# unix 
+	#}
+
+	# central file header signature
+	binary scan \x02\x01\x4B\x50 I CFH_SIG
+	:writeLong $CFH_SIG
+
+	# version made by (os + zip version)
+	:writeShort [expr { (($platform << 8) | 20) }]
+ 
+	:writeFileHeaderBlock $desc
+
+	# file comment length
+	:writeShort [string length $comment]
+	# disk number start
+	:writeShort 0
+	# internal file attributes
+	:writeShort 0
+	# external file attributes
+	:writeLong 0
+    
+	# relative offset of local header
+	:writeLong $(offset)
+    	# file name
+	:writeString $(fileNameInternal)
+    
+	:writeExtraFieldUPATH $(fileName) $(fileNameInternal)
+   
+	# file comment
+	:writeString $comment
       }
+
       set :cdLength [expr {${:written} - ${:cdOffset}}]
 
-      # write header
-      # EOCD 0X06054B50L scan 0X06054B50L %x s set s
+      #
+      # End of Central Directory record
+      #
       binary scan \x06\x05\x4B\x50 I EOCD
       :writeLong $EOCD
     
@@ -117,8 +180,8 @@ namespace eval ::nx::zip {
     #
     # Output content file to the output stream
     #
-    :method addToStream {type in fnOut} {
-      set offset ${:written}
+    :method addSingleFile {type in fnOut} {
+      set (offset) ${:written}
     
       if {$type eq "file"} {
 	set fdata [open $in r]
@@ -130,42 +193,64 @@ namespace eval ::nx::zip {
 	set data $in
 	set mtime [clock seconds]
       }
-
+      
+      #
+      # local file header
+      #
       binary scan \x04\x03\x4B\x50 I LFH_SIG
       :writeLong $LFH_SIG
 
+      set datacompressed [string range [::zip -mode compress $data] 2 end-4]
+
+      set (dosTime) [:toDosTime $mtime]
+      set (crc)   [::crc-zlib $data]
+      set (csize) [string length $datacompressed]
+      set (size)  [string length $data]
+      set (fileName) [encoding convertto utf-8 $fnOut]
+      set (fileNameInternal) $(fileName)
+      #set (fileNameInternal) [encoding convertto cp850 $fnOut]
+      set (extraFieldLength) [expr {9+[string length $(fileName)]}]
+      
+      :writeFileHeaderBlock [array get ""]
+
+      # file name
+      :writeString $(fileNameInternal)
+      
+      :writeExtraFieldUPATH $(fileName) $(fileNameInternal)
+
+      #
+      # file data
+      #
+      :writeString $datacompressed
+    
+      return [array get ""]
+    }
+
+    :method writeFileHeaderBlock {pairs} {
+      array set "" $pairs
+
+      # version needed to extract
       :writeShort 20
-      # java implementation make 8
-      # but tools (WinZip) leave it 0
-      :writeShort 0
+
+      # general pupose bit flag
+      :writeShort [expr {1<<11}]
+      #:writeShort 0
+
+      # compression method
       :writeShort 8
     
       # last mod. time and date
-      set dosTime [:toDosTime $mtime]
-      :writeLong $dosTime
+      :writeLong $(dosTime)
 
-      set datacompressed [string range [::zip -mode compress $data] 2 end-4]    
-      #set crc [::vfs::crc $data]
-      set crc   [::crc-zlib $data]
-      set csize [string length $datacompressed]
-      set size  [string length $data]
-      :writeString $crc
-      :writeLong $csize
-      :writeLong $size
+      :writeString $(crc)
+      :writeLong $(csize)
+      :writeLong $(size)
     
       # file name length
-      :writeShort [string length $fnOut]
+      :writeShort [string length $(fileNameInternal)]
     
       # extra field length
-      set extra ""
-      :writeShort [string length $extra]
-    
-      # file name
-      :writeString $fnOut
-      :writeString $extra
-      :writeString $datacompressed
-    
-      return [list $offset $dosTime $crc $csize $size]
+      :writeShort $(extraFieldLength)
     }
   
     #
@@ -190,78 +275,20 @@ namespace eval ::nx::zip {
     }
 
     #
-    # write header info about a content file
+    # Extra field UPath: Info-ZIP Unicode Path Extra Field
     #
-    :method writeCentralFileHeader {fnOut offset dosTime crc size csize} {
-    
-      # CFH 0X02014B50L
-      binary scan \x02\x01\x4B\x50 I CFH_SIG
-      :writeLong $CFH_SIG
-    
-      if {$::tcl_platform(platform) eq "windows"} {
-	# unix
-	set pid 5
-      } else {
-	# windows
-	set pid 11
-      }
-      :writeShort [expr { (($pid << 8) | 20) }]
-      
-      # version needed to extract
-      # general purpose bit flag
-      :writeShort 20
-      :writeShort 0
-    
-      # compression method
-      :writeShort 8
-    
-      # last mod. time and date
-      :writeLong $dosTime
-    
-      # CRC
-      # compressed length
-      # uncompressed length
-      :writeString $crc
-      :writeLong $csize
-      :writeLong $size
-    
-      set comment ""
-      set extra ""
-    
-      # file name length
-      :writeShort [string bytelength $fnOut]
-      
-      # extra field length
-      :writeShort [string bytelength $extra]
-    
-      # file comment length
-      :writeShort [string bytelength $comment]
-    
-      # disk number start
-      :writeShort 0
-    
-      # internal file attributes
-      :writeShort 0
-    
-      # external file attributes
-      :writeLong 0
-    
-      # relative offset of LFH
-      :writeLong $offset
-    
-      # file name
-      :writeString $fnOut
-    
-      # extra field
-      :writeString $extra
-    
-      # file comment
-      :writeString $comment
+    :method writeExtraFieldUPATH {fileName fileNameInternal} {
+      # extra field UPATH
+      binary scan \x70\x75 S EPEF
+      :writeShort $EPEF
+      :writeShort [expr {5+[string length $fileName]}]
+      :writeByte 1
+      :writeString [::crc-zlib $fileNameInternal]
+      :writeString $fileName
     }
-
+    
     #
-    # Write the provided integer in binary form as a long value to the
-    # output stream and increment byte counter
+    # Write the provided integer in binary form as a long value (32 bit)
     #
     :method writeLong {long:integer} {
       puts -nonewline ${:outputStream} [binary format i $long]
@@ -269,12 +296,19 @@ namespace eval ::nx::zip {
     }
 
     #
-    # Write the provided integer in binary form as a short value to
-    # the output stream and increment byte counter
+    # Write the provided integer in binary form as a short value (16 bit)
     #
     :method writeShort {short:integer} {
       puts -nonewline ${:outputStream} [binary format s $short]
       incr :written 2
+    }
+
+    #
+    # Write the provided integer in binary form as a single byte (8 bit)
+    #
+    :method writeByte {byte:integer} {
+      puts -nonewline ${:outputStream} [binary format c $byte]
+      incr :written 1
     }
 
     #
@@ -285,6 +319,11 @@ namespace eval ::nx::zip {
       puts -nonewline ${:outputStream} $string
       incr :written [string length $string]
     }
+    :method writeStringBytes {string} {
+      puts -nonewline ${:outputStream} $string
+      incr :written [string bytelength $string]
+    }
+
   }
 }
 
