@@ -27,9 +27,10 @@ namespace eval ::nx::doc {
     #
     # input
     #
-    :property sourcepath
-    :property {includes ""}
+    :property includes
     :property {excludes ""}
+    :property indexfiles:alias
+
     :protected property sources:1..* {
       set :config false
     }
@@ -38,12 +39,61 @@ namespace eval ::nx::doc {
     # auxiliary 
     #
 
+    :private method barf {msg} {
+      return -code error "NXDoc: $msg"
+    }
+
     :protected method ... args {
       :sources [concat {*}[split $args :]]
     }
 
+    :protected method indexfiles {paths} {
+      #
+      # TODO: Should we provide for an auto-lookup of nxdocIndex files,
+      # similar to tclIndex or pkgIndex.tcl?
+      #
+
+      #
+      # Some sanity checks first ...
+      #
+      set sources [list]
+      foreach p $paths {
+	set p [file normalize $p]
+	if {[file exists $p] && [file readable $p]} {
+	  lappend sources [list source $p]
+	} else {
+	  :barf "Cannot find or read the index file '$p'"
+	}
+      }
+      
+      if {$sources eq ""} return;
+      
+      set i [interp create]
+      $i eval {
+	proc ::unknown args { puts stderr "UNKNOWN: $args"}
+	namespace eval ::nxdoc::internal {
+	  proc getIndexedCmds {{choice 0}} {
+	    if {[array exists ::nxdoc::include]} {
+	      array set out [list 0 "" 1 ""]
+	      foreach {v cmd} [lreverse [array get ::nxdoc::include]] {
+		lappend out($v) $cmd
+	      }
+	      return [lindex [array get out $choice] 1]
+	    }
+	  }
+	}
+      }
+      if {[catch {$i eval [join $sources ";"]} err]} {
+	:barf "Sourcing index files failed with error message '$err'"
+      }
+      
+      lappend :includes {*}[$i eval [list ::nxdoc::internal::getIndexedCmds 1]]
+      interp delete $i
+    }
+
     :protected class method objectparameter {} {
-      foreach slot [:info slot objects -type ::nx::VariableSlot] {
+      set slots [:info slot objects]
+      foreach slot $slots {
 	lappend defs([$slot position]) [$slot getParameterSpec]
       }
       set parameterdefinitions [list]
@@ -63,7 +113,8 @@ namespace eval ::nx::doc {
       processor process \
 	  -sandboxed \
 	  {*}[expr {${:validation}?"-validate":""}] \
-	  -include ${:includes} $prj
+	  {*}[expr {[info exists :includes]?"-include [list ${:includes}]":""}] \
+	  $prj
       
       make doc \
 	  -format ${:format} \
