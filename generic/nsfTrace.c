@@ -244,10 +244,6 @@ NsfMemCountInit() {
     Tcl_InitHashTable(tablePtr, TCL_STRING_KEYS);
   } 
   (*tableInitialized) ++;
-
-#ifdef NSF_MEM_TRACE
-  fprintf(stderr, "+++ init interp %p count %d\n", interp, *tableInitialized);
-#endif
 }
 
 /*
