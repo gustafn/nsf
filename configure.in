@@ -25,7 +25,10 @@ AC_CONFIG_AUX_DIR(config)
 #--------------------------------------------------------------------
 # specify some extra flags
 #--------------------------------------------------------------------
-
+# According to http://www.gnu.org/software/autoconf/manual/autoconf.html
+#  - "with" is for external software (optional packages)
+#  - "enable" is for optional features
+#
 AC_ARG_WITH(gdbm,
 	AC_HELP_STRING([--with-gdbm=GDBM_INCLUDE_DIR,GDBM_LIB_DIR], 
 		 [build with gdbm support; provide path to gdbm.h and optionally
@@ -45,12 +48,20 @@ AC_ARG_WITH(expat,
 		   --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
 		   --without-expat falls back to the bundled expat installation]),
         [with_expat=$withval],[with_expat=bundle])
-AC_ARG_WITH(profile,
-	AC_HELP_STRING([--with-profile=yes|no], [--without-profile disables builds with profile support]),
-        [with_profile=$withval], [with_profile=no])
-AC_ARG_ENABLE(dtrace,
-	AC_HELP_STRING([--enable-dtrace], [build with dtrace (default: off)]),
-        [enable_dtrace=$enableval], [enable_dtrace=no])
+AC_ARG_WITH(dtrace,
+	AC_HELP_STRING([--with-dtrace], [build nsf with dtrace (default: without)]),
+        [with_dtrace=$enableval], [with_dtrace=no])
+AC_ARG_ENABLE(profile,
+	AC_HELP_STRING([--enable-profile], [build nsf with profile support (default disabled)]),
+        [enable_profile=$enableval], [enable_profile=no])
+AC_ARG_ENABLE(memcount,
+	AC_HELP_STRING([--enable-memcount=yes|trace], 
+		[build nsf with memcount debug support (default disabled)]),
+        [enable_memcount=$enableval], [enable_memcount=no])
+AC_ARG_ENABLE(development,
+	AC_HELP_STRING([--enable-development], 
+		[build nsf with development support (assertion checking, etc.; default disabled)]),
+        [enable_development=$enableval], [enable_development=no])
 
 subdirs=""
 
@@ -166,12 +177,23 @@ if test -f "$TCL_SRC_DIR/generic/tclCompile.h"; then
    AC_DEFINE(HAVE_TCL_COMPILE_H, 1, [Do we have tclCompile.h installed?])
 fi
 
-if test "$with_profile" = yes; then
+if test "$enable_profile" = yes; then
    AC_DEFINE(NSF_PROFILE, 1, [Are we building with profile support?])
 fi
 
+if test "$enable_development" = yes; then
+   AC_DEFINE(NSF_DEVLOPMENT, 1, [Are we building with development support?])
+fi
+
+if test "$enable_memcount" = yes; then
+   AC_DEFINE(NSF_MEM_COUNT, 1, [Are we building with memcount support?])
+fi
+if test "$enable_memcount" = trace; then
+   AC_DEFINE(NSF_MEM_TRACE, 1, [Are we building with memcount tracing support?])
+fi
+
 DTRACE_OBJ=
-if test "$enable_dtrace" = yes; then
+if test "$with_dtrace" = yes; then
    AC_DEFINE(NSF_DTRACE, 1, [Are we building with DTrace support?])
    # Under Mac OS X, we need no nsfDTrace.o
    if test "`uname -s`" != "Darwin" ; then

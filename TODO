@@ -3497,6 +3497,19 @@ Test run; exit
 - library/lib/nx-zip.tcl: refactored implementqtion, 
   improved utf-8 file-name handling (which is a mess in pkzip)
 
+- configure options:
+  * improved and extended configure options to reduce
+    necessity to switch features on and off in the nsf.h.
+  Optional Features:
+    --enable-profile        build nsf with profile support (default disabled)
+    --enable-memcount=yes|trace
+                            build nsf with memcount debug support (default
+                            disabled)
+    --enable-development    build nsf with development support (assertion
+                            checking, etc.; default disabled)
+  Optional Packages:
+    --with-dtrace           build nsf with dtrace (default: without)
+
 
 TODO:
  - private: 

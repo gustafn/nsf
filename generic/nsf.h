@@ -78,7 +78,6 @@
 /* are we developing?
 #define NSF_DEVELOPMENT 1
 */
-#define NSF_DEVELOPMENT 1
 
 /* activate/deacticate assert 
 #define NDEBUG 1
@@ -96,8 +95,6 @@
 #define NSF_MEM_TRACE 1
 #define NSF_MEM_COUNT 1
 */
-//#define NSF_MEM_COUNT 1
-//#define NSF_MEM_TRACE 1
 //#define PARSE_TRACE 1
 
 /* turn  tracing output on/off
@@ -174,6 +171,10 @@
 # define CscFinish(interp,cscPtr,retCode,string)			\
   NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode);			\
   CscFinish_(interp, cscPtr)
+#endif
+
+#if defined(NSF_MEM_TRACE) && !defined(NSF_MEM_COUNT)
+# define NSF_MEM_COUNT 1
 #endif
 
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
