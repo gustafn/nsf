@@ -897,28 +897,23 @@ typedef struct NsfCompEnv {
 typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH,
 	      LAST_INSTRUCTION} NsfByteCodeInstructions;
 
-
-extern NsfCompEnv *NsfGetCompEnv();
-
 Tcl_ObjCmdProc NsfInitProcNSCmd, NsfSelfDispatchCmd,
   NsfNextObjCmd, NsfGetSelfObjCmd;
 
+extern NsfCompEnv *NsfGetCompEnv();
 int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 		     int objc, Tcl_Obj *CONST objv[]);
 #endif
 
-extern int
-NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
-		   NsfClass **clPtr, int withUnknown);
-
-int
-NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
-		 int objc, Tcl_Obj *CONST objv[]);
-extern int
-NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, 
-		Tcl_Obj *methodName, char *arglist);
-
-CONST char *MethodName(Tcl_Obj *methodObj);
+extern int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
+			      NsfClass **clPtr, int withUnknown);
+extern int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
+			  int objc, Tcl_Obj *CONST objv[]);
+extern int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, 
+			   Tcl_Obj *cmdName, Tcl_Obj *methodName, 
+			   char *arglist);
+extern CONST char *MethodName(Tcl_Obj *methodObj);
+extern void NsfReportVars(Tcl_Interp *interp);
 
 /* functions from nsfUtil.c */
 char *Nsf_ltoa(char *buf, long i, int *len);
