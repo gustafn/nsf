@@ -22691,11 +22691,44 @@ ExitHandler(ClientData clientData) {
   /* Tcl_GlobalEval(interp, "puts {checkmem to checkmemFile};
      checkmem checkmemFile"); */
 #endif
-  MEM_COUNT_RELEASE();
+  
+  /*
+   * Free Interp state
+   */
   ckfree((char *) RUNTIME_STATE(interp));
+#if USE_ASSOC_DATA
+  Tcl_DeleteAssocData(interp, "NsfRuntimeState");
+#else
+  Tcl_Interp_globalNsPtr(interp)->clientData = NULL;
+#endif
+
+#ifdef NSF_MEM_COUNT
+  /*
+   * When raising an error, the Tcl_Objs on the error stack are
+   * refCount-incremented. When Tcl exits, it does normally not perform the
+   * according decrementing. For still unknown reasons, the manual decrement
+   * part below does not help. As a intermediary solution, we trigger a new
+   * error with a very simple error stack that flushes the information.
+   */
+# if 0
+  {
+    Interp *iPtr = (Interp *) interp;
+
+    if (iPtr->errorStack) {
+      fprintf(stderr, "Performing manual decr on iPtr->errorStack %s\n", ObjStr(iPtr->errorStack));
+      Tcl_DecrRefCount(iPtr->errorStack);
+      iPtr->errorStack = Tcl_NewListObj(0, NULL);
+      Tcl_IncrRefCount(iPtr->errorStack);
+    }
+  }
+# endif
+  Tcl_EvalEx(interp, "catch 1", -1, 0);
+#endif
 
   Tcl_Interp_flags(interp) = flags;
   Tcl_Release(interp);
+
+  MEM_COUNT_RELEASE();
 }
 
 

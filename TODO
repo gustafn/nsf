@@ -3526,6 +3526,9 @@ build-environment:
     (removing leftovers from prior versions of TEA)
   * remove GNU-Makefile-isms from Makefile.in
 
+nsf.c:
+  * provide an intermediary fix for the final memcount problem
+    of elements in on the iPtr->errorStack
 
 
 TODO:
