@@ -19,8 +19,7 @@
 # have been added in a customized configure script.
 #========================================================================
 
-#NX_VERSION 	= @PACKAGE_VERSION@
-NX_VERSION 	= @NX_VERSION@
+NX_VERSION 	= @PACKAGE_VERSION@
 
 src_lib_dir		= ${srcdir}/library
 src_doc_dir		= ${srcdir}/doc
@@ -137,12 +136,20 @@ includedir	= @includedir@
 
 DESTDIR		=
 
+PKG_DIR		= $(PACKAGE_NAME)$(PACKAGE_VERSION)
+pkgdatadir	= $(datadir)/$(PKG_DIR)
+pkglibdir	= $(libdir)/$(PKG_DIR)
+pkgincludedir	= $(includedir)/$(PKG_DIR)
+
 top_builddir	= .
 
-INSTALL		= @INSTALL@
-INSTALL_PROGRAM	= @INSTALL_PROGRAM@
-INSTALL_DATA	= @INSTALL_DATA@
-INSTALL_SCRIPT	= @INSTALL_SCRIPT@
+INSTALL_OPTIONS =
+INSTALL		= $(SHELL) $(srcdir)/config/install-sh -c ${INSTALL_OPTIONS}
+INSTALL_DATA_DIR = ${INSTALL} -d -m 755
+INSTALL_PROGRAM	= ${INSTALL} -m 555
+INSTALL_DATA	= ${INSTALL} -m 444
+INSTALL_SCRIPT	= ${INSTALL_PROGRAM}
+INSTALL_LIBRARY	= ${INSTALL_DATA}
 
 PACKAGE_NAME	= @PACKAGE_NAME@
 PACKAGE_VERSION	= @PACKAGE_VERSION@
@@ -163,8 +170,6 @@ RANLIB_STUB	= @RANLIB_STUB@
 SHLIB_CFLAGS	= @SHLIB_CFLAGS@
 SHLIB_LD	= @SHLIB_LD@
 SHLIB_LD_LIBS	= @SHLIB_LD_LIBS@
-#CC_SEARCH_FLAGS = @CC_SEARCH_FLAGS@
-#LD_SEARCH_FLAGS = @LD_SEARCH_FLAGS@
 STLIB_LD	= @STLIB_LD@
 TCL_DEFS	= @TCL_DEFS@
 TCL_BIN_DIR	= @TCL_BIN_DIR@
@@ -175,11 +180,7 @@ DTRACE          = dtrace
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= @TCL_LIBS@
 
-pkgdatadir	= @pkgdatadir@
-pkglibdir	= @pkglibdir@
-pkgincludedir	= @pkgincludedir@
-
-xotcl_pkglibdir	= @pkglibdir@/xotcl
+xotcl_pkglibdir	= $(pkglibdir)/xotcl
 
 installed_shells = $(DESTDIR)$(bindir)/nxsh $(DESTDIR)$(bindir)/nxwish $(DESTDIR)$(bindir)/xotclsh $(DESTDIR)$(bindir)/xowish
 
@@ -217,7 +218,7 @@ CPPFLAGS	= @CPPFLAGS@
 LIBS		= @PKG_LIBS@ @LIBS@
 AR		= @AR@
 CFLAGS		= @CFLAGS@
-COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -DNSF_CFLAGS=\"$(CFLAGS_DEFAULT)\"
 
 #========================================================================
 # Start of user-definable TARGETS section
@@ -309,22 +310,22 @@ XOWIKI_OUTPUT = \
 xowiki: pkgIndex.tcl $(XOWIKI_OUTPUT)
 
 $(target_doc_dir)/$(PACKAGE_NAME).xowiki : $(PACKAGE_NAME).nxd
-	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(basename $(notdir $@)) \
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(PACKAGE_NAME) \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(@D) -format xowiki -layout many-to-1 -indexfiles "generic/nxdocIndex" \
-	-- "package:$(basename $(notdir $@))"
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 -indexfiles "generic/nxdocIndex" \
+	-- "package:$(PACKAGE_NAME)"
 
 
 $(target_doc_dir)/nx.xowiki : library/nx/nx.nxd $(PACKAGE_NAME).nxd
-	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(basename $(notdir $@)) \
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle nx \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(@D) -format xowiki -layout many-to-1 -indexfiles "library/nx/nxdocIndex" \
-	-- "package:$(basename $(notdir $@))"
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 -indexfiles "library/nx/nxdocIndex" \
+	-- "package:nx"
 
 $(xotcl_target_doc_dir)/XOTcl-langRef.xowiki : library/xotcl/doc/langRef.xotcl
-	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle $(basename $(notdir $@)) \
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle XOTcl-langRef \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(@D) -format xowiki -layout many-to-1 "@package:$(basename $(notdir $@))"
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 "@package:XOTcl-langRef"
 
 xowiki-dev: NXDFLAGS := -validation
 xowiki-dev: xowiki
@@ -613,6 +614,7 @@ $(src_generic_dir)/nsfAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)
 
 aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
 nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/nsfAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c $(DTRACE_HDR)
+nsfDebug.$(OBJEXT): $(src_generic_dir)/nsfDebug.c $(PKG_HEADERS)
 nsfError.$(OBJEXT): $(src_generic_dir)/nsfError.c $(PKG_HEADERS)
 nsfMetaData.$(OBJEXT): $(src_generic_dir)/nsfMetaData.c $(PKG_HEADERS)
 nsfObj.$(OBJEXT): $(src_generic_dir)/nsfObj.c $(PKG_HEADERS)
@@ -622,7 +624,6 @@ nsfProfile.$(OBJEXT): $(src_generic_dir)/nsfProfile.c $(PKG_HEADERS)
 nsfShadow.$(OBJEXT): $(src_generic_dir)/nsfShadow.c $(PKG_HEADERS)
 nsfStubInit.$(OBJEXT): $(PKG_HEADERS)
 nsfStubLib.$(OBJEXT): $(src_generic_dir)/nsfStubLib.c $(PKG_HEADERS)
-nsfTrace.$(OBJEXT): $(src_generic_dir)/nsfTrace.c $(PKG_HEADERS)
 nsfUtil.$(OBJEXT): $(src_generic_dir)/nsfUtil.c $(PKG_HEADERS)
 
 #
@@ -674,8 +675,7 @@ cleandoc:
 	-rm -rf $(xotcl_target_doc_dir)/*-xotcl.html $(dir $(YUIDOC_OUTPUT)) $(XOWIKI_OUTPUT)
 
 clean: cleandoc
-	-rm -rf $(BINARIES) $(CLEANFILES) $(installed_shells) pkgIndex.tcl ./receiver
-
+	-rm -rf $(BINARIES) $(CLEANFILES) ./receiver
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \

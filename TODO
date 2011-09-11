@@ -3510,6 +3510,15 @@ Test run; exit
   Optional Packages:
     --with-dtrace           build nsf with dtrace (default: without)
 
+- nsf.c:
+  * report configuration options via "parray nsf::config"
+
+build-environment:
+  * make configure.in Makefile.in more in line with the TEA sample app
+    (removing leftovers from prior versions of TEA)
+  * remove GNU-Makefile-isms from Makefile.in
+
+
 
 TODO:
  - private: 

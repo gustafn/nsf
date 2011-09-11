@@ -22905,9 +22905,7 @@ Nsf_Init(Tcl_Interp *interp) {
 #ifdef NSF_BYTECODE
   NsfBytecodeInit();
 #endif
-
-  Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
-  Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
+  NsfReportVars(interp);
 
   Tcl_AddInterpResolvers(interp,"nxt",
                          (Tcl_ResolveCmdProc *)InterpColonCmdResolver,

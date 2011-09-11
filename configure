@@ -618,10 +618,6 @@ NSF_LIB_SPEC
 NSF_BUILD_LIB_SPEC
 UNSHARED_LIB_SUFFIX
 SHARED_LIB_SUFFIX
-pkgincludedir
-pkglibdir
-pkgdatadir
-PKG_DIR
 NSF_COMPATIBLE_TCLSH
 TCLSH_PROG
 RANLIB_STUB
@@ -5542,7 +5538,7 @@ fi
 
 if test "$enable_development" = yes; then
 
-$as_echo "#define NSF_DEVLOPMENT 1" >>confdefs.h
+$as_echo "#define NSF_DEVELOPMENT 1" >>confdefs.h
 
 fi
 
@@ -5580,9 +5576,9 @@ fi
 #-----------------------------------------------------------------------
 
 
-
     vars="nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
-	nsfTrace.c nsfUtil.c nsfObj.c nsfPointer.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
+	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c \
+        nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -5686,8 +5682,32 @@ fi
 
 
 
-
 #--------------------------------------------------------------------
+# __CHANGE__
+#
+# You can add more files to clean if your extension creates any extra
+# files by extending CLEANFILES.
+# Add pkgIndex.tcl if it is generated in the Makefile instead of ./configure
+# and change Makefile.in to move it from CONFIG_CLEAN_FILES to BINARIES var.
+#
+# A few miscellaneous platform-specific items:
+# TEA_ADD_* any platform specific compiler/build info here.
+#--------------------------------------------------------------------
+
+if test "${TEA_PLATFORM}" = "windows" ; then
+    if test "$GCC" != "yes" ; then
+       $as_echo "#define VISUAL_CC 1" >>confdefs.h
+
+    fi
+    CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch vc60.pch "
+    #TEA_ADD_SOURCES([win/winFile.c])
+    #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
+else
+    CLEANFILES="*.o *.a *.so *~ core gmon.out"
+    #TEA_ADD_SOURCES([unix/unixFile.c])
+    #TEA_ADD_LIBS([-lsuperfly])
+fi
+CLEANFILES="$CLEANFILES pkgIndex.tcl"
 
 #--------------------------------------------------------------------
 # __CHANGE__
@@ -5695,7 +5715,7 @@ fi
 # hard to only rely on the Tcl public header files.  Internal headers
 # contain private data structures and are subject to change without
 # notice.
-# This must be done AFTER calling TEa_PATH_TCLCONFIG/TEA_LOAD_TCLCONFIG
+# This must be done AFTER calling TEA_PATH_TCLCONFIG/TEA_LOAD_TCLCONFIG
 # so that we can extract TCL_SRC_DIR from the config file (in the case
 # of private headers
 #--------------------------------------------------------------------
@@ -5844,39 +5864,9 @@ $as_echo_n "checking for Tcl private include files... " >&6; }
 $as_echo "${result}" >&6; }
 
 
-#--------------------------------------------------------------------
-# __CHANGE__
-# A few miscellaneous platform-specific items:
-#
-# Define a special symbol for Windows (BUILD_xotcl in this case) so
-# that we create the export library with the dll.  See sha1.h on how
-# to use this.
-#
-# Windows creates a few extra files that need to be cleaned up.
-# You can add more files to clean if your extension creates any extra
-# files.
-#
-# Define any extra compiler flags in the PACKAGE_CFLAGS variable.
-# These will be appended to the current set of compiler flags for
-# your system.
-#--------------------------------------------------------------------
-
-if test "${TEA_PLATFORM}" = "windows" ; then
-	if test "$GCC" != "yes" ; then
-		$as_echo "#define VISUAL_CC 1" >>confdefs.h
-
-	fi
-	CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch vc60.pch"
-	#TEA_ADD_SOURCES([win/winFile.c])
-	#TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/w
-else
-	CLEANFILES="*.o *.a *.so *~ core gmon.out"
-	#TEA_ADD_SOURCES([unix/unixFile.c])
-	#TEA_ADD_LIBS([-lsuperfly])
-fi
-
-
-
+#TEA_PUBLIC_TK_HEADERS
+#TEA_PRIVATE_TK_HEADERS
+#TEA_PATH_X
 
 #--------------------------------------------------------------------
 # Check whether --enable-threads or --disable-threads was given.
@@ -8330,14 +8320,8 @@ $as_echo "enabled $tcl_ok debugging" >&6; }
 #--------------------------------------------------------------------
 
 
-#if test "${TCL_MAJOR_VERSION}" = "8" -a "${TCL_MINOR_VERSION}" = "0"; then
-#	FORCE_NO_STUBS=1
-#fi
+$as_echo "#define USE_TCL_STUBS 1" >>confdefs.h
 
-if test "${FORCE_NO_STUBS}" = "0" ; then
-	$as_echo "#define USE_TCL_STUBS 1" >>confdefs.h
-
-fi
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It
@@ -8461,22 +8445,6 @@ $as_echo "${TCLSH_PROG}" >&6; }
 
 # make this available, for such as nsfConfig.sh
 NSF_COMPATIBLE_TCLSH=${TCLSH_PROG}
-
-
-# resolve the variables
-eval "libdir=${libdir}"
-eval "datadir=${datadir}"
-eval "includedir=${includedir}"
-
-PKG_DIR="${PACKAGE_NAME}${PACKAGE_VERSION}"
-pkgdatadir="${datadir}/${PKG_DIR}"
-pkglibdir="${libdir}/${PKG_DIR}"
-# make sure this is right (then remove this comment)
-pkgincludedir="${includedir}/${PKG_DIR}"
-
-
-
-
 
 
 #
