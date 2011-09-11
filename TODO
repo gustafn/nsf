@@ -3512,6 +3512,14 @@ Test run; exit
 
 - nsf.c:
   * report configuration options via "parray nsf::config"
+    sample output
+     % parray nsf::config
+     nsf::config(development) = 1
+     nsf::config(dtrace)      = 0
+     nsf::config(memcount)    = 0
+     nsf::config(memtrace)    = 0
+     nsf::config(profile)     = 0
+
 
 build-environment:
   * make configure.in Makefile.in more in line with the TEA sample app

@@ -68,8 +68,6 @@ NsfReportVars(Tcl_Interp *interp) {
 	     "0",
 #endif
 	     TCL_GLOBAL_ONLY);
-
-  Tcl_SetVar(interp, "::nsf::config(cflags)", NSF_CFLAGS , TCL_GLOBAL_ONLY);
 }
 
 /*
