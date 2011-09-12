@@ -22693,7 +22693,7 @@ ExitHandler(ClientData clientData) {
 #endif
   
   /*
-   * Free Interp state
+   * Free runtime state
    */
   ckfree((char *) RUNTIME_STATE(interp));
 #if USE_ASSOC_DATA
@@ -22702,27 +22702,25 @@ ExitHandler(ClientData clientData) {
   Tcl_Interp_globalNsPtr(interp)->clientData = NULL;
 #endif
 
-#ifdef NSF_MEM_COUNT
+#if defined(NSF_MEM_COUNT) && !defined(PRE86)
   /*
-   * When raising an error, the Tcl_Objs on the error stack are
-   * refCount-incremented. When Tcl exits, it does normally not perform the
-   * according decrementing. For still unknown reasons, the manual decrement
-   * part below does not help. As a intermediary solution, we trigger a new
-   * error with a very simple error stack that flushes the information.
+   * When raising an error, the Tcl_Objs on the error stack and in the
+   * innerCountext are refCount-incremented. When Tcl exits, it does normally
+   * not perform the according decrementing. We perform here a manual
+   * decrementing and reset these lists.
    */
-# if 0
   {
     Interp *iPtr = (Interp *) interp;
 
-    if (iPtr->errorStack) {
-      fprintf(stderr, "Performing manual decr on iPtr->errorStack %s\n", ObjStr(iPtr->errorStack));
+    if (iPtr->innerContext) {
       Tcl_DecrRefCount(iPtr->errorStack);
       iPtr->errorStack = Tcl_NewListObj(0, NULL);
       Tcl_IncrRefCount(iPtr->errorStack);
+      Tcl_DecrRefCount(iPtr->innerContext);
+      iPtr->innerContext = Tcl_NewListObj(0, NULL);
+      Tcl_IncrRefCount(iPtr->innerContext);
     }
   }
-# endif
-  Tcl_EvalEx(interp, "catch 1", -1, 0);
 #endif
 
   Tcl_Interp_flags(interp) = flags;
