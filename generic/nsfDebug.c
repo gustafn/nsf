@@ -31,6 +31,7 @@
  */
 void
 NsfReportVars(Tcl_Interp *interp) {
+
   Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
   Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
   Tcl_SetVar(interp, "::nsf::config(development)", 
@@ -40,6 +41,7 @@ NsfReportVars(Tcl_Interp *interp) {
 	     "0",
 #endif
 	     TCL_GLOBAL_ONLY);
+
   Tcl_SetVar(interp, "::nsf::config(memcount)", 
 #ifdef NSF_MEM_COUNT
 	     "1",
@@ -47,6 +49,7 @@ NsfReportVars(Tcl_Interp *interp) {
 	     "0",
 #endif
 	     TCL_GLOBAL_ONLY);
+
   Tcl_SetVar(interp, "::nsf::config(memtrace)", 
 #ifdef NSF_MEM_TRACE
 	     "1",
@@ -54,6 +57,7 @@ NsfReportVars(Tcl_Interp *interp) {
 	     "0",
 #endif
 	     TCL_GLOBAL_ONLY);
+
   Tcl_SetVar(interp, "::nsf::config(profile)", 
 #ifdef NSF_PROFILE
 	     "1",
@@ -61,8 +65,17 @@ NsfReportVars(Tcl_Interp *interp) {
 	     "0",
 #endif
 	     TCL_GLOBAL_ONLY);
+
   Tcl_SetVar(interp, "::nsf::config(dtrace)", 
 #ifdef NSF_DTRACE
+	     "1",
+#else
+	     "0",
+#endif
+	     TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(assertions)", 
+#ifdef NSF_WITH_ASSERTIONS
 	     "1",
 #else
 	     "0",

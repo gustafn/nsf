@@ -79,16 +79,16 @@
 #define NSF_DEVELOPMENT 1
 */
 
-/* activate/deacticate assert 
+/* activate/deactivate assert 
 #define NDEBUG 1
 */
 
 /* additional language features
 #define NSF_WITH_INHERIT_NAMESPACES 1
+#define NSF_WITH_ASSERTIONS 1
 */
 
 #define NSF_WITH_OS_RESOLVER 1
-#define NSF_WITH_ASSERTIONS 1
 #define NSF_WITH_VALUE_WARNINGS 1
 
 /* activate/deacticate memory tracing 

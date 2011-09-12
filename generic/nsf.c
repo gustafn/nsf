@@ -294,7 +294,6 @@ static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char 
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
 			       NsfCallStackContent *cscPtr, int freeArgumentVector);
-static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name);
 
 static void NsfCommandPreserve(Tcl_Command cmd);
 static void NsfCommandRelease(Tcl_Command cmd);
@@ -302,6 +301,10 @@ static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
 void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
+
+#if defined(NSF_WITH_ASSERTIONS)
+static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name);
+#endif
 
 #ifdef DO_FULL_CLEANUP
 static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars);
@@ -8674,9 +8677,9 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
 static int
 ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[0];
-  NsfCallStackContent *cscPtr = data[1];
   /*CONST char *methodName = data[2];*/
 #if defined(NSF_WITH_ASSERTIONS)
+  NsfCallStackContent *cscPtr = data[1];
   NsfObject *object = cscPtr->self;
   NsfObjectOpt *opt = object->opt;
 #endif
@@ -11531,6 +11534,13 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
 		      interp, nameObj, args, body, precondition, postcondition,
 		      defObject, regObject, cl == NULL, withInner_namespace);
 #else
+    if (precondition) {
+      NsfLog(interp, NSF_LOG_WARN, "Precondition %s provided, but not compiled with assertion enabled",
+	     ObjStr(precondition));
+    } else if (postcondition) {
+      NsfLog(interp, NSF_LOG_WARN, "Postcondition %s provided, but not compiled with assertion enabled",
+	     ObjStr(postcondition));
+    }
     result = MakeProc(cl ? cl->nsPtr : defObject->nsPtr, NULL,
 		      interp, nameObj, args, body, NULL, NULL,
 		      defObject, regObject, cl == NULL, withInner_namespace);

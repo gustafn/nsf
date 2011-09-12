@@ -742,6 +742,7 @@ with_dtrace
 enable_profile
 enable_memcount
 enable_development
+enable_assertions
 with_tcl
 with_tclinclude
 enable_threads
@@ -1373,12 +1374,13 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-profile        build nsf with profile support (default disabled)
+  --enable-profile        build nsf with profile support (default: disabled)
   --enable-memcount=yes|trace
-                          build nsf with memcount debug support (default
+                          build nsf with memcount debug support (default:
                           disabled)
-  --enable-development    build nsf with development support (assertion
-                          checking, etc.; default disabled)
+  --enable-development    build nsf with development support (intensive
+                          runtime checking, etc.; default: disabled)
+  --enable-assertions     build nsf with assertion support (default: enabled)
   --enable-threads        build with threads
   --enable-shared         build and link with shared libraries (default: on)
   --enable-64bit          enable 64bit support (default: off)
@@ -2402,6 +2404,13 @@ if test "${enable_development+set}" = set; then :
   enableval=$enable_development; enable_development=$enableval
 else
   enable_development=no
+fi
+
+# Check whether --enable-assertions was given.
+if test "${enable_assertions+set}" = set; then :
+  enableval=$enable_assertions; enable_assertions=$enableval
+else
+  enable_assertions=yes
 fi
 
 
@@ -5527,6 +5536,12 @@ fi
 if test -f "$TCL_SRC_DIR/generic/tclCompile.h"; then
 
 $as_echo "#define HAVE_TCL_COMPILE_H 1" >>confdefs.h
+
+fi
+
+if test "$enable_assertions" = yes; then
+
+$as_echo "#define NSF_WITH_ASSERTIONS 1" >>confdefs.h
 
 fi
 

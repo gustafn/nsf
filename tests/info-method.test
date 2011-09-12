@@ -101,8 +101,13 @@ nx::Test case info-method-base {
   ? {C info method definition m} {::C public method m x {return proc-[self proc]}}
   ? {C info method def m} {::C public method m x {return proc-[self proc]}}
   ? {C class info method definition mpo} {::C public class method mpo {} {return instproc-[self proc]}}
-  ? {C info method definition m-with-assertions} \
-      {::C public method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
+  if {$::nsf::config(assertions)} {
+    ? {C info method definition m-with-assertions} \
+	{::C public method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
+  } else {
+    ? {C info method definition m-with-assertions} \
+	{::C public method m-with-assertions {} {return proc-[self proc]}}
+  }
   ? {C info method parameter m} {x}
   ? {nx::Class info method parameter method} \
       {name arguments:parameter,0..* -returns body -precondition -postcondition}

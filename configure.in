@@ -52,16 +52,20 @@ AC_ARG_WITH(dtrace,
 	AC_HELP_STRING([--with-dtrace], [build nsf with dtrace (default: without)]),
         [with_dtrace=$enableval], [with_dtrace=no])
 AC_ARG_ENABLE(profile,
-	AC_HELP_STRING([--enable-profile], [build nsf with profile support (default disabled)]),
+	AC_HELP_STRING([--enable-profile], [build nsf with profile support (default: disabled)]),
         [enable_profile=$enableval], [enable_profile=no])
 AC_ARG_ENABLE(memcount,
 	AC_HELP_STRING([--enable-memcount=yes|trace], 
-		[build nsf with memcount debug support (default disabled)]),
+		[build nsf with memcount debug support (default: disabled)]),
         [enable_memcount=$enableval], [enable_memcount=no])
 AC_ARG_ENABLE(development,
 	AC_HELP_STRING([--enable-development], 
-		[build nsf with development support (assertion checking, etc.; default disabled)]),
+		[build nsf with development support (intensive runtime checking, etc.; default: disabled)]),
         [enable_development=$enableval], [enable_development=no])
+AC_ARG_ENABLE(assertions,
+	AC_HELP_STRING([--enable-assertions], 
+		[build nsf with assertion support (default: enabled)]),
+        [enable_assertions=$enableval], [enable_assertions=yes])
 
 subdirs=""
 
@@ -175,6 +179,10 @@ AC_SUBST(aol_prefix)
 # check for tclCompile.h (needed, when compiled without full source)
 if test -f "$TCL_SRC_DIR/generic/tclCompile.h"; then
    AC_DEFINE(HAVE_TCL_COMPILE_H, 1, [Do we have tclCompile.h installed?])
+fi
+
+if test "$enable_assertions" = yes; then
+   AC_DEFINE(NSF_WITH_ASSERTIONS, 1, [Are we building with assertions support?])
 fi
 
 if test "$enable_profile" = yes; then

@@ -3521,16 +3521,17 @@ Test run; exit
      nsf::config(profile)     = 0
 
 
-build-environment:
+- build-environment:
   * make configure.in Makefile.in more in line with the TEA sample app
     (removing leftovers from prior versions of TEA)
   * remove GNU-Makefile-isms from Makefile.in
 
-nsf.c:
+- nsf.c:
   * provide an intermediary fix for the final memcount problem
     of elements in on the iPtr->errorStack
   * improve iPtr cleanup for memcount debugging
 
+- added configure option: enable-assertions (default on)
 
 TODO:
  - private: 
