@@ -3533,7 +3533,19 @@ Test run; exit
 
 - added configure option: enable-assertions (default on)
 
+- nsf.c:
+  * allowed to call ":" like "my" or "self"
+
+     Object create o
+     o public method bar2 {} {return bar2-[: foo]}
+     o public method bar5 {} {return [self]::bar5}
+     o public method bar6 {} {return [:]::bar6}
+
+ * extended regression test
+
+
 TODO:
+ - NSF_WITH_OS_RESOLVER
  - private: 
    * document private in tutorial
  - add "property" and "attribute" and "info property" and "info slot ..." to migration guide

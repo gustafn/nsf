@@ -3605,6 +3605,9 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *U
     }
  }
 
+  /*fprintf(stderr, "InterpColonCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",
+    cmdName, flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
+
 #if defined(CMD_RESOLVER_TRACE)
   fprintf(stderr, "InterpColonCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",
 	  cmdName, flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
@@ -3652,8 +3655,8 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *U
 	cmd = osPtr->rootClass->object.id;
 	cmdTablePtr = Tcl_Namespace_cmdTablePtr(((Command *)cmd)->nsPtr);
 	entryPtr = Tcl_CreateHashEntry(cmdTablePtr, cmdName, NULL);
-	/* fprintf(stderr, "InterpColonCmdResolver OS specific resolver tried to lookup %s for os %s in ns %s\n",
-	   cmdName, ClassName(osPtr->rootClass), ((Command *)cmd)->nsPtr->fullName);*/
+	/*fprintf(stderr, "InterpColonCmdResolver OS specific resolver tried to lookup %s for os %s in ns %s\n",
+	  cmdName, ClassName(osPtr->rootClass), ((Command *)cmd)->nsPtr->fullName);*/
 	if (entryPtr) {
 	  /*fprintf(stderr, "InterpColonCmdResolver OS specific resolver found %s::%s\n",
 	    ((Command *)cmd)->nsPtr->fullName, cmdName);*/
@@ -17499,11 +17502,21 @@ cmd colon NsfColonCmd {
 */
 static int
 NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  CONST char *methodName = ObjStr(nobjv[0]);
   NsfObject *self = GetSelfObj(interp);
   if (unlikely(self == NULL)) {
-    return NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
+    return NsfNoCurrentObjectError(interp, methodName);
   }
-  /* fprintf(stderr, "Colon dispatch %s.%s\n", ObjectName(self), ObjStr(nobjv[0]));*/
+  /*fprintf(stderr, "Colon dispatch %s.%s (%d)\n", 
+    ObjectName(self), ObjStr(nobjv[0]), nobjc);*/
+
+  if (*methodName == ':' && *(methodName + 1) == '\0') {
+    if (nobjc > 1) {
+      return ObjectDispatch(self, interp, nobjc, nobjv, 0);
+    } else {
+      return DispatchDefaultMethod(interp, (NsfObject *)self, nobjv[0], 0);
+    }
+  }
   return ObjectDispatch(self, interp, nobjc, nobjv, NSF_CM_NO_SHIFT);
 }
 
