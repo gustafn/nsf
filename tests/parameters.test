@@ -513,7 +513,7 @@ Test case subst-default {
     :public method bar {
       {-s:substdefault "[current]"} 
       {-literal "[current]"} 
-      {-c:substdefault "[my c]"} 
+      {-c:substdefault "[:c]"} 
       {-d:integer,substdefault "$d"}
     } {
       return $s-$literal-$c-$d
@@ -561,7 +561,7 @@ Test case subst-default {
   D public method bar {
 		{-s:substdefault "[current]"} 
 		{-literal "[current]"} 
-		{-c:substdefault "[my c]"} 
+		{-c:substdefault "[:c]"} 
 		{-d:integer,substdefault "$d"}
 		{-switch:switch}
 		{-optflag}
@@ -574,7 +574,7 @@ Test case subst-default {
   
   ? {D info method args bar} {s literal c d switch optflag x y z} "all args" 
   ? {D info method parameter bar} \
-      {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[my c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
+      {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[:c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
       "query method parameter" 
   
 
