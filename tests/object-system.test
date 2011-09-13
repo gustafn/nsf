@@ -122,6 +122,7 @@ o public method bar3 {} {return bar3-[my foo]}
 o public method bar4 {} {return bar4-[[self] foo]}
 o public method bar5 {} {return [self]::bar5}
 o public method bar6 {} {return [:]::bar6}
+o public method bar7 {} {return bar7-[lsort [: -system info methods bar7]]}
 
 # dispatch without colon names
 ? {o foo} foo "simple method dispatch"
@@ -131,6 +132,7 @@ o public method bar6 {} {return [:]::bar6}
 ? {o bar4} bar4-foo "self dispatch"
 ? {o bar5} ::o::bar5 "self cmd"
 ? {o bar6} ::o::bar6 "colon cmd"
+? {o bar7} bar7-bar7 "colon cmd dispatch args"
 o destroy
 
 # basic attributes tests

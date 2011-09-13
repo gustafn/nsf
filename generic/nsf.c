@@ -17504,20 +17504,69 @@ static int
 NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   CONST char *methodName = ObjStr(nobjv[0]);
   NsfObject *self = GetSelfObj(interp);
+
   if (unlikely(self == NULL)) {
     return NsfNoCurrentObjectError(interp, methodName);
   }
   /*fprintf(stderr, "Colon dispatch %s.%s (%d)\n", 
     ObjectName(self), ObjStr(nobjv[0]), nobjc);*/
 
-  if (*methodName == ':' && *(methodName + 1) == '\0') {
-    if (nobjc > 1) {
-      return ObjectDispatch(self, interp, nobjc, nobjv, 0);
-    } else {
-      return DispatchDefaultMethod(interp, (NsfObject *)self, nobjv[0], 0);
-    }
+  if (likely(!(*methodName == ':' && *(methodName + 1) == '\0'))) {
+    return ObjectDispatch(self, interp, nobjc, nobjv, NSF_CM_NO_SHIFT);
   }
-  return ObjectDispatch(self, interp, nobjc, nobjv, NSF_CM_NO_SHIFT);
+  /* 
+   * first arg is a single colon
+   */
+  if (nobjc <= 1) {
+    Tcl_SetObjResult(interp, self->cmdName);
+    return TCL_OK;
+  }
+  
+  /*
+   * multiple arguments were given
+   */
+  methodName = ObjStr(nobjv[1]);
+
+  if (*methodName != '-') {
+    /*
+     * no need to parse arguments (local, intrinsic, ...)
+     */
+    return ObjectDispatch(self, interp, nobjc, nobjv, 0);
+  } else {
+    ParseContext pc;
+    int withIntrinsic, withLocal, withSystem, flags;
+    Tcl_Obj *methodObj;
+
+    /*
+     * parse arguments, use definitions from nsf::my
+     */
+
+    if (ArgumentParse(interp, nobjc, nobjv, NULL, nobjv[0], 
+		      method_definitions[NsfMyCmdIdx].paramDefs, 
+		      method_definitions[NsfMyCmdIdx].nrParameters, 1,
+		      &pc) != TCL_OK) {
+      return TCL_ERROR;
+    }
+    
+    withIntrinsic = (int )PTR2INT(pc.clientData[0]);
+    withLocal = (int )PTR2INT(pc.clientData[1]);
+    withSystem = (int )PTR2INT(pc.clientData[2]);
+    methodObj = (Tcl_Obj *)pc.clientData[3];
+    
+    assert(pc.status == 0);
+    
+    if ((withIntrinsic && withLocal)
+	|| (withIntrinsic && withSystem) 
+	|| (withLocal && withSystem)) {
+      return NsfPrintError(interp, "flags '-intrinsic', '-local' and '-system' are mutual exclusive");
+    }
+    
+    flags = NSF_CSC_IMMEDIATE;
+    if (withIntrinsic) {flags |= NSF_CM_INTRINSIC_METHOD;}
+    if (withLocal)     {flags |= NSF_CM_LOCAL_METHOD;}
+    if (withSystem)    {flags |= NSF_CM_SYSTEM_METHOD;}
+    return CallMethod(self, interp, methodObj, (nobjc-pc.lastObjc)+2, nobjv+pc.lastObjc, flags);
+  }
 }
 
 /*

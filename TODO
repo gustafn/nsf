@@ -3545,6 +3545,9 @@ Test run; exit
 
 - nx.tcl: moved "properties" from nx::Class to nx::Object
 
+- nsf.c: make ":" a full equivalent vor nsf::my 
+  (i.e. support -local, -system and -intrinsic)
+- extend regression test
 
 TODO:
  - NSF_WITH_OS_RESOLVER

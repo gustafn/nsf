@@ -183,8 +183,8 @@ nx::Test case private-helper {
   # methods are defined as private to avoid interference.
   #
   nx::Class create M {
-    :public method foo {} {my -local bar}
-    :private method bar {} {my -local baz}
+    :public method foo {} {: -local bar}
+    :private method bar {} {: -local baz}
     :private method baz {} {return "M.baz"}
   }
 
@@ -214,8 +214,8 @@ nx::Test case object-private-helper {
     :public method bar {} {return "B.bar [next]"}
     :public method baz {} {return "B.baz [next]"}
     :create b1 {
-      :public  method foo {} {my -local bar}
-      :private method bar {} {my -local baz}
+      :public  method foo {} {: -local bar}
+      :private method bar {} {: -local baz}
       :private method baz {} {return "b1.baz"}
     }
   }
@@ -223,8 +223,8 @@ nx::Test case object-private-helper {
     :public method bar {} {return "C.bar [next]"}
     :public method baz {} {return "C.baz [next]"}
     :create c1 {
-      :public  method foo {} {my -local bar}
-      :private method bar {} {my -local baz}
+      :public  method foo {} {: -local bar}
+      :private method bar {} {: -local baz}
       :private method baz {} {return "c1.baz"}
     }
   }
@@ -265,7 +265,7 @@ nx::Test case object-private-helper {
 nx::Test case local+filter {
   nx::Class create C {
     :method f1 args { return "f1 [next]" }
-    :public method foo {} { return "C.foo [my -local bar]"}
+    :public method foo {} { return "C.foo [: -local bar]"}
     :private method bar {} { return "bar"}
     :public  method baz {} { return "C.baz [next]"}
   }
@@ -361,8 +361,8 @@ nx::Test case private {
 
   # add on B calls to local
   C eval {
-    :public method q1 {} {my -local p1}
-    :public method q3 {} {my -local p3}
+    :public method q1 {} {: -local p1}
+    :public method q3 {} {: -local p3}
   }
   # all chains start with C, since local resolve works
   ? {c1 q1} "C.p1 "
@@ -390,17 +390,17 @@ nx::Test case private {
 
 
 #
-# test "my -local" on classes
+# test ": -local" on classes
 #
 
 nx::Test case class-my-local {
   nx::Class create Base {
     :private method baz {a b} { expr {$a + $b} }
-    :public method foo {a b} { my -local baz $a $b }
+    :public method foo {a b} {: -local baz $a $b}
   }
     
   nx::Class create Sub -superclass Base {
-    :public method bar {a b} { my -local baz $a $b }
+    :public method bar {a b} {: -local baz $a $b}
     :private method baz {a b} { expr {$a * $b} }
 
     :create s1
@@ -412,7 +412,7 @@ nx::Test case class-my-local {
 }
 
 #
-# test "my -local" on objects
+# test ": -local" on objects
 #
 nx::Test case object-my-local {
   nx::Class create M {
@@ -422,7 +422,7 @@ nx::Test case object-my-local {
   nx::Object create o1 {
     :protected method foo {} {return o1}
     :public method foo2 {} {:foo}
-    :public method bar {} {my -local foo}
+    :public method bar {} {: -local foo}
   }
 
   ? {o1 foo} {::o1: unable to dispatch method 'foo'}
@@ -438,17 +438,17 @@ nx::Test case object-my-local {
 }
 
 #
-# test "my" + path instead of "my -local" on classes
+# test "my" + path instead of ": -local" on classes
 #
 
 nx::Test case my+handle-instead-of-my-local {
   nx::Class create Base {
     :private method privateMethod {a b} { expr {$a + $b} }
-    :public method foo {a b} { my [Base info method handle privateMethod] $a $b }
+    :public method foo {a b} {: [Base info method handle privateMethod] $a $b}
   }
     
   nx::Class create Sub -superclass Base {
-    :public method bar {a b} { my [Sub info method handle privateMethod] $a $b }
+    :public method bar {a b} {: [Sub info method handle privateMethod] $a $b}
     :private method privateMethod {a b} { expr {$a * $b} }
 
     :create s1
@@ -459,7 +459,7 @@ nx::Test case my+handle-instead-of-my-local {
 } 
 
 #
-# test object::dispatch instead of "my -local" on classes
+# test object::dispatch instead of ": -local" on classes
 #
 
 nx::Test case dispatch-instead-of-my-local {
@@ -545,7 +545,7 @@ nx::Test case class-my-local+next {
   nx::Class create Base {
     :private method baz {a b} { expr {$a + $b} }
     :protected method baz2 {a b} { expr {$a + $b} }
-    :public method foo {a b} { my -local baz $a $b }
+    :public method foo {a b} {: -local baz $a $b}
     :create b1
   }
   # we can call Base.baz only through Base.foo
@@ -553,10 +553,10 @@ nx::Test case class-my-local+next {
   ? {b1 baz 4 5} {::b1: unable to dispatch method 'baz'}
 
   # Define and register a mixin class, where method "foo" is calling a
-  # private method via "my -local"
+  # private method via ": -local"
   nx::Class create Mix {
     :private method baz {a b} { expr {$a ** $b} }
-    :public method foo {a b} { my -local baz $a $b }
+    :public method foo {a b} {: -local baz $a $b}
   }
 
   b1 mixin add Mix
@@ -571,8 +571,8 @@ nx::Test case class-my-local+next {
   nx::Class create Intermediate -superclass Base {
     :private method baz {a b} { next }
     :private method baz2 {a b} { next }
-    :public method foo {a b} { my -local baz $a $b }
-    :public method foo2 {a b} { my -local baz2 $a $b }
+    :public method foo {a b} {: -local baz $a $b}
+    :public method foo2 {a b} {: -local baz2 $a $b}
     :create i1
   }
 
@@ -583,7 +583,7 @@ nx::Test case class-my-local+next {
   ? {i1 foo2 4 5} 9
     
   nx::Class create Sub -superclass Intermediate {
-    :public method bar {a b} { my -local baz $a $b }
+    :public method bar {a b} {: -local baz $a $b}
     :private method baz {a b} { expr {$a * $b} }
 
     :create s1

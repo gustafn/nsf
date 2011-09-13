@@ -675,6 +675,42 @@ nx::Test case test-simple-unknown {
     :class method unknown args {? [list set _ $args] "{hello world}"}
   }
   C {hello world}
+}
 
 
+#
+# simple speed tests
+# ensemble unknown tests are in submethods.test
+#
+nx::Test parameter count 100000
+nx::Test case speed-dispatch {
+
+  #
+  # define various forms of simple dispatches
+  #
+  ::nx::Object create o {
+    :public method foo {} {return ::o}
+    :public method bar00 {} {self}
+    :public method bar01 {} {:}
+    :public method bar02 {} {[self]}
+    :public method bar03 {} {[:]}
+    :public method bar04 {} {:foo}
+    :public method bar05 {} {: foo}
+    :public method bar06 {} {my foo}
+    :public method bar07 {} {[self] foo}
+    :public method bar08 {} {: -system info methods foo}
+    :public method bar09 {} {my -system info methods foo}
+  }
+
+  ? {o foo} ::o
+  ? {o bar00} ::o {self}
+  ? {o bar01} ::o {:}
+  ? {o bar02} ::o {[self]}
+  ? {o bar03} ::o {[:]}
+  ? {o bar04} ::o ":foo"
+  ? {o bar05} ::o ": foo"
+  ? {o bar06} ::o "my foo"
+  ? {o bar07} ::o "self foo"
+  ? {o bar08} foo ": -system info"
+  ? {o bar09} foo "my -system info"
 }
