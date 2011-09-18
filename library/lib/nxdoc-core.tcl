@@ -2590,25 +2590,27 @@ namespace eval ::nx::doc {
 
 	    }
 	    
-	    rename ::nsf::proc ::nsf::_%&proc
-	    ::interp invokehidden "" proc ::nsf::proc {name arguments body} {
-	      set ns [uplevel [list namespace current]]
-	      uplevel [list ::nsf::_%&proc $name $arguments $body]	      
-	      set fqn $name
-	      if {[string first "::" $name] != 0} {
-		set fqn [string trimright $ns :]::$name
-	      }
-	      if {$arguments eq "" && $body eq ""} {
-		::nx::doc::__at_deregister_command $fqn
-	      } else {
-		::nx::doc::__at_register_command $fqn \
-		    ->cmdtype @command \
-		    ->source [file normalize [info script]] \
-		    ->nsexported [::nx::doc::is_exported $fqn] \
+	    if {[info commands ::nsf::proc] ne ""} {
+	      rename ::nsf::proc ::nsf::_%&proc
+	      ::interp invokehidden "" proc ::nsf::proc {name arguments body} {
+		set ns [uplevel [list namespace current]]
+		uplevel [list ::nsf::_%&proc $name $arguments $body]	      
+		set fqn $name
+		if {[string first "::" $name] != 0} {
+		  set fqn [string trimright $ns :]::$name
+		}
+		if {$arguments eq "" && $body eq ""} {
+		  ::nx::doc::__at_deregister_command $fqn
+		} else {
+		  ::nx::doc::__at_register_command $fqn \
+		      ->cmdtype @command \
+		      ->source [file normalize [info script]] \
+		      ->nsexported [::nx::doc::is_exported $fqn] \
 		    ->docstring $body
+		}
 	      }
 	    }
-
+	      
 	    # 3) provide for tracing commands namespace-imported at "sourcing time"
 	    #::interp hide "" namespace
 	    ::interp invokehidden "" proc ::namespace {subcmd args} {
@@ -2697,6 +2699,8 @@ namespace eval ::nx::doc {
 	-not:switch
 	nspatterns:optional
       } {
+
+      if {![info exists :registered_commands]} return;
       if {[info exists nspatterns]} {
 	set opts [join $nspatterns |]
 	# set nspatterns "^($opts)\[^\:\]*\$"
