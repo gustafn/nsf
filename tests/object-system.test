@@ -34,6 +34,46 @@ proc ? {cmd expected {msg ""}} {
 ? {Class info superclass} ::nx::Object
 ? {Class info class} ::nx::Class
 
+#
+# Minimal argument passing tests for early problem detection
+#
+nsf::proc p0 {arg} {return [list $arg]}
+nsf::proc p1 {arg:optional} {return [list [info exists arg]]}
+nsf::proc p2 {arg args} {return [list $arg $args]}
+nsf::proc p3 {arg:optional args} {return [list [info exists arg] $args]}
+nsf::proc p4 {-x args} {return [list [info exists x] $args]}
+nsf::proc p5 {-x arg:optional -y args} {return [list [info exists x] [info exists y] [info exists arg] $args]}
+
+? {p0 a} a
+? {p1 a} 1
+? {p1} 0
+
+? {p2 a b c} {a {b c}}
+? {p2 a} {a {}}
+? {p2 a b} {a b}
+
+? {p3 a b} {1 b}
+? {p3 a b c} {1 {b c}}
+? {p3 a} {1 {}}
+? {p3} {0 {}}
+
+? {p4} {0 {}}
+? {p4 -x 1} {1 {}}
+? {p4 -x 1 2} {1 2}
+? {p4 -- -x 1 2} {0 {-x 1 2}}
+? {p4 --} {0 {}}
+? {p4 -- --} {0 --}
+
+? {p5} {0 0 0 {}}
+? {p5 -x 1} {1 0 0 {}}
+? {p5 a} {0 0 1 {}}
+? {p5 -y 1} {0 0 1 1}  ;# "-y" is passed into arg, "1" into args
+? {p5 -y 1 2} {0 0 1 {1 2}}  ;# "-y" is passed into arg, "1 2" into args
+? {p5 -x 1 2} {1 0 1 {}}  ;# "2" is passed into arg, "1 2" into args
+
+#
+# Create objects and test its properties
+#
 
 Object create o
 ? {::nsf::object::exists Object} 1
