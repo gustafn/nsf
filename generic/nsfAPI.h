@@ -527,7 +527,7 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "create");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfCCreateMethodIdx].paramDefs, 
-                     method_definitions[NsfCCreateMethodIdx].nrParameters, 1,
+                     method_definitions[NsfCCreateMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -562,7 +562,7 @@ NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "filterguard");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfCFilterGuardMethodIdx].paramDefs, 
-                     method_definitions[NsfCFilterGuardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfCFilterGuardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -582,7 +582,7 @@ NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "mixinguard");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfCMixinGuardMethodIdx].paramDefs, 
-                     method_definitions[NsfCMixinGuardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfCMixinGuardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -602,7 +602,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "new");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfCNewMethodIdx].paramDefs, 
-                     method_definitions[NsfCNewMethodIdx].nrParameters, 1,
+                     method_definitions[NsfCNewMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -621,7 +621,7 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "recreate");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfCRecreateMethodIdx].paramDefs, 
-                     method_definitions[NsfCRecreateMethodIdx].nrParameters, 1,
+                     method_definitions[NsfCRecreateMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -656,7 +656,7 @@ NsfClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "filterguard");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoFilterguardMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoFilterguardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoFilterguardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -675,7 +675,7 @@ NsfClassInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, i
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "filtermethods");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoFiltermethodsMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoFiltermethodsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoFiltermethodsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -695,7 +695,7 @@ NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "forward");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoForwardMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoForwardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoForwardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -715,7 +715,7 @@ NsfClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "heritage");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoHeritageMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoHeritageMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoHeritageMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -734,7 +734,7 @@ NsfClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "instances");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoInstancesMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoInstancesMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoInstancesMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -768,7 +768,7 @@ NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "method");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoMethodMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoMethodMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoMethodMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -788,7 +788,7 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "methods");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoMethodsMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoMethodsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoMethodsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -810,7 +810,7 @@ NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "mixinof");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoMixinOfMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoMixinOfMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoMixinOfMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -845,7 +845,7 @@ NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, in
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "mixinclasses");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoMixinclassesMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoMixinclassesMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoMixinclassesMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -881,7 +881,7 @@ NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "mixinguard");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoMixinguardMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoMixinguardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoMixinguardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -900,7 +900,7 @@ NsfClassInfoObjectparameterMethodStub(ClientData clientData, Tcl_Interp *interp,
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "objectparameter");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoObjectparameterMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoObjectparameterMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoObjectparameterMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -920,7 +920,7 @@ NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "slotobjects");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoSlotobjectsMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoSlotobjectsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoSlotobjectsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -942,7 +942,7 @@ NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "subclass");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoSubclassMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoSubclassMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoSubclassMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -976,7 +976,7 @@ NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   if (!cl) return NsfDispatchClientDataError(interp, clientData, "class", "superclass");
   if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
                      method_definitions[NsfClassInfoSuperclassMethodIdx].paramDefs, 
-                     method_definitions[NsfClassInfoSuperclassMethodIdx].nrParameters, 1,
+                     method_definitions[NsfClassInfoSuperclassMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1006,7 +1006,7 @@ NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfConfigureCmdIdx].paramDefs, 
-                     method_definitions[NsfConfigureCmdIdx].nrParameters, 1,
+                     method_definitions[NsfConfigureCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1026,7 +1026,7 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfCurrentCmdIdx].paramDefs, 
-                     method_definitions[NsfCurrentCmdIdx].nrParameters, 1,
+                     method_definitions[NsfCurrentCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1077,7 +1077,7 @@ NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfDirectDispatchCmdIdx].paramDefs, 
-                     method_definitions[NsfDirectDispatchCmdIdx].nrParameters, 1,
+                     method_definitions[NsfDirectDispatchCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1098,7 +1098,7 @@ NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfDispatchCmdIdx].paramDefs, 
-                     method_definitions[NsfDispatchCmdIdx].nrParameters, 1,
+                     method_definitions[NsfDispatchCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1120,7 +1120,7 @@ NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfFinalizeCmdIdx].paramDefs, 
-                     method_definitions[NsfFinalizeCmdIdx].nrParameters, 1,
+                     method_definitions[NsfFinalizeCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1139,7 +1139,7 @@ NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfInterpObjCmdIdx].paramDefs, 
-                     method_definitions[NsfInterpObjCmdIdx].nrParameters, 1,
+                     method_definitions[NsfInterpObjCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1158,7 +1158,7 @@ NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, i
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfInvalidateObjectParameterCmdIdx].paramDefs, 
-                     method_definitions[NsfInvalidateObjectParameterCmdIdx].nrParameters, 1,
+                     method_definitions[NsfInvalidateObjectParameterCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1177,7 +1177,7 @@ NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfIsCmdIdx].paramDefs, 
-                     method_definitions[NsfIsCmdIdx].nrParameters, 1,
+                     method_definitions[NsfIsCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1198,7 +1198,7 @@ NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodAliasCmdIdx].paramDefs, 
-                     method_definitions[NsfMethodAliasCmdIdx].nrParameters, 1,
+                     method_definitions[NsfMethodAliasCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1221,7 +1221,7 @@ NsfMethodAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodAssertionCmdIdx].paramDefs, 
-                     method_definitions[NsfMethodAssertionCmdIdx].nrParameters, 1,
+                     method_definitions[NsfMethodAssertionCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1242,7 +1242,7 @@ NsfMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodCreateCmdIdx].paramDefs, 
-                     method_definitions[NsfMethodCreateCmdIdx].nrParameters, 1,
+                     method_definitions[NsfMethodCreateCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1269,7 +1269,7 @@ NsfMethodDeleteCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodDeleteCmdIdx].paramDefs, 
-                     method_definitions[NsfMethodDeleteCmdIdx].nrParameters, 1,
+                     method_definitions[NsfMethodDeleteCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1290,7 +1290,7 @@ NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodForwardCmdIdx].paramDefs, 
-                     method_definitions[NsfMethodForwardCmdIdx].nrParameters, 1,
+                     method_definitions[NsfMethodForwardCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1318,7 +1318,7 @@ NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodPropertyCmdIdx].paramDefs, 
-                     method_definitions[NsfMethodPropertyCmdIdx].nrParameters, 1,
+                     method_definitions[NsfMethodPropertyCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1357,7 +1357,7 @@ NsfMethodSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodSetterCmdIdx].paramDefs, 
-                     method_definitions[NsfMethodSetterCmdIdx].nrParameters, 1,
+                     method_definitions[NsfMethodSetterCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1378,7 +1378,7 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMyCmdIdx].paramDefs, 
-                     method_definitions[NsfMyCmdIdx].nrParameters, 1,
+                     method_definitions[NsfMyCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1400,7 +1400,7 @@ NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfNSCopyCmdsCmdIdx].paramDefs, 
-                     method_definitions[NsfNSCopyCmdsCmdIdx].nrParameters, 1,
+                     method_definitions[NsfNSCopyCmdsCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1420,7 +1420,7 @@ NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfNSCopyVarsCmdIdx].paramDefs, 
-                     method_definitions[NsfNSCopyVarsCmdIdx].nrParameters, 1,
+                     method_definitions[NsfNSCopyVarsCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1472,7 +1472,7 @@ NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfObjectPropertyCmdIdx].paramDefs, 
-                     method_definitions[NsfObjectPropertyCmdIdx].nrParameters, 1,
+                     method_definitions[NsfObjectPropertyCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1508,7 +1508,7 @@ NsfObjectSystemCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfObjectSystemCreateCmdIdx].paramDefs, 
-                     method_definitions[NsfObjectSystemCreateCmdIdx].nrParameters, 1,
+                     method_definitions[NsfObjectSystemCreateCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1529,7 +1529,7 @@ NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfProcCmdIdx].paramDefs, 
-                     method_definitions[NsfProcCmdIdx].nrParameters, 1,
+                     method_definitions[NsfProcCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1583,7 +1583,7 @@ NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfRelationCmdIdx].paramDefs, 
-                     method_definitions[NsfRelationCmdIdx].nrParameters, 1,
+                     method_definitions[NsfRelationCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1652,7 +1652,7 @@ NsfVarExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfVarExistsCmdIdx].paramDefs, 
-                     method_definitions[NsfVarExistsCmdIdx].nrParameters, 1,
+                     method_definitions[NsfVarExistsCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1673,7 +1673,7 @@ NsfVarImportCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfVarImportCmdIdx].paramDefs, 
-                     method_definitions[NsfVarImportCmdIdx].nrParameters, 1,
+                     method_definitions[NsfVarImportCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1692,7 +1692,7 @@ NsfVarSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfVarSetCmdIdx].paramDefs, 
-                     method_definitions[NsfVarSetCmdIdx].nrParameters, 1,
+                     method_definitions[NsfVarSetCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1714,7 +1714,7 @@ NsfVarUnsetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfVarUnsetCmdIdx].paramDefs, 
-                     method_definitions[NsfVarUnsetCmdIdx].nrParameters, 1,
+                     method_definitions[NsfVarUnsetCmdIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1735,7 +1735,7 @@ NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "autoname");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfOAutonameMethodIdx].paramDefs, 
-                     method_definitions[NsfOAutonameMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOAutonameMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1814,7 +1814,7 @@ NsfOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "exists");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfOExistsMethodIdx].paramDefs, 
-                     method_definitions[NsfOExistsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOExistsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1833,7 +1833,7 @@ NsfOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "filterguard");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfOFilterGuardMethodIdx].paramDefs, 
-                     method_definitions[NsfOFilterGuardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOFilterGuardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1863,7 +1863,7 @@ NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "mixinguard");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfOMixinGuardMethodIdx].paramDefs, 
-                     method_definitions[NsfOMixinGuardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOMixinGuardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1961,7 +1961,7 @@ NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "children");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoChildrenMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoChildrenMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoChildrenMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1997,7 +1997,7 @@ NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "filterguard");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoFilterguardMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoFilterguardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoFilterguardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2016,7 +2016,7 @@ NsfObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "filtermethods");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoFiltermethodsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoFiltermethodsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoFiltermethodsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2037,7 +2037,7 @@ NsfObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "forward");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoForwardMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoForwardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoForwardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2057,7 +2057,7 @@ NsfObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "hasmixin");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoHasMixinMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoHasMixinMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoHasMixinMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2076,7 +2076,7 @@ NsfObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "hastype");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoHasTypeMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoHasTypeMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoHasTypeMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2111,7 +2111,7 @@ NsfObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "is");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoIsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoIsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoIsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2130,7 +2130,7 @@ NsfObjInfoLookupFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "lookupfilter");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoLookupFilterMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoLookupFilterMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoLookupFilterMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2165,7 +2165,7 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "lookupmethods");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoLookupMethodsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoLookupMethodsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoLookupMethodsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2190,7 +2190,7 @@ NsfObjInfoLookupSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "lookupslots");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoLookupSlotsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoLookupSlotsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoLookupSlotsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2211,7 +2211,7 @@ NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "method");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoMethodMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoMethodMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoMethodMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2231,7 +2231,7 @@ NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "methods");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoMethodsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoMethodsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoMethodsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2253,7 +2253,7 @@ NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "mixinclasses");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoMixinclassesMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoMixinclassesMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoMixinclassesMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2288,7 +2288,7 @@ NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "mixinguard");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoMixinguardMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoMixinguardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoMixinguardMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2323,7 +2323,7 @@ NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "precedence");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoPrecedenceMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoPrecedenceMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoPrecedenceMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2343,7 +2343,7 @@ NsfObjInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "slotobjects");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoSlotobjectsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoSlotobjectsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoSlotobjectsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -2363,7 +2363,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   if (!obj) return NsfDispatchClientDataError(interp, clientData, "object", "vars");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[NsfObjInfoVarsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoVarsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoVarsMethodIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {

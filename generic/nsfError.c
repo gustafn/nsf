@@ -220,7 +220,37 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
 /*
  *----------------------------------------------------------------------
  *
- * NsfNoDispatchObjectError --
+ * NsfUnexpectedArgumentError --
+ *
+ *      Produce a unexpecte argument number (most likely, too many arguments)
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
+extern int
+NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString, 
+			   Nsf_Object *object, Nsf_Param CONST *paramPtr, Tcl_Obj *procNameObj) {
+  Tcl_DString ds, *dsPtr = &ds;
+  DSTRING_INIT(dsPtr);
+  Tcl_DStringAppend(dsPtr, "Invalid argument '", -1);
+  Tcl_DStringAppend(dsPtr, argumentString, -1);
+  Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
+  NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
+		   object ? object->cmdName : NULL,
+		   procNameObj);
+  DSTRING_FREE(dsPtr);
+  return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfDispatchClientDataError --
  *
  *      Produce a error message when method was not dispatched on an object
  *
@@ -246,9 +276,10 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 /*
  *----------------------------------------------------------------------
  *
- * NsfNoDispatchObjectError --
+ * NsfNoCurrentObjectError --
  *
- *      Produce a error message when method was not dispatched on an object
+ *      Produce a error message when method was called outside the context of
+ *      a method
  *
  * Results:
  *      TCL_ERROR

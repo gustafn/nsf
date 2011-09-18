@@ -3549,8 +3549,16 @@ Test run; exit
   (i.e. support -local, -system and -intrinsic)
 - extend regression test
 
+nsf.c:
+  - reform of argument parse. new parser uses NsfFlagObjType
+    to reuse earlier parse resuslts. Improved speed for
+    for methods with primitive bodies: 5%-25%.
+  - added regression tests for argument parsing 
+
 TODO:
+ - check flag reuses in ~/scripts/nonposargs-speed.xotcl
  - NSF_WITH_OS_RESOLVER
+ - ParseContextExtendObjv
  - private: 
    * document private in tutorial
  - add "property" and "attribute" and "info property" and "info slot ..." to migration guide

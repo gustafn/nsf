@@ -26,6 +26,116 @@
  *----------------------------------------------------------------------
  */
 
+static Tcl_FreeInternalRepProc	FlagFreeInternalRep;
+
+Tcl_ObjType NsfFlagObjType = {
+    "nsfFlag",			/* name */
+    FlagFreeInternalRep,	/* freeIntRepProc */
+    NULL,			/* dupIntRepProc */
+    NULL,			/* updateStringProc */
+    NULL			/* setFromAnyProc */
+};
+
+/* 
+ * freeIntRepProc
+ */
+static void
+FlagFreeInternalRep(
+    register Tcl_Obj *objPtr)	/* Tcl_Obj structure object with internal
+				 * representation to free. */
+{
+  NsfFlag *flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
+
+  if (flagPtr != NULL) {
+
+    /*fprintf(stderr, "FlagFreeInternalRep %p flagPtr %p serial (%d) payload %p\n",
+      objPtr, flagPtr, flagPtr->serial, flagPtr->payload);*/
+
+    /*
+     * Decrement refCounts; same as in NsfFlagSet() in the reuse branch
+     */
+    if (flagPtr->payload) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
+
+    /*
+     * ... and free structure
+     */
+    FREE(NsfFlag, flagPtr);
+    objPtr->internalRep.twoPtrValue.ptr1 = NULL; // TODO: needed?
+  }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ *  NsfFlagObjSet --
+ *
+ *      Convert the provided Tcl_Obj into the type of an nsf flag.
+ *
+ *----------------------------------------------------------------------
+ */
+int
+NsfFlagObjSet(
+    Tcl_Interp *interp,			/* Used for error reporting if not NULL. */
+    register Tcl_Obj *objPtr,   	/* The object to convert. */
+    Nsf_Param CONST *baseParamPtr,	/* the full parameter block */
+    int serial,				/* interface serial */
+    Nsf_Param CONST *paramPtr,  	/* a single parameter */
+    Tcl_Obj *payload,  			/* payload */
+    int flags  				/* detail infos */
+	      )
+{
+  NsfFlag *flagPtr;
+  
+  /*fprintf(stderr, "NsfFlagObjSet %p %s signature %p (%d) param %p payload %p flags %.4x\n",
+    objPtr, ObjStr(objPtr), baseParamPtr, serial, paramPtr, payload, flags);*/
+
+  /*
+   * Free or reuse the old interal representation and store own
+   * structure as internal representation.
+   */
+  if (objPtr->typePtr != &NsfFlagObjType) {
+    TclFreeIntRep(objPtr);
+    flagPtr = NEW(NsfFlag);
+    objPtr->internalRep.twoPtrValue.ptr1 = (void *)flagPtr;
+    objPtr->internalRep.twoPtrValue.ptr2 = NULL;
+    objPtr->typePtr = &NsfFlagObjType;
+  } else {
+    flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
+
+    //fprintf(stderr, "NsfFlagObjSet %p reuses interal rep, serial (%d/%d)\n",
+    //	    objPtr, flagPtr->serial, serial);
+
+    if (flagPtr->payload) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
+  }
+
+  assert(flagPtr);
+
+  /*
+   * add values to the structure
+   */
+  flagPtr->signature = baseParamPtr;
+  flagPtr->serial = serial;
+  flagPtr->paramPtr = paramPtr;
+  flagPtr->payload = payload;
+  if (payload) {INCR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
+  flagPtr->flags = flags;
+
+  return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ *  Mixinreg Tcl_Obj type --
+ *
+ *      The mixin registration type is an Tcl_Obj type carrying a
+ *      class and a guard object. The string representation might have
+ *      the form "/cls/" or "/cls/ -guard /expr/". When no guard
+ *      expression is provided (first form), the guard entry is NULL.
+ *
+ *----------------------------------------------------------------------
+ */
+
 typedef struct {
   NsfClass *mixin;
   Tcl_Obj *guardObj;
@@ -131,6 +241,7 @@ MixinregSetFromAny(
 
   return TCL_OK;
 }
+
 /*
  *----------------------------------------------------------------------
  *
