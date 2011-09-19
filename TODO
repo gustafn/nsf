@@ -3494,9 +3494,83 @@ Test run; exit
 
 - use same version numbers in nsf, nx and xotcl2
 
+- library/lib/nx-zip.tcl: refactored implementqtion, 
+  improved utf-8 file-name handling (which is a mess in pkzip)
 
+- configure options:
+  * improved and extended configure options to reduce
+    necessity to switch features on and off in the nsf.h.
+  Optional Features:
+    --enable-profile        build nsf with profile support (default disabled)
+    --enable-memcount=yes|trace
+                            build nsf with memcount debug support (default
+                            disabled)
+    --enable-development    build nsf with development support (assertion
+                            checking, etc.; default disabled)
+  Optional Packages:
+    --with-dtrace           build nsf with dtrace (default: without)
+
+- nsf.c:
+  * report configuration options via "parray nsf::config"
+    sample output
+     % parray nsf::config
+     nsf::config(development) = 1
+     nsf::config(dtrace)      = 0
+     nsf::config(memcount)    = 0
+     nsf::config(memtrace)    = 0
+     nsf::config(profile)     = 0
+
+
+- build-environment:
+  * make configure.in Makefile.in more in line with the TEA sample app
+    (removing leftovers from prior versions of TEA)
+  * remove GNU-Makefile-isms from Makefile.in
+
+- nsf.c:
+  * provide an intermediary fix for the final memcount problem
+    of elements in on the iPtr->errorStack
+  * improve iPtr cleanup for memcount debugging
+
+- added configure option: enable-assertions (default on)
+
+- nsf.c:
+  * allowed to call ":" like "my" or "self"
+
+     Object create o
+     o public method bar2 {} {return bar2-[: foo]}
+     o public method bar5 {} {return [self]::bar5}
+     o public method bar6 {} {return [:]::bar6}
+
+ * extended regression test
+
+- nx.tcl: moved "properties" from nx::Class to nx::Object
+
+- nsf.c: make ":" a full equivalent vor nsf::my 
+  (i.e. support -local, -system and -intrinsic)
+- extend regression test
+
+nsf.c:
+  - reform of argument parse. new parser uses NsfFlagObjType
+    to reuse earlier parse resuslts. Improved speed for
+    for methods with primitive bodies: 5%-25%.
+  - added regression tests for argument parsing 
+
+- nsf.c
+  - added experimental parameter option noleadingdash
+  - additionalal regression test file method-parameter.test
+  - provide selective error messages for unknown nonpos args
 
 TODO:
+ - NsfUnexpectedNonposArgumentError() for valueInArgument, when structure settles
+ - ouput of noleadingdash in introspection
+ - ouput of noleadingdash in objectParameterSlots
+ - handling of noleadingdash vor values of nonpos args
+ - special handling of values looking like nonpos-flags,
+   but wich are not ones (-1, "- a b c", ....) in detection
+   when to throw unknow.
+
+ - check flag reuses in ~/scripts/nonposargs-speed.xotcl
+ - NSF_WITH_OS_RESOLVER
  - private: 
    * document private in tutorial
  - add "property" and "attribute" and "info property" and "info slot ..." to migration guide

@@ -406,7 +406,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_ARG_WARN			0x040000
 #define NSF_ARG_UNNAMED			0x080000
 #define NSF_ARG_IS_RETURNVALUE		0x100000
-
+#define NSF_ARG_NOLEADINGDASH		0x200000
 
 /* method invocations */
 #define NSF_ARG_METHOD_INVOCATION	     (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_INITCMD)
@@ -422,7 +422,7 @@ typedef struct NsfStringIncrStruct {
 /* flags for ParseContext */
 #define NSF_PC_MUST_DECR		     0x0001
 #define NSF_PC_IS_DEFAULT		     0x0002
-#define NSF_PC_MUST_INVERT	     	     0x0010
+#define NSF_PC_INVERT_DEFAULT	     	     0x0010
 
 #define NSF_PC_STATUS_MUST_DECR		     0x0001
 #define NSF_PC_STATUS_FREE_OBJV		     0x0002
@@ -459,6 +459,7 @@ typedef struct NsfParamDefs {
   Nsf_Param *paramsPtr;
   int nrParams;
   int refCount;
+  int serial;
   Tcl_Obj *slotObj;
   Tcl_Obj *returns;
 } NsfParamDefs;
@@ -897,28 +898,43 @@ typedef struct NsfCompEnv {
 typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH,
 	      LAST_INSTRUCTION} NsfByteCodeInstructions;
 
-
-extern NsfCompEnv *NsfGetCompEnv();
-
 Tcl_ObjCmdProc NsfInitProcNSCmd, NsfSelfDispatchCmd,
   NsfNextObjCmd, NsfGetSelfObjCmd;
 
+extern NsfCompEnv *NsfGetCompEnv();
 int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 		     int objc, Tcl_Obj *CONST objv[]);
 #endif
 
-extern int
-NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
-		   NsfClass **clPtr, int withUnknown);
+extern int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
+			      NsfClass **clPtr, int withUnknown);
+extern int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
+			  int objc, Tcl_Obj *CONST objv[]);
+extern int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, 
+			   Tcl_Obj *cmdName, Tcl_Obj *methodName, 
+			   char *arglist);
+extern CONST char *MethodName(Tcl_Obj *methodObj);
+extern void NsfReportVars(Tcl_Interp *interp);
 
-int
-NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
-		 int objc, Tcl_Obj *CONST objv[]);
-extern int
-NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, 
-		Tcl_Obj *methodName, char *arglist);
 
-CONST char *MethodName(Tcl_Obj *methodObj);
+/* 
+ * NsfFlag type
+ */
+extern Tcl_ObjType NsfFlagObjType;
+extern int NsfFlagObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
+			 Nsf_Param CONST *baseParamPtr, int serial,
+			 Nsf_Param CONST *paramPtr, Tcl_Obj *payload, int flags);
+typedef struct {
+  CONST Nsf_Param *signature;
+  int serial;
+  Nsf_Param *paramPtr;
+  Tcl_Obj *payload;
+  int flags;
+} NsfFlag;
+
+#define NSF_FLAG_DASHDAH		0x01
+#define NSF_FLAG_CONTAINS_VALUE		0x02
+
 
 /* functions from nsfUtil.c */
 char *Nsf_ltoa(char *buf, long i, int *len);

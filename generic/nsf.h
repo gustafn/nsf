@@ -78,27 +78,25 @@
 /* are we developing?
 #define NSF_DEVELOPMENT 1
 */
-#define NSF_DEVELOPMENT 1
 
-/* activate/deacticate assert 
+/* activate/deactivate assert 
 #define NDEBUG 1
 */
 
 /* additional language features
 #define NSF_WITH_INHERIT_NAMESPACES 1
+#define NSF_WITH_ASSERTIONS 1
 */
 
 #define NSF_WITH_OS_RESOLVER 1
-#define NSF_WITH_ASSERTIONS 1
 #define NSF_WITH_VALUE_WARNINGS 1
 
 /* activate/deacticate memory tracing 
 #define NSF_MEM_TRACE 1
 #define NSF_MEM_COUNT 1
 */
-//#define NSF_MEM_COUNT 1
-//#define NSF_MEM_TRACE 1
 //#define PARSE_TRACE 1
+//#define PARSE_TRACE_FULL 1
 
 /* turn  tracing output on/off
 #define NSFOBJ_TRACE 1
@@ -106,7 +104,6 @@
 #define OBJDELETION_TRACE 1
 #define STACK_TRACE 1
 #define PARSE_TRACE 1
-#define PARSE_TRACE_FULL 1
 #define CONFIGURE_ARGS_TRACE 1
 #define TCL_STACK_ALLOC_TRACE 1
 #define VAR_RESOLVER_TRACE 1
@@ -174,6 +171,10 @@
 # define CscFinish(interp,cscPtr,retCode,string)			\
   NSF_DTRACE_METHOD_RETURN_PROBE(cscPtr,retCode);			\
   CscFinish_(interp, cscPtr)
+#endif
+
+#if defined(NSF_MEM_TRACE) && !defined(NSF_MEM_COUNT)
+# define NSF_MEM_COUNT 1
 #endif
 
 #if defined(NSF_PROFILE) || defined(NSF_DTRACE)
@@ -262,8 +263,8 @@ typedef struct Nsf_Param {
 extern int 
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
-		  Nsf_Param CONST *paramPtr, int nrParams, int doCheck,
-		  Nsf_ParseContext *pcPtr);
+		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
+		  int doCheck, Nsf_ParseContext *pcPtr);
 extern int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
 		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj);
@@ -273,6 +274,18 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 			   CONST char *what, CONST char *methodName);
 extern int
 NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what);
+
+extern int
+NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString, 
+			   Nsf_Object *object, Nsf_Param CONST *paramPtr, 
+			   Tcl_Obj *procNameObj);
+extern int
+NsfUnexpectedNonposArgumentError(Tcl_Interp *interp, 
+				 CONST char *argumentString, 
+				 Nsf_Object *object, 
+				 Nsf_Param CONST *currentParamPtr,
+				 Nsf_Param CONST *paramPtr,
+				 Tcl_Obj *procNameObj);
 
 /*
  * logging

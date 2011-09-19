@@ -34,6 +34,48 @@ proc ? {cmd expected {msg ""}} {
 ? {Class info superclass} ::nx::Object
 ? {Class info class} ::nx::Class
 
+#
+# Minimal argument passing tests for early problem detection
+#
+nsf::proc p0 {arg} {return [list $arg]}
+nsf::proc p1 {arg:optional} {return [list [info exists arg]]}
+nsf::proc p2 {arg args} {return [list $arg $args]}
+nsf::proc p3 {arg:optional args} {return [list [info exists arg] $args]}
+nsf::proc p4 {-x args} {return [list [info exists x] $args]}
+nsf::proc p5 {-x arg:optional -y args} {return [list [info exists x] [info exists y] [info exists arg] $args]}
+
+? {p0 a} a
+? {p1 a} 1
+? {p1} 0
+
+? {p2 a b c} {a {b c}}
+? {p2 a} {a {}}
+? {p2 a b} {a b}
+
+? {p3 a b} {1 b}
+? {p3 a b c} {1 {b c}}
+? {p3 a} {1 {}}
+? {p3} {0 {}}
+
+? {p4} {0 {}}
+? {p4 -x 1} {1 {}}
+? {p4 -x 1 2} {1 2}
+? {p4 -- -x 1 2} {0 {-x 1 2}}
+? {p4 --} {0 {}}
+? {p4 -- --} {0 --}
+? {p4 -y --} {0 {-y --}} ;# no -y parameter, so pushed into args
+
+? {p5} {0 0 0 {}}
+? {p5 -x 1} {1 0 0 {}}
+? {p5 a} {0 0 1 {}}
+? {p5 -y 1} {0 0 1 1}        ;# "-y" is passed into arg, "1" into args
+? {p5 -y 1 2} {0 0 1 {1 2}}  ;# "-y" is passed into arg, "1 2" into args
+? {p5 -x 1 2} {1 0 1 {}}     ;# "2" is passed into arg, "1 2" into args
+? {p5 -y --} {0 0 1 {}}      ;# "--" is value of "y"
+
+#
+# Create objects and test its properties
+#
 
 Object create o
 ? {::nsf::object::exists Object} 1
@@ -109,6 +151,31 @@ C destroy
 ? {::nsf::is class c1} 0
 ? {::nsf::is metaclass c1} 0
 ? {c1 info class} ::nx::Object
+
+
+#
+# tests for dispatching methods
+# 
+Object create o
+o public method foo {} {return foo}
+o public method bar1 {} {return bar1-[:foo]}
+o public method bar2 {} {return bar2-[: foo]}
+o public method bar3 {} {return bar3-[my foo]}
+o public method bar4 {} {return bar4-[[self] foo]}
+o public method bar5 {} {return [self]::bar5}
+o public method bar6 {} {return [:]::bar6}
+o public method bar7 {} {return bar7-[lsort [: -system info methods bar7]]}
+
+# dispatch without colon names
+? {o foo} foo "simple method dispatch"
+? {o bar1} bar1-foo "colon-methodname dispatch"
+? {o bar2} bar2-foo "colon cmd dispatch"
+? {o bar3} bar3-foo "my dispatch"
+? {o bar4} bar4-foo "self dispatch"
+? {o bar5} ::o::bar5 "self cmd"
+? {o bar6} ::o::bar6 "colon cmd"
+? {o bar7} bar7-bar7 "colon cmd dispatch args"
+o destroy
 
 # basic attributes tests
 

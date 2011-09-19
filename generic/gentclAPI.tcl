@@ -250,7 +250,7 @@ ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 $intro
   if (ArgumentParse(interp, objc, objv, $obj, objv[0], 
                      method_definitions[$idx].paramDefs, 
-                     method_definitions[$idx].nrParameters, 1,
+                     method_definitions[$idx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {

@@ -5,14 +5,83 @@
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
- *  nsfTrace.c --
+ *  nsfDebug.c --
  *  
- *  Tracing facilities for the Next Scripting Framework 
+ *  Debugging facilities for the Next Scripting Framework 
  *  
  */
 
 #include "nsfInt.h"
 #include "nsfAccessInt.h"
+
+
+/*
+ *----------------------------------------------------------------------
+ * NsfReportVars --
+ *
+ *    Report version numbers and configure options as tcl variables.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Setting Tcl variables
+ *
+ *----------------------------------------------------------------------
+ */
+void
+NsfReportVars(Tcl_Interp *interp) {
+
+  Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nsf::config(development)", 
+#ifdef NSF_DEVELOPMENT
+	     "1",
+#else
+	     "0",
+#endif
+	     TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(memcount)", 
+#ifdef NSF_MEM_COUNT
+	     "1",
+#else
+	     "0",
+#endif
+	     TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(memtrace)", 
+#ifdef NSF_MEM_TRACE
+	     "1",
+#else
+	     "0",
+#endif
+	     TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(profile)", 
+#ifdef NSF_PROFILE
+	     "1",
+#else
+	     "0",
+#endif
+	     TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(dtrace)", 
+#ifdef NSF_DTRACE
+	     "1",
+#else
+	     "0",
+#endif
+	     TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(assertions)", 
+#ifdef NSF_WITH_ASSERTIONS
+	     "1",
+#else
+	     "0",
+#endif
+	     TCL_GLOBAL_ONLY);
+}
 
 /*
  *----------------------------------------------------------------------
@@ -78,7 +147,7 @@ NsfStackDump(Tcl_Interp *interp) {
 
 /*
  *----------------------------------------------------------------------
- * NsfStackDump --
+ * NsfPrintObjv --
  *
  *    Print the provided argument vector to stderr. This function is primarily
  *    for debugging proposes of the C implmenentation of nsf.
@@ -128,7 +197,6 @@ NsfMemCountGetTable(int **initialized) {
   *initialized = (int *)Tcl_GetThreadData(&memCountFlagKey, sizeof(int));
 
   return tablePtr;
-  //return &RUNTIME_STATE(interp)->memCountTable;
 }
 
 /*
@@ -163,7 +231,6 @@ NsfMemCountAlloc(char *id, void *p) {
 #ifdef NSF_MEM_TRACE
   fprintf(stderr, "+++ alloc %s %p\n", id, p);
 #endif
-  /*fprintf(stderr,"+++alloc '%s'\n", id);*/
   if (new) {
     entry = (NsfMemCounter*)ckalloc(sizeof(NsfMemCounter));
     entry->count = 1;
@@ -244,10 +311,6 @@ NsfMemCountInit() {
     Tcl_InitHashTable(tablePtr, TCL_STRING_KEYS);
   } 
   (*tableInitialized) ++;
-
-#ifdef NSF_MEM_TRACE
-  fprintf(stderr, "+++ init interp %p count %d\n", interp, *tableInitialized);
-#endif
 }
 
 /*

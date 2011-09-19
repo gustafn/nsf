@@ -248,7 +248,6 @@ namespace eval ::xotcl {
   ::nsf::method::property Class  dealloc redefine-protected true
   ::nsf::method::property Class  create  redefine-protected true
 
-
   #
   # define parametercmd and instparametercmd in terms of ::nsf::setter
   # define filterguard and instfilterguard in terms of filterguard

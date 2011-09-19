@@ -1835,7 +1835,7 @@ namespace eval ::nx {
   proc ::nx::internal::addProperties {arglist} {
     foreach arg $arglist {:property $arg}
   }
-  ::nx::ObjectParameterSlot create ::nx::Class::slot::properties \
+  ::nx::ObjectParameterSlot create ::nx::Object::slot::properties \
       -methodname "::nx::internal::addProperties"
 
   ######################################################################

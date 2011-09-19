@@ -618,10 +618,6 @@ NSF_LIB_SPEC
 NSF_BUILD_LIB_SPEC
 UNSHARED_LIB_SUFFIX
 SHARED_LIB_SUFFIX
-pkgincludedir
-pkglibdir
-pkgdatadir
-PKG_DIR
 NSF_COMPATIBLE_TCLSH
 TCLSH_PROG
 RANLIB_STUB
@@ -742,8 +738,11 @@ with_gdbm
 with_aolserver3
 with_actiweb
 with_expat
-with_profile
-enable_dtrace
+with_dtrace
+enable_profile
+enable_memcount
+enable_development
+enable_assertions
 with_tcl
 with_tclinclude
 enable_threads
@@ -1375,7 +1374,13 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-dtrace         build with dtrace (default: off)
+  --enable-profile        build nsf with profile support (default: disabled)
+  --enable-memcount=yes|trace
+                          build nsf with memcount debug support (default:
+                          disabled)
+  --enable-development    build nsf with development support (intensive
+                          runtime checking, etc.; default: disabled)
+  --enable-assertions     build nsf with assertion support (default: enabled)
   --enable-threads        build with threads
   --enable-shared         build and link with shared libraries (default: on)
   --enable-64bit          enable 64bit support (default: off)
@@ -1399,8 +1404,7 @@ Optional Packages:
                           --with-expat=<INC_DIR,LIB_DIR> point to a custom
                           expat installation, --without-expat falls back to
                           the bundled expat installation
-  --with-profile=yes|no   --without-profile disables builds with profile
-                          support
+  --with-dtrace           build nsf with dtrace (default: without)
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files
@@ -2337,7 +2341,10 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 #--------------------------------------------------------------------
 # specify some extra flags
 #--------------------------------------------------------------------
-
+# According to http://www.gnu.org/software/autoconf/manual/autoconf.html
+#  - "with" is for external software (optional packages)
+#  - "enable" is for optional features
+#
 
 # Check whether --with-gdbm was given.
 if test "${with_gdbm+set}" = set; then :
@@ -2371,18 +2378,39 @@ else
 fi
 
 
-# Check whether --with-profile was given.
-if test "${with_profile+set}" = set; then :
-  withval=$with_profile; with_profile=$withval
+# Check whether --with-dtrace was given.
+if test "${with_dtrace+set}" = set; then :
+  withval=$with_dtrace; with_dtrace=$enableval
 else
-  with_profile=no
+  with_dtrace=no
 fi
 
-# Check whether --enable-dtrace was given.
-if test "${enable_dtrace+set}" = set; then :
-  enableval=$enable_dtrace; enable_dtrace=$enableval
+# Check whether --enable-profile was given.
+if test "${enable_profile+set}" = set; then :
+  enableval=$enable_profile; enable_profile=$enableval
 else
-  enable_dtrace=no
+  enable_profile=no
+fi
+
+# Check whether --enable-memcount was given.
+if test "${enable_memcount+set}" = set; then :
+  enableval=$enable_memcount; enable_memcount=$enableval
+else
+  enable_memcount=no
+fi
+
+# Check whether --enable-development was given.
+if test "${enable_development+set}" = set; then :
+  enableval=$enable_development; enable_development=$enableval
+else
+  enable_development=no
+fi
+
+# Check whether --enable-assertions was given.
+if test "${enable_assertions+set}" = set; then :
+  enableval=$enable_assertions; enable_assertions=$enableval
+else
+  enable_assertions=yes
 fi
 
 
@@ -2426,7 +2454,6 @@ NSF_MAJOR_VERSION=2
 NSF_MINOR_VERSION=0
 
 NSF_PATCH_LEVEL=$PACKAGE_VERSION
-#NSF_PATCH_LEVEL=${NSF_MAJOR_VERSION}.${NSF_MINOR_VERSION}.${NSF_RELEASE_SERIAL}
 
 NSF_VERSION=${NSF_MAJOR_VERSION}.${NSF_MINOR_VERSION}
 NODOT_VERSION=${NSF_MAJOR_VERSION}${NSF_MINOR_VERSION}
@@ -5512,14 +5539,37 @@ $as_echo "#define HAVE_TCL_COMPILE_H 1" >>confdefs.h
 
 fi
 
-if test "$with_profile" = yes; then
+if test "$enable_assertions" = yes; then
+
+$as_echo "#define NSF_WITH_ASSERTIONS 1" >>confdefs.h
+
+fi
+
+if test "$enable_profile" = yes; then
 
 $as_echo "#define NSF_PROFILE 1" >>confdefs.h
 
 fi
 
+if test "$enable_development" = yes; then
+
+$as_echo "#define NSF_DEVELOPMENT 1" >>confdefs.h
+
+fi
+
+if test "$enable_memcount" = yes; then
+
+$as_echo "#define NSF_MEM_COUNT 1" >>confdefs.h
+
+fi
+if test "$enable_memcount" = trace; then
+
+$as_echo "#define NSF_MEM_TRACE 1" >>confdefs.h
+
+fi
+
 DTRACE_OBJ=
-if test "$enable_dtrace" = yes; then
+if test "$with_dtrace" = yes; then
 
 $as_echo "#define NSF_DTRACE 1" >>confdefs.h
 
@@ -5541,9 +5591,9 @@ fi
 #-----------------------------------------------------------------------
 
 
-
     vars="nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
-	nsfTrace.c nsfUtil.c nsfObj.c nsfPointer.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
+	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c \
+        nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -5647,8 +5697,32 @@ fi
 
 
 
-
 #--------------------------------------------------------------------
+# __CHANGE__
+#
+# You can add more files to clean if your extension creates any extra
+# files by extending CLEANFILES.
+# Add pkgIndex.tcl if it is generated in the Makefile instead of ./configure
+# and change Makefile.in to move it from CONFIG_CLEAN_FILES to BINARIES var.
+#
+# A few miscellaneous platform-specific items:
+# TEA_ADD_* any platform specific compiler/build info here.
+#--------------------------------------------------------------------
+
+if test "${TEA_PLATFORM}" = "windows" ; then
+    if test "$GCC" != "yes" ; then
+       $as_echo "#define VISUAL_CC 1" >>confdefs.h
+
+    fi
+    CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch vc60.pch "
+    #TEA_ADD_SOURCES([win/winFile.c])
+    #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
+else
+    CLEANFILES="*.o *.a *.so *~ core gmon.out"
+    #TEA_ADD_SOURCES([unix/unixFile.c])
+    #TEA_ADD_LIBS([-lsuperfly])
+fi
+CLEANFILES="$CLEANFILES pkgIndex.tcl"
 
 #--------------------------------------------------------------------
 # __CHANGE__
@@ -5656,7 +5730,7 @@ fi
 # hard to only rely on the Tcl public header files.  Internal headers
 # contain private data structures and are subject to change without
 # notice.
-# This must be done AFTER calling TEa_PATH_TCLCONFIG/TEA_LOAD_TCLCONFIG
+# This must be done AFTER calling TEA_PATH_TCLCONFIG/TEA_LOAD_TCLCONFIG
 # so that we can extract TCL_SRC_DIR from the config file (in the case
 # of private headers
 #--------------------------------------------------------------------
@@ -5805,39 +5879,9 @@ $as_echo_n "checking for Tcl private include files... " >&6; }
 $as_echo "${result}" >&6; }
 
 
-#--------------------------------------------------------------------
-# __CHANGE__
-# A few miscellaneous platform-specific items:
-#
-# Define a special symbol for Windows (BUILD_xotcl in this case) so
-# that we create the export library with the dll.  See sha1.h on how
-# to use this.
-#
-# Windows creates a few extra files that need to be cleaned up.
-# You can add more files to clean if your extension creates any extra
-# files.
-#
-# Define any extra compiler flags in the PACKAGE_CFLAGS variable.
-# These will be appended to the current set of compiler flags for
-# your system.
-#--------------------------------------------------------------------
-
-if test "${TEA_PLATFORM}" = "windows" ; then
-	if test "$GCC" != "yes" ; then
-		$as_echo "#define VISUAL_CC 1" >>confdefs.h
-
-	fi
-	CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch vc60.pch"
-	#TEA_ADD_SOURCES([win/winFile.c])
-	#TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/w
-else
-	CLEANFILES="*.o *.a *.so *~ core gmon.out"
-	#TEA_ADD_SOURCES([unix/unixFile.c])
-	#TEA_ADD_LIBS([-lsuperfly])
-fi
-
-
-
+#TEA_PUBLIC_TK_HEADERS
+#TEA_PRIVATE_TK_HEADERS
+#TEA_PATH_X
 
 #--------------------------------------------------------------------
 # Check whether --enable-threads or --disable-threads was given.
@@ -8291,14 +8335,8 @@ $as_echo "enabled $tcl_ok debugging" >&6; }
 #--------------------------------------------------------------------
 
 
-#if test "${TCL_MAJOR_VERSION}" = "8" -a "${TCL_MINOR_VERSION}" = "0"; then
-#	FORCE_NO_STUBS=1
-#fi
+$as_echo "#define USE_TCL_STUBS 1" >>confdefs.h
 
-if test "${FORCE_NO_STUBS}" = "0" ; then
-	$as_echo "#define USE_TCL_STUBS 1" >>confdefs.h
-
-fi
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It
@@ -8422,22 +8460,6 @@ $as_echo "${TCLSH_PROG}" >&6; }
 
 # make this available, for such as nsfConfig.sh
 NSF_COMPATIBLE_TCLSH=${TCLSH_PROG}
-
-
-# resolve the variables
-eval "libdir=${libdir}"
-eval "datadir=${datadir}"
-eval "includedir=${includedir}"
-
-PKG_DIR="${PACKAGE_NAME}${PACKAGE_VERSION}"
-pkgdatadir="${datadir}/${PKG_DIR}"
-pkglibdir="${libdir}/${PKG_DIR}"
-# make sure this is right (then remove this comment)
-pkgincludedir="${includedir}/${PKG_DIR}"
-
-
-
-
 
 
 #

@@ -366,7 +366,7 @@ nx::Class create Safety {
 }
 --------------------------------------------------
 
-Note that the methods of the class +Safety+ all end with +next+.
+Note that all the methods of the class +Safety+ end with +next+.
 This command is a primitive command of NX, that will call the
 same-named method with the same argument list as the current
 invocation.
@@ -618,19 +618,19 @@ variable.  The rules are:
 
 - A variable without any colon prefix refers typically to a
    method scoped variable (the variable is created at the begin of the
-   invocation of the method and deleted, when the method ends);
+   invocation of the method and deleted, when the method ends).
    In the example below, the variable +a+ is method scoped.
-
+   
 - A variable with a single colon prefix refers to an instance variable
    (the variable is part of the object, when the object is destroyed,
-   the variable is deleted as well. In the example below, the variable
+   the variable is deleted as well). In the example below, the variable
    +b+ is an instance variable.
 
-- a variable with two leading colons refers to a global variable (the
-  lifespan ends when te variable is explicitly unset or the script
-  ends). Also variables in placed in Tcl namespaces are global
-  variables. In the example below, the variable +c+ is a global
-  variable.
+- A variable with two leading colons refers to a global variable (the
+  lifespan of a globale variable ends when the variable is explicitly
+  unset or the script terminates). Variables in placed in Tcl
+  namespaces are also global variables. In the example below, the
+  variable +c+ is a global variable.
 
 [[xmp-var-resolver]]
 .Listing {counter:figure-number}: Scopes of Variables
@@ -640,11 +640,11 @@ variable.  The rules are:
 Class create Foo {
 
   :method foo args {...}
-    # Method scoped variable a
+    # "a" is a method scoped variable
     set a 1
-    # Instance variable b
+    # "b" is an Instance variable
     set :b 2
-    # Global variable/namespaced variable c
+    # "c" is a global variable/namespaced variable
     set ::c 3
   }
 }
@@ -659,8 +659,26 @@ of some class +Foo+ referring to differently scoped variables.
 So, in general, there is no need to define or declare instance
 variables in NX. However, in some cases, a definition is useful. For
 example, one can define properties on classes, which are inherited to
-subclasses, and which are used during object initialization. Consider
-the following example:
+subclasses. Or, the definition of properties can be used the check
+permissible values for instance variables or to initialize instance
+variables from default values during object initialization. 
+
+=========================================
+A *property* is a definition of an attribute (an instance variable) 
+with accessors. The property definition might carry as well
+value-constraints and a default value.
+=========================================
+
+[[img-person-student]]
+image::person-student.png[align="center",title="Classes Person and Student"]
+{set:img-person-student:Figure {figure-number}}
+
+Consider the example above, where the classes +Person+ and +Student+
+are defined. Both classes have accessor methods for all their
+attributes specified (Note that we show the accessor methods only in
+this example). By defining properties we can use the name of the
+attribute as method name to access the variable. The listing below
+shows an implementation of this conceptual model in NX.
 
 [[xmp-properties]]
 .Listing {counter:figure-number}: Properties
@@ -696,19 +714,12 @@ Student create s1 -name Susan -matnr 4711
 puts "The name of s1 is [s1 name]"
 --------------------------------------------------
 
-We define here a class named +Person+ with two properties, namely
- +name+ and birthday.
-
-We refer with the term _property_ to an instance variable with
-accessors, where the property definition might carry as well
-value-constraints and a default value.
-
 When the class +Person+ is defined, NX provides as well automatically
-accessors. Accessors are methods named like the variables, which are
-used to access (to read and write) the underlying instance
-variables. Therefore, in our example, the class +Person+ has two
-methods implied by the +property+ definition, namely the method +name+
-and the method +birthday+.
+accessors for its properties. Accessors are methods named like the
+variables, which are used to access (to read and write) the underlying
+instance variables. Therefore, in our example, the class +Person+ has
+two methods implied by the +property+ definition, namely the method
++name+ and the method +birthday+.
 
 The class +Student+ is defined as a specialization of +Person+ with
 two additional properties, namely +matnr+ and +oncampus+. The property
@@ -807,7 +818,7 @@ classes, which contain named pieces of code, the methods.
 =========================================== 
 *Methods* are subroutines (pieces of code) associated with objects 
 and/or classes. Every method has a name, it receives arguments and 
-returns a value.
+returns a value. 
 ===========================================
 
 There are as well other program units, which are not associated with
@@ -1107,18 +1118,174 @@ incorrect. For all other purposes, the private methods are "invisible"
 in all situations, e.g. when mixins are used, or within the
 +next+-path, etc. 
 
-By using +my -local+ for the invocaton it is possible to call just the
+By using +my -local+ for the invocation it is possible to call just the
 local definition of the method. If we would call the method as usual,
-the resoultion order would be the same as usual, starting with
+the resolution order would be the same as usual, starting with
 filters, mixins, per-object methods and the full intrinsic class
 hierarchy.
 
-=== Method Scopes
+=== Applicability of Methods
+
+As defined above, a method is a subroutine defined on an object or
+class. This object (or class) contains the method. If the object (or
+class) is deleted, the contained methods will be deleted as well. 
+
 ==== Inherited Methods
-==== Class Methods
+
+===========================================
+Typically, methods are defined on a class, and the methods defined on the
+class are applicable to the instances (direct or indirect) of this
+class. These methods are called *inherited methods*.
+===========================================
+
+In the following example method +foo+ is an inherited method defined
+on class +C+.
+
+[[xmp-instance-applicable]]
+.Listing {counter:figure-number}: Methods applicable for instances
+{set:xmp-instance-applicable:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create C {
+  :public method foo {} {return 1}
+  :create c1
+}
+
+# Method "foo" is defined on class "C"
+# and applicable to the instances of "C"
+c1 foo
+--------------------------------------------------
+
+There are many programming languages that allow only this type of methods.
+However, NX allows as well to define methods on objects.
+
 ==== Object Methods
 
+===========================================
+Methods defined on objects are *per-object methods*. Per-object
+methods are only applicable on the object, on which they are defined.
+Per-object methods cannot be inherited from other objects.
+===========================================
+
+The following example defines a object specific method +bar+ on the
+instance +c1+ of class +C+, and as well the object specific method
++baz+ defined on the object +o1+. An object-specific method is defined
+simply by defining the method on an object. 
+
+Note that we can define a per-object method that shadows (redefines)
+for this object an inherited method.
+
+[[xmp-object-applicable1]]
+.Listing {counter:figure-number}: Per-object Method
+{set:xmp-object-applicable1:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create C {
+  :public method foo {} {return 1}
+  :create c1 {
+     :public method foo {} {return 2}
+     :public method bar {} {return 3}
+  }
+}
+
+# Method "bar" is on object specific method of "c1"
+c1 bar
+
+# object-specific method "foo" returns 2
+c1 foo
+
+# Method "baz" is on object specific method of "o1"
+nx::Object create o1 {
+  :public method baz {} {return 4}
+}
+o1 baz
+--------------------------------------------------
+
+==== Class Methods
+
+=========================================
+A *class method* is a method defined on a class, which is only
+applicable to the class object itself.
+=========================================
+
+In NX, all classes are objects. Classes are in NX special kind of
+objects that have e.g. the ability to create instances and to provide
+methods to the instances. Classes manage their instances. The general
+method set for classes is defined on the meta-classes (more about
+this later).
+
+The following example defines a public class method +bar+ on class
++C+. The class method is specified by using the modifier +class+ in
+front of +method+ in the method definition command.
+
+[[xmp-object-applicable2]]
+.Listing {counter:figure-number}: Per-object Method
+{set:xmp-object-applicable2:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create C {
+  :public class method bar {} {return 2}
+  :public method foo {} {return 1}
+  :create c1
+}
+
+# Method "bar" is a class method of class "C"
+C bar
+
+# Method "foo" is an inherited method of "C"
+c1 foo
+
+# When trying to invoke the class method on the 
+# instance, an error will be raised.
+c1 bar
+--------------------------------------------------
+
+In several other object oriented programming languages, class methods
+are called "static methods".
+
 === Ensemble Methods 
+
+NX provides "ensemble methods", which are similar in concept to Tcl's
+ensemble commands. 
+
+=========================================
+An *ensemble method* is a form of a hierarchical method consisting of
+a container method and sub-methods. The first argument of the
+container method is interpreted as a selector (the sub-method). Every
+sub-method can be an container method as well.
+=========================================
+
+Ensemble methods provide a means to group related commands together,
+and they are extensible in various ways. It is possible to add
+sub-methods at any time to existing ensembles. Furthermore, it is
+possible to extend ensemble methods via mixin classes.
+
+The following example defines an ensemble method for +string+. An
+ensemble method is defined when the provide method name contains a
+space.
+
+[[xmp-ensemble-methods]]
+.Listing {counter:figure-number}: Ensemble Method
+{set:xmp-ensemble-methods:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create C {
+
+    # Define an ensemble method "string" with sub-methods
+    # "length", "tolower" and "info"
+
+    :public method "string length"  {x} {....}
+    :public method "string tolower" {x} {...}
+    :public method "string info" {x} {...}
+    ...
+    :create c1
+}
+
+# Invoke the ensemble method
+c1 string length "hello world"
+--------------------------------------------------
+
+=== Method Resolution
 
 ...
 
