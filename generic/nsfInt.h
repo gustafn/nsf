@@ -406,6 +406,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_ARG_WARN			0x040000
 #define NSF_ARG_UNNAMED			0x080000
 #define NSF_ARG_IS_RETURNVALUE		0x100000
+#define NSF_ARG_NOLEADINGDASH		0x200000
 
 /* method invocations */
 #define NSF_ARG_METHOD_INVOCATION	     (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_INITCMD)

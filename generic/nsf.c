@@ -10870,6 +10870,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
 
+  } else if (strncmp(option, "noleadingdash", 8) == 0) {
+    paramPtr->flags |= NSF_ARG_NOLEADINGDASH;
+
   } else if (strncmp(option, "noconfig", 8) == 0) {
     if (disallowedOptions != NSF_DISALLOWED_ARG_OBJECT_PARAMETER) {
       return NsfPrintError(interp, "Parameter option 'noconfig' only allowed for object parameters");
@@ -15682,6 +15685,12 @@ Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 #define SkipNonposParamDefs(cPtr) \
   for (; ++cPtr <= lastParamPtr && *cPtr->name == '-';)
 
+Nsf_Param CONST *
+NextParam(Nsf_Param CONST *paramPtr, Nsf_Param CONST *lastParamPtr) {
+  for (; ++paramPtr <= lastParamPtr && *paramPtr->name == '-'; );
+  return paramPtr;
+}
+
 static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               NsfObject *object, Tcl_Obj *procNameObj,
@@ -15838,6 +15847,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	    int found = 0;
 
 	    for (; pPtr <= lastParamPtr && *pPtr->name == '-'; pPtr ++) {
+	      /*fprintf(stderr, "comparing '%s' with '%s'\n", argumentString, pPtr->name);*/
 	      if ((pPtr->flags & NSF_ARG_NOCONFIG) == 0 
 		  && ch1 == pPtr->name[1]
 		  && strcmp(argumentString, pPtr->name) == 0) {
@@ -15848,8 +15858,20 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	      }
 	    }
 	    if (!found) {
-	      SkipNonposParamDefs(currentParamPtr);
-	      pPtr = currentParamPtr;
+	      Nsf_Param CONST *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
+	      /*fprintf(stderr, "non-pos-arg '%s' not found, current %p %s last %p %s next %p %s\n",
+		      argumentString, 
+		      currentParamPtr,  currentParamPtr->name,
+		      lastParamPtr, lastParamPtr->name,
+		      nextParamPtr, nextParamPtr->name);*/
+	      if (nextParamPtr > lastParamPtr 
+		  || (nextParamPtr->flags & NSF_ARG_NOLEADINGDASH)) {
+		return NsfUnexpectedNonposArgumentError(interp, argumentString, 
+							(Nsf_Object *)object, 
+							currentParamPtr, paramPtr, 
+							procNameObj);
+	      }
+	      pPtr = currentParamPtr = nextParamPtr;
 	    }
 	  }
 	}
@@ -15885,7 +15907,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	o++;
 	if (unlikely(o >= objc)) {
 	  /* we expect an argument, but we are already at the end of the argument list */
-	  return NsfPrintError(interp, "Argument for parameter '%s' expected", pPtr->name);
+	  return NsfPrintError(interp, "Value for parameter '%s' expected", pPtr->name);
 	}
 	assert(valueObj == NULL);
 	valueObj = objv[o];

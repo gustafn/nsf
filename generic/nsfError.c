@@ -222,7 +222,8 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  *
  * NsfUnexpectedArgumentError --
  *
- *      Produce a unexpecte argument number (most likely, too many arguments)
+ *      Produce an error message about an unexpected argument (most likely,
+ *      too many arguments)
  *
  * Results:
  *      TCL_ERROR
@@ -240,6 +241,49 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
   Tcl_DStringAppend(dsPtr, "Invalid argument '", -1);
   Tcl_DStringAppend(dsPtr, argumentString, -1);
   Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
+  NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
+		   object ? object->cmdName : NULL,
+		   procNameObj);
+  DSTRING_FREE(dsPtr);
+  return TCL_ERROR;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfUnexpectedNonposArgumentError --
+ *
+ *      Produce a unexpecte argument number (most likely, too many arguments)
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
+extern int
+NsfUnexpectedNonposArgumentError(Tcl_Interp *interp, 
+				 CONST char *argumentString, 
+				 Nsf_Object *object, 
+				 Nsf_Param CONST *currentParamPtr,
+				 Nsf_Param CONST *paramPtr,
+				 Tcl_Obj *procNameObj) {
+  Tcl_DString ds, *dsPtr = &ds;
+  Nsf_Param CONST *pPtr;
+
+  DSTRING_INIT(dsPtr);
+  Tcl_DStringAppend(dsPtr, "Invalid non-positional argument '", -1);
+  Tcl_DStringAppend(dsPtr, argumentString, -1);
+  Tcl_DStringAppend(dsPtr, "', valid are : ", -1);
+  for (pPtr = currentParamPtr; pPtr->name && *pPtr->name == '-'; pPtr ++) {
+    Tcl_DStringAppend(dsPtr, pPtr->name, -1);
+    Tcl_DStringAppend(dsPtr, ", ", -1);
+  }
+  Tcl_DStringTrunc(dsPtr, Tcl_DStringLength(dsPtr) - 2);
+  Tcl_DStringAppend(dsPtr, ";\n", 2);
+  
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
 		   object ? object->cmdName : NULL,
 		   procNameObj);

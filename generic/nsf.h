@@ -277,7 +277,15 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what);
 
 extern int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString, 
-			   Nsf_Object *object, Nsf_Param CONST *paramPtr, Tcl_Obj *procNameObj);
+			   Nsf_Object *object, Nsf_Param CONST *paramPtr, 
+			   Tcl_Obj *procNameObj);
+extern int
+NsfUnexpectedNonposArgumentError(Tcl_Interp *interp, 
+				 CONST char *argumentString, 
+				 Nsf_Object *object, 
+				 Nsf_Param CONST *currentParamPtr,
+				 Nsf_Param CONST *paramPtr,
+				 Tcl_Obj *procNameObj);
 
 /*
  * logging

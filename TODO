@@ -3555,10 +3555,22 @@ nsf.c:
     for methods with primitive bodies: 5%-25%.
   - added regression tests for argument parsing 
 
+- nsf.c
+  - added experimental parameter option noleadingdash
+  - additionalal regression test file method-parameter.test
+  - provide selective error messages for unknown nonpos args
+
 TODO:
+ - NsfUnexpectedNonposArgumentError() for valueInArgument, when structure settles
+ - ouput of noleadingdash in introspection
+ - ouput of noleadingdash in objectParameterSlots
+ - handling of noleadingdash vor values of nonpos args
+ - special handling of values looking like nonpos-flags,
+   but wich are not ones (-1, "- a b c", ....) in detection
+   when to throw unknow.
+
  - check flag reuses in ~/scripts/nonposargs-speed.xotcl
  - NSF_WITH_OS_RESOLVER
- - ParseContextExtendObjv
  - private: 
    * document private in tutorial
  - add "property" and "attribute" and "info property" and "info slot ..." to migration guide

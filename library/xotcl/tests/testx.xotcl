@@ -4113,7 +4113,7 @@ TestX create nonposargs -proc run {{n 20}} {
   o foo
   o foo -foo 0
   catch {o foo -foo} msg
-  errorCheck $msg "Argument for parameter '-foo' expected" "Empty non-pos arg"
+  errorCheck $msg "Value for parameter '-foo' expected" "Empty non-pos arg"
   
   Object oa
   oa proc foo {{-a A} b} {

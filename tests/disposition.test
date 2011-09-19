@@ -193,9 +193,10 @@ nx::Test case basics {
 
   C setObjectParams {{-single-np:alias}}
   ? {[C new -single-np [list -x]] eval {set :single-np}} \
-      "Argument for parameter '-x' expected"
+      "Value for parameter '-x' expected"
   ? {[C new -single-np [list -x X]] eval {set :single-np}} \
-      "Invalid argument '-x X', maybe too many arguments; should be \"[C inst] single-np -x\""
+      "Invalid non-positional argument '-x X', valid are : -x;
+ should be \"::__%&singleton single-np -x\""
 
   #
   # INTERACTIONS with other parameter types

@@ -63,13 +63,15 @@ nsf::proc p5 {-x arg:optional -y args} {return [list [info exists x] [info exist
 ? {p4 -- -x 1 2} {0 {-x 1 2}}
 ? {p4 --} {0 {}}
 ? {p4 -- --} {0 --}
+? {p4 -y --} {0 {-y --}} ;# no -y parameter, so pushed into args
 
 ? {p5} {0 0 0 {}}
 ? {p5 -x 1} {1 0 0 {}}
 ? {p5 a} {0 0 1 {}}
-? {p5 -y 1} {0 0 1 1}  ;# "-y" is passed into arg, "1" into args
+? {p5 -y 1} {0 0 1 1}        ;# "-y" is passed into arg, "1" into args
 ? {p5 -y 1 2} {0 0 1 {1 2}}  ;# "-y" is passed into arg, "1 2" into args
-? {p5 -x 1 2} {1 0 1 {}}  ;# "2" is passed into arg, "1 2" into args
+? {p5 -x 1 2} {1 0 1 {}}     ;# "2" is passed into arg, "1 2" into args
+? {p5 -y --} {0 0 1 {}}      ;# "--" is value of "y"
 
 #
 # Create objects and test its properties
