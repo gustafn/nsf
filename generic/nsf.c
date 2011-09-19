@@ -460,7 +460,7 @@ NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST
  */
 static void
 ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *procName) {
-  if (objc < PARSE_CONTEXT_PREALLOC) {
+  if (likely(objc < PARSE_CONTEXT_PREALLOC)) {
     /* the single larger memset below .... */
     memset(pcPtr, 0, sizeof(ParseContext));
     /* ... is faster than the two smaller memsets below */
@@ -510,7 +510,7 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
 
   /*NsfPrintObjv("BEFORE: ", pcPtr->objc, pcPtr->full_objv);*/
 
-  if (requiredSize >= PARSE_CONTEXT_PREALLOC) {
+  if (unlikely(requiredSize >= PARSE_CONTEXT_PREALLOC)) {
     if (pcPtr->objv == &pcPtr->objv_static[1]) {
       /* realloc from preallocated memory */
       pcPtr->full_objv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * requiredSize);
@@ -518,15 +518,15 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
       MEM_COUNT_ALLOC("pcPtr.objv", pcPtr->full_objv);
       memcpy(pcPtr->full_objv, &pcPtr->objv_static[0], sizeof(Tcl_Obj *) * PARSE_CONTEXT_PREALLOC);
       memcpy(pcPtr->flags, &pcPtr->flags_static[0], sizeof(int) * PARSE_CONTEXT_PREALLOC);
-      /*fprintf(stderr, "extend %p alloc %d new objv=%p pcPtr %p\n",
-	pcPtr, requiredSize, pcPtr->full_objv, pcPtr);*/
+      /* fprintf(stderr, "ParseContextExtendObjv: extend %p alloc %d new objv=%p pcPtr %p\n",
+	 pcPtr, requiredSize, pcPtr->full_objv, pcPtr);*/
 
       pcPtr->status     |= NSF_PC_STATUS_FREE_OBJV;
     } else {
       /* realloc from mallocated memory */
       pcPtr->full_objv = (Tcl_Obj **)ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj *) * requiredSize);
       pcPtr->flags     = (int *)     ckrealloc((char *)pcPtr->flags,     sizeof(int) * requiredSize);
-      /*fprintf(stderr, "extend %p realloc %d  new objv=%p pcPtr %p\n",
+      /*fprintf(stderr, "ParseContextExtendObjv: extend %p realloc %d  new objv=%p pcPtr %p\n",
 	pcPtr, requiredSize, pcPtr->full_objv, pcPtr);*/
     }
     pcPtr->objv = &pcPtr->full_objv[1];
@@ -587,7 +587,6 @@ ParseContextRelease(ParseContext *pcPtr) {
      * (1) make sure, that the status correctly reflects MUST_DECR
      */
     int i;
-
     if (status == 0 || (status & NSF_PC_STATUS_MUST_DECR) == 0) {
       for (i = 0; i < pcPtr->objc - 1; i++) {
 	assert((pcPtr->flags[i] & NSF_PC_MUST_DECR) == 0);
@@ -617,7 +616,7 @@ ParseContextRelease(ParseContext *pcPtr) {
   }
 #endif
     
-  if (status) {
+  if (unlikely(status)) {
     if (status & NSF_PC_STATUS_MUST_DECR) {
       int i;
       /*fprintf(stderr, "ParseContextRelease %p loop from 0 to %d\n", pcPtr, pcPtr->objc-1);*/
@@ -637,7 +636,7 @@ ParseContextRelease(ParseContext *pcPtr) {
      * Objv can be separately extended; also flags are extend when this
      * happens.
      */
-    if (status & NSF_PC_STATUS_FREE_OBJV) {
+    if (unlikely(status & NSF_PC_STATUS_FREE_OBJV)) {
       /*fprintf(stderr, "ParseContextRelease %p free %p %p\n",
 	pcPtr, pcPtr->full_objv, pcPtr->clientData);*/
       MEM_COUNT_FREE("pcPtr.objv", pcPtr->full_objv);
@@ -670,7 +669,7 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
   tov[0] = object->cmdName;
   tov[1] = methodObj;
 
-  if (objc>2) {
+  if (likely(objc>2)) {
     memcpy(tov+2, objv, sizeof(Tcl_Obj *)*(objc-2));
   }
 
@@ -1100,7 +1099,7 @@ NsfCleanupObject_(NsfObject *object) {
   /*fprintf(stderr, "NsfCleanupObject obj refCount of %p after decr %d id %p interp %p flags %.6x\n",
     object, object->refCount, object->id, object->teardown, object->flags);*/
 
-  if (object->refCount <= 0) {
+  if (unlikely(object->refCount <= 0)) {
     /*fprintf(stderr, "NsfCleanupObject %p refcount %d\n", object, object->refCount);*/
     assert(object->refCount == 0);
     assert(object->flags & NSF_DELETED);
@@ -1150,7 +1149,7 @@ TclObjIsNsfObject(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   Tcl_ObjType CONST86 *cmdType = objPtr->typePtr;
   if (cmdType == Nsf_OT_tclCmdNameType) {
     Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
-    if (cmd) {
+    if (likely(cmd != NULL)) {
       NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
       if (object) {
         *objectPtr = object;
@@ -1402,16 +1401,16 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
   NsfClass *cl;
   Tcl_DString ds, *dsPtr = &ds;
 
-  if ((pPtr->flags & NSF_ARG_BASECLASS) && !IsBaseClass((NsfClass *)object)) {
+  if (unlikely(pPtr->flags & NSF_ARG_BASECLASS) && !IsBaseClass((NsfClass *)object)) {
     what = "baseclass";
     goto type_error;
   }
-  if ((pPtr->flags & NSF_ARG_METACLASS) && !IsMetaClass(interp, (NsfClass *)object, 1)) {
+  if (unlikely(pPtr->flags & NSF_ARG_METACLASS) && !IsMetaClass(interp, (NsfClass *)object, 1)) {
     what = "metaclass";
     goto type_error;
   }
 
-  if (pPtr->converterArg == NULL) {
+  if (likely(pPtr->converterArg == NULL)) {
     return TCL_OK;
   }
   if ((GetClassFromObj(interp, pPtr->converterArg, &cl, 0) == TCL_OK)
@@ -2924,8 +2923,8 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
 
   /* fprintf(stderr, ".. search #local vars %d for %s\n", localCt, varName);*/
   for (i=0 ; i<localCt ; i++, objPtrPtr++) {
-    register Tcl_Obj *objPtr = *objPtrPtr;
-    if (objPtr) {
+    Tcl_Obj *objPtr = *objPtrPtr;
+    if (likely(objPtr != NULL)) {
       char *localName = TclGetString(objPtr);
       if ((varName[0] == localName[0])
 	  && (varName[1] == localName[1])
@@ -3419,44 +3418,40 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *U
           varName, flags, frameFlags);
 #endif
 
-  if (frameFlags & FRAME_IS_NSF_METHOD) {
+  if (likely(frameFlags & FRAME_IS_NSF_METHOD)) {
     if ((*varPtr = CompiledLocalsLookup(varFramePtr, varName))) {
-	/*
-	 * This section is reached under notable circumstances and
-	 * represents a point of interaction between our resolvers for
-	 * non-compiled (i.e., InterpColonVarResolver()) and compiled script
-	 * execution (i.e., InterpCompiledColonVarResolver()).
-	 *
-	 * Expect this branch to be hit iff...
-	 *
-	 * 1. ... InterpCompiledColonVarResolver() is called from within
-	 * the Tcl bytecode interpreter when executing a
-	 * bytecode-compiled script on a *slow path* (i.e., involving
-	 * a TclObjLookupVarEx() call)
-	 *
-	 * 2. ... the act of variable resolution (i.e.,
-	 * TclObjLookupVarEx()) has not been restricted to the global
-	 * (TCL_GLOBAL_ONLY) or an effective namespace
-	 * (TCL_NAMESPACE_ONLY)
-	 *
-	 * 3. ..., resulting from the fact of participating in an
-	 * bytecode interpretation, CompiledColonVarFetch() stored a
-	 * link variable (pointing to the actual/real object variable,
-	 * whether defined or not) under the given varName value into
-	 * the current call frame's array of compiled locals (when
-	 * initialising the call frame; see
-	 * tclProc.c:InitResolvedLocals()).
-	 */
+      /*
+       * This section is reached under notable circumstances and represents a
+       * point of interaction between our resolvers for non-compiled (i.e.,
+       * InterpColonVarResolver()) and compiled script execution (i.e.,
+       * InterpCompiledColonVarResolver()).
+       *
+       * Expect this branch to be hit iff...
+       *
+       * 1. ... InterpCompiledColonVarResolver() is called from within the Tcl
+       * bytecode interpreter when executing a bytecode-compiled script on a
+       * *slow path* (i.e., involving a TclObjLookupVarEx() call)
+       *
+       * 2. ... the act of variable resolution (i.e., TclObjLookupVarEx()) has
+       * not been restricted to the global (TCL_GLOBAL_ONLY) or an effective
+       * namespace (TCL_NAMESPACE_ONLY)
+       *
+       * 3. ..., resulting from the fact of participating in an bytecode
+       * interpretation, CompiledColonVarFetch() stored a link variable
+       * (pointing to the actual/real object variable, whether defined or not)
+       * under the given varName value into the current call frame's array of
+       * compiled locals (when initializing the call frame; see
+       * tclProc.c:InitResolvedLocals()).
+       */
 #if defined(VAR_RESOLVER_TRACE)
       fprintf(stderr, ".... found local %s varPtr %p flags %.6x\n",
 	      varName, *varPtr, flags);
 #endif
       /*
-       * By looking up the compiled-local directly and signalling
-       * TCL_OK, we optimise a little by avoiding further lookups down
-       * the Tcl var resolution infrastructure. Note that signalling
-       * TCL_CONTINUE would work too, however, it would involve extra
-       * resolution overhead.
+       * By looking up the compiled-local directly and signaling TCL_OK, we
+       * optimise a little by avoiding further lookups down the Tcl var
+       * resolution infrastructure. Note that signaling TCL_CONTINUE would
+       * work too, however, it would involve extra resolution overhead.
        */
       return TCL_OK;
     }
@@ -8164,7 +8159,7 @@ ParamsFree(Nsf_Param *paramsPtr) {
 NSF_INLINE static NsfParamDefs *
 ParamDefsGet(Tcl_Command cmdPtr) {
   assert(cmdPtr);
-  if (Tcl_Command_deleteProc(cmdPtr) == NsfProcDeleteProc) {
+  if (likely(Tcl_Command_deleteProc(cmdPtr) == NsfProcDeleteProc)) {
     return ((NsfProcContext *)Tcl_Command_deleteData(cmdPtr))->paramDefs;
   }
   return NULL;
@@ -15430,7 +15425,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
   /*
    * If argument checking is turned off, and we do not have an converter, do nothing.
    */
-  if (doCheck == 0 && (pPtr->flags & (NSF_ARG_IS_CONVERTER|NSF_ARG_INITCMD)) == 0) {
+  if (unlikely(doCheck == 0) && (pPtr->flags & (NSF_ARG_IS_CONVERTER|NSF_ARG_INITCMD)) == 0) {
     /*fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n", pPtr->name, pPtr->flags);*/
     *clientData = ObjStr(objPtr);
     return TCL_OK;
@@ -15536,7 +15531,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
        * In case the value is a switch and NSF_PC_INVERT_DEFAULT is set, we
        * take the default and invert the value in place.
        */
-      if ((pcPtr->flags[i] & NSF_PC_INVERT_DEFAULT)) {
+      if (unlikely(pcPtr->flags[i] & NSF_PC_INVERT_DEFAULT)) {
         int bool;
         Tcl_GetBooleanFromObj(interp, pPtr->defaultValue, &bool);
 	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool);
@@ -15566,10 +15561,10 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	pcPtr->flags[i] |= NSF_PC_IS_DEFAULT;
 
 	/* Is it necessary to substitute the default value? */
-        if (pPtr->flags & NSF_ARG_SUBST_DEFAULT) {
+        if (unlikely(pPtr->flags & NSF_ARG_SUBST_DEFAULT)) {
 	  Tcl_Obj *obj = Tcl_SubstObj(interp, newValue, TCL_SUBST_ALL);
 
-	  if (obj) {
+	  if (likely(obj != NULL)) {
 	     newValue = obj;
 	  } else {
 	    pcPtr->flags[i] = 0;
@@ -15594,7 +15589,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
         /*
 	 * Check the default value if necessary
 	 */
-        if (pPtr->type || (pPtr->flags & NSF_ARG_MULTIVALUED)) {
+        if (pPtr->type || unlikely(pPtr->flags & NSF_ARG_MULTIVALUED)) {
           int mustDecrList = 0;
           if (unlikely(ArgumentCheck(interp, newValue, pPtr,
 				     RUNTIME_STATE(interp)->doCheckArguments,
@@ -15606,7 +15601,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
             return TCL_ERROR;
           }
 
-	  if (pcPtr->objv[i] != newValue) {
+	  if (unlikely(pcPtr->objv[i] != newValue)) {
 	    /*
 	     * The output Tcl_Obj differs from the input, so the
 	     * Tcl_Obj was converted; in case we have set prevously
@@ -15632,7 +15627,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	    pPtr->name, ObjStr(pPtr->defaultValue), pPtr->type);*/
 	  assert(pPtr->type ? pPtr->defaultValue == NULL : 1);
 	}
-      } else if (pPtr->flags & NSF_ARG_REQUIRED) {
+      } else if (unlikely(pPtr->flags & NSF_ARG_REQUIRED)) {
 	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(ifd);
 
         NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",

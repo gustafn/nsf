@@ -93,7 +93,7 @@ NsfFlagObjSet(
    * Free or reuse the old interal representation and store own
    * structure as internal representation.
    */
-  if (objPtr->typePtr != &NsfFlagObjType) {
+  if (likely(objPtr->typePtr != &NsfFlagObjType)) {
     TclFreeIntRep(objPtr);
     flagPtr = NEW(NsfFlag);
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)flagPtr;

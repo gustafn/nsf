@@ -147,7 +147,7 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *f
                       FRAME_IS_PROC|FRAME_IS_NSF_OBJECT);
 
     Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
-    if (object->varTablePtr == NULL) {
+    if (unlikely(object->varTablePtr == NULL)) {
       object->varTablePtr = VarHashTableCreate();
     }
     Tcl_CallFrame_varTablePtr(framePtr) = object->varTablePtr;
@@ -225,10 +225,10 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
 
     if (flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       /* never return an inactive method frame */
-      if (!(((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType
-            & NSF_CSC_TYPE_INACTIVE)) break;
+      if (likely(!(((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType
+		   & NSF_CSC_TYPE_INACTIVE))) break;
     } else {
-      if (flag & (FRAME_IS_NSF_OBJECT)) continue;
+      if (unlikely(flag & (FRAME_IS_NSF_OBJECT))) continue;
       if (flag == 0 || (flag & FRAME_IS_PROC)) break;
     }
   }
@@ -302,7 +302,7 @@ GetSelfObj(Tcl_Interp *interp) {
        ) {
     register int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 
-    if (flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+    if (likely(flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD))) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       return cscPtr->self;
 
@@ -354,9 +354,9 @@ NSF_INLINE static NsfCallStackContent*
 CallStackGetTopFrame0(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-      if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-        return (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      }
+    if (likely(Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD))) {
+      return (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+    }
   }
   return NULL;
 }
@@ -888,11 +888,11 @@ CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass 
 #endif
 
   /*
-   *  When cmd is provided, the call is not an unknown, the method
+   *  When cmd is provided, the call is not unknown, the method
    *  will be executed and the object will be stacked. In these
    *  cases, we maintain an activation count. 
    */
-  if (cmd) {
+  if (likely(cmd != NULL)) {
     /*
      * Track object activations
      */
@@ -971,7 +971,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
    *  cscPtr->cmdPtr might have been epoched, but it is still
    *  available, since we used NsfCommandPreserve() in CscInit().
    */
-  if (cscPtr->cmdPtr) {
+  if (likely(cscPtr->cmdPtr != NULL)) {
     int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
       NSF_EXITHANDLER_ON_SOFT_DESTROY;
     /*
@@ -996,7 +996,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     /*
      * Track class activations
      */
-    if (cscPtr->cl) {
+    if (unlikely(cscPtr->cl != NULL)) {
       NsfObject *clObject = &cscPtr->cl->object;
       clObject->activationCount --;
       MEM_COUNT_FREE("class.activationCount", clObject);
