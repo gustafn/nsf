@@ -3570,6 +3570,11 @@ nsf.c:
   - experimentation version of unknown handler for non-pos args
   - extending regression test
 
+nsf.c:
+  - moved methodEpochCounters from global vars to the interp state
+    to improve resue in multi threaded apps
+  - separated objectMethodEpoch and instanceMethodEpoch
+  - bumped version number to 2.0a2
 
 
 TODO:

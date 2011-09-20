@@ -383,6 +383,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_RECREATE                       0x8000
 
 
+
 /* flags for NsfParams */
 
 #define NSF_ARG_REQUIRED		0x000001
@@ -762,6 +763,8 @@ typedef struct NsfRuntimeState {
   Tcl_Command colonCmd;           /* cmdPtr of cmd ":" to dispatch via cmdResolver */
   Proc fakeProc;                  /* dummy proc strucure, used for C-implemented methods with local scope */
   Tcl_Command currentMixinCmdPtr; /* cmdPtr of currently active mixin, used for "info activemixin" */
+  int objectMethodEpoch;
+  int instanceMethodEpoch;
   Tcl_Obj **methodObjNames;       /* global objects of nsf */
   struct NsfShadowTclCommandInfo *tclCommands; /* shadowed Tcl commands */
 

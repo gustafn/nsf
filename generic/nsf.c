@@ -163,13 +163,19 @@ typedef struct {
 } enumeratorConverterEntry;
 static enumeratorConverterEntry enumeratorConverterEntries[];
 
-static int nsfMethodEpoch = 0;
+/*
+ * Definition of methodEpoch macros
+ */
 #if defined(METHOD_OBJECT_TRACE)
-# define NsfMethodEpochIncr(msg) \
-  nsfMethodEpoch++; \
-  fprintf(stderr, "+++ methodEpoch %d %s\n", nsfMethodEpoch, msg);
+# define NsfInstanceMethodEpochIncr(msg) \
+  RUNTIME_STATE(interp)->instanceMethodEpoch++;	\
+  fprintf(stderr, "+++ instanceMethodEpoch %d %s\n", RUNTIME_STATE(interp)->instanceMethodEpoch, msg)
+# define NsfObjectMethodEpochIncr(msg) \
+  RUNTIME_STATE(interp)->objectMethodEpoch++;	\
+  fprintf(stderr, "+++ objectMethodEpoch %d %s\n", RUNTIME_STATE(interp)->objectMethodEpoch, msg)
 #else
-# define NsfMethodEpochIncr(msg) nsfMethodEpoch++
+# define NsfInstanceMethodEpochIncr(msg) RUNTIME_STATE(interp)->instanceMethodEpoch++
+# define NsfObjectMethodEpochIncr(msg)   RUNTIME_STATE(interp)->objectMethodEpoch++
 #endif
 
 /*
@@ -919,7 +925,7 @@ extern int
 NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName) {
   NsfObject *object = (NsfObject *) object1;
 
-  NsfMethodEpochIncr("NsfRemoveObjectMethod");
+  NsfObjectMethodEpochIncr("NsfRemoveObjectMethod");
 
   AliasDelete(interp, object->cmdName, methodName, 1);
 
@@ -946,7 +952,7 @@ NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodNam
   NsfClassOpt *opt = cl->opt;
 #endif
 
-  NsfMethodEpochIncr("NsfRemoveClassMethod");
+  NsfInstanceMethodEpochIncr("NsfRemoveClassMethod");
 
   AliasDelete(interp, class->object.cmdName, methodName, 0);
 
@@ -9139,7 +9145,11 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	  methodName, cmd, cscPtr);*/
 	assert(cscPtr->cmdPtr == cmd);
         Tcl_DeleteCommandFromToken(interp, cmd);
-	NsfMethodEpochIncr("DeleteObjectAlias");
+	if (cscPtr->cl) {
+	  NsfInstanceMethodEpochIncr("DeleteObjectAlias");
+	} else {
+	  NsfObjectMethodEpochIncr("DeleteObjectAlias");
+	}
 
         NsfCleanupObject(invokeObj, "alias-delete1");
         return NsfPrintError(interp, "Trying to dispatch deleted object via method '%s'",
@@ -9515,6 +9525,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   int validCscPtr = 1;
   // TODO: best place?
   //NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   /* none of the higher copy-flags must be passed */
   assert((flags & (NSF_CSC_COPY_FLAGS & 0xFFF000)) == 0);
@@ -9581,7 +9592,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   assert((flags & (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED)) == 0);
 
   if (((objflags & NSF_FILTER_ORDER_DEFINED_AND_VALID) == NSF_FILTER_ORDER_DEFINED_AND_VALID)) {
-    NsfRuntimeState *rst = RUNTIME_STATE(interp);
     if (rst->doFilters && !rst->guardCount) {
       NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
 
@@ -9729,10 +9739,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   if (likely(cmd == NULL)) {
     NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
+    int nsfObjectMethodEpoch = rst->objectMethodEpoch;
 
     if (methodObj->typePtr == &NsfObjectMethodObjType
 	&& mcPtr->context == object
-	&& mcPtr->methodEpoch == nsfMethodEpoch
+	&& mcPtr->methodEpoch == nsfObjectMethodEpoch
 	&& mcPtr->flags == flags
 	) {
       cmd = mcPtr->cmd;
@@ -9754,7 +9765,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	    cmd = NULL;
 	  } else {
 	    NsfMethodObjSet(interp, methodObj, &NsfObjectMethodObjType,
-			    object, nsfMethodEpoch,
+			    object, nsfObjectMethodEpoch,
 			    cmd, NULL, flags);
 	  }
 	}
@@ -9772,6 +9783,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       /* check for a method inherited from a class */
       NsfClass *currentClass = object->cl;
       NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
+      int nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
       
 #if defined(METHOD_OBJECT_TRACE)
       fprintf(stderr, "... method %p '%s' type? %d context? %d nsfMethodEpoch %d/%d\n", 
@@ -9779,12 +9791,12 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	      methodObj->typePtr == &NsfInstanceMethodObjType,
 	      methodObj->typePtr == &NsfInstanceMethodObjType ? currentClass : 0,
 	      methodObj->typePtr == &NsfInstanceMethodObjType ? mcPtr->methodEpoch : 0,
-	      nsfMethodEpoch );
+	      nsfInstanceMethodEpoch );
 #endif
       
       if (methodObj->typePtr == &NsfInstanceMethodObjType
 	  && mcPtr->context == currentClass
-	  && mcPtr->methodEpoch == nsfMethodEpoch
+	  && mcPtr->methodEpoch == nsfInstanceMethodEpoch
 	  && mcPtr->flags == flags
 	  ) {
 	cmd = mcPtr->cmd;
@@ -9813,7 +9825,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	}
 	
 	NsfMethodObjSet(interp, methodObj, &NsfInstanceMethodObjType,
-			currentClass, nsfMethodEpoch,
+			currentClass, nsfInstanceMethodEpoch,
 			cmd, cl, flags);
       }
     }
@@ -11652,11 +11664,12 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
 #endif
   }
 
-  NsfMethodEpochIncr("MakeMethod");
   if (cl) {
+    NsfInstanceMethodEpochIncr("MakeMethod");
     /* could be a filter or filter inheritance ... update filter orders */
     FilterInvalidateObjOrders(interp, cl);
   } else {
+    NsfObjectMethodEpochIncr("MakeMethod");
     /* could be a filter => recompute filter order */
     FilterComputeDefined(interp, defObject);
   }
@@ -13324,9 +13337,6 @@ NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
 }
 
 /*
- * bring an object into a state, as after initialization
- */
-/*
  *----------------------------------------------------------------------
  * CleanupDestroyObject --
  *
@@ -13346,7 +13356,8 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
 
   /*fprintf(stderr, "CleanupDestroyObject obj %p softrecreate %d nsPtr %p\n",
     object, softrecreate, object->nsPtr);*/
-  NsfMethodEpochIncr("CleanupDestroyObject");
+
+  //NsfObjectMethodEpochIncr("CleanupDestroyObject");
 
   /* remove the instance, but not for ::Class/::Object */
   if ((object->flags & NSF_IS_ROOT_CLASS) == 0 &&
@@ -14122,7 +14133,7 @@ NSF_INLINE static int
 ChangeClass(Tcl_Interp *interp, NsfObject *object, NsfClass *cl) {
   assert(object);
 
-  NsfMethodEpochIncr("ChangeClass");
+  NsfInstanceMethodEpochIncr("ChangeClass");
 
   /*fprintf(stderr, "changing %s to class %s ismeta %d\n",
           ObjectName(object), ClassName(cl),
