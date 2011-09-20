@@ -57,7 +57,7 @@ namespace eval ::nx::serializer {
     Description {
       Serialize object with all child objects (deep operation) 
       except the specified omissions. For the description of 
-      <@tt>ignore</@tt> and <@tt>igonoreVarsRE</@tt> see 
+      <@tt>ignore</@tt> and <@tt>ignoreVarsRE</@tt> see 
       <@tt>Serizalizer all</@tt>. <@tt>map</@tt> can be used
       in addition to provide pairs of old-string and new-string
       (like in the tcl command <@tt>string map</@tt>). This option
@@ -142,7 +142,7 @@ namespace eval ::nx::serializer {
   ###########################################################################
 
   Class create Serializer {
-    :property igroreVarsRE
+    :property ignoreVarsRE
 
     :method ignore args {
       # Ignore the objects passed via args.
