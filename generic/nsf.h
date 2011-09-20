@@ -97,6 +97,7 @@
 */
 //#define PARSE_TRACE 1
 //#define PARSE_TRACE_FULL 1
+//#define METHOD_OBJECT_TRACE 1
 
 /* turn  tracing output on/off
 #define NSFOBJ_TRACE 1

@@ -3560,6 +3560,14 @@ nsf.c:
   - additionalal regression test file method-parameter.test
   - provide selective error messages for unknown nonpos args
 
+nsf.c:
+  - reform of method obj lookup. new code uses 
+    NsfInstanceMethodObjType and NsfObjectMethodObjType
+    to reuse earlier lookup results. Improved speed for
+    for methods with primitive bodies (over version before
+    argument parse reform: 10%-43%.
+  - additional compile-time option: METHOD_OBJECT_TRACE
+
 TODO:
  - NsfUnexpectedNonposArgumentError() for valueInArgument, when structure settles
  - ouput of noleadingdash in introspection

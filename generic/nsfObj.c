@@ -12,16 +12,128 @@
  */
 
 #include "nsfInt.h"
+/*
+ *----------------------------------------------------------------------
+ *
+ *  NsfMethodObjType Tcl_Obj type --
+ *
+ *      The NsfMethodObjType is an Tcl_Obj type carrying the result of
+ *      a method lookup. We define two types (NsfInstanceMethodObjType
+ *      and NsfObjectMethodObjType) sharing their implementation. The
+ *      type setting function NsfMethodObjSet() receives the intended
+ *      type.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static Tcl_FreeInternalRepProc	MethodFreeInternalRep;
+
+Tcl_ObjType NsfInstanceMethodObjType = {
+  "nsfInstanceMethod",		/* name */
+    MethodFreeInternalRep,	/* freeIntRepProc */
+    NULL,			/* dupIntRepProc */
+    NULL,			/* updateStringProc */
+    NULL			/* setFromAnyProc */
+};
+Tcl_ObjType NsfObjectMethodObjType = {
+    "nsfObjectMethod",		/* name */
+    MethodFreeInternalRep,	/* freeIntRepProc */
+    NULL,			/* dupIntRepProc */
+    NULL,			/* updateStringProc */
+    NULL			/* setFromAnyProc */
+};
+
+/* 
+ * freeIntRepProc
+ */
+static void
+MethodFreeInternalRep(
+    register Tcl_Obj *objPtr)	/* Tcl_Obj structure object with internal
+				 * representation to free. */
+{
+  NsfMethodContext *mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
+
+  if (mcPtr != NULL) {
+
+    /*fprintf(stderr, "MethodFreeInternalRep %p flagPtr %p serial (%d) payload %p\n",
+      objPtr, flagPtr, flagPtr->serial, flagPtr->payload);*/
+
+    /*
+     * ... and free structure
+     */
+    FREE(NsfMethodContext, mcPtr);
+    objPtr->internalRep.twoPtrValue.ptr1 = NULL; // TODO: needed?
+  }
+}
 
 /*
  *----------------------------------------------------------------------
  *
- *  Mixinreg Tcl_Obj type --
+ *  NsfMethodObjSet --
  *
- *      The mixin registration type is an Tcl_Obj type carrying a
- *      class and a guard object. The string representation might have
- *      the form "/cls/" or "/cls/ -guard /expr/". When no guard
- *      expression is provided (first form), the guard entry is NULL.
+ *      Convert the provided Tcl_Obj into the type of NsfMethodContext.
+ *
+ *----------------------------------------------------------------------
+ */
+int
+NsfMethodObjSet(
+    Tcl_Interp *interp,			/* Used for error reporting if not NULL. */
+    register Tcl_Obj *objPtr,   	/* The object to convert. */
+    Tcl_ObjType *objectType,
+    void *context,			/* context (to avoid over-eager sharing) */
+    int methodEpoch,			/* methodEpoch */
+    Tcl_Command cmd,	  		/* the tclCommand behind the method */
+    NsfClass *cl,	  		/* the object/class where the method was defined */
+    int flags		  		/* flags */
+		)
+{
+  NsfMethodContext *mcPtr;
+
+#if defined(METHOD_OBJECT_TRACE)
+  fprintf(stderr, "... NsfMethodObjSet %p %s context %p methodEpoch %d "
+	  "cmd %p cl %p %s old obj type <%s> flags %.6x\n",
+	  objPtr, ObjStr(objPtr), context, methodEpoch, cmd, cl, cl ? ClassName(cl) : "obj",
+	  objPtr->typePtr ? objPtr->typePtr->name : "none", flags);
+#endif
+  /*
+   * Free or reuse the old interal representation and store own
+   * structure as internal representation.
+   */
+  if (likely(objPtr->typePtr != objectType)) {
+    TclFreeIntRep(objPtr);
+    mcPtr = NEW(NsfMethodContext);
+    objPtr->internalRep.twoPtrValue.ptr1 = (void *)mcPtr;
+    objPtr->internalRep.twoPtrValue.ptr2 = NULL;
+    objPtr->typePtr = objectType;
+  } else {
+    mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
+
+    /*fprintf(stderr, "... NsfMethodObjSet %p reuses interal rep, serial (%d/%d)\n",
+      objPtr, mcPtr->methodEpoch, methodEpoch);*/
+
+  }
+
+  assert(mcPtr);
+
+  /*
+   * add values to the structure
+   */
+  mcPtr->context = context;
+  mcPtr->methodEpoch = methodEpoch;
+  mcPtr->cmd = cmd;
+  mcPtr->cl = cl;
+  mcPtr->flags = flags;
+
+  return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ *  NsfFlagObjType --
+ *
+ *      The NsfFlagObjType is an Tcl_Obj type carrying the result of a
+ *      flag lookup.
  *
  *----------------------------------------------------------------------
  */

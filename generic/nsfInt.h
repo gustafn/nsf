@@ -935,6 +935,23 @@ typedef struct {
 #define NSF_FLAG_DASHDAH		0x01
 #define NSF_FLAG_CONTAINS_VALUE		0x02
 
+/* 
+ * NsfMethodContext type
+ */
+extern Tcl_ObjType NsfInstanceMethodObjType;
+extern Tcl_ObjType NsfObjectMethodObjType;
+extern int NsfMethodObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
+			   Tcl_ObjType *objectType,
+			   void *context, int methodEpoch,
+			   Tcl_Command cmd, NsfClass *cl, int flags);
+
+typedef struct {
+  void *context;
+  int methodEpoch;
+  Tcl_Command cmd;
+  NsfClass *cl;
+  int flags;
+} NsfMethodContext;
 
 /* functions from nsfUtil.c */
 char *Nsf_ltoa(char *buf, long i, int *len);

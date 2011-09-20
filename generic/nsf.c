@@ -163,6 +163,15 @@ typedef struct {
 } enumeratorConverterEntry;
 static enumeratorConverterEntry enumeratorConverterEntries[];
 
+static int nsfMethodEpoch = 0;
+#if defined(METHOD_OBJECT_TRACE)
+# define NsfMethodEpochIncr(msg) \
+  nsfMethodEpoch++; \
+  fprintf(stderr, "+++ methodEpoch %d %s\n", nsfMethodEpoch, msg);
+#else
+# define NsfMethodEpochIncr(msg) nsfMethodEpoch++
+#endif
+
 /*
  * Tcl_Obj Types for Next Scripting Objects
  */
@@ -909,6 +918,8 @@ extern int
 NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName) {
   NsfObject *object = (NsfObject *) object1;
 
+  NsfMethodEpochIncr("NsfRemoveObjectMethod");
+
   AliasDelete(interp, object->cmdName, methodName, 1);
 
 #if defined(NSF_WITH_ASSERTIONS)
@@ -933,6 +944,8 @@ NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodNam
 #if defined(NSF_WITH_ASSERTIONS)
   NsfClassOpt *opt = cl->opt;
 #endif
+
+  NsfMethodEpochIncr("NsfRemoveClassMethod");
 
   AliasDelete(interp, class->object.cmdName, methodName, 0);
 
@@ -1727,6 +1740,7 @@ ComputeOrder(NsfClass *cl, ClassDirection direction) {
   if (likely(cl->order != NULL)) {
     return cl->order;
   }
+  //NsfMethodEpochIncr("ComputeOrder");
   return cl->order = TopoOrder(cl, direction);
 }
 
@@ -9097,6 +9111,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	  methodName, cmd, cscPtr);*/
 	assert(cscPtr->cmdPtr == cmd);
         Tcl_DeleteCommandFromToken(interp, cmd);
+	NsfMethodEpochIncr("DeleteObjectAlias");
 
         NsfCleanupObject(invokeObj, "alias-delete1");
         return NsfPrintError(interp, "Trying to dispatch deleted object via method '%s'",
@@ -9470,6 +9485,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   Tcl_Obj *cmdName = object->cmdName, *methodObj, *cmdObj;
   NsfCallStackContent csc, *cscPtr = NULL;
   int validCscPtr = 1;
+  // TODO: best place?
+  //NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
 
   /* none of the higher copy-flags must be passed */
   assert((flags & (NSF_CSC_COPY_FLAGS & 0xFFF000)) == 0);
@@ -9490,6 +9507,12 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 			   ObjectName(object), methodName);
     }
   }
+
+#if defined(METHOD_OBJECT_TRACE)
+  fprintf(stderr, "methodname %s type %p <%s>\n",
+	  methodName, methodObj->typePtr,
+	  methodObj->typePtr ? methodObj->typePtr->name : "");
+#endif
 
   /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s shift %d\n",
 	  object ? ObjectName(object) : NULL, 
@@ -9677,15 +9700,36 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
    */
 
   if (likely(cmd == NULL)) {
-    /* do we have a object-specific proc? */
-    if (object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0) {
-      cmd = FindMethod(object->nsPtr, methodName);
-      /*fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
-	object, methodName, object->nsPtr, cmd);*/
-      if (cmd 
-	  && (flags & ( NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0 
-	  && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD)) {
-	cmd = NULL;
+    NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
+
+    if (methodObj->typePtr == &NsfObjectMethodObjType
+	&& mcPtr->context == object
+	&& mcPtr->methodEpoch == nsfMethodEpoch
+	&& mcPtr->flags == flags
+	) {
+      cmd = mcPtr->cmd;
+      //cl = mcPtr->cl;
+#if defined(METHOD_OBJECT_TRACE)
+      fprintf(stderr, "... reuse object method %p %s cmd %p cl %p %s\n", 
+	      methodObj, ObjStr(methodObj),
+	      cmd, cl, cl ? ClassName(cl) : ObjectName(object));
+#endif
+    } else {
+      /* do we have an object-specific proc? */
+      if (object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0) {
+	cmd = FindMethod(object->nsPtr, methodName);
+	/*fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
+	  object, methodName, object->nsPtr, cmd);*/
+	if (cmd) {
+	  if ((flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0 
+	      && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD)) {
+	    cmd = NULL;
+	  } else {
+	    NsfMethodObjSet(interp, methodObj, &NsfObjectMethodObjType,
+			    object, nsfMethodEpoch,
+			    cmd, NULL, flags);
+	  }
+	}
       }
     }
 #if defined(INHERIT_CLASS_METHODS)
@@ -9695,24 +9739,54 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cmd = NsfFindClassMethod(interp, (NsfClass *)object, methodName);
     }
 #endif
-
+    
     if (likely(cmd == NULL)) {
       /* check for a method inherited from a class */
       NsfClass *currentClass = object->cl;
-      if (unlikely(currentClass->order == NULL)) {
-	currentClass->order = TopoOrder(currentClass, SUPER_CLASSES);
-      }
-      if (unlikely(flags & NSF_CM_SYSTEM_METHOD)) {
-	NsfClasses *classList = currentClass->order;
-	/*
-	 * Skip entries until the first base class.
-	 */
-	for (; classList;  classList = classList->nextPtr) {
-	  if (IsBaseClass(classList->cl)) {break;}
-	}
-	cl = SearchPLMethod(classList, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
+      NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
+      
+#if defined(METHOD_OBJECT_TRACE)
+      fprintf(stderr, "... method %p '%s' type? %d context? %d nsfMethodEpoch %d/%d\n", 
+	      methodObj, ObjStr(methodObj), 
+	      methodObj->typePtr == &NsfInstanceMethodObjType,
+	      methodObj->typePtr == &NsfInstanceMethodObjType ? currentClass : 0,
+	      methodObj->typePtr == &NsfInstanceMethodObjType ? mcPtr->methodEpoch : 0,
+	      nsfMethodEpoch );
+#endif
+      
+      if (methodObj->typePtr == &NsfInstanceMethodObjType
+	  && mcPtr->context == currentClass
+	  && mcPtr->methodEpoch == nsfMethodEpoch
+	  && mcPtr->flags == flags
+	  ) {
+	cmd = mcPtr->cmd;
+	cl = mcPtr->cl;
+#if defined(METHOD_OBJECT_TRACE)
+	fprintf(stderr, "... reuse instance method %p %s cmd %p cl %p %s\n", 
+		methodObj, ObjStr(methodObj),
+		cmd, cl, cl ? ClassName(cl) : ObjectName(object));
+#endif
       } else {
-	cl = SearchPLMethod(currentClass->order, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
+	
+	if (unlikely(currentClass->order == NULL)) {
+	  currentClass->order = TopoOrder(currentClass, SUPER_CLASSES);
+	}
+	if (unlikely(flags & NSF_CM_SYSTEM_METHOD)) {
+	  NsfClasses *classList = currentClass->order;
+	  /*
+	   * Skip entries until the first base class.
+	   */
+	  for (; classList;  classList = classList->nextPtr) {
+	    if (IsBaseClass(classList->cl)) {break;}
+	  }
+	  cl = SearchPLMethod(classList, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
+	} else {
+	  cl = SearchPLMethod(currentClass->order, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
+	}
+	
+	NsfMethodObjSet(interp, methodObj, &NsfInstanceMethodObjType,
+			currentClass, nsfMethodEpoch,
+			cmd, cl, flags);
       }
     }
   }
@@ -11550,6 +11624,7 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
 #endif
   }
 
+  NsfMethodEpochIncr("MakeMethod");
   if (cl) {
     /* could be a filter or filter inheritance ... update filter orders */
     FilterInvalidateObjOrders(interp, cl);
@@ -11797,7 +11872,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
 /*
  *----------------------------------------------------------------------
- * NsfAddParameterProc --
+ * NsfProcAdd --
  *
  *    Add a command for implementing a Tcl proc with next scripting
  *    parameter handling.
@@ -11821,7 +11896,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  *----------------------------------------------------------------------
  */
 static int
-NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
+NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 		    CONST char *procName, Tcl_Obj *body, int with_ad) {
   NsfParamDefs *paramDefs = parsedParamPtr->paramDefs;
   Tcl_Namespace *cmdNsPtr;
@@ -11863,7 +11938,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   cmdNsPtr = Tcl_Command_nsPtr(cmd);
   ParamDefsStore(cmd, paramDefs);
 
-  /*fprintf(stderr, "NsfAddParameterProc procName '%s' define cmd '%s' %p in namespace %s\n",
+  /*fprintf(stderr, "NsfProcAdd procName '%s' define cmd '%s' %p in namespace %s\n",
     procName, Tcl_GetCommandName(interp, cmd), cmd, cmdNsPtr->fullName);*/
 
   /*
@@ -11899,7 +11974,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->with_ad = with_ad;
   tcd->cmd = NULL;
 
-  /*fprintf(stderr, "NsfAddParameterProc %s tcd %p paramdefs %p\n",
+  /*fprintf(stderr, "NsfProcAdd %s tcd %p paramdefs %p\n",
     ObjStr(procNameObj), tcd, tcd->paramDefs);*/
 
   /*
@@ -11938,7 +12013,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   ov[2] = argList;
   ov[3] = AddPrefixToBody(body, 1, parsedParamPtr);
 
-  /*fprintf(stderr, "NsfAddParameterProc define proc %s arglist '%s'\n",
+  /*fprintf(stderr, "NsfProcAdd define proc %s arglist '%s'\n",
     ObjStr(ov[1]), ObjStr(ov[2])); */
 
   result = Tcl_ProcObjCmd(0, interp, 4, ov);
@@ -13243,6 +13318,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
 
   /*fprintf(stderr, "CleanupDestroyObject obj %p softrecreate %d nsPtr %p\n",
     object, softrecreate, object->nsPtr);*/
+  NsfMethodEpochIncr("CleanupDestroyObject");
 
   /* remove the instance, but not for ::Class/::Object */
   if ((object->flags & NSF_IS_ROOT_CLASS) == 0 &&
@@ -13362,6 +13438,8 @@ PrimitiveODestroy(ClientData clientData) {
 
   /*fprintf(stderr, "****** PrimitiveODestroy %p cmd %p flags %.6x\n",
     object, object->id, object->flags);*/
+  //NsfMethodEpochIncr("PrimitiveODestroy");
+
   assert(!(object->flags & NSF_DELETED));
 
   /* destroy must have been called already */
@@ -13871,6 +13949,7 @@ PrimitiveCDestroy(ClientData clientData) {
   Tcl_Namespace *saved;
 
   PRINTOBJ("PrimitiveCDestroy", object);
+  //NsfMethodEpochIncr("PrimitiveCDestroy");
 
   /*
    * check and latch against recurrent calls with obj->teardown
@@ -14014,6 +14093,8 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
 NSF_INLINE static int
 ChangeClass(Tcl_Interp *interp, NsfObject *object, NsfClass *cl) {
   assert(object);
+
+  NsfMethodEpochIncr("ChangeClass");
 
   /*fprintf(stderr, "changing %s to class %s ismeta %d\n",
           ObjectName(object), ClassName(cl),
@@ -19146,7 +19227,7 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments
      * is added which handles the parameter passing and calls the proc
      * later.
      */
-    result = NsfAddParameterProc(interp, &parsedParam, ObjStr(nameObj), body, with_ad);
+    result = NsfProcAdd(interp, &parsedParam, ObjStr(nameObj), body, with_ad);
 
   } else {
     /*
