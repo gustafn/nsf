@@ -105,6 +105,11 @@ namespace eval ::nsf {
   # Example unknown handler:
   # ::nsf::object::unknown::add xotcl {::xotcl::Class __unknown}
 
+  namespace eval ::nsf::argument {}
+  proc ::nsf::argument::unknown {args} {
+    #puts stderr "??? ::nsf::argument::unknown <$args> [info frame -1]"
+    return ""
+  }
 
   ######################################################################
   # exit handlers

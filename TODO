@@ -3561,14 +3561,23 @@ nsf.c:
   - provide selective error messages for unknown nonpos args
 
 nsf.c:
-  - reform of method obj lookup. new code uses 
+  - reform of method lookup. new code uses 
     NsfInstanceMethodObjType and NsfObjectMethodObjType
     to reuse earlier lookup results. Improved speed for
     for methods with primitive bodies (over version before
     argument parse reform: 10%-43%.
   - additional compile-time option: METHOD_OBJECT_TRACE
+  - experimentation version of unknown handler for non-pos args
+  - extending regression test
+
+
 
 TODO:
+ - unknown arg handler must find a way to aviod method deletions or redefinitions
+   or to recover from these gracefully
+ - methodEpoch should go into interp state.
+ - cleanup yyyy
+ - warnings for "numeric" names for args and nonpos-args?
  - NsfUnexpectedNonposArgumentError() for valueInArgument, when structure settles
  - ouput of noleadingdash in introspection
  - ouput of noleadingdash in objectParameterSlots

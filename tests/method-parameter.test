@@ -24,7 +24,19 @@ nx::Test case method-params-0 {
  should be "p1 ?-x value?"}
   ? {p1 -y --} {Invalid non-positional argument '-y', valid are : -x;
  should be "p1 ?-x value?"}
+
+  #
+  # should we really allow numeric nonpos arg names?
+  #
+  ? {nsf::proc p2 {1 -2 -3} {return [list ${1} [info exists 2] [info exists 3]]}} ""
+  ? {p2 -4 -2 -3 -3 -2} "-4 1 1" ;# var 2 has value "-3", var 3 has value "-2"
+  ? {p2 -4 -3 + -2 -1} "-4 1 1" ;# var 2 has value "-2", var 3 has value "+"
+
+  ? {nsf::proc p3 {1 -2 -3 4} {return [list ${1} [info exists 2] [info exists 3] ${4}]}} ""
+  ? {p3 -4 -3 -2 -1} "-4 0 1 -1" ;# var 1 has value "-4", var 4 has value "-1"
 }
+
+
 
 nx::Test case noleadingdash {
 
@@ -47,30 +59,34 @@ nx::Test case noleadingdash {
   ? {p3a 100 -x 1 -y 1 200} {100 1 1 200}
   ? {p3a 100 -xx 1 -y 1 200} {Invalid non-positional argument '-xx', valid are : -x, -y;
  should be "p3a a ?-x value? ?-y value? b ?-z value?"}  
+}
 
+nx::Test case unknown-handler {
 
-  #
-  # For the "unknown args problem: It would be staightforward to
-  # provide an nsf-proc somewhat similar to NsfArgumentError () which
-  # gets the object passed if applicable (methodParameter)
-  #
-  # nsf::proc argumentError {cause arg -expected -msg -cmd -object -methodName} {
-  #
-  # }
-  #
-  # pros:
-  # - we could build the syntax from tcl... 
-  # - an unknown handler for nonpos args could fit in, for method and object parameters
-  # - it should be possible to switch to a raw mode to make life easier when error 
-  #   messages change.
-  # - it should be feasible to output message to tk.
-  # - one could even think about nationalizing, etc...
-  # - maybe we could fit even the unknown object handling in (::nsf::object::unknown)
-  #
-  # contras:
-  # - not sure, we can hide the context on the error stack
-  # - not exactly the tcl-way
-  # - most errors are thrown in hopeless situations (not enough args),
-  #   some errors could recover (e.g. unknown handler). we have to
-  #   signal these situations from the C code.
+  Class create C {
+    :public method p1 {-x} {return [list [info exists x]]}
+    :create c1
+  }
+  ? {c1 p1 -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+ should be "::c1 p1 ?-x value?"}
+
+  proc ::nsf::argument::unknown {method arg args} {
+    puts stderr "??? unknown nonpos-arg $arg in $method obj <$args>\n[info frame -1]\n"
+    return ""
+  }
+
+  ? {c1 p1 -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+ should be "::c1 p1 ?-x value?"}
+
+  if {0} {
+    proc ::nsf::argument::unknown {method arg args} {
+      # nasty handler redefines method
+      puts stderr "??? REDEFINE ::nsf::argument::unknown <$args> [info frame -1]"
+      C public method p1 {-y} {return [list [info exists y]]}
+      return ""
+    }
+    
+    ? {c1 p1 -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+ should be "::c1 p1 ?-x value?"}
+  }
 }

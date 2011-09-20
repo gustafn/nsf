@@ -619,6 +619,7 @@ ParseContextRelease(ParseContext *pcPtr) {
      */
     if (pcPtr->full_objv == &pcPtr->objv_static[0] && pcPtr->objc > 0) {
       for (i = pcPtr->objc - 1; i < PARSE_CONTEXT_PREALLOC; i++) {
+	//fprintf(stderr, "later flag %d: %.6x\n",i, pcPtr->flags[i]);
 	assert(pcPtr->flags[i] == 0 || pcPtr->flags[i] == NSF_PC_IS_DEFAULT);
       }
     }
@@ -1245,7 +1246,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
 
 /*
  *----------------------------------------------------------------------
- * NsfCallUnknownHandler --
+ * NsfCallObjectUnknownHandler --
  *
  *    Call ::nsf::object::unknown; this function is typically called, when an unknown
  *    object or class is passed as an argument.
@@ -1260,17 +1261,44 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
  */
 
 static int
-NsfCallUnknownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
+NsfCallObjectUnknownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
   int result = 0;
   Tcl_Obj *ov[3];
 
   /*fprintf(stderr, "try ::nsf::object::unknown for '%s'\n", ObjStr(nameObj));*/
 
-  ov[0] = NsfGlobalObjs[NSF_UNKNOWN_HANDLER];
+  ov[0] = NsfGlobalObjs[NSF_OBJECT_UNKNOWN_HANDLER];
   ov[1] = nameObj;
 
   INCR_REF_COUNT(ov[1]);
   result = Tcl_EvalObjv(interp, 2, ov, 0);
+  DECR_REF_COUNT(ov[1]);
+
+  return result;
+}
+
+static int
+NsfCallArgumentUnknownHandler(Tcl_Interp *interp, 
+			      Tcl_Obj *methodObj,
+			      Tcl_Obj *argumentObj,
+			      NsfObject *object) {
+			      
+  Tcl_Obj *ov[4];
+  int result, oc = 3;
+
+  // yyyy
+  /*fprintf(stderr, "try ::nsf::argument::unknown for '%s'\n", ObjStr(nameObj));*/
+
+  ov[0] = NsfGlobalObjs[NSF_ARGUMENT_UNKNOWN_HANDLER];
+  ov[1] = methodObj;
+  ov[2] = argumentObj;
+  if (object) {
+    ov[3] = object->cmdName;
+    oc ++;
+  }
+
+  INCR_REF_COUNT(ov[1]);
+  result = Tcl_EvalObjv(interp, oc, ov, 0);
   DECR_REF_COUNT(ov[1]);
 
   return result;
@@ -1367,10 +1395,10 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   }
 
   if (withUnknown) {
-    result = NsfCallUnknownHandler(interp, isAbsolutePath(objName) ? objPtr :
-				   NameInNamespaceObj(interp,
-						      objName,
-						      CallingNameSpace(interp)));
+    result = NsfCallObjectUnknownHandler(interp, isAbsolutePath(objName) ? objPtr :
+					 NameInNamespaceObj(interp,
+							    objName,
+							    CallingNameSpace(interp)));
 
     if (result == TCL_OK) {
       /* Retry, but now, the last argument (withUnknown) has to be 0 */
@@ -4228,7 +4256,7 @@ static int
 NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName) {
   int result;
 
-  result = NsfCallUnknownHandler(interp, Tcl_NewStringObj(parentName, -1));
+  result = NsfCallObjectUnknownHandler(interp, Tcl_NewStringObj(parentName, -1));
 
   if (result == TCL_OK) {
     NsfObject *parentObj = (NsfObject *) GetObjectFromString(interp, parentName);
@@ -15947,6 +15975,22 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		      nextParamPtr, nextParamPtr->name);*/
 	      if (nextParamPtr > lastParamPtr 
 		  || (nextParamPtr->flags & NSF_ARG_NOLEADINGDASH)) {
+		/// yyyy work in progress
+		int result, refcountBefore = procNameObj->refCount;
+		/*fprintf(stderr, "### refcount of %s before -> %d objc %d\n",
+		  ObjStr(procNameObj), procNameObj->refCount, pcPtr->objc);*/
+		result = NsfCallArgumentUnknownHandler(interp, 
+						       procNameObj,
+						       argumentObj,
+						       object); 
+		/*fprintf(stderr, "### refcount of %s after -> %d\n",
+		  ObjStr(procNameObj), procNameObj->refCount);*/
+		if (procNameObj->refCount != refcountBefore) {
+		  pcPtr->objc = nrParams ;
+		  /*fprintf(stderr, "trigger error pcPtr->objc %d\n", pcPtr->objc);*/
+		  return NsfPrintError(interp, "Unknown handler for '%s' must not alter definition", 
+				       ObjStr(argumentObj));
+		}
 		return NsfUnexpectedNonposArgumentError(interp, argumentString, 
 							(Nsf_Object *)object, 
 							currentParamPtr, paramPtr, 
