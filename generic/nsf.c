@@ -15864,9 +15864,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	  && flagPtr->serial == serial
 	  ) {
 	/* 
-	 * The argument was processed before, the Tcl_Obj is still valid.
+	 * The argument was processed before and the Tcl_Obj is still valid.
 	 */
-
 	if (flagPtr->flags & NSF_FLAG_DASHDAH) {
 	  /* 
 	   * We got a dashDash, skip nonpos param defs and continue with next
@@ -15874,14 +15873,13 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	   */
 	  SkipNonposParamDefs(currentParamPtr);
 	  assert(dashdash == 0);
-	  //fprintf(stderr, "... NsfFlag: returned dashdash\n");
 	  continue;
 	} else if (flagPtr->flags & NSF_FLAG_CONTAINS_VALUE) {
+	  /* 
+	   * We got a flag with an embedded value (e.g -flag=1). notice the
+	   * fact
+	   */
 	  valueInArgument = "flag";
-	  //fprintf(stderr, "... NsfFlag: '%s' contains value %s\n", ObjStr(argumentObj), ObjStr(flagPtr->payload));
-	} else {
-	  //fprintf(stderr, "... NsfFlag: '%s' plain flag, paramPtr %p %s\n", 
-	  //	  ObjStr(argumentObj), flagPtr->paramPtr, flagPtr->paramPtr->name);
 	}
 	pPtr = flagPtr->paramPtr;
 	valueObj = flagPtr->payload;
@@ -15889,11 +15887,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       } else {
 	CONST char *argumentString = ObjStr(argumentObj);
 	/* 
-	 * We are in a state, where we expect a non-positional argument, but
-	 * if this non-pos args are optional, the provided arguments might
-	 * contain also a value for a positional argument maybe the argument
-	 * is for a posarg later). First check, if the argument looks like a
-	 * flag.
+	 * We are in a state, where we expect a non-positional argument, and
+	 * the lookup from the Tcl_Obj has failed.  If this non-pos args are
+	 * optional, the current argument might contain also a value for a
+	 * positional argument maybe the argument is for a posarg
+	 * later). First check, if the argument looks like a flag.
 	 */
 	if (argumentString[0] != '-') {
 	  /* 
@@ -16018,7 +16016,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
 
     /*
-     * set the position in the downstream argv (normalized order)
+     * Set the position in the downstream argv (normalized order)
      */
     j = pPtr - paramPtr;
 
