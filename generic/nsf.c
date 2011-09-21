@@ -9548,8 +9548,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   }
 
 #if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "methodname %s type %p <%s>\n",
-	  methodName, methodObj->typePtr,
+  fprintf(stderr, "method %p/%d '%s' type %p <%s>\n",
+	  methodObj, methodObj->refCount, methodName, methodObj->typePtr,
 	  methodObj->typePtr ? methodObj->typePtr->name : "");
 #endif
 
@@ -9749,7 +9749,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cmd = mcPtr->cmd;
       //cl = mcPtr->cl;
 #if defined(METHOD_OBJECT_TRACE)
-      fprintf(stderr, "... reuse object method %p %s cmd %p cl %p %s\n", 
+      fprintf(stderr, "... use internal rep method %p %s cmd %p cl %p %s\n", 
 	      methodObj, ObjStr(methodObj),
 	      cmd, cl, cl ? ClassName(cl) : ObjectName(object));
 #endif
@@ -9786,10 +9786,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       int nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
       
 #if defined(METHOD_OBJECT_TRACE)
-      fprintf(stderr, "... method %p '%s' type? %d context? %d nsfMethodEpoch %d/%d\n", 
-	      methodObj, ObjStr(methodObj), 
+      fprintf(stderr, "... method %p/%d '%s' type? %d context? %d nsfMethodEpoch %d => %d\n", 
+	      methodObj, methodObj->refCount, ObjStr(methodObj), 
 	      methodObj->typePtr == &NsfInstanceMethodObjType,
-	      methodObj->typePtr == &NsfInstanceMethodObjType ? currentClass : 0,
+	      methodObj->typePtr == &NsfInstanceMethodObjType ? mcPtr->context == currentClass : 0,
 	      methodObj->typePtr == &NsfInstanceMethodObjType ? mcPtr->methodEpoch : 0,
 	      nsfInstanceMethodEpoch );
 #endif
@@ -9802,7 +9802,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	cmd = mcPtr->cmd;
 	cl = mcPtr->cl;
 #if defined(METHOD_OBJECT_TRACE)
-	fprintf(stderr, "... reuse instance method %p %s cmd %p cl %p %s\n", 
+	fprintf(stderr, "... use internal rep method %p %s cmd %p cl %p %s\n", 
 		methodObj, ObjStr(methodObj),
 		cmd, cl, cl ? ClassName(cl) : ObjectName(object));
 #endif
@@ -9823,7 +9823,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	} else {
 	  cl = SearchPLMethod(currentClass->order, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
 	}
-	
 	NsfMethodObjSet(interp, methodObj, &NsfInstanceMethodObjType,
 			currentClass, nsfInstanceMethodEpoch,
 			cmd, cl, flags);
@@ -15861,7 +15860,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       NsfFlag *flagPtr = argumentObj->internalRep.twoPtrValue.ptr1;
 
 #if defined(PARSE_TRACE_FULL)
-      fprintf(stderr, "... arg %p %s expect nonpos arg in block %s isFlag %d sig %d serial %d (%d/%d)\n", 
+      fprintf(stderr, "... arg %p %s expect nonpos arg in block %s isFlag %d sig %d serial %d (%d => %d)\n", 
 	      argumentObj, ObjStr(argumentObj), currentParamPtr->name,
 	      argumentObj->typePtr == &NsfFlagObjType,
 	      argumentObj->typePtr == &NsfFlagObjType ? flagPtr->signature == paramPtr : 0,
@@ -17411,6 +17410,34 @@ NsfDebugCompileEpoch(Tcl_Interp *interp) {
   Interp *iPtr = (Interp *) interp;
 
   Tcl_SetObjResult(interp, Tcl_NewIntObj(iPtr->compileEpoch));
+  return TCL_OK;
+}
+
+/*
+cmd __db_show_obj NsfDebugShowObj {
+  {-argName "obj"    -required 1 -type tclobj}
+}
+*/
+static int 
+NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+  
+  fprintf(stderr, "*** obj %p refCount %d type <%s>\n",
+	  objPtr, objPtr->refCount, 
+	  objPtr->typePtr ? objPtr->typePtr->name : "");
+
+  if (objPtr->typePtr == &NsfObjectMethodObjType
+      || objPtr->typePtr == &NsfInstanceMethodObjType
+      ) {
+    NsfMethodContext *mcPtr = objPtr->internalRep.twoPtrValue.ptr1;
+    int currentMethodEpoch = objPtr->typePtr == &NsfObjectMethodObjType ? 
+      RUNTIME_STATE(interp)->objectMethodEpoch :
+      RUNTIME_STATE(interp)->instanceMethodEpoch;
+    
+    fprintf(stderr, "   method epoch %d max %d flags %.6x\n",
+	    mcPtr->methodEpoch, currentMethodEpoch, mcPtr->flags);
+
+    assert( currentMethodEpoch >= mcPtr->methodEpoch);
+  }
   return TCL_OK;
 }
 
@@ -23119,7 +23146,6 @@ Nsf_Init(Tcl_Interp *interp) {
 
   Nsf_OT_doubleType = Tcl_GetObjType("double");
   assert(Nsf_OT_doubleType);
-
   NsfMutexUnlock(&initMutex);
 
 

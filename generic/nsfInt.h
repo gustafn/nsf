@@ -931,7 +931,7 @@ extern int NsfFlagObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr,
 typedef struct {
   CONST Nsf_Param *signature;
   int serial;
-  Nsf_Param *paramPtr;
+  Nsf_Param CONST *paramPtr;
   Tcl_Obj *payload;
   int flags;
 } NsfFlag;

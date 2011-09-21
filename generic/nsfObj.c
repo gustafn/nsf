@@ -27,18 +27,19 @@
  */
 
 static Tcl_FreeInternalRepProc	MethodFreeInternalRep;
+static Tcl_DupInternalRepProc MethodDupInternalRep;
 
 Tcl_ObjType NsfInstanceMethodObjType = {
   "nsfInstanceMethod",		/* name */
     MethodFreeInternalRep,	/* freeIntRepProc */
-    NULL,			/* dupIntRepProc */
+    MethodDupInternalRep,	/* dupIntRepProc */
     NULL,			/* updateStringProc */
     NULL			/* setFromAnyProc */
 };
 Tcl_ObjType NsfObjectMethodObjType = {
     "nsfObjectMethod",		/* name */
     MethodFreeInternalRep,	/* freeIntRepProc */
-    NULL,			/* dupIntRepProc */
+    MethodDupInternalRep,	/* dupIntRepProc */
     NULL,			/* updateStringProc */
     NULL			/* setFromAnyProc */
 };
@@ -54,16 +55,39 @@ MethodFreeInternalRep(
   NsfMethodContext *mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
 
   if (mcPtr != NULL) {
-
-    /*fprintf(stderr, "MethodFreeInternalRep %p flagPtr %p serial (%d) payload %p\n",
-      objPtr, flagPtr, flagPtr->serial, flagPtr->payload);*/
-
+#if defined(METHOD_OBJECT_TRACE)
+    fprintf(stderr, "MethodFreeInternalRep %p methodContext %p methodEpoch %d type <%s>\n",
+	    objPtr, mcPtr, mcPtr->methodEpoch, 
+	    objPtr->typePtr ? objPtr->typePtr->name : "none");
+#endif
     /*
      * ... and free structure
      */
     FREE(NsfMethodContext, mcPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = NULL; // TODO: needed?
+    objPtr->typePtr = NULL;
   }
+}
+
+/* 
+ * dupIntRepProc
+ */
+static void
+MethodDupInternalRep(
+    Tcl_Obj *srcPtr,
+    Tcl_Obj *dstPtr)
+{
+  register NsfMethodContext *srcMcPtr = srcPtr->internalRep.twoPtrValue.ptr1, *dstMcPtr;
+
+#if defined(METHOD_OBJECT_TRACE)
+  fprintf(stderr, "MethodDupInternalRep src %p dst %p\n", srcPtr, dstPtr);
+#endif
+
+  dstMcPtr = NEW(NsfMethodContext);
+  memcpy(dstMcPtr, srcMcPtr, sizeof(NsfMethodContext));
+
+  dstPtr->typePtr = srcPtr->typePtr;
+  dstPtr->internalRep.twoPtrValue.ptr1 = dstMcPtr;
 }
 
 /*
@@ -105,12 +129,16 @@ NsfMethodObjSet(
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)mcPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = objectType;
+#if defined(METHOD_OBJECT_TRACE)
+    fprintf(stderr, "alloc %p methodContext %p methodEpoch %d type <%s> %s\n",
+	    objPtr, mcPtr, methodEpoch, objectType->name, ObjStr(objPtr), objPtr->refCount);
+#endif
   } else {
     mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
-
-    /*fprintf(stderr, "... NsfMethodObjSet %p reuses interal rep, serial (%d/%d)\n",
-      objPtr, mcPtr->methodEpoch, methodEpoch);*/
-
+#if defined(METHOD_OBJECT_TRACE)
+    fprintf(stderr, "... NsfMethodObjSet %p reuses interal rep, serial (%d/%d) refCount %d\n",
+	    objPtr, mcPtr->methodEpoch, methodEpoch);
+#endif
   }
 
   assert(mcPtr);
@@ -139,11 +167,12 @@ NsfMethodObjSet(
  */
 
 static Tcl_FreeInternalRepProc	FlagFreeInternalRep;
+static Tcl_DupInternalRepProc   FlagDupInternalRep;
 
 Tcl_ObjType NsfFlagObjType = {
     "nsfFlag",			/* name */
     FlagFreeInternalRep,	/* freeIntRepProc */
-    NULL,			/* dupIntRepProc */
+    FlagDupInternalRep,		/* dupIntRepProc */
     NULL,			/* updateStringProc */
     NULL			/* setFromAnyProc */
 };
@@ -153,10 +182,10 @@ Tcl_ObjType NsfFlagObjType = {
  */
 static void
 FlagFreeInternalRep(
-    register Tcl_Obj *objPtr)	/* Tcl_Obj structure object with internal
-				 * representation to free. */
+   Tcl_Obj *objPtr)	/* Tcl_Obj structure object with internal
+			 * representation to free. */
 {
-  NsfFlag *flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
+  register NsfFlag *flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
 
   if (flagPtr != NULL) {
 
@@ -174,6 +203,27 @@ FlagFreeInternalRep(
     FREE(NsfFlag, flagPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = NULL; // TODO: needed?
   }
+}
+
+/* 
+ * dupIntRepProc
+ */
+static void
+FlagDupInternalRep(
+    Tcl_Obj *srcObjPtr,
+    Tcl_Obj *dstObjPtr)
+{
+  register NsfFlag *srcPtr = (NsfFlag *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
+
+#if defined(METHOD_OBJECT_TRACE)
+  fprintf(stderr, "FlagDupInternalRepx src %p dst %p\n", srcObjPtr, dstObjPtr);
+#endif
+
+  dstPtr = NEW(NsfFlag);
+  memcpy(dstPtr, srcPtr, sizeof(NsfFlag));
+
+  srcObjPtr->typePtr = srcObjPtr->typePtr;
+  srcObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
 }
 
 /*

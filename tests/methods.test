@@ -340,7 +340,7 @@ Test case class-object-property {
   ? {C info methods} "a"
   ? {C class info methods} x
   ? {c1 a b} {expected integer but got "b" for parameter "a"}
- 
+
   set s(C) [C serialize]
   set s(c1) [c1 serialize]
 
@@ -682,7 +682,7 @@ nx::Test case test-simple-unknown {
 # simple speed tests
 # ensemble unknown tests are in submethods.test
 #
-nx::Test parameter count 100000
+nx::Test parameter count 1000
 nx::Test case speed-dispatch {
 
   #

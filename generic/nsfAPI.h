@@ -237,6 +237,7 @@ static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDebugCompileEpochStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfDebugShowObjStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -334,6 +335,7 @@ static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *val
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
 static int NsfDebugCompileEpoch(Tcl_Interp *interp);
 static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp);
+static int NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *obj);
 static int NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrinsic, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars);
@@ -432,6 +434,7 @@ enum {
  NsfCurrentCmdIdx,
  NsfDebugCompileEpochIdx,
  NsfDebugRunAssertionsCmdIdx,
+ NsfDebugShowObjIdx,
  NsfDirectDispatchCmdIdx,
  NsfDispatchCmdIdx,
  NsfFinalizeCmdIdx,
@@ -1067,6 +1070,22 @@ NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
       } 
     
     return NsfDebugRunAssertionsCmd(interp);
+
+}
+
+static int
+NsfDebugShowObjStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
+
+    
+
+      if (objc != 2) {
+	return NsfArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfDebugShowObjIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfDebugShowObj(interp, objc == 2 ? objv[1] : NULL);
 
 }
 
@@ -2480,6 +2499,9 @@ static Nsf_methodDefinition method_definitions[] = {
 },
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::__db_show_obj", NsfDebugShowObjStub, 1, {
+  {"obj", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::directdispatch", NsfDirectDispatchCmdStub, 4, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
