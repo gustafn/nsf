@@ -3585,6 +3585,11 @@ tests:
    - added "package prefer latest" to avoid confusions of alpha and beta releases
      with install versions
 
+nsf.c:
+  - added MixinregDupInternalRep() and FilterregDupInternalRep
+  - perform more eager invalidation on objectMethodEpochs
+
+
 TODO:
  - unknown arg handler must find a way to aviod method deletions or redefinitions
    or to recover from these gracefully

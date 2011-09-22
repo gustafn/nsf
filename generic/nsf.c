@@ -9749,10 +9749,12 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cmd = mcPtr->cmd;
       //cl = mcPtr->cl;
 #if defined(METHOD_OBJECT_TRACE)
-      fprintf(stderr, "... use internal rep method %p %s cmd %p cl %p %s\n", 
+      fprintf(stderr, "... use internal rep method %p %s cmd %p (objProc %p) cl %p %s\n", 
 	      methodObj, ObjStr(methodObj),
-	      cmd, cl, cl ? ClassName(cl) : ObjectName(object));
+	      cmd, cmd ? ((Command *)cmd)->objProc : 0,
+	      cl, cl ? ClassName(cl) : ObjectName(object));
 #endif
+      assert(cmd ? ((Command *)cmd)->objProc != NULL : 1);
     } else {
       /* do we have an object-specific proc? */
       if (object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0) {
@@ -9802,10 +9804,12 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	cmd = mcPtr->cmd;
 	cl = mcPtr->cl;
 #if defined(METHOD_OBJECT_TRACE)
-	fprintf(stderr, "... use internal rep method %p %s cmd %p cl %p %s\n", 
+	fprintf(stderr, "... use internal rep method %p %s cmd %p (objProc %p) cl %p %s\n", 
 		methodObj, ObjStr(methodObj),
-		cmd, cl, cl ? ClassName(cl) : ObjectName(object));
+		cmd, cmd?((Command *)cmd)->objProc : NULL,
+		cl, cl ? ClassName(cl) : ObjectName(object));
 #endif
+	assert(cmd ? ((Command *)cmd)->objProc != NULL : 1);
       } else {
 	
 	if (unlikely(currentClass->order == NULL)) {
@@ -13356,7 +13360,13 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
   /*fprintf(stderr, "CleanupDestroyObject obj %p softrecreate %d nsPtr %p\n",
     object, softrecreate, object->nsPtr);*/
 
-  //NsfObjectMethodEpochIncr("CleanupDestroyObject");
+  /* the object pointer is guaranteed to point to the same object, so it is
+   * not sufficient for methodObj validation. Thereforem for objects
+   * containing per-object methods, we increment the objectMethodEpoch
+   */
+  if (object->nsPtr) {
+    NsfObjectMethodEpochIncr("CleanupDestroyObject"); 
+  }
 
   /* remove the instance, but not for ::Class/::Object */
   if ((object->flags & NSF_IS_ROOT_CLASS) == 0 &&
@@ -17432,10 +17442,16 @@ NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     int currentMethodEpoch = objPtr->typePtr == &NsfObjectMethodObjType ? 
       RUNTIME_STATE(interp)->objectMethodEpoch :
       RUNTIME_STATE(interp)->instanceMethodEpoch;
+    Tcl_Command cmd = mcPtr->cmd;
     
-    fprintf(stderr, "   method epoch %d max %d flags %.6x\n",
-	    mcPtr->methodEpoch, currentMethodEpoch, mcPtr->flags);
-
+    fprintf(stderr, "   method epoch %d max %d cmd %p objProc %p flags %.6x\n",
+	    mcPtr->methodEpoch, currentMethodEpoch, 
+	    cmd, cmd ? ((Command *)cmd)->objProc : 0,
+	    mcPtr->flags);
+    if (cmd) {
+      fprintf(stderr, "... cmd %p flags %.6x\n", cmd, Tcl_Command_flags(cmd));
+        assert(((Command *)cmd)->objProc != NULL);
+    }
     assert( currentMethodEpoch >= mcPtr->methodEpoch);
   }
   return TCL_OK;
