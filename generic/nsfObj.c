@@ -301,7 +301,7 @@ NsfFlagObjSet(
 typedef struct {
   NsfClass *mixin;
   Tcl_Obj *guardObj;
-} MixinReg;
+} Mixinreg;
 
 static Tcl_FreeInternalRepProc	MixinregFreeInternalRep;
 static Tcl_SetFromAnyProc       MixinregSetFromAny;
@@ -323,7 +323,7 @@ MixinregFreeInternalRep(
     register Tcl_Obj *objPtr)	/* Mixinreg structure object with internal
 				 * representation to free. */
 {
-  MixinReg *mixinRegPtr = (MixinReg *)objPtr->internalRep.twoPtrValue.ptr1;
+  Mixinreg *mixinRegPtr = (Mixinreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
   if (mixinRegPtr != NULL) {
 
@@ -338,7 +338,7 @@ MixinregFreeInternalRep(
     /*
      * ... and free structure
      */
-    FREE(MixinReg, mixinRegPtr);
+    FREE(Mixinreg, mixinRegPtr);
   }
 }
 
@@ -350,16 +350,14 @@ MixinregDupInternalRep(
     Tcl_Obj *srcObjPtr,
     Tcl_Obj *dstObjPtr)
 {
-  register MixinReg *srcPtr = (MixinReg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
-
-  fprintf(stderr, "**** MixinregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
+  register Mixinreg *srcPtr = (Mixinreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
 #endif
   if (srcPtr != NULL) {
-    dstPtr = NEW(MixinReg);
-    memcpy(dstPtr, srcPtr, sizeof(MixinReg));
+    dstPtr = NEW(Mixinreg);
+    memcpy(dstPtr, srcPtr, sizeof(Mixinreg));
     /* increment refcounts */
     NsfObjectRefCountIncr(&(srcPtr->mixin)->object);
     if (srcPtr->guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);}
@@ -383,7 +381,7 @@ MixinregSetFromAny(
 {
   NsfClass *mixin = NULL;
   Tcl_Obj *guardObj = NULL, *nameObj;
-  MixinReg *mixinRegPtr;
+  Mixinreg *mixinRegPtr;
   int oc; Tcl_Obj **ov;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
@@ -411,7 +409,7 @@ MixinregSetFromAny(
    * Conversion was ok.
    * Allocate structure ... 
    */
-  mixinRegPtr = NEW(MixinReg);
+  mixinRegPtr = NEW(Mixinreg);
   mixinRegPtr->mixin = mixin;
   mixinRegPtr->guardObj = guardObj;
 
@@ -456,7 +454,7 @@ MixinregSetFromAny(
 int
 NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj) {
   if (obj->typePtr == &NsfMixinregObjType) {
-    MixinReg *mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
+    Mixinreg *mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
     *guardObj = mixinRegPtr->guardObj;
     *clPtr = mixinRegPtr->mixin;
     return TCL_OK;
@@ -535,8 +533,6 @@ FilterregDupInternalRep(
     Tcl_Obj *dstObjPtr)
 {
   register Filterreg *srcPtr = (Filterreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
-
-  fprintf(stderr, "**** FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
 
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
