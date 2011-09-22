@@ -3588,6 +3588,7 @@ tests:
 nsf.c:
   - added MixinregDupInternalRep() and FilterregDupInternalRep
   - perform more eager invalidation on objectMethodEpochs
+  - cleanup on nsfObj.c
 
 
 TODO:

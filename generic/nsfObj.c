@@ -74,20 +74,20 @@ MethodFreeInternalRep(
  */
 static void
 MethodDupInternalRep(
-    Tcl_Obj *srcPtr,
-    Tcl_Obj *dstPtr)
+    Tcl_Obj *srcObjPtr,
+    Tcl_Obj *dstObjPtr)
 {
-  register NsfMethodContext *srcMcPtr = srcPtr->internalRep.twoPtrValue.ptr1, *dstMcPtr;
+  register NsfMethodContext *srcMcPtr = srcObjPtr->internalRep.twoPtrValue.ptr1, *dstMcPtr;
 
 #if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "MethodDupInternalRep src %p dst %p\n", srcPtr, dstPtr);
+  fprintf(stderr, "MethodDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
 #endif
 
   dstMcPtr = NEW(NsfMethodContext);
   memcpy(dstMcPtr, srcMcPtr, sizeof(NsfMethodContext));
 
-  dstPtr->typePtr = srcPtr->typePtr;
-  dstPtr->internalRep.twoPtrValue.ptr1 = dstMcPtr;
+  dstObjPtr->typePtr = srcObjPtr->typePtr;
+  dstObjPtr->internalRep.twoPtrValue.ptr1 = dstMcPtr;
 }
 
 /*
@@ -222,8 +222,8 @@ FlagDupInternalRep(
   dstPtr = NEW(NsfFlag);
   memcpy(dstPtr, srcPtr, sizeof(NsfFlag));
 
-  srcObjPtr->typePtr = srcObjPtr->typePtr;
-  srcObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
+  dstObjPtr->typePtr = srcObjPtr->typePtr;
+  dstObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
 }
 
 /*
@@ -325,21 +325,19 @@ MixinregFreeInternalRep(
 {
   Mixinreg *mixinRegPtr = (Mixinreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
-  if (mixinRegPtr != NULL) {
-
-    /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p\n",
-      mixinRegPtr, mixinRegPtr->class, mixinRegPtr->guardObj);*/
-    /*
-     * Decrement refCounts
-     */
-    NsfObjectRefCountDecr(&(mixinRegPtr->mixin)->object);
-    if (mixinRegPtr->guardObj) {DECR_REF_COUNT2("mixinRegPtr->guardObj", mixinRegPtr->guardObj);}
-
-    /*
-     * ... and free structure
-     */
-    FREE(Mixinreg, mixinRegPtr);
-  }
+  assert(mixinRegPtr);
+  /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p\n",
+    mixinRegPtr, mixinRegPtr->class, mixinRegPtr->guardObj);*/
+  /*
+   * Decrement refCounts
+   */
+  NsfObjectRefCountDecr(&(mixinRegPtr->mixin)->object);
+  if (mixinRegPtr->guardObj) {DECR_REF_COUNT2("mixinRegPtr->guardObj", mixinRegPtr->guardObj);}
+  
+  /*
+   * ... and free structure
+   */
+  FREE(Mixinreg, mixinRegPtr);
 }
 
 /* 
@@ -352,22 +350,26 @@ MixinregDupInternalRep(
 {
   register Mixinreg *srcPtr = (Mixinreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
-#if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
-#endif
-  if (srcPtr != NULL) {
-    dstPtr = NEW(Mixinreg);
-    memcpy(dstPtr, srcPtr, sizeof(Mixinreg));
-    /* increment refcounts */
-    NsfObjectRefCountIncr(&(srcPtr->mixin)->object);
-    if (srcPtr->guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);}
-  } else {
-    dstPtr = NULL;
-    //yyyy can this happen?
-  }
+  assert(srcPtr);
 
-  srcObjPtr->typePtr = srcObjPtr->typePtr;
-  srcObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
+#if defined(METHOD_OBJECT_TRACE)
+  fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n", 
+	  srcObjPtr, dstObjPtr);
+#endif
+  dstPtr = NEW(Mixinreg);
+  memcpy(dstPtr, srcPtr, sizeof(Mixinreg));
+
+  /* 
+   * increment refcounts 
+   */
+  NsfObjectRefCountIncr(&(srcPtr->mixin)->object);
+  if (srcPtr->guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);}
+
+  /*
+   * update destination obj
+   */
+  dstObjPtr->typePtr = srcObjPtr->typePtr;
+  dstObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
 }
 
 
@@ -507,21 +509,21 @@ FilterregFreeInternalRep(
 {
   Filterreg *filterregPtr = (Filterreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
-  if (filterregPtr != NULL) {
+  assert(filterregPtr);
 
-    /*fprintf(stderr, "FilterregFreeInternalRep freeing filterreg %p class %p guard %p\n",
-      filterregPtr, filterregPtr->class, filterregPtr->guardObj);*/
-    /*
-     * Decrement refCounts
-     */
-    DECR_REF_COUNT2("filterregPtr->filterObj", filterregPtr->filterObj);
-    if (filterregPtr->guardObj) {DECR_REF_COUNT2("filterregPtr->guardObj", filterregPtr->guardObj);}
+  /*fprintf(stderr, "FilterregFreeInternalRep freeing filterreg %p class %p guard %p\n",
+    filterregPtr, filterregPtr->class, filterregPtr->guardObj);*/
 
-    /*
-     * ... and free structure
-     */
-    FREE(Filterreg, filterregPtr);
-  }
+  /*
+   * Decrement refCounts
+   */
+  DECR_REF_COUNT2("filterregPtr->filterObj", filterregPtr->filterObj);
+  if (filterregPtr->guardObj) {DECR_REF_COUNT2("filterregPtr->guardObj", filterregPtr->guardObj);}
+
+  /*
+   * ... and free structure
+   */
+  FREE(Filterreg, filterregPtr);
 }
 
 /* 
@@ -534,22 +536,26 @@ FilterregDupInternalRep(
 {
   register Filterreg *srcPtr = (Filterreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
+  assert(srcPtr);
+
 #if defined(METHOD_OBJECT_TRACE)
   fprintf(stderr, "FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
 #endif
-  if (srcPtr != NULL) {
-    dstPtr = NEW(Filterreg);
-    memcpy(dstPtr, srcPtr, sizeof(Filterreg));
-    /* increment refcounts */
-    INCR_REF_COUNT2("filterregPtr->filterObj", srcPtr->filterObj);
-    if (srcPtr->guardObj) {INCR_REF_COUNT2("FilterregPtr->guardObj", srcPtr->guardObj);}
-  } else {
-    dstPtr = NULL;
-    //yyyy can this happen?
-  }
 
-  srcObjPtr->typePtr = srcObjPtr->typePtr;
-  srcObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
+  dstPtr = NEW(Filterreg);
+  memcpy(dstPtr, srcPtr, sizeof(Filterreg));
+
+  /* 
+   * increment refcounts 
+   */
+  INCR_REF_COUNT2("filterregPtr->filterObj", srcPtr->filterObj);
+  if (srcPtr->guardObj) {INCR_REF_COUNT2("FilterregPtr->guardObj", srcPtr->guardObj);}
+
+  /*
+   * update destination obj
+   */
+  dstObjPtr->typePtr = srcObjPtr->typePtr;
+  dstObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
 }
 
 /* 
