@@ -305,11 +305,12 @@ typedef struct {
 
 static Tcl_FreeInternalRepProc	MixinregFreeInternalRep;
 static Tcl_SetFromAnyProc       MixinregSetFromAny;
+static Tcl_DupInternalRepProc   MixinregDupInternalRep;
 
 Tcl_ObjType NsfMixinregObjType = {
     "nsfMixinreg",			/* name */
     MixinregFreeInternalRep,		/* freeIntRepProc */
-    NULL,				/* dupIntRepProc */
+    MixinregDupInternalRep,		/* dupIntRepProc */
     NULL,				/* updateStringProc */
     MixinregSetFromAny			/* setFromAnyProc */
 };
@@ -340,6 +341,37 @@ MixinregFreeInternalRep(
     FREE(MixinReg, mixinRegPtr);
   }
 }
+
+/* 
+ * dupIntRepProc
+ */
+static void
+MixinregDupInternalRep(
+    Tcl_Obj *srcObjPtr,
+    Tcl_Obj *dstObjPtr)
+{
+  register MixinReg *srcPtr = (MixinReg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
+
+  fprintf(stderr, "**** MixinregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
+
+#if defined(METHOD_OBJECT_TRACE)
+  fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
+#endif
+  if (srcPtr != NULL) {
+    dstPtr = NEW(MixinReg);
+    memcpy(dstPtr, srcPtr, sizeof(MixinReg));
+    /* increment refcounts */
+    NsfObjectRefCountIncr(&(srcPtr->mixin)->object);
+    if (srcPtr->guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);}
+  } else {
+    dstPtr = NULL;
+    //yyyy can this happen?
+  }
+
+  srcObjPtr->typePtr = srcObjPtr->typePtr;
+  srcObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
+}
+
 
 /* 
  * setFromAnyProc
@@ -455,12 +487,13 @@ typedef struct {
 } Filterreg;
 
 static Tcl_FreeInternalRepProc	FilterregFreeInternalRep;
+static Tcl_DupInternalRepProc   FilterregDupInternalRep;
 static Tcl_SetFromAnyProc       FilterregSetFromAny;
 
 Tcl_ObjType NsfFilterregObjType = {
     "nsfFilterreg",			/* name */
     FilterregFreeInternalRep,		/* freeIntRepProc */
-    NULL,				/* dupIntRepProc */
+    FilterregDupInternalRep,		/* dupIntRepProc */
     NULL,				/* updateStringProc */
     FilterregSetFromAny			/* setFromAnyProc */
 };
@@ -494,6 +527,36 @@ FilterregFreeInternalRep(
 }
 
 /* 
+ * dupIntRepProc
+ */
+static void
+FilterregDupInternalRep(
+    Tcl_Obj *srcObjPtr,
+    Tcl_Obj *dstObjPtr)
+{
+  register Filterreg *srcPtr = (Filterreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
+
+  fprintf(stderr, "**** FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
+
+#if defined(METHOD_OBJECT_TRACE)
+  fprintf(stderr, "FilterregDupInternalRep src %p dst %p\n", srcObjPtr, dstObjPtr);
+#endif
+  if (srcPtr != NULL) {
+    dstPtr = NEW(Filterreg);
+    memcpy(dstPtr, srcPtr, sizeof(Filterreg));
+    /* increment refcounts */
+    INCR_REF_COUNT2("filterregPtr->filterObj", srcPtr->filterObj);
+    if (srcPtr->guardObj) {INCR_REF_COUNT2("FilterregPtr->guardObj", srcPtr->guardObj);}
+  } else {
+    dstPtr = NULL;
+    //yyyy can this happen?
+  }
+
+  srcObjPtr->typePtr = srcObjPtr->typePtr;
+  srcObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
+}
+
+/* 
  * setFromAnyProc
  */
 static int
@@ -509,7 +572,7 @@ FilterregSetFromAny(
     if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
       filterObj = ov[0];
       guardObj = ov[2];
-      /*fprintf(stderr, "mixinadd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
+      /*fprintf(stderr, "filteradd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
     } else if (oc == 1) {
       filterObj = ov[0];
     } else {
@@ -535,7 +598,7 @@ FilterregSetFromAny(
   if (guardObj) {INCR_REF_COUNT2("filterregPtr->guardObj", guardObj);}
 
   /*fprintf(stderr, "FilterregSetFromAny alloc filterreg %p class %p guard %p\n",
-    filterregPtr, filterregPtr->mixin, filterregPtr->guardObj);*/
+    filterregPtr, filterregPtr->filterObj, filterregPtr->guardObj);*/
 
   /*
    * Free the old interal representation and store own structure as internal
