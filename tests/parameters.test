@@ -1585,6 +1585,7 @@ nx::Test case nsf-proc {
 nx::Test case xotcl-list-notation {
   nx::Test parameter count 1
 
+  package prefer latest
   package req XOTcl
   xotcl::Class create CC -parameter {package_id parameter_declaration user_id}
 

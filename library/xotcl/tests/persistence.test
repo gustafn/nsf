@@ -1,5 +1,6 @@
 #!../../src/xotclsh
 # -*- Tcl -*- 
+package prefer latest
 package require XOTcl; namespace import -force xotcl::*
 
 @ @File {

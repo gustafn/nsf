@@ -1,5 +1,6 @@
 # -*- Tcl -*-
 package req nx::test
+package prefer latest
 package req XOTcl
 
 #

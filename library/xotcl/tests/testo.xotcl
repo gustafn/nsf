@@ -11,6 +11,7 @@
 # suitability of this software for any purpose.  It is provided "as is"
 # without express or implied warranty.
 #
+package prefer latest
 package require XOTcl; namespace import ::xotcl::*
 
 @ @File {description {

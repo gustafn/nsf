@@ -1367,7 +1367,8 @@ nx::Test case dispo-object-targets {
 #
 
 nx::Test case xotcl-residualargs {
-  package req XOTcl
+  package prefer latest
+  puts stderr "XOTcl loaded: [package req XOTcl]"
 
   ? {::xotcl::Class create XD -set x 1} "::XD"
   #? {c1 eval {info exists :args}} 0
@@ -1416,6 +1417,7 @@ nx::Test case xotcl-residualargs-upleveling {
   # Test callstack resolution for upvar/uplevel in
   # parameter-dispatched methods under residualargs() ...
   #
+  package prefer latest
   package req XOTcl
 
   xotcl::Class C -proc onTheFly {name args} {

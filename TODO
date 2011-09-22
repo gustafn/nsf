@@ -3581,6 +3581,9 @@ nsf.c:
   - added MethodDupInternalRep() and FlagDupInternalRep()
     since they appear to be required in Tcl 8.6b2.
 
+tests:
+   - added "package prefer latest" to avoid confusions of alpha and beta releases
+     with install versions
 
 TODO:
  - unknown arg handler must find a way to aviod method deletions or redefinitions

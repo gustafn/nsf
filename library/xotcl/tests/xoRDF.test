@@ -1,5 +1,6 @@
 # -*- Tcl -*-
 #
+package prefer latest
 package require XOTcl; namespace import -force xotcl::*
 
 lappend auto_path [file dir [info script]]/..

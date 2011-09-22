@@ -3,6 +3,7 @@
 #if {[set ::tcl_platform(platform)] == "windows"} {
 #  lappend auto_path .
 #}
+package prefer latest
 package require XOTcl; namespace import -force ::xotcl::*
 set pkgDir [file dirname [info script]]/..
 lappend auto_path $pkgDir

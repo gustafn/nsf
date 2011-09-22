@@ -1,5 +1,5 @@
 # -*- Tcl -*-
-
+package prefer latest
 package require XOTcl; namespace import ::xotcl::*
 lappend auto_path [file dirname [info script]]/../library
 package require nx::test
