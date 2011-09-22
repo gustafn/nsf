@@ -613,7 +613,7 @@ ParseContextRelease(ParseContext *pcPtr) {
      */
     if (pcPtr->objc > 0) {
       /*fprintf(stderr, "%s ", ObjStr(pcPtr->full_objv[0]));*/
-      for (i = 0; i < pcPtr->objc - 1; i++) {
+      for (i = 0; i < pcPtr->objc; i++) {
 	if (pcPtr->flags[i]) {
 	  assert(pcPtr->objv[i]);
 	  /*fprintf(stderr, "[%d]%s %.6x ", i, ObjStr(pcPtr->objv[i]), pcPtr->flags[i]);*/
@@ -624,7 +624,7 @@ ParseContextRelease(ParseContext *pcPtr) {
      * (3) All later flags must be empty or DEFAULT
      */
     if (pcPtr->full_objv == &pcPtr->objv_static[0] && pcPtr->objc > 0) {
-      for (i = pcPtr->objc - 1; i < PARSE_CONTEXT_PREALLOC; i++) {
+      for (i = pcPtr->objc; i < PARSE_CONTEXT_PREALLOC; i++) {
 	//fprintf(stderr, "later flag %d: %.6x\n",i, pcPtr->flags[i]);
 	assert(pcPtr->flags[i] == 0 || pcPtr->flags[i] == NSF_PC_IS_DEFAULT);
       }
@@ -636,7 +636,7 @@ ParseContextRelease(ParseContext *pcPtr) {
     if (status & NSF_PC_STATUS_MUST_DECR) {
       int i;
       /*fprintf(stderr, "ParseContextRelease %p loop from 0 to %d\n", pcPtr, pcPtr->objc-1);*/
-      for (i = 0; i < pcPtr->objc - 1; i++) {
+      for (i = 0; i < pcPtr->objc; i++) {
 	/*fprintf(stderr, "ParseContextRelease %p check [%d] obj %p flags %.6x & %p\n",
 		pcPtr, i, pcPtr->objv[i], 
 		pcPtr->flags[i], &(pcPtr->flags[i]));*/
@@ -8921,7 +8921,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
     if (likely(result == TCL_OK)) {
       releasePc = 1;
-      result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, cscPtr);
+      result = PushProcCallFrame(cp, interp, pcPtr->objc+1, pcPtr->full_objv, cscPtr);
     } else {
 #if defined(NRE)
       ParseContextRelease(pcPtr);
@@ -11732,7 +11732,7 @@ NsfProcStubDeleteProc(ClientData clientData) {
 static int
 InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr) {
   Tcl_Obj *CONST *objv = pcPtr->full_objv;
-  int objc = pcPtr->objc;
+  int objc = pcPtr->objc+1;
   int result;
 
 #if defined(NSF_PROFILE)
@@ -12125,8 +12125,6 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
    * where argument values are passed to the call in absence of var
    * args ('args'). Treating "args is more involved (see below).
    */
-  // TODO: do we need setting of  pcPtr->objc earlier? yyyy
-  pcPtr->objc = paramDefs->nrParams + 1;
 
   if (result != TCL_OK) {
     return result;
@@ -20263,7 +20261,7 @@ objectMethod configure NsfOConfigureMethod {
 
 static int
 NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
-  int result, i, remainingArgsc, varArgsProcessed = 0;
+  int result, i, varArgsProcessed = 0;
   NsfParsedParam parsedParam;
   Nsf_Param *paramPtr;
   NsfParamDefs *paramDefs;
@@ -20629,16 +20627,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   }
 
   Nsf_PopFrameObj(interp, framePtr);
-
-  /*
-   * Check, if varargs were processed. 
-   */
-  remainingArgsc = pc.objc - paramDefs->nrParams;
-  if (pc.varArgs && remainingArgsc > 0) {
-
-    assert(varArgsProcessed);
-
-  }
 
  configure_exit:
 
