@@ -1604,7 +1604,7 @@ value-constraints and a default value.</p></div>
 are defined. Both classes have accessor methods for all their
 attributes specified (Note that we show the accessor methods only in
 this example). By defining properties we can use the name of the
-attribute as method name to access the variable. . The listing below
+attribute as method name to access the variable. The listing below
 shows an implementation of this conceptual model in NX.</p></div>
 <div class="paragraph" id="xmp-properties"><div class="title">Listing 18: Properties</div><p></p></div>
 <div class="listingblock">
@@ -1672,14 +1672,12 @@ Student <span class='nx-keyword'>create</span> s1 -name Susan -matnr 4711
 
 <span class='nx-comment'># Access property value via accessor method
 </span><span class='nx-keyword'>puts</span> <span class='nx-string'>"The name of s1 is [s1 name]"</span></pre></td></tr></table></div></div>
-<div class="paragraph"><p>We define here a class named <tt>Person</tt> with two properties, namely
- <tt>name</tt> and <tt>birthday</tt>.</p></div>
 <div class="paragraph"><p>When the class <tt>Person</tt> is defined, NX provides as well automatically
-accessors. Accessors are methods named like the variables, which are
-used to access (to read and write) the underlying instance
-variables. Therefore, in our example, the class <tt>Person</tt> has two
-methods implied by the <tt>property</tt> definition, namely the method <tt>name</tt>
-and the method <tt>birthday</tt>.</p></div>
+accessors for its properties. Accessors are methods named like the
+variables, which are used to access (to read and write) the underlying
+instance variables. Therefore, in our example, the class <tt>Person</tt> has
+two methods implied by the <tt>property</tt> definition, namely the method
+<tt>name</tt> and the method <tt>birthday</tt>.</p></div>
 <div class="paragraph"><p>The class <tt>Student</tt> is defined as a specialization of <tt>Person</tt> with
 two additional properties, namely <tt>matnr</tt> and <tt>oncampus</tt>. The property
 <tt>matnr</tt> is required (it has to be provided, when an instance of this
@@ -2251,14 +2249,14 @@ hierarchy.</p></div>
 class. This object (or class) contains the method. If the object (or
 class) is deleted, the contained methods will be deleted as well.</p></div>
 <div class="sect3">
-<h4 id="_inherited_methods">3.4.1. Inherited Methods</h4>
+<h4 id="_instance_methods">3.4.1. Instance Methods</h4>
 <div class="exampleblock">
 <div class="content">
 <div class="paragraph"><p>Typically, methods are defined on a class, and the methods defined on the
 class are applicable to the instances (direct or indirect) of this
-class. These methods are called <strong>inherited methods</strong>.</p></div>
+class. These methods are called <strong>instance methods</strong>.</p></div>
 </div></div>
-<div class="paragraph"><p>In the following example method <tt>foo</tt> is an inherited method defined
+<div class="paragraph"><p>In the following example method <tt>foo</tt> is an instance method defined
 on class <tt>C</tt>.</p></div>
 <div class="paragraph" id="xmp-instance-applicable"><div class="title">Listing 27: Methods applicable for instances</div><p></p></div>
 <div class="listingblock">
@@ -2304,7 +2302,7 @@ instance <tt>c1</tt> of class <tt>C</tt>, and as well the object specific method
 <tt>baz</tt> defined on the object <tt>o1</tt>. An object-specific method is defined
 simply by defining the method on an object.</p></div>
 <div class="paragraph"><p>Note that we can define a per-object method that shadows (redefines)
-for this object an inherited method.</p></div>
+for this object an intrisic instance method.</p></div>
 <div class="paragraph" id="xmp-object-applicable1"><div class="title">Listing 28: Per-object Method</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2361,7 +2359,8 @@ o1 baz</pre></td></tr></table></div></div>
 <div class="exampleblock">
 <div class="content">
 <div class="paragraph"><p>A <strong>class method</strong> is a method defined on a class, which is only
-applicable to the class object itself.</p></div>
+applicable to the class object itself. The class method is an
+per-object method of the class object.</p></div>
 </div></div>
 <div class="paragraph"><p>In NX, all classes are objects. Classes are in NX special kind of
 objects that have e.g. the ability to create instances and to provide
@@ -2371,7 +2370,7 @@ this later).</p></div>
 <div class="paragraph"><p>The following example defines a public class method <tt>bar</tt> on class
 <tt>C</tt>. The class method is specified by using the modifier <tt>class</tt> in
 front of <tt>method</tt> in the method definition command.</p></div>
-<div class="paragraph" id="xmp-object-applicable2"><div class="title">Listing 29: Per-object Method</div><p></p></div>
+<div class="paragraph" id="xmp-object-applicable2"><div class="title">Listing 29: Class Methods</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2398,22 +2397,42 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  13
  14
  15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> bar {} {<span class='nx-keyword'>return</span> 2}
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Define a class method "bar" and an instance
+</span>  <span class='nx-comment'># method "foo"
+</span>  <span class='nx-comment'>#
+</span>  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> bar {} {<span class='nx-keyword'>return</span> 2}
   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>return</span> 1}
-  :<span class='nx-keyword'>create</span> c1
+
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Create an instance of the current class
+</span>  <span class='nx-comment'>#
+</span>  :<span class='nx-keyword'>create</span> c1
 }
 
 <span class='nx-comment'># Method "bar" is a class method of class "C"
+</span><span class='nx-comment'># therefore applicable on the class object "C"
 </span>C bar
 
-<span class='nx-comment'># Method "foo" is an inherited method of "C"
+<span class='nx-comment'># Method "foo" is an instance method of "C"
+</span><span class='nx-comment'># therefore applicable on instance "c1"
 </span>c1 foo
 
 <span class='nx-comment'># When trying to invoke the class method on the
 </span><span class='nx-comment'># instance, an error will be raised.
 </span>c1 bar</pre></td></tr></table></div></div>
-<div class="paragraph"><p>In several other object oriented programming languages, class methods
+<div class="paragraph"><p>In some other object oriented programming languages, class methods
 are called "static methods".</p></div>
 </div>
 </div>
@@ -3724,7 +3743,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-09-12 19:51:15 CEST
+Last updated 2011-09-23 13:42:41 CEST
 </div>
 </div>
 </body>

@@ -1130,15 +1130,15 @@ As defined above, a method is a subroutine defined on an object or
 class. This object (or class) contains the method. If the object (or
 class) is deleted, the contained methods will be deleted as well. 
 
-==== Inherited Methods
+==== Instance Methods
 
 ===========================================
 Typically, methods are defined on a class, and the methods defined on the
 class are applicable to the instances (direct or indirect) of this
-class. These methods are called *inherited methods*.
+class. These methods are called *instance methods*.
 ===========================================
 
-In the following example method +foo+ is an inherited method defined
+In the following example method +foo+ is an instance method defined
 on class +C+.
 
 [[xmp-instance-applicable]]
@@ -1173,7 +1173,7 @@ instance +c1+ of class +C+, and as well the object specific method
 simply by defining the method on an object. 
 
 Note that we can define a per-object method that shadows (redefines)
-for this object an inherited method.
+for this object an intrisic instance method.
 
 [[xmp-object-applicable1]]
 .Listing {counter:figure-number}: Per-object Method
@@ -1205,7 +1205,8 @@ o1 baz
 
 =========================================
 A *class method* is a method defined on a class, which is only
-applicable to the class object itself.
+applicable to the class object itself. The class method is an
+per-object method of the class object.
 =========================================
 
 In NX, all classes are objects. Classes are in NX special kind of
@@ -1219,20 +1220,30 @@ The following example defines a public class method +bar+ on class
 front of +method+ in the method definition command.
 
 [[xmp-object-applicable2]]
-.Listing {counter:figure-number}: Per-object Method
+.Listing {counter:figure-number}: Class Methods
 {set:xmp-object-applicable2:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Class create C {
+  #
+  # Define a class method "bar" and an instance
+  # method "foo"
+  #
   :public class method bar {} {return 2}
   :public method foo {} {return 1}
+
+  #
+  # Create an instance of the current class
+  #
   :create c1
 }
 
 # Method "bar" is a class method of class "C"
+# therefore applicable on the class object "C"
 C bar
 
-# Method "foo" is an inherited method of "C"
+# Method "foo" is an instance method of "C"
+# therefore applicable on instance "c1"
 c1 foo
 
 # When trying to invoke the class method on the 
@@ -1240,7 +1251,7 @@ c1 foo
 c1 bar
 --------------------------------------------------
 
-In several other object oriented programming languages, class methods
+In some other object oriented programming languages, class methods
 are called "static methods".
 
 === Ensemble Methods 
