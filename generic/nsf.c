@@ -187,7 +187,8 @@ static Tcl_ObjType CONST86
   *Nsf_OT_tclCmdNameType = NULL,
   *Nsf_OT_listType = NULL,
   *Nsf_OT_doubleType = NULL,
-  *Nsf_OT_intType = NULL;
+  *Nsf_OT_intType = NULL,
+  *Nsf_OT_parsedVarNameType = NULL;
 
 /*
  * Function prototypes
@@ -9827,9 +9828,13 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	} else {
 	  cl = SearchPLMethod(currentClass->order, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
 	}
-	NsfMethodObjSet(interp, methodObj, &NsfInstanceMethodObjType,
-			currentClass, nsfInstanceMethodEpoch,
-			cmd, cl, flags);
+	if (methodObj->typePtr != Nsf_OT_tclCmdNameType
+	    && methodObj->typePtr != Nsf_OT_parsedVarNameType
+	    ) {
+	  NsfMethodObjSet(interp, methodObj, &NsfInstanceMethodObjType,
+			  currentClass, nsfInstanceMethodEpoch,
+			  cmd, cl, flags);
+	}
       }
     }
   }
@@ -23299,6 +23304,19 @@ Nsf_Init(Tcl_Interp *interp) {
   Tcl_PkgProvide(interp, "nsf", PACKAGE_VERSION);
 # endif
 #endif
+
+  /*
+   * obtain type for parsed var name
+   */
+  if (Nsf_OT_parsedVarNameType == NULL) {
+    Tcl_Obj *varNameObj = Tcl_NewStringObj("::nsf::version",-1);
+    Var *arrayPtr;
+
+    TclObjLookupVar(interp, varNameObj, NULL, 0, "access",
+                    /*createPart1*/ 1, /*createPart2*/ 1, &arrayPtr);
+    Nsf_OT_parsedVarNameType = varNameObj->typePtr;
+    assert(Nsf_OT_parsedVarNameType);
+  }
 
 #if !defined(TCL_THREADS)
   if ((Tcl_GetVar2(interp, "tcl_platform", "threaded", TCL_GLOBAL_ONLY) != NULL)) {

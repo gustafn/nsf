@@ -124,6 +124,10 @@ NsfMethodObjSet(
    * structure as internal representation.
    */
   if (likely(objPtr->typePtr != objectType)) {
+#if defined(METHOD_OBJECT_TRACE)
+    fprintf(stderr, "... NsfMethodObjSet frees old int rep %s\n",
+	    objPtr->typePtr ? objPtr->typePtr->name : "none");
+#endif
     TclFreeIntRep(objPtr);
     mcPtr = NEW(NsfMethodContext);
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)mcPtr;
