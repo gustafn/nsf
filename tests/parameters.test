@@ -274,7 +274,7 @@ nx::Test case objectparameter {
   C create c1
  
   ? {C eval :objectparameter} \
-      "-a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional"
+      "-a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
 
   ? {c1 eval :objectparameter} \
       "::c1: unable to dispatch method 'objectparameter'"
@@ -305,7 +305,7 @@ nx::Test case reclass {
       "::D::slot::d ::C::slot::a ::C::slot::b ::C::slot::c"
   
   ? {D eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
 }
 
 #######################################################
@@ -334,29 +334,29 @@ nx::Test case objparam-mixins {
   D mixin M
 
   ? {D eval :objectparameter} \
-      "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional" \
+      "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash" \
     "mixin added"
 
   M mixin M2
 
   ? {D eval :objectparameter} \
-      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash" \
     "transitive mixin added"
   D mixin ""
   #we should have again the old interface
 
   ? {D eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional"
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
 
   C mixin M
   ? {D eval :objectparameter} \
-      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional" \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash" \
     "mixin added"
   C mixin ""
   #we should have again the old interface
   
   ? {D eval :objectparameter} \
-      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional" 
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash" 
 }
 
 #######################################################
@@ -1669,7 +1669,7 @@ nx::Test case parameter-object-mixin-dependency {
 
   ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 
-  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional"
+  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
 
   #
   # invalidate object parameter and expect that the per-class mixin
@@ -1683,7 +1683,7 @@ nx::Test case parameter-object-mixin-dependency {
 
   ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 
-  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional"
+  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
 
   # should not require b1
   ? {C create c2} ::c2
@@ -1993,12 +1993,10 @@ nx::Test case class-level-variable {
   ? {C info parameter list v} ""
   ? {C info parameter syntax v} ""
 
-  # TODO: the error message for the invalid object parameter should be
-  # improved. The problem is, that "-v" is passed to the initcmd, so
-  # just "10" is invalid.
   ? {C create c2 -a 10} ::c2
   ? {C create c2 -v 10} \
-      {Invalid argument '10', maybe too many arguments; should be "::c2 configure ?-a value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"}
+      {Invalid non-positional argument '-v', valid are : -a, -volatile, -properties, -noinit, -mixin, -class, -filter;
+ should be "::c2 configure ?-a value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"}
 
   #
   # We expect a setter for "a" but not for "v". 

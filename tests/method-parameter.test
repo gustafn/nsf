@@ -42,7 +42,7 @@ nx::Test case noleadingdash {
 
   nsf::proc p2a {-x args} {return [list [info exists x] $args]}
   nsf::proc p2b {-x args:noleadingdash} {return [list [info exists x] $args]}
-  nsf::proc p2c {-x:noleadingdash args:noleadingdash} {return [list [info exists x] $args]}
+  nsf::proc p2c {-x args:noleadingdash} {return [list [info exists x] $args]}
 
   ? {p2a -x -y} {1 {}} ;# "-y" is the value of "x"
   ? {p2b -x -y} {1 {}} ;# "-y" is the value of "x"

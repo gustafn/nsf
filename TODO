@@ -3594,28 +3594,29 @@ nsf.c:
   - don't convert obj types tclCmdName and parsedVarNameType
     to instanceMethodObjType
 
+nx: added traits package
+
+nonleadingdash handling:
+  - doc: added "nonleadingdash" to UML class diagramm
+  - nsf.c: added error message, when "noleadingdash" is used on 
+    non-positional parameters
+  - nsf.c: use same logic for "nonleadingdash" to "value in argument"
+  - nsf.c: deactivated rudimentary unknown handler for the time being
+  - nx.tcl: added handling of parameter option "noleadingdash" 
+    in objectParameterSlots
+
 
 
 TODO:
- - unknown arg handler must find a way to aviod method deletions or redefinitions
-   or to recover from these gracefully
- - methodEpoch should go into interp state.
- - cleanup yyyy
  - warnings for "numeric" names for args and nonpos-args?
- - NsfUnexpectedNonposArgumentError() for valueInArgument, when structure settles
- - ouput of noleadingdash in introspection
- - ouput of noleadingdash in objectParameterSlots
- - handling of noleadingdash vor values of nonpos args
  - special handling of values looking like nonpos-flags,
    but wich are not ones (-1, "- a b c", ....) in detection
    when to throw unknow.
 
- - check flag reuses in ~/scripts/nonposargs-speed.xotcl
  - NSF_WITH_OS_RESOLVER
  - private: 
    * document private in tutorial
  - add "property" and "attribute" and "info property" and "info slot ..." to migration guide
- - add traits package
 
  - naming of slot classes 
    * should we switch from "-class" to "-slotclass"?
@@ -3871,9 +3872,13 @@ For future releases (after first alpha/beta release)
        to make lookup faster.
 
   * Serializer: handing of xo::at_cleanup in serializer 
-     (either generailization or move to OpenACS/aolserver init/naviserver init)
+     (either generalization or move to OpenACS/aolserver init/naviserver init)
 
   * Parameter/argument handling
+     - Add an unknown handler for unknown non-pos args to Argument parser. 
+       The problem is to find a way to aviod method deletions or redefinitions
+       or to recover from these gracefully (when e.g. the unknown handler 
+       deletes the parameters currenlty being worked on).
     - Canonical parameter representations: 
       "p:integer,multivalued" => "-name p -type integer -multivalued"
       "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"

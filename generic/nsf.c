@@ -1284,6 +1284,7 @@ NsfCallObjectUnknownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
   return result;
 }
 
+#if 0
 static int
 NsfCallArgumentUnknownHandler(Tcl_Interp *interp, 
 			      Tcl_Obj *methodObj,
@@ -1293,7 +1294,6 @@ NsfCallArgumentUnknownHandler(Tcl_Interp *interp,
   Tcl_Obj *ov[4];
   int result, oc = 3;
 
-  // yyyy
   /*fprintf(stderr, "try ::nsf::argument::unknown for '%s'\n", ObjStr(nameObj));*/
 
   ov[0] = NsfGlobalObjs[NSF_ARGUMENT_UNKNOWN_HANDLER];
@@ -1310,6 +1310,7 @@ NsfCallArgumentUnknownHandler(Tcl_Interp *interp,
 
   return result;
 }
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -10992,7 +10993,10 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
 
-  } else if (strncmp(option, "noleadingdash", 8) == 0) {
+  } else if (strncmp(option, "noleadingdash", 13) == 0) {
+    if (*paramPtr->name == '-') {
+      return NsfPrintError(interp, "Parameter option 'noleadingdash' only allowed for positional parameters");
+    }
     paramPtr->flags |= NSF_ARG_NOLEADINGDASH;
 
   } else if (strncmp(option, "noconfig", 8) == 0) {
@@ -11003,7 +11007,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (strncmp(option, "args", 4) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0) {
-      return NsfPrintError(interp, "option \"args\" only allowed for parameter type \"alias\"");
+      return NsfPrintError(interp, "Parameter option \"args\" only allowed for parameter type \"alias\"");
     }
     result = ParamOptionSetConverter(interp, paramPtr, "args", ConvertToNothing);
 
@@ -15966,8 +15970,15 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	      }
 	    }
 	    if (!found) {
-	      SkipNonposParamDefs(currentParamPtr);
-	      pPtr = currentParamPtr;
+	      Nsf_Param CONST *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
+	      if (nextParamPtr > lastParamPtr 
+		  || (nextParamPtr->flags & NSF_ARG_NOLEADINGDASH)) {
+		return NsfUnexpectedNonposArgumentError(interp, argumentString, 
+							(Nsf_Object *)object, 
+							currentParamPtr, paramPtr, 
+							procNameObj);
+	      }
+	      pPtr = currentParamPtr = nextParamPtr;
 	    }
 	  } else {
 	    /*
@@ -15996,7 +16007,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		      nextParamPtr, nextParamPtr->name);*/
 	      if (nextParamPtr > lastParamPtr 
 		  || (nextParamPtr->flags & NSF_ARG_NOLEADINGDASH)) {
-		/// yyyy work in progress
+#if 0
+		/* 
+		 * Currently, we can't recover from a deletion of the
+		 * parameters in the unknown handler
+		 */
 		int result, refcountBefore = procNameObj->refCount;
 		/*fprintf(stderr, "### refcount of %s before -> %d objc %d\n",
 		  ObjStr(procNameObj), procNameObj->refCount, pcPtr->objc);*/
@@ -16012,6 +16027,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  return NsfPrintError(interp, "Unknown handler for '%s' must not alter definition", 
 				       ObjStr(argumentObj));
 		}
+#endif
 		return NsfUnexpectedNonposArgumentError(interp, argumentString, 
 							(Nsf_Object *)object, 
 							currentParamPtr, paramPtr, 

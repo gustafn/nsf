@@ -278,6 +278,9 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   Tcl_DStringAppend(dsPtr, argumentString, -1);
   Tcl_DStringAppend(dsPtr, "', valid are : ", -1);
   for (pPtr = currentParamPtr; pPtr->name && *pPtr->name == '-'; pPtr ++) {
+    if (pPtr->flags & NSF_ARG_NOCONFIG) {
+      continue;
+    }
     Tcl_DStringAppend(dsPtr, pPtr->name, -1);
     Tcl_DStringAppend(dsPtr, ", ", -1);
   }

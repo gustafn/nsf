@@ -526,7 +526,7 @@ nx::Test case info-slot-parametersyntax {
   ? {C info parameter syntax} "?-a value? ?-b value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
   ? {C info parameter syntax a} "?-a value?"
 
-  ? {C info parameter definition} "-a {-b 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional"
+  ? {C info parameter definition} "-a {-b 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
 
   ? {C info parameter list} "-a -b -volatile -properties -noinit -mixin -class -filter __initcmd"
   ? {C info parameter names} "a b volatile properties noinit mixin class filter __initcmd"
