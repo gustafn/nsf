@@ -18,7 +18,7 @@ namespace eval ::nx::doc {
       \[\[$basename|$source_anchor\]\]
     }
 
-    :method render {project entity theme {tmplName ""}} {
+    :class method render {project entity theme {tmplName ""}} {
       
 
       
@@ -36,7 +36,7 @@ namespace eval ::nx::doc {
       return [$p serialize]
     }
 
-    :method installAssets {project theme targetDir} {
+    :class method installAssets {project theme targetDir} {
       #
       # render and append single glossary page to the output
       #
@@ -60,7 +60,7 @@ namespace eval ::nx::doc {
       #
       # TODO: assets (js, css, img must be wrapped as ::xowiki::Files)
       #
-      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
+      set assets [glob -directory [file join [findAssetPath] $theme] *]
 
       array set mime {
 	js	application/x-javascript

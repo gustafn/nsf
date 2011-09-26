@@ -3548,7 +3548,6 @@ Test run; exit
 - nsf.c: make ":" a full equivalent vor nsf::my 
   (i.e. support -local, -system and -intrinsic)
 - extend regression test
-
 nsf.c:
   - reform of argument parse. new parser uses NsfFlagObjType
     to reuse earlier parse resuslts. Improved speed for
@@ -3606,7 +3605,38 @@ nonleadingdash handling:
   - nx.tcl: added handling of parameter option "noleadingdash" 
     in objectParameterSlots
 
+- doc:
+    * integrate ::nx::doc::make with Makefile.in
+      (provide shell calls and, targets and dependencies)
 
+    * provide a different flag for the generation of the documentation
+      (-develop, .... or -final) to show/hide it.
+      SS: By "it", you refer to the glossary?
+
+   * separate entries for methods and hooks (can't be called if not defined)?
+    hooks: 
+      * recreate should only be called internally, similarly "init" etc.
+      * __unknown
+    unknown is a hook for Object but a method for Class
+
+- strange refcounting bug in 8.6b2 bug-is-86.tcl
+   where 2 refcounted items are not freed (value:class,
+   issued from nx.tcl around line 120). Compile with DEBUG86B2
+   for more info
+=================================================
+# -*- Tcl -*-
+package req nx
+package require nx::test
+
+nx::Test case ensemble-next-with-colon-prefix {
+  nx::Object create obj {
+    :public method foo {} { return [:info class] }     
+    #:public method bar {} { return [:info] }
+    :method info {} {;}
+  }
+  ? {obj foo} {wrong # args: should be ":info"}
+}
+=================================================
 
 TODO:
  - warnings for "numeric" names for args and nonpos-args?
@@ -3634,27 +3664,6 @@ TODO:
     o1 info slot objects ?-type value? ?pattern?
 
     o1 info children ?-type class? ?pattern?
-
- - doc/langRef2.xotcl vs library/xotcl/doc/langRef.xotcl
-
- - strange refcounting bug in 8.6b2 bug-is-86.tcl
-   where 2 refcounted items are not freed (value:class,
-   issued from nx.tcl around line 120). Compile with DEBUG86B2
-   for more info
-=================================================
-# -*- Tcl -*-
-package req nx
-package require nx::test
-
-nx::Test case ensemble-next-with-colon-prefix {
-  nx::Object create obj {
-    :public method foo {} { return [:info class] }     
-    #:public method bar {} { return [:info] }
-    :method info {} {;}
-  }
-  ? {obj foo} {wrong # args: should be ":info"}
-}
-=================================================
 
  - from parameters.test
     # TODO: currently, we need two converters (or a converter on nx::Slot), since
@@ -3756,26 +3765,25 @@ nx::Test case ensemble-next-with-colon-prefix {
   - default/initcmd/subsdefault: can we simplify these?
     or add messages for conflicting usages.
 
+- Makefile/::nsf::config: Integrate git meta-data (commit hash, branch/tag labels)
+
 - doc:
-    * integrate ::nx::doc::make with Makefile.in
-      (provide shell calls and, targets and dependencies)
 
-   NextScriptingLanguage/index.html: 
+    * @package.@require(): really needed? 
 
-    * glossary entries in nsf.nxd should be sorted (in the source)
-     ...... Maybe, a single glossary.nxd file?
-     SS: Right now, the name of the nxd file derives from the the
-     script name. I mark this as TODO for the future.
+    * @package.@version: fix validation mode ... expected/actual
+      version numbers are not compared ...
 
-    * provide a different flag for the generation of the documentation
-      (-develop, .... or -final) to show/hide it.
-      SS: By "it", you refer to the glossary?
+    * NextScriptingLanguage/index.html: glossary entries in nsf.nxd
+      should be sorted (in the source) ...... Maybe, a single glossary.nxd
+      file?  SS: Right now, the name of the nxd file derives from the the
+      script name. I mark this as TODO for the future.
 
-   * separate entries for methods and hooks (can't be called if not defined)?
-    hooks: 
-      * recreate should only be called internally, similarly "init" etc.
-      * __unknown
-    unknown is a hook for Object but a method for Class
+    * doc/langRef2.xotcl vs library/xotcl/doc/langRef.xotcl
+
+    * @author: how to visualise the authorship in the generated markup
+      (yuidoc)?
+
 
 - do we need contains in nx?
 

@@ -297,7 +297,7 @@ $(target_doc_dir)/nx/index.html: library/nx/nx.nxd $(PACKAGE_NAME).nxd
 $(xotcl_target_doc_dir)/XOTcl-langRef/index.html: library/xotcl/doc/langRef.xotcl 
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle XOTcl-langRef \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(xotcl_target_doc_dir) "@package:XOTcl-langRef"
+	-outdir $(xotcl_target_doc_dir) -frontend xodoc -- package:XOTcl-langRef
 
 yuidoc-dev: NXDFLAGS := -validation
 yuidoc-dev: yuidoc
@@ -325,7 +325,8 @@ $(target_doc_dir)/nx.xowiki : library/nx/nx.nxd $(PACKAGE_NAME).nxd
 $(xotcl_target_doc_dir)/XOTcl-langRef.xowiki : library/xotcl/doc/langRef.xotcl
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle XOTcl-langRef \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 "@package:XOTcl-langRef"
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 \
+	-frontend xodoc -- package:XOTcl-langRef
 
 xowiki-dev: NXDFLAGS := -validation
 xowiki-dev: xowiki

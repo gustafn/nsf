@@ -1,20 +1,20 @@
 html {
-    background:#fff url(assets/footer-bg-green.png) no-repeat bottom center;
+    background:#fff url(footer-bg-green.png) no-repeat bottom center;
 }
 
 body {
-    background:transparent url(assets/header-bg-green.png) no-repeat top center;
+    background:transparent url(header-bg-green.png) no-repeat top center;
 }
 
 .topnews-box {
-    background:#e7edd3 url(assets/boxarrow.png) no-repeat left 30px;
+    background:#e7edd3 url(boxarrow.png) no-repeat left 30px;
 }
 
 div.no-date { /* eg section iverview*/
-    background:#e7edd3 url(assets/boxarrow.png) no-repeat left 15px;
+    background:#e7edd3 url(boxarrow.png) no-repeat left 15px;
 }
 #searchwrapper input[type="submit"]:hover, input[type="submit"]:hover {
-    background:#89a618 url(assets/arrow-white.png) no-repeat center center;
+    background:#89a618 url(arrow-white.png) no-repeat center center;
 }
 
 .list-table th, input.submit-button:hover {

@@ -2,12 +2,13 @@ package provide nx::doc::html 1.0
 namespace eval ::nx::doc {}
 
 package require nx::doc 1.0
+package require nx::pp
 
 namespace eval ::nx::doc {
 
   Renderer create html {
     
-    :method render {project entity theme {tmplName ""}} {
+    :class method render {project entity theme {tmplName ""}} {
       set top_level_entities [$project navigatable_parts]
       set init [subst {
 	set project $project
@@ -18,8 +19,8 @@ namespace eval ::nx::doc {
       $entity render -initscript $init -theme $theme {*}$tmplName
     }
 
-    :method installAssets {project theme targetDir} {
-      set assets [glob -directory [file join [::nx::doc::find_asset_path] $theme] *]
+    :class method installAssets {project theme targetDir} {
+      set assets [glob -directory [file join [findAssetPath] $theme] *]
       file mkdir $targetDir
       if {$assets eq ""} return;
       file copy -force -- {*}$assets $targetDir
@@ -103,14 +104,28 @@ namespace eval ::nx::doc {
 	return "\[[join $js_array ,\n]\]"
       }
       
-      :public method navigatable_parts {} {
+      :public method navigatable_parts args {
 	#
 	# TODO: Should I wrap up delegating calls to the originator
 	# entity behind a unified interface (a gatekeeper?)
 	#
-	return [[:origin] owned_parts \
+	set ownedParts [[:origin] owned_parts \
 		    -where "!\${:@stashed}" \
 		    -class ::nx::doc::StructuredEntity]
+
+	foreach mergeParts $args {
+	  dict for {feature featureInstances} $mergeParts {
+	    if {![dict exists $ownedParts $feature]} {
+	      dict set ownedParts $feature $featureInstances
+	    } else {
+	      set prevInst [lindex [dict get $ownedParts $feature] 1]
+	      lappend prevInst {*}$featureInstances
+	      dict set ownedParts $feature [lsort -unique $prevInst]
+	    }
+	  }
+	}
+
+	return $ownedParts
       }
       
       :method listing {{-inline true} script} {
@@ -241,12 +256,12 @@ namespace eval ::nx::doc {
       :public method filename {} {
 	return "index"
       }
-      :public method navigatable_parts {} {
+      :public method navigatable_parts args {
 	#
 	# TODO: Should I wrap up delegating calls to the originator
 	# entity behind a unified interface (a gatekeeper?)
 	#
-	set top_level_entities [next]
+	set top_level_entities [next [list]]
 	dict for {feature instances} $top_level_entities {
 	  if {[$feature name] eq "@package"} {
 	    foreach pkg $instances {
@@ -364,7 +379,7 @@ namespace eval ::nx::doc {
 	    dict set inherited $entity [$entity !get \
 					    -sortedby name \
 					    -with name $member]
-	    if {[info exists previous_entity]} {
+	    if {[info exists previous_entity] && [dict exists $inherited $previous_entity]} {
 	      dict set inherited $previous_entity \
 		  [dict remove [dict get $inherited $previous_entity] \
 		       {*}[dict keys [dict get $inherited $entity]]]

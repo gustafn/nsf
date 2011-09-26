@@ -25,7 +25,7 @@
   <dd>$ddesc
     [:?objvar $entry refs {
     [:? {[$entry eval [concat dict exists \${:refs} [current]]]} { 
-      [:!let refs [sort_by_value [$entry eval [concat dict get \${:refs} [current]]]]]
+      [:!let refs [sortByValue [$entry eval [concat dict get \${:refs} [current]]]]]
   <div class="section field member"
        rel="yui:member"  resource="#">
     <div class="content" rel="yui:properties">

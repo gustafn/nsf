@@ -10,6 +10,13 @@
     <link rel="stylesheet" type="text/css" href="assets/api.css" />
     <link rel="stylesheet" type="text/css" href="assets/api-next.css"/>
 
+    <style type="text/css">
+      <!--
+	  html {background-image:none;}
+	  body {background-image:none;}
+      -->
+    </style>
+
     <script type="text/javascript" src="assets/api.js"></script>
     <script type="text/javascript" src="assets/ac.js"></script>
 </head>

@@ -1,5 +1,4 @@
-[:!let self_owned_parts [:navigatable_parts]]
-[:!let owned_parts [dict merge $project_entities $self_owned_parts]]
+[:!let owned_parts [:navigatable_parts $project_entities]]
 <div class="nav">
 [:for feature [dict keys $owned_parts]  {
   <div id="[$feature name]List" class="module">

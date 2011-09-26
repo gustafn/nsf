@@ -25,13 +25,15 @@ namespace eval ::nx::doc {
     :property {validation:switch false}
     
     #
-    # input
+    # frontend
     #
+    :property {frontend dc}
     :property includes
-    :property {excludes ""}
+    :property excludes
     :property indexfiles:alias
 
     :protected property sources:1..* {
+      set :incremental 1
       set :config false
     }
 
@@ -44,7 +46,11 @@ namespace eval ::nx::doc {
     }
 
     :protected method ... args {
-      :sources [concat {*}[split $args :]]
+      foreach i $args {
+	set idx [string first : $i]
+	if {$idx == -1} continue;
+	dict lappend :sources [string range $i 0 [expr {$idx - 1}]] [string range $i [expr {$idx + 1}] end]
+      }
     }
 
     :protected method indexfiles {paths} {
@@ -104,24 +110,20 @@ namespace eval ::nx::doc {
     }
     
     :protected method init {} {
-      set prj [@project new \
+
+      set prj [@project newFromSources \
+		   -frontend ${:frontend} \
+		   {*}[expr {[info exists :includes]?[list -include ${:includes}]:""}] \
+		   {*}[expr {[info exists :excludes]?[list -exclude ${:excludes}]:""}] \
+		   ${:sources} \
 		   -name ${:doctitle} \
 		   -url ${:docurl} \
 		   -version ${:docversion} \
-		   -sources ${:sources}]
+		   {*}[expr {${:validation}?"-mixin ::nx::doc::@project::Validator":""}]]
       
-      processor process \
-	  -sandboxed \
-	  {*}[expr {${:validation}?"-validate":""}] \
-	  {*}[expr {[info exists :includes]?"-include [list ${:includes}]":""}] \
-	  $prj
+
       
-      make doc \
-	  -format ${:format} \
-	  $prj \
-	  -theme ${:theme} \
-	  -layout ${:layout} \
-	  -outdir ${:outdir}
+      $prj write -format ${:format} -theme ${:theme} -layout ${:layout} -outdir ${:outdir}
     }
   }
   namespace export CLI

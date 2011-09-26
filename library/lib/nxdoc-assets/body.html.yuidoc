@@ -1,17 +1,28 @@
-<div id="doc4">
+<div id="doc3">
 	<div id="hd">
-    	<div id="logo">	
-		<!--  -->
-		<a href="/next-scripting/xowiki/about"><img src="assets/nsf-logo-green.png" style="margin-left:0px;margin-top:46px;" alt="next scripting framework" /></a>
-	</div>
-        <form onsubmit="return false">
-            <div id="propertysearch">
-                Search: <input autocomplete="off" id="searchinput" />
-                <div id="searchresults">
-                    &nbsp;
-                </div>
-            </div>
-        </form>
+    	  <div id="logo">
+	    <a href="/next-scripting/xowiki/about"><img src="assets/nsf-logo-green.png" style="margin-left:0px;margin-top:46px;" alt="next scripting framework" /></a>
+	  </div>
+	    <div class="yui-ge header-sub-doc">
+              <div id="breadcrumbs" class="yui-u first">
+		<a href="./index.html" title="[$project name]">[$project name]</a> 
+		[:? {[:info has type ::nx::doc::@package]} {
+		&gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
+		} ? {[:info has type ::nx::doc::@class]} {
+		&gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}
+		}]
+              </div>
+              <div id="searchwrapper" class="yui-u">
+		<form onsubmit="return false">
+		  <div id="propertysearch">
+                    Search: <input autocomplete="off" id="searchinput" />
+                    <div id="searchresults">
+                      &nbsp;
+                    </div>
+		  </div>
+		</form>
+              </div><!-- searchwrapper -->
+            </div><!--  header-sub-doc -->
 	</div><!-- hd -->
 	<div id="bd">
 	<div id="yui-main">
@@ -24,13 +35,6 @@
 	  <span class="subtitle">[$project version]</span>
 	  }]
 	</h3>
-        <a href="./index.html" title="[$project name]">[$project name]</a> 
-        [:? {[:info has type ::nx::doc::@package]} {
-	   &gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
-	  } ? {[:info has type ::nx::doc::@class]} {
-	  &gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}
-	  }]
-
 	<div class="yui-gd">
 	  <div class="yui-u first">
 	[:include leftbar]
@@ -53,10 +57,18 @@
 	</div> <!-- yui-main -->
 	</div><!-- bd -->
 	<div id="ft">
-      <hr />
-      Copyright &copy; [clock format [clock seconds] -format "%Y"]
-    </div>
-  </div>
-  <script type="text/javascript">
+	  <div class="yui-gd">
+            <div class="yui-u first">
+              &nbsp;
+            </div>
+            <div class="yui-u">
+              <div class="footer-info">
+		Copyright &copy; [clock format [clock seconds] -format "%Y"]
+              </div>
+            </div>
+	  </div>   
+	</div><!-- ft -->
+</div>
+<script type="text/javascript">
     ALL_YUI_PROPS = [:as_array_of_hashes];
   </script>

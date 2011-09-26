@@ -24,6 +24,11 @@ proc lcompare {a b} {
 
 # --
 
+#
+# Source the "Document Comment" backend
+#
+package require nx::doc::dc
+
 Test case scanning {
 
   set lines {
@@ -49,8 +54,9 @@ Test case scanning {
 
   }
   
+  set ::prj [@project new -name _PROJECT_]
   foreach {::line ::result} $lines {
-    ? {foreach {is_comment text} [processor analyze_line $::line] break; set is_comment} $::result "processor analyze_line '$::line'"
+    ? {foreach {is_comment text} [$::prj analyze_line $::line] break; set is_comment} $::result "processor analyze_line '$::line'"
   }
 
   set script {
@@ -81,19 +87,21 @@ Test case scanning {
 
   set blocks {1 {{ @package o} { 1 2 3}} 5 {{ @object o} { 1 2 3} {} {  345} { @tag1 part1} { @tag2 part2}} 17 {{ @object o # ####} {    1 2 3} {} { 345} { @tag1 part1} { @tag2 part2}}}
 
-    ? [list ::lcompare [processor comment_blocks $script] $blocks] 1
+    ? [list ::lcompare [$::prj comment_blocks $script] $blocks] 1
   }
-
+ 
     Test case parsing {
+      set ::prj [@project new -name _PROJECT_]
+      
+      namespace import -force ::nx::doc::CommentBlockParser
       #
       # TODO: Add tests for doc-parsing state machine.
       #
       set block {
 	{@command ::cc}
       }
-
-      set cbp [CommentBlockParser process $block]
-      ? [list $cbp status ? COMPLETED] 1
+      set ::cbp [CommentBlockParser process $block]
+      ? [list $::cbp status ? COMPLETED] 1
 
       set block {
 	{}
@@ -285,7 +293,12 @@ Test case scanning {
 
       set cbp [CommentBlockParser process $block]
       ? [list $cbp status ? INVALIDTAG] 1
-
+      
+      #
+      # TODO: Where shall we allow the @author tag?! Re-activate
+      # later, if necessary ...
+      #
+      if {0} {
       #
       # testing the doc object construction
       #
@@ -300,12 +313,16 @@ Test case scanning {
       }
 
       set cbp [CommentBlockParser process $block]
+    
       ? [list $cbp status ? COMPLETED] 1
+    
       set entity [$cbp current_entity]
       ? [list ::nsf::is object $entity] 1
       ? [list $entity info has type ::nx::doc::@object] 1
       ? [list $entity @author] "stefan.sobernig@wu.ac.at gustaf.neumann@wu-wien.ac.at";
       ? [list $entity as_text] "some more text and another line for the description";
+      
+    }
       
       set block {
 	{@command ::c} 
@@ -346,6 +363,7 @@ Test case scanning {
 
     }
 
+    if {0} {
     Test case in-situ-basics {
       #
       # basic test for in-situ documentation (initcmd block)
@@ -379,8 +397,9 @@ Test case scanning {
 	  :method foo {a b} {;}
 	}
       }
-      
-      set prj [processor process -sandboxed -type eval $script]
+
+      # set prj [processor process -sandboxed -type eval $script]
+      set prj [@project new -name _PROJECT_]
       
       set entity [@class id ::Foo]
       ? [list ::nsf::is object $entity] 1
@@ -1068,272 +1087,10 @@ Test case scanning {
       ? [list $entity eval {set :@c-implemented}] 1
       ? [list $entity @c-implemented] 1
       ? [list $entity eval {set :@syshook}] 1
-      ? [list $entity @syshook] 1
-      
-      
+      ? [list $entity @syshook] 1      
+    }
     }
 
-    if {0} {
-      puts stderr =================================================
-
-      # TODO: Figure out where to place nsf.nxd for convenient location ...
-
-      puts stderr >>>>>>>NextScriptingFramework<<<<<<<<
-      set project [::nx::doc::@project new \
-		       -name NextScriptingFramework \
-		       -url http://www.next-scripting.org/ \
-		       -version 1.0.0a \
-		       -@namespace "::nsf" \
-		       -sources {
-			 package nsf
-		       }]
-
-      set ::nsf::includes {
-	::nsf::alias
-	::nsf::configure 
-	::nsf::current
-	::nsf::finalize
-	::nsf::interp
-	::nsf::is
-	::nsf::log
-	::nsf::my
-	::nsf::next 
-	::nsf::relation
-	::nsf::tmpdir
-	::nsf::assertion
-	::nsf::objectsystem::create
-	::nsf::dispatch
-	::nsf::var::exists
-	::nsf::exithandler
-	::nsf::forward
-	::nsf::var::import
-	::nsf::object::exists
-	::nsf::method
-	::nsf::method::property
-	::nsf::method::provide
-	::nsf::object::qualify
-	::nsf::method::require
-	::nsf::setter
-	::nsf::var::set
-      }
-
-      set project [processor process \
-		       -sandboxed \
-		       -validate \
-		       -include $::nsf::includes $project]
-
-      ::nx::doc::make doc \
-	  -format html \
-	  $project \
-	  -theme yuidoc \
-	  -layout many-to-many \
-	  -outdir [::nsf::tmpdir]
-
-      ::nx::doc::make doc \
-	  -format xowiki \
-	  $project \
-	  -theme yuidoc \
-	  -layout many-to-1 \
-	  -outdir [::nsf::tmpdir]
-
-
-
-      puts stderr >>>>>>>NextScriptingLanguage<<<<<<<<
-
-      set ::nx::excludes {
-	::nsf::parametersfromslots
-	::nx::infoOptions
-	::nx::isSlotContainer
-	::nx::slotObj
-      }
-
-      # lappend ::nx::excludes {*}::nsf::classes::nx::Object::[join {
-      #   __default_property_call_protection
-      #   __default_method_call_protection
-      #   __resolve_method_path
-      #   cleanup
-      #   defaultmethod
-      #   init
-      #   objectparameter
-      #   residualargs
-      #   uplevel
-      #   upvar
-      # } " ::nsf::classes::nx::Object::"]
-
-      set project [::nx::doc::@project new \
-		       -name NextScriptingLanguage \
-		       -url http://www.next-scripting.org/ \
-		       -version 1.0.0a \
-		       -@namespace "::nx" \
-		       -sources {
-			 package nx
-		       } -depends $project]
-
-      dict set timings process [time {
-
-	# ISSUE: If calling '-namespace "::nx"' instead of '-@namespace
-	# "::nx"', we get an irritating failure. VERIFY!
-	processor process \
-	    -validate \
-	    -sandboxed \
-	    -exclude $::nx::excludes \
-	    $project
-      } 1]
-
-
-      dict set timings make.html.yuidoc [time {
-	::nx::doc::make doc $project \
-	    -outdir [::nsf::tmpdir]
-      } 1]
-
-      dict set timings make.html.asciidoc [time {
-	::nx::doc::make doc \
-	    -format html \
-	    $project \
-	    -theme asciidoc \
-	    -layout 1-to-1 \
-	    -outdir [::nsf::tmpdir]
-      } 1]
-
-      dict set timings make.xowiki.yuidoc [time {
-	::nx::doc::make doc \
-	    -format xowiki \
-	    $project \
-	    -theme yuidoc \
-	    -layout many-to-1 \
-	    -outdir [::nsf::tmpdir]
-      } 1]
-
-      dict for {probe t} $timings {
-	puts stderr "\t$probe -> $t"
-      }
-
-      set project [::nx::doc::@project new \
-		       -name XOTcl2 \
-		       -url http://www.xotcl.org/ \
-		       -version 2.0.0 \
-		       -@namespace "::xotcl" \
-		       -sources {
-			 @package XOTcl-langRef
-		       }]
-
-      processor process \
-	  -sandboxed \
-	  $project
-
-      ::nx::doc::make doc \
-	  -format html \
-	  $project \
-	  -theme yuidoc \
-	  -outdir [::nsf::tmpdir]
-
-      ::nx::doc::make doc \
-	  -format xowiki \
-	  $project \
-	  -theme yuidoc \
-	  -layout many-to-1 \
-	  -outdir [::nsf::tmpdir]
-
-    }
     # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # #
-
-    # 1) Test case scoping rules -> in Object->eval()
-
-    Test case issues? {
-
-      # TODO: where to locate the @ comments (in predefined.xotcl, in
-      # gentclAPI.decls)? how to deal with ::nsf::* vs. ::nx::*
-      
-      # TODO: which values are returned from Object->configure() and
-      # passed to init()? how to document residualargs()?
-
-      # TODO: Object->cleanup() said: "Resets an object or class into an
-      # initial state, as after construction." If by construction it means
-      # after create(), then cleanup() is missing a configure() call to
-      # set defaults, etc! 
-      # ?? cleanup does not set defaults; depending on "softrecreate", it 
-      # deletes instances, childobjects, procs, instprocs, ...
-
-      # TODO: what is Object->__next() for?
-
-      # See the following script:
-      #
-
-      # Object instproc defaultmethod {} {puts "[self proc]"; return [self]}
-      # Class A
-      # A instproc defaultmethod {} {puts "[self proc]"; [::xotcl::my info parent] __next}
-      # Class D -instproc t {} {puts "my stuff"}
-      # D create d1
-      # puts [d1 t]
-      # ### we create a subobject named t, which shadows effectively D->t
-      # A create d1::t
-      # puts ===
-      # # when we call "d1 t", we effectively call "d1::t", which calls "default method".
-      # # the defaultmethod should do a next on object d1.
-      # puts [d1 t]
-      # puts ===EXIT
-
-      # but seems - at least in this usecase broken. Deactivated
-      # in source for now.
-
-      # TODO: why is XOTclOUplevelMethodStub/XOTclOUplevelMethod defined
-      # with "args" while it logically uses the stipulated parameter
-      # signature (level ...). is this because of the first pos, optional
-      # parameter? ... same goes for upvar() ...
-
-      # the logic is a tribute to the argument logic in Tcl, which complex.
-      #   uplevel ?level? arg ?arg ...?
-      # It is a combination between an optional first argument and
-      # and an args logic. 
-      #
-      # Most likely, it could be partly solved with a logic for optional
-      # first arguments (if the number of actual arguments is 
-      # higher than the minimal number of arguments, one could fill optional
-      # parameter up..... but this calculation requires as well the interactions
-      # with nonpos arguments, which might be values for positional arguments
-      # as well.... not, sure, it is worth to invest much time here.
-
-      # TODO: how is upvar affected by the ":"-prefixing? -> AVOID_RESOLVERS ...
-
-      # this is a tcl question, maybe version dependent.
-      
-
-
-      # TODO: the objectsystems subcommand of ::nsf::configure does
-      # not really fit in there because it does not allow for configuring
-      # anything. it is a mere introspection-only command. relocate (can
-      # we extend standard [info] somehow, i.e., [info objectsystems]
-
-      # what means "configuring anything"? 
-      # maybe you are refering to "configure objectsystems" which is parked there.
-      # there would be an option to change the internally called methods via
-      # configure as well, but i think, one is asking for troubles by allowing 
-      # this.
-      # extending info is possible via the shadowcommands, but the tct
-      # does not like it.
-      #
-      # ad configure: we could fold as well methodproperty and
-      # objectproperty into configure since these allow as well setting
-      # and querying....
-      #
-      #   configure method METHODHANDLE public
-      #   configure object OBJECT metaclass
-      #
-      # but there, the object property is just for quering.
-      # Another option is define and "info"
-      #
-      #   ::nsf::info object OBJECT metaclass
-      #   ::nsf::info objectsystems 
-      #
-      # but if we would fold these into tcl-info, conflicts with
-      # tcl will arise.
-
-      # ISSUE: Object->info->parameter() still needed to retrieve
-      # objectparameters?
-
-      # TODO: decide how to deal with @package and @project names (don't
-      # need namespace delimiters!)
-
-    }

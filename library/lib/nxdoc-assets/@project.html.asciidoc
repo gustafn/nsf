@@ -78,7 +78,7 @@ font-style: italic;
       [:?objvar $entry refs {
       [:? {[$entry eval [concat dict exists \${:refs} [current]]]} { 
       <p><tt>
-	[:!let refs [sort_by_value [$entry eval [concat dict get \${:refs} [current]]]]]
+	[:!let refs [sortByValue [$entry eval [concat dict get \${:refs} [current]]]]]
         [:for src  [dict keys $refs] {
         <span> 
           [$src make_link [current]]

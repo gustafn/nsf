@@ -176,7 +176,7 @@ a:link, a:visited {
 }
 
 a.link-with-arrow {
-    background:transparent url(assets/arrow-download-blue.png) no-repeat left 4px;
+    background:transparent url(arrow-download-blue.png) no-repeat left 4px;
     padding-left:10px;
     text-decoration:none;
 }
@@ -307,7 +307,7 @@ ul.horizontal-head li a {
     width:148px;
 }
 #searchwrapper input[type="submit"] {
-    background:#fff url(assets/arrow-blue.png) no-repeat center center;
+    background:#fff url(arrow-blue.png) no-repeat center center;
     cursor:pointer;
     width:20px;
     /*height:20px;*/
@@ -349,13 +349,13 @@ ul.horizontal-head li a {
 .download-inner {
     display:block;
     border:1px solid #fff;
-    background:transparent url(assets/bg-download.png) no-repeat left top;
+    background:transparent url(bg-download.png) no-repeat left top;
     height:100%;
     padding:8px 10px 8px 100px;
     text-transform:uppercase;
 }
 .download-inner:hover {
-    background:transparent url(assets/bg-download-hover.png) no-repeat left top;
+    background:transparent url(bg-download-hover.png) no-repeat left top;
 }
 
     
@@ -454,7 +454,7 @@ input[type="text"], textarea {
     text-align:right;
     margin-bottom:20px;
     padding:40px 150px 0 0;
-    background:transparent url(assets/next-logo-s.png) no-repeat top right;
+    background:transparent url(next-logo-s.png) no-repeat top right;
 }
 
 
