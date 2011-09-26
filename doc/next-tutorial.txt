@@ -1324,7 +1324,7 @@ method parameters.
 If the position of a parameter in the list of formal arguments
 (e.g. passed to a function) is significant for its meaning, this is a
 _positional_ parameter. If the meaning of the parameter is independent
-of its postion, this is a _non-positional_ parameter. When we call a
+of its position, this is a _non-positional_ parameter. When we call a
 method with positional parameters, the meaning of the parameters (the
 association with the argument in the argument list of the method) is
 determined by its position. When we call a method with non-positional
