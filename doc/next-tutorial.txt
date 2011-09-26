@@ -1188,13 +1188,13 @@ nx::Class create C {
   }
 }
 
-# Method "bar" is on object specific method of "c1"
+# Method "bar" is an object specific method of "c1"
 c1 bar
 
 # object-specific method "foo" returns 2
 c1 foo
 
-# Method "baz" is on object specific method of "o1"
+# Method "baz" is an object specific method of "o1"
 nx::Object create o1 {
   :public method baz {} {return 4}
 }
@@ -1205,13 +1205,13 @@ o1 baz
 
 =========================================
 A *class method* is a method defined on a class, which is only
-applicable to the class object itself. The class method is an
+applicable to the class object itself. The class method is a
 per-object method of the class object.
 =========================================
 
 In NX, all classes are objects. Classes are in NX special kind of
 objects that have e.g. the ability to create instances and to provide
-methods to the instances. Classes manage their instances. The general
+methods for the instances. Classes manage their instances. The general
 method set for classes is defined on the meta-classes (more about
 this later).
 
@@ -1256,8 +1256,9 @@ are called "static methods".
 
 === Ensemble Methods 
 
-NX provides "ensemble methods", which are similar in concept to Tcl's
-ensemble commands. 
+NX provides "ensemble methods" as a means to structure the method name
+space and to group related methods. Ensemble methods are similar in
+concept to Tcl's ensemble commands.
 
 =========================================
 An *ensemble method* is a form of a hierarchical method consisting of
@@ -1298,7 +1299,57 @@ c1 string length "hello world"
 
 === Method Resolution
 
-...
+When a method is invoked, the applicable method is searched in the
+following order:
+
+[align="center"]
+++++
+Per-object Mixins -> Per-class Mixins -> Object -> Intrinsic Class Hierarchy
+++++ 
+
+In the case, no mixins are involved, first the object is searched for
+a per-object method with the given name, and then the class hierarchy
+of the object. The method can be defined multiple times on the search
+path, so some of these method definitions might be _shadowed_ by the
+more specific definitions. 
+
+[[xmp-method-resolution]]
+.Listing {counter:figure-number}: Method Resolution
+{set:xmp-method-resolution:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create C {
+  :public method foo {} { return "C foo: [next]"}
+}
+
+nx::Class create D -superclass C {
+
+  :public method foo {} { return "D foo: [next]"}
+
+   :create d1 {
+     :public method foo {} { return "d1 foo: [next]"}
+   }
+}
+
+# Invoke the method foo
+d1 foo
+# result: "d1 foo: D foo: C foo: "
+--------------------------------------------------
+
+Consider the example in
+<<xmp-method-resolution,{xmpmethod-resolution}>>. When the method
++foo+ is invoked on object +d1+, the per-object method has the highest
+precedence and is therefore invoked. The per-object methods shadows
+the same-named methods in the class hierarchy, namely the method +foo+
+of class +D+ and the method +foo+ of class +C+. The shadowed methods
+can be still invoked, either via the primitive +next+ or via method
+handles (we used already method handles in the section about method
+aliases). In the example above, +next+ calls the shadowed method and
+add their results to the results of evey method. So, the final result
+contains parts from +d1+, +D+ and +C+. Note, that the topmost +next+
+in method +foo+ of class +C+ shadows no method +foo+ and simply
+returns empty (and not an error message).
+
 
 === Parameters
 

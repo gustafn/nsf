@@ -3601,7 +3601,8 @@ nonleadingdash handling:
   - nsf.c: added error message, when "noleadingdash" is used on 
     non-positional parameters
   - nsf.c: use same logic for "nonleadingdash" to "value in argument"
-  - nsf.c: deactivated rudimentary unknown handler for the time being
+  - nsf.c: deactivated rudimentary unknown handler non nonpos args 
+    for the time being
   - nx.tcl: added handling of parameter option "noleadingdash" 
     in objectParameterSlots
 
