@@ -28,7 +28,7 @@
 	<div id="yui-main">
 	<div class="yui-b">
         <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
-        <h3>${:name}
+        <h3 class="subheading">${:name}
 	  [:? {[:info has type ::nx::doc::@package]} {
 	  <span class="subtitle">[:?var :@version {${:@version}} ]</span>
 	  } - {
