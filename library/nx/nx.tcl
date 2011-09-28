@@ -36,8 +36,8 @@ namespace eval ::nx {
   #
   # get frequenly used primitiva from the next scripting framework 
   #
-  namespace export next current self configure finalize interp is my relation
-  namespace import ::nsf::next ::nsf::current ::nsf::self ::nsf::my ::nsf::dispatch
+  namespace export next current self configure finalize interp is relation
+  namespace import ::nsf::next ::nsf::current ::nsf::self ::nsf::dispatch
 
   #
   # provide the standard command set for ::nx::Object
@@ -250,7 +250,7 @@ namespace eval ::nx {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
       }
-      set r [::nsf::my -system {*}$args]
+      set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-protected false}
       return $r
     }
@@ -260,7 +260,7 @@ namespace eval ::nx {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
       }
-      set r [::nsf::my -system {*}$args]
+      set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-protected true}
       return $r
     }
@@ -270,7 +270,7 @@ namespace eval ::nx {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
       }
-      set r [::nsf::my -system {*}$args]
+      set r [: -system {*}$args]
 
       if {$r ne ""} {::nsf::method::property [self] $r call-private true}
       return $r
@@ -513,7 +513,7 @@ namespace eval ::nx {
   #
   Object public method "delete property" {name} {
     # call explicitly the per-object variant of "info::slotobjects"
-    set slot [::nsf::my ::nsf::methods::object::info::slotobjects $name]
+    set slot [: ::nsf::methods::object::info::slotobjects $name]
     if {$slot eq ""} {error "[self]: cannot delete object specific property '$name'"}
     $slot destroy
     nsf::var::unset -nocomplain [self] $name
@@ -527,7 +527,7 @@ namespace eval ::nx {
       error "[self]: object does not have an instance variable '$name'"
     }
     # call explicitly the per-object variant of "info::slotobejcts"
-    set slot [::nsf::my ::nsf::methods::object::info::slotobjects $name]
+    set slot [: ::nsf::methods::object::info::slotobjects $name]
 
     if {$slot ne ""} {
       # it is not a slot-less variable
@@ -573,7 +573,7 @@ namespace eval ::nx {
       set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
       if {[info exists source]} {lappend cmd -source $source}
       if {[info exists pattern]} {lappend cmd $pattern}
-      return [::nsf::my {*}$cmd]
+      return [: {*}$cmd]
     }
     :alias "info children"         ::nsf::methods::object::info::children
     :alias "info class"            ::nsf::methods::object::info::class
@@ -590,20 +590,20 @@ namespace eval ::nx {
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slot definition" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
-      foreach slot [::nsf::my ::nsf::methods::object::info::slotobjects {*}[current args]] {
+      foreach slot [: ::nsf::methods::object::info::slotobjects {*}[current args]] {
 	lappend result [$slot getPropertyDefinition]
       }
       return $result
     }
     :method "info slot names" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
-      foreach slot [::nsf::my ::nsf::methods::object::info::slotobjects {*}[current args]] {
+      foreach slot [: ::nsf::methods::object::info::slotobjects {*}[current args]] {
 	lappend result [$slot name]
       }
       return $result
     }
     :method "info slot objects" {{-type ::nx::Slot} pattern:optional} {
-      return [::nsf::my ::nsf::methods::object::info::slotobjects {*}[current args]]
+      return [: ::nsf::methods::object::info::slotobjects {*}[current args]]
     }
     # "info properties" is a short form of "info slot definition"
     :alias "info properties"     ::nx::Object::slot::__info::slot::definition
@@ -654,42 +654,42 @@ namespace eval ::nx {
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
     :method "info parameter definition" {name:optional} {
       if {[info exists name]} {
-	return [::nsf::my ::nsf::methods::class::info::objectparameter parameter $name]
+	return [: ::nsf::methods::class::info::objectparameter parameter $name]
       }
       return [:objectparameter]
     }
     :method "info parameter list" {name:optional} {
       set cmd [list ::nsf::methods::class::info::objectparameter list]
       if {[info exists name]} {lappend cmd $name}
-      return [::nsf::my {*}$cmd]
+      return [: {*}$cmd]
     }
     :method "info parameter names" {name:optional} {
       set cmd [list ::nsf::methods::class::info::objectparameter name]
       if {[info exists name]} {lappend cmd $name}
-      return [::nsf::my {*}$cmd]
+      return [: {*}$cmd]
     }
     :method "info parameter syntax" {name:optional} {
       set cmd [list ::nsf::methods::class::info::objectparameter parametersyntax]
       if {[info exists name]} {lappend cmd $name}
-      return [::nsf::my {*}$cmd]
+      return [: {*}$cmd]
     }
     :method "info slot objects" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set cmd [list ::nsf::methods::class::info::slotobjects -type $type]
       if {[info exists source]} {lappend cmd -source $source}
       if {$closure} {lappend cmd -closure}
       if {[info exists pattern]} {lappend cmd $pattern}
-      return [::nsf::my {*}$cmd]
+      return [: {*}$cmd]
     }
     :method "info slot definition" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
-      foreach slot [::nsf::my ::nsf::methods::class::info::slotobjects {*}[current args]] {
+      foreach slot [: ::nsf::methods::class::info::slotobjects {*}[current args]] {
 	lappend result [$slot getPropertyDefinition]
       }
       return $result
     }
     :method "info slot names" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
-      foreach slot [::nsf::my ::nsf::methods::class::info::slotobjects {*}[current args]] {
+      foreach slot [: ::nsf::methods::class::info::slotobjects {*}[current args]] {
 	lappend result [$slot name]
       }
       return $result

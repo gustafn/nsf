@@ -696,10 +696,10 @@ nx::Test case speed-dispatch {
     :public method bar03 {} {[:]}
     :public method bar04 {} {:foo}
     :public method bar05 {} {: foo}
-    :public method bar06 {} {my foo}
+    #:public method bar06 {} {my foo}
     :public method bar07 {} {[self] foo}
     :public method bar08 {} {: -system info methods foo}
-    :public method bar09 {} {my -system info methods foo}
+    #:public method bar09 {} {my -system info methods foo}
   }
 
   ? {o foo} ::o
@@ -709,8 +709,8 @@ nx::Test case speed-dispatch {
   ? {o bar03} ::o {[:]}
   ? {o bar04} ::o ":foo"
   ? {o bar05} ::o ": foo"
-  ? {o bar06} ::o "my foo"
+  #? {o bar06} ::o "my foo"
   ? {o bar07} ::o "self foo"
   ? {o bar08} foo ": -system info"
-  ? {o bar09} foo "my -system info"
+  #? {o bar09} foo "my -system info"
 }
