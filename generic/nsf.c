@@ -19997,11 +19997,6 @@ ParamSetFromAny2(
                       NSF_DISALLOWED_ARG_VALUECHECK /* disallowed options */,
                       paramWrapperPtr->paramPtr, &possibleUnknowns,
 		      &plainParams, &nrNonposArgs);
-#if defined(DEBUG86B2)
-  fprintf(stderr, "ParamParse3 %s paramPtr %p returned ok? %d\n", 
-	  ObjStr(fullParamObj),
-	  paramWrapperPtr->paramPtr, result==TCL_OK);
-#endif
   /*
    * We treat currently unknown user level converters as error.
    */
