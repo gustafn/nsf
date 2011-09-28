@@ -660,7 +660,7 @@ the default protection for properties. The defaults can be overwritten
 also e.g. on a class level.
 
 NX provides means for method hiding via the method modifier
-+private+. Hidden methods can be invoked only via +my -local +
++private+. Hidden methods can be invoked only via the +-local+ flag,
 which means: "call the specified method defined in the same
 class/object as the currently executing method". 
 
@@ -677,13 +677,13 @@ class/object as the currently executing method".
 # Hiding of methods via "private"
 #
 nx::Class create Base {
-  :private method baz {a b} { expr {$a + $b} }
-  :public method foo {a b} { my -local baz $a $b }
+  :private method baz {a b} {expr {$a + $b}}	
+  :public method foo {a b} {: -local baz $a $b}
 }
     
 nx::Class create Sub -superclass Base {
-  :public method bar {a b} { my -local baz $a $b }
-  :private method baz {a b} { expr {$a * $b} }
+  :public method bar {a b} {: -local baz $a $b}
+  :private method baz {a b} {expr {$a * $b}}
 
   :create s1
 }

@@ -1768,7 +1768,7 @@ call protection for scripted methods, forwarder and aliases, while
 the default protection for properties. The defaults can be overwritten
 also e.g. on a class level.</p></div>
 <div class="paragraph"><p>NX provides means for method hiding via the method modifier
-<tt>private</tt>. Hidden methods can be invoked only via +my -local<br />
+<tt>private</tt>. Hidden methods can be invoked only via the <tt>-local</tt> flag,
 which means: "call the specified method defined in the same
 class/object as the currently executing method".</p></div>
 <div class="tableblock">
@@ -1812,13 +1812,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># Hiding of methods via "private"
 </span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base {
-  :<span class='nx-keyword'>private</span> <span class='nx-keyword'>method</span> baz {a b} { <span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> + <span class='nx-variable'>$b</span>} }
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> foo {a b} { <span class='nx-keyword'>my</span> -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span> }
+  :<span class='nx-keyword'>private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> + <span class='nx-variable'>$b</span>}}
+  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> foo {a b} {: -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
 }
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Sub -<span class='nx-keyword'>superclass</span> Base {
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> bar {a b} { <span class='nx-keyword'>my</span> -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span> }
-  :<span class='nx-keyword'>private</span> <span class='nx-keyword'>method</span> baz {a b} { <span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> * <span class='nx-variable'>$b</span>} }
+  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> bar {a b} {: -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
+  :<span class='nx-keyword'>private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> * <span class='nx-variable'>$b</span>}}
 
   :<span class='nx-keyword'>create</span> s1
 }
@@ -6856,7 +6856,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-09-05 13:18:52 CEST
+Last updated 2011-09-28 12:50:54 CEST
 </div>
 </div>
 </body>
