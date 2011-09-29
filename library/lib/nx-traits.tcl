@@ -46,7 +46,7 @@ nsf::proc nx::addTrait {obj traitName {nameMap ""}} {
   }
 }
 
-nx::Class public method useTrait {traitName {nameMap ""}} {
+nx::Class public method "require trait" {traitName {nameMap ""}} {
   # adding a trait to a class
   foreach m [$traitName requiredMethods] {
     #puts "$m ok? [:info methods -closure $m]"
@@ -62,7 +62,7 @@ nx::Class create nx::Trait {
   :property {requiredMethods:0..n,incremental ""}
   :property {requiredVariables:0..n,incremental ""}
 
-  :public method useTrait {traitName {nameMap ""}} {
+  :public method "require trait" {traitName {nameMap ""}} {
     # adding a trait to a trait
     nx::addTrait [self] $traitName $nameMap
     set finalReqMethods {}

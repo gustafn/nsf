@@ -41,8 +41,8 @@ package require nx::callback
    :property canvas:required    ;# the canvas, on which the horse is drawn
    :property n:integer,required ;# the position on the canvas
    
-   :useTrait nx::TCallback
-   :useTrait TListUtils
+   :require trait nx::TCallback
+   :require trait TListUtils
    
    :method draw {x y} {
      set hide [:lpick {black brown white gray brown3 brown4}]
@@ -80,8 +80,8 @@ package require nx::callback
    :property {height 330}   ;# height of the canvas
    :property {horses}       ;# a list of horse names participating in the game
    
-   :useTrait nx::TCallback
-   :useTrait TListUtils
+   :require trait nx::TCallback
+   :require trait TListUtils
    
    :method init {} {
      #

@@ -45,13 +45,13 @@ nx::Trait create TReadStream {
 }
 
 # Define the class +ReadStream+ with properties +position+ and
-# +collection+ that uses the trait. The method +useTrait+ checks the
+# +collection+ that uses the trait. The method +require trait+ checks the
 # requirements of the trait and imports the methods into +ReadStream+.
 
 nx::Class create ReadStream {
   :property {collection ""}
   :property {position 0}
-  :useTrait TReadStream
+  :require trait TReadStream
 }
 
 # Create an instance of the class +ReadStream+:

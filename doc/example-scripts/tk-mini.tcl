@@ -16,7 +16,7 @@ nx::Class create MyClass {
   #
   # The trait TCallback imports methods "callback" and "bindvar"
   #
-  :useTrait nx::TCallback
+  :require trait nx::TCallback
 
   :public method button-pressed {} {
     # When this method is invoked, the content of the ".label" widget

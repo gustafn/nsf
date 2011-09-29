@@ -3659,6 +3659,7 @@ nx::Test case ensemble-next-with-colon-prefix {
 - example scripts: added tk-mini and tk-horse-race
 
 - make "/object/ require" an ensemble method
+- traits: renamed "useTrait" into "require trait"
 
 TODO:
 

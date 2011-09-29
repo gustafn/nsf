@@ -773,8 +773,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>   :<span class='nx-keyword'>property</span> canvas:required    ;<span class='nx-comment'># the canvas, on which the horse is drawn
 </span>   :<span class='nx-keyword'>property</span> n:integer,required ;<span class='nx-comment'># the position on the canvas
 </span>
-   :useTrait nx::TCallback
-   :useTrait TListUtils
+   :require trait nx::TCallback
+   :require trait TListUtils
 
    :<span class='nx-keyword'>method</span> draw {x y} {
      <span class='nx-keyword'>set</span> hide [:lpick {black brown white gray brown3 brown4}]
@@ -812,8 +812,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>   :<span class='nx-keyword'>property</span> {height 330}   ;<span class='nx-comment'># height of the canvas
 </span>   :<span class='nx-keyword'>property</span> {horses}       ;<span class='nx-comment'># a list of horse names participating in the game
 </span>
-   :useTrait nx::TCallback
-   :useTrait TListUtils
+   :require trait nx::TCallback
+   :require trait TListUtils
 
    :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
      <span class='nx-comment'>#
@@ -889,7 +889,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-29 13:13:42 CEST
+Last updated 2011-09-29 21:29:19 CEST
 </div>
 </div>
 </body>

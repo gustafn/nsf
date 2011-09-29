@@ -55,8 +55,8 @@ nx::Trait create TReadStream {
   # This trait requires these methods:
   :requiredMethods {setToStart atEnd nextPosition}
 
-  # Use the trait "TPositionableStream"
-  :useTrait TPositionableStream
+  # Require the trait "TPositionableStream"
+  :require trait TPositionableStream
 }
 
 #
@@ -77,8 +77,8 @@ nx::Trait create TWriteStream {
   # This trait requires these methods:
   :requiredMethods {setToEnd nextPosition}
 
-  # Use the trait "TPositionableStream"
-  :useTrait TPositionableStream
+  # Require the trait "TPositionableStream"
+  :require trait TPositionableStream
 }
 
 # Define a class +ReadStream+ with properties +position+ and
@@ -86,7 +86,7 @@ nx::Trait create TWriteStream {
 nx::Class create ReadStream {
   :property {collection ""}
   :property {position 0}
-  :useTrait TReadStream
+  :require trait TReadStream
 }
 
 # Create an instance of +ReadStream+:

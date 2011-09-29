@@ -783,7 +783,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   :requiredVariables collection
 }</pre></div></div>
 <div class="paragraph"><p>Define the class <tt>ReadStream</tt> with properties <tt>position</tt> and
-<tt>collection</tt> that uses the trait. The method <tt>useTrait</tt> checks the
+<tt>collection</tt> that uses the trait. The method <tt>require trait</tt> checks the
 requirements of the trait and imports the methods into <tt>ReadStream</tt>.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -799,7 +799,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ReadStream {
   :<span class='nx-keyword'>property</span> {collection <span class='nx-string'>""</span>}
   :<span class='nx-keyword'>property</span> {position 0}
-  :useTrait TReadStream
+  :require trait TReadStream
 }</pre></div></div>
 <div class="paragraph"><p>Create an instance of the class <tt>ReadStream</tt>:</p></div>
 <div class="listingblock">
@@ -840,7 +840,7 @@ b</pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-29 10:21:28 CEST
+Last updated 2011-09-29 21:29:22 CEST
 </div>
 </div>
 </body>
