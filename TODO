@@ -3660,6 +3660,34 @@ nx::Test case ensemble-next-with-colon-prefix {
 
 
 TODO:
+
+- ISSUE: Default-setting mechanism seems to be keen on the relative
+  order of non-pos params once processed; for an example, run:
+
+package req nx
+package req nx::test
+
+nx::Class create C {
+  :public class method setObjectParams {spec} {
+    set :objectparams $spec
+    ::nsf::invalidateobjectparameter [current]
+  }
+  :class method objectparameter {} {
+    return ${:objectparams}
+  }
+  :setObjectParams ""
+}
+
+C method second {arg} {
+  set :first $arg
+}
+
+C setObjectParams {{-first "X"} -second:alias}
+? {[C new -second Y] eval {set :first}} Y; # OK!
+
+C setObjectParams {-second:alias {-first "X"}}
+? {[C new -second Y] eval {set :first}} X; # NOT OK! should be 'Y'!
+
  - add tk-spreadsheet and tk-railroad to example scripts
  - allow traits to be added to objects (maybe use :trait  
    instead of "useTrait" and allow modifier "class")
