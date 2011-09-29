@@ -226,6 +226,7 @@ COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(C
 
 EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/bagel.html \
+	$(src_doc_dir)/example-scripts/per-object-mixins.html \
 	$(src_doc_dir)/example-scripts/rosetta-abstract-type.html \
 	$(src_doc_dir)/example-scripts/rosetta-classes.html \
 	$(src_doc_dir)/example-scripts/rosetta-constraint-genericity.html \
@@ -236,6 +237,11 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/rosetta-serialization.html \
 	$(src_doc_dir)/example-scripts/rosetta-singleton.html \
 	$(src_doc_dir)/example-scripts/rosetta-unknown-method.html \
+	$(src_doc_dir)/example-scripts/tk-mini.html \
+	$(src_doc_dir)/example-scripts/tk-horse-race.html \
+	$(src_doc_dir)/example-scripts/traits-composite.html \
+	$(src_doc_dir)/example-scripts/traits-simple.html \
+
 
 %.html : %.tcl
 	$(TCLSH) $(src_app_dir_native)/utils/source-doc-beautifier.tcl $<

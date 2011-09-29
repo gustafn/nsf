@@ -40,7 +40,7 @@ package provide nx::trait 0.1
 
 nsf::proc nx::addTrait {obj traitName {nameMap ""}} {
   array set map $nameMap
-  foreach m [$traitName info methods] {
+  foreach m [$traitName info methods -callprotection all] {
     if {[info exists map($m)]} {set newName $map($m)} else {set newName $m}
     $obj public alias $newName [$traitName info method handle $m]
   }
@@ -48,15 +48,12 @@ nsf::proc nx::addTrait {obj traitName {nameMap ""}} {
 
 nx::Class public method useTrait {traitName {nameMap ""}} {
   # adding a trait to a class
-  set obj [:new]
   foreach m [$traitName requiredMethods] {
-    # it would be nice to have a ":info methods -closure $m", we would not have to instantiate the class.
     #puts "$m ok? [:info methods -closure $m]"
-    if {[$obj info lookup method $m] eq ""} {
+    if {[:info methods -closure $m] eq ""} {
       error "trait $traitName requires $m, which is not defined"
     }
   }
-  $obj destroy
   nx::addTrait [self] $traitName $nameMap
 }
 

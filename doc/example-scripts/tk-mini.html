@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.5" />
-<title>Listing of doc/example-scripts/traits-simple.tcl</title>
+<title>Listing of doc/example-scripts/tk-mini.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -712,23 +712,17 @@ asciidoc.install();
 </head>
 <body class="article">
 <div id="header">
-<h1>Listing of doc/example-scripts/traits-simple.tcl</h1>
+<h1>Listing of doc/example-scripts/tk-mini.tcl</h1>
 </div>
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<div class="paragraph"><p>Implementation study based on</p></div>
-<div class="olist upperalpha"><ol class="upperalpha">
-<li>
-<p>
-Ducasse, O. Nierstrasz, N. Schärli, R. Wuyts, A. Black:
-  Traits: A Mechanism for Fine-grained Reuse,
-  ACM transactions on Programming Language Systems, Vol 28, No 2, March 2006
-</p>
-</li>
-</ol></div>
-<div class="paragraph"><p>Example in Fig 12: ReadStream and Trait TReadStream</p></div>
-<div class="paragraph"><p>In this example, traits are used to extend classes and other traits.</p></div>
+<div class="paragraph"><p>Tiny Tk example scriped based on NX.</p></div>
+<div class="imageblock">
+<div class="content">
+<img src="tk-mini.png" alt="tk-mini.png" />
+</div>
+</div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -740,107 +734,44 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-keyword'>package</span> require nx::trait</pre></div></div>
-<div class="paragraph"><p>Create a simple trait called <tt>TReadStream</tt> which provides the
-interface to a stream. In contrary to a composite trait, a simple
-trait does not inherit from another trait.</p></div>
-<div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> TReadStream {
-  <span class='nx-comment'>#
-</span>  <span class='nx-comment'># Define the methods provided by this trait:
-</span>  <span class='nx-comment'>#
-</span>  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> atStart {} {<span class='nx-keyword'>expr</span> {[:position] == [:minPosition]}}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> atEnd {} {<span class='nx-keyword'>expr</span> {[:position] == [:maxPosition]}}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> setToStart {} {<span class='nx-keyword'>set</span> :position [:minPosition]}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> setToEnd {} {<span class='nx-keyword'>set</span> :position [:maxPosition]}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> maxPosition {} {<span class='nx-keyword'>llength</span> <span class='nx-variable'>${</span><span class='nx-variable'>:collection}</span>}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> on {collection} {<span class='nx-keyword'>set</span> :collection <span class='nx-variable'>$collection</span>; :setToStart}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>next</span> {} {
-    <span class='nx-keyword'>if</span> {[:atEnd]} {<span class='nx-keyword'>return</span> <span class='nx-string'>""</span>} <span class='nx-keyword'>else</span> {
-      <span class='nx-keyword'>set</span> r [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:collection}</span> <span class='nx-variable'>${</span><span class='nx-variable'>:position}</span>]
-      :nextPosition
-      <span class='nx-keyword'>return</span> <span class='nx-variable'>$r</span>
-    }
-  }
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> minPosition {} {<span class='nx-keyword'>return</span> 0}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> nextPosition {} {<span class='nx-keyword'>incr</span> :position 1}
+<pre class='nx'><span class='nx-keyword'>package</span> require Tk
+<span class='nx-keyword'>package</span> require nx::callback
 
-  <span class='nx-comment'># This trait requires a method "position" and a variable
-</span>  <span class='nx-comment'># "collection" from the base class. The definition is incomplete in
-</span>  <span class='nx-comment'># these regards.
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> MyClass {
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># A sample application class that creates a text entry field bound
+</span>  <span class='nx-comment'># to an instance variable. When the provided button is pressed, the
+</span>  <span class='nx-comment'># content of the variable is placed into an additional output label.
 </span>
-  :requiredMethods position
-  :requiredVariables collection
-}</pre></div></div>
-<div class="paragraph"><p>Define the class <tt>ReadStream</tt> with properties <tt>position</tt> and
-<tt>collection</tt> that uses the trait. The method <tt>useTrait</tt> checks the
-requirements of the trait and imports the methods into <tt>ReadStream</tt>.</p></div>
-<div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ReadStream {
-  :<span class='nx-keyword'>property</span> {collection <span class='nx-string'>""</span>}
-  :<span class='nx-keyword'>property</span> {position 0}
-  :useTrait TReadStream
-}</pre></div></div>
-<div class="paragraph"><p>Create an instance of the class <tt>ReadStream</tt>:</p></div>
-<div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>ReadStream <span class='nx-keyword'>create</span> r1 -collection {a b c d e}</pre></div></div>
-<div class="paragraph"><p>Test the behavior of the composed class:</p></div>
-<div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% r1 atStart
-1
-% r1 atEnd
-0
-% r1 <span class='nx-keyword'>next</span>
-a
-% r1 <span class='nx-keyword'>next</span>
-b</pre></div></div>
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># The trait TCallback imports methods "callback" and "bindvar"
+</span>  <span class='nx-comment'>#
+</span>  :useTrait nx::TCallback
+
+  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> button-pressed {} {
+    <span class='nx-comment'># When this method is invoked, the content of the ".label" widget
+</span>    <span class='nx-comment'># is updated with the content of the instance variable "myvar".
+</span>    .label configure -text <span class='nx-variable'>${</span><span class='nx-variable'>:myvar}</span>
+  }
+
+  :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
+    wm geometry . -500+500
+    pack [label .title -text <span class='nx-string'>"Type something and press the start button ..."</span>]
+    pack [entry .text -textvariable [:bindvar myvar]]
+    pack [label .label]
+    pack [button .button -text start -command [:callback button-pressed]]
+  }
+}
+
+MyClass <span class='nx-keyword'>new</span>
+</pre></div></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-29 10:21:28 CEST
+Last updated 2011-09-29 13:06:06 CEST
 </div>
 </div>
 </body>

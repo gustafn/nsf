@@ -3651,8 +3651,22 @@ nx::Test case ensemble-next-with-colon-prefix {
     "/obj/ info lookup methods")
   * extend regression test
 
+- nx-traits:
+  * use "info methods -closure" instead of instantiating a
+    class at trait-insertion time
+  * added trait as package nx::callback
+
+- example scripts: added tk-mini and tk-horse-race
+
 
 TODO:
+ - add tk-spreadsheet and tk-railroad to example scripts
+ - allow traits to be added to objects (maybe use :trait  
+   instead of "useTrait" and allow modifier "class")
+ - naming of traits. Predefined traits have a leading "T"
+   (convetion by ducasse); how should the package and file
+   be named? currently nx::trait nx-trait.tcl.
+
  - warnings for "numeric" names for args and nonpos-args?
  - special handling of values looking like nonpos-flags,
    but wich are not ones (-1, "- a b c", ....) in detection

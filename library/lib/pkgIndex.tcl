@@ -8,6 +8,7 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
+package ifneeded nx::callback 1.0 [list source [file join $dir nx-callback.tcl]]
 package ifneeded nx::doc 1.0 [list source [file join $dir nxdoc-core.tcl]]
 package ifneeded nx::doc::dc 1.0 [list source [file join $dir nxdoc-dc.tcl]]
 package ifneeded nx::doc::html 1.0 [list source [file join $dir nxdoc-html.tcl]]
