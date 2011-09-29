@@ -350,7 +350,7 @@ objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-callprotection" -type "all|public|protected|private" -default all}
   {-argName "-incontext" -nrargs 0}
-  {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-nomixins" -nrargs 0}
   {-argName "-path" -nrargs 0}
   {-argName "-source" -type "all|application|baseclasses"}
@@ -422,8 +422,10 @@ classInfoMethod method NsfClassInfoMethodMethod {
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-callprotection" -type "all|public|protected|private" -default all}
-  {-argName "-methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
+  {-argName "-closure" -nrargs 0}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-path" -nrargs 0}
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "pattern"}
 }
 classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {

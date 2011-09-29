@@ -984,3 +984,42 @@ nx::Test case method-origin {
   ? {set regHandle [o info method handle "foo bar"]} "::o::foo bar"
   ? {set origin [o info method origin "foo bar"]} "::o::foo::bar"
 }
+
+#
+# test "info methods -closure"
+#
+
+nx::Test case info-methods-closure {
+  nx::Class create C {
+    :public method c1 {} {...}
+    :method c2 {} {...}
+  }
+
+  nx::Class create D -superclass C {
+    :public method c1 {} {...}
+    :public method d1 {} {...}
+    :method d2 {} {...}
+  }
+
+  nx::Class create M {
+    :public method m1 {} {...}
+    :method m2 {} {...}
+  }
+  
+  ? {D info methods} "c1 d1 d2"
+
+  #
+  # info methods -closure lists instance methods
+  #
+  ? {D info methods -closure *2} "d2 c2"
+  ? {D info methods -closure -source application} "c1 d1 d2 c2"
+
+  D mixin M
+
+  #
+  # Check as well methods inherited from per-class mixins
+  #
+  ? {D info methods} "c1 d1 d2"
+  ? {D info methods -closure *2} "m2 d2 c2"
+  ? {D info methods -closure -source application} "m1 m2 c1 d1 d2 c2"
+}

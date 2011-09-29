@@ -3645,6 +3645,12 @@ nx::Test case ensemble-next-with-colon-prefix {
   * extended method resolution section
   * documented invocation flags for colon
 
+- nsf.c:
+  * add flags "-closure" and "-source" to "/cls/ info methods"
+    (the cases for "/obj/ info methods" are already covered by
+    "/obj/ info lookup methods")
+  * extend regression test
+
 
 TODO:
  - warnings for "numeric" names for args and nonpos-args?

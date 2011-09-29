@@ -38,6 +38,19 @@ static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CO
   return result;
 }
   
+enum SourceIdx {SourceNULL, SourceAllIdx, SourceApplicationIdx, SourceBaseclassesIdx};
+
+static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"all", "application", "baseclasses", NULL};
+  (void)pPtr;
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-source", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+  
 enum ScopeIdx {ScopeNULL, ScopeAllIdx, ScopeClassIdx, ScopeObjectIdx};
 
 static int ConvertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
@@ -59,19 +72,6 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   static CONST char *opts[] = {"list", "name", "parameter", "parametersyntax", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infoobjectparametersubcmd", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
-  *outObjPtr = objPtr;
-  return result;
-}
-  
-enum SourceIdx {SourceNULL, SourceAllIdx, SourceApplicationIdx, SourceBaseclassesIdx};
-
-static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
-  static CONST char *opts[] = {"all", "application", "baseclasses", NULL};
-  (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-source", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
@@ -322,7 +322,7 @@ static int NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *cl, int withD
 static int NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern);
 static int NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *cl, int infomethodsubcmd, Tcl_Obj *name);
-static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withCallprotection, int withMethodtype, int withPath, CONST char *pattern);
+static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withCallprotection, int withClosure, int withMethodtype, int withPath, int withSource, CONST char *pattern);
 static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withScope, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin);
@@ -796,12 +796,14 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     return TCL_ERROR;
   } else {
     int withCallprotection = (int )PTR2INT(pc.clientData[0]);
-    int withMethodtype = (int )PTR2INT(pc.clientData[1]);
-    int withPath = (int )PTR2INT(pc.clientData[2]);
-    CONST char *pattern = (CONST char *)pc.clientData[3];
+    int withClosure = (int )PTR2INT(pc.clientData[1]);
+    int withMethodtype = (int )PTR2INT(pc.clientData[2]);
+    int withPath = (int )PTR2INT(pc.clientData[3]);
+    int withSource = (int )PTR2INT(pc.clientData[4]);
+    CONST char *pattern = (CONST char *)pc.clientData[5];
 
     assert(pc.status == 0);
-    return NsfClassInfoMethodsMethod(interp, cl, withCallprotection, withMethodtype, withPath, pattern);
+    return NsfClassInfoMethodsMethod(interp, cl, withCallprotection, withClosure, withMethodtype, withPath, withSource, pattern);
 
   }
 }
@@ -2446,10 +2448,12 @@ static Nsf_methodDefinition method_definitions[] = {
   {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::class::info::methods", NsfClassInfoMethodsMethodStub, 4, {
+{"::nsf::methods::class::info::methods", NsfClassInfoMethodsMethodStub, 6, {
   {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-path", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::mixinof", NsfClassInfoMixinOfMethodStub, 3, {
