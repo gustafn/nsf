@@ -362,43 +362,6 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # Provide method "require"
-  ######################################################################
-
-  Object method require {what args} {
-    switch -- $what {
-      public -
-      protected {
-	set next [lindex $args 0]
-	if {$next ni {"class" "method"}} {
-	  error "public or procected must be followed by 'class' or 'method'"
-	}
-	set result [:require {*}$args]
-	#puts stderr "[list :require {*}$args] => $result"
-	::nsf::method::property [self] $result call-protected [expr {$what eq "protected"}]
-	return $result
-      }
-      class {
-	set what [lindex $args 0]
-	if {$what ne "method"} {
-	  error "'class' must be followed by 'method'"
-	}
-	set methodName [lindex $args 1]
-	::nsf::method::require [::nsf::self] $methodName 1
-	return [:info lookup method $methodName]
-      }
-      method {
-	set methodName [lindex $args 0]
-	return [::nsf::method::require [::nsf::self] $methodName 0]
-      }
-      namespace {
-	::nsf::directdispatch [::nsf::self] ::nsf::methods::object::requirenamespace
-      }
-    }
-  }
-
-
-  ######################################################################
   # Basic definitions for slots
   ######################################################################
   #
@@ -557,6 +520,51 @@ namespace eval ::nx {
     :alias "class delete property" ::nx::Object::slot::__delete::property
     :alias "class delete variable" ::nx::Object::slot::__delete::variable
     :alias "class delete method" ::nx::Object::slot::__delete::method
+  }
+
+  ######################################################################
+  # Provide method "require"
+  ######################################################################
+  Object eval {
+    :method "require namespace" {} {
+      ::nsf::directdispatch [::nsf::self] ::nsf::methods::object::requirenamespace
+    }
+    #
+    # method require, base cases
+    #
+    :method "require method" {methodName} {
+      return [::nsf::method::require [::nsf::self] $methodName 0]
+    }
+    :method "require class method" {methodName} {
+      ::nsf::method::require [::nsf::self] $methodName 1
+      return [:info lookup method $methodName]
+    }
+    #
+    # method require, explicit public
+    #
+    :method "require public method" {methodName} {
+      set result [:require method $methodName]
+      ::nsf::method::property [self] $result call-protected false
+      return $result
+    }
+    :method "require public class method" {methodName} {
+      set result [:require class method $methodName]
+      ::nsf::method::property [self] $result call-protected false
+      return $result
+    }
+    #
+    # method require, explicit protected
+    #
+    :method "require protected method" {methodName} {
+      set result [:require method $methodName]
+      ::nsf::method::property [self] $result call-protected true
+      return $result
+    }
+    :method "require protected class method" {methodName} {
+      set result [:require class method $methodName]
+      ::nsf::method::property [self] $result call-protected true
+      return $result
+    }
   }
  
   ######################################################################
