@@ -1434,7 +1434,7 @@ from the same place, where the current method is defined. Since the
 current method is defined as a per-object method, +foo+ is resolved as
 a per-object method. The effect is that the mixin definitions are
 ignored. The invocation flag +-local+ was already introduced int the
-setction about method protection, where it was used to call _private_
+section about method protection, where it was used to call _private_
 methods.
 
 The invocation flag +-intrinsic+ means that the method has to be resolved
