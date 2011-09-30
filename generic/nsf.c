@@ -20371,7 +20371,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	    (pc.flags[i-1] & NSF_PC_IS_DEFAULT),
 	    ObjStr(pc.full_objv[i]), paramPtr->nrArgs);*/
 
-    if ((object->flags & NSF_INIT_CALLED) && (pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
+    if (/*(object->flags & NSF_INIT_CALLED) &&*/ (pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
       Tcl_Obj *varObj;
 
       /*
@@ -20379,18 +20379,17 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * NSF_ARG_METHOD_INVOCATION is set) do not set instance variables, so
        * we do not have to check for existing variables.
        */
-      if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
-	continue;
-      }
-
-      varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
-      if (varObj) {
-	/*
-	 * The value exists already, ignore this parameter.
-	 */
-	/*fprintf(stderr, "a variable for %s exists already, ignore param flags %.6x valueObj %p\n",
-	  paramPtr->name, paramPtr->flags, pc.full_objv[i]);*/
-	continue;
+      if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) == 0) {
+	varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
+	if (varObj) {
+	  /*
+	   * The value exists already, ignore this parameter.
+	   */
+	  /*fprintf(stderr, "a variable for %s exists already, "
+		  "ignore param flags %.6x valueObj %p\n",
+		  paramPtr->name, paramPtr->flags, pc.full_objv[i]);*/
+	  continue;
+	}
       }
     }
 
@@ -20524,8 +20523,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	} else {
 	
 	  /*fprintf(stderr, "call alias %s with methodObj %s.%s oc %d, nrArgs %d '%s'\n",
-	    paramPtr->name, ObjectName(object), ObjStr(methodObj), oc,
-	    paramPtr->nrArgs, ObjStr(newValue));*/
+		  paramPtr->name, ObjectName(object), ObjStr(methodObj), oc,
+		  paramPtr->nrArgs, ObjStr(newValue));*/
 	  
 	  result = NsfCallMethodWithArgs(interp, (Nsf_Object*)object, methodObj,
 					 ov0, oc, ovPtr, NSF_CSC_IMMEDIATE);
@@ -20633,10 +20632,11 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      */
     if (i < paramDefs->nrParams || !pc.varArgs) {
 #if defined(CONFIGURE_ARGS_TRACE)
-      fprintf(stderr, "*** %s SET %s '%s'\n", ObjectName(object), ObjStr(paramPtr->nameObj), ObjStr(newValue));
+      fprintf(stderr, "*** %s SET %s '%s'\n", 
+	      ObjectName(object), ObjStr(paramPtr->nameObj), ObjStr(newValue));
 #endif
       /*
-       * Actually set instance variable with the provided or default value.
+       * Actually set instance variable with the provided value or default value.
        */
       Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
     }

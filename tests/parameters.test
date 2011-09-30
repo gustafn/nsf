@@ -2260,3 +2260,36 @@ nx::Test case properties {
   ? {Foo info properties} "objs:object,1..n {ints:integer,0..n {}} obj:object,0..1"
 
 }
+
+#
+# The following test case sets a value of an instance variable via a
+# side-effect of an aliased parameter. Side-effects from aliased
+# parameters are discouraged, since the order of the evaluation should
+# not matter of an declarative evaluation of the argument vector. 
+#
+# Note that the order, in which is the arguments are provided is not
+# significant for the evaluation order.
+#
+nx::Test case side-effect-set-value {
+
+  nx::Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [self]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams}
+    }
+    :setObjectParams ""
+  }
+  
+  C method second {arg} {
+    set :first $arg
+  }
+  
+  C setObjectParams {{-first "X"} -second:alias}
+  ? {[C new -second Y] eval {set :first}} Y "side-effect overwrites default"
+  
+  C setObjectParams {-second:alias {-first "X"}}
+  ? {[C new -second Y] eval {set :first}} Y "side-effect determines value"
+}

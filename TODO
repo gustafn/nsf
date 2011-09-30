@@ -3664,40 +3664,17 @@ nonleadingdash handling:
 - added per-object traits (and per-class-object traits)
 - added tk-spread and tk-locomotive to example scripts
 
+- altered default handling to honor side effects of aliased object
+  parameters. This slows down evaluation a little. Side-effects from
+  aliased parameters are discouraged, since the order of the
+  evaluation should not matter of an declarative evaluation of the
+  argument vector.
+- extended regression test
 
 
 
 TODO:
 
-- ISSUE: Default-setting mechanism seems to be keen on the relative
-  order of non-pos params once processed; for an example, run:
-
-package req nx
-package req nx::test
-
-nx::Class create C {
-  :public class method setObjectParams {spec} {
-    set :objectparams $spec
-    ::nsf::invalidateobjectparameter [current]
-  }
-  :class method objectparameter {} {
-    return ${:objectparams}
-  }
-  :setObjectParams ""
-}
-
-C method second {arg} {
-  set :first $arg
-}
-
-C setObjectParams {{-first "X"} -second:alias}
-? {[C new -second Y] eval {set :first}} Y; # OK!
-
-C setObjectParams {-second:alias {-first "X"}}
-? {[C new -second Y] eval {set :first}} X; # NOT OK! should be 'Y'!
-
- - allow traits to be added to objects (maybe use :trait  
-   instead of "useTrait" and allow modifier "class")
  - naming of traits. Predefined traits have a leading "T"
    (convetion by ducasse); how should the package and file
    be named? currently nx::trait nx-trait.tcl.
