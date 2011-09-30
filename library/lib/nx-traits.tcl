@@ -1,5 +1,5 @@
 package require nx
-package provide nx::trait 0.1
+package provide nx::trait 0.2
 
 # @package nx::trait
 # 
@@ -37,24 +37,56 @@ package provide nx::trait 0.1
 #        :useTrait ...
 #     }
 #
+namespace eval ::nx::trait {}
 
-nsf::proc nx::addTrait {obj traitName {nameMap ""}} {
+nsf::proc nx::trait::add {obj -per-object:switch traitName {nameMap ""}} {
   array set map $nameMap
   foreach m [$traitName info methods -callprotection all] {
     if {[info exists map($m)]} {set newName $map($m)} else {set newName $m}
-    $obj public alias $newName [$traitName info method handle $m]
+    # do not add entries with $newName empty
+    if {$newName eq ""} continue
+    set traitMethodHandle [$traitName info method origin $m]
+    if {${per-object}} {
+      $obj ::nsf::classes::nx::Object::alias $newName $traitMethodHandle
+    } else {
+      $obj public alias $newName $traitMethodHandle
+    }
+  }
+}
+
+nsf::proc nx::trait::checkObject {obj traitName} {
+  foreach m [$traitName requiredMethods] {
+    #puts "$m ok? [$obj info methods -closure $m]"
+    if {[$obj info lookup method $m] eq ""} {
+      error "trait $traitName requires $m, which is not defined for $obj"
+    }
+  }
+}
+nsf::proc nx::trait::checkClass {obj traitName} {
+  foreach m [$traitName requiredMethods] {
+    #puts "$m ok? [$obj info methods -closure $m]"
+    if {[$obj info methods -closure $m] eq ""} {
+      error "trait $traitName requires $m, which is not defined for $obj"
+    }
   }
 }
 
 nx::Class public method "require trait" {traitName {nameMap ""}} {
   # adding a trait to a class
-  foreach m [$traitName requiredMethods] {
-    #puts "$m ok? [:info methods -closure $m]"
-    if {[:info methods -closure $m] eq ""} {
-      error "trait $traitName requires $m, which is not defined"
-    }
-  }
-  nx::addTrait [self] $traitName $nameMap
+  nx::trait::checkClass [self] $traitName
+  nx::trait::add [self] $traitName $nameMap  
+}
+
+nx::Class public method "require class trait" {traitName {nameMap ""}} {
+  # adding a trait to the class object
+  nx::trait::checkObject [self] $traitName
+  nx::trait::add [self] -per-object $traitName $nameMap  
+}
+
+nx::Object public method "require trait" {traitName {nameMap ""}} {
+  # adding a trait to an object
+  nx::traitCheckObject [self] $traitName
+  nx::traitAdd [self] -per-object $traitName $nameMap
 }
 
 nx::Class create nx::Trait {
@@ -64,12 +96,12 @@ nx::Class create nx::Trait {
 
   :public method "require trait" {traitName {nameMap ""}} {
     # adding a trait to a trait
-    nx::addTrait [self] $traitName $nameMap
+    nx::trait::add [self] -per-object $traitName $nameMap
     set finalReqMethods {}
     foreach m [lsort -unique [concat ${:requiredMethods} [$traitName requiredMethods]]] {
       if {[:info lookup method $m] eq ""} {lappend finalReqMethods $m}
     }
-    puts "final reqMethods of [self]: $finalReqMethods // defined=[:info methods]"
+    #puts "final reqMethods of [self]: $finalReqMethods // defined=[:info methods]"
     set :requiredMethods $finalReqMethods
   }
 }
