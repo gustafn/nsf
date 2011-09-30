@@ -3620,20 +3620,20 @@ nonleadingdash handling:
    where 2 refcounted items are not freed (value:class,
    issued from nx.tcl around line 120). Compile with DEBUG86B2
    for more info
-=================================================
-# -*- Tcl -*-
-package req nx
-package require nx::test
+     =================================================
+     # -*- Tcl -*-
+     package req nx
+     package require nx::test
 
-nx::Test case ensemble-next-with-colon-prefix {
-  nx::Object create obj {
-    :public method foo {} { return [:info class] }     
-    #:public method bar {} { return [:info] }
-    :method info {} {;}
-  }
-  ? {obj foo} {wrong # args: should be ":info"}
-}
-=================================================
+     nx::Test case ensemble-next-with-colon-prefix {
+       nx::Object create obj {
+	 :public method foo {} { return [:info class] }     
+	 #:public method bar {} { return [:info] }
+	 :method info {} {;}
+       }
+       ? {obj foo} {wrong # args: should be ":info"}
+     }
+     =================================================
 
 - nsf.c: cleanup on DEBUG86B2
 
@@ -3660,6 +3660,12 @@ nx::Test case ensemble-next-with-colon-prefix {
 
 - make "/object/ require" an ensemble method
 - traits: renamed "useTrait" into "require trait"
+
+- added per-object traits (and per-class-object traits)
+- added tk-spread and tk-locomotive to example scripts
+
+
+
 
 TODO:
 
@@ -3690,7 +3696,6 @@ C setObjectParams {{-first "X"} -second:alias}
 C setObjectParams {-second:alias {-first "X"}}
 ? {[C new -second Y] eval {set :first}} X; # NOT OK! should be 'Y'!
 
- - add tk-spreadsheet and tk-railroad to example scripts
  - allow traits to be added to objects (maybe use :trait  
    instead of "useTrait" and allow modifier "class")
  - naming of traits. Predefined traits have a leading "T"
