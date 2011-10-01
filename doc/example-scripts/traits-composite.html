@@ -727,7 +727,7 @@ ACM transactions on Programming Language Systems, Vol 28, No 2, March 2006
 </p>
 </li>
 </ol></div>
-<div class="paragraph"><p>Fig 13: TReadStream and TWriteStream as composite traits</p></div>
+<div class="paragraph"><p>Fig 13: tReadStream and tWriteStream as composite traits</p></div>
 <div class="paragraph"><p>In this example, traits are used to extend classes and other traits
 (called then <em>composite traits</em>).</p></div>
 <div class="listingblock">
@@ -742,7 +742,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>package</span> req nx::trait</pre></div></div>
-<div class="paragraph"><p>Create a Trait called <tt>TPositionableStream</tt></p></div>
+<div class="paragraph"><p>Create a Trait called <tt>tPositionableStream</tt></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -754,7 +754,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> TPositionableStream {
+<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> tPositionableStream {
   <span class='nx-comment'>#
 </span>  <span class='nx-comment'># Define the methods provided by this trait:
 </span>  <span class='nx-comment'>#
@@ -773,8 +773,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   :requiredMethods position
   :requiredVariables collection
 }</pre></div></div>
-<div class="paragraph"><p>Create a composite trait called <tt>TReadStream</tt> based on the trait
-<tt>TPositionableStream</tt>:</p></div>
+<div class="paragraph"><p>Create a composite trait called <tt>tReadStream</tt> based on the trait
+<tt>tPositionableStream</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -786,7 +786,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> TReadStream {
+<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> tReadStream {
   <span class='nx-comment'>#
 </span>  <span class='nx-comment'># Methods provided by this trait:
 </span>  <span class='nx-comment'>#
@@ -802,11 +802,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   <span class='nx-comment'># This trait requires these methods:
 </span>  :requiredMethods {setToStart atEnd nextPosition}
 
-  <span class='nx-comment'># Require the trait "TPositionableStream"
-</span>  :require trait TPositionableStream
+  <span class='nx-comment'># Require the trait "tPositionableStream"
+</span>  :require trait tPositionableStream
 }</pre></div></div>
-<div class="paragraph"><p>Create a composite trait called <tt>TWriteStream</tt> based on the trait
-<tt>TPositionableStream</tt>:</p></div>
+<div class="paragraph"><p>Create a composite trait called <tt>tWriteStream</tt> based on the trait
+<tt>tPositionableStream</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -818,7 +818,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> TWriteStream {
+<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> tWriteStream {
   <span class='nx-comment'>#
 </span>  <span class='nx-comment'># Methods provided by this trait:
 </span>  <span class='nx-comment'>#
@@ -832,11 +832,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   <span class='nx-comment'># This trait requires these methods:
 </span>  :requiredMethods {setToEnd nextPosition}
 
-  <span class='nx-comment'># Require the trait "TPositionableStream"
-</span>  :require trait TPositionableStream
+  <span class='nx-comment'># Require the trait "tPositionableStream"
+</span>  :require trait tPositionableStream
 }</pre></div></div>
 <div class="paragraph"><p>Define a class <tt>ReadStream</tt> with properties <tt>position</tt> and
-<tt>collection</tt> that uses the composite trait <tt>TReadStream</tt>:</p></div>
+<tt>collection</tt> that uses the composite trait <tt>tReadStream</tt>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -851,7 +851,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ReadStream {
   :<span class='nx-keyword'>property</span> {collection <span class='nx-string'>""</span>}
   :<span class='nx-keyword'>property</span> {position 0}
-  :require trait TReadStream
+  :require trait tReadStream
 }</pre></div></div>
 <div class="paragraph"><p>Create an instance of <tt>ReadStream</tt>:</p></div>
 <div class="listingblock">
@@ -892,7 +892,7 @@ b</pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-29 21:29:20 CEST
+Last updated 2011-10-01 20:34:16 CEST
 </div>
 </div>
 </body>

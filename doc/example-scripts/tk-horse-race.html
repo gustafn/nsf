@@ -737,7 +737,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>package</span> require Tk
-<span class='nx-keyword'>package</span> require nx::callback
+<span class='nx-keyword'>package</span> require nx::trait
 
  <span class='nx-comment'>##############################################################################
 </span> <span class='nx-comment'># Trait ListUtils
@@ -745,7 +745,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span> <span class='nx-comment'># Some list utilities, not part of a package we can require here.
 </span> <span class='nx-comment'>##############################################################################
 </span>
- nx::Trait <span class='nx-keyword'>create</span> TListUtils {
+ nx::Trait <span class='nx-keyword'>create</span> ::nx::traits::listUtils {
 
    :<span class='nx-keyword'>protected</span> <span class='nx-keyword'>method</span> lpick {<span class='nx-keyword'>list</span>} {
      <span class='nx-comment'># return a random entry from a given list
@@ -773,8 +773,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>   :<span class='nx-keyword'>property</span> canvas:required    ;<span class='nx-comment'># the canvas, on which the horse is drawn
 </span>   :<span class='nx-keyword'>property</span> n:integer,required ;<span class='nx-comment'># the position on the canvas
 </span>
-   :require trait nx::TCallback
-   :require trait TListUtils
+   :require trait nx::traits::callback
+   :require trait nx::traits::listUtils
 
    :<span class='nx-keyword'>method</span> draw {x y} {
      <span class='nx-keyword'>set</span> hide [:lpick {black brown white gray brown3 brown4}]
@@ -812,8 +812,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>   :<span class='nx-keyword'>property</span> {height 330}   ;<span class='nx-comment'># height of the canvas
 </span>   :<span class='nx-keyword'>property</span> {horses}       ;<span class='nx-comment'># a list of horse names participating in the game
 </span>
-   :require trait nx::TCallback
-   :require trait TListUtils
+   :require trait nx::traits::callback
+   :require trait nx::traits::listUtils
 
    :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
      <span class='nx-comment'>#
@@ -889,7 +889,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-29 21:29:19 CEST
+Last updated 2011-10-01 20:34:10 CEST
 </div>
 </div>
 </body>

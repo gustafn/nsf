@@ -727,7 +727,7 @@ Ducasse, O. Nierstrasz, N. Schärli, R. Wuyts, A. Black:
 </p>
 </li>
 </ol></div>
-<div class="paragraph"><p>Example in Fig 12: ReadStream and Trait TReadStream</p></div>
+<div class="paragraph"><p>Example in Fig 12: ReadStream and Trait tReadStream</p></div>
 <div class="paragraph"><p>In this example, traits are used to extend classes and other traits.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -741,7 +741,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>package</span> require nx::trait</pre></div></div>
-<div class="paragraph"><p>Create a simple trait called <tt>TReadStream</tt> which provides the
+<div class="paragraph"><p>Create a simple trait called <tt>tReadStream</tt> which provides the
 interface to a stream. In contrary to a composite trait, a simple
 trait does not inherit from another trait.</p></div>
 <div class="listingblock">
@@ -755,7 +755,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> TReadStream {
+<pre class='nx'>nx::Trait <span class='nx-keyword'>create</span> tReadStream {
   <span class='nx-comment'>#
 </span>  <span class='nx-comment'># Define the methods provided by this trait:
 </span>  <span class='nx-comment'>#
@@ -799,7 +799,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ReadStream {
   :<span class='nx-keyword'>property</span> {collection <span class='nx-string'>""</span>}
   :<span class='nx-keyword'>property</span> {position 0}
-  :require trait TReadStream
+  :require trait tReadStream
 }</pre></div></div>
 <div class="paragraph"><p>Create an instance of the class <tt>ReadStream</tt>:</p></div>
 <div class="listingblock">
@@ -840,7 +840,7 @@ b</pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-29 21:29:22 CEST
+Last updated 2011-10-01 20:34:17 CEST
 </div>
 </div>
 </body>

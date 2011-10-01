@@ -4,7 +4,7 @@
 # Traits: A Mechanism for Fine-grained Reuse,
 # ACM transactions on Programming Language Systems, Vol 28, No 2, March 2006
 #
-# Fig 13: TReadStream and TWriteStream as composite traits
+# Fig 13: tReadStream and tWriteStream as composite traits
 #
 # In this example, traits are used to extend classes and other traits
 # (called then _composite traits_).
@@ -13,9 +13,9 @@ package req nx::test
 package req nx::trait
 
 #
-# Create a Trait called +TPositionableStream+
+# Create a Trait called +tPositionableStream+
 #
-nx::Trait create TPositionableStream {
+nx::Trait create tPositionableStream {
   #
   # Define the methods provided by this trait:
   #  
@@ -36,10 +36,10 @@ nx::Trait create TPositionableStream {
 }
 
 #
-# Create a composite trait called +TReadStream+ based on the trait
-# +TPositionableStream+:
+# Create a composite trait called +tReadStream+ based on the trait
+# +tPositionableStream+:
 #
-nx::Trait create TReadStream {
+nx::Trait create tReadStream {
   #
   # Methods provided by this trait:
   #  
@@ -55,15 +55,15 @@ nx::Trait create TReadStream {
   # This trait requires these methods:
   :requiredMethods {setToStart atEnd nextPosition}
 
-  # Require the trait "TPositionableStream"
-  :require trait TPositionableStream
+  # Require the trait "tPositionableStream"
+  :require trait tPositionableStream
 }
 
 #
-# Create a composite trait called +TWriteStream+ based on the trait
-# +TPositionableStream+:
+# Create a composite trait called +tWriteStream+ based on the trait
+# +tPositionableStream+:
 #
-nx::Trait create TWriteStream {
+nx::Trait create tWriteStream {
   #
   # Methods provided by this trait:
   #  
@@ -77,16 +77,16 @@ nx::Trait create TWriteStream {
   # This trait requires these methods:
   :requiredMethods {setToEnd nextPosition}
 
-  # Require the trait "TPositionableStream"
-  :require trait TPositionableStream
+  # Require the trait "tPositionableStream"
+  :require trait tPositionableStream
 }
 
 # Define a class +ReadStream+ with properties +position+ and
-# +collection+ that uses the composite trait +TReadStream+:
+# +collection+ that uses the composite trait +tReadStream+:
 nx::Class create ReadStream {
   :property {collection ""}
   :property {position 0}
-  :require trait TReadStream
+  :require trait tReadStream
 }
 
 # Create an instance of +ReadStream+:

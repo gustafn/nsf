@@ -735,7 +735,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>package</span> require Tk
-<span class='nx-keyword'>package</span> require nx::callback
+<span class='nx-keyword'>package</span> require nx::trait
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> MyClass {
   <span class='nx-comment'>#
@@ -744,9 +744,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  <span class='nx-comment'># content of the variable is placed into an additional output label.
 </span>
   <span class='nx-comment'>#
-</span>  <span class='nx-comment'># The trait TCallback imports methods "callback" and "bindvar"
+</span>  <span class='nx-comment'># The callback trait imports methods "callback" and "bindvar":
 </span>  <span class='nx-comment'>#
-</span>  :require trait nx::TCallback
+</span>  :require trait nx::traits::callback
 
   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> button-pressed {} {
     <span class='nx-comment'># When this method is invoked, the content of the ".label" widget
@@ -771,7 +771,7 @@ MyClass <span class='nx-keyword'>new</span>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-29 21:29:17 CEST
+Last updated 2011-10-01 20:34:14 CEST
 </div>
 </div>
 </body>

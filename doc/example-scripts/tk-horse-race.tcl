@@ -5,7 +5,7 @@
 # image::tk-horse-race.png[]
 #
 package require Tk
-package require nx::callback
+package require nx::trait
 
  ##############################################################################
  # Trait ListUtils
@@ -13,7 +13,7 @@ package require nx::callback
  # Some list utilities, not part of a package we can require here.
  ##############################################################################
 
- nx::Trait create TListUtils {
+ nx::Trait create ::nx::traits::listUtils {
 
    :protected method lpick {list} {
      # return a random entry from a given list
@@ -41,8 +41,8 @@ package require nx::callback
    :property canvas:required    ;# the canvas, on which the horse is drawn
    :property n:integer,required ;# the position on the canvas
    
-   :require trait nx::TCallback
-   :require trait TListUtils
+   :require trait nx::traits::callback
+   :require trait nx::traits::listUtils
    
    :method draw {x y} {
      set hide [:lpick {black brown white gray brown3 brown4}]
@@ -80,8 +80,8 @@ package require nx::callback
    :property {height 330}   ;# height of the canvas
    :property {horses}       ;# a list of horse names participating in the game
    
-   :require trait nx::TCallback
-   :require trait TListUtils
+   :require trait nx::traits::callback
+   :require trait nx::traits::listUtils
    
    :method init {} {
      #

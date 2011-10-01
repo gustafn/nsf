@@ -4,7 +4,7 @@
 #   Traits: A Mechanism for Fine-grained Reuse,
 #   ACM transactions on Programming Language Systems, Vol 28, No 2, March 2006
 #
-# Example in Fig 12: ReadStream and Trait TReadStream
+# Example in Fig 12: ReadStream and Trait tReadStream
 #
 # In this example, traits are used to extend classes and other traits.
 
@@ -12,11 +12,11 @@ package require nx::test
 package require nx::trait
 
 #
-# Create a simple trait called +TReadStream+ which provides the
+# Create a simple trait called +tReadStream+ which provides the
 # interface to a stream. In contrary to a composite trait, a simple
 # trait does not inherit from another trait.
 #
-nx::Trait create TReadStream {
+nx::Trait create tReadStream {
   #
   # Define the methods provided by this trait:
   #
@@ -51,7 +51,7 @@ nx::Trait create TReadStream {
 nx::Class create ReadStream {
   :property {collection ""}
   :property {position 0}
-  :require trait TReadStream
+  :require trait tReadStream
 }
 
 # Create an instance of the class +ReadStream+:

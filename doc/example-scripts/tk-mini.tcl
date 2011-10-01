@@ -5,7 +5,7 @@
 #
 
 package require Tk
-package require nx::callback
+package require nx::trait
 
 nx::Class create MyClass {
   #
@@ -14,9 +14,9 @@ nx::Class create MyClass {
   # content of the variable is placed into an additional output label.
 
   #
-  # The trait TCallback imports methods "callback" and "bindvar"
+  # The callback trait imports methods "callback" and "bindvar":
   #
-  :require trait nx::TCallback
+  :require trait nx::traits::callback
 
   :public method button-pressed {} {
     # When this method is invoked, the content of the ".label" widget

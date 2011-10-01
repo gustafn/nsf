@@ -5,6 +5,7 @@ namespace eval ::nx {
   namespace eval ::nsf {}; # make pkg indexer happy
   namespace eval ::nsf::object {}; # make pkg indexer happy
   namespace eval ::nx::internal {}; # make pkg indexer happy
+  namespace eval ::nx::traits {}; # make pkg indexer happy
 
   #
   # By setting the variable bootstrap, we can check later, whether we

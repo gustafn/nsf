@@ -17860,17 +17860,23 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   ObjectSystemsCleanup(interp, withKeepvars);
 
 #ifdef DO_CLEANUP
+  {
+    NsfRuntimeState *rst = RUNTIME_STATE(interp);
 # if defined(CHECK_ACTIVATION_COUNTS)
-  assert(RUNTIME_STATE(interp)->cscList == NULL);
+    assert(rst->cscList == NULL);
 # endif
-  /*fprintf(stderr, "CLEANUP TOP NS\n");*/
-  Tcl_Export(interp, RUNTIME_STATE(interp)->NsfNS, "", 1);
-  MEM_COUNT_FREE("TclNamespace",RUNTIME_STATE(interp)->NsfClassesNS);
-  MEM_COUNT_FREE("TclNamespace",RUNTIME_STATE(interp)->NsfNS);
-  Tcl_DeleteNamespace(RUNTIME_STATE(interp)->NsfClassesNS);
-  Tcl_DeleteNamespace(RUNTIME_STATE(interp)->NsfNS);
+    /*fprintf(stderr, "CLEANUP TOP NS\n");*/
+    Tcl_Export(interp, rst->NsfNS, "", 1);
+    if (rst->NsfClassesNS) {
+      MEM_COUNT_FREE("TclNamespace",rst->NsfClassesNS);
+      Tcl_DeleteNamespace(rst->NsfClassesNS);
+    }
+    if (rst->NsfNS) {
+      MEM_COUNT_FREE("TclNamespace",rst->NsfNS);
+      Tcl_DeleteNamespace(rst->NsfNS);
+    }
+  }
 #endif
-
   return TCL_OK;
 }
 

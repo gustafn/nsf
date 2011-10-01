@@ -8,7 +8,6 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded nx::callback 1.0 [list source [file join $dir nx-callback.tcl]]
 package ifneeded nx::doc 1.0 [list source [file join $dir nxdoc-core.tcl]]
 package ifneeded nx::doc::dc 1.0 [list source [file join $dir nxdoc-dc.tcl]]
 package ifneeded nx::doc::html 1.0 [list source [file join $dir nxdoc-html.tcl]]
@@ -16,5 +15,10 @@ package ifneeded nx::doc::xodoc 1.0 [list source [file join $dir nxdoc-xodoc.tcl
 package ifneeded nx::doc::xowiki 1.0 [list source [file join $dir nxdoc-xowiki.tcl]]
 package ifneeded nx::pp 1.0 [list source [file join $dir pp.tcl]]
 package ifneeded nx::test 1.0 [list source [file join $dir test.tcl]]
-package ifneeded nx::trait 0.2 [list source [file join $dir nx-traits.tcl]]
+package ifneeded nx::trait 0.3 [list source [file join $dir nx-traits.tcl]]
+package ifneeded nx::traits::callback 1.0 [list source [file join $dir nx-callback.tcl]]
 package ifneeded nx::zip 1.1 [list source [file join $dir nx-zip.tcl]]
+# -*- Tcl -*-
+namespace eval ::nsf {
+  set traitIndex(nx::traits::callback) {script {package require nx::traits::callback}}
+} 

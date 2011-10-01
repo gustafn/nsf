@@ -6,7 +6,7 @@
 # image::tk-spread.png[]
 #
 package require Tk
-package require nx::callback
+package require nx::trait
 
  ##############################################################################
  # Class SpreadSheet
@@ -31,7 +31,7 @@ package require nx::callback
    #
    # Use the nx callback trait 
    #
-   :require trait nx::TCallback
+   :require trait nx::traits::callback
    
    #
    # The method "cell" hides the internal respresentation and sets a
