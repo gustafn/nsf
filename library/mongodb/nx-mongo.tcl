@@ -341,7 +341,7 @@ namespace eval ::nx::mongo {
     #
     :public method property {spec {-class ::nx::mongo::Attribute} {initblock ""}} {
       regsub -all {,type=} $spec {,arg=} spec
-      next [list $spec -class $class $initblock]
+      next [list -class $class $spec $initblock]
     }
     
     #
@@ -477,7 +477,7 @@ namespace eval ::nx::mongo {
     #
     # _id is the special property maintained by mongoDB
     #
-    :property _id -class ::nx::mongo::Attribute {
+    :property -class ::nx::mongo::Attribute _id  {
       set :mongotype oid
     }
 

@@ -98,21 +98,27 @@ nx::mongo::Class create Group {
   :property name
   :property members:reference,type=::Member,0..n
 }
+if {0} {
+  #
+  # Currently, the mongo c-driver does not allow to add DBRefs, since
+  # it refuses to accept field names with leading '$'. So we skip this
+  # version for the time being.
+  #
+  Group insert -name "grp4" \
+      -members [list \
+		    [Member new -name gustaf] \
+		    [Member new -name stefan]]
 
-Group insert -name "grp4" \
-    -members [list \
-		  [Member new -name gustaf] \
-		  [Member new -name stefan]]
-
-# Retrieve the entry from the database:
-set g [Group find first -cond {name = "grp4"}]
-
-puts stderr "Members of group [$g name]:"
-foreach m [$g members] {puts stderr "\t[$m name]"}
-puts stderr ""
-
-puts stderr "Content of collection groups:"
-Group show
+  # Retrieve the entry from the database:
+  set g [Group find first -cond {name = "grp4"}]
+  
+  puts stderr "Members of group [$g name]:"
+  foreach m [$g members] {puts stderr "\t[$m name]"}
+  puts stderr ""
+  
+  puts stderr "Content of collection groups:"
+  Group show
+}
 
 ######################################################################
 # Output

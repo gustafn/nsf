@@ -93,12 +93,12 @@ typedef struct {
 #endif
 
 
-static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
+static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
-                         Nsf_Param *paramPtr, int nrParameters, int doCheck,
-                         ParseContext *pc) {
+                         Nsf_Param CONST *paramPtr, int nrParameters, int serial,
+			 int doCheck, ParseContext *pc) {
   return Nsf_ArgumentParse(interp, objc, objv, (Nsf_Object *)obj, 
-			   procName, paramPtr, nrParameters, 
+			   procName, paramPtr, nrParameters, serial,
 			   doCheck, (Nsf_ParseContext *)pc);
 }
 
@@ -623,7 +623,6 @@ cmd insert NsfMongoInsert {
 static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *valuesObj) {
   int i, objc, result;
   Tcl_Obj **objv, *resultObj;
-  //bson buf[1];
   bson b[1];
 
   result = Tcl_ListObjGetElements(interp, valuesObj, &objc, &objv);
@@ -644,15 +643,17 @@ static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namesp
   }
 
   bson_finish(b);
-  //bson_from_buffer( b, buf );
-  mongo_insert(connPtr, namespace, b);
-  
-  resultObj = BsonToList(interp, b->data, 0);
-  Tcl_SetObjResult(interp, resultObj);
+  result = mongo_insert(connPtr, namespace, b);
 
+  if (result == MONGO_ERROR) {
+    result = NsfPrintError(interp, ErrorMsg(connPtr->err));
+  } else {
+    resultObj = BsonToList(interp, b->data, 0);
+    Tcl_SetObjResult(interp, resultObj);
+    result = TCL_OK;
+  }
   bson_destroy(b);
-
-  return TCL_OK;
+  return result;
 }
 
 /*
@@ -938,8 +939,9 @@ NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *gridfsPtr, CONST char *filename
 
   gridFilePtr = (gridfile *)ckalloc(sizeof(gridfile));
   result = gridfs_find_filename(gridfsPtr, filename, gridFilePtr);
+  fprintf(stderr, "NsfMongoGridFileOpen returned result %d\n", result);
 
-  if (result == 1) {
+  if (result == MONGO_OK) {
     Nsf_PointerAdd(interp, buffer, "gridfile", gridFilePtr);
     Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
   } else {

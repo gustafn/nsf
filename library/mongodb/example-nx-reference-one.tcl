@@ -89,15 +89,22 @@ nx::mongo::Class create Post {
   :property user:reference,type=::User
 }
 
-Post insert -title "Hello referenced World" -user [User new -name Smith]
+if {0} {
+  #
+  # Currently, the mongo c-driver does not allow to add DBRefs, since
+  # it refuses to accept field names with leading '$'. So we skip this
+  # version for the time being.
+  #
+  Post insert -title "Hello referenced World" -user [User new -name Smith]
 
-# Retrieve the entry from the database:
-set p [Post find first -cond {title = "Hello referenced World"}]
-puts stderr "Name of user: [[$p user] name]\n"
-
-puts stderr "Content of the collection groups:"
-Post show
-
+  # Retrieve the entry from the database:
+  set p [Post find first -cond {title = "Hello referenced World"}]
+  
+  puts stderr "Name of user: [[$p user] name]\n"
+  
+  puts stderr "Content of the collection groups:"
+  Post show
+}
 ######################################################################
 # Output
 ######################################################################

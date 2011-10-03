@@ -76,7 +76,7 @@ NsfMongoCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoCloseIdx].paramDefs, 
-                     method_definitions[NsfMongoCloseIdx].nrParameters, 1,
+                     method_definitions[NsfMongoCloseIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -95,7 +95,7 @@ NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoConnectIdx].paramDefs, 
-                     method_definitions[NsfMongoConnectIdx].nrParameters, 1,
+                     method_definitions[NsfMongoConnectIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -116,7 +116,7 @@ NsfMongoCountStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoCountIdx].paramDefs, 
-                     method_definitions[NsfMongoCountIdx].nrParameters, 1,
+                     method_definitions[NsfMongoCountIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -137,7 +137,7 @@ NsfMongoGridFSCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFSCloseIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFSCloseIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFSCloseIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -156,7 +156,7 @@ NsfMongoGridFSOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFSOpenIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFSOpenIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFSOpenIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -177,7 +177,7 @@ NsfMongoGridFSRemoveFileStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFSRemoveFileIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFSRemoveFileIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFSRemoveFileIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -197,7 +197,7 @@ NsfMongoGridFSStoreFileStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFSStoreFileIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFSStoreFileIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFSStoreFileIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -219,7 +219,7 @@ NsfMongoGridFileCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileCloseIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileCloseIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFileCloseIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -238,7 +238,7 @@ NsfMongoGridFileGetContentTypeStub(ClientData clientData, Tcl_Interp *interp, in
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileGetContentTypeIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileGetContentTypeIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFileGetContentTypeIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -257,7 +257,7 @@ NsfMongoGridFileGetContentlengthStub(ClientData clientData, Tcl_Interp *interp, 
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileGetContentlengthIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileGetContentlengthIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFileGetContentlengthIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -276,7 +276,7 @@ NsfMongoGridFileGetMetaDataStub(ClientData clientData, Tcl_Interp *interp, int o
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileGetMetaDataIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileGetMetaDataIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFileGetMetaDataIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -295,7 +295,7 @@ NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileOpenIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileOpenIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFileOpenIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -315,7 +315,7 @@ NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileReadIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileReadIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFileReadIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -335,7 +335,7 @@ NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileSeekIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileSeekIdx].nrParameters, 1,
+                     method_definitions[NsfMongoGridFileSeekIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -355,7 +355,7 @@ NsfMongoIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoIndexIdx].paramDefs, 
-                     method_definitions[NsfMongoIndexIdx].nrParameters, 1,
+                     method_definitions[NsfMongoIndexIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -380,7 +380,7 @@ NsfMongoInsertStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoInsertIdx].paramDefs, 
-                     method_definitions[NsfMongoInsertIdx].nrParameters, 1,
+                     method_definitions[NsfMongoInsertIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -401,7 +401,7 @@ NsfMongoQueryStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoQueryIdx].paramDefs, 
-                     method_definitions[NsfMongoQueryIdx].nrParameters, 1,
+                     method_definitions[NsfMongoQueryIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -425,7 +425,7 @@ NsfMongoRemoveStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoRemoveIdx].paramDefs, 
-                     method_definitions[NsfMongoRemoveIdx].nrParameters, 1,
+                     method_definitions[NsfMongoRemoveIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -446,7 +446,7 @@ NsfMongoUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoUpdateIdx].paramDefs, 
-                     method_definitions[NsfMongoUpdateIdx].nrParameters, 1,
+                     method_definitions[NsfMongoUpdateIdx].nrParameters, 0, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {

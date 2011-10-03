@@ -3671,6 +3671,12 @@ nonleadingdash handling:
   argument vector.
 - extended regression test
 
+- library/mongo:
+  * updated interface to current nx
+  * updated to mongo-c-driver 0.4 (current version)
+  * The mongo c-driver does not allow to add DBRefs, since
+    it refuses to accept field names with leading '$'. So we skip these
+    tests for the time being.
 
 
 TODO:

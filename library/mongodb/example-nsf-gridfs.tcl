@@ -50,7 +50,7 @@ set gridFS [::mongo::gridfs::open $mongoConn myfs fs]
 set fn README
 if {[file readable $fn]} {
   set r [::mongo::gridfs::store_file $gridFS $fn $fn text/plain]
-  puts stderr r=$r
+  puts stderr "::mongo::gridfs::store_file returned $r"
 } else {
   puts stderr "no such file: $fn"
 }
@@ -60,7 +60,7 @@ if {[file readable $fn]} {
 # of 500 bytes, and close it finally.
 #
 set f [mongo::gridfile::open $gridFS README]
-puts stderr "\nOpened grid file $f"
+puts stderr "\nOpened grid file '$f'"
 puts stderr "Metadata: [mongo::gridfile::get_metadata $f]"
 puts stderr "ContentLength: [mongo::gridfile::get_contentlength $f]"
 puts stderr "ContentType: [mongo::gridfile::get_contenttype $f]"
