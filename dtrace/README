@@ -3,7 +3,7 @@ DTrace provider for the Next Scripting Language
 This is an implementation of a DTrace provider for the Next Scripting
 Language (nsf). The nsf provider is designed to be used with and
 without the DTrace support for Tcl. Therefore, nsf can be configured
-with --enable-trace also in cases where Tcl was compiled without it.
+with --with-dtrace also in cases where Tcl was compiled without it.
 
 To enable DTrace, run configure with the flag --enable-dtrace. The
 DTrace support for nsf was developed under Mac OS X, other platforms
