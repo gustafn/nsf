@@ -27,7 +27,7 @@ following hints might help:
   (see below)
 
 * If dtrace compliation fails (e.g. "... nsf*:::method-entry does not
-  match any probes", start an nxsh in a different window to make the
+  match any probes"), start an nxsh in a different window to make the
   nsf provider and the probes known to the kernel.
 
 -gustaf neumann
