@@ -2380,7 +2380,7 @@ fi
 
 # Check whether --with-dtrace was given.
 if test "${with_dtrace+set}" = set; then :
-  withval=$with_dtrace; with_dtrace=$enableval
+  withval=$with_dtrace; with_dtrace=$withval
 else
   with_dtrace=no
 fi
