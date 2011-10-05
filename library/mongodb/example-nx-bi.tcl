@@ -46,7 +46,7 @@ nx::mongo::db remove tutorial.postings {}
 nx::mongo::Class create Comment {
   :property author:required
   :property comment:required 
-  :property replies:embedded,type=::Comment,0..n {set :incremental 1}
+  :property replies:embedded,incremental,type=::Comment,0..n
 }
 
 nx::mongo::Class create Posting {
@@ -54,8 +54,8 @@ nx::mongo::Class create Posting {
   :property title:required
   :property author:required
   :property ts:required
-  :property comments:embedded,type=::Comment,0..n {set :incremental 1}
-  :property tags:0..n {set :incremental 1}
+  :property comments:embedded,incremental,type=::Comment,0..n
+  :property tags:incremental,0..n
 }
 
 ######################################################################
