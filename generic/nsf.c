@@ -8728,8 +8728,10 @@ static int
 ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[0];
   /*CONST char *methodName = data[2];*/
-#if defined(NSF_WITH_ASSERTIONS)
+#if defined(NSF_WITH_ASSERTIONS) || defined(NRE)
   NsfCallStackContent *cscPtr = data[1];
+#endif
+#if defined(NSF_WITH_ASSERTIONS)
   NsfObject *object = cscPtr->self;
   NsfObjectOpt *opt = object->opt;
 #endif
