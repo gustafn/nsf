@@ -86,7 +86,7 @@ namespace eval ::nx::pp {
       }
     }
 
-    set :re(keyword) (\\m[join {
+    set keywords {
       after append apply array binary break catch cd chan clock close concat continue
       dict else encoding eof error eval exec exit expr fblocked fconfigure fcopy file 
       fileevent flush for foreach format gets glob global if incr info interp join
@@ -96,23 +96,26 @@ namespace eval ::nx::pp {
       tell trace unset uplevel update upvar variable vwait while
       package
       public protected private
-      method alias property forward delete
-      my next new self current dispatch
-      create init new destroy alloc dealloc
-      class superclass mixin filter guard
+      method alias property forward delete require
+      my next new self current dispatch objectparameter defaultmethod
+      create init new destroy alloc dealloc recreate unknown move configure
+      class superclass mixin filter guard metaclass
       methods lookup
       ::nx::Class nx::Class ::xotcl::Class xotcl::Class Class 
       ::nx::Object nx::Object ::xotcl::Object xotcl::Object Object 
       ::nx::VariableSlot nx::VariableSlot Attribute 
-      Object
-    } \\M|\\m]\\M)
+    }
+    set :re(keyword1) (\[^:.-\])(\\m[join $keywords \\M|\\m]\\M)
+    set :re(keyword2) (\[^:\])(\\m:[join $keywords \\M|:\\m]\\M)
 
     set :re(placeholder1) {([/][a-zA-Z0-9:]+?[/])}
     set :re(placeholder2) {([?][^ ][-a-zA-Z0-9: .]+?[?])}
 
     :public method flush {} {
       set html [string map [list & {&amp;} < {&lt;} > {&gt;}] ${:text}]
-      regsub -all [set :re(keyword)] $html {<span class='nx-keyword'>\1</span>} html
+      regsub -all [set :re(keyword1)] " $html" {\1<span class='nx-keyword'>\2</span>} html
+      regsub -all [set :re(keyword2)] $html {\1<span class='nx-keyword'>\2</span>} html
+      set html [string range $html 1 end]
       regsub -all [set :re(placeholder1)] $html {<span class='nx-placeholder'>\1</span>} html
       regsub -all [set :re(placeholder2)] $html {<span class='nx-placeholder'>\1</span>} html
       nx::pp puts -nonewline [:cssWrap $html]
