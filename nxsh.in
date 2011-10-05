@@ -35,7 +35,8 @@ if {$argc == 0} {
   set argv0 [lindex $argv 0]
   set argv  [lreplace $argv 0 0]
   incr argc -1
-  if {[catch [list source $argv0] errorMsg]} {
-    return -code error -level 1 $errorMsg
-  } 
+  source $argv0
+  #if {[catch [list source $argv0] errorMsg]} {
+  #  return -code error -level 1 $errorMsg
+  #} 
 }
