@@ -1829,13 +1829,23 @@ RemoveInstance(NsfObject *object, NsfClass *cl) {
 
 static void
 AS(NsfClass *s, NsfClasses **sl) {
+#if 0
   register NsfClasses *l = *sl;
-  while (l && l->cl != s) l = l->nextPtr;
+  while (l && l->cl != s) {
+    //fprintf(stderr, "search for %s, compare with %s\n", ClassName(s), ClassName(l->cl));
+    l = l->nextPtr;
+  }
+#else
+  register NsfClasses *l = NULL;
+#endif
   if (!l) {
     NsfClasses *sc = NEW(NsfClasses);
     sc->cl = s;
     sc->nextPtr = *sl;
     *sl = sc;
+    //fprintf(stderr, "... not found\n");
+  } else {
+    //fprintf(stderr, "... found\n");
   }
 }
 
@@ -1845,7 +1855,9 @@ AddSuper(NsfClass *cl, NsfClass *super) {
     /*
      * keep corresponding sub in step with super
      */
+    //fprintf(stderr, "search and add %s in SUPER\n", ClassName(super));
     AS(super, &cl->super);
+    //fprintf(stderr, "search and add %s in SUB of SUPER \n", ClassName(cl));
     AS(cl, &super->sub);
   }
 }
@@ -7823,7 +7835,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
 
   filterCheck = ComputeOrder(cl, SUPER_CLASSES);
   /*
-   * we have to remove all dependent superclass filter referenced
+   * We have to remove all dependent superclass filter referenced
    * by class or one of its subclasses
    *
    * do not check the class "cl" itself (first entry in
@@ -7843,6 +7855,9 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   MixinInvalidateObjOrders(interp, cl);
   FilterInvalidateObjOrders(interp, cl);
 
+  /* 
+   * build an array of superclasses from the argument vector.
+   */
   scl = NEW_ARRAY(NsfClass*, oc);
   for (i = 0; i < oc; i++) {
     if (GetClassFromObj(interp, ov[i], &scl[i], 1) != TCL_OK) {
@@ -7878,7 +7893,6 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     }
   }
 
-
   while (cl->super) {
     /*
      * build up an old superclass list in case we need to revert
@@ -7892,6 +7906,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     (void)RemoveSuper(cl, cl->super->cl);
   }
   for (i=0; i < oc; i++) {
+    //fprintf(stderr, "SuperclassAdd: calling AddSuper %s %s\n", ClassName(cl), ClassName(scl[i]));
     AddSuper(cl, scl[i]);
   }
   FREE(NsfClass**, scl);
@@ -7913,15 +7928,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   }
   NsfClassListFree(osl);
 
-  /* if there are no more super classes add the Object
-     class as superclasses */
   assert(cl->super);
-#if 0
-  if (cl->super == NULL) {
-    fprintf(stderr, "SuperClassAdd super of '%s' is NULL\n", ClassName(cl));
-    /*AddSuper(cl, RUNTIME_STATE(interp)->theObject);*/
-  }
-#endif
 
   Tcl_ResetResult(interp);
   return TCL_OK;
