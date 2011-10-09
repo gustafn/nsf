@@ -3678,21 +3678,21 @@ nonleadingdash handling:
     it refuses to accept field names with leading '$'. So we skip these
     tests for the time being.
 
+-nsf.c: 
+  - remove quadratic behavior when adding many classes (10 thousands)
+  - deletion is still for huge number of classes quite slow.
+
 
 TODO:
-
- - naming of traits. Predefined traits have a leading "T"
-   (convetion by ducasse); how should the package and file
-   be named? currently nx::trait nx-trait.tcl.
 
  - warnings for "numeric" names for args and nonpos-args?
  - special handling of values looking like nonpos-flags,
    but wich are not ones (-1, "- a b c", ....) in detection
    when to throw unknow.
 
- - NSF_WITH_OS_RESOLVER
  - private: 
    * document private in tutorial
+
  - add "property" and "attribute" and "info property" and "info slot ..." to migration guide
 
  - naming of slot classes 
