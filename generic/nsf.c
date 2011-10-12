@@ -9531,7 +9531,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   CONST char *methodName;
   NsfClass *cl = NULL;
   Tcl_Command cmd = NULL;
-  Tcl_Obj *cmdName = object->cmdName, *methodObj, *cmdObj;
+  Tcl_Obj *cmdName = object->cmdName, *methodObj;
   NsfCallStackContent csc, *cscPtr = NULL;
   int validCscPtr = 1;
   // TODO: best place?
@@ -9543,13 +9543,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   if (unlikely(flags & NSF_CM_NO_SHIFT)) {
     shift = 0;
-    cmdObj = cmdName;
     methodObj = objv[0];
     methodName = MethodName(methodObj);
   } else {
     assert(objc > 1);
     shift = 1;
-    cmdObj = objv[0];
     methodObj = objv[1];
     methodName = ObjStr(methodObj);
     if (FOR_COLON_RESOLVER(methodName)) {
@@ -9566,7 +9564,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s shift %d\n",
 	  object ? ObjectName(object) : NULL, 
-	  objc, cmdObj ? ObjStr(cmdObj) : NULL, 
+	  objc, objv[0] ? ObjStr(objv[0]) : NULL, 
 	  methodName, shift);*/
 
   objflags = object->flags; /* avoid stalling */
@@ -20292,7 +20290,7 @@ objectMethod configure NsfOConfigureMethod {
 
 static int
 NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
-  int result, i, varArgsProcessed = 0;
+  int result, i;
   NsfParsedParam parsedParam;
   Nsf_Param *paramPtr;
   NsfParamDefs *paramDefs;
@@ -20511,7 +20509,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	    ovPtr = (Tcl_Obj **)&objv[pc.lastObjc + 1];
 	    oc = objc - pc.lastObjc;
 	  }
-	  varArgsProcessed = 1;
 	} else {
 	  /*
 	   * A simple alias, receives no (when noarg was specified) or a
