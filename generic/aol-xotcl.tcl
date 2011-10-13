@@ -56,7 +56,7 @@ if {[ns_info name] ne "NaviServer"} {
     ns_ictl save [append script \n \
 	$objects \n $import]
     # just for debugging purposes
-    if {1} {
+    if {0} {
       set f [open [::xotcl::tmpdir]/__aolserver-blueprint-[ns_info server].tcl w]
       puts $f $script
       close $f
