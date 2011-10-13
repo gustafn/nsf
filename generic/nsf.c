@@ -11480,11 +11480,13 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
       /* every parameter must have at least a name set */
       assert(paramPtr->name);
     }
+#if defined(NSF_WITH_VALUE_WARNINGS)
     if (nrNonposArgs > 0 && argsc > 1) {
       for (i=0; i < argsc; i++) {
 	(paramsPtr + i)->flags |= NSF_ARG_CHECK_NONPOS;
       }
     }
+#endif
 
     /*
      * If all arguments are good old Tcl arguments, there is no need

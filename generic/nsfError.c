@@ -72,8 +72,10 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc) {
 extern void
 NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
   int i;
+  CONST char *objStr;
   for (i=0; i<objc; i++) {
-    Tcl_DStringAppendElement(dsPtr, ObjStr(objv[i]));
+    objStr = i == 0 ? MethodName(objv[i]) : ObjStr(objv[i]);
+    Tcl_DStringAppendElement(dsPtr, objStr);
   }
 }
 

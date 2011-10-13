@@ -3879,6 +3879,22 @@ Ein paar Punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
 
+- NSF_WITH_VALUE_WARNINGS: Right now, value warnings are also fired
+  for arg vectors with a delimiting "--"; right now, this gives a warning:
+
+  Object create o {
+  	 :public method foo {-np1 -np2 p1} {
+	     return $p1
+	  }
+  }
+
+  ? {o foo -np1 1 -np2 2 -- -X} "-X"
+
+  However, the warning-generating code in Nsf_ConvertToTclobj() does
+  not reserve any word of a dashdash having been processed in the
+  overall argv ... the NSF_ARG_CHECK_NONPOS set on the parsed (and
+  cached) param is the only condition to must hold.
+
 - should we continue to work on the problem of the interp-aliased class,
   exported from one ns, imported into another one?
 
