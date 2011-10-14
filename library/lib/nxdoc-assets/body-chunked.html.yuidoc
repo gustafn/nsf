@@ -1,0 +1,29 @@
+\[\[css:api.css|_|-order 15\]\] 
+\[\[css:api-next.css|_|-order 16\]\] 
+\[\[js:api.js\]\] 
+\[\[js:ac.js\]\] 
+<div class="yui-gd">
+  <div class="yui-u first">
+    [:include leftbar]
+  </div> <!-- yui-u first -->
+  <div class="yui-u">
+    [:? {[info exists include]} {
+    [:include $include]
+    } ? {[:info has type ::nx::doc::@project]} {
+    <div class="summary description">
+      This is the API documentation for the 
+      <a href="[:name]">[:name]</a> project.
+      <p>Choose a package, class, object or command name from the list for more information.</p>
+    </div>
+    [:!let parts $project_entities]
+    [:include overview]
+    } - {
+    <!-- delegate to the entity-specific template -->
+    [:include]
+    }]
+  </div><!-- yui-u -->
+</div> <!-- yui-gd -->
+<script type="text/javascript">
+  ALL_YUI_PROPS = [:as_array_of_hashes];
+</script>
+

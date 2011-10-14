@@ -1,0 +1,20 @@
+<div class="paragraph">
+  [:as_text]  
+</div>
+
+[:?var :@object-method {
+[:!let omethods [:!get -sortedby name @object-method]]
+<div class="sect2">
+  <h3>Per-Object Methods</h3>
+  <p>
+    <tt>
+      [:for om $omethods {
+      <a href="#[$om as_tag_id]" title="[$om name]">[$om name]</a>
+      }] 
+    </tt>
+  </p>
+  [:for om $omethods {
+  [$om render]
+  }]
+</div>
+}]

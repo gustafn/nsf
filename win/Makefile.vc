@@ -11,14 +11,14 @@
 BINROOT		= .
 ROOT		= ..
 NAMEPREFIX	= lib
-NAME		= xotcl
+NAME		= nsf
 STUBSUFFIX	= stub
 
-XOTCL_DIR =		..
-XOTCL_BUILD_DIR =	..\win
-SDBM_DIR =		..\library\store\XOTclSdbm
+NSF_DIR =		..
+NSF_BUILD_DIR =	..\win
+SDBM_DIR =		..\library\store\NsfSdbm
 EXPAT_DIR = 		..\library\xml\TclExpat-1.1
-MAKE_XOTCL = 		.\library\lib\make.xotcl
+MAKE_XOTCL = 		.\library\lib\make.nsf
 
 MAKECMD	= nmake.exe -nologo /$(MAKEFLAGS) -f makefile.vc
 
@@ -61,10 +61,10 @@ OUT_DIR		= $(TMP_DIR)
 !endif
 
 !if $(STATIC_BUILD)
-XOTCLOUTNAME	= $(NAMEPREFIX)$(NAME)$(XOTCL_VERSION)$(DBGX)
+XOTCLOUTNAME	= $(NAMEPREFIX)$(NAME)$(NSF_VERSION)$(DBGX)
 XOTCLTARGET	= "$(OUT_DIR)\$(XOTCLOUTNAME).lib"
 !else
-XOTCLOUTNAME	= $(NAMEPREFIX)$(NAME)$(XOTCL_VERSION)$(DBGX)
+XOTCLOUTNAME	= $(NAMEPREFIX)$(NAME)$(NSF_VERSION)$(DBGX)
 XOTCLIMPLIB	= "$(OUT_DIR)\$(XOTCLOUTNAME).lib"
 XOTCLTARGET	= "$(OUT_DIR)\$(XOTCLOUTNAME).dll"
 !endif
@@ -74,44 +74,44 @@ TCLIMPLIB	= "$(TCLROOT)\win\$(OUT_DIR)\tcl$(TCL_VERSION)$(DBGX).lib"
 TKIMPLIB	= "$(TKROOT)\win\$(OUT_DIR)\tk$(TCL_VERSION)$(DBGX).lib"
 TCLSH		= "$(TCLROOT)\win\$(OUT_DIR)\tclsh$(TCL_VERSION)$(DBGX).exe"
 
-XOTCLSTUBLIBNAME	= $(NAMEPREFIX)$(NAME)$(STUBSUFFIX)$(XOTCL_VERSION)$(DBGX).lib
+XOTCLSTUBLIBNAME	= $(NAMEPREFIX)$(NAME)$(STUBSUFFIX)$(NSF_VERSION)$(DBGX).lib
 XOTCLSTUBLIB		= "$(OUT_DIR)\$(XOTCLSTUBLIBNAME)"
 
 LIB_INSTALL_DIR		= $(INSTALLDIR)\lib
 BIN_INSTALL_DIR		= $(INSTALLDIR)\bin
-SCRIPT_INSTALL_DIR	= $(INSTALLDIR)\lib\xotcl$(XOTCL_DOTVERSION)
+SCRIPT_INSTALL_DIR	= $(INSTALLDIR)\lib\nsf$(NSF_DOTVERSION)
 INCLUDE_INSTALL_DIR	= $(INSTALLDIR)\include
 
-XOTCLOBJS_STUB = $(TMP_DIR)\xotclStubInit.obj
-COMPILE_XOTCL_STUBS = -DCOMPILE_XOTCL_STUBS=1
+XOTCLOBJS_STUB = $(TMP_DIR)\nsfStubInit.obj
+COMPILE_NSF_STUBS = -DCOMPILE_NSF_STUBS=1
 
 !if $(TCLMAJOR)	== 8
 !if $(TCLMINOR)	== 0
 XOTCLOBJS_STUB = ""
-COMPILE_XOTCL_STUBS=""
+COMPILE_NSF_STUBS=""
 !endif
 !endif
 
 XOTCLOBJS = $(XOTCLOBJS_STUB) \
-	$(TMP_DIR)\xotcl.obj \
-	$(TMP_DIR)\xotclError.obj \
-	$(TMP_DIR)\xotclMetaData.obj \
-	$(TMP_DIR)\xotclObjectData.obj \
-	$(TMP_DIR)\xotclProfile.obj \
-	$(TMP_DIR)\xotclTrace.obj \
-	$(TMP_DIR)\xotclShadow.obj \
-	$(TMP_DIR)\xotclUtil.obj \
+	$(TMP_DIR)\nsf.obj \
+	$(TMP_DIR)\nsfError.obj \
+	$(TMP_DIR)\nsfMetaData.obj \
+	$(TMP_DIR)\nsfObjectData.obj \
+	$(TMP_DIR)\nsfProfile.obj \
+	$(TMP_DIR)\nsfTrace.obj \
+	$(TMP_DIR)\nsfShadow.obj \
+	$(TMP_DIR)\nsfUtil.obj \
 	$(TMP_DIR)\aolstub.obj \
 !if $(STATIC_BUILD) == 0
 	$(TMP_DIR)\dllEntryPoint.obj \
 	$(TMP_DIR)\dllResource.obj \
 !endif
 
-XOTCLSHOBJS = $(TMP_DIR)\xotclAppInit.obj
+XOTCLSHOBJS = $(TMP_DIR)\nsfAppInit.obj
 XOWISHOBJS = $(TMP_DIR)\winMain.obj
 
 XOTCLSTUBOBJS = \
-	$(TMP_DIR)\xotclStubLib.obj
+	$(TMP_DIR)\nsfStubLib.obj
 
 WINDIR		= $(ROOT)\win
 GENERICDIR	= $(ROOT)\generic
@@ -130,12 +130,12 @@ ldebug	= -release
 # declarations common to all linker options
 lcommon = -nologo -link50compat -machine:$(MACHINE)
 
-XOTCL_LFLAGS = $(lcommon) $(ldebug) -subsystem:windows -dll
+NSF_LFLAGS = $(lcommon) $(ldebug) -subsystem:windows -dll
 
 !if $(USE_TCL_STUBS) == 0
-XOTCL_LLIBS	= $(TCLIMPLIB)
+NSF_LLIBS	= $(TCLIMPLIB)
 !else
-XOTCL_LLIBS	= $(TCLSTUBLIB)
+NSF_LLIBS	= $(TCLSTUBLIB)
 !endif
 
 ######################################################################
@@ -171,21 +171,21 @@ crt	= -MD$(DBGX)
 TCL_INCLUDES	= -I"$(TCLROOT)\generic"
 TK_INCLUDES	= -I"$(TKROOT)\generic" -I$(TKROOT)\win -I$(TKROOT)\xlib
 
-XOTCL_INCLUDES	= -I$(WINDIR) -I$(GENERICDIR)
-XOTCL_DEFINES	= -DBUILD_$(NAME) -DTCL_THREADS=1 \
+NSF_INCLUDES	= -I$(WINDIR) -I$(GENERICDIR)
+NSF_DEFINES	= -DBUILD_$(NAME) -DTCL_THREADS=1 \
 			-DXOLIBPKG=$(INST_XOLIBPKG) \
 			-DXOTCLVERSION=$(XOTCLVERSION) \
 			-DPACKAGE_VERSION=$(PACKAGE_VERSION) \
 			-DXOTCLPATCHLEVEL=$(XOTCLPATCHLEVEL) \
-			-D__WIN32__ -DVISUAL_CC $(COMPILE_XOTCL_STUBS)
+			-D__WIN32__ -DVISUAL_CC $(COMPILE_NSF_STUBS)
 
-XOTCL_EXE_CFLAGS	= $(ccommon) $(cdebug) $(crt) $(cdll) $(XOTCL_INCLUDES) \
-		$(XOTCL_DEFINES) $(TCL_INCLUDES) $(TK_INCLUDES)
+NSF_EXE_CFLAGS	= $(ccommon) $(cdebug) $(crt) $(cdll) $(NSF_INCLUDES) \
+		$(NSF_DEFINES) $(TCL_INCLUDES) $(TK_INCLUDES)
 
 !if $(USE_TCL_STUBS)
-XOTCL_CFLAGS	= $(XOTCL_EXE_CFLAGS) -DUSE_TCL_STUBS
+NSF_CFLAGS	= $(NSF_EXE_CFLAGS) -DUSE_TCL_STUBS
 !else
-XOTCL_CFLAGS	= $(XOTCL_EXE_CFLAGS)
+NSF_CFLAGS	= $(NSF_EXE_CFLAGS)
 !endif
 
 ######################################################################
@@ -194,7 +194,7 @@ XOTCL_CFLAGS	= $(XOTCL_EXE_CFLAGS)
 
 all : libs packages end
 
-#xotcl : xotclsh xowish
+#nsf : nsfsh xowish
 
 libs : setup $(XOTCLTARGET) $(XOTCLSTUBLIB) ./pkgIndex.tcl
 	cd $(SDBM_DIR)
@@ -223,12 +223,12 @@ end:
 	@echo *   nmake -fmakefile.vc install
 	@echo *	
 	@echo * To run XOTcl from the local directory, set the environment
-	@echo * variable TCLLIBPATH to the toplevel directory of xotcl and
+	@echo * variable TCLLIBPATH to the toplevel directory of nsf and
 	@echo * execute tclsh:         
 	@echo *  
 	@echo *   set TCLLIBPATH=$(ROOT) 
 	@echo *   tclsh83
-	@echo *   package require XOTcl; namespace import -force xotcl::*
+	@echo *   package require XOTcl; namespace import -force nsf::*
 	@echo *
 	@echo ************************************************************
 
@@ -244,10 +244,10 @@ install :  all
 
 test : $(TCLSH)
 	set TCLLIBPATH=$(ROOT)
-	$(TCLSH) $(ROOT)\tests\speedtest.xotcl
-	$(TCLSH) $(ROOT)\tests\testx.xotcl
-	$(TCLSH) $(ROOT)\tests\testo.xotcl
-	$(TCLSH) $(ROOT)\tests\forwardtest.xotcl
+	$(TCLSH) $(ROOT)\tests\speedtest.nsf
+	$(TCLSH) $(ROOT)\tests\testx.nsf
+	$(TCLSH) $(ROOT)\tests\testo.nsf
+	$(TCLSH) $(ROOT)\tests\forwardtest.nsf
 	$(TCLSH) $(ROOT)\tests\actiweb.test	
 	$(TCLSH) $(ROOT)\tests\persistence.test
 	$(TCLSH) $(ROOT)\tests\xoRDF.test
@@ -255,12 +255,12 @@ test : $(TCLSH)
 
 tar : distclean
 	cd ..
-	tar cvfz xotcl-$(FULLVERSION).tar.gz xotcl-$(FULLVERSION)/*
-	cd xotcl-$(FULLVERSION)
+	tar cvfz nsf-$(FULLVERSION).tar.gz nsf-$(FULLVERSION)/*
+	cd nsf-$(FULLVERSION)
 
 
 ./pkgIndex.tcl : $(XOTCLTARGET)
-	echo package ifneeded XOTcl $(XOTCL_VERSION) [list load [file join $$dir $(TMPNAME)/$(XOTCLOUTNAME).dll] XOTcl] > \
+	echo package ifneeded XOTcl $(NSF_VERSION) [list load [file join $$dir $(TMPNAME)/$(XOTCLOUTNAME).dll] XOTcl] > \
 		".\pkgIndex.tcl"
 
 setup :
@@ -274,7 +274,7 @@ $(XOTCLTARGET) : $(XOTCLOBJS)
 !if $(STATIC_BUILD)
 	$(lib32) -nologo -machine:$(MACHINE) -out:$@ @<<
 !else
-	$(link32) $(XOTCL_LFLAGS) -base:@$(XOTCL_DIR)\win\dllBase.txt,$@ -out:$@ $(XOTCL_LLIBS) @<<
+	$(link32) $(NSF_LFLAGS) -base:@$(NSF_DIR)\win\dllBase.txt,$@ -out:$@ $(NSF_LLIBS) @<<
 !endif
 		$(XOTCLOBJS)
 <<
@@ -294,10 +294,10 @@ $(XOTCLSTUBLIB) : $(XOTCLSTUBOBJS)
 #	if not exist "$(INCLUDE_INSTALL_DIR)" mkdir "$(INCLUDE_INSTALL_DIR)"
 #	copy $(XOTCLTARGET) "$(SCRIPT_INSTALL_DIR)"
 #	-copy $(XOTCLSTUBLIB) "$(LIB_INSTALL_DIR)"
-#	copy $(ROOT)\generic\xotcl.h "$(INCLUDE_INSTALL_DIR)"
-#	copy $(ROOT)\generic\xotclDecls.h "$(INCLUDE_INSTALL_DIR)"
+#	copy $(ROOT)\generic\nsf.h "$(INCLUDE_INSTALL_DIR)"
+#	copy $(ROOT)\generic\nsfDecls.h "$(INCLUDE_INSTALL_DIR)"
 #	copy $(ROOT)\library\*.* "$(SCRIPT_INSTALL_DIR)"
-#	echo package ifneeded XOTcl $(XOTCL_DOTVERSION) [list load [file join $$dir ../../bin $(XOTCLOUTNAME).dll] XOTcl] > \
+#	echo package ifneeded XOTcl $(NSF_DOTVERSION) [list load [file join $$dir ../../bin $(XOTCLOUTNAME).dll] XOTcl] > \
 #		"$(SCRIPT_INSTALL_DIR)\pkgIndex.tcl"
 
 ######################################################################
@@ -306,7 +306,7 @@ $(XOTCLSTUBLIB) : $(XOTCLSTUBOBJS)
 
 genstubs:
 	$(TCLSH) $(TCLROOT)\tools\genStubs.tcl $(GENERICDIR) \
-		$(GENERICDIR)\xotcl.decls $(GENERICDIR)\xotclInt.decls
+		$(GENERICDIR)\nsf.decls $(GENERICDIR)\nsfInt.decls
 
 ######################################################################
 # Special case object file targets
@@ -315,29 +315,29 @@ genstubs:
 # The following object is part of the stub library and should not
 # be built as DLL objects but none of the symbols should be exported
 
-$(TMP_DIR)\xotclStubLib.obj : $(GENERICDIR)\xotclStubLib.c
-	$(cc32) -DSTATIC_BUILD $(XOTCL_EXE_CFLAGS) -Zl -Fo$@ $?
+$(TMP_DIR)\nsfStubLib.obj : $(GENERICDIR)\nsfStubLib.c
+	$(cc32) -DSTATIC_BUILD $(NSF_EXE_CFLAGS) -Zl -Fo$@ $?
 
-$(TMP_DIR)\dllResource.obj : $(TMP_DIR)\xotcl.res
+$(TMP_DIR)\dllResource.obj : $(TMP_DIR)\nsf.res
 	$(cvtres32) -nologo -machine:$(MACHINE) -out:$@ $?
 
-predefined : $(GENERICDIR)\predefined.xotcl
+predefined : $(GENERICDIR)\predefined.nsf
 	cd $(GENERICDIR)
-	$(TCLSH) mk_predefined.xotcl > predefined.h
+	$(TCLSH) mk_predefined.nsf > predefined.h
         cd ..\win
 
 ######################################################################
 # Inference rules.  Use batch-mode when supported.
 ######################################################################
 
-$(TMP_DIR)\xotclAppInit.obj : $(GENERICDIR)\xotclAppInit.c
-	$(cc32) $(XOTCL_EXE_CFLAGS) -Fo$@ $?
+$(TMP_DIR)\nsfAppInit.obj : $(GENERICDIR)\nsfAppInit.c
+	$(cc32) $(NSF_EXE_CFLAGS) -Fo$@ $?
 
 $(TMP_DIR)\findXOTcl.obj : $(GENERICDIR)\findXOTcl.c
-	$(cc32) $(XOTCL_EXE_CFLAGS) -Fo$@ $?
+	$(cc32) $(NSF_EXE_CFLAGS) -Fo$@ $?
 
 $(TMP_DIR)\winMain.obj : $(WINDIR)\winMain.c
-	$(cc32) $(XOTCL_EXE_CFLAGS) -Fo$@ $?
+	$(cc32) $(NSF_EXE_CFLAGS) -Fo$@ $?
 
 
 
@@ -346,7 +346,7 @@ $(TMP_DIR)\winMain.obj : $(WINDIR)\winMain.c
 !else
 {$(WINDIR)}.c{$(TMP_DIR)}.obj ::
 !endif
-	$(cc32) -DDLL_BUILD $(XOTCL_CFLAGS) -Fo$(TMP_DIR)\ @<<
+	$(cc32) -DDLL_BUILD $(NSF_CFLAGS) -Fo$(TMP_DIR)\ @<<
 $<
 <<
 
@@ -355,18 +355,18 @@ $<
 !else
 {$(GENERICDIR)}.c{$(TMP_DIR)}.obj ::
 !endif
-	$(cc32) -DDLL_BUILD $(XOTCL_CFLAGS) -Fo$(TMP_DIR)\ @<<
+	$(cc32) -DDLL_BUILD $(NSF_CFLAGS) -Fo$(TMP_DIR)\ @<<
 $<
 <<
 
-XOTCL_VERSION_DEFINES = \
-	-DXOTCL_MAJOR_VERSION=$(XOTCL_MAJOR_VERSION) \
-	-DXOTCL_MINOR_VERSION=$(XOTCL_MINOR_VERSION) \
-	-DXOTCL_VERSION=\"$(XOTCL_VERSION)\"
+NSF_VERSION_DEFINES = \
+	-DNSF_MAJOR_VERSION=$(NSF_MAJOR_VERSION) \
+	-DNSF_MINOR_VERSION=$(NSF_MINOR_VERSION) \
+	-DNSF_VERSION=\"$(NSF_VERSION)\"
 
 
 {$(RCDIR)}.rc{$(TMP_DIR)}.res :
-	$(rc32) -fo $@ -DDEBUG=$(DEBUG) $(XOTCL_VERSION_DEFINES) $(XOTCL_INCLUDES) $(TCL_INCLUDES) $(XOTCL_DEFINES) $<
+	$(rc32) -fo $@ -DDEBUG=$(DEBUG) $(NSF_VERSION_DEFINES) $(NSF_INCLUDES) $(TCL_INCLUDES) $(NSF_DEFINES) $<
 
 ######################################################################
 # Clean up
@@ -396,7 +396,7 @@ clean :
 	-del $(OUT_DIR)\*.dll
 	-del ..\*.exp
 	-del ..\*.lib
-	-del ..\xotclsh.exe
+	-del ..\nsfsh.exe
 	-del ..\xowish.exe
 	cd $(SDBM_DIR)
 	$(MAKECMD)  clean
@@ -421,22 +421,22 @@ distclean : clean
 
 tar : distclean
 	cd ..\..
-	tar cvfz xotcl-$(FULLVERSION).tar.gz xotcl-$(FULLVERSION)/*
-	cd xotcl-$(FULLVERSION)\win
+	tar cvfz nsf-$(FULLVERSION).tar.gz nsf-$(FULLVERSION)/*
+	cd nsf-$(FULLVERSION)\win
 
 #
 # XOTcl Shells
 #
-../xotclsh.exe: $(XOTCLSHOBJS) $(TCLIMPLIB) $(TMP_DIR)\xotcl.res
-	$(link32) $(ldebug) $(conlflags) $(TMP_DIR)\xotcl.res -stack:2300000 \
+../nsfsh.exe: $(XOTCLSHOBJS) $(TCLIMPLIB) $(TMP_DIR)\nsf.res
+	$(link32) $(ldebug) $(conlflags) $(TMP_DIR)\nsf.res -stack:2300000 \
 		-out:$@ $(conlibsdll) $(TCLIMPLIB) $(XOTCLSHOBJS)
 
-../xowish.exe: $(XOWISHOBJS) $(TCLIMPLIB) $(TKIMPLIB) $(TMP_DIR)\xotcl.res
-	$(link32) $(ldebug) $(guilflags) $(TMP_DIR)\xotcl.res -out:$@ \
+../xowish.exe: $(XOWISHOBJS) $(TCLIMPLIB) $(TKIMPLIB) $(TMP_DIR)\nsf.res
+	$(link32) $(ldebug) $(guilflags) $(TMP_DIR)\nsf.res -out:$@ \
 		$(guilibsdll) $(TCLIMPLIB) $(TKIMPLIB) $(XOTCLLIB) $(XOWISHOBJS)
 
 
-xotclsh: ../xotclsh.exe
+nsfsh: ../nsfsh.exe
 xowish: ../xowish.exe
 
-xotclshells: xotclsh xowish
+nsfshells: nsfsh xowish

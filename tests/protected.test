@@ -1,0 +1,644 @@
+# -*- Tcl -*-
+package require nx
+package require nx::test
+
+nx::Test parameter count 1
+
+nx::Test case call-protected {
+  nx::Class create C {
+    :public alias SET ::set
+    :public method foo {} {return [current method]}
+    :public method bar {} {return [current method]}
+    :public method bar-foo {} {
+      c1 foo
+    }
+    :public method bar-SET {} {
+      c1 SET x 1
+    }
+  }
+  
+  C create c1
+  C create c2
+  
+  ? {c1 SET x 1} {1}
+  ? {c1 foo} {foo}
+  ? {c1 bar-SET} {1}
+  ? {c1 bar-foo} {foo}
+
+  ::nsf::method::property C SET call-protected true
+  ? {c1 SET x 1} {::c1: unable to dispatch method 'SET'}
+  ? {nx::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+  ? {c1 foo} {foo}
+  ? {c1 bar} {bar}
+  ? {c1 bar-SET} {1}
+  ? {c1 bar-foo} {foo}
+  ? {c2 bar-SET} {::c1: unable to dispatch method 'SET'}
+  ? {c2 bar-foo} {foo}
+
+  ::nsf::method::property C foo call-protected true
+  ? {c1 SET x 1} {::c1: unable to dispatch method 'SET'}
+  ? {nx::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+  ? {c1 bar} {bar} "other method work"
+  ? {c1 foo} {::c1: unable to dispatch method 'foo'}
+  ? {c1 bar-SET} {1} "internal call of protected C implementend method"
+  ? {c1 bar-foo} {foo} "internal call of protected Tcl implemented method"
+  ? {c2 bar-SET} {::c1: unable to dispatch method 'SET'}
+  ? {c2 bar-foo} {::c1: unable to dispatch method 'foo'}
+
+  # unset call protected
+  ? {::nsf::method::property C SET call-protected} 1
+  ::nsf::method::property C SET call-protected false
+  ? {::nsf::method::property C SET call-protected} 0
+  ? {::nsf::method::property C foo call-protected} 1
+  ::nsf::method::property C foo call-protected false
+  ? {::nsf::method::property C foo call-protected} 0
+  
+  ? {c1 SET x 3} 3
+  ? {nx::dispatch c1 SET x 2} {2} 
+  ? {c1 foo} {foo}
+  ? {c1 bar} {bar}
+  ? {c1 bar-SET} {1}
+  ? {c1 bar-foo} {foo}
+  ? {c2 bar-SET} 1
+  ? {c2 bar-foo} {foo}
+
+  # define a protected method
+  C protected method foo {} {return [current method]}
+
+  ? {::nsf::method::property C SET call-protected} 0
+  ? {c1 SET x 3} 3
+  ? {nx::dispatch c1 SET x 4} {4} 
+  ? {c1 foo} {::c1: unable to dispatch method 'foo'}
+  ? {c1 bar} {bar}
+  ? {c1 bar-SET} {1}
+  ? {c1 bar-foo} foo
+  ? {c2 bar-SET} 1
+  ? {c2 bar-foo} {::c1: unable to dispatch method 'foo'}
+}
+
+#
+# Check protection + filter
+#
+# Allow to call methods as filters even if these are protected or
+# private.
+#
+nx::Test case protected+filter {
+  nx::Class create C {
+    :method f1 args { next }
+    :private method f2 args { next }
+    :public method foo {} { return foo}
+  }
+
+  C create c1
+  ? {c1 foo} foo
+
+  # add a protected filter
+  c1 filter add f1
+  ? {c1 foo} foo
+
+  # add a private filter
+  c1 filter add f2
+  ? {c1 foo} foo
+}
+
+
+nx::Test case redefined-protected {
+  nx::Class create C {
+    :public alias SET ::set
+    :public method foo {} {return [current method]}
+  }
+  #
+  # Define SET and foo as redefined-protected
+  #
+  ? {::nsf::method::property C SET redefine-protected true} 1
+  ? {::nsf::method::property C foo redefine-protected true} 1
+  
+  ? {C method SET {a b c} {...}} \
+      {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
+      "redefine method SET"
+  
+  ? {C method foo {a b c} {...}} \
+      {Method 'foo' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
+      "redefine method foo"
+  
+  # check a predefined protection
+  ? {::nx::Class method create {a b c} {...}} \
+      {Method 'create' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!} \
+      "redefine method create"
+  
+  # try to redefine predefined protected method via alias
+  ? {::nsf::method::alias nx::Class create ::set} \
+      {Method 'create' of ::nx::Class cannot be overwritten. Derive e.g. a sub-class!} \
+      "redefine alias create"
+  
+  # try to redefine via forward
+  ? {C forward SET ::set} \
+      {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
+      "redefine forward SET"
+
+  # try to redefine via setter
+  ? {C property SET} \
+      {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!} \
+      "redefine property SET"
+  
+  # redefine-protect object specific method
+  nx::Object create o
+  o method foo {} {return 13}
+  ::nsf::method::property o foo redefine-protected true
+  ? {o method foo {} {return 14}} \
+      {Method 'foo' of ::o cannot be overwritten. Derive e.g. a sub-class!}
+}
+
+
+#
+# Use case for private:
+# Hide "helper methods of e.g. mixin"
+#
+nx::Test case private-helper {
+
+  nx::Class create B {
+    :public method bar {} {return "B.bar [next]"}
+    :public method baz {} {return "B.baz [next]"}
+    :create b1 {
+      :public method baz {} {return "b1.baz [next]"}
+    }
+  }
+  nx::Class create C -superclass B {
+    :public method bar {} {return "C.bar [next]"}
+    :public method baz {} {return "C.baz [next]"}
+    :create c1 {
+      :public method baz {} {return "c1.baz [next]"}
+    }
+  }
+
+  # Behavior without mixin with private methods
+  ? {b1 bar} "B.bar "
+  ? {b1 baz} "b1.baz B.baz "
+
+  ? {c1 bar} "C.bar B.bar "
+  ? {c1 baz} "c1.baz C.baz B.baz "
+
+  #
+  # Define a mixin with helper methods "bar" and "baz". The helper
+  # methods are defined as private to avoid interference.
+  #
+  nx::Class create M {
+    :public method foo {} {: -local bar}
+    :private method bar {} {: -local baz}
+    :private method baz {} {return "M.baz"}
+  }
+
+  # Behavior with mixin . THe private helper methods are "invisible"
+  # for invocation and next path.
+
+  B mixin add M
+
+  ? {b1 bar} "B.bar "
+  ? {b1 baz} "b1.baz B.baz "
+
+  ? {c1 bar} "C.bar B.bar "
+  ? {c1 baz} "c1.baz C.baz B.baz "
+
+  ? {b1 foo} "M.baz"
+  ? {c1 foo} "M.baz"
+}
+
+
+#
+# Use case for private:
+# Hide "helper object specific helper methods"
+#
+nx::Test case object-private-helper {
+
+  nx::Class create B {
+    :public method bar {} {return "B.bar [next]"}
+    :public method baz {} {return "B.baz [next]"}
+    :create b1 {
+      :public  method foo {} {: -local bar}
+      :private method bar {} {: -local baz}
+      :private method baz {} {return "b1.baz"}
+    }
+  }
+  nx::Class create C -superclass B {
+    :public method bar {} {return "C.bar [next]"}
+    :public method baz {} {return "C.baz [next]"}
+    :create c1 {
+      :public  method foo {} {: -local bar}
+      :private method bar {} {: -local baz}
+      :private method baz {} {return "c1.baz"}
+    }
+  }
+
+  # Behavior of per-object helper methods, which are invisible for
+  # invocation through "bar" and "baz"
+
+  ? {b1 bar} "B.bar "
+  ? {b1 baz} "B.baz "
+  ? {b1 foo} "b1.baz"
+
+  ? {c1 bar} "C.bar B.bar "
+  ? {c1 baz} "C.baz B.baz "
+  ? {c1 foo} "c1.baz"
+
+  #
+  # Define a mixin class which shadows "bar" and "baz".  The behavior
+  # of the object-methods with its private methods is not affected.
+  #
+  nx::Class create M {
+    :public method bar {} {return "M.bar [next]"}
+    :public method baz {} {return "M.baz [next]"}
+  }
+  B mixin add M
+
+  ? {b1 bar} "M.bar B.bar "
+  ? {b1 baz} "M.baz B.baz "
+  ? {b1 foo} "b1.baz"
+
+  ? {c1 bar} "M.bar C.bar B.bar "
+  ? {c1 baz} "M.baz C.baz B.baz "
+  ? {c1 foo} "c1.baz"
+}
+
+#
+# Check local + filter
+#
+nx::Test case local+filter {
+  nx::Class create C {
+    :method f1 args { return "f1 [next]" }
+    :public method foo {} { return "C.foo [: -local bar]"}
+    :private method bar {} { return "bar"}
+    :public  method baz {} { return "C.baz [next]"}
+  }
+  nx::Class create D -superclass C {
+    :public method baz {} { return "D.baz [next]"}
+  }
+
+  D create d1
+  ? {d1 baz} "D.baz C.baz "
+  ? {d1 foo} "C.foo bar"
+  ? {d1 bar} "::d1: unable to dispatch method 'bar'"
+
+  # add a filter; be sure that we still can call the private -local
+  # method
+  d1 filter add f1
+  ? {d1 baz} "f1 D.baz C.baz "
+  ? {d1 foo} "f1 C.foo f1 bar"
+  ? {d1 bar} "::d1: unable to dispatch method 'bar'"
+
+  # remove the filter
+  d1 filter ""
+  # define call to private method via method handle
+  C public method foo {} { return "C.foo [[self] [C info method handle bar]]"}
+
+  # the behavior without filter, should be like above
+  ? {d1 baz} "D.baz C.baz "
+  ? {d1 foo} "C.foo bar"
+  ? {d1 bar} "::d1: unable to dispatch method 'bar'"
+
+  # add a filter; be sure that we still can call the private method
+  d1 filter add f1
+  ? {d1 baz} "f1 D.baz C.baz "
+  ? {d1 foo} "f1 C.foo f1 bar"
+  ? {d1 bar} "::d1: unable to dispatch method 'bar'"
+}
+
+
+
+#
+# test private
+#
+nx::Test case private {
+  nx::Class create B {
+    :private method p1 {} {return B.p1}
+    :private method p2 {} {return B.p2}
+    :public  method p3 {} {return B.p3}
+    :public  method p4 {} {return B.p4}
+    :create b1
+  }
+  nx::Class create C -superclass B {
+    :private method p1 {} {return "C.p1 [next]"}
+    :public  method p2 {} {return "C.p2 [next]"}
+    :private method p3 {} {return "C.p3 [next]"}
+    :public  method p4 {} {return "C.p4 [next]"}
+    :create c1
+  }
+  nx::Class create D -superclass C {
+    :public method p1 {} {return "D.p1 [next]"}
+    :public method p2 {} {return "D.p2 [next]"}
+    :public method p3 {} {return "D.p3 [next]"}
+    :public method p4 {} {return "D.p4 [next]"}
+    :create d1
+  }
+
+  # check introspection and "-callprotection" filter
+  ? {lsort [C info methods]} "p2 p4"
+  ? {lsort [C info methods -callprotection all]} "p1 p2 p3 p4"
+  ? {lsort [C info methods -callprotection public]} "p2 p4"
+  ? {lsort [C info methods -callprotection protected]} ""
+  ? {lsort [C info methods -callprotection private]} "p1 p3"
+
+  # called         shadowed 
+  # C.p1  private  B.p1 private
+  # C.p2  public   B.p2 private
+  # C.p3  private  B.p3 public
+  # C.p4  public   B.p4 public
+
+  ? {c1 p1} "::c1: unable to dispatch method 'p1'"
+  ? {c1 p2} "C.p2 "
+  ? {c1 p3} "B.p3"
+  ? {c1 p4} "C.p4 B.p4"
+
+  # called        shadowed       shadowed 
+  # D.p1 public   C.p1  private  B.p1 private
+  # D.p2 public   C.p2  public   B.p2 private
+  # D.p3 public   C.p3  private  B.p3 public
+  # D.p4 public   C.p4  public   B.p4 public
+
+  ? {d1 p1} "D.p1 "
+  ? {d1 p2} "D.p2 C.p2 "
+  ? {d1 p3} "D.p3 B.p3"
+  ? {d1 p4} "D.p4 C.p4 B.p4"
+
+  # add on B calls to local
+  C eval {
+    :public method q1 {} {: -local p1}
+    :public method q3 {} {: -local p3}
+  }
+  # all chains start with C, since local resolve works
+  ? {c1 q1} "C.p1 "
+  ? {c1 q3} "C.p3 B.p3"
+  
+  # calls via method handles allows us to dispatch private methods,
+  # results like "-local" resolves above
+  ? {c1 [C info method handle p1]} "C.p1 "
+  ? {c1 [C info method handle p3]} "C.p3 B.p3"
+
+  # calls via method handles allows us to dispatch private methods,
+  # results like "-local" resolves above
+  ? {nx::dispatch c1 [C info method handle p1]} "C.p1 "
+  ? {nx::dispatch c1 [C info method handle p3]} "C.p3 B.p3"
+  
+  # we can't call the private method via dispatch, since the private
+  # methods are removed from the search for methods
+  ? {nx::dispatch c1 p1} "::c1: unable to dispatch method 'p1'"
+  ? {nx::dispatch c1 p3} "B.p3"
+
+  # via dispatch, the local flag uses (as always) the context of the
+  # currently execting class, which is not provided below
+  ? {nx::dispatch c1 -local p1} "::c1: unable to dispatch method 'p1'"
+}
+
+
+#
+# test ": -local" on classes
+#
+
+nx::Test case class-my-local {
+  nx::Class create Base {
+    :private method baz {a b} { expr {$a + $b} }
+    :public method foo {a b} {: -local baz $a $b}
+  }
+    
+  nx::Class create Sub -superclass Base {
+    :public method bar {a b} {: -local baz $a $b}
+    :private method baz {a b} { expr {$a * $b} }
+
+    :create s1
+  }
+
+  ? {s1 foo 3 4} 7
+  ? {s1 bar 3 4} 12
+  ? {s1 baz 3 4} {::s1: unable to dispatch method 'baz'}
+}
+
+#
+# test ": -local" on objects
+#
+nx::Test case object-my-local {
+  nx::Class create M {
+    :public method foo {} {return "M [next]"}
+    :public method foo2 {} {return "M2 [next]"}
+  }
+  nx::Object create o1 {
+    :protected method foo {} {return o1}
+    :public method foo2 {} {:foo}
+    :public method bar {} {: -local foo}
+  }
+
+  ? {o1 foo} {::o1: unable to dispatch method 'foo'}
+  ? {o1 bar} o1
+  ? {o1 foo2} o1
+
+  o1 mixin add M
+
+  ? {o1 foo} "M o1"
+  ? {o1 bar} "o1"
+  ? {o1 foo2} "M2 M o1"
+
+}
+
+#
+# test "my" + path instead of ": -local" on classes
+#
+
+nx::Test case my+handle-instead-of-my-local {
+  nx::Class create Base {
+    :private method privateMethod {a b} { expr {$a + $b} }
+    :public method foo {a b} {: [Base info method handle privateMethod] $a $b}
+  }
+    
+  nx::Class create Sub -superclass Base {
+    :public method bar {a b} {: [Sub info method handle privateMethod] $a $b}
+    :private method privateMethod {a b} { expr {$a * $b} }
+
+    :create s1
+  }
+
+  ? {s1 foo 3 4} 7
+  ? {s1 bar 3 4} 12
+} 
+
+#
+# test object::dispatch instead of ": -local" on classes
+#
+
+nx::Test case dispatch-instead-of-my-local {
+  nx::Class create Base {
+    :private method privateMethod {a b} { expr {$a + $b} }
+    :public method foo {a b} { dispatch [self] [Base info method handle privateMethod] $a $b }
+  }
+    
+  nx::Class create Sub -superclass Base {
+    :public method bar {a b} { dispatch [self] [Sub info method handle privateMethod] $a $b }
+    :private method privateMethod {a b} { expr {$a * $b} }
+
+    :create s1
+  }
+
+  ? {s1 foo 3 4} 7
+  ? {s1 bar 3 4} 12
+}  
+
+#
+# Test -system flag on dispatch with explicit receiver
+#
+nx::Test case system-flag {
+
+  #
+  # create an object, which overloads some system behavior
+  #
+  nx::Object create o1 {
+    :public method info {} {return "overloads system info"}
+    :public method destroy {} {return "overloads system destroy"}
+    :public method method args {return "overloads method method"}
+    :variable v 1
+  }
+  
+  ? {o1 info} "overloads system info"
+  ? {o1 ::nx::Object::slot::__info::vars} "v"
+  ? {o1 [nx::Object info method origin "info vars"]} "v"
+  #? {o1 -system info vars} "v"
+  ? {nx::dispatch o1 -system info vars} "v"
+
+  #? {o1 -system} "no method name specified"
+
+  ? {o1 method foo {} {return foo}} "overloads method method"
+  ? {nx::dispatch o1 -system public method foo {} {return foo}} "::o1::foo"
+  
+  ? {o1 destroy} "overloads system destroy"
+  ? {nsf::object::exists o1} 1
+  ? {nx::dispatch o1 -system destroy} ""
+  ? {nsf::object::exists o1} 0
+  
+  #
+  # create a class, which overloads some system behavior
+  #
+  nx::Class create C {
+    :public method info {} {return "overloads system info"}
+    :public method destroy {} {return "overloads system destroy"}
+    :variable v 1
+    :create c1
+  }
+
+  ? {c1 info} "overloads system info"
+  ? {c1 ::nx::Object::slot::__info::vars} "v"
+  ? {c1 [nx::Object info method origin "info vars"]} "v"
+  #? {c1 -system info vars} "v"
+  ? {nx::dispatch c1 -system info vars} "v"
+  
+  ? {c1 destroy} "overloads system destroy"
+  ? {nsf::object::exists c1} 1
+  #? {c1 -system destroy} ""
+  ? {nx::dispatch c1 -system destroy} ""
+  ? {nsf::object::exists c1} 0
+}
+
+#
+# Check my-local + private + next
+#
+# Never call a private method via "next", but allow "next" from
+# private methods
+#
+
+nx::Test case class-my-local+next {
+
+  nx::Class create Base {
+    :private method baz {a b} { expr {$a + $b} }
+    :protected method baz2 {a b} { expr {$a + $b} }
+    :public method foo {a b} {: -local baz $a $b}
+    :create b1
+  }
+  # we can call Base.baz only through Base.foo
+  ? {b1 foo 4 5} 9
+  ? {b1 baz 4 5} {::b1: unable to dispatch method 'baz'}
+
+  # Define and register a mixin class, where method "foo" is calling a
+  # private method via ": -local"
+  nx::Class create Mix {
+    :private method baz {a b} { expr {$a ** $b} }
+    :public method foo {a b} {: -local baz $a $b}
+  }
+
+  b1 mixin add Mix
+
+  # we can call Mix.baz only through Mix.foo
+  ? {b1 foo 4 5} 1024
+  ? {b1 baz 4 5} {::b1: unable to dispatch method 'baz'}
+
+  #
+  # the private method has a next
+  #
+  nx::Class create Intermediate -superclass Base {
+    :private method baz {a b} { next }
+    :private method baz2 {a b} { next }
+    :public method foo {a b} {: -local baz $a $b}
+    :public method foo2 {a b} {: -local baz2 $a $b}
+    :create i1
+  }
+
+  # next in the private method reaches a private method, which is ignored
+  ? {i1 foo 4 5} ""
+  ? {i1 baz 4 5} {::i1: unable to dispatch method 'baz'}
+  # next in the private method reaches a non-private method, which is honored
+  ? {i1 foo2 4 5} 9
+    
+  nx::Class create Sub -superclass Intermediate {
+    :public method bar {a b} {: -local baz $a $b}
+    :private method baz {a b} { expr {$a * $b} }
+
+    :create s1
+  }
+
+  # next in the private method reaches a private method, which is ignored
+  ? {s1 foo 4 5} ""
+  ? {s1 baz 4 5} {::s1: unable to dispatch method 'baz'}
+  # next in the private method reaches a non-private method, which is honored
+  ? {s1 foo2 4 5} 9
+  ? {s1 bar 4 5} 20
+
+  # add per-class mixin
+  Sub mixin add Mix
+
+  # foo is shadowed in the mixin and calls the mixin-private method
+  ? {s1 foo 4 5} 1024
+  ? {s1 baz 4 5} {::s1: unable to dispatch method 'baz'}
+
+  # next in the private method reaches a non-private method, which is honored
+  ? {s1 foo2 4 5} 9
+  ? {s1 bar 4 5} 20
+}
+
+#
+# Test setting / clearing private and protected flags
+#
+
+nx::Test case call-protected-flags {
+  Class create C
+
+  C protected method foo {} {return foo}
+  ? {::nsf::method::property C foo call-protected} 1
+  ? {::nsf::method::property C foo call-private} 0
+  ? {C info method definition foo} "::C protected method foo {} {return foo}"
+
+  C public method foo {} {return foo}
+  ? {::nsf::method::property C foo call-protected} 0
+  ? {::nsf::method::property C foo call-private} 0
+  ? {C info method definition foo} "::C public method foo {} {return foo}"
+
+  C private method foo {} {return foo}
+  ? {::nsf::method::property C foo call-protected} 1
+  ? {::nsf::method::property C foo call-private} 1
+  ? {C info method definition foo} "::C private method foo {} {return foo}"
+
+  ? {::nsf::method::property C foo call-private false} 0
+  ? {::nsf::method::property C foo call-protected} 1
+  ? {::nsf::method::property C foo call-private} 0
+
+  ? {::nsf::method::property C foo call-private true} 1
+  ? {::nsf::method::property C foo call-protected} 1
+  ? {::nsf::method::property C foo call-private} 1
+
+  ? {::nsf::method::property C foo call-protected false} 0
+  ? {::nsf::method::property C foo call-protected} 0
+  ? {::nsf::method::property C foo call-private} 0
+}

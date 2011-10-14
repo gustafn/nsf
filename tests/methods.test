@@ -1,0 +1,716 @@
+# -*- Tcl -*-
+package require nx
+::nx::configure defaultMethodCallProtection false
+package require nx::test
+namespace import ::nx::*
+
+Test parameter count 10
+
+Class create C {
+  # methods
+  :method plain_method {} {return [current method]}
+  :public method public_method {} {return [current method]}
+  :protected method protected_method {} {return [current method]}
+
+  # forwards
+  :forward plain_forward %self plain_method
+  :public forward public_forward %self public_method
+  :protected forward protected_forward %self protected_method
+
+  # setter
+  :property plain_setter 
+  :public property public_setter 
+  :protected property protected_setter 
+
+  # alias
+  :alias plain_alias [C info method handle plain_method]
+  :public alias public_alias [C info method handle public_method]
+  :protected alias protected_alias [C info method handle protected_method]
+  
+  # class-object
+  :class method plain_object_method {} {return [current method]}
+  :public class method public_object_method {} {return [current method]}
+  :protected class method protected_object_method {}  {return [current method]}
+  :class forward plain_object_forward %self plain_object_method
+  :public class forward public_object_forward %self public_object_method
+  :protected class forward protected_object_forward %self protected_object_method
+  :class property plain_object_setter 
+  :public class property public_object_setter 
+  :protected class property protected_object_setter 
+  :class alias plain_object_alias [:class info method handle plain_object_method]
+  :public class alias public_object_alias [:class info method handle public_object_method]
+  :protected class alias protected_object_alias [:class info method handle protected_object_method]
+}
+C create c1 {
+  # methods
+  :method plain_object_method {} {return [current method]}
+  :public method public_object_method {} {return [current method]}
+  :protected method protected_object_method {} {return [current method]}
+
+  # forwards
+  :forward plain_object_forward %self plain_object_method
+  :public forward public_object_forward %self public_object_method
+  :protected forward protected_object_forward %self protected_object_method
+
+  # setter
+  :property plain_object_setter 
+  :public property public_object_setter 
+  :protected property protected_object_setter 
+
+  # alias
+  :alias plain_object_alias [:info method handle plain_object_method]
+  :public alias public_object_alias [:info method handle public_object_method]
+  :protected alias protected_object_alias [:info method handle protected_object_method]
+}
+C public property s0
+C protected property s1
+? {c1 s0 0} 0
+? {::nsf::dispatch c1 s1 1} 1
+C class property s3
+? {C s3 3} 3
+
+# create a fresh object (different from c1)
+C create c2
+# test scripted class level methods
+Test case scripted-class-level-methods {
+  ? {c2 plain_method} "plain_method"
+  ? {c2 public_method} "public_method"
+  ? {catch {c2 protected_method}} 1
+  ? {::nsf::dispatch c2 protected_method} "protected_method"
+}
+
+# class level forwards
+Test case class-level-forwards {
+  ? {c2 plain_forward} "plain_method"
+  ? {c2 public_forward} "public_method"
+  ? {catch {c2 protected_forward}} 1
+  ? {::nsf::dispatch c2 protected_forward} "protected_method"
+}
+
+# class level setter
+Test case class-level-setter {
+  ? {c2 plain_setter 1} "1"
+  ? {c2 public_setter 2} "2"
+  ? {catch {c2 protected_setter 3}} 1
+  ? {::nsf::dispatch c2 protected_setter 4} "4"
+}
+
+# class level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
+Test case class-level-alias {
+  ? {c2 plain_alias} "plain_method"
+  ? {c2 public_alias} "public_method"
+  ? {catch {c2 protected_alias}} 1
+  ? {::nsf::dispatch c2 protected_alias} "protected_method"
+}
+
+###########
+
+# scripted class level methods
+Test case scripted-class-object-level {
+  ? {C plain_object_method} "plain_object_method"
+  ? {C public_object_method} "public_object_method"
+  ? {catch {C protected_object_method}} 1
+  ? {::nsf::dispatch C protected_object_method} "protected_object_method"
+}
+
+# class level forwards
+Test case class-object-level-forwards {
+  ? {C plain_object_forward} "plain_object_method"
+  ? {C public_object_forward} "public_object_method"
+  ? {catch {C protected_object_forward}} 1
+  ? {::nsf::dispatch C protected_object_forward} "protected_object_method"
+}
+
+# class level setter
+Test case class-object-level-setter {
+  ? {C plain_object_setter 1} "1"
+  ? {C public_object_setter 2} "2"
+  ? {catch {C protected_object_setter 3}} 1
+  ? {::nsf::dispatch C protected_object_setter 4} "4"
+}
+
+# class level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
+Test case class-object-level-alias {
+  ? {C plain_object_alias} "plain_object_method"
+  ? {C public_object_alias} "public_object_method"
+  ? {catch {C protected_object_alias}} 1
+  ? {::nsf::dispatch C protected_object_alias} "protected_object_method"
+}
+
+###########
+
+# scripted object level methods
+Test case scripted-object-level-methods {
+  ? {c1 plain_object_method} "plain_object_method"
+  ? {c1 public_object_method} "public_object_method"
+  ? {catch {c1 protected_object_method}} 1
+  ? {::nsf::dispatch c1 protected_object_method} "protected_object_method"
+}
+
+# object level forwards
+Test case object-level-forwards {
+  ? {c1 plain_object_forward} "plain_object_method"
+  ? {c1 public_object_forward} "public_object_method"
+  ? {catch {c1 protected_object_forward}} 1
+  ? {::nsf::dispatch c1 protected_object_forward} "protected_object_method"
+}
+
+# object level setter
+Test case object-level-setter {
+  ? {c1 plain_object_setter 1} "1"
+  ? {c1 public_object_setter 2} "2"
+  ? {catch {c1 protected_object_setter 3}} 1
+  ? {::nsf::dispatch c1 protected_object_setter 4} "4"
+}
+
+# object level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
+Test case object-level-alias {
+  ? {c1 plain_object_alias} "plain_object_method"
+  ? {c1 public_object_alias} "public_object_method"
+  ? {catch {c1 protected_object_alias}} 1
+  ? {::nsf::dispatch c1 protected_object_alias} "protected_object_method"
+
+  ? {lsort [c1 info methods]} \
+      "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
+  ? {lsort [C class info methods]} \
+      "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
+}
+
+C destroy
+
+Test case colondispatch {
+  Object create ::o {
+    #:public method foo args {;}
+    :public method bar args {;}
+  }
+  ? {o :bar} "::o: method name ':bar' must not start with a colon" 
+  ? {o eval :bar} "" 
+  ? {o :foo} "::o: method name ':foo' must not start with a colon" 
+  ? {o eval :foo} "::o: unable to dispatch method 'foo'" 
+}
+
+Test case mixinguards {
+  # define a Class C and mixin class M
+  Class create C
+  Class create M
+
+  # register the mixin on C as a class mixin and define a mixinguard
+  C mixin M
+  C mixin guard M {1 == 1}
+  ? {C info mixin guard M} "1 == 1"
+  C mixin guard M {}
+  ? {C info mixin guard M} ""
+
+  # now the same as class mixin and class mixin guard
+  C class mixin M
+  C class mixin guard M {1 == 1}
+  ? {C class info mixin guard M} "1 == 1"
+  C class mixin guard M {}
+  ? {C class info mixin guard M} ""
+}
+
+Test case mixin-via-objectparam {
+  # add an object and class mixin via object-parameter and via slots
+  Class create M1; Class create M2; Class create M3; Class create M4
+  Class create C -mixin M1 -object-mixin M2 {
+    :mixin add M3
+    :class mixin add M4
+  }
+  
+  ? {lsort [C class info mixin classes]} "::M2 ::M4"
+  #? {lsort [C class info mixin classes]} "::M2"
+
+  ? {lsort [C info mixin classes]} "::M1 ::M3"
+  #? {lsort [C info mixin classes]} "::M1"
+  C destroy
+  M1 destroy; M2 destroy; M3 destroy; M4 destroy;
+}
+
+# testing next via nonpos-args
+Test case next-from-nonpos-args {
+  
+  Object create o {
+    :method bar {-y:required -x:required} {
+      #puts stderr "+++ o x=$x, y=$y [current args] ... next [current nextmethod]"
+      return [list x $x y $y [current args]]
+    }
+  }
+  Class create M {
+    :method bar {-x:required -y:required} {
+      #puts stderr "+++ M x=$x, y=$y [current args] ... next [current nextmethod]"
+      return [list x $x y $y [current args] -- {*}[next]]
+    }
+  }
+  
+  o mixin M
+  ? {o bar -x 13 -y 14} "x 13 y 14 {-x 13 -y 14} -- x 13 y 14 {-x 13 -y 14}"
+  ? {o bar -y 14 -x 13} "x 13 y 14 {-y 14 -x 13} -- x 13 y 14 {-y 14 -x 13}"
+}
+
+# 
+# test method property with protected/public
+# 
+Test case property-method {
+
+  Class create C {
+    set x [:property a]
+
+    ? [list set _ $x] "::nsf::classes::C::a"
+
+    # property with default
+    :property {b b1}
+    :public property {c c1}
+    :protected property {d d1}
+
+    set X [:class property A]
+    ? [list set _ $X] "::C::A"
+    
+    # class property with default
+    :class property {B B2}
+    :public class property {C C2}
+    :protected class property {D D2}
+  }
+
+  C create c1 -a 1
+  ? {c1 a} 1
+  ? {c1 b} b1
+  ? {c1 c} c1
+  ? {c1 d} "::c1: unable to dispatch method 'd'"
+
+  ? {C A 2} 2
+  ? {C A} 2
+  ? {C B} B2
+  ? {C C} C2
+  ? {C D} "Method 'D' unknown for ::C. Consider '::C create D ' instead of '::C D '"
+
+  Object create o {
+    set x [:property a]
+    ? [list set _ $x] "::o::a"
+
+    # property with default
+    :property {b b1}
+    :public property {c c1}
+    :protected property {d d1}
+  }
+  ? {o a 2} 2
+  ? {o b} b1
+  ? {o c} c1
+  ? {o d} "::o: unable to dispatch method 'd'"
+}
+
+Test case subcmd {
+  
+  Class create Foo {
+
+     :method "Info filter guard" {filter} {return [current object]-[current method]}
+     :method "Info filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+     :method "Info args" {} {return [current object]-[current method]}
+     :method "Info foo" {} {return [current object]-[current method]}
+
+     :class method "INFO filter guard" {a b} {return [current object]-[current method]}
+     :class method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+   }
+  
+  ? {Foo INFO filter guard 1 2} ::Foo-guard
+  ? {Foo INFO filter methods a*} ::Foo-methods
+  
+  Foo create f1 {
+    :method "list length" {} {return [current object]-[current method]}
+    :method "list reverse" {} {return [current object]-[current method]}
+  }
+
+  ? {f1 Info filter guard x} "::f1-guard"
+  ? {f1 Info filter methods} "::f1-methods"
+  ? {f1 Info args} "::f1-args"
+  ? {f1 Info foo} "::f1-foo"
+
+  ? {f1 list length} "::f1-length"
+  ? {f1 list reverse} "::f1-reverse"
+}
+
+package req nx::serializer
+Test case class-object-property {
+  Class create C {
+    :class property x
+    :property a:int
+    :create c1
+  }
+  ? {C x 1} 1
+  ? {C x} 1
+  ? {C info methods} "a"
+  ? {C class info methods} x
+  ? {c1 a b} {expected integer but got "b" for parameter "a"}
+
+  set s(C) [C serialize]
+  set s(c1) [c1 serialize]
+
+  # Destroy object and class
+  c1 destroy
+  C destroy
+
+  ? {nsf::object::exists c1} 0
+  ? {nsf::object::exists C} 0
+
+  # create it from the serialized code
+  eval $s(C)
+  eval $s(c1)
+
+  # tests should work as again
+  ? {C x} 1
+  ? {C info methods} "a"
+  ? {C class info methods} x
+  ? {c1 a b} {expected integer but got "b" for parameter "a"}  
+}
+
+#
+# Test method deletion
+#
+Test parameter count 1
+
+Test case methoddelete {
+  nx::Class create C {
+    :public method foo {x} {return $x}
+    :public class method bar {x} {return $x}
+    :create c1
+  }
+  
+  ? {::nsf::method::delete C x} "::C: cannot delete method 'x'"
+  ? {::nsf::method::delete C -per-object x} "::C: cannot delete object specific method 'x'"
+  ? {::nsf::method::delete C foo} ""
+  ? {::nsf::method::delete C foo} "::C: cannot delete method 'foo'"
+  ? {::nsf::method::delete C bar} "::C: cannot delete method 'bar'"
+  ? {::nsf::method::delete C -per-object bar} ""
+  ? {::nsf::method::delete C -per-object bar} "::C: cannot delete object specific method 'bar'"
+}
+
+#
+# Test error message of method modifier
+#
+Test parameter count 1
+
+Test case errormessage {
+  nx::Class create C
+  ? {C public method foo {x} {return $x}} "::nsf::classes::C::foo"
+  ? {C public object method bar {x} {return $x}} \
+      "'object' is not a method defining method"
+  ? {C protected object method bar {x} {return $x}} \
+      "'object' is not a method defining method"
+  ? {C object method bar {x} {return $x}} \
+      {Method 'object' unknown for ::C. Consider '::C create object method bar x {return $x}' instead of '::C object method bar x {return $x}'}
+  #? {C public class object method bar {x} {return $x}} "'object' not allowed to be modified by 'class'"
+  ? {C public class object method bar {x} {return $x}} \
+      {Unable to dispatch sub-method "object" of ::C class; valid are: class alias, class delete method, class delete property, class delete variable, class filter, class filterguard, class forward, class info children, class info class, class info filter guard, class info filter methods, class info has mixin, class info has namespace, class info has type, class info info, class info is, class info lookup filter, class info lookup method, class info lookup methods, class info lookup slots, class info method, class info methods, class info mixin classes, class info mixin guard, class info parent, class info precedence, class info properties, class info slot definition, class info slot names, class info slot objects, class info vars, class method, class mixin, class mixinguard, class property, class variable}
+}
+
+#
+# test dispatch without object
+#
+Test case dispatch-without-object {
+
+  nx::Object create o {
+    # property defines a setter, we need a current object
+    :property {a v}
+    # the other methods don't require them as strong
+    :forward b ::o2 bar
+    :method foo {} {return [self]}
+    :alias x ::o::foo
+  }
+  nx::Object create o2 {
+    :public method bar {} {return [self]}
+  }
+
+  # dispatch methods without current object 
+  ? ::o::a "Method ::o::a not dispatched on valid object"
+  ? ::o::b "::o2"
+  ? ::o::foo "No current object; command called outside the context of a Next Scripting method"
+  ? ::o::x "No current object; x called outside the context of a Next Scripting method"
+  # make a regular call, provide tcd->object with a value
+  ? {::o x} "::o"
+  # check, if missing object is still detected
+  ? ::o::x "No current object; x called outside the context of a Next Scripting method"
+  ? self "No current object; command called outside the context of a Next Scripting method"
+}
+
+
+#
+# Test the current namespaces and resolution for
+# a) top-level methods
+# b) ensemble methods on level 1
+# c) ensemble methods on level 2
+#
+nx::Test case scopes {
+  Object create o1 {
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {o1 foo} "::-::info"
+  ? {o1 info foo} "::-::info"
+  ? {o1 info bar foo} "::-::info"
+
+  Class create C {
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :create c1
+  }
+
+  ? {c1 foo} "::-::info"
+  ? {c1 info foo} "::-::info"
+  ? {c1 info bar foo} "::-::info"
+}
+
+#
+# Test the current namespaces and resolution for methods
+# registered on a object in a certain namespace
+# a) top-level methods
+# b) ensemble methods on level 1
+# c) ensemble methods on level 2
+#
+nx::Test case namespaced-scopes {
+
+  namespace eval ::ns {
+    Object create o1 {
+      :public method foo {} {return [namespace current]-[namespace which info]}
+      :public method "info foo" {} {return [namespace current]-[namespace which info]}
+      :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    }
+    Class create C {
+      :public method foo {} {return [namespace current]-[namespace which info]}
+      :public method "info foo" {} {return [namespace current]-[namespace which info]}
+      :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+      :create c1
+    }
+  }
+
+  ? {ns::o1 foo} "::ns-::info"
+  ? {ns::o1 info foo} "::ns-::info"
+  ? {ns::o1 info bar foo} "::ns-::info"
+
+  ? {ns::c1 foo} "::ns-::info"
+  ? {ns::c1 info foo} "::ns-::info"
+  ? {ns::c1 info bar foo} "::ns-::info"
+}
+
+
+#
+# Test the current namespaces and resolution for methods
+# registered on a sub object
+# a) top-level methods
+# b) ensemble methods on level 1
+# c) ensemble methods on level 2
+#
+nx::Test case nested-scopes {
+  Object create o 
+  Object create o::o1 {
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {o::o1 foo} "::o-::info"
+  ? {o::o1 info foo} "::o-::info"
+  ? {o::o1 info bar foo} "::o-::info"
+
+  Class create o::C {
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :create c1
+  }
+
+  ? {c1 foo} "::o-::info"
+  ? {c1 info foo} "::o-::info"
+  ? {c1 info bar foo} "::o-::info"
+}
+
+#
+# Test deletion of object-specific methods/attributes via "delete
+# method" and "delete property"
+#
+# a) test attributes
+# b) test simple methods
+# c) test ensemble methods
+#
+nx::Test case delete-per-object {
+  Object create o1 {
+    :property a1
+    :property a2
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo a1 a2"
+  ? {o1 info children} "::o1::info ::o1::per-object-slot"
+
+  ? {o1 delete method bar} "::o1: cannot delete object specific method 'bar'"
+  # For a1, we have a method and an property. We can delete the
+  # method without the slot.
+  ? {o1 delete method a1} ""
+  # After the deletion of the accessor, the slot exists still
+  ? {o1::per-object-slot info children} "::o1::per-object-slot::a1 ::o1::per-object-slot::a2"
+  # If we perform now a "delete property a1", the slot will be removed.
+  ? {o1 delete property a1} ""
+  ? {o1::per-object-slot info children} "::o1::per-object-slot::a2"
+
+  # try to delete the property again:
+  ? {o1 delete property a1} "::o1: cannot delete object specific property 'a1'"
+
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo a2"
+  ? {o1 delete property a2} ""
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo"
+
+  ? {o1 delete method foo} ""
+  ? {o1 info methods -path} "{info foo} {info bar foo}"
+
+  ? {o1 delete method "info foo"} ""
+  ? {o1 info methods -path} "{info bar foo}"
+
+  ? {o1 delete method "info bar foo"} ""
+  ? {o1 info methods -path} ""
+}
+
+#
+# Test deletion of per-object methods/attributes defined on classes
+# via the delete method
+# a) test attributes
+# b) test simple methods
+# c) test ensemble methods
+#
+nx::Test case delete-per-object-on-class {
+  Class create C {
+    :class property a1
+    :public class method foo {} {return [namespace current]-[namespace which info]}
+    :public class method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public class method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :property a2
+  }
+
+  ? {C class info methods -path} "{info foo} {info bar foo} foo a1"
+  ? {C info children} "::C::info ::C::slot ::C::per-object-slot"
+
+  ? {C class delete method bar} "::C: cannot delete object specific method 'bar'"
+
+  ? {C class delete property a1} ""
+  ? {C class info methods -path} "{info foo} {info bar foo} foo"
+  ? {C class delete property a1} "::C: cannot delete object specific property 'a1'"
+
+  ? {C class delete method foo} ""
+  ? {C class info methods -path} "{info foo} {info bar foo}"
+
+  ? {C class delete method "info foo"} ""
+  ? {C class info methods -path} "{info bar foo}"
+
+  ? {C class delete method "info bar foo"} ""
+  ? {C class info methods -path} ""
+
+  ? {C info methods} "a2"
+  ? {C info slot objects} "::C::slot::a2"
+}
+
+
+#
+# Test deletion of methods/attributes defined on classes via the
+# delete method
+# a) test attributes
+# b) test simple methods
+# c) test ensemble methods
+#
+nx::Test case delete-class-level-method {
+  Class create C {
+    :property a1
+    :public method foo {} {return [namespace current]-[namespace which info]}
+    :public method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+  }
+
+  ? {C info methods -path} "{info foo} {info bar foo} foo a1"
+  ? {C info children} "::C::slot"
+
+  ? {C delete method bar} "::C: cannot delete method 'bar'"
+
+  ? {C delete property a1} ""
+  ? {C info methods -path} "{info foo} {info bar foo} foo"
+
+  ? {C delete property a1} "::C: cannot delete property 'a1'"
+
+  ? {C delete method foo} ""
+  ? {C info methods -path} "{info foo} {info bar foo}"
+
+  ? {C delete method "info foo"} ""
+  ? {C info methods -path} "{info bar foo}"
+
+  ? {C delete method "info bar foo"} ""
+  ? {C info methods -path} ""
+}
+
+#
+# simple unknown tests; 
+# ensemble unknown tests are in submethods.test
+#
+nx::Test case test-simple-unknown {
+
+  #
+  # calling unknown with a plain "method" without arguments
+  #
+  ::nx::Class create A {
+    :class method unknown args {? [list set _ $args] "hello"}
+  }
+  A hello
+
+  #
+  # calling unknown with a plain "method" with arguments
+  #
+  ::nx::Class create B {
+    :class method unknown args {? [list set _ $args] "hello world"}
+  }
+  B hello world
+
+  #
+  # calling unknown with a method with spaces
+  #
+  ::nx::Class create C {
+    :class method unknown args {? [list set _ $args] "{hello world}"}
+  }
+  C {hello world}
+}
+
+
+#
+# simple speed tests
+# ensemble unknown tests are in submethods.test
+#
+nx::Test parameter count 1000
+nx::Test case speed-dispatch {
+
+  #
+  # define various forms of simple dispatches
+  #
+  ::nx::Object create o {
+    :public method foo {} {return ::o}
+    :public method bar00 {} {self}
+    :public method bar01 {} {:}
+    :public method bar02 {} {[self]}
+    :public method bar03 {} {[:]}
+    :public method bar04 {} {:foo}
+    :public method bar05 {} {: foo}
+    #:public method bar06 {} {my foo}
+    :public method bar07 {} {[self] foo}
+    :public method bar08 {} {: -system info methods foo}
+    #:public method bar09 {} {my -system info methods foo}
+  }
+
+  ? {o foo} ::o
+  ? {o bar00} ::o {self}
+  ? {o bar01} ::o {:}
+  ? {o bar02} ::o {[self]}
+  ? {o bar03} ::o {[:]}
+  ? {o bar04} ::o ":foo"
+  ? {o bar05} ::o ": foo"
+  #? {o bar06} ::o "my foo"
+  ? {o bar07} ::o "self foo"
+  ? {o bar08} foo ": -system info"
+  #? {o bar09} foo "my -system info"
+}

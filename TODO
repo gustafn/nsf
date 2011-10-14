@@ -1,0 +1,3982 @@
+<- handle change in tcl 8.5.8: http://tcl.cvs.sourceforge.net/viewvc/tcl/tcl/generic/tclObj.c?sortby=date&r1=1.139.2.1&r2=1.139.2.2&pathrev=core-8-5-branch
+  in xotcl:
+   * when e.g. the parent namespace is deleted with a "namespace delete", the change
+     above causes, the no xotcl methods could be resolved (and called) anymore.
+  * therefore, e.g. a "C dealloc c1" did not work, since dealloc passes
+    c1 via tcl_obj, and the tcl_obj is as well converted to an xotcl object via
+    Tcl_GetCommandFromObj(), which fails as well.
+- to bypass this problem, xotcl has now a C-function DoDealloc(), which 
+   is called, when this situation is detected.
+- some more cases, where xotcl could reference already freed memory
+   were fixed (thanks to enable-symbols=mem)
+- as collateral damage, parts of the regression test don't work currently
+
+
+- added refcounting in ObjectDispatch() to make sure, obj survives until
+   the end of the function
+
+- added existence test for slot extractor (needed for 8.5.8)
+- added refcounting CallStackDoDestroy() to ensure existance of
+   object until end of function
+- make sure to call PrimitiveDestroy() before DeleteCommandFromToken(),
+       otherwise e.g. unset traces on this object cannot be executed
+- regression test works again
+
+- get rid of rst->deallocCalled (not needed due to reference counting 
+   on xotcl objects)
+- reduce verbosity
+
+- reactivated XOTclErrInProc()
+
+- renamed "ClassName info instmixinof ?-closure? ?pattern?" into
+  "ClassName info class-mixin-of ?-closure? ?pattern?"
+- renamed "ClassName info mixinof ?-closure? ?pattern?" into
+  "ClassName info object-mixin-of ?-closure? ?pattern?"
+- added emulation "ClassName info instmixinof|mixinof" for xotcl1 
+
+- update to TEA 3.7 (from TEA 3.5)
+- use of INT2PTR to avoid warnings about different sizes on 64bit
+   architectures
+- defined HAVE_INTPTR_T as a macro to make definition of INT2PTR working
+
+- use INT2PTR and PTR2INT macros in generated stubs
+
+- handle HAVE_UINTPTR_T like HAVE_INTPTR_T
+- use ::xotcl::setinstvar instead of ::xotcl::setinstvar in serializer
+
+- change and rename cmd instvar 
+    ::xotcl::instvar -object someObject newVar
+   into
+     ::xotcl::importvar someObject newVar
+   Rationale of change: 
+      only needed in xotcl2 for importing variables
+      from different objects
+
+- changed assertions:
+   old (xotcl1) interface: 3 methods + 3 info methods
+      * <object> check Options
+      * <object> info check
+      * <object> invar Conditions
+      * <object> info invar
+      * <class> instinvar Conditions
+      * <class> info instinvar
+
+   new (xotcl2) interface: 1 cmd (similar to ::xotcl::relation)
+      ::xotcl::assertion check|object-invar|class-invar ?arg?
+- added emulation for xotcl1
+
+- deleted namespecific C macros:
+    isInfoString, isInstinvarString, isInvarString, isInstprocString, isProcString
+
+- made some more xotcl2 methods protected 
+  (no big need to call these from different objects):
+  unknown, uplevel, upvar
+
+- added ::xotcl::exists as cmd
+
+- added ::xotcl::method as cmd instead of methods object-method and
+  class-method
+
+- added ::xotcl::forward as cmd instead of method
+   now, all method-defining-methods (alias, method, forward, setter)
+   are defined as cmds (this should make life of serializer easier)
+
+- moved "-per-object" consequently immediately after obj in the
+  following commands
+     : ::xotcl::alias, ::xotcl::methodproperty, ::xotcl::setter
+  to achiev conformance with ::xotcl::forward and ::xotcl::method
+ 
+
+-per-object
+nach methodName: 
+vor methodName: alias forward method methodproperty setter
+
+
+- added experimental flag for alias "-noleaf" to force a stack frame
+   to be written (e.g. necessary for "next"). makes only sense for
+   aliases to c-implemented cmds
+
+- fix inconsistent behaviour of dotVarResolver
+    "o eval {set .x 1}" was setting var ".x" instead of "x"
+  The problem was due to a interaction between
+  the namespace varResolver() and the DotVarResolver()
+
+- fix for DotCmdResolver during compilation of a proc by Tcl.
+- extended regression text
+- found 2 potential bugs (not fixed yet)
+
+- fix eval method with requirenamespace
+
+- removed dependency on proc/instproc in copy/move.
+   code is now independet of class system
+
+- changed results of "filtersearch" and "self next" to new naming
+   Caveat: for xotcl1, there is no mapping for the names to the
+   old style in "self next" and "self filterreg"
+- backwards compatible mapping of filterseach in xotcl1
+
+- removed XOTclInstVar from the C-level API. 
+   todo: add all xotcl*cmds to C api, including importvar
+
+- removed all unreferenced entries from XOTE_*
+- regrouped XOTE_* for easier comprehension
+- used XOTE_* on more occations
+- used XOTclCallCommand() for calling Tcl 
+   "format" and "interp"
+
+- added option "arg=.." to parameter options; this argument
+   can be passed to converter; used currently for "type=relation"
+   to flag, that the relation type is different from the parameter 
+   name
+- extended "objectparameter" to handle such cases
+- removed relationtypes "mixin", "filter", "instfilter" and
+  "instmixin" since not needed due to converterArg
+
+- xotcl.c: removed all names starting with "inst"
+   (exception: instvar)
+
+- added option "-application" to "info callable" to 
+   omit methods from base classes
+- extended regression test
+- changed naming of methodtype "system" to "builtin"
+- added "info methods" to migration guide
+
+- added "info method" to migration guide
+
+- modernize test a little: all local definitions of proc "?" are gone.
+- added interface to test: "Test parameter count SOMEVALUE" to 
+   specify conveniently e.g. the number of tests the be executed
+- add XOTCL_CM_NO_UNKNOWN to dispatch of defaultmethod
+
+- added option "objectsystems" to ::xotcl::configure to
+   obtain the currently defined object systems
+- added option "baseclass" to ::xotcl::is to check, whether
+   a class is a baseclass of an object system 
+   (root class or root meta-class of object system)
+- changed result of "... info methods -methodtype scripted"
+   to return only truely scripted methods (no aliases)
+- some more cleanup in regression tests
+- first version of serializer for xotcl1 + xotcl2
+
+- serializer: move checking of the requested objects 
+   to be exported to the invocation of "Serializer all"
+- replace "namespace import ::xotcl::*" by "xotcl::use xotcl1"
+
+- make allocation sizes for dynamically allocated parameterContexts
+   consistent between alloc and realloc
+- added sanity check in getAllClassMixinsOf()
+   It seems as it would be possible with __defaultSupeclass to define
+   a class which has itself als a subclass. Just a quick
+   fix, we have investigate more on this.
+
+- improved naming of resolvers: use InterpDot*Resolver and
+  NsDot*Resolver for interp wide and namespace specific resolvers
+- added possibility to escape the call of commands starting
+   with a dot from method bodies by prefixing with a second dot.
+ 
+- make sure to have an xotcl frame pushed, when byte-code-compiler
+   is invoked. This is necessary for providing the context for 
+   dotCmd resolvers
+
+- use uplevel in slot add/delete to evalute in calling namespace
+   (for not fully qualified object names)
+- determine namespace in test method "?" to allow its execution
+   in an "namespace eval"
+- added regression tests
+
+
+- NsDotVarResolver: don't create variables on CMETHOD frames
+   when their names do not start with a "."
+
+- general overhaul of XOTcl_PushFrame()XOTcl_PopFrame():
+   new functions: 
+     * XOTcl_PushFrameCsc()/XOTcl_PopFrameCsc(): for CMETHOD fames
+     * XOTcl_PushFrameObj()/XOTcl_PopFrameObj(): for OBJECT frames
+       (objscope)
+
+- preallocate obj->vartable in XOTcl_PushFrameObj() to 
+   avoid situations where to non-existing vartable is created
+   on demand at different places (e.g. on stack and in 
+   var resolver)
+
+- caller of convertToRelationtype(): make sure that last argument
+   keeping the result is large enough to held pointer (in case of
+   sizeof(void) != sizeof(int)
+
+- Serializer: include ObjectSystemSerializer in "Serializer all"
+- Serializer: use class-mixin in dependency order
+- Serializer: add appropriate "::xotcl::use xotcl1|xotcl2"
+- Serializer: fix syntax in exportMethods
+- Serializer: provide limited support for exporting aliases for xotcl1 objects
+
+- add calltype to tcl85showStack
+
+- keep orignial objc/objc in call stack context such that
+   next/self args works with canonical args (allow e.g. 
+   different order of nonpos args in a next)
+- make naming in xotcl.c more consistent
+- ensure to return empty, when "info callable -which" fails
+- extend regression test
+
+- exithandler is different in xotcl2 -> comment, check openacs
+- ensure relation filter/instfilter etc. mit guards
+
+- extended migration guide
+- defined eval in predefined via "-nonleaf", used at various places
+- added "info mixinof ?-scope all|object|class? ?pattern?", dropped
+   "object-mixin-of" and "class-mixin-on" from registerd method
+- extended regression test 
+- xotcl1: make "-volatile" invoked via unknown behave correctly
+
+- provide minimal xotcl2 compatibility
+- added non positional parameter "type" to "get_parameter"
+- removed "required" from parameters, which is in XOTcl 1 just a comment
+- minor cleanup
+
+- experimental change of resolver name prefix char from dot to single colon
+
+- making methodDefinitions NULL terminated
+- passing optional arg to user-defined argument converter
+- refuse to redefine type converters for a single parameter
+- adding regression test for parameters
+
+    - added instance variable arg for interfacing with parameter
+      interface. "arg" acts like a clientdata for type converter
+    - added multiple parameter options handling to method "parameter"
+       to obtain similar functionality from object parameters
+       as from method parameters
+    - added conveniance method "??" to test to indicated test
+      that should fail with an error
+    - added severy type converters to achieve same
+       object type checking as in ::xotcl::is
+       (these are currently in the regression test, should move
+       finally into predefined.xotcl)
+    - extended regression test
+
+- new function ::xotcl::parameterFromSlot (used in argument checker as  well)
+- use ::xotcl::forward in Slot constructor (instead of dispatch)
+- checking methods on slots for single- and multivalues slots
+   (can be optimized)
+- extended regression test
+
+- don't run multiple queries in "??"
+- fixed last changes to regression test as usual
+
+- added "multivalued" to parameter options
+- made error message produced by XOTclObjErrType look like Tcl's error
+   messages
+- extended regression test
+- test utility: changed "?" to return error msg in case of error
+
+- checking multivalued types in "-parameters" by using argument
+  checker
+- some cleanup
+- extend regression test
+
+valuecheck.001:	  5.27 mms, ::xotcl::valuecheck object o1
+valuecheck.002: ::xotcl::valuecheck object 1 ok
+valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
+
+- new cmd "::xotcl::valuecheck <valueConstraints> <value>"
+  where "valueConstraints" is whatever is allowed in e.g. parameters 
+  (including user defined types)
+- new Tcl_ObjType "xotclParam"
+
+- parameterFromSlot returns now pair object-param & method-param
+- define dissallowed parameter options for object parameter, method
+  parameter and valuecheck command
+- make canonical table of parameter options (currently in
+  tests/parameter.xotcl)
+- extend regression test
+- systematic checking, what valueconstraints should be allowed/not
+   allowed in valuecheck
+
+- pass arg from objectparameter as first argument to objparms
+   (similiar to client data)
+
+- support for parameter spec of form "type=XXX" to denote that
+   the parameter must be an object of the specified type (class;
+   directly or indirectly)
+- new built-in converter: convertToObjectOfType()
+- keep parameterObj (source for conversion to XOTclParam) 
+   for making introspection less work. However, this is 
+   only used for XOTclParams generated via ParamParse().
+- extending regression test
+
+- name XOTclObjects always "object" instead of "obj" to avoid 
+   potential confusion with Tcl_Objs
+
+- remove unneeded push and pop operations in ListChildren() and
+   ObjectHasChildren() 
+
+- allow syntax "object,type=::SomeClass" and "class,type=::SomeMetaClass"
+   (currently identical, we should as well check for class/meta-class
+   in case of "class,type=SomeClass")
+
+- define everything concerning basic slot setup in a single 
+   "namespace eval ::xotcl {...}"
+- undefine ::xotcl::createBootstrapAttributeSlots after this block
+- fix default DefaultSuperClass() with isMeta==1 in cases, 
+   where we are already at the root meta class
+- use "-parameter" in xotcl1 instead of  createBootstrapAttributeSlots
+
+- cleanup of legacy stuff in slot management.
+   * merged InfoSlot and InterceptorSlot into RelationSlot
+   * get rid of legacy "mixin set ...." command
+- renamed "parameterSlot" into "methodParameterSlot" to avoid 
+   potential confusions
+
+- refactor Slot class hierarchie
+- new methods in ObjectParameterSlot "toParameterSyntax" and
+  "createFromParameterSyntax"
+- some more cleanup
+- removed legacy syntax for "-parmeters"
+
+- moved slot optimizer from ::xotcl::ObjectParameterSlot::Optimizer to
+  ::xotcl::Attribute::Optimizer
+
+- support for all string constraints provided by "string is ... $value"
+  in object and method parameters ("alum", "alpha", ..., "xdigit"). 
+  Technically, these types are tclobjs (using converter convertToTclobj)
+  having pParm->converterArg set to the constraints.
+- extended regression test
+
+- get rid of convertToObjectOfType(), make convertToClass() and 
+  converterToObject() more general, accepting type constraints
+
+- predefined.xotcl: move toParameterSyntax and objectparameter to 
+  a position, where basic slot definitions are provided
+- fixed default value setting in bootstrap code
+- provide more precise error message in converter,
+  when object type are used
+- extend regression test 
+
+- added error message when substdefault is specified without a default value
+- extend regression test 
+
+- added parameter option slot= to pass slotobj to a certain parameter
+- use slot option to keep relation between parameter and slot
+- object parameter dispatch type checker on slot objects
+- allow transformation via user-defined converter (can be use to 
+  standardize parameter values)
+  experimental implementation, refcounting has to be looked
+  in detail, maybe we need a different interface for the converters
+
+- provide checker-methods for
+   -> objectParameter
+   -> methodParameter
+- slotobject specific checker-methods
+
+- treat currently unknown converters in valuecheckcmd as error
+- fix the regression test from the last changes
+
+- added argument for converter to return the converted tcl_obj, which
+  should be passed on (currently only used for viaCmd); this way,
+  we could remove the kludge of querying the converter after the conversion
+  for special handling.
+
+- handle multivalued + values converted viaCmd converter the new
+  output list is only built when needed via ArgumentCheckHelper()
+
+- fix counter initialization in ::xotcl::importvar
+- register alternate "new" method in "contains" for xotcl2 and
+  (if available) for xotcl1 objects
+
+- provide error message for cases, where parameter options are not
+  allowed (or ignored)
+
+- move methodParameter checkers for "mixin", "baseclass" and "metaclass"
+  to predefined.
+- deactivated checkMethods in gentclAPI.decls and in xotcl.c
+
+- renamed "::xotcl::is ... mixin ..." to "::xotcl::is ... hasmixin ..."
+  (effects parametertypes as well)
+
+- made error messages for failed conversions more consistent
+  (note that tcl does not provide the parameter name in the error message,
+  but user-defined converters do)
+
+- fixed valuecheck in connection with modifying converters
+- extended regression test
+
+- fixed compilation for tcl 8.6b1
+
+- Allowed parameter specification for setters.
+  One can define now a setter with constraints like e.g.
+     ::xotcl::setter o a:integer
+  to define a setter named "a" for object "o" which
+  has to be integer.
+- Extended regression test
+- Followed naming conventions for several structures
+
+- setterCmd(): Do not allow methodNames start with "-"
+- setterCmd(): Do not allow defaults for setters
+- extend regression test
+
+- removed duplciate error message in "hasmixin" converter
+- fixed refcounting in converting user-types in case of errors
+- extended regression test
+
+- added a "-nocomplain" option to ::xotcl::valuecheck
+- changed semantic of ::xotcl::valuecheck: per default,
+  valuecheck raises an error or returns true. 
+  If "-nocomplain" is used, valuecheck returns
+  0 or 1 like implemented befor this change
+- extended regression test
+
+- added parameter "incremental" to ::xotcl::Attribute:
+  when set, one can use "object paramname add|delete $value" etc.
+- use setters with parameter constraints in slot optimizer
+- as a consequence, setting attributes via slot names is about
+  twice as fast as before, when parameter constraints are used.
+- extended regression test
+
+- fixed returned method name when setter was used on objects
+- reduce verbosity
+
+- implemented "info method definition|parameter|args $name" for 
+  settercmds (with parameter constraints)
+- extended regression test
+
+- fixed result resetting for user defined converters
+
+- ::xotcl::valuecheck: moved "-nocomplain" to first position
+  (similar to e.g. unset)
+
+- experimental: allow to shadow built-in types provided that
+  a) slot= is specified explicitely, and
+  b) the specified slot is not the default slot.
+  This should guarantee that we do not interfere with 
+  the predefined converters for the c-level interface.
+- incremented ref count on results of all-level converter
+- extended regression test
+
+- new methods for MetaSlot to factor out common code:
+   + slotName (to ease name-construction, care about 
+     slot container)
+   + createFromParameterSyntax: essentially move from 
+     ::xotcl::Attribute to the meta class
+- test environment: make sure to avoid confusions between
+  the "namespace" method and command
+
+- added a version of the "attribute" method to predefined
+
+- removed the following classes and methods
+     ::xotcl::Attribute->check_single_value
+     ::xotcl::Attribute->check_multiple_values 
+     ::xotcl::Attribute->mk_type_checker
+     class ::xotcl::Attribute::Nocheck
+
+- centralize fetching of tcl-obj-types in xotcl_init
+
+- support for method modifier "object", "protected" and "public"
+  for method "attribute". One can use now e.g.
+  
+     Class create C {
+       :attribute a
+       :public attribute b
+       :protected attribute c
+
+       :object attribute A
+       :public object attribute B
+       :protected object attribute C
+    }
+
+  "protected" and "public" refers to the registered accessor functions
+
+- experimental checking function ::xotcl::is2 implemented, which generalizes
+  between ::xotcl::is and ::xotcl::valuecheck (it is a valuecheck -nocomplain 
+  with an ::xotcl::is syntax and switched arguments)
+
+- Unified on c-level "info class-mixin-of" and "info object-mixin-of"
+  to "info mixinof ?-scope all|object|class? ?-closure? ?pattern?
+  The former "info class-mixin-of" 
+  is now "info mixinof -scope class"
+- adapted xotcl1 layer for this change
+- extended experimental ::xotcl::is2 to handle flags -type and -hasmixin
+    ::xotcl::is2 <obj> object ?-type <type>? ?-hasmixin <class>?
+
+- renamed old "xotcl::is" -> "xotcl::objectproperty"
+- renamed old "xotcl::is2" -> "xotcl::is"
+- we have now is tests for objects in ::xotcl::objectproperty
+    ::xotcl::objectproperty $obj object
+    ::xotcl::objectproperty $obj class
+    ::xotcl::objectproperty $obj baseclass
+    ::xotcl::objectproperty $obj metaclass
+    ::xotcl::objectproperty $obj type XXXX
+    ::xotcl::objectproperty $obj hasmixin XXXX
+
+- "::xotcl::is" is the higher level command, 
+  supporting string contstraints "e.g. upper", user defined type checkers
+  and as well object properties (every parameter type supported for object
+  and method paameter). Examples:
+    ::xotcl::is $obj object ?-type $type? ?-hasmixin $mixin?
+    ::xotcl::is $cl class ?-type $type? ?-hasmixin $mixin?
+    ::xotcl::is obj metaclass
+    ::xotcl::is $num integer
+    ::xotcl::is $string upper
+
+- implemented 2nd level reference counting for paramObjType
+
+- defined "info is" as alias of "::xotcl::objectproperty"
+
+- renamed ::xotcl::valuecheck -> ::xotcl::parametercheck
+- replaced in predefined occurances of ::xotcl::is by ::xotcl::objectproperty
+
+- fixed namespace handling on stack for objects with namespaces
+  (before, it was possible that a variable was created in 
+  an object's namespace without -objscope)
+- as a consequence, ListChildren() had to be adjused, since
+  it depended on the previous namespace handling on the stack
+- fixed object sesolving in NsDotVarResolver()
+  (before, it was possible that NsDotVarResolver could
+  create variables in the wrong namespace)
+- simplified NsDotVarResolver()
+- more cleanup in name resolver
+    * USE_DOT is gone
+    * XOTclDotDotCmd() removed
+    * improved performance of InterpCompiledDotVarResolver()
+    * made LookupVarFromTable() obsolete and removed it 
+    * renamed DotVarResolver() and friends to ColonVarResolver() etc.
+- extended regression test
+
+- call XOTclObject always "object" instead of "obj"
+
+- initcmd: use for initcmds CMETHOD frames instead of OBJECT stack frames
+- initcmd: skip parent-stack frame's objscope for initcmd
+- changed hash-based lookup of children into a cmd-based lookup
+- extended regression test
+
+- cleanup in stack handlers (naming, arguments)
+
+- XOTclCallStackFindLastInvocation(): return last scripted invocation
+- use xotcl1 in webserver test to make rull regression test working
+- make xotcl::use silent
+
+- added option "-nonleaf" for method alias 
+- added introspection (for "info method definition") for "alias ... -nonleaf ..."
+
+- removed obsolete ::xotcl::configure option "cacheinterface"
+
+- removed XOTclCreateClass() and XOTclDeleteClass();
+  both are identical with XOTclCreateObject() and XOTclDeleteObject()
+
+- renaming of instance variable specific primitiva for more
+  constistency with ::xotcl::importvar:
+
+    ::xotcl::exists -> ::xotcl::existsvar
+    ::xotcl::setinstvar -> ::xotcl::setvar
+
+- requireNameSpace: 
+   * fix potental crash in requireNameSpace in objscoped methods
+     by swapping all vartable references in objscopes on stack
+     to the vartable in the namespace, when it is created
+- extending regression test   
+
+- working towards KEEP_VARS_IN_CMETHOD_FRAME
+
+- enable compilation with assertion turned on (via NDEBUG)
+- fix potentially uninitialized flags for ArgumentCheck()
+- some further cleanup, tested with 32 bit under Mac OS X 10.6
+
+- removed obsolete generic/xotclAppInit.c
+- changed loading method in xotclsh from Xotcl_Init() to Tcl_PkgRequire()
+
+- updating tcl.m4 to the actual version (TEA 3.7)
+- minor cleanup (varresolution test and comment)
+
+- defined "xotcl::current" as synonym for "::xotcl::self"
+- new options for ::xotcl::current
+   current object == current
+   current method == current proc
+   current callingmethod == current callingproc
+- "self proc" and friends are for backward compatibility for xotcl1, 
+  "current method" and friends are for xotcl2
+- namespace exported "::xotcl::current"
+
+- use "::xotcl::current" instead of "xotcl::self" in predefined 
+
+- use "CONST char *" in generated interface and below
+- further cleanup using "CONST char *"
+
+- remove dependency from xotcl1 in handling of forwarders in method "copy"
+- further cleanup using "CONST char *", improving on naming conventions
+
+- added an experimental "info frame" handler, which appends "object" and
+  "class" pairs
+
+- fixed wrong name for per-object filter in RelationSlot
+- fixed condition in filter-incovation to top-level frames
+- added frametype to information returned by "info frame"
+- change frametype in "info frame" form bitpattern to symbolic names
+- use a more recent version of unix/tclAppInit.c
+- fix syntax in predefined
+- let serializer call "init" of attributes, even if it is protected
+
+- fixing "-parameter" with empty content
+- more variable naming cleanup
+- fix line breaking in serializer for "exportedObjects"
+
+- call c-implemented methods directly, when this is safe
+  (implemented for XOTE_ALLOC, XOTE_CLEANUP, XOTE_CONFIGURE, 
+  XOTE_CREATE, XOTE_DEALLOC); this improves create/destroy
+  speed by up to 15%
+- allocate namespaces for objects less eager
+- make nameing more consistent 
+  (change newObj into newObject when variable is an xotcl object)
+
+- get rid of misleading RCS: lines
+- passing --prefix to subdirs
+- regenerated configure files
+
+- added stefan's expat library linking extension
+
+- define RecreateObject() for internal call via direct invocation
+- doCleanup is just called by recreate; merge it into 
+  XOTclCRecreateMethod. 
+  Is method cleanup necessary? is recreate not sufficient? 
+  Delete "cleanup" from internally called methods in next, 
+  keep it for compatibility in XOTcl
+
+- make XOTcl_FrameDecls transparent (use variable declarations 
+  in place instead of the macro)
+- fix variable shadowing bug in error handling 
+  (could cause crashes when initcmd lead to errors)
+
+- call all truely essential methods directly if possible
+  (Object.destroy, Class.alloc, Class.dealloc, Class.create)
+  The basics of XOTcl can work now also in cases, 
+  when these are not defined as methods.
+
+- handling OBJECT-frames in CallStackPopAll() 
+  (for handling exit with active stack frames)
+
+- deactivate filters in finialize
+- new method InvokeMethodObj() to replace finally CanInvokeDirectly()
+
+- remove some more obsolete RCS Ids
+- call Tcl_Objs "Obj", not "Object"
+
+- replace all CanInvokeDirectly() by InvokeMethodObj()
+
+- block call-stack deletes during XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
+  however, this seems to create a small leak during exit 
+  (revant for threads); so currently, debug still turned on
+
+- fix last issue, with freeing objects, when exit happens from
+  higher stack frames
+
+- first part of allowing arbitrary named internally called methods.
+- move refcount fixing logic for exit from higher stackframes to new function: finalObjectDeletion()
+
+- created new functions:
+     ObjectSystemFree(), ObjectSystemAdd(), ObjectSystemsCheckSystemMethod(),
+     ObjectSystemsCleanup(), GetObjectSystem(), CallDirectly()
+  for better separation of systems. We keep track which essential system
+  methods are defined and which which methods are potentially overloaded.
+  
+- replaced hard-coded method calls for XOTE_DEFAULTMETHOD, XOTE_INIT,
+  XOTE_OBJECTPARAMETER with MethodObj()
+
+- renamed MethodObj() to XOTclMethodObj() (it is an exported symbol)
+- eliminated XOTE_MOVE
+- eliminated XOTE_RESIDUALARGS
+- eliminated XOTE_UNKNOWN
+- eliminated XOTE___UNKNOWN
+- renamed __unknown to requireobject
+
+- provide prefix for internally called methods to distinguish between 
+  methods called on objects or classes
+
+- handling of minimal object systems. For example, the
+  following three command create an object system around
+  ::object and ::class ...
+
+   ::xotcl::createobjectsystem ::object ::class
+   ::xotcl::alias ::class  + ::xotcl::cmd::Class::create
+   ::xotcl::alias ::object - ::xotcl::cmd::Object::destroy
+
+  ... where no internal message dispatch are used (e.g. no
+  constructor "init", and where just two methods ("+" and "-")
+  are used to create and destroy objects
+- extended regression test
+
+- get rid of reminder of tcl 8.4 compatiblity and remove range of
+  ifdefs, such as PRE85, FORWARD_COMPATIBLE, TCL85STACK, 
+  CANONICAL_ARGS, USE_COMPILED_VAR_RESOLVER
+
+- rename CallStackPush() to CscInit()
+- rename CallStackPop() to CscFinish()
+
+- remove "buffer" from compiled var structures
+- remove xotcl1 dependency from aol-tcl
+- removed conditional var table creation by assertion
+- make clean compile with assertions turned on
+
+- xotcl 1.6.6: make sure to load always xotcl 1 versions when needed
+- xotcl 1.6.6: make compilation clean when compiled with assertions on
+- xotcl 1.6.6: more cases for the regression test, where we want to load xotcl1 not 2
+- xotcl 1.6.6: one more cases for the packaging, where we want to load xotcl1 not 2
+
+- replace hash-lookup in namespace in ObjectHasChildren() by pointer lookup 
+  to reduce namespace dependency.
+- fix memcopy size
+
+- add check for optional match arguments in tcl stub generator
+- fix potential memory leaks
+  all "definitely losts" from valgrind (except 24 bytes from Tcl_PkgRequire) gone
+
+- fix a potential ordering problem with cyclic dependencies created by
+  namespace import commands
+
+- Handle cases, where objects/classes are created with the name
+  of preexiting namespaces. Cases, where pre-exisitng namespaces
+  contained classes/objects lead to problems, since xotcl did not
+  see the object/classes of the pre-exiting namespace as children
+  of the new object/class.
+
+- Allow to speficy last arg of objectparameter to replace scripted init
+  block. The redefinition of objectparameter allows us to specify whether
+  no/some/classical/altered/additional arguments should be allowed during
+  object creation
+
+
+- Naming
+
+     namespaces: 
+       ::next
+       ::next-core
+
+     file exension:
+       options:
+          .tcl
+          .xotcl
+          .next
+          .nxt
+
+    file names:
+       composite words with - instead of capitalization
+
+    package names
+      next::pkgname
+      next::doc-tools   # use - instead of _ or capitalization
+
+    Classes
+      use first name capitalized to distinguish from objects
+
+    Objects
+      typically, first charaction small
+
+- next::core as namespace name not perfect for adressing variables:
+  set ::xotcl::version ${::next-core::version}
+  set ::xotcl::patchlevel ${::next-core::patchlevel}
+
+do we need:
+  checkMethod  "::next::core::cmd::ParameterType"
+
+- namespace changes:
+  mostly due to marketing reasons, the naming of the top-level namespace 
+  changed from "xotcl2" to "next".
+  reasons: xotcl is hard to pronounce for beginners, sounds like "exotic" 
+  (but who wants to program in an exotic language) has a certain stigma
+  of strange namings (e.g. "instproc"), is seen as a precursor of tcloo,
+  the top-level namespace ::xotcl2:: is not very nice either, the separation
+  of framework and language is not clear.
+  
+  We have now: 
+    ::next (the new object system, former ::xotcl2)
+    ::next::core (framework, primitives)
+    ::xotcl (former xotcl1)
+
+- "::xotcl::use" no longer needed, use Tcl standard mechanisms instead
+  (e.g. "package req next"; "package req XOTcl", "namespace import ::next*")
+
+- [self next] returns 
+      instead of "proc" and "instproc" => "method"
+      instead of "parametercmd" and "instparametercmd" => "setter"
+      instead of "instforward" => "forward"
+      instead of "instcmd" => "cmd"
+   prefixed with the modifier "object" when needed
+- [self filterreg] returns
+      instead of "instforward" => "forward"
+   prefixed with the modifier "object" when needed
+
+-  We have now: 
+    ::nx (the new object system, former ::xotcl2)
+    ::nx::core (framework, primitives)
+    ::xotcl (former xotcl1)
+
+- naming next scripting framework
+   ::nx::core::existsvar  <==> nx::var exists
+   ::nx::core::importvar  <==> nx::var import
+   ::nx::core::setvar     <==> nx::var set
+
+- copied infoObjectMethod and infoClassMethod decls as comments
+  to xotcl.c, aligned order of method definitions
+
+- removed "[o exists varname]" from next scripting language
+- reanimated "info vars" to show locals in eval method
+- provide error messages for [objectproperty ... type ...]
+- replace 0 by NULL in calls to GetClassFromObj()
+- extended regression test
+
+- use size_t where appropriate
+- added notnull annotations
+
+- Implemented "Class info parameter" in Tcl, aliases for xotcl.
+  Now both definition of parameters and setting of __parameter are
+  in Tcl.
+
+- get rid of ":::xotcl::use"
+- renamed tests based on next from .xotcl to .tcl
+- extended regression tests
+- use namespace ::nx::test instead of ::xotcl::test
+- use namespace ::nx::serializer instead of ::xotcl::serializer
+
+- rename xotcl1.xotcl to xotcl.tcl
+- some cleanup (version variables, etc.) in xotcl.tcl
+
+- renamed tests/method-modifiers.xotcl to tests/method-modifiers.tcl
+- changed "require xotcl::test" to "... next::test"
+
+- changed "require next" to "... nx"
+- changed "require next::test" to "... nx::test"
+- changed "require next::doc" to "... nx::doc"
+
+- added missing ./tests/var-access.tcl to git
+- added section about registering filters and mixin to migration guide
+- moved and transformed to next tests/mixinoftest.xotcl -> tests/mixinoftest.tcl
+- moved and transformed to next tests/object-system.xotcl -> tests/object-system.tcl
+- changed pkgIndex reference for .so file from next ot nx
+
+- changed stubs from xotcl to nx
+- first part of openacs updates
+
+- changed "Serializer.xotcl" to "serializer.tcl" 
+  (package name from xotcl::serializer to nx::serializer)
+- added stub for xotcl::serializer for backward compatibility
+- changed serializer to new namespaces
+- renamed xotcl.tcl to xotcl2.tcl
+- added proc finalize to xotcl2.tcl
+
+- renamed mk_predefined.xotcl -> mk_predefined.tcl
+- renamed predefined.xotcl -> predefined.tcl
+- additional subcommand "info method parametersyntax <methodname>"
+  returns parameters in a syntax similar to the tcl man pages
+- added ability to pass syntax for forwarded methods 
+  via set ::nx::core::signature(::nx::Object-method-forward) 
+  (experimental)
+- fixed documentation system to work with actual version 
+- added undocumented methods for quality control in documentation
+- added checks for documented, but unavailable methods in documentation
+- added comparison of documented parameters vs. actual parameters in documentation
+
+- added @properties and has_property to the documentation classes.
+  Current primary purpose: define, which methods are internally-called 
+- added internally-called to the method object template
+
+- added redefine-protected to the object template
+- added methodtype to object template
+- some documentation updates
+- some indentation/spacing improvements on xotcl.c
+- let ".... info method .... METHOD" return values,
+  when METHOD contains namespace prefix. This can be 
+  used to obtain the parmeter definitions from nx::core
+- get forward definition from the original command
+
+- created own directory structure xotcl under library
+  containing doc, tests, apps, lib etc. and moved
+  obvious content here.
+- adjusted regression test and old documentation 
+  system to work with new structure
+
+old structure
+  xotcl
+    apps 
+      actiweb
+      comm
+      persistence
+      scripts
+      utils
+      xml
+    config
+    doc
+    library
+      lib
+      comm
+      patterns
+      rdf
+      registry
+      serialize
+      store 
+      xml
+    man
+    tests
+    unix
+    win
+
+new structure
+  nx
+    config
+    doc
+    library
+      lib
+      serialize
+      xotcl
+         apps
+            actiweb
+            comm
+            persistence
+            scripts
+            utils
+            xml
+         doc
+         library
+           comm
+           lib
+           patterns
+           rdf
+           registry
+           store 
+           xml
+         tests
+    man
+    tests
+    unix
+    win
+
+- moved some more xotcl specfic tests to library/xotcl
+- transformed forwardtest from xotcl to next
+
+- moved slottest to library/xotcl
+- added new Makefile target test-xotcl
+- finished test migration for now
+- deactivated __next for now
+
+- iterated through doc.tcl-TODOs
+- changed CheckVarName to allow array names like e.g. a(::b)
+- extended regression test
+- fixed serializer to handle subobjects of explicitely exported objects
+
+- xotcl.c: 
+  * new function GetObjectFromNsName() to obtail object or class
+    from a fully qualified namespace name used in method handles (such as e.g.
+    ::nx::core::classes::X)
+  * new function MethodHandleObj() to return a tcl_obj containing the methodhandle
+  * removed obsolete method getFullProcQualifier()
+  * info methods obtain now object and/or class from fully qualified method 
+    names (method handles) if possible
+  * return message handles in "current next", "current filterreg" and
+    "... info filter ... -order", which can be used in "info method .... "
+    for obtaining more details.
+  * change all occurrances of "self" in next regression tests to current.
+- xotcl2.tcl
+  * implemented "self" as a proc to provide extensibility and 
+    full backward compatibilty; this opens opportunity 
+    to replace now e.g. "self proc" by "current method", etc.
+  * provide full compatibility for "self next", "self filterreg" and 
+    "... info filter ... -order", returning old-style multiword method handles
+    (such as e.g. "::C instproc foo")
+- changed "next" to current in documentation framework and templates
+
+- updated migration guide, added section for callstack introspection
+- updated serializer for new names
+
+- Introduced $xotcl_target_doc_dir for generated xotcl documentation.
+  Generate xotcl documentation in this directory.
+- moved more (hopefully all) xotcl doc components into library/xotcl/doc
+  
+- added interp alias "nx::self" to "nx::core::current method"
+- changed "current proc" into "current method" in scripts and tests
+
+- file extension for next scripting .tcl DONE
+- changed ::nx::core to ::nsf
+
+- made the "next scripting laguage" a own, loadable tcl package
+  (currently named nx, name is subject of change)
+- predefined.tcl is now pretty minimal.
+
+- updated to TEA 3.8
+- moved all exports of nsf to predefined.tcl
+- made imports in xotcl2 and nx explicit
+
+- adjusted path in documentation system for nx/nx.tcl
+
+- Implemented "interp alias" support for classes.
+  In some cases. interp-aliased classes worked already
+  without additional code, but e.g. in "... -superclass C ..." 
+  it failed. Without this feature, one could not reuse a
+  class with a different namespace, unless it was explicitely
+  "namespace exported" in the source. The problem was the 
+  implementation of "::nx::Attribute", which should not be
+  exported in nx (most people do a "namespace import ::nx::*")
+  because there is no need to do so, but ::xotcl::Attribute 
+  should reuse it - without subclassing). .... However,
+  we still seem to have a problem, when the interp-aliased
+  Class is exported and imported to a different namespace.
+
+- TODO: info methods shows finally "slots" and "slot". Wanted? Actually no.
+- removed definition of slots from nx, changed regression tests
+  examples from slots to ::attribute
+  
+- replaced several occurrences of "eval" in nx.tcl and xotcl2.tcl
+
+- implemented parameter option "allowempty"
+- extended regression test
+
+- commented out XOTCL_CMD_NOT_FOUND, since it seems to be obsolete by now
+- extended regression test to avoid CallDirectly on dealloc (the last place, 
+  where XOTCL_CMD_NOT_FOUND was used)
+
+- implemented return value checker (for scripted and c-implemented methods)
+- additional methodproperty returns (for registering a return value checker)
+- support for incrementally adding stuff to paramDefs (such as slotobj or return value)
+- new c-function ParamDefsNew()
+- added regression test for return value checker
+
+- upgraded to TEA 3.9
+- nsf: provided scripted support for "require/provide methods"
+- nx: new method ":require namespace" ":require method" "require object method"
+- added regression test method-require
+- removed requireNamespace from nx.tcl (still exists in xotcl)
+- replaced "requireNamespace" by "require namespace" in nx regression tests 
+- updated migration guide
+
+- removed method "autoname" from nx.tcl
+- added "method require autoname"
+- added "method require exists"
+
+- removed method "filtersearch" from nx.tcl
+- added "obj info method filter methodName" to nx
+- updated xotcl2 to use new filtersearch imprementation
+- updated migration guide
+
+
+- renamed "info method name ..." into "info method handle ...", 
+  since it returned already the handle
+- renamed ListMethodName() to ListMethodHandle()
+- changed output of "info callable -which ..." from definition to method handle
+- renamed "info callable -which ..." into "info callable method ..."
+- updated regression test to reflect the changes
+
+- changed "info method filter ...." into "info callable filter ..."
+- fixed "o info callable method" in some cases with mixins
+- extended regression test
+- updated migration guide
+
+- made Class.info, Class.mixin, Class.filter robust against per-object 
+  mixins from meta-classes
+- extended regression test
+
+- checked saftey of Class.method, Class.alias, Class.setter, Class.forward 
+- made Class.filterguard, Class.mixinguard, Class.attribute 
+  robust against per-object mixins from meta-classes
+- fixed mixin/filter delete methods with guarded operations
+- extended regression test
+- all methods defined on both, Object and Class are now safe in respect
+  to per-object mixins with meta-classes
+
+- make slot optimizer more robust
+- removed methods object-mixin and object-filter from the interface.
+  (Caused some duplication of logic in the method "object")
+_ added option noforwarder to RelationSlots
+- some minor cleanup
+
+- removed XOTCL_METHODTYPE_OBJECT from XOTCL_METHODTYPE_BUILTIN
+- default methodtype returns now everything, which is a true method
+  (except objects)
+- methodtype -all includes objects
+- the object "slot" does not appear now in the method listing per default
+  for classes having slots
+
+- changed __invalidateobjectparameter from a method of class
+  to framework primitiv ::nsf::invalidateobjectparameter
+
+- experimental method-property "class-only": this allows to
+  make object save against per-object mixins of meta-classes.
+  the flag is only used in the mixin-resolver
+- used for the time being in nx only for Class.info, 
+  but would apply as well for methods defined on both Object and Class.
+
+- use now class-only for all methods methods of meta-classes. 
+  Methods of meta-classes are intended to be applied on classes,
+  one should not change this via per-object mixins.
+- respect class-only in "info callable methods|method"
+- extended regression test
+- provided relation name "object-filter" to slot filter.
+
+- replaced "obj|cls filterguard name cond" by "obj|cls filter guard name cond"
+- replaced "obj|cls info filterguard name" by "obj|cls info filter -guard name"
+- replaced "cls object info filterguard name" by "cls object info filter -guard name"
+- removed XOTclObjInfoFilterguardMethod() 
+- removed XOTclClassInfoFilterguardMethod() 
+- extended regression test
+- updated migration guide
+
+- replaced "obj|cls mixinguard name cond" by "obj|cls mixin guard name cond"
+- replaced "obj|cls info mixinguard name" by "obj|cls info mixin -guard name"
+- replaced "cls object info mixinguard name" by "cls object info mixin -guard name"
+- removed XOTclObjInfoMixinguardMethod() 
+- removed XOTclClassInfoMixinguardMethod() 
+- extended regression test
+- updated migration guide
+
+- deactivated "abstract"
+
+- implemented experimental delegating version of "object as method"
+  that keeps the original self.
+
+- changed requireNamespace to "require namespace" in lib/make.tcl
+- use prefix sub= for methods invoked on "object as method"
+- change further instances of "my connection" to "[self]::connection" in xo*comm*
+
+- implemented "object-methods-only" as alternative for prefix for 
+  invoke "object as a method"
+- added option "-returns" to Object.method
+
+- added option "-returns" to Class.method
+- added subcmd to method/object method in nx
+- delete class methods in freeAllXOTclObjectsAndClasses() explicitly
+  to handle potential double-deletes
+- extended regression test for subcmds
+
+- started new interface bundles, objectInfoMethod and classInfoMethod
+  for using new infrastructure
+- added object info methods filterguard, filtermethods, vars to objectInfoMethod
+- added class info methods filterguard, filtermethods to classInfoMethod
+- built a temporary solution for dispatcher "filter", since forward mangles args
+- nx: we have now "obj info filter guard name" instead of "obj info filter -guard name"
+- nx: we have now "obj info filter methods ...." instead of "obj info filter ...."
+
+- added object info methods mixinguard, mixinclasses to objectInfoMethod
+- added class info methods mixinguard, mixinclasses to classInfoMethod
+- built a temporary solution for dispatcher "mixin", since forward mangles args
+- nx: we have now "obj info mixin guard name" instead of "obj info filter -guard name"
+- nx: we have now "obj info mixin classes ...." instead of "obj info filter ...."
+- updated migration guide
+
+- changed info to new interface (partly done for nx, migration for xotcl to be done)
+- fixed "info methods" and added "-methodtype all" for setting class-only
+- regression test works now until first XOTcl reference
+
+- Changed handling of "child objects": now, they are shown by default.
+- At the same time, the subobject "slot" was made protected to avoid
+  its listing per default in "info methods"
+- unified slot parent-object creation handling
+- changed XOTcl info to new interface
+
+- reanimated 5 tests in xotcl/tests/testx.xotcl
+- reanimated 5 tests in tests/destroytest.tcl
+- changed resolve_method_path to __resolve_method_path and made it protected
+
+- fix requiredness of last argument in parametercheck
+- return "object" for "info method type ...." when method is an object.
+- return valid creation command in "info method definition ...." 
+  when method is an object.
+- extend regression test
+
+- eliminated "info classparent" and "info classchildren"
+- added tests to xotcl/tests/testx.xotcl to assure equivalence
+
+- backported fix for xotcl 1.6.6 reported by kristoffer lawson,
+  which helps just partly here
+- extended regression test
+- added class ::nx::EnsembleObject
+
+- factored out DispatchUnknownMethod()
+- added flag XOTCL_CM_NO_OBJECT_METHOD to ObjectDispatch() and friends
+- added tests/subcmd.tcl
+- added methods "defaultmethod" and "unknown" to ::nx::EnsembleObject
+  (together with a set of helper methods to provide user-friendly information)
+- scripted "info slotobjects" to return only objects of class ::nx::Slot
+- fixed test with UnknownClass in xotcl/tests/testx.xotcl
+
+- fixed silent (scripted) unknown handler.
+- reavtivated corresponding regression test
+- extended regression tests (call unknown method 
+  with filter with and without unknown handlers)
+- make sure to test next to non-existing shadowed 
+  method in connections with filters and unknown handlers
+
+- documented incompatiblity of object-invocation via method
+  interface (due to ensemble objects) in migration guide
+
+- implemented XOTclObjInfoHasMixinMethod() and XOTclObjInfoHasTypeMethod()
+- renamed "$obj info hasnamespace" to "$obj info has namespace"
+- added "$obj info has mixin $class"
+- added "$obj info has type $class"
+- extended regression test for parametercheck/objectproperty/is
+- updated interface definitions for info methods, sort these alphabetically
+
+- removed "objectproperty .... hasmixin"
+- removed "nsf::is ... -hasmixin ...."
+- removed type-converter "type=hasmixin"
+- adoped emulation layer in xotcl2 accordingly 
+- added two tests for "info has mixin" to regression tests
+
+- removed "objectproperty .... type"
+- renamed isSubType() to IsSubType()
+- adoped emulation layer in xotcl2 accordingly 
+- added two tests for "info has type" to regression tests
+
+- removed "nsf::is ... -type ...."
+- adoped emulation layer in xotcl2 accordingly 
+- extended regression test
+
+- introduced ::nsf::isobject
+- replaced in all scripts "::nsf::objectproperty ... object" by isobject
+
+- removed "infoObjectMethod" and "infoClassMethod" 
+- replaced ::nsf::cmd::ClassInfo2 by ::nsf::cmd::ClassInfo
+- replaced ::nsf::cmd::ObjectInfo2 by ::nsf::cmd::ObjectInfo
+
+- changed argument order on objectproperty to make it conformant with Tcl conventions
+- updated migration guide
+
+- changed argument order on nsf::is to make it conformant with Tcl conventions
+- removed objectproperty, replaced it by ::nsf::is
+- move functionality of objectproperty to make "obj info is ..." more efficient
+
+- report "invalid parameter" in nsf::is and parametercheck, even when
+  no-complain is used.
+
+- fixed reference counting problem with user-defined converters
+
+- added flag -complain to ::nsf::is
+- removed ::nsf::parametercheck
+
+- new parameter option "convert" to signal that an application
+  specific parameter checker should convert the value 
+  (takes the result of the methods as conversion result)
+- added parameters for slots "allowemtpy" and "convert"
+- extended regression test
+- added handling of parameter options "allowemtpy" and "convert" 
+  in createFromParameterSyntax
+
+- renamed slot attribute "noforwarder" to "nosetter"
+- method parameter can now use option "nosetter" to allow
+  object parameterization witout providing a setter method
+  (example: "Class create C -parameter {x:integer,nosetter}")
+- extended regression test to include "nosetter"
+
+- new flag for configure: "nx::configure checkresult on|off"
+- turn off result-checking for non-converters, when checking is off
+  (per default, it is on)
+- extended regressi
+
+- new flag for configure: "nx::configure checkarguments on|off"
+- turn off argument-checking for non-converters, when checking is off
+  (per default, it is on)
+- extended regression test for optional argument checking
+
+- reflected changes in /is/objectproperty/info has/info is/ in migration guide
+- changed stub naming from "[Nn][Xx]*" to nsf (for next scripting framework) 
+- checked "my" vs. "nsf::dispatch" in nx.tcl and xotcl2.tcl
+- "child objects" are showed per default in "info methods"
+
+- big renaming orgy (BRO):
+  - changed filenames starting to "xotcl" into filename starting with "nsf"
+  - adoped Makefile insfrastructure accordingly
+- removed compile flag XOTCL_METADATA and generic/xotclMetaData.c
+- changed compile flag PROFILE into NSF_PROFILE
+
+- BRO continues:
+  - changed all XOTCL_ into NSF_
+  - changed all XOTCLINLINE into NSF_INLINE
+  - changed all XOTCLOBJ_TRACE into NSFOBJ_TRACE
+  - changed all XOTcl_ into Nsf_
+  - changed all XOTcl([A-Z]) into Nsf\1
+  - changed all xotcl into nsf
+
+  - changed changeClass into ChangeClass
+  - changed XOTclpGetObject into GetObjectFromString
+  - changed XOTclpGetClass into GetClassFromString
+  - changed callDestroyMethod into DispatchDestroyMethod
+
+- BRO continues:
+  - overworked function prototype definitions in nsf.c
+  - renamed some static definitions on the way to follow
+    Tcl conventions (start with a capital character)
+
+- added flag "-type" to NsfObjInfoChildrenMethod
+- added flag "-type" to NsfObjInfoSlotObjectsMethod
+- removed dummy argument "pattern" from NsfObjInfoSlotObjectsMethod
+- removed NsfClassInfoSlotsMethod (implemented via "children ... -type ...")
+- moved "info slots" from nx::Class to nx::Object 
+  (to report e.g. per-object attributes)
+- extended regression test
+
+- [::nx::Object info method parameter info] returns now empty instead of error.
+- extended regression test
+
+- splitted "info callable" into an ensemble 
+  (submethods have quite different signatures)
+- added "info callable slots" with functionality of "info slotobjects"
+- removed "info slotobjects"
+
+- handle aliases to (sub)ensemble objects during final 
+  cleanup  to improve sharing of logic.
+- share definition of "info callable" and "info has" ensemble 
+  between object info and class info 
+
+- new function AliasDeleteObjectReference() to delete
+  aliases to objects
+- removed some obsolete functions
+
+- changed "info available" into "info lookup"
+  (and accordingly c definitions, migration guide)
+
+- pass tclobj instead of string to NsfObjInfoMethodMethod and NsfObjInfoMethodsMethod
+- first part of ensemble name resolver. We can resolve now e.g.
+     [nx::Object info method parameter "info lookup methods"]
+- second part of ensemble name resolver, distinguish between 
+  registration object and definition object
+- new functions: GetRegObject()
+- extended regression test
+
+- fixed handles with subcommands used on objects without namespaces
+- new functions: GetRegObject()
+- fixed handles with subcommands for class methods when called on classes or objects
+- extended regression test
+
+- changed "cls object method ..." and friends into
+  "cls class-object method ..."
+
+- added "info method subcommands ..." to return list of subcommands (of the ensemble)
+- extended regression test
+- use always NULL instead of 0 when assigning to a pointer variable
+- improve comments in nsf.c
+- follow closer naming of Tcl style guide
+ 
+- removed overhead on ::nsf::dispatch when called with absolute paths
+- absolute paths have to start with ":".
+
+- checked equivalence of the following two commands
+  in respect to fully-qualified names
+         ::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype $class
+         ::nsf::parametercheck object,type=$class $obj
+  extended regression test (parameters.tcl)
+
+- renamed "parameter" into "attributes" in nx
+- renamed "info parameter" into "info attributes" in nx
+- updated migration guide
+- fixed several common typos
+
+- documented behavior of upvar/uplevel with aliases on scripted procs
+  through regression test
+
+- implemented next within ensemble methods
+- added regression tests for next within ensembles
+- added regression tests for upvar with ensembles
+
+- refactored next and argument passing (new methods
+  NextGetArguments(), NextSearchAndInvoke() and 
+  CallStackFindEnsembleCsc())
+- doing an internal next in cases where a method 
+  ensemble does not contain the called submethod
+- added regression tests for partial ensembles
+
+- renamed "... info ... subcommands ..." into "... submethods ..."
+- rennamed tests/subcmd.tcl info tests/submethods.tcl
+- moved relevant tests from tests/parameters into tests/submethods.tcl
+
+- renamed functions in nsfStack.c to follow Tcl naming guidelines
+
+- call internal NextSearchAndInvoke (without NextGetArguments) 
+  from the implicit next in ensemble methods
+- made NsfNextMethod() obsolete to ease different noarg handling policies
+
+- new nsf::next cmd. receives 0 or 1 argument, which might be a list
+  of arguments. This avoids ambiguity of ::xotcl::next with "--noArgs".
+- renamed namespace_copycmds and namespace_copyvars to 
+  nscopycmds and nscopyvars (we don't use "_" in nsf::*-names as delimiters
+  elsewhere)
+- renamed __qualify to qualify (it is a non-exported cmd)
+
+- handle next in ensemble with arguments
+- extended regression test
+
+- removed obsolete code
+
+- made methods (for now just scripted methods) by default protected.
+- provide methode __default_method_protection to obtain the default
+  method protection when neither protected or public is used.
+- per default methods are now protected
+- provide ::nx::configure defaultMethodProtection true|false
+  as conveniant interface
+- update regression test and serializer to handle default protection
+
+- decide on paths for documentation of next and xotcl 2, with
+  version numbers; what should be included in distro, what on web-site
+- decide on syntax subcomponent. Candiates are
+   * Object.method
+   * Object->method
+   * Object#method
+
+- handling namespaces in documentation 
+     # @object ::nx::Slot
+  vs. 
+     # @object Slot
+  (best allow both variants, write fully qualified name via introspection)
+- why only @object? there seems to be no @class. what to do with metaclasses?
+
+- systematic way of specifying results of methods
+- systematic way of reporting results in documentation
+
+- handle line-breaking in long @definitions (e.g. @param; e.g. via indented next line)
+- danger, tcl-commands in comments (see :method get_unqualified_name)
+  expecially for code commented out.... 
+
+- kann man "[:? {[$attr eval {info exists :default}]}" durch "[:?var :@param ..." ausdrücken?
+  oder vielleicht besser die variablen mit leerstring initialisieren + infrastrukt anpassen?
+- listing von methoden im left-bar, ähnlich http://developer.yahoo.com/yui/docs/YAHOO.util.Connect.html
+- "Objects" im left-bar irreführend, sollten eher "Classes" sein. Allerdings sollten
+  auch objekte dukumentierbar sein
+
+- doc-tools: was machen die argumente von :? (bspw. ops?); ich nehme an, das ist work in progress.
+  sinnvoll wäre: [:?var obj varname body], da viele (die meisten) operationen 
+  auf anderen objeken ausgeführt werden
+
+- die Dokumentation der Objekt- und Klassenmethoden muss aus gentclapi weg
+  und in predefined.tcl und xotcl2.tcl hineinwandern. Es werden nicht alle
+  möglichen methoden in next und/oder xotcl2 registiert, ein paar namen sind
+  anders, etc.
+
+- fixed a crash for tcl 8.6b1 in return value checking.
+  now it complains about missing cmdPtr; it is not clear, why this
+  is missing at the first place in 8.6b1 while working in 8.5
+
+- improved library/lib/make.tcl once more
+- fixed handling of TclNRRunCallbacks, such that coroutines can be easily
+  used (more testing required)
+- added temporary routine ::nsf::yieldcheck for coro debugging
+- renamed Tcl85showStack() to TclShowStack()
+
+- Big internal changes for handling nre-enabled procs in more
+  situations.  Handles now all nx regression tests, but fails in
+  testx.xotcl (just nre-enabled)
+
+- passing part of dispatch flags in cscPtr->callType
+- runs now full regression test NRE enabled, but still much debugging and
+  options for less conservative behaviour
+
+- some cleanup concerning TCL_STACK_ALLOC_TRACE
+- make ::nsf::next and ::xotcl::next NRE-enabled
+
+- make coloncmd are NRE-enabled
+- make every internal method invokation (NsfCallMethodWithArgs() 
+  and CallMethod()) NRE-configurable
+- use "Nsf" prefix for global vars to avoid potential conflicts
+- minimal support for sane-NRE patch
+- failed so far to make my NRE-enabled
+- new compile-flag for tracing: NRE_CALLBACK_TRACE
+- extended regression test (added test for 8.6 apply)
+- renamed tests/coroutines.tcl to tests/tcl86.tcl
+
+- some refactoring for making code structure more sane for NRE
+  (but not done yet)
+
+- save snapshot; refactoring in order to ease NRE
+  development with unified method and dipatch exit.
+- named debugging cmds __db_*
+- new cmd __db_run_assertions to perform checking of the internal state
+
+- simplification and unification of unknown handling and method finalization
+- some cleanup
+
+- make "createobjectsystem" more robust (allow to provided not fully
+  qualified names).
+- added tcl-cool as an additional sample-object-system for nsf
+
+- changed internal method name requireNamespace to "require_namespace"
+- changed debug command __db_yield (unporable between various 8.6b* version)
+  into __db_show_stack
+- some more cleanup
+- provide flag for DispatchDefaultMethod() to control immediate execution.
+- nre-enable DispatchDefaultMethod() for simple cases
+
+- removed TCL85STACK_TRACE
+- renamed cscPtr->callType to cscPtr->flags, since this is now more appropriate
+- some more minor cleanup
+
+- changed "info method lookup -application" into
+  "info method lookup -source application"
+- introduced   "info method lookup -source application|baseclasses|all"
+- updated migration guide
+- extended regression test
+
+- provide debugging output when varFramePtr in GetSelfObj() is NULL
+- filter misleading "proc" entry for "info frame" for nsf-stack entries
+- add "method" for "info frame" for nsf-stack entries
+- defnied SKIP_LEVELS to omit optionally skipping of 
+  tcl-stack entries in GetSelfObj()
+
+- added scripted replacement for binary nxsh
+- new define SKIP_LAMBDA to make apply tests working without SKIP_LEVELS
+
+- renamed ::nsf::cmd::ObjectInfo into ::nsf::methods::object::info
+- renamed ::nsf::cmd::ClassInfo into ::nsf::methods::class::info
+
+- renamed ::nsf::cmd::Object into ::nsf::methods::object
+- renamed ::nsf::cmd::Class into ::nsf::methods::class
+
+- removed capitalization from exit handler interface
+- reduced interface of exithandler to 
+ ::nsf::exithandler set|get|unset ?arg?
+
+- renamed/removed remaining ::nsf::commands with capitalized names:
+  parametersFromSlots ==> parametersFromSlots
+  unsetUnknownArgs ==> __unset_unknown_args
+  infoError removed
+- renamed predefined.tcl into nsf.tcl
+- remaining cmds in nsf (except __*) containing
+  "_": ::nsf::provide_method, ::nsf::require_method
+
+- removed DISPATCH_TRACE
+- moved return-value checking into ObjectDispatchFinalize()
+- perform invariants checking after cmd execution, not additionally before
+- commented dispatch machinery
+
+- added nxwish.in (scripted replacement for former xowish)
+- added xotclsh.in (scripted replacement for former xotclsh)
+- added xowish.in (scripted replacement for former xowish)
+- added error handling to all scripted shells
+- removed old xotclsh.in and xowish.in (from apps/utils)
+
+- altered xotcl.m4 to nsf.m4 in 
+   ., 
+   library/xotcl/library/store/XOTclGdbm/, 
+   library/xotcl/library/store/XOTclSdbm/, 
+   library/xotcl/library/xml/TclExpat-1.1/
+- removed traces of xotcl.m4
+- removed build flags with-nxsh, with-xowish
+  (since these are scripted now)
+- removed flag --with-tk (not needed anymore)
+
+- removed NXSH and XOWISH from Makefile.in
+
+- used Tcl_ObjCmdProc in prototypes
+- allow CMETHOD to be target of calling-object/calling-level
+- added NSF_CSC_CALL_IS_TRANSPARENT to handle proc aliases transparently
+- access self  in NsfProcAliasMethod() from tcl->object;
+
+- added public|protected to output of "info method definition"
+  (needed to make serializer more sane, neccessary on the longer range)
+
+- reduce size of output of serializer
+- make nx::Object.serialize public
+- XOTcl 2: allow info slots for objects as well
+
+- serializer: 
+  * added support for ordering on aliases referencing other objects/classes
+  * provide shared version of the method warn via alias
+    and removed direct output to stderr
+
+- slots:
+  * change name "initcmd" of "experimental slot features" to
+    "defaultcmd" to avoid naming conflict the the initcmd executed
+    at the initilization of a slot object (effects XOTcl as well)
+  * make defaultcmd/valuecmd/valuechangedcmd working for nx 
+    (absence of trace method)
+  * provide error message, when default/defaultcmd/valuecmd are used 
+    non-exclusively
+  * make sure to init per-object slots after copy operations
+  * make nx::Attribute.destroy more defensive
+  * extend test cases
+
+- nsf: added flag NSF_DESTROY_CALLED_SUCCESS in addition 
+  to NSF_DESTROY_CALLED to distinguish between attempted
+  and successful destroy method invocations (important for
+  cleanup)
+- fix potential crash in 
+  ::nx::Object info method definition ::nsf::methods::object::instvar
+
+- "info method submethods": return all submethods, independent
+  from protection
+- serializer: experimental code to serialize submethods 
+
+- new option "-expand" for "obj|class info methods" to 
+  return compound names (i.e. it lists the full ensemble names)
+  Example:
+     ::nx::Object info methods -expand "*filter*"
+  returns
+     filter {info filter guard} {info filter methods} {info lookup filter}
+- allow ensemble names in nsf::methodproperty
+- fix compound name lookups when aliases link to shared ensemble objects
+- make objectName() NULL-safe
+- fix option "-source application" when applied directly on base-classes
+- extend regression test
+
+- nsf.c: use name "varTablePtr" instead of "varTable" when referring to the table
+- new option "slotcontainer" for "methodproperty" to flag slotcontainer to make
+  them easier to process in the serializer
+. don't report slot container in "info methods -expand"
+- new function "::nx::isSlotContainer" to centralize checking for slotcontainers
+  (used by serilaizer)
+- support export of method ensembles in serializer
+
+- "info lookup methods": order of non-pos parameters alphabetically
+- added option "-expand" to "info lookup methods ". It collects
+  ensemble methods along the precedence path
+- added support for ensemble methods in "info lookup method"
+- extended regression test
+
+- provide full set of ensemble methods from EnsembleObject.unknown
+  (i.e.  from all classes along the precedence order. It was necessary
+  to pass calling object as first argument)
+
+- "info method parametersyntax" returns now for all nonpos args the
+  type instead of "arg" when possible (eg ..... ?-x object? ....)
+- extended regression test
+
+- factored out ParamGetType() to obtain from a paramPtr a type string
+- parametersyntax: 
+   * changed "... -x arg ..." into ".... -x value ..."
+   * changed multiple values notation from "list" to "..."
+
+- nsf::current: new option "methodpath", returns the full name of an ensemble 
+  method starting from the ensemble root.
+- documented functions in nfsStack.c
+- removed obsolete CallStackGetFrame(), replaced by CallStackGetTopFrame()
+
+- push stack frame before calling the defaultcmd of an ensemble object to 
+  make implementation more simple.
+- simplified EnsembleObject.defaultcmd and EnsembleObject.unknown significantly,
+  scripted support methods are removed.
+- extended regression test for "current methodpath"
+
+- allow %method in forwarder.
+- defined unknown methods as call-protected
+- make __default_method_protection protected
+
+- added syntax "?arg ...?" in parametsyntax output for "args"
+- removed "info forward" from nx::Object and nx::Class
+  (can be replaced by "info methods" and "info method")
+
+- Methodpaths can be used now in the definition of "method", 
+  "alias" and "forward." We do not support it for "setter" 
+  and "attribute", since these require a parameter spec, 
+  which does not have clear semantics for a method path.
+- scripted definition of nx::Object.forward and nx::Class.forward
+
+- cleanup of __resolve_method_path
+- change TclShowStack into NsfShowStack() to avoid possible interference
+  with the Tcl* namespace
+- made the following function static to avoid pollution of the
+  global link namespace: CompiledColonVarFree(), GetRegObject(), ParamGetType()
+
+- changed option -expand in "info methods" and "info lookup methods" into 
+  "-path" to associate with the method path
+- changed method property name from "protected" to "call-protected"
+- changed nx::defaultMethodProtection to nx::defaultMethodCallProtection
+- nx::defaultMethodCallProtection is used for 
+  scripted methods, forwarders and aliases
+- added nx::defaultAttributeCallProtection, 
+  used for setter and attributes
+
+- call scripted converters without checking protection
+- removed defaultMethodCallProtection from tests/parameters.tcl
+
+- Implemented built-in-converter for "baseclass" and "metaclass".
+  Change in performance for this call. >8 times faster
+    before: parameters/parametercheck.007:   19.49 mms, ::nsf::is baseclass C
+    after:  parameters/parametercheck.007:    2.32 mms, ::nsf::is baseclass C
+- remove scripted definition of "baseclass" and "metaclass"
+
+- keep track of defaultMethodCallProtection and defaultAttributeCallProtection 
+  in serializer
+- cleanup aol-xotcl.tcl and document usage in aolserver and naviserver
+
+- iteration over TODO file
+- removed obsolete entries from generic/nsf.decls und generic/nsfInt.decls
+- removed NSF_CMD_NOT_FOUND
+
+- fixed aliasing warning for gcc 4.4.4
+- removed CheckAllInstances()
+
+- added functionality to show enumerated values in 
+  "info parametersyntax"
+- extended regression test
+
+- added expermimental code to avoid "variable :x" crash based
+  on shadowCommands, but this does not work, when varible is
+  bytecompiled. deactivated for now.
+
+- added support for aolserver (essentially Makefile + aol-xotcl.tcl)
+- removed unneded content from serializer output
+
+- the two flags "-objscope" and "-nonleaf" are for adding frames,
+  and they are mutual exclusive. Make them a single flag?
+  check if both options are in every case sensible.
+
+  possible realizations:
+     -scope object|method
+     -varscope instance|proc
+     -varscope instance|resolver|none
+     -frame object|method|default
+
+   * instance|object: within this method, all non-prefixed var names 
+     refer to instance variables; the method can use most 
+     probably not "next"
+     (actually, only needed for XOTcl)
+
+   * method|proc|resolver: within this method, we can use colon-prefixed 
+     variables; the method can use "next"
+
+   "object" könnte mit dem -per-object (dem registierungpunkt)
+   leicht verwechselt werden. es ginge auch
+       -varscope instance|method
+   allerdings, meint method eigentlich "scripted method".
+
+   "none" would be dangerous for "-frame", since it could imply
+   to avoid frame stacking at all.
+
+   effected are: 
+     alias, forward, dispatch
+
+   für "alias" betrifft das in gleicher form auch die cmds,
+   bei "dispatch" und "forward" gibt es dzt. kein "-nonleaf"
+
+- replaced "-objscope" and "-nonleaf" by 
+  "-frame object|method|default"
+  for nsf::alias and nsf::default
+- added functionality for "-frame method" to nsf::dispatch
+- made the order of argument in ::nsf::alias and method "alias"
+  the same (always first the method, then "-frame ...")
+- extened regression test
+
+- renamed some arguments of tcl interface to increase consistency
+- make requiredness explicit for nsf::cmds
+- introduce ::nsf::parametersyntax to provide syntax for potentially
+  missing definitions
+- provided ::nsf::parametersyntax for 3 ::nsf commands 
+  and 7 nx methods (from relationslots)
+
+- fix requiredness of several info methods
+- added "nsf::configure debug ?level?"
+
+- use "nsf::configure debug" for 
+  value 1: compain about protected
+  value >1: provide load messages for nx and xotcl
+- unset unneeded variables in ::nx namespace
+
+- copied decls for objectMethod and classMethod as comments
+  to nsf.c, fixed order
+- documented a few functions
+
+- enabled nsf::__db_run_assertions in nx::test
+  (lead before to false posigives in destroy-test)
+- eliminated deleted objects and objects from deleted
+  namespaces in GetAllInstances()
+
+- added handling of unstacked csc entries (removed all DEBUG warnings).
+
+- made handling of unstacked entries optional by defining
+  macro CHECK_ACTIVATION_COUNTS)
+- added macro NSF_DEVELOPMENT for toplevel handling
+  if NDEBUG and CHECK_ACTIVATION_COUNTS
+- cleanup of method-modifiers.tcl
+- updated next migration guide
+
+- follow current Tcl vonvention for patchlevel var:
+  - changed name of ::nsf::patchlevel to ::nsf::patchLevel
+  - changed content ::nsf::patchLevel from eg .0 to full 
+    number including release details
+
+- fixed bug in ::variable with colon-prefixed name
+  (shadowCommands does not help, see above)
+- removed traces of Nsf_VariableObjCmd()
+- extended regression test
+
+- provided parametersyntax definitions for XOTcl 2.0 
+  similar to nx for all methods without a spec 
+ (e.g. fur builtin Tcl cmds, forwarders)
+
+- make sure not to return CompiledLocal vars
+  from InterpColonVarResolver() when TCL_NAMESPACE_ONLY
+  is requested.
+- delegate always from InterpColonVarResolver() to
+  other resolvers, when TCL_NAMESPACE_ONLY is requested.
+
+- implemented exported command ::nsf::self as fast conveniance
+  replacement for "::nsf::current object".
+
+- removed bug-alert from nx.tcl (wrong false-positives for 
+  compiled locals in slots)
+- added a few small optimization. nsf appears to run on 
+  the shootout benchmark the same speed like a year ago
+  (which much less functionality)
+
+- added a few more small optimization. 
+- code-generator: don't call argument parser, 
+  when no arguments are specified
+
+- fixed bug when calling aliased proc not via method interface
+- fixed bug when calling destroy in initcmd
+
+- allowed public|protected for method deletion 
+  such as "Object public method foo {} {}"
+- removed defaultMethodCallProtection in alias test
+- extended regression tests for aliases to procs
+- renamed nx regression tests .test to follow tcl conventions
+- added regression tests for destroy-during-init
+- removed debugging from NsfCleanupObject when compiled without DEVELOPMENT
+- removed debugging from CscFinish when compiled without DEVELOPMENT
+
+- changed CallStackGetActiveProcFrame() to return also CMETHD frames
+  This allows to execute :volatile in a initcmd and to delete the
+  object at its end. As a consequence, code like
+     [CopyHandler new -volatile] copy [::nsf::self] $newName 
+  has to be changed to 
+      CopyHandler new {
+       :copy [:uplevel ::nsf::self] [uplevel set newName]
+       :destroy
+      }
+- renamed CallStackUseActiveFrames() to CallStackUseActiveFrame()
+  and ctx->framesSaved to ctx->frameSaved to reflect implementation
+
+- new function MethodNameString() to obtain name without colon prefix
+  from tcl_obj 
+- fix bad interaction between filters and cmd name resolvers
+- output object frame to ease interpretation of [info frame]
+
+- fixed scoping issue, when "-volatile" was used for object creation
+- added regression test for interaction between filters and 
+  function resolver (and volatile)
+- reactivated new volatile test in destroy.test
+- undone temporary fixes for volatile in serializer and nx.tcl
+- impoved NsColonVarResolver, made some assumptions explicit
+
+- gentclApi.tcl: added optimizer rule for single argument of type tclobj
+- improved speed of CompiledLocalsLookup slightly
+
+- added an experimental code for setting parent namespace path as
+  default for child-objects. At the time when an object namespace is
+  created, the namespace path of the parent object is copied to the
+  child as default value.
+
+- added new contains definition based on "apply" instead of 
+  "namespace eval". Main intention is to replace SKIP_LEVELS 
+  by SKIP_LAMBDA 
+- added functionality to use ":attribute contains:method,nosetter"
+- added regression test for contains and attributes of type method
+
+- activated SKIP_LAMBDA in nsfCallstack. As a consequence, we
+  disallow resolving self/my ... from tcl-proc frames 
+  (use uplevel if necessary, avoid "namespace eval")
+
+- improving error messages from argument parser
+- test "namespace current" and "self" in "contains" and "slots" regression test
+- added "nosetter" automatically, when attribute "<name>:method" is used
+
+- fix a bug, where "o configure" (without arguments) resetted
+  initialied values to the defaults.
+- show "unwind unstacked entry" message appear only when debug level>0
+- removed fixed TODO entries
+
+- New function NsfNamespaceInit() to initialize pre-existing
+  namespaces in PrimitiveOInit() and in RequireObjNamespace()
+- provide error message, when provided setter name starts with a colon
+
+- Make sure that DispatchDestroyMethod() calls as well protected destructors
+- New function NSCheckNamespace() as replacement for NSCheckForParent()
+- pass parentNsPtr around instead of recomputing it in NSCheckForParent()
+- removed unneeded argument from NSGetFreshNamespace()
+- switched to dstring operations in NameInNamespaceObj() (seems slightly faster)
+- factored out NSRequireParentObject()
+- by the measures above, we obtained some speed improvements
+- moved some more debug output to be controlled by the debuglevel
+- extended regression test with testcases for creation of parent 
+  objects via method "__unknown"
+
+- disallow object parameter of type "switch" to avoid possible
+  confusion between (a) providing a value for the o.p., (b) calling
+  it as a setter, and (c) calling it as a getter. For providing a
+  value, no arg is used for switch. For calling a setter, it is 
+  necessary to provide a value even for a switch.
+- disallow type "switch" in setter definiton (use boolean instead)
+- disallow type "switch" for positional arguments (use boolean instead)
+- extended regression test
+
+- configure.in: removed --with-tclinclude option, since it
+  appears to be included in tcl.m4 (since a while). Many thanks
+  to Victor Guerra for noticing it.
+
+- perform relation handling in objectparameters outside of object-frame
+
+- For preexisting namespaces, we do not set the deleteProc.  Is this
+  desired? Should nsPtr->deleteProc be moved to NsfNamespaceInit()?
+  .... It is ok on the current labor distribution between object and
+  namespace: if an object is deleted, it takes care about the deletion
+  of subobjects, not the namespace. However, it might be an option in
+  the future to overthink this strategy and to bush (sub)object
+  deletion into the namespace deletion.
+
+- work on replacing SKIP_LEVELS by SKIP_LAMBDA for openacs (works with 
+  regression test, has problems with OrderedComposite::ChildManager.init)
+  Note concerning treating CMETHOD_FRAME like METHOD_FRAMES: we did
+  this change for NsfCallStackFindLastInvocation(), but nsfStack.c has
+  still several occurences, where they are treated differently.
+
+- changed relation handling by evaluating the relationcmd in the parent
+  context to keep evaluation order.
+- extend introspection "nsf::configure objectsystem": the command
+  returns now all system methods in the syntax of nsf::createobjectsystem
+- "nsf::createobjectsystem" creates now a warning when an existing
+  objectsystem is redefined and ignores the new definition attempt.
+  This was done with the purpose to allow 
+  "package forget nx; package require nx"
+- Allow overwriting of redefine protected method during bootstrap
+  to ease "package forget nx; package require nx"
+- forward had just "-objscope", no general "-frame method|object".
+  Since forwarder have client data, they always push a method frame.
+  So, the situation is different to nsd::alias and ::nsf::dispatch.
+  Therefore, the flag "-objscope" was renamed to "-objectframe"
+  to provide better consistency with "-frame object"
+- fixed bug, where error handling of invalid options in 
+  ForwardProcessOptions() could lead to a crash
+- return forwardoption "-earlybinding" via instrospection
+- extended regression test
+
+- provide a more explicit way to handle resourcing after a "package
+  forget" in the info methods (similar to Stefan's suggestion).
+
+- xotcl2.tcl: added empty namespace eval to make package indexer happy
+- nx.tcl: removed debugging output
+- nx.tcl: added syntactic sugar to "method" and "alias" for
+  return value checking. One can write now:
+     Class create C {
+       :public method foo {a:int b:int} -> int {
+          return [expr {$a + $b}]
+       }
+     }
+- extended regression test
+
+- changed returns syntax from '->' to '-returns'
+- xotcl2: fixed and completed results of "info instforward" and "info forward"
+- serializer: fixed handling of nsf::configure options
+
+- nx: added "-returns" to forwarder
+- added regression test for forwarder and returns
+
+- rebuild pkgIndex.tcl more eagerly
+- added error handler to pkg_mkIndex when called via "make libraries-pkgindex"
+   * just show warning and errors when rebuilding pkgIndex files 
+   * stop make in case of errors in pkg_mkIndex
+
+- don't leave error message when __default_superclass (or
+  __default_metaclass) is not set
+
+- Fixed switching between INACTIVE_MIXIN frames to ACTIVE_MIXIN frames
+- Extended regression test
+
+- make handling of redefinitions in system methods more robust
+- follow Tcl naming convention (uppercase functions)
+
+- Don't allow to call objects as methods (for the time being) via
+  absolute names. Otherwise, in line {2} below, ::State is
+  interpreted as an ensemble object, and the method "unknown"
+  won't be called (in the XOTcl tradition).
+     {1} Class ::State
+     {2} Class ::State -parameter x
+
+- Converted migration guide to asciidoc
+- Overhaul of several sections in asciidoc
+- Developed styles for nx for migration guide (.css and source-highlight)
+
+- fixed bug in xotcl 2.0 "info forward"
+- extended regression test
+
+- NSDeleteChildren: delete objects before classes
+- NSDeleteChildren: delete here aliases as well
+- fix potential crash when "next" is called from a non-proc frame.
+
+- nx.tcl: cleanup of forward implementation
+- xotcl2.tcl: cleanup of forward implementation
+- xotcl2.tcl: provide debug version of default init method
+
+- nsf.c: acquire parameter structure for returns more lazily
+  (otherwise, a serializer handling returns would acquire the
+  structure for every argument)
+- extend regression test
+
+- xotcl2.tcl: fix the default init handler
+- nsf.c: provide warnings when unchecked parameter values might conflict with nonpos args
+
+- provide a generic logging interface
+  * predefined for plain Tcl and aolserver/naviserver
+  * C-level: NsfLog()
+  * Tcl-level: ::nsf::log
+
+- quote name of referenced parameter in error message to ease reading
+- new parameter checker "parameter", performing an approximate checking 
+  for valid parameter specs
+- set NSF_ARG_CHECK_NONPOS only when there are multiple arguments
+- remove space checking in values for NSF_ARG_CHECK_NONPOS in favor of parameter checker
+
+- make "... info children ?pattern?" compliant with XOTcl 1; 
+  if pattern contains no wildcard and is no absolute path, nsf completes it.
+  (eg. Object create o; Object create o:x; o info children x" will return ::o::x)
+- extended regression test
+
+- introduced a few forms of multiplicity
+   * 0..1 allow empty value
+   * 0..* list, can be empty (equivalent to 0..n)
+   * 1..* list, cannot be empty (equivalent to 1..n)
+- deprecate multivalued in parameter specs in favor of multiplicity
+- deprecate allowempty in parameter specs in favor of multiplicity
+- adjust regression test
+
+- fixed bug with required last object parameter without provided value
+- extended regression test
+
+- new printf-style error message generator: NsfPrintError()
+- simplified error handling: removed NsfVarErrMsg() and NsfErrMsg() 
+  and replaced it by NsfPrintError()
+
+- testx.xotcl: fix messages when test fails
+- further cleanup of error procs: eliminated NsfObjErrArgCnt()
+- improve error message, when too many arguments are passed
+
+- extended und overworked migration guide (added e.g. multiplicity)
+- extended regression test
+
+- added returns handling for nx in serializer
+- extended regression test
+
+- provide warning if non-positional argument is passed more than once
+
+- made error messages more consistent
+- improved error messages for "returns" and "nsf::is" (omit parameter name)
+
+- streamlined error messages
+- removed NsfErrBadVal() and replaced it with a generalized version of NsfObjErrType()
+
+- "/obj/ info method parametersyntax /method/": return results of
+  ::nsf::parametersyntax in case, the parametersyntax cannot obtained
+  from a parameter definition (e.g. the method is a forwarder to a tcl
+  cmd).
+
+doctools
+- interfaces in documentation for slots (see for more details 
+  ::nx::Class#superclass in nx.tcl)
+- handle object methods as well in quality checks
+- why does one have to specify @superclass rather than determining the
+  superclass via introspection?
+- use tcl parametersyntax for short description of commands/methods
+
+- deal with interally-called methods (can be overloaded by the application)
+      * user-called and internally called (e.g. from "create" or "new")
+        XO_c_create_idx, XO_o_destroy_idx, XO_o_move_idx, 
+     * not documented yet:
+        XO_c_requireobject_idx, XO_o_defaultmethod_idx, XO_o_init_idx, 
+        XO_o_objectparameter_idx, XO_o_unknown_idx
+     * only XOTCL2:
+        XO_o_cleanup_idx, XO_o_residualargs_idx,
+text
+   - use term "callprotection" in documentation for public|protected
+     (to be consistent with "... info methods ...")
+   - reduce indenting for code examples in documentation 
+    (high indentation makes readability worse).
+    i use usually just 2, 4 are ok as well; we should decide.
+
+
+- removed method "setter" from nx
+- removed method "setter" from migration guide
+- nx method "attribute": changed name of nonposarg from "slotclass" to "class"
+- fix bug for "C class-object attribute foo" (incorrect forwarder)
+- extended regression test
+
+- doctools: changed "-slotclass" to "-class"
+- nx::test: made differences in regression test easier to read
+
+- serializer: updated serializer to avoid calls to "setter"
+- extended regression test
+
+- fixed in bug in ensemble-next (removed colon-prefix from methodname
+  in next)
+- extended regression test
+
+- Experimental Object-System specific resolver in method bodies
+  (allows resolving to the "right" next, self, etc. without 
+  namespace imports/paths)
+- deactivated automatic namespace path copying for child-objects
+- extended regression test
+
+- added deletion functionality to nsf::mixin
+- moved handling of methodNames of c-cmds to ResolveMethodName()
+- extended regression test
+
+- nsf.c: renamed MethodNameString() to MethodName() (for consistency
+  with ObjectName() and ClassName())
+- raise error, when "obj :method ..." is invoked (colon misleading und not necessary)
+- remove colon from method name in error message "unable to dispatch method ...."
+- extended regression test
+
+- nsf.c: code cleanup and documentation improvements
+- made assertion code optional
+- added and renamed additions compile flags
+   NSF_WITH_INHERIT_NAMESPACES
+   NSF_WITH_OS_RESOLVER
+   NSF_WITH_ASSERTIONS
+- added flag NSF_WITH_VALUE_WARNINGS
+
+- defined nsf::deprecated as tcl proc, using ::nsf::log
+- some minor refactoring
+
+- "info parameter": return :switch as parameteroption for 
+   C-defined cmds, when a nonpos-arg gets no arguments
+- updated regression test
+
+- added experimental ::nsf::proc for realization of procs with next
+  scripting argument passing. These nsf::procs improve the
+  orthogonality of the code (using e.g. nonpos args and value checker
+  for procs) and allows the same introspection interface (info method
+  parameter|parametersyntax, ...)
+
+- removed unneeded functions: NsfComputePrecedence(), NsfComputeDependents(),
+  Nsf_SetVar2Ex(), NsfOSetInstVar(), Nsf_ObjGetVar2(), NsfOGetInstVar(), 
+  qNsfCreateObject()
+- removed unneeded external declarations: NsfClassListAdd() NsfClassListFree()
+- make extern declarations explicit
+- grouped most extern definitions together
+- improved documentation
+- moved variable declarations to inner scopes
+- removed warning from cppcheck()
+
+- added block for none-one-liner if statements
+
+- added methodtype "nsfproc" to "... info methods ...", 
+  to be used with namespace qualified names
+- return "nsfproc" as methodtype for nsfprocs
+- refactored InvokeShadowedProc()
+- some minor code cleanup and improved documentation
+
+- added flag "-ad" to ::nsf::proc for obtaining the semantics of
+  ad_proc in OpenACS (boolean with no arguments, append "_p" to
+  variable names)
+- added "... info method definition ..." for nsfprocs
+- new function DStringAppendQualName() to append qualified name 
+  to a DString
+- removed obsolete function NSCmdFullName()
+
+- serializer.tcl: export nsf::procs via "Serializer all"
+- nsf::proc: alloc shadowed methods in ::nsf::procs
+- new helper function ::proc strip_proc_name to strip nsf::procs prefix
+- improve error messages
+- reduce verbosity
+- removed the following obsolete macros: 
+  ALLOC_NAME_NS, ALLOC_TOP_NS, ALLOC_DSTRING
+
+- some refactoring of the argument parser
+- argument parser handles now as well OpenACS like single-word 
+  parameter values (such as ... -flag=1 ....)
+- improve error messages and warnings for nsfprocs
+- extended regression test
+
+- no need to define "-class" as objectparameter
+- no need to define "Object.cleanup" as a method
+- let "obj class NEWCLASS" return NEWCLASS
+- doc-tools: added "-where" to !get
+- doc-tools: title to internal links, provided css class, added nicer label
+- updated reference doc
+
+- removed leftover -public flag in nsf::method
+- general cleanup: removed unused arguments
+- defined UNUSED macro to get more checking on unused arguments
+
+- nx::pp: added flag "-linenumbers on|off" to render method
+- added first version of next-tutorial.[txt|html]
+
+- xotcl2.tcl: defined ::xotcl::MetaSlot
+- make sure, that classes of the intrinsic class hierarchy are 
+  of the same object system
+- add regression test
+
+- removed c-implementation of method vwait, it was replaced
+  by "vwait :varName". We had to allow flag TCL_GLOBAL_ONLY
+  in InterpColonVarResolver(), since Tcl vwait implementation
+  calls it with that flag.
+- added a scripted implementation for vwait in xotcl2
+- added regression test for vwait
+- removed TCL_VWAIT from the code, since we have it in git
+
+- nx.tcl: defined method unknown as protected
+- nx.tcl: never pass "substdefault" to a setter
+- nx.tcl: define a minimal valuechecker any to suppress warnings
+   for potential conflicts with non-positional parameters, when the
+   values start with a dash
+
+- doc-tools.tcl: make -name parameter of method new always required and "any"
+- doc-tools.tcl: make object parameter of Entity of type "any"
+
+- nsf.c: added wideinteger to list of valuecheckers
+- nsf.c: provide context for warning messages
+- extended regression test
+
+- next-tutorial: documentation updates
+- add explicit reference counting for oacs-style flag value passing
+
+- parameter specs: use "arg=" in object parameter type "method" as
+  name of a called method to allow to call unregistered methods
+- eliminate protected method "noinit" for nx and allow it just as an
+  object parameter
+
+- added first implementation of object parameter type "forward"
+- renamed object parameter type "method" to "alias"
+- removed parameter option "slotobj=" in toParameterSyntax
+- renamed to [from|to]parameterSyntax to [from|to]parameterSpec
+
+- serializer.tcl: reactivated methodSerialize 
+  (used in api-browser of OpenACS)
+
+- nx.tcl: 
+   * new method requireClass to Combine two classes and return the
+     more specialized one
+   * make slot objects for parameter aliases and parameter forwarder
+     instances of ObjectParameterSlot
+   * get rid of attributes "isforward" and "isalias" and replace it
+     by "dispositon"
+   * complete list of predefined value checkers
+   * we have now three approaches for providing parameter 
+     -object-filter and -object-method
+        Approach 1: create RelationSlot with nosetter
+        Approach 2: use parameter forwarder
+        Approach 3: use parameter alias
+     we switched from approach 1 to approach 3
+- extended regression test
+
+- fixed potential crash with missing parent namespace
+
+- added shadowing for ::tcl::info::body to allow "info body"
+  to be called on ::nsf::procs
+- commented nsfShadow.c
+- added regression test
+- removed NSF_INFO
+
+- fixed potential access to freed memory (actually when checking if
+  namespace was removed by Tcl); found this problem when compiling Tcl
+  with SYSTEM_MALLOC (own modified version of tclThreadAlloc.c)
+- fixed memory leak (namespace names and structures)
+
+- nx.tcl:
+   * full rewrite of slot machinerie, much simpler structure
+   * relation handling via parameter aliases instead of pseudo converter
+   * mixinclass SlotOptimizer removed
+   * new class BootStrapAttributeSlot
+
+- ConvertToRelation() and handling of parametertype "relation"
+- Make CompiledColonVarFetch() more robust in case of 
+  half initialized objects (create vartable on the fly if needed)
+- allow empty parameter options in parameter parser
+- removed nsf::parametersfromslots (became simple, part of objectparameter now)
+- removed hardcoded objectparameter (attributes, volatile and noinit)
+- updated regression test
+- updated class diagram
+
+- nx.tcl: needsForwarder is true, when method "get" is specified on a slot
+- nx.tcl: Don't generate per-slot add/assign handlers, when not needed
+
+- nsf.c: fixed a nasty bug within namespace deletion, when a deletion
+  of one tcl cmd caused implicit deletions of other cmds in the same
+  namespace. The classical idiom for looking over hash tables with 
+  Tcl_GetHashValue() and Tcl_NextHashEntry(hSrch) can lead to crashes
+  (and has different behavior depending on the number of buckets).
+- added regression test
+
+- nx.tcl: added default/initcmd for ObjectParameterSlot
+- added ::nx::Object as default for "superclass" slot
+  to make default superclass explicit
+- unified interface for getParameterOptions
+- extended regression test
+- update class diagram of slots
+
+- new function Nsf_NextHashEntry() simular Tcl_NextHashEntry(),
+  but handles triggered hash entry deletions
+- fixed reference count in AliasDeleteObjectReference()
+
+- nsf.c: changed handling of cmdPtrs in callstack content.
+   * we use now explicit reference counting using 
+     NsfCommandPreserve/NsfCommandRelease
+   * as a consequence, we do not need the following 
+     functions Nsf_DeleteCommandFromToken() and 
+     CallStackClearCmdReferences() any more.
+   * the flag NSF_CSC_OBJECT_ACTIVATED is not needed
+     anymore and was removed
+
+- removed a small memory leak when a destroy method of an object o
+  deletes its grandparents namespace, containing also this class of o
+  (and its methods). Significantly eased by the change above.
+
+- use NsfCommandPreserve/NsfCommandRelease for tcd->aliasCmd as well.
+  In case of epoched cmdPointers, refetch the cmd and it client data.
+- added regression tests
+
+- added flag to AliasGet() to leave optional error message if alias
+  data is removed
+- some cleanup in NsfProcAliasMethod(): handle not existing alias data,
+  more careful refcounting
+
+- added experimental flag WITH_IMPORT_REFS to deactivate automated
+  alias deletion (seems, that this solves all issues we had before)
+- added flushing of bytecode on alias registration
+- added regression test
+
+- update slot uml diagram
+- fixed incorrect (unwanted) call to unknown that caused creation
+  of objects names __unknown when classes could not be resolved
+- nsf::relation: fixed error message when receiving and invalid 
+  class for relation type "class"
+
+- updated documentation
+- reanimated NSF_PROFILE (when activated, needs more stack and slows execution slightly down)
+
+- fixed a problem with object-level alias
+- nsf.c: provide low-level commands for managing profile data
+- nsfStack.c: provide hook to obtain callers information in profiling code
+
+- nx.tcl: provide caching for computed values of object slots to make
+  method objectparameter nearly twice as fast; direct changes on slots
+  require a reconfigure call.
+- nsf.c: removed SUBST from shadow commands (does not appear to be 
+  necessary any more)
+- nsf.c: fixing a memory leak (some substituted values were not freed correctly)
+- nsf.c: fix potential crash for epoched cmds
+- some minor updates for profiling support
+
+- The fix of yesterdays subst reference counting bug triggered an
+  other problem: If the last arg was "args", the flags array for
+  checking the need for decr of refcounts was not extended. There are
+  multiple possible fixes, i have just extended the flags array for
+  now as well.
+- When profiling is activated, perform now a more sane shutdown order,
+  all hash tables are now correctly freed.
+- Improve behavior, when object system creation fails
+- Drop function NsfProfilePrint()
+
+- Altered Nsf_NextHashEntry() to re-init hSrchPtr when the number
+  of expected entries differs from the number of real entries. This
+  fixes a bug that Michael Aram detected, that happens when multiple
+  hash buckets exist, but on deletion of an hash entries triggers
+  some other deleted from the same hash table.
+- extended regression test.
+
+- made default setting more compatible with XOTcl 1
+  * set variables to defaults only when not set already
+  * flag init_called already before init is called, not afterwards
+    (a call to "configure" within init does not clear the already
+    set instance variables)
+- extend regression test
+
+- configure: added flag --with-profile to enable profiling support
+- cleanup and documentation of nsf-specific interp state 
+- nsf::configure: added an option "profile on|off" (per default off)
+- profiling: return object data with method information
+
+- the following is obsolete since valgrind 3.6
+=========== reminder for valgrind testing
+svn co svn://svn.valgrind.org/valgrind/tags/VALGRIND_3_5_0 valgrind
+
+curl http://bugsfiles.kde.org/attachment.cgi?id=36999 > 10.6.patch
+mv 10.6.patch ./valgrind
+
+cd valgrind
+patch -p0 < 10.6.patch
+
+./autogen.sh
+./configure ./configure --build=amd64-darwin
+make
+
+sudo make install
+====================
+
+- doc:
+   * This package contains 12 classes.... 3 objects .... 
+     Why are all these marked with "mismatch"?
+   * (optional) protected method elimination in leftbar
+   * heading "Glossary" missing. 
+     It ist not clear, what the list of items is, when one sees index.html
+   * make quality checks (missing documentation, ...) optional?
+     how to deal with non-resolvable quality checks?
+   * provide a renderer for XOTcl @-notation to produce object structure
+     for the new doctool (makes the old documentation usable, eg. for XOTcl2)
+
+- first steps towards DTRACE support
+- dtrace: 
+   * track objects in method invocations
+   * trace result codes in method-return 
+   * add some dtrace sample scripts
+   * add dtrace header file dependency
+   * add --enable-dtrace flag for configure
+   * --enable-dtrace sets DTRACE_OBJ on mac os x empty (since not needed for mac os x dtrace)
+   * added "nsf::configure dtrace on|off" for skipping package initialization
+     (to be handled in D script)
+   * make compilation clean
+   * extended README file
+   * handle self->tracing in D scripts (and in dtrace/sample.tcl, tests/object-system.tcl)
+   * add probes for object creation and freeing
+   * add sample d-script for object bookkeeping
+   * renamed object-create into object-alloc (counterpart of object-free, no confusion with create)
+   * fire probes as well for classes created by the object system
+
+- configure
+   * make "configure --help" more pretty
+   * simplify configure.in
+
+- added first version of "nsf::methoddelete"
+- extended regression test
+- updated TODO
+
+- fixed potential crash with -param:switch
+- added "... info method exists ...."
+- updated migration guide
+
+- changed names of method handling commands in nsf:
+   ::nsf::methodproperty => ::nsf::method::property
+   ::nsf::method         => ::nsf::method::create
+   ::nsf::methoddelete   => ::nsf::method::delete
+   ::nsf::alias          => ::nsf::method::alias
+   ::nsf::forward        => ::nsf::method::forward
+   ::nsf::setter         => ::nsf::method::setter
+   ::nsf::provide_method => ::nsf::method::provide
+   ::nsf::require_method => ::nsf::method::require
+ (updated regression test, docs, ...)
+
+
+- Fixed cases of -flag=$value for type switch outside the context of 
+  "nsf::procs -ad"
+- extended regression test
+
+- removed hardcoded name "init" from CallConfigureMethod()
+- improved documentation
+- removed isInitString()
+
+- changed names of var handling commands in nsf:
+   ::nsf::existsvar => ::nsf::var::exists
+   ::nsf::importvar => ::nsf::var::import
+   ::nsf::setvar    => ::nsf::var::set
+
+- improved misleading error message for method modifiers "public" and
+  "protected", as well as for "class-object"
+- extended regression test
+
+- serializer: catch for object-level alias apparently 
+  not needed anymore (search for ns_cache_flush)
+- silence compilation when compiled without dtrace
+
+- nx: 
+  * removed methods ::nx::Class.alloc and 
+    ::nx::Class.dealloc from predefined method-set
+
+  * added definitions such that these methods can be loaded via
+      ::nsf::method::require ::nx::Class alloc
+      ::nsf::method::require ::nx::Class dealloc
+
+  * make explicit that "method ... require" returns a method-handle
+
+  * removed misleading reference in error message, when a class-spefic
+    method was called on an object; solution is somewhat dangerous for
+    potentially unknown client data
+
+  * added regression tests
+
+  * removed methods ::nx::Class.recreate and 
+    ::nx::Class.recreate from predefined method-set
+    ::nx::Object.configure from predefined method-set
+
+
+  * added definitions such that these methods can be loaded via
+      ::nsf::method::require ::nx::Class recreate
+      ::nsf::method::require ::nx::Object configure
+
+nsf:
+  * added CallDirectly() wrapper for calls to "init"
+
+ * reactivated "configure", since we plan to use it more prominently
+ * added a configure flag for "class"
+ * removed method "class" (should be used via "/obj/ configure -class ...")
+ * removed method residualargs from nx
+
+ * added C-implemented method "init" for orthogonality
+ * allow specification of system method handles in nsf::createobjectsystem
+ * automatically register alias, when system-method handle 
+   was provided and a same-named method is defined
+
+* provided a fast path implementation for "defaultmethod"
+* provided default system methods for "init", "defaultmethod" and "unknown"
+* provided handles for system methods "alloc", "dealloc", "recreate", and 
+  "defaultmethod"
+* strip in dispatch invocations of "unknown" potential leading colons
+* removed c-level implementation of init again, since scripted one can
+  be used now as well in registration of createobjectsystem
+* reduced verbosity
+* added definitions such that these methods can be loaded via
+    ::nsf::method::require ::nx::Object unknown
+
+* added methods ::nsf::methods::object::class and 
+  ::nsf::methods::class::superclass in order to make faster and nicer
+  looking objectparameters (compared with forwarders)
+* nx: changed parameter -class to use ::nsf::methods::object::class
+* ns: fixed chicken egg problem of method objectparameter needing 
+  objectparameter by creating/destroying slot Class::slot::dummy; 
+  otherwise default values for slots would not be available
+* reduced verbosity of parameter forwarder
+
+* Hopefully the last big naming change: 
+  Instead of writing "C class-object method foo {} {...}" 
+  one can write now "C class method foo {} {...}" to define
+  a class method named "foo" for class "C". This naming change
+  became possible by defining XOTcl's "class" (and "superclass")
+  as object parameter only. To change a class of an object o,
+  one has to use "o configure -class NEWCLASS". The term 
+  "object-class" looks alien to language beginners, the term
+  "class" is much more straightforward. Changing classes 
+  or superclasses is seldomly used by typical application programs.
+
+  For already existing nx scripts, changing "object-class" into 
+  class should be straightforward.
+
+* various documentation updates (migration guide, nx tutorial)
+* fixed bad interaction between filter and parameter alias
+
+* some documentation/todo updates
+
+* fix compilation for tcl-head in fossil
+* deactivate coro regression test, since it is apparently broken
+  for tcl-head in fossil (stack frame seems to be lost after a yield)
+
+* make sure to create the cmds for objects with Tcl_NRCreateCommand()
+  to choose trampoline-path in the trunk version of Tcl
+
+* The newest trunk version of Tcl in fossil has TclStackFree() and
+  TclStackAlloc() removed We had to substitute this
+  functions. Unfortunately, the lifetime of the strack structures has
+  changed, so we had shuffle some internals around.
+
+- nsf.c: remove unnecessary test when compiled without NRE
+- nsf.c: make sure, validCscPtr is always initialized
+- tested all regression tests with valgrind against tcl-trunk
+
+- gentclAPI.tcl: 
+  * renamed "nsfCmd" to simply "cmd", since the code can generate arbitrary
+    tcl commands
+  * allow type "int" in the .decl files
+- nsf.c
+  * move several functions from "static" to "external" to make
+    the code generator usable for submodules as well
+
+- added flag ?-type ...? to "info lookup slots"
+- made all useful converters external symbols
+- added flag ?-type ...? to "info slots"
+- delete accessor when slot is destroyed
+- added pattern to "info slots"
+- added to "info slot /attName/"
+
+- Fixed dispatch of defaultmethod for ensemble methods
+- Added compile flag DISPATCH_ALWAYS_DEFINED_METHODS (deactivated).
+  So far, nx just uses dispatch on overloads or filters, but not on
+  defines (possible to call e.g. "destroy" from a script, but
+  internally the direct dispatch is used, as long there is no
+  overload). The compileflag would force to use the slower 
+  dispatch always.
+- Extended regression test
+- Improve locality
+
+- Let "info slot" return the slot object
+- nx::mongo: Initial commit of the experimental mongoDB interface for nx
+
+- nx.tcl: fix handling of arg in converter
+- nx::mongo: 
+  * first step towards handling embedded objects
+  * one more example script: example-nx-bi.tcl
+
+- nsf:c: fix dispatch of setter without current method
+- extended regression tests
+
+- nsf.c: added nsf::var::unset (provided so far just var::set)
+- nx::mongo: 
+  * added mongo::count
+  * obtain _id from mongo::insert
+  * added mongo::Object.delete method for embedded and
+    non-embedded objects
+  * handling of mongo-embedded objects when destroying objects
+  * simple bson pretty print function
+  * extended examples
+  * handle fetch of embedded objects
+  * added method count for mongo mapped classes
+  * improve documentation
+  * added handling of bson types for timestamps and dates
+  * provide setup based on mongo_db, mongo_collection and mongo_ns
+  * implemented type "reference" similar to "embedded"
+  * all referenced objects are for the time being auto-dereferenced
+  * new method "show" for mongo mapped classes
+  * added two new example files example-nx-reference-many.tcl and
+    example-nx-reference-one.tcl
+  * replaced "arg" by "type" in spec for mongo attributes to make
+    spec less strange
+
+- nsf.c: made potentially unknown clientData more safe (error message,
+  when something is passed via clientData to a method expecting
+  an object/class as clientData).
+- renamed NsfNoDispatchObjectError() to NsfDispatchClientDataError(),
+  extended interface
+- Makefile.in: fixed name methods.test 
+- nsf: renamed nsf::isobject to nsf::object::exists
+- nsf: renamed nsf::qualify to nsf::object::qualify
+
+- nx.tcl: added support for positional object parameter and
+  removed special handling of the last argument for the init block;
+  added attributes "position" and "positional" to ObjectParameterSlots,
+  removed last argument of method "objectparameter"
+- nx.tcl: simplified createBootstrapAttributeSlots 
+  (second round of default value setting seems not necessary)
+- nx.tcl: some cleanup
+
+- test.tcl: 
+  * don't export Test per-default
+  * define Test as nx::Test
+  * make Test parameter count 1 the default, change to higher numbers where needed
+
+- nsfmongo.c:
+  * upgrade to newest c-driver (version 0.3) from git.
+  * support connection to replica sets
+  * support attribute selection lists for ::mongo::query 
+    (positive and negative selection)
+- nx-mango.tcl:
+  * support for unique indices
+  * support for query operators "in" and "all"
+
+- extended migration guide (introduction, feature lists, etc.)
+
+- serializer: 
+  * prefix warnings to ease tracking of warnings
+  * some cleanup for handling aliased methods
+
+- nsf.c:
+  * moved implementation of ::nsf::method::delete to C
+  * produce same error messages when methods are delete
+    via nsf::method::delete and nsf::method::create {} {}
+  * Prohibit deletion of methods during shutdown. Otherwise
+    when destructors delete methods, some other destructors
+    depending on these methods will fail. Cleanup deletes
+    all methods anyway.
+  * Provided alternative (faster) way of dispatching 
+    nsf::procs (can be tured off with NSF_INVOKE_SHADOWED_TRADITIONAL)
+  * renamed NsfMethodCmd() into NsfMethodCreateCmd() for consistency
+  * nsf works with OpenACS again (requires new nstrace.tcl, 
+    aolserver-openacs.tcl, and 01-debug-procs.tcl).
+
+- nsf.c: 
+  * factor out NsfClassListAddPerClassMixins()
+  * factor out NsfClassListFind()
+  * let result of "cls info heritage" return per-class mixins 
+    as well, otherwise it would be useless, since 
+    "cls info superclass -closure" would return the same
+  * replaced loops with NsfClassListFind()
+
+- nsf.c:
+  * handle direct dispatches for aliased methods
+  * new generalized error message: NsfNoCurrentObjectError()
+
+- nx.tcl: replace loops ::nsf::methods::[object|class]::* 
+  by explicit command registrations
+
+- nsf.c:
+  * added NsfClassListNoDup() to allow just single inserts
+  * added NsfClassListPrint() for debugging
+  * info heritage returns no duplicates
+  * added prototype for NsfNoCurrentObjectError()
+  * report "no current object" when no object is 
+    passed to a method.
+  * code cleanup
+- extended regression test
+
+- nsf.c:
+  * ensure that explicit per-object-mixins are kept at the front in "info
+    heritage" order and in "info precedence" when classes are added as
+    POMs and PCMs
+  * extended regression test
+
+- nsf.c:
+  * renamed old flag "-order" of "info mixin classes" to "-heritage"
+    since it computes same heritage as in "info heritage" (but
+    potentially for a list of classes)
+  * added compatibility layer for xotcl2 
+  * added lost option "-heritage" to "/cls/ info mixin classes"
+    (was only there for "/obj/ info mixin classes")
+  * extended regression test
+
+- nsf.c
+  * first version of c-bases "info slots" for classes
+  * switch "-closure" just for class info method
+  * added switch "-source" to "info slots -closure" 
+    and "info lookup slots" 
+    (similar to "info lookup methods")
+  * extended regression test
+  * base objectparameter on "info slots"
+
+- nsf.c
+  * added "pattern" to "info lookup slots"
+  * added "pattern" to "info slots"
+  * extended regression test
+
+- nx.tcl, xotcl2.tcl: removed unsafe {*}$pattern
+- added:
+   "info slot handle /name/"
+   "info slot parameter /name/" 
+
+- nsf.c: Since the method "objectparameter" is just based on the class
+  (and object parameters are invalidates as well over the class), we
+  moved the method from obj to class to avoid potential confusions
+
+- nsf:c
+  * added C-implemented class level method 
+    "info objectparameter list|name|parameter|parametersyntax"
+  * added enum to handle different print styles for parameters
+  * renamed ParamDefsList() to ParamDefsNames(), added true ParamDefsList()
+
+- nx.tcl:
+  * removed "info slot handle" and "info slot parameter"
+  * added "info parameter spec", "info parameter list", 
+    "info parameter name", and "info parameter syntax"
+  * extended regression test
+
+- nsf.c:
+
+  * Added argument "-reg-object" to ::nsf::method::create to
+    distinguish between a registration and a definition object for
+    ensemble methods, similar as on other places.  If no reg-object is
+    provided, it is the same as the definition object.  One should
+    take care that the registration objects are deleted after the
+    definition objects, which is the case for the usages of the
+    reg-objects in nx/xotcl.
+  * The namespaces within plain scripted methods and scripted
+    ensemble objects are now the same. 
+  * Extended regression test
+  * Code cleanup and documentation
+
+- nx.tcl: 
+  * added method "delete" to delete methods and attributes
+  * extended regression test
+
+- nsf.c: removed all but one occurrence of Tcl_AppendElement()
+- nsf.c: removed all occurrences of Tcl_AppendElement()
+- nsf.c: passed around resultObj explicitly
+- nsf.c: fix and document GetMatchObject()
+- extend regression test
+
+- nx.tcl: 
+  * splitted method "delete" into a "delete method" and 
+    "delete attribute"
+  * remove flag "-per-object" in method "delete"
+  * delete per-object methods of classes with
+    "/cls/ class delete method name" and
+    "/cls/ class delete attribute name"
+  * extended regression test
+
+- added test cases for "info slots"
+
+- nsf.c:
+   * handling of same named per-object and provided slots for Class objects
+   * per-object slots are saved now under <obj>::per-object-slot::*
+   * returning correct results when per-object slots are used
+   * removed obsolete functions: NsfObjectListFree(), NsfObjectListAdd()
+   * removed obsolete type NsfObjects
+   * transformed ComputeSlotObjects() into a more generic AddSlotObjects()
+     that can handle per-object slots as well
+
+- nx.tcl:
+   * generalized slot object handling.
+   * extended regression test
+
+- xotcl2:tcl
+   * made "info heritage" in xotcl2 compatible with xotcl1
+   * fixed "info slots" in xotcl2
+   * extended regression test
+
+- nsf.c: require NSF_IS_SLOT_CONTAINER for slot-container
+- nx.tcl: ne proc ::nx::setSlotContainerProperties to handle slot
+  container properties in a uniform way 
+- reduce verbosity
+- nx.tcl: improve code documentation
+
+-nsf.c: added c-implementation of "/object/ info slots" to
+  share implementation details and reduce scattering
+
+- migration guide
+  * included change in "info heritage"
+  * included "info slots"
+  * included "info parameter"
+  * included "delete method"
+  * included "delete attribute"
+
+- nsf.c: NsfRelationCmd() returns per default list of actual 
+  values, therefore mixin add|... return now as well the 
+  actual values
+
+- nx.tcl: added "info parameter slot" to return slotobject(s)
+- added "info parameter slot" to migration guide
+- extended regression test
+
+- nsf.c: changes to use trunk-branch with and without TclStackAlloc()
+- migration-guide: add third level to toc
+- fix regression test for 8.6 to use nx prefix
+
+- nsf.c: added cmd "::nsd::method::registered /handle/" that returns
+  the object on which the method identified by the handle was registered,
+  or empty.
+- extended regression test
+
+- bring defined commands in the source code in alphabetical order
+- generate interface for NsfUnsetUnknownArgsCmd()
+- delete some obsolete code
+
+- added "link" from 2.4 (parameters) to "info parameters" in migration
+  guide
+- remove alias warnings from gcc under ubuntu (4.2.4)
+
+- nsf.c: fixed possible crash in tcl8.6 with nsfprocs, still one inconsistency
+- nsf.c: fixed bad interaction between mixins and ensembles in tcl8.6
+- nsf.c: document two more functions
+- nsf.c: removed unneeded casts to (ClientData)
+
+- nsf.c: generalized disposition handling (forward, alias, initcmd) for 
+  object parameter
+   * disposition is now an option for object parameters rather than
+     than an own type. Therefore, one can check the arguments passed
+     to the disposition cases
+   * changed specification of name of method from arg= to method=
+   * this way "type" info in "info parameter syntax" is handled automatically
+
+- nsf.c: 
+  * added a new converter for converting mixins with guards (named mixinspec)
+  * used mixinspec in nx.tcl and xotcl2.tcl
+  * extended nx regression test.
+
+* added profiling support for nsf::proc when
+  NSF_INVOKE_SHADOWED_TRADITIONAL is turned off.
+
+- removal of unneeded flags "-incontext" and "-nomixins" from
+   * /obj/ info methods
+   * /cls/ info methods
+  These flags are correct for "info lookup", but unneeded for 
+  "info methods"
+- cleanup of ListDefinedMethods()
+
+- nsf.c: use NsfObjectRefCountIncr() instead of object->refCount++
+- nsf.c: fix small memory leak for nsf::is in error cases
+- renamed converter from "mixinspec" to "mixinreg"
+
+- Use mixinregObjType as well in NsfRelationCmd(), so this is the only
+  place, where mixin and guards are processed. 
+- Since the type converter converts Tcl-Objs, we have less context
+  information (e.g. we have no base class, on which we can decide to
+  call e.g. __unknown on on of the objects systems).  - because of the
+  point above, i removed ::xotcl::Class->__unknown and
+  ::nx::Class->__unknown in favor of a global proc ::nsf::unknown, for
+  which unknown handlers can be registered
+- GetClassFromObj() receives as last argument "withUnknown" instead of
+  baseClass to indicate, when unknown should be tried.
+- new function NsfCallUnknownHandler()
+
+- moved mixin reg type converter to a new file (nsfObj.c)
+- added NsfFilterregObjType, to provide a converter for filter 
+  registration similar to mixin registrations
+- replaced dummy dupIntRepProc and updateStringProc in nsfObj.c by NULL
+
+- fixed memory leak in "... info mixin classes -heritage"
+- added tests for integer, wideinteger and bignums
+
+- added value checker type int32 (similar to "string is integer") and
+  changed value checker "integer" to accept all integers
+
+- library/mongodb:
+   * use type int32
+   * updated to new nx/nsf interfaces
+   * updated for mongo-c-driver post 0.3 
+     (supporting result MONGO_OK for mongo_cursor_next)
+   * factored out "mongo cond" from "mongo query"
+
+- fixing part of the memleak introduced for bignum handling above
+  (for some unknown reasons, we see crashes from mp_clear)
+- extend regression test
+
+- improve bignum conversion handling further
+- found memleak in tcl
+
+- provided nicer registration and inspection interface for unknown handlers
+- added documentation for unknown handlers in tutorial
+- cleanup of __unknown
+
+- added handling for provided arguments to positional object parameters with
+  disposition alias and forward
+- provided better error messages for unknown parameter options
+- provided error messages for multiple disposition parameters
+
+- reduce redundancy by introducing macro NSF_ARG_METHOD_INVOCATION
+
+- gentclAPI.tcl: 
+   * renamed "nrArgs" to "nrParams"
+   * switched default for nrargs from 0 to 1
+- gentclAPI.decls: 
+   * added "-nrargs 0" where needed
+-nsf.c:
+   * switched parameter logic from default for nrargs from 0 to 1
+   * simplified logic to detect additional arguments in argument parser
+   * improved error message for missing required argument
+- regression tests:
+   * added disposition.test
+   * extended regression test
+
+- xotcl2: use filterreg instead of plain arg for registration of filters
+
+- nsf.c:
+   * improved source code documentation
+   * added parameter option "args" in order to get eventually rid of 
+     hard-wired call to residualargs.
+   * improved a few error messages
+   * fixed object parameters consisting only of plain parameters 
+     (previously, no parameters were returned in this case, e.g. 
+     for method parameters; but object parameter code depends on it)
+- extended and updated regression tests
+
+- nsf.c:
+   * added refcounting to parameter definitions (needed, when 
+     aliased object parameter redefined the actual objectparameters)
+   * removed hardcoded call to remaining args
+   * switched implentation of xotcl2 to use object parameter with
+     parameter option "args"
+   * removed residualargs from object system definition
+   * extended regression test 
+
+- nsf.c:
+   * Don't output non-consuming procs (which are always called) 
+     via parametersyntax (shows, what a user can input)
+   * additional command ::nsf::object::initialized to check whether 
+     an object is already initialized
+   * new function DispatchInitMethod() similar to DispatchDefaultMethod()
+   * let residualargs call init directly instead of doing it the inidrect way
+   * provided ability to call init with object parameters at arbitrary
+     times
+   * switch from Tcl_ObjCmdProc style interface (ClientData first) 
+     to a C stype interface for DispatchDefaultMethod(), DispatchUnknownMethod()
+   * bring cmd definitions for nsf::object in right order
+- extended regression test
+
+- genAPI.decls and nsf.c: bring cmds in same order
+- nsf.c: align naming conventions
+
+- renamed gentclAPI.decls to nsfAPI.decls
+- renamed tclAPI.h to nsfAPI.h
+- added nsf.m4 to git for the time being
+
+- mongdb:
+  * added preliminary gridfs interface 
+  * refactored some code
+  * added new types for "gridfs" and "gridfile"
+  * added new example file example-nsf-gridfs.tcl
+
+- nsf.c: no good reason to disallow user defined types for for alias, 
+  forward or initcmd
+
+- library/nx/nx-zip.tcl: added a zip file generator as package
+
+- nsf.c:
+  * new file nsfPointer.c
+  * generic new value checker ConvertToPointer to handle c-level
+    conversions (which can be registed from nsf extensions)
+  * extern defined interface for the pointer converter:
+    Nsf_PointerTypeLookup(), Nsf_PointerTypeRegister(),
+    Nsf_PointerAdd(), Nsf_PointerDelete(), 
+    Nsf_PointerInit(), Nsf_PointerExit().
+- library mongodb
+  * changed mongoAPI to pointer converter interface
+
+- C-code generator:
+  * additional parameter swith "-withObj" to allow passing
+    of internal representation and the according TclObj *
+  * c-implemented methods: report types in "info parameter" for
+    more builtin types.
+  * use "-withObj" in mongodb interface
+  * adapted regression test
+
+- mongodb interface:
+  * mongo::gridfile::seek: added a seek command for gridfiles
+  * added example for the low-level interface to shwo how 
+    to access gridfs via the plain mongodb interface, how
+    to add some additional metadata (e.g. dublin core meta
+    data) and how to retrieve this via the gridfile interface
+
+- nsf.c: 
+   * report only fully initialized slot objects via "info slots" to
+     avoid chicken-egg problem during method "objectparameter"
+   * added flag -array to ::nsf::var::exists to check, whether
+     the variable is an array (to avoid "o eval {array exists ...}"
+     in the serializer.
+   * provided flags to VarExists instead of multiple args
+   * don't add new pointer entries in Nsf_PointerTypeLookup()
+
+- preliminary fix for volatile called through residual args
+- new regression test file volatile.test
+
+- fix the comparison with "unknown" in residual args 
+
+- provide backward compatibility for unknown method (when
+  method contains spaces).
+- some minor cleanup
+- extended regression test
+- fix typos in string "unknown" (unknwon, unkown)
+- reduce verbosity
+- reduce scope of variables
+
+- renamed ObjectParameterSlot attribute from nosetter => accessor
+  (positive formulation)
+- nsf.c: make sure to always initialize variables
+
+- first draft of separation of attribute -> variable + accessor
+
+- library/mongodb:
+   * updated to current interface in git HEAD
+   * added flag timeout to mongo::connect
+   * added new index options "-sparse" and "-background"
+
+- regularized more nsf::* names:
+  renamed "nsf::createobjectsystem" => "nsf::objectsystem::create"
+  renamed "nsf::unknown" => "nsf::object::unknown"
+  renamed "nsf::dispatch" => "nsf::object::dispatch"
+- generalized "nsf::object::initialized" to
+  nsf::object::property objectName initialized|class|rootmetaclass|rootclass|slotcontainer
+
+- nx: factor out method createFromParameterSpec
+- method variable:
+  * check default value 
+  * added shortcut, when no slot object is needed
+  * extended regression test
+
+- nx::Attribute: changed method 'checkInstVar' to 'setCheckedInstVar'
+- set only fresh variables via per-object method "variable" and "attribute"
+- added flag -concomplain to per-object method "variable" and "attribute"
+- extended regression test
+- added support for "class variable"
+- added tests for "variable" + multiplicity and "class variable"
+- provide error message, when method variable is a noop 
+  (e.g. no value provided and no accessor is wanted)
+- added tests for object specific "variable" and "attribute
+  + application defined value checker
+
+- library/mongodb:
+   * updated to current interface in git HEAD
+
+- nx.tcl: added switch "incremental" to "variable" and "attribute"
+- added regression test
+
+- nsf.c: improve performance (branch prediction) by using
+  likely/unlikely macros for gcc
+
+- nx.tcl:
+  * added support for "variable" on the class-level
+  * added flag "noconfig" to object parameter options
+  * parameters with "noconfig" are omitted in 
+    "info parameter syntax" and "info parameter list"
+  * used switches for all configurable boolean options for 
+    "variable" and "attribute"
+  * regularized the interface of "variable" and "attribute"
+  * extended regression test
+
+ - fixed a possible crash in the ExitHandler:
+   Object create o {exit -1} 
+
+- nsf.c:
+  * added flag "-array" to nsf::var::set such we have
+    now "::nsf::var::set ?-array? object varName ?value?"
+    With "-array", nsf::var::set behaves like "array get"
+    or "array set" (on instance variables)
+  * use "::nsf::var::set -array" in serializer symmetrically
+    to scalar case
+  * extended regression test
+
+- nsf.c:
+   * fixing compilation with NSF_MEM_COUNT
+   * New function DeleteProcsAndVars() to trigger deletion of
+     ParamDefs (fixes a small memory leak);
+   * improved comments
+   * improved INCR_REF_COUNT/DECR_REF_COUNT for easier
+     tracking of potential refcount errors
+   * added macros DECR_REF_COUNT2() and INCR_REF_COUNT2()
+     for easing the association of refcounts to locations
+     in the code by providing names for refcounts.
+   * fixed a refcount bug for valueObjs in non-NRE-enabled
+     versions in the argument vector of scripted methods
+     (found via INCR_REF_COUNT2/DECR_REF_COUNT2)
+
+- nsf.c:
+   * refined refcounting debugging
+   * fixed various refcounting bugs, especially 
+     in error cases.
+   * added explicit INCR_REF_COUNTs on Tcl_Objs
+     with 0-refCount to ease debugging
+   * added explicit names for refcounting for "paramDefsObj"
+   * added explicit names for refcounting for "freeList" (for forwaders)
+   * provide debug-refcounts for "NSNamespace"
+   * provide debug-refcounts for "nextArgumentVector"
+
+nsf.c:
+   * change DeleteProcsAndVars, such it deletes procs and vars
+     explicitely in all namespaces
+   * added more sanity checks for parameterContexts,
+     testing in ParseContextRelease() in DEBUG mode
+   * provide debug-refcounts for "pcPtr.objv"
+   * provide debug-refcounts for "pcPtr.clientData"
+
+nsf.c:
+   * provide debug-refcounts for "class.activationCount"
+   * provide debug-refcounts for "object.activationCount"
+   * deactivated CHECK_ACTIVATION_COUNTS oer default
+   * tested refcounts with Tcl 8.6b2, found bug in Tcl and submitted patch to sourceforge
+     http://sourceforge.net/tracker/?func=detail&aid=3383616&group_id=10894&atid=110894
+
+- nsf.c:
+  * fixed a bug in "info parameter list|... name" when the named
+    parameter is not found (returns now empty, before, it was
+    returing the full list).
+  * added flag "-nocomplain" to nsf::var::unset
+
+- nx.tcl
+  * added "delete variable" analogous to "delete attribute"
+  * unset instance variable for object-level "delete attribute"
+  * extended regression test
+
+- library/mongodb:
+   * updated to current interface in git HEAD (resp. 
+     "git checkout v0.4")
+
+- nx.tcl:
+  * fixed copy for object created with new
+  * copy returns now the fully qualified name of the copied object
+  * extended regression test
+
+- library/mongodb:updated to current interface in git HEAD 
+- nx.tcl: implemented copy without a provided name. If argument
+  of copy is omitted, the copied object is created with a fresh
+  name (i.e. created with the method "new"). Example
+     set x [o copy]
+- extended regression test
+
+- nx.tcl:
+  * added protected and public for "require method"
+    The following forms are now valid
+      "... require public method"
+      "... require protected method"
+      "... require method"
+      "... require public class method"
+      "... require protected class method"
+      "... require class method"
+   * extended regression test
+
+- library/mongodb:
+  * replaced NsfMongoGetHostPort() with the newly available 
+    function mongo_parse_host()
+  * updated error codes according to git head
+  * factored out mapping of error code to string
+
+- nsf.c:
+  added cmd __db_compile_epoch for compile-epoch introspection
+
+- Mystery solved, why in the script below the interp>compileEpoch is
+  incremented, when D is redefined, but in other cases not.  In the
+  script below the method D.init is compiled by tcl, since it has a
+  trivial body. Therefore, a redefinition of D will remove this
+  compiled body and all its potential usages. Therefore the
+  interp->epoch is incremented. If the body is e.g.  "return", the
+  epoch is not incremented (observed with Tcl 8.5.10)
+
+=================================================
+# -*- Tcl -*-
+package require XOTcl; namespace import -force ::xotcl::*
+package require nx::test; namespace import nx::Test
+
+Class C; C c
+Class D -superclass C
+D instproc init args {}
+
+Test new \
+    -count 100 \
+    -pre {
+      puts stderr ===create-D;Class create D; puts stderr ===D-created;
+      Class E; Class E1; Class X -instmixin {D E E1}} \
+    -cmd {X info instmixin ::E*} \
+    -expected {::E ::E1} \
+    -post {foreach o {D E E1 X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class X -instmixin {D E}} \
+    -cmd {X info instmixin ::E*} \
+    -expected {::E} \
+    -post {foreach o {D E X} {$o destroy}}
+
+Test run; exit
+=================================================
+
+- nsf.c: 
+  * enabled MEM_COUNT debugging for multi-threaded
+    apps. We collect the MEM_COUNT statistics now
+    per interp. Therefore, we have to pass around
+    "interp" in case where alloc() and free() 
+    or refCount functions are used (textually,
+    a big change)
+  * verified, that nsf runs clean in aolserver/naviserver
+    (all INCR_REF_COUNTS all balanced)
+  * added paramPtr->name to MEM_COUNT tracing
+  * renamed NEW_STRING to STRING_NEW
+  * added STRING_FREE, calling MEM_COUNT macros
+  * checked all ckfree in nsf.c, everything allocated 
+    is covered by the MEM_COUNT macros
+
+- nsf.c: fixed autoname problem with code from tcl trunk
+
+- fixed book-keeping for TclNamespace refcounting such that now
+  alias.test, destroy.test and test.xotcl run now clean,
+  2 test are still open with tcl 8.5.10 (contains.test and xotcomm.test)
+- documented functions in nsfTrace.c
+- updated next-tutorial to the current naming conventions
+- added tests for using submethod handles
+
+- changed Stack example in tutorial from constructor to :variable
+- allow just valid specs for :attribute and :variable methods
+- improved error message for invalid parameter specs (with leading colons)
+- extended regression test
+
+- library/mongodb:updated to current interface in git HEAD 
+
+-nsf.c:
+  * move to greedy assert to an inner scope ("info method ...")
+  * allow testwise "switch" as object parameter (when it is used, 
+    accessors are deactivated for this attribute)
+  * extended regression test
+
+- nx.tcl: extended object-parameter "switch" implementation:
+  now, accessors of type boolean are created, when type "switch" is used.
+
+- nsf.c: implemented "... info method origin ..." which returns the
+  implementation handle (in contrast to the registration handle) of 
+  a method.
+
+- nx.tcl
+   * renamed "attribute" to "property"
+   * renamed "defaultAttributeCallProtection" to "defaultPropertyCallProtection"
+   * renamed "nx::Attribute" to ""nx::VariableSlot"
+   * renamed "BootStrapAttributeSlot" to "BootStrapVariableSlot"
+   * renamed "createBootstrapAttributeSlots" to "createBootstrapVariableSlots"
+   * removed method attributes
+   * implemented old "attributes" definition in xotcl2 as method "parameter"
+
+- nx.tcl
+   * renamed "info parameter name" to "info parameter names" (since it returns a list of names)
+   * renamed "info parameter name" to "info parameter names" (since it returns a list of names)
+   * renamed "info slots" to "info slot objects"
+   * additional method "info slot definition"
+   * additional method "info slot name"
+   * additional method "info properties" (alias to "info slot definition")
+   * removed "info parameter slot"
+   * use term "noaccessor" and "noconfig" to deactivate accessors or object-parameters
+     in property definitions
+   * don't show slots with noconfig in "info parameter names"
+   * don't show slots with noconfig in "info parameter definition"
+   * renamed slot property "configparam" to "config"
+   * renamed "::nsf::methods::class::info::slots" to "::nsf::methods::class::info::slotobjects"
+   * additional public method ObjectParameterSlot.getPropertyDefinition 
+   * updated and extended regression test
+
+- nx.tcl:
+   * added "/obj/ info slot definition"
+   * added "/obj/ info slot name"
+   * added "/obj/ info properties" (alias to "/obj/ info slot definition")
+   * extended regression test
+
+- nx.tcl:
+  * added parameter option incremental for "property" and "variable"
+  * removed the nonpos argument "-incremental" from "property" and "variable"
+  * adapted regression test for these cases
+
+- new folder example-scripts
+   * Added 8 of the rosetta examples and one classical OTcl example
+   * all examples are tested via regression test
+   * all examples are pretty-printed via asciidoc
+   * added example rosetta-abstract-type.tcl
+   * added example rosetta-unknown-method.tcl
+   * added ./apps/utils/source-doc-beautifier.tcl
+   * fixed the file-handle output/formatting in rosetta-serialization.tcl; using proc "!"
+
+- nsf.c:
+   * fixed next path computation in cases where command handles 
+     are used to refer to methods in the current mixin order.
+   * extended regression test
+
+- nx.tcl:
+  * made "/cls/ class ..." using ensemble methods and therefore extensible.
+  * This introduces some definition order dependencies in nx.tcl and
+    some redundancy ("class filter" and "class mixin"), but maybe 
+    this can be eliminated.
+
+- nsf.c:
+  * fixed "nsf::my -local ..." (never worked in nsf)
+  * added regression test
+
+- documenting current behavior
+  * test method-handle + next + dispatch (unwanted)
+  * test "my -local" vs my + method handle
+  * test "my -local" vs dispatch + method handle
+
+- nsf.c:
+  * added preliminary/minimal "private" support
+  * private can be called via "my -local", direct
+    dispatches are forbidden, ignored in mixins
+    and next; 
+  * extended regression test
+  * fixed name path in unknown called from ensemble
+    methods (erroneous colon could show up)
+  * added -system flag to:
+    - ordinary dispatch (e.g. "o1 -system info vars")
+    - nsf::object::dispatch with plain methodName
+    - nsf::my (mutual exclusive with -local)
+
+- nsf.c:
+  * change mem-count statistics from per-interp to per-thread 
+  * generalized GetObjectFromCmdTable() to ReverseLookupCmdFromCmdTable()
+  * changed GetObjectScreenedByCmdName() to GetHiddenObjectFromCmd()
+  * modularized interp.test to locate potential problems faster
+  * partly simplified interp.test syntactically
+  * deacivated a few tests in interp.test for the time being 
+    (runs commands after finalize)
+  * re-established assertion checking for deleted cmds in cmd lists
+  * added flag "-keepvars" to nsf::finalize for handling cases in interp.test
+  * reactivated tests and simplified interp.test
+
+- disposition.test: 
+  * remove/check exit (see comments in the file)
+  * handle exit from eval/inticmd with proper refcounts
+
+- nsf.c:
+  * integrated "-local" and fully qualified handling with ObjectDispatch 
+    to ensure proper behavior of mixins/next etc.
+  * added "/obj/ -local ..." similar to "/obj/ -system ..."
+  * added "nsf::object::dispatch /obj/ -local ..." similar to "/obj/ -local ..."
+  * extended regression test (next from -local, 
+    fully qualified names, private methods, "...dispatch -local")
+  * provide error message for "/obj/ -system"
+
+- nx.tcl:
+  * make calls from "protected", "public", and "private" system calls,
+    such that "obj -system protected method foo {} ..." works, even
+    when obj has a method named "method".
+  * extended regression test
+
+- nsf.c:
+  * added "/obj/ -intrinsic ..." similar to "/obj/ -system ..."
+  * added "nsf::my /obj/ -intrinsic ..." similar to "/obj/ -intrinsic ..."
+  * added "nsf::object::dispatch /obj/ -intrinsic ..." similar to "/obj/ -intrinsic ..."
+  * extended regression test
+
+- nsf.c:
+  * simplified permission handling
+  * made private/protected mutual exclusive
+  * extended regression test for private methods
+  * per-thread MEM_COUNT tested with aolserver/naviserver
+  * removed INTERP macros for MEM_COUNT (since we use now
+    per-thread tables instead of per-interp tables as in the
+    first implementation)
+  * re-enabled transparency of private method in mixins
+  * added transparency for per-object private methods
+  * extended regression test
+
+- nsf.c:
+  * allow protected and private methods to be used as filters
+  * added regression tests
+  * some cleanup in regression tests
+  * added support for calling private methods via -local and filters
+  * extended regression test for private + filters
+  * removed "-local", "-system" and "-intrinsic" from plain dispatch
+    (like e.g. "o1 -system method")
+  * removed flag "-local" from nsf::object::dispatch
+  * made nsf::my and nsf::object::dispatch available in the nx namespace
+
+- nsf.c:
+  * factored out CmdIsNsfObject() for NRE handling with slave interpreters.
+  * added flag ZSE_NRE_PROC for using nreProc instead of objProc
+
+- nsf.c
+  * implemented NsfObjDispatchNRE and NsfObjDispatch
+  * this fixed all issues of tcl8.6 and interp.test (xocomm still hangs in 8.6)
+
+- nsf.c:
+  * "private" implies now "protected". This means, setting "private"
+    sets as well "protected", unsetting "protected" unsets "private"
+  * make sure the "... method definition" of private methods is returned as "private"
+  * extended regression test
+
+- nsf.c:
+  * removed warning about resetting cmd to 0 for private method invocations.
+
+- fixed interp.test for tcl 8.6
+- fixed xocomm.test for tcl 8.6
+- fixed mem_count on xocomm.test (was 26 / 26)
+
+- nsf.c: small performance improvements
+- nsf.c: experimental implementation of ::nsf::method::dispatch
+- renamed "nsf::method::dispatch" to "nsf::directdispatch"
+- renamed "nsf::object::dispatch" to "nsf::dispatch"
+
+- nsf.c:
+  * added permissable value "private" to flag "-callprotection" for
+    "info lookup method" and "inbfo methods".
+  * extended regression test
+
+- doc:
+  * fixed naming of "attribute" in migration guide
+  * added "private" to migration guide
+  * some textual improvements in migration guide
+  * fixed spacing in documentation
+  * fixed documentation of "info slot objects", "info slot names",
+    "info slot definition"
+
+ - nx: 
+  * added namespace "nx::internal"
+  * delete procs via "rename to emtpy" instead of 
+    "defining procs with empty argumentes and body"
+  * provided "-properties" as a replacement for -attributes, 
+    but without magic variable
+  * extended regression test
+  * changed "info slot name" to "info slot names" 
+    (like "info parameter names")
+
+- library/lib/pp.tcl: improved handling of placeholders
+  
+- doc: 
+  * added section about ":variable" to the tutorial
+  * fixed a few outdated places in tutorial
+
+- nsf.c:
+  * reduce eagerness of methodName computation in ResolveMethodName()
+    and GetRegObject()
+  * reduce eagerness of DString computation in ResolveMethodName()
+  * use conditional assignments in ResolveMethodName()
+  * make use of Tcl_Obj type in ResolveMethodName() to reduce 
+    number of string operations
+
+- gentclAPI.tcl:
+  * added option handling for every cmd/method/... 
+  * added option "-nxdoc" for outputting an index 
+    to ease maintenance in nxdoc
+
+- nsf.nxd:
+  * adapted to new namings
+  * tend to use fully qualified names (make maintenance easier)
+  * bring cmds to an alphabetical order (make maintenance easier)
+  * add optical separators between doc items to ease reading
+
+- fixed mem_count on contains.test
+
+- nsf.c:
+  * minor cleanup
+  * added regression tests
+  * fixed recration of object alias with a alias to a different cmd
+
+- xotcl2.tcl:
+  * added a backward compatible ::xotcl::alias method
+
+- Switched to the tcl numbering scheme. Version is now 2.0a1
+  Warning: From the Tcl point of view, this is a regression in 
+  numbering relative to the previous 2.0.0. Make sure to
+  remove old releases from you installation path like e.g.
+
+   rm -rf /usr/local/lib/libnsf2.0.0* /usr/local/lib/nsf2.0.0
+
+- use same version numbers in nsf, nx and xotcl2
+
+- library/lib/nx-zip.tcl: refactored implementqtion, 
+  improved utf-8 file-name handling (which is a mess in pkzip)
+
+- configure options:
+  * improved and extended configure options to reduce
+    necessity to switch features on and off in the nsf.h.
+  Optional Features:
+    --enable-profile        build nsf with profile support (default disabled)
+    --enable-memcount=yes|trace
+                            build nsf with memcount debug support (default
+                            disabled)
+    --enable-development    build nsf with development support (assertion
+                            checking, etc.; default disabled)
+  Optional Packages:
+    --with-dtrace           build nsf with dtrace (default: without)
+
+- nsf.c:
+  * report configuration options via "parray nsf::config"
+    sample output
+     % parray nsf::config
+     nsf::config(development) = 1
+     nsf::config(dtrace)      = 0
+     nsf::config(memcount)    = 0
+     nsf::config(memtrace)    = 0
+     nsf::config(profile)     = 0
+
+
+- build-environment:
+  * make configure.in Makefile.in more in line with the TEA sample app
+    (removing leftovers from prior versions of TEA)
+  * remove GNU-Makefile-isms from Makefile.in
+
+- nsf.c:
+  * provide an intermediary fix for the final memcount problem
+    of elements in on the iPtr->errorStack
+  * improve iPtr cleanup for memcount debugging
+
+- added configure option: enable-assertions (default on)
+
+- nsf.c:
+  * allowed to call ":" like "my" or "self"
+
+     Object create o
+     o public method bar2 {} {return bar2-[: foo]}
+     o public method bar5 {} {return [self]::bar5}
+     o public method bar6 {} {return [:]::bar6}
+
+ * extended regression test
+
+- nx.tcl: moved "properties" from nx::Class to nx::Object
+
+- nsf.c: make ":" a full equivalent vor nsf::my 
+  (i.e. support -local, -system and -intrinsic)
+- extend regression test
+nsf.c:
+  - reform of argument parse. new parser uses NsfFlagObjType
+    to reuse earlier parse resuslts. Improved speed for
+    for methods with primitive bodies: 5%-25%.
+  - added regression tests for argument parsing 
+
+- nsf.c
+  - added experimental parameter option noleadingdash
+  - additionalal regression test file method-parameter.test
+  - provide selective error messages for unknown nonpos args
+
+nsf.c:
+  - reform of method lookup. new code uses 
+    NsfInstanceMethodObjType and NsfObjectMethodObjType
+    to reuse earlier lookup results. Improved speed for
+    for methods with primitive bodies (over version before
+    argument parse reform: 10%-43%.
+  - additional compile-time option: METHOD_OBJECT_TRACE
+  - experimentation version of unknown handler for non-pos args
+  - extending regression test
+
+nsf.c:
+  - moved methodEpochCounters from global vars to the interp state
+    to improve resue in multi threaded apps
+  - separated objectMethodEpoch and instanceMethodEpoch
+  - bump version number to 2.0a2
+
+nsf.c:
+  - new cmd for debugging: nsf::__db_show_obj
+  - added MethodDupInternalRep() and FlagDupInternalRep()
+    since they appear to be required in Tcl 8.6b2.
+
+tests:
+   - added "package prefer latest" to avoid confusions of alpha and beta releases
+     with install versions
+
+nsf.c:
+  - added MixinregDupInternalRep() and FilterregDupInternalRep
+  - perform more eager invalidation on objectMethodEpochs
+  - cleanup on nsfObj.c
+
+nsf.c:
+  - don't convert obj types tclCmdName and parsedVarNameType
+    to instanceMethodObjType
+
+nx: added traits package
+
+nonleadingdash handling:
+  - doc: added "nonleadingdash" to UML class diagramm
+  - nsf.c: added error message, when "noleadingdash" is used on 
+    non-positional parameters
+  - nsf.c: use same logic for "nonleadingdash" to "value in argument"
+  - nsf.c: deactivated rudimentary unknown handler non nonpos args 
+    for the time being
+  - nx.tcl: added handling of parameter option "noleadingdash" 
+    in objectParameterSlots
+
+- doc:
+    * integrated ::nx::doc::make with Makefile.in
+      (provide shell calls and, targets and dependencies)
+    * provided a different flag for the generation of the documentation
+      (-develop, .... or -final) to show/hide it.
+   * separated entries for methods and hooks (can't be called if not defined)?
+    hooks: 
+      * recreate should only be called internally, similarly "init" etc.
+      * __unknown
+    unknown is a hook for Object but a method for Class
+
+- fixed strange refcounting bug in 8.6b2 bug-is-86.tcl
+   where 2 refcounted items are not freed (value:class,
+   issued from nx.tcl around line 120). Compile with DEBUG86B2
+   for more info
+     =================================================
+     # -*- Tcl -*-
+     package req nx
+     package require nx::test
+
+     nx::Test case ensemble-next-with-colon-prefix {
+       nx::Object create obj {
+	 :public method foo {} { return [:info class] }     
+	 #:public method bar {} { return [:info] }
+	 :method info {} {;}
+       }
+       ? {obj foo} {wrong # args: should be ":info"}
+     }
+     =================================================
+
+- nsf.c: cleanup on DEBUG86B2
+
+- nx.tcl: 
+  * do not namespace import my into ::nx
+  * replace usages of "my" by colon invocations
+
+- doc:
+  * extended method resolution section
+  * documented invocation flags for colon
+
+- nsf.c:
+  * add flags "-closure" and "-source" to "/cls/ info methods"
+    (the cases for "/obj/ info methods" are already covered by
+    "/obj/ info lookup methods")
+  * extend regression test
+
+- nx-traits:
+  * use "info methods -closure" instead of instantiating a
+    class at trait-insertion time
+  * added trait as package nx::callback
+
+- example scripts: added tk-mini and tk-horse-race
+
+- make "/object/ require" an ensemble method
+- traits: renamed "useTrait" into "require trait"
+
+- added per-object traits (and per-class-object traits)
+- added tk-spread and tk-locomotive to example scripts
+
+- altered default handling to honor side effects of aliased object
+  parameters. This slows down evaluation a little. Side-effects from
+  aliased parameters are discouraged, since the order of the
+  evaluation should not matter of an declarative evaluation of the
+  argument vector.
+- extended regression test
+
+- library/mongo:
+  * updated interface to current nx
+  * updated to mongo-c-driver 0.4 (current version)
+  * The mongo c-driver does not allow to add DBRefs, since
+    it refuses to accept field names with leading '$'. So we skip these
+    tests for the time being.
+
+-nsf.c: 
+  - remove quadratic behavior when adding many classes (10 thousands)
+  - deletion is still for huge number of classes quite slow.
+
+- nx.tcl, xotcl.tcl: 
+  * remove proc "register_system_slots" since 'rename
+    register_system_slots ""' fails on aolserver
+  * bump version number to 2.0b1
+
+
+
+TODO:
+
+ - warnings for "numeric" names for args and nonpos-args?
+ - special handling of values looking like nonpos-flags,
+   but wich are not ones (-1, "- a b c", ....) in detection
+   when to throw unknow.
+
+ - private: 
+   * document private in tutorial
+
+ - add "property" and "attribute" and "info property" and "info slot ..." to migration guide
+
+ - naming of slot classes 
+   * should we switch from "-class" to "-slotclass"?
+
+    o1 property ?-class value? ?-incremental? ?-nocomplain? spec ?initblock?
+    o1 variable ?-accessor? ?-class value? ?-incremental? ?-initblock value? ?-nocomplain? spec ?value?
+
+   * the introspection interface uses "-type", meaning "class or subclass"
+
+    o1 info lookup slots ?-type value? ?-source value? ?pattern?
+    o1 info properties ?-type value? ?-closure? ?-source value? ?pattern?
+    o1 info slot definition ?-type value? ?-closure? ?-source value? ?pattern?
+    o1 info slot name ?-type value? ?-closure? ?-source value? ?pattern?
+    o1 info slot objects ?-type value? ?pattern?
+
+    o1 info children ?-type class? ?pattern?
+
+ - from parameters.test
+    # TODO: currently, we need two converters (or a converter on nx::Slot), since
+    # variable uses nsf::is and attribute uses the slot obj. method variable should
+    # be changed to use the slotobj as well.
+
+ - interface of "variable" and "attribute":
+   * add switch -array for "variable"? (Just setting is trivial,
+     handling setters and incremental setter is more work)
+
+ - call user defined setter in object parameters?
+
+ - NsfObjWrongArgs() & friends is not aware of submethods. Error
+   messages print with the leaf method names only, e.g.: "anObj method
+   ..." instead of " anObj info method ..." etc.
+
+- Revise callstack introspection/intercession, i.e., [current
+  activelevel] vs. [current callinglevel] vs. uplevel()/upvar():
+  
+  Currently, there are some inconsistencies when comparing activelevel
+  and callinglevel: 
+  
+  1. Both skip INACTIVE frames: This has implications for the notion
+  of an "activelevel" introspection as such (especially when comparing
+  with their semantics in XOTcl 1.*); also, we cannot access INACTIVE
+  (mixin, filter) frames anymore using uplevel|upvar (whether this is
+  needed is another issue, but at least, this breaks XOTcl 1.*
+  semantics, as callinglevel resolved to such INACTIVE frame contexts).
+  2. The uplevel()/upvar() methods default to uplevel+callinglevel
+  semantics, so they borrow their issues from 1)
+  3. For now, we do not support callstack-transparent upleveling into
+  non-NSF frames, such as Tcl namespace + proc (apply) frames.
+
+  Approaches:
+  a) Revise the current [current] subcmd scheme: callinglevel
+  vs. activelevel vs. ...?
+  b) Provide a more generic, filter-based [current callinglevel] (?)
+  subcmd which allows for applying different bitmask filters
+  c) Provide the necessary callstack info in [info frame] and make
+  replacements for [current activelevel] & [current callinglevel]
+  scriptable ...
+  d) support for out/inout argument parsing strategies (however, this
+  would rather replace [upvar], what about [uplevel] indirection?)
+
+- extend mongo::gridfs::store_file with a switch -metadata to
+  pass metadata together at gridfs file creation time
+
+- do we have to adjust the documentation in xotcl2 for object initialization?
+- maybe optional arg (true) to ::nsf::object::initialized 
+  to generalize -noinit
+
+- nsf.m4 seems to be currently unused (SC_PATH_NSFCONFIG and SC_LOAD_NSFCONFIG)
+  Should we delete it?
+
+- maybe: add a disposition=pipe
+
+- MixinComputeOrderFullList() could receive a flag to store source classes in checkList
+
+- if the check on eg. info-heritage-circular in test/info.method.tcl
+  reports a warning on exit, if we get an exception.
+
+- should be be concerned about message like
+  DEBUG obj 0x100227960 ::nx::Object activationcount 2 on stack 3; might be from non-stacked but active callstack content
+ in the regression test?
+
+- maybe change nx::Test to nx::test (user never has to know that nx::Test is a class).
+
+- what to do with metadata analyzer? 
+  Still needed? Already replaced by new doctool? 
+  Does it have to run on make? Can doctool run on Make?
+  
+- Higher binary compatibility for future versions:
+  * It is not nice to have the full Nsf_Param structure in nsf.h
+    (required for Nsf_methodDefinition in the c code generator)
+  * It is not nice to have the full ParseContext structure in nsfmongo
+    (required for the allocation of the parse context in the stubs)
+  Adding fields to these structures would kill alder binaries
+
+- when alloc|dealloc are loaded via require, we have
+  no redefined-protection on those. Since the script does not know,
+  on which class|object these are defined one cannot make assumption
+  on these. Problem?
+
+- The structure of the script body requires currently that 
+  "class|object ?-per-object?" is inserted at the 1nd pos.
+  This is not sufficient, if we would like to test in this 
+  script, whether the first arg is e.g. a class.
+
+- document value added replacements of Tcl functions
+
+- object parameter type forward:
+   - regression test
+   - get rid of eager tcd creation (optimization, can go to future releases)
+
+- slotmachinerie 2
+  - naming "incremental", "reconfigure"
+  - should we deactivate add/delete for non-multivalued cases?
+  - allow noarg+default/initcmd ?
+  - default/initcmd/subsdefault: can we simplify these?
+    or add messages for conflicting usages.
+
+- Makefile/::nsf::config: Integrate git meta-data (commit hash, branch/tag labels)
+
+- doc:
+
+    * @package.@require(): really needed? 
+
+    * @package.@version: fix validation mode ... expected/actual
+      version numbers are not compared ...
+
+    * NextScriptingLanguage/index.html: glossary entries in nsf.nxd
+      should be sorted (in the source) ...... Maybe, a single glossary.nxd
+      file?  SS: Right now, the name of the nxd file derives from the the
+      script name. I mark this as TODO for the future.
+
+    * doc/langRef2.xotcl vs library/xotcl/doc/langRef.xotcl
+
+    * @author: how to visualise the authorship in the generated markup
+      (yuidoc)?
+
+
+- do we need contains in nx?
+
+- nsf::proc 
+   * check, if there are parameter types that should not be applicable 
+     for nsf::proc
+   * toplevel (object less) introspection 
+
+- ".... info methods -methodtype scripted ....." and "info lookup
+  method -methodtype ..."  vs. "info method type ...."; spricht was
+  dagegen, anstelle von "methodtype" nur "type" zu verwenden?
+
+- documentation
+   * migration guide
+      3.8. Dispatch, Aliases, etc.: to be done or omitted
+
+- check performance implications of value checker
+
+- nameing
+
+    * namespace prefix 
+       next scripting language: ::nx::*
+       next scripting framework: ::nsf::*
+    * distributed packages in namespace ::nx::*, some are still in ::xotcl::*
+    * names of subpackages nx::*, some packages are still xotcl::*
+
+    * Now we have
+        package require nx
+        package require nx::test
+        namespace import ::nx::*
+
+- library + apps
+    - new directory structure DONE
+    - work on binary packages of xotcl (store + xml)
+    - nicht gewartete/nicht getestete library aus distro entfernen?
+    - migration von einzelnen paketen nach next? von welchen?
+
+- new website
+    * graphisches design
+    * website-struktur
+    * org. tutorial (bzw teile davon) ala book 
+      or wiki (features als kategorien|tags|sections|directories)
+
+
+
+Ein paar Punkte im folgenden könnten obsolet sein:
+
+TODO "Kleinigkeiten"
+
+- NSF_WITH_VALUE_WARNINGS: Right now, value warnings are also fired
+  for arg vectors with a delimiting "--"; right now, this gives a warning:
+
+  Object create o {
+  	 :public method foo {-np1 -np2 p1} {
+	     return $p1
+	  }
+  }
+
+  ? {o foo -np1 1 -np2 2 -- -X} "-X"
+
+  However, the warning-generating code in Nsf_ConvertToTclobj() does
+  not reserve any word of a dashdash having been processed in the
+  overall argv ... the NSF_ARG_CHECK_NONPOS set on the parsed (and
+  cached) param is the only condition to must hold.
+
+- should we continue to work on the problem of the interp-aliased class,
+  exported from one ns, imported into another one?
+
+- constants in type converter (in and out)
+
+- genau genommen sind folgende info-Methoden unnötig:
+  - obj info mixin
+  - obj info filter
+  - obj info class
+  * obj info is
+  - cl info mixin
+  - cl info filter
+  - cl info superclass
+# SS: Sie spielen vermutlich auf die Redundanz der getter seite der
+  relation slots an. Mmmh. Die info-Sicht bietet in einigen der Fälle
+  ?pattern? an, das wäre als Unterschied zu nennen (das ließe sich
+  aber auch in die relation slots integrieren, etwa [obj mixin search
+  <pattern>]. Zudem ist es ein Fallback, wenn mixin|filter|class
+  überladen wären (ein sicherer hafen), aber ob das als argument
+  genügt, die info-varianten zu behalten?!
+
+#if 1
+  /* TODO: the following check operations is xotcl1 legacy and is not
+     generic. it should be replaced by another methodproperty.
+     Most of the is*String()
+     definition are then obsolete and should be deleted from
+     xotclInt.h as well.
+  */
+
+  if (isCheckString(methodName)) {
+    return TCL_OK;
+  }
+#endif
+
+
+For future releases (after first alpha/beta release)
+
+   * Consider alternate method name/place for subcmds (and/or slots) on classes
+     - currently, there are potentail conflicts between slots and ensemble objects
+     - provide a different place in the namesspaces could simplify this
+
+   * Ensembles
+     - It could be possible to reduce stack frames in ensembles. Just a
+       top ensemble frame could be sufficient.
+     - The full names for ensemble methods could be stored in the cmd tables
+       to make lookup faster.
+
+  * Serializer: handing of xo::at_cleanup in serializer 
+     (either generalization or move to OpenACS/aolserver init/naviserver init)
+
+  * Parameter/argument handling
+     - Add an unknown handler for unknown non-pos args to Argument parser. 
+       The problem is to find a way to aviod method deletions or redefinitions
+       or to recover from these gracefully (when e.g. the unknown handler 
+       deletes the parameters currenlty being worked on).
+    - Canonical parameter representations: 
+      "p:integer,multivalued" => "-name p -type integer -multivalued"
+      "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
+    - Argument passing of C functions is currently based on an
+      interpreter of the argument lists. It should be possible to turn
+      the interpreter into a compiler to speed up argument passing. But
+      maybe, this would bloat the code-size.
+    - Use parameter syntax in genTclAPI
+ 
+  * C-Code
+     * Several of the tracing options in nsf.h could be replaced by DTrace
+     * Rework implict namespace completion (NameInNamespaceObj(), 
+       maybe based on BeginOfCallChain()).
+     * Rework C-interface (maybe for post-alpha, but we have be first
+       clear on scope and intention. A possibility would be to provide
+       all entries from gentclAPI, but we would loose most likely
+       static property and the newly achieved ease of changing is
+       effectively frozen by the stubs interface, which has to be
+       stable.
+     * NsfClassListAdd() and friends could be made generic
+
+  * Coroutines
+     - extend coro regression test
+     - coro-enable nsf::proc

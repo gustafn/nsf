@@ -1,0 +1,12 @@
+<!-- Below, we assume that the template is evaluated in the context of --
+  -- a @package instance -->
+<h3>Package: ${:name} </h3>
+<div class="description summary">
+  [:as_text]
+</div>
+[:?var :@require {
+<div class="content">
+  Package requires: ${:@require}
+</div>
+}]
+[:include overview]

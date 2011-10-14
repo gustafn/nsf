@@ -1,0 +1,39 @@
+#!@NSF_COMPATIBLE_TCLSH@
+#!/bin/env tclsh
+puts  @NSF_COMPATIBLE_TCLSH@
+#
+# Tiny scripted replacement of a binary nxsh. This script can be used
+# as interactive shell for testing or like a regular shell with the !#
+# markup in the first line of a script. It is designed to work with
+# multiple installed shells during development. For installed
+# versions, it should be sufficient to remove the first line.
+#
+package require XOTcl
+namespace import -force ::xotcl::*
+
+if {$argc == 0} {
+  set prefix ""
+  set line ""
+  while {1} {
+    if {$line eq ""} {
+       puts -nonewline "% "
+       flush stdout
+    }
+    append line [gets stdin]
+    if {[info complete $line]} {
+      if {[catch $line result]} {
+	puts $::errorInfo
+      } else {
+	puts $result
+      }
+      set line ""
+      continue
+    }
+    append line \n 
+  }
+} else {
+  set argv0 [lindex $argv 0]
+  set argv  [lreplace $argv 0 0]
+  incr argc -1
+  source $argv0
+}

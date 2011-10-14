@@ -1,0 +1,31 @@
+[:!let prefix [expr {[[:get_owning_partof] pinfo get -default 0 bundle ismetaclass] ? "cls": "obj"}]]
+<div class="dlist">
+  <hr/>
+  <dt class="hdlist1">
+    <span id="[:as_tag_id]">[:name]</span>
+  </dt>
+  <dd>
+    <p><tt><span class="var">$prefix</span> <strong>[:name]</strong> <span class="var">[:pinfo get -default "" bundle parametersyntax]</span></tt>
+    </p>
+    [:?var :@method {
+    [:for sm [:get_sub_methods] {
+    [$sm render -initscript [list set supermethod [current]] submethod]
+    }]
+    } - {
+    [:?var :@parameter {
+    <div class="title">Parameters</div>
+    <dl>
+    [:for param [:!get @parameter] {
+      <dt><tt>[$param print_name]</tt></dt>
+      <dd>[$param as_text]</dd>
+      }]
+    </dl>
+    }]
+    [:?var :@return {
+    <div class="title">Return</div>
+    [:!let ret [:!get @return]]
+    [$ret as_text]
+    }]
+    }]
+  </dd>
+</div>

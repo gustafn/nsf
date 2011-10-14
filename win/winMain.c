@@ -9,7 +9,6 @@
  * See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * RCS: @(#) $Id: winMain.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
  */
 
 #include <tk.h>
@@ -19,9 +18,9 @@
 #include <malloc.h>
 #include <locale.h>
 #if defined(VISUAL_CC)
-#  include "xotcl.h"
+#  include "nsf.h"
 #else
-#  include <xotcl.h>
+#  include <nsf.h>
 #endif
 
 #include "tkInt.h"
@@ -176,11 +175,11 @@ Tcl_AppInit(interp)
     }
 
     /*
-     *  This is xotclsh, so import all xotcl commands by
+     *  This is nsfsh, so import all nsf commands by
      *  default into the global namespace.  
      */
     if (Tcl_Import(interp, Tcl_GetGlobalNamespace(interp),
-            "::xotcl::*", /* allowOverwrite */ 1) != TCL_OK) {
+            "::nsf::*", /* allowOverwrite */ 1) != TCL_OK) {
         return TCL_ERROR;
     }
 

@@ -1,0 +1,74 @@
+<div id="doc3">
+	<div id="hd">
+    	  <div id="logo">
+	    <a href="/next-scripting/xowiki/about"><img src="assets/nsf-logo-green.png" style="margin-left:0px;margin-top:46px;" alt="next scripting framework" /></a>
+	  </div>
+	    <div class="yui-ge header-sub-doc">
+              <div id="breadcrumbs" class="yui-u first">
+		<a href="./index.html" title="[$project name]">[$project name]</a> 
+		[:? {[:info has type ::nx::doc::@package]} {
+		&gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
+		} ? {[:info has type ::nx::doc::@class]} {
+		&gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}
+		}]
+              </div>
+              <div id="searchwrapper" class="yui-u">
+		<form onsubmit="return false">
+		  <div id="propertysearch">
+                    Search: <input autocomplete="off" id="searchinput" />
+                    <div id="searchresults">
+                      &nbsp;
+                    </div>
+		  </div>
+		</form>
+              </div><!-- searchwrapper -->
+            </div><!--  header-sub-doc -->
+	</div><!-- hd -->
+	<div id="bd">
+	<div id="yui-main">
+	<div class="yui-b">
+        <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
+        <h3 class="subheading">${:name}
+	  [:? {[:info has type ::nx::doc::@package]} {
+	  <span class="subtitle">[:?var :@version {${:@version}} ]</span>
+	  } - {
+	  <span class="subtitle">[$project version]</span>
+	  }]
+	</h3>
+	<div class="yui-gd">
+	  <div class="yui-u first">
+	[:include leftbar]
+	  </div> <!-- yui-u first -->
+	  <div class="yui-u">
+	  [:? {[:info has type ::nx::doc::@project]} {
+	  <div class="summary description">
+	    This is the API documentation for the 
+	    <a href="[:name]">[:name]</a> project.
+	    <p>Choose a package, object or command name from the list for more information.</p>
+	  </div>
+	  [:include glossary]
+	  } - {
+	  <!-- delegate to the entity-specific template -->
+	  [:include]
+	  }]
+	  </div> <!-- yui-u -->
+	</div> <!-- yui-gd -->
+	</div> <!-- yui-b -->
+	</div> <!-- yui-main -->
+	</div><!-- bd -->
+	<div id="ft">
+	  <div class="yui-gd">
+            <div class="yui-u first">
+              &nbsp;
+            </div>
+            <div class="yui-u">
+              <div class="footer-info">
+		Copyright &copy; [clock format [clock seconds] -format "%Y"]
+              </div>
+            </div>
+	  </div>   
+	</div><!-- ft -->
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [:as_array_of_hashes];
+  </script>

@@ -1,0 +1,320 @@
+# -*- Tcl -*-
+package require nx
+namespace import nx::*
+::nsf::configure dtrace on
+
+#
+# Basic tests of the object system, should not require Class Test,
+# since even class Test might not work at that time.
+#
+proc ? {cmd expected {msg ""}} {
+   #puts "??? $cmd"                 
+   set r [uplevel $cmd]
+   if {$msg eq ""} {set msg $cmd}
+   if {$r ne $expected} {
+     puts stderr "ERROR $msg returned '$r' ne '$expected'"
+     error "FAILED $msg returned '$r' ne '$expected'"
+   } else {
+     puts stderr "OK $msg"
+   }
+}
+
+? {::nsf::configure objectsystem} "{::nx::Object ::nx::Class {-class.alloc alloc -class.create create -class.dealloc dealloc -class.objectparameter objectparameter -class.recreate recreate -object.configure configure -object.defaultmethod defaultmethod -object.destroy destroy -object.init init -object.move move -object.unknown unknown}}"
+
+? {::nsf::object::exists Object} 1
+? {::nsf::object::property Object initialized} 1
+? {::nsf::is class Object} 1
+? {::nsf::is metaclass Object} 0
+? {Object info superclass} ""
+? {Object info class} ::nx::Class
+
+? {::nsf::object::exists Class} 1
+? {::nsf::is class Class} 1
+? {::nsf::is metaclass Class} 1
+? {Class info superclass} ::nx::Object
+? {Class info class} ::nx::Class
+
+#
+# Minimal argument passing tests for early problem detection
+#
+nsf::proc p0 {arg} {return [list $arg]}
+nsf::proc p1 {arg:optional} {return [list [info exists arg]]}
+nsf::proc p2 {arg args} {return [list $arg $args]}
+nsf::proc p3 {arg:optional args} {return [list [info exists arg] $args]}
+nsf::proc p4 {-x args} {return [list [info exists x] $args]}
+nsf::proc p5 {-x arg:optional -y args} {return [list [info exists x] [info exists y] [info exists arg] $args]}
+
+? {p0 a} a
+? {p1 a} 1
+? {p1} 0
+
+? {p2 a b c} {a {b c}}
+? {p2 a} {a {}}
+? {p2 a b} {a b}
+
+? {p3 a b} {1 b}
+? {p3 a b c} {1 {b c}}
+? {p3 a} {1 {}}
+? {p3} {0 {}}
+
+? {p4} {0 {}}
+? {p4 -x 1} {1 {}}
+? {p4 -x 1 2} {1 2}
+? {p4 -- -x 1 2} {0 {-x 1 2}}
+? {p4 --} {0 {}}
+? {p4 -- --} {0 --}
+? {p4 -y --} {0 {-y --}} ;# no -y parameter, so pushed into args
+
+? {p5} {0 0 0 {}}
+? {p5 -x 1} {1 0 0 {}}
+? {p5 a} {0 0 1 {}}
+? {p5 -y 1} {0 0 1 1}        ;# "-y" is passed into arg, "1" into args
+? {p5 -y 1 2} {0 0 1 {1 2}}  ;# "-y" is passed into arg, "1 2" into args
+? {p5 -x 1 2} {1 0 1 {}}     ;# "2" is passed into arg, "1 2" into args
+? {p5 -y --} {0 0 1 {}}      ;# "--" is value of "y"
+
+#
+# Create objects and test its properties
+#
+
+Object create o
+? {::nsf::object::exists Object} 1
+? {::nsf::is class o} 0
+? {::nsf::is metaclass o} 0
+? {o info class} ::nx::Object
+? {Object info instances o} ::o
+? {Object info instances ::o} ::o
+
+Object create o2 {
+  ? {::nsf::object::exists ::o2} 1
+  ? {::nsf::object::property ::o2 initialized} 0
+}
+? {::nsf::object::property ::o2 initialized}  1
+
+Class create C0
+? {::nsf::is class C0} 1
+? {::nsf::is metaclass C0} 0
+? {C0 info superclass} ::nx::Object
+? {C0 info class} ::nx::Class
+#? {lsort [Class info vars]} "__default_metaclass __default_superclass"
+
+Class create M -superclass ::nx::Class
+? {::nsf::object::exists M} 1
+? {::nsf::is class M} 1
+? {::nsf::is metaclass M} 1
+? {M info superclass} ::nx::Class
+? {M info class} ::nx::Class
+
+M create C
+? {::nsf::object::exists C} 1
+? {::nsf::is class C} 1
+? {::nsf::is metaclass C} 0
+? {C info superclass} ::nx::Object
+? {C info class} ::M
+
+C create c1
+? {::nsf::object::exists c1} 1
+? {::nsf::is class c1} 0
+? {::nsf::is metaclass c1} 0
+? {c1 info class} ::C
+
+Class create M2 -superclass M
+? {::nsf::object::exists M2} 1
+? {::nsf::is class M2} 1
+? {::nsf::is metaclass M2} 1
+? {M2 info superclass} ::M
+? {M2 info class} ::nx::Class
+
+M2 create m2
+? {m2 info superclass} ::nx::Object
+? {m2 info class} ::M2
+
+# destroy meta-class M, reclass meta-class instances to the base
+# meta-class and set subclass of M to the root meta-class
+M destroy
+? {::nsf::object::exists C} 1
+? {::nsf::is class C} 1
+? {::nsf::is metaclass C} 0
+? {C info superclass} ::nx::Object
+? {C info class} ::nx::Class
+
+? {::nsf::is metaclass M2} 1
+? {M2 info superclass} ::nx::Class
+? {m2 info superclass} ::nx::Object
+? {m2 info class} ::M2
+
+
+# destroy class M, reclass class instances to the base class
+C destroy
+? {::nsf::object::exists c1} 1
+? {::nsf::is object c1} 1
+? {::nsf::is class c1} 0
+? {::nsf::is metaclass c1} 0
+? {c1 info class} ::nx::Object
+
+
+#
+# tests for dispatching methods
+# 
+Object create o
+o public method foo {} {return foo}
+o public method bar1 {} {return bar1-[:foo]}
+o public method bar2 {} {return bar2-[: foo]}
+#o public method bar3 {} {return bar3-[my foo]}
+o public method bar4 {} {return bar4-[[self] foo]}
+o public method bar5 {} {return [self]::bar5}
+o public method bar6 {} {return [:]::bar6}
+o public method bar7 {} {return bar7-[lsort [: -system info methods bar7]]}
+
+# dispatch without colon names
+? {o foo} foo "simple method dispatch"
+? {o bar1} bar1-foo "colon-methodname dispatch"
+? {o bar2} bar2-foo "colon cmd dispatch"
+#? {o bar3} bar3-foo "my dispatch"
+? {o bar4} bar4-foo "self dispatch"
+? {o bar5} ::o::bar5 "self cmd"
+? {o bar6} ::o::bar6 "colon cmd"
+? {o bar7} bar7-bar7 "colon cmd dispatch args"
+o destroy
+
+# basic attributes tests
+
+Class create C {
+  :property {x 1} 
+  :property {y 2}
+}
+? {::nsf::object::exists C} 1
+? {::nsf::object::exists C::slot} 1
+? {C info children} ::C::slot
+
+? {C copy X} ::X
+? {::nsf::object::exists X} 1
+? {X info vars} ""
+? {C info vars} ""
+? {::nsf::object::exists X::slot} 1
+
+? {set c1 [C new]} "::nsf::__#1"
+? {c1 copy c2} "::c2"
+
+# copy without new name
+? {c2 copy} ::nsf::__#4
+? {set C [C copy]} ::nsf::__#6
+? {::nsf::object::exists ${C}::slot} 1
+
+#? {C::slot info vars} __parameter
+#? {C info attributes} {{x 1} {y 2}}
+? {C info parameter definition x} {{-x 1}}
+? {C info parameter definition y} {{-y 2}}
+
+#? {X::slot info vars} __parameter
+#? {X info attributes} {{x 1} {y 2}}
+? {X info parameter definition x} {{-x 1}}
+? {X info parameter definition y} {{-y 2}}
+? {X info properties} {{x 1} {y 2}}
+? {X info properties -closure *a*} {volatile:alias,noarg,noaccessor class:class,alias,method=::nsf::methods::object::class,noaccessor}
+
+# actually, we want c1 to test below the recreation of c1 in another
+# object system
+? {C create c1} ::c1
+? {C create c2 {:method foo {} {;}}} ::c2
+
+#
+# tests for the dispatch command
+# 
+Object create o
+o method foo {} {return goo}
+o method bar {x} {return goo-$x}
+
+# dispatch without colon names
+::nsf::dispatch o eval set :x 1
+? {o info vars} x "simple dispatch has set variable x"
+? {::nx::var set o x} 1 "simple dispatch has set variable x to 1"
+? {::nsf::dispatch o foo} "goo" "simple dispatch with one arg works"
+? {::nsf::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
+o destroy
+
+# dispatch with colon names
+Object create o {set :x 1}
+::nsf::dispatch ::o ::incr x
+? {o eval {set :x}} 1 "cmd dispatch without -frame object did not modify the instance variable"
+::nsf::directdispatch ::o -frame object ::incr x
+? {o eval {set :x}} 2 "cmd dispatch -frame object modifies the instance variable"
+? {catch {::nsf::dispatch ::o -frame object ::xxx x}} 1 "cmd dispatch with unknown command"
+o destroy
+
+Object create o {
+  :public method foo {} {
+    foreach var [list x1 y1 x2 y2 x3 y3] {
+      lappend results $var [info exists :$var]
+    }
+    return $results
+  }
+}
+::nsf::directdispatch o ::eval {set x1 1; set :y1 1}
+::nsf::directdispatch o -frame method ::eval {set x2 1; set :y2 1}
+::nsf::directdispatch o -frame object ::eval {set x3 1; set :y3 1}
+? {o foo} "x1 0 y1 0 x2 0 y2 1 x3 1 y3 1"
+o destroy
+
+puts stderr ===MINI-OBJECTSYSTEM
+# test object system
+# create a minimal object system without internally dipatched methods
+::nsf::objectsystem::create ::object ::class
+
+? {::nsf::object::exists ::object} 1
+? {::nsf::is class ::object} 1
+? {::nsf::is metaclass ::object} 0
+? {::nsf::relation ::object class} ::class
+? {::nsf::relation ::object superclass} ""
+
+? {::nsf::object::exists ::class} 1
+? {::nsf::is class ::class} 1
+? {::nsf::is metaclass ::class} 1
+? {::nsf::relation ::class class} ::class
+? {::nsf::relation ::class superclass} ::object
+
+# define non-standard methos to create/destroy objects and classes
+::nsf::method::alias ::class  + ::nsf::methods::class::create
+::nsf::method::alias ::object - ::nsf::methods::object::destroy
+
+# create a class named C
+::class + C
+
+? {::nsf::object::exists ::C} 1
+? {::nsf::is class ::C} 1
+? {::nsf::is metaclass ::C} 0
+? {::nsf::relation ::C class} ::class
+? {::nsf::relation ::C superclass} ::object
+
+# create an instance of C
+C + c1
+
+? {::nsf::object::exists ::c1} 1
+? {::nsf::is class ::c1} 0
+? {::nsf::is metaclass ::c1} 0
+? {::nsf::relation ::c1 class} ::C
+
+# destroy instance
+c1 -
+
+? {::nsf::object::exists ::c1} 0
+? {::nsf::is class ::C} 1
+
+# recreate an nx object with a namespace
+C + c2
+
+# destroy class
+C -
+
+? {::nsf::object::exists ::C} 0
+
+::nx::Class create ::C
+
+? {catch {::C info has type ::UNKNOWN}} 1
+? {catch {::C info has type ::xyz::Bar}} 1
+#? {catch {::nsf::is type ::CCCC ::nx::Object}} 1
+
+::C destroy
+
+puts stderr ===EXIT
+::nsf::configure dtrace off

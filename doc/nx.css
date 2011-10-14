@@ -1,0 +1,10 @@
+body            {font-size: 10pt; text-align: justify;}
+#header         {text-align: left;}
+.nx             {font-size: 90%; color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {font-size: 90%; border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D; font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}

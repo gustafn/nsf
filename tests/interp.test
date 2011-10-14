@@ -1,0 +1,738 @@
+# -*- Tcl -*-
+package req nx::test
+
+proc traceStderr args {
+  puts ">>> traceStderr HA! $args"
+}
+
+nx::Test case hidden-cmds {
+  global i
+
+  #
+  # Create a slave interp for testing
+  #
+  set i [interp create]
+
+  #
+  # Some baseline
+  #
+
+  $i eval {
+    proc foo {} {;}
+  }
+  $i hide foo
+
+  ? {$i eval [list info commands ::nx::Object]} ""
+  $i eval [list package req nx]
+  ? {$i eval [list info commands ::nx::Object]} ::nx::Object
+  #
+  # Tcl's hiding mechansim only applies to objects/classes in the
+  # top-level namespace. So any non-globally namespaced ones and
+  # nested objects are not concerned ...
+  #
+  $i eval {nx::Object create ::o {
+    :public method baz {} { return KO }
+    :public method destroy {} {
+      #
+      # sets a global variable for tracing the processing of the
+      # app-level destructor!
+      #
+      set ::[namespace tail [current object]] [current class] 
+      next
+    }
+  }}
+  $i eval {nx::Class create ::C {
+    :public method destroy {} {
+      #
+      # sets a global variable for tracing the processing of the
+      # app-level destructor!
+      #
+      set ::[namespace tail [current object]] [current class]
+      next
+    }
+
+    :public method bar {} {
+      return OK
+    }
+  }}
+  $i eval {nx::Class create ::M {
+    :public method foo {} {
+      return [current object]-[:info class]-[current class]
+    }
+  }}
+  ? {$i eval {info commands ::o}} ::o
+  ? {$i eval {info commands ::C}} ::C
+  ? {$i eval {info commands ::M}} ::M
+  
+  #
+  # [interp hide] performs a partial and widely silent deletion
+  # (Tcl_HideCommand(); note, while the idea resembles that of a
+  # non-deleting rename, there is no C-level trace available!). The
+  # object's Tcl_command cmdEpoch counter is increased. However,
+  # hiding does not prune the command structure, nor does is the cmd's
+  # client data touched. It is merely re-assigned to another,
+  # interp-wide hash table. The object's command is no valid dispatch
+  # target anymore ...
+  #
+
+  ? {interp hidden $i} "foo"
+  $i hide o
+  ? {interp hidden $i} "foo o"
+  ? {$i eval ::o} "invalid command name \"::o\""
+  ? {$i eval {info commands ::o}} ""
+
+  ? {interp eval $i {::C create ::c}} ::c
+  # set some relationships to test later ...
+  ? {interp eval $i {::C mixin add ::M}} ::M
+  ? {interp eval $i {::C class mixin add ::M}} ::M
+
+  $i hide C
+  ? {interp eval $i {::C create ::c2}} {invalid command name "::C"}
+
+  #
+  # However, the object structure is effectively preserved within the
+  # object system and object relations are intact, e.g., the object is
+  # still reported as an instance of a class.
+  #
+
+  ? {$i eval {nx::Object info instances ::o}} "::o"
+  ? {interp invokehidden $i o ::nsf::methods::object::info::class} "::nx::Object"
+  ? {interp invokehidden $i o info class} "::nx::Object"
+
+  ? {interp eval $i {c info class}} ::C
+  ? {interp invokehidden $i C info instances ::c} ::c
+  ? {interp invokehidden $i C info mixin classes} ::M
+
+  # Note, for all introspections that do *not* try to convert the
+  # Tcl_Obj into an object or a class, but treat it as a pattern (or
+  # the like) we are fine ...
+  ? {$i eval {M info mixinof ::C}} "::C ::C"
+  ? {$i eval {M info mixinof -scope class ::C}} "::C"
+  ? {$i eval {M info mixinof -scope object ::C}} "::C"
+
+  # dispatch to object-provided method (with the object being hidden)
+  ? {interp eval $i {c bar}} OK
+  
+  # dispatch to class-provided methods (with the class being hidden)
+  ? {interp eval $i {c bar}} OK
+
+  # dispatch to mixed-in methods (which do basic introspection on the hidden object) ...
+  ? {interp invokehidden $i C foo} ::C-::nx::Class-::M
+  ? {interp eval $i {c foo}} ::c-::C-::M
+  
+  #
+  # 1) Implicit destruction (through NSF's exit handler)
+  #
+  # An important characteristic of a hidden cmd is that it is cleaned
+  # up later than ordinary, exposed (and namespaced) commands; see
+  # DeleteInterpProc(). Hidden commands are processed during a interp
+  # shutdown *after* the exit handler returned! 
+  # 
+  # For testing, we shutdown the NSF object systems in our slave
+  # interp by using nsf::finalize; to do some smoke testing of the
+  # cleanup results. As for the cleanup procedre, this is equivalent
+  # to: interp delete $i
+
+
+  $i eval {nsf::finalize -keepvars}
+
+  # The destructor of e.g. object o sets a global variable with the
+  # object name. The following test checks therfore, whether the
+  # destructor was executed.
+  #
+
+  ? {$i eval { info exists ::o }} 1
+  ? {$i eval {interp hidden}} foo
+  ? {$i eval {info commands ::o}} ""
+  ? {$i eval {info commands ::C}} ""
+    
+  #
+  # Were the app-level destructors called effectively?
+  #
+  ? {$i eval { info exists ::o }} 1
+  ? {$i eval { set ::o }} ""
+  ? {$i eval { info exists ::c }} 1
+  ? {$i eval { set ::c }} ::C
+
+  interp delete $i
+}
+
+#
+# Explicit destruction
+#
+nx::Test case hidden-cmds+explicit-delete {
+  global i
+
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create ::o2 {
+      :public method destroy {} {
+	next
+	return ok
+      }
+    }}
+
+
+  ? {$i eval {interp hidden}} ""
+  ? {$i eval {info commands ::o2}} ::o2
+  ? {$i eval {nx::Object info instances ::o2}} ::o2
+  ? {$i eval {nsf::object::exists ::o2}} 1
+  
+  $i hide o2
+
+  ? {$i eval {interp hidden}} o2
+  ? {$i eval {info commands ::o2}} ""
+  ? {$i eval {nx::Object info instances ::o2}} ::o2
+  ? {$i eval {nsf::object::exists ::o2}} 0
+
+  ? {interp invokehidden $i o2 destroy} "ok"
+  ? {$i eval {interp hidden}} ""
+  ? {$i eval {nx::Object info instances ::o2}} ""
+
+  ? {$i eval {info commands ::o2}} ""
+  ? {$i eval {nsf::object::exists ::o2}} 0
+}
+
+
+#
+# hide and re-expose
+#
+nx::Test case hide-and-re-expose {
+  global i
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	incr ::[namespace tail [current]] 
+	return OK
+      }
+      :public method foo {} {
+	return [list [current object] [current class] [:info class] [[current] info class]]
+      }
+    }
+    interp hide {} o
+  }
+
+  # Check hidden state
+  ? {interp eval $i {interp hidden}} "o"
+  ? {interp eval $i {info commands ::o}} ""
+  ? {interp eval $i {nx::Object info instances ::o}} ::o
+  ? {interp eval $i {nsf::object::exists ::o}} 0
+
+  interp expose $i o
+
+  # Check re-exposed state
+  ? {interp eval $i {interp hidden}} ""
+  ? {interp eval $i {info commands ::o}} "::o"
+  ? {interp eval $i {nx::Object info instances ::o}} ::o
+  ? {interp eval $i {nsf::object::exists ::o}} 1
+
+  #
+  # Is the object "alive"?
+  #
+  ? {$i eval {::o foo}} {::o {} ::nx::Object ::nx::Object}
+
+  $i eval {nsf::finalize -keepvars}
+
+  # Was the destructor called?
+  ? {interp eval $i {info exists ::o}} 1
+  ? {interp eval $i {set ::o}} 1
+  
+  # Check cleaned-up state
+  ? {interp eval $i {interp hidden}} ""
+  ? {interp eval $i {info commands ::o}} ""
+
+  interp delete $i 
+}
+
+#
+# hide/re-expose with "command renaming"
+#
+nx::Test case command-renaming {
+  global i
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	incr ::[namespace tail [current]] 
+	return OK
+      }
+      :public method foo {} {
+	catch {[current] info class} msg
+	return [list [current object] [current class] [:info class] $msg]
+      }
+    }
+    interp hide {} o O
+  }
+
+  # Check hidden state -> object command renamed
+
+  ? {interp eval $i {interp hidden}} "O"
+  ? {interp eval $i {info commands ::o}} ""
+  ? {interp eval $i {nx::Object info instances ::o}} ::o
+  ? {interp eval $i {nsf::object::exists ::o}} 0
+
+  ? {interp invokehidden $i O foo} \
+      {::o {} ::nx::Object {invalid command name "::o"}}
+
+  interp expose $i O OO
+
+    ? {interp eval $i {OO foo}} \
+	{::o {} ::nx::Object {invalid command name "::o"}}
+
+  ? {interp eval $i {interp hidden}} ""
+  ? {interp eval $i {info commands ::o}} ""
+  ? {interp eval $i {info commands ::OO}} ::OO
+  ? {interp eval $i {nx::Object info instances ::o}} ::o
+  ? {interp eval $i {nx::Object info instances ::OO}} ::o ;# should be ""?
+  ? {interp eval $i {nsf::object::exists ::o}} 0
+  ? {interp eval $i {nsf::object::exists ::OO}} 1
+
+  $i eval {nsf::finalize -keepvars}
+  
+  # Was the destructor called?
+  ? {interp eval $i {info exists ::o}} 1
+  ? {interp eval $i {set ::o}} 1
+    
+  ? {interp eval $i {interp hidden}} {}
+  ? {interp eval $i {info commands ::o}} {}
+
+  interp delete $i 
+}
+
+
+#
+# Rename namespaced object to global one and hide ...
+#
+nx::Test case namespaced-object {
+  global i
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    namespace eval ::ns1 {
+      nx::Object create o {
+	:public method destroy {} {
+	  incr ::[namespace tail [current]] 
+	  return OK
+	}
+      }
+    }
+  }
+  
+  ? {$i hide ::ns1::o} \
+      {cannot use namespace qualifiers in hidden command token (rename)}
+
+  $i eval {::rename ::ns1::o ::X}
+
+  ? {interp eval $i {interp hidden}} {}
+  ? {interp eval $i {info commands ::X}} {::X}
+  ? {interp eval $i {nx::Object info instances ::X}} {::X}
+  ? {interp eval $i {nsf::object::exists ::X}} 1
+  
+  $i eval {interp hide {} X}
+
+  ? {interp eval $i {interp hidden}} "X"
+  ? {interp eval $i {info commands ::X}} {}
+  ? {interp eval $i {nx::Object info instances ::X}} {::X}
+  ? {interp eval $i {nsf::object::exists ::X}} 0
+
+  $i eval {nsf::finalize -keepvars}
+
+  ? {interp eval $i {info exists ::X}} 1
+  ? {interp eval $i {set ::X}} 1
+
+  interp delete $i
+}
+
+#
+# Deletion order
+#
+
+nx::Test case deletion-order {
+  global i
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	incr ::[namespace tail [current]] 
+	interp invokehidden {} C destroy
+	next
+      }
+    }
+
+    nx::Class create ::C {
+      :public class method destroy {} {
+	incr ::[namespace tail [current]] 
+	next
+      }
+    }
+
+  }
+  $i hide o
+  $i hide C
+  $i eval {nsf::finalize -keepvars}
+
+  ? {interp eval $i {info exists ::C}} 1
+  ? {interp eval $i {set ::C}} 1
+  ? {interp eval $i {info exists ::o}} 1
+  ? {interp eval $i {set ::o}} 1
+  
+  interp delete $i
+}
+
+#
+# Some stumbling blocks in destructors: [error] in app-level destroy
+#
+nx::Test case error-in-destroy-1 {
+  global i
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	error BAFF!
+      }
+    }
+    interp hide {} o
+  }
+  
+  ? {interp eval $i {::rename ::o ""}} \
+      {can't delete "::o": command doesn't exist}
+
+  ? {interp invokehidden $i o destroy} "BAFF!"
+
+  ? {interp eval $i {interp hidden}} "o"
+  ? {interp eval $i {info commands ::o}} ""
+  ? {interp eval $i {nx::Object info instances ::o}} "::o"
+  ? {interp eval $i {nsf::object::exists ::o}} 0
+
+  $i eval {nsf::finalize}
+
+  ? {interp eval $i {interp hidden}} ""
+  ? {interp eval $i {info commands ::o}} ""
+
+  interp delete $i
+}
+
+#
+# Some stumbling blocks in destructors: [interp hide] in app-level
+# destroy
+#
+nx::Test case error-in-destroy-2 {
+  global i
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    proc ::bar {} {
+      interp hide {} bar;
+      return 1
+    }
+    
+    nx::Object create ::o {
+      :public method destroy {} {
+	#
+	# Would not be an issue in safe interps, as [interp hide] &
+	# friends are disallowed ...
+	#
+	set res [catch {interp hide {} o} msg]
+	#
+	# TODO: a simple, uncaught 'interp hide {} o' leads to a lookup issue
+	# and weird error handling; however, the cleanup is not
+	# affected ...
+	#
+
+	next
+	return OK
+      }
+    }
+  }
+  
+  ? {interp eval $i {::bar}} 1
+  ? {interp eval $i {::o destroy}} OK
+
+  ? {interp eval $i {interp hidden}} "bar"
+  ? {interp eval $i {info commands ::o}} ""
+  ? {interp eval $i {nx::Object info instances ::o}} ""
+  ? {interp eval $i {nsf::object::exists ::o}} 0
+
+  interp delete $i
+}
+
+#
+# Some stumbling blocks in destructors: [interp hide] in app-level destroy
+#
+nx::Test case error-in-destroy-3 {
+  global i
+
+  set i [interp create]
+  $i eval { 
+    package req nx
+    nx::Object create ::o {
+      :public method destroy {} {
+	catch {::rename [current] ""} msg
+	next
+	return $msg
+      }
+    }
+    interp hide {} o
+  }
+
+  ? {interp eval $i {::o destroy}} {invalid command name "::o"}
+
+  ? {interp invokehidden $i o destroy} \
+      {can't delete "::o": command doesn't exist}
+  ? {interp eval $i {interp hidden}} ""
+  ? {interp eval $i {nx::Object info instances ::o}} ""
+
+  ? {interp eval $i {info commands ::o}} ""
+  ? {interp eval $i {nsf::object::exists ::o}} 0
+
+  interp delete $i 
+}
+
+#
+# see NsfProcAliasMethod():
+# Tcl_Command_cmdEpoch(tcd->aliasedCmd)
+#
+nx::Test case hidden-procs-as-aliases {
+  #
+  # 1) hide alias proc targets
+  #
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    ::proc ::FOO args {return OK}
+    nx::Object create o {
+      :public alias foo ::FOO
+    }
+  }
+  
+  ? {$i eval {o foo}} OK
+  ? {$i hidden} ""
+  $i hide FOO
+  ? {$i hidden} FOO
+  #
+  # For now, we do not allow to dispatch to hidden proc targets
+  # through their method aliases as this would counteract the idea of
+  # hiding cmds from a (safe) slave interp. As the NSF aliasing works
+  # unrestrictedly in child (safe) interps (as opposed to [interp
+  # invokehidden]), this would derail the essentials of the hiding
+  # mechanism.
+  #
+  ? {$i eval {o foo}} {target "::FOO" of alias foo apparently disappeared}
+  #
+  # When exposing it again (e.g., from the master interp), we can
+  # dispatch again; note this is currently limited to the exposing
+  # under the original command name (!)
+  #
+  $i expose FOO
+  ? {$i hidden} ""
+  ? {$i eval {o foo}} OK
+
+  $i hide FOO
+  ? {$i hidden} FOO
+  
+  #
+  # Limitation: Currently, exposing a hidden target command under a
+  # *different* name will not re-establish the alias. This is due to
+  # the way NsfProcAliasMethod() is currently implemented: Rebinding
+  # an epoched cmd (which holds for renamed as well as
+  # hidden/re-exposed cmds) is currently based on the command name
+  # stored in the ::nsf::alias array. This metadata store is not
+  # maintained during [interp hide|expose] operations. Using a
+  # pointer-based (reverse) lookup based on tcd->aliasedCmd would be
+  # possible (I did it testwise), but then we would have to revise the
+  # current behaviour of NsfProcAliasMethod() for target proc
+  # renamings also. A non-deleting [rename] currently also interrupts
+  # an alias binding.  See the relevant tests on [rename ::foo ::foo2]
+  # in tests/alias.test. To be consistent, and because [interp
+  # hide|expose] is a two-step [rename], technically, we keep the
+  # current behaviour.
+  #
+  $i expose FOO OOF
+
+  ? {$i hidden} ""
+  ? {$i eval {o foo}} {target "::FOO" of alias foo apparently disappeared}
+  
+  #
+  # Due to the alias-specific lookup scheme (::nsf::alias), we could fix
+  # the alias manually after a command-renaming hide|expose operation:
+  #
+
+  ? {$i eval {info exists ::nsf::alias(::o,foo,1)}} 1
+  ? {$i eval {set ::nsf::alias(::o,foo,1)}} "::FOO"
+  ? {$i eval {set ::nsf::alias(::o,foo,1) ::OOF}} "::OOF"
+  ? {$i eval {info commands ::OOF}} ::OOF
+  ? {$i eval {o foo}} OK
+
+  interp delete $i
+  unset i  
+
+}
+
+nx::Test case hidden-objects-as-aliases {
+  #
+  # 2) hide alias object targets
+  #
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create x {
+      :public method foo {} {return OK}
+    }
+    nx::Object create dongo {
+      :public alias bar ::x
+    }
+  }
+
+  #
+  # Objects as intermediary aliases are transparent when being
+  # hidden|exposed; hiding and exposing them (under differing command
+  # names) do not affect the dispatch behaviour; this is due to the
+  # ensemble dispatch strategy ...
+  # 
+
+  ? {$i hidden} ""
+  ? {$i eval {dongo bar foo}} OK
+  $i hide x
+  ? {$i hidden} x
+  ? {$i eval {dongo bar foo}} OK
+  ? {$i eval {x foo}} {invalid command name "x"}
+  ? {$i invokehidden x foo} OK
+  $i expose x
+  ? {$i hidden} ""
+  ? {$i eval {dongo bar foo}} OK
+  ? {$i eval {x foo}} OK
+
+  $i hide x X
+  ? {$i hidden} X
+  ? {$i eval {dongo bar foo}} OK
+  ? {$i eval {X foo}} {invalid command name "X"}
+  ? {$i invokehidden X foo} OK
+
+  $i expose X XX
+  ? {$i hidden} ""
+  ? {$i eval {dongo bar foo}} OK
+  ? {$i eval {XX foo}} OK
+
+  #
+  # Hiding of leaf methods (e.g., ::o::foo) is not an issue because
+  # hiding|exposing is limited to global commands
+  #
+
+  ? {$i hide ::o::foo} "cannot use namespace qualifiers in hidden command token (rename)"
+  
+  interp delete $i
+  unset i
+}
+
+#
+# MixinSearchProc()
+#
+
+nx::Test case hidden-mixins-procsearch {
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create x {
+      :public method foo {} {return OK}
+    }
+    nx::Class create M {
+      :public method foo {} {
+	return <[current class]>[next]<[current class]>
+      }
+    }
+    x mixin M
+  }
+
+  ? {$i eval {x foo}} <::M>OK<::M>
+
+  #
+  # Hiding M as a command should not affect *existing* mixin
+  # relations! 
+  #
+  
+  $i hide M
+  ? {$i hidden} M
+  ? {$i eval {x foo}} <::M>OK<::M> "with hidden mixin"
+  $i expose M
+  ? {$i hidden} ""
+  ? {$i eval {x foo}} <::M>OK<::M> "with re-exposed mixin"
+  
+  $i hide M m
+  ? {$i eval {x foo}} <::M>OK<::M> "with hidden mixin (renamed command)"
+  $i expose m MM
+  ? {$i eval {x foo}} <::M>OK<::M> "with re-exposed mixin (renamed command)"
+
+  #
+  # However, modifying mixin axes is hindered, because of
+  # the underlying relation machinery (::nsf::relation,
+  # RelationSlot->add(), etc.) is relying on exposed command names
+  # (i.e., command and object look-ups based on
+  # Tcl_GetCommandFromToken(), GetObjectFromString() usage).
+  #
+  
+  $i hide MM M
+  $i eval {nx::Class create ::M2}
+  ? {$i eval {x mixin add M2}} {mixin: expected a class as mixin but got "::M"}
+  ? {$i invokehidden M mixin add M2} {expected object but got "::M" for parameter "object"}
+
+  interp delete $i
+  unset i
+}
+
+#
+# MixinComputeOrderFullList() & friends (due to
+# CmdListRemoveDeleted()
+#
+nx::Test case hidden-mixins-mixinlists {
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create o
+    nx::Class create M1 
+    nx::Class create M2
+    nx::Class create M3
+    o mixin {M1 M2}
+  }
+
+  ? {$i eval {o info precedence}} "::M1 ::M2 ::nx::Object"
+  ? {$i eval {o info mixin classes}} {::M1 ::M2}
+  ? {$i hidden} ""
+  $i hide M1
+  ? {$i hidden} M1
+  $i eval {M2 mixin add M3}
+  ? {$i eval {o info precedence}} "::M1 ::M3 ::M2 ::nx::Object"
+  #
+  # Now, have the mixin list invalidated; The next time we request the list,
+  # the mixin assembly machinery will have to deal with the hidden
+  # mixin; and properly include it.
+  #
+  # We need to destroy one mixin explicitly (or add one as a per-class
+  # mixin, or the like), as the mixin modification API would stumble
+  # over the hidden mixin object ...
+  #
+  $i eval {::M2 destroy}
+  ? {$i eval {o info precedence}} "::M1 ::nx::Object"
+  ? {$i eval {o info mixin classes}} "::M1"
+  ? {$i invokehidden M1 info mixinof} "::o"
+
+  interp delete $i
+  unset i
+}
+
+

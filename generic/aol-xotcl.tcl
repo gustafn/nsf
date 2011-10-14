@@ -1,34 +1,44 @@
-# $Id: aol-xotcl.tcl,v 1.15 2007/08/14 16:38:26 neumann Exp $
-
 #
-# Load XOTcl library and some related packages.
-# We expect to find them somewhere in standard
-# Tcl package search path (the auto_path var)
-# The simplest location is to put them under 
-# the "lib" directory within the AOLserver tree.
+# Load Next Scripting Framework, XOTcl and some related packages for
+# AOLserver 4.* and naviserver.  
+#
+#  - aolserver: rewrite essentially _ns_savenamespaces to include the
+#    serialized objects
+#
+#  - naviserver: just needed for the package require
+#    the serialization logic resides in ns/tcl/nstrace.tcl
+#
+# We expect to find the package in standard Tcl package search path
+# (the auto_path var) The simplest location is to put them under the
+# "lib" directory within the AOLserver tree.
 #
 
-package require XOTcl; namespace import ::xotcl::*
-package require xotcl::serializer
+package require XOTcl; namespace import -force ::xotcl::*
+package require nx::serializer
 ns_log notice "XOTcl version $::xotcl::version$::xotcl::patchlevel loaded"
 
-#
-# Overload procedure defined in bin/init.tcl.
-# It is now XOTcl-savvy in how it treats some 
-# special namespaces.
-#
-
-proc _ns_savenamespaces {} {
+if {[ns_info name] ne "NaviServer"} {
+  #
+  # We are loading into aolserver.
+  #
+  # Overload procedure defined in bin/init.tcl.
+  # It is now XOTcl-savvy in how it treats some 
+  # special namespaces.
+  #
+  
+  proc _ns_savenamespaces {} {
     set script [_ns_getpackages]
     set import ""
     set nslist ""
     _ns_getnamespaces namespaces
     foreach n $namespaces {
-        if {[string match "::xotcl*" $n] == 0
-	    && ([catch {::xotcl::Object isobject $n} ret] || $ret == 0)} {
-            lappend nslist $n
-        }
+      if {$n ne "::nsf" && $n ne "::xotcl" && $n ne "::nx" 
+	  && ![string match "::nsf::*" $n]
+	  && ![::nsf::object::exists $n]} {
+	  lappend nslist $n
+      }
     }
+
     foreach n $nslist {
         foreach {ns_script ns_import} [_ns_getscript $n] {
             append script [list namespace eval $n $ns_script] \n
@@ -42,23 +52,23 @@ proc _ns_savenamespaces {} {
         (error: $objects; $::errorInfo)."
         set objects ""
     }
+
     ns_ictl save [append script \n \
-	"namespace import -force ::xotcl::*" \n \
 	$objects \n $import]
     # just for debugging purposes
     if {0} {
-      set f [open [::xotcl::tmpdir]/__aolserver-blueprint.tcl w]
+      set f [open [::xotcl::tmpdir]/__aolserver-blueprint-[ns_info server].tcl w]
       puts $f $script
       close $f
     }
-}
+  }
 
-#
-# Source XOTcl files from shared/private library
-# the way AOLserver does for plain Tcl files.
-#
-
-proc _my_sourcefiles {shared private} {
+  #
+  # Source XOTcl files from shared/private library
+  # the way AOLserver does for plain Tcl files.
+  #
+  
+  proc _my_sourcefiles {shared private} {
     set files ""
     foreach file [lsort [glob -nocomplain -directory $shared *.xotcl]] {
         if {[file exists [file join $private [file tail $file]]] == 0} {
@@ -71,11 +81,11 @@ proc _my_sourcefiles {shared private} {
     foreach file $files {
         _ns_sourcefile $file
     }
+  }
+
+  ns_eval {
+    _my_sourcefiles [ns_library shared] [ns_library private]
+  }
 }
 
-ns_eval {
-  _my_sourcefiles [ns_library shared] [ns_library private]
-}
-
-# EOF $RCSfile: aol-xotcl.tcl,v $
 

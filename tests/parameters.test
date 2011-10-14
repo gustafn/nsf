@@ -1,0 +1,2295 @@
+# -*- Tcl -*-
+package require nx
+package require nx::test
+#::nx::configure defaultMethodCallProtection false
+
+nx::Test case dummy {
+  ? {::namespace current} ::
+  set o [Object create o]
+
+  ? {::nsf::object::exists ::o} 1
+}
+? {::nsf::object::exists ::o} 0 
+
+#
+# simple test case for parameter passing
+#
+nx::Test case syntax {
+  ::nx::Class create C
+
+  ? {::nsf::method::alias C} \
+      {required argument 'methodName' is missing, should be:
+	::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName}
+
+  ? {::nsf::method::alias C foo ::set} "::nsf::classes::C::foo"
+
+  ? {::nsf::method::alias C foo ::set 1} \
+      {Invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
+
+  ? {C eval {:property x -class D}} {Invalid argument 'D', maybe too many arguments; should be "::C property ?-class value? spec ?initblock?"} "Test whether the colon prefix is suppressed"
+}
+
+#######################################################
+# parametercheck
+#######################################################
+nx::Test parameter count 1000
+nx::Test case parametercheck {
+
+  nx::Object create o1
+  nx::Class create C {
+    :property a 
+    :property {b:boolean} 
+    :property {c 1}
+  }
+  C create c1 
+  nx::Class create M
+  c1 mixin M
+
+  ? {::nsf::object::exists o1} 1
+  ? {::nsf::object::exists o1000} 0
+  
+  ? {::nsf::is class C} 1
+  ? {C info is class} 1
+
+  ? {::nsf::is baseclass ::nx::Object} 1
+  ? {::nx::Object info is baseclass} 1
+  ? {::nsf::is baseclass C} 0
+  ? {C info is baseclass} 0
+
+  ? {::nsf::is class ::nx::Object} 1
+  ? {::nsf::is ::nx::Object class} {invalid value constraints "::nx::Object"}
+
+  ? {::nsf::is object o1} 1
+  ? {::nsf::is object o1} 1
+  ? {::nsf::is object o1000} 0
+  ? {::nsf::is -complain object o1000} {expected object but got "o1000"}
+  ? {::nsf::is integer 1} 1
+  ? {::nsf::is object,type=::C c1} 1
+  ? {::nsf::is -complain object,type=::C o} {expected object but got "o"}
+  ? {::nsf::is object,type=::C o} 0
+
+  ? {c1 info has mixin ::M} 1  
+  ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter "class"}
+  
+  ? {c1 info has type C} 1
+  ? {c1 info has type C1} {expected class but got "C1" for parameter "class"}
+
+  ? {c1 ::nsf::methods::object::info::hastype C} 1
+  ? {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C} 1
+
+  ? {::nsf::is object o1} 1
+  ? {::nsf::is object o100} 0
+  ? {::nsf::is integer 1} 1
+  ? {::nsf::is object,type=::C c1} 1
+  ? {::nsf::is object,type=::C o} 0
+
+  # test built-in converter via ::nsf::is
+  ? {::nsf::is boolean 1} 1
+  ? {::nsf::is boolean on} 1
+  ? {::nsf::is boolean true} 1
+  ? {::nsf::is boolean t} 1
+  ? {::nsf::is boolean f} 1
+  ? {::nsf::is boolean a} 0
+
+  ? {::nsf::is integer 0x0} 1
+  ? {::nsf::is integer 0xy} 0
+
+  # built in converter, but not allowed
+  ? {::nsf::is switch 1} {invalid value constraints "switch"}
+  ? {::nsf::is superclass M} {invalid value constraints "superclass"}
+
+  # don't allow convert; 
+  # well we have to allow it, since "-returns" uses the same mechanism
+  #? {::nsf::is integer,convert 1} {invalid value constraints "integer,convert"}
+
+  # tcl checker
+  ? {::nsf::is upper ABC} 1
+  ? {::nsf::is upper Abc} 0
+  ? {::nsf::is lower Abc} 0
+  ? {::nsf::is lower abc} 1
+
+  #? {::nsf::is type c1 C} 1
+  #? {::nsf::is type o C} 0
+  #? {::nsf::is object o -type C} 0
+  #? {::nsf::is object o -hasmixin C} 0
+
+  # scripted checker
+  ? {::nsf::is metaclass ::nx::Class} 1
+  ? {::nsf::is metaclass ::nx::Object} 0
+
+  ? {::nsf::is -complain class o1} {expected class but got "o1"}
+  ? {::nsf::is class o1} 0
+  ? {::nsf::is -complain class nx::Test} 1
+  ? {::nsf::is -complain object,1..* [list o1 nx::Test]} 1
+
+  ? {::nsf::is -complain integer,1..* [list 1 2 3]} 1
+  ? {::nsf::is -complain integer,1..* [list 1 2 3 a]} \
+      {invalid value in "1 2 3 a": expected integer but got "a"}
+  ? {::nsf::is -complain object,type=::C c1} 1
+  ? {::nsf::is -complain object,type=::C o} \
+      {expected object but got "o"} \
+      "object, but different type"
+  ? {::nsf::is -complain object,type=::C c} \
+      {expected object but got "c"} \
+      "no object"
+  ? {::nsf::is -complain object,type=::nx::Object c1} 1 "general type"
+  
+  # do not allow "currently unknown" user defined types in parametercheck
+  ? {::nsf::is -complain in1 aaa} {invalid value constraints "in1"}
+  
+  ? {::nsf::is -complain lower c} 1 "lower case char"
+  ? {::nsf::is -complain lower abc} 1 "lower case chars"
+  ? {::nsf::is -complain lower Abc} {expected lower but got "Abc"} 
+  ? {string is lower abc} 1 "tcl command 'string is lower'"
+  
+  ? {::nsf::is -complain {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+}
+
+nx::Test parameter count 10
+nx::Test case multiple-method-checkers {
+  nx::Object create o {
+    :public method foo {} {
+      ::nsf::is metaclass ::XYZ
+      ::nsf::is metaclass ::nx::Object
+    }
+    
+    :public method bar {} {
+      ::nsf::is metaclass ::XYZ
+      ::nsf::is metaclass ::XYZ
+    }
+    
+    :public method bar2 {} {
+      ::nsf::is metaclass ::nx::Object
+      ::nsf::is metaclass ::nx::Object
+    }
+  }
+
+  ? {o foo} 0
+  ? {o bar} 0
+
+  ? {::nsf::is metaclass ::XYZ} 0
+  ? {::nsf::is metaclass ::nx::Object} 0
+
+  ? {o foo} 0
+  ? {o bar2} 0
+}
+
+#######################################################
+# param manager
+#######################################################
+nx::Test parameter count 10000
+nx::Test case param-manager {
+
+  nx::Object create ::paramManager {
+    :method type=sex {name value} {
+      return "agamous"
+    }
+  }
+  
+  ? {::nsf::is -complain sex,slot=::paramManager female} "1"
+}
+#######################################################
+# cononical feature table
+#######################################################
+#
+# parameter options
+#   required
+#   optional
+#   multivalued
+#   noarg
+#   arg=
+#   substdefault:  if no value given, subst on default (result is substituted value); 
+#                  susbt cmd can use variable resolvers,
+#                  works for scripted/c-methods and obj-parm, 
+#                  autmatically set by "$slot toParameterSpec" if default contains "[" ... "]".
+#
+#   initcmd:       evaluate body in an xotcl nonleaf frame, called via configure 
+#                  (example: last arg on create)
+#   alias,forward  call specified method in an xotcl nonleaf frame, called via configure;
+#                  specified value is the first argument unless "noarg" is used  
+#                  (example: -noinit).
+#
+# parameter type   multivalued  required  noarg  type=   arg=  parametercheck  methodParm  objectParm
+#  initcmd            NO         YES        NO    NO      NO      NO       NO/POSSIBLE    YES
+#  alias,forward      NO         YES        YES   NO      YES     NO       NO/POSSIBLE    YES
+#
+#  relation           NO         YES        NO    NO      YES     NO          NO          YES
+#  stringtype         YES        YES        NO    NO      NO      YES         YES         YES
+#
+#  switch             NO         NO         NO    NO      NO      NO          YES         NO
+#  integer            YES        YES        NO    NO      NO      YES         YES         YES    
+#  boolean            YES        YES        NO    NO      NO      YES         YES         YES
+#  object             YES        YES        NO    YES     NO      YES         YES         YES
+#  class              YES        YES        NO    YES     NO      YES         YES         YES
+#
+#  userdefined        YES        YES        NO    NO      YES     YES         YES         YES
+#
+# tclObj + converterArg (alnum..xdigit)            Attribute ... -type alnum
+# object + converterArg (some class, e.g. ::C)     Attribute ... -type ::C    Attribute -type object -arg ::C
+# class  + converterArg (some metaclass, e.g. ::M)                            Attribute -type class -arg ::M
+#
+#
+#::xotcl::Slot {
+#     {name "[namespace tail [::xotcl::self]]"}
+#     {methodname}
+#     {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::xotcl::self]] 1]"}
+#     {defaultmethods {get assign}}
+#     {manager "[::xotcl::self]"}
+#     {multivalued false}
+#     {per-object false}
+#     {required false}
+#     default
+#     type
+# } -- No instances
+#
+# ::xotcl::RelationSlot -superclass ::xotcl::Slot {
+#     {multivalued true}
+#     {type relation}
+#     {elementtype ::nx::Class}
+# } -- sample instances: class superclass, mixin filter
+#
+# ::nx::VariableSlot -superclass ::xotcl::Slot {
+#     {value_check once}
+#     defaultcmd
+#     valuecmd
+#     valuechangedcmd
+#     arg
+# } -- typical object parameters
+#
+# MethodParameterSlot -attributes {type required multivalued noarg arg}
+# -- typical method parameters
+
+
+#######################################################
+# objectparameter
+#######################################################
+nx::Test parameter count 10
+nx::Test case objectparameter {
+
+  nx::Class create C {
+    :property a 
+    :property {b:boolean} 
+    :property {c 1}
+  }
+  C create c1
+ 
+  ? {C eval :objectparameter} \
+      "-a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
+
+  ? {c1 eval :objectparameter} \
+      "::c1: unable to dispatch method 'objectparameter'"
+}
+
+#######################################################
+# reclass to nx::Object, no need to do anything on caching
+#######################################################
+nx::Test case reclass {
+
+  nx::Class create C {
+    :property a 
+    :property {b:boolean} 
+    :property {c 1}
+  }
+  C create c1
+
+  ? {c1 info lookup slots -source application} "::C::slot::a ::C::slot::b ::C::slot::c"
+
+  c1 configure -class nx::Object
+
+  ? {c1 info lookup slots -source application} ""
+  
+  nx::Class create D -superclass C {:property d:required}
+  D create d1 -d 100
+
+  ? {d1 info lookup slots -source application} \
+      "::D::slot::d ::C::slot::a ::C::slot::b ::C::slot::c"
+  
+  ? {D eval :objectparameter} \
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
+}
+
+#######################################################
+# Add mixin
+#######################################################
+nx::Test case objparam-mixins {
+
+  nx::Class create C {
+    :property a 
+    :property {b:boolean} 
+    :property {c 1}
+  }
+  nx::Class create D -superclass C {
+    :property d:required
+  }
+  D create d1 -d 100
+
+  nx::Class create M {
+    :property m1 
+    :property m2 
+    :property b
+  }
+  nx::Class create M2 {
+    :property b2
+  }
+  D mixin M
+
+  ? {D eval :objectparameter} \
+      "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash" \
+    "mixin added"
+
+  M mixin M2
+
+  ? {D eval :objectparameter} \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash" \
+    "transitive mixin added"
+  D mixin ""
+  #we should have again the old interface
+
+  ? {D eval :objectparameter} \
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
+
+  C mixin M
+  ? {D eval :objectparameter} \
+      "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash" \
+    "mixin added"
+  C mixin ""
+  #we should have again the old interface
+  
+  ? {D eval :objectparameter} \
+      "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash" 
+}
+
+#######################################################
+# test passed arguments
+#######################################################
+
+nx::Test case passed-arguments {
+
+  nx::Class create C {
+    :property a 
+    :property b:boolean
+    :property {c 1}
+  }
+  nx::Class create D -superclass C {:property d:required}
+
+  ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
+  ? {catch {D create d1}} 1 "create d1 without required argument given"
+  #puts stderr current=[namespace current]
+  
+  ? {D create d1} \
+      {required argument 'd' is missing, should be:
+	::d1 configure -d ?-a value? ?-b boolean? ?-c value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  
+  ? {D create d2 -d x -b a} \
+      {expected boolean but got "a" for parameter "-b"} \
+      "create d2 without required argument given"
+
+  D create d1 -d 1
+  D public method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:class}} {
+    #if {[info exists x]} {puts stderr x=$x}
+  }
+
+  ? {d1 foo} \
+      {required argument 'r' is missing, should be:
+	::d1 foo ?-b boolean? -r ?-x integer? ?-object object? ?-class class?} \
+      "call method without a required argument"
+
+  ? {d1 foo -r a} \
+      {expected integer but got "a" for parameter "-r"} \
+      "required argument is not integer"
+  
+  ? {d1 foo -r 1} \
+      {expected integer but got "aaa" for parameter "-x"} \
+      "default value is not of type integer"
+  
+  ? {d1 foo -r 1 -x 1 -object d1} \
+      "" \
+      "pass object"
+  
+  ? {d1 foo -r 1 -x 1 -object d11} \
+      {expected object but got "d11" for parameter "-object"} \
+      "pass non-existing object"
+  
+  ? {d1 foo -r 1 -x 1 -class D} \
+      "" \
+      "pass class"
+  
+  ? {d1 foo -r 1 -x 1 -class d1} \
+      {expected class but got "d1" for parameter "-class"} \
+      "pass object instead of class"
+  
+  ? {d1 foo -r 1 -x 1 -class D11} \
+      {expected class but got "D11" for parameter "-class"} \
+      "pass non-existing class"
+  
+  ? {D public method foo {a:double} {return $a}} \
+      {::nsf::classes::D::foo} \
+      "allow 'string is XXXX' for argument checking"
+  ? {d1 foo 1} 1 "check int as double"
+  ? {d1 foo 1.1} 1.1 "check double as double"
+  ? {d1 foo 1.1a} {expected double but got "1.1a" for parameter "a"} "check non-double as double"
+  ? {D info method parameter foo} a:double
+}
+
+#######################################################
+# non required positional arguments
+#######################################################
+nx::Test case non-reg-args {
+
+  nx::Class create D 
+  D create d1
+  
+  D public method foo {a b:optional c:optional} {
+    return "[info exists a]-[info exists b]-[info exists c]"
+  }
+  ? {d1 foo 1 2} "1-1-0" "omit optional argument"
+  ? {d1 foo 1} "1-0-0" "omit optional arguments"
+  
+  # non required positional arguments and args
+  D public method foo {a b:optional c:optional args} {
+    return "[info exists a]-[info exists b]-[info exists c]-[info exists args]"
+  }
+  ? {d1 foo 1 2} "1-1-0-1" "omit optional argument"
+  ? {d1 foo 1} "1-0-0-1" "omit optional arguments"
+}
+
+#######################################################
+# multivalued arguments
+#######################################################
+nx::Test case multivalued {
+
+  nx::Class create D 
+  D create d1
+  nx::Object create o
+
+  D public method foo {m:integer,0..n} {
+    return $m
+  }
+  ? {d1 foo ""} "" "emtpy list"
+  ? {d1 foo 1} "1" "single value"
+  ? {d1 foo {1 2}} "1 2" "multiple values"
+  ? {d1 foo {1 a 2}} \
+      {invalid value in "1 a 2": expected integer but got "a" for parameter "m"} \
+      "multiple values with wrong value"
+  
+  D public method foo {m:object,0..n} {
+    return $m
+  }
+  ? {d1 foo ""} "" "emtpy list"
+  ? {d1 foo o} "o" "single value"
+  ? {d1 foo {o d1 x}} \
+      {invalid value in "o d1 x": expected object but got "x" for parameter "m"} \
+      "multiple values"
+
+  nx::Class create Foo {
+    :property ints:integer,1..*
+  }
+  ? {Foo create foo -ints {1 2}} "::foo"
+  ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter "-ints"}
+
+  # make slot incremental
+  Foo::slot::ints eval {
+    set :incremental 1
+    :reconfigure
+  }
+
+  Foo create foo -ints {1 2}
+  ? {foo ints add 0} "0 1 2"
+  ? {foo ints add a} {expected integer but got "a" for parameter "value"}
+}
+
+#######################################################
+# subst default tests
+#######################################################
+nx::Test case subst-default {
+  
+  nx::Class create D {
+    :property {c 1}
+    :property {d 2}
+
+    :create d1
+
+    :public method bar {
+      {-s:substdefault "[current]"} 
+      {-literal "[current]"} 
+      {-c:substdefault "[:c]"} 
+      {-d:integer,substdefault "$d"}
+    } {
+      return $s-$literal-$c-$d
+    }
+  }
+  
+  ? {d1 bar -c 1} {::d1-[current]-1-2} "substdefault in method parameter"
+  
+  nx::Class create Bar -superclass D {
+    :property {s "[current]"} 
+    :property {literal "\\[current\\]"} 
+    :property {c "[:info class]"} 
+    :property {d "literal $d"}
+  }
+
+  ? {Bar property ss:switch} "::nsf::classes::Bar::ss"
+
+  Bar create bar1
+  #puts stderr [bar1 objectparameter]
+  
+  ? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]}} \
+      {::bar1-[current]-::Bar-literal $d} \
+      "substdefault in object parameter 1"
+  
+  Bar create bar2
+  ? {subst {[bar2 s]-[bar2 literal]-[bar2 c]-[bar2 d]}} \
+      {::bar2-[current]-::Bar-literal $d} \
+      "substdefault in object parameter 2"
+  
+  # Observations:
+  #  1) syntax for "-attributes" and method parameter is quite different.
+  #     it would be nice to be able to specify the objparameters in
+  #     the same syntax as the method parameters. 
+  #
+  # 1a) Especially specifying "-" in front of a -attributes or not might
+  #     be confusing.
+  #
+  # 1b) Positional args for obj parameter and arguments for init
+  #     might be confusing as well. Should we forget about 
+  #     passing arguments to init?
+  #
+  #  2) substdefault for '$' in -attributes defaults does not make much sense.
+  #     deactivated for now; otherwise we would need "\\"
+  
+  D public method bar {
+		{-s:substdefault "[current]"} 
+		{-literal "[current]"} 
+		{-c:substdefault "[:c]"} 
+		{-d:integer,substdefault "$d"}
+		{-switch:switch}
+		{-optflag}
+		x
+		y:integer
+		{z 1}
+	      } {
+    return $s-$literal-$c-$d
+  }
+  
+  ? {D info method args bar} {s literal c d switch optflag x y z} "all args" 
+  ? {D info method parameter bar} \
+      {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[:c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
+      "query method parameter" 
+  
+
+  ? {D public method foo {s:switch} {return 1}} \
+      {invalid parameter type "switch" for argument "s"; type "switch" only allowed for non-positional arguments}
+
+  D public method foo {a b {-c 1} {-d} x {-end 100}} {
+    set result [list]
+    foreach v [[current class] info method args [current method]] {
+      lappend result $v [info exists $v]
+    }
+    return $result
+  }
+  ? {d1 foo 1 2 3} \
+      "a 1 b 1 c 1 d 0 x 1 end 1" \
+      "parse multiple groups of nonpos args"
+  
+  D public method foo {a b c {end 100}} {
+    set result [list]
+    foreach v [[current class] info method args [current method]] {
+      lappend result $v [info exists $v]
+    }
+    return $result
+  }
+  ? {d1 foo 1 2 3} \
+      "a 1 b 1 c 1 end 1" \
+      "query arguments with default, no paramdefs needed"
+
+  #######################################################
+  # Query method parameter
+  #######################################################
+
+  ? {D info method parameter foo} \
+      "a b c {end 100}" \
+      "query instparams with default, no paramdefs needed"
+
+  ? {nx::Class info method parameter method} \
+      "name arguments:parameter,0..* -returns body -precondition -postcondition" \
+      "query instparams for scripted method 'method'"
+  
+  ? {nx::Object info method parameter ::nsf::method::forward} \
+      "object:object -per-object:switch method -default -earlybinding:switch -methodprefix -objframe:switch -onerror -verbose:switch target:optional args" \
+      "query parameter for C-defined cmd 'nsf::forward'"
+
+  nx::Object require method autoname
+  ? {nx::Object info method parameter autoname} \
+      "-instance:switch -reset:switch name" \
+      "query parameter for C-defined method 'autoname'"
+  
+  # TODO: how to query the params/instparams of info subcommands?
+  #? {::xotcl::objectInfo info params params} \
+  #    "xxx" \
+  #    "query instparams for info method 'params' method"
+}
+
+#######################################################
+# user defined parameter types
+#######################################################
+nx::Test case user-types {
+
+  nx::Class create D {:property d}
+  D create d1
+
+  # create a userdefined type
+  ::nx::methodParameterSlot method type=mytype {name value} {
+    if {$value < 1 || $value > 3} {
+      error "Value '$value' of parameter $name is not between 1 and 3"
+    }
+  }
+
+  D public method foo {a:mytype} {
+    return a=$a
+  }
+  d1 foo 1
+
+  ? {d1 foo 10} \
+      "Value '10' of parameter a is not between 1 and 3" \
+      "value not between 1 and 3"
+  
+  D public method foo {a:unknowntype} {
+    return $a
+  }
+  
+  ? {d1 foo 10} \
+      "::nx::methodParameterSlot: unable to dispatch method 'type=unknowntype'" \
+      "missing type checker"
+  
+  # create a userdefined type with a simple argument
+  ::nx::methodParameterSlot method type=in {name value arg} {
+    if {$value ni [split $arg |]} {
+      error "Value '$value' of parameter $name not in permissible values $arg"
+    }
+    return $value
+  }
+  
+  D public method foo {a:in,arg=a|b|c} {
+    return a=$a
+  }
+  
+  ? {d1 foo a} "a=a"
+  ? {d1 foo 10} \
+      "Value '10' of parameter a not in permissible values a|b|c" \
+      "invalid value"
+  
+  D public method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
+    return a=$a,b=$b,c=$c
+  }
+  
+  ? {d1 foo a good -c b} "a=a,b=good,c=b"
+  ? {d1 foo a good} "a=a,b=good,c=a"
+  ? {d1 foo b "very good"} \
+      "Value 'very good' of parameter b not in permissible values good|bad" \
+      "invalid value (not included)"
+  
+  ::nx::methodParameterSlot method type=range {name value arg} {
+    foreach {min max} [split $arg -] break
+    if {$value < $min || $value > $max} {
+      error "Value '$value' of parameter $name not between $min and $max"
+    }
+    return $value
+  }
+  
+  D public method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
+    return a=$a,b=$b,c=$c
+  }
+  
+  ? {d1 foo 2 -b 4 9} "a=2,b=4,c=9"
+  ? {d1 foo 2 10} "a=2,b=3,c=10"
+  ? {d1 foo 2 11} \
+      "Value '11' of parameter c not between 5 and 10" \
+      "invalid value"
+  
+  # define type twice
+  ? {D public method foo {a:int,range,arg=1-3} {return a=$a}} \
+      "Parameter option 'range' unknown for parameter type 'integer'" \
+      "invalid value"
+  #
+  # handling of arg with spaces/arg as list
+  #
+  ::nx::methodParameterSlot public method type=list {name value arg} {
+    #puts $value/$arg
+    return $value
+  }
+  
+  # handling spaces in "arg" is not not particular nice
+  D public method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
+    return a=$a,b=$b
+  }
+
+  ? {d1 foo -a 2 10} "a=2,b=10"
+  
+}
+#######################################################
+# testing object types in method parameters
+#######################################################
+nx::Test case mp-object-types {
+
+  nx::Class create C
+  nx::Class create D -superclass C {:property d}
+
+  nx::Class create M
+  nx::Class create M2
+  D create d1 -d 1
+  C create c1 -mixin M
+  C create c2 -mixin {{M -guard true}}
+  C create c3 -mixin {M ::M2}
+  C create c4 -mixin {{M -guard 1} M2}
+  C create c5 -mixin {M {M2 -guard 2}}
+  nx::Object create o
+
+  ? {c1 info mixin classes} ::M
+  ? {c1 info mixin guard ::M} ""
+
+  ? {c2 info mixin classes} ::M
+  ? {c2 info mixin guard ::M} "true"
+
+  ? {c3 info mixin classes} {::M ::M2}
+  ? {c3 info mixin guard M} ""
+  ? {c3 info mixin guard M2} ""
+
+  ? {c4 info mixin classes} {::M ::M2}
+  ? {c4 info mixin guard M} "1"
+  ? {c4 info mixin guard M2} ""
+
+  ? {c5 info mixin classes} {::M ::M2}
+  ? {c5 info mixin guard M} ""
+  ? {c5 info mixin guard M2} "2"
+
+  D public method foo-base     {x:baseclass} {return $x}
+  D public method foo-class    {x:class} {return $x}
+  D public method foo-object   {x:object} {return $x}
+  D public method foo-meta     {x:metaclass} {return $x}
+  D public method foo-type     {x:object,type=::C} {return $x}
+  
+  ? {D info method parameter foo-base} "x:baseclass"
+  ? {D info method parameter foo-type} "x:object,type=::C"
+  
+  ? {d1 foo-base ::nx::Object} "::nx::Object"
+  ? {d1 foo-base C} \
+      {expected baseclass but got "C" for parameter "x"} \
+      "not a base class"
+  
+  ? {d1 foo-class D} "D"
+  ? {d1 foo-class xxx} \
+      {expected class but got "xxx" for parameter "x"} \
+      "not a class"
+  ? {d1 foo-class o} \
+      {expected class but got "o" for parameter "x"} \
+      "not a class"
+  
+  ? {d1 foo-meta ::nx::Class} "::nx::Class"
+  ? {d1 foo-meta ::nx::Object} \
+      {expected metaclass but got "::nx::Object" for parameter "x"} \
+      "not a base class"
+
+  ? {d1 foo-object o} "o"
+  ? {d1 foo-object xxx} \
+      {expected object but got "xxx" for parameter "x"} \
+      "not an object"
+  
+  ? {d1 foo-type d1} "d1"
+  ? {d1 foo-type c1} "c1"
+  ? {d1 foo-type o} \
+      {expected object of type ::C but got "o" for parameter "x"} \
+      "o not of type ::C"
+}
+
+#######################################################
+# substdefault
+#######################################################
+nx::Test case substdefault {
+
+  nx::Class create S {
+    :property {x 1} 
+    :property {y b} 
+    :property {z {1 2 3}}
+  }
+  S create s1 {
+    :public method foo {{y:substdefault ${:x}}} {
+      return $y
+    }
+    :public method bar {{y:integer,substdefault ${:x}}} {
+      return $y
+    }
+    :public method baz {{x:integer,substdefault ${:y}}} {
+      return $x
+    }
+    :public method boz {{x:integer,0..n,substdefault ${:z}}} {
+      return $x
+    }
+  }
+  ? {s1 foo} 1
+  ? {s1 foo 2} 2
+  
+  ? {S method foo {a:substdefault} {return 1}} \
+      {parameter option substdefault specified for parameter "a" without default value}
+  
+  ? {s1 bar} 1
+  ? {s1 bar 3} 3
+  ? {s1 bar a} {expected integer but got "a" for parameter "y"}
+  
+  ? {s1 baz} {expected integer but got "b" for parameter "x"}
+  ? {s1 baz 20} 20
+  s1 y 100
+  ? {s1 baz} 100
+  ? {s1 baz 101} 101
+  
+  ? {s1 boz} {1 2 3}
+  s1 z {1 x 100}
+  ? {s1 boz} {invalid value in "1 x 100": expected integer but got "x" for parameter "x"}
+  ? {s1 boz {100 200}} {100 200}
+  
+  set ::aaa 100
+  ? {s1 public method foo {{a:substdefault $::aaa}} {return $a}} ::s1::foo
+
+  ? {s1 foo} 100
+  unset ::aaa
+  ? {s1 foo} {can't read "::aaa": no such variable}
+  
+  ? {s1 public method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
+  ? {s1 foo} {can't read "aaa": no such variable}
+
+  ? {s1 public method foo {{a:substdefault [current]}} {return $a}} ::s1::foo
+  ? {s1 foo} ::s1
+}
+
+#######################################################
+# testing substdefault for object parameters
+#######################################################
+nx::Test case substdefault-objparam {
+
+  nx::Class create Bar {
+
+    # simple, implicit substdefault
+    :property {s0 "[current]"}
+
+    # explicit substdefault
+    :property {s1:substdefault "[current]"}
+    
+    # unneeded double substdefault
+    :property {s2:substdefault,substdefault "[current]"}
+
+    # substdefault with incremental
+    :property {s3:substdefault,incremental "[current]"}
+  }
+
+  Bar create ::b
+  ? {b s0} "::b"
+  ? {b s1} "::b"
+  ? {b s2} "::b"
+  ? {b s3} "::b"
+}
+
+#
+# Test call of configure within constructor
+#
+nx::Test case parameter-alias-default {
+
+  ::nsf::method::require nx::Object configure
+  nx::Class create C {
+    :property {a ""}
+    :property {b 1}
+
+    :method init {} {
+      :configure -b 1
+    }
+    :create c1
+    :create c2 -a 0
+  }
+
+  ? {::c1 eval {set :a}} ""
+  ? {::c1 eval {set :b}} 1
+  ? {::c2 eval {set :a}} 0
+  ? {::c2 eval {set :b}} 1
+}
+
+
+#######################################################
+# testing object types in object parameters
+#######################################################
+nx::Test case op-object-types {
+
+  nx::Class create C
+  nx::Class create D -superclass C {:property d}
+
+  nx::Class create MC -superclass nx::Class
+  MC create MC1
+  nx::Class create M
+  D create d1 -d 1
+  C create c1 -mixin M
+  nx::Object create o
+  
+  nx::Class create ParamTest {
+    :property o:object
+    :property c:class
+    :property c1:class,type=::MC
+    :property d:object,type=::C
+    :property d1:object,type=C
+    :property m:metaclass
+    :property b:baseclass
+    :property u:upper
+    :property us:upper,1..*
+    :property {x:object,1..* {o}}
+  }
+  
+  # TODO: we have no good interface for querying the slot notation for parameters
+  proc ::parameterFromSlot {class objectparameter} {
+    set slot ${class}::slot::$objectparameter
+    return [$slot getParameterSpec]
+  }
+  
+  ? {::parameterFromSlot ParamTest o} "-o:object"
+  ? {::parameterFromSlot ParamTest c} "-c:class"
+  ? {::parameterFromSlot ParamTest c1} "-c1:class,type=::MC"
+  ? {::parameterFromSlot ParamTest d} "-d:object,type=::C"
+  ? {::parameterFromSlot ParamTest d1} "-d1:object,type=::C"
+  ? {::parameterFromSlot ParamTest x} "-x:object,1..* o"
+  ? {::parameterFromSlot ParamTest u} "-u:upper,slot=::ParamTest::slot::u"
+  ? {::parameterFromSlot ParamTest us} "-us:upper,slot=::ParamTest::slot::us,1..*"
+  
+  ? {ParamTest create p -o o} ::p
+  ? {ParamTest create p -o xxx} \
+      {expected object but got "xxx" for parameter "-o"} \
+      "not an object"
+  
+  ? {ParamTest create p -c C} ::p "class"
+  ? {ParamTest create p -c o} \
+      {expected class but got "o" for parameter "-c"} \
+      "not a class"
+  
+  ? {ParamTest create p -c1 MC1} ::p "instance of meta-class MC"
+  ? {ParamTest create p -c1 C} \
+      {expected class of type ::MC but got "C" for parameter "-c1"} \
+      "not an instance of meta-class MC"
+  
+  ? {ParamTest create p -d d1} ::p
+  ? {ParamTest create p -d1 d1} ::p
+  ? {ParamTest create p -d c1} ::p
+  ? {ParamTest create p -d o} \
+      {expected object of type ::C but got "o" for parameter "-d"} \
+      "o not of type ::C"
+  
+  #? {ParamTest create p -mix c1} ::p
+  #? {ParamTest create p -mix o} \
+      {expected object with mixin M but got "o" for parameter "mix"} \
+      "does not have mixin M"
+  
+  ? {ParamTest create p -u A} ::p
+  ? {ParamTest create p -u c1} {expected upper but got "c1" for parameter "-u"}
+  ? {ParamTest create p -us {A B c}} \
+      {invalid value in "A B c": expected upper but got "c" for parameter "-us"}
+  ParamTest::slot::us eval {
+    set :incremental 1
+    :reconfigure
+  }
+  ? {ParamTest create p -us {A B}} ::p
+  ? {p us add C end} "A B C"
+
+  ? {p o o} \
+      "o" \
+      "value is an object"
+
+  ? {p o xxx} \
+      {expected object but got "xxx" for parameter "o"} \
+      "value is not an object"
+
+  #
+  # define multivalued property "os" via instance variables of the
+  # slot object
+  #
+  ParamTest eval {
+    :property os {
+      :type object 
+      :multiplicity 1..n
+    }
+  }
+
+  ? {ParamTest info method definition os} "::ParamTest public setter os:object,1..n"
+
+  ? {p os o} \
+      "o" \
+      "value is a list of objects (1 element)"
+
+  ? {p os {o c1 d1}} \
+      "o c1 d1" \
+      "value is a list of objects (multiple elements)"
+  
+  ? {p os {o xxx d1}} \
+      {invalid value in "o xxx d1": expected object but got "xxx" for parameter "os"} \
+      "list with invalid object"
+}
+
+#######################################################
+# application specific multivalued converter
+#######################################################
+nx::Test case multivalued-app-converter {
+
+  ::nx::methodParameterSlot public method type=sex {name value args} {
+    #puts stderr "[current] slot specific converter"
+    switch -glob $value {
+      m* {return m}
+      f* {return f}
+      default {error "expected sex but got $value"}
+    }
+  }
+  nx::Class create C {
+    :public method foo {s:sex,0..*,convert} {return $s}
+    :public method bar {s:sex,0..*} {return $s}
+  }
+  C create c1
+  ? {c1 foo {male female mann frau}} "m f m f"
+  ? {c1 bar {male female mann frau}} "male female mann frau"
+
+  nx::Object create tmpObj
+  tmpObj method type=mType {name value arg:optional} {
+    if {$value} {
+      error "expected false but got $value"
+    }
+    # Note that this converter does NOT return a value; it converts all
+    # values into emtpy strings.
+  }
+  ? {::nsf::is -complain mType,slot=::tmpObj,0..* {1 0}} \
+      {invalid value in "1 0": expected false but got 1} \
+      "fail on first value"
+  ? {::nsf::is -complain mType,slot=::tmpObj,0..* {0 0 0}} 1 "all pass"
+  ? {::nsf::is -complain mType,slot=::tmpObj,0..* {0 1}} \
+      {invalid value in "0 1": expected false but got 1} \
+      "fail o last value"
+}
+#######################################################
+# application specific multivalued converter
+#######################################################
+nx::Test case shadowing-app-converter {
+
+  nx::Object create mySlot {
+    :public method type=integer {name value arg:optional} {
+      return [expr {$value + 1}]
+    }
+  }
+  nx::Object create o {
+    :public method foo {x:integer,slot=::mySlot,convert} {
+      return $x
+    }
+  }
+
+  ? {::nsf::is -complain integer,slot=::mySlot 1} 1 
+  ? {o foo 3} 4
+}
+
+
+#######################################################
+# allow empty values
+#######################################################
+nx::Test case allow-empty {
+
+  nx::Object create o1
+  nx::Object create o2
+  nx::Object create o3
+
+  nx::Object create o {
+    :public method foo {x:integer,0..1 y:integer os:object,0..*} {
+      return $x
+    }
+  }
+  
+  ? {o foo 1 2 {o1 o2}} 1 "all values specified"
+  ? {o foo "" 2 {o1 o2}} "" "first is empty"
+  ? {o foo 1 "" {o1 o2}} {expected integer but got "" for parameter "y"} "second is empty"
+  ? {o foo 1 2 {}} 1 "empty list"
+
+  ? {o info method parameter foo} "x:integer,0..1 y:integer os:object,0..*"
+
+  o public method foo {x:integer,0..1 y:integer os:object,1..*} {return $x}
+  ? {o foo 1 2 {o1 "" o2}} {invalid value in "o1 "" o2": expected object but got "" for parameter "os"} \
+      "list contains empty value"
+  ? {o foo "" 2 {}} {invalid value for parameter 'os': list is not allowed to be empty} \
+      "empty int, empty list of objects"
+}
+#######################################################
+# slot specific converter
+#######################################################
+nx::Test case slot-specfic-converter {
+
+  nx::Class create Person {
+    :property sex {
+      :type "sex"
+      :convert true
+      :method type=sex {name value} {
+	#puts stderr "[self] slot specific converter"
+	switch -glob $value {
+	  m* {return m}
+	  f* {return f}
+	  default {error "expected sex but got $value"}
+	}
+      }
+    }
+  }
+
+  Person create p1 -sex male
+  ? {p1 sex} m
+  Person public method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
+  ? {p1 foo male} m
+  ? {p1 sex male} m
+}
+
+#######################################################
+# test for setters with parameters 
+#######################################################
+nx::Test case setters {
+  nx::Object create o
+  nx::Class create C
+  
+  ? {::nsf::method::setter ::o :a} {invalid setter name ":a" (must not start with a dash or colon)}
+  ? {::nsf::method::setter o a} "::o::a"
+  ? {::nsf::method::setter C c} "::nsf::classes::C::c"
+  ? {o info method definition a} "::o public setter a"
+  ? {o info method parameter a} "a"
+  ? {o info method args a} "a"
+  ? {C info method definition c} "::C public setter c"
+  ? {o a 1} "1"
+  
+  ? {::nsf::method::setter o a:integer} "::o::a"
+  ? {::nsf::method::setter o ints:integer,1..*} "::o::ints"
+  ? {::nsf::method::setter o o:object} "::o::o"
+  
+  ? {o info method handle ints} "::o::ints"
+  ? {o info method definition ints} "::o public setter ints:integer,1..*"
+  ? {o info method parameter ints} "ints:integer,1..*"
+  ? {o info method args ints} "ints"
+  
+  ? {o info method handle o} "::o::o"
+  ? {o info method definition o} "::o public setter o:object"
+  ? {o info method parameter o} "o:object"
+  ? {o info method args o} "o"
+
+  ? {o a 2} 2
+  ? {o a hugo} {expected integer but got "hugo" for parameter "a"}
+
+  ? {o ints {10 100 1000}} {10 100 1000}
+  ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter "ints"}
+  ? {o o o} o
+  ? {::nsf::method::setter o {d default}} {parameter "d" is not allowed to have default "default"}
+  ? {::nsf::method::setter o -x} {invalid setter name "-x" (must not start with a dash or colon)}
+}
+
+
+
+#######################################################
+# test for slot-optimizer
+#######################################################
+nx::Test parameter count 1000
+nx::Test case slot-optimizer {
+
+  nx::Class create C {
+    :property a 
+    :property b:integer 
+    :property c:integer,0..n
+  }
+  
+  C create c1 
+  ? {c1 a 1} 1
+  ? {c1 b 1} 1
+  ? {c1 c 1} 1
+}
+
+nx::Test parameter count 10
+nx::Test case slot-nosetter {
+  nx::Class create C {
+    :property a 
+    :property b:integer,noaccessor
+    :property {c:noaccessor ""}
+  }
+  
+  ? {C create c1 -a 1 -b 2} ::c1
+  ? {c1 info vars} "a b c"
+  ? {c1 a 100} 100
+  ? {c1 b 101} {::c1: unable to dispatch method 'b'}
+  ? {c1 c 102} {::c1: unable to dispatch method 'c'}
+}
+
+nx::Test parameter count 1000
+nx::Test case check-arguments {
+
+  nx::Class create Foo {
+    :public method noarg {} {return ""} 
+    :public method onearg {x} {return $x} 
+    :public method intarg {x:integer} {return $x} 
+    :public method intsarg {x:integer,1..*} {return $x} 
+    :public method boolarg {x:boolean} {return $x} 
+    :public method classarg {x:class} {return $x} 
+    :public method upperarg {x:upper} {return $x} 
+    :public method metaclassarg {x:metaclass} {return $x} 
+    :create f1
+  }
+  
+  ? {f1 noarg} ""
+  ? {f1 onearg 1} 1
+  # built-in checker
+  ? {f1 intarg 1} 1
+  ? {f1 intarg a} {expected integer but got "a" for parameter "x"}
+  ? {f1 intsarg {10 11 12}} {10 11 12}
+  ? {f1 intsarg {10 11 1a2}} {invalid value in "10 11 1a2": expected integer but got "1a2" for parameter "x"}
+  ? {f1 boolarg 1} 1
+  ? {f1 boolarg a} {expected boolean but got "a" for parameter "x"}
+  ? {f1 classarg ::Foo} ::Foo
+  ? {f1 classarg f1} {expected class but got "f1" for parameter "x"}
+  # tcl checker
+  ? {f1 upperarg ABC} ABC
+  ? {f1 upperarg abc} {expected upper but got "abc" for parameter "x"}
+  # scripted  checker
+  ? {f1 metaclassarg ::nx::Class} ::nx::Class
+  ? {f1 metaclassarg ::Foo} {expected metaclass but got "::Foo" for parameter "x"}
+}
+
+nx::Test case slot-traces {
+  ::nx::Object create o {
+    :property a {set :defaultcmd { set _ 4 } }
+    :property b {set :valuecmd { set _ 44 } }
+    :property c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+  }
+
+  ? {o a} 4
+  ? {o b} 44
+  ? {o c 5} 999
+  
+  o copy o2
+
+  ? {o a} 4
+  ? {o b} 44
+  ? {o c 5} 999
+
+  ::nx::Class create C {
+    :property a {set :defaultcmd { set _ 4 } }
+    :property b {set :valuecmd { set _ 44 } }
+    :property c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+    :create c1
+  }
+  ? {c1 a} 4
+  ? {c1 b} 44
+  ? {c1 c 5} 999
+
+  c1 copy c2
+
+  ? {c2 a} 4
+  ? {c2 b} 44
+  ? {c2 c 5} 999
+
+  C copy D
+  D create d1
+
+  ? {d1 a} 4
+  ? {d1 b} 44
+  ? {d1 c 5} 999
+}
+
+::nsf::configure checkarguments off
+nx::Test case check-arguments-nocheck {
+
+  nx::Class create Foo {
+    :public method noarg {} {return ""} 
+    :public method onearg {x} {return $x} 
+    :public method intarg {x:integer} {return $x} 
+    :public method intsarg {x:integer,1..*} {return $x} 
+    :public method boolarg {x:boolean} {return $x} 
+    :public method classarg {x:class} {return $x} 
+    :public method upperarg {x:upper} {return $x} 
+    :public method metaclassarg {x:metaclass} {return $x} 
+    :create f1
+  }
+  
+  ? {f1 noarg} ""
+  ? {f1 onearg 1} 1
+  # built-in checker
+  ? {f1 intarg 1} 1
+  ? {f1 intarg a} a
+  ? {f1 intsarg {10 11 12}} {10 11 12}
+  ? {f1 intsarg {10 11 1a2}} {10 11 1a2}
+  ? {f1 boolarg 1} 1
+  ? {f1 boolarg a} a
+  ? {f1 classarg ::Foo} ::Foo
+  ? {f1 classarg f1} f1
+  # tcl checker
+  ? {f1 upperarg ABC} ABC
+  ? {f1 upperarg abc} abc
+  # scripted  checker
+  ? {f1 metaclassarg ::nx::Class} ::nx::Class
+  ? {f1 metaclassarg ::Foo} ::Foo
+}
+
+## TODO regression test for type checking, parameter options (initcmd,
+## substdefault, combinations with defaults, ...), etc.
+
+nx::Test parameter count 100
+
+nx::Test case checktype {
+  nx::Object create o {
+    :public method f01 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype ::nx::Object}
+    :public method f02 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
+    :public method f03 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype       nx::Object}
+
+    :public method f11 {} {::nsf::is object,type=::nx::Object o}
+    :public method f12 {} {::nsf::is object,type=nx::Object o}
+    :public method f13 {} {::nsf::is object,type=Object o}
+  }
+
+  ? {o f01} 1
+  ? {o f02} 1
+  ? {o f03} 1
+
+  ? {o f11} 1
+  ? {o f12} 1
+  ? {o f13} 1
+}
+
+#
+# testing namespace resolution in type checkers
+#
+namespace eval foo {
+  nx::Class create C {
+    :create c1
+    :public method f21 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype nx::Object}
+    :public method f22 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
+    :public method f31 {} {::nsf::is object,type=Object c1}
+    :public method f32 {} {::nsf::is object,type=C c1}
+  }
+  
+  nx::Object create o {
+    :public method f01 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype ::nx::Object}
+    :public method f02 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype   nx::Object}
+    :public method f03 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype       nx::Object}
+    :public method f04 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype foo::C}
+    :public method f05 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
+
+    :public method f11 {} {::nsf::is object,type=::nx::Object c1}
+    :public method f12 {} {::nsf::is object,type=nx::Object c1}
+    :public method f13 {} {::nsf::is object,type=Object c1}
+    :public method f14 {} {::nsf::is object,type=foo::C c1}
+    :public method f15 {} {::nsf::is object,type=C c1}
+  }
+
+  ? {o f01} 1
+  ? {o f02} 1
+  ? {o f03} 1
+  ? {o f04} 1
+  ? {o f05} 1
+
+  ? {o f11} 1
+  ? {o f12} 1
+  ? {o f13} 1
+  ? {o f14} 1
+  ? {o f15} 1
+
+  ? {c1 f21} 1
+  ? {c1 f22} 1
+  ? {c1 f31} 1
+  ? {c1 f32} 1
+}
+
+nx::Test case check-arguments {
+
+  nx::Class create Foo {
+    :method noarg {} {return ""} 
+    :method onearg {-x} {return $x} 
+    :method intarg {-x:integer} {return $x} 
+    :method intsarg {-x:integer,1..*} {return $x} 
+    :method boolarg {-x:boolean} {return $x} 
+    :method classarg {-x:class} {return $x} 
+    :method upperarg {-x:upper} {return $x} 
+    :method metaclassarg {-x:metaclass} {return $x} 
+  }
+
+  ? {Foo info method parametersyntax noarg} ""
+  ? {Foo info method parametersyntax onearg} "?-x value?"
+  ? {Foo info method parametersyntax intarg} "?-x integer?"
+  ? {Foo info method parametersyntax intsarg} "?-x integer ...?"
+  ? {Foo info method parametersyntax boolarg} "?-x boolean?"
+  ? {Foo info method parametersyntax classarg} "?-x class?"
+  ? {Foo info method parametersyntax upperarg} "?-x upper?"
+  ? {Foo info method parametersyntax metaclassarg} "?-x metaclass?"
+
+  # return enumeration type
+  ? {nx::Class info method parametersyntax "info mixinof"} \
+      "?-closure? ?-scope all|class|object? ?pattern?"
+}
+
+#
+# Check whether resetting via method "configure" changes values in the
+# initialzed object state.
+#
+nx::Test case dont-reset-to-defaults {
+  nx::Class create C {
+    :property {a 1}
+    :create c1
+  }
+  ? {c1 a} 1
+
+  # change the value from the default to a different value
+  ? {c1 a 2} 2
+  ? {c1 a} 2
+  # call configure ...
+  c1 configure
+  # ... and check, it did not reset the value to the default
+  ? {c1 a} 2
+}
+
+nx::Test case setter-under-coloncmd-and-interpvarresolver {
+  # There are (at least) three forms of object-namespace alignment in
+  # NSF:
+  # 1. Same-named namespace (::omon) predates a same-named object
+  # (::omon), the namespace is registered as per-object namespace with
+  # the object upon object construction -> no NsColonVarResolver(),
+  # InterpColonVarResolver() is responsible!
+  # 2. an explicit per-object namespace creation using [:require
+  # namespace] -> NsColonVarResolver() is put in place!
+  # 3. nx::Object get per-object members (fields, methods) ->
+  # NsColonVarResolver() is put in place!
+  #
+  # The following test covers scenario 1: Called from within
+  # NsfSetterMethod(), SetInstVar() verifies, whether there is a
+  # per-object namespace (objPtr->nsPtr); if so, TCL_NAMESPACE_ONLY is
+  # set ... in this object/ns alignment scenario,
+  # InterpColonVarResolver() (!) serves the var resolution request. It
+  # effectively forward-passes the resolution request when sensing
+  # TCL_NAMESPACE_ONLY by signalling TCL_CONTINUE. This is a consequence
+  # of handling the "compiled [variable] vs. AVOID_RESOLVERS" case
+  # InterpColonVarResolver(). As in colon-prefixed calls to the setter
+  # method (via ColonCmd()), the colon prefix is present in the
+  # name-carrying Tcl_Obj used to in SetInstVar(). As we set an object
+  # frame context, we effectively end up with a colon-prefixed object
+  # variable :(
+  
+  nx::Class create Omon
+  ::nsf::method::setter Omon a1
+  
+  namespace eval omon {}
+  Omon create omon
+  omon a1 ""
+  ? {omon info vars a1} "a1"
+  ? {omon info vars :a1} ""
+  omon eval {
+    :a1 ""
+    ? [list [current] info vars a1] "a1"
+    # Prior to the fix, [:info vars] would have returned ":a1"
+    ? [list [current] info vars :a1] "" 
+  }
+}
+
+nx::Test case req-param {
+  ::nx::Class create C {
+    :property y:required
+    :property x:required
+    :method init args {set ::_ $args}
+  }
+
+  set ::_ ""
+  ? {C create c2 -y 1 -x} {Value for parameter '-x' expected}
+  ? {set ::_} ""
+  ? {c2 x} {can't read "x": no such variable}
+  ? {C create c3 -y 1 -x 0} "::c3"
+  ? {set ::_} ""
+  ? {c3 x} "0"
+}
+
+::nsf::configure checkarguments on
+
+#
+# nx::Test type any (or other typechecker) in combination with
+# substdefault via object parameter
+#
+nx::Test case nsf-subdefault {
+  nx::Class create C {
+    :property {n1 "[namespace tail [::nsf::self]]"}
+    :property {n2:any "[namespace tail [::nsf::self]]"}
+    :create c1
+  }
+  ? {c1 n1} c1
+  ? {c1 n2} c1
+}
+
+#
+# nx::Test argument processing and namespace handling in nsf::procs
+#
+
+nx::Test case nsf-proc {
+  #
+  # test inner namespace and handling of switches
+  #
+  nsf::proc ::nsf::mix {-per-object:switch -x:boolean} {
+    return [namespace current]-${per-object}-[expr {[info exists x] ? $x : "NULL"}]
+  }
+
+  #
+  # test handling of "-ad" flag
+  #
+  nsf::proc -ad ad_returnredirect {
+    {-message {}}
+    {-html:boolean}
+    {-allow_complete_url:boolean}
+    {-x:switch}
+    target_url
+  } {
+    return [namespace current]-[lsort [info vars]]-$html_p-$allow_complete_url_p
+  }
+  
+  #
+  # test inner namespace and flag passing via -flag=$value notation
+  #
+  namespace eval ::ns1 {
+    nsf::proc -ad foo {-s:boolean} {return [namespace current]-$s_p}
+    nsf::proc bar {-s:switch} {return [namespace current]-[info exists s]}
+    nsf::proc baz {-b:boolean arg} {return [namespace current]-[info exists b]-$arg}
+    nsf::proc -ad pass0 {-s:boolean} {foo {*}[expr {$s_p ? "-s" : ""}]}
+    nsf::proc -ad pass1 {-s:boolean} {foo -s=$s_p}
+  }
+  
+  nx::Test parameter count 1
+  ? {::nsf::mix} "::nsf-0-NULL"
+  ? {::nsf::mix -per-object} "::nsf-1-NULL"
+  ? {::nsf::mix -x true} "::nsf-0-true"
+  ? {::nsf::mix -x false} "::nsf-0-false"
+  ? {::nsf::mix -per-object=1} "::nsf-1-NULL"
+  ? {::nsf::mix -per-object=0} "::nsf-0-NULL"
+  ? {ad_returnredirect /url} "::-allow_complete_url_p html_p message target_url x-0-0"
+  ? {ad_returnredirect -html /url} "::-allow_complete_url_p html_p message target_url x-1-0"
+  ? {ad_returnredirect -html=0 /url} "::-allow_complete_url_p html_p message target_url x-0-0"
+  ? {ad_returnredirect -html=a /url} {expected boolean but got "a" for parameter "-html"}
+  ? {::ns1::foo} "::ns1-0"
+  ? {::ns1::foo -s} "::ns1-1"
+  ? {::ns1::foo -s=1} "::ns1-1"
+  ? {::ns1::foo -s=0} "::ns1-0"
+  ? {::ns1::foo -s -s=0} "::ns1-0"
+  ? {::ns1::baz -b true -- -b} "::ns1-1--b"
+  ? {info body ad_returnredirect} {::nsf::__unset_unknown_args
+
+    return [namespace current]-[lsort [info vars]]-$html_p-$allow_complete_url_p
+  }
+  
+  nx::Test parameter count 1000
+  ? {::ns1::pass1} "::ns1-0"
+  ? {::ns1::pass1 -s} "::ns1-1"
+  ? {::ns1::pass0} "::ns1-0"
+  ? {::ns1::pass0 -s} "::ns1-1"
+}
+
+#
+# Test argument processing and namespace handling in nsf::procs
+#
+
+nx::Test case xotcl-list-notation {
+  nx::Test parameter count 1
+
+  package prefer latest
+  package req XOTcl
+  xotcl::Class create CC -parameter {package_id parameter_declaration user_id}
+
+  # first, without list notation
+  ? {CC create cc -package_id 123 -parameter_declaration o -user_id 4} "::cc"
+  ? {cc package_id} 123
+  ? {cc parameter_declaration} o
+  ? {cc user_id} 4
+  
+  # new without list notation
+  ? {CC create cc -package_id 234 [list -parameter_declaration oo] -user_id 456} ::cc
+  ? {cc package_id} 234
+  ? {cc parameter_declaration} oo
+  ? {cc user_id} 456
+}
+
+#
+# Test parameter alias and parameter forwarder
+#
+nx::Test case parameter-alias {
+
+  nx::Class create C {
+    :property {x:alias}
+    :property {A:alias,method=bar}
+    :property {{F:forward,method=%self foo %1 a b c %method}}
+    :property {D def}
+    :public method x args {set :x $args}
+    :public method foo args {set :foo $args}
+    :public method bar args {set :bar $args}
+    :create c1 -F 123 -x x1 -A aha
+  }
+
+  ? {c1 eval {set :x}} "x1"
+  ? {c1 eval {set :foo}} "123 a b c F"
+  ? {c1 eval {set :bar}} "aha"
+  ? {lsort [c1 info lookup methods -source application]} "D bar foo x"
+}
+
+#
+# Test parameter alias and parameter forwarder
+#
+nx::Test case parameter-alias-default {
+
+  nx::Class create C {
+    :property {x1:alias "hugo"}
+    :property {{F:forward,method=%self foo a %1 b c %method} "habicht"}
+    :property {x2:alias "[self]"}
+    :public method x1 args {set :x1 $args}
+    :public method x2 args {set :x2 $args}
+    :public method foo args {set :foo $args}
+    :create c1
+  }
+
+  ? {c1 eval {set :x1}} "hugo"
+  ? {c1 eval {set :foo}} "a habicht b c F"
+  ? {c1 eval {set :x2}} "::c1"
+  ? {lsort [c1 info lookup methods -source application]} "foo x1 x2"
+  ? {lsort [C info slot objects]} "::C::slot::F ::C::slot::x1 ::C::slot::x2"
+  ? {::C::slot::x1 getParameterSpec} {-x1:alias hugo}
+  ? {::C::slot::x2 getParameterSpec} {-x2:alias,substdefault {[self]}}
+}
+
+#
+# Test potential incfluence on parameters
+#
+nx::Test case parameter-object-mixin-dependency {
+  nx::Class create C {
+    :property a1
+    :create c1 {
+      :property a2
+    }
+  }
+
+  nx::Class create M {
+    :property b1:required
+  }
+  
+  c1 mixin M
+
+  ? {c1 info precedence} "::M ::C ::nx::Object"
+
+  ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+
+  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
+
+  #
+  # invalidate object parameter and expect that the per-class mixin
+  # does not harm
+  #
+  ::nsf::invalidateobjectparameter C
+
+  c1 configure -a1 x
+
+  ? {c1 info precedence} "::M ::C ::nx::Object"
+
+  ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+
+  ? {C eval :objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
+
+  # should not require b1
+  ? {C create c2} ::c2
+ 
+}
+
+
+#
+# Test integer, wideinteger and bignums
+#
+nx::Test parameter count 1000
+nx::Test case bignums {
+
+  ::nx::Object create o {
+    :public method foo {x:int} { return $x }
+    :public method foo32 {x:int32} { return $x }
+    :public method bar {x:wideinteger} { return $x }
+    :public method baz {x:double} { return $x }
+  }
+
+  #
+  # In Tcl 8.5, "integer" means 32 bit integer
+  #
+  ? [list string is integer [expr {2 ** 31}]] 1
+  ? [list string is integer [expr {2 ** 32}]] 0
+  ? {o foo [expr {2 ** 16}]} "65536"
+  ? {o foo [expr {2 ** 31}]} "2147483648"
+  #? {o foo [expr {2 ** 32}]} {expected integer but got "4294967296" for parameter "x"}
+  ? {o foo [expr {2 ** 32}]} "4294967296"
+
+
+  ? [list string is integer [expr {2 ** 63}]] 0
+  ? [list string is integer [expr {2 ** 64}]] 0
+  #? {o foo [expr {2 ** 63}]} {expected integer but got "9223372036854775808" for parameter "x"}
+  #? {o foo [expr {2 ** 64}]} {expected integer but got "18446744073709551616" for parameter "x"}
+  ? {o foo [expr {2 ** 63}]} "9223372036854775808"
+  ? {o foo [expr {2 ** 64}]} "18446744073709551616"
+  ? {o foo [expr {2 ** 128}]} "340282366920938463463374607431768211456"
+
+  ? {o foo [expr {wide(2 ** 63)}]} "-9223372036854775808"
+
+  ? {o foo [expr {2.0}]} {expected integer but got "2.0" for parameter "x"}
+  ? {o foo [expr {2.0 * 2}]} {expected integer but got "4.0" for parameter "x"}
+
+  #
+  # Note: In Tcl version less or equal 8.5.9 (to be precise, before
+  # fossil check-in 769801ace1) there is a rounding issue for
+  # doubles. It can be worked around by setting the tcl precision
+  # level sufficiently high (see below). With check-in 769801ace1, or
+  # with the 8.5.10 release version of Tcl, this work-around becomes
+  # obsolete.
+  #
+  if {[::package vcompare [::info patchlevel] 8.5.9] < 1} {
+    set ::nsf::savedTclPrecision $::tcl_precision
+    set ::tcl_precision 17
+  }
+  
+  ? {o foo [expr {2.0 ** 128}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
+  ? {o foo [expr {(2 ** 128)*1.0}]} {expected integer but got "3.4028236692093846e+38" for parameter "x"}
+
+  if {[info exists ::nsf::savedTclPrecision]} {
+    set ::tcl_precision $::nsf::savedTclPrecision
+    unset ::nsf::savedTclPrecision
+  }
+
+  ? {o foo32 [expr {2 ** 31}]} "2147483648"
+  ? {o foo32 [expr {2 ** 32}]} {expected int32 but got "4294967296" for parameter "x"}
+
+  #
+  # In Tcl 8.5, "wideinteger" means 64 bit integer
+  #
+  ? [list string is wideinteger [expr {2 ** 63}]] 1
+  ? [list string is wideinteger [expr {2 ** 64}]] 0
+  ? {o bar [expr {2 ** 63}]} "9223372036854775808"
+  ? {o bar [expr {2 ** 64}]} {expected wideinteger but got "18446744073709551616" for parameter "x"}
+
+  ? [list string is wideinteger [expr {wide(2 ** 64)}]] 1
+  ? {o bar [expr {wide(2 ** 63)}]} "-9223372036854775808"
+  ? {o bar [expr {wide(2 ** 64)}]} "0"
+
+  #
+  # In Tcl 8.5, "bignums" have to be checked with "double"
+  #
+  ? [list string is double [expr {2 ** 63}]] 1
+  ? [list string is double [expr {2 ** 64}]] 1
+  ? {o baz [expr {2 ** 63}]} "9223372036854775808"
+  ? {o baz [expr {2 ** 64}]} "18446744073709551616"
+  ? {o baz [expr {2 ** 128}]} "340282366920938463463374607431768211456"
+
+}
+
+nx::Test case reconfigure-perobj-default {
+  nx::Object create o
+  ? {o eval {info exists :a}} 0
+  o property {a oldvalue}
+  ? {o eval {info exists :a}} 1
+  ? {o a} oldvalue
+  #
+  # By unsetting the var, upon recreating the property slot (or
+  # calling reconfigure upon the property) we can trigger
+  # a re-assignment of the default value.
+  #
+  o eval {unset :a}
+  ? {o eval {info exists :a}} 0
+  #
+  # re-assignment of the default is handled by init
+  #
+  o property {a newvalue}
+  ? {o eval {info exists :a}} 1
+  ? {o a} newvalue
+  o eval {unset :a}
+  ? {o eval {info exists :a}} 0
+  [o info slot objects a] default anothervalue
+  ? {o eval {info exists :a}} 0
+  #
+  # re-assignment must be requested by a reconfigure call
+  #
+  [o info slot objects a] reconfigure
+  ? {o eval {info exists :a}} 1
+  ? {o a} anothervalue
+}
+
+#
+# nx::Object parameters (specified e.g. via attributes) are defined to
+# configure fresh objects (therefore, the definition is on the class
+# level). Therefore, object-level object parameter do not fulfill
+# this purpose, since they can only be defined, *after* the object
+# is created. 
+#
+# In general, object parameters have creational aspects (providing
+# configurations for the object creation, such as e.g. defaults, and
+# configurations) and object-lifetime aspects (valid through the
+# lifetime of objects, such as e.g. setters/checkers). 
+#
+# nx::Object-level attributes cannot be used for the creational aspects
+  # of object parameters.
+#
+# Strengths of object-level parameters:
+# - same interface as class-level attributes
+# - can use same meta-data mechanisms as for class-level attributes
+#   (e.g database types, property name in the database, persistence
+#   information, ...)
+  # - can use same setters/checkers as for class-level attributes
+# - can use as well incremental as for class-level attributes
+#
+# Shortcomings of object-level parameters:
+# - no nice introspection: 
+#   "info parameter ...." is defined on cls, not on obj
+# - default handling is not the same as for classes level attributes
+#   (we have already some special mechanisms to set instance
+#   attributes, if they do not exist)
+# - object-level parameters cannot be used in a "configure" 
+#   of the object, since configure allows the same signature
+#   as on object creation, all object parameters are cached
+#   on the class level
+# - Since configure does not include object-level parameters,
+#   positional object level parameters do not make sense, since they
+#   cannot be called.
+
+#
+# test object level property and variable
+#
+nx::Test case object-level-variable {
+
+  nx::Object create ::enterprise {
+
+    # just to get a reference value for the timing
+    ? [list [self] eval {set :dummy 1}] "1"
+
+    # set 2 variables, one via variable, one via property
+    ? [list [self] variable -nocomplain captain1 "James Kirk"] ""
+    ? [list [self] property -nocomplain [list captain2 "Jean Luc"]] "::enterprise::captain2"
+
+    # in both cases, we expect instance variables
+    ? [list [self] eval {set :captain1}] "James Kirk"
+    ? [list [self] eval {set :captain2}] "Jean Luc"
+
+    # just for the property, we have accessors
+    ? [list [self] info lookup method  captain1] ""
+    ? [list [self] info lookup method  captain2] "::enterprise::captain2"
+
+    # set variable with a value checker
+    ? [list [self] variable  -nocomplain x1:int 1] ""
+    ? [list [self] property -nocomplain [list x2:int 2]] "::enterprise::x2"
+
+    # set variable with a value checker and an invalid value
+    ? [list [self] variable y1:int a] {expected integer but got "a"}
+    ? [list [self] property [list y2:int b]] {expected integer but got "b"}
+
+    # set variable again, without -nocomplain
+    ? [list [self] variable x1:int 1] {Object ::enterprise has already an instance variable named 'x1'}
+    ? [list [self] property [list x2:int 2]] {Object ::enterprise has already an instance variable named 'x2'}
+
+    # set variable with a value checker, multiple
+    ? [list [self] variable  -nocomplain xm1:int,1..n {1 2 3}] ""
+    ? [list [self] property -nocomplain [list xm2:int,1..n {1 2 3}]] "::enterprise::xm2"
+
+    # in both cases, we expect instance variables
+    ? [list [self] eval {set :xm1}] "1 2 3"
+    ? [list [self] eval {set :xm2}] "1 2 3"
+
+    # set variable with a value checker, multiple with invalid value
+    ? [list [self] variable  -nocomplain xm1:int,1..n {1 2a 3}] \
+	{invalid value in "1 2a 3": expected integer but got "2a"}
+    ? [list [self] property -nocomplain [list xm2:int,1..n {1 2a 3}]] \
+	{invalid value in "1 2a 3": expected integer but got "2a"}
+
+    # useless definition
+    ? [list [self] variable dummy:int] \
+	{Variable definition for 'dummy' (without value and accessor) is useless}
+
+    #
+    # define an application specific converter
+    #
+    # TODO: currently, we need two converters (or a converter on nx::Slot), since
+    # variable uses nsf::is and property uses the slot obj. method variable should
+    # be changed to use the slotobj as well.
+    ::nx::ObjectParameterSlot method type=range {name value arg} {
+      lassign [split $arg -] min max
+      if {$value < $min || $value > $max} {
+	error "Value '$value' of parameter $name not between $min and $max"
+      }
+      return $value
+    }
+    ::nx::ObjectParameterSlot method type=range {name value arg} {
+      lassign [split $arg -] min max
+      if {$value < $min || $value > $max} {
+	error "Value '$value' of parameter $name not between $min and $max"
+      }
+      return $value
+    }
+    
+    #
+    # Test usage of application specific converter in "variable" and
+    # "property"; invalid value
+    ? [list [self] variable -nocomplain r1:range,arg=1-10 11] \
+	{Value '11' of parameter value not between 1 and 10}
+    ? [list [self] property -nocomplain [list r2:range,arg=1-10 11]] \
+	{Value '11' of parameter value not between 1 and 10}
+
+    # valid value
+    ? [list [self] variable  -nocomplain r1:range,arg=1-10 5] ""
+    ? [list [self] property -nocomplain [list r2:range,arg=1-10 5]] \
+	{::enterprise::r2}
+
+    # testing incremental
+    ? [list [self] variable -nocomplain i:int,0..*,incremental {}] "::enterprise::i"
+    ? [list [self] property -nocomplain j:int,0..*,incremental {}] "::enterprise::j"
+    :i add 1
+    :j add 1
+    ? [list [self] i] "1"
+    ? [list [self] j] "1"
+    :i add 2
+    :j add 2
+    ? [list [self] i] "2 1"
+    ? [list [self] j] "2 1"
+    ? [list [self] i add a] {expected integer but got "a" for parameter "value"}
+    ? [list [self] j add a] {expected integer but got "a" for parameter "value"}
+  }
+
+  nx::Class create C {
+    # set 2 class variables, one via variable, one via property
+    ? [list [self] class variable -nocomplain v "v0"] ""
+    ? [list [self] class property -nocomplain [list a "a0"]] "::C::a"
+
+    # in both cases, we expect instance variables
+    ? [list [self] eval {set :v}] "v0"
+    ? [list [self] eval {set :a}] "a0"
+
+    # check variable with value constraint
+    ? [list [self] class variable -nocomplain x:int "0"] ""
+    ? [list [self] class variable -nocomplain y:int "a0"] {expected integer but got "a0"}
+  }
+
+}
+
+#
+# test class level property and variable
+#
+nx::Test case class-level-variable {
+  nx::Class create C {
+
+    # define 2 class-level variables, one via variable, one via property
+    :variable v v0
+    :property {a a0}
+
+    # create an instance
+    :create c1
+  }
+    
+  # in both cases, we expect instance variables for c1
+  ? {lsort [c1 info vars]} {a v}
+  ? {c1 eval {set :v}} "v0"
+  ? {c1 eval {set :a}} "a0"
+
+  #
+  # We expect a specifiable object parameter for "a" but not for "v".
+  # The parameter for v can be obtained via spec, but is not listed in
+  # "info parameter syntax" or "info parameter definition".
+  #
+  ? {C info parameter list a} "-a"
+  ? {C info parameter definition a} "{-a a0}"
+  ? {C info parameter syntax a} "?-a value?"
+
+  ? {C info parameter definition v} ""
+  ? {C info slot definition v} "{v:noaccessor,noconfig v0}"
+  ? {C info parameter list v} ""
+  ? {C info parameter syntax v} ""
+
+  ? {C create c2 -a 10} ::c2
+  ? {C create c2 -v 10} \
+      {Invalid non-positional argument '-v', valid are : -a, -volatile, -properties, -noinit, -mixin, -class, -filter;
+ should be "::c2 configure ?-a value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"}
+
+  #
+  # We expect a setter for "a" but not for "v". 
+  #
+  ? {c1 info lookup method a} "::nsf::classes::C::a"
+  ? {c1 info lookup method v} ""
+}
+
+#
+# test classes with single variable definitions, and illegal names
+#
+nx::Test case single-variable {
+  ? {nx::Class create C {
+    :variable v 1
+    :create c1
+  }} ::C
+  ? {c1 info vars} v
+  
+  ? {nx::Class create D {
+    :variable :v 1
+  }} {leading colon in ':v' not allowed in parameter specification 'spec'}
+}
+
+#
+# test deletion of class level property and variable
+#
+nx::Test case delete-class-level-variable-and-property {
+  nx::Class create C {
+
+    # define 2 class-level variables, one via variable, one via property
+    :variable v v0
+    :property {a a0}
+
+    # create an instance
+    :create c1
+  }
+  
+  # the instance of C will have the two variables set ...
+  ? {lsort [c1 info vars]} {a v}
+
+  # ... and we expect an object parameter for a but not for v ...
+  ? {C info parameter list a} "-a"
+  ? {C info parameter list v} ""
+  
+  # ... and we expect a setter for a but not for v
+  ? {c1 info lookup method a} "::nsf::classes::C::a"
+  ? {c1 info lookup method v} ""
+
+  # if we delete a class-level property or variable,
+  # the object parameter and setters for "a" will be gone
+  C delete variable v
+  C delete property a
+  ? {C info parameter list a} ""
+  ? {c1 info lookup method a} ""
+  
+  # already created instance variables will continue to exist
+  ? {lsort [c1 info vars]} {a v}
+
+  # in newly created objects, neither a or v will exist
+  ? {C create c2} ::c2
+  ? {lsort [c2 info vars]} {} 
+}
+
+#
+# test deletion of class level property and variable
+#
+nx::Test case delete-object-level-variable-and-property {
+  nx::Object create o {
+
+    # define 2 object-level variables, one via variable, one via property
+    :variable v v0
+    :property {a a0}
+  }
+  
+  # the instance of C will have the two variables set ...
+  ? {lsort [o info vars]} {a v}
+
+  # ... and we expect a setter for a but not for v
+  ? {o info lookup method a} "::o::a"
+  ? {o info lookup method v} ""
+
+  # nx::Object-level attributes and variables set und unset instance
+  # variables.  If we delete an object-level property or variable,
+  # the setters for "a" will be unset.
+  o delete variable v
+  o delete property a
+  ? {o info lookup method a} ""
+  
+  # Both instance variables are unset
+  ? {lsort [o info vars]} {}
+}
+
+#
+# Testing object parameters of type "switch"
+#
+
+nx::Test case object-parameter-switch {
+
+  # Create a class with an property of type switch and an instance of
+  # the class
+  ? {::nx::Class create C {
+    :property foo:switch
+    :create c1
+  }} "::C"
+
+  # When the object parameter is not specified at creation time, the
+  # default is false, an instance variable is set with this value
+  ? {lsort [c1 info vars]} {foo}
+  ? {c1 eval {set :foo}} {0}
+
+  # nx::Object parameter of type "switch" are more tricky, since e.g. a
+  # setter with 0 arguments is a getter. When a setter is built, it
+  # uses the parameter type "boolean" instead.
+  ? {C info methods} "foo"
+  ? {c1 info lookup method foo} "::nsf::classes::C::foo"
+  ? {c1 foo} 0
+  ? {c1 foo 1} 1
+  ? {c1 foo} 1
+
+  # When the object parameter is specified, the instance variable has
+  # a value of true (i.e. 1)
+  C create c2 -foo
+  ? {lsort [c2 info vars]} {foo}
+  ? {c2 eval {set :foo}} {1}
+  ? {c1 foo} 1
+
+  # One can pass false (and other values) with the = notation as well
+  C create c3 -foo=false
+  ? {lsort [c3 info vars]} {foo}
+  ? {c3 eval {set :foo}} {false}
+
+  # In the inverted case, the switch has a default of "true". If the
+  # switch is specified, the valus is "false"
+  C property {foo2:switch 1}
+  C create c4
+  ? {lsort [c4 info vars]} {foo foo2}
+  ? {c4 eval {set :foo2}} {1}
+  C create c5 -foo2
+  ? {lsort [c5 info vars]} {foo foo2}
+  ? {c5 eval {set :foo2}} {0}
+
+  # nx::Object case: variables of type "switch" are like variables of type
+  # boolean, except that without the specified value argument
+  # (variable foo below), it sets the the variable to "false".
+  ? {::nx::Object create o1 {
+    :variable foo:switch
+    :variable bar:switch 1
+  }} ::o1
+  ? {o1 eval {set :foo}} 0
+  ? {o1 eval {set :bar}} 1
+}
+
+#
+# Test slots with configparameter true/false, accessor true/false
+# against "info slot definition" and "info parameter"
+#
+nx::Test case class-info-slots-types {
+  #
+  # "/cls/ info slot ..." shows all slots, including variables
+  # "/cls/ info parameter ..." shows the parameter available for object parameterization
+  #
+  nx::Class create C {
+    # variable has no config parameter and no accessor
+    :variable v 100
+  }
+
+  # "v" does NOT show up in "info parameter" 
+  ? {C info parameter list} "-volatile -properties -noinit -mixin -class -filter __initcmd"
+  ? {C info parameter names} "volatile properties noinit mixin class filter __initcmd"
+
+  # "v" does show up in "info slot ..." 
+  ? {C info slot objects} "::C::slot::v"
+  ? {C info slot definition} "{v:noaccessor,noconfig 100}"
+
+  nx::Class create D {
+    :property {p0 200}
+    :property {p1:noaccessor 201}
+    :property {p2:noaccessor,noconfig 202}
+    :property {p3:noconfig 203}
+  }
+
+  # "p2" and "p3" do NOT show up in "info parameter" 
+  ? {D info parameter list} "-p0 -p1 -volatile -properties -noinit -mixin -class -filter __initcmd"
+  ? {D info parameter names} "p0 p1 volatile properties noinit mixin class filter __initcmd"
+
+  # "p1" and "p2" do NOT show up in "info methods" 
+  ? {D info methods} "p0 p3"
+
+  # all properties show up in "info slot" 
+  ? {D info slot objects} "::D::slot::p0 ::D::slot::p1 ::D::slot::p2 ::D::slot::p3"
+  ? {D info slot definition} "{p0 200} {p1:noaccessor 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+  ? {D info properties} "{p0 200} {p1:noaccessor 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+
+}
+
+
+nx::Test case object-info-slots-types {
+  #
+  # "/obj/ info slot ..." shows all slots, including variables
+  #
+  nx::Object create o1 {
+    # plain object variable has no slot object
+    :variable v0 100
+    # In case we require an accessor or e.g. incremental, slot objects
+    # are created; incremental implies accessor
+    :variable -accessor v1 100
+    :variable v2:incremental 100
+  }
+
+  # only the variables with slots show up in "info slot ..." 
+  ? {o1 info slot objects} "::o1::per-object-slot::v2 ::o1::per-object-slot::v1"
+  ? {o1 info slot definition} "{v2:noconfig 100} {v1:noconfig 100}"
+
+  nx::Object create o2 {
+    :property {p0 200}
+    :property {p1:noaccessor 201}
+    :property {p2:noaccessor,noconfig 202}
+    :property {p3:noconfig 203}
+  }
+
+  # "p1" and "p2" do NOT show up in "info methods" 
+  ? {o2 info methods} "p0 p3"
+
+  # all properties show up in "info slot" 
+  ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p2 ::o2::per-object-slot::p3"
+  ? {o2 info slot definition} "{p0:noconfig 200} {p1:noaccessor,noconfig 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+  ? {o2 info properties} "{p0:noconfig 200} {p1:noaccessor,noconfig 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+
+}
+
+#
+# testing method properties
+#
+nx::Test case properties {
+
+  # simple properties
+  nx::Class create Foo -properties {a {b 1}}
+  
+  ? {Foo info properties} "a {b 1}"
+
+  # properties with value checker
+  nx::Class create Foo -properties {
+    a:boolean
+    {b:integer 1}
+  }
+  ? {Foo info properties} "a:boolean {b:integer 1}"
+
+  # required/optional properties
+  nx::Class create Foo -properties {
+    a:required
+    b:boolean,required
+  }  
+  ? {Foo info properties} "a:required b:boolean,required"
+
+  # properties with multiplicity
+  nx::Class create Foo -properties {
+    {ints:integer,0..n ""}
+    objs:object,1..n
+    obj:object,0..1
+  }
+  ? {Foo info properties} "objs:object,1..n {ints:integer,0..n {}} obj:object,0..1"
+
+}
+
+#
+# The following test case sets a value of an instance variable via a
+# side-effect of an aliased parameter. Side-effects from aliased
+# parameters are discouraged, since the order of the evaluation should
+# not matter of an declarative evaluation of the argument vector. 
+#
+# Note that the order, in which is the arguments are provided is not
+# significant for the evaluation order.
+#
+nx::Test case side-effect-set-value {
+
+  nx::Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [self]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams}
+    }
+    :setObjectParams ""
+  }
+  
+  C method second {arg} {
+    set :first $arg
+  }
+  
+  C setObjectParams {{-first "X"} -second:alias}
+  ? {[C new -second Y] eval {set :first}} Y "side-effect overwrites default"
+  
+  C setObjectParams {-second:alias {-first "X"}}
+  ? {[C new -second Y] eval {set :first}} Y "side-effect determines value"
+}

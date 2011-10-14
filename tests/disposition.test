@@ -1,0 +1,1450 @@
+# -*- Tcl -*-
+package req nx
+package require nx::test
+
+#
+# test cases for disposition "alias" and "forward"
+#
+
+nx::Test case basics {
+
+  Class create C {
+    :class property [list inst "::__%&singleton"]
+    :method foo {x} {
+      #puts stderr [current method]
+      set :[current method] $x
+    }
+    :method bar {} {;}
+    :protected method baz {y} {
+      #puts stderr [current method]
+      set :my[current method] $y
+    }
+
+    #
+    # some testing helpers
+    #
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+    :setObjectParams ""
+
+    :public class method new args {
+      return [:create ${:inst} {*}$args]
+    }
+  }
+
+  foreach paramType {forward alias} {
+    #
+    # Restricted to object parameters only?
+    #
+    set msg "Parameter option '$paramType' not allowed"
+    ? [list C method m1 -foo:$paramType {;}] $msg
+    ? [list C method m1 foo:$paramType {;}] $msg
+    
+    #
+    # Not applicable in parametercheck
+    #
+    ? [list ::nsf::is $paramType $msg] "invalid value constraints \"$paramType\""
+  }
+
+  
+  #
+  # Do aliases and forwarder set instance variables? They should not.
+  #
+  C setObjectParams -baz:alias
+  ? {[C new -baz BAZ] eval {info exists :baz}} 0
+
+  C setObjectParams {{{-baz:forward,method=%self %method}}}
+  ? {[C new -baz BAZ] eval {info exists :baz}} 0
+
+  #
+  # Note, currently alias/forward disposition operate on public and
+  # protected target methods alike. Is this intended? For example,
+  # providing access through the parameter interface to protected
+  # methods etc. (at the instantiation site only) ? Or, are they
+  # expected to be public ... 
+  #
+  ### objectparameter are from the intentions public: the typical
+  ### use-case is that someone wants to configure an object to be
+  ### created, before the object exists.... 
+
+  #
+  # 1) Positional object parameters + alias/forward disposition?
+  #
+
+  #
+  # Passing a single argument to a positional alias
+  #
+  C setObjectParams foo:alias
+  ? {C new FOO} "::__%&singleton"
+  ? {C new {FOO FAA}} "::__%&singleton"
+
+  ###
+  ### Whenever a value is provided (default value or actual value) the
+  ### parameter is evaluated.
+  ###
+  C setObjectParams {{foo:alias ""}}
+  ? {C new} "::__%&singleton"
+
+  C setObjectParams {{-foo:alias "fooDefault"}}
+  ? {[C new] eval {set :foo}} "fooDefault"
+
+  #
+  # What about multi-argument vectors?
+  #
+
+  C eval {
+    :method multi-2 {x y} {
+      set :[current method] [current args]
+    }
+    :method multi-escape {x} {
+      set :[current method] $x
+    }
+    :method multi-args {args} {
+      set :[current method] $args
+    }
+  }
+
+  #
+  # Parameters are limited to a single value by the object parameter.
+  #
+
+  C setObjectParams {{-multi-2:alias}}
+  ? {[C new -multi-2 {X Y}] eval {set :multi-2}} \
+      "wrong # args: should be \"multi-2 x y\""
+  #
+  # Passing multiple arguments as a list
+  #
+  C setObjectParams {{-multi-escape:alias}}
+  ? {[C new -multi-escape [list X Y]] eval {set :multi-escape}} \
+      [list X Y]
+
+  #
+  # Passing multiple arguments as a list, passed to a args argument
+  # list.
+  #
+  C setObjectParams {{-multi-args:alias}}
+  ? {[C new -multi-args [list X Y]] eval {set :multi-args}} \
+      [list [list X Y]]
+
+  #
+  # By design, all parameters are currently limited to 0 or 1
+  # argument.  The same is true for disposition "alias" an
+  # "forward". One could consider to unbox a parameter list via a
+  # parameter option "expand" (like {*}) for alias|forward parameter
+  # specs, e.g.:
+  # {-multi-2:alias,expand}
+  # {-multi-2:forward,method=...,expand}
+  #
+  # Without the sketched extension, one could use eval in a forwarder.
+  # 
+
+  C setObjectParams {{{-multi-2:forward,method=eval %self %method}}}
+  ? {[C new -multi-2 {X Y}] eval {set :multi-2}} \
+      "X Y"
+
+  #
+  # In the positional case, why is FOO not passed on as arg value to
+  # the target method?
+  #
+  C setObjectParams {{{foo:forward,method=%self %method}}}
+  ? {C new FOO} "::__%&singleton"
+  ? {[C new FOO] eval {set :foo}} "FOO"
+
+  #
+  # Naming of the parameter spec element "method": It fits the alias
+  # disposition, but is a little irritating in the context of a
+  # forward. One would expect forwardspec or simply "spec" (as this is
+  # used in the docs, the error messages etc.), e.g.:
+  #
+  # {foo:forward,spec=%self %method}
+  #
+  # 'spec' would also work for 'alias' as it is more general (the spec
+  # of an alias is the method name ...)
+  #
+  #### well, "spec" is not nice for alias, and potentially confusing
+  #### with the parameter spec (the full parameter definition).
+
+  #
+  # Passing non-positional arguments to target methods (at least
+  # forwarder ones)?
+  #
+
+  C method multi-mix {-x y args} {
+    set :[current method] --x-$x--y-$y--args-$args
+  }
+
+  C setObjectParams {{{-multi-mix:forward,method=eval %self %method}}}
+  ? {[C new -multi-mix [list -x X Y Z 1 2]] eval {set :multi-mix}} \
+      "--x-X--y-Y--args-Z 1 2"
+
+  #
+  # Aliased methods with nonpos arguments are rendered entirely
+  # useless by the single-value limitation (see also above):
+  #
+
+  C method single-np {-x:required} {
+    set :[current method] --x-$x
+  }
+
+  C setObjectParams {{-single-np:alias}}
+  ? {[C new -single-np [list -x]] eval {set :single-np}} \
+      "Value for parameter '-x' expected"
+  ? {[C new -single-np [list -x X]] eval {set :single-np}} \
+      "Invalid non-positional argument '-x X', valid are : -x;
+ should be \"::__%&singleton single-np -x\""
+
+  #
+  # INTERACTIONS with other parameter types
+  # 
+  # There are two validation points:
+  # 1) the object parameter validation on the initial argument set
+  # 2) the target method validation on the (mangled) argument set
+  #
+  # ... they can deviate from each other, to a point of direct
+  # conflict
+  #
+
+  #
+  # Allowed built-in value types (according to feature matrix in
+  # parameters.test)
+  #
+
+  set msg {expected $mtype but got \"$testvalue\" for parameter \"x\"}
+  dict set types boolean [list testvalue f mtype object msg $msg]
+  dict set types integer [list testvalue 81 mtype punct msg $msg]
+  dict set types object [list testvalue ::C mtype integer msg $msg ]
+  
+  dict set types class [list testvalue ::C mtype boolean msg $msg]
+  dict set types object,type=::nx::Class \
+      [list testvalue ::C  mtype object,type=::C \
+	   msg "expected object of type ::C but got \"::C\"\
+		for parameter \"x\""] 
+
+  # for aliases ...
+  
+  dict for {t tdict} $types {
+    dict with tdict {
+      ::C public method foo [list x:$t] {
+	set :[current method] $x
+      }
+      ::C setObjectParams [list [list -foo:alias,$t]]
+      ? "::nsf::is $t \[\[::C new -foo $testvalue\] eval {set :foo}\]" 1 "check: -foo:alias,$t"
+    }
+  }
+
+  ::C public method baz {x} {
+    return $x
+  }
+
+  dict for {t tdict} $types {
+    dict with tdict {
+      ::C public method foo [list x:$mtype] {
+	set :[current method] $x
+      }
+      ::C setObjectParams [list [list -foo:alias,$t]]
+      ? "::nsf::is $t \[\[::C new -foo $testvalue\] eval {set :foo}\]" \
+      	  [subst $msg]
+    }
+  }
+
+  # 
+  # TODO: update the matrix in parameters.test (feature matrix)
+  #
+  ###
+  ### The question is, what happens with the matrix. The matrix is in
+  ### some respects not complete (no disposition) and contains old
+  ### namings (e.g. allowempty, multiple) and contains types removed
+  ### some time ago (such as e.g. "relation").
+  ###
+
+  #
+  # define a user defined parameter type
+  #
+  ::nx::methodParameterSlot method type=mytype {name value} {
+    if {$value < 1 || $value > 3} {
+      error "Value '$value' of parameter $name is not between 1 and 3"
+    }
+  }
+
+  array set script {alias "method=baz" forward "method=%self %method"}
+  foreach disposition [list alias forward] {
+    C setObjectParams [list [list -foo:$disposition,switch]]
+    ? {C new} "Parameter invocation types cannot be used with option 'switch'" \
+	"switch not allowed for $disposition"
+    
+    C setObjectParams [list [list -baz:$disposition,mytype,$script($disposition)]]
+    ? {C new -baz 1} "::__%&singleton" \
+	"disposition $disposition, user defined type, valid value"
+
+    C setObjectParams [list [list -baz:$disposition,mytype,$script($disposition)]]
+    ? {C new -baz 0} "Value '0' of parameter baz is not between 1 and 3" \
+	"disposition $disposition, user defined type, invalid value"
+
+    C setObjectParams [list [list -foo:$disposition,xxx]]
+    ? {C new} "::__%&singleton" \
+	"disposition $disposition, unknown user defined type - just a warning"
+
+    C setObjectParams [list [list -foo:$disposition,type=::C]]
+    ? {C new} "Parameter option 'type=' only allowed for parameter types 'object' and 'class'"
+
+    #
+    # The 'arg=...' option should not be used, consider using 'method=...'
+    #
+    C setObjectParams [list [list -foo:$disposition,arg=BOOM]]
+    ? {C new} "Parameter option 'arg=' only allowed for user-defined converter"
+
+  }
+
+  #
+  # The option 'method=...' applies to disposition types only
+  #
+  C setObjectParams [list [list -foo:initcmd,method=BOOM]]
+  ? {C new} "Parameter option 'method=' only allowed for parameter types 'alias' and 'forward'"
+  
+  C setObjectParams [list [list -foo:alias,forward]]
+  ? {C new} "Parameter types 'alias' and 'forward' cannot be used together"
+
+  C setObjectParams [list [list -foo:forward,alias]]
+  ? {C new} "Parameter types 'alias' and 'forward' cannot be used together"
+
+  C setObjectParams [list [list -foo:alias,initcmd]]
+  ? {C new} "Parameter types 'alias' and 'initcmd' cannot be used together"
+
+  C setObjectParams [list [list -foo:forward,initcmd]]
+  ? {C new} "Parameter types 'forward' and 'initcmd' cannot be used together"
+}
+
+nx::Test case dispo-multiplicities {
+  Class create S {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+    :public method foo {args} {
+      set :foo $args
+      return $args
+    }
+  }
+
+  #
+  # On multiplicity classes ...
+  # 
+  # ... implying a Tcl list value: 1..*, 0..* 
+  # ... implying a Tcl word value: 1..1, 0..1
+  #
+
+  S setObjectParams {-foo:alias,1..*,boolean}
+  S method foo {x:0..1,boolean} {
+    set :foo $x
+  }
+  ? {[S new -foo [list f f]] eval {info exists :foo}} \
+      "expected boolean but got \"f f\" for parameter \"x\""
+
+  S setObjectParams {-foo:alias,1..*,integer}
+  S method foo {x:1..1,integer} {
+    set :foo $x
+  }
+  ? {[S new -foo [list a 1]] eval {info exists :foo}} \
+      "invalid value in \"a 1\": expected integer but got \"a\" for parameter \"-foo\""
+  ? {[S new -foo [list 0 1]] eval {info exists :foo}} \
+      "expected integer but got \"0 1\" for parameter \"x\""
+  ? {[S new -foo [list]] eval {info exists :foo}} \
+      "invalid value for parameter '-foo': list is not allowed to be empty"
+  ? {[S new -foo 5] eval {info exists :foo}} 1
+  ? {[S new -foo f] eval {info exists :foo}} \
+      "invalid value in \"f\": expected integer but got \"f\" for parameter \"-foo\""
+
+  S setObjectParams {-foo:alias,0..*,false}
+  S method foo {x:0..1,false} {
+    set :foo $x
+  }
+
+  ? {[S new -foo [list a 1]] eval {info exists :foo}} \
+      "invalid value in \"a 1\": expected false but got \"a\" for parameter \"-foo\""
+
+  ? {[S new -foo [list f 0]] eval {info exists :foo}} \
+      "expected false but got \"f 0\" for parameter \"x\""
+
+  ? {[S new -foo [list t]] eval {info exists :foo}} \
+      "invalid value in \"t\": expected false but got \"t\" for parameter \"-foo\""
+
+  ? {[S new -foo [list f]] eval {info exists :foo}} 1
+
+  ? {[S new -foo [list]] eval {info exists :foo}} 1
+
+}
+
+nx::Test case dispo-returns {
+  Class create R {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+  }
+
+  #
+  # Alias/forward dispositions are unavailable as parameter types of return checkers
+  #
+  set methods(raz) [R public class method raz {} {;}]
+  foreach dispoSpec {
+    alias,noarg 
+    alias,method=xxx 
+    {forward,method=%self xxx} 
+    initcmd
+  } {
+    ::nsf::method::property R $methods(raz) returns $dispoSpec
+    ? {R raz} "invalid value constraints \"$dispoSpec\""
+  }
+  
+
+  #
+  # Interactions between disposition types and the return value checkers
+  #
+  ::nsf::configure checkresults true
+  # --
+  
+  R setObjectParams -foo:alias,true
+
+  set methods(foo) [R public method foo {x:true} -returns false  {
+    set :foo $x
+  }]
+
+  ? {[R new] foo t} "expected false but got \"t\" as return value"
+
+
+  R setObjectParams [list -foo:alias,true bar:alias,false]
+
+  ::nsf::method::property R $methods(foo) returns boolean
+
+  set methods(bar) [R public method bar {y:false} -returns true  {
+    set :bar $y
+  }]
+
+  ? {[R new -foo t f] eval {info exists :bar}} "expected true but got \"f\" as return value"
+
+  R setObjectParams [list -foo:alias,true bar:alias,false \
+			 [list baz:alias,wideinteger,substdefault {[expr {2 ** 63}]}]]
+
+  ::nsf::method::property R $methods(bar) returns boolean
+  set methods(baz) [R public method baz {z:wideinteger} -returns int32  {
+    set :baz $z
+  }]
+  
+  ? {[R new -foo t f [expr {2 ** 31}]] eval {info exists :foo}} 1
+  ? {[R new -foo t f] eval {info exists :baz}} "expected int32 but got \"[expr {2 ** 63}]\" as return value"
+  ? {[R new -foo t f] eval {info exists :baz}} "expected int32 but got \"[expr {2 ** 63}]\" as return value"
+
+  ::nsf::method::property R $methods(baz) returns wideinteger
+  ? {string is wideinteger [[R new -foo t f] eval {set :baz}]} 1
+}
+
+nx::Test case dispo-callstack {
+  Class create Callee {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+  }
+
+  #
+  # uplevel, upvar (with alias and forward)
+  #
+  Callee public method call {{-level 2} x} {
+    #
+    # The callstack positioning corresponds to the one of
+    # alias/forward target methods in general:
+    # Level -1 -> C-level frame 
+    # Level -2 -> Actual caller frame
+    #
+    # Note: Like any aliased methods, target methods of alias
+    # parameters do not have full callstack transparency (e.g., in a
+    # direct call to the target method, level -1 would resolve to the
+    # caller frame)
+    #
+    # ::nsf::__db_show_stack
+    uplevel $level [list set ix $x]
+    upvar $level $x _
+    incr _
+  }
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+    {{{-ah:forward,method=uplevel %self call -level 1}} {{call:forward,method=uplevel %self %method -level 1} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    namespace eval __ {
+      ? {info exists X} 0
+      ? {info exists ix} 0
+      ? {Callee new; info exists ix} 1
+      ? {set X} 1
+      ? {Callee new; info exists X} 1
+      ? {Callee new; set X} 3
+      ? {Callee new; set ix} X
+      ? {Callee new -ah X X; set ix} X
+      ? {set X} 6
+      ? {info exists Y} 0
+      ? {Callee new -ah X Y; set Y} 1
+      ? {set X} 7
+      ? {set ix} Y
+    }
+    namespace delete __
+  }
+   
+  #
+  # TODO: Test missing elements for method declarations:
+  # /cls/ public class {} {} ...
+  #
+
+  # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+  # Test the ACTIVE/INACTIVE transparency for the method-variants of
+  # uplevel|upvar
+  #
+
+  Callee public class method run {} {
+    set self [self]
+    set objparams [:objectparameter]
+    #
+    # The ? helper by default performs a [namespace eval] in the ::
+    # namespace, so the uplevel|upvar would happen in a different,
+    # non-testable callstack branch. Therefore, we have to build the
+    # tests around this limitation (for now)
+    #
+    ? [list set _ [info exists X]] 0
+    ? [list set _ [info exists ix]] 0
+    $self new
+    ? [list set _ [info exists ix]] 1 "after 1. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [set X]] 1 "after 1. uplevel/upvar calls ('$objparams')"
+    $self new
+    ? [list set _ [info exists X]] 1 "after 2. uplevel/upvar calls ('$objparams')"
+    $self new
+    ? [list set _ [set X]] 3 "after 3. uplevel/upvar calls ('$objparams')"
+    $self new
+    ? [list set _ [set ix]] X "after 4. uplevel/upvar calls ('$objparams')"
+    $self new -ah X X;
+    ? [list set _ [set ix]] X "after 5. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [set X]] 6 "after 5. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [info exists Y]] 0
+    $self new -ah X Y;
+    ? [list set _ [set Y]] 1 "after 6. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [set X]] 7 "after 6. uplevel/upvar calls ('$objparams')"
+    ? [list set _ [set ix]] Y
+  }
+  
+  # {{{-ah:forward,method=uplevel %self call -level 1}} {{call:forward,method=uplevel %self %method -level 1} X}}
+
+  #
+  # a) NSF/Nx methods upvar() and uplevel()
+  #
+
+  Callee public method call {x} {
+    :uplevel [list set ix $x]
+    :upvar $x _
+    incr _
+  }
+
+ 
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    Callee run
+  }
+
+  #
+  # b) [current callinglevel]
+  # 
+  # ... with [uplevel [current callinglevel]] being equivalent to
+  # using NSF/Nx methods upvar() and uplevel() directly.
+  #
+
+  Callee public method call {x} {
+    # ::nsf::__db_show_stack
+    uplevel [current callinglevel] [list set ix $x]
+    upvar [current callinglevel] $x _
+    incr _
+  }
+
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    Callee run
+  }
+
+  #
+  # c) [current activelevel]
+  #
+  # ... Currently, in the current testing scenario, there is no
+  # effective difference between #activelevel and #callinglevel, both
+  # skip INACTIVE frames.
+
+  Callee mixin [Class new {:public method call args { next }}]
+
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    Callee run
+  }
+
+  Callee public method call {x} {
+    uplevel [current activelevel] [list set ix $x]
+    upvar [current activelevel] $x _
+    incr _
+  }
+
+  foreach dispoSpec {
+    {-ah:alias,method=call {call:alias X}}
+    {{{-ah:forward,method=%self call}} {{call:forward,method=%self %method} X}}
+  } {
+    Callee setObjectParams $dispoSpec
+    Callee run
+  }
+
+}
+
+nx::Test case alias-noarg {
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+    :public method foo {args} {
+      set :foo $args
+      return $args
+    }
+    :public method bar {args} {
+      set :bar $args
+      return $args
+    }
+  }
+
+  #
+  # nopos arg with noargs, given
+  #
+  C setObjectParams {-bar:alias,noarg}
+  C create c1 -bar
+  ? {c1 eval {info exists :bar}} 1
+  ? {c1 eval {info exists :x}} 0
+
+  #
+  # nopos arg with noargs, not given
+  #
+  C setObjectParams {-bar:alias,noarg}
+  C create c1
+  ? {c1 eval {info exists :bar}} 0
+
+  #
+  # pos arg with noargs
+  #
+  C setObjectParams {foo:alias,noarg}
+  C create c1
+  ? {c1 eval {info exists :foo}} 1
+
+  #
+  # initcmd with default
+  #
+  C setObjectParams {{__init:initcmd :foo}}
+  C create c1
+  ? {c1 eval {info exists :foo}} 1
+
+  #
+  # pos arg with noargs and nonposarg with noargs, given
+  #
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg}
+  C create c1 -bar
+  ? {c1 eval {info exists :bar}} 1
+  ? {c1 eval {info exists :foo}} 1
+  ? {c1 eval {info exists :x}} 0
+
+  #
+  # optional initcmd, like in nx
+  #
+  C setObjectParams {initcmd:initcmd,optional}
+  C create c1 {set :x 1}
+  ? {c1 eval {info exists :x}} 1
+
+  #
+  # using a default value for initcmd
+  #
+  C setObjectParams {{initcmd:initcmd ""}}
+  C create c1 {set :x 1}
+  C create c2
+  ? {c1 eval {info exists :x}} 1
+  ? {c2 eval {info exists :x}} 0
+
+  #
+  # optional initcmd + non-consuming (nrargs==0) posarg, provided
+  # initcmd
+  #
+  C setObjectParams {foo:alias,noarg initcmd:initcmd,optional}
+  C create c1 {set :x 1}
+  ? {c1 eval {info exists :x}} 1
+  ? {c1 eval {info exists :foo}} 1
+  ? {c1 eval {info exists :bar}} 0
+
+  #
+  # optional initcmd + non-consuming (nrargs==0) posarg, no value for
+  # initcmd
+  #
+  C setObjectParams {foo:alias,noarg initcmd:initcmd,optional}
+  C create c1
+  ? {c1 eval {info exists :x}} 0
+  ? {c1 eval {info exists :foo}} 1
+  ? {c1 eval {info exists :bar}} 0
+
+  #
+  # initcmd with default + non-consuming (nrargs==0) posarg, no value
+  # for initcmd
+  #
+  C setObjectParams {foo:alias,noarg {initcmd:initcmd ""}}
+  C create c1
+  ? {c1 eval {info exists :x}} 0
+  ? {c1 eval {info exists :foo}} 1
+  ? {c1 eval {info exists :bar}} 0
+
+  #
+  # non-consuming alias, nonpos alias with noarg, initcmd provided
+  #
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:initcmd,optional}
+  C create c1 {set :x 1}
+  ? {c1 eval {info exists :foo}} 1
+  ? {c1 eval {info exists :bar}} 0
+  ? {c1 eval {info exists :x}} 1
+
+  #
+  # non-consuming alias, nonpos alias with noarg, nonpos called, initcmd provided
+  #
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:initcmd,optional}
+  C create c1 -bar {set :x 1}
+  ? {c1 eval {info exists :foo}} 1
+  ? {c1 eval {info exists :bar}} 1
+  ? {c1 eval {info exists :x}} 1
+
+  #
+  # non-consuming alias, nonpos alias with noarg, no initcmd provided
+  #
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:initcmd,optional}
+  C create c1
+  ? {c1 eval {info exists :foo}} 1
+  ? {c1 eval {info exists :bar}} 0
+  ? {c1 eval {info exists :x}} 0
+
+  #
+  # non-consuming alias, nonpos alias with noarg, nonpos called, no
+  # initcmd provided
+  #
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:initcmd,optional}
+  C create c1 -bar
+  ? {c1 eval {info exists :foo}} 1
+  ? {c1 eval {info exists :bar}} 1
+  ? {c1 eval {info exists :x}} 0
+}
+
+#
+# check inticmd + noarg (should not be allowed)
+#
+nx::Test case alias-noarg {
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+  }
+  
+  C setObjectParams {initcmd:initcmd,noarg}
+  ? {C create c1} {option "noarg" only allowed for parameter type "alias"}
+}
+
+#
+# check alias + args
+#
+nx::Test case alias-args {
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+    :public method Residualargs args {
+      puts stderr "aliased RESIDUALARGS <[llength $args]>"
+      puts stderr "....... <$args>"
+      set :args $args
+
+    }
+    :public method residualargs args {
+      puts stderr "residualargs <$args>"
+    }
+  }
+  C copy D
+  
+  # TODO: check the meaning of these
+  C setObjectParams {args}
+  D setObjectParams {-a args}
+
+  # Configure object parameters to call method Residualargs with
+  # option args when args is used
+  C setObjectParams {args:alias,method=Residualargs,args}
+  D setObjectParams {-a args:alias,method=Residualargs,args}
+
+  # If no residual args are provided, the method residualargs is not
+  # called. This is the same rule as for all other consuming object
+  # parameter dispatches
+  ? {C create c1} {::c1}
+  ? {c1 eval {info exists :args}} 0
+  ? {D create c1} {::c1}
+  ? {c1 eval {info exists :args}} 0
+
+  # Residual args are provided, the method residualargs is
+  # called. 
+  ? {C create c1 1 2 3} {::c1}
+  ? {c1 eval {info exists :args}} 1
+  ? {c1 eval {set :args}} {1 2 3}
+  ? {D create c1 1 2 3} {::c1}
+  ? {c1 eval {info exists :args}} 1
+  ? {c1 eval {set :args}} {1 2 3}
+
+  #
+  # Provide a default for args.
+  #
+  C setObjectParams {{args:alias,method=Residualargs,args {hello world}}}
+
+  # use the default
+  ? {C create c1} {::c1}
+  ? {c1 eval {info exists :args}} 1
+  ? {c1 eval {set :args}} {hello world}
+  
+  # override the default
+  ? {C create c1 a b c} {::c1}
+  ? {c1 eval {info exists :args}} 1
+  ? {c1 eval {set :args}} {a b c}
+
+  #
+  # don't allow other types for parameter option "args"
+  #
+  C setObjectParams {{args:alias,int,method=Residualargs,args {hello world}}}
+  ? {C create c1} {Refuse to redefine parameter type of 'args' from type 'integer' to type 'args'}
+  ? {c1 eval {info exists :args}} 0
+  C setObjectParams {{args:int,alias,method=Residualargs,args {hello world}}}
+  ? {C create c1} {Refuse to redefine parameter type of 'args' from type 'integer' to type 'args'}
+  ? {c1 eval {info exists :args}} 0
+
+  #
+  # don't allow multiplicity settings for parameter option "args"
+  #
+  C setObjectParams {{args:alias,method=Residualargs,0..n,args {hello world}}}
+  ? {C create c1} {Multiplicity settings for variable argument parameter "args" not allowed}
+  ? {c1 eval {info exists :args}} 0
+
+  C setObjectParams {args:alias,method=Residualargs,args,1..n}
+  ? {C create c1} {Multiplicity settings for variable argument parameter "args" not allowed}
+  ? {c1 eval {info exists :args}} 0
+  
+  #
+  # make sure, parameter with parameter option "args" is used in last parameter
+  #
+  C setObjectParams {a:alias,method=Residualargs,args -b:integer}
+  ? {C create c1 hello world} {parameter option "args" invalid for parameter "a"; only allowed for last parameter}
+  ? {c1 eval {info exists :args}} 0
+}
+
+
+
+nx::Test case alias-init {
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      return ${:objectparams} 
+    }
+    :method init {} {
+      incr :y
+    }
+  }
+
+  # call init between -a and -b
+  C setObjectParams {-a init:alias,noarg -b:integer}
+  ? {C create c1} {::c1}
+  # "init" should be called only once
+  ? {c1 eval {set :y}} 1
+}
+
+nx::Test case submethods-via-aliasparams {
+  #
+  # Could move to submethods.test?
+  #
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      if {[info exists :objectparams]} {
+	return ${:objectparams} 
+      }
+    }
+  }
+
+  # A depth-1 submethod ...
+  C public method "FOO foo" {} {
+    # next
+    append :msg "[::nsf::current]--[::nsf::current methodpath]--[::nsf::current method]"
+  }
+
+  # A depth-2 submethod ...
+  C public method "BAR BOO buu" {} {
+    append :msg "[::nsf::current]--[::nsf::current methodpath]--[::nsf::current method]"
+  }
+
+
+  # // Ordinary dispatch //
+  # The message send below expands into the following callstack
+  # structure (when viewed at from within foo(), N is the anonymous
+  # call site)
+  #
+  # N+3 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
+  # N+2 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
+  # N+1 |:TclFrame|			e.g. cmd, [namespace eval], [apply] 
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  #
+  # Submethod levels greater than 1 turn into intermittent frames:
+  # N+4 |:CscFrame @Type(ENSEMBLE) |			<-- buu (leaf)
+  # N+3 |:CscFrame @Type(ENSEMBLE) @Call(ENSEMBLE)|	<-- BOO (intermittent)
+  # N+2 |:CscFrame @Call(ENSEMBLE) |			<-- BAR (root)
+  # N+1 |:TclFrame|	
+  #  
+  ? {
+    [C create c3] BAR BOO buu; # N
+    c3 eval {set :msg}
+  } "::c3--BAR BOO--buu" 
+
+
+  # // Parameter (alias) dispatch //
+  # 
+  # In contrast to an ordinary dispatch, a parameter dispatch results
+  # in a different callstack structure, due to the interferring
+  # configure():
+  #
+  # N+5 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)
+  # N+4 |:CscFrame @Call(ENSEMBLE)|		<-- FOO (root)
+  # N+3 |:CscFrame @INACTIVE|			<-- (INNER configure() frame)
+  # N+2 |:ObjFrame|				<-- ::c2 (OUTER configure() frame)
+  # N+1 |:TclFrame|		
+  C setObjectParams [list FOO:alias]
+  ? {
+    [C create c2 foo] eval {set :msg}; # N
+  } "::c2--FOO--foo"
+
+  #
+  # 1) Interleaving @Type(INACTIVE) frames through indirection
+  #
+  # a) Ahead of the ensemble "root" frame (i.e., indirection at the
+  # level the receiver object)
+  #
+  
+  Class create M1 {
+    :public method FOO args {
+      next
+    }
+  }
+
+  C mixin M1
+
+  # N+4 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
+  # N+3 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
+  # N+2 |:CscFrame @INACTIVE|		<-- M1.FOO
+  # N+1 |:TclFrame|	
+
+  C setObjectParams [list]
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  # N+6 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)
+  # N+5 |:CscFrame @Call(ENSEMBLE)|		<-- FOO (root)
+  # N+4 |:CscFrame @INACTIVE|			<-- M1.FOO
+  # N+3 |:CscFrame @INACTIVE|			<-- (INNER configure() frame)
+  # N+2 |:ObjFrame|				<-- ::c2 (OUTER configure() frame)
+  # N+1 |:TclFrame|		
+
+  C setObjectParams [list FOO:alias]
+  ? {
+    [C create c2 foo] eval {set :msg}; # N
+  } "::c2--FOO--foo"
+
+  # ... the filter variant ...
+  C mixin {}
+  C public method intercept args {
+    next
+  }
+  C filter intercept
+
+  # N+4 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
+  # N+3 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
+  # N+2 |:CscFrame @INACTIVE|		<-- intercept
+  # N+1 |:TclFrame|	
+  C setObjectParams [list]
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  # N+6 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)
+  # N+5 |:CscFrame @Call(ENSEMBLE)|		<-- FOO (root)
+  # N+4 |:CscFrame @INACTIVE|			<-- intercept
+  # N+3 |:CscFrame @INACTIVE|			<-- (INNER configure() frame)
+  # N+2 |:ObjFrame|				<-- ::c2 (OUTER configure() frame)
+  # N+1 |:TclFrame|		
+
+  C setObjectParams [list FOO:alias]
+  ? {
+    [C create c2 foo] eval {set :msg}; # N
+  } "::c2--FOO--foo"
+  
+
+  C filter ""
+  # / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+  # b) Between root and intermittent or inbetween the set of
+  # intermittent frames (i.e., indirection at the level of
+  # container/ensemble objects)
+  
+  # NOTE: Filters and mixins registered for the container object do
+  # not interleave in ensemble dispatches ... the dispatch lookup
+  # (along the next path) always starts at the top-level
+  # (calling) object. As a result, there are no intermediate frames to
+  # be expected ...
+  Class create M2 {
+    :public method foo args {
+      return "[current class]--[next]"
+    }
+  }
+
+  C::slot::__FOO mixin M2
+  ? {C::slot::__FOO foo} "::M2--::C::slot::__FOO----foo"
+  C::slot::__FOO eval {unset :msg}
+
+  C setObjectParams [list]
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  C::slot::__FOO mixin {}
+  C::slot::__FOO public method intercept {} {
+    return "[current]--[next]"
+  }
+  C::slot::__FOO filter intercept
+  ? {C::slot::__FOO foo} "::C::slot::__FOO--::C::slot::__FOO----foo"
+
+  C setObjectParams [list]
+  ? {
+    [C create c1] FOO foo; # N
+    c1 eval {set :msg}
+  } "::c1--FOO--foo" 
+
+  # --
+
+  Class create M2 {
+    :public method "FOO foo" args {
+      append :msg "(1)--[current nextmethod]"
+      next
+      #puts stderr ++++++++++++++++++
+      append :msg "--(3)--[current class]--[current methodpath]--[current]"
+      #puts stderr ++++++++++++++++++
+    }
+  }
+
+  C mixin M2
+
+  # N+4 |:CscFrame @Type(ENSEMBLE) |		<-- C.FOO.foo (leaf)
+  # N+2 |:CscFrame @Call(ENSEMBLE) |		<-- C.FOO (root)
+  # N+3 |:CscFrame @INACTIVE @Type(ENSEMBLE)|	<-- M2.FOO.foo
+  # N+2 |:CscFrame @INACTIVE @Call(ENSEMBLE) |	<-- M2.FOO
+  # N+1 |:TclFrame|	
+  C setObjectParams [list]
+  ? {
+    #puts stderr "/ / / / / / / / / / / "
+    [C create c1] FOO foo; # N
+    #puts stderr "/ / / / / / / / / / / "
+    c1 eval {set :msg}
+  } "(1)--::c1--FOO--foo--(3)--::M2--FOO--::c1"
+
+  C mixin {}  
+}
+
+nx::Test case dispo-configure-transparency {
+  Class create C {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      if {[info exists :objectparams]} {
+       return ${:objectparams} 
+      }
+    }
+  }
+  
+  ::proc foo {} {
+    error [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
+  }
+  #
+  # TODO: Currently, [current method] resolves to the name of the
+  # aliased, not the alias cmd. So, we do not have "alias
+  # transparency". Revise?
+  #
+  ::nsf::method::alias C FOO ::foo
+  ? {[C create c] FOO} "::c--foo"
+  C setObjectParams [list [list FOO:alias,noarg ""]]
+  ? {C create c} "::c--foo"
+  C public method "show me" {} {
+    set :msg [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
+  }
+  C setObjectParams [list -show:alias]
+  ? {[C create c -show me] eval {info exists :msg}} 1
+  # UNPATCHED:
+  # ? {[C create c -show me] eval {set :msg}} "::c-{} show"
+  ? {[C create c -show me] eval {set :msg}} "::c-show-me"
+
+  #
+  # ... with mixin indirection
+  #
+  
+  # ... at the calling object level / configure() ...
+  Class create M {
+    :public method configure args {
+      next;
+    }
+    :public method foo args {
+      next;
+    }
+    :public method FOO args {
+      error [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
+    }
+
+  }
+
+  C setObjectParams [list [list FOO:alias,noarg ""]]
+  C mixin add M
+  ? {C create c} "::c--FOO"
+  C mixin {}
+
+
+  # ... at the called object level
+
+  Object create ::callee {
+    :public method foo {} {
+      error [::nsf::current]-[::nsf::current methodpath]
+    }
+  }
+
+  ::nsf::method::alias C FOO ::callee
+
+  C setObjectParams [list [list FOO:alias,noarg ""]]
+  ? {C create c} "::c" "Defaultmethod of calle is invoked ..."
+  C setObjectParams [list [list FOO:alias "foo"]]
+  ? {C create c} "::c-FOO" "foo leaf method is selected ..."
+  ::callee mixin add M
+  ? {C create c} "::c-FOO" "With mixin ..."
+
+  #
+  # ... at the calling object level / ensemble path
+  #
+  # This scenario effectively stacks additional call frames to be
+  # traversed by CallStackMethodPath(). However, these frames precede
+  # the first ensemble frame, that's why they are skipped by
+  # CallStackMethodPath().
+  
+  M eval {
+    :public method FOO args {
+      puts stderr "!!!!! FOO MIXIN ...."
+      next;
+    }
+  }
+
+  ? {C create c} "::c-FOO" "With mixin ..."
+  
+  #
+  # ... with filter indirection: tbd
+  #
+}
+
+nx::Test case dispo-object-targets {
+  Object create obj
+  Class create C
+  Class create T {
+    :public class method setObjectParams {spec} {
+      set :objectparams $spec
+      ::nsf::invalidateobjectparameter [current]
+    }
+    :class method objectparameter {} {
+      if {[info exists :objectparams]} {
+       return ${:objectparams} 
+      }
+    }
+  }
+  
+  #
+  # 1. Behavioural baseline: An alias method binding an object
+  #
+  set methods(z) [::nsf::method::alias T z ::obj]
+  ? {[T new] z} ::obj "Aliased dispatch to defaultmethod"
+  ? {[T new] z uff} "::obj: unable to dispatch method 'uff'" \
+      "Aliased dispatch to unknown method (default unknown handler)"
+
+  Class create UnknownHandler {
+    :method unknown {callInfo args} {
+      #
+      # callInfo is a Tcl list. For ensemble dispatches, it contains
+      # the complete message: delegator <ensemble ...> <unknown method>; for
+      # ordinary dispatches, the list has a single element: <unknown
+      # method>
+      #
+      # methodpath [current methodpath]
+      # puts stderr "CALLINFO='$callInfo' args=$args"
+      switch [llength $callInfo] {
+	1 {
+	  error "UNKNOWNMETHOD-$callInfo"
+	}
+	default {
+	  set delegator [lindex $callInfo 0]
+	  set unknownMethod [lindex $callInfo end]
+	  set path [lrange $callInfo 1 end-1]
+	  error "CURRENT-[current]-DELEGATOR-$delegator-UNKNOWNMETHOD-$unknownMethod-PATH-$path"
+	}
+      }
+    }
+  }
+
+  ::obj mixin UnknownHandler
+  ? {[T create t] z uff} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-uff-PATH-z" \
+      "Aliased dispatch to unknown method (custom unknown handler)"
+  
+  set x [UnknownHandler create handledObj]
+  set methods(ix) [::nsf::method::alias ::obj ix $x]
+  
+  ? {[T create t] z ix baff} "CURRENT-$x-DELEGATOR-::t-UNKNOWNMETHOD-baff-PATH-z ix" \
+      "Aliased dispatch to unknown method (custom unknown handler)" 
+
+  #
+  # 2. Obj targets via alias disposition parameters
+  #
+
+  #
+  # a) direct dispatch (non-aliased) with fully qualified selector (::*)
+  #
+  ::obj mixin {}
+  T setObjectParams x:alias,method=::obj
+  ? {T create t XXX} "::t: unable to dispatch method '::obj'" "FQ dispatch with default unknown handler"
+
+  ::T mixin UnknownHandler
+  ? {T create t XXX} "UNKNOWNMETHOD-::obj" "FQ dispatch with custom unknown handler"
+
+  #
+  # b) calls to the defaultmethod of the aliased object
+  #
+  UnknownHandler method defaultmethod {} {
+    set :defaultmethod 1
+  }
+  ::obj mixin UnknownHandler
+  T setObjectParams [list [list z:alias,noarg ""]]
+  ? {T create t; ::obj eval {info exists :defaultmethod}} 1 \
+      "Calling defaultmethod via alias+noarg combo with empty default"
+  T setObjectParams [list [list z:alias,noarg "XXX"]]
+  ? {T create t; ::obj eval {info exists :defaultmethod}} 1 \
+      "Calling defaultmethod via alias+noarg non-empty with \
+	default combo (default is not passed)"
+  #
+  # b) intermediary object aliases, non-fully qualified selector 
+  #
+  
+  T setObjectParams [list [list z:alias,noarg ""]]
+  ? {T create tt} ::tt "sending the msg: tt->z()"
+  #
+  # ISSUE: positional objparam + alias + noarg -> what's the point?
+  # noarg & ?z? are irritating, ?z? should not be printed!
+  #
+  ? {T create t XXX} "Invalid argument 'XXX', maybe too many arguments; should be \"::t configure ?z?\""
+
+  ::obj mixin {}
+  T setObjectParams [list z:alias]
+  ? {T create tt YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
+  ::obj mixin UnknownHandler
+  ? {T create tt YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
+      "sending the msg: tt->z(::obj)->YYY()"
+
+
+  ::obj mixin {}
+  T setObjectParams [list -z:alias]
+  ? {T create tt -z YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
+  ::obj mixin UnknownHandler
+  ? {T create tt -z YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
+      "sending the msg: tt->z(::obj)->YYY()"
+    
+  #
+  # [current methodpath] & empty selector strings:
+  #
+
+  ::obj mixin {}
+  T setObjectParams [list z:alias]
+  ? {T create tt ""} "::obj: unable to dispatch method ''" "sending the msg: tt->z->{}()"
+  ::obj mixin UnknownHandler
+  ? {T create tt ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z->{}()"
+  T setObjectParams [list -z:alias]
+  ? {T create tt -z ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z()"
+
+
+  #
+  # Dispatch with a method handle
+  #
+
+  ::T mixin {}
+  ? [list [T create t] $methods(z) XXX] \
+      "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z"
+  
+  T setObjectParams x:alias,method=$methods(z)
+  ? {T create t XXX} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z" \
+      "Non-object FQ selector with default unknown handler"
+  ::T mixin UnknownHandler
+  ? {T create t XXX} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z" \
+      "Non-object FQ selector with custom unknown handler"
+
+  #
+  # A Tcl proc is allowed?!
+  #
+  proc ::baz {x} {
+    set :baz $x
+  }
+  T setObjectParams x:alias,method=::baz
+  ? {[T create t XXX] eval {info exists :baz}} 1
+  ? {[T create t XXX] eval {set :baz}} XXX
+  
+  
+  #
+  # TBD: nested objects
+  #
+
+  #
+  # TBD: object-system methods
+  #
+  
+}
+
+#
+# check xotcl with residual args
+#
+
+nx::Test case xotcl-residualargs {
+  package prefer latest
+  puts stderr "XOTcl loaded: [package req XOTcl]"
+
+  ? {::xotcl::Class create XD -set x 1} "::XD"
+  #? {c1 eval {info exists :args}} 0
+  ? {XD objectparameter} "-mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args:alias,method=residualargs,args"
+
+  #
+  # test passing arguments to init
+  #
+  ::XD instproc init args {
+    set :args $args
+  }
+  
+  ::XD create x1 1 2 3 -set x 1
+  ? {x1 exists x} 1
+  ? {x1 exists args} 1
+  ? {x1 set args} {1 2 3}
+}
+
+
+nx::Test parameter count 1000
+nx::Test case xotcl-residualargs2 {
+
+  ::xotcl::Class create XC -parameter {a b c}
+  ::XC instproc init args {set :x $args; incr :y}
+
+  ::nx::Class create C {
+    :property a
+    :property b
+    :property c
+    :method init args {set :x $args; incr :y}
+  }
+  
+  ? {XC create xc1 -a 1} ::xc1
+  ? {XC create xc2 x y -a 1} ::xc2
+
+  ? {C create c1 -a 1} ::c1
+  ? {xc2 eval {info exists :a}} 1
+  ? {xc2 eval {set :x}} {x y}
+  ? {xc2 eval {set :y}} 1
+  ? {c1 eval {info exists :a}} 1
+  ? {c1 eval {set :y}} 1
+}
+
+nx::Test case xotcl-residualargs-upleveling {
+  #
+  # Test callstack resolution for upvar/uplevel in
+  # parameter-dispatched methods under residualargs() ...
+  #
+  package prefer latest
+  package req XOTcl
+
+  xotcl::Class C -proc onTheFly {name args} {
+    ? [list set _ [info exists ix]] 0
+    ? [list set _ [info exists Y]] 0
+    set c [[self] $name {*}$args]
+    ? [list set _ [info exists ix]] 1
+    ? [list set _ [set ix]] Y
+    ? [list set _ [info exists Y]] 1
+    ? [list set _ [set Y]] 1
+    return $c
+  } -instproc call {x} {
+    # ::nsf::__db_show_stack
+    my uplevel [list set ix $x]
+    my upvar $x _
+    incr _
+  } -instproc call2 {x} {
+    # ::nsf::__db_show_stack
+    uplevel [self callinglevel] [list set ix $x]
+    upvar [self callinglevel] $x _
+    incr _
+  }
+  
+  C onTheFly c1 -call Y
+  C onTheFly c1 -call2 Y 
+}
+
+# TODO: what todo with object parameter inspection for names with
+# alias, forward... "names" do not always correspond with vars set.
+

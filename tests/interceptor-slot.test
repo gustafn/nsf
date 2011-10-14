@@ -1,0 +1,366 @@
+# -*- Tcl -*-
+package require nx
+package require nx::test
+
+namespace import ::nx::*
+
+Class create M {
+  :method mfoo {} {puts [self proc]}
+}
+Class create M2
+Class create C 
+C create c1
+
+#
+# test mixin method
+#
+Test case mixin-method {
+  ? {C info lookup method mixin} "::nsf::classes::nx::Class::mixin"
+  ? {C mixin M} ::M
+  ? {C info precedence} "::nx::Class ::nx::Object"
+  ? {C mixin} "::M"
+  ? {C info mixin classes} "::M"
+  ? {c1 info precedence} "::M ::C ::nx::Object"
+  ? {C mixin add M2} "::M2 ::M"
+  ? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
+  ? {C mixin delete M2} "::M"
+  ? {c1 info precedence} "::M ::C ::nx::Object"
+  ? {C mixin delete M} ""
+  ? {C info mixin classes} ""
+  ? {C mixin ::M} "::M"
+  ? {C mixin {}} ""
+  ? {C info mixin classes} ""
+}
+
+#
+# test nsf::mixin interface
+#
+Test case nsf-mixin {
+  ? {::nsf::mixin C ::M} "::M"
+  ? {C info mixin classes} "::M"
+  ? {::nsf::mixin C ::M2} "::M2 ::M"
+  ? {C info mixin classes} "::M2 ::M"
+  ? {::nsf::mixin C ""} ""
+  ? {C info mixin classes} ""
+}
+
+#
+# per-object mixins
+#
+Test case per-object-mixin {
+  ? {c1 info precedence} "::C ::nx::Object"
+  ? {c1 mixin add M} ::M
+  ? {::nsf::relation c1 object-mixin} ::M
+  ? {catch {c1 mixin UNKNOWN}} 1
+  ? {::nsf::relation c1 object-mixin} "::M"
+
+  # add again the same mixin
+  ? {c1 mixin add M} {::M}
+  ? {c1 info precedence} "::M ::C ::nx::Object"
+  ? {c1 mixin add M2} "::M2 ::M"
+  ? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
+  ? {c1 mixin delete M} "::M2"
+  ? {c1 info precedence} "::M2 ::C ::nx::Object"
+  ? {c1 mixin delete M2} ""
+  ? {c1 info precedence} "::C ::nx::Object"
+}
+
+#
+# adding, removing per-object mixins for classes through relation
+# "object-mixin"
+#
+Test case object-mixin-relation {
+  ? {::nsf::relation C object-mixin M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+  ? {C class info mixin classes} "::M"
+  ? {::nsf::relation C object-mixin ""} ""
+  ? {C info precedence} "::nx::Class ::nx::Object"
+}
+
+#
+# adding, removing per-object mixins for classes through slot
+# "object-mixin"
+#
+ # C object-mixin M
+ # ? {C info precedence} "::M ::nx::Class ::nx::Object"
+ # ? {C class info mixin classes} "::M"
+ # C object-mixin ""
+ # ? {C info precedence} "::nx::Class ::nx::Object"
+
+#
+# add and remove class mixin for classes via modifier "class" and
+# "mixin"
+#
+Test case class+mixin {
+  ? {C class mixin M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+  ? {C class info mixin classes} "::M"
+  ? {C class mixin ""} ""
+  ? {C info precedence} "::nx::Class ::nx::Object"
+}
+
+#
+#  add and remove class mixin for classes via class mixin add
+#
+Test case class+mixin-add {
+  ? {C class mixin add M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+  ? {C class info mixin classes} "::M"
+  ? {C class mixin ""} ""
+  ? {C info precedence} "::nx::Class ::nx::Object"
+  
+  ? {C class mixin add M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+  ? {::nsf::relation C object-mixin} ::M
+  ? {catch {C class mixin add UNKNOWN}} 1
+  ? {::nsf::relation C object-mixin} "::M"
+  ? {C class mixin ""} ""
+  ? {C info precedence} "::nx::Class ::nx::Object"
+
+  ? {C class mixin M} ::M
+  ? {C info precedence} "::M ::nx::Class ::nx::Object"
+
+  # forwarder with 0 arguments + flag
+  ? {C class mixin} "::M"
+}
+
+
+
+Test case mixin-add {
+
+  Class create M1 {
+    :method mfoo {} {puts [current method]}
+  }
+  Class create M11
+  Class create C1 
+
+  ? {C1 info lookup method mixin} "::nsf::classes::nx::Class::mixin"
+  C1 class mixin M1
+  ? {C1 info precedence} "::M1 ::nx::Class ::nx::Object"
+  C1 create c11
+  ? {c11 info precedence} "::C1 ::nx::Object"
+  C1 class mixin add M11
+  ? {C1 info precedence} "::M11 ::M1 ::nx::Class ::nx::Object"
+  Object create o -mixin M1
+  ? {o info precedence} "::M1 ::nx::Object"
+
+  Class create O 
+  O class mixin M1
+  ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
+  Class create O -object-mixin M1
+  ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
+}
+
+Test parameter count 3
+Test case "filter-and-creation" {
+  Class create Foo {
+    :public method myfilter {args} {
+      set i [::incr ::count]
+      set s [self]
+      set m [current calledmethod]
+      #puts stderr "$i: $s.$m"
+      #puts stderr "$i: procsearch before [$s procsearch info]"
+      set r [next]
+      #puts stderr "$i: $s.$m got ($r)"
+      #puts stderr "$i: $s.$m procsearch after [$s info lookup method info]"
+      return $r
+    }
+    # method for testing next to non-existing shadowed method
+    :public method baz {} {next}
+  }
+
+  ? {Foo create ob} ::ob
+
+  # make sure, no unknown handler exists
+  #? {::ob info lookup method unknown} "::nsf::classes::nx::Object::unknown"
+  ? {::ob info lookup method unknown} ""
+
+  ? {ob bar} {::ob: unable to dispatch method 'bar'}
+  ? {ob baz} {}
+
+  # define a global unknown handler
+  ::nx::Object protected method unknown {m args} {
+    error "[::nsf::current object]: unable to dispatch method '$m'"
+  }
+
+  ? {ob bar} {::ob: unable to dispatch method 'bar'}
+  ? {ob baz} {}
+
+  Foo filter myfilter
+  # create through filter
+  ? {Foo create ob} ::ob
+
+  # unknown through filter
+  ? {ob bar1} {::ob: unable to dispatch method 'bar1'}
+  ? {ob baz} {}
+
+  # deactivate nx unknown handler in case it exists
+  ::nx::Object method unknown {} {}
+
+  # create through filter
+  ? {Foo create ob2} ::ob2
+
+  # unknown through filter
+  ? {ob2 bar2} {::ob2: unable to dispatch method 'bar2'}
+  ? {ob2 baz} {}
+
+}
+
+
+Test parameter count 1
+#
+# Test the next-path with just intrinsic classes in cases where a
+# method handle is used for method dispatch
+#
+
+nx::Test case intrinsic+method-handles {
+  Class create A {:public method foo {} {return "A [next]"}}
+  Class create B -superclass A {:public method foo {} {return "B [next]"}}
+  Class create C -superclass B {:public method foo {} {return "C [next]"}}
+  
+  C create c1
+  ? {c1 foo} "C B A "
+  ? {c1 [C info method origin foo]} "C B A "
+  ? {c1 [B info method origin foo]} "B A "
+  ? {c1 [A info method origin foo]} "A "
+
+  # we expect same results via dispatch with fully qualified names
+  ? {nsf::dispatch c1 foo} "C B A "
+  ? {nsf::dispatch c1 [C info method origin foo]} "C B A "
+  ? {nsf::dispatch c1 [B info method origin foo]} "B A "
+  ? {nsf::dispatch c1 [A info method origin foo]} "A "
+
+  # 
+  # check, whether the context of "my -local" is correct
+  #
+  A public method bar {} {nsf::my -local foo}
+  B public method bar {} {nsf::my -local foo}
+  C public method bar {} {nsf::my -local foo}
+
+  ? {c1 bar} "C B A "
+  ? {c1 [C info method origin bar]} "C B A "
+  ? {c1 [B info method origin bar]} "B A "
+  ? {c1 [A info method origin bar]} "A "
+}
+
+#
+# Test the next-path with mixin classes in cases where a
+# method handle is used for method dispatch
+#
+
+nx::Test case mixins+method-handles {
+  #
+  # Just mixin classes
+  #
+  Class create A {:public method foo {} {return "A [next]"}}
+  Class create B {:public method foo {} {return "B [next]"}}
+  Class create C {:public method foo {} {return "C [next]"}}
+
+  Class create X -mixin {C B A}
+  X create c1
+  ? {c1 foo} "C B A "
+  ? {c1 [C info method origin foo]} "C B A "
+  ? {c1 [B info method origin foo]} "B A "
+  ? {c1 [A info method origin foo]} "A "
+  
+  #
+  # Intrinsic classes and mixin classes
+  #
+
+  Class create Y {:public method foo {} {return "Y [next]"}}
+  Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
+
+  Z create c1 -mixin {C B A}
+  ? {c1 foo} "C B A Z Y "
+  ? {c1 [C info method origin foo]} "C B A Z Y "
+  ? {c1 [B info method origin foo]} "B A Z Y "
+  ? {c1 [A info method origin foo]} "A Z Y "
+  ? {c1 [Z info method origin foo]} "Z Y "
+  ? {c1 [Y info method origin foo]} "Y "
+
+  # 
+  # check, whether the context of "my -local" is correct
+  #
+  A public method bar {} {nsf::my -local foo}
+  B public method bar {} {nsf::my -local foo}
+  C public method bar {} {nsf::my -local foo}
+  Y public method bar {} {nsf::my -local foo}
+  Z public method bar {} {nsf::my -local foo}
+
+  ? {c1 bar} "C B A Z Y "
+  ? {c1 [C info method origin bar]} "C B A Z Y "
+  ? {c1 [B info method origin bar]} "B A Z Y "
+  ? {c1 [A info method origin bar]} "A Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Y "
+
+}
+
+
+#
+# Test the next-path with mixin classes in cases where a
+# method handle is used for method dispatch
+#
+
+nx::Test case mixins+method-handles+intrinsic {
+  #
+  # Just mixin classes
+  #
+  Class create A {:public method foo {} {return "A [next]"}}
+  Class create B {:public method foo {} {return "B [next]"}}
+  Class create C {:public method foo {} {return "C [next]"}}
+
+  Class create X -mixin {C B A} {
+    :public method foo {} {return "X [next]"}
+  }
+  X create c1
+  ? {c1 foo} "C B A X "
+  ? {nsf::dispatch c1 -intrinsic foo} "X "
+
+  
+  #
+  # Intrinsic classes and mixin classes
+  #
+
+  Class create Y {:public method foo {} {return "Y [next]"}}
+  Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
+
+  Z create c1 -mixin {C B A}
+  ? {c1 foo} "C B A Z Y "
+  ? {nsf::dispatch c1 -intrinsic foo} "Z Y "
+
+  # 
+  # check, whether the context of "my -intrinsic" is correct
+  #
+  A public method bar {} {nsf::my -intrinsic foo}
+  B public method bar {} {nsf::my -intrinsic foo}
+  C public method bar {} {nsf::my -intrinsic foo}
+  Y public method bar {} {nsf::my -intrinsic foo}
+  Z public method bar {} {nsf::my -intrinsic foo}
+
+  ? {c1 info precedence} "::C ::B ::A ::Z ::Y ::nx::Object"
+  ? {c1 bar} "Z Y "
+  ? {c1 [C info method origin bar]} "Z Y "
+  ? {c1 [B info method origin bar]} "Z Y "
+  ? {c1 [A info method origin bar]} "Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Z Y "
+
+  # 
+  # check, whether the context of "nsf::dispatch [self] -intrinsic" is correct
+  #
+  A public method bar {} {nsf::dispatch [self] -intrinsic foo}
+  B public method bar {} {nsf::dispatch [self] -intrinsic foo}
+  C public method bar {} {nsf::dispatch [self] -intrinsic foo}
+  Y public method bar {} {nsf::dispatch [self] -intrinsic foo}
+  Z public method bar {} {nsf::dispatch [self] -intrinsic foo}
+
+  ? {c1 bar} "Z Y "
+  ? {c1 [C info method origin bar]} "Z Y "
+  ? {c1 [B info method origin bar]} "Z Y "
+  ? {c1 [A info method origin bar]} "Z Y "
+  ? {c1 [Z info method origin bar]} "Z Y "
+  ? {c1 [Y info method origin bar]} "Z Y "
+}
+
+

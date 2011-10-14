@@ -1,0 +1,4 @@
+[:? {![info exists cssclass]} {
+[:!let cssclass nsfdoc-link]
+}]
+<a class="$cssclass" title="$title" href="[:href $top_entity]">$source_anchor</a>

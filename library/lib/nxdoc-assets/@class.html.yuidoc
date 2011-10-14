@@ -1,0 +1,289 @@
+[:include filter]
+<h2>
+  Class
+  <b property="yui:name">[:print_name -status]</b>
+  [:?var :@superclass {
+  <span class="extends">
+  - subclass of
+  [:for super ${:@superclass} {
+    <a href="[${super} filename].html" title="[$super name]">[$super name]</a>
+  }]
+    </span>
+  }]
+</h2>
+<div class="section">
+<code>
+  ${:name}
+  <strong property="yui:name">create</strong>
+  <span class="var">obj</span>
+  <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
+</code>
+</div>
+
+[:?var :@see {
+<div class="deprecated"><strong>See also:</strong>${:@see}</div>
+}]
+
+<div class="summary description" property="yui:description">
+  [:as_text]
+</div>
+[:? {[:pinfo exists validation]} {
+<span style='display:block; color: red'>[join [:pinfo get validation]]</span>
+}]
+
+
+[:?var :@class-attribute {
+[:!let class_attrs [:!get -sortedby name -with name @class-attribute]]
+<div rel="yui:properties" resource="#properties">
+  <div class="section field details">
+    <h3 id="properties">Provided Parameters</h3>
+    <div class="section field member"
+         rel="yui:member"  resource="#">
+      <div class="content" rel="yui:properties">
+        These parameters can be used to configure instances of this class:
+        <code>
+          [:for attr [dict values $class_attrs] {
+	  [:!let depr [expr {[$attr !get @deprecated]?"deprecated":""}]]
+          <span rel="yui:property"
+		class="filter $depr [$attr statustoken]"
+                resource="#[$attr href -local]">                                        
+            <a
+               href="#[$attr href -local]" property="yui:name"
+               title="[$attr name]">[$attr name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    <hr>
+    <div class="content">
+      [:for attr [dict values $class_attrs] {
+      [:!let depr [expr {[$attr !get @deprecated]?"deprecated":""}]]
+       <div rel="yui:property" class="filter [$attr statustoken] $depr">
+        <h4><a name="[$attr href -local]" property="yui:name">[$attr print_name -status]</a>
+        </h4>
+        <div class="detail">
+          <div class="description" property="yui:description">
+	    [:? {[$attr pinfo exists validation]} {
+	      <span style='display:block; color: red'>[$attr pinfo get validation]</span>
+	    }]
+	    [$attr as_text]
+          </div>
+        </div>
+	
+        
+        [:?objvar $attr default {
+        <div class="default" property="yui:defaultValue">
+          Default Value: $default
+        </div>        
+	}]
+	
+	[:? {[$attr eval {info exists :deprecated}]} {
+        <div class="deprecated" property="yui:deprecated">
+          <strong>Deprecated:</strong> [$attr default]
+        </div>        
+	}]
+	
+        <hr />
+    </div>
+    }]
+    </div>
+  </div>
+</div>
+}]
+
+[:!let iattrs [:inherited @class-attribute]]
+[:? {$iattrs ne ""} { 
+  <div rel="yui:inheritance">                    
+    [:for superclass [dict keys $iattrs]  {
+    [:!let attrs [dict values [dict get $iattrs $superclass]]]
+    <div class="section field inheritance"
+         rel="yui:superclass"  resource="[$superclass filename].html">
+      <h4>Inherited Parameters
+        from <a href="[$superclass filename].html" property="yui:name"
+                title="[$superclass name]">[$superclass name]</a>:</h4>
+      <div class="content" rel="yui:properties">
+        <code>
+          [:for a $attrs {
+	  [:!let depr [expr {[$a !get @deprecated]?"deprecated":""}]]
+          <span rel="yui:property"
+		class="filter $depr [$a statustoken]"
+                resource="[$superclass filename].html#attribute_[$a name]">                                        
+            <a
+               href="[$a href]" property="yui:name"
+               title="[$a name]">[$a name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    }]
+  </div>
+  }]
+
+[:?var :@object-attribute {
+<div rel="yui:properties" resource="#properties">
+  <div class="section field details">
+    <h3 id="properties">Per-object parameters</h3>
+    <div class="content">
+      
+      [:for attr ${:@object-attribute} {
+      [:!let depr [expr {[$attr !get @deprecated]?"deprecated":""}]]
+      <div rel="yui:property" class="filter [$attr statustoken] $depr">
+        <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
+        </h4>
+        <div class="detail">
+          <div class="description" property="yui:description">
+	    [$attr as_text]
+          </div>
+        </div>
+	
+        
+        [:? {[$attr eval {info exists :default}]} {
+        <div class="default" property="yui:defaultValue">
+          Default Value: [$attr default]
+        </div>        
+	}]
+	
+	[:? {[$attr eval {info exists :deprecated}]} {
+        <div class="deprecated" property="yui:deprecated">
+          <strong>Deprecated:</strong> [$attr]
+        </div>        
+	}]
+	
+        <hr />
+      </div>
+   
+      }]
+    </div>
+  </div>
+</div>
+}]
+
+[:?var :@class-method {
+[:!let class_methods [:!get -sortedby name @class-method]]
+<div rel="yui:methods" resource="#methods">
+  <div class="section method details">
+    <h3 id="methods">Provided Methods</h3>
+    <div class="section field member"
+         rel="yui:member"  resource="#">
+      <div class="content" rel="yui:properties">
+        <code>
+          [:for m $class_methods {
+	  [:!let modifier [expr {[$m pinfo get -default 0 bundle call-protected]?"protected":""}]]
+	  [:!let depr [expr {[$m !get @deprecated]?"deprecated":""}]]
+         <span rel="yui:property"
+	        class="filter $modifier [$m statustoken] $depr"
+                resource="#[$m href -local]">                                        
+            <a
+               href="#[$m href -local]" property="yui:name"
+               title="[$m name]">[$m name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    <hr>
+    <div class="content">
+      [:for method $class_methods {
+      [:? {[info exists class_attrs] && [dict exists $class_attrs [$method name]]} {
+      [$method render -initscript [list set owning_attribute [dict get $class_attrs [$method name]]] attributemethod]
+      } - {
+      [$method render]
+      }] <!-- end-of-if -->
+      }] <!-- end-of-for -->
+    </div>
+  </div>
+</div>
+}] <!-- end-of-?var -->
+
+  [:!let imethods [:inherited @class-method]]
+  [:? {$imethods ne ""} { 
+  <div rel="yui:inheritance">
+    [:for superclass [dict keys $imethods]  {
+    [:!let ms [dict values [dict get $imethods $superclass]]]
+    <div class="section field inheritance"
+         rel="yui:superclass"  resource="[$superclass filename].html">
+      <h4>Inherited Methods
+        from <a href="[$superclass filename].html" property="yui:name"
+                title="[$superclass name]">[$superclass name]</a>:</h4>
+      <div class="content" rel="yui:methods">
+        <code>
+          [:for m $ms {
+	  [:!let depr [expr {[$m !get @deprecated]?"deprecated":""}]]
+          <span rel="yui:method"
+		class="filter $depr [$m statustoken]"
+                resource="[$superclass filename].html#method_[$m name]">                            
+            <a
+               href="[$m href]" property="yui:name"
+               title="[$m name]">[$m name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    }]
+  </div>
+}]
+
+
+[:?var :@object-method {
+[:!let omethods [:!get -sortedby name @object-method]]
+<div rel="yui:object-methods" resource="#object-methods">
+  <div class="section method details">
+    <h3 id="object-methods">Per-object methods</h3>
+          <div class="content" rel="yui:properties">
+        <code>
+          [:for m $omethods {
+	  [:!let depr [expr {[$m !get @deprecated]?"deprecated":""}]]
+          <span rel="yui:property"
+		class="filter $depr [$m statustoken]"
+                resource="#[$m href -local]">                                        
+            <a 
+               href="#[$m href -local]" property="yui:name"
+               title="[$m name]">[$m name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    <hr>
+    <div class="content">
+      [:for omethod $omethods {
+      [$omethod render]    
+      }] <!-- end-of-for -->
+    </div>
+  </div>
+</div>}]
+
+[:!let hooks [:!get -sortedby name @class-hook]]
+[:? {[llength $hooks] > 0} {
+<div rel="yui:methods" resource="#methods">
+  <div class="section method details">
+    <h3 id="methods">Hook methods</h3>
+    <div class="section field member"
+         rel="yui:member"  resource="#">
+      <div class="content" rel="yui:properties">
+        <code>
+          [:for m $hooks {
+	  [:!let modifier [expr {[$m pinfo get -default 0 bundle call-protected]?"protected":""}]]
+	  [:!let depr [expr {[$m !get @deprecated]?"deprecated":""}]]
+         <span rel="yui:property"
+	        class="filter $modifier [$m statustoken] $depr"
+                resource="#[$m href -local]">                                        
+            <a
+               href="#[$m href -local]" property="yui:name"
+               title="[$m name]">[$m name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    <hr>
+    <div class="content">
+      [:for method $hooks {
+      [$method render hookmethod]
+      }] <!-- end-of-for -->
+    </div>
+  </div>
+</div>
+}]

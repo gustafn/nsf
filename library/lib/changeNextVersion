@@ -1,0 +1,96 @@
+# -*- Tcl -*-
+#
+# this is a maintenance program for Next Scripting that allows us to change the 
+# version information across the whole distribution automatically.
+# 
+# this program assumes that pwd is in nx-full-X.X* directory or subdir
+#
+set NX_MAJOR_VERSION 2
+set NX_MINOR_VERSION 0
+set NX_RELEASE_LEVEL .0
+
+# example settings: 
+# 1.0
+#set NX_MAJOR_VERSION 1
+#set NX_MINOR_VERSION 0
+#set NX_RELEASE_LEVEL .3
+#
+# 0.9.3
+#set NX_MAJOR_VERSION 0
+#set NX_MINOR_VERSION 9
+#set NX_RELEASE_LEVEL .3
+
+#set NX_MAJOR_VERSION 0
+#set NX_MINOR_VERSION 9
+#set NX_RELEASE_LEVEL .3
+#set NX_RELEASE_LEVEL .4
+#set NX_RELEASE_LEVEL .5
+
+
+set NX_VERSION $NX_MAJOR_VERSION.$NX_MINOR_VERSION
+set FULL_VERSION $NX_VERSION$NX_RELEASE_LEVEL
+
+if {![regexp {((^.*/nx-)([0-9.][0-9.a-z_-]*))/?} [pwd] _ topdirname topdirprefix oldversion]} {
+  error "this program assumes that pwd is in nx-X.X* directory"
+}
+
+puts "Prior version is: $oldversion"
+puts "New version is:   $FULL_VERSION"
+puts "Working in:       $topdirname"
+
+cd $topdirname
+
+puts "... make clean first"
+if {[file exists Makefile]} {
+  exec make clean
+}
+
+foreach file [exec find . -name configure.in] {
+  puts "... updating $file"
+  set F [open $file]; set c [read $F]; close $F
+  set newFile ""
+  foreach line [split $c \n] {
+    set newLine $line
+    if {[regexp {^NX_MAJOR_VERSION=[0-9]} $line]} {
+      set line "NX_MAJOR_VERSION=$NX_MAJOR_VERSION"
+    } elseif {[regexp {^NX_MINOR_VERSION=[0-9]} $line]} {
+      set line "NX_MINOR_VERSION=$NX_MINOR_VERSION"
+    } elseif {[regexp {^NX_RELEASE_LEVEL=} $line]} {
+      set line "NX_RELEASE_LEVEL=$NX_RELEASE_LEVEL"
+    } elseif {[regexp {^define\(NxVersion, .*$} $line]} {
+      set line "define(NxVersion, $NX_MAJOR_VERSION.$NX_MINOR_VERSION$NX_RELEASE_LEVEL)"
+    }
+    append newFile $line\n
+  }
+  set F [open $file w]; puts $F $newFile; close $F
+}
+
+set newtopdirname $topdirprefix$FULL_VERSION
+if {$oldversion != $FULL_VERSION} {
+  puts "topdir:               $topdirname->$newtopdirname"
+  file rename -force $topdirname $newtopdirname
+} 
+cd $newtopdirname
+
+foreach file [exec find . -name configure.in] {
+  set dir [file dirname $file]
+  set oldpwd [pwd]
+  cd $dir
+  exec autoconf
+  cd $oldpwd
+}
+
+# determine last configure command
+cd $newtopdirname
+if {[catch {set configurecmd [exec fgrep {$ ./configure} config.log]}]} {
+  set configurecmd "./configure"
+} else {
+  regsub {^ +\$ } $configurecmd "" configurecmd
+}
+#puts $configurecmd
+
+cd $newtopdirname/
+puts "Configuring in [pwd]"
+eval exec $configurecmd
+
+puts "ok ... version is now $FULL_VERSION"

@@ -1,0 +1,62 @@
+<div class="paragraph">
+  [:as_text]
+</div>
+<div class="title">Usage</div>
+<div><tt><strong style="font-weight: bold;" property="yui:name">${:name}</strong>
+    <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
+  </tt>
+</div>    
+[:?var :@command {
+[:!let subs [:!get -sortedby name @command]]
+[:for sub $subs {
+<div class="dlist">
+  <hr/>
+  <dt class="hdlist1">
+    ${:name} [$sub name]
+  </dt>
+  <dd>
+    <p>[$sub as_text]</p>
+    <div class="title">Usage</div>
+      <div><tt><strong>${:name} [$sub name]</strong> <span class="var">[:pinfo get -default "" bundle parametersyntax]</span></tt>
+      </div>
+    [:?objvar $sub @parameter {
+    <div class="title">Parameters</div>
+    <div class="dlist">
+      [:for param [$sub !get @parameter] {
+      <dt><tt>[$param print_name]</tt></dt>
+      <dd><p>[$param as_text]</p></dd>
+      }]
+    </div>
+    }]
+    [:?objvar $sub @return {
+    <div class="title">Return</div>
+    [:!let ret [$sub !get @return]]
+    [$ret as_text]
+    }]
+  </dd>
+</div>
+
+}]
+} - {
+[:?var :@parameter {
+<div class="title">Parameters</div>
+<div class="dlist">
+  [:for param [:!get @parameter] {
+  <dt><tt>[$param print_name]</tt></dt>
+  <dd><p>[$param as_text]</p></dd>
+  }]
+</div>
+}]
+[:?var :@return {
+<div class="title">Return</div>
+[:!let ret [:!get @return]]
+[$ret as_text]
+}]
+}]
+
+
+
+
+
+
+  

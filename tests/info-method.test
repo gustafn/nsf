@@ -1,0 +1,1025 @@
+# -*- Tcl -*-
+package req nx
+::nx::configure defaultMethodCallProtection false
+package require nx::test
+
+#
+# Test info superclass with closure and patterns (with and without
+# wildcards, prefixed or not, success or not).
+#
+nx::Test case info-superclass {
+  nx::Class create C
+  nx::Class create D -superclass C
+
+  # no patterns
+  ? {D info superclass} "::C"
+  ? {D info superclass -closure} "::C ::nx::Object"
+
+  # fully qualified pattern, no wild-card characters, success
+  ? {D info superclass ::C} "::C"
+  ? {D info superclass -closure ::C} "::C"
+
+  # unprefixed pattern, no wild-card characters, success
+  ? {D info superclass C} "::C"
+  ? {D info superclass -closure C} "::C"
+
+  # fully qualified pattern, no wild-card characters, no success
+  ? {D info superclass ::D} ""
+  ? {D info superclass -closure ::D} ""
+  ? {D info superclass ::Dx} ""
+  ? {D info superclass -closure ::Dx} ""
+
+  # unprefixed pattern, no wild-card characters, no success
+  ? {D info superclass D} ""
+  ? {D info superclass -closure D} ""
+  ? {D info superclass Dx} ""
+  ? {D info superclass -closure Dx} ""
+
+  # fully qualified pattern, wild-card characters, success
+  ? {D info superclass ::*} "::C"
+  ? {D info superclass -closure ::C*} "::C"
+  ? {D info superclass -closure ::*} "::C ::nx::Object"
+  ? {D info superclass -closure ::nx*} "::nx::Object"
+
+  # unprefixed pattern, wild-card characters, success
+  ? {D info superclass C*} "::C"
+  ? {D info superclass -closure *} "::C ::nx::Object"
+  ? {D info superclass -closure nx*} "::nx::Object"
+
+  # fully qualified pattern, wild-card characters, no success
+  ? {D info superclass ::*D} ""
+  ? {D info superclass -closure ::*D} ""
+
+  # unprefixed pattern, wild-card characters, no success
+  ? {D info superclass C*x} ""
+  ? {D info superclass -closure C*x} ""
+}
+
+#
+# Test "info method", base cases
+#
+
+nx::Test case info-method-base {
+  nx::Object create o {
+    :alias set ::set
+  }
+
+  nx::Class create C {
+    :method m {x} {return proc-[self proc]}
+    :class method mpo {} {return instproc-[self proc]}
+    :method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
+    
+    :forward addOne expr 1 +
+    :class forward add1 expr 1 +
+    :class forward fpo ::o
+    
+    :property s 
+    :class property spo
+    
+    :alias a ::set
+    :class alias apo ::puts
+  }
+  C create c1
+  
+  ? {lsort [C info methods -callprotection all]} "a addOne m m-with-assertions s"
+  #? {lsort [C info methods]} "a addOne s"
+  foreach m [lsort [C info methods -callprotection all]] {
+    ? [subst -nocommands {lsort [c1 info lookup methods $m]}] $m
+  }
+  ? {C info method definition a} "::C public alias a ::set"
+  ? {c1 info lookup method a} "::nsf::classes::C::a"
+  ? {c1 info lookup method addOne} "::nsf::classes::C::addOne"
+  ? {c1 info lookup method m} "::nsf::classes::C::m"
+  ? {c1 info lookup method s} "::nsf::classes::C::s"
+  c1 method foo {} {puts foo}
+  ? {c1 info method definition foo} "::c1 public method foo {} {puts foo}"
+  ? {c1 info lookup method foo} "::c1::foo"
+  
+  ? {C info method handle m} "::nsf::classes::C::m"
+  ? {C class info method handle mpo} "::C::mpo"
+  
+  ? {C info method definition m} {::C public method m x {return proc-[self proc]}}
+  ? {C info method def m} {::C public method m x {return proc-[self proc]}}
+  ? {C class info method definition mpo} {::C public class method mpo {} {return instproc-[self proc]}}
+  if {$::nsf::config(assertions)} {
+    ? {C info method definition m-with-assertions} \
+	{::C public method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
+  } else {
+    ? {C info method definition m-with-assertions} \
+	{::C public method m-with-assertions {} {return proc-[self proc]}}
+  }
+  ? {C info method parameter m} {x}
+  ? {nx::Class info method parameter method} \
+      {name arguments:parameter,0..* -returns body -precondition -postcondition}
+  ? {nx::Object info method parameter alias} \
+      {methodName -returns {-frame default} cmd}
+  # raises currently an error
+  ? {catch {C info method parameter a}} 1
+  
+  ? {C info method definition addOne} "::C public forward addOne expr 1 +"
+  ? {C class info method definition add1} "::C public class forward add1 expr 1 +"
+  ? {C class info method definition fpo} "::C public class forward fpo ::o"
+  
+  ? {C info method definition s} "::C public setter s"
+  ? {C class info method definition spo} "::C public class setter spo"
+  
+  ? {C info method definition a} "::C public alias a ::set"
+  ? {C class info method definition apo} "::C public class alias apo ::puts"
+  
+  ? {::nx::Object info lookup methods -source application} ""
+  ? {::nx::Class info lookup methods -source application} ""
+
+  set object_methods "alias configure contains copy delete destroy eval filter forward info method mixin move private property protected public require variable volatile"
+  set class_methods "alias class configure contains copy create delete destroy eval filter forward info method mixin move new private property protected public require variable volatile"
+
+  ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
+  ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods
+  ? {lsort [::nx::Object info lookup methods -source all]} $class_methods
+  ? {lsort [::nx::Class info lookup methods -source all]} $class_methods
+  ? {lsort [::nx::Object info lookup methods]} $class_methods
+  ? {lsort [::nx::Class info lookup methods]} $class_methods
+  ? {lsort [C info lookup methods -source application]} "add1 apo fpo mpo spo"
+  ? {lsort [c1 info lookup methods -source application]} "a addOne foo m m-with-assertions s"
+  ? {lsort [C info lookup methods -source baseclasses]} $class_methods
+  ? {lsort [c1 info lookup methods -source baseclasses]} $object_methods
+
+  ::nx::configure defaultMethodCallProtection true
+  #
+  # the subsequent tests assume defaultMethodCallProtection == true
+  #
+  ? {::nx::configure defaultMethodCallProtection} true
+  
+  ::nx::Class create MC -superclass ::nx::Class {
+    :protected method bar1 args {;}
+    :method bar2 args {;}
+    :public method foo args {;}
+    :public class method foo args {;}
+  }
+
+  ? {lsort [MC info methods -methodtype scripted -callprotection public]} "foo"
+  ? {lsort [MC info methods -methodtype scripted -callprotection protected]} "bar1 bar2"
+  ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
+  
+
+  ::nsf::method::property ::MC foo call-protected true
+  ::nsf::method::property ::MC bar2 call-protected false
+  
+  ? {lsort [MC info methods -methodtype scripted -callprotection public]} "bar2"
+  ? {lsort [MC info methods -methodtype scripted -callprotection protected]} "bar1 foo"
+  ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
+  ::nx::configure defaultMethodCallProtection false
+}
+
+nx::Test case subobj {
+  ::nx::Object create o {
+    ::nx::Object create [::nx::self]::sub {
+      :method foo {} {;}
+    }
+    :alias subal ::o::sub
+  }
+  ? {o info methods} "sub subal"
+  ? {o info method type sub} "object"
+  ? {o info method definition sub} "::nx::Object create ::o::sub"
+  ? {o info method type subal} "alias"
+}
+
+nx::Test case callable {
+    # define the same method for Object and Class
+    ::nx::Object method bar {} {return Object.bar}
+    ::nx::Class method bar {} {return Class.bar}
+
+    ::nx::Object create o
+    ? {o info lookup method bar} "::nsf::classes::nx::Object::bar"
+    ? {o info lookup methods bar} bar
+    ? {o bar} Object.bar
+
+    o mixin ::nx::Class
+    ? {o info precedence} "::nx::Class ::nx::Object"
+    ? {o info lookup method bar} "::nsf::classes::nx::Class::bar"
+    ? {o info lookup methods bar} bar
+    ? {o info lookup methods create} ""
+    ? {o info lookup method create} ""
+    ? {o bar} Class.bar
+
+    ? {o method foo {} {return o.foo}} "::o::foo"
+    ? {o alias is ::nsf::is} "::o::is"
+    ? {o property x} "::o::x"
+    ? {lsort [o info methods]} "foo is x"
+
+    ? {o property A} ::o::A
+    ? {o forward fwd ::set} ::o::fwd
+    ? {lsort [o info methods]} "A foo fwd is x"
+
+    o method f args ::nx::next
+    ? {o info lookup methods create} ""
+    ? {o info lookup methods filter} "filter"
+    ? {o info lookup method filter} "::nsf::classes::nx::Object::filter"
+    ? {o filter f} "f"
+    ? {o filter guard f { 1 == 1 }} ""
+    ? {o info filter guard f} " 1 == 1 "
+    ? {o filter guard f} " 1 == 1 "
+    o filter ""
+
+    nx::Class create Foo
+    ? {Foo method f args ::nx::next} "::nsf::classes::Foo::f"
+    ? {Foo method f2 args ::nx::next} "::nsf::classes::Foo::f2"
+    ? {Foo filter {f f2}} ""
+    ? {Foo info filter methods} "f f2"
+    ? {Foo filter guard f {2 == 2}} ""
+    ? {Foo info filter guard f} "2 == 2"
+    ? {Foo info filter methods -guards f} "{f -guard {2 == 2}}"
+    ? {Foo info filter methods -guards f2} "f2"
+    ? {Foo info filter methods -guards} "{f -guard {2 == 2}} f2"
+    ? {Foo filter {}} ""
+
+    ? {Foo class method f args ::nx::next} "::Foo::f"
+    ? {Foo class method f2 args ::nx::next} "::Foo::f2"
+    ? {Foo class filter {f f2}} "f f2"
+    ? {Foo class info filter methods} "f f2"
+    ? {Foo class filter guard f {2 == 2}} ""
+    ? {Foo class info filter guard f} "2 == 2"
+    ? {Foo class info filter methods -guards f} "{f -guard {2 == 2}}"
+    ? {Foo class info filter methods -guards f2} "f2"
+    ? {Foo class info filter methods -guards} "{f -guard {2 == 2}} f2"
+    ? {Foo class filter {}} ""
+    Foo destroy 
+
+    nx::Class create Fly
+    o mixin add Fly
+    ? {o info mixin classes} "::Fly ::nx::Class"
+    ? {o mixin guard ::Fly {1}} ""
+    ? {o info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {o info mixin classes -guards Fly} "{::Fly -guard 1}"
+    o mixin delete ::Fly
+    ? {o info mixin classes} "::nx::Class"
+
+    nx::Class create Foo
+    Foo mixin add ::nx::Class
+    Foo mixin add Fly
+    ? {Foo info mixin classes} "::Fly ::nx::Class"
+    ? {Foo mixin guard ::Fly {1}} ""
+    ? {Foo info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo info mixin classes -guards Fly} "{::Fly -guard 1}"
+    Foo mixin delete ::Fly
+    ? {Foo info mixin classes} "::nx::Class"
+
+    Foo class mixin add ::nx::Class
+    Foo class mixin add Fly
+    ? {Foo class info mixin classes} "::Fly ::nx::Class"
+    ? {Foo class mixin guard ::Fly {1}} ""
+    ? {Foo class info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo class info mixin classes -guards Fly} "{::Fly -guard 1}"
+
+    Foo class mixin delete ::Fly
+    ? {Foo class info mixin classes} "::nx::Class"
+
+    ? {Foo info lookup methods create} "create"
+    ? {Foo info lookup method create} "::nsf::classes::nx::Class::create"
+    
+    ? {o mixin ""} ""
+}
+
+
+#
+# test info slot objects / info lookup slots
+#
+nx::Test case info-slots {
+
+  nx::Class create C {
+    :property a
+    :property {b 1}
+  }
+  
+  nx::Class create D -superclass C {
+    :property {b 2}
+    :property c
+    :class property a2
+    :method "sub foo" args {;}
+    :create d1 {
+      :property a3
+    }
+  }
+
+  ? {C info slot objects} "::C::slot::a ::C::slot::b"
+  ? {D info slot objects} "::D::slot::b ::D::slot::c"
+  ? {D info slot objects -closure -source application} "::D::slot::b ::D::slot::c ::C::slot::a"
+  ? {d1 info lookup slots -source application} "::d1::per-object-slot::a3 ::D::slot::b ::D::slot::c ::C::slot::a"
+
+  ? {D class info slot objects} "::D::per-object-slot::a2"
+  ? {d1 info slot objects} "::d1::per-object-slot::a3"
+  ? {C class info slot objects} ""
+}
+
+#
+# test info slot objects / info lookup slots
+#
+nx::Test case slots {
+
+  nx::Class create C {
+    :property a
+    :property {b 1}
+  }
+  
+  nx::Class create D -superclass C {
+    :property {b 2}
+    :property c
+    :class property a2
+    :method "sub foo" args {;}
+  }
+
+  ? {D info lookup slots} "::D::per-object-slot::a2 ::nx::Class::slot::superclass ::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::__initcmd ::nx::Object::slot::class"
+
+  C create c1
+  ? {c1 info precedence} "::C ::nx::Object"
+  ? {C info heritage} "::nx::Object"
+  ? {C info slot objects -closure -source application} "::C::slot::a ::C::slot::b"
+  ? {C info slot objects -closure} "::C::slot::a ::C::slot::b ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+
+  ? {C info slot objects} "::C::slot::a ::C::slot::b"
+
+  # Test patterns for "info slot objects"
+  # Partial name, no metachars
+  ? {C info slot objects -closure mixin} "::nx::Object::slot::mixin"
+  # Partial name with metachars
+  ? {C info slot objects -closure *in*} \
+      "::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd"
+  # Fully qualified name, no metachars
+  ? {C info slot objects -closure ::nx::Object::slot::mixin} "::nx::Object::slot::mixin"
+  # Fully qualified name, with metachars
+  # The following command returns the same as "C info slot objects"
+  ? {C info slot objects -closure ::C::*} "::C::slot::a ::C::slot::b"
+  # The following command returns the slots of D inherited from
+  # C. Slot "b" is shadoed by D.
+  ? {D info slot objects -closure ::C::*} "::C::slot::a"
+  
+  # Test patterns for "info lookup slots"
+  # Partial name, no metachars
+  ? {c1 info lookup slots mixin} "::nx::Object::slot::mixin"
+  # Partial name with metachars
+  ? {c1 info lookup slots *in*} \
+      "::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd"
+  # Fully qualified name, no metachars
+  ? {c1 info lookup slots ::nx::Object::slot::mixin} "::nx::Object::slot::mixin"
+  # Fully qualified name, with metachars
+  ? {c1 info lookup slots ::C::*} "::C::slot::a ::C::slot::b"
+
+  D create d1
+  ? {D info slot objects} "::D::slot::b ::D::slot::c"
+  ? {D info slot objects -closure -source application} "::D::slot::b ::D::slot::c ::C::slot::a"
+
+  ? {::nx::Object info method parameter info} ""
+
+  ? {d1 info precedence} "::D ::C ::nx::Object"
+  ? {d1 info lookup slots} "::D::slot::b ::D::slot::c ::C::slot::a ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
+
+  # Fully qualified name, with metachars
+  # The following command returns the slots of D inherited from
+  # C. Slot "b" is shadoed by D.
+  ? {d1 info lookup slots ::C::*} "::C::slot::a"
+}
+
+#
+# test info submethod and method handles for submethods
+#
+nx::Test case info-submethod {
+
+  nx::Object create o {
+    :method "foo a" {} {return a}
+    :method "foo b" {x:int y:upper} {return b}
+  }
+  nx::Object create o2
+  
+  nx::Class create C {
+    :method "bar a" {} {return a}
+    :method "bar b" {x:int y:upper} {return b}
+    :method "bar baz x" {x:int y:upper} {return x}
+    :method "bar baz y" {x:int y:upper} {return y}
+    :class method "foo x" {z:int} {return z}
+    :class method "foo y" {z:int} {return z}
+  }
+
+  # query definition on submethod
+  ? {o info method definition "foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
+
+  # query definition on submethod with handle
+  ? {o info method definition "::o::foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
+
+  # query definition on submethod with handle
+  ? {o info method definition "::o::foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
+
+  # query definition on submethod with handle called on different object
+  ? {o2 info method definition "::o::foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
+
+  # query definition on handle of ensemble object called on different object
+  ? {o2 info method definition "::o::foo::b"} {::o::foo public method b {x:int y:upper} {return b}}
+
+  # query definition on submethod with handle called on class
+  ? {o2 info method definition "::o::foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
+
+  # query definition on handle of ensemble object called on class
+  ? {o2 info method definition "::o::foo::b"} {::o::foo public method b {x:int y:upper} {return b}}
+
+  # query definition on submethod of class
+  ? {::nx::Object info method definition "info lookup methods"} \
+      {::nx::Object public alias {info lookup methods} ::nsf::methods::object::info::lookupmethods}
+
+  # query definition on submethod of class with handle
+  ? {o info method definition "::nsf::classes::nx::Object::info lookup methods"} \
+      {::nx::Object public alias {info lookup methods} ::nsf::methods::object::info::lookupmethods}
+
+  # query definition on handle of ensemble object of class
+  ? {o info method definition "::nx::Object::slot::__info::lookup::methods"} \
+      {::nx::Object::slot::__info::lookup public alias methods ::nsf::methods::object::info::lookupmethods}
+
+  ? {lsort [o info method submethods dummy]} ""
+  ? {lsort [o info method submethods foo]} "a b"
+  ? {lsort [o info method submethods "foo a"]} ""
+
+  ? {lsort [C info method submethods "bar"]} "a b baz"
+  ? {lsort [C info method submethods "bar a"]} ""
+  ? {lsort [C info method submethods "bar baz"]} "x y"
+  ? {lsort [C info method submethods "bar baz y"]} ""
+
+  ? {lsort [C class info method submethods "foo"]} "x y"
+  ? {lsort [C class info method submethods "foo x"]} ""
+
+  #
+  # method handles for ensemble methods
+  #
+  ? {C info method handle "bar"} {::nsf::classes::C::bar}
+  ? {C info method handle "bar a"} {::nsf::classes::C::bar a}
+  ? {C info method handle "bar baz y"} {::nsf::classes::C::bar baz y}
+
+  #
+  # test whether the handles for ensemble methods work
+  #
+  ? {C info method parameter [C info method handle "bar"]} ""
+  ? {C info method parameter [C info method handle "bar b"]} "x:int y:upper"
+  ? {C info method parameter [C info method handle "bar baz y"]} "x:int y:upper"
+  
+  #
+  # check methods paths as method specifications
+  #
+  ? {C info method definition "bar b"} {::C public method {bar b} {x:int y:upper} {return b}}
+  ? {C info method definition "::nsf::classes::C::bar b"}  {::C public method {bar b} {x:int y:upper} {return b}}
+  ? {o2 info method definition "::nsf::classes::C::bar b"} {::C public method {bar b} {x:int y:upper} {return b}}
+
+  #
+  # test class modifier on handles
+  #
+  ? {C class info method handle "foo"}   {::C::foo}
+  ? {C class info method handle "foo x"} {::C::foo x}
+
+  #
+  # info method definition with method paths
+  #
+  ? {C class info method definition "::C::foo x"} {::C public class method {foo x} z:int {return z}}
+  ? {C info method definition "::C::foo x"}        {::C public class method {foo x} z:int {return z}}
+  ? {o2 info method definition "::C::foo x"}       {::C public class method {foo x} z:int {return z}}
+  
+  ? {C info method definition "bar baz y"} \
+      {::C public method {bar baz y} {x:int y:upper} {return y}}
+  ? {C info method definition "::nsf::classes::C::bar baz y"} \
+      {::C public method {bar baz y} {x:int y:upper} {return y}}
+
+  #
+  # test "info method parameter"
+  #
+  ? {nx::Object info method parameter "info lookup methods"} \
+      "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
+  ? {nx::Object info method parametersyntax "info lookup methods"} \
+      "?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?pattern?"
+
+  ? {o info method parameter "foo b"} "x:int y:upper"
+
+  ? {nx::Object info method parameter ::nx::Object::slot::__info::lookup::methods} \
+      "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
+  ? {o info method parameter "::o::foo::b"} "x:int y:upper"
+
+  ? {nx::Object info method handle "info"} "::nsf::classes::nx::Object::info"
+  ? {nx::Object info method handle "info lookup methods"} \
+      "::nsf::classes::nx::Object::info lookup methods"
+
+  ? {nx::Object info method handle "::nsf::classes::nx::Object::info lookup methods"} \
+      "::nsf::classes::nx::Object::info lookup methods"
+
+  ? {o info method handle "foo b"} "::o::foo b"
+}
+
+#
+# test info slot parameter|parametersyntax 
+#
+nx::Test case info-slot-parametersyntax {
+
+  nx::Class create C {
+    :property a
+    :property {b 1}
+  }
+  
+  nx::Class create D -superclass C {
+    :property {b 2}
+    :property c
+    :class property a2
+    :method "sub foo" args {;}
+  }
+
+  ? {C info parameter syntax} "?-a value? ?-b value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
+  ? {C info parameter syntax a} "?-a value?"
+
+  ? {C info parameter definition} "-a {-b 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,1..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,1..n __initcmd:initcmd,optional,noleadingdash"
+
+  ? {C info parameter list} "-a -b -volatile -properties -noinit -mixin -class -filter __initcmd"
+  ? {C info parameter names} "a b volatile properties noinit mixin class filter __initcmd"
+  ? {lsort [C info slot objects -closure]} "::C::slot::a ::C::slot::b ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter ::nx::Object::slot::mixin ::nx::Object::slot::noinit ::nx::Object::slot::properties ::nx::Object::slot::volatile"
+
+  ? {C info parameter definition b} "{-b 1}"
+  ? {D info parameter definition b} "{-b 2}"
+  ? {D info slot objects -closure b} "::D::slot::b"
+  ? {D info slot objects -closure a} "::C::slot::a"
+  ? {D info slot objects -closure class} "::nx::Object::slot::class"
+
+  ? {D info parameter list} "-b -c -a -volatile -properties -noinit -mixin -class -filter __initcmd"
+  ? {D info parameter names} "b c a volatile properties noinit mixin class filter __initcmd"
+}
+
+#
+# test "info methods -path"
+#
+nx::Test case info-methods-path {
+  #
+  # test case on base class
+  #
+  ? {::nx::Object info methods "info"} "info"
+  ? {::nx::Object info methods -path "info"} ""
+  ? {lsort [::nx::Object info methods -path "info lookup *"]} \
+      "{info lookup filter} {info lookup method} {info lookup methods} {info lookup slots}"
+  ? {lsort [::nx::Object info methods -path "info *method*"]} \
+      "{info filter methods} {info lookup method} {info lookup methods} {info method} {info methods}"
+  ? {lsort [::nx::Object info methods "slots"]} ""
+  ? {lsort [::nx::Object info methods "*slots*"]} ""
+  ? {lsort [::nx::Object info methods -path "*slot*"]} \
+      "{info lookup slots} {info slot definition} {info slot names} {info slot objects}"
+  ? {lsort [::nx::Object info methods -path "*filter*"]} \
+      "filter {info filter guard} {info filter methods} {info lookup filter}"
+
+  ::nx::Class create C {
+    :public method "string length" {s} {puts length}
+    :public method "string reverse" {s} {puts reverse}
+    :public method foo {} {puts foo}
+    :protected method "a b c" {} {puts "a b c"}
+    :protected method "a b d" {} {puts "a b d"}
+    :public method "a c" {d c} {puts "a c"}
+    :create c1
+  }
+  nx::Class create D -superclass C {
+    :public method "string length" {s} {puts length}
+    :public method "string compress" {s} {puts compress}
+    :create d1
+  }
+  ? {lsort [C info methods -path -callprotection all]} \
+      "{a b c} {a b d} {a c} foo {string length} {string reverse}"
+  ? {lsort [C info methods -path]} \
+      "{a c} foo {string length} {string reverse}"
+
+  #
+  # lookup ensemble methods
+  #
+  ? {lsort [c1 info lookup methods -path "string *"]} \
+      "{string length} {string reverse}"
+  #
+  # lookup ensemble methods combined from multiple classes
+  #
+  ? {lsort [d1 info lookup methods -path "string *"]} \
+      "{string compress} {string length} {string reverse}"
+
+  #
+  # search for ensemble method
+  #
+  ? {lsort [d1 info lookup method "string length"]} "::nsf::classes::D::string length"
+  ? {lsort [d1 info lookup method "string reverse"]} "::nsf::classes::C::string reverse"
+
+}
+
+#
+# Test parameter syntax for a methods and cmds
+#
+nx::Test case parametersyntax {
+  # a true method
+  ? {::nx::Object info method parametersyntax method} "name arguments ?-returns value? body ?-precondition value? ?-postcondition value?"
+  # a forwarder to ::nsf::relation; definition comes via ::nsf::parametersyntax
+  ? {::nx::Object info method parametersyntax mixin} "?classes?|?add class?|?delete class?"
+
+  ? {::nx::Object info method parametersyntax ::nx::next} "?arguments?"
+  ? {::nx::Object info method parametersyntax ::nsf::xotclnext} "?--noArgs? ?arg ...?"
+}
+
+#
+# Test info heritage, base cases
+#
+nx::Test case info-heritage {
+  Class create A
+  Class create B -superclass A
+  Class create BB -superclass B
+  Class create C -superclass A
+  Class create CC -superclass C
+  Class create D -superclass A
+  Class create M1
+  Class create M2 -superclass A
+
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+  ? {M1 info heritage} "::nx::Object"
+  ? {M2 info heritage} "::A ::nx::Object"
+
+  B mixin add M1
+
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::M1 ::A ::nx::Object"
+  ? {B info mixin classes -closure} "::M1"
+
+  B mixin M2
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::M2 ::A ::nx::Object"
+  ? {B info mixin classes -closure} "::M2"
+
+  B mixin A
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+
+  B mixin C
+  ? {A info heritage} "::nx::Object"
+  ? {B info heritage} "::C ::A ::nx::Object"
+
+  B mixin ""
+  ? {BB info heritage} "::B ::A ::nx::Object"
+
+  BB mixin CC
+  ? {BB info heritage} "::CC ::C ::B ::A ::nx::Object"
+
+  BB mixin ""
+  ? {BB info heritage} "::B ::A ::nx::Object"
+}
+
+#
+# Test transitive per-class mixins
+#
+nx::Test case info-heritage-transitive {
+  Class create O
+  Class create A -superclass O
+  Class create B -superclass A
+  Class create C -superclass A
+  Class create D -superclass A
+
+  # transitive case
+  C mixin D
+  B mixin C
+  ? {C info heritage} "::D ::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+  ? {B info heritage} "::D ::C ::A ::O ::nx::Object"
+
+  # reset
+  C mixin ""
+  B mixin ""
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {C info heritage} "::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+
+
+  # transitve different order
+  B mixin C
+  C mixin D
+  ? {B info heritage} "::D ::C ::A ::O ::nx::Object"
+  ? {C info heritage} "::D ::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+
+
+  # reset
+  C mixin ""
+  B mixin ""
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {C info heritage} "::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+}
+
+#
+# Test circular mixins
+#
+nx::Test case info-heritage-circular {
+  Class create O
+  Class create A -superclass O
+  Class create B -superclass A
+  Class create BB -superclass B
+  Class create C -superclass A
+  Class create CC -superclass C
+  Class create D -superclass A
+  Class create M3
+  Class create M2 -superclass A
+  Class create M
+
+  # circular case
+  B mixin C
+  C mixin B
+  ? {B info heritage} "::C ::A ::O ::nx::Object"
+  ? {C info heritage} "::B ::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+
+  # reset
+  C mixin ""
+  B mixin ""
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {C info heritage} "::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"  
+
+  # indirect circular case
+  B mixin C
+  C mixin BB
+  ? {B info heritage} "::BB ::C ::A ::O ::nx::Object"
+  ? {C info heritage} "::BB ::B ::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"
+
+  # reset
+  C mixin ""
+  B mixin ""
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {C info heritage} "::A ::O ::nx::Object"
+  ? {D info heritage} "::A ::O ::nx::Object"  
+
+  M3 mixin B
+  ? {A info heritage} "::O ::nx::Object"
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {M3 info heritage} "::B ::A ::O ::nx::Object"
+
+  A mixin M3
+
+  ? {A info heritage} "::B ::M3 ::O ::nx::Object"
+  ? {B info heritage} "::M3 ::A ::O ::nx::Object"
+
+  M3 create m1
+  ? {m1 info precedence} "::B ::A ::O ::M3 ::nx::Object"
+  ? {M3 info heritage}   "::B ::A ::O ::nx::Object"
+
+  B mixin M3
+  ? {B info heritage} "::M3 ::A ::O ::nx::Object"
+}
+
+#
+# Mixin the same class twice, once per-class and one per-object.
+#
+nx::Test case info-heritage-simple-multimix {
+  Class create Agent
+  Class create MovementTest
+  Class create MovementLog
+  
+  Agent mixin MovementTest
+  Agent create a1 
+
+  ? {Agent info heritage} "::MovementTest ::nx::Object"
+  ? {a1 info precedence} "::MovementTest ::Agent ::nx::Object"
+
+  a1 mixin {MovementTest MovementLog}
+
+  ? {Agent info heritage} "::MovementTest ::nx::Object"
+  ? {a1 info precedence} "::MovementTest ::MovementLog ::Agent ::nx::Object"
+}
+
+#
+# Mixin several classes at several class levels and on the object
+# level
+#
+nx::Test case info-heritage-multimix {
+  Class create A
+  Class create B -superclass A
+  Class create M1
+  Class create M2
+  Class create M3
+  Class create M4
+
+  B create b1
+  ? {B info heritage} "::A ::nx::Object"
+  ? {b1 info precedence} "::B ::A ::nx::Object"
+
+  A mixin {M1 M2}
+  ? {B info heritage} "::M1 ::M2 ::A ::nx::Object"
+  ? {b1 info precedence} "::M1 ::M2 ::B ::A ::nx::Object"
+  
+  b1 mixin {M1 M1 M4}
+  ? {b1 info precedence} "::M1 ::M4 ::M2 ::B ::A ::nx::Object"
+  ? {b1 info mixin classes} "::M1 ::M4"
+
+  B mixin {M3 M1 M1 M4}
+  ? {B info heritage} "::M3 ::M1 ::M4 ::M2 ::A ::nx::Object"
+  ? {b1 info precedence} "::M1 ::M4 ::M3 ::M2 ::B ::A ::nx::Object"
+}
+
+#
+# per-object mixin with implied classes
+#
+nx::Test case info-heritage-multimix {
+  Class create A
+  Class create B -superclass A
+  Class create C
+  Class create PCM -superclass A
+  C create c1
+
+  ? {c1 info precedence} "::C ::nx::Object"
+
+  # ::A is an implied class
+  c1 mixin B
+  ? {c1 info precedence} "::B ::A ::C ::nx::Object"
+  ? {c1 info mixin classes -heritage} "::B ::A"
+
+  # ::A is as well implied by ::PCM
+  C mixin PCM
+  ? {C info heritage} "::PCM ::A ::nx::Object"
+  ? {C info mixin classes} "::PCM"
+  ? {C info mixin classes -order} "" ;# ???? why no warning
+  ? {C info mixin classes -heritage} "::PCM ::A"
+  ? {C info mixin classes -closure} "::PCM"
+
+  # ::A is not ordered after ::B but after ::PCM
+  ? {c1 info precedence} "::B ::PCM ::A ::C ::nx::Object"
+  ? {c1 info mixin classes -heritage} "::B ::PCM ::A"
+}
+
+#
+# transitive per-class mixins with implied classes
+#
+nx::Test case info-heritage-transitive-pcm {
+  Class create A
+  Class create B -superclass A
+  Class create C -superclass B
+  Class create PCMA -superclass A
+  Class create PCMB -superclass PCMA
+  Class create PCMC -superclass PCMB
+  Class create TPCMA
+  Class create TPCMB -superclass TPCMA
+  C create c1
+
+  ? {C info heritage} "::B ::A ::nx::Object"
+  ? {c1 info precedence} "::C ::B ::A ::nx::Object"
+
+  B mixin PCMB
+  
+  # heritage includes implied classes
+  ? {C info heritage} "::PCMB ::PCMA ::B ::A ::nx::Object"
+
+  # precedence includes implied classes from mixins or intrinsic
+  # classes
+  ? {c1 info precedence} "::PCMB ::PCMA ::C ::B ::A ::nx::Object"
+
+  # just the classes mixed explicitly into this class
+  ? {B info mixin classes} "::PCMB"
+  ? {C info mixin classes} ""
+
+  # the classes mixed transitive into this class; This answer the
+  # question, what classes were mixed in explicitly into the mixin
+  # hierarchy by the application program
+  ? {B info mixin classes -closure} "::PCMB"
+  # since C is a specialization of B, it includes transitively B's closure
+  ? {C info mixin classes -closure} "::PCMB"
+
+  # the explicit and implicit mixin classes
+  ? {B info mixin classes -heritage} "::PCMB ::PCMA ::A"
+  # since C is a specialization of B, it inherits the classes from B
+  ? {C info mixin classes -heritage} "::PCMB ::PCMA ::A"
+
+  PCMB mixin TPCMB
+
+  # heritage includes implied classes
+  ? {C info heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::B ::A ::nx::Object"
+
+  # precedence includes implied classes from mixins or intrinsic
+  # classes
+  ? {c1 info precedence} "::TPCMB ::TPCMA ::PCMB ::PCMA ::C ::B ::A ::nx::Object"
+
+  # just the classes mixed explicitly into this class
+  ? {B info mixin classes} "::PCMB"
+  ? {C info mixin classes} ""
+
+  # the classes mixed transitive into this class
+  ? {B info mixin classes -closure} "::PCMB ::TPCMB"
+  # since C is a specialization of B, it includes transitively B's closure
+  ? {C info mixin classes -closure} "::PCMB ::TPCMB"
+
+  # the explicit and implicit mixin classes
+  ? {B info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+  # since C is a specialization of B, it inherits the classes from B
+  ? {C info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+
+  C mixin PCMC
+
+  # heritage includes implied classes
+  ? {C info heritage} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::B ::A ::nx::Object"
+
+  # precedence includes implied classes from mixins or intrinsic
+  # classes
+  ? {c1 info precedence} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::C ::B ::A ::nx::Object"
+
+  # just the classes mixed explicitly into this class
+  ? {B info mixin classes} "::PCMB"
+  ? {C info mixin classes} "::PCMC"
+
+  # the classes mixed transitive into this class
+  ? {B info mixin classes -closure} "::PCMB ::TPCMB"
+  ? {C info mixin classes -closure} "::PCMC ::TPCMB ::PCMB"
+
+  # the explicit and implicit mixin classes
+  ? {B info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+  ? {C info mixin classes -heritage} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+
+}
+
+#
+# ::nsf::method::ishandle
+#
+nx::Test case method-isregistered {
+  
+  ? {::nsf::method::registered c} ""
+  ? {::nsf::method::registered info} ""
+  ? {::nsf::method::registered ::info} ""
+
+  Class create C {
+    :method bar {} {return bar}
+    set h1 [:info method handle bar]
+    ? [list set _ $h1] "::nsf::classes::C::bar"
+    ? [list [self] info method handle bar] "::nsf::classes::C::bar"
+
+    ? [list ::nsf::method::registered $h1] ::C
+
+    :class method bar {} {return bar}
+    set h2 [:class info method handle bar]
+    ? [list [self] class info method handle bar] "::C::bar"
+
+    ? [list ::nsf::method::registered $h2] ::C
+  }
+
+  Object create o {
+    :method bar {} {return bar}
+    set h1 [:info method handle bar]
+    ? [list set _ $h1] "::o::bar"
+    ? [list [self] info method handle bar] "::o::bar"
+
+    ? [list ::nsf::method::registered $h1] ::o
+  }
+}
+
+#
+# Testing "... info method orgin ..." (in contrast to "... info method
+# handle ..."). "origin" always points to the definintion handle,
+# "handle" alone is the registration handle.
+#
+
+nx::Test case method-origin {
+  nx::Class create C
+  ? {set implHandle [C public method "foo bar" {x} {;}]} "::C::slot::__foo::bar"
+  ? {set regHandle [C info method handle "foo bar"]} "::nsf::classes::C::foo bar"
+  ? {set origin [C info method origin "foo bar"]} "::C::slot::__foo::bar"
+
+  ? {set implHandle [C public class method "foo bar" {x} {;}]} "::C::foo::bar"
+  ? {set regHandle [C class info method handle "foo bar"]} "::C::foo bar"
+  ? {set origin [C class info method origin "foo bar"]} "::C::foo::bar"
+
+  Object create o
+  ? {set implHandle [o public method "foo bar" {x} {;}]} "::o::foo::bar"
+  ? {set regHandle [o info method handle "foo bar"]} "::o::foo bar"
+  ? {set origin [o info method origin "foo bar"]} "::o::foo::bar"
+}
+
+#
+# test "info methods -closure"
+#
+
+nx::Test case info-methods-closure {
+  nx::Class create C {
+    :public method c1 {} {...}
+    :method c2 {} {...}
+  }
+
+  nx::Class create D -superclass C {
+    :public method c1 {} {...}
+    :public method d1 {} {...}
+    :method d2 {} {...}
+  }
+
+  nx::Class create M {
+    :public method m1 {} {...}
+    :method m2 {} {...}
+  }
+  
+  ? {D info methods} "c1 d1 d2"
+
+  #
+  # info methods -closure lists instance methods
+  #
+  ? {D info methods -closure *2} "d2 c2"
+  ? {D info methods -closure -source application} "c1 d1 d2 c2"
+
+  D mixin M
+
+  #
+  # Check as well methods inherited from per-class mixins
+  #
+  ? {D info methods} "c1 d1 d2"
+  ? {D info methods -closure *2} "m2 d2 c2"
+  ? {D info methods -closure -source application} "m1 m2 c1 d1 d2 c2"
+}

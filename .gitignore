@@ -4,8 +4,11 @@
 config.*
 .gdb_history
 *-xotcl.html
+xo-*.html
 xotclsh
 pkgIndex.tcl
 Makefile
 xotclConfig.sh
+autom4te.cache
+.DS_Store
 CVS

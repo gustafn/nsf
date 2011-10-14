@@ -8,20 +8,18 @@
 #
 # Copyright (c) 1999 Scriptics Corporation.
 # Copyright (c) 2002-2003 ActiveState Corporation.
-# Copyright (c) 2001-2008 Gustaf Neumann, Uwe Zdun
+# Copyright (c) 2001-2010 Gustaf Neumann, Uwe Zdun
 #
 # See the file "tcl-license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.25 2007/09/18 19:27:32 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
 # have been added in a customized configure script.
 #========================================================================
 
-#XOTCL_VERSION 	= @PACKAGE_VERSION@
-XOTCL_VERSION 	= @XOTCL_VERSION@
+NX_VERSION 	= @PACKAGE_VERSION@
 
 src_lib_dir		= ${srcdir}/library
 src_doc_dir		= ${srcdir}/doc
@@ -30,7 +28,6 @@ src_app_dir		= ${srcdir}/apps
 src_generic_dir		= ${srcdir}/generic
 src_man_dir		= ${srcdir}/man
 TCL_LIB_SPEC		= @TCL_LIB_SPEC@
-TK_LIB_SPEC		= @TK_LIB_SPEC@
 subdirs			= @subdirs@
 aol_prefix		= @aol_prefix@
 
@@ -44,21 +41,36 @@ src_test_dir_native 	= `@CYGPATH@ ${src_test_dir}`
 src_app_dir_native	= `@CYGPATH@ ${src_app_dir}`
 src_generic_dir_native	= `@CYGPATH@ ${src_generic_dir}`
 
-libdirs		= comm lib serialize @libdirs_actiweb@
+libdirs		= lib nx serialize
 libsrc		= COPYRIGHT pkgIndex.tcl 
-appdirs		= comm scripts utils @apps_actiweb@
+appdirs		= 
 appsrc		= COPYRIGHT 
 
-DOC_SOURCE = \
-	$(src_doc_dir)/langRef.xotcl \
-	$(src_lib_dir)/lib/*.xotcl \
-	$(src_lib_dir)/store/*.xotcl \
-	$(src_lib_dir)/serialize/Serializer.xotcl \
-	$(src_test_dir)/*.xotcl \
-	$(src_app_dir)/scripts/*.xotcl \
-	$(src_app_dir)/comm/[flsw]*.xotcl \
-	$(src_app_dir)/actiweb/univ/UNIVERSAL.xotcl \
-	$(src_app_dir)/utils/xo-*[a-z0-9] 
+
+# XOTcl subpackage
+xotcl_srcdir	= ${srcdir}/library/xotcl
+xotcl_src_doc_dir = ${xotcl_srcdir}/doc
+xotcl_src_app_dir = ${xotcl_srcdir}/apps
+xotcl_src_lib_dir = ${xotcl_srcdir}/library
+xotcl_src_test_dir = ${xotcl_srcdir}/tests
+xotcl_target_doc_dir = ${xotcl_srcdir}/doc
+
+xotcl_libdirs	= comm lib serialize @libdirs_actiweb@
+xotcl_libsrc	= COPYRIGHT xotcl2.tcl pkgIndex.tcl
+xotcl_appdirs	= comm scripts utils @apps_actiweb@ 
+xotcl_appsrc	= COPYRIGHT 
+
+# Documentation source for xotcl-style documentation system
+XODOC_SOURCE = \
+	$(src_lib_dir)/serialize/serializer.tcl \
+	$(xotcl_src_doc_dir)/langRef.xotcl \
+	$(xotcl_src_lib_dir)/lib/*.xotcl \
+	$(xotcl_src_lib_dir)/store/*.xotcl \
+	$(xotcl_src_test_dir)/*.xotcl \
+	$(xotcl_src_app_dir)/scripts/*.xotcl \
+	$(xotcl_src_app_dir)/comm/[flsw]*.xotcl \
+	$(xotcl_src_app_dir)/actiweb/univ/UNIVERSAL.xotcl \
+	$(xotcl_src_app_dir)/utils/xo-*[a-z0-9] 
 
 #export TCLLIBPATH=. ${srcdir}
 mkinstalldirs= mkdir -p
@@ -67,6 +79,10 @@ mkinstalldirs= mkdir -p
 # Please check the TARGETS section below to make sure the make targets
 # are correct.
 #========================================================================
+
+DTRACE_OBJ = @DTRACE_OBJ@
+DTRACE_HDR = $(src_generic_dir)/nsfDTrace.h
+DTRACE_SRC = $(src_generic_dir)/nsfDTrace.d
 
 #========================================================================
 # The names of the source files is defined in the configure script.
@@ -77,7 +93,7 @@ mkinstalldirs= mkdir -p
 #========================================================================
 
 PKG_SOURCES	= @PKG_SOURCES@
-PKG_OBJECTS	= @PKG_OBJECTS@
+PKG_OBJECTS	= @PKG_OBJECTS@ ${DTRACE_OBJ}
 
 PKG_STUB_SOURCES = @PKG_STUB_SOURCES@
 PKG_STUB_OBJECTS = @PKG_STUB_OBJECTS@
@@ -120,17 +136,26 @@ includedir	= @includedir@
 
 DESTDIR		=
 
+PKG_DIR		= $(PACKAGE_NAME)$(PACKAGE_VERSION)
+pkgdatadir	= $(datadir)/$(PKG_DIR)
+pkglibdir	= $(libdir)/$(PKG_DIR)
+pkgincludedir	= $(includedir)/$(PKG_DIR)
+
 top_builddir	= .
 
-INSTALL		= @INSTALL@
-INSTALL_PROGRAM	= @INSTALL_PROGRAM@
-INSTALL_DATA	= @INSTALL_DATA@
-INSTALL_SCRIPT	= @INSTALL_SCRIPT@
+INSTALL_OPTIONS =
+INSTALL		= $(SHELL) $(srcdir)/config/install-sh -c ${INSTALL_OPTIONS}
+INSTALL_DATA_DIR = ${INSTALL} -d -m 755
+INSTALL_PROGRAM	= ${INSTALL} -m 755
+INSTALL_DATA	= ${INSTALL} -m 644
+INSTALL_SCRIPT	= ${INSTALL_PROGRAM}
+INSTALL_LIBRARY	= ${INSTALL_DATA}
 
 PACKAGE_NAME	= @PACKAGE_NAME@
 PACKAGE_VERSION	= @PACKAGE_VERSION@
 CC		= @CC@
 CFLAGS_DEFAULT	= @CFLAGS_DEFAULT@
+# useful for debugging:  --param=ssp-buffer-size=4 -fstack-protector-all 
 CFLAGS_WARNING	= @CFLAGS_WARNING@
 CLEANFILES	= @CLEANFILES@
 EXEEXT		= @EXEEXT@
@@ -144,22 +169,20 @@ RANLIB		= @RANLIB@
 RANLIB_STUB	= @RANLIB_STUB@
 SHLIB_CFLAGS	= @SHLIB_CFLAGS@
 SHLIB_LD	= @SHLIB_LD@
-SHLIB_LD_FLAGS	= @SHLIB_LD_FLAGS@
 SHLIB_LD_LIBS	= @SHLIB_LD_LIBS@
 STLIB_LD	= @STLIB_LD@
 TCL_DEFS	= @TCL_DEFS@
 TCL_BIN_DIR	= @TCL_BIN_DIR@
 TCL_SRC_DIR	= @TCL_SRC_DIR@
-# This is necessary for packages that use private Tcl headers
-#TCL_TOP_DIR_NATIVE	= @TCL_TOP_DIR_NATIVE@
+#
+DTRACE          = dtrace
+#
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= @TCL_LIBS@
 
-pkgdatadir	= @pkgdatadir@
-pkglibdir	= @pkglibdir@
-pkgincludedir	= @pkgincludedir@
+xotcl_pkglibdir	= $(pkglibdir)/xotcl
 
-# XOTCLSH = @XOTCLSH@
+installed_shells = $(DESTDIR)$(bindir)/nxsh $(DESTDIR)$(bindir)/nxwish $(DESTDIR)$(bindir)/xotclsh $(DESTDIR)$(bindir)/xowish
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -172,12 +195,13 @@ EXTRA_PATH	= $(top_builddir):$(TCL_BIN_DIR)
 TCLSH_ENV	= TCL_LIBRARY=`@CYGPATH@ $(TCL_SRC_DIR)/library` \
 		  @LD_LIBRARY_PATH_VAR@="$(EXTRA_PATH):$(@LD_LIBRARY_PATH_VAR@)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
-		  TCLLIBPATH="$(top_builddir) ${srcdir}"
+		  TCLLIBPATH="$(top_builddir) ${srcdir} $(TCLLIBPATH)"
 TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
+#TCLSH		= $(TCLSH_ENV) valgrind --dsymutil=yes $(TCLSH_PROG)
 SHARED_BUILD	= @SHARED_BUILD@
 
-INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @XOTCL_BUILD_INCLUDE_SPEC@
+INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @NSF_BUILD_INCLUDE_SPEC@
 EXTRA_CFLAGS	= @PKG_CFLAGS@
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
@@ -200,6 +224,32 @@ COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(C
 # Start of user-definable TARGETS section
 #========================================================================
 
+EXAMPLE_SCRIPTS = \
+	$(src_doc_dir)/example-scripts/bagel.html \
+	$(src_doc_dir)/example-scripts/per-object-mixins.html \
+	$(src_doc_dir)/example-scripts/rosetta-abstract-type.html \
+	$(src_doc_dir)/example-scripts/rosetta-classes.html \
+	$(src_doc_dir)/example-scripts/rosetta-constraint-genericity.html \
+	$(src_doc_dir)/example-scripts/rosetta-delegates.html \
+	$(src_doc_dir)/example-scripts/rosetta-distinct-objects.html \
+	$(src_doc_dir)/example-scripts/rosetta-polymorphic-copy.html \
+	$(src_doc_dir)/example-scripts/rosetta-polymorphism.html \
+	$(src_doc_dir)/example-scripts/rosetta-serialization.html \
+	$(src_doc_dir)/example-scripts/rosetta-singleton.html \
+	$(src_doc_dir)/example-scripts/rosetta-unknown-method.html \
+	$(src_doc_dir)/example-scripts/tk-horse-race.html \
+	$(src_doc_dir)/example-scripts/tk-locomotive.html \
+	$(src_doc_dir)/example-scripts/tk-mini.html \
+	$(src_doc_dir)/example-scripts/tk-spread.html \
+	$(src_doc_dir)/example-scripts/traits-composite.html \
+	$(src_doc_dir)/example-scripts/traits-simple.html \
+	$(src_doc_dir)/example-scripts/container.html \
+
+
+%.html : %.tcl
+	$(TCLSH) $(src_app_dir_native)/utils/source-doc-beautifier.tcl $<
+	asciidoc $*.txt
+
 #========================================================================
 # TEA TARGETS.  Please note that the "libraries:" target refers to platform
 # independent files, and the "binaries:" target inclues executable programs and
@@ -217,30 +267,87 @@ all: binaries libraries doc end
 # of the Makefile, in the "BINARIES" variable.
 #========================================================================
 
-binaries: $(BINARIES) @XOTCLSH@ @XOWISH@ pkgIndex.tcl
+binaries: $(BINARIES) pkgIndex.tcl
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi;
 
-libraries: 
+libraries: libraries-pkgindex
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi;
 
-libraries-pkgindex:
-	@$(TCLSH) $(src_lib_dir_native)/lib/make.xotcl -dir $(src_lib_dir_native) -all
+libraries-pkgindex: pkgIndex.tcl
+	@$(TCLSH) $(src_lib_dir_native)/lib/make.tcl -dir $(src_lib_dir_native) -all
 
-fulldoc: doc pdf
+full-doc: doc pdf example-doc
 # use language reference as sample file to trigger generation of documentation files
-doc: $(target_doc_dir)/langRef-xotcl.html
+doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
 
-$(target_doc_dir)/langRef-xotcl.html: $(src_doc_dir)/langRef.xotcl $(DOC_SOURCE)
+YUIDOC_OUTPUT = \
+	$(target_doc_dir)/$(PACKAGE_NAME)/index.html \
+	$(target_doc_dir)/nx/index.html \
+	$(xotcl_target_doc_dir)/XOTcl-langRef/index.html
+
+yuidoc: pkgIndex.tcl $(YUIDOC_OUTPUT)
+
+$(target_doc_dir)/$(PACKAGE_NAME)/index.html: $(PACKAGE_NAME).nxd
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(PACKAGE_NAME) \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(target_doc_dir) -indexfiles generic/nxdocIndex -- "package:$(PACKAGE_NAME)"
+
+$(target_doc_dir)/nx/index.html: library/nx/nx.nxd $(PACKAGE_NAME).nxd
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle nx \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(target_doc_dir) -indexfiles "library/nx/nxdocIndex" -- "package:nx"
+
+$(xotcl_target_doc_dir)/XOTcl-langRef/index.html: library/xotcl/doc/langRef.xotcl 
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle XOTcl-langRef \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(xotcl_target_doc_dir) -frontend xodoc -- package:XOTcl-langRef
+
+yuidoc-dev: NXDFLAGS := -validation
+yuidoc-dev: yuidoc
+
+XOWIKI_OUTPUT = \
+	$(target_doc_dir)/$(PACKAGE_NAME).xowiki \
+	$(target_doc_dir)/nx.xowiki \
+	$(xotcl_target_doc_dir)/XOTcl-langRef.xowiki
+
+xowiki: pkgIndex.tcl $(XOWIKI_OUTPUT)
+
+$(target_doc_dir)/$(PACKAGE_NAME).xowiki : $(PACKAGE_NAME).nxd
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(PACKAGE_NAME) \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 -indexfiles "generic/nxdocIndex" \
+	-- "package:$(PACKAGE_NAME)"
+
+
+$(target_doc_dir)/nx.xowiki : library/nx/nx.nxd $(PACKAGE_NAME).nxd
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle nx \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 -indexfiles "library/nx/nxdocIndex" \
+	-- "package:nx"
+
+$(xotcl_target_doc_dir)/XOTcl-langRef.xowiki : library/xotcl/doc/langRef.xotcl
+	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle XOTcl-langRef \
+	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 \
+	-frontend xodoc -- package:XOTcl-langRef
+
+xowiki-dev: NXDFLAGS := -validation
+xowiki-dev: xowiki
+
+
+example-doc: $(EXAMPLE_SCRIPTS)
+
+$(xotcl_target_doc_dir)/langRef-xotcl.html: pkgIndex.tcl $(xotcl_src_doc_dir)/langRef.xotcl $(XODOC_SOURCE)
 	@docs=""; \
-	for i in $(DOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
-	$(TCLSH) $(src_lib_dir_native)/lib/makeDoc.xotcl \
-		$(target_doc_dir) $$docs
+	for i in $(XODOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
+	$(TCLSH) $(xotcl_src_lib_dir)/lib/makeDoc.xotcl \
+		$(xotcl_target_doc_dir) $$docs
 
 pdf:
 	-(cd $(src_doc_dir); htmldoc --webpage --format pdf14 --title \
@@ -248,7 +355,7 @@ pdf:
 	-(cd $(src_doc_dir); htmldoc --webpage --format pdf14  \
 		-f langRef-xotcl.pdf langRef-xotcl.html )
 
-install: install-binaries install-shells install-libraries install-doc
+install: install-binaries install-shells install-libraries install-doc install-xotcl-shells install-xotcl-libraries
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
@@ -256,10 +363,14 @@ install: install-binaries install-shells install-libraries install-doc
 
 install-binaries: binaries install-lib-binaries install-bin-binaries install-pkgIndex
 
-install-aol: install-binaries install-libraries
-	$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
-		$(DESTDIR)/$(aol_prefix)/modules/tcl/xotcl.tcl
-
+install-aol: install-binaries install-libraries install-xotcl-libraries
+	@if test -d $(DESTDIR)/$(aol_prefix)/modules/tcl/; then \
+		$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
+			$(DESTDIR)/$(aol_prefix)/modules/tcl/xotcl.tcl ; \
+	else \
+		$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
+			$(DESTDIR)/$(aol_prefix)/tcl/xotcl.tcl ; \
+	fi;
 
 #========================================================================
 # This rule installs platform-independent files, such as header files.
@@ -286,33 +397,63 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	    $(INSTALL_DATA) $(src_lib_dir)/$$i $(DESTDIR)$(pkglibdir)/$$i ; \
 	done;
 	cat unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
-	$(INSTALL_DATA) xotclConfig.sh $(DESTDIR)$(libdir)/
-	@echo "Installing Applications to $(DESTDIR)$(pkglibdir)/apps/"
-	@for i in $(appdirs) ; do \
-	    echo "    Installing $$i/" ; \
-	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
-	    mkdir -p $(DESTDIR)$(pkglibdir)/apps/$$i; \
-	    chmod 755 $(DESTDIR)$(pkglibdir)/apps/$$i; \
+	$(INSTALL_DATA) nsfConfig.sh $(DESTDIR)$(libdir)/
+
+install-xotcl-libraries: install-libraries $(DESTDIR)$(pkglibdir)
+	@echo "Installing XOTcl Libraries to $(DESTDIR)$(xotcl_pkglibdir)/"
+	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)
+	@mkdir -p $(DESTDIR)$(xotcl_pkglibdir)
+	@chmod 755 $(DESTDIR)$(xotcl_pkglibdir)
+	@for i in $(xotcl_libdirs) ; do \
+	    echo "    Installing library $$i/" ; \
+	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/$$i ; \
+	    mkdir -p $(DESTDIR)$(xotcl_pkglibdir)/$$i; \
+	    chmod 755 $(DESTDIR)$(xotcl_pkglibdir)/$$i; \
+	    for j in $(xotcl_src_lib_dir)/$$i/*.*tcl ; do \
+		$(INSTALL_DATA) $$j $(DESTDIR)$(xotcl_pkglibdir)/$$i/; \
+	    done; \
+	done;
+	@for i in $(xotcl_libsrc) ; do \
+	    echo "    Installing $$i" ; \
+	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/$$i ; \
+	    $(INSTALL_DATA) $(xotcl_src_lib_dir)/$$i $(DESTDIR)$(xotcl_pkglibdir)/$$i ; \
+	done;
+
+install-xotcl-shells:
+	@if test -f $(xotcl_srcdir)/xotclsh; then \
+		$(INSTALL_PROGRAM) $(xotcl_srcdir)/xotclsh $(DESTDIR)$(bindir); \
+	fi
+	@if test -f $(xotcl_srcdir)/xowish; then \
+		$(INSTALL_PROGRAM) $(xotcl_srcdir)/xowish $(DESTDIR)$(bindir); \
+	fi
+
+install-xotcl-apps: install-xotcl-libraries
+	@echo "Installing Applications to $(DESTDIR)$(xotcl_pkglibdir)/apps/"
+	@for i in $(xotcl_appdirs) ; do \
+	    echo "    Installing apps $$i/" ; \
+	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i ; \
+	    mkdir -p $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i; \
+	    chmod 755 $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i; \
 	    for j in $(src_app_dir)/$$i/* ; do \
 		if test -d $$j; then \
-		    mkdir -p $(DESTDIR)$(pkglibdir)/$$j; \
-		    chmod 755 $(DESTDIR)$(pkglibdir)/$$j; \
+		    mkdir -p $(DESTDIR)$(xotcl_pkglibdir)/$$j; \
+		    chmod 755 $(DESTDIR)$(xotcl_pkglibdir)/$$j; \
 		    for k in $$j/* ; do \
-			$(INSTALL) $$k $(DESTDIR)$(pkglibdir)/$$j ; \
-		done; \
+			$(INSTALL) $$k $(DESTDIR)$(xotcl_pkglibdir)/$$j ; \
+		    done; \
 		else \
-		$(INSTALL) $$j $(DESTDIR)$(pkglibdir)/apps/$$i/; \
+		$(INSTALL) $$j $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i/; \
 		fi; \
 	    done; \
 	done;
-	@for i in $(appsrc) ; do \
+	@for i in $(xotcl_appsrc) ; do \
 	    echo "    Installing $$i" ; \
-	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
-	    $(INSTALL_DATA) $(src_app_dir)/$$i $(DESTDIR)$(pkglibdir)/apps ; \
+	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i ; \
+	    $(INSTALL_DATA) $(src_app_dir)/$$i $(DESTDIR)$(xotcl_pkglibdir)/apps ; \
 	done;
-	@rm -rf $(DESTDIR)$(pkglibdir)/store/XOTclGdbm
-	@rm -rf $(DESTDIR)$(pkglibdir)/store/XOTclSdbm
-	@rm -rf $(DESTDIR)$(pkglibdir)/xml/TclExpat-1.1
+	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)/store/XOTclGdbm
+	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)/store/XOTclSdbm
+	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)/xml/TclExpat-1.1
 
 #========================================================================
 # Install documentation.  Unix manpages should go in the $(DESTDIR)$(mandir)
@@ -320,7 +461,6 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 #========================================================================
 
 install-doc: doc $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(mandir)/mann
-	@if test ! "x$(XOTCLSH)" = "x" ; then \
 	(cd $(src_man_dir)/ ; \
 	 for i in *.1; do \
 	    echo "Installing $$i"; \
@@ -328,8 +468,7 @@ install-doc: doc $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(m
 	    sed -e '/man\.macros/r man.macros' -e '/man\.macros/d' \
 		    $$i > $(DESTDIR)$(mandir)/man1/$$i; \
 	    chmod 444 $(DESTDIR)$(mandir)/man1/$$i; \
-	    done) ; \
-	fi
+	    done)
 
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)
@@ -337,40 +476,62 @@ shell: binaries libraries
 gdb:
 	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
 
-test: binaries libraries test-core test-http @test_actiweb@
-test-nohttp: binaries libraries test-core
+test: binaries libraries test-core test-xotcl test-http @test_actiweb@
+test-nohttp: binaries libraries test-core test-xotcl
 
 #TESTFLAGS = -srcdir $(srcdir)
 test-core: $(TCLSH_PROG)
-	$(TCLSH) $(src_test_dir_native)/testx.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/testo.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/speedtest.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/forwardtest.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/slottest.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/mixinoftest.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/varresolutiontest.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/object-system.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/destroy.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/methods.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/method-parameter.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/var-access.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/varresolution.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/info-method.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/submethods.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/disposition.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/volatile.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/parameters.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/returns.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/method-require.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/interceptor-slot.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/alias.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/protected.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/forward.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/mixinof.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/tcl86.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/contains.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/tcloo.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/interp.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/bagel.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/container.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-abstract-type.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-classes.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-constraint-genericity.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-delegates.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-distinct-objects.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-polymorphic-copy.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-polymorphism.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-serialization.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-singleton.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-unknown-method.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/traits-composite.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/traits-simple.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
+test-xotcl: $(TCLSH_PROG)
+	$(TCLSH) $(xotcl_src_test_dir)/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/slottest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-http: $(TCLSH_PROG)
-	$(TCLSH) $(src_test_dir_native)/xocomm.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/xocomm.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-actiweb: $(TCLSH_PROG)
-	$(TCLSH) $(src_test_dir_native)/actiweb.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/persistence.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/UNIVERSAL.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/xoRDF.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/actiweb.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/persistence.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/xoRDF.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	@rm -rf receiver
 
 depend:
@@ -417,33 +578,32 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 	$(COMPILE) -c `@CYGPATH@ $<` -o $@
 
 #========================================================================
-# xotcl shells
+# next shells
 #========================================================================
 
 pkgIndex.tcl: $(PKG_LIB_FILE)
-	@echo package ifneeded XOTcl $(PACKAGE_VERSION) [list load [file join \$$dir . $(PKG_LIB_FILE)] XOTcl] > pkgIndex.tcl
+	@echo package ifneeded nsf $(PACKAGE_VERSION) \"load [list [file join \$$dir . $(PKG_LIB_FILE)] nsf]\; package provide nsf $(PACKAGE_VERSION)\" > pkgIndex.tcl
 
 install-pkgIndex:
-#	@echo package ifneeded XOTcl $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] XOTcl] > "$(pkglibdir)/pkgIndex.tcl"
+#	@echo package ifneeded nsf $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] nsf] > "$(pkglibdir)/pkgIndex.tcl"
 
-xotclsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
-	$(CC) -rdynamic -o $@ tclAppInit.o \
-		$(PKG_OBJECTS) \
-		$(CFLAGS)  $(TCL_LIB_SPEC) \
-		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
+#nxsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
+#	$(CC) -rdynamic -o $@ tclAppInit.o \
+#		$(CFLAGS)  $(TCL_LIB_SPEC) \
+#		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
 
-xowish: tkAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
-	$(CC) -rdynamic -o $@ tkAppInit.o \
-		$(PKG_OBJECTS) \
-		$(CFLAGS)  $(TCL_LIB_SPEC) $(TK_LIB_SPEC) \
-		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
+#xowish: tkAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
+#	$(CC) -rdynamic -o $@ tkAppInit.o \
+#		$(PKG_OBJECTS) \
+#		$(CFLAGS)  $(TCL_LIB_SPEC) $(TK_LIB_SPEC) \
+#		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
 
 install-shells:
-	@if test -f xotclsh; then \
-		$(INSTALL_PROGRAM) xotclsh $(DESTDIR)$(bindir); \
+	@if test -f nxsh; then \
+		$(INSTALL_PROGRAM) nxsh $(DESTDIR)$(bindir); \
 	fi
-	@if test -f xowish; then \
-		$(INSTALL_PROGRAM) xowish $(DESTDIR)$(bindir); \
+	@if test -f nxwish; then \
+		$(INSTALL_PROGRAM) nxwish $(DESTDIR)$(bindir); \
 	fi
 
 #========================================================================
@@ -460,20 +620,25 @@ install-shells:
 # 	$(COMPILE) -c `@CYGPATH@ $(srcdir)/src/win/exampleA.c` -o $@
 #========================================================================
 
-$(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.xotcl $(src_generic_dir)/predefined.xotcl
-	(cd $(src_generic_dir); $(TCLSH) mk_predefined.xotcl > predefined.h)
+$(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.tcl $(src_generic_dir)/nsf.tcl
+	(cd $(src_generic_dir); $(TCLSH) mk_predefined.tcl nsf.tcl > predefined.h)
 
-xotclStubInit.$(OBJEXT): $(PKG_HEADERS)
-xotclStubLib.$(OBJEXT): $(src_generic_dir)/xotclStubLib.c $(PKG_HEADERS)
-xotcl.$(OBJEXT): $(src_generic_dir)/xotcl.c $(src_generic_dir)/predefined.h $(PKG_HEADERS)
-xotclError.$(OBJEXT): $(src_generic_dir)/xotclError.c $(PKG_HEADERS)
-xotclMetaData.$(OBJEXT): $(src_generic_dir)/xotclMetaData.c $(PKG_HEADERS)
-xotclObjectData.$(OBJEXT): $(src_generic_dir)/xotclObjectData.c $(PKG_HEADERS)
-xotclProfile.$(OBJEXT): $(src_generic_dir)/xotclProfile.c $(PKG_HEADERS)
-xotclTrace.$(OBJEXT): $(src_generic_dir)/xotclTrace.c $(PKG_HEADERS)
-xotclUtil.$(OBJEXT): $(src_generic_dir)/xotclUtil.c $(PKG_HEADERS)
-xotclShadow.$(OBJEXT): $(src_generic_dir)/xotclShadow.c $(PKG_HEADERS)
+$(src_generic_dir)/nsfAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/nsfAPI.decls
+	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/nsfAPI.decls > $(src_generic_dir)/nsfAPI.h
+
 aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
+nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/nsfAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c $(DTRACE_HDR)
+nsfDebug.$(OBJEXT): $(src_generic_dir)/nsfDebug.c $(PKG_HEADERS)
+nsfError.$(OBJEXT): $(src_generic_dir)/nsfError.c $(PKG_HEADERS)
+nsfMetaData.$(OBJEXT): $(src_generic_dir)/nsfMetaData.c $(PKG_HEADERS)
+nsfObj.$(OBJEXT): $(src_generic_dir)/nsfObj.c $(PKG_HEADERS)
+nsfObjectData.$(OBJEXT): $(src_generic_dir)/nsfObjectData.c $(PKG_HEADERS)
+nsfPointer.$(OBJEXT): $(src_generic_dir)/nsfPointer.c $(PKG_HEADERS)
+nsfProfile.$(OBJEXT): $(src_generic_dir)/nsfProfile.c $(PKG_HEADERS)
+nsfShadow.$(OBJEXT): $(src_generic_dir)/nsfShadow.c $(PKG_HEADERS)
+nsfStubInit.$(OBJEXT): $(PKG_HEADERS)
+nsfStubLib.$(OBJEXT): $(src_generic_dir)/nsfStubLib.c $(PKG_HEADERS)
+nsfUtil.$(OBJEXT): $(src_generic_dir)/nsfUtil.c $(PKG_HEADERS)
 
 #
 # Target to regenerate header files and stub files from the *.decls tables.
@@ -481,7 +646,7 @@ aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
 
 genstubs:
 	$(TCLSH) $(TCL_SRC_DIR)/tools/genStubs.tcl $(src_generic_dir) \
-		$(src_generic_dir)/xotcl.decls $(src_generic_dir)/xotclInt.decls
+		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 
 #
 # Target to check that all exported functions have an entry in the stubs
@@ -500,6 +665,17 @@ checkstubs:
 		if [ $$match -eq 0 ]; then echo $$i; fi \
 	done
 
+# DTrace support
+
+$(PKG_OBJECTS): $(DTRACE_HDR)
+
+$(DTRACE_HDR): $(DTRACE_SRC)
+	$(DTRACE) -h $(DTRACE_SWITCHES) -o $@ -s $(DTRACE_SRC)
+
+$(DTRACE_OBJ): $(DTRACE_SRC) $(TCL_OBJS)
+	$(DTRACE) -G $(DTRACE_SWITCHES) -o $@ -s $(DTRACE_SRC) $(TCL_OBJS)
+
+
 #========================================================================
 # End of user-definable section
 #========================================================================
@@ -509,9 +685,11 @@ checkstubs:
 # variable in configure.in
 #========================================================================
 
-clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES) @XOTCLSH@ @XOWISH@ pkgIndex.tcl ./receiver \
-		$(target_doc_dir)/*-xotcl.html
+cleandoc:  
+	-rm -rf $(xotcl_target_doc_dir)/*-xotcl.html $(dir $(YUIDOC_OUTPUT)) $(XOWIKI_OUTPUT)
+
+clean: cleandoc
+	-rm -rf $(BINARIES) $(CLEANFILES) ./receiver
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
@@ -531,6 +709,10 @@ distclean: clean
 # .lib files.  Because the .lib files are not explicitly listed anywhere,
 # we need to deduce their existence from the .dll file of the same name.
 # Library files go into the lib directory.
+#
+# A manual generation of the pkgIndex files via tclsh should look like
+#     pkg_mkIndex -direct -verbose library/lib *tcl
+#
 # In addition, this will generate the pkgIndex.tcl
 # file in the install location (assuming it can find a usable tclsh shell)
 #
@@ -627,27 +809,21 @@ $(DESTDIR)$(mandir)/mann:
 end:
 	@echo "" 
 	@echo "************************************************************"
-	@echo " Make completed. In order to test XOTcl, invoke:"
+	@echo " Make completed. In order to test next-scripting, invoke:"
 	@echo "   make test"
 	@echo ""
-	@echo " In order install XOTcl, invoke:"
+	@echo " In order install next-scripting, invoke:"
 	@echo "   make install"
 	@echo ""
-	@echo " In order to install XOTcl for AOLserver 4.x, invoke:"
+	@echo " In order to install next-scripting for AOLserver 4.x, invoke:"
 	@echo "   make install-aol"
 	@echo "" 
-	@echo " In order to invoke XOTcl interactively (before install), use:" 
+	@echo " In order to invoke next-scripting interactively (before install), use:" 
 	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\"   or    " 
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
-	@if test "x$(XOTCLSH)" = "x" ; then \
-	  echo "   @TCLSH_PROG@" ; \
-	  echo "   package require XOTcl; namespace import -force xotcl::*" ; \
-	  echo " or" ; \
-	  echo "   put the 'package require' line into your ~/.tclshrc" ; \
-	else \
-	  echo "   ./xotclsh" ; \
-	fi
+	@echo "   @TCLSH_PROG@"
+	@echo "   package require nx; namespace import -force nx::*"
 	@echo "************************************************************"
 
 RPMSOURCES=/usr/src/redhat/SOURCES
@@ -663,11 +839,13 @@ rpm:
 
 bin-tar: 
 	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
-                `find $(exec_prefix)/bin/xotclsh $(exec_prefix)/bin/xowish \
-                  $(prefix)/lib/xotcl$(PACKAGE_VERSION)* \
-                  $(prefix)/lib/libxotcl$(PACKAGE_VERSION)* \
-		  $(prefix)/include/xotcl*.h \
-                  $(DESTDIR)$(pkglibdir) $(prefix)/man/man1/xo* \
+                `find \
+                  $(prefix)/bin/nx*sh \
+                  $(prefix)/bin/xotcl*sh \
+                  $(prefix)/lib/nsf* \
+                  $(prefix)/lib/libnsf* \
+		  $(prefix)/include/nsf*.h \
+                  $(DESTDIR)$(pkglibdir) $(prefix)/man/man1/nsf* \
                 -type f -o -type l | fgrep -v CVS | fgrep -v SCCS | fgrep -v .junk| fgrep -v .db | fgrep -v "~" | fgrep -v "#" | fgrep -v /receiver/` \
 	)
 

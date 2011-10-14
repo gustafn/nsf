@@ -1,0 +1,4 @@
+# -*- Tcl -*-
+namespace eval ::nsf {
+  set traitIndex(nx::traits::callback) {script {package require nx::traits::callback}}
+} 

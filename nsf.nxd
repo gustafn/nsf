@@ -1,0 +1,1085 @@
+# -*- Tcl -*-
+
+# @package nsf
+#
+# The package provides a basic set of primitives (Tcl commands) to
+# support language-oriented programming based on the Next Scripting
+# Framework. These primitives are used to define one or multiple
+# object systems within a single system. The NSF primitives are
+# primarily meant for the designer of an object system. Application
+# developers should use the functionality provided by the object
+# systems they are using (eg. XOTcl or NX).
+#
+# @require Tcl
+# @version 1.0.0a
+# @namespace ::nsf
+
+# @glossary metaclass
+#
+# A metaclass is a certain kind of <<@gls class>> that manages
+# classes. The instances of metaclasses are classes. 
+#
+# @pretty_name Metaclass
+# @pretty_plural Metaclasses
+
+# @glossary class
+#
+# A class is a certain kind of <<@gls object>> that is responsible for
+# the life-cycle management of other objects (creation,
+# initialization, destruction) and which serves as a method
+# respository for objects (typically along a class hierarchy). In the
+# object systems of XOTcl and NX, where objects might have their own
+# methods, the class objects might have as well methods applicable
+# only to the class object. We refer to these methods as class-object
+# specific methods, sometimes these methods are called "static methods".
+#
+# @pretty_name Class
+# @pretty_plural Classes
+
+
+# @glossary baseclass
+#
+# A base class is the most general <<@gls class>> (synonym: common
+# root class) of an object system.  All objects of an object system
+# are direct or indirect instances of the base class. 
+#
+# @pretty_name Base class
+# @pretty_plural Base classes
+
+# @glossary basemetaclass
+#
+# A base metaclass is the most general <<@gls metaclass>> of an object
+# system. All classes are direct or indirect instances of the base
+# metaclass.
+#
+# @pretty_name Base metaclass
+# @pretty_plural Base metaclasses
+
+# @glossary object
+#
+# An object is the basic entity of an object system. Every object is
+# the instance of a <<@gls class>> and might contain variables (called
+# instance variables). In the object systems of XOTcl and NX, objects
+# might have as well their own methods (called object specific
+# methods).
+#
+# @pretty_name Object
+# @pretty_plural Objects
+
+# @glossary alias
+#
+# An alias is an alternate name for some artefact. In NSF, the term
+# "alias" is an abbreviation for a "method alias", which allows to
+# reuse some command or method unter a certain name. This way, one can
+# e.g. reuse Tcl commands like <<tclcmd set>> or <<tclcmd unset>> as
+# methods for object and classes.
+#
+# @pretty_name Alias
+# @pretty_plural Aliases
+
+# @glossary methodhandle
+#
+# A method handle is a fully qualified reference to a method. Since
+# methods with identical names can be defined on object and classes,
+# method names are subject to resolving. In contrary to method names,
+# method handles provide unique identifier to methods.
+# 
+# @pretty_name Method handle
+# @pretty_plural Method handles
+
+# @glossary callframe
+#
+# A call frame (sometimes called: activation record) is an entry on the
+# execution stack, keeping information about the invoked functions and
+# methods.  NSF uses the extension mechansims of Tcl to provide its
+# own types of callframes, which are different for scripted and C
+# implemented methods.
+# 
+# @pretty_name Callframe
+# @pretty_plural Callframes
+
+# @glossary assertion
+#
+# An assertion is an assumption that the developer assumes to hold (to
+# be true).  Following a Design-by-Contract approach, a developer may
+# define different kinds of assertions on object, classes, and
+# methods. NSF assertions support object and class invariants and
+# method asstions (pre- and post-conditions).
+#
+# @pretty_name Assertion
+# @pretty_plural Assertions
+
+# @glossary forwarder
+#
+# A forwarder (shorthand for a "forwarder method") is a delegation
+# mechanism to realize a variety of programming techniques. A
+# forwarder is a C implemented method that redirects an invocation
+# with a potentially different argument list to some implementation
+# (delegation target). Delegation targets might be methods of the same
+# or different objects, but these might be as well arbitrary Tcl
+# commands. Like <<@glspl alias>>, method forwarders are a
+# means of reuse. On contrary to aliases method forwarders allow the
+# modification of the argument vector, but involve more calling
+# overhead. Method forwarder do not extend the expressability of the
+# language, since everything performed by a forwarder could be
+# implemented as well in a scripted method. However, a forwarder is
+# more efficient and expresses the intention of the developer more
+# clearly.
+#
+# @pretty_name Forwarder
+# @pretty_plural Forwarders
+
+# @glossary mixin_class
+#
+# A mixin class is a class that provides its method-set to objects and
+# classes outside of the intrinsic class hierarchy (the class
+# hierarchy defined by the is-instance-of and superclass
+# relationship). A mixin class registered on an object is called a
+# per-object mixin, a mixin class registed on a class is called an
+# per-class mixin. Technically, a mixin class is realized by an
+# ordinary class which is registered via a dedicated mixin relation.
+#
+# @pretty_name Mixin class
+# @pretty_plural Mixin classes
+
+# @glossary filter
+#
+# A filter is a method called before and after every method
+# invocation. Filters can be registered on the object level
+# (per-object filters) and on the class level (per-class filters).
+#
+# @pretty_name Filter
+# @pretty_plural Filters
+
+# @glossary slotobject
+#
+# A slot object is an <<@gls object>> of the class <<@class
+# ::nx::Slot>> that manages certain properties of objects. The most
+# prominent properties are instance variables (see <<@glspl
+# attribute>>). Typical examples for such meta-data are
+# default-values, value checker, linkage to database table/attributes,
+# labels for pretty-printing, widget specifications for data entry,
+# etc.
+#
+# @pretty_name Slot object
+# @pretty_plural Slot objects
+
+# @glossary attribute
+# 
+# An attribute describes properties of instance variables and might be
+# defined for a class or an object. Attributes are realized via
+# <<@glspl slotobject>>. When an instance of the class, on which the
+# attribute is defined, is created, the default value of the slot
+# object is used as initial value, and same-named accessor functions
+# are created automatically (unless this is suppressed).
+#
+# @pretty_name Attribute
+# @pretty_plural Attributes
+
+# xxxx-bis-hierher
+
+#######################################################################
+
+# @command ::nsf::configure
+# 
+# A top-level configuration facility which allows you modify
+# properties of the a given object system for the scope of an entire
+# '''interp'''.
+
+# @command.sub-command {configure debug}
+#
+# The NSF runtime provides you with the <<@command ::nsf::log>> command to
+# drop logging statements, filtered by custom debug levels. To
+# activate a certain debug level, use this configuration facility. The
+# runtime defaults to debug level '''0'''. A debug level greater than
+# '''0''' increases the runtime's native verbosity (i.e., selected
+# warnings and debugging-critical information will be displayed).
+#
+# @parameter level:optional 	If provided, sets the runtime's debug
+# 				level. If omitted, you obtain the
+# 				debug level currently active.
+
+
+# @command.sub-command {configure filter}
+#
+# Allows turning on or off filters globally for the current
+# interpreter. By default, the filter state is turned off. This
+# function returns the old filter state. This filterless '''interp'''
+# state is needed for the serializer which should introspect and stream the
+# objects and classes without being affected by active filter.
+#
+# @parameter toggle Accepts either '''on''' or '''off'''
+# @return The current filter activation state
+
+# @command.sub-command {configure softrecreate}
+# 
+# Allows controlling the scheme applied when recreating an object or a
+# class. By default, it is set to '''off'''. This means that the
+# object/class is destroyed and all relations
+# (e.g. subclass/superclass) to other objects/classes are revoked as
+# well. If softrecreate is set to '''on''', the object is re-set, but not
+# destroyed, the relations are
+# kept. 
+# 
+# A "soft" recreation is important for e.g. reloading a file with
+# class definitions (e.g. when used in OpenACS with file watching and
+# reloading). With softrecreate set, it is not necessary to recreate
+# dependent subclasses etc. Consider the example of a class hierarchy
+# '''A <- B <- C'''. Without '''softrecreate''' set, a reload of
+# '''B''' means first a destroy of B, leading to '''A <- C''', and
+# instances of '''B''' are re-classed to the object system's root
+# class. When softrecreate is set, the class hierarchy remains
+# untouched.
+#
+# @parameter toggle Accepts either '''on''' or '''off'''
+# @return The current toggle value
+
+# @command.sub-command {configure objectsystems}
+# 
+# A mere introspection subcommand. It gives you the top level of the
+# current object system, i.e., the ruling root class and the root
+# metaclass. It is the introspective counterpart of <<@command
+# objectsystem::create>>.
+#
+# @return 	A list of currently specified object systems. Each
+# 		sublist gives the pair of root class and
+# 		root metaclass and (if available) the mappings of
+# 		system hooks to system methods.
+
+# @command.sub-command {configure keepinitcmd}
+#
+# Usually, initcmd scripts are discarded by the '''interp''' once
+# having been evaluated (in contrast to '''proc''' and '''method'''
+# bodies). If you need them preserved for later introspection and
+# processing (as in the "Next" documentation system), set this option
+# to '''true'''. Then, the initcmd scripts are retained as a
+# particular object variable ('''__initcmd''') of classes and
+# objects. It defaults to '''false'''.
+#
+# @parameter value:boolean Either '''true''' or '''false'''
+# @return The current setting
+
+# @command.sub-command {configure checkarguments}
+#
+# NSF provides optional type checkers for arguments to method
+# invocations, based on method parameter specifications. This
+# configuration options lets you activate or deactive type checking on
+# method arguments for the scope of a given '''interp'''.
+#
+# @parameter value:boolean Either '''true''' or '''false'''
+# @return The current setting, either '''1''' or '''0'''
+
+
+# @command.sub-command {configure checkresults}
+#
+# NSF provides optional type checkers for result values of method
+# executions. For details, see <<@command ::nsf::method::property>>. This
+# configuration options lets you activate or deactive this type
+# checking for the scope of a given '''interp'''.
+#
+# @parameter value:boolean Either '''true''' or '''false'''
+# @return The current setting, either '''1''' or '''0'''
+
+########################################################################
+
+# @command ::nsf::current
+#
+# An introspective command which allows you to explore the callstack
+# from within the scope of a method (or a proc bound to an object via
+# '''alias'''). If executed without specifying a subcommand,
+# i.e. '''[current]''', it defaults to <<@command.command "current
+# object">>. While '''current''' operates on the Tcl callstack, it is
+# aware of object-specific callstack and frame information. To some
+# extent, this object introspection protocol can be approximated at
+# the script level by instrumenting '''[info frame]'''.
+#
+# If invoked outside of an object's scope (e.g., an ordinary proc, the
+# global namespace), it fails and reports '''No current object'''.
+# 
+# It comes with a variety of sub-commands to query the object-specific
+# callstack information available. See below.
+#
+# @sub-command class Returns the name of the class holding the
+# currently executing per-class method, if and only if called from
+# within a per-class method. Note, that this method-owning class may
+# be different to the class of the current object. If called from
+# within a per-object method, it returns an empty string.
+#
+# @sub-command method Returns the name of the currently executing method.
+#
+# @sub-command callingclass Returns the name of the class which is
+# calling into the executing method.
+#
+# @sub-command callingobject Returns the name of the object which is
+# calling into the executing method.
+#
+# @sub-command calledclass Returns the name of the class that holds
+# the originally (and now shadowed) target method (applicable in
+# mixin classes and filters).
+#
+# @sub-command calledmethod Returns the name of the target method
+# (applicable in a filter only).
+#
+# @sub-command isnextcall Returns 1 if the executing method was
+# invoked via <<@command ::nsf::next>>, 0 otherwise.
+#
+# @sub-command next Returns the name of the method next on the
+# precedence path as a string.
+#
+# @sub-command filterreg In a method serving as active filter,
+# returns the name of the object (class) on which the method is
+# registered as a filter.
+#
+# @sub-command callinglevel Resolves the callstack level which represents
+# the originating invocation into the currently executing method. Levels
+# of indirection (e.g., filters) and method combination along the
+# class linearisation path ('''next''') are ignored. The callstack is
+# returned as an absolute level number (# followed by a digit). The
+# level number returned can be directly used as the first argument to
+# '''uplevel''' or '''upvar''' calls. See also <<@command.command
+# "current activelevel">>
+#
+# @sub-command activelevel Returns the actual callstack level calling
+# into the executing method. The active might correspond the
+# '''callinglevel''', but this is not necessarily the case. The
+# '''activelevel''' counts <<@command ::nsf::next>> call. The level
+# is returned in a form so that it can be used as first argument in
+# '''uplevel''' or '''upvar'''.
+
+# @command.command {current object} 
+# 
+# The default sub-command returns the name of the object currently
+# active on the callstack.
+
+########################################################################
+
+# @command ::nsf::deprecated
+#
+# A helper command which prints a notice that a given command is
+# deprecated, optionally pointing to its successor, if any. 
+#
+# @parameter what 	Identifies the command type (proc, method, ...)
+# @parameter oldCmd 	Gives the name of the deprecated command
+# @parameter newCmd:optional 	Points to the successor command
+
+########################################################################
+
+# @command ::nsf::dispatch
+#
+# The command gives script-level access to the NSF infrastructure for
+# method dispatch. It can be used to bypass standard method
+# dispatching (as defined by a given object system) and to devise your
+# own method dispatch scheme. Likewise, it provides means to create
+# programs which operate over several object systems and their method
+# dispatching schemes (e.g., a serializer, a program structure
+# analyzer). 
+#
+# @parameter object 		Indicates the name of the receiving object
+# @parameter -frame		Denotes the type of <<@gls callframe>> to
+# 				be stacked upon invoking the alias
+# 				method. Permissible options are:
+# 				'''method''', '''object''',
+# 				'''default'''
+# @parameter command 		Specifies the receiving command, to be invoked in
+# 				the callframe scope of the receiver
+# 				object. The receiving command can be
+# 				specified as a <<@gls methodhandle>>
+# @parameter args		The actual invocation arguments, to be
+# 				passed to the receiving command.
+# @return 			The result value as returned by the receiving 
+# 				command
+
+########################################################################
+
+# @command ::nsf::exithandler
+#
+# This command is used to register and manage an application-level
+# handler which is to be executed upon shutting down a NSF-enabled
+# '''interp'''. The handler takes the form of a script which is
+# evaluated early upon calling <<@command ::nsf::finalize>>.
+#
+# @parameter args 	A variable argument vector, identifying a
+# 			subcommand ('''set''', '''get''', '''unset''')
+# 			and an optional value which carries the
+# 			handler script to be set.
+
+########################################################################
+
+# @command ::nsf::finalize
+#
+# The command manually triggers the disciplined shutdown and
+# destruction of an entire object system in a given
+# '''interp'''. First, the application-level exit handler script is
+# evaluated. You may provide your own exit handler using <<@command
+# exithandler>>. Second, the object system itself is cleared and
+# removed from the '''interp'''. This discrete destruction trigger is
+# convenient to control an object system's lifespan in environments
+# with more complex '''interp''' lifecycles (e.g., in threaded Tcl
+# programs, '''interp''' reuse, etc.).
+
+########################################################################
+
+
+# @command ::nsf::interp 
+#
+# A convenience wrapper command around '''[interp]'''. When '''[interp
+# create]''' is intercepted, the resulting slave '''interp''' is
+# equipped with the NSF extension by calling the extension's
+# '''*_Init()''' function on the new '''interp'''. Roughly, it
+# corresponds to the following scripted version:
+#
+# '''
+# ::proc ::nsf::interp {subcmd args} {
+#   set r [uplevel [list ::interp $subcmd {*}$args]]
+#   switch -- $subcmd {
+#     create {
+#       $r eval [list package req nsf]
+#     }
+#   }
+#   return $r
+# }
+# '''
+#
+# @parameter name 	The name of the slave '''interp'''
+# @parameter args	A variable argument vector,
+# 			carrying subcommand-specific arguments.
+
+########################################################################
+
+# @command ::nsf::is 
+#
+# The command tests whether a given string is a valid according to a
+# value constraint. Depending on the nature of the tested string value
+# (i.e., a Tcl value structure, an NSF object, or an NSF class), you
+# can express various constraint types.
+#
+# 1. Value constraints on Tcl value representations ('''Tcl_Obj'''),
+# i.e. arbitrary strings:
+#
+# You may use any character class provided by '''[string is]''', e.g.:
+# '''
+# ::nsf::is boolean|double|false|integer|list|lower|true|upper|wideinteger /value/
+# '''
+# A Tcl value may be tested whether it represents an NSF object (see
+# also <<@command ::nsf::object::exists>>):
+# '''
+# ::nsf::is object /value/
+# '''
+# 2. Value constraints on NSF objects:
+#
+# Objects may be tested whether they object::qualify as a class and whether
+# they have a particular object-type:
+# '''
+# ::nsf::is object,type=/class/ /object/
+# ::nsf::is class /object/
+# '''
+# 3.  Value constraints on NSF classes:
+#
+# Classes can be tested for their relationship status, e.g., whether
+# they serve as metaclass for other classes:
+# '''
+# ::nsf::is metaclass /class/
+# ''' 
+#
+# @parameter -complain:switch 	If set, a constraint violation will
+# 				result in a Tcl error being fired.
+# @parameter constraint 	The actual value constraint expression
+# @parameter value 		The value to test
+# @return			In the non-complaining mode
+# 				('''-complain''' has been omitted), a
+# 				pass is signalled by '''1''', a
+# 				violation by '''0'''. In complaining
+# 				mode, a Tcl error is raised in case of
+# 				a constraint violation along with a
+# 				'''0''' return value.
+
+########################################################################
+
+# @command ::nsf::log
+#
+# Provides script-level access to NSF's logging facilities. You may
+# specify logging statements to be filtered by custom-defined debug
+# levels. By convention, level '''0''' represents the lowest verbosity
+# level. To set the actual debug level, use <<@command.command
+# {configure debug}>>.
+#
+# @parameter level 	A numeric debugging level, e.g.: '''0''', '''1''',
+# 			...
+# @parameter msg 	The logging statement to display
+
+########################################################################
+
+# @command ::nsf::method::alias
+#
+# A factory command which creates an <<@gls alias>> method for an
+# object or a class. The aliased (or target) command so appears as a
+# member of the method record of the object or the instances of the
+# alias-defining class. Beware, method <<@glspl alias>> and this factory
+# command are not related to Tcl's interpreter aliases and their
+# '''interp alias''' helper.
+#
+# @parameter object 		The target object to own the alias method
+# @parameter -per-object 	If the target object is a <<@gls
+# 				class>>, one can specify the owner
+# 				scope (i.e., per-object or per-class)
+# 				of the alias method
+# @parameter methodName:optional The name of the alias method. Under
+# 				this name, the alias method is listed
+# 				in the method signature interface. The
+# 				alias method name and the target name
+# 				so can differ from each other.
+# @parameter -frame 		Denotes the type of <<@gls callframe>> to
+# 				be stacked upon invoking the alias
+# 				method. Permissible options are:
+# 				'''method''', '''object''',
+# 				'''default'''
+# @parameter cmdName 		The alias source as a <<@gls methodhandle>>
+# @return 			The <<@gls methodhandle>> representing the
+# 				alias method just created
+
+########################################################################
+
+# @command ::nsf::method::assertion
+#
+# A helper command to (a) define assertion expressions and (b) to
+# selectively activate checking of certain assertion types on a given
+# object.
+#
+# @parameter object 		Denotes an object or class as the
+# 				subject of assertion checking. It also
+# 				stores the assertion expressions to be
+# 				evaluated.
+# @parameter assertionsubcmd 	The subcommand '''check''' allows you to
+# 				specify the category of assertions to
+# 				be checked, while '''object-invar''' and
+# 				'''class-invar''' actually set
+# 				assertion expressions in terms of
+# 				object or class invariants. 
+# @parameter arg:optional Either: (a) subcommand '''check''': A list
+# 				of assertion checks to activate
+# 				(permissible options: '''all''',
+# 				'''pre''', '''post''',
+# 				'''object-invar''',
+# 				'''class-invar'''); if omitted, the
+# 				currently active assertion type is
+# 				returned.  
+#				(b) subcommands '''object-invar''' and
+# 				'''class-invar''': A list of assertion
+# 				expressions (in the sense of Tcl
+# 				expression statements). A list of
+# 				assertion expressions is evaluated
+# 				under a logical AND.
+
+########################################################################
+
+# @command ::nsf::method::create
+#
+# A factory command for defining methods on objects and classes. The
+# command creates (and replaces any existing) method by a given name.
+#
+# @parameter object			The name of the method-owning
+# 					object or class
+# @parameter -inner-namespace:switch	If requested, the owner object
+# 				       	is attached a per-object
+# 				       	namespace which becomes the
+# 				       	current namespace for
+# 				       	evaluating the method body (in
+# 				       	the sense of '''[namespace
+# 				       	current]''').
+# @parameter -per-object:switch		When defined on a class, the
+# 					method is owned by and invoked
+# 					upon the class object itself
+# 					(rather than its instance
+# 					objects).
+# @parameter -public:switch		Sets the call protection 
+# @parameter name			Name of the method
+# @parameter args			The formal definition of method parameters
+# @parameter body			The body script to be
+# 					evaluated upon invoking on the method
+# @parameter -precondition		A list of <<@glspl assert>> (Tcl
+# 					expressions) which must hold
+# 					before executing the method
+# 					body. See also <<@command
+# 					assertion>>.
+# @parameter -postcondition		A list of <<@glspl assert>>
+# 					(Tcl expressions) which must
+# 					hold after having evaluated
+# 					the method, provided that all
+# 					preconditions evaluated to
+# 					true. Beware that, if
+# 					specified, preconditions must
+# 					also be provided. See also
+# 					<<@command ::nsf::method::assertion>>.
+# @return			The <<@gls methodhandle>> representing the
+# 				newly created method
+
+########################################################################
+
+# @command ::nsf::method::forward
+#
+# A factory command for defining <<@glspl forwarder>> methods on objects
+# and classes. The command creates (and replaces any existing)
+# forwarder method by a given name, delegating the call to a target
+# command. The argument vector passed to the forward target can be
+# manipulated by providing a filtering expresion in '''args''', using
+# the following protocol:
+#
+# # '''%proc''' substituted by name of the forwarder method
+#
+# '''%self''' substitute by name of the object
+#
+# '''%1''' substitute by first argument of the invocation
+#
+# ''' {%@POS value} ''' substitute the specified value in the
+# argument list on position POS, where POS can be a positive or
+# negative integer or end. Positive integers specify the position
+# from the begin of the list, while negative integer specify the
+# position from the end.
+#
+# ''' {%argclindex LIST} ''' take the nth argument of the specified
+# list as substitution value, where n is the number of arguments
+# from the invocation.
+#
+# '''%%''' a single percent.
+#
+# '''%Tcl-command''' The command to be executed; the result of the
+# command evaluation is substituted for the placeholding statement.
+#
+# Additionally, each argument can be prefixed by the positional prefix
+# %@POS (note the delimiting space at the end) that can be used to
+# specify an explicit position. POS can be a positive or negative
+# integer or the word end. The positional arguments are evaluated from
+# left to right and should be used in ascending order. 
+#
+# @parameter object			The name of the forward-owning
+# 					object or class. The forwarder
+# 					appears as member of the
+# 					object's or class' method
+# 					record.
+# @parameter -per-object:switch		When defined on a class, the
+# 					method is owned by and invoked
+# 					upon the class object itself
+# 					(rather than its instance
+# 					objects).
+# @parameter method			The name of the forwarder method
+# @parameter -default			A two-valued list, specifying
+# 					the a conditional selection of
+# 					default forward targets (i.e.,
+# 					methods). Beware that this
+# 					option works only in
+# 					connection with '''%1'''.  If
+# 					more than one argument is
+# 					provided at the forwarder's
+# 					call site, the method at
+# 					position 2 becomes the call
+# 					target.
+# @parameter -earlybinding:switch	Provided that the forward
+# 					specification resolves to a
+# 					Tcl command, the forward
+# 					method can be bound to its
+# 					target at definition time.
+# @parameter -methodprefix		Indicates a string prefix
+# 					prepended to the second
+# 					argument issued at the
+# 					forwarder's call site.
+# @parameter -objframe:switch		If provided, the forward
+# 					specification will be
+# 					evaluated in the context of
+# 					the forward-owning object.
+# @parameter -onerror			Declare a error handler proc
+# 					(its fully qualified name) to
+# 					be executed upon sensing a Tcl
+# 					error during delegation.
+# @parameter -verbose:switch		If requested, 
+# @parameter target:optional		The Tcl command or method name
+# 					representing the forward target.
+# @parameter args			The remainder of the forward
+# 					specification
+
+########################################################################
+
+# @command ::nsf::method::property
+# 
+# The command to configure certain semantic properties of methods,
+# previously defined by either <<@command ::nsf::method::create>>, <<@command
+# ::nsf::method::forward>>, or <<@command ::nsf::method::alias>>. 
+#
+# The following property classes can be set on methods:
+#
+# 1. '''class-only''': Marks a method as a class-only behavioural
+# 		       feature, that is, the method will only be
+# 		       executed if called on a class.
+#
+# 2. '''call-protected''': A call-protected method is only visible and
+# 			   accessible for self-calls and calls from
+# 			   within a generalisation/specialisation
+# 			   hierarchy. See <<@gls cprotection>>.
+#
+# 3. '''redefine-protected''': 	A redefine-protected method cannot be
+# 				replaced on the the owning object or
+# 				class. In order to alter or refine
+# 				behaviour, the method must be
+# 				overwritten or overloaded.
+#
+# 4. '''returns''':	Specify a value constraint on the return value
+# 			of the method. For activating and deactivating return value
+# 			validation, see <<@command ::nsf::configure>>.
+#
+# 5. '''slotcontainer''': ...
+#
+# 6. '''slotobj''': ...
+#
+# @parameter object			The method-owning object or class
+# @parameter -per-object:switch		When called for a class, a
+# 					property of a class object's
+# 					method is set (if existant).
+# @parameter methodName			The name of the method to configure			
+# @parameter methodproperty 		The property class to set or
+# 					unset. Accepts one of:
+# 					'''class-only''',
+# 					'''call-protected'''
+# 					'''redefine-protected''',
+# 					'''returns''',
+# 					'''slotcontainer''',
+# 					'''slotobj'''.
+# @parameter value:optional		If provided, '''1''' sets the
+# 					propery, '''0''' unsets it. If
+# 					omitted, the current property
+# 					state is returned.
+
+########################################################################
+
+# @command ::nsf::method::provide
+#
+# The command contributes an entry to a '''interp'''-wide method
+# repository (the method index) to be queried and harvested by
+# <<@command ::nsf::method::require>>. An entry consists of a unique
+# identifier, a definition script, and a setup script. Arbitrary
+# objects can request method definitions from this repository in a
+# disciplined manner. The idea of this method repository ressembles
+# Tcl's '''auto_import''' feature, applied to method ownership of
+# objects.
+#
+# @parameter require_name 	The unique identifier, used to request a
+# 				method from the method index.
+# @parameter definition		The definition script, usually stating
+# 				a call to <<@command ::nsf::method::alias>>.
+# @parameter script:optional    A setup script which is evaluated
+# 				before defining the method on the
+# 				requiring object.
+
+########################################################################
+
+# @command ::nsf::method::require
+# 
+# As the counterpart of <<@command ::nsf::method::provide>>, the command allows
+# you to require an method definition for the given object from the
+# '''interp'''-wide method repository.
+#
+# @parameter object		The object to own the requested method
+# @parameter name		The unique identifier of the requested
+# 				method in the repository.
+# @parameter per_object		If the target object is a class, the
+# 				method will be owned by the class
+# 				object itself.
+
+
+########################################################################
+
+# @command ::nsf::method::setter
+#
+# A factory method which creates a setter method on the object or
+# class specified. A setter method provides a pair of accessor and
+# mutator operations for object variables. The following '''setter'''
+# example ...
+# '''
+# ::nsf::method::setter /obj/ x 
+# '''
+# ... can be rewritten as a scripted method using the NSF primitives
+# <<@command ::nsf::current>> and <<@command ::nsf::var::set>>:
+# '''
+# ::nsf::method::create /obj/ -public x {value:optional} {
+#   if {[info exists value]} {
+#     return [::nsf::var::set [::nsf::current object] [::nsf::current method] $value]
+#   } else {
+#     return [::nsf::var::set [::nsf::current] [::nsf::current method]]
+#   }
+# }
+# '''
+# While adding a method dispatch overhead, accessing and mutating
+# object variables through dedicated setter methods provides several
+# benefits: They facilitate accessing object states from client
+# objects and render operations on object variables interceptable
+# by <<@glspl filter>> and <<@glspl mixin_class>>.
+#
+# @parameter object			The owner object or class of
+# 					the setter method
+# @parameter -per-object:switch		If requested and if defined on
+# 					a class, the setter method is
+# 					owned by the class object
+# 					itself.
+# @parameter parameter			The name of the setter method
+# 					and, as a consequence, the
+# 					object variable managed by the
+# 					setter method.
+
+########################################################################
+
+# @command ::nsf::mixin
+#
+# A helper command to set and maintain mixin relations between an
+# object and a set of of <<@gls mixin_class>>. It is a convenience
+# wrapper around <<@command ::nsf::relation>>.
+# 
+# @parameter object The target object to refine
+# @parameter arg
+
+########################################################################
+
+
+
+# @command ::nsf::my
+#
+# This special command is a dispatcher for self-calls, i.e. method
+# calls on the self-object (in the sense of '''[::nsf::current
+# object]''', see <<@command ::nsf::current>>). Using '''my''' incurs less
+# dispatch overhead than an explicit self-dispatch. For example,
+# '''[::nsf::current object] /methodname/''' is equivalent to and,
+# therefore, should be replaced by '''my /methodname/'''.
+#
+# In terms of the general dispatcher command <<@command ::nsf::dispatch>>,
+# '''my''' could be implemented as follows:
+# '''
+# ::nsf::dispatch [::nsf::current object] /methodname/
+# '''
+# By default, this dispatcher realises a subclassing method resolution
+# scheme, that is, method resolution along the self reference takes
+# into account the entire precedence of inheriting classes of the
+# current object. To ressemble more closely a subtyping scheme, i.e.,
+# method resolution starts at the current class as a fixpoint, use the
+# '''-local''' option to '''my'''. This will limit the method lookup
+# range to the class of the calling method, i.e. the
+# '''[::nsf::current class]''' resolved at the call site of '''my'''.
+#
+# 
+#
+# @parameter -local	Dispatch on the interface of the class
+# 			enclosing the '''my''' instruction call.
+# @parameter method	The name of the receiver method
+# @parameter args	
+
+########################################################################
+
+# @command ::nsf::next
+#
+# Invokes the shadowed (i.e, same-named) method which is next along
+# the precedence path and returns the results of this invocation. The
+# command realises method combination in NSF-derived object
+# systems. If '''next''' is called without arguments, the arguments of
+# the current method (i.e., the arguments as present at the current
+# callframe) are passed through to the shadowed method. If '''next'''
+# is invoked with an empty list, the shadowed method is called without
+# the active callframe arguments. If explicit arguments are specified
+# for '''next''' explicitly, these will be passed instead of the ones
+# active on the callframe. Note that explicit arguments must be passed
+# boxed into a list.
+# 
+# @parameter arguments:optional 	A list boxing explicit
+# 					arguments to be passed to
+# 					the next shadowed method.
+
+########################################################################
+
+# @command ::nsf::object::exists
+#
+# Tests whether a given Tcl command represents an NSF object. The
+# command incurs the least dispatch overhead to identify an object and
+# is preferred over its derivates, such as <<@command ::nsf::is>>.
+#
+# @parameter value 	The value to test
+# @return 		If the value represents an object, '''1''' is
+# 			signalled, '''0''' otherwise.
+
+########################################################################
+
+# @command ::nsf::object::qualify
+#
+# The name resolver command resolves unqualified command names (i.e.,
+# no leading '::') according to NSF's internal namespace resolution
+# rules. This resolution order slightly deviates from Tcl standards:
+# While in Tcl namespace resolution '''[namespace current]''' of the
+# currently executing proc takes precedence, followed by the global
+# namespace, the method interception and delegation techniques require
+# a namespace resolution which is aware of the call
+# graph. '''object::qualify''' gives script-level access to this
+# callstack-driven namespace resolution infrastructure (for testing
+# purposes, etc.).
+# 
+# @parameter objectname 	The name to be expanded into its
+# 				fully qualified form.
+
+########################################################################
+
+# @command ::nsf::objectsystem::create
+#
+# A factory command for specifying an NSF object system. By providing
+# the object names of a root class and a root metaclass, you obtain
+# two barebone objects as a starting point to define the basic class
+# and object interfaces for your object system. In addition, you may
+# map system hooks required by the NSF runtime to methods specific to
+# your object system. For instance, the NX object system is defined as follows:
+# '''
+# ::nsf::objectsystem::create ::nx::Object ::nx::Class {
+#    -class.alloc {alloc ::nsf::methods::class::alloc} 
+#    -class.create create
+#    -class.dealloc {dealloc ::nsf::methods::class::dealloc}
+#    -class.objectparameter objectparameter 
+#    -class.recreate {recreate ::nsf::methods::class::recreate}
+#    -object.configure configure
+#    -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod}
+#    -object.destroy destroy
+#    -object.init {init ::nsf::methods::object::init}
+#    -object.move move 
+#    -object.unknown unknown
+# }
+# '''
+#
+# @parameter rootClass 		The name of the class at the root of
+# 				your class hierarchy.
+# @parameter rootMetaClass 	The name of the metaclass at the root
+# 				of your metaclass hierarchy.
+# @parameter systemMethods:optional 	A map which provides bindings
+# 					between system hooks (e.g.,
+# 					'''-class.create''') and
+# 					methods defined on the root
+# 					class and the root metaclass.
+
+########################################################################
+
+
+# @command ::nsf::relation
+#
+# The core command to establish, maintain and introspect entity
+# relations, i.e. relations between objects, classes, and methods. The
+# following relation types can be defined.
+#
+# 1. Object - Class, Object - Method
+#
+# '''class''': Describes an '''instance-of''' relationship between an
+# object (instance) and another object (its class).
+#
+# '''object-mixin''': Declares a list of <<@glspl mixin_class>> as the
+# mixins of a given object.
+#
+# '''object-filter''': Declares a method as a <<@gls filter>> method
+# on a given object.
+#
+# '''rootclass''': Sets the rootclass of a given object. The rootclass
+# identifies an object's membership with a certain object system and
+# acts as the 'default' class to comfort the object system dynamics:
+# recreation, automatic downcasting upon class removals, etc.
+#
+# 2. Class - Class, Class - Method
+#
+# '''superclass''': Establishes a generalisation/specialisation
+# relation between two classes.
+#
+# '''class-mixin''': Declares a list of <<@glspl mixin_class>> as the
+# mixins of a given class, with the method interceptors becoming
+# active on all instances of this class.
+#
+# '''class-filter''': Declares a method as a <<@gls filter>> method on
+# a given class, with the filter becoming active on all
+# instances of this class.
+#
+# Some convenience wrappers on top of '''relation''' are available:
+# <<@command ::nsf::mixin>>.
+#
+# @parameter object			The object or class acting as
+# 					the receiving end of a relation
+# @parameter relationtype 		The type of relation to be
+# 					established between two
+# 					entities. Accepts one of:
+# 					'''class''',
+# 					'''object-mixin''',
+# 					'''object-filter''',
+# 					'''rootclass''',
+# 					'''superclass''',
+# 					'''class-mixin''',
+# 					'''class-filter'''.
+# @parameter value:optional		If omitted, the current
+# 					entities (classes or methods)
+# 					participating in the given
+# 					relation are return. If
+# 					provided, and depending on the
+# 					relation type specified, it
+# 					takes either a list of classes
+# 					or a method name (for
+# 					'''object-filter''' and
+# 					'''class-filter''').
+
+
+########################################################################
+
+# @command ::nsf::tmpdir
+#
+# Depending on your platform, identifies the file system path to a
+# system-wide temporary directory.
+#
+# @return The absolute file path to the temporary directory identified
+
+########################################################################
+
+# @command ::nsf::var::exists
+#
+# A low-level introspection command to query the existance of an
+# object variable, given the variable's name and the holder object. By
+# existance, we mean whether a variable has been 'created' (and not
+# necessarily 'defined', in terms of Tcl variable semantics). It,
+# therefore, pairs with Tcl's '''[info exists]'''.
+#
+# @parameter object 	The variable-holding object
+# @parameter varname	The variable name
+# @return		If the variable exists, the test returns
+# 			'''1'''; '''0''' otherwise
+
+########################################################################
+
+# @command ::nsf::var::import
+#
+# A command used to create a link to an object variable in the current
+# callframe context (i.e., a proc or eval frame). It arranges for a
+# one or several local variables in the current callframe to refer to
+# variables held by an object. The command resembles the variable
+# binding semantics of '''upvar''', '''uplevel''', and
+# '''global'''. While the local link variable does not have to exist
+# at the time of calling this command, as it will be lazily created
+# upon first use, there must not exist a local variable by the name of
+# the specified link variable.
+#
+# @parameter object		The variable-holding object
+# @parameter args 		A variable argument vector, defining
+# 				the intended mappings between object
+# 				and local variables. Each mapping is a
+# 				single- or double-valued list. A
+# 				single-valued mapping will create a
+# 				local link variable with the same name
+# 				as the object variable. A
+# 				double-valued mapping will give the
+# 				link variable a different name.
+
+########################################################################
+
+# @command ::nsf::var::set
+#
+# A primitive command to create an variable held by an object and
+# assign a value to it (i.e., to define an object variable) or
+# retrieve a variable's value. For related and supporting commands,
+# see also <<@command ::nsf::var::exists>> and <<@command ::nsf::var::import>>.
+#
+# @parameter object		The object to hold the newly defined variable.
+# @parameter varname		The name of the object variable
+# @parameter value:optional	If provided, assigns the value to the
+# 				object variable. If omitted and if the
+# 				variable exists, it will return its
+# 				current value.

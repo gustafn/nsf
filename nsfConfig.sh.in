@@ -1,0 +1,67 @@
+# nsfConfig.sh --
+# 
+# This shell script (for sh) is generated automatically by the Next
+# Scripting configure script.  It will create shell variables for most
+# of the configuration options discovered by the configure script.
+# This script is intended to be included by the configure scripts for
+# Next Scripting extensions so that they don't have to figure this all
+# out for themselves.  This file does not duplicate information
+# already provided by tclConfig.sh, so you may need to use that file
+# in addition to this one.
+#
+# The information in this file is specific to a single platform.
+
+# Version number.
+NSF_VERSION='@NSF_VERSION@'
+NSF_PATCH_LEVEL='@NSF_PATCH_LEVEL@'
+
+# String to pass to compiles to pick up includes during build
+# (i.e., assuming nothing has been installed)
+NSF_BUILD_INCLUDE_DIR='@NSF_BUILD_INCLUDE_DIR@'
+NSF_BUILD_INCLUDE_SPEC="-I${NSF_BUILD_INCLUDE_DIR}"
+
+# String to pass to compiles to pick up the nsf includes from their
+# installed directory.
+NSF_INCLUDE_DIR="@pkgincludedir@"
+NSF_INCLUDE_SPEC="-I$NSF_INCLUDE_DIR"
+
+# The name of the nsf library (may be either a .a file or a shared library):
+NSF_LIB_FILE=@PKG_LIB_FILE@
+
+# String to pass to linker to pick up the nsf library from its
+# build directory.
+NSF_BUILD_LIB_SPEC='@NSF_BUILD_LIB_SPEC@'
+
+# String to pass to linker to pick up the nsf library from its
+# installed directory.
+NSF_LIB_SPEC='@NSF_LIB_SPEC@'
+
+# The name of the XOTcl stub library (a .a file):
+# NSF_STUB_LIB_FILE=@PKG_STUB_LIB_FILE@
+
+# String to pass to linker to pick up the XOTcl stub library from its
+# build directory.
+NSF_BUILD_STUB_LIB_SPEC='@NSF_BUILD_STUB_LIB_SPEC@'
+
+# String to pass to linker to pick up the XOTcl stub library from its
+# installed directory.
+NSF_STUB_LIB_SPEC='@NSF_STUB_LIB_SPEC@'
+
+# Name of the xotcl stub library with full path in build and install directory
+NSF_BUILD_STUB_LIB_PATH='@NSF_BUILD_STUB_LIB_PATH@'
+NSF_STUB_LIB_PATH='@NSF_STUB_LIB_PATH@'
+
+# Location of the top-level source directories from which nsf
+# was built.  This is the directory that contains generic, unix, etc.
+# If nsf was compiled in a different place than the directory
+# containing the source files, this points to the location of the sources,
+# not the location where nsf was compiled.
+NSF_SRC_DIR='@NSF_SRC_DIR@'
+
+# shared and unshared library suffix
+NSF_SHARED_LIB_SUFFIX=@SHARED_LIB_SUFFIX@
+NSF_UNSHARED_LIB_SUFFIX=@UNSHARED_LIB_SUFFIX@
+
+# the shell in whose installation dirs the nsf package is installed
+NSF_COMPATIBLE_TCLSH=@NSF_COMPATIBLE_TCLSH@
+

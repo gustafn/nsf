@@ -1,0 +1,480 @@
+/*
+Copyright (c) 2010, Yahoo! Inc. All rights reserved.
+Code licensed under the BSD License:
+http://developer.yahoo.com/yui/license.html
+version: 2.8.1
+*/
+/**
+ * YUI Base
+ * @module base
+ * @namespace yui-
+ * @requires reset, fonts
+*/
+
+
+/************************************************************/
+/*                         FRAMEWORK                        */
+/************************************************************/
+
+#doc4 {
+    width:73.846em; /*960px*/
+    *width:960px;
+}
+
+body {
+    font-family:Arial, Verdana, sans-serif;
+	margin:0px;
+    color:#252525;
+}
+
+#bd {
+    margin-bottom:238px;
+}
+
+#logo {
+    clear:both;
+}
+
+/************************************************************/
+/*                         YUI BASE                         */
+/************************************************************/
+
+h1 {
+	/* 18px via YUI Fonts CSS foundation. */
+	font-size: 138.5%;
+}
+
+h2 {
+	/* 16px via YUI Fonts CSS foundation. */
+	font-size: 123.1%;
+}
+
+h3 {
+	/* 14px via YUI Fonts CSS foundation. */
+	font-size: 108%;
+}
+
+h1,h2,h3 {
+	/* Top & bottom margin based on font size. */
+	margin: 1em 0;
+}
+
+h1,h2,h3,h4,h5,h6,strong,dt {
+	/* Bringing boldness back to headers and the strong element. */
+	font-weight: bold;
+}
+optgroup {
+	font-weight:normal;
+}
+
+abbr,acronym {
+	/* Indicating to users that more info is available. */
+	border-bottom: 1px dotted #000;
+	cursor: help;
+}
+
+em {
+	/* Bringing italics back to the em element. */
+	font-style: italic;
+}
+
+del {
+	/* Striking deleted phrases. */
+	text-decoration: line-through;
+}
+
+blockquote,ul,ol,dl {
+	/* Giving blockquotes and lists room to breath. */
+	margin: 1em;
+}
+
+ol,ul,dl {
+	/* Bringing lists on to the page with breathing room. */
+	margin-left: 2em;
+}
+
+ol li {
+	/* Giving OL's LIs generated numbers. */
+	list-style: decimal outside;
+}
+
+ul li {
+	/* Giving UL's LIs generated disc markers. */
+	list-style: disc outside;
+}
+
+dl dd {
+	/* Giving UL's LIs generated numbers. */
+	margin-left: 1em;
+}
+
+th,td {
+	/* Borders and padding to make the table readable. */
+	border: 1px solid #000;
+	padding: .5em;
+}
+
+th {
+	/* Distinguishing table headers from data cells. */
+	font-weight: bold;
+	text-align: center;
+}
+
+caption {
+	/* Coordinated margin to match cell's padding. */
+	margin-bottom: .5em;
+	/* Centered so it doesn't blend in to other content. */
+	text-align: center;
+}
+
+sup {
+	/* to preserve line-height and selector appearance */
+	vertical-align: super;
+}
+
+sub {
+	/* to preserve line-height and selector appearance */
+	vertical-align: sub;
+}
+
+p,
+fieldset,
+pre {
+	/* So things don't run into each other. */
+	margin-bottom: 1em;
+}
+/* Opera requires 1px of passing to render with contemporary native chrome */
+button,
+input[type="checkbox"],
+input[type="radio"],
+input[type="reset"],
+input[type="submit"] {
+	padding:1px;
+}
+
+
+/************************************************************/
+/*                      NEXT GENERAL                        */
+/************************************************************/
+
+#book-page h2 {
+    text-transform:uppercase;
+    margin-left:327px;
+    font-weight:bold;
+    margin-top:0;
+    margin-bottom:2em;
+    padding: 0 0 25px 0;
+}
+h3 {
+    color:#002a4b;
+    font-size:140%;
+    margin:0.5em 0;
+    font-weight:normal;
+}
+a:link, a:visited {
+    color:#002a4b;
+}
+
+a.link-with-arrow {
+    background:transparent url(arrow-download-blue.png) no-repeat left 4px;
+    padding-left:10px;
+    text-decoration:none;
+}
+
+p.twocolumns {
+    -moz-column-count: 2; /*just firefox */
+}
+
+.color-grey {
+    color:#999;
+}
+.color-blue {
+    color:#002a4b;
+}
+.blue-bold {
+    font-weight:bold;
+    color:#002a4b;
+}
+hr {
+    margin:2em 0 0 0;
+    width:100%;
+}
+.onehundred {
+    width:100%;
+}
+
+
+/************************************************************/
+/*                          HEADER                          */
+/************************************************************/
+
+ul.horizontal-head {
+    display:inline;
+    list-style-type:none;
+    list-style-position:outside;
+    margin:0;
+    padding:0;
+    font-size:80%;
+    text-transform:uppercase;
+    color:#002a4b;
+}
+ul.horizontal-head li {
+    float:left;
+    list-style-type:none;
+    margin:0;
+    padding-right:3px;
+    margin-top:8px;
+}
+ul.horizontal-head li .vertical-line {
+    color:#cac9ca;
+}
+ul.horizontal-head li a {
+    text-decoration:none;
+}
+.xowiki-content {
+    position:relative;
+}
+#main-navigation {
+    height:33px;
+    margin: -105px 0 69px 0;
+    position:absolute;
+    width:73.846em;
+    *width:960px;
+}
+#main-navigation ul {
+    display:inline;
+    list-style-type:none;
+    list-style-position:outside;
+    margin:0;
+    padding:0;
+    text-transform:uppercase;
+}
+#main-navigation ul li {
+    float:left;
+    list-style-type:none;
+    margin:0;
+    padding-right:30px;
+}
+
+#main-navigation ul li a {
+    font-weight:bold;
+    text-decoration:none;
+}
+.header-sub {
+    margin-top:90px;
+    padding:5px 0;
+    width:73.846em; /*960px*/
+    *width:960px;
+    margin-bottom:37px;
+}
+#main-navigation ul li ul {
+    display:none;
+}
+
+#breadcrumbs ul {
+    display:inline;
+    list-style-type:none;
+    list-style-position:outside;
+    margin:0;
+    padding:0;
+    font-size:80%;
+    text-transform:uppercase;
+}
+#breadcrumbs ul li {
+    float:left;
+    list-style-type:none;
+    margin:5px 0 0 0;
+    padding-right:5px;
+}
+#breadcrumbs a{
+    text-decoration:none;
+}
+
+/************** Search Box **************/
+
+#searchwrapper {
+    text-align:right;
+}
+#searchwrapper a {
+    display:none;
+}
+#searchwrapper input {
+    border:1px solid #ccc;
+}
+#searchwrapper input[type="text"] {
+    padding:0.1em;
+    color:#252525;
+    width:148px;
+}
+#searchwrapper input[type="submit"] {
+    background:#fff url(arrow-blue.png) no-repeat center center;
+    cursor:pointer;
+    width:20px;
+    /*height:20px;*/
+    *padding-left:100px;
+    text-indent: -9999px;
+}
+#searchwrapper input[type="submit"]:hover {
+    border:1px solid #002a4b;
+}
+
+/************************************************************/
+/*                              BD                          */
+/************************************************************/
+
+#bd .yui-gd {
+    margin-bottom:2em;
+}
+
+.block-heading { /*headline at left side*/
+    text-align:right;
+    text-transform:uppercase;
+}
+
+/************** Download button      **************/
+
+.download-button {
+    width:100%;
+    min-height:40px;
+    border:1px solid #89a618;
+    background-color:#fff;
+    cursor:pointer;
+}
+.download-button:hover {
+    background-color:#89a618;
+}
+.download-button:hover .color-grey, .download-button:hover .color-blue, .download-button:hover .blue-bold {
+    color:#fff;
+}
+.download-inner {
+    display:block;
+    border:1px solid #fff;
+    background:transparent url(bg-download.png) no-repeat left top;
+    height:100%;
+    padding:8px 10px 8px 100px;
+    text-transform:uppercase;
+}
+.download-inner:hover {
+    background:transparent url(bg-download-hover.png) no-repeat left top;
+}
+
+    
+/************** Top news in green box **************/
+.topnews-box {
+    padding:0.5em 40px 0.5em 40px;
+    margin-bottom:1.5em;
+}
+
+
+/************** General news list **************/
+.newslist {
+    padding-bottom:1em;
+}
+.newslist h4.newstitle {
+    color:#002a4b;
+    padding-bottom:0.3em;
+}
+
+
+/************** Table as List **************/
+caption {
+    color:#252525;
+    text-align:left;
+    font-size:120%;
+    margin:0 0 0.2em 0;
+    padding-bottom:1em;
+}
+table.list-table {
+    border:none;
+}
+table.list-table col {
+    border-right:3px solid #fff;
+}
+.list-table th {;
+    color:#fff;
+    text-align:left;
+}
+.list-table th, .list-table td {
+    border:none;
+}
+.list-table th {
+    border-top:5px solid #fff;
+}
+
+/************** Forms **************/
+input[type="text"], textarea {
+    border:1px solid #ccc;
+    color:#252525;
+    padding:0.1em;
+}
+ input.submit-button, input[type="submit"] {
+    background:#002a4b;
+    border:1px solid #002a4b;
+    color:#fff;
+    font-weight:bold;
+    cursor:pointer;
+    padding:0 10px;
+}
+ input.submit-button:hover {
+    color:#fff;
+}
+/************************************************************/
+/*                          TOC                             */
+/************************************************************/
+.toc ul {
+    margin:0;
+    padding:0;
+}
+.toc ul li {
+    text-transform:uppercase;
+    list-style:none;
+    list-style-position:outside;
+    line-height:150%;
+}
+.toc ul li a {
+    text-decoration:none;
+}
+.toc ul li ul {
+    margin:0.5em 0 0.5em 0;
+    padding:0 0 0 0.5em;
+}
+.toc ul li ul li {
+    text-transform:none;
+}
+.toc ul li ul li ul {
+    border-left:none;
+    margin-left:1em;
+}
+
+/************************************************************/
+/*                          FOOTER                          */
+/************************************************************/
+
+#ft .footer-info {
+    text-align:right;
+    margin-bottom:20px;
+    padding:40px 150px 0 0;
+    background:transparent url(next-logo-s.png) no-repeat top right;
+}
+
+
+/************************************************************/
+/*                          Search                          */
+/************************************************************/
+
+
+#search-info .subtitle {
+    left:auto !important;
+}
+
+ul.list-paginator li {
+    display:inline;
+}
+
+/************************************************************/
+/*                     CLEANING UP                          */
+/************************************************************/
+
+.book-navigation, .main-navigation, .rightbox, #wikicmds, .item-footer {
+    display:none;
+}

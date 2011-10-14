@@ -1,0 +1,540 @@
+# -*- Tcl -*-
+package req nx
+::nx::configure defaultMethodCallProtection false
+package require nx::test
+namespace import ::nx::*
+
+Test parameter count 100
+Test case submethods {
+  #Object method unknown {} {}
+  Object create o1   
+  ? {o1 foo} "::o1: unable to dispatch method 'foo'"
+  
+  #
+  # test subcmd "tricky" names
+  # - names called on ensemble objects from C (defaultmethod, unknown)
+  # - names equal to helper methods of the ensemble object
+  #
+  Object create o {
+    :method "string length"  x {return [current method]}
+    :method "string tolower" x {return [current method]}
+    :method "string info" x {return [current method]}
+    :method "foo a x" {} {return [current method]}
+    :method "foo a y" {} {return [current method]}
+    :method "foo a subcmdName" {} {return [current method]}
+    :method "foo a defaultmethod" {} {return [current method]}
+    :method "foo a unknown" args {return [current method]}
+    :method "foo b" {} {return [current method]}
+  }
+  Class create Foo {
+    :method "bar m1" {a:integer -flag} {;}
+    :method "bar m2" {x:integer -y:boolean} {;}
+    :method "baz a m1" {x:integer -y:boolean} {return m1}
+    :method "baz a m2" {x:integer -y:boolean} {;}
+    :method "baz b" {} {;}
+  }
+  
+  ? {o string length 1} length
+  ? {o string tolower 2} tolower
+  ? {o string toupper 2} \
+      {Unable to dispatch sub-method "toupper" of ::o string; valid are: string info, string length, string tolower}
+
+  ? {o string} "Valid submethods of ::o string: info length tolower"
+
+  ? {o foo a x} "x"
+  ? {o foo a y} "y"
+  ? {o foo a z} \
+      {Unable to dispatch sub-method "z" of ::o foo a; valid are: foo a defaultmethod, foo a subcmdName, foo a unknown, foo a x, foo a y}
+
+  ? {o info method type string} object
+  # the following is a problem, when string has subcmd "info"
+  #? {o::string info class} ::nx::EnsembleObject
+  
+  ? {o string length aaa} "length"
+  ? {o string info class} "info"
+  ? {o string hugo} \
+      {Unable to dispatch sub-method "hugo" of ::o string; valid are: string info, string length, string tolower}
+  
+  Foo create f1
+  ? {f1 baz a m1 10} m1
+  ? {f1 baz a m3 10} \
+      {Unable to dispatch sub-method "m3" of ::f1 baz a; valid are: baz a m1, baz a m2}
+
+#unable to dispatch method <obj> baz a m3; valid subcommands of a: m1 m2}
+#
+
+Test parameter count 1 
+Test case defaultmethod {
+  Object create o {
+    :method "string length"  x {return [current method]}
+    :method "string tolower" x {return [current method]}
+    :method "string info" x {return [current method]}
+    :method "foo a x" {} {return [current method]}
+    :method "foo a y" {} {return [current method]}
+    :method "foo a subcmdName" {} {return [current method]}
+    :method "foo a defaultmethod" {} {return [current method]}
+    :method "foo a unknown" args {return [current method]}
+    :method "foo b" {} {return [current method]}
+  }
+  Class create Foo {
+    :method "bar m1" {a:integer -flag} {;}
+    :method "bar m2" {x:integer -y:boolean} {;}
+    :method "baz a m1" {x:integer -y:boolean} {return m1}
+    :method "baz a m2" {x:integer -y:boolean} {;}
+    :method "baz b" {} {;}
+    :create f1
+  }
+
+  ? {o string} "Valid submethods of ::o string: info length tolower"
+  ? {o foo} "Valid submethods of ::o foo: a b"
+  
+  ? {f1 bar} "Valid submethods of ::f1 bar: m1 m2"
+  ? {f1 baz} "Valid submethods of ::f1 baz: a b"
+  ? {f1 baz a} "Valid submethods of ::f1 baz a: m1 m2"
+}
+
+#
+# testing ensemble objects with next
+#
+Test parameter count 1
+Test case ensemble-next {
+
+  nx::Class create FOO {
+    # reduced ensemble
+    :method foo args {lappend :v "FOO.foo//[nx::current method] ([nx::current args])"}
+
+    # expanded ensemble
+    :method "l1 l2 l3a" {x} {
+      lappend :v "FOO.l1 l2 l3a//[nx::current method] ([nx::current args])"
+    }
+    :method "l1 l2 l3b" {x} {
+      lappend :v "FOO.l1 l2 l3b//[nx::current method] ([nx::current args])"
+    }
+    # uplevel
+    :method "bar x" {varname} {upvar $varname v; return [info exists v]}
+    :method "baz" {} {
+      set hugo 1
+      return [:bar x hugo]
+    }
+  }
+  nx::Class create M0 {
+    :method "foo b x" {x} {
+      lappend :v "M0.foo b x//[nx::current method] ([nx::current args])"
+      nx::next
+    }
+    :method "foo b y" {x} {
+      lappend :v "M0.foo b y//[nx::current method] ([nx::current args])"
+      nx::next
+    }
+    :method "foo a" {x} {
+      lappend :v "M0.foo a//[nx::current method] ([nx::current args])"
+      nx::next
+    }
+
+    :method "l1 l2" {args} {
+      lappend :v "l1 l2//[nx::current method] ([nx::current args])"
+      nx::next
+    }
+  }
+
+  nx::Class create M1 {
+    :method "foo a" {x} {
+      set :v [list "M1.foo a //[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+    :method "foo b x" {x} {
+      set :v  [list "M1.foo b x //[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+    :method "foo b y" {x} {
+      set :v  [list "M1.foo b y //[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+
+    :method "l1 l2 l3a" {x} {
+      set :v  [list "M1.l1 l2 l3a//[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+    :method "l1 l2 l3b" {x} {
+      set :v  [list "M1.l1 l2 l3b//[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+  }
+  
+  FOO mixin {M1 M0}
+  FOO create f1
+  
+  #
+  # The last list element shows handling of less deep ensembles
+  # (longer arg list is passed)
+  #
+  ? {f1 foo a 1} "{M1.foo a //a (1)} {M0.foo a//a (1)} {FOO.foo//foo (a 1)}"
+  ? {f1 foo b x 1} "{M1.foo b x //x (1)} {M0.foo b x//x (1)} {FOO.foo//foo (b x 1)}"
+  ? {f1 foo b y 1} "{M1.foo b y //y (1)} {M0.foo b y//y (1)} {FOO.foo//foo (b y 1)}"
+  #
+  # The middle list element shows shrinking (less deep ensembles), the
+  # last element shows expansion via mixin (deeper ensemble is reached
+  # via next)
+  #
+  ? {f1 l1 l2 l3a 100} "{M1.l1 l2 l3a//l3a (100)} {l1 l2//l2 (l3a 100)} {FOO.l1 l2 l3a//l3a (100)}"
+}
+
+Test case ensemble-partial-next {
+  nx::Class create M {
+    :public method "info has namespace" {} {
+      nx::next
+      return sometimes
+    }
+    :public method "info has something else" {} {
+      return something
+    }
+    :public method "info has something path" {} {
+      return [concat [::nsf::current methodpath] [::nsf::current method]]
+    }
+    :public method "info has something better" {} {
+      nx::next
+      return better
+    }
+    :public method foo {} {
+      return [concat [::nsf::current methodpath] [::nsf::current method]]
+    }
+  }
+  nx::Object mixin add M
+  nx::Object create o1
+
+  # call a submethod defined by a mixin, which does a next
+  ? {o1 info has namespace} sometimes
+
+  # call a submethod, which is not defined by the mixin
+  ? {o1 info has type Object} 1
+  ? {o1 info has type M} 0
+
+  # call a submethod, which is nowhere defined
+  ? {o1 info has typo M} \
+      {Unable to dispatch sub-method "typo" of ::o1 info has; valid are: info has mixin, info has namespace, info has something better, info has something else, info has something path, info has type}
+
+  # call a submethod, which is only defined in the mixin
+  ? {o1 info has something else} something
+
+  # call a submethod, which is only defined in the mixin, and which
+  # does a next (which should not complain)
+  ? {o1 info has something better} better
+
+  # yet another missing case
+  ? {o1 info has something wrong} \
+      {Unable to dispatch sub-method "wrong" of ::o1 info has something; valid are: info has something better, info has something else, info has something path}
+
+  # call defaultcmds on ensembles
+  ? {lsort [o1 info has something]} "Valid submethods of ::o1 info has something: better else path"
+
+  # defaultcmd has to return also subcmds of other shadowed ensembles
+  ? {lsort [o1 info has]} "Valid submethods of ::o1 info has: mixin namespace something type"
+  ? {lsort [o1 info]} "Valid submethods of ::o1 info: children class filter has info is lookup method methods mixin parent precedence properties slot vars"
+
+  # returning methodpath in ensemble
+  ? {o1 info has something path} "info has something path"
+
+  # returning methodpath outside ensemble
+  ? {o1 foo} "foo"
+}
+
+#
+# Check behavior of upvars in ensemble methods
+#
+Test case ensemble-upvar {
+
+  nx::Class create FOO {
+    :method "bar0 x" {varname} {upvar $varname v; return [info exists v]}
+    :method "baz0" {} {
+      set hugo 1
+      return [:bar0 x hugo]
+    }
+    :method "bar1 x" {varname} {:upvar $varname v; return [info exists v]}
+    :method "baz1" {} {
+      set hugo 1
+      return [:bar1 x hugo]
+    }
+    :create f1
+  }
+ 
+  ? {f1 baz0} 0
+  ? {f1 baz1} 1
+}
+
+#
+# Check behavior of next with arguments within an ensemble
+#
+Test case ensemble-next-with-args {
+  nx::Object create o {
+    :method foo {x}          {return $x}
+    :method "e1 sm" {x}      {return $x}
+    :method "e2 sm1 sm2" {x} {return $x}
+    :method "e2 e2 e2" {x}   {return $x}
+    :method "e1 e1 e1" args  {return $args}
+  }
+  nx::Class create M {
+    :method foo {}          {next 1}
+    :method "e1 sm" {}      {next 2}
+    :method "e2 sm1 sm2" {} {next 3}
+    :method "e2 e2 e2" {}   {next 4}
+    :method "e1 e1 e1" args {next {e1 e1 e1}}
+  }
+  o mixin add M
+
+  # case without ensemble
+  ? {o foo} 1
+
+  # ensemble depth 1, 1 arg
+  ? {o e1 sm} 2
+
+  # ensemble depth 2, 1 arg
+  ? {o e2 sm1 sm2} 3
+
+  # ensemble depth 2, 1 arg, same tcl-objs
+  ? {o e2 e2 e2} 4
+
+  # ensemble depth 2, multiple args, same tcl-objs
+  ? {o e1 e1 e1} {e1 e1 e1}
+}
+
+Test parameter count 1
+Test case ensemble-next-with-colon-prefix
+namespace eval ::ns1 {
+  Object create obj {
+    :public method foo {} { return [:info class] } 
+    :public method ifoo {} { [current] ::nsf::methods::object::info::lookupmethod info} 
+  }
+  
+  ? {obj info class} ::nx::Object
+  ? {obj info lookup method info} ::nsf::classes::nx::Object::info
+  ? {obj ifoo} ::nsf::classes::nx::Object::info
+  
+  ? {obj foo} ::nx::Object
+  
+  set infolookup ::nsf::methods::object::info::lookupmethod
+  set infomethod  ::nsf::methods::object::info::method
+  
+  ? [list obj $infolookup info] ::nsf::classes::nx::Object::info
+  ? [list obj $infomethod type ::nsf::classes::nx::Object::info] alias
+  
+  obj method info {} {;}
+  ? [list obj $infolookup info] ::ns1::obj::info
+  ? [list obj $infomethod type ::ns1::obj::info] scripted
+  ? {obj ifoo} ::ns1::obj::info
+  ? {obj foo} {wrong # args: should be ":info"}
+
+  # now we overwrite the object specific method with an object
+  Object create obj::info
+  ? [list obj $infolookup info] ::ns1::obj::info
+  ? [list obj $infomethod type ::ns1::obj::info] object
+  
+  ? {obj ifoo} ::ns1::obj::info
+  # To some surprise, we can can still call info class!
+  # This works, since we do here an "ensemble-next" 
+  ? {obj info class} ::nx::Object
+  # The ensemble-next has in case of foo the leading colon on the
+  # callstack (e.g. ":info"). Make sure that we can still call the
+  # method via ensemle-next.
+  ? {obj foo} ::nx::Object
+}
+
+#
+# Leaf next: Do not trigger unknown handling (see also
+# NextSearchAndInvoke())
+#
+
+nx::Test case leaf-next-in-submethods {
+  Object create container {
+    set :x 0
+    :public method "FOO bar" {} { 
+      incr :x; next; # a "leaf next" 
+    }
+    :public method intercept args { 
+      incr :x; next; # a "filter next" 
+    }
+    :filter intercept
+    :FOO bar
+    # Rationale: A call count > 2 would indicate that the leaf next
+    # triggers a further call into filter ...
+    ? [list set _ ${:x}] 2
+  }
+}
+
+# :public method intercept {} { next }
+# -> TODO: wrong # args: should be ":FOO" ... trim the colon!
+
+
+
+nx::Test case submethods-and-filters {
+  #
+  # submethods as filters?
+  #
+  #set h [C public method "BAR bar" args {
+  # next
+  #}]
+  #C filter {{BAR bar}}
+}
+
+nx::Test case submethods-current-introspection {
+  #
+  # [current] & [current class]
+  #
+  Object create o
+  o public method "FOO foo" {} {
+    return "-[current]-[current class]-"
+  }
+  ? {o FOO foo} -::o--
+  
+  Class create C
+  C public method "FOO foo" {} {
+    return "-[current]-[current class]-"
+  }
+  C create c
+  ? {c FOO foo} -::c-::C-
+
+  C mixin [Class create M1 {
+    :public method "FOO foo" {} {
+      return "-[current]-[current class][next]"
+    }
+  }]
+
+  ? {c FOO foo} -::c-::M1-::c-::C-
+  
+  o mixin ::M1
+  ? {o FOO foo} -::o-::M1-::o--
+
+  o mixin {}
+  C mixin {}
+
+  #
+  # limit [current methodpath] to collect only ensemble methods?
+  #
+
+  o eval {
+    :public method faz {} {return [concat [current methodpath] [current method]]}
+    ? [list set _ [:faz]] "faz"
+  }
+
+  #
+  # [current callingmethod] & [current callingclass]
+  #
+
+  o eval {
+    set body {? [list set _ [:bar]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    :public method "FOO foo" {} $body
+    :public method "BAR BUU boo" {} $body
+    :public method baz {} $body
+
+    set calleeBody {return "[current callingclass]-[current callingobject]-[current callingmethod]"}
+    :method bar {} $calleeBody
+
+    :FOO foo
+    :BAR BUU boo
+    :baz
+
+    :method "a b" {} $calleeBody
+    set body {? [list set _ [:a b]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    :public method "FOO foo" {} $body
+    :public method "BAR BUU boo" {} $body
+    :public method baz {} $body
+
+    :FOO foo
+    :BAR BUU boo
+    :baz
+
+    # TODO: :method "a b c" {} $calleeBody; FAILS -> "can't append to scripted"
+    :method "x y z" {} $calleeBody;
+    set body {? [list set _ [:x y z]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    :public method "FOO foo" {} $body
+    :public method "BAR BUU boo" {} $body
+    :public method baz {} $body
+
+    :FOO foo
+    :BAR BUU boo
+    :baz
+  }
+  
+  #
+  # Make sure that [current callingclass] works for submethods, as
+  # expected
+  #
+
+  C eval {
+    set body {? [list set _ [:bar]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    :public method "FOO foo" {} $body
+    :public method "BAR BUU boo" {} $body
+    :public method baz {} $body
+
+    :method bar {} {
+      return "[current callingclass]-[current callingobject]-[current callingmethod]"
+    }
+
+    set c [:new]
+    $c FOO foo
+    $c BAR BUU boo
+    $c baz
+  }
+
+  #
+  # [current calledmethod]
+  # [current calledclass]
+  #
+  # Note: In my reading, [current calledmethod] cannot be made aware
+  # of the methodpath of a submethod call being intercepted. This is
+  # due to the callstack structure at the time of executing the filter
+  # stack which is entirely agnostic of the submethod dispatch (this
+  # dispatch has not occurred yet). For the same reason, we cannot
+  # record the method path in the filter stack structure.
+  #
+  # From the filter method's perspective, the submethod selectors
+  # ("foo" and "BUU boo" below) are simply arguments provided to the
+  # top-level method. They can only be processed as part of the
+  # filter-local argv.
+
+  Class create Z {
+    :class property msg
+    :method intercept args {
+      [current class] eval [list set :msg [list [current methodpath] \
+					       [current calledmethod] \
+					       [current calledclass] \
+					       [current nextmethod]]]
+      next
+    }
+    
+  }
+  
+  set c [Z new]
+
+  Z filter intercept
+
+  foreach selector [list "FOO foo" "BAR BUU boo" "baz"] {
+    Z public method $selector {} {;}
+    set root [lindex $selector 0]
+    set mh [Z info method handle $root]
+    $c {*}$selector
+    ? [list set _ [join [Z msg] -]] -$root-::Z-$mh
+  }
+
+  Z filter {}  
+
+}
+
+#
+#
+#
+nx::Test case current-args {
+  nx::Class create C {
+    :method foo {{-x 1} z:optional} {return [current args]}
+    :method "bar foo" {{-x 1} z:optional} {return [current args]}
+    :create c1
+  }
+  ? {c1 foo} ""
+  ? {c1 bar foo} ""
+
+  ? {c1 foo -x 2} "-x 2"
+  ? {c1 bar foo -x 2} "-x 2"
+
+}
+
+
+

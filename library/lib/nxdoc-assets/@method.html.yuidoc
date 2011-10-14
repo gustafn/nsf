@@ -1,0 +1,87 @@
+[:!let modifier [expr {[:pinfo get -default 0 bundle call-protected]?"protected":""}]]
+[:!let depr [expr {[:!get @deprecated]?"deprecated":""}]]
+[:!let prefix [expr {[[:get_owning_partof] pinfo get -default 0 bundle ismetaclass] ? "cls": "obj"}]]
+<div class="filter $modifier [:statustoken] $depr" rel="yui:method" resource="#method_${:name}">
+  <h4>
+    <a name="[:href -local]">[:print_name -status]</a></h4>
+  <div class="detail" >
+    <code>
+       <span class="var">$prefix</span>
+       <strong property="yui:name">${:name}</strong>
+        <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
+    </code>
+    <div class="description" property="yui:description">
+      [:as_text]
+    </div>
+    
+    <div class="description">
+      [:?var :@method {
+      <hr/>
+      [:for sm [:get_sub_methods] {
+      [$sm render -initscript [list set supermethod [current]] submethod]
+      }]
+      } - {
+      [:?var :@parameter {
+      <dl rel="yui:parameters">
+        <dt>Parameters:</dt>
+	[:for param [:!get @parameter] {
+	<dd rel="yui:parameter">
+          <code><span property="yui:name">[$param print_name]</span>
+            [:? {[$param eval {info exists :@spec}] && [$param @spec] ne
+            ""} {: <span property="yui:type">[$param @spec]</span>}]
+          </code>
+	  [$param statusmark]
+          <span property="yui:description">[$param as_text]</span>
+	  <span style='display:block; color: red'>[join [$param pinfo get -default "" validation]]</span>
+	  [:? {[$param eval {info exists :default}]} {
+          <div class="default" property="yui:defaultValue">
+            Default Value: [$param default]
+          </div>        
+          }]
+        </dd>
+	}]
+      </dl>
+      }]
+      
+      [:?var :@return {
+      <dl>
+        <dt>Returns:
+	  [:!let ret [:!get @return]]
+          <code property="yui:return"> [:? {[$ret eval {info exists :@spec}] && [$ret @spec] ne ""} {[$ret @spec]}]
+        </code></dt>
+        <dd property="yui:returnInfo">
+	  <span style='display:block; color: red'>[join [$ret pinfo get -default "" validation]]</span>
+	  [$ret as_text]
+	</dd>
+      </dl>
+      }]
+      }]
+      
+      [:? {[:!get @deprecated]} {
+      <div class="deprecated">
+        <strong>Deprecated</strong>
+      </div>        
+      }]
+      
+      [:? {[:!get @syshook] || [:pinfo exists bundle type]} {
+      <dl>
+        <dt>Implementation details:</dt>
+	<dd property="yui:typeInfo">[:pinfo get bundle type]</dd>[:? {[:!get @syshook]} {
+	<dd>
+	  internally called, redefinable hook</dd>
+	}]
+	</dl>
+      }]
+
+      [:? {[:pinfo get -default 0 bundle redefine-protected]} {
+      <dl>
+	<dt>Protection:</dt>
+	<dd>redefine-protected</dd>
+      </dl>
+      }]
+      
+      
+    </div> <!-- description -->
+  </div> <!-- detail -->
+  <hr />
+</div> <!-- top-level div -->
