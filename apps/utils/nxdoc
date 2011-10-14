@@ -68,7 +68,7 @@ namespace eval ::nx::doc {
 	if {[file exists $p] && [file readable $p]} {
 	  lappend sources [list source $p]
 	} else {
-	  :barf "Cannot find or read the index file '$p'"
+	  : -local barf "Cannot find or read the index file '$p'"
 	}
       }
       
@@ -90,7 +90,7 @@ namespace eval ::nx::doc {
 	}
       }
       if {[catch {$i eval [join $sources ";"]} err]} {
-	:barf "Sourcing index files failed with error message '$err'"
+	: -local barf "Sourcing index files failed with error message '$err'"
       }
       
       lappend :includes {*}[$i eval [list ::nxdoc::internal::getIndexedCmds 1]]
