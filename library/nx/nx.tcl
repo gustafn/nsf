@@ -1,5 +1,5 @@
 package require nsf
-package provide nx 2.0a1
+package provide nx 2.0b1
 
 namespace eval ::nx {
   namespace eval ::nsf {}; # make pkg indexer happy
@@ -1331,117 +1331,106 @@ namespace eval ::nx {
   # Register system slots
   ######################################################################
 
-  # Define a temporary, low level interface for defining system slots.
-  # The proc is removed later in this script.
-
-  proc register_system_slots {os} {
-    #
-    # Most system slots are RelationSlots
-    #
-    ::nx::RelationSlot create ${os}::Object::slot::mixin \
-	-forwardername object-mixin -elementtype mixinreg
-    ::nx::RelationSlot create ${os}::Object::slot::filter \
-	-forwardername object-filter -elementtype filterreg
-
-    ::nx::RelationSlot create ${os}::Class::slot::mixin \
-	-forwardername class-mixin -elementtype mixinreg
-    ::nx::RelationSlot create ${os}::Class::slot::filter \
-        -forwardername class-filter -elementtype filterreg
-
-    #
-    # Create two convenience object parameters to allow configuration
-    # of per-object mixins and filters for classes.
-    #
-    ::nx::ObjectParameterSlot create ${os}::Class::slot::object-mixin \
-	-methodname "::nsf::classes::nx::Object::mixin" -elementtype mixinreg
-    ::nx::ObjectParameterSlot create ${os}::Class::slot::object-filter \
-	-methodname "::nsf::classes::nx::Object::filter" -elementtype filterreg
-
-    #
-    # Create object parameter slots for "noninit" and "volatile"
-    #
-    ::nx::ObjectParameterSlot create ${os}::Object::slot::noinit \
-	-methodname ::nsf::methods::object::noinit -noarg true
-    ::nx::ObjectParameterSlot create ${os}::Object::slot::volatile -noarg true
-
-    #
-    # Define "class" as a ObjectParameterSlot defined as alias
-    #
-    ::nx::ObjectParameterSlot create ${os}::Object::slot::class \
-	-methodname "::nsf::methods::object::class" -elementtype class
-
-    #
-    # Define "superclass" as a ObjectParameterSlot defined as alias
-    #
-    ::nx::ObjectParameterSlot create ${os}::Class::slot::superclass \
-	-methodname "::nsf::methods::class::superclass" \
-	-elementtype class \
-	-multiplicity 1..n \
-	-default ${os}::Object
-
-    #
-    # Define the initcmd as a positional ObjectParameterSlot
-    #
-#    ::nx::ObjectParameterSlot create ${os}::Object::slot::__init \
-#	-disposition alias \
-#	-methodname "init" \
-#	-noarg true \
-#	-positional true \
-#	-position 1
-
-    #
-    # Define the initcmd as a positional ObjectParameterSlot
-    #
-    ::nx::ObjectParameterSlot create ${os}::Object::slot::__initcmd \
-	-disposition initcmd \
-	-noleadingdash true \
-	-positional true \
-	-position 2
-
-    #
-    # Make sure the invalidate all ObjectParameterSlots
-    #
-    ::nsf::invalidateobjectparameter ${os}::ObjectParameterSlot
-
-    #
-    # Define method "guard" for mixin- and filter-slots of Object and Class
-    #
-    ${os}::Object::slot::filter method guard {obj prop filter guard:optional} {
-      if {[info exists guard]} {
-	::nsf::directdispatch $obj ::nsf::methods::object::filterguard $filter $guard
-      } else {
-	$obj info filter guard $filter 
-      }
+  #
+  # Most system slots are RelationSlots
+  #
+  ::nx::RelationSlot create ::nx::Object::slot::mixin \
+      -forwardername object-mixin -elementtype mixinreg
+  ::nx::RelationSlot create ::nx::Object::slot::filter \
+      -forwardername object-filter -elementtype filterreg
+  
+  ::nx::RelationSlot create ::nx::Class::slot::mixin \
+      -forwardername class-mixin -elementtype mixinreg
+  ::nx::RelationSlot create ::nx::Class::slot::filter \
+      -forwardername class-filter -elementtype filterreg
+  
+  #
+  # Create two convenience object parameters to allow configuration
+  # of per-object mixins and filters for classes.
+  #
+  ::nx::ObjectParameterSlot create ::nx::Class::slot::object-mixin \
+      -methodname "::nsf::classes::nx::Object::mixin" -elementtype mixinreg
+  ::nx::ObjectParameterSlot create ::nx::Class::slot::object-filter \
+      -methodname "::nsf::classes::nx::Object::filter" -elementtype filterreg
+  
+  #
+  # Create object parameter slots for "noninit" and "volatile"
+  #
+  ::nx::ObjectParameterSlot create ::nx::Object::slot::noinit \
+      -methodname ::nsf::methods::object::noinit -noarg true
+  ::nx::ObjectParameterSlot create ::nx::Object::slot::volatile -noarg true
+  
+  #
+  # Define "class" as a ObjectParameterSlot defined as alias
+  #
+  ::nx::ObjectParameterSlot create ::nx::Object::slot::class \
+      -methodname "::nsf::methods::object::class" -elementtype class
+  
+  #
+  # Define "superclass" as a ObjectParameterSlot defined as alias
+  #
+  ::nx::ObjectParameterSlot create ::nx::Class::slot::superclass \
+      -methodname "::nsf::methods::class::superclass" \
+      -elementtype class \
+      -multiplicity 1..n \
+      -default ::nx::Object
+  
+  #
+  # Define the initcmd as a positional ObjectParameterSlot
+  #
+  #    ::nx::ObjectParameterSlot create ::nx::Object::slot::__init \
+      #	-disposition alias \
+      #	-methodname "init" \
+      #	-noarg true \
+      #	-positional true \
+      #	-position 1
+  
+  #
+  # Define the initcmd as a positional ObjectParameterSlot
+  #
+  ::nx::ObjectParameterSlot create ::nx::Object::slot::__initcmd \
+      -disposition initcmd \
+      -noleadingdash true \
+      -positional true \
+      -position 2
+  
+  #
+  # Make sure the invalidate all ObjectParameterSlots
+  #
+  ::nsf::invalidateobjectparameter ::nx::ObjectParameterSlot
+  
+  #
+  # Define method "guard" for mixin- and filter-slots of Object and Class
+  #
+  ::nx::Object::slot::filter method guard {obj prop filter guard:optional} {
+    if {[info exists guard]} {
+      ::nsf::directdispatch $obj ::nsf::methods::object::filterguard $filter $guard
+    } else {
+      $obj info filter guard $filter 
     }
-    ${os}::Class::slot::filter method guard {obj prop filter guard:optional} {
-      if {[info exists guard]} {
-	::nsf::directdispatch $obj ::nsf::methods::class::filterguard $filter $guard
-      } else {
-	$obj info filter guard $filter 
-      }
-    }
-    ${os}::Object::slot::mixin method guard {obj prop mixin guard:optional} {
-      if {[info exists guard]} {
-	::nsf::directdispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
-      } else {
-	$obj info mixin guard $mixin
-      }
-    }
-    ${os}::Class::slot::mixin method guard {obj prop filter guard:optional} {
-      if {[info exists guard]} {
-	::nsf::directdispatch $obj ::nsf::methods::class::mixinguard $filter $guard
-      } else {
-	$obj info mixin guard $filter 
-      }
-    }
-    #::nsf::method::alias ::nx::Class::slot::object-filter guard ${os}::Object::slot::filter::guard
   }
-
-
-  register_system_slots ::nx
-
-  # remove helper proc
-  rename register_system_slots ""
+  ::nx::Class::slot::filter method guard {obj prop filter guard:optional} {
+    if {[info exists guard]} {
+      ::nsf::directdispatch $obj ::nsf::methods::class::filterguard $filter $guard
+    } else {
+      $obj info filter guard $filter 
+    }
+  }
+  ::nx::Object::slot::mixin method guard {obj prop mixin guard:optional} {
+    if {[info exists guard]} {
+      ::nsf::directdispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
+    } else {
+      $obj info mixin guard $mixin
+    }
+  }
+  ::nx::Class::slot::mixin method guard {obj prop filter guard:optional} {
+    if {[info exists guard]} {
+      ::nsf::directdispatch $obj ::nsf::methods::class::mixinguard $filter $guard
+    } else {
+      $obj info mixin guard $filter 
+    }
+  }
+  #::nsf::method::alias ::nx::Class::slot::object-filter guard ::nx::Object::slot::filter::guard
   
   #
   # With a special purpose eval, we could avoid the need for

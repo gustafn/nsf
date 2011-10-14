@@ -3682,6 +3682,12 @@ nonleadingdash handling:
   - remove quadratic behavior when adding many classes (10 thousands)
   - deletion is still for huge number of classes quite slow.
 
+- nx.tcl, xotcl.tcl: 
+  * remove proc "register_system_slots" since 'rename
+    register_system_slots ""' fails on aolserver
+  * bump version number to 2.0b1
+
+
 
 TODO:
 

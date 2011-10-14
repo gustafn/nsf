@@ -1,4 +1,4 @@
-package provide XOTcl 2.0a1
+package provide XOTcl 2.0b1
 package require nx
 
 #######################################################
@@ -396,8 +396,6 @@ namespace eval ::xotcl {
     ::nsf::var::set $slotContainer __parameter $arglist
   }
 
-
-
   # We provide a default value for superclass (when no superclass is
   # specified explicitely) and metaclass, in case they should differ
   # from the root classes of the object system.
@@ -410,27 +408,24 @@ namespace eval ::xotcl {
   ############################################
   # Register system slots
   ############################################
-  proc register_system_slots {os} {
-    # We need explicit ::xotcl prefixes, since they are always skipped
-    # if not specified
-    set cSlotContainer [::nx::slotObj ${os}::Class]
-    set oSlotContainer [::nx::slotObj ${os}::Object]
-    ::nx::RelationSlot create ${cSlotContainer}::superclass
-    ::nsf::method::alias      ${cSlotContainer}::superclass assign ::nsf::relation
-    ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1
-    ::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
-    ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
-	-elementtype mixinreg -multiplicity 0..n
-    ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
+
+  # We need fully qualified "::xotcl" prefixes, since prefix
+  # completion would skip the object system root namespace
+
+  set cSlotContainer [::nx::slotObj ::xotcl::Class]
+  set oSlotContainer [::nx::slotObj ::xotcl::Object]
+  ::nx::RelationSlot create ${cSlotContainer}::superclass
+  ::nsf::method::alias      ${cSlotContainer}::superclass assign ::nsf::relation
+  ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1
+  ::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
+  ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
+      -elementtype mixinreg -multiplicity 0..n
+  ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
+      -elementtype filterreg -multiplicity 0..n
+  ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin \
+      -elementtype mixinreg -multiplicity 0..n
+  ::nx::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
 	-elementtype filterreg -multiplicity 0..n
-    ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin \
-	-elementtype mixinreg -multiplicity 0..n
-    ::nx::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
-	-elementtype filterreg -multiplicity 0..n
-  }
-  register_system_slots ::xotcl
-  # remove temporary proc
-  rename register_system_slots ""
 
   ########################
   # Info definition
