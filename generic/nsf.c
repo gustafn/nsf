@@ -2019,7 +2019,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
   } else if (methodObj->typePtr == Nsf_OT_tclCmdNameType) {
     containsSpace = 0;
   } else {
-    containsSpace = strchr(methodName, ' ') > 0;
+    containsSpace = strchr(methodName, ' ') != NULL;
   }
 
 #if !defined(NDBUG)
