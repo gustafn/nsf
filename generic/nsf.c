@@ -16194,7 +16194,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     }
     
     if (pcPtr->flags[j] & NSF_PC_MUST_DECR) {
-      //fprintf(stderr, "pcPtr %p setting NSF_PC_STATUS_MUST_DECR\n", pcPtr);
+      /* fprintf(stderr, "pcPtr %p setting NSF_PC_STATUS_MUST_DECR\n", pcPtr); */
       pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
     }
 
