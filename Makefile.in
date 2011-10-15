@@ -65,7 +65,6 @@ XODOC_SOURCE = \
 	$(src_lib_dir)/serialize/serializer.tcl \
 	$(xotcl_src_doc_dir)/langRef.xotcl \
 	$(xotcl_src_lib_dir)/lib/*.xotcl \
-	$(xotcl_src_lib_dir)/store/*.xotcl \
 	$(xotcl_src_test_dir)/*.xotcl \
 	$(xotcl_src_app_dir)/scripts/*.xotcl \
 	$(xotcl_src_app_dir)/comm/[flsw]*.xotcl \
