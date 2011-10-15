@@ -8,7 +8,12 @@ xo-*.html
 xotclsh
 pkgIndex.tcl
 Makefile
-xotclConfig.sh
 autom4te.cache
 .DS_Store
 CVS
+nsfConfig.sh
+nxsh
+nxwish
+library/xotcl/xowish
+library/xotcl/doc/junk.junk
+
