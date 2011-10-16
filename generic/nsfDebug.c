@@ -106,26 +106,24 @@ NsfStackDump(Tcl_Interp *interp) {
   CallFrame *f = iPtr->framePtr, *v = iPtr->varFramePtr;
   Tcl_Obj *varCmdObj;
 
-  NsfNewObj(varCmdObj);
+  varCmdObj = Tcl_NewObj();
   fprintf (stderr, "     TCL STACK:\n");
   if (f == 0) fprintf(stderr, "- ");
   while (f) {
-    Tcl_Obj *cmdObj;
-    NsfNewObj(cmdObj);
+    Tcl_Obj *cmdObj = Tcl_NewObj();
     fprintf(stderr, "\tFrame=%p ", f);
     if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
       fprintf(stderr,"caller %p ", Tcl_CallFrame_callerPtr(f));
       fprintf(stderr,"callerV %p ", Tcl_CallFrame_callerVarPtr(f));
       Tcl_GetCommandFullName(interp, (Tcl_Command)f->procPtr->cmdPtr, cmdObj);
       fprintf(stderr, "%s (%p) lvl=%d\n", ObjStr(cmdObj), f->procPtr->cmdPtr, f->level);
-      DECR_REF_COUNT(cmdObj);
     } else {
         if (f && f->varTablePtr) {
             fprintf(stderr, "var_table = %p ", f->varTablePtr);
         }
         fprintf(stderr, "- \n");
     }
-
+    DECR_REF_COUNT(cmdObj);
     f = f->callerPtr;
   }
 
@@ -138,10 +136,10 @@ NsfStackDump(Tcl_Interp *interp) {
   }
   if (v && v->isProcCallFrame && v->procPtr && v->procPtr->cmdPtr) {
     Tcl_GetCommandFullName(interp, (Tcl_Command)  v->procPtr->cmdPtr, varCmdObj);
-    if (varCmdObj) {
-      fprintf(stderr, " %s (%d)\n", ObjStr(varCmdObj), v->level);
-    }
-  } else fprintf(stderr, "- \n");
+    fprintf(stderr, " %s (%d)\n", ObjStr(varCmdObj), v->level);
+  } else {
+    fprintf(stderr, "- \n");
+  }
   DECR_REF_COUNT(varCmdObj);
 }
 

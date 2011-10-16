@@ -207,7 +207,6 @@ typedef struct NsfMemCounter {
 
 #ifdef  __WIN32__
 # define NSF_INLINE
-# define NsfNewObj(A) A=Tcl_NewObj()
 # define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); Tcl_DecrRefCount(A)
 #else
@@ -221,7 +220,6 @@ typedef struct NsfMemCounter {
 #  define NSF_INLINE
 # endif
 # ifdef USE_TCL_STUBS
-#  define NsfNewObj(A) A=Tcl_NewObj()
 #  define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); assert((A)->refCount > -1); \
         Tcl_DecrRefCount(A)
@@ -229,7 +227,6 @@ typedef struct NsfMemCounter {
 	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); assert((A)->refCount > -1); \
         Tcl_DecrRefCount(A)
 # else
-#  define NsfNewObj(A) TclNewObj(A)
 #  define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); TclDecrRefCount(A)
 #  define DECR_REF_COUNT2(name,A)				\
