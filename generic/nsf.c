@@ -3020,7 +3020,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
  *
  *----------------------------------------------------------------------
  */
-CONST char *
+static CONST char *
 MethodName(Tcl_Obj *methodObj) {
   char *methodName;
 
@@ -3031,6 +3031,12 @@ MethodName(Tcl_Obj *methodObj) {
   }
   return methodName;
 }
+
+CONST char *
+NsfMethodName(Tcl_Obj *methodObj) {
+  return MethodName(methodObj);
+}
+
 
 /*
  *----------------------------------------------------------------------
@@ -15852,7 +15858,7 @@ Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 #define SkipNonposParamDefs(cPtr) \
   for (; ++cPtr <= lastParamPtr && *cPtr->name == '-';)
 
-Nsf_Param CONST *
+static Nsf_Param CONST *
 NextParam(Nsf_Param CONST *paramPtr, Nsf_Param CONST *lastParamPtr) {
   for (; ++paramPtr <= lastParamPtr && *paramPtr->name == '-'; );
   return paramPtr;

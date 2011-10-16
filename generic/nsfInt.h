@@ -914,9 +914,9 @@ extern int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
 extern int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, 
 			   Tcl_Obj *cmdName, Tcl_Obj *methodName, 
 			   char *arglist);
-extern CONST char *MethodName(Tcl_Obj *methodObj);
+extern CONST char *NsfMethodName(Tcl_Obj *methodObj);
 extern void NsfReportVars(Tcl_Interp *interp);
-
+extern void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 
 /* 
  * NsfFlag type

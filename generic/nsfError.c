@@ -73,8 +73,8 @@ extern void
 NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
   int i;
   if (objc > 0) {
-    Tcl_DStringAppendElement(dsPtr, MethodName(objv[0]));
-    for (i=1; i<objc; i++) {
+    Tcl_DStringAppendElement(dsPtr, NsfMethodName(objv[0]));
+    for (i = 1; i < objc; i++) {
       Tcl_DStringAppendElement(dsPtr, ObjStr(objv[i]));
     }
   }
@@ -182,7 +182,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
   }
   if (methodName) {
     if (need_space) Tcl_AppendResult(interp, " ", (char *) NULL);
-    Tcl_AppendResult(interp, MethodName(methodName), (char *) NULL);
+    Tcl_AppendResult(interp, NsfMethodName(methodName), (char *) NULL);
     need_space = 1;
   }
   if (arglist != NULL) {
