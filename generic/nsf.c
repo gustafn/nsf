@@ -1,17 +1,20 @@
 /* 
  *  Next Scripting Framework 
  *
- *  Copyright (C) 1999-2010 Gustaf Neumann (a), Uwe Zdun (a)
+ *  Copyright (C) 1999-2011 Gustaf Neumann (a) (b)
+ *  Copyright (C) 1999-2007 Uwe Zdun (a) (b)
+ *  Copyright (C) 2007-2008 Martin Matuska (b)
+ *  Copyright (C) 2010-2011 Stefan Sobernig (b)
  *
- * (a) Vienna University of Economics and Business Administration
- *     Institute. of Information Systems and New Media
- *     A-1090, Augasse 2-6
- *     Vienna, Austria
- *
- * (b) University of Essen
+ * (a) University of Essen
  *     Specification of Software Systems
  *     Altendorferstrasse 97-101
  *     D-45143 Essen, Germany
+ *
+ * (b) Vienna University of Economics and Business 
+ *     Institute of Information Systems and New Media
+ *     A-1090, Augasse 2-6
+ *     Vienna, Austria
  *
  *  Permission to use, copy, modify, distribute, and sell this
  *  software and its documentation for any purpose is hereby granted
