@@ -3687,6 +3687,16 @@ nonleadingdash handling:
     register_system_slots ""' fails on aolserver
   * bump version number to 2.0b1
 
+- nsf.c: extended "new":
+  * nonpos-arg "-childof" accepts now a namespace 
+    (required an object before). Thefore, one can 
+    use now "... new -childof [namespace current]",
+    even when the current namespace is not an object
+
+- nx.tcl: simplified ::nx::ScopedNew to ::nx::NsScopedNew:
+  before it was necessary to create a new volatile class for every
+  invocaton of contains.
+- extended regression test
 
 
 TODO:

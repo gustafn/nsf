@@ -1859,23 +1859,15 @@ namespace eval ::nx {
 
   ######################################################################
   # Create a mixin class to overload method "new" such it does not
-  # allocate new objects in ::nx::*, but in the specified object
-  # (without syntactic overhead).
+  # allocate new objects in ::nx::*, but in the current namespace
   ######################################################################
 
-  Class create ::nx::ScopedNew -superclass ::nx::Class {
-  
-    :property {withclass ::nx::Object}
-    :property container
-
-    :protected method init {} {
-       :public method new {-childof args} {
-	 ::nsf::var::import [::nsf::current class] {container object} withclass
-	 if {![::nsf::object::exists $object]} {
-	   $withclass create $object
-	 }
-	 ::nsf::next [list -childof $object {*}$args]
-       }
+  Class create ::nx::NsScopedNew {
+    :public method new {-childof args} {
+      if {![info exists childof]} {
+	set childof [uplevel {namespace current}]
+      }
+      ::nsf::next [list -childof $childof {*}$args]
     }
   }
 
@@ -1895,23 +1887,39 @@ namespace eval ::nx {
   } {
     if {![info exists object]} {set object [::nsf::self]}
     if {![::nsf::object::exists $object]} {$class create $object}
-    # reused in XOTcl, no "require" there, so use nsf primitiva
+    # This method is reused in XOTcl which has e.g. no "require";
+    # therefore use nsf primitiva.
     ::nsf::directdispatch $object ::nsf::methods::object::requirenamespace    
+
     if {$withnew} {
-      set m [ScopedNew new -container $object -withclass $class]
-      $m volatile
-      Class mixin add $m end
+      set m ::nx::NsScopedNew
+      #
+      # Check, if we need to add a mixin for "new":
+      #
+      set nxMl [Class ::nsf::methods::class::info::mixinclasses $m]
+      if {$nxMl eq ""} {
+	Class mixin add $m end
+      }
       # TODO: the following is not pretty; however, contains might
       # build xotcl and next objects.
-      if {[::nsf::is class ::xotcl::Class]} {::xotcl::Class instmixin add $m end}
-      #namespace eval $object $cmds
-      #::nsf::directdispatch [self] -frame method ::apply [list {} $cmds $object]
+      if {[::nsf::is class ::xotcl::Class]} {
+	set xotclMl [::xotcl::Class ::nsf::methods::class::info::mixinclasses $m]
+	if {$xotclMl eq ""} {::xotcl::Class instmixin add $m end}
+      }
+      #
+      # Evaluate the command
+      #
       ::apply [list {} $cmds $object]
-      Class mixin delete $m
-      if {[::nsf::is class ::xotcl::Class]} {::xotcl::Class instmixin delete $m}
+      #
+      # Remove the mixin for "new", if it was added before
+      #
+      if {$nxMl eq ""} {
+	Class mixin delete $m
+      }
+      if {[::nsf::is class ::xotcl::Class]} {
+	if {$xotclMl eq ""} {::xotcl::Class instmixin delete $m}
+      }
     } else {
-      #namespace eval $object $cmds
-      #::nsf::directdispatch [self] -frame method ::apply [list {} $cmds $object]
       ::apply [list {} $cmds $object]
     }
   }
