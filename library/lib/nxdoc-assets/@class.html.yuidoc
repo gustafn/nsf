@@ -32,8 +32,8 @@
 }]
 
 
-[:?var :@class-attribute {
-[:!let class_attrs [:!get -sortedby name -with name @class-attribute]]
+[:?var :@class-property {
+[:!let class_attrs [:!get -sortedby name -with name @class-property]]
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Provided Parameters</h3>
@@ -49,7 +49,7 @@
                 resource="#[$attr href -local]">                                        
             <a
                href="#[$attr href -local]" property="yui:name"
-               title="[$attr name]">[$attr name]</a>
+               title="[$attr name]">[$attr print_name]</a>
           </span>
 	  }]
         </code>
@@ -92,7 +92,7 @@
 </div>
 }]
 
-[:!let iattrs [:inherited @class-attribute]]
+[:!let iattrs [:inherited @class-property]]
 [:? {$iattrs ne ""} { 
   <div rel="yui:inheritance">                    
     [:for superclass [dict keys $iattrs]  {
@@ -121,13 +121,13 @@
   </div>
   }]
 
-[:?var :@object-attribute {
+[:?var :@object-property {
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Per-object parameters</h3>
     <div class="content">
       
-      [:for attr ${:@object-attribute} {
+      [:for attr ${:@object-property} {
       [:!let depr [expr {[$attr !get @deprecated]?"deprecated":""}]]
       <div rel="yui:property" class="filter [$attr statustoken] $depr">
         <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>

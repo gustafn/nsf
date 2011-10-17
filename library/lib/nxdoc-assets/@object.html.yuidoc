@@ -16,8 +16,8 @@
 <span style='display:block; color: red'>[join [:pinfo get validation]]</span>
 }]
 
-[:?var :@object-attribute {
-[:!let obj_attrs [:!get -sortedby name -with name @object-attribute]]
+[:?var :@object-property {
+[:!let obj_attrs [:!get -sortedby name -with name @object-property]]
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Per-object parameters</h3>

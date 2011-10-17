@@ -54,20 +54,20 @@
 # Attributes of ::nx::Object
 ########################################################################
 
-# @class.attribute {Object filter}
+# @class.property {Object filter}
 #
 # Register the specified method(s) as per-object <<@glspl
 # filter>>. Every filter must be an existing method in the
 # scope of the object.
 
-# @class.attribute {Object mixin}
+# @class.property {Object mixin}
 #
 # Register the specified class(es) as per-object <<@glspl
 # mixin_class>>.  Every mixin must be an existing class.
 #
 # @spec object,type=::nx::Class
 
-# @class.attribute {Object noinit}
+# @class.property {Object noinit}
 #
 # Omit object initialization. When this flag is provided, the object
 # initialization will not call the constructor '''init'''. This is for
@@ -75,7 +75,7 @@
 # state, which would be altered by resetting its variables via
 # '''init'''.
 
-# @class.attribute {Object volatile}
+# @class.property {Object volatile}
 #
 # Create object as volatile.  A volatile object is destroyed
 # automatically, when the current variable scope is left.
@@ -156,29 +156,29 @@
 # Attributes of ::nx::Class
 ########################################################################
 
-# @class.attribute {Class filter}
+# @class.property {Class filter}
 #
 # Register the specified method(s) as per-class <<@glspl
 # filter>>. Every filter must be an existing method in the
 # scope of the object.
 
-# @class.attribute {Class mixin}
+# @class.property {Class mixin}
 #
 # Register the specified class(es) as per-class <<@glspl
 # mixin_class>>.  Every mixin must be an existing class.
 
-# @class.attribute {Class object-filter}
+# @class.property {Class object-filter}
 #
 # Register the specified method(s) as per-object <<@glspl
 # filter>> for the class.
 
-# @class.attribute {Class object-mixin}
+# @class.property {Class object-mixin}
 #
 # Register the specified class(es) as per-object <<@glspl
 # mixin_class>> for the class.
 
 
-# @class.attribute {Class superclass}
+# @class.property {Class superclass}
 #
 # Set the superclass(es) for this class. The argument might contain a
 # list of classes to specify multiple inheritance. The order of the
@@ -757,54 +757,54 @@
 # 
 # @superclass ::nx::doc::entities::class::nx::Slot
 
-# @class.attribute {Slot name:string}
+# @class.property {Slot name:string}
 #
 # Name of the <<@gls slot>> which can be used to access the <<@gls
 # slot>> data from an object
 
-# @class.attribute {Slot multivalued}
+# @class.property {Slot multivalued}
 #
 # Boolean value for specifying single or multiple values (lists)
 
-# @class.attribute {Slot required}
+# @class.property {Slot required}
 #
 # Denotes whether a value must be provided
 
-# @class.attribute {Slot default}
+# @class.property {Slot default}
 #
 # Allows you to define a default value (to be set upon object creation)
 
-# @class.attribute {Slot type}
+# @class.property {Slot type}
 #
 # You may specify a type constraint on the value range to managed by
 # the <<@gls slot>>
 
-# @class.attribute {ObjectParameterSlot name}
+# @class.property {ObjectParameterSlot name}
 #
 # Name of the <<@gls slot>> which can be used to access the <<@gls
 # slot>> data of an object. It defaults to unqualified name of an
 # instance.
 
-# @class.attribute {ObjectParameterSlot methodname}
+# @class.property {ObjectParameterSlot methodname}
 #
 # The name of the accessor methods to be registed on behalf of the
 # <<@gls slot>> object with its domains can vary from the slot name.
 
-# @class.attribute {ObjectParameterSlot domain}
+# @class.property {ObjectParameterSlot domain}
 #
 # The domain (object or class) of a <<@gls slot>> on which it can be used
 
-# @class.attribute {ObjectParameterSlot defaultmethods}
+# @class.property {ObjectParameterSlot defaultmethods}
 #
 # A list of two elements for specifying which methods are called per
 # default, when no slot method is explicitly specified in a call.
 
-# @class.attribute {ObjectParameterSlot manager}
+# @class.property {ObjectParameterSlot manager}
 #
 # The manager object of the <<@gls slot>> (per default, the slot object takes
 # this role, i.e. '''[self]''')
 
-# @class.attribute {ObjectParameterSlot per-object}
+# @class.property {ObjectParameterSlot per-object}
 #
 # If set to '''true''', the accessor methods are registered with the
 # domain object scope only. It defaults to '''false'''.

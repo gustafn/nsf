@@ -1326,7 +1326,13 @@ namespace eval ::nx::doc {
 	}
 
 	:public method get_fqn_command_name {} {
-	  # ::nx::Object::slot::class
+	  #
+	  # TODO: For now, we only handle class properties
+	  # (*::slot::*), per-object properties are excluded
+	  # (*::per-object-slot::*). However, as per-object ones do
+	  # not make it into the object parameters spec, this is fine
+	  # for now ... review later.
+	  #
 	  if {[${:partof} info has type ::nx::doc::@object]} {
 	    return "[${:partof} name]::slot::${:name}"
 	  } else {
@@ -1394,7 +1400,7 @@ namespace eval ::nx::doc {
     :public method render {
       {-initscript ""}
       -theme
-      {name:substdefault "[namespace tail [:info class]]"}
+      {name:substdefault "[::namespace tail [:info class]]"}
     } {
       :rendered push [current]
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
@@ -1440,7 +1446,13 @@ namespace eval ::nx::doc {
 	set r [uplevel 1 [list $origin eval [list ::set :$varname] ]]
       }
       
-      set where_clause "!\${:@stashed}"
+      #
+      # TODO: For now, we cannot distinguish between entities stashed
+      # for the role as mere dependencies and those which are stashed
+      # explicitly! Probably, we must introduce a decent dep state for
+      # entities ... Again, review later ...
+      # set where_clause "!\${:@stashed}"
+      set where_clause "1"
       if {[info exists where]} {
 	append where_clause "&& $where"
       }
@@ -1516,7 +1528,7 @@ namespace eval ::nx::doc {
     
     :method include {
       -theme
-      {name:substdefault "[namespace tail [:info class]]"}
+      {name:substdefault "[::namespace tail [:info class]]"}
     } {
       uplevel 1 [list subst [[:renderer] getTemplate $name \
 				 {*}[expr {[info exists theme]?$theme:""}]]]
@@ -1933,6 +1945,7 @@ namespace eval ::nx::doc {
     :public method at_register_command [list \
 	name:fqn,slot=[current] \
 	->cmdtype:in,arg=@object|@class|@command|@method,slot=[current] \
+   	->ownerPath:0..*,fqn,slot=[current] \
         ->source:fpathtype,arg=absolute,slot=[current] \
 	{->nsexported:boolean 0} \
 	{->nsimported:boolean 0} \
@@ -2284,6 +2297,7 @@ namespace eval ::nx::doc {
 			    }
 			    ::nx::doc::__at_register_command $handle \
 				->cmdtype @method \
+				->ownerPath $obj \
 				->source [file normalize [info script]] \
 				->bundle $bundle
 			    [::nsf::current class] eval [list dict set :handles $handle _]			    
@@ -2340,6 +2354,7 @@ namespace eval ::nx::doc {
 		object
 		args
 	      } {
+		set object [uplevel [list namespace which $object]]
 		set handle [uplevel [list ::nsf::_%&method $object {*}$args]]
 		if {$handle ne ""} {
 		  set bundle [dict create]
@@ -2353,6 +2368,7 @@ namespace eval ::nx::doc {
 		  dict set bundle returns [::nsf::method::property ${::nx::doc::rootns}::__Tracer $handle returns]
 		  ::nx::doc::__at_register_command $handle \
 		      ->cmdtype @method \
+		      ->ownerPath $object \
 		      ->source [file normalize [info script]] \
 		      ->bundle $bundle
 		} 
@@ -2361,9 +2377,11 @@ namespace eval ::nx::doc {
 
 	      rename ::nsf::method::alias ::nsf::_%&alias 
 	      ::interp invokehidden "" proc ::nsf::method::alias {
-		args
+		object args
 	      } {
-		set handle [uplevel [list ::nsf::_%&alias {*}$args]]
+		set object [uplevel [list namespace which $object]]
+		# set object [uplevel [list $object]]; crashes
+		set handle [uplevel [list ::nsf::_%&alias $object {*}$args]]
 		if {$handle ne ""} {
 		  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
@@ -2380,6 +2398,7 @@ namespace eval ::nx::doc {
 
 		  ::nx::doc::__at_register_command $handle \
 		      ->cmdtype @method \
+		      ->ownerPath $object \
 		      ->source [file normalize [info script]] \
 		      ->bundle $bundle
 		} 
@@ -2388,9 +2407,10 @@ namespace eval ::nx::doc {
 
 	      rename ::nsf::method::forward ::nsf::_%&forward 
 	      ::interp invokehidden "" proc ::nsf::method::forward {
-							    args
-							  } {
-	      	set handle [uplevel [list ::nsf::_%&forward {*}$args]]
+		object args
+	      } {
+		set object [uplevel [list namespace which $object]]
+	      	set handle [uplevel [list ::nsf::_%&forward $object {*}$args]]
 	      	if {$handle ne ""} {
 	      	  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
@@ -2401,6 +2421,7 @@ namespace eval ::nx::doc {
 
 	      	  ::nx::doc::__at_register_command $handle \
 	      	      ->cmdtype @method \
+		      ->ownerPath $object \
 	      	      ->source [file normalize [info script]] \
 	      	      ->bundle $bundle
 	      	} 
@@ -2409,9 +2430,10 @@ namespace eval ::nx::doc {
 
 	      rename ::nsf::method::setter ::nsf::_%&setter
 	      ::interp invokehidden "" proc ::nsf::method::setter {
-	      	args
+	      	object args
 	      } {
-	      	set handle [uplevel [list ::nsf::_%&setter {*}$args]]
+		set object [uplevel [list namespace which $object]]
+	      	set handle [uplevel [list ::nsf::_%&setter $object {*}$args]]
 	      	if {$handle ne ""} {
 	      	  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
@@ -2419,6 +2441,7 @@ namespace eval ::nx::doc {
 		  
 		  ::nx::doc::__at_register_command $handle \
 	      	      ->cmdtype @method \
+		      ->ownerPath $object \
 	      	      ->source [file normalize [info script]] \
 		      ->bundle $bundle
 	      	}
@@ -2549,7 +2572,7 @@ namespace eval ::nx::doc {
 
     :public method getCommandsFound {
 	-exported:boolean
-        -imported:switch
+        -imported:boolean
 	-types
 	-not:switch
 	nspatterns:optional
@@ -2558,14 +2581,25 @@ namespace eval ::nx::doc {
       if {![info exists :registered_commands]} return;
       if {[info exists nspatterns]} {
 	set opts [join $nspatterns |]
-	# set nspatterns "^($opts)\[^\:\]*\$"
 	set nspatterns "^($opts)\$"
       }
       dict filter ${:registered_commands} script {cmd props} {
 	dict with props {
-	  expr {[expr {[info exists nspatterns]?[expr {[regexp -- $nspatterns $cmd _] != $not}]:1}] && \
+	  #
+	  # TODO: Depending on the include/exclude semantics intended,
+	  # we could filter for the entire ownership path ... However,
+	  # this would require changing the index file usage. For now,
+	  # we cannot include an object and exclude a single method
+	  # ... a feature currently needed. An option is to switch to
+	  # exclude semantics ... Review later, when the release dust
+	  # settles ...
+	  #
+	  #if {[info exists ownerPath]} {
+	  #  lappend cmd {*}$ownerPath
+	  #}
+	  expr {[expr {[info exists nspatterns]?[expr {[expr {[lsearch -regexp $cmd $nspatterns] > -1}] != $not}]:1}] && \
 		    [expr {[info exists exported]?[expr {$nsexported == $exported}]:1}] && \
-		    [expr {$nsimported == $imported}] && \
+		    [expr {[info exists imported]?[expr {$nsimported == $imported}]:1}] && \
 			   [expr {[info exists types]?[expr {$cmdtype in $types}]:1}]}
 	}
       }
@@ -2745,6 +2779,7 @@ namespace eval ::nx::doc {
 		set en [$partof_entity @[join [list {*}${scope} method] -] id $subm]
 		if {$en ni $provided_entities} {
 		  set partof_entity [$partof_entity @[join [list {*}${scope} method] -] $subm]
+		  $partof_entity pinfo propagate status mismatch
 		} else {
 		  set partof_entity $en
 		}
@@ -2760,6 +2795,7 @@ namespace eval ::nx::doc {
 		    lappend ppdata status missing
 		  }
 		  $paramid pdata $ppdata
+		  $paramid pinfo propagate status mismatch
 		}
 	      }
 	    } else {
@@ -2788,10 +2824,10 @@ namespace eval ::nx::doc {
 	  set cmdname [:get_fqn_command_name]
 	  if {[$box eval {info exists :registered_commands}] && \
 		  [$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
+	    
 	    :pdata [$box eval [concat dict get \${:registered_commands} $cmdname]]
 	  }
 	}
-	[[current class] info parent] at_processed [current]
       }
 
       :public method validate {} {
@@ -2861,7 +2897,7 @@ namespace eval ::nx::doc {
 	  
 	  # TODO (Review!): [next] will cause the missing parameter
 	  # created to be validated and will have the appropriate
-	  # status propagated upstream!b
+	  # status propagated upstream!
 	  next
 	}
       }
@@ -2999,14 +3035,19 @@ namespace eval ::nx::doc {
 
     Mixin create [current]::@param -superclass [current]::Entity {
       :public method init args {
-	next
-	if {${:name} eq "__out__"} {
-	  if {[${:partof} pinfo exists bundle returns]} {
-	    :pdata [list bundle [list spec [${:partof} pinfo get bundle returns]]]
+	if {[${:partof} info has type ::nx::doc::@method] || \
+		[${:partof} info has type ::nx::doc::@command]} {
+	  if {${:name} eq "__out__"} {
+	    if {[${:partof} pinfo exists bundle returns]} {
+	      :pdata [list bundle [list spec [${:partof} pinfo get bundle returns]]]
+	    }
 	  }
-	} elseif {[${:partof} pinfo exists bundle parameter ${:name}]} {
-	  lassign [${:partof} pinfo get bundle parameter ${:name}] spec default
-	  :pdata [list bundle [list spec $spec default $default]]
+	  if {[${:partof} pinfo exists bundle parameter ${:name}]} {
+	    lassign [${:partof} pinfo get bundle parameter ${:name}] spec default
+	    :pdata [list bundle [list spec $spec default $default]]
+	  }
+	} else {
+	  next
 	}
       }
 
@@ -3048,29 +3089,6 @@ namespace eval ::nx::doc {
 	}
       }
     }
-
-    #
-    # mixin layer interface
-    #
-
-    :public class method apply {} {
-      unset -nocomplain :processed_entities
-      next
-    }
-
-    :public class method revoke {} {
-      #
-      # TODO: reset current_project here?
-      #
-      next
-      if {[info exists :processed_entities]} {
-	return [dict keys ${:processed_entities}]
-      }
-    }
-    
-    :public class method at_processed {entity} {
-      dict set :processed_entities $entity _
-    }
   }
 }
 	  
@@ -3100,7 +3118,7 @@ namespace eval ::nx::doc {
     # 2pass
     $sbox do [list ::nx::doc::__init]
     $sbox do $scriptBlock
-    set cmds [dict keys [$sbox get_registered_commands -types {@command @object @class}]]
+    set cmds [dict keys [$sbox getCommandsFound -types {@command @object @class @method}]]
     
     append index "# NXDoc index file, version [package require nx::doc]\n"
     append index "# This file was generated by the \"::nx::doc::mkIndex\" command\n"

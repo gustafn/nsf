@@ -49,6 +49,7 @@ namespace eval ::nx::doc {
       :public method statustoken {} {
 	set token ""
 	set obj [:origin]
+	#set obj [current]
 	set prj [:current_project]
 	if {[$prj is_validated]} {
 	  if {[$obj eval {info exists :pdata}]} {
@@ -127,6 +128,32 @@ namespace eval ::nx::doc {
 
 	return $ownedParts
       }
+
+      :public method navigatable_parts {mergeParts:optional} {
+	#
+	# TODO: Should I wrap up delegating calls to the originator
+	# entity behind a unified interface (a gatekeeper?)
+	#
+	set ownedParts [[:origin] owned_parts \
+		    -where "!\${:@stashed}" \
+		    -class ::nx::doc::StructuredEntity]
+
+	if {[info exists mergeParts]} {
+	  dict for {feature featureInstances} $ownedParts {
+	    if {![dict exists $mergeParts $feature]} {
+	      dict set mergeParts $feature $featureInstances
+	    } else {
+	      set prevInst [lindex [dict get $mergeParts $feature] 1]
+	      lappend prevInst {*}$featureInstances
+	      dict set mergeParts $feature [lsort -unique $prevInst]
+	    }
+	  }
+	  return $mergeParts
+	}
+
+	return $ownedParts
+      }
+
       
       :method listing {{-inline true} script} {
 	set listing $script
