@@ -296,7 +296,7 @@ classMethod mixinguard NsfCMixinGuardMethod {
 }
 
 classMethod new NsfCNewMethod {
-  {-argName "-childof" -type object}
+  {-argName "-childof" -required 0 -type tclobj}
   {-argName "args" -required 0 -type args}
 }
 

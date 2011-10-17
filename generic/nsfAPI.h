@@ -313,7 +313,7 @@ static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *object
 static int NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *object);
 static int NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter, Tcl_Obj *guard);
 static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *guard);
-static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName, int objc, Tcl_Obj *CONST objv[]);
 static int NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *superclasses);
 static int NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter);
@@ -609,7 +609,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    NsfObject *withChildof = (NsfObject *)pc.clientData[0];
+    Tcl_Obj *withChildof = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
     return NsfCNewMethod(interp, cl, withChildof, objc-pc.lastObjc, objv+pc.lastObjc);
@@ -2416,7 +2416,7 @@ static Nsf_methodDefinition method_definitions[] = {
   {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::new", NsfCNewMethodStub, 2, {
-  {"-childof", 0, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-childof", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::recreate", NsfCRecreateMethodStub, 2, {

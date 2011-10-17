@@ -21445,13 +21445,13 @@ NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *
 
 /*
 classMethod new NsfCNewMethod {
-  {-argName "-childof" -type object -nrargs 1}
+  {-argName "-childof" -required 0 -type tclobj}
   {-argName "args" -required 0 -type args}
 }
 */
 
 static int
-NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof,
+NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof,
 	      int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Obj *fullnameObj;
   int result, prefixLength;
@@ -21462,7 +21462,29 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof,
 
   Tcl_DStringInit(dsPtr);
   if (withChildof) {
-    Tcl_DStringAppend(dsPtr, ObjectName(withChildof), -1);
+    CONST char *parentName = ObjStr(withChildof);
+    /*
+     * If parentName is fully qualified, use it as prefix, else prepend the
+     * CallingNameSpace() to be compatible with the object name completion.
+     */
+    if (*parentName == ':' && *(parentName + 1) == ':') {
+      /*
+       * Prepend parentName only if it is not "::"
+       */
+      if (*(parentName + 2) != '\0') {
+	Tcl_DStringAppend(dsPtr, parentName, -1);
+      }
+    } else {
+      Tcl_Obj *tmpName = NameInNamespaceObj(interp, parentName, CallingNameSpace(interp));
+      CONST char *completedParentName;
+
+      INCR_REF_COUNT(tmpName);
+      completedParentName = ObjStr(tmpName);
+      if (strcmp(completedParentName, "::")) {
+	Tcl_DStringAppend(dsPtr, ObjStr(tmpName), -1);
+      }
+      DECR_REF_COUNT(tmpName);
+    }
     Tcl_DStringAppend(dsPtr, "::__#", 5);
   } else {
     Tcl_DStringAppend(dsPtr, "::nsf::__#", 10);
