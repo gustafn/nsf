@@ -1,4 +1,4 @@
-package provide XOTcl 2.0b1
+package provide XOTcl 2.0b2
 package require nx
 
 #######################################################

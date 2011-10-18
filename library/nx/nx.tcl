@@ -1,5 +1,5 @@
 package require nsf
-package provide nx 2.0b1
+package provide nx 2.0b2
 
 namespace eval ::nx {
   namespace eval ::nsf {}; # make pkg indexer happy
@@ -1858,16 +1858,24 @@ namespace eval ::nx {
   rename ::nx::createBootstrapVariableSlots ""
 
   ######################################################################
-  # Create a mixin class to overload method "new" such it does not
-  # allocate new objects in ::nx::*, but in the current namespace
+  # Define a scoped "new" method, which is similar to plain new, but
+  # uses the current namespace by default as root of the object name.
   ######################################################################
 
   Class create ::nx::NsScopedNew {
     :public method new {-childof args} {
       if {![info exists childof]} {
+	#
+	# Obtain the namespace from plain uplevel to honor the
+	# namespace provided by apply
+	#
 	set childof [uplevel {namespace current}]
       }
-      ::nsf::next [list -childof $childof {*}$args]
+      #
+      # Use the uplevel method to assure that "... new -volatile ..."
+      # has the right scope
+      #
+      :uplevel [list [self] ::nsf::methods::class::new -childof $childof {*}$args]
     }
   }
 
@@ -1892,33 +1900,43 @@ namespace eval ::nx {
     ::nsf::directdispatch $object ::nsf::methods::object::requirenamespace    
 
     if {$withnew} {
-      set m ::nx::NsScopedNew
       #
-      # Check, if we need to add a mixin for "new":
+      # When $withnew is requested we replace the default new method
+      # with a version using the current namespace as root. Earlier
+      # implementations used a mixin on nx::Class and xotcl::Class,
+      # but frequent mixin operations on the most general meta-class
+      # are expensive when there are many classes defined
+      # (e.g. several ten thousands), since the mixin operation
+      # invalidate the mixins on all instances of the meta-class
+      # (i.e. on all classes)
       #
-      set nxMl [Class ::nsf::methods::class::info::mixinclasses $m]
-      if {$nxMl eq ""} {
-	Class mixin add $m end
-      }
-      # TODO: the following is not pretty; however, contains might
-      # build xotcl and next objects.
+      set infoMethod "::nsf::methods::class::info::method"
+      set plainNew   "::nsf::methods::class::new"
+      set mappedNew  [::nx::NsScopedNew $infoMethod origin new]
+      
+      set nxCurrentNew [lindex [::nx::Class $infoMethod definition new] end]
+      set nxMapNew [expr {$nxCurrentNew eq $plainNew}]
+      if {$nxMapNew} {::nsf::method::alias ::nx::Class new $mappedNew}
+      
       if {[::nsf::is class ::xotcl::Class]} {
-	set xotclMl [::xotcl::Class ::nsf::methods::class::info::mixinclasses $m]
-	if {$xotclMl eq ""} {::xotcl::Class instmixin add $m end}
+	set xotclCurrentNew [lindex [::xotcl::Class $infoMethod definition new] end]
+	set xotclMapNew [expr { $xotclCurrentNew eq $plainNew}]
+	if {$xotclMapNew} {::nsf::method::alias ::xotcl::Class new $mappedNew }
       }
       #
-      # Evaluate the command
+      # Evaluate the command under catch to ensure reverse mapping
+      # of "new"
       #
-      ::apply [list {} $cmds $object]
+      set errorOccured [catch [list ::apply [list {} $cmds $object]] errorMsg]
       #
-      # Remove the mixin for "new", if it was added before
+      # Remove the mapped "new" method, if it was added above
       #
-      if {$nxMl eq ""} {
-	Class mixin delete $m
-      }
+      if {$nxMapNew} {::nsf::method::alias ::nx::Class new $plainNew}
       if {[::nsf::is class ::xotcl::Class]} {
-	if {$xotclMl eq ""} {::xotcl::Class instmixin delete $m}
+	if {$xotclMapNew} {::nsf::method::alias ::xotcl::Class new $plainNew}
       }
+      if {$errorOccured} {error $errorMsg}
+      
     } else {
       ::apply [list {} $cmds $object]
     }

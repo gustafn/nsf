@@ -3698,6 +3698,15 @@ nonleadingdash handling:
   invocaton of contains.
 - extended regression test
 
+- nx.tcl: don't use mixins in method "contains", but remap the new
+  implementation. If there are ten thousands of classes defined,
+  adding mixins to the root meta-class degrades linearly on the number
+  of classes defined (the mixin paths for all classes must be
+  invalidated). This might be a problem for frequent "contains"
+  invocations.
+- bup version numbers for nx, xotcl2 and nsf to 2.0b2
+
+
 
 TODO:
 
