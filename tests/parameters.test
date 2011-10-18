@@ -1159,12 +1159,12 @@ nx::Test case setters {
   ? {::nsf::method::setter o ints:integer,1..*} "::o::ints"
   ? {::nsf::method::setter o o:object} "::o::o"
   
-  ? {o info method handle ints} "::o::ints"
+  ? {o info method registrationhandle ints} "::o::ints"
   ? {o info method definition ints} "::o public setter ints:integer,1..*"
   ? {o info method parameter ints} "ints:integer,1..*"
   ? {o info method args ints} "ints"
   
-  ? {o info method handle o} "::o::o"
+  ? {o info method registrationhandle o} "::o::o"
   ? {o info method definition o} "::o public setter o:object"
   ? {o info method parameter o} "o:object"
   ? {o info method args o} "o"

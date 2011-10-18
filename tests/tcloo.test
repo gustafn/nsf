@@ -44,7 +44,7 @@ nsf::proc methodExport {current {-perObject:switch false} {-callProtected:switch
   set scope [expr {$perObject?"object":"class"}]
   foreach m $args {
     set methodHandle [::nsf::dispatch $current \
-			  ::nsf::methods::${scope}::info::method handle $m]
+			  ::nsf::methods::${scope}::info::method registrationhandle $m]
     if {$methodHandle eq ""} {
       set methodHandle [::nsf::method::create $current {*}[expr {$perObject?"-per-object":""}] $m args {
 	if {[::nsf::current nextmethod] eq ""} {

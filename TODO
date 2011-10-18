@@ -3706,6 +3706,11 @@ nonleadingdash handling:
   invocations.
 - bup version numbers for nx, xotcl2 and nsf to 2.0b2
 
+- rename "info method handle /methodName/" into
+         "info method registrationhandle /methodName/"
+- rename "info method origin /methodName/" into
+         "info method definitionhandle /methodName/"
+- added "info method origin" to return the target of an alias (or empty)
 
 
 TODO:

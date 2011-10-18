@@ -645,7 +645,7 @@ namespace eval ::xotcl {
   # copy all methods from Object.info to Class.info
   #
   foreach m [objectInfo ::nsf::methods::object::info::methods] {
-    ::nsf::method::alias classInfo $m [objectInfo ::nsf::methods::object::info::method handle $m]
+    ::nsf::method::alias classInfo $m [objectInfo ::nsf::methods::object::info::method registrationhandle $m]
   }
 
   classInfo eval {

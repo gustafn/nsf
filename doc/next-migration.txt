@@ -2461,8 +2461,8 @@ the method handle to the created method.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method handle /methodName/
-/cls/ ?class? info method handle /methodName/
+/obj/ info method registrationhandle /methodName/
+/cls/ ?class? info method registrationhandle /methodName/
 ----------------
 |======================
 

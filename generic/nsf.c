@@ -16595,12 +16595,12 @@ ListMethod(Tcl_Interp *interp,
     }
 
     switch (subcmd) {
-    case InfomethodsubcmdHandleIdx:
+    case InfomethodsubcmdRegistrationhandleIdx:
       {
 	Tcl_SetObjResult(interp, MethodHandleObj(regObject, withPer_object, methodName));
 	return TCL_OK;
       }
-    case InfomethodsubcmdOriginIdx:
+    case InfomethodsubcmdDefinitionhandleIdx:
       {
 	Tcl_SetObjResult(interp, MethodHandleObj(defObject, 
 						 NsfObjectIsClass(defObject) ? withPer_object : 1, 
@@ -16848,6 +16848,14 @@ ListMethod(Tcl_Interp *interp,
 				     outputPerObject, 1);
             Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
             Tcl_SetObjResult(interp, resultObj);
+            break;
+          }
+	case InfomethodsubcmdOriginIdx:
+	  {
+            int nrElements;
+            Tcl_Obj **listElements;
+            Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
+            Tcl_SetObjResult(interp, listElements[nrElements-1]);
             break;
           }
         }
@@ -21837,7 +21845,7 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *met
     NsfObject *pobj = pcl ? &pcl->object : object;
     int perObject = (pcl == NULL);
 
-    ListMethod(interp, pobj, pobj, ObjStr(methodObj), cmd, InfomethodsubcmdHandleIdx, perObject);
+    ListMethod(interp, pobj, pobj, ObjStr(methodObj), cmd, InfomethodsubcmdRegistrationhandleIdx, perObject);
   }
   return TCL_OK;
 }
@@ -21996,7 +22004,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|exists|definition|handle|origin|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
@@ -22292,7 +22300,7 @@ NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 
 /*
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|exists|definition|handle|origin|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
   {-argName "name" -required 1 -type tclobj}
 }
 */

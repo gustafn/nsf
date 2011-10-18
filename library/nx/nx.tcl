@@ -1770,7 +1770,7 @@ namespace eval ::nx {
 
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
     if {[info exists value]} {$slot setCheckedInstVar -nocomplain=$nocomplain $value}
-    return [::nsf::directdispatch [self] ::nsf::methods::object::info::method handle [$slot name]]
+    return [::nsf::directdispatch [self] ::nsf::methods::object::info::method registrationhandle [$slot name]]
   }
 
   Object method property {
@@ -1802,7 +1802,7 @@ namespace eval ::nx {
 		  -defaultopts [list -accessor $accessor -config $config] \
 		  $spec \
 		  {*}[expr {[info exists default] ? [list $default] : ""}]]
-    return [::nsf::directdispatch [self] ::nsf::methods::class::info::method handle [$slot name]]
+    return [::nsf::directdispatch [self] ::nsf::methods::class::info::method registrationhandle [$slot name]]
   }
   
   nx::Class method property {
@@ -1912,15 +1912,13 @@ namespace eval ::nx {
       #
       set infoMethod "::nsf::methods::class::info::method"
       set plainNew   "::nsf::methods::class::new"
-      set mappedNew  [::nx::NsScopedNew $infoMethod origin new]
+      set mappedNew  [::nx::NsScopedNew $infoMethod definitionhandle new]
       
-      set nxCurrentNew [lindex [::nx::Class $infoMethod definition new] end]
-      set nxMapNew [expr {$nxCurrentNew eq $plainNew}]
+      set nxMapNew [expr {[::nx::Class $infoMethod origin new] eq $plainNew}]
       if {$nxMapNew} {::nsf::method::alias ::nx::Class new $mappedNew}
       
       if {[::nsf::is class ::xotcl::Class]} {
-	set xotclCurrentNew [lindex [::xotcl::Class $infoMethod definition new] end]
-	set xotclMapNew [expr { $xotclCurrentNew eq $plainNew}]
+	set xotclMapNew [expr {[::xotcl::Class $infoMethod origin new] eq $plainNew}]
 	if {$xotclMapNew} {::nsf::method::alias ::xotcl::Class new $mappedNew }
       }
       #

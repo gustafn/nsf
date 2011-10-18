@@ -25,7 +25,7 @@ nx::Test case method-require {
   #
   nsf::proc ::get_mixin {object -per-object:switch mixinClass methodName} {
     ::nsf::mixin $object -per-object=${per-object} $mixinClass
-    return [$mixinClass info method handle $methodName]
+    return [$mixinClass info method registrationhandle $methodName]
   }
   # use the method provider
   nsf::method::provide x        {::get_mixin ::MIX x} {

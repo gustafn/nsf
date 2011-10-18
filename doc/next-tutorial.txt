@@ -999,7 +999,7 @@ nx::Class create Dog {
   :public method bark {} { puts "[self] Bark, bark, bark." }
 
   # Define a public alias for the method "bark"
-  :public alias warn [:info method handle bark]
+  :public alias warn [:info method registrationhandle bark]
   # ...
 }
 

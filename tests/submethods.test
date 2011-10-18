@@ -510,7 +510,7 @@ nx::Test case submethods-current-introspection {
   foreach selector [list "FOO foo" "BAR BUU boo" "baz"] {
     Z public method $selector {} {;}
     set root [lindex $selector 0]
-    set mh [Z info method handle $root]
+    set mh [Z info method registrationhandle $root]
     $c {*}$selector
     ? [list set _ [join [Z msg] -]] -$root-::Z-$mh
   }

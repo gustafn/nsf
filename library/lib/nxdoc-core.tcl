@@ -2969,7 +2969,7 @@ namespace eval ::nx::doc {
 	set prj [:current_project]
 	if {$prj ne ""} {
 	  set box [$prj sandbox]	  
-	  set script "if {\[::nsf::object::exists $obj\]} {array set \"\" \[$obj eval {:__resolve_method_path \"$method_name\"}\]; ::nsf::dispatch \$(object) ::nsf::methods::${scope}::info::method handle \$(methodName)}"
+	  set script "if {\[::nsf::object::exists $obj\]} {array set \"\" \[$obj eval {:__resolve_method_path \"$method_name\"}\]; ::nsf::dispatch \$(object) ::nsf::methods::${scope}::info::method registrationhandle \$(methodName)}"
 	  set cmdname [$box do $script]
 	  if {$cmdname ne "" && [$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
 	    :pdata [$box eval [concat dict get \${:registered_commands} $cmdname]]

@@ -71,7 +71,7 @@ nsf::proc nx::trait::add {obj -per-object:switch traitName {nameMap ""}} {
     if {[info exists map($m)]} {set newName $map($m)} else {set newName $m}
     # do not add entries with $newName empty
     if {$newName eq ""} continue
-    set traitMethodHandle [$traitName info method origin $m]
+    set traitMethodHandle [$traitName info method definitionhandle $m]
     if {${per-object}} {
       $obj ::nsf::classes::nx::Object::alias $newName $traitMethodHandle
     } else {

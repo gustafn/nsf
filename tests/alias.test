@@ -488,8 +488,8 @@ Test case proc-alias {
     :public method foo {} {upvar x y; info exists y}
     :public method bar {} {set x 1; :foo}
 
-    :public alias bar_ [:info method handle bar]
-    :public alias foo_ [:info method handle foo]
+    :public alias bar_ [:info method registrationhandle bar]
+    :public alias foo_ [:info method registrationhandle foo]
     :public method bar2 {} {set x 1; :foo_}
 
     :create c1
@@ -499,8 +499,8 @@ Test case proc-alias {
     :public method foo {} {:upvar x y; info exists y}
     :public method bar {} {set x 1; :foo}
 
-    :public alias foo_ [:info method handle foo]
-    :public alias bar_ [:info method handle bar]
+    :public alias foo_ [:info method registrationhandle foo]
+    :public alias bar_ [:info method registrationhandle bar]
     :public method bar2 {} {set x 1; :foo_}
 
     :create d1

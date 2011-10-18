@@ -486,7 +486,7 @@ namespace eval ::nx::serializer {
     }
 
     # reuse warn here as well
-    :alias warn [Serializer info method handle warn]
+    :alias warn [Serializer info method registrationhandle warn]
 
     #
     # Methods to be executed at the begin and end of serialize all
@@ -766,7 +766,7 @@ namespace eval ::nx::serializer {
 	set def ""
       } else {
 	set def [$o {*}$modifier info method definition $m]
-	set handle [$o {*}$modifier info method handle $m]
+	set handle [$o {*}$modifier info method registrationhandle $m]
 	set returns [::nsf::method::property $o $handle returns]
 	if {$returns ne ""} {append def \n [list ::nsf::method::property $o $handle returns $returns]}
       }

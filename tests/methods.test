@@ -23,9 +23,9 @@ Class create C {
   :protected property protected_setter 
 
   # alias
-  :alias plain_alias [C info method handle plain_method]
-  :public alias public_alias [C info method handle public_method]
-  :protected alias protected_alias [C info method handle protected_method]
+  :alias plain_alias [C info method registrationhandle plain_method]
+  :public alias public_alias [C info method registrationhandle public_method]
+  :protected alias protected_alias [C info method registrationhandle protected_method]
   
   # class-object
   :class method plain_object_method {} {return [current method]}
@@ -37,9 +37,9 @@ Class create C {
   :class property plain_object_setter 
   :public class property public_object_setter 
   :protected class property protected_object_setter 
-  :class alias plain_object_alias [:class info method handle plain_object_method]
-  :public class alias public_object_alias [:class info method handle public_object_method]
-  :protected class alias protected_object_alias [:class info method handle protected_object_method]
+  :class alias plain_object_alias [:class info method registrationhandle plain_object_method]
+  :public class alias public_object_alias [:class info method registrationhandle public_object_method]
+  :protected class alias protected_object_alias [:class info method registrationhandle protected_object_method]
 }
 C create c1 {
   # methods
@@ -58,9 +58,9 @@ C create c1 {
   :protected property protected_object_setter 
 
   # alias
-  :alias plain_object_alias [:info method handle plain_object_method]
-  :public alias public_object_alias [:info method handle public_object_method]
-  :protected alias protected_object_alias [:info method handle protected_object_method]
+  :alias plain_object_alias [:info method registrationhandle plain_object_method]
+  :public alias public_object_alias [:info method registrationhandle public_object_method]
+  :protected alias protected_object_alias [:info method registrationhandle protected_object_method]
 }
 C public property s0
 C protected property s1

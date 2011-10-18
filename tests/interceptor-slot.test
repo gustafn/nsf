@@ -220,15 +220,15 @@ nx::Test case intrinsic+method-handles {
   
   C create c1
   ? {c1 foo} "C B A "
-  ? {c1 [C info method origin foo]} "C B A "
-  ? {c1 [B info method origin foo]} "B A "
-  ? {c1 [A info method origin foo]} "A "
+  ? {c1 [C info method definitionhandle foo]} "C B A "
+  ? {c1 [B info method definitionhandle foo]} "B A "
+  ? {c1 [A info method definitionhandle foo]} "A "
 
   # we expect same results via dispatch with fully qualified names
   ? {nsf::dispatch c1 foo} "C B A "
-  ? {nsf::dispatch c1 [C info method origin foo]} "C B A "
-  ? {nsf::dispatch c1 [B info method origin foo]} "B A "
-  ? {nsf::dispatch c1 [A info method origin foo]} "A "
+  ? {nsf::dispatch c1 [C info method definitionhandle foo]} "C B A "
+  ? {nsf::dispatch c1 [B info method definitionhandle foo]} "B A "
+  ? {nsf::dispatch c1 [A info method definitionhandle foo]} "A "
 
   # 
   # check, whether the context of "my -local" is correct
@@ -238,9 +238,9 @@ nx::Test case intrinsic+method-handles {
   C public method bar {} {nsf::my -local foo}
 
   ? {c1 bar} "C B A "
-  ? {c1 [C info method origin bar]} "C B A "
-  ? {c1 [B info method origin bar]} "B A "
-  ? {c1 [A info method origin bar]} "A "
+  ? {c1 [C info method definitionhandle bar]} "C B A "
+  ? {c1 [B info method definitionhandle bar]} "B A "
+  ? {c1 [A info method definitionhandle bar]} "A "
 }
 
 #
@@ -259,9 +259,9 @@ nx::Test case mixins+method-handles {
   Class create X -mixin {C B A}
   X create c1
   ? {c1 foo} "C B A "
-  ? {c1 [C info method origin foo]} "C B A "
-  ? {c1 [B info method origin foo]} "B A "
-  ? {c1 [A info method origin foo]} "A "
+  ? {c1 [C info method definitionhandle foo]} "C B A "
+  ? {c1 [B info method definitionhandle foo]} "B A "
+  ? {c1 [A info method definitionhandle foo]} "A "
   
   #
   # Intrinsic classes and mixin classes
@@ -272,11 +272,11 @@ nx::Test case mixins+method-handles {
 
   Z create c1 -mixin {C B A}
   ? {c1 foo} "C B A Z Y "
-  ? {c1 [C info method origin foo]} "C B A Z Y "
-  ? {c1 [B info method origin foo]} "B A Z Y "
-  ? {c1 [A info method origin foo]} "A Z Y "
-  ? {c1 [Z info method origin foo]} "Z Y "
-  ? {c1 [Y info method origin foo]} "Y "
+  ? {c1 [C info method definitionhandle foo]} "C B A Z Y "
+  ? {c1 [B info method definitionhandle foo]} "B A Z Y "
+  ? {c1 [A info method definitionhandle foo]} "A Z Y "
+  ? {c1 [Z info method definitionhandle foo]} "Z Y "
+  ? {c1 [Y info method definitionhandle foo]} "Y "
 
   # 
   # check, whether the context of "my -local" is correct
@@ -288,11 +288,11 @@ nx::Test case mixins+method-handles {
   Z public method bar {} {nsf::my -local foo}
 
   ? {c1 bar} "C B A Z Y "
-  ? {c1 [C info method origin bar]} "C B A Z Y "
-  ? {c1 [B info method origin bar]} "B A Z Y "
-  ? {c1 [A info method origin bar]} "A Z Y "
-  ? {c1 [Z info method origin bar]} "Z Y "
-  ? {c1 [Y info method origin bar]} "Y "
+  ? {c1 [C info method definitionhandle bar]} "C B A Z Y "
+  ? {c1 [B info method definitionhandle bar]} "B A Z Y "
+  ? {c1 [A info method definitionhandle bar]} "A Z Y "
+  ? {c1 [Z info method definitionhandle bar]} "Z Y "
+  ? {c1 [Y info method definitionhandle bar]} "Y "
 
 }
 
@@ -340,11 +340,11 @@ nx::Test case mixins+method-handles+intrinsic {
 
   ? {c1 info precedence} "::C ::B ::A ::Z ::Y ::nx::Object"
   ? {c1 bar} "Z Y "
-  ? {c1 [C info method origin bar]} "Z Y "
-  ? {c1 [B info method origin bar]} "Z Y "
-  ? {c1 [A info method origin bar]} "Z Y "
-  ? {c1 [Z info method origin bar]} "Z Y "
-  ? {c1 [Y info method origin bar]} "Z Y "
+  ? {c1 [C info method definitionhandle bar]} "Z Y "
+  ? {c1 [B info method definitionhandle bar]} "Z Y "
+  ? {c1 [A info method definitionhandle bar]} "Z Y "
+  ? {c1 [Z info method definitionhandle bar]} "Z Y "
+  ? {c1 [Y info method definitionhandle bar]} "Z Y "
 
   # 
   # check, whether the context of "nsf::dispatch [self] -intrinsic" is correct
@@ -356,11 +356,11 @@ nx::Test case mixins+method-handles+intrinsic {
   Z public method bar {} {nsf::dispatch [self] -intrinsic foo}
 
   ? {c1 bar} "Z Y "
-  ? {c1 [C info method origin bar]} "Z Y "
-  ? {c1 [B info method origin bar]} "Z Y "
-  ? {c1 [A info method origin bar]} "Z Y "
-  ? {c1 [Z info method origin bar]} "Z Y "
-  ? {c1 [Y info method origin bar]} "Z Y "
+  ? {c1 [C info method definitionhandle bar]} "Z Y "
+  ? {c1 [B info method definitionhandle bar]} "Z Y "
+  ? {c1 [A info method definitionhandle bar]} "Z Y "
+  ? {c1 [Z info method definitionhandle bar]} "Z Y "
+  ? {c1 [Y info method definitionhandle bar]} "Z Y "
 }
 
 

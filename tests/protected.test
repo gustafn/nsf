@@ -288,7 +288,7 @@ nx::Test case local+filter {
   # remove the filter
   d1 filter ""
   # define call to private method via method handle
-  C public method foo {} { return "C.foo [[self] [C info method handle bar]]"}
+  C public method foo {} { return "C.foo [[self] [C info method registrationhandle bar]]"}
 
   # the behavior without filter, should be like above
   ? {d1 baz} "D.baz C.baz "
@@ -370,13 +370,13 @@ nx::Test case private {
   
   # calls via method handles allows us to dispatch private methods,
   # results like "-local" resolves above
-  ? {c1 [C info method handle p1]} "C.p1 "
-  ? {c1 [C info method handle p3]} "C.p3 B.p3"
+  ? {c1 [C info method registrationhandle p1]} "C.p1 "
+  ? {c1 [C info method registrationhandle p3]} "C.p3 B.p3"
 
   # calls via method handles allows us to dispatch private methods,
   # results like "-local" resolves above
-  ? {nx::dispatch c1 [C info method handle p1]} "C.p1 "
-  ? {nx::dispatch c1 [C info method handle p3]} "C.p3 B.p3"
+  ? {nx::dispatch c1 [C info method registrationhandle p1]} "C.p1 "
+  ? {nx::dispatch c1 [C info method registrationhandle p3]} "C.p3 B.p3"
   
   # we can't call the private method via dispatch, since the private
   # methods are removed from the search for methods
@@ -444,11 +444,11 @@ nx::Test case object-my-local {
 nx::Test case my+handle-instead-of-my-local {
   nx::Class create Base {
     :private method privateMethod {a b} { expr {$a + $b} }
-    :public method foo {a b} {: [Base info method handle privateMethod] $a $b}
+    :public method foo {a b} {: [Base info method registrationhandle privateMethod] $a $b}
   }
     
   nx::Class create Sub -superclass Base {
-    :public method bar {a b} {: [Sub info method handle privateMethod] $a $b}
+    :public method bar {a b} {: [Sub info method registrationhandle privateMethod] $a $b}
     :private method privateMethod {a b} { expr {$a * $b} }
 
     :create s1
@@ -465,11 +465,11 @@ nx::Test case my+handle-instead-of-my-local {
 nx::Test case dispatch-instead-of-my-local {
   nx::Class create Base {
     :private method privateMethod {a b} { expr {$a + $b} }
-    :public method foo {a b} { dispatch [self] [Base info method handle privateMethod] $a $b }
+    :public method foo {a b} { dispatch [self] [Base info method registrationhandle privateMethod] $a $b }
   }
     
   nx::Class create Sub -superclass Base {
-    :public method bar {a b} { dispatch [self] [Sub info method handle privateMethod] $a $b }
+    :public method bar {a b} { dispatch [self] [Sub info method registrationhandle privateMethod] $a $b }
     :private method privateMethod {a b} { expr {$a * $b} }
 
     :create s1
@@ -496,7 +496,7 @@ nx::Test case system-flag {
   
   ? {o1 info} "overloads system info"
   ? {o1 ::nx::Object::slot::__info::vars} "v"
-  ? {o1 [nx::Object info method origin "info vars"]} "v"
+  ? {o1 [nx::Object info method definitionhandle "info vars"]} "v"
   #? {o1 -system info vars} "v"
   ? {nx::dispatch o1 -system info vars} "v"
 
@@ -522,7 +522,7 @@ nx::Test case system-flag {
 
   ? {c1 info} "overloads system info"
   ? {c1 ::nx::Object::slot::__info::vars} "v"
-  ? {c1 [nx::Object info method origin "info vars"]} "v"
+  ? {c1 [nx::Object info method definitionhandle "info vars"]} "v"
   #? {c1 -system info vars} "v"
   ? {nx::dispatch c1 -system info vars} "v"
   

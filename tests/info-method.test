@@ -95,11 +95,10 @@ nx::Test case info-method-base {
   ? {c1 info method definition foo} "::c1 public method foo {} {puts foo}"
   ? {c1 info lookup method foo} "::c1::foo"
   
-  ? {C info method handle m} "::nsf::classes::C::m"
-  ? {C class info method handle mpo} "::C::mpo"
+  ? {C info method registrationhandle m} "::nsf::classes::C::m"
+  ? {C class info method registrationhandle mpo} "::C::mpo"
   
   ? {C info method definition m} {::C public method m x {return proc-[self proc]}}
-  ? {C info method def m} {::C public method m x {return proc-[self proc]}}
   ? {C class info method definition mpo} {::C public class method mpo {} {return instproc-[self proc]}}
   if {$::nsf::config(assertions)} {
     ? {C info method definition m-with-assertions} \
@@ -446,16 +445,16 @@ nx::Test case info-submethod {
   #
   # method handles for ensemble methods
   #
-  ? {C info method handle "bar"} {::nsf::classes::C::bar}
-  ? {C info method handle "bar a"} {::nsf::classes::C::bar a}
-  ? {C info method handle "bar baz y"} {::nsf::classes::C::bar baz y}
+  ? {C info method registrationhandle "bar"} {::nsf::classes::C::bar}
+  ? {C info method registrationhandle "bar a"} {::nsf::classes::C::bar a}
+  ? {C info method registrationhandle "bar baz y"} {::nsf::classes::C::bar baz y}
 
   #
   # test whether the handles for ensemble methods work
   #
-  ? {C info method parameter [C info method handle "bar"]} ""
-  ? {C info method parameter [C info method handle "bar b"]} "x:int y:upper"
-  ? {C info method parameter [C info method handle "bar baz y"]} "x:int y:upper"
+  ? {C info method parameter [C info method registrationhandle "bar"]} ""
+  ? {C info method parameter [C info method registrationhandle "bar b"]} "x:int y:upper"
+  ? {C info method parameter [C info method registrationhandle "bar baz y"]} "x:int y:upper"
   
   #
   # check methods paths as method specifications
@@ -467,8 +466,8 @@ nx::Test case info-submethod {
   #
   # test class modifier on handles
   #
-  ? {C class info method handle "foo"}   {::C::foo}
-  ? {C class info method handle "foo x"} {::C::foo x}
+  ? {C class info method registrationhandle "foo"}   {::C::foo}
+  ? {C class info method registrationhandle "foo x"} {::C::foo x}
 
   #
   # info method definition with method paths
@@ -496,14 +495,14 @@ nx::Test case info-submethod {
       "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
   ? {o info method parameter "::o::foo::b"} "x:int y:upper"
 
-  ? {nx::Object info method handle "info"} "::nsf::classes::nx::Object::info"
-  ? {nx::Object info method handle "info lookup methods"} \
+  ? {nx::Object info method registrationhandle "info"} "::nsf::classes::nx::Object::info"
+  ? {nx::Object info method registrationhandle "info lookup methods"} \
       "::nsf::classes::nx::Object::info lookup methods"
 
-  ? {nx::Object info method handle "::nsf::classes::nx::Object::info lookup methods"} \
+  ? {nx::Object info method registrationhandle "::nsf::classes::nx::Object::info lookup methods"} \
       "::nsf::classes::nx::Object::info lookup methods"
 
-  ? {o info method handle "foo b"} "::o::foo b"
+  ? {o info method registrationhandle "foo b"} "::o::foo b"
 }
 
 #
@@ -940,24 +939,24 @@ nx::Test case method-isregistered {
 
   Class create C {
     :method bar {} {return bar}
-    set h1 [:info method handle bar]
+    set h1 [:info method registrationhandle bar]
     ? [list set _ $h1] "::nsf::classes::C::bar"
-    ? [list [self] info method handle bar] "::nsf::classes::C::bar"
+    ? [list [self] info method registrationhandle bar] "::nsf::classes::C::bar"
 
     ? [list ::nsf::method::registered $h1] ::C
 
     :class method bar {} {return bar}
-    set h2 [:class info method handle bar]
-    ? [list [self] class info method handle bar] "::C::bar"
+    set h2 [:class info method registrationhandle bar]
+    ? [list [self] class info method registrationhandle bar] "::C::bar"
 
     ? [list ::nsf::method::registered $h2] ::C
   }
 
   Object create o {
     :method bar {} {return bar}
-    set h1 [:info method handle bar]
+    set h1 [:info method registrationhandle bar]
     ? [list set _ $h1] "::o::bar"
-    ? [list [self] info method handle bar] "::o::bar"
+    ? [list [self] info method registrationhandle bar] "::o::bar"
 
     ? [list ::nsf::method::registered $h1] ::o
   }
@@ -972,17 +971,17 @@ nx::Test case method-isregistered {
 nx::Test case method-origin {
   nx::Class create C
   ? {set implHandle [C public method "foo bar" {x} {;}]} "::C::slot::__foo::bar"
-  ? {set regHandle [C info method handle "foo bar"]} "::nsf::classes::C::foo bar"
-  ? {set origin [C info method origin "foo bar"]} "::C::slot::__foo::bar"
+  ? {set regHandle [C info method registrationhandle "foo bar"]} "::nsf::classes::C::foo bar"
+  ? {set origin [C info method definitionhandle "foo bar"]} "::C::slot::__foo::bar"
 
   ? {set implHandle [C public class method "foo bar" {x} {;}]} "::C::foo::bar"
-  ? {set regHandle [C class info method handle "foo bar"]} "::C::foo bar"
-  ? {set origin [C class info method origin "foo bar"]} "::C::foo::bar"
+  ? {set regHandle [C class info method registrationhandle "foo bar"]} "::C::foo bar"
+  ? {set origin [C class info method definitionhandle "foo bar"]} "::C::foo::bar"
 
   Object create o
   ? {set implHandle [o public method "foo bar" {x} {;}]} "::o::foo::bar"
-  ? {set regHandle [o info method handle "foo bar"]} "::o::foo bar"
-  ? {set origin [o info method origin "foo bar"]} "::o::foo::bar"
+  ? {set regHandle [o info method registrationhandle "foo bar"]} "::o::foo bar"
+  ? {set origin [o info method definitionhandle "foo bar"]} "::o::foo::bar"
 }
 
 #
