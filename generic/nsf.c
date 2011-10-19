@@ -22004,7 +22004,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
@@ -22020,6 +22020,9 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, object->nsPtr, methodNameObj,
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+  if (subcmd == InfomethodsubcmdHandleIdx) {
+    subcmd = InfomethodsubcmdDefinitionhandleIdx;
+  }
   /*fprintf(stderr,
 	  "NsfObjInfoMethodMethod method %s / %s object %p regObject %p defObject %p fromClass %d\n",
 	  ObjStr(methodNameObj), methodName1, object, regObject, defObject, fromClassNS);*/
@@ -22300,7 +22303,7 @@ NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 
 /*
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
@@ -22316,6 +22319,9 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, class->nsPtr, methodNameObj,
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+  if (subcmd == InfomethodsubcmdHandleIdx) {
+    subcmd = InfomethodsubcmdDefinitionhandleIdx;
+  }
   /*fprintf(stderr,
 	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p %s fromClass %d cmd %p method %s\n",
 	  &class->object, regObject, defObject, ObjectName(defObject), fromClassNS, cmd, methodName1);*/

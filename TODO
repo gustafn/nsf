@@ -3710,20 +3710,19 @@ nonleadingdash handling:
          "info method registrationhandle /methodName/"
 - rename "info method origin /methodName/" into
          "info method definitionhandle /methodName/"
+
+- added "info method handle" as short form of "info method definitionhandle"
 - added "info method origin" to return the target of an alias (or empty)
 
+- update migration guide and tutorial
 
+========================================================================
 TODO:
 
  - warnings for "numeric" names for args and nonpos-args?
  - special handling of values looking like nonpos-flags,
    but wich are not ones (-1, "- a b c", ....) in detection
    when to throw unknow.
-
- - private: 
-   * document private in tutorial
-
- - add "property" and "attribute" and "info property" and "info slot ..." to migration guide
 
  - naming of slot classes 
    * should we switch from "-class" to "-slotclass"?

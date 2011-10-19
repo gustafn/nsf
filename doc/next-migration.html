@@ -1079,14 +1079,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>   <span class='nx-comment'># Stack of Things
 </span>   <span class='nx-comment'>#
 </span>
-   :<span class='nx-keyword'>variable</span> things <span class='nx-string'>""</span>
+   <span class='nx-keyword'>:variable</span> things <span class='nx-string'>""</span>
 
-   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
+   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> push {thing} {
       <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
       <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
    }
 
-   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> pop {} {
+   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> pop {} {
       <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0]
       <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 1 end]
       <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
@@ -1176,17 +1176,17 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'>   <span class='nx-keyword'>namespace</span> <span class='nx-keyword'>eval</span> mypackage {
 
-      <span class='nx-keyword'>package</span> require XOTcl 2.0
+      <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> XOTcl 2.0
 
      <span class='nx-comment'># Define a class using XOTcl
 </span>      <span class='nx-keyword'>xotcl::Class</span> C1
       C1 instproc foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
 
-      <span class='nx-keyword'>package</span> require nx
+      <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
 
      <span class='nx-comment'># Define a class using NX
 </span>      <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C2 {
-         :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
+         <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
       }
    }</pre></div></div>
 <div class="paragraph"><p>One could certainly create object or classes from the different object
@@ -1361,8 +1361,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># in the init-block of a class
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  :<span class='nx-keyword'>method</span> foo args {...}
-  :<span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> bar args {...}
+  <span class='nx-keyword'>:method</span> foo args {...}
+  <span class='nx-keyword'>:class</span> <span class='nx-keyword'>method</span> bar args {...}
 }</pre></div></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -1417,7 +1417,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
   <span class='nx-keyword'>set</span> :x 1
-  :<span class='nx-keyword'>method</span> foo args {...}
+  <span class='nx-keyword'>:method</span> foo args {...}
 }</pre></div></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -1560,12 +1560,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># Define forwarder
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  :<span class='nx-keyword'>forward</span> f1 ...
-  :<span class='nx-keyword'>class</span> <span class='nx-keyword'>forward</span> f2 ...
+  <span class='nx-keyword'>:forward</span> f1 ...
+  <span class='nx-keyword'>:class</span> <span class='nx-keyword'>forward</span> f2 ...
 }
 
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
-  :<span class='nx-keyword'>forward</span> f3 ...
+  <span class='nx-keyword'>:forward</span> f3 ...
 }</pre></div></div></div></td>
 </tr>
 <tr>
@@ -1609,11 +1609,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># need it.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C
-::nsf::<span class='nx-keyword'>method</span>::setter C p1
-::nsf::<span class='nx-keyword'>method</span>::setter C -per-object p2
+::nsf::method::setter C p1
+::nsf::method::setter C -per-object p2
 
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o
-::nsf::<span class='nx-keyword'>method</span>::setter o p3</pre></div></div></div></td>
+::nsf::method::setter o p3</pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -1666,12 +1666,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># (to scripted or non-scripted methods)
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  :<span class='nx-keyword'>alias</span> a1 ...
-  :<span class='nx-keyword'>class</span> <span class='nx-keyword'>alias</span> a2 ...
+  <span class='nx-keyword'>:alias</span> a1 ...
+  <span class='nx-keyword'>:class</span> <span class='nx-keyword'>alias</span> a2 ...
 }
 
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
-  :<span class='nx-keyword'>alias</span> a3 ...
+  <span class='nx-keyword'>:alias</span> a3 ...
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -1746,14 +1746,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'>#    method, forward, alias
 </span><span class='nx-comment'>#
 </span><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  :/<span class='nx-keyword'>method</span>-definiton-<span class='nx-keyword'>method</span>/ ...
-  :<span class='nx-keyword'>public</span> /<span class='nx-keyword'>method</span>-definiton-<span class='nx-keyword'>method</span>/ ...
-  :<span class='nx-keyword'>protected</span> /<span class='nx-keyword'>method</span>-definiton-<span class='nx-keyword'>method</span>/ ...
-  :<span class='nx-keyword'>private</span> /<span class='nx-keyword'>method</span>-definiton-<span class='nx-keyword'>method</span>/ ...
-  :<span class='nx-keyword'>class</span> /<span class='nx-keyword'>method</span>-definiton-<span class='nx-keyword'>method</span>/ ...
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>class</span> /<span class='nx-keyword'>method</span>-definiton-<span class='nx-keyword'>method</span>/ ...
-  :<span class='nx-keyword'>protected</span> <span class='nx-keyword'>class</span> /<span class='nx-keyword'>method</span>-definiton-<span class='nx-keyword'>method</span>/ ...
-  :<span class='nx-keyword'>private</span> <span class='nx-keyword'>class</span> /<span class='nx-keyword'>method</span>-definiton-<span class='nx-keyword'>method</span>/ ...
+  :/<span class='nx-keyword'>method</span>-definiton-method/ ...
+  <span class='nx-keyword'>:public</span> /<span class='nx-keyword'>method</span>-definiton-method/ ...
+  <span class='nx-keyword'>:protected</span> /<span class='nx-keyword'>method</span>-definiton-method/ ...
+  <span class='nx-keyword'>:private</span> /<span class='nx-keyword'>method</span>-definiton-method/ ...
+  <span class='nx-keyword'>:class</span> /<span class='nx-keyword'>method</span>-definiton-method/ ...
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>class</span> /<span class='nx-keyword'>method</span>-definiton-method/ ...
+  <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>class</span> /<span class='nx-keyword'>method</span>-definiton-method/ ...
+  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>class</span> /<span class='nx-keyword'>method</span>-definiton-method/ ...
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -1812,15 +1812,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># Hiding of methods via "private"
 </span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base {
-  :<span class='nx-keyword'>private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> + <span class='nx-variable'>$b</span>}}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> foo {a b} {: -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
+  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> + <span class='nx-variable'>$b</span>}}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {a b} {: -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
 }
 
-<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Sub -<span class='nx-keyword'>superclass</span> Base {
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> bar {a b} {: -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
-  :<span class='nx-keyword'>private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> * <span class='nx-variable'>$b</span>}}
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Sub -superclass Base {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar {a b} {: -local baz <span class='nx-variable'>$a</span> <span class='nx-variable'>$b</span>}
+  <span class='nx-keyword'>:private</span> <span class='nx-keyword'>method</span> baz {a b} {<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$a</span> * <span class='nx-variable'>$b</span>}}
 
-  :<span class='nx-keyword'>create</span> s1
+  <span class='nx-keyword'>:create</span> s1
 }
 
 s1 foo 3 4  ;<span class='nx-comment'># returns 7
@@ -1956,14 +1956,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  :<span class='nx-keyword'>method</span> foo args {...}
-  :<span class='nx-keyword'>method</span> bar args {
+  <span class='nx-keyword'>:method</span> foo args {...}
+  <span class='nx-keyword'>:method</span> bar args {
      :foo 1 2 3 ;<span class='nx-comment'># invoke own method
 </span>     o baz      ;<span class='nx-comment'># invoke other objects method
 </span>  }
 }
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> baz {} {...}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> baz {} {...}
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -2053,7 +2053,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  :<span class='nx-keyword'>method</span> foo args {...}
+  <span class='nx-keyword'>:method</span> foo args {...}
     <span class='nx-comment'># Method scoped variable a
 </span>    <span class='nx-keyword'>set</span> a 1
     <span class='nx-comment'># Instance variable b
@@ -2495,8 +2495,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># initialization of the object.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
-  :<span class='nx-keyword'>variable</span> x 1
-  :<span class='nx-keyword'>variable</span> y 2
+  <span class='nx-keyword'>:variable</span> x 1
+  <span class='nx-keyword'>:variable</span> y 2
 }
 
 <span class='nx-comment'># Create instance of the class Foo
@@ -2562,8 +2562,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># similar to "class method".
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
-  :<span class='nx-keyword'>class</span> <span class='nx-keyword'>variable</span> V 100
-  :<span class='nx-keyword'>variable</span> x 1
+  <span class='nx-keyword'>:class</span> <span class='nx-keyword'>variable</span> V 100
+  <span class='nx-keyword'>:variable</span> x 1
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -2731,8 +2731,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># scripted configuration; see below)
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
-   :<span class='nx-keyword'>property</span> a
-   :<span class='nx-keyword'>property</span> {b 1}
+   <span class='nx-keyword'>:property</span> a
+   <span class='nx-keyword'>:property</span> {b 1}
 }
 
 <span class='nx-comment'># Create instance of the class Foo and
@@ -2775,13 +2775,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># property
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  :<span class='nx-keyword'>property</span> x
-  :<span class='nx-keyword'>property</span> {y 1}
-  :<span class='nx-keyword'>class</span> <span class='nx-keyword'>property</span> cp
+  <span class='nx-keyword'>:property</span> x
+  <span class='nx-keyword'>:property</span> {y 1}
+  <span class='nx-keyword'>:class</span> <span class='nx-keyword'>property</span> cp
 }
 
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
-  :<span class='nx-keyword'>property</span> op
+  <span class='nx-keyword'>:property</span> op
 }</pre></div></div></div></td>
 </tr>
 <tr>
@@ -2803,7 +2803,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-keyword'>Class</span> Person -slots {
   <span class='nx-keyword'>Attribute</span> <span class='nx-keyword'>create</span> sex -type <span class='nx-string'>"sex"</span> {
     <span class='nx-keyword'>my</span> <span class='nx-keyword'>proc</span> type=sex {name value} {
-      <span class='nx-keyword'>switch</span> -<span class='nx-keyword'>glob</span> <span class='nx-variable'>$value</span> {
+      <span class='nx-keyword'>switch</span> -glob <span class='nx-variable'>$value</span> {
         m* {<span class='nx-keyword'>return</span> m}
         f* {<span class='nx-keyword'>return</span> f}
         default {
@@ -2829,10 +2829,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># property specific type checker
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Person {
-  :<span class='nx-keyword'>property</span> sex {
+  <span class='nx-keyword'>:property</span> sex {
     :type <span class='nx-string'>"sex"</span>
-    :<span class='nx-keyword'>method</span> type=sex {name value} {
-      <span class='nx-keyword'>switch</span> -<span class='nx-keyword'>glob</span> <span class='nx-variable'>$value</span> {
+    <span class='nx-keyword'>:method</span> type=sex {name value} {
+      <span class='nx-keyword'>switch</span> -glob <span class='nx-variable'>$value</span> {
         m* {<span class='nx-keyword'>return</span> m}
         f* {<span class='nx-keyword'>return</span> f}
         default {
@@ -2924,8 +2924,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
-   :<span class='nx-keyword'>property</span> a:boolean
-   :<span class='nx-keyword'>property</span> {b:integer 1}
+   <span class='nx-keyword'>:property</span> a:boolean
+   <span class='nx-keyword'>:property</span> {b:integer 1}
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -2997,8 +2997,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
-   :<span class='nx-keyword'>property</span> a:required
-   :<span class='nx-keyword'>property</span> b:boolean,required
+   <span class='nx-keyword'>:property</span> a:required
+   <span class='nx-keyword'>:property</span> b:boolean,required
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -3069,9 +3069,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
-  :<span class='nx-keyword'>property</span> {ints:integer,0..n <span class='nx-string'>""</span>}
-  :<span class='nx-keyword'>property</span> objs:object,1..n
-  :<span class='nx-keyword'>property</span> obj:object,0..1
+  <span class='nx-keyword'>:property</span> {ints:integer,0..n <span class='nx-string'>""</span>}
+  <span class='nx-keyword'>:property</span> objs:object,1..n
+  <span class='nx-keyword'>:property</span> obj:object,0..1
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -3145,10 +3145,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># parameter (a and b)
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> foo {-x:integer -y:required -z a b} {
+   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {-x:integer -y:required -z a b} {
       <span class='nx-comment'># ...
 </span>   }
-   :<span class='nx-keyword'>create</span> c1
+   <span class='nx-keyword'>:create</span> c1
 }
 <span class='nx-comment'># invoke method foo
 </span>c1 foo -x 1 -y a 2 3</pre></div></div></div></td>
@@ -3186,22 +3186,22 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
   <span class='nx-comment'># trailing (or interleaved) non-positional
 </span>  <span class='nx-comment'># parameters
-</span>  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> m1 {a b -x:integer -y} {
+</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> m1 {a b -x:integer -y} {
     <span class='nx-comment'># ...
 </span>  }
 
   <span class='nx-comment'># positional parameters with value constraints
-</span>  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> m2 {a:integer b:boolean} {
+</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> m2 {a:integer b:boolean} {
     <span class='nx-comment'>#...
 </span>  }
 
   <span class='nx-comment'># optional positional parameter (trailing)
-</span>  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>set</span> {varName value:optional} {
+</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>set</span> {varName value:optional} {
     <span class='nx-comment'># ....
 </span>  }
 
   <span class='nx-comment'># parameter with multiplicity
-</span>  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> m3 {-objs:object,1..n c:<span class='nx-keyword'>class</span>,0..1} {
+</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> m3 {-objs:object,1..n c<span class='nx-keyword'>:class</span>,0..1} {
     <span class='nx-comment'># ...
 </span>  }
 
@@ -3272,24 +3272,24 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
   <span class='nx-comment'># Define method foo which returns an
 </span>  <span class='nx-comment'># integer value
-</span>  :<span class='nx-keyword'>method</span> foo -returns integer {-x:integer} {
+</span>  <span class='nx-keyword'>:method</span> foo -returns integer {-x:integer} {
     <span class='nx-comment'># ...
 </span>   }
 
   <span class='nx-comment'># Define an alias for the Tcl command ::incr
 </span>  <span class='nx-comment'># and assure, it always returns an integer
 </span>  <span class='nx-comment'># value
-</span>  :<span class='nx-keyword'>alias</span> <span class='nx-keyword'>incr</span> -returns integer ::<span class='nx-keyword'>incr</span>
+</span>  <span class='nx-keyword'>:alias</span> <span class='nx-keyword'>incr</span> -returns integer ::incr
 
   <span class='nx-comment'># Define a forwarder that has to return an
 </span>  <span class='nx-comment'># integer value
-</span>  :<span class='nx-keyword'>forward</span> ++ -returns integer ::<span class='nx-keyword'>expr</span> 1 +
+</span>  <span class='nx-keyword'>:forward</span> ++ -returns integer ::expr 1 +
 
  <span class='nx-comment'># Define a method that has to return a
 </span> <span class='nx-comment'># non-empty list of objects
-</span> :<span class='nx-keyword'>public</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> instances {} \
+</span> <span class='nx-keyword'>:public</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>method</span> instances {} \
     -returns object,1..n {
-   <span class='nx-keyword'>return</span> [:<span class='nx-keyword'>info</span> instances]
+   <span class='nx-keyword'>return</span> [<span class='nx-keyword'>:info</span> instances]
   }
 }</pre></div></div></div></td>
 </tr>
@@ -4325,7 +4325,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-comment'># List only application specific methods
-</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>methods</span> -<span class='nx-keyword'>source</span> application ... <span class='nx-placeholder'>?pattern?</span>
+</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>methods</span> -source application ... <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-comment'># Returns list of method names</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -4391,7 +4391,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># -source might be all|application|baseclasses
 </span><span class='nx-comment'># -type is the class of the slot object
 </span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots <span class='nx-placeholder'>?-type ...?</span> ?-<span class='nx-keyword'>source</span> ... <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?-source ... ?</span>pattern?
 
 <span class='nx-comment'># Returns list of slot objects</span></pre></div></div></div></td>
 </tr>
@@ -5001,7 +5001,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> slot objects <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>info</span> slot objects <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot objects \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5030,11 +5030,40 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># List definition of slots
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> slot definition \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span>
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>info</span> slot definition \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span>
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot definition \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+</tr>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter</pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># "info properties" is a short form of "info slot definiton"
+</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> properties \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5063,11 +5092,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># List names of slots
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> slot names \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span>
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>info</span> slot names \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span>
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span>
 <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot names \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> ?-<span class='nx-keyword'>source</span> value? <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5098,7 +5127,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># -type is the class of the slot object
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots \
-   <span class='nx-placeholder'>?-type ...?</span> ?-<span class='nx-keyword'>source</span> ... <span class='nx-placeholder'>?pattern?</span>
+   <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?-source ... ?</span>pattern?
 
 <span class='nx-comment'># Returns list of slot objects</span></pre></div></div></div></td>
 </tr>
@@ -5615,8 +5644,28 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> handle <span class='nx-placeholder'>/methodName/</span>
-<span class='nx-placeholder'>/cls/</span> ?<span class='nx-keyword'>class</span>? <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> handle <span class='nx-placeholder'>/methodName/</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># List the method handle of the specified method,
+</span><span class='nx-comment'># can be used e.g. for aliases. "handle" is the short
+</span><span class='nx-comment'># form of "definitionhandle".
+</span><span class='nx-comment'>#
+</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> handle <span class='nx-placeholder'>/methodName/</span>
+<span class='nx-placeholder'>/cls/</span> ?<span class='nx-keyword'>class</span>? <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> handle <span class='nx-placeholder'>/methodName/</span>
+<span class='nx-comment'>#
+</span><span class='nx-comment'># For ensemble methods (method name contains
+</span><span class='nx-comment'># spaces) one can query as well the registration
+</span><span class='nx-comment'># handle, which is the handle to the root of the
+</span><span class='nx-comment'># ensemble; the definiton handle points to the
+</span><span class='nx-comment'># leaf of the ensemble.
+</span><span class='nx-comment'>#
+</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> registrationhandle <span class='nx-placeholder'>/methodName/</span>
+<span class='nx-placeholder'>/cls/</span> ?<span class='nx-keyword'>class</span>? <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> registrationhandle <span class='nx-placeholder'>/methodName/</span>
+<span class='nx-comment'>#
+</span><span class='nx-comment'># For aliases, one can query the original definition
+</span><span class='nx-comment'># via "info method origin"
+</span><span class='nx-comment'>#
+</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> origin <span class='nx-placeholder'>/methodName/</span>
+<span class='nx-placeholder'>/cls/</span> ?<span class='nx-keyword'>class</span>? <span class='nx-keyword'>info</span> <span class='nx-keyword'>method</span> origin <span class='nx-placeholder'>/methodName/</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -5936,7 +5985,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> is metaclass</pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> is <span class='nx-keyword'>metaclass</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6411,7 +6460,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> require <span class='nx-keyword'>namespace</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>require</span> <span class='nx-keyword'>namespace</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6437,7 +6486,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> require <span class='nx-keyword'>method</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>require</span> <span class='nx-keyword'>method</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -6490,7 +6539,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/obj/</span> check <span class='nx-placeholder'>/checkptions/</span></pre></div></div></div></td>
+<pre class='nx'>::nsf::method::assertion <span class='nx-placeholder'>/obj/</span> check <span class='nx-placeholder'>/checkptions/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6516,7 +6565,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/obj/</span> check</pre></div></div></div></td>
+<pre class='nx'>::nsf::method::assertion <span class='nx-placeholder'>/obj/</span> check</pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6542,7 +6591,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/obj/</span> object-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
+<pre class='nx'>::nsf::method::assertion <span class='nx-placeholder'>/obj/</span> object-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6568,7 +6617,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/obj/</span> object-invar</pre></div></div></div></td>
+<pre class='nx'>::nsf::method::assertion <span class='nx-placeholder'>/obj/</span> object-invar</pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6594,7 +6643,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span>-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
+<pre class='nx'>::nsf::method::assertion <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span>-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6620,7 +6669,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span>-invar</pre></div></div></div></td>
+<pre class='nx'>::nsf::method::assertion <span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>class</span>-invar</pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6646,7 +6695,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/cls/</span> object-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
+<pre class='nx'>::nsf::method::assertion <span class='nx-placeholder'>/cls/</span> object-invar <span class='nx-placeholder'>/conditions/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6672,7 +6721,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>::nsf::<span class='nx-keyword'>method</span>::assertion <span class='nx-placeholder'>/cls/</span> object-invar</pre></div></div></div></td>
+<pre class='nx'>::nsf::method::assertion <span class='nx-placeholder'>/cls/</span> object-invar</pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -6747,7 +6796,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># XOTcl example
 </span>
 <span class='nx-keyword'>Class</span> Foo -parameter {{x 1}}
-<span class='nx-keyword'>Class</span> Bar -<span class='nx-keyword'>superclass</span> Foo -parameter x
+<span class='nx-keyword'>Class</span> Bar -superclass Foo -parameter x
 Bar b1</pre></div></div>
 </div>
 <div class="sect3">
@@ -6771,10 +6820,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Foo
 Foo <span class='nx-keyword'>create</span> f1
 <span class='nx-comment'># now alter the class of object f1
-</span>f1 configure -<span class='nx-keyword'>class</span> <span class='nx-keyword'>nx::Object</span>
+</span>f1 <span class='nx-keyword'>configure</span> -class <span class='nx-keyword'>nx::Object</span>
 
 <span class='nx-comment'># alternate approach via Next Scripting Framework
-</span>::nsf::relation f1 <span class='nx-keyword'>class</span> ::<span class='nx-keyword'>nx::Object</span></pre></div></div>
+</span>::nsf::relation f1 <span class='nx-keyword'>class</span> ::nx::Object</pre></div></div>
 </div>
 <div class="sect3">
 <h4 id="_info_heritage">3.2.4. Info heritage</h4>
@@ -6856,7 +6905,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-09-28 12:50:54 CEST
+Last updated 2011-10-19 08:28:11 CEST
 </div>
 </div>
 </body>

@@ -2229,6 +2229,17 @@ For definition of class object specific methods, use the modifier
 ----------------
 |[source,tcl]
 ----------------
+/cls/ info parameter
+----------------
+|[source,tcl]
+----------------
+# "info properties" is a short form of "info slot definiton"
+
+/cls/ info properties \
+   ?-type value? ?-closure? ?-source value? ?pattern?
+----------------
+|[source,tcl]
+----------------
 # n.a.
 ----------------
 |[source,tcl]
@@ -2461,8 +2472,28 @@ the method handle to the created method.
 ----------------
 |[source,tcl]
 ----------------
+#
+# List the method handle of the specified method, 
+# can be used e.g. for aliases. "handle" is the short 
+# form of "definitionhandle".
+#
+/obj/ info method handle /methodName/
+/cls/ ?class? info method handle /methodName/
+#
+# For ensemble methods (method name contains 
+# spaces) one can query as well the registration 
+# handle, which is the handle to the root of the
+# ensemble; the definiton handle points to the 
+# leaf of the ensemble.
+#
 /obj/ info method registrationhandle /methodName/
 /cls/ ?class? info method registrationhandle /methodName/
+#
+# For aliases, one can query the original definition
+# via "info method origin"
+#
+/obj/ info method origin /methodName/
+/cls/ ?class? info method origin /methodName/
 ----------------
 |======================
 
