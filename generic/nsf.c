@@ -4983,6 +4983,51 @@ CmdListAdd(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicate
   return new;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CmdListAddSorted --
+ *
+ *    Add an entry to a cmdlist without duplicates. The order of the entries
+ *    is not supposed to be relevant. This function maintains a sorted list to
+ *    reduce cost to n/2. Can be improved be using better datastructures of
+ *    needed.
+ *
+ * Results:
+ *    The newly inserted command list item or a found item
+ *
+ * Side effects:
+ *    Added List entry.
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfCmdList *
+CmdListAddSorted(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj) {
+  NsfCmdList *prev, *new, *h;
+
+  for (h = *cList, prev = NULL; h; prev = h, h = h->nextPtr) {
+    if (h->cmdPtr == c) {
+      return h;
+    } else if (h->cmdPtr > c) {
+      break;
+    }
+  }
+
+  new = NEW(NsfCmdList);
+  new->cmdPtr = c;
+  NsfCommandPreserve(new->cmdPtr);
+  new->clientData = NULL;
+  new->clorobj = clorobj;
+  new->nextPtr = h;
+
+  if (prev) {
+    prev->nextPtr = new;
+  } else {
+    *cList = new;
+  }
+  
+  return new;
+}
+
 static void
 CmdListReplaceCmd(NsfCmdList *replace, Tcl_Command cmd, NsfClass *clorobj) {
   Tcl_Command del = replace->cmdPtr;
@@ -19548,7 +19593,8 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
           /* fprintf(stderr, "Registering object %s to isObjectMixinOf of class %s\n",
              ObjectName(object), ObjectName(nObject)); */
           nclopt = NsfRequireClassOpt((NsfClass *)nObject);
-          CmdListAdd(&nclopt->isObjectMixinOf, object->id, NULL, /*noDuplicates*/ 1);
+          CmdListAddSorted(&nclopt->isObjectMixinOf, object->id, NULL);
+
         } /* else fprintf(stderr, "Problem registering %s as a mixinof of %s\n",
              ObjStr(ov[i]), ClassName(cl)); */
       }
@@ -19606,7 +19652,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
           /* fprintf(stderr, "Registering class %s to isClassMixinOf of class %s\n",
              ClassName(cl), ObjectName(nObject)); */
           nclopt = NsfRequireClassOpt((NsfClass *) nObject);
-          CmdListAdd(&nclopt->isClassMixinOf, cl->object.id, NULL, /*noDuplicates*/ 1);
+          CmdListAddSorted(&nclopt->isClassMixinOf, cl->object.id, NULL);
         } /* else fprintf(stderr, "Problem registering %s as a class-mixin of %s\n",
              ObjStr(ov[i]), ClassName(cl)); */
       }

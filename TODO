@@ -3717,6 +3717,10 @@ nonleadingdash handling:
 - update migration guide and tutorial
 - cleanup "//" in sources 
 
+nsf.c:
+- adding method epoch incr to NsfAddObjectMethod() and NsfAddClassMethod()
+- added function CmdListAddSorted() to improve mixinof management
+
 ========================================================================
 TODO:
 
