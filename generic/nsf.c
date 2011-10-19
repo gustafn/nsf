@@ -4665,6 +4665,7 @@ NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodNa
   if (unlikely(result != TCL_OK)) {
     return result;
   }
+  NsfObjectMethodEpochIncr("NsfAddObjectMethod");
 
   /* delete an alias definition, if it exists */
   AliasDelete(interp, object->cmdName, methodName, 1);
@@ -4710,6 +4711,8 @@ NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
   if (unlikely(result != TCL_OK)) {
     return result;
   }
+
+  NsfInstanceMethodEpochIncr("NsfAddClassMethod");
 
  /* delete an alias definition, if it exists */
   AliasDelete(interp, class->object.cmdName, methodName, 0);
