@@ -3715,6 +3715,7 @@ nonleadingdash handling:
 - added "info method origin" to return the target of an alias (or empty)
 
 - update migration guide and tutorial
+- cleanup "//" in sources 
 
 ========================================================================
 TODO:

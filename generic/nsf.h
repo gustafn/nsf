@@ -95,9 +95,6 @@
 #define NSF_MEM_TRACE 1
 #define NSF_MEM_COUNT 1
 */
-//#define PARSE_TRACE 1
-//#define PARSE_TRACE_FULL 1
-//#define METHOD_OBJECT_TRACE 1
 
 /* turn  tracing output on/off
 #define NSFOBJ_TRACE 1
@@ -105,11 +102,13 @@
 #define OBJDELETION_TRACE 1
 #define STACK_TRACE 1
 #define PARSE_TRACE 1
+#define PARSE_TRACE_FULL 1
 #define CONFIGURE_ARGS_TRACE 1
 #define TCL_STACK_ALLOC_TRACE 1
 #define VAR_RESOLVER_TRACE 1
 #define CMD_RESOLVER_TRACE 1
 #define NRE_CALLBACK_TRACE 1
+#define METHOD_OBJECT_TRACE 1
 */
 
 /*

@@ -64,7 +64,7 @@ MethodFreeInternalRep(
      * ... and free structure
      */
     FREE(NsfMethodContext, mcPtr);
-    objPtr->internalRep.twoPtrValue.ptr1 = NULL; // TODO: needed?
+    objPtr->internalRep.twoPtrValue.ptr1 = NULL;
     objPtr->typePtr = NULL;
   }
 }
@@ -205,7 +205,7 @@ FlagFreeInternalRep(
      * ... and free structure
      */
     FREE(NsfFlag, flagPtr);
-    objPtr->internalRep.twoPtrValue.ptr1 = NULL; // TODO: needed?
+    objPtr->internalRep.twoPtrValue.ptr1 = NULL;
   }
 }
 
@@ -268,8 +268,8 @@ NsfFlagObjSet(
   } else {
     flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
 
-    //fprintf(stderr, "NsfFlagObjSet %p reuses interal rep, serial (%d/%d)\n",
-    //	    objPtr, flagPtr->serial, serial);
+    /* fprintf(stderr, "NsfFlagObjSet %p reuses interal rep, serial (%d/%d)\n",
+       objPtr, flagPtr->serial, serial);*/
 
     if (flagPtr->payload) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
   }
