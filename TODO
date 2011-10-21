@@ -3721,6 +3721,11 @@ nsf.c:
 - adding method epoch incr to NsfAddObjectMethod() and NsfAddClassMethod()
 - added function CmdListAddSorted() to improve mixinof management
 
+serializer.tcl: 
+- Use directdispatch to query existing traces without the need
+  of an extra method. By this change, the serializer works in
+  constant time independent on the number of existing objects.
+
 ========================================================================
 TODO:
 
@@ -3967,8 +3972,15 @@ TODO "Kleinigkeiten"
 For future releases (after first alpha/beta release)
 
    * Consider alternate method name/place for subcmds (and/or slots) on classes
-     - currently, there are potentail conflicts between slots and ensemble objects
+     - currently, there are potential conflicts between slots and ensemble objects
      - provide a different place in the namesspaces could simplify this
+
+   * The speed of method definiton depends on the number of objects, 
+     since every defined method might be a filter, so FilterInvalidateObjOrders()
+     is called on each filter. It would be useful to keep a list of currently
+     defined filter names to perform the invalidation only when a method is defined
+     with the same name as the currently registered filter (that should be always
+     a small number).
 
    * Ensembles
      - It could be possible to reduce stack frames in ensembles. Just a

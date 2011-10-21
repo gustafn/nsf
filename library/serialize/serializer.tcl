@@ -237,12 +237,6 @@ namespace eval ::nx::serializer {
     :public method serialize-objects {list all} {
       set :post_cmds ""
 
-      # register for introspection purposes "trace" under a different
-      # name for every object system
-      foreach oss [ObjectSystemSerializer info instances] {
-        $oss registerTrace 1
-      }
-
       :topoSort $list $all
       #foreach i [lsort [array names :level]] { :warn "$i: [set :level($i)]"}
       set result ""
@@ -257,10 +251,6 @@ namespace eval ::nx::serializer {
       foreach e $list {
         set namespace($e) 1
         set namespace([namespace qualifiers $e]) 1
-      }
-      # remove "trace" from all object systems
-      foreach oss [ObjectSystemSerializer info instances] {
-        $oss registerTrace 0
       }
       
       # Handling of variable traces: traces might require a 
@@ -510,14 +500,6 @@ namespace eval ::nx::serializer {
       return $cmd
     }
     
-    :public method registerTrace {on} {
-      if {$on} {
-        ::nsf::method::alias ${:rootClass}  __trace__ -frame object ::trace
-      } else {
-        ::nsf::method::create ${:rootClass} __trace__ {} {}
-      }
-    }
-
     #
     # Handle association between objects and responsible serializers
     #
@@ -645,7 +627,10 @@ namespace eval ::nx::serializer {
 
     :method collect-var-traces {o s} {
       foreach v [$o info vars] {
-        set t [$o __trace__ info variable $v]
+	# Use directdispatch to query existing traces without the need
+	# of an extra method.
+        set t [::nsf::directdispatch $o -frame object ::trace info variable $v]
+
         if {$t ne ""} {
           foreach ops $t { 
             foreach {op cmd} $ops break
