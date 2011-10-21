@@ -1,5 +1,5 @@
 /* 
- *  Next Scripting Framework 
+ *  Next Scripting Framework
  *
  *  Copyright (C) 1999-2011 Gustaf Neumann (a) (b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a) (b)
@@ -5672,14 +5672,14 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
 	  if (NsfClassListFind(*checkList, pl->cl)) {
 	    /*fprintf(stderr, "+++ never add %s\n", ClassName(pl->cl));*/
 	  } else {
-	    if (opt && opt->classmixins) {
+	    if (opt && opt->classMixins) {
 	      /*
 	       * Compute transitively the (class) mixin classes of this
 	       * added class.
 	       */
 	      NsfClassListAdd(checkList, pl->cl, NULL);
 	      /*fprintf(stderr, "+++ transitive %s\n", ClassName(pl->cl));*/
-	      MixinComputeOrderFullList(interp, &opt->classmixins, mixinClasses,
+	      MixinComputeOrderFullList(interp, &opt->classMixins, mixinClasses,
 					checkList, level+1);
 	    }
 	    /*fprintf(stderr, "+++ add to mixinClasses %p path: %s clPtr %p\n",
@@ -5740,8 +5740,8 @@ NsfClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *cl,
 
   for (pl = ComputeOrder(cl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
     NsfClassOpt *clopt = pl->cl->opt;
-    if (clopt && clopt->classmixins) {
-      MixinComputeOrderFullList(interp, &clopt->classmixins,
+    if (clopt && clopt->classMixins) {
+      MixinComputeOrderFullList(interp, &clopt->classMixins,
 				classList, checkList, 1);
     }
   }
@@ -5773,7 +5773,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   if (object->opt) {
     NsfCmdList *m;
 
-    MixinComputeOrderFullList(interp, &object->opt->mixins, &mixinClasses,
+    MixinComputeOrderFullList(interp, &object->opt->objMixins, &mixinClasses,
                               &checkList, 1);
     /*
      * Add per-object mixins to checkList to avoid that theses classes in the
@@ -5782,7 +5782,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
      * TODO: we could add this already in MixinComputeOrderFullList() if we
      * provide an additional flag.
      */
-    for (m = object->opt->mixins; m; m = m->nextPtr) {
+    for (m = object->opt->objMixins; m; m = m->nextPtr) {
       NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
       if (mCl) {
 	NsfClassListAddNoDup(&checkList, mCl, NULL, NULL);
@@ -6370,7 +6370,7 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
   if (startCl->opt) {
     NsfCmdList *m;
 
-    for (m = startCl->opt->classmixins; m; m = m->nextPtr) {
+    for (m = startCl->opt->classMixins; m; m = m->nextPtr) {
 
       /* we should have no deleted commands in the list */ 
       assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
@@ -6508,11 +6508,11 @@ RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
     NsfClass *cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
     NsfClassOpt *clopt = cl ? cl->opt : NULL;
     if (clopt) {
-      NsfCmdList *del = CmdListFindCmdInList(cmd, clopt->classmixins);
+      NsfCmdList *del = CmdListFindCmdInList(cmd, clopt->classMixins);
       if (del) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
-        del = CmdListRemoveFromList(&clopt->classmixins, del);
+        del = CmdListRemoveFromList(&clopt->classMixins, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
 	if (cl->object.mixinOrder) MixinResetOrder(&cl->object);
       }
@@ -6541,11 +6541,11 @@ RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
     NsfObject *nobj = NsfGetObjectFromCmdPtr(cmdlist->cmdPtr);
     NsfObjectOpt *objopt = nobj ? nobj->opt : NULL;
     if (objopt) {
-      NsfCmdList *del = CmdListFindCmdInList(cmd, objopt->mixins);
+      NsfCmdList *del = CmdListFindCmdInList(cmd, objopt->objMixins);
       if (del) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
-        del = CmdListRemoveFromList(&objopt->mixins, del);
+        del = CmdListRemoveFromList(&objopt->objMixins, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
 	if (nobj->mixinOrder) MixinResetOrder(nobj);
       }
@@ -7101,8 +7101,8 @@ FilterSearch(CONST char *name, NsfObject *startingObject,
     /*
      * search for filters on object mixins
      */
-    if (opt && opt->mixins) {
-      if ((cmd = MixinSearchMethodByName(opt->mixins, name, cl))) {
+    if (opt && opt->objMixins) {
+      if ((cmd = MixinSearchMethodByName(opt->objMixins, name, cl))) {
         return cmd;
       }
     }
@@ -7113,8 +7113,8 @@ FilterSearch(CONST char *name, NsfObject *startingObject,
    */
   if (startingClass) {
     NsfClassOpt *opt = startingClass->opt;
-    if (opt && opt->classmixins) {
-      if ((cmd = MixinSearchMethodByName(opt->classmixins, name, cl))) {
+    if (opt && opt->classMixins) {
+      if ((cmd = MixinSearchMethodByName(opt->classMixins, name, cl))) {
         return cmd;
       }
     }
@@ -7299,16 +7299,16 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
       mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
       if (mixin && mixin->opt) {
         guardAdded = GuardAddFromDefinitionList(dest, filterCmd,
-                                                mixin->opt->classfilters);
+                                                mixin->opt->classFilters);
       }
     }
   }
 
   /* search per-object filters */
   opt = object->opt;
-  if (!guardAdded && opt && opt->filters) {
+  if (!guardAdded && opt && opt->objFilters) {
     guardAdded = GuardAddFromDefinitionList(dest, filterCmd, 
-					    opt->filters);
+					    opt->objFilters);
   }
 
   if (!guardAdded) {
@@ -7317,7 +7317,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
       NsfClassOpt *clopt = pl->cl->opt;
       if (clopt) {
         guardAdded = GuardAddFromDefinitionList(dest, filterCmd,
-                                                clopt->classfilters);
+                                                clopt->classFilters);
       }
     }
 
@@ -7485,7 +7485,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
 
     /* recalculate the commands of all class-filter registrations */
     if (clPtr->cl->opt) {
-      FilterSearchAgain(interp, &clPtr->cl->opt->classfilters, 0, clPtr->cl);
+      FilterSearchAgain(interp, &clPtr->cl->opt->classFilters, 0, clPtr->cl);
     }
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *)Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
@@ -7494,7 +7494,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
 
       /* recalculate the commands of all object filter registrations */
       if (object->opt) {
-        FilterSearchAgain(interp, &object->opt->filters, object, 0);
+        FilterSearchAgain(interp, &object->opt->objFilters, object, 0);
       }
     }
   }
@@ -7526,12 +7526,12 @@ FilterRemoveDependentFilterCmds(NsfClass *cl, NsfClass *removeClass) {
 
     opt = clPtr->cl->opt;
     if (opt) {
-      CmdListRemoveContextClassFromList(&opt->classfilters, removeClass, GuardDel);
+      CmdListRemoveContextClassFromList(&opt->classFilters, removeClass, GuardDel);
     }
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *) Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
       if (object->opt) {
-        CmdListRemoveContextClassFromList(&object->opt->filters, removeClass, GuardDel);
+        CmdListRemoveContextClassFromList(&object->opt->objFilters, removeClass, GuardDel);
       }
     }
   }
@@ -7698,21 +7698,21 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
 
     for (ml = object->mixinOrder; ml; ml = ml->nextPtr) {
       mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
-      if (mixin && mixin->opt && mixin->opt->classfilters) {
-        FilterComputeOrderFullList(interp, &mixin->opt->classfilters, &filterList);
+      if (mixin && mixin->opt && mixin->opt->classFilters) {
+        FilterComputeOrderFullList(interp, &mixin->opt->classFilters, &filterList);
       }
     }
   }
 
   /* append per-obj filters */
   if (object->opt) {
-    FilterComputeOrderFullList(interp, &object->opt->filters, &filterList);
+    FilterComputeOrderFullList(interp, &object->opt->objFilters, &filterList);
   }
   /* append per-class filters */
   for (pl = ComputeOrder(object->cl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
     NsfClassOpt *clopt = pl->cl->opt;
-    if (clopt && clopt->classfilters) {
-      FilterComputeOrderFullList(interp, &clopt->classfilters, &filterList);
+    if (clopt && clopt->classFilters) {
+      FilterComputeOrderFullList(interp, &clopt->classFilters, &filterList);
     }
   }
 
@@ -7812,7 +7812,7 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   NsfClasses *pl;
 
   /* search per-object filters */
-  if (object->opt && CmdListFindCmdInList(cmd, object->opt->filters)) {
+  if (object->opt && CmdListFindCmdInList(cmd, object->opt->objFilters)) {
     Tcl_ListObjAppendElement(interp, list, object->cmdName);
     Tcl_ListObjAppendElement(interp, list, NsfGlobalObjs[NSF_OBJECT]);
     Tcl_ListObjAppendElement(interp, list, NsfGlobalObjs[NSF_FILTER]);
@@ -7824,8 +7824,8 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   /* search per-class filters */
   for (pl = ComputeOrder(object->cl, SUPER_CLASSES); pl; pl = pl->nextPtr) {
     NsfClassOpt *opt = pl->cl->opt;
-    if (opt && opt->classfilters) {
-      if (CmdListFindCmdInList(cmd, opt->classfilters)) {
+    if (opt && opt->classFilters) {
+      if (CmdListFindCmdInList(cmd, opt->classFilters)) {
         Tcl_ListObjAppendElement(interp, list, pl->cl->object.cmdName);
         Tcl_ListObjAppendElement(interp, list, NsfGlobalObjs[NSF_FILTER]);
         Tcl_ListObjAppendElement(interp, list,
@@ -13462,10 +13462,10 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
       /*
        *  Remove this object from all per object mixin lists and clear the mixin list
        */
-      RemoveFromObjectMixinsOf(object->id, opt->mixins);
+      RemoveFromObjectMixinsOf(object->id, opt->objMixins);
 
-      CmdListRemoveList(&opt->mixins, GuardDel);
-      CmdListRemoveList(&opt->filters, GuardDel);
+      CmdListRemoveList(&opt->objMixins, GuardDel);
+      CmdListRemoveList(&opt->objFilters, GuardDel);
       FREE(NsfObjectOpt, opt);
       object->opt = 0;
     }
@@ -13868,12 +13868,12 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
      *  Remove this class from all isClassMixinOf lists and clear the
      *  class mixin list
      */
-    RemoveFromClassMixinsOf(clopt->id, clopt->classmixins);
+    RemoveFromClassMixinsOf(clopt->id, clopt->classMixins);
 
-    CmdListRemoveList(&clopt->classmixins, GuardDel);
+    CmdListRemoveList(&clopt->classMixins, GuardDel);
     /*MixinInvalidateObjOrders(interp, cl);*/
 
-    CmdListRemoveList(&clopt->classfilters, GuardDel);
+    CmdListRemoveList(&clopt->classFilters, GuardDel);
     /*FilterInvalidateObjOrders(interp, cl);*/
 
     if (!recreate) {
@@ -19460,9 +19460,9 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       objopt = object->opt;
       switch (relationtype) {
       case RelationtypeObject_mixinIdx:
-        return objopt ? MixinInfo(interp, objopt->mixins, NULL, 1, NULL) : TCL_OK;
+        return objopt ? MixinInfo(interp, objopt->objMixins, NULL, 1, NULL) : TCL_OK;
       case RelationtypeObject_filterIdx:
-        return objopt ? FilterInfo(interp, objopt->filters, NULL, 1, 0) : TCL_OK;
+        return objopt ? FilterInfo(interp, objopt->objFilters, NULL, 1, 0) : TCL_OK;
       }
     }
     if (Tcl_ListObjGetElements(interp, valueObj, &oc, &ov) != TCL_OK) {
@@ -19478,9 +19478,9 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       clopt = cl->opt;
       switch (relationtype) {
       case RelationtypeClass_mixinIdx:
-        return clopt ? MixinInfo(interp, clopt->classmixins, NULL, 1, NULL) : TCL_OK;
+        return clopt ? MixinInfo(interp, clopt->classMixins, NULL, 1, NULL) : TCL_OK;
       case RelationtypeClass_filterIdx:
-        return objopt ? FilterInfo(interp, clopt->classfilters, NULL, 1, 0) : TCL_OK;
+        return objopt ? FilterInfo(interp, clopt->classFilters, NULL, 1, 0) : TCL_OK;
       }
     }
 
@@ -19555,9 +19555,9 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
         }
       }
 
-      if (objopt->mixins) {
+      if (objopt->objMixins) {
         NsfCmdList *cmdlist, *del;
-        for (cmdlist = objopt->mixins; cmdlist; cmdlist = cmdlist->nextPtr) {
+        for (cmdlist = objopt->objMixins; cmdlist; cmdlist = cmdlist->nextPtr) {
           cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
           clopt = cl ? cl->opt : NULL;
           if (clopt) {
@@ -19570,7 +19570,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
             }
           }
         }
-        CmdListRemoveList(&objopt->mixins, GuardDel);
+        CmdListRemoveList(&objopt->objMixins, GuardDel);
       }
 
       object->flags &= ~NSF_MIXIN_ORDER_VALID;
@@ -19582,7 +19582,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       /*
        * now add the specified mixins
        */
-      objopt->mixins = newMixinCmdList;
+      objopt->objMixins = newMixinCmdList;
       for (i = 0; i < oc; i++) {
         Tcl_Obj *ocl = NULL;
 
@@ -19607,12 +19607,12 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
   case RelationtypeObject_filterIdx:
 
-    if (objopt->filters) {
-      CmdListRemoveList(&objopt->filters, GuardDel);
+    if (objopt->objFilters) {
+      CmdListRemoveList(&objopt->objFilters, GuardDel);
     }
     object->flags &= ~NSF_FILTER_ORDER_VALID;
     for (i = 0; i < oc; i ++) {
-      if (FilterAdd(interp, &objopt->filters, ov[i], object, 0) != TCL_OK) {
+      if (FilterAdd(interp, &objopt->objFilters, ov[i], object, 0) != TCL_OK) {
         return TCL_ERROR;
       }
     }
@@ -19629,9 +19629,9 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
           return TCL_ERROR;
         }
       }
-      if (clopt->classmixins) {
-        RemoveFromClassMixinsOf(cl->object.id, clopt->classmixins);
-        CmdListRemoveList(&clopt->classmixins, GuardDel);
+      if (clopt->classMixins) {
+        RemoveFromClassMixinsOf(cl->object.id, clopt->classMixins);
+        CmdListRemoveList(&clopt->classMixins, GuardDel);
       }
 
       MixinInvalidateObjOrders(interp, cl);
@@ -19640,7 +19640,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
        * we have to invalidate the filters as well
        */
       FilterInvalidateObjOrders(interp, cl);
-      clopt->classmixins = newMixinCmdList;
+      clopt->classMixins = newMixinCmdList;
       for (i = 0; i < oc; i++) {
         Tcl_Obj *ocl = NULL;
         /* fprintf(stderr, "Added to classmixins of %s: %s\n",
@@ -19661,12 +19661,12 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
   case RelationtypeClass_filterIdx:
 
-    if (clopt->classfilters) {
-      CmdListRemoveList(&clopt->classfilters, GuardDel);
+    if (clopt->classFilters) {
+      CmdListRemoveList(&clopt->classFilters, GuardDel);
     }
     FilterInvalidateObjOrders(interp, cl);
     for (i = 0; i < oc; i ++) {
-      if (FilterAdd(interp, &clopt->classfilters, ov[i], 0, cl) != TCL_OK) {
+      if (FilterAdd(interp, &clopt->classFilters, ov[i], 0, cl) != TCL_OK) {
         return TCL_ERROR;
       }
     }
@@ -20795,8 +20795,8 @@ static int
 NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter, Tcl_Obj *guardObj) {
   NsfObjectOpt *opt = object->opt;
 
-  if (opt && opt->filters) {
-    NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->filters);
+  if (opt && opt->objFilters) {
+    NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->objFilters);
     if (h) {
       if (h->clientData) {
         GuardDel((NsfCmdList *) h);
@@ -20848,12 +20848,12 @@ static int
 NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *mixin, Tcl_Obj *guardObj) {
   NsfObjectOpt *opt = object->opt;
 
-  if (opt && opt->mixins) {
+  if (opt && opt->objMixins) {
     Tcl_Command mixinCmd = Tcl_GetCommandFromObj(interp, mixin);
     if (mixinCmd) {
       NsfClass *mixinCl = NsfGetClassFromCmdPtr(mixinCmd);
       if (mixinCl) {
-	NsfCmdList *h = CmdListFindCmdInList(mixinCmd, opt->mixins);
+	NsfCmdList *h = CmdListFindCmdInList(mixinCmd, opt->objMixins);
 	if (h) {
 	  if (h->clientData) {
 	    GuardDel((NsfCmdList *) h);
@@ -21407,8 +21407,8 @@ NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl,
 		      CONST char *filter, Tcl_Obj *guardObj) {
   NsfClassOpt *opt = cl->opt;
 
-  if (opt && opt->classfilters) {
-    NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->classfilters);
+  if (opt && opt->classFilters) {
+    NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->classFilters);
     if (h) {
       if (h->clientData) {
 	GuardDel(h);
@@ -21433,14 +21433,14 @@ static int
 NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *guardObj) {
   NsfClassOpt *opt = cl->opt;
 
-  if (opt && opt->classmixins) {
+  if (opt && opt->classMixins) {
     Tcl_Command mixinCmd = Tcl_GetCommandFromObj(interp, mixin);
 
     if (mixinCmd) {
       NsfClass *mixinCl = NsfGetClassFromCmdPtr(mixinCmd);
 
       if (mixinCl) {
-	NsfCmdList *h = CmdListFindCmdInList(mixinCmd, opt->classmixins);
+	NsfCmdList *h = CmdListFindCmdInList(mixinCmd, opt->classMixins);
 	if (h) {
 	  if (h->clientData) {
 	    GuardDel((NsfCmdList *) h);
@@ -21701,7 +21701,7 @@ objectInfoMethod filterguard NsfObjInfoFilterguardMethod {
 */
 static int
 NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter) {
-  return object->opt ? GuardList(interp, object->opt->filters, filter) : TCL_OK;
+  return object->opt ? GuardList(interp, object->opt->objFilters, filter) : TCL_OK;
 }
 
 /*
@@ -21723,7 +21723,7 @@ NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *object,
     }
     return FilterInfo(interp, object->filterOrder, pattern, withGuards, 1);
   }
-  return opt ? FilterInfo(interp, opt->filters, pattern, withGuards, 0) : TCL_OK;
+  return opt ? FilterInfo(interp, opt->objFilters, pattern, withGuards, 0) : TCL_OK;
 }
 
 /*
@@ -22080,7 +22080,7 @@ NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *object,
     return MixinInfo(interp, object->mixinOrder, patternString, withGuards, patternObj);
   }
   return object->opt ?
-    MixinInfo(interp, object->opt->mixins, patternString, withGuards, patternObj) :
+    MixinInfo(interp, object->opt->objMixins, patternString, withGuards, patternObj) :
     TCL_OK;
 }
 
@@ -22091,7 +22091,7 @@ objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {
 */
 static int
 NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *mixin) {
-  return object->opt ? GuardList(interp, object->opt->mixins, mixin) : TCL_OK;
+  return object->opt ? GuardList(interp, object->opt->objMixins, mixin) : TCL_OK;
 }
 
 /*
@@ -22193,7 +22193,7 @@ classInfoMethod filterguard NsfClassInfoFilterguardMethod {
 */
 static int
 NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *class, CONST char *filter) {
-  return class->opt ? GuardList(interp, class->opt->classfilters, filter) : TCL_OK;
+  return class->opt ? GuardList(interp, class->opt->classFilters, filter) : TCL_OK;
 }
 
 /*
@@ -22205,7 +22205,7 @@ classInfoMethod filtermethods NsfClassInfoFiltermethodsMethod {
 static int
 NsfClassInfoFiltermethodsMethod(Tcl_Interp *interp, NsfClass *class,
 				int withGuards, CONST char *pattern) {
-  return class->opt ? FilterInfo(interp, class->opt->classfilters, pattern, withGuards, 0) : TCL_OK;
+  return class->opt ? FilterInfo(interp, class->opt->classFilters, pattern, withGuards, 0) : TCL_OK;
 }
 
 /*
@@ -22451,7 +22451,7 @@ NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *class,
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
 
   } else {
-    result = opt ? MixinInfo(interp, opt->classmixins, patternString, withGuards, patternObj) : TCL_OK;
+    result = opt ? MixinInfo(interp, opt->classMixins, patternString, withGuards, patternObj) : TCL_OK;
   }
 
   return result;
@@ -22464,7 +22464,7 @@ classInfoMethod mixinguard NsfClassInfoMixinguardMethod {
 */
 static int
 NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *class, CONST char *mixin) {
-  return class->opt ? GuardList(interp, class->opt->classmixins, mixin) : TCL_OK;
+  return class->opt ? GuardList(interp, class->opt->classMixins, mixin) : TCL_OK;
 }
 
 /*

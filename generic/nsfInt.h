@@ -469,8 +469,8 @@ typedef struct NsfParsedParam {
 
 typedef struct NsfObjectOpt {
   NsfAssertionStore *assertions;
-  NsfCmdList *filters;
-  NsfCmdList *mixins;
+  NsfCmdList *objFilters;
+  NsfCmdList *objMixins;
   ClientData clientData;
   CONST char *volatileVarName;
   short checkoptions;
@@ -494,8 +494,8 @@ typedef struct NsfObject {
 } NsfObject;
 
 typedef struct NsfClassOpt {
-  NsfCmdList *classfilters;
-  NsfCmdList *classmixins;
+  NsfCmdList *classFilters;
+  NsfCmdList *classMixins;
   NsfCmdList *isObjectMixinOf;
   NsfCmdList *isClassMixinOf;
   NsfAssertionStore *assertions;
