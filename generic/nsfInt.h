@@ -783,6 +783,9 @@ typedef struct NsfRuntimeState {
   int doKeepinitcmd;
   int doProfile;
   int doSoftrecreate;
+  /* keep track of defined filters */
+  Tcl_HashTable activeFilterTablePtr;
+
   /*
    * shutdown handling
    */

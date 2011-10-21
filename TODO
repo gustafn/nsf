@@ -3726,6 +3726,12 @@ serializer.tcl:
   of an extra method. By this change, the serializer works in
   constant time independent on the number of existing objects.
 
+nsf.c: 
+- reduce number of RUNTIME_STATE(interp) in favor of a variable.
+- make time of the definition of a method independent on the
+  number of defined instances (unless, when filters are defined)
+
+
 ========================================================================
 TODO:
 
@@ -3975,12 +3981,8 @@ For future releases (after first alpha/beta release)
      - currently, there are potential conflicts between slots and ensemble objects
      - provide a different place in the namesspaces could simplify this
 
-   * The speed of method definiton depends on the number of objects, 
-     since every defined method might be a filter, so FilterInvalidateObjOrders()
-     is called on each filter. It would be useful to keep a list of currently
-     defined filter names to perform the invalidation only when a method is defined
-     with the same name as the currently registered filter (that should be always
-     a small number).
+   * Cleanup the set of active filters when filters are removed (only relevant
+     for the speed of scripts with filters and a high number of instances)
 
    * Ensembles
      - It could be possible to reduce stack frames in ensembles. Just a

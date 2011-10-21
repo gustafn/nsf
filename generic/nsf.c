@@ -7368,6 +7368,63 @@ GuardList(Tcl_Interp *interp, NsfCmdList *frl, CONST char *interceptorName) {
 }
 
 /*
+ *----------------------------------------------------------------------
+ * FilterAddActive --
+ *
+ *    Add a method name to the set of methods, which were used as filters in
+ *    the current interp. 
+ *
+ *    TODO: let the set shrink, when filters are removed.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Adding or updating of a hash entry
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+FilterAddActive(Tcl_Interp *interp, CONST char *methodName) {
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  Tcl_HashEntry *hPtr;
+  int new, count;
+  
+  hPtr = Tcl_CreateHashEntry(&rst->activeFilterTablePtr, methodName, &new);
+
+  if (new) {
+    Tcl_SetHashValue(hPtr, INT2PTR(1));
+  } else {
+    count  = PTR2INT(Tcl_GetHashValue(hPtr));
+    Tcl_SetHashValue(hPtr, INT2PTR(count+1));
+  }
+}
+
+/*
+ *----------------------------------------------------------------------
+ * FilterIsActive --
+ *
+ *    Check, wether a method name is in the set of methods, which were used as
+ *    filters in the current interp.
+ *
+ * Results:
+ *    Boolean
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+FilterIsActive(Tcl_Interp *interp, CONST char *methodName) {
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  Tcl_HashEntry *hPtr;
+  
+  hPtr = Tcl_CreateHashEntry(&rst->activeFilterTablePtr, methodName, NULL);
+  return (hPtr != NULL);
+}
+
+/*
  * append a filter command to the 'filterList' of an obj/class
  */
 static int
@@ -7407,6 +7464,7 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
   /*fprintf(stderr, " +++ adding filter %s cl %p\n", ObjStr(nameObj), cl);*/
 
   new = CmdListAdd(filterList, cmd, cl, /*noDuplicates*/ 1);
+  FilterAddActive(interp, ObjStr(filterObj));
 
   if (guardObj) {
     GuardAdd(new, guardObj);
@@ -11753,7 +11811,9 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
   if (cl) {
     NsfInstanceMethodEpochIncr("MakeMethod");
     /* could be a filter or filter inheritance ... update filter orders */
-    FilterInvalidateObjOrders(interp, cl);
+    if (FilterIsActive(interp, nameStr)) {
+      FilterInvalidateObjOrders(interp, cl);
+    }
   } else {
     NsfObjectMethodEpochIncr("MakeMethod");
     /* could be a filter => recompute filter order */
@@ -13874,7 +13934,6 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
     /*MixinInvalidateObjOrders(interp, cl);*/
 
     CmdListRemoveList(&clopt->classFilters, GuardDel);
-    /*FilterInvalidateObjOrders(interp, cl);*/
 
     if (!recreate) {
       /*
@@ -23113,6 +23172,7 @@ static void
 ExitHandler(ClientData clientData) {
   Tcl_Interp *interp = (Tcl_Interp *)clientData;
   int i, flags;
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   /*fprintf(stderr, "ExitHandler\n");*/
 
@@ -23144,18 +23204,21 @@ ExitHandler(ClientData clientData) {
 
   CallStackPopAll(interp);
 
-  if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
+  if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
     NsfFinalizeCmd(interp, 0);
   }
 
-  /* must be before freeing of NsfGlobalObjs */
+  /* Must be before freeing of NsfGlobalObjs */
   NsfShadowTclCommands(interp, SHADOW_UNLOAD);
+
+  MEM_COUNT_FREE("Tcl_InitHashTable", &rst->activeFilterTablePtr);
+  Tcl_DeleteHashTable(&rst->activeFilterTablePtr);
 
   /* free global objects */
   for (i = 0; i < nr_elements(NsfGlobalStrings); i++) {
     DECR_REF_COUNT(NsfGlobalObjs[i]);
   }
-  NsfStringIncrFree(&RUNTIME_STATE(interp)->iss);
+  NsfStringIncrFree(&rst->iss);
 
   /*
    * Free all data in the pointer converter
@@ -23264,6 +23327,8 @@ extern int
 Nsf_Init(Tcl_Interp *interp) {
   ClientData runtimeState;
   int result, i;
+  NsfRuntimeState *rst;
+
 #ifdef NSF_BYTECODE
   /*NsfCompEnv *interpstructions = NsfGetCompEnv();*/
 #endif
@@ -23340,39 +23405,38 @@ Nsf_Init(Tcl_Interp *interp) {
 #if defined(NSF_PROFILE)
   NsfProfileInit(interp);
 #endif
-
-  RUNTIME_STATE(interp)->doFilters = 1;
-  RUNTIME_STATE(interp)->doCheckResults = 1;
-  RUNTIME_STATE(interp)->doCheckArguments = 1;
+  rst = RUNTIME_STATE(interp);
+  rst->doFilters = 1;
+  rst->doCheckResults = 1;
+  rst->doCheckArguments = 1;
 
   /* create nsf namespace */
-  RUNTIME_STATE(interp)->NsfNS =
-    Tcl_CreateNamespace(interp, "::nsf", NULL, (Tcl_NamespaceDeleteProc *)NULL);
+  rst->NsfNS = Tcl_CreateNamespace(interp, "::nsf", NULL, (Tcl_NamespaceDeleteProc *)NULL);
 
   MEM_COUNT_ALLOC("TclNamespace", RUNTIME_STATE(interp)->NsfNS);
 
   /*
    * init an empty, faked proc structure in the RUNTIME state
    */
-  RUNTIME_STATE(interp)->fakeProc.iPtr = (Interp *)interp;
-  RUNTIME_STATE(interp)->fakeProc.refCount = 1;
-  RUNTIME_STATE(interp)->fakeProc.cmdPtr = NULL;
-  RUNTIME_STATE(interp)->fakeProc.bodyPtr = NULL;
-  RUNTIME_STATE(interp)->fakeProc.numArgs  = 0;
-  RUNTIME_STATE(interp)->fakeProc.numCompiledLocals = 0;
-  RUNTIME_STATE(interp)->fakeProc.firstLocalPtr = NULL;
-  RUNTIME_STATE(interp)->fakeProc.lastLocalPtr = NULL;
+  rst->fakeProc.iPtr = (Interp *)interp;
+  rst->fakeProc.refCount = 1;
+  rst->fakeProc.cmdPtr = NULL;
+  rst->fakeProc.bodyPtr = NULL;
+  rst->fakeProc.numArgs  = 0;
+  rst->fakeProc.numCompiledLocals = 0;
+  rst->fakeProc.firstLocalPtr = NULL;
+  rst->fakeProc.lastLocalPtr = NULL;
 
   /* NsfClasses in separate Namespace / Objects */
-  RUNTIME_STATE(interp)->NsfClassesNS =
+  rst->NsfClassesNS =
     Tcl_CreateNamespace(interp, "::nsf::classes", NULL,
                         (Tcl_NamespaceDeleteProc *)NULL);
   MEM_COUNT_ALLOC("TclNamespace", RUNTIME_STATE(interp)->NsfClassesNS);
 
 
   /* cache interpreters proc interpretation functions */
-  RUNTIME_STATE(interp)->objInterpProc = TclGetObjInterpProc();
-  RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_OFF;
+  rst->objInterpProc = TclGetObjInterpProc();
+  rst->exitHandlerDestroyRound = NSF_EXITHANDLER_OFF;
 
   RegisterExitHandlers(interp);
   NsfStringIncrInit(&RUNTIME_STATE(interp)->iss);
@@ -23383,6 +23447,9 @@ Nsf_Init(Tcl_Interp *interp) {
     NsfGlobalObjs[i] = Tcl_NewStringObj(NsfGlobalStrings[i], -1);
     INCR_REF_COUNT(NsfGlobalObjs[i]);
   }
+
+  Tcl_InitHashTable(&rst->activeFilterTablePtr, TCL_STRING_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", &rst->activeFilterTablePtr);
 
   /* create namespaces for the different command types */
   Tcl_CreateNamespace(interp, "::nsf::cmd", 0, (Tcl_NamespaceDeleteProc *)NULL);
@@ -23396,7 +23463,7 @@ Nsf_Init(Tcl_Interp *interp) {
   }
 
   /*
-   * overwritten Tcl cmds
+   * shadowed Tcl cmds
    */
   result = NsfShadowTclCommands(interp, SHADOW_LOAD);
   if (result != TCL_OK) {
@@ -23424,8 +23491,7 @@ Nsf_Init(Tcl_Interp *interp) {
                          (Tcl_ResolveCmdProc *)InterpColonCmdResolver,
                          InterpColonVarResolver,
                          (Tcl_ResolveCompiledVarProc *)InterpCompiledColonVarResolver);
-  RUNTIME_STATE(interp)->colonCmd =
-    Tcl_FindCommand(interp, "::nsf::colon", NULL, TCL_GLOBAL_ONLY);
+  rst->colonCmd = Tcl_FindCommand(interp, "::nsf::colon", NULL, TCL_GLOBAL_ONLY);
 
   /*
    * SS: Tcl occassionally resolves a proc's cmd structure (e.g., in
@@ -23438,7 +23504,7 @@ Nsf_Init(Tcl_Interp *interp) {
    *  indicating "::nsf::colon" (which is sufficiently misleading and
    *  reveals internals not to be revealed ...).
   */
-  RUNTIME_STATE(interp)->fakeProc.cmdPtr = (Command *)RUNTIME_STATE(interp)->colonCmd;
+  rst->fakeProc.cmdPtr = (Command *)RUNTIME_STATE(interp)->colonCmd;
 
   {
     /*
