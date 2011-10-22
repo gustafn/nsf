@@ -32,15 +32,20 @@ provide interfaces) especially for large projects, where many
 developers are involved.
 
 The Next Scripting Language is based on the Next Scripting Framework
-which was developed based on the notion of language oriented
+(NSF) which was developed based on the notion of language oriented
 programming. The Next Scripting Frameworks provides C-level support
 for defining and hosting multiple object systems in a single Tcl
-interpreter. The whole definition of NX is fully scripted (e.g.
-defined in +nx.tcl+). The Next Scripting Framework is shipped with
-three language definitions, containing NX and XOTcl 2. Most of the
-existing XOTcl 1 programs can be used without modification in the Next
-Scripting Framework by using XOTcl 2. The Next Scripting Framework
-requires Tcl 8.5 or newer.
+interpreter.  The name of the Next Scripting Framework is derived from
+the universal method combinator "next" introduced in XOTcl that allows
+for method combination with filters, per-object and transitive
+per-class mixin classes, per-object methods and multiple inheritance.
+
+The definition of NX is fully scripted (e.g.  defined in
++nx.tcl+). The Next Scripting Framework is shipped with three language
+definitions, containing NX and XOTcl 2. Most of the existing XOTcl 1
+programs can be used without modification in the Next Scripting
+Framework by using XOTcl 2. The Next Scripting Framework requires Tcl
+8.5 or newer.
 
 == NX and its Roots
 
