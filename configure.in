@@ -29,25 +29,11 @@ AC_CONFIG_AUX_DIR(config)
 #  - "with" is for external software (optional packages)
 #  - "enable" is for optional features
 #
-AC_ARG_WITH(gdbm,
-	AC_HELP_STRING([--with-gdbm=GDBM_INCLUDE_DIR,GDBM_LIB_DIR], 
-		 [build with gdbm support; provide path to gdbm.h and optionally
-                 to the shared library (default: off)]),
-        [with_gdbm=$withval], [with_gdbm=no])
 AC_ARG_WITH(aolserver3,
 	AC_HELP_STRING([--with-aolserver3=AOL_SERVER_DIR], 
 		[build an AOLserver 3 module; 
 		point to directory containing aolsever/include (default: off)]),
         [with_aol3=$withval], [with_aol3=no])
-AC_ARG_WITH(actiweb,
-	AC_HELP_STRING([--with-actiweb=yes|no], [build with actiweb components (default: off)]),
-        [with_actiweb=$withval], [with_actiweb=no])
-AC_ARG_WITH(expat,
-	AC_HELP_STRING([--with-expat], 
-		[ choose expat support; --with-expat=sys assumes a system-wide expat installation
-		   --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
-		   --without-expat falls back to the bundled expat installation]),
-        [with_expat=$withval],[with_expat=bundle])
 AC_ARG_WITH(dtrace,
 	AC_HELP_STRING([--with-dtrace], [build nsf with dtrace (default: without)]),
         [with_dtrace=$withval], [with_dtrace=no])
@@ -69,27 +55,11 @@ AC_ARG_ENABLE(assertions,
 
 subdirs=""
 
-if test "$with_actiweb" = yes; then
-   test_actiweb="test-actiweb"
-   libdirs_actiweb="actiweb rdf registry store xml patterns"
-   apps_actiweb="actiweb persistence"
-   subdirs="$subdirs library/store/XOTclSdbm/"
-   if ! test "$with_gdbm" = no; then
-       subdirs="$subdirs library/store/XOTclGdbm/"
-   fi
-   subdirs="$subdirs library/xml/TclExpat-1.1/"
-else
-   test_actiweb=""
-   libdirs_actiweb=""
-   apps_actiweb=""
-   if ! test "${with_expat}" = bundle ; then
-      AC_MSG_RESULT([WARNING: expat configuration ${with_expat} ignored])
-      with_expat="bundle"
-   fi
-fi
+test_actiweb=""
+libdirs_actiweb=""
+apps_actiweb=""
 
 AC_SUBST(subdirs)
-
 
 
 #--------------------------------------------------------------------

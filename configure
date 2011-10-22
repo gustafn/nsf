@@ -734,10 +734,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-with_gdbm
 with_aolserver3
-with_actiweb
-with_expat
 with_dtrace
 enable_profile
 enable_memcount
@@ -1392,18 +1389,9 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-gdbm=GDBM_INCLUDE_DIR,GDBM_LIB_DIR
-                          build with gdbm support; provide path to gdbm.h and
-                          optionally to the shared library (default: off)
   --with-aolserver3=AOL_SERVER_DIR
                           build an AOLserver 3 module; point to directory
                           containing aolsever/include (default: off)
-  --with-actiweb=yes|no   build with actiweb components (default: off)
-  --with-expat            choose expat support; --with-expat=sys assumes a
-                          system-wide expat installation
-                          --with-expat=<INC_DIR,LIB_DIR> point to a custom
-                          expat installation, --without-expat falls back to
-                          the bundled expat installation
   --with-dtrace           build nsf with dtrace (default: without)
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
@@ -2346,35 +2334,11 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 #  - "enable" is for optional features
 #
 
-# Check whether --with-gdbm was given.
-if test "${with_gdbm+set}" = set; then :
-  withval=$with_gdbm; with_gdbm=$withval
-else
-  with_gdbm=no
-fi
-
-
 # Check whether --with-aolserver3 was given.
 if test "${with_aolserver3+set}" = set; then :
   withval=$with_aolserver3; with_aol3=$withval
 else
   with_aol3=no
-fi
-
-
-# Check whether --with-actiweb was given.
-if test "${with_actiweb+set}" = set; then :
-  withval=$with_actiweb; with_actiweb=$withval
-else
-  with_actiweb=no
-fi
-
-
-# Check whether --with-expat was given.
-if test "${with_expat+set}" = set; then :
-  withval=$with_expat; with_expat=$withval
-else
-  with_expat=bundle
 fi
 
 
@@ -2416,26 +2380,9 @@ fi
 
 subdirs=""
 
-if test "$with_actiweb" = yes; then
-   test_actiweb="test-actiweb"
-   libdirs_actiweb="actiweb rdf registry store xml patterns"
-   apps_actiweb="actiweb persistence"
-   subdirs="$subdirs library/store/XOTclSdbm/"
-   if ! test "$with_gdbm" = no; then
-       subdirs="$subdirs library/store/XOTclGdbm/"
-   fi
-   subdirs="$subdirs library/xml/TclExpat-1.1/"
-else
-   test_actiweb=""
-   libdirs_actiweb=""
-   apps_actiweb=""
-   if ! test "${with_expat}" = bundle ; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: WARNING: expat configuration ${with_expat} ignored" >&5
-$as_echo "WARNING: expat configuration ${with_expat} ignored" >&6; }
-      with_expat="bundle"
-   fi
-fi
-
+test_actiweb=""
+libdirs_actiweb=""
+apps_actiweb=""
 
 
 
