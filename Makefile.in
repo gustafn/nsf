@@ -295,12 +295,12 @@ yuidoc: pkgIndex.tcl $(YUIDOC_OUTPUT)
 $(target_doc_dir)/$(PACKAGE_NAME)/index.html: $(PACKAGE_NAME).nxd
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(PACKAGE_NAME) \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(target_doc_dir) -indexfiles generic/nxdocIndex -- "package:$(PACKAGE_NAME)"
+	-outdir $(target_doc_dir) -indexfiles generic/nxdocIndex.tcl -- "package:$(PACKAGE_NAME)"
 
 $(target_doc_dir)/nx/index.html: library/nx/nx.nxd $(PACKAGE_NAME).nxd
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle nx \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(target_doc_dir) -indexfiles "library/nx/nxdocIndex" -- "package:nx"
+	-outdir $(target_doc_dir) -indexfiles library/nx/nxdocIndex.tcl -- "package:nx"
 
 $(xotcl_target_doc_dir)/XOTcl-langRef/index.html: library/xotcl/doc/langRef.xotcl 
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc -doctitle XOTcl-langRef \
@@ -320,14 +320,14 @@ xowiki: pkgIndex.tcl $(XOWIKI_OUTPUT)
 $(target_doc_dir)/$(PACKAGE_NAME).xowiki : $(PACKAGE_NAME).nxd
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle $(PACKAGE_NAME) \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 -indexfiles "generic/nxdocIndex" \
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 -indexfiles generic/nxdocIndex.tcl \
 	-- "package:$(PACKAGE_NAME)"
 
 
 $(target_doc_dir)/nx.xowiki : library/nx/nx.nxd $(PACKAGE_NAME).nxd
 	$(TCLSH) $(src_app_dir_native)/utils/nxdoc $(NXDFLAGS) -doctitle nx \
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
-	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 -indexfiles "library/nx/nxdocIndex" \
+	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 -indexfiles library/nx/nxdocIndex.tcl \
 	-- "package:nx"
 
 $(xotcl_target_doc_dir)/XOTcl-langRef.xowiki : library/xotcl/doc/langRef.xotcl

@@ -3141,7 +3141,7 @@ namespace eval ::nx::doc {
       append index "set ::nxdoc::include($cmd) $documentAll\n"
     }
 
-    set fid [open [file join [file normalize $outdir] nxdocIndex] w]
+    set fid [open [file join [file normalize $outdir] nxdocIndex.tcl] w]
     puts -nonewline $fid $index
     close $fid
   }  
