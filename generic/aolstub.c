@@ -1,12 +1,15 @@
 /* 
-   This file provides the stubs needed for the AOL_SERVER,
-   Please note, that you have to have to apply a small patch
-   to the AOL server as well (available from www.nsf.org)
-   in order to get it working.
+   This file provides the stubs needed for the AOLserver, to load nsf.
+   Please note, that if you have an ancient version of the AOLserver, you
+   might have to have to apply a small patch to the AOLserver as well
+   (available from www.xotcl.org) in order to get it working.
 
-   Authore:
+   Author:
       Zoran Vasiljevic
       Archiware Inc.
+
+   Contributions from:
+      Gustaf Neumann
 
 */
 #ifdef AOL_SERVER
@@ -24,7 +27,7 @@ int Ns_ModuleVersion = 1;
 /*
  *----------------------------------------------------------------------------
  *
- * NsXotcl_Init --
+ * NsNsf_Init --
  *
  *    Loads the package for the first time, i.e. in the startup thread.
  *
@@ -39,12 +42,12 @@ int Ns_ModuleVersion = 1;
 
 
 static int
-NsXotcl_Init (Tcl_Interp *interp, void *context)
+NsNsf_Init (Tcl_Interp *interp, void *context)
 {
  static int firsttime = 1;
  int ret;
  
- ret = Xotcl_Init(interp);
+ ret = Nsf_Init(interp);
  
  if (firsttime) {
    if (ret != TCL_OK) {
@@ -54,7 +57,7 @@ NsXotcl_Init (Tcl_Interp *interp, void *context)
      Ns_Log(Notice, "%s module version %s%s", (char*)context, 
 	    XOTCLVERSION,XOTCLPATCHLEVEL);
      /*
-      * Import the XOTcl namespace only for the shell after 
+      * Import the Nsf namespace only for the shell after 
       * predefined is through
       */
      Tcl_Import(interp, Tcl_GetGlobalNamespace(interp), 
@@ -69,10 +72,10 @@ NsXotcl_Init (Tcl_Interp *interp, void *context)
 /*
  *----------------------------------------------------------------------------
  *
- * NsXotcl_Init1 --
+ * NsNsf_Init1 --
  *
  *    Loads the package in each thread-interpreter.
- *    This is needed since XOTcl Class/Object commands are not copied 
+ *    This is needed since Nsf Class/Object commands are not copied 
  *    from the startup thread to the connection (or any other) thread.
  *    during AOLserver initialization and/or thread creation times.
  *
@@ -93,11 +96,11 @@ NsXotcl_Init (Tcl_Interp *interp, void *context)
  *    we activate them *before*. So we may get a chance to configure the
  *    interpreter correctly for any commands within the init script. 
  *    
- *    Proper XOTcl usage would be to declare all resources (classes, objects)
+ *    Proper Nsf usage would be to declare all resources (classes, objects)
  *    at server initialization time and let AOLserver machinery to copy them
  *    (or re-create them, better yet) in each new thread.
  *    Resources created within a thread are automatically garbage-collected
- *    on thread-exit time, so don't create any XOTcl resources there.
+ *    on thread-exit time, so don't create any Nsf resources there.
  *    Create them in the startup thread and they will automatically be copied 
  *    for you. 
  *    Look in <serverroot>/modules/tcl/nsf for a simple example. 
@@ -112,18 +115,18 @@ NsXotcl_Init (Tcl_Interp *interp, void *context)
  */
 
 static int
-NsXotcl_Init1 (Tcl_Interp *interp, void *notUsed)
+NsNsf_Init1 (Tcl_Interp *interp, void *notUsed)
 {
   int result;
 
 #ifndef AOL4
-  result = Xotcl_Init(interp);
+  result = Nsf_Init(interp);
 #else
   result = TCL_OK;
 #endif
   
   /*
-   * Import the XOTcl namespace only for the shell after 
+   * Import the Nsf namespace only for the shell after 
    * predefined is through
    */
   Tcl_Import(interp, Tcl_GetGlobalNamespace(interp), "nsf::*", 1);
@@ -153,20 +156,20 @@ Ns_ModuleInit(char *hServer, char *hModule)
   int ret;
   
   /*Ns_Log(Notice, "+++ ModuleInit","INIT");*/
-  ret = Ns_TclInitInterps(hServer, NsXotcl_Init, (void*)hModule);
+  ret = Ns_TclInitInterps(hServer, NsNsf_Init, (void*)hModule);
 
   if (ret == TCL_OK) {
     /*
-     * See discussion for NsXotcl_Init1 procedure.
+     * See discussion for NsNsf_Init1 procedure.
      * Note that you need to patch AOLserver for this to work!
      * The patch basically forbids copying of C-level commands with
      * declared delete callbacks. It also runs all AtCreate callbacks
      * BEFORE AOLserver runs the Tcl script for initializing new interps.
      * These callbacks are then responsible for setting up the stage
-     * for correct (XOTcl) extension startup (including copying any
-     * XOTcl resources (classes, objects) created in the startup thread.
+     * for correct (Nsf) extension startup (including copying any
+     * Nsf resources (classes, objects) created in the startup thread.
      */
-    Ns_TclRegisterAtCreate((Ns_TclInterpInitProc *)NsXotcl_Init1, NULL);
+    Ns_TclRegisterAtCreate((Ns_TclInterpInitProc *)NsNsf_Init1, NULL);
   }
 
   return ret == TCL_OK ? NS_OK : NS_ERROR;
