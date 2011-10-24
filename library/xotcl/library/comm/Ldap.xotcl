@@ -1,8 +1,9 @@
-package provide xotcl::comm::ldap 0.9
+# -*- Tcl -*-
+package provide xotcl::comm::ldap 0.91
 
 package require xotcl::wafecompat ; # Get 'requireModules'.
 
-package require XOTcl
+package require XOTcl 2.0
 
 namespace eval ::xotcl::comm::ldap {
     namespace import ::xotcl::*

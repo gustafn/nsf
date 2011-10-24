@@ -3733,6 +3733,16 @@ nsf.c:
 
 
 ========================================================================
+Release Baustellen:
+
+README
+COMPILE
+COMPILE.win
+Changelog
+doc/tutorial2.html
+win/Makefile.vc
+
+========================================================================
 TODO:
 
  - warnings for "numeric" names for args and nonpos-args?
@@ -4022,3 +4032,6 @@ For future releases (after first alpha/beta release)
   * Coroutines
      - extend coro regression test
      - coro-enable nsf::proc
+
+  * renable/translate deletex XOTcl demo scripts, such as
+    e.g. those from library/xotcl/apps/scripts

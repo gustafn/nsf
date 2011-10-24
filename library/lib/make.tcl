@@ -7,10 +7,9 @@ lappend auto_path ..
 
 package require nx
 namespace eval ::nx {}; # make pkg_mkIndex happy
-namespace import -force ::nx::*
 
 ###
-Object create make {
+nx::Object create make {
   #
   # shared lib add files for pkgIndex.tcl
   #
@@ -111,7 +110,7 @@ Object create make {
 
 ### tcl file-command
 rename file tcl_file
-Object create file {
+nx::Object create file {
   :require namespace
 
   array set :destructive {
@@ -136,7 +135,7 @@ proc open {f {mode r}} { file open $f $mode }
 
 
 ### minus n option
-Class create make::-n
+nx::Class create make::-n
 foreach f [file info methods] {
   if {$f eq "unknown" || $f eq "next" || $f eq "self"} continue
   if {![file exists destructive($f)] || [file eval [list set :destructive($f)]]} {
@@ -158,7 +157,7 @@ foreach f [file info methods] {
 if {![info exists argv] || $argv eq ""} {set argv -all}
 if {$argv eq "-n"} {set argv "-n -all"}
 
-Class create Script {
+nx::Class create Script {
   :public class method create args {
     lappend args {*}$::argv
     set s [next]

@@ -10,7 +10,7 @@ puts  @NSF_COMPATIBLE_TCLSH@
 # remove the first line.
 #
 package require Tk
-package require XOTcl
+package require XOTcl 2.0
 namespace import -force ::xotcl::*
 
 if {$argc == 0} {

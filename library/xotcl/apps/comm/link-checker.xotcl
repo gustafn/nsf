@@ -1,7 +1,6 @@
 #!/usr/bin/env tclsh
-# $Id: link-checker.xotcl,v 1.5 2006/09/27 08:12:39 neumann Exp $
 #  -gn july 2000
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl 2.0; namespace import -force xotcl::*
 
 @ @File {
   description {

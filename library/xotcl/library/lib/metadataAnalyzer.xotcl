@@ -1,5 +1,6 @@
-package provide xotcl::metadataAnalyzer 0.85
-package require XOTcl
+# -*- Tcl -*-
+package provide xotcl::metadataAnalyzer 0.86
+package require XOTcl 2.0
 
 namespace eval ::xotcl::metadataAnalyzer {
     namespace import ::xotcl::*

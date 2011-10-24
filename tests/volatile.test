@@ -1,7 +1,7 @@
 # -*- Tcl -*-
 package req nx::test
 package prefer latest
-package req XOTcl
+package req XOTcl 2.0
 
 #
 # Wrapper to call a command in a proc/method

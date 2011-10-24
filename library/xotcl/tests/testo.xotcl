@@ -12,7 +12,7 @@
 # without express or implied warranty.
 #
 package prefer latest
-package require XOTcl; namespace import ::xotcl::*
+package require XOTcl 2.0; namespace import ::xotcl::*
 
 @ @File {description {
   This is a class which provides regression test objects

@@ -66,9 +66,7 @@ XODOC_SOURCE = \
 	$(xotcl_src_doc_dir)/langRef.xotcl \
 	$(xotcl_src_lib_dir)/lib/*.xotcl \
 	$(xotcl_src_test_dir)/*.xotcl \
-	$(xotcl_src_app_dir)/scripts/*.xotcl \
 	$(xotcl_src_app_dir)/comm/[flsw]*.xotcl \
-	$(xotcl_src_app_dir)/actiweb/univ/UNIVERSAL.xotcl \
 	$(xotcl_src_app_dir)/utils/xo-*[a-z0-9] 
 
 #export TCLLIBPATH=. ${srcdir}

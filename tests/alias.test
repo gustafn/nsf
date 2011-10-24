@@ -1,8 +1,10 @@
 # -*- Tcl -*-
-package require nx; 
-#::nx::configure defaultMethodCallProtection false
+package prefer latest
+package require nx
 package require nx::test
 namespace import ::nx::*
+
+#::nx::configure defaultMethodCallProtection false
 
 Test parameter count 10
 Test case alias-preliminaries { 

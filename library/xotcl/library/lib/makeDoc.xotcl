@@ -4,7 +4,7 @@
 #
 set auto_path [concat [file dirname [info script]] $auto_path]
 
-package require XOTcl
+package require XOTcl 2.0
 namespace import ::xotcl::*
 
 @ @File {

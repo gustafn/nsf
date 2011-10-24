@@ -1,8 +1,8 @@
-# $Id: Mime.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
+# -*- Tcl -*-
 
-package provide xotcl::comm::mime 0.9
+package provide xotcl::comm::mime 0.91
 
-package require XOTcl
+package require XOTcl 2.0
 
 namespace eval ::xotcl::comm::mime {
   namespace import ::xotcl::*

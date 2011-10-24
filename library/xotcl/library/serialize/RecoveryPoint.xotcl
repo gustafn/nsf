@@ -1,7 +1,7 @@
-# $Id: RecoveryPoint.xotcl,v 1.4 2006/02/18 22:17:33 neumann Exp $
+# -*- Tcl -*-
 
-package provide xotcl::scriptCreation::recoveryPoint 0.8
-package require XOTcl
+package provide xotcl::scriptCreation::recoveryPoint 0.81
+package require XOTcl 2.0
 
 namespace eval ::xotcl::scriptCreation::recoveryPoint {
     namespace import ::xotcl::*

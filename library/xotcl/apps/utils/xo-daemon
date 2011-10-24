@@ -1,5 +1,5 @@
 #!/usr/bin/env tclsh
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl 2.0; namespace import -force xotcl::*
 
 @ @File {
     description {

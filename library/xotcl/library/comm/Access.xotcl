@@ -1,6 +1,6 @@
-# -*- tcl -*- $Id: Access.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
+# -*- tcl -*- $
 
-set httpAccessVersion 0.91
+set httpAccessVersion 0.92
 package provide xotcl::comm::httpAccess $httpAccessVersion
 
 package require xotcl::comm::pcache
@@ -8,7 +8,7 @@ package require xotcl::comm::mime
 package require xotcl::comm::connection
 package require xotcl::trace
 
-package require XOTcl
+package require XOTcl 2.0
 
 namespace eval ::xotcl::comm::httpAccess {
     namespace import ::xotcl::*

@@ -1,4 +1,5 @@
 # -*- Tcl -*-
+package prefer latest
 package require nx
 
 #
@@ -105,9 +106,9 @@ package forget nx
 package req nx
 
 #puts ====XOTCL-[package versions XOTcl]-[set auto_path]
-package require XOTcl
+package require XOTcl 2.0
 package forget XOTcl
-package require XOTcl
+package require XOTcl 2.0
 
 
 ########################################################################

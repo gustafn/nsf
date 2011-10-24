@@ -1,6 +1,6 @@
 # -*- Tcl -*-
-package require XOTcl
-package provide xotcl::xodoc 0.84
+package require XOTcl 2.0
+package provide xotcl::xodoc 0.85
 package require xotcl::staticMetadataAnalyzer
 package require xotcl::htmllib
 

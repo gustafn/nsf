@@ -1,6 +1,6 @@
 # -*- Tcl -*-
 package prefer latest
-package require XOTcl; namespace import -force ::xotcl::*
+package require XOTcl 2.0; namespace import -force ::xotcl::*
 
 proc ::errorCheck {got expected msg} {
   nsf::__db_run_assertions
@@ -3213,7 +3213,7 @@ smallScripts proc run {{n 20}} {
     xotcl::interp create in
     set ::r [in eval {
         package prefer latest
-        package req XOTcl; namespace import ::xotcl::*
+        package req XOTcl 2.0; namespace import ::xotcl::*
 	Object o
     }]
     xotcl::interp delete in

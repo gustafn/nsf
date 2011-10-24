@@ -1,8 +1,8 @@
-# $Id: Dav.xotcl,v 1.4 2006/02/18 22:17:33 neumann Exp $
+# -*- Tcl -*- $
 
-package provide xotcl::comm::dav 0.9
+package provide xotcl::comm::dav 0.91
 
-package require XOTcl
+package require XOTcl 2.0
 
 namespace eval ::xotcl::comm::dav {
   package require xotcl::comm::httpAccess

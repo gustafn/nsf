@@ -1,8 +1,8 @@
-# -*- tcl -*- $Id: Connection.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
+# -*- tcl -*- $
 
-package provide xotcl::comm::connection 1.0
+package provide xotcl::comm::connection 1.1
 
-package require XOTcl
+package require XOTcl 2.0
 
 namespace eval ::xotcl::comm::connection {
     namespace import ::xotcl::*

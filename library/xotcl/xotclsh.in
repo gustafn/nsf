@@ -8,7 +8,7 @@ puts  @NSF_COMPATIBLE_TCLSH@
 # multiple installed shells during development. For installed
 # versions, it should be sufficient to remove the first line.
 #
-package require XOTcl
+package require XOTcl 2.0
 namespace import -force ::xotcl::*
 
 if {$argc == 0} {

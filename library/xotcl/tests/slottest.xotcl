@@ -1,6 +1,6 @@
 # -*- Tcl -*-
 package prefer latest
-package require XOTcl; namespace import -force ::xotcl::*
+package require XOTcl 2.0; namespace import -force ::xotcl::*
 package require nx::test
 
 nx::Test parameter count 1000

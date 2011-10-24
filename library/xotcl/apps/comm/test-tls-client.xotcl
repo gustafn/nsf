@@ -1,7 +1,7 @@
-#!../../src/xotclsh
-#
-# $Id: test-tls-client.xotcl,v 1.2 2006/02/18 22:17:32 neumann Exp $
+#!/usr/bin/env tclsh
+# -*- Tcl -*-
 
+package require XOTcl 2.0; namespace import ::xotcl::*
 package require tls
 
 proc bgerror {err} {

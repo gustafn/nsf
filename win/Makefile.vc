@@ -216,7 +216,7 @@ end:
 	@echo * In order install XOTcl, invoke the installWin.tcl
 	@echo * installation script, like:
 	@echo *
-	@echo *   tclsh83 installWin.tcl c:\Progra~1
+	@echo *   tclsh installWin.tcl c:\Progra~1
 	@echo * 
 	@echo *	or:
 	@echo *
@@ -227,8 +227,8 @@ end:
 	@echo * execute tclsh:         
 	@echo *  
 	@echo *   set TCLLIBPATH=$(ROOT) 
-	@echo *   tclsh83
-	@echo *   package require XOTcl; namespace import -force nsf::*
+	@echo *   tclsh
+	@echo *   package require XOTcl 2.0; namespace import -force xotcl::*
 	@echo *
 	@echo ************************************************************
 

@@ -1,7 +1,7 @@
-#$Id: mixinStrategy.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
-package provide xotcl::mixinStrategy 0.9
+# -*- Tcl -*-
+package provide xotcl::mixinStrategy 0.91
 
-package require XOTcl
+package require XOTcl 2.0
 
 namespace eval ::xotcl::mixinStrategy {
   namespace import ::xotcl::*
