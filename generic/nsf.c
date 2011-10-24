@@ -7444,6 +7444,27 @@ FilterIsActive(Tcl_Interp *interp, CONST char *methodName) {
 }
 
 /*
+ *----------------------------------------------------------------------
+ * FiltersDefined --
+ *
+ *    Return the number of defined distinct names of filters.
+ *
+ * Results:
+ *    Positive number.
+ *
+ * Side effects:
+ *    none.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+FiltersDefined(Tcl_Interp *interp) {
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  
+  return Tcl_HashSize(&rst->activeFilterTablePtr);
+}
+
+/*
  * append a filter command to the 'filterList' of an obj/class
  */
 static int
@@ -7992,7 +8013,9 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
    * depended classes.
    */
   MixinInvalidateObjOrders(interp, cl);
-  FilterInvalidateObjOrders(interp, cl);
+  if (FiltersDefined(interp) > 0) {  
+    FilterInvalidateObjOrders(interp, cl);
+  }
 
   /* 
    * build an array of superclasses from the argument vector.
@@ -13940,7 +13963,9 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
    * have no clopt...
    */
   MixinInvalidateObjOrders(interp, cl);
-  FilterInvalidateObjOrders(interp, cl);
+  if (FiltersDefined(interp) > 0) {  
+    FilterInvalidateObjOrders(interp, cl);
+  }
 
   if (clopt) {
     /*
@@ -19714,10 +19739,12 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
       MixinInvalidateObjOrders(interp, cl);
       /*
-       * since mixin procs may be used as filters,
-       * we have to invalidate the filters as well
+       * Since methods of mixed in classes may be used as filters, we have to
+       * invalidate the filters as well.
        */
-      FilterInvalidateObjOrders(interp, cl);
+      if (FiltersDefined(interp) > 0) {  
+	FilterInvalidateObjOrders(interp, cl);
+      }
       clopt->classMixins = newMixinCmdList;
       for (i = 0; i < oc; i++) {
         Tcl_Obj *ocl = NULL;
@@ -19742,7 +19769,9 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     if (clopt->classFilters) {
       CmdListRemoveList(&clopt->classFilters, GuardDel);
     }
-    FilterInvalidateObjOrders(interp, cl);
+    if (FiltersDefined(interp) > 0) {  
+      FilterInvalidateObjOrders(interp, cl);
+    }
     for (i = 0; i < oc; i ++) {
       if (FilterAdd(interp, &clopt->classFilters, ov[i], 0, cl) != TCL_OK) {
         return TCL_ERROR;

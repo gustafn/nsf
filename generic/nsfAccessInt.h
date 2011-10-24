@@ -86,6 +86,10 @@
 #define TclVarHashTablePtr(varTablePtr)		&(varTablePtr)->table
 #define TclVarValue(type, varPtr, field)	(type *)(varPtr)->value.field
 
+#if !defined(Tcl_HashSize)
+# define Tcl_HashSize(tablePtr) ((tablePtr)->numEntries)
+#endif
+
 static NSF_INLINE Var *
 VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
   Var *varPtr = NULL;
