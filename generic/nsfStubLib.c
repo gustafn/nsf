@@ -1,10 +1,12 @@
 /*
  * nsfStubLib.c --
  *
- *      Stub object that will be statically linked into extensions of XOTcl
+ *      Stub object that will be statically linked into extensions of the Next
+ *      Scripting Framework.
  *
- * Copyright (c) 2001-2008 Gustaf Neumann, Uwe Zdun
- * Copyright (c) 1998 Paul Duffin.
+ * Copyright (c) 1998 Paul Duffin
+ * Copyright (c) 2001-2011 Gustaf Neumann
+ * Copyright (c) 2001-2007 Uwe Zdun
  *
  * See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

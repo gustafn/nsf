@@ -1,7 +1,8 @@
 /* 
  * nxStubInit.c --
  *
- *	This file contains the initializers for the XOTcl stub vectors.
+ *	This file contains the initializers for the stub vectors of the Next
+ *	Scripting Framework.
  *
  * Copyright (c) 1998-1999 by XXX
  *

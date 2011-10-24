@@ -1,4 +1,4 @@
-# nsfInt.decls --
+# -*- Tcl -*-nsfInt.decls --
 #
 #	This file contains the declarations for all unsupported
 #	functions that are exported by the Tcl library.  This file

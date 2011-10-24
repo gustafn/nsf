@@ -3,6 +3,9 @@
 # This script is sourced by the C-code generator gentclAPI.tcl in the
 # same directory. It is also used by the nx::doc toolkit to generate
 # the authorative language reference documents.
+#
+#   Copyright (C) 2009-2011 Gustaf Neumann
+#
 
 # namespaces for types of methods
 array set ns {

@@ -1,9 +1,12 @@
 /*
  * nsfDecls.h --
  *
- *	Declarations of functions in the platform independent public XOTcl API.
+ *	Declarations of functions in the platform independent public Nsf API.
  *
- *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
+ *  This file is part of the Next Scripting Framework.
+ *
+ *  Copyright (C) 1999-2011 Gustaf Neumann
+ *  Copyright (C) 1999-2007 Uwe Zdun
  *
  * See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

@@ -5,10 +5,9 @@
 #	This file is used to generate the nxDecls.h, nxPlatDecls.h,
 #	nxStub.c, and nxPlatStub.c files.
 #	
+# Copyright (C) 1999-2011 Gustaf Neumann
+# Copyright (C) 1999-2007 Uwe Zdun
 #
-# Copyright (c) 1998-1999 by Scriptics Corporation.
-# See the file "tcl-license.terms" for information on usage and redistribution
-# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
 
 library nsf
