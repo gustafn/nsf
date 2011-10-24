@@ -7,8 +7,9 @@ echo "name=$name"
 make distclean
 cd ..
 tar zcvf ./$name.tar.gz \
-    `find ./$name -type f -o -type l| fgrep -v .git| fgrep -v CVS | fgrep -v SCCS | fgrep -v .dSYM | \
-	fgrep -v Attic | fgrep -v "autom4te"| fgrep -v "~"|fgrep -v .db | fgrep -v .graffle | \
-	fgrep -v .junk | fgrep -v .orig | fgrep -v "#" |fgrep -v .DS_Store| fgrep -v config. | \
-        fgrep -v .gdb`
+    `find ./$name -type f -o -type l| fgrep -v .git| fgrep -v .dSYM | fgrep -v .DS_Store| \
+    	fgrep -v "~"| fgrep -v "#" | fgrep -v -- -orig | fgrep -v .junk | \
+    	fgrep -v ".dylib"| \
+	fgrep -v "autom4te"| fgrep -v config. | fgrep -v callgrind.out. | fgrep -v .plist |\
+        fgrep -v .db | fgrep -v .gdb | fgrep -v .graffle`
 
