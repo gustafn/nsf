@@ -13,7 +13,7 @@
  *     D-45143 Essen, Germany
  *
  * (b) Vienna University of Economics and Business 
- *     Institute of Information Systems and New Media
+ *     Institute for Information Systems and New Media
  *     A-1090, Augasse 2-6
  *     Vienna, Austria
  *
