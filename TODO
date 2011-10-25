@@ -3739,11 +3739,13 @@ nsf.c:
 Release Baustellen:
 
 README
+README.aol
 COMPILE
 COMPILE.win
 Changelog
 doc/tutorial2.html
 win/Makefile.vc
+unix/xotcl.spec.in
 
 ========================================================================
 TODO:
