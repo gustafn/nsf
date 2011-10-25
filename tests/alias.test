@@ -764,3 +764,22 @@ nx::Test case refount-destroy-delete2 {
   # Recreation of the alias, must free refcount to the old object
   ? {::o alias X ::baff::child} "::o::X"
 }
+
+#
+# Testing cylcic alias
+#
+nx::Test case cyclic-alias {
+  nx::Object create o {
+    set handle [:public method foo {} {return 1}]
+    # we can define currently the recursive definition
+    ? [list [:] public alias foo $handle] "::o::foo"
+  }
+  # at runtime, we get an exception
+  ? {o foo} {target "::o::foo" of alias foo apparently disappeared}
+
+  # test indirect case
+  set handle1 [o public method foo {} {return 1}]
+  set handle2 [o public alias bar $handle1]
+  set handle3 [o public alias foo $handle2]
+  ? {o foo} {target "::o::bar" of alias foo apparently disappeared}
+}

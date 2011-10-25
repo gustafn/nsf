@@ -2,8 +2,8 @@
  *  nsf.c --
  *  
  *      Basic Machinery of the Next Scripting Framework, a Tcl based framework
- *      for supporting language oriented programming.
- *      For Details, see http://next-scripting.org/
+ *      for supporting language oriented programming.  For Details, see
+ *      http://next-scripting.org/
  *
  * Copyright (C) 1999-2011 Gustaf Neumann (a) (b)
  * Copyright (C) 1999-2007 Uwe Zdun (a) (b)
@@ -9315,8 +9315,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
          * these elements takes care that the cmdPtr is deleted on a pop
          * operation (although we do a Tcl_DeleteCommandFromToken() below.
          */
-	/*fprintf(stderr, "methodName %s FOUND deleted object with cmd %p my cscPtr %p\n",
-	  methodName, cmd, cscPtr);*/
+	fprintf(stderr, "methodName %s found DELETED object with cmd %p my cscPtr %p\n",
+		methodName, cmd, cscPtr);
 	assert(cscPtr->cmdPtr == cmd);
         Tcl_DeleteCommandFromToken(interp, cmd);
 	if (cscPtr->cl) {
@@ -9473,6 +9473,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
       tcd->object = object;
       assert((CmdIsProc(cmd) == 0));
       cscPtr->flags |= NSF_CSC_CALL_IS_TRANSPARENT;
+
     } else if (cp == (ClientData)NSF_CMD_NONLEAF_METHOD) {
       cp = clientData;
       assert((CmdIsProc(cmd) == 0));
@@ -9487,8 +9488,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
     CscListAdd(interp, cscPtr);
 
-    /*fprintf(stderr, "cmdMethodDispatch %s.%s, nothing stacked, objflags %.6x\n",
-      ObjectName(object), methodName, object->flags); */
+    /* fprintf(stderr, "cmdMethodDispatch %p %s.%s, nothing stacked, objflags %.6x\n",
+       cmd, ObjectName(object), methodName, object->flags); */
 
     return CmdMethodDispatch(clientData, interp, objc, objv, object, cmd, NULL);
   }
@@ -9907,7 +9908,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
   /*
    * If no fully qualified method name/filter/mixin was found then perform
-   * ordinary method lookup.
+   * ordinary method lookup. First, try to resolve the method name as a
+   * per-object method.
    */
 
   if (likely(cmd == NULL)) {
@@ -9933,13 +9935,16 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       /* do we have an object-specific proc? */
       if (object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0) {
 	cmd = FindMethod(object->nsPtr, methodName);
-	/*fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
-	  object, methodName, object->nsPtr, cmd);*/
+	/*fprintf(stderr, "lookup for per-object method in obj %p method %s nsPtr %p"
+		" => %p objProc %p\n",
+		object, methodName, object->nsPtr, cmd,
+		cmd ? ((Command *)cmd)->objProc : NULL);*/
 	if (cmd) {
 	  if ((flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0 
 	      && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD)) {
 	    cmd = NULL;
 	  } else {
+	    
 	    NsfMethodObjSet(interp, methodObj, &NsfObjectMethodObjType,
 			    object, nsfObjectMethodEpoch,
 			    cmd, NULL, flags);
@@ -9956,7 +9961,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 #endif
     
     if (likely(cmd == NULL)) {
-      /* check for a method inherited from a class */
+      /* check for an instance method */
       NsfClass *currentClass = object->cl;
       NsfMethodContext *mcPtr = methodObj->internalRep.twoPtrValue.ptr1;
       int nsfInstanceMethodEpoch = rst->instanceMethodEpoch;
@@ -15352,6 +15357,9 @@ NsfProcAliasMethod(ClientData clientData,
 
   assert(self == GetSelfObj(interp));
 
+  /*fprintf(stderr, "NsfProcAliasMethod aliasedCmd %p epoch %p\n",
+    tcd->aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/
+
   if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
     NsfObject *defObject = tcd->class ? &(tcd->class->object) : self;
     Tcl_Obj **listElements, *entryObj, *targetObj;
@@ -15381,13 +15389,24 @@ NsfProcAliasMethod(ClientData clientData,
      * version.
      */
     cmd = Tcl_GetCommandFromObj(interp, targetObj);
+    if (cmd) {
+      cmd = GetOriginalCommand(cmd);
+      fprintf(stderr, "cmd %p epoch %d deleted %.6x\n", 
+	      cmd, 
+	      Tcl_Command_cmdEpoch(cmd),
+	      Tcl_Command_flags(cmd) & CMD_IS_DELETED);
+      if (Tcl_Command_flags(cmd) & CMD_IS_DELETED) {
+	cmd = NULL;
+      }
+    }
     if (cmd == NULL) {
       int result = NsfPrintError(interp, "target \"%s\" of alias %s apparently disappeared",
 			     ObjStr(targetObj), methodName);
       DECR_REF_COUNT(entryObj);
       return result;
     }
-    cmd = GetOriginalCommand(cmd);
+
+    assert(Tcl_Command_objProc(cmd));
 
     NsfCommandRelease(tcd->aliasedCmd);
     tcd->objProc    = Tcl_Command_objProc(cmd);
@@ -18151,6 +18170,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   cmd = GetOriginalCommand(cmd);
   objProc = Tcl_Command_objProc(cmd);
+  assert(objProc);
 
   /* objProc is either ...
 

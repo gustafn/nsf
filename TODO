@@ -3731,6 +3731,9 @@ nsf.c:
 - make time of the definition of a method independent on the
   number of defined instances (unless, when filters are defined)
 
+nsf.c:
+- fixed bug with recursive aliases
+- extended regression test
 
 ========================================================================
 Release Baustellen:
