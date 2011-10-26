@@ -3735,20 +3735,22 @@ nsf.c:
 - fixed bug with recursive aliases
 - extended regression test
 
-========================================================================
-Release Baustellen:
+- updated and shorted README.aol and TODO
+- removed the following files from the repository.
+      deleted:    COMPILE
+      deleted:    COMPILE.win
+      deleted:    ChangeLog
+      deleted:    unix/xotcl.spec.in
+      deleted:    win/Makefile.vc
+  These files should be probably added again at some later time,
+  but need some rework. Old versions are still available from the 
+  2.0.0-develop branch
 
-README
-README.aol
-COMPILE
-COMPILE.win
-Changelog
-doc/tutorial2.html
-win/Makefile.vc
-unix/xotcl.spec.in
 
 ========================================================================
 TODO:
+
+ - doc/tutorial2.html
 
  - warnings for "numeric" names for args and nonpos-args?
  - special handling of values looking like nonpos-flags,
