@@ -2395,8 +2395,6 @@ apps_actiweb=""
 # other systems.
 #--------------------------------------------------------------------
 
-# do not modify the following lines manually, they are generated with
-# the script changeXOTclVersion
 NSF_MAJOR_VERSION=2
 NSF_MINOR_VERSION=0
 
@@ -5455,7 +5453,7 @@ done
 #
 # FORCE_NO_STUBS is deactivated for now
 if ! test "$with_aol3" = "no"; then
-	echo "Pre-configuring AOL-Server (xotcl)"
+	echo "Pre-configuring AOL-Server (nsf)"
 	AOL_DEFINES="-DAOL_SERVER -DUSE_TCL8X -I$with_aol3/include -I$TCL_SRC_DIR/generic"
 	FORCE_NO_STUBS=1
 else
@@ -8201,7 +8199,7 @@ $as_echo "no" >&6; }
 
 # Without the following two eval statements, NSF_SHARED_LIB_SUFFIX
 # in nsfConfig.sh has $PACKAGE_VERSION unresolved. When another
-# app links against xotcl, the PACKAGE_VERSIONs are confused.
+# app links against nsf, the PACKAGE_VERSIONs are confused.
 #
 # Without the first eval, we get
 #   NSF_SHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}${SHLIB_SUFFIX}
@@ -8410,7 +8408,7 @@ NSF_COMPATIBLE_TCLSH=${TCLSH_PROG}
 
 
 #
-# XOTcl specific configs
+# Next Scripting specific configs
 #
 
 if test "${TEA_PLATFORM}" != "windows" ; then
@@ -8418,7 +8416,8 @@ if test "${TEA_PLATFORM}" != "windows" ; then
 NSF_BUILD_LIB_SPEC="-L`pwd` -lnsf${PACKAGE_VERSION}"
 NSF_LIB_SPEC="-L${pkglibdir} -lnsf${PACKAGE_VERSION}"
 
-# stub libs are not build for 8.0
+# If someone wants to build without stubs, as it was the case for
+# earlier Tcl versions, we keep the following block as a reference.
 if test "${TCL_MAJOR_VERSION}" = "8" -a "${TCL_MINOR_VERSION}" = "0"; then
 	NSF_BUILD_STUB_LIB_PATH=""
 	NSF_STUB_LIB_PATH=""
@@ -8457,7 +8456,7 @@ NSF_SRC_DIR=$srcdir
 
 
 
-# include dir of xotcl during build process (i.e., does not assume installed)
+# include dirs for nsf during build process (i.e., does not assume installed)
 NSF_BUILD_INCLUDE_DIR="${NSF_SRC_DIR}/generic"
 NSF_BUILD_INCLUDE_SPEC="-I${NSF_BUILD_INCLUDE_DIR}"
 
@@ -8479,9 +8478,9 @@ NSF_BUILD_INCLUDE_SPEC="-I${NSF_BUILD_INCLUDE_DIR}"
 # target, defined in Makefile.in
 #--------------------------------------------------------------------
 
-CONFIG_CLEAN_FILES="Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/xotcl.spec unix/pkgIndex.unix nxsh nxwish autom4te.cache/"
+CONFIG_CLEAN_FILES="Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/pkgIndex.unix nxsh nxwish autom4te.cache/"
 
-ac_config_files="$ac_config_files Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/xotcl.spec unix/pkgIndex.unix nxsh nxwish"
+ac_config_files="$ac_config_files Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/pkgIndex.unix nxsh nxwish"
 
 
 #--------------------------------------------------------------------
@@ -9218,7 +9217,6 @@ do
     "nsfConfig.sh") CONFIG_FILES="$CONFIG_FILES nsfConfig.sh" ;;
     "library/xotcl/xotclsh") CONFIG_FILES="$CONFIG_FILES library/xotcl/xotclsh" ;;
     "library/xotcl/xowish") CONFIG_FILES="$CONFIG_FILES library/xotcl/xowish" ;;
-    "unix/xotcl.spec") CONFIG_FILES="$CONFIG_FILES unix/xotcl.spec" ;;
     "unix/pkgIndex.unix") CONFIG_FILES="$CONFIG_FILES unix/pkgIndex.unix" ;;
     "nxsh") CONFIG_FILES="$CONFIG_FILES nxsh" ;;
     "nxwish") CONFIG_FILES="$CONFIG_FILES nxwish" ;;
