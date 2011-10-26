@@ -44,41 +44,64 @@
 
 # @class Object
 #
-# ::nx::Object is the <<@gls baseclass>> of the object system of the
-# <<@glossary nx>>.  All objects defined in NX are (direct or
-# indirect) instances of this class. All methods provided by
-# ::nx::Object are available to all objects (and classes) defined in
-# NX.
+# ::nx::Object is the <<@gls baseclass>> of the <<@glossary nx>>
+# object system. All objects defined in NX are (direct or indirect)
+# instances of this base class. The methods provided by the Object
+# base class are available to all objects and to all classes defined
+# in NX.
 
 ########################################################################
 # Attributes of ::nx::Object
 ########################################################################
 
+# @class.property {Object class}
+#
+# Specifies the class of the object under construction as an object
+# parameter. This is equivalent to creating the object from this
+# class directly.
+
 # @class.property {Object filter}
 #
-# Register the specified method(s) as per-object <<@glspl
-# filter>>. Every filter must be an existing method in the
-# scope of the object.
+# Register the specified methods as per-object <<@glspl
+# filter>>. Every name in the <<@gls filterspec>> must resolve to an
+# existing method in the scope of the object.
 
 # @class.property {Object mixin}
 #
-# Register the specified class(es) as per-object <<@glspl
-# mixin_class>>.  Every mixin must be an existing class.
+# Register the specified classes as per-object <<@glspl mixin_class>>.
+# Every name in the <<@gls mixinspec>> must correspond an existing
+# class.
 #
 # @spec object,type=::nx::Class
 
 # @class.property {Object noinit}
 #
-# Omit object initialization. When this flag is provided, the object
-# initialization will not call the constructor '''init'''. This is for
-# example useful when a serialized object is recreated in a previous
-# state, which would be altered by resetting its variables via
-# '''init'''.
+# Omit object initialization. When this flag is provided, the
+# constructor method '''init''' will not be called during object
+# construction. Consider, for example, reifying a previously
+# serialized object with its persisted state. Running the constructor
+# methods would risk altering the serialized state, e.g., by resetting
+# the object variables.
+
+# @class.property {Object properties}
+#
+# A shortcut notation for specifying a bulk of object properties,
+# including their parameter type specifications and default
+# values. For example:
+# '''
+# nx::Object create o -properties {
+#   {a:integer 0}
+#   {b:boolean false}
+#   c:object,type=::C
+# }
+# '''
 
 # @class.property {Object volatile}
 #
-# Create object as volatile.  A volatile object is destroyed
-# automatically, when the current variable scope is left.
+# Render the object created volatile. A volatile object is destroyed
+# automatically upon leaving the variable scope for which the object
+# construction was triggered. Examples of such variable scopes are
+# methods, Tcl procs, and <<@glspl initcmd>>.
 
 ########################################################################
 # Methods of ::nx::Object
@@ -86,9 +109,10 @@
 
 # @class.method {Object alias}
 #
-# Define an <<@gls alias>> as per-object method. This method us used
-# to define a method with the specified name using a pre-existing
-# implementation, which is provided as the last argument.
+# Define an <<@gls alias>> as per-object method. This method is used
+# for defining a method with the specified name by binding a
+# pre-existing implementation. This alias target is provided as the
+# last argument.
 #
 # @parameter methodName Name of the new method
 # @parameter -returns Parameter specification to check the result of 
@@ -103,35 +127,125 @@
 #            <<@gls methodhandle>>, if it is a Tcl command, it should
 #            be a fully qualified name.
 
+# @class.method {Object contains}
+#
+# A builder for nested object structures. Object and class
+# construction statements passed to this method as its last argument
+# are evaluated in a way so that the receiver object becomes the
+# parent of the newly constructed objects and classes. This is
+# realized by setting explicitly the namespace for constructing
+# relatively named objects. Fully qualified object names evade the
+# nesting.
+# '''
+# nx::Class create Window {
+#   :contains {
+#     \#
+#     \# Become children of Window, implicitly
+#     \#
+#     nx::Class create Header
+#     nx::Object create Panel 
+#   }
+#   \#
+#   \# Explicitly declared a child of Window
+#   \#
+#   nx::Class create [self]::Slider
+# }
+# '''
+#
+# @parameter	-withnew:boolean	Provides for re-scoping
+# 	      	automatically named objects so that they become
+# 	      	nested. If turned off, objects constructed using
+# 	      	<<@class.method {Class new}>> do not becomes children
+# 	      	of the receiver object.
+# @parameter	-object		An optional, fully-qualified object
+# 		name. If provided, this object will become the parent
+# 		object instead of the receiver object. 
+# @parameter	{-class:class ::nx::Object}	An optional,
+# 		fully-qualified class name. If set jointly with the
+# 		'''object''' parameter, and the specified object does
+# 		not exist, the parent object is created from this
+# 		class.
+# @parameter 	cmds	The construction statements for the objects
+# 		and classes to nest, as a script block.
 
-# @class.method {Object attribute}
+# @class.method {Object copy}
 #
-# Define a per-object <<@gls attribute>>. For every attribute, a <<@gls
-# slotobject>> is defined which is per default of the class <<@class
-# ::nx::Attribute>>.
+# Creates a full and deep copy of a given object. The object's copy
+# features all structural and behavioral properties of the source
+# object, including nested objects, the slots, namespaces, filters,
+# and mixins.
 #
-# @parameter spec Attribute spec. 
-#            It can be a list of one or two elements, where the first 
-#            element contains the name and optionally parameter options.
-#            If the second element is given, it is the default 
-#            for this attribute.
-# @parameter -class:class,optional The optional class of the attribute,
-#            when the managing slot object should not be of type 
-#            '''nx::Attribute'''.
-# @parameter initblock A Tcl script for the initialization of the 
-#            <<@gls slotobject>> of the attribute.
+# @parameter 	newName 	The name of the copy target to be
+# 		created and populated with the strucural and
+# 		behavioral features of the source object.
+
+# @class.method {Object delete}
+#
+# Removes various structural and behavioral features of an object by
+# specifying their name: properties, variables, and methods.
+
+# @class.method {Object "delete property"}
+# 
+# @parameter 	name 	The name of the property to delete
+
+# @class.method {Object "delete variable"}
+#
+# @parameter 	name 	The name of the variable to delete
+
+# @class.method {Object "delete method"}
+#
+# @parameter 	name 	The name of the method to delete
 
 
-# @class.method {Object class}
+# @class.method {Object property}
 #
-# Sets or retrieves the <<@gls class>> of an object. When '''class'''
-# is called without its optional argument, it returns the current
-# class of the object, otherwise it sets it. An introspective
-# alternative for obtaining the class of an object is <<@class.method
-# {Object "info class"}>>.
+# Defines a per-object <<@gls property>>. For every property, a <<@gls
+# slotobject>> is created. A property also provides for a pair of
+# getter and setter methods, automatically.
 #
-# @parameter className:optional
-# @return <<@gls class>> of the object
+# @parameter 	-class:class 	Allows for specifying a class for the
+# 		managing <<@gls slotobject>> other than the default
+# 		slot class, i.e., <<@class VariableSlot>>
+# @parameter 	-nocomplain:switch 	If this flag is provided, an
+# 		existing object variable by the property name will not
+# 		be overwritten. Instead, an error exception is thrown.
+# @parameter 	spec 	The propery specification can be a list of, at
+#            	least, one or two elements, maximum. The first element
+#            	specifies the property name, optionally followed by
+#            	parameter types after a colon delimiter. If provided,
+#            	the second element sets the default value for this
+#            	property.
+# @parameter 	initblock:optional	A Tcl script which is
+#            	evaluated for the scope of the property's <<@gls
+#            	slotobject>> during its initialization.
+
+
+# @class.method {Object variable}
+#
+# Defines a per-object variable. Per default, no getter and setter
+# methods for this object variable are created, unless requested
+# explicitly. A defaul value can be specified.
+#
+# @parameter 	-accessor:switch	If provided, a pair of getter
+# 		and setter methods, named after the variable, are
+# 		created on the fly.
+# @parameter 	-class:class Allows for specifying a class for the
+# 		managing <<@gls slotobject>> other than the default
+# 		slot class, i.e., <<@class VariableSlot>>. Note that a
+# 		slot object is not necessarily created by
+# 		'''variable''', only if needed (i.e., accessors are
+# 		requested, an init script is provided)
+# @parameter 	-initblock An optional Tcl script which is evaluated
+#            	for the scope of the variable-managing <<@gls
+#            	slotobject>> during its initialization.
+# @parameter 	-nocomplain:switch 	If this flag is provided, an
+# 		existing object variable by the property name will not
+# 		be overwritten. Instead, an error exception is thrown.
+# @parameter 	spec 	The variable specification is a single element
+#            	which specifies the variable name, optionally followed by
+#            	parameter types after a colon delimiter. 
+# @parameter	value	If provided, sets the default value for this
+# 			object variable.
 
 
 ########################################################################
@@ -312,17 +426,6 @@
 #
 # @parameter args
 
-# @class.method {Object cleanup}
-#
-# The <<@acr nx>>-specific implementation of the abstracted
-# '''cleanup''' hook. The hook implementation is called from within
-# the '''interp''' upon recreating an Object using <<@class.method
-# {Class recreate}>>. It effectively resets the object state (e.g., by
-# clearing the object variables, by deleting the per-object namespace,
-# etc.)
-#
-# @syshook
-
 # @class.hook {Object unknown}
 #
 # A hook implementation of the abstracted '''unknown''' hook, called
@@ -391,13 +494,13 @@
 
 # @class.method {Object destroy}
 #
-# The standard shutdown handler for any object which, finally,
-# commands the physical destruction of the object. The method
-# '''destroy''' can be refined by subclasses or <<@glspl mixincls>> to
-# add additional (class-specific) shutdown behaviour.  Note that, in
-# most cases, the class-specific '''destroy''' methods are expected to
-# call <<@command ::nx::next>> to ascertain the the physical
-# destruction is requested.
+# The standard shutdown handler ("destructor") for all
+# objects. Destruction, finally, commands the physical deletion of the
+# object. The method '''destroy''' can be refined by subclasses or
+# <<@glspl mixin_class>> to add additional, class-specific shutdown
+# behaviour. Note that, in most cases, the class-specific
+# '''destroy''' methods are expected to call <<@command ::nx::next>>
+# to request the physical destruction, ultimately.
 # '''
 # nx::Class create Foo {
 #   :method destroy {} {
@@ -408,9 +511,9 @@
 # Foo create f1
 # f1 destroy
 # '''
-# Technical details: The method <<@class.method "::nx::Object destroy">>
+# Some background details: The method <<@class.method "::nx::Object destroy">>
 # delegates the actual destruction to <<@class.method "::nx::Class
-# dealloc">> which clears the memory object storage. Essentially, the
+# dealloc">> which clears the memory object storage. Essentially, this
 # behaviour could be scripted as:
 # '''
 # Object method destroy {} {
@@ -430,6 +533,29 @@
 # value of '''[current callinglevel]''')
 # @parameter script:list The script to be evaluated in the targeted
 # callstack level
+
+# @class.method {Object eval}
+#
+# Evaluate a special Tcl script for the scope of the receiver
+# object. In this script, you may use the colon-prefix notation to
+# dispatch to methods and access variables of the eval-receiving
+# object. Also, you can maintain script-local variables to store
+# intermediate results.
+# '''
+# nx::Object create a {
+#   :property {bar 1}
+#   :public method foo {x} { return $x }
+# }
+#
+# set script {
+#   set y [:foo ${:bar}]
+# }
+#
+# a eval $script
+# '''
+#
+# @parameter	args	An argument vector concatenated to a string
+# 			and then evaluated as a script
 
 # @class.method {Object upvar}
 #
@@ -520,20 +646,27 @@
 # specified method is deleted.
 # '''
 # Object create anObject {
-#   :method foo args {;}
+#   :public method foo args {;}
+#   :public method bar args {;}
 # }
+#
 # anObject foo; # invokes "foo"
 #
 # anObject method foo {} {}; # deletes "foo"
+# anObject delete method foo; # deletes "bar" 
 # '''
 #
-# @parameter	name		The method name
-# @parameter	arguments:list	A list specifying non-positional and
-# 				positional parameters
+# @parameter	name	The method name
+# @parameter	arguments:parameter,0..*	A list specifying
+# 		non-positional and positional method parameters, plus
+# 		their parameter types/options.
+# @parameter 	-returns	Provide an out parameter
+# 				specification, used to check the
+# 				return value of the method dispatch.
 # @parameter 	body 		The script which forms the method body
-# @parameter 	preAssertion 	Optional assertions that must hold before
+# @parameter 	-precondition 	Optional assertions that must hold before
 # 				the proc executes
-# @parameter 	postAssertion 	Optional assertions that must hold after
+# @parameter 	-postcondition 	Optional assertions that must hold after
 # 				the proc executes
 
 # @class.method {Object forward}
@@ -573,31 +706,95 @@
 # integer or the word end. The positional arguments are evaluated from
 # left to right and should be used in ascending order. 
 #
-# @parameter name The name of the delegating or forwarder method
-# @parameter -objscope:optional	Causes the target to be evaluated in
-# the scope of the object.
-# @parameter -methodprefix Prepends the specified prefix to the second
-# argument of the invocation.
-# @parameter -default Is used for default method names (only in
-# connection with %1)
-# @parameter -earlybinding Look up the function pointer of the called <<@acr tcl>>
-# command at definition time of the forwarder rather than at invocation
-# time. This option should only be used for calling C-implemented
-# commands, e.g., a <<@Gls cim>>, not scripted ones.
-# @parameter -verbose Print the substituted command to stderr before
-# executing
-# @parameter callee
-# @parameter args
+# @parameter 	method 		The name of the delegating or forwarder method
+# @parameter	-default	Is used for default method names (only
+# 				in connection with %1)
+# @parameter 	-methodprefix 	Prepends the specified prefix to the second
+# 				argument of the invocation.
+# @parameter 	-objframe	Causes the target to be evaluated in
+# 				the scope of the object.
+# @parameter 	-onerror	Register an error handler
+# @parameter 	-returns	Provide an out parameter
+# 				specification, used to check the
+# 				return value of the forward dispatch.
+# @parameter	-verbose 	Print the substituted command string to stderr
+# 				before performing the command
+# 				execution. For debugging purposes.
+# @parameter 	target 		Possibly the name of the delegatee (a
+# 				Tcl proc, method, object, ...), or an
+# 				argument mutator/accessor (e.g.,
+# 				'''%self''', '''%proc''')
+# @parameter	args		The specified argument vector,
+# 				consisting of literal values and/or
+# 				argument accessors/mutators
 
 # @class.method {Object move} 
 #
 # Effectively renames an object. First, the source object is copied
 # using <<@class.method {Object copy}>>. Second, the source object is
 # destroyed by invoking <<@class.method {Object destroy}>> on it. This
-# method is also called when '''rename''' is used on a Tcl command
-# representing an object.
+# method is also called internally when '''rename''' is performed for
+# a Tcl command representing an object.
 #
 # @parameter newName The name of the target object
+
+# @class.method {Object private} 
+#
+# The modifier method sets the '''private''' property of the method
+# under definition.
+# '''
+# nx::Class create A {
+#   :private method foo {} {;}
+#   :private property bar
+#   :private alias baz -frame object ::incr
+#   :private class method baf {} {;}
+# }
+# '''
+#
+# @parameter	args		Argument vector which details a
+# 				method-defining operation (e.g.,
+# 				<<@class.method {Object method}>>,
+# 				<<@class.method {Object alias}>>)
+
+
+# @class.method {Object protected} 
+# 
+# The modifier method sets the '''protected''' property of the method
+# under definition.
+# '''
+# nx::Class create A {
+#   :protected method foo {} {;}
+#   :protected property bar
+#   :protected alias baz -frame object ::incr
+#   :protected class method baf {} {;}
+# }
+# '''
+#
+# @parameter	args		Argument vector which details a
+# 				method-defining operation (e.g.,
+# 				<<@class.method {Object method}>>,
+# 				<<@class.method {Object alias}>>)
+
+# @class.method {Object public}  
+# 
+# The modifier method sets the '''public''' property of the method
+# under definition.
+# '''
+# nx::Class create A {
+#   :public method foo {} {;}
+#   :public property bar
+#   :public alias baz -frame object ::incr
+#   :public class method baf {} {;}
+# }
+# '''
+#
+# @parameter	args		Argument vector which details a
+# 				method-defining operation (e.g.,
+# 				<<@class.method {Object method}>>,
+# 				<<@class.method {Object alias}>>)
+
+
+
 
 # @class.method {Class forward}
 #
@@ -633,7 +830,7 @@
 # ensemble>>. Hence, the introspection options turn into proper
 # submethods.
 #
-# @sub-method	callable
+# @sub-method	lookup
 # @sub-method 	has
 # @sub-method 	filter
 # @sub-method 	is 		Binds all introspection facilities offered by
@@ -643,18 +840,32 @@
 # 				to '''::nsf::is'''
 # @sub-method 	mixin
 
-# @class.method {Object "info callable method"}
+# @class.method {Object "info lookup filter"}
+#
+# Search for a method which is currently registered as a filter (in
+# the invocation scope of the given object). If found, the
+# corresponding <<@gls methodhandle>> is returned.
+
+# @class.method {Object "info lookup method"}
 #
 # Verifies whether there is a method under a given name available for
 # invocation upon the object. In case, the introspective call returns
 # the corresponding <<@gls methodhandle>>. If there is no so-named
 # method available, an empty string is returned.
 
-# @class.method {Object "info callable filter"}
+# @class.method {Object "info lookup methods"}
 #
-# Search for a method which is currently registered as a filter (in
-# the invocation scope of the given object). If found, the
-# corresponding <<@gls methodhandle>> is returned.
+# Verifies whether there is a method under a given name available for
+# invocation upon the object. In case, the introspective call returns
+# the corresponding <<@gls methodhandle>>. If there is no so-named
+# method available, an empty string is returned.
+
+# @class.method {Object "info lookup slots"}
+#
+# Assembles the list of slot objects which apply the given
+# object. They are resolved by following the <<@gls class>> <<@gls
+# precedence>> upward and coercing the lists of slots provided by
+# these <<@glspl class>>.
 
 # @class.method {Object "info children"}
 #
@@ -674,11 +885,6 @@
 # @class.method {Object "info filter methods"} 
 # 
 # Returns a list of methods registered as <<@glspl filter>>.
-
-# @class.method {Object "info forward"} 
-#
-# Provides you with the list of <<@glspl forwarder>> defined for the given
-# object.
 
 # @class.method {Object "info has mixin"}
 #
@@ -725,13 +931,6 @@
 # Presents to you the list of classes the object is inheriting
 # attributes and methods, ordered according to their <<@gls
 # precedence>>.
-
-# @class.method {Object "info slotobjects"}
-#
-# Assembles the list of slot objects which apply the given
-# object. They are resolved by following the <<@gls class>> <<@gls
-# precedence>> upward and coercing the lists of slots provided by
-# these <<@glspl class>>.
 
 # @class.method {Object "info vars"}
 #
@@ -993,8 +1192,35 @@
 # ...
 #
 # @acronym initcmd
-# @pretty_name object initialisation script
-# @pretty_plural object initialisation scripts
+# @pretty_name object initialization script
+# @pretty_plural object initialization scripts
+
+# @glossary filterspec
+#
+# ...
+#
+# @acronym filterspec
+# @pretty_name filter specification
+# @pretty_plural filter specification
+
+# @glossary mixinspec
+#
+# ...
+#
+# @acronym mixinspec
+# @pretty_name mixin specification
+# @pretty_plural mixin specification
+
+# @glossary property
+#
+# ...
+#
+# @acronym property
+# @pretty_name property
+# @pretty_plural properties
+
 
 
 # @object configure
+
+./apps/utils/nxdoc -validation -doctitle nx -docurl "http://next-scripting.org/" -docversion 2.0b2 -outdir ./doc -indexfiles library/nx/nxdocIndex.tcl -- "package:nx"

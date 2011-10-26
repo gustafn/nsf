@@ -1,7 +1,7 @@
 ############################################################
 # nx.tcl - 
 #
-#      Implementation of the NX object systen, based
+#      Implementation of the NX object system, based
 #      on the Next Scripting Framework
 #
 # Copyright (C) 2010-2011 Gustaf Neumann
@@ -1933,8 +1933,8 @@ namespace eval ::nx {
       # but frequent mixin operations on the most general meta-class
       # are expensive when there are many classes defined
       # (e.g. several ten thousands), since the mixin operation
-      # invalidate the mixins on all instances of the meta-class
-      # (i.e. on all classes)
+      # invalidates the mixins for all instances of the meta-class
+      # (i.e. for all classes)
       #
       set infoMethod "::nsf::methods::class::info::method"
       set plainNew   "::nsf::methods::class::new"

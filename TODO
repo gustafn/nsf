@@ -3877,6 +3877,25 @@ TODO:
 
 - doc:
 
+    * info parametersyntax reports ?__initcmd?
+    
+    * I might have missed sth., but there is an Object->class
+      parameter again. I thought we had removed this one ... :$
+
+    * no-accessor properties/slots are still reported as methods: class
+
+    * method parameters need indentation ...
+
+    * method ensembles are reported as "Implementation details: alias", is this ok?
+
+    * fix sub methods validation reporting -> mismatch?
+
+    * onerror? not used in the forward implementation ... why? earlybinding really gone?
+
+    * Ensemble methods: obj info & friends ... there is no
+      parametersyntax reported; add something literal in the template:
+      <sub-method> ?
+
     * @package.@require(): really needed? 
 
     * @package.@version: fix validation mode ... expected/actual
@@ -3953,7 +3972,7 @@ TODO "Kleinigkeiten"
   ? {o foo -np1 1 -np2 2 -- -X} "-X"
 
   However, the warning-generating code in Nsf_ConvertToTclobj() does
-  not reserve any word of a dashdash having been processed in the
+  not receive any word of a dashdash having been processed in the
   overall argv ... the NSF_ARG_CHECK_NONPOS set on the parsed (and
   cached) param is the only condition to must hold.
 
