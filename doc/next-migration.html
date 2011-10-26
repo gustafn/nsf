@@ -973,7 +973,14 @@ Significantly improved built-in profiling (results can be
 </li>
 <li>
 <p>
-<strong>Much smaller Interface:</strong> The Next Scripting Language has a much
+<strong>Significantly Improved Test Suite:</strong> The regression test suite of
+  Next Scripting Scripting framework contain now more than
+  5.000 tests, and order of magnitude more than in XOTcl 1.6
+</p>
+</li>
+<li>
+<p>
+<strong>Much Smaller Interface:</strong> The Next Scripting Language has a much
   <em>smaller interface</em> (i.e.  provides less predefined methods) than
   XOTcl (see Table 1), although the expressability was increased in
   NX.
@@ -1029,15 +1036,6 @@ cellspacing="0" cellpadding="4">
 </div>
 <div class="paragraph"><p>This comparison list compares mostly XOTcl 1 with NX, some features
 are also available in XOTcl 2 (2a, 2c 2d, 3, 4).</p></div>
-<div class="olist arabic"><ol class="arabic">
-<li>
-<p>
-<strong>Significantly improved test suite:</strong> The regression test suite of
-  Next Scripting Scripting framework contain now more than
-  5.000 tests, and order of magnitude more than in XOTcl 1.6
-</p>
-</li>
-</ol></div>
 </div>
 <div class="sect2">
 <h3 id="_nx_and_xotcl_scripts">1.2. NX and XOTcl Scripts</h3>
@@ -1183,21 +1181,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>   <span class='nx-keyword'>namespace</span> <span class='nx-keyword'>eval</span> mypackage {
+<pre class='nx'><span class='nx-keyword'>namespace</span> <span class='nx-keyword'>eval</span> mypackage {
 
-      <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> XOTcl 2.0
+  <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> XOTcl 2.0
 
-     <span class='nx-comment'># Define a class using XOTcl
-</span>      <span class='nx-keyword'>xotcl::Class</span> C1
-      C1 instproc foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
+  <span class='nx-comment'># Define a class using XOTcl
+</span>  <span class='nx-keyword'>xotcl::Class</span> C1
+  C1 instproc foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
 
-      <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
+  <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
 
-     <span class='nx-comment'># Define a class using NX
-</span>      <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C2 {
-         <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
-      }
-   }</pre></div></div>
+  <span class='nx-comment'># Define a class using NX
+</span>  <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C2 {
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {<span class='nx-keyword'>puts</span> <span class='nx-string'>"hello world"</span>}
+  }
+}</pre></div></div>
 <div class="paragraph"><p>One could certainly create object or classes from the different object
 systems via fully qualified names (e.g. using e.g. <tt>::xotcl::Class</tt> or
 <tt>::nx::Class</tt>), but for migration for systems without explicit
@@ -6914,7 +6912,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-10-25 13:59:45 CEST
+Last updated 2011-10-26 04:58:36 CEST
 </div>
 </div>
 </body>
