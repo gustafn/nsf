@@ -149,10 +149,7 @@ namespace eval ::nx {
       set regObject $object
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
-	# TODO: for debugging of submethods.test in tcl 8.6b2 
-	#puts stderr ===nx118
 	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}] 
-	#puts stderr ===nx119
 	if {[::nsf::directdispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} {
  	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
