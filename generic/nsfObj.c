@@ -98,6 +98,7 @@ MethodDupInternalRep(
 #endif
 
   dstMcPtr = NEW(NsfMethodContext);
+  /*fprintf(stderr, "MethodDupInternalRep allocated NsfMethodContext %p for %s\n", dstMcPtr, ObjStr(srcObjPtr));*/
   memcpy(dstMcPtr, srcMcPtr, sizeof(NsfMethodContext));
 
   dstObjPtr->typePtr = srcObjPtr->typePtr;
@@ -144,6 +145,7 @@ NsfMethodObjSet(
 #endif
     TclFreeIntRep(objPtr);
     mcPtr = NEW(NsfMethodContext);
+    /*fprintf(stderr, "NsfMethodObjSet allocated NsfMethodContext %p for %s\n", mcPtr, ObjStr(objPtr));*/
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)mcPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = objectType;
@@ -238,6 +240,7 @@ FlagDupInternalRep(
 #endif
 
   dstPtr = NEW(NsfFlag);
+  /*fprintf(stderr, "FlagDupInternalRep allocated NsfFlag %p for %s\n", dstPtr, ObjStr(srcObjPtr));*/
   memcpy(dstPtr, srcPtr, sizeof(NsfFlag));
 
   dstObjPtr->typePtr = srcObjPtr->typePtr;
@@ -276,6 +279,8 @@ NsfFlagObjSet(
   if (likely(objPtr->typePtr != &NsfFlagObjType)) {
     TclFreeIntRep(objPtr);
     flagPtr = NEW(NsfFlag);
+    /*fprintf(stderr, "NsfFlagObjSet allocated NsfFlag %p for %s\n", flagPtr, ObjStr(objPtr));*/
+
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)flagPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = &NsfFlagObjType;
