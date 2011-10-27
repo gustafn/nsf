@@ -23396,7 +23396,7 @@ Nsf_Init(Tcl_Interp *interp) {
   ClientData runtimeState;
   int result, i;
   NsfRuntimeState *rst;
-
+  
 #ifdef NSF_BYTECODE
   /*NsfCompEnv *interpstructions = NsfGetCompEnv();*/
 #endif
@@ -23478,10 +23478,15 @@ Nsf_Init(Tcl_Interp *interp) {
   rst->doCheckResults = 1;
   rst->doCheckArguments = 1;
 
-  /* create nsf namespace */
-  rst->NsfNS = Tcl_CreateNamespace(interp, "::nsf", NULL, (Tcl_NamespaceDeleteProc *)NULL);
-
-  MEM_COUNT_ALLOC("TclNamespace", RUNTIME_STATE(interp)->NsfNS);
+  /*
+   * check, if the namespace exists, otherwise create it.
+   */
+  rst->NsfNS =  Tcl_FindNamespace(interp, "::nsf", NULL, TCL_GLOBAL_ONLY);
+  if (rst->NsfNS == NULL) {
+    rst->NsfNS = Tcl_CreateNamespace(interp, "::nsf", NULL, 
+				     (Tcl_NamespaceDeleteProc *)NULL);
+  }
+  MEM_COUNT_ALLOC("TclNamespace", rst->NsfNS);
 
   /*
    * init an empty, faked proc structure in the RUNTIME state
@@ -23499,8 +23504,7 @@ Nsf_Init(Tcl_Interp *interp) {
   rst->NsfClassesNS =
     Tcl_CreateNamespace(interp, "::nsf::classes", NULL,
                         (Tcl_NamespaceDeleteProc *)NULL);
-  MEM_COUNT_ALLOC("TclNamespace", RUNTIME_STATE(interp)->NsfClassesNS);
-
+  MEM_COUNT_ALLOC("TclNamespace", rst->NsfClassesNS);
 
   /* cache interpreters proc interpretation functions */
   rst->objInterpProc = TclGetObjInterpProc();
@@ -23614,10 +23618,12 @@ Nsf_Init(Tcl_Interp *interp) {
     Tcl_Obj *varNameObj = Tcl_NewStringObj("::nsf::version",-1);
     Var *arrayPtr;
 
+    INCR_REF_COUNT(varNameObj);
     TclObjLookupVar(interp, varNameObj, NULL, 0, "access",
                     /*createPart1*/ 1, /*createPart2*/ 1, &arrayPtr);
     Nsf_OT_parsedVarNameType = varNameObj->typePtr;
     assert(Nsf_OT_parsedVarNameType);
+    DECR_REF_COUNT(varNameObj);
   }
 
 #if !defined(TCL_THREADS)
