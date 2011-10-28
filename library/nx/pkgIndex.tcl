@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded nx 2.0b2 [list source [file join $dir nx.tcl]]
+package ifneeded nx 2.0b3 [list source [file join $dir nx.tcl]]
