@@ -3888,6 +3888,47 @@ TODO:
 
     * method ensembles are reported as "Implementation details: alias", is this ok?
 
+    * Currently, in NX, specifying mandatory parameters may break
+      object construction as init won't receive any arguments (no
+      residual args). Similarly, a -returns might scream out. Shall we
+      package that by not "allowing" (actually advertising) an
+      argument spec block for init, e.g.:
+
+      Class create C {
+      	  :constructor {
+	  	       # ...
+	  }
+      }
+      
+      ... alternative name: "initializer", or "initialize" ... which
+      translates into a "o method init {} {}"
+
+   * doc validator reports wierd info submethods: info definition,
+     info names, info objects -> mean "info slot *" ... smells like
+     generator garbage ...
+
+   * inconsistency: "info slot *" are built on "slotsobjects" which
+     does not take -source and -closure parameters ... still, they
+     are in the NX method interfaces ... review and document accordingly.
+
+   * sub-method cross-references per @use does not work (parameters
+     are not reproduced, probably no [:origin] resolution is
+     performed: See the case for "info properties" -> "info slot
+     definition"
+
+   * naming: application vs. baseclasses -> applicationclasses
+     vs. baseclasses ...
+
+   * "info method": elaborate on the options, right now the doc is
+     minimal ...
+
+   * "info method" -> why does the parametersytnax does not report all
+     enumeration literals, rather than ?infomethodsubcmd? ???
+
+   * "info method": missing an option to return the "-returns
+     specification". Also: "-returns" spec is not included in "info
+     method definition".
+
     * fix sub methods validation reporting -> mismatch?
 
     * onerror? not used in the forward implementation ... why? earlybinding really gone?

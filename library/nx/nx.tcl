@@ -567,7 +567,7 @@ namespace eval ::nx {
       return [:info lookup method $methodName]
     }
     #
-    # method require, explicit public
+    # method require, public explicitly 
     #
     :method "require public method" {methodName} {
       set result [:require method $methodName]
@@ -580,7 +580,7 @@ namespace eval ::nx {
       return $result
     }
     #
-    # method require, explicit protected
+    # method require, protected explicitly
     #
     :method "require protected method" {methodName} {
       set result [:require method $methodName]
@@ -590,6 +590,20 @@ namespace eval ::nx {
     :method "require protected class method" {methodName} {
       set result [:require class method $methodName]
       ::nsf::method::property [self] $result call-protected true
+      return $result
+    }
+
+    #
+    # method require, private explicitly
+    #
+    :method "require private method" {methodName} {
+      set result [:require method $methodName]
+      ::nsf::method::property [self] $result call-private true
+      return $result
+    }
+    :method "require private class method" {methodName} {
+      set result [:require class method $methodName]
+      ::nsf::method::property [self] $result call-private true
       return $result
     }
   }
@@ -604,7 +618,7 @@ namespace eval ::nx {
     :alias "info lookup filter"  ::nsf::methods::object::info::lookupfilter
     :alias "info lookup method"  ::nsf::methods::object::info::lookupmethod
     :alias "info lookup methods" ::nsf::methods::object::info::lookupmethods
-    :method "info lookup slots" {{-type ::nx::Slot} -source pattern:optional} {
+    :method "info lookup slots" {{-type:class ::nx::Slot} -source pattern:optional} {
       set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
       if {[info exists source]} {lappend cmd -source $source}
       if {[info exists pattern]} {lappend cmd $pattern}
@@ -623,21 +637,21 @@ namespace eval ::nx {
     :alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
-    :method "info slot definition" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
+    :method "info slot definition" {{-type:class ::nx::Slot} pattern:optional} {
       set result {}
       foreach slot [: ::nsf::methods::object::info::slotobjects {*}[current args]] {
 	lappend result [$slot getPropertyDefinition]
       }
       return $result
     }
-    :method "info slot names" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
+    :method "info slot names" {{-type:class ::nx::Slot} pattern:optional} {
       set result {}
       foreach slot [: ::nsf::methods::object::info::slotobjects {*}[current args]] {
 	lappend result [$slot name]
       }
       return $result
     }
-    :method "info slot objects" {{-type ::nx::Slot} pattern:optional} {
+    :method "info slot objects" {{-type:class ::nx::Slot} pattern:optional} {
       return [: ::nsf::methods::object::info::slotobjects {*}[current args]]
     }
     # "info properties" is a short form of "info slot definition"
@@ -749,7 +763,7 @@ namespace eval ::nx {
     return "valid options are: [join [lsort $methods] {, }]"
   }
 
-  Object protected method "info unknown" {method obj args} {
+  Object protected method "info unknown" {method obj:object args} {
     error "[::nsf::self] unknown info option \"$method\"; [$obj info info]"
   }
 
