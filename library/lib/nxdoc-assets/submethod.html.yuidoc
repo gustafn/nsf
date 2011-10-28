@@ -4,17 +4,17 @@
   <h4><a name="[:href -local]" property="yui:name">$name[:statusmark]</a>
   </h4>
   <div class="detail">
-    <code>[:? {[info exists :@return] && [${:@return} @spec] ne ""} {&nbsp;:&nbsp;<span property="yui:type">[${:@return} @spec]</span>} ]
+    <code>[:? {[[:origin] eval {info exists :@return}] && [[[:origin] @return] @spec] ne ""} {&nbsp;:&nbsp;<span property="yui:type">[[[:origin] @return] @spec]</span>} ]
       <span class="var">$prefix</span>
       <strong property="yui:name">$name</strong>
-      <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
+      <span class="var">[[:origin] pinfo get -default "" bundle parametersyntax]</span>
     </code>
     <div class="description" property="yui:description">
-      [:as_text]
-      [:? {[info exists :@parameter]} {
+      [[:origin] as_text]
+      [:? {[[:origin] eval {info exists :@parameter}]} {
       <dl rel="yui:parameters">
 	<dt>Parameters:</dt>
-	[:for param ${:@parameter} {
+	[:for param [[:origin] @parameter] {
 	<dd rel="yui:parameter">
 	  <code><span property="yui:name">[$param name]</span>
 	    [:? {[$param eval {info exists :@spec}] && [$param @spec] ne ""} {&nbsp;:&nbsp;<span property="yui:type">[$param @spec]</span>}]
@@ -26,7 +26,7 @@
 	}]
       </dl>
       }]
-      [:? {[info exists :@return]} {
+      [:? {[[:origin] eval {info exists :@return}]} {
       <dl>
 	<dt>Returns:
 	  <code property="yui:return">
