@@ -3937,6 +3937,22 @@ TODO:
       parametersyntax reported; add something literal in the template:
       <sub-method> ?
 
+    * C method foo {} {}; # deletes "foo" without existing method, the
+      error message is somehow swallowed ...
+
+    * Object|Class mixin|filter guard -> how to document (and not
+      reported by nxdoc as missing either, as their as slot-specific)?
+      And link to Class class filterguard|mixinguard ... Why not
+      defining the latter as ensembles "Class class filter|mixin
+      guard"?
+
+    * Why is there no -order on "Class info filter methods"?
+
+    * Ensemble methods, i.e. intermediate ones, should not be filter
+      by inheritance in the nxdoc output. For example, info() in Class
+      shares many details of info in Object, but it does not visualize
+      this quasi-inheritance
+
     * @package.@require(): really needed? 
 
     * @package.@version: fix validation mode ... expected/actual

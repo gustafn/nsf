@@ -229,7 +229,7 @@
 # @parameter 	-accessor:switch	If provided, a pair of getter
 # 		and setter methods, named after the variable, are
 # 		created on the fly.
-# @parameter 	-class:class Allows for specifying a class for the
+# @parameter 	-class Allows for specifying a class for the
 # 		managing <<@gls slotobject>> other than the default
 # 		slot class, i.e., <<@class VariableSlot>>. Note that a
 # 		slot object is not necessarily created by
@@ -244,8 +244,28 @@
 # @parameter 	spec 	The variable specification is a single element
 #            	which specifies the variable name, optionally followed by
 #            	parameter types after a colon delimiter. 
-# @parameter	value	If provided, sets the default value for this
-# 			object variable.
+# @parameter	defaultValue	If provided, sets the default value for this
+# 				object variable.
+
+# @class.method {Object "filter guard"}
+#
+# Attaches a guard expression to a previously defined per-object
+# filter; or returns the currently defined guards, if the last
+# argument is not provided.
+#
+# @parameter	filter	Name of the per-object filter to be guarded or queried for guards
+# @parameter	guard:optional	A guard expression applying to the per-object filter
+
+# @class.method {Object "mixin guard"}
+#
+# Attaches a guard expression to a previously defined per-object mixin; or
+# returns the currently defined guards, if the last argument is not
+# provided.
+#
+# @parameter	mixin	Name of the per-object mixin to be guarded or queried for guards
+# @parameter	guard:optional	A guard expression to shield the per-object mixin
+
+
 
 
 ########################################################################
@@ -254,17 +274,21 @@
 
 # @class Class
 #
-# ::nx::Class is the <<@gls basemetaclass>> of the object system of
-# <<@glossary nx>>.  All application classes are created as (direct or
-# indirect) instances of this class using e.g. its '''create'''
-# method:
+# ::nx::Class is the <<@gls basemetaclass>> of the <<@glossary nx>>.
+# All application classes are created as (direct or indirect)
+# instances from this class using, e.g., its <<@class.method "Class
+# create">> method:
 #
 # '''
-# ::nx::Class create Person {
-#    \# ....
+# nx::Class create Window {
+#   \# properties
+#   :property size:object,type=::Area
+#   :property {visibility:boolean true}
+#   \# methods
+#   :public method display {} {;}
+#   :public method hide {} {;}
 # }
 # '''
-# @superclass ::nx::doc::entities::class::nx::Object
 
 ########################################################################
 # Attributes of ::nx::Class
@@ -272,31 +296,34 @@
 
 # @class.property {Class filter}
 #
-# Register the specified method(s) as per-class <<@glspl
-# filter>>. Every filter must be an existing method in the
-# scope of the object.
+# Register the specified methods as per-class <<@glspl
+# filter>>. Every filter must be an existing method for the
+# scope of the class.
 
 # @class.property {Class mixin}
 #
-# Register the specified class(es) as per-class <<@glspl
-# mixin_class>>.  Every mixin must be an existing class.
+# Register the specified classes as per-class <<@glspl mixin_class>>.
+# Every mixin must be an existing class at the time of setting the
+# mixin relation.
 
 # @class.property {Class object-filter}
 #
-# Register the specified method(s) as per-object <<@glspl
-# filter>> for the class.
+# Register the specified methods as per-object <<@glspl filter>> for
+# the class. Every filter must be an existing method for the scope of
+# the class object.
 
 # @class.property {Class object-mixin}
 #
-# Register the specified class(es) as per-object <<@glspl
-# mixin_class>> for the class.
-
+# Register the specified classes as per-object <<@glspl mixin_class>>
+# for the class object. Every mixin must be an existing class at the
+# time of setting the mixin relation.
 
 # @class.property {Class superclass}
 #
-# Set the superclass(es) for this class. The argument might contain a
+# Set the superclasses for this class. The argument might contain a
 # list of classes to specify multiple inheritance. The order of the
-# superclasses is significant.
+# superclasses is significant. At the time of specifying the class,
+# these superclasses must exist in the interpreter.
 
 ########################################################################
 # Methods of ::nx::Class
@@ -314,6 +341,474 @@
 # @parameter objectName The designated object identifier assigned to the
 # object storage to be allocated.
 # @return The fully qualified name of the allocated, uninitialized object
+
+# @class.method {Class alias}
+#
+# Define an <<@gls alias>> as class-wide method. This helper method is
+# used for defining a method with the specified name by binding a
+# pre-existing implementation. This alias target is provided as the
+# last argument.
+#
+# @parameter methodName Name of the new method
+# @parameter -returns Parameter specification to check the result of 
+#             the alias method (e.g. '''integer''').
+# @parameter -frame Optional scoping information. If the provided
+#            value is '''object''', then variable references of the
+#            command are created as instance variables. If the value
+#            is '''method''', then a method frame is pushed. Thus, the
+#            method can resolve <<@command current>> and can call
+#            <<@command next>>.
+# @parameter cmd A reference to an implementation. If the 
+#            implementation is a method, the value should be a
+#            <<@gls methodhandle>>. If it is a Tcl command, it should
+#            be a fully qualified command name.
+
+
+# @class.method {Class class}
+#
+# The '''class''' modifier can be applied to a variety of methods to
+# perform their operations for the scope of a class object, rather
+# than for their instances.
+
+# @class.method {Class "class delete"}
+
+# @class.method {Class "class delete property"}
+# 
+# @parameter 	name 	The name of the property to delete
+
+# @class.method {Class "class delete variable"}
+#
+# @parameter 	name 	The name of the variable to delete
+
+# @class.method {Class "class delete method"}
+#
+# @parameter 	name 	The name of the method to delete
+
+# @class.method {Class "class alias"}
+#
+# @use class.method {Object alias}
+
+# @class.method {Class "class forward"}
+#
+# @use class.method {Object forward}
+
+# @class.method {Class "class info"}
+#
+# Provides introspection on class objects. A variety of introspection
+# options exists. '''info''' is implemented as an <<@gls
+# ensemble>>. Hence, the introspection options turn into proper
+# submethods. See <<@class.method "Object info">> for details.
+
+# @class.method {Class "class method"}
+#
+# Defines a method for a class object, similarly to creating <<@Gls tcl>>
+# '''procs'''.  Optionally, pre- and post-conditions may be specified
+# by passing two additional arguments. Therefore, to specify only
+# post-assertions an empty pre-assertion list must be given. All
+# assertions are a list of ordinary <<@acr tcl>> '''expr'''
+# statements.  When '''method''' is called with an empty argument list
+# and an empty body, the specified method is deleted.
+# '''
+# Class create C {
+#   :public class method foo args {;}
+#   :public class method bar args {;}
+# }
+#
+# C foo; # invokes "foo"
+#
+# C class method foo {} {}; # deletes "foo"
+# C class delete method bar; # deletes "bar" 
+# '''
+#
+# @parameter	name	The method name
+# @parameter	arguments:parameter,0..*	A list specifying
+# 		non-positional and positional method parameters, plus
+# 		their parameter types/options.
+# @parameter 	-returns	Provide an out parameter
+# 				specification, used to check the
+# 				return value of the method dispatch.
+# @parameter 	body 		The script which forms the method body
+# @parameter 	-precondition 	Optional assertions that must hold before
+# 				the proc executes
+# @parameter 	-postcondition 	Optional assertions that must hold after
+# 				the proc executes
+
+# @class.method {Class "class filterguard"}
+#
+# Attaches a guard expression to a previously defined filter on the
+# class object; or returns the currently defined guards, if the last
+# argument is not provided.
+#
+# @parameter	filter	Name of the per-object filter to be guarded or queried for guards
+# @parameter	guard:optional	A guard expression applying to the per-object filter
+
+# @class.method {Class "class mixinguard"}
+#
+# Attaches a guard expression to a previously defined mixin on the
+# class object; or returns the currently defined guards, if the last
+# argument is not provided.
+#
+# @parameter	mixin	Name of the per-object mixin to be guarded or queried for guards
+# @parameter	guard:optional	A guard expression to shield the per-object mixin
+
+
+# @class.method {Class "class variable"}
+#
+# @use class.method {Object variable}
+
+# @class.method {Class "class filter"}
+#
+# Register the specified methods as <<@glspl filter>> with the class
+# object. Every name in the <<@gls filterspec>> must resolve to an
+# existing method in the scope of the class object.
+#
+# @parameter	args	One or more <<@glspl filterspec>>
+
+# @class.method {Class "class mixin"}
+#
+# Register the specified classes as <<@glspl mixin_class>> with the
+# class object.  Every mixin must be an existing class at the time of
+# setting the mixin relation.
+#
+# @parameter	args	One or more <<@glspl mixin_class>> specifications
+
+# @class.method {Class "class property"}
+#
+# @use class.method {Object property}
+
+# @class.method {Class delete}
+#
+# Removes various structural and behavioral features (i.e.,
+# properties, variables, and methods) of a class based on the feature
+# names.
+
+# @class.method {Class "delete property"}
+# 
+# @parameter 	name 	The name of the property to delete
+
+# @class.method {Class "delete variable"}
+#
+# @parameter 	name 	The name of the variable to delete
+
+# @class.method {Class "delete method"}
+#
+# @parameter 	name 	The name of the method to delete
+
+# @class.method {Class "filter guard"}
+#
+# Attaches a guard expression to a previously defined class-wide
+# filter; or returns the currently defined guards, if the last
+# argument is not provided.
+#
+# @parameter	filter	Name of the per-class filter to be guarded or queried for guards
+# @parameter	guard:optional	A guard expression applying to the class-wide filter
+
+# @class.method {Class "mixin guard"}
+#
+# Attaches a guard expression to a previously defined per-class mixin; or
+# returns the currently defined guards, if the last argument is not
+# provided.
+#
+# @parameter	mixin	Name of the per-class mixin to be guarded or queried for guards
+# @parameter	guard:optional	A guard expression to shield the per-class mixin
+
+# @class.method {Class info}
+#
+# Provides introspection on classes. A variety of introspection
+# options exists. '''info''' is implemented as an <<@gls
+# ensemble>>. Hence, the introspection options appear as proper
+# submethods. Introspective features, if not documented below, are
+# inherited from <<@class.method "Object info">>.
+#
+# @sub-method	filter
+# @sub-method	mixin
+# @sub-method	slot
+# @sub-method	parameter
+
+# @class.method {Class "info filter guard"} 
+#
+# Returns the guards for filter identified by the name of a <<@gls filter>>
+#
+# @parameter	filter	Registration name of the filter
+
+# @class.method {Class "info filter methods"} 
+# 
+# Returns a list of methods registered as <<@glspl filter>>.
+#
+# @parameter	-guards		The filter guards are also returned
+# @parameter	pattern		Return only method for filter names
+# 				matching the given pattern (like
+# 				'''string match''')
+
+
+# @class.method {Class "info properties"}
+#
+# Report all properties defined for a class. The properties are
+# printed in their property-defining notation: '''name:paramtype
+# ?default?'''.
+#
+# @parameter	{-type:class ::nx::Slot}	Select the kind of
+# 						slot objects to be
+# 						returned by specifying
+# 						a class (e.g.,
+# 						<<@class
+# 						VariableSlot>>).
+# @parameter	-closure:switch	   Include the slots managing this
+# 				   class over the transitive
+# 				   relationships of the class, with
+# 				   its superclasses and transitive
+# 				   mixin classes. 
+# @parameter	-source		   Restrict the search to either
+# 				   '''application''' classes or
+# 				   '''baseclasses'''. If omitted, the
+# 				   search includes '''all''' classes.
+# @parameter	pattern:optional   Restrict the lookup to slot objects
+# 				   matching the given pattern string
+# 				   in the sense of '''string match'''
+
+# @class.method {Class "info methods"}
+#
+# Allows you to query the methods defined on the object. Note the
+# difference to <<@class.method "Object {info lookup methods}">> which
+# covers all methods actually callable upon the class object itself.
+#
+# @parameter	-callprotection Restrict to the methods of a specific
+# 		call protection level: '''public''', '''protected''',
+# 		and '''private'''. If omitted, '''all''' protection
+# 		levels are considered.
+# @parameter	-closure:switch	   Include the methods defined over
+# 				   the transitive relationships of the
+# 				   class, i.e., by its superclasses
+# 				   and transitive mixin classes.
+# @parameter	-methodtype	Restrict the search by certain method
+# 		kinds: '''scripted''', '''builtin''', '''alias''',
+# 		'''forwarder''', '''object''', and '''setter'''. If
+# 		omitted, '''all''' method sorts are considered.
+# @parameter	-path The pattern is expressed over the method paths,
+# 		rather than the method names. This allows for matching
+# 		<<@glspl ensemble>>.
+# @parameter	-source		   Restrict the search to either
+# 				   '''application''' classes or
+# 				   '''baseclasses'''. If omitted, the
+# 				   search includes '''all''' classes.
+# @parameter	pattern	The pattern string in the style of '''string match'''
+
+# @class.method {Class "info heritage"}
+#
+# Returns the ordered list of superclasses of a class.
+#
+# @parameter	pattern		A pattern string in the sense of
+# 				'''string match''' to be matched with
+# 				the candidate class names.
+
+# @class.method {Class "info instances"}
+#
+# Gives the list of instances, i.e., the member objects of the class.
+#
+# @parameter	-closure:switch	   Include the instances defined over
+# 				   the transitive subclass relationships of the
+# 				   class.
+# @parameter	pattern		A pattern string in the sense of
+# 				'''string match''' to be matched with
+# 				the candidate class names.
+
+# @class.method {Class "info mixin guard"}
+#
+# Retrieves the <<@glspl guard>> applied to the mixin class
+# idenitified by the mixin class name
+#
+# @parameter	mixin		The name of the mixin whose guards are requested
+
+# @class.method {Class "info mixin classes"}
+#
+# The list of per-object <<@glspl mixin_class>> currently registered for the
+# class is returned.
+#
+# @parameter	-closure	Extend the pattern search to the
+# 				indirect mixin classes, by traversing
+# 				all direct and indirect per-class
+# 				mixin relations.
+# @parameter	-guards		Add the guard expressions of the mixin
+# 				classes to the output
+# @parameter	-heritage	Ascertain that the mixin context of
+# 				the object is valid
+# @parameter	pattern   Restrict the lookup to class names
+# 				matching the given pattern string, in
+# 				the sense of '''string match'''
+
+# @class.method {Class "info mixinof"}
+#
+# Identifies the classes for which the receiver class is registered as
+# a mixin.
+#
+# @parameter	-closure:switch	   Include the instances defined over
+# 				   the transitive mixin relationships
+# 				   of the class. If set, all
+# 				   per-object and per-class mixin axes
+# 				   are traversed.
+# @parameter	-scope		Restrict the registration scope to
+# 				either per-class ('''class''') or
+# 				per-object mixins ('''object'''). By
+# 				default, '''all''' mixin registrations
+# 				are reported.
+# @parameter	pattern		A pattern string in the sense of
+# 				'''string match''' to be matched with
+# 				the candidate class names.
+
+# @class.method {Class "info subclass"}
+#
+# The list of subclasses derived from the class is returned.
+#
+# @parameter	-closure:switch	   Include the classes down
+# 				   the transitive subclass
+# 				   relationships of the class. If set,
+# 				   all consecutive subclass
+# 				   relations are traversed. If
+# 				   omitted, only direct subclasses
+# 				   are reported.
+# @parameter	pattern		A pattern string in the sense of
+# 				'''string match''' to be matched with
+# 				the candidate subclass names.
+
+
+# @class.method {Class "info superclass"}
+#
+# Returns the list of superclasses specified for the given class.
+#
+# @parameter	-closure:switch	   Include the classes along
+# 				   the transitive superclass
+# 				   relationships of the class. If set,
+# 				   all consecutive superclass
+# 				   relations are traversed. If
+# 				   omitted, only direct superclasses
+# 				   are reported.
+# @parameter	pattern		A pattern string in the sense of
+# 				'''string match''' to be matched with
+# 				the candidate superclass names.
+
+# @class.method {Class "info slot definition"}
+#
+# Report all <<@glspl slot>> defined for a class. The slots owned by
+# the given slot are reported in the property-defining notation:
+# '''name:paramtype ?default?'''. Do not confuse this introspector
+# with <<@class.method "Object {info lookup slots}">> which gives all
+# slots managing the current class object.
+#
+# @parameter	{-type:class ::nx::Slot}	Select the kind of
+# 						slot objects to be
+# 						returned by specifying
+# 						a class (e.g.,
+# 						<<@class
+# 						VariableSlot>>).
+# @parameter	-closure:switch	   Include the classes along the
+# 				   transitive mixin and superclass
+# 				   relationships of the class. If set,
+# 				   all indirect superclass and
+# 				   transitive mixins are covered. If
+# 				   omitted, only direct superclasses
+# 				   are reported.
+# @parameter	-source		   Restrict the search to either
+# 				   '''application''' classes or
+# 				   '''baseclasses'''. If omitted, the
+# 				   search includes '''all''' classes.
+# @parameter	pattern:optional   Restrict the lookup to slot objects
+# 				matching the given pattern string in
+# 				the sense of '''string match'''
+
+# @class.method {Class "info slot names"}
+#
+# Report the names of all <<@glspl slot>> defined for the class. Do
+# not confuse this introspector with <<@class.method "Object {info
+# lookup slots}">> which gives all slots managing the instances of the
+# current class.
+#
+# @parameter	{-type:class ::nx::Slot}	Select the kind of
+# 						slot objects to be
+# 						returned by specifying
+# 						a class (e.g.,
+# 						<<@class
+# 						VariableSlot>>).
+# @parameter	-closure:switch	   Include the classes along the
+# 				   transitive mixin and superclass
+# 				   relationships of the class. If set,
+# 				   all indirect superclass and
+# 				   transitive mixins are covered. If
+# 				   omitted, only direct superclasses
+# 				   are reported.
+# @parameter	-source		   Restrict the search to either
+# 				   '''application''' classes or
+# 				   '''baseclasses'''. If omitted, the
+# 				   search includes '''all''' classes.
+# @parameter	pattern:optional   Restrict the lookup to slot objects
+# 				matching the given pattern string in
+# 				the sense of '''string match'''
+
+# @class.method {Class "info slot objects"}
+#
+# Report the fully qualified command names of all <<@glspl slot>>
+# defined for a class. Do not confuse this introspector with
+# <<@class.method "Object {info lookup slots}">> which gives all slots
+# managing the receiver class.
+#
+# @parameter	{-type:class ::nx::Slot}	Select the kind of
+# 						slot objects to be
+# 						returned by specifying
+# 						a class (e.g.,
+# 						<<@class
+# 						VariableSlot>>).
+# @parameter	-closure:switch	   Include the classes along the
+# 				   transitive mixin and superclass
+# 				   relationships of the class. If set,
+# 				   all indirect superclass and
+# 				   transitive mixins are covered. If
+# 				   omitted, only direct superclasses
+# 				   are reported.
+# @parameter	-source		   Restrict the search to either
+# 				   '''application''' classes or
+# 				   '''baseclasses'''. If omitted, the
+# 				   search includes '''all''' classes.
+# @parameter	pattern:optional   	Restrict the lookup to slot
+# 					objects matching the given
+# 					pattern string in the sense of
+# 					'''string match'''
+
+# @class.method {Class "info parameter definition"}
+#
+# Returns all parameters, or the selected one, as object parameter
+# specifications
+# 
+# @parameter	name:optional	If provided, the result is limited to
+# 				the parameter identified by this name
+# 				value
+
+# @class.method {Class "info parameter list"}
+#
+# Returns all parameters, or the selected one, as a list of dashed
+# parameter name(s)
+# 
+# @parameter	name:optional	If provided, the result is limited to
+# 				the parameter identified by this name
+# 				value
+
+# @class.method {Class "info parameter names"}
+#
+# Returns the bare names of all parameters, or the selected one
+# 
+# @parameter	name:optional	If provided, the result is limited to
+# 				the parameter identified by this name
+# 				value
+
+# @class.method {Class "info parameter syntax"}
+#
+# Returns an annotated representation of all object parameters, or the
+# selected one. The representation resembles the Tcl command call
+# listings (e.g., as featured in the man pages).
+# 
+# @parameter	name:optional	If provided, the result is limited to
+# 				the parameter identified by this name
+# 				value
+
+
 
 # @class.method {Class create}
 #
@@ -358,7 +853,8 @@
 # '''
 # ::nx::Object create anObject
 # ::nx::Class create AClass
-# ::nx::Class AnotherClass; # This fails: "Method 'AnotherClass' unknown for ::nx::Class."
+# \# This fails: "Method 'AnotherClass' unknown for ::nx::Class."
+# ::nx::Class AnotherClass
 # '''
 # Note that this method is also invoked internally when executing
 # <<@class.method {Class new}>>.
@@ -378,7 +874,7 @@
 # memory freeing operation may occur time-shifted (that is,
 # later). While '''dealloc''' itself cannot be redefined for
 # '''::nx::Class''', you may consider refining it in a subclass or
-# <<@gls mixincls>> for customizing the destruction process.
+# <<@gls mixin_class>> for customizing the destruction process.
 #
 # @parameter object The name of the object to be scheduled for deletion.
 
@@ -386,7 +882,7 @@
 #
 # This method is called upon recreating an object. Recreation is the
 # scheme for resolving object naming conflicts in the dynamic and
-# scripted programming environment of "Next": An object or class is
+# scripted programming environment of <<@Gls nx>>: An object or class is
 # created while an object or class with an identical object identifier
 # already exists. The method '''recreate''' performs standard object
 # initialization, per default, after re-setting the state and
@@ -399,7 +895,7 @@
 # By refining '''recreate''' in an application-level subclass or mixin
 # class, you can intercept the recreation process. In the pre-part the
 # refined '''recreate''' method, the recreated object has its old
-# state, after calling <<@command ::nx::next>> it is cleaned up.
+# state, after calling <<@command ::nx::next>> it has been cleaned up.
 #
 # If the name conflict occurs between an existing class and a newly
 # created object (or vice versa), '''recreate''' is not
@@ -408,10 +904,10 @@
 # '''
 # Object create Bar
 # \# ...
-# Class create Bar; # calls Bar->destroy() + Class->create(::Bar, ...)
+# \# calls Bar->destroy() -> Class->create(::Bar, ...)
+# Class create Bar; 
 # '''
 #
-# @syshook
 # @parameter name The name (identifier) of the object under recreation
 # @parameter args Arbitrary vector of arguments
 # @return The name of the recreated object
@@ -582,11 +1078,12 @@
 # @class.method {Class new}
 #
 # A convenience method to create auto-named objects and <<@glspl
-# class>>. It is a front-end to <<@class.method "::nx::Class
+# class>>. It is a frontend to <<@class.method "::nx::Class
 # create">>. For instance:
 # '''
-# set obj [Object new]
-# set cls [Class new]
+# set obj [nx::Object new]
+# set cls [nx::Class new]
+# set w [Window new]
 # '''
 # This will provide object identifiers of the form
 # e.g. '''::nsf::__#0'''. The uniqueness of auto-generated identifiers
@@ -597,34 +1094,100 @@
 # @parameter args The variable arguments passed down to <<@class.method
 # "::nx::Class create">>.
 
+# @class.method {Class property}
+#
+# Defines a <<@gls property>> for an entire class. For every property,
+# a <<@gls slotobject>> is created. A property also provides for a
+# pair of getter and setter methods, automatically. The getter and
+# setter are available for instances of the class.
+#
+# @parameter 	-class:class 	Allows for specifying a class for the
+# 		managing <<@gls slotobject>> other than the default
+# 		slot class, i.e., <<@class VariableSlot>>
+# @parameter 	spec 	The propery specification can be a list of, at
+#            	least, one or two elements, maximum. The first element
+#            	specifies the property name, optionally followed by
+#            	parameter types after a colon delimiter. If provided,
+#            	the second element sets the default value for this
+#            	property.
+# @parameter 	initblock:optional	A Tcl script which is
+#            	evaluated for the scope of the property's <<@gls
+#            	slotobject>> during its initialization.
+
+# @class.hook {Class unknown}
+#
+# A hook implementation of the abstracted '''unknown''' hook, called
+# from within the '''interp''' when the method argument could not
+# be resolved to a callable method on the receiving object. 
+# 
+# @parameter methodName Indicates the unresolvable method name
+# @parameter args	Contains the remainder of the original
+# 			argument vector of the indirected method
+# 			invocation
+
+# @class.method {Class variable}
+#
+# Defines a variable for the scope of a class. Per default, no getter
+# and setter methods for this object variable are created, unless
+# requested explicitly.  Also, a variable does not become an object
+# parameter automatically. A defaul value can be specified.
+#
+# @parameter 	-accessor:switch	If provided, a pair of getter
+# 		and setter methods, named after the variable, are
+# 		created on the fly.
+# @parameter 	-class Allows for specifying a class for the
+# 		managing <<@gls slotobject>> other than the default
+# 		slot class, i.e., <<@class VariableSlot>>. Note that a
+# 		slot object is not necessarily created by
+# 		'''variable''', only if needed (i.e., accessors are
+# 		requested, an init script is provided)
+# @parameter 	-config:switch Make the variable an object parameter,
+# 		rendering the variable accessible during instance
+# 		construction
+# @parameter 	-initblock An optional Tcl script which is evaluated
+#            	for the scope of the variable-managing <<@gls
+#            	slotobject>> during its initialization.
+# @parameter 	spec 	The variable specification is a single element
+#            	which specifies the variable name, optionally followed by
+#            	parameter types after a colon delimiter. 
+# @parameter	defaultValue	If provided, sets the default value for this
+# 				object variable.
+
 # @class.method {Class method}
 #
-# Defines a per-class method, similarly to Tcl specifying
-# '''procs'''. Optionally, <<@glspl assert>> may be specified by two
-# additional arguments. Therefore, to specify only post-assertions an
-# empty pre-assertion list must be given. All assertions are a list of
-# ordinary <<@Gls tcl>> '''expr''' statements.  When '''method''' is called
-# with an empty argument list and an empty body, the specified method,
-# if existing, is deleted.
+# Defines a class-wide method available to all instances of the class,
+# similarly to Tcl specifying '''procs'''. Optionally, pre- and
+# post-conditions may be specified by two additional
+# arguments. Therefore, to specify only post-assertions an empty
+# pre-assertion list must be given. All assertions are a list of
+# ordinary <<@Gls tcl>> '''expr''' statements.  When '''method''' is
+# called with an empty argument list and an empty body, the specified
+# method, if existing, is deleted.
 # '''
 # Class create AClass {
-#   :method foo args {;}
+#   :public method foo args {;}
+#   :public method bar args {;}
 # }
 #
 # AClass create anInstance
 # anInstance foo; # invokes "foo"
 #
 # AClass method foo {} {}; # deletes "foo"
+# AClass delete method bar; # deletes "bar"
 # '''
 #
-# @parameter name The method name
-# @parameter arguments:list A list specifying non-positional and
-# positional parameters
-# @parameter body The script which forms the method body
-# @parameter preAssertion Optional assertions that must hold before
-# the proc executes
-# @parameter postAssertion Optional assertions that must hold after
-# the proc executes
+# @parameter	name	The method name
+# @parameter	arguments:parameter,0..*	A list specifying
+# 		non-positional and positional method parameters, plus
+# 		their parameter types/options.
+# @parameter 	-returns	Provide an out parameter
+# 				specification, used to check the
+# 				return value of the method dispatch.
+# @parameter 	body 		The script which forms the method body
+# @parameter 	-precondition 	Optional assertions that must hold before
+# 				the proc executes
+# @parameter 	-postcondition 	Optional assertions that must hold after
+# 				the proc executes
 
 # @class.method {Object method} 
 #
@@ -644,7 +1207,7 @@
 # anObject foo; # invokes "foo"
 #
 # anObject method foo {} {}; # deletes "foo"
-# anObject delete method foo; # deletes "bar" 
+# anObject delete method bar; # deletes "bar" 
 # '''
 #
 # @parameter	name	The method name
@@ -785,34 +1348,9 @@
 # 				<<@class.method {Object alias}>>)
 
 
-
-
 # @class.method {Class forward}
 #
 # @use class.method        {Object forward}
-
-# @class.class-object-method {Class __unknown}
-#
-# This method is an abstracted hook method which is invoked from
-# within the language runtime upon resolving unknown classes. A class
-# is considered "unknown" when no so-named Tcl command is registered
-# with the current '''interp'''. The method can be replaced by
-# application-level implementations to realise application-specific
-# class name resolution and class acquisition schemes.
-#
-# @parameter name
-# @syshook
-
-# @class.hook {Class __unknown}
-#
-# This method is an abstracted hook method which is invoked from
-# within the language runtime upon resolving unknown classes. A class
-# is considered "unknown" when no so-named Tcl command is registered
-# with the current '''interp'''. The method can be replaced by
-# application-level implementations to realise application-specific
-# class name resolution and class acquisition schemes.
-#
-# @parameter name
 
 # @class.method {Object info}
 #
@@ -909,8 +1447,8 @@
 #
 # Computes the list of aggregated (or nested) objects. The resulting
 # list reports the fully qualified object names. If a <<@gls
-# namepattern>> was specified, all child objects whose name are
-# matched by the pattern are returned. Otherwise, all children are
+# namepattern>> was specified, all child objects, whose names are
+# matched by the pattern, are returned. Otherwise, all children are
 # reported.
 #
 # @parameter	-type	Filter children by their class membership.
@@ -1061,11 +1599,22 @@
 #
 # Retrieves the <<@glspl guard>> applied to the mixin class
 # idenitified by the mixin class name
+#
+# @parameter	mixin		The name of the mixin whose guards are requested
 
 # @class.method {Object "info mixin classes"}
 #
 # The list of per-object <<@glspl mixin_class>> currently registered for the
 # object is returned.
+#
+# @parameter	-guards		Add the guard expressions of the mixin
+# 				classes to the output
+# @parameter	-heritage	Ascertain that the mixin context of
+# 				the object is valid
+# @parameter	pattern:optional   Restrict the lookup to class names
+# 				matching the given pattern string, in
+# 				the sense of '''string match'''
+
 
 # @class.method {Object "info parent"}
 #
@@ -1129,6 +1678,25 @@
 # @parameter	pattern		A pattern string in the sense of
 # 				'''string match''' the resulting
 # 				variable names must match.
+
+# @class.method {Object "info methods"}
+#
+# Allows you to query the methods defined on the object. Note the
+# difference to <<@class.method "Object {info lookup methods}">> which
+# covers all methods actually callable upon the object.
+#
+# @parameter	-callprotection Restrict to the methods of a specific
+# 		call protection level: '''public''', '''protected''',
+# 		and '''private'''. If omitted, '''all''' protection
+# 		levels are considered.
+# @parameter	-methodtype	Restrict the search by certain method
+# 		kinds: '''scripted''', '''builtin''', '''alias''',
+# 		'''forwarder''', '''object''', and '''setter'''. If
+# 		omitted, '''all''' method sorts are considered.
+# @parameter	-path The pattern is expressed over the method paths,
+# 		rather than the method names. This allows for matching
+# 		<<@glspl ensemble>>.
+# @parameter	pattern	The pattern string in the style of '''string match'''
 
 
 
@@ -1299,57 +1867,6 @@
 # <<@gls initcmd>> feature in <<@Gls nx>> is implemented this
 # way. By providing custom hook implementations (by overloading),
 # developers can define their own object parametrisation scheme.
-#
-# @parameter lastparameter 	Denotes the object parameter to be appended
-# 				to the overall object parameter
-# 				specification (i.e., at the last
-# 				position).
-
-
-# @class.method {Object mixin}
-#
-# As a setter, '''mixin''' specifies a list of <<@glspl mixin_class>> to
-# set. Every mixin must be an existing class. In getter mode, you can
-# retrieve the list of <<@glspl mixin_class>> active for the given object. As for
-# introspecting <<@glspl mixin_class>>, consider <<@class.method {Object "info
-# mixin classes"}>>
-#
-# @return :list If called as a getter (without arguments),
-# '''mixin''' returns the list of current <<@glspl mixin_class>> registered
-# with the object
-
-# @class.method {Object filter}
-#
-# In its setter mode, '''filter''' allows you to register methods as
-# per-object <<@glspl filter>>. Every <<@gls filter>> must be an
-# existing method in the scope of the object. When acting as a getter,
-# you can retrieve the list of filter methods active for the given
-# object. See also <<@class.method {Object "info filter methods"}>>.
-#
-# @return :list If called as a getter (without arguments),
-# '''filter''' returns the list of current filters
-# registered with the object
-
-# @class.method {Class mixin}
-#
-# As a setter, '''mixin''' specifies a list of <<@glspl mixin_class>> to
-# set for the class. Every <<@gls mixin_class>> must be an existing
-# class. In getter mode, you can retrieve the list of <<@glspl
-# mixin_class>> active for the given class.
-#
-# @return :list If called as a getter (without arguments), '''mixin'''
-# returns the list of current <<@glspl mixin_class>> registered with the class
-
-# @class.method {Class filter}
-#
-# In its setter mode, '''filter''' allows you to register methods
-# as per-class <<@glspl filter>>. Every filter must be an existing method
-# in the scope of the class. When acting as a getter, you can
-# retrieve the list of <<@gls filter>> methods active for the given class.
-#
-# @return :list If called as a getter (without arguments),
-# '''filter''' returns the list of current filters
-# registered with the class
 
 # @class VariableSlot
 #
