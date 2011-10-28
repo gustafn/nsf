@@ -392,7 +392,7 @@ static int NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj
 static int NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoClassMethod(Tcl_Interp *interp, NsfObject *obj);
-static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *fileName);
+static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter);
 static int NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withOrder, CONST char *pattern);
 static int NsfObjInfoForwardMethod(Tcl_Interp *interp, NsfObject *obj, int withDefinition, CONST char *name);
 static int NsfObjInfoHasMixinMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *class);
@@ -2028,10 +2028,10 @@ NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *fileName = (CONST char *)pc.clientData[0];
+    CONST char *filter = (CONST char *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfObjInfoFilterguardMethod(interp, obj, fileName);
+    return NsfObjInfoFilterguardMethod(interp, obj, filter);
 
   }
 }
@@ -2733,7 +2733,7 @@ static Nsf_methodDefinition method_definitions[] = {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
-  {"fileName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
   {"-guards", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
