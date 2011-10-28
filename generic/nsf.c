@@ -8049,9 +8049,10 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   osPtr = GetObjectSystem(&cl->object);
   for (i = 0; i < oc; i++) {
     if (osPtr != GetObjectSystem(&scl[i]->object)) {
-      FREE(NsfClass**, scl);
-      return NsfPrintError(interp, "class \"%s\" has a different object system as class  \"%s\"",
+      NsfPrintError(interp, "class \"%s\" has a different object system as class  \"%s\"",
 			   ClassName(cl), ClassName(scl[i]));
+      FREE(NsfClass**, scl);
+      return TCL_ERROR;
     }
   }
 
