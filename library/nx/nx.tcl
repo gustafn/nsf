@@ -252,9 +252,9 @@ namespace eval ::nx {
   Class eval {
 
     # define unknown handler for class
-    :method unknown {m args} {
-      error "Method '$m' unknown for [::nsf::self].\
-	Consider '[::nsf::self] create $m $args' instead of '[::nsf::self] $m $args'"
+    :method unknown {methodName args} {
+      error "Method '$methodName' unknown for [::nsf::self].\
+	Consider '[::nsf::self] create $methodName $args' instead of '[::nsf::self] $methodName $args'"
     }
     # protected is not yet defined
     ::nsf::method::property [::nsf::self] unknown call-protected true
@@ -663,7 +663,7 @@ namespace eval ::nx {
   # Create the ensemble object for "info" here manually to prevent the
   # replicated definitions from Object.info in Class.info.
   # Potentially, some names are overwritten later by Class.info. Note,
-  # that the automatically created name of the sensemble object has to
+  # that the automatically created name of the ensemble object has to
   # be the same as defined above.
   ######################################################################
   
@@ -1745,7 +1745,7 @@ namespace eval ::nx {
      {-initblock ""} 
      {-nocomplain:switch}
      spec:parameter
-     value:optional
+     defaultValue:optional
    } {
     #
     # This method creates sometimes a slot, sometimes not
@@ -1773,23 +1773,23 @@ namespace eval ::nx {
       # we can build a slot-less variable
       #
       set isSwitch [regsub {\mswitch\M} $parameterOptions boolean parameterOptions]
-      if {[info exists value]} {
+      if {[info exists defaultValue]} {
 	if {[info exists :$name] && !$nocomplain} {
 	  error "Object [self] has already an instance variable named '$name'"
 	}
 	if {$parameterOptions ne ""} {
-	  #puts stderr "*** ::nsf::is $parameterOptions $value // opts=$options"
+	  #puts stderr "*** ::nsf::is $parameterOptions $defaultValue // opts=$options"
 	  # we rely here that the nsf::is error message expresses the implementation limits
 	  set noptions {}
 	  foreach o [split $parameterOptions ,] {
 	    if {$o ne "noconfig"} {lappend noptions $o}
 	  }
 	  set parameterOptions [join $noptions ,]
-	  ::nsf::is -complain $parameterOptions $value
+	  ::nsf::is -complain $parameterOptions $defaultValue
 	} else {
 	  set name $spec
 	}
-	set :$name $value
+	set :$name $defaultValue
       } elseif {$isSwitch} {
 	set :$name 0
       } else {
@@ -1806,10 +1806,10 @@ namespace eval ::nx {
 		  -initblock $initblock \
 		  -defaultopts [list -accessor $accessor -config false] \
 		  $spec \
-		  {*}[expr {[info exists value] ? [list $value] : ""}]]
+		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
 
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
-    if {[info exists value]} {$slot setCheckedInstVar -nocomplain=$nocomplain $value}
+    if {[info exists defaultValue]} {$slot setCheckedInstVar -nocomplain=$nocomplain $defaultValue}
     return [::nsf::directdispatch [self] ::nsf::methods::object::info::method registrationhandle [$slot name]]
   }
 
@@ -1834,14 +1834,14 @@ namespace eval ::nx {
      {-config:switch}
      {-initblock ""} 
      spec:parameter
-     default:optional
+     defaultValue:optional
    } {
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \
 		  -initblock $initblock \
 		  -defaultopts [list -accessor $accessor -config $config] \
 		  $spec \
-		  {*}[expr {[info exists default] ? [list $default] : ""}]]
+		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
     return [::nsf::directdispatch [self] ::nsf::methods::class::info::method registrationhandle [$slot name]]
   }
   
