@@ -2227,9 +2227,9 @@ For definition of class object specific methods, use the modifier
 # List definition of slots 
 
 /obj/ info slot definition \
-   ?-type value? ?-closure? ?-source value? ?pattern?
+   ?-type value? ?pattern?
 /cls/ class info slot definition \
-   ?-type value? ?-closure? ?-source value? ?pattern?
+   ?-type value? ?pattern?
 /cls/ info slot definition \
    ?-type value? ?-closure? ?-source value? ?pattern?
 ----------------
@@ -2253,9 +2253,9 @@ For definition of class object specific methods, use the modifier
 # List names of slots 
 
 /obj/ info slot names \
-   ?-type value? ?-closure? ?-source value? ?pattern?
+   ?-type value? ?pattern?
 /cls/ class info slot names \
-   ?-type value? ?-closure? ?-source value? ?pattern?
+   ?-type value? ?pattern?
 /cls/ info slot names \
    ?-type value? ?-closure? ?-source value? ?pattern?
 ----------------
