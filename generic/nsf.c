@@ -8805,7 +8805,7 @@ NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) {
   INCR_REF_COUNT2("paramDefsObj", argStringObj);
 
   for (pPtr = paramsPtr; pPtr->name; pPtr++) {
-
+    
     if ((pPtr->flags & NSF_ARG_NOCONFIG)) {
       /* 
        * Don't output non-configurable parameters

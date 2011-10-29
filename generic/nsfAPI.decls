@@ -365,7 +365,7 @@ objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
   {-argName "pattern" -required 0}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
+  {-argName "infomethodsubcmd" -required 1 -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
@@ -420,7 +420,7 @@ classInfoMethod instances NsfClassInfoInstancesMethod {
 }
 
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
+  {-argName "infomethodsubcmd" -required 1 -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
   {-argName "name" -required 1 -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
