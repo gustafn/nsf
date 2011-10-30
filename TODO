@@ -3746,6 +3746,20 @@ nsf.c:
   but need some rework. Old versions are still available from the 
   2.0.0-develop branch
 
+- Replaced hash-table for GetAllInstances() with a linear list.
+  As a result, mass-destroy on exit is now much faster. Valgrind
+  reports that the full cicrcle of creating 100.000 objects and 
+  destroying it on exit became about 15% faster.
+- added additional argument adEnd to CmdListAdd()
+- renamed CmdListRemoveList() to CmdListFree()
+- improved code documentation
+- removed unneeded AddInstance() and RemoveInstance()
+- deactivated uncalled ReverseLookupCmdFromCmdTable() and
+  GetHiddenObjectFromCmd() since apparently not needed any more
+
+
+-addInstance and removeInstance with cl==0
+
 
 ========================================================================
 TODO:

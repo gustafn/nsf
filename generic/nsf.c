@@ -247,7 +247,7 @@ NSF_INLINE static int ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackCon
 /* prototypes for object life-cycle management */
 static int RecreateObject(Tcl_Interp *interp, NsfClass *cl, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
 static void FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object);
-static void FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTablePtr);
+static void FreeAllNsfObjectsAndClasses(Tcl_Interp *interp,  NsfCmdList **instances);
 static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object);
 static void PrimitiveCDestroy(ClientData clientData);
 static void PrimitiveODestroy(ClientData clientData);
@@ -258,10 +258,10 @@ static void NsfCleanupObject_(NsfObject *object);
 static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name);
 static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name);
 static int GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, NsfClass **clPtr, int withUnknown);
-static NsfObject *GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr);
-static int ReverseLookupCmdFromCmdTable(Tcl_Interp *interp /* needed? */, Tcl_Command searchCmdPtr, 
-					Tcl_HashTable *cmdTablePtr);
-static void GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startClass);
+/*static NsfObject *GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr);
+static int ReverseLookupCmdFromCmdTable(Tcl_Interp *interp, Tcl_Command searchCmdPtr, 
+					Tcl_HashTable *cmdTablePtr);*/
+static void GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startClass);
 NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName);
 
 /* prototypes for namespace specific calls */
@@ -333,6 +333,7 @@ static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
 			       NsfCallStackContent *cscPtr, int freeArgumentVector);
 
+static void CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct);
 static void NsfCommandPreserve(Tcl_Command cmd);
 static void NsfCommandRelease(Tcl_Command cmd);
 static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
@@ -1821,23 +1822,66 @@ FlushPrecedencesOnSubclasses(NsfClass *cl) {
   cl->order = NULL;
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ * AddInstance --
+ *
+ *    Add an instance to a class.
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Add entry to children hash table
+ *
+ *----------------------------------------------------------------------
+ */
+
 static void
 AddInstance(NsfObject *object, NsfClass *cl) {
   object->cl = cl;
+
   if (cl) {
     int nw;
     (void) Tcl_CreateHashEntry(&cl->instances, (char *)object, &nw);
+    /*if (nw == 0) {
+      fprintf(stderr, "instance %p %s was already an instance of %p %s\n", object, ObjectName(object), cl, ClassName(cl));
+      }*/
+    assert(nw);
   }
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ * RemoveInstance --
+ *
+ *    Remove an instance from a class. The function checks, whether the entry
+ *    is actually still an instance before it deletes it.
+ *
+ * Results:
+ *    0 or 1
+ *
+ * Side effects:
+ *    Entry deleted from instances hash table
+ *
+ *----------------------------------------------------------------------
+ */
+
 static int
 RemoveInstance(NsfObject *object, NsfClass *cl) {
+
   if (cl) {
     Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(&cl->instances, (char *)object, NULL);
-    if (hPtr) {
-      Tcl_DeleteHashEntry(hPtr);
-      return 1;
+
+    if (hPtr == NULL) {
+      fprintf(stderr, "instance %s is not an instance of %s\n", ObjectName(object), ClassName(cl));
     }
+    assert(hPtr);
+    Tcl_DeleteHashEntry(hPtr);
+
+    return 1;
   }
   return 0;
 }
@@ -2705,9 +2749,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
  */
 static int
 ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
-  Tcl_HashTable objTable, *commandNameTable = &objTable;
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
+  NsfCmdList *instances = NULL, *entryPtr;
   NsfObjectSystem *osPtr, *nPtr;
 
   /* Deletion is performed in two rounds:
@@ -2723,64 +2765,35 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
    * different object systems.
    */
 
-  Tcl_InitHashTable(commandNameTable, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandNameTable);
-
-  /* collect all instances from all object systems */
+  /* 
+   * Collect all instances from all object systems 
+   */
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
     /*fprintf(stderr, "destroyObjectSystem deletes %s\n", ClassName(osPtr->rootClass));*/
-    GetAllInstances(interp, commandNameTable, osPtr->rootClass);
+    GetAllInstances(interp, &instances, osPtr->rootClass);
   }
 
   /***** SOFT DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_SOFT_DESTROY;
-  /* fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
 
-  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(commandNameTable, hPtr);
-    NsfObject *object = GetObjectFromString(interp, key);
-    /*
-     * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
-     * needed because objects can be hidden and re-exposed under a different
-     * command name which is not reported back to the object system by the
-     * [interp hide|expose] mechanism. Yet, we want to attempt a destroy dispatch on
-     * hidden and re-exposed objects (e.g., to trigger application-level
-     * destructors, to have the objects marked with NSF_DESTROY_CALLED).
-     */
-    if (object == NULL) {
-      object = GetHiddenObjectFromCmd(interp, (Tcl_Command)Tcl_GetHashValue(hPtr));
-    }
+  /*fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
 
-    /*fprintf(stderr, "key = %s %p %d\n",
-      key, object, object && !NsfObjectIsClass(object));*/
+  for (entryPtr = instances; entryPtr; entryPtr = entryPtr->nextPtr) {
+    NsfObject *object = (NsfObject *)entryPtr->clorobj;
+
+    /*fprintf(stderr, "key = %s %p %d flags %.6x\n",
+	    ObjectName(object), object, object && !NsfObjectIsClass(object), object->flags);*/
+
     if (object && !NsfObjectIsClass(object)
-        && !(object->flags & NSF_DESTROY_CALLED)) {
+        && !(object->flags & NSF_DESTROY_CALLED)) { 
       DispatchDestroyMethod(interp, object, 0);
     }
   }
 
   /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
 
-  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(commandNameTable, hPtr);
-    NsfClass *cl = GetClassFromString(interp, key);
-    
-    /*
-     * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
-     * needed because objects can be hidden and re-exposed under a different
-     * command name which is not reported back to the object system by the
-     * [interp hide|expose] mechanism. Yet, we want to attempt a destroy dispatch on
-     * hidden objects (e.g., to trigger application-level destructors, to have
-     * the objects marked with NSF_DESTROY_CALLED).
-     */
-    if (cl == NULL) {
-      NsfObject *hiddenObject =
-	GetHiddenObjectFromCmd(interp, (Tcl_Command)Tcl_GetHashValue(hPtr));
-      
-      cl = hiddenObject && NsfObjectIsClass(hiddenObject) ? (NsfClass *)hiddenObject : NULL;
-    }
+  for (entryPtr = instances; entryPtr; entryPtr = entryPtr->nextPtr) {
+    NsfClass *cl = entryPtr->clorobj;
     
     if (cl && !(cl->object.flags & NSF_DESTROY_CALLED)) {
       DispatchDestroyMethod(interp, (NsfObject *)cl, 0);
@@ -2791,15 +2804,11 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
   RUNTIME_STATE(interp)->doFilters = 0;
 
 #ifdef DO_CLEANUP
-  FreeAllNsfObjectsAndClasses(interp, commandNameTable);
-
+  FreeAllNsfObjectsAndClasses(interp, &instances);
 # ifdef DO_FULL_CLEANUP
   DeleteProcsAndVars(interp, Tcl_GetGlobalNamespace(interp), withKeepvars);
 # endif
 #endif
-
-  MEM_COUNT_FREE("Tcl_InitHashTable", commandNameTable);
-  Tcl_DeleteHashTable(commandNameTable);
 
   /* now free all objects systems with their root classes */
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = nPtr) {
@@ -2811,6 +2820,8 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
   /* finally, free all nsfprocs */
   DeleteNsfProcs(interp, NULL);
 #endif
+
+  CmdListFree(&instances, NULL);
 
   return TCL_OK;
 }
@@ -4455,6 +4466,7 @@ NSFindCommand(Tcl_Interp *interp, CONST char *name) {
   return cmd;
 }
 
+#if 0
 /*
  *----------------------------------------------------------------------
  * ReverseLookupCmdFromCmdTable --
@@ -4553,6 +4565,7 @@ GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr) {
 #endif
   return screenedObject;
 }
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -4960,8 +4973,16 @@ CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object) {
  * Cmd List Add/Remove ... returns the new element
  */
 static NsfCmdList *
-CmdListAdd(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicates) {
-  NsfCmdList *l = *cList, *new;
+CmdListAdd(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicates, int atEnd) {
+  NsfCmdList *l, *nextPtr, *new;
+
+  if (atEnd) {
+    l = *cList;
+    nextPtr = NULL;
+  } else {
+    l = NULL;
+    nextPtr = *cList;
+  }
 
   /*
    * check for duplicates, if necessary
@@ -4991,14 +5012,23 @@ CmdListAdd(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicate
   NsfCommandPreserve(new->cmdPtr);
   new->clientData = NULL;
   new->clorobj = clorobj;
-  new->nextPtr = NULL;
+  new->nextPtr = nextPtr;
 
   if (l) {
-    while (l->nextPtr)
+    /*
+     * append new element at the end
+     */
+    while (l->nextPtr) {
       l = l->nextPtr;
+    }
     l->nextPtr = new;
-  } else
+  } else {
+    /*
+     * prepend new element
+     */
     *cList = new;
+  }
+
   return new;
 }
 
@@ -5195,7 +5225,7 @@ CmdListRemoveContextClassFromList(NsfCmdList **cmdList, NsfClass *clorobj,
  * free the memory of a whole 'cmdList'
  */
 static void
-CmdListRemoveList(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
+CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
   NsfCmdList *del;
   while (*cmdList) {
     del = *cmdList;
@@ -5733,7 +5763,7 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
 static void
 MixinResetOrder(NsfObject *object) {
   /*fprintf(stderr, "MixinResetOrder for object %s \n", ObjectName(object));*/
-  CmdListRemoveList(&object->mixinOrder, NULL /*GuardDel*/);
+  CmdListFree(&object->mixinOrder, NULL /*GuardDel*/);
   object->mixinOrder = NULL;
 }
 
@@ -5851,7 +5881,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
 
       /*fprintf(stderr, "--- adding to mixinOrder %s to cmdlist %p of object %s\n",
 	ClassName(cl), object->mixinOrder, ObjectName(object));*/
-      new = CmdListAdd(&object->mixinOrder, cl->object.id, NULL, /*noDuplicates*/ 0);
+      new = CmdListAdd(&object->mixinOrder, cl->object.id, NULL, /*noDuplicates*/ 0, 1);
       /*CmdListPrint(interp, "mixinOrder", object->mixinOrder);*/
 
       /*
@@ -5908,7 +5938,7 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
 
   NsfMixinregGet(nameObj, &mixinCl, &guardObj);
 
-  new = CmdListAdd(mixinList, mixinCl->object.id, NULL, /*noDuplicates*/ 1);
+  new = CmdListAdd(mixinList, mixinCl->object.id, NULL, /*noDuplicates*/ 1, 1);
   if (guardObj) {
     GuardAdd(new, guardObj);
   } else if (new->clientData) {
@@ -6030,17 +6060,18 @@ AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
  *----------------------------------------------------------------------
  */
 static void
-GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startCl) {
+GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
   NsfClasses *sc;
   Tcl_HashSearch search;
-  Tcl_HashEntry *hPtr, *hPtr2;
+  Tcl_HashEntry *hPtr;
   Tcl_HashTable *tablePtr = &startCl->instances;
+
+  /*fprintf(stderr, "GetAllInstances from %s\n", ClassName(startCl));*/
 
   for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
        hPtr = Tcl_NextHashEntry(&search)) {
     NsfObject *inst = (NsfObject *)Tcl_GetHashKey(tablePtr, hPtr);
     Command *cmdPtr;
-    int new;
 
     if (inst->flags & NSF_TCL_DELETE) {
       NsfLog(interp, NSF_LOG_NOTICE, "Object %s is apparently deleted", ObjectName(inst));
@@ -6057,6 +6088,10 @@ GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *start
 
 #if !defined(NDEBUG)
     {
+      /*
+       * Make sure, we can still lookup the object; the object has to be still
+       * alive.
+       */
       NsfObject *object = GetObjectFromString(interp, ObjectName(inst));
       /*
        * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
@@ -6078,25 +6113,11 @@ GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *start
 	     ObjectName(inst), inst->id, cmdPtr->flags, cmdPtr->nsPtr ? cmdPtr->nsPtr->flags : 0,
 	     ClassName(startCl));*/
 
-    hPtr2 = Tcl_CreateHashEntry(destTablePtr, ObjectName(inst), &new);
-    /*
-     * HIDDEN OBJECTS: To be able to lookup hidden and re-exposed objects by
-     * their command pointers, we need to preserve them in the result
-     * table. Otherwise, pointer-based lookups in the cleanup procedures
-     * (ObjectSystemsCleanup(), FreeAllNsfObjectsAndClasses()) would not be
-     * possible.
-     */
-    if (new) {
-      /* 
-       * Through the assertion block above, we know already that the entry is
-       * an exposed or hidden object, we can assiciate the cmd ptr this way.
-       */
-      Tcl_SetHashValue(hPtr2, (ClientData)inst->id);
-    }
-
+    CmdListAdd(instances, inst->id, (NsfClass *)inst, 0, 0);
   }
+
   for (sc = startCl->sub; sc; sc = sc->nextPtr) {
-    GetAllInstances(interp, destTablePtr, sc->cl);
+    GetAllInstances(interp, instances, sc->cl);
   }
 }
 
@@ -7503,7 +7524,7 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
 
   /*fprintf(stderr, " +++ adding filter %s cl %p\n", ObjStr(nameObj), cl);*/
 
-  new = CmdListAdd(filterList, cmd, cl, /*noDuplicates*/ 1);
+  new = CmdListAdd(filterList, cmd, cl, /*noDuplicates*/ 1, 1);
   FilterAddActive(interp, ObjStr(filterObj));
 
   if (guardObj) {
@@ -7520,7 +7541,7 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
  */
 static void
 FilterResetOrder(NsfObject *object) {
-  CmdListRemoveList(&object->filterOrder, GuardDel);
+  CmdListFree(&object->filterOrder, GuardDel);
   object->filterOrder = NULL;
 }
 
@@ -7741,7 +7762,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
   for (f = *filters; f; f = f->nextPtr) {
     simpleName = (char *) Tcl_GetCommandName(interp, f->cmdPtr);
     fcl = f->clorobj;
-    CmdListAdd(filterList, f->cmdPtr, fcl, /*noDuplicates*/ 0);
+    CmdListAdd(filterList, f->cmdPtr, fcl, /*noDuplicates*/ 0, 1);
 
     if (fcl && !NsfObjectIsClass(&fcl->object)) {
       /* get the class from the object for per-object filter */
@@ -7758,7 +7779,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
         for(; pl; pl = pl->nextPtr) {
           Tcl_Command pi = FindMethod(pl->cl->nsPtr, simpleName);
           if (pi) {
-            CmdListAdd(filterList, pi, pl->cl, /*noDuplicates*/ 0);
+            CmdListAdd(filterList, pi, pl->cl, /*noDuplicates*/ 0, 1);
             /*
               fprintf(stderr, " %s::%s, ", ClassName(pl->cl), simpleName);
             */
@@ -7827,7 +7848,7 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
     }
     if (checker == NULL) {
       newlist = CmdListAdd(&object->filterOrder, filterList->cmdPtr, filterList->clorobj,
-                           /*noDuplicates*/ 0);
+                           /*noDuplicates*/ 0, 1);
       GuardAddInheritedGuards(interp, newlist, object, filterList->cmdPtr);
       /*
         fprintf(stderr, "  Adding %s::%s,\n", filterList->cmdPtr->nsPtr->fullName, Tcl_GetCommandName(interp, filterList->cmdPtr));
@@ -13572,8 +13593,8 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
        */
       RemoveFromObjectMixinsOf(object->id, opt->objMixins);
 
-      CmdListRemoveList(&opt->objMixins, GuardDel);
-      CmdListRemoveList(&opt->objFilters, GuardDel);
+      CmdListFree(&opt->objMixins, GuardDel);
+      CmdListFree(&opt->objFilters, GuardDel);
       FREE(NsfObjectOpt, opt);
       object->opt = 0;
     }
@@ -13980,24 +14001,24 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
      */
     RemoveFromClassMixinsOf(clopt->id, clopt->classMixins);
 
-    CmdListRemoveList(&clopt->classMixins, GuardDel);
+    CmdListFree(&clopt->classMixins, GuardDel);
     /*MixinInvalidateObjOrders(interp, cl);*/
 
-    CmdListRemoveList(&clopt->classFilters, GuardDel);
+    CmdListFree(&clopt->classFilters, GuardDel);
 
     if (!recreate) {
       /*
        *  Remove this class from all mixin lists and clear the isObjectMixinOf list
        */
       RemoveFromObjectMixins(clopt->id, clopt->isObjectMixinOf);
-      CmdListRemoveList(&clopt->isObjectMixinOf, GuardDel);
+      CmdListFree(&clopt->isObjectMixinOf, GuardDel);
 
       /*
        *  Remove this class from all class mixin lists and clear the
        *  isClassMixinOf list
        */
       RemoveFromClassmixins(clopt->id, clopt->isClassMixinOf);
-      CmdListRemoveList(&clopt->isClassMixinOf, GuardDel);
+      CmdListFree(&clopt->isClassMixinOf, GuardDel);
     }
 
     /*
@@ -14044,7 +14065,6 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
 	  inst, ObjectName(inst), inst->flags, inst->id, baseClass, ClassName(baseClass));*/
         if (inst && inst != (NsfObject *)cl && !(inst->flags & NSF_DURING_DELETE) /*inst->id*/) {
           if (inst != &(baseClass->object)) {
-            (void)RemoveInstance(inst, cl->object.cl);
             AddInstance(inst, baseClass);
           }
         }
@@ -17667,30 +17687,20 @@ cmd __db_run_assertions NsfDebugRunAssertionsCmd {}
 */
 static int
 NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
-  Tcl_HashTable table, *tablePtr = &table;
   NsfObjectSystem *osPtr;
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
+  NsfCmdList *instances = NULL, *entry;
 
-  /* collect all instances from all object systems */
-  Tcl_InitHashTable(tablePtr, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", &tablePtr);
+  /* 
+   * Collect all instances from all object systems 
+   */
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
-    GetAllInstances(interp, tablePtr, osPtr->rootClass);
+    GetAllInstances(interp, &instances, osPtr->rootClass);
   }
 
-  for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(tablePtr, hPtr);
-    NsfObject *object = GetObjectFromString(interp, key);
-    /*
-     * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
-     * needed because objects can be hidden and re-exposed under a different
-     * name which is not reported back to the object system by the [interp
-     * hide|expose] mechanism. Yet, we want to process them here ...
-     */
-    if (object == NULL) {
-      object = GetHiddenObjectFromCmd(interp, (Tcl_Command)Tcl_GetHashValue(hPtr));
-    }
+  for (entry = instances; entry; entry = entry->nextPtr) {
+#if !defined(NDEBUG)
+    NsfObject *object = (NsfObject *)entry->clorobj;
+#endif
 
     assert(object);
     assert(object->refCount > 0);
@@ -17733,9 +17743,8 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
 #endif
 
   }
+  CmdListFree(&instances, NULL);
   /*fprintf(stderr, "all assertions passed\n");*/
-  Tcl_DeleteHashTable(tablePtr);
-  MEM_COUNT_FREE("Tcl_InitHashTable", &tablePtr);
 
   return TCL_OK;
 }
@@ -19674,7 +19683,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
       for (i = 0; i < oc; i++) {
         if (MixinAdd(interp, &newMixinCmdList, ov[i], object->cl->object.cl) != TCL_OK) {
-          CmdListRemoveList(&newMixinCmdList, GuardDel);
+          CmdListFree(&newMixinCmdList, GuardDel);
           return TCL_ERROR;
         }
       }
@@ -19694,7 +19703,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
             }
           }
         }
-        CmdListRemoveList(&objopt->objMixins, GuardDel);
+        CmdListFree(&objopt->objMixins, GuardDel);
       }
 
       object->flags &= ~NSF_MIXIN_ORDER_VALID;
@@ -19732,7 +19741,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
   case RelationtypeObject_filterIdx:
 
     if (objopt->objFilters) {
-      CmdListRemoveList(&objopt->objFilters, GuardDel);
+      CmdListFree(&objopt->objFilters, GuardDel);
     }
     object->flags &= ~NSF_FILTER_ORDER_VALID;
     for (i = 0; i < oc; i ++) {
@@ -19749,13 +19758,13 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
       for (i = 0; i < oc; i++) {
         if (MixinAdd(interp, &newMixinCmdList, ov[i], cl->object.cl) != TCL_OK) {
-          CmdListRemoveList(&newMixinCmdList, GuardDel);
+          CmdListFree(&newMixinCmdList, GuardDel);
           return TCL_ERROR;
         }
       }
       if (clopt->classMixins) {
         RemoveFromClassMixinsOf(cl->object.id, clopt->classMixins);
-        CmdListRemoveList(&clopt->classMixins, GuardDel);
+        CmdListFree(&clopt->classMixins, GuardDel);
       }
 
       MixinInvalidateObjOrders(interp, cl);
@@ -19788,7 +19797,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
   case RelationtypeClass_filterIdx:
 
     if (clopt->classFilters) {
-      CmdListRemoveList(&clopt->classFilters, GuardDel);
+      CmdListFree(&clopt->classFilters, GuardDel);
     }
     if (FiltersDefined(interp) > 0) {  
       FilterInvalidateObjOrders(interp, cl);
@@ -21486,8 +21495,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
       goto create_method_exit;
     }
 
-    AddInstance(newObject, cl);
-
     ObjTrace("CREATE", newObject);
 
     /* in case, the object is destroyed during initialization, we incr refCount */
@@ -23077,13 +23084,11 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
 }
 
 static void
-FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTablePtr) {
-  Tcl_HashEntry *hPtr, *hPtr2;
-  Tcl_HashSearch hSrch, hSrch2;
-  NsfObject *object;
+FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
+  NsfCmdList *entry, *lastEntry;
   int deleted = 0;
 
-  /*fprintf(stderr, "FreeAllNsfObjectsAndClasses in %p\n", interp);*/
+  /* fprintf(stderr, "FreeAllNsfObjectsAndClasses in %p\n", interp); */
 
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_PHYSICAL_DESTROY;
 
@@ -23093,26 +23098,19 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
    * imported commands and objects and will resolve potential loops in
    * the dependency graph. The result is a plain object/class tree.
    */
-  for (hPtr = Tcl_FirstHashEntry(commandNameTablePtr, &hSrch); hPtr;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(commandNameTablePtr, hPtr);
-    object = GetObjectFromString(interp, key);
-    /*
-     * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
-     * needed because objects can be hidden and re-exposed under a different
-     * command name which is not reported back to the object system by the
-     * [interp hide|expose] mechanism. Yet, we want to perform the standard cleanup
-     * procedure on hidden objects.
-     */
-    if (object == NULL) {
-      object = GetHiddenObjectFromCmd(interp, (Tcl_Command)Tcl_GetHashValue(hPtr));
-    }
-    
+
+  for (entry = *instances; entry; entry = entry->nextPtr) {
+    NsfObject *object = (NsfObject *)entry->clorobj;
+
     /* delete per-object methods */
     if (object && object->nsPtr) {
-      for (hPtr2 = Tcl_FirstHashEntry(Tcl_Namespace_cmdTablePtr(object->nsPtr), &hSrch2); hPtr2;
-           hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
-        Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
+      Tcl_HashEntry *hPtr;
+      Tcl_HashSearch hSrch;
+      
+      for (hPtr = Tcl_FirstHashEntry(Tcl_Namespace_cmdTablePtr(object->nsPtr), &hSrch); hPtr;
+           hPtr = Tcl_NextHashEntry(&hSrch)) {
+        Tcl_Command cmd = Tcl_GetHashValue(hPtr);
+
         if (cmd) {
 	  if (CmdIsNsfObject(cmd)) {
 	    AliasDeleteObjectReference(interp, cmd);
@@ -23129,18 +23127,22 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
      * objects, which will resolved this way.
      */
     if (object && NsfObjectIsClass(object)) {
-      for (hPtr2 = Tcl_FirstHashEntry(Tcl_Namespace_cmdTablePtr(((NsfClass *)object)->nsPtr),
-				      &hSrch2); hPtr2;
-           hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
-        Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
+      Tcl_HashEntry *hPtr;
+      Tcl_HashSearch hSrch;
+
+      for (hPtr = Tcl_FirstHashEntry(Tcl_Namespace_cmdTablePtr(((NsfClass *)object)->nsPtr),
+				      &hSrch); hPtr;
+           hPtr = Tcl_NextHashEntry(&hSrch)) {
+        Tcl_Command cmd = Tcl_GetHashValue(hPtr);
+
         if (cmd && CmdIsNsfObject(cmd)) {
 	  AliasDeleteObjectReference(interp, cmd);
 	  continue;
 	}
       }
     }
-
   }
+
   /*fprintf(stderr, "deleted %d cmds\n", deleted);*/
 
   /*
@@ -23155,20 +23157,10 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
      * Delete all plain objects without dependencies
      */
     deleted = 0;
-    for (hPtr = Tcl_FirstHashEntry(commandNameTablePtr, &hSrch); hPtr;
-	 hPtr = Tcl_NextHashEntry(&hSrch)) {
-      char *key = Tcl_GetHashKey(commandNameTablePtr, hPtr);
-      object = GetObjectFromString(interp, key);
-      /*
-       * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
-       * needed because objects can be hidden and re-exposed under a different
-       * command name which is not reported back to the object system by the
-       * [interp hide|expose] mechanism. Yet, we want to perform the standard cleanup
-       * procedure on hidden objects.
-       */
-      if (object == NULL) {
-	object = GetHiddenObjectFromCmd(interp, (Tcl_Command)Tcl_GetHashValue(hPtr));
-      }
+    for (entry = *instances, lastEntry = NULL; 
+	 entry; 
+	 lastEntry = entry, entry = entry->nextPtr) {
+      NsfObject *object = (NsfObject *)entry->clorobj;
 
       if (object && !NsfObjectIsClass(object) && !ObjectHasChildren(object)) {
 	/*if (object->id) {
@@ -23176,12 +23168,25 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
 		  ClassName(object->cl), object->id, object->nsPtr);
 		  }*/
         FreeUnsetTraceVariable(interp, object);
-        if (object->id) FinalObjectDeletion(interp, object);
-        Tcl_DeleteHashEntry(hPtr);
+        if (object->id) {
+	  FinalObjectDeletion(interp, object);
+	}
+
+	if (entry == *instances) {
+	  *instances = entry->nextPtr;
+	  CmdListDeleteCmdListEntry(entry, NULL);
+	  entry = *instances;
+	} else {
+	  lastEntry->nextPtr = entry->nextPtr;
+	  CmdListDeleteCmdListEntry(entry, NULL);
+	  entry = lastEntry;
+	}
+
         deleted++;
       }
     }
     /*fprintf(stderr, "deleted %d Objects without dependencies\n", deleted);*/
+
     if (deleted > 0) {
       continue;
     }
@@ -23189,43 +23194,47 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTableP
     /*
      * Delete all classes without dependencies
      */
-    for (hPtr = Tcl_FirstHashEntry(commandNameTablePtr, &hSrch); hPtr;
-	 hPtr = Tcl_NextHashEntry(&hSrch)) {
-      char *key = Tcl_GetHashKey(commandNameTablePtr, hPtr);
-      NsfClass *cl = GetClassFromString(interp, key);
+    for (entry = *instances, lastEntry = NULL; 
+	 entry; 
+	 lastEntry = entry, entry = entry->nextPtr) {
+      NsfClass *cl = entry->clorobj;
 
-      /*
-       * HIDDEN OBJECTS: Provide a fallback to a pointer-based lookup. This is
-       * needed because objects can be hidden and re-exposed under a different
-       * command name which is not reported back to the object system by the
-       * [interp hide|expose] mechanism. Yet, we want to perform the standard
-       * cleanup procedure on hidden objects.
-       */
-      if (cl == NULL) {
-	NsfObject *hiddenObject;
-	
-	hiddenObject = GetHiddenObjectFromCmd(interp, (Tcl_Command)Tcl_GetHashValue(hPtr));
-	cl = hiddenObject && NsfObjectIsClass(hiddenObject) ? (NsfClass *)hiddenObject : NULL;
+      if (!NsfObjectIsClass(&cl->object)) {
+	continue;
       }
 
-      /*fprintf(stderr, "cl key = %s %p\n", key, cl);*/
+      /*fprintf(stderr, "cl key = %s %p\n", ClassName(cl), cl); */
       if (cl
           && !ObjectHasChildren((NsfObject *)cl)
           && !ClassHasInstances(cl)
           && !ClassHasSubclasses(cl)
           && !IsBaseClass(cl)
           ) {
-        /*fprintf(stderr, "  ... delete class %s %p\n", key, cl); */
+        /*fprintf(stderr, "  ... delete class %s %p\n", ClassName(cl), cl); */
 
         FreeUnsetTraceVariable(interp, &cl->object);
         if (cl->object.id) {
 	  FinalObjectDeletion(interp, &cl->object);
 	}
-        Tcl_DeleteHashEntry(hPtr);
+
+	if (entry == *instances) {
+	  *instances = entry->nextPtr;
+	  /*fprintf(stderr, "... delete first entry %p\n", entry);*/
+	  CmdListDeleteCmdListEntry(entry, NULL);
+	  entry = *instances;
+	} else {
+	  /*fprintf(stderr, "... delete entry %p\n", entry);*/
+	  lastEntry->nextPtr = entry->nextPtr;
+	  CmdListDeleteCmdListEntry(entry, NULL);
+	  entry = lastEntry;
+	}
+
         deleted++;
       }
     }
+
     /*fprintf(stderr, "deleted %d Classes\n", deleted);*/
+
     if (deleted == 0) {
       break;
     }
