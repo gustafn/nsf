@@ -1609,10 +1609,13 @@ NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
   element->nextPtr = NULL;
 
   if (l) {
-    while (l->nextPtr) l = l->nextPtr;
+    while (l->nextPtr) {
+      l = l->nextPtr;
+    }
     l->nextPtr = element;
-  } else
+  } else {
     *firstPtrPtr = element;
+  }
   return &(element->nextPtr);
 }
 
