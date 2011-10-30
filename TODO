@@ -3823,10 +3823,6 @@ TODO:
 
  - call user-defined setter in object parameters?
 
- - NsfObjWrongArgs() & friends is not aware of submethods. Error
-   messages print with the leaf method names only, e.g.: "anObj method
-   ..." instead of " anObj info method ..." etc.
-
 - Revise callstack introspection/intercession, i.e., [current
   activelevel] vs. [current callinglevel] vs. uplevel()/upvar():
   
