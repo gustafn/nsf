@@ -3757,9 +3757,9 @@ nsf.c:
 - deactivated uncalled ReverseLookupCmdFromCmdTable() and
   GetHiddenObjectFromCmd() since apparently not needed any more
 
-
--addInstance and removeInstance with cl==0
-
+nsf.c:
+- removed conditionals in AddInstance() and RemoveInstance()
+- dropped result from RemoveInstance()
 
 ========================================================================
 TODO:

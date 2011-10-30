@@ -1840,16 +1840,15 @@ FlushPrecedencesOnSubclasses(NsfClass *cl) {
 
 static void
 AddInstance(NsfObject *object, NsfClass *cl) {
-  object->cl = cl;
+  int newItem;
 
-  if (cl) {
-    int nw;
-    (void) Tcl_CreateHashEntry(&cl->instances, (char *)object, &nw);
-    /*if (nw == 0) {
-      fprintf(stderr, "instance %p %s was already an instance of %p %s\n", object, ObjectName(object), cl, ClassName(cl));
-      }*/
-    assert(nw);
-  }
+  assert(cl);
+  object->cl = cl;
+  (void) Tcl_CreateHashEntry(&cl->instances, (char *)object, &newItem);
+  /*if (newItem == 0) {
+    fprintf(stderr, "instance %p %s was already an instance of %p %s\n", object, ObjectName(object), cl, ClassName(cl));
+    }*/
+  assert(newItem);
 }
 
 
@@ -1861,7 +1860,7 @@ AddInstance(NsfObject *object, NsfClass *cl) {
  *    is actually still an instance before it deletes it.
  *
  * Results:
- *    0 or 1
+ *    void
  *
  * Side effects:
  *    Entry deleted from instances hash table
@@ -1869,21 +1868,18 @@ AddInstance(NsfObject *object, NsfClass *cl) {
  *----------------------------------------------------------------------
  */
 
-static int
+static void
 RemoveInstance(NsfObject *object, NsfClass *cl) {
+  Tcl_HashEntry *hPtr;
 
-  if (cl) {
-    Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(&cl->instances, (char *)object, NULL);
+  assert(cl);
+  hPtr = Tcl_CreateHashEntry(&cl->instances, (char *)object, NULL);
 
-    if (hPtr == NULL) {
-      fprintf(stderr, "instance %s is not an instance of %s\n", ObjectName(object), ClassName(cl));
-    }
-    assert(hPtr);
-    Tcl_DeleteHashEntry(hPtr);
-
-    return 1;
-  }
-  return 0;
+  /*if (hPtr == NULL) {
+    fprintf(stderr, "instance %s is not an instance of %s\n", ObjectName(object), ClassName(cl));
+    }*/
+  assert(hPtr);
+  Tcl_DeleteHashEntry(hPtr);
 }
 
 /*
@@ -4466,7 +4462,7 @@ NSFindCommand(Tcl_Interp *interp, CONST char *name) {
   return cmd;
 }
 
-#if 0
+#if !defined(NDEBUG)
 /*
  *----------------------------------------------------------------------
  * ReverseLookupCmdFromCmdTable --
@@ -7428,14 +7424,13 @@ static void
 FilterAddActive(Tcl_Interp *interp, CONST char *methodName) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
   Tcl_HashEntry *hPtr;
-  int new, count;
+  int newItem;
   
-  hPtr = Tcl_CreateHashEntry(&rst->activeFilterTablePtr, methodName, &new);
-
-  if (new) {
+  hPtr = Tcl_CreateHashEntry(&rst->activeFilterTablePtr, methodName, &newItem);
+  if (newItem) {
     Tcl_SetHashValue(hPtr, INT2PTR(1));
   } else {
-    count  = PTR2INT(Tcl_GetHashValue(hPtr));
+    int count = PTR2INT(Tcl_GetHashValue(hPtr));
     Tcl_SetHashValue(hPtr, INT2PTR(count+1));
   }
 }
@@ -13563,7 +13558,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
       (object->flags & NSF_IS_ROOT_META_CLASS) == 0 ) {
 
     if (!softrecreate) {
-      (void)RemoveInstance(object, object->cl);
+      RemoveInstance(object, object->cl);
     }
   }
 
@@ -13618,7 +13613,8 @@ CleanupInitObject(Tcl_Interp *interp, NsfObject *object,
 #endif
   object->teardown = interp;
   object->nsPtr = nsPtr;
-  if (!softrecreate) {
+
+  if (!softrecreate && cl) {
     AddInstance(object, cl);
   }
   if (object->flags & NSF_RECREATE) {
@@ -14353,7 +14349,7 @@ ChangeClass(Tcl_Interp *interp, NsfObject *object, NsfClass *cl) {
 	return NsfPrintError(interp, "cannot turn class into an object ");
       }
     }
-    (void)RemoveInstance(object, object->cl);
+    RemoveInstance(object, object->cl);
     AddInstance(object, cl);
 
     MixinComputeDefined(interp, object);
