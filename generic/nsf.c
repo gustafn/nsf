@@ -3060,6 +3060,48 @@ NsfMethodName(Tcl_Obj *methodObj) {
   return MethodName(methodObj);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfMethodNamePath --
+ *
+ *    Compute the full method name for error messages containing the
+ *    ensemble root.
+ *
+ * Results:
+ *    Tcl_Obj, caller has to take care for refcounting
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+Tcl_Obj *
+NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj) {
+  Tcl_CallFrame *framePtr;
+  NsfCallStackContent *cscPtr = CallStackGetTopFrame(interp, &framePtr);
+  Tcl_Obj *resultObj;
+
+  /* NsfShowStack(interp);*/
+  if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) {
+    resultObj = Tcl_NewListObj(0, NULL);
+    Tcl_ListObjAppendElement(interp, resultObj, 
+			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
+    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(MethodName(procObj), -1));
+  } else {
+    resultObj = Tcl_NewStringObj(MethodName(procObj), -1);
+  }
+  /* The following might be needed for deeper nested errors, but so far, it
+     does not appear to be necessary. Just kept as a reminder here */
+#if 0
+  if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
+    cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
+    fprintf(stderr, "inside ensemble\n");
+  }
+#endif
+
+  return resultObj;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -9335,8 +9377,10 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
          * these elements takes care that the cmdPtr is deleted on a pop
          * operation (although we do a Tcl_DeleteCommandFromToken() below.
          */
-	fprintf(stderr, "methodName %s found DELETED object with cmd %p my cscPtr %p\n",
-		methodName, cmd, cscPtr);
+
+	/*fprintf(stderr, "methodName %s found DELETED object with cmd %p my cscPtr %p\n",
+	  methodName, cmd, cscPtr);*/
+
 	assert(cscPtr->cmdPtr == cmd);
         Tcl_DeleteCommandFromToken(interp, cmd);
 	if (cscPtr->cl) {
@@ -15978,6 +16022,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
   }
   return TCL_OK;
 }
+
 
 /*
  *----------------------------------------------------------------------

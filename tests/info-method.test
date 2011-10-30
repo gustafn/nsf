@@ -1022,3 +1022,10 @@ nx::Test case info-methods-closure {
   ? {D info methods -closure *2} "m2 d2 c2"
   ? {D info methods -closure -source application} "m1 m2 c1 d1 d2 c2"
 }
+
+#
+# Test error messages within an ensemble call
+#
+nx::Test case error-in-ensemble {
+  ? {nx::Object info method definition foo 1} {Invalid argument '1', maybe too many arguments; should be "::nx::Object info method args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods name"}
+}

@@ -198,7 +198,12 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
   }
   if (methodName) {
     if (need_space) Tcl_AppendResult(interp, " ", (char *) NULL);
-    Tcl_AppendResult(interp, NsfMethodName(methodName), (char *) NULL);
+
+    Tcl_Obj *resultObj = NsfMethodNamePath(interp, methodName);
+    INCR_REF_COUNT(resultObj);
+    Tcl_AppendResult(interp, ObjStr(resultObj), (char *) NULL);
+    DECR_REF_COUNT(resultObj);
+
     need_space = 1;
   }
   if (arglist != NULL) {

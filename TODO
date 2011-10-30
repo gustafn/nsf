@@ -3761,9 +3761,34 @@ nsf.c:
 - removed conditionals in AddInstance() and RemoveInstance()
 - dropped result from RemoveInstance()
 
+nsf.c:
+- added method NsfMethodNamePath() to compute the ensemble path
+  in error messages
+- reduce verbosity
+- extended regression test
+
 ========================================================================
 TODO:
 
+ - make rough comparsion table with NX, XOTcl, tclOO, itcl, Ruby, Python
+   Most general superclass
+   Metaclass
+   Per-object methods
+   Per-Object mixins -- none, class, or class hierarchy
+   Per-Class mixins -- none, class, or class hierarchy
+   transitive mixins classes
+   Per-object filters
+   Per-class filters
+   aliases
+   Traits
+   Composite Traits
+   Method protection public/protected/private
+   positional arguments   none, leading args, arbitrary
+   argument value checkers
+   Create objects classes with no callable methods
+
+
+   
  - doc/tutorial2.html
 
  - warnings for "numeric" names for args and nonpos-args?
@@ -3796,7 +3821,7 @@ TODO:
    * add switch -array for "variable"? (Just setting is trivial,
      handling setters and incremental setter is more work)
 
- - call user defined setter in object parameters?
+ - call user-defined setter in object parameters?
 
  - NsfObjWrongArgs() & friends is not aware of submethods. Error
    messages print with the leaf method names only, e.g.: "anObj method

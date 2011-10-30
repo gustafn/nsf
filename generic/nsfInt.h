@@ -940,6 +940,8 @@ extern CONST char *NsfMethodName(Tcl_Obj *methodObj);
 extern void NsfReportVars(Tcl_Interp *interp);
 extern void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 
+extern Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj);
+
 /* 
  * NsfFlag type
  */
