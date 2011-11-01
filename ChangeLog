@@ -1,6 +1,11 @@
+2011-11-01 <Gustaf.Neumann@wu-wien.ac.at>
+	* xotcl.c: some c-cleanup
+	* library files: require exact version numbers to avoid conflicts
+	  with XOTcl 2.0
+
 2011-08-07 <Gustaf.Neumann@wu-wien.ac.at>
 	* backport of autoname fix from nsf
-	
+
 2011-04-28 <Gustaf.Neumann@wu-wien.ac.at>
 	* serializer: fix allChildren to handle names with semicolons
 	* serializer: fix allInstances to handle names with semicolons

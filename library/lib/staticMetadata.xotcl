@@ -1,4 +1,4 @@
-package require xotcl::metadataAnalyzer
+package require -exact xotcl::metadataAnalyzer 0.84
 package provide xotcl::staticMetadataAnalyzer 0.84
 package require XOTcl
 

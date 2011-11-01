@@ -29,8 +29,8 @@ if {$opt(-startServer)} {
   puts $startCmd
 }
 
-package require xotcl::comm::httpAccess
-package require xotcl::comm::ftp
+package require -exact xotcl::comm::httpAccess 0.91
+package require -exact xotcl::comm::ftp 0.9
 package require xotcl::trace
 
 #::xotcl::package verbose 1

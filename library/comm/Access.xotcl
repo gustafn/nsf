@@ -3,10 +3,10 @@
 set httpAccessVersion 0.91
 package provide xotcl::comm::httpAccess $httpAccessVersion
 
-package require xotcl::comm::pcache
-package require xotcl::comm::mime
-package require xotcl::comm::connection
-package require xotcl::trace
+package require -exact xotcl::comm::pcache 0.9
+package require -exact xotcl::comm::mime 0.9
+package require -exact xotcl::comm::connection 1.0
+package require -exact xotcl::trace 0.91
 
 package require XOTcl
 
@@ -319,7 +319,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	} elseif {[regexp -nocase {^file:(.*)$} $url _ path]} {
 	    set access File
 	} elseif {[regexp -nocase {^ftp://([^/]+)/(.*)$} $url _ host path]} {
-	    package require xotcl::comm::ftp
+	    package require -exact xotcl::comm::ftp 0.9
 	    set access Ftp
 	} elseif {[regexp -nocase {^imap://([^/]+)/(.*)$} $url _ host path]} {
 	    package require xotcl::comm::imap

@@ -34,7 +34,7 @@ proc ! string {
 # We load the following packages:
 #
 #::xotcl::package import ::xotcl::comm::httpd
-package require xotcl::comm::httpd
+package require -exact xotcl::comm::httpd 1.1
 
 ! "#### httpd required"
 

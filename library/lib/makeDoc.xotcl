@@ -10,9 +10,9 @@ namespace import ::xotcl::*
 }
 lappend auto_path [file dirname [info script]]
 
-package require xotcl::package
-package verbose 1
-package require xotcl::xodoc
+#package require xotcl::package
+#package verbose 1
+package require -exact xotcl::xodoc 0.84
 set fileList ""
 
 puts "XOTcl Documentation Tool"

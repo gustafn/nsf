@@ -13,7 +13,7 @@ package require XOTcl
 #package require xotcl::comm::httpAccess
 
 package require xotcl::comm::connection
-package require xotcl::trace
+package require -exact xotcl::trace 0.91
 package require xotcl::comm::mime
 
 namespace eval ::xotcl::comm::httpd {
