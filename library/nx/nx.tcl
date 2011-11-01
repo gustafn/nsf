@@ -484,7 +484,9 @@ namespace eval ::nx {
     }
     
     :protected method defaultmethod {} {
-      set obj [uplevel {::nsf::current}]
+      if {[catch {set obj [uplevel ::nsf::current]}]} {
+	error "Ensemble dispatch called outside of method context"
+      }
       set path [::nsf::current methodpath]
       set l [string length $path]
       set submethods [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]

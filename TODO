@@ -3767,6 +3767,9 @@ nsf.c:
 - reduce verbosity
 - extended regression test
 
+- nsf.c: fix call of DispatchDefaultMethod() in cases it triggers an error for 8.6b
+- nx.tcl: give a slightly better error message in case the root-object of an ensemble is called directly
+
 ========================================================================
 TODO:
 

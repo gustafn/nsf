@@ -10484,7 +10484,7 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
      */
     result = ObjectDispatch(clientData, interp, objc, objv, 0);
   } else {
-    result = DispatchDefaultMethod(interp, (NsfObject *)clientData, objv[0], 0);
+    result = DispatchDefaultMethod(interp, (NsfObject *)clientData, objv[0], NSF_CSC_IMMEDIATE);
   }
   return result;
 }
