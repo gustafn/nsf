@@ -11,7 +11,7 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
-define(XOTclVersion, 1.6.6)
+define(XOTclVersion, 1.6.7)
 AC_INIT([xotcl], [XOTclVersion])
 
 #--------------------------------------------------------------------
