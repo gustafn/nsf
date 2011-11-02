@@ -1,3 +1,6 @@
+2011-11-02 <Gustaf.Neumann@wu-wien.ac.at>
+	* Release of XOTcl 1.6.7
+
 2011-11-01 <Gustaf.Neumann@wu-wien.ac.at>
 	* xotcl.c: some c-cleanup
 	* library files: require exact version numbers to avoid conflicts
