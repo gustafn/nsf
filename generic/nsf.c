@@ -10382,9 +10382,9 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
   CONST char *methodName = MethodName(methodObj);
 
   /*fprintf(stderr, "compare unknownObj %p with methodObj %p '%s' %p %p %s -- %s\n",
-    unknownObj, methodObj, ObjStr(methodObj), delegator,
-    delegator?objv[1]:NULL,
-    delegator?ObjStr(objv[1]) : NULL,
+    unknownObj, methodObj, ObjStr(methodObj), callInfoObj,
+    callInfoObj?objv[1]:NULL,
+    callInfoObj?ObjStr(objv[1]) : NULL,
     methodName);*/
   
   if (unknownObj && methodObj != unknownObj && (flags & NSF_CSC_CALL_NO_UNKNOWN) == 0) {
@@ -10424,9 +10424,8 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
   } else { /* no unknown called, this is the built-in unknown handler */
     Tcl_Obj *tailMethodObj = NULL;
 
-    if (objc > 1) {
+    if (objc > 1 && ((*methodName) == '-' || (unknownObj && objv[0] == unknownObj))) {
       int length;
-
       if (Tcl_ListObjLength(interp, objv[1], &length) == TCL_OK && length > 0) {
 	Tcl_ListObjIndex(interp, objv[1], length - 1, &tailMethodObj);
       }
@@ -15628,7 +15627,7 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *initStrin
   if (result != TCL_OK) {
     Tcl_Obj *res =  Tcl_DuplicateObj(Tcl_GetObjResult(interp)); /* save the result */
     INCR_REF_COUNT(res);
-    NsfPrintError(interp, "%s during '%s.%s", ObjStr(res), ObjectName(object), methodName);
+    NsfPrintError(interp, "%s during '%s.%s'", ObjStr(res), ObjectName(object), methodName);
     DECR_REF_COUNT(res);
   }
 
