@@ -2293,3 +2293,16 @@ nx::Test case side-effect-set-value {
   C setObjectParams {-second:alias {-first "X"}}
   ? {[C new -second Y] eval {set :first}} Y "side-effect determines value"
 }
+
+nx::Test case xotcl-configure-method {
+  nx::Test parameter count 1
+
+  package prefer latest
+  package req XOTcl 2.0
+
+  #
+  # attempt dispatch to unknown method
+  #
+  xotcl::Object create o
+  ? {o configure -order 15} "::o: unable to dispatch method 'order' during '::o.order'"
+}
