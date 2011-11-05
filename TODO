@@ -3770,8 +3770,13 @@ nsf.c:
 - nsf.c: fix call of DispatchDefaultMethod() in cases it triggers an error for 8.6b
 - nx.tcl: give a slightly better error message in case the root-object of an ensemble is called directly
 
+nsf.c: 
+- handle duplicates in the cmd-list during cleanup
+
 ========================================================================
 TODO:
+
+ - don't produce duplicates in instance lists for diamond inheritance
 
  - make rough comparsion table with NX, XOTcl, tclOO, itcl, Ruby, Python
    Most general superclass

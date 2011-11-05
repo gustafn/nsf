@@ -23205,16 +23205,36 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
 	 entry; 
 	 lastEntry = entry, entry = entry->nextPtr) {
       NsfObject *object = (NsfObject *)entry->clorobj;
+      
+      if (Tcl_Command_flags(entry->cmdPtr) & CMD_IS_DELETED) {
+	/* 
+	 * This is a stale entry, since the cmd in the entry was already
+	 * deleted. This might happen with duplicates in instances. We drop
+	 * the entry from the list.
+	 */
+	if (entry == *instances) {
+	  *instances = entry->nextPtr;
+	  CmdListDeleteCmdListEntry(entry, NULL);
+	  entry = *instances;
+	} else {
+	  lastEntry->nextPtr = entry->nextPtr;
+	  CmdListDeleteCmdListEntry(entry, NULL);
+	  entry = lastEntry;
+	}
+	continue;
+      }
 
       if (object && !NsfObjectIsClass(object) && !ObjectHasChildren(object)) {
-	/*if (object->id) {
-	  fprintf(stderr, "  ... delete object %s %p, class=%s id %p ns %p\n", key, object,
-		  ClassName(object->cl), object->id, object->nsPtr);
-		  }*/
+	/*fprintf(stderr, "check %p obj->flags %.6x cmd %p deleted %d\n", 
+		object, object->flags, entry->cmdPtr, 
+		Tcl_Command_flags(entry->cmdPtr) & CMD_IS_DELETED); */
+	assert(object->id);
+	/*fprintf(stderr, "  ... delete object %s %p, class=%s id %p ns %p\n", 
+	  ObjectName(object), object,
+	  ClassName(object->cl), object->id, object->nsPtr);*/
+
         FreeUnsetTraceVariable(interp, object);
-        if (object->id) {
-	  FinalObjectDeletion(interp, object);
-	}
+	FinalObjectDeletion(interp, object);
 
 	if (entry == *instances) {
 	  *instances = entry->nextPtr;
@@ -23255,11 +23275,10 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
           && !IsBaseClass(cl)
           ) {
         /*fprintf(stderr, "  ... delete class %s %p\n", ClassName(cl), cl); */
+	assert(cl->object.id);
 
         FreeUnsetTraceVariable(interp, &cl->object);
-        if (cl->object.id) {
-	  FinalObjectDeletion(interp, &cl->object);
-	}
+	FinalObjectDeletion(interp, &cl->object);
 
 	if (entry == *instances) {
 	  *instances = entry->nextPtr;
