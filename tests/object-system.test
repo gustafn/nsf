@@ -1,6 +1,5 @@
 # -*- Tcl -*-
 package require nx
-namespace import nx::*
 ::nsf::configure dtrace on
 
 #
@@ -21,18 +20,18 @@ proc ? {cmd expected {msg ""}} {
 
 ? {::nsf::configure objectsystem} "{::nx::Object ::nx::Class {-class.alloc alloc -class.create create -class.dealloc dealloc -class.objectparameter objectparameter -class.recreate recreate -object.configure configure -object.defaultmethod defaultmethod -object.destroy destroy -object.init init -object.move move -object.unknown unknown}}"
 
-? {::nsf::object::exists Object} 1
-? {::nsf::object::property Object initialized} 1
-? {::nsf::is class Object} 1
-? {::nsf::is metaclass Object} 0
-? {Object info superclass} ""
-? {Object info class} ::nx::Class
+? {::nsf::object::exists nx::Object} 1
+? {::nsf::object::property nx::Object initialized} 1
+? {::nsf::is class nx::Object} 1
+? {::nsf::is metaclass nx::Object} 0
+? {nx::Object info superclass} ""
+? {nx::Object info class} ::nx::Class
 
-? {::nsf::object::exists Class} 1
-? {::nsf::is class Class} 1
-? {::nsf::is metaclass Class} 1
-? {Class info superclass} ::nx::Object
-? {Class info class} ::nx::Class
+? {::nsf::object::exists nx::Class} 1
+? {::nsf::is class nx::Class} 1
+? {::nsf::is metaclass nx::Class} 1
+? {nx::Class info superclass} ::nx::Object
+? {nx::Class info class} ::nx::Class
 
 #
 # Minimal argument passing tests for early problem detection
@@ -77,28 +76,28 @@ nsf::proc p5 {-x arg:optional -y args} {return [list [info exists x] [info exist
 # Create objects and test its properties
 #
 
-Object create o
-? {::nsf::object::exists Object} 1
+nx::Object create o
+? {::nsf::object::exists nx::Object} 1
 ? {::nsf::is class o} 0
 ? {::nsf::is metaclass o} 0
 ? {o info class} ::nx::Object
-? {Object info instances o} ::o
-? {Object info instances ::o} ::o
+? {nx::Object info instances o} ::o
+? {nx::Object info instances ::o} ::o
 
-Object create o2 {
+nx::Object create o2 {
   ? {::nsf::object::exists ::o2} 1
   ? {::nsf::object::property ::o2 initialized} 0
 }
 ? {::nsf::object::property ::o2 initialized}  1
 
-Class create C0
+nx::Class create C0
 ? {::nsf::is class C0} 1
 ? {::nsf::is metaclass C0} 0
 ? {C0 info superclass} ::nx::Object
 ? {C0 info class} ::nx::Class
 #? {lsort [Class info vars]} "__default_metaclass __default_superclass"
 
-Class create M -superclass ::nx::Class
+nx::Class create M -superclass ::nx::Class
 ? {::nsf::object::exists M} 1
 ? {::nsf::is class M} 1
 ? {::nsf::is metaclass M} 1
@@ -118,7 +117,7 @@ C create c1
 ? {::nsf::is metaclass c1} 0
 ? {c1 info class} ::C
 
-Class create M2 -superclass M
+nx::Class create M2 -superclass M
 ? {::nsf::object::exists M2} 1
 ? {::nsf::is class M2} 1
 ? {::nsf::is metaclass M2} 1
@@ -156,7 +155,7 @@ C destroy
 #
 # tests for dispatching methods
 # 
-Object create o
+nx::Object create o
 o public method foo {} {return foo}
 o public method bar1 {} {return bar1-[:foo]}
 o public method bar2 {} {return bar2-[: foo]}
@@ -179,7 +178,7 @@ o destroy
 
 # basic attributes tests
 
-Class create C {
+nx::Class create C {
   :property {x 1} 
   :property {y 2}
 }
@@ -221,7 +220,7 @@ Class create C {
 #
 # tests for the dispatch command
 # 
-Object create o
+nx::Object create o
 o method foo {} {return goo}
 o method bar {x} {return goo-$x}
 
@@ -234,7 +233,7 @@ o method bar {x} {return goo-$x}
 o destroy
 
 # dispatch with colon names
-Object create o {set :x 1}
+nx::Object create o {set :x 1}
 ::nsf::dispatch ::o ::incr x
 ? {o eval {set :x}} 1 "cmd dispatch without -frame object did not modify the instance variable"
 ::nsf::directdispatch ::o -frame object ::incr x
@@ -242,7 +241,7 @@ Object create o {set :x 1}
 ? {catch {::nsf::dispatch ::o -frame object ::xxx x}} 1 "cmd dispatch with unknown command"
 o destroy
 
-Object create o {
+nx::Object create o {
   :public method foo {} {
     foreach var [list x1 y1 x2 y2 x3 y3] {
       lappend results $var [info exists :$var]
@@ -315,6 +314,19 @@ C -
 #? {catch {::nsf::is type ::CCCC ::nx::Object}} 1
 
 ::C destroy
+
+
+#
+# Test instances of diamond class structure.  Leave class structure
+# around until exit to test handling of pot. duplicated entries
+#
+nx::Class create A
+nx::Class create B1 -superclass A
+nx::Class create B2 -superclass A
+nx::Class create C -superclass {B1 B2}
+? {C create c1} ::c1
+? {A info instances -closure} ::c1
+
 
 puts stderr ===EXIT
 ::nsf::configure dtrace off

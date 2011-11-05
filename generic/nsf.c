@@ -261,7 +261,8 @@ static int GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, NsfClas
 /*static NsfObject *GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr);
 static int ReverseLookupCmdFromCmdTable(Tcl_Interp *interp, Tcl_Command searchCmdPtr, 
 					Tcl_HashTable *cmdTablePtr);*/
-static void GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startClass);
+static void GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *processedClasses, 
+			    NsfCmdList **instances, NsfClass *startClass);
 NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName);
 
 /* prototypes for namespace specific calls */
@@ -2750,6 +2751,7 @@ static int
 ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
   NsfCmdList *instances = NULL, *entryPtr;
   NsfObjectSystem *osPtr, *nPtr;
+  Tcl_HashTable processedClassesTable, *processedClasses = &processedClassesTable;
 
   /* Deletion is performed in two rounds:
    *  (a) SOFT DESTROY: invoke all user-defined destroy methods
@@ -2767,10 +2769,16 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
   /* 
    * Collect all instances from all object systems 
    */
+  Tcl_InitHashTable(processedClasses, TCL_ONE_WORD_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", processedClasses); 
+
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
     /*fprintf(stderr, "destroyObjectSystem deletes %s\n", ClassName(osPtr->rootClass));*/
-    GetAllInstances(interp, &instances, osPtr->rootClass);
+    GetAllInstances(interp, processedClasses, &instances, osPtr->rootClass);
   }
+
+  Tcl_DeleteHashTable(processedClasses);
+  MEM_COUNT_FREE("Tcl_InitHashTable", processedClasses); 
 
   /***** SOFT DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_SOFT_DESTROY;
@@ -6101,7 +6109,8 @@ AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
  *----------------------------------------------------------------------
  */
 static void
-GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
+GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *processedClasses,
+		NsfCmdList **instances, NsfClass *startCl) {
   NsfClasses *sc;
   Tcl_HashSearch search;
   Tcl_HashEntry *hPtr;
@@ -6158,7 +6167,16 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
   }
 
   for (sc = startCl->sub; sc; sc = sc->nextPtr) {
-    GetAllInstances(interp, instances, sc->cl);
+    int isNew;
+
+    if (processedClasses != NULL) {
+      Tcl_CreateHashEntry(processedClasses, (char *)sc->cl, &isNew);
+    } else {
+      isNew = 1;
+    }
+    if (isNew) {
+      GetAllInstances(interp, processedClasses, instances, sc->cl);
+    }
   }
 }
 
@@ -17737,7 +17755,7 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
    * Collect all instances from all object systems 
    */
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
-    GetAllInstances(interp, &instances, osPtr->rootClass);
+    GetAllInstances(interp, NULL, &instances, osPtr->rootClass);
   }
 
   for (entry = instances; entry; entry = entry->nextPtr) {
@@ -22437,7 +22455,8 @@ NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern
  * String key hashtable
  */
 static int
-NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl, Tcl_Obj *resultObj,
+NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl, 
+			     Tcl_HashTable *processedClasses, Tcl_Obj *resultObj,
 			     int withClosure, CONST char *pattern, NsfObject *matchObject) {
   Tcl_HashTable *tablePtr = &startCl->instances;
   NsfClasses *sc;
@@ -22451,8 +22470,7 @@ NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl, Tcl_Obj *res
   for (hPtr = Tcl_FirstHashEntry(tablePtr, &search); hPtr;
        hPtr = Tcl_NextHashEntry(&search)) {
     NsfObject *inst = (NsfObject *) Tcl_GetHashKey(tablePtr, hPtr);
-    /*fprintf(stderr, "match '%s' %p %p '%s'\n",
-      ObjectName(matchObject), matchObject, inst, ObjectName(inst));*/
+
     if (matchObject && inst == matchObject) {
       Tcl_SetStringObj(resultObj, ObjStr(matchObject->cmdName), -1);
       return 1;
@@ -22461,7 +22479,13 @@ NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl, Tcl_Obj *res
   }
   if (withClosure) {
     for (sc = startCl->sub; sc; sc = sc->nextPtr) {
-      rc = NsfClassInfoInstancesMethod1(interp, sc->cl, resultObj, withClosure, pattern, matchObject);
+      int isNew;
+
+      Tcl_CreateHashEntry(processedClasses, (char *)sc->cl, &isNew);
+      if (isNew) {
+	rc = NsfClassInfoInstancesMethod1(interp, sc->cl, processedClasses,
+					  resultObj, withClosure, pattern, matchObject);
+      }
       if (rc) break;
     }
   }
@@ -22478,9 +22502,16 @@ static int
 NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 			    int withClosure, CONST char *pattern, NsfObject *matchObject) {
   Tcl_Obj *resultObj = Tcl_NewObj();
+  Tcl_HashTable processedClassesTable, *processedClasses = &processedClassesTable;
 
-  NsfClassInfoInstancesMethod1(interp, startCl, resultObj, withClosure, pattern, matchObject);
+  Tcl_InitHashTable(processedClasses, TCL_ONE_WORD_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", processedClasses); 
+
+  NsfClassInfoInstancesMethod1(interp, startCl, processedClasses, resultObj, withClosure, pattern, matchObject);
   Tcl_SetObjResult(interp, resultObj);
+
+  Tcl_DeleteHashTable(processedClasses);
+  MEM_COUNT_FREE("Tcl_InitHashTable", processedClasses); 
 
   return TCL_OK;
 }
@@ -23204,24 +23235,14 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
 	 entry; 
 	 lastEntry = entry, entry = entry->nextPtr) {
       NsfObject *object = (NsfObject *)entry->clorobj;
-      
-      if (Tcl_Command_flags(entry->cmdPtr) & CMD_IS_DELETED) {
-	/* 
-	 * This is a stale entry, since the cmd in the entry was already
-	 * deleted. This might happen with duplicates in instances. We drop
-	 * the entry from the list.
-	 */
-	if (entry == *instances) {
-	  *instances = entry->nextPtr;
-	  CmdListDeleteCmdListEntry(entry, NULL);
-	  entry = *instances;
-	} else {
-	  lastEntry->nextPtr = entry->nextPtr;
-	  CmdListDeleteCmdListEntry(entry, NULL);
-	  entry = lastEntry;
-	}
-	continue;
-      }
+
+      /*
+       * The list if the instances should contain only alive objects, and non
+       * of these are duplicates. We would recognize duplicates since a
+       * deletion of one object would trigger the CMD_IS_DELETED flag of the cmdPtr
+       * of the duplicate.
+       */
+      assert((Tcl_Command_flags(entry->cmdPtr) & CMD_IS_DELETED) == 0);
 
       if (object && !NsfObjectIsClass(object) && !ObjectHasChildren(object)) {
 	/*fprintf(stderr, "check %p obj->flags %.6x cmd %p deleted %d\n", 

@@ -3772,11 +3772,15 @@ nsf.c:
 
 nsf.c: 
 - handle duplicates in the cmd-list during cleanup
+- Avoid duplicate entries in instance lists for diamond inheritance by
+  maintaining the set of already processed entries in
+  NsfClassInfoInstancesMethod1() and GetAllInstances().
+- extended regression test
+- removed "namespace import" in objectsystem test
+
 
 ========================================================================
 TODO:
-
- - don't produce duplicates in instance lists for diamond inheritance
 
  - make rough comparsion table with NX, XOTcl, tclOO, itcl, Ruby, Python
    Most general superclass
