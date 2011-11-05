@@ -23237,10 +23237,10 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
       NsfObject *object = (NsfObject *)entry->clorobj;
 
       /*
-       * The list if the instances should contain only alive objects, and non
-       * of these are duplicates. We would recognize duplicates since a
-       * deletion of one object would trigger the CMD_IS_DELETED flag of the cmdPtr
-       * of the duplicate.
+       * The list of the instances should contain only alive objects, without
+       * duplicates. We would recognize duplicates since a deletion of one
+       * object would trigger the CMD_IS_DELETED flag of the cmdPtr of the
+       * duplicate.
        */
       assert((Tcl_Command_flags(entry->cmdPtr) & CMD_IS_DELETED) == 0);
 
