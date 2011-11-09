@@ -570,9 +570,9 @@ typedef enum SystemMethodsIdx {
 } SystemMethodsIdx;
 
 #if !defined(NSF_C)
-extern CONST char *Nsf_SytemMethodOpts[];
+extern CONST char *Nsf_SystemMethodOpts[];
 #else 
-CONST char *Nsf_SytemMethodOpts[] = {
+CONST char *Nsf_SystemMethodOpts[] = {
   "-class.alloc", 
   "-class.create", 
   "-class.dealloc",

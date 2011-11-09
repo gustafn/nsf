@@ -2660,7 +2660,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
     }
     if (flag == 0) continue;
 
-    rootClassMethod = *(Nsf_SytemMethodOpts[i]+1) == 'o';
+    rootClassMethod = *(Nsf_SystemMethodOpts[i]+1) == 'o';
 	
     if (osPtr->definedMethods & flag) {
       /*
@@ -2671,14 +2671,14 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	  || (!rootClassMethod && object == &defOsPtr->rootMetaClass->object) ) {
 	/*fprintf(stderr, "+++ %s %.6x NOT overloading %s.%s %s (is root %d, is meta %d)\n",
 	  ClassName(defOsPtr->rootClass),
-	  osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i],
+	  osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SystemMethodOpts[i],
 	  object == &defOsPtr->rootClass->object,
 	  object == &defOsPtr->rootMetaClass->object);*/
       } else {
 	osPtr->overloadedMethods |= flag;
 	/*fprintf(stderr, "+++ %s %.6x overloading %s.%s %s (is root %d, is meta %d)\n",
 	  ClassName(defOsPtr->rootClass),
-	  osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SytemMethodOpts[i],
+	  osPtr->overloadedMethods, ObjectName(object), methodName, Nsf_SystemMethodOpts[i],
 	  object == &defOsPtr->rootClass->object,
 	  object == &defOsPtr->rootMetaClass->object);*/
       }
@@ -2691,7 +2691,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 
       /*fprintf(stderr, "+++ %s %.6x defining %s.%s %s osPtr %p defined %.8x flag %.8x\n",
 	ClassName(defOsPtr->rootClass),  osPtr->definedMethods, ObjectName(object),
-	methodName, Nsf_SytemMethodOpts[i], osPtr, osPtr->definedMethods, flag);*/
+	methodName, Nsf_SystemMethodOpts[i], osPtr, osPtr->definedMethods, flag);*/
 
       /*
        * If there is a method-handle provided for this system method,
@@ -2713,7 +2713,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	  osPtr->overloadedMethods |= flag;
 	
 	  NsfLog(interp, NSF_LOG_NOTICE, "Define automatically alias %s for %s",
-		 ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
+		 ObjStr(osPtr->handles[i]), Nsf_SystemMethodOpts[i]);
 	  /*
 	   * If the definition was ok, make the method protected.
 	   */
@@ -2724,7 +2724,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	    Tcl_ResetResult(interp);
 	  } else {
 	    NsfLog(interp, NSF_LOG_WARN, "Could not define alias %s for %s",
-		   ObjStr(osPtr->handles[i]), Nsf_SytemMethodOpts[i]);
+		   ObjStr(osPtr->handles[i]), Nsf_SystemMethodOpts[i]);
 	  }
 	}
       }
@@ -2870,7 +2870,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
   methodObj = osPtr->methods[methodIdx];
   /*fprintf(stderr, "OS of %s is %s, method %s methodObj %p osPtr %p defined %.8x %.8x overloaded %.8x %.8x flags %.8x\n",
 	  ObjectName(object), ObjectName((&osPtr->rootClass->object)),
-	  Nsf_SytemMethodOpts[methodIdx]+1, methodObj,
+	  Nsf_SystemMethodOpts[methodIdx]+1, methodObj,
 	  osPtr,
 	  osPtr->definedMethods, osPtr->definedMethods & (1 << methodIdx),
 	  osPtr->overloadedMethods, osPtr->overloadedMethods & (1 << methodIdx),
@@ -2885,7 +2885,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
     } else if ((osPtr->definedMethods & flag) == 0) {
       /* not defined, we must call directly */
       /*fprintf(stderr, "Warning: CallDirectly object %s idx %s not defined\n",
-	ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1);*/
+	ObjectName(object), Nsf_SystemMethodOpts[methodIdx]+1);*/
     } else {
 #if DISPATCH_ALWAYS_DEFINED_METHODS
       callDirectly = 0;
@@ -2894,12 +2894,12 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
         FilterComputeDefined(interp, object);
       }
       /*fprintf(stderr, "CallDirectly object %s idx %s object flags %.6x %.6x \n",
-	      ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1,
+	      ObjectName(object), Nsf_SystemMethodOpts[methodIdx]+1,
 	      (object->flags & NSF_FILTER_ORDER_DEFINED_AND_VALID),
 	      NSF_FILTER_ORDER_DEFINED_AND_VALID);*/
       if ((object->flags & NSF_FILTER_ORDER_DEFINED_AND_VALID) == NSF_FILTER_ORDER_DEFINED_AND_VALID) {
         /*fprintf(stderr, "CallDirectly object %s idx %s has filter \n",
-	  ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1);*/
+	  ObjectName(object), Nsf_SystemMethodOpts[methodIdx]+1);*/
         callDirectly = 0;
       }
 #endif
@@ -2935,7 +2935,7 @@ NsfMethodObj(NsfObject *object, int methodIdx) {
   /*
   fprintf(stderr, "NsfMethodObj object %s os %p idx %d %s methodObj %p\n",
           ObjectName(object), osPtr, methodIdx,
-          Nsf_SytemMethodOpts[methodIdx]+1,
+          Nsf_SystemMethodOpts[methodIdx]+1,
           osPtr->methods[methodIdx]);
   */
   return osPtr->methods[methodIdx];
@@ -17909,13 +17909,13 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
       Tcl_ListObjAppendElement(interp, osObj, osPtr->rootClass->object.cmdName);
       Tcl_ListObjAppendElement(interp, osObj, osPtr->rootMetaClass->object.cmdName);
 
-      for (idx = 0; Nsf_SytemMethodOpts[idx]; idx++) {
-	/*fprintf(stderr, "opt %s %s\n", Nsf_SytemMethodOpts[idx],
+      for (idx = 0; Nsf_SystemMethodOpts[idx]; idx++) {
+	/*fprintf(stderr, "opt %s %s\n", Nsf_SystemMethodOpts[idx],
 	  osPtr->methods[idx] ? ObjStr(osPtr->methods[idx]) : "NULL");*/
 	if (osPtr->methods[idx] == NULL) {
 	  continue;
 	}
-	Tcl_ListObjAppendElement(interp, systemMethods, Tcl_NewStringObj(Nsf_SytemMethodOpts[idx], -1));
+	Tcl_ListObjAppendElement(interp, systemMethods, Tcl_NewStringObj(Nsf_SystemMethodOpts[idx], -1));
 	Tcl_ListObjAppendElement(interp, systemMethods, osPtr->methods[idx]);
       }
       Tcl_ListObjAppendElement(interp, osObj, systemMethods);
@@ -19079,7 +19079,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 	int arg_oc = -1;
 
 	arg = ov[i+1];
-        result = Tcl_GetIndexFromObj(interp, ov[i], Nsf_SytemMethodOpts, "system method", 0, &idx);
+        result = Tcl_GetIndexFromObj(interp, ov[i], Nsf_SystemMethodOpts, "system method", 0, &idx);
 	if (result == TCL_OK) {
 	  result = Tcl_ListObjGetElements(interp, arg, &arg_oc, &arg_ov);
 	}
