@@ -1,5 +1,4 @@
-/* -*- Mode: c++ -*-
- *
+/*
  *  Next Scripting Framework
  *
  *  Copyright (C) 1999-2011 Gustaf Neumann (a) (b)
