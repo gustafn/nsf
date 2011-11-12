@@ -3550,13 +3550,13 @@ Test run; exit
 - extend regression test
 nsf.c:
   - reform of argument parse. new parser uses NsfFlagObjType
-    to reuse earlier parse resuslts. Improved speed for
+    to reuse earlier parse results. Improved speed for
     for methods with primitive bodies: 5%-25%.
   - added regression tests for argument parsing 
 
 - nsf.c
   - added experimental parameter option noleadingdash
-  - additionalal regression test file method-parameter.test
+  - additional regression test file method-parameter.test
   - provide selective error messages for unknown nonpos args
 
 nsf.c:
@@ -3571,7 +3571,7 @@ nsf.c:
 
 nsf.c:
   - moved methodEpochCounters from global vars to the interp state
-    to improve resue in multi threaded apps
+    to improve reuse in multi threaded apps
   - separated objectMethodEpoch and instanceMethodEpoch
   - bump version number to 2.0a2
 
@@ -3596,7 +3596,7 @@ nsf.c:
 nx: added traits package
 
 nonleadingdash handling:
-  - doc: added "nonleadingdash" to UML class diagramm
+  - doc: added "nonleadingdash" to UML class diagram
   - nsf.c: added error message, when "noleadingdash" is used on 
     non-positional parameters
   - nsf.c: use same logic for "nonleadingdash" to "value in argument"
@@ -3616,8 +3616,8 @@ nonleadingdash handling:
       * __unknown
     unknown is a hook for Object but a method for Class
 
-- fixed strange refcounting bug in 8.6b2 bug-is-86.tcl
-   where 2 refcounted items are not freed (value:class,
+- fixed strange ref-counting bug in 8.6b2 bug-is-86.tcl
+   where 2 ref-counted items are not freed (value:class,
    issued from nx.tcl around line 120). Compile with DEBUG86B2
    for more info
      =================================================
@@ -3689,13 +3689,13 @@ nonleadingdash handling:
 
 - nsf.c: extended "new":
   * nonpos-arg "-childof" accepts now a namespace 
-    (required an object before). Thefore, one can 
+    (required an object before). Therefore, one can 
     use now "... new -childof [namespace current]",
     even when the current namespace is not an object
 
 - nx.tcl: simplified ::nx::ScopedNew to ::nx::NsScopedNew:
   before it was necessary to create a new volatile class for every
-  invocaton of contains.
+  invocation of contains.
 - extended regression test
 
 - nx.tcl: don't use mixins in method "contains", but remap the new
@@ -3704,7 +3704,7 @@ nonleadingdash handling:
   of classes defined (the mixin paths for all classes must be
   invalidated). This might be a problem for frequent "contains"
   invocations.
-- bup version numbers for nx, xotcl2 and nsf to 2.0b2
+- bump version numbers for nx, xotcl2 and nsf to 2.0b2
 
 - rename "info method handle /methodName/" into
          "info method registrationhandle /methodName/"
@@ -3748,7 +3748,7 @@ nsf.c:
 
 - Replaced hash-table for GetAllInstances() with a linear list.
   As a result, mass-destroy on exit is now much faster. Valgrind
-  reports that the full cicrcle of creating 100.000 objects and 
+  reports that the full circle of creating 100.000 objects and 
   destroying it on exit became about 15% faster.
 - added additional argument adEnd to CmdListAdd()
 - renamed CmdListRemoveList() to CmdListFree()
@@ -3776,14 +3776,14 @@ nsf.c:
   maintaining the set of already processed entries in
   NsfClassInfoInstancesMethod1() and GetAllInstances().
 - extended regression test
-- removed "namespace import" in objectsystem test
+- removed "namespace import" in object-system test
 
 nsf.c:
 - Reform of subclass/superclass handling. 
   * unifying transitive subclass handling
   * localizing and documenting caching of subclass/superclass lists
   * eliminating repetitious computation of subclass lists
-  * refactored code, renamed some functions to better reflect their purpose
+  * re-factored code, renamed some functions to better reflect their purpose
   * improved documentation
 - fixed a potential crash for class deletion triggering implicit deletions 
   further deletions referencing the parent class
@@ -3798,7 +3798,7 @@ nsf.c, nsf.h, nsfStack.c, nx.tcl, tcl-cool.tcl, xotcl2.tcl
 ========================================================================
 TODO:
 
- - make rough comparsion table with NX, XOTcl, tclOO, itcl, Ruby, Python
+ - make rough comparison table with NX, XOTcl, tclOO, itcl, Ruby, Python
    Most general superclass
    Metaclass
    Per-object methods
@@ -3822,7 +3822,7 @@ TODO:
  - warnings for "numeric" names for args and nonpos-args?
  - special handling of values looking like nonpos-flags,
    but wich are not ones (-1, "- a b c", ....) in detection
-   when to throw unknow.
+   when to throw unknown.
 
  - naming of slot classes 
    * should we switch from "-class" to "-slotclass"?
@@ -3851,7 +3851,7 @@ TODO:
 
  - call user-defined setter in object parameters?
 
-- Revise callstack introspection/intercession, i.e., [current
+- Revise call-stack introspection/intercession, i.e., [current
   activelevel] vs. [current callinglevel] vs. uplevel()/upvar():
   
   Currently, there are some inconsistencies when comparing activelevel
@@ -3865,7 +3865,7 @@ TODO:
   semantics, as callinglevel resolved to such INACTIVE frame contexts).
   2. The uplevel()/upvar() methods default to uplevel+callinglevel
   semantics, so they borrow their issues from 1)
-  3. For now, we do not support callstack-transparent upleveling into
+  3. For now, we do not support call-stack transparent up-leveling into
   non-NSF frames, such as Tcl namespace + proc (apply) frames.
 
   Approaches:
@@ -3873,7 +3873,7 @@ TODO:
   vs. activelevel vs. ...?
   b) Provide a more generic, filter-based [current callinglevel] (?)
   subcmd which allows for applying different bitmask filters
-  c) Provide the necessary callstack info in [info frame] and make
+  c) Provide the necessary call-stack info in [info frame] and make
   replacements for [current activelevel] & [current callinglevel]
   scriptable ...
   d) support for out/inout argument parsing strategies (however, this
