@@ -1,3 +1,4 @@
+# -*- Tcl -*-
 ### Sample file for parameter testing....
 ### For every class "-parameter" can be specified which accepts 
 ### a list of parameter specifications.
