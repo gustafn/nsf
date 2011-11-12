@@ -3783,7 +3783,7 @@ nsf.c:
   * unifying transitive subclass handling
   * localizing and documenting caching of subclass/superclass lists
   * eliminating repetitious computation of subclass lists
-  * refactored code, renamed some functions to better refelect their purpose
+  * refactored code, renamed some functions to better reflect their purpose
   * improved documentation
 - fixed a potential crash for class deletion triggering implicit deletions 
   further deletions referencing the parent class
