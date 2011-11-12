@@ -353,7 +353,9 @@ Test case class-object-property {
 
   # create it from the serialized code
   eval $s(C)
+  ? {nsf::object::exists C} 1
   eval $s(c1)
+  ? {nsf::object::exists c1} 1
 
   # tests should work as again
   ? {C x} 1

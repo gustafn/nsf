@@ -756,4 +756,40 @@ Test case nested-ordered-composite {
   }
 }
 
+
+#
+# The following tests the deletion order triggering implict
+# deletions. This caused a crash in nsf 2.0b2.
+#
+
+package req nx::serializer
+
+nx::Test case class-object-property {
+  Class create C {
+    :class property x
+    :property a:int
+  }
+
+  ? {::nsf::object::exists ::C} 1
+  ? {::nsf::object::exists ::C::slot} 1
+
+  set s(C) [C serialize]
+  C destroy
+
+  ? {::nsf::object::exists ::C} 0
+  ? {::nsf::object::exists ::C::slot} 0
+
+  eval $s(C)
+
+  ? {::nsf::object::exists ::C} 1
+  ? {::nsf::object::exists ::C::slot} 1
+
+  C::slot destroy
+  ? {::nsf::object::exists ::C} 1
+  ? {::nsf::object::exists ::C::slot} 0
+
+  C destroy
+  ? {::nsf::object::exists ::C} 0
+}
+
 #puts stderr "==== EXIT ===="

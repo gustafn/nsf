@@ -3778,6 +3778,17 @@ nsf.c:
 - extended regression test
 - removed "namespace import" in objectsystem test
 
+nsf.c:
+- Reform of subclass/superclass handling. 
+  * unifying transitive subclass handling
+  * localizing and documenting caching of subclass/superclass lists
+  * eliminating repetitious computation of subclass lists
+  * refactored code, renamed some functions to better refelect their purpose
+  * improved documentation
+- fixed a potential crash for class deletion triggering implicit deletions 
+  further deletions referencing the parent class
+- extended regression test
+
 
 ========================================================================
 TODO:
