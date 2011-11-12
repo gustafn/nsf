@@ -3789,6 +3789,11 @@ nsf.c:
   further deletions referencing the parent class
 - extended regression test
 
+nsf.c, nsf.h, nsfStack.c, nx.tcl, tcl-cool.tcl, xotcl2.tcl
+- fix spelling in comments
+- strip unneeded space
+
+
 
 ========================================================================
 TODO:

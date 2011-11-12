@@ -1,5 +1,5 @@
 ############################################################
-# xotcl2.tcl - 
+# xotcl2.tcl -
 #
 #      Implementation of the XOTcl 2 object systen, based
 #      on the Next Scripting Framework
@@ -14,10 +14,10 @@
 # publish, distribute, sublicense, and/or sell copies of the Software,
 # and to permit persons to whom the Software is furnished to do so,
 # subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -51,17 +51,17 @@ namespace eval ::xotcl {
   # of the object system and as root meta class.
   #
   ::nsf::objectsystem::create ::xotcl::Object ::xotcl::Class {
-    -class.alloc alloc 
+    -class.alloc alloc
     -class.create create
     -class.dealloc dealloc
-    -class.objectparameter objectparameter 
-    -class.recreate recreate 
-    -object.configure configure 
+    -class.objectparameter objectparameter
+    -class.recreate recreate
+    -object.configure configure
     -object.cleanup cleanup
-    -object.defaultmethod defaultmethod 
-    -object.destroy destroy 
-    -object.init init 
-    -object.move move 
+    -object.defaultmethod defaultmethod
+    -object.destroy destroy
+    -object.init init
+    -object.move move
     -object.unknown unknown
   }
 
@@ -73,7 +73,7 @@ namespace eval ::xotcl {
   namespace eval ::nsf::method::create {}
 
   #
-  # get frequenly used primitiva into the ::xotcl namespace
+  # get frequently used primitiva into the ::xotcl namespace
   #
   namespace import ::nsf::configure ::nsf::my ::nsf::finalize ::nsf::interp
   namespace import ::nsf::method::alias ::nsf::is ::nsf::relation
@@ -112,7 +112,7 @@ namespace eval ::xotcl {
   # @object ::xotcl::Object
   #
   # XOTcl programs are constructed out of objects. This class
-  # describes common structural and behavioural features for all XOTcl
+  # describes common structural and behavioral features for all XOTcl
   # objects. It is the root object-class in the XOTcl 2 object system.
 
   # provide the standard command set for ::xotcl::Object
@@ -153,11 +153,11 @@ namespace eval ::xotcl {
   # @param -reset Reset the object-internal counter for a given seed string
   # @param name The seeding string which is used as a base for name generation
   # @return The generated name string
-  
+
   # @method ::xotcl::Object#cleanup
   #
   # TODO: this is a method not used in the Next Scripting Langauge. This
-  # mehtod is just called via recreate, so everything necessary can be
+  # method is just called via recreate, so everything necessary can be
   # performed there as well. However, it is available for backward
   # compatibility available in XOTcl 2.0
   #
@@ -167,16 +167,16 @@ namespace eval ::xotcl {
   # recreation process by {{@method ::xotcl::Class class recreate}}.
   # Depending on the recreation scheme applied (see {{@command
   # ::nsf::configure}}, object variables are deleted, per-object
-  # namespaces are cleared, and the object's relationsships (e.g., mixin
+  # namespaces are cleared, and the object's relationships (e.g., mixin
   # relations) are reset.
-  # 
+  #
   # @properties interally-called
-  
+
   # @method ::xotcl::Object#destroy
   #
   # @use ::xotcl::Object#destroy
 
-  # @method ::xotcl::Object#exists 
+  # @method ::xotcl::Object#exists
   #
   # A helper method for checking whether the variable {{{var}}} is
   # defined on the object and assigned a value. You may use a variable
@@ -252,7 +252,7 @@ namespace eval ::xotcl {
   # have the {{{interp}}} enter an event loop until the specified
   # variable {{{varname}}} is set on the object.
   #
-  # @param varName The name of the signalling object variable.
+  # @param varName The name of the signaling object variable.
 
   ::nsf::method::create Object vwait {varName} {
     if {[regexp {:[^:]*} $varName]} {
@@ -315,13 +315,13 @@ namespace eval ::xotcl {
 
   # define a minimal implementation of "method"
   Object instproc method {name arguments:parameter,0..* body} {
-    :proc $name $arguments $body                                  
+    :proc $name $arguments $body
   }
   Class instproc method {-per-object:switch name arguments:parameter,0..* body} {
     if {${per-object}} {
-      :proc $name $arguments $body       
+      :proc $name $arguments $body
     } else {
-      :instproc $name $arguments $body  
+      :instproc $name $arguments $body
     }
   }
 
@@ -334,9 +334,9 @@ namespace eval ::xotcl {
   #
   # but since we changed the name of -objscope in nsf to -objframe, we
   # have to provide the definition the hard way via methods.
-  
+
   Object instproc forward {
-    method 
+    method
     -default -earlybinding:switch -methodprefix -objscope:switch -onerror -verbose:switch
     target:optional args
   } {
@@ -353,8 +353,8 @@ namespace eval ::xotcl {
     return $r
   }
 
-  Class instproc instforward {    
-    method 
+  Class instproc instforward {
+    method
     -default -earlybinding:switch -methodprefix -objscope:switch -onerror -verbose:switch
     target:optional args
   } {
@@ -371,7 +371,7 @@ namespace eval ::xotcl {
     return $r
   }
 
- 
+
   Class instproc unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
     uplevel [list [self] create {*}$args]
@@ -413,7 +413,7 @@ namespace eval ::xotcl {
 
 
   #
-  # Use parameter definition from nx 
+  # Use parameter definition from nx
   # (same with classInfo parameter, see below)
   #::nsf::method::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::attributes
 
@@ -427,7 +427,7 @@ namespace eval ::xotcl {
   }
 
   # We provide a default value for superclass (when no superclass is
-  # specified explicitely) and metaclass, in case they should differ
+  # specified explicitly) and metaclass, in case they should differ
   # from the root classes of the object system.
 
   ::xotcl::Class parameter {
@@ -520,7 +520,7 @@ namespace eval ::xotcl {
   #     info nonposargs
   #     info default
   #
-  # TODO mark all absolete calls at least as deprecated in library
+  # TODO mark all obsolete calls at least as deprecated in library
   #
 
   proc ::xotcl::info_args {scope o method} {
@@ -759,7 +759,7 @@ namespace eval ::xotcl {
       }
       return ""
     }
-  
+
     :alias slots              ::nsf::methods::class::info::slotobjects
     :alias subclass           ::nsf::methods::class::info::subclass
     :alias superclass         ::nsf::methods::class::info::superclass
@@ -789,11 +789,11 @@ namespace eval ::xotcl {
   Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::is class $class}
   Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::is metaclass $class}
   Object instproc ismixin     {class}  {
-    return [expr {[::nsf::is class $class] && 
+    return [expr {[::nsf::is class $class] &&
 		  [my ::nsf::methods::object::info::hasmixin $class]}]
   }
   Object instproc istype      {class}  {
-    return [expr {[::nsf::is class $class] && 
+    return [expr {[::nsf::is class $class] &&
 		  [::nsf::directdispatch [self] ::nsf::methods::object::info::hastype $class]}]
   }
 
@@ -866,7 +866,7 @@ namespace eval ::xotcl {
     #puts "method_handle_to_xotcl gets handle '$methodHandle' // $definition"
     return $definition
   }
- 
+
 
   Object instproc check {checkoptions} {
     ::nsf::method::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
@@ -912,7 +912,7 @@ namespace eval ::xotcl {
   Object proc setExitHandler   {newbody} {::nsf::exithandler set $newbody}
   Object proc getExitHandler   {} {::nsf::exithandler get}
 
-  # resue some definitions from next scripting
+  # reuse some definitions from next scripting
   ::nsf::method::alias ::xotcl::Object copy ::nsf::classes::nx::Object::copy
   ::nsf::method::alias ::xotcl::Object move ::nsf::classes::nx::Object::move
   #::nsf::method::alias ::xotcl::Object defaultmethod ::nsf::classes::nx::Object::defaultmethod
@@ -928,10 +928,10 @@ namespace eval ::xotcl {
   # Provide a backward compatible version of ::xotcl::alias
   #
   ::nsf::proc ::xotcl::alias {
-    obj:object 
-    methodName 
-    -per-object:switch 
-    -objscope:switch 
+    obj:object
+    methodName
+    -per-object:switch
+    -objscope:switch
     target
   } {
     ::nsf::method::alias \
@@ -953,7 +953,7 @@ namespace eval ::xotcl {
       }
   }
   }
-  
+
   config proc mkindex {meta dir args} {
     set sp {[ 	]+}
     set st {^[ 	]*}
@@ -1068,7 +1068,7 @@ namespace eval ::xotcl {
     :property {version 1.0}
     :property {autoexport {}}
     :property {export {}}
-    
+
     :public class method create {name args} {
       set nq [namespace qualifiers $name]
       if {$nq ne "" && ![namespace exists $nq]} {Object create $nq}
@@ -1079,7 +1079,7 @@ namespace eval ::xotcl {
       :require $name
 	$name configure {*}$args
     }
-    
+
     :public class method contains script {
       if {[info exists :provide]} {
         package provide [set :provide] [set :version]
@@ -1103,16 +1103,16 @@ namespace eval ::xotcl {
         namespace eval :: [list namespace import [::xotcl::self]::$e]
       }
     }
-    
+
     :public class method unknown args {
       #puts stderr "unknown: package $args"
       [set :packagecmd] {*}$args
     }
-    
+
     :public class method verbose value {
       set :verbose $value
     }
-    
+
     :public class method present args {
       if {$::tcl_version<8.3} {
         switch -exact -- [lindex $args 0] {
@@ -1128,7 +1128,7 @@ namespace eval ::xotcl {
 	[set :packagecmd] present {*}$args
       }
     }
-    
+
     :public class method import {{-into ::} pkg} {
       :require $pkg
       namespace eval $into [subst -nocommands {
@@ -1143,7 +1143,7 @@ namespace eval ::xotcl {
         }
       }
     }
-    
+
     :public class method require args {
       #puts "XOTCL package require $args, current=[namespace current]"
       set prevComponent ${:component}
@@ -1165,12 +1165,12 @@ namespace eval ::xotcl {
       set :component $prevComponent
       return $v
     }
-    
+
     set :component .
     set :verbose 0
     set :packagecmd ::package
   }
-  
+
   unset -nocomplain cmd
   unset ::nsf::bootstrap
 
@@ -1178,25 +1178,25 @@ namespace eval ::xotcl {
   # if xoDoc is loaded, documentation will be activated
   ::xotcl::Object create ::xotcl::@
   ::xotcl::@ proc unknown args {}
-  
+
   set ::xotcl::confdir ~/.xotcl
   set ::xotcl::logdir $::xotcl::confdir/log
   namespace import ::nsf::tmpdir
 
   # finally, export contents defined for XOTcl
   namespace export Object Class Attribute myproc myvar my self next @
-  
+
   #
   # Provide parametersyntax for methods, which do not have a spec
   #
   # Tcl commands
   set ::nsf::parametersyntax(::append) "varName ?value value value ...?"
   set ::nsf::parametersyntax(::array) "option arrayName ?arg arg ...?"
-  set ::nsf::parametersyntax(::eval) "arg ?arg ...?" 
-  set ::nsf::parametersyntax(::incr) "varName ?increment?" 
-  set ::nsf::parametersyntax(::lappend) "varName ?value value value ...?" 
-  set ::nsf::parametersyntax(::set) "varName ?value?" 
-  set ::nsf::parametersyntax(::set) "varName ?value?" 
+  set ::nsf::parametersyntax(::eval) "arg ?arg ...?"
+  set ::nsf::parametersyntax(::incr) "varName ?increment?"
+  set ::nsf::parametersyntax(::lappend) "varName ?value value value ...?"
+  set ::nsf::parametersyntax(::set) "varName ?value?"
+  set ::nsf::parametersyntax(::set) "varName ?value?"
   set ::nsf::parametersyntax(::subst) "?-nobackslashes? ?-nocommands? ?-novariables? string"
   set ::nsf::parametersyntax(::trace) "option ?arg arg ...?"
   set ::nsf::parametersyntax(::unset) "?-nocomplain? ?--? ?name name name ...?"

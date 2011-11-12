@@ -1,5 +1,5 @@
 ############################################################
-# nx.tcl - 
+# nx.tcl -
 #
 #      Implementation of the NX object system, based
 #      on the Next Scripting Framework
@@ -14,10 +14,10 @@
 # publish, distribute, sublicense, and/or sell copies of the Software,
 # and to permit persons to whom the Software is furnished to do so,
 # subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,10 +31,10 @@ package require nsf
 package provide nx 2.0b3
 
 namespace eval ::nx {
-  namespace eval ::nsf {}; # make pkg indexer happy
-  namespace eval ::nsf::object {}; # make pkg indexer happy
-  namespace eval ::nx::internal {}; # make pkg indexer happy
-  namespace eval ::nx::traits {}; # make pkg indexer happy
+  namespace eval ::nsf {}          ;# make pkg-indexer happy
+  namespace eval ::nsf::object {}  ;# make pkg-indexer happy
+  namespace eval ::nx::internal {} ;# make pkg-indexer happy
+  namespace eval ::nx::traits {}   ;# make pkg-indexer happy
 
   #
   # By setting the variable bootstrap, we can check later, whether we
@@ -43,28 +43,28 @@ namespace eval ::nx {
   set ::nsf::bootstrap ::nx
 
   #
-  # First create the ::nx object system. The interally called methods,
+  # First create the ::nx object system. The internally called methods,
   # which are not defined by in this script, must have method handles
   # included. The methods "create", "configure", "destroy", "move" and
   # "objectparameter" are defined in this script (either scripted, or
   # aliases).
   #
   ::nsf::objectsystem::create ::nx::Object ::nx::Class {
-    -class.alloc {alloc ::nsf::methods::class::alloc} 
+    -class.alloc {alloc ::nsf::methods::class::alloc}
     -class.create create
     -class.dealloc {dealloc ::nsf::methods::class::dealloc}
-    -class.objectparameter objectparameter 
+    -class.objectparameter objectparameter
     -class.recreate {recreate ::nsf::methods::class::recreate}
     -object.configure configure
     -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod}
     -object.destroy destroy
     -object.init {init ::nsf::methods::object::init}
-    -object.move move 
+    -object.move move
     -object.unknown unknown
   }
 
   #
-  # get frequenly used primitiva from the next scripting framework 
+  # get frequently used primitiva from the next scripting framework
   #
   namespace export next current self configure finalize interp is relation
   namespace import ::nsf::next ::nsf::current ::nsf::self ::nsf::dispatch
@@ -72,10 +72,10 @@ namespace eval ::nx {
   #
   # provide the standard command set for ::nx::Object
   #
-  ::nsf::method::alias Object volatile  ::nsf::methods::object::volatile 
-  ::nsf::method::alias Object configure ::nsf::methods::object::configure 
-  ::nsf::method::alias Object upvar     ::nsf::methods::object::upvar 
-  ::nsf::method::alias Object destroy   ::nsf::methods::object::destroy 
+  ::nsf::method::alias Object volatile  ::nsf::methods::object::volatile
+  ::nsf::method::alias Object configure ::nsf::methods::object::configure
+  ::nsf::method::alias Object upvar     ::nsf::methods::object::upvar
+  ::nsf::method::alias Object destroy   ::nsf::methods::object::destroy
   ::nsf::method::alias Object uplevel   ::nsf::methods::object::uplevel
 
   #
@@ -86,29 +86,29 @@ namespace eval ::nx {
   ######################################################################
   # Default Methods (referenced via createobjectsystem)
   ######################################################################
-  
-  namespace eval ::nsf::methods {}; # make pkg indexer happy
-  namespace eval ::nsf::methods::object {}; # make pkg indexer happy
+
+  namespace eval ::nsf::methods {}         ;# make pkg-indexer happy
+  namespace eval ::nsf::methods::object {} ;# make pkg-indexer happy
 
   # Actually, we do not need an unknown handler, but if someone
   # defines his own unknown handler we define it automatically
   proc ::nsf::methods::object::unknown {m args} {
     error "[::nsf::self]: unable to dispatch method '$m'"
   }
-  
+
   # The default constructor
   proc ::nsf::methods::object::init args {}
 
   # This method can be called on invocations of the object without a
   # specified method.
   proc ::nsf::methods::object::defaultmethod {} {::nsf::self}
-  
+
   ######################################################################
   # Class methods
   ######################################################################
-  
+
   # provide the standard command set for Class
-  ::nsf::method::alias Class create ::nsf::methods::class::create 
+  ::nsf::method::alias Class create ::nsf::methods::class::create
   ::nsf::method::alias Class new ::nsf::methods::class::new
 
   # set a few aliases as protected
@@ -137,8 +137,8 @@ namespace eval ::nx {
   # objects when needed.
   #
   ::nsf::method::create Object __resolve_method_path {
-    -per-object:switch 
-    -verbose:switch 
+    -per-object:switch
+    -verbose:switch
     path
   } {
     set object [::nsf::self]
@@ -149,7 +149,7 @@ namespace eval ::nx {
       set regObject $object
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
-	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}] 
+	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}]
 	if {[::nsf::directdispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} {
  	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
@@ -322,7 +322,7 @@ namespace eval ::nx {
   #
 
   Object public method forward {
-     method 
+     method
      -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
      target:optional args
    } {
@@ -341,8 +341,8 @@ namespace eval ::nx {
     return $r
   }
 
-  Class public method forward {    
-     method 
+  Class public method forward {
+     method
      -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
      target:optional args
    } {
@@ -362,7 +362,7 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # Provide method "alias" 
+  # Provide method "alias"
   #
   # -frame object|method make only sense for c-defined cmds,
   ######################################################################
@@ -400,7 +400,7 @@ namespace eval ::nx {
     set container [namespace tail $object]
     if {[::nsf::object::exists $object] && $container in {slot per-object-slot}} {
       set parent [$object ::nsf::methods::object::info::parent]
-      return [expr {[::nsf::object::exists $parent] 
+      return [expr {[::nsf::object::exists $parent]
 		    && [::nsf::method::property $parent -per-object $container slotcontainer]}]
     }
     return 0
@@ -437,7 +437,7 @@ namespace eval ::nx {
     }
     return ${slotContainer}
   }
-  
+
   ######################################################################
   # Allocate system slot containers
   ######################################################################
@@ -482,7 +482,7 @@ namespace eval ::nx {
       set ref "\"$m\" of $obj $path"
       error "Unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
     }
-    
+
     :protected method defaultmethod {} {
       if {[catch {set obj [uplevel ::nsf::current]}]} {
 	error "Ensemble dispatch called outside of method context"
@@ -511,7 +511,7 @@ namespace eval ::nx {
     nsf::var::unset -nocomplain [self] $name
   }
   Object public method "delete variable" {name} {
-    # First remove the instanstance variable and complain, if it does
+    # First remove the instance variable and complain, if it does
     # not exist.
     if {[nsf::var::exists [self] $name]} {
       nsf::var::unset [self] $name
@@ -569,7 +569,7 @@ namespace eval ::nx {
       return [:info lookup method $methodName]
     }
     #
-    # method require, public explicitly 
+    # method require, public explicitly
     #
     :method "require public method" {methodName} {
       set result [:require method $methodName]
@@ -609,13 +609,13 @@ namespace eval ::nx {
       return $result
     }
   }
- 
+
   ######################################################################
   # Info definition
   ######################################################################
 
   # we have to use "eval", since objectParameters are not defined yet
-  
+
   Object eval {
     :alias "info lookup filter"  ::nsf::methods::object::info::lookupfilter
     :alias "info lookup method"  ::nsf::methods::object::info::lookupmethod
@@ -668,7 +668,7 @@ namespace eval ::nx {
   # that the automatically created name of the ensemble object has to
   # be the same as defined above.
   ######################################################################
-  
+
   EnsembleObject create ::nx::Class::slot::__info
   Class alias info ::nx::Class::slot::__info
 
@@ -682,7 +682,7 @@ namespace eval ::nx {
   }
 
   #
-  # Copy all info methods except the subobjects to
+  # Copy all info methods except the sub-objects to
   # ::nx::Class::slot::__info
   #
   foreach m [::nsf::directdispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods] {
@@ -754,7 +754,7 @@ namespace eval ::nx {
   ######################################################################
   # Define "info info" and "info unknown"
   ######################################################################
-  
+
   proc ::nx::internal::infoOptions {obj} {
     #puts stderr "INFO INFO $obj -> '[::nsf::directdispatch $obj ::nsf::methods::object::info::methods -methodtype all]'"
     set methods [list]
@@ -771,7 +771,7 @@ namespace eval ::nx {
 
   Object method "info info" {} {::nx::internal::infoOptions ::nx::Object::slot::__info}
   Class  method "info info" {} {::nx::internal::infoOptions ::nx::Class::slot::__info}
-  
+
   # finally register method "method" (otherwise, we cannot use "method" above)
   Object alias "info method" ::nsf::methods::object::info::method
   Class  alias "info method" ::nsf::methods::class::info::method
@@ -782,19 +782,19 @@ namespace eval ::nx {
   # Deactivated for now. If we like to revive this method, it should
   # be integrated with the method modifiers and the method "class"
   #
-  # Object method abstract {methtype -per-object:switch methname arglist} {
+  # Object method abstract {methtype -per-object:switch methName arglist} {
   #   if {$methtype ne "method"} {
   #     error "invalid method type '$methtype', must be 'method'"
   #   }
   #   set body "
   #     if {!\[::nsf::current isnextcall\]} {
-  #       error \"Abstract method $methname $arglist called\"
+  #       error \"Abstract method $methName $arglist called\"
   #     } else {::nsf::next}
   #   "
   #   if {${per-object}} {
-  #     :method -per-object $methname $arglist $body
+  #     :method -per-object $methName $arglist $body
   #   }  else {
-  #     :method $methname $arglist $body
+  #     :method $methName $arglist $body
   #   }
   # }
 
@@ -843,13 +843,13 @@ namespace eval ::nx {
   ######################################################################
   #
   # We are in bootstrap code; we cannot use slots/parameter to define
-  # slots, so the code is a little low level. After the defintion of
+  # slots, so the code is a little low level. After the definition of
   # the slots, we can use slot-based code such as "-parameter" or
   # "objectparameter".
   #
   Class create ::nx::MetaSlot
   ::nsf::relation MetaSlot superclass Class
-  
+
   MetaSlot class method requireClass {required:class old:class,0..1} {
     #
     # Combine two classes and return the more specialized one
@@ -925,10 +925,10 @@ namespace eval ::nx {
   }
 
   MetaSlot public class method createFromParameterSpec {
-    target 
-    -per-object:switch 
+    target
+    -per-object:switch
     {-class ""}
-    {-initblock ""} 
+    {-initblock ""}
     {-defaultopts ""}
     spec
     default:optional
@@ -936,7 +936,7 @@ namespace eval ::nx {
 
     lassign [:parseParameterSpec -class $class -defaultopts $defaultopts $spec] \
 	name parameterOptions class opts
-    
+
     if {[info exists default]} {
       lappend opts -default $default
     }
@@ -970,14 +970,14 @@ namespace eval ::nx {
 
   MetaSlot create ::nx::ObjectParameterSlot
   ::nsf::relation ObjectParameterSlot superclass Slot
-  
+
   MetaSlot create ::nx::MethodParameterSlot
   ::nsf::relation MethodParameterSlot superclass Slot
 
   # Create a slot instance for dispatching method parameter specific
   # value checkers
   MethodParameterSlot create ::nx::methodParameterSlot
-  
+
   # Define a temporary, low level interface for defining slot
   # values. Normally, this is done via slot objects, which are defined
   # later. The proc is removed later in this script.
@@ -985,7 +985,7 @@ namespace eval ::nx {
   proc createBootstrapVariableSlots {class definitions} {
     foreach att $definitions {
       if {[llength $att]>1} {foreach {att default} $att break}
-      set slotObj [::nx::slotObj $class $att] 
+      set slotObj [::nx::slotObj $class $att]
       #puts stderr "::nx::BootStrapVariableSlot create $slotObj"
       ::nx::BootStrapVariableSlot create $slotObj
       if {[info exists default]} {
@@ -1003,8 +1003,8 @@ namespace eval ::nx {
       ::nsf::var::set $slotObj position 0
       ::nsf::var::set $slotObj config 1
     }
-    
-    #puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
+
+    #puts stderr "Bootstrap-slot for $class calls invalidateobjectparameter"
     ::nsf::invalidateobjectparameter $class
   }
 
@@ -1032,7 +1032,7 @@ namespace eval ::nx {
   ::nsf::relation BootStrapVariableSlot superclass ObjectParameterSlot
 
   BootStrapVariableSlot public method getParameterSpec {} {
-    # 
+    #
     # Bootstrap version of getParameter spec. Just bare essentials.
     #
     set name [namespace tail [self]]
@@ -1164,7 +1164,7 @@ namespace eval ::nx {
   }
 
   ObjectParameterSlot protected method getParameterOptions {
-    {-withMultiplicity 0} 
+    {-withMultiplicity 0}
     {-forObjectParameter 0}
   } {
     #
@@ -1195,7 +1195,7 @@ namespace eval ::nx {
     }
     return $options
   }
-  
+
   ObjectParameterSlot public method getParameterSpec {} {
     #
     # Get a full object parmeter specification from slot object
@@ -1239,7 +1239,7 @@ namespace eval ::nx {
   # slots. The above definitions should be sufficient as a basis for
   # object parameters. We provide the definition here before we refine
   # the slot definitions.
-  # 
+  #
   # Invalidate previously defined object parameter (built with the
   # empty objectparameter definition.
   #
@@ -1250,7 +1250,7 @@ namespace eval ::nx {
   ######################################################################
 
   Class protected method objectparameter {} {
-    # 
+    #
     # Collect the object parameter slots in per-position lists to
     # ensure partial ordering and avoid sorting.
     #
@@ -1305,7 +1305,7 @@ namespace eval ::nx {
       #
       # Value contains globbing meta characters.
       #
-      if {[info exists :elementtype] && ${:elementtype} eq "mixinreg" 
+      if {[info exists :elementtype] && ${:elementtype} eq "mixinreg"
 	  && ![string match ::* $value]} {
 	#
         # Prefix glob pattern with ::, since all object names have
@@ -1363,12 +1363,12 @@ namespace eval ::nx {
     #
     uplevel [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
   }
-  
+
   RelationSlot public method delete {-nocomplain:switch obj prop value} {
     uplevel [list ::nsf::relation $obj $prop \
 		 [:delete_value $obj $prop [::nsf::relation $obj $prop] $value]]
   }
- 
+
   ######################################################################
   # Register system slots
   ######################################################################
@@ -1380,12 +1380,12 @@ namespace eval ::nx {
       -forwardername object-mixin -elementtype mixinreg
   ::nx::RelationSlot create ::nx::Object::slot::filter \
       -forwardername object-filter -elementtype filterreg
-  
+
   ::nx::RelationSlot create ::nx::Class::slot::mixin \
       -forwardername class-mixin -elementtype mixinreg
   ::nx::RelationSlot create ::nx::Class::slot::filter \
       -forwardername class-filter -elementtype filterreg
-  
+
   #
   # Create two convenience object parameters to allow configuration
   # of per-object mixins and filters for classes.
@@ -1394,20 +1394,20 @@ namespace eval ::nx {
       -methodname "::nsf::classes::nx::Object::mixin" -elementtype mixinreg
   ::nx::ObjectParameterSlot create ::nx::Class::slot::object-filter \
       -methodname "::nsf::classes::nx::Object::filter" -elementtype filterreg
-  
+
   #
   # Create object parameter slots for "noninit" and "volatile"
   #
   ::nx::ObjectParameterSlot create ::nx::Object::slot::noinit \
       -methodname ::nsf::methods::object::noinit -noarg true
   ::nx::ObjectParameterSlot create ::nx::Object::slot::volatile -noarg true
-  
+
   #
   # Define "class" as a ObjectParameterSlot defined as alias
   #
   ::nx::ObjectParameterSlot create ::nx::Object::slot::class \
       -methodname "::nsf::methods::object::class" -elementtype class
-  
+
   #
   # Define "superclass" as a ObjectParameterSlot defined as alias
   #
@@ -1416,7 +1416,7 @@ namespace eval ::nx {
       -elementtype class \
       -multiplicity 1..n \
       -default ::nx::Object
-  
+
   #
   # Define the initcmd as a positional ObjectParameterSlot
   #
@@ -1426,7 +1426,7 @@ namespace eval ::nx {
       #	-noarg true \
       #	-positional true \
       #	-position 1
-  
+
   #
   # Define the initcmd as a positional ObjectParameterSlot
   #
@@ -1435,12 +1435,12 @@ namespace eval ::nx {
       -noleadingdash true \
       -positional true \
       -position 2
-  
+
   #
   # Make sure the invalidate all ObjectParameterSlots
   #
   ::nsf::invalidateobjectparameter ::nx::ObjectParameterSlot
-  
+
   #
   # Define method "guard" for mixin- and filter-slots of Object and Class
   #
@@ -1448,14 +1448,14 @@ namespace eval ::nx {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::filterguard $filter $guard
     } else {
-      $obj info filter guard $filter 
+      $obj info filter guard $filter
     }
   }
   ::nx::Class::slot::filter method guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::filterguard $filter $guard
     } else {
-      $obj info filter guard $filter 
+      $obj info filter guard $filter
     }
   }
   ::nx::Object::slot::mixin method guard {obj prop mixin guard:optional} {
@@ -1469,11 +1469,11 @@ namespace eval ::nx {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::mixinguard $filter $guard
     } else {
-      $obj info mixin guard $filter 
+      $obj info mixin guard $filter
     }
   }
   #::nsf::method::alias ::nx::Class::slot::object-filter guard ::nx::Object::slot::filter::guard
-  
+
   #
   # With a special purpose eval, we could avoid the need for
   # reconfigure for slot changes via eval (two cases in the regression
@@ -1486,13 +1486,13 @@ namespace eval ::nx {
   #  :reconfigure
   #  return $r
   #}
-     
+
 
   ######################################################################
   # Variable slots
   ######################################################################
   ::nsf::invalidateobjectparameter MetaSlot
-  
+
   MetaSlot create ::nx::VariableSlot -superclass ::nx::ObjectParameterSlot
 
   createBootstrapVariableSlots ::nx::VariableSlot {
@@ -1520,7 +1520,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method getParameterOptions {
-    {-withMultiplicity 0} 
+    {-withMultiplicity 0}
     {-forObjectParameter 0}
   } {
     set options ""
@@ -1571,10 +1571,10 @@ namespace eval ::nx {
 
   ::nx::VariableSlot protected method needsForwarder {} {
     #
-    # We just forward, when 
+    # We just forward, when
     #   * "assign" and "add" are still untouched, or
     #   * or incremental is specified
-    # 
+    #
     if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {return 1}
     if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
     if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
@@ -1587,9 +1587,9 @@ namespace eval ::nx {
   ::nx::VariableSlot public method makeAccessor {} {
 
     if {!${:accessor}} {
-      #puts stderr "Do not register forwarder ${:domain} ${:name}" 
+      #puts stderr "Do not register forwarder ${:domain} ${:name}"
       return 0
-    }   
+    }
     if {[:needsForwarder]} {
       set handle [:makeForwarder]
       :makeIncrementalOperations
@@ -1638,7 +1638,7 @@ namespace eval ::nx {
     set options [:getParameterOptions -withMultiplicity true]
     lappend options slot=[::nsf::self]
     set body {::nsf::var::set $obj $var $value}
-    
+
     if {[:info lookup method assign] eq "::nsf::classes::nx::VariableSlot::assign"} {
       #puts stderr ":public method assign [list obj var [:namedParameterSpec {} value $options]] $body"
       :public method assign [list obj var [:namedParameterSpec {} value $options]] $body
@@ -1686,7 +1686,7 @@ namespace eval ::nx {
   }
 
   #
-  # Implementation of methods called by the traces 
+  # Implementation of methods called by the traces
   #
   ::nx::VariableSlot method __default_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
@@ -1705,14 +1705,14 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # Implementation of (incremental) forwarder operations for 
-  # VariableSlots: 
-  #  - assign 
-  #  - get 
-  #  - add 
+  # Implementation of (incremental) forwarder operations for
+  # VariableSlots:
+  #  - assign
+  #  - get
+  #  - add
   #  - delete
   ######################################################################
-  
+
   ::nsf::method::alias ::nx::VariableSlot get ::nsf::var::set
   ::nsf::method::alias ::nx::VariableSlot assign ::nsf::var::set
 
@@ -1743,8 +1743,8 @@ namespace eval ::nx {
 
   nx::Object method variable {
      {-accessor:switch}
-     {-class ""} 
-     {-initblock ""} 
+     {-class ""}
+     {-initblock ""}
      {-nocomplain:switch}
      spec:parameter
      defaultValue:optional
@@ -1753,7 +1753,7 @@ namespace eval ::nx {
     # This method creates sometimes a slot, sometimes not
     # (optimization).  We need a slot currently in the following
     # situations:
-    #  - when accessors are needed 
+    #  - when accessors are needed
     #    (serializer uses slot object to create accessors)
     #  - when initblock is non empty
     #
@@ -1816,8 +1816,8 @@ namespace eval ::nx {
   }
 
   Object method property {
-    {-class ""} 
-    -nocomplain:switch 
+    {-class ""}
+    -nocomplain:switch
      spec:parameter
     {initblock ""}
   } {
@@ -1834,7 +1834,7 @@ namespace eval ::nx {
      {-accessor:switch}
      {-class ""}
      {-config:switch}
-     {-initblock ""} 
+     {-initblock ""}
      spec:parameter
      defaultValue:optional
    } {
@@ -1846,7 +1846,7 @@ namespace eval ::nx {
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
     return [::nsf::directdispatch [self] ::nsf::methods::class::info::method registrationhandle [$slot name]]
   }
-  
+
   nx::Class method property {
     {-class ""}
     spec:parameter
@@ -1892,7 +1892,7 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # Now the slots are defined; now we can defines the Objects or 
+  # Now the slots are defined; now we can defines the Objects or
   # classes with parameters more easily than above.
   ######################################################################
 
@@ -1939,7 +1939,7 @@ namespace eval ::nx {
     if {![::nsf::object::exists $object]} {$class create $object}
     # This method is reused in XOTcl which has e.g. no "require";
     # therefore use nsf primitiva.
-    ::nsf::directdispatch $object ::nsf::methods::object::requirenamespace    
+    ::nsf::directdispatch $object ::nsf::methods::object::requirenamespace
 
     if {$withnew} {
       #
@@ -1955,10 +1955,10 @@ namespace eval ::nx {
       set infoMethod "::nsf::methods::class::info::method"
       set plainNew   "::nsf::methods::class::new"
       set mappedNew  [::nx::NsScopedNew $infoMethod definitionhandle new]
-      
+
       set nxMapNew [expr {[::nx::Class $infoMethod origin new] eq $plainNew}]
       if {$nxMapNew} {::nsf::method::alias ::nx::Class new $mappedNew}
-      
+
       if {[::nsf::is class ::xotcl::Class]} {
 	set xotclMapNew [expr {[::xotcl::Class $infoMethod origin new] eq $plainNew}]
 	if {$xotclMapNew} {::nsf::method::alias ::xotcl::Class new $mappedNew }
@@ -1976,7 +1976,7 @@ namespace eval ::nx {
 	if {$xotclMapNew} {::nsf::method::alias ::xotcl::Class new $plainNew}
       }
       if {$errorOccured} {error $errorMsg}
-      
+
     } else {
       ::apply [list {} $cmds $object]
     }
@@ -2012,7 +2012,7 @@ namespace eval ::nx {
           lappend children [namespace children $t]
         }
       }
-    
+
       # a namespace or an obj with namespace may have children
       # itself
       foreach c $children {
@@ -2034,7 +2034,7 @@ namespace eval ::nx {
 	return ::[string trimleft [set :dest]$tail :]
       }
     }
-  
+
     :method copyTargets {} {
       #puts stderr "COPY will copy targetList = [set :targetList]"
       set objs {}
@@ -2088,7 +2088,7 @@ namespace eval ::nx {
 	#
 	set base [$origin ::nsf::methods::object::info::parent]
 	set container [namespace tail $origin]
-	if {[::nsf::object::exists $base] 
+	if {[::nsf::object::exists $base]
 	    && [::nsf::method::property $base -per-object $container slotcontainer]
 	  } {
 	  ::nx::internal::setSlotContainerProperties [$dest ::nsf::methods::object::info::parent] $container
@@ -2147,7 +2147,7 @@ namespace eval ::nx {
       }
       return [lindex $objs 0]
     }
-    
+
     :public method copy {obj {dest ""}} {
       #puts stderr "[::nsf::self] copy <$obj> <$dest>"
       set :objLength [string length $obj]
@@ -2185,7 +2185,7 @@ namespace eval ::nx {
 
 
   ######################################################################
-  # Methods of metaclasses are methods intended for classes. Make
+  # Methods of meta-classes are methods intended for classes. Make
   # sure, these methods are only applied on classes.
   ######################################################################
 
@@ -2197,7 +2197,7 @@ namespace eval ::nx {
   ######################################################################
   # some utilities
   ######################################################################
-  # 
+  #
   # Provide mechanisms to configure nx
   #
   ::nx::Object create ::nx::configure {
@@ -2240,7 +2240,7 @@ namespace eval ::nx {
   # framework is faster than namespace-ensembles.
   #
   Object create ::nx::var {
-    :public alias exists ::nsf::var::exists 
+    :public alias exists ::nsf::var::exists
     :public alias import ::nsf::var::import
     :public alias set ::nsf::var::set
   }
@@ -2273,7 +2273,7 @@ namespace eval ::nx {
 
   set ::nx::confdir ~/.nx
   set ::nx::logdir $::nx::confdir/log
-  
+
   unset ::nsf::bootstrap
 }
 

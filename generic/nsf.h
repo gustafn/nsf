@@ -11,7 +11,7 @@
  *     Altendorferstrasse 97-101
  *     D-45143 Essen, Germany
  *
- * (b) Vienna University of Economics and Business 
+ * (b) Vienna University of Economics and Business
  *     Institute of Information Systems and New Media
  *     A-1090, Augasse 2-6
  *     Vienna, Austria
@@ -78,11 +78,11 @@
  * Feature activation/deactivation
  */
 
-/* activate bytecode support 
+/* activate bytecode support
 #define NSF_BYTECODE
 */
 
-/* activate/deacticate profiling information at the end
+/* activate/deactivate profiling information at the end
    of running the program
 #define NSF_PROFILE 1
 #define NSF_DTRACE 1
@@ -92,7 +92,7 @@
 #define NSF_DEVELOPMENT 1
 */
 
-/* activate/deactivate assert 
+/* activate/deactivate assert
 #define NDEBUG 1
 */
 
@@ -104,7 +104,7 @@
 #define NSF_WITH_OS_RESOLVER 1
 #define NSF_WITH_VALUE_WARNINGS 1
 
-/* activate/deacticate memory tracing 
+/* activate/deactivate memory tracing
 #define NSF_MEM_TRACE 1
 #define NSF_MEM_COUNT 1
 */
@@ -212,8 +212,8 @@
 # define NsfMutexUnlock(a) (*(a))--
 #endif
 
-/* 
- * A special definition used to allow this header file to be included 
+/*
+ * A special definition used to allow this header file to be included
  * in resource files so that they can get obtain version information from
  * this file.  Resource compilers don't like all the C stuff, like typedefs
  * and procedure declarations, that occur below.
@@ -222,14 +222,14 @@
 #ifndef RC_INVOKED
 
 /*
- * The structures Nsf_Object and Nsf_Class define mostly opaque 
- * data structures for the internal use strucures NsfObject and 
- * NsfClass (both defined in NsfInt.h). Modification of elements 
+ * The structures Nsf_Object and Nsf_Class define mostly opaque
+ * data structures for the internal use structures NsfObject and
+ * NsfClass (both defined in NsfInt.h). Modification of elements
  * visible elements must be mirrored in both incarnations.
  *
  * Warning: These structures are just containing a few public
  * fields. These structures must not be used for querying the size or
- * allocating the datastructures.
+ * allocating the data structures.
  */
 
 typedef struct Nsf_Object {
@@ -246,15 +246,15 @@ typedef struct Nsf_ParseContext {
 } Nsf_ParseContext;
 
 struct Nsf_Param;
-typedef int (Nsf_TypeConverter)(Tcl_Interp *interp, 
+typedef int (Nsf_TypeConverter)(Tcl_Interp *interp,
 				 Tcl_Obj *obj,
-                                 struct Nsf_Param CONST *pPtr, 
-				 ClientData *clientData, 
+                                 struct Nsf_Param CONST *pPtr,
+				 ClientData *clientData,
 				 Tcl_Obj **outObjPtr);
-Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass, 
+Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass,
   Nsf_ConvertToInteger, Nsf_ConvertToInt32,
-  Nsf_ConvertToObject, Nsf_ConvertToParameter, 
-  Nsf_ConvertToString, Nsf_ConvertToSwitch, 
+  Nsf_ConvertToObject, Nsf_ConvertToParameter,
+  Nsf_ConvertToString, Nsf_ConvertToSwitch,
   Nsf_ConvertToTclobj, Nsf_ConvertToPointer;
 
 typedef struct Nsf_Param {
@@ -272,7 +272,7 @@ typedef struct Nsf_Param {
   Tcl_Obj *method;
 } Nsf_Param;
 
-extern int 
+extern int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
@@ -282,19 +282,19 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
 		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj);
 
 extern int
-NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, 
+NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 			   CONST char *what, CONST char *methodName);
 extern int
 NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what);
 
 extern int
-NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString, 
-			   Nsf_Object *object, Nsf_Param CONST *paramPtr, 
+NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
+			   Nsf_Object *object, Nsf_Param CONST *paramPtr,
 			   Tcl_Obj *procNameObj);
 extern int
-NsfUnexpectedNonposArgumentError(Tcl_Interp *interp, 
-				 CONST char *argumentString, 
-				 Nsf_Object *object, 
+NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
+				 CONST char *argumentString,
+				 Nsf_Object *object,
 				 Nsf_Param CONST *currentParamPtr,
 				 Nsf_Param CONST *paramPtr,
 				 Tcl_Obj *procNameObj);

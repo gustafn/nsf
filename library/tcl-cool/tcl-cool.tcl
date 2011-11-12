@@ -9,11 +9,11 @@ set auto_path [concat . $auto_path]
 #
 # This script consists of three major parts:
 #
-#   1. The definition of TclCOOL (Tcl Core Object Oriented Languge)
+#   1. The definition of TclCOOL (Tcl Core Object Oriented Language)
 #      based on the Next Scripting Framework (::nsf). TclCOOL is
 #      simple but powerful object language.
 #
-#   2. Sample TclCOOL program 
+#   2. Sample TclCOOL program
 #
 
 # In a first step, we load nsf
@@ -23,7 +23,7 @@ package require nsf
 # Now we have the following commands and methods defined in the ::nsf
 # namespace (among more functionality not needed here):
 #
-# Two unexported commands for OO-language designer
+# Two un-exported commands for OO-language designer
 #   ::nsf::alias
 #   ::nsf::objectsystem::create
 #   ::nsf::forward
@@ -33,7 +33,7 @@ package require nsf
 # Three exported commands to be used by in the languages
 #   ::nsf::my
 #   ::nsf::current
-#   ::nsf::next 
+#   ::nsf::next
 #
 # An unregistered (unattached) set of methods that can be used for
 # objects.  We use here just:
@@ -54,11 +54,11 @@ package require nsf
 #
 # 1. TclCOOL language definition based on the Next Scripting Framework
 #
-###################################################################### 
+######################################################################
 
 namespace eval tcl-cool {
 
-  # In a first step, we create two base classes of TclCOOL, 
+  # In a first step, we create two base classes of TclCOOL,
   # namely "object" and "class" in the current namespace:
 
   ::nsf::objectsystem::create object class
@@ -70,11 +70,11 @@ namespace eval tcl-cool {
   # We define as well [self] as a synonym of "nsf::current object"
   #
   interp alias {} ::tcl-cool::self {} ::nsf::current object
-  
-  # We define 2 methods for "class" (actually "::tcl-cool::class) 
-  # based on the methodset for classes
+
+  # We define 2 methods for "class" (actually "::tcl-cool::class)
+  # based on the method set for classes
   #
-  #   - "method"  is a means to define the methods, which are provided 
+  #   - "method"  is a means to define the methods, which are provided
   #               by the class to the instances of the class
   #   - "forward" is a forwarder for instances of the class
   #
@@ -96,8 +96,8 @@ namespace eval tcl-cool {
   # Sometimes using method is better to be selective on the arguments
   # and the provided switches.
 
-  # Next, we define 3 methods for "object" (actually "::tcl-cool::object) 
-  # based on the methodset for objects
+  # Next, we define 3 methods for "object" (actually "::tcl-cool::object)
+  # based on the method set for objects
   #
   #   - "variable" is a means to import instance variables into
   #                the current scope ("instvar" in XOTcl)
@@ -109,7 +109,7 @@ namespace eval tcl-cool {
   ::nsf::method::alias   object methods  ::nsf::methods::object::info::lookupmethods
 
   #
-  # The method "create" defines, what happens, when a class or object 
+  # The method "create" defines, what happens, when a class or object
   # is created. First the object is allocated, then the constructor is called.
   #
   class method create {name args} {
@@ -135,12 +135,12 @@ namespace eval tcl-cool {
   # The following method is the constructor for classes.  It sets the
   # default superclass and provides easy means for specifying methods
   # and superclasses during initialization
-  
+
   class method init {spec} {
     my variable __default_superclass
     set __default_superclass [namespace current]::object
     while {[llength $spec]} {
-      set m [pop spec] 
+      set m [pop spec]
       switch $m {
 	method     {my method [pop spec] [pop spec] [pop spec]}
 	superclass {my superclass [pop spec]}
@@ -158,17 +158,17 @@ namespace eval tcl-cool {
     }
   }
 
-  # Finally, we provide a few methods for all objects in TclCOOL: 
+  # Finally, we provide a few methods for all objects in TclCOOL:
   #  - "unknown": provide an error message, when unknown methods are called
-  #  - "filter": convenience routine to set filters though 
+  #  - "filter": convenience routine to set filters though
   object method unknown {m args} {error "[self]: unknown method '$m' called"}
-  
+
   # Provide users a convenient way to register/deregister per-object
   # filters and mixins
 
-  object forward filter ::nsf::relation %self object-filter 
+  object forward filter ::nsf::relation %self object-filter
   object forward mixin  ::nsf::relation %self object-mixin
-  
+
   # finally, export a few commands
   namespace export object class my self next
 }
@@ -238,7 +238,7 @@ object method tracer args {
 #
 fido filter tracer
 
-# 
+#
 # invoke the methods again
 #
 puts "wag means [fido wag]"
@@ -247,7 +247,7 @@ fido chase tweedy!
 
 # The output is:
 # > ============ filter ================
-# > * call ::fido wag 
+# > * call ::fido wag
 # > * exit ::fido wag, returns 'Joy'
 # > wag means Joy
 # > * call ::fido chase tweedy!
@@ -282,7 +282,7 @@ class create lazydog {
 #
 fido mixin lazydog
 
-# 
+#
 # invoke the methods again
 #
 puts "wag means [fido wag]"
