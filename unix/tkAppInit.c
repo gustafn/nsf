@@ -1,6 +1,5 @@
 /* 
  * tkAppInit.c --
- * $Id: tkAppInit.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
  *
  *	Provides a default version of the Tcl_AppInit procedure for
  *	use in wish and similar Tk-based applications.
@@ -11,10 +10,6 @@
  * See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  */
-
-#ifndef lint
-/* static char sccsid[] = "@(#) tkAppInit.c 1.12 94/12/17 16:30:56"; */
-#endif /* not lint */
 
 #include "tk.h"
 #include "locale.h"

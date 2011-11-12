@@ -14,8 +14,6 @@
  * all claims, expenses, losses, damages and costs any user may incur
  * as a result of using, copying or modifying the software.
  *
- * $Id: tclexpat.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
- *
  */
 
 #include <tcl.h>

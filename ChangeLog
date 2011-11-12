@@ -1,3 +1,8 @@
+2011-11-12 <Gustaf.Neumann@wu-wien.ac.at>
+	* Removed obsolete CVS-$Ids
+	* Updated dates of Copyrights
+	* Removed unneeded c++ hints for Emacs
+
 2011-11-02 <Gustaf.Neumann@wu-wien.ac.at>
 	* Release of XOTcl 1.6.7
 

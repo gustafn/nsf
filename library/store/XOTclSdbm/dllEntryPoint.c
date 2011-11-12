@@ -1,6 +1,5 @@
 /* 
  * dllEntryPoint.c --
- * $Id: dllEntryPoint.c,v 1.1 2004/05/23 22:50:39 neumann Exp $ 
  *
  *	This file implements the Dll entry point as needed by Windows.
  */

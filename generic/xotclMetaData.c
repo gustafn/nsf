@@ -1,10 +1,8 @@
-/* -*- Mode: c++ -*-
- *  $Id: xotclMetaData.c,v 1.5 2006/09/27 08:12:40 neumann Exp $
- *  
+/* 
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
- *
+ *  Copyright (C) 1999-2011 Gustaf Neumann
+ *  Copyright (C) 1999-2007 Uwe Zdun
  *
  *  xotclReference.c --
  *  

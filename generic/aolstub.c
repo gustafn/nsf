@@ -1,13 +1,14 @@
-/* $Id: aolstub.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
-
+/* 
    This file provides the stubs needed for the AOL_SERVER,
    Please note, that you have to have to apply a small patch
    to the AOL server as well (available from www.xotcl.org)
    in order to get it working.
 
-   Authore:
+   Author:
       Zoran Vasiljevic
       Archiware Inc.
+
+   Various updates from Gustaf Neumann
 
 */
 #ifdef AOL_SERVER
