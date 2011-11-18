@@ -284,7 +284,7 @@ static int GuardCall(NsfObject *object, Tcl_Interp *interp,
 static void GuardDel(NsfCmdList *filterCL);
 
 /* properties of objects and classes */
-static int IsBaseClass(NsfClass *cl);
+static int IsBaseClass(NsfObject *cl);
 static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins);
 static int IsSubType(NsfClass *subcl, NsfClass *cl);
 static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta);
@@ -1471,7 +1471,7 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
   NsfClass *cl;
   Tcl_DString ds, *dsPtr = &ds;
 
-  if (unlikely(pPtr->flags & NSF_ARG_BASECLASS) && !IsBaseClass((NsfClass *)object)) {
+  if (unlikely(pPtr->flags & NSF_ARG_BASECLASS) && !IsBaseClass(object)) {
     what = "baseclass";
     goto type_error;
   }
@@ -1995,13 +1995,23 @@ RemoveInstance(NsfObject *object, NsfClass *cl) {
   Tcl_HashEntry *hPtr;
 
   assert(cl);
-  hPtr = Tcl_CreateHashEntry(&cl->instances, (char *)object, NULL);
-
-  /*if (hPtr == NULL) {
-    fprintf(stderr, "instance %s is not an instance of %s\n", ObjectName(object), ClassName(cl));
-    }*/
-  assert(hPtr);
-  Tcl_DeleteHashEntry(hPtr);
+  /*
+   * If we are during a delete, which should not happen under normal
+   * operations, prevent an abort due to a deleted hash table.
+   */ 
+  if (cl->object.flags & NSF_DURING_DELETE) {
+    NsfLog(cl->object.teardown, NSF_LOG_WARN, 
+	   "Class which should loose instance is currently being deleted: %s",
+	   ClassName(cl));
+  } else {
+    hPtr = Tcl_CreateHashEntry(&cl->instances, (char *)object, NULL);
+    
+    /*if (hPtr == NULL) {
+      fprintf(stderr, "instance %s is not an instance of %s\n", ObjectName(object), ClassName(cl));
+      }*/
+    assert(hPtr);
+    Tcl_DeleteHashEntry(hPtr);
+  }
 }
 
 /*
@@ -4162,10 +4172,9 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
 	     * the command anyway, since its parent is currently being
 	     * deleted.
 	     */
-	    NsfLog(interp, NSF_LOG_NOTICE, "Destroy failed for object %s, perform low level deletion",
-		   ObjectName(object));
-
 	    if (object->teardown) {
+	      NsfLog(interp, NSF_LOG_NOTICE, "Destroy failed for object %s, perform low level deletion",
+		     ObjectName(object));
 	      CallStackDestroyObject(interp, object);
 	    }
 	  }
@@ -10206,7 +10215,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	   * Skip entries until the first base class.
 	   */
 	  for (; classList;  classList = classList->nextPtr) {
-	    if (IsBaseClass(classList->cl)) {break;}
+	    if (IsBaseClass(&classList->cl->object)) {break;}
 	  }
 	  cl = SearchPLMethod(classList, methodName, &cmd, NSF_CMD_CALL_PRIVATE_METHOD);
 	} else {
@@ -10407,8 +10416,9 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
    */
   if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_ON_PHYSICAL_DESTROY
       || (object->flags & NSF_DESTROY_CALLED)
-      )
+      ) {
     return TCL_OK;
+  }
 
   /*fprintf(stderr, "    DispatchDestroyMethod obj %p flags %.6x active %d\n",
     object, object->flags,  object->activationCount); */
@@ -14657,8 +14667,8 @@ HasMetaProperty(NsfClass *cl) {
 }
 
 static int
-IsBaseClass(NsfClass *cl) {
-  return cl->object.flags & (NSF_IS_ROOT_META_CLASS|NSF_IS_ROOT_CLASS);
+IsBaseClass(NsfObject *object) {
+  return object->flags & (NSF_IS_ROOT_META_CLASS|NSF_IS_ROOT_CLASS);
 }
 
 
@@ -17301,10 +17311,10 @@ static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object) 
      * If the method is object specific, it can't be from a baseclass and must
      * be application specific.
      */
-    return (withSource == SourceApplicationIdx && !IsBaseClass((NsfClass *)object));
+    return (withSource == SourceApplicationIdx && !IsBaseClass(object));
   }
 
-  isBaseClass = IsBaseClass(cl);
+  isBaseClass = IsBaseClass(&cl->object);
   if (withSource == SourceBaseclassesIdx && isBaseClass) {
     return 1;
   } else if (withSource == SourceApplicationIdx && !isBaseClass) {
@@ -21093,6 +21103,15 @@ static int
 NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
   PRINTOBJ("NsfODestroyMethod", object);
 
+  /*
+   * Provide protection against destroy on base classes.
+   */ 
+  if (unlikely(IsBaseClass(object))) {
+    if (RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_ON_SOFT_DESTROY) {
+      return NsfPrintError(interp, "Cannot destroy base class %s", ObjectName(object));
+    }
+  }
+
   /*fprintf(stderr,"NsfODestroyMethod %p %s flags %.6x activation %d cmd %p cmd->flags %.6x\n",
           object, ((Command *)object->id)->flags == 0 ? ObjectName(object) : "(deleted)",
           object->flags, object->activationCount, object->id, ((Command *)object->id)->flags);*/
@@ -21670,6 +21689,15 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
           newObject ? IsMetaClass(interp, newObject->cl, 1) : 0
           );*/
 
+
+  /*
+   * Provide protection against recreation if base classes.
+   */ 
+  if (newObject && unlikely(IsBaseClass(newObject))) {
+    result = NsfPrintError(interp, "Cannot recreate base class %s", ObjectName(newObject));
+    goto create_method_exit;
+  }
+
   /*
    * Don't allow to
    *  - recreate an object as a class,
@@ -21712,7 +21740,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
      */
 
     /*fprintf(stderr, "alloc ... %s newObject %p \n", ObjStr(nameObj), newObject);*/
-
+    
     if (CallDirectly(interp, &cl->object, NSF_c_alloc_idx, &methodObj)) {
       result = NsfCAllocMethod_(interp, cl, nameObj, parentNsPtr);
     } else {
@@ -22165,13 +22193,11 @@ NsfObjInfoIsMethod(Tcl_Interp *interp, NsfObject *object, int objectkind) {
     break;
 
   case ObjectkindMetaclassIdx:
-    success = NsfObjectIsClass(object)
-      && IsMetaClass(interp, (NsfClass *)object, 1);
+    success = NsfObjectIsClass(object) && IsMetaClass(interp, (NsfClass *)object, 1);
     break;
 
   case ObjectkindBaseclassIdx:
-    success = NsfObjectIsClass(object)
-      && IsBaseClass((NsfClass *)object);
+    success = NsfObjectIsClass(object) && IsBaseClass(object);
     break;
   }
   Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
@@ -23347,7 +23373,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
   NsfCmdList *entry, *lastEntry;
   int deleted = 0;
 
-  /* fprintf(stderr, "FreeAllNsfObjectsAndClasses in %p\n", interp); */
+  /*fprintf(stderr, "FreeAllNsfObjectsAndClasses in %p\n", interp);*/
 
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = NSF_EXITHANDLER_ON_PHYSICAL_DESTROY;
 
@@ -23477,7 +23503,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
           && !ObjectHasChildren((NsfObject *)cl)
           && !ClassHasInstances(cl)
           && !ClassHasSubclasses(cl)
-          && !IsBaseClass(cl)
+          && !IsBaseClass(&cl->object)
           ) {
         /*fprintf(stderr, "  ... delete class %s %p\n", ClassName(cl), cl); */
 	assert(cl->object.id);

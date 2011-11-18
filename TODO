@@ -3796,6 +3796,12 @@ nsf.c, nsf.h, nsfStack.c, nx.tcl, tcl-cool.tcl, xotcl2.tcl
   when called without a callstack
 - added regression test
 
+nsf.c:
+- change argument of IsMetaClass() to type *NsfObject
+- provide basic pretection against most likely unintended 
+  deletion/overwriting of base classes.
+- extend regression test
+
 ========================================================================
 TODO:
 

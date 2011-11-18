@@ -317,8 +317,29 @@ C -
 
 
 #
-# Test instances of diamond class structure.  Leave class structure
-# around until exit to test handling of pot. duplicated entries
+# Test protection against (most likely unintended) deletion of base
+# classes.
+#
+? {catch {nx::Object destroy}}           1
+? {::nsf::object::exists nx::Object}     1
+? {catch {nx::Object create nx::Object}} 1
+? {::nsf::object::exists nx::Object}     1
+? {catch {nx::Object create nx::Class}}  1
+? {::nsf::object::exists nx::Class}      1
+? {catch {nx::Class create nx::Object}}  1
+? {catch {nx::Class create nx::Class}}   1
+? {catch {rename nx::Object ""}}         1
+? {::nsf::object::exists nx::Object}     1
+? {catch {rename nx::Object ""}}         1
+? {::nsf::object::exists nx::Object}     1
+? {catch {rename nx::Class ""}}          1
+? {::nsf::object::exists nx::Class}      1
+
+#
+# Test instances of diamond class structure. 
+#
+# Leave class structure around until exit to test handling of
+# potentially duplicated entries during final cleanup
 #
 nx::Class create A
 nx::Class create B1 -superclass A
@@ -326,7 +347,6 @@ nx::Class create B2 -superclass A
 nx::Class create C -superclass {B1 B2}
 ? {C create c1} ::c1
 ? {A info instances -closure} ::c1
-
 
 puts stderr ===EXIT
 ::nsf::configure dtrace off
