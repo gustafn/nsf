@@ -9600,7 +9600,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	{
 	  Tcl_CallFrame *framePtr1;
 	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
-
+	  
+	  assert(cscPtr1);
 	  if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
 	    /*
 	     * We are in an ensemble method. The next works here not on the
@@ -9994,7 +9995,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
 
     if (unlikely(cscPtr1 == NULL)) {
-      return NsfPrintError(interp, "local flag only allowed when called from a method body");
+      return NsfPrintError(interp, "Flag '-local' only allowed when called from a method body");
     }
     if (cscPtr1->cl) {
       cmd = FindMethod(cscPtr1->cl->nsPtr, methodName);
