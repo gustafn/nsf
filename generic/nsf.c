@@ -1,4 +1,4 @@
-/* [a-z]  
+/* 
  *  nsf.c --
  *
  *      Basic Machinery of the Next Scripting Framework, a Tcl based framework
@@ -3202,7 +3202,7 @@ NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj) {
   Tcl_Obj *resultObj;
 
   /* NsfShowStack(interp);*/
-  if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) {
+  if (cscPtr && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) {
     resultObj = Tcl_NewListObj(0, NULL);
     Tcl_ListObjAppendElement(interp, resultObj,
 			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));

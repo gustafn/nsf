@@ -3792,7 +3792,8 @@ nsf.c:
 nsf.c, nsf.h, nsfStack.c, nx.tcl, tcl-cool.tcl, xotcl2.tcl
 - fix spelling in comments
 - strip unneeded space
-
+- fixed potential crash when generating error message about argument usage 
+  when called without a callstack
 
 
 ========================================================================
