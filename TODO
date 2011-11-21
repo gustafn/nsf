@@ -3798,9 +3798,12 @@ nsf.c, nsf.h, nsfStack.c, nx.tcl, tcl-cool.tcl, xotcl2.tcl
 
 nsf.c:
 - change argument of IsMetaClass() to type *NsfObject
-- provide basic pretection against most likely unintended 
+- provide basic protection against most likely unintended 
   deletion/overwriting of base classes.
 - extend regression test
+
+- fix typos
+- extend regression test to improve coverage
 
 ========================================================================
 TODO:

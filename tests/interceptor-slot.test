@@ -154,7 +154,7 @@ Test case mixin-add {
 Test parameter count 3
 Test case "filter-and-creation" {
   Class create Foo {
-    :public method myfilter {args} {
+    :method myfilter {args} {
       set i [::incr ::count]
       set s [self]
       set m [current calledmethod]
@@ -204,6 +204,8 @@ Test case "filter-and-creation" {
   ? {ob2 bar2} {::ob2: unable to dispatch method 'bar2'}
   ? {ob2 baz} {}
 
+  # create with filter
+  ? {Foo create ob3 -filter myfilter} ::ob3
 }
 
 
