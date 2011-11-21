@@ -3804,6 +3804,7 @@ nsf.c:
 
 - fix typos
 - extend regression test to improve coverage
+- improve branch prediction
 
 ========================================================================
 TODO:

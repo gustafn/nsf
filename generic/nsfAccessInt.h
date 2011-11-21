@@ -97,7 +97,7 @@ VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
 
   hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
                              (char *) key, newPtr);
-  if (hPtr) {
+  if (likely(hPtr != NULL)) {
     varPtr = TclVarHashGetValue(hPtr);
   }
   return varPtr;
@@ -117,12 +117,12 @@ VarHashTableCreate() {
 static NSF_INLINE ClientData
 NsfGetClientDataFromCmdPtr(Tcl_Command cmd) {
   assert(cmd);
-  /*fprintf(stderr, "objProc=%p %p\n",Tcl_Command_objProc(cmd),NsfObjDispatch);*/
-  if (Tcl_Command_objProc(cmd) == NsfObjDispatch /* && !Tcl_Command_cmdEpoch(cmd)*/)
+  /*fprintf(stderr, "objProc=%p %p\n", Tcl_Command_objProc(cmd),NsfObjDispatch);*/
+  if (likely(Tcl_Command_objProc(cmd) == NsfObjDispatch))
     return Tcl_Command_objClientData(cmd);
   else {
     cmd = TclGetOriginalCommand(cmd);
-    if (cmd && Tcl_Command_objProc(cmd) == NsfObjDispatch) {
+    if (likely(cmd != NULL) && unlikely(Tcl_Command_objProc(cmd) == NsfObjDispatch)) {
       /*fprintf(stderr, "???? got cmd right in 2nd round\n");*/
       return Tcl_Command_objClientData(cmd);
     }
@@ -134,10 +134,11 @@ static NSF_INLINE NsfClass*
 NsfGetClassFromCmdPtr(Tcl_Command cmd) {
   ClientData cd = NsfGetClientDataFromCmdPtr(cmd);
   /*fprintf(stderr, "cd=%p\n",cd);*/
-  if (cd) 
+  if (likely(cd != NULL)) {
     return NsfObjectToClass(cd);
-  else
-    return 0;
+  } else {
+    return NULL;
+  }
 }
 
 static NSF_INLINE NsfObject*

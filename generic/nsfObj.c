@@ -138,7 +138,7 @@ NsfMethodObjSet(
    * Free or reuse the old interal representation and store own
    * structure as internal representation.
    */
-  if (likely(objPtr->typePtr != objectType)) {
+  if (objPtr->typePtr != objectType) {
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "... NsfMethodObjSet frees old int rep %s\n",
 	    objPtr->typePtr ? objPtr->typePtr->name : "none");
@@ -276,7 +276,7 @@ NsfFlagObjSet(
    * Free or reuse the old interal representation and store own
    * structure as internal representation.
    */
-  if (likely(objPtr->typePtr != &NsfFlagObjType)) {
+  if (objPtr->typePtr != &NsfFlagObjType) {
     TclFreeIntRep(objPtr);
     flagPtr = NEW(NsfFlag);
     /*fprintf(stderr, "NsfFlagObjSet allocated NsfFlag %p for %s\n", flagPtr, ObjStr(objPtr));*/

@@ -137,14 +137,14 @@ proc gencall {methodName fn parameterDefinitions clientData
       set if [list "NsfClass *cl"]
       append intro \
           "  NsfClass *cl =  NsfObjectToClass(clientData);" \n \
-          "  if (!cl) return NsfDispatchClientDataError(interp, clientData, \"class\", \"$methodName\");"
+          "  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, \"class\", \"$methodName\");"
     }
     object {
       set a  [list obj]
       set if [list "NsfObject *obj"]
       append intro \
           "  NsfObject *obj =  (NsfObject *)clientData;" \n \
-          "  if (!obj) return NsfDispatchClientDataError(interp, clientData, \"object\", \"$methodName\");"
+          "  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, \"object\", \"$methodName\");"
     }
     ""    {
       append intro "  (void)clientData;\n"
@@ -270,17 +270,17 @@ static int
 ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
 $intro
-  if (ArgumentParse(interp, objc, objv, $obj, objv[0], 
+  if (likely(ArgumentParse(interp, objc, objv, $obj, objv[0], 
                      method_definitions[$idx].paramDefs, 
                      method_definitions[$idx].nrParameters, 0, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
+                     &pc) == TCL_OK)) {
     $cDefs
 $pre
     $releasePC
     $call
 $post
+  } else {
+    return TCL_ERROR;
   }
 }
 }]}
@@ -339,7 +339,7 @@ proc genstubs {} {
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
   } elseif {$nrParams == 0} {
     append pre [subst -nocommands {
-      if (objc != 1) {
+      if (unlikely(objc != 1)) {
 	return NsfArgumentError(interp, "too many arguments:", 
 			     method_definitions[$d(idx)].paramDefs,
 			     NULL, objv[0]); 
