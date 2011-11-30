@@ -33,7 +33,8 @@ nx::Class create Animal -superclass Being {
 #    +i am Fido alive true+ 
 #
 # Serialize the animals to a file
-! {set f [open /tmp/dump w]}
+! {set fpath [::nsf::tmpdir]/dump}
+! {set f [open $fpath w]}
 ? {foreach i [Animal info instances] { puts $f [$i serialize] }} ""
 ? {close $f} ""
 
@@ -46,7 +47,7 @@ nx::Class create Animal -superclass Being {
 ? {puts ===========} ""
 
 # Load the animals again ...
-? {source /tmp/dump} ""
+? {source $fpath} ""
 
 # and print it. The print output is the same as above
 ? {foreach i [Animal info instances] { $i print }} ""

@@ -3809,6 +3809,9 @@ nsf.c:
 ========================================================================
 TODO:
 
+- __WIN32__ builds/MinGW: It seems that the http.test cases for XOTcl2
+  fail against Tcl 8.6b2. Check this ... 
+
  - make rough comparison table with NX, XOTcl, tclOO, itcl, Ruby, Python
    Most general superclass
    Metaclass
@@ -3825,8 +3828,6 @@ TODO:
    positional arguments   none, leading args, arbitrary
    argument value checkers
    Create objects classes with no callable methods
-
-
    
  - doc/tutorial2.html
 

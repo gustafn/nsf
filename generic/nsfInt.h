@@ -228,6 +228,8 @@ typedef struct NsfMemCounter {
 # define NSF_INLINE
 # define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); Tcl_DecrRefCount(A)
+# define DECR_REF_COUNT2(name,A) \
+	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); Tcl_DecrRefCount(A)
 #else
 /*
  * This was defined to be inline for anything !sun or __IBMC__ >= 0x0306,
