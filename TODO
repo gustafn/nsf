@@ -3806,6 +3806,9 @@ nsf.c:
 - extend regression test to improve coverage
 - improve branch prediction
 
+- simplify macro handling with __WIN32__
+- regroup some macro definitions
+
 ========================================================================
 TODO:
 

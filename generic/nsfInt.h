@@ -224,47 +224,38 @@ typedef struct NsfMemCounter {
 # include <alloca.h>
 #endif
 
-#ifdef  __WIN32__
-# define NSF_INLINE
-# define DECR_REF_COUNT(A) \
-	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); Tcl_DecrRefCount(A)
-# define DECR_REF_COUNT2(name,A) \
-	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); Tcl_DecrRefCount(A)
-#else
 /*
  * This was defined to be inline for anything !sun or __IBMC__ >= 0x0306,
  * but __hpux should also be checked - switched to only allow in gcc - JH
  */
-# if defined(__GNUC__)
-#  define NSF_INLINE inline
-# else
-#  define NSF_INLINE
-# endif
-# ifdef USE_TCL_STUBS
-#  define DECR_REF_COUNT(A) \
+#if defined(__GNUC__)
+# define NSF_INLINE inline
+#else
+# define NSF_INLINE
+#endif
+
+#ifdef USE_TCL_STUBS
+# define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); assert((A)->refCount > -1); \
         Tcl_DecrRefCount(A)
-#  define DECR_REF_COUNT2(name,A)					\
+# define DECR_REF_COUNT2(name,A)					\
 	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); assert((A)->refCount > -1); \
         Tcl_DecrRefCount(A)
-# else
-#  define DECR_REF_COUNT(A) \
+#else
+# define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); TclDecrRefCount(A)
-#  define DECR_REF_COUNT2(name,A)				\
+# define DECR_REF_COUNT2(name,A)				\
 	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); TclDecrRefCount(A)
-# endif
 #endif
-
-#ifndef HAVE_STRNSTR
-char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
-#endif
-
-#define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
 
 #define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT"#A,A); Tcl_IncrRefCount(A)
 #define INCR_REF_COUNT2(name,A) \
   /*fprintf(stderr, "c '%s'\n", ObjStr(A));*/				\
   MEM_COUNT_ALLOC("INCR_REF_COUNT-" name,A); Tcl_IncrRefCount(A)
+
+#define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
+#define ClassName(cl) (((cl) ? ObjStr(cl->object.cmdName) : "NULL"))
+#define ObjectName(obj) (((obj) ? ObjStr(obj->cmdName) : "NULL"))
 
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,obj) \
@@ -275,10 +266,6 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #else
 # define PRINTOBJ(ctx,obj)
 #endif
-
-#define ClassName(cl) (((cl) ? ObjStr(cl->object.cmdName) : "NULL"))
-#define ObjectName(obj) (((obj) ? ObjStr(obj->cmdName) : "NULL"))
-
 
 #define LONG_AS_STRING 32
 
@@ -737,23 +724,28 @@ typedef struct NsfCallStackContent {
 #define NSF_VAR_REQUIRE_DEFINED  2
 #define NSF_VAR_ISARRAY          4
 
+/*
+ * Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
+ * for further extensions of tcl and tcloo...
+ */
+#define FRAME_IS_NSF_OBJECT  0x10000
+#define FRAME_IS_NSF_METHOD  0x20000
+#define FRAME_IS_NSF_CMETHOD 0x40000
+
 #if defined(NRE)
+# define NRE_SANE_PATCH 1
 # define NsfImmediateFromCallerFlags(flags) \
   (((flags) & (NSF_CSC_CALL_IS_NRE|NSF_CSC_IMMEDIATE)) == NSF_CSC_CALL_IS_NRE ? 0 : NSF_CSC_IMMEDIATE)
-
-#define NRE_SANE_PATCH 1
-
-#if defined(NRE_SANE_PATCH)
-# define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr)
-# if !defined(TclStackFree)
+# if defined(NRE_SANE_PATCH)
+#  define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr)
+#  if !defined(TclStackFree)
 #   define TclStackFree(interp, ptr) ckfree(ptr)
 #   define TclStackAlloc(interp, size) ckalloc(size)
+#  endif
+# else
+#  define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr, 0)
+#  define TEOV_callback NRE_callback
 # endif
-#else
-# define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr, 0)
-# define TEOV_callback NRE_callback
-#endif
-
 #endif
 
 #if defined(NSF_PROFILE)
@@ -986,13 +978,10 @@ char *NsfStringIncr(NsfStringIncrStruct *iss);
 void NsfStringIncrInit(NsfStringIncrStruct *iss);
 void NsfStringIncrFree(NsfStringIncrStruct *iss);
 
-/*
-   Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
-   for further extensions of tcl and tcloo...
-*/
-#define FRAME_IS_NSF_OBJECT  0x10000
-#define FRAME_IS_NSF_METHOD  0x20000
-#define FRAME_IS_NSF_CMETHOD 0x40000
+#ifndef HAVE_STRNSTR
+char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
+#endif
+
 
 #if !defined(NDEBUG)
 /*# define NSF_INLINE*/
