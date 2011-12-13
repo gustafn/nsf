@@ -221,6 +221,8 @@ static Tcl_ObjCmdProc NsfForwardMethod;
 static Tcl_ObjCmdProc NsfObjscopedMethod;
 static Tcl_ObjCmdProc NsfSetterMethod;
 static Tcl_ObjCmdProc NsfProcAliasMethod;
+static Tcl_ObjCmdProc NsfAsmProc;
+
 
 /* prototypes for methods called directly when CallDirectly() returns NULL */
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj);
@@ -769,7 +771,6 @@ NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj
 }
 
 #include "nsfStack.c"
-
 
 /***********************************************************************
  * Value added replacements of Tcl functions
@@ -9672,7 +9673,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
     } else if (proc == NsfForwardMethod ||
 	       proc == NsfObjscopedMethod ||
-	       proc == NsfSetterMethod
+	       proc == NsfSetterMethod ||
+	       proc == NsfAsmProc
                ) {
       TclCmdClientData *tcd = (TclCmdClientData *)cp;
 
@@ -11950,7 +11952,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
 
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
   /* create the method in the provided namespace */
-  result = Tcl_ProcObjCmd(0, interp, 4, ov);
+  result = Tcl_ProcObjCmd(NULL, interp, 4, ov);
   if (result == TCL_OK) {
     /* retrieve the defined proc */
     Proc *procPtr = FindProcMethod(nsPtr, methodName);
@@ -12082,7 +12084,7 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
 }
 
 /**************************************************************************
- * Begin Definition of Parameter procs (Tcl Procs with Parameter handling)
+ * Begin Definition of nsf::proc (Tcl Procs with Parameter handling)
  **************************************************************************/
 /*
  *----------------------------------------------------------------------
@@ -12310,8 +12312,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  *
  *    TODO: the current 1 cmd + 1 proc implementation is not robust
  *    against renaming and partial deletions (deletion of the
- *    stub). The sketched variant should be better and should be
- *    examined first in detail.
+ *    stub).
  *
  * Results:
  *    Tcl return code.
@@ -12544,7 +12545,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
   return TCL_OK;
 }
 /**************************************************************************
- * End Definition of Parameter procs (Tcl Procs with Parameter handling)
+ * End Definition of nsf::proc  (Tcl Procs with Parameter handling)
  **************************************************************************/
 
 /*
@@ -17857,6 +17858,7 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
   return 0;
 }
 
+#include "nsfAssemble.c"
 
 /***********************************************************************
  * Begin generated Next Scripting commands
@@ -18048,6 +18050,45 @@ NsfUnsetUnknownArgsCmd(Tcl_Interp *interp) {
   }
 
   return TCL_OK;
+}
+
+/*
+cmd asmproc NsfAsmProcCmd {
+  {-argName "-ad" -required 0}
+  {-argName "procName" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+}
+*/
+static int
+NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
+  NsfParsedParam parsedParam;
+  int result;
+  /*
+   * Parse argument list "arguments" to determine if we should provide
+   * nsf parameter handling.
+   */
+  result = ParamDefsParse(interp, nameObj, arguments,
+			  NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
+			  &parsedParam);
+  if (result != TCL_OK) {
+    return result;
+  }
+
+  if (parsedParam.paramDefs) {
+    /*
+     * We need parameter handling. 
+     */
+    result = NsfAsmProcAddParam(interp, &parsedParam, nameObj, body, with_ad);
+
+  } else {
+    /*
+     * No parameter handling needed.
+     */
+    result = NsfAsmProcAddArgs(interp, arguments, nameObj, body, with_ad);
+  }
+
+  return result;
 }
 
 /*
@@ -19772,13 +19813,13 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments
      * later.
      */
     result = NsfProcAdd(interp, &parsedParam, ObjStr(nameObj), body, with_ad);
-
+    
   } else {
     /*
      * No parameter handling needed. A plain Tcl proc is added.
      */
     Tcl_Obj *ov[4];
-
+    
     ov[0] = NULL;
     ov[1] = nameObj;
     ov[2] = arguments;

@@ -5,6 +5,7 @@ set ::nxdoc::include(::nsf::__db_show_obj) 0
 set ::nxdoc::include(::nsf::__profile_clear) 0
 set ::nxdoc::include(::nsf::__profile_get) 0
 set ::nxdoc::include(::nsf::__unset_unknown_args) 0
+set ::nxdoc::include(::nsf::asm::proc) 0
 set ::nxdoc::include(::nsf::configure) 1
 set ::nxdoc::include(::nsf::colon) 0
 set ::nxdoc::include(::nsf::directdispatch) 0
@@ -16,6 +17,7 @@ set ::nxdoc::include(::nsf::is) 1
 set ::nxdoc::include(::nsf::method::alias) 1
 set ::nxdoc::include(::nsf::method::assertion) 1
 set ::nxdoc::include(::nsf::method::create) 1
+set ::nxdoc::include(::nsf::method::asmcreate) 0
 set ::nxdoc::include(::nsf::method::delete) 1
 set ::nxdoc::include(::nsf::method::forward) 1
 set ::nxdoc::include(::nsf::method::property) 1
