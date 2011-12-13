@@ -792,4 +792,96 @@ nx::Test case class-object-property {
   ? {::nsf::object::exists ::C} 0
 }
 
-#puts stderr "==== EXIT ===="
+nx::Test case unset-traces-during-cleanup {
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create o {
+      set :x 100
+      ::trace add variable :x unset "[list set ::X ${:x}];#"
+    }
+  }
+
+  ? {$i eval {info exists ::X}} 0
+  $i eval {::nsf::finalize -keepvars}
+  ? {$i eval {info exists ::X}} 1
+  ? {$i eval {set ::X}} 100
+
+  interp delete $i
+  unset i
+}
+
+nx::Test case unset-traces-during-cleanup-with-destroy {
+  #
+  # Make sure that a very-late destroy (in the unset trace) does not
+  # fire ... and does not cause any side effects.
+  #
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create o {
+      :public method destroy args {
+	incr ::X
+	next
+      } 
+      set :x 100
+      ::trace add variable :x unset "[list ::incr ::X]; [list [self] destroy];#"
+    }
+  }
+
+  ? {$i eval {info exists ::X}} 0
+  $i eval {::nsf::finalize -keepvars}
+  ? {$i eval {info exists ::X}} 1
+  ? {$i eval {set ::X}} 2
+
+  interp delete $i
+  unset i
+}
+
+nx::Test case unset-traces-during-cleanup-with-destroy-2 {
+  #
+  # We are safe when trying to delete the base class/metaclass ...
+  #
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create o {
+      set :x _
+      ::trace add variable :x unset "[list catch [list ::nx::Object destroy] msg1]; [list catch [list ::nx::Class destroy] msg2]; set ::MSG \[list \$msg1 \$msg2\];#"
+    }
+  }
+  
+  ? {$i eval {info exists ::MSG}} 0
+  $i eval {::nsf::finalize -keepvars}
+  ? {$i eval {info exists ::MSG}} 1
+  ? {$i eval {set ::MSG}} [list "Cannot destroy base class ::nx::Object" "Cannot destroy base class ::nx::Class"]
+
+  interp delete $i
+  unset i
+}
+
+nx::Test case unset-traces-during-cleanup-with-reset {
+  #
+  # Check for leaks ...
+  #
+  global i
+  set i [interp create]
+  $i eval {
+    package req nx
+    nx::Object create o {
+      set :x 100
+      ::trace add variable :x unset "[list ::nsf::var::set [self] x ${:x}];#"
+    }
+  }
+
+  ? {$i eval {::nsf::object::exists ::o}} 1
+  ? {$i eval {info commands ::o}} ::o
+  $i eval {::nsf::finalize -keepvars}
+  ? {$i eval {info commands ::o}} ""
+
+  interp delete $i
+  unset i
+}
