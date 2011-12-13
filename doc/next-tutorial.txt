@@ -16,18 +16,18 @@ This document provides a tutorial for the Next Scripting
 Language NX.
 *****************************************************************************
 
-The Next Scripting Language (NX) is a highly flexible, Tcl
-<<Ousterhout 1990>> based object oriented scripting language. It is a
-successor of XOTcl 1 <<Neumann and Zdun 2000a>> and is based on 10
+The Next Scripting Language (NX) is a highly flexible object oriented
+scripting language based on Tcl <<Ousterhout 1990>>. NX is a successor
+of XOTcl 1 <<Neumann and Zdun 2000a>> and was developed based on 10
 years of experience with XOTcl in projects containing several hundred
 thousand lines of code. While XOTcl was the first language designed to
 provide _language support for design patterns_, the focus of the Next
-Scripting Framework and NX are on combining this with _Language
+Scripting Framework and NX is on combining this with _Language
 Oriented Programming_. In many respects, NX was designed to ease the
-learning of the language by novices (by using a more mainstream
+learning of the language for novices (by using a more mainstream
 terminology, higher orthogonality of the methods, less predefined
 methods), to improve maintainability (remove sources of common errors)
-and to encourage developer to write better structured programs (to
+and to encourage developers to write better structured programs (to
 provide interfaces) especially for large projects, where many
 developers are involved.
 
@@ -36,9 +36,10 @@ The Next Scripting Language is based on the Next Scripting Framework
 programming. The Next Scripting Frameworks provides C-level support
 for defining and hosting multiple object systems in a single Tcl
 interpreter.  The name of the Next Scripting Framework is derived from
-the universal method combinator "next" introduced in XOTcl that allows
-for method combination with filters, per-object and transitive
-per-class mixin classes, per-object methods and multiple inheritance.
+the universal method combinator "next", which was introduced in XOTcl.
+The combinator "next" serves as a single instrument for method
+combination with filters, per-object and transitive per-class mixin
+classes, per-object methods and multiple inheritance.
 
 The definition of NX is fully scripted (e.g.  defined in
 +nx.tcl+). The Next Scripting Framework is shipped with three language
@@ -72,7 +73,7 @@ the basic ideas of XOTcl by providing support for _language-oriented
 programming_. The the Next Scripting Framework supports multiple
 object systems concurrently. Effectively, every object system has
 different base classes for creating objects and classes. Therefore,
-these object systems can have different different interfaces and can
+these object systems can have different interfaces and can
 follow different naming conventions for built-in methods. Currently,
 the Next Scripting Framework is packaged with three object systems:
 NX, XOTcl 2.0, and TclCool (the language introduced by TIP#279).
@@ -85,12 +86,12 @@ We expect some prior knowledge of programming languages, and some
 knowledge about Tcl. In the following sections we introduce NX by
 examples. In later sections we introduce the more advanced concepts of
 the language. Conceptually, most of the addressed concepts are very
-similar in XOTcl. Concerning the differences between NX and XOTcl,
+similar to XOTcl. Concerning the differences between NX and XOTcl,
 please refer to the "Migration Guide for the Next Scripting Language".
 
 == Introductory Overview Example: Stack
 
-A classical programming example is an implementation of a stack, which
+A classical programming example is the implementation of a stack, which
 is most likely familiar to many readers from many introductory
 programming courses. A stack is a last-in first-out data structure
 which is manipulated via operations like +push+ (add something to the
@@ -106,7 +107,7 @@ of the data structure that abstract from the actual implementation.
 In our first example, we define a class named +Stack+ with the methods
 +push+ and +pop+. When an instance of the stack is created (e.g. a
 concrete stack +s1+) the stack will contain an instance variable named
-+things+ initialized with the an empty list.
++things+, initialized with the an empty list.
 
 [[xmp-class-stack]]
 .Listing {counter:figure-number}: Class Stack
@@ -134,7 +135,7 @@ nx::Class create Stack {
 }
 --------------------------------------------------
 
-Typically, classes are defined in NX via +nx::Class create+ followed
+Typically, classes are defined in NX via +nx::Class create+, followed
 by the name of the new class (here: +Stack+). The definition of the
 stack placed between curly braces and contains here just the method
 definitions. Methods of the class are defined via +:method+ followed
@@ -147,7 +148,7 @@ each of the instances will have their own (same-named but different)
 instance variable. The instance variable +things+ is used in our
 example as a list for the internal representation of the stack. We
 define in a next step the methods to access and modify this list
-structure. A user of the stack using the the provided methods does not
+structure. A user of the stack using the provided methods does not
 have to have any knowledge about the name or the structure of the
 internal representation (the instance variable +things+).
 
@@ -159,14 +160,14 @@ as the first element to the list +things+. We insert the element using
 the Tcl command +linsert+ which receives the list as first element,
 the position where the element should be added as second and the new
 element as third argument. To access the value of the instance
-variable we use Tcl's the dollar operator followed by the name. The
+variable we use Tcl's dollar operator followed by the name. The
 names of instance variables are preceded with a colon +:+. Since the
 name contains a non-plain character, Tcl requires us to put braces
 around the name. The command +linsert+ and its arguments are placed
-between square brackets. This means that the function is called and
-returns the new list, where the new element is inserted at the first
+between square brackets. This means that the function +linsert+ is called and
+a new list is returned, where the new element is inserted at the first
 position (index 0) in the list +things+. The result of the +linsert+
-function is assigned again to the instance variable +things+ which is
+function is assigned again to the instance variable +things+, which is
 updated this way.  Finally the method +push+ returns the pushed thing
 using the +return+ statement.
 
@@ -177,7 +178,7 @@ variable +top+, removes the element from the instance variable
 +things+ (by using the Tcl command +lrange+) and returns the value
 popped element +top+.
 
-This finishes our first implementation of the the stack, more enhanced
+This finishes our first implementation of the stack, more enhanced
 versions will follow. Note that the methods +push+ and +pop+ are
 defined as +public+; this means that these methods can be
 used from all other objects in the system. Therefore, these methods
@@ -208,7 +209,7 @@ puts [s1 pop]
 s1 destroy
 --------------------------------------------------
 
-Now we want to use the stack. The code snipped in <<xmp-using-stack,
+Now we want to use the stack. The code snippet in <<xmp-using-stack,
 {xmp-using-stack}>> shows how to use the class Stack in a script.
 Since NX is based on Tcl, the script will be called with the Tcl shell
 +tclsh+. In the Tcl shell we have to +require package nx+ to use the
@@ -219,10 +220,11 @@ say +package require stack+, or to save the definition of a stack
 simply in a file and load it via +source+.
 
 In line 12 we create an instance of the stack, namely the stack object
-+s1+. The object +s1+ has as an instance of the stack access to the
-methods, which can be invoked by the name of the object followed by
-the method name. In lines 13-15 we push on the stack the values +a+,
-then +b+, and +c+. In line 16 we output the result of the +pop+ method
++s1+. The object +s1+ is an instance of +Stack+ and has therefore
+access to its methods. The methods like +push+ or +pop+ can be invoked
+via a command starting with the object name followed by the
+method name. In lines 13-15 we push on the stack the values +a+, then
++b+, and +c+. In line 16 we output the result of the +pop+ method
 using the Tcl command +puts+. We will see on standard output the
 value+c+ (the last stacked item). The output of the line 17 is the
 value +b+ (the previously stacked item). Finally, in line 18 we
@@ -245,7 +247,7 @@ objects (and classes as well).
 === Define an Object Named "stack"
 
 The definition of the stack in <<xmp-class-stack, {xmp-class-stack}>>
-is following the traditional object oriented approach, found in
+follows the traditional object oriented approach, found in
 practically every object oriented programming language: Define a class
 with some methods, create instances from this class, and use the
 methods defined in the class in the instances of the class.
@@ -295,12 +297,12 @@ following points are different.
   instance variable +things+ for this object (the object +stack+).
 
 The definition for the methods +push+ and +pop+ are the same as
-before, but this times they are object specify. All methods defined on
-an object are object-specific. In order to use the stack, we can use
-directly the object +stack+ in the same way as we have used the object
-+s1+ in <<xmp-using-stack, {xmp-using-stack}>> (e.g. +stack push a+).
-<<img-object-stack, {img-object-stack}>> shows the class diagram for
-this the object +stack+.
+before, but this times these methods are object-specific (in general,
+all methods defined for an object are object-specific). In order to use
+the stack, we can use directly the object +stack+ in the same way as
+we have used the object +s1+ in <<xmp-using-stack, {xmp-using-stack}>>
+(e.g. +stack push a+).  <<img-object-stack, {img-object-stack}>> shows
+the class diagram for this the object +stack+.
 
 [[img-object-stack]]
 image::object-stack.png[title="Object stack",align="center"]
@@ -309,13 +311,13 @@ image::object-stack.png[title="Object stack",align="center"]
 A reader might wonder when to use a class +Stack+ or rather an object
 +stack+. A big difference is certainly that one can define easily
 multiple instances of a class, while the object is actually a
-singleton. The concept of the object +stack+ is similar to a module
-providing a certain functionality via a common interface without
+singleton. The concept of the object +stack+ is similar to a module,
+providing a certain functionality via a common interface, without
 providing the functionality to create multiple instances. The reuse of
 methods provided by the class to objects is as well a difference. If
-the methods of the class are updated, all instances of the class well
-immediately get the modified behavior. But this does not mean that
-there is no reuse for the methods of stack possible. NX allows for
+the methods of the class are updated, all instances of the class will
+immediately get the modified behavior. However, this does not mean that
+the reuse for the methods of +stack+ is not possible. NX allows for
 example to copy objects (similar to prototype based languages) or to
 reuse methods via e.g. aliases (more about this later).
 
@@ -372,11 +374,11 @@ nx::Class create Safety {
 --------------------------------------------------
 
 Note that all the methods of the class +Safety+ end with +next+.
-This command is a primitive command of NX, that will call the
+This command is a primitive command of NX, which calls the
 same-named method with the same argument list as the current
 invocation.
 
-Assume we safe the definition of the class +Stack+ in a file named
+Assume we save the definition of the class +Stack+ in a file named
 +Stack.tcl+ and the definition of the class +Safety+ in a file named
 +Safety.tcl+ in the current directory. When we load the classes
 +Stack+ and +Safety+ into the same script (see the terminal dialog in
@@ -428,8 +430,8 @@ and does not invoke the method of the +Stack+.
 
 The last two commands in <<xmp-using-class-safety,
 {xmp-using-class-safety}>> use introspection to query for the objects
-+s1+ and +s2+ the order in which the classes are processed. This order
-is called the +precedence order+ and is obtained via +info
++s1+ and +s2+ in which order the involved classes are processed. This
+order is called the +precedence order+ and is obtained via +info
 precedence+. We see that the mixin class +Safety+ is only in use for
 +s2+, and takes there precedence over +Stack+. The common root class
 +nx::Object+ is for both +s1+ and +s2+ the base class.
@@ -594,7 +596,7 @@ Stack create s2
 puts [Stack available_stacks]
 --------------------------------------------------
 
-The class +Stack2+ in <<xmp-stack2, {xmp-stack2}>> consists of the the
+The class +Stack2+ in <<xmp-stack2, {xmp-stack2}>> consists of the
 earlier definition of the class +Stack+ extended by the
 class-specific method +available_stacks+, that returns the
 current number of instances of the stack. The final command +puts+
@@ -751,7 +753,7 @@ purpose, one can use the predefined method +variable+, which is in
 many respects similar to +property+. One difference is, that
 +property+ uses the same syntax as for method parameters, and
 +variable+ receives the default value as a separate argument (similar
-to the +variable+ command in Tcl. The introductory Stack example in in
+to the +variable+ command in Tcl. The introductory Stack example in
 <<xmp-class-stack, {xmp-class-stack}>> used already the method
 +variable+.
 
@@ -1179,7 +1181,7 @@ instance +c1+ of class +C+, and as well the object specific method
 simply by defining the method on an object. 
 
 Note that we can define a per-object method that shadows (redefines)
-for this object an intrisic instance method.
+for this object an intrinsic instance method.
 
 [[xmp-object-applicable1]]
 .Listing {counter:figure-number}: Per-object Method
@@ -1355,7 +1357,7 @@ of class +D+ and the method +foo+ of class +C+. The shadowed methods
 can be still invoked, either via the primitive +next+ or via method
 handles (we used already method handles in the section about method
 aliases). In the example above, +next+ calls the shadowed method and
-add their results to the results of evey method. So, the final result
+add their results to the results of every method. So, the final result
 contains parts from +d1+, +D+ and +C+. Note, that the topmost +next+
 in method +foo+ of class +C+ shadows no method +foo+ and simply
 returns empty (and not an error message).
@@ -1376,7 +1378,7 @@ nx::Class create M2 {
 }
 
 #
-# "d1" is created based on the definitons of the last example
+# "d1" is created based on the definitions of the last example
 # 
 # Add the methods from "M1" as per-object mixin to "d1"
 d1 mixin M1
@@ -1398,9 +1400,9 @@ The example in <<xmp-method-resolution2,{xmpmethod-resolution2}>> is
 an extension of the previous example. We define here two additional
 classes +M1+ and +M2+ which are used as per-object and per-class
 mixins.  Both classes define the method +foo+, these methods shadow
-the definitins of the intrinsic class hierarchy. Therefore an
+the definitions of the intrinsic class hierarchy. Therefore an
 invocation of +foo+ on object +d1+ causes first an invocation of
-method in the the per-object mixin.
+method in the per-object mixin.
 
 
 [[xmp-method-resolution3]]
@@ -1409,11 +1411,11 @@ method in the the per-object mixin.
 [source,tcl,numbers]
 --------------------------------------------------
 #
-# "d1" is created based on the definitons of the last two examples,
+# "d1" is created based on the definitions of the last two examples,
 # the mixins "M1" and "M2" are registered. 
 # 
 # Define a public per-object method "bar", which calls the method
-# "foo" which variaous invocation options:
+# "foo" which various invocation options:
 #
 d1 public method bar {} {
    puts [:foo]
@@ -1427,7 +1429,7 @@ d1 bar
 --------------------------------------------------
 
 In the first line of the body of method +bar+, the method +foo+ is
-called as usual with an implicit reciever, which defaults to the
+called as usual with an implicit receiver, which defaults to the
 current object (therefore, the call is equivalent to +d1 foo+). The
 next three calls show how to provide flags that influence the method
 resolution. The flags can be provided between the colon and the method
@@ -1871,7 +1873,7 @@ single or multiple values.
 
 A multiplicity specification has a lower and an upper bound. A lower
 bound of +0+ means that the value might be empty. A lower bound of +1+
-means that the the parameter needs at least one value. The upper bound
+means that the parameter needs at least one value. The upper bound
 might be +1+ or +n+ (or synonymously +*+). While the upper bound of
 +1+ states that at most one value has to be passed, the upper bound of
 +n+ says that multiple values are permitted. Other kinds of
@@ -2079,7 +2081,7 @@ Object parameter for Student s1:
    -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n _:initcmd,optional
 --------------------------------------------------
 
-The actual values can be optained via introspection via +Person info
+The actual values can be obtained via introspection via +Person info
 parameter definition+. The object parameter types +mixinreg+ and
 +filterreg+ are for converting definitions of filters and mixins.  The
 object parameter type +initcmd+ says that the content of this variable
@@ -2239,9 +2241,9 @@ from the keys of other unknown handlers).
 
 The Next Scripting Framework allows to add, query, delete and list unknown handlers.
 
-[[xmp-unknown-registgration]]
+[[xmp-unknown-registration]]
 .Listing {counter:figure-number}: Unknown Handler registration
-{set:xmp-unknown-registgration:Listing {figure-number}}
+{set:xmp-unknown-registration:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 # Interface for unknown handlers:

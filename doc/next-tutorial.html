@@ -731,18 +731,18 @@ asciidoc.install(4);
 <div class="paragraph"><p>This document provides a tutorial for the Next Scripting
 Language NX.</p></div>
 </div></div>
-<div class="paragraph"><p>The Next Scripting Language (NX) is a highly flexible, Tcl
-<a href="#Ousterhout 1990">[Ousterhout 1990]</a> based object oriented scripting language. It is a
-successor of XOTcl 1 <a href="#Neumann and Zdun 2000a">[Neumann and Zdun 2000a]</a> and is based on 10
+<div class="paragraph"><p>The Next Scripting Language (NX) is a highly flexible object oriented
+scripting language based on Tcl <a href="#Ousterhout 1990">[Ousterhout 1990]</a>. NX is a successor
+of XOTcl 1 <a href="#Neumann and Zdun 2000a">[Neumann and Zdun 2000a]</a> and was developed based on 10
 years of experience with XOTcl in projects containing several hundred
 thousand lines of code. While XOTcl was the first language designed to
 provide <em>language support for design patterns</em>, the focus of the Next
-Scripting Framework and NX are on combining this with <em>Language
+Scripting Framework and NX is on combining this with <em>Language
 Oriented Programming</em>. In many respects, NX was designed to ease the
-learning of the language by novices (by using a more mainstream
+learning of the language for novices (by using a more mainstream
 terminology, higher orthogonality of the methods, less predefined
 methods), to improve maintainability (remove sources of common errors)
-and to encourage developer to write better structured programs (to
+and to encourage developers to write better structured programs (to
 provide interfaces) especially for large projects, where many
 developers are involved.</p></div>
 <div class="paragraph"><p>The Next Scripting Language is based on the Next Scripting Framework
@@ -750,9 +750,10 @@ developers are involved.</p></div>
 programming. The Next Scripting Frameworks provides C-level support
 for defining and hosting multiple object systems in a single Tcl
 interpreter.  The name of the Next Scripting Framework is derived from
-the universal method combinator "next" introduced in XOTcl that allows
-for method combination with filters, per-object and transitive
-per-class mixin classes, per-object methods and multiple inheritance.</p></div>
+the universal method combinator "next", which was introduced in XOTcl.
+The combinator "next" serves as a single instrument for method
+combination with filters, per-object and transitive per-class mixin
+classes, per-object methods and multiple inheritance.</p></div>
 <div class="paragraph"><p>The definition of NX is fully scripted (e.g.  defined in
 <tt>nx.tcl</tt>). The Next Scripting Framework is shipped with three language
 definitions, containing NX and XOTcl 2. Most of the existing XOTcl 1
@@ -785,7 +786,7 @@ the basic ideas of XOTcl by providing support for <em>language-oriented
 programming</em>. The the Next Scripting Framework supports multiple
 object systems concurrently. Effectively, every object system has
 different base classes for creating objects and classes. Therefore,
-these object systems can have different different interfaces and can
+these object systems can have different interfaces and can
 follow different naming conventions for built-in methods. Currently,
 the Next Scripting Framework is packaged with three object systems:
 NX, XOTcl 2.0, and TclCool (the language introduced by TIP#279).</p></div>
@@ -801,14 +802,14 @@ We expect some prior knowledge of programming languages, and some
 knowledge about Tcl. In the following sections we introduce NX by
 examples. In later sections we introduce the more advanced concepts of
 the language. Conceptually, most of the addressed concepts are very
-similar in XOTcl. Concerning the differences between NX and XOTcl,
+similar to XOTcl. Concerning the differences between NX and XOTcl,
 please refer to the "Migration Guide for the Next Scripting Language".</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_introductory_overview_example_stack">2. Introductory Overview Example: Stack</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>A classical programming example is an implementation of a stack, which
+<div class="paragraph"><p>A classical programming example is the implementation of a stack, which
 is most likely familiar to many readers from many introductory
 programming courses. A stack is a last-in first-out data structure
 which is manipulated via operations like <tt>push</tt> (add something to the
@@ -823,7 +824,7 @@ of the data structure that abstract from the actual implementation.</p></div>
 <div class="paragraph"><p>In our first example, we define a class named <tt>Stack</tt> with the methods
 <tt>push</tt> and <tt>pop</tt>. When an instance of the stack is created (e.g. a
 concrete stack <tt>s1</tt>) the stack will contain an instance variable named
-<tt>things</tt> initialized with the an empty list.</p></div>
+<tt>things</tt>, initialized with the an empty list.</p></div>
 <div class="paragraph" id="xmp-class-stack"><div class="title">Listing 2: Class Stack</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -874,7 +875,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
       <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
    }
 }</pre></td></tr></table></div></div>
-<div class="paragraph"><p>Typically, classes are defined in NX via <tt>nx::Class create</tt> followed
+<div class="paragraph"><p>Typically, classes are defined in NX via <tt>nx::Class create</tt>, followed
 by the name of the new class (here: <tt>Stack</tt>). The definition of the
 stack placed between curly braces and contains here just the method
 definitions. Methods of the class are defined via <tt>:method</tt> followed
@@ -886,7 +887,7 @@ each of the instances will have their own (same-named but different)
 instance variable. The instance variable <tt>things</tt> is used in our
 example as a list for the internal representation of the stack. We
 define in a next step the methods to access and modify this list
-structure. A user of the stack using the the provided methods does not
+structure. A user of the stack using the provided methods does not
 have to have any knowledge about the name or the structure of the
 internal representation (the instance variable <tt>things</tt>).</p></div>
 <div class="paragraph"><p>The method <tt>push</tt> receives an argument <tt>thing</tt> which should be placed
@@ -897,14 +898,14 @@ as the first element to the list <tt>things</tt>. We insert the element using
 the Tcl command <tt>linsert</tt> which receives the list as first element,
 the position where the element should be added as second and the new
 element as third argument. To access the value of the instance
-variable we use Tcl&#8217;s the dollar operator followed by the name. The
+variable we use Tcl&#8217;s dollar operator followed by the name. The
 names of instance variables are preceded with a colon <tt>:</tt>. Since the
 name contains a non-plain character, Tcl requires us to put braces
 around the name. The command <tt>linsert</tt> and its arguments are placed
-between square brackets. This means that the function is called and
-returns the new list, where the new element is inserted at the first
+between square brackets. This means that the function <tt>linsert</tt> is called and
+a new list is returned, where the new element is inserted at the first
 position (index 0) in the list <tt>things</tt>. The result of the <tt>linsert</tt>
-function is assigned again to the instance variable <tt>things</tt> which is
+function is assigned again to the instance variable <tt>things</tt>, which is
 updated this way.  Finally the method <tt>push</tt> returns the pushed thing
 using the <tt>return</tt> statement.</p></div>
 <div class="paragraph"><p>The method <tt>pop</tt> returns the most recently stacked element and removes
@@ -913,7 +914,7 @@ it from the stack. Therefore, it takes the first element from the list
 variable <tt>top</tt>, removes the element from the instance variable
 <tt>things</tt> (by using the Tcl command <tt>lrange</tt>) and returns the value
 popped element <tt>top</tt>.</p></div>
-<div class="paragraph"><p>This finishes our first implementation of the the stack, more enhanced
+<div class="paragraph"><p>This finishes our first implementation of the stack, more enhanced
 versions will follow. Note that the methods <tt>push</tt> and <tt>pop</tt> are
 defined as <tt>public</tt>; this means that these methods can be
 used from all other objects in the system. Therefore, these methods
@@ -966,7 +967,7 @@ s1 push c
 <span class='nx-keyword'>puts</span> [s1 pop]
 <span class='nx-keyword'>puts</span> [s1 pop]
 s1 <span class='nx-keyword'>destroy</span></pre></td></tr></table></div></div>
-<div class="paragraph"><p>Now we want to use the stack. The code snipped in <a href="#xmp-using-stack">Listing 3</a> shows how to use the class Stack in a script.
+<div class="paragraph"><p>Now we want to use the stack. The code snippet in <a href="#xmp-using-stack">Listing 3</a> shows how to use the class Stack in a script.
 Since NX is based on Tcl, the script will be called with the Tcl shell
 <tt>tclsh</tt>. In the Tcl shell we have to <tt>require package nx</tt> to use the
 Next Scripting Framework and NX. The next lines contain the definition
@@ -975,10 +976,11 @@ make the definition of the stack an own package, such we could simple
 say <tt>package require stack</tt>, or to save the definition of a stack
 simply in a file and load it via <tt>source</tt>.</p></div>
 <div class="paragraph"><p>In line 12 we create an instance of the stack, namely the stack object
-<tt>s1</tt>. The object <tt>s1</tt> has as an instance of the stack access to the
-methods, which can be invoked by the name of the object followed by
-the method name. In lines 13-15 we push on the stack the values <tt>a</tt>,
-then <tt>b</tt>, and <tt>c</tt>. In line 16 we output the result of the <tt>pop</tt> method
+<tt>s1</tt>. The object <tt>s1</tt> is an instance of <tt>Stack</tt> and has therefore
+access to its methods. The methods like <tt>push</tt> or <tt>pop</tt> can be invoked
+via a command starting with the object name followed by the
+method name. In lines 13-15 we push on the stack the values <tt>a</tt>, then
+<tt>b</tt>, and <tt>c</tt>. In line 16 we output the result of the <tt>pop</tt> method
 using the Tcl command <tt>puts</tt>. We will see on standard output the
 value+c+ (the last stacked item). The output of the line 17 is the
 value <tt>b</tt> (the previously stacked item). Finally, in line 18 we
@@ -1003,7 +1005,7 @@ objects (and classes as well).</p></div>
 <div class="sect2">
 <h3 id="_define_an_object_named_stack">2.2. Define an Object Named "stack"</h3>
 <div class="paragraph"><p>The definition of the stack in <a href="#xmp-class-stack">Listing 2</a>
-is following the traditional object oriented approach, found in
+follows the traditional object oriented approach, found in
 practically every object oriented programming language: Define a class
 with some methods, create instances from this class, and use the
 methods defined in the class in the instances of the class.</p></div>
@@ -1077,11 +1079,11 @@ As in the example above, we use <tt>:variable</tt> to define the
 </li>
 </ul></div>
 <div class="paragraph"><p>The definition for the methods <tt>push</tt> and <tt>pop</tt> are the same as
-before, but this times they are object specify. All methods defined on
-an object are object-specific. In order to use the stack, we can use
-directly the object <tt>stack</tt> in the same way as we have used the object
-<tt>s1</tt> in <a href="#xmp-using-stack">Listing 3</a> (e.g. <tt>stack push a</tt>).
-this the object <tt>stack</tt>.</p></div>
+before, but this times these methods are object-specific (in general,
+all methods defined for an object are object-specific). In order to use
+the stack, we can use directly the object <tt>stack</tt> in the same way as
+we have used the object <tt>s1</tt> in <a href="#xmp-using-stack">Listing 3</a>
+the class diagram for this the object <tt>stack</tt>.</p></div>
 <div class="imageblock" id="img-object-stack" style="text-align:center;">
 <div class="content">
 <img src="object-stack.png" alt="object-stack.png" />
@@ -1092,13 +1094,13 @@ this the object <tt>stack</tt>.</p></div>
 <div class="paragraph"><p>A reader might wonder when to use a class <tt>Stack</tt> or rather an object
 <tt>stack</tt>. A big difference is certainly that one can define easily
 multiple instances of a class, while the object is actually a
-singleton. The concept of the object <tt>stack</tt> is similar to a module
-providing a certain functionality via a common interface without
+singleton. The concept of the object <tt>stack</tt> is similar to a module,
+providing a certain functionality via a common interface, without
 providing the functionality to create multiple instances. The reuse of
 methods provided by the class to objects is as well a difference. If
-the methods of the class are updated, all instances of the class well
-immediately get the modified behavior. But this does not mean that
-there is no reuse for the methods of stack possible. NX allows for
+the methods of the class are updated, all instances of the class will
+immediately get the modified behavior. However, this does not mean that
+the reuse for the methods of <tt>stack</tt> is not possible. NX allows for
 example to copy objects (similar to prototype based languages) or to
 reuse methods via e.g. aliases (more about this later).</p></div>
 <div class="paragraph"><p>Note that we use capitalized names for classes and lowercase names for
@@ -1180,10 +1182,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   }
 }</pre></td></tr></table></div></div>
 <div class="paragraph"><p>Note that all the methods of the class <tt>Safety</tt> end with <tt>next</tt>.
-This command is a primitive command of NX, that will call the
+This command is a primitive command of NX, which calls the
 same-named method with the same argument list as the current
 invocation.</p></div>
-<div class="paragraph"><p>Assume we safe the definition of the class <tt>Stack</tt> in a file named
+<div class="paragraph"><p>Assume we save the definition of the class <tt>Stack</tt> in a file named
 <tt>Stack.tcl</tt> and the definition of the class <tt>Safety</tt> in a file named
 <tt>Safety.tcl</tt> in the current directory. When we load the classes
 <tt>Stack</tt> and <tt>Safety</tt> into the same script (see the terminal dialog in
@@ -1257,8 +1259,8 @@ empty (the value of <tt>count</tt> reaches 0), and <tt>pop</tt> is invoked, the
 mixin class <tt>Safety</tt> generates an error message (raises an exception),
 and does not invoke the method of the <tt>Stack</tt>.</p></div>
 <div class="paragraph"><p>The last two commands in <a href="#xmp-using-class-safety">Listing 8</a> use introspection to query for the objects
-<tt>s1</tt> and <tt>s2</tt> the order in which the classes are processed. This order
-is called the <tt>precedence order</tt> and is obtained via <tt>info
+<tt>s1</tt> and <tt>s2</tt> in which order the involved classes are processed. This
+order is called the <tt>precedence order</tt> and is obtained via <tt>info
 precedence</tt>. We see that the mixin class <tt>Safety</tt> is only in use for
 <tt>s2</tt>, and takes there precedence over <tt>Stack</tt>. The common root class
 <tt>nx::Object</tt> is for both <tt>s1</tt> and <tt>s2</tt> the base class.</p></div>
@@ -1489,7 +1491,7 @@ Stack <span class='nx-keyword'>create</span> s1
 Stack <span class='nx-keyword'>create</span> s2
 
 <span class='nx-keyword'>puts</span> [Stack available_stacks]</pre></td></tr></table></div></div>
-<div class="paragraph"><p>The class <tt>Stack2</tt> in <a href="#xmp-stack2">Listing 14</a> consists of the the
+<div class="paragraph"><p>The class <tt>Stack2</tt> in <a href="#xmp-stack2">Listing 14</a> consists of the
 earlier definition of the class <tt>Stack</tt> extended by the
 class-specific method <tt>available_stacks</tt>, that returns the
 current number of instances of the stack. The final command <tt>puts</tt>
@@ -1706,7 +1708,7 @@ purpose, one can use the predefined method <tt>variable</tt>, which is in
 many respects similar to <tt>property</tt>. One difference is, that
 <tt>property</tt> uses the same syntax as for method parameters, and
 <tt>variable</tt> receives the default value as a separate argument (similar
-to the <tt>variable</tt> command in Tcl. The introductory Stack example in in
+to the <tt>variable</tt> command in Tcl. The introductory Stack example in
 <a href="#xmp-class-stack">Listing 2</a> used already the method
 <tt>variable</tt>.</p></div>
 <div class="paragraph" id="xmp-variable"><div class="title">Listing 19: Declaring Variables</div><p></p></div>
@@ -2307,7 +2309,7 @@ instance <tt>c1</tt> of class <tt>C</tt>, and as well the object specific method
 <tt>baz</tt> defined on the object <tt>o1</tt>. An object-specific method is defined
 simply by defining the method on an object.</p></div>
 <div class="paragraph"><p>Note that we can define a per-object method that shadows (redefines)
-for this object an intrisic instance method.</p></div>
+for this object an intrinsic instance method.</p></div>
 <div class="paragraph" id="xmp-object-applicable1"><div class="title">Listing 28: Per-object Method</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2571,7 +2573,7 @@ of class <tt>D</tt> and the method <tt>foo</tt> of class <tt>C</tt>. The shadowe
 can be still invoked, either via the primitive <tt>next</tt> or via method
 handles (we used already method handles in the section about method
 aliases). In the example above, <tt>next</tt> calls the shadowed method and
-add their results to the results of evey method. So, the final result
+add their results to the results of every method. So, the final result
 contains parts from <tt>d1</tt>, <tt>D</tt> and <tt>C</tt>. Note, that the topmost <tt>next</tt>
 in method <tt>foo</tt> of class <tt>C</tt> shadows no method <tt>foo</tt> and simply
 returns empty (and not an error message).</p></div>
@@ -2621,7 +2623,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 }
 
 <span class='nx-comment'>#
-</span><span class='nx-comment'># "d1" is created based on the definitons of the last example
+</span><span class='nx-comment'># "d1" is created based on the definitions of the last example
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># Add the methods from "M1" as per-object mixin to "d1"
 </span>d1 <span class='nx-keyword'>mixin</span> M1
@@ -2640,9 +2642,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="paragraph"><p>an extension of the previous example. We define here two additional
 classes <tt>M1</tt> and <tt>M2</tt> which are used as per-object and per-class
 mixins.  Both classes define the method <tt>foo</tt>, these methods shadow
-the definitins of the intrinsic class hierarchy. Therefore an
+the definitions of the intrinsic class hierarchy. Therefore an
 invocation of <tt>foo</tt> on object <tt>d1</tt> causes first an invocation of
-method in the the per-object mixin.</p></div>
+method in the per-object mixin.</p></div>
 <div class="paragraph" id="xmp-method-resolution3"><div class="title">Listing 33: Method Invocation Flags</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2672,11 +2674,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  15
  16
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-comment'>#
-</span><span class='nx-comment'># "d1" is created based on the definitons of the last two examples,
+</span><span class='nx-comment'># "d1" is created based on the definitions of the last two examples,
 </span><span class='nx-comment'># the mixins "M1" and "M2" are registered.
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># Define a public per-object method "bar", which calls the method
-</span><span class='nx-comment'># "foo" which variaous invocation options:
+</span><span class='nx-comment'># "foo" which various invocation options:
 </span><span class='nx-comment'>#
 </span>d1 <span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> bar {} {
    <span class='nx-keyword'>puts</span> [:foo]
@@ -2688,7 +2690,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-comment'># Invoke the method "bar"
 </span>d1 bar</pre></td></tr></table></div></div>
 <div class="paragraph"><p>In the first line of the body of method <tt>bar</tt>, the method <tt>foo</tt> is
-called as usual with an implicit reciever, which defaults to the
+called as usual with an implicit receiver, which defaults to the
 current object (therefore, the call is equivalent to <tt>d1 foo</tt>). The
 next three calls show how to provide flags that influence the method
 resolution. The flags can be provided between the colon and the method
@@ -3328,7 +3330,7 @@ single or multiple values.</p></div>
 </div></div>
 <div class="paragraph"><p>A multiplicity specification has a lower and an upper bound. A lower
 bound of <tt>0</tt> means that the value might be empty. A lower bound of <tt>1</tt>
-means that the the parameter needs at least one value. The upper bound
+means that the parameter needs at least one value. The upper bound
 might be <tt>1</tt> or <tt>n</tt> (or synonymously <tt>*</tt>). While the upper bound of
 <tt>1</tt> states that at most one value has to be passed, the upper bound of
 <tt>n</tt> says that multiple values are permitted. Other kinds of
@@ -3617,7 +3619,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
    -matnr:required {-oncampus:boolean true}
    -name:required -birthday ...
    -mixin:mixinreg,<span class='nx-keyword'>alias</span>,1..n -filter:filterreg,<span class='nx-keyword'>alias</span>,1..n _:initcmd,optional</pre></td></tr></table></div></div>
-<div class="paragraph"><p>The actual values can be optained via introspection via <tt>Person info
+<div class="paragraph"><p>The actual values can be obtained via introspection via <tt>Person info
 parameter definition</tt>. The object parameter types <tt>mixinreg</tt> and
 <tt>filterreg</tt> are for converting definitions of filters and mixins.  The
 object parameter type <tt>initcmd</tt> says that the content of this variable
@@ -3858,7 +3860,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  <span class='nx-comment'>#     ::M
 </span>}</pre></td></tr></table></div></div>
 <div class="paragraph"><p>The Next Scripting Framework allows to add, query, delete and list unknown handlers.</p></div>
-<div class="paragraph" id="xmp-unknown-registgration"><div class="title">Listing 49: Unknown Handler registration</div><p></p></div>
+<div class="paragraph" id="xmp-unknown-registration"><div class="title">Listing 49: Unknown Handler registration</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -3963,7 +3965,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-10-22 18:24:33 CEST
+Last updated 2011-12-13 10:39:42 CET
 </div>
 </div>
 </body>
