@@ -238,6 +238,8 @@ static int NsfClassInfoObjectparameterMethodStub(ClientData clientData, Tcl_Inte
 static int NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfAsmMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfAsmProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -336,6 +338,8 @@ static int NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *cl, i
 static int NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withSource, NsfClass *withType, CONST char *pattern);
 static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
+static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *name, Tcl_Obj *arguments, Tcl_Obj *body);
+static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
@@ -435,6 +439,8 @@ enum {
  NsfClassInfoSlotobjectsMethodIdx,
  NsfClassInfoSubclassMethodIdx,
  NsfClassInfoSuperclassMethodIdx,
+ NsfAsmMethodCreateCmdIdx,
+ NsfAsmProcCmdIdx,
  NsfColonCmdIdx,
  NsfConfigureCmdIdx,
  NsfCurrentCmdIdx,
@@ -994,6 +1000,53 @@ NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
     assert(pc.status == 0);
     return NsfClassInfoSuperclassMethod(interp, cl, withClosure, pattern);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfAsmMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfAsmMethodCreateCmdIdx].paramDefs, 
+                     method_definitions[NsfAsmMethodCreateCmdIdx].nrParameters, 0, 1,
+                     &pc) == TCL_OK)) {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withInner_namespace = (int )PTR2INT(pc.clientData[1]);
+    int withPer_object = (int )PTR2INT(pc.clientData[2]);
+    NsfObject *withReg_object = (NsfObject *)pc.clientData[3];
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[4];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
+
+    assert(pc.status == 0);
+    return NsfAsmMethodCreateCmd(interp, object, withInner_namespace, withPer_object, withReg_object, name, arguments, body);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfAsmProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfAsmProcCmdIdx].paramDefs, 
+                     method_definitions[NsfAsmProcCmdIdx].nrParameters, 0, 1,
+                     &pc) == TCL_OK)) {
+    int withAd = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *procName = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[3];
+
+    assert(pc.status == 0);
+    return NsfAsmProcCmd(interp, withAd, procName, arguments, body);
 
   } else {
     return TCL_ERROR;
@@ -2493,6 +2546,21 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::methods::class::info::superclass", NsfClassInfoSuperclassMethodStub, 2, {
   {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::method::asmcreate", NsfAsmMethodCreateCmdStub, 7, {
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-inner-namespace", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-reg-object", 0, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::asm::proc", NsfAsmProcCmdStub, 4, {
+  {"-ad", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::colon", NsfColonCmdStub, 1, {
   {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}

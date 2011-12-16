@@ -29,6 +29,13 @@ cmd __profile_clear NsfProfileClearDataStub {}
 cmd __profile_get NsfProfileGetDataStub {}
 cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}
 
+cmd "asm::proc" NsfAsmProcCmd {
+  {-argName "-ad" -required 0  -nrargs 0}
+  {-argName "procName" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+}
+
 cmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
@@ -91,6 +98,17 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "-precondition"  -type tclobj}
   {-argName "-postcondition" -type tclobj}
 } {-nxdoc 1}
+
+cmd method::asmcreate NsfAsmMethodCreateCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-inner-namespace" -nrargs 0}
+  {-argName "-per-object"  -nrargs 0}
+  {-argName "-reg-object" -required 0 -nrargs 1 -type object}
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+}
+
 cmd "method::delete" NsfMethodDeleteCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -nrargs 0}
@@ -173,6 +191,7 @@ cmd proc NsfProcCmd {
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
 } {-nxdoc 1}
+
 cmd relation NsfRelationCmd {
   {-argName "object"  -required 1 -type object}
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}

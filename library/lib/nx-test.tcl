@@ -39,10 +39,13 @@ namespace eval ::nx {
       # and (2) destroys all created objects on exit (auto cleanup)
       #
       # General limitation: namespace resolving differs in nested evals
-      # from global evals. So, this approach is not suitable for all test
+      # from global evals. So, this approach is not suitable for all tests
       # (but for most).
       #
-      # Current limitations: just for nx::Objects, no method/mixin cleanup/var cleanup
+      # Current limitations: 
+      #   - cleanup for for nx::Objects, 
+      #   - no method/mixin cleanup
+      #   - no var cleanup
       #
       set :case $name 
 
@@ -103,10 +106,13 @@ namespace eval ::nx {
         }
 	if {[:verbose]} {puts stderr "running test $c times"}
 	if {$c > 1} {
+	  set r0 [time {time {::namespace eval ${:namespace} ";"} $c}]
+	  regexp {^(-?[0-9]+) +} $r0 _ mS0
 	  set r1 [time {time {::namespace eval ${:namespace} ${:cmd}} $c}]
+	  #puts stderr "running {time {::namespace eval ${:namespace} ${:cmd}} $c} => $r1"
 	  regexp {^(-?[0-9]+) +} $r1 _ mS1
-	  set ms [expr {$mS1*1.0/$c}]
-	  puts stderr "[set :name]:\t[format %6.2f $ms] mms, ${:msg}"
+	  set ms [expr {($mS1 - $mS0) * 1.0 / $c}]
+	  puts stderr "[set :name]:\t[format %6.2f $ms] mms, ${:msg} (overhead [format %.2f [expr {$mS0*1.0/$c}]])"
 	} else {
 	  puts stderr "[set :name]: ${:msg} ok"
 	}
