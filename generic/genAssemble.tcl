@@ -1,5 +1,4 @@
 package require nx
-
 ######################################################################
 # The code engine
 ######################################################################
@@ -8,8 +7,6 @@ nsf::proc generate {threadingType:class} {
   Instruction mixin add ${threadingType}::Instruction
   set suffix [string trimleft ${threadingType} :]
   set dirName [file dirname [info script]]
-  set fn $dirName/asmExecuteTemplate$suffix.c
-  set f [open $fn]; set template [read $f]; close $f
   set instructions [lsort [Instruction info instances]]
   set labels {}
   set indices {}
@@ -24,6 +21,7 @@ nsf::proc generate {threadingType:class} {
 
   set statementIndex {}
   set statementNames {}
+  set ASSEMBLE_EMIT_CODE ""
   foreach s [lsort [Statement info instances -closure]] {
     if {[$s maxArgs] == 0} {
       puts stderr "ignore statement $s"
@@ -31,6 +29,12 @@ nsf::proc generate {threadingType:class} {
     }
     lappend statementIndex [$s cName]Idx
     lappend statementNames \"[$s name]\"
+
+    set emitCode [$s getAsmEmitCode]
+    if {$emitCode ne ""} {
+      append ASSEMBLE_EMIT_CODE "   case [$s cName]Idx:\n$emitCode\n      break;\n\n"
+    }
+
     set flags 0
     if {[$s info has type ::Declaration]} {
       lappend flags ASM_INFO_DECL
@@ -45,9 +49,11 @@ nsf::proc generate {threadingType:class} {
   set STATEMENT_NAMES [join $statementNames ",\n  "]
   set STATEMENT_INFO [join $statementInfo ",\n  "]
 
-  #puts stderr statementIndex=$statementIndex
-  #puts stderr statementNames=$statementNames
+  set ASSEMBLE_CHECK_CODE ""
   
+  set fn $dirName/asmExecuteTemplate$suffix.c
+  set f [open $fn]; set template [read $f]; close $f
+
   set f [open $dirName/nsfAsmExecute$suffix.c w]
   puts $f [subst -nocommand -nobackslash $template]
   close $f
@@ -64,9 +70,15 @@ nx::Class create Statement {
   :property {maxArgs 0}
   :property {cArgs 0}
 
+  :property {asmCheckCode ""}
+  :property {asmEmitCode ""}
+
   :public method cName {} {
     # prepend asm and capitalize first character
     return asm[string toupper [string range ${:name} 0 0]][string range ${:name} 1 end]
+  }
+  :public method getAsmEmitCode {} {
+    return ${:asmEmitCode}
   }
 }
 
@@ -86,6 +98,20 @@ nx::Class create Instruction -superclass Statement {
 
   :property {isJump false}
   :property {returnsResult false}
+
+  # The property "execNeedsProc" is just needed for call threading,
+  # where we have to pass proc via inst->clientData
+  :property {execNeedsProc false}
+
+  :public method getAsmEmitCode {} {
+    #
+    # For every instruction, the c-code allocates an instruction record
+    #
+    append . \
+	"\n\tinst = AsmInstructionNew(proc, [:cName], cArgs);" \
+	"\n\tif (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}" \
+	${:asmEmitCode}
+  }
 
   :method "code get" {} {
     return ${:cCode}
@@ -147,14 +173,36 @@ namespace eval ::asm {
   # {obj a}
   Declaration create obj \
       -mustContainPairs false \
-      -minArgs 2 -maxArgs 2
+      -minArgs 2 -maxArgs 2 \
+      -asmEmitCode {
+	proc->slots[currentSlot] = argv[1];
+	Tcl_IncrRefCount(proc->slots[currentSlot]);
+	proc->slotFlags[currentSlot] |= ASM_SLOT_MUST_DECR;
+	currentSlot ++;
+      }
 
   # {var obj 0} 
-  # should force arg to "obj"
   # obj is intended to be the varname, but currently ignored
   Declaration create var \
-      -minArgs 3 -maxArgs 3 -argTypes asmCmdArgTypes
+      -minArgs 3 -maxArgs 3 -argTypes asmStatementObjType \
+      -asmEmitCode {
+	proc->slots[currentSlot] = NULL;
+	currentSlot ++;
+      }
 
+  # {integer int 0} 
+  Declaration create integer \
+      -minArgs 3 -maxArgs 3 -argTypes asmStatementIntType \
+      -asmEmitCode {
+	{
+	  int intValue;
+	  Tcl_GetIntFromObj(interp, argv[2], &intValue);
+	  proc->slots[currentSlot] = INT2PTR(intValue);
+	  //fprintf(stderr, "setting slots [%d] = %d\n", currentSlot, intValue);
+	  proc->slotFlags[currentSlot] |= ASM_SLOT_IS_INTEGER;
+	  currentSlot ++;
+	}
+      }
 
 
   ######################################################################
@@ -169,7 +217,7 @@ namespace eval ::asm {
   #  {eval obj 0 obj 1 obj 2}
   Instruction create dispatch \
       -name "eval" \
-      -minArgs 3 -maxArgs -1 -cArgs NR_PAIRS -argTypes asmCmdArgTypes \
+      -minArgs 3 -maxArgs -1 -cArgs NR_PAIRS -argTypes asmStatementCmdType \
       -returnsResult true \
       -execCode {
 	result = Tcl_EvalObjv(interp, ip->argc, ip->argv, 0);
@@ -178,13 +226,40 @@ namespace eval ::asm {
   # {methodDelegateDispatch obj 0 obj 1 obj 2} 
   Instruction create methodDelegateDispatch \
       -name "methodDelegateDispatch" \
-      -minArgs 5 -maxArgs -1 -cArgs NR_PAIRS -argTypes asmCmdArgTypes \
+      -minArgs 5 -maxArgs -1 -cArgs NR_PAIRS -argTypes asmStatementCmdType \
+      -asmEmitCode {
+	{ Tcl_Command cmd = NULL;
+	  NsfObject *object = NULL;
+	  AsmResolverInfo *resInfo;
+	  
+	  if (strncmp(ObjStr(inst->argv[1]), "::nsf::methods::", 16) == 0) {
+	    cmd = Tcl_GetCommandFromObj(interp, inst->argv[1]);
+	    //fprintf(stderr, "%s: asmMethod cmd '%s' => %p\n", procName, ObjStr(inst->argv[1]), cmd);
+	  }
+	  if (strncmp(ObjStr(inst->argv[0]), "::nx::", 6) == 0) {
+	    GetObjectFromObj(interp, inst->argv[0], &object);
+	    //fprintf(stderr, "%s: asmMethod object '%s' => %p\n", procName, ObjStr(inst->argv[0]), object);
+	  }
+	  if (cmd && object) {
+	    // experimental: bind obj and method
+	    resInfo = NEW(AsmResolverInfo); // TODO: LEAK
+	    resInfo->cmd = cmd;
+	    resInfo->object = object;
+	    inst->clientData = resInfo;
+	    AsmInstructionSetCmd(inst, asmMethodDelegateDispatch11);
+	  } else if (cmd) {
+	    inst->clientData = cmd;
+	  } else {	  
+	    inst->clientData = NULL;
+	  }
+	}
+      } \
       -returnsResult true \
       -execCode {
 	// obj and method are unresolved
 	result = GetObjectFromObj(interp, ip->argv[0], &object);
 	if (likely(ip->clientData != NULL)) {
-	  cmd = clientData;
+	  cmd = ip->clientData;
 	} else {
 	  cmd = Tcl_GetCommandFromObj(interp, ip->argv[1]);
 	}
@@ -212,16 +287,35 @@ namespace eval ::asm {
   # {methodSelfDispatch obj 0 obj 1 obj 2} 
 
   Instruction create methodSelfDispatch \
-      -minArgs 3 -maxArgs -1 -cArgs NR_PAIRS -argTypes asmCmdArgTypes \
+      -minArgs 3 -maxArgs -1 -cArgs NR_PAIRS -argTypes asmStatementCmdType \
+      -asmEmitCode {
+	{ Tcl_Command cmd = NULL;	  
+	  AsmResolverInfo *resInfo;
+	  
+	  if (strncmp(ObjStr(inst->argv[0]), "::nsf::methods::", 16) == 0) {
+	    cmd = Tcl_GetCommandFromObj(interp, inst->argv[0]);
+	    if (cmd) {
+	      //fprintf(stderr, "%s: asmMethodSelfCmdDispatch cmd '%s' => %p\n", procName, ObjStr(inst->argv[0]), cmd);
+	      AsmInstructionSetCmd(inst, asmMethodSelfCmdDispatch);
+	    }
+	  } else {
+	    //fprintf(stderr, "%s: asmMethodSelfDispatch cmd '%s'\n", procName, ObjStr(inst->argv[0]));
+	  }
+	  resInfo = NEW(AsmResolverInfo); // TODO: LEAK
+	  resInfo->cmd = cmd;
+	  resInfo->proc = proc;
+	  inst->clientData = resInfo;
+	}
+      } \
       -returnsResult true \
       -execCode {
 	{
 	  AsmResolverInfo *resInfo = ip->clientData;
 	  Tcl_Command cmd = resInfo->cmd ? resInfo->cmd : Tcl_GetCommandFromObj(interp, ip->argv[0]);
 	  
-	  result = MethodDispatch(resInfo->asmProc->currentObject, interp, 
+	  result = MethodDispatch(resInfo->proc->currentObject, interp, 
 				  ip->argc, ip->argv, 
-				  cmd, resInfo->asmProc->currentObject, NULL,
+				  cmd, resInfo->proc->currentObject, NULL,
 				  ObjStr(ip->argv[0]), 0, 0);
 	}
       }
@@ -235,34 +329,37 @@ namespace eval ::asm {
 	{
 	  AsmResolverInfo *resInfo = ip->clientData;
 	  assert(resInfo->cmd != NULL);
-	  result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(resInfo->cmd), resInfo->asmProc->currentObject, 
+	  result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(resInfo->cmd), resInfo->proc->currentObject, 
 				     ip->argc, ip->argv);
 	}
       }
 
   # {self} 
-  # TODO: rename instruction to self ? why "method"
-  Instruction create methodSelf \
+
+  Instruction create self \
       -minArgs 1 -maxArgs 1 \
+      -execNeedsProc true \
       -execCode {
 	Tcl_SetObjResult(interp, proc->currentObject->cmdName);
       }
 
 
-  # {jump int 2}
-  # TODO: should force arg1 "int", maybe define later jump labels in asm source
+  # {jump instruction 2}
+  # TODO: maybe define later jump labels in asm source
   Instruction create jump \
-      -minArgs 3 -maxArgs 3 -cArgs 1 -argTypes asmCmdArgTypes \
+      -minArgs 3 -maxArgs 3 -cArgs 1 -argTypes asmStatementInstructionType \
+      -execNeedsProc true \
       -isJump true \
       -execCode {
 	//fprintf(stderr, "asmJump oc %d instructionIndex %d\n", ip->argc, PTR2INT(ip->argv[0]));
 	ip = &proc->code[PTR2INT(ip->argv[0])];
       }
   
-  # {jumpTrue int 6}
-  # TODO: should force arg1 "int", maybe define later jump labels in asm source
+  # {jumpTrue instruction 6}
+  # TODO: maybe define later jump labels in asm source
   Instruction create jumpTrue \
-      -minArgs 3 -maxArgs 3 -cArgs 1 -argTypes asmCmdArgTypes \
+      -minArgs 3 -maxArgs 3 -cArgs 1 -argTypes asmStatementInstructionType \
+      -execNeedsProc true \
       -isJump true \
       -execCode {
 	if (proc->status) {
@@ -274,15 +371,16 @@ namespace eval ::asm {
 	}
       }
   
-  # {leScalar int 4 int 7}
-  # TODO: should force arg1 & arg2 "int" 
-  Instruction create leScalar \
-      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmCmdArgTypes \
+  # {leIntObj slot 4 slot 7}
+
+  Instruction create leIntObj \
+      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmStatementSlotType \
+      -execNeedsProc true \
       -execCode {
 	{
 	  int value1, value2;
 	  Tcl_Obj *obj;
-	  //fprintf(stderr, "asmLeScalar oc %d op1 %p op2 %p\n", ip->argc, ip->argv[0], ip->argv[1]);
+	  //fprintf(stderr, "leIntObj oc %d op1 %p op2 %p\n", ip->argc, ip->argv[0], ip->argv[1]);
 	  
 	  // for the time being, we compare two int values
 	  obj = proc->slots[PTR2INT(ip->argv[0])];
@@ -303,67 +401,112 @@ namespace eval ::asm {
 	}
       }
 
+  # {leInt slot 4 slot 7}
 
-  # {copyScalar int 6 obj 2}  
-  # TODO: rename copyObj
-  # TODO: should force arg1 "int"
+  Instruction create leInt \
+      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmStatementSlotType \
+      -execNeedsProc true \
+      -execCode {
+	{
+	  int value1, value2;
+	  value1 = PTR2INT(proc->slots[PTR2INT(ip->argv[0])]);
+	  value2 = PTR2INT(proc->slots[PTR2INT(ip->argv[1])]);
+	  proc->status = value1 <= value2;
+	}
+      }
 
-  Instruction create copyScalar \
-      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmCmdArgTypes \
+
+  # {duplicateObj slot 6 obj 2}  
+  # TODO: should force first arg "slot"
+  Instruction create duplicateObj \
+      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmStatementSlotObjArgType \
+      -execNeedsProc true \
       -execCode {
 	indexValue = PTR2INT(ip->argv[0]);
-	//fprintf(stderr, "asmCopyScalar var[%d] = %s\n", indexValue, ObjStr(ip->argv[1]));  
+	//fprintf(stderr, "duplicateObj var[%d] = %s\n", indexValue, ObjStr(ip->argv[1]));  
 	if (proc->slots[indexValue]) {
 	  Tcl_DecrRefCount(proc->slots[indexValue]);
 	}
 	proc->slots[indexValue] = Tcl_DuplicateObj(ip->argv[1]); 
-	Tcl_IncrRefCount(proc->slots[indexValue]); // TODO: Leak? .. Clear all these vars when freeing the proc, or stack
+	Tcl_IncrRefCount(proc->slots[indexValue]); 
+        proc->slotFlags[indexValue] |= ASM_SLOT_MUST_DECR;
       }
 
 
-  # {setScalar int 2 arg 0}
-  # TODO: should force arg1 "int"
-  Instruction create setScalar \
-      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmCmdArgTypes \
+  # {setObj slot 2 arg 0}
+  # TODO: should force first arg "slot"
+  Instruction create setObj \
+      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmStatementSlotObjArgType \
+      -execNeedsProc true \
       -execCode {
-	indexValue = PTR2INT(ip->argv[0]);
-	//fprintf(stderr, "asmSetScalar var[%d] = %s\n", indexValue, ObjStr(ip->argv[1]));  
-	proc->slots[indexValue] = ip->argv[1];
+	//fprintf(stderr, "setObj var[%d] = %s\n", PTR2INT(ip->argv[0]), ObjStr(ip->argv[1]));  
+	proc->slots[PTR2INT(ip->argv[0])] = ip->argv[1];
       }
 
-  # {setScalarResult int 5}
-  # TODO: should force arg1 "int"
-  Instruction create setScalarResult \
-      -minArgs 3 -maxArgs 3 -cArgs 2 -argTypes asmCmdArgTypes \
+  # {setInt slot 6 int 0}
+  # TODO: should force first arg "slot"
+  Instruction create setInt \
+      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmStatementSlotIntType \
+      -execNeedsProc true \
       -execCode {
-	indexValue = PTR2INT(ip->argv[0]);
-	//fprintf(stderr, "asmSetScalar var[%d] = %s\n", indexValue, ObjStr(ip->argv[1]));  
-	proc->slots[indexValue] = Tcl_GetObjResult(interp);
+	proc->slots[PTR2INT(ip->argv[0])] = ip->argv[1];
+      }
+
+  # {setObjToResult slot 5}
+  Instruction create setObjToResult \
+      -minArgs 3 -maxArgs 3 -cArgs 2 -argTypes asmStatementSlotType \
+      -execNeedsProc true \
+      -execCode {
+	//fprintf(stderr, "setObjToResult var[%d] = %s\n", PTR2INT(ip->argv[0]), ObjStr(ip->argv[1]));  
+	proc->slots[PTR2INT(ip->argv[0])] = Tcl_GetObjResult(interp);
       }
   
-  # {setResult int 6}
-  # TODO: should force arg1 "int"
+  # {setResult slot 6}
   Instruction create setResult \
-      -minArgs 3 -maxArgs 3 -cArgs 1 -argTypes asmCmdArgTypes \
+      -minArgs 3 -maxArgs 3 -cArgs 1 -argTypes asmStatementSlotType \
+      -execNeedsProc true \
       -execCode {
-	indexValue = PTR2INT(ip->argv[0]);
-	Tcl_SetObjResult(interp, proc->slots[indexValue]);
-	//fprintf(stderr, "asmSetResult index %d => '%s'\n", indexValue, ObjStr(proc->slots[indexValue]));
+	Tcl_SetObjResult(interp, proc->slots[PTR2INT(ip->argv[0])]);
       }
 
+  # {setResultInt slot 6}
+  Instruction create setResultInt \
+      -minArgs 3 -maxArgs 3 -cArgs 1 -argTypes asmStatementSlotType \
+      -execNeedsProc true \
+      -execCode {
+	Tcl_SetObjResult(interp, Tcl_NewIntObj(PTR2INT(proc->slots[PTR2INT(ip->argv[0])])));
+      }
 
   # {store code 4 argv 2}
   Instruction create storeResult \
-      -minArgs 5 -maxArgs 5 -cArgs 0 -argTypes asmAddrTypes \
-      -execCode {
+      -minArgs 5 -maxArgs 5 -cArgs 0 -argTypes asmStatementStoreType \
+      -asmEmitCode {
+	codeIndex = -1;
+	argvIndex = -1;
+	for (j = offset; j < argc; j += 2) {
+	    int argIndex, intValue;
+	    Tcl_GetIndexFromObj(interp, argv[j], asmStatementArgType, "asm internal arg type", 0, &argIndex);
+	    Tcl_GetIntFromObj(interp, argv[j+1], &intValue);
+	    switch (argIndex) {
+	      case asmStatementArgTypeInstructionIdx: codeIndex = intValue; break;
+	      case asmStatementArgTypeArgvIdx: argvIndex = intValue; break;
+	    }
+	  }
+	// TODO: CHECK codeIndex, argvIndex (>0, reasonable values)
+	//fprintf(stderr, "%p setting instruction %d => %d %d\n", patches, currentAsmInstruction, codeIndex, argvIndex);
+	patches->targetAsmInstruction = currentAsmInstruction;
+	patches->sourceAsmInstruction = codeIndex;
+	patches->argvIndex = argvIndex;
+	patches++;
+      } -execCode {
 	ip->argv[0] = Tcl_GetObjResult(interp);
 	Tcl_IncrRefCount(ip->argv[0]);
       }
 
-  # {incrScalar int 6 int 7} 
-  # TODO: should force arg1&2 "int"
-  Instruction create incrScalar \
-      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmCmdArgTypes \
+  # {incrObj slot 6 slot 7} 
+  Instruction create incrObj \
+      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmStatementSlotType \
+      -execNeedsProc true \
       -execCode {
 	{
 	  int intValue, incrValue;
@@ -393,9 +536,26 @@ namespace eval ::asm {
 	  
 	  //fprintf(stderr, "updated %p var[%d] %p\n",  intObj, PTR2INT(ip->argv[0]), proc->slots[PTR2INT(ip->argv[0])]);
 	  
-	  Tcl_SetObjResult(interp, intObj);
+	  //Tcl_SetObjResult(interp, intObj);
 	}
-      }    
+      } 
+
+  # {incrInt slot 6 slot 7} 
+  Instruction create incrInt \
+      -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmStatementSlotType \
+      -execNeedsProc true \
+      -execCode {
+	{
+	  int intValue, incrValue;
+	  //fprintf(stderr, "incrInt var[%d] incr var[%d]\n", PTR2INT(ip->argv[0]), PTR2INT(ip->argv[1]));
+	  intValue  = PTR2INT(proc->slots[PTR2INT(ip->argv[0])]);
+	  incrValue = PTR2INT(proc->slots[PTR2INT(ip->argv[1])]);
+	  //fprintf(stderr, ".... intValue %d incr Value %d\n", intValue, incrValue);
+	  
+	  proc->slots[PTR2INT(ip->argv[0])] = INT2PTR(intValue + incrValue);
+	  //fprintf(stderr, ".... [%d] => %d\n", PTR2INT(ip->argv[0]), intValue + incrValue);
+	}
+      } 
 
 }
 

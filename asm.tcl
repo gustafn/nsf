@@ -18,18 +18,35 @@ nsf::asm::proc sum10.asm1 {} {
   {obj 0}
   {var obj 0} 
   {var obj 1}              
-  {copyScalar int 6 obj 2}  
-  {copyScalar int 7 obj 5}  
-  {leScalar int 4 int 7}
-  {jumpTrue int 7}
-  {incrScalar int 6 int 7} 
-  {incrScalar int 7 int 3} 
-  {jump int 2}
-  {setResult int 6}
+  {duplicateObj slot 6 obj 2}  
+  {duplicateObj slot 7 obj 5}  
+  {leIntObj slot 4 slot 7}
+  {jumpTrue instruction 7}
+  {incrObj slot 6 slot 7} 
+  {incrObj slot 7 slot 3} 
+  {jump instruction 2}
+  {setResult slot 6}
+}
+nsf::asm::proc sum10.asm2 {} {
+  {obj sum}
+  {obj i}
+  {integer int 1}
+  {integer int 100}
+  {integer int 0}
+  {integer int 0}
+  {setInt slot 4 int 0}
+  {setInt slot 5 int 0}
+  {leInt slot 3 slot 5}
+  {jumpTrue instruction 7}
+  {incrInt slot 4 slot 5} 
+  {incrInt slot 5 slot 2} 
+  {jump instruction 2}
+  {setResultInt slot 4}
 }
 
 ? {sum10.tcl} "4950"
 ? {sum10.asm1} "4950"
+? {sum10.asm2} "4950"
 
 #exit
 
@@ -47,8 +64,9 @@ nsf::asm::proc incr1.asm2 {x} {
   {obj x}
   {obj 1}
   {var obj 0}
-  {setScalar int 2 arg 0}
-  {incrScalar int 2 int 1}
+  {setObj slot 2 arg 0}
+  {incrObj slot 2 slot 1}
+  {setResult slot 2}
 }
 ? {incr1.tcl 10} "11"
 ? {incr1.asm1 10} "11"
@@ -68,8 +86,9 @@ nsf::asm::proc incr2.asm2 {x} {
   {obj a}
   {obj 1}
   {var obj 0}
-  {setScalar int 2 arg 0}
-  {incrScalar int 2 int 1}
+  {setObj slot 2 arg 0}
+  {incrObj slot 2 slot 1}
+  {setResult slot 2}
 }
 ? {incr2.tcl 13} "14"
 ? {incr2.asm1 13} "14"
@@ -88,7 +107,7 @@ nsf::asm::proc foo.asm1 {x} {
   {cmd ::set obj 0 obj 2}
   {cmd ::set obj 1 arg 0}
   {cmd ::incr obj 1}
-  {store code 4 argv 2}
+  {store instruction 4 argv 2}
   {cmd ::incr obj 0 result 3}
   {cmd ::set obj 0}
 }
@@ -99,11 +118,11 @@ nsf::asm::proc foo.asm2 {x} {
   {var obj 0}
   {var obj 1}
   {var obj 2}
-  {setScalar int 3 obj 2}
-  {setScalar int 4 arg 0}
-  {incrScalar int 4 int 2}
-  {setScalarResult int 5}
-  {incrScalar int 3 int 5}
+  {setObj slot 3 obj 2}
+  {setObj slot 4 arg 0}
+  {incrObj slot 4 slot 2}
+  {setObjToResult slot 5}
+  {incrObj slot 3 slot 5}
   {cmd ::set obj 0}
 }
 ? {foo.tcl 100} "102"
@@ -119,9 +138,9 @@ nsf::asm::proc bar.asm {x} {
   {obj 64} 
   {obj 65} 
   {cmd ::format obj 0 obj 2} 
-  {store code 4 argv 1} 
+  {store instruction 4 argv 1} 
   {cmd ::format obj 0 obj 3} 
-  {store code 4 argv 3} 
+  {store instruction 4 argv 3} 
   {cmd ::concat result 1 obj 1 result 3 obj 1 arg 0} 
 }
 #puts [bar.asm 123]
