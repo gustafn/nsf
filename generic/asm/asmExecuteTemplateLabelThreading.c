@@ -14,7 +14,7 @@ enum instructionIdx {
  *----------------------------------------------------------------------
  */
 int AsmExecute(ClientData cd, Tcl_Interp *interp, AsmCompiledProc *proc, int argc, Tcl_Obj *CONST argv[]) {
-  int i, result;
+  int i, result = TCL_OK;
   AsmInstruction *ip; 
 
   static void *instructionLabel[] = { 
