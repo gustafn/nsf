@@ -9,6 +9,8 @@ proc sum10.tcl {} {
   }
   return $sum
 }
+# implementation in assembly, using tcl-objs for 
+# "sum", "i" and the constants
 nsf::asm::proc sum10.asm1 {} {
   {obj sum}
   {obj i}
@@ -27,6 +29,8 @@ nsf::asm::proc sum10.asm1 {} {
   {jump instruction 2}
   {setResult slot 6}
 }
+# implementation in assembly, using tcl-objs for 
+# "sum", "i" and the constants
 nsf::asm::proc sum10.asm2 {} {
   {obj sum}
   {obj i}

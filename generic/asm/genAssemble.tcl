@@ -4,60 +4,26 @@ package require nx
 ######################################################################
 
 nsf::proc generate {threadingType:class} {
-  Instruction mixin add ${threadingType}::Instruction
   set suffix [string trimleft ${threadingType} :]
   set dirName [file dirname [info script]]
-  set instructions [lsort [Instruction info instances]]
-  set labels {}
-  set indices {}
-  foreach instruction $instructions {
-    append GENERATED_INSTRUCTIONS [$instruction generate] \n
-    lappend labels &&[$instruction labelName]
-    lappend indices IDX_[$instruction cName]
+
+  foreach {var value} [${threadingType} generate] {
+    set $var $value
   }
-  Instruction mixin delete ${threadingType}::Instruction
-  set INSTRUCTION_LABELS [join $labels ",\n    "]
-  set INSTRUCTION_INDICES [join $indices ",\n  "]
-
-  set statementIndex {}
-  set statementNames {}
-  set ASSEMBLE_EMIT_CODE ""
-  foreach s [lsort [Statement info instances -closure]] {
-    if {[$s maxArgs] == 0} {
-      puts stderr "ignore statement $s"
-      continue
-    }
-    lappend statementIndex [$s cName]Idx
-    lappend statementNames \"[$s name]\"
-
-    set emitCode [$s getAsmEmitCode]
-    if {$emitCode ne ""} {
-      append ASSEMBLE_EMIT_CODE "   case [$s cName]Idx:\n$emitCode\n      break;\n\n"
-    }
-
-    set flags 0
-    if {[$s info has type ::Declaration]} {
-      lappend flags ASM_INFO_DECL
-    }
-    if {[$s mustContainPairs]} {
-      lappend flags ASM_INFO_PAIRS
-    }
-    lappend statementInfo \
-	"/* [$s cName] */\n  {[join $flags |], [$s argTypes], [$s minArgs], [$s maxArgs], [$s cArgs]}"
-  }
-  set STATEMENT_INDICES [join $statementIndex ",\n  "]
-  set STATEMENT_NAMES [join $statementNames ",\n  "]
-  set STATEMENT_INFO [join $statementInfo ",\n  "]
-
-  set ASSEMBLE_CHECK_CODE ""
+ 
+  set template [readFile $dirName/asmExecuteTemplate$suffix.c]
+  writeFile $dirName/nsfAsmExecute$suffix.c [subst -nocommand -nobackslash $template]
   
-  set fn $dirName/asmExecuteTemplate$suffix.c
-  set f [open $fn]; set template [read $f]; close $f
-
-  set f [open $dirName/nsfAsmExecute$suffix.c w]
-  puts $f [subst -nocommand -nobackslash $template]
-  close $f
+  set template [readFile $dirName/asmAssembleTemplate.c]
+  writeFile $dirName/nsfAsmAssemble.c [subst -nocommand -nobackslash $template]
 }
+
+nsf::proc readFile {fn} {set f [open $fn]; set content [read $f]; close $f; return $content}
+nsf::proc writeFile {fn content} {
+  puts stderr "writing $fn"
+  set f [open $fn w]; puts -nonewline $f $content; close $f
+}
+
 
 ######################################################################
 # Basic Class for Instructions and Declarations
@@ -80,6 +46,43 @@ nx::Class create Statement {
   :public method getAsmEmitCode {} {
     return ${:asmEmitCode}
   }
+
+  :public class method "generate assembler" {} {
+    set statementIndex {}
+    set statementNames {}
+    set (ASSEMBLE_EMIT_CODE) ""
+    foreach s [lsort [Statement info instances -closure]] {
+      if {[$s maxArgs] == 0} {
+	puts stderr "ignore statement $s"
+	continue
+      }
+      lappend statementIndex [$s cName]Idx
+      lappend statementNames \"[$s name]\"
+      
+      set emitCode [$s getAsmEmitCode]
+      if {$emitCode ne ""} {
+	append (ASSEMBLE_EMIT_CODE) "   case [$s cName]Idx:\n$emitCode\n      break;\n\n"
+      }
+      
+      set flags 0
+      if {[$s info has type ::Declaration]} {
+	lappend flags ASM_INFO_DECL
+      }
+      if {[$s mustContainPairs]} {
+	lappend flags ASM_INFO_PAIRS
+      }
+      lappend statementInfo \
+	  "/* [$s cName] */\n  {[join $flags |], [$s argTypes], [$s minArgs], [$s maxArgs], [$s cArgs]}"
+    }
+    array set {} [list \
+	STATEMENT_INDICES [join $statementIndex ",\n  "] \
+	STATEMENT_NAMES [join $statementNames ",\n  "] \
+	STATEMENT_INFO [join $statementInfo ",\n  "] \
+	ASSEMBLE_CHECK_CODE ""]
+
+    return [array get {}]
+  }
+
 }
 
 ######################################################################
@@ -105,12 +108,16 @@ nx::Class create Instruction -superclass Statement {
 
   :public method getAsmEmitCode {} {
     #
-    # For every instruction, the c-code allocates an instruction record
+    # For every instruction, the C-code allocates an instruction record
     #
     append . \
 	"\n\tinst = AsmInstructionNew(proc, [:cName], cArgs);" \
 	"\n\tif (cArgs>0) {AsmInstructionArgvSet(interp, offset, argc, 0, inst, proc, argv, 0);}" \
-	${:asmEmitCode}
+	[:asmEmitCode]
+  }
+
+  :method "code clear" {} {
+    set :cCode ""
   }
 
   :method "code get" {} {
@@ -126,6 +133,12 @@ nx::Class create Instruction -superclass Statement {
       error "code does not assign variable '$value': ${:cCode}"
     }
   }
+
+  :method "code mustContain" {value} {
+    if {![regexp ${value} ${:cCode}]} {
+      error "code does not contain '$value': ${:cCode}"
+    }
+  }
 }
 
 ######################################################################
@@ -133,6 +146,27 @@ nx::Class create Instruction -superclass Statement {
 ######################################################################
 
 nx::Class create LabelThreading {
+
+  :public class method generate {} {
+    Instruction mixin add [self]::Instruction
+    set instructions [lsort [Instruction info instances]]
+    set labels {}
+    set indices {}
+    foreach instruction $instructions {
+      append (GENERATED_INSTRUCTIONS) [$instruction generate] \n
+      lappend labels &&[$instruction labelName]
+      lappend indices IDX_[$instruction cName]
+    }
+
+    array set {} [list \
+	INSTRUCTION_LABELS [join $labels ",\n    "] \
+	INSTRUCTION_INDICES [join $indices ",\n  "] \
+        {*}[Statement generate assembler]]
+
+    Instruction mixin delete [self]::Instruction
+    return [array get {}]
+  }
+
   nx::Class create [self]::Instruction {
     #
     # This Class is designed as a mixin class for Instruction
@@ -142,7 +176,7 @@ nx::Class create LabelThreading {
     }
     :method nextInstruction {} {
       if {[:isJump]} {
-	:code mustAssign ip
+	:code mustContain NsfAsmJump
 	:code append "\n  goto *instructionLabel\[ip->labelIdx];\n"
       } else {
 	:code append "\n  ip++;\n  goto *instructionLabel\[ip->labelIdx];\n"
@@ -157,9 +191,84 @@ nx::Class create LabelThreading {
     }
     
     :public method generate {} {
+      :code clear
       :code append [:labelName]:\n
       :code generate
       :nextInstruction
+      return [:code get]
+    }
+  }
+}
+
+######################################################################
+# Code Generator for Call Threading
+######################################################################
+
+nx::Class create CallThreading {
+
+  :public class method generate {} {
+    Instruction mixin add [self]::Instruction
+    Statement   mixin add [self]::Statement
+
+    foreach instruction [lsort [Instruction info instances]] {
+      append (GENERATED_INSTRUCTIONS) [$instruction generate] \n
+    }
+
+    array set {} [Statement generate assembler]
+
+    Instruction mixin delete [self]::Instruction
+    Statement   mixin delete [self]::Statement
+
+    return [array get {}]
+  }
+
+  nx::Class create [self]::Statement {
+
+    :public method asmEmitCode {} {
+      set asmEmitCode ${:asmEmitCode}
+      if {[:execNeedsProc]} {
+	append asmEmitCode "\n\tinst->clientData = proc;\n"
+      }
+      return $asmEmitCode
+    }
+  }
+
+  nx::Class create [self]::Instruction {
+    #
+    # This Class is designed as a mixin class for Instruction
+    #
+
+    :public method "code generate" {} {
+      set code ${:execCode}
+      regsub -all {\mip->argv\M} $code argv code
+      regsub -all {\mip->argc\M} $code argc code
+      regsub -all {\mip->clientData\M} $code clientData code
+
+      if {[:isJump]} {
+	regsub -all {\mip\s*= } $code "proc->ip = " code
+	regsub -all {\mip\s*[+][+]} $code "proc->ip++" code
+      }
+
+      if {[:returnsResult]} {
+	:code append "  int result;\n"
+	:code append $code
+	:code mustAssign result
+	:code append "  return result;\n"
+      } else {
+	:code append $code
+	:code append "  return TCL_OK;\n"
+      }
+    }
+    
+    :public method generate {} {
+      :code clear
+      :code append \
+	  "static int [:cName](ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Obj *argv\[]) \{\n"
+      if {[:execNeedsProc]} {
+	:code append "  AsmCompiledProc *proc = clientData;\n"
+      }
+      :code generate
+      :code append "\}\n"
       return [:code get]
     }
   }
@@ -256,16 +365,20 @@ namespace eval ::asm {
       } \
       -returnsResult true \
       -execCode {
-	// obj and method are unresolved
-	result = GetObjectFromObj(interp, ip->argv[0], &object);
-	if (likely(ip->clientData != NULL)) {
-	  cmd = ip->clientData;
-	} else {
-	  cmd = Tcl_GetCommandFromObj(interp, ip->argv[1]);
+	{ Tcl_Command cmd = NULL;
+	  NsfObject *object;
+
+	  // obj and method are unresolved
+	  result = GetObjectFromObj(interp, ip->argv[0], &object);
+	  if (likely(ip->clientData != NULL)) {
+	    cmd = ip->clientData;
+	  } else {
+	    cmd = Tcl_GetCommandFromObj(interp, ip->argv[1]);
+	  }
+	  //fprintf(stderr, "cmd %p object %p\n", cmd, object);
+	  result = MethodDispatch(object, interp, ip->argc-1, ip->argv+1, cmd, object, NULL,
+				  ObjStr(ip->argv[1]), 0, 0);    
 	}
-	//fprintf(stderr, "cmd %p object %p\n", cmd, object);
-	result = MethodDispatch(object, interp, ip->argc-1, ip->argv+1, cmd, object, NULL,
-				ObjStr(ip->argv[1]), 0, 0);    
       }
   
   # methodDelegateDispatch11 is an optimized variant of
@@ -352,7 +465,7 @@ namespace eval ::asm {
       -isJump true \
       -execCode {
 	//fprintf(stderr, "asmJump oc %d instructionIndex %d\n", ip->argc, PTR2INT(ip->argv[0]));
-	ip = &proc->code[PTR2INT(ip->argv[0])];
+	NsfAsmJump(PTR2INT(ip->argv[0]));
       }
   
   # {jumpTrue instruction 6}
@@ -364,10 +477,10 @@ namespace eval ::asm {
       -execCode {
 	if (proc->status) {
 	  //fprintf(stderr, "asmJumpTrue jump oc %d instructionIndex %d\n", ip->argc, PTR2INT(ip->argv[0]));
-	  ip = &proc->code[PTR2INT(ip->argv[0])];
+	  NsfAsmJump(PTR2INT(ip->argv[0]));
 	} else {
 	  //fprintf(stderr, "asmJumpTrue fall through\n");
-	  ip++;
+	  NsfAsmJumpNext();
 	}
       }
   
@@ -422,14 +535,16 @@ namespace eval ::asm {
       -minArgs 5 -maxArgs 5 -cArgs 2 -argTypes asmStatementSlotObjArgType \
       -execNeedsProc true \
       -execCode {
-	indexValue = PTR2INT(ip->argv[0]);
-	//fprintf(stderr, "duplicateObj var[%d] = %s\n", indexValue, ObjStr(ip->argv[1]));  
-	if (proc->slots[indexValue]) {
-	  Tcl_DecrRefCount(proc->slots[indexValue]);
+	{
+	  int indexValue = PTR2INT(ip->argv[0]);
+	  //fprintf(stderr, "duplicateObj var[%d] = %s\n", indexValue, ObjStr(ip->argv[1]));  
+	  if (proc->slots[indexValue]) {
+	    Tcl_DecrRefCount(proc->slots[indexValue]);
+	  }
+	  proc->slots[indexValue] = Tcl_DuplicateObj(ip->argv[1]); 
+	  Tcl_IncrRefCount(proc->slots[indexValue]); 
+	  proc->slotFlags[indexValue] |= ASM_SLOT_MUST_DECR;
 	}
-	proc->slots[indexValue] = Tcl_DuplicateObj(ip->argv[1]); 
-	Tcl_IncrRefCount(proc->slots[indexValue]); 
-        proc->slotFlags[indexValue] |= ASM_SLOT_MUST_DECR;
       }
 
 
@@ -564,3 +679,4 @@ namespace eval ::asm {
 ######################################################################
   
 generate ::LabelThreading
+generate ::CallThreading

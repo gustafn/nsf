@@ -97,6 +97,7 @@ namespace eval ::nx {
       if {[info exists :pre]} {:call "pre" ${:pre}}
       if {![info exists :msg]} {set :msg ${:cmd}}
       set gotError [catch {:call "run" ${:cmd}} r]
+      #puts stderr "gotError = $gotError // $r == ${:expected} // [info exists :setResult]"
       if {[info exists :setResult]} {set r [eval [set :setResult]]}
       if {$r eq ${:expected}} {
         if {$gotError} {
@@ -104,6 +105,7 @@ namespace eval ::nx {
         } else {
           if {[info exists :count]} {set c ${:count}} {set c 1000}
         }
+	#puts stderr "running test $c times"
 	if {[:verbose]} {puts stderr "running test $c times"}
 	if {$c > 1} {
 	  set r0 [time {time {::namespace eval ${:namespace} ";"} $c}]
@@ -112,7 +114,7 @@ namespace eval ::nx {
 	  #puts stderr "running {time {::namespace eval ${:namespace} ${:cmd}} $c} => $r1"
 	  regexp {^(-?[0-9]+) +} $r1 _ mS1
 	  set ms [expr {($mS1 - $mS0) * 1.0 / $c}]
-	  puts stderr "[set :name]:\t[format %6.2f $ms] mms, ${:msg} (overhead [format %.2f [expr {$mS0*1.0/$c}]])"
+	  puts stderr "[set :name]:\t[format %6.2f $ms]\tmms, ${:msg} (overhead [format %.2f [expr {$mS0*1.0/$c}]])"
 	} else {
 	  puts stderr "[set :name]: ${:msg} ok"
 	}

@@ -1,4 +1,3 @@
-#define NSF_ASSEMBLE 1
 /* 
  *  nsf.c --
  *
@@ -17867,7 +17866,7 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
 }
 
 #if defined(NSF_ASSEMBLE)
-# include "nsfAssemble.c"
+# include "asm/nsfAssemble.c"
 #else
 static int
 NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
