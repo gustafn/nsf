@@ -28,7 +28,7 @@ namespace eval ::xotcl::comm::httpd {
     {redirects [list]}
     {workerTimeout 10000}
   }
-  Httpd proc Date seconds {clock format $seconds -format {%a, %d %b %Y %T %Z}}
+  Httpd proc Date seconds {clock format $seconds -format {%a, %d %b %Y %T GMT} -gmt true}
   Httpd instproc checkRoot {} {
     my instvar root
     set root [string trimright $root /]
