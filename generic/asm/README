@@ -1,0 +1,240 @@
+
+The current implementation of the Tcl-byte-code engine is built around
+a large switch statement (the technique is called switch-threading).
+It is actually quite hard to understand and to de-mangle, since there
+are many goto-operations for optimization, etc. There exists several
+other implementation techniques for execution engines coming from the
+field of direct threaded code. In particular i invested into
+differences between switch-threading, call-threading and label
+threading. implementation mechanisms around, namely call-threading and
+label-threading (direct threading). 
+
+First of all, threaded.c is a short introductory example, showing in a
+small concise program the differences of these techniques.  On my
+machine i got the following results:
+
+1: 0 seconds, 94591 usec
+2: 0 seconds, 84749 usec
+3: 0 seconds, 59811 usec
+
+[1] switch threading
+[2] call threading
+[3] label threading 
+
+This experiment shows that the implementation of switch-threading 
+is the slowest, followed by call threading and label threading. 
+However, the implementation of label-threading depends on a 
+non-standard C extension (label address operator) needed for 
+computed gotos. However, the label address operator is supported 
+by at least three different compilers (supported on GCC, 
+clang and IBM's XL C/C++).
+
+Based on this study i built an experimental new code-engine for tcl
+(integrated in nsf/nx) based on the following ideas:
+
+- Use Tcl's basic implementation elements as base elements of the
+  execution-engine: Tcl_Obj, Tcl_ObjCmdProc (objProcs).
+
+- Instead of defining a "byte code", implement the code essentially as
+  an array of objProcs, were as well the argument vectors of the
+  objProcs are built as far as possible at compile time. This makes it
+  possible to implement quickly an execution engine for all of Tcl.
+
+- By using objProcs as basic mechanism, every tcl-command
+  implementation will become effectively an "instruction" of the code
+  engine. By defining new objProcs, the command set of the engine will
+  be extended automatically. Specialized instructions with the same
+  format can be registered depending on syntactic properties of the
+  source (e.g. not all argument test will be required, part of the
+  syntax errors can be caught at compile time, on could implement
+  specialized versions for Tcl's "set" for setting and reading
+  variables, etc.).
+
+- The code engine is designed for allowing different resolving
+  strategies for cmds (objProcs): come commands could be resolved at
+  compile-time, some commands must be resolved at runtime. Similar
+  experiments can be made in the object oriented case for objects and
+  methods. It is not completely clear, if the binding time flexibility
+  should be an option for a production version of the execution
+  engine, since this would cause differences in the semantics of Tcl
+  (when commands are redefined). However, this option provides some
+  good evidence for potential speedups.
+
+- The current byte code engine performs double dispatches on object
+  oriented calls (one dispatch on the object, a second dispatch on the
+  method). The new execution engine allows direct dispatch on methods.
+
+- Exploit typing information: NSF/NX provides "optionally typing"
+  information (e.g. x:int). This optional typing information can be
+  used at runtime as well for optimizing the code.
+
+- Provide an intermediate representation ("Tcl assembler") instead of
+  "hard wiring" instructions to Tcl commands as implemented in
+  Tcl. The Tcl assembler makes it easier to implement high-level
+  optimizations to provide different implementations for e.g. a
+  sequence of tcl instructions. Note that a Tcl compiler (a program
+  translating Tcl source into Tcl assembler) can be implemented in Tcl
+  as well. Furthermore, for some high-performance requirements, it is
+  possible to simply write Tcl assembly code by hand (this is at least
+  an alternative to C-coding).  Note that the Tcl assembler is not
+  machine dependent, the instructions are those of the "abstract Tcl
+  machine". Currently, the syntax of the Tcl assembler is a nested Tcl
+  list.
+
+- As explained above, label-threading is the fastest implementation
+  technique of the compared approaches, but it is not supported by all
+  c-compilers. Implemented execution engines are sufficiently
+  different to make maintenance of two (or more) execution engines
+  hard. In order to address this issue, i implemented an assembly code
+  generator and an execution code generator in NX from a common,
+  declarative source. The assembly code and the execution engines can
+  be included in the source. Depending on the C-compiler, the "right"
+  include can be chosen. Note that it is certainly possible to
+  implement some more different (optimized) execution engines as well.
+
+- Replacing for Tcl the complete byte-code engine is quite a large
+  task. In order to experiment with the new execution engines i
+  implemented asm-proc and asm-method as counterparts of "proc" and
+  "method", which will take in their body the tcl assembly
+  language. When such a command is called, the appropriate execution
+  engine is called. This way, the new execution engine can co-exist
+  with Tcl's classical byte-code engine, it should not be as well
+  quite easy to follow this approach in jimtcl.
+
+- In cases where the new tcl-compilation and assembly generation
+  fails, one could fall back to the basic implementation (e.g. tcl
+  byte code engine).
+  
+Some preliminary results:
+
+  - If one executes just the objProcs (e.g. for "set" Tcl_SetObjCmd),
+    the old code engine is faster, but the new ones "work" as well. It
+    is certainly possible to provide new optimized instructions for
+    certain tasks (accessing/setting variables, increment operations
+    etc.) using the same format.
+
+  - Using such instructions, both new execution engines (for
+    call-threading and label-threading) show to be much faster than
+    Tcl's current bytecode engine.
+
+  - The current implementation based on call-threading is for the
+    example below up to about three times faster than the
+    Tcl-implementation, the label-threading variant is about 5 times
+    faster.
+
+Current shortcomings / work in progress: 
+
+  - The current implementation is not re-entrant (no stack
+    integration, proc local variables are currently stored in the
+    assembly proc structure, not on the stack).
+
+  - For allowing "uplevels" and "upvars" and compiled locals, we will
+    need in Tcl the proc call frames, which will certainly cost some
+    performance. For high-performance situations, these frames could
+    be made optional (these are not available if one would code the
+    procs straightforward in C). 
+
+    Note that the example below with the for loop and incr, reentrancy
+    and stack frames are not required/needed at all (since the code
+    does neither call a proc (or eval) and the code is not recursive -
+    it is not clear, how often such optimization would be possible).
+
+  - The instruction set is just sufficient for the about 30 examples
+    in my current regression test set. The instruction set is just
+    experimental, and not sufficiently thoughtfully designed.
+
+  - The assembly language is very primitive: one has a set of "slot"
+    declarations which are constants or variables. Later references
+    address these slots via their indices (starting with
+    0). Similarly, the instructions are numbered as well (the code is
+    a C array of instructions). A "goto" simply addresses the next
+    instruction via the array index. All "declarations" of local vars
+    have to be written before the "instructions".
+
+  - It is not clear, how much Tcl compatibility is needed or wanted
+    (interface to compiled locals, variable-/call-traces, etc.)
+
+  - No effort so far on compiling Tcl source into Tcl assembly.
+
+Below is a short example in Tcl (and the Tcl byte code engine) and in
+Tcl assembly in two implementation variants, one with Tcl_Objs, one
+with integers (in case the typing information is available or
+inferable from the Tcl source). 
+
+The timing results based on clang under Mac OS X:
+
+Call Threading:
+asm/t.001:	6.64
+asm/t.002:	4.04
+asm/t.003:	2.46
+
+Label Threading:
+asm/t.001:	6.58
+asm/t.002:	2.74
+asm/t.003:	1.33
+
+I'll push the version over the holidays to our public git repository.
+
+All the best
+-gustaf
+
+
+==================================================
+package req nx::test
+nx::Test parameter count 100000
+
+proc sum10.tcl {} {
+  set sum 0
+  for {set i 0} {$i < 100} {incr i} {
+    incr sum $i
+  }
+  return $sum
+}
+
+# Implementation in Tcl assembly, using tcl-objs for "sum", "i" and
+# the constants
+
+nsf::asm::proc sum10.asm1 {} {
+  {obj sum}
+  {obj i}
+  {obj 0}
+  {obj 1}
+  {obj 100}
+  {obj 0}
+  {var obj 0} 
+  {var obj 1}              
+  {duplicateObj slot 6 obj 2}  
+  {duplicateObj slot 7 obj 5}  
+  {leIntObj slot 4 slot 7}
+  {jumpTrue instruction 7}
+  {incrObj slot 6 slot 7} 
+  {incrObj slot 7 slot 3} 
+  {jump instruction 2}
+  {setResult slot 6}
+}
+
+# Implementation in Tcl assembly, using integers for "sum", "i" and
+# the constants
+
+nsf::asm::proc sum10.asm2 {} {
+  {obj sum}
+  {obj i}
+  {integer int 1}
+  {integer int 100}
+  {integer int 0}
+  {integer int 0}
+  {setInt slot 4 int 0}
+  {setInt slot 5 int 0}
+  {leInt slot 3 slot 5}
+  {jumpTrue instruction 7}
+  {incrInt slot 4 slot 5} 
+  {incrInt slot 5 slot 2} 
+  {jump instruction 2}
+  {setResultInt slot 4}
+}
+
+? {sum10.tcl} "4950"
+? {sum10.asm1} "4950"
+? {sum10.asm2} "4950"
+
+
