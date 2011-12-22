@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.6" />
 <title>Tutorial for the Next Scripting Language</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -179,7 +179,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -514,6 +514,29 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -587,7 +610,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +656,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -1301,7 +1324,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># Create a safe stack class by using Stack and mixin
 </span><span class='nx-comment'># Safety
 </span><span class='nx-comment'>#
-</span><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> SafeStack -superclass Stack -mixin Safety
+</span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> SafeStack -superclass Stack -mixin Safety
 
 SafeStack <span class='nx-keyword'>create</span> s3</pre></td></tr></table></div></div>
 <div class="paragraph"><p>The difference to the case with the per-object mixin is that now,
@@ -1410,27 +1433,28 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 }</pre></td></tr></table></div></div>
 <div class="paragraph"><p>An alternative approach is shown in
 <a href="#xmp-class-integer-stack">Listing 13</a>, where the class
-<tt>IntegerStack</tt> is defined, using again the method definition use for
-<tt>s4</tt>, this time on the class level.</p></div>
+<tt>IntegerStack</tt> is defined, using the same method definition
+as <tt>s4</tt>, this time on the class level.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_define_class_specific_methods">2.5. Define Class Specific Methods</h3>
 <div class="paragraph"><p>In our previous examples we defined methods provided by classes
-(applicable for its instances) and object-specific methods (methods
-defined on objects, only applicable for these objects). In this
-section, we introduce methods defined on classes, which are only
-applicable for the class objects. Such methods are sometimes called
-class methods or "static methods".</p></div>
-<div class="paragraph"><p>In NX classes are objects with certain properties (providing methods
-for instances, managing object life-cycles; we will come to this later
-in more detail). Since classes are objects, we can define as well
-object-specific methods for the class objects. However, since
-<tt>:method</tt> applied on classes defines methods for instances, we have to
-use the method-modifier <tt>class</tt> to denote methods to be
-applied on the class itself. Note that class methods are not
-inherited to instances. These methods defined on the class object are
-actually exactly same as the object-specific methods in the examples
-above.</p></div>
+(applicable for their instances) and object-specific methods (methods
+defined on objects, which are only applicable for these objects). In
+this section, we introduce methods that are defined on classes. These
+method are only applicable for the class objects. Such methods are
+sometimes called <em>class methods</em> or <em>static methods</em>.</p></div>
+<div class="paragraph"><p>In NX classes are objects with certain properties. The classes are
+objects providing methods for instance and which are managing the
+life-cycles of the objects (we will come to this point in later
+sections in more detail). Since classes are objects, it is also
+possible to define object-specific methods for the class
+objects. However, since <tt>:method</tt> applied on classes defines methods
+for instances, we have to use the method-modifier <tt>class</tt> to denote
+methods to be applied on the class itself. Note that instances do not
+inherit class methods. The methods defined on the class object are
+actually exactly same as the object-specific methods shown in the
+examples above.</p></div>
 <div class="paragraph" id="xmp-stack2"><div class="title">Listing 14: Class Stack2</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -1487,13 +1511,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
    }
 }
 
-Stack <span class='nx-keyword'>create</span> s1
-Stack <span class='nx-keyword'>create</span> s2
+Stack2 <span class='nx-keyword'>create</span> s1
+Stack2 <span class='nx-keyword'>create</span> s2
 
-<span class='nx-keyword'>puts</span> [Stack available_stacks]</pre></td></tr></table></div></div>
+<span class='nx-keyword'>puts</span> [Stack2 available_stacks]</pre></td></tr></table></div></div>
 <div class="paragraph"><p>The class <tt>Stack2</tt> in <a href="#xmp-stack2">Listing 14</a> consists of the
-earlier definition of the class <tt>Stack</tt> extended by the
-class-specific method <tt>available_stacks</tt>, that returns the
+earlier definition of the class <tt>Stack</tt> and is extended by the
+class-specific method <tt>available_stacks</tt>, which returns the
 current number of instances of the stack. The final command <tt>puts</tt>
 (line 26) prints 2 to the console.</p></div>
 <div class="imageblock" id="img-stack2" style="text-align:center;">
@@ -1504,10 +1528,10 @@ current number of instances of the stack. The final command <tt>puts</tt>
 </div>
 <div class="paragraph"><p></p></div>
 <div class="paragraph"><p>The class diagram in <a href="#img-stack2">Figure 15</a> shows the
-diagrammatical representation of the class object-specific method
-<tt>available_stacks</tt>. We omit here the common root class. Since every
-class is a specialization of the common root class <tt>nx::Object</tt>, the
-common root class is often omitted from the class diagrams.</p></div>
+diagrammatic representation of the class object-specific method
+<tt>available_stacks</tt>.  Since every class is a specialization of the
+common root class <tt>nx::Object</tt>, the common root class is often omitted
+from the class diagrams, so it was omitted here as well in the diagram.</p></div>
 </div>
 </div>
 </div>
@@ -1517,34 +1541,34 @@ common root class is often omitted from the class diagrams.</p></div>
 <div class="sect2">
 <h3 id="_variables_and_properties">3.1. Variables and Properties</h3>
 <div class="paragraph"><p>In general, NX does not need variable declarations. It allows to
-create, modify or variables on the fly by using e.g. the Tcl commands
-<tt>set</tt> and <tt>unset</tt>. Depending on the variable name (or more precisely,
-depending on the prefix consisting of colons <tt>:</tt>), a variable is
-either local to a method, or an instance variable, or a global
-variable.  The rules are:</p></div>
+create or modify variables on the fly by using for example the Tcl
+commands <tt>set</tt> and <tt>unset</tt>. Depending on the variable name (or more
+precisely, depending on the variable name&#8217;s prefix consisting of
+colons <tt>:</tt>) a variable is either local to a method, or it is an
+instance variable, or a global variable.  The rules are:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-A variable without any colon prefix refers typically to a
-   method scoped variable (the variable is created at the begin of the
-   invocation of the method and deleted, when the method ends).
-   In the example below, the variable <tt>a</tt> is method scoped.
+A variable without any colon prefix refers typically to a method
+   scoped variable. Such a variable is created during the invocation
+   of the method, and it is deleted, when the method ends.  In the
+   example below, the variable <tt>a</tt> is method scoped.
 </p>
 </li>
 <li>
 <p>
-A variable with a single colon prefix refers to an instance variable
-   (the variable is part of the object, when the object is destroyed,
-   the variable is deleted as well). In the example below, the variable
-   <tt>b</tt> is an instance variable.
+A variable with a single colon prefix refers to an instance
+    variable.  An instance variable is part of the object; when the
+    object is destroyed, its instance variables are deleted as well. In the
+    example below, the variable <tt>b</tt> is an instance variable.
 </p>
 </li>
 <li>
 <p>
-A variable with two leading colons refers to a global variable (the
+A variable with two leading colons refers to a global variable. The
   lifespan of a globale variable ends when the variable is explicitly
-  unset or the script terminates). Variables in placed in Tcl
-  namespaces are also global variables. In the example below, the
+  unset or the script terminates. Variables, which are placed in Tcl
+  namespaces, are also global variables. In the example below, the
   variable <tt>c</tt> is a global variable.
 </p>
 </li>
@@ -1572,7 +1596,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   9
  10
  11
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Foo {
 
   <span class='nx-keyword'>:method</span> foo args {...}
     <span class='nx-comment'># "a" is a method scoped variable
@@ -1587,16 +1611,17 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 of some class <tt>Foo</tt> referring to differently scoped variables.</p></div>
 <div class="sect3">
 <h4 id="_properties_instance_variables_with_accessors">3.1.1. Properties: Instance Variables with Accessors</h4>
-<div class="paragraph"><p>So, in general, there is no need to define or declare instance
-variables in NX. However, in some cases, a definition is useful. For
-example, one can define properties on classes, which are inherited to
-subclasses. Or, the definition of properties can be used the check
-permissible values for instance variables or to initialize instance
-variables from default values during object initialization.</p></div>
+<div class="paragraph"><p>Generally, there is no need to define or declare instance variables in
+NX. In some cases, however, a definition of instance variables is
+useful. NX allows us to define instances variables as <em>properties</em> on
+classes, which are inherited to subclasses. Furthermore, the
+definition of properties can be used the check permissible values for
+instance variables or to initialize instance variables from default
+values during object initialization.</p></div>
 <div class="exampleblock">
 <div class="content">
 <div class="paragraph"><p>A <strong>property</strong> is a definition of an attribute (an instance variable)
-with accessors. The property definition might carry as well
+with accessors. The property definition might as well carry
 value-constraints and a default value.</p></div>
 </div></div>
 <div class="imageblock" id="img-person-student" style="text-align:center;">
@@ -1606,12 +1631,13 @@ value-constraints and a default value.</p></div>
 <div class="title">Figure 17. Classes Person and Student</div>
 </div>
 <div class="paragraph"><p></p></div>
-<div class="paragraph"><p>Consider the example above, where the classes <tt>Person</tt> and <tt>Student</tt>
-are defined. Both classes have accessor methods for all their
-attributes specified (Note that we show the accessor methods only in
-this example). By defining properties we can use the name of the
-attribute as method name to access the variable. The listing below
-shows an implementation of this conceptual model in NX.</p></div>
+<div class="paragraph"><p>The class diagram above defines the classes <tt>Person</tt> and
+<tt>Student</tt>. For both classes, accessor methods are specified with the
+same names as the attributes. (Note that we show the accessor methods
+only in this example, we omit it in later ones). By defining
+properties we can use the name of the attribute as method name to
+access the attributes. The listing below shows an implementation of this
+conceptual model in NX.</p></div>
 <div class="paragraph" id="xmp-properties"><div class="title">Listing 18: Properties</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -1678,39 +1704,39 @@ Student <span class='nx-keyword'>create</span> s1 -name Susan -matnr 4711
 
 <span class='nx-comment'># Access property value via accessor method
 </span><span class='nx-keyword'>puts</span> <span class='nx-string'>"The name of s1 is [s1 name]"</span></pre></td></tr></table></div></div>
-<div class="paragraph"><p>When the class <tt>Person</tt> is defined, NX provides as well automatically
-accessors for its properties. Accessors are methods named like the
-variables, which are used to access (to read and write) the underlying
-instance variables. Therefore, in our example, the class <tt>Person</tt> has
-two methods implied by the <tt>property</tt> definition, namely the method
-<tt>name</tt> and the method <tt>birthday</tt>.</p></div>
+<div class="paragraph"><p>By defining <tt>name</tt> and <tt>birthday</tt> as properties of <tt>Person</tt>, NX
+provides automatically accessor methods with the same name.  The
+accessors methods (or shortly called "accessors") provide read and
+write access to the underlying instance variables. In our example, the
+class <tt>Person</tt> has two methods implied by the <tt>property</tt> definition:
+the method <tt>name</tt> and the method <tt>birthday</tt>.</p></div>
 <div class="paragraph"><p>The class <tt>Student</tt> is defined as a specialization of <tt>Person</tt> with
-two additional properties, namely <tt>matnr</tt> and <tt>oncampus</tt>. The property
+two additional properties: <tt>matnr</tt> and <tt>oncampus</tt>. The property
 <tt>matnr</tt> is required (it has to be provided, when an instance of this
 class is created), and the property <tt>oncampus</tt> is boolean, and is per
 default set to <tt>true</tt>. Note that the class <tt>Student</tt> inherits the
-properties of <tt>Person</tt>, therefore it will have 4 properties in total.</p></div>
-<div class="paragraph"><p>The property definitions are also used for providing <tt>object
-parameters</tt>. These are non-positional parameters provided during
-object creation to supply values to the instance variables. In our
-listing, we create an instance of <tt>Person</tt> using the object parameter
-<tt>name</tt> and provide the value of <tt>Bob</tt> to the instance variable <tt>name</tt>.
-Similarly, we create an instance of <tt>Student</tt> using the two object
-parameters <tt>name</tt> and <tt>matnr</tt>. Finally we use the accessor method
-<tt>name</tt> to obtain the value of the instance variable <tt>name</tt> of object
-<tt>s1</tt>.</p></div>
+properties of <tt>Person</tt>. So, <tt>Student</tt> has four properties in total.</p></div>
+<div class="paragraph"><p>The property definitions are also used to providing <tt>object
+parameters</tt>. These are typically non-positional parameters, which are
+used during object creation to supply values to the instance
+variables. In our listing, we create an instance of <tt>Person</tt> using the
+object parameter <tt>name</tt> and provide the value of <tt>Bob</tt> to the instance
+variable <tt>name</tt>.  Similarly, we create an instance of <tt>Student</tt> using
+the two object parameters <tt>name</tt> and <tt>matnr</tt>. Finally, we use the
+accessor method <tt>name</tt> to obtain the value of the instance variable
+<tt>name</tt> of object <tt>s1</tt>.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_instance_variables_without_accessors">3.1.2. Instance Variables without Accessors</h4>
-<div class="paragraph"><p>In some cases one would like to define instance variables without
-accessors, e.g. for keeping the internal state of an object.  For this
-purpose, one can use the predefined method <tt>variable</tt>, which is in
-many respects similar to <tt>property</tt>. One difference is, that
-<tt>property</tt> uses the same syntax as for method parameters, and
-<tt>variable</tt> receives the default value as a separate argument (similar
-to the <tt>variable</tt> command in Tcl. The introductory Stack example in
-<a href="#xmp-class-stack">Listing 2</a> used already the method
-<tt>variable</tt>.</p></div>
+<div class="paragraph"><p>To define instances variables with default values without accessors
+the predefined method <tt>variable</tt> can be used. Such instance variables
+are often used for e.g. keeping the internal state of an object.  The
+usage of <tt>variable</tt> is in many respects similar to <tt>property</tt>. One
+difference is, that <tt>property</tt> uses the same syntax as for method
+parameters, whereas <tt>variable</tt> receives the default value as a separate
+argument (similar to the <tt>variable</tt> command in Tcl). The introductory
+Stack example in <a href="#xmp-class-stack">Listing 2</a> uses already
+the method <tt>variable</tt>.</p></div>
 <div class="paragraph" id="xmp-variable"><div class="title">Listing 19: Declaring Variables</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -1738,12 +1764,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  13
  14
  15
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Base {
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base {
   <span class='nx-keyword'>:variable</span> x 1
   <span class='nx-comment'># ...
 </span>}
 
-<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Derived -superclass Base {
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Derived -superclass Base {
   <span class='nx-keyword'>:variable</span> y 2
   <span class='nx-comment'># ...
 </span>}
@@ -1788,7 +1814,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  17
  18
  19
-</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Base2 {
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Base2 {
  <span class='nx-comment'># ...
 </span> <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
    <span class='nx-keyword'>set</span> :x 1
@@ -1796,7 +1822,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span> }
 }
 
-<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Derived2 -superclass Base2 {
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Derived2 -superclass Base2 {
  <span class='nx-comment'># ...
 </span> <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
    <span class='nx-keyword'>set</span> :y 2
@@ -1808,34 +1834,34 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-comment'># Create instance of the class Derived2
 </span>Derived2 <span class='nx-keyword'>create</span> d2</pre></td></tr></table></div></div>
 <div class="paragraph"><p>In many other object oriented languages, the instance variables are
-initialized solely by the constructor, similar to class <tt>Derived2</tt> in
-<a href="#xmp-constructor">Listing 20</a> . This approach is certainly as
-well possible in NX. Note however, that the approach using
-constructors requires an explicit method chaining between the
-constructors and is less declarative.</p></div>
+initialized solely by the constructor (similar to class <tt>Derived2</tt> in
+<a href="#xmp-constructor">Listing 20</a>). This approach is certainly
+also possible in NX. Note that the approach using constructors
+requires an explicit method chaining between the constructors and is
+less declarative than the approach in NX using <tt>property</tt> and <tt>variable</tt>.</p></div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_method_definitions">3.2. Method Definitions</h3>
-<div class="paragraph"><p>The basic building blocks of an object oriented program are objects,
+<div class="paragraph"><p>The basic building blocks of an object oriented program are object and
 classes, which contain named pieces of code, the methods.</p></div>
 <div class="exampleblock">
 <div class="content">
 <div class="paragraph"><p><strong>Methods</strong> are subroutines (pieces of code) associated with objects
-and/or classes. Every method has a name, it receives arguments and
-returns a value.</p></div>
+and/or classes. A method has a name, receives optionally arguments
+during invocation and returns a value.</p></div>
 </div></div>
-<div class="paragraph"><p>There are as well other program units, which are not associated with
-objects or classes. Examples for such units are Tcl procs or Tcl
-commands.</p></div>
+<div class="paragraph"><p>Plain Tcl provides subroutines, which are not associated with objects
+or classes. Tcl distinguishes between +proc+s (scripted subroutines)
+and  commands (system-languages implemented subroutines).</p></div>
 <div class="paragraph"><p>Methods might have different scopes, defining, on which kind of
-objects these methods are applicable. We describe this later in more
-detail. For the time being, we deal here with methods defined on
-classes, which are applicable for the instance of these classes.</p></div>
+objects these methods are applicable to. These are described in more
+detail later on. For the time being, we deal here with methods defined
+on classes, which are applicable for the instance of these classes.</p></div>
 <div class="sect3">
 <h4 id="_scripted_methods">3.2.1. Scripted Methods</h4>
 <div class="paragraph"><p>Since NX is a scripting language, most methods are most likely
-scripted methods, where the method body contains Tcl code.</p></div>
+scripted methods, in which the method body contains Tcl code.</p></div>
 <div class="paragraph" id="xmp-fido1"><div class="title">Listing 21: Scripted method</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -1878,34 +1904,37 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>fido bark</pre></td></tr></table></div></div>
 <div class="paragraph"><p>In the example above we create a class <tt>Dog</tt> with a scripted method
 named <tt>bark</tt>. The method body defines the code, which is executed when
-the method is invoked. In this example, the method <tt>bar</tt> will print
-out a line on the terminal starting with the object name (determined
-by the built in command <tt>self</tt> followed by "Bark, bark, bark.".
-This method is defined on a class (the class contains the method) and
-applicable to instances of the class (here the instance <tt>fido</tt>).</p></div>
+the method is invoked. In this example, the method <tt>bar</tt> prints out a
+line on the terminal starting with the object name (this is determined
+by the built in command <tt>self</tt>) followed by "Bark, bark, bark.".  This
+method is defined on a class and applicable to instances of the class
+(here the instance <tt>fido</tt>).</p></div>
 </div>
 <div class="sect3">
 <h4 id="_c_implemented_methods">3.2.2. C-implemented Methods</h4>
-<div class="paragraph"><p>Not all of the methods usable in NX are scripted methods. There are
-for example predefined methods, that we used already in our examples,
-which are implemented in C. For example, in <a href="#xmp-fido1">Listing 21</a>
-we used the method <tt>create</tt> to create the class <tt>Dog</tt> and to create
-the dog instance <tt>fido</tt>.</p></div>
-<div class="paragraph"><p>Also application developer might define their own functions in C, but
-this is an advanced topic, not covered here. However, application
-developer might reuse some generic C code to define their own
-C-implemented methods. Such methods are for example <em>accessors</em>,
-<em>forwarders</em> and <em>aliases</em>.</p></div>
+<div class="paragraph"><p>Not all of the methods usable in NX are scripted methods; many
+predefined methods are defined in the underlying system language,
+which is typically C.  For example, in <a href="#xmp-fido1">Listing 21</a> we
+used the method <tt>create</tt> to create the class <tt>Dog</tt> and to create the
+dog instance <tt>fido</tt>. These methods are implemented in C in the next
+scripting framework.</p></div>
+<div class="paragraph"><p>C-implemented methods are not only provided by the underlying
+framework but might be as well defined by application developers. This
+is an advanced topic, not covered here. However, application developer
+might reuse some generic C code to define their own C-implemented
+methods. Such methods are for example <em>accessors</em>, <em>forwarders</em> and
+<em>aliases</em>.</p></div>
 <div class="exampleblock">
 <div class="content">
-<div class="paragraph"><p>An <strong>accessor method</strong> is a (in most cases) C-implemented method to access
-instance variables of an object. A call to an accessor with no arguments
-uses the accessor as a getter, obtaining the value of the associated
-variable. A call to an accessor with an argument uses it as a setter,
-setting the value of the associated variable.</p></div>
+<div class="paragraph"><p>An <strong>accessor method</strong> is in most cases a C-implemented method that
+accesses instance variables of an object. A call to an accessor
+without arguments uses the accessor as a getter, obtaining the actual
+value of the associated variable. A call to an accessor with an
+argument uses it as a setter, setting the value of the associated
+variable.</p></div>
 </div></div>
-<div class="paragraph"><p>We used accessors as well already in the section about properties,
-which define accessors automatically.</p></div>
+<div class="paragraph"><p>Accessors have already been discussed in the section about properties,
+in which the accessors were created automatically.</p></div>
 <div class="paragraph" id="xmp-fido2"><div class="title">Listing 22: Accessor Methods</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -1968,12 +1997,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 <span class='nx-comment'># Proving an invalid values will raise an error
 </span>fido::tail length <span class='nx-string'>"Hello"</span></pre></td></tr></table></div></div>
-<div class="paragraph"><p><a href="#xmp-fido2">Listing 22</a> shows an extended example, where every doc
+<div class="paragraph"><p><a href="#xmp-fido2">Listing 22</a> shows an extended example, where every dog
 has a tail. The object <tt>tail</tt> is created as a subobject of the dog in
 the constructor <tt>init</tt>. The subobject can be accessed by providing the
 full name of the subobject <tt>fido::tail</tt>. The method <tt>length</tt> is an
 C-implemented accessor, that enforces the value constraint (here a
-floating point number, since length uses the value constraint <tt>double</tt>).</p></div>
+floating point number, since length uses the value constraint
+<tt>double</tt>).</p></div>
 <div class="paragraph" id="xmp-fido3"><div class="title">Listing 23: Forwarder Methods</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2025,38 +2055,38 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># Therefore, the following method returns "Joy".
 </span>fido wag</pre></td></tr></table></div></div>
 <div class="paragraph"><p><a href="#xmp-fido3">Listing 23</a> again extends the example by adding a
-forwarder named <tt>wag</tt> to the object (e.g. <tt>fido</tt>) that redirects all
-calls of the form <tt>fido wag</tt> with arbitrary arguments to the subobject
-<tt>fido::tail</tt>.</p></div>
+forwarder named <tt>wag</tt> to the object (e.g. <tt>fido</tt>). The forwarder
+redirects all calls of the form <tt>fido wag</tt> with arbitrary arguments to
+the subobject <tt>fido::tail</tt>.</p></div>
 <div class="exampleblock">
 <div class="content">
 <div class="paragraph"><p>A <strong>forwarder method</strong> is a
-C-implemented method to redirect an invocation for a certain method
-to either a method of other object or to some other method of the
+C-implemented method that redirects an invocation for a certain method
+to either a method of another object or to some other method of the
 same object. Forwarding an invocation of a method to some other
 object is a means of delegation.</p></div>
 </div></div>
-<div class="paragraph"><p>The functionality of the forwarder can be certainly as well be
-implemented as a scripted method, but for the most common cases, the
-forward implementation is more efficient, and the <tt>forward</tt> method
-expresses the intention of the developer.</p></div>
-<div class="paragraph"><p>The forwarder have several options to change e.g. the order of the
-arguments, to substitute certain patterns in the argument list
+<div class="paragraph"><p>The functionality of the forwarder can just as well be implemented as
+a scripted method, but for the most common cases, the forward
+implementation is more efficient, and the <tt>forward</tt> method expresses
+the intention of the developer.</p></div>
+<div class="paragraph"><p>The method <tt>forwarder</tt> has several options to change e.g. the order of
+the arguments, or to substitute certain patterns in the argument list
 etc. This will be described in later sections.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_method_aliases">3.2.3. Method-Aliases</h4>
 <div class="exampleblock">
 <div class="content">
-<div class="paragraph"><p>An <strong>alias method</strong> is a means to register an existing method, or a
-Tcl proc or a Tcl command as a method with the provided
+<div class="paragraph"><p>An <strong>alias method</strong> is a means to register either an existing method,
+or a Tcl proc, or a Tcl command as a method with the provided
 name on a class or object.</p></div>
 </div></div>
-<div class="paragraph"><p>In some way, the method alias is a restricted form of a forwarder, but
-it does not support delegation to different objects and argument
-reordering. The advantage of the method alias is it has close to zero
-overhead, especially for aliasing c-implemented methods, since the
-methods are simple registered under a different name.</p></div>
+<div class="paragraph"><p>In some way, the method alias is a restricted form of a forwarder,
+though it does not support delegation to different objects or argument
+reordering. The advantage of the method alias compared to a forwarder
+is that it has close to zero overhead, especially for aliasing
+c-implemented methods.</p></div>
 <div class="paragraph" id="xmp-fido4"><div class="title">Listing 24: Method-Alias</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2096,12 +2126,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-comment'># The following line prints "::fido Bark, bark, bark."
 </span>fido warn</pre></td></tr></table></div></div>
 <div class="paragraph"><p><a href="#xmp-fido4">Listing 24</a> extends the last example by defining an
-alias for the method "bark". The example just shows the bare
-mechanism. In general, method aliases are a very powerful means
-for reusing pre-existing functionality. The full object system of NX
-and XOTcl2 is built from aliases, where e.g. the same functionality is
-available in NX and XOTcl2 under different names. Method aliases are
-as well a means for implementing traits in NX.</p></div>
+alias for the method "bark". The example only shows the bare
+mechanism. In general, method aliases are very powerful means for
+reusing pre-existing functionality. The full object system of NX and
+XOTcl2 is built from aliases, reusing functionality provided by the
+next scripting framework under different names. Method aliases
+are as well a means for implementing traits in NX.</p></div>
 </div>
 </div>
 <div class="sect2">
@@ -2114,22 +2144,22 @@ protection for methods.</p></div>
 where the default call-protection is "protected".</p></div>
 <div class="exampleblock">
 <div class="content">
-<div class="paragraph"><p>A <strong>public</strong> method can be
-called from every context. A <strong>protected</strong> method can only be invoked
-from the same object. A <strong>private</strong> method can be only invoked from
-methods defined on the same entity (e.g. defined on the same class)
-via the invocation with the local flag (i.e. "<tt>: -local</tt>").</p></div>
+<div class="paragraph"><p>A <strong>public</strong> method can be called from every context. A <strong>protected</strong>
+method can only be invoked from the same object. A <strong>private</strong> method
+can only be invoked from methods defined on the same entity
+(defined on the same class or on the same object) via the invocation
+with the local flag (i.e. "<tt>: -local</tt>").</p></div>
 </div></div>
-<div class="paragraph"><p>All kind of methods protection are applicable for all kind of methods,
+<div class="paragraph"><p>All kind of method protections are applicable for all kind of methods,
 either scripted or C-implemented.</p></div>
-<div class="paragraph"><p>The distinction between public and protected is an instrument to
-define an interface for classes. Public methods are for consumer of
-the classes. Public methods define the intended ways of reusing
-classes and objects for consumers. Protected methods are intended for
-the implementor of the class or subclasses and not for public
-usage. The distinction between protected and public reduces the
-coupling between consumers and the implementation and offers more
-flexibility to the developer.</p></div>
+<div class="paragraph"><p>The distinction between public and protected leads to interfaces for
+classes and objects. Public methods are intended for consumers of
+these entities. Public methods define the intended ways of providing
+methods for external usages (usages, from other objects or
+classes). Protected methods are intended for the implementor of the
+class or subclasses and not for public usage. The distinction between
+protected and public reduces the coupling between consumers and the
+implementation, and offers more flexibility to the developer.</p></div>
 <div class="paragraph" id="xmp-protected-method"><div class="title">Listing 25: Protected Methods</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2186,10 +2216,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 <span class='nx-comment'># The invocation of the protected method "helper" raises an error:
 </span>f1 helper</pre></td></tr></table></div></div>
-<div class="paragraph"><p>Note that we could have as well used <tt>:protected method helper &#8230;</tt>
-in the above example, but we can omit <tt>protected</tt>, since it is the default
-method call protection.</p></div>
-<div class="paragraph"><p>The method call-protection of <em>private</em> goes one step further and
+<div class="paragraph"><p>The example above uses <tt>:protected method helper &#8230;</tt>. We could have
+used here as well <tt>:method helper &#8230;</tt>, since the default method
+call-protection is already protected.</p></div>
+<div class="paragraph"><p>The method call-protection of <tt>private</tt> goes one step further and
 helps to hide implementation details also for implementors of
 subclasses. Private methods are a means for avoiding unanticipated name
 clashes. Consider the following example:</p></div>
@@ -2234,20 +2264,19 @@ s1 foo 3 4     ;<span class='nx-comment'># returns 7
 </span>s1 bar 3 4     ;<span class='nx-comment'># returns 12
 </span>s1 helper 3 4  ;<span class='nx-comment'># raises error: unable to dispatch method helper</span></pre></td></tr></table></div></div>
 <div class="paragraph"><p>The base class implements a public method <tt>foo</tt> using the helper
-method named <tt>helper</tt>. Also the derived class implements a public
+method named <tt>helper</tt>. The derived class implements a as well a public
 method <tt>bar</tt>, which is also using a helper method named <tt>helper</tt>. When
-we create an instance <tt>s1</tt> from the derived class, we can call the
-method <tt>foo</tt> which uses in turn the private method of the base
-class. Therefore, <tt>foo</tt> called with the arguments 3 and 4 returns its
-sum. If we would not have used the local flag for invoking the helper,
-<tt>s1</tt> would have tried to call the helper of <tt>Sub</tt>, which would be
-incorrect. For all other purposes, the private methods are "invisible"
-in all situations, e.g. when mixins are used, or within the
-<tt>next</tt>-path, etc.</p></div>
-<div class="paragraph"><p>By using the local flag for the invocation it is possible to call just the
-local definition of the method. If we would call the method as usual,
-the resolution order would be the same as usual, starting with
-filters, mixins, per-object methods and the full intrinsic class
+an instance <tt>s1</tt> is created from the derived class, the method <tt>foo</tt>
+is invoked which uses in turn the private method of the base
+class. Therefore, the invocation <tt>s1 foo 3 4</tt> returns its sum. If
+the <tt>local</tt> flag had not beed used in helper, <tt>s1</tt> would
+have tried to call the helper of <tt>Sub</tt>, which would be incorrect. For
+all other purposes, the private methods are "invisible" in all
+situations, e.g., when mixins are used, or within the <tt>next</tt>-path, etc.</p></div>
+<div class="paragraph"><p>By using the <tt>local</tt> flag for the invocation it is possible to call
+only the local definition of the method. If we would call the method
+as usual, the resolution order would be the same as usual, starting
+with filters, mixins, per-object methods and the full intrinsic class
 hierarchy.</p></div>
 </div>
 <div class="sect2">
@@ -2263,7 +2292,7 @@ class) is deleted, the contained methods will be deleted as well.</p></div>
 class are applicable to the instances (direct or indirect) of this
 class. These methods are called <strong>instance methods</strong>.</p></div>
 </div></div>
-<div class="paragraph"><p>In the following example method <tt>foo</tt> is an instance method defined
+<div class="paragraph"><p>In the following example method, <tt>foo</tt> is an instance method defined
 on class <tt>C</tt>.</p></div>
 <div class="paragraph" id="xmp-instance-applicable"><div class="title">Listing 27: Methods applicable for instances</div><p></p></div>
 <div class="listingblock">
@@ -2293,8 +2322,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-comment'># Method "foo" is defined on class "C"
 </span><span class='nx-comment'># and applicable to the instances of "C"
 </span>c1 foo</pre></td></tr></table></div></div>
-<div class="paragraph"><p>There are many programming languages that allow only this type of methods.
-However, NX allows as well to define methods on objects.</p></div>
+<div class="paragraph"><p>There are many programming languages that only allow these types of methods.
+However, NX also allows methods to be defined on objects.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_object_methods">3.4.2. Object Methods</h4>
@@ -2304,8 +2333,8 @@ However, NX allows as well to define methods on objects.</p></div>
 methods are only applicable on the object, on which they are defined.
 Per-object methods cannot be inherited from other objects.</p></div>
 </div></div>
-<div class="paragraph"><p>The following example defines a object specific method <tt>bar</tt> on the
-instance <tt>c1</tt> of class <tt>C</tt>, and as well the object specific method
+<div class="paragraph"><p>The following example defines an object specific method <tt>bar</tt> on the
+instance <tt>c1</tt> of class <tt>C</tt>, and as well as the object specific method
 <tt>baz</tt> defined on the object <tt>o1</tt>. An object-specific method is defined
 simply by defining the method on an object.</p></div>
 <div class="paragraph"><p>Note that we can define a per-object method that shadows (redefines)
@@ -3157,8 +3186,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-comment'>#
 </span><span class='nx-comment'># Create classes for Person and Project
 </span><span class='nx-comment'>#
-</span><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Person
-<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Project
+</span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Person
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Project
 
 <span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> o5 {
   <span class='nx-comment'>#
@@ -3277,7 +3306,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># Create an application class D
 </span><span class='nx-comment'># using the new value checkers
 </span><span class='nx-comment'>#
-</span><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> D {
+</span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> D {
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {a:groupsize} {
     <span class='nx-comment'># ...
 </span>  }
@@ -3965,7 +3994,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2011-12-13 10:39:42 CET
+Last updated 2011-12-22 11:52:31 CET
 </div>
 </div>
 </body>

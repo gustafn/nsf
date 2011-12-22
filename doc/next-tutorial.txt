@@ -459,7 +459,7 @@ defining classes for safe stacks <<xmp-class-safestack,
 # Create a safe stack class by using Stack and mixin 
 # Safety 
 #
-Class create SafeStack -superclass Stack -mixin Safety
+nx::Class create SafeStack -superclass Stack -mixin Safety
 
 SafeStack create s3
 --------------------------------------------------
@@ -542,28 +542,29 @@ nx::Class create IntegerStack -superclass Stack {
 
 An alternative approach is shown in
 <<xmp-class-integer-stack,{xmp-class-integer-stack}>>, where the class
-+IntegerStack+ is defined, using again the method definition use for
-+s4+, this time on the class level.
++IntegerStack+ is defined, using the same method definition
+as +s4+, this time on the class level.
 
 === Define Class Specific Methods
 
 In our previous examples we defined methods provided by classes
-(applicable for its instances) and object-specific methods (methods
-defined on objects, only applicable for these objects). In this
-section, we introduce methods defined on classes, which are only
-applicable for the class objects. Such methods are sometimes called
-class methods or "static methods".
+(applicable for their instances) and object-specific methods (methods
+defined on objects, which are only applicable for these objects). In
+this section, we introduce methods that are defined on classes. These
+method are only applicable for the class objects. Such methods are
+sometimes called _class methods_ or _static methods_.
 
-In NX classes are objects with certain properties (providing methods
-for instances, managing object life-cycles; we will come to this later
-in more detail). Since classes are objects, we can define as well
-object-specific methods for the class objects. However, since
-+:method+ applied on classes defines methods for instances, we have to
-use the method-modifier +class+ to denote methods to be
-applied on the class itself. Note that class methods are not
-inherited to instances. These methods defined on the class object are
-actually exactly same as the object-specific methods in the examples
-above.
+In NX classes are objects with certain properties. The classes are
+objects providing methods for instance and which are managing the
+life-cycles of the objects (we will come to this point in later
+sections in more detail). Since classes are objects, it is also
+possible to define object-specific methods for the class
+objects. However, since +:method+ applied on classes defines methods
+for instances, we have to use the method-modifier +class+ to denote
+methods to be applied on the class itself. Note that instances do not
+inherit class methods. The methods defined on the class object are
+actually exactly same as the object-specific methods shown in the
+examples above.
 
 [[xmp-stack2]]
 .Listing {counter:figure-number}: Class Stack2
@@ -590,15 +591,15 @@ nx::Class create Stack2 {
    }
 }
 
-Stack create s1
-Stack create s2
+Stack2 create s1
+Stack2 create s2
 
-puts [Stack available_stacks]
+puts [Stack2 available_stacks]
 --------------------------------------------------
 
 The class +Stack2+ in <<xmp-stack2, {xmp-stack2}>> consists of the
-earlier definition of the class +Stack+ extended by the
-class-specific method +available_stacks+, that returns the
+earlier definition of the class +Stack+ and is extended by the
+class-specific method +available_stacks+, which returns the
 current number of instances of the stack. The final command +puts+
 (line 26) prints 2 to the console.
 
@@ -607,36 +608,36 @@ image::stack2.png[align="center",title="Stack2"]
 {set:img-stack2:Figure {figure-number}}
 
 The class diagram in <<img-stack2,{img-stack2}>> shows the
-diagrammatical representation of the class object-specific method
-+available_stacks+. We omit here the common root class. Since every
-class is a specialization of the common root class +nx::Object+, the
-common root class is often omitted from the class diagrams.
+diagrammatic representation of the class object-specific method
++available_stacks+.  Since every class is a specialization of the
+common root class +nx::Object+, the common root class is often omitted
+from the class diagrams, so it was omitted here as well in the diagram.
 
 == Basic Language Features of NX
 
 === Variables and Properties
 
 In general, NX does not need variable declarations. It allows to
-create, modify or variables on the fly by using e.g. the Tcl commands
-+set+ and +unset+. Depending on the variable name (or more precisely,
-depending on the prefix consisting of colons +:+), a variable is
-either local to a method, or an instance variable, or a global
-variable.  The rules are:
+create or modify variables on the fly by using for example the Tcl
+commands +set+ and +unset+. Depending on the variable name (or more
+precisely, depending on the variable name's prefix consisting of
+colons +:+) a variable is either local to a method, or it is an
+instance variable, or a global variable.  The rules are:
 
-- A variable without any colon prefix refers typically to a
-   method scoped variable (the variable is created at the begin of the
-   invocation of the method and deleted, when the method ends).
-   In the example below, the variable +a+ is method scoped.
+- A variable without any colon prefix refers typically to a method
+   scoped variable. Such a variable is created during the invocation
+   of the method, and it is deleted, when the method ends.  In the
+   example below, the variable +a+ is method scoped.
    
-- A variable with a single colon prefix refers to an instance variable
-   (the variable is part of the object, when the object is destroyed,
-   the variable is deleted as well). In the example below, the variable
-   +b+ is an instance variable.
+- A variable with a single colon prefix refers to an instance
+    variable.  An instance variable is part of the object; when the
+    object is destroyed, its instance variables are deleted as well. In the
+    example below, the variable +b+ is an instance variable.
 
-- A variable with two leading colons refers to a global variable (the
+- A variable with two leading colons refers to a global variable. The
   lifespan of a globale variable ends when the variable is explicitly
-  unset or the script terminates). Variables in placed in Tcl
-  namespaces are also global variables. In the example below, the
+  unset or the script terminates. Variables, which are placed in Tcl
+  namespaces, are also global variables. In the example below, the
   variable +c+ is a global variable.
 
 [[xmp-var-resolver]]
@@ -644,7 +645,7 @@ variable.  The rules are:
 {set:xmp-var-resolver:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Class create Foo {
+nx::Class create Foo {
 
   :method foo args {...}
     # "a" is a method scoped variable
@@ -663,16 +664,17 @@ of some class +Foo+ referring to differently scoped variables.
 
 ==== Properties: Instance Variables with Accessors
 
-So, in general, there is no need to define or declare instance
-variables in NX. However, in some cases, a definition is useful. For
-example, one can define properties on classes, which are inherited to
-subclasses. Or, the definition of properties can be used the check
-permissible values for instance variables or to initialize instance
-variables from default values during object initialization. 
+Generally, there is no need to define or declare instance variables in
+NX. In some cases, however, a definition of instance variables is
+useful. NX allows us to define instances variables as _properties_ on
+classes, which are inherited to subclasses. Furthermore, the
+definition of properties can be used the check permissible values for
+instance variables or to initialize instance variables from default
+values during object initialization.
 
 =========================================
 A *property* is a definition of an attribute (an instance variable) 
-with accessors. The property definition might carry as well
+with accessors. The property definition might as well carry
 value-constraints and a default value.
 =========================================
 
@@ -680,12 +682,13 @@ value-constraints and a default value.
 image::person-student.png[align="center",title="Classes Person and Student"]
 {set:img-person-student:Figure {figure-number}}
 
-Consider the example above, where the classes +Person+ and +Student+
-are defined. Both classes have accessor methods for all their
-attributes specified (Note that we show the accessor methods only in
-this example). By defining properties we can use the name of the
-attribute as method name to access the variable. The listing below
-shows an implementation of this conceptual model in NX.
+The class diagram above defines the classes +Person+ and
++Student+. For both classes, accessor methods are specified with the
+same names as the attributes. (Note that we show the accessor methods
+only in this example, we omit it in later ones). By defining
+properties we can use the name of the attribute as method name to
+access the attributes. The listing below shows an implementation of this
+conceptual model in NX.
 
 [[xmp-properties]]
 .Listing {counter:figure-number}: Properties
@@ -721,53 +724,53 @@ Student create s1 -name Susan -matnr 4711
 puts "The name of s1 is [s1 name]"
 --------------------------------------------------
 
-When the class +Person+ is defined, NX provides as well automatically
-accessors for its properties. Accessors are methods named like the
-variables, which are used to access (to read and write) the underlying
-instance variables. Therefore, in our example, the class +Person+ has
-two methods implied by the +property+ definition, namely the method
-+name+ and the method +birthday+.
+By defining +name+ and +birthday+ as properties of +Person+, NX
+provides automatically accessor methods with the same name.  The
+accessors methods (or shortly called "accessors") provide read and
+write access to the underlying instance variables. In our example, the
+class +Person+ has two methods implied by the +property+ definition:
+the method +name+ and the method +birthday+.
 
 The class +Student+ is defined as a specialization of +Person+ with
-two additional properties, namely +matnr+ and +oncampus+. The property
+two additional properties: +matnr+ and +oncampus+. The property
 +matnr+ is required (it has to be provided, when an instance of this
 class is created), and the property +oncampus+ is boolean, and is per
 default set to +true+. Note that the class +Student+ inherits the
-properties of +Person+, therefore it will have 4 properties in total.
+properties of +Person+. So, +Student+ has four properties in total.
 
-The property definitions are also used for providing +object
-parameters+. These are non-positional parameters provided during
-object creation to supply values to the instance variables. In our
-listing, we create an instance of +Person+ using the object parameter
-+name+ and provide the value of +Bob+ to the instance variable +name+.
-Similarly, we create an instance of +Student+ using the two object
-parameters +name+ and +matnr+. Finally we use the accessor method
-+name+ to obtain the value of the instance variable +name+ of object
-+s1+.
+The property definitions are also used to providing +object
+parameters+. These are typically non-positional parameters, which are
+used during object creation to supply values to the instance
+variables. In our listing, we create an instance of +Person+ using the
+object parameter +name+ and provide the value of +Bob+ to the instance
+variable +name+.  Similarly, we create an instance of +Student+ using
+the two object parameters +name+ and +matnr+. Finally, we use the
+accessor method +name+ to obtain the value of the instance variable
++name+ of object +s1+.
 
 ==== Instance Variables without Accessors
 
-In some cases one would like to define instance variables without
-accessors, e.g. for keeping the internal state of an object.  For this
-purpose, one can use the predefined method +variable+, which is in
-many respects similar to +property+. One difference is, that
-+property+ uses the same syntax as for method parameters, and
-+variable+ receives the default value as a separate argument (similar
-to the +variable+ command in Tcl. The introductory Stack example in
-<<xmp-class-stack, {xmp-class-stack}>> used already the method
-+variable+.
+To define instances variables with default values without accessors
+the predefined method +variable+ can be used. Such instance variables
+are often used for e.g. keeping the internal state of an object.  The
+usage of +variable+ is in many respects similar to +property+. One
+difference is, that +property+ uses the same syntax as for method
+parameters, whereas +variable+ receives the default value as a separate
+argument (similar to the +variable+ command in Tcl). The introductory
+Stack example in <<xmp-class-stack, {xmp-class-stack}>> uses already
+the method +variable+.
 
 [[xmp-variable]]
 .Listing {counter:figure-number}: Declaring Variables
 {set:xmp-variable:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Class create Base {
+nx::Class create Base {
   :variable x 1
   # ...
 }
 
-Class create Derived -superclass Base {
+nx::Class create Derived -superclass Base {
   :variable y 2
   # ...
 }
@@ -789,7 +792,7 @@ created, it will contain the two instance variables +x+ and +y+.
 {set:xmp-constructor:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Class create Base2 {
+nx::Class create Base2 {
  # ...
  :method init {} {
    set :x 1
@@ -797,7 +800,7 @@ Class create Base2 {
  }
 }
 
-Class create Derived2 -superclass Base2 {
+nx::Class create Derived2 -superclass Base2 {
  # ...
  :method init {} {
    set :y 2
@@ -811,36 +814,36 @@ Derived2 create d2
 --------------------------------------------------
 
 In many other object oriented languages, the instance variables are
-initialized solely by the constructor, similar to class +Derived2+ in
-<<xmp-constructor, {xmp-constructor}>> . This approach is certainly as
-well possible in NX. Note however, that the approach using
-constructors requires an explicit method chaining between the
-constructors and is less declarative.
+initialized solely by the constructor (similar to class +Derived2+ in
+<<xmp-constructor, {xmp-constructor}>>). This approach is certainly
+also possible in NX. Note that the approach using constructors
+requires an explicit method chaining between the constructors and is
+less declarative than the approach in NX using +property+ and +variable+.
 
 === Method Definitions
 
-The basic building blocks of an object oriented program are objects,
+The basic building blocks of an object oriented program are object and
 classes, which contain named pieces of code, the methods.
 
 =========================================== 
 *Methods* are subroutines (pieces of code) associated with objects 
-and/or classes. Every method has a name, it receives arguments and 
-returns a value. 
+and/or classes. A method has a name, receives optionally arguments
+during invocation and returns a value. 
 ===========================================
 
-There are as well other program units, which are not associated with
-objects or classes. Examples for such units are Tcl procs or Tcl
-commands.
+Plain Tcl provides subroutines, which are not associated with objects
+or classes. Tcl distinguishes between +proc+s (scripted subroutines)
+and  commands (system-languages implemented subroutines).
 
 Methods might have different scopes, defining, on which kind of
-objects these methods are applicable. We describe this later in more
-detail. For the time being, we deal here with methods defined on
-classes, which are applicable for the instance of these classes.
+objects these methods are applicable to. These are described in more
+detail later on. For the time being, we deal here with methods defined
+on classes, which are applicable for the instance of these classes.
 
 ==== Scripted Methods 
 
 Since NX is a scripting language, most methods are most likely
-scripted methods, where the method body contains Tcl code.
+scripted methods, in which the method body contains Tcl code.
 
 [[xmp-fido1]]
 .Listing {counter:figure-number}: Scripted method
@@ -865,36 +868,39 @@ fido bark
 
 In the example above we create a class +Dog+ with a scripted method
 named +bark+. The method body defines the code, which is executed when
-the method is invoked. In this example, the method +bar+ will print
-out a line on the terminal starting with the object name (determined
-by the built in command +self+ followed by "Bark, bark, bark.".
-This method is defined on a class (the class contains the method) and
-applicable to instances of the class (here the instance +fido+).
+the method is invoked. In this example, the method +bar+ prints out a
+line on the terminal starting with the object name (this is determined
+by the built in command +self+) followed by "Bark, bark, bark.".  This
+method is defined on a class and applicable to instances of the class
+(here the instance +fido+).
 
 ==== C-implemented Methods
 
-Not all of the methods usable in NX are scripted methods. There are
-for example predefined methods, that we used already in our examples,
-which are implemented in C. For example, in <<xmp-fido1,{xmp-fido1}>>
-we used the method +create+ to create the class +Dog+ and to create
-the dog instance +fido+. 
+Not all of the methods usable in NX are scripted methods; many
+predefined methods are defined in the underlying system language,
+which is typically C.  For example, in <<xmp-fido1,{xmp-fido1}>> we
+used the method +create+ to create the class +Dog+ and to create the
+dog instance +fido+. These methods are implemented in C in the next
+scripting framework.
 
-Also application developer might define their own functions in C, but
-this is an advanced topic, not covered here. However, application
-developer might reuse some generic C code to define their own
-C-implemented methods. Such methods are for example _accessors_,
-_forwarders_ and _aliases_.
+C-implemented methods are not only provided by the underlying
+framework but might be as well defined by application developers. This
+is an advanced topic, not covered here. However, application developer
+might reuse some generic C code to define their own C-implemented
+methods. Such methods are for example _accessors_, _forwarders_ and
+_aliases_.
 
 =========================================== 
-An *accessor method* is a (in most cases) C-implemented method to access
-instance variables of an object. A call to an accessor with no arguments
-uses the accessor as a getter, obtaining the value of the associated
-variable. A call to an accessor with an argument uses it as a setter,
-setting the value of the associated variable.
+An *accessor method* is in most cases a C-implemented method that
+accesses instance variables of an object. A call to an accessor
+without arguments uses the accessor as a getter, obtaining the actual
+value of the associated variable. A call to an accessor with an
+argument uses it as a setter, setting the value of the associated
+variable.
 ===========================================
 
-We used accessors as well already in the section about properties,
-which define accessors automatically.
+Accessors have already been discussed in the section about properties,
+in which the accessors were created automatically.
 
 [[xmp-fido2]]
 .Listing {counter:figure-number}: Accessor Methods
@@ -928,12 +934,13 @@ fido::tail length 10
 fido::tail length "Hello"
 --------------------------------------------------
 
-<<xmp-fido2,{xmp-fido2}>> shows an extended example, where every doc
+<<xmp-fido2,{xmp-fido2}>> shows an extended example, where every dog
 has a tail. The object +tail+ is created as a subobject of the dog in
 the constructor +init+. The subobject can be accessed by providing the
 full name of the subobject +fido::tail+. The method +length+ is an
 C-implemented accessor, that enforces the value constraint (here a
-floating point number, since length uses the value constraint +double+).
+floating point number, since length uses the value constraint
++double+).
 
 [[xmp-fido3]]
 .Listing {counter:figure-number}: Forwarder Methods
@@ -962,40 +969,40 @@ fido wag
 --------------------------------------------------
 
 <<xmp-fido3,{xmp-fido3}>> again extends the example by adding a
-forwarder named +wag+ to the object (e.g. +fido+) that redirects all
-calls of the form +fido wag+ with arbitrary arguments to the subobject
-+fido::tail+.
+forwarder named +wag+ to the object (e.g. +fido+). The forwarder
+redirects all calls of the form +fido wag+ with arbitrary arguments to
+the subobject +fido::tail+.
 
 =========================================== 
 A *forwarder method* is a
-C-implemented method to redirect an invocation for a certain method
-to either a method of other object or to some other method of the
+C-implemented method that redirects an invocation for a certain method
+to either a method of another object or to some other method of the
 same object. Forwarding an invocation of a method to some other
 object is a means of delegation.
 ===========================================
 
-The functionality of the forwarder can be certainly as well be
-implemented as a scripted method, but for the most common cases, the
-forward implementation is more efficient, and the +forward+ method
-expresses the intention of the developer.
+The functionality of the forwarder can just as well be implemented as
+a scripted method, but for the most common cases, the forward
+implementation is more efficient, and the +forward+ method expresses
+the intention of the developer.
 
-The forwarder have several options to change e.g. the order of the
-arguments, to substitute certain patterns in the argument list
+The method +forwarder+ has several options to change e.g. the order of
+the arguments, or to substitute certain patterns in the argument list
 etc. This will be described in later sections.
 
 ==== Method-Aliases
 
 =========================================== 
-An *alias method* is a means to register an existing method, or a 
-Tcl proc or a Tcl command as a method with the provided 
+An *alias method* is a means to register either an existing method, 
+or a Tcl proc, or a Tcl command as a method with the provided 
 name on a class or object.
 ===========================================
 
-In some way, the method alias is a restricted form of a forwarder, but
-it does not support delegation to different objects and argument
-reordering. The advantage of the method alias is it has close to zero
-overhead, especially for aliasing c-implemented methods, since the
-methods are simple registered under a different name.
+In some way, the method alias is a restricted form of a forwarder,
+though it does not support delegation to different objects or argument
+reordering. The advantage of the method alias compared to a forwarder
+is that it has close to zero overhead, especially for aliasing
+c-implemented methods.
 
 [[xmp-fido4]]
 .Listing {counter:figure-number}: Method-Alias
@@ -1018,12 +1025,12 @@ fido warn
 --------------------------------------------------
 
 <<xmp-fido4,{xmp-fido4}>> extends the last example by defining an
-alias for the method "bark". The example just shows the bare
-mechanism. In general, method aliases are a very powerful means
-for reusing pre-existing functionality. The full object system of NX
-and XOTcl2 is built from aliases, where e.g. the same functionality is
-available in NX and XOTcl2 under different names. Method aliases are
-as well a means for implementing traits in NX.
+alias for the method "bark". The example only shows the bare
+mechanism. In general, method aliases are very powerful means for
+reusing pre-existing functionality. The full object system of NX and
+XOTcl2 is built from aliases, reusing functionality provided by the
+next scripting framework under different names. Method aliases
+are as well a means for implementing traits in NX.
 
 === Method Protection
 
@@ -1036,24 +1043,24 @@ NX distinguished between _public_, _protected_ and _private_ methods,
 where the default call-protection is "protected".
 
 =========================================== 
-A *public* method can be
-called from every context. A *protected* method can only be invoked
-from the same object. A *private* method can be only invoked from
-methods defined on the same entity (e.g. defined on the same class)
-via the invocation with the local flag (i.e. "+: -local+").
+A *public* method can be called from every context. A *protected*
+method can only be invoked from the same object. A *private* method
+can only be invoked from methods defined on the same entity
+(defined on the same class or on the same object) via the invocation
+with the local flag (i.e. "+: -local+").
 ===========================================
 
-All kind of methods protection are applicable for all kind of methods,
+All kind of method protections are applicable for all kind of methods,
 either scripted or C-implemented.
 
-The distinction between public and protected is an instrument to
-define an interface for classes. Public methods are for consumer of
-the classes. Public methods define the intended ways of reusing
-classes and objects for consumers. Protected methods are intended for
-the implementor of the class or subclasses and not for public
-usage. The distinction between protected and public reduces the
-coupling between consumers and the implementation and offers more
-flexibility to the developer.
+The distinction between public and protected leads to interfaces for
+classes and objects. Public methods are intended for consumers of
+these entities. Public methods define the intended ways of providing
+methods for external usages (usages, from other objects or
+classes). Protected methods are intended for the implementor of the
+class or subclasses and not for public usage. The distinction between
+protected and public reduces the coupling between consumers and the
+implementation, and offers more flexibility to the developer.
 
 [[xmp-protected-method]]
 .Listing {counter:figure-number}: Protected Methods
@@ -1084,11 +1091,11 @@ f1 foo
 f1 helper
 --------------------------------------------------
 
-Note that we could have as well used +:protected method helper ...+
-in the above example, but we can omit +protected+, since it is the default
-method call protection. 
+The example above uses +:protected method helper ...+. We could have
+used here as well +:method helper ...+, since the default method
+call-protection is already protected.
 
-The method call-protection of _private_ goes one step further and
+The method call-protection of +private+ goes one step further and
 helps to hide implementation details also for implementors of
 subclasses. Private methods are a means for avoiding unanticipated name
 clashes. Consider the following example:
@@ -1115,21 +1122,20 @@ s1 helper 3 4  ;# raises error: unable to dispatch method helper
 --------------------------------------------------
 
 The base class implements a public method +foo+ using the helper
-method named +helper+. Also the derived class implements a public
+method named +helper+. The derived class implements a as well a public
 method +bar+, which is also using a helper method named +helper+. When
-we create an instance +s1+ from the derived class, we can call the
-method +foo+ which uses in turn the private method of the base
-class. Therefore, +foo+ called with the arguments 3 and 4 returns its
-sum. If we would not have used the local flag for invoking the helper,
-+s1+ would have tried to call the helper of +Sub+, which would be
-incorrect. For all other purposes, the private methods are "invisible"
-in all situations, e.g. when mixins are used, or within the
-+next+-path, etc. 
+an instance +s1+ is created from the derived class, the method +foo+
+is invoked which uses in turn the private method of the base
+class. Therefore, the invocation +s1 foo 3 4+ returns its sum. If
+the +local+ flag had not beed used in helper, +s1+ would
+have tried to call the helper of +Sub+, which would be incorrect. For
+all other purposes, the private methods are "invisible" in all
+situations, e.g., when mixins are used, or within the +next+-path, etc.
 
-By using the local flag for the invocation it is possible to call just the
-local definition of the method. If we would call the method as usual,
-the resolution order would be the same as usual, starting with
-filters, mixins, per-object methods and the full intrinsic class
+By using the +local+ flag for the invocation it is possible to call
+only the local definition of the method. If we would call the method
+as usual, the resolution order would be the same as usual, starting
+with filters, mixins, per-object methods and the full intrinsic class
 hierarchy.
 
 === Applicability of Methods
@@ -1146,7 +1152,7 @@ class are applicable to the instances (direct or indirect) of this
 class. These methods are called *instance methods*.
 ===========================================
 
-In the following example method +foo+ is an instance method defined
+In the following example method, +foo+ is an instance method defined
 on class +C+.
 
 [[xmp-instance-applicable]]
@@ -1164,8 +1170,8 @@ nx::Class create C {
 c1 foo
 --------------------------------------------------
 
-There are many programming languages that allow only this type of methods.
-However, NX allows as well to define methods on objects.
+There are many programming languages that only allow these types of methods.
+However, NX also allows methods to be defined on objects.
 
 ==== Object Methods
 
@@ -1175,8 +1181,8 @@ methods are only applicable on the object, on which they are defined.
 Per-object methods cannot be inherited from other objects.
 ===========================================
 
-The following example defines a object specific method +bar+ on the
-instance +c1+ of class +C+, and as well the object specific method
+The following example defines an object specific method +bar+ on the
+instance +c1+ of class +C+, and as well as the object specific method
 +baz+ defined on the object +o1+. An object-specific method is defined
 simply by defining the method on an object. 
 
@@ -1741,8 +1747,8 @@ method +bar+ in <<xmp-value-check,{xmp-value-check}>>).
 #
 # Create classes for Person and Project
 #
-Class create Person
-Class create Project
+nx::Class create Person
+nx::Class create Project
 
 nx::Object create o5 {
   #
@@ -1817,7 +1823,7 @@ value checkers on class +nx::Slot+. The first value checker is called
 # Create an application class D 
 # using the new value checkers
 #
-Class create D {
+nx::Class create D {
   :public method foo {a:groupsize} {
     # ...
   }
