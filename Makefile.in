@@ -624,7 +624,7 @@ $(src_generic_dir)/nsfAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)
 	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/nsfAPI.decls > $(src_generic_dir)/nsfAPI.h
 
 aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
-nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/nsfAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c $(DTRACE_HDR)
+nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/nsfAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c $(src_generic_dir)/asm/nsfAssemble.c $(src_generic_dir)/asm/nsfAsmExecuteCallThreading.c $(src_generic_dir)/asm/nsfAsmExecuteLabelThreading.c $(src_generic_dir)/asm/nsfAsmAssemble.c $(DTRACE_HDR) 
 nsfDebug.$(OBJEXT): $(src_generic_dir)/nsfDebug.c $(PKG_HEADERS)
 nsfError.$(OBJEXT): $(src_generic_dir)/nsfError.c $(PKG_HEADERS)
 nsfMetaData.$(OBJEXT): $(src_generic_dir)/nsfMetaData.c $(PKG_HEADERS)

@@ -740,6 +740,7 @@ enable_profile
 enable_memcount
 enable_development
 enable_assertions
+enable_assemble
 with_tcl
 with_tclinclude
 enable_threads
@@ -1378,6 +1379,8 @@ Optional Features:
   --enable-development    build nsf with development support (intensive
                           runtime checking, etc.; default: disabled)
   --enable-assertions     build nsf with assertion support (default: enabled)
+  --enable-assemble=yes|label|call
+                          build nsf with assemble support (default: disabled)
   --enable-threads        build with threads
   --enable-shared         build and link with shared libraries (default: on)
   --enable-64bit          enable 64bit support (default: off)
@@ -2375,6 +2378,13 @@ if test "${enable_assertions+set}" = set; then :
   enableval=$enable_assertions; enable_assertions=$enableval
 else
   enable_assertions=yes
+fi
+
+# Check whether --enable-assemble was given.
+if test "${enable_assemble+set}" = set; then :
+  enableval=$enable_assemble; enable_assemble=$enableval
+else
+  enable_assemble=no
 fi
 
 
@@ -5510,6 +5520,22 @@ fi
 if test "$enable_memcount" = trace; then
 
 $as_echo "#define NSF_MEM_TRACE 1" >>confdefs.h
+
+fi
+
+if test "$enable_assemble" = yes; then
+
+$as_echo "#define NSF_ASSEMBLE 1" >>confdefs.h
+
+fi
+if test "$enable_assemble" = call; then
+
+$as_echo "#define NSF_ASSEMBLE_CT 1" >>confdefs.h
+
+fi
+if test "$enable_assemble" = call; then
+
+$as_echo "#define NSF_ASSEMBLE_LT 1" >>confdefs.h
 
 fi
 

@@ -9422,6 +9422,13 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   return result;
 }
 
+#if !defined(NSF_ASSEMBLE)
+static int NsfAsmProc(ClientData clientData, Tcl_Interp *interp,
+		      int objc, Tcl_Obj *CONST objv[]) {
+  return TCL_OK;
+}
+#endif
+
 /*
  *----------------------------------------------------------------------
  * MethodDispatchCsc --
@@ -17858,7 +17865,16 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
   return 0;
 }
 
-#include "nsfAssemble.c"
+#if defined(NSF_ASSEMBLE)
+# include "asm/nsfAssemble.c"
+#else
+static int
+NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
+		      int withInner_namespace, int withPer_object, NsfObject *regObject,
+		      Tcl_Obj *nameObj, Tcl_Obj *argumentsObj, Tcl_Obj *bodyObj) {
+  return TCL_OK;
+}
+#endif
 
 /***********************************************************************
  * Begin generated Next Scripting commands
@@ -18060,6 +18076,12 @@ cmd asmproc NsfAsmProcCmd {
   {-argName "body" -required 1 -type tclobj}
 }
 */
+#if !defined(NSF_ASSEMBLE)
+static int
+NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
+  return TCL_OK;
+}
+#else
 static int
 NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
   NsfParsedParam parsedParam;
@@ -18090,6 +18112,7 @@ NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *argume
 
   return result;
 }
+#endif
 
 /*
 cmd configure NsfConfigureCmd {
@@ -23938,7 +23961,7 @@ Nsf_Init(Tcl_Interp *interp) {
      */
 
 #include "predefined.h"
-
+>>>
     /* fprintf(stderr, "predefined=<<%s>>\n", cmd);*/
     if (Tcl_GlobalEval(interp, cmd) != TCL_OK) {
       static char cmd[] =

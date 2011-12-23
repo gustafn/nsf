@@ -52,6 +52,10 @@ AC_ARG_ENABLE(assertions,
 	AC_HELP_STRING([--enable-assertions], 
 		[build nsf with assertion support (default: enabled)]),
         [enable_assertions=$enableval], [enable_assertions=yes])
+AC_ARG_ENABLE(assemble,
+	AC_HELP_STRING([--enable-assemble=yes|label|call], 
+		[build nsf with assemble support (default: disabled)]),
+        [enable_assemble=$enableval], [enable_assemble=no])
 
 subdirs=""
 
@@ -166,6 +170,16 @@ if test "$enable_memcount" = yes; then
 fi
 if test "$enable_memcount" = trace; then
    AC_DEFINE(NSF_MEM_TRACE, 1, [Are we building with memcount tracing support?])
+fi
+
+if test "$enable_assemble" = yes; then
+   AC_DEFINE(NSF_ASSEMBLE, 1, [Are we building with assembly support?])
+fi
+if test "$enable_assemble" = call; then
+   AC_DEFINE(NSF_ASSEMBLE_CT, 1, [Are we building with assembly call threading support?])
+fi
+if test "$enable_assemble" = call; then
+   AC_DEFINE(NSF_ASSEMBLE_LT, 1, [Are we building with assembly label threading support?])
 fi
 
 DTRACE_OBJ=
