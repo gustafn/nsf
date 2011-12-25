@@ -23961,7 +23961,7 @@ Nsf_Init(Tcl_Interp *interp) {
      */
 
 #include "predefined.h"
->>>
+
     /* fprintf(stderr, "predefined=<<%s>>\n", cmd);*/
     if (Tcl_GlobalEval(interp, cmd) != TCL_OK) {
       static char cmd[] =
