@@ -17013,6 +17013,18 @@ ListMethod(Tcl_Interp *interp,
         Tcl_Command importedCmd = GetOriginalCommand(cmd);
         return ListCmdParams(interp, importedCmd, methodName, NSF_PARAMS_PARAMETER);
       }
+    case InfomethodsubcmdReturnsIdx: 
+      {
+	Tcl_Command importedCmd;
+	NsfParamDefs *paramDefs;
+
+	importedCmd = GetOriginalCommand(cmd);
+	paramDefs = ParamDefsGet(importedCmd);
+	if (paramDefs && paramDefs->returns) {
+	  Tcl_SetObjResult(interp, paramDefs->returns);
+	  return TCL_OK;
+	}
+      }
     case InfomethodsubcmdParametersyntaxIdx:
       {
         Tcl_Command importedCmd = GetOriginalCommand(cmd);
@@ -22790,7 +22802,7 @@ NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 
 /*
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|handle|parameter|parametersyntax|type|precondition|postcondition|submethods|returns"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
