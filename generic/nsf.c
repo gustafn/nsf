@@ -16958,6 +16958,18 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
   }
 }
 
+static void
+AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) {
+  NsfParamDefs *paramDefs;
+  
+  paramDefs = ParamDefsGet(cmd);
+  if (paramDefs && paramDefs->returns) {
+    /* TODO: avoid hard-coding the script-level/NX-specific keyword "returns" */
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-returns", -1));
+    Tcl_ListObjAppendElement(interp, listObj, paramDefs->returns);
+  }
+}
+
 static int
 ListMethod(Tcl_Interp *interp,
 	   NsfObject *regObject,
@@ -17101,6 +17113,9 @@ ListMethod(Tcl_Interp *interp,
                                    regObject, methodName, cmd, 0, outputPerObject, 1);
           ListCmdParams(interp, cmd, methodName, NSF_PARAMS_PARAMETER);
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+	  
+	  AppendReturnsClause(interp, resultObj, cmd);
+
           ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
 
@@ -17141,6 +17156,8 @@ ListMethod(Tcl_Interp *interp,
             /* todo: don't hard-code registering command name "forward" / NSF_FORWARD*/
             AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_FORWARD],
                                      regObject, methodName, cmd, 0, outputPerObject, 1);
+	    AppendReturnsClause(interp, resultObj, cmd);
+	    
             AppendForwardDefinition(interp, resultObj, clientData);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -17241,6 +17258,7 @@ ListMethod(Tcl_Interp *interp,
 	  {
             int nrElements;
             Tcl_Obj **listElements;
+
             resultObj = Tcl_NewListObj(0, NULL);
             Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
             /* todo: don't hard-code registering command name "alias" / NSF_ALIAS */
@@ -17248,6 +17266,7 @@ ListMethod(Tcl_Interp *interp,
                                      regObject, methodName, cmd,
 				     procPtr == NsfObjscopedMethod,
 				     outputPerObject, 1);
+	    AppendReturnsClause(interp, resultObj, cmd);
             Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
             Tcl_SetObjResult(interp, resultObj);
             break;
