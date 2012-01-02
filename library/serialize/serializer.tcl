@@ -752,8 +752,6 @@ namespace eval ::nx::serializer {
       } else {
 	set def [$o {*}$modifier info method definition $m]
 	set handle [$o {*}$modifier info method registrationhandle $m]
-	set returns [::nsf::method::property $o $handle returns]
-	if {$returns ne ""} {append def \n [list ::nsf::method::property $o $handle returns $returns]}
       }
       return $def
     }
