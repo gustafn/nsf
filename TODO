@@ -3809,8 +3809,27 @@ nsf.c:
 - simplify macro handling with __WIN32__
 - regroup some macro definitions
 
+- "info method": missing an option to return the "-returns
+  specification". Also: "-returns" spec is not included in "info
+  method definition".
+
+
 ========================================================================
 TODO:
+
+- Aliases and forwards are not handled by NsfNSCopyCmdsCmd; object
+  cloning/copying remains incomplete; also, there might be object and
+  method properties not handled as well (as the "returns" method
+  property before the recent fix)
+
+- Check the following todos such as "todo: don't hard-code registering
+  command name "method" / NSF_METHOD"; parts of the introspection
+  machinery in NSF rely on NX/script-level specifics ... how should we
+  handle this? For the system methods (create, ...), we can resolve
+  the situation; for the NX or XOTcl method delegates (method) of
+  ::nsf::method::create & friends, we do not have any
+  abstraction/handle right now ... should we script those info
+  subcmds (info method definition), against a performance penalty?
 
 - __WIN32__ builds/MinGW: It seems that the http.test cases for XOTcl2
   fail against Tcl 8.6b2. Check this ... 
@@ -4002,10 +4021,6 @@ TODO:
 
    * "info method" -> why does the parametersytnax does not report all
      enumeration literals, rather than ?infomethodsubcmd? ???
-
-   * "info method": missing an option to return the "-returns
-     specification". Also: "-returns" spec is not included in "info
-     method definition".
 
     * fix sub methods validation reporting -> mismatch?
 
