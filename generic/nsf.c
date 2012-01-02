@@ -19650,7 +19650,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
               AssertionAppendPrePost(interp, dsPtr, procs);
             }
 #endif
-            Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
+            result = Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
             DSTRING_FREE(dsPtr);
 
           } else {
@@ -19684,9 +19684,25 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
               AssertionAppendPrePost(interp, dsPtr, procs);
             }
 #endif
-            Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
+            result = Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
             DSTRING_FREE(dsPtr);
           }
+	  if (result == TCL_OK) {
+	      NsfParamDefs *paramDefs;
+	      paramDefs = ParamDefsGet(cmd);
+
+	      if (paramDefs && paramDefs->returns) {
+		Tcl_DString ds2, *dsPtr2 = &ds2;
+		DSTRING_INIT(dsPtr2);
+		Tcl_DStringAppendElement(dsPtr2, "::nsf::method::property");
+		Tcl_DStringAppendElement(dsPtr2, cl ? NSCutNsfClasses(toNsPtr->fullName) : toNsPtr->fullName);
+		Tcl_DStringAppendElement(dsPtr2, ObjStr(Tcl_GetObjResult(interp)));
+		Tcl_DStringAppendElement(dsPtr2, "returns");
+		Tcl_DStringAppendElement(dsPtr2, ObjStr(paramDefs->returns));
+		Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr2), Tcl_DStringLength(dsPtr2), 0);
+		DSTRING_FREE(dsPtr2);
+	      }
+	  }
           DECR_REF_COUNT(arglistObj);
         } else {
           /* Tcl Proc */

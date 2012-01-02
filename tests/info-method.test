@@ -182,6 +182,152 @@ nx::Test case subobj {
   ? {o info method type subal} "alias"
 }
 
+package req nx
+package require nx::test
+
+#
+# Introspect the returns method property throught the "info method"
+# API chunk ...
+#
+
+set checkFlag [::nsf::configure checkresults]
+set dmcFlag [::nx::configure defaultMethodCallProtection]
+
+#
+# Make sure that return-value checking is active for the current
+# interp ...
+#
+::nsf::configure checkresults true
+#
+# Neutralize the defaultMethodCallProtection for the scope of these tests
+#
+::nx::configure defaultMethodCallProtection false
+
+
+nx::Test case method-returns {
+  
+  #
+  # A test object covering basic cases, adopted from returns.test
+  #
+  nx::Class create C {
+    # scripted method without paramdefs for in-parameters
+    :method bar-ok1 {a b} -returns integer {return 1}
+    # scripted method with paramdefs for in-parameters
+    :method bar-nok {a b:integer} -returns integer {return a}
+    # alias to tcl-cmd (no param defs for in-parameters)
+    :alias incr -returns integer -frame object ::incr
+    :forward ++ -returns integer ::expr 1 +
+    :public class method instances {} -returns object,1..n {:info instances}
+    :create c1 {
+      :public method foo {} -returns integer {;}
+      :public method "bar baz" {} -returns integer {;}
+      :public method "bar boo" {} -returns integer {;}
+    }
+  }
+
+  ? {C info method returns bar-ok1} "integer"
+  ? {C info method returns bar-nok} "integer"
+  ? {C info method returns incr} "integer"
+  ? {C info method returns ++} "integer"
+  ? {C class info method returns instances} "object,1..n"
+  ? {c1 info method returns foo} "integer"
+  ? {c1 info method returns "bar baz"} "integer"
+  ? {c1 info method returns "bar boo"} "integer"
+  #
+  # Ensemble object ...
+  #
+  ? {c1 info method returns bar} ""
+  #
+  # Non-existing method ...
+  #
+  ? {c1 info method returns baf} ""
+  #
+  # Non-existing submethod ...
+  #
+  ? {c1 info method returns "bar baf"} ""
+}
+
+nx::Test case method-definition-with-returns {
+  #
+  # A test object covering basic cases, adopted from returns.test
+  #
+  nx::Class create C {
+    # scripted method without paramdefs for in-parameters
+    :method bar-ok1 {a b} -returns integer {;}
+    # scripted method with paramdefs for in-parameters
+    :method bar-nok {a b:integer} -returns integer {;}
+    # alias to tcl-cmd (no param defs for in-parameters)
+    :alias incr -returns integer -frame object ::incr
+    :forward ++ -returns integer ::expr 1 +
+    :public class method instances {} -returns object,1..n {;}
+    :create c1 {
+      :public method foo {} -returns integer {;}
+      :method "bar baz" {} -returns integer {;}
+    }
+  }
+
+  ? {C info method definition bar-ok1} "::C public method bar-ok1 {a b} -returns integer {;}"
+  ? {C info method definition bar-nok} \
+      "::C public method bar-nok {a b:integer} -returns integer {;}"
+  ? {C info method definition incr} "::C public alias incr -frame object -returns integer ::incr"
+  ? {C info method definition ++} "::C public forward ++ -returns integer ::expr 1 +"
+
+  ? {C class info method definition instances} \
+      "::C public class method instances {} -returns object,1..n {;}"
+
+  ? {c1 info method definition foo} "::c1 public method foo {} -returns integer {;}"
+  ? {c1 info method definition "bar baz"} "::c1 public method {bar baz} {} -returns integer {;}"
+
+}
+
+nx::Test case copy-with-returns {
+    nx::Class create C {
+    # scripted method without paramdefs for in-parameters
+    :method bar-ok1 {a b} -returns integer {;}
+    # scripted method with paramdefs for in-parameters
+    :method bar-nok {a b:integer} -returns integer {;}
+    # alias to tcl-cmd (no param defs for in-parameters)
+    :alias incr -returns integer -frame object ::incr
+    :forward ++ -returns integer ::expr 1 +
+    :public class method instances {} -returns object,1..n {;}
+    :create c1 {
+      :public method foo {} -returns integer {;}
+      :method "bar baz" {} -returns integer {;}
+    }
+  }
+
+  c1 copy c2
+
+  ? {c2 info method returns foo} [c1 info method returns foo]
+  ? {c2 info method definition foo} [lreplace [c1 info method definition foo] 0 0 ::c2]
+  ? {c2 info method returns "bar baz"} [c1 info method returns "bar baz"]
+  ? {c2 info method definition "bar baz"} [lreplace [c1 info method definition "bar baz"] 0 0 ::c2]
+  ? {c2 info method returns "bar boo"} [c1 info method returns "bar boo"]
+
+  C copy CC
+  
+  ? {CC info method returns bar-ok1} [C info method returns bar-ok1]
+  ? {CC info method definition bar-ok1} [lreplace [C info method definition bar-ok1] 0 0 ::CC]
+  ? {CC info method returns bar-nok} [C info method returns bar-nok]
+  ? {CC info method definition bar-nok} [lreplace [C info method definition bar-nok] 0 0 ::CC]
+  #
+  # TODO: Add/re-activate tests for copying aliases and forwards once
+  # handled by NsfNSCopyCmdsCmd properly!
+  #
+  # ? {CC info method returns incr} [C info method returns incr]
+  # ? {CC info method returns ++} [C info method returns ++]
+  ? {CC class info method returns instances} [C class info method returns instances]
+  ? {CC class info method definition instances} [lreplace [C class info method definition instances] 0 0 ::CC]
+}
+
+#
+# TODO: Add tests for about returns + setter / returns + nsf::proc, if applicable ...
+#
+
+::nsf::configure checkresults $checkFlag
+::nx::configure defaultMethodCallProtection $dmcFlag
+# --
+
 nx::Test case callable {
     # define the same method for Object and Class
     ::nx::Object method bar {} {return Object.bar}
@@ -1027,5 +1173,5 @@ nx::Test case info-methods-closure {
 # Test error messages within an ensemble call
 #
 nx::Test case error-in-ensemble {
-  ? {nx::Object info method definition foo 1} {Invalid argument '1', maybe too many arguments; should be "::nx::Object info method args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods name"}
+  ? {nx::Object info method definition foo 1} {Invalid argument '1', maybe too many arguments; should be "::nx::Object info method args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods|returns name"}
 }
