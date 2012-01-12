@@ -1,4 +1,11 @@
-2011-12-32 <Gustaf.Neumann@wu-wien.ac.at>
+2012-01-12 <Gustaf.Neumann@wu-wien.ac.at>
+	* xotcl.c Backport from nsf: when processing arguments with
+	leading dashes in "configure", accept only method names without
+	spaces. This solves a problem with Tcl8.4 + ns_eval where the
+	output of the serializer could not be processed by eval (a [list
+	..] was lost).
+
+2011-12-22 <Gustaf.Neumann@wu-wien.ac.at>
 	* Httpd: force GMT dates as required by RFC
 
 2011-11-12 <Gustaf.Neumann@wu-wien.ac.at>
