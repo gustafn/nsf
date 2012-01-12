@@ -10410,7 +10410,7 @@ XOTclORequireNamespaceMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Ob
 typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
 
 static dashArgType
-isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Obj **objv[]) {
+isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int *objc, Tcl_Obj **objv[]) {
   char *flag;
   static Tcl_ObjType CONST86 *listType = NULL;
 
@@ -10447,11 +10447,25 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Ob
   }
   flag = ObjStr(obj);
   /*fprintf(stderr, "we have a scalar '%s'\n", flag);*/
-  if (*flag == '-' && isalpha((int)*((flag)+1))) {
+
+  if ((*flag == '-') && isalpha(*((flag)+1))) {
+    if (firstArg) {
+      /* if the argument contains a space, try to split */
+      CONST char *p= flag+1;
+      while (*p && *p != ' ') p++;
+      if (*p == ' ') {
+        if (Tcl_ListObjGetElements(interp, obj, objc, objv) == TCL_OK) {
+          *methodName = ObjStr(*objv[0]);
+          if (**methodName == '-') {(*methodName)++ ;}
+          return LIST_DASH;
+        }
+      }
+    }
     *methodName = flag+1;
     *objc = 1;
     return SKALAR_DASH;
   }
+
   return NO_DASH;
 }
 
@@ -10497,7 +10511,7 @@ XOTclOConfigureMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
                                          "configure ?args?");
   /* find arguments without leading dash */
   for (i=1; i < objc; i++) {
-    if ((isdasharg = isDashArg(interp, objv[i], &methodName, &argc, &argv)))
+    if ((isdasharg = isDashArg(interp, objv[i], 1, &methodName, &argc, &argv)))
       break;
   }
   normalArgs = i-1;
@@ -10508,7 +10522,7 @@ XOTclOConfigureMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     case SKALAR_DASH:    /* argument is a skalar with a leading dash */
       { int j;
         for (j = i+1; j < objc; j++, argc++) {
-          if ((isdasharg = isDashArg(interp, objv[j], &nextMethodName, &nextArgc, &nextArgv)))
+          if ((isdasharg = isDashArg(interp, objv[j], j==i+1, &nextMethodName, &nextArgc, &nextArgv)))
             break;
         }
         result = callConfigureMethod(interp, obj, methodName, argc+1, objv+i+1);
@@ -10520,7 +10534,7 @@ XOTclOConfigureMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     case LIST_DASH:  /* argument is a list with a leading dash, grouping determined by list */
       {	i++;
         if (i<objc)
-          isdasharg = isDashArg(interp, objv[i], &nextMethodName, &nextArgc, &nextArgv);
+          isdasharg = isDashArg(interp, objv[i], 1, &nextMethodName, &nextArgc, &nextArgv);
         result = callConfigureMethod(interp, obj, methodName, argc+1, argv+1);
         if (result != TCL_OK)
           return result;
