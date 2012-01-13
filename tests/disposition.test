@@ -1176,9 +1176,9 @@ nx::Test case dispo-configure-transparency {
   C setObjectParams [list [list FOO:alias,noarg ""]]
   ? {C create c} "::c" "Defaultmethod of calle is invoked ..."
   C setObjectParams [list [list FOO:alias "foo"]]
-  ? {C create c} "::c-FOO" "foo leaf method is selected ..."
+  ? {C create c} "::callee-FOO" "foo leaf method is selected ..."
   ::callee mixin add M
-  ? {C create c} "::c-FOO" "With mixin ..."
+  ? {C create c} "::callee-FOO" "With mixin ..."
 
   #
   # ... at the calling object level / ensemble path
@@ -1195,7 +1195,7 @@ nx::Test case dispo-configure-transparency {
     }
   }
 
-  ? {C create c} "::c-FOO" "With mixin ..."
+  ? {C create c} "::callee-FOO" "With mixin ..."
   
   #
   # ... with filter indirection: tbd
@@ -1256,7 +1256,7 @@ nx::Test case dispo-object-targets {
   set x [UnknownHandler create handledObj]
   set methods(ix) [::nsf::method::alias ::obj ix $x]
   
-  ? {[T create t] z ix baff} "CURRENT-$x-DELEGATOR-::t-UNKNOWNMETHOD-baff-PATH-z ix" \
+  ? {[T create t] z ix baff} "CURRENT-$x-DELEGATOR-::obj-UNKNOWNMETHOD-baff-PATH-z ix" \
       "Aliased dispatch to unknown method (custom unknown handler)" 
 
   #

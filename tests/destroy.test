@@ -438,13 +438,17 @@ Test case nesting-destroy {
 Test case deleting-aliased-object {
   Object create o
   Object create o2
+  # TODO: fixme; should probably be not necessary
+  ::nsf::object::property o2 keepcallerself 1
   ::nsf::method::alias o a o2
   ? {o a} ::o2 "call object via alias"
   ? {o info method type a} alias
   ## the ensemble-object needs per-object methods
   o2 method info args {:info {*}$args}
   o2 method set args {:set {*}$args}
+  puts stderr HU1
   ? {o a info vars} "" "call info on aliased object"
+  puts stderr HU2
   ? {o set x 10} 10   "set variable on object"
   ? {o info vars} x   "query vars"
   ? {o a info vars} x  "query vars via alias"
@@ -482,6 +486,8 @@ Test case create-alias-and-recreate-obj {
   Object create o3
   o alias x o3
   Object create o3
+  # TODO: fixme; should probably be not necessary
+  ::nsf::object::property o3 keepcallerself 1
   o3 method set args {:set {*}$args}
   o set a 13
   ? {o x set a} 13 "aliased object works after recreate"
@@ -495,6 +501,9 @@ Test case create-alias-on-class-delete-aliased-obj {
   Class create C
   Object create o
   Object create o3
+  # TODO: fixme; should probably be not necessary
+  ::nsf::object::property o keepcallerself 1
+  ::nsf::object::property o3 keepcallerself 1
   o alias a o3
   C alias b o
 

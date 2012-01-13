@@ -2996,7 +2996,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
 
   methodObj = osPtr->methods[methodIdx];
   /*fprintf(stderr, "OS of %s is %s, method %s methodObj %p osPtr %p defined %.8x %.8x overloaded %.8x %.8x flags %.8x\n",
-	  ObjectName(object), ObjectName((&osPtr->rootClass->object)),
+	  ObjectName(object), ObjectName(&osPtr->rootClass->object),
 	  Nsf_SystemMethodOpts[methodIdx]+1, methodObj,
 	  osPtr,
 	  osPtr->definedMethods, osPtr->definedMethods & (1 << methodIdx),
@@ -9560,10 +9560,11 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
       cscPtr->flags |= NSF_CSC_CALL_IS_ENSEMBLE;
 
       /*
-       * The client data cp is still the obj of the called method
+       * The client data cp is still the obj (the ensemble object) of the called method
        */
 
-      /*fprintf(stderr, "ensemble dispatch %s objc %d\n", methodName, objc);*/
+      /*fprintf(stderr, "ensemble dispatch cp %s %s objc %d\n", 
+	ObjectName((NsfObject*)cp), methodName, objc);*/
 
       if (unlikely(objc < 2)) {
 	CallFrame frame, *framePtr = &frame;
@@ -9598,14 +9599,25 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	     * they were executed later, they would find their parent frame
 	     * (CMETHOD) being popped from the stack already.
 	     */
-
-	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s cscPtr %p base flags %.6x cl %s\n",
-		    ObjectName(object), methodName, cscPtr,
-		    (0xFF & cscPtr->flags),
-		    cscPtr->cl ? ObjStr(cscPtr->cl->object.cmdName) : NULL);*/
-
-	    result = MethodDispatch(object, interp, objc-1, objv+1,
-				    cmd, object, cscPtr->cl, methodName,
+	    // FIXME: decls should not stay here, can / should we reuse other vars?
+	    NsfObject *newSelf;
+	    NsfClass *newClass;
+	    if (self->flags & NSF_KEEP_CALLER_SELF) {
+	      newSelf = object;
+	      newClass = cscPtr->cl;
+	    } else {
+	      newSelf = self;
+	      newClass = NULL;
+	    }
+	    /*fprintf(stderr, ".... ensemble dispatch object %s self %s pass %s\n", 
+	      ObjectName(object), ObjectName(self), (self->flags & NSF_KEEP_CALLER_SELF) ? "object" : "self");*/
+	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s objflags %.8x cscPtr %p base flags %.6x cl %s\n",
+		    ObjectName(newSelf), methodName, self->flags,
+		    cscPtr, (0xFF & cscPtr->flags),
+		    newClass ? ClassName(newClass) : "NONE");*/
+	    result = MethodDispatch(newSelf, 
+				    interp, objc-1, objv+1,
+				    cmd, newSelf, newClass, methodName,
 				    cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
 				    (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
 	    goto obj_dispatch_ok;
@@ -9705,7 +9717,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
     /*
      * The cmd has no client data. In these situations, no stack frame
      * is needed. Dispatch the method without the cscPtr, such
-     * CmdMethodDispatch () does not stack a frame.
+     * CmdMethodDispatch() does not stack a frame.
      */
 
     CscListAdd(interp, cscPtr);
@@ -17384,6 +17396,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
   Tcl_Command importedCmd;
   Tcl_ObjCmdProc *proc, *resolvedProc;
 
+  assert(isObject);
   proc = Tcl_Command_objProc(cmd);
   importedCmd = GetOriginalCommand(cmd);
   resolvedProc = Tcl_Command_objProc(importedCmd);
@@ -17533,6 +17546,9 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 
   } else {
 
+    /*
+     * We have to iterate over the elements
+     */
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch);
 	 hPtr;
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -17906,6 +17922,38 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
   return TCL_OK;
 }
 #endif
+
+/*
+ *----------------------------------------------------------------------
+ * SetBooleanFlag --
+ *
+ *    Set an unsigned short flag based on valueObj
+ *
+ * Results:
+ *    Tcl result code
+ *
+ * Side effects:
+ *    update passed flags
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int 
+SetBooleanFlag(Tcl_Interp *interp, unsigned short *flagsPtr, unsigned short flag, Tcl_Obj *valueObj) {
+  int bool, result;
+  
+  assert(flagsPtr);
+  result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
+  if (result != TCL_OK) {
+    return result;
+  }
+  if (bool) {
+    *flagsPtr |= flag;
+  } else {
+    *flagsPtr &= ~flag;
+  }
+  return result;
+}
 
 /***********************************************************************
  * Begin generated Next Scripting commands
@@ -18929,15 +18977,9 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       }
       flag = NSF_IS_SLOT_CONTAINER;
       if (valueObj) {
-	int bool, result;
-	result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
+	int result = SetBooleanFlag(interp, &containerObject->flags, flag, valueObj);
 	if (result != TCL_OK) {
 	  return result;
-	}
-	if (bool) {
-	  containerObject->flags |= flag;
-	} else {
-	  containerObject->flags &= ~flag;
 	}
       }
       Tcl_SetIntObj(Tcl_GetObjResult(interp), (containerObject->flags & flag) != 0);
@@ -19263,12 +19305,14 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 /*
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself" -required 1}
+  {-argName "value" -required 0 -type tclobj}
 }
 */
+
 static int
-NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty) {
-  int flags = 0;;
+NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, Tcl_Obj *valueObj) {
+  int flags = 0, allowSet = 0;
 
   switch (objectproperty) {
   case ObjectpropertyInitializedIdx: flags = NSF_INIT_CALLED; break;
@@ -19276,9 +19320,21 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty) 
   case ObjectpropertyRootmetaclassIdx: flags = NSF_IS_ROOT_META_CLASS; break;
   case ObjectpropertyRootclassIdx: flags = NSF_IS_ROOT_CLASS; break;
   case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; break;
+  case ObjectpropertyKeepcallerselfIdx: flags = NSF_KEEP_CALLER_SELF; allowSet = 1; break;
   }
 
-   Tcl_SetObjResult(interp,
+  if (valueObj) {
+    if (likely(allowSet)) {
+      int result = SetBooleanFlag(interp, &object->flags, flags, valueObj);
+      if (result != TCL_OK) {
+	return result;
+      }
+    } else {
+      return NsfPrintError(interp, "object property is read only");
+    }
+  }
+  
+  Tcl_SetObjResult(interp,
 		   NsfGlobalObjs[(object->flags & flags) ?
 				 NSF_ONE : NSF_ZERO]);
   return TCL_OK;
@@ -19410,8 +19466,8 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
   AddSuper(thecls, theobj);
 
   if (NSF_DTRACE_OBJECT_ALLOC_ENABLED()) {
-    NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject *)theobj)), ClassName(((NsfObject *)theobj)->cl));
-    NSF_DTRACE_OBJECT_ALLOC(ObjectName(((NsfObject *)thecls)), ClassName(((NsfObject *)thecls)->cl));
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName((NsfObject *)theobj), ClassName((NsfObject *)theobj)->cl);
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName((NsfObject *)thecls), ClassName((NsfObject *)thecls)->cl);
   }
 
   return TCL_OK;
@@ -22100,7 +22156,7 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
     } else {
       /*NsfObjectSystem *osPtr = GetObjectSystem(object);
       fprintf(stderr, "RECREATE calls method cleanup for object %p %s OS %s\n",
-              object, ObjectName(object), ObjectName((&osPtr->rootClass->object)));*/
+              object, ObjectName(object), ObjectName(&osPtr->rootClass->object));*/
       result = CallMethod(object, interp, methodObj,
                           2, 0, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
     }

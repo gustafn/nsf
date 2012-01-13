@@ -148,12 +148,12 @@ static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
   return result;
 }
   
-enum ObjectpropertyIdx {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertySlotcontainerIdx};
+enum ObjectpropertyIdx {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertySlotcontainerIdx, ObjectpropertyKeepcallerselfIdx};
 
 static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "slotcontainer", NULL};
+  static CONST char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "slotcontainer", "keepcallerself", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectproperty", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -201,7 +201,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|baseclasses"},
   {ConvertToConfigureoption, "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
-  {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|slotcontainer"},
+  {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {NULL, NULL}
 };
@@ -365,7 +365,7 @@ static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
-static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectproperty);
+static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectproperty, Tcl_Obj *value);
 static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods);
 static int NsfProcCmd(Tcl_Interp *interp, int withAd, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
@@ -1556,9 +1556,10 @@ NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      &pc) == TCL_OK)) {
     NsfObject *objectName = (NsfObject *)pc.clientData[0];
     int objectproperty = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfObjectPropertyCmd(interp, objectName, objectproperty);
+    return NsfObjectPropertyCmd(interp, objectName, objectproperty, value);
 
   } else {
     return TCL_ERROR;
@@ -2686,9 +2687,10 @@ static Nsf_methodDefinition method_definitions[] = {
 {"::nsf::object::exists", NsfObjectExistsCmdStub, 1, {
   {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::object::property", NsfObjectPropertyCmdStub, 2, {
+{"::nsf::object::property", NsfObjectPropertyCmdStub, 3, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"objectproperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToObjectproperty, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"objectproperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToObjectproperty, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::object::qualify", NsfObjectQualifyCmdStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

@@ -383,9 +383,10 @@ typedef struct NsfStringIncrStruct {
 /* deletion state */
 #define NSF_TCL_DELETE                     0x0400
 #define NSF_DESTROY_CALLED_SUCCESS         0x0800
-#define NSF_DURING_DELETE                  0x2000
-#define NSF_DELETED                        0x4000
-#define NSF_RECREATE                       0x8000
+#define NSF_DURING_DELETE                  0x1000
+#define NSF_DELETED                        0x2000
+#define NSF_RECREATE                       0x4000
+#define NSF_KEEP_CALLER_SELF               0x8000
 
 
 
@@ -497,7 +498,7 @@ typedef struct NsfObject {
   NsfFilterStack *filterStack;
   NsfMixinStack *mixinStack;
   int refCount;
-  short flags;
+  unsigned short flags;
   short activationCount;
 } NsfObject;
 

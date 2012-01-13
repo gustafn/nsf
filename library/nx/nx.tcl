@@ -470,6 +470,9 @@ namespace eval ::nx {
     #    in nsf when calling e.g. "unknown" (such that a subcmd
     #    "unknown" does not interfere with the method "unknown").
     #
+    :protected method init {} {
+      ::nsf::object::property [self] keepcallerself true
+    }
     :protected method unknown {callInfo args} {
       set path [lrange $callInfo 1 end-1]; # set path [current methodpath]
       set m [lindex $callInfo end]
