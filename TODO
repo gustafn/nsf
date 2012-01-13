@@ -3816,12 +3816,12 @@ nsf.c:
 - simplified usage of ObjectName() and ClassName() macros (no caller parenthesis needed)
 - added exerpimental object property keepcaller self (currently only evaluated by aliased objects)
 
+- removed TODOs from keepcallerself in destroy.test; calls were truely recursive,
+  behavior was correct.
+
+
 ========================================================================
 TODO:
-
-- remove settings of keepcallerself infrom destroy.test labeld with 
-  "# TODO: fixme; should probably be not necessary"
-  currently, without these, we have recursive loops.
 
 - Aliases and forwards are not handled by NsfNSCopyCmdsCmd; object
   cloning/copying remains incomplete; also, there might be object and

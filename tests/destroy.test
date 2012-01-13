@@ -33,7 +33,6 @@ C method foo {} {
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
-  puts stderr "BBBB"
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
@@ -58,7 +57,6 @@ C method foo {} {
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
-  puts stderr "BBBB"
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -83,7 +81,6 @@ C method foo {} {
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
-  puts stderr "BBBB"
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 0 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -109,7 +106,6 @@ C method foo {} {
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
-  puts stderr "BBB"
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
@@ -136,7 +132,6 @@ C method foo {} {
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
-  puts stderr "BBB"
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -164,7 +159,6 @@ C method foo {} {
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
   ? "[current] set x" 1 "$::case can still access [current]"
-  puts stderr "BBB"
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 0 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -435,10 +429,10 @@ Test case nesting-destroy {
   ? {::nsf::object::exists x::y} 0 "child object gone"
 }
 
-Test case deleting-aliased-object {
+Test case deleting-aliased-object1 {
   Object create o
   Object create o2
-  # TODO: fixme; should probably be not necessary
+  # behave like an ensemble: aliased object has self of the caller
   ::nsf::object::property o2 keepcallerself 1
   ::nsf::method::alias o a o2
   ? {o a} ::o2 "call object via alias"
@@ -446,13 +440,34 @@ Test case deleting-aliased-object {
   ## the ensemble-object needs per-object methods
   o2 method info args {:info {*}$args}
   o2 method set args {:set {*}$args}
-  puts stderr HU1
   ? {o a info vars} "" "call info on aliased object"
-  puts stderr HU2
   ? {o set x 10} 10   "set variable on object"
   ? {o info vars} x   "query vars"
   ? {o a info vars} x  "query vars via alias"
   ? {o a set x} 10     "set var via alias"
+  o2 destroy
+  ? {o a info vars} "Trying to dispatch deleted object via method 'a'" "1st call on deleted object"
+  ? {o a info vars} "::o: unable to dispatch method 'a'" "2nd call on deleted object"
+}
+
+Test case deleting-aliased-object2 {
+  Object create o
+  Object create o2
+  # The methods of the aliased object have their own self
+  ::nsf::method::alias o a o2
+  ? {o a} ::o2 "call object via alias"
+  ? {o info method type a} alias
+  # In order to avoid recursive calles, we have to provide the
+  # selector for the method definitions in nx::Object
+  o2 method info args {: ::nsf::classes::nx::Object::info {*}$args}
+  o2 method set args {: ::nsf::classes::nx::Object::set {*}$args}
+
+  ? {o a info vars} ""   "call info on aliased object"
+  ? {o set x 10} 10     "set variable on object o"
+  ? {o info vars} x     "query vars of o"
+  ? {o a info vars} ""  "query vars via alias (from o2)"
+  ? {o a set y 1} 1     "set var via alias (on o2)"
+  ? {o a info vars} y   "query vars via alias (from o2)"
   o2 destroy
   ? {o a info vars} "Trying to dispatch deleted object via method 'a'" "1st call on deleted object"
   ? {o a info vars} "::o: unable to dispatch method 'a'" "2nd call on deleted object"
@@ -486,10 +501,8 @@ Test case create-alias-and-recreate-obj {
   Object create o3
   o alias x o3
   Object create o3
-  # TODO: fixme; should probably be not necessary
-  ::nsf::object::property o3 keepcallerself 1
-  o3 method set args {:set {*}$args}
-  o set a 13
+  o3 method set args {: ::nsf::classes::nx::Object::set {*}$args}
+  o x set a 13
   ? {o x set a} 13 "aliased object works after recreate"
 }
 
@@ -501,14 +514,14 @@ Test case create-alias-on-class-delete-aliased-obj {
   Class create C
   Object create o
   Object create o3
-  # TODO: fixme; should probably be not necessary
+
   ::nsf::object::property o keepcallerself 1
   ::nsf::object::property o3 keepcallerself 1
   o alias a o3
   C alias b o
 
-  o3 method set args {:set {*}$args}
-  o method set args {:set {*}$args}
+  o3 method set args {: ::nsf::classes::nx::Object::set {*}$args}
+  o method set args {: ::nsf::classes::nx::Object::set {*}$args}
 
   C create c1
   ? {c1 b set B 2} 2 "call 1st level"
@@ -604,7 +617,6 @@ namespace eval ::test {
     # here. Is there a bug with nsPtr->activationCount
     #
     #? "[current] set x" 1 "$::case can still access [current]"
-    puts stderr "BBB"
     puts stderr "???? [current] exists [::nsf::object::exists [current]]"
     ? "::nsf::object::exists [current]" 0 ;# WHY?
     puts stderr "???? [current] exists [::nsf::object::exists [current]]"
