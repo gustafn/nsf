@@ -3307,9 +3307,13 @@ MixinAdd(Tcl_Interp *interp, XOTclCmdList **mixinList, Tcl_Obj *name) {
         "' has too many elements.", (char *) NULL);*/
   }
 
-  if (GetXOTclClassFromObj(interp, name, &mixin, 1) != TCL_OK)
-    return XOTclErrBadVal(interp, "mixin", "a class as mixin", ObjStr(name));
-
+  if (GetXOTclClassFromObj(interp, name, &mixin, 1) != TCL_OK) {
+    char *errorString = ObjStr(Tcl_GetObjResult(interp));
+    if (*errorString == '\0') {
+      XOTclErrBadVal(interp, "mixin", "a class as mixin", ObjStr(name));
+    }
+    return TCL_ERROR;
+  }
 
   new = CmdListAdd(mixinList, mixin->object.id, NULL, /*noDuplicates*/ 1);
 
@@ -4872,9 +4876,13 @@ SuperclassAdd(Tcl_Interp *interp, XOTclClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj 
   scl = NEW_ARRAY(XOTclClass*, oc);
   for (i = 0; i < oc; i++) {
     if (GetXOTclClassFromObj(interp, ov[i], &scl[i], 1) != TCL_OK) {
+      char *errorString = ObjStr(Tcl_GetObjResult(interp));
       FREE(XOTclClass**, scl);
-      return XOTclErrBadVal(interp, "superclass", "a list of classes",
-                            ObjStr(arg));
+      if (*errorString == '\0') {
+	XOTclErrBadVal(interp, "superclass", "a list of classes",
+		       ObjStr(arg));
+      }
+      return TCL_ERROR;
     }
   }
 
@@ -5204,13 +5212,17 @@ callParameterMethodWithArg(XOTclObject *obj, Tcl_Interp *interp, Tcl_Obj *method
 
   if (opt && opt->parameterClass) pcl = opt->parameterClass;
 
-  if (GetXOTclClassFromObj(interp, pcl,&paramCl, 1) == TCL_OK) {
+  result = GetXOTclClassFromObj(interp, pcl,&paramCl, 1);
+  if (result == TCL_OK) {
     result = XOTclCallMethodWithArgs((ClientData)paramCl, interp,
                                      method, arg, objc-2, objv, flags);
+  } else {
+    char *errorString = ObjStr(Tcl_GetObjResult(interp));
+    if (*errorString == '\0') {
+      XOTclVarErrMsg(interp, "create: can't find parameter class",
+		     (char *) NULL);
+    }
   }
-  else
-    result = XOTclVarErrMsg(interp, "create: can't find parameter class",
-                            (char *) NULL);
   return result;
 }
 

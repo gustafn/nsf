@@ -1,3 +1,7 @@
+2012-01-14 <Gustaf.Neumann@wu-wien.ac.at>
+	* xotcl.c Don't overwrite error messages from __unknown handler in
+	several situations (superclass, parameter class, mixin class)
+
 2012-01-12 <Gustaf.Neumann@wu-wien.ac.at>
 	* xotcl.c Backport from nsf: when processing arguments with
 	leading dashes in "configure", accept only method names without
