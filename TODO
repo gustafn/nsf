@@ -3814,14 +3814,41 @@ nsf.c:
   method definition".
 
 - simplified usage of ObjectName() and ClassName() macros (no caller parenthesis needed)
-- added exerpimental object property keepcaller self (currently only evaluated by aliased objects)
-
+- added exerpimental object property keepcallerself (currently only evaluated by aliased objects)
 - removed TODOs from keepcallerself in destroy.test; calls were truely recursive,
   behavior was correct.
+
+- Added exerpimental object property "allowmethoddispatch" for
+  child-objects to be called from parent objects via method interface.
+  Background: both, per-object methods and childobjects are
+  implemented via cmds in the same tcl namespace. Without special
+  care, both are callable via the standard dispatch. Apparently, this
+  is not always wanted.
+- handled allowmethoddispatch and keepcallerself in copy/move
+- set allowmethoddispatch per-default in XOTcl
+- removed visablilty of objects with "allowmethoddispatch" false in 
+  "info methods" and "info search methods"
+- extended regression test
 
 
 ========================================================================
 TODO:
+
+- also aliasMethods pointing to objects require that these objects
+  have allowmethoddispatch, since this is an object property 
+  (not an alias property).
+  * contra: might be unexpected
+  * pro: if we keep the logic of ensemble methods with the per-object 
+    methods, and/or the keepcallerself, it make sense to avoid mixing
+    interpretations from the point of view of different objects
+  - corollary: for complete configurability of method dispatch, we would
+    need as well a 3rd object-property: restrict-dispatch-to-object-methods
+
+- pertaining allowmethoddispatch and keepcallerself in serializer
+- setting of allowmethoddispatch in XOTcl is weak, since set over constructor, 
+  which migh be overwritten by application classes
+- should we allow objects to overwrite procs/methods and vice versa?
+- behavior on keepcallerself on ordinary dispatches with implicit/explicit receiver
 
 - Aliases and forwards are not handled by NsfNSCopyCmdsCmd; object
   cloning/copying remains incomplete; also, there might be object and

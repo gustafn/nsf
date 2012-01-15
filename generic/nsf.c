@@ -3870,12 +3870,9 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *U
     }
  }
 
-  /*fprintf(stderr, "InterpColonCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",
-    cmdName, flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
-
 #if defined(CMD_RESOLVER_TRACE)
   fprintf(stderr, "InterpColonCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",
-	  cmdName, flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
+	  cmdName, flags, frameFlags);
 #endif
 
   if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_OBJECT|FRAME_IS_NSF_CMETHOD )) {
@@ -5085,9 +5082,12 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
 
     PrimitiveDestroy(object);
 
-    if (!(object->flags & NSF_TCL_DELETE)) {
+    if (object->teardown == NULL) /* (object->flags & NSF_TCL_DELETE)*/ {
       Tcl_Obj *savedResultObj = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedResultObj);
+
+      assert(object->teardown == NULL);
+
       /*fprintf(stderr, "    before DeleteCommandFromToken %p object flags %.6x\n", oid, object->flags);*/
       /*fprintf(stderr, "cmd dealloc %p refCount %d dodestroy \n", oid, Tcl_Command_refCount(oid));*/
       Tcl_DeleteCommandFromToken(interp, oid); /* this can change the result */
@@ -5095,6 +5095,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
       Tcl_SetObjResult(interp, savedResultObj);
       DECR_REF_COUNT(savedResultObj);
     }
+
     NsfCleanupObject(object, "CallStackDoDestroy");
   }
 }
@@ -6252,14 +6253,13 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
 	 hPtr = Tcl_NextHashEntry(&search)) {
       NsfObject *inst = (NsfObject *)Tcl_GetHashKey(tablePtr, hPtr);
-      Command *cmdPtr;
+      Command *cmdPtr = likely(inst != NULL) ? (Command *)inst->id : NULL;
 
-      if (unlikely(inst->flags & NSF_TCL_DELETE)) {
+      if (unlikely(cmdPtr == NULL || (Tcl_Command_flags(cmdPtr) & CMD_IS_DELETED))) {
 	NsfLog(interp, NSF_LOG_NOTICE, "Object %s is apparently deleted", ObjectName(inst));
 	continue;
       }
 
-      cmdPtr = (Command *)inst->id;
       assert(cmdPtr);
 
       if (unlikely(cmdPtr && (cmdPtr->nsPtr->flags & NS_DYING))) {
@@ -9520,7 +9520,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      */
     if (CmdIsNsfObject(cmd)) {
       /*
-       * Invoke an aliased object (ensemble object) via method interface.
+       * Invoke an may be aliased object (ensemble object) via method
+       * interface.
        */
       NsfObject *invokeObj = (NsfObject *)cp;
 
@@ -9583,8 +9584,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	if (likely(self->nsPtr != NULL)) {
 	  cmd = FindMethod(self->nsPtr, methodName);
 
-	  /*fprintf(stderr, "... objv[0] %s method %p %s csc %p\n",
-	    ObjStr(objv[0]), cmd, methodName, cscPtr); */
+	  /*fprintf(stderr, "... objv[0] %s cmd %p %s csc %p\n",
+		    ObjStr(objv[0]), cmd, methodName, cscPtr); */
 
 	  if (likely(cmd != NULL)) {
 	    /*
@@ -9722,8 +9723,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
     CscListAdd(interp, cscPtr);
 
-    /* fprintf(stderr, "cmdMethodDispatch %p %s.%s, nothing stacked, objflags %.6x\n",
-       cmd, ObjectName(object), methodName, object->flags); */
+    /*fprintf(stderr, "cmdMethodDispatch %p %s.%s, nothing stacked, objflags %.6x\n",
+      cmd, ObjectName(object), methodName, object->flags); */
 
     return CmdMethodDispatch(clientData, interp, objc, objv, object, cmd, NULL);
   }
@@ -10164,7 +10165,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 
       assert(cmd ? ((Command *)cmd)->objProc != NULL : 1);
     } else {
-      /* do we have an object-specific proc? */
+      /* 
+       * Do we have an object-specific cmd? 
+       */
       if (object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0) {
 	cmd = FindMethod(object->nsPtr, methodName);
 	/*fprintf(stderr, "lookup for per-object method in obj %p method %s nsPtr %p"
@@ -10172,8 +10175,17 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 		object, methodName, object->nsPtr, cmd,
 		cmd ? ((Command *)cmd)->objProc : NULL);*/
 	if (cmd) {
-	  if ((flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0
-	      && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD)) {
+	  NsfObject *o;
+
+	  /* 
+	   * Reject call when
+	   * a) trying to call a private method without the local flag or ignore permssions, or
+	   * b) trying to call an object with no method interface
+	   */
+	  if (((flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0
+	       && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD)) 
+	      || ((o = NsfGetObjectFromCmdPtr(cmd)) && o->id == cmd && (o->flags & NSF_ALLOW_METHOD_DISPATCH) == 0)
+	      ) {
 	    cmd = NULL;
 	  } else {
 	
@@ -10253,6 +10265,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
+
   /*
    * If we have a command, check the permissions, unless
    * NSF_CM_IGNORE_PERMISSIONS is set. Note, that NSF_CM_IGNORE_PERMISSIONS is
@@ -10315,7 +10328,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       cscPtr->objv = objv+shift;
     }
 
-    /*fprintf(stderr, "MethodDispatch %s.%s %p flags %.6x cscPtr %p\n",
+    /*fprintf(stderr, "MethodDispatchCsc %s.%s %p flags %.6x cscPtr %p\n",
 	    ObjectName(object), methodName, object->mixinStack, cscPtr->flags,
 	    cscPtr);*/
 
@@ -13861,7 +13874,7 @@ TclDeletesObject(ClientData clientData) {
   NsfObject *object = (NsfObject *)clientData;
   Tcl_Interp *interp;
 
-  object->flags |= NSF_TCL_DELETE;
+  /*object->flags |= NSF_TCL_DELETE;*/
   /*fprintf(stderr, "cmd dealloc %p TclDeletesObject (%d)\n",
     object->id,  Tcl_Command_refCount(object->id));*/
 
@@ -15348,14 +15361,14 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (unlikely(tcd->verbose)) {
     Tcl_Obj *cmd = Tcl_NewListObj(objc, objv);
-    fprintf(stderr, "forwarder calls '%s'\n", ObjStr(cmd));
+    /*fprintf(stderr, "forwarder calls '%s'\n", ObjStr(cmd));*/
     DECR_REF_COUNT(cmd);
   }
   if (tcd->objframe) {
     Nsf_PushFrameObj(interp, object, framePtr);
   }
   if (tcd->objProc) {
-    /* fprintf(stderr, "CallForwarder Tcl_NRCallObjProc %p\n", clientData);*/
+    /*fprintf(stderr, "CallForwarder Tcl_NRCallObjProc %p\n", tcd->clientData);*/
     result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
   } else if (TclObjIsNsfObject(interp, tcd->cmdName, &object)) {
     /*fprintf(stderr, "CallForwarder NsfObjDispatch object %s, objc=%d\n",
@@ -15366,7 +15379,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
       result = DispatchDefaultMethod(interp, object, objv[0], NSF_CSC_IMMEDIATE);
     }
   } else {
-    /*fprintf(stderr, "CallForwarder: no nsf object %s\n", ObjStr(tcd->cmdName));*/
+    /*fprintf(stderr, "CallForwarder: no nsf object %s [0] %s\n", ObjStr(tcd->cmdName), ObjStr(objv[0]));*/
     result = Tcl_EvalObjv(interp, objc, objv, 0);
   }
 
@@ -15660,10 +15673,10 @@ NsfProcAliasMethod(ClientData clientData,
     cmd = Tcl_GetCommandFromObj(interp, targetObj);
     if (cmd) {
       cmd = GetOriginalCommand(cmd);
-      fprintf(stderr, "cmd %p epoch %d deleted %.6x\n",
+      /*fprintf(stderr, "cmd %p epoch %d deleted %.6x\n",
 	      cmd,
 	      Tcl_Command_cmdEpoch(cmd),
-	      Tcl_Command_flags(cmd) & CMD_IS_DELETED);
+	      Tcl_Command_flags(cmd) & CMD_IS_DELETED);*/
       if (Tcl_Command_flags(cmd) & CMD_IS_DELETED) {
 	cmd = NULL;
       }
@@ -17515,6 +17528,8 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
      */
     hPtr = Tcl_CreateHashEntry(tablePtr, pattern, NULL);
     if (hPtr) {
+      NsfObject *childObject;
+
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
       methodTypeMatch = MethodTypeMatches(interp, methodType, cmd, object, key,
@@ -17523,8 +17538,22 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
 	return TCL_OK;
       }
-      if (isObject && withPath) {
-	return TCL_OK;
+      /* 
+       * Aliased objects methods return 1 but lookup from cmd returns
+       * NULL. Below, we are just interested on true subobjects.
+       */
+      childObject = isObject ? NsfGetObjectFromCmdPtr(cmd) : NULL;
+
+      if (childObject) {
+
+	if (withPath) {
+	  return TCL_OK;
+	}
+	
+	if ((childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0) {
+	  /*fprintf(stderr, "no method dispatch allowed on child %s\n", ObjectName(childObject));*/
+	  return TCL_OK;
+	}
       }
 
       if (ProtectionMatches(withCallprotection, cmd) && methodTypeMatch) {
@@ -17552,41 +17581,56 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch);
 	 hPtr;
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
+      NsfObject *childObject;
+
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
       if (prefixLength) {Tcl_DStringTrunc(prefix, prefixLength);}
       methodTypeMatch = MethodTypeMatches(interp, methodType, cmd, object, key,
 					  withPer_object, &isObject);
-      if (isObject && withPath) {
-	Tcl_DString ds, *dsPtr = &ds;
-	NsfObject *ensembleObject = NsfGetObjectFromCmdPtr(cmd);
-	Tcl_HashTable *cmdTablePtr = ensembleObject && ensembleObject->nsPtr ?
-	  Tcl_Namespace_cmdTablePtr(ensembleObject->nsPtr) : NULL;
+      /* 
+       * Aliased objects methods return 1 but lookup from cmd returns
+       * NULL. Below, we are just interested on true subobjects.
+       */
+      childObject = isObject ? NsfGetObjectFromCmdPtr(cmd) : NULL;
 
-	if (cmdTablePtr == NULL || ensembleObject == NULL) {
-	  /* nothing to do */
-	  continue;
-	}	
-	if (ensembleObject->flags & NSF_IS_SLOT_CONTAINER) {
-	  /* Don't report slot container */
+      if (childObject) {
+	if (withPath) {
+	  Tcl_DString ds, *dsPtr = &ds;
+	  Tcl_HashTable *cmdTablePtr = childObject->nsPtr ? Tcl_Namespace_cmdTablePtr(childObject->nsPtr) : NULL;
+	  
+	  if (cmdTablePtr == NULL || childObject == NULL) {
+	    /* nothing to do */
+	    continue;
+	  }	
+	  if (childObject->flags & NSF_IS_SLOT_CONTAINER) {
+	    /* Don't report slot container */
+	    continue;
+	  }
+	  
+	  if (prefix == NULL) {
+	    DSTRING_INIT(dsPtr);
+	    Tcl_DStringAppend(dsPtr, key, -1);
+	    Tcl_DStringAppend(dsPtr, " ", 1);
+
+	    ListMethodKeys(interp, cmdTablePtr, dsPtr, pattern, methodType, withCallprotection,
+			   1, dups, object, withPer_object);
+	    DSTRING_FREE(dsPtr);
+	  } else {
+	    Tcl_DStringAppend(prefix, key, -1);
+	    Tcl_DStringAppend(prefix, " ", 1);
+	    ListMethodKeys(interp, cmdTablePtr, prefix, pattern, methodType, withCallprotection,
+			   1, dups, object, withPer_object);
+	  }
+	  /* don't list ensembles by themselves */
 	  continue;
 	}
 
-	if (prefix == NULL) {
-	  DSTRING_INIT(dsPtr);
-	  Tcl_DStringAppend(dsPtr, key, -1);
-	  Tcl_DStringAppend(dsPtr, " ", 1);
-	  ListMethodKeys(interp, cmdTablePtr, dsPtr, pattern, methodType, withCallprotection,
-			 1, dups, object, withPer_object);
-	  DSTRING_FREE(dsPtr);
-	} else {
-	  Tcl_DStringAppend(prefix, key, -1);
-	  Tcl_DStringAppend(prefix, " ", 1);
-	  ListMethodKeys(interp, cmdTablePtr, prefix, pattern, methodType, withCallprotection,
-			 1, dups, object, withPer_object);
+	if ((childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0) {
+	  /*fprintf(stderr, "no method dispatch allowed on child %s\n", ObjectName(childObject));*/
+	  continue;
 	}
-	/* don't list ensembles by themselves */
-	continue;
+
       }
 
       if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) continue;
@@ -17680,9 +17724,10 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 
   if (withDefinition) {
     Tcl_HashEntry *hPtr = pattern ? Tcl_CreateHashEntry(tablePtr, pattern, NULL) : NULL;
-    /* notice: we don't use pattern for wildcard matching here;
-       pattern can only contain wildcards when used without
-       "-definition" */
+    /* 
+     * Notice: we don't use pattern for wildcard matching here; pattern can
+     * only contain wildcards when used without "-definition".
+     */
     if (hPtr) {
       Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
       ClientData clientData = cmd ? Tcl_Command_objClientData(cmd) : NULL;
@@ -18594,8 +18639,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (oldCmd != NULL) {
     oldTargetObject = NsfGetObjectFromCmdPtr(oldCmd);
-    /*fprintf(stderr, "oldTargetObject %p flags %.6x newTargetObject %p\n",
-      oldTargetObject, oldTargetObject ? oldTargetObject->flags : 0, newTargetObject);*/
+    /* fprintf(stderr, "oldTargetObject %p flags %.6x newTargetObject %p\n",
+       oldTargetObject, oldTargetObject ? oldTargetObject->flags : 0, newTargetObject);*/
 
     /*
      * We might have to decrement the reference counter on an previously
@@ -18615,12 +18660,21 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (newTargetObject) {
     /*
-     * Thew new alias is pointing to an nsf object. Increment the object
-     * reference counter of the new aliased object only when the new target
-     * object is different from the old one. Note, that the old target object
-     * might be NULL in case the object is used here the first time.
+     * In case the newTargetObject is a child of the object, add redirector to
+     * allow calls independent from allowmethoddispatch
+     */ 
+    if (GetObjectFromString(interp, Tcl_Command_nsPtr(cmd)->fullName) == object) {
+      newObjProc = NsfProcAliasMethod;
+    }
+
+    /*
+     * The new alias is pointing to an nsf object. In case no aliasMethod is
+     * use, increment the object reference counter of the new aliased object
+     * only when the new target object is different from the old one. Note,
+     * that the old target object might be NULL in case the object is used
+     * here the first time.
      */
-    if (oldTargetObject != newTargetObject) {
+    if (newObjProc == NULL && oldTargetObject != newTargetObject) {
       NsfObjectRefCountIncr(newTargetObject);
     }
 
@@ -19305,7 +19359,7 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 /*
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|allowmethoddispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -19321,6 +19375,7 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, 
   case ObjectpropertyRootclassIdx: flags = NSF_IS_ROOT_CLASS; break;
   case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; break;
   case ObjectpropertyKeepcallerselfIdx: flags = NSF_KEEP_CALLER_SELF; allowSet = 1; break;
+  case ObjectpropertyAllowmethoddispatchIdx: flags = NSF_ALLOW_METHOD_DISPATCH; allowSet = 1; break;
   }
 
   if (valueObj) {
@@ -22446,7 +22501,10 @@ ListMethodKeysClassList(Tcl_Interp *interp, NsfClasses *classList,
   for (pl = classList; pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr);
 
-    if (!MethodSourceMatches(withSource, pl->cl, NULL)) continue;
+    if (!MethodSourceMatches(withSource, pl->cl, NULL)) {
+      continue;
+    }
+
     ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType,
 		   withCallprotection, withPath,
                    dups, object, withPer_object);

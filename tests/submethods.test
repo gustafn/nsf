@@ -520,7 +520,7 @@ nx::Test case submethods-current-introspection {
 }
 
 #
-#
+# Test current args in ensemble methods
 #
 nx::Test case current-args {
   nx::Class create C {
@@ -533,8 +533,95 @@ nx::Test case current-args {
 
   ? {c1 foo -x 2} "-x 2"
   ? {c1 bar foo -x 2} "-x 2"
-
 }
 
 
+#
+# Test forwarding to child object, with respect to settings of the
+# object properties keepcallerself and allowmethoddispatch
+#
 
+nx::Test case child-obj-delegation {
+
+  nx::Object create obj {
+    nx::Object create [self]::child {
+      :public method foo {} {return [self]}
+    }
+    :public forward link1 {%[self]::child}
+    :public forward link2 :child
+    :public method  link3 args {[self]::child {*}$args}
+    :public alias   link4 [self]::child
+    :public forward link5 [self]::child
+  }
+
+  #
+  # Default case
+  #   keepcallerself false
+  #   allowmethoddispatch false
+  #
+
+  ::nsf::object::property obj::child keepcallerself false
+  ::nsf::object::property obj::child allowmethoddispatch false
+  
+  ? {obj link1 foo} {::obj::child}
+  ? {obj link2 foo} {::obj: unable to dispatch method 'child'}
+  ? {obj link3 foo} {::obj::child}
+  ? {obj link4 foo} {::obj::child}
+  ? {obj link5 foo} {::obj::child}
+
+  ? {lsort [obj info methods child]} {}
+  ? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
+  ? {lsort [obj info lookup methods child]} {}
+  ? {lsort [obj info lookup methods child*]} {}
+
+  #
+  # turn on keepcallerself
+  #
+  ::nsf::object::property obj::child keepcallerself true
+  ::nsf::object::property obj::child allowmethoddispatch false
+
+  ? {obj link1 foo} {::obj::child}
+  ? {obj link2 foo} {::obj: unable to dispatch method 'child'}
+  ? {obj link3 foo} {::obj::child}
+  ? {obj link4 foo} {::obj}
+  ? {obj link5 foo} {::obj::child}
+
+  ? {lsort [obj info methods child]} {}
+  ? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
+  ? {lsort [obj info lookup methods child]} {}
+  ? {lsort [obj info lookup methods child*]} {}
+
+  #
+  # turn on allowmethoddispatch
+  #
+  ::nsf::object::property obj::child keepcallerself false
+  ::nsf::object::property obj::child allowmethoddispatch true
+
+  ? {obj link1 foo} {::obj::child}
+  ? {obj link2 foo} {::obj::child}
+  ? {obj link3 foo} {::obj::child}
+  ? {obj link4 foo} {::obj::child}
+  ? {obj link5 foo} {::obj::child}
+
+  ? {lsort [obj info methods child]} {child}
+  ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
+  ? {lsort [obj info lookup methods child]} {child}
+  ? {lsort [obj info lookup methods child*]} {child}
+
+  #
+  # turn on allowmethoddispatch and keepcallerself
+  #
+  ::nsf::object::property obj::child keepcallerself true
+  ::nsf::object::property obj::child allowmethoddispatch true
+
+  ? {obj link1 foo} {::obj::child}
+  ? {obj link2 foo} {::obj}
+  ? {obj link3 foo} {::obj::child}
+  ? {obj link4 foo} {::obj}
+  ? {obj link5 foo} {::obj::child}
+
+  ? {lsort [obj info methods child]} {child}
+  ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
+  ? {lsort [obj info lookup methods child]} {child}
+  ? {lsort [obj info lookup methods child*]} {child}
+}

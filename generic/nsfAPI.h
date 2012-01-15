@@ -148,12 +148,12 @@ static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
   return result;
 }
   
-enum ObjectpropertyIdx {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertySlotcontainerIdx, ObjectpropertyKeepcallerselfIdx};
+enum ObjectpropertyIdx {ObjectpropertyNULL, ObjectpropertyInitializedIdx, ObjectpropertyClassIdx, ObjectpropertyRootmetaclassIdx, ObjectpropertyRootclassIdx, ObjectpropertySlotcontainerIdx, ObjectpropertyKeepcallerselfIdx, ObjectpropertyAllowmethoddispatchIdx};
 
 static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "slotcontainer", "keepcallerself", NULL};
+  static CONST char *opts[] = {"initialized", "class", "rootmetaclass", "rootclass", "slotcontainer", "keepcallerself", "allowmethoddispatch", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectproperty", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -201,7 +201,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|baseclasses"},
   {ConvertToConfigureoption, "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
-  {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself"},
+  {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|allowmethoddispatch"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {NULL, NULL}
 };

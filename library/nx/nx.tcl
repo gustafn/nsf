@@ -147,22 +147,31 @@ namespace eval ::nx {
     if {[string first " " $path] > -1} {
       set methodName [lindex $path end]
       set regObject $object
+
       foreach w [lrange $path 0 end-1] {
-	#puts stderr "check $object info methods $path @ <$w>"
 	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}]
-	if {[::nsf::directdispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} {
+	if {[::nsf::is class $object] && !${per-object}} {
+	  set scope class
+	  set ensembleName [::nx::slotObj ${object} __$w]
+	} else {
+	  set scope object
+	  set ensembleName ${object}::$w
+	} 
+	#puts stderr "NX check $scope $object info methods $path @ <$w> cmd=[info command $w] obj?[nsf::object::exists $ensembleName] "
+	#if {[::nsf::directdispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} 
+	if {![nsf::object::exists $ensembleName]} {
  	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
 	  #
+	  set o [nx::EnsembleObject create $ensembleName]
 	  if {$scope eq "class"} {
-	    set o [nx::EnsembleObject create [::nx::slotObj ${object} __$w]]
 	    if {$verbose} {puts stderr "... create object $o"}
 	    # We are on a class, and have to create an alias to be
 	    # accessible for objects
 	    ::nsf::method::alias $object $w $o
 	    if {$verbose} {puts stderr "... create alias $object $w $o"}
 	  } else {
-	    set o [EnsembleObject create ${object}::$w]
+	    #::nsf::object::property ${object}::$w allowmethoddispatch true
 	    if {$verbose} {puts stderr "... create object $o"}
 	  }
 	  set object $o
@@ -472,6 +481,9 @@ namespace eval ::nx {
     #
     :protected method init {} {
       ::nsf::object::property [self] keepcallerself true
+      ::nsf::object::property [self] allowmethoddispatch true
+      # object property "allowmethoddispatch" is just needed for
+      # per-object ensembles and is set upon this creaton.
     }
     :protected method unknown {callInfo args} {
       set path [lrange $callInfo 1 end-1]; # set path [current methodpath]
@@ -2060,6 +2072,8 @@ namespace eval ::nx {
 	    :copyNSVarsAndCmds ::nsf::classes$origin ::nsf::classes$dest
 	  }
 	  # copy object -> might be a class obj
+	  ::nsf::object::property $obj keepcallerself [::nsf::object::property $origin keepcallerself]
+	  ::nsf::object::property $obj allowmethoddispatch [::nsf::object::property $origin allowmethoddispatch]
 	  ::nsf::method::assertion $obj check [::nsf::method::assertion $origin check]
 	  ::nsf::method::assertion $obj object-invar [::nsf::method::assertion $origin object-invar]
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]

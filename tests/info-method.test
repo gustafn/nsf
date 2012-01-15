@@ -169,21 +169,45 @@ nx::Test case info-method-base {
   ::nx::configure defaultMethodCallProtection false
 }
 
-nx::Test case subobj {
+#
+# Test visability of obj-objects 
+#
+
+nx::Test case sub-objects {
   ::nx::Object create o {
     ::nx::Object create [::nx::self]::sub {
       :method foo {} {;}
     }
-    :alias subal ::o::sub
+    :public alias soAlias ::o::sub
   }
-  ? {o info methods} "sub subal"
+  ? {o info methods} "soAlias"
+  ? {o info method type soAlias} "alias"
+  
+  nsf::object::property ::o::sub allowmethoddispatch on
+  ? {o info methods} "soAlias sub"
   ? {o info method type sub} "object"
   ? {o info method definition sub} "::nx::Object create ::o::sub"
-  ? {o info method type subal} "alias"
 }
 
-package req nx
-package require nx::test
+#
+# Test visability of aliased Objects
+#
+nx::Test case sub-objects {
+  ::nx::Object create ::I
+  ::nx::Class create C {
+    :public alias i ::I
+    :create c1
+  }
+  ? {C info methods i} ""
+  ? {c1 info lookup methods i} ""
+
+  ::nsf::object::property ::I allowmethoddispatch 1
+  ? {C info methods i} "i"
+  ? {c1 info lookup methods i} "i"
+}
+
+
+#package require nx::test
 
 #
 # Introspect the returns method property throught the "info method"

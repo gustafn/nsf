@@ -793,7 +793,7 @@ nx::Test case class-object-property {
 
   ? {::nsf::object::exists ::C} 1
   ? {::nsf::object::exists ::C::slot} 1
-
+  
   set s(C) [C serialize]
   C destroy
 

@@ -151,7 +151,7 @@ cmd "object::exists" NsfObjectExistsCmd {
 } {-nxdoc 1}
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|allowmethoddispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 } {-nxdoc 1}
 cmd "object::qualify" NsfObjectQualifyCmd {
