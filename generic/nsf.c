@@ -10819,6 +10819,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
       if (success == 1) {
 	*clientData = objPtr;
       } else {
+	Tcl_ResetResult(interp);
 	result = NsfObjErrType(interp, NULL, objPtr, ObjStr(pPtr->converterArg), (Nsf_Param *)pPtr);
       }
     }
@@ -10874,6 +10875,7 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
   if (result == TCL_OK) {
     *clientData = (ClientData)INT2PTR(bool);
   } else {
+    Tcl_ResetResult(interp);
     NsfObjErrType(interp, NULL, objPtr, "boolean", pPtr);
   }
   assert(*outObjPtr == objPtr);
@@ -10908,6 +10910,7 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
     *clientData = (ClientData)INT2PTR(i);
     assert(*outObjPtr == objPtr);
   } else {
+    Tcl_ResetResult(interp);
     NsfObjErrType(interp, NULL, objPtr, "int32", (Nsf_Param *)pPtr);
   }
   return result;
@@ -10973,6 +10976,7 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
     *clientData = (ClientData)objPtr;
     assert(*outObjPtr == objPtr);
   } else {
+    Tcl_ResetResult(interp);
     NsfObjErrType(interp, NULL, objPtr, "integer", (Nsf_Param *)pPtr);
   }
   return result;
@@ -16053,8 +16057,8 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
       result = (*pPtr->converter)(interp, elementObjPtr, pPtr, clientData, &elementObjPtr);
       if (likely(result == TCL_OK || result == TCL_CONTINUE)) {
         if (ov[i] != elementObjPtr) {
-          fprintf(stderr, "ArgumentCheck: switch to output list construction for value %s\n",
-		  ObjStr(elementObjPtr));
+          /*fprintf(stderr, "ArgumentCheck: switch to output list construction for value %s\n",
+	    ObjStr(elementObjPtr));*/
           /*
 	   * The elementObjPtr differs from the input Tcl_Obj, we switch to
            * the version of this handler building an output list. But first,
@@ -21185,7 +21189,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	  /*fprintf(stderr, "call alias %s with methodObj %s.%s oc %d, nrArgs %d '%s'\n",
 		  paramPtr->name, ObjectName(object), ObjStr(methodObj), oc,
 		  paramPtr->nrArgs, ObjStr(newValue));*/
-	
+
+	  Tcl_ResetResult(interp);
 	  result = NsfCallMethodWithArgs(interp, (Nsf_Object*)object, methodObj,
 					 ov0, oc, ovPtr, NSF_CSC_IMMEDIATE);
 	}

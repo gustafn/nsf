@@ -3830,6 +3830,7 @@ nsf.c:
   "info methods" and "info search methods"
 - extended regression test
 
+- improve handling of multiple error messages in a single command
 
 ========================================================================
 TODO:

@@ -391,10 +391,13 @@ NsfObjErrType(Tcl_Interp *interp,
 {
   int named = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
   int returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);
+  char *prevErrMsg = ObjStr(Tcl_GetObjResult(interp));
 
-  /*fprintf(stderr, "NsfObjErrType param %p named %d\n", paramPtr, named);*/
+  if (*prevErrMsg != '\0') {
+    Tcl_AppendResult(interp, " 2nd error: ",  (char *) NULL);
+  }
 
-  Tcl_ResetResult(interp);
+  //Tcl_ResetResult(interp);
   if (context) {
     Tcl_AppendResult(interp, context, ": ",  (char *) NULL);
   }
