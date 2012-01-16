@@ -4,6 +4,23 @@ package prefer latest
 package require XOTcl 2.0; namespace import ::xotcl::*
 package require nx::test; namespace import nx::Test
 
+Test new -msg {test multiple dashed args o0} \
+    -cmd {Object create o0 [list -set a -a1] [list -set b "-b 1 -y 2"]} \
+    -expected ::o0 \
+    -post {o0 destroy}
+Test new -msg {test multiple dashed args o1} \
+    -cmd {Object create o1 -proc foo args {return 1} [list -set a -a1] [list -set b "-b 1 -y 2"]} \
+    -expected ::o1 \
+    -post {o1}
+Test new -msg {test multiple dashed args o2} \
+    -cmd {Object create o2 {-proc foo args {return 1}} {-set -a -t1} {-set b "-b 1 -y 2"}} \
+    -expected ::o2 \
+    -post {o2 destroy}
+Test new -msg {test multiple dashed args o3} \
+    -cmd {Object create o3 -proc foo args {return 1} {-set -a -t1} {-set b "-b 1 -y 2"}} \
+    -expected ::o3 \
+    -post {o3 destroy}     
+
 Test parameter count 1000
 
 @ @File {description {
@@ -16,7 +33,7 @@ set ccount 20
 #set ocount 1014
 #set ocount [expr {$ccount + 206}]
 #set ocount [expr {$ccount + 15}]
-set ocount [expr {$ccount + 5}]
+set ocount [expr {$ccount + 6}]
 
 Class M1; Class M2
 Class C -parameter {{p 99} {q 98} r}
@@ -543,7 +560,7 @@ Test new -msg {return -code break} \
     -pre {Class A -instproc br {} {return -code break}; A create a1} \
     -cmd {catch {a1 br}} -expected 3 -count 2 \
     -post {A destroy; a1 destroy}
-     
+
 
 Test run; exit
 

@@ -15776,7 +15776,8 @@ IsDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, CONST char **methodNam
     }
   }
   flag = ObjStr(obj);
-  /*fprintf(stderr, "we have a scalar '%s'\n", flag);*/
+  /*fprintf(stderr, "we have a scalar '%s' firstArg %d\n", flag, firstArg);*/
+
   if ((*flag == '-') && isalpha(*((flag)+1))) {
     if (firstArg) {
       /* if the argument contains a space, try to split */
@@ -21543,7 +21544,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
 	nextArgc = 0;
 	
         for (j = i+1; j < objc; j++, argc++) {
-          if ((isdasharg = IsDashArg(interp, objv[j], j==i+1, &nextMethodName, &nextArgc, &nextArgv))) {
+          if ((isdasharg = IsDashArg(interp, objv[j], 1, &nextMethodName, &nextArgc, &nextArgv))) {
             break;
           }
         }
