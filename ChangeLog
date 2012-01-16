@@ -1,3 +1,8 @@
+2012-01-16 <Gustaf.Neumann@wu-wien.ac.at>
+	* xotcl.c Extend backport of handling of dashses in XOTcl's
+	configure method to perform a more eager search for command
+	begins. Extended regression test
+
 2012-01-14 <Gustaf.Neumann@wu-wien.ac.at>
 	* xotcl.c Don't overwrite error messages from __unknown handler in
 	several situations (superclass, parameter class, mixin class)

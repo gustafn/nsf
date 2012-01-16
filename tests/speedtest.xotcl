@@ -497,6 +497,27 @@ Test new -msg {return -code break} \
     -post {A destroy; a1 destroy}
      
 
+Test new -msg {test multiple dashed args} \
+    -pre {::Class create Person} \
+    -cmd {Person create p0 [list -set a -a1] [list -set b "-b 1 -y 2"]} \
+    -expected ::p0 \
+    -post {Person destroy}
+Test new -msg {test multiple dashed args} \
+    -pre {::Class create Person} \
+    -cmd {Person create p1 Person create p1 -proc foo args {return 1} [list -set a -a1] [list -set b "-b 1 -y 2"]} \
+    -expected ::p1 \
+    -post {Person destroy}
+Test new -msg {test multiple dashed args} \
+    -pre {::Class create Person -parameter {a b}} \
+    -cmd {Person create p2 {-proc foo args {return 1}} {-set -a -t1} {-set b "-b 1 -y 2"}} \
+    -expected ::p2 \
+    -post {Person destroy}
+Test new -msg {test multiple dashed args} \
+    -pre {::Class create Person -parameter {a b}} \
+    -cmd {Person create p3  -proc foo args {return 1} {-set -a -t1} {-set b "-b 1 -y 2"}} \
+    -expected ::p3 \
+    -post {Person destroy}
+
 Test run; exit
 
 

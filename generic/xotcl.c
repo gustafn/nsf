@@ -10458,7 +10458,7 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int
     }
   }
   flag = ObjStr(obj);
-  /*fprintf(stderr, "we have a scalar '%s'\n", flag);*/
+  /*fprintf(stderr, "we have a scalar '%s' firstArg %d\n", flag, firstArg);*/
 
   if ((*flag == '-') && isalpha(*((flag)+1))) {
     if (firstArg) {
@@ -10531,10 +10531,10 @@ XOTclOConfigureMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
   for( ; i < objc;  argc=nextArgc, argv=nextArgv, methodName=nextMethodName) {
     Tcl_ResetResult(interp);
     switch (isdasharg) {
-    case SKALAR_DASH:    /* argument is a skalar with a leading dash */
+    case SKALAR_DASH:    /* argument is a skalar with a leading dash, eager search for dashed arg */
       { int j;
         for (j = i+1; j < objc; j++, argc++) {
-          if ((isdasharg = isDashArg(interp, objv[j], j==i+1, &nextMethodName, &nextArgc, &nextArgv)))
+          if ((isdasharg = isDashArg(interp, objv[j], 1, &nextMethodName, &nextArgc, &nextArgv)))
             break;
         }
         result = callConfigureMethod(interp, obj, methodName, argc+1, objv+i+1);
