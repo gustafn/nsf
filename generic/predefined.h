@@ -59,7 +59,7 @@ static char cmd[] =
 "proc ::nsf::log {level msg} {\n"
 "puts stderr \"$level: $msg\"}}\n"
 "proc ::nsf::deprecated {what oldCmd newCmd} {\n"
-"set msg \"**\\n** The $what $oldcmd is deprecated.\"\n"
+"set msg \"**\\n** The $what $oldCmd is deprecated.\"\n"
 "if {$newCmd ne \"\"} {append msg \" use $newCmd instead.\"}\n"
 "append msg \"\\n**\\n\"\n"
 "nsf::log Warning $msg}\n"
