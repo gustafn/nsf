@@ -153,7 +153,7 @@ namespace eval ::nsf {
   # deprecated command
   #
   proc ::nsf::deprecated {what oldCmd newCmd} {
-    set msg "**\n** The $what $oldcmd is deprecated."
+    set msg "**\n** The $what $oldCmd is deprecated."
     if {$newCmd ne ""} {append msg " use $newCmd instead."}
     append msg "\n**\n"
     nsf::log Warning $msg
