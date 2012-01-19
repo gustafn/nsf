@@ -3832,8 +3832,21 @@ nsf.c:
 
 - improve handling of multiple error messages in a single command
 
+- alias reform: instead of calling first an alias with a stack frame
+  followed by the dispatched of the aliased cmd, resolve aliases
+  internally in dispatch. This has the advantage that we do not
+  have to ignore the "transparent" stack frame in some sitations,
+  and we have much less problems with the names of the aliased cmds
+  (e.g. objects) in the introspection methods. Additionally, several
+  problem cases disappeared from the regression test cases. 
+  In addition, the new approach is faster.
+- eliminating obsolete flag NSF_CSC_CALL_IS_TRANSPARENT
+
 ========================================================================
 TODO:
+
+- make an additional attempt to use aliases instead of direct
+  object dispatches in ensembles - reconsider whether it is worth the effort.
 
 - also aliasMethods pointing to objects require that these objects
   have allowmethoddispatch, since this is an object property 

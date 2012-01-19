@@ -92,7 +92,7 @@ Test case alias-chaining {
   ::nsf::method::alias T FOO ::nsf::classes::T::foo 
   
   ? {t foo} ::T->foo
-  ? {t FOO} ::T->foo
+  ? {t FOO} ::T->FOO
   
   ? {lsort [T info methods]} {FOO foo}
   T method foo {} {}
@@ -112,7 +112,7 @@ Test case alias-chaining {
   T method FOO {} {}
   ? {T info methods} {foo}
   ? {S info methods} {BAR}
-  ? {s BAR} ::S->foo
+  ? {s BAR} ::S->BAR
   ? {t foo} ::T->foo
   ? {S info method definition BAR} "::S public alias BAR ::nsf::classes::T::FOO"
   
@@ -150,28 +150,28 @@ Test case alias-chaining {
   ? {t foo} ::T->foo
   ? {T class info method definition ZAP} {::T public class alias ZAP ::T::BAR}
   
-  ? {T FOO} ->foo
-  ? {T BAR} ->foo
-  ? {T ZAP} ->foo
+  ? {T FOO} ->FOO
+  ? {T BAR} ->BAR
+  ? {T ZAP} ->ZAP
   ? {T bar} ->bar
   T class method FOO {} {}
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
   ? {lsort [T class info methods]} {BAR ZAP bar}
-  ? {T BAR} ->foo
-  ? {T ZAP} ->foo
+  ? {T BAR} ->BAR
+  ? {T ZAP} ->ZAP
   rename ::T::BAR ""
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
   ? {lsort [T class info methods]} {ZAP bar}
-  ? {T ZAP} ->foo; # is ok, still pointing to 'foo'
+  ? {T ZAP} ->ZAP; # is ok, still pointing to 'foo'
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
   ? {lsort [T class info methods]} {ZAP bar}
-  ? {T ZAP} ->foo
+  ? {T ZAP} ->ZAP
   T public method foo {} {}
   #WITH_IMPORT_REFS
   #? {T info methods} {}
@@ -197,12 +197,12 @@ Test case alias-per-object {
   ::nsf::method::alias T -per-object M11 ::T::M1 
   ? {lsort [T class info methods]} {M1 M11 bar m1}
   ? {T m1} ->m1
-  ? {T M1} ->m1
-  ? {T M11} ->m1
+  ? {T M1} ->M1
+  ? {T M11} ->M11
   T class method M1 {} {}
   ? {lsort [T class info methods]} {M11 bar m1}
   ? {T m1} ->m1
-  ? {T M11} ->m1
+  ? {T M11} ->M11
   T class method m1 {} {}
   #WITH_IMPORT_REFS
   #? {lsort [T class info methods]} {bar}
@@ -223,9 +223,9 @@ Test case alias-per-object {
   #? {lsort [T class info methods]} {FOO2 bar}
   ? {lsort [T class info methods]} {FOO2 M11 bar}
   ? {lsort [T info methods]} {BAR FOO1}
-  ? {T FOO2} ->foo
-  ? {t FOO1} ::T->foo
-  ? {t BAR} ::T->foo
+  ? {T FOO2} ->FOO2
+  ? {t FOO1} ::T->FOO1
+  ? {t BAR} ::T->BAR
   #
   # delete proc
   #
@@ -248,8 +248,8 @@ Test case alias-namespaced {
   
   namespace eval ::ns1 {
     proc foo args { return [current class]->[current method] }
-    proc bar args { return [uplevel 2 {set _}] }
-    proc bar2 args { upvar 2 _ __; return $__}
+    proc bar args { return [uplevel 1 {set _}] }
+    proc bar2 args { upvar 1 _ __; return $__}
   }
   
   ::nsf::method::alias T FOO ::ns1::foo
@@ -257,7 +257,7 @@ Test case alias-namespaced {
   ::nsf::method::alias T BAR2 ::ns1::bar2
   ? {lsort [T info methods]} {BAR BAR2 FOO}
   set ::_ GOTYA
-  ? {t FOO} ::T->foo
+  ? {t FOO} ::T->FOO
   ? {t BAR} GOTYA
   ? {t BAR2} GOTYA
   namespace delete ::ns1
@@ -279,8 +279,8 @@ Test case alias-namespaced {
   U public class method bar args { return [current class]->[current method] }
   ::nsf::method::alias U -per-object BAR ::U::bar
   ? {lsort [U class info methods]} {BAR ZAP bar zap}
-  ? {U BAR} ->bar
-  ? {U ZAP} ->zap
+  ? {U BAR} ->BAR
+  ? {U ZAP} ->ZAP
   namespace delete ::U
   ? {namespace exists ::U} 0
   ? {lsort [U class info methods]} {}
@@ -325,6 +325,7 @@ Test case alias-dot-resolver {
   ? {lsort [V class info methods]} {FOO2 bar}
 }
 
+Test case alias-store
 #
 # Tests for the ::nsf::method::alias store, used for introspection for
 # aliases. The alias store (an associative variable) is mostly
@@ -452,7 +453,7 @@ unset ::nsf::alias(::C,FOO,0)
 ? {c FOO2} {target "::foo" of alias FOO2 apparently disappeared}
 rename ::foo2 ::foo
 ? {c FOO} {Could not obtain alias definition for ::C FOO.}
-? {c FOO2} {::c->foo}
+? {c FOO2} {::c->FOO2}
 
 #
 # Check resolving of namespace imported classes
@@ -518,7 +519,7 @@ Test case proc-alias {
   
   ? {c1 bar} 1
   ? {c1 bar_} 1
-  ? {c1 bar2} 0 ;# upvar reaches into to alias-redirector
+  ? {c1 bar2} 1
 
   ? {d1 bar} 1
   ? {d1 bar_} 1

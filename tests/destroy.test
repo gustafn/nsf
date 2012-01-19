@@ -448,6 +448,8 @@ Test case deleting-aliased-object1 {
   o2 destroy
   ? {o a info vars} "Trying to dispatch deleted object via method 'a'" "1st call on deleted object"
   ? {o a info vars} "::o: unable to dispatch method 'a'" "2nd call on deleted object"
+  #? {o a info vars} {target "o2" of alias a apparently disappeared} "1st call on deleted object"
+  #? {o a info vars} {target "o2" of alias a apparently disappeared} "2nd call on deleted object"
 }
 
 Test case deleting-aliased-object2 {
@@ -471,6 +473,8 @@ Test case deleting-aliased-object2 {
   o2 destroy
   ? {o a info vars} "Trying to dispatch deleted object via method 'a'" "1st call on deleted object"
   ? {o a info vars} "::o: unable to dispatch method 'a'" "2nd call on deleted object"
+  #? {o a info vars} {target "o2" of alias a apparently disappeared} "1st call on deleted object"
+  #? {o a info vars} {target "o2" of alias a apparently disappeared} "2nd call on deleted object"
 }
 
 set case "deleting object with alias to object"
@@ -489,7 +493,10 @@ Test case create-alias-delete-via-aggregation
 Object create o
 Object create o3
 ::nsf::method::alias o x o3
-o::x destroy
+#o::x destroy
+o3 destroy
+#? {o x foo} {target "o3" of alias x apparently disappeared}
+? {o x foo} {Trying to dispatch deleted object via method 'x'}
 ? {::nsf::object::exists o3} 0 "aliased object destroyed"
 o destroy
 
@@ -531,6 +538,7 @@ Test case create-alias-on-class-delete-aliased-obj {
   ? {c1 set A} 3 "call 2nd level ok"
   o destroy
   ? {c1 b} "Trying to dispatch deleted object via method 'b'" "call via alias to deleted object"
+  #? {c1 b} {target "o" of alias b apparently disappeared} "call via alias to deleted object"
 }
 
 #

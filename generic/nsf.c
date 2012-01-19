@@ -321,6 +321,8 @@ static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *metho
 static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd);
 static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 			     CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
+static int AliasRefetch(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, 
+			 AliasCmdClientData *tcd);
 
 /* prototypes for (class) list handling */
 static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData);
@@ -9422,12 +9424,215 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ObjectCmdMethodDispatch --
+ *
+ *    Invoke a method implemented as ab object. The referenced object is used
+ *    as a source for methods to be executed.  Essentially this is currently
+ *    primarily used to implement the dispatch of ensemble objects.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Indirect effects by calling cmd
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+			CONST char *methodName, NsfObject *callerSelf, NsfCallStackContent *cscPtr) {
+  int result;
+  Tcl_Command cmd = cscPtr->cmdPtr;
+
+  /*fprintf(stderr, "ObjectCmdMethodDispatch %p %s\n", cmd, Tcl_GetCommandName(interp, cmd));*/
+
+  assert(invokedObject);
+
+  /*fprintf(stderr, "ObjectCmdMethodDispatch method %s invokedObject %p %s callerSelf %p %s\n",
+	  methodName, invokedObject, ObjectName(invokedObject),
+	  callerSelf, ObjectName(callerSelf));*/
+  
+  if (unlikely(invokedObject->flags & NSF_DELETED)) {
+    /*
+     * When we try to invoke a deleted object, the cmd (alias) is
+     * automatically removed. Note that the cmd might be still referenced
+     * in various entries in the call-stack. The reference counting on
+     * these elements takes care that the cmdPtr is deleted on a pop
+     * operation (although we do a Tcl_DeleteCommandFromToken() below.
+     */
+    
+    /*fprintf(stderr, "methodName %s found DELETED object with cmd %p my cscPtr %p\n",
+      methodName, cmd, cscPtr);*/
+    
+    Tcl_DeleteCommandFromToken(interp, cmd);
+    if (cscPtr->cl) {
+      NsfInstanceMethodEpochIncr("DeleteObjectAlias");
+    } else {
+      NsfObjectMethodEpochIncr("DeleteObjectAlias");
+    }
+    
+    NsfCleanupObject(invokedObject, "alias-delete1");
+    return NsfPrintError(interp, "Trying to dispatch deleted object via method '%s'",
+			 methodName);
+  }
+  
+  /*
+   * Make sure, that the current call is marked as an ensemble call, both
+   * for dispatching to the default-method and for dispatching the method
+   * interface of the given object. Otherwise, current introspection
+   * specific to sub-methods fails (e.g., a [current method-path] in the
+   * default-method).
+   */
+  cscPtr->flags |= NSF_CSC_CALL_IS_ENSEMBLE;
+
+  /* fprintf(stderr, "ensemble dispatch cp %s %s objc %d\n", 
+     ObjectName((NsfObject*)cp), methodName, objc);*/
+  
+  /*
+   * Check, if the object cmd was called without a reference to a method. If
+   * so, perform the standard dispatch of default methods.
+   */
+  
+  if (unlikely(objc < 2)) {
+    CallFrame frame, *framePtr = &frame;
+    Nsf_PushFrameCsc(interp, cscPtr, framePtr);
+    result = DispatchDefaultMethod(interp, invokedObject, objv[0], NSF_CSC_IMMEDIATE);
+    Nsf_PopFrameCsc(interp, framePtr);
+  } else {
+    CallFrame frame, *framePtr = &frame;
+    char *subMethodName = ObjStr(objv[1]);
+
+    cscPtr->objc = objc;
+    cscPtr->objv = objv;
+    Nsf_PushFrameCsc(interp, cscPtr, framePtr);
+    
+    if (likely(invokedObject->nsPtr != NULL)) {
+      cmd = FindMethod(invokedObject->nsPtr, subMethodName);
+      
+      /*fprintf(stderr, "... objv[0] %s cmd %p %s csc %p\n",
+	ObjStr(objv[0]), cmd, subMethodName, cscPtr); */
+      
+      if (likely(cmd != NULL)) {
+	/*
+	 * In order to allow [next] to be called in an ensemble method,
+	 * an extra call-frame is needed. This CSC frame is typed as
+	 * NSF_CSC_TYPE_ENSEMBLE. Note that the associated call is flagged
+	 * additionally (NSF_CSC_CALL_IS_ENSEMBLE; see above) to be able
+	 * to identify ensemble-specific frames during [next] execution.
+	 *
+	 * The dispatch requires NSF_CSC_IMMEDIATE to be set, ensuring
+	 * that scripted methods are executed before the ensemble ends. If
+	 * they were executed later, they would find their parent frame
+	 * (CMETHOD) being popped from the stack already.
+	 */
+	NsfObject *newSelf;
+	NsfClass *newClass;
+
+	if (invokedObject->flags & NSF_KEEP_CALLER_SELF) {
+	  newSelf = callerSelf;
+	  newClass = cscPtr->cl;
+	} else {
+	  newSelf = invokedObject;
+	  newClass = NULL;
+	}
+	/*fprintf(stderr, ".... ensemble dispatch object %s self %s pass %s\n", 
+		ObjectName(object), ObjectName(self), (self->flags & NSF_KEEP_CALLER_SELF) ? "callerSelf" : "invokedObject");
+	fprintf(stderr, ".... ensemble dispatch on %s.%s objflags %.8x cscPtr %p base flags %.6x flags %.6x cl %s\n",
+		ObjectName(newSelf), subMethodName, self->flags,
+		cscPtr, (0xFF & cscPtr->flags), (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE, 
+		newClass ? ClassName(newClass) : "NONE");*/
+	result = MethodDispatch(newSelf, 
+				interp, objc-1, objv+1,
+				cmd, newSelf, newClass, subMethodName,
+				cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
+				(cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
+	/*if (result != TCL_OK) {
+	  fprintf(stderr, "ERROR: cmd %p %s subMethodName %s // %s // %s\n", 
+		  cmd, Tcl_GetCommandName(interp, cmd), subMethodName,  
+		  Tcl_GetCommandName(interp, cscPtr->cmdPtr), ObjStr(Tcl_GetObjResult(interp)));
+		  }*/
+	goto obj_dispatch_ok;
+      }
+    }
+    
+    /*
+     * The method to be called was not part of this ensemble. Call
+     * next to try to call such methods along the next path.
+     */
+    /*fprintf(stderr, "call next instead of unknown %s.%s \n",
+      ObjectName(cscPtr->self), methodName);*/
+    {
+      Tcl_CallFrame *framePtr1;
+      NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
+      
+      assert(cscPtr1);
+      if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
+	/*
+	 * We are in an ensemble method. The next works here not on the
+	 * actual methodName + frame, but on the ensemble above it. We
+	 * locate the appropriate call-stack content and continue next on
+	 * that.
+	 */
+	cscPtr1 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
+	assert(cscPtr1);
+      }
+      
+      /*
+       * The method name for next might be colon-prefixed. In
+       * these cases, we have to skip the single colon.
+       */
+      result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
+				   cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
+    }
+    
+    /*fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n",
+      ObjectName(self), methodName, ObjectName(object), cscPtr, result,
+      RUNTIME_STATE(interp)->unknown); */
+    
+    if (RUNTIME_STATE(interp)->unknown) {
+      /*
+       * Unknown handling: We trigger a dispatch to an unknown method. The
+       * appropriate unknown handler is either provided for the current
+       * object (at the class or the mixin level), or the default unknown
+       * handler takes it from there. The application-level unknown
+       * handler cannot determine the top-level calling object (referred
+       * to as the delegator). Therefore, we assemble all the necessary
+       * call data as the first argument passed to the unknown
+       * handler. Call data include the calling object (delegator), the
+       * method path, and the unknown final method.
+       */
+      Tcl_Obj *callInfoObj = Tcl_NewListObj(1, &callerSelf->cmdName);
+      Tcl_Obj *methodPathObj = CallStackMethodPath(interp, (Tcl_CallFrame *)framePtr);
+      
+      INCR_REF_COUNT(methodPathObj);
+      Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
+      
+      Tcl_ListObjAppendElement(interp, callInfoObj, Tcl_NewStringObj(MethodName(objv[0]), -1));
+      Tcl_ListObjAppendElement(interp, callInfoObj, objv[1]);
+      
+      DECR_REF_COUNT(methodPathObj);
+      
+      result = DispatchUnknownMethod(interp, invokedObject, objc-1, objv+1, callInfoObj,
+				     objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
+    }
+
+  obj_dispatch_ok:
+    Nsf_PopFrameCsc(interp, framePtr);
+    
+  }
+  return result;
+}
+
 #if !defined(NSF_ASSEMBLE)
 static int NsfAsmProc(ClientData clientData, Tcl_Interp *interp,
 		      int objc, Tcl_Obj *CONST objv[]) {
   return TCL_OK;
 }
 #endif
+
 
 /*
  *----------------------------------------------------------------------
@@ -9454,7 +9659,50 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   NsfObject *object = cscPtr->self;
   ClientData cp = Tcl_Command_objClientData(cmd);
   Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+  NsfCallStackContent *cscPtr1;
   int result;
+
+  /*
+   * In a first step, resolve the alias
+   */
+
+  if (proc == NsfProcAliasMethod) {
+    AliasCmdClientData *tcd = (AliasCmdClientData *)cp;
+
+    assert(tcd);
+    assert((CmdIsProc(cmd) == 0));
+
+    /*fprintf(stderr, "NsfProcAliasMethod aliasedCmd %p epoch %p\n",
+      tcd->aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/
+
+    if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
+
+      result = AliasRefetch(interp, object, methodName, tcd);
+      if (result != TCL_OK) {
+	// TODO: check freeing of csc?
+	return result;
+      }
+    }
+   
+    /*
+     * We have now the original command still in cscPtr->cmdPtr and the
+     * aliasedCmd in tcd.
+     *
+     tcd->cmdName    = object->cmdName;
+     tcd->interp     = interp; // just for deleting the alias
+     tcd->object     = NULL;
+     tcd->class	    = cl ? (NsfClass *) object : NULL;
+     tcd->objProc    = objProc;
+     tcd->aliasedCmd = cmd;
+     tcd->clientData = Tcl_Command_objClientData(cmd);
+    */
+    
+    cmd = tcd->aliasedCmd;
+    proc = Tcl_Command_objProc(cmd);
+    cp = Tcl_Command_objClientData(cmd);
+
+    // TODO: dereference chain?
+  }
 
   if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
     NSF_DTRACE_METHOD_ENTRY(ObjectName(object),
@@ -9463,6 +9711,9 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 			    objc-1, (Tcl_Obj **)objv+1);
   }
 
+  /*fprintf(stderr, "MethodDispatch method '%s' cmd %p %s clientData %p cp=%p objc=%d cscPtr %p csc->flags %.6x \n",
+	  methodName, cmd, Tcl_GetCommandName(interp, cmd), clientData, 
+	  cp, objc, cscPtr, cscPtr->flags);*/
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d cscPtr %p csc->flags %.6x "
 	  "obj->flags %.6x teardown %p\n",
 	  methodName, cmd, cp, objc, cscPtr, cscPtr->flags, object->flags, object->teardown);*/
@@ -9511,228 +9762,88 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      */
     return result;
 
-  } else if (cp
-	     || (Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)
-	     || (cscPtr->flags & NSF_CSC_FORCE_FRAME)) {
+  } else if (proc == NsfObjDispatch) {
+
+    assert(cp);
+    return ObjectCmdMethodDispatch((NsfObject *)cp, interp, objc, objv,
+				   methodName, object, cscPtr);
+    
+  } else if (cp) {
+
+    cscPtr1 = cscPtr;
+    
+    /*fprintf(stderr, "cscPtr %p cmd %p %s wanna stack cmd %p %s cp %p no-leaf %d force frame %d\n",
+	    cscPtr, cmd, Tcl_GetCommandName(interp, cmd), 
+	    cmd, Tcl_GetCommandName(interp, cmd),
+	    cp,
+	    (Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD),
+	    (cscPtr->flags & NSF_CSC_FORCE_FRAME));*/
     /*
-     * The cmd has client data or we force the frame either via
-     * cmd-flag or csc-flag
+     * The cmd has client data, we check for required updates in this
+     * structure.
      */
-    if (CmdIsNsfObject(cmd)) {
-      /*
-       * Invoke an may be aliased object (ensemble object) via method
-       * interface.
-       */
-      NsfObject *invokeObj = (NsfObject *)cp;
-
-      assert(invokeObj);
-      if (unlikely(invokeObj->flags & NSF_DELETED)) {
-        /*
-         * When we try to invoke a deleted object, the cmd (alias) is
-         * automatically removed. Note that the cmd might be still referenced
-         * in various entries in the call-stack. The reference counting on
-         * these elements takes care that the cmdPtr is deleted on a pop
-         * operation (although we do a Tcl_DeleteCommandFromToken() below.
-         */
-
-	/*fprintf(stderr, "methodName %s found DELETED object with cmd %p my cscPtr %p\n",
-	  methodName, cmd, cscPtr);*/
-
-	assert(cscPtr->cmdPtr == cmd);
-        Tcl_DeleteCommandFromToken(interp, cmd);
-	if (cscPtr->cl) {
-	  NsfInstanceMethodEpochIncr("DeleteObjectAlias");
-	} else {
-	  NsfObjectMethodEpochIncr("DeleteObjectAlias");
-	}
-
-        NsfCleanupObject(invokeObj, "alias-delete1");
-        return NsfPrintError(interp, "Trying to dispatch deleted object via method '%s'",
-                              methodName);
-      }
-
-      /*
-       * Make sure, that the current call is marked as an ensemble call, both
-       * for dispatching to the default-method and for dispatching the method
-       * interface of the given object. Otherwise, current introspection
-       * specific to sub-methods fails (e.g., a [current method-path] in the
-       * default-method).
-       */
-      cscPtr->flags |= NSF_CSC_CALL_IS_ENSEMBLE;
-
-      /*
-       * The client data cp is still the obj (the ensemble object) of the called method
-       */
-
-      /*fprintf(stderr, "ensemble dispatch cp %s %s objc %d\n", 
-	ObjectName((NsfObject*)cp), methodName, objc);*/
-
-      if (unlikely(objc < 2)) {
-	CallFrame frame, *framePtr = &frame;
-	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
-	result = DispatchDefaultMethod(interp, invokeObj, objv[0], NSF_CSC_IMMEDIATE);
-	Nsf_PopFrameCsc(interp, framePtr);
-      } else {
-	CallFrame frame, *framePtr = &frame;
-	NsfObject *self = (NsfObject *)cp;
-	char *methodName = ObjStr(objv[1]);
-
-	cscPtr->objc = objc;
-	cscPtr->objv = objv;
-	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
-
-	if (likely(self->nsPtr != NULL)) {
-	  cmd = FindMethod(self->nsPtr, methodName);
-
-	  /*fprintf(stderr, "... objv[0] %s cmd %p %s csc %p\n",
-		    ObjStr(objv[0]), cmd, methodName, cscPtr); */
-
-	  if (likely(cmd != NULL)) {
-	    /*
-	     * In order to allow [next] to be called in an ensemble method,
-	     * an extra call-frame is needed. This CSC frame is typed as
-	     * NSF_CSC_TYPE_ENSEMBLE. Note that the associated call is flagged
-	     * additionally (NSF_CSC_CALL_IS_ENSEMBLE; see above) to be able
-	     * to identify ensemble-specific frames during [next] execution.
-	     *
-	     * The dispatch requires NSF_CSC_IMMEDIATE to be set, ensuring
-	     * that scripted methods are executed before the ensemble ends. If
-	     * they were executed later, they would find their parent frame
-	     * (CMETHOD) being popped from the stack already.
-	     */
-	    // FIXME: decls should not stay here, can / should we reuse other vars?
-	    NsfObject *newSelf;
-	    NsfClass *newClass;
-	    if (self->flags & NSF_KEEP_CALLER_SELF) {
-	      newSelf = object;
-	      newClass = cscPtr->cl;
-	    } else {
-	      newSelf = self;
-	      newClass = NULL;
-	    }
-	    /*fprintf(stderr, ".... ensemble dispatch object %s self %s pass %s\n", 
-	      ObjectName(object), ObjectName(self), (self->flags & NSF_KEEP_CALLER_SELF) ? "object" : "self");*/
-	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s objflags %.8x cscPtr %p base flags %.6x cl %s\n",
-		    ObjectName(newSelf), methodName, self->flags,
-		    cscPtr, (0xFF & cscPtr->flags),
-		    newClass ? ClassName(newClass) : "NONE");*/
-	    result = MethodDispatch(newSelf, 
-				    interp, objc-1, objv+1,
-				    cmd, newSelf, newClass, methodName,
-				    cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
-				    (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
-	    goto obj_dispatch_ok;
-	  }
-	}
-
-	/*
-	 * The method to be called was not part of this ensemble. Call
-	 * next to try to call such methods along the next path.
-	 */
-	/*fprintf(stderr, "call next instead of unknown %s.%s \n",
-	  ObjectName(cscPtr->self), methodName);*/
-	{
-	  Tcl_CallFrame *framePtr1;
-	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
-	  
-	  assert(cscPtr1);
-	  if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
-	    /*
-	     * We are in an ensemble method. The next works here not on the
-	     * actual methodName + frame, but on the ensemble above it. We
-	     * locate the appropriate call-stack content and continue next on
-	     * that.
-	     */
-	    cscPtr1 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
-	    assert(cscPtr1);
-	  }
-
-	  /*
-	   * The method name for next might be colon-prefixed. In
-	   * these cases, we have to skip the single colon.
-	   */
-	  result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
-				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
-	}
-
-	/*fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n",
-	  ObjectName(self), methodName, ObjectName(object), cscPtr, result,
-	  RUNTIME_STATE(interp)->unknown); */
-
-	if (RUNTIME_STATE(interp)->unknown) {
-	  /*
-	   * Unknown handling: We trigger a dispatch to an unknown method. The
-	   * appropriate unknown handler is either provided for the current
-	   * object (at the class or the mixin level), or the default unknown
-	   * handler takes it from there. The application-level unknown
-	   * handler cannot determine the top-level calling object (referred
-	   * to as the delegator). Therefore, we assemble all the necessary
-	   * call data as the first argument passed to the unknown
-	   * handler. Call data include the calling object (delegator), the
-	   * method path, and the unknown final method.
-	   */
-	  Tcl_Obj *callInfoObj = Tcl_NewListObj(1, &object->cmdName);
-	  Tcl_Obj *methodPathObj = CallStackMethodPath(interp, (Tcl_CallFrame *)framePtr);
-
-	  INCR_REF_COUNT(methodPathObj);
-	  Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
-
-	  Tcl_ListObjAppendElement(interp, callInfoObj, Tcl_NewStringObj(MethodName(objv[0]), -1));
-	  Tcl_ListObjAppendElement(interp, callInfoObj, objv[1]);
-
-	  DECR_REF_COUNT(methodPathObj);
-
-	  result = DispatchUnknownMethod(interp, self, objc-1, objv+1, callInfoObj,
-					 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
-	}
-      obj_dispatch_ok:
-	Nsf_PopFrameCsc(interp, framePtr);
-
-      }
-      return result;
-
-    } else if (proc == NsfForwardMethod ||
-	       proc == NsfObjscopedMethod ||
-	       proc == NsfSetterMethod ||
-	       proc == NsfAsmProc
-               ) {
+ 
+    if (proc == NsfForwardMethod ||
+	proc == NsfObjscopedMethod ||
+	proc == NsfSetterMethod ||
+	proc == NsfAsmProc
+	) {
       TclCmdClientData *tcd = (TclCmdClientData *)cp;
 
       assert(tcd);
       tcd->object = object;
       assert((CmdIsProc(cmd) == 0));
-    } else if (proc == NsfProcAliasMethod) {
-      TclCmdClientData *tcd = (TclCmdClientData *)cp;
-
-      assert(tcd);
-      tcd->object = object;
-      assert((CmdIsProc(cmd) == 0));
-      cscPtr->flags |= NSF_CSC_CALL_IS_TRANSPARENT;
 
     } else if (cp == (ClientData)NSF_CMD_NONLEAF_METHOD) {
       cp = clientData;
       assert((CmdIsProc(cmd) == 0));
-    }
+
+    } 
+#if !defined(NDEBUG)
+    else if (proc == NsfProcAliasMethod) {
+      /* This should never happen */
+      assert(0);
+    } 
+#endif
+
+
+  } else if ((Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) 
+	     || (cscPtr->flags & NSF_CSC_FORCE_FRAME)) {
+    /*
+     * Technically, we would not need a frame to execute the cmd, but maybe,
+     * the user want's it (to be able to call next, or the keep proc-level
+     * variables. The clientData cp is in such cases typically NULL.
+     */
+    /*fprintf(stderr, "FORCE_FRAME\n");*/
+    cscPtr1 = cscPtr;
 
   } else {
     /*
-     * The cmd has no client data. In these situations, no stack frame
-     * is needed. Dispatch the method without the cscPtr, such
-     * CmdMethodDispatch() does not stack a frame.
+     * There is no need to pass a frame. Use the original clientData.
+     */
+    cscPtr1 = NULL;
+  }
+  
+  if (cscPtr1) {
+    /* 
+     * Call with a stack frame.
      */
 
+    /*fprintf(stderr, "cmdMethodDispatch %s.%s, cscPtr %p objflags %.6x\n",
+      ObjectName(object), methodName, cscPtr, object->flags); */
+
+    return CmdMethodDispatch(cp, interp, objc, objv, object, cmd, cscPtr1);
+  } else {
+    /* 
+     * Call without a stack frame.
+     */
     CscListAdd(interp, cscPtr);
 
     /*fprintf(stderr, "cmdMethodDispatch %p %s.%s, nothing stacked, objflags %.6x\n",
       cmd, ObjectName(object), methodName, object->flags); */
-
+    
     return CmdMethodDispatch(clientData, interp, objc, objv, object, cmd, NULL);
   }
-
-  /*fprintf(stderr, "cmdMethodDispatch %s.%s, cscPtr %p objflags %.6x\n",
-    ObjectName(object), methodName, cscPtr, object->flags); */
-
-  return CmdMethodDispatch(cp, interp, objc, objv, object, cmd, cscPtr);
 }
 
 /*
@@ -15612,14 +15723,15 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * NsfProcAliasMethod --
  *
- *    This Tcl_ObjCmdProc is called, when an alias to a proc is invoked. It
- *    handled epoched procs and dispatches finally the target method.
+ *    Since alias-resolving happens in dispatch, this Tcl_ObjCmdProc should
+ *    never be called during normal operations. The only way to invoke this
+ *    could happen via directly calling the handle.
  *
  * Results:
- *    Tcl result code.
+ *    TCL_ERROR
  *
  * Side effects:
- *    Maybe through the invoked command.
+ *    None.
  *
  *----------------------------------------------------------------------
  */
@@ -15629,86 +15741,10 @@ NsfProcAliasMethod(ClientData clientData,
                      Tcl_Interp *interp, int objc,
                      Tcl_Obj *CONST objv[]) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-  CONST char *methodName = ObjStr(objv[0]);
-  NsfObject *self;
 
   assert(tcd);
-  self = tcd->object;
-
-  if (!self) {
-    return NsfDispatchClientDataError(interp, self, "object",
-				      Tcl_GetCommandName(interp, tcd->aliasCmd));
-  }
-  tcd->object = NULL;
-
-  assert(self == GetSelfObj(interp));
-
-  /*fprintf(stderr, "NsfProcAliasMethod aliasedCmd %p epoch %p\n",
-    tcd->aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/
-
-  if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
-    NsfObject *defObject = tcd->class ? &(tcd->class->object) : self;
-    Tcl_Obj **listElements, *entryObj, *targetObj;
-    int nrElements, withPer_object;
-    Tcl_Command cmd;
-
-    /*
-     * Get the targetObject. Currently, we can get it just via the
-     * alias array.
-     */
-    withPer_object = tcd->class ?  0 : 1;
-    entryObj = AliasGet(interp, defObject->cmdName, methodName, withPer_object, 1);
-    if (entryObj == NULL) {
-      return TCL_ERROR;
-    }
-    INCR_REF_COUNT(entryObj);
-
-    Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
-    targetObj = listElements[nrElements-1];
-
-    NsfLog(interp, NSF_LOG_NOTICE,
-	   "trying to dispatch an epoched cmd %p as %s -- cmdName %s\n",
-	   tcd->aliasedCmd, methodName, ObjStr(targetObj));
-
-    /*
-     * Replace cmd and its objProc and clientData with a newly fetched
-     * version.
-     */
-    cmd = Tcl_GetCommandFromObj(interp, targetObj);
-    if (cmd) {
-      cmd = GetOriginalCommand(cmd);
-      /*fprintf(stderr, "cmd %p epoch %d deleted %.6x\n",
-	      cmd,
-	      Tcl_Command_cmdEpoch(cmd),
-	      Tcl_Command_flags(cmd) & CMD_IS_DELETED);*/
-      if (Tcl_Command_flags(cmd) & CMD_IS_DELETED) {
-	cmd = NULL;
-      }
-    }
-    if (cmd == NULL) {
-      int result = NsfPrintError(interp, "target \"%s\" of alias %s apparently disappeared",
-			     ObjStr(targetObj), methodName);
-      DECR_REF_COUNT(entryObj);
-      return result;
-    }
-
-    assert(Tcl_Command_objProc(cmd));
-
-    NsfCommandRelease(tcd->aliasedCmd);
-    tcd->objProc    = Tcl_Command_objProc(cmd);
-    tcd->aliasedCmd = cmd;
-    tcd->clientData = Tcl_Command_objClientData(cmd);
-    NsfCommandPreserve(tcd->aliasedCmd);
-
-    DECR_REF_COUNT(entryObj);
-    /*
-     * Now, we should be able to proceed as planned, we have an
-     * non-epoched aliasCmd.
-     */
-  }
-
-  return MethodDispatch(self, interp, objc, objv, tcd->aliasedCmd, self, tcd->class,
-                        methodName, 0, 0);
+  return NsfDispatchClientDataError(interp, NULL, "object",
+				    Tcl_GetCommandName(interp, tcd->aliasCmd));
 }
 
 
@@ -17922,8 +17958,6 @@ AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withP
   return obj;
 }
 
-
-
 /*
  *----------------------------------------------------------------------
  * AliasDeleteObjectReference --
@@ -17961,6 +17995,88 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
   }
   return 0;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * AliasRefetch --
+ *
+ *    Perform a refetch of an epoched aliased cmd and update the
+ *    AliasCmdClientData structure with fresh values.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+AliasRefetch(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, AliasCmdClientData *tcd) {
+  Tcl_Obj **listElements, *entryObj, *targetObj;
+  int nrElements, withPer_object;
+  NsfObject *defObject;
+  Tcl_Command cmd;
+
+  assert(tcd);
+  defObject = tcd->class ? &(tcd->class->object) : object;
+  
+  /*
+   * Get the targetObject. Currently, we can get it just via the
+   * alias array.
+   */
+  withPer_object = tcd->class ?  0 : 1;
+  entryObj = AliasGet(interp, defObject->cmdName, methodName, withPer_object, 1);
+  if (entryObj == NULL) {
+    return TCL_ERROR;
+  }
+
+  INCR_REF_COUNT(entryObj);
+  Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
+  targetObj = listElements[nrElements-1];
+
+  NsfLog(interp, NSF_LOG_NOTICE,
+	 "trying to refetch an epoched cmd %p as %s -- cmdName %s\n",
+	 tcd->aliasedCmd, methodName, ObjStr(targetObj));
+
+  /*
+   * Replace cmd and its objProc and clientData with a newly fetched
+   * version.
+   */
+  cmd = Tcl_GetCommandFromObj(interp, targetObj);
+  if (cmd) {
+    cmd = GetOriginalCommand(cmd);
+    /*fprintf(stderr, "cmd %p epoch %d deleted %.6x\n",
+      cmd,
+      Tcl_Command_cmdEpoch(cmd),
+      Tcl_Command_flags(cmd) & CMD_IS_DELETED);*/
+    if (Tcl_Command_flags(cmd) & CMD_IS_DELETED) {
+      cmd = NULL;
+    }
+  }
+  if (cmd == NULL) {
+    int result = NsfPrintError(interp, "target \"%s\" of alias %s apparently disappeared",
+			       ObjStr(targetObj), methodName);
+    DECR_REF_COUNT(entryObj);
+    return result;
+  }
+  
+  assert(Tcl_Command_objProc(cmd));
+
+  NsfCommandRelease(tcd->aliasedCmd);
+  tcd->objProc    = Tcl_Command_objProc(cmd);
+  tcd->aliasedCmd = cmd;
+  tcd->clientData = Tcl_Command_objClientData(cmd);
+  NsfCommandPreserve(tcd->aliasedCmd);
+
+  DECR_REF_COUNT(entryObj);
+  /*
+   * Now, we should be able to proceed as planned, we have an
+   * non-epoched aliasCmd.
+   */
+  return TCL_OK;
+}
+
 
 #if defined(NSF_ASSEMBLE)
 # include "asm/nsfAssemble.c"
@@ -18671,6 +18787,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     if (GetObjectFromString(interp, Tcl_Command_nsPtr(cmd)->fullName) == object) {
       newObjProc = NsfProcAliasMethod;
     }
+    // TODO: for forcing redirectors on objects, do something like
+    //newObjProc = NsfProcAliasMethod;
 
     /*
      * The new alias is pointing to an nsf object. In case no aliasMethod is
@@ -18720,7 +18838,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     NsfCommandPreserve(cmd);
     tcd = NEW(AliasCmdClientData);
     tcd->cmdName    = object->cmdName;
-    tcd->interp     = interp; /* just for deleting the associated variable */
+    tcd->interp     = interp; /* just for deleting the alias */
     tcd->object     = NULL;
     tcd->class	    = cl ? (NsfClass *) object : NULL;
     tcd->objProc    = objProc;

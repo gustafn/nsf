@@ -173,7 +173,7 @@ nx::Test case info-method-base {
 # Test visability of obj-objects 
 #
 
-nx::Test case sub-objects {
+nx::Test case visability-sub-objects {
   ::nx::Object create o {
     ::nx::Object create [::nx::self]::sub {
       :method foo {} {;}
@@ -192,7 +192,7 @@ nx::Test case sub-objects {
 #
 # Test visability of aliased Objects
 #
-nx::Test case sub-objects {
+nx::Test case visability-aliased-object {
   ::nx::Object create ::I
   ::nx::Class create C {
     :public alias i ::I
@@ -200,10 +200,16 @@ nx::Test case sub-objects {
   }
   ? {C info methods i} ""
   ? {c1 info lookup methods i} ""
+  #? {C info methods i} "i"
+  #? {c1 info lookup methods i} "i"
+  #? {C info methods *i} "i"
+  #? {c1 info lookup methods *i} "i"
 
   ::nsf::object::property ::I allowmethoddispatch 1
   ? {C info methods i} "i"
   ? {c1 info lookup methods i} "i"
+  ? {C info methods *i} "i"
+  ? {c1 info lookup methods *i} "i"
 }
 
 
@@ -603,7 +609,6 @@ nx::Test case info-submethod {
   ? {lsort [o info method submethods dummy]} ""
   ? {lsort [o info method submethods foo]} "a b"
   ? {lsort [o info method submethods "foo a"]} ""
-
   ? {lsort [C info method submethods "bar"]} "a b baz"
   ? {lsort [C info method submethods "bar a"]} ""
   ? {lsort [C info method submethods "bar baz"]} "x y"

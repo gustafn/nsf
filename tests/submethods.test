@@ -57,6 +57,7 @@ Test case submethods {
   
   Foo create f1
   ? {f1 baz a m1 10} m1
+puts stderr "=====1"
   ? {f1 baz a m3 10} \
       {Unable to dispatch sub-method "m3" of ::f1 baz a; valid are: baz a m1, baz a m2}
 

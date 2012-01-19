@@ -1122,14 +1122,10 @@ nx::Test case dispo-configure-transparency {
     error [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
   }
   #
-  # TODO: Currently, [current method] resolves to the name of the
-  # aliased, not the alias cmd. So, we do not have "alias
-  # transparency". Revise?
-  #
   ::nsf::method::alias C FOO ::foo
-  ? {[C create c] FOO} "::c--foo"
+  ? {[C create c] FOO} "::c--FOO"
   C setObjectParams [list [list FOO:alias,noarg ""]]
-  ? {C create c} "::c--foo"
+  ? {C create c} "::c--FOO"
   C public method "show me" {} {
     set :msg [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
   }

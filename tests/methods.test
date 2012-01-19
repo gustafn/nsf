@@ -94,12 +94,12 @@ nx::Test case class-level-setter {
   ? {::nsf::dispatch c2 protected_setter 4} "4"
 }
 
-# class level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
+# class level alias ....
 nx::Test case class-level-alias {
-  ? {c2 plain_alias} "plain_method"
-  ? {c2 public_alias} "public_method"
+  ? {c2 plain_alias} "plain_alias"
+  ? {c2 public_alias} "public_alias"
   ? {catch {c2 protected_alias}} 1
-  ? {::nsf::dispatch c2 protected_alias} "protected_method"
+  ? {::nsf::dispatch c2 protected_alias} "protected_alias"
 }
 
 ###########
@@ -128,12 +128,12 @@ nx::Test case class-object-level-setter {
   ? {::nsf::dispatch C protected_object_setter 4} "4"
 }
 
-# class level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
+# class level alias ....
 nx::Test case class-object-level-alias {
-  ? {C plain_object_alias} "plain_object_method"
-  ? {C public_object_alias} "public_object_method"
+  ? {C plain_object_alias} "plain_object_alias"
+  ? {C public_object_alias} "public_object_alias"
   ? {catch {C protected_object_alias}} 1
-  ? {::nsf::dispatch C protected_object_alias} "protected_object_method"
+  ? {::nsf::dispatch C protected_object_alias} "protected_object_alias"
 }
 
 ###########
@@ -162,12 +162,12 @@ nx::Test case object-level-setter {
   ? {::nsf::dispatch c1 protected_object_setter 4} "4"
 }
 
-# object level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
+# object level alias ....
 nx::Test case object-level-alias {
-  ? {c1 plain_object_alias} "plain_object_method"
-  ? {c1 public_object_alias} "public_object_method"
+  ? {c1 plain_object_alias} "plain_object_alias"
+  ? {c1 public_object_alias} "public_object_alias"
   ? {catch {c1 protected_object_alias}} 1
-  ? {::nsf::dispatch c1 protected_object_alias} "protected_object_method"
+  ? {::nsf::dispatch c1 protected_object_alias} "protected_object_alias"
 
   ? {lsort [c1 info methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
