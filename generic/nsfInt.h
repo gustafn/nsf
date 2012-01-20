@@ -381,7 +381,6 @@ typedef struct NsfStringIncrStruct {
 #define NSF_IS_ROOT_CLASS                  0x0100
 #define NSF_IS_SLOT_CONTAINER              0x0200
 #define NSF_KEEP_CALLER_SELF               0x0400
-#define NSF_ALLOW_METHOD_DISPATCH          0x10000 /* TODO: flag outside of range (intended)*/
 #define NSF_PER_OBJECT_DISPATCH            0x0800
 /* deletion state */
 #define NSF_DESTROY_CALLED_SUCCESS         0x1000

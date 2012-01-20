@@ -18833,26 +18833,12 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (newTargetObject) {
     /*
-     * In case the newTargetObject is a child of the object, add redirector to
-     * allow calls independent from allowmethoddispatch
-     */ 
-    if (GetObjectFromString(interp, Tcl_Command_nsPtr(cmd)->fullName) == object) {
-      newObjProc = NsfProcAliasMethod;
-    }
-
-    /* TODO: for forcing redirectors on objects, do something like */
-    newObjProc = NsfProcAliasMethod;
-
-    /*
-     * The new alias is pointing to an nsf object. In case no aliasMethod is
-     * use, increment the object reference counter of the new aliased object
-     * only when the new target object is different from the old one. Note,
-     * that the old target object might be NULL in case the object is used
-     * here the first time.
+     * We set now for every alias to an object a stub proc, such we can
+     * distinguish between cases, where the user wants to create a method, and
+     * between cases, where object-invocation via method interface might
+     * happen.
      */
-    if (newObjProc == NULL && oldTargetObject != newTargetObject) {
-      NsfObjectRefCountIncr(newTargetObject);
-    }
+    newObjProc = NsfProcAliasMethod;
 
   } else if (CmdIsProc(cmd)) {
     /*
@@ -19195,6 +19181,11 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 	    Tcl_Command_flags(cmd) &= ~impliedClearFlag;
 	  }
 	}
+	if (cl) {
+	  NsfInstanceMethodEpochIncr("Permissions");
+	} else {
+	  NsfObjectMethodEpochIncr("Permissions");
+	}
       }
       Tcl_SetIntObj(Tcl_GetObjResult(interp), (Tcl_Command_flags(cmd) & flag) != 0);
       break;
@@ -19535,7 +19526,7 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 /*
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|allowmethoddispatch|perobjectdispatch" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -19551,7 +19542,6 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, 
   case ObjectpropertyRootclassIdx: flags = NSF_IS_ROOT_CLASS; break;
   case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; break;
   case ObjectpropertyKeepcallerselfIdx: flags = NSF_KEEP_CALLER_SELF; allowSet = 1; break;
-  case ObjectpropertyAllowmethoddispatchIdx: flags = NSF_ALLOW_METHOD_DISPATCH; allowSet = 1; break;
   case ObjectpropertyPerobjectdispatchIdx: flags = NSF_PER_OBJECT_DISPATCH; allowSet = 1; break;
   }
 

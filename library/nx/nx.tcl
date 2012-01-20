@@ -171,7 +171,6 @@ namespace eval ::nx {
 	    ::nsf::method::alias $object $w $o
 	    if {$verbose} {puts stderr "... create alias $object $w $o"}
 	  } else {
-	    #::nsf::object::property ${object}::$w allowmethoddispatch true
 	    if {$verbose} {puts stderr "... create object $o"}
 	  }
 	  set object $o
@@ -481,10 +480,7 @@ namespace eval ::nx {
     #
     :protected method init {} {
       ::nsf::object::property [self] keepcallerself true
-      ::nsf::object::property [self] allowmethoddispatch true
       ::nsf::object::property [self] perobjectdispatch true
-      # object property "allowmethoddispatch" is just needed for
-      # per-object ensembles and is set upon this creaton.
     }
     :protected method unknown {callInfo args} {
       set path [lrange $callInfo 1 end-1]; # set path [current methodpath]
@@ -2076,7 +2072,7 @@ namespace eval ::nx {
 	  }
 	  # copy object -> might be a class obj
 	  ::nsf::object::property $obj keepcallerself [::nsf::object::property $origin keepcallerself]
-	  ::nsf::object::property $obj allowmethoddispatch [::nsf::object::property $origin allowmethoddispatch]
+	  ::nsf::object::property $obj perobjectdispatch [::nsf::object::property $origin perobjectdispatch]
 	  ::nsf::method::assertion $obj check [::nsf::method::assertion $origin check]
 	  ::nsf::method::assertion $obj object-invar [::nsf::method::assertion $origin object-invar]
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]

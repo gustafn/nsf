@@ -385,7 +385,6 @@ namespace eval ::xotcl {
 
   # "init" must exist on Object. per default it is empty.
   Object instproc init args {
-    ::nsf::object::property [self] allowmethoddispatch 1
     if {![::nsf::current isnextcall] && [llength $args] > 0 && [::nsf::configure debug] > 0} {
       ::nsf::log Warning "Arguments '$args' to constructor of object [self] are most likely not processed"
     }
@@ -465,8 +464,6 @@ namespace eval ::xotcl {
   Object create ::xotcl::classInfo
   ::nsf::object::property ::xotcl::objectInfo keepcallerself true
   ::nsf::object::property ::xotcl::classInfo  keepcallerself true
-  ::nsf::object::property ::xotcl::objectInfo allowmethoddispatch true
-  ::nsf::object::property ::xotcl::classInfo  allowmethoddispatch true
   ::nsf::object::property ::xotcl::objectInfo perobjectdispatch true
   ::nsf::object::property ::xotcl::classInfo  perobjectdispatch true
 

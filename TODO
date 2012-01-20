@@ -3872,6 +3872,12 @@ nsf.c:
      }
      o2 foo
 
+- fixed potential crash from method caching, when permissions on cmds are
+  changed and become e.g. unresolvable
+- removed flag allowmethoddispatch, since behavior can be achived via 
+  private flag.
+- extended regression test
+
 ========================================================================
 TODO:
 - cleanup of allowmethoddispatch / changing it maybe into private handling

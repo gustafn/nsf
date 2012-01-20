@@ -642,3 +642,44 @@ nx::Test case call-protected-flags {
   ? {::nsf::method::property C foo call-protected} 0
   ? {::nsf::method::property C foo call-private} 0
 }
+
+#
+# private subobjects
+#
+nx::Test case private-subobject {
+  nx::Object create obj {
+    :public method foo {} {return foo-[self]}
+    nx::Object create [self]::child {
+      :public method bar {} {return bar-[self]}
+    }
+  }
+  
+  ? {obj child bar}    "bar-::obj::child"
+  ? {obj foo}          "foo-::obj"
+  ? {obj info methods} "child foo"
+
+  ? {::nsf::method::property obj foo call-private 1} 1
+
+  ? {obj child bar}    "bar-::obj::child"
+  ? {obj foo}          {::obj: unable to dispatch method 'foo'}
+  ? {obj info methods} "child"
+
+  ? {::nsf::method::property obj child call-private 1} 1
+
+  ? {obj child bar}    {::obj: unable to dispatch method 'child'}
+  ? {obj foo}          {::obj: unable to dispatch method 'foo'}
+  ? {obj info methods} ""
+
+  ? {::nsf::method::property obj foo call-protected 0} 0
+
+  ? {obj child bar}    {::obj: unable to dispatch method 'child'}
+  ? {obj foo}          "foo-::obj"
+  ? {obj info methods} "foo"
+
+  ? {::nsf::method::property obj child call-protected 0} 0
+
+  ? {obj child bar}    "bar-::obj::child"
+  ? {obj foo}          "foo-::obj"
+  ? {obj info methods} "child foo"
+
+}

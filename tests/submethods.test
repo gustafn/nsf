@@ -544,7 +544,7 @@ nx::Test case current-args {
 # Test forwarding to child object, with respect to settings of the
 # object properties keepcallerself and allowmethoddispatch
 #
-
+nx::Test parameter count 1000
 nx::Test case child-obj-delegation {
 
   nx::Object create obj {
@@ -561,11 +561,11 @@ nx::Test case child-obj-delegation {
   #
   # Default case
   #   keepcallerself false
-  #   allowmethoddispatch false
+  #   perobjectdispatch false
   #
 
   ::nsf::object::property obj::child keepcallerself false
-  ::nsf::object::property obj::child allowmethoddispatch false
+  ::nsf::object::property obj::child perobjectdispatch false
   
   ? {obj link1 foo} {::obj::child}
   #? {obj link2 foo} {::obj: unable to dispatch method 'child'}
@@ -573,6 +573,7 @@ nx::Test case child-obj-delegation {
   ? {obj link3 foo} {::obj::child}
   ? {obj link4 foo} {::obj::child}
   ? {obj link5 foo} {::obj::child}
+  ? {obj child foo} {::obj::child}
 
   #? {lsort [obj info methods child]} {}
   #? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
@@ -584,10 +585,9 @@ nx::Test case child-obj-delegation {
   ? {lsort [obj info lookup methods child*]} {child}
 
   #
-  # turn on keepcallerself
+  # turn on keepcallerself and perobjectdispatch
   #
   ::nsf::object::property obj::child keepcallerself true
-  ::nsf::object::property obj::child allowmethoddispatch false
   ::nsf::object::property obj::child perobjectdispatch true
 
   ? {obj link1 foo} {::obj::child}
@@ -596,6 +596,7 @@ nx::Test case child-obj-delegation {
   ? {obj link3 foo} {::obj::child}
   ? {obj link4 foo} {::obj}
   ? {obj link5 foo} {::obj::child}
+  ? {obj child foo} {::obj}
 
   #? {lsort [obj info methods child]} {}
   #? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
@@ -608,16 +609,17 @@ nx::Test case child-obj-delegation {
 
 
   #
-  # turn on allowmethoddispatch
+  # just perobjectdispatch
   #
   ::nsf::object::property obj::child keepcallerself false
-  ::nsf::object::property obj::child allowmethoddispatch true
+  ::nsf::object::property obj::child perobjectdispatch true
 
   ? {obj link1 foo} {::obj::child}
   ? {obj link2 foo} {::obj::child}
   ? {obj link3 foo} {::obj::child}
   ? {obj link4 foo} {::obj::child}
   ? {obj link5 foo} {::obj::child}
+  ? {obj child foo} {::obj::child}
 
   ? {lsort [obj info methods child]} {child}
   ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
@@ -625,16 +627,17 @@ nx::Test case child-obj-delegation {
   ? {lsort [obj info lookup methods child*]} {child}
 
   #
-  # turn on allowmethoddispatch and keepcallerself
+  # just keepcallerself
   #
   ::nsf::object::property obj::child keepcallerself true
-  ::nsf::object::property obj::child allowmethoddispatch true
+  ::nsf::object::property obj::child perobjectdispatch false
 
   ? {obj link1 foo} {::obj::child}
-  ? {obj link2 foo} {::obj}
+  ? {obj link2 foo} {::obj: unable to dispatch method 'foo'}
   ? {obj link3 foo} {::obj::child}
-  ? {obj link4 foo} {::obj}
+  ? {obj link4 foo} {::obj: unable to dispatch method 'foo'}
   ? {obj link5 foo} {::obj::child}
+  ? {obj child foo} {::obj: unable to dispatch method 'foo'}
 
   ? {lsort [obj info methods child]} {child}
   ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
