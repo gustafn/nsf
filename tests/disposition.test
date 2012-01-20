@@ -1162,6 +1162,7 @@ nx::Test case dispo-configure-transparency {
   # ... at the called object level
 
   Object create ::callee {
+    ::nsf::object::property [self] perobjectdispatch true
     :public method foo {} {
       error [::nsf::current]-[::nsf::current methodpath]
     }
@@ -1200,6 +1201,8 @@ nx::Test case dispo-configure-transparency {
 
 nx::Test case dispo-object-targets {
   Object create obj
+  ::nsf::object::property obj perobjectdispatch true
+
   Class create C
   Class create T {
     :public class method setObjectParams {spec} {
@@ -1245,13 +1248,15 @@ nx::Test case dispo-object-targets {
     }
   }
 
+
   ::obj mixin UnknownHandler
   ? {[T create t] z uff} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-uff-PATH-z" \
       "Aliased dispatch to unknown method (custom unknown handler)"
-  
+  puts stderr ===2  
   set x [UnknownHandler create handledObj]
+  ::nsf::object::property handledObj perobjectdispatch true
+
   set methods(ix) [::nsf::method::alias ::obj ix $x]
-  
   ? {[T create t] z ix baff} "CURRENT-$x-DELEGATOR-::obj-UNKNOWNMETHOD-baff-PATH-z ix" \
       "Aliased dispatch to unknown method (custom unknown handler)" 
 

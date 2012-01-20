@@ -433,13 +433,14 @@ Test case deleting-aliased-object1 {
   Object create o
   Object create o2
   # behave like an ensemble: aliased object has self of the caller
-  ::nsf::object::property o2 keepcallerself 1
+  ::nsf::object::property o2 perobjectdispatch 1
   ::nsf::method::alias o a o2
   ? {o a} ::o2 "call object via alias"
   ? {o info method type a} alias
   ## the ensemble-object needs per-object methods
   o2 method info args {:info {*}$args}
   o2 method set args {:set {*}$args}
+  ::nsf::object::property o2 keepcallerself 1
   ? {o a info vars} "" "call info on aliased object"
   ? {o set x 10} 10   "set variable on object"
   ? {o info vars} x   "query vars"
@@ -457,9 +458,12 @@ Test case deleting-aliased-object2 {
   Object create o2
   # The methods of the aliased object have their own self
   ::nsf::method::alias o a o2
+  puts stderr ===5
   ? {o a} ::o2 "call object via alias"
+  puts stderr ===6
+
   ? {o info method type a} alias
-  # In order to avoid recursive calles, we have to provide the
+  # In order to avoid recursive calls, we have to provide the
   # selector for the method definitions in nx::Object
   o2 method info args {: ::nsf::classes::nx::Object::info {*}$args}
   o2 method set args {: ::nsf::classes::nx::Object::set {*}$args}
@@ -524,6 +528,8 @@ Test case create-alias-on-class-delete-aliased-obj {
 
   ::nsf::object::property o keepcallerself 1
   ::nsf::object::property o3 keepcallerself 1
+  ::nsf::object::property o perobjectdispatch 1
+  ::nsf::object::property o3 perobjectdispatch 1
   o alias a o3
   C alias b o
 

@@ -3857,8 +3857,25 @@ nsf.c:
 - nsf.c: start all error messages with a lower case word for consistency
   and to follow closer to Tcl's conventions
 
+- deacitivate for the time being allowmethoddispatch 
+  (make it behave always like true)
+- added instead new flag "perobjectdispatch" to make
+  behavior of ensembleobjects configurable. 
+- The behavior for keepcallerself is currently 
+  only activated for the method-interface
+  for object dispatch, since otherwise the following
+  would be dangerous, since "o2 foo" would destroy o2
+     nx::Object create o1
+     nsf::object::property o1 keepcallerself true
+     nx::Object create o2 {
+       ::public method foo {} {o1 destroy}
+     }
+     o2 foo
+
 ========================================================================
 TODO:
+- cleanup of allowmethoddispatch / changing it maybe into private handling
+
 - corollary: for complete configurability of method dispatch, we would
   need as well a 3rd object-property: restrict-dispatch-to-object-methods
 

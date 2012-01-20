@@ -464,9 +464,12 @@ namespace eval ::xotcl {
   Object create ::xotcl::objectInfo
   Object create ::xotcl::classInfo
   ::nsf::object::property ::xotcl::objectInfo keepcallerself true
-  ::nsf::object::property ::xotcl::classInfo keepcallerself true
+  ::nsf::object::property ::xotcl::classInfo  keepcallerself true
   ::nsf::object::property ::xotcl::objectInfo allowmethoddispatch true
-  ::nsf::object::property ::xotcl::classInfo allowmethoddispatch true
+  ::nsf::object::property ::xotcl::classInfo  allowmethoddispatch true
+  ::nsf::object::property ::xotcl::objectInfo perobjectdispatch true
+  ::nsf::object::property ::xotcl::classInfo  perobjectdispatch true
+
 
   # note, we are using ::xotcl::infoError, defined below
   #Object instforward info -onerror ::nsf::infoError ::xotcl::objectInfo %1 {%@2 %self}

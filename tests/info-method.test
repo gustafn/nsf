@@ -183,7 +183,9 @@ nx::Test case visability-sub-objects {
   # 
   # per default, we see just the alias
   #
-  ? {o info methods} "soAlias"
+  #? {o info methods} "soAlias"
+  #? {o info method type soAlias} "alias"
+  ? {o info methods} "soAlias sub"
   ? {o info method type soAlias} "alias"
   
   # 

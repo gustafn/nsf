@@ -482,6 +482,7 @@ namespace eval ::nx {
     :protected method init {} {
       ::nsf::object::property [self] keepcallerself true
       ::nsf::object::property [self] allowmethoddispatch true
+      ::nsf::object::property [self] perobjectdispatch true
       # object property "allowmethoddispatch" is just needed for
       # per-object ensembles and is set upon this creaton.
     }
@@ -700,12 +701,14 @@ namespace eval ::nx {
   # Copy all info methods except the sub-objects to
   # ::nx::Class::slot::__info
   #
+  nsf::object::property ::nx::Class::slot::__info keepcallerself false
   foreach m [::nsf::directdispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods] {
     if {[::nsf::directdispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method type $m] eq "object"} continue
     set definition [::nsf::directdispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method definition $m]
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
     unset definition
   }
+  nsf::object::property ::nx::Class::slot::__info keepcallerself true
 
   Class eval {
     :alias "info lookup"         ::nx::Object::slot::__info::lookup

@@ -9478,6 +9478,16 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
     return NsfPrintError(interp, "trying to dispatch deleted object via method '%s'",
 			 methodName);
   }
+
+  if ((invokedObject->flags & NSF_PER_OBJECT_DISPATCH) == 0) {
+    /*fprintf(stderr, "invokedObject %p %s methodName %s: no perobjectdispatch\n", 
+      invokedObject, ObjectName(invokedObject), methodName);*/
+
+    if (invokedObject->flags & NSF_KEEP_CALLER_SELF) {
+      invokedObject = callerSelf;
+    }
+    return NsfObjDispatch(invokedObject, interp, objc, objv);
+  }
   
   /*
    * Make sure, that the current call is marked as an ensemble call, both
@@ -9663,6 +9673,16 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   int result;
 
   /*
+   * Privide dtrace with calling info
+   */
+  if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
+    NSF_DTRACE_METHOD_ENTRY(ObjectName(object),
+			    cscPtr->cl ? ClassName(cscPtr->cl) : ObjectName(object),
+			    (char *)methodName,
+			    objc-1, (Tcl_Obj **)objv+1);
+  }
+
+  /*
    * In a first step, resolve the alias
    */
 
@@ -9702,13 +9722,6 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
     cp = Tcl_Command_objClientData(cmd);
 
     // TODO: dereference chain?
-  }
-
-  if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
-    NSF_DTRACE_METHOD_ENTRY(ObjectName(object),
-			    cscPtr->cl ? ClassName(cscPtr->cl) : ObjectName(object),
-			    (char *)methodName,
-			    objc-1, (Tcl_Obj **)objv+1);
   }
 
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p %s clientData %p cp=%p objc=%d cscPtr %p csc->flags %.6x \n",
@@ -9762,7 +9775,9 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      */
     return result;
 
-  } else if (proc == NsfObjDispatch) {
+  } else if (proc == NsfObjDispatch 
+	     /*//&& ((o = NsfGetObjectFromCmdPtr(cmd)) && o->id == cmd && (o->flags & NSF_PER_OBJECT_DISPATCH))*/
+	     ) {
 
     assert(cp);
     return ObjectCmdMethodDispatch((NsfObject *)cp, interp, objc, objv,
@@ -10042,6 +10057,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   int result = TCL_OK, objflags, shift,
     frameType = NSF_CSC_TYPE_PLAIN;
   CONST char *methodName;
+  NsfObject *calledObject;
   NsfClass *cl = NULL;
   Tcl_Command cmd = NULL;
   Tcl_Obj *cmdName = object->cmdName, *methodObj;
@@ -10286,7 +10302,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 		object, methodName, object->nsPtr, cmd,
 		cmd ? ((Command *)cmd)->objProc : NULL);*/
 	if (cmd) {
-	  NsfObject *o;
+	  //NsfObject *o;
 
 	  /* 
 	   * Reject call when
@@ -10295,7 +10311,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	   */
 	  if (((flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0
 	       && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD)) 
-	      || ((o = NsfGetObjectFromCmdPtr(cmd)) && o->id == cmd && (o->flags & NSF_ALLOW_METHOD_DISPATCH) == 0)
+	      //|| ((o = NsfGetObjectFromCmdPtr(cmd)) && o->id == cmd && (o->flags & NSF_ALLOW_METHOD_DISPATCH) == 0)
 	      ) {
 	    cmd = NULL;
 	  } else {
@@ -10376,6 +10392,24 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     }
   }
 
+#if 0
+  if ((object->flags & NSF_KEEP_CALLER_SELF) && (flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0) {
+    calledObject = GetSelfObj(interp);
+    if (calledObject == NULL) {
+      NsfShowStack(interp);
+      fprintf(stderr, "strange, callerObject is apparently null; stay at %p %s %s FLAGS %.6x\n", 
+	      object, ObjectName(object), methodName, flags);
+      calledObject = object;
+    }
+    fprintf(stderr, "NSF_KEEP_CALLER_SELF %p %s calledObject %p %s\n", 
+	    object, ObjectName(object), calledObject, ObjectName(calledObject));
+  } else {
+    calledObject = object;
+  }
+#else
+  calledObject = object;
+#endif
+
 
   /*
    * If we have a command, check the permissions, unless
@@ -10426,7 +10460,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
      * We found the method to dispatch.
      */
     cscPtr = CscAlloc(interp, &csc, cmd);
-    CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
+    CscInit(cscPtr, calledObject, cl, cmd, frameType, flags, methodName);
 
     if (unlikely(cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER)) {
       /* run filters is not NRE enabled */
@@ -17599,10 +17633,12 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	 * Treat aliased object dispatch different from direct object
 	 * dispatches.
 	 */
+#if 0
 	if (cmd == origCmd && (childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0) {
 	  /*fprintf(stderr, "no method dispatch allowed on child %s\n", ObjectName(childObject));*/
 	  return TCL_OK;
 	}
+#endif
       }
 
       if (ProtectionMatches(withCallprotection, cmd) && methodTypeMatch) {
@@ -17681,10 +17717,12 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	 * Treat aliased object dispatch different from direct object
 	 * dispatches.
 	 */
+#if 0
 	if (cmd == origCmd && (childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0) {
 	  /*fprintf(stderr, "no method dispatch allowed on child %s\n", ObjectName(childObject));*/
 	  continue;
 	}
+#endif
 
       }
 
@@ -19496,7 +19534,7 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 /*
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|allowmethoddispatch" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|allowmethoddispatch|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -19513,6 +19551,7 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, 
   case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; break;
   case ObjectpropertyKeepcallerselfIdx: flags = NSF_KEEP_CALLER_SELF; allowSet = 1; break;
   case ObjectpropertyAllowmethoddispatchIdx: flags = NSF_ALLOW_METHOD_DISPATCH; allowSet = 1; break;
+  case ObjectpropertyPerobjectdispatchIdx: flags = NSF_PER_OBJECT_DISPATCH; allowSet = 1; break;
   }
 
   if (valueObj) {

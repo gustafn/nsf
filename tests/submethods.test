@@ -332,11 +332,14 @@ namespace eval ::ns1 {
   ? {obj ifoo} ::ns1::obj::info
   # To some surprise, we can can still call info class!
   # This works, since we do here an "ensemble-next" 
-  ? {obj info class} ::nx::Object
+  #? {obj info class} ::nx::Object
+  ? {obj info class} {::ns1::obj::info: unable to dispatch method 'class'}
   # The ensemble-next has in case of foo the leading colon on the
   # callstack (e.g. ":info"). Make sure that we can still call the
   # method via ensemle-next.
-  ? {obj foo} ::nx::Object
+  #? {obj foo} ::nx::Object
+  ? {obj foo} {::ns1::obj::info: unable to dispatch method 'class'}
+
 }
 
 #
@@ -565,32 +568,44 @@ nx::Test case child-obj-delegation {
   ::nsf::object::property obj::child allowmethoddispatch false
   
   ? {obj link1 foo} {::obj::child}
-  ? {obj link2 foo} {::obj: unable to dispatch method 'child'}
+  #? {obj link2 foo} {::obj: unable to dispatch method 'child'}
+  ? {obj link2 foo} {::obj::child}
   ? {obj link3 foo} {::obj::child}
   ? {obj link4 foo} {::obj::child}
   ? {obj link5 foo} {::obj::child}
 
-  ? {lsort [obj info methods child]} {}
-  ? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
-  ? {lsort [obj info lookup methods child]} {}
-  ? {lsort [obj info lookup methods child*]} {}
+  #? {lsort [obj info methods child]} {}
+  #? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
+  #? {lsort [obj info lookup methods child]} {}
+  #? {lsort [obj info lookup methods child*]} {}
+  ? {lsort [obj info methods child]} {child}
+  ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
+  ? {lsort [obj info lookup methods child]} {child}
+  ? {lsort [obj info lookup methods child*]} {child}
 
   #
   # turn on keepcallerself
   #
   ::nsf::object::property obj::child keepcallerself true
   ::nsf::object::property obj::child allowmethoddispatch false
+  ::nsf::object::property obj::child perobjectdispatch true
 
   ? {obj link1 foo} {::obj::child}
-  ? {obj link2 foo} {::obj: unable to dispatch method 'child'}
+  #? {obj link2 foo} {::obj: unable to dispatch method 'child'}
+  ? {obj link2 foo} {::obj}
   ? {obj link3 foo} {::obj::child}
   ? {obj link4 foo} {::obj}
   ? {obj link5 foo} {::obj::child}
 
-  ? {lsort [obj info methods child]} {}
-  ? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
-  ? {lsort [obj info lookup methods child]} {}
-  ? {lsort [obj info lookup methods child*]} {}
+  #? {lsort [obj info methods child]} {}
+  #? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
+  #? {lsort [obj info lookup methods child]} {}
+  #? {lsort [obj info lookup methods child*]} {}
+  ? {lsort [obj info methods child]} {child}
+  ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
+  ? {lsort [obj info lookup methods child]} {child}
+  ? {lsort [obj info lookup methods child*]} {child}
+
 
   #
   # turn on allowmethoddispatch
