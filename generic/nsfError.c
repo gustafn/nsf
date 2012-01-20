@@ -197,9 +197,11 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
     need_space = 1;
   }
   if (methodName) {
+    Tcl_Obj *resultObj;
+    
     if (need_space) Tcl_AppendResult(interp, " ", (char *) NULL);
 
-    Tcl_Obj *resultObj = NsfMethodNamePath(interp, methodName);
+    resultObj = NsfMethodNamePath(interp, methodName);
     INCR_REF_COUNT(resultObj);
     Tcl_AppendResult(interp, ObjStr(resultObj), (char *) NULL);
     DECR_REF_COUNT(resultObj);
@@ -397,7 +399,7 @@ NsfObjErrType(Tcl_Interp *interp,
     Tcl_AppendResult(interp, " 2nd error: ",  (char *) NULL);
   }
 
-  //Tcl_ResetResult(interp);
+  /*Tcl_ResetResult(interp);*/
   if (context) {
     Tcl_AppendResult(interp, context, ": ",  (char *) NULL);
   }

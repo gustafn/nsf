@@ -9679,7 +9679,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
       result = AliasRefetch(interp, object, methodName, tcd);
       if (result != TCL_OK) {
-	// TODO: check freeing of csc?
+	/* TODO: check freeing of csc? */
 	return result;
       }
     }
@@ -9701,7 +9701,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
     proc = Tcl_Command_objProc(cmd);
     cp = Tcl_Command_objClientData(cmd);
 
-    // TODO: dereference chain?
+    /* TODO: dereference chain? */
   }
 
   if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
@@ -18801,7 +18801,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     if (GetObjectFromString(interp, Tcl_Command_nsPtr(cmd)->fullName) == object) {
       newObjProc = NsfProcAliasMethod;
     }
-    // TODO: for forcing redirectors on objects, do something like
+
+    /* TODO: for forcing redirectors on objects, do something like */
     newObjProc = NsfProcAliasMethod;
 
     /*
