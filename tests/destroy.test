@@ -886,7 +886,7 @@ nx::Test case unset-traces-during-cleanup-with-destroy-2 {
   ? {$i eval {info exists ::MSG}} 0
   $i eval {::nsf::finalize -keepvars}
   ? {$i eval {info exists ::MSG}} 1
-  ? {$i eval {set ::MSG}} [list "Cannot destroy base class ::nx::Object" "Cannot destroy base class ::nx::Class"]
+  ? {$i eval {set ::MSG}} [list "cannot destroy base class ::nx::Object" "cannot destroy base class ::nx::Class"]
 
   interp delete $i
   unset i

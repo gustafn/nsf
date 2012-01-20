@@ -1211,5 +1211,5 @@ nx::Test case info-methods-closure {
 # Test error messages within an ensemble call
 #
 nx::Test case error-in-ensemble {
-  ? {nx::Object info method definition foo 1} {Invalid argument '1', maybe too many arguments; should be "::nx::Object info method args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods|returns name"}
+  ? {nx::Object info method definition foo 1} {invalid argument '1', maybe too many arguments; should be "::nx::Object info method args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods|returns name"}
 }

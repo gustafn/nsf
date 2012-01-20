@@ -4829,8 +4829,8 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
      */
     Tcl_Obj *bootstrapObj = Tcl_GetVar2Ex(interp, "::nsf::bootstrap", NULL, TCL_GLOBAL_ONLY);
     if (bootstrapObj == NULL) {
-      result = NsfPrintError(interp, "Method '%s' of %s cannot be overwritten. "
-			     "Derive e.g. a sub-class!", methodName, ObjectName(object));
+      result = NsfPrintError(interp, "method '%s' of %s cannot be overwritten; "
+			     "derive e.g. a sub-class!", methodName, ObjectName(object));
     } else {
       result = TCL_OK;
     }
@@ -5717,12 +5717,12 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
     if (acResult == TCL_ERROR) {
       Tcl_Obj *sr = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(sr);	
-      NsfPrintError(interp, "Error in Assertion: {%s} in proc '%s'\n%s",
+      NsfPrintError(interp, "error in Assertion: {%s} in proc '%s'\n%s",
 		    ObjStr(checkFailed->content), methodName, ObjStr(sr));
       DECR_REF_COUNT(sr);
       return TCL_ERROR;
     }
-    return NsfPrintError(interp, "Assertion failed check: {%s} in proc '%s'",
+    return NsfPrintError(interp, "assertion failed check: {%s} in proc '%s'",
 			 ObjStr(checkFailed->content), methodName);
   }
 
@@ -5830,7 +5830,7 @@ AssertionSetCheckOptions(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *arg) {
     }
   }
   if (opt->checkoptions == CHECK_NONE && ocArgs>0) {
-    return NsfPrintError(interp, "Unknown check option in command '%s' check %s, ",
+    return NsfPrintError(interp, "unknown check option in command '%s' check %s, ",
 			 "valid: all pre post object-invar class-invar",
 			 ObjectName(object), ObjStr(arg));
   }
@@ -7389,7 +7389,7 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
     } else if (result == TCL_ERROR) {
       Tcl_Obj *sr = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(sr);
-      NsfPrintError(interp, "Guard Error: '%s'\n%s", ObjStr(guardObj), ObjStr(sr));
+      NsfPrintError(interp, "Guard error: '%s'\n%s", ObjStr(guardObj), ObjStr(sr));
       DECR_REF_COUNT(sr);
       return TCL_ERROR;
     }
@@ -9475,7 +9475,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
     }
     
     NsfCleanupObject(invokedObject, "alias-delete1");
-    return NsfPrintError(interp, "Trying to dispatch deleted object via method '%s'",
+    return NsfPrintError(interp, "trying to dispatch deleted object via method '%s'",
 			 methodName);
   }
   
@@ -10141,7 +10141,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     NsfCallStackContent *cscPtr1 = CallStackGetTopFrame0(interp);
 
     if (unlikely(cscPtr1 == NULL)) {
-      return NsfPrintError(interp, "Flag '-local' only allowed when called from a method body");
+      return NsfPrintError(interp, "flag '-local' only allowed when called from a method body");
     }
     if (cscPtr1->cl) {
       cmd = FindMethod(cscPtr1->cl->nsPtr, methodName);
@@ -10948,7 +10948,7 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	 * In order to flag a warning, we set the error message and
 	 * return TCL_CONTINUE
 	 */
-	(void)NsfPrintError(interp, "Value '%s' of parameter '%s' could be a non-positional argument",
+	(void)NsfPrintError(interp, "value '%s' of parameter '%s' could be a non-positional argument",
 		      value, pPtr->name);
 	result = TCL_CONTINUE;
       }
@@ -11441,7 +11441,7 @@ static int
 ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
                         CONST char *typeName, Nsf_TypeConverter *converter) {
   if (paramPtr->converter) {
-    return NsfPrintError(interp, "Refuse to redefine parameter type of '%s' from type '%s' to type '%s'",
+    return NsfPrintError(interp, "refuse to redefine parameter type of '%s' from type '%s' to type '%s'",
 			 paramPtr->name, paramPtr->type, typeName);
   }
   paramPtr->converter = converter;
@@ -11527,19 +11527,19 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (strncmp(option, "noleadingdash", 13) == 0) {
     if (*paramPtr->name == '-') {
-      return NsfPrintError(interp, "Parameter option 'noleadingdash' only allowed for positional parameters");
+      return NsfPrintError(interp, "parameter option 'noleadingdash' only allowed for positional parameters");
     }
     paramPtr->flags |= NSF_ARG_NOLEADINGDASH;
 
   } else if (strncmp(option, "noconfig", 8) == 0) {
     if (disallowedOptions != NSF_DISALLOWED_ARG_OBJECT_PARAMETER) {
-      return NsfPrintError(interp, "Parameter option 'noconfig' only allowed for object parameters");
+      return NsfPrintError(interp, "parameter option 'noconfig' only allowed for object parameters");
     }
     paramPtr->flags |= NSF_ARG_NOCONFIG;
 
   } else if (strncmp(option, "args", 4) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0) {
-      return NsfPrintError(interp, "Parameter option \"args\" only allowed for parameter type \"alias\"");
+      return NsfPrintError(interp, "parameter option \"args\" only allowed for parameter type \"alias\"");
     }
     result = ParamOptionSetConverter(interp, paramPtr, "args", ConvertToNothing);
 
@@ -11547,7 +11547,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     if (paramPtr->converter != ConvertViaCmd) {
       fprintf(stderr, "type %s flags %.6x\n", paramPtr->type, paramPtr->flags);
       return NsfPrintError(interp,
-			   "Parameter option 'arg=' only allowed for user-defined converter");
+			   "parameter option 'arg=' only allowed for user-defined converter");
     }
     if (paramPtr->converterArg) {DECR_REF_COUNT(paramPtr->converterArg);}
     paramPtr->converterArg = Tcl_NewStringObj(option + 4, optionLength - 4);
@@ -11560,7 +11560,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 			   "type \"switch\" only allowed for non-positional arguments",
 			   paramPtr->name);
     } else if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
-      return NsfPrintError(interp, "Parameter invocation types cannot be used with option 'switch'");
+      return NsfPrintError(interp, "parameter invocation types cannot be used with option 'switch'");
     }
     result = ParamOptionSetConverter(interp, paramPtr, "switch", Nsf_ConvertToSwitch);
     paramPtr->flags |= NSF_ARG_SWITCH;
@@ -11604,7 +11604,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else if (optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
     if (paramPtr->converter != Nsf_ConvertToObject &&
         paramPtr->converter != Nsf_ConvertToClass)
-	return NsfPrintError(interp, "Parameter option 'type=' only allowed for parameter types 'object' and 'class'");
+	return NsfPrintError(interp, "parameter option 'type=' only allowed for parameter types 'object' and 'class'");
     if (paramPtr->converterArg) {DECR_REF_COUNT(paramPtr->converterArg);}
     paramPtr->converterArg = Tcl_NewStringObj(option + 5, optionLength - 5);
     INCR_REF_COUNT(paramPtr->converterArg);
@@ -11616,7 +11616,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (optionLength >= 6 && strncmp(option, "method=", 7) == 0) {
     if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == 0) {
-      return NsfPrintError(interp, "Parameter option 'method=' only allowed for parameter types 'alias' and 'forward'");
+      return NsfPrintError(interp, "parameter option 'method=' only allowed for parameter types 'alias' and 'forward'");
     }
     if (paramPtr->method) {DECR_REF_COUNT(paramPtr->method);}
     paramPtr->method = Tcl_NewStringObj(option + 7, optionLength - 7);
@@ -11629,7 +11629,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     Tcl_DStringAppend(dsPtr, option, optionLength);
 
     if (paramPtr->converter) {
-      NsfPrintError(interp, "Parameter option '%s' unknown for parameter type '%s'",
+      NsfPrintError(interp, "parameter option '%s' unknown for parameter type '%s'",
 		    Tcl_DStringValue(dsPtr), paramPtr->type);
       Tcl_DStringFree(dsPtr);
       return TCL_ERROR;
@@ -11684,17 +11684,17 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   }
 
   if ((paramPtr->flags & disallowedOptions)) {
-    return NsfPrintError(interp, "Parameter option '%s' not allowed", option);
+    return NsfPrintError(interp, "parameter option '%s' not allowed", option);
   }
 
   if (unlikely((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) && (paramPtr->flags & NSF_ARG_NOCONFIG))) {
-    return NsfPrintError(interp, "Option 'noconfig' cannot used together with this type of object parameter");
+    return NsfPrintError(interp, "option 'noconfig' cannot used together with this type of object parameter");
   } else if (unlikely((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == (NSF_ARG_ALIAS|NSF_ARG_FORWARD))) {
-    return NsfPrintError(interp, "Parameter types 'alias' and 'forward' cannot be used together");
+    return NsfPrintError(interp, "parameter types 'alias' and 'forward' cannot be used together");
   } else if (unlikely((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) == (NSF_ARG_ALIAS|NSF_ARG_INITCMD))) {
-    return NsfPrintError(interp, "Parameter types 'alias' and 'initcmd' cannot be used together");
+    return NsfPrintError(interp, "parameter types 'alias' and 'initcmd' cannot be used together");
   } else if (unlikely((paramPtr->flags & (NSF_ARG_FORWARD|NSF_ARG_INITCMD)) == (NSF_ARG_FORWARD|NSF_ARG_INITCMD))) {
-    return NsfPrintError(interp, "Parameter types 'forward' and 'initcmd' cannot be used together");
+    return NsfPrintError(interp, "parameter types 'forward' and 'initcmd' cannot be used together");
   }
 
   return result;
@@ -11845,7 +11845,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   } else if (paramPtr->converter == ConvertToNothing) {
     if (paramPtr->flags & (NSF_ARG_ALLOW_EMPTY|NSF_ARG_MULTIVALUED)) {
       NsfPrintError(interp,
-		    "Multiplicity settings for variable argument parameter \"%s\" not allowed",
+		    "multiplicity settings for variable argument parameter \"%s\" not allowed",
 		    paramPtr->name);
       goto param_error;
     }
@@ -16518,7 +16518,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		if (procNameObj->refCount != refcountBefore) {
 		  pcPtr->objc = nrParams ;
 		  /*fprintf(stderr, "trigger error pcPtr->objc %d\n", pcPtr->objc);*/
-		  return NsfPrintError(interp, "Unknown handler for '%s' must not alter definition",
+		  return NsfPrintError(interp, "unknown handler for '%s' must not alter definition",
 				       ObjStr(argumentObj));
 		}
 #endif
@@ -16563,7 +16563,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	o++;
 	if (unlikely(o >= objc)) {
 	  /* we expect an argument, but we are already at the end of the argument list */
-	  return NsfPrintError(interp, "Value for parameter '%s' expected", pPtr->name);
+	  return NsfPrintError(interp, "value for parameter '%s' expected", pPtr->name);
 	}
 	assert(valueObj == NULL);
 	valueObj = objv[o];
@@ -17966,7 +17966,7 @@ AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withP
   /*fprintf(stderr, "aliasGet methodName '%s' returns %p\n", methodName, obj);*/
   Tcl_DStringFree(dsPtr);
   if (obj == NULL && leaveError) {
-    NsfPrintError(interp, "Could not obtain alias definition for %s %s.",
+    NsfPrintError(interp, "could not obtain alias definition for %s %s.",
 		  ObjStr(cmdName), methodName);
   }
   return obj;
@@ -18647,7 +18647,7 @@ NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST o
      */
     slave = Tcl_GetSlave(interp, ObjStr(objv[2]));
     if (!slave) {
-      return NsfPrintError(interp, "Creation of slave interpreter failed");
+      return NsfPrintError(interp, "creation of slave interpreter failed");
     }
     if (Nsf_Init(slave) == TCL_ERROR) {
       return TCL_ERROR;
@@ -19101,7 +19101,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
 
   if (unlikely(cmd == NULL)) {
-    return NsfPrintError(interp, "Cannot lookup %s method '%s' for %s",
+    return NsfPrintError(interp, "cannot lookup %s method '%s' for %s",
 			 cl == 0 ? "object " : "",
 			 methodName, ObjectName(object));
   }
@@ -19183,7 +19183,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       Tcl_Obj **objPtr;
 
       if (valueObj == NULL && methodproperty == MethodpropertySlotobjIdx) {
-	return NsfPrintError(interp, "Option 'slotobj' of method '%s' requires argument",
+	return NsfPrintError(interp, "option 'slotobj' of method '%s' requires argument",
 			     methodName);
       }
 
@@ -19590,7 +19590,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 
       if (oc % 2) {
         ObjectSystemFree(interp, osPtr);
-        return NsfPrintError(interp, "System methods must be provided as pairs");
+        return NsfPrintError(interp, "system methods must be provided as pairs");
       }
       for (i=0; i<oc; i += 2) {
 	Tcl_Obj *arg, **arg_ov;
@@ -19622,7 +19622,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
       }
     } else {
       ObjectSystemFree(interp, osPtr);
-      return NsfPrintError(interp, "Provided system methods are not a proper list");
+      return NsfPrintError(interp, "provided system methods are not a proper list");
     }
   }
   /*
@@ -19640,7 +19640,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
     if (theobj) PrimitiveCDestroy(theobj);
 
     ObjectSystemFree(interp, osPtr);
-    return NsfPrintError(interp, "Creation of object system failed");
+    return NsfPrintError(interp, "creation of object system failed");
   }
 
   theobj->osPtr = osPtr;
@@ -19916,7 +19916,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
               DECR_REF_COUNT(newFullCmdName);
               DECR_REF_COUNT(oldFullCmdName);
               DECR_REF_COUNT(arglistObj);
-              return NsfPrintError(interp, "No object for assertions");
+              return NsfPrintError(interp, "no object for assertions");
             }
 
             DSTRING_INIT(dsPtr);
@@ -20448,7 +20448,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
       CONST char *procName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
       Tcl_SetResult(interp, (char *)procName, TCL_VOLATILE);
     } else {
-      return NsfPrintError(interp,  "Can't find proc");
+      return NsfPrintError(interp,  "can't find proc");
     }
     break;
 
@@ -21020,7 +21020,7 @@ NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *object, int withInstance, int 
 
     return TCL_OK;
   }
-  return NsfPrintError(interp, "Autoname failed. Probably format string (with %%) was not well-formed");
+  return NsfPrintError(interp, "autoname failed. Probably format string (with %%) was not well-formed");
 }
 
 /*
@@ -21462,7 +21462,7 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
    */ 
   if (unlikely(IsBaseClass(object))) {
     if (RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_ON_SOFT_DESTROY) {
-      return NsfPrintError(interp, "Cannot destroy base class %s", ObjectName(object));
+      return NsfPrintError(interp, "cannot destroy base class %s", ObjectName(object));
     }
   }
 
@@ -21551,7 +21551,7 @@ NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter,
     }
   }
 
-  return NsfPrintError(interp, "Filterguard: can't find filter %s on %s",
+  return NsfPrintError(interp, "filterguard: can't find filter %s on %s",
 		       filter, ObjectName(object));
 }
 
@@ -21610,7 +21610,7 @@ NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *mixin, Tcl_
     }
   }
 
-  return NsfPrintError(interp, "Mixinguard: can't find mixin %s on %s",
+  return NsfPrintError(interp, "mixinguard: can't find mixin %s on %s",
 		       ObjStr(mixin), ObjectName(object));
 }
 
@@ -21854,8 +21854,8 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   callFrameContext ctx = {0, NULL, NULL};
 
   if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_OFF)) {
-    fprintf(stderr, "### Can't make objects volatile during shutdown\n");
-    return NsfPrintError(interp, "Can't make objects volatile during shutdown");
+    fprintf(stderr, "### can't make objects volatile during shutdown\n");
+    return NsfPrintError(interp, "can't make objects volatile during shutdown");
   }
 
   CallStackUseActiveFrame(interp, &ctx);
@@ -21906,7 +21906,7 @@ NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespa
 
   /*fprintf(stderr, " **** class '%s' wants to alloc '%s'\n", ClassName(cl), nameString);*/
   if (unlikely(NSCheckColons(nameString, 0) == 0)) {
-    return NsfPrintError(interp, "Cannot allocate object - illegal name '%s'", nameString);
+    return NsfPrintError(interp, "cannot allocate object - illegal name '%s'", nameString);
   }
 
   if (IsMetaClass(interp, cl, 1) == 0) {
@@ -21953,7 +21953,7 @@ NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
 
   /*fprintf(stderr, " **** class '%s' wants to alloc '%s'\n", ClassName(cl), nameString);*/
   if (!NSCheckColons(nameString, 0)) {
-    return NsfPrintError(interp, "Cannot allocate object - illegal name '%s'", nameString);
+    return NsfPrintError(interp, "cannot allocate object - illegal name '%s'", nameString);
   }
 
   /*
@@ -22048,7 +22048,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
    * Provide protection against recreation if base classes.
    */ 
   if (unlikely(newObject && unlikely(IsBaseClass(newObject)))) {
-    result = NsfPrintError(interp, "Cannot recreate base class %s", ObjectName(newObject));
+    result = NsfPrintError(interp, "cannot recreate base class %s", ObjectName(newObject));
     goto create_method_exit;
   }
 
@@ -22140,7 +22140,7 @@ NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *UNUSED(cl), Tcl_Obj *obj) {
   NsfObject *object;
 
   if (GetObjectFromObj(interp, obj, &object) != TCL_OK) {
-    return NsfPrintError(interp, "Can't destroy object %s that does not exist",
+    return NsfPrintError(interp, "can't destroy object %s that does not exist",
 			 ObjStr(obj));
   }
 

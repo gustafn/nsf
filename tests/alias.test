@@ -449,10 +449,10 @@ rename ::foo ::foo2
 ? {c FOO} {target "::foo" of alias FOO apparently disappeared}
 ? {C info method definition FOO} "::C public alias FOO ::foo"
 unset ::nsf::alias(::C,FOO,0)
-? {c FOO} {Could not obtain alias definition for ::C FOO.}
+? {c FOO} {could not obtain alias definition for ::C FOO.}
 ? {c FOO2} {target "::foo" of alias FOO2 apparently disappeared}
 rename ::foo2 ::foo
-? {c FOO} {Could not obtain alias definition for ::C FOO.}
+? {c FOO} {could not obtain alias definition for ::C FOO.}
 ? {c FOO2} {::c->FOO2}
 
 #

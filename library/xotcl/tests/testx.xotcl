@@ -261,13 +261,13 @@ TestX assertions -proc run {{n 20}} {
     a set x 1
     a check all
   }
-  ::errorCheck $err {Assertion failed check: {$x == 1} in proc 'xTo2'} \
+  ::errorCheck $err {assertion failed check: {$x == 1} in proc 'xTo2'} \
     "inheritance a xTo2"
 
   if {![catch {a yTo2} err]} {
     set err "ok"
   }
-  ::errorCheck $err {Assertion failed check: {$y == 1} in proc 'yTo2'} \
+  ::errorCheck $err {assertion failed check: {$y == 1} in proc 'yTo2'} \
     "inheritance a yTo2"
 
   Class B -superclass A
@@ -280,13 +280,13 @@ TestX assertions -proc run {{n 20}} {
     b set x 1
     b check all
   }
-  ::errorCheck $err {Assertion failed check: {$x == 1} in proc 'xTo2'} \
+  ::errorCheck $err {assertion failed check: {$x == 1} in proc 'xTo2'} \
     "inheritance b xTo2"
 
   if {![catch {b yTo2} err]} {
     set err "ok"
   }
- ::errorCheck $err {Assertion failed check: {$y == 1} in proc 'yTo2'} \
+ ::errorCheck $err {assertion failed check: {$y == 1} in proc 'yTo2'} \
 					 "inheritance b yTo2"
  
  a destroy     
@@ -4028,7 +4028,7 @@ TestX create nonposargs -proc run {{n 20}} {
     o y 4 56 5
   } m
   errorCheck $m \
-      {Invalid argument '5', maybe too many arguments; should be "::o y ?-x value? ?-a value? a b"} \
+      {invalid argument '5', maybe too many arguments; should be "::o y ?-x value? ?-a value? a b"} \
       "wrong \# check 1"
 
   catch {
@@ -4115,7 +4115,7 @@ TestX create nonposargs -proc run {{n 20}} {
   o foo
   o foo -foo 0
   catch {o foo -foo} msg
-  errorCheck $msg "Value for parameter '-foo' expected" "Empty non-pos arg"
+  errorCheck $msg "value for parameter '-foo' expected" "Empty non-pos arg"
   
   Object oa
   oa proc foo {{-a A} b} {

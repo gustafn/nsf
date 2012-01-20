@@ -3852,7 +3852,10 @@ nsf.c:
    - direct subobjects of objects are currently on dispatchable
      when allowmethoddispatch is set. Note, that this could
      be seen as a method-property of the method-name, which
-     could be made "private" as well to avoud such dispatches.
+     could be made "private" as well to avoud such direct dispatches.
+
+- nsf.c: start all error messages with a lower case word for consistency
+  and to follow closer to Tcl's conventions
 
 ========================================================================
 TODO:

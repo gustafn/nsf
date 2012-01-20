@@ -24,9 +24,9 @@ nx::Test case syntax {
   ? {::nsf::method::alias C foo ::set} "::nsf::classes::C::foo"
 
   ? {::nsf::method::alias C foo ::set 1} \
-      {Invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
+      {invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
 
-  ? {C eval {:property x -class D}} {Invalid argument 'D', maybe too many arguments; should be "::C property ?-class value? spec ?initblock?"} "Test whether the colon prefix is suppressed"
+  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-class value? spec ?initblock?"} "Test whether the colon prefix is suppressed"
 }
 
 #######################################################
@@ -640,7 +640,7 @@ nx::Test case user-types {
   # create a userdefined type
   ::nx::methodParameterSlot method type=mytype {name value} {
     if {$value < 1 || $value > 3} {
-      error "Value '$value' of parameter $name is not between 1 and 3"
+      error "value '$value' of parameter $name is not between 1 and 3"
     }
   }
 
@@ -650,7 +650,7 @@ nx::Test case user-types {
   d1 foo 1
 
   ? {d1 foo 10} \
-      "Value '10' of parameter a is not between 1 and 3" \
+      "value '10' of parameter a is not between 1 and 3" \
       "value not between 1 and 3"
   
   D public method foo {a:unknowntype} {
@@ -664,7 +664,7 @@ nx::Test case user-types {
   # create a userdefined type with a simple argument
   ::nx::methodParameterSlot method type=in {name value arg} {
     if {$value ni [split $arg |]} {
-      error "Value '$value' of parameter $name not in permissible values $arg"
+      error "value '$value' of parameter $name not in permissible values $arg"
     }
     return $value
   }
@@ -675,7 +675,7 @@ nx::Test case user-types {
   
   ? {d1 foo a} "a=a"
   ? {d1 foo 10} \
-      "Value '10' of parameter a not in permissible values a|b|c" \
+      "value '10' of parameter a not in permissible values a|b|c" \
       "invalid value"
   
   D public method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
@@ -685,13 +685,13 @@ nx::Test case user-types {
   ? {d1 foo a good -c b} "a=a,b=good,c=b"
   ? {d1 foo a good} "a=a,b=good,c=a"
   ? {d1 foo b "very good"} \
-      "Value 'very good' of parameter b not in permissible values good|bad" \
+      "value 'very good' of parameter b not in permissible values good|bad" \
       "invalid value (not included)"
   
   ::nx::methodParameterSlot method type=range {name value arg} {
     foreach {min max} [split $arg -] break
     if {$value < $min || $value > $max} {
-      error "Value '$value' of parameter $name not between $min and $max"
+      error "value '$value' of parameter $name not between $min and $max"
     }
     return $value
   }
@@ -703,12 +703,12 @@ nx::Test case user-types {
   ? {d1 foo 2 -b 4 9} "a=2,b=4,c=9"
   ? {d1 foo 2 10} "a=2,b=3,c=10"
   ? {d1 foo 2 11} \
-      "Value '11' of parameter c not between 5 and 10" \
+      "value '11' of parameter c not between 5 and 10" \
       "invalid value"
   
   # define type twice
   ? {D public method foo {a:int,range,arg=1-3} {return a=$a}} \
-      "Parameter option 'range' unknown for parameter type 'integer'" \
+      "parameter option 'range' unknown for parameter type 'integer'" \
       "invalid value"
   #
   # handling of arg with spaces/arg as list
@@ -1489,7 +1489,7 @@ nx::Test case req-param {
   }
 
   set ::_ ""
-  ? {C create c2 -y 1 -x} {Value for parameter '-x' expected}
+  ? {C create c2 -y 1 -x} {value for parameter '-x' expected}
   ? {set ::_} ""
   ? {c2 x} {can't read "x": no such variable}
   ? {C create c3 -y 1 -x 0} "::c3"
@@ -1904,14 +1904,14 @@ nx::Test case object-level-variable {
     ::nx::ObjectParameterSlot method type=range {name value arg} {
       lassign [split $arg -] min max
       if {$value < $min || $value > $max} {
-	error "Value '$value' of parameter $name not between $min and $max"
+	error "value '$value' of parameter $name not between $min and $max"
       }
       return $value
     }
     ::nx::ObjectParameterSlot method type=range {name value arg} {
       lassign [split $arg -] min max
       if {$value < $min || $value > $max} {
-	error "Value '$value' of parameter $name not between $min and $max"
+	error "value '$value' of parameter $name not between $min and $max"
       }
       return $value
     }
@@ -1920,9 +1920,9 @@ nx::Test case object-level-variable {
     # Test usage of application specific converter in "variable" and
     # "property"; invalid value
     ? [list [self] variable -nocomplain r1:range,arg=1-10 11] \
-	{Value '11' of parameter value not between 1 and 10}
+	{value '11' of parameter value not between 1 and 10}
     ? [list [self] property -nocomplain [list r2:range,arg=1-10 11]] \
-	{Value '11' of parameter value not between 1 and 10}
+	{value '11' of parameter value not between 1 and 10}
 
     # valid value
     ? [list [self] variable  -nocomplain r1:range,arg=1-10 5] ""
@@ -1995,7 +1995,7 @@ nx::Test case class-level-variable {
 
   ? {C create c2 -a 10} ::c2
   ? {C create c2 -v 10} \
-      {Invalid non-positional argument '-v', valid are : -a, -volatile, -properties, -noinit, -mixin, -class, -filter;
+      {invalid non-positional argument '-v', valid are : -a, -volatile, -properties, -noinit, -mixin, -class, -filter;
  should be "::c2 configure ?-a value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"}
 
   #

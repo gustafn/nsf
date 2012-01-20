@@ -262,7 +262,7 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
 			   Nsf_Object *object, Nsf_Param CONST *paramPtr, Tcl_Obj *procNameObj) {
   Tcl_DString ds, *dsPtr = &ds;
   DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, "Invalid argument '", -1);
+  Tcl_DStringAppend(dsPtr, "invalid argument '", -1);
   Tcl_DStringAppend(dsPtr, argumentString, -1);
   Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
@@ -298,7 +298,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   Nsf_Param CONST *pPtr;
 
   DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, "Invalid non-positional argument '", -1);
+  Tcl_DStringAppend(dsPtr, "invalid non-positional argument '", -1);
   Tcl_DStringAppend(dsPtr, argumentString, -1);
   Tcl_DStringAppend(dsPtr, "', valid are : ", -1);
   for (pPtr = currentParamPtr; pPtr->name && *pPtr->name == '-'; pPtr ++) {
@@ -337,7 +337,7 @@ extern int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, 
 			   CONST char *what, CONST char *methodName) {
   if (clientData) {
-    return NsfPrintError(interp, "Method %s not dispatched on valid %s",
+    return NsfPrintError(interp, "method %s not dispatched on valid %s",
 			 methodName, what);  
   } else {
     return NsfNoCurrentObjectError(interp, methodName);
@@ -362,7 +362,7 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
  */
 extern int
 NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what) {
-  return NsfPrintError(interp, "No current object; %s called outside the context of a Next Scripting method",
+  return NsfPrintError(interp, "no current object; %s called outside the context of a Next Scripting method",
 		       what ? what : "command");
 }
 

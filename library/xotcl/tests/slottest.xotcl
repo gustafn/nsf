@@ -376,7 +376,7 @@ nx::Test case req-param {
   C instproc init args {set ::_ $args}
 
   set ::_ ""
-  ? {C create c2 -y 1 -x} {Value for parameter '-x' expected}
+  ? {C create c2 -y 1 -x} {value for parameter '-x' expected}
   ? {set ::_} ""
   ? {c2 x} {can't read "x": no such variable}
   ? {C create c3 -y 1 -x 0} "::c3"

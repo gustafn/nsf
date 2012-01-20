@@ -11,18 +11,18 @@ nx::Test case method-params-0 {
   ? {p0 -x} {wrong # args: should be "p0"}
 
   ? {p1} 0
-  ? {p1 -x} {Value for parameter '-x' expected}
+  ? {p1 -x} {value for parameter '-x' expected}
   ? {p1 -x 1} 1
-  ? {p1 -x 1 2} {Invalid argument '2', maybe too many arguments; should be "p1 ?-x value?"}
-  ? {p1 -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+  ? {p1 -x 1 2} {invalid argument '2', maybe too many arguments; should be "p1 ?-x value?"}
+  ? {p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
  should be "p1 ?-x value?"}
-  ? {p1 a} {Invalid argument 'a', maybe too many arguments; should be "p1 ?-x value?"}
-  ? {p1 a -x} {Invalid argument 'a', maybe too many arguments; should be "p1 ?-x value?"}
+  ? {p1 a} {invalid argument 'a', maybe too many arguments; should be "p1 ?-x value?"}
+  ? {p1 a -x} {invalid argument 'a', maybe too many arguments; should be "p1 ?-x value?"}
 
   ? {p1 --} 0
-  ? {p1 -y} {Invalid non-positional argument '-y', valid are : -x;
+  ? {p1 -y} {invalid non-positional argument '-y', valid are : -x;
  should be "p1 ?-x value?"}
-  ? {p1 -y --} {Invalid non-positional argument '-y', valid are : -x;
+  ? {p1 -y --} {invalid non-positional argument '-y', valid are : -x;
  should be "p1 ?-x value?"}
 
   #
@@ -49,15 +49,15 @@ nx::Test case noleadingdash {
   ? {p2c -x -y} {1 {}} ;# "-y" is the value of "x"; TODO: noleadindash currently only for posargs
 
   ? {p2a -x 1 -y} {1 -y}
-  ? {p2b -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+  ? {p2b -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
  should be "p2b ?-x value? ?arg ...?"}
-  ? {p2c -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+  ? {p2c -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
  should be "p2c ?-x value? ?arg ...?"}
 
   nsf::proc p3a {a -x -y b:noleadingdash -z} {return [list $a [info exists x] [info exists y] $b]}
 
   ? {p3a 100 -x 1 -y 1 200} {100 1 1 200}
-  ? {p3a 100 -xx 1 -y 1 200} {Invalid non-positional argument '-xx', valid are : -x, -y;
+  ? {p3a 100 -xx 1 -y 1 200} {invalid non-positional argument '-xx', valid are : -x, -y;
  should be "p3a a ?-x value? ?-y value? b ?-z value?"}  
 }
 
@@ -67,7 +67,7 @@ nx::Test case unknown-handler {
     :public method p1 {-x} {return [list [info exists x]]}
     :create c1
   }
-  ? {c1 p1 -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+  ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
  should be "::c1 p1 ?-x value?"}
 
   proc ::nsf::argument::unknown {method arg args} {
@@ -75,7 +75,7 @@ nx::Test case unknown-handler {
     return ""
   }
 
-  ? {c1 p1 -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+  ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
  should be "::c1 p1 ?-x value?"}
 
   if {0} {
@@ -86,7 +86,7 @@ nx::Test case unknown-handler {
       return ""
     }
     
-    ? {c1 p1 -x 1 -y} {Invalid non-positional argument '-y', valid are : -x;
+    ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
  should be "::c1 p1 ?-x value?"}
   }
 }
