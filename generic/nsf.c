@@ -2121,7 +2121,7 @@ GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name
 
   if (cmd) {
     *cmdPtr = cmd;
-    return NsfGetObjectFromCmdPtr(cmd);
+    return NsfGetObjectFromCmdPtr(GetOriginalCommand(cmd));
   }
   return NULL;
 }
@@ -2201,9 +2201,9 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
   int containsSpace;
   Tcl_Command cmd;
 
-  /*
-  fprintf(stderr,"methodName '%s' comp %d type %s\n",
-  methodName, strchr(methodName, ' ')>0, methodObj->typePtr ? methodObj->typePtr->name : "(none)");*/
+  
+  /*fprintf(stderr,"methodName '%s' comp %d type %s\n",
+    methodName, strchr(methodName, ' ')>0, methodObj->typePtr ? methodObj->typePtr->name : "(none)");*/
 
   if (methodObj->typePtr == Nsf_OT_listType) {
     int length;
@@ -17138,8 +17138,10 @@ ListMethod(Tcl_Interp *interp,
       }
     case InfomethodsubcmdSubmethodsIdx:
       {
-	if (CmdIsNsfObject(cmd)) {
-	  NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);
+	Tcl_Command origCmd = GetOriginalCommand(cmd);
+
+	if (CmdIsNsfObject(origCmd)) {
+	  NsfObject *subObject = NsfGetObjectFromCmdPtr(origCmd);
 	  if (subObject) {
 	    return ListDefinedMethods(interp, subObject, NULL, 1 /* per-object */,
 				      NSF_METHODTYPE_ALL, CallprotectionAllIdx, 0);
@@ -17570,6 +17572,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
     hPtr = Tcl_CreateHashEntry(tablePtr, pattern, NULL);
     if (hPtr) {
       NsfObject *childObject;
+      Tcl_Command origCmd;
 
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
@@ -17583,7 +17586,8 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
        * Aliased objects methods return 1 but lookup from cmd returns
        * NULL. Below, we are just interested on true subobjects.
        */
-      childObject = isObject ? NsfGetObjectFromCmdPtr(cmd) : NULL;
+      origCmd = GetOriginalCommand(cmd);
+      childObject = isObject ? NsfGetObjectFromCmdPtr(origCmd) : NULL;
 
       if (childObject) {
 
@@ -17591,7 +17595,11 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	  return TCL_OK;
 	}
 	
-	if ((childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0) {
+	/*
+	 * Treat aliased object dispatch different from direct object
+	 * dispatches.
+	 */
+	if (cmd == origCmd && (childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0) {
 	  /*fprintf(stderr, "no method dispatch allowed on child %s\n", ObjectName(childObject));*/
 	  return TCL_OK;
 	}
@@ -17623,6 +17631,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	 hPtr;
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *childObject;
+      Tcl_Command origCmd;
 
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
@@ -17633,7 +17642,8 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
        * Aliased objects methods return 1 but lookup from cmd returns
        * NULL. Below, we are just interested on true subobjects.
        */
-      childObject = isObject ? NsfGetObjectFromCmdPtr(cmd) : NULL;
+      origCmd = GetOriginalCommand(cmd);
+      childObject = isObject ? NsfGetObjectFromCmdPtr(origCmd) : NULL;
 
       if (childObject) {
 	if (withPath) {
@@ -17667,7 +17677,11 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	  continue;
 	}
 
-	if ((childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0) {
+	/*
+	 * Treat aliased object dispatch different from direct object
+	 * dispatches.
+	 */
+	if (cmd == origCmd && (childObject->flags & NSF_ALLOW_METHOD_DISPATCH ) == 0) {
 	  /*fprintf(stderr, "no method dispatch allowed on child %s\n", ObjectName(childObject));*/
 	  continue;
 	}
@@ -18788,7 +18802,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       newObjProc = NsfProcAliasMethod;
     }
     // TODO: for forcing redirectors on objects, do something like
-    //newObjProc = NsfProcAliasMethod;
+    newObjProc = NsfProcAliasMethod;
 
     /*
      * The new alias is pointing to an nsf object. In case no aliasMethod is
@@ -23094,9 +23108,11 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
   if (subcmd == InfomethodsubcmdHandleIdx) {
     subcmd = InfomethodsubcmdDefinitionhandleIdx;
   }
+
   /*fprintf(stderr,
 	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p %s fromClass %d cmd %p method %s\n",
 	  &class->object, regObject, defObject, ObjectName(defObject), fromClassNS, cmd, methodName1);*/
+
   result = ListMethod(interp,
 		      regObject ? regObject : &class->object,
 		      defObject ? defObject : &class->object,

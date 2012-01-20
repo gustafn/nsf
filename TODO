@@ -3842,21 +3842,22 @@ nsf.c:
   In addition, the new approach is faster.
 - eliminating obsolete flag NSF_CSC_CALL_IS_TRANSPARENT
 
+- use alias-stubs for aliases pointing to objects. This allows
+  us to distinguish between cases, where an object is dispatchable
+  due to the alias or due to allowmethoddispatch (when the object
+  happens to be a subobject and has therefore its cmd in the same
+  namespace). The semantics are now:
+   - aliases to objects are always dispatchable, no matter, how
+     allowmethoddispatch is set.
+   - direct subobjects of objects are currently on dispatchable
+     when allowmethoddispatch is set. Note, that this could
+     be seen as a method-property of the method-name, which
+     could be made "private" as well to avoud such dispatches.
+
 ========================================================================
 TODO:
-
-- make an additional attempt to use aliases instead of direct
-  object dispatches in ensembles - reconsider whether it is worth the effort.
-
-- also aliasMethods pointing to objects require that these objects
-  have allowmethoddispatch, since this is an object property 
-  (not an alias property).
-  * contra: might be unexpected
-  * pro: if we keep the logic of ensemble methods with the per-object 
-    methods, and/or the keepcallerself, it make sense to avoid mixing
-    interpretations from the point of view of different objects
-  - corollary: for complete configurability of method dispatch, we would
-    need as well a 3rd object-property: restrict-dispatch-to-object-methods
+- corollary: for complete configurability of method dispatch, we would
+  need as well a 3rd object-property: restrict-dispatch-to-object-methods
 
 - pertaining allowmethoddispatch and keepcallerself in serializer
 - setting of allowmethoddispatch in XOTcl is weak, since set over constructor, 

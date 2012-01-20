@@ -180,9 +180,16 @@ nx::Test case visability-sub-objects {
     }
     :public alias soAlias ::o::sub
   }
+  # 
+  # per default, we see just the alias
+  #
   ? {o info methods} "soAlias"
   ? {o info method type soAlias} "alias"
   
+  # 
+  # if allowmethoddispatch is turned on, we see the alias and the
+  # submethod name
+  #
   nsf::object::property ::o::sub allowmethoddispatch on
   ? {o info methods} "soAlias sub"
   ? {o info method type sub} "object"
@@ -198,12 +205,14 @@ nx::Test case visability-aliased-object {
     :public alias i ::I
     :create c1
   }
-  ? {C info methods i} ""
-  ? {c1 info lookup methods i} ""
-  #? {C info methods i} "i"
-  #? {c1 info lookup methods i} "i"
-  #? {C info methods *i} "i"
-  #? {c1 info lookup methods *i} "i"
+  #
+  # We see the alias to the object, no matter whether
+  # allowmethoddispatch on the target is turned on or off.
+  #
+  ? {C info methods i} "i"
+  ? {c1 info lookup methods i} "i"
+  ? {C info methods *i} "i"
+  ? {c1 info lookup methods *i} "i"
 
   ::nsf::object::property ::I allowmethoddispatch 1
   ? {C info methods i} "i"

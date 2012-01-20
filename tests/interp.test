@@ -608,7 +608,10 @@ nx::Test case hidden-objects-as-aliases {
   ? {$i eval {dongo bar foo}} OK
   $i hide x
   ? {$i hidden} x
-  ? {$i eval {dongo bar foo}} OK
+
+  #? {$i eval {dongo bar foo}} OK
+  ? {$i eval {dongo bar foo}} {target "::x" of alias bar apparently disappeared}
+
   ? {$i eval {x foo}} {invalid command name "x"}
   ? {$i invokehidden x foo} OK
   $i expose x
@@ -618,13 +621,15 @@ nx::Test case hidden-objects-as-aliases {
 
   $i hide x X
   ? {$i hidden} X
-  ? {$i eval {dongo bar foo}} OK
+  #? {$i eval {dongo bar foo}} OK
+  ? {$i eval {dongo bar foo}} {target "::x" of alias bar apparently disappeared}
   ? {$i eval {X foo}} {invalid command name "X"}
   ? {$i invokehidden X foo} OK
 
   $i expose X XX
   ? {$i hidden} ""
-  ? {$i eval {dongo bar foo}} OK
+  #? {$i eval {dongo bar foo}} OK
+  ? {$i eval {dongo bar foo}} {target "::x" of alias bar apparently disappeared}
   ? {$i eval {XX foo}} OK
 
   #
