@@ -228,7 +228,7 @@ typedef struct NsfMemCounter {
  * This was defined to be inline for anything !sun or __IBMC__ >= 0x0306,
  * but __hpux should also be checked - switched to only allow in gcc - JH
  */
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
 # define NSF_INLINE inline
 #else
 # define NSF_INLINE
@@ -980,6 +980,25 @@ void NsfStringIncrFree(NsfStringIncrStruct *iss);
 
 #ifndef HAVE_STRNSTR
 char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
+#endif
+
+/* 
+   In ANSI mode (ISO C89/90) compilers such as gcc and clang do not
+   define the va_copy macro. However, they *do* in reasonably recent
+   versions provide a prefixed (__*) one. The by-feature test below
+   falls back to the prefixed version, if available, and provides a
+   more general fallback to a simple assignment; this is primarily for
+   MSVC; admittedly, this simplifcation is not generally portable to
+   platform/compiler combos other then x86, but the best I can think of right
+   now. One might constrain the assignment-fallback to a platform and 
+   leave va_copy undefined in uncaught platform cases (?).
+*/
+#ifndef va_copy
+#ifdef	__va_copy
+#define	va_copy(dest,src) __va_copy(dest,src)
+#else
+#define va_copy(dest,src) ((dest) = (src))
+#endif
 #endif
 
 
