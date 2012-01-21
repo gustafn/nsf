@@ -9715,13 +9715,15 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      tcd->objProc    = objProc;
      tcd->aliasedCmd = cmd;
      tcd->clientData = Tcl_Command_objClientData(cmd);
-    */
+     
+     * There is no need to iterate during dereferencing, since the target cmd
+     * is already dereferenced.
+     */
     
     cmd = tcd->aliasedCmd;
     proc = Tcl_Command_objProc(cmd);
     cp = Tcl_Command_objClientData(cmd);
 
-    /* TODO: dereference chain? */
   }
 
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p %s clientData %p cp=%p objc=%d cscPtr %p csc->flags %.6x \n",
@@ -9775,9 +9777,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      */
     return result;
 
-  } else if (proc == NsfObjDispatch 
-	     /*//&& ((o = NsfGetObjectFromCmdPtr(cmd)) && o->id == cmd && (o->flags & NSF_PER_OBJECT_DISPATCH))*/
-	     ) {
+  } else if (proc == NsfObjDispatch) {
 
     assert(cp);
     return ObjectCmdMethodDispatch((NsfObject *)cp, interp, objc, objv,
@@ -10302,8 +10302,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 		object, methodName, object->nsPtr, cmd,
 		cmd ? ((Command *)cmd)->objProc : NULL);*/
 	if (cmd) {
-	  //NsfObject *o;
-
 	  /* 
 	   * Reject call when
 	   * a) trying to call a private method without the local flag or ignore permssions, or
@@ -10311,7 +10309,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	   */
 	  if (((flags & (NSF_CM_LOCAL_METHOD|NSF_CM_IGNORE_PERMISSIONS)) == 0
 	       && (Tcl_Command_flags(cmd) & NSF_CMD_CALL_PRIVATE_METHOD)) 
-	      //|| ((o = NsfGetObjectFromCmdPtr(cmd)) && o->id == cmd && (o->flags & NSF_ALLOW_METHOD_DISPATCH) == 0)
 	      ) {
 	    cmd = NULL;
 	  } else {
@@ -18793,9 +18790,6 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
    *
    * 5. arbitrary Tcl commands (e.g. set, ..., ::nsf::relation, ...)
    *
-   * TODO GN: i think, we should use NsfProcAliasMethod, whenever the clientData
-   * is not 0. These are the cases, where the clientData will be freed,
-   * when the original command is deleted.
    */
 
   if (withFrame == FrameObjectIdx) {

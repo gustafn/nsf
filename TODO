@@ -3878,18 +3878,18 @@ nsf.c:
   private flag.
 - extended regression test
 
+- extend regression test for interactions between "keepcallerself" and
+  "perobjectdispatch"
+- some minor cleanup 
+
+
 ========================================================================
 TODO:
-- cleanup of allowmethoddispatch / changing it maybe into private handling
 
-- corollary: for complete configurability of method dispatch, we would
-  need as well a 3rd object-property: restrict-dispatch-to-object-methods
-
-- pertaining allowmethoddispatch and keepcallerself in serializer
-- setting of allowmethoddispatch in XOTcl is weak, since set over constructor, 
-  which migh be overwritten by application classes
+- pertaining perobjectdispatch and keepcallerself in serializer
 - should we allow objects to overwrite procs/methods and vice versa?
-- behavior on keepcallerself on ordinary dispatches with implicit/explicit receiver
+- behavior on keepcallerself on ordinary dispatches with implicit/explicit 
+  receiver (currently the flag is ignored, the code just commented out)
 
 - Aliases and forwards are not handled by NsfNSCopyCmdsCmd; object
   cloning/copying remains incomplete; also, there might be object and

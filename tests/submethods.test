@@ -541,6 +541,84 @@ nx::Test case current-args {
 
 
 #
+# Test keepcallerself and perobjectdispatch with their respective
+# interactions for plain object dispatch and for object dispatch via
+# method interface
+#
+
+nx::Test case per-object-dispatch {
+  nx::Class create C {
+    :public method foo {} {return foo-[self]}
+    :public method baz {} {return [c1::1 baz]}
+    :create c1 {
+      :public method bar {} {return bar-[self]}
+    }
+  }
+
+  ? {c1 foo} "foo-::c1"
+  ? {c1 bar} "bar-::c1"
+  
+  C create c1::1 {
+    :public method bar {} {return bar-[self]}
+    :public method baz {} {return baz-[self]}
+  }
+
+  #
+  # Just the same as above
+  #
+  ? {c1::1 foo} "foo-::c1::1"
+  ? {c1::1 bar} "bar-::c1::1"
+
+  # if we specify anything special, then we have per-default
+  # - keepcallerself false
+  # - perobjectdispatch false
+
+  ? {c1 1 foo} "foo-::c1::1"
+  ? {c1 1 bar} "bar-::c1::1"
+  ? {c1 baz} "baz-::c1::1"
+  
+  # just make setting explicit
+  ::nsf::object::property ::c1::1 keepcallerself off
+  ::nsf::object::property ::c1::1 perobjectdispatch off
+  ? {c1 1 foo} "foo-::c1::1"
+  ? {c1 1 bar} "bar-::c1::1"
+  ? {c1 baz} "baz-::c1::1"
+
+  # keepcallerself off   - the self in the called method is the invoked object
+  # perobjectdispatch on - the instance method is not callable
+
+  ::nsf::object::property ::c1::1 keepcallerself off
+  ::nsf::object::property ::c1::1 perobjectdispatch on
+
+  ? {c1 1 foo} {::c1::1: unable to dispatch method 'foo'}
+  ? {c1 1 bar} "bar-::c1::1"
+  ? {c1 baz} "baz-::c1::1"
+
+  # keepcallerself on     - the self in the called method is the caller
+  # perobjectdispatch on  - the instance method is not callable
+
+  ::nsf::object::property ::c1::1 keepcallerself on
+  ::nsf::object::property ::c1::1 perobjectdispatch on
+
+  ? {c1 1 foo} {::c1::1: unable to dispatch method 'foo'}
+  ? {c1 1 bar} "bar-::c1"
+  #### ignore keepcallerself via interface with explicit receiver intentionally
+  ? {c1 baz} "baz-::c1::1"
+
+  # keepcallerself on      - the self in the called method is the caller
+  # perobjectdispatch off  - the instance method is callable
+
+  ::nsf::object::property ::c1::1 keepcallerself on
+  ::nsf::object::property ::c1::1 perobjectdispatch off
+
+  ? {c1 1 foo} "foo-::c1"
+  ? {c1 1 bar} "bar-::c1"
+  #### ignore keepcallerself via interface with explicit receiver intentionally
+  ? {c1 baz} "baz-::c1::1"
+}
+
+
+#
 # Test forwarding to child object, with respect to settings of the
 # object properties keepcallerself and allowmethoddispatch
 #
@@ -644,3 +722,5 @@ nx::Test case child-obj-delegation {
   ? {lsort [obj info lookup methods child]} {child}
   ? {lsort [obj info lookup methods child*]} {child}
 }
+
+
