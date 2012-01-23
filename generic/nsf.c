@@ -323,6 +323,9 @@ static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_
 			     CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
 static int AliasRefetch(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, 
 			 AliasCmdClientData *tcd);
+NSF_INLINE
+static Tcl_Command AliasDereference(Tcl_Interp *interp, NsfObject *object, 
+				    CONST char *methodName, Tcl_Command cmd);
 
 /* prototypes for (class) list handling */
 static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData);
@@ -3472,7 +3475,7 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
    *
    */
 
-  if (likely(var && object == resVarInfo->lastObject &&
+  if ((var && object == resVarInfo->lastObject &&
 	     (((((Var *)var)->flags) & VAR_DEAD_HASH)) == 0)) {
     /*
      * The variable is valid.
@@ -9136,8 +9139,8 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 #endif
 
 #if defined(NRE)
-  if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE)) {
-    if (pcPtr) {
+  if (likely(cscPtr->flags & NSF_CSC_CALL_IS_NRE)) {
+    if (likely(pcPtr != NULL)) {
       ParseContextRelease(pcPtr);
       NsfTclStackFree(interp, pcPtr, "release parse context");
     }
@@ -9225,6 +9228,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   assert(object);
   assert(object->teardown);
 #if defined(NRE)
+  /*fprintf(stderr, "ProcMethodDispatch cmd %s\n", Tcl_GetCommandName(interp, cmdPtr));*/
   assert(cscPtr->flags & NSF_CSC_CALL_IS_NRE);
 #endif
 
@@ -9663,9 +9667,9 @@ static int NsfAsmProc(ClientData clientData, Tcl_Interp *interp,
 static int
 MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 		  int objc, Tcl_Obj *CONST objv[],
+		  Tcl_Command cmd,
 		  NsfCallStackContent *cscPtr, CONST char *methodName,
 		  int *validCscPtr) {
-  Tcl_Command cmd = cscPtr->cmdPtr;
   NsfObject *object = cscPtr->self;
   ClientData cp = Tcl_Command_objClientData(cmd);
   Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
@@ -9673,57 +9677,13 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   int result;
 
   /*
-   * Privide dtrace with calling info
+   * Privide DTrace with calling info
    */
   if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
     NSF_DTRACE_METHOD_ENTRY(ObjectName(object),
 			    cscPtr->cl ? ClassName(cscPtr->cl) : ObjectName(object),
 			    (char *)methodName,
 			    objc-1, (Tcl_Obj **)objv+1);
-  }
-
-  /*
-   * In a first step, resolve the alias
-   */
-
-  if (proc == NsfProcAliasMethod) {
-    AliasCmdClientData *tcd = (AliasCmdClientData *)cp;
-
-    assert(tcd);
-    assert((CmdIsProc(cmd) == 0));
-
-    /*fprintf(stderr, "NsfProcAliasMethod aliasedCmd %p epoch %p\n",
-      tcd->aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/
-
-    if (Tcl_Command_cmdEpoch(tcd->aliasedCmd)) {
-
-      result = AliasRefetch(interp, object, methodName, tcd);
-      if (result != TCL_OK) {
-	/* TODO: check freeing of csc? */
-	return result;
-      }
-    }
-   
-    /*
-     * We have now the original command still in cscPtr->cmdPtr and the
-     * aliasedCmd in tcd.
-     *
-     tcd->cmdName    = object->cmdName;
-     tcd->interp     = interp; // just for deleting the alias
-     tcd->object     = NULL;
-     tcd->class	    = cl ? (NsfClass *) object : NULL;
-     tcd->objProc    = objProc;
-     tcd->aliasedCmd = cmd;
-     tcd->clientData = Tcl_Command_objClientData(cmd);
-     
-     * There is no need to iterate during dereferencing, since the target cmd
-     * is already dereferenced.
-     */
-    
-    cmd = tcd->aliasedCmd;
-    proc = Tcl_Command_objProc(cmd);
-    cp = Tcl_Command_objClientData(cmd);
-
   }
 
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p %s clientData %p cp=%p objc=%d cscPtr %p csc->flags %.6x \n",
@@ -9739,7 +9699,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
    * finishes.
    */
 
-  if (proc == TclObjInterpProc) {
+  if (likely(proc == TclObjInterpProc)) {
 #if defined(NRE)
     NRE_callback *rootPtr = TOP_CB(interp);
     int isImmediate = (cscPtr->flags & NSF_CSC_IMMEDIATE);
@@ -9759,7 +9719,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      */
     *validCscPtr = 0;
 
-    if (isImmediate) {
+    if (unlikely(isImmediate)) {
 # if defined(NRE_CALLBACK_TRACE)
       fprintf(stderr, ".... manual run callbacks rootPtr = %p, result %d methodName %s.%s\n",
 	      rootPtr, result, cl?ClassName(cl):"NULL", methodName);
@@ -9817,7 +9777,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 #if !defined(NDEBUG)
     else if (proc == NsfProcAliasMethod) {
       /* This should never happen */
-      assert(0);
+      Tcl_Panic("Alias invoked in unexpected way");
     } 
 #endif
 
@@ -9883,14 +9843,25 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	       CONST char *methodName, int frameType, int flags) {
   NsfCallStackContent csc, *cscPtr;		
   int result, validCscPtr = 1;
+  Tcl_Command resolvedCmd;
 
   assert (object->teardown);
   assert (cmd);
-
+  
   /*fprintf(stderr, "MethodDispatch method '%s.%s' objc %d flags %.6x\n",
     ObjectName(object), methodName, objc, flags); */
 
-  cscPtr = CscAlloc(interp, &csc, cmd);
+  resolvedCmd = AliasDereference(interp, object, methodName, cmd);
+  if (unlikely(resolvedCmd == NULL)) {
+    return TCL_ERROR;
+  }
+
+  /*
+   * cscAlloc uses for resolvedCmd for allocating the call stack content and
+   * sets the IS_NRE flag based on it. We use the original cmd in the
+   * callstack content structure for introspection.
+   */
+  cscPtr = CscAlloc(interp, &csc, resolvedCmd);
 
   /*
    * We would not need CscInit when
@@ -9899,8 +9870,8 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
    */
   CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
-  result = MethodDispatchCsc(clientData, interp, objc, objv,
-			     cscPtr, methodName, &validCscPtr);
+  result = MethodDispatchCsc(object, interp, objc, objv,
+			     resolvedCmd, cscPtr, methodName, &validCscPtr);
 
 #if defined(NRE)
   if (validCscPtr) {
@@ -10255,8 +10226,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       if (result != TCL_OK) {
 	/*fprintf(stderr, "mixinsearch returned an error for %p %s.%s\n",
 	  object, ObjectName(object), methodName);*/
-	cscPtr = CscAlloc(interp, &csc, NULL);
-	CscInit(cscPtr, object, cl, NULL, frameType, flags, methodName);
+	validCscPtr = 0;
         goto exit_object_dispatch;
       }
       if (cmd1) {
@@ -10295,7 +10265,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       /* 
        * Do we have an object-specific cmd? 
        */
-      if (object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0) {
+      if (unlikely(object->nsPtr && (flags & (NSF_CM_NO_OBJECT_METHOD|NSF_CM_SYSTEM_METHOD)) == 0)) {
 	cmd = FindMethod(object->nsPtr, methodName);
 	/*fprintf(stderr, "lookup for per-object method in obj %p method %s nsPtr %p"
 		" => %p objProc %p\n",
@@ -10428,12 +10398,12 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
        * search. So, this branch should never by executed.
        */
 
-      assert(0);
+      Tcl_Panic("Unexpected handling of private method; most likely a caching bug");
       cmd = NULL;
 
     } else
 #endif
-    if ((cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD)) {
+    if (unlikely(cmdFlags & NSF_CMD_CALL_PROTECTED_METHOD)) {
       NsfObject *lastSelf = GetSelfObj(interp);
 
       /*
@@ -10456,7 +10426,19 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     /*
      * We found the method to dispatch.
      */
-    cscPtr = CscAlloc(interp, &csc, cmd);
+    Tcl_Command resolvedCmd = AliasDereference(interp, object, methodName, cmd);
+    if (unlikely(resolvedCmd == NULL)) {
+      validCscPtr = 0;
+      goto exit_object_dispatch;
+    }
+
+    /*
+     * cscAlloc uses for resolvedCmd for allocating the call stack content and
+     * sets the IS_NRE flag based on it. We use the original cmd in the
+     * callstack content structure for introspection.
+     */
+
+    cscPtr = CscAlloc(interp, &csc, resolvedCmd);
     CscInit(cscPtr, calledObject, cl, cmd, frameType, flags, methodName);
 
     if (unlikely(cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER)) {
@@ -10475,7 +10457,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	    cscPtr);*/
 
     result = MethodDispatchCsc(clientData, interp, objc-shift, objv+shift,
-			       cscPtr, methodName, &validCscPtr);
+			       resolvedCmd, cscPtr, methodName, &validCscPtr);
 
     if (unlikely(result == TCL_ERROR)) {
       /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
@@ -18126,6 +18108,45 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Alia
   return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * AliasDereference --
+ *
+ *    Dereference a cmd in respect of the the alias structure. If necessary,
+ *    this command refetches the aliased command. 
+ *
+ * Results:
+ *    NULL, in case refetching fails,
+ *    the aliased cmd if it was an alias, or
+ *    the original cmd
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+NSF_INLINE static Tcl_Command
+AliasDereference(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Command cmd) {
+  
+  if (unlikely(Tcl_Command_objProc(cmd) == NsfProcAliasMethod)) {
+    AliasCmdClientData *tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
+
+    assert(tcd);
+
+    if (unlikely(Tcl_Command_cmdEpoch(tcd->aliasedCmd))) {
+
+      /*fprintf(stderr, "NsfProcAliasMethod aliasedCmd %p epoch %p\n",
+	tcd->aliasedCmd, Tcl_Command_cmdEpoch(tcd->aliasedCmd));*/
+
+      if (AliasRefetch(interp, object, methodName, tcd) != TCL_OK) {
+	return NULL;
+      }
+    }
+    return tcd->aliasedCmd;
+  }
+
+  return cmd;
+}
 
 #if defined(NSF_ASSEMBLE)
 # include "asm/nsfAssemble.c"

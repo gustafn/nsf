@@ -2401,14 +2401,14 @@ sudo make install
    * provide a renderer for XOTcl @-notation to produce object structure
      for the new doctool (makes the old documentation usable, eg. for XOTcl2)
 
-- first steps towards DTRACE support
-- dtrace: 
+- first steps towards DTrace support
+- DTrace: 
    * track objects in method invocations
    * trace result codes in method-return 
-   * add some dtrace sample scripts
-   * add dtrace header file dependency
+   * add some DTrace sample scripts
+   * add DTrace header file dependency
    * add --enable-dtrace flag for configure
-   * --enable-dtrace sets DTRACE_OBJ on mac os x empty (since not needed for mac os x dtrace)
+   * --enable-dtrace sets DTRACE_OBJ on mac os x empty (since not needed for mac os x DTrace)
    * added "nsf::configure dtrace on|off" for skipping package initialization
      (to be handled in D script)
    * make compilation clean
@@ -2462,7 +2462,7 @@ sudo make install
 
 - serializer: catch for object-level alias apparently 
   not needed anymore (search for ns_cache_flush)
-- silence compilation when compiled without dtrace
+- silence compilation when compiled without DTrace
 
 - nx: 
   * removed methods ::nx::Class.alloc and 
@@ -3508,7 +3508,7 @@ Test run; exit
     --enable-development    build nsf with development support (assertion
                             checking, etc.; default disabled)
   Optional Packages:
-    --with-dtrace           build nsf with dtrace (default: without)
+    --with-dtrace           build nsf with DTrace (default: without)
 
 - nsf.c:
   * report configuration options via "parray nsf::config"
@@ -3882,6 +3882,8 @@ nsf.c:
   "perobjectdispatch"
 - some minor cleanup 
 
+- fixed NRE memory management (for Tcl 8.6) by refactoring
+  alias handling
 
 ========================================================================
 TODO:
