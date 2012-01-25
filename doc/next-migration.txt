@@ -2945,28 +2945,6 @@ hierarchy, which is equivalent with +info superclass -closure+ and
 therefore not necessary. In XOTcl 2 (and NX), +info heritage+ includes
 as well the transitive per-class mixins.
 
-=== Calling Objects via Method Interface
-
-Since the Next Scripting Framework supports the so-called _ensemble
-objects_, which ease the definition of sub-methods substantially,
-objects registered as methods have different semantics. In XOTcl 1, it
-was possible to call e.g. a method foo of the slot object
-`Foo::slot::ints` via the following two interfaces the same way:
-
-[source,tcl]
-----------------
-# XOTcl example
-
-Foo::slot::ints foo ...
-Foo slot ints foo ... 
-----------------
-
-In the Next Scripting Framework, only the first form has the same
-semantic as before. In the second form (invocation of objects via
-method interface) has now the ensemble object semantics. This means
-that in the second case the current object of method foo is now Foo
-instead of ints.
-
 === Slots
 
 All slot objects (also XOTcl slot objects) are now next-scripting
