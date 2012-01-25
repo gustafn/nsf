@@ -3887,13 +3887,11 @@ nsf.c:
 
 - removed documentation about incompatibility to XOTcl1 in 
   respect of the method interface for object invocations
+- doc fixed line-number handling locally
 
 ========================================================================
 TODO:
 
-- why is now "numbers" in asciidoc pretty-print-interface ignored? 
-  [source,tcl,numbers]
-  (asciidoc has changed from 8.5.5 to 8.5.6)
 - document new setable object properties perobjectdispatch and keepcallerself
 - pertaining perobjectdispatch and keepcallerself in serializer
 

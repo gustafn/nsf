@@ -345,7 +345,7 @@ stack under-runs and to issue error messages, when this happens.
 [[xmp-class-safety]]
 .Listing {counter:figure-number}: Class Safety
 {set:xmp-class-safety:Listing {figure-number}}
-[source,tcl,numbers]
+[source,tcl,numbered]
 --------------------------------------------------
 nx::Class create Safety {
 
