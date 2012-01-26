@@ -83,6 +83,9 @@ nx::Object create o
 ? {o info class} ::nx::Object
 ? {nx::Object info instances o} ::o
 ? {nx::Object info instances ::o} ::o
+o destroy
+? {nsf::object::exists ::o} 0
+? {nsf::object::exists o} 0
 
 nx::Object create o2 {
   ? {::nsf::object::exists ::o2} 1
@@ -145,6 +148,8 @@ M destroy
 
 # destroy class M, reclass class instances to the base class
 C destroy
+? {::nsf::object::exists C} 0
+? {::nsf::object::exists ::C} 0
 ? {::nsf::object::exists c1} 1
 ? {::nsf::is object c1} 1
 ? {::nsf::is class c1} 0

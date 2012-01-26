@@ -387,6 +387,8 @@ typedef struct NsfStringIncrStruct {
 #define NSF_DURING_DELETE                  0x2000
 #define NSF_DELETED                        0x4000
 #define NSF_RECREATE                       0x8000
+#define NSF_RECREATE                       0x8000
+#define NSF_TCL_DELETE                   0x010000  /* requires flags to be int, not short */
 
 
 /* flags for NsfParams */
@@ -497,7 +499,7 @@ typedef struct NsfObject {
   NsfFilterStack *filterStack;
   NsfMixinStack *mixinStack;
   int refCount;
-  unsigned short flags;
+  unsigned int flags;
   short activationCount;
 } NsfObject;
 

@@ -3889,6 +3889,10 @@ nsf.c:
   respect of the method interface for object invocations
 - doc fixed line-number handling locally
 
+- changed object->flags from "unsigend short" to "unsigned int"
+- reintroduced NSF_TCL_DELETE to address bug flagged from memdebug
+- extended regression test
+
 ========================================================================
 TODO:
 

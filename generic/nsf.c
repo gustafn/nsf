@@ -5086,8 +5086,8 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
     NsfObjectRefCountIncr(object);
 
     PrimitiveDestroy(object);
-
-    if (object->teardown == NULL) /* (object->flags & NSF_TCL_DELETE)*/ {
+    
+    if /*(object->teardown == NULL)*/ ((object->flags & NSF_TCL_DELETE) == 0) {
       Tcl_Obj *savedResultObj = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedResultObj);
 
@@ -6258,16 +6258,17 @@ GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startCl) {
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
 	 hPtr = Tcl_NextHashEntry(&search)) {
       NsfObject *inst = (NsfObject *)Tcl_GetHashKey(tablePtr, hPtr);
-      Command *cmdPtr = likely(inst != NULL) ? (Command *)inst->id : NULL;
+      Command *cmdPtr;
 
-      if (unlikely(cmdPtr == NULL || (Tcl_Command_flags(cmdPtr) & CMD_IS_DELETED))) {
+      if (unlikely(inst->flags & NSF_TCL_DELETE)) {
 	NsfLog(interp, NSF_LOG_NOTICE, "Object %s is apparently deleted", ObjectName(inst));
 	continue;
       }
 
+      cmdPtr = (Command *)inst->id;
       assert(cmdPtr);
 
-      if (unlikely(cmdPtr && (cmdPtr->nsPtr->flags & NS_DYING))) {
+      if (unlikely(cmdPtr->nsPtr->flags & NS_DYING)) {
 	NsfLog(interp, NSF_LOG_WARN, "Namespace of %s is apparently deleted", ObjectName(inst));
 	continue;
       }
@@ -14002,7 +14003,13 @@ TclDeletesObject(ClientData clientData) {
   NsfObject *object = (NsfObject *)clientData;
   Tcl_Interp *interp;
 
-  /*object->flags |= NSF_TCL_DELETE;*/
+  /* 
+   * TODO: Actually, it seems like a good idea to flag a deletion from Tcl by
+   * setting object->id to NULL. However, we seem to have some dependencies
+   * avoiding this currently, so we use the flag.
+   */
+  object->flags |= NSF_TCL_DELETE;
+
   /*fprintf(stderr, "cmd dealloc %p TclDeletesObject (%d)\n",
     object->id,  Tcl_Command_refCount(object->id));*/
 
@@ -18163,7 +18170,7 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
  *----------------------------------------------------------------------
  * SetBooleanFlag --
  *
- *    Set an unsigned short flag based on valueObj
+ *    Set an unsigned int flag based on valueObj
  *
  * Results:
  *    Tcl result code
@@ -18175,7 +18182,7 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
  */
 
 static int 
-SetBooleanFlag(Tcl_Interp *interp, unsigned short *flagsPtr, unsigned short flag, Tcl_Obj *valueObj) {
+SetBooleanFlag(Tcl_Interp *interp, unsigned int *flagsPtr, unsigned int flag, Tcl_Obj *valueObj) {
   int bool, result;
   
   assert(flagsPtr);
@@ -22087,7 +22094,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
           newObject ? ClassName(newObject->cl) : "NULL",
           newObject ? IsMetaClass(interp, newObject->cl, 1) : 0
           );*/
-
 
   /*
    * Provide protection against recreation if base classes.
