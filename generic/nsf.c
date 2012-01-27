@@ -183,7 +183,7 @@ typedef struct {
   Nsf_TypeConverter *converter;
   char *domain;
 } enumeratorConverterEntry;
-static enumeratorConverterEntry enumeratorConverterEntries[];
+extern enumeratorConverterEntry enumeratorConverterEntries[];
 
 /*
  * Definition of methodEpoch macros
