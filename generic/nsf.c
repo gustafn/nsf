@@ -177,13 +177,12 @@ typedef struct {
   NsfObject *object;
 } ParseContext;
 
-static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd;
+static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd, ConvertToObjpattern;
 
 typedef struct {
   Nsf_TypeConverter *converter;
   char *domain;
 } enumeratorConverterEntry;
-static enumeratorConverterEntry enumeratorConverterEntries[];
 
 /*
  * Definition of methodEpoch macros
@@ -313,6 +312,9 @@ static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 			 int doCheck, ParseContext *pc);
 static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int doCheck,
 			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr);
+static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
+			  NsfObject **matchObject, CONST char **pattern);
+static void NsfProcDeleteProc(ClientData clientData);
 
 /* prototypes for alias management */
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
@@ -3160,6 +3162,28 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
   }
   return NULL;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * GetVarAndNameFromHash --
+ *
+ *    Conveniance function to obtain variable and name from 
+ *    a variable hash entry
+ *
+ * Results:
+ *    Results are passed back in argument 2 and 3
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+GetVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
+  *val = TclVarHashGetValue(hPtr);
+  *varNameObj = TclVarHashGetKey(*val);
+}
+
 
 /*********************************************************
  *
@@ -8514,24 +8538,21 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
   return ByteCompiled(interp, &cscPtr->flags, procPtr, ObjStr(objv[0]));
 }
 
-static void
-GetVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
-  *val = TclVarHashGetValue(hPtr);
-  *varNameObj = TclVarHashGetKey(*val);
-}
+#include "nsfAPI.h"
 
-void
-NsfProcDeleteProc(ClientData clientData) {
-  NsfProcContext *ctxPtr = (NsfProcContext *)clientData;
-
-  (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
-  if (ctxPtr->paramDefs) {
-    /*fprintf(stderr, "free ParamDefs %p\n", ctxPtr->paramDefs);*/
-    ParamDefsRefCountDecr(ctxPtr->paramDefs);
-  }
-  /*fprintf(stderr, "free %p\n", ctxPtr);*/
-  FREE(NsfProcContext, ctxPtr);
-}
+/*----------------------------------------------------------------------
+ * ParamsNew --
+ *
+ *    Allocate an array of Nsf_Param structures
+ *
+ * Results:
+ *    Pointer to allocated memory
+ *
+ * Side effects:
+ *    Allocation of memory.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static Nsf_Param *
 ParamsNew(int nr) {
@@ -8597,6 +8618,33 @@ ParamDefsGet(Tcl_Command cmdPtr) {
     return ((NsfProcContext *)Tcl_Command_deleteData(cmdPtr))->paramDefs;
   }
   return NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfProcDeleteProc --
+ *
+ *    FreeProc for procs with associated parameter definitions.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Freeing memory.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NsfProcDeleteProc(ClientData clientData) {
+  NsfProcContext *ctxPtr = (NsfProcContext *)clientData;
+
+  (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
+  if (ctxPtr->paramDefs) {
+    /*fprintf(stderr, "free ParamDefs %p\n", ctxPtr->paramDefs);*/
+    ParamDefsRefCountDecr(ctxPtr->paramDefs);
+  }
+  /*fprintf(stderr, "free %p\n", ctxPtr);*/
+  FREE(NsfProcContext, ctxPtr);
 }
 
 /*
@@ -15998,8 +16046,6 @@ CallingNameSpace(Tcl_Interp *interp) {
 /***********************************
  * argument handling
  ***********************************/
-
-#include "nsfAPI.h"
 
 static void
 ArgumentResetRefCounts(struct Nsf_Param CONST *pPtr, Tcl_Obj *valueObj) {
