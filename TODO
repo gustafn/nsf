@@ -3897,6 +3897,7 @@ nsf.c:
   (avoid unsupported forward declaration of array)
 - further documentation of functions, better grouping of functions
 - use fixed array size for method_definitions for MSC
+- Don't export symbols in the general case just because of MSC/C89 compliance
 
 ========================================================================
 TODO:
