@@ -3893,6 +3893,11 @@ nsf.c:
 - reintroduced NSF_TCL_DELETE to address bug flagged from memdebug
 - extended regression test
 
+- Cleanup for compilation under MSC 
+  (avoid unsupported forward declaration of array)
+- further documentation of functions, better grouping of functions
+- use fixed array size for method_definitions for MSC
+
 ========================================================================
 TODO:
 
