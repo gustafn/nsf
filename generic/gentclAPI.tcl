@@ -391,17 +391,17 @@ proc genstubs {} {
   foreach c [array names ::createdConverter] {lappend entries "\{$::createdConverter($c)\}"}
   if {[llength $entries]>0} {
     puts [subst {
-static enumeratorConverterEntry enumeratorConverterEntries\[\] = {
+      static enumeratorConverterEntry enumeratorConverterEntries\[\] = {
   [join $entries ",\n  "],
   {NULL, NULL}
 };
     }]
   }
-
-  puts {
+  set nrIfds [expr {[llength $ifds]+1}]
+  puts [subst -nocommands {
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[];
-  }
+static Nsf_methodDefinition method_definitions[$nrIfds];
+  }]
 
   set namespaces [list]
   foreach {key value} [array get ::ns] {
@@ -417,7 +417,7 @@ static Nsf_methodDefinition method_definitions[];
   puts "enum {\n $enumString\n} NsfMethods;\n"
   puts $fns
   set definitionString [join $ifds ",\n"]
-  puts "static Nsf_methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
+  puts "static Nsf_methodDefinition method_definitions\[$nrIfds\] = \{\n$definitionString,\{NULL\}\n\};\n"
 }
 
 proc methodDefinition {methodName methodType implementation parameterDefinitions options} {

@@ -188,7 +188,7 @@ static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CO
 }
   
 
-static enumeratorConverterEntry enumeratorConverterEntries[] = {
+      static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToScope, "all|class|object"},
   {ConvertToInfoobjectparametersubcmd, "list|name|parameter|parametersyntax"},
   {ConvertToInfomethodsubcmd, "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods|returns"},
@@ -208,7 +208,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[];
+static Nsf_methodDefinition method_definitions[100];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -2456,7 +2456,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[] = {
+static Nsf_methodDefinition method_definitions[100] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
