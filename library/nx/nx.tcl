@@ -1556,6 +1556,11 @@ namespace eval ::nx {
 	  lappend options slot=[::nsf::self]
 	}
       }
+    } elseif {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {
+      # In case the "assign method" has changed, forward variable
+      # setting in configure (e.g. called during initialization of
+      # object parameters) to the slot.
+      lappend options slot=[::nsf::self]
     }
     if {[info exists :arg]} {lappend options arg=${:arg}}
     if {${:required}} {

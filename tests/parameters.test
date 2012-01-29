@@ -1898,16 +1898,6 @@ nx::Test case object-level-variable {
     #
     # define an application specific converter
     #
-    # TODO: currently, we need two converters (or a converter on nx::Slot), since
-    # variable uses nsf::is and property uses the slot obj. method variable should
-    # be changed to use the slotobj as well.
-    ::nx::ObjectParameterSlot method type=range {name value arg} {
-      lassign [split $arg -] min max
-      if {$value < $min || $value > $max} {
-	error "value '$value' of parameter $name not between $min and $max"
-      }
-      return $value
-    }
     ::nx::ObjectParameterSlot method type=range {name value arg} {
       lassign [split $arg -] min max
       if {$value < $min || $value > $max} {
@@ -2306,3 +2296,56 @@ nx::Test case xotcl-configure-method {
   xotcl::Object create o
   ? {o configure -order 15} "::o: unable to dispatch method 'order' during '::o.order'"
 }
+
+#
+# Test forwarding to slot object, when assign is overloaded
+#
+nx::Test case forward-to-assign {
+  set ::slotcalls 0
+  nx::Class create Foo {
+    :property bar {
+      :public method assign { object property value } {
+	incr ::slotcalls 1
+	nsf::var::set $object $property $value
+      }
+    }
+  }
+
+  # call without default, without object parameter value
+  set o [Foo new]
+  ? [list $o eval {info exists :bar}] 0 
+  ? {set ::slotcalls} 0
+  ? [list $o bar] {can't read "bar": no such variable}
+
+  # call without default, with object parameter value
+
+  set o [Foo new -bar "test"]
+  ? [list $o eval {info exists :bar}] 1
+  ? {set ::slotcalls} 1
+  ? [list $o bar] "test" 
+
+  # test cases for default
+  set ::slotcalls 0
+  nx::Class create Foo {
+    :property {baz 1} {
+      :public method assign { object property value } {
+	incr ::slotcalls 1
+	nsf::var::set $object $property $value
+      }
+    }
+  }
+
+  # call with default, without object parameter value
+  set o [Foo new]
+  ? [list $o eval {info exists :baz}] 1
+  ? {set ::slotcalls} 1
+  ? [list $o baz] "1" 
+
+  # call with default, with object parameter value
+
+  set o [Foo new -baz "test"]
+  ? [list $o eval {info exists :baz}] 1
+  ? {set ::slotcalls} 2
+  ? [list $o baz] "test" 
+
+} 

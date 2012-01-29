@@ -21228,8 +21228,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     : NULL;
 
   /*
-   * Push frame to allow for [self] and make instance variables of obj accessible as
-   * locals.
+   * Push frame to allow for [self] and make instance variables of obj
+   * accessible as locals.
    */
   Nsf_PushFrameObj(interp, object, framePtr);
 
@@ -21527,14 +21527,20 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      */
     if (i < paramDefs->nrParams || !pc.varArgs) {
 #if defined(CONFIGURE_ARGS_TRACE)
-      fprintf(stderr, "*** %s SET %s '%s'\n",
-	      ObjectName(object), ObjStr(paramPtr->nameObj), ObjStr(newValue));
+      fprintf(stderr, "*** %s SET %s '%s' // %p\n",
+	      ObjectName(object), ObjStr(paramPtr->nameObj), ObjStr(newValue), paramPtr->slotObj);
 #endif
       /*
        * Actually set instance variable with the provided value or default
-       * value.
+       * value. In case, we have a slot provided, use it for initialization.
        */
-      Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+
+      if (paramPtr->slotObj) {
+	result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object, paramPtr->nameObj,
+				       newValue, 1, NULL, NSF_CSC_IMMEDIATE);
+      } else {
+	Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+      }
     }
   }
 

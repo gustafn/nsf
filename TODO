@@ -3899,6 +3899,10 @@ nsf.c:
 - use fixed array size for method_definitions for MSC
 - Don't export symbols in the general case just because of MSC/C89 compliance
 
+- Forward setting of object parameters to the slot object, when assign
+  method is user-defined on the slot object
+- Cleanup and extend regression test
+
 ========================================================================
 TODO:
 
@@ -3966,16 +3970,13 @@ TODO:
 
     o1 info children ?-type class? ?pattern?
 
- - from parameters.test
-    # TODO: currently, we need two converters (or a converter on nx::Slot), since
-    # variable uses nsf::is and attribute uses the slot obj. method variable should
-    # be changed to use the slotobj as well.
-
  - interface of "variable" and "attribute":
    * add switch -array for "variable"? (Just setting is trivial,
      handling setters and incremental setter is more work)
 
- - call user-defined setter in object parameters?
+ - handle cases, where defaultmethods of the slot are altered. 
+   The parameter handling in nx assumes on several places that
+   the defaultmethods are {get assign}.
 
 - Revise call-stack introspection/intercession, i.e., [current
   activelevel] vs. [current callinglevel] vs. uplevel()/upvar():
