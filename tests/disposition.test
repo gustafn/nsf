@@ -1252,7 +1252,6 @@ nx::Test case dispo-object-targets {
   ::obj mixin UnknownHandler
   ? {[T create t] z uff} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-uff-PATH-z" \
       "Aliased dispatch to unknown method (custom unknown handler)"
-  puts stderr ===2  
   set x [UnknownHandler create handledObj]
   ::nsf::object::property handledObj perobjectdispatch true
 
