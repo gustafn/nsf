@@ -3903,6 +3903,13 @@ nsf.c:
   method is user-defined on the slot object
 - Cleanup and extend regression test
 
+- additional object parameter option "invokesetter" managed by nx.tcl
+  This was necessary, since the previously implemented strategy
+  called the setter whenever slot= was provided. This has the problem,
+  that values could be converted twice (once by "configure", once
+  by the setter method", which lead for the converter to a double
+  refcounting on the value.
+
 ========================================================================
 TODO:
 

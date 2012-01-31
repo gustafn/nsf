@@ -608,9 +608,8 @@ static void
 ParseContextRelease(ParseContext *pcPtr) {
   int status = pcPtr->status;
 
-  /*fprintf(stderr, "ParseContextRelease %p status %.6x %d elements, "
-	  "called from %s\n",
-	  pcPtr, status, pcPtr->objc, msg);*/
+  /*fprintf(stderr, "ParseContextRelease %p status %.6x %d elements\n",
+    pcPtr, status, pcPtr->objc);*/
 
 #if !defined(NDEBUG)
   {
@@ -619,7 +618,7 @@ ParseContextRelease(ParseContext *pcPtr) {
      * context are at release time sometimes only partially initialized, the
      * following holds true for ensuring correct release of Tcl_Objs:
      *
-     *  1) if one of the objv-flags has  NSF_PC_MUST_DECR set,
+     *  1) if one of the objv-flags has NSF_PC_MUST_DECR set,
      *     then the status flag NSF_PC_STATUS_MUST_DECR has to
      *     be set as well.
      *
@@ -11414,7 +11413,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
        */
       *outObjPtr = Tcl_GetObjResult(interp);
       INCR_REF_COUNT2("valueObj", *outObjPtr);
-      /*fprintf(stderr, "**** NSF_ARG_IS_CONVERTER\n");*/
+      /*fprintf(stderr, "**** NSF_ARG_IS_CONVERTER %p\n", *outObjPtr);*/
     }
     *clientData = (ClientData) *outObjPtr;
 
@@ -11560,6 +11559,12 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (strncmp(option, "forward", 7) == 0) {
     paramPtr->flags |= NSF_ARG_FORWARD;
+
+  } else if (strncmp(option, "invokesetter", 12) == 0) {
+    if (unlikely(paramPtr->slotObj == NULL)) {
+      return NsfPrintError(interp, "option 'invokesetter' must follow 'slot='");
+    }
+    paramPtr->flags |= NSF_ARG_INVOKESETTER;
 
   } else if ((dotdot = strnstr(option, "..", optionLength))) {
     /* check lower bound */
@@ -21532,10 +21537,11 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 #endif
       /*
        * Actually set instance variable with the provided value or default
-       * value. In case, we have a slot provided, use it for initialization.
+       * value. In case, explicit invocation of the setter is needed, we call the method, which
+       * is typically a forwarder to the slot object.
        */
 
-      if (paramPtr->slotObj) {
+      if (paramPtr->flags & NSF_ARG_INVOKESETTER) {
 	result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object, paramPtr->nameObj,
 				       newValue, 1, NULL, NSF_CSC_IMMEDIATE);
       } else {
