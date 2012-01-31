@@ -574,8 +574,7 @@
 #
 # @parameter	-callprotection Restrict to the methods of a specific
 # 		call protection level: '''public''', '''protected''',
-# 		and '''private'''. If omitted, '''all''' protection
-# 		levels are considered.
+# 		'''private''', or '''all''' (the latter is the default).
 # @parameter	-closure:switch	   Include the methods defined over
 # 				   the transitive relationships of the
 # 				   class, i.e., by its superclasses
@@ -1391,17 +1390,15 @@
 
 # @class.method {Object "info lookup methods"}
 #
-# Retrieves the methods which are available for dispatch on the given
-# object matching a name pattern. The name pattern corresponds to a
-# '''string match''' pattern. In case, the introspective call returns
-# the corresponding <<@glspl methodhandle>>. If there are no methods
-# matching the pattern, an empty string is returned. The search
-# population can be restricted by passing a set of filter parameters. 
+# Retrieves the methods which are available for dispatch (which are
+# therefore callable) on the given object. The result set can be
+# constraint by a match pattern. If the answer set is empty, an empty
+# string is returned. The answer set can be restricted not only via
+# match pattern, but also via the following parameters:
 #
 # @parameter	-callprotection Restrict to the methods of a specific
 # 		call protection level: '''public''', '''protected''',
-# 		and '''private'''. If omitted, '''all''' protection
-# 		levels are considered.
+# 		'''private''', or '''all''' (the latter is the default).
 # @parameter	-incontext	The search will consider the full
 # 				dispatch context, i.e., mixin guards
 # 				are incorporated when selecting the
@@ -1509,8 +1506,7 @@
 #
 # @parameter	-callprotection Restrict to the methods of a specific
 # 		call protection level: '''public''', '''protected''',
-# 		and '''private'''. If omitted, '''all''' protection
-# 		levels are considered.
+# 		'''private''', or '''all'' (the latter is the default).
 # @parameter	-methodtype	Restrict the search by certain method
 # 		kinds: '''scripted''', '''builtin''', '''alias''',
 # 		'''forwarder''', '''object''', and '''setter'''. If
@@ -1687,8 +1683,7 @@
 #
 # @parameter	-callprotection Restrict to the methods of a specific
 # 		call protection level: '''public''', '''protected''',
-# 		and '''private'''. If omitted, '''all''' protection
-# 		levels are considered.
+# 		'''private''', or '''all''' (the latter is the default).
 # @parameter	-methodtype	Restrict the search by certain method
 # 		kinds: '''scripted''', '''builtin''', '''alias''',
 # 		'''forwarder''', '''object''', and '''setter'''. If
