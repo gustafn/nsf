@@ -1987,7 +1987,7 @@ In order to obtain for an object the set of artefacts defined in the
 # -source might be all\|application\|baseclasses
 # -type is the class of the slot object
 
-/obj/ info lookup slots ?-type ...? ?-source ... ?pattern?
+/obj/ info lookup slots ?-type ...? ?-source ...? ?pattern?
 
 # Returns list of slot objects
 ----------------
