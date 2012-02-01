@@ -9722,7 +9722,6 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   ClientData cp = Tcl_Command_objClientData(cmd);
   Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
   NsfCallStackContent *cscPtr1;
-  int result;
 
   /*
    * Privide DTrace with calling info
@@ -9748,6 +9747,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
    */
 
   if (likely(proc == TclObjInterpProc)) {
+    int result;
 #if defined(NRE)
     NRE_callback *rootPtr = TOP_CB(interp);
     int isImmediate = (cscPtr->flags & NSF_CSC_IMMEDIATE);
