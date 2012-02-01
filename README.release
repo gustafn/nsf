@@ -1,0 +1,46 @@
+Steps for a beta release:
+  - docs:
+     * update all docs with asciidoc in doc/
+  - code:
+     * tcl 8.5: 
+       * configure with --enable-development
+         make test
+       * configure with --enable-memcount=yes
+         make test 2>&1|cat |fgrep Overall
+       * configure with --enable-development and activate valgrind in Makefile
+         make test 2>&1|cat |fgrep "definitely lost"
+         (8.5 ok, whenevery test returns "40 bytes in 2 blocks")
+       * get rid of non-ansi-c
+         make "CFLAGS_DEFAULT=-ansi -pedantic"
+         (warnings are ok, errors not)
+       * complile with clang
+         make "CC=clang"
+         make "CC=clang" test
+       * run static analysis:
+         cppcheck --enable=all generic/*.c
+       * configure without --enable-development
+         make install
+         make install-aol
+         test with naviserver/aolserver (xowiki/xowf)
+     * tcl 8.6b2: 
+       * configure with --enable-development
+         make test
+       * configure with --enable-memcount=yes
+         make test 2>&1|cat |fgrep Overall  
+       * configure with --enable-development and activate valgrind in Makefile
+         make test 2>&1|cat |fgrep "definitely lost"
+         (8.6b2 ok, whenevery test returns "40 bytes in 2 blocks")
+
+   - Announcement
+      * Summarize changes since the last release in doc/Announce-VERSION
+        As source use e.g.
+            git log --date-order --date=short|less
+      * Run spell checker over announcement
+      * git add announcement 
+
+   - build tar
+       * make tar
+       * check content of tar file
+         tar ztvf ../nsf2.0b3.tar.gz |sort -rn -k 5,6|less
+
+   - tag version in git  

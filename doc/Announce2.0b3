@@ -1,0 +1,72 @@
+Dear Community,
+
+We are please to announce the availability of NSF 2.0b3 which can be obtained
+from http://next-scripting.org
+
+Best regards
+- Gustaf Neumann
+- Stefan Sobernig
+
+
+Announcing NSF 2.0b3
+*************************
+
+Major changes relative to NSF 2.0b2 are:
+
+   * Additional Features:
+     - object parameters: 
+       call method "assign" on slot objects, when it is provided
+
+     - include "-returns" in introspection for aliases and 
+       scripted methods. New subcommand "info method returns" for nx.
+
+     - better compatibility with XOTcl 1.*:
+
+       * invocation of objects via method interface follows per
+         default the XOTcl 1.* conventions. In order to obtain the
+         semantics of ensemble objects, the object properties
+         "keepcallerself" and "perobjectdispatch" have to be used.
+
+       * better handling of XOTcl 1.* configure commands (starting 
+         with a "-") when list property is lost (Many thanks to 
+         Zoran Vasjljevic for the good example)
+
+       * use different version numbers in serializer to avoid
+         mixups of XOTcl 1 and XOTcl 2
+
+   * Improved Code Quality:
+     - improved performance
+       * rewrite of alias handling (alias reform)
+       * improved branch prediction
+       * significant speedup for handling large numbers
+         of subclasses (subclass reform), avoid
+         repetitious computations
+       * significant speedup on mass-destroy (e.g. on thread exit)
+     - provide better protection for deletion/overwriting
+       of base classes
+     - fixed potential duplicates on diamond inheritance
+     - fixed unknown handling for "-local" and "-system" 
+       dispatches
+     - improved compatibility for windows compilations 
+       (c89, __WIN32__)
+     - fixed potential crashes
+         * during method caching
+         * error message
+         * implicit deletions
+     - follow Tcl convention on error messages 
+       (start always with lower case)
+     - better handling of multiple errors in a single command.
+     - return GMT dates in Httpd as RFCs require
+
+   * Improved documentation
+     - fixed typos, improve wordings
+
+   * Extended regression tests
+
+MORE INFO 
+  General and more detailed information about the Next scripting
+  framework and its components can be found at
+  http://next-scripting.org
+
+
+
