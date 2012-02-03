@@ -11,7 +11,7 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
-define(NsfVersion, 2.0b3)
+define(NsfVersion, 2.0b4)
 AC_INIT([nsf], [NsfVersion])
 
 #--------------------------------------------------------------------
