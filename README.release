@@ -43,4 +43,28 @@ Steps for a beta release:
        * check content of tar file
          tar ztvf ../nsf2.0b3.tar.gz |sort -rn -k 5,6|less
 
-   - tag version in git  
+   - tag version in git and commit  
+       git tag -a 2.0b3 -m 2.0b3
+       git push tag
+       git push commit
+
+   - update archive at sourceforge
+      * create folder with version name
+      * upload tar file to new folder
+      * upload announce to new folder and rename it to README
+
+   - update web site
+     * stefan, please add recommended steps here
+
+   - prepare next release:
+       rename folder containing nsf to e.g. nsf2.0b4
+       update version number in 
+         * configure.in
+	 * library/nx/nx.tcl
+         * library/nx/pkgIndex.tcl
+	 * library/xotcl/library/xotcl2.tcl
+       autoconf
+       ./configure ....
+
+
+   
