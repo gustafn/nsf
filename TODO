@@ -3911,6 +3911,8 @@ nsf.c:
   refcounting on the value.
 
 - use Tcl's EXTERN macro instead of "extern"
+- treating incompatible forwarding to slot vs. slot option noaccessor
+- extended regression test
 
 ========================================================================
 TODO:

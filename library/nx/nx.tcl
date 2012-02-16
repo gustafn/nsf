@@ -1560,6 +1560,9 @@ namespace eval ::nx {
       # In case the "assign method" has changed, forward variable
       # setting in configure (e.g. called during initialization of
       # object parameters) to the slot.
+      if {${:accessor} == 0} {
+	error "parameter ${:name}: option 'noaccessor' cannot be used together with required accessor (assign method)" 
+      }
       lappend options slot=[::nsf::self] invokesetter
     }
     if {[info exists :arg]} {lappend options arg=${:arg}}

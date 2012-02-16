@@ -2349,3 +2349,37 @@ nx::Test case forward-to-assign {
   ? [list $o baz] "test" 
 
 } 
+
+
+#
+# Test incompatible forwarding to slot vs. noaccessor
+#
+nx::Test case forward-to-assign {
+  ? {nx::Class create Foo {
+    :property bar:noaccessor {
+      :public method assign { object property value } {
+	incr ::slotcalls 1
+	nsf::var::set $object $property $value
+      }
+    }}
+  } "::Foo"
+
+  # call without default, without object parameter value
+  ? {Foo new} "parameter bar: option 'noaccessor' cannot be used together with required accessor (assign method)"
+
+  # test cases for default
+  nx::Class create Foo {
+    :property {baz:noaccessor 1} {
+      :public method assign { object property value } {
+	incr ::slotcalls 1
+	nsf::var::set $object $property $value
+      }
+    }
+  }
+
+  # call with default, without object parameter value
+  ? {Foo new} "parameter baz: option 'noaccessor' cannot be used together with required accessor (assign method)"
+
+  # call with default, with object parameter value
+  ? {Foo new -baz "test"} "parameter baz: option 'noaccessor' cannot be used together with required accessor (assign method)"
+} 
