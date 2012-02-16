@@ -966,7 +966,7 @@ namespace eval ::nx {
     if {$class eq ""} {
       set class ::nx::VariableSlot
     } else {
-      #puts stderr "*** Class for '$value' is $class"
+      #puts stderr "*** Class for '$target $name' is $class // [$class info heritage]"
     }
 
     #puts stderr "*** [list $class create [::nx::slotObj -container $container $target $name] {*}$opts $initblock]"
