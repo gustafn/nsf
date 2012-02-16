@@ -325,7 +325,9 @@ namespace eval ::ns1 {
   ? {obj foo} {wrong # args: should be ":info"}
 
   # now we overwrite the object specific method with an object
-  Object create obj::info
+  ? {Object create obj::info} "cannot overwrite cmd ::ns1::obj::info; delete/rename it before overwriting"
+  rename obj::info ""
+  ? {Object create obj::info} ::ns1::obj::info
   ? [list obj $infolookup info] ::ns1::obj::info
   ? [list obj $infomethod type ::ns1::obj::info] object
   
@@ -339,14 +341,12 @@ namespace eval ::ns1 {
   # method via ensemle-next.
   #? {obj foo} ::nx::Object
   ? {obj foo} {::ns1::obj::info: unable to dispatch method 'class'}
-
 }
 
 #
 # Leaf next: Do not trigger unknown handling (see also
 # NextSearchAndInvoke())
 #
-
 nx::Test case leaf-next-in-submethods {
   Object create container {
     set :x 0

@@ -476,6 +476,7 @@ TestX filterAddRemove -proc run {{n 20}} {
   Object instfilter f
 
   x
+  rename x ""
 
   ::errorCheck $::a::e xxx \
       "filterAddRemove: instvar test -- proc set failed"

@@ -190,6 +190,7 @@ c1 foo
 ? "set ::firstDestroy" 0 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
 
+rename o ""
 
 #
 # namespace delete: tcl delays delete until the namespace is not
@@ -334,8 +335,8 @@ o::c1 foo
 # create an other cmd with the current object's name. 
 # xotcl 1.6 crashed on this test
 #
-set case "redefined current object as proc"
-Test case redefined-current-object-as-proc
+set case "redefine current object as proc"
+Test case redefine-current-object-as-proc
 Object create o
 Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
@@ -357,7 +358,7 @@ c1 foo
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 
-
+rename c1 ""
 
 #
 # delete the active class

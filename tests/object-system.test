@@ -341,6 +341,25 @@ C -
 ? {::nsf::object::exists nx::Class}      1
 
 #
+# Test overwriting of procs/methods
+#
+proc foo {} {;}
+#
+# Don't allow object to overwrite pre-existing proc/cmd,
+# which is not an object.
+#
+? {catch {nx::Object create foo}} 1
+rename foo ""
+nx::Object create foo {
+  :method bar {} {;}
+  # 
+  # Don't allow subobject to overwrite object specific method
+  #
+  ? {catch {nx::Object create [self]::bar}} 1
+}
+
+
+#
 # Test instances of diamond class structure. 
 #
 # Leave class structure around until exit to test handling of

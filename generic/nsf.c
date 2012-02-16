@@ -22144,7 +22144,20 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
    * Check whether we have to call recreate (i.e. when the
    * object exists already).
    */
-  newObject = GetObjectFromString(interp, nameString);
+  {
+    Tcl_Command cmd = NSFindCommand(interp, nameString);
+    if (cmd) {
+      newObject = NsfGetObjectFromCmdPtr(cmd);
+      if (newObject == NULL) {
+	/*
+	 * We have a cmd, but no object. Don't allow to overwrite an ordinary
+	 * cmd by an nsf object.
+	 */
+	result = NsfPrintError(interp, "cannot overwrite cmd %s; delete/rename it before overwriting", nameString);
+	goto create_method_exit;
+      }
+    }
+  }
 
   /*fprintf(stderr, "+++ createspecifiedName '%s', nameString '%s', newObject=%p ismeta(%s) %d, ismeta(%s) %d\n",
           specifiedName, nameString, newObject,
