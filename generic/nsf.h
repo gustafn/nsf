@@ -272,26 +272,26 @@ typedef struct Nsf_Param {
   Tcl_Obj *method;
 } Nsf_Param;
 
-extern int
+EXTERN int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
 		  int doCheck, Nsf_ParseContext *pcPtr);
-extern int
+EXTERN int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
 		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj);
 
-extern int
+EXTERN int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 			   CONST char *what, CONST char *methodName);
-extern int
+EXTERN int
 NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what);
 
-extern int
+EXTERN int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
 			   Nsf_Object *object, Nsf_Param CONST *paramPtr,
 			   Tcl_Obj *procNameObj);
-extern int
+EXTERN int
 NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 				 CONST char *argumentString,
 				 Nsf_Object *object,
@@ -305,19 +305,19 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 #define NSF_LOG_NOTICE 2
 #define NSF_LOG_WARN 1
 
-extern void
+EXTERN void
 NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...);
 
 /*
  * Nsf Pointer converter interface
  */
 
-extern int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr);
-extern int Nsf_PointerDelete(CONST char *key, void *valuePtr);
-extern void Nsf_PointerInit(Tcl_Interp *interp);
-extern void Nsf_PointerExit(Tcl_Interp *interp);
-extern void *Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName);
-extern int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr);
+EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr);
+EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr);
+EXTERN void Nsf_PointerInit(Tcl_Interp *interp);
+EXTERN void Nsf_PointerExit(Tcl_Interp *interp);
+EXTERN void *Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName);
+EXTERN int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr);
 
 /*
  * methodDefinition
@@ -346,7 +346,7 @@ typedef struct Nsf_methodDefinition {
 #ifdef USE_NSF_STUBS
 
 # ifdef __cplusplus
-extern "C"
+EXTERN "C"
 # endif
 CONST char *
 Nsf_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
@@ -357,7 +357,9 @@ Nsf_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
 
 #endif /* RC_INVOKED */
 
+/*
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLIMPORT
+*/
 
 #endif /* _nsf_h_ */

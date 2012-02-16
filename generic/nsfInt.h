@@ -106,7 +106,7 @@
 #endif
 
 #ifdef NSF_MEM_COUNT
-extern int nsfMemCountInterpCounter;
+EXTERN int nsfMemCountInterpCounter;
 typedef struct NsfMemCounter {
   int peak;
   int count;
@@ -562,7 +562,7 @@ typedef enum SystemMethodsIdx {
 } SystemMethodsIdx;
 
 #if !defined(NSF_C)
-extern CONST char *Nsf_SystemMethodOpts[];
+EXTERN CONST char *Nsf_SystemMethodOpts[];
 #else 
 CONST char *Nsf_SystemMethodOpts[] = {
   "-class.alloc", 
@@ -619,7 +619,7 @@ typedef enum {
   NSF_RENAME
 } NsfGlobalNames;
 #if !defined(NSF_C)
-extern char *NsfGlobalStrings[];
+EXTERN char *NsfGlobalStrings[];
 #else
 char *NsfGlobalStrings[] = {
   "", "0", "1", 
@@ -646,10 +646,10 @@ char *NsfGlobalStrings[] = {
 #define NsfGlobalObjs RUNTIME_STATE(interp)->methodObjNames
 
 /* obj types */
-extern Tcl_ObjType NsfMixinregObjType;
+EXTERN Tcl_ObjType NsfMixinregObjType;
 int NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj);
 
-extern Tcl_ObjType NsfFilterregObjType;
+EXTERN Tcl_ObjType NsfFilterregObjType;
 int NsfFilterregGet(Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj);
 
 /* Next Scripting ShadowTclCommands */
@@ -820,13 +820,13 @@ typedef struct NsfRuntimeState {
 
 
 #ifdef NSF_OBJECTDATA
-extern void
+EXTERN void
 NsfSetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData data);
-extern int
+EXTERN int
 NsfGetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData *data);
-extern int
+EXTERN int
 NsfUnsetObjectData(struct NsfObject *obj, struct NsfClass *cl);
-extern void
+EXTERN void
 NsfFreeObjectData(NsfClass *cl);
 #endif
 
@@ -865,13 +865,13 @@ NsfFreeObjectData(NsfClass *cl);
  */
 
 #if defined(NSF_PROFILE)
-extern void NsfProfileRecordMethodData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
-extern void NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec);
-extern void NsfProfileInit(Tcl_Interp *interp);
-extern void NsfProfileFree(Tcl_Interp *interp);
-extern void NsfProfileClearData(Tcl_Interp *interp);
-extern void NsfProfileGetData(Tcl_Interp *interp);
-extern NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
+EXTERN void NsfProfileRecordMethodData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
+EXTERN void NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec);
+EXTERN void NsfProfileInit(Tcl_Interp *interp);
+EXTERN void NsfProfileFree(Tcl_Interp *interp);
+EXTERN void NsfProfileClearData(Tcl_Interp *interp);
+EXTERN void NsfProfileGetData(Tcl_Interp *interp);
+EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
 #endif
 
 /*
@@ -920,29 +920,29 @@ typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH,
 Tcl_ObjCmdProc NsfInitProcNSCmd, NsfSelfDispatchCmd,
   NsfNextObjCmd, NsfGetSelfObjCmd;
 
-extern NsfCompEnv *NsfGetCompEnv();
+EXTERN NsfCompEnv *NsfGetCompEnv();
 int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 		     int objc, Tcl_Obj *CONST objv[]);
 #endif
 
-extern int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
+EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
 			      NsfClass **clPtr, int withUnknown);
-extern int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
+EXTERN int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
 			  int objc, Tcl_Obj *CONST objv[]);
-extern int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, 
+EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, 
 			   Tcl_Obj *cmdName, Tcl_Obj *methodName, 
 			   char *arglist);
-extern CONST char *NsfMethodName(Tcl_Obj *methodObj);
-extern void NsfReportVars(Tcl_Interp *interp);
-extern void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
+EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj);
+EXTERN void NsfReportVars(Tcl_Interp *interp);
+EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 
-extern Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj);
+EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj);
 
 /* 
  * NsfFlag type
  */
-extern Tcl_ObjType NsfFlagObjType;
-extern int NsfFlagObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
+EXTERN Tcl_ObjType NsfFlagObjType;
+EXTERN int NsfFlagObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
 			 Nsf_Param CONST *baseParamPtr, int serial,
 			 Nsf_Param CONST *paramPtr, Tcl_Obj *payload, int flags);
 typedef struct {
@@ -959,9 +959,9 @@ typedef struct {
 /* 
  * NsfMethodContext type
  */
-extern Tcl_ObjType NsfInstanceMethodObjType;
-extern Tcl_ObjType NsfObjectMethodObjType;
-extern int NsfMethodObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
+EXTERN Tcl_ObjType NsfInstanceMethodObjType;
+EXTERN Tcl_ObjType NsfObjectMethodObjType;
+EXTERN int NsfMethodObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
 			   Tcl_ObjType *objectType,
 			   void *context, int methodEpoch,
 			   Tcl_Command cmd, NsfClass *cl, int flags);

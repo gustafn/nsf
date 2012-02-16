@@ -41,12 +41,12 @@ static void		setargv _ANSI_ARGS_((int *argcPtr, char ***argvPtr));
 static void		WishPanic _ANSI_ARGS_(TCL_VARARGS(CONST char *,format));
 
 #ifdef TK_TEST
-extern int		Tktest_Init(Tcl_Interp *interp);
+EXTERN int		Tktest_Init(Tcl_Interp *interp);
 #endif /* TK_TEST */
 
 #ifdef TCL_TEST
-extern int		TclObjTest_Init _ANSI_ARGS_((Tcl_Interp *interp));
-extern int		Tcltest_Init _ANSI_ARGS_((Tcl_Interp *interp));
+EXTERN int		TclObjTest_Init _ANSI_ARGS_((Tcl_Interp *interp));
+EXTERN int		Tcltest_Init _ANSI_ARGS_((Tcl_Interp *interp));
 #endif /* TCL_TEST */
 
 static BOOL consoleRequired = TRUE;

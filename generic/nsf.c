@@ -69,7 +69,7 @@
 
 #ifdef COMPILE_NSF_STUBS
 # if defined(PRE86)
-extern NsfStubs nsfStubs;
+EXTERN NsfStubs nsfStubs;
 # else
 MODULE_SCOPE const NsfStubs * const nsfConstStubPtr;
 # endif
@@ -750,7 +750,7 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
  *----------------------------------------------------------------------
  */
 
-extern int
+EXTERN int
 NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj,
 		      Tcl_Obj *arg1, int givenObjc, Tcl_Obj *CONST objv[], int flags) {
   int objc = givenObjc + 2;
@@ -857,32 +857,32 @@ NsfCommandRelease(Tcl_Command cmd) {
 }
 
 /***********************************************************************
- * Extern callable routines for the preliminary C interface
+ * EXTERN callable routines for the preliminary C interface
  ***********************************************************************/
-extern Nsf_Object *
+EXTERN Nsf_Object *
 NsfGetSelfObj(Tcl_Interp *interp) {
   return (Nsf_Object *) GetSelfObj(interp);
 }
-extern Nsf_Object *
+EXTERN Nsf_Object *
 NsfGetObject(Tcl_Interp *interp, CONST char *name) {
   return (Nsf_Object *) GetObjectFromString(interp, name);
 }
-extern Nsf_Class *
+EXTERN Nsf_Class *
 NsfGetClass(Tcl_Interp *interp, CONST char *name) {
   return (Nsf_Class *)GetClassFromString(interp, name);
 }
-extern Nsf_Class *
+EXTERN Nsf_Class *
 NsfIsClass(Tcl_Interp *UNUSED(interp), ClientData clientData) {
   if (clientData && NsfObjectIsClass((NsfObject *)clientData)) {
     return (Nsf_Class *) clientData;
   }
   return NULL;
 }
-extern void
+EXTERN void
 NsfRequireObjNamespace(Tcl_Interp *interp, Nsf_Object *object) {
   RequireObjNamespace(interp, (NsfObject *) object);
 }
-extern Tcl_Obj *
+EXTERN Tcl_Obj *
 Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
                  Tcl_Obj *valueObj, int flags) {
   Tcl_Obj *result;
@@ -896,7 +896,7 @@ Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
   Nsf_PopFrameObj(interp, framePtr);
   return result;
 }
-extern Tcl_Obj *
+EXTERN Tcl_Obj *
 Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
                  int flags) {
   Tcl_Obj *result;
@@ -911,7 +911,7 @@ Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
 
   return result;
 }
-extern int
+EXTERN int
 Nsf_UnsetVar2(Nsf_Object *object1, Tcl_Interp *interp,
                    CONST char *name1, CONST char *name2, int flags) {
   NsfObject *object = (NsfObject *) object1;
@@ -926,7 +926,7 @@ Nsf_UnsetVar2(Nsf_Object *object1, Tcl_Interp *interp,
   Nsf_PopFrameObj(interp, framePtr);
   return result;
 }
-extern int
+EXTERN int
 NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj,
 	  int objc, Tcl_Obj *CONST objv[]) {
   NsfClass *cl = (NsfClass *) class;
@@ -947,11 +947,11 @@ NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj,
 
   return result;
 }
-extern int
+EXTERN int
 NsfDeleteObject(Tcl_Interp *interp, Nsf_Object *object) {
   return DispatchDestroyMethod(interp, (NsfObject *)object, 0);
 }
-extern int
+EXTERN int
 NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName) {
   NsfObject *object = (NsfObject *) object1;
 
@@ -974,7 +974,7 @@ NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *metho
   }
   return TCL_OK;
 }
-extern int
+EXTERN int
 NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName) {
   NsfClass *cl = (NsfClass *) class;
   int rc;
@@ -1452,7 +1452,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 /*
  * Version of GetClassFromObj() with external symbol
  */
-extern int
+EXTERN int
 NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
 		   NsfClass **clPtr, int withUnknown) {
   return GetClassFromObj(interp, objPtr, clPtr, withUnknown);
@@ -4883,7 +4883,7 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
  *
  *----------------------------------------------------------------------
  */
-extern int
+EXTERN int
 NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName,
                      Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                      int flags) {
@@ -4930,7 +4930,7 @@ NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodNa
  *
  *----------------------------------------------------------------------
  */
-extern int
+EXTERN int
 NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
                        Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                        int flags) {
@@ -10816,16 +10816,16 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
  */
 #if defined(NRE)
 Tcl_ObjCmdProc NsfObjDispatchNRE;
-extern int
+EXTERN int
 NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   return Tcl_NRCallObjProc(interp, NsfObjDispatchNRE, clientData, objc, objv);
 }
-extern int
+EXTERN int
 NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 
 #else
 
-extern int
+EXTERN int
 NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 
 #endif
@@ -12466,7 +12466,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
  *
  *----------------------------------------------------------------------
  */
-extern int
+EXTERN int
 NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfProcClientData *tcd = clientData;
   int result;
@@ -15090,24 +15090,24 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *o
 /*
  * obj/cl ClientData setter/getter
  */
-extern void
+EXTERN void
 NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object1, ClientData data) {
   NsfObject *object = (NsfObject *) object1;
   NsfObjectOpt *opt = NsfRequireObjectOpt(object);
   opt->clientData = data;
 }
-extern ClientData
+EXTERN ClientData
 NsfGetObjClientData(Tcl_Interp *interp, Nsf_Object *object1) {
   NsfObject *object = (NsfObject *) object1;
   return (object && object->opt) ? object->opt->clientData : NULL;
 }
-extern void
+EXTERN void
 NsfSetClassClientData(Tcl_Interp *interp, Nsf_Class *cli, ClientData data) {
   NsfClass *cl = (NsfClass *) cli;
   NsfRequireClassOpt(cl);
   cl->opt->clientData = data;
 }
-extern ClientData
+EXTERN ClientData
 NsfGetClassClientData(Tcl_Interp *interp, Nsf_Class *cli) {
   NsfClass *cl = (NsfClass *) cli;
   return (cl && cl->opt) ? cl->opt->clientData : NULL;
@@ -16371,7 +16371,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
  *
  *----------------------------------------------------------------------
  */
-extern int
+EXTERN int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
@@ -24165,7 +24165,7 @@ RegisterExitHandlers(ClientData clientData) {
 #include <google/profiler.h>
 #endif
 
-extern int
+EXTERN int
 Nsf_Init(Tcl_Interp *interp) {
   ClientData runtimeState;
   int result, i;
@@ -24426,7 +24426,7 @@ Nsf_Init(Tcl_Interp *interp) {
 }
 
 
-extern int
+EXTERN int
 Nsf_SafeInit(Tcl_Interp *interp) {
   /*** dummy for now **/
   return Nsf_Init(interp);

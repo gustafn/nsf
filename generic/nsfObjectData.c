@@ -30,7 +30,7 @@
 #include "nsfInt.h"
 
 #ifdef NSF_OBJECTDATA
-extern void
+EXTERN void
 NsfFreeObjectData(NsfClass* cl) {
   if (cl->opt && cl->opt->objectdata) {
     Tcl_DeleteHashTable(cl->opt->objectdata);
@@ -38,7 +38,7 @@ NsfFreeObjectData(NsfClass* cl) {
     cl->opt->objectdata = 0; 
   }
 }
-extern void
+EXTERN void
 NsfSetObjectData(NsfObject* obj, NsfClass* cl, ClientData data) {
   Tcl_HashEntry *hPtr;
   int nw;
@@ -53,7 +53,7 @@ NsfSetObjectData(NsfObject* obj, NsfClass* cl, ClientData data) {
   Tcl_SetHashValue(hPtr, data);
 }
 
-extern int
+EXTERN int
 NsfGetObjectData(NsfObject* obj, NsfClass* cl, ClientData* data) {
   Tcl_HashEntry *hPtr;
   if (!cl->opt || !cl->opt->objectdata) 
@@ -63,7 +63,7 @@ NsfGetObjectData(NsfObject* obj, NsfClass* cl, ClientData* data) {
   return hPtr != 0;
 }
 
-extern int
+EXTERN int
 NsfUnsetObjectData(NsfObject* obj, NsfClass* cl) {
   Tcl_HashEntry *hPtr;
 

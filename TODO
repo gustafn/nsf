@@ -3910,6 +3910,8 @@ nsf.c:
   by the setter method", which lead for the converter to a double
   refcounting on the value.
 
+- use Tcl's EXTERN macro instead of "extern"
+
 ========================================================================
 TODO:
 
