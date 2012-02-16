@@ -535,10 +535,10 @@ namespace eval ::nx::doc {
       :public method assign {domain prop value} {
 	set current_entity [$domain current_entity]
 	set scope [expr {[$current_entity info is class]?"class":""}]
-	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity {*}$scope info mixin classes]} {
-	  $current_entity {*}$scope mixin delete [:get $domain $prop]
+	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity eval [list : -system {*}$scope info mixin classes]]} {
+	  $current_entity eval [list : -system {*}$scope mixin delete [:get $domain $prop]]
 	}
-	$current_entity {*}$scope mixin add [next [list $domain $prop $value]]
+	$current_entity eval [list : -system {*}$scope mixin add [next [list $domain $prop $value]]]
       }
     }
     :property current_entity:object
@@ -737,7 +737,7 @@ namespace eval ::nx::doc {
     :method parse@tag {line} {
       lassign [apply [[current class] eval {set :lineproc}] {*}$line] tag line
       #set line [lassign [apply [[current class] eval {set :lineproc}] {*}$line] tag]
-      if {[:info lookup methods -source application $tag] eq ""} {
+      if {[: -system info lookup methods -source application $tag] eq ""} {
 	set msg "The tag '$tag' is not supported for the entity type '[namespace tail [:info class]]"
 	${:block_parser} cancel INVALIDTAG $msg
       }
@@ -866,7 +866,7 @@ namespace eval ::nx::doc {
 
 	    set entity [@$leaf(axis) new -name $leaf(name) {*}$args]
 	  } else {
-	    if {[$entity info lookup methods -source application @$leaf(axis)] eq ""} {
+	    if {[$entity eval [list : -system info lookup methods -source application @$leaf(axis)]] eq ""} {
 	      ${:block_parser} cancel INVALIDTAG \
 		  "The tag '$leaf(axis)' is not supported for the entity type '[namespace tail [$entity info class]]'"
 	    }

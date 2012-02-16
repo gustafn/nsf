@@ -103,7 +103,7 @@ namespace eval ::nx::doc {
 	  set scope [expr {[$mixin scope] eq "object" && \
 			       [$base info is class]?"class":""}]
 	  dict lappend :active_mixins $base $mixin
-	  $base {*}$scope mixin add $mixin
+	  $base eval [list : -system {*}$scope mixin add $mixin]
 	}
       }
     }
@@ -204,7 +204,7 @@ namespace eval ::nx::doc {
 	  }
       if {$all} {lappend entity_path $entity [$entity name]}
 	  set entity [$entity origin]
-	  if {[$entity info lookup methods -source application @$axis] eq ""} {
+	  if {[$entity eval [list : -system info lookup methods -source application @$axis]] eq ""} {
 	    return [list 1 "The tag '$axis' is not supported for the entity type '[namespace tail [$entity info class]]'"]
 	  }
 	  set entity [$entity @$axis id $value]
@@ -358,7 +358,7 @@ namespace eval ::nx::doc {
     } {
       set id_name $name
       if {[info exists partof]} {
-	set id_name ::[join [list [[$partof info class] get_tail_name $partof] $name] ::]
+	set id_name ::[join [list [[$partof eval {: -system info class}] get_tail_name $partof] $name] ::]
       } else {
 	set name [:get_fully_qualified_name $name]
       }
@@ -445,6 +445,12 @@ namespace eval ::nx::doc {
       if {[info exists :part_class]} {
 	if {[::nsf::is object $value] && \
 		[$value info has type ${:part_class}]} {
+	  #
+	  # make sure, the partof relation is set ... whatsoever the
+	  # origin of the current part entity
+	  #
+	  $value partof $domain
+	  $value part_attribute [current]
 	  return $value
 	}
 	  # puts stderr "NEWWWWWW ${:part_class} new \
@@ -585,17 +591,20 @@ namespace eval ::nx::doc {
     }
     
     :public method get_upward_path {
-      -relative:switch 
+      -relative:switch
       {-attribute {set :name}}
-      {-type ::nx::doc::Entity}
+      {-withContainers:boolean false}
     } {
       set path [list]
       if {!$relative} {
 	lappend path [list [current] [:eval $attribute]]
       }
-      
-      if {[info exists :partof] && [${:partof} info has type $type]} {	
-	set path [concat [${:partof} [current method] -attribute $attribute -type $type] $path]
+
+      if {[info exists :partof] && 
+	  ($withContainers || ![${:partof} eval {: -system info has type ::nx::doc::ContainerEntity}])} {	
+	set path [concat [${:partof} [current method] \
+			      -attribute $attribute \
+			      -withContainers $withContainers] $path]
       }
       return [concat {*}$path]
     }
@@ -630,7 +639,7 @@ namespace eval ::nx::doc {
 	if {$pathnames eq ""} {
 	  set pathnames $pathspec
 	  set pathspec [dict create {*}[$domain get_upward_path \
-					    -attribute {[:info class] tag}]]
+					    -attribute {[: -system info class] tag}]]
 	  set pathspec [dict values $pathspec]
 	} else {
 	  set pathspec [split $pathspec .]
@@ -652,7 +661,7 @@ namespace eval ::nx::doc {
 
     :public method origin {} {
       if {[info exists :@use]} {
-	if {![::nsf::object::exists ${:@use}] || ![${:@use} info has type [:info class]]} {
+	if {![::nsf::object::exists ${:@use}] || ![${:@use} info has type [: -system info class]]} {
 	  return -code error "Referring to a non-existing doc entity or a doc entity of a different type."
 	}
 	return [${:@use} origin]
@@ -700,7 +709,7 @@ namespace eval ::nx::doc {
   StructuredEntity eval {
 
     :public method part_attributes {} {
-      set slots [:info lookup slots]
+      set slots [: -system info lookup slots]
       set attrs [list]
       foreach s $slots {
 	if {![$s info has type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
@@ -786,7 +795,8 @@ namespace eval ::nx::doc {
 
     :public method register {containable:object,type=::nx::doc::Entity} {
       set tag [[$containable info class] tag]
-      if {[:info lookup methods -source application "@$tag"] ne ""} {
+      if {[: -system info lookup methods \
+	       -source application "@$tag"] ne ""} {
 	:@$tag $containable
       } elseif {[info exists :previous]} {
 	${:previous} register $containable
@@ -809,7 +819,7 @@ namespace eval ::nx::doc {
 
     :protected method init args {
       next
-      :announceAsContainer [:info class]
+      :announceAsContainer [: -system info class]
     }
     
   }
@@ -1212,7 +1222,7 @@ namespace eval ::nx::doc {
 	  args
 	} {
 	  # 1) Are we in a sub-method?
-	  if {[$partof info has type [current]]} {
+	  if {[$partof eval [list : -system info has type [current]]]} {
 	    :createOrConfigure [:id [:get_tail_name $partof] "" $name] {*}[current args]
 	  } else {
 	    next
@@ -1230,7 +1240,7 @@ namespace eval ::nx::doc {
 	  :public method id {domain prop name} {
 	    # TODO: ${:part_class} resolves to the local slot
 	    # [current], rather than ::nx::doc::@method. Why?
-	    if {[$domain info has type ::nx::doc::@method]} {
+	    if {[$domain eval {: -system info has type ::nx::doc::@method}]} {
 	      set id [::nx::doc::@method id [::nx::doc::@method get_tail_name $domain] "" $name]
 	      return $id
 	    } else {
@@ -1261,7 +1271,8 @@ namespace eval ::nx::doc {
 
 	:public method get_combined {what} {
 	  set result [list]
-	  if {[info exists :partof] && [${:partof} info has type [current class]]} {
+	  if {[info exists :partof] && 
+	      [${:partof} eval [list : -system info has type [current class]]]} {
 	    set result [${:partof} get_combined $what]
 	  }
 	  return [lappend result [:$what]]
@@ -1272,7 +1283,7 @@ namespace eval ::nx::doc {
 	}
 
 	:public method get_owning_partof {} {
-	  if {[${:partof} info has type [current class]]} {
+	  if {[${:partof} eval [list : -system info has type [current class]]]} {
 	    return [${:partof} [current method]]
 	  } else {
 	    return ${:partof}
@@ -1333,7 +1344,7 @@ namespace eval ::nx::doc {
 	  # not make it into the object parameters spec, this is fine
 	  # for now ... review later.
 	  #
-	  if {[${:partof} info has type ::nx::doc::@object]} {
+	  if {[${:partof} eval {: -system info has type ::nx::doc::@object}]} {
 	    return "[${:partof} name]::slot::${:name}"
 	  } else {
 	    next
@@ -1400,7 +1411,7 @@ namespace eval ::nx::doc {
     :public method render {
       {-initscript ""}
       -theme
-      {name:substdefault "[::namespace tail [:info class]]"}
+      {name:substdefault "[::namespace tail [: -system info class]]"}
     } {
       :rendered push [current]
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
@@ -1458,7 +1469,8 @@ namespace eval ::nx::doc {
       }
       set l [list]
       foreach item $r {
-	if {![::nsf::object::exists $item] || ![$item info has type ::nx::doc::Entity]} {
+	if {![::nsf::object::exists $item] || 
+	    ![$item eval {: -system info has type ::nx::doc::Entity}]} {
 	  lappend l $item
 	} else {
 	  if {[[$item origin] eval [list expr $where_clause]]} {
@@ -1528,7 +1540,7 @@ namespace eval ::nx::doc {
     
     :method include {
       -theme
-      {name:substdefault "[::namespace tail [:info class]]"}
+      {name:substdefault "[::namespace tail [: -system info class]]"}
     } {
       uplevel 1 [list subst [[:renderer] getTemplate $name \
 				 {*}[expr {[info exists theme]?$theme:""}]]]
@@ -2692,7 +2704,7 @@ namespace eval ::nx::doc {
       # --
 
       [current class] revoke
-      [:info class] containers reset [current]
+      [: -system info class] containers reset [current]
       #
       # TODO: is_validated to later to become a derived/computed
       # property ... for now, we just need to escape from setting
@@ -2756,7 +2768,7 @@ namespace eval ::nx::doc {
 	  if {$cmdtype ni [list @command @object @class @method]} continue;
 	  if {[info exists package] && [dict exists $pkgMap $package]} {
 	    set pkgObj [dict get $pkgMap $package]
-	    [:info class] containers push $pkgObj
+	    [: -system info class] containers push $pkgObj
 	    unset package
 	  }
 	  
@@ -3035,8 +3047,8 @@ namespace eval ::nx::doc {
 
     Mixin create [current]::@param -superclass [current]::Entity {
       :public method init args {
-	if {[${:partof} info has type ::nx::doc::@method] || \
-		[${:partof} info has type ::nx::doc::@command]} {
+	if {[${:partof} eval {: -system info has type ::nx::doc::@method}] || \
+		[${:partof} eval {: -system info has type ::nx::doc::@command}]} {
 	  if {${:name} eq "__out__"} {
 	    if {[${:partof} pinfo exists bundle returns]} {
 	      :pdata [list bundle [list spec [${:partof} pinfo get bundle returns]]]
@@ -3059,14 +3071,14 @@ namespace eval ::nx::doc {
 	# the parametersyntax. Review later ...
 	#
 	if {${:name} eq "__out__" && \
-		[${:partof} info has type ::nx::doc::@command]} return;
+		[${:partof} eval {: -system info has type ::nx::doc::@command}]} return;
 
 	#
 	# Here, we escape from any parameter verification for
 	# parameters on forwards & alias, as there is no basis for
 	# comparison!
 	#
-	if {[${:partof} info has type ::nx::doc::@method] && \
+	if {[${:partof} eval {: -system info has type ::nx::doc::@method}] && \
 		[${:partof} pinfo get bundle type] in [list forward alias]} {
 	  dict set :pdata status ""
 	  return;

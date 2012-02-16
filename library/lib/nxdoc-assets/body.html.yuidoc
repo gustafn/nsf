@@ -6,9 +6,9 @@
 	    <div class="yui-ge header-sub-doc">
               <div id="breadcrumbs" class="yui-u first">
 		<a href="./index.html" title="[$project name]">[$project name]</a> 
-		[:? {[:info has type ::nx::doc::@package]} {
+		[:? {[: -system info has type ::nx::doc::@package]} {
 		&gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
-		} ? {[:info has type ::nx::doc::@class]} {
+		} ? {[: -system info has type ::nx::doc::@class]} {
 		&gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}
 		}]
               </div>
@@ -29,7 +29,7 @@
 	<div class="yui-b">
         <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
         <h3 class="subheading">${:name}
-	  [:? {[:info has type ::nx::doc::@package]} {
+	  [:? {[: -system info has type ::nx::doc::@package]} {
 	  <span class="subtitle">[:?var :@version {${:@version}} ]</span>
 	  } - {
 	  <span class="subtitle">[$project version]</span>
@@ -40,7 +40,7 @@
 	[:include leftbar]
 	  </div> <!-- yui-u first -->
 	  <div class="yui-u">
-	  [:? {[:info has type ::nx::doc::@project]} {
+	  [:? {[: -system info has type ::nx::doc::@project]} {
 	  <div class="summary description">
 	    This is the API documentation for the 
 	    <a href="[:name]">[:name]</a> project.

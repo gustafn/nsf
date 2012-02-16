@@ -6,7 +6,7 @@
 	<ul class="content">
 	  [:for inst [dict get $owned_parts $feature] {
 	  [:!let css "" ]
-	  [:? {[:info has type [$feature part_class]] && [current] eq $inst} {
+	  [:? {[: -system info has type [$feature part_class]] && [current] eq $inst} {
 	  [:!let css "selected" ]
 	  }]
 	  [:? {[info exists filter_available] && [dict exists $self_owned_parts $feature]} {

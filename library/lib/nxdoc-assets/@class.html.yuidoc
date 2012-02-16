@@ -1,4 +1,4 @@
-[:include filter]
+<!-- [:include filter] -->
 <h2>
   Class
   <b property="yui:name">[:print_name -status]</b>
@@ -98,9 +98,9 @@
     [:for superclass [dict keys $iattrs]  {
     [:!let attrs [dict values [dict get $iattrs $superclass]]]
     <div class="section field inheritance"
-         rel="yui:superclass"  resource="[$superclass filename].html">
+         rel="yui:superclass"  resource="[$superclass href]">
       <h4>Inherited Parameters
-        from <a href="[$superclass filename].html" property="yui:name"
+        from <a href="[$superclass href]" property="yui:name"
                 title="[$superclass name]">[$superclass name]</a>:</h4>
       <div class="content" rel="yui:properties">
         <code>

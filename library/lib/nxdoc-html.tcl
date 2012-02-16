@@ -104,56 +104,11 @@ namespace eval ::nx::doc {
 	}
 	return "\[[join $js_array ,\n]\]"
       }
-      
-      :public method navigatable_parts args {
-	#
-	# TODO: Should I wrap up delegating calls to the originator
-	# entity behind a unified interface (a gatekeeper?)
-	#
-	set ownedParts [[:origin] owned_parts \
-		    -where "!\${:@stashed}" \
-		    -class ::nx::doc::StructuredEntity]
 
-	foreach mergeParts $args {
-	  dict for {feature featureInstances} $mergeParts {
-	    if {![dict exists $ownedParts $feature]} {
-	      dict set ownedParts $feature $featureInstances
-	    } else {
-	      set prevInst [lindex [dict get $ownedParts $feature] 1]
-	      lappend prevInst {*}$featureInstances
-	      dict set ownedParts $feature [lsort -unique $prevInst]
-	    }
-	  }
-	}
-
-	return $ownedParts
-      }
-
-      :public method navigatable_parts {mergeParts:optional} {
-	#
-	# TODO: Should I wrap up delegating calls to the originator
-	# entity behind a unified interface (a gatekeeper?)
-	#
-	set ownedParts [[:origin] owned_parts \
-		    -where "!\${:@stashed}" \
-		    -class ::nx::doc::StructuredEntity]
-
-	if {[info exists mergeParts]} {
-	  dict for {feature featureInstances} $ownedParts {
-	    if {![dict exists $mergeParts $feature]} {
-	      dict set mergeParts $feature $featureInstances
-	    } else {
-	      set prevInst [lindex [dict get $mergeParts $feature] 1]
-	      lappend prevInst {*}$featureInstances
-	      dict set mergeParts $feature [lsort -unique $prevInst]
-	    }
-	  }
-	  return $mergeParts
-	}
-
-	return $ownedParts
-      }
-
+      #
+      # no-op
+      #
+      :public method navigatable_parts args {;}
       
       :method listing {{-inline true} script} {
 	set listing $script
@@ -175,7 +130,7 @@ namespace eval ::nx::doc {
 	set unresolvable "<a href=\"#\">?</a>"
 	if {[string first @ $tag] != 0} {
 	  set m [current method]=$tag
-	  if {[:info lookup methods \
+	  if {[: -system info lookup methods \
 		   -source application \
 		   -callprotection public $m] eq ""} {
 	    return $unresolvable
@@ -204,7 +159,7 @@ namespace eval ::nx::doc {
       
       :public method make_link {source} {
 	set path [dict create {*}[:get_upward_path -attribute {set :name}]]
-	set tag [[:info class] tag]
+	set tag [[: -system info class] tag]
 	return [:render_link $tag $source $path]
       }
 
@@ -225,6 +180,7 @@ namespace eval ::nx::doc {
 	    #	href='[$id href $top_entity]'>[join $pathnames { }]</a>"
 	set iscript [join [list [list set title $pof[join $pathnames .]] \
 			       [list set source_anchor [join $pathnames { }]] \
+			       [list set srcEntity $source] \
 			       [list set top_entity $top_entity]] \n]
 	:render -initscript $iscript link
       }
@@ -235,18 +191,18 @@ namespace eval ::nx::doc {
       }
 
       :method getBase {top_entity:optional} {
-	set path [dict create {*}[:get_upward_path -attribute {set :name}]]
-	set originator_top_entity [lindex [dict keys $path] 0]
-	if {![info exists top_entity] || [dict size $path] == 1} {
-	  set top_entity $originator_top_entity
-	}
-	dict unset path $originator_top_entity
-	set fragment_path [list]
-	#puts stderr FRAGMENTPATH=$path
-	dict for {entity name} $path {
-	  lappend fragment_path [$entity filename]
-	} 
-	return [list $top_entity $fragment_path]
+      	set path [dict create {*}[:get_upward_path -attribute {set :name}]]
+      	puts stderr FRAGMENTPATH([current])=$path
+      	set originator_top_entity [lindex [dict keys $path] 0]
+      	if {![info exists top_entity] || [dict size $path] == 1} {
+      	  set top_entity $originator_top_entity
+      	}
+      	dict unset path $originator_top_entity
+      	set fragment_path [list]
+      	dict for {entity name} $path {
+      	  lappend fragment_path [$entity filename]
+      	} 
+      	return [list $top_entity $fragment_path]
       }
 
       :public method href {-local:switch top_entity:optional} {
@@ -265,12 +221,12 @@ namespace eval ::nx::doc {
 	if {[info exists :partof]} {
 	  return [string trimleft [${:part_attribute} name] @]_${:name}
 	} else {
-	  return [[:info class] tag]_[string trimleft [string map {:: __} ${:name}] "_"]
+	  return [[: -system info class] tag]_[string trimleft [string map {:: __} ${:name}] "_"]
 	}
       }
 
       :public method as_tag_id {} {
-	set tagclass [:info class]
+	set tagclass [: -system info class]
 	set tail [$tagclass get_tail_name [current]]
 	set tname [string trimleft [string map {:: _} $tail] "_"]
 	return [$tagclass tag]__$tname
@@ -279,27 +235,60 @@ namespace eval ::nx::doc {
 
     }; # NxDocTemplating::Entity
 
-    MixinLayer::Mixin create [current]::@project -superclass [current]::Entity {
-      :public method filename {} {
-	return "index"
-      }
-      :public method navigatable_parts args {
+
+    MixinLayer::Mixin create [current]::StructuredEntity -superclass [current]::Entity {
+      :public method navigatable_parts {mergeParts:optional} {
 	#
 	# TODO: Should I wrap up delegating calls to the originator
 	# entity behind a unified interface (a gatekeeper?)
 	#
-	set top_level_entities [next [list]]
-	dict for {feature instances} $top_level_entities {
+	# puts stderr "ENTER owned_parts on [:origin]"
+	set ownedParts [[:origin] owned_parts \
+			    -where "!\${:@stashed}" \
+			    -class ::nx::doc::StructuredEntity]
+	# puts stderr "LEAVE owned_parts from [:origin]"
+	
+	if {[info exists mergeParts]} {
+	  dict for {feature featureInstances} $ownedParts {
+	    if {![dict exists $mergeParts $feature]} {
+	      dict set mergeParts $feature $featureInstances
+	    } else {
+	      set prevInst [lindex [dict get $mergeParts $feature] 1]
+	      lappend prevInst {*}$featureInstances
+	      dict set mergeParts $feature [lsort -unique $prevInst]
+	    }
+	  }
+	  return $mergeParts
+	}
+	
+	return $ownedParts
+      }
+      
+    }
+
+    MixinLayer::Mixin create [current]::@project -superclass [current]::StructuredEntity {
+      :public method filename {} {
+	return "index"
+      }
+      :public method navigatable_parts {{-flatten:boolean true} args} {
+	#
+	# TODO: Should I wrap up delegating calls to the originator
+	# entity behind a unified interface (a gatekeeper?)
+	#
+	if {[info exists :topLevelEntities]} { return ${:topLevelEntities} }
+	set :topLevelEntities [next [list]]
+	if {!$flatten} {return ${:topLevelEntities}}
+	dict for {feature instances} ${:topLevelEntities} {
 	  if {[$feature name] eq "@package"} {
 	    foreach pkg $instances {
 	      dict for {pkg_feature pkg_feature_instances} [$pkg navigatable_parts] {
-		dict lappend top_level_entities $pkg_feature \
+		dict lappend :topLevelEntities $pkg_feature \
 		    {*}$pkg_feature_instances
 	      }
 	    }
 	  }
 	}
-	return $top_level_entities
+	return ${:topLevelEntities}
       }
       
     }
@@ -382,13 +371,14 @@ namespace eval ::nx::doc {
 	set iscript [join [list [list set title $title] \
 			       [list set source_anchor $print_name] \
 			       [list set top_entity [current]] \
-			       [list set cssclass nsfdoc-gloss]] \n]
+			       [list set cssclass nsfdoc-gloss] \
+			       [list set srcEntity $source]] \n]
 	set res [:render -initscript $iscript link]
 	return $res
       }
     }; # NxDocRenderer::@glossary
 
-    MixinLayer::Mixin create [current]::@class -superclass [current]::Entity {
+    MixinLayer::Mixin create [current]::@class -superclass [current]::StructuredEntity {
       :method inherited {member} {
 	set inherited [dict create]
 	set prj [:current_project]
@@ -397,7 +387,7 @@ namespace eval ::nx::doc {
 	set exp "expr {\[::nsf::is class ${:name}\]?\[lreverse \[${:name} info heritage\]\]:\"\"}"
 	set ipath [$box do $exp]
 	foreach c [concat $ipath ${:name}] {
-	  set entity [[:info class] id $c]
+	  set entity [[: -system info class] id $c]
 	  if {![::nsf::is object $entity]} continue; 
 	  set origin [$entity origin]
 	  if {$origin ni [concat {*}[dict values [$prj navigatable_parts]]]} continue;
