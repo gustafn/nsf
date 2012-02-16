@@ -563,10 +563,11 @@ namespace eval ::nx::serializer {
           {return Class} {return Object}
     }
 
-    :method collectVars o {
+    :method collectVars {o s} {
       set setcmd [list]
       foreach v [lsort [$o info vars]] {
-        if {![info exists :ignoreVarsRE] || ![regexp ${:ignoreVarsRE} ${o}::$v]} {
+        if {![::nsf::var::exists $s ignoreVarsRE] || \
+		![regexp [::nsf::var::set $s ignoreVarsRE] ${o}::$v]} {
 	  if {[::nsf::var::exists $o $v] == 0} {
 	    puts stderr "strange, [list $o info vars] returned $v, but it does not seem to exist"
 	    continue
@@ -777,7 +778,7 @@ namespace eval ::nx::serializer {
 	}
       }
      
-      set vars [:collectVars $o]
+      set vars [:collectVars $o $s]
       if {[llength $vars]>0} {append cmd [list $o eval [join $vars "\n   "]]\n}
 
       append cmd \
@@ -917,7 +918,7 @@ namespace eval ::nx::serializer {
         append cmd [list $o parametercmd $i] "\n"
       }
       append cmd \
-          [list $o eval [join [:collectVars $o] "\n   "]] \n \
+          [list $o eval [join [:collectVars $o $s] "\n   "]] \n \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o object-invar]
 
