@@ -144,7 +144,7 @@ namespace eval ::nx::serializer {
   Class create Serializer {
     :property ignoreVarsRE
 
-    :method ignore args {
+    :public method ignore args {
       # Ignore the objects passed via args.
       # :skip is used for filtering only in the topological sort.
       foreach element $args { 
@@ -770,7 +770,8 @@ namespace eval ::nx::serializer {
       set objectName [::nsf::directdispatch $o -frame method ::nsf::current object]
       set isSlotContainer [::nx::isSlotContainer $objectName]
       if {$isSlotContainer} {
-	append cmd [list ::nx::slotObj [$o ::nsf::methods::object::info::parent]]\n
+	append cmd [list ::nx::slotObj -container [namespace tail $objectName] \
+			[$o ::nsf::methods::object::info::parent]]\n
       } else {
 	append cmd [list [$o info class] create $objectName -noinit]\n
 	foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all -path]] {

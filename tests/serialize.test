@@ -1,0 +1,167 @@
+# -*- Tcl -*-
+
+package req nx::test
+package req nx::serializer	
+
+nx::Test case deepSerialize-map-filter {
+
+  Object create ::a {
+    :property ref:object,type=[:info class]
+    Object create [self]::b {
+      [:info parent] ref [Object create [self]::c]
+    }
+  }
+
+  ? {::nsf::object::exists ::a} 1
+  ? {::nsf::object::exists ::a::b} 1
+  ? {::nsf::object::exists ::a::b::c} 1
+  ? {::a ref} [[::a::b] info children]
+
+  set script [::Serializer deepSerialize -map {::a::b ::x::y ::a ::x} ::a]
+
+  ::a destroy
+
+  ? {::nsf::object::exists ::a} 0
+  ? {::nsf::object::exists ::a::b} 0
+  ? {::nsf::object::exists ::a::b::c} 0
+
+  eval $script
+  
+  ? {::nsf::object::exists ::a} 0
+  ? {::nsf::object::exists ::a::b} 0
+  ? {::nsf::object::exists ::a::b::c} 0
+
+  ? {::nsf::object::exists ::x} 1
+  ? {::nsf::object::exists ::x::y} 1
+  ? {::nsf::object::exists ::x::y::c} 1
+  ? {::x ref} [::x::y info children]
+
+  Object create ::a
+  ::x::y::c eval {
+    :variable parentRef [[:info parent] info parent]
+  }
+  set script [::a eval {
+    ::Serializer deepSerialize -map [list ::x::y [self] ::x [self]] ::x::y::c
+  }]
+  
+  ? {::x::y::c eval {set :parentRef}} ::x
+  ? {::nsf::object::exists ::a::c} 0
+  eval $script
+  ? {::nsf::object::exists ::a::c} 1
+  ? {::a::c eval {set :parentRef}} ::a
+}
+
+nx::Test case deepSerialize-ignoreVarsRE-filter {   
+  nx::Class create C {
+    :class property x
+    :class property y
+    :property a:int
+    :property b:int
+    :create c1
+  }
+
+  ? {C x 1} 1
+  ? {C x} 1
+  ? {C y 1} 1
+  ? {C y} 1
+  
+  ? {lsort [C info methods]} "a b"
+  ? {lsort [C class info methods]} "x y"
+  ? {c1 a b} {expected integer but got "b" for parameter "a"}
+  ? {c1 a 1} 1
+  ? {c1 b 1} 1
+
+  set c1(All) [list [::Serializer deepSerialize c1] "a b"]
+  set c1(One) [list [::Serializer deepSerialize -ignoreVarsRE "a" c1] "b"]
+  set c1(One2) [list [::Serializer deepSerialize -ignoreVarsRE {::a$} c1] "b"]
+  set c1(None1) [list [::Serializer deepSerialize -ignoreVarsRE "" c1] ""]
+  set c1(None2) [list [::Serializer deepSerialize -ignoreVarsRE \
+			   [join [C info slot names] |] c1] ""]
+  
+  c1 destroy
+
+  foreach t [array names c1] {
+    ? {nsf::object::exists c1} 0
+    lassign $c1($t) script res
+    eval $script
+    ? {nsf::object::exists c1} 1
+    ? {lsort [c1 info vars]} $res "Object c1 $t"
+    c1 destroy
+  }
+
+  
+  set C(All) [list [::Serializer deepSerialize C] "x y"]
+  set C(One) [list [::Serializer deepSerialize -ignoreVarsRE "x" C] "y"]
+  set C(One2) [list [::Serializer deepSerialize -ignoreVarsRE {::x$} C] "y"]
+  set C(None1) [list [::Serializer deepSerialize -ignoreVarsRE "" C] ""]
+  set C(None2) [list [::Serializer deepSerialize \
+			  -ignoreVarsRE [join [C class info slot names] |] C] ""]
+  
+  C destroy
+  
+  foreach t [array names C] {
+    ? {nsf::object::exists C} 0
+    lassign $C($t) script res
+    eval $script
+    ? {nsf::object::exists C} 1
+    ? {lsort [C info vars]} $res "Class C $t"
+    C destroy
+  }
+}
+
+nx::Test case deepSerialize-ignore-filter { 
+  Object create ::a {
+    Object create [self]::b 
+    Object create [self]::c
+  }
+
+  ? {::nsf::object::exists ::a} 1
+  ? {::nsf::object::exists ::a::b} 1
+  ? {::nsf::object::exists ::a::c} 1
+
+  set script [::Serializer deepSerialize -ignore ::a::b ::a]
+  ::a destroy
+
+  ? {::nsf::object::exists ::a::c} 0
+  ? {::nsf::object::exists ::a::b} 0
+  ? {::nsf::object::exists ::a} 0
+
+  eval $script
+  ? {::nsf::object::exists ::a} 1
+  ? {::nsf::object::exists ::a::b} 0
+  ? {::nsf::object::exists ::a::c} 1
+  
+  set script [::Serializer deepSerialize -ignore ::a ::a]
+  ::a destroy
+
+  ? {::nsf::object::exists ::a} 0
+  eval $script
+  ? {::nsf::object::exists ::a} 0
+}
+
+nx::Test case serialize-slotContainer {
+ 
+  nx::Class create C {
+    :class property x
+    :property a
+  }
+
+  ? {::nsf::object::exists ::C::slot} 1
+  ? {::nsf::object::exists ::C::per-object-slot} 1
+  ? {::nsf::method::property ::C -per-object slot slotcontainer} 1
+  ? {::nsf::method::property ::C -per-object per-object-slot slotcontainer} 1
+  ? {::nsf::object::exists ::C::slot::a} 1
+  ? {::nsf::object::exists ::C::per-object-slot::x} 1
+
+  set script [C serialize]
+  C destroy
+  ? {::nsf::object::exists ::C} 0
+
+  eval $script
+  ? {::nsf::object::exists ::C::slot} 1
+  ? {::nsf::object::exists ::C::per-object-slot} 1
+  ? {::nsf::method::property ::C -per-object slot slotcontainer} 1
+  ? {::nsf::method::property ::C -per-object per-object-slot slotcontainer} 1
+  ? {::nsf::object::exists ::C::slot::a} 1
+  ? {::nsf::object::exists ::C::per-object-slot::x} 1
+}
