@@ -6856,7 +6856,15 @@ Foo <span class='nx-keyword'>create</span> f1
 </span>::nsf::relation f1 <span class='nx-keyword'>class</span> ::nx::Object</pre></div></div>
 </div>
 <div class="sect3">
-<h4 id="_info_heritage">3.2.4. Info heritage</h4>
+<h4 id="_overwriting_procs_methods_with_objects_and_vice_versa">3.2.4. Overwriting procs/methods with objects and vice versa</h4>
+<div class="paragraph"><p>NSF is now more conservative on object/method creation. In contrary to
+XOTcl 1 NSF does not allow to redefined a pre-existing command
+(e.g. "set") with an object and vice versa. Like in XOTcl 1,
+preexisting objects and classes con be redefined (necessary for
+reloading objects/classes in an running interpreter).</p></div>
+</div>
+<div class="sect3">
+<h4 id="_info_heritage">3.2.5. Info heritage</h4>
 <div class="paragraph"><p><tt>info heritage</tt> returns in XOTcl 1 the transitive superclass
 hierarchy, which is equivalent with <tt>info superclass -closure</tt> and
 therefore not necessary. In XOTcl 2 (and NX), <tt>info heritage</tt> includes
@@ -6907,7 +6915,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2012-01-31 09:04:08 CET
+Last updated 2012-02-17 12:07:30 CET
 </div>
 </div>
 </body>

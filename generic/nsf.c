@@ -4844,7 +4844,20 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
   assert(nsPtr);
   cmd = FindMethod(nsPtr, methodName);
 
-  ok = cmd ? (Tcl_Command_flags(cmd) & NSF_CMD_REDEFINE_PROTECTED_METHOD) == 0 : 1;
+  if (cmd) {
+    if ( NsfGetObjectFromCmdPtr(cmd) != NULL) {
+      /*
+       * Don't allow overwriting of an object with an method.
+       */
+      return NsfPrintError(interp, 
+			   "cannot overwrite child object with method %s; delete/rename it before overwriting", 
+			   methodName);
+    }
+    ok = (Tcl_Command_flags(cmd) & NSF_CMD_REDEFINE_PROTECTED_METHOD) == 0;
+  } else {
+    ok = 1;
+  }
+
   if (ok) {
     result = TCL_OK;
   } else {
@@ -22141,8 +22154,9 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
   }
 
   /*
-   * Check whether we have to call recreate (i.e. when the
-   * object exists already).
+   * Check whether we have to call recreate (i.e. when the object exists
+   * already). First check, if was have such a command, then check, if the
+   * command is an object.
    */
   {
     Tcl_Command cmd = NSFindCommand(interp, nameString);

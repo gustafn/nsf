@@ -2939,6 +2939,14 @@ f1 configure -class nx::Object
 ::nsf::relation f1 class ::nx::Object
 ----------------
 
+==== Overwriting procs/methods with objects and vice versa
+
+NSF is now more conservative on object/method creation. In contrary to
+XOTcl 1 NSF does not allow to redefined a pre-existing command
+(e.g. "set") with an object and vice versa. Like in XOTcl 1,
+preexisting objects and classes con be redefined (necessary for
+reloading objects/classes in an running interpreter).
+
 ==== Info heritage
 +info heritage+ returns in XOTcl 1 the transitive superclass
 hierarchy, which is equivalent with +info superclass -closure+ and

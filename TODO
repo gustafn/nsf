@@ -3915,6 +3915,8 @@ nsf.c:
 - extended regression test
 
 - don't allow object creation to overwrite non-object cmds (e.g. procs)
+- don't allow method to overwrite child object
+- extended regression test
 
 ========================================================================
 TODO:
@@ -3922,7 +3924,6 @@ TODO:
 - document new setable object properties perobjectdispatch and keepcallerself
 - pertaining perobjectdispatch and keepcallerself in serializer
 
-- should we allow objects to overwrite procs/methods and vice versa?
 - behavior on keepcallerself on ordinary dispatches with implicit/explicit 
   receiver (currently the flag is ignored, the code just commented out)
 

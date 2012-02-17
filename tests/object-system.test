@@ -357,6 +357,24 @@ nx::Object create foo {
   #
   ? {catch {nx::Object create [self]::bar}} 1
 }
+nx::Object create foo {
+  nx::Object create [self]::bar
+  # 
+  # Don't allow child-object to be overwritten by object specific cmd
+  #
+  ? {catch {:forward bar somethingelse}} 1
+  ? {nsf::object::exists [self]::bar} 1
+  # 
+  # Don't allow child-object to be overwritten by object specific
+  # scripted method
+  #
+  ? {catch {:method bar {} {;}}} 1
+  ? {nsf::object::exists [self]::bar} 1
+}
+
+foo destroy
+
+
 
 
 #
