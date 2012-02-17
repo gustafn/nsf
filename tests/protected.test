@@ -114,31 +114,31 @@ nx::Test case redefined-protected {
   ? {::nsf::method::property C foo redefine-protected true} 1
   
   ? {C method SET {a b c} {...}} \
-      {method 'SET' of ::C cannot be overwritten; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'SET'; derive e.g. a sub-class!} \
       "redefine method SET"
   
   ? {C method foo {a b c} {...}} \
-      {method 'foo' of ::C cannot be overwritten; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'foo'; derive e.g. a sub-class!} \
       "redefine method foo"
   
   # check a predefined protection
   ? {::nx::Class method create {a b c} {...}} \
-      {method 'create' of ::nx::Class cannot be overwritten; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'create'; derive e.g. a sub-class!} \
       "redefine method create"
   
   # try to redefine predefined protected method via alias
   ? {::nsf::method::alias nx::Class create ::set} \
-      {method 'create' of ::nx::Class cannot be overwritten; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'create'; derive e.g. a sub-class!} \
       "redefine alias create"
   
   # try to redefine via forward
   ? {C forward SET ::set} \
-      {method 'SET' of ::C cannot be overwritten; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'SET'; derive e.g. a sub-class!} \
       "redefine forward SET"
 
   # try to redefine via setter
   ? {C property SET} \
-      {method 'SET' of ::C cannot be overwritten; derive e.g. a sub-class!} \
+      {refuse to overwrite protected method 'SET'; derive e.g. a sub-class!} \
       "redefine property SET"
   
   # redefine-protect object specific method
@@ -146,7 +146,7 @@ nx::Test case redefined-protected {
   o method foo {} {return 13}
   ::nsf::method::property o foo redefine-protected true
   ? {o method foo {} {return 14}} \
-      {method 'foo' of ::o cannot be overwritten; derive e.g. a sub-class!}
+      {refuse to overwrite protected method 'foo'; derive e.g. a sub-class!}
 }
 
 

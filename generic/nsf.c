@@ -4850,7 +4850,7 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
        * Don't allow overwriting of an object with an method.
        */
       return NsfPrintError(interp, 
-			   "cannot overwrite child object with method %s; delete/rename it before overwriting", 
+			   "refuse to overwrite child object with method %s; delete/rename it before overwriting", 
 			   methodName);
     }
     ok = (Tcl_Command_flags(cmd) & NSF_CMD_REDEFINE_PROTECTED_METHOD) == 0;
@@ -4868,7 +4868,7 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
      */
     Tcl_Obj *bootstrapObj = Tcl_GetVar2Ex(interp, "::nsf::bootstrap", NULL, TCL_GLOBAL_ONLY);
     if (bootstrapObj == NULL) {
-      result = NsfPrintError(interp, "method '%s' of %s cannot be overwritten; "
+      result = NsfPrintError(interp, "refuse to overwrite protected method '%s'; "
 			     "derive e.g. a sub-class!", methodName, ObjectName(object));
     } else {
       result = TCL_OK;
@@ -22167,7 +22167,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
 	 * We have a cmd, but no object. Don't allow to overwrite an ordinary
 	 * cmd by an nsf object.
 	 */
-	result = NsfPrintError(interp, "cannot overwrite cmd %s; delete/rename it before overwriting", nameString);
+	result = NsfPrintError(interp, "refuse to overwrite cmd %s; delete/rename it before overwriting", nameString);
 	goto create_method_exit;
       }
     }

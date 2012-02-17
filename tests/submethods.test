@@ -325,7 +325,7 @@ namespace eval ::ns1 {
   ? {obj foo} {wrong # args: should be ":info"}
 
   # now we overwrite the object specific method with an object
-  ? {Object create obj::info} "cannot overwrite cmd ::ns1::obj::info; delete/rename it before overwriting"
+  ? {Object create obj::info} "refuse to overwrite cmd ::ns1::obj::info; delete/rename it before overwriting"
   rename obj::info ""
   ? {Object create obj::info} ::ns1::obj::info
   ? [list obj $infolookup info] ::ns1::obj::info
