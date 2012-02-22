@@ -806,24 +806,24 @@ $(DESTDIR)$(mandir)/mann:
 
 end:
 	@echo "" 
-	@echo "************************************************************"
-	@echo " Make completed. In order to test next-scripting, invoke:"
+	@echo "***************************************************************"
+	@echo " Make completed. In order to test the next-scripting framework,"
+	@echo " invoke:"
 	@echo "   make test"
 	@echo ""
-	@echo " In order install next-scripting, invoke:"
+	@echo " To install, use:"
 	@echo "   make install"
 	@echo ""
-	@echo " In order to install next-scripting for AOLserver 4.x"
-	@echo " or Naviserver, invoke:"
+	@echo " To install for AOLserver 4.x or NaviServer, use:"
 	@echo "   make install-aol"
 	@echo "" 
-	@echo " In order to invoke next-scripting interactively (before install), use:" 
-	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\"   or    " 
+	@echo " In order to invoke NX interactively (before install), use:" 
+	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\"" 
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
 	@echo "   @TCLSH_PROG@"
-	@echo "   package require nx; namespace import -force nx::*"
-	@echo "************************************************************"
+	@echo "   package require nx"
+	@echo "***************************************************************"
 
 RPMSOURCES=/usr/src/redhat/SOURCES
 RPMSPECS=/usr/src/redhat/SPECS
