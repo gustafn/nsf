@@ -81,45 +81,46 @@
 /* 
  * The following features are controlled via 
  * configure flags
+ *
  *   --with-dtrace
  *   --enable-development
  *   --enable-profile
  *   --enable-memcount=yes|trace
  *   --enable-assertions
  *
- * are we developing?
+ * Are we developing?
  *
 #define NSF_DEVELOPMENT 1
  *
- * activate/deactivate profiling information
+ * Activate/deactivate profiling information
  *
 #define NSF_PROFILE 1
  *
- * compile with dtrace support
+ * Compile with dtrace support
  *
 #define NSF_DTRACE 1
  *
- * scripting level assertions
+ * Scripting level assertions
  *
 #define NSF_WITH_ASSERTIONS 1
  *
- * activate/deactivate memory tracing
+ * Activate/deactivate memory tracing
  *
 #define NSF_MEM_TRACE 1
 #define NSF_MEM_COUNT 1
  */
 
-/* activate bytecode support
+/* Activate bytecode support
 #define NSF_BYTECODE
 */
 
-/* activate/deactivate C-level assert()
-   activated automatically when 
+/* Activate/deactivate C-level assert()
+   Activated automatically when 
    NSF_DEVELOPMENT is set
 #define NDEBUG 1
 */
 
-/* additional language features
+/* Experimental language feature
 #define NSF_WITH_INHERIT_NAMESPACES 1
 */
 
