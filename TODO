@@ -3814,11 +3814,11 @@ nsf.c:
   method definition".
 
 - simplified usage of ObjectName() and ClassName() macros (no caller parenthesis needed)
-- added exerpimental object property keepcallerself (currently only evaluated by aliased objects)
-- removed TODOs from keepcallerself in destroy.test; calls were truely recursive,
+- added experimental object property keepcallerself (currently only evaluated by aliased objects)
+- removed TODOs from keepcallerself in destroy.test; calls were truly recursive,
   behavior was correct.
 
-- Added exerpimental object property "allowmethoddispatch" for
+- Added experimental object property "allowmethoddispatch" for
   child-objects to be called from parent objects via method interface.
   Background: both, per-object methods and childobjects are
   implemented via cmds in the same tcl namespace. Without special
@@ -3826,7 +3826,7 @@ nsf.c:
   is not always wanted.
 - handled allowmethoddispatch and keepcallerself in copy/move
 - set allowmethoddispatch per-default in XOTcl
-- removed visablilty of objects with "allowmethoddispatch" false in 
+- removed visibility of objects with "allowmethoddispatch" false in 
   "info methods" and "info search methods"
 - extended regression test
 
@@ -3835,7 +3835,7 @@ nsf.c:
 - alias reform: instead of calling first an alias with a stack frame
   followed by the dispatched of the aliased cmd, resolve aliases
   internally in dispatch. This has the advantage that we do not
-  have to ignore the "transparent" stack frame in some sitations,
+  have to ignore the "transparent" stack frame in some situations,
   and we have much less problems with the names of the aliased cmds
   (e.g. objects) in the introspection methods. Additionally, several
   problem cases disappeared from the regression test cases. 
@@ -3843,24 +3843,24 @@ nsf.c:
 - eliminating obsolete flag NSF_CSC_CALL_IS_TRANSPARENT
 
 - use alias-stubs for aliases pointing to objects. This allows
-  us to distinguish between cases, where an object is dispatchable
+  us to distinguish between cases, where an object is dispatch-able
   due to the alias or due to allowmethoddispatch (when the object
   happens to be a subobject and has therefore its cmd in the same
   namespace). The semantics are now:
-   - aliases to objects are always dispatchable, no matter, how
+   - aliases to objects are always dispatch-able, no matter, how
      allowmethoddispatch is set.
-   - direct subobjects of objects are currently on dispatchable
+   - direct sub-objects of objects are currently on dispatch-able
      when allowmethoddispatch is set. Note, that this could
      be seen as a method-property of the method-name, which
-     could be made "private" as well to avoud such direct dispatches.
+     could be made "private" as well to avoid such direct dispatches.
 
 - nsf.c: start all error messages with a lower case word for consistency
   and to follow closer to Tcl's conventions
 
-- deacitivate for the time being allowmethoddispatch 
+- deactivate for the time being allowmethoddispatch 
   (make it behave always like true)
 - added instead new flag "perobjectdispatch" to make
-  behavior of ensembleobjects configurable. 
+  behavior of ensemble objects configurable. 
 - The behavior for keepcallerself is currently 
   only activated for the method-interface
   for object dispatch, since otherwise the following
@@ -3874,7 +3874,7 @@ nsf.c:
 
 - fixed potential crash from method caching, when permissions on cmds are
   changed and become e.g. unresolvable
-- removed flag allowmethoddispatch, since behavior can be achived via 
+- removed flag allowmethoddispatch, since behavior can be archived via 
   private flag.
 - extended regression test
 
@@ -3889,7 +3889,7 @@ nsf.c:
   respect of the method interface for object invocations
 - doc fixed line-number handling locally
 
-- changed object->flags from "unsigend short" to "unsigned int"
+- changed object->flags from "unsigned short" to "unsigned int"
 - reintroduced NSF_TCL_DELETE to address bug flagged from memdebug
 - extended regression test
 
@@ -3920,6 +3920,12 @@ nsf.c:
 - documented cmd overwrite protection feature as incompatibility with XOTcl 1
 - documented dependencies between configure flags and feature activation cpp macros
 
+nsf.c:
+- Fixed a bad interaction between Tcl's apply (pushing lambda frames)
+  and the variable resolvers. The variable resolver was not able to
+  resolve variables, while the command resolver was still working
+  correctly.  
+- Extended regression test
 
 ========================================================================
 TODO:

@@ -1146,3 +1146,88 @@ Test case unconfigured-varresolver {
   ? {ateh eval {info exists :x}} 0
 }
 
+#
+# Test variable resolver in respect to uplevel and apply 
+# (lambda frames)
+#
+
+::nx::Test case foo {
+
+  nx::Object create o1 {
+    set :a o1.a
+    :public method foo {} {return ${:a}}
+    :public method bar {} {o2 foo}
+    :public method bar2 {} {o2 foo2}
+
+  }
+
+  nx::Object create o2 {
+    set :a o2.a
+    set :cmd {set :a}
+    :public method foo {} {eval ${:cmd}}
+    :public method foo2 {} {uplevel ${:cmd}}
+    :public method foo3 {} {uplevel 2 ${:cmd}}
+    :public method bar {} {:foo}
+    :public method bar2 {} {:foo2}
+    :public method bar3a {} {:foo3}
+    :public method bar3 {} {:bar3a}
+  }
+
+  #
+  # test cases for uplevel over multiple levels in the same object
+  #
+  ? {o2 foo} o2.a
+  ? {o2 bar} o2.a
+  ? {o2 bar2} o2.a
+  ? {o2 bar3} o2.a
+
+  #
+  # test cases for uplevel over multiple levels in different objects
+  #
+  ? {o1 foo} o1.a
+  ? {o1 bar} o2.a
+  ? {o1 bar2} o1.a
+
+  #
+  # test cases for uplevel over apply
+  #
+  proc x {cmd} {uplevel $cmd}
+
+  nx::Object create o3 {
+    set :a o3.a
+    :public method set {var} {set :$var}
+    :public method foo-m {} {:set a}
+    :public method foo-r {} {::set :a}
+    :public method foo-m-u {} {x {:set a}}
+    :public method foo-r-u {} {x {::set :a}}
+    :public method foo-a-m {} {::apply [list {} {:set a} [self]]}
+    :public method foo-a-r {} {::apply [list {} {::set :a} [self]]}
+    :public method foo-a-m-u {} {::apply [list {} {x {:set a}} [self]]}
+    :public method foo-a-r-u {} {::apply [list {} {x {::set :a}} [self]]}
+  }
+
+  #
+  # resolver and method should behave the same
+  #
+  ? {o3 foo-m} "o3.a"
+  ? {o3 foo-r} "o3.a"
+
+  #
+  # resolver and method should behave the same, also when uplevel is used
+  #
+  ? {o3 foo-m-u} "o3.a"
+  ? {o3 foo-r-u} "o3.a"
+
+  #
+  # resolver and method should behave the same, also when apply is used
+  #
+  ? {o3 foo-a-m} "o3.a"
+  ? {o3 foo-a-r} "o3.a"
+
+  #
+  # resolver and method should behave the same, also when apply and
+  # uplevel are used
+  #
+  ? {o3 foo-a-m-u} "o3.a"
+  ? {o3 foo-a-r-u} "o3.a"
+}

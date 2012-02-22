@@ -3657,6 +3657,47 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
 
 /*
  *----------------------------------------------------------------------
+ * InterpGetFrameAndFlags --
+ *
+ *    Return for the provided interp the flags of the frame (returned as
+ *    result) and the actual varFrame (returned in the second argument). In
+ *    case, the toplevel frame is a LAMBDA frame, skip it.
+ *
+ * Results:
+ *    Frame flags, varFrame
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+NSF_INLINE static int
+InterpGetFrameAndFlags(Tcl_Interp *interp, CallFrame **framePtr) {
+  int frameFlags;
+
+  assert(framePtr);
+  *framePtr = Tcl_Interp_varFramePtr(interp);
+  frameFlags = Tcl_CallFrame_isProcCallFrame(*framePtr);
+  /*
+   * If the resolver is called from a lambda frame, use always the parent frame
+   */
+  if ((frameFlags & FRAME_IS_LAMBDA)) {
+    *framePtr = (CallFrame *)Tcl_CallFrame_callerPtr(*framePtr);
+    frameFlags = Tcl_CallFrame_isProcCallFrame(*framePtr);
+#if defined(VAR_RESOLVER_TRACE)
+    fprintf(stderr, "InterpColonVarResolver skip lambda frame flags %.6x\n", 
+	    Tcl_CallFrame_isProcCallFrame(*framePtr));  
+#endif
+  }
+#if defined(VAR_RESOLVER_TRACE)
+  fprintf(stderr, "... final frame flags %.6x\n",frameFlags);
+#endif
+  return frameFlags;
+}
+
+/*
+ *----------------------------------------------------------------------
  * InterpColonVarResolver --
  *
  *    For accessing object (instance) variables using the colon-prefix
@@ -3683,6 +3724,7 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
  *
  *----------------------------------------------------------------------
  */
+
 static int
 InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *UNUSED(nsPtr),
 		       int flags, Tcl_Var *varPtr) {
@@ -3706,13 +3748,7 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *U
     return TCL_CONTINUE;
   }
 
-  varFramePtr = Tcl_Interp_varFramePtr(interp);
-  frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
-
-#if defined(VAR_RESOLVER_TRACE)
-  fprintf(stderr, "InterpColonVarResolver called var '%s' flags %.4x frame flags %.6x\n",
-          varName, flags, frameFlags);
-#endif
+  frameFlags = InterpGetFrameAndFlags(interp, &varFramePtr);
 
   if (likely(frameFlags & FRAME_IS_NSF_METHOD)) {
     if ((*varPtr = CompiledLocalsLookup(varFramePtr, varName))) {
@@ -3861,19 +3897,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *U
     return TCL_CONTINUE;
   }
 
-  varFramePtr = Tcl_Interp_varFramePtr(interp);
-  frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
-
-  /*fprintf(stderr, "InterpColonCmdResolver frame cmdName %s flags %.6x, frame flags %.6x lambda %d\n",
-    cmdName, flags, frameFlags, frameFlags & FRAME_IS_LAMBDA);*/
-
-  /*
-   * If the resolver is called from a lambda frame, use always the parent frame
-   */
-  if ((frameFlags & FRAME_IS_LAMBDA)) {
-    varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
-    frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
-  }
+  frameFlags = InterpGetFrameAndFlags(interp, &varFramePtr);
 
   /*
    * The resolver is called as well, when a body of a method is
@@ -8463,7 +8487,8 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
 
 #if defined(VAR_RESOLVER_TRACE)
       fprintf(stderr, "ByteCompiled bytecode not valid proc %p cmd %p method %s\n",
-	      procPtr, procPtr->cmdPtr, Tcl_GetCommandName(interp, procPtr->cmdPtr));
+	      procPtr, procPtr->cmdPtr, 
+	      Tcl_GetCommandName(interp, (Tcl_Command)procPtr->cmdPtr));
       fprintf(stderr, "    %d %d %d %d\n",
 	      ((Interp *) *codePtr->interpHandle != iPtr),
 	       (codePtr->compileEpoch != iPtr->compileEpoch),
