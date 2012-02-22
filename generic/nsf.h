@@ -78,36 +78,53 @@
  * Feature activation/deactivation
  */
 
+/* 
+ * The following features are controlled via 
+ * configure flags
+ *   --with-dtrace
+ *   --enable-development
+ *   --enable-profile
+ *   --enable-memcount=yes|trace
+ *   --enable-assertions
+ *
+ * are we developing?
+ *
+#define NSF_DEVELOPMENT 1
+ *
+ * activate/deactivate profiling information
+ *
+#define NSF_PROFILE 1
+ *
+ * compile with dtrace support
+ *
+#define NSF_DTRACE 1
+ *
+ * scripting level assertions
+ *
+#define NSF_WITH_ASSERTIONS 1
+ *
+ * activate/deactivate memory tracing
+ *
+#define NSF_MEM_TRACE 1
+#define NSF_MEM_COUNT 1
+ */
+
 /* activate bytecode support
 #define NSF_BYTECODE
 */
 
-/* activate/deactivate profiling information at the end
-   of running the program
-#define NSF_PROFILE 1
-#define NSF_DTRACE 1
-*/
-
-/* are we developing?
-#define NSF_DEVELOPMENT 1
-*/
-
-/* activate/deactivate assert
+/* activate/deactivate C-level assert()
+   activated automatically when 
+   NSF_DEVELOPMENT is set
 #define NDEBUG 1
 */
 
 /* additional language features
 #define NSF_WITH_INHERIT_NAMESPACES 1
-#define NSF_WITH_ASSERTIONS 1
 */
 
 #define NSF_WITH_OS_RESOLVER 1
 #define NSF_WITH_VALUE_WARNINGS 1
-
-/* activate/deactivate memory tracing
-#define NSF_MEM_TRACE 1
-#define NSF_MEM_COUNT 1
-*/
 
 /* turn  tracing output on/off
 #define NSFOBJ_TRACE 1
@@ -123,6 +140,7 @@
 #define NRE_CALLBACK_TRACE 1
 #define METHOD_OBJECT_TRACE 1
 */
+
 /*
  * Sanity checks and dependencies for optional compile flags
  */
