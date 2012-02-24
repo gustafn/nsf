@@ -1538,6 +1538,7 @@ namespace eval ::nx {
     {-forObjectParameter 0}
   } {
     set options ""
+    set slotObject ""
     if {[info exists :type]} {
       set type ${:type}
       if {$type eq "switch" && !$forObjectParameter} {set type boolean}
@@ -1553,17 +1554,16 @@ namespace eval ::nx {
 			     "alnum" "alpha" "ascii" "control" "digit" "double" \
 			     "false" "graph" "lower" "print" "punct" "space" "true" \
 			     "wideinteger" "wordchar" "xdigit" ]} {
-	  lappend options slot=[::nsf::self]
+	  lappend options slot=[::nsf::self] 
 	}
       }
     } elseif {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {
-      # In case the "assign method" has changed, forward variable
-      # setting in configure (e.g. called during initialization of
-      # object parameters) to the slot.
-      if {${:accessor} == 0} {
-	error "parameter ${:name}: option 'noaccessor' cannot be used together with required accessor (assign method)" 
-      }
-      lappend options slot=[::nsf::self] invokesetter
+      # In case the "assign method" was provided, ask nsf to call it directly
+      lappend options slot=[::nsf::self] slotassign
+    }
+    if {[:info lookup method initialize] ne "" && $forObjectParameter} {
+      if {"slot=[::nsf::self]" ni $options} {lappend options slot=[::nsf::self]}
+      lappend options slotinitialize
     }
     if {[info exists :arg]} {lappend options arg=${:arg}}
     if {${:required}} {

@@ -2347,14 +2347,17 @@ nx::Test case forward-to-assign {
   ? [list $o eval {info exists :baz}] 1
   ? {set ::slotcalls} 2
   ? [list $o baz] "test" 
+  ? {Foo info method exists baz} 1
 
 } 
 
 
 #
-# Test incompatible forwarding to slot vs. noaccessor
+# Test forwarding to slot vs. noaccessor
 #
 nx::Test case forward-to-assign {
+  set ::slotcalls 0
+
   ? {nx::Class create Foo {
     :property bar:noaccessor {
       :public method assign { object property value } {
@@ -2365,7 +2368,8 @@ nx::Test case forward-to-assign {
   } "::Foo"
 
   # call without default, without object parameter value
-  ? {Foo new} "parameter bar: option 'noaccessor' cannot be used together with required accessor (assign method)"
+  ? {catch {Foo new}} 0
+  ? {set ::slotcalls} 0
 
   # test cases for default
   nx::Class create Foo {
@@ -2378,8 +2382,34 @@ nx::Test case forward-to-assign {
   }
 
   # call with default, without object parameter value
-  ? {Foo new} "parameter baz: option 'noaccessor' cannot be used together with required accessor (assign method)"
+  ? {catch {Foo new}} 0
+  ? {set ::slotcalls} 1
 
   # call with default, with object parameter value
-  ? {Foo new -baz "test"} "parameter baz: option 'noaccessor' cannot be used together with required accessor (assign method)"
-} 
+  ? {catch {Foo new -baz "test"}} 0
+  ? {set ::slotcalls} 2
+  ? {Foo info method exists baz} 0
+}
+
+
+#
+# Test slot initialize 
+#
+nx::Test case forward-to-incremental {
+  set ::slotcalls 0
+
+  ? {nx::Class create Foo {
+    :property bar {
+      :public method initialize { object } {
+	incr ::slotcalls 1
+      }
+    }}
+  } "::Foo"
+
+  # initialize is supposed to be called regardless of some default
+  ? {catch {Foo new}} 0
+  ? {set ::slotcalls} 1
+
+}
+
+

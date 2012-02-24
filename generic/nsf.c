@@ -11598,11 +11598,17 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   } else if (strncmp(option, "forward", 7) == 0) {
     paramPtr->flags |= NSF_ARG_FORWARD;
 
-  } else if (strncmp(option, "invokesetter", 12) == 0) {
+  } else if (strncmp(option, "slotassign", 10) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
-      return NsfPrintError(interp, "option 'invokesetter' must follow 'slot='");
+      return NsfPrintError(interp, "option 'slotassign' must follow 'slot='");
     }
-    paramPtr->flags |= NSF_ARG_INVOKESETTER;
+    paramPtr->flags |= NSF_ARG_SLOTASSIGN;
+
+  } else if (strncmp(option, "slotinitialize", 14) == 0) {
+    if (unlikely(paramPtr->slotObj == NULL)) {
+      return NsfPrintError(interp, "option 'slotinit' must follow 'slot='");
+    }
+    paramPtr->flags |= NSF_ARG_SLOTINITIALIZE;
 
   } else if ((dotdot = strnstr(option, "..", optionLength))) {
     /* check lower bound */
@@ -21213,6 +21219,19 @@ objectMethod configure NsfOConfigureMethod {
 }
 */
 
+static NsfObject*
+GetSlotObject(Tcl_Interp *interp, Tcl_Obj *slotObj) {
+  NsfObject *slotObject = NULL;
+
+  assert(slotObj != NULL);
+  GetObjectFromObj(interp, slotObj, &slotObject);
+  if (unlikely(slotObject == NULL)) {
+    NsfPrintError(interp, "couldn't resolve slot object %s", ObjStr(slotObj));
+  }
+  return slotObject;
+}
+
+
 static int
 NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
   int result, i;
@@ -21337,6 +21356,25 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
             newValue, newValue ? ObjStr(newValue) : "(null)", paramPtr->type,
 	    &(pc.full_objv[i]));*/
 
+    /*
+     * Handling slot initialize
+     */
+    if (paramPtr->flags & NSF_ARG_SLOTINITIALIZE) {
+      NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
+      
+      if (likely(slotObject != NULL)) {
+	result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_INITIALIZE],
+					 object->cmdName, 1, NULL, NSF_CSC_IMMEDIATE);
+      }
+      if (result != TCL_OK) {
+	/* 
+	 * The error message was set either by GetSlotObject or by ...CallMethod... 
+	 */
+	Nsf_PopFrameObj(interp, framePtr);
+	goto configure_exit;
+      }
+    }
+    
     /*
      * Special setter methods for invoking methods calls; handles types
      * "initcmd", "alias" and "forward".
@@ -21579,9 +21617,24 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * is typically a forwarder to the slot object.
        */
 
-      if (paramPtr->flags & NSF_ARG_INVOKESETTER) {
-	result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object, paramPtr->nameObj,
-				       newValue, 1, NULL, NSF_CSC_IMMEDIATE);
+      if (paramPtr->flags & NSF_ARG_SLOTASSIGN) {
+	NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
+
+	if (likely(slotObject != NULL)) {
+	  Tcl_Obj *ov[2];
+
+	  ov[0] = paramPtr->nameObj;
+	  ov[1] = newValue;
+	  result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_ASSIGN],
+					 object->cmdName, 3, ov, NSF_CSC_IMMEDIATE);
+	}
+	if (result != TCL_OK) {
+	  /* 
+	   * The error message was set either by GetSlotObject or by ...CallMethod... 
+	   */
+	  Nsf_PopFrameObj(interp, framePtr);
+	  goto configure_exit;
+	}
       } else {
 	Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
       }

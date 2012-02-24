@@ -3927,6 +3927,14 @@ nsf.c:
   correctly.  
 - Extended regression test
 
+nsf.c:
+- added object parameter option "slotinitialize"
+- renamed object parameter option "invokesetter" -> "slotassign"
+- call slot.assign instead of setter of object
+- removed restriction on nosetter/invokesetter: nosetter can 
+  be used in connection with slotassign
+- added regression test for slot.initialize
+
 ========================================================================
 TODO:
 
