@@ -3935,6 +3935,14 @@ nsf.c:
   be used in connection with slotassign
 - added regression test for slot.initialize
 
+nsf.c:
+- pass property name to slot "initialize" method to conform 
+  with the interface to "assign", "get" ... (all these receive
+  the property name as well)
+- allow slot "initialize" method to be protected 
+  (handled similarly to "init")
+
+
 ========================================================================
 TODO:
 

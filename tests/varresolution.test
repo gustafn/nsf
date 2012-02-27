@@ -1151,7 +1151,7 @@ Test case unconfigured-varresolver {
 # (lambda frames)
 #
 
-::nx::Test case foo {
+::nx::Test case var-resolver-uplevel-apply {
 
   nx::Object create o1 {
     set :a o1.a

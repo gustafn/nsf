@@ -21363,8 +21363,12 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
       
       if (likely(slotObject != NULL)) {
+	Tcl_Obj *ov[1];
+	
+	ov[0] = paramPtr->nameObj;
 	result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_INITIALIZE],
-					 object->cmdName, 1, NULL, NSF_CSC_IMMEDIATE);
+					 object->cmdName, 2, ov, 
+				       NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
       }
       if (result != TCL_OK) {
 	/* 
@@ -21503,7 +21507,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
 	  Tcl_ResetResult(interp);
 	  result = NsfCallMethodWithArgs(interp, (Nsf_Object*)object, methodObj,
-					 ov0, oc, ovPtr, NSF_CSC_IMMEDIATE);
+					 ov0, oc, ovPtr, 
+					 NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
 	}
       } else /* must be NSF_ARG_FORWARD */ {
 	Tcl_Obj *forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */

@@ -2400,7 +2400,7 @@ nx::Test case forward-to-incremental {
 
   ? {nx::Class create Foo {
     :property bar {
-      :public method initialize { object } {
+      :public method initialize { object property } {
 	incr ::slotcalls 1
       }
     }}
