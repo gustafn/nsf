@@ -3942,6 +3942,8 @@ nsf.c:
 - allow slot "initialize" method to be protected 
   (handled similarly to "init")
 
+- extended regression tests for yield
+- implemented "next" for ruby-like enumerators (each needs still more work)
 
 ========================================================================
 TODO:

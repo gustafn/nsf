@@ -36,6 +36,170 @@ nx::Test case number-generator {
 }
 
 #
+# Test coroutine / yield 
+#
+nx::Test case enumerator1 {
+
+  #
+  # enumerator with yield in a single class
+  #
+  nx::Class create Enumerator {
+    :property members:0..n
+    :public method yielder {} {
+      yield [info coroutine]
+      foreach m ${:members} {
+	yield $m
+      }
+      return -level 2 -code break
+    }
+    :public method next {} {${:coro}}
+    :method init {} {
+      :require namespace
+      set :coro [coroutine [self]::coro [self] yielder]
+    }
+  }
+  
+  #
+  # Some application class using the enumerator (just used for easy
+  # testing)
+  #
+  nx::Class create Foo {
+    :public method sum {} {
+      set sum 0
+      set e [Enumerator new -members {1 2 3}]
+      while 1 {
+	incr sum [$e next]
+      }
+      return $sum
+    }
+    :create f1
+  }
+  
+  ? {f1 sum} 6
+}
+
+
+nx::Test case enumerator2 {
+  
+  #
+  # Define separate classes for Yielder and Enumerator
+  #
+  nx::Class create Yielder {
+    :property {block ";"}
+    :variable continuation ""
+
+    #
+    # make apply available as a method
+    #
+    :public alias apply ::apply
+
+    #
+    # The method "yielder" is the working horse for next. We need this
+    # since the interface of Tcl's coroutines is based on a separate
+    # cmd for continuation in the coroutine. The block can be
+    # configured by application classes.
+    #
+    :public method yielder {} {
+      yield [info coroutine]
+      eval ${:block}
+      return -level 2 -code break
+    }
+
+    #
+    # The method "next" simply forwards to the continuation
+    #
+    :public method next {} {${:continuation}}
+
+    #
+    # The method "each" is based on the method "next" and applies the
+    # value returned by next to the lambda expression
+    #
+    :public method each {var body} {
+      while 1 {
+	set value [:next]
+	#[self] apply [list $var $body] $value
+	:apply [list $var $body] $value
+	#uplevel [list [self] apply [list $var $body] $value]
+	#uplevel [list [self] apply [list $var $body] $value]
+      }
+    }
+
+    #
+    # When a yielder is generated, we create automatically a coroutine
+    # for it. The coroutine is placed under the current object, this
+    # ensures simple cleanup (but is most probably not the fastest
+    # variant, since we have to require a namespace).
+    #
+    :method init {} {
+      :require namespace
+      set :continuation [coroutine [self]::coro [self] yielder]
+    }
+  }
+
+  #
+  # The class "Enumerator" provides some application logic for the
+  # class "Yielder". We use here a list of elements as base
+  # representation.
+  #
+  nx::Class create Enumerator -superclass Yielder {
+    :property members:0..n
+    :property {block {
+      foreach m ${:members} {
+	yield $m
+      }
+    }}
+  }
+
+  puts stderr ===0
+  set e [Enumerator new -members {1 2 3}]
+  while 1 {
+    puts stderr [$e next]
+  }
+
+  puts stderr ===1
+  set e [Enumerator new -members {a be bu}]  
+  $e each x {puts x=$x}
+  puts stderr ===2
+
+  #
+  # Some application class using the enumerator (just used for easy
+  # testing)
+  #
+  nx::Class create Foo {
+
+    # test Enumerator.next
+    :public method sum {} {
+      set sum 0
+      set e [Enumerator new -members {1 2 3}]
+      while 1 { incr sum [$e next] }
+      return $sum
+    }
+    
+    :public method set {var} {
+      set :$var
+    }
+
+    # test Enumerator.each
+    :public method concat {} {
+      set ::string "-"
+      set e [Enumerator new -members {a be bu}]
+      # For the time being, we seem just able to address gobal
+      # variables in the each body. TODO: this is not desired.
+      $e each x {
+	append ::string $x-
+      }
+      #puts stderr vars=[:info vars]
+      return $::string
+    }
+    
+    :create f1
+  }
+  
+  ? {f1 sum} 6
+  ? {f1 concat} "-a-be-bu-"
+}
+
+#
 # apply
 #
 nx::Test case apply {
@@ -48,10 +212,10 @@ nx::Test case apply {
     set :delta 100
 
     # Define a standard map function based on apply
-    :public method map {lambda list} {
+    :public method map {lambda values} {
       set result {}
-      foreach item $list {
-	lappend result [:apply $lambda $item]
+      foreach value $values {
+	lappend result [:apply $lambda $value]
       }
       return $result
     }
