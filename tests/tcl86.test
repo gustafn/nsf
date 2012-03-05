@@ -116,11 +116,8 @@ nx::Test case enumerator2 {
     #
     :public method each {var body} {
       while 1 {
-	set value [:next]
-	#[self] apply [list $var $body] $value
-	:apply [list $var $body] $value
-	#uplevel [list [self] apply [list $var $body] $value]
-	#uplevel [list [self] apply [list $var $body] $value]
+	uplevel [list set $var [:next]]
+	uplevel $body
       }
     }
 
@@ -144,22 +141,9 @@ nx::Test case enumerator2 {
   nx::Class create Enumerator -superclass Yielder {
     :property members:0..n
     :property {block {
-      foreach m ${:members} {
-	yield $m
-      }
+      foreach m ${:members} { yield $m }
     }}
   }
-
-  puts stderr ===0
-  set e [Enumerator new -members {1 2 3}]
-  while 1 {
-    puts stderr [$e next]
-  }
-
-  puts stderr ===1
-  set e [Enumerator new -members {a be bu}]  
-  $e each x {puts x=$x}
-  puts stderr ===2
 
   #
   # Some application class using the enumerator (just used for easy
@@ -181,22 +165,45 @@ nx::Test case enumerator2 {
 
     # test Enumerator.each
     :public method concat {} {
-      set ::string "-"
+      set string "-"
+      set i 0
       set e [Enumerator new -members {a be bu}]
-      # For the time being, we seem just able to address gobal
-      # variables in the each body. TODO: this is not desired.
-      $e each x {
-	append ::string $x-
-      }
-      #puts stderr vars=[:info vars]
-      return $::string
+      $e each x { append string $x-([incr i])- }
+      return $string
     }
     
     :create f1
   }
   
   ? {f1 sum} 6
-  ? {f1 concat} "-a-be-bu-"
+  ? {f1 concat} "-a-(1)-be-(2)-bu-(3)-"
+
+
+  #
+  # Define a class ATeam that uses "Enumerator", refines the method
+  # "each" and adds another method "concat"
+  #
+  nx::Class create ATeam -superclass Enumerator {
+    #
+    # Overload "each" to show overloading. Here, we simply capitalize
+    # the memebers in the "each" method.
+    #
+    :public method each {var body} {
+      while 1 {
+	set value [string totitle [:next]]
+	uplevel [list set $var $value]
+	uplevel $body
+      }
+    }
+    # Define some arbitrary method using ATeam.each
+    :public method concat {} {
+      set string "-"
+      :each x { append string $x- }
+      return $string
+    }
+  }
+  ATeam create a1 -members {alice bob ceasar}
+  ? {a1 concat } "-Alice-Bob-Ceasar-"
 }
 
 #

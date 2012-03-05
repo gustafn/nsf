@@ -3945,6 +3945,9 @@ nsf.c:
 - extended regression tests for yield
 - implemented "next" for ruby-like enumerators (each needs still more work)
 
+- tcl86.test: better implementation of method "each", 
+  cleanup and extension of enumerator tests
+
 ========================================================================
 TODO:
 
