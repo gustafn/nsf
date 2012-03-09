@@ -3948,6 +3948,9 @@ nsf.c:
 - tcl86.test: better implementation of method "each", 
   cleanup and extension of enumerator tests
 
+- fix compilation when compiled without threads (many thanks for 
+  r.zaumseil for noting this).
+
 ========================================================================
 TODO:
 

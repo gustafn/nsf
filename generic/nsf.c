@@ -248,7 +248,9 @@ NSF_INLINE static int ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackCon
 /* prototypes for object life-cycle management */
 static int RecreateObject(Tcl_Interp *interp, NsfClass *cl, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
 static void FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object);
+#if defined(DO_CLEANUP)
 static void FreeAllNsfObjectsAndClasses(Tcl_Interp *interp,  NsfCmdList **instances);
+#endif
 static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object);
 static void PrimitiveCDestroy(ClientData clientData);
 static void PrimitiveODestroy(ClientData clientData);
@@ -348,7 +350,9 @@ static void NsfCommandRelease(Tcl_Command cmd);
 static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
 void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
+#ifdef DO_CLEANUP
 static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
+#endif
 
 #if defined(NSF_WITH_ASSERTIONS)
 static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name);
@@ -23774,6 +23778,60 @@ DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars) {
 }
 #endif
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * FinalObjectDeletion --
+ *
+ *      The method is to be called, when an object is finally deleted,
+ *      typically during the final cleanup. It tests as well the actication
+ *      count of the object.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Deletion of the objects.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
+  /*
+   * If a call to exit happens from a higher stack frame, the object
+   * refCount might not be decremented correctly. If we are in the
+   * physical destroy round, we can set the counter to an appropriate
+   * value to ensure deletion.
+   */
+  if (unlikely(object->refCount != 1)) {
+    if (object->refCount > 1) {
+      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refCount for obj %p refCount %d  (name %s)",
+	     object, object->refCount, ObjectName(object));
+    } else {
+      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refCount for obj %p refCount %d",
+	     object, object->refCount);
+    }
+    object->refCount = 1;
+  }
+
+#if !defined(NDEBUG)
+  if (unlikely(object->activationCount != 0)) {
+    fprintf(stderr, "FinalObjectDeletion obj %p activationcount %d\n", object, object->activationCount);
+  }
+#endif
+  assert(object->activationCount == 0);
+
+  if (likely(object->id != NULL)) {
+    /*fprintf(stderr, "  ... cmd dealloc %p final delete refCount %d\n",
+      object->id, Tcl_Command_refCount(object->id));*/
+
+    if (NSF_DTRACE_OBJECT_FREE_ENABLED()) {
+      NSF_DTRACE_OBJECT_FREE(ObjectName(object), ClassName(object->cl));
+    }
+
+    Tcl_DeleteCommandFromToken(interp, object->id);
+  }
+}
 
 #ifdef DO_CLEANUP
 /*
@@ -23906,44 +23964,6 @@ ObjectHasChildren(NsfObject *object) {
     }
   }
   return result;
-}
-
-static void
-FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
-  /*
-   * If a call to exit happens from a higher stack frame, the object
-   * refCount might not be decremented correctly. If we are in the
-   * physical destroy round, we can set the counter to an appropriate
-   * value to ensure deletion.
-   */
-  if (unlikely(object->refCount != 1)) {
-    if (object->refCount > 1) {
-      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refCount for obj %p refCount %d  (name %s)",
-	     object, object->refCount, ObjectName(object));
-    } else {
-      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refCount for obj %p refCount %d",
-	     object, object->refCount);
-    }
-    object->refCount = 1;
-  }
-
-#if !defined(NDEBUG)
-  if (unlikely(object->activationCount != 0)) {
-    fprintf(stderr, "FinalObjectDeletion obj %p activationcount %d\n", object, object->activationCount);
-  }
-#endif
-  assert(object->activationCount == 0);
-
-  if (likely(object->id != NULL)) {
-    /*fprintf(stderr, "  ... cmd dealloc %p final delete refCount %d\n",
-      object->id, Tcl_Command_refCount(object->id));*/
-
-    if (NSF_DTRACE_OBJECT_FREE_ENABLED()) {
-      NSF_DTRACE_OBJECT_FREE(ObjectName(object), ClassName(object->cl));
-    }
-
-    Tcl_DeleteCommandFromToken(interp, object->id);
-  }
 }
 
 static void
