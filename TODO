@@ -3950,6 +3950,7 @@ nsf.c:
 
 - fix compilation when compiled without threads (many thanks for 
   r.zaumseil for noting this).
+- protect serial generation for parameters via mutex
 
 ========================================================================
 TODO:

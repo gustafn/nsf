@@ -8751,11 +8751,17 @@ ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs) {
 static NsfParamDefs *
 ParamDefsNew() {
   NsfParamDefs *paramDefs;
+  static NsfMutex serialMutex = 0;
   static int serial = 0;
 
   paramDefs = NEW(NsfParamDefs);
   memset(paramDefs, 0, sizeof(NsfParamDefs));
+
+  /* We could keep the serial as well in thread local storage */
+  NsfMutexLock(&serialMutex);
   paramDefs->serial = serial++;
+  NsfMutexUnlock(&serialMutex);
+
   /*fprintf(stderr, "ParamDefsNew %p\n", paramDefs);*/
 
   return paramDefs;
