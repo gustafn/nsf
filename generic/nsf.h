@@ -140,7 +140,9 @@
 #define CMD_RESOLVER_TRACE 1
 #define NRE_CALLBACK_TRACE 1
 #define METHOD_OBJECT_TRACE 1
+#define NSF_STACKCHECK 1
 */
+
 
 /*
  * Sanity checks and dependencies for optional compile flags

@@ -9943,6 +9943,24 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 
   assert (object->teardown);
   assert (cmd);
+
+#if defined(NSF_STACKCHECK)
+  { int somevar;
+    NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+    if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
+      if ((void *)&somevar > rst->bottomOfStack) {
+	NsfLog(interp, NSF_LOG_WARN, "Stack adjust bottom %ld", 
+	       rst->bottomOfStack - (void *)&somevar);
+	rst->bottomOfStack = (void *)&somevar;
+      } else if ((void *)&somevar < rst->maxStack) {
+	NsfLog(interp, NSF_LOG_WARN, "Stack adjust top %ld %s", 
+	       rst->bottomOfStack - (void *)&somevar, methodName);
+	rst->maxStack = (void *)&somevar;
+      }
+    }
+  }
+#endif
   
   /*fprintf(stderr, "MethodDispatch method '%s.%s' objc %d flags %.6x\n",
     ObjectName(object), methodName, objc, flags); */
@@ -12404,6 +12422,9 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   Tcl_Obj *CONST *objv = pcPtr->full_objv;
   int objc = pcPtr->objc+1;
   int result;
+  CONST char *fullMethodName = ObjStr(procNameObj);
+  Tcl_CallFrame *framePtr;
+  Proc *procPtr;
 
 #if defined(NSF_PROFILE)
   struct timeval trt;
@@ -12414,13 +12435,29 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   }
 #endif
 
+#if defined(NSF_STACKCHECK)
+  { int somevar;
+    NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+    if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
+      if ((void *)&somevar > rst->bottomOfStack) {
+	NsfLog(interp, NSF_LOG_WARN, "Stack adjust bottom %ld - nsfProc %s", 
+	       rst->bottomOfStack - (void *)&somevar, fullMethodName);
+	rst->bottomOfStack = (void *)&somevar;
+      } else if ((void *)&somevar < rst->maxStack) {
+	NsfLog(interp, NSF_LOG_WARN, "Stack adjust top %ld - nsfProc %s", 
+	       rst->bottomOfStack - (void *)&somevar, fullMethodName);
+	rst->maxStack = (void *)&somevar;
+      }
+    }
+  }
+#endif
+
   /*
    * The code below is derived from the scripted method dispatch and just
    * slightly adapted to remove object dependencies.
    */
-  CONST char *fullMethodName = ObjStr(procNameObj);
-  Tcl_CallFrame *framePtr;
-  Proc *procPtr;
+
 
   /*fprintf(stderr, "fullMethodName %s epoch %d\n", fullMethodName, Tcl_Command_cmdEpoch(cmd));*/
 
@@ -18755,6 +18792,14 @@ static int
 NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   int result;
 
+#if defined(NSF_STACKCHECK)
+  {NsfRuntimeState *rst = RUNTIME_STATE(interp);
+    
+    NsfLog(interp, NSF_LOG_WARN, "Stack max usage %ld", 
+	   labs(rst->maxStack - rst->bottomOfStack));
+  }
+#endif
+
   /*fprintf(stderr, "+++ call tcl-defined exit handler\n");  */
 
   /*
@@ -24379,7 +24424,6 @@ Nsf_Init(Tcl_Interp *interp) {
     sizeof(Namespace), sizeof(Command), sizeof(Tcl_HashTable));
   */
 
-
 #if defined(NSF_PROFILE)
   NsfProfileInit(interp);
 #endif
@@ -24387,6 +24431,18 @@ Nsf_Init(Tcl_Interp *interp) {
   rst->doFilters = 1;
   rst->doCheckResults = 1;
   rst->doCheckArguments = 1;
+
+#if defined(NSF_STACKCHECK)
+  { int someVar;
+    /*
+     * Note that Nsf_Init() is called typically via a package require, which
+     * is therefore not really the bottom of the stack, but just a first
+     * approximization.
+     */
+    rst->bottomOfStack = &someVar;
+    rst->maxStack = rst->bottomOfStack;
+  }
+#endif
 
   /*
    * Check, if the namespace exists, otherwise create it.

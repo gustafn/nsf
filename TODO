@@ -3952,6 +3952,13 @@ nsf.c:
   r.zaumseil for noting this).
 - protect serial generation for parameters via mutex
 
+- added compile macro NSF_STACKCHECK to provide stack monitoring/debugging
+  (especially useful for multi threaded programs, where stack 
+  is more limited)
+- make ::nsf::log more robust for aolserver/naviserver, since ::ns_log is 
+  not always around when an output is needed
+
+
 ========================================================================
 TODO:
 

@@ -810,6 +810,10 @@ typedef struct NsfRuntimeState {
 #if defined(NSF_PROFILE)
   NsfProfile profile;
 #endif
+#if defined(NSF_STACKCHECK)
+  void *bottomOfStack;
+  void *maxStack;
+#endif
   NsfStringIncrStruct iss; /* used for new to create new symbols */
   short guardCount;        /* keep track of guard invocations */
   ClientData clientData;
