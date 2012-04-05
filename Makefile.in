@@ -277,7 +277,7 @@ libraries: libraries-pkgindex
 	done; fi;
 
 libraries-pkgindex: pkgIndex.tcl
-	@$(TCLSH) $(src_lib_dir_native)/lib/make.tcl -dir $(src_lib_dir_native) -all
+	$(TCLSH) $(src_lib_dir_native)/lib/make.tcl -dir $(src_lib_dir_native) -all
 
 full-doc: doc pdf example-doc
 # use language reference as sample file to trigger generation of documentation files
