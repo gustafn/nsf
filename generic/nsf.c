@@ -9746,6 +9746,55 @@ static int NsfAsmProc(ClientData clientData, Tcl_Interp *interp,
 
 /*
  *----------------------------------------------------------------------
+ * CheckCStack --
+ *
+ *    Monitor the growth of the C Stack when complied with 
+ *    NSF_STACKCHECK.
+ *
+ * Results:
+ *    none
+ *
+ * Side effects:
+ *    update of rst->bottomOfStack
+ *
+ *----------------------------------------------------------------------
+ */
+#if defined(NSF_STACKCHECK)
+NSF_INLINE static void
+CheckCStack(Tcl_Interp *interp, CONST char *prefix, CONST char *fullMethodName) {
+  int somevar;
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+
+  if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
+# if TCL_STACK_GROWS_UP
+    if ((void *)&somevar < rst->bottomOfStack) {
+      NsfLog(interp, NSF_LOG_WARN, "Stack adjust bottom %ld - %s %s", 
+	     (void *)&somevar - rst->bottomOfStack, prefix, fullMethodName);
+      rst->bottomOfStack = (void *)&somevar;
+    } else if ((void *)&somevar > rst->maxStack) {
+      NsfLog(interp, NSF_LOG_WARN, "Stack adjust top %ld - %s %s", 
+	     (void *)&somevar - rst->bottomOfStack, prefix, fullMethodName);
+      rst->maxStack = (void *)&somevar;
+    }
+# else
+    if ((void *)&somevar > rst->bottomOfStack) {
+      NsfLog(interp, NSF_LOG_WARN, "Stack adjust bottom %ld - %s %s", 
+	     rst->bottomOfStack - (void *)&somevar, prefix, fullMethodName);
+      rst->bottomOfStack = (void *)&somevar;
+    } else if ((void *)&somevar < rst->maxStack) {
+      NsfLog(interp, NSF_LOG_WARN, "Stack adjust top %ld - %s %s", 
+	     rst->bottomOfStack - (void *)&somevar, prefix, fullMethodName);
+      rst->maxStack = (void *)&somevar;
+    }
+# endif
+  }
+}
+#else 
+# define CheckCStack(interp, prefix, methodName)
+#endif
+
+/*
+ *----------------------------------------------------------------------
  * MethodDispatchCsc --
  *
  *    Dispatch a method (scripted or cmd) with an already allocated
@@ -9944,23 +9993,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   assert (object->teardown);
   assert (cmd);
 
-#if defined(NSF_STACKCHECK)
-  { int somevar;
-    NsfRuntimeState *rst = RUNTIME_STATE(interp);
-
-    if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
-      if ((void *)&somevar > rst->bottomOfStack) {
-	NsfLog(interp, NSF_LOG_WARN, "Stack adjust bottom %ld", 
-	       rst->bottomOfStack - (void *)&somevar);
-	rst->bottomOfStack = (void *)&somevar;
-      } else if ((void *)&somevar < rst->maxStack) {
-	NsfLog(interp, NSF_LOG_WARN, "Stack adjust top %ld %s", 
-	       rst->bottomOfStack - (void *)&somevar, methodName);
-	rst->maxStack = (void *)&somevar;
-      }
-    }
-  }
-#endif
+  CheckCStack(interp, "method", methodName);
   
   /*fprintf(stderr, "MethodDispatch method '%s.%s' objc %d flags %.6x\n",
     ObjectName(object), methodName, objc, flags); */
@@ -12401,7 +12434,7 @@ NsfProcStubDeleteProc(ClientData clientData) {
   /* tcd->paramDefs is freed by NsfProcDeleteProc() */
   FREE(NsfProcClientData, tcd);
 }
-
+ 
 /*
  *----------------------------------------------------------------------
  * InvokeShadowedProc --
@@ -12435,23 +12468,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   }
 #endif
 
-#if defined(NSF_STACKCHECK)
-  { int somevar;
-    NsfRuntimeState *rst = RUNTIME_STATE(interp);
-
-    if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
-      if ((void *)&somevar > rst->bottomOfStack) {
-	NsfLog(interp, NSF_LOG_WARN, "Stack adjust bottom %ld - nsfProc %s", 
-	       rst->bottomOfStack - (void *)&somevar, fullMethodName);
-	rst->bottomOfStack = (void *)&somevar;
-      } else if ((void *)&somevar < rst->maxStack) {
-	NsfLog(interp, NSF_LOG_WARN, "Stack adjust top %ld - nsfProc %s", 
-	       rst->bottomOfStack - (void *)&somevar, fullMethodName);
-	rst->maxStack = (void *)&somevar;
-      }
-    }
-  }
-#endif
+  CheckCStack(interp, "nsfProc", fullMethodName);
 
   /*
    * The code below is derived from the scripted method dispatch and just

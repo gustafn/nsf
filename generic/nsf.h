@@ -143,7 +143,6 @@
 #define NSF_STACKCHECK 1
 */
 
-
 /*
  * Sanity checks and dependencies for optional compile flags
  */
