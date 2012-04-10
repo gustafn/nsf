@@ -785,7 +785,9 @@ namespace eval ::nx::serializer {
 
       append cmd \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
-          [:frameWorkCmd ::nsf::method::assertion $o object-invar]
+          [:frameWorkCmd ::nsf::method::assertion $o object-invar] \
+          [:frameWorkCmd ::nsf::object::property $o keepcallerself -unless 0] \
+          [:frameWorkCmd ::nsf::object::property $o perobjectdispatch -unless 0]
 
       if {[$o info has type ::nx::Slot]} {
         # Slots needs to be initialized to ensure

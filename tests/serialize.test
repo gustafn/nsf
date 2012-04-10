@@ -167,3 +167,41 @@ nx::Test case serialize-slotContainer {
   ? {::nsf::object::exists ::C::slot::a} 1
   ? {::nsf::object::exists ::C::per-object-slot::x} 1
 }
+
+#
+# check whether ::nsf::object::properties keepcallerself and
+# perobjectdispatch for nx::Objects are handled correctly via serialize
+#
+nx::Test case serialize-object-properties {
+ 
+  #
+  # Check on object o
+  #
+  nx::Object create o
+  ::nsf::object::property ::o keepcallerself 1
+  ::nsf::object::property ::o perobjectdispatch 1
+
+  set script [o serialize]
+  o destroy
+  ? {::nsf::object::exists ::o} 0
+
+  eval $script
+  ? {::nsf::object::property ::o keepcallerself} 1
+  ? {::nsf::object::property ::o perobjectdispatch} 1
+
+  #
+  # Now the same for a class
+  #
+  nx::Class create C
+  ::nsf::object::property ::C keepcallerself 1
+  ::nsf::object::property ::C perobjectdispatch 1
+
+  set script [C serialize]
+  C destroy
+  ? {::nsf::object::exists ::C} 0
+
+  eval $script
+  ? {::nsf::object::property ::C keepcallerself} 1
+  ? {::nsf::object::property ::C perobjectdispatch} 1
+
+}

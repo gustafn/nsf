@@ -3965,12 +3965,19 @@ nsf.c:
     a regular expression, that should match everything.
   * extended regression test
 
+nsf.c:
+- generalize stack monitor by handling growing and shrinking stacks
+- refactor into funciton CheckCStack()
+
+- serializer:
+  * pertain perobjectdispatch and keepcallerself in serializer
+  * extend regression test
+
 
 ========================================================================
 TODO:
 
 - document new setable object properties perobjectdispatch and keepcallerself
-- pertaining perobjectdispatch and keepcallerself in serializer
 
 - behavior on keepcallerself on ordinary dispatches with implicit/explicit 
   receiver (currently the flag is ignored, the code just commented out)
