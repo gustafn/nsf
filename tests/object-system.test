@@ -260,6 +260,22 @@ nx::Object create o {
 ? {o foo} "x1 0 y1 0 x2 0 y2 1 x3 1 y3 1"
 o destroy
 
+#
+# Create objects via tcl ensembles
+#
+namespace eval k {
+  nx::Class create s {
+    :property j
+    :method init {} {set :j} ;# the variable should be set
+  }
+  namespace export s
+  namespace ensemble create
+}
+
+? {k s create o -j X} ::o
+::o destroy
+
+
 puts stderr ===MINI-OBJECTSYSTEM
 # test object system
 # create a minimal object system without internally dipatched methods
