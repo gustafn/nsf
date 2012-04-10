@@ -566,8 +566,9 @@ namespace eval ::nx::serializer {
     :method collectVars {o s} {
       set setcmd [list]
       foreach v [lsort [$o info vars]] {
-        if {![::nsf::var::exists $s ignoreVarsRE] || \
-		![regexp [::nsf::var::set $s ignoreVarsRE] ${o}::$v]} {
+        if {![::nsf::var::exists $s ignoreVarsRE] 
+	    || [::nsf::var::set $s ignoreVarsRE] eq "" 
+	    || ![regexp [::nsf::var::set $s ignoreVarsRE] ${o}::$v]} {
 	  if {[::nsf::var::exists $o $v] == 0} {
 	    puts stderr "strange, [list $o info vars] returned $v, but it does not seem to exist"
 	    continue

@@ -3958,6 +3958,13 @@ nsf.c:
 - make ::nsf::log more robust for aolserver/naviserver, since ::ns_log is 
   not always around when an output is needed
 
+- serializer:
+  * make [::Serializer deepSerialize -ignoreVarsRE "" $o] behave like
+    [::Serializer deepSerialize $o], since learn@wu depends on that, and
+    a value for ignoreVarsRE of empty looks more like an omitted value than
+    a regular expression, that should match everything.
+  * extended regression test
+
 
 ========================================================================
 TODO:
