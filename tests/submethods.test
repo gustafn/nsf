@@ -724,3 +724,68 @@ nx::Test case child-obj-delegation {
 }
 
 
+#
+# Examplify the current behavior of "keepcallerself" with and without
+# the setting of "perobjectdispatch"
+#
+nx::Test parameter count 1
+nx::Test case keepcallerself {
+
+  nx::Class create C {:public method foo {} {return C-[self]}}
+  nx::Class create D {:public method foo {} {return D-[self]}}
+
+  C create c1 {
+    ::nsf::object::property [self] keepcallerself true
+    :public method bar {} {return c1-[self]}
+    :public method baz {} {return c1-[self]}
+  }
+
+  D create d1 {
+    :public method bar {} {return d1-[self]}
+    :public alias c1 ::c1
+  }
+  
+  # The normal dispatch ignores the keepcallerself completely
+  ? {c1 bar} c1-::c1
+  ? {c1 foo} C-::c1
+  ? {c1 baz} c1-::c1
+
+  # The dispatch via object aliased method calls actually "d1 bar",
+  # although c1 is in the dispatch path
+  ? {d1 c1 bar} d1-::d1
+  ? {d1 c1 foo} D-::d1
+  ? {d1 c1 baz} "::d1: unable to dispatch method 'baz'"
+
+  # The destroy destroys actually d1, not c1, although destroy is
+  # dispatched originally on c1
+  ? {d1 c1 destroy} ""
+  ? {nsf::object::exists d1} 0
+  ? {nsf::object::exists c1} 1
+
+  # So, keepcallerself is currently pretty useless, unless used in
+  # combination with "perobjectdispatch", which we set in the
+  # following test cases
+
+  C create c1 {
+    ::nsf::object::property [self] keepcallerself true
+    ::nsf::object::property [self] perobjectdispatch true
+    :public method bar {} {return c1-[self]}
+    :public method baz {} {return c1-[self]}
+  }
+  D create d1 {
+    :public method bar {} {return d1-[self]}
+    :public alias c1 ::c1
+  }
+
+  # The normal dispatch ignores the keepcallerself and
+  # perobjectdispatch completely
+  ? {c1 bar} c1-::c1
+  ? {c1 foo} C-::c1
+  ? {c1 baz} c1-::c1
+
+  # The dispatch via object aliased method calls actually "d1 bar",
+  # although c1 is in the dispatch path
+  ? {d1 c1 bar} c1-::d1
+  ? {d1 c1 foo} "::c1: unable to dispatch method 'foo'"
+  ? {d1 c1 baz} c1-::d1
+}
