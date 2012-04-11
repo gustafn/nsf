@@ -9528,7 +9528,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
  *----------------------------------------------------------------------
  * ObjectCmdMethodDispatch --
  *
- *    Invoke a method implemented as ab object. The referenced object is used
+ *    Invoke a method implemented as an object. The referenced object is used
  *    as a source for methods to be executed.  Essentially this is currently
  *    primarily used to implement the dispatch of ensemble objects.
  *
@@ -9584,6 +9584,9 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       invokedObject, ObjectName(invokedObject), methodName);*/
 
     if (invokedObject->flags & NSF_KEEP_CALLER_SELF) {
+      /*fprintf(stderr, "... keepcallerself invoked obj is %p %s instead of %p %s\n", 
+	      callerSelf, ObjectName(callerSelf),
+	      invokedObject, ObjectName(invokedObject));*/
       invokedObject = callerSelf;
     }
     return NsfObjDispatch(invokedObject, interp, objc, objv);
