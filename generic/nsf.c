@@ -11674,7 +11674,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     }
     paramPtr->flags |= NSF_ARG_SLOTINITIALIZE;
 
-  } else if ((dotdot = strnstr(option, "..", optionLength))) {
+  } else if ((dotdot = strnstr(option, "..", optionLength-1))) {
     /* check lower bound */
     if (*option == '0') {
       paramPtr->flags |= NSF_ARG_ALLOW_EMPTY;
