@@ -9544,8 +9544,12 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 static int
 ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 			CONST char *methodName, NsfObject *callerSelf, NsfCallStackContent *cscPtr) {
+  CallFrame frame, *framePtr = &frame;
+  Tcl_Command cmd = cscPtr->cmdPtr, subMethodCmd;
+  CONST char *subMethodName;
+  NsfObject *actualSelf;
+  NsfClass *actualClass;
   int result;
-  Tcl_Command cmd = cscPtr->cmdPtr;
 
   /*fprintf(stderr, "ObjectCmdMethodDispatch %p %s\n", cmd, Tcl_GetCommandName(interp, cmd));*/
 
@@ -9579,17 +9583,64 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 			 methodName);
   }
 
+  /*
+   * Check, if the object cmd was called without a reference to a method. If
+   * so, perform the standard dispatch of default methods.
+   */
+  if (unlikely(objc < 2)) {
+
+    if ((invokedObject->flags & NSF_PER_OBJECT_DISPATCH) != 0) {
+      cscPtr->flags |= NSF_CSC_CALL_IS_ENSEMBLE;
+    }
+    Nsf_PushFrameCsc(interp, cscPtr, framePtr);
+    result = DispatchDefaultMethod(interp, invokedObject, objv[0], NSF_CSC_IMMEDIATE);
+    Nsf_PopFrameCsc(interp, framePtr);
+    return result;
+  }
+
+  /*
+   * Check, if we want NSF_KEEP_CALLER_SELF. The setting of this flag
+   * determines the values of actualSelf and actualClass.
+   */
+  if (invokedObject->flags & NSF_KEEP_CALLER_SELF) {
+    actualSelf = callerSelf;
+    actualClass = cscPtr->cl;
+  } else {
+    actualSelf = invokedObject;
+    actualClass = NULL;
+  }
+  subMethodName = ObjStr(objv[1]);
+
   if ((invokedObject->flags & NSF_PER_OBJECT_DISPATCH) == 0) {
     /*fprintf(stderr, "invokedObject %p %s methodName %s: no perobjectdispatch\n", 
       invokedObject, ObjectName(invokedObject), methodName);*/
-
-    if (invokedObject->flags & NSF_KEEP_CALLER_SELF) {
-      /*fprintf(stderr, "... keepcallerself invoked obj is %p %s instead of %p %s\n", 
-	      callerSelf, ObjectName(callerSelf),
-	      invokedObject, ObjectName(invokedObject));*/
-      invokedObject = callerSelf;
-    }
-    return NsfObjDispatch(invokedObject, interp, objc, objv);
+#if 0
+    /*
+     * We should have either an approach 
+     *  - to obtain from an object to methodname the cmd, and
+     *    call e.g. MethodDispatch(), or pass a fully qualified
+     *     method name, or
+     *  - to pass an the actualSelf and invokedObject both
+     *    to MethodDispatch/MethodDispatch
+     *  TODO: maybe remove NSF_CM_KEEP_CALLER_SELF when done.
+     */
+    //yyyy;
+    result = MethodDispatch(object, interp,
+			    nobjc+1, nobjv-1, cmd, object,
+			    NULL /*NsfClass *cl*/,
+			    Tcl_GetCommandName(interp, cmd),
+			    NSF_CSC_TYPE_PLAIN, flags);
+#endif
+    return ObjectDispatch(actualSelf, interp, objc, objv, NSF_CM_KEEP_CALLER_SELF);
+  }
+  
+  /*
+   * NSF_PER_OBJECT_DISPATCH is set
+   */
+  if (likely(invokedObject->nsPtr != NULL)) {
+    subMethodCmd = FindMethod(invokedObject->nsPtr, subMethodName);
+  } else {
+    subMethodCmd = NULL;
   }
   
   /*
@@ -9604,102 +9655,74 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
   /* fprintf(stderr, "ensemble dispatch cp %s %s objc %d\n", 
      ObjectName((NsfObject*)cp), methodName, objc);*/
   
-  /*
-   * Check, if the object cmd was called without a reference to a method. If
-   * so, perform the standard dispatch of default methods.
-   */
-  
-  if (unlikely(objc < 2)) {
-    CallFrame frame, *framePtr = &frame;
-    Nsf_PushFrameCsc(interp, cscPtr, framePtr);
-    result = DispatchDefaultMethod(interp, invokedObject, objv[0], NSF_CSC_IMMEDIATE);
-    Nsf_PopFrameCsc(interp, framePtr);
+  cscPtr->objc = objc;
+  cscPtr->objv = objv;
+  Nsf_PushFrameCsc(interp, cscPtr, framePtr);
+    
+  /*fprintf(stderr, "... objv[0] %s cmd %p %s csc %p\n",
+    ObjStr(objv[0]), subMethodCmd, subMethodName, cscPtr); */
+      
+  if (likely(subMethodCmd != NULL)) {
+    /*
+     * In order to allow [next] to be called in an ensemble method,
+     * an extra call-frame is needed. This CSC frame is typed as
+     * NSF_CSC_TYPE_ENSEMBLE. Note that the associated call is flagged
+     * additionally (NSF_CSC_CALL_IS_ENSEMBLE; see above) to be able
+     * to identify ensemble-specific frames during [next] execution.
+     *
+     * The dispatch requires NSF_CSC_IMMEDIATE to be set, ensuring
+     * that scripted methods are executed before the ensemble ends. If
+     * they were executed later, they would find their parent frame
+     * (CMETHOD) being popped from the stack already.
+     */
+    
+    /*fprintf(stderr, ".... ensemble dispatch object %s self %s pass %s\n", 
+      ObjectName(object), ObjectName(self), (self->flags & NSF_KEEP_CALLER_SELF) ? "callerSelf" : "invokedObject");
+      fprintf(stderr, ".... ensemble dispatch on %s.%s objflags %.8x cscPtr %p base flags %.6x flags %.6x cl %s\n",
+      ObjectName(actualSelf), subMethodName, self->flags,
+      cscPtr, (0xFF & cscPtr->flags), (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE, 
+      actualClass ? ClassName(actualClass) : "NONE");*/
+    result = MethodDispatch(actualSelf, 
+			    interp, objc-1, objv+1,
+			    subMethodCmd, actualSelf, actualClass, subMethodName,
+			    cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
+			    (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
+    /*if (result != TCL_OK) {
+      fprintf(stderr, "ERROR: cmd %p %s subMethodName %s // %s // %s\n", 
+      subMethodCmd, Tcl_GetCommandName(interp, subMethodCmd), subMethodName,  
+      Tcl_GetCommandName(interp, cscPtr->cmdPtr), ObjStr(Tcl_GetObjResult(interp)));
+      }*/
+
   } else {
-    CallFrame frame, *framePtr = &frame;
-    char *subMethodName = ObjStr(objv[1]);
-
-    cscPtr->objc = objc;
-    cscPtr->objv = objv;
-    Nsf_PushFrameCsc(interp, cscPtr, framePtr);
-    
-    if (likely(invokedObject->nsPtr != NULL)) {
-      cmd = FindMethod(invokedObject->nsPtr, subMethodName);
-      
-      /*fprintf(stderr, "... objv[0] %s cmd %p %s csc %p\n",
-	ObjStr(objv[0]), cmd, subMethodName, cscPtr); */
-      
-      if (likely(cmd != NULL)) {
-	/*
-	 * In order to allow [next] to be called in an ensemble method,
-	 * an extra call-frame is needed. This CSC frame is typed as
-	 * NSF_CSC_TYPE_ENSEMBLE. Note that the associated call is flagged
-	 * additionally (NSF_CSC_CALL_IS_ENSEMBLE; see above) to be able
-	 * to identify ensemble-specific frames during [next] execution.
-	 *
-	 * The dispatch requires NSF_CSC_IMMEDIATE to be set, ensuring
-	 * that scripted methods are executed before the ensemble ends. If
-	 * they were executed later, they would find their parent frame
-	 * (CMETHOD) being popped from the stack already.
-	 */
-	NsfObject *newSelf;
-	NsfClass *newClass;
-
-	if (invokedObject->flags & NSF_KEEP_CALLER_SELF) {
-	  newSelf = callerSelf;
-	  newClass = cscPtr->cl;
-	} else {
-	  newSelf = invokedObject;
-	  newClass = NULL;
-	}
-	/*fprintf(stderr, ".... ensemble dispatch object %s self %s pass %s\n", 
-		ObjectName(object), ObjectName(self), (self->flags & NSF_KEEP_CALLER_SELF) ? "callerSelf" : "invokedObject");
-	fprintf(stderr, ".... ensemble dispatch on %s.%s objflags %.8x cscPtr %p base flags %.6x flags %.6x cl %s\n",
-		ObjectName(newSelf), subMethodName, self->flags,
-		cscPtr, (0xFF & cscPtr->flags), (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE, 
-		newClass ? ClassName(newClass) : "NONE");*/
-	result = MethodDispatch(newSelf, 
-				interp, objc-1, objv+1,
-				cmd, newSelf, newClass, subMethodName,
-				cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
-				(cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
-	/*if (result != TCL_OK) {
-	  fprintf(stderr, "ERROR: cmd %p %s subMethodName %s // %s // %s\n", 
-		  cmd, Tcl_GetCommandName(interp, cmd), subMethodName,  
-		  Tcl_GetCommandName(interp, cscPtr->cmdPtr), ObjStr(Tcl_GetObjResult(interp)));
-		  }*/
-	goto obj_dispatch_ok;
-      }
-    }
-    
     /*
      * The method to be called was not part of this ensemble. Call
      * next to try to call such methods along the next path.
      */
+    Tcl_CallFrame *framePtr1;
+    NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
+    
     /*fprintf(stderr, "call next instead of unknown %s.%s \n",
       ObjectName(cscPtr->self), methodName);*/
-    {
-      Tcl_CallFrame *framePtr1;
-      NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
-      
-      assert(cscPtr1);
-      if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
-	/*
-	 * We are in an ensemble method. The next works here not on the
-	 * actual methodName + frame, but on the ensemble above it. We
-	 * locate the appropriate call-stack content and continue next on
-	 * that.
-	 */
-	cscPtr1 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
-	assert(cscPtr1);
-      }
-      
+    
+    assert(cscPtr1);
+    if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
       /*
-       * The method name for next might be colon-prefixed. In
-       * these cases, we have to skip the single colon.
+       * We are in an ensemble method. The next works here not on the
+       * actual methodName + frame, but on the ensemble above it. We
+       * locate the appropriate call-stack content and continue next on
+       * that.
        */
-      result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
-				   cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
+      cscPtr1 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
+      assert(cscPtr1);
     }
+      
+    /*
+     * The method name for next might be colon-prefixed. In
+     * these cases, we have to skip the single colon.
+     */
+    result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
+				 cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
+
     
     /*fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n",
       ObjectName(self), methodName, ObjectName(object), cscPtr, result,
@@ -9731,11 +9754,9 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       result = DispatchUnknownMethod(interp, invokedObject, objc-1, objv+1, callInfoObj,
 				     objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
     }
-
-  obj_dispatch_ok:
-    Nsf_PopFrameCsc(interp, framePtr);
-    
   }
+  Nsf_PopFrameCsc(interp, framePtr);
+  
   return result;
 }
 
@@ -10510,7 +10531,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   }
 
 #if 0
-  if ((object->flags & NSF_KEEP_CALLER_SELF) && (flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0) {
+
+  if (1//(object->flags & NSF_KEEP_CALLER_SELF) 
+      //&& (flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0 
+      && (flags & NSF_CM_KEEP_CALLER_SELF)) {
+    // yyyy
     calledObject = GetSelfObj(interp);
     if (calledObject == NULL) {
       NsfShowStack(interp);
@@ -10518,8 +10543,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	      object, ObjectName(object), methodName, flags);
       calledObject = object;
     }
-    fprintf(stderr, "NSF_KEEP_CALLER_SELF %p %s calledObject %p %s\n", 
-	    object, ObjectName(object), calledObject, ObjectName(calledObject));
+    fprintf(stderr, "NSF_KEEP_CALLER_SELF %p %s calledObject %p %s objv[0] %s\n", 
+	    object, ObjectName(object), calledObject, ObjectName(calledObject), 
+	    ObjStr(objv[0]));
   } else {
     calledObject = object;
   }
