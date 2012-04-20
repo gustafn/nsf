@@ -323,7 +323,8 @@ namespace eval ::ns1 {
   ? {obj ifoo} ::ns1::obj::info
   ? {obj foo} {wrong # args: should be ":info"}
 
-  # now we overwrite the object specific method with an object
+  # Now we try to overwrite the object specific method with an object
+  # named "info"
   ? {Object create obj::info} "refuse to overwrite cmd ::ns1::obj::info; delete/rename it before overwriting"
   rename obj::info ""
   ? {Object create obj::info} ::ns1::obj::info
@@ -710,11 +711,14 @@ nx::Test case child-obj-delegation {
   ::nsf::object::property obj::child perobjectdispatch false
 
   ? {obj link1 foo} {::obj::child}
-  ? {obj link2 foo} {::obj: unable to dispatch method 'foo'}
+  #? {obj link2 foo} {::obj: unable to dispatch method 'foo'}
+  ? {obj link2 foo} {::obj}
   ? {obj link3 foo} {::obj::child}
-  ? {obj link4 foo} {::obj: unable to dispatch method 'foo'}
+  #? {obj link4 foo} {::obj: unable to dispatch method 'foo'}
+  ? {obj link4 foo} {::obj}
   ? {obj link5 foo} {::obj::child}
-  ? {obj child foo} {::obj: unable to dispatch method 'foo'}
+  #? {obj child foo} {::obj: unable to dispatch method 'foo'}
+  ? {obj child foo} {::obj}
 
   ? {lsort [obj info methods child]} {child}
   ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
@@ -751,9 +755,12 @@ nx::Test case keepcallerself {
 
   # The dispatch via object aliased method calls actually "d1 bar",
   # although c1 is in the dispatch path
-  ? {d1 c1 bar} d1-::d1
-  ? {d1 c1 foo} D-::d1
-  ? {d1 c1 baz} "::d1: unable to dispatch method 'baz'"
+  #? {d1 c1 bar} d1-::d1
+  #? {d1 c1 foo} D-::d1
+  #? {d1 c1 baz} "::d1: unable to dispatch method 'baz'"
+  ? {d1 c1 bar} c1-::d1
+  ? {d1 c1 foo} C-::d1
+  ? {d1 c1 baz} c1-::d1
 
   # The destroy destroys actually d1, not c1, although destroy is
   # dispatched originally on c1

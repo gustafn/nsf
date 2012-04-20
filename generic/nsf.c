@@ -9631,12 +9631,47 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 			    Tcl_GetCommandName(interp, cmd),
 			    NSF_CSC_TYPE_PLAIN, flags);
 #endif
+#if 1
+    /* simple and brutal */
+    if (likely(invokedObject->nsPtr != NULL)) {
+      subMethodCmd = FindMethod(invokedObject->nsPtr, subMethodName);
+    } else {
+      subMethodCmd = NULL;
+    }
+
+    if (subMethodCmd == NULL) {
+      /* no -system handling */
+      actualClass = SearchPLMethod(invokedObject->cl->order, subMethodName, &subMethodCmd, NSF_CMD_CALL_PRIVATE_METHOD);
+    }
+    if (likely(subMethodCmd != NULL)) {
+      cscPtr->objc = objc;
+      cscPtr->objv = objv;
+      Nsf_PushFrameCsc(interp, cscPtr, framePtr);
+      result = MethodDispatch(actualSelf, 
+			      interp, objc-1, objv+1,
+			      subMethodCmd, actualSelf, actualClass, subMethodName,
+			      cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
+			      (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
+      Nsf_PopFrameCsc(interp, framePtr);
+      return result;
+    }
+    
+  /*fprintf(stderr, "... objv[0] %s cmd %p %s csc %p\n",
+    ObjStr(objv[0]), subMethodCmd, subMethodName, cscPtr); */
+      
+    if (0) {
+    fprintf(stderr, "new unknown\n");
+    return DispatchUnknownMethod(interp, invokedObject, /* objc-1, objv+1*/ objc, objv, actualSelf->cmdName,
+				 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
+  }
+#endif    
     return ObjectDispatch(actualSelf, interp, objc, objv, NSF_CM_KEEP_CALLER_SELF);
   }
   
   /*
    * NSF_PER_OBJECT_DISPATCH is set
    */
+  
   if (likely(invokedObject->nsPtr != NULL)) {
     subMethodCmd = FindMethod(invokedObject->nsPtr, subMethodName);
   } else {

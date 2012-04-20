@@ -3973,6 +3973,14 @@ nsf.c:
   * pertain perobjectdispatch and keepcallerself in serializer
   * extend regression test
 
+nsf.c:
+- refactor ObjectCmdMethodDispatch() for clarity
+- prepare work on object method dispatches with
+  KEEP_CALLER_SELF and no NSF_PER_OBJECT_DISPATCH
+
+- explorative implementation of object method dispatches with
+  KEEP_CALLER_SELF and no NSF_PER_OBJECT_DISPATCH
+- extend regression test
 
 ========================================================================
 TODO:
