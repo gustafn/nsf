@@ -79,25 +79,6 @@ namespace eval ::xotcl {
   namespace import ::nsf::method::alias ::nsf::is ::nsf::relation
   interp alias {} ::xotcl::next {} ::nsf::xotclnext
 
-  #
-  # create ::xotcl::MetaSlot for better compatibility with XOTcl 1
-  #
-  ::nx::Class create ::xotcl::MetaSlot -superclass ::nx::MetaSlot {
-    :property parameter
-    :method init {} {
-      if {[info exists :parameter]} {my ::nsf::classes::xotcl::Class::parameter ${:parameter}}
-      next
-    }
-    # provide minimal compatibility
-    :public forward instproc %self public method
-    :public forward proc %self public class method
-  }
-
-  #
-  # Create ::xotcl::Attribute for compatibility
-  #
-  ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot
-
   proc ::xotcl::self {{arg ""}} {
       switch $arg {
 	"" {uplevel ::nsf::self}
@@ -928,6 +909,42 @@ namespace eval ::xotcl {
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {:requireNamespace; return [::xotcl::self]::$var}
+
+  #
+  # create ::xotcl::MetaSlot for better compatibility with XOTcl 1
+  #
+  ::nx::Class create ::xotcl::MetaSlot -superclass ::nx::MetaSlot {
+    :property parameter
+    :method init {} {
+      if {[info exists :parameter]} {my ::nsf::classes::xotcl::Class::parameter ${:parameter}}
+      next
+    }
+    # provide minimal compatibility
+    :public forward instproc %self public method
+    :public forward proc %self public class method
+    #
+    # As NX/XOTcl hybrids, all slot kinds would not inherit the
+    # unknown behaviour of ::xotcl::Class. Therefore, we provide it
+    # explicitly to slots for backward compatibility ...
+    #
+    :public alias unknown ::nsf::classes::xotcl::Class::unknown
+  }
+
+  #
+  # Create ::xotcl::Attribute for compatibility
+  #
+  ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot {
+    :property multivalued {
+      :public method assign {object property value} {
+	set mClass [expr {$value?"0..n":"1..1"}]
+	$object incremental $value
+	$object multiplicity $mClass
+      }
+      :public method get {object property} {
+	return [$object eval [list :isMultivalued]]
+      }
+    }
+  }
 
   #
   # Provide a backward compatible version of ::xotcl::alias

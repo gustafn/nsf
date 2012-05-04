@@ -568,12 +568,62 @@ Class Fred -slots { Attribute create a -defaultcmd { set _ 4 } }
 x move y
 ? {y a} 4
 
+::nx::Test case slots-compat
+#
+# Some tests covering the backward compatibility of NX/XOTcl2 hybrid
+# slots to the XOTcl1 slot API (as extracted from the XOTcl language
+# reference)
+#
+
+#
+# 1) old-style Attribute creation
+#
+  
+Class Window -slots {
+  Attribute scrollbar; # old style
+  Attribute create title; # new style
+}
+
+? {lsort [Window info slots]} "::Window::slot::scrollbar ::Window::slot::title"
+
+#
+# 2) Dropped/missing slot attributes: multivalued
+#
+
+Class Person -slots {
+  Attribute name
+  Attribute salary -default 0
+  Attribute projects -default {} -multivalued true
+}
+
+? {lsort [Person info slots]} "::Person::slot::name ::Person::slot::projects ::Person::slot::salary"
+
+? {Person::slot::name multivalued} 0
+? {Person::slot::salary multivalued} 0
+? {Person::slot::projects multivalued} 1
+
+Person p2 -name "John Doe"
+? {p2 name} "John Doe"
+? {p2 salary} "0"
+? {p2 projects} [list]
+
+Project compatPrj -name XOTclCompat
+p2 projects add ::compatPrj
+p2 projects add some-other-value
+
+? {lsort [p2 projects]} "::compatPrj some-other-value"
+p2 projects delete some-other-value
+? {lsort [p2 projects]} "::compatPrj"
+
+? {catch {p2 name add BOOM!}} 1
+? {p2 name} "John Doe"
+
 exit
 
-#puts [Person array get __defaults]
-#puts [Person serialize]
-puts [Serializer all]
-eval [Serializer all]
+  #puts [Person array get __defaults]
+  #puts [Person serialize]
+  puts [Serializer all]
+  eval [Serializer all]
 
 ? {p2 salary} 1009
 ? {catch {p2 append salary b}} 1
@@ -686,6 +736,10 @@ foreach o [Object allinstances] {
 puts stderr DONE-[p1 name]-[p1 age]
 
 p3 age 77
+
+
+
+
 exit
 
 puts [XoXML asXML]
