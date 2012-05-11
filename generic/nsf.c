@@ -11674,6 +11674,39 @@ ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
   return TCL_OK;
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ * Unescape --
+ *
+ *    Unescape double commas in the provided Tcl_Obj.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Potentially shortend string content
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+Unescape(Tcl_Obj *objPtr) {
+  int i, j, l = Tcl_GetCharLength(objPtr);
+  char *string = ObjStr(objPtr);
+
+  for (i = 0; i < l; i++) {
+    if (string[i] == ',' && string[i+1] == ',') {
+      for (j = i+1; j < l; j++) {
+	string[j] = string[j+1];
+      }
+      l--;
+      i++;
+    }
+  }
+  Tcl_SetObjLength(objPtr, l);
+}
+
 /*
  *----------------------------------------------------------------------
  * ParamOptionParse --
@@ -11695,12 +11728,12 @@ ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
 static int
 ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 		 size_t start, size_t optionLength,
-		 int disallowedOptions, Nsf_Param *paramPtr) {
+		 int disallowedOptions, Nsf_Param *paramPtr, int unescape) {
   CONST char *dotdot, *option = argString + start;
   int result = TCL_OK;
 
-  /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
-    paramPtr->name, option, remainder, disallowedOptions);*/
+  /* fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
+     paramPtr->name, option, start, disallowedOptions);*/
 
   if (strncmp(option, "required", MAX(3, optionLength)) == 0) {
     paramPtr->flags |= NSF_ARG_REQUIRED;
@@ -11781,12 +11814,17 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (optionLength >= 4 && strncmp(option, "arg=", 4) == 0) {
     if (paramPtr->converter != ConvertViaCmd) {
-      fprintf(stderr, "type %s flags %.6x\n", paramPtr->type, paramPtr->flags);
       return NsfPrintError(interp,
 			   "parameter option 'arg=' only allowed for user-defined converter");
     }
     if (paramPtr->converterArg) {DECR_REF_COUNT(paramPtr->converterArg);}
     paramPtr->converterArg = Tcl_NewStringObj(option + 4, optionLength - 4);
+    /*
+     * In case, we know that we have to unescape double commas, do it here...
+     */
+    if (unlikely(unescape)) {
+      Unescape(paramPtr->converterArg);
+    }
     INCR_REF_COUNT(paramPtr->converterArg);
 
   } else if (strncmp(option, "switch", 6) == 0) {
@@ -11843,11 +11881,17 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 	return NsfPrintError(interp, "parameter option 'type=' only allowed for parameter types 'object' and 'class'");
     if (paramPtr->converterArg) {DECR_REF_COUNT(paramPtr->converterArg);}
     paramPtr->converterArg = Tcl_NewStringObj(option + 5, optionLength - 5);
+    if (unlikely(unescape)) {
+      Unescape(paramPtr->converterArg);
+    }
     INCR_REF_COUNT(paramPtr->converterArg);
 
   } else if (optionLength >= 6 && strncmp(option, "slot=", 5) == 0) {
     if (paramPtr->slotObj) {DECR_REF_COUNT(paramPtr->slotObj);}
     paramPtr->slotObj = Tcl_NewStringObj(option + 5, optionLength - 5);
+    if (unlikely(unescape)) {
+      Unescape(paramPtr->slotObj);
+    }
     INCR_REF_COUNT(paramPtr->slotObj);
 
   } else if (optionLength >= 6 && strncmp(option, "method=", 7) == 0) {
@@ -11856,10 +11900,18 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     }
     if (paramPtr->method) {DECR_REF_COUNT(paramPtr->method);}
     paramPtr->method = Tcl_NewStringObj(option + 7, optionLength - 7);
+    if (unlikely(unescape)) {
+      Unescape(paramPtr->method);
+    }
     INCR_REF_COUNT(paramPtr->method);
 
   } else {
     Tcl_DString ds, *dsPtr = &ds;
+    
+    if (option[0] == '\0') {
+      NsfLog(interp, NSF_LOG_WARN, "empty parameter option ignored");
+      return TCL_OK;
+    }
 
     Tcl_DStringInit(dsPtr);
     Tcl_DStringAppend(dsPtr, option, optionLength);
@@ -11905,7 +11957,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 	paramPtr->converterArg = Tcl_NewStringObj(stringTypeOpts[i], -1);
 	INCR_REF_COUNT(paramPtr->converterArg);
       } else {
-	
+
 	/*
 	 * The parameter option is still unknown. We assume that the parameter
 	 * option identifies a user-defined argument checker, implemented as a
@@ -11989,7 +12041,8 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     paramPtr->flags |= NSF_ARG_REQUIRED; /* positional arguments are required unless we have a default */
   }
 
-  /* fprintf(stderr, "... parsing '%s', name '%s' \n", ObjStr(arg), argName);*/
+  /*fprintf(stderr, "... parsing '%s', name '%s' argString '%s' \n", 
+    ObjStr(arg), argName, argString);*/
 
   /* find the first ':' */
   for (j=0; j<length; j++) {
@@ -11999,6 +12052,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   if (argString[j] == ':') {
     /* we found a ':' */
     size_t l, start, end;
+    int escaped = 0, unescape = 0;
 
     /* get parameter name */
     STRING_NEW(paramPtr->name, argString, j);
@@ -12008,25 +12062,43 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     /* skip space at begin */
     for (start = j+1; start<length && isspace((int)argString[start]); start++) {;}
 
-    /* search for ',' */
+    /* search for unescaped ',' */
     for (l = start; l < length; l++) {
+#if 0
+      if (unlikely(escaped == 1)) {
+	fprintf(stderr, "escaped char %c\n", argString[l]);
+	escaped = 0;
+	continue;
+      }
+      if (unlikely(argString[l] == '\\')) {
+	fprintf(stderr, "escape char %c\n", argString[l]);
+	escaped = 1;
+	continue;
+      } 
+#endif
       if (unlikely(argString[l] == ',')) {
+	if (likely(argString[l+1]) == ',') {
+	  l++;
+	  unescape = 1;
+	  continue;
+	}
 	/* skip space from end */
-        for (end = l; end>0 && isspace((int)argString[end-1]); end--);
-        result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr);
-        if (unlikely(result != TCL_OK)) {
-          goto param_error;
-        }
-        l++;
-        /* skip space from begin */
-        for (start = l; start<length && isspace((int)argString[start]); start++) {;}
+	for (end = l; end>0 && isspace((int)argString[end-1]); end--);
+	result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr, unescape);
+	unescape = 0;
+	if (unlikely(result != TCL_OK)) {
+	  goto param_error;
+	}
+	l++;
+	/* skip space from begin */
+	for (start = l; start<length && isspace((int)argString[start]); start++) {;}
       }
     }
     /* skip space from end */
     for (end = l; end>0 && isspace((int)argString[end-1]); end--);
     /* process last option */
     if (end-start > 0) {
-      result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr);
+      result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr, unescape);
       if (unlikely(result != TCL_OK)) {
 	goto param_error;
       }
@@ -21748,6 +21820,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * definition is varArgs.
      */
     if (i < paramDefs->nrParams || !pc.varArgs) {
+
 #if defined(CONFIGURE_ARGS_TRACE)
       fprintf(stderr, "*** %s SET %s '%s' // %p\n",
 	      ObjectName(object), ObjStr(paramPtr->nameObj), ObjStr(newValue), paramPtr->slotObj);

@@ -630,14 +630,15 @@ nx::Test case subst-default {
 }
 
 #######################################################
-# user defined parameter types
+# user defined parameter value checkers
 #######################################################
-nx::Test case user-types {
+nx::Test case user-value-checker {
 
   nx::Class create D {:property d}
   D create d1
 
-  # create a userdefined type
+  # Create a user-defined value checker for method parameters, 
+  # without extra argument
   ::nx::methodParameterSlot method type=mytype {name value} {
     if {$value < 1 || $value > 3} {
       error "value '$value' of parameter $name is not between 1 and 3"
@@ -661,14 +662,21 @@ nx::Test case user-types {
       "::nx::methodParameterSlot: unable to dispatch method 'type=unknowntype'" \
       "missing type checker"
   
-  # create a userdefined type with a simple argument
+  #
+  # Create a user-defined value-checker for method parameters,
+  # with a extra argument
+  #
   ::nx::methodParameterSlot method type=in {name value arg} {
     if {$value ni [split $arg |]} {
       error "value '$value' of parameter $name not in permissible values $arg"
     }
     return $value
   }
-  
+
+  #
+  # Trival test case
+  #  
+
   D public method foo {a:in,arg=a|b|c} {
     return a=$a
   }
@@ -677,6 +685,10 @@ nx::Test case user-types {
   ? {d1 foo 10} \
       "value '10' of parameter a not in permissible values a|b|c" \
       "invalid value"
+
+  #
+  # Test case with positional and non-positional arguments, and default
+  #
   
   D public method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
     return a=$a,b=$b,c=$c
@@ -687,9 +699,45 @@ nx::Test case user-types {
   ? {d1 foo b "very good"} \
       "value 'very good' of parameter b not in permissible values good|bad" \
       "invalid value (not included)"
+
+  #
+  # Create a user-defined value checker for method parameters, 
+  # without extra argument
+  #
+  ::nx::methodParameterSlot method type=commaRange {name value arg} {
+    lassign [split $arg ,] min max
+    if {$value < $min || $value > $max} {
+      error "value '$value' of parameter $name not between $min and $max"
+    }
+    return $value
+  }
+
+  D public method foo {a:commaRange,arg=1,,3} {
+    return a=$a
+  }
   
+  ? {d1 foo 2} "a=2"
+  ? {d1 foo 10} \
+      "value '10' of parameter a not between 1 and 3" \
+      "invalid value"
+  
+  #
+  # two commas at the end
+  #
+  D public method foo {a:commaRange,arg=1,,} {return a=$a}
+  ? {d1 foo 2} {value '2' of parameter a not between 1 and }
+
+  #
+  # one comma at the end
+  #
+  D public method foo {a:commaRange,arg=1,} {return a=$a}
+  ? {d1 foo 2} {value '2' of parameter a not between 1 and }
+  
+  #
+  # Classical range check
+  #
   ::nx::methodParameterSlot method type=range {name value arg} {
-    foreach {min max} [split $arg -] break
+    lassign [split $arg -] min max
     if {$value < $min || $value > $max} {
       error "value '$value' of parameter $name not between $min and $max"
     }
