@@ -208,7 +208,7 @@ static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CO
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[100];
+static Nsf_methodDefinition method_definitions[101];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -311,6 +311,7 @@ static int NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp,
 static int NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoNameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -411,6 +412,7 @@ static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int infome
 static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withMethodtype, int withPath, CONST char *pattern);
 static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObject);
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
+static int NsfObjInfoNameMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *obj, int withIntrinsic, CONST char *pattern);
 static int NsfObjInfoSlotobjectsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
@@ -512,6 +514,7 @@ enum {
  NsfObjInfoMethodsMethodIdx,
  NsfObjInfoMixinclassesMethodIdx,
  NsfObjInfoMixinguardMethodIdx,
+ NsfObjInfoNameMethodIdx,
  NsfObjInfoParentMethodIdx,
  NsfObjInfoPrecedenceMethodIdx,
  NsfObjInfoSlotobjectsMethodIdx,
@@ -2382,6 +2385,22 @@ NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 }
 
 static int
+NsfObjInfoNameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, "object", "name");
+    
+
+      if (unlikely(objc != 1)) {
+	return NsfArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfObjInfoNameMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
+    return NsfObjInfoNameMethod(interp, obj);
+
+}
+
+static int
 NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfObject *obj =  (NsfObject *)clientData;
   if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, "object", "parent");
@@ -2456,7 +2475,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[100] = {
+static Nsf_methodDefinition method_definitions[101] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2863,6 +2882,9 @@ static Nsf_methodDefinition method_definitions[100] = {
 },
 {"::nsf::methods::object::info::mixinguard", NsfObjInfoMixinguardMethodStub, 1, {
   {"mixin", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::methods::object::info::name", NsfObjInfoNameMethodStub, 0, {
+  {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::parent", NsfObjInfoParentMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

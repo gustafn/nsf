@@ -12007,7 +12007,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 static int
 ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowedFlags,
            Nsf_Param *paramPtr, int *possibleUnknowns, int *plainParams, int *nrNonposArgs) {
-  int result, npac, isNonposArgument;
+  int result, npac, isNonposArgument, parensCount;
   size_t length, j;
   CONST char *argString, *argName;
   Tcl_Obj **npav;
@@ -12044,9 +12044,23 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   /*fprintf(stderr, "... parsing '%s', name '%s' argString '%s' \n", 
     ObjStr(arg), argName, argString);*/
 
-  /* find the first ':' */
+  /* 
+   * Find the first ':' outside of parens; the name of the parameter might be
+   * in array syntax, the array index might contain ":", "," etc.
+   */
+  parensCount = 0;
   for (j=0; j<length; j++) {
-    if (argString[j] == ':') break;
+    if (parensCount > 0 && argString[j] == ')') {
+      parensCount --;
+      continue;
+    }
+    if (argString[j] == '(') {
+      parensCount ++;
+      continue;
+    }
+    if (parensCount == 0 && argString[j] == ':') {
+      break;
+    }
   }
 
   if (argString[j] == ':') {
@@ -23282,6 +23296,17 @@ objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {
 static int
 NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *mixin) {
   return object->opt ? GuardList(interp, object->opt->objMixins, mixin) : TCL_OK;
+}
+
+/*
+objectInfoMethod name NsfObjInfoNameMethod {
+}
+*/
+static int
+NsfObjInfoNameMethod(Tcl_Interp *interp, NsfObject *object) {
+
+  Tcl_SetObjResult(interp,  Tcl_NewStringObj(Tcl_GetCommandName(interp, object->id), -1));
+  return TCL_OK;
 }
 
 /*

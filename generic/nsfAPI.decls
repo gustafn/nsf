@@ -403,6 +403,8 @@ objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
 objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {
   {-argName "mixin"  -required 1}
 }
+objectInfoMethod name NsfObjInfoNameMethod {
+}
 objectInfoMethod parent NsfObjInfoParentMethod {
 }
 objectInfoMethod precedence NsfObjInfoPrecedenceMethod {

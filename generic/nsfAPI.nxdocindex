@@ -79,6 +79,7 @@ set ::nxdoc::include(::nsf::methods::object::info::method) 0
 set ::nxdoc::include(::nsf::methods::object::info::methods) 0
 set ::nxdoc::include(::nsf::methods::object::info::mixinclasses) 0
 set ::nxdoc::include(::nsf::methods::object::info::mixinguard) 0
+set ::nxdoc::include(::nsf::methods::object::info::name) 0
 set ::nxdoc::include(::nsf::methods::object::info::parent) 0
 set ::nxdoc::include(::nsf::methods::object::info::precedence) 0
 set ::nxdoc::include(::nsf::methods::object::info::slotobjects) 0
