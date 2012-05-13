@@ -305,8 +305,14 @@ namespace eval ::nx {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
       }
+      if {[lindex $args 0] eq "property"} {
+	# handle "... private property ...."
+	set args [linsert $args 1 -private]
+      } elseif {[lindex $args 0] eq "class" && [lindex $args 1] eq "property"} {
+	# handle "... private class property ...."
+	set args [linsert $args 2 -private]
+      }
       set r [: -system {*}$args]
-
       if {$r ne ""} {::nsf::method::property [self] $r call-private true}
       return $r
     }
@@ -649,6 +655,7 @@ namespace eval ::nx {
     :alias "info methods"          ::nsf::methods::object::info::methods
     :alias "info mixin guard"      ::nsf::methods::object::info::mixinguard
     :alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
+    :alias "info name"             ::nsf::methods::object::info::name
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slot definition" {{-type:class ::nx::Slot} pattern:optional} {
@@ -943,6 +950,7 @@ namespace eval ::nx {
     -per-object:switch
     {-class ""}
     {-initblock ""}
+    {-private:switch}
     {-defaultopts ""}
     spec
     default:optional
@@ -963,14 +971,24 @@ namespace eval ::nx {
       set container slot
     }
 
+    if {$private} {
+      regsub -all :  __$target _ prefix 
+      lappend opts -settername $name -name __private($target,$name)
+      set slotname ${prefix}.$name
+    } else {
+      set slotname $name
+    }
+
     if {$class eq ""} {
       set class ::nx::VariableSlot
     } else {
       #puts stderr "*** Class for '$target $name' is $class // [$class info heritage]"
     }
 
-    #puts stderr "*** [list $class create [::nx::slotObj -container $container $target $name] {*}$opts $initblock]"
-    $class create [::nx::slotObj -container $container $target $name] {*}$opts $initblock
+    #puts stderr "*** [list $class create [::nx::slotObj -container $container $target $slotname] {*}$opts $initblock]"
+    set r [$class create [::nx::slotObj -container $container $target $slotname] {*}$opts $initblock]
+    #puts stderr "*** returned $r"
+    return $r
   }
 
 }
@@ -1165,13 +1183,18 @@ namespace eval ::nx {
     #
     # intended to be called on RelationSlot or VariableSlot
     #
-
     if {![info exists :forwardername]} {
       set :forwardername ${:methodname}
     }
+    #puts stderr "makeforwarder --> '${:forwardername}'"
+    if {[info exists :settername]} {
+      set name ${:settername}
+    } else {
+      set name ${:name}
+    }
     ::nsf::method::forward ${:domain} \
 	{*}[expr {${:per-object} ? "-per-object" : ""}] \
-	${:name} \
+	$name \
 	${:manager} \
 	[list %1 [${:manager} defaultmethods]] %self \
 	${:forwardername}
@@ -1516,6 +1539,7 @@ namespace eval ::nx {
     {multiplicity 1..1}
     {accessor true}
     {type}
+    {settername}
 
     valuecmd
     defaultcmd
@@ -1600,6 +1624,7 @@ namespace eval ::nx {
     if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {return 1}
     if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
     if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
+    if {[info exists :settername]} {return 1}
     if {![info exists :incremental]} {return 0}
     #if {![:isMultivalued]} {return 0}
     #puts stderr "[self] ismultivalued"
@@ -1768,6 +1793,7 @@ namespace eval ::nx {
      {-class ""}
      {-initblock ""}
      {-nocomplain:switch}
+     {-private:switch}
      spec:parameter
      defaultValue:optional
    } {
@@ -1828,18 +1854,27 @@ namespace eval ::nx {
 		  -per-object \
 		  -class $class \
 		  -initblock $initblock \
+		  -private=$private \
 		  -defaultopts [list -accessor $accessor -config false] \
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
 
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
     if {[info exists defaultValue]} {$slot setCheckedInstVar -nocomplain=$nocomplain $defaultValue}
-    return [::nsf::directdispatch [self] ::nsf::methods::object::info::method registrationhandle [$slot name]]
+
+    if {[$slot eval {info exists :settername}]} {
+      set name [$slot settername]
+    } else {
+      set name [$slot name]
+    }
+
+    return [::nsf::directdispatch [self] ::nsf::methods::object::info::method registrationhandle $name]
   }
 
   Object method property {
     {-class ""}
-    -nocomplain:switch
+    {-nocomplain:switch}
+    {-private:switch}
      spec:parameter
     {initblock ""}
   } {
@@ -1848,6 +1883,7 @@ namespace eval ::nx {
 	       -class $class \
 	       -initblock $initblock \
 	       -nocomplain=$nocomplain \
+	       -private=$private \
 	       {*}$spec]
     return $r
   }
@@ -1857,20 +1893,29 @@ namespace eval ::nx {
      {-class ""}
      {-config:switch}
      {-initblock ""}
+     {-private:switch}
      spec:parameter
      defaultValue:optional
    } {
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \
 		  -initblock $initblock \
+		  -private=$private \
 		  -defaultopts [list -accessor $accessor -config $config] \
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
-    return [::nsf::directdispatch [self] ::nsf::methods::class::info::method registrationhandle [$slot name]]
+    if {[$slot eval {info exists :settername}]} {
+      set name [$slot settername]
+    } else {
+      set name [$slot name]
+    }
+    #puts stderr handle=[::nsf::directdispatch [self] ::nsf::methods::class::info::method registrationhandle $name]
+    return [::nsf::directdispatch [self] ::nsf::methods::class::info::method registrationhandle $name]
   }
 
   nx::Class method property {
     {-class ""}
+    {-private:switch}
     spec:parameter
     {initblock ""}
   } {
@@ -1879,6 +1924,7 @@ namespace eval ::nx {
 	       -class $class \
 	       -config=true \
 	       -initblock $initblock \
+	       -private=$private \
 	       {*}$spec]
     return $r
   }
