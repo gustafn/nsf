@@ -26,7 +26,7 @@ nx::Test case syntax {
   ? {::nsf::method::alias C foo ::set 1} \
       {invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
 
-  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-class value? spec ?initblock?"} "Test whether the colon prefix is suppressed"
+  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-class value? ?-private? spec ?initblock?"} "Test whether the colon prefix is suppressed"
 }
 
 #######################################################
@@ -1922,8 +1922,8 @@ nx::Test case object-level-variable {
     ? [list [self] property [list y2:int b]] {expected integer but got "b"}
 
     # set variable again, without -nocomplain
-    ? [list [self] variable x1:int 1] {Object ::enterprise has already an instance variable named 'x1'}
-    ? [list [self] property [list x2:int 2]] {Object ::enterprise has already an instance variable named 'x2'}
+    ? [list [self] variable x1:int 1] {object ::enterprise has already an instance variable named 'x1'}
+    ? [list [self] property [list x2:int 2]] {object ::enterprise has already an instance variable named 'x2'}
 
     # set variable with a value checker, multiple
     ? [list [self] variable  -nocomplain xm1:int,1..n {1 2 3}] ""
@@ -1941,7 +1941,7 @@ nx::Test case object-level-variable {
 
     # useless definition
     ? [list [self] variable dummy:int] \
-	{Variable definition for 'dummy' (without value and accessor) is useless}
+	{variable definition for 'dummy' (without value and accessor) is useless}
 
     #
     # define an application specific converter

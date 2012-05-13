@@ -261,8 +261,8 @@ namespace eval ::nx {
 
     # define unknown handler for class
     :method unknown {methodName args} {
-      error "Method '$methodName' unknown for [::nsf::self].\
-	Consider '[::nsf::self] create $methodName $args' instead of '[::nsf::self] $methodName $args'"
+      error "method '$methodName' unknown for [::nsf::self];\
+	consider '[::nsf::self] create $methodName $args' instead of '[::nsf::self] $methodName $args'"
     }
     # protected is not yet defined
     ::nsf::method::property [::nsf::self] unknown call-protected true
@@ -498,18 +498,18 @@ namespace eval ::nx {
 	puts stderr "+++ UNKNOWN raises error $errorMsg"
       }
       set ref "\"$m\" of $obj $path"
-      error "Unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
+      error "unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
     }
 
     :protected method defaultmethod {} {
       if {[catch {set obj [uplevel ::nsf::current]}]} {
-	error "Ensemble dispatch called outside of method context"
+	error "ensemble dispatch called outside of method context"
       }
       set path [::nsf::current methodpath]
       set l [string length $path]
       set submethods [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]
       foreach sm $submethods {set results([lindex [string range $sm $l+1 end] 0]) 1}
-      error "Valid submethods of $obj $path: [lsort [array names results]]"
+      error "valid submethods of $obj $path: [lsort [array names results]]"
     }
 
     # end of EnsembleObject
@@ -809,7 +809,7 @@ namespace eval ::nx {
   #   }
   #   set body "
   #     if {!\[::nsf::current isnextcall\]} {
-  #       error \"Abstract method $methName $arglist called\"
+  #       error \"abstract method $methName $arglist called\"
   #     } else {::nsf::next}
   #   "
   #   if {${per-object}} {
@@ -1132,7 +1132,7 @@ namespace eval ::nx {
       if {[string match __* $m]} continue
       lappend methods $m
     }
-    error "Method '$method' unknown for slot [::nsf::self]; valid are: {[lsort $methods]}"
+    error "method '$method' unknown for slot [::nsf::self]; valid are: {[lsort $methods]}"
   }
 
   ObjectParameterSlot protected method init {args} {
@@ -1548,7 +1548,7 @@ namespace eval ::nx {
 
   ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch value} {
     if {[::nsf::var::exists ${:domain} ${:name}] && !$nocomplain} {
-      error "Object ${:domain} has already an instance variable named '${:name}'"
+      error "object ${:domain} has already an instance variable named '${:name}'"
     }
     set options [:getParameterOptions -withMultiplicity true]
     if {[llength $options] > 0} {
@@ -1766,7 +1766,7 @@ namespace eval ::nx {
   ::nx::VariableSlot public method add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
       #puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"
-      error "Property $prop of [set :domain] ist not multivalued"
+      error "property $prop of [set :domain] ist not multivalued"
     }
     if {[::nsf::var::exists $obj $prop]} {
       ::nsf::var::set $obj $prop [linsert [::nsf::var::set $obj $prop] $pos $value]
@@ -1825,7 +1825,7 @@ namespace eval ::nx {
       set isSwitch [regsub {\mswitch\M} $parameterOptions boolean parameterOptions]
       if {[info exists defaultValue]} {
 	if {[info exists :$name] && !$nocomplain} {
-	  error "Object [self] has already an instance variable named '$name'"
+	  error "object [self] has already an instance variable named '$name'"
 	}
 	if {$parameterOptions ne ""} {
 	  #puts stderr "*** ::nsf::is $parameterOptions $defaultValue // opts=$options"
@@ -1843,7 +1843,7 @@ namespace eval ::nx {
       } elseif {$isSwitch} {
 	set :$name 0
       } else {
-	error "Variable definition for '$name' (without value and accessor) is useless"
+	error "variable definition for '$name' (without value and accessor) is useless"
       }
       return
     }

@@ -3992,9 +3992,20 @@ nsf.c:
   another two due to list-splitting to obtain default from arg).
 - extend regression test
 
+nsf.c:
+- allow parens in property names (array syntax)
+- added "/obj/ info name" (as alternative to "namspace tail [self]")
+
+nx.tcl:
+- added "private property foo" 
+- extended regression test
+- start error messages with a lower case word for consistency
+  and to follow closer to Tcl's conventions
 
 ========================================================================
 TODO:
+- document "/obj/ info name"
+- document "private property"
 
 - document new setable object properties perobjectdispatch and keepcallerself
 

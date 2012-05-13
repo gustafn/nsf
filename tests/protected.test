@@ -683,3 +683,113 @@ nx::Test case private-subobject {
   ? {obj info methods} "child foo"
 
 }
+
+#
+# Test protected and private class properties
+#
+nx::Test case protected-priv-class-property {
+  nx::Class create C {
+    :public property {a a1}
+    :protected property {b b1}
+    :private property {c c1}
+    :private property {d:integer 1}
+    :public method foo {p} {return [: $p]}
+    :public method bar {p} {return [: -local $p]}
+    :public method baz {p v} {return [: -local $p $v]}
+    :create c1
+  }
+
+  ? {c1 a} a1
+  ? {c1 b} {::c1: unable to dispatch method 'b'}
+  ? {c1 c} {::c1: unable to dispatch method 'c'}
+
+  ? {c1 foo a} a1
+  ? {c1 foo b} b1
+  ? {c1 foo c} {::c1: unable to dispatch method 'c'}
+
+  ? {c1 bar a} a1
+  ? {c1 bar b} b1
+  ? {c1 bar c} {c1}
+
+  #? {lsort [c1 info vars]} "____C.c ____C.d a b"
+  ? {lsort [c1 info vars]} "__private a b"
+  ? {c1 eval {lsort [array names :__private]}} "::C,c ::C,d"
+
+  ? {c1 bar d} {1}
+  ? {c1 baz d 2} {2}
+  ? {c1 bar d} {2}
+  ? {c1 baz d x} {expected integer but got "x" for parameter "value"}
+}
+
+
+#
+# Test protected and private class properties
+#
+nx::Test case protected-priv-object-property {
+  nx::Object create o {
+    :public property {a a1}
+    :protected property {b b1}
+    :private property {c c1}
+    :private property {d:integer 1}
+    :public method foo {p} {return [: $p]}
+    :public method bar {p} {return [: -local $p]}
+    :public method baz {p v} {return [: -local $p $v]}
+  }
+
+  ? {o a} a1
+  ? {o b} {::o: unable to dispatch method 'b'}
+  ? {o c} {::o: unable to dispatch method 'c'}
+
+  ? {o foo a} a1
+  ? {o foo b} b1
+  ? {o foo c} {::o: unable to dispatch method 'c'}
+
+  ? {o bar a} a1
+  ? {o bar b} b1
+  ? {o bar c} {c1}
+
+  #? {lsort [o info vars]} "____C.c ____C.d a b"
+  ? {lsort [o info vars]} "__private a b"
+  ? {o eval {lsort [array names :__private]}} "::o,c ::o,d"
+
+  ? {o bar d} {1}
+  ? {o baz d 2} {2}
+  ? {o bar d} {2}
+  ? {o baz d x} {expected integer but got "x" for parameter "value"}
+}
+
+#
+# Test protected and private class object properties
+#
+nx::Test case protected-priv-class-object-property {
+  nx::Class create C {
+    :public class property {a a1}
+    :protected class property {b b1}
+    :private class property {c c1}
+    :private class property {d:integer 1}
+    :public class method foo {p} {return [: $p]}
+    :public class method bar {p} {return [: -local $p]}
+    :public class method baz {p v} {return [: -local $p $v]}
+  }
+
+  ? {C a} a1
+  ? {C b} {method 'b' unknown for ::C; consider '::C create b ' instead of '::C b '}
+  ? {C c} {method 'c' unknown for ::C; consider '::C create c ' instead of '::C c '}
+
+  ? {C foo a} a1
+  ? {C foo b} b1
+  ? {C foo c} {method 'c' unknown for ::C; consider '::C create c ' instead of '::C c '}
+
+  ? {C bar a} a1
+  ? {C bar b} b1
+  ? {C bar c} {c1}
+
+  #? {lsort [o info vars]} "____C.c ____C.d a b"
+  ? {lsort [C info vars]} "__private a b"
+  ? {C eval {lsort [array names :__private]}} "::C,c ::C,d"
+
+  ? {C bar d} {1}
+  ? {C baz d 2} {2}
+  ? {C bar d} {2}
+  ? {C baz d x} {expected integer but got "x" for parameter "value"}
+}

@@ -280,7 +280,7 @@ nx::Test case property-method {
   ? {C A} 2
   ? {C B} B2
   ? {C C} C2
-  ? {C D} "Method 'D' unknown for ::C. Consider '::C create D ' instead of '::C D '"
+  ? {C D} "method 'D' unknown for ::C; consider '::C create D ' instead of '::C D '"
 
   nx::Object create o {
     set x [:property a]
@@ -397,10 +397,10 @@ nx::Test case errormessage {
   ? {C protected object method bar {x} {return $x}} \
       "'object' is not a method defining method"
   ? {C object method bar {x} {return $x}} \
-      {Method 'object' unknown for ::C. Consider '::C create object method bar x {return $x}' instead of '::C object method bar x {return $x}'}
+      {method 'object' unknown for ::C; consider '::C create object method bar x {return $x}' instead of '::C object method bar x {return $x}'}
   #? {C public class object method bar {x} {return $x}} "'object' not allowed to be modified by 'class'"
   ? {C public class object method bar {x} {return $x}} \
-      {Unable to dispatch sub-method "object" of ::C class; valid are: class alias, class delete method, class delete property, class delete variable, class filter, class filterguard, class forward, class info children, class info class, class info filter guard, class info filter methods, class info has mixin, class info has namespace, class info has type, class info info, class info is, class info lookup filter, class info lookup method, class info lookup methods, class info lookup slots, class info method, class info methods, class info mixin classes, class info mixin guard, class info parent, class info precedence, class info properties, class info slot definition, class info slot names, class info slot objects, class info vars, class method, class mixin, class mixinguard, class property, class variable}
+      {unable to dispatch sub-method "object" of ::C class; valid are: class alias, class delete method, class delete property, class delete variable, class filter, class filterguard, class forward, class info children, class info class, class info filter guard, class info filter methods, class info has mixin, class info has namespace, class info has type, class info info, class info is, class info lookup filter, class info lookup method, class info lookup methods, class info lookup slots, class info method, class info methods, class info mixin classes, class info mixin guard, class info name, class info parent, class info precedence, class info properties, class info slot definition, class info slot names, class info slot objects, class info vars, class method, class mixin, class mixinguard, class property, class variable}
 }
 
 #
