@@ -22202,9 +22202,9 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *UNUSED(object), int objc, Tcl_O
     result = Tcl_EvalObjEx(interp, objPtr, TCL_EVAL_DIRECT);
   }
   if (result == TCL_ERROR) {
-    char msg[32 + TCL_INTEGER_SPACE];
-    sprintf(msg, "\n    (\"uplevel\" body line %d)", Tcl_GetErrorLine(interp));
-    Tcl_AddObjErrorInfo(interp, msg, -1);
+    Tcl_AppendObjToErrorInfo(interp, 
+       Tcl_ObjPrintf("\n    (\"uplevel\" body line %d)", 
+		     Tcl_GetErrorLine(interp)));
   }
 
   /*
