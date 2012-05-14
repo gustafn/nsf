@@ -10364,44 +10364,44 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
     DECR_REF_COUNT(methodObj);
 
     if (likely(cmd != NULL)) {
-      if (regObject) {
-	if (NsfObjectIsClass(regObject)) {
-	  cl = (NsfClass *)regObject;
+      if (CmdIsNsfObject(cmd)) {
+	/*
+	 * Don't allow for calling objects as methods via fully qualified
+	 * names. Otherwise, in line [2] below, ::State (or any children of
+	 * it, e.g., ::Slot::child) is interpreted as a method candidate. As a
+	 * result, dispatch chaining occurs with ::State or ::State::child
+	 * being the receiver (instead of Class) of the method call
+	 * "-parameter". In such a dispatch chaining, the method "unknown"
+	 * won't be called on Class (in the XOTcl tradition), effectively
+	 * bypassing any unknown-based indirection mechanism (e.g., XOTcl's short-cutting
+	 * of object/class creations).
+	 *
+	 *  [1] Class ::State; Class ::State::child  
+	 *  [2] Class ::State -parameter x; Class ::State::child -parameter x
+	 */
+	NsfLog(interp, NSF_LOG_NOTICE,
+	       "Don't invoke object %s this way. Register object via alias ...",
+	       methodName);
+	cmd = NULL;
+      } else {
+	if (regObject) {
+	  if (NsfObjectIsClass(regObject)) {
+	    cl = (NsfClass *)regObject;
+	  }
 	}
+	/* fprintf(stderr, "fully qualified lookup of %s returned %p\n", ObjStr(methodObj), cmd); */
 	/* ignore permissions for fully qualified method names */
 	flags |= NSF_CM_IGNORE_PERMISSIONS;
-      } else {
-	/*fprintf(stderr, "fully qualified lookup of %s returned %p\n", ObjStr(methodObj), cmd);*/
-	if (CmdIsNsfObject(cmd)) {
-	  /*
-	   * Don't allow to call objects as methods (for the time being)
-	   * via fully qualified names. Otherwise, in line [2] below, ::State
-	   * is interpreted as an ensemble object, and the method
-	   * "unknown" won't be called (in the XOTcl tradition) and
-	   * weird things will happen.
-	   *
-	   *  [1] Class ::State
-	   *  [2] Class ::State -parameter x
-	   */
-	  NsfLog(interp, NSF_LOG_NOTICE,
-		 "Don't invoke object %s this way. Register object via alias...",
-		 methodName);
-	  cmd = NULL;
-	} else {
-	  /* ignore permissions for fully qualified method names */
-	  flags |= NSF_CM_IGNORE_PERMISSIONS;
-	}
       }
+      /*fprintf(stderr, "ObjectDispatch fully qualified obj %s methodName %s => cl %p cmd %p \n",
+	object ? ObjectName(object) : NULL,
+	methodName, cl, cmd);*/
     }
-
-    /*fprintf(stderr, "ObjectDispatch fully qualified obj %s methodName %s => cl %p cmd %p \n",
-	     object ? ObjectName(object) : NULL,
-	     methodName, cl, cmd);*/
   }
-
+  
   /*fprintf(stderr, "MixinStackPush check for %p %s.%s objflags %.6x == %d\n",
-	  object, ObjectName(object), methodName, objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID,
-	  (objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID);*/
+    object, ObjectName(object), methodName, objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID,
+    (objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID);*/
   /*
    * Check if a mixed in method has to be called.
    */

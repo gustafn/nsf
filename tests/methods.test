@@ -715,3 +715,117 @@ nx::Test case speed-dispatch {
   ? {o bar08} foo ": -system info"
   #? {o bar09} foo "my -system info"
 }
+
+nx::Test parameter count 1
+nx::Test case fq-obj-dispatch {
+  #
+  # Capture the (current) dispatcher rules for fully-qualified
+  # selectors which resolve to existing objects.
+  #
+  nx::Class create C {
+    set :unknown 0
+    :public class method unknown {m args} {
+      incr :unknown
+      return unknown-$m
+    }
+  }
+
+  nx::Class create D {
+    set :defaultcalled 0
+    :public method defaultmethod args {
+      [current class] eval [list incr :defaultcalled]
+    }
+    :create ::d
+  }
+  
+  ? {::D eval {set :defaultcalled}} 0
+  ? {::d} 1
+  ? {C eval {set :unknown}} 0
+  ? {C ::d} "unknown-::d"
+  ? {C eval {set :unknown}} 1
+  ? {::d} 2; # should not be 3!
+  ? {C d} "unknown-d"
+  ? {C eval {set :unknown}} 2
+  ? {::d} 3
+
+  #
+  # nested-object selector, *not* pre-existing
+  #
+  ? {::nsf::object::exists ::d::c} 0
+  ? {C ::d::c} "unknown-::d::c"
+  ? {C eval {set :unknown}} 3
+  ? {::nsf::object::exists ::d::c} 0
+
+  #
+  # nested-object selector, pre-existing
+  #
+  ? {::nsf::object::exists ::d::dd} 0
+  D create ::d::dd
+  ? {::nsf::object::exists ::d::dd} 1
+  ? {::D eval {set :defaultcalled}} 3
+  ? {::d::dd} 4
+  ? {C eval {set :unknown}} 3
+  ? {C ::d::dd} "unknown-::d::dd"
+  ? {C eval {set :unknown}} 4
+  ? {C d::dd} "unknown-d::dd"
+  ? {C eval {set :unknown}} 5
+  ? {::D eval {set :defaultcalled}} 4
+
+  #
+  # namespaced selector, *not* pre-existing
+  #
+  namespace eval ::ns1 {}
+  ? {::nsf::object::exists ::ns1::c} 0
+  ? {C ::ns1::c} "unknown-::ns1::c"
+  ? {C eval {set :unknown}} 6
+  ? {::nsf::object::exists ::ns1::c} 0
+
+  #
+  # namespaced selector, pre-existing
+  #
+  ? {::nsf::object::exists ::ns1::d} 0
+  D create ::ns1::d
+  ? {::nsf::object::exists ::ns1::d} 1
+  ? {::D eval {set :defaultcalled}} 4
+  ? {::ns1::d} 5
+  ? {C eval {set :unknown}} 6
+  ? {C ::ns1::d} "unknown-::ns1::d"
+  ? {C eval {set :unknown}} 7
+  ? {C ns1::d} "unknown-ns1::d"
+  ? {C eval {set :unknown}} 8
+  ? {::D eval {set :defaultcalled}} 5
+
+  #
+  # Is XOTcl's creation short-cut operative for nested-object
+  # selectors, compliant with the XOTcl-specific unknown-(re)create
+  # protocol?
+  #
+  package req XOTcl 2.0
+  
+  ? {::nsf::object::exists ::X} 0
+  xotcl::Class ::X -instproc p1 {v} {
+    [self class] incr [self proc] $v
+  } -proc unknown args {
+    my incr [self proc]
+    next
+  } -set unknown 0 -proc recreate args {
+    my incr [self proc]
+    next
+  } -set recreate 0
+  
+  ? {::nsf::object::exists ::X} 1
+  ? {::X exists p1} 0
+  ? {::X set unknown} 0
+
+  xotcl::Object ::p
+  ? {::nsf::object::exists ::p::child} 0
+  ::X ::p::child -p1 2
+  ? {::nsf::object::exists ::p::child} 1
+  ? {::X set p1} 2
+  ? {::X set unknown} 1
+  ? {::X set recreate} 0
+  ::X ::p::child -p1 1
+  ? {::X set p1} 3
+  ? {::X set unknown} 2
+  ? {::X set recreate} 1
+}
