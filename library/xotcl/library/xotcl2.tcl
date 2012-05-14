@@ -944,6 +944,9 @@ namespace eval ::xotcl {
 	return [$object eval [list :isMultivalued]]
       }
     }
+    :public method exists {var} {::nsf::var::exists [self] $var}
+    :public method istype {class} [::nx::Object info method body ::nsf::classes::xotcl::Object::istype]
+    :public alias set -frame object ::set
   }
 
   #
