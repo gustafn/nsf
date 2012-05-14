@@ -1,5 +1,4 @@
-#!/usr/local/src/tcl8.6-fossil/unix/tclsh
-#!/bin/env tclsh
+#!/usr/bin/env tclsh
 
 package req nx::doc 1.0
 
