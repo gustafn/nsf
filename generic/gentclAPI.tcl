@@ -1,4 +1,4 @@
-#!/bin/env tclsh
+#!/usr/bin/env tclsh
 # -*- Tcl -*-
 # 
 # C-Code generator to generate stubs to handle all objv-parsing from

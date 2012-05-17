@@ -1,4 +1,4 @@
-#!/bin/env tclsh
+#!/usr/bin/env tclsh
 #
 # A small script file that creates a static array from a Tcl-
 # script for inclusion in c programs

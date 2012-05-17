@@ -1,5 +1,5 @@
 #!@NSF_COMPATIBLE_TCLSH@
-#!/bin/env tclsh
+#!/usr/bin/env tclsh
 puts  @NSF_COMPATIBLE_TCLSH@
 #
 # Tiny scripted replacement of a binary nxsh. This script can be used

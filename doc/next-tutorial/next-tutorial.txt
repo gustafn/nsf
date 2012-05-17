@@ -189,7 +189,7 @@ provide an interface to the stack implementation.
 {set:xmp-using-stack:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-#!/bin/env tclsh
+#!/usr/bin/env tclsh
 package require nx
  
 nx::Class create Stack {
