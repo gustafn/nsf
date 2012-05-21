@@ -4002,6 +4002,9 @@ nx.tcl:
 - start error messages with a lower case word for consistency
   and to follow closer to Tcl's conventions
 
+Documentation:
+- added design study ruby-mixins.tcl to example-docs and regression test
+
 ========================================================================
 TODO:
 - document "/obj/ info name"

@@ -234,6 +234,7 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/rosetta-serialization.html \
 	$(src_doc_dir)/example-scripts/rosetta-singleton.html \
 	$(src_doc_dir)/example-scripts/rosetta-unknown-method.html \
+	$(src_doc_dir)/example-scripts/ruby-mixins.html \
 	$(src_doc_dir)/example-scripts/tk-horse-race.html \
 	$(src_doc_dir)/example-scripts/tk-locomotive.html \
 	$(src_doc_dir)/example-scripts/tk-mini.html \
@@ -513,6 +514,7 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-serialization.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-singleton.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/rosetta-unknown-method.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_doc_dir_native)/example-scripts/ruby-mixins.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/traits-composite.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_doc_dir_native)/example-scripts/traits-simple.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
