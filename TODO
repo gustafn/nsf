@@ -4004,10 +4004,13 @@ nx.tcl:
 
 Documentation:
 - added design study ruby-mixins.tcl to example-docs and regression test
+- added documentation for "/obj/ info name" to migration guide and 
+  .nxd file
+- adding more comments to examples in migration guide
 
 ========================================================================
 TODO:
-- document "/obj/ info name"
+
 - document "private property"
 
 - document new setable object properties perobjectdispatch and keepcallerself

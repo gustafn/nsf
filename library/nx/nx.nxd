@@ -1374,7 +1374,6 @@
 # @parameter	objectkind	Specifies the class test: '''class''',
 # 				'''baseclass''', '''metaclass'''
 
-
 # @class.method {Object "info lookup filter"}
 #
 # Search for a method which is currently registered as a filter (in
@@ -1515,6 +1514,11 @@
 # 		rather than the method names. This allows for matching
 # 		<<@glspl ensemble>>.
 # @parameter	pattern	The pattern string in the style of '''string match'''
+
+
+# @class.method {Object "info name"}
+#
+# Returns the name of an object without the namespace qualifiers.
 
 
 # @class.method {Object "info slot definition"}
