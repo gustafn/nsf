@@ -699,21 +699,28 @@ nx::Test case protected-priv-class-property {
     :create c1
   }
 
+  # call properties directly
+
   ? {c1 a} a1
   ? {c1 b} {::c1: unable to dispatch method 'b'}
   ? {c1 c} {::c1: unable to dispatch method 'c'}
+
+  # call properties via method
 
   ? {c1 foo a} a1
   ? {c1 foo b} b1
   ? {c1 foo c} {::c1: unable to dispatch method 'c'}
 
+  # call properties via method via "-local" dispatch
+
   ? {c1 bar a} a1
   ? {c1 bar b} b1
   ? {c1 bar c} {c1}
 
-  #? {lsort [c1 info vars]} "____C.c ____C.d a b"
   ? {lsort [c1 info vars]} "__private a b"
   ? {c1 eval {lsort [array names :__private]}} "::C,c ::C,d"
+
+  # private property with value constraint
 
   ? {c1 bar d} {1}
   ? {c1 baz d 2} {2}
