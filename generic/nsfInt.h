@@ -91,11 +91,6 @@
 #  include "dmalloc.h"
 #endif
 
-#ifdef BUILD_nsf
-# undef TCL_STORAGE_CLASS
-# define TCL_STORAGE_CLASS DLLEXPORT
-#endif
-
 /*
  * Makros
  */
@@ -1013,9 +1008,5 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #if !defined(NDEBUG)
 /*# define NSF_INLINE*/
 #endif
-
-/*** common win sermon ***/
-#undef TCL_STORAGE_CLASS
-#define TCL_STORAGE_CLASS DLLIMPORT
 
 #endif /* _nsf_int_h_ */

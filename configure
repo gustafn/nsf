@@ -5689,11 +5689,11 @@ if test "${TEA_PLATFORM}" = "windows" ; then
     #TEA_ADD_SOURCES([win/winFile.c])
     #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
 else
-    CLEANFILES="*.o *.a *.so *~ core gmon.out"
+    CLEANFILES="*.a *.so *~ core gmon.out"
     #TEA_ADD_SOURCES([unix/unixFile.c])
     #TEA_ADD_LIBS([-lsuperfly])
 fi
-CLEANFILES="$CLEANFILES pkgIndex.tcl"
+CLEANFILES="$CLEANFILES *.${OBJEXT} pkgIndex.tcl"
 
 #--------------------------------------------------------------------
 # __CHANGE__

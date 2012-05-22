@@ -162,7 +162,7 @@ NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
  *
  *----------------------------------------------------------------------
  */
-extern int
+EXTERN int
 NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 static int
