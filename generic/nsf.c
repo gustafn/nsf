@@ -20027,8 +20027,8 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
   AddSuper(thecls, theobj);
 
   if (NSF_DTRACE_OBJECT_ALLOC_ENABLED()) {
-    NSF_DTRACE_OBJECT_ALLOC(ObjectName((NsfObject *)theobj), ClassName((NsfObject *)theobj)->cl);
-    NSF_DTRACE_OBJECT_ALLOC(ObjectName((NsfObject *)thecls), ClassName((NsfObject *)thecls)->cl);
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName((NsfObject *)theobj), ClassName(((NsfObject *)theobj)->cl));
+    NSF_DTRACE_OBJECT_ALLOC(ObjectName((NsfObject *)thecls), ClassName(((NsfObject *)thecls)->cl));
   }
 
   return TCL_OK;
