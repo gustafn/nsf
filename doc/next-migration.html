@@ -849,7 +849,7 @@ It is possible to use NX <tt>alias</tt> to register methods
 <li>
 <p>
 NX provides means for <em>method protection</em> (method modifiers
-     <tt>public</tt>, <tt>protected</tt> and <tt>private</tt>). Therefore developers have
+     <tt>public</tt>, <tt>protected</tt>, and <tt>private</tt>). Therefore developers have
      to define explicitly public interfaces in order to use methods
      from other objects.
 </p>
@@ -2693,13 +2693,13 @@ Create an object parameter definition for the initialization of the
 <li>
 <p>
 register an accessor function (setter), for wich the usual
-  protection levels (<tt>public</tt> or <tt>protected</tt>) can be used.
+  protection levels (<tt>public</tt>, <tt>protected</tt> or <tt>private</tt>) can be used.
 </p>
 </li>
 </ol></div>
 <div class="paragraph"><p>The method <tt>variable</tt> in NX is similar to <tt>property</tt>, but it creates
-only slot objects in cases where needed, and it does not provide
-object parameters or accessors.</p></div>
+only slot objects in cases where internally needed. <tt>variable</tt> it does
+neither  provide object parameters, or naccessors.</p></div>
 <div class="paragraph"><p>We show first the definition of properties simliar to the
 functionality provided as well by XOTcl and show afterwards how to use
 value constraints, optional parameters, etc. in NX.</p></div>
@@ -2878,8 +2878,6 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>XOTcl 1 did not support value constraints for object parameters (just
-for non-positional arguments).</p></div>
 <div class="paragraph"><p>NX supports <em>value constraints</em> (value-checkers) for object and method
 parameters in an orthogonal manner. NX provides a predefined set of
 value checkers, which can be extended by the application developer.
@@ -2934,11 +2932,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># User defined value constraints are possible.
 </span><span class='nx-comment'># All parameter value checkers can be turned on
-</span><span class='nx-comment'># and off.
+</span><span class='nx-comment'># and off at runtime.
 </span><span class='nx-comment'>#
-</span><span class='nx-comment'># Define a boolean property and an integer
-</span><span class='nx-comment'># property with a default firstly via "properties",
-</span><span class='nx-comment'># then with multiple "property" statements.
+</span><span class='nx-comment'># Define a required boolean property "a"
+</span><span class='nx-comment'># and an integer property "b" with a default.
+</span><span class='nx-comment'># The first definition uses "properties",
+</span><span class='nx-comment'># the second definition uses multiple
+</span><span class='nx-comment'># "property" statements.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -properties {
    a:boolean
@@ -6950,7 +6950,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2012-05-21 11:54:16 CEST
+Last updated 2012-05-22 09:11:34 CEST
 </div>
 </div>
 </body>

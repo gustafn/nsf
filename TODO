@@ -4007,6 +4007,7 @@ Documentation:
 - added documentation for "/obj/ info name" to migration guide and 
   .nxd file
 - adding more comments to examples in migration guide
+- document private properties in tutorial and migration guide
 
 ========================================================================
 TODO:

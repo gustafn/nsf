@@ -102,7 +102,7 @@ in the following respects:
      under arbitrary names for arbitrary objects or classes.
 
    .. NX provides means for _method protection_ (method modifiers
-     +public+, +protected+ and +private+). Therefore developers have
+     +public+, +protected+, and +private+). Therefore developers have
      to define explicitly public interfaces in order to use methods
      from other objects.
 
@@ -1164,11 +1164,11 @@ created, NX does actually three things:
   object (usable via a non-positional parameter during object
   creation), and
 . register an accessor function (setter), for wich the usual
-  protection levels (+public+ or +protected+) can be used.
+  protection levels (+public+, +protected+ or +private+) can be used.
 
 The method +variable+ in NX is similar to +property+, but it creates
-only slot objects in cases where needed, and it does not provide
-object parameters or accessors.
+only slot objects in cases where internally needed. +variable+ it does
+neither  provide object parameters, or naccessors.
 
 We show first the definition of properties simliar to the
 functionality provided as well by XOTcl and show afterwards how to use
@@ -1289,9 +1289,6 @@ Class create Person {
 ----------------
 |======================
 
-XOTcl 1 did not support value constraints for object parameters (just
-for non-positional arguments). 
-
 NX supports _value constraints_ (value-checkers) for object and method
 parameters in an orthogonal manner. NX provides a predefined set of
 value checkers, which can be extended by the application developer.
@@ -1319,11 +1316,13 @@ performance sensitive.
 #
 # User defined value constraints are possible.
 # All parameter value checkers can be turned on 
-# and off.
+# and off at runtime.
 #
-# Define a boolean property and an integer 
-# property with a default firstly via "properties", 
-# then with multiple "property" statements.
+# Define a required boolean property "a"
+# and an integer property "b" with a default.
+# The first definition uses "properties", 
+# the second definition uses multiple 
+# "property" statements.
 
 Class create Foo -properties {
    a:boolean

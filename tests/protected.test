@@ -720,14 +720,76 @@ nx::Test case protected-priv-class-property {
   ? {lsort [c1 info vars]} "__private a b"
   ? {c1 eval {lsort [array names :__private]}} "::C,c ::C,d"
 
-  # private property with value constraint
+  # Private property with value constraint
 
   ? {c1 bar d} {1}
   ? {c1 baz d 2} {2}
   ? {c1 bar d} {2}
   ? {c1 baz d x} {expected integer but got "x" for parameter "value"}
+
+  #
+  # Define a private property with the same name as the private
+  # property in the superclass; define a public per-object property
+  # with the same name. The call "d1 c" resolves to the per-object
+  # property, the private properties are accessed via methods.
+  # The values of the private properties do not conflict.
+  #
+  nx::Class create D -superclass C {
+    :private property {c c1d}
+    :public method bard {p} {return [: -local $p]}
+    :create d1 {
+      :property {c c1o}
+    }
+  }
+
+  ? {d1 bar c} c1
+  ? {d1 bard c} c1d
+  ? {d1 c} c1o
+
+  #
+  # Define a public property with the same name as the private
+  # property in the superclass; define private per-object property
+  # with the same name.  The call "d1 c" resolves to the public
+  # property on D, the private properties are accessed via methods.
+  # The values of the private properties do not conflict.
+  #
+  nx::Class create D -superclass C {
+    :public property {c c1d}
+    :public method bard {p} {return [: -local $p]}
+    :create d1 {
+      :private property {c c1o}
+      :public method bard1 {p} {return [: -local $p]}
+    }
+  }
+
+  ? {d1 bar c} c1
+  ? {d1 bard c} c1d
+  ? {d1 bard1 c} c1o
+  ? {d1 c} c1d
 }
 
+#
+# Test properties in class hierarchy, where a subclass defines a
+# private property with the same name as a property in a superclass.
+#
+nx::Test case private-shadows-public-property {
+  nx::Class create C {
+    :property {x c}
+  }
+  nx::Class create D -superclass C {
+    :private property {x d}
+    :public method bar-d {p} {return [: -local $p]}
+  }
+  nx::Class create E -superclass D {
+    :private property {x e}
+    :public method bar-e {p} {return [: -local $p]}
+  }
+
+  E create e1
+  ? {e1 x} c
+  ? {e1 bar-d x} d
+  ? {e1 bar-e x} e
+}
 
 #
 # Test protected and private class properties
