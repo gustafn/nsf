@@ -4,6 +4,20 @@
  * part of the Next Scripting Framework.
  */
 
+#if !defined(likely) 
+# if defined(__GNUC__) && __GNUC__ > 2
+/* Use gcc branch prediction hint to minimize cost of e.g. DTrace
+ * ENABLED checks. 
+ */
+#  define unlikely(x) (__builtin_expect((x), 0))
+#  define likely(x) (__builtin_expect((x), 1))
+# else
+#  define unlikely(x) (x)
+#  define likely(x) (x)
+# endif
+#endif
+
+
 
 enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdExistsIdx, InfomethodsubcmdRegistrationhandleIdx, InfomethodsubcmdDefinitionhandleIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdOriginIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx, InfomethodsubcmdReturnsIdx};
 
