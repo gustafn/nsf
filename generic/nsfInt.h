@@ -939,6 +939,21 @@ EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 
 EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj);
 
+/*
+ * Definition of methodEpoch macros
+ */
+#if defined(METHOD_OBJECT_TRACE)
+# define NsfInstanceMethodEpochIncr(msg) \
+  RUNTIME_STATE(interp)->instanceMethodEpoch++;	\
+  fprintf(stderr, "+++ instanceMethodEpoch %d %s\n", RUNTIME_STATE(interp)->instanceMethodEpoch, msg)
+# define NsfObjectMethodEpochIncr(msg) \
+  RUNTIME_STATE(interp)->objectMethodEpoch++;	\
+  fprintf(stderr, "+++ objectMethodEpoch %d %s\n", RUNTIME_STATE(interp)->objectMethodEpoch, msg)
+#else
+# define NsfInstanceMethodEpochIncr(msg) RUNTIME_STATE(interp)->instanceMethodEpoch++
+# define NsfObjectMethodEpochIncr(msg)   RUNTIME_STATE(interp)->objectMethodEpoch++
+#endif
+
 /* 
  * NsfFlag type
  */

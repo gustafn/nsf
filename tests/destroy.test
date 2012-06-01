@@ -921,3 +921,55 @@ nx::Test case unset-traces-during-cleanup-with-reset {
   interp delete $i
   unset i
 }
+
+#
+# Exercise renaming of cmds which are used as methods
+#
+nx::Test case rename-cached-method {
+  # Create a class with a namespace
+  nx::Class create A {:public class method foo args {}}
+  #
+  # Add a proc named "new" to the namespace of the class.
+  # This is not recommended, but we can't avoid it.
+  #
+  proc ::A::new {} { return "something from A" }
+  #
+  # Call the proc via the method interface. After the call the cmd is
+  # cached in the Tcl_Obj "new".
+  #
+  ? {A new} "something from A"
+  #
+  # Delete the proc. The rename command has to take care, that the
+  # cached cmd has to be invalidated.
+  #
+  rename ::A::new ""
+  
+  #
+  # We expect that the original method works again.
+  #
+  ? {string match ::nsf::__#* [A new]} 1
+
+  # 
+  # Now try the same with the internal namespace from nsf.  Messing
+  # around there is even less wanted, but still, we can't avoid this.
+  # We make first a backup of the method.
+  #
+  rename ::nsf::classes::nx::Class::new ::nsf::classes::nx::Class::new.orig
+  proc ::nsf::classes::nx::Class::new {} { return "something" }
+  
+  ? {A new} "something"
+  #
+  # Delete the proc and call "new" again
+  #
+  rename ::nsf::classes::nx::Class::new ""
+  ? {A new} "method 'new' unknown for ::A; consider '::A create new ' instead of '::A new '"
+  
+  #
+  # Restore the original state
+  #
+  rename ::nsf::classes::nx::Class::new.orig ::nsf::classes::nx::Class::new
+  #
+  # We expect that the original method works again.
+  #
+  ? {string match ::nsf::__#* [A new]} 1
+}

@@ -213,7 +213,7 @@ Nsf_InfoBodyObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
  */
 static int
 Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  Tcl_Command cmd;
+  Tcl_Command cmd, parentCmd;
 
   if (objc != 3) {
     /* wrong # args, let Tcl generate the error */
@@ -221,13 +221,19 @@ Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   }
 
   /* if an obj/cl should be renamed => call the Nsf move method */
-  cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL,0);
+  cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL, 0);
   if (cmd) {
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
     Tcl_Obj *methodObj = object ? NsfMethodObj(object, NSF_o_move_idx) : NULL;
     if (object && methodObj) {
       return NsfCallMethodWithArgs(interp, (Nsf_Object *)object,
 				   methodObj, objv[2], 1, 0, NSF_CSC_IMMEDIATE);
+    }
+
+    parentCmd = Tcl_FindCommand(interp,  Tcl_Command_nsPtr(cmd)->fullName, 
+			     (Tcl_Namespace *)NULL, 0);
+    if (parentCmd) {
+      NsfObjectMethodEpochIncr("::rename");
     }
   }
 

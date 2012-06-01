@@ -4008,7 +4008,18 @@ Documentation:
   .nxd file
 - adding more comments to examples in migration guide
 - document private properties in tutorial and migration guide
+- improve wording in documenting
+- extend regression test
 
+nsfShadow.c
+- bump MethodEpoch when a tcl ::rename command happens
+  on a nsf method (which might be cached in a Tcl_Obj)
+  This fixes a crash reported by Arthur Schreiber
+nsf.c:
+- make NsfInstanceMethodEpochIncr() and NsfObjectMethodEpochIncr() 
+  accessible from all files using nsfInt.h
+- remove experimental code (backslash escaping for "," in parameter 
+  option parse
 ========================================================================
 TODO:
 

@@ -185,21 +185,6 @@ typedef struct {
 } enumeratorConverterEntry;
 
 /*
- * Definition of methodEpoch macros
- */
-#if defined(METHOD_OBJECT_TRACE)
-# define NsfInstanceMethodEpochIncr(msg) \
-  RUNTIME_STATE(interp)->instanceMethodEpoch++;	\
-  fprintf(stderr, "+++ instanceMethodEpoch %d %s\n", RUNTIME_STATE(interp)->instanceMethodEpoch, msg)
-# define NsfObjectMethodEpochIncr(msg) \
-  RUNTIME_STATE(interp)->objectMethodEpoch++;	\
-  fprintf(stderr, "+++ objectMethodEpoch %d %s\n", RUNTIME_STATE(interp)->objectMethodEpoch, msg)
-#else
-# define NsfInstanceMethodEpochIncr(msg) RUNTIME_STATE(interp)->instanceMethodEpoch++
-# define NsfObjectMethodEpochIncr(msg)   RUNTIME_STATE(interp)->objectMethodEpoch++
-#endif
-
-/*
  * Tcl_Obj Types for Next Scripting Objects
  */
 
@@ -12066,7 +12051,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   if (argString[j] == ':') {
     /* we found a ':' */
     size_t l, start, end;
-    int escaped = 0, unescape = 0;
+    int unescape = 0;
 
     /* get parameter name */
     STRING_NEW(paramPtr->name, argString, j);
@@ -12078,18 +12063,6 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
 
     /* search for unescaped ',' */
     for (l = start; l < length; l++) {
-#if 0
-      if (unlikely(escaped == 1)) {
-	fprintf(stderr, "escaped char %c\n", argString[l]);
-	escaped = 0;
-	continue;
-      }
-      if (unlikely(argString[l] == '\\')) {
-	fprintf(stderr, "escape char %c\n", argString[l]);
-	escaped = 1;
-	continue;
-      } 
-#endif
       if (unlikely(argString[l] == ',')) {
 	if (likely(argString[l+1]) == ',') {
 	  l++;
