@@ -2460,4 +2460,27 @@ nx::Test case forward-to-incremental {
 
 }
 
+#
+# Test interaction of name of property with the Tcl command behavior.
+# Without the SlotContainerCmdResolver() the call to "list" in a
+# property named "list" leads to a call to the container object
+# ::Test2::slot::list instead of the intended ::list.
+#
+nx::Test case slot-container-name-interaction {
 
+  nx::Class create Test2 {
+    :property list {
+      :public method assign { obj var val } {
+	nsf::var::set $obj $var [list $obj $var $val]
+      }
+      :method unknown { val obj var args } {
+	return unknown
+      }
+    }
+  }
+  
+  ? {Test2 create t2} ::t2
+  ? {t2 list 3} {::t2 list 3}
+  ? {t2 list} {::t2 list 3}
+  ? {t2 list this should call unknown} "unknown"
+}

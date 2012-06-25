@@ -4020,6 +4020,18 @@ nsf.c:
   accessible from all files using nsfInt.h
 - remove experimental code (backslash escaping for "," in parameter 
   option parse
+
+nsf.c:
+
+- added a SlotContainerCmdResolver() to avoid interaction of slot
+  names with names of callable tcl commands. Without the
+  SlotContainerCmdResolver() the call to "list" in a property named
+  "list" leads to a call to the container object ::Test2::slot::list
+  instead to the intended ::list. The implementation is not perfect,
+  since it ignores the namespace path inside the slot container.
+- added regression test.
+
+
 ========================================================================
 TODO:
 

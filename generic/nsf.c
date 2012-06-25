@@ -260,6 +260,7 @@ static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object,
 					  CONST char *name);
 static Tcl_Namespace *RequireObjNamespace(Tcl_Interp *interp, NsfObject *object);
 static int NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName);
+static void NSNamespaceDeleteProc(ClientData clientData);
 static void NSNamespacePreserve(Tcl_Namespace *nsPtr);
 static void NSNamespaceRelease(Tcl_Namespace *nsPtr);
 
@@ -3879,10 +3880,11 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *U
   CallFrame *varFramePtr;
   int frameFlags;
 
-  /*fprintf(stderr, "InterpColonCmdResolver %s flags %.6x\n", cmdName, flags);*/
+  /* fprintf(stderr, "InterpColonCmdResolver %s flags %.6x\n", cmdName, flags); */
 
   if (likely((*cmdName == ':' && *(cmdName + 1) == ':') || flags & TCL_GLOBAL_ONLY)) {
     /* fully qualified names and global lookups are not for us */
+    /*fprintf(stderr, "... not for us %s flags %.6x\n", cmdName, flags);*/
     return TCL_CONTINUE;
   }
 
@@ -3983,6 +3985,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *U
  *
  *********************************************************/
 
+
 /*
  *----------------------------------------------------------------------
  * NsfNamespaceInit --
@@ -4008,9 +4011,11 @@ NsfNamespaceInit(Tcl_Namespace *nsPtr) {
    * acquiring the namespace. Works for object-scoped commands/procs
    * and object-only ones (set, unset, ...)
    */
-  Tcl_SetNamespaceResolvers(nsPtr, /*(Tcl_ResolveCmdProc *)NsColonCmdResolver*/ NULL,
+  Tcl_SetNamespaceResolvers(nsPtr, 
+			    (Tcl_ResolveCmdProc *)NULL,
                             NsColonVarResolver,
-                            /*(Tcl_ResolveCompiledVarProc *)NsCompiledColonVarResolver*/NULL);
+                            (Tcl_ResolveCompiledVarProc *)NULL);
+
 #if defined(NSF_WITH_INHERIT_NAMESPACES)
   /*
    * In case there is a namespace path set for the parent namespace,
@@ -4034,6 +4039,57 @@ NsfNamespaceInit(Tcl_Namespace *nsPtr) {
   }
 #endif
 }
+
+/*
+ *----------------------------------------------------------------------
+ * SlotContainerCmdResolver --
+ *
+ *    This is a specialized cmd resolver for slotcontainer.  The command
+ *    resolver should be registered for a namespace and avoids the lookup of
+ *    childobjs for unqualified calls. This way, it is e.g. possible to call
+ *    in a slot-obj a method [list], even in cases, where a a property "list"
+ *    is defined.
+ *
+ * Results:
+ *    either TCL_CONTINUE or TCL_OK;
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+SlotContainerCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
+
+  if (*cmdName == ':' || (flags & TCL_GLOBAL_ONLY)) {
+    /* colon names (InterpColonCmdResolver) and global lookups are not for us */
+    return TCL_CONTINUE;
+  }
+  /*fprintf(stderr, "DotCmdResolver called with %s ns %s ourNs %d\n", 
+    cmdName, nsPtr->fullName, nsPtr->deleteProc == NSNamespaceDeleteProc);*/
+  
+  /* 
+   * Check, if this already a namespace handled by NSF 
+   */
+  if (nsPtr->deleteProc == NSNamespaceDeleteProc && nsPtr->clientData) {
+    NsfObject *parentObject = (NsfObject *) nsPtr->clientData;
+    /* 
+     * Make global lookups when the parent is a slotcontainer
+     */
+    /* parentObject = (NsfObject *) GetObjectFromString(interp, nsPtr->fullName);*/
+    if ((parentObject->flags & NSF_IS_SLOT_CONTAINER)) {
+      Tcl_Command cmd = Tcl_FindCommand(interp, cmdName, NULL, TCL_GLOBAL_ONLY);
+      
+      if (cmd) {
+	*cmdPtr = cmd;
+	return TCL_OK;
+      }
+    }
+  }
+  
+  return TCL_CONTINUE;
+ }
 
 /*
  *----------------------------------------------------------------------
@@ -18464,15 +18520,15 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
  */
 
 static int 
-SetBooleanFlag(Tcl_Interp *interp, unsigned int *flagsPtr, unsigned int flag, Tcl_Obj *valueObj) {
-  int bool, result;
+SetBooleanFlag(Tcl_Interp *interp, unsigned int *flagsPtr, unsigned int flag, Tcl_Obj *valueObj, int *flagValue) {
+  int result;
   
   assert(flagsPtr);
-  result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
+  result = Tcl_GetBooleanFromObj(interp, valueObj, flagValue);
   if (result != TCL_OK) {
     return result;
   }
-  if (bool) {
+  if (*flagValue) {
     *flagsPtr |= flag;
   } else {
     *flagsPtr &= ~flag;
@@ -19510,9 +19566,25 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       }
       flag = NSF_IS_SLOT_CONTAINER;
       if (valueObj) {
-	int result = SetBooleanFlag(interp, &containerObject->flags, flag, valueObj);
+	int flagValue;
+	int result = SetBooleanFlag(interp, &containerObject->flags, flag, valueObj, &flagValue);
+
 	if (result != TCL_OK) {
 	  return result;
+	}
+	assert(containerObject->nsPtr);
+	if (flagValue) {
+	  /* turn on SlotContainerCmdResolver */
+	  Tcl_SetNamespaceResolvers(containerObject->nsPtr, 
+				    (Tcl_ResolveCmdProc *)SlotContainerCmdResolver,
+				    NsColonVarResolver,
+				    (Tcl_ResolveCompiledVarProc *)NULL);
+	} else {
+	  /* turn off SlotContainerCmdResolver */
+	  Tcl_SetNamespaceResolvers(containerObject->nsPtr, 
+				    (Tcl_ResolveCmdProc *)NULL,
+				    NsColonVarResolver,
+				    (Tcl_ResolveCompiledVarProc *)NULL);
 	}
       }
       Tcl_SetIntObj(Tcl_GetObjResult(interp), (containerObject->flags & flag) != 0);
@@ -19859,7 +19931,8 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, 
 
   if (valueObj) {
     if (likely(allowSet)) {
-      int result = SetBooleanFlag(interp, &object->flags, flags, valueObj);
+      int flagValue;
+      int result = SetBooleanFlag(interp, &object->flags, flags, valueObj, &flagValue);
       if (result != TCL_OK) {
 	return result;
       }
