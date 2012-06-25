@@ -747,18 +747,6 @@ classes and Ruby&#8217;s mixin modules.  The example shows that the
 dynamic class structure of NX (and XOTcl) is able to support
 <em>Ruby-style mixins</em> (called modules) and <em>decorator style mixins</em>
 (named after the design pattern Decorator) at the same time.</p></div>
-<div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-keyword'>package</span> req nx</pre></div></div>
 <div class="paragraph"><p>One important difference between mixin classes in NX and Ruby&#8217;s
 mixins is the precedence order. While in NX, mixins are decorators
 (the mixins have higher precedence than the intrinsic classes,
@@ -782,7 +770,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>eval</span> {
+<pre class='nx'><span class='nx-keyword'>package</span> req nx
+
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>eval</span> {
   <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>method</span> module {name<span class='nx-keyword'>:class</span>} {
     <span class='nx-keyword'>:configure</span> -superclass [<span class='nx-keyword'>concat</span> <span class='nx-variable'>$name</span> [<span class='nx-keyword'>:info</span> <span class='nx-keyword'>superclass</span>]]
   }
@@ -1126,7 +1116,7 @@ support Ruby-style mixins, and decorator style mixins at the same time.</p></div
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-05-21 11:21:58 CEST
+Last updated 2012-06-05 14:09:02 CEST
 </div>
 </div>
 </body>

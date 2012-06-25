@@ -5,7 +5,6 @@
 # _Ruby-style mixins_ (called modules) and _decorator style mixins_
 # (named after the design pattern Decorator) at the same time.
 
-package req nx
 package req nx::test
 nx::Test parameter count 1
 
@@ -24,6 +23,8 @@ nx::Test parameter count 1
 # this is via multiple inheritance (i.e. via the +superclass+
 # relationship).
 #
+package req nx
+
 nx::Class eval {
   :protected method module {name:class} {
     :configure -superclass [concat $name [:info superclass]]

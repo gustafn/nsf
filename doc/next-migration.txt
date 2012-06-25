@@ -1,8 +1,7 @@
-Migration Guide for the the Next Scripting Language
+Migration Guide for the Next Scripting Language
 ====================================================
 Gustaf Neumann <neumann@wu-wien.ac.at>
 v2.1, March 2011:
-Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
 :toclevels: 3
