@@ -20622,7 +20622,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       case RelationtypeClass_mixinIdx:
         return clopt ? MixinInfo(interp, clopt->classMixins, NULL, 1, NULL) : TCL_OK;
       case RelationtypeClass_filterIdx:
-        return objopt ? FilterInfo(interp, clopt->classFilters, NULL, 1, 0) : TCL_OK;
+        return clopt ? FilterInfo(interp, clopt->classFilters, NULL, 1, 0) : TCL_OK;
       }
     }
 
@@ -20748,19 +20748,27 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       break;
     }
 
-  case RelationtypeObject_filterIdx:
+  case RelationtypeObject_filterIdx: 
+    {
+      NsfCmdList *newFilterCmdList = NULL;
 
-    if (objopt->objFilters) {
-      CmdListFree(&objopt->objFilters, GuardDel);
-    }
-    object->flags &= ~NSF_FILTER_ORDER_VALID;
-    for (i = 0; i < oc; i ++) {
-      if (FilterAdd(interp, &objopt->objFilters, ov[i], object, 0) != TCL_OK) {
-        return TCL_ERROR;
+      for (i = 0; i < oc; i ++) {
+	if (FilterAdd(interp, &newFilterCmdList, ov[i], object, 0) != TCL_OK) {
+	  CmdListFree(&newFilterCmdList, GuardDel);
+	  return TCL_ERROR;
+	}
       }
+      
+      if (objopt->objFilters) {
+	CmdListFree(&objopt->objFilters, GuardDel);
+      }
+
+      object->flags &= ~NSF_FILTER_ORDER_VALID;
+      objopt->objFilters = newFilterCmdList;
+
+      /*FilterComputeDefined(interp, object);*/
+      break;
     }
-    /*FilterComputeDefined(interp, object);*/
-    break;
 
   case RelationtypeClass_mixinIdx:
     {
@@ -20808,22 +20816,31 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       break;
     }
 
-  case RelationtypeClass_filterIdx:
+  case RelationtypeClass_filterIdx: 
+    {
+      NsfCmdList *newFilterCmdList = NULL;
 
-    if (clopt->classFilters) {
-      CmdListFree(&clopt->classFilters, GuardDel);
-    }
-    if (FiltersDefined(interp) > 0) {
-      NsfClasses *subClasses = TransitiveSubClasses(cl);
-      FilterInvalidateObjOrders(interp, cl, subClasses);
-      NsfClassListFree(subClasses);
-    }
-    for (i = 0; i < oc; i ++) {
-      if (FilterAdd(interp, &clopt->classFilters, ov[i], 0, cl) != TCL_OK) {
-        return TCL_ERROR;
+      for (i = 0; i < oc; i ++) {
+	if (FilterAdd(interp, &newFilterCmdList, ov[i], 0, cl) != TCL_OK) {
+	  CmdListFree(&newFilterCmdList, GuardDel);
+	  return TCL_ERROR;
+	}
       }
+
+      if (clopt->classFilters) {
+	CmdListFree(&clopt->classFilters, GuardDel);
+      }
+      
+      if (FiltersDefined(interp) > 0) {
+	NsfClasses *subClasses = TransitiveSubClasses(cl);
+	FilterInvalidateObjOrders(interp, cl, subClasses);
+	NsfClassListFree(subClasses);
+      }
+
+      clopt->classFilters = newFilterCmdList;
+
+      break;
     }
-    break;
 
   }
   NsfRelationCmd(interp, object, relationtype, NULL);

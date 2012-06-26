@@ -394,7 +394,7 @@ nx::Test case callable {
     nx::Class create Foo
     ? {Foo method f args ::nx::next} "::nsf::classes::Foo::f"
     ? {Foo method f2 args ::nx::next} "::nsf::classes::Foo::f2"
-    ? {Foo filter {f f2}} ""
+    ? {Foo filter {f f2}} "f f2"
     ? {Foo info filter methods} "f f2"
     ? {Foo filter guard f {2 == 2}} ""
     ? {Foo info filter guard f} "2 == 2"

@@ -151,6 +151,62 @@ Test case mixin-add {
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
 }
 
+Test case filter-relation {
+  nx::Class create CC {
+    :public method filterA args {next}
+    :public method filterB args {next}
+    :public class method filterC args {next}
+    :create cc {
+      :public method filterD args {next}
+    }
+  }
+
+  ? {::nsf::relation cc object-filter} ""
+  ? {cc info filter methods} ""
+  ? {::nsf::relation cc object-filter filterA} filterA
+  ? {cc info filter methods} "filterA"
+  ? {cc filter filterB} "filterB" 
+  ? {::nsf::relation cc object-filter} "filterB"
+  ? {cc info filter methods} "filterB"
+  ? {cc filter add filterD} "filterD filterB"
+  ? {::nsf::relation cc object-filter} "filterD filterB"
+  ? {cc info filter methods} "filterD filterB"
+  ? {cc filter delete filterB} "filterD"
+  ? {::nsf::relation cc object-filter} "filterD"
+  ? {cc info filter methods} "filterD"
+  ? {catch {::nsf::relation cc object-filter UNKNOWN}} 1
+  ? {::nsf::relation cc object-filter} "filterD"
+  ? {cc info filter methods} "filterD"
+
+  ? {::nsf::relation CC object-filter} ""
+  ? {CC class info filter methods} ""
+  ? {::nsf::relation CC object-filter filterC} "filterC"
+  ? {::nsf::relation CC object-filter} "filterC"
+  ? {CC class info filter methods} "filterC"
+  ? {::nsf::relation CC object-filter ""} ""
+  ? {::nsf::relation CC object-filter} ""
+  ? {CC class info filter methods} ""
+  
+  ? {::nsf::relation CC class-filter} ""
+  ? {CC info filter methods} ""
+  ? {::nsf::relation CC class-filter filterA} "filterA"
+  ? {::nsf::relation CC class-filter} "filterA"
+  ? {CC info filter methods} "filterA"
+  ? {CC filter add filterB} "filterB filterA"
+  ? {::nsf::relation CC class-filter} "filterB filterA"
+  ? {CC info filter methods} "filterB filterA"
+  ? {CC filter delete filterA} "filterB"
+  ? {::nsf::relation CC class-filter} "filterB"
+  ? {CC info filter methods} "filterB"
+  ? {catch {::nsf::relation CC class-filter UNKNOWN}} 1
+  ? {::nsf::relation CC class-filter} "filterB"
+  ? {CC info filter methods} "filterB"
+  ? {::nsf::relation CC class-filter ""} ""
+  ? {::nsf::relation CC class-filter} ""
+  ? {CC info filter methods} ""
+}
+
+
 Test parameter count 3
 Test case "filter-and-creation" {
   Class create Foo {
