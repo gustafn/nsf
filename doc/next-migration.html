@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.7" />
-<title>Migration Guide for the the Next Scripting Language</title>
+<title>Migration Guide for the Next Scripting Language</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -737,12 +737,12 @@ asciidoc.install(3);
 </head>
 <body class="article">
 <div id="header">
-<h1>Migration Guide for the the Next Scripting Language</h1>
+<h1>Migration Guide for the Next Scripting Language</h1>
 <span id="author">Gustaf Neumann</span><br />
 <span id="email"><tt>&lt;<a href="mailto:neumann@wu-wien.ac.at">neumann@wu-wien.ac.at</a>&gt;</tt></span><br />
 <span id="revnumber">version 2.1,</span>
 <span id="revdate">March 2011</span>
-<br /><span id="revremark">Written for the Initial Release of the Next Scripting Framework.</span>
+<br /><span id="revremark"></span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -6866,8 +6866,8 @@ Bar b1</pre></div></div>
 </div>
 <div class="sect3">
 <h4 id="_changing_classes_and_superclasses">3.2.3. Changing classes and superclasses</h4>
-<div class="paragraph"><p>NX does not define the methods <tt>class</tt> and <tt>superclass</tt> but allows to
-alter the class/superclass via <tt>configure</tt>. The class and superclass
+<div class="paragraph"><p>NX does not define the methods <tt>class</tt> and <tt>superclass</tt> (like XOTcl), but allows to
+alter all object/class relations (including class/superclass/object-mixin/&#8230;) <tt>nsf::relation</tt>. The class and superclass
 can be certainly queried in all variants with <tt>info class</tt> or <tt>info superclass</tt>.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -6884,11 +6884,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Foo
 Foo <span class='nx-keyword'>create</span> f1
-<span class='nx-comment'># now alter the class of object f1
-</span>f1 <span class='nx-keyword'>configure</span> -class <span class='nx-keyword'>nx::Object</span>
 
-<span class='nx-comment'># alternate approach via Next Scripting Framework
-</span>::nsf::relation f1 <span class='nx-keyword'>class</span> ::nx::Object</pre></div></div>
+<span class='nx-comment'># now alter the class of object f1
+</span>nsf::relation f1 <span class='nx-keyword'>class</span> ::nx::Object</pre></div></div>
 </div>
 <div class="sect3">
 <h4 id="_overwriting_procs_methods_with_objects_and_vice_versa">3.2.4. Overwriting procs/methods with objects and vice versa</h4>
@@ -6950,7 +6948,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2012-05-22 09:11:34 CEST
+Last updated 2012-07-11 09:35:06 CEST
 </div>
 </div>
 </body>
