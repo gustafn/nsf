@@ -452,8 +452,7 @@ p2 append salary 9
 ? {p2 salary} 1009
 
 Person slots {
-  Attribute create sex -type "sex" -convert true {
-    :public method type=sex {name value} {
+  Attribute create sex -type "sex" -convert true -proc type=sex {name value} {
       #puts stderr "[self] slot specific converter"
       switch -glob $value {
         m* {return m}
@@ -461,7 +460,6 @@ Person slots {
         default {error "expected sex but got $value"}
       }
     }
-  }
 }
 Person p3 -sex male
 ? {p3 sex} m
@@ -522,13 +520,11 @@ Rectangle r0 -color pink -contains {
 nx::Test case assign-via-slots
 
 Class create A -slots {
-  Attribute create foo -default 1 {
-    :public method assign {domain var value} {
-      if {$value < 0 || $value > 99} {
-        error "$value is not in the range of 0 .. 99"
-      }
-      $domain set $var $value
+  Attribute create foo -default 1 -proc  assign {domain var value} {
+    if {$value < 0 || $value > 99} {
+      error "$value is not in the range of 0 .. 99"
     }
+    $domain set $var $value
   }
 }
 
@@ -617,6 +613,25 @@ p2 projects delete some-other-value
 
 ? {catch {p2 name add BOOM!}} 1
 ? {p2 name} "John Doe"
+
+#
+# 3) -proc inline statements upon Attribute creation
+#    (as found in the tutorial)
+#
+
+Class create AA -slots {
+    Attribute foo -default 1 -proc assign {domain var value} {
+	if {$value < 0 || $value > 99} {
+	    error "$value is not in the range of 0 .. 99"
+	}  
+	$domain set $var $value
+    }
+}
+
+AA create aa1
+? {aa1 foo 10} 10
+? {aa1 foo} 10
+? {catch {aa1 foo -1}} 1
 
 exit
 

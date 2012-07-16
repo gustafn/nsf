@@ -1337,6 +1337,141 @@ nx::Test case slot-traces {
   ? {d1 c 5} 999
 }
 
+nx::Test case slot-trace-interaction {
+  #
+  # 1) Verify the controlled interactions between trace types
+  #
+  # per-object:
+  #
+
+  package req nx::serializer
+
+  Object create o 
+
+  ? {o eval {info exists :a}} 0
+  ? {o property {a 0} {
+    set :defaultcmd {set _ 4}
+  }} "defaultcmd can't be used together with default value"
+
+  ? {o eval {info exists :a}} 0
+
+  ? {o eval {info exists :b}} 0
+  ? {o property {b 0} {
+    set :valuecmd {set _ 44}
+  }} "valuecmd can't be used together with default value"
+  ? {o eval {info exists :b}} 0
+
+  ? {o eval {info exists :c}} 0
+  ? {o property c {
+    set :defaultcmd {set _ 4}
+    set :valuecmd {set _ 44}
+  }} "valuecmd can't be used together with defaultcmd"
+  ? {o eval {info exists :c}} 0
+  
+  #
+  # valuechangedcmd + default value are allowed
+  #
+
+  ? {o eval {info exists :a}} 0
+  o property {a 0} {
+    set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
+  }
+  ? {o eval {info exists :a}} 1
+
+  ? {o a} 1
+  ? {o a 1} 2
+  ? {o a} 2
+  ? {o a 2} 3
+
+  # per-class:
+
+  Class create Klass
+  
+  ? {Klass property {a 0} {
+    set :defaultcmd {set _ 4}
+  }} "defaultcmd can't be used together with default value"
+
+  ? {Klass property {b 0} {
+    set :valuecmd {set _ 44}
+  }} "valuecmd can't be used together with default value"
+
+  ? {Klass property c {
+    set :defaultcmd {set _ 4}
+    set :valuecmd {set _ 44}
+  }} "valuecmd can't be used together with defaultcmd"
+
+  Klass property {a 0} {
+    set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
+  }
+
+  #
+  # TODO: Right now, the per-object traces *do* fire upon setting the
+  # default value; the per-class traces won't ... this should be
+  # symmetric, either way ...
+  #
+  
+  Klass create k
+  ? {k eval {info exists :a}} 1
+  ? {k a} 0; # should be 1, reflecting the corresponding per-object case above
+  ? {k a 1} 2
+  ? {k a} 2
+  ? {k a 2} 3
+
+  #
+  # 2) Have initcmd scripts escaped from C-level argument checking (in
+  # the per-class check)
+  #
+  # a) against scalar checkers (as a simplistic case)
+
+  Klass property b:boolean {
+    set :valuechangedcmd {set _ tr1e}
+  }
+ 
+  ? {catch {Klass create kk}} 0
+  
+  #
+  # b) Structured trace scripts, containing lists. Check for
+  # brace balancedness ...
+  # 
+  # Background: Script blocks passed as initcmds should not be
+  # subjected to *any* argument checking. This was not guaranteed,
+  # previously. As a result, for example, upon multivalued argument
+  # checking (e.g., 0..n) the argument (i.e., the initcmd block) was
+  # tentatively expanded into a Tcl list. This failed for initcmd
+  # scripts which do not qualify as valid list structures (a condition
+  # not to be enforced).
+  #
+  # Below, we introduce three tests capturing the unwanted
+  # interaction, now fixed. Note: This issue only affects
+  # class-wide initcmds, as in the per-object case, the initcmds are
+  # evaluated right away and not fiddled through the parameter handling
+  # infrastructure.
+  ::nx::Class create CC {
+    :property a:0..n {
+      set :defaultcmd {
+  	if 1 {
+  	  set _ 4
+  	}
+      } 
+    }
+    
+    :property b:0..n {set :valuecmd {if 1 {set _ 44}} }
+    :property c:0..n {
+      set :valuechangedcmd {
+	if 1 {
+	  ::nsf::var::set $obj $var 999
+	}
+      }
+    }
+    :create ::cc
+  }
+
+  ? {cc a} 4
+  ? {cc b} 44
+  ? {cc c 5} 999
+  
+}
+
 ::nsf::configure checkarguments off
 nx::Test case check-arguments-nocheck {
 

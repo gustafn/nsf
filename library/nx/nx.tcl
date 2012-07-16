@@ -1243,8 +1243,11 @@ namespace eval ::nx {
       set options [:getParameterOptions -withMultiplicity true -forObjectParameter true]
       if {[info exists :initcmd]} {
 	lappend options initcmd
-	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] ${:initcmd}]
-	
+	if {[info exists :default]} {
+	  append initcmd "::nsf::var::set \[::nsf::self\] ${:name} ${:default};\n"
+	}
+	append initcmd ${:initcmd}
+	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initcmd]
       } elseif {[info exists :default]} {
 	# deactivated for now: || [string first {$} ${:default}] > -1
 	if {[string match {*\[*\]*} ${:default}]} {
@@ -1540,7 +1543,6 @@ namespace eval ::nx {
     {accessor true}
     {type}
     {settername}
-
     valuecmd
     defaultcmd
     valuechangedcmd
