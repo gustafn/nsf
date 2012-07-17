@@ -968,12 +968,12 @@ namespace eval ::xotcl {
       }
     }
     # provide minimal compatibility
-    :public forward proc %self public method
+    :public alias proc ::nsf::classes::xotcl::Object::proc
     :public method exists {var} {::nsf::var::exists [self] $var}
     :public method istype {class} [::nx::Object info method body ::nsf::classes::xotcl::Object::istype]
     :public alias set -frame object ::set
     :public alias residualargs ::nsf::methods::object::residualargs
-    :public alias instvar  ::nsf::methods::object::instvar
+    :public alias instvar ::nsf::methods::object::instvar
   }
 
   #
