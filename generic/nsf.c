@@ -16412,11 +16412,12 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
   *outObjPtr = objPtr;
 
   /*
-   * If argument checking is turned off, and we do not have an converter, do
-   * nothing.
+   * Omit argument checking, provided that ...
+   * ... argument checking is turned off *and* no converter is specified, or
+   * ... the ruling parameter option is 'initcmd'
    */
-  if (unlikely(doCheck == 0) && (pPtr->flags & (NSF_ARG_IS_CONVERTER|NSF_ARG_INITCMD)) == 0) {
-    /*fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n", pPtr->name, pPtr->flags);*/
+  if ((unlikely(doCheck == 0) && (pPtr->flags & (NSF_ARG_IS_CONVERTER)) == 0) || (pPtr->flags & (NSF_ARG_INITCMD))) {
+    /* fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n", pPtr->name, pPtr->flags); */
     *clientData = ObjStr(objPtr);
     return TCL_OK;
   }

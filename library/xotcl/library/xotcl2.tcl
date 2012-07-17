@@ -919,15 +919,38 @@ namespace eval ::xotcl {
       if {[info exists :parameter]} {my ::nsf::classes::xotcl::Class::parameter ${:parameter}}
       next
     }
-    # provide minimal compatibility
+
     :public forward instproc %self public method
     :public forward proc %self public class method
+
     #
     # As NX/XOTcl hybrids, all slot kinds would not inherit the
     # unknown behaviour of ::xotcl::Class. Therefore, we provide it
     # explicitly to slots for backward compatibility ...
     #
     :public alias unknown ::nsf::classes::xotcl::Class::unknown
+    :public method objectparameter {} {
+      set parameterdefinitions [list]
+      set slots [nsf::directdispatch [self] \
+		     ::nsf::methods::class::info::slotobjects \
+		     -closure -type ::nx::Slot]
+      foreach slot $slots {
+	#
+	# Skip any positional object parameters (i.e., __initcmd)
+	# which are not backward compatible with the XOTcl slots
+	# interface ...
+	#
+	if {[$slot eval {
+	  expr {[info exists :positional] && ${:positional}}
+	}]} continue;
+	lappend parameterdefinitions [$slot getParameterSpec]
+      }
+      #
+      # Add the XOTcl-specific handling of residual varargs
+      #
+      lappend parameterdefinitions args:alias,method=residualargs,args
+      return $parameterdefinitions
+    }
   }
 
   #
@@ -944,9 +967,13 @@ namespace eval ::xotcl {
 	return [$object eval [list :isMultivalued]]
       }
     }
+    # provide minimal compatibility
+    :public forward proc %self public method
     :public method exists {var} {::nsf::var::exists [self] $var}
     :public method istype {class} [::nx::Object info method body ::nsf::classes::xotcl::Object::istype]
     :public alias set -frame object ::set
+    :public alias residualargs ::nsf::methods::object::residualargs
+    :public alias instvar  ::nsf::methods::object::instvar
   }
 
   #
