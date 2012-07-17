@@ -1244,7 +1244,8 @@ namespace eval ::nx {
       if {[info exists :initcmd]} {
 	lappend options initcmd
 	if {[info exists :default]} {
-	  append initcmd "::nsf::var::set \[::nsf::self\] ${:name} ${:default};\n"
+	  # append initcmd "[::nsf::self] setCheckedInstVar -nocomplain \[::nsf::self\] [list ${:default}]\n"
+	  append initcmd "::nsf::var::set \[::nsf::self\] ${:name} [list ${:default}]\n"
 	}
 	append initcmd ${:initcmd}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initcmd]
@@ -1548,15 +1549,24 @@ namespace eval ::nx {
     valuechangedcmd
   }
 
-  ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch value} {
-    if {[::nsf::var::exists ${:domain} ${:name}] && !$nocomplain} {
-      error "object ${:domain} has already an instance variable named '${:name}'"
+  ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch object value} {
+    
+    if {[::nsf::var::exists $object ${:name}] && !$nocomplain} {
+      error "object $object has already an instance variable named '${:name}'"
     }
     set options [:getParameterOptions -withMultiplicity true]
-    if {[llength $options] > 0} {
+    if {[llength $options]} {
       ::nsf::is -complain [join $options ,] $value
     }
-    ::nsf::var::set ${:domain} ${:name} ${:default}
+    
+    set traces [::nsf::directdispatch $object -frame object ::trace info variable ${:name}]
+    foreach trace $traces { 
+      lassign $trace ops cmdPrefix
+      ::nsf::directdispatch $object -frame object ::trace remove variable ${:name} $ops $cmdPrefix
+      append restore "[list ::nsf::directdispatch $object -frame object ::trace add variable ${:name} $ops $cmdPrefix]\n"
+    }
+    ::nsf::var::set $object ${:name} ${:default}
+    if {[info exists restore]} { {*}$restore }
   }
 
   ::nx::VariableSlot protected method getParameterOptions {
@@ -1657,7 +1667,7 @@ namespace eval ::nx {
     unset -nocomplain :parameterSpec
     :makeAccessor
     if {${:per-object} && [info exists :default]} {
-      :setCheckedInstVar -nocomplain=[info exists :nocomplain] ${:default}
+      :setCheckedInstVar -nocomplain=[info exists :nocomplain] ${:domain} ${:default}
     }
     if {[::nsf::is class ${:domain}]} {
       ::nsf::invalidateobjectparameter ${:domain}
@@ -1862,7 +1872,7 @@ namespace eval ::nx {
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
 
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
-    if {[info exists defaultValue]} {$slot setCheckedInstVar -nocomplain=$nocomplain $defaultValue}
+    if {[info exists defaultValue]} {$slot setCheckedInstVar -nocomplain=$nocomplain [self] $defaultValue}
 
     if {[$slot eval {info exists :settername}]} {
       set name [$slot settername]

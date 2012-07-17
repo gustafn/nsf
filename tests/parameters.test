@@ -1378,11 +1378,10 @@ nx::Test case slot-trace-interaction {
   }
   ? {o eval {info exists :a}} 1
 
-  ? {o a} 1
+  ? {o a} 0
   ? {o a 1} 2
   ? {o a} 2
   ? {o a 2} 3
-
   # per-class:
 
   Class create Klass
@@ -1403,13 +1402,7 @@ nx::Test case slot-trace-interaction {
   Klass property {a 0} {
     set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
   }
-
-  #
-  # TODO: Right now, the per-object traces *do* fire upon setting the
-  # default value; the per-class traces won't ... this should be
-  # symmetric, either way ...
-  #
-  
+ 
   Klass create k
   ? {k eval {info exists :a}} 1
   ? {k a} 0; # should be 1, reflecting the corresponding per-object case above
