@@ -4022,7 +4022,6 @@ nsf.c:
   option parse
 
 nsf.c:
-
 - added a SlotContainerCmdResolver() to avoid interaction of slot
   names with names of callable tcl commands. Without the
   SlotContainerCmdResolver() the call to "list" in a property named
@@ -4030,6 +4029,11 @@ nsf.c:
   instead to the intended ::list. The implementation is not perfect,
   since it ignores the namespace path inside the slot container.
 - added regression test.
+
+nsf.c:
+- ignore in internall calls to "dealloc" protection settings
+- handle cyclical class dependencies during object system finalize
+- extend regression test
 
 
 ========================================================================

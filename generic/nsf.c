@@ -2912,7 +2912,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
     NsfObject *object = (NsfObject *)entryPtr->clorobj;
 
     /*fprintf(stderr, "key = %s %p %d flags %.6x\n",
-	    ObjectName(object), object, object && !NsfObjectIsClass(object), object->flags);*/
+      ObjectName(object), object, object && !NsfObjectIsClass(object), object->flags);*/
 
     if (object && !NsfObjectIsClass(object)
         && !(object->flags & NSF_DESTROY_CALLED)) {
@@ -21988,7 +21988,8 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
     } else {
       /*fprintf(stderr, "call dealloc\n");*/
       result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object->cl, methodObj,
-				     object->cmdName, 1, NULL, NSF_CSC_IMMEDIATE);
+				     object->cmdName, 1, NULL, 
+				     NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
       if (unlikely(result != TCL_OK)) {
         /*
 	 * In case, the call of the dealloc method has failed above (e.g. NS_DYING),
@@ -24424,7 +24425,34 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
     /*fprintf(stderr, "deleted %d Classes\n", deleted);*/
 
     if (deleted == 0) {
-      break;
+      int reclassed = 0;
+
+      /* 
+       * Final check. If there are no cyclical dependencies, we should have now
+       * just the the base classes left. If this is not the case, reclass the
+       * remaining objects to their base classes.
+       */
+      for (entry = *instances, lastEntry = NULL;
+	   entry;
+	   lastEntry = entry, entry = entry->nextPtr) {
+	NsfObject *object = (NsfObject *)entry->clorobj;
+	NsfClass *baseClass;
+	NsfObjectSystem *osPtr;
+
+	if (NsfObjectIsClass(object) && IsBaseClass(object)) {
+	  continue;
+	} 
+	
+	osPtr = GetObjectSystem(object);
+	baseClass = NsfObjectIsClass(object) ? osPtr->rootMetaClass : osPtr->rootClass;
+	ChangeClass(interp, object, baseClass);
+	reclassed ++;
+      }
+      /*fprintf(stderr, "We have reclassed %d objects\n", reclassed);*/
+
+      if (reclassed == 0) {
+	break;
+      }
     }
   }
 }
