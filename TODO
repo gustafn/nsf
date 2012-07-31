@@ -4039,6 +4039,13 @@ nsf.c:
 - handle cyclical superclassclass dependencies during object system finalize
 - extend regression test
 
+nx.tcl:
+- set multiplicty for mixins and filters by default from 1..n to 0..n
+  to avoid error messages, when e.g. empty mixin lists are configured.
+  Setting emtpy mixin-lists is strictly speaking not necessary,
+  but this eases the code in cases the lists are sometimes empty.
+
+
 ========================================================================
 TODO:
 

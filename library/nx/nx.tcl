@@ -1322,7 +1322,7 @@ namespace eval ::nx {
 
   createBootstrapVariableSlots ::nx::RelationSlot {
     {accessor true}
-    {multiplicity 1..n}
+    {multiplicity 0..n}
   }
 
   RelationSlot protected method init {} {
