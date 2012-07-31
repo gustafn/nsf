@@ -4035,6 +4035,9 @@ nsf.c:
 - handle cyclical class dependencies during object system finalize
 - extend regression test
 
+nsf.c:
+- handle cyclical superclassclass dependencies during object system finalize
+- extend regression test
 
 ========================================================================
 TODO:

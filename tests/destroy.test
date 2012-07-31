@@ -993,3 +993,20 @@ nx::Object create o1
 nx::Class create o1::C
 nsf::relation o1 class o1::C
 
+#
+# Create a cyclical superclass dependency and delete it manually
+#
+nx::Test case cyclical-dependency {
+  nx::Class create C 
+  nx::Class create C::*
+  ? {nsf::relation C superclass {C::* nx::Object}} ""
+  C destroy
+}
+
+#
+# Create a cyclical superclass dependency and let it be deleted on
+# object-system-cleanup
+#
+nx::Class create C 
+nx::Class create C::*
+nsf::relation C superclass {C::* nx::Object}

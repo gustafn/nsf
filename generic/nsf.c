@@ -24428,9 +24428,10 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
       int reclassed = 0;
 
       /* 
-       * Final check. If there are no cyclical dependencies, we should have now
-       * just the the base classes left. If this is not the case, reclass the
-       * remaining objects to their base classes.
+       * Final check. If there are no cyclical dependencies, we should have
+       * now just the the base classes left. If this is not the case, reclass
+       * the remaining objects to their base classes, and set the superclasses
+       * to the most general superclass.
        */
       for (entry = *instances, lastEntry = NULL;
 	   entry;
@@ -24444,9 +24445,32 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
 	} 
 	
 	osPtr = GetObjectSystem(object);
+
+	/*
+	 * For classes, check the superclass hierarchy.
+	 */
+	if (NsfObjectIsClass(object)) {
+	  NsfClass *cl = (NsfClass *)object;
+	  NsfClasses *sc;
+
+	  for (sc = cl->super; sc; sc = sc->nextPtr) {
+	    if (sc->cl != osPtr->rootClass) {
+	      Tcl_Obj *objectName = osPtr->rootClass->object.cmdName;
+	      SuperclassAdd(interp, cl, 1, &objectName, objectName, cl->object.cl);
+	      reclassed ++;
+	      break;
+	    }
+	  }
+	}
+
+	/* 
+	 * In all cases, straigthen the class to the base case.
+	 */
 	baseClass = NsfObjectIsClass(object) ? osPtr->rootMetaClass : osPtr->rootClass;
-	ChangeClass(interp, object, baseClass);
-	reclassed ++;
+	if (object->cl != baseClass) {
+	  ChangeClass(interp, object, baseClass);
+	  reclassed ++;
+	}
       }
       /*fprintf(stderr, "We have reclassed %d objects\n", reclassed);*/
 
