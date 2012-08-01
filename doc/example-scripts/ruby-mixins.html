@@ -734,25 +734,29 @@ asciidoc.install();
 <h1>Listing of doc/example-scripts/ruby-mixins.tcl</h1>
 </div>
 <div id="content">
-<div id="preamble">
+<div class="sect1">
+<h2 id="_design_study_to_show_the_differences_between_decorator_mixin_classes_and_ruby_8217_s_mixin_modules">Design study to show the differences between decorator mixin classes and Ruby&#8217;s mixin modules</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Design study to show differences between NX/XOTcl style mixin
-classes and Ruby&#8217;s mixin modules.  The example shows that the
-dynamic class structure of NX (and XOTcl) is able to support
-<em>Ruby-style mixins</em> (called modules) and <em>decorator style mixins</em>
-(named after the design pattern Decorator) at the same time.</p></div>
+<div class="paragraph"><p>This example shows that the dynamic class structure of NX (and
+XOTcl) is able to support <em>Ruby style mixins</em> (called modules) and
+<em>decorator style mixins</em> (named after the design pattern Decorator)
+in the same script.</p></div>
 <div class="paragraph"><p>One important difference between mixin classes in NX and Ruby&#8217;s
 mixins is the precedence order. While in NX, mixins are decorators
 (the mixins have higher precedence than the intrinsic classes,
 therefore a mixin class can overload the methods of the current
-class), the mixins of Ruby have a lower precedence (they extend the
-<em>base behavior</em>; although Ruby&#8217;s modules are not full classes, they
-are folded into the <em>intrinsic class hierarchy</em>).</p></div>
-<div class="paragraph"><p>We define the method <code>module</code>, which behaves somewhat similar to
-Ruby&#8217;s <code>module</code> command and adds the provided class to the
-precedence order after the current class. The easiest way to achieve
-this is via multiple inheritance (i.e. via the <code>superclass</code>
-relationship).</p></div>
+class and its subclasses), the mixins of Ruby have a lower
+precedence (they extend the <em>base behavior</em>; although Ruby&#8217;s modules
+are not full classes, they are folded into the <em>intrinsic class
+hierarchy</em>). Therefore, a Ruby style mixin can be refined by the
+class, into which it is mixed in (or by a subclass). Decorator style
+mixins modify the behavior of a full intrinsic class tree, while
+Ruby style mixins are compositional units for a single class.</p></div>
+<div class="paragraph"><p>To show the differences, we define the method <code>module</code>, which
+behaves somewhat similar to Ruby&#8217;s <code>module</code> command. This method
+adds the provided class to the precedence order after the current
+class. The easiest way to achieve this is via multiple inheritance
+(i.e. via the <code>superclass</code> relationship).</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -825,7 +829,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
     <span class='nx-keyword'>return</span> <span class='nx-variable'>$result</span>
   }
 }</pre></div></div>
-<div class="paragraph"><p>Create a class Group, which is essentially a subclass of "Enumerable".</p></div>
+<div class="paragraph"><p>After having defined the class <code>Enumerable</code>, we define a class
+<code>Group</code> using <code>Enumerable</code> as a Ruby style mixin. This makes
+essentially <code>Group</code> a subclass of <code>Enumerable</code>, but with the only
+difference that <code>Group</code> might have other superclasses as well.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1103,14 +1110,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 % s1 count
 alpha 4 omega</pre></div></div>
 <div class="paragraph"><p>This example showed that NX/XOTcl dynamic class structure is able to
-support Ruby-style mixins, and decorator style mixins at the same time.</p></div>
+support Ruby-style mixins, and decorator style mixins in the same script.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-08-01 19:16:32 CEST
+Last updated 2012-08-01 19:39:00 CEST
 </div>
 </div>
 </body>

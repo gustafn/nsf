@@ -1,9 +1,10 @@
 #
-# Design study to show differences between NX/XOTcl style mixin
-# classes and Ruby's mixin modules.  The example shows that the
-# dynamic class structure of NX (and XOTcl) is able to support
-# _Ruby-style mixins_ (called modules) and _decorator style mixins_
-# (named after the design pattern Decorator) at the same time.
+# == Design study to show the differences between decorator mixin classes and Ruby's mixin modules
+#
+# This example shows that the dynamic class structure of NX (and
+# XOTcl) is able to support _Ruby style mixins_ (called modules) and
+# _decorator style mixins_ (named after the design pattern Decorator)
+# in the same script.
 
 package req nx::test
 nx::Test parameter count 1
@@ -13,15 +14,19 @@ nx::Test parameter count 1
 # mixins is the precedence order. While in NX, mixins are decorators
 # (the mixins have higher precedence than the intrinsic classes,
 # therefore a mixin class can overload the methods of the current
-# class), the mixins of Ruby have a lower precedence (they extend the
-# _base behavior_; although Ruby's modules are not full classes, they
-# are folded into the _intrinsic class hierarchy_).
+# class and its subclasses), the mixins of Ruby have a lower
+# precedence (they extend the _base behavior_; although Ruby's modules
+# are not full classes, they are folded into the _intrinsic class
+# hierarchy_). Therefore, a Ruby style mixin can be refined by the
+# class, into which it is mixed in (or by a subclass). Decorator style
+# mixins modify the behavior of a full intrinsic class tree, while
+# Ruby style mixins are compositional units for a single class.
 #
-# We define the method +module+, which behaves somewhat similar to
-# Ruby's +module+ command and adds the provided class to the
-# precedence order after the current class. The easiest way to achieve
-# this is via multiple inheritance (i.e. via the +superclass+
-# relationship).
+# To show the differences, we define the method +module+, which
+# behaves somewhat similar to Ruby's +module+ command. This method
+# adds the provided class to the precedence order after the current
+# class. The easiest way to achieve this is via multiple inheritance
+# (i.e. via the +superclass+ relationship).
 #
 package req nx
 
@@ -77,7 +82,10 @@ nx::Class create Enumerable {
   }
 }
 
-# Create a class Group, which is essentially a subclass of "Enumerable".
+# After having defined the class +Enumerable+, we define a class
+# +Group+ using +Enumerable+ as a Ruby style mixin. This makes
+# essentially +Group+ a subclass of +Enumerable+, but with the only
+# difference that +Group+ might have other superclasses as well.
 nx::Class create Group {
   #
   # Include the "module" Enumerable
@@ -212,4 +220,4 @@ nx::Class create SpecialForce -superclass ATeam {
 ? {s1 count} {alpha 4 omega}
 
 # This example showed that NX/XOTcl dynamic class structure is able to
-# support Ruby-style mixins, and decorator style mixins at the same time.
+# support Ruby-style mixins, and decorator style mixins in the same script.
