@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.7" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>Listing of doc/example-scripts/ruby-mixins.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -415,12 +419,6 @@ div.unbreakable { page-break-inside: avoid; }
  *
  * */
 
-tt {
-  font-family: "Courier New", Courier, monospace;
-  font-size: inherit;
-  color: navy;
-}
-
 div.tableblock {
   margin-top: 1.0em;
   margin-bottom: 1.5em;
@@ -453,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: "Courier New", Courier, monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -539,6 +531,8 @@ body.manpage div.sectionbody {
 @media print {
   body.manpage div#toc { display: none; }
 }
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -754,10 +748,10 @@ therefore a mixin class can overload the methods of the current
 class), the mixins of Ruby have a lower precedence (they extend the
 <em>base behavior</em>; although Ruby&#8217;s modules are not full classes, they
 are folded into the <em>intrinsic class hierarchy</em>).</p></div>
-<div class="paragraph"><p>We define the method <tt>module</tt>, which behaves somewhat similar to
-Ruby&#8217;s <tt>module</tt> command and adds the provided class to the
+<div class="paragraph"><p>We define the method <code>module</code>, which behaves somewhat similar to
+Ruby&#8217;s <code>module</code> command and adds the provided class to the
 precedence order after the current class. The easiest way to achieve
-this is via multiple inheritance (i.e. via the <tt>superclass</tt>
+this is via multiple inheritance (i.e. via the <code>superclass</code>
 relationship).</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -774,13 +768,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>eval</span> {
   <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>method</span> module {name<span class='nx-keyword'>:class</span>} {
-    <span class='nx-keyword'>:configure</span> -superclass [<span class='nx-keyword'>concat</span> <span class='nx-variable'>$name</span> [<span class='nx-keyword'>:info</span> <span class='nx-keyword'>superclass</span>]]
+    nsf::relation [<span class='nx-keyword'>self</span>] <span class='nx-keyword'>superclass</span> [<span class='nx-keyword'>concat</span> <span class='nx-variable'>$name</span> [<span class='nx-keyword'>:info</span> <span class='nx-keyword'>superclass</span>]]
   }
 }</pre></div></div>
-<div class="paragraph"><p>For illustration of the behavior of <tt>module</tt> we define a class
-<tt>Enumerable</tt> somewhat inspired by the Ruby module with the same
-name. We define here just the methods <tt>map</tt>, <tt>each</tt>, <tt>count</tt>, and
-<tt>count_if</tt>.</p></div>
+<div class="paragraph"><p>For illustration of the behavior of <code>module</code> we define a class
+<code>Enumerable</code> somewhat inspired by the Ruby module with the same
+name. We define here just the methods <code>map</code>, <code>each</code>, <code>count</code>, and
+<code>count_if</code>.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -849,7 +843,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  <span class='nx-comment'>#
 </span>  :module Enumerable
 }</pre></div></div>
-<div class="paragraph"><p>Define now a group <tt>g1</tt> with the three provided members.</p></div>
+<div class="paragraph"><p>Define now a group <code>g1</code> with the three provided members.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -863,8 +857,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'>% Group <span class='nx-keyword'>create</span> g1 -members {mini trix trax}
 ::g1</pre></div></div>
-<div class="paragraph"><p>Since the definition of <tt>Group</tt> includes the module <tt>Enumerable</tt>,
-this class is listed in the precedence order after the class <tt>Group</tt>:</p></div>
+<div class="paragraph"><p>Since the definition of <code>Group</code> includes the module <code>Enumerable</code>,
+this class is listed in the precedence order after the class <code>Group</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -878,7 +872,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'>% g1 <span class='nx-keyword'>info</span> precedence
 ::Group ::Enumerable ::nx::Object</pre></div></div>
-<div class="paragraph"><p>Certainly, we can call the methods of <tt>Enumerable</tt> as usual:</p></div>
+<div class="paragraph"><p>Certainly, we can call the methods of <code>Enumerable</code> as usual:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -898,10 +892,10 @@ pre-mini-post pre-trix-post pre-trax-post
 
 % g1 count_if x {[<span class='nx-keyword'>string</span> match tr*x <span class='nx-variable'>$x</span>] &gt; 0}
 2</pre></div></div>
-<div class="paragraph"><p>To show the difference between a <tt>module</tt> and a <tt>decorator mixin</tt> we
-define a class named <tt>Mix</tt> with the single method <tt>count</tt>, which
-wraps the result of the underlaying <tt>count</tt> method between the
-<tt>alpha</tt> and <tt>omega</tt>.</p></div>
+<div class="paragraph"><p>To show the difference between a <code>module</code> and a <code>decorator mixin</code> we
+define a class named <code>Mix</code> with the single method <code>count</code>, which
+wraps the result of the underlaying <code>count</code> method between the
+<code>alpha</code> and <code>omega</code>.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -918,7 +912,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
     <span class='nx-keyword'>return</span> [<span class='nx-keyword'>list</span> alpha [<span class='nx-keyword'>next</span>] omega]
   }
 }</pre></div></div>
-<div class="paragraph"><p>When the mixin class is added to <tt>g1</tt>, it is added to the front of
+<div class="paragraph"><p>When the mixin class is added to <code>g1</code>, it is added to the front of
 the precedence list. A decorator is able to modify the behavior of
 all of the methods of the class, where it is mixed into.</p></div>
 <div class="listingblock">
@@ -957,18 +951,18 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 ::Group ::Enumerable ::nx::Object</pre></div></div>
 <div class="paragraph"><p>An important difference between NX/XOTcl style mixins (decorators)
 and Ruby style modules is that the decorator will have always a
-higher precedence than the intrinsic classes, while the <tt>module</tt> is
+higher precedence than the intrinsic classes, while the <code>module</code> is
 folded into the precedence path.</p></div>
-<div class="paragraph"><p>Define a class <tt>ATeam</tt> that uses <tt>Enumerable</tt> in the style of a Ruby
+<div class="paragraph"><p>Define a class <code>ATeam</code> that uses <code>Enumerable</code> in the style of a Ruby
 module. The class might refine some of the provided methods. We
-refined the method <tt>each</tt>, which is used as well by the other
-methods. In general, by defining <tt>each</tt> one can define very
+refined the method <code>each</code>, which is used as well by the other
+methods. In general, by defining <code>each</code> one can define very
 different kind of enumerators (for lists, databases, etc.).</p></div>
-<div class="paragraph"><p>Since <tt>Enumerable</tt> is a module, the definition of <tt>each</tt> in the
-class <tt>ATeam</tt> has a higher precedence than the definition in the
-class <tt>Enumerable</tt>. If <tt>Enumerable</tt> would be a decorator style mixin
+<div class="paragraph"><p>Since <code>Enumerable</code> is a module, the definition of <code>each</code> in the
+class <code>ATeam</code> has a higher precedence than the definition in the
+class <code>Enumerable</code>. If <code>Enumerable</code> would be a decorator style mixin
 class, it would not e possible to refine the definition in the class
-<tt>ATeam</tt>, but maybe via another mixin class.</p></div>
+<code>ATeam</code>, but maybe via another mixin class.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1003,7 +997,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
     <span class='nx-keyword'>return</span> [:map x {<span class='nx-keyword'>string</span> totitle <span class='nx-variable'>$x</span>}]
   }
 }</pre></div></div>
-<div class="paragraph"><p>Define now a team <tt>t1</tt> with the three provided members.</p></div>
+<div class="paragraph"><p>Define now a team <code>t1</code> with the three provided members.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1017,9 +1011,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'>% ATeam <span class='nx-keyword'>create</span> t1 -members {arthur bill chuck}
 ::t1</pre></div></div>
-<div class="paragraph"><p>As above, the precedence of <tt>ATeam</tt> is higher than the precedence of
-<tt>Enumerable</tt>. Therefore, the object <tt>t1</tt> uses the method <tt>each</tt> specialized in
-class <tt>ATeam</tt>:</p></div>
+<div class="paragraph"><p>As above, the precedence of <code>ATeam</code> is higher than the precedence of
+<code>Enumerable</code>. Therefore, the object <code>t1</code> uses the method <code>each</code> specialized in
+class <code>ATeam</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1036,7 +1030,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 % t1 foo
 Arthur-6 Bill-4 Chuck-5</pre></div></div>
-<div class="paragraph"><p>The class <tt>ATeam</tt> can be specialized further by a class <tt>SpecialForce</tt>:</p></div>
+<div class="paragraph"><p>The class <code>ATeam</code> can be specialized further by a class <code>SpecialForce</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1051,7 +1045,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> SpecialForce -superclass ATeam {
   <span class='nx-comment'># ...
 </span>}</pre></div></div>
-<div class="paragraph"><p>Define a special force <tt>s1</tt> with the four provided members.</p></div>
+<div class="paragraph"><p>Define a special force <code>s1</code> with the four provided members.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1065,10 +1059,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'>% SpecialForce <span class='nx-keyword'>create</span> s1 -members {Donald Micky Daniel Gustav}
 ::s1</pre></div></div>
-<div class="paragraph"><p>As above, the precedence of <tt>Enumerable</tt> is lower then the
-precedence of <tt>ATeam</tt> and <tt>Enumerable</tt>. Therefore <tt>ATeam</tt> can refine
-the behavior of <tt>Enumerable</tt>, the class <tt>SpecialForce</tt> can refine
-the behavior of <tt>ATeam</tt>.</p></div>
+<div class="paragraph"><p>As above, the precedence of <code>Enumerable</code> is lower then the
+precedence of <code>ATeam</code> and <code>Enumerable</code>. Therefore <code>ATeam</code> can refine
+the behavior of <code>Enumerable</code>, the class <code>SpecialForce</code> can refine
+the behavior of <code>ATeam</code>.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1086,9 +1080,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 % s1 foo
 Donald-6 Micky-5 Daniel-6 Gustav-6</pre></div></div>
 <div class="paragraph"><p>Let us look again on decorator style mixin classes. If we add a
-per-class mixin to <tt>ATeam</tt>, the mixin class has highest precedence,
-and decorates the instances of <tt>ATeam</tt> as well the instances of its
-specializations (like e.g. <tt>SpecialForce</tt>).</p></div>
+per-class mixin to <code>ATeam</code>, the mixin class has highest precedence,
+and decorates the instances of <code>ATeam</code> as well the instances of its
+specializations (like e.g. <code>SpecialForce</code>).</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1116,7 +1110,7 @@ support Ruby-style mixins, and decorator style mixins at the same time.</p></div
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-06-05 14:09:02 CEST
+Last updated 2012-08-01 19:16:32 CEST
 </div>
 </div>
 </body>

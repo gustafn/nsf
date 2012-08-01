@@ -27,7 +27,7 @@ package req nx
 
 nx::Class eval {
   :protected method module {name:class} {
-    :configure -superclass [concat $name [:info superclass]]
+    nsf::relation [self] superclass [concat $name [:info superclass]]
   }
 }
 
