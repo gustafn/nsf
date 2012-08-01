@@ -474,11 +474,17 @@ shell: binaries libraries
 gdb:
 	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
 
-test: binaries libraries test-core test-xotcl test-http @test_actiweb@
+test: binaries libraries test-core test-xotcl test-http @test_actiweb@ test-summary
 test-nohttp: binaries libraries test-core test-xotcl
 
-#TESTFLAGS = -srcdir $(srcdir)
+TESTLOG   = ./test.log
+TESTFLAGS = -testlog $(TESTLOG)
+
+test-summary:
+	$(TCLSH) $(src_test_dir_native)/summary.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+
 test-core: $(TCLSH_PROG)
+	rm -f $(TESTLOG)
 	$(TCLSH) $(src_test_dir_native)/object-system.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/destroy.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/methods.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)

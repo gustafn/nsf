@@ -31,7 +31,30 @@ namespace eval ::nx {
     :property pre 
     :property post
 
-    set :count 0
+    :class variable success 0
+    :class variable failure 0
+    :class variable testfile ""
+    :class variable count 0
+
+    :public class method success {} {
+      incr :success
+    }
+    :public class method failure {} {
+      incr :failure
+    }
+    :public class method destroy {} {
+      lappend msg \
+	  file [file rootname [file tail ${:testfile}]] \
+	  tests [expr {${:success} + ${:failure}}] \
+	  success ${:success} \
+	  failure ${:failure}
+      puts "Summary: $msg"
+      array set "" $::argv
+      if {[info exists (-testlog)]} {
+	set f [open $(-testlog) a]; puts $f $msg; close $f
+      }
+      next
+    }
 
     :public class method case {name arg:optional} {
       #
@@ -70,6 +93,7 @@ namespace eval ::nx {
 
     :public class method new args {
       set testfile [file rootname [file tail [info script]]]
+      set :testfile $testfile
       if {[info exists :case]} {
 	if {![info exists :ccount(${:case})]} {set :ccount(${:case}) 0}
 	set :name $testfile/${:case}.[format %.3d [incr :ccount(${:case})]]
@@ -114,15 +138,20 @@ namespace eval ::nx {
 	  #puts stderr "running {time {::namespace eval ${:namespace} ${:cmd}} $c} => $r1"
 	  regexp {^(-?[0-9]+) +} $r1 _ mS1
 	  set ms [expr {($mS1 - $mS0) * 1.0 / $c}]
+	  # if for some reason the run of the test is faster than the
+	  # body-less eval, don't report negative values.
+	  if {$ms < 0} {set ms 0.0}
 	  puts stderr "[set :name]:\t[format %6.2f $ms]\tmms, ${:msg} (overhead [format %.2f [expr {$mS0*1.0/$c}]])"
 	} else {
 	  puts stderr "[set :name]: ${:msg} ok"
 	}
+	::nx::Test success
       } else {
 	puts stderr "[set :name]:\tincorrect result for '${:msg}', expected:"
 	puts stderr "'${:expected}', got\n'$r'"
 	puts stderr "\tin test file [info script]"
 	if {[info exists :errorReport]} {eval [set :errorReport]}
+	::nx::Test failure
 	#
 	# Make sure that the script exits with an error code, but
 	# unwind the callstack via return with an error code.  Using

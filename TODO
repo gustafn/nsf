@@ -4045,6 +4045,9 @@ nx.tcl:
   Setting emtpy mixin-lists is strictly speaking not necessary,
   but this eases the code in cases the lists are sometimes empty.
 
+nx::test:
+- added summary at the end of "make test" via log file
+- updated .gitignore
 
 ========================================================================
 TODO:
