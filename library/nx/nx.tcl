@@ -2130,7 +2130,7 @@ namespace eval ::nx {
           # copy class information
           if {[::nsf::is class $origin]} {
 	    # obj is a class, copy class specific information
-            $obj configure -superclass [$origin info superclass]
+            ::nsf::relation $obj superclass [$origin info superclass]
             ::nsf::method::assertion $obj class-invar [::nsf::method::assertion $origin class-invar]
 	    ::nsf::relation $obj class-filter [::nsf::relation $origin class-filter]
 	    ::nsf::relation $obj class-mixin [::nsf::relation $origin class-mixin]
@@ -2257,7 +2257,7 @@ namespace eval ::nx {
           set scl [$subclass info superclass]
           if {[set index [lsearch -exact $scl [::nsf::self]]] != -1} {
             set scl [lreplace $scl $index $index $newName]
-	    $subclass configure -superclass $scl
+	    ::nsf::relation $subclass superclass $scl
           }
         }	
       }
