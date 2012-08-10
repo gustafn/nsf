@@ -35,6 +35,7 @@ nx::Class create SimpleContainer {
   # container.
   :public method new {args} {
     set item [${:memberClass} create [:]::[:autoname ${:prefix}] {*}$args]
+    return $item
   }
 }
 
