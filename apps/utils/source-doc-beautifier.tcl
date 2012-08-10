@@ -65,16 +65,19 @@ foreach file $argv {
   set outfn [file rootname $file].txt
   set out [open $outfn w]
 
-  foreach line {
+  set title "Listing of $file"
+  regexp {^# = (.+?)\n(.*)$} $content _ title content
+
+  foreach ignorePattern {
     "package req nx::test"
     "package require nx::test"
     "nx::Test parameter count 1"
     "proc ! args.*?"
   } {
-    regsub "$line\s?\n" $content "" content
+    regsub "$ignorePattern\s?\n" $content "" content
   }
 
-  puts $::out "= Listing of $file\n"
+  puts $::out "= $title\n"
   foreach line [split $content \n] {
     if {[regexp {^# ?(.*)$} $line _ comment]} {
       output line doc $comment
