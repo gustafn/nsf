@@ -907,8 +907,8 @@ namespace eval ::xotcl {
   ::nsf::method::create ::xotcl::Class -per-object __unknown {name} {}
   ::nsf::object::unknown::add xotcl {::xotcl::Class __unknown}
 
-  proc myproc {args} {linsert $args 0 [::xotcl::self]}
-  proc myvar  {var}  {:requireNamespace; return [::xotcl::self]::$var}
+  proc myproc {args} {linsert $args 0 [uplevel ::nsf::self]}
+  proc myvar  {var}  {[uplevel ::nsf::self] requireNamespace; return [uplevel ::nsf::self]::$var}
 
   #
   # create ::xotcl::MetaSlot for better compatibility with XOTcl 1
