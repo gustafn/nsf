@@ -40,8 +40,8 @@ package provide nx::trait 0.3
 namespace eval ::nx::trait {}
 
 #
-# nx::trait::provide and nx::trait::require implement the basic
-# loading mechanism for traits
+# nx::trait::provide and nx::trait::require implement a basic
+# auto-loading mechanism for traits
 #
 nsf::proc nx::trait::provide {traitName script} {
   set ::nsf::traitIndex($traitName) [list script $script]
@@ -132,8 +132,8 @@ nx::Class public method "require class trait" {traitName {nameMap ""}} {
 nx::Object public method "require trait" {traitName {nameMap ""}} {
   # adding a trait to an object
   nx::trait::require $traitName
-  nx::traitCheckObject [self] $traitName
-  nx::traitAdd [self] -per-object $traitName $nameMap
+  nx::trait::checkObject [self] $traitName
+  nx::trait::add [self] -per-object $traitName $nameMap
 }
 
 #
