@@ -5,7 +5,7 @@
 #	This file is used to generate the nxDecls.h, nxPlatDecls.h,
 #	nxStub.c, and nxPlatStub.c files.
 #	
-# Copyright (C) 1999-2011 Gustaf Neumann
+# Copyright (C) 1999-2012 Gustaf Neumann
 # Copyright (C) 1999-2007 Uwe Zdun
 #
 # 

@@ -4,8 +4,8 @@
 #      Implementation of the XOTcl 2 object systen, based
 #      on the Next Scripting Framework
 #
-# Copyright (C) 2010-2011 Gustaf Neumann
-# Copyright (C) 2010-2011 Stefan Sobernig
+# Copyright (C) 2010-2012 Gustaf Neumann
+# Copyright (C) 2010-2012 Stefan Sobernig
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files

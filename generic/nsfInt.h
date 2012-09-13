@@ -4,7 +4,7 @@
  *      Declarations of the internally used API Functions of the Next
  *      Scripting Framework.
  *
- *  Copyright (C) 1999-2011 Gustaf Neumann
+ *  Copyright (C) 1999-2012 Gustaf Neumann
  *  Copyright (C) 1999-2007 Uwe Zdun
  *  Copyright (C) 2011 Stefan Sobernig
  *

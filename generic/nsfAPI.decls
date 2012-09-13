@@ -4,7 +4,7 @@
 # same directory. It is also used by the nx::doc toolkit to generate
 # the authorative language reference documents.
 #
-#   Copyright (C) 2009-2011 Gustaf Neumann
+#   Copyright (C) 2009-2012 Gustaf Neumann
 #
 
 # namespaces for types of methods

@@ -3,7 +3,7 @@
  *
  *      Utility functions of the Next Scripting Framework.
  *
- * Copyright (c) 2001-2011 Gustaf Neumann
+ * Copyright (c) 2001-2012 Gustaf Neumann
  * Copyright (c) 2001-2007 Uwe Zdun
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

@@ -4066,6 +4066,8 @@ nx.tcl:
 - from these methods, only __objectparameter is defined per default,
   the others are defined on demand
 
+- updated 34 copyright notices
+
 ========================================================================
 TODO:
 - handling of method names in nsfAPI.h. The following

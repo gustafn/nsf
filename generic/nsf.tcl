@@ -4,7 +4,7 @@
 # the Next Scripting Framework. This file will be transformed by
 # mk_predefined.tcl into "predefined.h", which in included in nsf.c.
 #
-#   Copyright (C) 2009-2011 Gustaf Neumann
+#   Copyright (C) 2009-2012 Gustaf Neumann
 #   Copyright (C) 2010 Stefan Sobernig
 #
 

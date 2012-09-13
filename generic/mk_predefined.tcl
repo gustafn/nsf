@@ -3,7 +3,7 @@
 # A small script file that creates a static array from a Tcl-
 # script for inclusion in c programs
 #
-#   Copyright (C) 2010-2011 Gustaf Neumann
+#   Copyright (C) 2010-2012 Gustaf Neumann
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
