@@ -55,7 +55,7 @@ namespace eval ::nx {
     -class.dealloc {dealloc ::nsf::methods::class::dealloc}
     -class.objectparameter objectparameter
     -class.recreate {recreate ::nsf::methods::class::recreate}
-    -object.configure configure
+    -object.configure __configure
     -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod}
     -object.destroy destroy
     -object.init {init ::nsf::methods::object::init}
@@ -73,7 +73,7 @@ namespace eval ::nx {
   # provide the standard command set for ::nx::Object
   #
   ::nsf::method::alias Object volatile  ::nsf::methods::object::volatile
-  ::nsf::method::alias Object configure ::nsf::methods::object::configure
+#  ::nsf::method::alias Object configure ::nsf::methods::object::configure
   ::nsf::method::alias Object upvar     ::nsf::methods::object::upvar
   ::nsf::method::alias Object destroy   ::nsf::methods::object::destroy
   ::nsf::method::alias Object uplevel   ::nsf::methods::object::uplevel
@@ -128,7 +128,7 @@ namespace eval ::nx {
   ::nsf::method::provide alloc     {::nsf::method::alias alloc     ::nsf::methods::class::alloc}
   ::nsf::method::provide dealloc   {::nsf::method::alias dealloc   ::nsf::methods::class::dealloc}
   ::nsf::method::provide recreate  {::nsf::method::alias recreate  ::nsf::methods::class::recreate}
-  ::nsf::method::provide configure {::nsf::method::alias configure ::nsf::methods::object::configure}
+  ::nsf::method::provide __configure {::nsf::method::alias __configure ::nsf::methods::object::configure}
   ::nsf::method::provide unknown   {::nsf::method::alias unknown   ::nsf::methods::object::unknown}
 
   #

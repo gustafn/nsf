@@ -99,7 +99,7 @@ namespace eval ::xotcl {
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "setter" "requirenamespace"]} continue
+    if {$cmdName in {"setter" "requirenamespace"}} continue
     ::nsf::method::alias Object $cmdName $cmd
   }
 
@@ -1129,7 +1129,7 @@ namespace eval ::xotcl {
 
     :public class method extend {name args} {
       :require $name
-	$name configure {*}$args
+      $name configure {*}$args
     }
 
     :public class method contains script {

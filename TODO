@@ -4049,6 +4049,10 @@ nx::test:
 - added summary at the end of "make test" via log file
 - updated .gitignore
 
+nx.tcl:
+- rename nx::Object.configure to nx::Object.__configure
+  to free method name "configure" for an e.g. tk-like configure
+
 ========================================================================
 TODO:
 

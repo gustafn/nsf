@@ -294,7 +294,7 @@ nx::Test case reclass {
 
   ? {c1 info lookup slots -source application} "::C::slot::a ::C::slot::b ::C::slot::c"
 
-  c1 configure -class nx::Object
+  nsf::relation c1 class nx::Object
 
   ? {c1 info lookup slots -source application} ""
   
@@ -378,7 +378,7 @@ nx::Test case passed-arguments {
   
   ? {D create d1} \
       {required argument 'd' is missing, should be:
-	::d1 configure -d ?-a value? ?-b boolean? ?-c value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+	::d1 __configure -d ?-a value? ?-b boolean? ?-c value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
   
   ? {D create d2 -d x -b a} \
       {expected boolean but got "a" for parameter "-b"} \
@@ -940,13 +940,13 @@ nx::Test case substdefault-objparam {
 #
 nx::Test case parameter-alias-default {
 
-  ::nsf::method::require nx::Object configure
+  ::nsf::method::require nx::Object __configure
   nx::Class create C {
     :property {a ""}
     :property {b 1}
 
     :method init {} {
-      :configure -b 1
+      :__configure -b 1
     }
     :create c1
     :create c2 -a 0
@@ -1610,7 +1610,7 @@ nx::Test case dont-reset-to-defaults {
   ? {c1 a 2} 2
   ? {c1 a} 2
   # call configure ...
-  c1 configure
+  c1 __configure
   # ... and check, it did not reset the value to the default
   ? {c1 a} 2
 }
@@ -1853,7 +1853,7 @@ nx::Test case parameter-object-mixin-dependency {
   #
   ::nsf::invalidateobjectparameter C
 
-  c1 configure -a1 x
+  c1 __configure -a1 x
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
 
