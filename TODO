@@ -4053,19 +4053,25 @@ nsf.c
 - rename nx::Object.configure to nx::Object.__configure
   to free method name "configure" for an e.g. tk-like configure
 - refactored code to allow to parameterize handling of required flag for parameters
-- 
+- don't flag an error when configure is called on an initialized object 
+  (logic: if the object is initialized, configure must have been called
+   before, and the required action must have been already taken).
 
-doCheckArguments
-
-#define NSF_ARGPARSE_CHECK		     0x0001
-#define NSF_ARGPARSE_FORCE_REQUIRED	     0x0002
-#define NSF_ARGPARSE_METHOD_PUSH	     0x0100
-#define NSF_ARGPARSE_BUILTIN	     	     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
-
-
+nx.tcl:
+- rename the following internally called methods (not for XOTcl).
+     alloc -> __alloc
+     dealloc -> __dealloc
+     objectparameter -> __objectparameter
+     recrate -> __recreate
+- from these methods, only __objectparameter is defined per default,
+  the others are defined on demand
 
 ========================================================================
 TODO:
+- handling of method names in nsfAPI.h. The following
+  ? {o __alloc x} {method __alloc not dispatched on valid class}
+  should be
+  ? {o __alloc x} {method alloc not dispatched on valid class}
 
 - document "private property"
 

@@ -125,6 +125,6 @@ nx::Test case parent-require {
 nx::Test case method-require-scope {
 
   nx::Object create o
-  ::nsf::method::require o alloc
-  ? {o alloc x} {method alloc not dispatched on valid class}
+  ::nsf::method::require o __alloc
+  ? {o __alloc x} {method alloc not dispatched on valid class}
 }

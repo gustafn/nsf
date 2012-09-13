@@ -28,7 +28,7 @@ nx::Test case basics {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       return ${:objectparams} 
     }
     :setObjectParams ""
@@ -326,7 +326,7 @@ nx::Test case dispo-multiplicities {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       return ${:objectparams} 
     }
     :public method foo {args} {
@@ -389,7 +389,7 @@ nx::Test case dispo-returns {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       return ${:objectparams} 
     }
   }
@@ -456,7 +456,7 @@ nx::Test case dispo-callstack {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       return ${:objectparams} 
     }
   }
@@ -517,7 +517,7 @@ nx::Test case dispo-callstack {
 
   Callee public class method run {} {
     set self [self]
-    set objparams [:objectparameter]
+    set objparams [:__objectparameter]
     #
     # The ? helper by default performs a [namespace eval] in the ::
     # namespace, so the uplevel|upvar would happen in a different,
@@ -627,7 +627,7 @@ nx::Test case alias-noarg {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       return ${:objectparams} 
     }
     :public method foo {args} {
@@ -771,7 +771,7 @@ nx::Test case alias-noarg {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       return ${:objectparams} 
     }
   }
@@ -789,7 +789,7 @@ nx::Test case alias-args {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       return ${:objectparams} 
     }
     :public method Residualargs args {
@@ -882,7 +882,7 @@ nx::Test case alias-init {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       return ${:objectparams} 
     }
     :method init {} {
@@ -906,7 +906,7 @@ nx::Test case submethods-via-aliasparams {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       if {[info exists :objectparams]} {
 	return ${:objectparams} 
       }
@@ -1111,7 +1111,7 @@ nx::Test case dispo-configure-transparency {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       if {[info exists :objectparams]} {
        return ${:objectparams} 
       }
@@ -1209,7 +1209,7 @@ nx::Test case dispo-object-targets {
       set :objectparams $spec
       ::nsf::invalidateobjectparameter [current]
     }
-    :class method objectparameter {} {
+    :class method __objectparameter {} {
       if {[info exists :objectparams]} {
        return ${:objectparams} 
       }

@@ -929,7 +929,7 @@ namespace eval ::xotcl {
     # explicitly to slots for backward compatibility ...
     #
     :public alias unknown ::nsf::classes::xotcl::Class::unknown
-    :public method objectparameter {} {
+    :public method __objectparameter {} {
       set parameterdefinitions [list]
       set slots [nsf::directdispatch [self] \
 		     ::nsf::methods::class::info::slotobjects \

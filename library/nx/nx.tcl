@@ -46,15 +46,15 @@ namespace eval ::nx {
   # First create the ::nx object system. The internally called methods,
   # which are not defined by in this script, must have method handles
   # included. The methods "create", "configure", "destroy", "move" and
-  # "objectparameter" are defined in this script (either scripted, or
-  # aliases).
+  # "__objectparameter" are defined in this script (either scripted, or
+  # via alias).
   #
   ::nsf::objectsystem::create ::nx::Object ::nx::Class {
-    -class.alloc {alloc ::nsf::methods::class::alloc}
+    -class.alloc {__alloc ::nsf::methods::class::alloc}
     -class.create create
-    -class.dealloc {dealloc ::nsf::methods::class::dealloc}
-    -class.objectparameter objectparameter
-    -class.recreate {recreate ::nsf::methods::class::recreate}
+    -class.dealloc {__dealloc ::nsf::methods::class::dealloc}
+    -class.objectparameter __objectparameter
+    -class.recreate {__recreate ::nsf::methods::class::recreate}
     -object.configure __configure
     -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod}
     -object.destroy destroy
@@ -125,11 +125,11 @@ namespace eval ::nx {
   #
   # Use method::provide for base methods in case they are overloaded
   # with scripted counterparts
-  ::nsf::method::provide alloc     {::nsf::method::alias alloc     ::nsf::methods::class::alloc}
-  ::nsf::method::provide dealloc   {::nsf::method::alias dealloc   ::nsf::methods::class::dealloc}
-  ::nsf::method::provide recreate  {::nsf::method::alias recreate  ::nsf::methods::class::recreate}
+  ::nsf::method::provide __alloc     {::nsf::method::alias __alloc     ::nsf::methods::class::alloc}
+  ::nsf::method::provide __dealloc   {::nsf::method::alias __dealloc   ::nsf::methods::class::dealloc}
+  ::nsf::method::provide __recreate  {::nsf::method::alias __recreate  ::nsf::methods::class::recreate}
   ::nsf::method::provide __configure {::nsf::method::alias __configure ::nsf::methods::object::configure}
-  ::nsf::method::provide unknown   {::nsf::method::alias unknown   ::nsf::methods::object::unknown}
+  ::nsf::method::provide unknown     {::nsf::method::alias unknown     ::nsf::methods::object::unknown}
 
   #
   # The method __resolve_method_path resolves a space separated path
@@ -321,7 +321,7 @@ namespace eval ::nx {
   # Provide a placeholder for objectparameter during the bootup
   # process. The real definition is based on slots, which are not
   # available at this point.
-  Class protected method objectparameter {} {;}
+  Class protected method __objectparameter {} {;}
 
   ######################################################################
   # Define forward methods
@@ -728,7 +728,7 @@ namespace eval ::nx {
       if {[info exists name]} {
 	return [: ::nsf::methods::class::info::objectparameter parameter $name]
       }
-      return [:objectparameter]
+      return [:__objectparameter]
     }
     :method "info parameter list" {name:optional} {
       set cmd [list ::nsf::methods::class::info::objectparameter list]
@@ -1290,7 +1290,7 @@ namespace eval ::nx {
   # Define objectparameter method
   ######################################################################
 
-  Class protected method objectparameter {} {
+  Class protected method __objectparameter {} {
     #
     # Collect the object parameter slots in per-position lists to
     # ensure partial ordering and avoid sorting.
