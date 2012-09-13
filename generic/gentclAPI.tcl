@@ -272,7 +272,7 @@ ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 $intro
   if (likely(ArgumentParse(interp, objc, objv, $obj, objv[0], 
                      method_definitions[$idx].paramDefs, 
-                     method_definitions[$idx].nrParameters, 0, 1,
+                     method_definitions[$idx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     $cDefs
 $pre

@@ -4049,9 +4049,20 @@ nx::test:
 - added summary at the end of "make test" via log file
 - updated .gitignore
 
-nx.tcl:
+nsf.c
 - rename nx::Object.configure to nx::Object.__configure
   to free method name "configure" for an e.g. tk-like configure
+- refactored code to allow to parameterize handling of required flag for parameters
+- 
+
+doCheckArguments
+
+#define NSF_ARGPARSE_CHECK		     0x0001
+#define NSF_ARGPARSE_FORCE_REQUIRED	     0x0002
+#define NSF_ARGPARSE_METHOD_PUSH	     0x0100
+#define NSF_ARGPARSE_BUILTIN	     	     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
+
+
 
 ========================================================================
 TODO:

@@ -287,18 +287,18 @@ NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object)
 /* prototypes for  parameter and argument management */
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl);
 static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
-                                  NsfObject *object, int pushFrame, NsfParamDefs *paramDefs,
+                                  NsfObject *object, int processFlags, NsfParamDefs *paramDefs,
                                   Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
 static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
-			  const char *argNamePrefix, int doCheck, Nsf_Param **paramPtrPtr);
+			  const char *argNamePrefix, int doCheckArguments, Nsf_Param **paramPtrPtr);
 static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs);
 static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs);
 static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
                          Nsf_Param CONST *paramPtr, int nrParameters, int serial,
-			 int doCheck, ParseContext *pc);
-static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int doCheck,
+			 int processFlags, ParseContext *pc);
+static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int doCheckArguments,
 			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr);
 static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  NsfObject **matchObject, CONST char **pattern);
@@ -9439,7 +9439,9 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 #if defined(NRE)
     pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
 #endif
-    result = ProcessMethodArguments(pcPtr, interp, object, 1, paramDefs, objv[0], objc, objv);
+    result = ProcessMethodArguments(pcPtr, interp, object, 
+				    NSF_ARGPARSE_METHOD_PUSH|NSF_ARGPARSE_FORCE_REQUIRED, 
+				    paramDefs, objv[0], objc, objv);
     cscPtr->objc = objc;
     cscPtr->objv = (Tcl_Obj **)objv;
 
@@ -12775,7 +12777,8 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     tov[0] = tcd->procName;
 
     /* If the argument parsing is ok, the shadowed proc will be called */
-    result = ProcessMethodArguments(pcPtr, interp, NULL, 0,
+    result = ProcessMethodArguments(pcPtr, interp, NULL, 
+				    NSF_ARGPARSE_FORCE_REQUIRED,
 				    tcd->paramDefs, objv[0],
 				    objc, tov);
 
@@ -12974,18 +12977,18 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
 static int
 ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
-                       NsfObject *object, int pushFrame, NsfParamDefs *paramDefs,
+                       NsfObject *object, int processFlags, NsfParamDefs *paramDefs,
                        Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]) {
   int result;
   CallFrame frame, *framePtr = &frame;
 
-  if (object && pushFrame) {
+  if (object && (processFlags & NSF_ARGPARSE_METHOD_PUSH)) {
     Nsf_PushFrameObj(interp, object, framePtr);
   }
 
   result = ArgumentParse(interp, objc, objv, object, methodNameObj,
                          paramDefs->paramsPtr, paramDefs->nrParams, paramDefs->serial,
-			 RUNTIME_STATE(interp)->doCheckArguments,
+			 processFlags|RUNTIME_STATE(interp)->doCheckArguments,
 			 pcPtr);
 #if 0
   {
@@ -12999,7 +13002,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
   }
 #endif
 
-  if (object && pushFrame) {
+  if (object && (processFlags & NSF_ARGPARSE_METHOD_PUSH)) {
     Nsf_PopFrameObj(interp, framePtr);
   }
 
@@ -16402,7 +16405,8 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST 
 }
 
 static int
-ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int doCheck,
+ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, 
+	      int doCheckArguments,
 	      int *flags, ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
 
@@ -16416,7 +16420,9 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
    * ... argument checking is turned off *and* no converter is specified, or
    * ... the ruling parameter option is 'initcmd'
    */
-  if ((unlikely(doCheck == 0) && (pPtr->flags & (NSF_ARG_IS_CONVERTER)) == 0) || (pPtr->flags & (NSF_ARG_INITCMD))) {
+  if ((unlikely((doCheckArguments & NSF_ARGPARSE_CHECK) == 0) 
+       && (pPtr->flags & (NSF_ARG_IS_CONVERTER)) == 0
+       ) || (pPtr->flags & (NSF_ARG_INITCMD))) {
     /* fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n", pPtr->name, pPtr->flags); */
     *clientData = ObjStr(objPtr);
     return TCL_OK;
@@ -16505,7 +16511,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
 
 static int
 ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
-                 Nsf_Param CONST *ifd, int nrParams) {
+                 Nsf_Param CONST *ifd, int nrParams, int processFlags) {
   Nsf_Param CONST *pPtr;
   int i;
 
@@ -16617,7 +16623,8 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	    pPtr->name, ObjStr(pPtr->defaultValue), pPtr->type);*/
 	  assert(pPtr->type ? pPtr->defaultValue == NULL : 1);
 	}
-      } else if (unlikely(pPtr->flags & NSF_ARG_REQUIRED)) {
+      } else if (unlikely(pPtr->flags & NSF_ARG_REQUIRED) 
+		 && (processFlags & NSF_ARGPARSE_FORCE_REQUIRED)) {
 	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(ifd);
 
         NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
@@ -16663,10 +16670,9 @@ EXTERN int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
-		  int doCheck,
-		  Nsf_ParseContext *pcPtr) {
+		  int processFlags, Nsf_ParseContext *pcPtr) {
   return ArgumentParse(interp, objc, objv, (NsfObject *)object, procNameObj,
-		       paramPtr, nrParams, serial, doCheck,
+		       paramPtr, nrParams, serial, processFlags,
 		       (ParseContext *)pcPtr);
 }
 
@@ -16683,7 +16689,7 @@ static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               NsfObject *object, Tcl_Obj *procNameObj,
               Nsf_Param CONST *paramPtr, int nrParams, int serial,
-	      int doCheck, ParseContext *pcPtr) {
+	      int processFlags, ParseContext *pcPtr) {
   int o, dashdash = 0, j;
   Nsf_Param CONST *currentParamPtr = paramPtr;
   Nsf_Param CONST *lastParamPtr = paramPtr + nrParams - 1;
@@ -16987,7 +16993,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      */
     assert(valueObj);
     
-    if (unlikely(ArgumentCheck(interp, valueObj, pPtr, doCheck,
+    if (unlikely(ArgumentCheck(interp, valueObj, pPtr, processFlags,
 			       &pcPtr->flags[j],
 			       &pcPtr->clientData[j],
 			       &pcPtr->objv[j]) != TCL_OK)) {
@@ -17073,7 +17079,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	  o, pcPtr->lastObjc, nrParams, o<objc, pcPtr->varArgs);
 #endif
 
-  return ArgumentDefaults(pcPtr, interp, paramPtr, nrParams);
+  return ArgumentDefaults(pcPtr, interp, paramPtr, nrParams, processFlags);
 }
 
 /***********************************
@@ -18896,9 +18902,9 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
 
   case ConfigureoptionCheckargumentsIdx:
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
-                      (RUNTIME_STATE(interp)->doCheckArguments));
+                      (RUNTIME_STATE(interp)->doCheckArguments) != 0);
     if (valueObj) {
-      RUNTIME_STATE(interp)->doCheckArguments = bool;
+      RUNTIME_STATE(interp)->doCheckArguments = bool ? NSF_ARGPARSE_CHECK : 0;
     }
     break;
   }
@@ -18954,8 +18960,8 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
 
     if (ArgumentParse(interp, nobjc, nobjv, NULL, nobjv[0],
 		      method_definitions[NsfMyCmdIdx].paramDefs,
-		      method_definitions[NsfMyCmdIdx].nrParameters, 0, 1,
-		      &pc) != TCL_OK) {
+		      method_definitions[NsfMyCmdIdx].nrParameters,
+		      0, NSF_ARGPARSE_BUILTIN, &pc) != TCL_OK) {
       return TCL_ERROR;
     }
 
@@ -21371,7 +21377,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
  * ParameterCheck --
  *
  *    Check the provided valueObj against the parameter specification provided
- *    in the second argument (paramObjPtr), when doCheck is true. This
+ *    in the second argument (paramObjPtr), when doCheckArguments is true. This
  *    function is used e.g. by nsf::is, where only the right hand side of a
  *    parameter specification (after the colon) is specified. The argument
  *    Name (before the colon in a parameter spec) is provided via
@@ -21389,7 +21395,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
 
 static int
 ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
-	       const char *argNamePrefix, int doCheck, Nsf_Param **paramPtrPtr) {
+	       const char *argNamePrefix, int doCheckArguments, Nsf_Param **paramPtrPtr) {
   Nsf_Param *paramPtr;
   NsfParamWrapper *paramWrapperPtr;
   Tcl_Obj *outObjPtr = NULL;
@@ -21417,7 +21423,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
   paramPtr = paramWrapperPtr->paramPtr;
   if (paramPtrPtr) *paramPtrPtr = paramPtr;
 
-  result = ArgumentCheck(interp, valueObj, paramPtr, doCheck, &flags, &checkedData, &outObjPtr);
+  result = ArgumentCheck(interp, valueObj, paramPtr, doCheckArguments, &flags, &checkedData, &outObjPtr);
   /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d can free %d flags %.6x\n",
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree, flags);*/
 
@@ -21603,25 +21609,24 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   for (i = 1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
 
     /*
-     * Set the new value always when the object is not yet initialized and the
-     * new value was specified (was not taken from the default value
-     * definition).  The second part of the test is needed to avoid
-     * overwriting with default values when e.g. "o configure" is called lated
-     * without arguments.
+     * Set the new value always when the new value was specified (was not
+     * taken from the default). When we take the default, we do not overwrite
+     * already existing values (which might have been set via parameter
+     * alias).
      */
     /*fprintf(stderr, "[%d] param %s, object init called %d is default %d value = '%s' nrArgs %d\n",
 	    i, paramPtr->name, (object->flags & NSF_INIT_CALLED),
 	    (pc.flags[i-1] & NSF_PC_IS_DEFAULT),
 	    ObjStr(pc.full_objv[i]), paramPtr->nrArgs);*/
 
-    if (/*(object->flags & NSF_INIT_CALLED) &&*/ (pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
-      Tcl_Obj *varObj;
-
+    if ((pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
       /*
        * Object parameter method calls (when the flag
        * NSF_ARG_METHOD_INVOCATION is set) do not set instance variables, so
        * we do not have to check for existing variables.
        */
+      Tcl_Obj *varObj;
+
       if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) == 0) {
 	varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
 	if (varObj) {
@@ -21634,6 +21639,32 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	  continue;
 	}
       }
+    } else if (unlikely(paramPtr->flags & NSF_ARG_REQUIRED 
+			&& pc.full_objv[i] == NsfGlobalObjs[NSF___UNKNOWN__]
+			&& (object->flags & NSF_INIT_CALLED) == 0)
+	       ) {
+      /*
+       * The checking for required arguments happens only, when the actual
+       * value is not the default, but the magic __UNKNOWN Tcl_Obj, and the
+       * object is not jet initialized. Logic behind this: if the object is
+       * initialized, configure must have been called before, and the required
+       * action must have been already taken).  We might change this to the
+       * overwriting logic like above, but we have as well to deal with
+       * aliases.
+       */
+	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(paramDefs->paramsPtr);
+
+        NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
+		      paramPtr->nameObj ? ObjStr(paramPtr->nameObj) : paramPtr->name,
+		      pc.object ? ObjectName(pc.object) : "",
+		      pc.object ? " " : "",
+		      ObjStr(pc.full_objv[0]),
+		      ObjStr(paramDefsObj));
+	DECR_REF_COUNT2("paramDefsObj", paramDefsObj);
+
+	Nsf_PopFrameObj(interp, framePtr);
+	result = TCL_ERROR;
+	goto configure_exit;
     }
 
     newValue = pc.full_objv[i];
@@ -24725,7 +24756,7 @@ Nsf_Init(Tcl_Interp *interp) {
   rst = RUNTIME_STATE(interp);
   rst->doFilters = 1;
   rst->doCheckResults = 1;
-  rst->doCheckArguments = 1;
+  rst->doCheckArguments = NSF_ARGPARSE_CHECK;
 
 #if defined(NSF_STACKCHECK)
   { int someVar;
