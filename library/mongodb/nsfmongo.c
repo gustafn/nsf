@@ -643,7 +643,8 @@ static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namesp
   }
 
   bson_finish(b);
-  result = mongo_insert(connPtr, namespace, b);
+  /* for the time being, no write_concern (last arg of mongo_insert()) */
+  result = mongo_insert(connPtr, namespace, b, NULL);
 
   if (result == MONGO_ERROR) {
     result = NsfPrintError(interp, ErrorMsg(connPtr->err));
@@ -735,7 +736,8 @@ NsfMongoRemove(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Ob
   }
  
   BsonAppendObjv(interp, query, objc, objv);
-  mongo_remove(connPtr, namespace, query);
+  /* for the time being, no write_concern (last arg of mongo_remove()) */
+  mongo_remove(connPtr, namespace, query, NULL);
 
   bson_destroy(query);
   return TCL_OK;
@@ -775,7 +777,9 @@ NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
 
   if (withUpsert) {options |= 1;}
   if (withAll) {options |= 2;}
-  mongo_update(connPtr, namespace, cond, values, options);
+
+  /* for the time being, no write_concern (last arg of mongo_update()) */
+  mongo_update(connPtr, namespace, cond, values, options, NULL);
   
   return TCL_OK;
 }
@@ -919,7 +923,7 @@ static int
 NsfMongoGridFileGetMetaData(Tcl_Interp *interp, gridfile* gridFilePtr) {
   bson b;
 
-  b = gridfile_get_metadata(gridFilePtr);
+  gridfile_get_metadata(gridFilePtr, &b);
   Tcl_SetObjResult(interp, BsonToList(interp, b.data, 0));
 
   return TCL_OK;

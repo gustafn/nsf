@@ -158,7 +158,6 @@ namespace eval ::nx {
 	  set ensembleName ${object}::$w
 	} 
 	#puts stderr "NX check $scope $object info methods $path @ <$w> cmd=[info command $w] obj?[nsf::object::exists $ensembleName] "
-	#if {[::nsf::directdispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} 
 	if {![nsf::object::exists $ensembleName]} {
  	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
@@ -182,9 +181,16 @@ namespace eval ::nx {
 	  set type [::nsf::directdispatch $object ::nsf::methods::${scope}::info::method type $w]
 	  set definition [::nsf::directdispatch $object ::nsf::methods::${scope}::info::method definition $w]
 	  if {$scope eq "class"} {
-	    if {$type ne "alias"} {error "can't append to $type"}
-	    if {$definition eq ""} {error "definition must not be empty"}
-	    set object [lindex $definition end]
+	    if {$type eq ""} {
+	      # In case of a copy operation, the ensemble object might
+	      # exist, but the alias might be missing.
+	      ::nsf::method::alias $object $w $ensembleName
+	      set object $ensembleName
+	    } else {
+	      if {$type ne "alias"} {error "can't append to $type"}
+	      if {$definition eq ""} {error "definition must not be empty"}
+	      set object [lindex $definition end]
+	    }
 	  } else {
 	    if {$type ne "object"} {error "can't append to $type"}
 	    if {[llength $definition] != 3} {error "unexpected definition '$definition'"}
@@ -273,7 +279,13 @@ namespace eval ::nx {
   ######################################################################
 
   # Well, class is not a method defining method either, but a modifier
-  array set ::nsf::methodDefiningMethod {method 1 alias 1 property 1 forward 1 class 1}
+  array set ::nsf::methodDefiningMethod {
+    method 1 alias 1 property 1 forward 1 class 1
+    ::nsf::classes::nx::Class::method 1 ::nsf::classes::nx::Object::method 1
+    ::nsf::classes::nx::Class::alias 1 ::nsf::classes::nx::Object::alias 1
+    ::nsf::classes::nx::Class::property 1 ::nsf::classes::nx::Object::property 1
+    ::nsf::classes::nx::Class::forward 1 ::nsf::classes::nx::Object::forward 1
+  }
 
   ######################################################################
   # Provide method modifiers for ::nx::Object
@@ -523,7 +535,7 @@ namespace eval ::nx {
   #
   Object public method "delete property" {name} {
     # call explicitly the per-object variant of "info::slotobjects"
-    set slot [: ::nsf::methods::object::info::slotobjects $name]
+    set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
     if {$slot eq ""} {error "[self]: cannot delete object specific property '$name'"}
     $slot destroy
     nsf::var::unset -nocomplain [self] $name
@@ -537,7 +549,7 @@ namespace eval ::nx {
       error "[self]: object does not have an instance variable '$name'"
     }
     # call explicitly the per-object variant of "info::slotobejcts"
-    set slot [: ::nsf::methods::object::info::slotobjects $name]
+    set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
 
     if {$slot ne ""} {
       # it is not a slot-less variable
@@ -660,20 +672,20 @@ namespace eval ::nx {
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slot definition" {{-type:class ::nx::Slot} pattern:optional} {
       set result {}
-      foreach slot [: ::nsf::methods::object::info::slotobjects {*}[current args]] {
+      foreach slot [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]] {
 	lappend result [$slot getPropertyDefinition]
       }
       return $result
     }
     :method "info slot names" {{-type:class ::nx::Slot} pattern:optional} {
       set result {}
-      foreach slot [: ::nsf::methods::object::info::slotobjects {*}[current args]] {
+      foreach slot [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]] {
 	lappend result [$slot name]
       }
       return $result
     }
     :method "info slot objects" {{-type:class ::nx::Slot} pattern:optional} {
-      return [: ::nsf::methods::object::info::slotobjects {*}[current args]]
+      return [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]]
     }
     # "info properties" is a short form of "info slot definition"
     :alias "info properties"     ::nx::Object::slot::__info::slot::definition
@@ -754,7 +766,7 @@ namespace eval ::nx {
     }
     :method "info slot definition" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
-      foreach slot [: ::nsf::methods::class::info::slotobjects {*}[current args]] {
+      foreach slot [: ::nsf::methods::class::info::slotobjects -type $type {*}[current args]] {
 	lappend result [$slot getPropertyDefinition]
       }
       return $result
@@ -1161,16 +1173,31 @@ namespace eval ::nx {
       if {[::nsf::is class ${:domain}]} {
 	::nsf::invalidateobjectparameter ${:domain}
       }
+
       #puts stderr "*** slot destroy of [self], domain ${:domain} per-object ${:per-object}"
       #
-      # delete the accessor
+      # delete the accessors
       #
+      set cgetName "cget -${:name}"
       if {${:per-object}} {
 	if {[${:domain} ::nsf::methods::object::info::method exists ${:name}]} {
 	  ::nsf::method::delete ${:domain} -per-object ${:name}
 	}
-      } elseif {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
-	::nsf::method::delete ${:domain} ${:name}
+	if {[${:domain} ::nsf::methods::object::info::method exists ${cgetName}]} {
+	  nsf::method::delete ${:domain} -per-object ${cgetName}
+	  # TODO cleanup
+	  #puts stderr "nsf::method::delete ${:domain} -per-object ${cgetName}"
+	  #puts stderr o-still=[${:domain} ::nsf::methods::object::info::method exists ${cgetName}]
+	}
+      } else {
+	#array set "" [${:domain} eval [list :__resolve_method_path $cgetName]]
+	if {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
+	  ::nsf::method::delete ${:domain} ${:name}
+	}
+	if {[${:domain} ::nsf::methods::class::info::method exists ${cgetName}]} {
+	  nsf::method::delete ${:domain} ${cgetName}
+	  #puts stderr c-still=[${:domain} ::nsf::methods::class::info::method exists ${cgetName}]
+	}
       }
     }
     ::nsf::next
@@ -1644,12 +1671,23 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot public method makeAccessor {} {
+    set needsForwarder [:needsForwarder]
+    if {$needsForwarder} {
+      set body "{[self]} get \[self\] ${:name}"
+    } else {
+      set body "return \${:${:name}}"
+    }
+
+    ${:domain} public \
+	[expr {${:per-object} ? "::nsf::classes::nx::Object::method" : "::nsf::classes::nx::Class::method"}] \
+	"cget -${:name}" \
+	{} $body
 
     if {!${:accessor}} {
       #puts stderr "Do not register forwarder ${:domain} ${:name}"
       return 0
     }
-    if {[:needsForwarder]} {
+    if {$needsForwarder} {
       set handle [:makeForwarder]
       :makeIncrementalOperations
     } else {
@@ -2210,16 +2248,18 @@ namespace eval ::nx {
 	# get class specific slots
 	#
 	if {[::nsf::is class $origin]} {
-	  set slots [$origin ::nsf::methods::class::info::slotobjects]
+	  set slots [$origin ::nsf::methods::class::info::slotobjects -type ::nx::Slot]
 	}
 	#
 	# append object specific slots
 	#
-	foreach slot [$origin ::nsf::methods::object::info::slotobjects] {
+	foreach slot [$origin ::nsf::methods::object::info::slotobjects -type ::nx::Slot] {
 	  lappend slots $slot
 	}
-	#puts stderr "replacing domain and manager from <$origin> to <$dest> in slots <$slots>"
+	puts stderr "replacing domain and manager from <$origin> to <$dest> in slots <$slots>"
 	foreach oldslot $slots {
+	  puts stderr "check slot <$oldslot> class [nsf::relation $oldslot class] s?[$oldslot info has type ::nx::Slot]"
+	  #if {![$oldslot info has type ::nx::Slot]} continue
 	  set container [expr {[$oldslot per-object] ? "per-object-slot" : "slot"}]
 	  set newslot [::nx::slotObj -container $container $dest [namespace tail $oldslot]]
 	  if {[$oldslot domain] eq $origin}   {$newslot domain $dest}

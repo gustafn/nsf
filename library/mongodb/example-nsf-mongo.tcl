@@ -15,9 +15,12 @@ set mongoConn [::mongo::connect]
 if {1} {
   ::mongo::remove $mongoConn tutorial.persons {}
 
-  puts stderr "\nInserting a few tuples"
-  ::mongo::insert $mongoConn tutorial.persons [list name string Joe projects string abc age int 23 \
-						   classes array {0 object {$ref string courses $id oid 1}}]
+  puts "\nInserting a few tuples"
+  if {[catch {
+    ::mongo::insert $mongoConn tutorial.persons [list name string Joe projects string abc age int 23 \
+						     classes array {0 object {$ref string courses $id oid 1}}]
+  }]} {puts "!!! cannot insert dbref;\
+	most likely, the c-driver does not support yet insertion of \$ref, \$id and \$db fields"}
   ::mongo::insert $mongoConn tutorial.persons [list name string Gustaf projects string nsf age int 53]
   ::mongo::insert $mongoConn tutorial.persons [list name string Stefan projects string nsf]
   ::mongo::insert $mongoConn tutorial.persons [list name string Franz info object {x int 203 y int 102} age int 29 projects string gtat]

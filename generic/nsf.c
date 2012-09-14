@@ -941,12 +941,14 @@ EXTERN int
 NsfDeleteObject(Tcl_Interp *interp, Nsf_Object *object) {
   return DispatchDestroyMethod(interp, (NsfObject *)object, 0);
 }
+
 EXTERN int
 NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName) {
   NsfObject *object = (NsfObject *) object1;
 
-  NsfObjectMethodEpochIncr("NsfRemoveObjectMethod");
+  /*fprintf(stderr, "... NsfRemoveObjectMethod %s %s\n", ObjectName(object), methodName);*/
 
+  NsfObjectMethodEpochIncr("NsfRemoveObjectMethod");
   AliasDelete(interp, object->cmdName, methodName, 1);
 
 #if defined(NSF_WITH_ASSERTIONS)
@@ -964,6 +966,7 @@ NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *metho
   }
   return TCL_OK;
 }
+
 EXTERN int
 NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName) {
   NsfClass *cl = (NsfClass *) class;
@@ -971,9 +974,9 @@ NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodNam
 #if defined(NSF_WITH_ASSERTIONS)
   NsfClassOpt *opt = cl->opt;
 #endif
+  /*fprintf(stderr, "... NsfRemoveClassMethod %s %s\n", ClassName(class), methodName);*/
 
   NsfInstanceMethodEpochIncr("NsfRemoveClassMethod");
-
   AliasDelete(interp, class->object.cmdName, methodName, 0);
 
 #if defined(NSF_WITH_ASSERTIONS)
@@ -12518,7 +12521,6 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
      * Both, args and body are empty strings. This means we should delete the
      * method.
      */
-
     if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
       /*
        * Don't delete methods via scripting during shutdown
@@ -13381,7 +13383,8 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
   Tcl_DString ds, *dsPtr = &ds;
   int fullQualPattern = (pattern && *pattern == ':');
 
-  /*fprintf(stderr, "AddSlotObjects parent %s prefix %s\n", ObjectName(parent), prefix);*/
+  /*fprintf(stderr, "AddSlotObjects parent %s prefix %s type %p %s\n", 
+    ObjectName(parent), prefix, type, type ? ClassName(type) : "");*/
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, ObjectName(parent), -1);
@@ -19414,9 +19417,45 @@ cmd "method::delete" NsfMethodDeleteCmd {
 static int
 NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 		   Tcl_Obj *methodNameObj) {
-  return NsfMethodCreateCmd(interp, object, 0, withPer_object, NULL, methodNameObj,
-			    NsfGlobalObjs[NSF_EMPTY],  NsfGlobalObjs[NSF_EMPTY],
-			    NULL, NULL);
+
+  NsfObject *regObject, *defObject;
+  CONST char *methodName1 = NULL;
+  NsfClass *cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
+  int fromClassNS = cl != NULL, result;
+  Tcl_DString ds, *dsPtr = &ds;
+  Tcl_Command cmd;
+
+  Tcl_DStringInit(dsPtr);
+
+  cmd = ResolveMethodName(interp, cl ? cl->nsPtr : object->nsPtr, methodNameObj,
+			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+
+  /*fprintf(stderr,
+	  "NsfMethodDeleteCmd method %s '%s' object %p regObject %p defObject %p cl %p fromClass %d cmd %p\n",
+	  ObjStr(methodNameObj), methodName1, object, regObject, defObject, cl, fromClassNS, cmd);*/
+
+  if (cmd) {
+    methodName1 = Tcl_GetCommandName(interp, cmd);
+    if (defObject) {
+      cl = withPer_object == 0 && NsfObjectIsClass(defObject) ? (NsfClass *)defObject : NULL;
+    } else {
+      defObject = object;
+    }
+
+    result = cl ?
+      NsfRemoveClassMethod(interp,  (Nsf_Class *)defObject, methodName1) :
+      NsfRemoveObjectMethod(interp, (Nsf_Object *)defObject, methodName1);
+
+  } else {
+    result = NsfPrintError(interp, "%s: %s method '%s' does not exist",
+			   ObjectName(object), 
+			   withPer_object ? "object specific" : "instance",
+			   ObjStr(methodNameObj));
+  }
+
+  Tcl_DStringFree(dsPtr);
+
+  return result;
 }
 
 /*

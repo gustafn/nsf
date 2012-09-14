@@ -4068,9 +4068,22 @@ nx.tcl:
 
 - updated 34 copyright notices
 
+nsf.c:
+- extended nsf::method::delete to handle ensemble names
+
+nx.tcl:
+- added tk/incr-tcl style cget methods on class/object levels.
+- improve copy handling with other child-types of the slot container working
+- make sure to ignore non-slot-type objects in slot introspection
+- worked on regression test until "methods.test". others are missing, 
+  but maybe reconsideration
+  
 ========================================================================
 TODO:
-- handling of method names in nsfAPI.h. The following
+- maybe revise class/object level cgets by implementing a global method
+
+- check for potential simplications in scripts for nsf::method::delete
+- handling of method names in error messages from nsfAPI.h. The following
   ? {o __alloc x} {method __alloc not dispatched on valid class}
   should be
   ? {o __alloc x} {method alloc not dispatched on valid class}
