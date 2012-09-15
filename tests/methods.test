@@ -170,9 +170,9 @@ nx::Test case object-level-alias {
   ? {::nsf::dispatch c1 protected_object_alias} "protected_object_alias"
 
   ? {lsort [c1 info methods]} \
-      "cget plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
+      "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
   ? {lsort [C class info methods]} \
-      "cget plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
+      "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
 }
 
 C destroy
@@ -336,8 +336,8 @@ nx::Test case class-object-property {
   }
   ? {C x 1} 1
   ? {C x} 1
-  ? {lsort [C info methods]} "a cget"
-  ? {lsort [C class info methods]} "cget x"
+  ? {lsort [C info methods]} "a"
+  ? {lsort [C class info methods]} "x"
   ? {c1 a b} {expected integer but got "b" for parameter "a"}
 
   set s(C) [C serialize]
@@ -358,8 +358,8 @@ nx::Test case class-object-property {
 
   # tests should work as again
   ? {C x} 1
-  ? {lsort [C info methods]} "a cget"
-  ? {lsort [C class info methods]} "cget x"
+  ? {lsort [C info methods]} "a"
+  ? {lsort [C class info methods]} "x"
   ? {c1 a b} {expected integer but got "b" for parameter "a"}  
 }
 
@@ -543,8 +543,8 @@ nx::Test case delete-per-object {
     :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
   }
 
-  ? {o1 info methods -path} "{info foo} {info bar foo} foo a1 a2 {cget -a2} {cget -a1}"
-  ? {o1 info children} "::o1::info ::o1::per-object-slot ::o1::cget"
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo a1 a2"
+  ? {o1 info children} "::o1::info ::o1::per-object-slot"
 
   ? {o1 delete method bar} "::o1: object specific method 'bar' does not exist"
   # For a1, we have a method and an property. We can delete the
@@ -559,7 +559,7 @@ nx::Test case delete-per-object {
   # try to delete the property again:
   ? {o1 delete property a1} "::o1: cannot delete object specific property 'a1'"
 
-  ? {o1 info methods -path} "{info foo} {info bar foo} foo a2 {cget -a2}"
+  ? {o1 info methods -path} "{info foo} {info bar foo} foo a2"
   ? {o1 delete property a2} ""
   ? {o1 info methods -path} "{info foo} {info bar foo} foo"
 
@@ -589,8 +589,8 @@ nx::Test case delete-per-object-on-class {
     :property a2
   }
 
-  ? {C class info methods -path} "{info foo} {info bar foo} foo a1 {cget -a1}"
-  ? {C info children} "::C::info ::C::slot ::C::per-object-slot ::C::cget"
+  ? {C class info methods -path} "{info foo} {info bar foo} foo a1"
+  ? {C info children} "::C::info ::C::slot ::C::per-object-slot"
 
   ? {C class delete method bar} "::C: object specific method 'bar' does not exist"
 
@@ -607,7 +607,7 @@ nx::Test case delete-per-object-on-class {
   ? {C class delete method "info bar foo"} ""
   ? {C class info methods -path} ""
 
-  ? {C info methods} "a2 cget"
+  ? {C info methods} "a2"
   ? {C info slot objects} "::C::slot::a2"
 }
 
@@ -627,7 +627,7 @@ nx::Test case delete-class-level-method {
     :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
   }
 
-  ? {C info methods -path} "{info foo} {info bar foo} foo a1 {cget -a1}"
+  ? {C info methods -path} "{info foo} {info bar foo} foo a1"
   ? {C info children} "::C::slot"
 
   ? {C delete method bar} "::C: instance method 'bar' does not exist"
