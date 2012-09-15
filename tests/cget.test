@@ -20,7 +20,7 @@ Test case cget-simple {
   }
 
   #
-  # first, check basic provided values and default
+  # first, check basic provided values and defaults
   #
   ? {p1 cget -age} 25
   ? {p1 cget -famnam} hugo
@@ -52,8 +52,7 @@ Test case cget-simple {
   #
   # configure without arguments
   #
-  ? {p1 configure} "?-sex value? -famnam ?-age integer? ?-friends value ...? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
-
+  ? {p1 configure} "?-sex value? -famnam value ?-age integer? ?-friends value ...? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
 }
 
 #

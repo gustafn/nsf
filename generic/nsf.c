@@ -9136,6 +9136,34 @@ ParamGetDomain(Nsf_Param CONST *paramPtr) {
 
 /*
  *----------------------------------------------------------------------
+ * NsfParamDefsSyntaxOne --
+ *
+ *    Appends the formatted parameter (provided as 2nd argument) to the
+ *    content of the first argument.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Appending to first argument.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param CONST *pPtr) {
+  Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
+  if (pPtr->nrArgs > 0 && *pPtr->name == '-') {
+    Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
+    if (pPtr->flags & NSF_ARG_MULTIVALUED) {
+      Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);	
+    }
+  }
+}
+
+/*
+ *----------------------------------------------------------------------
  * NsfParamDefsSyntax --
  *
  *    Return the parameter definitions of a sequence of parameters in
@@ -9181,18 +9209,11 @@ NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) {
       if ((pPtr->flags & NSF_ARG_IS_ENUMERATION)) {
 	Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
       } else {
-	Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
+	NsfParamDefsSyntaxOne(argStringObj, pPtr);
       }
     } else {
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
-      Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
-      if (pPtr->nrArgs > 0 && *pPtr->name == '-') {
-	Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
-	Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
-	if (pPtr->flags & NSF_ARG_MULTIVALUED) {
-	  Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);	
-	}
-      }
+      NsfParamDefsSyntaxOne(argStringObj, pPtr);
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
     }
   }
@@ -19442,10 +19463,14 @@ NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       defObject = object;
     }
 
-    result = cl ?
-      NsfRemoveClassMethod(interp,  (Nsf_Class *)defObject, methodName1) :
-      NsfRemoveObjectMethod(interp, (Nsf_Object *)defObject, methodName1);
-
+    if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
+      result = cl ?
+	NsfRemoveClassMethod(interp,  (Nsf_Class *)defObject, methodName1) :
+	NsfRemoveObjectMethod(interp, (Nsf_Object *)defObject, methodName1);
+    } else {
+      result = TCL_OK;
+    }
+      
   } else {
     result = NsfPrintError(interp, "%s: %s method '%s' does not exist",
 			   ObjectName(object), 

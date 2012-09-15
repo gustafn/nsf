@@ -378,7 +378,7 @@ nx::Test case passed-arguments {
   
   ? {D create d1} \
       {required argument 'd' is missing, should be:
-	::d1 __configure -d ?-a value? ?-b boolean? ?-c value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+	::d1 __configure -d value ?-a value? ?-b boolean? ?-c value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
   
   ? {D create d2 -d x -b a} \
       {expected boolean but got "a" for parameter "-b"} \
@@ -391,7 +391,7 @@ nx::Test case passed-arguments {
 
   ? {d1 foo} \
       {required argument 'r' is missing, should be:
-	::d1 foo ?-b boolean? -r ?-x integer? ?-object object? ?-class class?} \
+	::d1 foo ?-b boolean? -r integer ?-x integer? ?-object object? ?-class class?} \
       "call method without a required argument"
 
   ? {d1 foo -r a} \

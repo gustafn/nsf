@@ -4048,7 +4048,7 @@ TestX create nonposargs -proc run {{n 20}} {
     o z1 a 1 2 3
   } m
   errorCheck $m {required argument 'x' is missing, should be:
-	::o z1 -x ?-a value? a ?arg ...?} "required missing"
+	::o z1 -x value ?-a value? a ?arg ...?} "required missing"
   errorCheck [o z1 -x 1  a 1 2 3] "1 -- 1 2 3" "invocation 1"
   errorCheck [o z2 -x 2  a 1 2 3] "2 -- a 1 2 3 -- 1  -- 1 2" "invocation 2"
   catch {

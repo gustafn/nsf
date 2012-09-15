@@ -197,7 +197,7 @@ nx::Test case basics {
       "value for parameter '-x' expected"
   ? {[C new -single-np [list -x X]] eval {set :single-np}} \
       "invalid non-positional argument '-x X', valid are : -x;
- should be \"::__%&singleton single-np -x\""
+ should be \"::__%&singleton single-np -x value\""
 
   #
   # INTERACTIONS with other parameter types
