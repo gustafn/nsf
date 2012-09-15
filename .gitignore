@@ -11,7 +11,7 @@ Makefile
 autom4te.cache
 config.*
 callgrind.out.*
-test.log
+__test.log
 doc/junk.junk
 *.dSYM
 *.plist

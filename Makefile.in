@@ -477,7 +477,7 @@ gdb:
 test: binaries libraries test-core test-xotcl test-http @test_actiweb@ test-summary
 test-nohttp: binaries libraries test-core test-xotcl
 
-TESTLOG   = ./test.log
+TESTLOG   = ./__test.log
 TESTFLAGS = -testlog $(TESTLOG)
 
 test-summary:
@@ -696,7 +696,7 @@ cleandoc:
 	-rm -rf $(xotcl_target_doc_dir)/*-xotcl.html $(dir $(YUIDOC_OUTPUT)) $(XOWIKI_OUTPUT)
 
 clean: cleandoc
-	-rm -rf $(BINARIES) $(CLEANFILES) ./receiver
+	-rm -rf $(BINARIES) $(CLEANFILES) ./receiver $(TESTLOG)
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \

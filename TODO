@@ -4098,6 +4098,8 @@ nsf.c:
 nx.tcl:
 - added Tk-style methods "configure" and "cget"
 - added additional regression test set for cget and configure
+
+- renamed testlog file, remove it on "make clean"
   
 ========================================================================
 TODO:
