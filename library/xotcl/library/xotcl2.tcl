@@ -99,7 +99,7 @@ namespace eval ::xotcl {
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in {"setter" "requirenamespace"}} continue
+    if {$cmdName in {"cget" "setter" "requirenamespace"}} continue
     ::nsf::method::alias Object $cmdName $cmd
   }
 

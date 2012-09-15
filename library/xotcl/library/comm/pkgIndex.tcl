@@ -8,10 +8,10 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded xotcl::comm::connection 1.1 [list source [file join $dir Connection.xotcl]]
+package ifneeded xotcl::comm::connection 1.2 [list source [file join $dir Connection.xotcl]]
 package ifneeded xotcl::comm::dav 0.91 [list source [file join $dir Dav.xotcl]]
 package ifneeded xotcl::comm::ftp 0.91 [list source [file join $dir Ftp.xotcl]]
-package ifneeded xotcl::comm::httpAccess 0.92 [list source [file join $dir Access.xotcl]]
+package ifneeded xotcl::comm::httpAccess 1.2 [list source [file join $dir Access.xotcl]]
 package ifneeded xotcl::comm::httpd 1.2 [list source [file join $dir Httpd.xotcl]]
 package ifneeded xotcl::comm::imap 0.91 [list source [file join $dir Imap.xotcl]]
 package ifneeded xotcl::comm::ldap 0.91 [list source [file join $dir Ldap.xotcl]]

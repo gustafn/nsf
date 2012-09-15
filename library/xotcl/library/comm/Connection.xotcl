@@ -1,6 +1,6 @@
 # -*- tcl -*- $
 
-package provide xotcl::comm::connection 1.1
+package provide xotcl::comm::connection 1.2
 
 package require XOTcl 2.0
 
@@ -72,14 +72,14 @@ namespace eval ::xotcl::comm::connection {
 	if {[my exists handle]} {
 	    #my showVars handle
 	    # the connection was created via make
-	    [self class] removeHandle [my handle]
-	    #::puts stderr "my CONNECTION close and destroy [my handle]"
+	    [self class] removeHandle [my set handle]
+	    #::puts stderr "my CONNECTION close and destroy [my set handle]"
 	} else {
 	    #::puts stderr "my CONNECTION close and destroy"
 	}
 	# in cases of errors we might not have a socket yet
 	if {[my exists socket]} {
-	    close [my socket]
+	    close [my set socket]
 	}
 	next
     }
@@ -225,7 +225,7 @@ namespace eval ::xotcl::comm::connection {
 		close $socket
 		unset socket
 		if {[my exists handle]} {
-		    [self class] removeHandle [my handle]
+		    [self class] removeHandle [my set handle]
 		}
 		if {[my exists error]} {
 		    #my showMsg "UNSETTING ERROR -----------"

@@ -29,7 +29,7 @@ if {$opt(-startServer)} {
   puts $startCmd
 }
 
-package require xotcl::comm::httpAccess
+package require xotcl::comm::httpAccess 1.2
 package require xotcl::comm::ftp
 package require xotcl::trace
 
@@ -101,7 +101,10 @@ nx::Test new -msg "Get protected resource ... " -count 1 \
 nx::Test new -msg terminate -count 1 \
     -setResult {set x 1} \
     -cmd [list SimpleRequest r0 -url http://$protectedhostport/exit] \
-    -post {set ::forever 1; exit}
+    -post {set ::forever 1}
+
+#puts stderr "present [package present xotcl::comm::connection]"
+#puts stderr "versions [package versions xotcl::comm::connection]"
 
 after 1000 {nx::Test run}
 catch {vwait forever}

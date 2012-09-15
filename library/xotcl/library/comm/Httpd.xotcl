@@ -12,7 +12,7 @@ package require XOTcl 2.0
 
 #package require xotcl::comm::httpAccess
 
-package require xotcl::comm::connection
+package require xotcl::comm::connection 1.2
 package require xotcl::trace
 package require xotcl::comm::mime
 
