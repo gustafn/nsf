@@ -2254,10 +2254,8 @@ namespace eval ::nx {
 	foreach slot [$origin ::nsf::methods::object::info::slotobjects -type ::nx::Slot] {
 	  lappend slots $slot
 	}
-	puts stderr "replacing domain and manager from <$origin> to <$dest> in slots <$slots>"
+	#puts stderr "replacing domain and manager from <$origin> to <$dest> in slots <$slots>"
 	foreach oldslot $slots {
-	  puts stderr "check slot <$oldslot> class [nsf::relation $oldslot class] s?[$oldslot info has type ::nx::Slot]"
-	  #if {![$oldslot info has type ::nx::Slot]} continue
 	  set container [expr {[$oldslot per-object] ? "per-object-slot" : "slot"}]
 	  set newslot [::nx::slotObj -container $container $dest [namespace tail $oldslot]]
 	  if {[$oldslot domain] eq $origin}   {$newslot domain $dest}
