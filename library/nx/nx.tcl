@@ -557,8 +557,7 @@ namespace eval ::nx {
     }
   }
   Object public method "delete method" {name} {
-    array set "" [:__resolve_method_path -per-object $name]
-    ::nsf::method::delete $(object) -per-object $(methodName)
+    ::nsf::method::delete [self] -per-object $name
   }
 
   Class public method "delete property" {name} {
@@ -568,8 +567,7 @@ namespace eval ::nx {
   }
   Class public alias "delete variable" ::nx::Class::slot::__delete::property
   Class public method "delete method" {name} {
-    array set "" [:__resolve_method_path $name]
-    ::nsf::method::delete $(object) $(methodName)
+    ::nsf::method::delete [self] $name
   }
 
   #
@@ -1178,26 +1176,12 @@ namespace eval ::nx {
       #
       # delete the accessors
       #
-      set cgetName "cget -${:name}"
       if {${:per-object}} {
 	if {[${:domain} ::nsf::methods::object::info::method exists ${:name}]} {
 	  ::nsf::method::delete ${:domain} -per-object ${:name}
 	}
-	if {[${:domain} ::nsf::methods::object::info::method exists ${cgetName}]} {
-	  nsf::method::delete ${:domain} -per-object ${cgetName}
-	  # TODO cleanup
-	  #puts stderr "nsf::method::delete ${:domain} -per-object ${cgetName}"
-	  #puts stderr o-still=[${:domain} ::nsf::methods::object::info::method exists ${cgetName}]
-	}
-      } else {
-	#array set "" [${:domain} eval [list :__resolve_method_path $cgetName]]
-	if {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
-	  ::nsf::method::delete ${:domain} ${:name}
-	}
-	if {[${:domain} ::nsf::methods::class::info::method exists ${cgetName}]} {
-	  nsf::method::delete ${:domain} ${cgetName}
-	  #puts stderr c-still=[${:domain} ::nsf::methods::class::info::method exists ${cgetName}]
-	}
+      } elseif {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
+	::nsf::method::delete ${:domain} ${:name}
       }
     }
     ::nsf::next
@@ -1621,8 +1605,11 @@ namespace eval ::nx {
 	}
       }
     } elseif {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {
-      # In case the "assign method" was provided, ask nsf to call it directly
+      # In case the "assign" method was provided on the slot, ask nsf to call it directly
       lappend options slot=[::nsf::self] slotassign
+    } elseif {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {
+      # In case the "get" method was provided on the slot, ask nsf to call it directly
+      lappend options slot=[::nsf::self]
     }
     if {[:info lookup method initialize] ne "" && $forObjectParameter} {
       if {"slot=[::nsf::self]" ni $options} {lappend options slot=[::nsf::self]}
@@ -1671,23 +1658,12 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot public method makeAccessor {} {
-    set needsForwarder [:needsForwarder]
-    if {$needsForwarder} {
-      set body "{[self]} get \[self\] ${:name}"
-    } else {
-      set body "return \${:${:name}}"
-    }
-
-    ${:domain} public \
-	[expr {${:per-object} ? "::nsf::classes::nx::Object::method" : "::nsf::classes::nx::Class::method"}] \
-	"cget -${:name}" \
-	{} $body
 
     if {!${:accessor}} {
       #puts stderr "Do not register forwarder ${:domain} ${:name}"
       return 0
     }
-    if {$needsForwarder} {
+    if {[:needsForwarder]} {
       set handle [:makeForwarder]
       :makeIncrementalOperations
     } else {
@@ -1727,15 +1703,20 @@ namespace eval ::nx {
 
   ::nx::VariableSlot protected method makeIncrementalOperations {} {
     set options_single [:getParameterOptions]
-    if {[llength $options_single] == 0} {
+    #if {[llength $options_single] == 0} {}
+    if {![info exists :type]} {
       # No need to make per-slot methods; the general rules on
       # nx::VariableSlot are sufficient
       return
     }
+    #puts "makeIncrementalOperations -- $options_single // [:info vars]"
+    #if {[info exists :type]} {puts ".... type ${:type}"}
     set options [:getParameterOptions -withMultiplicity true]
     lappend options slot=[::nsf::self]
     set body {::nsf::var::set $obj $var $value}
 
+    # We need the following rule e.g. for private properties, where
+    # the setting of the property is handled via slot.
     if {[:info lookup method assign] eq "::nsf::classes::nx::VariableSlot::assign"} {
       #puts stderr ":public method assign [list obj var [:namedParameterSpec {} value $options]] $body"
       :public method assign [list obj var [:namedParameterSpec {} value $options]] $body

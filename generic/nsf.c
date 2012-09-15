@@ -22013,6 +22013,121 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 }
 
 /*
+objectMethod cget NsfOCgetMethod {
+  {-argName "name" -type tclobj}
+}
+*/
+static int
+NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
+  int result, i, found = 0;
+  NsfParsedParam parsedParam;
+  Nsf_Param *paramPtr;
+  NsfParamDefs *paramDefs;
+  CallFrame frame, *framePtr = &frame, *uplevelVarFramePtr;
+  char *nameString = ObjStr(nameObj);
+  
+  /* 
+   * Get the object parameter definition 
+   */
+  result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], 
+					object->cl, &parsedParam);
+  if (unlikely(result != TCL_OK)) {
+    return result;
+  }
+
+  /* 
+   * The uplevel handling is exactly the same as in NsfOConfigureMethod() and
+   * is needed, when methods are called, which perform an upvar.
+   */
+  uplevelVarFramePtr =
+    (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp) != Tcl_Interp_framePtr(interp)
+    ? Tcl_Interp_varFramePtr(interp)
+    : NULL;
+
+  /*
+   * Push frame to allow invocations of [self] and make instance variables of
+   * obj accessible as locals.
+   */
+  Nsf_PushFrameObj(interp, object, framePtr);
+
+  paramDefs = parsedParam.paramDefs;
+  ParamDefsRefCountIncr(paramDefs);
+
+  /*
+   * Iterate over the parameter definitions to lookup the desired parameter
+   */
+  for (i = 1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
+    if (*paramPtr->name != '-') continue;
+    if (strcmp(nameString, paramPtr->name) == 0) {
+      found = 1;
+      break;
+    }
+  }
+  
+  /*
+   * The parameter is linked to a method via 
+   * "initcmd", "alias" and "forward".
+   */
+  if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
+    // TODO: just for the time being
+    fprintf(stderr, "method arg %s found, flags %.8x slot %p\n", nameString, paramPtr->flags, paramPtr->slotObj);
+    found = 0;
+  }
+
+  if (!found) {
+    result = NsfPrintError(interp, "cannot lookup parameter value for %s", nameString);
+  } else {
+
+    //fprintf(stderr, "arg %s found, flags %.8x\n", nameString, paramPtr->flags);
+    
+    if (paramPtr->slotObj) {
+      NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
+      /*
+       * Actually get instance variable or slot value 
+       * In case, explicit slot invocation is needed, we call it.
+       */
+      
+      if (likely(slotObject != NULL)) {
+	Tcl_Obj *ov[1];
+
+	if (uplevelVarFramePtr) {
+	  Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
+	}
+	
+	ov[0] = paramPtr->nameObj;
+	result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_GET],
+				       object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
+      } else {
+	fprintf(stderr, "strange, no slotobj\n");
+      }
+      if (result != TCL_OK) {
+	/* 
+	 * The error message was set either by GetSlotObject or by ...CallMethod... 
+	 */
+	Nsf_PopFrameObj(interp, framePtr);
+	goto cget_exit;
+      }
+    } else {
+      int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
+      Tcl_Obj *resutObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, flags);
+      if (resutObj) {
+	  /*
+	   * The value exists 
+	   */
+	Tcl_SetObjResult(interp, resutObj);
+      }
+    }
+  }
+
+  Nsf_PopFrameObj(interp, framePtr);
+
+ cget_exit:
+
+  ParamDefsRefCountDecr(paramDefs);
+  return result;
+}
+
+/*
 objectMethod destroy NsfODestroyMethod {
 }
 */

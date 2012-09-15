@@ -4072,17 +4072,33 @@ nsf.c:
 - extended nsf::method::delete to handle ensemble names
 
 nx.tcl:
-- added tk/incr-tcl style cget methods on class/object levels.
+- added tk/incr-tcl style cget methods on class/object levels as
+  ensemble methods.
 - improve copy handling with other child-types of the slot container working
 - make sure to ignore non-slot-type objects in slot introspection
 - worked on regression test until "methods.test". others are missing, 
   but maybe reconsideration
+
+nsf.c:
+- implememted cget as a configure-like method, dropped ensemble method variant
+
+nx.tcl:
+- simplified "/obj|cls/ delete method" due to resolving capabilities in
+  nsf::delete::method
+
+xotcl2.tcl:
+- made destructor of Connection more robust such it does not depend on
+  accessor methods.
+
+- fixed regression test to run all test again correctly
   
 ========================================================================
 TODO:
-- maybe revise class/object level cgets by implementing a global method
+- handling of "-cget" without methods
+- register cget per default in nx
+- use cget per default instead of accessor methods
+- default menchanism for accessor methods
 
-- check for potential simplications in scripts for nsf::method::delete
 - handling of method names in error messages from nsfAPI.h. The following
   ? {o __alloc x} {method __alloc not dispatched on valid class}
   should be

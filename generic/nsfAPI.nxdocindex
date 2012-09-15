@@ -42,6 +42,7 @@ set ::nxdoc::include(::nsf::var::unset) 1
 set ::nxdoc::include(::nsf::methods::object::autoname) 0
 set ::nxdoc::include(::nsf::methods::object::class) 0
 set ::nxdoc::include(::nsf::methods::object::cleanup) 0
+set ::nxdoc::include(::nsf::methods::object::cget) 0
 set ::nxdoc::include(::nsf::methods::object::configure) 0
 set ::nxdoc::include(::nsf::methods::object::destroy) 0
 set ::nxdoc::include(::nsf::methods::object::exists) 0

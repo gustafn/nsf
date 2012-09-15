@@ -245,6 +245,10 @@ objectMethod class NsfOClassMethod {
 objectMethod cleanup NsfOCleanupMethod {
 }
 
+objectMethod cget NsfOCgetMethod {
+  {-argName "name" -type tclobj}
+}
+
 objectMethod configure NsfOConfigureMethod {
   {-argName "args" -type allargs}
 }

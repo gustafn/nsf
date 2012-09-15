@@ -222,7 +222,7 @@ static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CO
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[101];
+static Nsf_methodDefinition method_definitions[102];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -294,6 +294,7 @@ static int NsfVarImportCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfVarSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfVarUnsetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOCgetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -395,6 +396,7 @@ static int NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl
 static int NsfVarSetCmd(Tcl_Interp *interp, int withArray, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value);
 static int NsfVarUnsetCmd(Tcl_Interp *interp, int withNocomplain, NsfObject *object, Tcl_Obj *varName);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
+static int NsfOCgetMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *name);
 static int NsfOClassMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *class);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
@@ -497,6 +499,7 @@ enum {
  NsfVarSetCmdIdx,
  NsfVarUnsetCmdIdx,
  NsfOAutonameMethodIdx,
+ NsfOCgetMethodIdx,
  NsfOClassMethodIdx,
  NsfOCleanupMethodIdx,
  NsfOConfigureMethodIdx,
@@ -1848,6 +1851,22 @@ NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static int
+NsfOCgetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, "object", "cget");
+    
+
+      if (objc < 1 || objc > 2) {
+	return NsfArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfOCgetMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfOCgetMethod(interp, obj, objc == 2 ? objv[1] : NULL);
+
+}
+
+static int
 NsfOClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfObject *obj =  (NsfObject *)clientData;
   if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, "object", "class");
@@ -2489,7 +2508,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[101] = {
+static Nsf_methodDefinition method_definitions[102] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2783,6 +2802,9 @@ static Nsf_methodDefinition method_definitions[101] = {
   {"-instance", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-reset", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::methods::object::cget", NsfOCgetMethodStub, 1, {
+  {"name", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::class", NsfOClassMethodStub, 1, {
   {"class", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
