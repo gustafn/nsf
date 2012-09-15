@@ -639,6 +639,23 @@ namespace eval ::nx {
   }
 
   ######################################################################
+  # Provide Tk-style methods for configure and cget
+  ######################################################################
+  Object eval {
+    :public alias cget ::nsf::methods::object::cget
+
+    :protected alias __configure ::nsf::methods::object::configure    
+    :public method configure {args} {
+      if {[llength $args] == 0} {
+	[:info class] info parameter syntax
+      } else {
+	: __configure {*}$args
+	return
+      }
+    }
+  }
+
+  ######################################################################
   # Info definition
   ######################################################################
 

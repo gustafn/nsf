@@ -1856,7 +1856,7 @@ NsfOCgetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, "object", "cget");
     
 
-      if (objc < 1 || objc > 2) {
+      if (objc != 2) {
 	return NsfArgumentError(interp, "wrong # of arguments:", 
 			     method_definitions[NsfOCgetMethodIdx].paramDefs,
 			     NULL, objv[0]); 
@@ -2804,7 +2804,7 @@ static Nsf_methodDefinition method_definitions[102] = {
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::cget", NsfOCgetMethodStub, 1, {
-  {"name", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::class", NsfOClassMethodStub, 1, {
   {"class", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

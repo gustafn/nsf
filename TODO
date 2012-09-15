@@ -4091,13 +4091,19 @@ xotcl2.tcl:
   accessor methods.
 
 - fixed regression test to run all test again correctly
+
+nsf.c:
+- made argument of cget required
+
+nx.tcl:
+- added Tk-style methods "configure" and "cget"
+- added additional regression test set for cget and configure
   
 ========================================================================
 TODO:
-- handling of "-cget" without methods
-- register cget per default in nx
+- why is parametersyntax of famnam incorrect in cget.test
 - use cget per default instead of accessor methods
-- default menchanism for accessor methods
+- default mechanism for accessor methods
 
 - handling of method names in error messages from nsfAPI.h. The following
   ? {o __alloc x} {method __alloc not dispatched on valid class}

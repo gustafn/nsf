@@ -246,7 +246,7 @@ objectMethod cleanup NsfOCleanupMethod {
 }
 
 objectMethod cget NsfOCgetMethod {
-  {-argName "name" -type tclobj}
+  {-argName "name" -type tclobj -required 1}
 }
 
 objectMethod configure NsfOConfigureMethod {

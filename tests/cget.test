@@ -1,0 +1,167 @@
+# -*- Tcl -*-
+package req nx
+
+package require nx::test
+namespace import ::nx::*
+
+#
+# The first test set checks just the basic behavior:
+#
+Test case cget-simple {
+
+  nx::Class create Person {
+    :property famnam:required
+    :property {age:integer,required 0}
+    :property {friends:0..n ""}
+    :property sex
+    
+    # Create an instance of the class
+    :create p1 -famnam hugo -age 25 
+  }
+
+  #
+  # first, check basic provided values and default
+  #
+  ? {p1 cget -age} 25
+  ? {p1 cget -famnam} hugo
+  ? {p1 cget -friends} ""
+
+  #
+  # error handling:
+  # - wrong # args
+  # - wrong parameter 
+  # - parameter without a value
+  #
+  ? {p1 cget} {wrong # of arguments: should be "cget name"}
+  ? {p1 cget -foo} {cannot lookup parameter value for -foo}
+  ? {p1 cget foo} {cannot lookup parameter value for foo}
+  ? {p1 cget -class} {cannot lookup parameter value for -class}
+  ? {p1 cget -sex} {can't read "sex": no such variable}
+
+  # 
+  # Reconfigure the object
+  #
+  ? {p1 configure -famnam joe -age 27} ""
+
+  #
+  # check the new values
+  #
+  ? {p1 cget -age} 27
+  ? {p1 cget -famnam} joe  
+
+  #
+  # configure without arguments
+  #
+  ? {p1 configure} "?-sex value? -famnam ?-age integer? ?-friends value ...? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
+
+}
+
+#
+# The second test set checks redirection of configure / cget to slot
+# methods "assign" and "get".
+#
+
+Test parameter count 1
+Test case cget-via-slot {
+
+  nx::Class create C {
+    
+    # Define a property with a "get" method
+    :property bar1 {
+      :public method get { object property} {
+	incr ::count(cget)
+	nsf::var::set $object $property
+      }
+    }
+    
+    # Define a property with a "get" and "assign" method
+    :property bar2 {
+      :public method get { object property} {
+	incr ::count(cget)
+	nsf::var::set $object $property
+      }
+      :public method assign { object property value } {
+	incr ::count(assign)
+	nsf::var::set $object $property $value
+      }
+    }
+
+    # Create an instance of the class
+    :create p1 
+  }
+
+  #
+  # configure without arguments
+  #
+  ? {p1 configure} "?-bar1 value? ?-bar2 value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
+
+  #
+  # test gettin/setting via slots
+  #
+  # just a getter:
+  #
+  array unset ::count
+  ? {p1 configure -bar1 100} ""
+  ? {array get ::count} ""
+
+  ? {p1 cget -bar1} 100
+  ? {array get ::count} "cget 1"
+
+  # a getter and a setter:
+  #  
+  array unset ::count
+  ? {p1 configure -bar2 100} ""
+  ? {array get ::count} "assign 1"
+
+  ? {p1 cget -bar2} 100
+  ? {array get ::count} "assign 1 cget 1"
+  
+}
+
+#
+# The third test set checks performance of "cget" and "configure".
+#
+nx::Test parameter count 10000
+Test case cget-performance {
+
+  nx::Class create Person {
+    :property famnam:required
+    :property {age:integer,required 0}
+    :property {friends:0..n ""}
+    :property sex
+    
+    # Define a property with a "get" and "assign" method
+    :property bar {
+      :public method get { object property } {
+	nsf::var::set $object $property
+      }
+      :public method assign { object property value } {
+	nsf::var::set $object $property $value
+      }
+    }
+
+    # Create an instance of the class
+    :create p1 -famnam hugo -age 25 -bar 101
+  }
+
+  #
+  # read properties
+  # - built-in getter
+  # - cget
+  # - dispatch of cget method with full path
+  # - cget via slot method
+  ? {p1 age} 25
+  ? {p1 cget -age} 25
+  ? {p1 ::nsf::methods::object::cget -age} 25
+  ? {p1 cget -bar} 101
+
+  #
+  # write properties:
+  # - built-in setter
+  # - configure
+  # - configure via slot method
+  ? {p1 age 27} 27
+  ? {p1 configure -age 27} ""
+  ? {p1 configure -bar 102} ""
+
+}
