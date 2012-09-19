@@ -387,11 +387,10 @@ namespace eval ::xotcl {
   }
 
   ######################################################################
-  # Define default property protection before calling :property
+  # Define default accessors for all parameters
   ######################################################################
-  ::nsf::method::create ::xotcl::Object __default_property_call_protection args {return false}
-  ::nsf::method::property ::xotcl::Object __default_property_call_protection call-protected true
-
+  ::nsf::method::create Object __default_accessor args {return public}
+  ::nsf::method::property Object __default_accessor call-protected true
 
   #
   # Use parameter definition from nx
@@ -959,7 +958,7 @@ namespace eval ::xotcl {
   ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot {
     :property multivalued {
       :public method assign {object property value} {
-	set mClass [expr {$value?"0..n":"1..1"}]
+	set mClass [expr {$value ? "0..n" : "1..1"}]
 	$object incremental $value
 	$object multiplicity $mClass
       }

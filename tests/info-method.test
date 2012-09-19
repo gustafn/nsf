@@ -73,8 +73,8 @@ nx::Test case info-method-base {
     :class forward add1 expr 1 +
     :class forward fpo ::o
     
-    :property s 
-    :class property spo
+    :property -accessor public s 
+    :class property -accessor public spo
     
     :alias a ::set
     :class alias apo ::puts
@@ -374,10 +374,14 @@ nx::Test case callable {
 
     ? {o method foo {} {return o.foo}} "::o::foo"
     ? {o alias is ::nsf::is} "::o::is"
+    #? {o property x} {variable definition for 'x' (without value and accessor) is useless}
     ? {o property x} "::o::x"
+    ? {o property -accessor public x} "::o::x"
     ? {lsort [o info methods]} "foo is x"
 
+    #? {o property A} {variable definition for 'A' (without value and accessor) is useless}
     ? {o property A} ::o::A
+    ? {o property -accessor public A} ::o::A
     ? {o forward fwd ::set} ::o::fwd
     ? {lsort [o info methods]} "A foo fwd is x"
 
@@ -464,10 +468,10 @@ nx::Test case info-slots {
   nx::Class create D -superclass C {
     :property {b 2}
     :property c
-    :class property a2
+    :class property -accessor public {a2 ""}
     :method "sub foo" args {;}
     :create d1 {
-      :property a3
+      :property -accessor public {a3 ""}
     }
   }
 
@@ -494,7 +498,7 @@ nx::Test case slots {
   nx::Class create D -superclass C {
     :property {b 2}
     :property c
-    :class property a2
+    :class property -accessor public a2
     :method "sub foo" args {;}
   }
 
@@ -689,7 +693,7 @@ nx::Test case info-slot-parametersyntax {
   nx::Class create D -superclass C {
     :property {b 2}
     :property c
-    :class property a2
+    :class property -accessor public a2
     :method "sub foo" args {;}
   }
 

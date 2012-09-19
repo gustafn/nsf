@@ -798,12 +798,12 @@ Test case nested-ordered-composite {
 # The following tests the deletion order triggering implict
 # deletions. This caused a crash in nsf 2.0b2.
 #
-
 package req nx::serializer
 
 nx::Test case class-object-property {
+
   Class create C {
-    :class property x
+    :class property -accessor public x
     :property a:int
   }
 

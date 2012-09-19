@@ -4110,10 +4110,76 @@ nsf.c:
   during shutdown to avoid missing slot forwarders called from
   destructors
   
+nx::Class create C {
+    :property {b b1}
+    :public property {c c1}
+    :protected property -accessor {d d1}
+
+    :variable foo
+}
+
+Property reform part 1:
+
+- disallow protection modifiers for "properties" and
+  add new flag "-accessor" to "property" and "variable"
+  This changes definitions like
+     Class create C {
+       :property {a a1}
+       :public property {b b1}
+       :protected property {c c1}
+       :private property {d d1}
+     }
+   to 
+     Class create C {
+       :property {a a1}
+       :property -accessor public {b b1}
+       :property -accessor protected {c c1}
+       :property -accessor private {d d1}
+     }
+   since "properties" are always public accessible
+   over the "configure" and "cget" interface, but the
+   accessors methods might not be public. The value of 
+   the accessor might be also "none" (specifying explicitely
+   that no accessor is wanted) or "", which means: use the default.
+   Same holds for "variable"
+
+- disallow parameter option "incremental" and change it to a flag
+  of the property or variable. The motivation for this is due to
+  the fact, that "incremental" is a property of the accessor, and
+  not of the value.
+
+  old:
+     Class create C {
+       :property foo:int,incremental
+       :variable bar:int,incremental
+     }
+
+  new: 
+     Class create C {
+       :property -incremental foo:int
+       :variable -incremental bar:int
+     }
+
+- disallow "public class property" and friends since these are not needed
+- removed parameter property "noaccessor"
+
+- removed "nx::configure defaultPropertyCallProtection" and 
+  method hook "__default_property_call_protection"
+
+- introduced "nx::configure defaultAccessor" and 
+  method hook "__default_accessor"
+
+- for the time being, "defaultAccessor" is "public" for NX and XOTcl, 
+  will be changed to "none" in NX
+
+- extended regression test (new file properties.test)
+
+
 ========================================================================
 TODO:
-- use cget per default instead of accessor methods
-- default mechanism for accessor methods
+- check noconfig
+- Property reform part 2: better handling of per-object properties
+- Property reform part 3: change defaultPropertyAccessor or nx to none
 
 - handling of method names in error messages from nsfAPI.h. The following
   ? {o __alloc x} {method __alloc not dispatched on valid class}

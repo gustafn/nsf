@@ -22079,10 +22079,13 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   ParamDefsRefCountIncr(paramDefs);
 
   /*
-   * Iterate over the parameter definitions to lookup the desired parameter
+   * Iterate over the parameter definitions to lookup the desired
+   * parameter. Skip positional parameters and those with NOCONFIG settings.
    */
   for (i = 1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
-    if (*paramPtr->name != '-') continue;
+    if (*paramPtr->name != '-' || (paramPtr->flags & NSF_ARG_NOCONFIG)) {
+      continue;
+    }
     if (strcmp(nameString, paramPtr->name) == 0) {
       found = 1;
       break;

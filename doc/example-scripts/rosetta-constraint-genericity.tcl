@@ -23,7 +23,7 @@ nx::Class create Fish -superclass Eatable {
 # add+ or +item remove+.
 #
 nx::Class create FoodBox {
-  :property item:object,type=::Eatable,0..n,incremental
+  :property -incremental item:object,type=::Eatable
   :public method print {} {
     set string "Foodbox contains:\n"
     foreach i ${:item} {append string "   [$i name]\n"}

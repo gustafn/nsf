@@ -23,7 +23,7 @@ namespace eval ::nx {
     :property cmd 
     :property {namespace ::}
     :property {verbose 0} 
-    :property {expected 1} 
+    :property -accessor public {expected 1} 
     :property {count 1} 
     :property msg 
     :property setResult 
@@ -112,7 +112,7 @@ namespace eval ::nx {
     }
     
     :public method call {msg cmd} {
-      if {[:verbose]} {puts stderr "$msg: $cmd"}
+      if {${:verbose}} {puts stderr "$msg: $cmd"}
       return [::namespace eval ${:namespace} $cmd]
     }
    
@@ -130,7 +130,7 @@ namespace eval ::nx {
           if {[info exists :count]} {set c ${:count}} {set c 1000}
         }
 	#puts stderr "running test $c times"
-	if {[:verbose]} {puts stderr "running test $c times"}
+	if {${:verbose}} {puts stderr "running test $c times"}
 	if {$c > 1} {
 	  set r0 [time {time {::namespace eval ${:namespace} ";"} $c}]
 	  regexp {^(-?[0-9]+) +} $r0 _ mS0

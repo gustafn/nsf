@@ -67,7 +67,7 @@ nx::Class create SimpleContainer {
 # by the slots.
 #
 nx::Class create OrderedContainer -superclass SimpleContainer {
-  :property {items:0..n,incremental {}}
+  :property -incremental {items:0..n {}}
 
   :public method new {args} {
     set item [${:memberClass} create [:]::[:autoname ${:prefix}] {*}$args]

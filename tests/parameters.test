@@ -26,7 +26,7 @@ nx::Test case syntax {
   ? {::nsf::method::alias C foo ::set 1} \
       {invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
 
-  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-class value? ?-private? spec ?initblock?"} "Test whether the colon prefix is suppressed"
+  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-accessor value? ?-incremental? ?-class value? spec ?initblock?"} "Test whether the colon prefix is suppressed"
 }
 
 #######################################################
@@ -488,10 +488,13 @@ nx::Test case multivalued {
   ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter "-ints"}
 
   # make slot incremental
-  Foo::slot::ints eval {
-    set :incremental 1
-    :reconfigure
-  }
+  Foo property -incremental ints:integer,1..*
+
+  # TODO? the following does not work. Should we revive it?
+  #Foo::slot::ints eval {
+  #  set :incremental 1
+  #  :reconfigure
+  #}
 
   Foo create foo -ints {1 2}
   ? {foo ints add 0} "0 1 2"
@@ -925,7 +928,7 @@ nx::Test case substdefault-objparam {
     :property {s2:substdefault,substdefault "[current]"}
 
     # substdefault with incremental
-    :property {s3:substdefault,incremental "[current]"}
+    :property -incremental {s3:substdefault "[current]"}
   }
 
   Bar create ::b
@@ -1251,8 +1254,8 @@ nx::Test parameter count 10
 nx::Test case slot-nosetter {
   nx::Class create C {
     :property a 
-    :property b:integer,noaccessor
-    :property {c:noaccessor ""}
+    :property -accessor none b:integer
+    :property -accessor none {c ""}
   }
   
   ? {C create c1 -a 1 -b 2} ::c1
@@ -1831,7 +1834,9 @@ nx::Test case parameter-object-mixin-dependency {
   nx::Class create C {
     :property a1
     :create c1 {
+puts stderr ====1
       :property a2
+puts stderr ====2
     }
   }
 
@@ -2091,13 +2096,13 @@ nx::Test case object-level-variable {
 	{value '11' of parameter value not between 1 and 10}
 
     # valid value
-    ? [list [self] variable  -nocomplain r1:range,arg=1-10 5] ""
+    ? [list [self] variable -nocomplain r1:range,arg=1-10 5] ""
     ? [list [self] property -nocomplain [list r2:range,arg=1-10 5]] \
 	{::enterprise::r2}
 
     # testing incremental
-    ? [list [self] variable -nocomplain i:int,0..*,incremental {}] "::enterprise::i"
-    ? [list [self] property -nocomplain j:int,0..*,incremental {}] "::enterprise::j"
+    ? [list [self] variable -incremental -nocomplain i:int,0..* {}] "::enterprise::i"
+    ? [list [self] property -incremental -nocomplain j:int,0..* {}] "::enterprise::j"
     :i add 1
     :j add 1
     ? [list [self] i] "1"
@@ -2133,7 +2138,9 @@ nx::Test case class-level-variable {
   nx::Class create C {
 
     # define 2 class-level variables, one via variable, one via property
+    puts stderr ====1
     :variable v v0
+    puts stderr ====2
     :property {a a0}
 
     # create an instance
@@ -2155,7 +2162,7 @@ nx::Test case class-level-variable {
   ? {C info parameter syntax a} "?-a value?"
 
   ? {C info parameter definition v} ""
-  ? {C info slot definition v} "{v:noaccessor,noconfig v0}"
+  ? {C info slot definition v} "{v:noconfig v0}"
   ? {C info parameter list v} ""
   ? {C info parameter syntax v} ""
 
@@ -2335,12 +2342,12 @@ nx::Test case class-info-slots-types {
 
   # "v" does show up in "info slot ..." 
   ? {C info slot objects} "::C::slot::v"
-  ? {C info slot definition} "{v:noaccessor,noconfig 100}"
+  ? {C info slot definition} "{v:noconfig 100}"
 
   nx::Class create D {
     :property {p0 200}
-    :property {p1:noaccessor 201}
-    :property {p2:noaccessor,noconfig 202}
+    :property -accessor none {p1 201}
+    :property -accessor none {p2:noconfig 202}
     :property {p3:noconfig 203}
   }
 
@@ -2353,8 +2360,8 @@ nx::Test case class-info-slots-types {
 
   # all properties show up in "info slot" 
   ? {D info slot objects} "::D::slot::p0 ::D::slot::p1 ::D::slot::p2 ::D::slot::p3"
-  ? {D info slot definition} "{p0 200} {p1:noaccessor 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
-  ? {D info properties} "{p0 200} {p1:noaccessor 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+  ? {D info slot definition} "{p0 200} {p1 201} {p2:noconfig 202} {p3:noconfig 203}"
+  ? {D info properties} "{p0 200} {p1 201} {p2:noconfig 202} {p3:noconfig 203}"
 
 }
 
@@ -2368,28 +2375,29 @@ nx::Test case object-info-slots-types {
     :variable v0 100
     # In case we require an accessor or e.g. incremental, slot objects
     # are created; incremental implies accessor
-    :variable -accessor v1 100
-    :variable v2:incremental 100
+    :variable -accessor public v1 100
+    :variable -incremental v2 100
   }
 
   # only the variables with slots show up in "info slot ..." 
   ? {o1 info slot objects} "::o1::per-object-slot::v2 ::o1::per-object-slot::v1"
-  ? {o1 info slot definition} "{v2:noconfig 100} {v1:noconfig 100}"
+  ? {o1 info slot definition} "{v2:0..n,noconfig 100} {v1:noconfig 100}"
 
   nx::Object create o2 {
     :property {p0 200}
-    :property {p1:noaccessor 201}
-    :property {p2:noaccessor,noconfig 202}
+    :property -accessor none {p1 201}
+    :property -accessor none {p2:noconfig 202}
     :property {p3:noconfig 203}
   }
 
   # "p1" and "p2" do NOT show up in "info methods" 
   ? {o2 info methods} "p0 p3"
 
-  # all properties show up in "info slot" 
-  ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p2 ::o2::per-object-slot::p3"
-  ? {o2 info slot definition} "{p0:noconfig 200} {p1:noaccessor,noconfig 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
-  ? {o2 info properties} "{p0:noconfig 200} {p1:noaccessor,noconfig 201} {p2:noaccessor,noconfig 202} {p3:noconfig 203}"
+  # all properties with slots show up in "info slot" 
+  # TODO: object slots will change when we allow true object properties
+  ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p3"
+  ? {o2 info slot definition} "{p0:noconfig 200} {p3:noconfig 203}"
+  ? {o2 info properties} "{p0:noconfig 200} {p3:noconfig 203}"
 
 }
 
@@ -2529,13 +2537,13 @@ nx::Test case forward-to-assign {
 
 
 #
-# Test forwarding to slot vs. noaccessor
+# Test forwarding to slot vs. accessor none
 #
 nx::Test case forward-to-assign {
   set ::slotcalls 0
 
   ? {nx::Class create Foo {
-    :property bar:noaccessor {
+    :property -accessor none bar {
       :public method assign { object property value } {
 	incr ::slotcalls 1
 	nsf::var::set $object $property $value
@@ -2549,7 +2557,7 @@ nx::Test case forward-to-assign {
 
   # test cases for default
   nx::Class create Foo {
-    :property {baz:noaccessor 1} {
+    :property -accessor none {baz 1} {
       :public method assign { object property value } {
 	incr ::slotcalls 1
 	nsf::var::set $object $property $value

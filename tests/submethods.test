@@ -364,10 +364,6 @@ nx::Test case leaf-next-in-submethods {
   }
 }
 
-# :public method intercept {} { next }
-# -> TODO: wrong # args: should be ":FOO" ... trim the colon!
-
-
 
 nx::Test case submethods-and-filters {
   #
@@ -496,7 +492,7 @@ nx::Test case submethods-current-introspection {
   # filter-local argv.
 
   Class create Z {
-    :class property msg
+    :class property -accessor public msg
     :method intercept args {
       [current class] eval [list set :msg [list [current methodpath] \
 					       [current calledmethod] \
@@ -504,7 +500,6 @@ nx::Test case submethods-current-introspection {
 					       [current nextmethod]]]
       next
     }
-    
   }
   
   set c [Z new]

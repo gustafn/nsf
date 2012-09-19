@@ -142,8 +142,8 @@ nx::Object public method "require trait" {traitName {nameMap ""}} {
 #
 nx::Class create nx::Trait {
   :property {package}
-  :property {requiredMethods:0..n,incremental ""}
-  :property {requiredVariables:0..n,incremental ""}
+  :property -incremental {requiredMethods:0..n ""}
+  :property -incremental {requiredVariables:0..n ""}
 
   :public method "require trait" {traitName {nameMap ""}} {
     # adding a trait to a trait

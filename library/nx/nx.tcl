@@ -209,10 +209,10 @@ namespace eval ::nx {
   # Define default method and property protection
   ######################################################################
   ::nsf::method::create Object __default_method_call_protection args {return false}
-  ::nsf::method::create Object __default_property_call_protection args {return false}
+  ::nsf::method::create Object __default_accessor args {return public}
 
   ::nsf::method::property Object __default_method_call_protection call-protected true
-  ::nsf::method::property Object __default_property_call_protection call-protected true
+  ::nsf::method::property Object __default_accessor call-protected true
 
   ######################################################################
   # Define method "method" for Class and Object
@@ -280,10 +280,9 @@ namespace eval ::nx {
 
   # Well, class is not a method defining method either, but a modifier
   array set ::nsf::methodDefiningMethod {
-    method 1 alias 1 property 1 forward 1 class 1
+    method 1 alias 1 forward 1 class 1
     ::nsf::classes::nx::Class::method 1 ::nsf::classes::nx::Object::method 1
     ::nsf::classes::nx::Class::alias 1 ::nsf::classes::nx::Object::alias 1
-    ::nsf::classes::nx::Class::property 1 ::nsf::classes::nx::Object::property 1
     ::nsf::classes::nx::Class::forward 1 ::nsf::classes::nx::Object::forward 1
   }
 
@@ -296,9 +295,12 @@ namespace eval ::nx {
     :method public {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
+      } elseif {[lindex $args 0] eq "class" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
+	error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-protected false}
+
       return $r
     }
 
@@ -306,6 +308,8 @@ namespace eval ::nx {
     :method protected {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
+      } elseif {[lindex $args 0] eq "class" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
+	error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-protected true}
@@ -316,13 +320,8 @@ namespace eval ::nx {
     :method private {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
-      }
-      if {[lindex $args 0] eq "property"} {
-	# handle "... private property ...."
-	set args [linsert $args 1 -private]
-      } elseif {[lindex $args 0] eq "class" && [lindex $args 1] eq "property"} {
-	# handle "... private class property ...."
-	set args [linsert $args 2 -private]
+      } elseif {[lindex $args 0] eq "class" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
+	error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-private true}
@@ -933,13 +932,10 @@ namespace eval ::nx {
         if {$property in [list "required" "convert" "substdefault" "noarg" "noleadingdash"]} {
 	  if {$property eq "convert" } {set class [:requireClass ::nx::VariableSlot $class]}
           lappend opts -$property 1
-        } elseif {$property eq "noaccessor"} {
-	  set opt(-accessor) 0
         } elseif {$property eq "noconfig"} {
-	  set opt(-config) 0
+	  set opt(-config) 0 ;# TODO
         } elseif {$property eq "incremental"} {
-	  set opt(-accessor) 1
-	  lappend opts -incremental 1
+	  error "parameter option incremental must not be used; use non-positional argument -incremental instead"
         } elseif {[string match type=* $property]} {
 	  set class [:requireClass ::nx::VariableSlot $class]
           set type [string range $property 5 end]
@@ -978,6 +974,7 @@ namespace eval ::nx {
     {-class ""}
     {-initblock ""}
     {-private:switch}
+    {-incremental:switch}
     {-defaultopts ""}
     spec
     default:optional
@@ -986,6 +983,7 @@ namespace eval ::nx {
     lassign [:parseParameterSpec -class $class -defaultopts $defaultopts $spec] \
 	name parameterOptions class opts
 
+    lappend opts -incremental $incremental
     if {[info exists default]} {
       lappend opts -default $default
     }
@@ -1130,7 +1128,8 @@ namespace eval ::nx {
     {methodname}
     {forwardername}
     {defaultmethods {get assign}}
-    {accessor false}
+    {accessor public}
+    {incremental:boolean false}
     {config true}
     {noarg}
     {noleadingdash}
@@ -1168,6 +1167,9 @@ namespace eval ::nx {
     # objects are created, invalidate the object parameters to reflect
     # the changes
     #
+    if {${:incremental} && [:info class] eq [current class]} {
+      error "flag incremental must not be used for this slot type"
+    }
     if {![info exists :methodname]} {
       set :methodname ${:name}
     }
@@ -1293,7 +1295,6 @@ namespace eval ::nx {
   ObjectParameterSlot public method getPropertyDefinition {} {
     set options [:getParameterOptions -withMultiplicity true]
     if {[info exists :positional]} {lappend options positional}
-    if {!${:accessor}} {lappend options noaccessor}
     if {!${:config}} {lappend options noconfig}
     if {[info exists :default]} {
       return [list [:namedParameterSpec "" ${:name} $options] ${:default}]
@@ -1349,13 +1350,13 @@ namespace eval ::nx {
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
 
   createBootstrapVariableSlots ::nx::RelationSlot {
-    {accessor true}
+    {accessor public}
     {multiplicity 0..n}
   }
 
   RelationSlot protected method init {} {
     ::nsf::next
-    if {${:accessor}} {
+    if {${:accessor} ne ""} {
       :makeForwarder
     }
   }
@@ -1567,9 +1568,9 @@ namespace eval ::nx {
   createBootstrapVariableSlots ::nx::VariableSlot {
     {arg}
     {convert false}
-    {incremental}
+    {incremental:boolean false}
     {multiplicity 1..1}
-    {accessor true}
+    {accessor public}
     {type}
     {settername}
     valuecmd
@@ -1668,28 +1669,37 @@ namespace eval ::nx {
     if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
     if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
     if {[info exists :settername]} {return 1}
-    if {![info exists :incremental]} {return 0}
+    if {!${:incremental}} {return 0}
     #if {![:isMultivalued]} {return 0}
     #puts stderr "[self] ismultivalued"
     return 1
   }
 
   ::nx::VariableSlot public method makeAccessor {} {
-
-    if {!${:accessor}} {
+    
+    if {${:accessor} eq "none"} {
       #puts stderr "Do not register forwarder ${:domain} ${:name}"
       return 0
     }
+
     if {[:needsForwarder]} {
       set handle [:makeForwarder]
       :makeIncrementalOperations
     } else {
       set handle [:makeSetter]
     }
-    ::nsf::method::property ${:domain} \
-	{*}[expr {${:per-object} ? "-per-object" : ""}] \
-	$handle call-protected \
-	[::nsf::dispatch ${:domain} __default_property_call_protection]
+
+    if {${:accessor} eq "protected"} {
+      ::nsf::method::property ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] \
+	  $handle call-protected true
+      set :config 0
+    } elseif {${:accessor} eq "private"} {
+      ::nsf::method::property ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] \
+	  $handle call-private true
+      set :config 0
+    } elseif {${:accessor} ne "public"} {
+      error "accessor value '${:accessor}' invalid; might be one of public|protected|private or none"
+    }
     return 1
   }
 
@@ -1706,6 +1716,11 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method init {} {
+    #puts "VariableSlot [self] ${:incremental} && ${:accessor} && ${:multiplicity} incremental ${:incremental}"
+    if {${:incremental}} {
+      if {${:accessor} eq "none"} { set :accessor "public" }
+      if {![:isMultivalued]} { set :multiplicity "0..n" }
+    }
     next
     :makeAccessor
     :handleTraces
@@ -1837,11 +1852,11 @@ namespace eval ::nx {
   ######################################################################
 
   nx::Object method variable {
-     {-accessor:switch}
+     {-accessor "none"}
+     {-incremental:switch}
      {-class ""}
      {-initblock ""}
      {-nocomplain:switch}
-     {-private:switch}
      spec:parameter
      defaultValue:optional
    } {
@@ -1854,19 +1869,14 @@ namespace eval ::nx {
     #  - when initblock is non empty
     #
 
-    #puts stderr "Object variable $spec accessor $accessor nocomplain $nocomplain"
+    #puts stderr "Object variable $spec accessor $accessor nocomplain $nocomplain incremental $incremental"
 
     # get name and list of parameter options
     lassign [::nx::MetaSlot parseParameterSpec -class $class $spec] \
 	name parameterOptions class options
     array set opts $options
 
-    if {[info exists opts(-incremental)]} {
-      # the usage of "-incremental" implies "-accessor"
-      set accessor true
-    }
-
-    if {$initblock eq "" && !$accessor} {
+    if {$initblock eq "" && $accessor eq "none" && !$incremental} {
       #
       # we can build a slot-less variable
       #
@@ -1895,6 +1905,7 @@ namespace eval ::nx {
       }
       return
     }
+
     #
     # create variable via a slot object
     #
@@ -1902,7 +1913,8 @@ namespace eval ::nx {
 		  -per-object \
 		  -class $class \
 		  -initblock $initblock \
-		  -private=$private \
+		  -incremental=$incremental \
+		  -private=[expr {$accessor eq "private"}] \
 		  -defaultopts [list -accessor $accessor -config false] \
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
@@ -1920,35 +1932,43 @@ namespace eval ::nx {
   }
 
   Object method property {
+    {-accessor ""}
+    {-incremental:switch}
     {-class ""}
     {-nocomplain:switch}
-    {-private:switch}
      spec:parameter
     {initblock ""}
   } {
+
+    if {${accessor} eq ""} {
+      set accessor [::nsf::dispatch [self] __default_accessor]
+      #puts stderr "OBJECT got default accessor ${accessor}"
+    }
+
     set r [[self] ::nsf::classes::nx::Object::variable \
-	       -accessor=true \
+	       -accessor $accessor \
+	       -incremental=$incremental \
 	       -class $class \
 	       -initblock $initblock \
 	       -nocomplain=$nocomplain \
-	       -private=$private \
 	       {*}$spec]
     return $r
   }
 
   nx::Class method variable {
-     {-accessor:switch}
-     {-class ""}
-     {-config:switch}
-     {-initblock ""}
-     {-private:switch}
-     spec:parameter
-     defaultValue:optional
-   } {
+    {-accessor "none"}
+    {-incremental:switch}
+    {-class ""}
+    {-config:switch}
+    {-initblock ""}
+    spec:parameter
+    defaultValue:optional
+  } {
     set slot [::nx::MetaSlot createFromParameterSpec [::nsf::self] \
 		  -class $class \
 		  -initblock $initblock \
-		  -private=$private \
+		  -incremental=$incremental \
+		  -private=[expr {$accessor eq "private"}] \
 		  -defaultopts [list -accessor $accessor -config $config] \
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
@@ -1962,17 +1982,23 @@ namespace eval ::nx {
   }
 
   nx::Class method property {
+    {-accessor ""}
+    {-incremental:switch}
     {-class ""}
-    {-private:switch}
     spec:parameter
     {initblock ""}
   } {
+
+    if {${accessor} eq ""} {
+      set accessor [::nsf::dispatch [self] __default_accessor]
+      #puts stderr "CLASS got default accessor ${accessor}"
+    }
     set r [[self] ::nsf::classes::nx::Class::variable \
-	       -accessor=true \
+	       -accessor $accessor \
+	       -incremental=$incremental \
 	       -class $class \
 	       -config=true \
 	       -initblock $initblock \
-	       -private=$private \
 	       {*}$spec]
     return $r
   }
@@ -2334,23 +2360,25 @@ namespace eval ::nx {
     }
 
     #
-    # Set the default method protection for nx methods. This
-    # protection level is used per default for definitions of
-    # properties and setters
+    # Set the default method accessor handling nx properties. The configured
+    # value is used for creating accessors for properties in nx.
     #
-    :method defaultPropertyCallProtection {value:boolean,optional} {
+    :method defaultAccessor {value:optional} {
       if {[info exists value]} {
-	::nsf::method::create Object __default_property_call_protection args [list return $value]
-	::nsf::method::property Object  __default_property_call_protection call-protected true
+	if {$value ni {"public" "protected" "private" "none"}} {
+	  error {defaultAccessor must be "public", "protected", "private" or "none"}
+	}
+	::nsf::method::create Object __default_accessor args [list return $value]
+	::nsf::method::property Object __default_accessor call-protected true
       }
-      return [::nsf::dispatch [::nx::self] __default_property_call_protection]
+      return [::nsf::dispatch [::nx::self] __default_accessor]
     }
   }
   #
   # Make the default protected methods
   #
   ::nx::configure defaultMethodCallProtection true
-  ::nx::configure defaultPropertyCallProtection false
+  ::nx::configure defaultAccessor public
 
   #
   # Provide an ensemble-like interface to the ::nsf primitiva to

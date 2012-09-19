@@ -125,7 +125,7 @@ Test case cget-performance {
 
   nx::Class create Person {
     :property famnam:required
-    :property {age:integer,required 0}
+    :property -accessor public {age:integer,required 0}
     :property {friends:0..n ""}
     :property sex
     
@@ -145,7 +145,7 @@ Test case cget-performance {
 
   #
   # read properties
-  # - built-in getter
+  # - built-in accessor
   # - cget
   # - dispatch of cget method with full path
   # - cget via slot method
@@ -156,7 +156,7 @@ Test case cget-performance {
 
   #
   # write properties:
-  # - built-in setter
+  # - built-in accessor
   # - configure
   # - configure via slot method
   ? {p1 age 27} 27

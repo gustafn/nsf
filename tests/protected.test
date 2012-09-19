@@ -689,10 +689,10 @@ nx::Test case private-subobject {
 #
 nx::Test case protected-priv-class-property {
   nx::Class create C {
-    :public property {a a1}
-    :protected property {b b1}
-    :private property {c c1}
-    :private property {d:integer 1}
+    :property -accessor public {a a1}
+    :property -accessor protected {b b1}
+    :property -accessor private {c c1}
+    :property -accessor private {d:integer 1}
     :public method foo {p} {return [: $p]}
     :public method bar {p} {return [: -local $p]}
     :public method baz {p v} {return [: -local $p $v]}
@@ -735,7 +735,7 @@ nx::Test case protected-priv-class-property {
   # The values of the private properties do not conflict.
   #
   nx::Class create D -superclass C {
-    :private property {c c1d}
+    :property -accessor private {c c1d}
     :public method bard {p} {return [: -local $p]}
     :create d1 {
       :property {c c1o}
@@ -754,10 +754,10 @@ nx::Test case protected-priv-class-property {
   # The values of the private properties do not conflict.
   #
   nx::Class create D -superclass C {
-    :public property {c c1d}
+    :property -accessor public {c c1d}
     :public method bard {p} {return [: -local $p]}
     :create d1 {
-      :private property {c c1o}
+      :property -accessor private {c c1o}
       :public method bard1 {p} {return [: -local $p]}
     }
   }
@@ -777,11 +777,11 @@ nx::Test case private-shadows-public-property {
     :property {x c}
   }
   nx::Class create D -superclass C {
-    :private property {x d}
+    :property -accessor private {x d}
     :public method bar-d {p} {return [: -local $p]}
   }
   nx::Class create E -superclass D {
-    :private property {x e}
+    :property -accessor private {x e}
     :public method bar-e {p} {return [: -local $p]}
   }
 
@@ -796,10 +796,10 @@ nx::Test case private-shadows-public-property {
 #
 nx::Test case protected-priv-object-property {
   nx::Object create o {
-    :public property {a a1}
-    :protected property {b b1}
-    :private property {c c1}
-    :private property {d:integer 1}
+    :property -accessor public {a a1}
+    :property -accessor protected {b b1}
+    :property -accessor private {c c1}
+    :property -accessor private {d:integer 1}
     :public method foo {p} {return [: $p]}
     :public method bar {p} {return [: -local $p]}
     :public method baz {p v} {return [: -local $p $v]}
@@ -832,10 +832,10 @@ nx::Test case protected-priv-object-property {
 #
 nx::Test case protected-priv-class-object-property {
   nx::Class create C {
-    :public class property {a a1}
-    :protected class property {b b1}
-    :private class property {c c1}
-    :private class property {d:integer 1}
+    :class property -accessor public {a a1}
+    :class property -accessor protected {b b1}
+    :class property -accessor private {c c1}
+    :class property -accessor private {d:integer 1}
     :public class method foo {p} {return [: $p]}
     :public class method bar {p} {return [: -local $p]}
     :public class method baz {p v} {return [: -local $p $v]}
@@ -861,4 +861,9 @@ nx::Test case protected-priv-class-object-property {
   ? {C baz d 2} {2}
   ? {C bar d} {2}
   ? {C baz d x} {expected integer but got "x" for parameter "value"}
+
+
+  ? {C public class property {d:integer 1}} {'property' is not a method defining method}
+  ? {C protected class property {d:integer 1}} {'property' is not a method defining method}
+  ? {C private class property {d:integer 1}} {'property' is not a method defining method}
 }

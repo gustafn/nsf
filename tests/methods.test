@@ -18,8 +18,8 @@ nx::Class create C {
 
   # setter
   :property plain_setter 
-  :public property public_setter 
-  :protected property protected_setter 
+  :property -accessor public public_setter 
+  :property -accessor protected protected_setter 
 
   # alias
   :alias plain_alias [C info method registrationhandle plain_method]
@@ -33,9 +33,11 @@ nx::Class create C {
   :class forward plain_object_forward %self plain_object_method
   :public class forward public_object_forward %self public_object_method
   :protected class forward protected_object_forward %self protected_object_method
-  :class property plain_object_setter 
-  :public class property public_object_setter 
-  :protected class property protected_object_setter 
+
+  :class property {plain_object_setter ""}
+  :class property -accessor public {public_object_setter ""}
+  :class property -accessor protected {protected_object_setter ""}
+
   :class alias plain_object_alias [:class info method registrationhandle plain_object_method]
   :public class alias public_object_alias [:class info method registrationhandle public_object_method]
   :protected class alias protected_object_alias [:class info method registrationhandle protected_object_method]
@@ -52,20 +54,20 @@ C create c1 {
   :protected forward protected_object_forward %self protected_object_method
 
   # setter
-  :property plain_object_setter 
-  :public property public_object_setter 
-  :protected property protected_object_setter 
+  :property {plain_object_setter ""}
+  :property -accessor public {public_object_setter ""}
+  :property -accessor protected protected_object_setter 
 
   # alias
   :alias plain_object_alias [:info method registrationhandle plain_object_method]
   :public alias public_object_alias [:info method registrationhandle public_object_method]
   :protected alias protected_object_alias [:info method registrationhandle protected_object_method]
 }
-C public property s0
-C protected property s1
+C property -accessor public s0
+C property -accessor protected s1
 ? {c1 s0 0} 0
 ? {::nsf::dispatch c1 s1 1} 1
-C class property s3
+C class property -accessor public {s3 ""}
 ? {C s3 3} 3
 
 # create a fresh object (different from c1)
@@ -88,7 +90,8 @@ nx::Test case class-level-forwards {
 
 # class level setter
 nx::Test case class-level-setter {
-  ? {c2 plain_setter 1} "1"
+  #? {c2 plain_setter 1} {::c2: unable to dispatch method 'plain_setter'}
+  ? {c2 plain_setter 1} 1
   ? {c2 public_setter 2} "2"
   ? {catch {c2 protected_setter 3}} 1
   ? {::nsf::dispatch c2 protected_setter 4} "4"
@@ -122,6 +125,7 @@ nx::Test case class-object-level-forwards {
 
 # class level setter
 nx::Test case class-object-level-setter {
+  #? {C plain_object_setter 1} {method 'plain_object_setter' unknown for ::C; consider '::C create plain_object_setter 1' instead of '::C plain_object_setter 1'}
   ? {C plain_object_setter 1} "1"
   ? {C public_object_setter 2} "2"
   ? {catch {C protected_object_setter 3}} 1
@@ -156,6 +160,7 @@ nx::Test case object-level-forwards {
 
 # object level setter
 nx::Test case object-level-setter {
+  #? {c1 plain_object_setter 1} {::c1: unable to dispatch method 'plain_object_setter'}
   ? {c1 plain_object_setter 1} "1"
   ? {c1 public_object_setter 2} "2"
   ? {catch {c1 protected_object_setter 3}} 1
@@ -169,8 +174,13 @@ nx::Test case object-level-alias {
   ? {catch {c1 protected_object_alias}} 1
   ? {::nsf::dispatch c1 protected_object_alias} "protected_object_alias"
 
+  #? {lsort [c1 info methods]} \
+      "plain_object_alias plain_object_forward plain_object_method public_object_alias public_object_forward public_object_method public_object_setter"
   ? {lsort [c1 info methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
+
+  #? {lsort [C class info methods]} \
+      "plain_object_alias plain_object_forward plain_object_method public_object_alias public_object_forward public_object_method public_object_setter s3"
   ? {lsort [C class info methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
 }
@@ -252,46 +262,48 @@ nx::Test case next-from-nonpos-args {
 nx::Test case property-method {
 
   nx::Class create C {
-    set x [:property a]
+    set x [:property -accessor public a]
 
     ? [list set _ $x] "::nsf::classes::C::a"
 
     # property with default
     :property {b b1}
-    :public property {c c1}
-    :protected property {d d1}
+    :property -accessor public {c c1}
+    :property -accessor protected {d d1}
 
-    set X [:class property A]
+    set X [:class property -accessor public A]
     ? [list set _ $X] "::C::A"
     
     # class property with default
     :class property {B B2}
-    :public class property {C C2}
-    :protected class property {D D2}
+    :class property -accessor public {C C2}
+    :class property -accessor protected {D D2}
   }
 
   C create c1 -a 1
   ? {c1 a} 1
-  ? {c1 b} b1
-  ? {c1 c} c1
+  ? {c1 cget -b} b1
+  ? {c1 cget -c} c1
   ? {c1 d} "::c1: unable to dispatch method 'd'"
 
   ? {C A 2} 2
   ? {C A} 2
+  #? {C B} {method 'B' unknown for ::C; consider '::C create B ' instead of '::C B '}
   ? {C B} B2
   ? {C C} C2
   ? {C D} "method 'D' unknown for ::C; consider '::C create D ' instead of '::C D '"
 
   nx::Object create o {
-    set x [:property a]
+    set x [:property -accessor public a]
     ? [list set _ $x] "::o::a"
 
     # property with default
     :property {b b1}
-    :public property {c c1}
-    :protected property {d d1}
+    :property -accessor public {c c1}
+    :property -accessor protected {d d1}
   }
   ? {o a 2} 2
+  #? {o b} {::o: unable to dispatch method 'b'}
   ? {o b} b1
   ? {o c} c1
   ? {o d} "::o: unable to dispatch method 'd'"
@@ -330,8 +342,8 @@ nx::Test case subcmd {
 package req nx::serializer
 nx::Test case class-object-property {
   nx::Class create C {
-    :class property x
-    :property a:int
+    :class property -accessor public x
+    :property -accessor public a:int
     :create c1
   }
   ? {C x 1} 1
@@ -400,7 +412,7 @@ nx::Test case errormessage {
       {method 'object' unknown for ::C; consider '::C create object method bar x {return $x}' instead of '::C object method bar x {return $x}'}
   #? {C public class object method bar {x} {return $x}} "'object' not allowed to be modified by 'class'"
   ? {C public class object method bar {x} {return $x}} \
-      {unable to dispatch sub-method "object" of ::C class; valid are: class alias, class delete method, class delete property, class delete variable, class filter, class filterguard, class forward, class info children, class info class, class info filter guard, class info filter methods, class info has mixin, class info has namespace, class info has type, class info info, class info is, class info lookup filter, class info lookup method, class info lookup methods, class info lookup slots, class info method, class info methods, class info mixin classes, class info mixin guard, class info name, class info parent, class info precedence, class info properties, class info slot definition, class info slot names, class info slot objects, class info vars, class method, class mixin, class mixinguard, class property, class variable}
+      {'object' is not a method defining method}
 }
 
 #
@@ -410,7 +422,7 @@ nx::Test case dispatch-without-object {
 
   nx::Object create o {
     # property defines a setter, we need a current object
-    :property {a v}
+    :property -accessor public {a v}
     # the other methods don't require them as strong
     :forward b ::o2 bar
     :method foo {} {return [nx::self]}
@@ -536,8 +548,8 @@ nx::Test case nested-scopes {
 #
 nx::Test case delete-per-object {
   nx::Object create o1 {
-    :property a1
-    :property a2
+    :property -accessor public a1 
+    :property -accessor public a2
     :public method foo {} {return [namespace current]-[namespace which info]}
     :public method "info foo" {} {return [namespace current]-[namespace which info]}
     :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
@@ -582,11 +594,11 @@ nx::Test case delete-per-object {
 #
 nx::Test case delete-per-object-on-class {
   nx::Class create C {
-    :class property a1
+    :class property -accessor public a1
     :public class method foo {} {return [namespace current]-[namespace which info]}
     :public class method "info foo" {} {return [namespace current]-[namespace which info]}
     :public class method "info bar foo" {} {return [namespace current]-[namespace which info]}
-    :property a2
+    :property -accessor public a2
   }
 
   ? {C class info methods -path} "{info foo} {info bar foo} foo a1"
@@ -621,7 +633,7 @@ nx::Test case delete-per-object-on-class {
 #
 nx::Test case delete-class-level-method {
   nx::Class create C {
-    :property a1
+    :property -accessor public a1
     :public method foo {} {return [namespace current]-[namespace which info]}
     :public method "info foo" {} {return [namespace current]-[namespace which info]}
     :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
