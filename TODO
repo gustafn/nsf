@@ -4180,6 +4180,7 @@ TODO:
 - check noconfig
 - Property reform part 2: better handling of per-object properties
 - Property reform part 3: change defaultPropertyAccessor or nx to none
+- update documentation with property reform
 
 - handling of method names in error messages from nsfAPI.h. The following
   ? {o __alloc x} {method __alloc not dispatched on valid class}
