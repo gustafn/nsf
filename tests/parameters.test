@@ -2395,9 +2395,9 @@ nx::Test case object-info-slots-types {
 
   # all properties with slots show up in "info slot" 
   # TODO: object slots will change when we allow true object properties
-  ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p3"
-  ? {o2 info slot definition} "{p0:noconfig 200} {p3:noconfig 203}"
-  ? {o2 info properties} "{p0:noconfig 200} {p3:noconfig 203}"
+  ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p3"
+  ? {o2 info slot definition} "{p0 200} {p1 201} {p3:noconfig 203}"
+  ? {o2 info properties} "{p0 200} {p1 201} {p3:noconfig 203}"
 
 }
 

@@ -1,3 +1,5 @@
+# -*- Tcl -*-
+
 package req nx::test
 
 #

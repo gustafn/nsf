@@ -4182,6 +4182,9 @@ TODO:
 - Property reform part 3: change defaultPropertyAccessor or nx to none
 - update documentation with property reform
 
+- do we need "-properties" in nx?
+- do we need "config" as parameter property?
+
 - handling of method names in error messages from nsfAPI.h. The following
   ? {o __alloc x} {method __alloc not dispatched on valid class}
   should be

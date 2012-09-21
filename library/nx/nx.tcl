@@ -1855,6 +1855,7 @@ namespace eval ::nx {
      {-accessor "none"}
      {-incremental:switch}
      {-class ""}
+     {-config:switch}
      {-initblock ""}
      {-nocomplain:switch}
      spec:parameter
@@ -1876,10 +1877,18 @@ namespace eval ::nx {
 	name parameterOptions class options
     array set opts $options
 
-    if {$initblock eq "" && $accessor eq "none" && !$incremental} {
+    # TODO: do we need config as parameter property?
+    if {[info exists opts(-config)]} {
+      set config $opts(-config)
+    }
+
+    #if {$initblock eq "" && $accessor eq "none" && !$incremental} 
+    if {$initblock eq "" && !$config && $accessor eq "none" && !$incremental} {
       #
       # we can build a slot-less variable
       #
+      #puts "... slotless variable $spec"
+
       set isSwitch [regsub {\mswitch\M} $parameterOptions boolean parameterOptions]
       if {[info exists defaultValue]} {
 	if {[info exists :$name] && !$nocomplain} {
@@ -1906,6 +1915,7 @@ namespace eval ::nx {
       return
     }
 
+    #puts "... slot variable $spec"
     #
     # create variable via a slot object
     #
@@ -1915,11 +1925,12 @@ namespace eval ::nx {
 		  -initblock $initblock \
 		  -incremental=$incremental \
 		  -private=[expr {$accessor eq "private"}] \
-		  -defaultopts [list -accessor $accessor -config false] \
+		  -defaultopts [list -accessor $accessor] \
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
 
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
+    if {!$config} {$slot eval {set :config false}}
     if {[info exists defaultValue]} {$slot setCheckedInstVar -nocomplain=$nocomplain [self] $defaultValue}
 
     if {[$slot eval {info exists :settername}]} {
@@ -1950,6 +1961,7 @@ namespace eval ::nx {
 	       -incremental=$incremental \
 	       -class $class \
 	       -initblock $initblock \
+	       -config=true \
 	       -nocomplain=$nocomplain \
 	       {*}$spec]
     return $r
