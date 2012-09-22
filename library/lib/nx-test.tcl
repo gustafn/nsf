@@ -35,6 +35,7 @@ namespace eval ::nx {
     :class variable failure 0
     :class variable testfile ""
     :class variable count 0
+    :class variable time 0
 
     :public class method success {} {
       incr :success
@@ -42,12 +43,16 @@ namespace eval ::nx {
     :public class method failure {} {
       incr :failure
     }
+    :public class method time {ms:double} {
+      set :time [expr {${:time} + $ms}]
+    }
     :public class method destroy {} {
       lappend msg \
 	  file [file rootname [file tail ${:testfile}]] \
 	  tests [expr {${:success} + ${:failure}}] \
 	  success ${:success} \
-	  failure ${:failure}
+	  failure ${:failure} \
+	  time ${:time} 
       puts "Summary: $msg"
       array set "" $::argv
       if {[info exists (-testlog)]} {
@@ -108,7 +113,8 @@ namespace eval ::nx {
       foreach example [lsort [:info instances -closure]] {
 	$example run
       }
-      puts stderr "Total Time: [expr {[clock clicks -milliseconds]-$startTime}] ms"
+      set ms [expr {[clock clicks -milliseconds]-$startTime}]
+      puts stderr "Total Time: $ms ms"
     }
     
     :public method call {msg cmd} {
@@ -117,6 +123,7 @@ namespace eval ::nx {
     }
    
     :public method run args {
+      set startTime [clock clicks -milliseconds]
       :exitOn
       if {[info exists :pre]} {:call "pre" ${:pre}}
       if {![info exists :msg]} {set :msg ${:cmd}}
@@ -161,6 +168,7 @@ namespace eval ::nx {
 	:exit -1
       }
       if {[info exists :post]} {:call "post" ${:post}}
+      ::nx::Test time [expr {[clock clicks -milliseconds]-$startTime}]
       :exitOff
     }
 
