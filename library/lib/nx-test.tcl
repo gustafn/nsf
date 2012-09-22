@@ -35,7 +35,7 @@ namespace eval ::nx {
     :class variable failure 0
     :class variable testfile ""
     :class variable count 0
-    :class variable time 0
+    :class variable ms 0
 
     :public class method success {} {
       incr :success
@@ -43,8 +43,8 @@ namespace eval ::nx {
     :public class method failure {} {
       incr :failure
     }
-    :public class method time {ms:double} {
-      set :time [expr {${:time} + $ms}]
+    :public class method ms {ms:double} {
+      set :ms [expr {${:ms} + $ms}]
     }
     :public class method destroy {} {
       lappend msg \
@@ -52,7 +52,7 @@ namespace eval ::nx {
 	  tests [expr {${:success} + ${:failure}}] \
 	  success ${:success} \
 	  failure ${:failure} \
-	  time ${:time} 
+	  ms ${:ms} 
       puts "Summary: $msg"
       array set "" $::argv
       if {[info exists (-testlog)]} {
@@ -168,7 +168,7 @@ namespace eval ::nx {
 	:exit -1
       }
       if {[info exists :post]} {:call "post" ${:post}}
-      ::nx::Test time [expr {[clock clicks -milliseconds]-$startTime}]
+      ::nx::Test ms [expr {[clock clicks -milliseconds]-$startTime}]
       :exitOff
     }
 
