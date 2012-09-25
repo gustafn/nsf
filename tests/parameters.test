@@ -274,10 +274,11 @@ nx::Test case objectparameter {
   C create c1
  
   ? {C eval :__objectparameter} \
-      "-a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
+      "{-superclass:class,alias,method=::nsf::methods::class::superclass,1..n ::nx::Object} -object-mixin:mixinreg,alias,method=::nsf::classes::nx::Object::mixin -mixin:mixinreg,alias,0..n -object-filter:filterreg,alias,method=::nsf::classes::nx::Object::filter -filter:filterreg,alias,0..n -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -class:class,alias,method=::nsf::methods::object::class __initcmd:initcmd,optional,noleadingdash"
 
-  ? {c1 eval :__objectparameter} \
-      "::c1: unable to dispatch method '__objectparameter'"
+  #### TOOD: remove or add
+  #? {c1 eval :__objectparameter} \
+  #    "::c1: unable to dispatch method '__objectparameter'"
 }
 
 #######################################################
@@ -304,7 +305,7 @@ nx::Test case reclass {
   ? {d1 info lookup slots -source application} \
       "::D::slot::d ::C::slot::a ::C::slot::b ::C::slot::c"
   
-  ? {D eval :__objectparameter} \
+  ? {d1 eval :__objectparameter} \
       "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
 }
 
@@ -333,29 +334,29 @@ nx::Test case objparam-mixins {
   }
   D mixin M
 
-  ? {D eval :__objectparameter} \
+  ? {d1 eval :__objectparameter} \
       "-b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash" \
     "mixin added"
 
   M mixin M2
 
-  ? {D eval :__objectparameter} \
+  ? {d1 eval :__objectparameter} \
       "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash" \
     "transitive mixin added"
   D mixin ""
   #we should have again the old interface
 
-  ? {D eval :__objectparameter} \
+  ? {d1 eval :__objectparameter} \
       "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
 
   C mixin M
-  ? {D eval :__objectparameter} \
+  ? {d1 eval :__objectparameter} \
       "-b2 -b -m1 -m2 -d:required -a {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash" \
     "mixin added"
   C mixin ""
   #we should have again the old interface
   
-  ? {D eval :__objectparameter} \
+  ? {d1 eval :__objectparameter} \
       "-d:required -a -b:boolean {-c 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash" 
 }
 
@@ -1309,12 +1310,14 @@ nx::Test case slot-traces {
   ? {o a} 4
   ? {o b} 44
   ? {o c 5} 999
-  
+  ? {::nsf::object::property o hasperobjectslots} 1
+
   o copy o2
 
   ? {o a} 4
   ? {o b} 44
   ? {o c 5} 999
+  ? {::nsf::object::property o2 hasperobjectslots} 1
 
   ::nx::Class create C {
     :property a {set :defaultcmd { set _ 4 } }
@@ -1584,17 +1587,17 @@ nx::Test case check-arguments {
     :method metaclassarg {-x:metaclass} {return $x} 
   }
 
-  ? {Foo info method parametersyntax noarg} ""
-  ? {Foo info method parametersyntax onearg} "?-x value?"
-  ? {Foo info method parametersyntax intarg} "?-x integer?"
-  ? {Foo info method parametersyntax intsarg} "?-x integer ...?"
-  ? {Foo info method parametersyntax boolarg} "?-x boolean?"
-  ? {Foo info method parametersyntax classarg} "?-x class?"
-  ? {Foo info method parametersyntax upperarg} "?-x upper?"
-  ? {Foo info method parametersyntax metaclassarg} "?-x metaclass?"
+  ? {Foo info method syntax noarg} ""
+  ? {Foo info method syntax onearg} "?-x value?"
+  ? {Foo info method syntax intarg} "?-x integer?"
+  ? {Foo info method syntax intsarg} "?-x integer ...?"
+  ? {Foo info method syntax boolarg} "?-x boolean?"
+  ? {Foo info method syntax classarg} "?-x class?"
+  ? {Foo info method syntax upperarg} "?-x upper?"
+  ? {Foo info method syntax metaclassarg} "?-x metaclass?"
 
   # return enumeration type
-  ? {nx::Class info method parametersyntax "info mixinof"} \
+  ? {nx::Class info method syntax "info mixinof"} \
       "?-closure? ?-scope all|class|object? ?pattern?"
 }
 
@@ -1828,15 +1831,13 @@ nx::Test case parameter-alias-default {
 }
 
 #
-# Test potential incfluence on parameters
+# Test incfluence of mixins on objectparameters
 #
 nx::Test case parameter-object-mixin-dependency {
   nx::Class create C {
     :property a1
     :create c1 {
-puts stderr ====1
       :property a2
-puts stderr ====2
     }
   }
 
@@ -1850,7 +1851,7 @@ puts stderr ====2
 
   ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 
-  ? {C eval :__objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
+  ? {c1 eval :__objectparameter} "-a2 -b1:required -a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
 
   #
   # invalidate object parameter and expect that the per-class mixin
@@ -1864,7 +1865,7 @@ puts stderr ====2
 
   ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::properties ::nx::Object::slot::noinit ::nx::Object::slot::mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::filter"
 
-  ? {C eval :__objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
+  ? {c1 eval :__objectparameter} "-a2 -b1:required -a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
 
   # should not require b1
   ? {C create c2} ::c2
@@ -2138,9 +2139,7 @@ nx::Test case class-level-variable {
   nx::Class create C {
 
     # define 2 class-level variables, one via variable, one via property
-    puts stderr ====1
     :variable v v0
-    puts stderr ====2
     :property {a a0}
 
     # create an instance
@@ -2155,13 +2154,13 @@ nx::Test case class-level-variable {
   #
   # We expect a specifiable object parameter for "a" but not for "v".
   # The parameter for v can be obtained via spec, but is not listed in
-  # "info parameter syntax" or "info parameter definition".
+  # "info parameter syntax" or "info parameter definitions".
   #
   ? {C info parameter list a} "-a"
-  ? {C info parameter definition a} "{-a a0}"
+  ? {C info parameter definitions a} "{-a a0}"
   ? {C info parameter syntax a} "?-a value?"
 
-  ? {C info parameter definition v} ""
+  ? {C info parameter definitions v} ""
   ? {C info slot definition v} "{v:noconfig v0}"
   ? {C info parameter list v} ""
   ? {C info parameter syntax v} ""
@@ -2448,11 +2447,8 @@ nx::Test case side-effect-set-value {
 
   nx::Class create C {
     :public class method setObjectParams {spec} {
-      set :objectparams $spec
+      :protected method __objectparameter {} [list return $spec]
       ::nsf::invalidateobjectparameter [self]
-    }
-    :class method __objectparameter {} {
-      return ${:objectparams}
     }
     :setObjectParams ""
   }

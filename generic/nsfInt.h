@@ -290,6 +290,7 @@ typedef struct NsfFilterStack {
 
 typedef struct NsfTclObjList {
   Tcl_Obj *content;
+  Tcl_Obj *payload;
   struct NsfTclObjList *nextPtr;
 } NsfTclObjList;
 
@@ -377,13 +378,13 @@ typedef struct NsfStringIncrStruct {
 #define NSF_IS_SLOT_CONTAINER              0x0200
 #define NSF_KEEP_CALLER_SELF               0x0400
 #define NSF_PER_OBJECT_DISPATCH            0x0800
-/* deletion state */
-#define NSF_DESTROY_CALLED_SUCCESS         0x1000
-#define NSF_DURING_DELETE                  0x2000
-#define NSF_DELETED                        0x4000
-#define NSF_RECREATE                       0x8000
-#define NSF_RECREATE                       0x8000
-#define NSF_TCL_DELETE                   0x010000  /* requires flags to be int, not short */
+#define NSF_HAS_PER_OBJECT_SLOTS           0x1000
+/* deletion states */
+#define NSF_DESTROY_CALLED_SUCCESS       0x010000 /* requires flags to be int, not short */
+#define NSF_DURING_DELETE                0x020000
+#define NSF_DELETED                      0x040000
+#define NSF_RECREATE                     0x080000
+#define NSF_TCL_DELETE                   0x100000  
 
 
 /* flags for NsfParams */
@@ -605,10 +606,10 @@ typedef struct NsfObjectSystem {
 typedef enum {
   NSF_EMPTY, NSF_ZERO, NSF_ONE,
   /* methods called internally */
-  NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN,
+  NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN, NSF_GET_PARAMETER_SPEC,
   /* var names */
   NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, 
-  NSF_ALIAS_ARRAY,
+  NSF_ALIAS_ARRAY, NSF_POSITION, NSF_POSITIONAL, NSF_CONFIG, NSF_PARAMETERSPEC,
   /* object/class names */
   NSF_METHOD_PARAMETER_SLOT_OBJ, 
   /* constants */
@@ -626,10 +627,10 @@ EXTERN char *NsfGlobalStrings[];
 char *NsfGlobalStrings[] = {
   "", "0", "1", 
   /* methods called internally */
-  "configure", "initialize", "assign",
+  "configure", "initialize", "assign", "getParameterSpec",
   /* var names */
   "__autonames", "__default_metaclass", "__default_superclass", 
-  "::nsf::alias",
+  "::nsf::alias", "position", "positional", "config", "parameterSpec",
   /* object/class names */
   "::nx::methodParameterSlot", 
   /* constants */

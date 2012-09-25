@@ -5590,14 +5590,24 @@ CheckConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
   return result;
 }
 
-#if defined(NSF_WITH_ASSERTIONS)
-/*********************************************************************
- * Assertions
- **********************************************************************/
 /*
- * Generic List handling functions, just used in assertion handling
+ * Generic Obj-List handling functions.
  */
 
+/*
+ *----------------------------------------------------------------------
+ * TclObjListFreeList --
+ *
+ *    Free the elements of the obj list.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    free memory.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 TclObjListFreeList(NsfTclObjList *list) {
   NsfTclObjList *del;
@@ -5605,19 +5615,93 @@ TclObjListFreeList(NsfTclObjList *list) {
     del = list;
     list = list->nextPtr;
     DECR_REF_COUNT2("listContent", del->content);
+    if (del->payload) {DECR_REF_COUNT2("listContent", del->payload);}
     FREE(NsfTclObjList, del);
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * TclObjListNewElement --
+ *
+ *    Add a new element to the obj list with an optional value (stored in
+ *    payload).
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    allocate memory.
+ *
+ *----------------------------------------------------------------------
+ */
 static Tcl_Obj *
-TclObjListNewElement(NsfTclObjList **list, Tcl_Obj *ov) {
+TclObjListNewElement(NsfTclObjList **list, Tcl_Obj *obj, Tcl_Obj *value) {
   NsfTclObjList *elt = NEW(NsfTclObjList);
-  INCR_REF_COUNT2("listContent", ov);
-  elt->content = ov;
+  INCR_REF_COUNT2("listContent", obj);
+  elt->content = obj;
+  elt->payload = value;
+  if (value) {
+    INCR_REF_COUNT2("listPayload", value);
+  }
   elt->nextPtr = *list;
   *list = elt;
-  return ov;
+  return obj;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * TclObjListAdd --
+ *
+ *    Add a NsfTclObjList element to the obj list indexed by a key into a
+ *    sorted list of elements. Duplicates are appended to the payload
+ *    elements.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Add element to the obj-list.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+TclObjListAdd(Tcl_Interp *interp, NsfTclObjList **list, Tcl_Obj *key, Tcl_Obj *value) {
+  NsfTclObjList *elt, **prevPtr;
+  CONST char *keyString = ObjStr(key);
+
+  for (elt = *list, prevPtr = list; elt; prevPtr = &elt->nextPtr, elt = elt->nextPtr) {
+    CONST char *eltString = ObjStr(elt->content);
+    if (key == elt->content || strcmp(keyString, eltString) == 0) {
+      /* 
+       * Found the element, append to it
+       */
+      /* fprintf(stderr, "TclObjListAdd: insert %s equal %s\n", keyString, eltString);*/
+      Tcl_ListObjAppendElement(interp, elt->payload, value);
+      return;
+    }
+    if (strcmp(keyString, eltString) < 0) {
+      /* 
+       * Element not found, insert new before as a new entry.
+       */
+      /* fprintf(stderr, "TclObjListAdd: insert %s before %s\n", keyString, eltString);*/
+      TclObjListNewElement(prevPtr, key, value);
+      return;
+    }
+  }
+  /* 
+   * Element not found, insert new as last entry.
+   */
+  /* fprintf(stderr, "TclObjListAdd: insert last %s\n", keyString); */
+  TclObjListNewElement(prevPtr, key, Tcl_NewListObj(1, &value));
+
+  return;
+}
+
+#if defined(NSF_WITH_ASSERTIONS)
+/*********************************************************************
+ * Assertions
+ **********************************************************************/
 
 static NsfTclObjList *
 AssertionNewList(Tcl_Interp *interp, Tcl_Obj *aObj) {
@@ -5627,8 +5711,8 @@ AssertionNewList(Tcl_Interp *interp, Tcl_Obj *aObj) {
   if (Tcl_ListObjGetElements(interp, aObj, &oc, &ov) == TCL_OK) {
     if (oc > 0) {
       int i;
-      for (i=oc-1; i>=0; i--) {
-        TclObjListNewElement(&last, ov[i]);
+      for (i = oc - 1; i >= 0; i--) {
+        TclObjListNewElement(&last, ov[i], NULL);
       }
     }
   }
@@ -17314,7 +17398,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
    * In case, we failed so far to obtain a result, try to use the
    * object-system implementors definitions in the global array
    * ::nsf::parametersyntax. Note that we can only obtain the
-   * parametersyntax this way.
+   * parameter syntax this way.
    */
   if (printStyle == NSF_PARAMS_SYNTAX) {
     Tcl_DString ds, *dsPtr = &ds;
@@ -17492,7 +17576,7 @@ ListMethod(Tcl_Interp *interp,
 	  return TCL_OK;
 	}
       }
-    case InfomethodsubcmdParametersyntaxIdx:
+    case InfomethodsubcmdSyntaxIdx:
       {
         Tcl_Command importedCmd = GetOriginalCommand(cmd);
         return ListCmdParams(interp, importedCmd, methodName, NSF_PARAMS_SYNTAX);
@@ -19104,7 +19188,7 @@ cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
 static int
 NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl) {
   if (cl->parsedParamPtr) {
-    /*fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr);*/
+    /* fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr); */
     ParsedParamFree(cl->parsedParamPtr);
     cl->parsedParamPtr = NULL;
   }
@@ -19545,7 +19629,7 @@ cmd ::method::property NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotcontainer|slotobj"}
+  {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
 }
 */
@@ -19629,38 +19713,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       Tcl_SetIntObj(Tcl_GetObjResult(interp), (Tcl_Command_flags(cmd) & flag) != 0);
       break;
     }
-  case MethodpropertySlotcontainerIdx:
-    {
-      NsfObject *containerObject = NsfGetObjectFromCmdPtr(cmd);
-      if (containerObject == NULL) {
-	return NsfPrintError(interp, "slot container must be an object");
-      }
-      flag = NSF_IS_SLOT_CONTAINER;
-      if (valueObj) {
-	int flagValue;
-	int result = SetBooleanFlag(interp, &containerObject->flags, flag, valueObj, &flagValue);
 
-	if (result != TCL_OK) {
-	  return result;
-	}
-	assert(containerObject->nsPtr);
-	if (flagValue) {
-	  /* turn on SlotContainerCmdResolver */
-	  Tcl_SetNamespaceResolvers(containerObject->nsPtr, 
-				    (Tcl_ResolveCmdProc *)SlotContainerCmdResolver,
-				    NsColonVarResolver,
-				    (Tcl_ResolveCompiledVarProc *)NULL);
-	} else {
-	  /* turn off SlotContainerCmdResolver */
-	  Tcl_SetNamespaceResolvers(containerObject->nsPtr, 
-				    (Tcl_ResolveCmdProc *)NULL,
-				    NsColonVarResolver,
-				    (Tcl_ResolveCompiledVarProc *)NULL);
-	}
-      }
-      Tcl_SetIntObj(Tcl_GetObjResult(interp), (containerObject->flags & flag) != 0);
-      break;
-    }
   case MethodpropertySlotobjIdx:
   case MethodpropertyReturnsIdx:
     {
@@ -19981,7 +20034,7 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 /*
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|perobjectdispatch" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -19995,18 +20048,38 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, 
   case ObjectpropertyClassIdx: flags = NSF_IS_CLASS; break;
   case ObjectpropertyRootmetaclassIdx: flags = NSF_IS_ROOT_META_CLASS; break;
   case ObjectpropertyRootclassIdx: flags = NSF_IS_ROOT_CLASS; break;
-  case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; break;
+  case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; allowSet = 1; break;
   case ObjectpropertyKeepcallerselfIdx: flags = NSF_KEEP_CALLER_SELF; allowSet = 1; break;
   case ObjectpropertyPerobjectdispatchIdx: flags = NSF_PER_OBJECT_DISPATCH; allowSet = 1; break;
+  case ObjectpropertyHasperobjectslotsIdx: flags = NSF_HAS_PER_OBJECT_SLOTS; allowSet = 1; break;
   }
 
   if (valueObj) {
     if (likely(allowSet)) {
-      int flagValue;
-      int result = SetBooleanFlag(interp, &object->flags, flags, valueObj, &flagValue);
-      if (result != TCL_OK) {
+      int flagValue, result;
+
+      result = SetBooleanFlag(interp, &object->flags, flags, valueObj, &flagValue);
+      if (unlikely(result != TCL_OK)) {
 	return result;
       }
+      
+      if (objectproperty == ObjectpropertySlotcontainerIdx) {
+	assert(object->nsPtr);
+	if (flagValue) {
+	  /* turn on SlotContainerCmdResolver */
+	  Tcl_SetNamespaceResolvers(object->nsPtr, 
+				    (Tcl_ResolveCmdProc *)SlotContainerCmdResolver,
+				    NsColonVarResolver,
+				    (Tcl_ResolveCompiledVarProc *)NULL);
+	} else {
+	  /* turn off SlotContainerCmdResolver */
+	  Tcl_SetNamespaceResolvers(object->nsPtr, 
+				    (Tcl_ResolveCmdProc *)NULL,
+				    NsColonVarResolver,
+				    (Tcl_ResolveCompiledVarProc *)NULL);
+	}
+      }
+      
     } else {
       return NsfPrintError(interp, "object property is read only");
     }
@@ -20585,6 +20658,148 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
     Tcl_PopCallFrame(interp);
   }
   return TCL_OK;
+}
+
+/*
+cmd parameter::get NsfParameterGetCmd {
+  {-argName "parametersubcmd" -type "list|name|syntax" -required 1}
+  {-argName "parameterspec"    -required 1 -type tclobj}
+}
+*/
+static int 
+NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec) {
+  NsfParsedParam parsedParam;
+  Tcl_Obj *paramsObj = Tcl_NewListObj(1, &parameterspec), *listObj;
+  Nsf_Param *paramsPtr;
+  int result;
+  
+  result = ParamDefsParse(interp, NULL, paramsObj,
+			    NSF_DISALLOWED_ARG_OBJECT_PARAMETER, 0,
+			    &parsedParam);
+  if (result != TCL_OK) {
+    return result;
+  }
+
+  paramsPtr = parsedParam.paramDefs->paramsPtr;
+
+  switch (parametersubcmd) {
+  case ParametersubcmdListIdx:
+    listObj = ParamDefsList(interp, paramsPtr);
+    break;
+  case ParametersubcmdNameIdx:
+    listObj = ParamDefsNames(interp, paramsPtr);
+    break;
+    /* case InfoobjectparametersubcmdParameterIdx:
+       listObj = ParamDefsFormat(interp, paramsPtr);
+       break;*/
+  case ParametersubcmdSyntaxIdx:
+    listObj = NsfParamDefsSyntax(paramsPtr);
+    break;
+  }
+
+  assert(listObj);
+  Tcl_SetObjResult(interp, listObj);
+  
+  DECR_REF_COUNT2("paramDefsObj", listObj);
+  ParamDefsRefCountDecr(parsedParam.paramDefs);
+  return TCL_OK;
+}
+
+/*
+cmd parameter::specs NsfParameterSpecsCmd {
+  {-argName "-configure"  -nrargs 0 -required 0}
+  {-argName "-nonposargs"  -nrargs 0 -required 0}
+  {-argName "slotobjs"    -required 1 -type tclobj}
+}
+*/
+
+static int 
+NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, Tcl_Obj *slotListObj) {
+  NsfTclObjList *objList = NULL, *elt;
+  Tcl_Obj **objv, *resultObj;
+  int result = TCL_OK, i, objc;
+
+  if (Tcl_ListObjGetElements(interp, slotListObj, &objc, &objv) != TCL_OK) {
+    return NsfPrintError(interp, "NsfParameterSpecsCmd: invalid slot object list");
+  }
+
+  /*
+   * Iterate over the slot objects and obtain the position and the
+   * parameterSpec.
+   */
+  for (i = 0; i < objc; i++) {
+    NsfObject *slotObject;
+    Tcl_Obj *positionObj, *specObj = NULL;
+
+    if (GetObjectFromObj(interp, objv[i], &slotObject) != TCL_OK) {
+      return NsfPrintError(interp, "objectparameter: slot element is not a next scripting object");
+    }
+    /*
+     * When withConfigure is provided, skip this parameter ...
+     *  - when configure is not set 
+     *  - or  configure == 0
+     */
+    if (withConfigure) {
+      int configure = 0;
+      Tcl_Obj *configureObj = Nsf_ObjGetVar2((Nsf_Object *)slotObject, interp, 
+					     NsfGlobalObjs[NSF_CONFIG], NULL, 0);
+      if (!configureObj) continue;
+      Tcl_GetBooleanFromObj(interp, configureObj, &configure);
+      if (!configure) continue;
+    }
+
+    /*
+     * When withNonposargs is provided, skip this parameter ...
+     *  - when positional == 1
+     */
+    if (withNonposargs) {
+      Tcl_Obj *positionalObj = Nsf_ObjGetVar2((Nsf_Object *)slotObject, interp, 
+					     NsfGlobalObjs[NSF_POSITIONAL], NULL, 0);
+      if (positionalObj) {
+	int positional = 0;
+	Tcl_GetBooleanFromObj(interp, positionalObj, &positional);
+	if (positional) continue;
+      }
+    }
+
+    positionObj = Nsf_ObjGetVar2((Nsf_Object *)slotObject, interp, 
+				 NsfGlobalObjs[NSF_POSITION], NULL, 0);
+    specObj = Nsf_ObjGetVar2((Nsf_Object *)slotObject, interp, 
+			     NsfGlobalObjs[NSF_PARAMETERSPEC], NULL, 0);
+    if (specObj == NULL) {
+      result = CallMethod(slotObject, interp, NsfGlobalObjs[NSF_GET_PARAMETER_SPEC], 2, 0, 
+			  NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
+      if (unlikely(result != TCL_OK)) {
+	return NsfPrintError(interp, "objectparameter: %s %s returned error", 
+			     ObjectName(slotObject),
+			     NsfGlobalStrings[NSF_GET_PARAMETER_SPEC]);
+      }
+      specObj = Tcl_GetObjResult(interp);
+    }
+    /*fprintf(stderr, "NsfParameterSpecsCmd  slot obj = %s pos %s spec %s\n", ObjStr(objv[i]), 
+      positionObj ? ObjStr(positionObj) : "NONE", ObjStr(specObj)  );*/
+    /*
+     * Add the spec to the list indicated by the position
+     */
+    TclObjListAdd(interp, &objList, positionObj, specObj);
+  }
+  
+  /*
+   * Fold the per-position lists into a flat result list
+   */
+  resultObj = Tcl_NewListObj(0, NULL);
+  for (elt = objList; elt; elt = elt->nextPtr) {
+    Tcl_ListObjGetElements(interp, elt->payload, &objc, &objv);
+    for (i = 0; i < objc; i++) {
+      Tcl_ListObjAppendElement(interp, resultObj, objv[i]);
+
+    }
+  }
+
+  Tcl_SetObjResult(interp, resultObj);
+  TclObjListFreeList(objList);
+  
+  return result;
 }
 
 /*
@@ -21346,9 +21561,10 @@ ParamSetFromAny(
  *----------------------------------------------------------------------
  * GetObjectParameterDefinition --
  *
- *    Obtain the parameter definitions for an object by calling the
- *    scripted method "objectparameter" if the value is not cached
- *    already.
+ *    Obtain the parameter definitions for an object by calling the method
+ *    "__objectparameter" if the value is not cached already. Caching is
+ *    performed on the class, the cached values are used in case there are no
+ *    object-specific slots.
  *
  * Results:
  *    Tcl return code, parsed structure in last argument
@@ -21360,11 +21576,22 @@ ParamSetFromAny(
  */
 
 static int
-GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass *class,
-                             NsfParsedParam *parsedParamPtr) {
+GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, 
+			     NsfObject *object, NsfParsedParam *parsedParamPtr) {
   int result;
   Tcl_Obj *rawConfArgs;
-  NsfParsedParam *clParsedParamPtr = class->parsedParamPtr;
+  NsfClass *class;
+
+  assert(object);
+  if (object->flags & NSF_HAS_PER_OBJECT_SLOTS) {
+    assert(object->flags & NSF_INIT_CALLED);
+    assert(object->nsPtr != NULL);
+    /*fprintf(stderr, "per-object configure obj %s flags %.6x\n", 
+      ObjectName(object), object->flags);*/
+    class = NULL;
+  } else {
+    class = object->cl;
+  }
 
   /*
    * Parameter definitions are cached in the class, for which
@@ -21386,7 +21613,8 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
    * creating objects of this class.
    */
 
-  if (clParsedParamPtr) {
+  if (likely(class && class->parsedParamPtr)) {
+    NsfParsedParam *clParsedParamPtr = class->parsedParamPtr;
     parsedParamPtr->paramDefs = clParsedParamPtr->paramDefs;
     parsedParamPtr->possibleUnknowns = clParsedParamPtr->possibleUnknowns;
     result = TCL_OK;
@@ -21395,11 +21623,11 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
      * There is no parameter definition available, get a new one in
      * the the string representation.
      */
-    Tcl_Obj *methodObj = NsfMethodObj(&class->object, NSF_c_objectparameter_idx);
+    Tcl_Obj *methodObj = NsfMethodObj(object, NSF_c_objectparameter_idx);
 
     if (methodObj) {
       /*fprintf(stderr, "=== calling %s objectparameter\n", ClassName(class));*/
-      result = CallMethod(class, interp, methodObj,
+      result = CallMethod(object, interp, methodObj,
 			  2, 0, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
 
       if (likely(result == TCL_OK)) {
@@ -21419,7 +21647,9 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfClass 
 	  NsfParsedParam *ppDefPtr = NEW(NsfParsedParam);
 	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
 	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
-	  class->parsedParamPtr = ppDefPtr;
+	  if (class) {
+	    class->parsedParamPtr = ppDefPtr;
+	  }
 	  if (ppDefPtr->paramDefs) {
 	    ParamDefsRefCountIncr(ppDefPtr->paramDefs);
 	  }
@@ -21600,13 +21830,14 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   CallFrame frame, *framePtr = &frame, *uplevelVarFramePtr;
 
 #if 0
-  fprintf(stderr, "NsfOConfigureMethod %s %2d ", ObjectName(object), objc);
+  fprintf(stderr, "NsfOConfigureMethod %s flags %.6x oc %2d", ObjectName(object), object->flags, objc);
   for(i = 0; i < objc; i++) {fprintf(stderr, " [%d]=%s,", i, ObjStr(objv[i]));}
   fprintf(stderr, "\n");
 #endif
 
   /* Get the object parameter definition */
-  result = GetObjectParameterDefinition(interp, objv[0], object->cl, &parsedParam);
+  result = GetObjectParameterDefinition(interp, objv[0], object, &parsedParam);
+
   if (result != TCL_OK || !parsedParam.paramDefs) {
     /*fprintf(stderr, "... nothing to do for method %s\n", ObjStr(objv[0]));*/
     return result;
@@ -22055,7 +22286,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    * Get the object parameter definition 
    */
   result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], 
-					object->cl, &parsedParam);
+					object, &parsedParam);
   if (unlikely(result != TCL_OK)) {
     return result;
   }
@@ -22097,8 +22328,9 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    * "initcmd", "alias" and "forward".
    */
   if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
-    // TODO: just for the time being
-    fprintf(stderr, "method arg %s found, flags %.8x slot %p\n", nameString, paramPtr->flags, paramPtr->slotObj);
+    /* TODO: maybe we can allow this in the future */
+    /*fprintf(stderr, "method arg %s found, flags %.8x slot %p\n", 
+      nameString, paramPtr->flags, paramPtr->slotObj);*/
     found = 0;
   }
 
@@ -22106,7 +22338,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
     result = NsfPrintError(interp, "cannot lookup parameter value for %s", nameString);
   } else {
 
-    //fprintf(stderr, "arg %s found, flags %.8x\n", nameString, paramPtr->flags);
+    /* fprintf(stderr, "arg %s found, flags %.8x\n", nameString, paramPtr->flags);*/
     
     if (paramPtr->slotObj) {
       NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
@@ -23492,7 +23724,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
@@ -23584,6 +23816,75 @@ static int
 NsfObjInfoNameMethod(Tcl_Interp *interp, NsfObject *object) {
 
   Tcl_SetObjResult(interp,  Tcl_NewStringObj(Tcl_GetCommandName(interp, object->id), -1));
+  return TCL_OK;
+}
+
+/*
+objectInfoMethod objectparameter NsfObjInfoObjectparameterMethod {
+  {-argName "infoobjectparametersubcmd" -type "definition|list|name|syntax" -required 1}
+  {-argName "name" -required 0}
+}
+*/
+static int 
+NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcmd, CONST char *name) {
+  NsfParsedParam parsedParam;
+  Tcl_Obj *listObj = NULL;
+  Nsf_Param CONST *paramsPtr;
+  Nsf_Param paramList[2];
+  int result;
+
+  result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY],
+					object, &parsedParam);
+
+  if (result != TCL_OK || !parsedParam.paramDefs) {
+    return result;
+  }
+
+  paramsPtr = parsedParam.paramDefs->paramsPtr;
+
+  /*
+   * If a single parameter name is given, we construct a filtered parameter
+   * list on the fly and provide it to the output functions. Note, that the
+   * first matching parameter is queried.
+   */
+  if (name) {
+    Nsf_Param CONST *pPtr;
+
+    for (pPtr = paramsPtr; pPtr->name; pPtr++) {
+      if (Tcl_StringMatch( ObjStr(pPtr->nameObj), name)) {
+	paramsPtr = (Nsf_Param CONST *)&paramList;
+	paramList[0] = *pPtr;
+	paramList[1].name = NULL;
+	break;
+      }
+    }
+    if (paramsPtr == parsedParam.paramDefs->paramsPtr) {
+      /*
+       * The named parameter was NOT found, so return "".
+       */
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
+      return TCL_OK;
+    }
+  }
+
+  switch (subcmd) {
+  case InfoobjectparametersubcmdDefinitionIdx:
+    listObj = ParamDefsFormat(interp, paramsPtr);
+    break;
+  case InfoobjectparametersubcmdListIdx:
+    listObj = ParamDefsList(interp, paramsPtr);
+    break;
+  case InfoobjectparametersubcmdNameIdx:
+    listObj = ParamDefsNames(interp, paramsPtr);
+    break;
+  case InfoobjectparametersubcmdSyntaxIdx:
+    listObj = NsfParamDefsSyntax(paramsPtr);
+    break;
+  }
+  assert(listObj);
+  Tcl_SetObjResult(interp, listObj);
+  DECR_REF_COUNT2("paramDefsObj", listObj);
+
   return TCL_OK;
 }
 
@@ -23820,7 +24121,7 @@ NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 
 /*
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|handle|parameter|parametersyntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|handle|parameter|syntax|type|precondition|postcondition|submethods|returns"}
   {-argName "name" -required 1 -type tclobj}
 }
 */
@@ -24041,78 +24342,6 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, 
   } else {
     Tcl_SetObjResult(interp, resultObj);
   }
-  return TCL_OK;
-}
-
-
-/*
-classInfoMethod objectparameter NsfClassInfoObjectparameterMethod {
-  {-argName "infoobjectparametersubcmd" -type "name|parameter|parametersyntax" -required 1}
-  {-argName "name" -required 0}
-}
-*/
-
-static int
-NsfClassInfoObjectparameterMethod(Tcl_Interp *interp, NsfClass *class,
-				  int subcmd, CONST char *name) {
-  NsfParsedParam parsedParam;
-  Tcl_Obj *listObj = NULL;
-  Nsf_Param CONST *paramsPtr;
-  Nsf_Param paramList[2];
-  int result;
-
-  result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY],
-					class, &parsedParam);
-
-  if (result != TCL_OK || !parsedParam.paramDefs) {
-    return result;
-  }
-
-  paramsPtr = parsedParam.paramDefs->paramsPtr;
-
-  /*
-   * If a single parameter name is given, we construct a filtered parameter
-   * list on the fly and provide it to the output functions. Note, that the
-   * first matching parameter is queried.
-   */
-  if (name) {
-    Nsf_Param CONST *pPtr;
-
-    for (pPtr = paramsPtr; pPtr->name; pPtr++) {
-      if (Tcl_StringMatch( ObjStr(pPtr->nameObj), name)) {
-	paramsPtr = (Nsf_Param CONST *)&paramList;
-	paramList[0] = *pPtr;
-	paramList[1].name = NULL;
-	break;
-      }
-    }
-    if (paramsPtr == parsedParam.paramDefs->paramsPtr) {
-      /*
-       * The named parameter was NOT found, so return "".
-       */
-      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
-      return TCL_OK;
-    }
-  }
-
-  switch (subcmd) {
-  case InfoobjectparametersubcmdListIdx:
-    listObj = ParamDefsList(interp, paramsPtr);
-    break;
-  case InfoobjectparametersubcmdNameIdx:
-    listObj = ParamDefsNames(interp, paramsPtr);
-    break;
-  case InfoobjectparametersubcmdParameterIdx:
-    listObj = ParamDefsFormat(interp, paramsPtr);
-    break;
-  case InfoobjectparametersubcmdParametersyntaxIdx:
-    listObj = NsfParamDefsSyntax(paramsPtr);
-    break;
-  }
-  assert(listObj);
-  Tcl_SetObjResult(interp, listObj);
-  DECR_REF_COUNT2("paramDefsObj", listObj);
-
   return TCL_OK;
 }
 

@@ -556,7 +556,7 @@ namespace eval ::nx::doc {
 
     :public method "pinfo get" {{-default ?} args} {
       if {![info exists :pdata] || ![dict exists ${:pdata} {*}$args]} {
-	return $default;
+	return $default
       }
       dict get ${:pdata} {*}$args
     } 
@@ -567,12 +567,12 @@ namespace eval ::nx::doc {
     }
     
     :public method "pinfo lappend" args {
-      if {![info exists :pdata]} return;
+      if {![info exists :pdata]} return
       dict lappend :pdata {*}$args
     }
 
     :public method "pinfo set" args {
-      if {![info exists :pdata]} return;
+      if {![info exists :pdata]} return
       dict set :pdata {*}$args
     }
 
@@ -585,7 +585,7 @@ namespace eval ::nx::doc {
 	# For now, we disallow upstream propagation if the receiving
 	# entity is missing ... as this would be pointless ...
 	#
-	if {[$p pinfo get -default "extra" status] eq "missing"} break;
+	if {[$p pinfo get -default "extra" status] eq "missing"} break
 	$p pinfo set {*}$args
       }
     }
@@ -712,7 +712,7 @@ namespace eval ::nx::doc {
       set slots [: -system info lookup slots]
       set attrs [list]
       foreach s $slots {
-	if {![$s info has type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
+	if {![$s info has type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue
 	lappend attrs $s [$s part_class]
       }
       return $attrs
@@ -730,7 +730,7 @@ namespace eval ::nx::doc {
 	# themselves.
 	#
 	if {[info exists class] && \
-		[[$s part_class] info superclass -closure $class] eq ""} continue;
+		[[$s part_class] info superclass -closure $class] eq ""} continue
 	set accessor [$s name]
 	if {[info exists :$accessor]} {
 	  set items [sorted [:$accessor] name]
@@ -813,7 +813,7 @@ namespace eval ::nx::doc {
       if {${:@namespace} eq "" && [info exists :previous]} {
 	return ${:previous} [current method]
       } else {
-	return ${:@namespace}; # defaults to top-level/global NS
+	return ${:@namespace}  ;# defaults to top-level/global NS
       }
     }
 
@@ -938,7 +938,7 @@ namespace eval ::nx::doc {
     :public method get1PassScript {sources} {
       set 1pass "::nx::doc::__trace_pkg\n"
       dict for {srcType items} $sources {
-	if {![llength $items]} continue;
+	if {![llength $items]} continue
 	switch -exact -- $srcType {
 	  package {
 	    foreach i $items {
@@ -980,13 +980,13 @@ namespace eval ::nx::doc {
 	  # script
 	  # dependency
 	  #
-	  if {$dependency || ![info exists script]} continue;
+	  if {$dependency || ![info exists script]} continue
 
 	  if {[info exists package]} {
 	    set fragment "
-	      ::nx::doc::__cpackage push $package;
+	      ::nx::doc::__cpackage push $package
 	      %s 
-	      ::nx::doc::__cpackage pop;
+	      ::nx::doc::__cpackage pop
 	    "
 	    set block [format $block $fragment]
 	    unset package
@@ -1292,7 +1292,7 @@ namespace eval ::nx::doc {
 
 
 
-      }; # @method
+      } ;# @method
   
   # @class ::nx::doc::@param
   #
@@ -2159,9 +2159,8 @@ namespace eval ::nx::doc {
 		  #
 		  if {[::nsf::is class $cmd]} {
 
-		    dict set bundle parametersyntax [::nsf::dispatch $cmd \
-			::nsf::methods::class::info::objectparameter \
-			parametersyntax]
+		    dict set bundle syntax [::nsf::dispatch $cmd \
+				 ::nx::Class::slot::__info::parameter::syntax]
 		    #
 		    # TODO: Are the parameters needed for objects???
 		    #
@@ -2171,8 +2170,8 @@ namespace eval ::nx::doc {
 		  }
 		} else {
 		  if {![catch {set syntax [::nsf::dispatch $rootclass $infoMethod \
-			 parametersyntax $cmd]} _]} {
-		    dict set bundle parametersyntax $syntax
+			 syntax $cmd]} _]} {
+		    dict set bundle syntax $syntax
 		  }
 		  
 		  if {![catch {set pa [::nsf::dispatch $rootclass $infoMethod \
@@ -2218,9 +2217,9 @@ namespace eval ::nx::doc {
 	    #::interp hide "" auto_import
 	    ::proc ::auto_import {pattern} {
 	      set ns [uplevel [list namespace current]]
-	      ::nx::doc::__cpackage push TCL_LIBRARY;
+	      ::nx::doc::__cpackage push TCL_LIBRARY
 	      interp invokehidden "" -namespace $ns auto_import $pattern
-	      ::nx::doc::__cpackage pop;
+	      ::nx::doc::__cpackage pop
 	    }
 	  }
 	  proc __init {} {
@@ -2236,14 +2235,14 @@ namespace eval ::nx::doc {
 	      # 
 	      if {$rootclass ne "::nx::doc::_%&::obj"} {
 		
-		::nsf::configure keepinitcmd true;
+		::nsf::configure keepinitcmd true
 	      
 	      array set sysmeths [concat {*}$m]
 	      set ::nx::doc::rootns [namespace qualifier $rootmclass]
 	      $rootmclass $sysmeths(-class.create) ${::nx::doc::rootns}::__Tracer
 	      ::nsf::method::create ${::nx::doc::rootns}::__Tracer \
 		  $sysmeths(-class.create) {name args} {
-		    set obj [::nsf::next];
+		    set obj [::nsf::next]
 		    set bundle [dict create]
 		    if {[info commands "::nx::Class"] ne ""} {
 		      if {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Slot]} {
@@ -2304,8 +2303,8 @@ namespace eval ::nx::doc {
 				dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
 			      }
 			    }
-			    if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method parametersyntax $handle]} _]} {
-			      dict set bundle parametersyntax $psyn
+			    if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::${scope}::info::method syntax $handle]} _]} {
+			      dict set bundle syntax $psyn
 			    }
 			    ::nx::doc::__at_register_command $handle \
 				->cmdtype @method \
@@ -2347,7 +2346,7 @@ namespace eval ::nx::doc {
 		  set is_method 0
 		  set obj [concat {*}[split [string trimleft $obj :] "::"]]
 		  foreach label $obj {
-		    if {$label eq "slot"} {set is_method 1; continue;}
+		    if {$label eq "slot"} {set is_method 1; continue}
 		    if {$is_method} {
 		      lappend method_name [string trimleft $label _]
 		    } else {
@@ -2375,7 +2374,7 @@ namespace eval ::nx::doc {
 		  foreach pspec [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle] {
 		    dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
 		  }
-		  dict set bundle parametersyntax [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]
+		  dict set bundle syntax [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method syntax $handle]
 		  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
 		  dict set bundle returns [::nsf::method::property ${::nx::doc::rootns}::__Tracer $handle returns]
 		  ::nx::doc::__at_register_command $handle \
@@ -2404,8 +2403,8 @@ namespace eval ::nx::doc {
 		      dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
 		    }
 		  }
-		  if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]} _]} {
-		    dict set bundle parametersyntax $psyn
+		  if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method syntax $handle]} _]} {
+		    dict set bundle syntax $psyn
 		  }
 
 		  ::nx::doc::__at_register_command $handle \
@@ -2427,8 +2426,8 @@ namespace eval ::nx::doc {
 	      	  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
 	      	  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
-		  if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]} _]} {
-		    dict set bundle parametersyntax $psyn
+		  if {![catch {set psyn [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method syntax $handle]} _]} {
+		    dict set bundle syntax $psyn
 		  }
 
 	      	  ::nx::doc::__at_register_command $handle \
@@ -2529,9 +2528,9 @@ namespace eval ::nx::doc {
 	      switch -glob -- $subcmd {
 		imp* {
 		  foreach pattern $args {
-		    if {[string match "-*" $pattern]} continue;
+		    if {[string match "-*" $pattern]} continue
 		    foreach cmd [info commands $pattern] {
-		      if {![::nx::doc::is_exported $cmd]} continue;
+		      if {![::nx::doc::is_exported $cmd]} continue
 		      set type @command
 		      if {[info commands ::nsf::object::exists] ne "" &&\
 			      [::nsf::object::exists $cmd]} {
@@ -2590,7 +2589,7 @@ namespace eval ::nx::doc {
 	nspatterns:optional
       } {
 
-      if {![info exists :registered_commands]} return;
+      if {![info exists :registered_commands]} return
       if {[info exists nspatterns]} {
 	set opts [join $nspatterns |]
 	set nspatterns "^($opts)\$"
@@ -2632,7 +2631,7 @@ namespace eval ::nx::doc {
 	#
 	:do {
 	  if {[info commands ::nsf::configure] ne ""} {
-	    ::nsf::configure keepinitcmd false;
+	    ::nsf::configure keepinitcmd false
 	    array set sysmeths [concat {*}[lassign {*}[::nsf::configure objectsystem] rootclass rootmclass]]
 	    # TODO: some cleanup is only needed if __init has been called
 	    # (which is not always the case). refactor the code
@@ -2765,7 +2764,7 @@ namespace eval ::nx::doc {
       #
       dict for {cmd info} $generated_commands {
 	dict with info {
-	  if {$cmdtype ni [list @command @object @class @method]} continue;
+	  if {$cmdtype ni [list @command @object @class @method]} continue
 	  if {[info exists package] && [dict exists $pkgMap $package]} {
 	    set pkgObj [dict get $pkgMap $package]
 	    [: -system info class] containers push $pkgObj
@@ -2773,19 +2772,19 @@ namespace eval ::nx::doc {
 	  }
 	  
 	    if {$cmdtype eq "@object" && [string match *::slot::* $cmd]} {
-	      if {[dict exists $info bundle objtype] && [dict get $info bundle objtype] eq "ensemble"} continue;
+	      if {[dict exists $info bundle objtype] && [dict get $info bundle objtype] eq "ensemble"} continue
 	      set name [namespace tail $cmd]
 	      set scope ""
 	      set obj [namespace qualifiers [namespace qualifiers $cmd]]
-	      if {![dict exists $map $obj]} continue;
+	      if {![dict exists $map $obj]} continue
 	      set partof_entity [dict get $map $obj]
 	      set entity [$partof_entity @[join [list {*}${scope} property] -] $name]
 	    } elseif {$cmdtype eq "@method"} {
 	      lassign [dict get $bundle handleinfo] obj scope name
 	      # ! we assume the partof entity is present or has been generated
-	      if {![dict exists $map $obj]} continue;
+	      if {![dict exists $map $obj]} continue
 	      set partof_entity [dict get $map $obj]
-	      if {![$partof_entity info has type ::nx::doc::@object]} continue;
+	      if {![$partof_entity info has type ::nx::doc::@object]} continue
 	      set owning_entity $partof_entity 
 	      foreach subm $name {
 		set en [$partof_entity @[join [list {*}${scope} method] -] id $subm]
@@ -2903,8 +2902,8 @@ namespace eval ::nx::doc {
 	    }
 	  } 
 
-	  if {![:pinfo exists bundle parametersyntax]} {
-	    :pinfo set bundle parametersyntax $params
+	  if {![:pinfo exists bundle syntax]} {
+	    :pinfo set bundle syntax $params
 	  }
 	  
 	  # TODO (Review!): [next] will cause the missing parameter
@@ -2934,9 +2933,8 @@ namespace eval ::nx::doc {
 	  set prj [:current_project]
 	  set box [$prj sandbox]
 	  set statement [list ::nsf::dispatch ${:name} \
-			     ::nsf::methods::class::info::objectparameter \
-			     parametersyntax]
-	  :pinfo set bundle parametersyntax [$box eval $statement]
+			     ::nx::Class::slot::__info::parameter::syntax]
+	  :pinfo set bundle syntax [$box eval $statement]
 	}
       }
     }
@@ -3031,8 +3029,8 @@ namespace eval ::nx::doc {
 	    }
 	  }
 	  
-	  if {![:pinfo exists bundle parametersyntax]} {
-	    :pinfo set bundle parametersyntax $params
+	  if {![:pinfo exists bundle syntax]} {
+	    :pinfo set bundle syntax $params
 	  }
 	  
 	  # Note: [next] will cause the missing parameter created to
@@ -3071,7 +3069,7 @@ namespace eval ::nx::doc {
 	# the parametersyntax. Review later ...
 	#
 	if {${:name} eq "__out__" && \
-		[${:partof} eval {: -system info has type ::nx::doc::@command}]} return;
+		[${:partof} eval {: -system info has type ::nx::doc::@command}]} return
 
 	#
 	# Here, we escape from any parameter verification for
@@ -3081,7 +3079,7 @@ namespace eval ::nx::doc {
 	if {[${:partof} eval {: -system info has type ::nx::doc::@method}] && \
 		[${:partof} pinfo get bundle type] in [list forward alias]} {
 	  dict set :pdata status ""
-	  return;
+	  return
 	}
 
 	if {[info exists :pdata] && \
@@ -3120,7 +3118,7 @@ namespace eval ::nx::doc {
       }
     }
 
-    if {![llength $scripts]} return;
+    if {![llength $scripts]} return
 
     set sbox [Sandbox new -interp [interp create]]
     # 1pass

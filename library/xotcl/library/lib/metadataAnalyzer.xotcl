@@ -61,6 +61,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 
 	}
     }
+
     Class create MetadataToken -parameter {
 	{name ""}
 	{properties ""}

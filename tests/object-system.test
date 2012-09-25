@@ -191,6 +191,11 @@ nx::Class create C {
 ? {::nsf::object::exists C::slot} 1
 ? {C info children} ::C::slot
 
+#? {C::slot info vars} __parameter
+#? {C info attributes} {{x 1} {y 2}}
+? {C info parameter definitions x} {{-x 1}}
+? {C info parameter definitions y} {{-y 2}}
+
 ? {C copy X} ::X
 ? {::nsf::object::exists X} 1
 ? {X info vars} ""
@@ -205,15 +210,11 @@ nx::Class create C {
 ? {set C [C copy]} ::nsf::__#6
 ? {::nsf::object::exists ${C}::slot} 1
 
-#? {C::slot info vars} __parameter
-#? {C info attributes} {{x 1} {y 2}}
-? {C info parameter definition x} {{-x 1}}
-? {C info parameter definition y} {{-y 2}}
 
 #? {X::slot info vars} __parameter
 #? {X info attributes} {{x 1} {y 2}}
-? {X info parameter definition x} {{-x 1}}
-? {X info parameter definition y} {{-y 2}}
+? {X info parameter definitions x} {{-x 1}}
+? {X info parameter definitions y} {{-y 2}}
 ? {X info properties} {{x 1} {y 2}}
 ? {X info properties -closure *a*} {volatile:alias,noarg class:class,alias,method=::nsf::methods::object::class}
 

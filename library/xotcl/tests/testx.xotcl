@@ -408,7 +408,7 @@ TestX filterAddRemove -proc run {{n 20}} {
     SC($i) destroy
   }
 
-  ::errorCheck $::filterCount 960 \
+  ::errorCheck $::filterCount 1080 \
       "Filter Test  - Filter Count -- Got: $::filterCount"
   
   #
@@ -556,7 +556,7 @@ TestX filterAddRemove -proc run {{n 20}} {
   Class D
   D filter f
   D d1
-  ::errorCheck $::r "::D-d1 ::D-alloc ::D-objectparameter ::D-create ::D-unknown" \
+  ::errorCheck $::r "::D-d1 ::D-alloc ::D-create ::D-unknown" \
       "filter state after next" 
   Object instproc f {} {}
   D destroy
@@ -1161,7 +1161,7 @@ TestX filterSimpleObserver -proc run {{n 20}} {
 	TransferDialog$i destroy
     }
 
-    ::errorCheck  $::filterCount 240 \
+    ::errorCheck  $::filterCount 260 \
 	"Simple Observer - Filter Count" 
 }
 
@@ -2951,7 +2951,7 @@ TestX recreation -proc run {{n 10}} {
   Recreated recreateObj
   recreateObj destroy
   errorCheck [set ::recreateFilterResult] \
-    " ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->cleanup ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->destroy" \
+    " ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->objectparameter ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->cleanup ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->destroy" \
     "recreateObj - recreateFilterResult"
    if {$i == 0} {
      errorCheck [set ::recreateMixinResult] \
@@ -3182,12 +3182,12 @@ smallScripts proc run {{n 20}} {
     ::errorCheck [b info procs] objproc "info procs"
     ::errorCheck [B info instprocs] myProc2 "info instprocs"
 
-    ::errorCheck [lsort [b info methods]] "abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objproc parametercmd proc procsearch requireNamespace residualargs self set setFilter signature subst trace unknown unset uplevel upvar volatile vwait"  "b info methods"
+    ::errorCheck [lsort [b info methods]] "abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objectparameter objproc parametercmd proc procsearch requireNamespace residualargs self set setFilter signature subst trace unknown unset uplevel upvar volatile vwait"  "b info methods"
 
-    ::errorCheck [lsort [b info methods -nocmds]] "abstract check extractConfigureArg f filtersearch forward hasclass init isclass ismetaclass ismixin isobject istype method myProc myProc2 myProcMix1 myProcMix2 objproc proc procsearch self setFilter signature unknown vwait" "b info methods -nocmds"
+    ::errorCheck [lsort [b info methods -nocmds]] "abstract check extractConfigureArg f filtersearch forward hasclass init isclass ismetaclass ismixin isobject istype method myProc myProc2 myProcMix1 myProcMix2 objectparameter objproc proc procsearch self setFilter signature unknown vwait" "b info methods -nocmds"
 
     ::errorCheck [lsort [b info methods -noprocs]] "append array autoname class cleanup configure destroy eval exists filter filterguard incr info instvar invar lappend mixin mixinguard noinit parametercmd requireNamespace residualargs set subst trace unset uplevel upvar volatile" "b info methods -noprocs"
-    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract check extractConfigureArg f filtersearch forward hasclass init isclass ismetaclass ismixin isobject istype method myProc myProc2 objproc proc procsearch self setFilter signature unknown vwait" "b info methods -nocmds -nomixins"
+    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract check extractConfigureArg f filtersearch forward hasclass init isclass ismetaclass ismixin isobject istype method myProc myProc2 objectparameter objproc proc procsearch self setFilter signature unknown vwait" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
     ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances check extractConfigureArg f filtersearch forward hasclass init instforward instproc isclass ismetaclass ismixin isobject istype method objectparameter parameter proc procsearch self setFilter signature slots unknown uses vwait" "B info methods -nocmds"
@@ -3584,9 +3584,9 @@ condMixins proc run {{n 20}} {
 
   set ::context payrollApp
 
-  ::errorCheck [lsort [jim info methods]] "abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace residualargs salary self set signature subst trace unknown unset uplevel upvar volatile vwait" "condmixin all methods"
+  ::errorCheck [lsort [jim info methods]] "abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objectparameter parametercmd print proc procsearch requireNamespace residualargs salary self set signature subst trace unknown unset uplevel upvar volatile vwait" "condmixin all methods"
 
-  ::errorCheck "[lsort [jim info methods -incontext]]" "abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace residualargs salary self set signature subst trace unknown unset uplevel upvar volatile vwait" "all methods in context"
+  ::errorCheck "[lsort [jim info methods -incontext]]" "abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objectparameter parametercmd print proc procsearch requireNamespace residualargs salary self set signature subst trace unknown unset uplevel upvar volatile vwait" "all methods in context"
 
   ::errorCheck [my show payrollApp jim] "{payrollApp:  jim info methods salary => salary} {payrollApp:  jim info methods -incontext salary => salary} {payrollApp:  jim info methods driv* => driving-license} {payrollApp:  jim info methods -incontext driv* => }" "payrollApp jim"
   ::errorCheck [my show shipmentApp jim] "{shipmentApp:  jim info methods salary => salary} {shipmentApp:  jim info methods -incontext salary => } {shipmentApp:  jim info methods driv* => driving-license} {shipmentApp:  jim info methods -incontext driv* => driving-license}" "shipmentApp jim"

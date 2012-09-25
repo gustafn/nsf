@@ -377,13 +377,14 @@ namespace eval ::xotcl {
   # Method objectparameter, backwards upward compatible. We use
   # here the definition of parametersfromslots from nx.tcl
   #
-  ::xotcl::Class instproc objectparameter {} {
-    set parameterdefinitions [list]
-    foreach slot [nsf::directdispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
-      lappend parameterdefinitions [$slot getParameterSpec]
+  ::xotcl::Object instproc objectparameter {} {
+    set parameterDefinitions [list]
+    set class [nsf::directdispatch [self] ::nsf::methods::object::info::class]
+    foreach slot [nsf::directdispatch $class ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
+      lappend parameterDefinitions [$slot getParameterSpec]
     }
-    lappend parameterdefinitions args:alias,method=residualargs,args
-    return $parameterdefinitions
+    lappend parameterDefinitions args:alias,method=residualargs,args
+    return $parameterDefinitions
   }
 
   ######################################################################
@@ -928,28 +929,6 @@ namespace eval ::xotcl {
     # explicitly to slots for backward compatibility ...
     #
     :public alias unknown ::nsf::classes::xotcl::Class::unknown
-    :public method __objectparameter {} {
-      set parameterdefinitions [list]
-      set slots [nsf::directdispatch [self] \
-		     ::nsf::methods::class::info::slotobjects \
-		     -closure -type ::nx::Slot]
-      foreach slot $slots {
-	#
-	# Skip any positional object parameters (i.e., __initcmd)
-	# which are not backward compatible with the XOTcl slots
-	# interface ...
-	#
-	if {[$slot eval {
-	  expr {[info exists :positional] && ${:positional}}
-	}]} continue;
-	lappend parameterdefinitions [$slot getParameterSpec]
-      }
-      #
-      # Add the XOTcl-specific handling of residual varargs
-      #
-      lappend parameterdefinitions args:alias,method=residualargs,args
-      return $parameterdefinitions
-    }
   }
 
   #
@@ -966,6 +945,14 @@ namespace eval ::xotcl {
 	return [$object eval [list :isMultivalued]]
       }
     }
+
+    :public method __objectparameter {} {
+      set slotObjects [nsf::directdispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot]
+      set parameterDefinitions [::nsf::parameter::specs -nonposargs $slotObjects]
+      lappend parameterDefinitions args:alias,method=residualargs,args
+      return $parameterDefinitions
+    }
+
     # provide minimal compatibility
     :public alias proc ::nsf::classes::xotcl::Object::proc
     :public method exists {var} {::nsf::var::exists [self] $var}

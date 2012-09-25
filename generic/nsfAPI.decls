@@ -72,6 +72,17 @@ cmd is NsfIsCmd {
   {-argName "value" -required 1 -type tclobj}
 } {-nxdoc 1}
 
+cmd parameter::specs NsfParameterSpecsCmd {
+  {-argName "-configure"  -nrargs 0 -required 0}
+  {-argName "-nonposargs" -nrargs 0 -required 0}
+  {-argName "slotobjs"    -required 1 -type tclobj}
+}
+cmd parameter::get NsfParameterGetCmd {
+  {-argName "parametersubcmd" -type "list|name|syntax" -required 1}
+  {-argName "parameterspec"    -required 1 -type tclobj}
+}
+
+
 #
 # method cmds
 #
@@ -131,7 +142,7 @@ cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -nrargs 0}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotcontainer|slotobj"}
+  {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
 } {-nxdoc 1}
 cmd "method::registered" NsfMethodRegisteredCmd {
@@ -151,7 +162,7 @@ cmd "object::exists" NsfObjectExistsCmd {
 } {-nxdoc 1}
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|keepcallerself|perobjectdispatch" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 } {-nxdoc 1}
 cmd "object::qualify" NsfObjectQualifyCmd {
@@ -389,7 +400,7 @@ objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
   {-argName "pattern" -required 0}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -required 1 -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "infomethodsubcmd" -required 1 -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
@@ -410,6 +421,10 @@ objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {
 objectInfoMethod name NsfObjInfoNameMethod {
 }
 objectInfoMethod parent NsfObjInfoParentMethod {
+}
+objectInfoMethod objectparameter NsfObjInfoObjectparameterMethod {
+  {-argName "infoobjectparametersubcmd" -type "definition|list|name|syntax" -required 1}
+  {-argName "name" -required 0}
 }
 objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
   {-argName "-intrinsic" -nrargs 0}
@@ -446,7 +461,7 @@ classInfoMethod instances NsfClassInfoInstancesMethod {
 }
 
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -required 1 -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|parametersyntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "infomethodsubcmd" -required 1 -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
   {-argName "name" -required 1 -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
@@ -470,10 +485,6 @@ classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
   {-argName "-closure" -nrargs 0}
   {-argName "-scope" -required 0 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
-}
-classInfoMethod objectparameter NsfClassInfoObjectparameterMethod {
-  {-argName "infoobjectparametersubcmd" -type "list|name|parameter|parametersyntax" -required 1}
-  {-argName "pattern" -required 0}
 }
 classInfoMethod slotobjects NsfClassInfoSlotobjectsMethod {
   {-argName "-closure" -nrargs 0}

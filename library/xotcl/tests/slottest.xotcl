@@ -113,7 +113,8 @@ O o1
 ? {o1 class} "::O"
 o1 class Object
 ? {o1 class} "::xotcl::Object"
-? {Object objectparameter} "-mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args:alias,method=residualargs,args"
+? {o1 objectparameter} "-mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args:alias,method=residualargs,args"
+? {Object objectparameter} "-instfilter:filterreg,alias,0..n -superclass:alias,0..n -instmixin:mixinreg,alias,0..n {-__default_metaclass ::xotcl::Class} {-__default_superclass ::xotcl::Object} -mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args:alias,method=residualargs,args"
 ? {o1 class add M} {class: expected a class but got "M ::xotcl::Object"}
 
 
@@ -384,9 +385,11 @@ nx::Test case req-param {
   ? {c3 x} "0"
 }
 
+
 ###################
 # Application Slots
 #
+nx::Test case app-slots
 
 Class Person -slots {
   Attribute create name
@@ -461,6 +464,7 @@ Person slots {
       }
     }
 }
+
 Person p3 -sex male
 ? {p3 sex} m
 Person method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}

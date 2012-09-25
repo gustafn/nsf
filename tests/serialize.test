@@ -150,10 +150,11 @@ nx::Test case serialize-slotContainer {
 
   ? {::nsf::object::exists ::C::slot} 1
   ? {::nsf::object::exists ::C::per-object-slot} 1
-  ? {::nsf::method::property ::C -per-object slot slotcontainer} 1
-  ? {::nsf::method::property ::C -per-object per-object-slot slotcontainer} 1
+  ? {::nx::isSlotContainer ::C::slot} 1
+  ? {::nx::isSlotContainer ::C::per-object-slot} 1
   ? {::nsf::object::exists ::C::slot::a} 1
   ? {::nsf::object::exists ::C::per-object-slot::x} 1
+  ? {::nsf::object::property ::C hasperobjectslots} 1
 
   set script [C serialize]
   C destroy
@@ -162,10 +163,11 @@ nx::Test case serialize-slotContainer {
   eval $script
   ? {::nsf::object::exists ::C::slot} 1
   ? {::nsf::object::exists ::C::per-object-slot} 1
-  ? {::nsf::method::property ::C -per-object slot slotcontainer} 1
-  ? {::nsf::method::property ::C -per-object per-object-slot slotcontainer} 1
+  ? {::nx::isSlotContainer ::C::slot} 1
+  ? {::nx::isSlotContainer ::C::per-object-slot} 1
   ? {::nsf::object::exists ::C::slot::a} 1
   ? {::nsf::object::exists ::C::per-object-slot::x} 1
+  ? {::nsf::object::property ::C hasperobjectslots} 1
 }
 
 #

@@ -4175,10 +4175,48 @@ Property reform part 1:
 - extended regression test (new file properties.test)
 
 
+Property Reform Part 2: better handling of per-object properties
+nsf.c:
+- changed "/class/ __objectconfigure" to "/obj/ __objectconfigure"
+  to be able to handle per-object properties on classes properly.
+- renamed "info method parametersyntax" -> "info method syntax"
+- renamed "/obj|cls/ info method parametersyntax" into "/obj|cls/ info method syntax"
+- replaced "::nsf::methods::class::info::objectparameter" by 
+  "::nsf::methods::object::info::objectparameter" 
+- new command "::nsf::parameter::specs ?-configure? ?-noposargs? slotobjs": 
+  convert provided slotobjs into a list of parameter specs
+- new command "::nsf::parameter::get list|name|syntax parameterspec": 
+  convert parameter spec into syntax form, or retrieve pieces of 
+  information from it (can be extended in the future)
+- added more or less generic list handling functions TclObjListFreeList(), TclObjListNewElement() 
+  and TclObjListAdd() used by "::nsf::parameter::specs"
+- replaced "::nsf::method::property /obj/ -per-object /name/ slotcontainer ?value?" 
+  by "::nsf::object::property /obj/ slotcontainer ?value?"
+- added "::nsf::object::property /obj/ hasperobjectslots ?value?"
+
+nx.tcl:
+- new info methods 
+  * "/obj/ info lookup parameter definitions"
+  * "/obj/ info lookup parameter names"
+  * "/obj/ info lookup parameter list"
+  * "/obj/ info lookup parameter syntax"
+- changed "/cls/ info parameter definition ?name?"
+  into "/cls/ info parameter definitions ?name?"
+  since ir returns a list. Still, "list" or "syntax" won't
+  be plural
+
+
+
 ========================================================================
 TODO:
+- regression tests for "/obj/ info lookup parameter ...."
+- check potential mis-cachings due to per-object/per-class mixins,
+  when object-parameters are e.g. manually invalidated.
+- don't blindly register all object/class methods for XOTcl
+- do we need NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN
 - check noconfig
-- Property reform part 2: better handling of per-object properties
+- "/obj/ configure" returns values which can't be read via "/obj/ cget"
+  (but altered properly via "configure").
 - Property reform part 3: change defaultPropertyAccessor or nx to none
 - update documentation with property reform
 

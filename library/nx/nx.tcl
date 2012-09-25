@@ -332,7 +332,8 @@ namespace eval ::nx {
   # Provide a placeholder for objectparameter during the bootup
   # process. The real definition is based on slots, which are not
   # available at this point.
-  Class protected method __objectparameter {} {;}
+
+  Object protected method __objectparameter {} {;}
 
   ######################################################################
   # Define forward methods
@@ -422,13 +423,7 @@ namespace eval ::nx {
   # internally by the serializer.
   #
   proc ::nx::isSlotContainer {object} {
-    set container [namespace tail $object]
-    if {[::nsf::object::exists $object] && $container in {slot per-object-slot}} {
-      set parent [$object ::nsf::methods::object::info::parent]
-      return [expr {[::nsf::object::exists $parent]
-		    && [::nsf::method::property $parent -per-object $container slotcontainer]}]
-    }
-    return 0
+    return [::nsf::object::property $object slotcontainer]
   }
 
   #
@@ -441,7 +436,8 @@ namespace eval ::nx {
     ::nsf::method::property $baseObject -per-object $containerName call-protected true
     ::nsf::method::property $baseObject -per-object $containerName redefine-protected true
     #puts stderr "::nsf::method::property $baseObject -per-object $containerName slotcontainer true"
-    ::nsf::method::property $baseObject -per-object $containerName slotcontainer true
+    #::nsf::method::property $baseObject -per-object $containerName slotcontainer true
+    ::nsf::object::property $slotContainer slotcontainer true
   }
 
   #
@@ -456,6 +452,9 @@ namespace eval ::nx {
     if {![::nsf::object::exists $slotContainer]} {
       ::nx::Object ::nsf::methods::class::alloc $slotContainer
       ::nx::internal::setSlotContainerProperties $baseObject $container
+      if {$container eq "per-object-slot"} {
+	::nsf::object::property $baseObject hasperobjectslots true
+      }
     }
     if {[info exists name]} {
       return ${slotContainer}::$name
@@ -646,7 +645,7 @@ namespace eval ::nx {
     :protected alias __configure ::nsf::methods::object::configure    
     :public method configure {args} {
       if {[llength $args] == 0} {
-	[:info class] info parameter syntax
+	: ::nsf::methods::object::info::objectparameter syntax
       } else {
 	: __configure {*}$args
 	return
@@ -667,6 +666,26 @@ namespace eval ::nx {
     :method "info lookup slots" {{-type:class ::nx::Slot} -source pattern:optional} {
       set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
       if {[info exists source]} {lappend cmd -source $source}
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [: {*}$cmd]
+    }
+    :method "info lookup parameter definitions" {pattern:optional} {
+      set cmd [list ::nsf::methods::object::info::objectparameter definition]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [: {*}$cmd]
+    }
+    :method "info lookup parameter names" {pattern:optional} {
+      set cmd [list ::nsf::methods::object::info::objectparameter name]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [: {*}$cmd]
+    }
+    :method "info lookup parameter list" {pattern:optional} {
+      set cmd [list ::nsf::methods::object::info::objectparameter list]
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [: {*}$cmd]
+    }
+    :method "info lookup parameter syntax" {pattern:optional} {
+      set cmd [list ::nsf::methods::object::info::objectparameter syntax]
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }
@@ -750,26 +769,28 @@ namespace eval ::nx {
     :alias "info mixin guard"    ::nsf::methods::class::info::mixinguard
     :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
-    :method "info parameter definition" {name:optional} {
-      if {[info exists name]} {
-	return [: ::nsf::methods::class::info::objectparameter parameter $name]
-      }
-      return [:__objectparameter]
-    }
-    :method "info parameter list" {name:optional} {
-      set cmd [list ::nsf::methods::class::info::objectparameter list]
+    :method "info parameter definitions" {name:optional} {
+      set cmd [list ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]
       if {[info exists name]} {lappend cmd $name}
-      return [: {*}$cmd]
+      return [::nsf::parameter::specs -configure [: {*}$cmd]]
     }
-    :method "info parameter names" {name:optional} {
-      set cmd [list ::nsf::methods::class::info::objectparameter name]
-      if {[info exists name]} {lappend cmd $name}
-      return [: {*}$cmd]
+    :method "info parameter list" {{name:optional ""}} {
+      set defs [:info parameter definitions {*}$name]
+      set result ""
+      foreach def $defs {lappend result [::nsf::parameter::get list $def]}
+      return $result
     }
-    :method "info parameter syntax" {name:optional} {
-      set cmd [list ::nsf::methods::class::info::objectparameter parametersyntax]
-      if {[info exists name]} {lappend cmd $name}
-      return [: {*}$cmd]
+    :method "info parameter names" {{name:optional ""}} {
+      set defs [:info parameter definitions {*}$name]
+      set result ""
+      foreach def $defs {lappend result [::nsf::parameter::get name $def]}
+      return $result
+    }
+    :method "info parameter syntax" {{name:optional ""}} {
+      set defs [:info parameter definitions {*}$name]
+      set result ""
+      foreach def $defs {lappend result [::nsf::parameter::get syntax $def]}
+      return [join $result " "]
     }
     :method "info slot objects" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set cmd [list ::nsf::methods::class::info::slotobjects -type $type]
@@ -1092,6 +1113,9 @@ namespace eval ::nx {
     #
     # Bootstrap version of getParameter spec. Just bare essentials.
     #
+    if {[info exists :parameterSpec]} {
+      return ${:parameterSpec}
+    }
     set name [namespace tail [self]]
     set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
     set options [list]
@@ -1099,9 +1123,11 @@ namespace eval ::nx {
       if {[string match {*\[*\]*} ${:default}]} {
         append options substdefault
       }
-      return [list [list [:namedParameterSpec $prefix $name $options]] ${:default}]
+      set :parameterSpec [list [list [:namedParameterSpec $prefix $name $options]] ${:default}]
+    } else {
+      set :parameterSpec [list [:namedParameterSpec $prefix $name $options]]
     }
-    return [list [:namedParameterSpec $prefix $name $options]]
+    return ${:parameterSpec}
   }
 
   BootStrapVariableSlot protected method init {args} {
@@ -1319,24 +1345,9 @@ namespace eval ::nx {
   # Define objectparameter method
   ######################################################################
 
-  Class protected method __objectparameter {} {
-    #
-    # Collect the object parameter slots in per-position lists to
-    # ensure partial ordering and avoid sorting.
-    #
-    foreach slot [nsf::directdispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
-      lappend defs([$slot position]) [$slot getParameterSpec]
-    }
-    #
-    # Fold the per-position lists into a common list
-    # parameterdefinitions, which is the result.
-    #
-    set parameterdefinitions [list]
-    foreach p [lsort [array names defs]] {
-      lappend parameterdefinitions {*}$defs($p)
-    }
-    #puts stderr "*** parameter definition for [::nsf::self]: $parameterdefinitions"
-    return $parameterdefinitions
+  Object protected method __objectparameter {} {
+    set slotObjects [nsf::directdispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot]
+    return [::nsf::parameter::specs $slotObjects]
   }
 }
 
@@ -2213,6 +2224,7 @@ namespace eval ::nx {
 	  # copy object -> might be a class obj
 	  ::nsf::object::property $obj keepcallerself [::nsf::object::property $origin keepcallerself]
 	  ::nsf::object::property $obj perobjectdispatch [::nsf::object::property $origin perobjectdispatch]
+	  ::nsf::object::property $obj hasperobjectslots [::nsf::object::property $origin hasperobjectslots]
 	  ::nsf::method::assertion $obj check [::nsf::method::assertion $origin check]
 	  ::nsf::method::assertion $obj object-invar [::nsf::method::assertion $origin object-invar]
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
@@ -2239,15 +2251,12 @@ namespace eval ::nx {
 	}
 
 	#
-	# Check, if $origin is a slot container. If yes, set the same
-	# properties on $dest
+	# Check, if $origin is a slot container. If yes, set the slot
+	# container properties on $dest
 	#
-	set base [$origin ::nsf::methods::object::info::parent]
-	set container [namespace tail $origin]
-	if {[::nsf::object::exists $base]
-	    && [::nsf::method::property $base -per-object $container slotcontainer]
-	  } {
-	  ::nx::internal::setSlotContainerProperties [$dest ::nsf::methods::object::info::parent] $container
+	if {[::nsf::object::property $origin slotcontainer]} {
+	  ::nx::internal::setSlotContainerProperties \
+	      [$dest ::nsf::methods::object::info::parent] [namespace tail $origin]
 	}
 
 	#

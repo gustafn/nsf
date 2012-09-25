@@ -771,7 +771,7 @@
 # 					pattern string in the sense of
 # 					'''string match'''
 
-# @class.method {Class "info parameter definition"}
+# @class.method {Class "info parameter definitions"}
 #
 # Returns all parameters, or the selected one, as object parameter
 # specifications

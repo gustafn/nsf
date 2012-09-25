@@ -14,6 +14,8 @@ set ::nxdoc::include(::nsf::finalize) 1
 set ::nxdoc::include(::nsf::interp) 1
 set ::nxdoc::include(::nsf::invalidateobjectparameter) 0
 set ::nxdoc::include(::nsf::is) 1
+set ::nxdoc::include(::nsf::parameter::specs) 0
+set ::nxdoc::include(::nsf::parameter::get) 0
 set ::nxdoc::include(::nsf::method::alias) 1
 set ::nxdoc::include(::nsf::method::assertion) 1
 set ::nxdoc::include(::nsf::method::create) 1
@@ -82,6 +84,7 @@ set ::nxdoc::include(::nsf::methods::object::info::mixinclasses) 0
 set ::nxdoc::include(::nsf::methods::object::info::mixinguard) 0
 set ::nxdoc::include(::nsf::methods::object::info::name) 0
 set ::nxdoc::include(::nsf::methods::object::info::parent) 0
+set ::nxdoc::include(::nsf::methods::object::info::objectparameter) 0
 set ::nxdoc::include(::nsf::methods::object::info::precedence) 0
 set ::nxdoc::include(::nsf::methods::object::info::slotobjects) 0
 set ::nxdoc::include(::nsf::methods::object::info::vars) 0
@@ -95,7 +98,6 @@ set ::nxdoc::include(::nsf::methods::class::info::methods) 0
 set ::nxdoc::include(::nsf::methods::class::info::mixinclasses) 0
 set ::nxdoc::include(::nsf::methods::class::info::mixinguard) 0
 set ::nxdoc::include(::nsf::methods::class::info::mixinof) 0
-set ::nxdoc::include(::nsf::methods::class::info::objectparameter) 0
 set ::nxdoc::include(::nsf::methods::class::info::slotobjects) 0
 set ::nxdoc::include(::nsf::methods::class::info::subclass) 0
 set ::nxdoc::include(::nsf::methods::class::info::superclass) 0
