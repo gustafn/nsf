@@ -4205,14 +4205,14 @@ nx.tcl:
   since ir returns a list. Still, "list" or "syntax" won't
   be plural
 
-
+XOTcl 2
+- don't blindly register all object/class methods for XOTcl
 
 ========================================================================
 TODO:
 - regression tests for "/obj/ info lookup parameter ...."
 - check potential mis-cachings due to per-object/per-class mixins,
   when object-parameters are e.g. manually invalidated.
-- don't blindly register all object/class methods for XOTcl
 - do we need NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN
 - check noconfig
 - "/obj/ configure" returns values which can't be read via "/obj/ cget"

@@ -97,11 +97,21 @@ namespace eval ::xotcl {
   # objects. It is the root object-class in the XOTcl 2 object system.
 
   # provide the standard command set for ::xotcl::Object
-  foreach cmd [info command ::nsf::methods::object::*] {
-    set cmdName [namespace tail $cmd]
-    if {$cmdName in {"cget" "setter" "requirenamespace"}} continue
-    ::nsf::method::alias Object $cmdName $cmd
-  }
+  ::nsf::method::alias Object autoname      ::nsf::methods::object::autoname
+  ::nsf::method::alias Object class         ::nsf::methods::object::class
+  ::nsf::method::alias Object cleanup       ::nsf::methods::object::cleanup
+  ::nsf::method::alias Object configure     ::nsf::methods::object::configure
+  ::nsf::method::alias Object defaultmethod ::nsf::methods::object::defaultmethod
+  ::nsf::method::alias Object destroy       ::nsf::methods::object::destroy
+  ::nsf::method::alias Object exists        ::nsf::methods::object::exists
+# ::nsf::method::alias Object init          ::nsf::methods::object::init
+  ::nsf::method::alias Object instvar       ::nsf::methods::object::instvar
+  ::nsf::method::alias Object noinit        ::nsf::methods::object::noinit
+  ::nsf::method::alias Object residualargs  ::nsf::methods::object::residualargs
+# ::nsf::method::alias Object unknown       ::nsf::methods::object::unknown
+  ::nsf::method::alias Object uplevel       ::nsf::methods::object::uplevel
+  ::nsf::method::alias Object upvar         ::nsf::methods::object::upvar
+  ::nsf::method::alias Object volatile      ::nsf::methods::object::volatile
 
   #
   # object methods
@@ -223,9 +233,15 @@ namespace eval ::xotcl {
   # }}}
 
   # provide some Tcl-commands as methods for ::xotcl::Object
-  foreach cmd {array append eval incr lappend set subst unset trace} {
-    ::nsf::method::alias Object $cmd -frame object ::$cmd
-  }
+  ::nsf::method::alias Object append  -frame object ::append
+  ::nsf::method::alias Object array   -frame object ::array
+  ::nsf::method::alias Object eval    -frame object ::eval
+  ::nsf::method::alias Object incr    -frame object ::incr
+  ::nsf::method::alias Object lappend -frame object ::lappend
+  ::nsf::method::alias Object set     -frame object ::set
+  ::nsf::method::alias Object subst   -frame object ::subst
+  ::nsf::method::alias Object trace   -frame object ::trace
+  ::nsf::method::alias Object unset   -frame object ::unset
 
   # @method ::xotcl::Object#vwait
   #
@@ -247,11 +263,12 @@ namespace eval ::xotcl {
   }
 
   # provide the standard command set for ::xotcl::Class
-  foreach cmd [info command ::nsf::methods::class::*] {
-    set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "setter"]} continue
-    ::nsf::method::alias Class $cmdName $cmd
-  }
+  ::nsf::method::alias Class alloc       ::nsf::methods::class::alloc
+  ::nsf::method::alias Class create      ::nsf::methods::class::create
+  ::nsf::method::alias Class dealloc     ::nsf::methods::class::dealloc
+  ::nsf::method::alias Class new         ::nsf::methods::class::new
+  ::nsf::method::alias Class recreate    ::nsf::methods::class::recreate
+  ::nsf::method::alias Class superclass  ::nsf::methods::class::superclass
 
   # protect some methods against redefinition
   ::nsf::method::property Object destroy redefine-protected true
