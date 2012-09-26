@@ -4211,9 +4211,13 @@ XOTcl 2
 nsf.c: 
 - fix potential bad interaction between per-object mixins and
   per-class caching of object-parameters
+- first draft of per-object parameter caching (for 
+  per-object-mixins and  per-object properties).
 
 ========================================================================
 TODO:
+- invalidation of per-object parameter cache for mixins and
+  deletion/adding of per-object slots 
 - regression tests for "/obj/ info lookup parameter ...."
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)
@@ -4231,6 +4235,7 @@ TODO:
   should be
   ? {o __alloc x} {method alloc not dispatched on valid class}
 
+- recreate for slots
 - document "private property"
 
 - document new setable object properties perobjectdispatch and keepcallerself

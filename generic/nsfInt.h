@@ -486,6 +486,10 @@ typedef struct NsfObjectOpt {
   NsfCmdList *objFilters;
   NsfCmdList *objMixins;
   ClientData clientData;
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+  NsfParsedParam *parsedParamPtr;
+  int classParamPtrEpoch;
+#endif
   CONST char *volatileVarName;
   short checkoptions;
 } NsfObjectOpt;
@@ -781,6 +785,9 @@ typedef struct NsfRuntimeState {
   Tcl_Command currentMixinCmdPtr; /* cmdPtr of currently active mixin, used for "info activemixin" */
   int objectMethodEpoch;
   int instanceMethodEpoch;
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+  int classParamPtrEpoch;
+#endif
   Tcl_Obj **methodObjNames;       /* global objects of nsf */
   struct NsfShadowTclCommandInfo *tclCommands; /* shadowed Tcl commands */
 
@@ -959,6 +966,12 @@ EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj);
 #else
 # define NsfInstanceMethodEpochIncr(msg) RUNTIME_STATE(interp)->instanceMethodEpoch++
 # define NsfObjectMethodEpochIncr(msg)   RUNTIME_STATE(interp)->objectMethodEpoch++
+#endif
+
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+# define NsfClassParamPtrEpochIncr(msg)   RUNTIME_STATE(interp)->classParamPtrEpoch++
+#else
+# define NsfClassParamPtrEpochIncr(msg)
 #endif
 
 /* 

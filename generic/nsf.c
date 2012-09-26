@@ -303,6 +303,7 @@ static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param C
 static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  NsfObject **matchObject, CONST char **pattern);
 static void NsfProcDeleteProc(ClientData clientData);
+static int NsfInvalidateObjObjectParameterCmd(Tcl_Interp *interp, NsfObject *object);
 
 /* prototypes for alias management */
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
@@ -14392,6 +14393,12 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
     opt->assertions = NULL;
 #endif
 
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+    if (object->opt->parsedParamPtr) {
+      NsfInvalidateObjObjectParameterCmd(interp, object);
+    }
+#endif
+
     if (!softrecreate) {
       /*
        * Remove this object from all per object mixin lists and clear the
@@ -19188,10 +19195,29 @@ cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
 static int
 NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl) {
   if (cl->parsedParamPtr) {
+    NsfClassParamPtrEpochIncr("NsfInvalidateObjectParameterCmd");
     /* fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr); */
     ParsedParamFree(cl->parsedParamPtr);
     cl->parsedParamPtr = NULL;
   }
+  return TCL_OK;
+}
+
+// TODO move me, rename me
+/*
+cmd invalidateobjobjectparameter NsfInvalidateObjObjectParameterCmd {
+  {-argName "object" -type object}
+}
+*/
+static int
+NsfInvalidateObjObjectParameterCmd(Tcl_Interp *interp, NsfObject *object) {
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+  if (object->opt && object->opt->parsedParamPtr) {
+    /* fprintf(stderr, "   %s invalidate %p\n", ObjectName(object),  obj->opt->parsedParamPtr); */
+    ParsedParamFree(object->opt->parsedParamPtr);
+    object->opt->parsedParamPtr = NULL;
+  }
+#endif
   return TCL_OK;
 }
 
@@ -21622,6 +21648,15 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
     parsedParamPtr->paramDefs = clParsedParamPtr->paramDefs;
     parsedParamPtr->possibleUnknowns = clParsedParamPtr->possibleUnknowns;
     result = TCL_OK;
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+  } else if (object->opt && object->opt->parsedParamPtr && 
+	     object->opt->classParamPtrEpoch == RUNTIME_STATE(interp)->classParamPtrEpoch) {
+    NsfParsedParam *objParsedParamPtr = object->opt->parsedParamPtr;
+    /*fprintf(stderr, "reuse obj param for obj %s paramPtr %p\n", ObjectName(object), objParsedParamPtr);*/
+    parsedParamPtr->paramDefs = objParsedParamPtr->paramDefs;
+    parsedParamPtr->possibleUnknowns = objParsedParamPtr->possibleUnknowns;
+    result = TCL_OK;
+#endif
   } else {
     /*
      * There is no parameter definition available, get a new one in
@@ -21630,14 +21665,14 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
     Tcl_Obj *methodObj = NsfMethodObj(object, NSF_c_objectparameter_idx);
 
     if (methodObj) {
-      /*fprintf(stderr, "=== calling %s objectparameter\n", ClassName(class));*/
+      /*fprintf(stderr, "calling %s objectparameter\n", ObjectName(object));*/
       result = CallMethod(object, interp, methodObj,
 			  2, 0, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
 
       if (likely(result == TCL_OK)) {
 	rawConfArgs = Tcl_GetObjResult(interp);
 	/*fprintf(stderr, ".... rawConfArgs for %s => '%s'\n",
-	  ClassName(class), ObjStr(rawConfArgs));*/
+	  ObjectName(object), ObjStr(rawConfArgs));*/
 	INCR_REF_COUNT(rawConfArgs);
 	
 	/*
@@ -21653,6 +21688,14 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
 	  if (class) {
 	    class->parsedParamPtr = ppDefPtr;
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+	  } else {
+	    NsfObjectOpt *opt = NsfRequireObjectOpt(object);
+	    opt->parsedParamPtr = ppDefPtr;
+	    opt->classParamPtrEpoch = RUNTIME_STATE(interp)->classParamPtrEpoch;
+	    /*fprintf(stderr, "set obj param for obj %s epoch %d ppDefPtr %p\n", 
+	      ObjectName(object), opt->classParamPtrEpoch, ppDefPtr);*/
+#endif
 	  }
 	  if (ppDefPtr->paramDefs) {
 	    ParamDefsRefCountIncr(ppDefPtr->paramDefs);
