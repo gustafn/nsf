@@ -21583,9 +21583,13 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
   NsfClass *class;
 
   assert(object);
-  if (object->flags & NSF_HAS_PER_OBJECT_SLOTS) {
-    assert(object->flags & NSF_INIT_CALLED);
-    assert(object->nsPtr != NULL);
+  if ((object->flags & NSF_HAS_PER_OBJECT_SLOTS)
+      || (object->opt && object->opt->objMixins)
+      ) {
+    /* 
+     * We have object-specific parameters.  Do not use the per-class cache,
+     * and do not save the results in the per-class cache
+     */
     /*fprintf(stderr, "per-object configure obj %s flags %.6x\n", 
       ObjectName(object), object->flags);*/
     class = NULL;

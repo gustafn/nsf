@@ -4208,12 +4208,15 @@ nx.tcl:
 XOTcl 2
 - don't blindly register all object/class methods for XOTcl
 
+nsf.c: 
+- fix potential bad interaction between per-object mixins and
+  per-class caching of object-parameters
+
 ========================================================================
 TODO:
 - regression tests for "/obj/ info lookup parameter ...."
-- check potential mis-cachings due to per-object/per-class mixins,
-  when object-parameters are e.g. manually invalidated.
-- do we need NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN
+- handling of "required" in reconfigure (see 
+  parameter-object-mixin-dependency in parameters.test)
 - check noconfig
 - "/obj/ configure" returns values which can't be read via "/obj/ cget"
   (but altered properly via "configure").
