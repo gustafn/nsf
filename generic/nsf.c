@@ -285,7 +285,8 @@ NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPt
 NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object);
 
 /* prototypes for  parameter and argument management */
-static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl);
+
+static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl);
 static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   NsfObject *object, int processFlags, NsfParamDefs *paramDefs,
                                   Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
@@ -303,7 +304,7 @@ static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param C
 static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  NsfObject **matchObject, CONST char **pattern);
 static void NsfProcDeleteProc(ClientData clientData);
-static int NsfInvalidateObjObjectParameterCmd(Tcl_Interp *interp, NsfObject *object);
+static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object);
 
 /* prototypes for alias management */
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
@@ -7113,7 +7114,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
        * parameter definitions.
        */
       /*fprintf(stderr, "MixinInvalidateObjOrders via class mixin %s calls ifd invalidate \n", ClassName(ncl));*/
-      NsfInvalidateObjectParameterCmd(interp, ncl);
+      NsfParameterInvalidateClassCacheCmd(interp, ncl);
     }
   }
   Tcl_DeleteHashTable(commandTable);
@@ -14395,7 +14396,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
 
 #if defined(PER_OBJECT_PARAMETER_CACHING)
     if (object->opt->parsedParamPtr) {
-      NsfInvalidateObjObjectParameterCmd(interp, object);
+      NsfParameterInvalidateObjectCacheCmd(interp, object);
     }
 #endif
 
@@ -19102,6 +19103,154 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
 }
 
 /*
+cmd "directdispatch" NsfDirectDispatchCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
+  {-argName "command" -required 1 -type tclobj}
+  {-argName "args"  -type args}
+}
+*/
+static int
+NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
+		     Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  int result;
+  CONST char *methodName = ObjStr(commandObj);
+  Tcl_Command cmd, importedCmd;
+  CallFrame frame, *framePtr = &frame;
+  Tcl_ObjCmdProc *proc;
+  int flags = 0;
+  int useCmdDispatch = 1;
+
+  /*fprintf(stderr, "NsfDirectDispatchCmd obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
+
+  if (unlikely(*methodName != ':')) {
+    return NsfPrintError(interp, "method name '%s' must be fully qualified", methodName);
+  }
+
+  /*
+   * We have a fully qualified name of a Tcl command that will be dispatched.
+   */
+
+  cmd = Tcl_GetCommandFromObj(interp, commandObj);
+  if (likely(cmd != NULL)) {
+    importedCmd = TclGetOriginalCommand(cmd);
+    if (unlikely(importedCmd != NULL)) {
+      cmd = importedCmd;
+    }
+  }
+
+  if (unlikely(cmd == NULL)) {
+    return NsfPrintError(interp, "cannot lookup command '%s'", methodName);
+  }
+
+  proc = Tcl_Command_objProc(cmd);
+  if (proc == TclObjInterpProc ||
+      proc == NsfForwardMethod ||
+      proc == NsfObjscopedMethod ||
+      proc == NsfSetterMethod ||
+      CmdIsNsfObject(cmd)) {
+
+    if (withFrame && withFrame != FrameDefaultIdx) {
+      return NsfPrintError(interp, "cannot use -frame object|method in dispatch for command '%s'",
+			   methodName);
+    }
+    useCmdDispatch = 0;
+  } else {
+    if (unlikely(withFrame == FrameMethodIdx)) {
+      useCmdDispatch = 0;
+    } else {
+      useCmdDispatch = 1;
+    }
+  }
+
+  /*
+   * If "withFrame == FrameObjectIdx" is specified, a call-stack frame is
+   * pushed to make instance variables accessible for the command.
+   */
+  if (unlikely(withFrame == FrameObjectIdx)) {
+    Nsf_PushFrameObj(interp, object, framePtr);
+    flags = NSF_CSC_IMMEDIATE;
+  }
+  /*
+   * Since we know, that we are always called with a full argument
+   * vector, we can include the cmd name in the objv by using
+   * nobjv-1; this way, we avoid a memcpy().
+   */
+  if (useCmdDispatch) {
+
+    if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
+      NSF_DTRACE_METHOD_ENTRY(ObjectName(object),
+			      "",
+			      (char *)methodName,
+			      nobjc, (Tcl_Obj **)nobjv);
+    }
+
+    result = CmdMethodDispatch(object, interp, nobjc+1, nobjv-1,
+			       object, cmd, NULL);
+  } else {
+    /*
+     * If "withFrame == FrameMethodIdx" is specified, a call-stack frame is
+     * pushed to make instance variables accessible for the command.
+     */
+    if (unlikely(withFrame == FrameMethodIdx)) {
+      flags = NSF_CSC_FORCE_FRAME|NSF_CSC_IMMEDIATE;
+    }
+
+    result = MethodDispatch(object, interp,
+			    nobjc+1, nobjv-1, cmd, object,
+			    NULL /*NsfClass *cl*/,
+			    Tcl_GetCommandName(interp, cmd),
+			    NSF_CSC_TYPE_PLAIN, flags);
+  }
+
+  if (unlikely(withFrame == FrameObjectIdx)) {
+    Nsf_PopFrameObj(interp, framePtr);
+  }
+
+  return result;
+}
+
+
+/*
+cmd "dispatch" NsfDispatchCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-intrinsic" -required 0 -nrargs 0}
+  {-argName "-system" -required 0 -nrargs 0}
+  {-argName "command" -required 1 -type tclobj}
+  {-argName "args"  -type args}
+}
+*/
+static int
+NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object,
+	       int withIntrinsic, int withSystem,
+	       Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS|NSF_CM_NO_SHIFT;
+
+  /*fprintf(stderr, "NsfDispatchCmd obj=%s, cmd m='%s' nobjc %d\n",
+    ObjectName(object), ObjStr(commandObj), nobjc);*/
+
+  if (unlikely(withIntrinsic && withSystem)) {
+    return NsfPrintError(interp, "flags '-intrinsic' and '-system' are mutual exclusive");
+  }
+
+  /*
+   * Dispatch the command the method from the precedence order, with filters
+   * etc. -- strictly speaking unnecessary, but this function can be used to
+   * call protected methods and provide the flags '-intrinsics' and '-system'.
+   */
+
+  if (withIntrinsic) {flags |= NSF_CM_INTRINSIC_METHOD;}
+  if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
+
+  /*
+   * Since we know, that we are always called with a full argument
+   * vector, we can include the cmd name in the objv by using
+   * nobjv-1; this way, we avoid a memcpy().
+   */
+  return ObjectDispatch(object, interp,  nobjc+1, nobjv-1, flags);
+}
+
+/*
 cmd finalize NsfFinalizeCmd {
   {-argName "-keepvars" -required 0 -nrargs 0}
 }
@@ -19184,40 +19333,6 @@ NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST o
       return TCL_ERROR;
     }
   }
-  return TCL_OK;
-}
-
-/*
-cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
-  {-argName "class" -type class}
-}
-*/
-static int
-NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl) {
-  if (cl->parsedParamPtr) {
-    NsfClassParamPtrEpochIncr("NsfInvalidateObjectParameterCmd");
-    /* fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr); */
-    ParsedParamFree(cl->parsedParamPtr);
-    cl->parsedParamPtr = NULL;
-  }
-  return TCL_OK;
-}
-
-// TODO move me, rename me
-/*
-cmd invalidateobjobjectparameter NsfInvalidateObjObjectParameterCmd {
-  {-argName "object" -type object}
-}
-*/
-static int
-NsfInvalidateObjObjectParameterCmd(Tcl_Interp *interp, NsfObject *object) {
-#if defined(PER_OBJECT_PARAMETER_CACHING)
-  if (object->opt && object->opt->parsedParamPtr) {
-    /* fprintf(stderr, "   %s invalidate %p\n", ObjectName(object),  obj->opt->parsedParamPtr); */
-    ParsedParamFree(object->opt->parsedParamPtr);
-    object->opt->parsedParamPtr = NULL;
-  }
-#endif
   return TCL_OK;
 }
 
@@ -19890,155 +20005,6 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
   return result;
 }
 
-
-/* TODO: move me */
-/*
-cmd "directdispatch" NsfDirectDispatchCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
-  {-argName "command" -required 1 -type tclobj}
-  {-argName "args"  -type args}
-}
-*/
-static int
-NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
-		     Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  int result;
-  CONST char *methodName = ObjStr(commandObj);
-  Tcl_Command cmd, importedCmd;
-  CallFrame frame, *framePtr = &frame;
-  Tcl_ObjCmdProc *proc;
-  int flags = 0;
-  int useCmdDispatch = 1;
-
-  /*fprintf(stderr, "NsfDirectDispatchCmd obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
-
-  if (unlikely(*methodName != ':')) {
-    return NsfPrintError(interp, "method name '%s' must be fully qualified", methodName);
-  }
-
-  /*
-   * We have a fully qualified name of a Tcl command that will be dispatched.
-   */
-
-  cmd = Tcl_GetCommandFromObj(interp, commandObj);
-  if (likely(cmd != NULL)) {
-    importedCmd = TclGetOriginalCommand(cmd);
-    if (unlikely(importedCmd != NULL)) {
-      cmd = importedCmd;
-    }
-  }
-
-  if (unlikely(cmd == NULL)) {
-    return NsfPrintError(interp, "cannot lookup command '%s'", methodName);
-  }
-
-  proc = Tcl_Command_objProc(cmd);
-  if (proc == TclObjInterpProc ||
-      proc == NsfForwardMethod ||
-      proc == NsfObjscopedMethod ||
-      proc == NsfSetterMethod ||
-      CmdIsNsfObject(cmd)) {
-
-    if (withFrame && withFrame != FrameDefaultIdx) {
-      return NsfPrintError(interp, "cannot use -frame object|method in dispatch for command '%s'",
-			   methodName);
-    }
-    useCmdDispatch = 0;
-  } else {
-    if (unlikely(withFrame == FrameMethodIdx)) {
-      useCmdDispatch = 0;
-    } else {
-      useCmdDispatch = 1;
-    }
-  }
-
-  /*
-   * If "withFrame == FrameObjectIdx" is specified, a call-stack frame is
-   * pushed to make instance variables accessible for the command.
-   */
-  if (unlikely(withFrame == FrameObjectIdx)) {
-    Nsf_PushFrameObj(interp, object, framePtr);
-    flags = NSF_CSC_IMMEDIATE;
-  }
-  /*
-   * Since we know, that we are always called with a full argument
-   * vector, we can include the cmd name in the objv by using
-   * nobjv-1; this way, we avoid a memcpy().
-   */
-  if (useCmdDispatch) {
-
-    if (NSF_DTRACE_METHOD_ENTRY_ENABLED()) {
-      NSF_DTRACE_METHOD_ENTRY(ObjectName(object),
-			      "",
-			      (char *)methodName,
-			      nobjc, (Tcl_Obj **)nobjv);
-    }
-
-    result = CmdMethodDispatch(object, interp, nobjc+1, nobjv-1,
-			       object, cmd, NULL);
-  } else {
-    /*
-     * If "withFrame == FrameMethodIdx" is specified, a call-stack frame is
-     * pushed to make instance variables accessible for the command.
-     */
-    if (unlikely(withFrame == FrameMethodIdx)) {
-      flags = NSF_CSC_FORCE_FRAME|NSF_CSC_IMMEDIATE;
-    }
-
-    result = MethodDispatch(object, interp,
-			    nobjc+1, nobjv-1, cmd, object,
-			    NULL /*NsfClass *cl*/,
-			    Tcl_GetCommandName(interp, cmd),
-			    NSF_CSC_TYPE_PLAIN, flags);
-  }
-
-  if (unlikely(withFrame == FrameObjectIdx)) {
-    Nsf_PopFrameObj(interp, framePtr);
-  }
-
-  return result;
-}
-
-
-/*
-cmd "dispatch" NsfDispatchCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-intrinsic" -required 0 -nrargs 0}
-  {-argName "-system" -required 0 -nrargs 0}
-  {-argName "command" -required 1 -type tclobj}
-  {-argName "args"  -type args}
-}
-*/
-static int
-NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object,
-	       int withIntrinsic, int withSystem,
-	       Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS|NSF_CM_NO_SHIFT;
-
-  /*fprintf(stderr, "NsfDispatchCmd obj=%s, cmd m='%s' nobjc %d\n",
-    ObjectName(object), ObjStr(commandObj), nobjc);*/
-
-  if (unlikely(withIntrinsic && withSystem)) {
-    return NsfPrintError(interp, "flags '-intrinsic' and '-system' are mutual exclusive");
-  }
-
-  /*
-   * Dispatch the command the method from the precedence order, with filters
-   * etc. -- strictly speaking unnecessary, but this function can be used to
-   * call protected methods and provide the flags '-intrinsics' and '-system'.
-   */
-
-  if (withIntrinsic) {flags |= NSF_CM_INTRINSIC_METHOD;}
-  if (withSystem) {flags |= NSF_CM_SYSTEM_METHOD;}
-
-  /*
-   * Since we know, that we are always called with a full argument
-   * vector, we can include the cmd name in the objv by using
-   * nobjv-1; this way, we avoid a memcpy().
-   */
-  return ObjectDispatch(object, interp,  nobjc+1, nobjv-1, flags);
-}
 
 /*
 cmd "object::exists" NsfObjectExistsCmd {
@@ -20728,6 +20694,39 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
   
   DECR_REF_COUNT2("paramDefsObj", listObj);
   ParamDefsRefCountDecr(parsedParam.paramDefs);
+  return TCL_OK;
+}
+
+/*
+cmd parameter:invalidate::classcache NsfParameterInvalidateClassCacheCmd {
+  {-argName "class" -required 1 -type class}
+}
+*/
+static int
+NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
+  if (cl->parsedParamPtr) {
+    NsfClassParamPtrEpochIncr("NsfParameterInvalidateClassCacheCmd");
+    /* fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr); */
+    ParsedParamFree(cl->parsedParamPtr);
+    cl->parsedParamPtr = NULL;
+  }
+  return TCL_OK;
+}
+
+/*
+cmd parameter:invalidate::objectcache NsfParameterInvalidateObjectCacheCmd {
+  {-argName "object" -required 1 -type object}
+}
+*/
+static int
+NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object) {
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+  if (object->opt && object->opt->parsedParamPtr) {
+    /* fprintf(stderr, "   %s invalidate %p\n", ObjectName(object),  obj->opt->parsedParamPtr); */
+    ParsedParamFree(object->opt->parsedParamPtr);
+    object->opt->parsedParamPtr = NULL;
+  }
+#endif
   return TCL_OK;
 }
 

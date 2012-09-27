@@ -63,24 +63,32 @@ cmd interp NsfInterpObjCmd {
   {-argName "name" -required 1}
   {-argName "args" -type allargs}
 } {-nxdoc 1}
-cmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
-  {-argName "class" -required 1 -type class}
-}
 cmd is NsfIsCmd {
   {-argName "-complain"  -nrargs 0}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
 } {-nxdoc 1}
 
+
+cmd parameter::get NsfParameterGetCmd {
+  {-argName "parametersubcmd" -type "list|name|syntax" -required 1}
+  {-argName "parameterspec"    -required 1 -type tclobj}
+}
+
+cmd parameter:invalidate::classcache NsfParameterInvalidateClassCacheCmd {
+  {-argName "class" -required 1 -type class}
+}
+
+cmd parameter:invalidate::objectcache NsfParameterInvalidateObjectCacheCmd {
+  {-argName "object" -required 1 -type object}
+}
+
 cmd parameter::specs NsfParameterSpecsCmd {
   {-argName "-configure"  -nrargs 0 -required 0}
   {-argName "-nonposargs" -nrargs 0 -required 0}
   {-argName "slotobjs"    -required 1 -type tclobj}
 }
-cmd parameter::get NsfParameterGetCmd {
-  {-argName "parametersubcmd" -type "list|name|syntax" -required 1}
-  {-argName "parameterspec"    -required 1 -type tclobj}
-}
+
 
 
 #

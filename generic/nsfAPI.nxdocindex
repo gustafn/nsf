@@ -12,10 +12,11 @@ set ::nxdoc::include(::nsf::directdispatch) 0
 set ::nxdoc::include(::nsf::dispatch) 1
 set ::nxdoc::include(::nsf::finalize) 1
 set ::nxdoc::include(::nsf::interp) 1
-set ::nxdoc::include(::nsf::invalidateobjectparameter) 0
 set ::nxdoc::include(::nsf::is) 1
-set ::nxdoc::include(::nsf::parameter::specs) 0
 set ::nxdoc::include(::nsf::parameter::get) 0
+set ::nxdoc::include(::nsf::parameter:invalidate::classcache) 0
+set ::nxdoc::include(::nsf::parameter:invalidate::objectcache) 0
+set ::nxdoc::include(::nsf::parameter::specs) 0
 set ::nxdoc::include(::nsf::method::alias) 1
 set ::nxdoc::include(::nsf::method::assertion) 1
 set ::nxdoc::include(::nsf::method::create) 1

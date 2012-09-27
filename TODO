@@ -4214,6 +4214,12 @@ nsf.c:
 - first draft of per-object parameter caching (for 
   per-object-mixins and  per-object properties).
 
+
+nsf.c:
+- rename invalidateobjectparameter    -> parameter:invalidate::classcache
+- rename invalidateobjobjectparameter -> parameter:invalidate::objectcache
+- bring cmds into alphabetical order
+
 ========================================================================
 TODO:
 - invalidation of per-object parameter cache for mixins and

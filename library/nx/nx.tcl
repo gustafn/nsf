@@ -1082,8 +1082,8 @@ namespace eval ::nx {
       ::nsf::var::set $slotObj config 1
     }
 
-    #puts stderr "Bootstrap-slot for $class calls invalidateobjectparameter"
-    ::nsf::invalidateobjectparameter $class
+    #puts stderr "Bootstrap-slot for $class calls parameter:invalidate::classcache"
+    ::nsf::parameter:invalidate::classcache $class
   }
 
   ObjectParameterSlot public method namedParameterSpec {prefix name options} {
@@ -1200,7 +1200,7 @@ namespace eval ::nx {
       set :methodname ${:name}
     }
     if {[::nsf::is class ${:domain}]} {
-      ::nsf::invalidateobjectparameter ${:domain}
+      ::nsf::parameter:invalidate::classcache ${:domain}
     }
     #
     # plain object parameter have currently no setter/forwarder
@@ -1214,7 +1214,7 @@ namespace eval ::nx {
     #
     if {[info exists :domain] && ${:domain} ne ""} {
       if {[::nsf::is class ${:domain}]} {
-	::nsf::invalidateobjectparameter ${:domain}
+	::nsf::parameter:invalidate::classcache ${:domain}
       }
 
       #puts stderr "*** slot destroy of [self], domain ${:domain} per-object ${:per-object}"
@@ -1339,7 +1339,7 @@ namespace eval ::nx {
   # Invalidate previously defined object parameter (built with the
   # empty objectparameter definition.
   #
-  ::nsf::invalidateobjectparameter MetaSlot
+  ::nsf::parameter:invalidate::classcache MetaSlot
 
   ######################################################################
   # Define objectparameter method
@@ -1520,7 +1520,7 @@ namespace eval ::nx {
   #
   # Make sure the invalidate all ObjectParameterSlots
   #
-  ::nsf::invalidateobjectparameter ::nx::ObjectParameterSlot
+  ::nsf::parameter:invalidate::classcache ::nx::ObjectParameterSlot
 
   #
   # Define method "guard" for mixin- and filter-slots of Object and Class
@@ -1572,7 +1572,7 @@ namespace eval ::nx {
   ######################################################################
   # Variable slots
   ######################################################################
-  ::nsf::invalidateobjectparameter MetaSlot
+  ::nsf::parameter:invalidate::classcache MetaSlot
 
   MetaSlot create ::nx::VariableSlot -superclass ::nx::ObjectParameterSlot
 
@@ -1722,7 +1722,7 @@ namespace eval ::nx {
       :setCheckedInstVar -nocomplain=[info exists :nocomplain] ${:domain} ${:default}
     }
     if {[::nsf::is class ${:domain}]} {
-      ::nsf::invalidateobjectparameter ${:domain}
+      ::nsf::parameter:invalidate::classcache ${:domain}
     }
   }
 
