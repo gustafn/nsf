@@ -4224,10 +4224,16 @@ nsf.c:
   parameter, but the list of all matching ones. The last optional
   argument was renamed from "name" to "pattern" accordingly
 
+- invalidation of per-object parameter cache 
+  * on mixin changes and 
+  * on deletion/adding of per-object slots 
+- decactivate PER_OBJECT_PARAMETER_CACHING per default 
+  (flipping this parameter makes regression test more than 20 faster).
+- extended regression test
+
+
 ========================================================================
 TODO:
-- invalidation of per-object parameter cache for mixins and
-  deletion/adding of per-object slots 
 - regression tests for "/obj/ info lookup parameter ...."
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)

@@ -1889,12 +1889,42 @@ nx::Test case parameter-object-mixin-dependency {
   ? {c1 info mixin classes} ::M1
   ? {c1 info lookup parameter names b*} "b1"
 
+  #
+  # add one more mixin.
+  #
   c1 mixin add ::M2
   ? {c1 info mixin classes} {::M2 ::M1}
   ? {c1 info lookup parameter syntax b1} "-b1 value"
   ? {c1 info lookup parameter syntax b2} "-b2 value"
   ? {lsort [c1 info lookup parameter names b*]} "b1 b2"
 
+  #
+  # drop the mixins, the b* properties should be gone.
+  #
+  c1 mixin ""
+  ? {c1 info mixin classes} {}
+  ? {lsort [c1 info lookup parameter names b*]} ""
+
+  #
+  # add M1 again
+  #
+  c1 mixin add ::M1
+  ? {c1 info mixin classes} {::M1}
+  ? {c1 info lookup parameter syntax b1} "-b1 value"
+  ? {lsort [c1 info lookup parameter names b*]} "b1"
+  #
+  # We have the per-object cache; adding a per-object property should
+  # flush the cache
+  #
+  c1 property bo1
+  ? {lsort [c1 info lookup parameter names b*]} "b1 bo1"
+  c1 property bo2
+  ? {lsort [c1 info lookup parameter names b*]} "b1 bo1 bo2"
+  #
+  # property deletion should invalidate the cache as well
+  #
+  c1 delete property bo2
+  ? {lsort [c1 info lookup parameter names b*]} "b1 bo1"
 }
 
 

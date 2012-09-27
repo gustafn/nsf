@@ -1199,34 +1199,35 @@ namespace eval ::nx {
     if {![info exists :methodname]} {
       set :methodname ${:name}
     }
-    if {[::nsf::is class ${:domain}]} {
+    if {${:per-object}} {
+      ::nsf::parameter:invalidate::objectcache ${:domain}
+    } else {
       ::nsf::parameter:invalidate::classcache ${:domain}
     }
+
     #
     # plain object parameter have currently no setter/forwarder
     #
   }
 
   ObjectParameterSlot public method destroy {} {
-    #
-    # When slot objects are destroyed, invalidate the object
-    # parameters to reflect the changes
-    #
     if {[info exists :domain] && ${:domain} ne ""} {
-      if {[::nsf::is class ${:domain}]} {
-	::nsf::parameter:invalidate::classcache ${:domain}
-      }
-
-      #puts stderr "*** slot destroy of [self], domain ${:domain} per-object ${:per-object}"
       #
+      # When slot objects are destroyed, flush the parameter cache and
       # delete the accessors
       #
+      #puts stderr "*** slot destroy of [self], domain ${:domain} per-object ${:per-object}"
+      
       if {${:per-object}} {
+	::nsf::parameter:invalidate::objectcache ${:domain}
 	if {[${:domain} ::nsf::methods::object::info::method exists ${:name}]} {
 	  ::nsf::method::delete ${:domain} -per-object ${:name}
 	}
-      } elseif {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
-	::nsf::method::delete ${:domain} ${:name}
+      } else {
+	::nsf::parameter:invalidate::classcache ${:domain}
+	if {[${:domain} ::nsf::methods::class::info::method exists ${:name}]} {
+	  ::nsf::method::delete ${:domain} ${:name}
+	}
       }
     }
     ::nsf::next

@@ -9,10 +9,14 @@ package req nx::test
 #puts stderr "*** default defaultAccessor '[nx::configure defaultAccessor]'"
 nx::configure defaultAccessor none
 
+
+#####################################################################
+# class-level properties
+#####################################################################
 #
-# test class-level properties and variables without -incremental
+# Test class-level properties and variables without -incremental
 #
-nx::Test case class-level-incremental {
+nx::Test case class-level {
 
   nx::Class create C {
     :property {a a1}
@@ -35,12 +39,7 @@ nx::Test case class-level-incremental {
   #
   # just the public properties are accessible via the configure interface
   #
-  
   ? {c1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
-
-  #
-  # just the public properties are accessible via the cget interface
-  #
   
   ? {c1 cget -a} a1
   ? {c1 cget -b} b1
@@ -50,34 +49,32 @@ nx::Test case class-level-incremental {
   ? {c1 cget -vb} {cannot lookup parameter value for -vb}
   ? {c1 cget -vc} {cannot lookup parameter value for -vc}
   ? {c1 cget -vd} {cannot lookup parameter value for -vd}
+
+  #
+  # The use of "-incremental" implies an accessor
+  #
   
-
-  #
-  # We do not have accessors in the default case and in the explicit "none" case.
-  #
-
-  ? {c1 info lookup method a} ""
+  ? {c1 info lookup method a} ""  
   ? {c1 info lookup method b} "::nsf::classes::C::b"
   ? {c1 info lookup method c} "::nsf::classes::C::c"
   ? {c1 info lookup method d} "::nsf::classes::C::d"
-  ? {c1 info lookup method e} ""
 
-  ? {c1 info lookup method va} ""
+  ? {c1 info lookup method va} "" 
   ? {c1 info lookup method vb} "::nsf::classes::C::vb"
   ? {c1 info lookup method vc} "::nsf::classes::C::vc"
   ? {c1 info lookup method vd} "::nsf::classes::C::vd"
-  ? {c1 info lookup method ve} ""
 
   #
-  # check public/protected/private settings
+  # The use of "-incremental" implies an accessor, which is public
   #
+  
   ? {nsf::method::property C b call-protected} 0
   ? {nsf::method::property C c call-protected} 1
-  ? {nsf::method::property C d call-protected} 1
+  ? {nsf::method::property C d call-protected} 1  
   ? {nsf::method::property C vb call-protected} 0
   ? {nsf::method::property C vc call-protected} 1
   ? {nsf::method::property C vd call-protected} 1
-  
+
   ? {nsf::method::property C b call-private} 0
   ? {nsf::method::property C c call-private} 0
   ? {nsf::method::property C d call-private} 1
@@ -86,34 +83,33 @@ nx::Test case class-level-incremental {
   ? {nsf::method::property C vd call-private} 1
 
   #
-  # check if instance variables are created
+  # do we have variables set?
   #
   
   ? {c1 eval "info exists :a"} 1
   ? {c1 eval "info exists :b"} 1
   ? {c1 eval "info exists :c"} 1
   ? {c1 eval "info exists :d"} 0
-  ? {c1 eval "info exists :e"} 1
   ? {c1 eval "info exists :va"} 1
   ? {c1 eval "info exists :vb"} 1
   ? {c1 eval "info exists :vc"} 1
   ? {c1 eval "info exists :vd"} 0
-  ? {c1 eval "info exists :ve"} 1
 
   #
-  # check if we can dispatch accessors directly or via "eval"
+  # can we call the accessor directly or via "eval"
   #
   
   ? {c1 a} {::c1: unable to dispatch method 'a'}
   ? {c1 b} b1
   ? {c1 c} {::c1: unable to dispatch method 'c'}
   ? {c1 d} {::c1: unable to dispatch method 'd'}
-  
+ 
   ? {c1 eval ":a"} {::c1: unable to dispatch method 'a'}
   ? {c1 eval ":b"} b1
   ? {c1 eval ":c"} c1
   ? {c1 eval ":d"} {::c1: unable to dispatch method 'd'}
-
+  
+  
   ? {c1 va} {::c1: unable to dispatch method 'va'}
   ? {c1 vb} vb1
   ? {c1 vc} {::c1: unable to dispatch method 'vc'}
@@ -125,19 +121,60 @@ nx::Test case class-level-incremental {
   ? {c1 eval ":vd"} {::c1: unable to dispatch method 'vd'}
 
   #
-  # check dispatch of private accessors and private variables
+  # check the behavior of "private" properties and variables
   #
-  ? {c1 call-local d} d1  
+  ? {c1 call-local d} d1
   ? {c1 call-local vd} vd1
-  
+
   ? {lsort [c1 info vars]} "__private a b c e va vb vc ve"
   ? {c1 eval "array get :__private"} "::C,vd vd1 ::C,d d1"
 
   #
-  # check error message
+  # check incremental operations for properties
+  #
+
+  ? {c1 b add x} {wrong # args should be "::c1 b ?value?"}
+  ? {c1 c add x} {::c1: unable to dispatch method 'c'}
+  ? {c1 eval {:c add x}} {wrong # args should be "::c1 c ?value?"}
+  ? {c1 d add x} {::c1: unable to dispatch method 'd'}
+  ? {c1 eval {:d add x}} {::c1: unable to dispatch method 'd'}
+  ? {c1 e add x} {::c1: unable to dispatch method 'e'}
+
+  #
+  # check incremental operations for variables
+  #
+
+  ? {c1 va add x} {::c1: unable to dispatch method 'va'}
+  ? {c1 vb add x} {wrong # args should be "::c1 vb ?value?"}
+  ? {c1 vc add x} {::c1: unable to dispatch method 'vc'}
+  ? {c1 eval {:vc add x}} {wrong # args should be "::c1 vc ?value?"}
+  ? {c1 vd add x} {::c1: unable to dispatch method 'vd'}
+  ? {c1 eval {:vd add x}} {::c1: unable to dispatch method 'vd'}
+  ? {c1 ve add x} {::c1: unable to dispatch method 've'}
+
+
+  #
+  # The accessor should be a forwarder due to incremental
+  #
+
+  ? {C info method definition b} {::C public setter b}
+
+  #
+  # check error message on a typo. The following command does a
+  # recreate.
   #
   ? {C property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
+
+  #
+  # The accessor should be still a forwarder (or maybe non-existent)
+  #
+
+  #? {CC info method definition b} {::CC public forward b ::CC::slot::b {%1 {get assign}} %self b}
+  # TODO: ... but not a setter
+  ? {C info method definition b} {::C public setter b}
 }
+
+
 
  
 #
@@ -163,9 +200,6 @@ nx::Test case class-level-incremental {
     
     :create c1
   }
-  puts stderr ====1
-  puts stderr [CC info method definition b]
-  puts stderr ====2
   
   #
   # The use of "-incremental" implies multivalued
@@ -318,6 +352,455 @@ nx::Test case class-level-incremental {
 
 }
 
+#####################################################################
+# object-level properties 
+#####################################################################
 #
-# TODO object level properties
+# Test object-level properties and variables without -incremental
 #
+nx::Test case object-level {
+  
+  nx::Object create o1 {
+    :property {a a1}
+    :property -accessor public {b b1}
+    :property -accessor protected {c c1}
+    :property -accessor private {d d1}
+    :property -accessor none {e e1}
+    
+    :variable va va1
+    :variable -accessor public vb vb1
+    :variable -accessor protected vc vc1
+    :variable -accessor private vd vd1
+    :variable -accessor none ve ve1
+    
+    :public method call-local {v} {: -local $v}
+    
+  }
+  
+  #
+  # check the slot for "a"
+  #
+  ? {o1 info lookup slots a} ::o1::per-object-slot::a
+
+  #
+  # just the public properties are accessible via the configure interface
+  #
+  
+  ? {o1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+
+  #
+  # just the public properties are accessible via the cget interface
+  #
+  
+  ? {o1 cget -a} a1
+  ? {o1 cget -b} b1
+  ? {o1 cget -c} {cannot lookup parameter value for -c}
+  ? {o1 cget -d} {cannot lookup parameter value for -d}
+  ? {o1 cget -va} {cannot lookup parameter value for -va}
+  ? {o1 cget -vb} {cannot lookup parameter value for -vb}
+  ? {o1 cget -vc} {cannot lookup parameter value for -vc}
+  ? {o1 cget -vd} {cannot lookup parameter value for -vd}
+  
+
+  #
+  # We do not have accessors in the default case and in the explicit "none" case.
+  #
+
+  ? {o1 info lookup method a} ""
+  ? {o1 info lookup method b} "::o1::b"
+  ? {o1 info lookup method c} "::o1::c"
+  ? {o1 info lookup method d} "::o1::d" 
+  ? {o1 info lookup method e} ""
+
+  ? {o1 info lookup method va} ""
+  ? {o1 info lookup method vb} "::o1::vb"
+  ? {o1 info lookup method vc} "::o1::vc"
+  ? {o1 info lookup method vd} "::o1::vd"
+  ? {o1 info lookup method ve} ""
+
+  #
+  # check public/protected/private settings
+  #
+  ? {nsf::method::property o1 b call-protected} 0
+  ? {nsf::method::property o1 c call-protected} 1
+  ? {nsf::method::property o1 d call-protected} 1
+  ? {nsf::method::property o1 vb call-protected} 0
+  ? {nsf::method::property o1 vc call-protected} 1
+  ? {nsf::method::property o1 vd call-protected} 1
+  
+  ? {nsf::method::property o1 b call-private} 0
+  ? {nsf::method::property o1 c call-private} 0
+  ? {nsf::method::property o1 d call-private} 1
+  ? {nsf::method::property o1 vb call-private} 0
+  ? {nsf::method::property o1 vc call-private} 0
+  ? {nsf::method::property o1 vd call-private} 1
+
+  #
+  # check if instance variables are created
+  #
+  
+  ? {o1 eval "info exists :a"} 1
+  ? {o1 eval "info exists :b"} 1
+  ? {o1 eval "info exists :c"} 1
+  ? {o1 eval "info exists :d"} 0
+  ? {o1 eval "info exists :e"} 1
+  ? {o1 eval "info exists :va"} 1
+  ? {o1 eval "info exists :vb"} 1
+  ? {o1 eval "info exists :vc"} 1
+  ? {o1 eval "info exists :vd"} 0
+  ? {o1 eval "info exists :ve"} 1
+
+  #
+  # check if we can dispatch accessors directly or via "eval"
+  #
+  
+  ? {o1 a} {::o1: unable to dispatch method 'a'}
+  ? {o1 b} b1
+  ? {o1 c} {::o1: unable to dispatch method 'c'}
+  ? {o1 d} {::o1: unable to dispatch method 'd'}
+  
+  ? {o1 eval ":a"} {::o1: unable to dispatch method 'a'}
+  ? {o1 eval ":b"} b1
+  ? {o1 eval ":c"} c1
+  ? {o1 eval ":d"} {::o1: unable to dispatch method 'd'}
+
+  ? {o1 va} {::o1: unable to dispatch method 'va'}
+  ? {o1 vb} vb1
+  ? {o1 vc} {::o1: unable to dispatch method 'vc'}
+  ? {o1 vd} {::o1: unable to dispatch method 'vd'}
+  
+  ? {o1 eval ":va"} {::o1: unable to dispatch method 'va'}
+  ? {o1 eval ":vb"} vb1
+  ? {o1 eval ":vc"} vc1
+  ? {o1 eval ":vd"} {::o1: unable to dispatch method 'vd'}
+
+  #
+  # check dispatch of private accessors and private variables
+  #
+  ? {o1 call-local d} d1  
+  ? {o1 call-local vd} vd1
+  
+  ? {lsort [o1 info vars]} "__private a b c e va vb vc ve"
+  ? {o1 eval "array get :__private"} "::o1,d d1 ::o1,vd vd1"
+
+  #
+  # check error message
+  #
+  ? {o1 property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
+}
+
+#
+# test object-level properties and variables with -incremental
+#
+nx::Test case object-level-incremental {
+
+  nx::Object create o1 {
+    :property -incremental {a a1}
+    :property -accessor public -incremental {b b1}
+    :property -accessor protected -incremental {c c1}
+    :property -accessor private -incremental {d d1}
+    :property -accessor none -incremental {e e1}
+    
+    :variable -incremental va va1
+    :variable -accessor public -incremental vb vb1
+    :variable -accessor protected -incremental vc vc1
+    :variable -accessor private -incremental vd vd1
+    :variable -accessor none -incremental ve ve1
+    
+    :public method call-local {v} {: -local $v}
+    :public method add-local {var value} {: -local $var add $value}
+  }
+  
+  #
+  # The use of "-incremental" implies multivalued
+  #
+  ? {o1 configure} { ?-e value ...? ?-a value ...? ?-b value ...? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  
+  ? {o1 cget -a} a1
+  ? {o1 cget -b} b1
+  ? {o1 cget -c} {cannot lookup parameter value for -c}
+  ? {o1 cget -d} {cannot lookup parameter value for -d}
+  ? {o1 cget -va} {cannot lookup parameter value for -va}
+  ? {o1 cget -vb} {cannot lookup parameter value for -vb}
+  ? {o1 cget -vc} {cannot lookup parameter value for -vc}
+  ? {o1 cget -vd} {cannot lookup parameter value for -vd}
+
+  #
+  # The use of "-incremental" implies an accessor
+  #
+  
+  ? {o1 info lookup method a} "::o1::a"  ;# forcing accessor
+  ? {o1 info lookup method b} "::o1::b"
+  ? {o1 info lookup method c} "::o1::c"
+  ? {o1 info lookup method d} "::o1::d"
+
+  ? {o1 info lookup method va} "::o1::va" ;# forcing accessor
+  ? {o1 info lookup method vb} "::o1::vb"
+  ? {o1 info lookup method vc} "::o1::vc"
+  ? {o1 info lookup method vd} "::o1::vd"
+
+  #
+  # The use of "-incremental" implies an accessor, which is public
+  #
+  
+  ? {nsf::method::property o1 a call-protected} 0
+  ? {nsf::method::property o1 b call-protected} 0
+  ? {nsf::method::property o1 c call-protected} 1
+  ? {nsf::method::property o1 d call-protected} 1  
+  ? {nsf::method::property o1 va call-protected} 0
+  ? {nsf::method::property o1 vb call-protected} 0
+  ? {nsf::method::property o1 vc call-protected} 1
+  ? {nsf::method::property o1 vd call-protected} 1
+
+  ? {nsf::method::property o1 a call-private} 0
+  ? {nsf::method::property o1 b call-private} 0
+  ? {nsf::method::property o1 c call-private} 0
+  ? {nsf::method::property o1 d call-private} 1
+  ? {nsf::method::property o1 va call-private} 0
+  ? {nsf::method::property o1 vb call-private} 0
+  ? {nsf::method::property o1 vc call-private} 0
+  ? {nsf::method::property o1 vd call-private} 1
+
+  #
+  # do we have variables set?
+  #
+  
+  ? {o1 eval "info exists :a"} 1
+  ? {o1 eval "info exists :b"} 1
+  ? {o1 eval "info exists :c"} 1
+  ? {o1 eval "info exists :d"} 0
+  ? {o1 eval "info exists :va"} 1
+  ? {o1 eval "info exists :vb"} 1
+  ? {o1 eval "info exists :vc"} 1
+  ? {o1 eval "info exists :vd"} 0
+
+  #
+  # can we call the accessor directly or via "eval"
+  #
+  
+  ? {o1 a} a1
+  ? {o1 b} b1
+  ? {o1 c} {::o1: unable to dispatch method 'c'}
+  ? {o1 d} {::o1: unable to dispatch method 'd'}
+ 
+  ? {o1 eval ":a"} a1
+  ? {o1 eval ":b"} b1
+  ? {o1 eval ":c"} c1
+  ? {o1 eval ":d"} {::o1: unable to dispatch method 'd'}
+  
+  
+  ? {o1 va} va1
+  ? {o1 vb} vb1
+  ? {o1 vc} {::o1: unable to dispatch method 'vc'}
+  ? {o1 vd} {::o1: unable to dispatch method 'vd'}
+  
+  ? {o1 eval ":va"} va1
+  ? {o1 eval ":vb"} vb1
+  ? {o1 eval ":vc"} vc1
+  ? {o1 eval ":vd"} {::o1: unable to dispatch method 'vd'}
+
+  #
+  # check the behavior of "private" properties and variables
+  #
+  ? {o1 call-local d} d1
+  ? {o1 call-local vd} vd1
+
+  ? {lsort [o1 info vars]} "__private a b c e va vb vc ve"
+  ? {o1 eval "array get :__private"} "::o1,d d1 ::o1,vd vd1"
+
+  #
+  # check incremental operations for properties
+  #
+
+  ? {o1 a add x} {x a1}
+
+  ? {o1 b add x} {x b1}
+  ? {o1 c add x} {::o1: unable to dispatch method 'c'}
+  ? {o1 eval {:c add x}} {x c1}
+  ? {o1 d add x} {::o1: unable to dispatch method 'd'}
+  ? {o1 eval {:d add x}} {::o1: unable to dispatch method 'd'}
+  ? {o1 add-local d x} {x d1}
+  ? {o1 e add x} {x e1}
+
+  #
+  # check incremental operations for variables
+  #
+
+  ? {o1 va add x} {x va1}
+  ? {o1 vb add x} {x vb1}
+  ? {o1 vc add x} {::o1: unable to dispatch method 'vc'}
+  ? {o1 eval {:vc add x}} {x vc1}
+  ? {o1 vd add x} {::o1: unable to dispatch method 'vd'}
+  ? {o1 eval {:vd add x}} {::o1: unable to dispatch method 'vd'}
+  ? {o1 add-local vd x} {x vd1}
+  ? {o1 ve add x} {x ve1}
+
+
+  #
+  # The accessor should be a forwarder due to incremental
+  #
+
+  ? {o1 info method definition b} {::o1 public forward b ::o1::per-object-slot::b {%1 {get assign}} %self b}
+
+  #
+  # check error message
+  #
+  ? {o1 property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
+
+  #
+  # The accessor should be still a forwarder (or maybe non-existent)
+  #
+
+  #? {CC info method definition b} {::CC public forward b ::CC::slot::b {%1 {get assign}} %self b}
+  # TODO: ... but not a setter
+  ? {o1 info method definition b} {::o1 public setter b}
+
+}
+
+
+#####################################################################
+# tests with class object
+#####################################################################
+#
+# check performance of class-level configure and cget
+#
+nx::Test case class-object-properties {
+
+  nx::Class create C {
+    :property {a a1}
+    :variable va va1
+    
+    :class property {b b1}
+    :class variable vb b1
+    
+    :create c1
+  }
+
+  #
+  # just the public properties are accessible via the configure interface
+  #
+  
+  ? {c1 configure} {?-a value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+
+  ? {c1 cget -a} a1
+  ? {c1 configure -a a2} ""
+
+  ? {C configure} {?-b value? ?-superclass class ...? ?-object-mixin mixinreg? ?-mixin mixinreg ...? ?-object-filter filterreg? ?-filter filterreg ...? ?-volatile? ?-properties value? ?-noinit? ?-class class? ?__initcmd?}
+
+  ? {C cget -b} b1
+  ? {C configure -b b2} ""
+  ? {C cget -b} b2
+}
+
+
+#####################################################################
+# performance tests
+#####################################################################
+nx::Test parameter count 10000
+#
+# check performance of class-level configure and cget
+#
+nx::Test case class-level-perf {
+
+  nx::Class create C {
+    :property {a a1}
+    :property -accessor public {b b1}
+    :property -accessor protected {c c1}
+    :property -accessor private {d d1}
+    :property -accessor none {e e1}
+    
+    :variable va va1
+    :variable -accessor public vb vb1
+    :variable -accessor protected vc vc1
+    :variable -accessor private vd vd1
+    :variable -accessor none ve ve1
+    
+    :create c1
+  }
+  nx::Class create D {
+    :class property {cp 101}
+    :property {a a1}
+    :property -accessor public {b b1}
+    :property -accessor protected {c c1}
+    :property -accessor private {d d1}
+    :property -accessor none {e e1}
+    
+    :variable va va1
+    :variable -accessor public vb vb1
+    :variable -accessor protected vc vc1
+    :variable -accessor private vd vd1
+    :variable -accessor none ve ve1
+    
+    :create d1
+  }
+
+  #
+  # just the public properties are accessible via the configure interface
+  #
+  
+  ? {c1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+
+  set e [C eval :__objectparameter]
+  ? {C eval :__objectparameter} $e
+
+  ? {c1 cget -a} a1
+  ? {c1 configure -a a2} ""
+
+  ? {C configure -class ::nx::Class} ""
+  ? {C cget -class} {cannot lookup parameter value for -class}
+
+  #
+  # check influence of class-level per-object properties
+  #
+  ? {d1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+
+  set e [D eval :__objectparameter]
+  ? {D eval :__objectparameter} $e
+
+  ? {d1 cget -a} a1
+  ? {d1 configure -a a2} ""
+
+  ? {D configure -class ::nx::Class} ""
+  ? {D cget -cp} 101
+  ? {D configure -cp 102} ""
+  ? {D cget -cp} 102
+}
+
+#
+# check performance of class-level configure and cget
+#
+
+nx::Test case object-level-perf {
+
+  nx::Object create o1 {
+    :property {a a1}
+    :property -accessor public {b b1}
+    :property -accessor protected {c c1}
+    :property -accessor private {d d1}
+    :property -accessor none {e e1}
+    
+    :variable va va1
+    :variable -accessor public vb vb1
+    :variable -accessor protected vc vc1
+    :variable -accessor private vd vd1
+    :variable -accessor none ve ve1
+    
+  }
+
+  #
+  # just the public properties are accessible via the configure interface
+  #
+  
+  ? {o1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+
+  set e [o1 eval :__objectparameter]
+
+  ? {o1 eval :__objectparameter} $e
+
+  ? {o1 cget -a} a1
+  ? {o1 configure -a a2} ""
+
+  ? {o1 b} b1
+  ? {o1 b b2} "b2"
+}
+

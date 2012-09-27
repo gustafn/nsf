@@ -143,7 +143,7 @@
 #define NSF_STACKCHECK 1
 */
 
-//#define PER_OBJECT_PARAMETER_CACHING 1
+#define PER_OBJECT_PARAMETER_CACHING 1
 
 /*
  * Sanity checks and dependencies for optional compile flags
