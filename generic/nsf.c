@@ -21027,9 +21027,14 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
         CmdListFree(&objopt->objMixins, GuardDel);
       }
 
+      /*
+       * Invalidate per-object infos
+       */
+      NsfParameterInvalidateObjectCacheCmd(interp, object);
       object->flags &= ~NSF_MIXIN_ORDER_VALID;
       /*
-       * Since mixin procs may be used as filters -> we have to invalidate.
+       * Since mixin procs may be used as filters -> we have to invalidate
+       * filters as well.
        */
       object->flags &= ~NSF_FILTER_ORDER_VALID;
 
@@ -23867,16 +23872,16 @@ NsfObjInfoNameMethod(Tcl_Interp *interp, NsfObject *object) {
 
 /*
 objectInfoMethod objectparameter NsfObjInfoObjectparameterMethod {
-  {-argName "infoobjectparametersubcmd" -type "definition|list|name|syntax" -required 1}
-  {-argName "name" -required 0}
+  {-argName "infoobjectparametersubcmd" -type "definitions|list|names|syntax" -required 1}
+  {-argName "pattern" -required 0}
 }
 */
 static int 
-NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcmd, CONST char *name) {
+NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcmd, CONST char *pattern) {
   NsfParsedParam parsedParam;
   Tcl_Obj *listObj = NULL;
   Nsf_Param CONST *paramsPtr;
-  Nsf_Param paramList[2];
+  Nsf_Param *paramList = NULL;
   int result;
 
   result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY],
@@ -23890,37 +23895,48 @@ NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcm
 
   /*
    * If a single parameter name is given, we construct a filtered parameter
-   * list on the fly and provide it to the output functions. Note, that the
-   * first matching parameter is queried.
+   * list on the fly and provide it to the output functions. 
    */
-  if (name) {
+  if (pattern) {
     Nsf_Param CONST *pPtr;
-
-    for (pPtr = paramsPtr; pPtr->name; pPtr++) {
-      if (Tcl_StringMatch( ObjStr(pPtr->nameObj), name)) {
-	paramsPtr = (Nsf_Param CONST *)&paramList;
-	paramList[0] = *pPtr;
-	paramList[1].name = NULL;
-	break;
+    int maxParams, nrMatchingParams;
+    
+    /* 
+     * Count the parameters 
+     */
+    for (pPtr = paramsPtr, maxParams = 0; pPtr->name; pPtr++, maxParams++);
+    /* 
+     * Allocate the number of potentional matches
+     */
+    paramList = ParamsNew(maxParams);
+	
+    for (pPtr = paramsPtr, nrMatchingParams = 0; pPtr->name; pPtr++) {
+      if (Tcl_StringMatch( ObjStr(pPtr->nameObj), pattern)) {
+	paramList[nrMatchingParams] = *pPtr;
+	nrMatchingParams++;
       }
     }
-    if (paramsPtr == parsedParam.paramDefs->paramsPtr) {
+    
+    if (nrMatchingParams == 0) {
       /*
-       * The named parameter was NOT found, so return "".
+       * The named parameter were NOT found, so return "".
        */
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
+      FREE(Nsf_Param*, paramList);
       return TCL_OK;
     }
+    /* iterate over the computed selection */
+    paramsPtr = paramList;
   }
 
   switch (subcmd) {
-  case InfoobjectparametersubcmdDefinitionIdx:
+  case InfoobjectparametersubcmdDefinitionsIdx:
     listObj = ParamDefsFormat(interp, paramsPtr);
     break;
   case InfoobjectparametersubcmdListIdx:
     listObj = ParamDefsList(interp, paramsPtr);
     break;
-  case InfoobjectparametersubcmdNameIdx:
+  case InfoobjectparametersubcmdNamesIdx:
     listObj = ParamDefsNames(interp, paramsPtr);
     break;
   case InfoobjectparametersubcmdSyntaxIdx:
@@ -23928,8 +23944,13 @@ NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcm
     break;
   }
   assert(listObj);
+
   Tcl_SetObjResult(interp, listObj);
+
   DECR_REF_COUNT2("paramDefsObj", listObj);
+  if (paramList) {
+    FREE(Nsf_Param*, paramList);
+  }
 
   return TCL_OK;
 }

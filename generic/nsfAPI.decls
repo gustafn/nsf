@@ -431,8 +431,8 @@ objectInfoMethod name NsfObjInfoNameMethod {
 objectInfoMethod parent NsfObjInfoParentMethod {
 }
 objectInfoMethod objectparameter NsfObjInfoObjectparameterMethod {
-  {-argName "infoobjectparametersubcmd" -type "definition|list|name|syntax" -required 1}
-  {-argName "name" -required 0}
+  {-argName "infoobjectparametersubcmd" -type "definitions|list|names|syntax" -required 1}
+  {-argName "pattern" -required 0}
 }
 objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
   {-argName "-intrinsic" -nrargs 0}

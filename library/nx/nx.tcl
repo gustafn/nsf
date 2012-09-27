@@ -670,12 +670,12 @@ namespace eval ::nx {
       return [: {*}$cmd]
     }
     :method "info lookup parameter definitions" {pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::objectparameter definition]
+      set cmd [list ::nsf::methods::object::info::objectparameter definitions]
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }
     :method "info lookup parameter names" {pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::objectparameter name]
+      set cmd [list ::nsf::methods::object::info::objectparameter names]
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }

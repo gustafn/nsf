@@ -201,12 +201,12 @@ static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CO
   return result;
 }
   
-enum InfoobjectparametersubcmdIdx {InfoobjectparametersubcmdNULL, InfoobjectparametersubcmdDefinitionIdx, InfoobjectparametersubcmdListIdx, InfoobjectparametersubcmdNameIdx, InfoobjectparametersubcmdSyntaxIdx};
+enum InfoobjectparametersubcmdIdx {InfoobjectparametersubcmdNULL, InfoobjectparametersubcmdDefinitionsIdx, InfoobjectparametersubcmdListIdx, InfoobjectparametersubcmdNamesIdx, InfoobjectparametersubcmdSyntaxIdx};
 
 static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"definition", "list", "name", "syntax", NULL};
+  static CONST char *opts[] = {"definitions", "list", "names", "syntax", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infoobjectparametersubcmd", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -216,7 +216,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   
 
       static enumeratorConverterEntry enumeratorConverterEntries[] = {
-  {ConvertToInfoobjectparametersubcmd, "definition|list|name|syntax"},
+  {ConvertToInfoobjectparametersubcmd, "definitions|list|names|syntax"},
   {ConvertToScope, "all|class|object"},
   {ConvertToInfomethodsubcmd, "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"},
   {ConvertToCallprotection, "all|public|protected|private"},
@@ -448,7 +448,7 @@ static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withC
 static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObject);
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
 static int NsfObjInfoNameMethod(Tcl_Interp *interp, NsfObject *obj);
-static int NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *obj, int infoobjectparametersubcmd, CONST char *name);
+static int NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *obj, int infoobjectparametersubcmd, CONST char *pattern);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *obj, int withIntrinsic, CONST char *pattern);
 static int NsfObjInfoSlotobjectsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
@@ -2506,10 +2506,10 @@ NsfObjInfoObjectparameterMethodStub(ClientData clientData, Tcl_Interp *interp, i
                      method_definitions[NsfObjInfoObjectparameterMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int infoobjectparametersubcmd = (int )PTR2INT(pc.clientData[0]);
-    CONST char *name = (CONST char *)pc.clientData[1];
+    CONST char *pattern = (CONST char *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfObjInfoObjectparameterMethod(interp, obj, infoobjectparametersubcmd, name);
+    return NsfObjInfoObjectparameterMethod(interp, obj, infoobjectparametersubcmd, pattern);
 
   } else {
     return TCL_ERROR;
@@ -3015,7 +3015,7 @@ static Nsf_methodDefinition method_definitions[105] = {
 },
 {"::nsf::methods::object::info::objectparameter", NsfObjInfoObjectparameterMethodStub, 2, {
   {"infoobjectparametersubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfoobjectparametersubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"name", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"pattern", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::parent", NsfObjInfoParentMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

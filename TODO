@@ -4220,6 +4220,10 @@ nsf.c:
 - rename invalidateobjobjectparameter -> parameter:invalidate::objectcache
 - bring cmds into alphabetical order
 
+- NsfObjInfoObjectparameterMethod(): return not only the first matching
+  parameter, but the list of all matching ones. The last optional
+  argument was renamed from "name" to "pattern" accordingly
+
 ========================================================================
 TODO:
 - invalidation of per-object parameter cache for mixins and
@@ -4227,6 +4231,7 @@ TODO:
 - regression tests for "/obj/ info lookup parameter ...."
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)
+- handling of recreate (see regression test for class-level properties)
 - check noconfig
 - "/obj/ configure" returns values which can't be read via "/obj/ cget"
   (but altered properly via "configure").
@@ -4241,7 +4246,6 @@ TODO:
   should be
   ? {o __alloc x} {method alloc not dispatched on valid class}
 
-- recreate for slots
 - document "private property"
 
 - document new setable object properties perobjectdispatch and keepcallerself

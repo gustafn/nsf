@@ -1840,13 +1840,14 @@ nx::Test case parameter-object-mixin-dependency {
     :create c1
   }
   nx::Class create D -superclass C
-  nx::Class create M {:property b1:required}
+  nx::Class create M1 {:property b1:required}
+  nx::Class create M2 {:property b2:required}
 
   ? {c1 eval :__objectparameter} "-a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
   
-  c1 mixin M
+  c1 mixin M1
 
-  ? {c1 info precedence} "::M ::C ::nx::Object"
+  ? {c1 info precedence} "::M1 ::C ::nx::Object"
 
   ? {c1 eval :__objectparameter} "-b1:required -a1 -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
 
@@ -1877,10 +1878,22 @@ nx::Test case parameter-object-mixin-dependency {
   ? {C create c2} ::c2
   
   #
-  # the same should hold for subcles
+  # the same should hold for subclasses
   #
   ? {D create d1} ::d1
 
+  #
+  # we have now per-object mixin of M1, we should have "-b1" but no
+  # "-b2"
+  #
+  ? {c1 info mixin classes} ::M1
+  ? {c1 info lookup parameter names b*} "b1"
+
+  c1 mixin add ::M2
+  ? {c1 info mixin classes} {::M2 ::M1}
+  ? {c1 info lookup parameter syntax b1} "-b1 value"
+  ? {c1 info lookup parameter syntax b2} "-b2 value"
+  ? {lsort [c1 info lookup parameter names b*]} "b1 b2"
 
 }
 
@@ -2448,7 +2461,6 @@ nx::Test case object-info-slots-types {
   ? {o2 info methods} "p0 p3"
 
   # all properties with slots show up in "info slot" 
-  # TODO: object slots will change when we allow true object properties
   ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p3"
   ? {o2 info slot definition} "{p0 200} {p1 201} {p3:noconfig 203}"
   ? {o2 info properties} "{p0 200} {p1 201} {p3:noconfig 203}"
