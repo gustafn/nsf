@@ -747,7 +747,12 @@ nx::Test case class-level-perf {
   ? {c1 configure -a a2} ""
 
   ? {C configure -class ::nx::Class} ""
-  ? {C cget -class} {cannot lookup parameter value for -class}
+  ? {C cget -class} ::nx::Class
+  ? {C cget -mixin} ""
+  ? {C cget -filter} ""
+  
+  #  ? {C cget -noinit} 0
+  ? {C cget -volatile} 0
 
   #
   # check influence of class-level per-object properties
@@ -761,6 +766,8 @@ nx::Test case class-level-perf {
   ? {d1 configure -a a2} ""
 
   ? {D configure -class ::nx::Class} ""
+  ? {D cget -class} ::nx::Class
+
   ? {D cget -cp} 101
   ? {D configure -cp 102} ""
   ? {D cget -cp} 102
@@ -784,7 +791,6 @@ nx::Test case object-level-perf {
     :variable -accessor protected vc vc1
     :variable -accessor private vd vd1
     :variable -accessor none ve ve1
-    
   }
 
   #
@@ -802,5 +808,8 @@ nx::Test case object-level-perf {
 
   ? {o1 b} b1
   ? {o1 b b2} "b2"
+
+  ? {o1 configure -class ::nx::Object} ""
+  ? {o1 cget -class} ::nx::Object
 }
 

@@ -272,6 +272,14 @@ static int GuardCall(NsfObject *object, Tcl_Interp *interp,
                      Tcl_Obj *guardObj, NsfCallStackContent *cscPtr);
 static void GuardDel(NsfCmdList *filterCL);
 
+/* prototypes for forwarders */
+static void ForwardCmdDeleteProc(ClientData clientData);
+static int ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
+				 Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
+				 int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
+				 Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
+				 ForwardCmdClientData **tcdPtr);
+
 /* properties of objects and classes */
 static int IsBaseClass(NsfObject *cl);
 static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins);
@@ -12511,6 +12519,232 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
   return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParameterMethodDispatch --
+ *
+ *    Dispatch a method provided via parameter definition. The function checks
+ *    the parameter definition, builds a argument list for the function call
+ *    and invokes finally the configured cmd.  This function is typically
+ *    called from configure.
+ *
+ * Results:
+ *    Tcl result code
+ *
+ * Side effects:
+ *    The called function might sideeffect.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object, 
+			Nsf_Param *paramPtr, Tcl_Obj *newValue, 
+			CallFrame *uplevelVarFramePtr, 
+			CONST char *initString,
+			Tcl_Obj *lastObj, Tcl_Obj **nextObjPtr, 
+			int nrRemainingArgs) {
+  CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
+  NsfCallStackContent csc, *cscPtr = &csc;
+  CallFrame frame2, *framePtr2 = &frame2;
+  int result;
+  
+  /*
+   * The current call-frame of configure uses an obj-frame, such
+   * that setvar etc.  are able to access variables like "a" as a
+   * local variable.  However, in the init block, we do not like
+   * that behavior, since this should look like like a proc body.
+   * So we push yet another call-frame without providing the
+   * var-frame.
+   *
+   * The new frame will have the namespace of the caller to avoid
+   * the current obj-frame. Nsf_PushFrameCsc() will establish a
+   * CMETHOD frame.
+   */
+  
+  Tcl_Interp_varFramePtr(interp) = varFramePtr->callerVarPtr;
+  cscPtr->flags = 0;
+  CscInit(cscPtr, object, object->cl /*cl*/, NULL /*cmd*/,
+	  NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
+  Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
+  
+  if (paramPtr->flags & NSF_ARG_INITCMD) {
+    /* cscPtr->cmdPtr = NSFindCommand(interp, "::eval"); */
+    result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
+    
+  } else if (paramPtr->flags & NSF_ARG_ALIAS) {
+    Tcl_Obj *methodObj, **ovPtr, *ov0;
+    CONST char *methodString;
+    int oc = 0;
+    
+    /*
+     * Restore the variable frame context as found at the original call
+     * site of configure(). Note that we do not have to revert this
+     * context change when leaving this configure() context because a
+     * surrounding [uplevel] will correct the call-stack context for us ...
+     */
+    if (uplevelVarFramePtr) {
+      Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
+    }
+    
+    /*
+     * Mark the intermittent CSC frame as INACTIVE, so that, e.g.,
+     * call-stack traversals seeking active frames ignore it.
+     */
+    cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
+    
+    /*
+     * If "method=" was given, use it as method name
+     */
+    methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
+    methodString = ObjStr(methodObj);
+    
+    /*fprintf(stderr, "ALIAS %s, nrargs %d converter %p toNothing %d i %d oc %d,  pcPtr->lastObjc %d\n",
+      paramPtr->name, paramPtr->nrArgs, paramPtr->converter,
+      paramPtr->converter == ConvertToNothing,
+      i, objc,  pc.lastObjc);*/
+    
+    if (paramPtr->converter == ConvertToNothing) {
+      /*
+       * We are using the varargs interface; pass all remaining args into
+       * the called method.
+       */
+      if (newValue == paramPtr->defaultValue) {
+	/*
+	 * Use the default.
+	 */
+	if (Tcl_ListObjGetElements(interp, paramPtr->defaultValue, &oc, &ovPtr) != TCL_OK) {
+	  goto method_arg_done;
+	}
+	ov0 = *ovPtr;
+	ovPtr ++;
+      } else {
+	/*
+	 * Use actual args.
+	 */
+	ov0 = lastObj;
+	ovPtr = nextObjPtr;
+	oc = nrRemainingArgs;
+      }
+    } else {
+      /*
+       * A simple alias, receives no (when noarg was specified) or a
+       * single argument (default).
+       */
+      if (paramPtr->nrArgs == 1) {
+	oc = 1;
+	ov0 = newValue;
+      } else {
+	oc = 0;
+	ov0 = NULL;
+      }
+      ovPtr = NULL;
+    }
+    
+    /*
+     * Check, if we have an object parameter alias for the constructor.
+     * Since we require the object system for the current object to
+     * determine its object system configuration, we can't do this at
+     * parameter compile time.
+     */
+    if (initString && *initString == *methodString && strcmp(initString, methodString) == 0) {
+      result = DispatchInitMethod(interp, object, oc, &ov0, 0);
+    } else {
+      
+      /*fprintf(stderr, "call alias %s with methodObj %s.%s oc %d, nrArgs %d '%s'\n",
+	paramPtr->name, ObjectName(object), ObjStr(methodObj), oc,
+	paramPtr->nrArgs, ObjStr(newValue));*/
+      
+      Tcl_ResetResult(interp);
+      result = NsfCallMethodWithArgs(interp, (Nsf_Object*)object, methodObj,
+				     ov0, oc, ovPtr, 
+				     NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
+    }
+  } else /* must be NSF_ARG_FORWARD */ {
+    Tcl_Obj *forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */
+    Tcl_Obj **nobjv, *ov[3];
+    int nobjc;
+    
+    assert(paramPtr->flags & NSF_ARG_FORWARD);
+    
+    /*
+     * The current implementation performs for every object
+     * parameter forward the full cycle of
+     *
+     *  (a) splitting the spec,
+     *  (b) convert it to a the client data structure,
+     *  (c) invoke forward,
+     *  (d) free client data structure
+     *
+     * In the future, it should convert to the client data
+     * structure just once and free it with the disposal of the
+     * parameter. This could be achieved
+     */
+    if (forwardSpec == NULL) {
+      result = NsfPrintError(interp, "no forward spec available\n");
+      goto method_arg_done;
+    }
+    result = Tcl_ListObjGetElements(interp, forwardSpec, &nobjc, &nobjv);
+    if (result != TCL_OK) {
+      goto method_arg_done;
+    } else {
+      Tcl_Obj *methodObj = paramPtr->nameObj;
+      ForwardCmdClientData *tcd = NULL;
+      int oc = 1;
+      
+      result = ForwardProcessOptions(interp, methodObj,
+				     NULL /*withDefault*/, 0 /*withEarlybinding*/,
+				     NULL /*withMethodprefix*/, 0 /*withObjframe*/,
+				     NULL /*withOnerror*/, 0 /*withVerbose*/,
+				     nobjv[0], nobjc-1, nobjv+1, &tcd);
+      if (result != TCL_OK) {
+	if (tcd) ForwardCmdDeleteProc(tcd);
+	goto method_arg_done;
+      }
+      
+      /*fprintf(stderr, "parameter %s forward spec <%s> After Options obj %s method %s\n",
+	ObjStr(paramPtr->nameObj), ObjStr(forwardSpec),
+	ObjectName(object), ObjStr(methodObj));*/
+      
+      tcd->object = object;
+      ov[0] = methodObj;
+      if (paramPtr->nrArgs == 1) {
+	ov[oc] = newValue;
+	oc ++;
+      }
+      
+      /*
+       * Mark the intermittent CSC frame as INACTIVE, so that, e.g.,
+       * call-stack traversals seeking active frames ignore it.
+       */	
+      cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
+      
+      result = NsfForwardMethod(tcd, interp, oc, ov);
+      ForwardCmdDeleteProc(tcd);
+    }
+  }
+ method_arg_done:
+  /*
+   * Pop previously stacked frame for eval context and set the
+   * varFramePtr to the previous value.
+   */
+  Nsf_PopFrameCsc(interp, framePtr2);
+  CscListRemove(interp, cscPtr, NULL);
+  CscFinish(interp, cscPtr, result, "converter object frame");
+  Tcl_Interp_varFramePtr(interp) = varFramePtr;
+  
+  /* fprintf(stderr, "NsfOConfigureMethod_ attribute %s evaluated %s => (%d)\n",
+     ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
+  
+  if (likely(result == TCL_OK)) {
+    if (paramPtr->flags & NSF_ARG_INITCMD && RUNTIME_STATE(interp)->doKeepinitcmd) {
+      Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+    }
+  }
+
+  return result;
+}
+
+
 static int
 MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
@@ -20026,7 +20260,7 @@ NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
 /*
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
+  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -20039,6 +20273,14 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, 
   case ObjectpropertyInitializedIdx: flags = NSF_INIT_CALLED; break;
   case ObjectpropertyClassIdx: flags = NSF_IS_CLASS; break;
   case ObjectpropertyRootmetaclassIdx: flags = NSF_IS_ROOT_META_CLASS; break;
+  case ObjectpropertyVolatileIdx:
+    if (!valueObj) {
+      Tcl_SetObjResult(interp,
+		       NsfGlobalObjs[object->opt && object->opt->volatileVarName ? NSF_ONE : NSF_ZERO]);
+      return TCL_OK;
+    };
+    /* if value is provided, return the error below */
+    break;
   case ObjectpropertyRootclassIdx: flags = NSF_IS_ROOT_CLASS; break;
   case ObjectpropertySlotcontainerIdx: flags = NSF_IS_SLOT_CONTAINER; allowSet = 1; break;
   case ObjectpropertyKeepcallerselfIdx: flags = NSF_KEEP_CALLER_SELF; allowSet = 1; break;
@@ -22047,9 +22289,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * "initcmd", "alias" and "forward".
      */
     if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
-      CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-      NsfCallStackContent csc, *cscPtr = &csc;
-      CallFrame frame2, *framePtr2 = &frame2;
       int consuming = (*paramPtr->name == '-' || paramPtr->nrArgs > 0);
 
       if (consuming && newValue == NsfGlobalObjs[NSF___UNKNOWN__]) {
@@ -22061,207 +22300,18 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	/*fprintf(stderr, "%s consuming nrargs %d no value\n", paramPtr->name, paramPtr->nrArgs);*/
 	continue;
       }
-
-      /*
-       * The current call-frame of configure uses an obj-frame, such
-       * that setvar etc.  are able to access variables like "a" as a
-       * local variable.  However, in the init block, we do not like
-       * that behavior, since this should look like like a proc body.
-       * So we push yet another call-frame without providing the
-       * var-frame.
-       *
-       * The new frame will have the namespace of the caller to avoid
-       * the current obj-frame. Nsf_PushFrameCsc() will establish a
-       * CMETHOD frame.
-       */
-
-      Tcl_Interp_varFramePtr(interp) = varFramePtr->callerVarPtr;
-      cscPtr->flags = 0;
-      CscInit(cscPtr, object, object->cl /*cl*/, NULL /*cmd*/,
-	      NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
-      Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
-
-      if (paramPtr->flags & NSF_ARG_INITCMD) {
-	/* cscPtr->cmdPtr = NSFindCommand(interp, "::eval"); */
-        result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
-
-      } else if (paramPtr->flags & NSF_ARG_ALIAS) {
-        Tcl_Obj *methodObj, **ovPtr, *ov0;
-	CONST char *methodString;
-        int oc = 0;
-
-	/*
-	 * Restore the variable frame context as found at the original call
-	 * site of configure(). Note that we do not have to revert this
-	 * context change when leaving this configure() context because a
-	 * surrounding [uplevel] will correct the call-stack context for us ...
-	 */
-	if (uplevelVarFramePtr) {
-	  Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
-	}
-
-	/*
-	 * Mark the intermittent CSC frame as INACTIVE, so that, e.g.,
-	 * call-stack traversals seeking active frames ignore it.
-	 */
-	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
-	
-	/*
-	 * If "method=" was given, use it as method name
-	 */
-	methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
-	methodString = ObjStr(methodObj);
-
-	/*fprintf(stderr, "ALIAS %s, nrargs %d converter %p toNothing %d i %d oc %d,  pcPtr->lastObjc %d\n",
-		paramPtr->name, paramPtr->nrArgs, paramPtr->converter,
-		paramPtr->converter == ConvertToNothing,
-		i, objc,  pc.lastObjc);*/
-
-	if (paramPtr->converter == ConvertToNothing) {
-	  /*
-	   * We are using the varargs interface; pass all remaining args into
-	   * the called method.
-	   */
-	  if (newValue == paramPtr->defaultValue) {
-	    /*
-	     * Use the default.
-	     */
-	    if (Tcl_ListObjGetElements(interp, paramPtr->defaultValue, &oc, &ovPtr) != TCL_OK) {
-	      goto method_arg_done;
-	    }
-	    ov0 = *ovPtr;
-	    ovPtr ++;
-	  } else {
-	    /*
-	     * Use actual args.
-	     */
-	    ov0 = objv[pc.lastObjc];
-	    ovPtr = (Tcl_Obj **)&objv[pc.lastObjc + 1];
-	    oc = objc - pc.lastObjc;
-	  }
-	} else {
-	  /*
-	   * A simple alias, receives no (when noarg was specified) or a
-	   * single argument (default).
-	   */
-	  if (paramPtr->nrArgs == 1) {
-	    oc = 1;
-	    ov0 = newValue;
-	  } else {
-	    oc = 0;
-	    ov0 = NULL;
-	  }
-	  ovPtr = NULL;
-	}
-
-	/*
-	 * Check, if we have an object parameter alias for the constructor.
-	 * Since we require the object system for the current object to
-	 * determine its object system configuration, we can't do this at
-	 * parameter compile time.
-	 */
-	if (initString && *initString == *methodString && strcmp(initString, methodString) == 0) {
-	  result = DispatchInitMethod(interp, object, oc, &ov0, 0);
-	} else {
-	
-	  /*fprintf(stderr, "call alias %s with methodObj %s.%s oc %d, nrArgs %d '%s'\n",
-		  paramPtr->name, ObjectName(object), ObjStr(methodObj), oc,
-		  paramPtr->nrArgs, ObjStr(newValue));*/
-
-	  Tcl_ResetResult(interp);
-	  result = NsfCallMethodWithArgs(interp, (Nsf_Object*)object, methodObj,
-					 ov0, oc, ovPtr, 
-					 NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
-	}
-      } else /* must be NSF_ARG_FORWARD */ {
-	Tcl_Obj *forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */
-	Tcl_Obj **nobjv, *ov[3];
-	int nobjc;
-	
-	assert(paramPtr->flags & NSF_ARG_FORWARD);
-
-	/*
-	 * The current implementation performs for every object
-	 * parameter forward the full cycle of
-	 *
-	 *  (a) splitting the spec,
-	 *  (b) convert it to a the client data structure,
-	 *  (c) invoke forward,
-	 *  (d) free client data structure
-	 *
-	 * In the future, it should convert to the client data
-	 * structure just once and free it with the disposal of the
-	 * parameter. This could be achieved
-	 */
-	if (forwardSpec == NULL) {
-	  result = NsfPrintError(interp, "no forward spec available\n");
-	  goto method_arg_done;
-	}
-	result = Tcl_ListObjGetElements(interp, forwardSpec, &nobjc, &nobjv);
-        if (result != TCL_OK) {
-	  goto method_arg_done;
-	} else {
-	  Tcl_Obj *methodObj = paramPtr->nameObj;
-	  ForwardCmdClientData *tcd = NULL;
-	  int oc = 1;
-
-	  result = ForwardProcessOptions(interp, methodObj,
-					 NULL /*withDefault*/, 0 /*withEarlybinding*/,
-					 NULL /*withMethodprefix*/, 0 /*withObjframe*/,
-					 NULL /*withOnerror*/, 0 /*withVerbose*/,
-					 nobjv[0], nobjc-1, nobjv+1, &tcd);
-	  if (result != TCL_OK) {
-	    if (tcd) ForwardCmdDeleteProc(tcd);
-	    goto method_arg_done;
-	  }
-
-	  /*fprintf(stderr, "parameter %s forward spec <%s> After Options obj %s method %s\n",
-		  ObjStr(paramPtr->nameObj), ObjStr(forwardSpec),
-		  ObjectName(object), ObjStr(methodObj));*/
-
-	  tcd->object = object;
-	  ov[0] = methodObj;
-	  if (paramPtr->nrArgs == 1) {
-	    ov[oc] = newValue;
-	    oc ++;
-	  }
-
-	  /*
-	   * Mark the intermittent CSC frame as INACTIVE, so that, e.g.,
-	   * call-stack traversals seeking active frames ignore it.
-	   */	
-	  cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
-
-	  result = NsfForwardMethod(tcd, interp, oc, ov);
-	  ForwardCmdDeleteProc(tcd);
-	}
-      }
-    method_arg_done:
-      /*
-       * Pop previously stacked frame for eval context and set the
-       * varFramePtr to the previous value.
-       */
-      Nsf_PopFrameCsc(interp, framePtr2);
-      CscListRemove(interp, cscPtr, NULL);
-      CscFinish(interp, cscPtr, result, "converter object frame");
-      Tcl_Interp_varFramePtr(interp) = varFramePtr;
-
-      /* fprintf(stderr, "NsfOConfigureMethod_ attribute %s evaluated %s => (%d)\n",
-	 ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
-
+      // oooo;
+      result = ParameterMethodDispatch(interp, object, paramPtr, newValue, 
+				       uplevelVarFramePtr, initString,
+				       objv[pc.lastObjc], (Tcl_Obj **)&objv[pc.lastObjc + 1], 
+				       objc - pc.lastObjc);
       if (result != TCL_OK) {
-        Nsf_PopFrameObj(interp, framePtr);
-        goto configure_exit;
+	Nsf_PopFrameObj(interp, framePtr);
+	goto configure_exit;
       }
-
-      if (paramPtr->flags & NSF_ARG_INITCMD && RUNTIME_STATE(interp)->doKeepinitcmd) {
-	Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
-      }
-
-      /* done with parameter method handling */
       continue;
     }
-
+    
     if (newValue == NsfGlobalObjs[NSF___UNKNOWN__]) {
       /*
        * Nothing to do, we have a value setter, but no value is specified and
@@ -22378,11 +22428,15 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    * The parameter is linked to a method via 
    * "initcmd", "alias" and "forward".
    */
-  if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
+  if (found && paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
     /* TODO: maybe we can allow this in the future */
     /*fprintf(stderr, "method arg %s found, flags %.8x slot %p\n", 
       nameString, paramPtr->flags, paramPtr->slotObj);*/
-    found = 0;
+    // oooo
+    //found = 0;
+    //fprintf(stderr, "slot is %p\n", paramPtr->slotObj);
+    //found = (paramPtr->slotObj != NULL);
+    // oooo;
   }
 
   if (!found) {
@@ -22390,27 +22444,23 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   } else {
 
     /* fprintf(stderr, "arg %s found, flags %.8x\n", nameString, paramPtr->flags);*/
-    
+    /* 
+     * Check for slot invocation
+     */ 
     if (paramPtr->slotObj) {
       NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
-      /*
-       * Actually get instance variable or slot value 
-       * In case, explicit slot invocation is needed, we call it.
-       */
-      
-      if (likely(slotObject != NULL)) {
-	Tcl_Obj *ov[1];
+      Tcl_Obj *ov[1];
 
-	if (uplevelVarFramePtr) {
-	  Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
-	}
-	
-	ov[0] = paramPtr->nameObj;
-	result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_GET],
-				       object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
-      } else {
-	fprintf(stderr, "strange, no slotobj\n");
+      /*
+       * Get instance variable via slot.
+       */
+      if (uplevelVarFramePtr) {
+	Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
       }
+      ov[0] = paramPtr->nameObj;
+      result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_GET],
+				       object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
+      
       if (result != TCL_OK) {
 	/* 
 	 * The error message was set either by GetSlotObject or by ...CallMethod... 
@@ -22419,13 +22469,41 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
 	goto cget_exit;
       }
     } else {
-      int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
-      Tcl_Obj *resutObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, flags);
-      if (resutObj) {
+      /* 
+       * We do NOT have a slot
+       */
+      if (found && paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
+	/*
+	 * It is a parameter associated with a method. Invoke the method
+	 * without an argument.
+	 */
+	Tcl_Obj *methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
+
+	if (uplevelVarFramePtr) {
+	  Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
+	}
+
+	result = CallMethod(object, interp, methodObj, 2, 0, NSF_CSC_IMMEDIATE);
+	if (result != TCL_OK) {
+	  /* 
+	   * The error message was set either by GetSlotObject or by ...CallMethod... 
+	   */
+	  Nsf_PopFrameObj(interp, framePtr);
+	  goto cget_exit;
+	}
+      } else {
+	/*
+	 * Must be a parameter associated with a variable
+	 */
+	int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
+	Tcl_Obj *resutObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, flags);
+	
+	if (resutObj) {
 	  /*
 	   * The value exists 
 	   */
-	Tcl_SetObjResult(interp, resutObj);
+	  Tcl_SetObjResult(interp, resutObj);
+	}
       }
     }
   }
@@ -22844,7 +22922,6 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   callFrameContext ctx = {0, NULL, NULL};
 
   if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_OFF)) {
-    fprintf(stderr, "### can't make objects volatile during shutdown\n");
     return NsfPrintError(interp, "can't make objects volatile during shutdown");
   }
 

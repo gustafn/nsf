@@ -1277,6 +1277,13 @@ namespace eval ::nx {
       lappend options optional
     }
     if {$forObjectParameter} {
+      if {[:info lookup method assign] ni {"" "::nsf::classes::nx::RelationSlot::assign"}} {
+	# In case the "assign" method was provided on the slot, ask nsf to call it directly
+	lappend options slot=[::nsf::self] slotassign
+      } elseif {[:info lookup method get] ni {"" "::nsf::classes::nx::RelationSlot::get"}} {
+	# In case the "get" method was provided on the slot, ask nsf to call it directly
+	lappend options slot=[::nsf::self]
+      }
       if {[info exists :substdefault] && ${:substdefault}} {
 	lappend options substdefault
       }
@@ -1298,6 +1305,7 @@ namespace eval ::nx {
     } else {
       set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
       set options [:getParameterOptions -withMultiplicity true -forObjectParameter true]
+
       if {[info exists :initcmd]} {
 	lappend options initcmd
 	if {[info exists :default]} {
@@ -1306,6 +1314,7 @@ namespace eval ::nx {
 	}
 	append initcmd ${:initcmd}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initcmd]
+
       } elseif {[info exists :default]} {
 	# deactivated for now: || [string first {$} ${:default}] > -1
 	if {[string match {*\[*\]*} ${:default}]} {
@@ -1377,6 +1386,7 @@ namespace eval ::nx {
   # create methods for slot operations assign/get/add/delete
   #
   ::nsf::method::alias RelationSlot assign ::nsf::relation
+  ::nsf::method::alias RelationSlot get ::nsf::relation
 
   RelationSlot protected method delete_value {obj prop old value} {
     #
@@ -1483,6 +1493,10 @@ namespace eval ::nx {
   ::nx::ObjectParameterSlot create ::nx::Object::slot::noinit \
       -methodname ::nsf::methods::object::noinit -noarg true
   ::nx::ObjectParameterSlot create ::nx::Object::slot::volatile -noarg true
+  ::nsf::method::create ::nx::Object::slot::volatile assign {object var value} {$object volatile}
+  ::nsf::method::create ::nx::Object::slot::volatile get {object var} {
+    ::nsf::object::property $object volatile
+  }
 
   #
   # Define "class" as a ObjectParameterSlot defined as alias
@@ -1498,16 +1512,6 @@ namespace eval ::nx {
       -elementtype class \
       -multiplicity 1..n \
       -default ::nx::Object
-
-  #
-  # Define the initcmd as a positional ObjectParameterSlot
-  #
-  #    ::nx::ObjectParameterSlot create ::nx::Object::slot::__init \
-      #	-disposition alias \
-      #	-methodname "init" \
-      #	-noarg true \
-      #	-positional true \
-      #	-position 1
 
   #
   # Define the initcmd as a positional ObjectParameterSlot

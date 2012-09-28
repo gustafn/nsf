@@ -443,9 +443,9 @@ namespace eval ::xotcl {
   set cSlotContainer [::nx::slotObj ::xotcl::Class]
   set oSlotContainer [::nx::slotObj ::xotcl::Object]
   ::nx::RelationSlot create ${cSlotContainer}::superclass
-  ::nsf::method::alias      ${cSlotContainer}::superclass assign ::nsf::relation
+  #::nsf::method::alias      ${cSlotContainer}::superclass assign ::nsf::relation
   ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1
-  ::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
+  #::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
   ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
       -elementtype mixinreg -multiplicity 0..n
   ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \

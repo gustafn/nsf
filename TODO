@@ -4227,17 +4227,33 @@ nsf.c:
 - invalidation of per-object parameter cache 
   * on mixin changes and 
   * on deletion/adding of per-object slots 
-- decactivate PER_OBJECT_PARAMETER_CACHING per default 
+- activate PER_OBJECT_PARAMETER_CACHING per default 
   (flipping this parameter makes regression test more than 20 faster).
 - extended regression test
 
+nsf.c
+- added functiality for "cget" to call parameter-methods
+  (e.g. "... cget -class"). The method cget calls either
+  "/slot/ get ..." (when slot=... is provided in the parameter spec)
+  or it assumes that the method without argument returns the value
+- added "::nsf::object::property /obj/ volatile" to query 
+  whether a object is volatile or not
+- "/obj/ cget -volatile" returns now the volatial state of the object
+- factored out ParameterMethodDispatch() from OConfigureMethod()
+- extended regression test
 
 ========================================================================
 TODO:
+- finalize handling of parameter methods in cget
+  * what to do with "cget -noinit"
+  * check all provided definitions
+  * handling of extra args in parameter methods?
 - regression tests for "/obj/ info lookup parameter ...."
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)
 - handling of recreate (see regression test for class-level properties)
+- maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
+  volatile state.
 - check noconfig
 - "/obj/ configure" returns values which can't be read via "/obj/ cget"
   (but altered properly via "configure").

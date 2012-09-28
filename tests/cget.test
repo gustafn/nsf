@@ -27,6 +27,10 @@ Test case cget-simple {
   ? {p1 cget -friends} ""
 
   #
+  # a method property
+  ? {p1 cget -class} ::Person
+
+  #
   # error handling:
   # - wrong # args
   # - wrong parameter 
@@ -35,7 +39,6 @@ Test case cget-simple {
   ? {p1 cget} {wrong # of arguments: should be "cget name"}
   ? {p1 cget -foo} {cannot lookup parameter value for -foo}
   ? {p1 cget foo} {cannot lookup parameter value for foo}
-  ? {p1 cget -class} {cannot lookup parameter value for -class}
   ? {p1 cget -sex} {can't read "sex": no such variable}
 
   # 

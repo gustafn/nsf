@@ -696,13 +696,12 @@ nx::Test case info-slot-parametersyntax {
     :class property -accessor public a2
     :method "sub foo" args {;}
   }
-puts stderr ====1
+
   C new
   ? {C info parameter syntax} "?-a value? ?-b value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
-puts stderr ====2
   ? {C info parameter syntax a} "?-a value?"
 
-  ? {C info parameter definitions} "-a {-b 1} -volatile:alias,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
+  ? {C info parameter definitions} "-a {-b 1} -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -properties:alias,method=::nx::internal::addProperties -noinit:alias,method=::nsf::methods::object::noinit,noarg -mixin:mixinreg,alias,0..n -class:class,alias,method=::nsf::methods::object::class -filter:filterreg,alias,0..n __initcmd:initcmd,optional,noleadingdash"
 
   ? {C info parameter list} "-a -b -volatile -properties -noinit -mixin -class -filter __initcmd"
   ? {C info parameter names} "a b volatile properties noinit mixin class filter __initcmd"
