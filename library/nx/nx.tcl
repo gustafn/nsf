@@ -769,25 +769,25 @@ namespace eval ::nx {
     :alias "info mixin guard"    ::nsf::methods::class::info::mixinguard
     :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
-    :method "info parameter definitions" {name:optional} {
+    :method "info parameter definitions" {pattern:optional} {
       set cmd [list ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]
-      if {[info exists name]} {lappend cmd $name}
+      if {[info exists pattern]} {lappend cmd $pattern}
       return [::nsf::parameter::specs -configure [: {*}$cmd]]
     }
-    :method "info parameter list" {{name:optional ""}} {
-      set defs [:info parameter definitions {*}$name]
+    :method "info parameter list" {{pattern:optional ""}} {
+      set defs [:info parameter definitions {*}$pattern]
       set result ""
       foreach def $defs {lappend result [::nsf::parameter::get list $def]}
       return $result
     }
-    :method "info parameter names" {{name:optional ""}} {
-      set defs [:info parameter definitions {*}$name]
+    :method "info parameter names" {{pattern:optional ""}} {
+      set defs [:info parameter definitions {*}$pattern]
       set result ""
       foreach def $defs {lappend result [::nsf::parameter::get name $def]}
       return $result
     }
-    :method "info parameter syntax" {{name:optional ""}} {
-      set defs [:info parameter definitions {*}$name]
+    :method "info parameter syntax" {{pattern:optional ""}} {
+      set defs [:info parameter definitions {*}$pattern]
       set result ""
       foreach def $defs {lappend result [::nsf::parameter::get syntax $def]}
       return [join $result " "]

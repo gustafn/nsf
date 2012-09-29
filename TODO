@@ -4242,6 +4242,10 @@ nsf.c
 - factored out ParameterMethodDispatch() from OConfigureMethod()
 - extended regression test
 
+nx.tcl:
+- change parameter name in "/cls/ inif paramameter ... ?pattern?"
+  from "name" to "pattern"
+
 ========================================================================
 TODO:
 - finalize handling of parameter methods in cget
