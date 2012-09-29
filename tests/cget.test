@@ -55,7 +55,7 @@ Test case cget-simple {
   #
   # configure without arguments
   #
-  ? {p1 configure} "?-sex value? -famnam value ?-age integer? ?-friends value ...? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
+  ? {p1 configure} "?-sex value? -famnam value ?-age integer? ?-friends value ...? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
 }
 
 #
@@ -95,7 +95,7 @@ Test case cget-via-slot {
   #
   # configure without arguments
   #
-  ? {p1 configure} "?-bar1 value? ?-bar2 value? ?-volatile? ?-properties value? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
+  ? {p1 configure} "?-bar1 value? ?-bar2 value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
 
   #
   # test gettin/setting via slots
@@ -121,7 +121,33 @@ Test case cget-via-slot {
 }
 
 #
-# The third test set checks performance of "cget" and "configure".
+# The third test set checks method binding to parameter
+#
+Test case cget-parameter-methods {
+  nx::Class create C {
+    :create c1
+  }
+  
+  # : ::nsf::methods::object::info::objectparameter syntax
+  #? {C configure} "-volatile -noinit -mixin -class -filter __initcmd"
+  ? {C info lookup parameter list} \
+      "-superclass -object-mixin -mixin -object-filter -filter -volatile -noinit -class __initcmd"
+  ? {C cget -superclass} "::nx::Object"
+  ? {C cget -object-mixin} ""
+  ? {C cget -mixin} ""
+  ? {C cget -filter} ""
+  ? {C cget -volatile} 0
+  ? {C cget -noinit} ""
+  ? {C cget -class} "::nx::Class"
+
+  ? {c1 info lookup parameter list} \
+      "-volatile -noinit -mixin -class -filter __initcmd"
+
+}
+
+
+#
+# The fourth test set checks performance of "cget" and "configure".
 #
 nx::Test parameter count 10000
 Test case cget-performance {

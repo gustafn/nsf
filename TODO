@@ -4245,6 +4245,11 @@ nsf.c
 nx.tcl:
 - change parameter name in "/cls/ inif paramameter ... ?pattern?"
   from "name" to "pattern"
+- changed name "/obj|cls/ slot info definition" to 
+  "/obj|cls/ slot info definition" since result is a set
+- dropped parameter method "properties"
+- dropped "/obj/ info properties"
+  (since "properties" or "variables" are returned")
 
 ========================================================================
 TODO:
@@ -4252,6 +4257,8 @@ TODO:
   * what to do with "cget -noinit"
   * check all provided definitions
   * handling of extra args in parameter methods?
+- "/obj|cls/ info slot definition" should return a full command
+  (containing flags and property|variable)
 - regression tests for "/obj/ info lookup parameter ...."
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)
@@ -4264,7 +4271,6 @@ TODO:
 - Property reform part 3: change defaultPropertyAccessor or nx to none
 - update documentation with property reform
 
-- do we need "-properties" in nx?
 - do we need "config" as parameter property?
 
 - handling of method names in error messages from nsfAPI.h. The following

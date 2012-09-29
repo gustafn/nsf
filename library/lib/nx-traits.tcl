@@ -78,7 +78,7 @@ nsf::proc nx::trait::add {obj -per-object:switch traitName {nameMap ""}} {
       $obj public alias $newName $traitMethodHandle
       # We define property inheritance for the time being only for
       # instance properties.
-      foreach d [$traitName info slot definition] {
+      foreach d [$traitName info slot definitions] {
 	$obj property $d
       }
     }

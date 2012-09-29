@@ -703,7 +703,7 @@ namespace eval ::nx {
     :alias "info name"             ::nsf::methods::object::info::name
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
-    :method "info slot definition" {{-type:class ::nx::Slot} pattern:optional} {
+    :method "info slot definitions" {{-type:class ::nx::Slot} pattern:optional} {
       set result {}
       foreach slot [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]] {
 	lappend result [$slot getPropertyDefinition]
@@ -721,7 +721,7 @@ namespace eval ::nx {
       return [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]]
     }
     # "info properties" is a short form of "info slot definition"
-    :alias "info properties"     ::nx::Object::slot::__info::slot::definition
+    #:alias "info properties"     ::nx::Object::slot::__info::slot::definition
     :alias "info vars"           ::nsf::methods::object::info::vars
   }
 
@@ -799,7 +799,7 @@ namespace eval ::nx {
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }
-    :method "info slot definition" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
+    :method "info slot definitions" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set result {}
       foreach slot [: ::nsf::methods::class::info::slotobjects -type $type {*}[current args]] {
 	lappend result [$slot getPropertyDefinition]
@@ -814,7 +814,7 @@ namespace eval ::nx {
       return $result
     }
     # "info properties" is a short form of "info slot definition"
-    :alias "info properties"     ::nx::Class::slot::__info::slot::definition
+    #:alias "info properties"     ::nx::Class::slot::__info::slot::definition
     :alias "info subclass"       ::nsf::methods::class::info::subclass
     :alias "info superclass"     ::nsf::methods::class::info::superclass
   }
@@ -1333,7 +1333,7 @@ namespace eval ::nx {
     if {[info exists :positional]} {lappend options positional}
     if {!${:config}} {lappend options noconfig}
     if {[info exists :default]} {
-      return [list [:namedParameterSpec "" ${:name} $options] ${:default}]
+     return [list [:namedParameterSpec "" ${:name} $options] ${:default}]
     } else {
       return [list [:namedParameterSpec "" ${:name} $options]]
     }
@@ -2044,12 +2044,12 @@ namespace eval ::nx {
   # Define method "properties" for convenience to define multiple
   # properties based on a list of parameter specifications.
   ######################################################################
-
-  proc ::nx::internal::addProperties {arglist} {
-    foreach arg $arglist {:property $arg}
-  }
-  ::nx::ObjectParameterSlot create ::nx::Object::slot::properties \
-      -methodname "::nx::internal::addProperties"
+  #
+  #proc ::nx::internal::addProperties {arglist} {
+  #  foreach arg $arglist {:property $arg}
+  #}
+  #::nx::ObjectParameterSlot create ::nx::Object::slot::properties \
+  #    -methodname "::nx::internal::addProperties"
 
   ######################################################################
   # Minimal definition of a value checker that permits every value

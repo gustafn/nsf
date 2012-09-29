@@ -212,11 +212,11 @@ nx::Class create C {
 
 
 #? {X::slot info vars} __parameter
-#? {X info attributes} {{x 1} {y 2}}
+? {X info parameter definitions ?} {{-x 1} {-y 2}}
 ? {X info parameter definitions x} {{-x 1}}
 ? {X info parameter definitions y} {{-y 2}}
-? {X info properties} {{x 1} {y 2}}
-? {X info properties -closure *a*} {volatile:alias,noarg class:class,alias,method=::nsf::methods::object::class}
+#? {X info properties} {{x 1} {y 2}}
+#? {X info properties -closure *a*} {volatile:alias,noarg class:class,alias,method=::nsf::methods::object::class}
 
 # actually, we want c1 to test below the recreation of c1 in another
 # object system
