@@ -4243,19 +4243,18 @@ nsf.c
 - extended regression test
 
 nx.tcl:
-- change parameter name in "/cls/ inif paramameter ... ?pattern?"
+- change parameter name in "/cls/ info paramameter ... ?pattern?"
   from "name" to "pattern"
 - changed name "/obj|cls/ slot info definition" to 
   "/obj|cls/ slot info definition" since result is a set
 - dropped parameter method "properties"
 - dropped "/obj/ info properties"
   (since "properties" or "variables" are returned")
+- extended regression test
 
 ========================================================================
 TODO:
 - finalize handling of parameter methods in cget
-  * what to do with "cget -noinit"
-  * check all provided definitions
   * handling of extra args in parameter methods?
 - "/obj|cls/ info slot definition" should return a full command
   (containing flags and property|variable)
@@ -4657,6 +4656,7 @@ For future releases (after first alpha/beta release)
       the interpreter into a compiler to speed up argument passing. But
       maybe, this would bloat the code-size.
     - Use parameter syntax in genTclAPI
+    - better handling of "c1 cget -noinit" ?
  
   * C-Code
      * Several of the tracing options in nsf.h could be replaced by DTrace

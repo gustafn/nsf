@@ -121,15 +121,17 @@ Test case cget-via-slot {
 }
 
 #
-# The third test set checks method binding to parameter
+# The third test set checks method binding to parameter:
+# All cmds are supposed to return resonable values.
 #
 Test case cget-parameter-methods {
   nx::Class create C {
     :create c1
   }
   
-  # : ::nsf::methods::object::info::objectparameter syntax
-  #? {C configure} "-volatile -noinit -mixin -class -filter __initcmd"
+  #
+  # class-level lookup
+  #
   ? {C info lookup parameter list} \
       "-superclass -object-mixin -mixin -object-filter -filter -volatile -noinit -class __initcmd"
   ? {C cget -superclass} "::nx::Object"
@@ -140,8 +142,17 @@ Test case cget-parameter-methods {
   ? {C cget -noinit} ""
   ? {C cget -class} "::nx::Class"
 
+  #
+  # object-level lookup
+  #
   ? {c1 info lookup parameter list} \
       "-volatile -noinit -mixin -class -filter __initcmd"
+
+  ? {c1 cget -volatile} 0
+  ? {c1 cget -noinit} ""
+  ? {c1 cget -mixin} ""
+  ? {c1 cget -class} ::C
+  ? {c1 cget -filter} ""
 
 }
 
