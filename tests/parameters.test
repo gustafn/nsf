@@ -1807,7 +1807,7 @@ nx::Test case parameter-alias {
 }
 
 #
-# Test parameter alias and parameter forwarder
+# Test parameter alias and parameter forwarder with default value
 #
 nx::Test case parameter-alias-default {
 
