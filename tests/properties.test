@@ -229,10 +229,6 @@ nx::Test case class-level-incremental {
   ? {c1 info lookup method vc} "::nsf::classes::CC::vc"
   ? {c1 info lookup method vd} "::nsf::classes::CC::vd"
 
-  puts stderr ====1a
-  puts stderr [CC info method definition b]
-  puts stderr ====1b
-
   #
   # The use of "-incremental" implies an accessor, which is public
   #
