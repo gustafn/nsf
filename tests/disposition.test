@@ -10,7 +10,7 @@ package require nx::test
 nx::Test case basics {
 
   Class create C {
-    :class property [list inst "::__%&singleton"]
+    :class property {inst "::__%&singleton"}
     :method foo {x} {
       #puts stderr [current method]
       set :[current method] $x
@@ -28,9 +28,6 @@ nx::Test case basics {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
-    #:class method __objectparameter {} {
-    #  return ${:objectparams} 
-    #}
     :setObjectParams ""
 
     :public class method new args {

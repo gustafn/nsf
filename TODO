@@ -4252,10 +4252,14 @@ nx.tcl:
   (since "properties" or "variables" are returned")
 - extended regression test
 
+nsf.c:
+- factored out ParameterMethodForwardDispatch() to
+  call a parameter method defined as a forwarder
+  the smae way from "configure" and "cget"
+- extended regression test
+
 ========================================================================
 TODO:
-- finalize handling of parameter methods in cget
-  * handling of extra args in parameter methods?
 - "/obj|cls/ info slot definition" should return a full command
   (containing flags and property|variable)
 - regression tests for "/obj/ info lookup parameter ...."

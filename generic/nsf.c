@@ -12521,6 +12521,94 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
 
 /*
  *----------------------------------------------------------------------
+ * ParameterMethodForwardDispatch --
+ *
+ *    Dispatch a forwarding method provided via parameter definition. 
+ *
+ *    The current implementation performs for every object
+ *    parameter forward the full cycle of
+ *
+ *     (a) splitting the spec,
+ *     (b) convert it to a the client data structure,
+ *     (c) invoke forward,
+ *     (d) free client data structure
+ *
+ *    In the future, it should convert to the client data
+ *    structure just once and free it with the disposal of the
+ *    parameter. This could be achieved
+ *
+ * Results:
+ *    Tcl result code
+ *
+ * Side effects:
+ *    The called function might side-effect.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object, 
+			       Nsf_Param *paramPtr, Tcl_Obj *newValue,
+			       NsfCallStackContent *cscPtr) {
+
+  Tcl_Obj **nobjv, *ov[3], *methodObj, *forwardSpec;
+  ForwardCmdClientData *tcd = NULL;
+  int result, oc, nobjc;
+    
+  assert(paramPtr->flags & NSF_ARG_FORWARD);
+
+  /*
+
+   */
+  forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */
+  if (forwardSpec == NULL) {
+    return NsfPrintError(interp, "no forward spec available\n");
+  }
+
+  result = Tcl_ListObjGetElements(interp, forwardSpec, &nobjc, &nobjv);
+  if (result != TCL_OK) {
+    return result;
+  } 
+
+  methodObj = paramPtr->nameObj;
+  result = ForwardProcessOptions(interp, methodObj,
+				 NULL /*withDefault*/, 0 /*withEarlybinding*/,
+				 NULL /*withMethodprefix*/, 0 /*withObjframe*/,
+				 NULL /*withOnerror*/, 0 /*withVerbose*/,
+				 nobjv[0], nobjc-1, nobjv+1, &tcd);
+  if (result != TCL_OK) {
+    if (tcd) ForwardCmdDeleteProc(tcd);
+    return result;
+  }
+  
+  /*fprintf(stderr, "parameter %s forward spec <%s> After Options obj %s method %s\n",
+	  ObjStr(paramPtr->nameObj), ObjStr(forwardSpec),
+	  ObjectName(object), ObjStr(methodObj));*/
+  
+  tcd->object = object;
+  oc = 1;
+  ov[0] = methodObj;
+  if (paramPtr->nrArgs == 1 && newValue) {
+    ov[oc] = newValue;
+    oc ++;
+  }
+  
+  /*
+   * Mark the intermittent CSC frame as INACTIVE, so that, e.g.,
+   * call-stack traversals seeking active frames ignore it.
+   */	
+  if (cscPtr) {
+    cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
+  }
+  
+  result = NsfForwardMethod(tcd, interp, oc, ov);
+  ForwardCmdDeleteProc(tcd);
+
+  return result;
+}
+ 
+
+/*
+ *----------------------------------------------------------------------
  * ParameterMethodDispatch --
  *
  *    Dispatch a method provided via parameter definition. The function checks
@@ -12532,7 +12620,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
  *    Tcl result code
  *
  * Side effects:
- *    The called function might sideeffect.
+ *    The called function might side-effect.
  *
  *----------------------------------------------------------------------
  */
@@ -12628,7 +12716,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
     } else {
       /*
        * A simple alias, receives no (when noarg was specified) or a
-       * single argument (default).
+       * single argument (which might be the default value).
        */
       if (paramPtr->nrArgs == 1) {
 	oc = 1;
@@ -12659,68 +12747,13 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
 				     ov0, oc, ovPtr, 
 				     NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
     }
-  } else /* must be NSF_ARG_FORWARD */ {
-    Tcl_Obj *forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */
-    Tcl_Obj **nobjv, *ov[3];
-    int nobjc;
-    
+  } else {
+
+    /* must be NSF_ARG_FORWARD */
     assert(paramPtr->flags & NSF_ARG_FORWARD);
-    
-    /*
-     * The current implementation performs for every object
-     * parameter forward the full cycle of
-     *
-     *  (a) splitting the spec,
-     *  (b) convert it to a the client data structure,
-     *  (c) invoke forward,
-     *  (d) free client data structure
-     *
-     * In the future, it should convert to the client data
-     * structure just once and free it with the disposal of the
-     * parameter. This could be achieved
-     */
-    if (forwardSpec == NULL) {
-      result = NsfPrintError(interp, "no forward spec available\n");
-      goto method_arg_done;
-    }
-    result = Tcl_ListObjGetElements(interp, forwardSpec, &nobjc, &nobjv);
-    if (result != TCL_OK) {
-      goto method_arg_done;
-    } else {
-      Tcl_Obj *methodObj = paramPtr->nameObj;
-      ForwardCmdClientData *tcd = NULL;
-      int oc = 1;
-      
-      result = ForwardProcessOptions(interp, methodObj,
-				     NULL /*withDefault*/, 0 /*withEarlybinding*/,
-				     NULL /*withMethodprefix*/, 0 /*withObjframe*/,
-				     NULL /*withOnerror*/, 0 /*withVerbose*/,
-				     nobjv[0], nobjc-1, nobjv+1, &tcd);
-      if (result != TCL_OK) {
-	if (tcd) ForwardCmdDeleteProc(tcd);
-	goto method_arg_done;
-      }
-      
-      /*fprintf(stderr, "parameter %s forward spec <%s> After Options obj %s method %s\n",
-	ObjStr(paramPtr->nameObj), ObjStr(forwardSpec),
-	ObjectName(object), ObjStr(methodObj));*/
-      
-      tcd->object = object;
-      ov[0] = methodObj;
-      if (paramPtr->nrArgs == 1) {
-	ov[oc] = newValue;
-	oc ++;
-      }
-      
-      /*
-       * Mark the intermittent CSC frame as INACTIVE, so that, e.g.,
-       * call-stack traversals seeking active frames ignore it.
-       */	
-      cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
-      
-      result = NsfForwardMethod(tcd, interp, oc, ov);
-      ForwardCmdDeleteProc(tcd);
-    }
+
+    result = ParameterMethodForwardDispatch(interp, object, 
+					    paramPtr, newValue, cscPtr);
   }
  method_arg_done:
   /*
@@ -15956,7 +15989,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   *outputincr = 1;
   p = ForwardArgString;
 
-  /*fprintf(stderr, "ForwardArg: processing '%s'\n", ForwardArgString);*/
+  /* fprintf(stderr, "ForwardArg: processing '%s'\n", ForwardArgString);*/
 
   if (c == '%' && *(ForwardArgString+1) == '@') {
     char *remainder = NULL;
@@ -16041,7 +16074,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
           ObjStr(listElements[nrPosArgs]));*/
         *out = listElements[nrPosArgs];
       } else if (objc <= 1) {
-	return NsfObjWrongArgs(interp, "wrong # args", objv[0], NULL, "option");
+	return NsfObjWrongArgs(interp, "%1 requires argument;", objv[0], NULL, "arg ...");
       } else {
         /*fprintf(stderr, "copying %%1: '%s'\n", ObjStr(objv[firstPosArg]));*/
         *out = objv[firstPosArg];
@@ -16284,7 +16317,8 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
 
     ALLOC_ON_STACK(Tcl_Obj*, totalargs, OV);
     ALLOC_ON_STACK(int, totalargs, objvmap);
-    /*fprintf(stderr, "+++ forwardMethod standard case, allocated %d args\n", totalargs);*/
+    /*fprintf(stderr, "+++ forwardMethod standard case, allocated %d args, tcd->args %s\n",
+      totalargs, ObjStr(tcd->args));*/
 
     ov = &OV[1];
     if (tcd->needobjmap) {
@@ -22393,6 +22427,13 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   }
 
   /* 
+   * We do not stack a plain stack fraom NSF_CSC_TYPE_PLAIN here, as we do in
+   * NsfOConfigureMethod (but maybe we have to for full compatibility TODO:
+   * check and compar with configure stack setup ). Therefore we pass NULL as
+   * cscPtr to ParameterMethodForwardDispatch).
+   */
+
+  /* 
    * The uplevel handling is exactly the same as in NsfOConfigureMethod() and
    * is needed, when methods are called, which perform an upvar.
    */
@@ -22424,95 +22465,79 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
     }
   }
   
-  /*
-   * The parameter is linked to a method via 
-   * "initcmd", "alias" and "forward".
-   */
-  if (found && paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
-    /* TODO: maybe we can allow this in the future */
-    /*fprintf(stderr, "method arg %s found, flags %.8x slot %p\n", 
-      nameString, paramPtr->flags, paramPtr->slotObj);*/
-    // oooo
-    //found = 0;
-    //fprintf(stderr, "slot is %p\n", paramPtr->slotObj);
-    //found = (paramPtr->slotObj != NULL);
-    // oooo;
-  }
-
   if (!found) {
     result = NsfPrintError(interp, "cannot lookup parameter value for %s", nameString);
-  } else {
+    goto cget_exit;
+  }
 
-    /* fprintf(stderr, "arg %s found, flags %.8x\n", nameString, paramPtr->flags);*/
-    /* 
-     * Check for slot invocation
-     */ 
-    if (paramPtr->slotObj) {
-      NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
-      Tcl_Obj *ov[1];
+  /*fprintf(stderr, "arg %s found, flags %.8x\n", nameString, paramPtr->flags);*/
 
+  /* 
+   * Check for slot invocation
+   */ 
+  if (paramPtr->slotObj) {
+    NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
+    Tcl_Obj *ov[1];
+
+    /*
+     * Get instance variable via slot.
+     */
+    if (uplevelVarFramePtr) {
+      Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
+    }
+    ov[0] = paramPtr->nameObj;
+    result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_GET],
+				   object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
+    
+    goto cget_exit;
+  } 
+    
+  /* 
+   * We do NOT have a slot
+   */
+  if (found && paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
+    if (paramPtr->flags & NSF_ARG_ALIAS) {
       /*
-       * Get instance variable via slot.
+       * It is a parameter associated with an aliased method. Invoke the
+       * method without an argument.
        */
+      Tcl_Obj *methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
+      
       if (uplevelVarFramePtr) {
 	Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
       }
-      ov[0] = paramPtr->nameObj;
-      result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_GET],
-				       object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
       
-      if (result != TCL_OK) {
-	/* 
-	 * The error message was set either by GetSlotObject or by ...CallMethod... 
-	 */
-	Nsf_PopFrameObj(interp, framePtr);
-	goto cget_exit;
-      }
+      result = CallMethod(object, interp, methodObj, 2, 0, NSF_CSC_IMMEDIATE);
     } else {
-      /* 
-       * We do NOT have a slot
+      /*
+       * Must be NSF_ARG_FORWARD
        */
-      if (found && paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
-	/*
-	 * It is a parameter associated with a method. Invoke the method
-	 * without an argument.
-	 */
-	Tcl_Obj *methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
+      assert(paramPtr->flags & NSF_ARG_FORWARD);
 
-	if (uplevelVarFramePtr) {
-	  Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
-	}
-
-	result = CallMethod(object, interp, methodObj, 2, 0, NSF_CSC_IMMEDIATE);
-	if (result != TCL_OK) {
-	  /* 
-	   * The error message was set either by GetSlotObject or by ...CallMethod... 
-	   */
-	  Nsf_PopFrameObj(interp, framePtr);
-	  goto cget_exit;
-	}
-      } else {
-	/*
-	 * Must be a parameter associated with a variable
-	 */
-	int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
-	Tcl_Obj *resutObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, flags);
+      /* since we have no cscPtr, we provide NULL */
+      result = ParameterMethodForwardDispatch(interp, object, 
+					      paramPtr, NULL, NULL /* cscPtr */);
+    }
+  } else {
+    /*
+     * Must be a parameter associated with a variable
+     */
+    int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
+    Tcl_Obj *resultObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, flags);
 	
-	if (resutObj) {
-	  /*
-	   * The value exists 
-	   */
-	  Tcl_SetObjResult(interp, resutObj);
-	}
-      }
+    if (resultObj) {
+      /*
+       * The value exists 
+       */
+      Tcl_SetObjResult(interp, resultObj);
     }
   }
 
-  Nsf_PopFrameObj(interp, framePtr);
-
  cget_exit:
 
+  Nsf_PopFrameObj(interp, framePtr);
   ParamDefsRefCountDecr(paramDefs);
+
   return result;
 }
 
