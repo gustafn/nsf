@@ -4258,19 +4258,54 @@ nsf.c:
   the smae way from "configure" and "cget"
 - extended regression test
 
+nx.tcl:
+- property has now a boolean non-positional argument "-config"
+  /obj|cls/ property ?-accessor value? ?-config boolean? ?-incremental? ?-class value? spec ?initblock?
+  in symmetry with "-accessor" (parameter option "noconfig" is still needed
+  to flag nsf for variables that should be initialized, which are
+  not configurable
+- "/obj|cls/ info slot definitions" returns a full command
+  (containing flags and property|variable)
+- extended regression test
+
 ========================================================================
 TODO:
-- "/obj|cls/ info slot definition" should return a full command
-  (containing flags and property|variable)
+- flatten out interface asymmetry between methods and properties
+
+  methods:
+    query defined:     "/obj|cls/ info methods ?pattern?"                 -> names
+    obtain definition: "/obj|cls/ info method definition /name|handle/"   -> single definiton
+    query callable:    "/obj|cls/ info lookup method /name/"              -> handle (where is the method defined)
+    query callable:    "/obj|cls/ info lookup methods ?pattern?"          -> names (what methods can be called)
+
+  properties|variables
+    query defined:     "/obj|cls/ info slot names ?pattern?"              -> names
+    obtain definition: "/obj|cls/ info slot definitions ?pattern?"        -> list of definitions
+    query callable:    "/obj|cls/ info lookup slots -source .. ?pattern?" -> slot objects (where are parameters defined)
+
+  + more detail queries for "info method" and "info slot"
+
+ alternative: 
+ - drop term "slot" from the public vocabulary, use property instead (also for variable cases)
+ - properties|variables:
+    query defined:     "/obj|cls/ info properties ?pattern?"              -> names
+    obtain definition: "/obj|cls/ info property definition /name|slotobj/"-> single definiton
+    query callable:    "/obj|cls/ info lookup property /name/"            -> slotobj
+    query callable:    "/obj|cls/ info lookup properties ?pattern?"       -> names (what properties are available)
+  we could certainly stick with slot/slots.
+
+  pro: same logic
+  contra: needs often 2 steps: find the handle|slotobj, get the detail info from there.
+
+
+- maybe rename nonpos arg "-config" of property/variable
+  to "-configurable"? (pro: more clearly, contra: longer)
 - regression tests for "/obj/ info lookup parameter ...."
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)
 - handling of recreate (see regression test for class-level properties)
 - maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
   volatile state.
-- check noconfig
-- "/obj/ configure" returns values which can't be read via "/obj/ cget"
-  (but altered properly via "configure").
 - Property reform part 3: change defaultPropertyAccessor or nx to none
 - update documentation with property reform
 

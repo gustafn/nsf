@@ -1030,9 +1030,10 @@ namespace eval ::nx {
     } else {
       #puts stderr "*** Class for '$target $name' is $class // [$class info heritage]"
     }
-
-    #puts stderr "*** [list $class create [::nx::slotObj -container $container $target $slotname] {*}$opts $initblock]"
-    set r [$class create [::nx::slotObj -container $container $target $slotname] {*}$opts $initblock]
+    
+    set slotObj [::nx::slotObj -container $container $target $slotname]
+    #puts stderr "*** [list $class create $slotObj] {*}$opts $initblock]"
+    set r [$class create $slotObj {*}$opts $initblock]
     #puts stderr "*** returned $r"
     return $r
   }
@@ -1086,14 +1087,19 @@ namespace eval ::nx {
     ::nsf::parameter:invalidate::classcache $class
   }
 
-  ObjectParameterSlot public method namedParameterSpec {prefix name options} {
+  ObjectParameterSlot public method namedParameterSpec {-map-private:switch prefix name options} {
     #
     # Build a pos/nonpos parameter specification from name and option list
     #
-    if {[llength $options]>0} {
-      return $prefix${name}:[join $options ,]
+    if {${map-private} && [info exists :accessor] && ${:accessor} eq "private"} {
+      set pName ${:settername}
     } else {
-      return $prefix${name}
+      set pName $name
+    }
+    if {[llength $options]>0} {
+      return $prefix${pName}:[join $options ,]
+    } else {
+      return $prefix${pName}
     }
   }
 
@@ -1328,15 +1334,30 @@ namespace eval ::nx {
     return ${:parameterSpec}
   }
 
+  ObjectParameterSlot public method getPropertyDefinitionOptions {parameterSpec} {
+    if {${:config}} {
+      if {${:accessor} ne "public"} {set opts [list -accessor ${:accessor}]} {set opts ""}
+      if {!${:config}} {lappend opts -config false}
+      if {[info exists :default]} {
+	return [list ${:domain} property {*}$opts [list $parameterSpec ${:default}]]
+      }
+      set methodName property
+    } else {
+      if {${:accessor} ne "none"} {set opts [list -accessor ${:accessor}]} {set opts ""}
+      if {${:config}} {lappend opts -config true}
+      if {[info exists :default]} {
+	return [list ${:domain} variable {*}$opts $parameterSpec ${:default}]
+      }
+      set methodName variable
+    }
+    return [list ${:domain} $methodName {*}$opts $parameterSpec]
+  }
+
   ObjectParameterSlot public method getPropertyDefinition {} {
     set options [:getParameterOptions -withMultiplicity true]
     if {[info exists :positional]} {lappend options positional}
-    if {!${:config}} {lappend options noconfig}
-    if {[info exists :default]} {
-     return [list [:namedParameterSpec "" ${:name} $options] ${:default}]
-    } else {
-      return [list [:namedParameterSpec "" ${:name} $options]]
-    }
+    #if {!${:config}} {lappend options noconfig}
+    return [:getPropertyDefinitionOptions [:namedParameterSpec -map-private "" ${:name} $options]]
   }
 
   ######################################################################
@@ -1714,6 +1735,7 @@ namespace eval ::nx {
 	  $handle call-private true
       set :config 0
     } elseif {${:accessor} ne "public"} {
+      :destroy
       error "accessor value '${:accessor}' invalid; might be one of public|protected|private or none"
     }
     return 1
@@ -1871,7 +1893,7 @@ namespace eval ::nx {
      {-accessor "none"}
      {-incremental:switch}
      {-class ""}
-     {-config:switch}
+     {-config:boolean false}
      {-initblock ""}
      {-nocomplain:switch}
      spec:parameter
@@ -1960,6 +1982,7 @@ namespace eval ::nx {
 
   Object method property {
     {-accessor ""}
+    {-config:boolean true}
     {-incremental:switch}
     {-class ""}
     {-nocomplain:switch}
@@ -1977,7 +2000,7 @@ namespace eval ::nx {
 	       -incremental=$incremental \
 	       -class $class \
 	       -initblock $initblock \
-	       -config=true \
+	       -config $config \
 	       -nocomplain=$nocomplain \
 	       {*}$spec]
     return $r
@@ -1987,7 +2010,7 @@ namespace eval ::nx {
     {-accessor "none"}
     {-incremental:switch}
     {-class ""}
-    {-config:switch}
+    {-config:boolean false}
     {-initblock ""}
     spec:parameter
     defaultValue:optional
@@ -2011,6 +2034,7 @@ namespace eval ::nx {
 
   nx::Class method property {
     {-accessor ""}
+    {-config:boolean true}
     {-incremental:switch}
     {-class ""}
     spec:parameter
@@ -2025,7 +2049,7 @@ namespace eval ::nx {
 	       -accessor $accessor \
 	       -incremental=$incremental \
 	       -class $class \
-	       -config=true \
+	       -config $config \
 	       -initblock $initblock \
 	       {*}$spec]
     return $r

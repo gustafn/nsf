@@ -30,6 +30,7 @@ nx::Test case class-level {
     :variable -accessor protected vc vc1
     :variable -accessor private vd vd1
     :variable -accessor none ve ve1
+    :property -accessor none -config false {vf vf1}
     
     :public method call-local {v} {: -local $v}
     
@@ -40,6 +41,8 @@ nx::Test case class-level {
   # just the public properties are accessible via the configure interface
   #
   ? {c1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+
+  ? {lsort [C info slot definitions]} {{::C property -accessor none {a a1}} {::C property -accessor none {e e1}} {::C property {b b1}} {::C variable -accessor private d d1} {::C variable -accessor private vd vd1} {::C variable -accessor protected c c1} {::C variable -accessor protected vc vc1} {::C variable -accessor public vb vb1} {::C variable va va1} {::C variable ve ve1} {::C variable vf vf1}}
   
   ? {c1 cget -a} a1
   ? {c1 cget -b} b1
@@ -49,23 +52,29 @@ nx::Test case class-level {
   ? {c1 cget -vb} {cannot lookup parameter value for -vb}
   ? {c1 cget -vc} {cannot lookup parameter value for -vc}
   ? {c1 cget -vd} {cannot lookup parameter value for -vd}
+  ? {c1 cget -ve} {cannot lookup parameter value for -ve}
+  ? {c1 cget -vf} {cannot lookup parameter value for -vf}
 
   #
-  # The use of "-incremental" implies an accessor
+  # No incremental used, so "a" and "e" have no slots
   #
   
   ? {c1 info lookup method a} ""  
   ? {c1 info lookup method b} "::nsf::classes::C::b"
   ? {c1 info lookup method c} "::nsf::classes::C::c"
   ? {c1 info lookup method d} "::nsf::classes::C::d"
+  ? {c1 info lookup method e} ""  
+  ? {c1 info lookup method f} ""  
 
   ? {c1 info lookup method va} "" 
   ? {c1 info lookup method vb} "::nsf::classes::C::vb"
   ? {c1 info lookup method vc} "::nsf::classes::C::vc"
   ? {c1 info lookup method vd} "::nsf::classes::C::vd"
+  ? {c1 info lookup method ve} "" 
+  ? {c1 info lookup method vf} "" 
 
   #
-  # The use of "-incremental" implies an accessor, which is public
+  # Check protection of accessors
   #
   
   ? {nsf::method::property C b call-protected} 0
@@ -94,6 +103,8 @@ nx::Test case class-level {
   ? {c1 eval "info exists :vb"} 1
   ? {c1 eval "info exists :vc"} 1
   ? {c1 eval "info exists :vd"} 0
+  ? {c1 eval "info exists :ve"} 1
+  ? {c1 eval "info exists :vf"} 1
 
   #
   # can we call the accessor directly or via "eval"
@@ -126,11 +137,12 @@ nx::Test case class-level {
   ? {c1 call-local d} d1
   ? {c1 call-local vd} vd1
 
-  ? {lsort [c1 info vars]} "__private a b c e va vb vc ve"
+  ? {lsort [c1 info vars]} "__private a b c e va vb vc ve vf"
   ? {c1 eval "array get :__private"} "::C,vd vd1 ::C,d d1"
 
   #
-  # check incremental operations for properties
+  # check incremental operations for properties (should fail in all
+  # cases)
   #
 
   ? {c1 b add x} {wrong # args should be "::c1 b ?value?"}
@@ -141,7 +153,8 @@ nx::Test case class-level {
   ? {c1 e add x} {::c1: unable to dispatch method 'e'}
 
   #
-  # check incremental operations for variables
+  # check incremental operations for variables (should fail in all
+  # cases)
   #
 
   ? {c1 va add x} {::c1: unable to dispatch method 'va'}
@@ -154,7 +167,7 @@ nx::Test case class-level {
 
 
   #
-  # The accessor should be a forwarder due to incremental
+  # The accessor should be a setter due to incremental
   #
 
   ? {C info method definition b} {::C public setter b}
@@ -166,12 +179,10 @@ nx::Test case class-level {
   ? {C property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
 
   #
-  # The accessor should be still a forwarder (or maybe non-existent)
+  # The accessor is deleted due to the error
   #
 
-  #? {CC info method definition b} {::CC public forward b ::CC::slot::b {%1 {get assign}} %self b}
-  # TODO: ... but not a setter
-  ? {C info method definition b} {::C public setter b}
+  ? {C info method definition b} {}
 }
 
 
@@ -335,15 +346,12 @@ nx::Test case class-level-incremental {
   #
   # check error message
   #
-  ? {CC property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
+  ? {CC property -accessor proceted -incremental {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
 
   #
-  # The accessor should be still a forwarder (or maybe non-existent)
+  # The accessor is deleted due to the error
   #
-
-  #? {CC info method definition b} {::CC public forward b ::CC::slot::b {%1 {get assign}} %self b}
-  # TODO: ... but not a setter
-  ? {CC info method definition b} {::CC public setter b}
+  ? {CC info method definition b} {}
 
 
 }
@@ -644,12 +652,10 @@ nx::Test case object-level-incremental {
   ? {o1 property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
 
   #
-  # The accessor should be still a forwarder (or maybe non-existent)
+  # The accessor is deleted due to the error
   #
 
-  #? {CC info method definition b} {::CC public forward b ::CC::slot::b {%1 {get assign}} %self b}
-  # TODO: ... but not a setter
-  ? {o1 info method definition b} {::o1 public setter b}
+  ? {o1 info method definition b} {}
 
 }
 
