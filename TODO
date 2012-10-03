@@ -4268,6 +4268,10 @@ nx.tcl:
   (containing flags and property|variable)
 - extended regression test
 
+nsf.c:
+- handling of method names in error messages from nsfAPI.h. Make sure
+  that error message is generated with the actual method name.
+
 ========================================================================
 TODO:
 - flatten out interface asymmetry between methods and properties
@@ -4310,11 +4314,6 @@ TODO:
 - update documentation with property reform
 
 - do we need "config" as parameter property?
-
-- handling of method names in error messages from nsfAPI.h. The following
-  ? {o __alloc x} {method __alloc not dispatched on valid class}
-  should be
-  ? {o __alloc x} {method alloc not dispatched on valid class}
 
 - document "private property"
 

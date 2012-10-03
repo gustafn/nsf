@@ -16283,7 +16283,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   int result, inputArg = 1;
 
   if (unlikely(!tcd || !tcd->object)) {
-    return NsfDispatchClientDataError(interp, tcd, "object", "forwarder");
+    return NsfDispatchClientDataError(interp, tcd, "object", objc > 0 ? ObjStr(objv[0]) : "forwarder");
   }
 
   /*

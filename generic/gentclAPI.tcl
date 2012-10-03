@@ -137,14 +137,14 @@ proc gencall {methodName fn parameterDefinitions clientData
       set if [list "NsfClass *cl"]
       append intro \
           "  NsfClass *cl =  NsfObjectToClass(clientData);" \n \
-          "  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, \"class\", \"$methodName\");"
+          "  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, \"class\", ObjStr(objv\[0\]));"
     }
     object {
       set a  [list obj]
       set if [list "NsfObject *obj"]
       append intro \
           "  NsfObject *obj =  (NsfObject *)clientData;" \n \
-          "  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, \"object\", \"$methodName\");"
+          "  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, \"object\",  ObjStr(objv\[0\]));"
     }
     ""    {
       append intro "  (void)clientData;\n"
