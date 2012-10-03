@@ -137,6 +137,7 @@ proc gencall {methodName fn parameterDefinitions clientData
       set if [list "NsfClass *cl"]
       append intro \
           "  NsfClass *cl =  NsfObjectToClass(clientData);" \n \
+          "  assert(objc > 0);" \n \
           "  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, \"class\", ObjStr(objv\[0\]));"
     }
     object {
@@ -144,6 +145,7 @@ proc gencall {methodName fn parameterDefinitions clientData
       set if [list "NsfObject *obj"]
       append intro \
           "  NsfObject *obj =  (NsfObject *)clientData;" \n \
+          "  assert(objc > 0);" \n \
           "  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, \"object\",  ObjStr(objv\[0\]));"
     }
     ""    {
