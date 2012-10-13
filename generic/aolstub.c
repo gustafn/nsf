@@ -36,7 +36,7 @@
 #include "nsf.h"
 #include <ns.h>
 
-int Ns_ModuleVersion = 1;
+NS_EXPORT int Ns_ModuleVersion = 1;
 
 #if NS_MAJOR_VERSION>=4
 # define AOL4
