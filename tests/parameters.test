@@ -2720,3 +2720,25 @@ nx::Test case slot-container-name-interaction {
   ? {t2 list} {::t2 list 3}
   ? {t2 list this should call unknown} "unknown"
 }
+
+nx::Test case object-level-defaults {
+  #
+  # In the scenario below, setCheckedInstVar is executed and performs
+  # an ::nsf::is value check on the default value. However, given the
+  # custom assign method, the parameter option slotassign is passed on
+  # to ::nsf::is which (currently) does not accept it:
+  #
+  # 'invalid value constraints
+  # "slot=::objekt::per-object-slot::a,slotassign"'
+  #
+  nx::Object create objekt
+  ? {objekt eval {info exists :a}} 0
+  ? {catch {
+    objekt variable -accessor public -initblock {
+      :public method assign args {
+	next
+      }
+    } a 1}} 0
+  ? {objekt eval {info exists :a}} 1
+  ? {objekt a} 1
+}

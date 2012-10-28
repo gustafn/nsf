@@ -1621,6 +1621,20 @@ namespace eval ::nx {
       error "object $object has already an instance variable named '${:name}'"
     }
     set options [:getParameterOptions -withMultiplicity true]
+    #
+    # TODO: How to handle options selection for ::nsf::is?
+    #
+    set options [lsearch -all -inline -not -regexp $options [join {
+	slotassign
+	slotinitialize
+	positional
+	convert
+	substdefault
+	noconfig
+	initcmd
+	required
+    } |]]
+		 
     if {[llength $options]} {
       ::nsf::is -complain [join $options ,] $value
     }
