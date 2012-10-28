@@ -2736,9 +2736,11 @@ nx::Test case object-level-defaults {
   ? {catch {
     objekt variable -accessor public -initblock {
       :public method assign args {
+	incr :assignCalled
 	next
       }
     } a 1}} 0
   ? {objekt eval {info exists :a}} 1
+  ? {objekt eval {info exists :assignCalled}} 0; # !!! should be 1
   ? {objekt a} 1
 }
