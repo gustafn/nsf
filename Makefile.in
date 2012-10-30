@@ -246,7 +246,7 @@ EXAMPLE_SCRIPTS = \
 
 %.html : %.tcl
 	$(TCLSH) $(src_app_dir_native)/utils/source-doc-beautifier.tcl $<
-	asciidoc $*.txt
+	PATH=$(src_app_dir_native)/utils:$(PATH) asciidoc -f $(src_app_dir_native)/utils/asciidoc.conf $*.txt
 
 #========================================================================
 # TEA TARGETS.  Please note that the "libraries:" target refers to platform

@@ -1,0 +1,5 @@
+#!/usr/bin/env tclsh
+
+package req nx::pp
+lappend argv [read stdin]
+puts stdout [nx::pp render {*}$argv]
