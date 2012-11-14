@@ -190,7 +190,7 @@ namespace eval ::nx::zip {
 	close $fdata
 	set mtime [file mtime $in]
       } else {
-	set data $in
+	set data [encoding convertto utf-8 $in]
 	set mtime [clock seconds]
       }
       
@@ -327,13 +327,13 @@ namespace eval ::nx::zip {
   }
 }
 
-if {0} {
+if {1} {
   set z [::nx::zip::Archive new]
-  $z addFile COMPILE 
-  $z addFile COMPILE.win 
+  $z addFile README.aol 
+  $z addFile COPYRIGHT
   $z addFile nsfUtil.o 
   $z addFile doc/nx.css
-  $z addString "This is a file\nfrom a string\n"  README
+  $z addString "This is a file\nthat может be from a string\n"  README
   $z writeToZipFile /tmp/test.zip
   $z destroy
 }
