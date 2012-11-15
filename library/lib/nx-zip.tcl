@@ -327,7 +327,7 @@ namespace eval ::nx::zip {
   }
 }
 
-if {1} {
+if {0} {
   set z [::nx::zip::Archive new]
   $z addFile README.aol 
   $z addFile COPYRIGHT
