@@ -722,7 +722,7 @@ namespace eval ::nx::serializer {
       set intro [subst {
 	package require nx
 	::nx::configure defaultMethodCallProtection [::nx::configure defaultMethodCallProtection]
-	::nx::configure defaultPropertyCallProtection [::nx::configure defaultPropertyCallProtection]
+	::nx::configure defaultAccessor [::nx::configure defaultAccessor]
       }]
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::nx::Object"} {
         append intro "\n" "namespace import -force ::nx::*"

@@ -296,7 +296,7 @@ set ::nxdoc::include(::nx::CopyHandler) 1
 set ::nxdoc::include(::nsf::classes::nx::Object::copy) 1
 set ::nxdoc::include(::nsf::classes::nx::Object::move) 1
 set ::nxdoc::include(::nx::configure::defaultMethodCallProtection) 0
-set ::nxdoc::include(::nx::configure::defaultPropertyCallProtection) 0
+set ::nxdoc::include(::nx::configure::defaultAccessor) 1
 set ::nxdoc::include(::nx::configure) 1
 set ::nxdoc::include(::nx::var::exists) 1
 set ::nxdoc::include(::nx::var::import) 1
