@@ -200,10 +200,10 @@ namespace eval ::nx::zip {
       binary scan \x04\x03\x4B\x50 I LFH_SIG
       :writeLong $LFH_SIG
 
-      set datacompressed [string range [::zip -mode compress $data] 2 end-4]
+      set datacompressed [string range [::zip -mode compress -- $data] 2 end-4]
 
       set (dosTime) [:toDosTime $mtime]
-      set (crc)   [::crc-zlib $data]
+      set (crc)   [::crc-zlib -- $data]
       set (csize) [string length $datacompressed]
       set (size)  [string length $data]
       set (fileName) [encoding convertto utf-8 $fnOut]
@@ -334,6 +334,7 @@ if {0} {
   $z addFile nsfUtil.o 
   $z addFile doc/nx.css
   $z addString "This is a file\nthat может be from a string\n"  README
+  $z addString "-Avec 3,2% des parts de marché, la France est le sixième plus grand pays fournisseur de l’Autriche. " franz.txt
   $z writeToZipFile /tmp/test.zip
   $z destroy
 }
