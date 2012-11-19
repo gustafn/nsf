@@ -67,7 +67,7 @@ namespace eval ::nx::zip {
     #
     :public method ns_returnZipFile {zipFileName} {
       ns_write "HTTP/1.0 200 OK\r\nContent-type: application/zip\r\n"
-      ns_write "Content-Disposition: attachment;filename=$zipFileName\r\n"
+      ns_write "Content-Disposition: attachment;filename=\"$zipFileName\"\r\n"
       ns_write "\r\n"
       set channel [ns_conn channel]
       fconfigure $channel -translation binary
