@@ -25163,7 +25163,7 @@ ExitHandler(ClientData clientData) {
 #if defined(TCL_MEM_DEBUG)
   TclDumpMemoryInfo((ClientData) stderr, 0);
   Tcl_DumpActiveMemory("./nsfActiveMem");
-  /* Tcl_GlobalEval(interp, "puts {checkmem to checkmemFile};
+  /* Tcl_Eval(interp, "puts {checkmem to checkmemFile};
      checkmem checkmemFile"); */
 #endif
 
@@ -25464,14 +25464,14 @@ Nsf_Init(Tcl_Interp *interp) {
     /*
      * The file "predefined.h" contains some methods and library procs
      * implemented in Tcl - they could go in a nsf.tcl file, but
-     * they're embedded here with Tcl_GlobalEval to avoid the need to
+     * they're embedded here with Tcl_Eval to avoid the need to
      * carry around a separate file at runtime.
      */
 
 #include "predefined.h"
 
     /* fprintf(stderr, "predefined=<<%s>>\n", cmd);*/
-    if (Tcl_GlobalEval(interp, cmd) != TCL_OK) {
+    if (Tcl_Eval(interp, cmd) != TCL_OK) {
       static char cmd[] =
         "puts stderr \"Error in predefined code\n\
 	 $::errorInfo\"";
