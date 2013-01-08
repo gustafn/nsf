@@ -12634,7 +12634,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
   NsfCallStackContent csc, *cscPtr = &csc;
   CallFrame frame2, *framePtr2 = &frame2;
-  int result;
+  int result = TCL_OK;
   
   /*
    * The current call-frame of configure uses an obj-frame, such
@@ -20937,7 +20937,7 @@ cmd parameter::get NsfParameterGetCmd {
 static int 
 NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec) {
   NsfParsedParam parsedParam;
-  Tcl_Obj *paramsObj = Tcl_NewListObj(1, &parameterspec), *listObj;
+  Tcl_Obj *paramsObj = Tcl_NewListObj(1, &parameterspec), *listObj = NULL;
   Nsf_Param *paramsPtr;
   int result;
   
