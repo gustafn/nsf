@@ -150,14 +150,14 @@ NsfMethodObjSet(
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = objectType;
 #if defined(METHOD_OBJECT_TRACE)
-    fprintf(stderr, "alloc %p methodContext %p methodEpoch %d type <%s> %s\n",
+    fprintf(stderr, "alloc %p methodContext %p methodEpoch %d type <%s> %s refCount %d\n",
 	    objPtr, mcPtr, methodEpoch, objectType->name, ObjStr(objPtr), objPtr->refCount);
 #endif
   } else {
     mcPtr = (NsfMethodContext *)objPtr->internalRep.twoPtrValue.ptr1;
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "... NsfMethodObjSet %p reuses interal rep, serial (%d/%d) refCount %d\n",
-	    objPtr, mcPtr->methodEpoch, methodEpoch);
+	    objPtr, mcPtr->methodEpoch, methodEpoch, objPtr->refCount);
 #endif
   }
 

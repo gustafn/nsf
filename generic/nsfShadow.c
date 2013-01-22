@@ -266,7 +266,6 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
   if (result == TCL_OK && objc == 2) {
     int level, topLevel, frameFlags;
-    CONST char *frameType;
     CmdFrame *framePtr = Tcl_Interp_cmdFramePtr(interp);
     CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
     Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
@@ -293,6 +292,7 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = 
         ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
+      CONST char *frameType;
       Tcl_Obj *listObj, **ov;
       int oc, i;
 

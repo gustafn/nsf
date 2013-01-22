@@ -50,12 +50,14 @@ static NsfMutex pointerMutex = 0;
  */
 int
 Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr) {
-  Tcl_HashEntry *hPtr;
-  int isNew, *counterPtr;
-  Tcl_DString ds, *dsPtr = &ds;
+  int *counterPtr;
 
   counterPtr = Nsf_PointerTypeLookup(interp, typeName);
   if (counterPtr) {
+    Tcl_DString ds, *dsPtr = &ds;
+    Tcl_HashEntry *hPtr;
+    int isNew;
+
     Tcl_DStringInit(dsPtr);
     Tcl_DStringAppend(dsPtr, typeName, -1);
     Tcl_DStringAppend(dsPtr, ":%d", 3);
@@ -92,11 +94,11 @@ Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *val
  */
 static void *
 Nsf_PointerGet(char *key, CONST char *prefix) {
-  Tcl_HashEntry *hPtr;
   void *valuePtr = NULL;
 
   /* make sure to return the right type of hash entry */
   if (strncmp(prefix, key, strlen(prefix)) == 0) {
+    Tcl_HashEntry *hPtr;
 
     NsfMutexLock(&pointerMutex);
     hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL);

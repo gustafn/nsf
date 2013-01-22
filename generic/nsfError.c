@@ -87,8 +87,8 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc) {
  */
 extern void
 NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
-  int i;
   if (objc > 0) {
+    int i;
     Tcl_DStringAppendElement(dsPtr, NsfMethodName(objv[0]));
     for (i = 1; i < objc; i++) {
       Tcl_DStringAppendElement(dsPtr, ObjStr(objv[i]));
