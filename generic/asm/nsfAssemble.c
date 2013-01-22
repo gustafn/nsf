@@ -338,12 +338,12 @@ NsfAsmProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   //fprintf(stderr, "NsfAsmProcStub %s is called, tcd %p object %p\n", ObjStr(objv[0]), cd, cd->object);
 
   if (likely(cd->paramDefs && cd->paramDefs->paramsPtr)) {
-    ParseContext *pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
+    ParseContext *pcPtr;
     ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 
     fprintf(stderr, "not implemented yet\n");
-    pcPtr = (ParseContext *)tov; // dummy operation to keep compiler quiet
 #if 0
+    pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
     /*
      * We have to substitute the first element of objv with the name
      * of the function to be called. Since objv is immutable, we have
@@ -404,7 +404,6 @@ NsfAsmProcAddArgs(Tcl_Interp *interp, Tcl_Obj *argumentsObj,
   Tcl_Obj **argv;
   AsmCompiledProc *asmProc;
   AsmProcClientData *cd;
-  Tcl_Command cmd;
   CONST char *procName = ObjStr(nameObj);
 
   if (unlikely(Tcl_ListObjGetElements(interp, argumentsObj, &argc, &argv) != TCL_OK)) {
@@ -422,8 +421,8 @@ NsfAsmProcAddArgs(Tcl_Interp *interp, Tcl_Obj *argumentsObj,
   cd->paramDefs = NULL;
   cd->with_ad = with_ad;
 
-  cmd = Tcl_CreateObjCommand(interp, procName, NsfAsmProc,
-			     cd, NsfAsmProcDeleteProc);
+  Tcl_CreateObjCommand(interp, procName, NsfAsmProc,
+		       cd, NsfAsmProcDeleteProc);
   return TCL_OK;
 }
 

@@ -1303,7 +1303,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
 
 static int
 NsfCallObjectUnknownHandler(Tcl_Interp *interp, Tcl_Obj *nameObj) {
-  int result = 0;
+  int result;
   Tcl_Obj *ov[3];
 
   /*fprintf(stderr, "try ::nsf::object::unknown for '%s'\n", ObjStr(nameObj));*/
@@ -5142,7 +5142,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       }
     }
     if (format) {
-      Tcl_Obj *savedResultObj = NULL;
+      Tcl_Obj *savedResultObj;
 
       ALLOC_ON_STACK(Tcl_Obj*, 3, ov);
       savedResultObj = Tcl_GetObjResult(interp);
@@ -5791,9 +5791,8 @@ AssertionFindProcs(NsfAssertionStore *aStore, CONST char *name) {
 
 static void
 AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name) {
-  Tcl_HashEntry *hPtr;
   if (aStore) {
-    hPtr = Tcl_CreateHashEntry(&aStore->procs, name, NULL);
+    Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(&aStore->procs, name, NULL);
     if (hPtr) {
       NsfProcAssertion *procAss =
         (NsfProcAssertion *) Tcl_GetHashValue(hPtr);
@@ -5832,10 +5831,10 @@ AssertionCreateStore() {
 
 static void
 AssertionRemoveStore(NsfAssertionStore *aStore) {
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
-
   if (aStore) {
+    Tcl_HashSearch hSrch;
+    Tcl_HashEntry *hPtr;
+
     for (hPtr = Tcl_FirstHashEntry(&aStore->procs, &hSrch); hPtr;
          hPtr = Tcl_FirstHashEntry(&aStore->procs, &hSrch)) {
       /*
@@ -5970,7 +5969,6 @@ AssertionCheckInvars(Tcl_Interp *interp, NsfObject *object,
 static int
 AssertionCheck(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
                CONST char *method, int checkOption) {
-  NsfProcAssertion *procs;
   int result = TCL_OK;
   NsfAssertionStore *aStore;
 
@@ -5982,7 +5980,7 @@ AssertionCheck(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
   assert(object->opt);
 
   if (checkOption & object->opt->checkoptions) {
-    procs = AssertionFindProcs(aStore, method);
+    NsfProcAssertion *procs = AssertionFindProcs(aStore, method);
     if (procs) {
       switch (checkOption) {
       case CHECK_PRE:
@@ -14299,7 +14297,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 			    object, cl, methodName, frameType, 0);
 #endif
   } else if (result == TCL_OK) {
-    NsfCallStackContent *topCscPtr = NULL;
+    NsfCallStackContent *topCscPtr;
     int isLeafNext;
 
     /*
@@ -24080,7 +24078,7 @@ objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
 static int
 NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
                                         int withIntrinsicOnly, CONST char *pattern) {
-  NsfClasses *precedenceList = NULL, *pl;
+  NsfClasses *precedenceList, *pl;
   Tcl_Obj *resultObj = Tcl_NewObj();
 
   precedenceList = ComputePrecedenceList(interp, object, pattern, !withIntrinsicOnly, 1);
