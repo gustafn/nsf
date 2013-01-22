@@ -12634,7 +12634,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
   NsfCallStackContent csc, *cscPtr = &csc;
   CallFrame frame2, *framePtr2 = &frame2;
-  int result;
+  int result = TCL_OK;
   
   /*
    * The current call-frame of configure uses an obj-frame, such
@@ -20937,7 +20937,7 @@ cmd parameter::get NsfParameterGetCmd {
 static int 
 NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec) {
   NsfParsedParam parsedParam;
-  Tcl_Obj *paramsObj = Tcl_NewListObj(1, &parameterspec), *listObj;
+  Tcl_Obj *paramsObj = Tcl_NewListObj(1, &parameterspec), *listObj = NULL;
   Nsf_Param *paramsPtr;
   int result;
   
@@ -25163,7 +25163,7 @@ ExitHandler(ClientData clientData) {
 #if defined(TCL_MEM_DEBUG)
   TclDumpMemoryInfo((ClientData) stderr, 0);
   Tcl_DumpActiveMemory("./nsfActiveMem");
-  /* Tcl_GlobalEval(interp, "puts {checkmem to checkmemFile};
+  /* Tcl_Eval(interp, "puts {checkmem to checkmemFile};
      checkmem checkmemFile"); */
 #endif
 
@@ -25464,14 +25464,14 @@ Nsf_Init(Tcl_Interp *interp) {
     /*
      * The file "predefined.h" contains some methods and library procs
      * implemented in Tcl - they could go in a nsf.tcl file, but
-     * they're embedded here with Tcl_GlobalEval to avoid the need to
+     * they're embedded here with Tcl_Eval to avoid the need to
      * carry around a separate file at runtime.
      */
 
 #include "predefined.h"
 
     /* fprintf(stderr, "predefined=<<%s>>\n", cmd);*/
-    if (Tcl_GlobalEval(interp, cmd) != TCL_OK) {
+    if (Tcl_Eval(interp, cmd) != TCL_OK) {
       static char cmd[] =
         "puts stderr \"Error in predefined code\n\
 	 $::errorInfo\"";

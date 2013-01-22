@@ -158,14 +158,13 @@ namespace eval ::xotcl::comm::connection {
     Connection instproc read {} {
       # my showCall
       my instvar socket
+      # Prior to the fix for Tcl bug #3401422, there was a regression
+      # in Tcl 8.6 beta versions, causing a previously non-blocking
+      # socket created using [socket -async] to return to a blocking
+      # state. This required a manual overwrite (see below). Starting
+      # with the 8.6 release candidates, this is obsolete.
       #
-      # Make sure that the platform file descriptor underneath Tcl's
-      # channel abstraction (e.g., the unix socket) is, in fact, set to
-      # its non-blocking mode. Currently, there is a regression in Tcl
-      # 8.6b2 for channels created using [socket -async]. See Tcl bug
-      # tracker, artifact #3401422.
-      #
-      ::fconfigure $socket -blocking 0
+      # ::fconfigure $socket -blocking 0
       if {[catch {set result [::read $socket [::fconfigure $socket -buffersize]]} msg]} {
 	    my set error $msg 
 	    return ""
