@@ -1,10 +1,15 @@
 #
 # == Rosetta Example: Abstract type 
-# For details see http://rosettacode.org/wiki/Abstract_type
+#
+# Define a class without instances and without implemented methods.
+# For detailed description of this example 
+# see http://rosettacode.org/wiki/Abstract_type
 #
 package req nx
 package req nx::test
 
+#
+# Define a class AbstractQueue
 nx::Class create AbstractQueue {
   
   :public method enqueue {item} {error "not implemented"}
@@ -16,7 +21,8 @@ nx::Class create AbstractQueue {
 }
 
 #
-# Create a concrete queue:
+# Define a concrete queue (named ListQueue) based 
+# on the Abstract Queue
 nx::Class create ListQueue -superclass AbstractQueue {
   :variable list {}
   :public method enqueue {item} {
