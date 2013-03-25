@@ -147,10 +147,10 @@
 
 /*
   The NsfConfigEnabled() macro allows for querying whether a
-  configuration macro (see above) is actually defined (and
-  whether it expands to 1). This macro can used in CPP expressions
-  preprocessing time (e.g., "#if NsfConfigEnabled(...)") as well as in
-  C expressions (e.g., "if(NsfConfigEnabled(...))")
+  configuration macro (see above) is actually defined (and whether it
+  expands to 1). This macro can be used both in CPP expressions (e.g.,
+  "#if NsfConfigEnabled(...)") and in C expressions (e.g.,
+  "if(NsfConfigEnabled(...))")
 
   Adapted from https://plus.google.com/+LinusTorvalds/posts/9gntjh57dXt
 */
