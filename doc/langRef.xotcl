@@ -572,12 +572,14 @@ package require XOTcl
 
       <@li><@TT>objName info invar</@TT>: Returns object invariants.
 
-      <@li><@TT>objName info methods</@TT>: Returns the list of all methods
+      <@li><@TT>objName info methods ?-nocmds? ?-nomixins? ?-incontext? ?pattern?</@TT>: Returns the list of all methods
       currently reachable for objName. Includes procs, instprocs, cmds, 
       instcommands on object, class hierarchy and mixins.
       Modifier <@TT>-noprocs</@TT> only returns instcommands, 
       <@TT>-nocmds</@TT> only returns procs. 
-      Modifier <@TT>-nomixins</@TT> excludes search on mixins.
+      Modifier <@TT>-nomixins</@TT> excludes search on mixins. 
+      When the modifier <@TT>-incontext</@TT> is used, it guards for
+      conditional mixins are evaluated.
 
       <@li><@TT>objName info mixin ?-order? ?-guard? ?pattern?</@TT>:
       Returns the list of mixins of the object. With <@TT>-order</@TT>
