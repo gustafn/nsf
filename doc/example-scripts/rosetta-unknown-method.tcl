@@ -6,7 +6,8 @@ package req nx
 package req nx::test
 
 #
-# Modelled after the Python version:
+# Define a class Example modelled after the 
+# Python version of Rosetta:
 #
 
 nx::Class create Example {
@@ -25,7 +26,7 @@ nx::Class create Example {
 
 # === Demonstrating the behavior in a shell: 
 #
-# Create an instance of Example
+# Create an instance of the class Example:
 ? {set e [Example new]} "::nsf::__#0"
 
 ? {$e foo} "This is foo."

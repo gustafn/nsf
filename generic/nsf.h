@@ -146,6 +146,22 @@
 #define PER_OBJECT_PARAMETER_CACHING 1
 
 /*
+  The NsfConfigEnabled() macro allows for querying whether a
+  configuration macro (see above) is actually defined (and whether it
+  expands to 1). This macro can be used both in CPP expressions (e.g.,
+  "#if NsfConfigEnabled(...)") and in C expressions (e.g.,
+  "if(NsfConfigEnabled(...))")
+
+  Adapted from https://plus.google.com/+LinusTorvalds/posts/9gntjh57dXt
+*/
+
+#define NsfConfigEnabled(macro) NsfConfigEnabled_(macro)
+#define NsfMacroTest_1 ,
+#define NsfConfigEnabled_(value) NsfConfigEnabled__(NsfMacroTest_##value)
+#define NsfConfigEnabled__(comma) NsfConfigEnabled___(comma 1, 0)
+#define NsfConfigEnabled___(_, v, ...) v
+
+/*
  * Sanity checks and dependencies for optional compile flags
  */
 #if defined(PARSE_TRACE_FULL)

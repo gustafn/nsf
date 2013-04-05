@@ -8610,7 +8610,7 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
   Tcl_Obj *bodyObj = procPtr->bodyPtr;
 
   if (likely(bodyObj->typePtr == Nsf_OT_byteCodeType)) {
-# if defined(HAVE_TCL_COMPILE_H)
+#if defined(HAVE_TCL_COMPILE_H)
     ByteCode *codePtr;
     Interp *iPtr = (Interp *) interp;
 
@@ -8629,7 +8629,7 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
 		 || (codePtr->nsPtr != nsPtr)
 		 || (codePtr->nsEpoch != nsPtr->resolverEpoch))) {
 
-#if defined(VAR_RESOLVER_TRACE)
+# if defined(VAR_RESOLVER_TRACE)
       fprintf(stderr, "ByteCompiled bytecode not valid proc %p cmd %p method %s\n",
 	      procPtr, procPtr->cmdPtr, 
 	      Tcl_GetCommandName(interp, (Tcl_Command)procPtr->cmdPtr));
@@ -8647,18 +8647,18 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
 		  localPtr->resolveInfo ? localPtr->resolveInfo->deleteProc : NULL);
 	}
       }
-#endif
+# endif
       /* dummy statement for coverage analysis */
       assert(1);
       goto doCompilation;
     }
+#endif
     return TCL_OK;
-# endif
   } else {
     int result;
-# if defined(HAVE_TCL_COMPILE_H)
+#if defined(HAVE_TCL_COMPILE_H)
   doCompilation:
-# endif
+#endif
 
     *flagsPtr |= NSF_CSC_CALL_IS_COMPILE;
     result = TclProcCompileProc(interp, procPtr, bodyObj,
