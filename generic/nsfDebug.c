@@ -346,9 +346,6 @@ void
 NsfMemCountRelease() {
   int *tableInitialized;
   Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
-  Tcl_HashSearch search;
-  Tcl_HashEntry *hPtr;
-  int count = 0;
 
 #ifdef NSF_MEM_TRACE
   fprintf(stderr, "+++ release count %d\n", *tableInitialized);
@@ -360,6 +357,10 @@ NsfMemCountRelease() {
   } 
 
   if (*tableInitialized == 1) {
+    Tcl_HashSearch search;
+    Tcl_HashEntry *hPtr;
+    int count = 0;
+
     fprintf(stderr, "******** NSF MEM Count *********\n*  count peak\n");
     
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr != NULL;
