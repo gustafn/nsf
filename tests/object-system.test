@@ -224,6 +224,17 @@ nx::Class create C {
 ? {C create c2 {:method foo {} {;}}} ::c2
 
 #
+# check low level method creation on classes, and check C-level 
+# "-flag=value" handling
+#
+nsf::method::create ::C m1 {} {;}
+? {lsort [::C ::nsf::methods::class::info::methods]} {m1 x y}
+nsf::method::create ::C -per-object=false m2 {} {;}
+? {lsort [::C ::nsf::methods::class::info::methods]} {m1 m2 x y}
+nsf::method::create ::C -per-object=true m3 {} {;}
+? {lsort [::C ::nsf::methods::object::info::methods]} {m3}
+
+#
 # tests for the dispatch command
 # 
 nx::Object create o

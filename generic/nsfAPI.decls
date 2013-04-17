@@ -96,7 +96,7 @@ cmd parameter::specs NsfParameterSpecsCmd {
 #
 cmd "method::alias" NsfMethodAliasCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object" -required 0 -nrargs 0}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1}
   {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
   {-argName "cmdName" -required 1 -type tclobj}
@@ -109,7 +109,7 @@ cmd "method::assertion" NsfMethodAssertionCmd {
 cmd "method::create" NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace" -nrargs 0}
-  {-argName "-per-object" -nrargs 0}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "-reg-object" -required 0 -type object}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
@@ -121,7 +121,7 @@ cmd "method::create" NsfMethodCreateCmd {
 cmd method::asmcreate NsfAsmMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace" -nrargs 0}
-  {-argName "-per-object"  -nrargs 0}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "-reg-object" -required 0 -nrargs 1 -type object}
   {-argName "name" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
@@ -130,12 +130,12 @@ cmd method::asmcreate NsfAsmMethodCreateCmd {
 
 cmd "method::delete" NsfMethodDeleteCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object" -nrargs 0}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1 -type tclobj}
 } {-nxdoc 1}
 cmd "method::forward" NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object" -nrargs 0}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "method" -required 1 -type tclobj}
   {-argName "-default" -type tclobj}
   {-argName "-earlybinding" -nrargs 0}
@@ -148,7 +148,7 @@ cmd "method::forward" NsfMethodForwardCmd {
 } {-nxdoc 1}
 cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object" -nrargs 0}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
@@ -158,7 +158,7 @@ cmd "method::registered" NsfMethodRegisteredCmd {
 } {-nxdoc 1}
 cmd "method::setter" NsfMethodSetterCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object" -nrargs 0}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "parameter" -required 1 -type tclobj}
 } {-nxdoc 1}
 
