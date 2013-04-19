@@ -2742,7 +2742,7 @@ static Nsf_methodDefinition method_definitions[105] = {
 {"::nsf::method::asmcreate", NsfAsmMethodCreateCmdStub, 7, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"-inner-namespace", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-reg-object", 0, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -2800,7 +2800,7 @@ static Nsf_methodDefinition method_definitions[105] = {
 },
 {"::nsf::method::alias", NsfMethodAliasCmdStub, 5, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"cmdName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -2813,7 +2813,7 @@ static Nsf_methodDefinition method_definitions[105] = {
 {"::nsf::method::create", NsfMethodCreateCmdStub, 9, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"-inner-namespace", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-reg-object", 0, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -2823,12 +2823,12 @@ static Nsf_methodDefinition method_definitions[105] = {
 },
 {"::nsf::method::delete", NsfMethodDeleteCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::forward", NsfMethodForwardCmdStub, 11, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"method", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-default", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-earlybinding", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -2841,7 +2841,7 @@ static Nsf_methodDefinition method_definitions[105] = {
 },
 {"::nsf::method::property", NsfMethodPropertyCmdStub, 5, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"methodproperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodproperty, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -2851,7 +2851,7 @@ static Nsf_methodDefinition method_definitions[105] = {
 },
 {"::nsf::method::setter", NsfMethodSetterCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"-per-object", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"parameter", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::my", NsfMyCmdStub, 5, {
