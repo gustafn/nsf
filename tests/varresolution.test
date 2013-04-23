@@ -61,25 +61,25 @@ o objeval {
 ? {::nsf::var::import o2 j} \
     "importvar cannot import variable 'j' into method scope; not called from a method frame"
 
-o method foo {} {::nsf::var::import [current] :a}
+o object method foo {} {::nsf::var::import [current] :a}
 ? {o foo} "variable name \":a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nsf::var::import [current] ::a}
+o object method foo {} {::nsf::var::import [current] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nsf::var::import [current] a(:b)}
+o object method foo {} {::nsf::var::import [current] a(:b)}
 ? {o foo} "can't make instance variable a(:b) on ::o: Variable cannot be an element in an array; use e.g. an alias."
 
-o method foo {} {::nsf::var::import [current] {a(:b) ab}}
+o object method foo {} {::nsf::var::import [current] {a(:b) ab}}
 ? {o foo} ""
 
-o method foo {} {::nsf::var::exists [current] ::a}
+o object method foo {} {::nsf::var::exists [current] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nsf::var::exists [current] a(:b)}
+o object method foo {} {::nsf::var::exists [current] a(:b)}
 ? {o foo} 1
 
-o method foo {} {::nsf::var::exists [current] a(::c)}
+o object method foo {} {::nsf::var::exists [current] a(::c)}
 ? {o foo} 1
 
 set ::o::Y 5
@@ -141,8 +141,8 @@ Test case exists {
     set y 1 
 
     Object create o {set :x 1}
-    o method foo {} {info exists :x}
-    o method bar {} {info exists :y}
+    o object method foo {} {info exists :x}
+    o object method bar {} {info exists :y}
     ? {o eval {info exists :x}} 1
     ? {o eval {info exists :y}} 0
     ? {o eval {info exists x}} 0
@@ -260,8 +260,8 @@ o destroy
 ###############################################
 Test case var-resolver-object
 Object create o
-o method foo {x} {set :y 2; return ${:x},${:y}}
-o method bar {} {return ${:x},${:y}}
+o object method foo {x} {set :y 2; return ${:x},${:y}}
+o object method bar {} {return ${:x},${:y}}
 o set x 1
 ? {o foo 1} "1,2" "create var y and fetch var x"
 ? {o bar} "1,2" "fetch two instance variables"
@@ -270,7 +270,7 @@ o set x 1
 # we have to recreate bar, so no problem
 Object create o
 o set x 1
-o method bar {} {return ${:x},${:y}}
+o object method bar {} {return ${:x},${:y}}
 ? {catch {o bar}} "1" "compiled var y should not exist"
 o destroy
 
@@ -672,8 +672,8 @@ vwait X
 #
 Object create o {
   set :x 0
-  :public method foo {} {incr :x}
-  :public method vwait {varName} {
+  :public object method foo {} {incr :x}
+  :public object method vwait {varName} {
     if {[regexp {:[^:]*} $varName]} {
       error "invalid varName '$varName'; only plain or fully qualified variable names allowed"
     }
@@ -742,7 +742,7 @@ Class create V {
   set :Z 1
   set ZZZ 1
   :method bar {z} { return $z }
-  :class method bar {z} { return $z }
+  :object method bar {z} { return $z }
   :create v {
     set zzz 2
     set :z 2
@@ -759,7 +759,7 @@ Test case alias-dot-resolver {
     set :Z 1
     set ZZZ 1
     :method bar {z} { return $z }
-    :class method bar {z} { return $z }
+    :object method bar {z} { return $z }
     :create v {
       set :z 2
       set zzz 2
@@ -788,8 +788,8 @@ Test case info-vars-in-eval {
 #
 Test case tcl-variable-cmd {
   Object create o {
-    :public method ? {varname} {info exists :$varname}
-    :public method bar args {
+    :public object method ? {varname} {info exists :$varname}
+    :public object method bar args {
       variable :a
       set a 3
       variable b
@@ -821,7 +821,7 @@ Test case interactions {
   # script execution
   
   Object create ::o {
-    :public method bar {} {
+    :public object method bar {} {
       # 1. creates a proc-local, compiled var "type"
       set type 1
       # 2. at compile time: create a proc-local, compiled link-var ":type"
@@ -881,7 +881,7 @@ Test case interactions {
   }
 
   # compiled execution
-  o public method baz {} $script
+  o public object method baz {} $script
   o eval {set :x 1; unset -nocomplain :v}
   ? {o baz} :u-:v-:x--0-0-0-0-1-1|:u-:v-:x--0-0-1-1-0-0 ; #:u-:v-:x--1-1-0-0-0-1-0-:u-:v-:x
 
@@ -913,7 +913,7 @@ Test case interactions {
   
   namespace eval ::ns1 {
     Object create o {
-      :public method foo {} {
+      :public object method foo {} {
 	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
 			 [info exists w] [::nsf::var::exists [::nsf::current] w] \
 			 [info exists :x] [::nsf::var::exists [::nsf::current] x]] "-"]
@@ -929,7 +929,7 @@ Test case interactions {
     ? {::ns1::o foo} ":x--0-0-0-0|:x--0-0-0-0"
     
     o eval {
-      :public method faz {} {
+      :public object method faz {} {
 	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
 			 [namespace which -variable [namespace current]::w] \
 			 [info exists [namespace current]::w] \
@@ -974,7 +974,7 @@ Test case interactions {
     
     o eval {
       set :aaa 1
-      :public method caz {} {
+      :public object method caz {} {
 	set _ "[info exists :aaa]-${:aaa}-[set :aaa]"
 	variable :aaa
 	append _ "-[info exists :aaa]"
@@ -1036,7 +1036,7 @@ Test case interactions {
     #
 
     Object create p {
-      :public method foo {var} {
+      :public object method foo {var} {
 	set :x XXX
 	set _ ${:x}
 	upvar $var :x
@@ -1049,7 +1049,7 @@ Test case interactions {
 			    [[current] eval {set :x}]] "-"]
       }
 
-      :method bar {var1 var2 var3 var4 var5 var6} {
+      :object method bar {var1 var2 var3 var4 var5 var6} {
 	upvar $var1 xx $var2 :yy $var3 :zz $var4 q $var5 :el1 $var6 :el2
 	set _ [join [list {*}[lsort [:info vars]] {*}[lsort [info vars :*]] \
 			  [info exists xx] $xx \
@@ -1065,7 +1065,7 @@ Test case interactions {
 	return $_
       }
 
-      :public method baz {} {
+      :public object method baz {} {
 	set :x 10
 	set y 20
 	set :z 30
@@ -1097,7 +1097,7 @@ Test case interactions {
     # [namespace current]:::XXX]
     
     o eval {
-      :public method bar {} {
+      :public object method bar {} {
 	set :XXX 1
 	return [join [list ${:XXX} [set :XXX] [namespace which -variable :XXX] \
 			  [namespace which -variable [namespace current]:::XXX]] -]
@@ -1155,22 +1155,22 @@ Test case unconfigured-varresolver {
 
   nx::Object create o1 {
     set :a o1.a
-    :public method foo {} {return ${:a}}
-    :public method bar {} {o2 foo}
-    :public method bar2 {} {o2 foo2}
+    :public object method foo {} {return ${:a}}
+    :public object method bar {} {o2 foo}
+    :public object method bar2 {} {o2 foo2}
 
   }
 
   nx::Object create o2 {
     set :a o2.a
     set :cmd {set :a}
-    :public method foo {} {eval ${:cmd}}
-    :public method foo2 {} {uplevel ${:cmd}}
-    :public method foo3 {} {uplevel 2 ${:cmd}}
-    :public method bar {} {:foo}
-    :public method bar2 {} {:foo2}
-    :public method bar3a {} {:foo3}
-    :public method bar3 {} {:bar3a}
+    :public object method foo {} {eval ${:cmd}}
+    :public object method foo2 {} {uplevel ${:cmd}}
+    :public object method foo3 {} {uplevel 2 ${:cmd}}
+    :public object method bar {} {:foo}
+    :public object method bar2 {} {:foo2}
+    :public object method bar3a {} {:foo3}
+    :public object method bar3 {} {:bar3a}
   }
 
   #
@@ -1195,15 +1195,15 @@ Test case unconfigured-varresolver {
 
   nx::Object create o3 {
     set :a o3.a
-    :public method set {var} {set :$var}
-    :public method foo-m {} {:set a}
-    :public method foo-r {} {::set :a}
-    :public method foo-m-u {} {x {:set a}}
-    :public method foo-r-u {} {x {::set :a}}
-    :public method foo-a-m {} {::apply [list {} {:set a} [self]]}
-    :public method foo-a-r {} {::apply [list {} {::set :a} [self]]}
-    :public method foo-a-m-u {} {::apply [list {} {x {:set a}} [self]]}
-    :public method foo-a-r-u {} {::apply [list {} {x {::set :a}} [self]]}
+    :public object method set {var} {set :$var}
+    :public object method foo-m {} {:set a}
+    :public object method foo-r {} {::set :a}
+    :public object method foo-m-u {} {x {:set a}}
+    :public object method foo-r-u {} {x {::set :a}}
+    :public object method foo-a-m {} {::apply [list {} {:set a} [self]]}
+    :public object method foo-a-r {} {::apply [list {} {::set :a} [self]]}
+    :public object method foo-a-m-u {} {::apply [list {} {x {:set a}} [self]]}
+    :public object method foo-a-r-u {} {::apply [list {} {x {::set :a}} [self]]}
   }
 
   #

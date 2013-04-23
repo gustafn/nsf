@@ -31,8 +31,8 @@ nx::Test case hidden-cmds {
   # nested objects are not concerned ...
   #
   $i eval {nx::Object create ::o {
-    :public method baz {} { return KO }
-    :public method destroy {} {
+    :public object method baz {} { return KO }
+    :public object method destroy {} {
       #
       # sets a global variable for tracing the processing of the
       # app-level destructor!
@@ -84,7 +84,7 @@ nx::Test case hidden-cmds {
   ? {interp eval $i {::C create ::c}} ::c
   # set some relationships to test later ...
   ? {interp eval $i {::C mixin add ::M}} ::M
-  ? {interp eval $i {::C class mixin add ::M}} ::M
+  ? {interp eval $i {::C object mixin add ::M}} ::M
 
   $i hide C
   ? {interp eval $i {::C create ::c2}} {invalid command name "::C"}
@@ -167,7 +167,7 @@ nx::Test case hidden-cmds+explicit-delete {
   $i eval {
     package req nx
     nx::Object create ::o2 {
-      :public method destroy {} {
+      :public object method destroy {} {
 	next
 	return ok
       }
@@ -205,11 +205,11 @@ nx::Test case hide-and-re-expose {
   $i eval { 
     package req nx
     nx::Object create ::o {
-      :public method destroy {} {
+      :public object method destroy {} {
 	incr ::[namespace tail [current]] 
 	return OK
       }
-      :public method foo {} {
+      :public object method foo {} {
 	return [list [current object] [current class] [:info class] [[current] info class]]
       }
     }
@@ -258,11 +258,11 @@ nx::Test case command-renaming {
   $i eval { 
     package req nx
     nx::Object create ::o {
-      :public method destroy {} {
+      :public object method destroy {} {
 	incr ::[namespace tail [current]] 
 	return OK
       }
-      :public method foo {} {
+      :public object method foo {} {
 	catch {[current] info class} msg
 	return [list [current object] [current class] [:info class] $msg]
       }
@@ -317,7 +317,7 @@ nx::Test case namespaced-object {
     package req nx
     namespace eval ::ns1 {
       nx::Object create o {
-	:public method destroy {} {
+	:public object method destroy {} {
 	  incr ::[namespace tail [current]] 
 	  return OK
 	}
@@ -361,7 +361,7 @@ nx::Test case deletion-order {
   $i eval { 
     package req nx
     nx::Object create ::o {
-      :public method destroy {} {
+      :public object method destroy {} {
 	incr ::[namespace tail [current]] 
 	interp invokehidden {} C destroy
 	next
@@ -369,7 +369,7 @@ nx::Test case deletion-order {
     }
 
     nx::Class create ::C {
-      :public class method destroy {} {
+      :public object method destroy {} {
 	incr ::[namespace tail [current]] 
 	next
       }
@@ -398,7 +398,7 @@ nx::Test case error-in-destroy-1 {
   $i eval { 
     package req nx
     nx::Object create ::o {
-      :public method destroy {} {
+      :public object method destroy {} {
 	error BAFF!
       }
     }
@@ -439,7 +439,7 @@ nx::Test case error-in-destroy-2 {
     }
     
     nx::Object create ::o {
-      :public method destroy {} {
+      :public object method destroy {} {
 	#
 	# Would not be an issue in safe interps, as [interp hide] &
 	# friends are disallowed ...
@@ -478,7 +478,7 @@ nx::Test case error-in-destroy-3 {
   $i eval { 
     package req nx
     nx::Object create ::o {
-      :public method destroy {} {
+      :public object method destroy {} {
 	catch {::rename [current] ""} msg
 	next
 	return $msg
@@ -514,7 +514,7 @@ nx::Test case hidden-procs-as-aliases {
     package req nx
     ::proc ::FOO args {return OK}
     nx::Object create o {
-      :public alias foo ::FOO
+      :public object alias foo ::FOO
     }
   }
   
@@ -590,10 +590,10 @@ nx::Test case hidden-objects-as-aliases {
   $i eval {
     package req nx
     nx::Object create x {
-      :public method foo {} {return OK}
+      :public object method foo {} {return OK}
     }
     nx::Object create dongo {
-      :public alias bar ::x
+      :public object alias bar ::x
     }
   }
 
@@ -653,14 +653,14 @@ nx::Test case hidden-mixins-procsearch {
   $i eval {
     package req nx
     nx::Object create x {
-      :public method foo {} {return OK}
+      :public object method foo {} {return OK}
     }
     nx::Class create M {
       :public method foo {} {
 	return <[current class]>[next]<[current class]>
       }
     }
-    x mixin M
+    x object mixin M
   }
 
   ? {$i eval {x foo}} <::M>OK<::M>
@@ -692,7 +692,7 @@ nx::Test case hidden-mixins-procsearch {
   
   $i hide MM M
   $i eval {nx::Class create ::M2}
-  ? {$i eval {x mixin add M2}} {mixin: expected a class as mixin but got "::M"}
+  ? {$i eval {x object mixin add M2}} {mixin: expected a class as mixin but got "::M"}
   ? {$i invokehidden M mixin add M2} {expected object but got "::M" for parameter "object"}
 
   interp delete $i
@@ -712,11 +712,11 @@ nx::Test case hidden-mixins-mixinlists {
     nx::Class create M1 
     nx::Class create M2
     nx::Class create M3
-    o mixin {M1 M2}
+    o object mixin {M1 M2}
   }
 
   ? {$i eval {o info precedence}} "::M1 ::M2 ::nx::Object"
-  ? {$i eval {o info mixin classes}} {::M1 ::M2}
+  ? {$i eval {o info object mixin classes}} {::M1 ::M2}
   ? {$i hidden} ""
   $i hide M1
   ? {$i hidden} M1
@@ -733,7 +733,7 @@ nx::Test case hidden-mixins-mixinlists {
   #
   $i eval {::M2 destroy}
   ? {$i eval {o info precedence}} "::M1 ::nx::Object"
-  ? {$i eval {o info mixin classes}} "::M1"
+  ? {$i eval {o info object mixin classes}} "::M1"
   ? {$i invokehidden M1 info mixinof} "::o"
 
   interp delete $i

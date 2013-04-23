@@ -9,9 +9,9 @@ namespace import ::nx::*
 Test case delegation {
   Object create dog 
   Object create tail {
-    :public method wag args { return $args }
+    :public object method wag args { return $args }
   }
-  dog public forward wag tail %proc
+  dog public object forward wag tail %proc
   
   ? {dog wag 100} 100
 }
@@ -38,7 +38,7 @@ Test case inscope {
 ###########################################
 Test case adding {
     Object create obj {
-	:public forward addOne expr 1 +
+	:public object forward addOne expr 1 +
     }
 
     ? {obj addOne 5} 6
@@ -49,15 +49,15 @@ Test case adding {
 ###########################################
 Test case multiple-args {
     Object create target {
-	:public method foo args {return $args}
+	:public object method foo args {return $args}
     }
     Object create obj {
-	:public forward foo target %proc %self a1 a2
+	:public object forward foo target %proc %self a1 a2
     }
 
     ? {obj foo x1 x2} [list ::obj a1 a2 x1 x2]
 
-    obj public forward foo target %proc %self %%self %%p
+    obj public object forward foo target %proc %self %%self %%p
     ? {obj foo x1 x2} [list ::obj %self %p x1 x2]
 }
 
@@ -66,17 +66,17 @@ Test case multiple-args {
 ###########################################
 Test case mixin-via-forward {
     Object create mixin {
-      :method unknown {m args} {return [concat [current] $m $args]}
+      :object method unknown {m args} {return [concat [current] $m $args]}
     }
 
     Object create obj {
-	:public forward Mixin mixin %1 %self
+	:public object forward Mixin mixin %1 %self
     }
 
     ? {obj Mixin add M1} [list ::mixin add ::obj M1]
     ? {catch {obj Mixin}} 1
     
-    obj public forward Mixin mixin "%1 {Getter Setter}" %self
+    obj public object forward Mixin mixin "%1 {Getter Setter}" %self
     ? {obj Mixin add M1} [list ::mixin add ::obj M1]
     ? {obj Mixin M1} [list ::mixin Setter ::obj M1]
     ? {obj Mixin} [list ::mixin Getter ::obj]
@@ -88,14 +88,14 @@ Test case mixin-via-forward {
 ###########################################
 Test case info-via-forward {
     Object create Info {
-        :public method @mixin {o} {
+        :public object method @mixin {o} {
 	    $o info mixin
 	}
-	:public method @class {o} { ;# without prefix, doing here a [Info class] wod be wrong
+	:public object method @class {o} { ;# without prefix, doing here a [Info class] wod be wrong
 	    $o info class
 	}
-	:public method @help {o} { ;# define a new subcommand for info
-	    foreach c [:info methods] {lappend result [string range $c 1 end]}
+	:public object method @help {o} { ;# define a new subcommand for info
+	    foreach c [:info object methods] {lappend result [string range $c 1 end]}
 	    return $result
 	}
     }
@@ -114,7 +114,7 @@ Test case info-via-forward {
 Test case incr {
     Object create obj {
 	set :x 1
-	:public forward i1 -objframe incr x 
+	:public object forward i1 -objframe incr x 
     }
 
     ? {obj i1} 2
@@ -144,17 +144,17 @@ Test case introspection {
 
     # check introspection for objects
     Object create obj {
-	:public forward i1 -objframe incr x 
-	:public forward Mixin mixin %1 %self
-	:public forward foo target %proc %self %%self %%p
-	:public forward addOne expr 1 +
+	:public object forward i1 -objframe incr x 
+	:public object forward Mixin mixin %1 %self
+	:public object forward foo target %proc %self %%self %%p
+	:public object forward addOne expr 1 +
     }
 
-    ? {lsort [obj info methods -methodtype forwarder]} "Mixin addOne foo i1"
-    ? {obj info method definition Mixin} "::obj public forward Mixin mixin %1 %self"
-    ? {obj info method definition addOne} "::obj public forward addOne expr 1 +"
-    ? {obj info method definition foo} "::obj public forward foo target %proc %self %%self %%p"
-    ? {obj info method definition i1} "::obj public forward i1 -objframe ::incr x"
+    ? {lsort [obj info object methods -methodtype forwarder]} "Mixin addOne foo i1"
+    ? {obj info object method definition Mixin} "::obj public object forward Mixin mixin %1 %self"
+    ? {obj info object method definition addOne} "::obj public object forward addOne expr 1 +"
+    ? {obj info object method definition foo} "::obj public object forward foo target %proc %self %%self %%p"
+    ? {obj info object method definition i1} "::obj public object forward i1 -objframe ::incr x"
 }
 
 ###########################################
@@ -163,7 +163,7 @@ Test case introspection {
 package require nx::serializer
 Test case serializer {
     Object create obj {
-        :method test {} {puts "i am [current method]"}
+        :object method test {} {puts "i am [current method]"}
     }
     set ::a [Serializer deepSerialize obj]
     #puts <<$::a>>
@@ -177,13 +177,13 @@ Test case serializer {
 Test case optional-target {
     Object create obj {
 	set :x 2
-	:public forward append -objframe
+	:public object forward append -objframe
     }
     ? {obj append x y z} 2yz
 
-    Object create n; Object create n::x {:public method current {} {current}}
+    Object create n; Object create n::x {:public object method current {} {current}}
     Object create o
-    o public forward ::n::x
+    o public object forward ::n::x
     ? {o x current} ::n::x
 }
 
@@ -193,7 +193,7 @@ Test case optional-target {
 Test case percent-cmd {
     Object create obj {
 	set :x 10
-	:public forward x* expr {%:eval {set :x}} *
+	:public object forward x* expr {%:eval {set :x}} *
     }
     ? {obj x* 10} "100"
 }
@@ -203,36 +203,36 @@ Test case percent-cmd {
 ###########################################
 Test case positioning-args {
     Object create obj
-    obj public forward @end-13 list {%@end 13}
+    obj public object forward @end-13 list {%@end 13}
     ? {obj @end-13 1 2 3 } [list 1 2 3 13]
 
-    obj public forward @-1-13 list {%@-1 13}
+    obj public object forward @-1-13 list {%@-1 13}
     ? {obj @-1-13 1 2 3 } [list 1 2 13 3]
 
-    obj public forward @1-13 list {%@1 13}
+    obj public object forward @1-13 list {%@1 13}
     ? {obj @1-13 1 2 3 } [list 13 1 2 3]
     ? {obj @1-13} [list 13]
 
-    obj public forward @2-13 list {%@2 13}
+    obj public object forward @2-13 list {%@2 13}
     ? {obj @2-13 1 2 3 } [list 1 13 2 3]
 
-    obj public forward @list 10 {%@0 list} {%@end 99}
+    obj public object forward @list 10 {%@0 list} {%@end 99}
     ? {obj @list} [list 10 99]
     ? {obj @list a b c} [list 10 a b c 99]
 
-    obj public forward @list {%@end 99} {%@0 list} 10
+    obj public object forward @list {%@end 99} {%@0 list} 10
     ? {obj @list} [list 10 99]
     ? {obj @list a b c} [list 10 a b c 99]
     
-    obj public forward @list {%@2 2} {%@1 1} {%@0 list}
+    obj public object forward @list {%@2 2} {%@1 1} {%@0 list}
     ? {obj @list} [list 1 2]
     ? {obj @list a b c} [list 1 2 a b c]
     
-    obj public forward @list x y z {%@0 list} {%@1 1} {%@2 2} 
+    obj public object forward @list x y z {%@0 list} {%@1 1} {%@2 2} 
     ? {obj @list} [list 1 2 x y z]
     ? {obj @list a b c} [list 1 2 x y z a b c]
     
-    obj public forward @list x y z {%@2 2} {%@1 1} {%@0 list}
+    obj public object forward @list x y z {%@2 2} {%@1 1} {%@0 list}
     ? {obj @list} [list x 1 y 2 z]
     ? {obj @list a b c} [list x 1 y 2 z a b c]
     
@@ -240,19 +240,19 @@ Test case positioning-args {
     # between %@POS and %1 substitutions
     #
     
-    obj public forward @end-13 list {%@end 13} %1 %self
+    obj public object forward @end-13 list {%@end 13} %1 %self
     ? {obj @end-13 1 2 3 } [list 1 ::obj 2 3 13]
     
-    obj public forward @end-13 list %1 {%@end 13} %self
+    obj public object forward @end-13 list %1 {%@end 13} %self
     ? {obj @end-13 1 2 3 } [list 1 ::obj 2 3 13]
     
-    obj public forward @end-13 list {%@end 13} %1 %1 %1 %self
+    obj public object forward @end-13 list {%@end 13} %1 %1 %1 %self
     ? {obj @end-13 1 2 3 } [list 1 1 1 ::obj 2 3 13]
     
-    obj public forward @end-13 list {%@-1 13} %1 %self
+    obj public object forward @end-13 list {%@-1 13} %1 %self
     ? {obj @end-13 1 2 3 } [list 1 ::obj 2 13 3]
     
-    obj public forward @end-13 list {%@1 13} %1 %self
+    obj public object forward @end-13 list {%@1 13} %1 %self
     ? {obj @end-13 1 2 3 } [list 13 1 ::obj 2 3]
 }
 
@@ -261,10 +261,10 @@ Test case positioning-args {
 ###############################################
 Test case num-args {
     Object create obj {
-	:public forward f %self [list %argclindex [list a b c]]
-	:method a args {return [list [current method] $args]}
-	:method b args {return [list [current method] $args]}
-	:method c args {return [list [current method] $args]}
+	:public object forward f %self [list %argclindex [list a b c]]
+	:object method a args {return [list [current method] $args]}
+	:object method b args {return [list [current method] $args]}
+	:object method c args {return [list [current method] $args]}
     }
     ? {obj f} [list a {}]
     ? {obj f 1 } [list b 1]
@@ -277,8 +277,8 @@ Test case num-args {
 ###############################################
 Test case earlybinding {
     Object create obj {
-      #:public forward s -earlybinding ::set ::X
-      :public forward s ::set ::X
+      #:public object forward s -earlybinding ::set ::X
+      :public object forward s ::set ::X
     }
     ? {obj s 100} 100
     ? {obj s} 100
@@ -287,8 +287,8 @@ Test case earlybinding {
 
     Class create NS	
     Class create NS::Main {
-	:public class method m1 {} { :m2 }
-	:public class method m2 {} {
+	:public object method m1 {} { :m2 }
+	:public object method m2 {} {
 	    ? {namespace eval :: {Object create toplevelObj1}} ::toplevelObj1
   
 	    ? [list set _ [namespace current]] ::NS
@@ -367,7 +367,7 @@ Test case callstack {
 
     Class create C {
 	:method xx {} {current}
-	:public class method t {o expr} {
+	:public object method t {o expr} {
 	    return [$o expr $expr]
 	}
     }

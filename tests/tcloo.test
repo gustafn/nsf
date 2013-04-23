@@ -91,7 +91,7 @@ nx::Test case export {
   #
   
   set o [nx::Object new]
-  $o method Foo {} { return [::nsf::current method]} 
+  $o object method Foo {} { return [::nsf::current method]} 
   ? [list $o Foo] "$o: unable to dispatch method 'Foo'"
   ? [list $o eval {:Foo}] Foo
   $o export Foo
@@ -164,7 +164,7 @@ nx::Test case export {
 
   nx::Object create bran {
     :export foo
-    :public method foo {} {return ok}
+    :public object method foo {} {return ok}
   }
 
   ? {bran foo} ok
@@ -191,7 +191,7 @@ nx::Test case unexport {
   # oo.test/oo-4.2)
   #
   set o [nx::Object new]
-  $o public method foo {} { return [::nsf::current method]} 
+  $o public object method foo {} { return [::nsf::current method]} 
   ? [list $o foo] foo
   ? [list $o eval {:foo}] foo
   $o unexport foo

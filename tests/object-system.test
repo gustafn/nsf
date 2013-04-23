@@ -1,5 +1,6 @@
 # -*- Tcl -*-
 package require nx
+
 ::nsf::configure dtrace on
 
 #
@@ -161,14 +162,13 @@ C destroy
 # tests for dispatching methods
 # 
 nx::Object create o
-o public method foo {} {return foo}
-o public method bar1 {} {return bar1-[:foo]}
-o public method bar2 {} {return bar2-[: foo]}
-#o public method bar3 {} {return bar3-[my foo]}
-o public method bar4 {} {return bar4-[[self] foo]}
-o public method bar5 {} {return [self]::bar5}
-o public method bar6 {} {return [:]::bar6}
-o public method bar7 {} {return bar7-[lsort [: -system info methods bar7]]}
+o public object method foo {} {return foo}
+o public object method bar1 {} {return bar1-[:foo]}
+o public object method bar2 {} {return bar2-[: foo]}
+o public object method bar4 {} {return bar4-[[self] foo]}
+o public object method bar5 {} {return [self]::bar5}
+o public object method bar6 {} {return [:]::bar6}
+o public object method bar7 {} {return bar7-[lsort [: -system info object methods bar7]]}
 
 # dispatch without colon names
 ? {o foo} foo "simple method dispatch"
@@ -221,7 +221,7 @@ nx::Class create C {
 # actually, we want c1 to test below the recreation of c1 in another
 # object system
 ? {C create c1} ::c1
-? {C create c2 {:method foo {} {;}}} ::c2
+? {C create c2 {:object method foo {} {;}}} ::c2
 
 #
 # check low level method creation on classes, and check C-level 
@@ -238,8 +238,8 @@ nsf::method::create ::C -per-object=true m3 {} {;}
 # tests for the dispatch command
 # 
 nx::Object create o
-o method foo {} {return goo}
-o method bar {x} {return goo-$x}
+o object method foo {} {return goo}
+o object method bar {x} {return goo-$x}
 
 # dispatch without colon names
 ::nsf::dispatch o eval set :x 1
@@ -259,7 +259,7 @@ nx::Object create o {set :x 1}
 o destroy
 
 nx::Object create o {
-  :public method foo {} {
+  :public object method foo {} {
     foreach var [list x1 y1 x2 y2 x3 y3] {
       lappend results $var [info exists :$var]
     }
@@ -379,7 +379,7 @@ proc foo {} {;}
 ? {catch {nx::Object create foo}} 1
 rename foo ""
 nx::Object create foo {
-  :method bar {} {;}
+  :object method bar {} {;}
   # 
   # Don't allow subobject to overwrite object specific method
   #
@@ -390,13 +390,13 @@ nx::Object create foo {
   # 
   # Don't allow child-object to be overwritten by object specific cmd
   #
-  ? {catch {:forward bar somethingelse}} 1
+  ? {catch {:object forward bar somethingelse}} 1
   ? {nsf::object::exists [self]::bar} 1
   # 
   # Don't allow child-object to be overwritten by object specific
   # scripted method
   #
-  ? {catch {:method bar {} {;}}} 1
+  ? {catch {:object method bar {} {;}}} 1
   ? {nsf::object::exists [self]::bar} 1
 }
 

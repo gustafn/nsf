@@ -49,19 +49,19 @@ Test case nsf-mixin {
 #
 Test case per-object-mixin {
   ? {c1 info precedence} "::C ::nx::Object"
-  ? {c1 mixin add M} ::M
+  ? {c1 object mixin add M} ::M
   ? {::nsf::relation c1 object-mixin} ::M
-  ? {catch {c1 mixin UNKNOWN}} 1
+  ? {catch {c1 object mixin UNKNOWN}} 1
   ? {::nsf::relation c1 object-mixin} "::M"
 
   # add again the same mixin
-  ? {c1 mixin add M} {::M}
+  ? {c1 object mixin add M} {::M}
   ? {c1 info precedence} "::M ::C ::nx::Object"
-  ? {c1 mixin add M2} "::M2 ::M"
+  ? {c1 object mixin add M2} "::M2 ::M"
   ? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
-  ? {c1 mixin delete M} "::M2"
+  ? {c1 object mixin delete M} "::M2"
   ? {c1 info precedence} "::M2 ::C ::nx::Object"
-  ? {c1 mixin delete M2} ""
+  ? {c1 object mixin delete M2} ""
   ? {c1 info precedence} "::C ::nx::Object"
 }
 
@@ -72,7 +72,7 @@ Test case per-object-mixin {
 Test case object-mixin-relation {
   ? {::nsf::relation C object-mixin M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
-  ? {C class info mixin classes} "::M"
+  ? {C info object mixin classes} "::M"
   ? {::nsf::relation C object-mixin ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 }
@@ -83,45 +83,45 @@ Test case object-mixin-relation {
 #
  # C object-mixin M
  # ? {C info precedence} "::M ::nx::Class ::nx::Object"
- # ? {C class info mixin classes} "::M"
+ # ? {C info object mixin classes} "::M"
  # C object-mixin ""
  # ? {C info precedence} "::nx::Class ::nx::Object"
 
 #
-# add and remove class mixin for classes via modifier "class" and
+# add and remove object mixin for classes via modifier "object" and
 # "mixin"
 #
 Test case class+mixin {
-  ? {C class mixin M} ::M
+  ? {C object mixin M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
-  ? {C class info mixin classes} "::M"
-  ? {C class mixin ""} ""
+  ? {C info object mixin classes} "::M"
+  ? {C object mixin ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 }
 
 #
-#  add and remove class mixin for classes via class mixin add
+#  add and remove object mixin for classes via object mixin add
 #
 Test case class+mixin-add {
-  ? {C class mixin add M} ::M
+  ? {C object mixin add M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
-  ? {C class info mixin classes} "::M"
-  ? {C class mixin ""} ""
+  ? {C info object mixin classes} "::M"
+  ? {C object mixin ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
   
-  ? {C class mixin add M} ::M
+  ? {C object mixin add M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
   ? {::nsf::relation C object-mixin} ::M
-  ? {catch {C class mixin add UNKNOWN}} 1
+  ? {catch {C object mixin add UNKNOWN}} 1
   ? {::nsf::relation C object-mixin} "::M"
-  ? {C class mixin ""} ""
+  ? {C object mixin ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 
-  ? {C class mixin M} ::M
+  ? {C object mixin M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
 
   # forwarder with 0 arguments + flag
-  ? {C class mixin} "::M"
+  ? {C object mixin} "::M"
 }
 
 
@@ -135,17 +135,17 @@ Test case mixin-add {
   Class create C1 
 
   ? {C1 info lookup method mixin} "::nsf::classes::nx::Class::mixin"
-  C1 class mixin M1
+  C1 object mixin M1
   ? {C1 info precedence} "::M1 ::nx::Class ::nx::Object"
   C1 create c11
   ? {c11 info precedence} "::C1 ::nx::Object"
-  C1 class mixin add M11
+  C1 object mixin add M11
   ? {C1 info precedence} "::M11 ::M1 ::nx::Class ::nx::Object"
-  Object create o -mixin M1
+  Object create o -object-mixin M1
   ? {o info precedence} "::M1 ::nx::Object"
 
   Class create O 
-  O class mixin M1
+  O object mixin M1
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
   Class create O -object-mixin M1
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
@@ -155,37 +155,37 @@ Test case filter-relation {
   nx::Class create CC {
     :public method filterA args {next}
     :public method filterB args {next}
-    :public class method filterC args {next}
+    :public object method filterC args {next}
     :create cc {
-      :public method filterD args {next}
+      :public object method filterD args {next}
     }
   }
 
   ? {::nsf::relation cc object-filter} ""
-  ? {cc info filter methods} ""
+  ? {cc info object filter methods} ""
   ? {::nsf::relation cc object-filter filterA} filterA
-  ? {cc info filter methods} "filterA"
-  ? {cc filter filterB} "filterB" 
+  ? {cc info object filter methods} "filterA"
+  ? {cc object filter filterB} "filterB" 
   ? {::nsf::relation cc object-filter} "filterB"
-  ? {cc info filter methods} "filterB"
-  ? {cc filter add filterD} "filterD filterB"
+  ? {cc info object filter methods} "filterB"
+  ? {cc object filter add filterD} "filterD filterB"
   ? {::nsf::relation cc object-filter} "filterD filterB"
-  ? {cc info filter methods} "filterD filterB"
-  ? {cc filter delete filterB} "filterD"
+  ? {cc info object filter methods} "filterD filterB"
+  ? {cc object filter delete filterB} "filterD"
   ? {::nsf::relation cc object-filter} "filterD"
-  ? {cc info filter methods} "filterD"
+  ? {cc info object filter methods} "filterD"
   ? {catch {::nsf::relation cc object-filter UNKNOWN}} 1
   ? {::nsf::relation cc object-filter} "filterD"
-  ? {cc info filter methods} "filterD"
+  ? {cc info object filter methods} "filterD"
 
   ? {::nsf::relation CC object-filter} ""
-  ? {CC class info filter methods} ""
+  ? {CC info object filter methods} ""
   ? {::nsf::relation CC object-filter filterC} "filterC"
   ? {::nsf::relation CC object-filter} "filterC"
-  ? {CC class info filter methods} "filterC"
+  ? {CC info object filter methods} "filterC"
   ? {::nsf::relation CC object-filter ""} ""
   ? {::nsf::relation CC object-filter} ""
-  ? {CC class info filter methods} ""
+  ? {CC info object filter methods} ""
   
   ? {::nsf::relation CC class-filter} ""
   ? {CC info filter methods} ""
@@ -261,7 +261,7 @@ Test case "filter-and-creation" {
   ? {ob2 baz} {}
 
   # create with filter
-  ? {Foo create ob3 -filter myfilter} ::ob3
+  ? {Foo create ob3 -object-filter myfilter} ::ob3
 }
 
 
@@ -328,7 +328,7 @@ nx::Test case mixins+method-handles {
   Class create Y {:public method foo {} {return "Y [next]"}}
   Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
 
-  Z create c1 -mixin {C B A}
+  Z create c1 -object-mixin {C B A}
   ? {c1 foo} "C B A Z Y "
   ? {c1 [C info method definitionhandle foo]} "C B A Z Y "
   ? {c1 [B info method definitionhandle foo]} "B A Z Y "
@@ -383,7 +383,7 @@ nx::Test case mixins+method-handles+intrinsic {
   Class create Y {:public method foo {} {return "Y [next]"}}
   Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
 
-  Z create c1 -mixin {C B A}
+  Z create c1 -object-mixin {C B A}
   ? {c1 foo} "C B A Z Y "
   ? {nsf::dispatch c1 -intrinsic foo} "Z Y "
 

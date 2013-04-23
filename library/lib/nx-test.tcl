@@ -31,22 +31,22 @@ namespace eval ::nx {
     :property pre 
     :property post
 
-    :class variable success 0
-    :class variable failure 0
-    :class variable testfile ""
-    :class variable count 0
-    :class variable ms 0
+    :object variable success 0
+    :object variable failure 0
+    :object variable testfile ""
+    :object variable count 0
+    :object variable ms 0
 
-    :public class method success {} {
+    :public object method success {} {
       incr :success
     }
-    :public class method failure {} {
+    :public object method failure {} {
       incr :failure
     }
-    :public class method ms {ms:double} {
+    :public object method ms {ms:double} {
       set :ms [expr {${:ms} + $ms}]
     }
-    :public class method destroy {} {
+    :public object method destroy {} {
       lappend msg \
 	  file [file rootname [file tail ${:testfile}]] \
 	  tests [expr {${:success} + ${:failure}}] \
@@ -61,7 +61,7 @@ namespace eval ::nx {
       next
     }
 
-    :public class method case {name arg:optional} {
+    :public object method case {name arg:optional} {
       #
       # Experimental version of Test case, which (1) accepts test case as argument
       # and (2) destroys all created objects on exit (auto cleanup)
@@ -87,7 +87,7 @@ namespace eval ::nx {
       }
     }
 
-    :public class method parameter {name value:optional} {
+    :public object method parameter {name value:optional} {
       if {[info exists value]} {
 	[self]::slot::$name default $value
 	[self]::slot::$name reconfigure
@@ -96,7 +96,7 @@ namespace eval ::nx {
       }
     }
 
-    :public class method new args {
+    :public object method new args {
       set testfile [file rootname [file tail [info script]]]
       set :testfile $testfile
       if {[info exists :case]} {
@@ -108,7 +108,7 @@ namespace eval ::nx {
       :create ${:name} -name ${:name} {*}$args
     }
 
-    :public class method run {} {
+    :public object method run {} {
       set startTime [clock clicks -milliseconds]
       foreach example [lsort [:info instances -closure]] {
 	$example run

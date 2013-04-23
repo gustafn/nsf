@@ -12,9 +12,9 @@ namespace eval ::nx::var1 {
 }
 
 ::nx::Object create ::nx::var2 {
-  :alias exists ::nsf::var::exists 
-  :alias import ::nsf::var::import
-  :alias set ::nsf::var::set
+  :object alias exists ::nsf::var::exists 
+  :object alias import ::nsf::var::import
+  :object alias set ::nsf::var::set
 }
 
 
@@ -68,21 +68,21 @@ nx::Test case dummy {
   }
   nx::Object create p {
     set :y 1
-    :method foo0 {} {
+    :object method foo0 {} {
       incr :y
     }
-    :method foo1 {} {
+    :object method foo1 {} {
       o eval {incr :x}
     }
-    :method foo2 {} {
+    :object method foo2 {} {
       ::nsf::var::import o x
       incr x
     }
-    :method foo3 {} {
+    :object method foo3 {} {
       ::nx::var1 import o x
       incr x
     }
-    :method foo4 {} {
+    :object method foo4 {} {
       ::nx::var2 import o x
       incr x
     }
@@ -115,4 +115,4 @@ nx::Test case dummy {
   ? {::nsf::var::set o x} 40005
 }
 
-puts stderr =====END
+

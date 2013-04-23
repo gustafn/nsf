@@ -847,7 +847,7 @@ namespace eval ::xotcl {
     if {$definition ne ""} {
       set obj [lindex $definition 0]
       set modifier [lindex $definition 2]
-	if {$modifier eq "class-object"} {
+      if {$modifier eq "object"} {
         set prefix ""
         set kind [lindex $definition 3]
         set name [lindex $definition 4]
@@ -938,7 +938,7 @@ namespace eval ::xotcl {
     }
 
     :public forward instproc %self public method
-    :public forward proc %self public class method
+    :public forward proc %self public object method
 
     #
     # As NX/XOTcl hybrids, all slot kinds would not inherit the
@@ -953,12 +953,12 @@ namespace eval ::xotcl {
   #
   ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot {
     :property multivalued {
-      :public method assign {object property value} {
+      :public object method assign {object property value} {
 	set mClass [expr {$value ? "0..n" : "1..1"}]
 	$object incremental $value
 	$object multiplicity $mClass
       }
-      :public method get {object property} {
+      :public object method get {object property} {
 	return [$object eval [list :isMultivalued]]
       }
     }
@@ -1124,18 +1124,18 @@ namespace eval ::xotcl {
     :property {autoexport {}}
     :property {export {}}
 
-    :public class method create {name args} {
+    :public object method create {name args} {
       set nq [namespace qualifiers $name]
       if {$nq ne "" && ![namespace exists $nq]} {Object create $nq}
       next
     }
 
-    :public class method extend {name args} {
+    :public object method extend {name args} {
       :require $name
       $name configure {*}$args
     }
 
-    :public class method contains script {
+    :public object method contains script {
       if {[info exists :provide]} {
         package provide [set :provide] [set :version]
       } else {
@@ -1159,16 +1159,16 @@ namespace eval ::xotcl {
       }
     }
 
-    :public class method unknown args {
+    :public object method unknown args {
       #puts stderr "unknown: package $args"
       [set :packagecmd] {*}$args
     }
 
-    :public class method verbose value {
+    :public object method verbose value {
       set :verbose $value
     }
 
-    :public class method present args {
+    :public object method present args {
       if {$::tcl_version<8.3} {
         switch -exact -- [lindex $args 0] {
           -exact  {set pkg [lindex $args 1]}
@@ -1184,7 +1184,7 @@ namespace eval ::xotcl {
       }
     }
 
-    :public class method import {{-into ::} pkg} {
+    :public object method import {{-into ::} pkg} {
       :require $pkg
       namespace eval $into [subst -nocommands {
         #puts stderr "*** package import ${pkg}::* into [namespace current]"
@@ -1199,7 +1199,7 @@ namespace eval ::xotcl {
       }
     }
 
-    :public class method require args {
+    :public object method require args {
       #puts "XOTCL package require $args, current=[namespace current]"
       set prevComponent ${:component}
       if {[catch {set v [package present {*}$args]} msg]} {

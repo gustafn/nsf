@@ -1,5 +1,6 @@
 # -*- Tcl -*-
 package require nx
+
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
 
@@ -57,14 +58,14 @@ nx::Test case int-returns {
 
     # query returns "", if there is no returns checking
     ? {::nsf::method::property C lappend returns} ""
-    ? {::nsf::method::property ::nx::Object method returns} ""
+    ? {::nsf::method::property ::nx::Class method returns} ""
 
 }
 
 nx::Test parameter count 10
 nx::Test case app-specific-returns { 
 
-    ::nx::methodParameterSlot method type=range {name value arg} {
+    ::nx::methodParameterSlot object method type=range {name value arg} {
 	foreach {min max} [split $arg -] break
 	if {$value < $min || $value > $max} {
 	    error "Value '$value' of parameter $name not between $min and $max"
@@ -100,7 +101,7 @@ nx::Test case app-specific-returns {
 nx::Test parameter count 1000
 nx::Test case converting-returns { 
 
-    ::nx::methodParameterSlot method type=sex {name value args} {
+    ::nx::methodParameterSlot object method type=sex {name value args} {
         #puts stderr "[current] slot specific converter"
 	switch -glob $value {
 	    m* {return m}
@@ -194,13 +195,13 @@ nx::Test case converting-returns {
 
     # query returns "", if there is no returns checking
     ? {::nsf::method::property C lappend returns} ""
-    ? {::nsf::method::property ::nx::Object method returns} ""
+    ? {::nsf::method::property ::nx::Class method returns} ""
 }
 
 ::nx::Test parameter count 10
 ::nx::Test case app-specific-returns-nocheck { 
 
-    ::nx::methodParameterSlot method type=range {name value arg} {
+    ::nx::methodParameterSlot object method type=range {name value arg} {
 	foreach {min max} [split $arg -] break
 	if {$value < $min || $value > $max} {
 	    error "Value '$value' of parameter $name not between $min and $max"
@@ -236,7 +237,7 @@ nx::Test case converting-returns {
 ::nx::Test parameter count 1000
 ::nx::Test case converting-returns-nocheck { 
 
-    ::nx::methodParameterSlot method type=sex {name value args} {
+    ::nx::methodParameterSlot object method type=sex {name value args} {
         #puts stderr "[current] slot specific converter"
 	switch -glob $value {
 	    m* {return m}
@@ -305,12 +306,13 @@ nx::Test case converting-returns {
 	:alias lappend -returns integer -frame object ::lappend
 	:forward ++ -returns integer ::expr 1 +
 	:forward | -returns integer ::append _ 
-	:public class method instances {} -returns object,1..n {:info instances}
+	:public object method instances {} -returns object,1..n {:info instances}
 	:create c1
     }
 
     package req nx::serializer
     set s [C serialize]
+  puts $s
     ? [list set _ [regsub -all returns $s returns s]] 8 "occurances of returns"
 
     ? {c1 bar-ok1 1 2} 1
@@ -348,27 +350,27 @@ nx::Test case converting-returns {
 
     # query returns "", if there is no returns checking
     ? {::nsf::method::property C lappend returns} ""
-    ? {::nsf::method::property ::nx::Object method returns} ""
+    ? {::nsf::method::property ::nx::Class method returns} ""
 
 }
 
 ::nx::Test case empty-paramdefs-robustedness {
   ::nx::Object create ku {
     # 1: Create an empty or checker-free parameter spec
-    :method foo {} {;}
-    ? [:info method parameter foo] ""
+    :object method foo {} {;}
+    ? [:info object method parameter foo] ""
     # 2: A call to ::nsf::method::property which might require NsfParamDefs
     ? [list ::nsf::method::property [::nx::current] foo returns] ""
     # 3: Check, if "info method parameter" still works
-    ? [:info method parameter foo] ""
+    ? [:info object method parameter foo] ""
     ? [list ::nsf::method::property [::nx::current] foo returns] ""
     # 4: Set methodproperty to some value and check again
     ::nsf::method::property [::nx::current] foo returns int
     ? [list ::nsf::method::property [::nx::current] foo returns] "int"
-    ? [:info method parameter foo] ""
+    ? [:info object method parameter foo] ""
     # 5: Reset methodproperty and query again
     ::nsf::method::property [::nx::current] foo returns ""
     ? [list ::nsf::method::property [::nx::current] foo returns] ""
-    ? [:info method parameter foo] ""
+    ? [:info object method parameter foo] ""
   }
 }

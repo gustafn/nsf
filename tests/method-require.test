@@ -45,12 +45,12 @@ nx::Test case method-require {
     # are multiple set methods, we could point to the right one
     ? [list [self] require method tcl::set] "::nsf::classes::C::set"
     
-    # class methods
-    ? [list [self] require class method lappend] "::C::lappend"
+    # object methods
+    ? [list [self] require object method lappend] "::C::lappend"
     
-    # a scripted class method
-    ? [list [self] require class method foo] "::C::foo"
-    ? [list [self] require class method x] "::nsf::classes::MIX::x"
+    # a scripted object method
+    ? [list [self] require object method foo] "::C::foo"
+    ? [list [self] require object method x] "::nsf::classes::MIX::x"
     ? [list [self] require method x] "::nsf::classes::MIX::x"
     
     # looks as well ok:
@@ -66,7 +66,7 @@ nx::Test case method-require {
   ? {C require protected method lappend} ::nsf::classes::C::lappend
   ? {::nsf::method::property C lappend call-protected} 1
   
-  ? {C require protected class method set} ::C::set
+  ? {C require protected object method set} ::C::set
   ? {::nsf::method::property C ::C::set call-protected} 1
   #
   # call these methods
@@ -82,20 +82,20 @@ nx::Test case method-require {
   # Definitions directly on object
   #
   Object create o1
-  ? {o1 require method set} ::o1::set
-  ? {o1 require method x} ::nsf::classes::MIX::x
+  ? {o1 require object method set} ::o1::set
+  ? {o1 require object method x} ::nsf::classes::MIX::x
 
-  ? {o1 require public method lappend} ::o1::lappend
+  ? {o1 require public object method lappend} ::o1::lappend
   ? {::nsf::method::property o1 lappend call-protected} 0
 
-  ? {o1 require protected method lappend} ::o1::lappend
+  ? {o1 require protected object method lappend} ::o1::lappend
   ? {::nsf::method::property o1 lappend call-protected} 1
 
 }
 
 nx::Test case parent-require { 
   
-  ::nx::Class public class method __unknown {name} {
+  ::nx::Class public object method __unknown {name} {
     #puts stderr "***** __unknown called with <$name>"
     ::nx::Object create $name
   }

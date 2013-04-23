@@ -2,10 +2,10 @@
 package req nx
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
-namespace import ::nx::*
+#namespace import ::nx::*
 
-Test parameter count 100
-Test case submethods {
+nx::Test parameter count 100
+nx::Test case submethods {
   #Object method unknown {} {}
   Object create o1   
   ? {o1 foo} "::o1: unable to dispatch method 'foo'"
@@ -16,15 +16,15 @@ Test case submethods {
   # - names equal to helper methods of the ensemble object
   #
   Object create o {
-    :method "string length"  x {return [current method]}
-    :method "string tolower" x {return [current method]}
-    :method "string info" x {return [current method]}
-    :method "foo a x" {} {return [current method]}
-    :method "foo a y" {} {return [current method]}
-    :method "foo a subcmdName" {} {return [current method]}
-    :method "foo a defaultmethod" {} {return [current method]}
-    :method "foo a unknown" args {return [current method]}
-    :method "foo b" {} {return [current method]}
+    :object method "string length"  x {return [current method]}
+    :object method "string tolower" x {return [current method]}
+    :object method "string info" x {return [current method]}
+    :object method "foo a x" {} {return [current method]}
+    :object method "foo a y" {} {return [current method]}
+    :object method "foo a subcmdName" {} {return [current method]}
+    :object method "foo a defaultmethod" {} {return [current method]}
+    :object method "foo a unknown" args {return [current method]}
+    :object method "foo b" {} {return [current method]}
   }
   Class create Foo {
     :method "bar m1" {a:integer -flag} {;}
@@ -46,7 +46,7 @@ Test case submethods {
   ? {o foo a z} \
       {unable to dispatch sub-method "z" of ::o foo a; valid are: foo a defaultmethod, foo a subcmdName, foo a unknown, foo a x, foo a y}
 
-  ? {o info method type string} object
+  ? {o info object method type string} object
   # the following is a problem, when string has subcmd "info"
   #? {o::string info class} ::nx::EnsembleObject
   
@@ -63,18 +63,18 @@ Test case submethods {
 #unable to dispatch method <obj> baz a m3; valid subcommands of a: m1 m2}
 #
 
-Test parameter count 1 
-Test case defaultmethod {
+nx::Test parameter count 1 
+nx::Test case defaultmethod {
   Object create o {
-    :method "string length"  x {return [current method]}
-    :method "string tolower" x {return [current method]}
-    :method "string info" x {return [current method]}
-    :method "foo a x" {} {return [current method]}
-    :method "foo a y" {} {return [current method]}
-    :method "foo a subcmdName" {} {return [current method]}
-    :method "foo a defaultmethod" {} {return [current method]}
-    :method "foo a unknown" args {return [current method]}
-    :method "foo b" {} {return [current method]}
+    :object method "string length"  x {return [current method]}
+    :object method "string tolower" x {return [current method]}
+    :object method "string info" x {return [current method]}
+    :object method "foo a x" {} {return [current method]}
+    :object method "foo a y" {} {return [current method]}
+    :object method "foo a subcmdName" {} {return [current method]}
+    :object method "foo a defaultmethod" {} {return [current method]}
+    :object method "foo a unknown" args {return [current method]}
+    :object method "foo b" {} {return [current method]}
   }
   Class create Foo {
     :method "bar m1" {a:integer -flag} {;}
@@ -96,8 +96,8 @@ Test case defaultmethod {
 #
 # testing ensemble objects with next
 #
-Test parameter count 1
-Test case ensemble-next {
+nx::Test parameter count 1
+nx::Test case ensemble-next {
 
   nx::Class create FOO {
     # reduced ensemble
@@ -179,7 +179,7 @@ Test case ensemble-next {
   ? {f1 l1 l2 l3a 100} "{M1.l1 l2 l3a//l3a (100)} {l1 l2//l2 (l3a 100)} {FOO.l1 l2 l3a//l3a (100)}"
 }
 
-Test case ensemble-partial-next {
+nx::Test case ensemble-partial-next {
   nx::Class create M {
     :public method "info has namespace" {} {
       nx::next
@@ -229,7 +229,7 @@ Test case ensemble-partial-next {
 
   # defaultcmd has to return also subcmds of other shadowed ensembles
   ? {lsort [o1 info has]} "valid submethods of ::o1 info has: mixin namespace something type"
-  ? {lsort [o1 info]} "valid submethods of ::o1 info: children class filter has info is lookup method methods mixin name parent precedence slot vars"
+  ? {lsort [o1 info]} "valid submethods of ::o1 info: children class has info is lookup name object parent precedence slot vars"
 
   # returning methodpath in ensemble
   ? {o1 info has something path} "info has something path"
@@ -241,7 +241,7 @@ Test case ensemble-partial-next {
 #
 # Check behavior of upvars in ensemble methods
 #
-Test case ensemble-upvar {
+nx::Test case ensemble-upvar {
 
   nx::Class create FOO {
     :method "bar0 x" {varname} {upvar $varname v; return [info exists v]}
@@ -264,13 +264,13 @@ Test case ensemble-upvar {
 #
 # Check behavior of next with arguments within an ensemble
 #
-Test case ensemble-next-with-args {
+nx::Test case ensemble-next-with-args {
   nx::Object create o {
-    :method foo {x}          {return $x}
-    :method "e1 sm" {x}      {return $x}
-    :method "e2 sm1 sm2" {x} {return $x}
-    :method "e2 e2 e2" {x}   {return $x}
-    :method "e1 e1 e1" args  {return $args}
+    :object method foo {x}          {return $x}
+    :object method "e1 sm" {x}      {return $x}
+    :object method "e2 sm1 sm2" {x} {return $x}
+    :object method "e2 e2 e2" {x}   {return $x}
+    :object method "e1 e1 e1" args  {return $args}
   }
   nx::Class create M {
     :method foo {}          {next 1}
@@ -279,7 +279,7 @@ Test case ensemble-next-with-args {
     :method "e2 e2 e2" {}   {next 4}
     :method "e1 e1 e1" args {next {e1 e1 e1}}
   }
-  o mixin add M
+  o object mixin add M
 
   # case without ensemble
   ? {o foo} 1
@@ -297,12 +297,12 @@ Test case ensemble-next-with-args {
   ? {o e1 e1 e1} {e1 e1 e1}
 }
 
-Test parameter count 1
-Test case ensemble-next-with-colon-prefix
+nx::Test parameter count 1
+nx::Test case ensemble-next-with-colon-prefix
 namespace eval ::ns1 {
-  Object create obj {
-    :public method foo {} { return [:info class] } 
-    :public method ifoo {} { [current] ::nsf::methods::object::info::lookupmethod info} 
+  nx::Object create obj {
+    :public object method foo {} { return [:info class] } 
+    :public object method ifoo {} { [current] ::nsf::methods::object::info::lookupmethod info} 
   }
   
   ? {obj info class} ::nx::Object
@@ -317,7 +317,7 @@ namespace eval ::ns1 {
   ? [list obj $infolookup info] ::nsf::classes::nx::Object::info
   ? [list obj $infomethod type ::nsf::classes::nx::Object::info] alias
   
-  obj method info {} {;}
+  obj object method info {} {;}
   ? [list obj $infolookup info] ::ns1::obj::info
   ? [list obj $infomethod type ::ns1::obj::info] scripted
   ? {obj ifoo} ::ns1::obj::info
@@ -325,9 +325,9 @@ namespace eval ::ns1 {
 
   # Now we try to overwrite the object specific method with an object
   # named "info"
-  ? {Object create obj::info} "refuse to overwrite cmd ::ns1::obj::info; delete/rename it before overwriting"
+  ? {nx::Object create obj::info} "refuse to overwrite cmd ::ns1::obj::info; delete/rename it before overwriting"
   rename obj::info ""
-  ? {Object create obj::info} ::ns1::obj::info
+  ? {nx::Object create obj::info} ::ns1::obj::info
   ? [list obj $infolookup info] ::ns1::obj::info
   ? [list obj $infomethod type ::ns1::obj::info] object
   
@@ -348,15 +348,15 @@ namespace eval ::ns1 {
 # NextSearchAndInvoke())
 #
 nx::Test case leaf-next-in-submethods {
-  Object create container {
+  nx::Object create container {
     set :x 0
-    :public method "FOO bar" {} { 
+    :public object method "FOO bar" {} { 
       incr :x; next; # a "leaf next" 
     }
-    :public method intercept args { 
+    :public object method intercept args { 
       incr :x; next; # a "filter next" 
     }
-    :filter intercept
+    :object filter intercept
     :FOO bar
     # Rationale: A call count > 2 would indicate that the leaf next
     # triggers a further call into filter ...
@@ -379,8 +379,8 @@ nx::Test case submethods-current-introspection {
   #
   # [current] & [current class]
   #
-  Object create o
-  o public method "FOO foo" {} {
+  nx::Object create o
+  o public object method "FOO foo" {} {
     return "-[current]-[current class]-"
   }
   ? {o FOO foo} -::o--
@@ -400,10 +400,10 @@ nx::Test case submethods-current-introspection {
 
   ? {c FOO foo} -::c-::M1-::c-::C-
   
-  o mixin ::M1
+  o object mixin ::M1
   ? {o FOO foo} -::o-::M1-::o--
 
-  o mixin {}
+  o object mixin {}
   C mixin {}
 
   #
@@ -411,7 +411,7 @@ nx::Test case submethods-current-introspection {
   #
 
   o eval {
-    :public method faz {} {return [concat [current methodpath] [current method]]}
+    :public object method faz {} {return [concat [current methodpath] [current method]]}
     ? [list set _ [:faz]] "faz"
   }
 
@@ -421,33 +421,33 @@ nx::Test case submethods-current-introspection {
 
   o eval {
     set body {? [list set _ [:bar]] [current class]-[current]-[concat [current methodpath] [current method]]}
-    :public method "FOO foo" {} $body
-    :public method "BAR BUU boo" {} $body
-    :public method baz {} $body
+    :public object method "FOO foo" {} $body
+    :public object method "BAR BUU boo" {} $body
+    :public object method baz {} $body
 
     set calleeBody {return "[current callingclass]-[current callingobject]-[current callingmethod]"}
-    :method bar {} $calleeBody
+    :public object method bar {} $calleeBody
 
     :FOO foo
     :BAR BUU boo
     :baz
 
-    :method "a b" {} $calleeBody
+    :object method "a b" {} $calleeBody
     set body {? [list set _ [:a b]] [current class]-[current]-[concat [current methodpath] [current method]]}
-    :public method "FOO foo" {} $body
-    :public method "BAR BUU boo" {} $body
-    :public method baz {} $body
+    :public object method "FOO foo" {} $body
+    :public object method "BAR BUU boo" {} $body
+    :public object method baz {} $body
 
     :FOO foo
     :BAR BUU boo
     :baz
 
     # TODO: :method "a b c" {} $calleeBody; FAILS -> "can't append to scripted"
-    :method "x y z" {} $calleeBody;
+    :object method "x y z" {} $calleeBody;
     set body {? [list set _ [:x y z]] [current class]-[current]-[concat [current methodpath] [current method]]}
-    :public method "FOO foo" {} $body
-    :public method "BAR BUU boo" {} $body
-    :public method baz {} $body
+    :public object method "FOO foo" {} $body
+    :public object method "BAR BUU boo" {} $body
+    :public object method baz {} $body
 
     :FOO foo
     :BAR BUU boo
@@ -492,7 +492,7 @@ nx::Test case submethods-current-introspection {
   # filter-local argv.
 
   Class create Z {
-    :class property -accessor public msg
+    :object property -accessor public msg
     :method intercept args {
       [current class] eval [list set :msg [list [current methodpath] \
 					       [current calledmethod] \
@@ -546,7 +546,7 @@ nx::Test case per-object-dispatch {
     :public method foo {} {return foo-[self]}
     :public method baz {} {return [c1::1 baz]}
     :create c1 {
-      :public method bar {} {return bar-[self]}
+      :public object method bar {} {return bar-[self]}
     }
   }
 
@@ -554,8 +554,8 @@ nx::Test case per-object-dispatch {
   ? {c1 bar} "bar-::c1"
   
   C create c1::1 {
-    :public method bar {} {return bar-[self]}
-    :public method baz {} {return baz-[self]}
+    :public object method bar {} {return bar-[self]}
+    :public object method baz {} {return baz-[self]}
   }
 
   #
@@ -622,13 +622,13 @@ nx::Test case child-obj-delegation {
 
   nx::Object create obj {
     nx::Object create [self]::child {
-      :public method foo {} {return [self]}
+      :public object method foo {} {return [self]}
     }
-    :public forward link1 {%[self]::child}
-    :public forward link2 :child
-    :public method  link3 args {[self]::child {*}$args}
-    :public alias   link4 [self]::child
-    :public forward link5 [self]::child
+    :public object forward link1 {%[self]::child}
+    :public object forward link2 :child
+    :public object method  link3 args {[self]::child {*}$args}
+    :public object alias   link4 [self]::child
+    :public object forward link5 [self]::child
   }
 
   #
@@ -648,12 +648,12 @@ nx::Test case child-obj-delegation {
   ? {obj link5 foo} {::obj::child}
   ? {obj child foo} {::obj::child}
 
-  #? {lsort [obj info methods child]} {}
-  #? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
+  #? {lsort [obj info object methods child]} {}
+  #? {lsort [obj info object methods]} {link1 link2 link3 link4 link5}
   #? {lsort [obj info lookup methods child]} {}
   #? {lsort [obj info lookup methods child*]} {}
-  ? {lsort [obj info methods child]} {child}
-  ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
+  ? {lsort [obj info object methods child]} {child}
+  ? {lsort [obj info object methods]} {child link1 link2 link3 link4 link5}
   ? {lsort [obj info lookup methods child]} {child}
   ? {lsort [obj info lookup methods child*]} {child}
 
@@ -671,12 +671,12 @@ nx::Test case child-obj-delegation {
   ? {obj link5 foo} {::obj::child}
   ? {obj child foo} {::obj}
 
-  #? {lsort [obj info methods child]} {}
-  #? {lsort [obj info methods]} {link1 link2 link3 link4 link5}
+  #? {lsort [obj info object methods child]} {}
+  #? {lsort [obj info object methods]} {link1 link2 link3 link4 link5}
   #? {lsort [obj info lookup methods child]} {}
   #? {lsort [obj info lookup methods child*]} {}
-  ? {lsort [obj info methods child]} {child}
-  ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
+  ? {lsort [obj info object methods child]} {child}
+  ? {lsort [obj info object methods]} {child link1 link2 link3 link4 link5}
   ? {lsort [obj info lookup methods child]} {child}
   ? {lsort [obj info lookup methods child*]} {child}
 
@@ -694,8 +694,8 @@ nx::Test case child-obj-delegation {
   ? {obj link5 foo} {::obj::child}
   ? {obj child foo} {::obj::child}
 
-  ? {lsort [obj info methods child]} {child}
-  ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
+  ? {lsort [obj info object methods child]} {child}
+  ? {lsort [obj info object methods]} {child link1 link2 link3 link4 link5}
   ? {lsort [obj info lookup methods child]} {child}
   ? {lsort [obj info lookup methods child*]} {child}
 
@@ -715,8 +715,8 @@ nx::Test case child-obj-delegation {
   #? {obj child foo} {::obj: unable to dispatch method 'foo'}
   ? {obj child foo} {::obj}
 
-  ? {lsort [obj info methods child]} {child}
-  ? {lsort [obj info methods]} {child link1 link2 link3 link4 link5}
+  ? {lsort [obj info object methods child]} {child}
+  ? {lsort [obj info object methods]} {child link1 link2 link3 link4 link5}
   ? {lsort [obj info lookup methods child]} {child}
   ? {lsort [obj info lookup methods child*]} {child}
 }
@@ -734,13 +734,13 @@ nx::Test case keepcallerself {
 
   C create c1 {
     ::nsf::object::property [self] keepcallerself true
-    :public method bar {} {return c1-[self]}
-    :public method baz {} {return c1-[self]}
+    :public object method bar {} {return c1-[self]}
+    :public object method baz {} {return c1-[self]}
   }
 
   D create d1 {
-    :public method bar {} {return d1-[self]}
-    :public alias c1 ::c1
+    :public object method bar {} {return d1-[self]}
+    :public object alias c1 ::c1
   }
   
   # The normal dispatch ignores the keepcallerself completely
@@ -770,12 +770,12 @@ nx::Test case keepcallerself {
   C create c1 {
     ::nsf::object::property [self] keepcallerself true
     ::nsf::object::property [self] perobjectdispatch true
-    :public method bar {} {return c1-[self]}
-    :public method baz {} {return c1-[self]}
+    :public object method bar {} {return c1-[self]}
+    :public object method baz {} {return c1-[self]}
   }
   D create d1 {
-    :public method bar {} {return d1-[self]}
-    :public alias c1 ::c1
+    :public object method bar {} {return d1-[self]}
+    :public object alias c1 ::c1
   }
 
   # The normal dispatch ignores the keepcallerself and

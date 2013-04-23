@@ -15,7 +15,7 @@ nx::Class create AbstractQueue {
   :public method enqueue {item} {error "not implemented"}
   :public method dequeue {} {error "not implemented"}
  
-  :public class method create {args} {
+  :public object method create {args} {
     error "Cannot instantiate abstract class [self]"
   }
 }

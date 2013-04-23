@@ -124,14 +124,14 @@ nx::Class create Mix {
 # the precedence list. A decorator is able to modify the behavior of
 # all of the methods of the class, where it is mixed into.
 
-? {g1 mixin Mix} "::Mix"
+? {g1 object mixin Mix} "::Mix"
 
 ? {g1 info precedence} "::Mix ::Group ::Enumerable ::nx::Object"
 
 ? {g1 count} {alpha 3 omega}
 
 # For the time being, remove the mixin class again.
-? {g1 mixin ""} ""
+? {g1 object mixin ""} ""
 ? {g1 info precedence} "::Group ::Enumerable ::nx::Object"
 
 #

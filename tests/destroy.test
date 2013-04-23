@@ -1,5 +1,7 @@
 # -*- Tcl -*-
 package require nx
+package require nx::plain-object-method
+
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
 
@@ -439,8 +441,8 @@ Test case deleting-aliased-object1 {
   ? {o a} ::o2 "call object via alias"
   ? {o info method type a} alias
   ## the ensemble-object needs per-object methods
-  o2 method info args {:info {*}$args}
-  o2 method set args {:set {*}$args}
+  o2 object method info args {:info {*}$args}
+  o2 object method set args {:set {*}$args}
   ::nsf::object::property o2 keepcallerself 1
   ? {o a info vars} "" "call info on aliased object"
   ? {o set x 10} 10   "set variable on object"
@@ -466,8 +468,8 @@ Test case deleting-aliased-object2 {
   ? {o info method type a} alias
   # In order to avoid recursive calls, we have to provide the
   # selector for the method definitions in nx::Object
-  o2 method info args {: ::nsf::classes::nx::Object::info {*}$args}
-  o2 method set args {: ::nsf::classes::nx::Object::set {*}$args}
+  o2 object method info args {: ::nsf::classes::nx::Object::info {*}$args}
+  o2 object method set args {: ::nsf::classes::nx::Object::set {*}$args}
 
   ? {o a info vars} ""   "call info on aliased object"
   ? {o set x 10} 10     "set variable on object o"
@@ -511,9 +513,9 @@ o destroy
 Test case create-alias-and-recreate-obj {
   Object create o
   Object create o3
-  o alias x o3
+  o object alias x o3
   Object create o3
-  o3 method set args {: ::nsf::classes::nx::Object::set {*}$args}
+  o3 object method set args {: ::nsf::classes::nx::Object::set {*}$args}
   o x set a 13
   ? {o x set a} 13 "aliased object works after recreate"
 }
@@ -531,11 +533,11 @@ Test case create-alias-on-class-delete-aliased-obj {
   ::nsf::object::property o3 keepcallerself 1
   ::nsf::object::property o perobjectdispatch 1
   ::nsf::object::property o3 perobjectdispatch 1
-  o alias a o3
+  o object alias a o3
   C alias b o
 
-  o3 method set args {: ::nsf::classes::nx::Object::set {*}$args}
-  o method set args {: ::nsf::classes::nx::Object::set {*}$args}
+  o3 object method set args {: ::nsf::classes::nx::Object::set {*}$args}
+  o object method set args {: ::nsf::classes::nx::Object::set {*}$args}
 
   C create c1
   ? {c1 b set B 2} 2 "call 1st level"
@@ -555,7 +557,7 @@ Test case create-alias-on-class-destroy-class {
   Class create C
   Object create o
   Object create o3
-  o alias a o3
+  o object alias a o3
   C alias b o
   C create c1
   C destroy
@@ -803,7 +805,7 @@ package req nx::serializer
 nx::Test case class-object-property {
 
   Class create C {
-    :class property -accessor public x
+    :object property -accessor public x
     :property a:int
   }
 
@@ -859,7 +861,7 @@ nx::Test case unset-traces-during-cleanup-with-destroy {
   $i eval {
     package req nx
     nx::Object create o {
-      :public method destroy args {
+      :public object method destroy args {
 	incr ::X
 	next
       } 
@@ -928,7 +930,7 @@ nx::Test case unset-traces-during-cleanup-with-reset {
 #
 nx::Test case rename-cached-method {
   # Create a class with a namespace
-  nx::Class create A {:public class method foo args {}}
+  nx::Class create A {:public object method foo args {}}
   #
   # Add a proc named "new" to the namespace of the class.
   # This is not recommended, but we can't avoid it.

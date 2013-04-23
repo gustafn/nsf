@@ -67,13 +67,13 @@ nsf::proc nx::trait::require {traitName} {
 #
 nsf::proc nx::trait::add {obj -per-object:switch traitName {nameMap ""}} {
   array set map $nameMap
-  foreach m [$traitName info methods -callprotection all] {
+  foreach m [$traitName info object methods -callprotection all] {
     if {[info exists map($m)]} {set newName $map($m)} else {set newName $m}
     # do not add entries with $newName empty
     if {$newName eq ""} continue
-    set traitMethodHandle [$traitName info method definitionhandle $m]
-    if {${per-object}} {
-      $obj ::nsf::classes::nx::Object::alias $newName $traitMethodHandle
+    set traitMethodHandle [$traitName info object method definitionhandle $m]
+    if {${per-object} || ![::nsf::is class $obj]} {
+      $obj object alias $newName $traitMethodHandle
     } else {
       $obj public alias $newName $traitMethodHandle
       # We define property inheritance for the time being only for

@@ -2,6 +2,7 @@
 # testing mixinof
 package require nx
 package require nx::test
+
 namespace import ::nx::*
 Test parameter count 100
 
@@ -9,9 +10,9 @@ Test parameter count 100
 # testing simple per object mixins
 ###########################################
 Class create A
-Object create o -mixin A
-? {o mixin} ::A
-? {o info mixin classes} ::A
+Object create o -object-mixin A
+? {o object mixin} ::A
+? {o info object mixin classes} ::A
 ? {A info mixinof} ::o
 
 o destroy
@@ -29,8 +30,8 @@ Class create C -superclass B
 Class create M 
 B mixin M
 
-Object create o -mixin C
-Object create o1 -mixin B
+Object create o -object-mixin C
+Object create o1 -object-mixin B
 ? {C info mixinof} ::o
 ? {lsort [B info mixinof -closure]} "::o ::o1"
 ? {lsort [B info mixinof -closure ::o1]} "::o1"
@@ -50,19 +51,19 @@ C destroy
 # testing per object mixins with redefinition
 ###########################################
 Class create M {:method foo args {puts x;next}}
-Object create o -mixin M 
+Object create o -object-mixin M 
 
-? {o info mixin classes} ::M
+? {o info object mixin classes} ::M
 ? {o info precedence} "::M ::nx::Object"
 ? {o info lookup method foo} "::nsf::classes::M::foo"
 
 Class create M {:method foo args next}
-? {o info mixin classes} ::M
+? {o info object mixin classes} ::M
 ? {o info precedence} "::M ::nx::Object"
 ? {o info lookup method foo} "::nsf::classes::M::foo"
 
 M destroy
-? {o info mixin classes} ""
+? {o info object mixin classes} ""
 ? {o info precedence} "::nx::Object"
 ? {o info lookup method foo} ""
 
@@ -490,13 +491,13 @@ Test case nx-mixinof {
   Class create M
   Class create A
   Class create C
-  C create c1 -mixin A
+  C create c1 -object-mixin A
   C create c2
   Class create C2 -mixin A
   C2 create c22
 
-  ? {c1 mixin} ::A
-  ? {c1 info mixin classes} ::A
+  ? {c1 object mixin} ::A
+  ? {c1 info object mixin classes} ::A
   ? {lsort [A info mixinof]} "::C2 ::c1"
   ? {M info mixinof} ""
   C mixin M

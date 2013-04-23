@@ -17758,8 +17758,12 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
 			     ? Tcl_NewStringObj("protected", 9)
 			     : Tcl_NewStringObj("public", 6));
   }
-  if (withPer_object) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class", 5));
+
+  //if (withPer_object) {
+  //  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class", 5));
+  //}
+  if (!NsfObjectIsClass(object) || withPer_object) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, -1));
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, -1));

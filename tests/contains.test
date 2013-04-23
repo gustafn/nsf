@@ -2,6 +2,7 @@
 package prefer latest
 package require nx
 
+
 #
 # Intentionally, we do not want to make a "namespace import" in this
 # test file. Run this file via a pure tclsh!
@@ -78,7 +79,7 @@ nx::Class create C {
 C create c2 {
   set :s [self]
   set :c [current]
-  :public method bar {} {return "[set :s]-[set :c]"}
+  :public object method bar {} {return "[set :s]-[set :c]"}
 }
 ? {c2 bar} "::c2-::c2"
 
@@ -99,7 +100,7 @@ namespace eval ::nx {
 
   #puts stderr =====1
   set c [Class create C -superclass Class {
-    :class method foo {} {;}
+    :object method foo {} {;}
   }]
   ? {set c} ::C
 

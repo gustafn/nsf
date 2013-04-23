@@ -13,7 +13,7 @@ nx::Object create make {
   #
   # shared lib add files for pkgIndex.tcl
   #
-  :method mkIndex {name} {
+  :object method mkIndex {name} {
     #puts stderr "+++ mkIndex in [pwd]"
     set fls {}
     foreach f [glob -nocomplain *tcl] {
@@ -78,7 +78,7 @@ nx::Object create make {
     #puts stderr "+++ mkIndex name=$name, pwd=[pwd] DONE"
   }
 
-  :public method inEachDir {path cmd} {
+  :public object method inEachDir {path cmd} {
     #puts stderr "[pwd] inEachDir $path  [file isdirectory $path]"
     if { [file isdirectory $path] 
          && ![string match *CVS $path]
@@ -98,7 +98,7 @@ nx::Object create make {
     }
   }
 
-  :method in {path cmd} {
+  :object method in {path cmd} {
     if {[file isdirectory $path] && ![string match *CVS $path]} {
       set olddir [pwd]
       cd $path
@@ -123,7 +123,7 @@ nx::Object create file {
   }
 
   foreach subcmd [array names :destructive] {
-    :public method $subcmd args {
+    :public object method $subcmd args {
       #puts stderr " [pwd] call: '::tcl_file [current method] $args'"
       ::tcl_file [current method] {*}$args
     }
@@ -136,7 +136,7 @@ proc open {f {mode r}} { file open $f $mode }
 
 ### minus n option
 nx::Class create make::-n
-foreach f [file info methods] {
+foreach f [file info object methods] {
   if {$f eq "unknown" || $f eq "next" || $f eq "self"} continue
   if {![file exists destructive($f)] || [file eval [list set :destructive($f)]]} {
     #puts stderr destruct=$f
@@ -158,7 +158,7 @@ if {![info exists argv] || $argv eq ""} {set argv -all}
 if {$argv eq "-n"} {set argv "-n -all"}
 
 nx::Class create Script {
-  :public class method create args {
+  :public object method create args {
     lappend args {*}$::argv
     set s [next]
     set method [list]
@@ -167,12 +167,15 @@ nx::Class create Script {
         "-all" {$s all}
         "-n" {$s n}
         "-*" {set method [string range $arg 1 end]}
-        default {$s $method $arg}
+        default {
+	  puts "$s $method $arg"
+	  $s $method $arg
+	}
       }
     }
   }
 
-  :method unknown args {
+  :object method unknown args {
     puts stderr "$::argv0: Unknown option ´-$args´ provided"
   }
 

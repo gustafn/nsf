@@ -93,11 +93,11 @@ nx::Test case protected+filter {
   ? {c1 foo} foo
 
   # add a protected filter
-  c1 filter add f1
+  c1 object filter add f1
   ? {c1 foo} foo
 
   # add a private filter
-  c1 filter add f2
+  c1 object filter add f2
   ? {c1 foo} foo
 }
 
@@ -143,9 +143,9 @@ nx::Test case redefined-protected {
   
   # redefine-protect object specific method
   nx::Object create o
-  o method foo {} {return 13}
+  o object method foo {} {return 13}
   ::nsf::method::property o foo redefine-protected true
-  ? {o method foo {} {return 14}} \
+  ? {o object method foo {} {return 14}} \
       {refuse to overwrite protected method 'foo'; derive e.g. a sub-class!}
 }
 
@@ -160,14 +160,14 @@ nx::Test case private-helper {
     :public method bar {} {return "B.bar [next]"}
     :public method baz {} {return "B.baz [next]"}
     :create b1 {
-      :public method baz {} {return "b1.baz [next]"}
+      :public object method baz {} {return "b1.baz [next]"}
     }
   }
   nx::Class create C -superclass B {
     :public method bar {} {return "C.bar [next]"}
     :public method baz {} {return "C.baz [next]"}
     :create c1 {
-      :public method baz {} {return "c1.baz [next]"}
+      :public object method baz {} {return "c1.baz [next]"}
     }
   }
 
@@ -214,18 +214,18 @@ nx::Test case object-private-helper {
     :public method bar {} {return "B.bar [next]"}
     :public method baz {} {return "B.baz [next]"}
     :create b1 {
-      :public  method foo {} {: -local bar}
-      :private method bar {} {: -local baz}
-      :private method baz {} {return "b1.baz"}
+      :public  object method foo {} {: -local bar}
+      :private object method bar {} {: -local baz}
+      :private object method baz {} {return "b1.baz"}
     }
   }
   nx::Class create C -superclass B {
     :public method bar {} {return "C.bar [next]"}
     :public method baz {} {return "C.baz [next]"}
     :create c1 {
-      :public  method foo {} {: -local bar}
-      :private method bar {} {: -local baz}
-      :private method baz {} {return "c1.baz"}
+      :public  object method foo {} {: -local bar}
+      :private object method bar {} {: -local baz}
+      :private object method baz {} {return "c1.baz"}
     }
   }
 
@@ -280,13 +280,13 @@ nx::Test case local+filter {
 
   # add a filter; be sure that we still can call the private -local
   # method
-  d1 filter add f1
+  d1 object filter add f1
   ? {d1 baz} "f1 D.baz C.baz "
   ? {d1 foo} "f1 C.foo f1 bar"
   ? {d1 bar} "::d1: unable to dispatch method 'bar'"
 
   # remove the filter
-  d1 filter ""
+  d1 object filter ""
   # define call to private method via method handle
   C public method foo {} { return "C.foo [[self] [C info method registrationhandle bar]]"}
 
@@ -296,7 +296,7 @@ nx::Test case local+filter {
   ? {d1 bar} "::d1: unable to dispatch method 'bar'"
 
   # add a filter; be sure that we still can call the private method
-  d1 filter add f1
+  d1 object filter add f1
   ? {d1 baz} "f1 D.baz C.baz "
   ? {d1 foo} "f1 C.foo f1 bar"
   ? {d1 bar} "::d1: unable to dispatch method 'bar'"
@@ -420,16 +420,16 @@ nx::Test case object-my-local {
     :public method foo2 {} {return "M2 [next]"}
   }
   nx::Object create o1 {
-    :protected method foo {} {return o1}
-    :public method foo2 {} {:foo}
-    :public method bar {} {: -local foo}
+    :protected object method foo {} {return o1}
+    :public object method foo2 {} {:foo}
+    :public object method bar {} {: -local foo}
   }
 
   ? {o1 foo} {::o1: unable to dispatch method 'foo'}
   ? {o1 bar} o1
   ? {o1 foo2} o1
 
-  o1 mixin add M
+  o1 object mixin add M
 
   ? {o1 foo} "M o1"
   ? {o1 bar} "o1"
@@ -488,9 +488,9 @@ nx::Test case system-flag {
   # create an object, which overloads some system behavior
   #
   nx::Object create o1 {
-    :public method info {} {return "overloads system info"}
-    :public method destroy {} {return "overloads system destroy"}
-    :public method method args {return "overloads method method"}
+    :public object method info {} {return "overloads system info"}
+    :public object method destroy {} {return "overloads system destroy"}
+    :public object method "object method" args {return "overloads method 'object method'"}
     :variable v 1
   }
   
@@ -502,8 +502,8 @@ nx::Test case system-flag {
 
   #? {o1 -system} "no method name specified"
 
-  ? {o1 method foo {} {return foo}} "overloads method method"
-  ? {nx::dispatch o1 -system public method foo {} {return foo}} "::o1::foo"
+  ? {o1 object method foo {} {return foo}} "overloads method 'object method'"
+  ? {nx::dispatch o1 -system public object method foo {} {return foo}} "::o1::foo"
   
   ? {o1 destroy} "overloads system destroy"
   ? {nsf::object::exists o1} 1
@@ -559,7 +559,7 @@ nx::Test case class-my-local+next {
     :public method foo {a b} {: -local baz $a $b}
   }
 
-  b1 mixin add Mix
+  b1 object mixin add Mix
 
   # we can call Mix.baz only through Mix.foo
   ? {b1 foo 4 5} 1024
@@ -648,44 +648,44 @@ nx::Test case call-protected-flags {
 #
 nx::Test case private-subobject {
   nx::Object create obj {
-    :public method foo {} {return foo-[self]}
+    :public object method foo {} {return foo-[self]}
     nx::Object create [self]::child {
-      :public method bar {} {return bar-[self]}
+      :public object method bar {} {return bar-[self]}
     }
   }
   
   ? {obj child bar}    "bar-::obj::child"
   ? {obj foo}          "foo-::obj"
-  ? {obj info methods} "child foo"
+  ? {obj info object methods} "child foo"
 
   ? {::nsf::method::property obj foo call-private 1} 1
 
   ? {obj child bar}    "bar-::obj::child"
   ? {obj foo}          {::obj: unable to dispatch method 'foo'}
-  ? {obj info methods} "child"
+  ? {obj info object methods} "child"
 
   ? {::nsf::method::property obj child call-private 1} 1
 
   ? {obj child bar}    {::obj: unable to dispatch method 'child'}
   ? {obj foo}          {::obj: unable to dispatch method 'foo'}
-  ? {obj info methods} ""
+  ? {obj info object methods} ""
 
   ? {::nsf::method::property obj foo call-protected 0} 0
 
   ? {obj child bar}    {::obj: unable to dispatch method 'child'}
   ? {obj foo}          "foo-::obj"
-  ? {obj info methods} "foo"
+  ? {obj info object methods} "foo"
 
   ? {::nsf::method::property obj child call-protected 0} 0
 
   ? {obj child bar}    "bar-::obj::child"
   ? {obj foo}          "foo-::obj"
-  ? {obj info methods} "child foo"
+  ? {obj info object methods} "child foo"
 
 }
 
 #
-# Test protected and private class properties
+# Test protected and private object properties
 #
 nx::Test case protected-priv-class-property {
   nx::Class create C {
@@ -758,7 +758,7 @@ nx::Test case protected-priv-class-property {
     :public method bard {p} {return [: -local $p]}
     :create d1 {
       :property -accessor private {c c1o}
-      :public method bard1 {p} {return [: -local $p]}
+      :public object method bard1 {p} {return [: -local $p]}
     }
   }
 
@@ -800,9 +800,9 @@ nx::Test case protected-priv-object-property {
     :property -accessor protected {b b1}
     :property -accessor private {c c1}
     :property -accessor private {d:integer 1}
-    :public method foo {p} {return [: $p]}
-    :public method bar {p} {return [: -local $p]}
-    :public method baz {p v} {return [: -local $p $v]}
+    :public object method foo {p} {return [: $p]}
+    :public object method bar {p} {return [: -local $p]}
+    :public object method baz {p v} {return [: -local $p $v]}
   }
 
   ? {o a} a1
@@ -832,13 +832,13 @@ nx::Test case protected-priv-object-property {
 #
 nx::Test case protected-priv-class-object-property {
   nx::Class create C {
-    :class property -accessor public {a a1}
-    :class property -accessor protected {b b1}
-    :class property -accessor private {c c1}
-    :class property -accessor private {d:integer 1}
-    :public class method foo {p} {return [: $p]}
-    :public class method bar {p} {return [: -local $p]}
-    :public class method baz {p v} {return [: -local $p $v]}
+    :object property -accessor public {a a1}
+    :object property -accessor protected {b b1}
+    :object property -accessor private {c c1}
+    :object property -accessor private {d:integer 1}
+    :public object method foo {p} {return [: $p]}
+    :public object method bar {p} {return [: -local $p]}
+    :public object method baz {p v} {return [: -local $p $v]}
   }
 
   ? {C a} a1
@@ -863,7 +863,7 @@ nx::Test case protected-priv-class-object-property {
   ? {C baz d x} {expected integer but got "x" for parameter "value"}
 
 
-  ? {C public class property {d:integer 1}} {'property' is not a method defining method}
-  ? {C protected class property {d:integer 1}} {'property' is not a method defining method}
-  ? {C private class property {d:integer 1}} {'property' is not a method defining method}
+  ? {C public object property {d:integer 1}} {'property' is not a method defining method}
+  ? {C protected object property {d:integer 1}} {'property' is not a method defining method}
+  ? {C private object property {d:integer 1}} {'property' is not a method defining method}
 }

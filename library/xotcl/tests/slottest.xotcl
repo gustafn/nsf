@@ -359,7 +359,7 @@ a0 forward f4 puts hu
 
 # redefine setter for foo of class A
 #A slot foo method assign {domain var val} ...
-A::slot::foo public method assign {domain var val} {
+A::slot::foo public object method assign {domain var val} {
   # Do something with [self] that isn't valid before init
   #puts setter-[self proc]
   $domain set $var $val

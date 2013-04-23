@@ -20,21 +20,21 @@ nx::Trait create tReadStream {
   #
   # Define the methods provided by this trait:
   #
-  :public method atStart {} {expr {[:position] == [:minPosition]}}
-  :public method atEnd {} {expr {[:position] == [:maxPosition]}}
-  :public method setToStart {} {set :position [:minPosition]}
-  :public method setToEnd {} {set :position [:maxPosition]}
-  :public method maxPosition {} {llength ${:collection}}
-  :public method on {collection} {set :collection $collection; :setToStart}
-  :public method next {} {
+  :public object method atStart {} {expr {[:position] == [:minPosition]}}
+  :public object method atEnd {} {expr {[:position] == [:maxPosition]}}
+  :public object method setToStart {} {set :position [:minPosition]}
+  :public object method setToEnd {} {set :position [:maxPosition]}
+  :public object method maxPosition {} {llength ${:collection}}
+  :public object method on {collection} {set :collection $collection; :setToStart}
+  :public object method next {} {
     if {[:atEnd]} {return ""} else {
       set r [lindex ${:collection} ${:position}]
       :nextPosition
       return $r
     }
   }
-  :public method minPosition {} {return 0}
-  :public method nextPosition {} {incr :position 1}
+  :public object method minPosition {} {return 0}
+  :public object method nextPosition {} {incr :position 1}
   
   # This trait requires a method "position" and a variable
   # "collection" from the base class. The definition is incomplete in

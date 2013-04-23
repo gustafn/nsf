@@ -14,7 +14,7 @@ nx::Class create Singleton {
   #
   :variable instance:object
 
-  :public class method create {args} {
+  :public object method create {args} {
     return [expr {[info exists :instance] ? ${:instance} : [set :instance [next]]}]
   }
 }

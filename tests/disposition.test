@@ -1,6 +1,7 @@
 # -*- Tcl -*-
 package prefer latest
 package req nx
+
 package require nx::test
 
 #
@@ -10,7 +11,7 @@ package require nx::test
 nx::Test case basics {
 
   Class create C {
-    :class property {inst "::__%&singleton"}
+    :object property {inst "::__%&singleton"}
     :method foo {x} {
       #puts stderr [current method]
       set :[current method] $x
@@ -24,13 +25,13 @@ nx::Test case basics {
     #
     # some testing helpers
     #
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
     :setObjectParams ""
 
-    :public class method new args {
+    :public object method new args {
       return [:create ${:inst} {*}$args]
     }
   }
@@ -263,7 +264,7 @@ nx::Test case basics {
   #
   # define a user defined parameter type
   #
-  ::nx::methodParameterSlot method type=mytype {name value} {
+  ::nx::methodParameterSlot object method type=mytype {name value} {
     if {$value < 1 || $value > 3} {
       error "Value '$value' of parameter $name is not between 1 and 3"
     }
@@ -319,11 +320,11 @@ nx::Test case basics {
 
 nx::Test case dispo-multiplicities {
   Class create S {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
-    #:class method __objectparameter {} {
+    #:object method __objectparameter {} {
     #  return ${:objectparams} 
     #}
     :public method foo {args} {
@@ -382,7 +383,7 @@ nx::Test case dispo-multiplicities {
 
 nx::Test case dispo-returns {
   Class create R {
-     :public class method setObjectParams {spec} {
+     :public object method setObjectParams {spec} {
        :protected method __objectparameter {} [list return $spec]
        ::nsf::parameter:invalidate::classcache [current]
     }
@@ -391,7 +392,7 @@ nx::Test case dispo-returns {
   #
   # Alias/forward dispositions are unavailable as parameter types of return checkers
   #
-  set methods(raz) [R public class method raz {} {;}]
+  set methods(raz) [R public object method raz {} {;}]
   foreach dispoSpec {
     alias,noarg 
     alias,method=xxx 
@@ -446,7 +447,7 @@ nx::Test case dispo-returns {
 
 nx::Test case dispo-callstack {
   Class create Callee {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
@@ -506,7 +507,7 @@ nx::Test case dispo-callstack {
   # uplevel|upvar
   #
 
-  Callee public class method run {} {
+  Callee public object method run {} {
     set self [self]
     set objparams [:__objectparameter]
     #
@@ -614,7 +615,7 @@ nx::Test case dispo-callstack {
 
 nx::Test case alias-noarg {
   Class create C {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
@@ -755,7 +756,7 @@ nx::Test case alias-noarg {
 #
 nx::Test case alias-noarg {
   Class create C {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
@@ -770,7 +771,7 @@ nx::Test case alias-noarg {
 #
 nx::Test case alias-args {
   Class create C {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
@@ -860,7 +861,7 @@ nx::Test case alias-args {
 
 nx::Test case alias-init {
   Class create C {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
@@ -881,7 +882,7 @@ nx::Test case submethods-via-aliasparams {
   # Could move to submethods.test?
   #
   Class create C {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
@@ -1026,7 +1027,7 @@ nx::Test case submethods-via-aliasparams {
     }
   }
 
-  C::slot::__FOO mixin M2
+  C::slot::__FOO object mixin M2
   ? {C::slot::__FOO foo} "::M2--::C::slot::__FOO----foo"
   C::slot::__FOO eval {unset :msg}
 
@@ -1036,11 +1037,11 @@ nx::Test case submethods-via-aliasparams {
     c1 eval {set :msg}
   } "::c1--FOO--foo" 
 
-  C::slot::__FOO mixin {}
-  C::slot::__FOO public method intercept {} {
+  C::slot::__FOO object mixin {}
+  C::slot::__FOO public object method intercept {} {
     return "[current]--[next]"
   }
-  C::slot::__FOO filter intercept
+  C::slot::__FOO object filter intercept
   ? {C::slot::__FOO foo} "::C::slot::__FOO--::C::slot::__FOO----foo"
 
   C setObjectParams [list]
@@ -1081,7 +1082,7 @@ nx::Test case submethods-via-aliasparams {
 
 nx::Test case dispo-configure-transparency {
   Class create C {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
@@ -1132,7 +1133,7 @@ nx::Test case dispo-configure-transparency {
 
   Object create ::callee {
     ::nsf::object::property [self] perobjectdispatch true
-    :public method foo {} {
+    :public object method foo {} {
       error [::nsf::current]-[::nsf::current methodpath]
     }
   }
@@ -1143,7 +1144,7 @@ nx::Test case dispo-configure-transparency {
   ? {C create c} "::c" "Defaultmethod of calle is invoked ..."
   C setObjectParams [list [list FOO:alias "foo"]]
   ? {C create c} "::callee-FOO" "foo leaf method is selected ..."
-  ::callee mixin add M
+  ::callee object mixin add M
   ? {C create c} "::callee-FOO" "With mixin ..."
 
   #
@@ -1174,7 +1175,7 @@ nx::Test case dispo-object-targets {
 
   Class create C
   Class create T {
-    :public class method setObjectParams {spec} {
+    :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
@@ -1213,7 +1214,7 @@ nx::Test case dispo-object-targets {
   }
 
 
-  ::obj mixin UnknownHandler
+  ::obj object mixin UnknownHandler
   ? {[T create t] z uff} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-uff-PATH-z" \
       "Aliased dispatch to unknown method (custom unknown handler)"
   set x [UnknownHandler create handledObj]
@@ -1230,7 +1231,7 @@ nx::Test case dispo-object-targets {
   #
   # a) direct dispatch (non-aliased) with fully qualified selector (::*)
   #
-  ::obj mixin {}
+  ::obj object mixin {}
   T setObjectParams x:alias,method=::obj
   ? {T create t XXX} "::t: unable to dispatch method '::obj'" "FQ dispatch with default unknown handler"
 
@@ -1243,7 +1244,7 @@ nx::Test case dispo-object-targets {
   UnknownHandler method defaultmethod {} {
     set :defaultmethod 1
   }
-  ::obj mixin UnknownHandler
+  ::obj object mixin UnknownHandler
   T setObjectParams [list [list z:alias,noarg ""]]
   ? {T create t; ::obj eval {info exists :defaultmethod}} 1 \
       "Calling defaultmethod via alias+noarg combo with empty default"
@@ -1263,18 +1264,18 @@ nx::Test case dispo-object-targets {
   #
   ? {T create t XXX} "invalid argument 'XXX', maybe too many arguments; should be \"::t configure ?z?\""
 
-  ::obj mixin {}
+  ::obj object mixin {}
   T setObjectParams [list z:alias]
   ? {T create tt YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
-  ::obj mixin UnknownHandler
+  ::obj object mixin UnknownHandler
   ? {T create tt YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
       "sending the msg: tt->z(::obj)->YYY()"
 
 
-  ::obj mixin {}
+  ::obj object mixin {}
   T setObjectParams [list -z:alias]
   ? {T create tt -z YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
-  ::obj mixin UnknownHandler
+  ::obj object mixin UnknownHandler
   ? {T create tt -z YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
       "sending the msg: tt->z(::obj)->YYY()"
     
@@ -1282,10 +1283,10 @@ nx::Test case dispo-object-targets {
   # [current methodpath] & empty selector strings:
   #
 
-  ::obj mixin {}
+  ::obj object mixin {}
   T setObjectParams [list z:alias]
   ? {T create tt ""} "::obj: unable to dispatch method ''" "sending the msg: tt->z->{}()"
-  ::obj mixin UnknownHandler
+  ::obj object mixin UnknownHandler
   ? {T create tt ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z->{}()"
   T setObjectParams [list -z:alias]
   ? {T create tt -z ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z()"

@@ -40,7 +40,7 @@ nx::Test case class-level {
   #
   # just the public properties are accessible via the configure interface
   #
-  ? {c1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  ? {c1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
 
   ? {lsort [C info slot definitions]} {{::C property -accessor none {a a1}} {::C property -accessor none {e e1}} {::C property {b b1}} {::C variable -accessor private d d1} {::C variable -accessor private vd vd1} {::C variable -accessor protected c c1} {::C variable -accessor protected vc vc1} {::C variable -accessor public vb vb1} {::C variable va va1} {::C variable ve ve1} {::C variable vf vf1}}
   
@@ -215,7 +215,7 @@ nx::Test case class-level-incremental {
   #
   # The use of "-incremental" implies multivalued
   #
-  ? {c1 configure} { ?-e value ...? ?-a value ...? ?-b value ...? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  ? {c1 configure} { ?-e value ...? ?-a value ...? ?-b value ...? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
   
   ? {c1 cget -a} a1
   ? {c1 cget -b} b1
@@ -377,7 +377,7 @@ nx::Test case object-level {
     :variable -accessor private vd vd1
     :variable -accessor none ve ve1
     
-    :public method call-local {v} {: -local $v}
+    :public object method call-local {v} {: -local $v}
     
   }
   
@@ -390,7 +390,7 @@ nx::Test case object-level {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {o1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  ? {o1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
 
   #
   # just the public properties are accessible via the cget interface
@@ -511,14 +511,14 @@ nx::Test case object-level-incremental {
     :variable -accessor private -incremental vd vd1
     :variable -accessor none -incremental ve ve1
     
-    :public method call-local {v} {: -local $v}
-    :public method add-local {var value} {: -local $var add $value}
+    :public object method call-local {v} {: -local $v}
+    :public object method add-local {var value} {: -local $var add $value}
   }
   
   #
   # The use of "-incremental" implies multivalued
   #
-  ? {o1 configure} { ?-e value ...? ?-a value ...? ?-b value ...? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  ? {o1 configure} { ?-e value ...? ?-a value ...? ?-b value ...? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
   
   ? {o1 cget -a} a1
   ? {o1 cget -b} b1
@@ -644,7 +644,7 @@ nx::Test case object-level-incremental {
   # The accessor should be a forwarder due to incremental
   #
 
-  ? {o1 info method definition b} {::o1 public forward b ::o1::per-object-slot::b {%1 {get assign}} %self b}
+  ? {o1 info object method definition b} {::o1 public object forward b ::o1::per-object-slot::b {%1 {get assign}} %self b}
 
   #
   # check error message
@@ -655,7 +655,7 @@ nx::Test case object-level-incremental {
   # The accessor is deleted due to the error
   #
 
-  ? {o1 info method definition b} {}
+  ? {o1 info object method definition b} {}
 
 }
 
@@ -672,8 +672,8 @@ nx::Test case class-object-properties {
     :property {a a1}
     :variable va va1
     
-    :class property {b b1}
-    :class variable vb b1
+    :object property {b b1}
+    :object variable vb b1
     
     :create c1
   }
@@ -682,12 +682,12 @@ nx::Test case class-object-properties {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {c1 configure} {?-a value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  ? {c1 configure} {?-a value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
 
   ? {c1 cget -a} a1
   ? {c1 configure -a a2} ""
 
-  ? {C configure} {?-b value? ?-superclass class ...? ?-object-mixin mixinreg? ?-mixin mixinreg ...? ?-object-filter filterreg? ?-filter filterreg ...? ?-volatile? ?-noinit? ?-class class? ?__initcmd?}
+  ? {C configure} {?-b value? ?-superclass class ...? ?-mixin mixinreg ...? ?-filter filterreg ...? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
 
   ? {C cget -b} b1
   ? {C configure -b b2} ""
@@ -719,8 +719,9 @@ nx::Test case class-level-perf {
     
     :create c1
   }
+
   nx::Class create D {
-    :class property {cp 101}
+    :object property {cp 101}
     :property {a a1}
     :property -accessor public {b b1}
     :property -accessor protected {c c1}
@@ -740,7 +741,7 @@ nx::Test case class-level-perf {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {c1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  ? {c1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
 
   set e [C eval :__objectparameter]
   ? {C eval :__objectparameter} $e
@@ -759,7 +760,7 @@ nx::Test case class-level-perf {
   #
   # check influence of class-level per-object properties
   #
-  ? {d1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  ? {d1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
 
   set e [D eval :__objectparameter]
   ? {D eval :__objectparameter} $e
@@ -799,7 +800,7 @@ nx::Test case object-level-perf {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {o1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?}
+  ? {o1 configure} { ?-e value? ?-a value? ?-b value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
 
   set e [o1 eval :__objectparameter]
 

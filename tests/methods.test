@@ -1,5 +1,7 @@
 # -*- Tcl -*-
 package require nx
+#package require nx::plain-object-method
+
 ::nx::configure defaultMethodCallProtection false
 package require nx::test
 
@@ -27,31 +29,31 @@ nx::Class create C {
   :protected alias protected_alias [C info method registrationhandle protected_method]
   
   # class-object
-  :class method plain_object_method {} {return [current method]}
-  :public class method public_object_method {} {return [current method]}
-  :protected class method protected_object_method {}  {return [current method]}
-  :class forward plain_object_forward %self plain_object_method
-  :public class forward public_object_forward %self public_object_method
-  :protected class forward protected_object_forward %self protected_object_method
+  :object method plain_object_method {} {return [current method]}
+  :public object method public_object_method {} {return [current method]}
+  :protected object method protected_object_method {}  {return [current method]}
+  :object forward plain_object_forward %self plain_object_method
+  :public object forward public_object_forward %self public_object_method
+  :protected object forward protected_object_forward %self protected_object_method
 
-  :class property {plain_object_setter ""}
-  :class property -accessor public {public_object_setter ""}
-  :class property -accessor protected {protected_object_setter ""}
+  :object property {plain_object_setter ""}
+  :object property -accessor public {public_object_setter ""}
+  :object property -accessor protected {protected_object_setter ""}
 
-  :class alias plain_object_alias [:class info method registrationhandle plain_object_method]
-  :public class alias public_object_alias [:class info method registrationhandle public_object_method]
-  :protected class alias protected_object_alias [:class info method registrationhandle protected_object_method]
+  :object alias plain_object_alias [:info object method registrationhandle plain_object_method]
+  :public object alias public_object_alias [:info object method registrationhandle public_object_method]
+  :protected object alias protected_object_alias [:info object method registrationhandle protected_object_method]
 }
 C create c1 {
   # methods
-  :method plain_object_method {} {return [current method]}
-  :public method public_object_method {} {return [current method]}
-  :protected method protected_object_method {} {return [current method]}
+  :object method plain_object_method {} {return [current method]}
+  :public object method public_object_method {} {return [current method]}
+  :protected object method protected_object_method {} {return [current method]}
 
   # forwards
-  :forward plain_object_forward %self plain_object_method
-  :public forward public_object_forward %self public_object_method
-  :protected forward protected_object_forward %self protected_object_method
+  :object forward plain_object_forward %self plain_object_method
+  :public object forward public_object_forward %self public_object_method
+  :protected object forward protected_object_forward %self protected_object_method
 
   # setter
   :property {plain_object_setter ""}
@@ -59,15 +61,15 @@ C create c1 {
   :property -accessor protected protected_object_setter 
 
   # alias
-  :alias plain_object_alias [:info method registrationhandle plain_object_method]
-  :public alias public_object_alias [:info method registrationhandle public_object_method]
-  :protected alias protected_object_alias [:info method registrationhandle protected_object_method]
+  :object alias plain_object_alias [:info object method registrationhandle plain_object_method]
+  :public object alias public_object_alias [:info object method registrationhandle public_object_method]
+  :protected object alias protected_object_alias [:info object method registrationhandle protected_object_method]
 }
 C property -accessor public s0
 C property -accessor protected s1
 ? {c1 s0 0} 0
 ? {::nsf::dispatch c1 s1 1} 1
-C class property -accessor public {s3 ""}
+C object property -accessor public {s3 ""}
 ? {C s3 3} 3
 
 # create a fresh object (different from c1)
@@ -174,14 +176,14 @@ nx::Test case object-level-alias {
   ? {catch {c1 protected_object_alias}} 1
   ? {::nsf::dispatch c1 protected_object_alias} "protected_object_alias"
 
-  #? {lsort [c1 info methods]} \
+  #? {lsort [c1 info object methods]} \
       "plain_object_alias plain_object_forward plain_object_method public_object_alias public_object_forward public_object_method public_object_setter"
-  ? {lsort [c1 info methods]} \
+  ? {lsort [c1 info object methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
 
-  #? {lsort [C class info methods]} \
+  #? {lsort [C info methods]} \
       "plain_object_alias plain_object_forward plain_object_method public_object_alias public_object_forward public_object_method public_object_setter s3"
-  ? {lsort [C class info methods]} \
+  ? {lsort [C info object methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
 }
 
@@ -189,8 +191,8 @@ C destroy
 
 nx::Test case colondispatch {
   nx::Object create ::o {
-    #:public method foo args {;}
-    :public method bar args {;}
+    #:public object method foo args {;}
+    :public object method bar args {;}
   }
   ? {o :bar} "::o: method name ':bar' must not start with a colon" 
   ? {o eval :bar} "" 
@@ -203,7 +205,7 @@ nx::Test case mixinguards {
   nx::Class create C
   nx::Class create M
 
-  # register the mixin on C as a class mixin and define a mixinguard
+  # register the mixin on C as a object mixin and define a mixinguard
   C mixin M
   C mixin guard M {1 == 1}
   ? {C info mixin guard M} "1 == 1"
@@ -211,11 +213,11 @@ nx::Test case mixinguards {
   ? {C info mixin guard M} ""
 
   # now the same as class mixin and class mixin guard
-  C class mixin M
-  C class mixin guard M {1 == 1}
-  ? {C class info mixin guard M} "1 == 1"
-  C class mixin guard M {}
-  ? {C class info mixin guard M} ""
+  C object mixin M
+  C object mixin guard M {1 == 1}
+  ? {C info object mixin guard M} "1 == 1"
+  C object mixin guard M {}
+  ? {C info object mixin guard M} ""
 }
 
 nx::Test case mixin-via-objectparam {
@@ -223,11 +225,11 @@ nx::Test case mixin-via-objectparam {
   nx::Class create M1; nx::Class create M2; nx::Class create M3; nx::Class create M4
   nx::Class create C -mixin M1 -object-mixin M2 {
     :mixin add M3
-    :class mixin add M4
+    :object mixin add M4
   }
   
-  ? {lsort [C class info mixin classes]} "::M2 ::M4"
-  #? {lsort [C class info mixin classes]} "::M2"
+  ? {lsort [C info object mixin classes]} "::M2 ::M4"
+  #? {lsort [C info object mixin classes]} "::M2"
 
   ? {lsort [C info mixin classes]} "::M1 ::M3"
   #? {lsort [C info mixin classes]} "::M1"
@@ -239,7 +241,7 @@ nx::Test case mixin-via-objectparam {
 nx::Test case next-from-nonpos-args {
   
   nx::Object create o {
-    :method bar {-y:required -x:required} {
+    :object method bar {-y:required -x:required} {
       #puts stderr "+++ o x=$x, y=$y [current args] ... next [current nextmethod]"
       return [list x $x y $y [current args]]
     }
@@ -251,7 +253,7 @@ nx::Test case next-from-nonpos-args {
     }
   }
   
-  o mixin M
+  o object mixin M
   ? {o bar -x 13 -y 14} "x 13 y 14 {-x 13 -y 14} -- x 13 y 14 {-x 13 -y 14}"
   ? {o bar -y 14 -x 13} "x 13 y 14 {-y 14 -x 13} -- x 13 y 14 {-y 14 -x 13}"
 }
@@ -271,13 +273,13 @@ nx::Test case property-method {
     :property -accessor public {c c1}
     :property -accessor protected {d d1}
 
-    set X [:class property -accessor public A]
+    set X [:object property -accessor public A]
     ? [list set _ $X] "::C::A"
     
-    # class property with default
-    :class property {B B2}
-    :class property -accessor public {C C2}
-    :class property -accessor protected {D D2}
+    # object property with default
+    :object property {B B2}
+    :object property -accessor public {C C2}
+    :object property -accessor protected {D D2}
   }
 
   C create c1 -a 1
@@ -318,16 +320,16 @@ nx::Test case subcmd {
      :method "Info args" {} {return [current object]-[current method]}
      :method "Info foo" {} {return [current object]-[current method]}
 
-     :class method "INFO filter guard" {a b} {return [current object]-[current method]}
-     :class method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+     :object method "INFO filter guard" {a b} {return [current object]-[current method]}
+     :object method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
    }
   
   ? {Foo INFO filter guard 1 2} ::Foo-guard
   ? {Foo INFO filter methods a*} ::Foo-methods
   
   Foo create f1 {
-    :method "list length" {} {return [current object]-[current method]}
-    :method "list reverse" {} {return [current object]-[current method]}
+    :object method "list length" {} {return [current object]-[current method]}
+    :object method "list reverse" {} {return [current object]-[current method]}
   }
 
   ? {f1 Info filter guard x} "::f1-guard"
@@ -342,14 +344,14 @@ nx::Test case subcmd {
 package req nx::serializer
 nx::Test case class-object-property {
   nx::Class create C {
-    :class property -accessor public x
+    :object property -accessor public x
     :property -accessor public a:int
     :create c1
   }
   ? {C x 1} 1
   ? {C x} 1
   ? {lsort [C info methods]} "a"
-  ? {lsort [C class info methods]} "x"
+  ? {lsort [C info object methods]} "x"
   ? {c1 a b} {expected integer but got "b" for parameter "a"}
 
   set s(C) [C serialize]
@@ -371,7 +373,7 @@ nx::Test case class-object-property {
   # tests should work as again
   ? {C x} 1
   ? {lsort [C info methods]} "a"
-  ? {lsort [C class info methods]} "x"
+  ? {lsort [C info object methods]} "x"
   ? {c1 a b} {expected integer but got "b" for parameter "a"}  
 }
 
@@ -383,7 +385,7 @@ nx::Test parameter count 1
 nx::Test case methoddelete {
   nx::Class create C {
     :public method foo {x} {return $x}
-    :public class method bar {x} {return $x}
+    :public object method bar {x} {return $x}
     :create c1
   }
   
@@ -404,15 +406,15 @@ nx::Test parameter count 1
 nx::Test case errormessage {
   nx::Class create C
   ? {C public method foo {x} {return $x}} "::nsf::classes::C::foo"
-  ? {C public object method bar {x} {return $x}} \
-      "'object' is not a method defining method"
-  ? {C protected object method bar {x} {return $x}} \
-      "'object' is not a method defining method"
-  ? {C object method bar {x} {return $x}} \
-      {method 'object' unknown for ::C; consider '::C create object method bar x {return $x}' instead of '::C object method bar x {return $x}'}
-  #? {C public class object method bar {x} {return $x}} "'object' not allowed to be modified by 'class'"
-  ? {C public class object method bar {x} {return $x}} \
-      {'object' is not a method defining method}
+  ? {C public Object method bar {x} {return $x}} \
+      "'Object' is not a method defining method"
+  ? {C protected Object method bar {x} {return $x}} \
+      "'Object' is not a method defining method"
+  ? {C Object method bar {x} {return $x}} \
+      {method 'Object' unknown for ::C; consider '::C create Object method bar x {return $x}' instead of '::C Object method bar x {return $x}'}
+  #? {C public object Object method bar {x} {return $x}} "'Object' not allowed to be modified by 'class'"
+  #? {C public object Object method bar {x} {return $x}} \
+      {'Object' is not a method defining method}
 }
 
 #
@@ -424,12 +426,12 @@ nx::Test case dispatch-without-object {
     # property defines a setter, we need a current object
     :property -accessor public {a v}
     # the other methods don't require them as strong
-    :forward b ::o2 bar
-    :method foo {} {return [nx::self]}
-    :alias x ::o::foo
+    :object forward b ::o2 bar
+    :object method foo {} {return [nx::self]}
+    :object alias x ::o::foo
   }
   nx::Object create o2 {
-    :public method bar {} {return [nx::self]}
+    :public object method bar {} {return [nx::self]}
   }
 
   # dispatch methods without current object 
@@ -453,9 +455,9 @@ nx::Test case dispatch-without-object {
 #
 nx::Test case scopes {
   nx::Object create o1 {
-    :public method foo {} {return [namespace current]-[namespace which info]}
-    :public method "info foo" {} {return [namespace current]-[namespace which info]}
-    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :public object method foo {} {return [namespace current]-[namespace which info]}
+    :public object method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public object method "info bar foo" {} {return [namespace current]-[namespace which info]}
   }
 
   ? {o1 foo} "::-::info"
@@ -485,9 +487,9 @@ nx::Test case namespaced-scopes {
 
   namespace eval ::ns {
     nx::Object create o1 {
-      :public method foo {} {return [namespace current]-[namespace which info]}
-      :public method "info foo" {} {return [namespace current]-[namespace which info]}
-      :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+      :public object method foo {} {return [namespace current]-[namespace which info]}
+      :public object method "info foo" {} {return [namespace current]-[namespace which info]}
+      :public object method "info bar foo" {} {return [namespace current]-[namespace which info]}
     }
     nx::Class create C {
       :public method foo {} {return [namespace current]-[namespace which info]}
@@ -517,9 +519,9 @@ nx::Test case namespaced-scopes {
 nx::Test case nested-scopes {
   nx::Object create o 
   nx::Object create o::o1 {
-    :public method foo {} {return [namespace current]-[namespace which info]}
-    :public method "info foo" {} {return [namespace current]-[namespace which info]}
-    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :public object method foo {} {return [namespace current]-[namespace which info]}
+    :public object method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public object method "info bar foo" {} {return [namespace current]-[namespace which info]}
   }
 
   ? {o::o1 foo} "::o-::info"
@@ -550,12 +552,12 @@ nx::Test case delete-per-object {
   nx::Object create o1 {
     :property -accessor public a1 
     :property -accessor public a2
-    :public method foo {} {return [namespace current]-[namespace which info]}
-    :public method "info foo" {} {return [namespace current]-[namespace which info]}
-    :public method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :public object method foo {} {return [namespace current]-[namespace which info]}
+    :public object method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public object method "info bar foo" {} {return [namespace current]-[namespace which info]}
   }
 
-  ? {o1 info methods -path} "{info foo} {info bar foo} foo a1 a2"
+  ? {o1 info object methods -path} "{info foo} {info bar foo} foo a1 a2"
   ? {o1 info children} "::o1::info ::o1::per-object-slot"
 
   ? {o1 delete method bar} "::o1: object specific method 'bar' does not exist"
@@ -571,18 +573,18 @@ nx::Test case delete-per-object {
   # try to delete the property again:
   ? {o1 delete property a1} "::o1: cannot delete object specific property 'a1'"
 
-  ? {o1 info methods -path} "{info foo} {info bar foo} foo a2"
+  ? {o1 info object methods -path} "{info foo} {info bar foo} foo a2"
   ? {o1 delete property a2} ""
-  ? {o1 info methods -path} "{info foo} {info bar foo} foo"
+  ? {o1 info object methods -path} "{info foo} {info bar foo} foo"
 
   ? {o1 delete method foo} ""
-  ? {o1 info methods -path} "{info foo} {info bar foo}"
+  ? {o1 info object methods -path} "{info foo} {info bar foo}"
 
   ? {o1 delete method "info foo"} ""
-  ? {o1 info methods -path} "{info bar foo}"
+  ? {o1 info object methods -path} "{info bar foo}"
 
   ? {o1 delete method "info bar foo"} ""
-  ? {o1 info methods -path} ""
+  ? {o1 info object methods -path} ""
 }
 
 #
@@ -594,30 +596,30 @@ nx::Test case delete-per-object {
 #
 nx::Test case delete-per-object-on-class {
   nx::Class create C {
-    :class property -accessor public a1
-    :public class method foo {} {return [namespace current]-[namespace which info]}
-    :public class method "info foo" {} {return [namespace current]-[namespace which info]}
-    :public class method "info bar foo" {} {return [namespace current]-[namespace which info]}
+    :object property -accessor public a1
+    :public object method foo {} {return [namespace current]-[namespace which info]}
+    :public object method "info foo" {} {return [namespace current]-[namespace which info]}
+    :public object method "info bar foo" {} {return [namespace current]-[namespace which info]}
     :property -accessor public a2
   }
 
-  ? {C class info methods -path} "{info foo} {info bar foo} foo a1"
+  ? {C info object methods -path} "{info foo} {info bar foo} foo a1"
   ? {C info children} "::C::info ::C::slot ::C::per-object-slot"
 
-  ? {C class delete method bar} "::C: object specific method 'bar' does not exist"
+  ? {C delete object method bar} "::C: object specific method 'bar' does not exist"
 
-  ? {C class delete property a1} ""
-  ? {C class info methods -path} "{info foo} {info bar foo} foo"
-  ? {C class delete property a1} "::C: cannot delete object specific property 'a1'"
+  ? {C delete object property a1} ""
+  ? {C info object methods -path} "{info foo} {info bar foo} foo"
+  ? {C delete object property a1} "::C: cannot delete object specific property 'a1'"
 
-  ? {C class delete method foo} ""
-  ? {C class info methods -path} "{info foo} {info bar foo}"
+  ? {C delete object method foo} ""
+  ? {C info object methods -path} "{info foo} {info bar foo}"
 
-  ? {C class delete method "info foo"} ""
-  ? {C class info methods -path} "{info bar foo}"
+  ? {C delete object method "info foo"} ""
+  ? {C info object methods -path} "{info bar foo}"
 
-  ? {C class delete method "info bar foo"} ""
-  ? {C class info methods -path} ""
+  ? {C delete object method "info bar foo"} ""
+  ? {C info object methods -path} ""
 
   ? {C info methods} "a2"
   ? {C info slot objects} "::C::slot::a2"
@@ -669,7 +671,7 @@ nx::Test case test-simple-unknown {
   # calling unknown with a plain "method" without arguments
   #
   ::nx::Class create A {
-    :class method unknown args {? [list set _ $args] "hello"}
+    :object method unknown args {? [list set _ $args] "hello"}
   }
   A hello
 
@@ -677,7 +679,7 @@ nx::Test case test-simple-unknown {
   # calling unknown with a plain "method" with arguments
   #
   ::nx::Class create B {
-    :class method unknown args {? [list set _ $args] "hello world"}
+    :object method unknown args {? [list set _ $args] "hello world"}
   }
   B hello world
 
@@ -685,7 +687,7 @@ nx::Test case test-simple-unknown {
   # calling unknown with a method with spaces
   #
   ::nx::Class create C {
-    :class method unknown args {? [list set _ $args] "{hello world}"}
+    :object method unknown args {? [list set _ $args] "{hello world}"}
   }
   C {hello world}
 }
@@ -702,17 +704,17 @@ nx::Test case speed-dispatch {
   # define various forms of simple dispatches
   #
   ::nx::Object create o {
-    :public method foo {} {return ::o}
-    :public method bar00 {} {self}
-    :public method bar01 {} {:}
-    :public method bar02 {} {[self]}
-    :public method bar03 {} {[:]}
-    :public method bar04 {} {:foo}
-    :public method bar05 {} {: foo}
-    #:public method bar06 {} {my foo}
-    :public method bar07 {} {[self] foo}
-    :public method bar08 {} {: -system info methods foo}
-    #:public method bar09 {} {my -system info methods foo}
+    :public object method foo {} {return ::o}
+    :public object method bar00 {} {self}
+    :public object method bar01 {} {:}
+    :public object method bar02 {} {[self]}
+    :public object method bar03 {} {[:]}
+    :public object method bar04 {} {:foo}
+    :public object method bar05 {} {: foo}
+    #:public object method bar06 {} {my foo}
+    :public object method bar07 {} {[self] foo}
+    :public object method bar08 {} {: -system info object methods foo}
+    #:public object method bar09 {} {my -system info object methods foo}
   }
 
   ? {o foo} ::o
@@ -736,7 +738,7 @@ nx::Test case fq-obj-dispatch {
   #
   nx::Class create C {
     set :unknown 0
-    :public class method unknown {m args} {
+    :public object method unknown {m args} {
       incr :unknown
       return unknown-$m
     }

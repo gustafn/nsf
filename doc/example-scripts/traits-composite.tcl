@@ -19,13 +19,13 @@ nx::Trait create tPositionableStream {
   #
   # Define the methods provided by this trait:
   #  
-  :public method atStart {} {expr {[:position] == [:minPosition]}}
-  :public method atEnd {} {expr {[:position] == [:maxPosition]}}
-  :public method setToStart {} {set :position [:minPosition]}
-  :public method setToEnd {} {set :position [:maxPosition]}
-  :public method maxPosition {} {llength ${:collection}}
-  :public method minPosition {} {return 0}
-  :public method nextPosition {} {incr :position 1}
+  :public object method atStart {} {expr {[:position] == [:minPosition]}}
+  :public object method atEnd {} {expr {[:position] == [:maxPosition]}}
+  :public object method setToStart {} {set :position [:minPosition]}
+  :public object method setToEnd {} {set :position [:maxPosition]}
+  :public object method maxPosition {} {llength ${:collection}}
+  :public object method minPosition {} {return 0}
+  :public object method nextPosition {} {incr :position 1}
 
   # The trait requires a method "position" and a variable "collection"
   # from the base class or other traits. The definition is incomplete
@@ -43,8 +43,8 @@ nx::Trait create tReadStream {
   #
   # Methods provided by this trait:
   #  
-  :public method on {collection} {set :collection $collection; :setToStart}
-  :public method next {} {
+  :public object method on {collection} {set :collection $collection; :setToStart}
+  :public object method next {} {
     if {[:atEnd]} {return ""} else {
       set r [lindex ${:collection} ${:position}]
       :nextPosition
@@ -67,8 +67,8 @@ nx::Trait create tWriteStream {
   #
   # Methods provided by this trait:
   #  
-  :public method on {collection} {set :collection $collection; :setToEnd}
-  :public method nextPut {element} {
+  :public object method on {collection} {set :collection $collection; :setToEnd}
+  :public object method nextPut {element} {
     lappend :collection $element
     :nextPosition    
     return ""

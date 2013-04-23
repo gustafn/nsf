@@ -4272,8 +4272,93 @@ nsf.c:
 - handling of method names in error messages from nsfAPI.h. Make sure
   that error message is generated with the actual method name.
 
+Object-method Reform:
+- changed interface to object specific commands by requiring an
+  ensemble named "object". The rational behind is essentially
+  to use always the same info command to retrieve object
+  specific methods, no matter whether these are defined
+  on a plain object or an a class object (does not break
+  the "contract" what e.g. "info method" returns).
+
+ Now we define methods via:
+ 
+   /cls/ method foo {args} {...body...}
+   /cls/ object method foo {args} {...body...}
+   /obj/ object method foo {args} {...body...}
+
+ Similarly, aliases, forwards and mixins are defined, e.g.
+
+   /cls/ mixin add ...
+   /cls/ object mixin add ...
+   /obj/ object mixin add ...
+   /obj/ require object method ...
+
+ The same change propagated as well to the "info" method.
+ Now we have:
+
+   /cls/ info methods ...
+   /cls/ info object methods ...
+   /obj/ info object methods ...
+
+ Similar, the object parametererization uses
+   /cls/ create obj -object-mixin M
+   /cls/ create obj -object-filter f
+   /metacls/ create cls -mixin M1 -object-mixin M2
+   /metacls/ create cls -filter f1 -object-filter f2
+
+- as a consequence,
+  a) "/cls/ class method ...",
+     "/cls/ class alias ...",
+     "/cls/ class forward ...",
+     "/cls/ class filter ...",
+     "/cls/ class mixin ...",
+     "/cls/ class info ..." 
+     "/obj/ class method require method ..."
+     "/obj/ class method require public method ..."
+     "/obj/ class method require protected method ..."
+     "/obj/ class method require private method ..."
+    were dropped 
+
+  b) "/obj/ method ....", 
+     "/obj/ alias ....", 
+     "/obj/ forward ...."
+     "/obj/ filter ...."
+     "/obj/ mixin ...."
+     "/obj/ info method*" 
+     "/cls/ create obj -mixin M"
+     "/cls/ create obj -filter f"
+     "/obj/ method require method ..."
+     "/obj/ method require public method ..."
+     "/obj/ method require protected method ..."
+     "/obj/ method require private method ..."
+     were dropped 
+     
+- added package nx::class to allow optionally the "class" notation
+  "/cls/ class method ..." (and friends, see (a)), and
+  "/cls/ class info ...
+
+- added package nx::plain-object-method to allow optionally plain method
+  b) "/obj/ method ...." (and friends, see (b))
+
+- add support to slots to use ensemble methods as setters
+
 ========================================================================
 TODO:
+- reconsider
+  #? {c1 cget -mixin} ""
+  ? {c1 cget -object-mixin} ""
+
+- handle 
+  o object property foo
+  o object variable foo
+
+- test cases
+   complete tests/plain-object-method.test
+   provide  tests/class.test
+
+- reconsider lower multiplicty on 
+  -object-mixin, -mixin...
+
 - flatten out interface asymmetry between methods and properties
 
   methods:

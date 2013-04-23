@@ -1,5 +1,6 @@
 # -*- Tcl -*-
 package req nx::test
+
 package prefer latest
 package req XOTcl 2.0
 
@@ -18,11 +19,11 @@ proc bar {args} {
 #
 proc foon {} {
   #puts stderr ====2
-  set c [bar C create c1 -volatile {:method destroy {} {#puts "[self] destroy";next}}]
+  set c [bar C create c1 -volatile {:object method destroy {} {#puts "[self] destroy";next}}]
   ? [list info command $c] "" "foon: $c destroyed too late"
 
   #puts stderr ====3
-  set c [bar C new -volatile {:method destroy {} {#puts "[self] destroy";next}}]
+  set c [bar C new -volatile {:object method destroy {} {#puts "[self] destroy";next}}]
   ? [list info command $c] "" "foon: $c destroyed too late"
 }
 

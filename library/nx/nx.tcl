@@ -113,7 +113,7 @@ namespace eval ::nx {
 
   # set a few aliases as protected
   # "__next", if defined, should be added as well
-  foreach cmd [list uplevel upvar] {
+  foreach cmd {uplevel upvar} {
     ::nsf::method::property Object $cmd call-protected 1
   }
   unset cmd
@@ -215,7 +215,7 @@ namespace eval ::nx {
   ::nsf::method::property Object __default_accessor call-protected true
 
   ######################################################################
-  # Define method "method" for Class and Object
+  # Define method "method" for Class
   ######################################################################
 
   ::nsf::method::create Class method {
@@ -228,27 +228,6 @@ namespace eval ::nx {
     #puts "class method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method::create $(object) \
 	       {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
-	       $(methodName) $arguments $body {*}$conditions]
-    if {$r ne ""} {
-      # the method was not deleted
-      ::nsf::method::property $(object) $r call-protected \
-	  [::nsf::dispatch $(object) __default_method_call_protection]
-      if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
-    }
-    return $r
-  }
-
-  ::nsf::method::create Object method {
-    name arguments:parameter,0..* -returns body -precondition -postcondition
-  } {
-    set conditions [list]
-    if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
-    if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    array set "" [:__resolve_method_path -per-object $name]
-    # puts "object method $(object).$(methodName) [list $arguments] {...}"
-    set r [::nsf::method::create $(object) \
-	       {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
-	       -per-object \
 	       $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
       # the method was not deleted
@@ -280,7 +259,7 @@ namespace eval ::nx {
 
   # Well, class is not a method defining method either, but a modifier
   array set ::nsf::methodDefiningMethod {
-    method 1 alias 1 forward 1 class 1
+    method 1 alias 1 forward 1 object 1 
     ::nsf::classes::nx::Class::method 1 ::nsf::classes::nx::Object::method 1
     ::nsf::classes::nx::Class::alias 1 ::nsf::classes::nx::Object::alias 1
     ::nsf::classes::nx::Class::forward 1 ::nsf::classes::nx::Object::forward 1
@@ -295,7 +274,7 @@ namespace eval ::nx {
     :method public {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
-      } elseif {[lindex $args 0] eq "class" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
+      } elseif {[lindex $args 0] eq "object" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
 	error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
@@ -308,7 +287,7 @@ namespace eval ::nx {
     :method protected {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
-      } elseif {[lindex $args 0] eq "class" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
+      } elseif {[lindex $args 0] eq "object" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
 	error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
@@ -320,7 +299,7 @@ namespace eval ::nx {
     :method private {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
 	error "'[lindex $args 0]' is not a method defining method"
-      } elseif {[lindex $args 0] eq "class" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
+      } elseif {[lindex $args 0] eq "object" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
 	error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
@@ -347,26 +326,6 @@ namespace eval ::nx {
   # but then, we would loose the option to use compound names
   #
 
-  Object public method forward {
-     method
-     -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
-     target:optional args
-   } {
-    array set "" [:__resolve_method_path -per-object $method]
-    set arguments [lrange [::nsf::current args] 1 end]
-    if {[info exists returns]} {
-      # search for "-returns" in the arguments before $args ...
-      set p [lsearch -exact [lrange $arguments 0 [expr {[llength $arguments]-[llength $args]}]] -returns]
-      # ... and remove it if found
-      if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
-    }
-    set r [::nsf::method::forward $(object) -per-object $(methodName) {*}$arguments]
-    ::nsf::method::property $(object) -per-object $r call-protected \
-	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
-    return $r
-  }
-
   Class public method forward {
      method
      -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
@@ -392,17 +351,6 @@ namespace eval ::nx {
   #
   # -frame object|method make only sense for c-defined cmds,
   ######################################################################
-
-  Object public method alias {methodName -returns {-frame default} cmd} {
-    array set "" [:__resolve_method_path -per-object $methodName]
-    #puts "object alias $(object).$(methodName) $cmd"
-    set r [::nsf::method::alias $(object) -per-object $(methodName) \
-	       -frame $frame $cmd]
-    ::nsf::method::property $(object) -per-object $r call-protected \
-	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
-    return $r
-  }
 
   Class public method alias {methodName -returns {-frame default} cmd} {
     array set "" [:__resolve_method_path $methodName]
@@ -528,6 +476,74 @@ namespace eval ::nx {
   # Now we are able to use ensemble methods in the definition of NX
   ######################################################################
 
+  
+  Object eval {
+    #
+    #  Define method defining methods for Object.
+    #
+    #  These are:
+    #    - "method"
+    #    - "alias"
+    #    - "forward"
+
+    :public method "object method" {
+      name arguments:parameter,0..* -returns body -precondition -postcondition
+    } {
+      set conditions [list]
+      if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
+      if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
+      array set "" [:__resolve_method_path -per-object $name]
+      # puts "object method $(object).$(methodName) [list $arguments] {...}"
+      set r [::nsf::method::create $(object) \
+		 {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
+		 -per-object \
+		 $(methodName) $arguments $body {*}$conditions]
+      if {$r ne ""} {
+	# the method was not deleted
+	::nsf::method::property $(object) $r call-protected \
+	    [::nsf::dispatch $(object) __default_method_call_protection]
+	if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+      }
+      return $r
+    }
+
+    :public method "object alias" {methodName -returns {-frame default} cmd} {
+      array set "" [:__resolve_method_path -per-object $methodName]
+      #puts "object alias $(object).$(methodName) $cmd"
+      set r [::nsf::method::alias $(object) -per-object $(methodName) \
+		 -frame $frame $cmd]
+      ::nsf::method::property $(object) -per-object $r call-protected \
+	  [::nsf::dispatch $(object) __default_method_call_protection]
+      if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+      return $r
+    }
+
+    :public method "object forward" {
+      method
+      -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
+      target:optional args
+    } {
+      array set "" [:__resolve_method_path -per-object $method]
+      set arguments [lrange [::nsf::current args] 1 end]
+      if {[info exists returns]} {
+	# search for "-returns" in the arguments before $args ...
+	set p [lsearch -exact [lrange $arguments 0 [expr {[llength $arguments]-[llength $args]}]] -returns]
+	# ... and remove it if found
+	if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
+      }
+      puts "::nsf::method::forward $(object) -per-object $(methodName) {*}$arguments"
+      set r [::nsf::method::forward $(object) -per-object $(methodName) {*}$arguments]
+      ::nsf::method::property $(object) -per-object $r call-protected \
+	  [::nsf::dispatch $(object) __default_method_call_protection]
+      if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+      return $r
+    }
+
+    ### TODO needed?
+    #:alias "object filterguard" ::nsf::methods::object::filterguard
+    #:alias "object mixinguard" ::nsf::methods::object::mixinguard
+  }
+
   #
   # Method for deletion of properties, variables and plain methods
   #
@@ -572,9 +588,9 @@ namespace eval ::nx {
   # provide aliases for "class delete"
   #
   ::nx::Class eval {
-    :alias "class delete property" ::nx::Object::slot::__delete::property
-    :alias "class delete variable" ::nx::Object::slot::__delete::variable
-    :alias "class delete method" ::nx::Object::slot::__delete::method
+    :alias "delete object property" ::nx::Object::slot::__delete::property
+    :alias "delete object variable" ::nx::Object::slot::__delete::variable
+    :alias "delete object method" ::nx::Object::slot::__delete::method
   }
 
   ######################################################################
@@ -584,39 +600,27 @@ namespace eval ::nx {
     :method "require namespace" {} {
       ::nsf::directdispatch [::nsf::self] ::nsf::methods::object::requirenamespace
     }
+    
     #
     # method require, base cases
     #
-    :method "require method" {methodName} {
-      return [::nsf::method::require [::nsf::self] $methodName 0]
-    }
-    :method "require class method" {methodName} {
+    :method "require object method" {methodName} {
       ::nsf::method::require [::nsf::self] $methodName 1
       return [:info lookup method $methodName]
     }
     #
     # method require, public explicitly
     #
-    :method "require public method" {methodName} {
-      set result [:require method $methodName]
-      ::nsf::method::property [self] $result call-protected false
-      return $result
-    }
-    :method "require public class method" {methodName} {
-      set result [:require class method $methodName]
+    :method "require public object method" {methodName} {
+      set result [:require object method $methodName]
       ::nsf::method::property [self] $result call-protected false
       return $result
     }
     #
     # method require, protected explicitly
     #
-    :method "require protected method" {methodName} {
-      set result [:require method $methodName]
-      ::nsf::method::property [self] $result call-protected true
-      return $result
-    }
-    :method "require protected class method" {methodName} {
-      set result [:require class method $methodName]
+    :method "require protected object method" {methodName} {
+      set result [:require object method $methodName]
       ::nsf::method::property [self] $result call-protected true
       return $result
     }
@@ -624,13 +628,29 @@ namespace eval ::nx {
     #
     # method require, private explicitly
     #
-    :method "require private method" {methodName} {
-      set result [:require method $methodName]
+    :method "require private object method" {methodName} {
+      set result [:require object method $methodName]
       ::nsf::method::property [self] $result call-private true
       return $result
     }
-    :method "require private class method" {methodName} {
-      set result [:require class method $methodName]
+  }
+
+  nx::Class eval {
+    :method "require method" {methodName} {
+      return [::nsf::method::require [::nsf::self] $methodName 0]
+    }
+    :method "require public method" {methodName} {
+      set result [:require method $methodName]
+      ::nsf::method::property [self] $result call-protected false
+      return $result
+    }
+    :method "require protected method" {methodName} {
+      set result [:require method $methodName]
+      ::nsf::method::property [self] $result call-protected true
+      return $result
+    }
+    :method "require private method" {methodName} {
+      set result [:require method $methodName]
       ::nsf::method::property [self] $result call-private true
       return $result
     }
@@ -691,16 +711,16 @@ namespace eval ::nx {
     }
     :alias "info children"         ::nsf::methods::object::info::children
     :alias "info class"            ::nsf::methods::object::info::class
-    :alias "info filter guard"     ::nsf::methods::object::info::filterguard
-    :alias "info filter methods"   ::nsf::methods::object::info::filtermethods
     :alias "info has mixin"        ::nsf::methods::object::info::hasmixin
     :alias "info has namespace"    ::nsf::methods::object::info::hasnamespace
     :alias "info has type"         ::nsf::methods::object::info::hastype
     :alias "info is"               ::nsf::methods::object::info::is
-    :alias "info methods"          ::nsf::methods::object::info::methods
-    :alias "info mixin guard"      ::nsf::methods::object::info::mixinguard
-    :alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
     :alias "info name"             ::nsf::methods::object::info::name
+    :alias "info object filter guard"     ::nsf::methods::object::info::filterguard
+    :alias "info object filter methods"   ::nsf::methods::object::info::filtermethods
+    :alias "info object methods"          ::nsf::methods::object::info::methods
+    :alias "info object mixin guard"      ::nsf::methods::object::info::mixinguard
+    :alias "info object mixin classes"    ::nsf::methods::object::info::mixinclasses
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slot definitions" {{-type:class ::nx::Slot} pattern:optional} {
@@ -841,7 +861,7 @@ namespace eval ::nx {
   Class  method "info info" {} {::nx::internal::infoOptions ::nx::Class::slot::__info}
 
   # finally register method "method" (otherwise, we cannot use "method" above)
-  Object alias "info method" ::nsf::methods::object::info::method
+  Object alias "info object method" ::nsf::methods::object::info::method
   Class  alias "info method" ::nsf::methods::class::info::method
 
   ######################################################################
@@ -866,42 +886,12 @@ namespace eval ::nx {
   #   }
   # }
 
-  #
-  # Provide basic "class ...." functionality. The aliases require the
-  # RHS to be defined.
-  #
-
+  
   ::nx::Class eval {
-
-    :alias "class alias" ::nsf::classes::nx::Object::alias
-    :alias "class forward" ::nsf::classes::nx::Object::forward
-    :alias "class method" ::nsf::classes::nx::Object::method
-    :alias "class info" ::nx::Object::slot::__info
-
-    :method "class filter" args {
-      set what filter
-      switch [llength $args] {
-	0 {return [::nsf::relation [::nsf::self] object-$what]}
-	1 {return [::nsf::relation [::nsf::self] object-$what {*}$args]}
-	default {return [::nx::Object::slot::$what [lindex $args 0] \
-			     [::nsf::self] object-$what \
-			     {*}[lrange $args 1 end]]
-	}
-      }
-    }
-    :method "class mixin" args {
-      set what mixin
-      switch [llength $args] {
-	0 {return [::nsf::relation [::nsf::self] object-$what]}
-	1 {return [::nsf::relation [::nsf::self] object-$what {*}$args]}
-	default {return [::nx::Object::slot::$what [lindex $args 0] \
-			     [::nsf::self] object-$what \
-			     {*}[lrange $args 1 end]]
-	}
-      }
-    }
-    :alias "class filterguard" ::nsf::methods::object::filterguard
-    :alias "class mixinguard" ::nsf::methods::object::mixinguard
+    #
+    # info redirector
+    #
+    :alias "info object" ::nx::Object::slot::__info
   }
 
   ######################################################################
@@ -918,7 +908,7 @@ namespace eval ::nx {
   Class create ::nx::MetaSlot
   ::nsf::relation MetaSlot superclass Class
 
-  MetaSlot class method requireClass {required:class old:class,0..1} {
+  MetaSlot object method requireClass {required:class old:class,0..1} {
     #
     # Combine two classes and return the more specialized one
     #
@@ -934,7 +924,7 @@ namespace eval ::nx {
     }
   }
 
-  MetaSlot public class method parseParameterSpec {
+  MetaSlot public object method parseParameterSpec {
     {-class ""}
     {-defaultopts ""}
     spec
@@ -989,7 +979,7 @@ namespace eval ::nx {
     return [list $name $parameterOptions $class $opts]
   }
 
-  MetaSlot public class method createFromParameterSpec {
+  MetaSlot public object method createFromParameterSpec {
     target
     -per-object:switch
     {-class ""}
@@ -1251,11 +1241,16 @@ namespace eval ::nx {
     }
     #puts stderr "makeforwarder --> '${:forwardername}'"
     if {[info exists :settername]} {
-      set name ${:settername}
+      array set "" [nsf::directdispatch ${:domain} \
+			::nsf::classes::nx::Object::__resolve_method_path \
+			{*}[expr {${:per-object} ? "-per-object" : ""}] ${:settername}]
+      set name $(methodName)
+      set domain $(object)
     } else {
       set name ${:name}
+      set domain ${:domain}
     }
-    ::nsf::method::forward ${:domain} \
+    ::nsf::method::forward $domain \
 	{*}[expr {${:per-object} ? "-per-object" : ""}] \
 	$name \
 	${:manager} \
@@ -1394,6 +1389,7 @@ namespace eval ::nx {
   createBootstrapVariableSlots ::nx::RelationSlot {
     {accessor public}
     {multiplicity 0..n}
+    {settername}
   }
 
   RelationSlot protected method init {} {
@@ -1487,26 +1483,33 @@ namespace eval ::nx {
   ######################################################################
 
   #
-  # Most system slots are RelationSlots
+  # Create relation slots 
   #
-  ::nx::RelationSlot create ::nx::Object::slot::mixin \
-      -forwardername object-mixin -elementtype mixinreg
-  ::nx::RelationSlot create ::nx::Object::slot::filter \
-      -forwardername object-filter -elementtype filterreg
+  # on nx::Object for 
+  #
+  #     object-mixin
+  #     object-filter
+  #
+  # and on nx::Class for
+  #
+  #     mixin
+  #     filter
 
+  ::nx::RelationSlot create ::nx::Object::slot::object-mixin \
+      -multiplicity 1..n \
+      -methodname "::nx::Object::slot::__object::mixin" \
+      -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
+  ::nx::RelationSlot create ::nx::Object::slot::object-filter \
+      -methodname "::nx::Object::slot::__object::filter" \
+      -multiplicity 1..n \
+      -settername "object filter" -forwardername object-filter -elementtype filterreg 
+  
   ::nx::RelationSlot create ::nx::Class::slot::mixin \
+      -multiplicity 1..n \
       -forwardername class-mixin -elementtype mixinreg
   ::nx::RelationSlot create ::nx::Class::slot::filter \
+      -multiplicity 1..n \
       -forwardername class-filter -elementtype filterreg
-
-  #
-  # Create two convenience object parameters to allow configuration
-  # of per-object mixins and filters for classes.
-  #
-  ::nx::ObjectParameterSlot create ::nx::Class::slot::object-mixin \
-      -methodname "::nsf::classes::nx::Object::mixin" -elementtype mixinreg
-  ::nx::ObjectParameterSlot create ::nx::Class::slot::object-filter \
-      -methodname "::nsf::classes::nx::Object::filter" -elementtype filterreg
 
   #
   # Create object parameter slots for "noninit" and "volatile"
@@ -1551,35 +1554,35 @@ namespace eval ::nx {
   #
   # Define method "guard" for mixin- and filter-slots of Object and Class
   #
-  ::nx::Object::slot::filter method guard {obj prop filter guard:optional} {
+  ::nx::Object::slot::object-filter object method guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::filterguard $filter $guard
     } else {
-      $obj info filter guard $filter
+      $obj info object filter guard $filter
     }
   }
-  ::nx::Class::slot::filter method guard {obj prop filter guard:optional} {
+  ::nx::Class::slot::filter object method guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::filterguard $filter $guard
     } else {
       $obj info filter guard $filter
     }
   }
-  ::nx::Object::slot::mixin method guard {obj prop mixin guard:optional} {
+  ::nx::Object::slot::object-mixin object method guard {obj prop mixin guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
     } else {
-      $obj info mixin guard $mixin
+      $obj info object mixin guard $mixin
     }
   }
-  ::nx::Class::slot::mixin method guard {obj prop filter guard:optional} {
+  ::nx::Class::slot::mixin object method guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::mixinguard $filter $guard
     } else {
       $obj info mixin guard $filter
     }
   }
-  #::nsf::method::alias ::nx::Class::slot::object-filter guard ::nx::Object::slot::filter::guard
+  #::nsf::method::alias ::nx::Class::slot::object-filter guard ::nx::Object::slot::object-filter::guard
 
   #
   # With a special purpose eval, we could avoid the need for
@@ -1593,7 +1596,6 @@ namespace eval ::nx {
   #  :reconfigure
   #  return $r
   #}
-
 
   ######################################################################
   # Variable slots
@@ -1802,13 +1804,13 @@ namespace eval ::nx {
     # We need the following rule e.g. for private properties, where
     # the setting of the property is handled via slot.
     if {[:info lookup method assign] eq "::nsf::classes::nx::VariableSlot::assign"} {
-      #puts stderr ":public method assign [list obj var [:namedParameterSpec {} value $options]] $body"
-      :public method assign [list obj var [:namedParameterSpec {} value $options]] $body
+      #puts stderr ":public object method assign [list obj var [:namedParameterSpec {} value $options]] $body"
+      :public object method assign [list obj var [:namedParameterSpec {} value $options]] $body
     }
     if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::VariableSlot::add"} {
       lappend options_single slot=[::nsf::self]
-      #puts stderr ":public method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}"
-      :public method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
+      #puts stderr ":public object method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}"
+      :public object method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
     } else {
       # TODO should we deactivate add/delete?
     }
@@ -2070,11 +2072,11 @@ namespace eval ::nx {
   }
 
   #
-  # provide aliases for "class property" and "class variable"
+  # provide aliases for "object property" and "object variable"
   #
   ::nx::Class eval {
-    :alias "class property" ::nsf::classes::nx::Object::property
-    :alias "class variable" ::nsf::classes::nx::Object::variable
+    :alias "object property" ::nsf::classes::nx::Object::property
+    :alias "object variable" ::nsf::classes::nx::Object::variable
   }
 
 
@@ -2415,7 +2417,7 @@ namespace eval ::nx {
     # of scripted methods, aliases and forwarders without explicit
     # protection specified.
     #
-    :method defaultMethodCallProtection {value:boolean,optional} {
+    :object method defaultMethodCallProtection {value:boolean,optional} {
       if {[info exists value]} {
 	::nsf::method::create Object __default_method_call_protection args [list return $value]
 	::nsf::method::property Object  __default_method_call_protection call-protected true
@@ -2427,7 +2429,7 @@ namespace eval ::nx {
     # Set the default method accessor handling nx properties. The configured
     # value is used for creating accessors for properties in nx.
     #
-    :method defaultAccessor {value:optional} {
+    :object method defaultAccessor {value:optional} {
       if {[info exists value]} {
 	if {$value ni {"public" "protected" "private" "none"}} {
 	  error {defaultAccessor must be "public", "protected", "private" or "none"}
@@ -2450,9 +2452,9 @@ namespace eval ::nx {
   # framework is faster than namespace-ensembles.
   #
   Object create ::nx::var {
-    :public alias exists ::nsf::var::exists
-    :public alias import ::nsf::var::import
-    :public alias set ::nsf::var::set
+    :public object alias exists ::nsf::var::exists
+    :public object alias import ::nsf::var::import
+    :public object alias set ::nsf::var::set
   }
 
   #interp alias {} ::nx::self {} ::nsf::self
@@ -2497,3 +2499,4 @@ if {[::nsf::configure debug] > 1} {
   }
   puts stderr "======= nx loaded"
 }
+

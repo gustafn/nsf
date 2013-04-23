@@ -55,7 +55,7 @@ Test case cget-simple {
   #
   # configure without arguments
   #
-  ? {p1 configure} "?-sex value? -famnam value ?-age integer? ?-friends value ...? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
+  ? {p1 configure} "?-sex value? -famnam value ?-age integer? ?-friends value ...? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?"
 }
 
 #
@@ -70,7 +70,7 @@ Test case cget-via-slot {
     
     # Define a property with a "get" method
     :property bar1 {
-      :public method get { object property} {
+      :public object method get { object property} {
 	incr ::count(cget)
 	nsf::var::set $object $property
       }
@@ -78,11 +78,11 @@ Test case cget-via-slot {
     
     # Define a property with a "get" and "assign" method
     :property bar2 {
-      :public method get { object property} {
+      :public object method get { object property} {
 	incr ::count(cget)
 	nsf::var::set $object $property
       }
-      :public method assign { object property value } {
+      :public object method assign { object property value } {
 	incr ::count(assign)
 	nsf::var::set $object $property $value
       }
@@ -95,7 +95,7 @@ Test case cget-via-slot {
   #
   # configure without arguments
   #
-  ? {p1 configure} "?-bar1 value? ?-bar2 value? ?-volatile? ?-noinit? ?-mixin mixinreg ...? ?-class class? ?-filter filterreg ...? ?__initcmd?"
+  ? {p1 configure} "?-bar1 value? ?-bar2 value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?"
 
   #
   # test gettin/setting via slots
@@ -137,7 +137,7 @@ Test case cget-parameter-methods {
   # class-level lookup
   #
   ? {C info lookup parameter list} \
-      "-superclass -object-mixin -mixin -object-filter -filter -volatile -noinit -class __initcmd"
+      "-superclass -mixin -filter -volatile -noinit -object-mixin -class -object-filter __initcmd"
   ? {C cget -superclass} "::nx::Object"
   ? {C cget -object-mixin} ""
   ? {C cget -mixin} ""
@@ -150,16 +150,18 @@ Test case cget-parameter-methods {
   # object-level lookup
   #
   ? {c1 info lookup parameter list} \
-      "-foo -bar -volatile -noinit -mixin -class -filter __initcmd"
+      "-foo -bar -volatile -noinit -object-mixin -class -object-filter __initcmd"
 
   #
   # query all properties from base classes
   #
   ? {c1 cget -volatile} 0
   ? {c1 cget -noinit} ""
-  ? {c1 cget -mixin} ""
+  #? {c1 cget -mixin} ""
+  ? {c1 cget -object-mixin} ""
   ? {c1 cget -class} ::C
-  ? {c1 cget -filter} ""
+  #? {c1 cget -filter} ""
+  ? {c1 cget -object-filter} ""
 
   #
   # query alias and forward
@@ -186,10 +188,10 @@ Test case cget-performance {
     
     # Define a property with a "get" and "assign" method
     :property bar {
-      :public method get { object property } {
+      :public object method get { object property } {
 	nsf::var::set $object $property
       }
-      :public method assign { object property value } {
+      :public object method assign { object property value } {
 	nsf::var::set $object $property $value
       }
     }

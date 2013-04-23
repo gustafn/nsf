@@ -53,8 +53,8 @@ nx::Test case deepSerialize-map-filter {
 
 nx::Test case deepSerialize-ignoreVarsRE-filter {   
   nx::Class create C {
-    :class property x
-    :class property y
+    :object property x
+    :object property y
     :property a:int
     :property b:int
     :create c1
@@ -66,7 +66,7 @@ nx::Test case deepSerialize-ignoreVarsRE-filter {
   ? {C y} 1
   
   ? {lsort [C info methods]} "a b"
-  ? {lsort [C class info methods]} "x y"
+  ? {lsort [C info object methods]} "x y"
   ? {c1 a b} {expected integer but got "b" for parameter "a"}
   ? {c1 a 1} 1
   ? {c1 b 1} 1
@@ -97,7 +97,7 @@ nx::Test case deepSerialize-ignoreVarsRE-filter {
   set C(One2) [list [::Serializer deepSerialize -ignoreVarsRE {::x$} C] "y"]
   set C(IgnoreAll) [list [::Serializer deepSerialize -ignoreVarsRE "." C] ""]
   set C(None2) [list [::Serializer deepSerialize \
-			  -ignoreVarsRE [join [C class info slot names] |] C] ""]
+			  -ignoreVarsRE [join [C info object slot names] |] C] ""]
   
   C destroy
   
@@ -144,7 +144,7 @@ nx::Test case deepSerialize-ignore-filter {
 nx::Test case serialize-slotContainer {
  
   nx::Class create C {
-    :class property x
+    :object property x
     :property a
   }
 
