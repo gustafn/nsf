@@ -66,6 +66,8 @@ Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *val
     hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, buffer, &isNew);
     NsfMutexUnlock(&pointerMutex);
     Tcl_SetHashValue(hPtr, valuePtr);
+    /*fprintf(stderr, "Nsf_PointerAdd key '%s' prefix '%s' => %p value %p\n", buffer, typeName, hPtr, valuePtr);*/
+
     Tcl_DStringFree(dsPtr);
   } else {
     return NsfPrintError(interp, "no type converter for %s registered", typeName);
@@ -102,7 +104,7 @@ Nsf_PointerGet(char *key, CONST char *prefix) {
 
     NsfMutexLock(&pointerMutex);
     hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL);
-    
+
     if (hPtr) {
       valuePtr = Tcl_GetHashValue(hPtr);
     }
@@ -165,7 +167,7 @@ Nsf_PointerGetHptr(void *valuePtr) {
  *----------------------------------------------------------------------
  */
 int
-Nsf_PointerDelete(CONST char *key, void *valuePtr) {
+Nsf_PointerDelete(CONST char *key, void *valuePtr, int free) {
   Tcl_HashEntry *hPtr;
   int result;
 
@@ -176,7 +178,7 @@ Nsf_PointerDelete(CONST char *key, void *valuePtr) {
     ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL) 
     : Nsf_PointerGetHptr(valuePtr);
   if (hPtr) {
-    ckfree((char *)valuePtr);
+    if (free) {ckfree((char *)valuePtr);}
     Tcl_DeleteHashEntry(hPtr);
     result = TCL_OK;
   } else {
@@ -331,8 +333,14 @@ Nsf_PointerExit(Tcl_Interp *interp) {
          hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(pointerHashTablePtr, hPtr);
       void *valuePtr = Tcl_GetHashValue(hPtr);
-     
-      fprintf(stderr, "Nsf_PointerExit: we have still an entry %s with value %p\n", key, valuePtr);
+
+      /*
+       * We can't use NsfLog here any more, since the Tcl procs are
+       * already deleted.
+       */
+      if (RUNTIME_STATE(interp)->debugLevel >= 2) {
+	fprintf(stderr, "Nsf_PointerExit: we have still an entry %s with value %p\n", key, valuePtr);
+      }
     }
     Tcl_DeleteHashTable(pointerHashTablePtr);
     NsfMutexUnlock(&pointerMutex);
