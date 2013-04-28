@@ -268,6 +268,23 @@ typedef struct NsfMemCounter {
    use app-specific return codes */
 #define NSF_CHECK_FAILED 6
 
+
+/*
+  The NsfConfigEnabled() macro allows for querying whether a
+  configuration macro (see above) is actually defined (and whether it
+  expands to 1). This macro can be used both in CPP expressions (e.g.,
+  "#if NsfConfigEnabled(...)") and in C expressions (e.g.,
+  "if(NsfConfigEnabled(...))")
+
+  Adapted from https://plus.google.com/+LinusTorvalds/posts/9gntjh57dXt
+*/
+
+#define NsfConfigEnabled(macro) NsfConfigEnabled_(macro)
+#define NsfMacroTest_1 ,
+#define NsfConfigEnabled_(value) NsfConfigEnabled__(NsfMacroTest_##value)
+#define NsfConfigEnabled__(comma) NsfConfigEnabled___(comma 1, 0)
+#define NsfConfigEnabled___(_, v, ...) v
+
 /*
  *
  * Next Scripting Structures
@@ -423,13 +440,6 @@ typedef struct NsfStringIncrStruct {
 /*#define NSF_DISALLOWED_ARG_OBJECT_PARAMETER  (NSF_ARG_SWITCH)*/
 #define NSF_DISALLOWED_ARG_OBJECT_PARAMETER  0
 #define NSF_DISALLOWED_ARG_VALUECHECK	     (NSF_ARG_SUBST_DEFAULT|NSF_ARG_METHOD_INVOCATION|NSF_ARG_SWITCH|NSF_ARG_CURRENTLY_UNKNOWN|NSF_ARG_SLOTASSIGN|NSF_ARG_SLOTINITIALIZE)
-
-/* Argument parse processing flags */
-#define NSF_ARGPARSE_CHECK		     0x0001
-#define NSF_ARGPARSE_FORCE_REQUIRED	     0x0002
-#define NSF_ARGPARSE_BUILTIN	     	     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
-/* Special flags for process method arguments */
-#define NSF_ARGPARSE_METHOD_PUSH	     0x0100
 
 /* flags for ParseContext */
 #define NSF_PC_MUST_DECR		     0x0001

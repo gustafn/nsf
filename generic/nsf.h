@@ -146,22 +146,6 @@
 #define PER_OBJECT_PARAMETER_CACHING 1
 
 /*
-  The NsfConfigEnabled() macro allows for querying whether a
-  configuration macro (see above) is actually defined (and whether it
-  expands to 1). This macro can be used both in CPP expressions (e.g.,
-  "#if NsfConfigEnabled(...)") and in C expressions (e.g.,
-  "if(NsfConfigEnabled(...))")
-
-  Adapted from https://plus.google.com/+LinusTorvalds/posts/9gntjh57dXt
-*/
-
-#define NsfConfigEnabled(macro) NsfConfigEnabled_(macro)
-#define NsfMacroTest_1 ,
-#define NsfConfigEnabled_(value) NsfConfigEnabled__(NsfMacroTest_##value)
-#define NsfConfigEnabled__(comma) NsfConfigEnabled___(comma 1, 0)
-#define NsfConfigEnabled___(_, v, ...) v
-
-/*
  * Sanity checks and dependencies for optional compile flags
  */
 #if defined(PARSE_TRACE_FULL)
@@ -310,6 +294,13 @@ typedef struct Nsf_Param {
   Tcl_Obj *method;
 } Nsf_Param;
 
+/* Argument parse processing flags */
+#define NSF_ARGPARSE_CHECK		     0x0001
+#define NSF_ARGPARSE_FORCE_REQUIRED	     0x0002
+#define NSF_ARGPARSE_BUILTIN	     	     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
+/* Special flags for process method arguments */
+#define NSF_ARGPARSE_METHOD_PUSH	     0x0100
+
 EXTERN int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
@@ -351,7 +342,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...);
  */
 
 EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr);
-EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr);
+EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free);
 EXTERN void Nsf_PointerInit(Tcl_Interp *interp);
 EXTERN void Nsf_PointerExit(Tcl_Interp *interp);
 EXTERN void *Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName);
