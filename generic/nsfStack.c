@@ -792,7 +792,7 @@ CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTa
 
 static void CallStackPopAll(Tcl_Interp *interp) {
 
-  if (RUNTIME_STATE(interp)->debugLevel > 1) {
+  if (RUNTIME_STATE(interp)->debugLevel > 2) {
     NsfShowStack(interp);
   }
 

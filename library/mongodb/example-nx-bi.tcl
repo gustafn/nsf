@@ -28,6 +28,8 @@ package require nx::mongo
 package require nx::serializer
 package require nx::test
 
+#nsf::configure debug 2
+
 # Establish connection to the database
 ::nx::mongo::db connect -db "tutorial"
 
@@ -46,7 +48,7 @@ nx::mongo::db remove tutorial.postings {}
 nx::mongo::Class create Comment {
   :property author:required
   :property comment:required 
-  :property replies:embedded,incremental,type=::Comment,0..n
+  :property -incremental replies:embedded,type=::Comment,0..n
 }
 
 nx::mongo::Class create Posting {
@@ -54,8 +56,8 @@ nx::mongo::Class create Posting {
   :property title:required
   :property author:required
   :property ts:required
-  :property comments:embedded,incremental,type=::Comment,0..n
-  :property tags:incremental,0..n
+  :property -incremental comments:embedded,type=::Comment,0..n
+  :property -incremental tags:0..n
 }
 
 ######################################################################
