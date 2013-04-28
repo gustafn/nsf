@@ -339,9 +339,14 @@ namespace eval ::nx::mongo {
     # Overload method property to provide "::nx::mongo::Attribute" as a
     # default slot class
     #
-    :public method property {spec {-class ::nx::mongo::Attribute} {initblock ""}} {
+    :public method property {
+       {-incremental:switch}
+       spec 
+       {-class ::nx::mongo::Attribute} 
+       {initblock ""}
+    } {
       regsub -all {,type=} $spec {,arg=} spec
-      next [list -class $class $spec $initblock]
+      next [list -class $class -incremental=$incremental $spec $initblock]
     }
     
     #

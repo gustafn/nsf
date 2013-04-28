@@ -1,6 +1,7 @@
 package require nx
 package require nsf::mongo
 
+#nsf::configure debug 2
 #
 # One might query these values from the mongo shell via:
 #
@@ -11,9 +12,18 @@ package require nsf::mongo
 
 #set mongoConn [::mongo::connect -server 127.0.0.1:27017]
 set mongoConn [::mongo::connect]
+puts "Connection: $mongoConn"
 
 if {1} {
   ::mongo::remove $mongoConn tutorial.persons {}
+  # Drop old potenially old collection and 
+  # recreate it as a capped collection
+  ::mongo::run $mongoConn tutorial {drop string persons}
+  puts "\nCreate a capped collection: [::mongo::run $mongoConn tutorial {
+    create string persons
+    capped bool 1 
+    size int 100000
+  }]"
 
   puts "\nInserting a few tuples"
   if {[catch {
@@ -46,6 +56,38 @@ puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {ag
 
 puts stderr "\nCount Age > 30"
 puts  [::mongo::count $mongoConn tutorial.persons {age object {$gt int 30}}]
+
+puts stderr "\nAge > 30 (all atts, via cursor interface)"
+set cursor [::mongo::cursor::find $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}]]
+puts "Cursor: $cursor"
+puts NEXT=[::mongo::cursor::next $cursor]
+puts NEXT=[::mongo::cursor::next $cursor]
+puts NEXT=[::mongo::cursor::next $cursor]
+::mongo::cursor::close $cursor
+
+puts stderr "\nAge > 30 (all atts, via cursor interface, tailable)"
+set cursor [::mongo::cursor::find $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}] -tailable]
+puts "Cursor: $cursor"
+if {$cursor ne ""} {
+  while {1} {
+    set result [::mongo::cursor::next $cursor]
+    if {$result eq ""} break
+    puts NEXT=$result
+  }
+  ::mongo::cursor::close $cursor
+}
+
+puts stderr "\nempty result (via cursor interface)"
+set cursor [::mongo::cursor::find $mongoConn tutorial.persons [list \$query object {age object {$gt int 300}}]]
+puts "Cursor: $cursor"
+if {$cursor ne ""} {
+  while {1} {
+    set result [::mongo::cursor::next $cursor]
+    if {$result eq ""} break
+    puts NEXT=$result
+  }
+  ::mongo::cursor::close $cursor
+}
 
 puts stderr "\nArray 'a' contains 'x'"
 puts  [join [::mongo::query $mongoConn tutorial.persons [list \$query object {a string "x"}]] \n]

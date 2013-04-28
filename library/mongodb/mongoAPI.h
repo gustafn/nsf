@@ -21,7 +21,7 @@
 
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[20];
+static Nsf_methodDefinition method_definitions[24];
   
 static CONST char *method_command_namespace_names[] = {
   "::mongo"
@@ -29,6 +29,9 @@ static CONST char *method_command_namespace_names[] = {
 static int NsfMongoCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCountStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMongoCursorCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMongoCursorFindStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMongoCursorNextStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoGridFSCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoGridFSOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoGridFSRemoveFileStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -44,11 +47,15 @@ static int NsfMongoIndexStub(ClientData clientData, Tcl_Interp *interp, int objc
 static int NsfMongoInsertStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoQueryStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoRemoveStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int NsfMongoClose(Tcl_Interp *interp, mongo *connPtr, Tcl_Obj *connObj);
 static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withReplica_set, Tcl_Obj *withServer, int withTimeout);
 static int NsfMongoCount(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *query);
+static int NsfMongoCursorClose(Tcl_Interp *interp, mongo_cursor *cursorPtr, Tcl_Obj *cursorObj);
+static int NsfMongoCursorFind(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip, int withTailable, int withAwaitdata);
+static int NsfMongoCursorNext(Tcl_Interp *interp, mongo_cursor *cursorPtr);
 static int NsfMongoGridFSClose(Tcl_Interp *interp, gridfs *gfsPtr, Tcl_Obj *gfsObj);
 static int NsfMongoGridFSOpen(Tcl_Interp *interp, mongo *connPtr, CONST char *dbname, CONST char *prefix);
 static int NsfMongoGridFSRemoveFile(Tcl_Interp *interp, gridfs *gfsPtr, CONST char *filename);
@@ -60,16 +67,20 @@ static int NsfMongoGridFileGetMetaData(Tcl_Interp *interp, gridfile *filePtr);
 static int NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *fsPtr, CONST char *filename);
 static int NsfMongoGridFileRead(Tcl_Interp *interp, gridfile *filePtr, int size);
 static int NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *filePtr, int offset);
-static int NsfMongoIndex(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *attributes, int withBackground, int withDropdups, int withSparse, int withUnique);
+static int NsfMongoIndex(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *attributes, CONST char *withName, int withBackground, int withDropdups, int withSparse, int withUnique);
 static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *values);
 static int NsfMongoQuery(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
 static int NsfMongoRemove(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *condition);
+static int NsfMongoRunCmd(Tcl_Interp *interp, mongo *connPtr, CONST char *db, Tcl_Obj *cmd);
 static int NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *cond, Tcl_Obj *values, int withUpsert, int withAll);
 
 enum {
  NsfMongoCloseIdx,
  NsfMongoConnectIdx,
  NsfMongoCountIdx,
+ NsfMongoCursorCloseIdx,
+ NsfMongoCursorFindIdx,
+ NsfMongoCursorNextIdx,
  NsfMongoGridFSCloseIdx,
  NsfMongoGridFSOpenIdx,
  NsfMongoGridFSRemoveFileIdx,
@@ -85,6 +96,7 @@ enum {
  NsfMongoInsertIdx,
  NsfMongoQueryIdx,
  NsfMongoRemoveIdx,
+ NsfMongoRunCmdIdx,
  NsfMongoUpdateIdx
 } NsfMethods;
 
@@ -96,7 +108,7 @@ NsfMongoCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoCloseIdx].paramDefs, 
-                     method_definitions[NsfMongoCloseIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoCloseIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongo *connPtr = (mongo *)pc.clientData[0];
 
@@ -115,7 +127,7 @@ NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoConnectIdx].paramDefs, 
-                     method_definitions[NsfMongoConnectIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoConnectIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     CONST char *withReplica_set = (CONST char *)pc.clientData[0];
     Tcl_Obj *withServer = (Tcl_Obj *)pc.clientData[1];
@@ -136,7 +148,7 @@ NsfMongoCountStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoCountIdx].paramDefs, 
-                     method_definitions[NsfMongoCountIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoCountIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongo *connPtr = (mongo *)pc.clientData[0];
     CONST char *namespace = (CONST char *)pc.clientData[1];
@@ -151,13 +163,77 @@ NsfMongoCountStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 }
 
 static int
+NsfMongoCursorCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMongoCursorCloseIdx].paramDefs, 
+                     method_definitions[NsfMongoCursorCloseIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    mongo_cursor *cursorPtr = (mongo_cursor *)pc.clientData[0];
+
+    assert(pc.status == 0);
+    return NsfMongoCursorClose(interp, cursorPtr,pc.objv[0]);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfMongoCursorFindStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMongoCursorFindIdx].paramDefs, 
+                     method_definitions[NsfMongoCursorFindIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    mongo *connPtr = (mongo *)pc.clientData[0];
+    CONST char *namespace = (CONST char *)pc.clientData[1];
+    Tcl_Obj *query = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *withAtts = (Tcl_Obj *)pc.clientData[3];
+    int withLimit = (int )PTR2INT(pc.clientData[4]);
+    int withSkip = (int )PTR2INT(pc.clientData[5]);
+    int withTailable = (int )PTR2INT(pc.clientData[6]);
+    int withAwaitdata = (int )PTR2INT(pc.clientData[7]);
+
+    assert(pc.status == 0);
+    return NsfMongoCursorFind(interp, connPtr, namespace, query, withAtts, withLimit, withSkip, withTailable, withAwaitdata);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfMongoCursorNextStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMongoCursorNextIdx].paramDefs, 
+                     method_definitions[NsfMongoCursorNextIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    mongo_cursor *cursorPtr = (mongo_cursor *)pc.clientData[0];
+
+    assert(pc.status == 0);
+    return NsfMongoCursorNext(interp, cursorPtr);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
 NsfMongoGridFSCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFSCloseIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFSCloseIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFSCloseIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfs *gfsPtr = (gridfs *)pc.clientData[0];
 
@@ -176,7 +252,7 @@ NsfMongoGridFSOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFSOpenIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFSOpenIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFSOpenIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongo *connPtr = (mongo *)pc.clientData[0];
     CONST char *dbname = (CONST char *)pc.clientData[1];
@@ -197,7 +273,7 @@ NsfMongoGridFSRemoveFileStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFSRemoveFileIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFSRemoveFileIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFSRemoveFileIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfs *gfsPtr = (gridfs *)pc.clientData[0];
     CONST char *filename = (CONST char *)pc.clientData[1];
@@ -217,7 +293,7 @@ NsfMongoGridFSStoreFileStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFSStoreFileIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFSStoreFileIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFSStoreFileIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfs *gfsPtr = (gridfs *)pc.clientData[0];
     CONST char *filename = (CONST char *)pc.clientData[1];
@@ -239,7 +315,7 @@ NsfMongoGridFileCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileCloseIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileCloseIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFileCloseIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfile *filePtr = (gridfile *)pc.clientData[0];
 
@@ -258,7 +334,7 @@ NsfMongoGridFileGetContentTypeStub(ClientData clientData, Tcl_Interp *interp, in
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileGetContentTypeIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileGetContentTypeIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFileGetContentTypeIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfile *filePtr = (gridfile *)pc.clientData[0];
 
@@ -277,7 +353,7 @@ NsfMongoGridFileGetContentlengthStub(ClientData clientData, Tcl_Interp *interp, 
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileGetContentlengthIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileGetContentlengthIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFileGetContentlengthIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfile *filePtr = (gridfile *)pc.clientData[0];
 
@@ -296,7 +372,7 @@ NsfMongoGridFileGetMetaDataStub(ClientData clientData, Tcl_Interp *interp, int o
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileGetMetaDataIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileGetMetaDataIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFileGetMetaDataIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfile *filePtr = (gridfile *)pc.clientData[0];
 
@@ -315,7 +391,7 @@ NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileOpenIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileOpenIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFileOpenIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfs *fsPtr = (gridfs *)pc.clientData[0];
     CONST char *filename = (CONST char *)pc.clientData[1];
@@ -335,7 +411,7 @@ NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileReadIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileReadIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFileReadIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfile *filePtr = (gridfile *)pc.clientData[0];
     int size = (int )PTR2INT(pc.clientData[1]);
@@ -355,7 +431,7 @@ NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoGridFileSeekIdx].paramDefs, 
-                     method_definitions[NsfMongoGridFileSeekIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoGridFileSeekIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     gridfile *filePtr = (gridfile *)pc.clientData[0];
     int offset = (int )PTR2INT(pc.clientData[1]);
@@ -375,18 +451,19 @@ NsfMongoIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoIndexIdx].paramDefs, 
-                     method_definitions[NsfMongoIndexIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoIndexIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongo *connPtr = (mongo *)pc.clientData[0];
     CONST char *namespace = (CONST char *)pc.clientData[1];
     Tcl_Obj *attributes = (Tcl_Obj *)pc.clientData[2];
-    int withBackground = (int )PTR2INT(pc.clientData[3]);
-    int withDropdups = (int )PTR2INT(pc.clientData[4]);
-    int withSparse = (int )PTR2INT(pc.clientData[5]);
-    int withUnique = (int )PTR2INT(pc.clientData[6]);
+    CONST char *withName = (CONST char *)pc.clientData[3];
+    int withBackground = (int )PTR2INT(pc.clientData[4]);
+    int withDropdups = (int )PTR2INT(pc.clientData[5]);
+    int withSparse = (int )PTR2INT(pc.clientData[6]);
+    int withUnique = (int )PTR2INT(pc.clientData[7]);
 
     assert(pc.status == 0);
-    return NsfMongoIndex(interp, connPtr, namespace, attributes, withBackground, withDropdups, withSparse, withUnique);
+    return NsfMongoIndex(interp, connPtr, namespace, attributes, withName, withBackground, withDropdups, withSparse, withUnique);
 
   } else {
     return TCL_ERROR;
@@ -400,7 +477,7 @@ NsfMongoInsertStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoInsertIdx].paramDefs, 
-                     method_definitions[NsfMongoInsertIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoInsertIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongo *connPtr = (mongo *)pc.clientData[0];
     CONST char *namespace = (CONST char *)pc.clientData[1];
@@ -421,7 +498,7 @@ NsfMongoQueryStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoQueryIdx].paramDefs, 
-                     method_definitions[NsfMongoQueryIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoQueryIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongo *connPtr = (mongo *)pc.clientData[0];
     CONST char *namespace = (CONST char *)pc.clientData[1];
@@ -445,7 +522,7 @@ NsfMongoRemoveStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoRemoveIdx].paramDefs, 
-                     method_definitions[NsfMongoRemoveIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoRemoveIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongo *connPtr = (mongo *)pc.clientData[0];
     CONST char *namespace = (CONST char *)pc.clientData[1];
@@ -460,13 +537,34 @@ NsfMongoRemoveStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 }
 
 static int
+NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMongoRunCmdIdx].paramDefs, 
+                     method_definitions[NsfMongoRunCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    mongo *connPtr = (mongo *)pc.clientData[0];
+    CONST char *db = (CONST char *)pc.clientData[1];
+    Tcl_Obj *cmd = (Tcl_Obj *)pc.clientData[2];
+
+    assert(pc.status == 0);
+    return NsfMongoRunCmd(interp, connPtr, db, cmd);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
 NsfMongoUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMongoUpdateIdx].paramDefs, 
-                     method_definitions[NsfMongoUpdateIdx].nrParameters, 0, 1,
+                     method_definitions[NsfMongoUpdateIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     mongo *connPtr = (mongo *)pc.clientData[0];
     CONST char *namespace = (CONST char *)pc.clientData[1];
@@ -483,7 +581,7 @@ NsfMongoUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   }
 }
 
-static Nsf_methodDefinition method_definitions[20] = {
+static Nsf_methodDefinition method_definitions[24] = {
 {"::mongo::close", NsfMongoCloseStub, 1, {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL}}
 },
@@ -496,6 +594,22 @@ static Nsf_methodDefinition method_definitions[20] = {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
   {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::cursor::close", NsfMongoCursorCloseStub, 1, {
+  {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo_cursor",NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::cursor::find", NsfMongoCursorFindStub, 8, {
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-atts", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-limit", 0, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
+  {"-skip", 0, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
+  {"-tailable", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-awaitdata", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::cursor::next", NsfMongoCursorNextStub, 1, {
+  {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo_cursor",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfs::close", NsfMongoGridFSCloseStub, 1, {
   {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL}}
@@ -539,10 +653,11 @@ static Nsf_methodDefinition method_definitions[20] = {
   {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
   {"offset", NSF_ARG_REQUIRED, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::index", NsfMongoIndexStub, 7, {
+{"::mongo::index", NsfMongoIndexStub, 8, {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
   {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"attributes", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-name", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-background", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-dropdups", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-sparse", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
@@ -565,6 +680,11 @@ static Nsf_methodDefinition method_definitions[20] = {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
   {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"condition", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::run", NsfMongoRunCmdStub, 3, {
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"db", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"cmd", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::update", NsfMongoUpdateStub, 6, {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},

@@ -11,6 +11,7 @@ array set ptrConverter {
   mongo 1
   gridfs 1
   gridfile 1
+  mongo_cursor 1
 }
 
 
@@ -23,6 +24,12 @@ cmd connect NsfMongoConnect {
   {-argName "-timeout" -required 0 -nrargs 1 -type int32}
 }
 
+cmd run NsfMongoRunCmd {
+  {-argName "conn" -required 1 -type mongo}
+  {-argName "db" -required 1}
+  {-argName "cmd" -required 1 -type tclobj}
+}
+
 cmd count NsfMongoCount {
   {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
@@ -33,6 +40,7 @@ cmd index NsfMongoIndex {
   {-argName "conn" -required 1 -type mongo}
   {-argName "namespace" -required 1}
   {-argName "attributes" -required 1 -type tclobj}
+  {-argName "-name" -required 0 -nrargs 1}
   {-argName "-background" -required 0 -nrargs 0}
   {-argName "-dropdups" -required 0 -nrargs 0}
   {-argName "-sparse" -required 0 -nrargs 0}
@@ -67,6 +75,26 @@ cmd update NsfMongoUpdate {
   {-argName "values" -required 1 -type tclobj}
   {-argName "-upsert" -required 0 -nrargs 0}
   {-argName "-all" -required 0 -nrargs 0}
+}
+
+#
+# Cursor
+#
+cmd cursor::find NsfMongoCursorFind {
+  {-argName "conn" -required 1 -type mongo}
+  {-argName "namespace" -required 1}
+  {-argName "query" -required 1 -type tclobj}
+  {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
+  {-argName "-limit" -required 0 -type int32}
+  {-argName "-skip" -required 0 -type int32}
+  {-argName "-tailable" -required 0 -nrargs 0}
+  {-argName "-awaitdata" -required 0 -nrargs 0}
+}
+cmd cursor::next NsfMongoCursorNext {
+  {-argName "cursor" -required 1 -type mongo_cursor}
+}
+cmd cursor::close NsfMongoCursorClose {
+  {-argName "cursor" -required 1 -type mongo_cursor -withObj 1}
 }
 
 #
@@ -123,3 +151,4 @@ cmd "gridfile::seek" NsfMongoGridFileSeek {
   {-argName "file" -required 1 -type gridfile}
   {-argName "offset" -required 1 -type int32}
 }
+

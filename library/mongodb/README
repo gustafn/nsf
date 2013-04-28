@@ -3,14 +3,20 @@ Interface between mongoDB and the Next Scripting Framework
 
 Ingredients:
   https://github.com/mongodb/mongo
-  https://github.com/mongodb/mongo-c-driver (requires version v0.3 or better)
+  https://github.com/mongodb/mongo-c-driver 
+
+The current version is tested with 
+- MongoDB v2.4.4-pre-
+- mongodb-c-driver v0.7.1
 
 Compile or obtain mongodb (the database).
 Compile or obtain the mongo-c-driver (client interface)
+Install the mongo-c-driver
 
-Assume, Tcl is under /usr/local/ns/lib and the mongo-c-driver is under
-/usr/local/src/mongo-c-driver/, then configure the nsf interface via the
-following command from nsf*/library/mongodb/  
+Assume, Tcl is under /usr/local/ns/lib and the source of the 
+mongo-c-driver is under /usr/local/src/mongo-c-driver/, 
+then configure the nsf interface via the following 
+command from nsf*/library/mongodb/  
 
    ./configure --with-tcl=/usr/local/ns/lib --with-nsf=../../ \
    	       --with-mongo=/usr/local/src/mongo-c-driver/src/,/usr/local/src/mongo-c-driver
@@ -28,23 +34,37 @@ In order to run the sample script,
   * go to your nsf source directory
 
   * make sure, the c-driver libraries are on the library path
-    export DYLD_LIBRARY_PATH=/usr/local/src/mongo-c-driver/:`pwd`
+    (assuming the the c-driver was installed in /usr/local/lib)
 
-  * run ./nxsh library/mongodb/example-nsf-mongo.tcl
+    export DYLD_LIBRARY_PATH=/usr/local/lib:`pwd`
+
+  * run 
+
+    ./nxsh library/mongodb/example-nsf-mongo.tcl
  
     The script is using the low level interface (nsf::mongo) and has a
     few insert, query and delete statements, some of these are
     commented out.
 
- * run ./nxsh library/mongodb/example-nx-mongo.tcl
+ * run 
+
+    ./nxsh library/mongodb/example-nx-mongo.tcl
  
     This example script is using the higher level object oriented
     interface for nx (nx::mongo).
 
+* Further sample-scripts:
+
+    ./nxsh library/mongodb/example-nx-bi.tcl
+    ./nxsh library/mongodb/example-nx-reference-one.tcl
+    ./nxsh library/mongodb/example-nx-reference-many.tcl
+    ./nxsh library/mongodb/example-nsf-gridfs.tcl
+
+
 After running the scripts, you should see output like the one below.
 
    % /usr/local/bin/mongo
-   MongoDB shell version: 1.9.0-pre-
+   MongoDB shell version: 2.4.4-pre-
    connecting to: test
    > use tutorial
    switched to db tutorial

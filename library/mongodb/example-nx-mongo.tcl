@@ -6,6 +6,7 @@
 # Gustaf Neumann              fecit, April 2011
 #
 package require nx::mongo
+#nsf::configure debug 2
 
 # Establish connection to the database
 ::nx::mongo::db connect -db "tutorial"
