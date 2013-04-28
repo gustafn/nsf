@@ -12,8 +12,9 @@ package require nx::mongo
 ::nx::mongo::db connect -db "tutorial"
 
 # Make sure, we start always from scratch
-nx::mongo::db remove tutorial.users {}
-nx::mongo::db remove tutorial.posts {}
+nx::mongo::db drop collection users
+nx::mongo::db drop collection posts
+
 
 ######################################################################
 # The first approach to implement references simply as an property.

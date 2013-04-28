@@ -12,9 +12,12 @@ package require nx::mongo
 ::nx::mongo::db connect -db "tutorial"
 
 # Make sure, we start always from scratch
-nx::mongo::db remove tutorial.persons {}
 
-::mongo::run [::nx::mongo::db eval {set :mongoConn}] tutorial {drop string persons}
+nx::mongo::db remove tutorial.persons {}
+if {[::mongo::count [::nx::mongo::db eval {set :mongoConn}] tutorial.persons {}] > 0} {
+  # when we create a capped colletion, we have to use "drop collection" to get rid of it.
+  nx::mongo::db drop collection persons
+}
 
 #
 # Create the application class "Person"

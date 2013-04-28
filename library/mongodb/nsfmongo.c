@@ -774,7 +774,7 @@ cmd remove NsfMongoRemove {
 */
 static int 
 NsfMongoRemove(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *conditionObj) {
-  int objc, result;
+  int objc, result, status;
   Tcl_Obj **objv;
   bson query[1];
 
@@ -785,7 +785,9 @@ NsfMongoRemove(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Ob
  
   BsonAppendObjv(interp, query, objc, objv);
   /* for the time being, no write_concern (last arg of mongo_remove()) */
-  mongo_remove(connPtr, namespace, query, NULL);
+  status = mongo_remove(connPtr, namespace, query, NULL);
+
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(status == MONGO_OK));
 
   bson_destroy(query);
   return TCL_OK;
@@ -971,12 +973,12 @@ cmd gridfs::remove_file NsfMongoGridFSRemoveFile {
 static int 
 NsfMongoGridFSRemoveFile(Tcl_Interp *interp, gridfs *gridfsPtr, 
 			CONST char *filename) {
-  int result;
+  int status;
 
   /* the current interfaces does not return a status ! */
-  result = gridfs_remove_filename(gridfsPtr, filename);
+  status = gridfs_remove_filename(gridfsPtr, filename);
 
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(result == MONGO_OK));
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(status == MONGO_OK));
 
   return TCL_OK;
 }

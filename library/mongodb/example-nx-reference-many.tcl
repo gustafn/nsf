@@ -11,8 +11,8 @@ package require nx::mongo
 ::nx::mongo::db connect -db "tutorial"
 
 # Make sure, we start always from scratch
-nx::mongo::db remove tutorial.groups {}
-nx::mongo::db remove tutorial.members {}
+nx::mongo::db drop collection groups
+nx::mongo::db drop collection members
 
 ######################################################################
 # The first approach to implement references simply as multivalued

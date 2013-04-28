@@ -5,7 +5,7 @@
 #
 package require nx
 package require nsf::mongo
-package provide nx::mongo 0.2
+package provide nx::mongo 0.3
 
 # todo: how to handle multiple connections; currently we have a single, global connection
 # todo: all references are currently auto-fetched. make this optional
@@ -32,6 +32,7 @@ namespace eval ::nx::mongo {
     :public object method remove  {args} {::mongo::remove ${:mongoConn} {*}$args}
     :public object method query   {args} {::mongo::query  ${:mongoConn} {*}$args}
     :public object method update  {args} {::mongo::update ${:mongoConn} {*}$args}
+    :public object method "drop collection" {name} {::mongo::run ${:mongoConn} ${:db} [list drop string $name]}
   }
   
   #######################################################################

@@ -35,7 +35,7 @@ package require nx::test
 
 # Make sure, we start always from scratch, so remove everything from
 # the collection.
-nx::mongo::db remove tutorial.postings {}
+nx::mongo::db drop collection postings
 
 ######################################################################
 # Create the application classes based on the "Business Insider" data
