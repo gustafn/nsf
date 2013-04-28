@@ -14,6 +14,8 @@ package require nx::mongo
 # Make sure, we start always from scratch
 nx::mongo::db remove tutorial.persons {}
 
+::mongo::run [::nx::mongo::db eval {set :mongoConn}] tutorial {drop string persons}
+
 #
 # Create the application class "Person"
 #
@@ -105,7 +107,7 @@ foreach p [Person find all -cond {age > 30}] {
 #
 # Define a special find method for "Person" named "oldies"
 #
-Person public class method "find oldies" {} {
+Person public object method "find oldies" {} {
   return [:find all -cond {age > 30}]
 }
 

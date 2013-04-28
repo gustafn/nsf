@@ -22,16 +22,16 @@ namespace eval ::nx::mongo {
 
   ::nx::Object create ::nx::mongo::db {
     :property db
-    :public method connect {{-db test} args} {
+    :public object method connect {{-db test} args} {
       set :db $db
       set :mongoConn [::mongo::connect {*}$args]
     }
-    :public method count   {args} {::mongo::count  ${:mongoConn} {*}$args}
-    :public method index   {args} {::mongo::index  ${:mongoConn} {*}$args}
-    :public method insert  {args} {::mongo::insert ${:mongoConn} {*}$args}
-    :public method remove  {args} {::mongo::remove ${:mongoConn} {*}$args}
-    :public method query   {args} {::mongo::query  ${:mongoConn} {*}$args}
-    :public method update  {args} {::mongo::update ${:mongoConn} {*}$args}
+    :public object method count   {args} {::mongo::count  ${:mongoConn} {*}$args}
+    :public object method index   {args} {::mongo::index  ${:mongoConn} {*}$args}
+    :public object method insert  {args} {::mongo::insert ${:mongoConn} {*}$args}
+    :public object method remove  {args} {::mongo::remove ${:mongoConn} {*}$args}
+    :public object method query   {args} {::mongo::query  ${:mongoConn} {*}$args}
+    :public object method update  {args} {::mongo::update ${:mongoConn} {*}$args}
   }
   
   #######################################################################
@@ -66,7 +66,7 @@ namespace eval ::nx::mongo {
     # mapping. For now, this handles just the array notation.
     #
     :method "bson decode" {bsontype value} {
-      #puts stderr "bson decode of ${:name} /$bsontype/ '$value'"
+	#puts stderr "bson decode of ${:name} /$bsontype/ '$value'"
       if {$bsontype eq "array"} {
 	if {![:isMultivalued]} {
 	  # We got an array, but the slot is not multivalued. Maybe
@@ -87,7 +87,7 @@ namespace eval ::nx::mongo {
 	  #puts stderr "*** we have a reference, class = ${:arg}"
 	  # TODO we assume auto_deref
 	  set value [:bson deref ${:arg} $value]
-	  puts stderr "*** bson deref ${:arg} ==> $value"
+	  #puts stderr "*** bson deref ${:arg} ==> $value"
 	} else {
 	  error "don't know how to decode object with value '$value'; [:serialize]"
 	}
@@ -246,6 +246,7 @@ namespace eval ::nx::mongo {
       set bson [list]
       foreach {att op value} $cond {
 	set slot [:get slot $att]
+	if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
 	switch $op {
 	  "=" {lappend bson $att [$slot mongotype] $value}
 	  ">" - "<" - "<=" - ">=" - "!="  {
@@ -294,7 +295,7 @@ namespace eval ::nx::mongo {
       set objParams [list]
       foreach {att type value} $tuple {
 	set slot [:get slot $att]
-	#puts stderr "att $att type $type value $value => '$slot'"
+	if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
 	lappend objParams -$att [$slot bson decode $type $value]
       }
       #puts "bson parameter <$tuple> => $objParams"
@@ -529,9 +530,10 @@ namespace eval ::nx::mongo {
 	# reference list. The containing object is not automatically
 	# saved for the time being. We could consider an automatic
 	# save or mongo-$pull update operation.
-	puts "[self] is embedded in ${:__embedded_in}"
+	#puts "[self] is embedded in ${:__embedded_in}"
 	lassign ${:__embedded_in} parent att
 	set slot [[$parent info class] get slot $att]
+	if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
 	$slot remove $parent [self]
 	#puts stderr [:serialize]
 	puts stderr "[self] must save parent $parent in db"
@@ -544,12 +546,13 @@ namespace eval ::nx::mongo {
 	foreach reference ${:__referenced_in} {
 	  lassign $reference parent att
 	  set slot [[$parent info class] get slot $att]
+	  if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
 	  $slot remove $parent [self]
 	  puts stderr "[self] must save parent $parent in db"
 	}
 	:destroy
       } else {
-	puts "delete a non-embedded entry"
+	#puts "delete a non-embedded entry"
 	if {[info exists :_id]} {
 	  set mongo_ns [[:info class] mongo_ns]
 	  ::nx::mongo::db remove $mongo_ns [list _id oid ${:_id}]
