@@ -916,7 +916,7 @@ namespace eval ::nx::serializer {
       append cmd [list [$o info class] create [::nsf::directdispatch $o -frame method ::nsf::current object]]
       append cmd " -noinit\n"
       foreach i [$o ::nsf::methods::object::info::methods -methodtype scripted -callprotection all] {
-        append cmd [:method-serialize $o $i "object"] "\n"
+        append cmd [:method-serialize $o $i ""] "\n"
       }
       foreach i [$o ::nsf::methods::object::info::methods -methodtype forward -callprotection all] {
         append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
