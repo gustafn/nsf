@@ -4347,6 +4347,12 @@ Object-method Reform:
 - added support to slots to use ensemble methods as setters
 - added "/obj/ object variable" and "/obj/ object property"
 
+- bumped version number to 2.0b5
+- tested with NaviServer and OpenACS 
+  (new version of nx needs as well a newest NaviServer,
+  since ns_cache implementation needs to be objectified;
+  newest NaviServer version works as well with older nx)
+
 ========================================================================
 TODO:
 - reconsider

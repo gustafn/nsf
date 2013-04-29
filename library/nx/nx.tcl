@@ -28,7 +28,7 @@
 # SOFTWARE.
 #
 package require nsf
-package provide nx 2.0b4
+package provide nx 2.0b5
 
 namespace eval ::nx {
   namespace eval ::nsf {}          ;# make pkg-indexer happy

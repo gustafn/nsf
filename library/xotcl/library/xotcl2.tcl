@@ -28,7 +28,7 @@
 # SOFTWARE.
 #
 
-package provide XOTcl 2.0b4
+package provide XOTcl 2.0b5
 package require nx
 
 #######################################################
