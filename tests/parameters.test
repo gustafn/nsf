@@ -1303,9 +1303,9 @@ nx::Test case check-arguments {
 
 nx::Test case slot-traces {
   ::nx::Object create o {
-    :property a {set :defaultcmd { set _ 4 } }
-    :property b {set :valuecmd { set _ 44 } }
-    :property c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+    :object property a {set :defaultcmd { set _ 4 } }
+    :object property b {set :valuecmd { set _ 44 } }
+    :object property c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
   }
 
   ? {o a} 4
@@ -1356,20 +1356,20 @@ nx::Test case slot-trace-interaction {
   Object create o 
 
   ? {o eval {info exists :a}} 0
-  ? {o property {a 0} {
+  ? {o object property {a 0} {
     set :defaultcmd {set _ 4}
   }} "defaultcmd can't be used together with default value"
 
   ? {o eval {info exists :a}} 0
 
   ? {o eval {info exists :b}} 0
-  ? {o property {b 0} {
+  ? {o object property {b 0} {
     set :valuecmd {set _ 44}
   }} "valuecmd can't be used together with default value"
   ? {o eval {info exists :b}} 0
 
   ? {o eval {info exists :c}} 0
-  ? {o property c {
+  ? {o object property c {
     set :defaultcmd {set _ 4}
     set :valuecmd {set _ 44}
   }} "valuecmd can't be used together with defaultcmd"
@@ -1380,7 +1380,7 @@ nx::Test case slot-trace-interaction {
   #
 
   ? {o eval {info exists :a}} 0
-  o property {a 0} {
+  o object property {a 0} {
     set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
   }
   ? {o eval {info exists :a}} 1
@@ -1919,9 +1919,9 @@ nx::Test case parameter-object-mixin-dependency {
   # We have the per-object cache; adding a per-object property should
   # flush the cache
   #
-  c1 property bo1
+  c1 object property bo1
   ? {lsort [c1 info lookup parameter names b*]} "b1 bo1"
-  c1 property bo2
+  c1 object property bo2
   ? {lsort [c1 info lookup parameter names b*]} "b1 bo1 bo2"
   #
   # property deletion should invalidate the cache as well
@@ -1939,7 +1939,7 @@ nx::Test case parameter-object-mixin-dependency-object-property {
   nx::Class create C {
     :property a1
     :create c1 {
-      :property a2
+      :object property a2
     }
   }
   nx::Class create D -superclass C
@@ -2061,7 +2061,7 @@ nx::Test case bignums {
 nx::Test case reconfigure-perobj-default {
   nx::Object create o
   ? {o eval {info exists :a}} 0
-  o property {a oldvalue}
+  o object property {a oldvalue}
   ? {o eval {info exists :a}} 1
   ? {o a} oldvalue
   #
@@ -2074,7 +2074,7 @@ nx::Test case reconfigure-perobj-default {
   #
   # re-assignment of the default is handled by init
   #
-  o property {a newvalue}
+  o object property {a newvalue}
   ? {o eval {info exists :a}} 1
   ? {o a} newvalue
   o eval {unset :a}
@@ -2137,8 +2137,8 @@ nx::Test case object-level-variable {
     ? [list [self] eval {set :dummy 1}] "1"
 
     # set 2 variables, one via variable, one via property
-    ? [list [self] variable -nocomplain captain1 "James Kirk"] ""
-    ? [list [self] property -nocomplain [list captain2 "Jean Luc"]] "::enterprise::captain2"
+    ? [list [self] object variable -nocomplain captain1 "James Kirk"] ""
+    ? [list [self] object property -nocomplain [list captain2 "Jean Luc"]] "::enterprise::captain2"
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :captain1}] "James Kirk"
@@ -2149,33 +2149,33 @@ nx::Test case object-level-variable {
     ? [list [self] info lookup method  captain2] "::enterprise::captain2"
 
     # set variable with a value checker
-    ? [list [self] variable  -nocomplain x1:int 1] ""
-    ? [list [self] property -nocomplain [list x2:int 2]] "::enterprise::x2"
+    ? [list [self] object variable  -nocomplain x1:int 1] ""
+    ? [list [self] object property -nocomplain [list x2:int 2]] "::enterprise::x2"
 
     # set variable with a value checker and an invalid value
-    ? [list [self] variable y1:int a] {expected integer but got "a"}
-    ? [list [self] property [list y2:int b]] {expected integer but got "b"}
+    ? [list [self] object variable y1:int a] {expected integer but got "a"}
+    ? [list [self] object property [list y2:int b]] {expected integer but got "b"}
 
     # set variable again, without -nocomplain
-    ? [list [self] variable x1:int 1] {object ::enterprise has already an instance variable named 'x1'}
-    ? [list [self] property [list x2:int 2]] {object ::enterprise has already an instance variable named 'x2'}
+    ? [list [self] object variable x1:int 1] {object ::enterprise has already an instance variable named 'x1'}
+    ? [list [self] object property [list x2:int 2]] {object ::enterprise has already an instance variable named 'x2'}
 
     # set variable with a value checker, multiple
-    ? [list [self] variable  -nocomplain xm1:int,1..n {1 2 3}] ""
-    ? [list [self] property -nocomplain [list xm2:int,1..n {1 2 3}]] "::enterprise::xm2"
+    ? [list [self] object variable  -nocomplain xm1:int,1..n {1 2 3}] ""
+    ? [list [self] object property -nocomplain [list xm2:int,1..n {1 2 3}]] "::enterprise::xm2"
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :xm1}] "1 2 3"
     ? [list [self] eval {set :xm2}] "1 2 3"
 
     # set variable with a value checker, multiple with invalid value
-    ? [list [self] variable  -nocomplain xm1:int,1..n {1 2a 3}] \
+    ? [list [self] object variable -nocomplain xm1:int,1..n {1 2a 3}] \
 	{invalid value in "1 2a 3": expected integer but got "2a"}
-    ? [list [self] property -nocomplain [list xm2:int,1..n {1 2a 3}]] \
+    ? [list [self] object property -nocomplain [list xm2:int,1..n {1 2a 3}]] \
 	{invalid value in "1 2a 3": expected integer but got "2a"}
 
     # useless definition
-    ? [list [self] variable dummy:int] \
+    ? [list [self] object variable dummy:int] \
 	{variable definition for 'dummy' (without value and accessor) is useless}
 
     #
@@ -2192,19 +2192,19 @@ nx::Test case object-level-variable {
     #
     # Test usage of application specific converter in "variable" and
     # "property"; invalid value
-    ? [list [self] variable -nocomplain r1:range,arg=1-10 11] \
+    ? [list [self] object variable -nocomplain r1:range,arg=1-10 11] \
 	{value '11' of parameter value not between 1 and 10}
-    ? [list [self] property -nocomplain [list r2:range,arg=1-10 11]] \
+    ? [list [self] object property -nocomplain [list r2:range,arg=1-10 11]] \
 	{value '11' of parameter value not between 1 and 10}
 
     # valid value
-    ? [list [self] variable -nocomplain r1:range,arg=1-10 5] ""
-    ? [list [self] property -nocomplain [list r2:range,arg=1-10 5]] \
+    ? [list [self] object variable -nocomplain r1:range,arg=1-10 5] ""
+    ? [list [self] object property -nocomplain [list r2:range,arg=1-10 5]] \
 	{::enterprise::r2}
 
     # testing incremental
-    ? [list [self] variable -incremental -nocomplain i:int,0..* {}] "::enterprise::i"
-    ? [list [self] property -incremental -nocomplain j:int,0..* {}] "::enterprise::j"
+    ? [list [self] object variable -incremental -nocomplain i:int,0..* {}] "::enterprise::i"
+    ? [list [self] object property -incremental -nocomplain j:int,0..* {}] "::enterprise::j"
     :i add 1
     :j add 1
     ? [list [self] i] "1"
@@ -2340,8 +2340,8 @@ nx::Test case delete-object-level-variable-and-property {
   nx::Object create o {
 
     # define 2 object-level variables, one via variable, one via property
-    :variable v v0
-    :property {a a0}
+    :object variable v v0
+    :object property {a a0}
   }
   
   # the instance of C will have the two variables set ...
@@ -2415,8 +2415,8 @@ nx::Test case object-parameter-switch {
   # boolean, except that without the specified value argument
   # (variable foo below), it sets the the variable to "false".
   ? {::nx::Object create o1 {
-    :variable foo:switch
-    :variable bar:switch 1
+    :object variable foo:switch
+    :object variable bar:switch 1
   }} ::o1
   ? {o1 eval {set :foo}} 0
   ? {o1 eval {set :bar}} 1
@@ -2472,11 +2472,11 @@ nx::Test case object-info-slots-types {
   #
   nx::Object create o1 {
     # plain object variable has no slot object
-    :variable v0 100
+    :object variable v0 100
     # In case we require an accessor or e.g. incremental, slot objects
     # are created; incremental implies accessor
-    :variable -accessor public v1 100
-    :variable -incremental v2 100
+    :object variable -accessor public v1 100
+    :object variable -incremental v2 100
   }
 
   # only the variables with slots show up in "info slot ..." 
@@ -2484,10 +2484,10 @@ nx::Test case object-info-slots-types {
   ? {o1 info slot definitions} "{::o1 variable -accessor public v2:0..n 100} {::o1 variable -accessor public v1 100}"
 
   nx::Object create o2 {
-    :property {p0 200}
-    :property -accessor none {p1 201}
-    :property -accessor none {p2:noconfig 202}
-    :property {p3:noconfig 203}
+    :object property {p0 200}
+    :object property -accessor none {p1 201}
+    :object property -accessor none {p2:noconfig 202}
+    :object property {p3:noconfig 203}
   }
 
   # "p1" and "p2" do NOT show up in "info methods" 
@@ -2732,16 +2732,16 @@ nx::Test case object-level-defaults {
   # 'invalid value constraints
   # "slot=::objekt::per-object-slot::a,slotassign"'
   #
-  nx::Object create objekt
-  ? {objekt eval {info exists :a}} 0
+  nx::Object create o
+  ? {o eval {info exists :a}} 0
   ? {catch {
-    objekt variable -accessor public -initblock {
+    o object variable -accessor public -initblock {
       :public object method assign args {
 	incr :assignCalled
 	next
       }
     } a 1}} 0
-  ? {objekt eval {info exists :a}} 1
-  ? {objekt eval {info exists :assignCalled}} 0; # !!! should be 1
-  ? {objekt a} 1
+  ? {o eval {info exists :a}} 1
+  ? {o eval {info exists :assignCalled}} 0; # !!! should be 1
+  ? {o a} 1
 }

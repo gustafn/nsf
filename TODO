@@ -4292,6 +4292,8 @@ Object-method Reform:
    /cls/ object mixin add ...
    /obj/ object mixin add ...
    /obj/ require object method ...
+   /obj/ object property ...
+   /obj/ object variable ...
 
  The same change propagated as well to the "info" method.
  Now we have:
@@ -4317,6 +4319,8 @@ Object-method Reform:
      "/obj/ class method require public method ..."
      "/obj/ class method require protected method ..."
      "/obj/ class method require private method ..."
+     "/cls/ class property ..." 
+     "/cls/ class variable ..." 
     were dropped 
 
   b) "/obj/ method ....", 
@@ -4340,17 +4344,14 @@ Object-method Reform:
 - added package nx::plain-object-method to allow optionally plain method
   b) "/obj/ method ...." (and friends, see (b))
 
-- add support to slots to use ensemble methods as setters
+- added support to slots to use ensemble methods as setters
+- added "/obj/ object variable" and "/obj/ object property"
 
 ========================================================================
 TODO:
 - reconsider
   #? {c1 cget -mixin} ""
   ? {c1 cget -object-mixin} ""
-
-- handle 
-  o object property foo
-  o object variable foo
 
 - test cases
    complete tests/plain-object-method.test

@@ -56,9 +56,9 @@ C create c1 {
   :protected object forward protected_object_forward %self protected_object_method
 
   # setter
-  :property {plain_object_setter ""}
-  :property -accessor public {public_object_setter ""}
-  :property -accessor protected protected_object_setter 
+  :object property {plain_object_setter ""}
+  :object property -accessor public {public_object_setter ""}
+  :object property -accessor protected protected_object_setter 
 
   # alias
   :object alias plain_object_alias [:info object method registrationhandle plain_object_method]
@@ -296,13 +296,13 @@ nx::Test case property-method {
   ? {C D} "method 'D' unknown for ::C; consider '::C create D ' instead of '::C D '"
 
   nx::Object create o {
-    set x [:property -accessor public a]
+    set x [:object property -accessor public a]
     ? [list set _ $x] "::o::a"
 
     # property with default
-    :property {b b1}
-    :property -accessor public {c c1}
-    :property -accessor protected {d d1}
+    :object property {b b1}
+    :object property -accessor public {c c1}
+    :object property -accessor protected {d d1}
   }
   ? {o a 2} 2
   #? {o b} {::o: unable to dispatch method 'b'}
@@ -424,7 +424,7 @@ nx::Test case dispatch-without-object {
 
   nx::Object create o {
     # property defines a setter, we need a current object
-    :property -accessor public {a v}
+    :object property -accessor public {a v}
     # the other methods don't require them as strong
     :object forward b ::o2 bar
     :object method foo {} {return [nx::self]}
@@ -550,8 +550,8 @@ nx::Test case nested-scopes {
 #
 nx::Test case delete-per-object {
   nx::Object create o1 {
-    :property -accessor public a1 
-    :property -accessor public a2
+    :object property -accessor public a1 
+    :object property -accessor public a2
     :public object method foo {} {return [namespace current]-[namespace which info]}
     :public object method "info foo" {} {return [namespace current]-[namespace which info]}
     :public object method "info bar foo" {} {return [namespace current]-[namespace which info]}

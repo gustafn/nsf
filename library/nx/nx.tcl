@@ -1902,10 +1902,10 @@ namespace eval ::nx {
 
 
   ######################################################################
-  # Define method "property" for convenience
+  # Define methods "property" and "variable"
   ######################################################################
 
-  nx::Object method variable {
+  nx::Object method "object variable" {
      {-accessor "none"}
      {-incremental:switch}
      {-class ""}
@@ -1996,7 +1996,7 @@ namespace eval ::nx {
     return [::nsf::directdispatch [self] ::nsf::methods::object::info::method registrationhandle $name]
   }
 
-  Object method property {
+  Object method "object property" {
     {-accessor ""}
     {-config:boolean true}
     {-incremental:switch}
@@ -2011,7 +2011,7 @@ namespace eval ::nx {
       #puts stderr "OBJECT got default accessor ${accessor}"
     }
 
-    set r [[self] ::nsf::classes::nx::Object::variable \
+    set r [[self] object variable \
 	       -accessor $accessor \
 	       -incremental=$incremental \
 	       -class $class \
@@ -2069,14 +2069,6 @@ namespace eval ::nx {
 	       -initblock $initblock \
 	       {*}$spec]
     return $r
-  }
-
-  #
-  # provide aliases for "object property" and "object variable"
-  #
-  ::nx::Class eval {
-    :alias "object property" ::nsf::classes::nx::Object::property
-    :alias "object variable" ::nsf::classes::nx::Object::variable
   }
 
 

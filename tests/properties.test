@@ -365,17 +365,17 @@ nx::Test case class-level-incremental {
 nx::Test case object-level {
   
   nx::Object create o1 {
-    :property {a a1}
-    :property -accessor public {b b1}
-    :property -accessor protected {c c1}
-    :property -accessor private {d d1}
-    :property -accessor none {e e1}
+    :object property {a a1}
+    :object property -accessor public {b b1}
+    :object property -accessor protected {c c1}
+    :object property -accessor private {d d1}
+    :object property -accessor none {e e1}
     
-    :variable va va1
-    :variable -accessor public vb vb1
-    :variable -accessor protected vc vc1
-    :variable -accessor private vd vd1
-    :variable -accessor none ve ve1
+    :object variable va va1
+    :object variable -accessor public vb vb1
+    :object variable -accessor protected vc vc1
+    :object variable -accessor private vd vd1
+    :object variable -accessor none ve ve1
     
     :public object method call-local {v} {: -local $v}
     
@@ -490,7 +490,7 @@ nx::Test case object-level {
   #
   # check error message
   #
-  ? {o1 property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
+  ? {o1 object property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
 }
 
 #
@@ -499,17 +499,17 @@ nx::Test case object-level {
 nx::Test case object-level-incremental {
 
   nx::Object create o1 {
-    :property -incremental {a a1}
-    :property -accessor public -incremental {b b1}
-    :property -accessor protected -incremental {c c1}
-    :property -accessor private -incremental {d d1}
-    :property -accessor none -incremental {e e1}
+    :object property -incremental {a a1}
+    :object property -accessor public -incremental {b b1}
+    :object property -accessor protected -incremental {c c1}
+    :object property -accessor private -incremental {d d1}
+    :object property -accessor none -incremental {e e1}
     
-    :variable -incremental va va1
-    :variable -accessor public -incremental vb vb1
-    :variable -accessor protected -incremental vc vc1
-    :variable -accessor private -incremental vd vd1
-    :variable -accessor none -incremental ve ve1
+    :object variable -incremental va va1
+    :object variable -accessor public -incremental vb vb1
+    :object variable -accessor protected -incremental vc vc1
+    :object variable -accessor private -incremental vd vd1
+    :object variable -accessor none -incremental ve ve1
     
     :public object method call-local {v} {: -local $v}
     :public object method add-local {var value} {: -local $var add $value}
@@ -649,7 +649,7 @@ nx::Test case object-level-incremental {
   #
   # check error message
   #
-  ? {o1 property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
+  ? {o1 object property -accessor proceted {b b1}} {accessor value 'proceted' invalid; might be one of public|protected|private or none}
 
   #
   # The accessor is deleted due to the error
@@ -783,17 +783,17 @@ nx::Test case class-level-perf {
 nx::Test case object-level-perf {
 
   nx::Object create o1 {
-    :property {a a1}
-    :property -accessor public {b b1}
-    :property -accessor protected {c c1}
-    :property -accessor private {d d1}
-    :property -accessor none {e e1}
+    :object property {a a1}
+    :object property -accessor public {b b1}
+    :object property -accessor protected {c c1}
+    :object property -accessor private {d d1}
+    :object property -accessor none {e e1}
     
-    :variable va va1
-    :variable -accessor public vb vb1
-    :variable -accessor protected vc vc1
-    :variable -accessor private vd vd1
-    :variable -accessor none ve ve1
+    :object variable va va1
+    :object variable -accessor public vb vb1
+    :object variable -accessor protected vc vc1
+    :object variable -accessor private vd vd1
+    :object variable -accessor none ve ve1
   }
 
   #

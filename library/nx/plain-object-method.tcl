@@ -8,26 +8,35 @@ namespace eval ::nx {
       name arguments:parameter,0..* -returns body -precondition -postcondition
     } {
       puts stderr "LEGACY CMD: [self] [current method] [current args]"
-      :public object method {*}[current args]
+      :public object [current method] {*}[current args]
     }
 
     :public method alias args {
       puts stderr "LEGACY CMD: [self] [current method] [current args]"
-      :public object alias {*}$args
+      :public object [current method] {*}$args
     }
     :public method forward args {
       puts stderr "LEGACY CMD: [self] [current method] [current args]"
-      :public object forward {*}$args
+      :public object [current method] {*}$args
     }
 
     :public method mixin args {
       puts stderr "LEGACY CMD: [self] [current method] [current args]"
-      :object mixin {*}$args
+      :object [current method] {*}$args
     }
 
     :public method filter args {
       puts stderr "LEGACY CMD: [self] [current method] [current args]"
-      :object filter {*}$args
+      :object [current method] {*}$args
+    }
+
+    :public method property args {
+      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+      :object [current method] {*}$args
+    }
+    :public method variable args {
+      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+      :object [current method] {*}$args
     }
 
     :public alias "info method"           ::nsf::methods::object::info::method

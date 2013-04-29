@@ -491,7 +491,7 @@ nx::Test case system-flag {
     :public object method info {} {return "overloads system info"}
     :public object method destroy {} {return "overloads system destroy"}
     :public object method "object method" args {return "overloads method 'object method'"}
-    :variable v 1
+    :object variable v 1
   }
   
   ? {o1 info} "overloads system info"
@@ -738,7 +738,7 @@ nx::Test case protected-priv-class-property {
     :property -accessor private {c c1d}
     :public method bard {p} {return [: -local $p]}
     :create d1 {
-      :property {c c1o}
+      :object property {c c1o}
     }
   }
 
@@ -757,7 +757,7 @@ nx::Test case protected-priv-class-property {
     :property -accessor public {c c1d}
     :public method bard {p} {return [: -local $p]}
     :create d1 {
-      :property -accessor private {c c1o}
+      :object property -accessor private {c c1o}
       :public object method bard1 {p} {return [: -local $p]}
     }
   }
@@ -796,10 +796,10 @@ nx::Test case private-shadows-public-property {
 #
 nx::Test case protected-priv-object-property {
   nx::Object create o {
-    :property -accessor public {a a1}
-    :property -accessor protected {b b1}
-    :property -accessor private {c c1}
-    :property -accessor private {d:integer 1}
+    :object property -accessor public {a a1}
+    :object property -accessor protected {b b1}
+    :object property -accessor private {c c1}
+    :object property -accessor private {d:integer 1}
     :public object method foo {p} {return [: $p]}
     :public object method bar {p} {return [: -local $p]}
     :public object method baz {p v} {return [: -local $p $v]}
