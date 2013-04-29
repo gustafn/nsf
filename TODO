@@ -4337,7 +4337,7 @@ Object-method Reform:
      "/obj/ method require private method ..."
      were dropped 
      
-- added package nx::class to allow optionally the "class" notation
+- added package nx::class-method to allow optionally the "class" notation
   "/cls/ class method ..." (and friends, see (a)), and
   "/cls/ class info ...
 

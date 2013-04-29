@@ -1,4 +1,4 @@
-package provide nx::class 1.0
+package provide nx::class-method 1.0
 
 namespace eval ::nsf {
   array set ::nsf::methodDefiningMethod {
