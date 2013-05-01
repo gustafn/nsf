@@ -407,7 +407,7 @@ test: setup $(PROJECT)
 !endif
 	@$(TCLSH) "$(ROOT)/tests/summary.tcl" -testlog __test.log 
 	@del nsftest.tcl
-#@del __test.log
+	@del __test.log
 
 shell: setup $(PROJECT)
 	@set VLERQ_LIBRARY=$(LIBDIR:\=/)
