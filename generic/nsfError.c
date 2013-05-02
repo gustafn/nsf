@@ -49,6 +49,47 @@ Tcl_Obj *NsfParamDefsSyntax(Nsf_Param CONST *paramPtr);
  */
 
 extern void
+NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
+  int      size;
+  va_list  vargsCopy;
+  
+  /* Work on a copy of the va_list so that the caller's copy is untouched */
+  va_copy(vargsCopy, vargs);
+
+  /* Compute the required size of the Tcl_DString */
+#ifdef _WIN32
+  size = _vscprintf(fmt, vargsCopy);
+#else
+  size = vsnprintf(NULL, 0, fmt, vargsCopy);
+#endif
+
+  va_end(vargsCopy);
+  
+  /* Trap C99+ incompatabilities of certain vsnprintf() implementations
+     w.r.t. the result value: For example, old *nix implementations of
+     vsnprintf() as well as C89 implementations (as current MS Visual Compiler
+     runtimes) return -1 (or another negative number) upon overflowing the
+     buffer (rather than the number of required bytes as required by C99) and
+     upon other error conditions. This should not happen for the above size
+     estimation, however. Also, for MS VC runtimes, we use the vendor-specific
+     _vscprintf() */ 
+  
+  assert(size >= 0);
+  
+  /* Note: The size projection above (using vsnprintf or _vscprintf) yields
+     the estimate size excluding the null-terminating char. The newLength
+     parameter of Tcl_DStringSetLength assumes this size value, so we are
+     fine. */
+  Tcl_DStringSetLength(dsPtr, size);
+
+  /* Map the formatted string into the right-sized Tcl_DString */
+  va_copy(vargsCopy, vargs);
+  vsnprintf(Tcl_DStringValue(dsPtr), dsPtr->spaceAvl, fmt, vargsCopy);
+  va_end(vargsCopy);
+}
+
+#if 0
+extern void
 NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc) {
   int      result, avail = dsPtr->spaceAvl, offset = dsPtr->length;
   va_list  ap;
@@ -69,6 +110,7 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc) {
   }
   Tcl_DStringSetLength(dsPtr, result);
 }
+#endif
 
 /*
  *----------------------------------------------------------------------
