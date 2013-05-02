@@ -400,7 +400,7 @@ via separate top level calls (XOTcl and NX).
 
 |[source,tcl]
 ----------------
-# Define method 'foo' and class 
+# Define instance method 'foo' and object 
 # method 'bar' for a Class 'C' with separate 
 # toplevel commands
 
@@ -410,22 +410,22 @@ C proc bar args {...}
 ----------------
 |[source,tcl]
 ----------------
-# Define method and class method
+# Define instance method and object method
 # in the init-block of a class
 
 Class create C {
   :method foo args {...}
-  :class method bar args {...}
+  :object method bar args {...}
 }
 ----------------
 [source,tcl]
 ----------------
-# Define method and class method 
+# Define instance method and object method 
 # with separate commands
 
 Class create C
 C method foo args {...}
-C class method bar args {...}
+C object method bar args {...}
 ----------------
 
 |[source,tcl]
@@ -440,24 +440,24 @@ o proc foo args {...}
 
 |[source,tcl]
 ----------------
-# Define class method and set 
+# Define object method and set 
 # instance variable in the init-block of 
 # an object
 
 Object create o {
   set :x 1
-  :method foo args {...}
+  :object method foo args {...}
 }
 ----------------
 [source,tcl]
 ----------------
-# Define class method and set 
+# Define object method and set 
 # instance variable with separate 
 # commands
 
 Object create o
 o eval {set :x 1}
-o method foo args {...}
+o object method foo args {...}
 ----------------
 |===========================
 
@@ -528,11 +528,11 @@ o forward f3 ...
 
 Class create C {
   :forward f1 ...
-  :class forward f2 ...
+  :object forward f2 ...
 }
 
 Object create o {
-  :forward f3 ...
+  :object forward f3 ...
 }
 ----------------
 
@@ -591,11 +591,11 @@ involve forwarding overhead.
 
 Class create C {
   :alias a1 ...
-  :class alias a2 ...
+  :object alias a2 ...
 }
 
 Object create o {
-  :alias a3 ...
+  :object alias a3 ...
 }
 ----------------
 |===========================
@@ -723,12 +723,12 @@ and properties.
 ----------------
 # Deletion of Methods 
 #
-/obj/ delete method /name/
-/cls/ ?class? delete method /name/
+/obj/ delete object method /name/
+/cls/ delete method /name/
 
 # Deletion of Properties
-/obj/ delete property /name/
-/cls/ ?class? delete property /name/
+/obj/ delete object property /name/
+/cls/ delete property /name/
 ----------------
 |======================
 
@@ -781,7 +781,7 @@ Class create C {
   }
 }
 Object create o {
-  :public method baz {} {...}
+  :public object method baz {} {...}
 }
 ----------------
 |======================
@@ -1097,12 +1097,12 @@ variables.
 |[source,tcl]
 ----------------
 
-# Define a class variable "V" with value 100 and
-# an instance variable "x". "class variable" works 
-# similar to "class method".
+# Define a object variable "V" with value 100 and
+# an instance variable "x". "object variable" works 
+# similar to "object method".
 
 Class create Foo {
-  :class variable V 100
+  :object variable V 100
   :variable x 1
 }
 ----------------
@@ -1231,17 +1231,16 @@ puts [f1 b]
 
 |[source,tcl]
 ----------------
-# Define a class property and an object
-# property
+# Define instance and object properties
 
 Class create C {
   :property x
   :property {y 1}
-  :class property cp
+  :object property cp
 }
 
 Object create o {
-  :property op
+  :object property op
 }
 ----------------
 
@@ -1550,7 +1549,7 @@ Class create C {
 
  # Define a method that has to return a 
  # non-empty list of objects
- :public class method instances {} \
+ :public object method instances {} \
     -returns object,1..n {
    return [:info instances]
   }
@@ -1602,8 +1601,8 @@ modifier +class+ (in the same way as e.g. for defining methods).
 # Register per-object mixin and guard for 
 # a class
 
-/cls/ class mixin ...
-/cls/ class mixin guard /mixin/ ?condition?
+/cls/ object mixin ...
+/cls/ object mixin guard /mixin/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
@@ -1615,8 +1614,8 @@ modifier +class+ (in the same way as e.g. for defining methods).
 # Register per-object mixin and guard for 
 # an object
 
-/obj/ mixin ...
-/obj/ mixin guard /mixin/ ?condition?
+/obj/ object mixin ...
+/obj/ object mixin guard /mixin/ ?condition?
 ----------------
 |======================
 
@@ -1661,8 +1660,8 @@ modifier +class+ (in the same way as e.g. for defining methods).
 # Register per-object filter and guard for 
 # an object
 
-/obj/ filter ...
-/obj/ filter guard /filter/ ?condition?
+/obj/ object filter ...
+/obj/ object filter guard /filter/ ?condition?
 ----------------
 |======================
 
@@ -1768,7 +1767,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info methods ?pattern?
+/obj/ info object methods ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1776,7 +1775,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info methods -methodtype setter ?pattern?
+/obj/ info object methods -methodtype setter ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1784,7 +1783,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info methods -methodtype scripted ?pattern?
+/obj/ info object methods -methodtype scripted ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1792,7 +1791,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info methods -methodtype alias ?pattern?
+/obj/ info object methods -methodtype alias ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1800,7 +1799,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info methods -methodtype forwarder ?pattern?
+/obj/ info object methods -methodtype forwarder ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1808,7 +1807,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info methods -methodtype object ?pattern?
+/obj/ info object methods -methodtype object ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1816,7 +1815,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info methods -callprotection public\|protected ...
+/obj/ info object methods -callprotection public\|protected ...
 ----------------
 |======================
 
@@ -1836,7 +1835,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info methods ?pattern?
+/cls/ info methods ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1844,7 +1843,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info methods -methodtype setter ?pattern?
+/cls/ info methods -methodtype setter ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1852,7 +1851,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info methods -methodtype scripted ?pattern?
+/cls/ info methods -methodtype scripted ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1860,7 +1859,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info methods -methodtype alias ?pattern?
+/cls/ info methods -methodtype alias ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1868,7 +1867,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info methods -methodtype forwarder ?pattern?
+/cls/ info methods -methodtype forwarder ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1876,7 +1875,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info methods -methodtype object ?pattern?
+/cls/ info methods -methodtype object ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1884,7 +1883,7 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info methods \
+/cls/ info methods \
    -callprotection public\|protected ...
 ----------------
 |======================
@@ -1911,19 +1910,10 @@ appropriate depending on the context.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method exists /methodName/
-/obj/ info methods /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj\|cls/ info \
-   [inst](commands\|procs\|parametercmd) \
-   ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ ?class? info method exists /methodName/
-/cls/ ?class? info methods /methodName/
+/obj/ info object method exists /methodName/
+/obj/ info object methods /methodName/
+/cls/ info method exists /methodName/
+/cls/ info methods /methodName/
 ----------------
 |======================
 
@@ -2127,7 +2117,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method definition /methodName/
+/obj/ info object method definition /methodName/
 ----------------
 |[source,tcl]
 ----------------
@@ -2135,7 +2125,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method body /methodName/
+/obj/ info object method body /methodName/
 ----------------
 |[source,tcl]
 ----------------
@@ -2143,7 +2133,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method args /methodName/
+/obj/ info object method args /methodName/
 ----------------
 |[source,tcl]
 ----------------
@@ -2151,7 +2141,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method parameter /methodName/
+/obj/ info object method parameter /methodName/
 ----------------
 |[source,tcl]
 ---------------
@@ -2159,7 +2149,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 -----------------
 |[source,tcl]
 ----------------
-# not needed, part of "info method parameter"
+# not needed, part of "info ?object? method parameter"
 ----------------
 |[source,tcl]
 ----------------
@@ -2167,7 +2157,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method precondition /methodName/
+/obj/ info object method precondition /methodName/
 ----------------
 |[source,tcl]
 ----------------
@@ -2175,7 +2165,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method postcondition /methodName/
+/obj/ info object method postcondition /methodName/
 ----------------
 |[source,tcl]
 ----------------
@@ -2183,7 +2173,7 @@ classes (using the prefix "inst"), the names in NX are the same.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method parametersyntax /methodName/
+/obj/ info object method parametersyntax /methodName/
 ----------------
 |======================
 
@@ -2335,7 +2325,7 @@ subcommands rather than using a flat namespace.
 # method-handles instead of triples 
 # (applies to all three variants)
 
-/obj/ info filter methods \
+/obj/ info object filter methods \
    ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
@@ -2344,7 +2334,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info filter guard /name/
+/obj/ info object filter guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -2352,7 +2342,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info filter methods \
+/cls/ info filter methods \
    ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
@@ -2361,7 +2351,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info filter guard /name/
+/cls/ info filter guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -2387,7 +2377,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info mixin classes \
+/obj/ info object mixin classes \
    ?-guards? ?-heritage? ?pattern?
 ----------------
 |[source,tcl]
@@ -2396,7 +2386,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info mixin guard /name/
+/obj/ info object mixin guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -2404,7 +2394,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info mixin classes \
+/cls/ info mixin classes \
    ?-guards? ?-heritage? ?pattern?
 ----------------
 |[source,tcl]
@@ -2413,7 +2403,7 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class info mixin guard /name/
+/cls/ info mixin guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -2478,8 +2468,8 @@ the method handle to the created method.
 # can be used e.g. for aliases. "handle" is the short 
 # form of "definitionhandle".
 #
-/obj/ info method handle /methodName/
-/cls/ ?class? info method handle /methodName/
+/obj/ info object method handle /methodName/
+/cls/ info method handle /methodName/
 #
 # For ensemble methods (method name contains 
 # spaces) one can query as well the registration 
@@ -2487,20 +2477,20 @@ the method handle to the created method.
 # ensemble; the definiton handle points to the 
 # leaf of the ensemble.
 #
-/obj/ info method registrationhandle /methodName/
-/cls/ ?class? info method registrationhandle /methodName/
+/obj/ info object method registrationhandle /methodName/
+/cls/ info method registrationhandle /methodName/
 #
 # For aliases, one can query the original definition
 # via "info method origin"
 #
 /obj/ info method origin /methodName/
-/cls/ ?class? info method origin /methodName/
+/cls/ info method origin /methodName/
 ----------------
 |======================
 
 ==== List type of a method
 
-The method +info method type+ is new in NX to obtain the type of the
+The method +info ?object? method type+ is new in NX to obtain the type of the
 specified method.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -2513,7 +2503,7 @@ specified method.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method type /methodName/
+/obj/ info object method type /methodName/
 ----------------
 |[source,tcl]
 ----------------
@@ -2521,7 +2511,7 @@ specified method.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ ?class? info method type /methodName/
+/cls/ ?object? info method type /methodName/
 ----------------
 |======================
 
