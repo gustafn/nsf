@@ -296,13 +296,13 @@ namespace eval mypackage {
 
   package require XOTcl 2.0
 
-  # Define a class using XOTcl
+  # Define a class with a public method foo using XOTcl
   xotcl::Class C1
   C1 instproc foo {} {puts "hello world"}
 
   package require nx
 
-  # Define a class using NX
+  # Define a class with a public method foo using NX
   nx::Class create C2 {
     :public method foo {} {puts "hello world"}
   }
@@ -377,12 +377,13 @@ name prefix has the disadvantage, that for every different kind of
 method, two names have to be provided (eg. +proc+ and +instproc+,
 +forward+ and +instforward+).
 
-NX on the contrary uses the same term for defining inherited or
+NX on the contrary uses the same term for defining instance method or
 object-specific methods. When the term (e.g. +method+) is used on a
-class, the method will be inherited (applicable to the instances of
-the class). When the term is used on an object, an object-specific
-method is defined. NX uses the method modifier +class+ to
-define a class-specific method (method for the class object).
+class, the method will be an instance method (i.e. applicable to the
+instances of the class). When the term is used on an object with the
+modifier +object+, an object-specific method is defined. This way one
+can define the same way object specific methods on an object as well
+as on a class.
 
 Furthermore, both XOTcl and NX distinguish between scripted methods
 (section 3.2.1) and C-defined methods (section 3.2.2). Section 3.2.3
@@ -604,10 +605,10 @@ Object create o {
 [[method-protect-example]]
 ==== Method Modifiers and Method Protection
 
-NX supports four method modifiers +class+, +public+, +protected+ and
+NX supports four method modifiers +object+, +public+, +protected+ and
 +private+. All method modifiers can be written in front of every
-method defining command. The method modifier +class+ is used to denote
-class-specific methods (see above). The concept of method protection
+method defining command. The method modifier +object+ is used to denote
+object-specific methods (see above). The concept of method protection
 is new in NX.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
@@ -618,7 +619,7 @@ is new in NX.
 ----------------
 # Method modifiers
 #
-#   "class",
+#   "object",
 #   "public", 
 #   "protected", and
 #   "private"
@@ -629,12 +630,12 @@ is new in NX.
 ----------------
 # Method modifiers
 #
-#   "class",
+#   "object",
 #   "public",
 #   "protected"
 #
-# are applicable for all kinds of method 
-# defining methods:
+# are applicable for all kinds of 
+# method defining methods:
 #
 #    method, forward, alias, property
 #
@@ -647,10 +648,10 @@ Class create C {
   :public /method-definiton-method/ ...
   :protected /method-definiton-method/ ...
   :private /method-definiton-method/ ...
-  :class /method-definiton-method/ ...
-  :public class /method-definiton-method/ ...
-  :protected class /method-definiton-method/ ...
-  :private class /method-definiton-method/ ...
+  :object /method-definiton-method/ ...
+  :public object /method-definiton-method/ ...
+  :protected object /method-definiton-method/ ...
+  :private object /method-definiton-method/ ...
 }
 ----------------
 |======================
@@ -675,7 +676,8 @@ class/object as the currently executing method".
 
 |[source,tcl]
 ----------------
-# XOTcl provides no means for method hiding
+# XOTcl provides no means for 
+# method hiding
 ----------------
 |[source,tcl]
 ----------------
@@ -714,8 +716,8 @@ and properties.
 ----------------
 # XOTcl provides only method deletion with 
 # the equivalent of Tcl's "proc foo {} {}"
-/obj/ proc foo {} {}
 /cls/ instproc foo {} {}
+/obj/ proc foo {} {}
 
 # No support for property deletion
 ----------------
@@ -723,12 +725,12 @@ and properties.
 ----------------
 # Deletion of Methods 
 #
-/obj/ delete object method /name/
 /cls/ delete method /name/
+/obj/ delete object method /name/
 
 # Deletion of Properties
-/obj/ delete object property /name/
 /cls/ delete property /name/
+/obj/ delete object property /name/
 ----------------
 |======================
 
@@ -1035,9 +1037,9 @@ instance variables with accessors (using +property+).
 
 |[source,tcl]
 ----------------
-# Define that instances of the class have 
-# a instance variables "x" and "y" initialized
-# with some values
+# Define class "Foo" with instance 
+# variables "x" and "y" initialized
+# on instance creation.
 
 Class Foo
 Foo instproc init args {
@@ -1054,10 +1056,12 @@ Foo f1
 ----------------
 |[source,tcl]
 ----------------
-
+# Define class "Foo" with instance variables 
+# "x" and "y" initialized on instance creation.
 # The method "variable" is similar in syntax 
-# to Tcl's "variable" command. During object 
-# creation, the definition are used for the 
+# to Tcl's "variable" command. During 
+# instance creation, the variable 
+# definitions are used for the 
 # initialization of the object.
 
 Class create Foo {
@@ -1098,8 +1102,10 @@ variables.
 ----------------
 
 # Define a object variable "V" with value 100 and
-# an instance variable "x". "object variable" works 
-# similar to "object method".
+# an instance variable "x". "V" is just available
+# for the class object Foo, "x" is available in the
+# instances of the class. "object variable" works 
+# similar to "object method". 
 
 Class create Foo {
   :object variable V 100
@@ -1122,7 +1128,8 @@ the method +slots+. NX provides a similar method named +properties+.
 
 |[source,tcl]
 ----------------
-# Object parameter specified as a list (short form)
+# Object parameter specified as a list 
+# (short form); Parameter
 # "a" has no default, "b" has default "1"
 
 Class Foo -parameter {a {b 1}}
@@ -1186,16 +1193,19 @@ Class Foo -slots {
    Attribute b -default 1
 }
 
-# Create instance of the class Foo and
-# provide a value for instance variable "a"
+# Create instance of the class Foo 
+# and provide a value for instance 
+# variable "a"
 Foo f1 -a 0
 
 # Object f1 has a == 0 and b == 1
 
-# Use the setter to alter instance variable "b"
+# Use the setter to alter value of
+# instance variable "b"
 f1 b 100
 
-# Use the accessor to output the value
+# Use the accessor to output 
+# the value
 puts [f1 b]
 ----------------
 
@@ -1226,7 +1236,8 @@ puts [f1 b]
 
 |[source,tcl]
 ----------------
-# Parameters only available at class level
+# Parameters only available at 
+# class level
 ----------------
 
 |[source,tcl]
@@ -1273,7 +1284,7 @@ Class Person -slots {
 Class create Person {
   :property sex {
     :type "sex"
-    :method type=sex {name value} {
+    :object method type=sex {name value} {
       switch -glob $value {
         m* {return m}
         f* {return f}
@@ -1301,8 +1312,8 @@ performance sensitive.
 
 |[source,tcl]
 ----------------
-# No value constraints for parameter 
-# available 
+# No value constraints for 
+# parameter available 
 ----------------
 |[source,tcl]
 ----------------
@@ -1386,7 +1397,8 @@ every specified value, the value checkers are applied.
 
 |[source,tcl]
 ---------------
-# Multiplicity for parameter not available 
+# Multiplicity for parameter 
+# not available 
 -----------------
 |[source,tcl]
 ----------------
@@ -1438,7 +1450,13 @@ positional arguments, this limitation is lifted in XOTcl 2.
 # parameter (a and b)
 
 Class C
-C instproc foo {-x:integer -y:required -z a b} {
+C instproc foo {
+   -x:integer 
+   -y:required 
+   -z 
+   a 
+   b
+} {
    # ...
 }
 C create c1
@@ -1448,12 +1466,19 @@ c1 foo -x 1 -y a 2 3
 ----------------
 |[source,tcl]
 ----------------
-# Define method foo with non-positional 
-# parameters (x, y and y) and positional 
+# Define method foo with 
+# non-positional parameters 
+# (x, y and y) and positional 
 # parameter (a and b)
 
 Class create C {
-   :public method foo {-x:integer -y:required -z a b} {
+   :public method foo {
+      -x:integer 
+      -y:required 
+      -z 
+      a 
+      b
+   } {
       # ...
    }
    :create c1
@@ -1464,10 +1489,12 @@ c1 foo -x 1 -y a 2 3
 
 |[source,tcl]
 ----------------
-# Only leading non-positional parameters
-# are available; no optional positional 
-# parameters, no value constraints on 
-# positional parameters, no multiplicity, ...
+# Only leading non-positional 
+# parameters are available; no 
+# optional positional parameters, 
+# no value constraints on 
+# positional parameters, 
+# no multiplicity, ...
 ----------------
 |[source,tcl]
 ----------------
@@ -1522,7 +1549,8 @@ checkers, return value checkers can be turned on and off.
 
 |[source,tcl]
 ----------------
-# No return value checking available
+# No return value checking 
+# available
 ----------------
 |[source,tcl]
 ----------------
@@ -1566,11 +1594,12 @@ namely class- and object-level mixins and class- and object-level
 filters. The primary difference in NX is the naming, since NX
 abandons the prefix "inst" from the method names. 
 
-Therefore, in NX, if a +mixin+ is registered on the class-level, it is
-a per-class mixin, if the +mixin+ is registered on the object level,
-it is a object-level mixin. In both cases, the method +mixin+ is used.
-If a mixin is registered on the class object, one has to use the
-modifier +class+ (in the same way as e.g. for defining methods).
+Therefore, in NX, if a +mixin+ is registered on a class-level, it
+is applicable for the instances (a per-class mixin), and if
+and +object mixin+ is registered, it is a per-object mixin. 
+In both cases, the term +mixin+ is used, in the second case
+with the modifier +object+. As in all other cases, one can
+register the same way a per-object mixin on a class object.
 
 ==== Register Mixin Classes and Mixin Guards
 
@@ -1590,19 +1619,6 @@ modifier +class+ (in the same way as e.g. for defining methods).
 
 /cls/ mixin ...
 /cls/ mixin guard /mixin/ ?condition?
-----------------
-|[source,tcl]
-----------------
-/cls/ mixin ...
-/cls/ mixin guard /mixin/ ?condition?
-----------------
-|[source,tcl]
-----------------
-# Register per-object mixin and guard for 
-# a class
-
-/cls/ object mixin ...
-/cls/ object mixin guard /mixin/ ?condition?
 ----------------
 |[source,tcl]
 ----------------
@@ -1628,19 +1644,6 @@ modifier +class+ (in the same way as e.g. for defining methods).
 ----------------
 /cls/ instfilter ...
 /cls/ instfilterguard /filter/ ?condition?
-----------------
-|[source,tcl]
-----------------
-# Register per-class filter and guard for 
-# a class
-
-/cls/ filter ...
-/cls/ filter guard /filter/ ?condition?
-----------------
-|[source,tcl]
-----------------
-/cls/ filter ...
-/cls/ filterguard ...
 ----------------
 |[source,tcl]
 ----------------
@@ -1816,75 +1819,6 @@ returned methods.
 |[source,tcl]
 ----------------
 /obj/ info object methods -callprotection public\|protected ...
-----------------
-|======================
-
-==== List class object specific methods
-
-When class specific properties are queried, NX required to use
-the modifier +class+ (like for the definition of the methods).
-In all other respects, this section is identical to the previous one.
-
-[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
-|======================
-|XOTcl |Next Scripting Language
-
-|[source,tcl]
-----------------
-/cls/ info commands ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info methods ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info parametercmd ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info methods -methodtype setter ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info procs ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info methods -methodtype scripted ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/cls/ info methods -methodtype alias ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/cls/ info methods -methodtype forwarder ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/cls/ info methods -methodtype object ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/cls/ info methods \
-   -callprotection public\|protected ...
 ----------------
 |======================
 
@@ -2178,11 +2112,10 @@ classes (using the prefix "inst"), the names in NX are the same.
 |======================
 
 For definition of class object specific methods, use the modifier
-+class+ as shown in examples above.
++object+ as usual.
 
 
 ==== List Slots and their definitions
-
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -2201,8 +2134,7 @@ For definition of class object specific methods, use the modifier
 # -type is the class of the slot object
 # -closure includes slots of superclasses
 
-/obj/ info slot objects ?-type ...? ?pattern?
-/cls/ class info slot objects ?-type ...? ?pattern?
+/obj/ info object slot objects ?-type ...? ?pattern?
 /cls/ info slot objects \
    ?-type value? ?-closure? ?-source value? ?pattern?
 ----------------
@@ -2214,9 +2146,7 @@ For definition of class object specific methods, use the modifier
 ----------------
 # List definition of slots 
 
-/obj/ info slot definition \
-   ?-type value? ?pattern?
-/cls/ class info slot definition \
+/obj/ info object slot definition \
    ?-type value? ?pattern?
 /cls/ info slot definition \
    ?-type value? ?-closure? ?-source value? ?pattern?
@@ -2240,9 +2170,7 @@ For definition of class object specific methods, use the modifier
 ----------------
 # List names of slots 
 
-/obj/ info slot names \
-   ?-type value? ?pattern?
-/cls/ class info slot names \
+/obj/ info object slot names \
    ?-type value? ?pattern?
 /cls/ info slot names \
    ?-type value? ?-closure? ?-source value? ?pattern?
@@ -2318,6 +2246,7 @@ subcommands rather than using a flat namespace.
 |[source,tcl]
 ----------------
 /obj/ info filter ?-guards? ?-order? ?pattern?
+/obj/ info filterguard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -2327,100 +2256,41 @@ subcommands rather than using a flat namespace.
 
 /obj/ info object filter methods \
    ?-guards? ?-order? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/obj/ info filterguard /name/
-----------------
-|[source,tcl]
-----------------
 /obj/ info object filter guard /name/
-----------------
-|[source,tcl]
-----------------
-/cls/ info filter ?-guards? ?-order? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info filter methods \
-   ?-guards? ?-order? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info filterguard /name/
-----------------
-|[source,tcl]
-----------------
-/cls/ info filter guard /name/
 ----------------
 |[source,tcl]
 ----------------
 /cls/ info instfilter \
    ?-guards? ?-order? ?pattern?
+/cls/ info instfilterguard /name/
 ----------------
 |[source,tcl]
 ----------------
 /cls/ info filter methods \
    ?-guards? ?-order? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info instfilterguard /name/
-----------------
-|[source,tcl]
-----------------
 /cls/ info filter guard /name/
 ----------------
 |[source,tcl]
 ----------------
 /obj/ info mixin ?-guards? ?-order? ?pattern?
+/obj/ info mixinguard /name/
 ----------------
 |[source,tcl]
 ----------------
 /obj/ info object mixin classes \
    ?-guards? ?-heritage? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/obj/ info mixinguard /name/
-----------------
-|[source,tcl]
-----------------
 /obj/ info object mixin guard /name/
-----------------
-|[source,tcl]
-----------------
-/cls/ info mixin ?-guards? ?-order? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info mixin classes \
-   ?-guards? ?-heritage? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info mixinguard /name/
-----------------
-|[source,tcl]
-----------------
-/cls/ info mixin guard /name/
 ----------------
 |[source,tcl]
 ----------------
 /cls/ info instmixin \
    ?-guards? ?-order? ?pattern?
+/cls/ info instmixinguard /name/
 ----------------
 |[source,tcl]
 ----------------
 /cls/ info mixin classes \
    ?-closure? ?-guards? ?-heritage? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info instmixinguard /name/
-----------------
-|[source,tcl]
-----------------
 /cls/ info mixin guard /name/
 ----------------
 |======================
@@ -2428,7 +2298,8 @@ subcommands rather than using a flat namespace.
 ==== List definition of methods defined by aliases, setters or forwarders
 
 As mentioned earlier, +info method definition+ can be used on every
-kind of method.
+kind of method. The same call can be used to obtain the definition of
+a scripted method, a method-alias, a forwarder or a setter method.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -2440,8 +2311,8 @@ kind of method.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method definition /methodName/
-/cls/ ?class? info method definition /methodName/
+/cls/ info method definition /methodName/
+/obj/ info object method definition /methodName/
 ----------------
 |======================
 
@@ -2483,8 +2354,8 @@ the method handle to the created method.
 # For aliases, one can query the original definition
 # via "info method origin"
 #
-/obj/ info method origin /methodName/
 /cls/ info method origin /methodName/
+/obj/ info object method origin /methodName/
 ----------------
 |======================
 
@@ -2503,7 +2374,7 @@ specified method.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object method type /methodName/
+/cls/ info method type /methodName/
 ----------------
 |[source,tcl]
 ----------------
@@ -2511,7 +2382,7 @@ specified method.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ ?object? info method type /methodName/
+/obj/ info object method type /methodName/
 ----------------
 |======================
 
@@ -2730,7 +2601,8 @@ self next
 ----------------
 |[source,tcl]
 ----------------
-# Returns method-handle
+# Returns method-handle of the 
+# method to be called via "next"
 current next
 ----------------
 |[source,tcl]
@@ -2739,7 +2611,8 @@ self filterreg
 ----------------
 |[source,tcl]
 ----------------
-# Returns method-handle
+# Returns method-handle of the
+# filter method
 current filterreg
 ----------------
 |[source,tcl]
