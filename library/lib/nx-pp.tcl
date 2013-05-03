@@ -77,7 +77,7 @@ namespace eval ::nx::pp {
     # The State "default" is processing bare Tcl words. In this state,
     # we perform substitutions of keywords and placeholders.
     #
-    :public method process {char} {
+    :public object method process {char} {
       switch $char {
 	"\#" { return [:new_state comment "" $char]}
 	"\"" { return [:new_state quoted "" $char]}
@@ -99,7 +99,7 @@ namespace eval ::nx::pp {
       method alias property forward delete require
       my next new self current dispatch objectparameter defaultmethod
       create init new destroy alloc dealloc recreate unknown move configure
-      class superclass mixin filter guard metaclass
+      class object superclass mixin filter guard metaclass
       methods lookup
       ::nx::Class nx::Class ::xotcl::Class xotcl::Class Class 
       ::nx::Object nx::Object ::xotcl::Object xotcl::Object Object 
@@ -111,7 +111,7 @@ namespace eval ::nx::pp {
     set :re(placeholder1) {([/][a-zA-Z0-9:]+?[/])}
     set :re(placeholder2) {([?][^ ][-a-zA-Z0-9: .]+?[?])}
 
-    :public method flush {} {
+    :public object method flush {} {
       set html [string map [list & {&amp;} < {&lt;} > {&gt;}] ${:text}]
       regsub -all [set :re(keyword1)] " $html" {\1<span class='nx-keyword'>\2</span>} html
       regsub -all [set :re(keyword2)] $html {\1<span class='nx-keyword'>\2</span>} html
@@ -127,7 +127,7 @@ namespace eval ::nx::pp {
     #
     # The State "quoted" is for content between double quotes.
     #
-    :public method process {char} {
+    :public object method process {char} {
       switch $char {
 	"\""    {return [:new_state ${:prevState} $char ""]}
 	"\\"    {return [:new_state escape $char ""]}
@@ -141,7 +141,7 @@ namespace eval ::nx::pp {
     # The State "comment" is for Tcl comments (currently, only up to
     # end of line)
     #
-    :public method process {char} {
+    :public object method process {char} {
       switch $char {
 	"\n"    {return [:new_state default $char ""]}
 	default {return [nx::next]}
@@ -154,7 +154,7 @@ namespace eval ::nx::pp {
     # The State "variable" is for simple Tcl variables (without curley
     # braces)
     #
-    :public method process {char} {
+    :public object method process {char} {
       switch -glob -- $char {
 	{\{}            {return [:new_state quoted_variable $char ""] }
 	{[a-zA-Z0-9_:]} {return [nx::next]} 
@@ -169,7 +169,7 @@ namespace eval ::nx::pp {
     # The State "quoted_variable" is for Tcl variables, where the
     # names are quoted with curley braces.
     #
-    :public method process {char} {
+    :public object method process {char} {
       switch -glob -- $char {
 	{\}}    {return [:new_state default $char ""] }
 	default {return [nx::next]}
@@ -187,7 +187,7 @@ namespace eval ::nx::pp {
     #  When a character is processed in the escape state, it is suffed
     #  into the previous state and returns immediately to it.
     #
-    :public method process {char} {
+    :public object method process {char} {
       ${:prevState} eval [list append :text $char]
       return ${:prevState}
     }
@@ -201,7 +201,7 @@ namespace eval ::nx::pp {
 #
 nx::Object create nx::pp {
   
-  :public method toHTML {block} {
+  :public object method toHTML {block} {
     set state [self]::default
     set l [string length $block]
     for {set i 0} {$i < $l} {incr i} {
@@ -210,7 +210,7 @@ nx::Object create nx::pp {
     $state flush
   }
 
-  :public method numbers {block} {
+  :public object method numbers {block} {
     set nrlines [regsub -all \n $block \n block]
     incr nrlines
     set HTML ""
@@ -220,7 +220,7 @@ nx::Object create nx::pp {
     return $HTML
   }
 
-  :public method render {{-linenumbers false} -noCSSClasses:switch block} {
+  :public object method render {{-linenumbers false} -noCSSClasses:switch block} {
     set :output ""
     :toHTML $block
     set HTML ${:output}
@@ -244,7 +244,7 @@ nx::Object create nx::pp {
     return ${:output}
   }
 
-  :public method puts {{-nonewline:switch} string} {
+  :public object method puts {{-nonewline:switch} string} {
     append :output $string
     if {!$nonewline} {append :output \n}
   }
