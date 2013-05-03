@@ -262,6 +262,9 @@ typedef struct NsfMemCounter {
 # define PRINTOBJ(ctx,obj)
 #endif
 
+/*
+ * When an integer is printed, it might take so many digits
+ */
 #define LONG_AS_STRING 32
 
 /* TCL_CONTINUE is defined as 4, from 5 on we can

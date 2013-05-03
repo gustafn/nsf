@@ -48,69 +48,51 @@ Tcl_Obj *NsfParamDefsSyntax(Nsf_Param CONST *paramPtr);
  *----------------------------------------------------------------------
  */
 
-extern void
+void
 NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
-  int      size;
+  int      result, failure, offset = dsPtr->length, avail = dsPtr->spaceAvl;
   va_list  vargsCopy;
   
-  /* Work on a copy of the va_list so that the caller's copy is untouched */
+  /* 
+   * Work on a copy of the va_list so that the caller's copy is untouched 
+   */
   va_copy(vargsCopy, vargs);
+  result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
+  va_end(vargsCopy);
 
-  /* Compute the required size of the Tcl_DString */
+  /* 
+   * Trap C99+ incompatabilities of certain vsnprintf() implementations
+   * w.r.t. the result value: For example, old *nix implementations of
+   * vsnprintf() as well as C89 implementations (as current MS Visual Compiler
+   * runtimes) return -1 (or another negative number) upon overflowing the
+   * buffer (rather than the number of required bytes as required by C99) and
+   * upon other error conditions. This should not happen for the above size
+   * estimation, however. Also, for MS VC runtimes, we use the vendor-specific
+   * _vscprintf() 
+   */
 #ifdef _WIN32
-  size = _vscprintf(fmt, vargsCopy);
+  failure = (result == -1 && errno == ERANGE);
 #else
-  size = vsnprintf(NULL, 0, fmt, vargsCopy);
+  assert(result > -1);
+  failure = (result > avail);
 #endif
 
-  va_end(vargsCopy);
-  
-  /* Trap C99+ incompatabilities of certain vsnprintf() implementations
-     w.r.t. the result value: For example, old *nix implementations of
-     vsnprintf() as well as C89 implementations (as current MS Visual Compiler
-     runtimes) return -1 (or another negative number) upon overflowing the
-     buffer (rather than the number of required bytes as required by C99) and
-     upon other error conditions. This should not happen for the above size
-     estimation, however. Also, for MS VC runtimes, we use the vendor-specific
-     _vscprintf() */ 
-  
-  assert(size >= 0);
-  
-  /* Note: The size projection above (using vsnprintf or _vscprintf) yields
-     the estimate size excluding the null-terminating char. The newLength
-     parameter of Tcl_DStringSetLength assumes this size value, so we are
-     fine. */
-  Tcl_DStringSetLength(dsPtr, size);
+  if (failure) {
+#ifdef _WIN32
+    /* Compute the required size of the Tcl_DString */
+    int addedStringLength = _vscprintf(fmt, vargsCopy);
+#else
+    int addedStringLength = result;
+#endif
+    Tcl_DStringSetLength(dsPtr, offset + addedStringLength);
 
-  /* Map the formatted string into the right-sized Tcl_DString */
-  va_copy(vargsCopy, vargs);
-  vsnprintf(Tcl_DStringValue(dsPtr), dsPtr->spaceAvl, fmt, vargsCopy);
-  va_end(vargsCopy);
-}
-
-#if 0
-extern void
-NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc) {
-  int      result, avail = dsPtr->spaceAvl, offset = dsPtr->length;
-  va_list  ap;
-  
-  va_copy(ap, apSrc);
-  result = vsnprintf(Tcl_DStringValue(dsPtr) + offset, avail, fmt, ap);
-  va_end(ap);
-
-  while (result >= avail) {
-    
-    Tcl_DStringSetLength(dsPtr, avail + 4096);
-    avail = dsPtr->spaceAvl;
-    /* fprintf(stderr, "NsfDStringPrintf must iterate, new avail %d\n", avail);*/
-
-    va_copy(ap, apSrc);
-    result = vsnprintf(Tcl_DStringValue(dsPtr) + offset, avail, fmt, ap);
-    va_end(ap);
+    va_copy(vargsCopy, vargs);
+    result = vsnprintf(dsPtr->string + offset, dsPtr->spaceAvl, fmt, vargsCopy);
+    assert(result > -1);
+    va_end(vargsCopy);
   }
-  Tcl_DStringSetLength(dsPtr, result);
 }
-#endif
+
 
 /*
  *----------------------------------------------------------------------
@@ -127,7 +109,7 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc) {
  *
  *----------------------------------------------------------------------
  */
-extern void
+void
 NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
   if (objc > 0) {
     int i;
@@ -154,7 +136,7 @@ NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...) {
   va_list ap;
   Tcl_DString ds;
@@ -187,7 +169,7 @@ NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...) {
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
                Tcl_Obj *clName, CONST char *procName) {
   Tcl_DString errMsg;
@@ -228,7 +210,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, 
 		Tcl_Obj *methodName, char *arglist) {
   int need_space = 0;
@@ -274,7 +256,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
   Tcl_Obj *argStringObj = NsfParamDefsSyntax(paramPtr);
@@ -301,7 +283,7 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString, 
 			   Nsf_Object *object, Nsf_Param CONST *paramPtr, Tcl_Obj *procNameObj) {
   Tcl_DString ds, *dsPtr = &ds;
@@ -331,7 +313,7 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfUnexpectedNonposArgumentError(Tcl_Interp *interp, 
 				 CONST char *argumentString, 
 				 Nsf_Object *object, 
@@ -377,7 +359,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, 
 			   CONST char *what, CONST char *methodName) {
   if (clientData) {
@@ -404,7 +386,7 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what) {
   return NsfPrintError(interp, "no current object; %s called outside the context of a Next Scripting method",
 		       what ? what : "command");
@@ -426,7 +408,7 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what) {
  *
  *----------------------------------------------------------------------
  */
-extern int
+int
 NsfObjErrType(Tcl_Interp *interp, 
 	      CONST char *context, 
 	      Tcl_Obj *value, 
