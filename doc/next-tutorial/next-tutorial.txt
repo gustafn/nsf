@@ -1,7 +1,7 @@
 Tutorial for the Next Scripting Language
 ==========================================
 Gustaf Neumann <neumann@wu-wien.ac.at>, Stefan Sobernig <stefan.sobernig@wu.ac.at>
-v2.1, March 2011:
+v2.2, May 2013:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
@@ -39,7 +39,7 @@ interpreter.  The name of the Next Scripting Framework is derived from
 the universal method combinator "next", which was introduced in XOTcl.
 The combinator "next" serves as a single instrument for method
 combination with filters, per-object and transitive per-class mixin
-classes, per-object methods and multiple inheritance.
+classes, object methods and multiple inheritance.
 
 The definition of NX is fully scripted (e.g.  defined in
 +nx.tcl+). The Next Scripting Framework is shipped with three language
@@ -256,13 +256,11 @@ In our next example, we introduce _generic objects_ and _object
 specific methods_. With NX, we can define generic objects, which are
 instances of the most generic class +nx::Object+ (sometimes called
 "common root class"). +nx::Object+ is predefined and contains a
-minimal set of methods applicable to all NX objects. 
-
-In our second example, we will define a generic object named +stack+
-and provide methods for this object. The methods defined in our first
-example were methods provided by a class for objects. Now we defined
-object specific methods, which are methods applicable only to the 
-object for which they are defined.
+minimal set of methods applicable to all NX objects.  In this example,
+we define a generic object named +stack+ and provide methods for this
+object. The methods defined above were methods provided by a class for
+objects. Now we define object specific methods, which are methods
+applicable only to the object for which they are defined.
 
 [[xmp-object-stack]]
 .Listing {counter:figure-number}: Object stack
@@ -271,14 +269,14 @@ object for which they are defined.
 --------------------------------------------------
 nx::Object create stack {
 
-   :variable things {}
+   :object variable things {}
 
-   :public method push {thing} {
+   :public object method push {thing} {
       set :things [linsert ${:things} 0 $thing] 
       return $thing
    }
   
-   :public method pop {} {
+   :public object method pop {} {
       set top [lindex ${:things} 0]
       set :things [lrange ${:things} 1 end]
       return $top
@@ -293,12 +291,14 @@ following points are different.
 - First, we use +nx::Object+ instead of +nx::Class+ to denote
   that we want to create a generic object, not a class.
 
-- As in the example above, we use +:variable+ to define the
-  instance variable +things+ for this object (the object +stack+).
+- We use +:object variable+ to define the variable +things+  just for
+   this single instance  (the object +stack+).
 
-The definition for the methods +push+ and +pop+ are the same as
-before, but this times these methods are object-specific (in general,
-all methods defined for an object are object-specific). In order to use
+- The definition for the methods +push+ and +pop+ are the same as
+  before, but here we defined these with +object method+. Therefore, 
+  these two methods +push+ and +pop+ are object-specific.
+
+In order to use
 the stack, we can use directly the object +stack+ in the same way as
 we have used the object +s1+ in <<xmp-using-stack, {xmp-using-stack}>>
 (e.g. +stack push a+).  <<img-object-stack, {img-object-stack}>> shows
@@ -311,7 +311,7 @@ image::object-stack.png[title="Object stack",align="center"]
 A reader might wonder when to use a class +Stack+ or rather an object
 +stack+. A big difference is certainly that one can define easily
 multiple instances of a class, while the object is actually a
-singleton. The concept of the object +stack+ is similar to a module,
+single, tailored entity. The concept of the object +stack+ is similar to a module,
 providing a certain functionality via a common interface, without
 providing the functionality to create multiple instances. The reuse of
 methods provided by the class to objects is as well a difference. If
@@ -402,7 +402,7 @@ option +-mixin+ mixes the class +Safety+ into the new instance +s2+.
 ::Safety
 % Stack create s1
 ::s1
-% Stack create s2 -mixin Safety
+% Stack create s2 -object-mixin Safety
 ::s2
 % s2 push a
 a
@@ -428,8 +428,9 @@ empty (the value of +count+ reaches 0), and +pop+ is invoked, the
 mixin class +Safety+ generates an error message (raises an exception),
 and does not invoke the method of the +Stack+.
 
-The last two commands in <<xmp-using-class-safety,
-{xmp-using-class-safety}>> use introspection to query for the objects
+The last two commands in 
+<<xmp-using-class-safety,{xmp-using-class-safety}>> 
+use introspection to query for the objects
 +s1+ and +s2+ in which order the involved classes are processed. This
 order is called the +precedence order+ and is obtained via +info
 precedence+. We see that the mixin class +Safety+ is only in use for
@@ -440,15 +441,15 @@ precedence+. We see that the mixin class +Safety+ is only in use for
 image::per-object-mixin.png[title="Per-object Mixin",align="center"]
 {set:img-per-object-mixin:Figure {figure-number}}
 
-Note that the class +Safety+ is only mixed into a single object (here
+Note that in <<xmp-using-class-safety,{xmp-using-class-safety}>>,
+the class +Safety+ is only mixed into a single object (here
 +s2+), therefore we refer to this case as a _per-object mixin_.
 <<img-per-object-mixin,{img-per-object-mixin}>> shows the class
 diagram, where the class +Safety+ is used as a per-object mixin for
 +s2+.
 
-The class +Safety+ can be used as well in other ways, such as e.g. for
-defining classes for safe stacks <<xmp-class-safestack,
-{xmp-class-safestack}>>.
+The mixin class +Safety+ can be used as well in other ways, such as e.g. for
+defining classes of safe stacks:
 
 [[xmp-class-safestack]]
 .Listing {counter:figure-number}: Class SafeStack
@@ -464,17 +465,20 @@ nx::Class create SafeStack -superclass Stack -mixin Safety
 SafeStack create s3
 --------------------------------------------------
 
-The difference to the case with the per-object mixin is that now,
-+Safety+ is mixed into the definition of +SafeStack+. Therefore, all
-instances of the class +SafeStack+ (here the instance +s3+) will be
-using the safety definitions.
-<<img-per-class-mixin,{img-per-class-mixin}>> shows the class diagram
-for this definition.
+The difference of a per-class mixin and an per-object mixin is that
+the per-class mixin is applicable to all instances of the
+class. Therefore, we call these mixins also sometimes instance mixins.
+In our example in <<xmp-class-safestack,{xmp-class-safestack}>>, 
++Safety+ is mixed into the definition of
++SafeStack+. Therefore, all instances of the class +SafeStack+ (here
+the instance +s3+) will be using the safety definitions.
 
 [[img-per-class-mixin]]
 image::per-class-mixin.png[title="Per-class Mixin",align="center"]
 {set:img-per-class-mixin:Figure {figure-number}}
 
+<<img-per-class-mixin,{img-per-class-mixin}>> shows the class diagram
+for this definition.
 Note that we could use +Safety+ as well as a per-class mixin on
 +Stack+. In this case, all stacks would be safe stacks and we could
 not provide a selective feature selection (which might be perfectly
@@ -501,7 +505,7 @@ Stack create s4 {
   # to check the type of entries 
   #
 
-  :public method push {thing:integer} {
+  :public object method push {thing:integer} {
     next
   }
 }
@@ -545,25 +549,22 @@ An alternative approach is shown in
 +IntegerStack+ is defined, using the same method definition
 as +s4+, this time on the class level.
 
-=== Define Class Specific Methods
+=== Define Object Specific Methods on Classes
 
 In our previous examples we defined methods provided by classes
 (applicable for their instances) and object-specific methods (methods
 defined on objects, which are only applicable for these objects). In
-this section, we introduce methods that are defined on classes. These
-method are only applicable for the class objects. Such methods are
-sometimes called _class methods_ or _static methods_.
+this section, we introduce methods that are defined on the class
+objects. Such methods are sometimes called _class methods_ or 
+_static methods_.
 
-In NX classes are objects with certain properties. The classes are
-objects providing methods for instance and which are managing the
-life-cycles of the objects (we will come to this point in later
-sections in more detail). Since classes are objects, it is also
-possible to define object-specific methods for the class
-objects. However, since +:method+ applied on classes defines methods
-for instances, we have to use the method-modifier +class+ to denote
-methods to be applied on the class itself. Note that instances do not
-inherit class methods. The methods defined on the class object are
-actually exactly same as the object-specific methods shown in the
+In NX classes are objects, they are specialized objects with
+additional methods. Methods for classes are often used for managing
+the life-cycles of the instances of the classes (we will come to this
+point in later sections in more detail). Since classes are objects, we
+can use exactly the same notation as above to define class methods by
+using +object method+. The methods defined on the class object are
+in all respects idential with object specific methods shown in the
 examples above.
 
 [[xmp-stack2]]
@@ -573,7 +574,7 @@ examples above.
 --------------------------------------------------
 nx::Class create Stack2 {
 
-   :public class method available_stacks {} {
+   :public object method available_stacks {} {
       return [llength [:info instances]]
    }
 
@@ -952,7 +953,7 @@ nx::Class create Dog {
   :public method bark {} { puts "[self] Bark, bark, bark." }
   :method init {} { 
     Tail create [self]::tail
-    :public forward wag [self]::tail wag
+    :public object forward wag [self]::tail wag
   }
 }
 
@@ -1136,7 +1137,7 @@ situations, e.g., when mixins are used, or within the +next+-path, etc.
 By using the +-local+ flag at the call site it is possible to invoce
 only the local definition of the method. If we would call the method
 without this flag, the resolution order would be the standard
-resolution order, starting with filters, mixins, per-object methods
+resolution order, starting with filters, mixins, object methods
 and the full intrinsic class hierarchy.
 
 NX supports the modifier +private+ for methods and properties. In all
@@ -1227,29 +1228,29 @@ However, NX also allows methods to be defined on objects.
 ==== Object Methods
 
 ===========================================
-Methods defined on objects are *per-object methods*. Per-object
+Methods defined on objects are *object methods*. Object
 methods are only applicable on the object, on which they are defined.
-Per-object methods cannot be inherited from other objects.
+Object methods cannot be inherited from other objects.
 ===========================================
 
-The following example defines an object specific method +bar+ on the
+The following example defines an object method +bar+ on the
 instance +c1+ of class +C+, and as well as the object specific method
-+baz+ defined on the object +o1+. An object-specific method is defined
-simply by defining the method on an object. 
++baz+ defined on the object +o1+. An object method is defined
+via +object method+. 
 
-Note that we can define a per-object method that shadows (redefines)
-for this object an intrinsic instance method.
+Note that we can define a object method that shadows (redefines)
+for this object methods provided from classes.
 
 [[xmp-object-applicable1]]
-.Listing {counter:figure-number}: Per-object Method
+.Listing {counter:figure-number}: Object Method
 {set:xmp-object-applicable1:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Class create C {
   :public method foo {} {return 1}
   :create c1 {
-     :public method foo {} {return 2}
-     :public method bar {} {return 3}
+     :public object method foo {} {return 2}
+     :public object method bar {} {return 3}
   }
 }
 
@@ -1261,7 +1262,7 @@ c1 foo
 
 # Method "baz" is an object specific method of "o1"
 nx::Object create o1 {
-  :public method baz {} {return 4}
+  :public object method baz {} {return 4}
 }
 o1 baz
 --------------------------------------------------
@@ -1270,8 +1271,8 @@ o1 baz
 
 =========================================
 A *class method* is a method defined on a class, which is only
-applicable to the class object itself. The class method is a
-per-object method of the class object.
+applicable to the class object itself. The class method is actually
+an object method of the class object.
 =========================================
 
 In NX, all classes are objects. Classes are in NX special kind of
@@ -1281,7 +1282,7 @@ method set for classes is defined on the meta-classes (more about
 this later).
 
 The following example defines a public class method +bar+ on class
-+C+. The class method is specified by using the modifier +class+ in
++C+. The class method is specified by using the modifier +object+ in
 front of +method+ in the method definition command.
 
 [[xmp-object-applicable2]]
@@ -1294,7 +1295,7 @@ nx::Class create C {
   # Define a class method "bar" and an instance
   # method "foo"
   #
-  :public class method bar {} {return 2}
+  :public object method bar {} {return 2}
   :public method foo {} {return 1}
 
   #
@@ -1373,7 +1374,7 @@ Per-object Mixins -> Per-class Mixins -> Object -> Intrinsic Class Hierarchy
 ++++ 
 
 In the case, no mixins are involved, first the object is searched for
-a per-object method with the given name, and then the class hierarchy
+an object method with the given name, and then the class hierarchy
 of the object. The method can be defined multiple times on the search
 path, so some of these method definitions might be _shadowed_ by the
 more specific definitions. 
@@ -1392,7 +1393,7 @@ nx::Class create D -superclass C {
   :public method foo {} { return "D foo: [next]"}
 
    :create d1 {
-     :public method foo {} { return "d1 foo: [next]"}
+     :public object method foo {} { return "d1 foo: [next]"}
    }
 }
 
@@ -1407,8 +1408,8 @@ d1 info precedence
 
 Consider the example in
 <<xmp-method-resolution,{xmpmethod-resolution}>>. When the method
-+foo+ is invoked on object +d1+, the per-object method has the highest
-precedence and is therefore invoked. The per-object methods shadows
++foo+ is invoked on object +d1+, the object method has the highest
+precedence and is therefore invoked. The object methods shadows
 the same-named methods in the class hierarchy, namely the method +foo+
 of class +D+ and the method +foo+ of class +C+. The shadowed methods
 can be still invoked, either via the primitive +next+ or via method
@@ -1438,7 +1439,7 @@ nx::Class create M2 {
 # "d1" is created based on the definitions of the last example
 # 
 # Add the methods from "M1" as per-object mixin to "d1"
-d1 mixin M1
+d1 object mixin M1
 
 #
 # Add the methods from "M2" as per-class mixin to class "C"
@@ -1471,10 +1472,10 @@ method in the per-object mixin.
 # "d1" is created based on the definitions of the last two examples,
 # the mixins "M1" and "M2" are registered. 
 # 
-# Define a public per-object method "bar", which calls the method
+# Define a public object method "bar", which calls the method
 # "foo" which various invocation options:
 #
-d1 public method bar {} {
+d1 public object method bar {} {
    puts [:foo]
    puts [: -local foo]
    puts [: -intrinsic foo]
@@ -1495,8 +1496,8 @@ situations.
 
 The invocation flag +-local+ means that the method has to be resolved
 from the same place, where the current method is defined. Since the
-current method is defined as a per-object method, +foo+ is resolved as
-a per-object method. The effect is that the mixin definitions are
+current method is defined as a object method, +foo+ is resolved as
+a object method. The effect is that the mixin definitions are
 ignored. The invocation flag +-local+ was already introduced int the
 section about method protection, where it was used to call _private_
 methods.
@@ -2272,7 +2273,7 @@ from the keys of other unknown handlers).
 {set:xmp-unknown-class:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-::nx::Class public class method __unknown {name} {
+::nx::Class public object method __unknown {name} {
   # A very simple unknown handler, showing just how
   # the mechanism works.
   puts "***** __unknown called with <$name>"
