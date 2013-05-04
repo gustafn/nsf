@@ -78,11 +78,14 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
 #endif
 
   if (failure) {
+    int addedStringLength;
 #ifdef _WIN32
     /* Compute the required size of the Tcl_DString */
-    int addedStringLength = _vscprintf(fmt, vargsCopy);
+    va_copy(vargsCopy, vargs);
+    addedStringLength = _vscprintf(fmt, vargsCopy);
+    va_end(vargsCopy);
 #else
-    int addedStringLength = result;
+    addedStringLength = result;
 #endif
     Tcl_DStringSetLength(dsPtr, offset + addedStringLength);
 
