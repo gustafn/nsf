@@ -58,7 +58,7 @@ nx::Test case noleadingdash {
 
   ? {p3a 100 -x 1 -y 1 200} {100 1 1 200}
   ? {p3a 100 -xx 1 -y 1 200} {invalid non-positional argument '-xx', valid are : -x, -y;
- should be "p3a a ?-x value? ?-y value? b ?-z value?"}  
+ should be "p3a /a/ ?-x value? ?-y value? /b/ ?-z value?"}  
 }
 
 nx::Test case unknown-handler {

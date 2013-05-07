@@ -4353,6 +4353,10 @@ Object-method Reform:
   since ns_cache implementation needs to be objectified;
   newest NaviServer version works as well with older nx)
 
+- moved "/obj/ info slot definition|..." to 
+  "/obj/ info object slot definition|..." for consistency
+- provided "parametersyntax()" for "object mixin" and "object filter"
+
 ========================================================================
 TODO:
 - reconsider
@@ -4369,15 +4373,38 @@ TODO:
 - flatten out interface asymmetry between methods and properties
 
   methods:
-    query defined:     "/obj|cls/ info methods ?pattern?"                 -> names
-    obtain definition: "/obj|cls/ info method definition /name|handle/"   -> single definiton
-    query callable:    "/obj|cls/ info lookup method /name/"              -> handle (where is the method defined)
-    query callable:    "/obj|cls/ info lookup methods ?pattern?"          -> names (what methods can be called)
+    query defined:     "/obj|cls/ info ?object? methods ?pattern?"               -> names
+    obtain definition: "/obj|cls/ info ?object? method definition /name|handle/" -> single definiton
+    query callable:    "/obj|cls/ info lookup method /name/"                     -> handle (where is the method defined)
+    query callable:    "/obj|cls/ info lookup methods ... ?pattern?"             -> names (what methods can be called)
 
   properties|variables
-    query defined:     "/obj|cls/ info slot names ?pattern?"              -> names
-    obtain definition: "/obj|cls/ info slot definitions ?pattern?"        -> list of definitions
-    query callable:    "/obj|cls/ info lookup slots -source .. ?pattern?" -> slot objects (where are parameters defined)
+    query defined:     "/obj|cls/ info ?object? slot names ?pattern?"            -> names
+    obtain definition: "/obj|cls/ info ?object? slot definitions ?pattern?"      -> list definitions
+    obtain handles:    "/obj|cls/ info ?object? slot objects ?pattern?"          -> slot objects
+    query callable:    "/obj|cls/ info lookup slots ... ?pattern?"               -> slot objects (where are parameters defined)
+
+  method parameters:
+    query defined      "/obj|cls/ info method args /name|handle/"                -> list parameter names (e.g. x y)
+    obtain definition: "/obj|cls/ info method syntax /name|handle/"              -> syntax notation of parameters (e.g. x ?y?)
+    obtain definition: "/obj|cls/ info method parameter /name|handle/"           -> list of parameters for specified method (e.g. x:integer y)
+
+  object parameters:
+    query defined:     "/cls/ info parameter list ?pattern?"                     -> list names with potential "-" (-a -b)
+                       "/cls/ info parameter names ?pattern?"                    -> list names (a b)
+    obtain syntax:     "/cls/ info parameter syntax ?pattern?"                   -> syntax notation
+    obtain definition: "/cls/ info parameter definitions ?pattern?"              -> list definitions
+    query available:   "/obj|cls/ info lookup parameter names ?pattern?"         -> list names
+                       "/obj|cls/ info lookup parameter list ?pattern?"          -> list names with potential "-" (-a -b)
+                       "/obj|cls/ info lookup parameter syntax ?pattern?"        -> syntax notation of parameters (e.g. ?-a x? ?-b b?)
+                       "/obj|cls/ info lookup parameter definitions ?pattern?"   -> list definitions
+                       "/obj|cls/ configure"                                     -> syntax notation of parameters (e.g. ?-a x? ?-b b?)
+
+
+
+
+
+
 
   + more detail queries for "info method" and "info slot"
 
