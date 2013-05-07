@@ -721,25 +721,25 @@ namespace eval ::nx {
     :alias "info object methods"          ::nsf::methods::object::info::methods
     :alias "info object mixin guard"      ::nsf::methods::object::info::mixinguard
     :alias "info object mixin classes"    ::nsf::methods::object::info::mixinclasses
-    :alias "info parent"           ::nsf::methods::object::info::parent
-    :alias "info precedence"       ::nsf::methods::object::info::precedence
-    :method "info slot definitions" {{-type:class ::nx::Slot} pattern:optional} {
+    :method "info object slot definitions" {{-type:class ::nx::Slot} pattern:optional} {
       set result {}
       foreach slot [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]] {
 	lappend result [$slot getPropertyDefinition]
       }
       return $result
     }
-    :method "info slot names" {{-type:class ::nx::Slot} pattern:optional} {
+    :method "info object slot names" {{-type:class ::nx::Slot} pattern:optional} {
       set result {}
       foreach slot [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]] {
 	lappend result [$slot name]
       }
       return $result
     }
-    :method "info slot objects" {{-type:class ::nx::Slot} pattern:optional} {
+    :method "info object slot objects" {{-type:class ::nx::Slot} pattern:optional} {
       return [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]]
     }
+    :alias "info parent"           ::nsf::methods::object::info::parent
+    :alias "info precedence"       ::nsf::methods::object::info::precedence
     # "info properties" is a short form of "info slot definition"
     #:alias "info properties"     ::nx::Object::slot::__info::slot::definition
     :alias "info vars"           ::nsf::methods::object::info::vars
@@ -2452,14 +2452,14 @@ namespace eval ::nx {
   #interp alias {} ::nx::self {} ::nsf::self
 
   set value "?classes?|?add class?|?delete class?"
-  set ::nsf::parametersyntax(::nsf::classes::nx::Object::mixin) $value
-  set ::nsf::parametersyntax(::nsf::classes::nx::Class::mixin) $value
-  set ::nsf::parametersyntax(::nsf::classes::nx::Class::superclass) $value
-  set ::nsf::parametersyntax(::nsf::classes::nx::Object::class) "?className?"
+  set "::nsf::parametersyntax(::nsf::classes::nx::Object::object mixin)" $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Class::mixin)"         $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Class::superclass)"    $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Object::class)"        "?className?"
   set value "?filters?|?add filter?|?delete filter?"
-  set ::nsf::parametersyntax(::nsf::classes::nx::Object::filter) $value
-  set ::nsf::parametersyntax(::nsf::classes::nx::Class::filter) $value
-  set ::nsf::parametersyntax(::nsf::classes::nx::Object::eval) "arg ?arg ...?"
+  set "::nsf::parametersyntax(::nsf::classes::nx::Object::object filter)" $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Class::filter)"         $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Object::eval)"          "arg ?arg ...?"
   unset value
 
   ::nsf::configure debug 1

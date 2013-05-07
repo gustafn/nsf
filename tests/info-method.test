@@ -481,7 +481,7 @@ nx::Test case info-slots {
   ? {d1 info lookup slots -source application} "::d1::per-object-slot::a3 ::D::slot::b ::D::slot::c ::C::slot::a"
 
   ? {D info object slot objects} "::D::per-object-slot::a2"
-  ? {d1 info slot objects} "::d1::per-object-slot::a3"
+  ? {d1 info object slot objects} "::d1::per-object-slot::a3"
   ? {C info object slot objects} ""
 }
 
@@ -733,7 +733,7 @@ nx::Test case info-methods-path {
   ? {lsort [::nx::Object info methods "slots"]} ""
   ? {lsort [::nx::Object info methods "*slots*"]} ""
   ? {lsort [::nx::Object info methods -path "*slot*"]} \
-      "{info lookup slots} {info slot definitions} {info slot names} {info slot objects}"
+      "{info lookup slots} {info object slot definitions} {info object slot names} {info object slot objects}"
   ? {lsort [::nx::Object info methods -path "*filter*"]} \
       "{info lookup filter} {info object filter guard} {info object filter methods} {object filter}"
 

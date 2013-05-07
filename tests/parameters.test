@@ -2079,12 +2079,12 @@ nx::Test case reconfigure-perobj-default {
   ? {o a} newvalue
   o eval {unset :a}
   ? {o eval {info exists :a}} 0
-  [o info slot objects a] default anothervalue
+  [o info object slot objects a] default anothervalue
   ? {o eval {info exists :a}} 0
   #
   # re-assignment must be requested by a reconfigure call
   #
-  [o info slot objects a] reconfigure
+  [o info object slot objects a] reconfigure
   ? {o eval {info exists :a}} 1
   ? {o a} anothervalue
 }
@@ -2480,8 +2480,8 @@ nx::Test case object-info-slots-types {
   }
 
   # only the variables with slots show up in "info slot ..." 
-  ? {o1 info slot objects} "::o1::per-object-slot::v2 ::o1::per-object-slot::v1"
-  ? {o1 info slot definitions} "{::o1 variable -accessor public v2:0..n 100} {::o1 variable -accessor public v1 100}"
+  ? {o1 info object slot objects} "::o1::per-object-slot::v2 ::o1::per-object-slot::v1"
+  ? {o1 info object slot definitions} "{::o1 variable -accessor public v2:0..n 100} {::o1 variable -accessor public v1 100}"
 
   nx::Object create o2 {
     :object property {p0 200}
@@ -2494,8 +2494,8 @@ nx::Test case object-info-slots-types {
   ? {o2 info object methods} "p0 p3"
 
   # all properties with slots show up in "info slot" 
-  ? {o2 info slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p3"
-  ? {o2 info slot definitions} "{::o2 property {p0 200}} {::o2 property -accessor none {p1 201}} {::o2 variable -accessor public p3 203}"
+  ? {o2 info object slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p3"
+  ? {o2 info object slot definitions} "{::o2 property {p0 200}} {::o2 property -accessor none {p1 201}} {::o2 variable -accessor public p3 203}"
   #? {o2 info properties} "{p0 200} {p1 201} {p3:noconfig 203}"
 
 }
