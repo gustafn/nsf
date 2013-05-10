@@ -25292,23 +25292,43 @@ RegisterExitHandlers(ClientData clientData) {
 
 int
 Nsf_Init(Tcl_Interp *interp) {
+  static NsfMutex initMutex = 0;
   ClientData runtimeState;
-  int result, i;
   NsfRuntimeState *rst;
-
+  int result, i;
 #ifdef NSF_BYTECODE
   /*NsfCompEnv *interpstructions = NsfGetCompEnv();*/
 #endif
-  static NsfMutex initMutex = 0;
+#ifdef USE_TCL_STUBS
+  static int stubsInitialized = 0;
+#endif
+
 #if 0
   ProfilerStart("profiler");
 #endif
+
 #ifdef USE_TCL_STUBS
-  if (Tcl_InitStubs(interp, "8.5", 0) == NULL) {
-    return TCL_ERROR;
-  }
-  if (Tcl_TomMath_InitStubs(interp, "8.5") == NULL) {
-    return TCL_ERROR;
+  /*
+   * Since the stub-tables are initialized globally (not per interp), we want
+   * to initialize these only once.  The read operation on "stubsInitialized"
+   * is a potentially dirty read. However, we can't use a mutex lock around
+   * this, since Tcl_MutexLock() requires (at least on some platforms)
+   * initialized stub-tables. The dirty read of stubsInitialized is not so
+   * invasive as the dirty reads caused by overwriting the stub tables.
+   *
+   * NsfMutexLock(&stubFlagMutex);
+   * ...
+   * NsfMutexUnlock(&stubFlagMutex);
+   */
+
+  if (stubsInitialized == 0) {
+    if (Tcl_InitStubs(interp, "8.5", 0) == NULL) {
+      return TCL_ERROR;
+    }
+    if (Tcl_TomMath_InitStubs(interp, "8.5") == NULL) {
+      return TCL_ERROR;
+    }
+    stubsInitialized = 1;
   }
 #endif
 
