@@ -195,7 +195,7 @@ nx::Test case basics {
       "value for parameter '-x' expected"
   ? {[C new -single-np [list -x X]] eval {set :single-np}} \
       "invalid non-positional argument '-x X', valid are : -x;
- should be \"::__%&singleton single-np -x value\""
+ should be \"::__%&singleton single-np -x /value/\""
 
   #
   # INTERACTIONS with other parameter types
@@ -1262,7 +1262,7 @@ nx::Test case dispo-object-targets {
   # ISSUE: positional objparam + alias + noarg -> what's the point?
   # noarg & ?z? are irritating, ?z? should not be printed!
   #
-  ? {T create t XXX} "invalid argument 'XXX', maybe too many arguments; should be \"::t configure ?z?\""
+  ? {T create t XXX} "invalid argument 'XXX', maybe too many arguments; should be \"::t configure ?/z/?\""
 
   ::obj object mixin {}
   T setObjectParams [list z:alias]

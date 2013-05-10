@@ -90,7 +90,7 @@ C create c2 {
 C public method foo {{-new 0} name value} { return $value}
 catch {c1 foo -name a b} errMsg
 ? {set errMsg} \
-    {invalid argument 'b', maybe too many arguments; should be "::c1 foo ?-new value? name value"}
+    {invalid argument 'b', maybe too many arguments; should be "::c1 foo ?-new /value/? /name/ /value/"}
 
 # Test resolving of implicit namespaces in relationcmds (here
 # superclass) in the nx namespace.

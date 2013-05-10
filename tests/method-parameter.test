@@ -13,17 +13,17 @@ nx::Test case method-params-0 {
   ? {p1} 0
   ? {p1 -x} {value for parameter '-x' expected}
   ? {p1 -x 1} 1
-  ? {p1 -x 1 2} {invalid argument '2', maybe too many arguments; should be "p1 ?-x value?"}
+  ? {p1 -x 1 2} {invalid argument '2', maybe too many arguments; should be "p1 ?-x /value/?"}
   ? {p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
- should be "p1 ?-x value?"}
-  ? {p1 a} {invalid argument 'a', maybe too many arguments; should be "p1 ?-x value?"}
-  ? {p1 a -x} {invalid argument 'a', maybe too many arguments; should be "p1 ?-x value?"}
+ should be "p1 ?-x /value/?"}
+  ? {p1 a} {invalid argument 'a', maybe too many arguments; should be "p1 ?-x /value/?"}
+  ? {p1 a -x} {invalid argument 'a', maybe too many arguments; should be "p1 ?-x /value/?"}
 
   ? {p1 --} 0
   ? {p1 -y} {invalid non-positional argument '-y', valid are : -x;
- should be "p1 ?-x value?"}
+ should be "p1 ?-x /value/?"}
   ? {p1 -y --} {invalid non-positional argument '-y', valid are : -x;
- should be "p1 ?-x value?"}
+ should be "p1 ?-x /value/?"}
 
   #
   # should we really allow numeric nonpos arg names?
@@ -50,15 +50,15 @@ nx::Test case noleadingdash {
 
   ? {p2a -x 1 -y} {1 -y}
   ? {p2b -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
- should be "p2b ?-x value? ?arg ...?"}
+ should be "p2b ?-x /value/? ?/arg .../?"}
   ? {p2c -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
- should be "p2c ?-x value? ?arg ...?"}
+ should be "p2c ?-x /value/? ?/arg .../?"}
 
   nsf::proc p3a {a -x -y b:noleadingdash -z} {return [list $a [info exists x] [info exists y] $b]}
 
   ? {p3a 100 -x 1 -y 1 200} {100 1 1 200}
   ? {p3a 100 -xx 1 -y 1 200} {invalid non-positional argument '-xx', valid are : -x, -y;
- should be "p3a /a/ ?-x value? ?-y value? /b/ ?-z value?"}  
+ should be "p3a /a/ ?-x /value/? ?-y /value/? /b/ ?-z /value/?"}  
 }
 
 nx::Test case unknown-handler {
@@ -68,7 +68,7 @@ nx::Test case unknown-handler {
     :create c1
   }
   ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
- should be "::c1 p1 ?-x value?"}
+ should be "::c1 p1 ?-x /value/?"}
 
   proc ::nsf::argument::unknown {method arg args} {
     puts stderr "??? unknown nonpos-arg $arg in $method obj <$args>\n[info frame -1]\n"
@@ -76,7 +76,7 @@ nx::Test case unknown-handler {
   }
 
   ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
- should be "::c1 p1 ?-x value?"}
+ should be "::c1 p1 ?-x /value/?"}
 
   if {0} {
     proc ::nsf::argument::unknown {method arg args} {
@@ -87,6 +87,6 @@ nx::Test case unknown-handler {
     }
     
     ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
- should be "::c1 p1 ?-x value?"}
+ should be "::c1 p1 ?-x /value/?"}
   }
 }

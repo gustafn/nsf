@@ -662,7 +662,7 @@ nx::Test case info-submethod {
   ? {nx::Object info method parameter "info lookup methods"} \
       "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
   ? {nx::Object info method syntax "info lookup methods"} \
-      "?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?pattern?"
+      "?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/?"
 
   ? {o info object method parameter "foo b"} "x:int y:upper"
 
@@ -698,8 +698,8 @@ nx::Test case info-slot-parametersyntax {
   }
 
   C new
-  ? {C info parameter syntax} "?-a value? ?-b value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?"
-  ? {C info parameter syntax a} "?-a value?"
+  ? {C info parameter syntax} "?-a /value/? ?-b /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
+  ? {C info parameter syntax a} "?-a /value/?"
 
   ? {C info parameter definitions} "-a {-b 1} -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n __initcmd:initcmd,optional,noleadingdash"
 
@@ -780,12 +780,12 @@ nx::Test case info-methods-path {
 #
 nx::Test case parametersyntax {
   # a true method
-  ? {::nx::Class info method syntax method} "name arguments ?-returns value? body ?-precondition value? ?-postcondition value?"
+  ? {::nx::Class info method syntax method} "/name/ /arguments/ ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
   # a forwarder to ::nsf::relation; definition comes via array ::nsf::parametersyntax
-  ? {::nx::Class info method syntax mixin} "?classes?|?add class?|?delete class?"
+  ? {::nx::Class info method syntax mixin} "?/class .../?|?add /class/?|?delete /class/?"
 
-  ? {::nx::Class info method syntax ::nx::next} "?arguments?"
-  ? {::nx::Class info method syntax ::nsf::xotclnext} "?--noArgs? ?arg ...?"
+  ? {::nx::Class info method syntax ::nx::next} "?/arguments/?"
+  ? {::nx::Class info method syntax ::nsf::xotclnext} "?--noArgs? ?/arg .../?"
 }
 
 #
@@ -1203,5 +1203,5 @@ nx::Test case info-methods-closure {
 # Test error messages within an ensemble call
 #
 nx::Test case error-in-ensemble {
-  ? {nx::Object info method definition foo 1} {invalid argument '1', maybe too many arguments; should be "::nx::Object info method args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns name"}
+  ? {nx::Object info method definition foo 1} {invalid argument '1', maybe too many arguments; should be "::nx::Object info method args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns /name/"}
 }

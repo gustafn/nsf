@@ -4029,26 +4029,26 @@ TestX create nonposargs -proc run {{n 20}} {
     o y 4 56 5
   } m
   errorCheck $m \
-      {invalid argument '5', maybe too many arguments; should be "::o y ?-x value? ?-a value? a b"} \
+      {invalid argument '5', maybe too many arguments; should be "::o y ?-x /value/? ?-a /value/? /a/ /b/"} \
       "wrong \# check 1"
 
   catch {
     o y
   } m
   errorCheck $m {required argument 'a' is missing, should be:
-	::o y ?-x value? ?-a value? a b} "wrong \# check 2"
+	::o y ?-x /value/? ?-a /value/? /a/ /b/} "wrong \# check 2"
 
   catch {
     o y -x 1
   } m
   errorCheck $m {required argument 'a' is missing, should be:
-	::o y ?-x value? ?-a value? a b} "wrong \# check 3"
+	::o y ?-x /value/? ?-a /value/? /a/ /b/} "wrong \# check 3"
 
   catch {
     o z1 a 1 2 3
   } m
   errorCheck $m {required argument 'x' is missing, should be:
-	::o z1 -x value ?-a value? a ?arg ...?} "required missing"
+	::o z1 -x /value/ ?-a /value/? /a/ ?/arg .../?} "required missing"
   errorCheck [o z1 -x 1  a 1 2 3] "1 -- 1 2 3" "invocation 1"
   errorCheck [o z2 -x 2  a 1 2 3] "2 -- a 1 2 3 -- 1  -- 1 2" "invocation 2"
   catch {
@@ -4128,7 +4128,7 @@ TestX create nonposargs -proc run {{n 20}} {
   catch {oa foo "--"} msg
   
   errorCheck $msg {required argument 'b' is missing, should be:
-	::oa foo ?-a value? b} "Non-pos arg: double dash alone"
+	::oa foo ?-a /value/? /b/} "Non-pos arg: double dash alone"
 	
   Class C
   C create c1

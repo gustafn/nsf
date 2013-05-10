@@ -2451,15 +2451,15 @@ namespace eval ::nx {
 
   #interp alias {} ::nx::self {} ::nsf::self
 
-  set value "?classes?|?add class?|?delete class?"
+  set value "?/class .../?|?add /class/?|?delete /class/?"
   set "::nsf::parametersyntax(::nsf::classes::nx::Object::object mixin)" $value
   set "::nsf::parametersyntax(::nsf::classes::nx::Class::mixin)"         $value
   set "::nsf::parametersyntax(::nsf::classes::nx::Class::superclass)"    $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Object::class)"        "?className?"
-  set value "?filters?|?add filter?|?delete filter?"
+  set "::nsf::parametersyntax(::nsf::classes::nx::Object::class)"        "?/className/?"
+  set value "?/filters/?|?add /filter/?|?delete /filter/?"
   set "::nsf::parametersyntax(::nsf::classes::nx::Object::object filter)" $value
   set "::nsf::parametersyntax(::nsf::classes::nx::Class::filter)"         $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Object::eval)"          "arg ?arg ...?"
+  set "::nsf::parametersyntax(::nsf::classes::nx::Object::eval)"          "/arg/ ?/arg/ ...?"
   unset value
 
   ::nsf::configure debug 1

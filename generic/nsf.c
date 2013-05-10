@@ -9248,13 +9248,28 @@ ParamGetDomain(Nsf_Param CONST *paramPtr) {
 
 static void
 NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param CONST *pPtr) {
-  Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
   if (pPtr->nrArgs > 0 && *pPtr->name == '-') {
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
     Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
-    Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
-    if (pPtr->flags & NSF_ARG_MULTIVALUED) {
-      Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);	
+    if ((pPtr->flags & NSF_ARG_IS_ENUMERATION)) {
+      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
+      if (pPtr->flags & NSF_ARG_MULTIVALUED) {
+	Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);	
+      }
+    } else {
+      Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
+      if (pPtr->flags & NSF_ARG_MULTIVALUED) {
+	Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);	
+      }
+      Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
     }
+  } else if (*pPtr->name != '-') {
+    Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
+    Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
+  } else {
+    Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
   }
 }
 
@@ -9301,14 +9316,12 @@ NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) {
     }
 
     if (pPtr->converter == ConvertToNothing && strcmp(pPtr->name, "args") == 0) {
-      Tcl_AppendLimitedToObj(argStringObj, "?arg ...?", 9, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, "?/arg .../?", 11, INT_MAX, NULL);
     } else if (pPtr->flags & NSF_ARG_REQUIRED) {
       if ((pPtr->flags & NSF_ARG_IS_ENUMERATION)) {
 	Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
       } else {
-	Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
 	NsfParamDefsSyntaxOne(argStringObj, pPtr);
-	Tcl_AppendLimitedToObj(argStringObj, "/", 1, INT_MAX, NULL);
       }
     } else {
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
@@ -17582,7 +17595,7 @@ static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 	      NsfParamsPrintStyle printStyle) {
   NsfParamDefs *paramDefs;
-  Tcl_Obj *list;
+  Tcl_Obj *listObj;
   Proc *procPtr;
 
   assert(methodName);
@@ -17594,9 +17607,9 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
     /*
      * Obtain parameter info from paramDefs.
      */
-    list = ListParamDefs(interp, paramDefs->paramsPtr, printStyle);
-    Tcl_SetObjResult(interp, list);
-    DECR_REF_COUNT2("paramDefsObj", list);
+    listObj = ListParamDefs(interp, paramDefs->paramsPtr, printStyle);
+    Tcl_SetObjResult(interp, listObj);
+    DECR_REF_COUNT2("paramDefsObj", listObj);
     return TCL_OK;
   }
 
@@ -17607,7 +17620,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
      */
     CompiledLocal *args = procPtr->firstLocalPtr;
 
-    list = Tcl_NewListObj(0, NULL);
+    listObj = Tcl_NewListObj(0, NULL);
     for ( ; args; args = args->nextPtr) {
 
       if (!TclIsCompiledLocalArgument(args)) {
@@ -17616,30 +17629,39 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 
       if (printStyle == NSF_PARAMS_SYNTAX && strcmp(args->name, "args") == 0) {
 	if (args != procPtr->firstLocalPtr) {
-	  Tcl_AppendToObj(list, " ", 1);
+	  Tcl_AppendToObj(listObj, " ", 1);
 	}
-	Tcl_AppendToObj(list, "?arg ...?", 9);
+	Tcl_AppendToObj(listObj, "?/arg .../?", 11);
       } else {
 	if (printStyle == NSF_PARAMS_SYNTAX) {
-	  /* a default means that the arg is optional xxxxxx */
+	  /* 
+	   * A default means that the argument is optional.
+	   */
 	  if (args->defValuePtr) {
-	    Tcl_AppendToObj(list, "?", 1);
-	    Tcl_AppendToObj(list, args->name, -1);
-	    Tcl_AppendToObj(list, " ", 1);
-	    Tcl_ListObjAppendElement(interp, list, args->defValuePtr);
-	    Tcl_AppendToObj(list, "?", 1);
+	    Tcl_AppendToObj(listObj, "?", 1);
+	    Tcl_AppendToObj(listObj, args->name, -1);
+	    Tcl_AppendToObj(listObj, "?", 1);
 	  } else {
-	    Tcl_AppendToObj(list, "/", 1);
-	    Tcl_AppendToObj(list, args->name, -1);
-	    Tcl_AppendToObj(list, "/", 1);
+	    Tcl_AppendToObj(listObj, "/", 1);
+	    Tcl_AppendToObj(listObj, args->name, -1);
+	    Tcl_AppendToObj(listObj, "/", 1);
 	  }
 	} else {
-	  Tcl_ListObjAppendElement(interp, list, Tcl_NewStringObj(args->name, -1));
+	  Tcl_Obj *innerListObj = Tcl_NewListObj(0, NULL);
+
+	  Tcl_ListObjAppendElement(interp, innerListObj, Tcl_NewStringObj(args->name, -1));
+	  /* 
+	   * Return default just for NSF_PARAMS_PARAMETER.
+	   */
+	  if (args->defValuePtr && printStyle == NSF_PARAMS_PARAMETER) {
+	    Tcl_ListObjAppendElement(interp, innerListObj, args->defValuePtr);
+	  }
+	  Tcl_ListObjAppendElement(interp, listObj, innerListObj);
 	}
       }
     }
 
-    Tcl_SetObjResult(interp, list);
+    Tcl_SetObjResult(interp, listObj);
     return TCL_OK;
   }
 

@@ -191,8 +191,8 @@ namespace eval ::nsf {
   # if HOME is not set, and ~ is resolved, Tcl chokes on that
   if {![info exists ::env(HOME)]} {set ::env(HOME) /root}
 
-  set ::nsf::parametersyntax(::nsf::xotclnext) "?--noArgs? ?arg ...?"
+  set ::nsf::parametersyntax(::nsf::xotclnext) "?--noArgs? ?/arg .../?"
   set ::nsf::parametersyntax(::nsf::__unset_unknown_args) ""
-  set ::nsf::parametersyntax(::nsf::exithandler) "?get?|?set cmds?|?unset?"
+  set ::nsf::parametersyntax(::nsf::exithandler) "?get?|?set /cmds/?|?unset?"
 
 }

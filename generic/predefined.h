@@ -78,8 +78,8 @@ static char cmd[] =
 "return /tmp}\n"
 "namespace export tmpdir\n"
 "if {![info exists ::env(HOME)]} {set ::env(HOME) /root}\n"
-"set ::nsf::parametersyntax(::nsf::xotclnext) \"?--noArgs? ?arg ...?\"\n"
+"set ::nsf::parametersyntax(::nsf::xotclnext) \"?--noArgs? ?/arg .../?\"\n"
 "set ::nsf::parametersyntax(::nsf::__unset_unknown_args) \"\"\n"
-"set ::nsf::parametersyntax(::nsf::exithandler) \"?get?|?set cmds?|?unset?\"}\n"
+"set ::nsf::parametersyntax(::nsf::exithandler) \"?get?|?set /cmds/?|?unset?\"}\n"
 "";
 

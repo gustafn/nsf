@@ -20,14 +20,14 @@ nx::Test case syntax {
 
   ? {::nsf::method::alias C} \
       {required argument 'methodName' is missing, should be:
-	::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName}
+	::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? /cmdName/}
 
   ? {::nsf::method::alias C foo ::set} "::nsf::classes::C::foo"
 
   ? {::nsf::method::alias C foo ::set 1} \
-      {invalid argument '1', maybe too many arguments; should be "::nsf::method::alias object ?-per-object? methodName ?-frame method|object|default? cmdName"}
+      {invalid argument '1', maybe too many arguments; should be "::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? /cmdName/"}
 
-  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-accessor value? ?-config boolean? ?-incremental? ?-class value? spec ?initblock?"} "Test whether the colon prefix is suppressed"
+  ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-accessor /value/? ?-config /boolean/? ?-incremental? ?-class /value/? /spec/ ?/initblock/?"} "Test whether the colon prefix is suppressed"
 }
 
 #######################################################
@@ -380,7 +380,7 @@ nx::Test case passed-arguments {
   
   ? {D create d1} \
       {required argument 'd' is missing, should be:
-	::d1 __configure -d value ?-a value? ?-b boolean? ?-c value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?}
+	::d1 __configure -d /value/ ?-a /value/? ?-b /boolean/? ?-c /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?}
   
   ? {D create d2 -d x -b a} \
       {expected boolean but got "a" for parameter "-b"} \
@@ -393,7 +393,7 @@ nx::Test case passed-arguments {
 
   ? {d1 foo} \
       {required argument 'r' is missing, should be:
-	::d1 foo ?-b boolean? -r integer ?-x integer? ?-object object? ?-class class?} \
+	::d1 foo ?-b /boolean/? -r /integer/ ?-x /integer/? ?-object /object/? ?-class /class/?} \
       "call method without a required argument"
 
   ? {d1 foo -r a} \
@@ -1589,17 +1589,17 @@ nx::Test case check-arguments {
   }
 
   ? {Foo info method syntax noarg} ""
-  ? {Foo info method syntax onearg} "?-x value?"
-  ? {Foo info method syntax intarg} "?-x integer?"
-  ? {Foo info method syntax intsarg} "?-x integer ...?"
-  ? {Foo info method syntax boolarg} "?-x boolean?"
-  ? {Foo info method syntax classarg} "?-x class?"
-  ? {Foo info method syntax upperarg} "?-x upper?"
-  ? {Foo info method syntax metaclassarg} "?-x metaclass?"
+  ? {Foo info method syntax onearg} "?-x /value/?"
+  ? {Foo info method syntax intarg} "?-x /integer/?"
+  ? {Foo info method syntax intsarg} "?-x /integer .../?"
+  ? {Foo info method syntax boolarg} "?-x /boolean/?"
+  ? {Foo info method syntax classarg} "?-x /class/?"
+  ? {Foo info method syntax upperarg} "?-x /upper/?"
+  ? {Foo info method syntax metaclassarg} "?-x /metaclass/?"
 
   # return enumeration type
   ? {nx::Class info method syntax "info mixinof"} \
-      "?-closure? ?-scope all|class|object? ?pattern?"
+      "?-closure? ?-scope all|class|object? ?/pattern/?"
 }
 
 #
@@ -1897,8 +1897,8 @@ nx::Test case parameter-object-mixin-dependency {
   c1 object mixin add ::M2
   ? {c1 info object mixin classes} {::M2 ::M1}
   ? {c1 cget -object-mixin} {::M2 ::M1}
-  ? {c1 info lookup parameter syntax b1} "-b1 value"
-  ? {c1 info lookup parameter syntax b2} "-b2 value"
+  ? {c1 info lookup parameter syntax b1} "-b1 /value/"
+  ? {c1 info lookup parameter syntax b2} "-b2 /value/"
   ? {lsort [c1 info lookup parameter names b*]} "b1 b2"
 
   #
@@ -1913,7 +1913,7 @@ nx::Test case parameter-object-mixin-dependency {
   #
   c1 object mixin add ::M1
   ? {c1 info object mixin classes} {::M1}
-  ? {c1 info lookup parameter syntax b1} "-b1 value"
+  ? {c1 info lookup parameter syntax b1} "-b1 /value/"
   ? {lsort [c1 info lookup parameter names b*]} "b1"
   #
   # We have the per-object cache; adding a per-object property should
@@ -2259,7 +2259,7 @@ nx::Test case class-level-variable {
   #
   ? {C info parameter list a} "-a"
   ? {C info parameter definitions a} "{-a a0}"
-  ? {C info parameter syntax a} "?-a value?"
+  ? {C info parameter syntax a} "?-a /value/?"
 
   ? {C info parameter definitions v} ""
   ? {C info slot definitions v} "{::C variable v v0}"
@@ -2269,7 +2269,7 @@ nx::Test case class-level-variable {
   ? {C create c2 -a 10} ::c2
   ? {C create c2 -v 10} \
       {invalid non-positional argument '-v', valid are : -a, -volatile, -noinit, -object-mixin, -class, -object-filter;
- should be "::c2 configure ?-a value? ?-volatile? ?-noinit? ?-object-mixin mixinreg ...? ?-class class? ?-object-filter filterreg ...? ?__initcmd?"}
+ should be "::c2 configure ?-a /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"}
 
   #
   # We expect a setter for "a" but not for "v". 
