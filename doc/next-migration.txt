@@ -1591,15 +1591,16 @@ Class create C {
 
 XOTcl and NX allow the definition of the same set of interceptors,
 namely class- and object-level mixins and class- and object-level
-filters. The primary difference in NX is the naming, since NX
-abandons the prefix "inst" from the method names. 
+filters. The primary difference in NX is the naming, since NX abandons
+the prefix "inst" from the names of instance specific method, but uses
+the the modifier +objec+" for object specific methods.
 
-Therefore, in NX, if a +mixin+ is registered on a class-level, it
-is applicable for the instances (a per-class mixin), and if
-and +object mixin+ is registered, it is a per-object mixin. 
-In both cases, the term +mixin+ is used, in the second case
-with the modifier +object+. As in all other cases, one can
-register the same way a per-object mixin on a class object.
+Therefore, in NX, if a +mixin+ is registered on a class-level, it is
+applicable for the instances (a per-class mixin), and if and +object
+mixin+ is registered, it is a per-object mixin.  In both cases, the
+term +mixin+ is used, in the second case with the modifier
++object+. As in all other cases, one can register the same way a
+per-object mixin on a plain object or on a class object.
 
 ==== Register Mixin Classes and Mixin Guards
 
@@ -2039,7 +2040,8 @@ method).
 ==== List definition of scripted object specific methods
 
 While XOTcl uses different names for info options for objects and
-classes (using the prefix "inst"), the names in NX are the same.
+classes (using the prefix "inst" for instance specific method), NX
+uses for object specific method the modifier +object+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================

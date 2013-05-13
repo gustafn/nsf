@@ -3355,14 +3355,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <h3 id="_interceptors">2.5. Interceptors</h3>
 <div class="paragraph"><p>XOTcl and NX allow the definition of the same set of interceptors,
 namely class- and object-level mixins and class- and object-level
-filters. The primary difference in NX is the naming, since NX
-abandons the prefix "inst" from the method names.</p></div>
-<div class="paragraph"><p>Therefore, in NX, if a <code>mixin</code> is registered on a class-level, it
-is applicable for the instances (a per-class mixin), and if
-and <code>object mixin</code> is registered, it is a per-object mixin.
-In both cases, the term <code>mixin</code> is used, in the second case
-with the modifier <code>object</code>. As in all other cases, one can
-register the same way a per-object mixin on a class object.</p></div>
+filters. The primary difference in NX is the naming, since NX abandons
+the prefix "inst" from the names of instance specific method, but uses
+the the modifier <code>objec</code>" for object specific methods.</p></div>
+<div class="paragraph"><p>Therefore, in NX, if a <code>mixin</code> is registered on a class-level, it is
+applicable for the instances (a per-class mixin), and if and <code>object
+mixin</code> is registered, it is a per-object mixin.  In both cases, the
+term <code>mixin</code> is used, in the second case with the modifier
+<code>object</code>. As in all other cases, one can register the same way a
+per-object mixin on a plain object or on a class object.</p></div>
 <div class="sect3">
 <h4 id="_register_mixin_classes_and_mixin_guards">2.5.1. Register Mixin Classes and Mixin Guards</h4>
 <div class="tableblock">
@@ -4481,7 +4482,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="sect3">
 <h4 id="_list_definition_of_scripted_object_specific_methods">2.6.7. List definition of scripted object specific methods</h4>
 <div class="paragraph"><p>While XOTcl uses different names for info options for objects and
-classes (using the prefix "inst"), the names in NX are the same.</p></div>
+classes (using the prefix "inst" for instance specific method), NX
+uses for object specific method the modifier <code>object</code>.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -6468,7 +6470,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.1<br />
-Last updated 2013-05-03 12:09:30 CEST
+Last updated 2013-05-13 08:54:08 CEST
 </div>
 </div>
 </body>
