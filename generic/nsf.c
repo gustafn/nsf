@@ -20988,6 +20988,14 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
     return result;
   }
 
+  if (parsedParam.paramDefs == NULL) {
+    switch (parametersubcmd) {
+    case ParametersubcmdNameIdx:
+      Tcl_SetObjResult(interp, parameterspec);
+      return TCL_OK;
+    default: return NsfPrintError(interp, "flag not implemented");
+    }
+  }
   paramsPtr = parsedParam.paramDefs->paramsPtr;
 
   switch (parametersubcmd) {
