@@ -20982,20 +20982,12 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
   int result;
   
   result = ParamDefsParse(interp, NULL, paramsObj,
-			    NSF_DISALLOWED_ARG_OBJECT_PARAMETER, 0,
+			    NSF_DISALLOWED_ARG_OBJECT_PARAMETER, 1,
 			    &parsedParam);
   if (result != TCL_OK) {
     return result;
   }
 
-  if (parsedParam.paramDefs == NULL) {
-    switch (parametersubcmd) {
-    case ParametersubcmdNameIdx:
-      Tcl_SetObjResult(interp, parameterspec);
-      return TCL_OK;
-    default: return NsfPrintError(interp, "flag not implemented");
-    }
-  }
   paramsPtr = parsedParam.paramDefs->paramsPtr;
 
   switch (parametersubcmd) {
@@ -23330,6 +23322,23 @@ NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl,
 
   return NsfPrintError(interp, "filterguard: can't find filter %s on %s",
 		       filter, ClassName(cl));
+}
+
+/*
+classMethod getCachedParameters NsfCGetCachendParameters {
+}
+*/
+static int
+NsfCGetCachendParameters(Tcl_Interp *interp, NsfClass *class) {
+
+  if (likely(class && class->parsedParamPtr)) {
+    Tcl_Obj *listObj;
+
+    listObj = ListParamDefs(interp, class->parsedParamPtr->paramDefs->paramsPtr, NSF_PARAMS_PARAMETER);
+    Tcl_SetObjResult(interp, listObj);
+    DECR_REF_COUNT2("paramDefsObj", listObj);
+  }
+  return TCL_OK;
 }
 
 /*

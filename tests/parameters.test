@@ -430,7 +430,7 @@ nx::Test case passed-arguments {
   ? {d1 foo 1} 1 "check int as double"
   ? {d1 foo 1.1} 1.1 "check double as double"
   ? {d1 foo 1.1a} {expected double but got "1.1a" for parameter "a"} "check non-double as double"
-  ? {D info method parameter foo} a:double
+  ? {D info method parameters foo} a:double
 }
 
 #######################################################
@@ -577,7 +577,7 @@ nx::Test case subst-default {
   }
   
   ? {D info method args bar} {s literal c d switch optflag x y z} "all args" 
-  ? {D info method parameter bar} \
+  ? {D info method parameters bar} \
       {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[:c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
       "query method parameter" 
   
@@ -611,20 +611,20 @@ nx::Test case subst-default {
   # Query method parameter
   #######################################################
 
-  ? {D info method parameter foo} \
+  ? {D info method parameters foo} \
       "a b c {end 100}" \
       "query instparams with default, no paramdefs needed"
 
-  ? {nx::Class info method parameter method} \
+  ? {nx::Class info method parameters method} \
       "name arguments:parameter,0..* -returns body -precondition -postcondition" \
       "query instparams for scripted method 'method'"
   
-  ? {nx::Object info method parameter ::nsf::method::forward} \
+  ? {nx::Object info method parameters ::nsf::method::forward} \
       "object:object -per-object:switch method -default -earlybinding:switch -methodprefix -objframe:switch -onerror -verbose:switch target:optional args" \
       "query parameter for C-defined cmd 'nsf::forward'"
 
   nx::Object require method autoname
-  ? {nx::Object info method parameter autoname} \
+  ? {nx::Object info method parameters autoname} \
       "-instance:switch -reset:switch name" \
       "query parameter for C-defined method 'autoname'"
   
@@ -821,8 +821,8 @@ nx::Test case mp-object-types {
   D public method foo-meta     {x:metaclass} {return $x}
   D public method foo-type     {x:object,type=::C} {return $x}
   
-  ? {D info method parameter foo-base} "x:baseclass"
-  ? {D info method parameter foo-type} "x:object,type=::C"
+  ? {D info method parameters foo-base} "x:baseclass"
+  ? {D info method parameters foo-type} "x:object,type=::C"
   
   ? {d1 foo-base ::nx::Object} "::nx::Object"
   ? {d1 foo-base C} \
@@ -1157,7 +1157,7 @@ nx::Test case allow-empty {
   ? {o foo 1 "" {o1 o2}} {expected integer but got "" for parameter "y"} "second is empty"
   ? {o foo 1 2 {}} 1 "empty list"
 
-  ? {o info object method parameter foo} "x:integer,0..1 y:integer os:object,0..*"
+  ? {o info object method parameters foo} "x:integer,0..1 y:integer os:object,0..*"
 
   o public object method foo {x:integer,0..1 y:integer os:object,1..*} {return $x}
   ? {o foo 1 2 {o1 "" o2}} {invalid value in "o1 "" o2": expected object but got "" for parameter "os"} \
@@ -1203,7 +1203,7 @@ nx::Test case setters {
   ? {::nsf::method::setter o a} "::o::a"
   ? {::nsf::method::setter C c} "::nsf::classes::C::c"
   ? {o info object method definition a} "::o public object setter a"
-  ? {o info object method parameter a} "a"
+  ? {o info object method parameters a} "a"
   ? {o info object method args a} "a"
   ? {C info method definition c} "::C public setter c"
   ? {o a 1} "1"
@@ -1214,12 +1214,12 @@ nx::Test case setters {
   
   ? {o info object method registrationhandle ints} "::o::ints"
   ? {o info object method definition ints} "::o public object setter ints:integer,1..*"
-  ? {o info object method parameter ints} "ints:integer,1..*"
+  ? {o info object method parameters ints} "ints:integer,1..*"
   ? {o info object method args ints} "ints"
   
   ? {o info object method registrationhandle o} "::o::o"
   ? {o info object method definition o} "::o public object setter o:object"
-  ? {o info object method parameter o} "o:object"
+  ? {o info object method parameters o} "o:object"
   ? {o info object method args o} "o"
 
   ? {o a 2} 2
@@ -1588,18 +1588,18 @@ nx::Test case check-arguments {
     :method metaclassarg {-x:metaclass} {return $x} 
   }
 
-  ? {Foo info method syntax noarg} ""
-  ? {Foo info method syntax onearg} "?-x /value/?"
-  ? {Foo info method syntax intarg} "?-x /integer/?"
-  ? {Foo info method syntax intsarg} "?-x /integer .../?"
-  ? {Foo info method syntax boolarg} "?-x /boolean/?"
-  ? {Foo info method syntax classarg} "?-x /class/?"
-  ? {Foo info method syntax upperarg} "?-x /upper/?"
-  ? {Foo info method syntax metaclassarg} "?-x /metaclass/?"
+  ? {Foo info method syntax noarg} "/::Foo/ noarg"
+  ? {Foo info method syntax onearg} "/::Foo/ onearg ?-x /value/?"
+  ? {Foo info method syntax intarg} "/::Foo/ intarg ?-x /integer/?"
+  ? {Foo info method syntax intsarg} "/::Foo/ intsarg ?-x /integer .../?"
+  ? {Foo info method syntax boolarg} "/::Foo/ boolarg ?-x /boolean/?"
+  ? {Foo info method syntax classarg} "/::Foo/ classarg ?-x /class/?"
+  ? {Foo info method syntax upperarg} "/::Foo/ upperarg ?-x /upper/?"
+  ? {Foo info method syntax metaclassarg} "/::Foo/ metaclassarg ?-x /metaclass/?"
 
   # return enumeration type
   ? {nx::Class info method syntax "info mixinof"} \
-      "?-closure? ?-scope all|class|object? ?/pattern/?"
+      "/::nx::Class/ info mixinof ?-closure? ?-scope all|class|object? ?/pattern/?"
 }
 
 #
@@ -1889,7 +1889,7 @@ nx::Test case parameter-object-mixin-dependency {
   #
   ? {c1 info object mixin classes} ::M1
   ? {c1 cget -object-mixin} ::M1
-  ? {c1 info lookup parameter names b*} "b1"
+  ? {c1 info lookup configure parameters b*} "-b1:required"
 
   #
   # add one more mixin.
@@ -1897,37 +1897,37 @@ nx::Test case parameter-object-mixin-dependency {
   c1 object mixin add ::M2
   ? {c1 info object mixin classes} {::M2 ::M1}
   ? {c1 cget -object-mixin} {::M2 ::M1}
-  ? {c1 info lookup parameter syntax b1} "-b1 /value/"
-  ? {c1 info lookup parameter syntax b2} "-b2 /value/"
-  ? {lsort [c1 info lookup parameter names b*]} "b1 b2"
+  ? {c1 info lookup configure parameters b1} "-b1:required"
+  ? {c1 info lookup configure parameters b2} "-b2:required"
+  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -b2:required"
 
   #
   # drop the mixins, the b* properties should be gone.
   #
   c1 object mixin ""
   ? {c1 info object mixin classes} {}
-  ? {lsort [c1 info lookup parameter names b*]} ""
+  ? {lsort [c1 info lookup configure parameters b*]} ""
 
   #
   # add M1 again
   #
   c1 object mixin add ::M1
   ? {c1 info object mixin classes} {::M1}
-  ? {c1 info lookup parameter syntax b1} "-b1 /value/"
-  ? {lsort [c1 info lookup parameter names b*]} "b1"
+  ? {c1 info lookup configure parameters b1} "-b1:required"
+  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required"
   #
   # We have the per-object cache; adding a per-object property should
   # flush the cache
   #
   c1 object property bo1
-  ? {lsort [c1 info lookup parameter names b*]} "b1 bo1"
+  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -bo1"
   c1 object property bo2
-  ? {lsort [c1 info lookup parameter names b*]} "b1 bo1 bo2"
+  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -bo1 -bo2"
   #
   # property deletion should invalidate the cache as well
   #
   c1 delete property bo2
-  ? {lsort [c1 info lookup parameter names b*]} "b1 bo1"
+  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -bo1"
 }
 
 
@@ -2257,14 +2257,15 @@ nx::Test case class-level-variable {
   # The parameter for v can be obtained via spec, but is not listed in
   # "info parameter syntax" or "info parameter definitions".
   #
-  ? {C info parameter list a} "-a"
-  ? {C info parameter definitions a} "{-a a0}"
-  ? {C info parameter syntax a} "?-a /value/?"
+#  ? {C info parameter list a} "-a"
+  ? {C info configure parameters a} "{-a a0}"
+#  ? {C info configure syntax a} "?-a /value/?"
+  ? {C info configure syntax} "/::C/ ?-a /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
 
-  ? {C info parameter definitions v} ""
+  ? {C info configure parameters v} ""
   ? {C info slot definitions v} "{::C variable v v0}"
-  ? {C info parameter list v} ""
-  ? {C info parameter syntax v} ""
+#  ? {C info parameter list v} ""
+#  ? {C info configure parameter v} ""
 
   ? {C create c2 -a 10} ::c2
   ? {C create c2 -v 10} \
@@ -2311,8 +2312,8 @@ nx::Test case delete-class-level-variable-and-property {
   ? {lsort [c1 info vars]} {a v}
 
   # ... and we expect an object parameter for a but not for v ...
-  ? {C info parameter list a} "-a"
-  ? {C info parameter list v} ""
+  ? {C info configure parameters a} "{-a a0}"
+  ? {C info configure parameters v} ""
   
   # ... and we expect a setter for a but not for v
   ? {c1 info lookup method a} "::nsf::classes::C::a"
@@ -2322,7 +2323,7 @@ nx::Test case delete-class-level-variable-and-property {
   # the object parameter and setters for "a" will be gone
   C delete variable v
   C delete property a
-  ? {C info parameter list a} ""
+  ? {C info configure parameters a} ""
   ? {c1 info lookup method a} ""
   
   # already created instance variables will continue to exist
@@ -2432,13 +2433,13 @@ nx::Test case class-info-slots-types {
   # "/cls/ info parameter ..." shows the parameter available for object parameterization
   #
   nx::Class create C {
-    # variable has no config parameter and no accessor
+    # variable has no configure parameter and no accessor
     :variable v 100
   }
 
-  # "v" does NOT show up in "info parameter" 
-  ? {C info parameter list} "-volatile -noinit -object-mixin -class -object-filter __initcmd"
-  ? {C info parameter names} "volatile noinit object-mixin class object-filter __initcmd"
+  # "v" does NOT show up in "info configure parameters" 
+  ? {C info configure parameters v} ""
+#  ? {C info parameter names} "volatile noinit object-mixin class object-filter __initcmd"
 
   # "v" does show up in "info slot ..." 
   ? {C info slot objects} "::C::slot::v"
@@ -2452,8 +2453,7 @@ nx::Test case class-info-slots-types {
   }
 
   # "p2" and "p3" do NOT show up in "info parameter" 
-  ? {D info parameter list} "-p0 -p1 -volatile -noinit -object-mixin -class -object-filter __initcmd"
-  ? {D info parameter names} "p0 p1 volatile noinit object-mixin class object-filter __initcmd"
+  ? {D info configure parameters p*} "{-p0 200} {-p1 201}"
 
   # "p1" and "p2" do NOT show up in "info methods" 
   ? {D info methods} "p0 p3"

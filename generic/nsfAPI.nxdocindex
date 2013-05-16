@@ -62,6 +62,7 @@ set ::nxdoc::include(::nsf::methods::class::alloc) 0
 set ::nxdoc::include(::nsf::methods::class::create) 0
 set ::nxdoc::include(::nsf::methods::class::dealloc) 0
 set ::nxdoc::include(::nsf::methods::class::filterguard) 0
+set ::nxdoc::include(::nsf::methods::class::getCachedParameters) 0
 set ::nxdoc::include(::nsf::methods::class::mixinguard) 0
 set ::nxdoc::include(::nsf::methods::class::new) 0
 set ::nxdoc::include(::nsf::methods::class::recreate) 0

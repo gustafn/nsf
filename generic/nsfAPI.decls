@@ -336,6 +336,9 @@ classMethod filterguard NsfCFilterGuardMethod {
   {-argName "guard" -required 1 -type tclobj}
 }
 
+classMethod getCachedParameters NsfCGetCachendParameters {
+}
+
 classMethod mixinguard NsfCMixinGuardMethod {
   {-argName "mixin" -required 1 -type tclobj}
   {-argName "guard" -required 1 -type tclobj}

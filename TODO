@@ -4232,18 +4232,18 @@ nsf.c:
 - extended regression test
 
 nsf.c
-- added functiality for "cget" to call parameter-methods
+- added functionality for "cget" to call parameter-methods
   (e.g. "... cget -class"). The method cget calls either
   "/slot/ get ..." (when slot=... is provided in the parameter spec)
   or it assumes that the method without argument returns the value
 - added "::nsf::object::property /obj/ volatile" to query 
   whether a object is volatile or not
-- "/obj/ cget -volatile" returns now the volatial state of the object
+- "/obj/ cget -volatile" returns now the volatile state of the object
 - factored out ParameterMethodDispatch() from OConfigureMethod()
 - extended regression test
 
 nx.tcl:
-- change parameter name in "/cls/ info paramameter ... ?pattern?"
+- change parameter name in "/cls/ info parameter ... ?pattern?"
   from "name" to "pattern"
 - changed name "/obj|cls/ slot info definition" to 
   "/obj|cls/ slot info definition" since result is a set
@@ -4255,7 +4255,7 @@ nx.tcl:
 nsf.c:
 - factored out ParameterMethodForwardDispatch() to
   call a parameter method defined as a forwarder
-  the smae way from "configure" and "cget"
+  the same way from "configure" and "cget"
 - extended regression test
 
 nx.tcl:
@@ -4357,8 +4357,57 @@ Object-method Reform:
   "/obj/ info object slot definition|..." for consistency
 - provided "parametersyntax()" for "object mixin" and "object filter"
 
+
+Method and configure parameter reform:
+- unify handling / naming / parameterization of method parameters and 
+  configure parameters
+
+- New Interface:
+
+     /cls/ info configure parameters ?pattern? -> list of params
+     /cls/ info configure syntax -> syntax output
+
+     /obj/ info method parameters /methodName/ ?/pattern/? -> list of params
+     /obj/ info method syntax -> syntax output
+
+     /obj/ info lookup configure parameter ?/pattern/? -> list of params
+     /obj/ info lookup configure syntax -> syntax output
+
+     /cls/ info parameter list|name|syntax /param/ -> value
+   
+   "... method syntax" and "... configure syntax" return the full method/configure call,
+  and not only the parameters as in previous versions. Therefore, providing a pattern 
+  could lead to unexpected results, therefore the argument was dropped.
+
+- Replacements relative to 2.0b4:
+
+   {/cls/ info parameter definitions}      -> {/cls/ info configure parameters} 
+   {/cls/ info parameter definitions x}    -> {/cls/ info configure parameters x}
+   {/cls/ info parameter syntax ?pattern?} -> {/cls/ info configure syntax}
+   {/obj/ info lookup parameter definitions ?pattern?} -> {/obj/ info lookup configure parameters ?pattern?}
+   {/obj/ info lookup parameter syntax ?pattern?} -> {/obj/ info lookup configure syntax}
+
+- Dropped calls:
+
+  /cls/ info parameter list ?/pattern/?
+  /cls/ info parameter names ?/pattern/?
+ 
+  syntax of a single parameter via this interface
+  /cls/ info configure syntax ?/pattern/?
+
+  /obj/ info lookup parameter names ?/pattern/?
+  /obj/ info lookup parameter list ?/pattern/?
+
 ========================================================================
 TODO:
+
+- handling of slots/properties/variables
+- NsfParameterGetCmd should/could handle more than "list|name|syntax"
+- update documentation
+- maybe remove unneeded values, align naming in enumeration of first arg of 
+  *::info::objectparameter and *::info::method
+- maybe change ::nsf::parametersyntax(..) to ::nsf::parameter::syntax(..)
+
 - reconsider
   #? {c1 cget -mixin} ""
   ? {c1 cget -object-mixin} ""

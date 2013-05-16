@@ -358,19 +358,19 @@ nx::Test case converting-returns {
   ::nx::Object create ku {
     # 1: Create an empty or checker-free parameter spec
     :object method foo {} {;}
-    ? [:info object method parameter foo] ""
+    ? [:info object method parameters foo] ""
     # 2: A call to ::nsf::method::property which might require NsfParamDefs
     ? [list ::nsf::method::property [::nx::current] foo returns] ""
     # 3: Check, if "info method parameter" still works
-    ? [:info object method parameter foo] ""
+    ? [:info object method parameters foo] ""
     ? [list ::nsf::method::property [::nx::current] foo returns] ""
     # 4: Set methodproperty to some value and check again
     ::nsf::method::property [::nx::current] foo returns int
     ? [list ::nsf::method::property [::nx::current] foo returns] "int"
-    ? [:info object method parameter foo] ""
+    ? [:info object method parameters foo] ""
     # 5: Reset methodproperty and query again
     ::nsf::method::property [::nx::current] foo returns ""
     ? [list ::nsf::method::property [::nx::current] foo returns] ""
-    ? [:info object method parameter foo] ""
+    ? [:info object method parameters foo] ""
   }
 }

@@ -689,25 +689,14 @@ namespace eval ::nx {
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }
-    :method "info lookup parameter definitions" {pattern:optional} {
+    :method "info lookup configure parameters" {pattern:optional} {
       set cmd [list ::nsf::methods::object::info::objectparameter definitions]
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }
-    :method "info lookup parameter names" {pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::objectparameter names]
-      if {[info exists pattern]} {lappend cmd $pattern}
-      return [: {*}$cmd]
-    }
-    :method "info lookup parameter list" {pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::objectparameter list]
-      if {[info exists pattern]} {lappend cmd $pattern}
-      return [: {*}$cmd]
-    }
-    :method "info lookup parameter syntax" {pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::objectparameter syntax]
-      if {[info exists pattern]} {lappend cmd $pattern}
-      return [: {*}$cmd]
+    :method "info lookup configure syntax" {} {
+      set syntax "/[self]/ configure [: ::nsf::methods::object::info::objectparameter syntax]"
+      return [string trimright $syntax " "]
     }
     :alias "info children"         ::nsf::methods::object::info::children
     :alias "info class"            ::nsf::methods::object::info::class
@@ -738,6 +727,12 @@ namespace eval ::nx {
     :method "info object slot objects" {{-type:class ::nx::Slot} pattern:optional} {
       return [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]]
     }
+    #
+    # Parameter extractors
+    #
+    :method "info parameter syntax" {p:parameter} {::nsf::parameter::get syntax $p}
+    :method "info parameter name"   {p:parameter} {::nsf::parameter::get name $p}
+    
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     # "info properties" is a short form of "info slot definition"
@@ -779,6 +774,26 @@ namespace eval ::nx {
   nsf::object::property ::nx::Class::slot::__info keepcallerself true
 
   Class eval {
+    :method "info configure parameters"    {pattern:optional} {
+      set defs [: ::nsf::methods::class::getCachedParameters]
+      if {[llength $defs] > 0} {
+	if {[info exists pattern]} {return [::nsf::parameter::filter $defs $pattern]}
+	return $defs
+      }
+      set cmd {::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot}
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [::nsf::parameter::specs -configure [: {*}$cmd]]
+    }
+    :method "info configure syntax"    {} {
+      set defs [: ::nsf::methods::class::getCachedParameters]
+      if {[llength $defs] == 0} {
+	set defs [::nsf::parameter::specs -configure \
+		      [: ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]]
+      }
+      set syntax "/[self]/ "
+      foreach def $defs {append syntax [::nsf::parameter::get syntax $def] " "}
+      return [string trimright $syntax " "]
+    }
     :alias "info lookup"         ::nx::Object::slot::__info::lookup
     :alias "info filter guard"   ::nsf::methods::class::info::filterguard
     :alias "info filter methods" ::nsf::methods::class::info::filtermethods
@@ -789,29 +804,7 @@ namespace eval ::nx {
     :alias "info mixin guard"    ::nsf::methods::class::info::mixinguard
     :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
-    :method "info parameter definitions" {pattern:optional} {
-      set cmd [list ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]
-      if {[info exists pattern]} {lappend cmd $pattern}
-      return [::nsf::parameter::specs -configure [: {*}$cmd]]
-    }
-    :method "info parameter list" {{pattern:optional ""}} {
-      set defs [:info parameter definitions {*}$pattern]
-      set result ""
-      foreach def $defs {lappend result [::nsf::parameter::get list $def]}
-      return $result
-    }
-    :method "info parameter names" {{pattern:optional ""}} {
-      set defs [:info parameter definitions {*}$pattern]
-      set result ""
-      foreach def $defs {lappend result [::nsf::parameter::get name $def]}
-      return $result
-    }
-    :method "info parameter syntax" {{pattern:optional ""}} {
-      set defs [:info parameter definitions {*}$pattern]
-      set result ""
-      foreach def $defs {lappend result [::nsf::parameter::get syntax $def]}
-      return [join $result " "]
-    }
+
     :method "info slot objects" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set cmd [list ::nsf::methods::class::info::slotobjects -type $type]
       if {[info exists source]} {lappend cmd -source $source}
@@ -861,8 +854,53 @@ namespace eval ::nx {
   Class  method "info info" {} {::nx::internal::infoOptions ::nx::Class::slot::__info}
 
   # finally register method "method" (otherwise, we cannot use "method" above)
-  Object alias "info object method" ::nsf::methods::object::info::method
-  Class  alias "info method" ::nsf::methods::class::info::method
+  Class  eval {
+    #:alias "info method" ::nsf::methods::class::info::method
+    :method "info method args"         {name} {: ::nsf::methods::class::info::method args $name}
+    :method "info method body"         {name} {: ::nsf::methods::class::info::method body $name}
+    :method "info method definition"   {name} {: ::nsf::methods::class::info::method definition $name}
+    :method "info method exists"       {name} {: ::nsf::methods::class::info::method exists $name}
+    :method "info method registrationhandle" {name} {: ::nsf::methods::class::info::method registrationhandle $name}
+    :method "info method definitionhandle"   {name} {: ::nsf::methods::class::info::method definitionhandle $name}
+    :method "info method origin"       {name} {: ::nsf::methods::class::info::method origin $name}
+    :method "info method parameters"   {name pattern:optional} {
+      set defs [: ::nsf::methods::class::info::method parameter $name]
+      if {[info exists pattern]} {return [::nsf::parameter::filter $defs $pattern]}
+      return $defs
+    }
+    :method "info method syntax"        {name} {
+      return [string trimright "/[self]/ $name [: ::nsf::methods::class::info::method syntax $name]" { }]
+    }
+    :method "info method type"          {name} {: ::nsf::methods::class::info::method type $name}
+    :method "info method precondition"  {name} {: ::nsf::methods::class::info::method precondition $name}
+    :method "info method postcondition" {name} {: ::nsf::methods::class::info::method postcondition $name}
+    :method "info method submethods"    {name} {: ::nsf::methods::class::info::method submethods $name}
+    :method "info method returns"       {name} {: ::nsf::methods::class::info::method returns $name}
+  }
+
+  Object  eval {
+    #:alias "info object method" ::nsf::methods::object::info::method
+    :method "info object method args"         {name} {: ::nsf::methods::object::info::method args $name}
+    :method "info object method body"         {name} {: ::nsf::methods::object::info::method body $name}
+    :method "info object method definition"   {name} {: ::nsf::methods::object::info::method definition $name}
+    :method "info object method exists"       {name} {: ::nsf::methods::object::info::method exists $name}
+    :method "info object method registrationhandle" {name} {: ::nsf::methods::object::info::method registrationhandle $name}
+    :method "info object method definitionhandle"   {name} {: ::nsf::methods::object::info::method definitionhandle $name}
+    :method "info object method origin"       {name} {: ::nsf::methods::object::info::method origin $name}
+    :method "info object method parameters"   {name pattern:optional} {
+      set defs [: ::nsf::methods::object::info::method parameter $name]
+      if {[info exists pattern]} {return [::nsf::parameter::filter $defs $pattern]}
+      return $defs
+    }
+    :method "info object method syntax"        {name} {
+      return [string trimright "/[self]/ $name [: ::nsf::methods::object::info::method syntax $name]" { }]
+    }
+    :method "info object method type"          {name} {: ::nsf::methods::object::info::method type $name}
+    :method "info object method precondition"  {name} {: ::nsf::methods::object::info::method precondition $name}
+    :method "info object method postcondition" {name} {: ::nsf::methods::object::info::method postcondition $name}
+    :method "info object method submethods"    {name} {: ::nsf::methods::object::info::method submethods $name}
+    :method "info object method returns"       {name} {: ::nsf::methods::object::info::method returns $name}
+  }
 
   ######################################################################
   # Definition of "abstract method foo ...."

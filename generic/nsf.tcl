@@ -185,11 +185,23 @@ namespace eval ::nsf {
     }
     return /tmp
   }
-
   namespace export tmpdir 
 
   # if HOME is not set, and ~ is resolved, Tcl chokes on that
   if {![info exists ::env(HOME)]} {set ::env(HOME) /root}
+
+  #
+  # parameter support
+  #
+  proc ::nsf::parameter::filter {defs pattern} {
+    set result {}
+    foreach def $defs {
+      if {[string match $pattern [::nsf::parameter::get name $def]]} {
+	lappend result $def
+      }
+    }
+    return $result
+  }
 
   set ::nsf::parametersyntax(::nsf::xotclnext) "?--noArgs? ?/arg .../?"
   set ::nsf::parametersyntax(::nsf::__unset_unknown_args) ""

@@ -136,8 +136,8 @@ Test case cget-parameter-methods {
   #
   # class-level lookup
   #
-  ? {C info lookup parameter list} \
-      "-superclass -mixin -filter -volatile -noinit -object-mixin -class -object-filter __initcmd"
+  ? {C info lookup configure syntax} \
+      "/::C/ configure ?-superclass /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
   ? {C cget -superclass} "::nx::Object"
   ? {C cget -object-mixin} ""
   ? {C cget -mixin} ""
@@ -149,8 +149,8 @@ Test case cget-parameter-methods {
   #
   # object-level lookup
   #
-  ? {c1 info lookup parameter list} \
-      "-foo -bar -volatile -noinit -object-mixin -class -object-filter __initcmd"
+  ? {c1 info lookup configure syntax} \
+      "/::c1/ configure ?-foo /value/? ?-bar /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
 
   #
   # query all properties from base classes

@@ -107,13 +107,13 @@ nx::Test case info-method-base {
     ? {C info method definition m-with-assertions} \
 	{::C public method m-with-assertions {} {return proc-[self proc]}}
   }
-  ? {C info method parameter m} {x}
-  ? {nx::Class info method parameter method} \
+  ? {C info method parameters m} {x}
+  ? {nx::Class info method parameters method} \
       {name arguments:parameter,0..* -returns body -precondition -postcondition}
-  ? {nx::Class info method parameter alias} \
+  ? {nx::Class info method parameters alias} \
       {methodName -returns {-frame default} cmd}
   # raises currently an error
-  ? {catch {C info method parameter a}} 1
+  ? {catch {C info method parameters a}} 1
   
   ? {C info method definition addOne} "::C public forward addOne expr 1 +"
   ? {C info object method definition add1} "::C public object forward add1 expr 1 +"
@@ -542,7 +542,7 @@ nx::Test case slots {
   ? {D info slot objects} "::D::slot::b ::D::slot::c"
   ? {D info slot objects -closure -source application} "::D::slot::b ::D::slot::c ::C::slot::a"
 
-  ? {::nx::Object info method parameter info} ""
+  ? {::nx::Object info method parameters info} ""
 
   ? {d1 info precedence} "::D ::C ::nx::Object"
   ? {d1 info lookup slots} "::D::slot::b ::D::slot::c ::C::slot::a ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
@@ -627,9 +627,9 @@ nx::Test case info-submethod {
   #
   # test whether the handles for ensemble methods work
   #
-  ? {C info method parameter [C info method registrationhandle "bar"]} ""
-  ? {C info method parameter [C info method registrationhandle "bar b"]} "x:int y:upper"
-  ? {C info method parameter [C info method registrationhandle "bar baz y"]} "x:int y:upper"
+  ? {C info method parameters [C info method registrationhandle "bar"]} ""
+  ? {C info method parameters [C info method registrationhandle "bar b"]} "x:int y:upper"
+  ? {C info method parameters [C info method registrationhandle "bar baz y"]} "x:int y:upper"
   
   #
   # check methods paths as method specifications
@@ -657,18 +657,18 @@ nx::Test case info-submethod {
       {::C public method {bar baz y} {x:int y:upper} {return y}}
 
   #
-  # test "info method parameter"
+  # test "info method parameters"
   #
-  ? {nx::Object info method parameter "info lookup methods"} \
+  ? {nx::Object info method parameters "info lookup methods"} \
       "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
   ? {nx::Object info method syntax "info lookup methods"} \
-      "?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/?"
+      "/::nx::Object/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/?"
 
-  ? {o info object method parameter "foo b"} "x:int y:upper"
+  ? {o info object method parameters "foo b"} "x:int y:upper"
 
-  ? {nx::Object info method parameter ::nx::Object::slot::__info::lookup::methods} \
+  ? {nx::Object info method parameters ::nx::Object::slot::__info::lookup::methods} \
       "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
-  ? {o info object method parameter "::o::foo::b"} "x:int y:upper"
+  ? {o info object method parameters "::o::foo::b"} "x:int y:upper"
 
   ? {nx::Object info method registrationhandle "info"} "::nsf::classes::nx::Object::info"
   ? {nx::Object info method registrationhandle "info lookup methods"} \
@@ -698,23 +698,23 @@ nx::Test case info-slot-parametersyntax {
   }
 
   C new
-  ? {C info parameter syntax} "?-a /value/? ?-b /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
-  ? {C info parameter syntax a} "?-a /value/?"
+  ? {C info configure syntax} "/::C/ ?-a /value/? ?-b /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
+#  ? {C info configure syntax a} "/::C/ ?-a /value/?"
 
-  ? {C info parameter definitions} "-a {-b 1} -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n __initcmd:initcmd,optional,noleadingdash"
+  ? {C info configure parameters } "-a {-b 1} -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n __initcmd:initcmd,optional,noleadingdash"
 
-  ? {C info parameter list} "-a -b -volatile -noinit -object-mixin -class -object-filter __initcmd"
-  ? {C info parameter names} "a b volatile noinit object-mixin class object-filter __initcmd"
+#  ? {C info parameter list} "-a -b -volatile -noinit -object-mixin -class -object-filter __initcmd"
+#  ? {C info parameter names} "a b volatile noinit object-mixin class object-filter __initcmd"
   ? {lsort [C info slot objects -closure]} "::C::slot::a ::C::slot::b ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::noinit ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin ::nx::Object::slot::volatile"
 
-  ? {C info parameter definitions b} "{-b 1}"
-  ? {D info parameter definitions b} "{-b 2}"
+  ? {C info configure parameters b} "{-b 1}"
+  ? {D info configure parameters b} "{-b 2}"
   ? {D info slot objects -closure b} "::D::slot::b"
   ? {D info slot objects -closure a} "::C::slot::a"
   ? {D info slot objects -closure class} "::nx::Object::slot::class"
 
-  ? {D info parameter list} "-b -c -a -volatile -noinit -object-mixin -class -object-filter __initcmd"
-  ? {D info parameter names} "b c a volatile noinit object-mixin class object-filter __initcmd"
+#  ? {D info parameter list} "-b -c -a -volatile -noinit -object-mixin -class -object-filter __initcmd"
+#  ? {D info parameter names} "b c a volatile noinit object-mixin class object-filter __initcmd"
 }
 
 #
@@ -727,9 +727,9 @@ nx::Test case info-methods-path {
   ? {::nx::Object info methods "info"} "info"
   ? {::nx::Object info methods -path "info"} ""
   ? {lsort [::nx::Object info methods -path "info lookup *"]} \
-      "{info lookup filter} {info lookup method} {info lookup methods} {info lookup parameter definitions} {info lookup parameter list} {info lookup parameter names} {info lookup parameter syntax} {info lookup slots}"
-  ? {lsort [::nx::Object info methods -path "info *method*"]} \
-      "{info lookup method} {info lookup methods} {info object filter methods} {info object method} {info object methods}"
+      "{info lookup configure parameters} {info lookup configure syntax} {info lookup filter} {info lookup method} {info lookup methods} {info lookup slots}"
+  ? {lsort [::nx::Object info methods -path "info *parameter*"]} \
+      "{info lookup configure parameters} {info object method parameters} {info parameter name} {info parameter syntax}"
   ? {lsort [::nx::Object info methods "slots"]} ""
   ? {lsort [::nx::Object info methods "*slots*"]} ""
   ? {lsort [::nx::Object info methods -path "*slot*"]} \
@@ -780,12 +780,13 @@ nx::Test case info-methods-path {
 #
 nx::Test case parametersyntax {
   # a true method
-  ? {::nx::Class info method syntax method} "/name/ /arguments/ ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
+  ? {::nx::Class info method syntax method} \
+      "/::nx::Class/ method /name/ /arguments/ ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
   # a forwarder to ::nsf::relation; definition comes via array ::nsf::parametersyntax
-  ? {::nx::Class info method syntax mixin} "?/class .../?|?add /class/?|?delete /class/?"
+  ? {::nx::Class info method syntax mixin} "/::nx::Class/ mixin ?/class .../?|?add /class/?|?delete /class/?"
 
-  ? {::nx::Class info method syntax ::nx::next} "?/arguments/?"
-  ? {::nx::Class info method syntax ::nsf::xotclnext} "?--noArgs? ?/arg .../?"
+  ? {::nx::Class info method syntax ::nx::next} "/::nx::Class/ ::nx::next ?/arguments/?"
+  ? {::nx::Class info method syntax ::nsf::xotclnext} "/::nx::Class/ ::nsf::xotclnext ?--noArgs? ?/arg .../?"
 }
 
 #
@@ -1203,5 +1204,5 @@ nx::Test case info-methods-closure {
 # Test error messages within an ensemble call
 #
 nx::Test case error-in-ensemble {
-  ? {nx::Object info method definition foo 1} {invalid argument '1', maybe too many arguments; should be "::nx::Object info method args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns /name/"}
+  ? {nx::Object info method definition foo 1} {wrong # args: should be "definition name"}
 }
