@@ -46,17 +46,17 @@ nx::Test case class-level {
   ? {lsort [C info slots]} "::C::slot::____C.d ::C::slot::____C.vd ::C::slot::a ::C::slot::b ::C::slot::c ::C::slot::e ::C::slot::va ::C::slot::vb ::C::slot::vc ::C::slot::ve ::C::slot::vf"
 
 
-  ? {C info slot definition ::C::slot::a} "::C property -accessor none {a a1}"
-  ? {C info slot definition ::C::slot::b} "::C property -accessor public {b b1}"
-  ? {C info slot definition ::C::slot::c} "::C variable -accessor protected c c1"
-  ? {C info slot definition ::C::slot::____C.d} "::C variable -accessor private d d1"
-  ? {C info slot definition ::C::slot::e} "::C property -accessor none {e e1}"
-  ? {C info slot definition ::C::slot::va} "::C variable -accessor none va va1"
-  ? {C info slot definition ::C::slot::vb} "::C variable -accessor public vb vb1"
-  ? {C info slot definition ::C::slot::vc} "::C variable -accessor protected vc vc1"
-  ? {C info slot definition ::C::slot::____C.vd} "::C variable -accessor private vd vd1"
-  ? {C info slot definition ::C::slot::ve} "::C variable -accessor none ve ve1"
-  ? {C info slot definition ::C::slot::vf} "::C variable -accessor none vf vf1"
+  ? {::C::slot::a definition} "::C property -accessor none {a a1}"
+  ? {::C::slot::b definition} "::C property -accessor public {b b1}"
+  ? {::C::slot::c definition} "::C variable -accessor protected c c1"
+  ? {::C::slot::____C.d definition} "::C variable -accessor private d d1"
+  ? {::C::slot::e definition} "::C property -accessor none {e e1}"
+  ? {::C::slot::va definition} "::C variable -accessor none va va1"
+  ? {::C::slot::vb definition} "::C variable -accessor public vb vb1"
+  ? {::C::slot::vc definition} "::C variable -accessor protected vc vc1"
+  ? {::C::slot::____C.vd definition} "::C variable -accessor private vd vd1"
+  ? {::C::slot::ve definition} "::C variable -accessor none ve ve1"
+  ? {::C::slot::vf definition} "::C variable -accessor none vf vf1"
 
   
   ? {c1 cget -a} a1

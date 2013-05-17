@@ -4418,11 +4418,13 @@ by
 
    /cls/ info slots             ?-type /type/? ?-closure? ?-source all|application|baseclasses? ?/pattern/?
    /obj/ info object slots      ?-type /type/? ?/pattern/?
-   /obj/ info slot definition   /obj/
    /obj/ info lookup slots      ?-type /type/? ?-source all|application|baseclasses? ?/pattern/?
 
 - nx.tcl: handle "incremental" in slot reconfigure
 - nx.tcl: change defaultAccessor to "none"
+
+- dropped "/obj/ info slot definition /obj/" in favor of
+  "/slotobj/ definition"
 
 ========================================================================
 TODO:

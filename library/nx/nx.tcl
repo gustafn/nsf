@@ -713,9 +713,6 @@ namespace eval ::nx {
     :method "info object slots" {{-type:class ::nx::Slot} pattern:optional} {
       return [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]]
     }
-    :method "info slot definition" {slot:object} {
-      return [$slot getPropertyDefinition]
-    }
     #
     # Parameter extractors
     #
@@ -1365,7 +1362,7 @@ namespace eval ::nx {
     return [list ${:domain} {*}$mod $methodName {*}$opts $parameterSpec]
   }
 
-  ObjectParameterSlot public method getPropertyDefinition {} {
+  ObjectParameterSlot public method definition {} {
     set options [:getParameterOptions -withMultiplicity true]
     if {[info exists :positional]} {lappend options positional}
     #if {!${:config}} {lappend options noconfig}
