@@ -533,7 +533,7 @@ nx::Test case subst-default {
     :property {d "literal $d"}
   }
 
-  ? {Bar property ss:switch} "::nsf::classes::Bar::ss"
+  ? {Bar property -accessor public ss:switch} "::nsf::classes::Bar::ss"
 
   Bar create bar1
   #puts stderr [bar1 __objectparameter]
@@ -1826,7 +1826,7 @@ nx::Test case parameter-alias-default {
   ? {c1 eval {set :foo}} "a habicht b c F"
   ? {c1 eval {set :x2}} "::c1"
   ? {lsort [c1 info lookup methods -source application]} "foo x1 x2"
-  ? {lsort [C info slot objects]} "::C::slot::F ::C::slot::x1 ::C::slot::x2"
+  ? {lsort [C info slots]} "::C::slot::F ::C::slot::x1 ::C::slot::x2"
   ? {::C::slot::x1 getParameterSpec} {-x1:alias hugo}
   ? {::C::slot::x2 getParameterSpec} {-x2:alias,substdefault {[self]}}
 }
@@ -1949,7 +1949,7 @@ nx::Test case parameter-object-mixin-dependency-object-property {
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
 
-  ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
+  ? {C info slots -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
 
   ? {c1 eval :__objectparameter} "-a2 -b1:required -a1 -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n __initcmd:initcmd,optional,noleadingdash"
 
@@ -1963,7 +1963,7 @@ nx::Test case parameter-object-mixin-dependency-object-property {
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
 
-  ? {C info slot objects -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
+  ? {C info slots -closure} "::C::slot::a1 ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
 
   ? {c1 eval :__objectparameter} "-a2 -b1:required -a1 -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n __initcmd:initcmd,optional,noleadingdash"
 
@@ -2079,12 +2079,12 @@ nx::Test case reconfigure-perobj-default {
   ? {o a} newvalue
   o eval {unset :a}
   ? {o eval {info exists :a}} 0
-  [o info object slot objects a] default anothervalue
+  [o info object slots a] default anothervalue
   ? {o eval {info exists :a}} 0
   #
   # re-assignment must be requested by a reconfigure call
   #
-  [o info object slot objects a] reconfigure
+  [o info object slots a] reconfigure
   ? {o eval {info exists :a}} 1
   ? {o a} anothervalue
 }
@@ -2263,7 +2263,7 @@ nx::Test case class-level-variable {
   ? {C info configure syntax} "/::C/ ?-a /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
 
   ? {C info configure parameters v} ""
-  ? {C info slot definitions v} "{::C variable v v0}"
+  ? {C info slot definition [C info slots v]} "::C variable -accessor none v v0"
 #  ? {C info parameter list v} ""
 #  ? {C info configure parameter v} ""
 
@@ -2442,8 +2442,8 @@ nx::Test case class-info-slots-types {
 #  ? {C info parameter names} "volatile noinit object-mixin class object-filter __initcmd"
 
   # "v" does show up in "info slot ..." 
-  ? {C info slot objects} "::C::slot::v"
-  ? {C info slot definitions} "{::C variable v 100}"
+  ? {C info slots} "::C::slot::v"
+  ? {C info slot definition ::C::slot::v} "::C variable -accessor none v 100"
 
   nx::Class create D {
     :property {p0 200}
@@ -2459,8 +2459,8 @@ nx::Test case class-info-slots-types {
   ? {D info methods} "p0 p3"
 
   # all properties show up in "info slot" 
-  ? {D info slot objects} "::D::slot::p0 ::D::slot::p1 ::D::slot::p2 ::D::slot::p3"
-  ? {D info slot definitions} "{::D property {p0 200}} {::D property -accessor none {p1 201}} {::D variable p2 202} {::D variable -accessor public p3 203}"
+  ? {D info slots} "::D::slot::p0 ::D::slot::p1 ::D::slot::p2 ::D::slot::p3"
+  #? {D info slot definitions} "{::D property {p0 200}} {::D property -accessor none {p1 201}} {::D variable p2 202} {::D variable -accessor public p3 203}"
   #? {D info properties} "{p0 200} {p1 201} {p2:noconfig 202} {p3:noconfig 203}"
 
 }
@@ -2480,8 +2480,9 @@ nx::Test case object-info-slots-types {
   }
 
   # only the variables with slots show up in "info slot ..." 
-  ? {o1 info object slot objects} "::o1::per-object-slot::v2 ::o1::per-object-slot::v1"
-  ? {o1 info object slot definitions} "{::o1 variable -accessor public v2:0..n 100} {::o1 variable -accessor public v1 100}"
+  ? {o1 info object slots} "::o1::per-object-slot::v2 ::o1::per-object-slot::v1"
+  ? {o1 info slot definition ::o1::per-object-slot::v2} "::o1 object variable -accessor public v2:0..n 100"
+  ? {o1 info slot definition ::o1::per-object-slot::v1} "::o1 object variable -accessor public v1 100"
 
   nx::Object create o2 {
     :object property {p0 200}
@@ -2494,8 +2495,11 @@ nx::Test case object-info-slots-types {
   ? {o2 info object methods} "p0 p3"
 
   # all properties with slots show up in "info slot" 
-  ? {o2 info object slot objects} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p3"
-  ? {o2 info object slot definitions} "{::o2 property {p0 200}} {::o2 property -accessor none {p1 201}} {::o2 variable -accessor public p3 203}"
+  ? {o2 info object slots} "::o2::per-object-slot::p0 ::o2::per-object-slot::p1 ::o2::per-object-slot::p3"
+  ? {o2 info slot definition [o2 info object slots p0]} "::o2 object property -accessor public {p0 200}"
+  ? {o2 info slot definition [o2 info object slots p1]} "::o2 object property -accessor none {p1 201}"
+  ? {o2 info slot definition [o2 info object slots p3]} "::o2 object variable -accessor public p3 203"
+
   #? {o2 info properties} "{p0 200} {p1 201} {p3:noconfig 203}"
 
 }
@@ -2512,7 +2516,8 @@ nx::Test case properties {
     :property {b 1}
   }
 
-  ? {Foo info slot definitions} "{::Foo property a} {::Foo property {b 1}}"
+  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor public a"
+  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor public {b 1}"
 
   #? {Foo info properties} "a {b 1}"
 
@@ -2521,14 +2526,16 @@ nx::Test case properties {
     :property a:boolean
     :property {b:integer 1}
   }
-  ? {Foo info slot definitions} "{::Foo property a:boolean} {::Foo property {b:integer 1}}"
+  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor public a:boolean"
+  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor public {b:integer 1}"
 
   # required/optional properties
   nx::Class create Foo {
     :property a:required
     :property b:boolean,required
   }
-  ? {Foo info slot definitions} "{::Foo property a:required} {::Foo property b:boolean,required}"
+  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor public a:required"
+  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor public b:boolean,required"
 
   # properties with multiplicity
   nx::Class create Foo {
@@ -2536,7 +2543,9 @@ nx::Test case properties {
     :property objs:object,1..n
     :property obj:object,0..1
   }
-  ? {Foo info slot definitions} "{::Foo property objs:object,1..n} {::Foo property {ints:integer,0..n {}}} {::Foo property obj:object,0..1}"
+  ? {Foo info slot definition [Foo info slots objs]} "::Foo property -accessor public objs:object,1..n"
+  ? {Foo info slot definition [Foo info slots ints]} "::Foo property -accessor public {ints:integer,0..n {}}"
+  ? {Foo info slot definition [Foo info slots obj]} "::Foo property -accessor public obj:object,0..1"
 }
 
 #

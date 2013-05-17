@@ -24,12 +24,13 @@ nx::Test case class-level {
     :property -accessor protected {c c1}
     :property -accessor private {d d1}
     :property -accessor none {e e1}
-    
     :variable va va1
     :variable -accessor public vb vb1
     :variable -accessor protected vc vc1
     :variable -accessor private vd vd1
     :variable -accessor none ve ve1
+
+    # a non-configurable property is a variable
     :property -accessor none -config false {vf vf1}
     
     :public method call-local {v} {: -local $v}
@@ -42,7 +43,21 @@ nx::Test case class-level {
   #
   ? {c1 configure} { ?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?}
 
-  ? {lsort [C info slot definitions]} {{::C property -accessor none {a a1}} {::C property -accessor none {e e1}} {::C property {b b1}} {::C variable -accessor private d d1} {::C variable -accessor private vd vd1} {::C variable -accessor protected c c1} {::C variable -accessor protected vc vc1} {::C variable -accessor public vb vb1} {::C variable va va1} {::C variable ve ve1} {::C variable vf vf1}}
+  ? {lsort [C info slots]} "::C::slot::____C.d ::C::slot::____C.vd ::C::slot::a ::C::slot::b ::C::slot::c ::C::slot::e ::C::slot::va ::C::slot::vb ::C::slot::vc ::C::slot::ve ::C::slot::vf"
+
+
+  ? {C info slot definition ::C::slot::a} "::C property -accessor none {a a1}"
+  ? {C info slot definition ::C::slot::b} "::C property -accessor public {b b1}"
+  ? {C info slot definition ::C::slot::c} "::C variable -accessor protected c c1"
+  ? {C info slot definition ::C::slot::____C.d} "::C variable -accessor private d d1"
+  ? {C info slot definition ::C::slot::e} "::C property -accessor none {e e1}"
+  ? {C info slot definition ::C::slot::va} "::C variable -accessor none va va1"
+  ? {C info slot definition ::C::slot::vb} "::C variable -accessor public vb vb1"
+  ? {C info slot definition ::C::slot::vc} "::C variable -accessor protected vc vc1"
+  ? {C info slot definition ::C::slot::____C.vd} "::C variable -accessor private vd vd1"
+  ? {C info slot definition ::C::slot::ve} "::C variable -accessor none ve ve1"
+  ? {C info slot definition ::C::slot::vf} "::C variable -accessor none vf vf1"
+
   
   ? {c1 cget -a} a1
   ? {c1 cget -b} b1

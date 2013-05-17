@@ -622,7 +622,7 @@ nx::Test case delete-per-object-on-class {
   ? {C info object methods -path} ""
 
   ? {C info methods} "a2"
-  ? {C info slot objects} "::C::slot::a2"
+  ? {C info slots} "::C::slot::a2"
 }
 
 

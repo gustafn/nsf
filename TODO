@@ -4370,7 +4370,7 @@ Method and configure parameter reform:
      /obj/ info method parameters /methodName/ ?/pattern/? -> list of params
      /obj/ info method syntax -> syntax output
 
-     /obj/ info lookup configure parameter ?/pattern/? -> list of params
+     /obj/ info lookup configure parameters ?/pattern/? -> list of params
      /obj/ info lookup configure syntax -> syntax output
 
      /cls/ info parameter list|name|syntax /param/ -> value
@@ -4398,9 +4398,35 @@ Method and configure parameter reform:
   /obj/ info lookup parameter names ?/pattern/?
   /obj/ info lookup parameter list ?/pattern/?
 
+
+Method and configure parameter reform, Part 2:
+In order to streamline the interface further, we tried to follow the idea to use
+"... info /plural word/" to obtain a set of handles, and then a separate call
+to obtain the details. Therefore, we replaced
+
+    /cls/ info slot objects
+    /cls/ info slot definitions
+    /cls/ info slot names
+
+    /obj/ info object slot objects
+    /obj/ info object slot definitions
+    /obj/ info object slot names
+
+    /obj/ info lookup slots
+
+by 
+
+   /cls/ info slots             ?-type /type/? ?-closure? ?-source all|application|baseclasses? ?/pattern/?
+   /obj/ info object slots      ?-type /type/? ?/pattern/?
+   /obj/ info slot definition   /obj/
+   /obj/ info lookup slots      ?-type /type/? ?-source all|application|baseclasses? ?/pattern/?
+
+
+
 ========================================================================
 TODO:
-
+- consider "info properties" and "info variables"
+- fix property inheritance in traits (nx-traits.tcl)
 - handling of slots/properties/variables
 - NsfParameterGetCmd should/could handle more than "list|name|syntax"
 - update documentation

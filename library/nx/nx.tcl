@@ -575,7 +575,7 @@ namespace eval ::nx {
   }
 
   Class public method "delete property" {name} {
-    set slot [:info slot objects $name]
+    set slot [:info slots $name]
     if {$slot eq ""} {error "[self]: cannot delete property '$name'"}
     $slot destroy
   }
@@ -710,22 +710,11 @@ namespace eval ::nx {
     :alias "info object methods"          ::nsf::methods::object::info::methods
     :alias "info object mixin guard"      ::nsf::methods::object::info::mixinguard
     :alias "info object mixin classes"    ::nsf::methods::object::info::mixinclasses
-    :method "info object slot definitions" {{-type:class ::nx::Slot} pattern:optional} {
-      set result {}
-      foreach slot [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]] {
-	lappend result [$slot getPropertyDefinition]
-      }
-      return $result
-    }
-    :method "info object slot names" {{-type:class ::nx::Slot} pattern:optional} {
-      set result {}
-      foreach slot [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]] {
-	lappend result [$slot name]
-      }
-      return $result
-    }
-    :method "info object slot objects" {{-type:class ::nx::Slot} pattern:optional} {
+    :method "info object slots" {{-type:class ::nx::Slot} pattern:optional} {
       return [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]]
+    }
+    :method "info slot definition" {slot:object} {
+      return [$slot getPropertyDefinition]
     }
     #
     # Parameter extractors
@@ -805,26 +794,12 @@ namespace eval ::nx {
     :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
 
-    :method "info slot objects" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
+    :method "info slots" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
       set cmd [list ::nsf::methods::class::info::slotobjects -type $type]
       if {[info exists source]} {lappend cmd -source $source}
       if {$closure} {lappend cmd -closure}
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
-    }
-    :method "info slot definitions" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
-      set result {}
-      foreach slot [: ::nsf::methods::class::info::slotobjects -type $type {*}[current args]] {
-	lappend result [$slot getPropertyDefinition]
-      }
-      return $result
-    }
-    :method "info slot names" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
-      set result {}
-      foreach slot [: ::nsf::methods::class::info::slotobjects -type $type {*}[current args]] {
-	lappend result [$slot name]
-      }
-      return $result
     }
     # "info properties" is a short form of "info slot definition"
     #:alias "info properties"     ::nx::Class::slot::__info::slot::definition
@@ -1348,7 +1323,6 @@ namespace eval ::nx {
       if {[info exists :initcmd]} {
 	lappend options initcmd
 	if {[info exists :default]} {
-	  # append initcmd "[::nsf::self] setCheckedInstVar -nocomplain \[::nsf::self\] [list ${:default}]\n"
 	  append initcmd "::nsf::var::set \[::nsf::self\] ${:name} [list ${:default}]\n"
 	}
 	append initcmd ${:initcmd}
@@ -1368,22 +1342,27 @@ namespace eval ::nx {
   }
 
   ObjectParameterSlot public method getPropertyDefinitionOptions {parameterSpec} {
+    #puts "accessor <${:accessor}> config ${:config} per-object ${:per-object}" 
+
+    set mod [expr {${:per-object} ? "object" : ""}]
+    set opts ""
+
     if {${:config}} {
-      if {${:accessor} ne "public"} {set opts [list -accessor ${:accessor}]} {set opts ""}
-      if {!${:config}} {lappend opts -config false}
+      lappend opts -accessor ${:accessor}
+      if {${:incremental}} {lappend opts -incremental}
       if {[info exists :default]} {
-	return [list ${:domain} property {*}$opts [list $parameterSpec ${:default}]]
+	return [list ${:domain} {*}$mod property {*}$opts [list $parameterSpec ${:default}]]
       }
       set methodName property
     } else {
-      if {${:accessor} ne "none"} {set opts [list -accessor ${:accessor}]} {set opts ""}
+      lappend opts -accessor ${:accessor}
       if {${:config}} {lappend opts -config true}
       if {[info exists :default]} {
-	return [list ${:domain} variable {*}$opts $parameterSpec ${:default}]
+	return [list ${:domain} {*}$mod variable {*}$opts $parameterSpec ${:default}]
       }
       set methodName variable
     }
-    return [list ${:domain} $methodName {*}$opts $parameterSpec]
+    return [list ${:domain} {*}$mod $methodName {*}$opts $parameterSpec]
   }
 
   ObjectParameterSlot public method getPropertyDefinition {} {
@@ -1769,7 +1748,7 @@ namespace eval ::nx {
   ::nx::VariableSlot public method makeAccessor {} {
     
     if {${:accessor} eq "none"} {
-      #puts stderr "Do not register forwarder ${:domain} ${:name}"
+      #puts stderr "*** Do not register forwarder ${:domain} ${:name}"
       return 0
     }
 
@@ -1805,6 +1784,15 @@ namespace eval ::nx {
     if {[::nsf::is class ${:domain}]} {
       ::nsf::parameter:invalidate::classcache ${:domain}
     }
+  }
+
+  ::nx::VariableSlot public method getSpec {} {
+    # This is a shortend "lightweight" version of "getParameterSpec"
+    # returning less (implicit) details.
+    set options [:getParameterOptions -withMultiplicity true]
+    set spec [:namedParameterSpec -map-private "" ${:name} $options]
+    if {[info exists :default]} {lappend spec ${:default}}
+    return $spec
   }
 
   ::nx::VariableSlot protected method init {} {
@@ -2046,7 +2034,7 @@ namespace eval ::nx {
 
     if {${accessor} eq ""} {
       set accessor [::nsf::dispatch [self] __default_accessor]
-      #puts stderr "OBJECT got default accessor ${accessor}"
+      #puts stderr "OBJECT [self] got default accessor ${accessor}"
     }
 
     set r [[self] object variable \
@@ -2097,7 +2085,7 @@ namespace eval ::nx {
 
     if {${accessor} eq ""} {
       set accessor [::nsf::dispatch [self] __default_accessor]
-      #puts stderr "CLASS got default accessor ${accessor}"
+      #puts stderr "CLASS [self] got default accessor ${accessor}"
     }
     set r [[self] ::nsf::classes::nx::Class::variable \
 	       -accessor $accessor \
