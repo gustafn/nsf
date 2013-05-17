@@ -145,7 +145,7 @@ namespace eval ::nx::serializer {
   ###########################################################################
 
   Class create Serializer {
-    :property ignoreVarsRE
+    :property -accessor public ignoreVarsRE
 
     :public method ignore args {
       # Ignore the objects passed via args.

@@ -228,9 +228,9 @@ nx::Class create C {
 # "-flag=value" handling
 #
 nsf::method::create ::C m1 {} {;}
-? {lsort [::C ::nsf::methods::class::info::methods]} {m1 x y}
+? {lsort [::C ::nsf::methods::class::info::methods]} {m1}
 nsf::method::create ::C -per-object=false m2 {} {;}
-? {lsort [::C ::nsf::methods::class::info::methods]} {m1 m2 x y}
+? {lsort [::C ::nsf::methods::class::info::methods]} {m1 m2}
 nsf::method::create ::C -per-object=true m3 {} {;}
 ? {lsort [::C ::nsf::methods::object::info::methods]} {m3}
 

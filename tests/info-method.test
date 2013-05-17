@@ -375,12 +375,12 @@ nx::Test case callable {
     ? {o object method foo {} {return o.foo}} "::o::foo"
     ? {o object alias is ::nsf::is} "::o::is"
     #? {o object property x} {variable definition for 'x' (without value and accessor) is useless}
-    ? {o object property x} "::o::x"
+    ? {o object property x} ""
     ? {o object property -accessor public x} "::o::x"
     ? {lsort [o info object methods]} "foo is x"
 
     #? {o object property A} {variable definition for 'A' (without value and accessor) is useless}
-    ? {o object property A} ::o::A
+    ? {o object property A} ""
     ? {o object property -accessor public A} ::o::A
     ? {o object forward fwd ::set} ::o::fwd
     ? {lsort [o info object methods]} "A foo fwd is x"

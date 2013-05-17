@@ -30,7 +30,7 @@ Test case inscope {
     x1 Incr x
     x1 Incr x
     x1 Incr x
-    ? {x1 x} 103
+    ? {x1 cget -x} 103
 }
 
 ###########################################

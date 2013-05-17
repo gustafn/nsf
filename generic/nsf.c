@@ -12579,7 +12579,7 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
    */
   forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */
   if (forwardSpec == NULL) {
-    return NsfPrintError(interp, "no forward spec available\n");
+    return NsfPrintError(interp, "forward: no spec available\n");
   }
 
   result = Tcl_ListObjGetElements(interp, forwardSpec, &nobjc, &nobjv);
@@ -16629,8 +16629,8 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *initStrin
   int result;
   Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
 
-  /* fprintf(stderr, "CallConfigureMethod method %s->'%s' level %d, argc %d\n",
-     ObjectName(object), methodName, level, argc);*/
+  /*fprintf(stderr, "CallConfigureMethod method %s->'%s' argc %d\n",
+    ObjectName(object), methodName, argc);*/
 
   /*
    * When configure gets "-init" passed, we call "init" and notice the fact it
@@ -16648,7 +16648,7 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *initStrin
   DECR_REF_COUNT(methodObj);
 
   /*fprintf(stderr, "method  '%s' called args: %d o=%p, result=%d %d\n",
-    methodName, argc+1, obj, result, TCL_ERROR);*/
+    methodName, argc+1, object, result, TCL_ERROR);*/
 
   if (result != TCL_OK) {
     Tcl_Obj *res = Tcl_DuplicateObj(Tcl_GetObjResult(interp)); /* save the result */
@@ -22360,7 +22360,9 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * Special setter methods for invoking methods calls; handles types
      * "initcmd", "alias" and "forward".
      */
-    if (paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
+    if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) 
+	//&&  (paramPtr->flags & NSF_ARG_METHOD_CALL || object->flags & NSF_INIT_CALLED)
+	) {
       int consuming = (*paramPtr->name == '-' || paramPtr->nrArgs > 0);
 
       if (consuming && newValue == NsfGlobalObjs[NSF___UNKNOWN__]) {
@@ -22504,7 +22506,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   }
   
   if (!found) {
-    result = NsfPrintError(interp, "cannot lookup parameter value for %s", nameString);
+    result = NsfPrintError(interp, "cget: cannot lookup parameter value for %s", nameString);
     goto cget_exit;
   }
 
@@ -22533,7 +22535,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   /* 
    * We do NOT have a slot
    */
-  if (found && paramPtr->flags & NSF_ARG_METHOD_INVOCATION) {
+  if (found && paramPtr->flags & NSF_ARG_METHOD_CALL) {
     if (paramPtr->flags & NSF_ARG_ALIAS) {
       /*
        * It is a parameter associated with an aliased method. Invoke the

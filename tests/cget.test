@@ -37,8 +37,8 @@ Test case cget-simple {
   # - parameter without a value
   #
   ? {p1 cget} {wrong # of arguments: should be "cget /name/"}
-  ? {p1 cget -foo} {cannot lookup parameter value for -foo}
-  ? {p1 cget foo} {cannot lookup parameter value for foo}
+  ? {p1 cget -foo} {cget: cannot lookup parameter value for -foo}
+  ? {p1 cget foo} {cget: cannot lookup parameter value for foo}
   ? {p1 cget -sex} {can't read "sex": no such variable}
 
   # 

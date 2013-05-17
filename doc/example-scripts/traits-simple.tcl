@@ -50,7 +50,7 @@ nx::Trait create tReadStream {
 
 nx::Class create ReadStream {
   :property {collection ""}
-  :property {position 0}
+  :property -accessor public {position 0}
   :require trait tReadStream
 }
 

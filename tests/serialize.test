@@ -6,7 +6,7 @@ package req nx::serializer
 nx::Test case deepSerialize-map-filter {
 
   Object create ::a {
-    :object property ref:object,type=[:info class]
+    :object property -accessor public ref:object,type=[:info class]
     Object create [self]::b {
       [:info parent] ref [Object create [self]::c]
     }
@@ -53,10 +53,10 @@ nx::Test case deepSerialize-map-filter {
 
 nx::Test case deepSerialize-ignoreVarsRE-filter {   
   nx::Class create C {
-    :object property x
-    :object property y
-    :property a:int
-    :property b:int
+    :object property -accessor public x
+    :object property -accessor public y
+    :property -accessor public a:int
+    :property -accessor public b:int
     :create c1
   }
 

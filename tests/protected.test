@@ -137,7 +137,7 @@ nx::Test case redefined-protected {
       "redefine forward SET"
 
   # try to redefine via setter
-  ? {C property SET} \
+  ? {C property -accessor public SET} \
       {refuse to overwrite protected method 'SET'; derive e.g. a sub-class!} \
       "redefine property SET"
   
@@ -738,7 +738,7 @@ nx::Test case protected-priv-class-property {
     :property -accessor private {c c1d}
     :public method bard {p} {return [: -local $p]}
     :create d1 {
-      :object property {c c1o}
+      :object property -accessor public {c c1o}
     }
   }
 
@@ -774,7 +774,7 @@ nx::Test case protected-priv-class-property {
 #
 nx::Test case private-shadows-public-property {
   nx::Class create C {
-    :property {x c}
+    :property -accessor public {x c}
   }
   nx::Class create D -superclass C {
     :property -accessor private {x d}

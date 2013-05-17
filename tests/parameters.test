@@ -527,10 +527,10 @@ nx::Test case subst-default {
   ? {d1 bar -c 1} {::d1-[current]-1-2} "substdefault in method parameter"
   
   nx::Class create Bar -superclass D {
-    :property {s "[current]"} 
-    :property {literal "\\[current\\]"} 
-    :property {c "[:info class]"} 
-    :property {d "literal $d"}
+    :property -accessor public {s "[current]"} 
+    :property -accessor public {literal "\\[current\\]"} 
+    :property -accessor public {c "[:info class]"} 
+    :property -accessor public {d "literal $d"}
   }
 
   ? {Bar property -accessor public ss:switch} "::nsf::classes::Bar::ss"
@@ -890,12 +890,12 @@ nx::Test case substdefault {
   
   ? {s1 baz} {expected integer but got "b" for parameter "x"}
   ? {s1 baz 20} 20
-  s1 y 100
+  s1 configure -y 100
   ? {s1 baz} 100
   ? {s1 baz 101} 101
   
   ? {s1 boz} {1 2 3}
-  s1 z {1 x 100}
+  s1 configure -z {1 x 100}
   ? {s1 boz} {invalid value in "1 x 100": expected integer but got "x" for parameter "x"}
   ? {s1 boz {100 200}} {100 200}
   
@@ -934,10 +934,10 @@ nx::Test case substdefault-objparam {
   }
 
   Bar create ::b
-  ? {b s0} "::b"
-  ? {b s1} "::b"
-  ? {b s2} "::b"
-  ? {b s3} "::b"
+  ? {b cget -s0} "::b"
+  ? {b cget -s1} "::b"
+  ? {b cget -s2} "::b"
+  ? {b cget -s3} "::b"
 }
 
 #
@@ -989,6 +989,7 @@ nx::Test case op-object-types {
     :property b:baseclass
     :property u:upper
     :property us:upper,1..*
+    :property -incremental us2:upper,1..*
     :property {x:object,1..* {o}}
   }
   
@@ -1042,15 +1043,16 @@ nx::Test case op-object-types {
     set :incremental 1
     :reconfigure
   }
-  ? {ParamTest create p -us {A B}} ::p
+  ? {ParamTest create p -us {A B} -us2 {A B}} ::p
   ? {p us add C end} "A B C"
+  ? {p us2 add C end} "A B C"
 
-  ? {p o o} \
-      "o" \
+  ? {p configure -o o} \
+      "" \
       "value is an object"
 
-  ? {p o xxx} \
-      {expected object but got "xxx" for parameter "o"} \
+  ? {p configure -o xxx} \
+      {expected object but got "xxx" for parameter "-o"} \
       "value is not an object"
 
   #
@@ -1058,7 +1060,7 @@ nx::Test case op-object-types {
   # slot object
   #
   ParamTest eval {
-    :property os {
+    :property -accessor public os {
       :type object 
       :multiplicity 1..n
     }
@@ -1171,7 +1173,7 @@ nx::Test case allow-empty {
 nx::Test case slot-specfic-converter {
 
   nx::Class create Person {
-    :property sex {
+    :property -accessor public sex {
       :type "sex"
       :convert true
       :object method type=sex {name value} {
@@ -1186,6 +1188,7 @@ nx::Test case slot-specfic-converter {
   }
 
   Person create p1 -sex male
+  ? {p1 cget -sex} m
   ? {p1 sex} m
   Person public method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
   ? {p1 foo male} m
@@ -1241,9 +1244,9 @@ nx::Test parameter count 1000
 nx::Test case slot-optimizer {
 
   nx::Class create C {
-    :property a 
-    :property b:integer 
-    :property c:integer,0..n
+    :property -accessor public a 
+    :property -accessor public b:integer 
+    :property -accessor public c:integer,0..n
   }
   
   C create c1 
@@ -1255,7 +1258,7 @@ nx::Test case slot-optimizer {
 nx::Test parameter count 10
 nx::Test case slot-nosetter {
   nx::Class create C {
-    :property a 
+    :property -accessor public a 
     :property -accessor none b:integer
     :property -accessor none {c ""}
   }
@@ -1303,9 +1306,9 @@ nx::Test case check-arguments {
 
 nx::Test case slot-traces {
   ::nx::Object create o {
-    :object property a {set :defaultcmd { set _ 4 } }
-    :object property b {set :valuecmd { set _ 44 } }
-    :object property c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+    :object property -accessor public a {set :defaultcmd { set _ 4 } }
+    :object property -accessor public b {set :valuecmd { set _ 44 } }
+    :object property -accessor public c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
   }
 
   ? {o a} 4
@@ -1321,9 +1324,9 @@ nx::Test case slot-traces {
   ? {::nsf::object::property o2 hasperobjectslots} 1
 
   ::nx::Class create C {
-    :property a {set :defaultcmd { set _ 4 } }
-    :property b {set :valuecmd { set _ 44 } }
-    :property c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
+    :property -accessor public a {set :defaultcmd { set _ 4 } }
+    :property -accessor public b {set :valuecmd { set _ 44 } }
+    :property -accessor public c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
     :create c1
   }
   ? {c1 a} 4
@@ -1380,7 +1383,7 @@ nx::Test case slot-trace-interaction {
   #
 
   ? {o eval {info exists :a}} 0
-  o object property {a 0} {
+  o object property -accessor public {a 0} {
     set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
   }
   ? {o eval {info exists :a}} 1
@@ -1406,7 +1409,7 @@ nx::Test case slot-trace-interaction {
     set :valuecmd {set _ 44}
   }} "valuecmd can't be used together with defaultcmd"
 
-  Klass property {a 0} {
+  Klass property -accessor public {a 0} {
     set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
   }
  
@@ -1449,25 +1452,21 @@ nx::Test case slot-trace-interaction {
   ::nx::Class create CC {
     :property a:0..n {
       set :defaultcmd {
-  	if 1 {
-  	  set _ 4
-  	}
+	set _ 4
       } 
     }
     
-    :property b:0..n {set :valuecmd {if 1 {set _ 44}} }
-    :property c:0..n {
+    :property b:0..n {set :valuecmd {set _ 44} }
+    :property -accessor public c:0..n {
       set :valuechangedcmd {
-	if 1 {
-	  ::nsf::var::set $obj $var 999
-	}
+	::nsf::var::set $obj $var 999
       }
     }
     :create ::cc
   }
 
-  ? {cc a} 4
-  ? {cc b} 44
+  ? {cc cget -a} 4
+  ? {cc cget -b} 44
   ? {cc c 5} 999
   
 }
@@ -1608,7 +1607,7 @@ nx::Test case check-arguments {
 #
 nx::Test case dont-reset-to-defaults {
   nx::Class create C {
-    :property {a 1}
+    :property -accessor public {a 1}
     :create c1
   }
   ? {c1 a} 1
@@ -1674,10 +1673,10 @@ nx::Test case req-param {
   set ::_ ""
   ? {C create c2 -y 1 -x} {value for parameter '-x' expected}
   ? {set ::_} ""
-  ? {c2 x} {can't read "x": no such variable}
+  ? {c2 cget -x} {can't read "x": no such variable}
   ? {C create c3 -y 1 -x 0} "::c3"
   ? {set ::_} ""
-  ? {c3 x} "0"
+  ? {c3 cget -x} "0"
 }
 
 ::nsf::configure checkarguments on
@@ -1692,8 +1691,8 @@ nx::Test case nsf-subdefault {
     :property {n2:any "[namespace tail [::nsf::self]]"}
     :create c1
   }
-  ? {c1 n1} c1
-  ? {c1 n2} c1
+  ? {c1 cget -n1} c1
+  ? {c1 cget -n2} c1
 }
 
 #
@@ -1804,7 +1803,7 @@ nx::Test case parameter-alias {
   ? {c1 eval {set :x}} "x1"
   ? {c1 eval {set :foo}} "123 a b c F"
   ? {c1 eval {set :bar}} "aha"
-  ? {lsort [c1 info lookup methods -source application]} "D bar foo x"
+  ? {lsort [c1 info lookup methods -source application]} "bar foo x"
 }
 
 #
@@ -2063,7 +2062,7 @@ nx::Test case reconfigure-perobj-default {
   ? {o eval {info exists :a}} 0
   o object property {a oldvalue}
   ? {o eval {info exists :a}} 1
-  ? {o a} oldvalue
+  ? {o cget -a} oldvalue
   #
   # By unsetting the var, upon recreating the property slot (or
   # calling reconfigure upon the property) we can trigger
@@ -2076,7 +2075,7 @@ nx::Test case reconfigure-perobj-default {
   #
   o object property {a newvalue}
   ? {o eval {info exists :a}} 1
-  ? {o a} newvalue
+  ? {o cget -a} newvalue
   o eval {unset :a}
   ? {o eval {info exists :a}} 0
   [o info object slots a] default anothervalue
@@ -2086,7 +2085,7 @@ nx::Test case reconfigure-perobj-default {
   #
   [o info object slots a] reconfigure
   ? {o eval {info exists :a}} 1
-  ? {o a} anothervalue
+  ? {o cget -a} anothervalue
 }
 
 #
@@ -2138,7 +2137,7 @@ nx::Test case object-level-variable {
 
     # set 2 variables, one via variable, one via property
     ? [list [self] object variable -nocomplain captain1 "James Kirk"] ""
-    ? [list [self] object property -nocomplain [list captain2 "Jean Luc"]] "::enterprise::captain2"
+    ? [list [self] object property -nocomplain [list captain2 "Jean Luc"]] ""
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :captain1}] "James Kirk"
@@ -2146,11 +2145,11 @@ nx::Test case object-level-variable {
 
     # just for the property, we have accessors
     ? [list [self] info lookup method  captain1] ""
-    ? [list [self] info lookup method  captain2] "::enterprise::captain2"
+    ? [list [self] info lookup method  captain2] ""
 
     # set variable with a value checker
     ? [list [self] object variable  -nocomplain x1:int 1] ""
-    ? [list [self] object property -nocomplain [list x2:int 2]] "::enterprise::x2"
+    ? [list [self] object property -nocomplain [list x2:int 2]] ""
 
     # set variable with a value checker and an invalid value
     ? [list [self] object variable y1:int a] {expected integer but got "a"}
@@ -2162,7 +2161,7 @@ nx::Test case object-level-variable {
 
     # set variable with a value checker, multiple
     ? [list [self] object variable  -nocomplain xm1:int,1..n {1 2 3}] ""
-    ? [list [self] object property -nocomplain [list xm2:int,1..n {1 2 3}]] "::enterprise::xm2"
+    ? [list [self] object property -nocomplain [list xm2:int,1..n {1 2 3}]] ""
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :xm1}] "1 2 3"
@@ -2199,8 +2198,7 @@ nx::Test case object-level-variable {
 
     # valid value
     ? [list [self] object variable -nocomplain r1:range,arg=1-10 5] ""
-    ? [list [self] object property -nocomplain [list r2:range,arg=1-10 5]] \
-	{::enterprise::r2}
+    ? [list [self] object property -nocomplain [list r2:range,arg=1-10 5]] ""
 
     # testing incremental
     ? [list [self] object variable -incremental -nocomplain i:int,0..* {}] "::enterprise::i"
@@ -2220,7 +2218,7 @@ nx::Test case object-level-variable {
   nx::Class create C {
     # set 2 class variables, one via variable, one via property
     ? [list [self] object variable -nocomplain v "v0"] ""
-    ? [list [self] object property -nocomplain [list a "a0"]] "::C::a"
+    ? [list [self] object property -nocomplain [list a "a0"]] ""
 
     # in both cases, we expect instance variables
     ? [list [self] eval {set :v}] "v0"
@@ -2241,7 +2239,7 @@ nx::Test case class-level-variable {
 
     # define 2 class-level variables, one via variable, one via property
     :variable v v0
-    :property {a a0}
+    :property -accessor public {a a0}
 
     # create an instance
     :create c1
@@ -2302,7 +2300,7 @@ nx::Test case delete-class-level-variable-and-property {
 
     # define 2 class-level variables, one via variable, one via property
     :variable v v0
-    :property {a a0}
+    :property -accessor public {a a0}
 
     # create an instance
     :create c1
@@ -2342,7 +2340,7 @@ nx::Test case delete-object-level-variable-and-property {
 
     # define 2 object-level variables, one via variable, one via property
     :object variable v v0
-    :object property {a a0}
+    :object property -accessor public {a a0}
   }
   
   # the instance of C will have the two variables set ...
@@ -2372,7 +2370,7 @@ nx::Test case object-parameter-switch {
   # Create a class with an property of type switch and an instance of
   # the class
   ? {::nx::Class create C {
-    :property foo:switch
+    :property -accessor public foo:switch
     :create c1
   }} "::C"
 
@@ -2446,10 +2444,10 @@ nx::Test case class-info-slots-types {
   ? {C info slot definition ::C::slot::v} "::C variable -accessor none v 100"
 
   nx::Class create D {
-    :property {p0 200}
+    :property -accessor public {p0 200}
     :property -accessor none {p1 201}
     :property -accessor none {p2:noconfig 202}
-    :property {p3:noconfig 203}
+    :property -accessor public {p3:noconfig 203}
   }
 
   # "p2" and "p3" do NOT show up in "info parameter" 
@@ -2485,10 +2483,10 @@ nx::Test case object-info-slots-types {
   ? {o1 info slot definition ::o1::per-object-slot::v1} "::o1 object variable -accessor public v1 100"
 
   nx::Object create o2 {
-    :object property {p0 200}
+    :object property -accessor public {p0 200}
     :object property -accessor none {p1 201}
     :object property -accessor none {p2:noconfig 202}
-    :object property {p3:noconfig 203}
+    :object property -accessor public {p3:noconfig 203}
   }
 
   # "p1" and "p2" do NOT show up in "info methods" 
@@ -2516,8 +2514,8 @@ nx::Test case properties {
     :property {b 1}
   }
 
-  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor public a"
-  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor public {b 1}"
+  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor none a"
+  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor none {b 1}"
 
   #? {Foo info properties} "a {b 1}"
 
@@ -2526,16 +2524,16 @@ nx::Test case properties {
     :property a:boolean
     :property {b:integer 1}
   }
-  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor public a:boolean"
-  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor public {b:integer 1}"
+  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor none a:boolean"
+  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor none {b:integer 1}"
 
   # required/optional properties
   nx::Class create Foo {
     :property a:required
     :property b:boolean,required
   }
-  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor public a:required"
-  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor public b:boolean,required"
+  ? {Foo info slot definition [Foo info slots a]} "::Foo property -accessor none a:required"
+  ? {Foo info slot definition [Foo info slots b]} "::Foo property -accessor none b:boolean,required"
 
   # properties with multiplicity
   nx::Class create Foo {
@@ -2543,9 +2541,9 @@ nx::Test case properties {
     :property objs:object,1..n
     :property obj:object,0..1
   }
-  ? {Foo info slot definition [Foo info slots objs]} "::Foo property -accessor public objs:object,1..n"
-  ? {Foo info slot definition [Foo info slots ints]} "::Foo property -accessor public {ints:integer,0..n {}}"
-  ? {Foo info slot definition [Foo info slots obj]} "::Foo property -accessor public obj:object,0..1"
+  ? {Foo info slot definition [Foo info slots objs]} "::Foo property -accessor none objs:object,1..n"
+  ? {Foo info slot definition [Foo info slots ints]} "::Foo property -accessor none {ints:integer,0..n {}}"
+  ? {Foo info slot definition [Foo info slots obj]} "::Foo property -accessor none obj:object,0..1"
 }
 
 #
@@ -2597,7 +2595,7 @@ nx::Test case xotcl-configure-method {
 nx::Test case forward-to-assign {
   set ::slotcalls 0
   nx::Class create Foo {
-    :property bar {
+    :property -accessor public bar {
       :public object method assign { object property value } {
 	incr ::slotcalls 1
 	nsf::var::set $object $property $value
@@ -2621,7 +2619,7 @@ nx::Test case forward-to-assign {
   # test cases for default
   set ::slotcalls 0
   nx::Class create Foo {
-    :property {baz 1} {
+    :property -accessor public {baz 1} {
       :public object method assign { object property value } {
 	incr ::slotcalls 1
 	nsf::var::set $object $property $value
@@ -2715,7 +2713,7 @@ nx::Test case forward-to-incremental {
 nx::Test case slot-container-name-interaction {
 
   nx::Class create Test2 {
-    :property list {
+    :property -accessor public list {
       :public object method assign { obj var val } {
 	nsf::var::set $obj $var [list $obj $var $val]
       }

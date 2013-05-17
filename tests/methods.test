@@ -92,8 +92,8 @@ nx::Test case class-level-forwards {
 
 # class level setter
 nx::Test case class-level-setter {
-  #? {c2 plain_setter 1} {::c2: unable to dispatch method 'plain_setter'}
-  ? {c2 plain_setter 1} 1
+  ? {c2 plain_setter 1} {::c2: unable to dispatch method 'plain_setter'}
+  #? {c2 plain_setter 1} 1
   ? {c2 public_setter 2} "2"
   ? {catch {c2 protected_setter 3}} 1
   ? {::nsf::dispatch c2 protected_setter 4} "4"
@@ -127,8 +127,8 @@ nx::Test case class-object-level-forwards {
 
 # class level setter
 nx::Test case class-object-level-setter {
-  #? {C plain_object_setter 1} {method 'plain_object_setter' unknown for ::C; consider '::C create plain_object_setter 1' instead of '::C plain_object_setter 1'}
-  ? {C plain_object_setter 1} "1"
+  ? {C plain_object_setter 1} {method 'plain_object_setter' unknown for ::C; consider '::C create plain_object_setter 1' instead of '::C plain_object_setter 1'}
+  #? {C plain_object_setter 1} "1"
   ? {C public_object_setter 2} "2"
   ? {catch {C protected_object_setter 3}} 1
   ? {::nsf::dispatch C protected_object_setter 4} "4"
@@ -162,8 +162,8 @@ nx::Test case object-level-forwards {
 
 # object level setter
 nx::Test case object-level-setter {
-  #? {c1 plain_object_setter 1} {::c1: unable to dispatch method 'plain_object_setter'}
-  ? {c1 plain_object_setter 1} "1"
+  ? {c1 plain_object_setter 1} {::c1: unable to dispatch method 'plain_object_setter'}
+  #? {c1 plain_object_setter 1} "1"
   ? {c1 public_object_setter 2} "2"
   ? {catch {c1 protected_object_setter 3}} 1
   ? {::nsf::dispatch c1 protected_object_setter 4} "4"
@@ -179,12 +179,12 @@ nx::Test case object-level-alias {
   #? {lsort [c1 info object methods]} \
       "plain_object_alias plain_object_forward plain_object_method public_object_alias public_object_forward public_object_method public_object_setter"
   ? {lsort [c1 info object methods]} \
-      "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
+      "plain_object_alias plain_object_forward plain_object_method public_object_alias public_object_forward public_object_method public_object_setter"
 
   #? {lsort [C info methods]} \
       "plain_object_alias plain_object_forward plain_object_method public_object_alias public_object_forward public_object_method public_object_setter s3"
   ? {lsort [C info object methods]} \
-      "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
+      "plain_object_alias plain_object_forward plain_object_method public_object_alias public_object_forward public_object_method public_object_setter s3"
 }
 
 C destroy
@@ -290,8 +290,8 @@ nx::Test case property-method {
 
   ? {C A 2} 2
   ? {C A} 2
-  #? {C B} {method 'B' unknown for ::C; consider '::C create B ' instead of '::C B '}
-  ? {C B} B2
+  ? {C B} {method 'B' unknown for ::C; consider '::C create B ' instead of '::C B '}
+  #? {C B} B2
   ? {C C} C2
   ? {C D} "method 'D' unknown for ::C; consider '::C create D ' instead of '::C D '"
 
@@ -305,8 +305,8 @@ nx::Test case property-method {
     :object property -accessor protected {d d1}
   }
   ? {o a 2} 2
-  #? {o b} {::o: unable to dispatch method 'b'}
-  ? {o b} b1
+  ? {o b} {::o: unable to dispatch method 'b'}
+  #? {o b} b1
   ? {o c} c1
   ? {o d} "::o: unable to dispatch method 'd'"
 }

@@ -46,5 +46,5 @@ nx::Class create Delegatee {
 # Now, we set the +delegatee+; therefore, the delegatee will perform
 # the action.
 #
-? {$a delegatee [Delegatee new]} "::nsf::__#1"
+? {$a configure -delegatee [Delegatee new]} ""
 ? {$a operation} "delegatee implementatiton"

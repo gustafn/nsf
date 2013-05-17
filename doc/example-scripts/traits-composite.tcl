@@ -85,7 +85,7 @@ nx::Trait create tWriteStream {
 # +collection+ that uses the composite trait +tReadStream+:
 nx::Class create ReadStream {
   :property {collection ""}
-  :property {position 0}
+  :property -accessor public {position 0}
   :require trait tReadStream
 }
 

@@ -26,7 +26,7 @@ nx::Class create FoodBox {
   :property -incremental item:object,type=::Eatable
   :public method print {} {
     set string "Foodbox contains:\n"
-    foreach i ${:item} {append string "   [$i name]\n"}
+    foreach i ${:item} {append string "   [$i cget -name]\n"}
     return $string
   }
 }

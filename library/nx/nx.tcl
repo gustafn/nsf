@@ -1777,6 +1777,10 @@ namespace eval ::nx {
   ::nx::VariableSlot public method reconfigure {} {
     #puts stderr "*** Should we reconfigure [self]???"
     unset -nocomplain :parameterSpec
+    if {${:incremental}} {
+      if {${:accessor} eq "none"} { set :accessor "public" }
+      if {![:isMultivalued]} { set :multiplicity "0..n" }
+    }
     :makeAccessor
     if {${:per-object} && [info exists :default]} {
       :setCheckedInstVar -nocomplain=[info exists :nocomplain] ${:domain} ${:default}
@@ -2462,7 +2466,7 @@ namespace eval ::nx {
   # Make the default protected methods
   #
   ::nx::configure defaultMethodCallProtection true
-  ::nx::configure defaultAccessor public
+  ::nx::configure defaultAccessor none
 
   #
   # Provide an ensemble-like interface to the ::nsf primitiva to

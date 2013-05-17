@@ -61,14 +61,14 @@ nx::Test case class-level {
   
   ? {c1 cget -a} a1
   ? {c1 cget -b} b1
-  ? {c1 cget -c} {cannot lookup parameter value for -c}
-  ? {c1 cget -d} {cannot lookup parameter value for -d}
-  ? {c1 cget -va} {cannot lookup parameter value for -va}
-  ? {c1 cget -vb} {cannot lookup parameter value for -vb}
-  ? {c1 cget -vc} {cannot lookup parameter value for -vc}
-  ? {c1 cget -vd} {cannot lookup parameter value for -vd}
-  ? {c1 cget -ve} {cannot lookup parameter value for -ve}
-  ? {c1 cget -vf} {cannot lookup parameter value for -vf}
+  ? {c1 cget -c} {cget: cannot lookup parameter value for -c}
+  ? {c1 cget -d} {cget: cannot lookup parameter value for -d}
+  ? {c1 cget -va} {cget: cannot lookup parameter value for -va}
+  ? {c1 cget -vb} {cget: cannot lookup parameter value for -vb}
+  ? {c1 cget -vc} {cget: cannot lookup parameter value for -vc}
+  ? {c1 cget -vd} {cget: cannot lookup parameter value for -vd}
+  ? {c1 cget -ve} {cget: cannot lookup parameter value for -ve}
+  ? {c1 cget -vf} {cget: cannot lookup parameter value for -vf}
 
   #
   # No incremental used, so "a" and "e" have no slots
@@ -234,12 +234,12 @@ nx::Test case class-level-incremental {
   
   ? {c1 cget -a} a1
   ? {c1 cget -b} b1
-  ? {c1 cget -c} {cannot lookup parameter value for -c}
-  ? {c1 cget -d} {cannot lookup parameter value for -d}
-  ? {c1 cget -va} {cannot lookup parameter value for -va}
-  ? {c1 cget -vb} {cannot lookup parameter value for -vb}
-  ? {c1 cget -vc} {cannot lookup parameter value for -vc}
-  ? {c1 cget -vd} {cannot lookup parameter value for -vd}
+  ? {c1 cget -c} {cget: cannot lookup parameter value for -c}
+  ? {c1 cget -d} {cget: cannot lookup parameter value for -d}
+  ? {c1 cget -va} {cget: cannot lookup parameter value for -va}
+  ? {c1 cget -vb} {cget: cannot lookup parameter value for -vb}
+  ? {c1 cget -vc} {cget: cannot lookup parameter value for -vc}
+  ? {c1 cget -vd} {cget: cannot lookup parameter value for -vd}
 
   #
   # The use of "-incremental" implies an accessor
@@ -413,12 +413,12 @@ nx::Test case object-level {
   
   ? {o1 cget -a} a1
   ? {o1 cget -b} b1
-  ? {o1 cget -c} {cannot lookup parameter value for -c}
-  ? {o1 cget -d} {cannot lookup parameter value for -d}
-  ? {o1 cget -va} {cannot lookup parameter value for -va}
-  ? {o1 cget -vb} {cannot lookup parameter value for -vb}
-  ? {o1 cget -vc} {cannot lookup parameter value for -vc}
-  ? {o1 cget -vd} {cannot lookup parameter value for -vd}
+  ? {o1 cget -c} {cget: cannot lookup parameter value for -c}
+  ? {o1 cget -d} {cget: cannot lookup parameter value for -d}
+  ? {o1 cget -va} {cget: cannot lookup parameter value for -va}
+  ? {o1 cget -vb} {cget: cannot lookup parameter value for -vb}
+  ? {o1 cget -vc} {cget: cannot lookup parameter value for -vc}
+  ? {o1 cget -vd} {cget: cannot lookup parameter value for -vd}
   
 
   #
@@ -537,12 +537,12 @@ nx::Test case object-level-incremental {
   
   ? {o1 cget -a} a1
   ? {o1 cget -b} b1
-  ? {o1 cget -c} {cannot lookup parameter value for -c}
-  ? {o1 cget -d} {cannot lookup parameter value for -d}
-  ? {o1 cget -va} {cannot lookup parameter value for -va}
-  ? {o1 cget -vb} {cannot lookup parameter value for -vb}
-  ? {o1 cget -vc} {cannot lookup parameter value for -vc}
-  ? {o1 cget -vd} {cannot lookup parameter value for -vd}
+  ? {o1 cget -c} {cget: cannot lookup parameter value for -c}
+  ? {o1 cget -d} {cget: cannot lookup parameter value for -d}
+  ? {o1 cget -va} {cget: cannot lookup parameter value for -va}
+  ? {o1 cget -vb} {cget: cannot lookup parameter value for -vb}
+  ? {o1 cget -vc} {cget: cannot lookup parameter value for -vc}
+  ? {o1 cget -vd} {cget: cannot lookup parameter value for -vd}
 
   #
   # The use of "-incremental" implies an accessor

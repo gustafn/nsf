@@ -31,7 +31,7 @@ nx::Class create Circle -superclass Point {
 ? {$p print} "Point(1.0,2.0)"
 
 # Get the x coordinate of this point:
-? {$p x} "1.0"
+? {$p cget -x} "1.0"
 
 # Create a circle:
 ? {set c [Circle new -x 3.0 -y 4.0 -radius 5.0]} "::nsf::__#1"
@@ -39,7 +39,7 @@ nx::Class create Circle -superclass Point {
 ? {set d [$c copy]} "::nsf::__#3"
 
 # Change the radius of the copied circle:
-? {$d radius 1.5} 1.5
+? {$d configure -radius 1.5} ""
 
 # Print the two circles:
 ? {$c print} "Circle(3.0,4.0,5.0)"

@@ -4421,10 +4421,13 @@ by
    /obj/ info slot definition   /obj/
    /obj/ info lookup slots      ?-type /type/? ?-source all|application|baseclasses? ?/pattern/?
 
-
+- nx.tcl: handle "incremental" in slot reconfigure
+- nx.tcl: change defaultAccessor to "none"
 
 ========================================================================
 TODO:
+- valuechangedcmd implemented via initcmd does 
+  not work work with "configure" method
 - consider "info properties" and "info variables"
 - fix property inheritance in traits (nx-traits.tcl)
 - handling of slots/properties/variables

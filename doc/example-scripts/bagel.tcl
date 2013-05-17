@@ -27,7 +27,7 @@ nx::Test parameter count 1
 # they've been toasted. We can create and access an instance variable
 # by defining an property for the class. All instance variables are
 # per default public in the sense of C++.
-? {Bagel property {toasted 0}} "::nsf::classes::Bagel::toasted"
+? {Bagel property -accessor public {toasted 0}} "::nsf::classes::Bagel::toasted"
 
 # Since abagel was created before the definition of the property we
 # have to set the default value for it using the setter method. Again,
@@ -95,7 +95,7 @@ nx::Test parameter count 1
 # toppings are empty.
 
 ? {nx::Class create SpreadableBagel -superclass Bagel {
-    :property {toppings:0..n ""}
+    :property -accessor public {toppings:0..n ""}
 }} ::SpreadableBagel
 
 ? {SpreadableBagel info superclass} ::Bagel

@@ -952,7 +952,7 @@ namespace eval ::xotcl {
   # Create ::xotcl::Attribute for compatibility
   #
   ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot {
-    :property multivalued {
+    :property -accessor public multivalued {
       :public object method assign {object property value} {
 	set mClass [expr {$value ? "0..n" : "1..1"}]
 	$object incremental $value
