@@ -13773,7 +13773,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
 	       Tcl_Obj *listObj) {
   NsfObject *slotContainerObject;
   Tcl_DString ds, *dsPtr = &ds;
-  int fullQualPattern = (pattern && *pattern == ':');
+  int fullQualPattern = (pattern && *pattern == ':' && *(pattern+1) == ':');
 
   /*fprintf(stderr, "AddSlotObjects parent %s prefix %s type %p %s\n", 
     ObjectName(parent), prefix, type, type ? ClassName(type) : "");*/
@@ -13828,10 +13828,26 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
 	 * If the pattern looks like fully qualified, we match against the
 	 * fully qualified name.
 	 */
-	match = fullQualPattern ?
-	  Tcl_StringMatch(ObjectName(childObject), pattern) :
-	  Tcl_StringMatch(key, pattern);
-	
+	if (*key == '_' && *(key+1) == '_' && *(key+2) == '_' && *(key+3) == '_') {
+	  Tcl_Obj *value = Nsf_ObjGetVar2((Nsf_Object *)childObject, interp, 
+					  NsfGlobalObjs[NSF_SETTERNAME], NULL, 0);
+	  if (value) {
+	    char *valueString = ObjStr(value);
+
+	    match = fullQualPattern ?
+	      Tcl_StringMatch(valueString, pattern+2) :
+	      Tcl_StringMatch(valueString, pattern);	  
+	  } else {
+	    match = 0;
+	  }
+	  /*fprintf(stderr, "pattern <%s> fullQualPattern %d child %s key %s %p <%s> match %d\n", 
+		  pattern, fullQualPattern, ObjectName(childObject), key, 
+		  value, value ? ObjStr(value) : "", match);*/
+	} else {
+	  match = fullQualPattern ?
+	    Tcl_StringMatch(ObjectName(childObject), pattern) :
+	    Tcl_StringMatch(key, pattern);
+	}
 	if (!match) {
 	  continue;
 	}

@@ -4423,18 +4423,30 @@ by
 - nx.tcl: handle "incremental" in slot reconfigure
 - nx.tcl: change defaultAccessor to "none"
 
-- dropped "/obj/ info slot definition /obj/" in favor of
-  "/slotobj/ definition"
+- dropped "/obj/ info slot definition /slotobj/" in favor of "/slotobj/ definition"
 
+
+
+Method and configure parameter reform, Part 3:
+- added 
+
+    /cls/ info lookup variables                  -> list of handles
+    /obj/ info lookup object variables           -> list of handles
+    /obj/ info variable definition|name|parameter /handle/
+
+- nx.tcl: added forward compatible scripted implementation of "lmap"
+
+- nsf.c: handle names for private slots in pattern provided to AddSlotObjects(),
+  used e.g. in "info lookup slots /pattern/"
 ========================================================================
 TODO:
 - valuechangedcmd implemented via initcmd does 
-  not work work with "configure" method
-- consider "info properties" and "info variables"
-- fix property inheritance in traits (nx-traits.tcl)
+  not work with "configure" method
+- info AddSlotObjects(): handle full-qualified name for private slots
 - handling of slots/properties/variables
 - NsfParameterGetCmd should/could handle more than "list|name|syntax"
 - update documentation
+- fix property inheritance in traits (nx-traits.tcl)
 - maybe remove unneeded values, align naming in enumeration of first arg of 
   *::info::objectparameter and *::info::method
 - maybe change ::nsf::parametersyntax(..) to ::nsf::parameter::syntax(..)

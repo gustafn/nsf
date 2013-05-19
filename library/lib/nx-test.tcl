@@ -155,7 +155,7 @@ namespace eval ::nx {
 	::nx::Test success
       } else {
 	puts stderr "[set :name]:\tincorrect result for '${:msg}', expected:"
-	puts stderr "'${:expected}', got\n'$r'"
+	puts stderr "'${:expected}', got\n\"$r\""
 	puts stderr "\tin test file [info script]"
 	if {[info exists :errorReport]} {eval [set :errorReport]}
 	::nx::Test failure

@@ -698,6 +698,9 @@ namespace eval ::nx {
       set syntax "/[self]/ configure [: ::nsf::methods::object::info::objectparameter syntax]"
       return [string trimright $syntax " "]
     }
+    :method "info lookup variables" {pattern:optional} {
+      return [: info lookup slots -type ::nx::VariableSlot {*}[current args]]
+    }
     :alias "info children"         ::nsf::methods::object::info::children
     :alias "info class"            ::nsf::methods::object::info::class
     :alias "info has mixin"        ::nsf::methods::object::info::hasmixin
@@ -711,7 +714,12 @@ namespace eval ::nx {
     :alias "info object mixin guard"      ::nsf::methods::object::info::mixinguard
     :alias "info object mixin classes"    ::nsf::methods::object::info::mixinclasses
     :method "info object slots" {{-type:class ::nx::Slot} pattern:optional} {
-      return [: ::nsf::methods::object::info::slotobjects -type $type {*}[current args]]
+      set method [list ::nsf::methods::object::info::slotobjects -type $type]
+      if {[info exists pattern]} {lappend method $pattern}
+      return [: {*}$method]
+    }
+    :method "info object variables" {pattern:optional} {
+      return [: info object slots -type ::nx::VariableSlot {*}[current args]]
     }
     #
     # Parameter extractors
@@ -724,6 +732,9 @@ namespace eval ::nx {
     # "info properties" is a short form of "info slot definition"
     #:alias "info properties"     ::nx::Object::slot::__info::slot::definition
     :alias "info vars"           ::nsf::methods::object::info::vars
+    :method "info variable definition" {slot}  {return [$slot definition]}
+    :method "info variable name"       {slot}  {return [$slot name]}
+    :method "info variable parameter"  {slot}  {return [$slot getSpec]}
   }
 
   ######################################################################
@@ -766,15 +777,15 @@ namespace eval ::nx {
 	if {[info exists pattern]} {return [::nsf::parameter::filter $defs $pattern]}
 	return $defs
       }
-      set cmd {::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot}
-      if {[info exists pattern]} {lappend cmd $pattern}
-      return [::nsf::parameter::specs -configure [: {*}$cmd]]
+      set slots [: ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot {*}[current args]]
+      return [::nsf::parameter::specs -configure $slots]
+		  
     }
     :method "info configure syntax"    {} {
       set defs [: ::nsf::methods::class::getCachedParameters]
       if {[llength $defs] == 0} {
-	set defs [::nsf::parameter::specs -configure \
-		      [: ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]]
+	set slots [: ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]
+	set defs [::nsf::parameter::specs -configure $slots]
       }
       set syntax "/[self]/ "
       foreach def $defs {append syntax [::nsf::parameter::get syntax $def] " "}
@@ -802,6 +813,11 @@ namespace eval ::nx {
     #:alias "info properties"     ::nx::Class::slot::__info::slot::definition
     :alias "info subclass"       ::nsf::methods::class::info::subclass
     :alias "info superclass"     ::nsf::methods::class::info::superclass
+    :method "info variables" {pattern:optional} {
+      set cmd {info slots -type ::nx::VariableSlot}
+      if {[info exists pattern]} {lappend cmd $pattern}
+      return [: {*}$cmd] 
+    }
   }
 
   ######################################################################
@@ -832,6 +848,7 @@ namespace eval ::nx {
     :method "info method body"         {name} {: ::nsf::methods::class::info::method body $name}
     :method "info method definition"   {name} {: ::nsf::methods::class::info::method definition $name}
     :method "info method exists"       {name} {: ::nsf::methods::class::info::method exists $name}
+    :method "info method handle"       {name} {: ::nsf::methods::class::info::method definitionhandle $name}
     :method "info method registrationhandle" {name} {: ::nsf::methods::class::info::method registrationhandle $name}
     :method "info method definitionhandle"   {name} {: ::nsf::methods::class::info::method definitionhandle $name}
     :method "info method origin"       {name} {: ::nsf::methods::class::info::method origin $name}
@@ -841,7 +858,7 @@ namespace eval ::nx {
       return $defs
     }
     :method "info method syntax"        {name} {
-      return [string trimright "/[self]/ $name [: ::nsf::methods::class::info::method syntax $name]" { }]
+      return [string trimright "/[self]/ [namespace tail $name] [: ::nsf::methods::class::info::method syntax $name]" { }]
     }
     :method "info method type"          {name} {: ::nsf::methods::class::info::method type $name}
     :method "info method precondition"  {name} {: ::nsf::methods::class::info::method precondition $name}
@@ -856,6 +873,7 @@ namespace eval ::nx {
     :method "info object method body"         {name} {: ::nsf::methods::object::info::method body $name}
     :method "info object method definition"   {name} {: ::nsf::methods::object::info::method definition $name}
     :method "info object method exists"       {name} {: ::nsf::methods::object::info::method exists $name}
+    :method "info object method handle"       {name} {: ::nsf::methods::object::info::method definitionhandle $name}
     :method "info object method registrationhandle" {name} {: ::nsf::methods::object::info::method registrationhandle $name}
     :method "info object method definitionhandle"   {name} {: ::nsf::methods::object::info::method definitionhandle $name}
     :method "info object method origin"       {name} {: ::nsf::methods::object::info::method origin $name}
@@ -865,7 +883,7 @@ namespace eval ::nx {
       return $defs
     }
     :method "info object method syntax"        {name} {
-      return [string trimright "/[self]/ $name [: ::nsf::methods::object::info::method syntax $name]" { }]
+      return [string trimright "/[self]/ [namespace tail $name] [: ::nsf::methods::object::info::method syntax $name]" { }]
     }
     :method "info object method type"          {name} {: ::nsf::methods::object::info::method type $name}
     :method "info object method precondition"  {name} {: ::nsf::methods::object::info::method precondition $name}
@@ -2506,6 +2524,16 @@ namespace eval ::nx {
   set ::nx::logdir $::nx::confdir/log
 
   unset ::nsf::bootstrap
+}
+
+if {[info command ::lmap] eq ""} {
+  # provide a simple forward compatible version of Tcl 8.6's lmap
+  proc lmap {_var list body} {
+    upvar 1 $_var var
+    set res {}
+    foreach var $list {lappend res [uplevel 1 $body]}
+    return $res
+  }
 }
 
 #

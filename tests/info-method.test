@@ -727,9 +727,9 @@ nx::Test case info-methods-path {
   ? {::nx::Object info methods "info"} "info"
   ? {::nx::Object info methods -path "info"} ""
   ? {lsort [::nx::Object info methods -path "info lookup *"]} \
-      "{info lookup configure parameters} {info lookup configure syntax} {info lookup filter} {info lookup method} {info lookup methods} {info lookup slots}"
+      "{info lookup configure parameters} {info lookup configure syntax} {info lookup filter} {info lookup method} {info lookup methods} {info lookup slots} {info lookup variables}"
   ? {lsort [::nx::Object info methods -path "info *parameter*"]} \
-      "{info lookup configure parameters} {info object method parameters} {info parameter name} {info parameter syntax}"
+      "{info lookup configure parameters} {info object method parameters} {info parameter name} {info parameter syntax} {info variable parameter}"
   ? {lsort [::nx::Object info methods "slots"]} ""
   ? {lsort [::nx::Object info methods "*slots*"]} ""
   ? {lsort [::nx::Object info methods -path "*slot*"]} \
@@ -785,8 +785,8 @@ nx::Test case parametersyntax {
   # a forwarder to ::nsf::relation; definition comes via array ::nsf::parametersyntax
   ? {::nx::Class info method syntax mixin} "/::nx::Class/ mixin ?/class .../?|?add /class/?|?delete /class/?"
 
-  ? {::nx::Class info method syntax ::nx::next} "/::nx::Class/ ::nx::next ?/arguments/?"
-  ? {::nx::Class info method syntax ::nsf::xotclnext} "/::nx::Class/ ::nsf::xotclnext ?--noArgs? ?/arg .../?"
+  ? {::nx::Class info method syntax ::nx::next} "/::nx::Class/ next ?/arguments/?"
+  ? {::nx::Class info method syntax ::nsf::xotclnext} "/::nx::Class/ xotclnext ?--noArgs? ?/arg .../?"
 }
 
 #
