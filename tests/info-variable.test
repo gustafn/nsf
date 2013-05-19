@@ -1,0 +1,267 @@
+# -*- Tcl -*-
+package req nx
+package req nx::test
+
+# parameter/variable info reform
+#
+# /cls/ info configure parameters ?pattern? -> list of params
+# /cls/ info configure syntax -> syntax output
+#
+# /cls/ info method parameters /methodname/ ?/pattern/? -> list of params
+# /cls/ info method syntax /methodname/ -> syntax output
+# /cls/ info variables ?/pattern/? -> list of variable handles
+#
+# /obj/ info object method parameters /methodname/ ?/pattern/? -> list of params
+# /obj/ info object method syntax  /methodname/ -> syntax output
+# /obj/ info object variables ?/pattern/? -> list of variable handles
+#
+# /obj/ info lookup configure parameters ?/pattern/? -> list of params
+# /obj/ info lookup configure syntax -> syntax output
+# /obj/ info lookup variables ?/pattern/? -> list of variable handles
+#
+# Context-free: work on any object, would not need object.
+# /obj/ info parameter list|name|syntax /param/ -> value
+# /obj/ info variable definition|name|parameter /handle/ -> value
+#
+nx::Test case configure-parameters {
+  nx::Class create Person {
+    :property name
+    :property age:integer
+    :public method foo {-force:switch age:integer {name ""}} {return $age}
+  }
+
+  ? {join [Person info configure parameters] \n} \
+"-age:integer
+-name
+-volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg
+-noinit:alias,method=::nsf::methods::object::noinit,noarg
+-object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n
+-class:class,alias,method=::nsf::methods::object::class
+-object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n
+__initcmd:initcmd,optional,noleadingdash"
+
+  ? {Person info configure parameters age} "-age:integer"
+  ? {Person info configure parameters {*a[gs]*}} "-age:integer -class:class,alias,method=::nsf::methods::object::class"
+  ? {Person info configure syntax} "/::Person/ ?-age /integer/? ?-name /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
+
+  ? {Person info method parameters foo} {-force:switch age:integer {name ""}}
+  ? {Person info method parameters foo force} "-force:switch"
+  ? {Person info method parameters foo {*a[gm]*}} {age:integer {name ""}}
+  ? {Person info method syntax foo} "/::Person/ foo ?-force? /age/ ?/name/?"
+  ? {Person info parameter syntax age:integer} "/age/"
+  ? {Person info parameter syntax -force:switch} "?-force?"
+  ? {Person info parameter name "a b"} "a"
+
+  nx::Class create Bar {
+    :property {p 9}
+  }
+  nx::Class create Foo -superclass Bar {
+    :property a:integer
+    :property {b:integer 123}
+    :variable c 456
+    :variable d:lower abc
+    :variable -accessor public e:lower efg
+    :property -accessor private {p 19}
+    :property -accessor protected q
+    :property -incremental i
+    :public method m {} {: -local p}
+    :create f1
+  }
+
+  ? {join [lsort [::Foo info slots]] \n} \
+"::Foo::slot::____Foo.p
+::Foo::slot::a
+::Foo::slot::b
+::Foo::slot::c
+::Foo::slot::d
+::Foo::slot::e
+::Foo::slot::i
+::Foo::slot::q"
+
+  ? {::Foo info configure parameters ?} "-i:0..n -a:integer {-b:integer 123} {-p 9}"
+  ? {::Foo::slot::b definition} "::Foo property -accessor none {b:integer 123}"
+  ? {::Foo::slot::i definition} "::Foo property -accessor public -incremental i:0..n"
+  ? {::Foo::slot::____Foo.p definition} "::Foo variable -accessor private p 19"
+  ? {::Foo::slot::d definition} "::Foo variable -accessor none d:lower abc"
+  ? {::Foo::slot::e definition} "::Foo variable -accessor public e:lower efg"
+  ? {::Foo::slot::q definition} "::Foo variable -accessor protected q"
+  
+  ? {join [lsort [::f1 info lookup slots]] \n} \
+"::Bar::slot::p
+::Foo::slot::____Foo.p
+::Foo::slot::a
+::Foo::slot::b
+::Foo::slot::c
+::Foo::slot::d
+::Foo::slot::e
+::Foo::slot::i
+::Foo::slot::q
+::nx::Object::slot::__initcmd
+::nx::Object::slot::class
+::nx::Object::slot::noinit
+::nx::Object::slot::object-filter
+::nx::Object::slot::object-mixin
+::nx::Object::slot::volatile"
+
+  # get the configure value from p and the value of the private property via m
+  ? {f1 cget -p} 9
+  ? {f1 m} 19
+  ? {lsort [f1 info vars]} "__private b c d e p"
+
+  #package require nx::serializer
+  #puts stderr [::Foo::slot::____Foo.p serialize]
+
+  ? {llength [::f1 info lookup variables]} 9
+  ? {join [lsort [::f1 info lookup variables]] \n} \
+"::Bar::slot::p
+::Foo::slot::____Foo.p
+::Foo::slot::a
+::Foo::slot::b
+::Foo::slot::c
+::Foo::slot::d
+::Foo::slot::e
+::Foo::slot::i
+::Foo::slot::q"
+
+  # One can get 2 values for "lookup variables p"; the private one an
+  # the non-private, since both have the same name.  this is necessary
+  # to obtain e.g. the definition of the private slot.
+  ? {lsort [::f1 info lookup variables p]} "::Bar::slot::p ::Foo::slot::____Foo.p"
+  
+  ? {llength [::Foo info variables]} 8
+  ? {join [lsort [::Foo info variables]] \n} \
+"::Foo::slot::____Foo.p
+::Foo::slot::a
+::Foo::slot::b
+::Foo::slot::c
+::Foo::slot::d
+::Foo::slot::e
+::Foo::slot::i
+::Foo::slot::q"
+
+  ? {::Foo info variables p} "::Foo::slot::____Foo.p"
+  ? {::Foo info slots p} "::Foo::slot::____Foo.p"
+
+  set ::vs [lsort [::Foo info variables]]
+  ? {join [lmap handle $vs {::Foo info variable definition $handle}] \n} \
+"::Foo variable -accessor private p 19
+::Foo property -accessor none a:integer
+::Foo property -accessor none {b:integer 123}
+::Foo variable -accessor none c 456
+::Foo variable -accessor none d:lower abc
+::Foo variable -accessor public e:lower efg
+::Foo property -accessor public -incremental i:0..n
+::Foo variable -accessor protected q"
+
+  ? {join [lmap handle $::vs {::Foo info variable parameter $handle}] \n} \
+"p 19
+a:integer
+b:integer 123
+c 456
+d:lower abc
+e:lower efg
+i:0..n
+q"
+
+  ? {lmap handle $::vs {::Foo info variable name $handle}} \
+    "__private(::Foo,p) a b c d e i q"
+}
+
+nx::Test case object-variables {
+  nx::Class create Bar {
+    :property {p 9}
+  }
+  nx::Class create Foo -superclass Bar {
+    :property a:integer
+    :property {b:integer 123}
+    :variable c 456
+    :variable d:lower abc
+    :variable -accessor public e:lower efg
+    :property -accessor private {p 19}
+    :property -accessor protected q
+    :property -incremental i
+    :public method m {} {: -local p}
+    :create f1
+  }
+
+  Foo create f2 {
+    :object property 			oa:integer
+    :object property 			{ob:integer 123}
+    :object variable 			oc 456   	 ;# NO slot
+    :object variable 			od:lower abc	 ;# NO slot
+    :object variable -accessor public 	oe:lower efg
+    :object property -incremental 	oi
+    :object property -accessor private	{op 19}
+    :object property -accessor protected	oq
+    :public object method om {} {: -local p}
+  }
+
+  set ::ovs [lsort [::f2 info object variables]]
+
+  ? {llength $::ovs} "6"   ;# oc, od missing
+  ? {join $::ovs "\n"} \
+"::f2::per-object-slot::____f2.op
+::f2::per-object-slot::oa
+::f2::per-object-slot::ob
+::f2::per-object-slot::oe
+::f2::per-object-slot::oi
+::f2::per-object-slot::oq"
+
+
+  ? {join [lmap handle $::ovs {::f2 info variable definition $handle}] \n} \
+"::f2 object variable -accessor private op 19
+::f2 object property -accessor none oa:integer
+::f2 object property -accessor none {ob:integer 123}
+::f2 object variable -accessor public oe:lower efg
+::f2 object property -accessor public -incremental oi:0..n
+::f2 object variable -accessor protected oq"
+
+  ? {lmap handle $::ovs {::f2 info variable parameter $handle}} \
+    "{op 19} oa:integer {ob:integer 123} {oe:lower efg} oi:0..n oq"
+  ? {lmap handle $::ovs {::f2 info variable name $handle}} \
+    "__private(::f2,op) oa ob oe oi oq"
+
+
+  set ::ovs [lsort [::f2 info lookup variables]]
+  ? {llength $::ovs} "15"   ;# oc, od missing
+  ? {join $::ovs "\n"} \
+"::Bar::slot::p
+::Foo::slot::____Foo.p
+::Foo::slot::a
+::Foo::slot::b
+::Foo::slot::c
+::Foo::slot::d
+::Foo::slot::e
+::Foo::slot::i
+::Foo::slot::q
+::f2::per-object-slot::____f2.op
+::f2::per-object-slot::oa
+::f2::per-object-slot::ob
+::f2::per-object-slot::oe
+::f2::per-object-slot::oi
+::f2::per-object-slot::oq"
+
+  # redefine property a on the object level
+  ::f2 object property -accessor none a:integer
+
+  set ::ovs [lsort [::f2 info lookup variables]]
+  ? {llength $::ovs} "15"   ;# oc, od missing
+  ? {join $::ovs "\n"} \
+"::Bar::slot::p
+::Foo::slot::____Foo.p
+::Foo::slot::b
+::Foo::slot::c
+::Foo::slot::d
+::Foo::slot::e
+::Foo::slot::i
+::Foo::slot::q
+::f2::per-object-slot::____f2.op
+::f2::per-object-slot::a
+::f2::per-object-slot::oa
+::f2::per-object-slot::ob
+::f2::per-object-slot::oe
+::f2::per-object-slot::oi
+::f2::per-object-slot::oq"
+
+}
+

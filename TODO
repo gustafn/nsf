@@ -4438,12 +4438,13 @@ Method and configure parameter reform, Part 3:
 
 - nsf.c: handle names for private slots in pattern provided to AddSlotObjects(),
   used e.g. in "info lookup slots /pattern/"
+- added new regression test info-variables.test
+
 ========================================================================
 TODO:
 - valuechangedcmd implemented via initcmd does 
   not work with "configure" method
 - info AddSlotObjects(): handle full-qualified name for private slots
-- handling of slots/properties/variables
 - NsfParameterGetCmd should/could handle more than "list|name|syntax"
 - update documentation
 - fix property inheritance in traits (nx-traits.tcl)
