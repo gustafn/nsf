@@ -260,8 +260,8 @@ namespace eval ::nx {
   # Well, class is not a method defining method either, but a modifier
   array set ::nsf::methodDefiningMethod {
     method 1 alias 1 forward 1 object 1 
-    ::nsf::classes::nx::Class::method 1 ::nsf::classes::nx::Object::method 1
-    ::nsf::classes::nx::Class::alias 1 ::nsf::classes::nx::Object::alias 1
+    ::nsf::classes::nx::Class::method  1 ::nsf::classes::nx::Object::method  1
+    ::nsf::classes::nx::Class::alias   1 ::nsf::classes::nx::Object::alias   1
     ::nsf::classes::nx::Class::forward 1 ::nsf::classes::nx::Object::forward 1
   }
 
@@ -729,12 +729,10 @@ namespace eval ::nx {
     
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence
-    # "info properties" is a short form of "info slot definition"
-    #:alias "info properties"     ::nx::Object::slot::__info::slot::definition
     :alias "info vars"           ::nsf::methods::object::info::vars
-    :method "info variable definition" {slot}  {return [$slot definition]}
-    :method "info variable name"       {slot}  {return [$slot name]}
-    :method "info variable parameter"  {slot}  {return [$slot getSpec]}
+    :method "info variable definition" {handle}  {return [$handle definition]}
+    :method "info variable name"       {handle}  {return [$handle name]}
+    :method "info variable parameter"  {handle}  {return [$handle parameter]}
   }
 
   ######################################################################
@@ -809,8 +807,6 @@ namespace eval ::nx {
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }
-    # "info properties" is a short form of "info slot definition"
-    #:alias "info properties"     ::nx::Class::slot::__info::slot::definition
     :alias "info subclass"       ::nsf::methods::class::info::subclass
     :alias "info superclass"     ::nsf::methods::class::info::superclass
     :method "info variables" {pattern:optional} {
@@ -1805,7 +1801,7 @@ namespace eval ::nx {
     }
   }
 
-  ::nx::VariableSlot public method getSpec {} {
+  ::nx::VariableSlot public method parameter {} {
     # This is a shortend "lightweight" version of "getParameterSpec"
     # returning less (implicit) details.
     set options [:getParameterOptions -withMultiplicity true]
