@@ -4440,13 +4440,21 @@ Method and configure parameter reform, Part 3:
   used e.g. in "info lookup slots /pattern/"
 - added new regression test info-variables.test
 
+- nx-pp.tcl: fixed changed accessor handling, added cget to highlight words
+- updated next-migration guide to reflect changes from the configure reform
+
 ========================================================================
 TODO:
+- The two names are not appropriate
+    /cls/ delete property /name/
+    /obj/ delete object property /name/
+  maybe call it "delete ?object? variable" and
+  call these "variable handlers"
+- improve syntax output for current object
 - valuechangedcmd implemented via initcmd does 
   not work with "configure" method
 - info AddSlotObjects(): handle full-qualified name for private slots
 - NsfParameterGetCmd should/could handle more than "list|name|syntax"
-- update documentation
 - fix property inheritance in traits (nx-traits.tcl)
 - maybe remove unneeded values, align naming in enumeration of first arg of 
   *::info::objectparameter and *::info::method

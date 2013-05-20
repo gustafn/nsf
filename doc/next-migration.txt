@@ -1,7 +1,7 @@
 Migration Guide for the Next Scripting Language
 ===============================================
 Gustaf Neumann <neumann@wu-wien.ac.at>
-v2.1, March 2011:
+v2.2, May 2013:
 :Author Initials: GN
 :toc:
 :toclevels: 3
@@ -127,7 +127,7 @@ in the following respects:
      arguments for methods, the Next Scripting Framework provides 
      the same value checkers for positional and non-positional
      arguments of methods, as well as for positional and 
-     non-positional object parameters (`-parameter` in
+     non-positional configure parameters (`-parameter` in
      XOTcl 1). 
   .. While XOTcl 1 supported only non-positional arguments at the
     begin of the argument list, these can be used now at arbitrary
@@ -490,10 +490,9 @@ are summarized in the following table for XOTcl and NX.
 ----------------
 # Methods for defining methods:
 #
-#     method
-#     forward
 #     alias
-#     property
+#     forward
+#     method
 #
 # All these methods return method-handles.
 ----------------
@@ -505,9 +504,10 @@ to variables (called +parametercmd+ and +instparametercmd+).  The
 accessor functions are used normally internally when object-specific
 parameters are defined (see Section 3.4).
 
-In NX forwarders are called +forward+. NX does not provide an own
-method to define variable accessors, but uses the Next Scripting
-Framework primitive +nsf::method::setter+ for it.
+In NX forwarders are called +forward+. NX does not provide an public
+available method to define variable accessors like +parametercmd+ in
+XOTcl, but use interanlly the Next Scripting Framework primitive
++nsf::method::setter+ when appropriate.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -637,7 +637,7 @@ is new in NX.
 # are applicable for all kinds of 
 # method defining methods:
 #
-#    method, forward, alias, property
+#    method, forward, alias
 #
 # The modifier "private" is available for
 #
@@ -660,10 +660,8 @@ XOTcl does not provide method protection. In NX, all methods are
 defined per default as protected. This default can be changed by the
 application developer in various ways. The command `::nx::configure
 defaultMethodCallProtection true|false` can be used to set the default
-call protection for scripted methods, forwarder and aliases, while
-`::nx::configure defaultPropertyCallProtection true|false` can set
-the default protection for properties. The defaults can be overwritten
-also e.g. on a class level.
+call protection for scripted methods, forwarder and aliases.
+The defaults can be overwritten also on a class level.
 
 NX provides means for method hiding via the method modifier
 +private+. Hidden methods can be invoked only via the +-local+ flag,
@@ -703,10 +701,9 @@ s1 baz 3 4  ;# unable to dispatch method 'baz'
 
 
 [[method-deletion]]
-==== Method and Property Deletion
+==== Method Deletion
 
-NX provides an explicit +delete+ method for the deletion of methods
-and properties.
+NX provides an explicit +delete+ method for the deletion of methods.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -718,8 +715,6 @@ and properties.
 # the equivalent of Tcl's "proc foo {} {}"
 /cls/ instproc foo {} {}
 /obj/ proc foo {} {}
-
-# No support for property deletion
 ----------------
 |[source,tcl]
 ----------------
@@ -727,10 +722,6 @@ and properties.
 #
 /cls/ delete method /name/
 /obj/ delete object method /name/
-
-# Deletion of Properties
-/cls/ delete property /name/
-/obj/ delete object property /name/
 ----------------
 |======================
 
@@ -990,7 +981,7 @@ handling various kinds of value constraints (also called value
 checkers). Parameters are used to specify, 
 
 - how objects and classes are initialized (we call these parameter types
-   _Object Parameters_), and
+   _Configure Parameters_), and
 - what values can be passed to methods (we call these _Method
    Parameters_).
 
@@ -1001,35 +992,49 @@ Framework provide a unified, C-implemented infrastructure to handle
 both, object and method parameters in the same way with a high degree
 of orthogonality.
 
-Object Parameters were specified in XOTcl 1 primarily via the method
-+parameter+ in a rather limited way, XOTcl 1 only supported
-non-positional parameters in front of positional ones, there were no
-value constraints for positional parameters, no distinction between
-optional and required, or multiplicity.
+Configuration parameters were specified in XOTcl 1 primarily via the
+method +parameter+ in a rather limited way, XOTcl 1 only supported
+non-positional parameters in front of positional ones, supported no
+value constraints for positional parameters, provided no distinction
+between optional and required, and did not support multiplicity.
 
 Furthermore, the Next Scripting Framework provides optionally _Return
 Value Checking_ based on the same mechanism to check whether some
 methods return always the values as specified.
 
-==== Instance Variables and Object Parameters
+==== Parameters for Configuring Objects: Variables and Properties
 
-Object parameters are used for specifying, how objects are
-initialized (i.e. how instance variables are initialized, what
-parameters can be passed in for initialization, what default values
-are used, etc.).  Object parameters are supported in XOTcl primarily
-via the method +parameter+, which is used in XOTcl to define multiple
-parameters via a list of parameter specifications. Since the term
-"parameter" is underspecified, NX uses a more differentiated
-terminology. NX distinguishes between instance variables with
-accessors (also called properties) and instance variables without
-accessors. To define a property, NX uses the method +property+, to
-define an instance variable without accessor, it uses the method
-+variable+.  To define multiple properties in a short form (similar to
-XOTcl's +parameter+), NX provides the method +properties+.
+Configure parameters are used for specifying values for configuring
+objects when they are created (i.e. how instance variables are
+initialized, what parameters can be passed in for initialization, what
+default values are used, etc.).  Such configuration parameters are
+supported in XOTcl primarily via the method +parameter+, which is used
+in XOTcl to define multiple parameters via a list of parameter
+specifications. 
 
-In a first step, we show the initialization of instance variables
-without accessors (using +variable+ in NX), and then the definition of 
-instance variables with accessors (using +property+).
+Since the term "parameter" is underspecified, NX uses a more
+differentiated terminology. NX distinguishes between configurable
+instance variables (also called _properties_) and non configurable
+instance variables (called _variables_), which might have as well
+e.g. default values. The values of configurable properties can be
+queried at runtime via +cget+, and their values can be altered via
++configure+. When the value of a configure parameter is provided or
+changed, the value checkers from the variable definition are used to
+ensure, the value is permissible (i.e. it is for example an integer
+value). The sum of all configurable object parameters are called
+_configure parameters_. To define a define a configurable variable, NX
+uses the method +property+, for non-configurable variables, the method
++variable+ is used.
+
+Optionally, one can define in NX, that a +property+ or a
++variable+ should have a public, protected or private accessor. Such
+an accessor is a method with the same name as the variable. In XOTcl,
+every +parameter+ defined as well automatically a same-named accessor
+method, leading to potential name conflicts with other method names.
+
+In the examples below we show the definition of configurable an
+non-configurable instance variables using +variable+ and +property+
+respectively.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1039,7 +1044,8 @@ instance variables with accessors (using +property+).
 ----------------
 # Define class "Foo" with instance 
 # variables "x" and "y" initialized
-# on instance creation.
+# on instance creation. The initialization
+# has to be performed in the constructor.
 
 Class Foo
 Foo instproc init args {
@@ -1062,7 +1068,7 @@ Foo f1
 # to Tcl's "variable" command. During 
 # instance creation, the variable 
 # definitions are used for the 
-# initialization of the object.
+# initialization of the variables of the object.
 
 Class create Foo {
   :variable x 1
@@ -1078,13 +1084,14 @@ Foo create f1
 |======================
 
 While XOTcl follows a procedural way to initialize variables via the
-constructor +init+, NX follows a more declarative approach. Note, that
-the variable definitions are inherited from superclasses, which is
-straightforward in NX, while in XOTcl, the constructor has to call
-explicitly the constructor of its superclasses.
-
-It is certainly as well possible to use constructors in NX in the same
-way as in XOTcl.
+constructor +init+, NX follows a more declarative approach. Often,
+classes have superclasses, which often want to provide their own
+instance variables and default values. The declarative approach from
+NX solves this via inheritance, while an procedural approach via
+assign statements in the constructor requires explicit constructor
+calls, which are often error-prone. Certainly, when a user prefers to
+assign initial values to instance variables via explicit assign
+operations in constructors, this is as ell possible in NX.
 
 NX uses the same mechanism to define class variables or object
 variables.
@@ -1102,8 +1109,8 @@ variables.
 ----------------
 
 # Define a object variable "V" with value 100 and
-# an instance variable "x". "V" is just available
-# for the class object Foo, "x" is available in the
+# an instance variable "x". "V" is defined for the 
+# class object Foo, "x" is defined in the
 # instances of the class. "object variable" works 
 # similar to "object method". 
 
@@ -1114,13 +1121,21 @@ Class create Foo {
 ----------------
 |======================
 
-In the next step, we define properties, i.e. variables with accessors.
+In the next step, we define configurable instance variables which we
+call _properties_ in NX.
 
 XOTcl uses the method +parameter+ is a shortcut for creating multiple
-properties. For every parameter definition, XOTcl creates as well a
-slot object, keeping an extensible set of meta-data for every
-parameter.  Slot objects can be as well created in XOTcl directly via
-the method +slots+. NX provides a similar method named +properties+.
+configurable variables with automically created accessors (methods for
+reading and writing of the variables). In NX, the prefered way to
+create configurable variables is to use the method +property+. The
+method +property+ in NX is similar to +variable+, but makes the
+variables configurable, which means that
+
+. one can specify the property as a non-positional parameter upon
+  creation of the object,
+. one can query the value via the method +cget+, and
+. one can modify the value of the underlying variable via the method
+  +configure+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1128,8 +1143,8 @@ the method +slots+. NX provides a similar method named +properties+.
 
 |[source,tcl]
 ----------------
-# Object parameter specified as a list 
-# (short form); Parameter
+# Parameters specified as a list 
+# (short form); parameter
 # "a" has no default, "b" has default "1"
 
 Class Foo -parameter {a {b 1}}
@@ -1139,46 +1154,49 @@ Foo f1 -a 0
 
 # Object f1 has instance variables 
 # a == 0 and b == 1
+
+# XOTcl registers automatically accessors
+# for the parameters. Use the accessor 
+# "b" to output the value of variable "b"
+puts [f1 b]
+
+# Use the setter to alter value of
+# instance variable "b"
+f1 b 100
 ----------------
 |[source,tcl]
 ----------------
-# Object parameter specified as a list 
-# (short form); "a" has no default, 
-# "b" has default "1"
+# Define property "a" and "b". The 
+# property "a" has no default, "b" has 
+# default value "1"
 
-Class create Foo -properties {a {b 1}}
+Class create Foo {
+  :property a
+  :property {b 1}
+}
 
 # Create instance of the class Foo
 Foo create f1 -a 0
 
 # Object f1 has instance variables 
 # a == 0 and b == 1
+
+# Use the method "cget" to query the value 
+# of a configuration parameter
+puts [f1 cget -b]
+
+# Use the method "configure" to alter the
+# value of instance variable "b"
+f1 configure -b 100
 ----------------
 |======================
 
-Since every property defines a slot object, NX provides as well a
-scripted initialization for every slot object. Therefore, NX uses
-+property+ to define a single property, similar in syntax to method
-parameters (a braced pair to denote a variable with a default).  The
-method +property+ can be used in NX on the class and on the object
-level (in XOTcl: just on the class level). When an property is
-created, NX does actually three things:
-
-. Create a slot object, which can be specified in more detail
-  using the init-block of the slot object
-. Create an object parameter definition for the initialization of the
-  object (usable via a non-positional parameter during object
-  creation), and
-. register an accessor function (setter), for wich the usual
-  protection levels (+public+, +protected+ or +private+) can be used.
-
-The method +variable+ in NX is similar to +property+, but it creates
-only slot objects in cases where internally needed. +variable+ it does
-neither  provide object parameters, or naccessors.
-
-We show first the definition of properties simliar to the
-functionality provided as well by XOTcl and show afterwards how to use
-value constraints, optional parameters, etc. in NX.
+In general, NX allows to create variables and properties with and
+without accessor methods. The created accessor methods might be
++public+, +protected+ or +public+. When the value +none+ is provided
+to +-accessor+, no accessor will be created. This is actually the
+default in NX. In order to change the default behavior in NX, one can use
++::nx::configure defaultAccessor none|public|protected|private+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1186,114 +1204,59 @@ value constraints, optional parameters, etc. in NX.
 
 |[source,tcl]
 ----------------
-# Object parameters specified via slots
-
-Class Foo -slots {
-   Attribute a
-   Attribute b -default 1
-}
-
-# Create instance of the class Foo 
-# and provide a value for instance 
-# variable "a"
-Foo f1 -a 0
-
-# Object f1 has a == 0 and b == 1
-
-# Use the setter to alter value of
-# instance variable "b"
-f1 b 100
-
-# Use the accessor to output 
-# the value
-puts [f1 b]
+# "parameter" creates always accessor 
+# methods, accessor methods are 
+# always public, no "cget" is available.
 ----------------
-
 |[source,tcl]
 ----------------
-# Object parameters specified via the method 
-# "property" (supports method modifiers and 
-# scripted configuration; see below)
+# Define property "a" and "b". The 
+# property "a" has no default, "b" has 
+# default value "1"
 
 Class create Foo {
-   :property a
-   :property {b 1}
+  :variable -accessor public a
+  :property -accessor public {b 1}
 }
 
-# Create instance of the class Foo and
-# provide a value for instance variable "a"
-Foo create f1 -a 0
-
-# Object f1 has a == 0 and b == 1
-
-# Use the setter to alter instance variable "b"
-f1 b 100
-
-# Use the accessor to output the value
+# Use the accessor method to query 
+# the value of a configuration parameter
 puts [f1 b]
+
+# Use the accessor method to set the
+# value of instance variable "a"
+f1 a 100
 ----------------
+|======================
 
+Similar to +variable+, properties can be defined in NX on the class
+and on the object level.
 
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
 |[source,tcl]
 ----------------
-# Parameters only available at 
-# class level
+# XOTcl provides no means to define 
+# configurable variables at the object
+# level
 ----------------
-
 |[source,tcl]
 ----------------
-# Define instance and object properties
+# Define class with a property for the class object
+# named "cp". This is similar to "static variables"
+# in some other object-oriented programming
+# languages.
 
-Class create C {
-  :property x
-  :property {y 1}
-  :object property cp
+Class create Foo {
+  ...
+  :object property cp 101
 }
+
+# Define object property "op"
 
 Object create o {
-  :object property op
-}
-----------------
-
-|[source,tcl]
-----------------
-# Object parameter with configured slot, 
-# defining an attribute specific type 
-# checker
-
-Class Person -slots {
-  Attribute create sex -type "sex" {
-    my proc type=sex {name value} {
-      switch -glob $value {
-        m* {return m}
-        f* {return f}
-        default {
-          error "expected sex but got $value"
-        }
-      }
-    }
-  }
-}
-----------------
-|[source,tcl]
-----------------
-# Object parameter with scripted 
-# definition (init-block), defining a
-# property specific type checker
-
-Class create Person {
-  :property sex {
-    :type "sex"
-    :object method type=sex {name value} {
-      switch -glob $value {
-        m* {return m}
-        f* {return f}
-        default {
-          error "expected sex but got $value"
-        }
-      }
-    }
-  }
+  :object property op 102
 }
 ----------------
 |======================
@@ -1347,11 +1310,11 @@ Class create Foo {
 ----------------
 |======================
 
-In XOTcl all object parameters were _optional_. Required parameters have
+In XOTcl all configure parameters were _optional_. Required parameters have
 to be passed to the constructor of the object.
 
-NX allows to define _optional_ and _required_ object parameters (as
-well as method parameters). Therefore, object parameters can be used
+NX allows to define _optional_ and _required_ configure parameters (as
+well as method parameters). Therefore, configure parameters can be used
 as the single mechanism to parameterize objects. It is in NX not
 necessary (and per default not possible) to pass arguments to the
 constructor.
@@ -1423,9 +1386,139 @@ Class create Foo {
 ----------------
 |======================
 
-The Object parameters provided by a class for the initialization of
-instances can be introspected via +/cls/ info parameter+ (see
-<<info_parameter>>).
+
+For the implementation of variables and properties, NX uses slot
+objects, which are an extension to the +-slots+ already available in
+XOTcl. While very for every +property+ in NX, a slot object is created,
+for performance reasons, not every +variable+ has a slot associated.
+
+When an property is created, NX does actually three things:
+
+. Create a slot object, which can be specified in more detail
+  using the init-block of the slot object
+. Create a parameter definition for the initialization of the
+  object (usable via a non-positional parameter during object
+  creation), and
+. register optionally an accessor function (setter), for which the usual
+  protection levels (+public+, +protected+ or +private+) can be used.
+
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# Define parameters via slots
+
+Class Foo -slots {
+   Attribute a
+   Attribute b -default 1
+}
+
+# Create instance of the class Foo 
+# and provide a value for instance 
+# variable "a"
+Foo f1 -a 0
+
+# Object f1 has a == 0 and b == 1
+----------------
+
+|[source,tcl]
+----------------
+# Configurable parameters specified via the 
+# method "property" (supports method 
+# modifiers and scripted configuration; 
+# see below)
+
+Class create Foo {
+   :property a
+   :property {b 1}
+}
+
+# Create instance of the class Foo and
+# provide a value for instance variable "a"
+Foo create f1 -a 0
+
+# Object f1 has a == 0 and b == 1
+----------------
+|======================
+
+Since the slots are objects, the slot objects can be configured and
+parameterized like every other object in NX. Slot objects can be
+provided with a scripted initialization as well. We show first the
+definition of properties simliar to the functionality provided as well
+by XOTcl and show afterwards how to use value constraints, optional
+parameters, etc. in NX.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# Define parameter with an an 
+# attribute-specific type checker
+
+Class Person -slots {
+  Attribute create sex -type "sex" {
+    my proc type=sex {name value} {
+      switch -glob $value {
+        m* {return m}
+        f* {return f}
+        default {
+          error "expected sex but got $value"
+        }
+      }
+    }
+  }
+}
+----------------
+|[source,tcl]
+----------------
+# Configure parameter with scripted 
+# definition (init-block), defining a
+# property specific type checker
+
+Class create Person {
+  :property sex {
+    :type "sex"
+    :object method type=sex {name value} {
+      switch -glob $value {
+        m* {return m}
+        f* {return f}
+        default {
+          error "expected sex but got $value"
+        }
+      }
+    }
+  }
+}
+----------------
+|======================
+
+The configure parameters provided by a class for the initialization of
+instances can be introspected via +/cls/ info configure parameters+ 
+(see <<info_configure_parameter>>).
+
+==== Delete Variable Handlers
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# No syntactic support for deleting
+# variable handlers
+----------------
+|[source,tcl]
+----------------
+/cls/ delete property /name/
+/obj/ delete object property /name/
+----------------
+|======================
+
 
 ==== Method Parameters
 
@@ -1524,7 +1617,7 @@ Class create C {
   } 
 
   # In general, the same list of value 
-  # constraints as for object parameter is 
+  # constraints as for configure parameter is 
   # available (see above).
   #
   # User defined value constraints are 
@@ -2117,11 +2210,103 @@ For definition of class object specific methods, use the modifier
 +object+ as usual.
 
 
-==== List Slots and their definitions
+[[info_configure_parameter]]
+==== List Configure Parameters
+Obtain information, how newly created object can be configured. The
+configuration of objects is performed in many languages over arguments
+to the constructors. NX has - what we think - a superiour approach for
+configuration via configure parameters. The configure parameter are
+defined by NX application programs usually via +property+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+# Return configure parameter(s), the parameters
+# provided by a class for its instances; these
+# parameters define, how objects of this
+# class can be configured. a pattern can
+# be used to filter the results.
+
+/cls/ info configure parameters ?pattern?
+
+# Return in the Tcl parameter syntax
+
+/cls/ info configure syntax
+
+# "info lookup configure parameters" returns 
+# parameters available for configuring the 
+# current object  (might contain object 
+# specific information)
+
+/obj/ info lookup configure parameters ?pattern?
+
+# "info lookup configure syntax" returns syntax of 
+# a call to configure in the Tcl parameter syntax
+
+/obj/ info lookup configure syntax
+
+# Obtain information from a parameter 
+# (as e.g. returned from "info configure
+# parameters").
+
+/obj/ info parameter name /parameter/
+/obj/ info parameter syntax /parameter/
+
+----------------
+|======================
+
+
+==== List Variable Handlers
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# obtain parameter definitions defined 
+# for a class
+/cls/ info parameter
+----------------
+|[source,tcl]
+----------------
+# "info variables" returns handles of 
+# properties and variables defined by this 
+# class or object
+
+/cls/ info variables ?pattern?
+/obj/ info object variables ?pattern?
+
+# "info lookup variables" returns handles
+# of variables and properties applicable
+# for the current object (might contain
+# object specific information)
+
+/obj/ info lookup variables /pattern/
+
+# "info variable" lists details about a 
+# single property or variable.
+
+/obj/ info variable definition /handle/
+/obj/ info variable name /handle/
+/obj/ info variable parameter /handle/
+----------------
+|======================
+
+==== List Slots
+
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
 
 |[source,tcl]
 ----------------
@@ -2136,98 +2321,24 @@ For definition of class object specific methods, use the modifier
 # -type is the class of the slot object
 # -closure includes slots of superclasses
 
-/obj/ info object slot objects ?-type ...? ?pattern?
-/cls/ info slot objects \
+/obj/ info object slots ?-type ...? ?pattern?
+/cls/ info slots \
    ?-type value? ?-closure? ?-source value? ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-# List definition of slots 
 
-/obj/ info object slot definition \
-   ?-type value? ?pattern?
-/cls/ info slot definition \
-   ?-type value? ?-closure? ?-source value? ?pattern?
-----------------
-|[source,tcl]
-----------------
-/cls/ info parameter
-----------------
-|[source,tcl]
-----------------
-# "info properties" is a short form of "info slot definiton"
-
-/cls/ info properties \
-   ?-type value? ?-closure? ?-source value? ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-# List names of slots 
-
-/obj/ info object slot names \
-   ?-type value? ?pattern?
-/cls/ info slot names \
-   ?-type value? ?-closure? ?-source value? ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 # List reachable slot objects defined for obj
 # -source might be all\|application\|baseclasses
 # -type is the class of the slot object
+# Returns list of slot objects.
 
 /obj/ info lookup slots \
    ?-type ...? ?-source ... ?pattern?
 
-# Returns list of slot objects
-----------------
-|======================
+# Obtain definition, name or parameter from 
+# slot object
 
-
-[[info_parameter]]
-==== List Object parameters
-
-[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
-|======================
-|XOTcl |Next Scripting Language
-
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-# Return parameter(s) provided by class for 
-# its instances; defines, how objects of this
-# class can be configured. If name is provided
-# only the named object parameter is returned
-# otherwise the full list. 
-#
-#
-# Return object parameters with leading dashes
-# for non-positional object parameters and 
-# defaults
-/cls/ info parameter list ?name?
-
-# Return just the names of the parameters
-/cls/ info parameter names ?name?
-
-# Return the full parameter specs
-/cls/ info parameter definitions ?name?
-
-# Return in the Tcl parameter syntax
-/cls/ info parameter syntax ?name?
+/slotobj/ definition
+/slotobj/ name
+/slotobj/ parameter
 ----------------
 |======================
 

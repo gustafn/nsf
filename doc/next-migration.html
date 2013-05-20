@@ -734,8 +734,8 @@ asciidoc.install(3);
 <h1>Migration Guide for the Next Scripting Language</h1>
 <span id="author">Gustaf Neumann</span><br />
 <span id="email"><code>&lt;<a href="mailto:neumann@wu-wien.ac.at">neumann@wu-wien.ac.at</a>&gt;</code></span><br />
-<span id="revnumber">version 2.1,</span>
-<span id="revdate">March 2011</span>
+<span id="revnumber">version 2.2,</span>
+<span id="revdate">May 2013</span>
 <br /><span id="revremark"></span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
@@ -905,7 +905,7 @@ While XOTcl 1 provided only value-checkers for non-positional
      arguments for methods, the Next Scripting Framework provides
      the same value checkers for positional and non-positional
      arguments of methods, as well as for positional and
-     non-positional object parameters (<code>-parameter</code> in
+     non-positional configure parameters (<code>-parameter</code> in
      XOTcl 1).
 </p>
 </li>
@@ -1523,10 +1523,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-comment'># Methods for defining methods:
 </span><span class='nx-comment'>#
-</span><span class='nx-comment'>#     method
-</span><span class='nx-comment'>#     forward
 </span><span class='nx-comment'>#     alias
-</span><span class='nx-comment'>#     property
+</span><span class='nx-comment'>#     forward
+</span><span class='nx-comment'>#     method
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># All these methods return method-handles.</span></pre></div></div></div></td>
 </tr>
@@ -1538,9 +1537,10 @@ forwarder (called <code>forward</code> and <code>instforward</code>) and accesso
 to variables (called <code>parametercmd</code> and <code>instparametercmd</code>).  The
 accessor functions are used normally internally when object-specific
 parameters are defined (see Section 3.4).</p></div>
-<div class="paragraph"><p>In NX forwarders are called <code>forward</code>. NX does not provide an own
-method to define variable accessors, but uses the Next Scripting
-Framework primitive <code>nsf::method::setter</code> for it.</p></div>
+<div class="paragraph"><p>In NX forwarders are called <code>forward</code>. NX does not provide an public
+available method to define variable accessors like <code>parametercmd</code> in
+XOTcl, but use interanlly the Next Scripting Framework primitive
+<code>nsf::method::setter</code> when appropriate.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -1766,7 +1766,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># are applicable for all kinds of
 </span><span class='nx-comment'># method defining methods:
 </span><span class='nx-comment'>#
-</span><span class='nx-comment'>#    method, forward, alias, property
+</span><span class='nx-comment'>#    method, forward, alias
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># The modifier "private" is available for
 </span><span class='nx-comment'>#
@@ -1790,10 +1790,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 defined per default as protected. This default can be changed by the
 application developer in various ways. The command <code>::nx::configure
 defaultMethodCallProtection true|false</code> can be used to set the default
-call protection for scripted methods, forwarder and aliases, while
-<code>::nx::configure defaultPropertyCallProtection true|false</code> can set
-the default protection for properties. The defaults can be overwritten
-also e.g. on a class level.</p></div>
+call protection for scripted methods, forwarder and aliases.
+The defaults can be overwritten also on a class level.</p></div>
 <div class="paragraph"><p>NX provides means for method hiding via the method modifier
 <code>private</code>. Hidden methods can be invoked only via the <code>-local</code> flag,
 which means: "call the specified method defined in the same
@@ -1860,9 +1858,8 @@ s1 foo 3 4  ;<span class='nx-comment'># returns 7
 </div>
 </div>
 <div class="sect3">
-<h4 id="method-deletion">2.2.4. Method and Property Deletion</h4>
-<div class="paragraph"><p>NX provides an explicit <code>delete</code> method for the deletion of methods
-and properties.</p></div>
+<h4 id="method-deletion">2.2.4. Method Deletion</h4>
+<div class="paragraph"><p>NX provides an explicit <code>delete</code> method for the deletion of methods.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -1892,9 +1889,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># XOTcl provides only method deletion with
 </span><span class='nx-comment'># the equivalent of Tcl's "proc foo {} {}"
 </span><span class='nx-placeholder'>/cls/</span> instproc foo {} {}
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>proc</span> foo {} {}
-
-<span class='nx-comment'># No support for property deletion</span></pre></div></div></div></td>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>proc</span> foo {} {}</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1909,11 +1904,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># Deletion of Methods
 </span><span class='nx-comment'>#
 </span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>method</span> <span class='nx-placeholder'>/name/</span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> <span class='nx-placeholder'>/name/</span>
-
-<span class='nx-comment'># Deletion of Properties
-</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span></pre></div></div></div></td>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> <span class='nx-placeholder'>/name/</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -2421,7 +2412,7 @@ checkers). Parameters are used to specify,</p></div>
 <li>
 <p>
 how objects and classes are initialized (we call these parameter types
-   <em>Object Parameters</em>), and
+   <em>Configure Parameters</em>), and
 </p>
 </li>
 <li>
@@ -2437,32 +2428,44 @@ and value-types, they might be introspected, etc. The Next Scripting
 Framework provide a unified, C-implemented infrastructure to handle
 both, object and method parameters in the same way with a high degree
 of orthogonality.</p></div>
-<div class="paragraph"><p>Object Parameters were specified in XOTcl 1 primarily via the method
-<code>parameter</code> in a rather limited way, XOTcl 1 only supported
-non-positional parameters in front of positional ones, there were no
-value constraints for positional parameters, no distinction between
-optional and required, or multiplicity.</p></div>
+<div class="paragraph"><p>Configuration parameters were specified in XOTcl 1 primarily via the
+method <code>parameter</code> in a rather limited way, XOTcl 1 only supported
+non-positional parameters in front of positional ones, supported no
+value constraints for positional parameters, provided no distinction
+between optional and required, and did not support multiplicity.</p></div>
 <div class="paragraph"><p>Furthermore, the Next Scripting Framework provides optionally <em>Return
 Value Checking</em> based on the same mechanism to check whether some
 methods return always the values as specified.</p></div>
 <div class="sect3">
-<h4 id="_instance_variables_and_object_parameters">2.4.1. Instance Variables and Object Parameters</h4>
-<div class="paragraph"><p>Object parameters are used for specifying, how objects are
-initialized (i.e. how instance variables are initialized, what
-parameters can be passed in for initialization, what default values
-are used, etc.).  Object parameters are supported in XOTcl primarily
-via the method <code>parameter</code>, which is used in XOTcl to define multiple
-parameters via a list of parameter specifications. Since the term
-"parameter" is underspecified, NX uses a more differentiated
-terminology. NX distinguishes between instance variables with
-accessors (also called properties) and instance variables without
-accessors. To define a property, NX uses the method <code>property</code>, to
-define an instance variable without accessor, it uses the method
-<code>variable</code>.  To define multiple properties in a short form (similar to
-XOTcl&#8217;s <code>parameter</code>), NX provides the method <code>properties</code>.</p></div>
-<div class="paragraph"><p>In a first step, we show the initialization of instance variables
-without accessors (using <code>variable</code> in NX), and then the definition of
-instance variables with accessors (using <code>property</code>).</p></div>
+<h4 id="_parameters_for_configuring_objects_variables_and_properties">2.4.1. Parameters for Configuring Objects: Variables and Properties</h4>
+<div class="paragraph"><p>Configure parameters are used for specifying values for configuring
+objects when they are created (i.e. how instance variables are
+initialized, what parameters can be passed in for initialization, what
+default values are used, etc.).  Such configuration parameters are
+supported in XOTcl primarily via the method <code>parameter</code>, which is used
+in XOTcl to define multiple parameters via a list of parameter
+specifications.</p></div>
+<div class="paragraph"><p>Since the term "parameter" is underspecified, NX uses a more
+differentiated terminology. NX distinguishes between configurable
+instance variables (also called <em>properties</em>) and non configurable
+instance variables (called <em>variables</em>), which might have as well
+e.g. default values. The values of configurable properties can be
+queried at runtime via <code>cget</code>, and their values can be altered via
+<code>configure</code>. When the value of a configure parameter is provided or
+changed, the value checkers from the variable definition are used to
+ensure, the value is permissible (i.e. it is for example an integer
+value). The sum of all configurable object parameters are called
+<em>configure parameters</em>. To define a define a configurable variable, NX
+uses the method <code>property</code>, for non-configurable variables, the method
+<code>variable</code> is used.</p></div>
+<div class="paragraph"><p>Optionally, one can define in NX, that a <code>property</code> or a
+<code>variable</code> should have a public, protected or private accessor. Such
+an accessor is a method with the same name as the variable. In XOTcl,
+every <code>parameter</code> defined as well automatically a same-named accessor
+method, leading to potential name conflicts with other method names.</p></div>
+<div class="paragraph"><p>In the examples below we show the definition of configurable an
+non-configurable instance variables using <code>variable</code> and <code>property</code>
+respectively.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -2491,7 +2494,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-comment'># Define class "Foo" with instance
 </span><span class='nx-comment'># variables "x" and "y" initialized
-</span><span class='nx-comment'># on instance creation.
+</span><span class='nx-comment'># on instance creation. The initialization
+</span><span class='nx-comment'># has to be performed in the constructor.
 </span>
 <span class='nx-keyword'>Class</span> Foo
 Foo instproc <span class='nx-keyword'>init</span> args {
@@ -2522,7 +2526,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># to Tcl's "variable" command. During
 </span><span class='nx-comment'># instance creation, the variable
 </span><span class='nx-comment'># definitions are used for the
-</span><span class='nx-comment'># initialization of the object.
+</span><span class='nx-comment'># initialization of the variables of the object.
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
   <span class='nx-keyword'>:variable</span> x 1
@@ -2539,12 +2543,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </table>
 </div>
 <div class="paragraph"><p>While XOTcl follows a procedural way to initialize variables via the
-constructor <code>init</code>, NX follows a more declarative approach. Note, that
-the variable definitions are inherited from superclasses, which is
-straightforward in NX, while in XOTcl, the constructor has to call
-explicitly the constructor of its superclasses.</p></div>
-<div class="paragraph"><p>It is certainly as well possible to use constructors in NX in the same
-way as in XOTcl.</p></div>
+constructor <code>init</code>, NX follows a more declarative approach. Often,
+classes have superclasses, which often want to provide their own
+instance variables and default values. The declarative approach from
+NX solves this via inheritance, while an procedural approach via
+assign statements in the constructor requires explicit constructor
+calls, which are often error-prone. Certainly, when a user prefers to
+assign initial values to instance variables via explicit assign
+operations in constructors, this is as ell possible in NX.</p></div>
 <div class="paragraph"><p>NX uses the same mechanism to define class variables or object
 variables.</p></div>
 <div class="tableblock">
@@ -2588,8 +2594,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'>
 <span class='nx-comment'># Define a object variable "V" with value 100 and
-</span><span class='nx-comment'># an instance variable "x". "V" is just available
-</span><span class='nx-comment'># for the class object Foo, "x" is available in the
+</span><span class='nx-comment'># an instance variable "x". "V" is defined for the
+</span><span class='nx-comment'># class object Foo, "x" is defined in the
 </span><span class='nx-comment'># instances of the class. "object variable" works
 </span><span class='nx-comment'># similar to "object method".
 </span>
@@ -2601,12 +2607,33 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>In the next step, we define properties, i.e. variables with accessors.</p></div>
+<div class="paragraph"><p>In the next step, we define configurable instance variables which we
+call <em>properties</em> in NX.</p></div>
 <div class="paragraph"><p>XOTcl uses the method <code>parameter</code> is a shortcut for creating multiple
-properties. For every parameter definition, XOTcl creates as well a
-slot object, keeping an extensible set of meta-data for every
-parameter.  Slot objects can be as well created in XOTcl directly via
-the method <code>slots</code>. NX provides a similar method named <code>properties</code>.</p></div>
+configurable variables with automically created accessors (methods for
+reading and writing of the variables). In NX, the prefered way to
+create configurable variables is to use the method <code>property</code>. The
+method <code>property</code> in NX is similar to <code>variable</code>, but makes the
+variables configurable, which means that</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+one can specify the property as a non-positional parameter upon
+  creation of the object,
+</p>
+</li>
+<li>
+<p>
+one can query the value via the method <code>cget</code>, and
+</p>
+</li>
+<li>
+<p>
+one can modify the value of the underlying variable via the method
+  <code>configure</code>.
+</p>
+</li>
+</ol></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -2633,8 +2660,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Object parameter specified as a list
-</span><span class='nx-comment'># (short form); Parameter
+<pre class='nx'><span class='nx-comment'># Parameters specified as a list
+</span><span class='nx-comment'># (short form); parameter
 </span><span class='nx-comment'># "a" has no default, "b" has default "1"
 </span>
 <span class='nx-keyword'>Class</span> Foo -parameter {a {b 1}}
@@ -2643,7 +2670,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>Foo f1 -a 0
 
 <span class='nx-comment'># Object f1 has instance variables
-</span><span class='nx-comment'># a == 0 and b == 1</span></pre></div></div></div></td>
+</span><span class='nx-comment'># a == 0 and b == 1
+</span>
+<span class='nx-comment'># XOTcl registers automatically accessors
+</span><span class='nx-comment'># for the parameters. Use the accessor
+</span><span class='nx-comment'># "b" to output the value of variable "b"
+</span><span class='nx-keyword'>puts</span> [f1 b]
+
+<span class='nx-comment'># Use the setter to alter value of
+</span><span class='nx-comment'># instance variable "b"
+</span>f1 b 100</pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2655,55 +2691,38 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Object parameter specified as a list
-</span><span class='nx-comment'># (short form); "a" has no default,
-</span><span class='nx-comment'># "b" has default "1"
+<pre class='nx'><span class='nx-comment'># Define property "a" and "b". The
+</span><span class='nx-comment'># property "a" has no default, "b" has
+</span><span class='nx-comment'># default value "1"
 </span>
-<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo -properties {a {b 1}}
+<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
+  <span class='nx-keyword'>:property</span> a
+  <span class='nx-keyword'>:property</span> {b 1}
+}
 
 <span class='nx-comment'># Create instance of the class Foo
 </span>Foo <span class='nx-keyword'>create</span> f1 -a 0
 
 <span class='nx-comment'># Object f1 has instance variables
-</span><span class='nx-comment'># a == 0 and b == 1</span></pre></div></div></div></td>
+</span><span class='nx-comment'># a == 0 and b == 1
+</span>
+<span class='nx-comment'># Use the method "cget" to query the value
+</span><span class='nx-comment'># of a configuration parameter
+</span><span class='nx-keyword'>puts</span> [f1 <span class='nx-keyword'>cget</span> -b]
+
+<span class='nx-comment'># Use the method "configure" to alter the
+</span><span class='nx-comment'># value of instance variable "b"
+</span>f1 <span class='nx-keyword'>configure</span> -b 100</pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>Since every property defines a slot object, NX provides as well a
-scripted initialization for every slot object. Therefore, NX uses
-<code>property</code> to define a single property, similar in syntax to method
-parameters (a braced pair to denote a variable with a default).  The
-method <code>property</code> can be used in NX on the class and on the object
-level (in XOTcl: just on the class level). When an property is
-created, NX does actually three things:</p></div>
-<div class="olist arabic"><ol class="arabic">
-<li>
-<p>
-Create a slot object, which can be specified in more detail
-  using the init-block of the slot object
-</p>
-</li>
-<li>
-<p>
-Create an object parameter definition for the initialization of the
-  object (usable via a non-positional parameter during object
-  creation), and
-</p>
-</li>
-<li>
-<p>
-register an accessor function (setter), for wich the usual
-  protection levels (<code>public</code>, <code>protected</code> or <code>private</code>) can be used.
-</p>
-</li>
-</ol></div>
-<div class="paragraph"><p>The method <code>variable</code> in NX is similar to <code>property</code>, but it creates
-only slot objects in cases where internally needed. <code>variable</code> it does
-neither  provide object parameters, or naccessors.</p></div>
-<div class="paragraph"><p>We show first the definition of properties simliar to the
-functionality provided as well by XOTcl and show afterwards how to use
-value constraints, optional parameters, etc. in NX.</p></div>
+<div class="paragraph"><p>In general, NX allows to create variables and properties with and
+without accessor methods. The created accessor methods might be
+<code>public</code>, <code>protected</code> or <code>public</code>. When the value <code>none</code> is provided
+to <code>-accessor</code>, no accessor will be created. This is actually the
+default in NX. In order to change the default behavior in NX, one can use
+<code>::nx::configure defaultAccessor none|public|protected|private</code>.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -2730,27 +2749,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Object parameters specified via slots
-</span>
-<span class='nx-keyword'>Class</span> Foo -slots {
-   <span class='nx-keyword'>Attribute</span> a
-   <span class='nx-keyword'>Attribute</span> b -default 1
-}
-
-<span class='nx-comment'># Create instance of the class Foo
-</span><span class='nx-comment'># and provide a value for instance
-</span><span class='nx-comment'># variable "a"
-</span>Foo f1 -a 0
-
-<span class='nx-comment'># Object f1 has a == 0 and b == 1
-</span>
-<span class='nx-comment'># Use the setter to alter value of
-</span><span class='nx-comment'># instance variable "b"
-</span>f1 b 100
-
-<span class='nx-comment'># Use the accessor to output
-</span><span class='nx-comment'># the value
-</span><span class='nx-keyword'>puts</span> [f1 b]</pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># "parameter" creates always accessor
+</span><span class='nx-comment'># methods, accessor methods are
+</span><span class='nx-comment'># always public, no "cget" is available.</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2762,27 +2763,42 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Object parameters specified via the method
-</span><span class='nx-comment'># "property" (supports method modifiers and
-</span><span class='nx-comment'># scripted configuration; see below)
+<pre class='nx'><span class='nx-comment'># Define property "a" and "b". The
+</span><span class='nx-comment'># property "a" has no default, "b" has
+</span><span class='nx-comment'># default value "1"
 </span>
 <span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
-   <span class='nx-keyword'>:property</span> a
-   <span class='nx-keyword'>:property</span> {b 1}
+  <span class='nx-keyword'>:variable</span> -accessor <span class='nx-keyword'>public</span> a
+  <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>public</span> {b 1}
 }
 
-<span class='nx-comment'># Create instance of the class Foo and
-</span><span class='nx-comment'># provide a value for instance variable "a"
-</span>Foo <span class='nx-keyword'>create</span> f1 -a 0
+<span class='nx-comment'># Use the accessor method to query
+</span><span class='nx-comment'># the value of a configuration parameter
+</span><span class='nx-keyword'>puts</span> [f1 b]
 
-<span class='nx-comment'># Object f1 has a == 0 and b == 1
-</span>
-<span class='nx-comment'># Use the setter to alter instance variable "b"
-</span>f1 b 100
-
-<span class='nx-comment'># Use the accessor to output the value
-</span><span class='nx-keyword'>puts</span> [f1 b]</pre></div></div></div></td>
+<span class='nx-comment'># Use the accessor method to set the
+</span><span class='nx-comment'># value of instance variable "a"
+</span>f1 a 100</pre></div></div></div></td>
 </tr>
+</tbody>
+</table>
+</div>
+<div class="paragraph"><p>Similar to <code>variable</code>, properties can be defined in NX on the class
+and on the object level.</p></div>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="middle">XOTcl </th>
+<th align="left" valign="middle">Next Scripting Language</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2795,8 +2811,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Parameters only available at
-</span><span class='nx-comment'># class level</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># XOTcl provides no means to define
+</span><span class='nx-comment'># configurable variables at the object
+</span><span class='nx-comment'># level</span></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -2808,75 +2825,20 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Define instance and object properties
+<pre class='nx'><span class='nx-comment'># Define class with a property for the class object
+</span><span class='nx-comment'># named "cp". This is similar to "static variables"
+</span><span class='nx-comment'># in some other object-oriented programming
+</span><span class='nx-comment'># languages.
 </span>
-<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> C {
-  <span class='nx-keyword'>:property</span> x
-  <span class='nx-keyword'>:property</span> {y 1}
-  <span class='nx-keyword'>:object</span> <span class='nx-keyword'>property</span> cp
+<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
+  ...
+  <span class='nx-keyword'>:object</span> <span class='nx-keyword'>property</span> cp 101
 }
 
+<span class='nx-comment'># Define object property "op"
+</span>
 <span class='nx-keyword'>Object</span> <span class='nx-keyword'>create</span> o {
-  <span class='nx-keyword'>:object</span> <span class='nx-keyword'>property</span> op
-}</pre></div></div></div></td>
-</tr>
-<tr>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># Object parameter with configured slot,
-</span><span class='nx-comment'># defining an attribute specific type
-</span><span class='nx-comment'># checker
-</span>
-<span class='nx-keyword'>Class</span> Person -slots {
-  <span class='nx-keyword'>Attribute</span> <span class='nx-keyword'>create</span> sex -type <span class='nx-string'>"sex"</span> {
-    <span class='nx-keyword'>my</span> <span class='nx-keyword'>proc</span> type=sex {name value} {
-      <span class='nx-keyword'>switch</span> -glob <span class='nx-variable'>$value</span> {
-        m* {<span class='nx-keyword'>return</span> m}
-        f* {<span class='nx-keyword'>return</span> f}
-        default {
-          <span class='nx-keyword'>error</span> <span class='nx-string'>"expected sex but got $value"</span>
-        }
-      }
-    }
-  }
-}</pre></div></div></div></td>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># Object parameter with scripted
-</span><span class='nx-comment'># definition (init-block), defining a
-</span><span class='nx-comment'># property specific type checker
-</span>
-<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Person {
-  <span class='nx-keyword'>:property</span> sex {
-    :type <span class='nx-string'>"sex"</span>
-    <span class='nx-keyword'>:object</span> <span class='nx-keyword'>method</span> type=sex {name value} {
-      <span class='nx-keyword'>switch</span> -glob <span class='nx-variable'>$value</span> {
-        m* {<span class='nx-keyword'>return</span> m}
-        f* {<span class='nx-keyword'>return</span> f}
-        default {
-          <span class='nx-keyword'>error</span> <span class='nx-string'>"expected sex but got $value"</span>
-        }
-      }
-    }
-  }
+  <span class='nx-keyword'>:object</span> <span class='nx-keyword'>property</span> op 102
 }</pre></div></div></div></td>
 </tr>
 </tbody>
@@ -2967,10 +2929,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>In XOTcl all object parameters were <em>optional</em>. Required parameters have
+<div class="paragraph"><p>In XOTcl all configure parameters were <em>optional</em>. Required parameters have
 to be passed to the constructor of the object.</p></div>
-<div class="paragraph"><p>NX allows to define <em>optional</em> and <em>required</em> object parameters (as
-well as method parameters). Therefore, object parameters can be used
+<div class="paragraph"><p>NX allows to define <em>optional</em> and <em>required</em> configure parameters (as
+well as method parameters). Therefore, configure parameters can be used
 as the single mechanism to parameterize objects. It is in NX not
 necessary (and per default not possible) to pass arguments to the
 constructor.</p></div>
@@ -3114,12 +3076,236 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>The Object parameters provided by a class for the initialization of
-instances can be introspected via <code>/cls/ info parameter</code> (see
-<a href="#info_parameter">[info_parameter]</a>).</p></div>
+<div class="paragraph"><p>For the implementation of variables and properties, NX uses slot
+objects, which are an extension to the <code>-slots</code> already available in
+XOTcl. While very for every <code>property</code> in NX, a slot object is created,
+for performance reasons, not every <code>variable</code> has a slot associated.</p></div>
+<div class="paragraph"><p>When an property is created, NX does actually three things:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Create a slot object, which can be specified in more detail
+  using the init-block of the slot object
+</p>
+</li>
+<li>
+<p>
+Create a parameter definition for the initialization of the
+  object (usable via a non-positional parameter during object
+  creation), and
+</p>
+</li>
+<li>
+<p>
+register optionally an accessor function (setter), for which the usual
+  protection levels (<code>public</code>, <code>protected</code> or <code>private</code>) can be used.
+</p>
+</li>
+</ol></div>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="middle">XOTcl </th>
+<th align="left" valign="middle">Next Scripting Language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># Define parameters via slots
+</span>
+<span class='nx-keyword'>Class</span> Foo -slots {
+   <span class='nx-keyword'>Attribute</span> a
+   <span class='nx-keyword'>Attribute</span> b -default 1
+}
+
+<span class='nx-comment'># Create instance of the class Foo
+</span><span class='nx-comment'># and provide a value for instance
+</span><span class='nx-comment'># variable "a"
+</span>Foo f1 -a 0
+
+<span class='nx-comment'># Object f1 has a == 0 and b == 1</span></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># Configurable parameters specified via the
+</span><span class='nx-comment'># method "property" (supports method
+</span><span class='nx-comment'># modifiers and scripted configuration;
+</span><span class='nx-comment'># see below)
+</span>
+<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Foo {
+   <span class='nx-keyword'>:property</span> a
+   <span class='nx-keyword'>:property</span> {b 1}
+}
+
+<span class='nx-comment'># Create instance of the class Foo and
+</span><span class='nx-comment'># provide a value for instance variable "a"
+</span>Foo <span class='nx-keyword'>create</span> f1 -a 0
+
+<span class='nx-comment'># Object f1 has a == 0 and b == 1</span></pre></div></div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="paragraph"><p>Since the slots are objects, the slot objects can be configured and
+parameterized like every other object in NX. Slot objects can be
+provided with a scripted initialization as well. We show first the
+definition of properties simliar to the functionality provided as well
+by XOTcl and show afterwards how to use value constraints, optional
+parameters, etc. in NX.</p></div>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="middle">XOTcl </th>
+<th align="left" valign="middle">Next Scripting Language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># Define parameter with an an
+</span><span class='nx-comment'># attribute-specific type checker
+</span>
+<span class='nx-keyword'>Class</span> Person -slots {
+  <span class='nx-keyword'>Attribute</span> <span class='nx-keyword'>create</span> sex -type <span class='nx-string'>"sex"</span> {
+    <span class='nx-keyword'>my</span> <span class='nx-keyword'>proc</span> type=sex {name value} {
+      <span class='nx-keyword'>switch</span> -glob <span class='nx-variable'>$value</span> {
+        m* {<span class='nx-keyword'>return</span> m}
+        f* {<span class='nx-keyword'>return</span> f}
+        default {
+          <span class='nx-keyword'>error</span> <span class='nx-string'>"expected sex but got $value"</span>
+        }
+      }
+    }
+  }
+}</pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># Configure parameter with scripted
+</span><span class='nx-comment'># definition (init-block), defining a
+</span><span class='nx-comment'># property specific type checker
+</span>
+<span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> Person {
+  <span class='nx-keyword'>:property</span> sex {
+    :type <span class='nx-string'>"sex"</span>
+    <span class='nx-keyword'>:object</span> <span class='nx-keyword'>method</span> type=sex {name value} {
+      <span class='nx-keyword'>switch</span> -glob <span class='nx-variable'>$value</span> {
+        m* {<span class='nx-keyword'>return</span> m}
+        f* {<span class='nx-keyword'>return</span> f}
+        default {
+          <span class='nx-keyword'>error</span> <span class='nx-string'>"expected sex but got $value"</span>
+        }
+      }
+    }
+  }
+}</pre></div></div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="paragraph"><p>The configure parameters provided by a class for the initialization of
+instances can be introspected via <code>/cls/ info configure parameters</code>
+(see <a href="#info_configure_parameter">[info_configure_parameter]</a>).</p></div>
 </div>
 <div class="sect3">
-<h4 id="_method_parameters">2.4.2. Method Parameters</h4>
+<h4 id="_delete_variable_handlers">2.4.2. Delete Variable Handlers</h4>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="middle">XOTcl </th>
+<th align="left" valign="middle">Next Scripting Language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># No syntactic support for deleting
+</span><span class='nx-comment'># variable handlers</span></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span></pre></div></div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_method_parameters">2.4.3. Method Parameters</h4>
 <div class="paragraph"><p>Method parameters are used to specify the interface of a single method
 (what kind of values may be passed to a method, what default values
 are provided etc.).  The method parameters specifications in XOTcl 1
@@ -3258,7 +3444,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  }
 
   <span class='nx-comment'># In general, the same list of value
-</span>  <span class='nx-comment'># constraints as for object parameter is
+</span>  <span class='nx-comment'># constraints as for configure parameter is
 </span>  <span class='nx-comment'># available (see above).
 </span>  <span class='nx-comment'>#
 </span>  <span class='nx-comment'># User defined value constraints are
@@ -3271,7 +3457,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_return_value_checking">2.4.3. Return Value Checking</h4>
+<h4 id="_return_value_checking">2.4.4. Return Value Checking</h4>
 <div class="paragraph"><p><em>Return value checking</em> is a functionality available in the Next
 Scripting Framework, that was not yet available in XOTcl 1. A return
 value checker assures that a method returns always a value satisfying
@@ -4713,7 +4899,155 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <code>object</code> as usual.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_list_slots_and_their_definitions">2.6.8. List Slots and their definitions</h4>
+<h4 id="info_configure_parameter">2.6.8. List Configure Parameters</h4>
+<div class="paragraph"><p>Obtain information, how newly created object can be configured. The
+configuration of objects is performed in many languages over arguments
+to the constructors. NX has - what we think - a superiour approach for
+configuration via configure parameters. The configure parameter are
+defined by NX application programs usually via <code>property</code>.</p></div>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="middle">XOTcl </th>
+<th align="left" valign="middle">Next Scripting Language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># Return configure parameter(s), the parameters
+</span><span class='nx-comment'># provided by a class for its instances; these
+</span><span class='nx-comment'># parameters define, how objects of this
+</span><span class='nx-comment'># class can be configured. a pattern can
+</span><span class='nx-comment'># be used to filter the results.
+</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span> parameters <span class='nx-placeholder'>?pattern?</span>
+
+<span class='nx-comment'># Return in the Tcl parameter syntax
+</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span> syntax
+
+<span class='nx-comment'># "info lookup configure parameters" returns
+</span><span class='nx-comment'># parameters available for configuring the
+</span><span class='nx-comment'># current object  (might contain object
+</span><span class='nx-comment'># specific information)
+</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>configure</span> parameters <span class='nx-placeholder'>?pattern?</span>
+
+<span class='nx-comment'># "info lookup configure syntax" returns syntax of
+</span><span class='nx-comment'># a call to configure in the Tcl parameter syntax
+</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>configure</span> syntax
+
+<span class='nx-comment'># Obtain information from a parameter
+</span><span class='nx-comment'># (as e.g. returned from "info configure
+</span><span class='nx-comment'># parameters").
+</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> parameter name <span class='nx-placeholder'>/parameter/</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> parameter syntax <span class='nx-placeholder'>/parameter/</span>
+</pre></div></div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_list_variable_handlers">2.6.9. List Variable Handlers</h4>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="middle">XOTcl </th>
+<th align="left" valign="middle">Next Scripting Language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># obtain parameter definitions defined
+</span><span class='nx-comment'># for a class
+</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter</pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-comment'># "info variables" returns handles of
+</span><span class='nx-comment'># properties and variables defined by this
+</span><span class='nx-comment'># class or object
+</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> variables <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> variables <span class='nx-placeholder'>?pattern?</span>
+
+<span class='nx-comment'># "info lookup variables" returns handles
+</span><span class='nx-comment'># of variables and properties applicable
+</span><span class='nx-comment'># for the current object (might contain
+</span><span class='nx-comment'># object specific information)
+</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> variables <span class='nx-placeholder'>/pattern/</span>
+
+<span class='nx-comment'># "info variable" lists details about a
+</span><span class='nx-comment'># single property or variable.
+</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>variable</span> definition <span class='nx-placeholder'>/handle/</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>variable</span> name <span class='nx-placeholder'>/handle/</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>variable</span> parameter <span class='nx-placeholder'>/handle/</span></pre></div></div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_list_slots">2.6.10. List Slots</h4>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -4759,205 +5093,31 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># -type is the class of the slot object
 </span><span class='nx-comment'># -closure includes slots of superclasses
 </span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> slot objects <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?pattern?</span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot objects \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
-</tr>
-<tr>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># List definition of slots
-</span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> slot definition \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?pattern?</span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot definition \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
-</tr>
-<tr>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter</pre></div></div></div></td>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># "info properties" is a short form of "info slot definiton"
-</span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> properties \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
-</tr>
-<tr>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># List names of slots
-</span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> slot names \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?pattern?</span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slot names \
-   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
-</tr>
-<tr>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># List reachable slot objects defined for obj
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> slots <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> slots \
+   <span class='nx-placeholder'>?-type value?</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?-source value?</span> <span class='nx-placeholder'>?pattern?</span>
+
+<span class='nx-comment'># List reachable slot objects defined for obj
 </span><span class='nx-comment'># -source might be all|application|baseclasses
 </span><span class='nx-comment'># -type is the class of the slot object
+</span><span class='nx-comment'># Returns list of slot objects.
 </span>
 <span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> slots \
    <span class='nx-placeholder'>?-type ...?</span> <span class='nx-placeholder'>?-source ... ?</span>pattern?
 
-<span class='nx-comment'># Returns list of slot objects</span></pre></div></div></div></td>
+<span class='nx-comment'># Obtain definition, name or parameter from
+</span><span class='nx-comment'># slot object
+</span>
+<span class='nx-placeholder'>/slotobj/</span> definition
+<span class='nx-placeholder'>/slotobj/</span> name
+<span class='nx-placeholder'>/slotobj/</span> parameter</pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 <div class="sect3">
-<h4 id="info_parameter">2.6.9. List Object parameters</h4>
-<div class="tableblock">
-<table rules="all"
-width="100%"
-frame="void"
-cellspacing="0" cellpadding="4">
-<col width="50%" />
-<col width="50%" />
-<thead>
-<tr>
-<th align="left" valign="middle">XOTcl </th>
-<th align="left" valign="middle">Next Scripting Language</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># n.a.</span></pre></div></div></div></td>
-<td align="left" valign="middle"><div><div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-comment'># Return parameter(s) provided by class for
-</span><span class='nx-comment'># its instances; defines, how objects of this
-</span><span class='nx-comment'># class can be configured. If name is provided
-</span><span class='nx-comment'># only the named object parameter is returned
-</span><span class='nx-comment'># otherwise the full list.
-</span><span class='nx-comment'>#
-</span><span class='nx-comment'>#
-</span><span class='nx-comment'># Return object parameters with leading dashes
-</span><span class='nx-comment'># for non-positional object parameters and
-</span><span class='nx-comment'># defaults
-</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter <span class='nx-keyword'>list</span> <span class='nx-placeholder'>?name?</span>
-
-<span class='nx-comment'># Return just the names of the parameters
-</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter names <span class='nx-placeholder'>?name?</span>
-
-<span class='nx-comment'># Return the full parameter specs
-</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter definitions <span class='nx-placeholder'>?name?</span>
-
-<span class='nx-comment'># Return in the Tcl parameter syntax
-</span><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> parameter syntax <span class='nx-placeholder'>?name?</span></pre></div></div></div></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_list_filter_or_mixins">2.6.10. List Filter or Mixins</h4>
+<h4 id="_list_filter_or_mixins">2.6.11. List Filter or Mixins</h4>
 <div class="paragraph"><p>In NX all introspection options for filters are grouped under <code>info
 filter</code> and all introspection options for mixins are under <code>info
 mixin</code>. Therefore, NX follows here the approach of using hierarchical
@@ -5103,7 +5263,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_definition_of_methods_defined_by_aliases_setters_or_forwarders">2.6.11. List definition of methods defined by aliases, setters or forwarders</h4>
+<h4 id="_list_definition_of_methods_defined_by_aliases_setters_or_forwarders">2.6.12. List definition of methods defined by aliases, setters or forwarders</h4>
 <div class="paragraph"><p>As mentioned earlier, <code>info method definition</code> can be used on every
 kind of method. The same call can be used to obtain the definition of
 a scripted method, a method-alias, a forwarder or a setter method.</p></div>
@@ -5153,7 +5313,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_method_handles">2.6.12. List Method-Handles</h4>
+<h4 id="_list_method_handles">2.6.13. List Method-Handles</h4>
 <div class="paragraph"><p>NX supports <em>method-handles</em> to provide means to obtain further
 information about a method or to change maybe some properties of a
 method. When a method is created, the method creating method returns
@@ -5224,7 +5384,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_type_of_a_method">2.6.13. List type of a method</h4>
+<h4 id="_list_type_of_a_method">2.6.14. List type of a method</h4>
 <div class="paragraph"><p>The method <code>info ?object? method type</code> is new in NX to obtain the type of the
 specified method.</p></div>
 <div class="tableblock">
@@ -5298,7 +5458,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_list_the_scope_of_mixin_classes">2.6.14. List the scope of mixin classes</h4>
+<h4 id="_list_the_scope_of_mixin_classes">2.6.15. List the scope of mixin classes</h4>
 <div class="paragraph"><p>NX provides a richer set of introspection options to obtain
 information, where mixins classes are mixed into.</p></div>
 <div class="tableblock">
@@ -5418,7 +5578,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_check_properties_of_object_and_classes">2.6.15. Check properties of object and classes</h4>
+<h4 id="_check_properties_of_object_and_classes">2.6.16. Check properties of object and classes</h4>
 <div class="paragraph"><p>Similar as noted before, NX uses rather a hierarchical approach of
 naming using multiple layers of subcommands).</p></div>
 <div class="tableblock">
@@ -5629,7 +5789,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 </div>
 <div class="sect3">
-<h4 id="_call_stack_introspection">2.6.16. Call-stack Introspection</h4>
+<h4 id="_call_stack_introspection">2.6.17. Call-stack Introspection</h4>
 <div class="paragraph"><p>Call-stack introspection is very similar in NX and XOTcl. NX uses for
 subcommand the term <code>current</code> instead of <code>self</code>, since <code>self</code> has a
 strong connotation to the current object. The term <code>proc</code> is renamed
@@ -6469,8 +6629,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 2.1<br />
-Last updated 2013-05-13 08:54:08 CEST
+Version 2.2<br />
+Last updated 2013-05-20 17:56:23 CEST
 </div>
 </div>
 </body>
