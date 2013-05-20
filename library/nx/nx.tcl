@@ -854,7 +854,7 @@ namespace eval ::nx {
       return $defs
     }
     :method "info method syntax"        {name} {
-      return [string trimright "/[self]/ [namespace tail $name] [: ::nsf::methods::class::info::method syntax $name]" { }]
+      return [string trimright "/cls/ [namespace tail $name] [: ::nsf::methods::class::info::method syntax $name]" { }]
     }
     :method "info method type"          {name} {: ::nsf::methods::class::info::method type $name}
     :method "info method precondition"  {name} {: ::nsf::methods::class::info::method precondition $name}
@@ -879,7 +879,7 @@ namespace eval ::nx {
       return $defs
     }
     :method "info object method syntax"        {name} {
-      return [string trimright "/[self]/ [namespace tail $name] [: ::nsf::methods::object::info::method syntax $name]" { }]
+      return [string trimright "/obj/ [namespace tail $name] [: ::nsf::methods::object::info::method syntax $name]" { }]
     }
     :method "info object method type"          {name} {: ::nsf::methods::object::info::method type $name}
     :method "info object method precondition"  {name} {: ::nsf::methods::object::info::method precondition $name}
@@ -909,14 +909,6 @@ namespace eval ::nx {
   #     :method $methName $arglist $body
   #   }
   # }
-
-  
-  ::nx::Class eval {
-    #
-    # info redirector
-    #
-    :alias "info object" ::nx::Object::slot::__info
-  }
 
   ######################################################################
   # MetaSlot definitions
@@ -2493,14 +2485,14 @@ namespace eval ::nx {
   #interp alias {} ::nx::self {} ::nsf::self
 
   set value "?/class .../?|?add /class/?|?delete /class/?"
-  set "::nsf::parametersyntax(::nsf::classes::nx::Object::object mixin)" $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Class::mixin)"         $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Class::superclass)"    $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Object::class)"        "?/className/?"
+  set "::nsf::parametersyntax(::nx::Object::slot::__object::object mixin)"  $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Class::mixin)"            $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Class::superclass)"       $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Object::class)"           "?/className/?"
   set value "?/filters/?|?add /filter/?|?delete /filter/?"
-  set "::nsf::parametersyntax(::nsf::classes::nx::Object::object filter)" $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Class::filter)"         $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Object::eval)"          "/arg/ ?/arg/ ...?"
+  set "::nsf::parametersyntax(::nx::Object::slot::__object::object filter)" $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Class::filter)"           $value
+  set "::nsf::parametersyntax(::nsf::classes::nx::Object::eval)"            "/arg/ ?/arg/ ...?"
   unset value
 
   ::nsf::configure debug 1

@@ -4443,6 +4443,9 @@ Method and configure parameter reform, Part 3:
 - nx-pp.tcl: fixed changed accessor handling, added cget to highlight words
 - updated next-migration guide to reflect changes from the configure reform
 
+- "info method syntax" returns now "/cls/ ...."
+- "info object method syntax" returns now "/obj/ ...."
+
 ========================================================================
 TODO:
 - The two names are not appropriate
@@ -4450,7 +4453,6 @@ TODO:
     /obj/ delete object property /name/
   maybe call it "delete ?object? variable" and
   call these "variable handlers"
-- improve syntax output for current object
 - valuechangedcmd implemented via initcmd does 
   not work with "configure" method
 - info AddSlotObjects(): handle full-qualified name for private slots

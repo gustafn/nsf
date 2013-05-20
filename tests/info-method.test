@@ -662,7 +662,7 @@ nx::Test case info-submethod {
   ? {nx::Object info method parameters "info lookup methods"} \
       "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
   ? {nx::Object info method syntax "info lookup methods"} \
-      "/::nx::Object/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/?"
+      "/cls/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/?"
 
   ? {o info object method parameters "foo b"} "x:int y:upper"
 
@@ -781,12 +781,12 @@ nx::Test case info-methods-path {
 nx::Test case parametersyntax {
   # a true method
   ? {::nx::Class info method syntax method} \
-      "/::nx::Class/ method /name/ /arguments/ ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
+      "/cls/ method /name/ /arguments/ ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
   # a forwarder to ::nsf::relation; definition comes via array ::nsf::parametersyntax
-  ? {::nx::Class info method syntax mixin} "/::nx::Class/ mixin ?/class .../?|?add /class/?|?delete /class/?"
+  ? {::nx::Class info method syntax mixin} "/cls/ mixin ?/class .../?|?add /class/?|?delete /class/?"
 
-  ? {::nx::Class info method syntax ::nx::next} "/::nx::Class/ next ?/arguments/?"
-  ? {::nx::Class info method syntax ::nsf::xotclnext} "/::nx::Class/ xotclnext ?--noArgs? ?/arg .../?"
+  ? {::nx::Class info method syntax ::nx::next} "/cls/ next ?/arguments/?"
+  ? {::nx::Class info method syntax ::nsf::xotclnext} "/cls/ xotclnext ?--noArgs? ?/arg .../?"
 }
 
 #
