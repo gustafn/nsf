@@ -143,7 +143,7 @@ __initcmd:initcmd,optional,noleadingdash"
   ? {::Foo info slots p} "::Foo::slot::____Foo.p"
 
   set ::vs [lsort [::Foo info variables]]
-  ? {join [lmap handle $vs {::Foo info variable definition $handle}] \n} \
+  ? {join [lmap handle $::vs {::Foo info variable definition $handle}] \n} \
 "::Foo variable -accessor private p 19
 ::Foo property -accessor none a:integer
 ::Foo property -accessor none {b:integer 123}
