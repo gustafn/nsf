@@ -560,30 +560,30 @@ nx::Test case delete-per-object {
   ? {o1 info object methods -path} "{info foo} {info bar foo} foo a1 a2"
   ? {o1 info children} "::o1::info ::o1::per-object-slot"
 
-  ? {o1 delete method bar} "::o1: object specific method 'bar' does not exist"
+  ? {o1 delete object method bar} "::o1: object specific method 'bar' does not exist"
   # For a1, we have a method and an property. We can delete the
   # method without the slot.
-  ? {o1 delete method a1} ""
+  ? {o1 delete object method a1} ""
   # After the deletion of the accessor, the slot exists still
   ? {o1::per-object-slot info children} "::o1::per-object-slot::a1 ::o1::per-object-slot::a2"
-  # If we perform now a "delete property a1", the slot will be removed.
-  ? {o1 delete property a1} ""
+  # If we perform now a "delete object property a1", the slot will be removed.
+  ? {o1 delete object property a1} ""
   ? {o1::per-object-slot info children} "::o1::per-object-slot::a2"
 
   # try to delete the property again:
-  ? {o1 delete property a1} "::o1: cannot delete object specific property 'a1'"
+  ? {o1 delete object property a1} "::o1: cannot delete object specific property 'a1'"
 
   ? {o1 info object methods -path} "{info foo} {info bar foo} foo a2"
-  ? {o1 delete property a2} ""
+  ? {o1 delete object property a2} ""
   ? {o1 info object methods -path} "{info foo} {info bar foo} foo"
 
-  ? {o1 delete method foo} ""
+  ? {o1 delete object method foo} ""
   ? {o1 info object methods -path} "{info foo} {info bar foo}"
 
-  ? {o1 delete method "info foo"} ""
+  ? {o1 delete object method "info foo"} ""
   ? {o1 info object methods -path} "{info bar foo}"
 
-  ? {o1 delete method "info bar foo"} ""
+  ? {o1 delete object method "info bar foo"} ""
   ? {o1 info object methods -path} ""
 }
 

@@ -547,50 +547,52 @@ namespace eval ::nx {
   #
   # Method for deletion of properties, variables and plain methods
   #
-  Object public method "delete property" {name} {
-    # call explicitly the per-object variant of "info::slotobjects"
-    set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
-    if {$slot eq ""} {error "[self]: cannot delete object specific property '$name'"}
-    $slot destroy
-    nsf::var::unset -nocomplain [self] $name
-  }
-  Object public method "delete variable" {name} {
-    # First remove the instance variable and complain, if it does
-    # not exist.
-    if {[nsf::var::exists [self] $name]} {
-      nsf::var::unset [self] $name
-    } else {
-      error "[self]: object does not have an instance variable '$name'"
-    }
-    # call explicitly the per-object variant of "info::slotobejcts"
-    set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
+  Object eval {
 
-    if {$slot ne ""} {
-      # it is not a slot-less variable
+    :public method "delete object method" {name} {
+      ::nsf::method::delete [self] -per-object $name
+    }
+
+    :public method "delete object property" {name} {
+      # call explicitly the per-object variant of "info::slotobjects"
+      set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
+      if {$slot eq ""} {error "[self]: cannot delete object specific property '$name'"}
+      $slot destroy
+      nsf::var::unset -nocomplain [self] $name
+    }
+
+    :public method "delete object variable" {name} {
+      # First remove the instance variable and complain, if it does
+      # not exist.
+      if {[nsf::var::exists [self] $name]} {
+	nsf::var::unset [self] $name
+      } else {
+	error "[self]: object does not have an instance variable '$name'"
+      }
+      # call explicitly the per-object variant of "info::slotobejcts"
+      set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
+      
+      if {$slot ne ""} {
+	# it is not a slot-less variable
+	$slot destroy
+      }
+    }
+  }
+
+  Class eval {
+    :public method "delete method" {name} {
+      ::nsf::method::delete [self] $name
+    }
+    :public method "delete property" {name} {
+      set slot [:info slots $name]
+      if {$slot eq ""} {error "[self]: cannot delete property '$name'"}
       $slot destroy
     }
-  }
-  Object public method "delete method" {name} {
-    ::nsf::method::delete [self] -per-object $name
-  }
-
-  Class public method "delete property" {name} {
-    set slot [:info slots $name]
-    if {$slot eq ""} {error "[self]: cannot delete property '$name'"}
-    $slot destroy
-  }
-  Class public alias "delete variable" ::nx::Class::slot::__delete::property
-  Class public method "delete method" {name} {
-    ::nsf::method::delete [self] $name
-  }
-
-  #
-  # provide aliases for "class delete"
-  #
-  ::nx::Class eval {
-    :alias "delete object property" ::nx::Object::slot::__delete::property
-    :alias "delete object variable" ::nx::Object::slot::__delete::variable
-    :alias "delete object method" ::nx::Object::slot::__delete::method
+    :public method "delete variable" {name} {
+      set slot [:info slots $name]
+      if {$slot eq ""} {error "[self]: cannot delete variable '$name'"}
+      $slot destroy
+    }
   }
 
   ######################################################################

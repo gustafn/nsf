@@ -4446,6 +4446,12 @@ Method and configure parameter reform, Part 3:
 - "info method syntax" returns now "/cls/ ...."
 - "info object method syntax" returns now "/obj/ ...."
 
+- hopefully the last changes for ?object? method|variable|property:
+  defined
+   * "/obj/ delete object method"
+   * "/obj/ delete object property"
+   * "/obj/ delete object variable"
+
 ========================================================================
 TODO:
 - The two names are not appropriate

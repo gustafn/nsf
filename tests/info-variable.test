@@ -47,7 +47,7 @@ __initcmd:initcmd,optional,noleadingdash"
   ? {Person info method parameters foo} {-force:switch age:integer {name ""}}
   ? {Person info method parameters foo force} "-force:switch"
   ? {Person info method parameters foo {*a[gm]*}} {age:integer {name ""}}
-  ? {Person info method syntax foo} "/::Person/ foo ?-force? /age/ ?/name/?"
+  ? {Person info method syntax foo} "/cls/ foo ?-force? /age/ ?/name/?"
   ? {Person info parameter syntax age:integer} "/age/"
   ? {Person info parameter syntax -force:switch} "?-force?"
   ? {Person info parameter name "a b"} "a"

@@ -1587,18 +1587,18 @@ nx::Test case check-arguments {
     :method metaclassarg {-x:metaclass} {return $x} 
   }
 
-  ? {Foo info method syntax noarg} "/::Foo/ noarg"
-  ? {Foo info method syntax onearg} "/::Foo/ onearg ?-x /value/?"
-  ? {Foo info method syntax intarg} "/::Foo/ intarg ?-x /integer/?"
-  ? {Foo info method syntax intsarg} "/::Foo/ intsarg ?-x /integer .../?"
-  ? {Foo info method syntax boolarg} "/::Foo/ boolarg ?-x /boolean/?"
-  ? {Foo info method syntax classarg} "/::Foo/ classarg ?-x /class/?"
-  ? {Foo info method syntax upperarg} "/::Foo/ upperarg ?-x /upper/?"
-  ? {Foo info method syntax metaclassarg} "/::Foo/ metaclassarg ?-x /metaclass/?"
+  ? {Foo info method syntax noarg} "/cls/ noarg"
+  ? {Foo info method syntax onearg} "/cls/ onearg ?-x /value/?"
+  ? {Foo info method syntax intarg} "/cls/ intarg ?-x /integer/?"
+  ? {Foo info method syntax intsarg} "/cls/ intsarg ?-x /integer .../?"
+  ? {Foo info method syntax boolarg} "/cls/ boolarg ?-x /boolean/?"
+  ? {Foo info method syntax classarg} "/cls/ classarg ?-x /class/?"
+  ? {Foo info method syntax upperarg} "/cls/ upperarg ?-x /upper/?"
+  ? {Foo info method syntax metaclassarg} "/cls/ metaclassarg ?-x /metaclass/?"
 
   # return enumeration type
   ? {nx::Class info method syntax "info mixinof"} \
-      "/::nx::Class/ info mixinof ?-closure? ?-scope all|class|object? ?/pattern/?"
+      "/cls/ info mixinof ?-closure? ?-scope all|class|object? ?/pattern/?"
 }
 
 #
@@ -1925,7 +1925,7 @@ nx::Test case parameter-object-mixin-dependency {
   #
   # property deletion should invalidate the cache as well
   #
-  c1 delete property bo2
+  c1 delete object property bo2
   ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -bo1"
 }
 
@@ -2353,8 +2353,8 @@ nx::Test case delete-object-level-variable-and-property {
   # nx::Object-level attributes and variables set und unset instance
   # variables.  If we delete an object-level property or variable,
   # the setters for "a" will be unset.
-  o delete variable v
-  o delete property a
+  o delete object variable v
+  o delete object property a
   ? {o info lookup method a} ""
   
   # Both instance variables are unset
