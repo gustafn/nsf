@@ -51,11 +51,11 @@ namespace eval ::nx::pp {
     :method new_state {new lastChar firstChar} {
       # Switch from one state to another state
       if {[$new eval {info exists :escape}]} {
-	$new prevState [nx::self]
+	$new configure -prevState [nx::self]
 	append :text $lastChar
 	return [$new]
       } else {
-	$new prevState [default]
+	$new configure -prevState [default]
 	append :text $lastChar
 	:flush
 	return [$new start $firstChar]
@@ -98,7 +98,7 @@ namespace eval ::nx::pp {
       public protected private
       method alias property forward delete require
       my next new self current dispatch objectparameter defaultmethod
-      create init new destroy alloc dealloc recreate unknown move configure
+      create init new destroy alloc dealloc recreate unknown move cget configure
       class object superclass mixin filter guard metaclass
       methods lookup
       ::nx::Class nx::Class ::xotcl::Class xotcl::Class Class 
