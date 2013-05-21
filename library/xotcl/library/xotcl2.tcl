@@ -419,7 +419,7 @@ namespace eval ::xotcl {
     set slotContainer [::nx::slotObj [::nsf::self]]
     foreach arg $arglist {
       #puts stderr "[self] ::nsf::classes::nx::Class::property $arg"
-      [self] ::nsf::classes::nx::Class::property $arg
+      [self] ::nsf::classes::nx::Class::property -accessor public $arg
     }
     ::nsf::var::set $slotContainer __parameter $arglist
   }
