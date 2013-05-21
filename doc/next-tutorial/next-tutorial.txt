@@ -1,7 +1,7 @@
 Tutorial for the Next Scripting Language
 ==========================================
 Gustaf Neumann <neumann@wu-wien.ac.at>, Stefan Sobernig <stefan.sobernig@wu.ac.at>
-v2.2, May 2013:
+v2.3, May 2013:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
@@ -622,7 +622,7 @@ In general, NX does not need variable declarations. It allows to
 create or modify variables on the fly by using for example the Tcl
 commands +set+ and +unset+. Depending on the variable name (or more
 precisely, depending on the variable name's prefix consisting of
-colons +:+) a variable is either local to a method, or it is an
+colons "+:+") a variable is either local to a method, or it is an
 instance variable, or a global variable.  The rules are:
 
 - A variable without any colon prefix refers typically to a method
@@ -663,33 +663,40 @@ nx::Class create Foo {
 of some class +Foo+ referring to differently scoped variables.
 
 
-==== Properties: Instance Variables with Accessors
+==== Properties: Configurable Instance Variables
 
-Generally, there is no need to define or declare instance variables in
-NX. In some cases, however, a definition of instance variables is
-useful. NX allows us to define instances variables as _properties_ on
-classes, which are inherited to subclasses. Furthermore, the
-definition of properties can be used the check permissible values for
-instance variables or to initialize instance variables from default
-values during object initialization.
+As described above, there is no need to declare instance variables in
+NX. In many cases, a developer might want to define some value
+constraints for variables, or to provide defaults, or to make
+variables configurable upon object creation. Often, variables are
+"inherited", meaning that the variables declared in a general class
+are also available in a more specialized class. For these purposes NX
+provides _variable handlers_ responsible for the management of
+instance variables. We distinguish in NX between configurable
+variables (called +property+) and variables that are not configurable
+(called +variable+).
 
 =========================================
-A *property* is a definition of an attribute (an instance variable) 
-with accessor methods. A property definition might carry
-value-constraints and a default value.
+A *property* is a definition of a configurable instance variable.
 =========================================
+
+The term configurable means that (a) one can provide at creation time of
+an instance a value for this variable, and (b), one can query the
+value via the accessor function +cget+ and (c), one can change the
+value of the variable via +configure+ at runtime. Since the general
+accessor function +cget+ and +configure+ are available, an application
+developer does not have to program own accessor methods. When value
+checkers are provided, each time, the value of the variable is to be
+changed, the constrained are checked as well.
 
 [[img-person-student]]
 image::person-student.png[align="center",title="Classes Person and Student"]
 {set:img-person-student:Figure {figure-number}}
 
 The class diagram above defines the classes +Person+ and
-+Student+. For both classes, accessor methods are specified with the
-same names as the attributes. (Note that we show the accessor methods
-only in this example, we omit it in later ones). By defining
-properties we can use the name of the attribute as method name to
-access the attributes. The listing below shows an implementation of this
-conceptual model in NX.
++Student+. For both classes, configurable instance variable are
+specified by defining these as properties. The listing below shows
+an implementation of this conceptual model in NX.
 
 [[xmp-properties]]
 .Listing {counter:figure-number}: Properties
@@ -715,22 +722,23 @@ nx::Class create Student -superclass Person {
 }
 
 #
-# Create instances using object parameters
+# Create instances using configure parameters
 # for the initialization
 #
 Person create p1 -name Bob
 Student create s1 -name Susan -matnr 4711
 
 # Access property value via accessor method
-puts "The name of s1 is [s1 name]"
+puts "The name of s1 is [s1 cget -name]"
 --------------------------------------------------
 
-By defining +name+ and +birthday+ as properties of +Person+, NX
-provides automatically accessor methods with the same name.  The
-accessors methods (or shortly called "accessors") provide read and
-write access to the underlying instance variables. In our example, the
-class +Person+ has two methods implied by the +property+ definition:
-the method +name+ and the method +birthday+.
+By defining +name+ and +birthday+ as properties of +Person+, NX makes
+these configurable.  When we create an instance of +Person+ named
++p1+, we can provide a value for e.g. the name by specifying +-name+
+during creation. The properties result in non-positional configure parameters
+which can be provided in any order. In our listing, we create an instance of
++Person+ using the configure  parameter +name+ and provide the value of
++Bob+ to the instance variable +name+.  
 
 The class +Student+ is defined as a specialization of +Person+ with
 two additional properties: +matnr+ and +oncampus+. The property
@@ -739,28 +747,41 @@ class is created), and the property +oncampus+ is boolean, and is per
 default set to +true+. Note that the class +Student+ inherits the
 properties of +Person+. So, +Student+ has four properties in total.
 
-The property definitions are also used to providing +object
-parameters+. These are typically non-positional parameters, which are
-used during object creation to supply values to the instance
-variables. In our listing, we create an instance of +Person+ using the
-object parameter +name+ and provide the value of +Bob+ to the instance
-variable +name+.  Similarly, we create an instance of +Student+ using
-the two object parameters +name+ and +matnr+. Finally, we use the
-accessor method +name+ to obtain the value of the instance variable
-+name+ of object +s1+.
+The property definitions provide the +configure parameters+ for
+instance creation. Many other languages require such parameters to be
+passed via arguments of a constructor, which is often error prone,
+when values are to be passed to superclasses. Also in dynamic
+languages, the relationships between classes can be easily changed,
+and different superclasses might have different requirements in their
+constructors. The declarative approach in NX reduces the need for
+tailored constructor methods significantly.
+
+Note, that the property +matnr+ of class +Student+ is required. This
+means, that if we try to create an instance of +Student+, a runtime
+exception will be triggered. The property +oncamups+ is boolean and
+contains a default value. Providing a default value means that
+whenever we create an instance of this class the object will contain
+such an instance variable, even when we provide no value via the
+configure parameters. 
+
+In our listing, we create an instance of +Student+ using the two
+configure parameters +name+ and +matnr+. Finally, we use method +cget+
+to obtain the value of the instance variable +name+ of object +s1+.
 
 
-==== Instance Variables without Accessors
+==== Non-configurable Instance Variables
 
-To define instances variables with default values without accessors
-the predefined method +variable+ can be used. Such instance variables
-are often used for e.g. keeping the internal state of an object.  The
+In practice, not all instance variables should be configurable. But
+still, we want to be able to provide defaults similar to
+properties. To define non-configurable instance variables the
+predefined method +variable+ can be used. Such instance variables are
+often used for e.g. keeping the internal state of an object.  The
 usage of +variable+ is in many respects similar to +property+. One
 difference is, that +property+ uses the same syntax as for method
-parameters, whereas +variable+ receives the default value as a separate
-argument (similar to the +variable+ command in Tcl). The introductory
-Stack example in <<xmp-class-stack, {xmp-class-stack}>> uses already
-the method +variable+.
+parameters, whereas +variable+ receives the default value as a
+separate argument (similar to the +variable+ command in plain
+Tcl). The introductory Stack example in <<xmp-class-stack,
+{xmp-class-stack}>> uses already the method +variable+.
 
 [[xmp-variable]]
 .Listing {counter:figure-number}: Declaring Variables
@@ -788,6 +809,9 @@ Note that the variable definitions are inherited in the same way as
 properties. The example in <<xmp-variable, {xmp-variable}>> shows a
 class +Derived+ that inherits from +Base+. When an instance +d1+ is
 created, it will contain the two instance variables +x+ and +y+. 
+Note that the variable declarations from +property+ and +variable+ are
+used to initialize (and to configure) the instances variables of an object.
+
 
 [[xmp-constructor]]
 .Listing {counter:figure-number}: Setting Variables in the Constructor
@@ -821,6 +845,12 @@ initialized solely by the constructor (similar to class +Derived2+ in
 also possible in NX. Note that the approach using constructors
 requires an explicit method chaining between the constructors and is
 less declarative than the approach in NX using +property+ and +variable+.
+
+Both, +property+ and +variable+ provide much more functionalities. One
+can for example declare +public+, +protected+ or +private+ accessor
+methods, or one can define variables to be incremental (for
+e.g. adding values to a list of values), or one can define variables
+specific behavior.
 
 === Method Definitions
 
@@ -893,16 +923,19 @@ methods. Such methods are for example _accessors_, _forwarders_ and
 _aliases_.
 
 =========================================== 
-An *accessor method* is in most cases a C-implemented method that
-accesses instance variables of an object. A call to an accessor
+An *accessor method* is a method that accesses instance 
+variables of an object. A call to an accessor
 without arguments uses the accessor as a getter, obtaining the actual
 value of the associated variable. A call to an accessor with an
 argument uses it as a setter, setting the value of the associated
 variable.
 ===========================================
 
-Accessors have already been discussed in the section about properties,
-in which the accessors were created automatically.
+NX provides support for C-implemented accessor methods. Accessors have
+already been mentioned in the section about properties. When 
+the option +-accessor public|protected|private+ is provided to a
++variable+ or +property+ definition, NX creates automatically a
+same-named accessors method.
 
 [[xmp-fido2]]
 .Listing {counter:figure-number}: Accessor Methods
@@ -915,7 +948,7 @@ nx::Class create Dog {
 }
 
 nx::Class create Tail {
-  :property {length:double 5}
+  :property -accessor public {length:double 5}
   :public method wag {} {return Joy}
 }
 
@@ -942,7 +975,8 @@ the constructor +init+. The subobject can be accessed by providing the
 full name of the subobject +fido::tail+. The method +length+ is an
 C-implemented accessor, that enforces the value constraint (here a
 floating point number, since length uses the value constraint
-+double+).
++double+). Line 25 will therefore raise an exception, since the
+provided values is not converable to a double number. 
 
 [[xmp-fido3]]
 .Listing {counter:figure-number}: Forwarder Methods
@@ -958,7 +992,7 @@ nx::Class create Dog {
 }
 
 nx::Class create Tail {
-  :property {length 5}
+  :property -accessor public {length 5}
   :public method wag {} {return Joy}
 }
 
@@ -1159,10 +1193,10 @@ same name as a property in the superclass.
 [source,tcl,numbers]
 --------------------------------------------------
 #
-# Define a class C with a (public) property "x"
+# Define a class C with a property "x" and a public accessor
 #
 nx::Class create C {
-  :property {x c}
+  :property -accessor public {x c}
 }
 
 #
@@ -1171,7 +1205,7 @@ nx::Class create C {
 # the private property.
 #
 nx::Class create D -superclass C {
-  :private property {x d}
+  :property -accessor private {x d}
   :public method bar {p} {return [: -local $p]}
 }
  
@@ -1355,7 +1389,7 @@ nx::Class create C {
     :public method "string length"  {x} {....}
     :public method "string tolower" {x} {...}
     :public method "string info" {x} {...}
-    ...
+    #...
     :create c1
 }
 
@@ -1378,6 +1412,7 @@ an object method with the given name, and then the class hierarchy
 of the object. The method can be defined multiple times on the search
 path, so some of these method definitions might be _shadowed_ by the
 more specific definitions. 
+
 
 [[xmp-method-resolution]]
 .Listing {counter:figure-number}: Method Resolution with Intrinsic Classes
@@ -1407,7 +1442,7 @@ d1 info precedence
 --------------------------------------------------
 
 Consider the example in
-<<xmp-method-resolution,{xmpmethod-resolution}>>. When the method
+<<xmp-method-resolution,{xmp-method-resolution}>>. When the method
 +foo+ is invoked on object +d1+, the object method has the highest
 precedence and is therefore invoked. The object methods shadows
 the same-named methods in the class hierarchy, namely the method +foo+
@@ -1454,7 +1489,7 @@ d1 info precedence
 # result: "::M1 ::M2 ::D ::C ::nx::Object"
 --------------------------------------------------
 
-The example in <<xmp-method-resolution2,{xmpmethod-resolution2}>> is
+The example in <<xmp-method-resolution2,{xmp-method-resolution2}>> is
 an extension of the previous example. We define here two additional
 classes +M1+ and +M2+ which are used as per-object and per-class
 mixins.  Both classes define the method +foo+, these methods shadow
@@ -1513,7 +1548,7 @@ call the shadowed methods from the base classes. In our case, we have
 no definitions of +foo+ on the base clases, therefore an error message
 is returned.
 
-The output of <<xmp-method-resolution2,{xmpmethod-resolution2}>> is:
+The output of <<xmp-method-resolution3,{xmp-method-resolution3}>> is:
 ----
    M1 foo: M2 foo: d1 foo: D foo: C foo: 
    d1 foo: D foo: C foo: 
@@ -1526,7 +1561,7 @@ The output of <<xmp-method-resolution2,{xmpmethod-resolution2}>> is:
 
 NX provides a generalized mechanism for passing values to either
 methods (we refer to these as _method parameters_) or to objects
-(these are called _object parameters_). Both kind of parameters 
+(these are called _configure parameters_). Both kind of parameters 
 might have different features, such as:
 
 - Positional and non-positional parameters
@@ -1537,7 +1572,7 @@ might have different features, such as:
 
 TODO: complete list above and provide a short summary of the section
 
-Before we discuss method and object parameters in more detail, we
+Before we discuss method and configure parameters in more detail, we
 describe the parameter features in the subsequent sections based on
 method parameters.
 
@@ -1563,14 +1598,14 @@ nx::Object create o1 {
   #
   # Method foo has positional parameters:
   #
-  :public method foo {x y} {
+  :public object method foo {x y} {
     puts "x=$x y=$y"
   }
 
   #
   # Method bar has non-positional parameters:
   #
-  :public method bar {-x -y} {
+  :public object method bar {-x -y} {
     puts "x=$x y=$y"
   }
 
@@ -1578,7 +1613,7 @@ nx::Object create o1 {
   # Method baz has non-positional and 
   # positional parameters:
   #
-  :public method baz {-x -y a} {
+  :public object method baz {-x -y a} {
     puts "x? [info exists x] y? [info exists y] a=$a"
   }
 }
@@ -1643,7 +1678,7 @@ nx::Object create o2 {
   # Method foo has one required and one optional
   # positional parameter:
   #
-  :public method foo {x:required y:optional} {
+  :public object method foo {x:required y:optional} {
     puts "x=$x y? [info exists y]"
   }
 
@@ -1651,7 +1686,7 @@ nx::Object create o2 {
   # Method bar has one required and one optional
   # non-positional parameter:
   #
-  :public method bar {-x:required -y:optional} {
+  :public object method bar {-x:required -y:optional} {
     puts "x=$x y? [info exists y]"
   }
 }
@@ -1700,15 +1735,15 @@ nx::Object create o3 {
   #
   # Positional parameter with default value:
   #
-  :public method foo {x:required {y 101}} {
-    puts "x=$x y? [info exists y]"
+  :public object method foo {{x 1} {y 2}} {
+    puts "x=$x y=$y"
   }
 
   #
   # Non-positional parameter with default value:
   #
-  :public method bar {{-x 10} {-y 20}} {
-    puts "x=$x y? [info exists y]"
+  :public object method bar {{-x 10} {-y 20}} {
+    puts "x=$x y=$y"
   }
 }
 
@@ -1717,9 +1752,9 @@ o3 foo
 o3 bar
 --------------------------------------------------
 
-In order to define a default value, the parameter specification must
-be of the form of a 2 element list, where the second argument is the
-default value. See for an example in
+In order to define a default value for a parameter, the parameter
+specification must be of the form of a 2 element list, where the
+second argument is the default value. See for an example in
 <<xmp-default-value,{xmp-default-value}>>.
 
 ==== Value Constraints
@@ -1750,7 +1785,7 @@ image::value-checkers.png[align="center",title="General Applicable Value Checker
 
 <<img-value-checkers, {img-value-checkers}>> shows the built-in
 general applicable value checkers available in NX, which can be used
-for all method and object parameters. In the next step, we show how to
+for all method and configure parameters. In the next step, we show how to
 use these value-checkers for checking permissible values for method
 parameters. Then we will show, how to provide more detailed value
 constraints.
@@ -1765,19 +1800,20 @@ nx::Object create o4 {
   #
   # Positional parameter with value constraints:
   #
-  :public method foo {x:integer o:object,optional} {
+  :public object method foo {x:integer o:object,optional} {
     puts "x=$x o? [info exists o]"
   }
 
   #
   # Non-positional parameter with value constraints:
   #
-  :public method bar {{-x:integer 10} {-verbose:boolean false}} {
-    puts "x=$x y=$y"
+  :public object method bar {{-x:integer 10} {-verbose:boolean false}} {
+    puts "x=$x verbose=$verbose"
   }
 }
 
-# The following invocation raises an exception
+# The following invocation raises an exception, since the
+# value "a" for parameter "x" is not an integer
 o4 foo a
 --------------------------------------------------
 
@@ -1806,7 +1842,7 @@ nx::Object create o5 {
   #
   # Parameterized value constraints
   #
-  :public method work {
+  :public object method work {
      -person:object,type=Person
      -project:object,type=Project
    } {
@@ -1886,11 +1922,14 @@ nx::Class create D {
 
 D create d1
 
-# testing "groupsize"
+# testing "groupsize"; 
+# the second call (with value 10) will raise an exception:
 d1 foo 2 
 d1 foo 10
 
 # testing "choice"
+# the second call (with value pink for parameter a) 
+# will raise an exception:
 d1 bar green good
 d1 bar pink bad
 --------------------------------------------------
@@ -1954,7 +1993,7 @@ nx::Object create o6 {
   # Positional parameter with an possibly empty 
   # single value
   #
-  :public method foo {x:integer,0..1} {
+  :public object method foo {x:integer,0..1} {
     puts "x=$x"
   }
 
@@ -1962,7 +2001,7 @@ nx::Object create o6 {
   # Positional parameter with an possibly empty 
   # list of values value
   #
-  :public method bar {x:integer,0..n} {
+  :public object method bar {x:integer,0..n} {
     puts "x=$x"
   }
 
@@ -1970,7 +2009,7 @@ nx::Object create o6 {
   # Positional parameter with a non-empty 
   # list of values
   #
-  :public method baz {x:integer,1..n} {
+  :public object method baz {x:integer,1..n} {
     puts "x=$x"
   }
 }
@@ -2007,7 +2046,7 @@ etc.
 
 ...
 
-=== Details on Method and Object Parameters
+=== Details on Method and Configure Parameters
 
 The parameter specifications are used in NX for the following
 purposes. They are used for
@@ -2017,7 +2056,7 @@ purposes. They are used for
 - the specification for the initialization of objects.
 
 We refer to the first two as method parameters and the last one as
-object parameters. The examples in the previous sections all parameter
+configure parameters. The examples in the previous sections all parameter
 specification were specifications of method parameters.
 
 *****************************************************************************
@@ -2030,12 +2069,11 @@ actual arguments are passed to local variables of the invoked method
 and what kind of checks should be performed on these.
 
 *****************************************************************************
-*Object parameters* are parameters that specify, with what values
-instance variables of objects are initialized and how these objects
-could be parameterized.
+*Configure parameters* are parameters that specify, how objects
+can be parameterized upon creation.
 *****************************************************************************
 
-Syntactically, object parameters and method parameters are the same,
+Syntactically, configure parameters and method parameters are the same,
 although there are certain differences (e.g. some parameter options
 are only applicable for objects parameters, the list of object
 parameters is computed dynamically from the class structures, object
@@ -2044,7 +2082,7 @@ etc.).  Consider the following example, where we define the two
 application classes +Person+ and +Student+ with a few properties.
 
 [[xmp-object-parameters]]
-.Listing {counter:figure-number}: Object Parameters
+.Listing {counter:figure-number}: Configure Parameters
 {set:xmp-object-parameters:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
@@ -2067,14 +2105,14 @@ nx::Class create Student -superclass Person {
 }
 
 #
-# Create instances using object parameters
+# Create instances using configure parameters
 # for the initialization
 #
 Person create p1 -name Bob
 Student create s1 -name Susan -matnr 4711
 
-# Access property value via accessor method
-puts "The name of s1 is [s1 name]"
+# Access property value via "cget" method
+puts "The name of s1 is [s1 cget -name]"
 --------------------------------------------------
 
 The class +Person+ has two properties +name+ and +birthday+, where the
@@ -2085,27 +2123,27 @@ default value +true+ (see <<xmp-object-parameters,
 {xmp-object-parameters}>>). The class diagram below visualizes these
 definitions.
 
-[[img-object-parameters]]
-image::object-parameter.png[align="center",title="System and Application Classes"]
-{set:img-object-parameters:Figure {figure-number}}
+[[img-configure-parameters]]
+image::configure-parameter.png[align="center",title="System and Application Classes"]
+{set:img-configure-parameters:Figure {figure-number}}
 
 In NX, these definitions imply that instances of the class of +Person+
 have the properties +name+ and +birthday+ as _non-positional object
 parameters_.  Furthermore it implies that instances of +Student+ will
-have the object parameters of +Person+ augmented with the object
+have the configure parameters of +Person+ augmented with the object
 parameters from +Student+ (namely +matnr+ and +oncampus+).  Based on
-these object parameters, we can create a +Person+ named +Bob+ and a
+these configure parameters, we can create a +Person+ named +Bob+ and a
 +Student+ named +Susan+ with the matriculation number +4711+ (see line
 23 and 24 in <<xmp-object-parameters,
-{xmp-object-parameters}>>). After the object +s1+ is created it has the
+{xmp-configure-parameters}>>). After the object +s1+ is created it has the
 instance variables +name+, +matnr+ and +oncampus+ (the latter is
 initialized with the default value).
 
-==== Object Parameters for all NX Objects
+==== Configure Parameters available for all NX Objects
 
-The object parameters are not limited to the application defined
+The configure parameters are not limited to the application defined
 properties, also NX provides some predefined definitions. Since
-+Person+ is a subclass of +nx::Object+ also the object parameters of
++Person+ is a subclass of +nx::Object+ also the configure parameters of
 +nx::Object+ are inherited. In the introductory stack example, we used
 +-mixin+ applied to an object to denote per-object mixins (see
 <<xmp-using-class-safety, {xmp-using-class-safety}>>). Since +mixin+
@@ -2120,40 +2158,40 @@ specified at object creation as last argument; see
 <<xmp-object-stack, {xmp-object-stack}>> or
 <<xmp-object-integer-stack, {xmp-object-integer-stack}>>). The
 scripted block and its meaning are as well defined by the means of
-object parameters. However, this object parameter is positional (last
+configure parameters. However, this configure parameter is positional (last
 argument) and optional (it can be omitted). The following listing shows
-(simplified) the object parameters of +Person p1+ and +Student s1+.
+(simplified) the configure parameters of +Person p1+ and +Student s1+.
 
 [[xmp-object-parameter-list]]
-.Listing {counter:figure-number}: Computed Actual Object Parameter (simplified)
+.Listing {counter:figure-number}: Computed Actual Configure Parameter (simplified)
 {set:xmp-object-parameter-list:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Object parameter for Person p1: 
+Configure parameter for Person p1: 
    -name:required -birthday ... 
    -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n _:initcmd,optional
 
-Object parameter for Student s1:
+Configure parameter for Student s1:
    -matnr:required {-oncampus:boolean true} 
    -name:required -birthday ...
    -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n _:initcmd,optional
 --------------------------------------------------
 
 The actual values can be obtained via introspection via +Person info
-parameter definition+. The object parameter types +mixinreg+ and
+parameter definition+. The configure parameter types +mixinreg+ and
 +filterreg+ are for converting definitions of filters and mixins.  The
-object parameter type +initcmd+ says that the content of this variable
+configure parameter type +initcmd+ says that the content of this variable
 will be executed in the context of the object being created (before
-the constructor +init+ is called).  More about the object parameter
+the constructor +init+ is called).  More about the configure parameter
 types later.
 
-==== Object Parameters for all NX Classes
+==== Configure Parameters available for all NX Classes
 
 Since classes are certain kind of objects, classes are parameterized
 in the same way as objects. A typical parameter for a class definition
 is the relation of the class to its superclass.In our example, we have
 specified, that +Student+ has +Person+ as superclass via the
-non-positional object parameter +-superclass+. If no superclass is
+non-positional configure parameter +-superclass+. If no superclass is
 specified for a class, the default superclass is
 +nx::Object+. Therefore +nx::Object+ is the default value for the
 parameter +superclass+. 
@@ -2164,7 +2202,7 @@ per-class mixins (see e.g. the introductory Stack example in
 the same way.
 
 Since +Student+ is an instance of the meta-class +nx::Class+ it
-inherits the object parameters from +nx::Class+ (see class diagram
+inherits the configure parameters from +nx::Class+ (see class diagram
 <<img-object-parameters,{img-object-parameters}>>). Therefore, one can
 use e.g. +-superclass+ in the definition of classes.
 
@@ -2182,7 +2220,7 @@ Student+.
 {set:xmp-class-parameter-list:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Object parameter for Class Student:
+Configure parameter for Class Student:
    -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n ...
    {-superclass:class,alias,1..n ::nx::Object} ...
 --------------------------------------------------
@@ -2193,7 +2231,7 @@ parameter definition+.
 
 ==== User defined Parameter Types
 
-More detailed definition of the object parameter types comes here.
+More detailed definition of the configure parameter types comes here.
 
 ==== Slot Classes and Slot Objects
 
@@ -2201,7 +2239,7 @@ In one of the previous sections, we defined scripted (application
 defined) checker methods on a class named +nx::Slot+.  In general NX
 offers the possibility to define value checkers not only for all
 usages of parameters but as well differently for method parameters or
-object parameters
+configure parameters
 
 [[img-slots]]
 image::slots.png[align="center",title="Slot Classes and Objects"]
@@ -2221,8 +2259,10 @@ Still Missing
 - incremental slots
 
 == Miscellaneous
+...
 
 === Profiling
+...
 
 === Unknown Handlers
 
@@ -2244,7 +2284,7 @@ called method followed by the provided arguments
 [source,tcl,numbers]
 --------------------------------------------------
 ::nx::Object create o {
-  :method unknown {called_method args} {
+  :object method unknown {called_method args} {
     puts "Unknown method '$called_method' called"
   }
 }
@@ -2286,11 +2326,11 @@ from the keys of other unknown handlers).
 ::nx::Object create o {
   # The class M is unknown at this point
 
-  :mixin add M
+  :object mixin add M
   # The line above has triggered the unknown class handler, 
   # class M is now defined
 
-  puts [:info mixin classes]
+  puts [:info object mixin classes]
   # The output will be:
   #     ***** __unknown called with <::M>
   #     ::M
