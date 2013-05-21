@@ -726,8 +726,16 @@ namespace eval ::nx {
     #
     # Parameter extractors
     #
-    :method "info parameter syntax" {p:parameter} {::nsf::parameter::get syntax $p}
-    :method "info parameter name"   {p:parameter} {::nsf::parameter::get name $p}
+    :method "info parameter default" {p:parameter varName:optional} {
+      if {[info exists varName]} {
+	uplevel [list ::nsf::parameter::get default $p $varName]
+      } else {
+	::nsf::parameter::get default $p
+      }
+    }
+    :method "info parameter name"    {p:parameter} {::nsf::parameter::get name   $p}
+    :method "info parameter syntax"  {p:parameter} {::nsf::parameter::get syntax $p}
+    :method "info parameter type"    {p:parameter} {::nsf::parameter::get type   $p}
     
     :alias "info parent"           ::nsf::methods::object::info::parent
     :alias "info precedence"       ::nsf::methods::object::info::precedence

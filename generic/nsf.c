@@ -20986,20 +20986,29 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 
 /*
 cmd parameter::get NsfParameterGetCmd {
-  {-argName "parametersubcmd" -type "list|name|syntax" -required 1}
-  {-argName "parameterspec"    -required 1 -type tclobj}
+  {-argName "parametersubcmd" -type "default|list|name|syntax|type" -required 1}
+  {-argName "parameterspec"   -required 1 -type tclobj}
+  {-argName "varname"         -required 0 -type tclobj}
 }
 */
 static int 
-NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec) {
+NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec,  Tcl_Obj *varname) {
   NsfParsedParam parsedParam;
-  Tcl_Obj *paramsObj = Tcl_NewListObj(1, &parameterspec), *listObj = NULL;
+  Tcl_Obj *paramsObj, *listObj = NULL;
   Nsf_Param *paramsPtr;
   int result;
   
+  if (parametersubcmd != ParametersubcmdDefaultIdx && varname != NULL) {
+    return NsfPrintError(interp, "parameter::get: provided third arguement is only valid for querying defaults");
+  } 
+  
+  paramsObj = Tcl_NewListObj(1, &parameterspec);
+  INCR_REF_COUNT(paramsObj);
   result = ParamDefsParse(interp, NULL, paramsObj,
 			    NSF_DISALLOWED_ARG_OBJECT_PARAMETER, 1,
 			    &parsedParam);
+  DECR_REF_COUNT(paramsObj);
+
   if (result != TCL_OK) {
     return result;
   }
@@ -21007,25 +21016,56 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
   paramsPtr = parsedParam.paramDefs->paramsPtr;
 
   switch (parametersubcmd) {
+  case ParametersubcmdDefaultIdx:
+    if (paramsPtr->defaultValue) {
+      if (varname) {
+	Tcl_Obj *resultObj = Tcl_ObjSetVar2(interp, varname, NULL, 
+					    paramsPtr->defaultValue, 
+					    TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+	if (resultObj == NULL) {
+	  ParamDefsRefCountDecr(parsedParam.paramDefs);
+	  return TCL_ERROR;
+	}
+      }
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_ONE]);
+    } else {
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_ZERO]);
+    }
+    break;
+
   case ParametersubcmdListIdx:
     listObj = ParamDefsList(interp, paramsPtr);
+    Tcl_SetObjResult(interp, listObj);
+    DECR_REF_COUNT2("paramDefsObj", listObj);
     break;
+
   case ParametersubcmdNameIdx:
     listObj = ParamDefsNames(interp, paramsPtr);
+    Tcl_SetObjResult(interp, listObj);
+    DECR_REF_COUNT2("paramDefsObj", listObj);
     break;
-    /* case InfoobjectparametersubcmdParameterIdx:
-       listObj = ParamDefsFormat(interp, paramsPtr);
-       break;*/
+
   case ParametersubcmdSyntaxIdx:
     listObj = NsfParamDefsSyntax(paramsPtr);
+    Tcl_SetObjResult(interp, listObj);
+    DECR_REF_COUNT2("paramDefsObj", listObj);
+    break;
+
+  case ParametersubcmdTypeIdx:
+    if (paramsPtr->type) {
+      if (paramsPtr->converter == Nsf_ConvertToTclobj && paramsPtr->converterArg) {
+	Tcl_SetObjResult(interp, paramsPtr->converterArg);
+      } else {
+	Tcl_SetObjResult(interp, Tcl_NewStringObj(paramsPtr->type, -1));
+      }
+    } else {
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
+    }
     break;
   }
 
-  assert(listObj);
-  Tcl_SetObjResult(interp, listObj);
-  
-  DECR_REF_COUNT2("paramDefsObj", listObj);
   ParamDefsRefCountDecr(parsedParam.paramDefs);
+
   return TCL_OK;
 }
 

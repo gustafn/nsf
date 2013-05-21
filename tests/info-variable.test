@@ -52,6 +52,9 @@ __initcmd:initcmd,optional,noleadingdash"
   ? {Person info parameter syntax -force:switch} "?-force?"
   ? {Person info parameter name "a b"} "a"
 
+  ? {lmap p [Person info configure parameters] {nsf::parameter::get default $p}} "0 0 0 0 0 0 0 0"
+  ? {lmap p [Person info method parameters foo] {nsf::parameter::get default $p}} "1 0 1"
+
   nx::Class create Bar {
     :property {p 9}
   }
@@ -67,6 +70,13 @@ __initcmd:initcmd,optional,noleadingdash"
     :public method m {} {: -local p}
     :create f1
   }
+
+  ? {lmap p [Foo info configure parameters] {nsf::parameter::get name $p}} \
+      "i a b p volatile noinit object-mixin class object-filter __initcmd"
+  ? {lmap p [Foo info configure parameters] {nsf::parameter::get default $p}} \
+      "0 0 1 1 0 0 0 0 0 0"
+  ? {lmap p [Foo info configure parameters] {nsf::parameter::get type $p}} \
+      "{} integer integer {} {} {} mixinreg class filterreg {}"
 
   ? {join [lsort [::Foo info slots]] \n} \
 "::Foo::slot::____Foo.p
@@ -85,7 +95,7 @@ __initcmd:initcmd,optional,noleadingdash"
   ? {::Foo::slot::d definition} "::Foo variable -accessor none d:lower abc"
   ? {::Foo::slot::e definition} "::Foo variable -accessor public e:lower efg"
   ? {::Foo::slot::q definition} "::Foo variable -accessor protected q"
-  
+
   ? {join [lsort [::f1 info lookup slots]] \n} \
 "::Bar::slot::p
 ::Foo::slot::____Foo.p
@@ -153,7 +163,9 @@ __initcmd:initcmd,optional,noleadingdash"
 ::Foo property -accessor public -incremental i:0..n
 ::Foo variable -accessor protected q"
 
-  ? {join [lmap handle $::vs {::Foo info variable parameter $handle}] \n} \
+  set ::ps [lmap handle $::vs {::Foo info variable parameter $handle}]
+
+  ? {join $::ps \n} \
 "p 19
 a:integer
 b:integer 123
@@ -165,6 +177,20 @@ q"
 
   ? {lmap handle $::vs {::Foo info variable name $handle}} \
     "__private(::Foo,p) a b c d e i q"
+
+  ? {lmap handle $::ps {::Foo info parameter name $handle}} \
+    "p a b c d e i q"
+  ? {lmap handle $::ps {::Foo info parameter default $handle}} \
+    "1 0 1 1 1 1 0 0"
+  ? {lmap handle $::ps {::Foo info parameter type $handle}} \
+    "{} integer integer {} lower lower {} {}"
+
+  ? {nsf::parameter::get default "b:integer 123" ::var1} "1"
+  ? {set ::var1} "123"
+
+  ? {::Foo info parameter default "b:integer 123" ::var2} "1"
+  ? {set ::var2} "123"
+
 }
 
 nx::Test case object-variables {

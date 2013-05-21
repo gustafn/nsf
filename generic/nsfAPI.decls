@@ -71,8 +71,9 @@ cmd is NsfIsCmd {
 
 
 cmd parameter::get NsfParameterGetCmd {
-  {-argName "parametersubcmd" -type "list|name|syntax" -required 1}
-  {-argName "parameterspec"    -required 1 -type tclobj}
+  {-argName "parametersubcmd" -type "default|list|name|syntax|type" -required 1}
+  {-argName "parameterspec"   -required 1 -type tclobj}
+  {-argName "varname"         -required 0 -type tclobj}
 }
 
 cmd parameter:invalidate::classcache NsfParameterInvalidateClassCacheCmd {

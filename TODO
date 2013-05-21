@@ -4452,6 +4452,13 @@ Method and configure parameter reform, Part 3:
    * "/obj/ delete object property"
    * "/obj/ delete object variable"
 
+- extended parameter extractor. new functionality
+
+    ::nsf::parameter get default /parameter/ ?/varname/?
+    ::nsf::parameter get type /parameter/
+    /obj/ info parameter get default /parameter/ ?/varname/?
+    /obj/ info parameter get type /parameter/
+
 ========================================================================
 TODO:
 - The two names are not appropriate
@@ -4462,7 +4469,6 @@ TODO:
 - valuechangedcmd implemented via initcmd does 
   not work with "configure" method
 - info AddSlotObjects(): handle full-qualified name for private slots
-- NsfParameterGetCmd should/could handle more than "list|name|syntax"
 - fix property inheritance in traits (nx-traits.tcl)
 - maybe remove unneeded values, align naming in enumeration of first arg of 
   *::info::objectparameter and *::info::method

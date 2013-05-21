@@ -162,12 +162,12 @@ static int ConvertToObjectproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
   return result;
 }
   
-enum ParametersubcmdIdx {ParametersubcmdNULL, ParametersubcmdListIdx, ParametersubcmdNameIdx, ParametersubcmdSyntaxIdx};
+enum ParametersubcmdIdx {ParametersubcmdNULL, ParametersubcmdDefaultIdx, ParametersubcmdListIdx, ParametersubcmdNameIdx, ParametersubcmdSyntaxIdx, ParametersubcmdTypeIdx};
 
 static int ConvertToParametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"list", "name", "syntax", NULL};
+  static CONST char *opts[] = {"default", "list", "name", "syntax", "type", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "parametersubcmd", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -230,7 +230,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   {ConvertToConfigureoption, "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
   {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
-  {ConvertToParametersubcmd, "list|name|syntax"},
+  {ConvertToParametersubcmd, "default|list|name|syntax|type"},
   {NULL, NULL}
 };
     
@@ -401,7 +401,7 @@ static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
 static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectproperty, Tcl_Obj *value);
 static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods);
-static int NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec);
+static int NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec, Tcl_Obj *varname);
 static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *class);
 static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object);
 static int NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, Tcl_Obj *slotobjs);
@@ -1659,9 +1659,10 @@ NsfParameterGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      &pc) == TCL_OK)) {
     int parametersubcmd = (int )PTR2INT(pc.clientData[0]);
     Tcl_Obj *parameterspec = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *varname = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfParameterGetCmd(interp, parametersubcmd, parameterspec);
+    return NsfParameterGetCmd(interp, parametersubcmd, parameterspec, varname);
 
   } else {
     return TCL_ERROR;
@@ -2911,9 +2912,10 @@ static Nsf_methodDefinition method_definitions[106] = {
   {"rootMetaClass", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"systemMethods", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::parameter::get", NsfParameterGetCmdStub, 2, {
+{"::nsf::parameter::get", NsfParameterGetCmdStub, 3, {
   {"parametersubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToParametersubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"parameterspec", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"parameterspec", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"varname", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::parameter:invalidate::classcache", NsfParameterInvalidateClassCacheCmdStub, 1, {
   {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertToClass, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL}}
