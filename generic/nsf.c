@@ -13828,26 +13828,24 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
 	 * If the pattern looks like fully qualified, we match against the
 	 * fully qualified name.
 	 */
-	if (*key == '_' && *(key+1) == '_' && *(key+2) == '_' && *(key+3) == '_') {
-	  Tcl_Obj *value = Nsf_ObjGetVar2((Nsf_Object *)childObject, interp, 
-					  NsfGlobalObjs[NSF_SETTERNAME], NULL, 0);
-	  if (value) {
-	    char *valueString = ObjStr(value);
 
-	    match = fullQualPattern ?
-	      Tcl_StringMatch(ObjectName(childObject), pattern) :
-	      Tcl_StringMatch(valueString, pattern);
-
-	  } else {
-	    match = 0;
-	  }
-	  /*fprintf(stderr, "pattern <%s> fullQualPattern %d child %s key %s %p <%s> match %d\n", 
-		  pattern, fullQualPattern, ObjectName(childObject), key, 
-		  value, value ? ObjStr(value) : "", match);*/
+	if (fullQualPattern) {
+	  match = Tcl_StringMatch(ObjectName(childObject), pattern);
 	} else {
-	  match = fullQualPattern ?
-	    Tcl_StringMatch(ObjectName(childObject), pattern) :
-	    Tcl_StringMatch(key, pattern);
+	  /*
+	   * do we have a mangled name of a private property/variable?
+	   */
+	  if (*key == '_' && *(key+1) == '_' && *(key+2) == '_' && *(key+3) == '_') {
+	    Tcl_Obj *value = Nsf_ObjGetVar2((Nsf_Object *)childObject, interp, 
+					    NsfGlobalObjs[NSF_SETTERNAME], NULL, 0);
+	    match = value ? Tcl_StringMatch(ObjStr(value), pattern) : 0;
+
+	    /*fprintf(stderr, "pattern <%s> fullQualPattern %d child %s key %s %p <%s> match %d\n", 
+	      pattern, fullQualPattern, ObjectName(childObject), key, 
+	      value, value ? ObjStr(value) : "", match);*/
+	  } else {
+	    match = Tcl_StringMatch(key, pattern);
+	  }
 	}
 	if (!match) {
 	  continue;
