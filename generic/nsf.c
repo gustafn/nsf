@@ -13835,8 +13835,9 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
 	    char *valueString = ObjStr(value);
 
 	    match = fullQualPattern ?
-	      Tcl_StringMatch(valueString, pattern+2) :
-	      Tcl_StringMatch(valueString, pattern);	  
+	      Tcl_StringMatch(ObjectName(childObject), pattern) :
+	      Tcl_StringMatch(valueString, pattern);
+
 	  } else {
 	    match = 0;
 	  }

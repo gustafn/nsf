@@ -4452,12 +4452,14 @@ Method and configure parameter reform, Part 3:
    * "/obj/ delete object property"
    * "/obj/ delete object variable"
 
-- extended parameter extractor. new functionality
-
+- extended parameter extractor: new functionality
     ::nsf::parameter get default /parameter/ ?/varname/?
     ::nsf::parameter get type /parameter/
     /obj/ info parameter get default /parameter/ ?/varname/?
     /obj/ info parameter get type /parameter/
+
+- nsf.c: handle full-qualified name for private slots (AddSlotObjects())
+- extended regression test
 
 ========================================================================
 TODO:

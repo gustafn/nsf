@@ -493,6 +493,8 @@ nx::Test case slots {
   nx::Class create C {
     :property a
     :property {b 1}
+    :property -accessor private {x 100}
+    :object property -accessor private {y 100}
   }
   
   nx::Class create D -superclass C {
@@ -500,17 +502,32 @@ nx::Test case slots {
     :property c
     :object property -accessor public a2
     :method "sub foo" args {;}
+    :create d1
   }
 
   ? {D info lookup slots} "::D::per-object-slot::a2 ::nx::Class::slot::superclass ::nx::Class::slot::mixin ::nx::Class::slot::filter ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
 
+  ? {D info lookup slots superclass} "::nx::Class::slot::superclass"
+  ? {D info lookup slots ::nx::Class::slot::superclass} "::nx::Class::slot::superclass"
+  ? {D info lookup slots a2} "::D::per-object-slot::a2"
+  ? {D info lookup slots ::D::per-object-slot::a2} "::D::per-object-slot::a2"
+
+  ? {d1 info lookup slots b} "::D::slot::b"
+  ? {d1 info lookup slots ::D::slot::b} "::D::slot::b"
+
   C create c1
   ? {c1 info precedence} "::C ::nx::Object"
   ? {C info heritage} "::nx::Object"
-  ? {C info slots -closure -source application} "::C::slot::a ::C::slot::b"
-  ? {C info slots -closure} "::C::slot::a ::C::slot::b ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
+  ? {C info slots -closure -source application} "::C::slot::____C.x ::C::slot::a ::C::slot::b"
+  ? {C info slots -closure} "::C::slot::____C.x ::C::slot::a ::C::slot::b ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
 
-  ? {C info slots} "::C::slot::a ::C::slot::b"
+  ? {C info slots} "::C::slot::____C.x ::C::slot::a ::C::slot::b"
+
+  ? {C info slots x} "::C::slot::____C.x"
+  ? {C info slots ::C::slot::____C.x} "::C::slot::____C.x"
+
+  ? {C info lookup slots y} "::C::per-object-slot::____C.y"
+  ? {C info lookup slots ::C::per-object-slot::____C.y} "::C::per-object-slot::____C.y"
 
   # Test patterns for "info slots"
   # Partial name, no metachars
@@ -522,10 +539,10 @@ nx::Test case slots {
   ? {C info slots -closure ::nx::Object::slot::object-mixin} "::nx::Object::slot::object-mixin"
   # Fully qualified name, with metachars
   # The following command returns the same as "C info slots"
-  ? {C info slots -closure ::C::*} "::C::slot::a ::C::slot::b"
+  ? {C info slots -closure ::C::*} "::C::slot::____C.x ::C::slot::a ::C::slot::b"
   # The following command returns the slots of D inherited from
-  # C. Slot "b" is shadoed by D.
-  ? {D info slots -closure ::C::*} "::C::slot::a"
+  # C. Slot "b" is shadowed by D.
+  ? {D info slots -closure ::C::*} "::C::slot::____C.x ::C::slot::a"
   
   # Test patterns for "info lookup slots"
   # Partial name, no metachars
@@ -536,21 +553,21 @@ nx::Test case slots {
   # Fully qualified name, no metachars
   ? {c1 info lookup slots ::nx::Object::slot::object-mixin} "::nx::Object::slot::object-mixin"
   # Fully qualified name, with metachars
-  ? {c1 info lookup slots ::C::*} "::C::slot::a ::C::slot::b"
+  ? {c1 info lookup slots ::C::*} "::C::slot::____C.x ::C::slot::a ::C::slot::b"
 
   D create d1
   ? {D info slots} "::D::slot::b ::D::slot::c"
-  ? {D info slots -closure -source application} "::D::slot::b ::D::slot::c ::C::slot::a"
+  ? {D info slots -closure -source application} "::D::slot::b ::D::slot::c ::C::slot::____C.x ::C::slot::a"
 
   ? {::nx::Object info method parameters info} ""
 
   ? {d1 info precedence} "::D ::C ::nx::Object"
-  ? {d1 info lookup slots} "::D::slot::b ::D::slot::c ::C::slot::a ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
+  ? {d1 info lookup slots} "::D::slot::b ::D::slot::c ::C::slot::____C.x ::C::slot::a ::nx::Object::slot::volatile ::nx::Object::slot::noinit ::nx::Object::slot::object-mixin ::nx::Object::slot::__initcmd ::nx::Object::slot::class ::nx::Object::slot::object-filter"
 
   # Fully qualified name, with metachars
   # The following command returns the slots of D inherited from
-  # C. Slot "b" is shadoed by D.
-  ? {d1 info lookup slots ::C::*} "::C::slot::a"
+  # C. Slot "b" is shadowed by D.
+  ? {d1 info lookup slots ::C::*} "::C::slot::____C.x ::C::slot::a"
 }
 
 #
