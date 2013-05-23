@@ -4482,6 +4482,9 @@ Method and configure parameter reform, Part 3:
   (used e.g. for scripted object/class definitions) is now of type "cmd".
   Implementation not yet complete (object cases are not correct).
 
+- nsf.c: fix crash when "nsf::my" is called with a single
+  argument outside the object context.
+
 ========================================================================
 TODO:
 - valuechangedcmd implemented via initcmd does 

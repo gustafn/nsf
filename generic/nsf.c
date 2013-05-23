@@ -20583,7 +20583,7 @@ NsfMyCmd(Tcl_Interp *interp,
   int flags, result;
 
   if (unlikely(self == NULL)) {
-    return NsfNoCurrentObjectError(interp, ObjStr(nobjv[0]));
+    return NsfNoCurrentObjectError(interp, method_definitions[NsfMyCmdIdx].methodName);
   }
 
   if ((withIntrinsic && withLocal)
