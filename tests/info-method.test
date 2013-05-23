@@ -718,7 +718,7 @@ nx::Test case info-slot-parametersyntax {
   ? {C info configure syntax} "/::C/ ?-a /value/? ?-b /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
 #  ? {C info configure syntax a} "/::C/ ?-a /value/?"
 
-  ? {C info configure parameters } "-a {-b 1} -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n __initcmd:initcmd,optional,noleadingdash"
+  ? {C info configure parameters } "-a {-b 1} -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -noinit:alias,method=::nsf::methods::object::noinit,noarg -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n __initcmd:cmd,optional,noleadingdash"
 
 #  ? {C info parameter list} "-a -b -volatile -noinit -object-mixin -class -object-filter __initcmd"
 #  ? {C info parameter names} "a b volatile noinit object-mixin class object-filter __initcmd"

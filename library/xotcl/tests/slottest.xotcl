@@ -481,9 +481,9 @@ Class C -slots {
   Attribute create x -defaultcmd {incr ::hu; set x 101}
 }
 C c1
-? {c1 info vars} ""
+? {c1 info vars} "__initcmd"
 ? {c1 set x} 101
-? {c1 info vars} "x"
+? {c1 info vars} "x __initcmd"
 ? {set ::hu 1} 1
 
 #######################################################

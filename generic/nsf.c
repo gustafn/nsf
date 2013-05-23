@@ -9075,6 +9075,8 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
       }
       if ((paramPtr->flags & NSF_ARG_INITCMD)) {
         ParamDefsFormatOption(nameStringObj, "initcmd", &colonWritten, &first);
+      } else if ((paramPtr->flags & NSF_ARG_CMD)) {
+        ParamDefsFormatOption(nameStringObj, "cmd", &colonWritten, &first);
       } else if ((paramPtr->flags & NSF_ARG_ALIAS)) {
         ParamDefsFormatOption(nameStringObj, "alias", &colonWritten, &first);
       } else if ((paramPtr->flags & NSF_ARG_FORWARD)) {
@@ -11930,23 +11932,38 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->flags |= NSF_ARG_IS_CONVERTER;
 
   } else if (strncmp(option, "initcmd", 7) == 0) {
+    if (unlikely(paramPtr->flags & (NSF_ARG_CMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD))) {
+      return NsfPrintError(interp, "parameter option 'initcmd' not valid in this option combination");
+    }
     paramPtr->flags |= NSF_ARG_INITCMD;
 
+  } else if (strncmp(option, "cmd", 3) == 0) {
+    if (unlikely(paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_ALIAS|NSF_ARG_FORWARD))) {
+      return NsfPrintError(interp, "parameter option 'cmd' not valid in this option combination");
+    }
+    paramPtr->flags |= NSF_ARG_CMD;
+
   } else if (strncmp(option, "alias", 5) == 0) {
+    if (unlikely(paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD|NSF_ARG_FORWARD))) {
+      return NsfPrintError(interp, "parameter option 'alias' not valid in this option combination");
+    }
     paramPtr->flags |= NSF_ARG_ALIAS;
 
   } else if (strncmp(option, "forward", 7) == 0) {
+    if (unlikely(paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD|NSF_ARG_ALIAS))) {
+      return NsfPrintError(interp, "parameter option 'forward' not valid in this option combination");
+    }
     paramPtr->flags |= NSF_ARG_FORWARD;
 
   } else if (strncmp(option, "slotassign", 10) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
-      return NsfPrintError(interp, "option 'slotassign' must follow 'slot='");
+      return NsfPrintError(interp, "parameter option 'slotassign' must follow 'slot='");
     }
     paramPtr->flags |= NSF_ARG_SLOTASSIGN;
 
   } else if (strncmp(option, "slotinitialize", 14) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
-      return NsfPrintError(interp, "option 'slotinit' must follow 'slot='");
+      return NsfPrintError(interp, "parameter option 'slotinit' must follow 'slot='");
     }
     paramPtr->flags |= NSF_ARG_SLOTINITIALIZE;
 
@@ -11971,7 +11988,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (strncmp(option, "noarg", 5) == 0) {
     if ((paramPtr->flags & NSF_ARG_ALIAS) == 0) {
-      return NsfPrintError(interp, "option \"noarg\" only allowed for parameter type \"alias\"");
+      return NsfPrintError(interp, "parameter option \"noarg\" only allowed for parameter type \"alias\"");
     }
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
@@ -12158,13 +12175,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   }
 
   if (unlikely((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) && (paramPtr->flags & NSF_ARG_NOCONFIG))) {
-    return NsfPrintError(interp, "option 'noconfig' cannot used together with this type of object parameter");
-  } else if (unlikely((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == (NSF_ARG_ALIAS|NSF_ARG_FORWARD))) {
-    return NsfPrintError(interp, "parameter types 'alias' and 'forward' cannot be used together");
-  } else if (unlikely((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_INITCMD)) == (NSF_ARG_ALIAS|NSF_ARG_INITCMD))) {
-    return NsfPrintError(interp, "parameter types 'alias' and 'initcmd' cannot be used together");
-  } else if (unlikely((paramPtr->flags & (NSF_ARG_FORWARD|NSF_ARG_INITCMD)) == (NSF_ARG_FORWARD|NSF_ARG_INITCMD))) {
-    return NsfPrintError(interp, "parameter types 'forward' and 'initcmd' cannot be used together");
+    return NsfPrintError(interp, "parameter option 'noconfig' cannot used together with this type of object parameter");
   }
 
   return result;
@@ -12676,7 +12687,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
 	  NSF_CSC_TYPE_PLAIN, 0, NsfGlobalStrings[NSF_CONFIGURE]);
   Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
   
-  if (paramPtr->flags & NSF_ARG_INITCMD) {
+  if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD)) {
     /* cscPtr->cmdPtr = NSFindCommand(interp, "::eval"); */
     result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
     
@@ -15549,7 +15560,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
    */
   object->flags &= ~NSF_INIT_CALLED;
   /*
-   * Make sure, the object survives initialization; the initcmd might
+   * Make sure, the object survives initialization; the cmd/initcmd might
    * destroy it.
    */
   NsfObjectRefCountIncr(object);
@@ -16844,7 +16855,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
    */
   if ((unlikely((doCheckArguments & NSF_ARGPARSE_CHECK) == 0) 
        && (pPtr->flags & (NSF_ARG_IS_CONVERTER)) == 0
-       ) || (pPtr->flags & (NSF_ARG_INITCMD))) {
+       ) || (pPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD))) {
     /* fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n", pPtr->name, pPtr->flags); */
     *clientData = ObjStr(objPtr);
     return TCL_OK;
@@ -22422,7 +22433,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     
     /*
      * Special setter methods for invoking methods calls; handles types
-     * "initcmd", "alias" and "forward".
+     * "cmd", "initcmd", "alias" and "forward".
      */
     if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) 
 	//&&  (paramPtr->flags & NSF_ARG_METHOD_CALL || object->flags & NSF_INIT_CALLED)
@@ -22438,7 +22449,54 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	/*fprintf(stderr, "%s consuming nrargs %d no value\n", paramPtr->name, paramPtr->nrArgs);*/
 	continue;
       }
-      // oooo;
+
+      if ((paramPtr->flags & NSF_ARG_INITCMD)) {
+	// oooo;
+
+	if (paramPtr->defaultValue) {
+	  /*
+	   * The "defaultValue" holds the initcmd to be executed
+	   */
+	  Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, NsfGlobalObjs[NSF_INITCMD], 
+					   paramPtr->nameObj, 0);
+	  // TODO cleanup
+	  /*fprintf(stderr, "INITCMD isdefault %d default %s value %p var %p\n", 
+		  (pc.flags[i-1] & NSF_PC_IS_DEFAULT),
+		  paramPtr->defaultValue ? ObjStr(paramPtr->defaultValue) : "NONE",
+		  ObjStr(newValue),
+		  varObj
+		  );*/
+	  if (varObj == NULL) {
+	    /*
+	     * The variable is not set. Therefore, we assume, we have to
+	     * execute the initcmd. On success, we note the execution in the NSF_INITCMD
+	     * variable (usually __initcmd(name))
+	     */
+	    result = ParameterMethodDispatch(interp, object, paramPtr, paramPtr->defaultValue, 
+					     uplevelVarFramePtr, initString,
+					     objv[pc.lastObjc], (Tcl_Obj **)&objv[pc.lastObjc + 1], 
+					     objc - pc.lastObjc);
+	    if (result != TCL_OK) {
+	      Nsf_PopFrameObj(interp, framePtr);
+	      goto configure_exit;
+	    }
+	    Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_INITCMD], 
+			   paramPtr->nameObj, Tcl_NewIntObj(1), 0);
+	  }
+
+	} else {
+	  //TODO should we require a default?
+	  
+	}
+	/*
+	 * if we have a new actual value, proceed to setvars
+	 */
+	if ((pc.flags[i-1] & NSF_PC_IS_DEFAULT) == 0) {
+	  goto setvars;
+	}
+	continue;
+      }
+
       result = ParameterMethodDispatch(interp, object, paramPtr, newValue, 
 				       uplevelVarFramePtr, initString,
 				       objv[pc.lastObjc], (Tcl_Obj **)&objv[pc.lastObjc + 1], 
@@ -22450,6 +22508,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       continue;
     }
     
+  setvars:
     if (newValue == NsfGlobalObjs[NSF___UNKNOWN__]) {
       /*
        * Nothing to do, we have a value setter, but no value is specified and

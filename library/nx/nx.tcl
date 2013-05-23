@@ -983,7 +983,7 @@ namespace eval ::nx {
           lappend opts -methodname [string range $property 7 end]
         } elseif {$property eq "optional"} {
 	  lappend opts -required 0
-        } elseif {$property in [list "alias" "forward" "initcmd"]} {
+        } elseif {$property in [list "alias" "forward" "cmd" "initcmd"]} {
 	  set class [:requireClass ::nx::ObjectParameterSlot $class]
 	  lappend opts -disposition $property
 	  set class [:requireClass ::nx::ObjectParameterSlot $class]
@@ -1335,10 +1335,12 @@ namespace eval ::nx {
       if {[info exists :initcmd]} {
 	lappend options initcmd
 	if {[info exists :default]} {
-	  append initcmd "::nsf::var::set \[::nsf::self\] ${:name} [list ${:default}]\n"
+	  append initcmd "\n::nsf::var::set \[::nsf::self\] ${:name} [list ${:default}]\n"
+	  #puts stderr ================append-default-to-initcmd-old=<${:initcmd}>
 	}
 	append initcmd ${:initcmd}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initcmd]
+	#puts stderr ================${:parameterSpec}
 
       } elseif {[info exists :default]} {
 	# deactivated for now: || [string first {$} ${:default}] > -1
@@ -1570,7 +1572,7 @@ namespace eval ::nx {
   # Define the initcmd as a positional ObjectParameterSlot
   #
   ::nx::ObjectParameterSlot create ::nx::Object::slot::__initcmd \
-      -disposition initcmd \
+      -disposition cmd \
       -noleadingdash true \
       -positional true \
       -position 2
@@ -1663,6 +1665,7 @@ namespace eval ::nx {
 	substdefault
 	noconfig
 	initcmd
+        cmd
 	required
     } |]]
 		 
@@ -1689,8 +1692,8 @@ namespace eval ::nx {
     if {[info exists :type]} {
       set type ${:type}
       if {$type eq "switch" && !$forObjectParameter} {set type boolean}
-      if {$type eq "initcmd"} {
-	lappend options initcmd
+      if {$type in {cmd initcmd}} {
+	lappend options $type
       } elseif {[string match ::* $type]} {
 	lappend options [expr {[::nsf::is metaclass $type] ? "class" : "object"}] type=$type
       } else {

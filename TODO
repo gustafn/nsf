@@ -4472,6 +4472,16 @@ Method and configure parameter reform, Part 3:
     /obj/ info object methods ... ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
     /obj/ info lookup methods ... ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
 
+- removed some TODOs from tests/parameters.test
+
+- parameter dispositions: 
+  We differentiate now between "initcmd" and "cmd": an "initcmd" is only
+  evaluated once, but one can provide configure values for this parameter 
+  later. a "cmd" is executed on every evaluation, it is only possible
+  to pass cmds to it. The trailing argument of the configure parameters
+  (used e.g. for scripted object/class definitions) is now of type "cmd".
+  Implementation not yet complete (object cases are not correct).
+
 ========================================================================
 TODO:
 - valuechangedcmd implemented via initcmd does 

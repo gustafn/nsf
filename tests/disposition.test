@@ -306,16 +306,16 @@ nx::Test case basics {
   ? {C new} "parameter option 'method=' only allowed for parameter types 'alias' and 'forward'"
   
   C setObjectParams [list [list -foo:alias,forward]]
-  ? {C new} "parameter types 'alias' and 'forward' cannot be used together"
+  ? {C new} "parameter option 'forward' not valid in this option combination"
 
   C setObjectParams [list [list -foo:forward,alias]]
-  ? {C new} "parameter types 'alias' and 'forward' cannot be used together"
+  ? {C new} "parameter option 'alias' not valid in this option combination"
 
   C setObjectParams [list [list -foo:alias,initcmd]]
-  ? {C new} "parameter types 'alias' and 'initcmd' cannot be used together"
+  ? {C new} "parameter option 'initcmd' not valid in this option combination"
 
   C setObjectParams [list [list -foo:forward,initcmd]]
-  ? {C new} "parameter types 'forward' and 'initcmd' cannot be used together"
+  ? {C new} "parameter option 'initcmd' not valid in this option combination"
 }
 
 nx::Test case dispo-multiplicities {
@@ -654,7 +654,7 @@ nx::Test case alias-noarg {
   #
   # initcmd with default
   #
-  C setObjectParams {{__init:initcmd :foo}}
+  C setObjectParams {{__init:cmd :foo}}
   C create c1
   ? {c1 eval {info exists :foo}} 1
 
@@ -670,14 +670,14 @@ nx::Test case alias-noarg {
   #
   # optional initcmd, like in nx
   #
-  C setObjectParams {initcmd:initcmd,optional}
+  C setObjectParams {initcmd:cmd,optional}
   C create c1 {set :x 1}
   ? {c1 eval {info exists :x}} 1
 
   #
   # using a default value for initcmd
   #
-  C setObjectParams {{initcmd:initcmd ""}}
+  C setObjectParams {{initcmd:cmd ""}}
   C create c1 {set :x 1}
   C create c2
   ? {c1 eval {info exists :x}} 1
@@ -687,7 +687,7 @@ nx::Test case alias-noarg {
   # optional initcmd + non-consuming (nrargs==0) posarg, provided
   # initcmd
   #
-  C setObjectParams {foo:alias,noarg initcmd:initcmd,optional}
+  C setObjectParams {foo:alias,noarg initcmd:cmd,optional}
   C create c1 {set :x 1}
   ? {c1 eval {info exists :x}} 1
   ? {c1 eval {info exists :foo}} 1
@@ -697,7 +697,7 @@ nx::Test case alias-noarg {
   # optional initcmd + non-consuming (nrargs==0) posarg, no value for
   # initcmd
   #
-  C setObjectParams {foo:alias,noarg initcmd:initcmd,optional}
+  C setObjectParams {foo:alias,noarg initcmd:cmd,optional}
   C create c1
   ? {c1 eval {info exists :x}} 0
   ? {c1 eval {info exists :foo}} 1
@@ -707,7 +707,7 @@ nx::Test case alias-noarg {
   # initcmd with default + non-consuming (nrargs==0) posarg, no value
   # for initcmd
   #
-  C setObjectParams {foo:alias,noarg {initcmd:initcmd ""}}
+  C setObjectParams {foo:alias,noarg {initcmd:cmd ""}}
   C create c1
   ? {c1 eval {info exists :x}} 0
   ? {c1 eval {info exists :foo}} 1
@@ -716,7 +716,7 @@ nx::Test case alias-noarg {
   #
   # non-consuming alias, nonpos alias with noarg, initcmd provided
   #
-  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:initcmd,optional}
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:cmd,optional}
   C create c1 {set :x 1}
   ? {c1 eval {info exists :foo}} 1
   ? {c1 eval {info exists :bar}} 0
@@ -725,7 +725,7 @@ nx::Test case alias-noarg {
   #
   # non-consuming alias, nonpos alias with noarg, nonpos called, initcmd provided
   #
-  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:initcmd,optional}
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:cmd,optional}
   C create c1 -bar {set :x 1}
   ? {c1 eval {info exists :foo}} 1
   ? {c1 eval {info exists :bar}} 1
@@ -734,7 +734,7 @@ nx::Test case alias-noarg {
   #
   # non-consuming alias, nonpos alias with noarg, no initcmd provided
   #
-  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:initcmd,optional}
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:cmd,optional}
   C create c1
   ? {c1 eval {info exists :foo}} 1
   ? {c1 eval {info exists :bar}} 0
@@ -744,7 +744,7 @@ nx::Test case alias-noarg {
   # non-consuming alias, nonpos alias with noarg, nonpos called, no
   # initcmd provided
   #
-  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:initcmd,optional}
+  C setObjectParams {foo:alias,noarg -bar:alias,noarg initcmd:cmd,optional}
   C create c1 -bar
   ? {c1 eval {info exists :foo}} 1
   ? {c1 eval {info exists :bar}} 1
@@ -762,8 +762,8 @@ nx::Test case alias-noarg {
     }
   }
   
-  C setObjectParams {initcmd:initcmd,noarg}
-  ? {C create c1} {option "noarg" only allowed for parameter type "alias"}
+  C setObjectParams {initcmd:cmd,noarg}
+  ? {C create c1} {parameter option "noarg" only allowed for parameter type "alias"}
 }
 
 #

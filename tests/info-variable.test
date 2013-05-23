@@ -38,7 +38,7 @@ nx::Test case configure-parameters {
 -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n
 -class:class,alias,method=::nsf::methods::object::class
 -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n
-__initcmd:initcmd,optional,noleadingdash"
+__initcmd:cmd,optional,noleadingdash"
 
   ? {Person info configure parameters age} "-age:integer"
   ? {Person info configure parameters {*a[gs]*}} "-age:integer -class:class,alias,method=::nsf::methods::object::class"

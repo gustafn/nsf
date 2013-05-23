@@ -409,33 +409,34 @@ typedef struct NsfStringIncrStruct {
 
 /* flags for NsfParams */
 
-#define NSF_ARG_REQUIRED		0x000001
-#define NSF_ARG_MULTIVALUED		0x000002
-#define NSF_ARG_NOARG 		     	0x000004
-#define NSF_ARG_NOCONFIG	     	0x000008
-#define NSF_ARG_CURRENTLY_UNKNOWN	0x000010
-#define NSF_ARG_SUBST_DEFAULT		0x000020
-#define NSF_ARG_ALLOW_EMPTY		0x000040
-#define NSF_ARG_INITCMD		     	0x000080
-#define NSF_ARG_ALIAS		     	0x000100
-#define NSF_ARG_FORWARD		     	0x000200
-#define NSF_ARG_SWITCH		     	0x000400
-#define NSF_ARG_BASECLASS	     	0x000800
-#define NSF_ARG_METACLASS	     	0x001000
-#define NSF_ARG_HAS_DEFAULT		0x002000
-#define NSF_ARG_IS_CONVERTER		0x004000
-#define NSF_ARG_IS_ENUMERATION		0x008000
-#define NSF_ARG_CHECK_NONPOS		0x010000
-#define NSF_ARG_SET			0x020000
-#define NSF_ARG_WARN			0x040000
-#define NSF_ARG_UNNAMED			0x080000
-#define NSF_ARG_IS_RETURNVALUE		0x100000
-#define NSF_ARG_NOLEADINGDASH		0x200000
-#define NSF_ARG_SLOTASSIGN		0x400000
-#define NSF_ARG_SLOTINITIALIZE		0x800000
+#define NSF_ARG_REQUIRED		0x00000001
+#define NSF_ARG_MULTIVALUED		0x00000002
+#define NSF_ARG_NOARG 		     	0x00000004
+#define NSF_ARG_NOCONFIG	     	0x00000008
+#define NSF_ARG_CURRENTLY_UNKNOWN	0x00000010
+#define NSF_ARG_SUBST_DEFAULT		0x00000020
+#define NSF_ARG_ALLOW_EMPTY		0x00000040
+#define NSF_ARG_INITCMD		     	0x00000080
+#define NSF_ARG_CMD		     	0x00000100
+#define NSF_ARG_ALIAS		     	0x00000200
+#define NSF_ARG_FORWARD		     	0x00000400
+#define NSF_ARG_SWITCH		     	0x00000800
+#define NSF_ARG_BASECLASS	     	0x00001000
+#define NSF_ARG_METACLASS	     	0x00002000
+#define NSF_ARG_HAS_DEFAULT		0x00004000
+#define NSF_ARG_IS_CONVERTER		0x00008000
+#define NSF_ARG_IS_ENUMERATION		0x00010000
+#define NSF_ARG_CHECK_NONPOS		0x00020000
+#define NSF_ARG_SET			0x00040000
+#define NSF_ARG_WARN			0x00080000
+#define NSF_ARG_UNNAMED			0x00100000
+#define NSF_ARG_IS_RETURNVALUE		0x00200000
+#define NSF_ARG_NOLEADINGDASH		0x00400000
+#define NSF_ARG_SLOTASSIGN		0x00800000
+#define NSF_ARG_SLOTINITIALIZE		0x01000000
 
 /* method invocations */
-#define NSF_ARG_METHOD_INVOCATION	     (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_INITCMD)
+#define NSF_ARG_METHOD_INVOCATION	     (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_INITCMD|NSF_ARG_CMD)
 #define NSF_ARG_METHOD_CALL		     (NSF_ARG_ALIAS|NSF_ARG_FORWARD)
 
 /* Disallowed parameter options */
@@ -626,7 +627,7 @@ typedef enum {
   /* methods called internally */
   NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN, NSF_GET_PARAMETER_SPEC,
   /* var names */
-  NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, 
+  NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, NSF_INITCMD,
   NSF_ALIAS_ARRAY, NSF_POSITION, NSF_POSITIONAL, NSF_CONFIG, NSF_PARAMETERSPEC,
   /* object/class names */
   NSF_METHOD_PARAMETER_SLOT_OBJ, 
@@ -647,7 +648,7 @@ char *NsfGlobalStrings[] = {
   /* methods called internally */
   "configure", "initialize", "assign", "getParameterSpec",
   /* var names */
-  "__autonames", "__default_metaclass", "__default_superclass", 
+  "__autonames", "__default_metaclass", "__default_superclass", "__initcmd",
   "::nsf::alias", "position", "positional", "config", "parameterSpec",
   /* object/class names */
   "::nx::methodParameterSlot", 
