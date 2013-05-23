@@ -88,7 +88,7 @@ in the following respects:
   instance variables).  The encapsulation of NX is stronger than in
   XOTcl but still weak compared to languages like C++; a developer can
   still access other objects' variables via some idioms, but NX _makes
-  accesses to other objects variables explicit_.  The requiredness to
+  accesses to other objects' variables explicit_.  The requiredness to
   make these accesses explicit should encourage developer to implement
   well defined interfaces to provide access to instance variables.
 
@@ -759,7 +759,7 @@ Class C
 C instproc foo args {...}
 C instproc bar args {
   my foo 1 2 3 ;# invoke own method
-  o baz        ;# invoke other objects method
+  o baz        ;# invoke other object's method
 }
 Object o
 o proc baz {} {...}
@@ -770,7 +770,7 @@ Class create C {
   :method foo args {...}
   :method bar args {
      :foo 1 2 3 ;# invoke own method
-     o baz      ;# invoke other objects method
+     o baz      ;# invoke other object's method
   }
 }
 Object create o {
@@ -848,7 +848,7 @@ Class create C {
 # resolver (preferred and fastest way)
 
 ... method ... {
-   set /:newVar/ ?value?
+   set :/newVar/ ?value?
 }
 ----------------
 |[source,tcl]
@@ -879,13 +879,13 @@ Class create C {
 # Read own instance variable
 
 ... method ... {
-   set /varName/ [set /:otherVar/]
+   set /varName/ [set :/otherVar/]
 }
 ----------------
 [source,tcl]
 ----------------
 ... method ... {
-   set /newVar/ ${/:otherVar/}
+   set /newVar/ ${:/otherVar/}
 } 
 ----------------
 |[source,tcl]
@@ -899,7 +899,7 @@ Class create C {
 # Test existence of own instance variable
 
 ... method ... {
-   info /:varName/
+   info :/varName/
 }
 ----------------
 [source,tcl]
@@ -926,7 +926,7 @@ Class create C {
 # value via resolver 
 # (preferred way: define property on obj)
 
-/obj/ eval [list set /:varName/ ?value?]
+/obj/ eval [list set :/varName/ ?value?]
 ----------------
 |[source,tcl]
 ----------------
@@ -937,7 +937,7 @@ set /varName/ [/obj/ set /otherVar/]
 # Read instance variable of object obj 
 # via resolver
 
-set /varName/ [/obj/ eval {set /:otherVar/}]
+set /varName/ [/obj/ eval {set :/otherVar/}]
 ----------------
 |[source,tcl]
 ----------------
@@ -965,7 +965,7 @@ set /varName/ [/obj/ eval {set /:otherVar/}]
 # Test existence of instance variable of 
 # object obj
 
-/obj/ eval {info exists /:varName/} 
+/obj/ eval {info exists :/varName/} 
 ----------------
 [source,tcl]
 ----------------
@@ -1782,7 +1782,7 @@ can for example obtain with +info method parameter+ the parameters of
 scripted and C-implemented methods the same way, one one can get the
 definition of all methods via +info method definition+ and one can get
 an manual-like interface description via +info method
-parametersyntax+. In addition, NX provides means to query the type of
+syntax+. In addition, NX provides means to query the type of
 a method, and NX allows to filter by the type of the method.
 
 ==== List methods defined by classes
@@ -1827,29 +1827,8 @@ returned methods.
 |[source,tcl]
 ----------------
 /cls/ info methods -type alias ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 /cls/ info methods -type forwarder ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 /cls/ info methods -type object ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 /cls/ info methods -callprotection public\|protected ...
 ----------------
 |======================
@@ -1896,29 +1875,8 @@ returned methods.
 |[source,tcl]
 ----------------
 /obj/ info object methods -type alias ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 /obj/ info object methods -type forwarder ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 /obj/ info object methods -type object ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 /obj/ info object methods -callprotection public\|protected ...
 ----------------
 |======================
@@ -1945,10 +1903,10 @@ appropriate depending on the context.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object method exists /methodName/
-/obj/ info object methods /methodName/
 /cls/ info method exists /methodName/
 /cls/ info methods /methodName/
+/obj/ info object method exists /methodName/
+/obj/ info object methods /methodName/
 ----------------
 |======================
 
@@ -2050,7 +2008,7 @@ e.g. the definition of the method.
 -----------------
 |======================
 
-==== List definition of scripted methods defined by classes
+==== List definition of scripted methods
 
 XOTcl contains a long list of +info+ subcommands for different kinds of
 methods and for obtaining more detailed information about these
@@ -2062,8 +2020,89 @@ with a single command the full definition of a _scripted method_, and
 furthermore, it works as well the same way to obtain e.g. the
 definition of a _forwarder_ or an _alias_. 
 
-Another powerful introspection option in NX is +info method
-parametersyntax+ which obtains a representation of the parameters of a
+While XOTcl uses different names for info options for objects and
+classes (using the prefix "inst" for instance specific method), NX
+uses for object specific method the modifier +object+. For definition
+of class object specific methods, use the modifier +object+ as usual.
+
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+/cls/ info method definition /methodName/
+/obj/ info object method definition /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info instbody /methodName/
+/obj/ info body /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info method body /methodName/
+/obj/ info object method body /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info instargs /methodName/
+/obj/ info args /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info method args /methodName/
+/obj/ info object method args /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info instnonposargs /methodName/
+/obj/ info object method args /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info method parameter /methodName/
+/obj/ info object method parameter /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info instdefault /methodName/
+/obj/ info default /methodName/
+----------------
+|[source,tcl]
+----------------
+# not needed, part of 
+# "info ?object? method parameter"
+----------------
+|[source,tcl]
+----------------
+/cls/ info instpre /methodName/
+/obj/ info pre /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info method precondition /methodName/
+/obj/ info object method precondition /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info instpost /methodName/
+/obj/ info post /methodName/
+----------------
+|[source,tcl]
+----------------
+/cls/ info method postcondition /methodName/
+/obj/ info object method postcondition /methodName/
+----------------
+|======================
+
+Another powerful introspection option in NX is +info ?object? method
+syntax+ which obtains a representation of the parameters of a
 method in the style of Tcl man pages (regardless of the kind of
 method).
 
@@ -2077,144 +2116,10 @@ method).
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info method definition /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info instbody /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info method body /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info instargs /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info method args /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info instnonposargs /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info method parameter /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info instdefault /methodName/
-----------------
-|[source,tcl]
-----------------
-# not needed, part of "info method parameter"
-----------------
-|[source,tcl]
-----------------
-/cls/ info instpre /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info method precondition /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info instpost /methodName/
-----------------
-|[source,tcl]
-----------------
-/cls/ info method postcondition /methodName/
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/cls/ info method parametersyntax /methodName/
+/cls/ info method syntax /methodName/
+/obj/ info object method syntax /methodName/
 ----------------
 |======================
-
-==== List definition of scripted object specific methods
-
-While XOTcl uses different names for info options for objects and
-classes (using the prefix "inst" for instance specific method), NX
-uses for object specific method the modifier +object+.
-
-[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
-|======================
-|XOTcl |Next Scripting Language
-
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/obj/ info object method definition /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info body /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info object method body /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info args /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info object method args /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info nonposargs /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info object method parameter /methodName/
-----------------
-|[source,tcl]
----------------
-/obj/ info default /methodName/
------------------
-|[source,tcl]
-----------------
-# not needed, part of "info ?object? method parameter"
-----------------
-|[source,tcl]
-----------------
-/obj/ info pre /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info object method precondition /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info post /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info object method postcondition /methodName/
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/obj/ info object method parametersyntax /methodName/
-----------------
-|======================
-
-For definition of class object specific methods, use the modifier
-+object+ as usual.
 
 
 [[info_configure_parameter]]
@@ -2238,7 +2143,7 @@ defined by NX application programs usually via +property+.
 # Return configure parameter(s), the parameters
 # provided by a class for its instances; these
 # parameters define, how objects of this
-# class can be configured. a pattern can
+# class can be configured. A pattern can
 # be used to filter the results.
 
 /cls/ info configure parameters ?pattern?
@@ -2270,7 +2175,7 @@ defined by NX application programs usually via +property+.
 |======================
 
 
-==== List Variable Handlers
+==== List Variable Declarations (property and variable)
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -2328,9 +2233,9 @@ defined by NX application programs usually via +property+.
 # -type is the class of the slot object
 # -closure includes slots of superclasses
 
-/obj/ info object slots ?-type ...? ?pattern?
 /cls/ info slots \
    ?-type value? ?-closure? ?-source value? ?pattern?
+/obj/ info object slots ?-type ...? ?pattern?
 
 # List reachable slot objects defined for obj
 # -source might be all\|application\|baseclasses
@@ -2459,8 +2364,8 @@ the method handle to the created method.
 # can be used e.g. for aliases. "handle" is the short 
 # form of "definitionhandle".
 #
-/obj/ info object method handle /methodName/
 /cls/ info method handle /methodName/
+/obj/ info object method handle /methodName/
 #
 # For ensemble methods (method name contains 
 # spaces) one can query as well the registration 
@@ -2468,8 +2373,8 @@ the method handle to the created method.
 # ensemble; the definiton handle points to the 
 # leaf of the ensemble.
 #
-/obj/ info object method registrationhandle /methodName/
 /cls/ info method registrationhandle /methodName/
+/obj/ info object method registrationhandle /methodName/
 #
 # For aliases, one can query the original definition
 # via "info method origin"
@@ -2495,13 +2400,6 @@ specified method.
 |[source,tcl]
 ----------------
 /cls/ info method type /methodName/
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
 /obj/ info object method type /methodName/
 ----------------
 |======================
