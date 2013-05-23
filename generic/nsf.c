@@ -2706,6 +2706,7 @@ GetObjectSystem(NsfObject *object) {
   if (NsfObjectIsClass(object)) {
     return ((NsfClass *)object)->osPtr;
   }
+  assert(object->cl);
   return object->cl->osPtr;
 }
 
@@ -5814,6 +5815,7 @@ AssertionAddProc(Tcl_Interp *interp, CONST char *name, NsfAssertionStore *aStore
   AssertionRemoveProc(aStore, name);
   procs->pre = AssertionNewList(interp, pre);
   procs->post = AssertionNewList(interp, post);
+  assert(aStore->procs);
   hPtr = Tcl_CreateHashEntry(&aStore->procs, name, &new);
   if (new) {
     Tcl_SetHashValue(hPtr, procs);
@@ -8962,6 +8964,7 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
 
 static void
 ParamDefsRefCountIncr(NsfParamDefs *paramDefs) {
+  assert(paramDefs);
   paramDefs->refCount ++;
 }
 static void
@@ -13087,7 +13090,7 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
 			     (FRAME_IS_PROC));
 
   if (likely(result == TCL_OK)) {
-    unsigned int dummy;
+    unsigned int dummy = 0;
     result = ByteCompiled(interp, &dummy, procPtr, fullMethodName);
   }
   if (unlikely(result != TCL_OK)) {
@@ -13789,7 +13792,6 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
     Tcl_HashEntry *hPtr;
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(slotContainerObject->nsPtr);
     Tcl_Command cmd;
-    int new;
 
     hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -13797,6 +13799,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
       NsfObject *childObject;
 
       if (slotTablePtr) {
+	int new;
 	/*
 	 * Check, if we have and entry with this key already processed. We
 	 * never want to report shadowed entries.
@@ -15670,7 +15673,7 @@ static int
 GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *object,
                            Tcl_Obj *varName, Tcl_Obj *newName) {
   Var *otherPtr = NULL, *arrayPtr;
-  int new = 0, flogs = TCL_LEAVE_ERR_MSG;
+  int flogs = TCL_LEAVE_ERR_MSG;
   Tcl_CallFrame *varFramePtr;
   CallFrame frame, *framePtr = &frame;
   char *varNameString;
@@ -15720,6 +15723,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *o
    */
   if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
     Var *varPtr = (Var *)CompiledLocalsLookup((CallFrame *)varFramePtr, varNameString);
+    int new = 0;
 
     if (varPtr == NULL) {	
       /* 
@@ -17705,7 +17709,8 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 
   if (((Command *)cmd)->objProc == NsfSetterMethod) {
     SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
-    if (cd->paramsPtr) {
+
+    if (cd && cd->paramsPtr) {
       Tcl_Obj *list;
       NsfParamDefs paramDefs;
       paramDefs.paramsPtr = cd->paramsPtr;
@@ -18051,7 +18056,7 @@ ListMethod(Tcl_Interp *interp,
         /* todo: don't hard-code registering command name "setter" / NSF_SETTER */
 
         AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_SETTER], regObject,
-                                 cd->paramsPtr ? ObjStr(cd->paramsPtr->paramObj) : methodName,
+                                 (cd && cd->paramsPtr) ? ObjStr(cd->paramsPtr->paramObj) : methodName,
                                  cmd, 0, outputPerObject, 1);
         Tcl_SetObjResult(interp, resultObj);
         break;
@@ -18363,7 +18368,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
   Tcl_HashEntry *hPtr;
   Tcl_Command cmd;
   char *key;
-  int new, isObject, methodTypeMatch;
+  int isObject, methodTypeMatch;
   int prefixLength = prefix ? Tcl_DStringLength(prefix) : 0;
   Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
 
@@ -18418,6 +18423,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	  key = Tcl_DStringValue(prefix);
 	}
         if (dups) {
+	  int new;
           Tcl_CreateHashEntry(dups, key, &new);
           if (new) {
             Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
@@ -18507,6 +18513,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 
       if (pattern && !Tcl_StringMatch(key, pattern)) continue;
       if (dups) {
+	int new;
         Tcl_CreateHashEntry(dups, key, &new);
         if (!new) continue;
       }
@@ -19800,9 +19807,9 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
        * We have an alias to a tcl proc;
        */
       Proc *procPtr = (Proc *)Tcl_Command_objClientData(cmd);
-      Tcl_Obj *bodyObj = procPtr->bodyPtr;
+      Tcl_Obj *bodyObj = procPtr ? procPtr->bodyPtr : NULL;
 
-      if (bodyObj->typePtr == Nsf_OT_byteCodeType) {
+      if (bodyObj && bodyObj->typePtr == Nsf_OT_byteCodeType) {
 	/*
 	 * Flush old byte code
 	 */
@@ -21012,7 +21019,9 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
     return result;
   }
 
+  assert(parsedParam.paramDefs);
   paramsPtr = parsedParam.paramDefs->paramsPtr;
+  assert(paramsPtr);
 
   switch (parametersubcmd) {
   case ParametersubcmdDefaultIdx:
@@ -21342,7 +21351,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
   case RelationtypeRootclassIdx:
     {
-    NsfClass *metaClass;
+    NsfClass *metaClass = NULL;
 
     if (!NsfObjectIsClass(object)) {
       return NsfObjErrType(interp, "rootclass", object->cmdName, "class", NULL);
@@ -25156,9 +25165,9 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
        * the remaining objects to their base classes, and set the superclasses
        * to the most general superclass.
        */
-      for (entry = *instances, lastEntry = NULL;
+      for (entry = *instances;
 	   entry;
-	   lastEntry = entry, entry = entry->nextPtr) {
+	   entry = entry->nextPtr) {
 	NsfObject *object = (NsfObject *)entry->clorobj;
 	NsfClass *baseClass;
 	NsfObjectSystem *osPtr;

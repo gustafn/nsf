@@ -280,7 +280,7 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       level -= topLevel;
     }
 
-    while (++level <= 0 && varFramePtr) {
+    while (++level <= 0 && varFramePtr && framePtr) {
       framePtr = framePtr->nextPtr;
       varFramePtr = varFramePtr->callerPtr;
     }
