@@ -32,12 +32,12 @@
 set ::converter ""
 set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\]);"
 
-proc convertername {type argname} {
-  return [string totitle [string trimleft $argname -]]
+proc convertername {type typename} {
+  return [string totitle [string trimleft $typename -]]
 }
 
-proc createconverter {type argname} {
-  set name [convertername $type $argname]
+proc createconverter {type typename} {
+  set name [convertername $type $typename]
   if {[info exists ::createdConverter($name)]} {
     return ""
   }
@@ -54,7 +54,7 @@ static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST
   int index, result;
   $opts
   (void)pPtr;
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "$argname", 0, &index);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "$typename", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
@@ -66,6 +66,7 @@ proc genifd {parameterDefinitions} {
   #puts stderr $parameterDefinitions
   set l [list]
   foreach parameterDefinition $parameterDefinitions {
+    array unset ""
     array set "" $parameterDefinition
     switch $(-type) {
       "" {set type NULL}
@@ -85,9 +86,10 @@ proc genifd {parameterDefinitions} {
       "args"       {set converter Nothing}
       "allargs"    {set converter Nothing}
       "objpattern" {set converter Objpattern}
-      *|* {  
-        set converter [convertername $type $(-argName)]
-        append ::converter [createconverter $type $(-argName)]
+      *|* {
+	if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
+        set converter [convertername $type $(-typeName)]
+        append ::converter [createconverter $type $(-typeName)]
         set (-argName) $type
 	append flags |NSF_ARG_IS_ENUMERATION
       }
@@ -438,6 +440,7 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   }
   set completed [list]
   foreach parameterDefinition $parameterDefinitions {
+    array unset ""
     array set "" {-required 0 -nrargs 1 -type "" -withObj 0}
     array set "" $parameterDefinition
     lappend completed [array get ""]

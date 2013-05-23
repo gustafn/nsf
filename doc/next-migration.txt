@@ -1514,8 +1514,15 @@ instances can be introspected via +/cls/ info configure parameters+
 ----------------
 |[source,tcl]
 ----------------
+# Like deletion of Methods:
+# Delete on the object, where the 
+# variable handler is defined.
+
 /cls/ delete property /name/
 /obj/ delete object property /name/
+
+/cls/ delete variable /name/
+/obj/ delete object variable /name/
 ----------------
 |======================
 
@@ -1803,7 +1810,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info methods -methodtype setter ?pattern?
+/cls/ info methods -type setter ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1811,7 +1818,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info methods -methodtype scripted ?pattern?
+/cls/ info methods -type scripted ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1819,7 +1826,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info methods -methodtype alias ?pattern?
+/cls/ info methods -type alias ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1827,7 +1834,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info methods -methodtype forwarder ?pattern?
+/cls/ info methods -type forwarder ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1835,7 +1842,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info methods -methodtype object ?pattern?
+/cls/ info methods -type object ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1872,7 +1879,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object methods -methodtype setter ?pattern?
+/obj/ info object methods -type setter ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1880,7 +1887,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object methods -methodtype scripted ?pattern?
+/obj/ info object methods -type scripted ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1888,7 +1895,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object methods -methodtype alias ?pattern?
+/obj/ info object methods -type alias ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1896,7 +1903,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object methods -methodtype forwarder ?pattern?
+/obj/ info object methods -type forwarder ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1904,7 +1911,7 @@ returned methods.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object methods -methodtype object ?pattern?
+/obj/ info object methods -type object ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1990,7 +1997,7 @@ In order to obtain for an object the set of artefacts defined in the
 # -source ...
 # -callprotection ...
 # -incontext
-# -methodtype ...
+# -type ...
 # -nomixins 
 ----------------
 |[source,tcl]

@@ -579,7 +579,7 @@
 # 				   the transitive relationships of the
 # 				   class, i.e., by its superclasses
 # 				   and transitive mixin classes.
-# @parameter	-methodtype	Restrict the search by certain method
+# @parameter	-type	Restrict the search by certain method
 # 		kinds: '''scripted''', '''builtin''', '''alias''',
 # 		'''forwarder''', '''object''', and '''setter'''. If
 # 		omitted, '''all''' method sorts are considered.
@@ -1404,7 +1404,7 @@
 # 				method population. This filter assumes
 # 				that mixin-provided methods should be
 # 				covered (see also '''-nomixins''').
-# @parameter	-methodtype	Restrict the search by certain method
+# @parameter	-type	Restrict the search by certain method
 # 		kinds: '''scripted''', '''builtin''', '''alias''',
 # 		'''forwarder''', '''object''', and '''setter'''. If
 # 		omitted, '''all''' method sorts are considered.
@@ -1506,7 +1506,7 @@
 # @parameter	-callprotection Restrict to the methods of a specific
 # 		call protection level: '''public''', '''protected''',
 # 		'''private''', or '''all'' (the latter is the default).
-# @parameter	-methodtype	Restrict the search by certain method
+# @parameter	-type	Restrict the search by certain method
 # 		kinds: '''scripted''', '''builtin''', '''alias''',
 # 		'''forwarder''', '''object''', and '''setter'''. If
 # 		omitted, '''all''' method sorts are considered.
@@ -1688,7 +1688,7 @@
 # @parameter	-callprotection Restrict to the methods of a specific
 # 		call protection level: '''public''', '''protected''',
 # 		'''private''', or '''all''' (the latter is the default).
-# @parameter	-methodtype	Restrict the search by certain method
+# @parameter	-type	Restrict the search by certain method
 # 		kinds: '''scripted''', '''builtin''', '''alias''',
 # 		'''forwarder''', '''object''', and '''setter'''. If
 # 		omitted, '''all''' method sorts are considered.

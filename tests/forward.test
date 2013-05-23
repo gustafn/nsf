@@ -128,16 +128,16 @@ Test case introspection {
 	:public forward Info -methodprefix @ Info %1 %self 
     }
 
-    ? {C info methods -methodtype forwarder} Info
+    ? {C info methods -type forwarder} Info
     C public forward XXXo x
-    ? {lsort [C info methods -methodtype forwarder]} [list Info XXXo]
+    ? {lsort [C info methods -type forwarder]} [list Info XXXo]
 
-    ? {C info methods -methodtype forwarder X*} [list XXXo]
-    ? {lsort [C info methods -methodtype forwarder *o]} [list Info XXXo]
+    ? {C info methods -type forwarder X*} [list XXXo]
+    ? {lsort [C info methods -type forwarder *o]} [list Info XXXo]
 
     # delete the forwarder
     C method XXXo {} {}
-    ? {C info methods -methodtype forwarder} [list Info]
+    ? {C info methods -type forwarder} [list Info]
 
     # get the definition of a instforwarder
     ? {C info method definition Info} [list ::C public forward Info -methodprefix @ Info %1 %self]
@@ -150,7 +150,7 @@ Test case introspection {
 	:public object forward addOne expr 1 +
     }
 
-    ? {lsort [obj info object methods -methodtype forwarder]} "Mixin addOne foo i1"
+    ? {lsort [obj info object methods -type forwarder]} "Mixin addOne foo i1"
     ? {obj info object method definition Mixin} "::obj public object forward Mixin mixin %1 %self"
     ? {obj info object method definition addOne} "::obj public object forward addOne expr 1 +"
     ? {obj info object method definition foo} "::obj public object forward foo target %proc %self %%self %%p"

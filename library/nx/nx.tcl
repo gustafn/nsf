@@ -531,7 +531,6 @@ namespace eval ::nx {
 	# ... and remove it if found
 	if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
       }
-      puts "::nsf::method::forward $(object) -per-object $(methodName) {*}$arguments"
       set r [::nsf::method::forward $(object) -per-object $(methodName) {*}$arguments]
       ::nsf::method::property $(object) -per-object $r call-protected \
 	  [::nsf::dispatch $(object) __default_method_call_protection]
@@ -831,7 +830,7 @@ namespace eval ::nx {
   ######################################################################
 
   proc ::nx::internal::infoOptions {obj} {
-    #puts stderr "INFO INFO $obj -> '[::nsf::directdispatch $obj ::nsf::methods::object::info::methods -methodtype all]'"
+    #puts stderr "INFO INFO $obj -> '[::nsf::directdispatch $obj ::nsf::methods::object::info::methods -type all]'"
     set methods [list]
     foreach name [::nsf::directdispatch $obj ::nsf::methods::object::info::methods] {
       if {$name eq "unknown"} continue

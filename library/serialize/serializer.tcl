@@ -427,7 +427,7 @@ namespace eval ::nx::serializer {
     :public object method export_nsfprocs {ns} {
       set result ""
       foreach n [:application_namespaces $ns] {
-	foreach p [:info methods -methodtype nsfproc ${n}::*] {
+	foreach p [:info methods -type nsfproc ${n}::*] {
 	  append result [:info method definition $p] \n
 	}
       }
@@ -663,7 +663,7 @@ namespace eval ::nx::serializer {
 	return [set $handle]
       }
       set needed [list]
-      foreach alias [$x ::nsf::methods::${where}::info::methods -methodtype alias -callprotection all -path] {
+      foreach alias [$x ::nsf::methods::${where}::info::methods -type alias -callprotection all -path] {
 	set definition [$x ::nsf::methods::${where}::info::method definition $alias]
 	set aliasedCmd [lindex $definition end]
 	#
@@ -915,13 +915,13 @@ namespace eval ::nx::serializer {
       :collect-var-traces $o $s
       append cmd [list [$o info class] create [::nsf::directdispatch $o -frame method ::nsf::current object]]
       append cmd " -noinit\n"
-      foreach i [$o ::nsf::methods::object::info::methods -methodtype scripted -callprotection all] {
+      foreach i [$o ::nsf::methods::object::info::methods -type scripted -callprotection all] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
-      foreach i [$o ::nsf::methods::object::info::methods -methodtype forward -callprotection all] {
+      foreach i [$o ::nsf::methods::object::info::methods -type forward -callprotection all] {
         append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
       }
-      foreach i [$o ::nsf::methods::object::info::methods -methodtype setter -callprotection all] {
+      foreach i [$o ::nsf::methods::object::info::methods -type setter -callprotection all] {
         append cmd [list $o parametercmd $i] "\n"
       }
       append cmd \
@@ -949,7 +949,7 @@ namespace eval ::nx::serializer {
         append cmd [list $o instparametercmd $i] "\n"
       }
       # provide limited support for exporting aliases for XOTcl objects
-      foreach i [$o ::nsf::methods::class::info::methods -methodtype alias -callprotection all] {
+      foreach i [$o ::nsf::methods::class::info::methods -type alias -callprotection all] {
         set nxDef [$o ::nsf::methods::class::info::method definition $i]
         append cmd [list ::nsf::method::alias $o {*}[lrange $nxDef 3 end]]\n
       }

@@ -23846,7 +23846,7 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *met
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|public|protected|private" -default all}
   {-argName "-incontext"}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-type" -nrargs 1 -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
   {-argName "-path" -nrargs 0}
   {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
@@ -24032,7 +24032,7 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
 /*
 objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-callprotection" -type "all|public|protected|private" -default all}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-type" -nrargs 1 -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-path" -nrargs 0}
   {-argName "pattern"}
 }
@@ -24449,7 +24449,7 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-callprotection" -type "all|public|protected|private" -default all}
   {-argName "-closure" -nrargs 0}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-type" -typeName "methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-path" -nrargs 0}
   {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "pattern"}

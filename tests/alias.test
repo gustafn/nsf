@@ -9,7 +9,7 @@ nx::Test parameter count 10
 nx::Test case alias-preliminaries { 
   
   # The system methods of nx::VariableSlot are either alias or forwarders
-  ? {lsort [::nx::VariableSlot info methods -methodtype alias]} {assign get}
+  ? {lsort [::nx::VariableSlot info methods -type alias]} {assign get}
   ? {::nx::VariableSlot info method definition get} \
       "::nx::VariableSlot public alias get ::nsf::var::set"
 
@@ -51,16 +51,16 @@ nx::Test case alias-simple {
   Foo create f1
   ? {f1 foo} 1
   ? {f1 foo -x 2} 2
-  ? {Foo info methods -methodtype alias} "foo"
+  ? {Foo info methods -type alias} "foo"
   
-  ? {Base info methods -methodtype scripted} {foo}
-  ? {Foo info methods -methodtype scripted} {}
-  ? {Foo info methods -methodtype alias} {foo}
+  ? {Base info methods -type scripted} {foo}
+  ? {Foo info methods -type scripted} {}
+  ? {Foo info methods -type alias} {foo}
   Base public method foo {} {}
   #WITH_IMPORT_REFS
-  #? {Foo info methods -methodtype alias} ""
-  ? {Base info methods -methodtype scripted} {}
-  ? {Foo info methods -methodtype scripted} {}
+  #? {Foo info methods -type alias} ""
+  ? {Base info methods -type scripted} {}
+  ? {Foo info methods -type scripted} {}
   #WITH_IMPORT_REFS
   #? {Foo info method definition foo} ""
   ? {Foo info method definition foo} "::Foo public alias foo ::nsf::classes::Base::foo"
@@ -69,11 +69,11 @@ nx::Test case alias-simple {
   Base public method foo {{-x 1}} {return $x}
   ::nsf::method::alias ::Foo foo ::nsf::classes::Base::foo
   
-  ? {Base info methods -methodtype scripted} {foo} "defined again"
-  ? {Foo info methods -methodtype alias} {foo} "aliased again"
+  ? {Base info methods -type scripted} {foo} "defined again"
+  ? {Foo info methods -type alias} {foo} "aliased again"
   Foo public method foo {} {}
-  ? {Base info methods -methodtype scripted} {foo} "still defined"
-  ? {Foo info methods -methodtype alias} {} "removed"
+  ? {Base info methods -type scripted} {foo} "still defined"
+  ? {Foo info methods -type alias} {} "removed"
 }
 
 nx::Test case alias-chaining {
@@ -104,7 +104,7 @@ nx::Test case alias-chaining {
   ::nsf::method::alias T FOO ::nsf::classes::T::foo 
   ::nsf::method::alias S BAR ::nsf::classes::T::FOO
   
-  ? {T info methods -methodtype alias} "FOO"
+  ? {T info methods -type alias} "FOO"
   ? {T info method definition FOO} "::T public alias FOO ::nsf::classes::T::foo"
   ? {lsort [T info methods]} {FOO foo}
   ? {S info methods} {BAR}
@@ -144,7 +144,7 @@ nx::Test case alias-chaining {
   #WITH_IMPORT_REFS
   #? {T info methods} {foo}
   ? {T info methods} {foo FOO}
-  ? {lsort [T info object methods -methodtype alias]} {BAR FOO ZAP}
+  ? {lsort [T info object methods -type alias]} {BAR FOO ZAP}
   ? {lsort [T info object methods]} {BAR FOO ZAP bar}
   ? {t foo} ::T->foo
   ? {T info object method definition ZAP} {::T public object alias ZAP ::T::BAR}
@@ -416,11 +416,11 @@ proc ::foo args {;}
 unset ::nsf::alias(::C,FOO,0)
 ? {info exists ::nsf::alias(::C,FOO,0)} 0
 ? {C info method definition FOO} ""
-? {C info methods -methodtype alias} FOO
+? {C info methods -type alias} FOO
 rename ::foo ""
 #WITH_IMPORT_REFS
-#? {C info methods -methodtype alias} ""
-? {C info methods -methodtype alias} "FOO"
+#? {C info methods -type alias} ""
+? {C info methods -type alias} "FOO"
 ? {info exists ::nsf::alias(::C,FOO,0)} 0
 ? {C info method definition FOO} ""
 
@@ -438,13 +438,13 @@ proc ::foo args { return [current]->[current method]}
 ::nsf::method::alias C FOO ::foo
 ::nsf::method::alias C FOO2 ::foo
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
-? {lsort [C info methods -methodtype alias]} {FOO FOO2}
+? {lsort [C info methods -type alias]} {FOO FOO2}
 # Rename target, such that alias points to an invalid item
 # Note that removing the target works differently (makes cleanup)
 # rename ::foo ""
 rename ::foo ::foo2
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
-? {lsort [C info methods -methodtype alias]} {FOO FOO2}
+? {lsort [C info methods -type alias]} {FOO FOO2}
 ? {c FOO} {target "::foo" of alias FOO apparently disappeared}
 ? {C info method definition FOO} "::C public alias FOO ::foo"
 unset ::nsf::alias(::C,FOO,0)

@@ -4461,13 +4461,19 @@ Method and configure parameter reform, Part 3:
 - nsf.c: handle full-qualified name for private slots (AddSlotObjects())
 - extended regression test
 
+- C-code Generator: added "-typeName" for enumeration types that
+  allows for disambiguation of enumerations with different argument
+  names.  Before that, the argument name determined the c-type of the
+  enumeration.  Therefore it was not possible to use argName "-type"
+  for two different functions with a different list of enumerators.
+
+- changed "-methodtype" to simply "-type" in
+    /obj/ info methods ... ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
+    /obj/ info object methods ... ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
+    /obj/ info lookup methods ... ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
+
 ========================================================================
 TODO:
-- The two names are not appropriate
-    /cls/ delete property /name/
-    /obj/ delete object property /name/
-  maybe call it "delete ?object? variable" and
-  call these "variable handlers"
 - valuechangedcmd implemented via initcmd does 
   not work with "configure" method
 - fix property inheritance in traits (nx-traits.tcl)
@@ -4748,10 +4754,6 @@ TODO:
    * check, if there are parameter types that should not be applicable 
      for nsf::proc
    * toplevel (object less) introspection 
-
-- ".... info methods -methodtype scripted ....." and "info lookup
-  method -methodtype ..."  vs. "info method type ...."; spricht was
-  dagegen, anstelle von "methodtype" nur "type" zu verwenden?
 
 - documentation
    * migration guide

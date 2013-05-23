@@ -446,7 +446,7 @@ namespace eval ::nx::doc {
       }
 
       foreach methodName [$box do [list $name info methods \
-				       -methodtype scripted \
+				       -type scripted \
 				       -callprotection public]] {
 	:readin \
 	    -partof_entity $entity \
@@ -472,7 +472,7 @@ namespace eval ::nx::doc {
       # methods
 
       foreach methodName [$box do [list ${name} {*}$scope info methods\
-				       -methodtype scripted \
+				       -type scripted \
 				       -callprotection public]] {
 	
 	set tag [join [list {*}[expr {$scope eq "class"?"class-object":""}] method] -]

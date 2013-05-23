@@ -155,17 +155,17 @@ nx::Test case info-method-base {
     :public object method foo args {;}
   }
 
-  ? {lsort [MC info methods -methodtype scripted -callprotection public]} "foo"
-  ? {lsort [MC info methods -methodtype scripted -callprotection protected]} "bar1 bar2"
-  ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
+  ? {lsort [MC info methods -type scripted -callprotection public]} "foo"
+  ? {lsort [MC info methods -type scripted -callprotection protected]} "bar1 bar2"
+  ? {lsort [MC info methods -type scripted -callprotection all]} "bar1 bar2 foo"
   
 
   ::nsf::method::property ::MC foo call-protected true
   ::nsf::method::property ::MC bar2 call-protected false
   
-  ? {lsort [MC info methods -methodtype scripted -callprotection public]} "bar2"
-  ? {lsort [MC info methods -methodtype scripted -callprotection protected]} "bar1 foo"
-  ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
+  ? {lsort [MC info methods -type scripted -callprotection public]} "bar2"
+  ? {lsort [MC info methods -type scripted -callprotection protected]} "bar1 foo"
+  ? {lsort [MC info methods -type scripted -callprotection all]} "bar1 bar2 foo"
   ::nx::configure defaultMethodCallProtection false
 }
 
@@ -677,14 +677,14 @@ nx::Test case info-submethod {
   # test "info method parameters"
   #
   ? {nx::Object info method parameters "info lookup methods"} \
-      "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
+      "-callprotection -incontext:switch -type -nomixins:switch -path:switch -source pattern:optional"
   ? {nx::Object info method syntax "info lookup methods"} \
-      "/cls/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/?"
+      "/cls/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/?"
 
   ? {o info object method parameters "foo b"} "x:int y:upper"
 
   ? {nx::Object info method parameters ::nx::Object::slot::__info::lookup::methods} \
-      "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
+      "-callprotection -incontext:switch -type -nomixins:switch -path:switch -source pattern:optional"
   ? {o info object method parameters "::o::foo::b"} "x:int y:upper"
 
   ? {nx::Object info method registrationhandle "info"} "::nsf::classes::nx::Object::info"

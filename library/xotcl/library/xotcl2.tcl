@@ -596,7 +596,7 @@ namespace eval ::xotcl {
     :alias class              ::nsf::methods::object::info::class
     :alias children           ::nsf::methods::object::info::children
     :proc commands {pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::methods -methodtype all]
+      set cmd [list ::nsf::methods::object::info::methods -type all]
       if {[info exists pattern]} {lappend cmd $pattern}
       return [my {*}$cmd]
     }
@@ -641,10 +641,10 @@ namespace eval ::xotcl {
     :proc methods {
       -nocmds:switch -noprocs:switch -nomixins:switch -incontext:switch pattern:optional
     } {
-      set methodtype all
-      if {$nocmds} {set methodtype scripted}
-      if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
-      set cmd [list ::nsf::methods::object::info::lookupmethods -methodtype $methodtype]
+      set type all
+      if {$nocmds} {set type scripted}
+      if {$noprocs} {if {$nocmds} {return ""}; set type builtin}
+      set cmd [list ::nsf::methods::object::info::lookupmethods -type $type]
       if {$nomixins} {lappend cmd -nomixins}
       if {$incontext} {lappend cmd -incontext}
       if {[info exists pattern]} {lappend cmd $pattern}
@@ -665,7 +665,7 @@ namespace eval ::xotcl {
     :proc post {methodName}   {my ::nsf::methods::object::info::method post $methodName}
     :proc pre  {methodName}   {my ::nsf::methods::object::info::method pre  $methodName}
     :proc procs {pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::methods -methodtype scripted]
+      set cmd [list ::nsf::methods::object::info::methods -type scripted]
       if {[info exists pattern]} {lappend cmd $pattern}
       return [my {*}$cmd]
     }
@@ -735,7 +735,7 @@ namespace eval ::xotcl {
       return [my {*}$cmd]
     }
     :proc instparametercmd {pattern:optional} {
-      set cmd [list ::nsf::methods::class::info::methods -methodtype setter]
+      set cmd [list ::nsf::methods::class::info::methods -type setter]
       if {[info exists pattern]} {lappend cmd $pattern}
       return [my {*}$cmd]
     }
@@ -744,7 +744,7 @@ namespace eval ::xotcl {
     :proc instpre  {methodName}   {my ::nsf::methods::class::info::method precondition  $methodName}
 
     :proc instprocs {pattern:optional} {
-      set cmd [list ::nsf::methods::class::info::methods -methodtype scripted]
+      set cmd [list ::nsf::methods::class::info::methods -type scripted]
       if {[info exists pattern]} {lappend cmd $pattern}
       return [my {*}$cmd]
     }

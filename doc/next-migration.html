@@ -3297,8 +3297,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Like deletion of Methods:
+</span><span class='nx-comment'># Delete on the object, where the
+</span><span class='nx-comment'># variable handler is defined.
+</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>property</span> <span class='nx-placeholder'>/name/</span>
+
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>variable</span> <span class='nx-placeholder'>/name/</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>delete</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>variable</span> <span class='nx-placeholder'>/name/</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -3799,7 +3806,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -methodtype setter <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -type setter <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -3825,7 +3832,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -methodtype scripted <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -type scripted <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -3851,7 +3858,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -methodtype <span class='nx-keyword'>alias</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -type <span class='nx-keyword'>alias</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -3877,7 +3884,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -methodtype forwarder <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -type forwarder <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -3903,7 +3910,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -methodtype <span class='nx-keyword'>object</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span> -type <span class='nx-keyword'>object</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4005,7 +4012,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -methodtype setter <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -type setter <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4031,7 +4038,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -methodtype scripted <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -type scripted <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4057,7 +4064,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -methodtype <span class='nx-keyword'>alias</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -type <span class='nx-keyword'>alias</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4083,7 +4090,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -methodtype forwarder <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -type forwarder <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4109,7 +4116,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -methodtype <span class='nx-keyword'>object</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>methods</span> -type <span class='nx-keyword'>object</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -4306,7 +4313,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># -source ...
 </span><span class='nx-comment'># -callprotection ...
 </span><span class='nx-comment'># -incontext
-</span><span class='nx-comment'># -methodtype ...
+</span><span class='nx-comment'># -type ...
 </span><span class='nx-comment'># -nomixins</span></pre></div></div></div></td>
 </tr>
 <tr>
@@ -6630,7 +6637,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.2<br />
-Last updated 2013-05-20 17:56:23 CEST
+Last updated 2013-05-23 09:00:22 CEST
 </div>
 </div>
 </body>
