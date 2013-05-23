@@ -5815,7 +5815,7 @@ AssertionAddProc(Tcl_Interp *interp, CONST char *name, NsfAssertionStore *aStore
   AssertionRemoveProc(aStore, name);
   procs->pre = AssertionNewList(interp, pre);
   procs->post = AssertionNewList(interp, post);
-  assert(aStore->procs);
+  assert(aStore);
   hPtr = Tcl_CreateHashEntry(&aStore->procs, name, &new);
   if (new) {
     Tcl_SetHashValue(hPtr, procs);
