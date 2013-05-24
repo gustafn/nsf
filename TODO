@@ -4490,8 +4490,15 @@ Method and configure parameter reform, Part 3:
   other traces for the same operations.
 - extended regression test
 
+- added partly implementation for slots with traces+types for classes
+
 ========================================================================
 TODO:
+- # configure-trace-class-type (in cget.test)
+  # (a) the error message would contain the lower-level message
+  # (b) the error would be generated earlier (not on object creation)
+  # (c) the error should not be generated when an actual value is provided
+- add configure-trace-object-type
 - fix property inheritance in traits (nx-traits.tcl)
 - maybe remove unneeded values, align naming in enumeration of first arg of 
   *::info::objectparameter and *::info::method

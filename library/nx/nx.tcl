@@ -1333,11 +1333,15 @@ namespace eval ::nx {
       set options [:getParameterOptions -withMultiplicity true -forObjectParameter true]
 
       if {[info exists :initcmd]} {
-	lappend options initcmd
 	if {[info exists :default]} {
+	  if {[llength $options] > 0} {
+	    ::nsf::is -complain [join $options ,] ${:default}
+	    #puts stderr "::nsf::is -complain [join $options ,] ${:default} ==> OK"
+	  }
 	  append initcmd "\n::nsf::var::set \[::nsf::self\] ${:name} [list ${:default}]\n"
 	  #puts stderr ================append-default-to-initcmd-old=<${:initcmd}>
 	}
+	lappend options initcmd
 	append initcmd ${:initcmd}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initcmd]
 	#puts stderr ================${:parameterSpec}
@@ -1902,6 +1906,7 @@ namespace eval ::nx {
       if {${:per-object}} {
 	${:domain} eval $__initcmd
       }
+      #puts stderr initcmd=$__initcmd
       set :initcmd $__initcmd
     }
   }

@@ -12801,7 +12801,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
      ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
   
   if (likely(result == TCL_OK)) {
-    if (paramPtr->flags & NSF_ARG_INITCMD && RUNTIME_STATE(interp)->doKeepinitcmd) {
+    if (paramPtr->flags & NSF_ARG_CMD && RUNTIME_STATE(interp)->doKeepinitcmd) {
       Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
     }
   }
@@ -16855,7 +16855,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
    */
   if ((unlikely((doCheckArguments & NSF_ARGPARSE_CHECK) == 0) 
        && (pPtr->flags & (NSF_ARG_IS_CONVERTER)) == 0
-       ) || (pPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_CMD))) {
+       ) || (pPtr->flags & (NSF_ARG_CMD))) {
     /* fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n", pPtr->name, pPtr->flags); */
     *clientData = ObjStr(objPtr);
     return TCL_OK;
@@ -17020,7 +17020,8 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	 */
         if (pPtr->type || unlikely(pPtr->flags & NSF_ARG_MULTIVALUED)) {
           int mustDecrList = 0;
-          if (unlikely(ArgumentCheck(interp, newValue, pPtr,
+          if (unlikely((pPtr->flags & NSF_ARG_INITCMD) == 0 &&
+		       ArgumentCheck(interp, newValue, pPtr,
 				     RUNTIME_STATE(interp)->doCheckArguments,
 				     &mustDecrList, &checkedData, &pcPtr->objv[i]) != TCL_OK)) {
 	    if (mustDecrNewValue) {
