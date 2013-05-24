@@ -1649,7 +1649,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch object value} {
-    
+
     if {[::nsf::var::exists $object ${:name}] && !$nocomplain} {
       error "object $object has already an instance variable named '${:name}'"
     }
@@ -1673,12 +1673,7 @@ namespace eval ::nx {
       ::nsf::is -complain [join $options ,] $value
     }
     
-    set traces [::nsf::directdispatch $object -frame object ::trace info variable ${:name}]
-    foreach trace $traces { 
-      lassign $trace ops cmdPrefix
-      ::nsf::directdispatch $object -frame object ::trace remove variable ${:name} $ops $cmdPrefix
-      append restore "[list ::nsf::directdispatch $object -frame object ::trace add variable ${:name} $ops $cmdPrefix]\n"
-    }
+    set restore [:removeTraces $object *]
     ::nsf::var::set $object ${:name} ${:default}
     if {[info exists restore]} { {*}$restore }
   }
@@ -1864,25 +1859,42 @@ namespace eval ::nx {
   ######################################################################
   # Handle variable traces
   ######################################################################
+  ::nx::VariableSlot protected method removeTraces {object matchOps} {
+    #puts stderr "====removeTraces ${:name} $matchOps"
+    set restore ""
+    set traces [::nsf::directdispatch $object -frame object ::trace info variable ${:name}]
+    foreach trace $traces { 
+      lassign $trace ops cmdPrefix
+      if {![string match $matchOps $ops]} continue
+      #puts stderr "====remove trace variable ${:name} $ops $cmdPrefix"
+      ::nsf::directdispatch $object -frame object ::trace remove variable ${:name} $ops $cmdPrefix
+      append restore "[list ::nsf::directdispatch $object -frame object ::trace add variable ${:name} $ops $cmdPrefix]\n"
+    }
+    return $restore
+  }
 
   ::nx::VariableSlot protected method handleTraces {} {
     # essentially like before
     set __initcmd ""
     set trace {::nsf::directdispatch [::nsf::self] -frame object ::trace}
-    # There might be already default values registered on the
+
+    # There be already default values registered on the
     # class. If so, defaultcmd is ignored.
     if {[info exists :default]} {
       if {[info exists :defaultcmd]} {error "defaultcmd can't be used together with default value"}
       if {[info exists :valuecmd]} {error "valuecmd can't be used together with default value"}
     } elseif [info exists :defaultcmd] {
       if {[info exists :valuecmd]} {error "valuecmd can't be used together with defaultcmd"}
+      append __initcmd "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
       append __initcmd "$trace add variable [list ${:name}] read \
 	\[list [::nsf::self] __default_from_cmd \[::nsf::self\] [list [set :defaultcmd]]\]\n"
     } elseif [info exists :valuecmd] {
+      append __initcmd "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
       append __initcmd "$trace add variable [list ${:name}] read \
 	\[list [::nsf::self] __value_from_cmd \[::nsf::self\] [list [set :valuecmd]]\]"
     }
     if {[info exists :valuechangedcmd]} {
+      append __initcmd "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] write\n"
       append __initcmd "$trace add variable [list ${:name}] write \
 	\[list [::nsf::self] __value_changed_cmd \[::nsf::self\] [list [set :valuechangedcmd]]\]"
     }
@@ -1908,7 +1920,6 @@ namespace eval ::nx {
     ::nsf::var::set $obj $var [$obj eval $cmd]
   }
   ::nx::VariableSlot method __value_changed_cmd {obj cmd var sub op} {
-    # puts stderr "**************************"
     # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::nsf::var::set $obj $var]"
     eval $cmd
   }
@@ -2030,7 +2041,12 @@ namespace eval ::nx {
 
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
     if {!$config} {$slot eval {set :config false}}
-    if {[info exists defaultValue]} {$slot setCheckedInstVar -nocomplain=$nocomplain [self] $defaultValue}
+    if {[info exists defaultValue]} {
+      # We could consider calling "configure" instead, but that would
+      # not work for true "variable" handlers
+      $slot setCheckedInstVar -nocomplain=$nocomplain [self] $defaultValue
+      #set :__initcmd($name) 1
+    }
 
     if {[$slot eval {info exists :settername}]} {
       set name [$slot settername]

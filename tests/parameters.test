@@ -1394,7 +1394,7 @@ nx::Test case slot-trace-interaction {
   ? {o eval {info exists :A}} 1
   ? {o cget -A} 0
   ? {o configure -A 1} ""
-  ? {o cget -A} 3
+  ? {o cget -A} 2
 
   # per-class:
   Class create Klass

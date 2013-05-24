@@ -4485,10 +4485,13 @@ Method and configure parameter reform, Part 3:
 - nsf.c: fix crash when "nsf::my" is called with a single
   argument outside the object context.
 
+- fixed cases, where valuechangedcmd (and the other traces) did not
+  work with "configure" method. When slot traces are used, it cleans
+  other traces for the same operations.
+- extended regression test
+
 ========================================================================
 TODO:
-- valuechangedcmd implemented via initcmd does 
-  not work with "configure" method
 - fix property inheritance in traits (nx-traits.tcl)
 - maybe remove unneeded values, align naming in enumeration of first arg of 
   *::info::objectparameter and *::info::method
