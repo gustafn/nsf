@@ -1658,23 +1658,9 @@ namespace eval ::nx {
       error "object $object has already an instance variable named '${:name}'"
     }
     set options [:getParameterOptions -withMultiplicity true]
-    #
-    # TODO: How to handle options selection for ::nsf::is?
-    #
-    set options [lsearch -all -inline -not -regexp $options [join {
-	slotassign
-	slotinitialize
-	positional
-	convert
-	substdefault
-	noconfig
-	initcmd
-        cmd
-	required
-    } |]]
-		 
+
     if {[llength $options]} {
-      ::nsf::is -complain [join $options ,] $value
+      ::nsf::is -configure -complain -name ${:name}: [join $options ,] $value
     }
     
     set restore [:removeTraces $object *]
@@ -1797,6 +1783,7 @@ namespace eval ::nx {
     }
     :makeAccessor
     if {${:per-object} && [info exists :default]} {
+      puts stderr "reconfigure calls setCheckedInstVar"
       :setCheckedInstVar -nocomplain=[info exists :nocomplain] ${:domain} ${:default}
     }
     if {[::nsf::is class ${:domain}]} {
@@ -1813,6 +1800,18 @@ namespace eval ::nx {
     return $spec
   }
 
+  ::nx::VariableSlot protected method checkDefault {} {
+    if {![info exists :default]} {return}
+    set options [:getParameterOptions -withMultiplicity true]
+    if {[llength $options] > 0} {
+      if {[catch {::nsf::is -complain -configure -name ${:name}: [join $options ,] ${:default}} errorMsg]} {
+	#puts stderr "**** destroy [self] - $errorMsg"
+	:destroy
+	error $errorMsg
+      }
+    }
+  }
+
   ::nx::VariableSlot protected method init {} {
     #puts "VariableSlot [self] ${:incremental} && ${:accessor} && ${:multiplicity} incremental ${:incremental}"
     if {${:incremental}} {
@@ -1821,6 +1820,7 @@ namespace eval ::nx {
     }
     next
     :makeAccessor
+    :checkDefault
     :handleTraces
   }
 
@@ -2005,6 +2005,7 @@ namespace eval ::nx {
       #puts "... slotless variable $spec"
 
       set isSwitch [regsub {\mswitch\M} $parameterOptions boolean parameterOptions]
+
       if {[info exists defaultValue]} {
 	if {[info exists :$name] && !$nocomplain} {
 	  error "object [self] has already an instance variable named '$name'"

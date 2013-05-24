@@ -384,7 +384,7 @@ static int NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withF
 static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withIntrinsic, int withSystem, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars);
 static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
-static int NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraint, Tcl_Obj *value);
+static int NsfIsCmd(Tcl_Interp *interp, int withComplain, int withConfigure, CONST char *withName, Tcl_Obj *constraint, Tcl_Obj *value);
 static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
 static int NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int assertionsubcmd, Tcl_Obj *arg);
 static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
@@ -1305,11 +1305,13 @@ NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
                      method_definitions[NsfIsCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withComplain = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *constraint = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+    int withConfigure = (int )PTR2INT(pc.clientData[1]);
+    CONST char *withName = (CONST char *)pc.clientData[2];
+    Tcl_Obj *constraint = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
-    return NsfIsCmd(interp, withComplain, constraint, value);
+    return NsfIsCmd(interp, withComplain, withConfigure, withName, constraint, value);
 
   } else {
     return TCL_ERROR;
@@ -2817,8 +2819,10 @@ static Nsf_methodDefinition method_definitions[106] = {
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::is", NsfIsCmdStub, 3, {
+{"::nsf::is", NsfIsCmdStub, 5, {
   {"-complain", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-configure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-name", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"constraint", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },

@@ -2153,7 +2153,7 @@ nx::Test case object-level-variable {
 
     # set variable with a value checker and an invalid value
     ? [list [self] object variable y1:int a] {expected integer but got "a"}
-    ? [list [self] object property [list y2:int b]] {expected integer but got "b"}
+    ? [list [self] object property [list y2:int b]] {expected integer but got "b" for parameter "y2"}
 
     # set variable again, without -nocomplain
     ? [list [self] object variable x1:int 1] {object ::enterprise has already an instance variable named 'x1'}
@@ -2171,7 +2171,7 @@ nx::Test case object-level-variable {
     ? [list [self] object variable -nocomplain xm1:int,1..n {1 2a 3}] \
 	{invalid value in "1 2a 3": expected integer but got "2a"}
     ? [list [self] object property -nocomplain [list xm2:int,1..n {1 2a 3}]] \
-	{invalid value in "1 2a 3": expected integer but got "2a"}
+	{invalid value in "1 2a 3": expected integer but got "2a" for parameter "xm2"}
 
     # useless definition
     ? [list [self] object variable dummy:int] \
@@ -2194,7 +2194,7 @@ nx::Test case object-level-variable {
     ? [list [self] object variable -nocomplain r1:range,arg=1-10 11] \
 	{value '11' of parameter value not between 1 and 10}
     ? [list [self] object property -nocomplain [list r2:range,arg=1-10 11]] \
-	{value '11' of parameter value not between 1 and 10}
+	{value '11' of parameter r2 not between 1 and 10}
 
     # valid value
     ? [list [self] object variable -nocomplain r1:range,arg=1-10 5] ""

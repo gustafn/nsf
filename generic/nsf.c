@@ -299,7 +299,9 @@ static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   NsfObject *object, int processFlags, NsfParamDefs *paramDefs,
                                   Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
 static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
-			  const char *argNamePrefix, int doCheckArguments, Nsf_Param **paramPtrPtr);
+			  const char *argNamePrefix, int doCheckArguments, 
+			  int isNamed, int doConfigureParameter,
+			  Nsf_Param **paramPtrPtr);
 static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs);
 static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs);
 static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
@@ -10322,7 +10324,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
     if (paramDefs && paramDefs->returns) {
       Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
       result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:",
-			      rst->doCheckResults, NULL);
+			      rst->doCheckResults, 0, 0, NULL);
     }
   } else {
     /*fprintf(stderr, "We have no cmdPtr in cscPtr %p %s",  cscPtr, ObjectName(object));
@@ -19680,17 +19682,27 @@ NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST o
 
 /*
 cmd is NsfIsCmd {
-  {-argName "-complain"}
+  {-argName "-complain"  -nrargs 0}
+  {-argName "-configure" -nrargs 0}
+  {-argName "-name" -required 0}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
-}
+} {-nxdoc 1}
 */
 static int
-NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraintObj, Tcl_Obj *valueObj) {
+NsfIsCmd(Tcl_Interp *interp, 
+	 int withComplain, 
+	 int doConfigureParameter,
+	 CONST char *name, 
+	 Tcl_Obj *constraintObj, 
+	 Tcl_Obj *valueObj) {
   Nsf_Param *paramPtr = NULL;
   int result;
 
-  result = ParameterCheck(interp, constraintObj, valueObj, "value:", 1, &paramPtr);
+  result = ParameterCheck(interp, constraintObj, valueObj, 
+			  name ? name : "value:", 1, (name != NULL), 
+			  doConfigureParameter,
+			  &paramPtr);
 
   if (paramPtr == NULL) {
     /*
@@ -21922,6 +21934,7 @@ static int
 ParamSetFromAny2(
     Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
     const char *varNamePrefix,	/* shows up as varName in error message */
+    int configureParameter,     /* allow object parameters */
     register Tcl_Obj *objPtr)	/* The object to convert. */
 {
   Tcl_Obj *fullParamObj = Tcl_NewStringObj(varNamePrefix, -1);
@@ -21931,12 +21944,11 @@ ParamSetFromAny2(
   paramWrapperPtr->paramPtr = ParamsNew(1);
   paramWrapperPtr->refCount = 1;
   paramWrapperPtr->canFree = 0;
-  /*fprintf(stderr, "allocating  %p\n", paramWrapperPtr->paramPtr);*/
 
   Tcl_AppendLimitedToObj(fullParamObj, ObjStr(objPtr), -1, INT_MAX, NULL);
   INCR_REF_COUNT(fullParamObj);
   result = ParamParse(interp, NsfGlobalObjs[NSF_VALUECHECK], fullParamObj,
-                      NSF_DISALLOWED_ARG_VALUECHECK /* disallowed options */,
+                      configureParameter ? NSF_DISALLOWED_ARG_OBJECT_PARAMETER : NSF_DISALLOWED_ARG_VALUECHECK,
                       paramWrapperPtr->paramPtr, &possibleUnknowns,
 		      &plainParams, &nrNonposArgs);
   /*
@@ -21976,7 +21988,7 @@ ParamSetFromAny(
     Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
     register Tcl_Obj *objPtr)	/* The object to convert. */
 {
-  return ParamSetFromAny2(interp, "value:", objPtr);
+  return ParamSetFromAny2(interp, "value:", 0, objPtr);
 }
 
 /*
@@ -22132,7 +22144,9 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 
 static int
 ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
-	       const char *argNamePrefix, int doCheckArguments, Nsf_Param **paramPtrPtr) {
+	       const char *argNamePrefix, int doCheckArguments, 
+	       int isNamed, int doConfigureParameter,
+	       Nsf_Param **paramPtrPtr) {
   Nsf_Param *paramPtr;
   NsfParamWrapper *paramWrapperPtr;
   Tcl_Obj *outObjPtr = NULL;
@@ -22147,10 +22161,10 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
   } else {
     /*
      * We could use in principle Tcl_ConvertToType(..., &paramObjType) instead
-     * of checking the type manually, be we want to pass the argNamePrefix
+     * of checking the type manually, but we want to pass the argNamePrefix
      * explicitly.
      */
-    result = ParamSetFromAny2(interp, argNamePrefix, paramObjPtr);
+    result = ParamSetFromAny2(interp, argNamePrefix, doConfigureParameter, paramObjPtr);
     if (result == TCL_OK) {
       paramWrapperPtr = (NsfParamWrapper *) paramObjPtr->internalRep.twoPtrValue.ptr1;
     } else {
@@ -22159,6 +22173,10 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
   }
   paramPtr = paramWrapperPtr->paramPtr;
   if (paramPtrPtr) *paramPtrPtr = paramPtr;
+
+  if (isNamed) {
+    paramPtr->flags &= ~NSF_ARG_UNNAMED;
+  }
 
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheckArguments, &flags, &checkedData, &outObjPtr);
   /*fprintf(stderr, "ParameterCheck paramPtr %p final refCount of wrapper %d can free %d flags %.6x\n",

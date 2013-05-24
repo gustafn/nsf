@@ -1,13 +1,11 @@
 # -*- Tcl -*-
 package req nx
-
 package require nx::test
-namespace import ::nx::*
 
 #
 # The first test set checks just the basic behavior:
 #
-Test case cget-simple {
+nx::Test case cget-simple {
 
   nx::Class create Person {
     :property famnam:required
@@ -63,8 +61,8 @@ Test case cget-simple {
 # methods "assign" and "get".
 #
 
-Test parameter count 1
-Test case cget-via-slot {
+nx::Test parameter count 1
+nx::Test case cget-via-slot {
 
   nx::Class create C {
     
@@ -124,7 +122,7 @@ Test case cget-via-slot {
 # The third test set checks method binding to parameter:
 # All cmds are supposed to return resonable values.
 #
-Test case cget-parameter-methods {
+nx::Test case cget-parameter-methods {
   nx::Class create C {
     :property {foo:alias,method=m0 {1 2 3}}
     :property {{bar:forward,method=%self m1 a b c %method} bar1}
@@ -178,7 +176,7 @@ Test case cget-parameter-methods {
 # The fourth test set checks performance of "cget" and "configure".
 #
 nx::Test parameter count 10000
-Test case cget-performance {
+nx::Test case cget-performance {
 
   nx::Class create Person {
     :property famnam:required
@@ -222,8 +220,8 @@ Test case cget-performance {
 
 }
 
-nx::Test parameter count 10
-Test case configure-trace-class {
+nx::Test parameter count 1
+nx::Test case configure-trace-class {
 
   #
   # class case with no default
@@ -261,7 +259,7 @@ Test case configure-trace-class {
   ? {c2 cget -q} "102"
 }
 
-Test case configure-trace-object {
+nx::Test case configure-trace-object {
   #
   # object case with no default
   #
@@ -327,30 +325,85 @@ nx::Test case configure-trace-class-type {
   #
   # class case with type and default
   #
-  puts stderr ====1
-  C property {q:integer aaa} {
+
+  ? {C property {q:integer aaa} {
     set :valuechangedcmd {
       #puts stderr "C.q valuechangedcmd $obj $var +1"
       ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
     }
-  }
-  # TODO: it would be nicer, if 
-  # (a) the error message would contain the lower-level message
-  # (b) the error would be generated earlier (not on object creation)
-  # (c) the error should not be generated when an actual value is provided
-  ? {C create c2} "objectparameter: ::C::slot::q getParameterSpec returned error"
-  ? {C create c2 -q 111} "objectparameter: ::C::slot::q getParameterSpec returned error"
+  }} {expected integer but got "aaa" for parameter "q"}
 
-  ? {C property {q:integer 100} {
+  # slot should no exist
+  ? {C info slots q} ""
+
+  ? {C property {q:integer 99} {
     set :valuechangedcmd {
       #puts stderr "C.q valuechangedcmd $obj $var +1"
       ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
     }
   }} ""
-  C create c2
-  
+
+  # slot should exist
+  ? {C info slots q} "::C::slot::q"
+
+  ? {C create c2 -q 111} ::c2
   ? {c2 eval {info exists :q}} 1
-  ? {c2 cget -q} 100
+
+  ? {c2 cget -q} 112
   ? {c2 configure -q 101} ""
   ? {c2 cget -q} "102"
+}
+
+
+nx::Test case configure-trace-object-type {
+  #
+  # object case with no default
+  #
+  
+  nx::Object create o
+  ? {o eval {info exists :A}} 0
+  o object property A:integer {
+    set :valuechangedcmd {
+      #puts stderr "o.A valuechangedcmd $obj $var +1"
+      ::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]
+    }
+  }
+  # puts [o info object variables A]
+  # puts [o info variable parameter [o info object variables A]]
+  # puts [[o info object slots A] getParameterSpec]
+  
+  ? {o eval {info exists :A}} 0
+  ? {o cget -A} {can't read "A": no such variable}
+  ? {o configure -A 1} ""
+  ? {o cget -A} "2"
+  ? {o configure -A x} {expected integer but got "x" for parameter "-A"}
+  ? {o cget -A} "2"
+  
+  #
+  # object case with default
+  #
+  
+  ? {o eval {info exists :B}} 0
+  ? {o object property {B:integer x} {
+    #puts stderr "o.B valuechangedcmd $obj $var +1"
+    set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
+  }} {expected integer but got "x" for parameter "B"}
+  ? {o eval {info exists :B}} 0
+
+  ? {o info object slots B} ""
+
+  ? {o object property {B:integer 1000} {
+    #puts stderr "o.B valuechangedcmd $obj $var +1"
+    set :valuechangedcmd {::nsf::var::set $obj $var [expr [list [::nsf::var::set $obj $var] + 1]]}
+  }} {}
+
+  ? {o info object slots B} {::o::per-object-slot::B}
+  ? {o eval {info exists :B}} 1
+
+  ? {o cget -B} 1000
+  ? {o configure -B 1001} ""  
+  ? {o cget -B} 1002
+
+  ? {o configure -B x} {expected integer but got "x" for parameter "-B"}
+  ? {o cget -B} 1002
 }

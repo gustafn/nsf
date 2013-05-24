@@ -63,8 +63,11 @@ cmd interp NsfInterpObjCmd {
   {-argName "name" -required 1}
   {-argName "args" -type allargs}
 } {-nxdoc 1}
+
 cmd is NsfIsCmd {
   {-argName "-complain"  -nrargs 0}
+  {-argName "-configure" -nrargs 0}
+  {-argName "-name" -required 0}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
 } {-nxdoc 1}
