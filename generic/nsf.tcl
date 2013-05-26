@@ -208,6 +208,4 @@ namespace eval ::nsf {
   set ::nsf::parameter::syntax(::nsf::__unset_unknown_args) ""
   set ::nsf::parameter::syntax(::nsf::exithandler) "?get?|?set /cmds/?|?unset?"
 
-  puts stderr "::nsf children [namespace children ::nsf]"
-
 }
