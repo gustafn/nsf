@@ -37,7 +37,7 @@ cmd "asm::proc" NsfAsmProcCmd {
 }
 
 cmd configure NsfConfigureCmd {
-  {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
+  {-argName "option" -required 1 -typeName "configureoption" -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 } {-nxdoc 1}
 cmd colon NsfColonCmd {
@@ -74,9 +74,9 @@ cmd is NsfIsCmd {
 
 
 cmd parameter::get NsfParameterGetCmd {
-  {-argName "parametersubcmd" -type "default|list|name|syntax|type" -required 1}
-  {-argName "parameterspec"   -required 1 -type tclobj}
-  {-argName "varname"         -required 0 -type tclobj}
+  {-argName "subcmd"   -typeName "parametersubcmd" -type "default|list|name|syntax|type" -required 1}
+  {-argName "spec"     -required 1 -type tclobj}
+  {-argName "varname"  -required 0 -type tclobj}
 }
 
 cmd parameter:invalidate::classcache NsfParameterInvalidateClassCacheCmd {
@@ -107,7 +107,7 @@ cmd "method::alias" NsfMethodAliasCmd {
 } {-nxdoc 1}
 cmd "method::assertion" NsfMethodAssertionCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
+  {-argName "subcmd" -required 1 -typeName "assertionsubcmd" -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 } {-nxdoc 1}
 cmd "method::create" NsfMethodCreateCmd {
@@ -154,7 +154,7 @@ cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodproperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotobj"}
+  {-argName "methodProperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
 } {-nxdoc 1}
 cmd "method::registered" NsfMethodRegisteredCmd {
@@ -174,7 +174,7 @@ cmd "object::exists" NsfObjectExistsCmd {
 } {-nxdoc 1}
 cmd "object::property" NsfObjectPropertyCmd {
   {-argName "objectName" -required 1 -type object}
-  {-argName "objectproperty" -type "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
+  {-argName "objectProperty" -type "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch" -required 1}
   {-argName "value" -required 0 -type tclobj}
 } {-nxdoc 1}
 cmd "object::qualify" NsfObjectQualifyCmd {
@@ -218,12 +218,12 @@ cmd proc NsfProcCmd {
 
 cmd relation NsfRelationCmd {
   {-argName "object"  -required 1 -type object}
-  {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
+  {-argName "type" -required 1 -typeName "relationtype" -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 } {-nxdoc 1}
 
 cmd current NsfCurrentCmd {
-  {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"}
+  {-argName "option" -required 0 -typeName "currentoption" -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"}
 } {-nxdoc 1}
 cmd self NsfSelfCmd {
 } {-nxdoc 1}
@@ -415,7 +415,7 @@ objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
   {-argName "pattern" -required 0}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -required 1 -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "subcmd" -required 1 -typeName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
   {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
@@ -438,7 +438,7 @@ objectInfoMethod name NsfObjInfoNameMethod {
 objectInfoMethod parent NsfObjInfoParentMethod {
 }
 objectInfoMethod objectparameter NsfObjInfoObjectparameterMethod {
-  {-argName "infoobjectparametersubcmd" -type "definitions|list|names|syntax" -required 1}
+  {-argName "subcmd" -typeName "infoobjectparametersubcmd" -type "definitions|list|names|syntax" -required 1}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
@@ -476,7 +476,7 @@ classInfoMethod instances NsfClassInfoInstancesMethod {
 }
 
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -required 1 -type "args|body|definition|exists|registrationhandle|definitionhandle|handle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "subcmd" -required 1 -typeName "infomethodsubcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
   {-argName "name" -required 1 -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {

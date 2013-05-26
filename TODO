@@ -4501,12 +4501,15 @@ Method and configure parameter reform, Part 3:
 - changed ::nsf::parametersyntax(..) to ::nsf::parameter::syntax(..)
 - xotcl2: adjusted manual parameter syntax entries to new conventions
 
+Cleanup of nsfAPI.decls
+- remove unneeded enumeration types
+- use "typeName" to shorten reported names of parameters
+- use camel case for reported names
+
 ========================================================================
 TODO:
 
 - fix property inheritance in traits (nx-traits.tcl)
-- maybe remove unneeded values, align naming in enumeration of first arg of 
-  *::info::objectparameter and *::info::method
 
 - reconsider
   #? {c1 cget -mixin} ""
