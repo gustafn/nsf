@@ -4506,10 +4506,15 @@ Cleanup of nsfAPI.decls
 - use "typeName" to shorten reported names of parameters
 - use camel case for reported names
 
+Traits:
+- changed from traits-as-objects to traits-as-classes. This
+  allows for higher orthogonality of traits and class definitons
+  and allows in principle traits for object-specific methods 
+  (not fully implemented/tested)
+- fixed property/variable inheritance in traits.
+
 ========================================================================
 TODO:
-
-- fix property inheritance in traits (nx-traits.tcl)
 
 - reconsider
   #? {c1 cget -mixin} ""
@@ -4812,21 +4817,6 @@ TODO "Kleinigkeiten"
 
 - constants in type converter (in and out)
 
-- genau genommen sind folgende info-Methoden unnötig:
-  - obj info mixin
-  - obj info filter
-  - obj info class
-  * obj info is
-  - cl info mixin
-  - cl info filter
-  - cl info superclass
-# SS: Sie spielen vermutlich auf die Redundanz der getter seite der
-  relation slots an. Mmmh. Die info-Sicht bietet in einigen der Fälle
-  ?pattern? an, das wäre als Unterschied zu nennen (das ließe sich
-  aber auch in die relation slots integrieren, etwa [obj mixin search
-  <pattern>]. Zudem ist es ein Fallback, wenn mixin|filter|class
-  überladen wären (ein sicherer hafen), aber ob das als argument
-  genügt, die info-varianten zu behalten?!
 
 #if 1
   /* TODO: the following check operations is xotcl1 legacy and is not
@@ -4843,6 +4833,8 @@ TODO "Kleinigkeiten"
 
 
 For future releases (after first alpha/beta release)
+   
+  * extend traits (object-specific traits, test cases, etc.)
 
     - Stefan: Still valid, IMHO: todo: don't hard-code registering
     command name "method" / NSF_METHOD"; parts of the introspection

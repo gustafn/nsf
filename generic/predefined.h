@@ -87,7 +87,6 @@ static char cmd[] =
 "return $result}\n"
 "set ::nsf::parameter::syntax(::nsf::xotclnext) \"?--noArgs? ?/arg .../?\"\n"
 "set ::nsf::parameter::syntax(::nsf::__unset_unknown_args) \"\"\n"
-"set ::nsf::parameter::syntax(::nsf::exithandler) \"?get?|?set /cmds/?|?unset?\"\n"
-"puts stderr \"::nsf children [namespace children ::nsf]\"}\n"
+"set ::nsf::parameter::syntax(::nsf::exithandler) \"?get?|?set /cmds/?|?unset?\"}\n"
 "";
 

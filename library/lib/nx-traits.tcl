@@ -67,20 +67,24 @@ nsf::proc nx::trait::require {traitName} {
 #
 nsf::proc nx::trait::add {obj -per-object:switch traitName {nameMap ""}} {
   array set map $nameMap
-  foreach m [$traitName info object methods -callprotection all] {
+  foreach m [$traitName info methods -callprotection all] {
     if {[info exists map($m)]} {set newName $map($m)} else {set newName $m}
     # do not add entries with $newName empty
     if {$newName eq ""} continue
-    set traitMethodHandle [$traitName info object method definitionhandle $m]
+    set traitMethodHandle [$traitName info method definitionhandle $m]
     if {${per-object} || ![::nsf::is class $obj]} {
-      $obj object alias $newName $traitMethodHandle
+      $obj public object alias $newName $traitMethodHandle
+      foreach slot [$traitName info object variables] {
+	#puts "$obj - wanna define: [$traitName info variable definition $slot]"
+	$obj {*}[lrange [$traitName info variable definition $slot] 1 end]
+      }
     } else {
       $obj public alias $newName $traitMethodHandle
       # We define property inheritance for the time being only for
       # instance properties.
-      foreach slot [$traitName info object slots] {
-	puts "$obj - wanna define property [$slot info slot definition]"
-	#$obj property $d
+      foreach slot [$traitName info variables] {
+	#puts "$obj - wanna define: [$traitName info variable definition $slot]"
+	$obj {*}[lrange [$traitName info variable definition $slot] 1 end]
       }
     }
   }
@@ -123,25 +127,19 @@ nx::Class public method "require trait" {traitName {nameMap ""}} {
   nx::trait::add [self] $traitName $nameMap  
 }
 
-nx::Class public method "require class trait" {traitName {nameMap ""}} {
-  # adding a trait to the class object
-  nx::trait::require $traitName
-  nx::trait::checkObject [self] $traitName
-  nx::trait::add [self] -per-object $traitName $nameMap  
-}
-
-nx::Object public method "require trait" {traitName {nameMap ""}} {
-  # adding a trait to an object
-  nx::trait::require $traitName
-  nx::trait::checkObject [self] $traitName
-  nx::trait::add [self] -per-object $traitName $nameMap
-}
+#nx::Object public method "require object trait" {traitName {nameMap ""}} {
+#  puts "[self] require object trait $traitName -- MAYBE OBSOLETE"
+#  # adding a trait to an object
+#  nx::trait::require $traitName
+#  nx::trait::checkObject [self] $traitName
+#  nx::trait::add [self] -per-object $traitName $nameMap
+#}
 
 #
 # The class "nx::Trait" provides the basic properties and methods needed for
 # the trait management.
 #
-nx::Class create nx::Trait {
+nx::Class create nx::Trait -superclass nx::Class {
   :property {package}
   :property -incremental {requiredMethods:0..n ""}
   :property -incremental {requiredVariables:0..n ""}
@@ -149,10 +147,11 @@ nx::Class create nx::Trait {
   :public method "require trait" {traitName {nameMap ""}} {
     # adding a trait to a trait
     nx::trait::require $traitName
-    nx::trait::add [self] -per-object $traitName $nameMap
+    nx::trait::add [self] $traitName $nameMap
     set finalReqMethods {}
+    # remove the methods from the set of required methods, which became available
     foreach m [lsort -unique [concat ${:requiredMethods} [$traitName requiredMethods]]] {
-      if {[:info lookup method $m] eq ""} {lappend finalReqMethods $m}
+      if {[:info methods $m] eq ""} {lappend finalReqMethods $m}
     }
     #puts "final reqMethods of [self]: $finalReqMethods // defined=[:info methods]"
     set :requiredMethods $finalReqMethods
