@@ -41,7 +41,9 @@ namespace eval ::xotcl {
   set ::xotcl::version 2.0
   set ::xotcl::patchlevel .0
 
-  namespace eval ::nsf {}; # make package indexer (pkg_mkIndex) happy
+  namespace eval ::nsf {}            ;# make pkg-indexer happy
+  namespace eval ::nsf::parameter {} ;# make pkg-indexer happy
+
   set ::nsf::bootstrap ::xotcl
 
   #
@@ -1245,34 +1247,34 @@ namespace eval ::xotcl {
   # Provide parametersyntax for methods, which do not have a spec
   #
   # Tcl commands
-  set ::nsf::parametersyntax(::append) "varName ?value value value ...?"
-  set ::nsf::parametersyntax(::array) "option arrayName ?arg arg ...?"
-  set ::nsf::parametersyntax(::eval) "arg ?arg ...?"
-  set ::nsf::parametersyntax(::incr) "varName ?increment?"
-  set ::nsf::parametersyntax(::lappend) "varName ?value value value ...?"
-  set ::nsf::parametersyntax(::set) "varName ?value?"
-  set ::nsf::parametersyntax(::set) "varName ?value?"
-  set ::nsf::parametersyntax(::subst) "?-nobackslashes? ?-nocommands? ?-novariables? string"
-  set ::nsf::parametersyntax(::trace) "option ?arg arg ...?"
-  set ::nsf::parametersyntax(::unset) "?-nocomplain? ?--? ?name name name ...?"
+  set ::nsf::parameter::syntax(::append) "/varName/ ?/value/ ...?"
+  set ::nsf::parameter::syntax(::array) "/option/ /arrayName/ ?/arg/ ...?"
+  set ::nsf::parameter::syntax(::eval) "/arg/ ?/arg/ ...?"
+  set ::nsf::parameter::syntax(::incr) "/varName/ ?/increment/?"
+  set ::nsf::parameter::syntax(::lappend) "/varName/ ?/value/ ...?"
+  set ::nsf::parameter::syntax(::set) "/varName/ ?/value/?"
+  set ::nsf::parameter::syntax(::set) "/varName/ ?/value/?"
+  set ::nsf::parameter::syntax(::subst) "?-nobackslashes? ?-nocommands? ?-novariables? /string/"
+  set ::nsf::parameter::syntax(::trace) "/option/ ?/arg/ ...?"
+  set ::nsf::parameter::syntax(::unset) "?-nocomplain? ?--? ?/name/ ...?"
 
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Object::invar) "?expr?"
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Class::instinvar) "?expr?"
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Object::parametercmd) "name"
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Class::instparametercmd) "name"
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Class::slots) "cmds"
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Object::invar) "?/expr/?"
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Class::instinvar) "?/expr/?"
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Object::parametercmd) "/name/"
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Class::instparametercmd) "/name/"
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Class::slots) "/cmds/"
 
   # slots
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Object::class) "?class?"
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Object::class) "?/class/?"
 
-  set value "?classes?|?add class?|?delete class?"
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Object::mixin) $value
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Class::instmixin) $value
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Class::superclass) $value
+  set value "?/class .../?|?add /class/?|?delete /class/?"
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Object::mixin) $value
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Class::instmixin) $value
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Class::superclass) $value
 
-  set value "?filters?|?add filter?|?delete filter?"
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Object::filter) $value
-  set ::nsf::parametersyntax(::nsf::classes::xotcl::Class::instfilter) $value
+  set value "?/filters/?|?add /filter/?|?delete /filter/?"
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Object::filter) $value
+  set ::nsf::parameter::syntax(::nsf::classes::xotcl::Class::instfilter) $value
   unset value
 
 }

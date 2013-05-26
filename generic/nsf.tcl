@@ -130,7 +130,7 @@ namespace eval ::nsf {
       set {::proc ::nsf::__exithandler {} $value}
       get {::info body ::nsf::__exithandler}
       unset {proc ::nsf::__exithandler args {;}}
-      default {error "syntax: ::nsf::exithandler $::nsf::parametersyntax(::nsf::exithandler)"}
+      default {error "syntax: ::nsf::exithandler $::nsf::parameter::syntax(::nsf::exithandler)"}
     }
   }
   # initialize exit handler
@@ -193,6 +193,7 @@ namespace eval ::nsf {
   #
   # parameter support
   #
+  namespace eval ::nsf::parameter {}
   proc ::nsf::parameter::filter {defs pattern} {
     set result {}
     foreach def $defs {
@@ -203,8 +204,10 @@ namespace eval ::nsf {
     return $result
   }
 
-  set ::nsf::parametersyntax(::nsf::xotclnext) "?--noArgs? ?/arg .../?"
-  set ::nsf::parametersyntax(::nsf::__unset_unknown_args) ""
-  set ::nsf::parametersyntax(::nsf::exithandler) "?get?|?set /cmds/?|?unset?"
+  set ::nsf::parameter::syntax(::nsf::xotclnext) "?--noArgs? ?/arg .../?"
+  set ::nsf::parameter::syntax(::nsf::__unset_unknown_args) ""
+  set ::nsf::parameter::syntax(::nsf::exithandler) "?get?|?set /cmds/?|?unset?"
+
+  puts stderr "::nsf children [namespace children ::nsf]"
 
 }

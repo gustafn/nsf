@@ -31,10 +31,13 @@ package require nsf
 package provide nx 2.0b5
 
 namespace eval ::nx {
-  namespace eval ::nsf {}          ;# make pkg-indexer happy
-  namespace eval ::nsf::object {}  ;# make pkg-indexer happy
-  namespace eval ::nx::internal {} ;# make pkg-indexer happy
-  namespace eval ::nx::traits {}   ;# make pkg-indexer happy
+
+  namespace eval ::nsf {}            ;# make pkg-indexer happy
+  namespace eval ::nsf::object {}    ;# make pkg-indexer happy
+  namespace eval ::nsf::parameter {} ;# make pkg-indexer happy
+
+  namespace eval ::nx::internal {}   ;# make pkg-indexer happy
+  namespace eval ::nx::traits {}     ;# make pkg-indexer happy
 
   #
   # By setting the variable bootstrap, we can check later, whether we
@@ -2519,14 +2522,14 @@ namespace eval ::nx {
   #interp alias {} ::nx::self {} ::nsf::self
 
   set value "?/class .../?|?add /class/?|?delete /class/?"
-  set "::nsf::parametersyntax(::nx::Object::slot::__object::object mixin)"  $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Class::mixin)"            $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Class::superclass)"       $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Object::class)"           "?/className/?"
+  set "::nsf::parameter::syntax(::nx::Object::slot::__object::object mixin)"  $value
+  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::mixin)"            $value
+  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::superclass)"       $value
+  set "::nsf::parameter::syntax(::nsf::classes::nx::Object::class)"           "?/className/?"
   set value "?/filters/?|?add /filter/?|?delete /filter/?"
-  set "::nsf::parametersyntax(::nx::Object::slot::__object::object filter)" $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Class::filter)"           $value
-  set "::nsf::parametersyntax(::nsf::classes::nx::Object::eval)"            "/arg/ ?/arg/ ...?"
+  set "::nsf::parameter::syntax(::nx::Object::slot::__object::object filter)" $value
+  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::filter)"           $value
+  set "::nsf::parameter::syntax(::nsf::classes::nx::Object::eval)"            "/arg/ ?/arg/ ...?"
   unset value
 
   ::nsf::configure debug 1

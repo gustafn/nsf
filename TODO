@@ -4498,21 +4498,23 @@ Method and configure parameter reform, Part 3:
 - simplified nx.tcl by using new nsf::is
 - extended regression test
 
+- changed ::nsf::parametersyntax(..) to ::nsf::parameter::syntax(..)
+- xotcl2: adjusted manual parameter syntax entries to new conventions
+
 ========================================================================
 TODO:
 
 - fix property inheritance in traits (nx-traits.tcl)
 - maybe remove unneeded values, align naming in enumeration of first arg of 
   *::info::objectparameter and *::info::method
-- maybe change ::nsf::parametersyntax(..) to ::nsf::parameter::syntax(..)
 
 - reconsider
   #? {c1 cget -mixin} ""
   ? {c1 cget -object-mixin} ""
 
 - test cases
-   complete tests/plain-object-method.test
-   provide  tests/class.test
+   complete coverage tests/plain-object-method.test
+   provide  coverage tests/class.test
 
 - reconsider lower multiplicty on 
   -object-mixin, -mixin...

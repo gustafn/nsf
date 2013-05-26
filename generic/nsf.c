@@ -16273,7 +16273,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (unlikely(tcd->verbose)) {
     Tcl_Obj *cmd = Tcl_NewListObj(objc, objv);
-    /*fprintf(stderr, "forwarder calls '%s'\n", ObjStr(cmd));*/
+    fprintf(stderr, "forwarder calls '%s'\n", ObjStr(cmd));
     DECR_REF_COUNT(cmd);
   }
   if (tcd->objframe) {
@@ -16354,7 +16354,8 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
      * with the given cmd name.
      */
     ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
-    /*fprintf(stderr, "+++ forwardMethod must subst \n");*/
+    /*fprintf(stderr, "+++ forwardMethod must subst oc=%d <%s>\n", 
+      objc, ObjStr(tcd->cmdName));*/
     memcpy(ov, objv, sizeof(Tcl_Obj *)*objc);
     ov[0] = tcd->cmdName;
     result = CallForwarder(tcd, interp, objc, ov);
@@ -17753,7 +17754,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
     Tcl_DStringInit(dsPtr);
     DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
     /*fprintf(stderr,"Looking up ::nsf::parametersyntax(%s) ...\n", Tcl_DStringValue(dsPtr));*/
-    parameterSyntaxObj = Tcl_GetVar2Ex(interp, "::nsf::parametersyntax",
+    parameterSyntaxObj = Tcl_GetVar2Ex(interp, NsfGlobalStrings[NSF_ARRAY_PARAMETERSYNTAX],
 				       Tcl_DStringValue(dsPtr), TCL_GLOBAL_ONLY);
 
     /*fprintf(stderr, "No parametersyntax so far methodName %s cmd name %s ns %s\n",
@@ -18765,7 +18766,7 @@ static int
 AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object,
 	 CONST char *cmd) {
   Tcl_DString ds, *dsPtr = &ds;
-  Tcl_SetVar2Ex(interp, NsfGlobalStrings[NSF_ALIAS_ARRAY],
+  Tcl_SetVar2Ex(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
                 AliasIndex(dsPtr, cmdName, methodName, withPer_object),
                 Tcl_NewStringObj(cmd, -1),
                 TCL_GLOBAL_ONLY);
@@ -18778,7 +18779,7 @@ AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withP
 static int
 AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object) {
   Tcl_DString ds, *dsPtr = &ds;
-  int result = Tcl_UnsetVar2(interp, NsfGlobalStrings[NSF_ALIAS_ARRAY],
+  int result = Tcl_UnsetVar2(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
                              AliasIndex(dsPtr, cmdName, methodName, withPer_object),
                              TCL_GLOBAL_ONLY);
   /*fprintf(stderr, "aliasDelete ::nsf::alias(%s) returned %d (%d)\n",
@@ -18790,7 +18791,7 @@ AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int wi
 static Tcl_Obj *
 AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, int leaveError) {
   Tcl_DString ds, *dsPtr = &ds;
-  Tcl_Obj *obj = Tcl_GetVar2Ex(interp, NsfGlobalStrings[NSF_ALIAS_ARRAY],
+  Tcl_Obj *obj = Tcl_GetVar2Ex(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
                                AliasIndex(dsPtr, cmdName, methodName, withPer_object),
                                TCL_GLOBAL_ONLY);
   /*fprintf(stderr, "aliasGet methodName '%s' returns %p\n", methodName, obj);*/
@@ -20091,6 +20092,7 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
                                  withDefault, withEarlybinding, withMethodprefix,
                                  withObjframe, withOnerror, withVerbose,
                                  target, nobjc, nobjv, &tcd);
+
   if (result == TCL_OK) {
     CONST char *methodName = NSTail(ObjStr(methodObj));
     NsfClass *cl =
