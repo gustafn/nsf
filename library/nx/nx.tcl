@@ -1186,7 +1186,7 @@ namespace eval ::nx {
     {disposition alias}
     {required false}
     {default}
-    {initcmd}
+    {initblock}
     {substdefault false}
     {position 0}
     {positional}
@@ -1335,18 +1335,18 @@ namespace eval ::nx {
       set prefix [expr {[info exists :positional] && ${:positional} ? "" : "-"}]
       set options [:getParameterOptions -withMultiplicity true -forObjectParameter true]
 
-      if {[info exists :initcmd]} {
+      if {[info exists :initblock]} {
 	if {[info exists :default]} {
 	  if {[llength $options] > 0} {
 	    ::nsf::is -complain [join $options ,] ${:default}
 	    #puts stderr "::nsf::is -complain [join $options ,] ${:default} ==> OK"
 	  }
-	  append initcmd "\n::nsf::var::set \[::nsf::self\] ${:name} [list ${:default}]\n"
-	  #puts stderr ================append-default-to-initcmd-old=<${:initcmd}>
+	  append initblock "\n::nsf::var::set \[::nsf::self\] ${:name} [list ${:default}]\n"
+	  #puts stderr ================append-default-to-initblock-old=<${:initblock}>
 	}
 	lappend options initcmd
-	append initcmd ${:initcmd}
-	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initcmd]
+	append initblock ${:initblock}
+	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initblock]
 	#puts stderr ================${:parameterSpec}
 
       } elseif {[info exists :default]} {
@@ -1576,9 +1576,9 @@ namespace eval ::nx {
       -default ::nx::Object
 
   #
-  # Define the initcmd as a positional ObjectParameterSlot
+  # Define the initblock as a positional ObjectParameterSlot
   #
-  ::nx::ObjectParameterSlot create ::nx::Object::slot::__initcmd \
+  ::nx::ObjectParameterSlot create ::nx::Object::slot::__initblock \
       -disposition cmd \
       -noleadingdash true \
       -positional true \
@@ -1882,7 +1882,7 @@ namespace eval ::nx {
 
   ::nx::VariableSlot protected method handleTraces {} {
     # essentially like before
-    set __initcmd ""
+    set __initblock ""
     set trace {::nsf::directdispatch [::nsf::self] -frame object ::trace}
 
     # There be already default values registered on the
@@ -1892,25 +1892,25 @@ namespace eval ::nx {
       if {[info exists :valuecmd]} {error "valuecmd can't be used together with default value"}
     } elseif [info exists :defaultcmd] {
       if {[info exists :valuecmd]} {error "valuecmd can't be used together with defaultcmd"}
-      append __initcmd "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
-      append __initcmd "$trace add variable [list ${:name}] read \
+      append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
+      append __initblock "$trace add variable [list ${:name}] read \
 	\[list [::nsf::self] __default_from_cmd \[::nsf::self\] [list [set :defaultcmd]]\]\n"
     } elseif [info exists :valuecmd] {
-      append __initcmd "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
-      append __initcmd "$trace add variable [list ${:name}] read \
+      append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
+      append __initblock "$trace add variable [list ${:name}] read \
 	\[list [::nsf::self] __value_from_cmd \[::nsf::self\] [list [set :valuecmd]]\]"
     }
     if {[info exists :valuechangedcmd]} {
-      append __initcmd "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] write\n"
-      append __initcmd "$trace add variable [list ${:name}] write \
+      append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] write\n"
+      append __initblock "$trace add variable [list ${:name}] write \
 	\[list [::nsf::self] __value_changed_cmd \[::nsf::self\] [list [set :valuechangedcmd]]\]"
     }
-    if {$__initcmd ne ""} {
+    if {$__initblock ne ""} {
       if {${:per-object}} {
-	${:domain} eval $__initcmd
+	${:domain} eval $__initblock
       }
-      #puts stderr initcmd=$__initcmd
-      set :initcmd $__initcmd
+      #puts stderr initblock=$__initblock
+      set :initblock $__initblock
     }
   }
 
@@ -2054,7 +2054,7 @@ namespace eval ::nx {
       # We could consider calling "configure" instead, but that would
       # not work for true "variable" handlers
       $slot setCheckedInstVar -nocomplain=$nocomplain [self] $defaultValue
-      #set :__initcmd($name) 1
+      #set :__initblock($name) 1
     }
 
     if {[$slot eval {info exists :settername}]} {

@@ -627,7 +627,8 @@ typedef enum {
   /* methods called internally */
   NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN, NSF_GET_PARAMETER_SPEC,
   /* var names */
-  NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, NSF_INITCMD,
+  NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, 
+  NSF_ARRAY_INITCMD, NSF_ARRAY_CMD,
   NSF_ARRAY_ALIAS, NSF_ARRAY_PARAMETERSYNTAX, 
   NSF_POSITION, NSF_POSITIONAL, NSF_CONFIG, NSF_PARAMETERSPEC,
   /* object/class names */
@@ -649,7 +650,7 @@ char *NsfGlobalStrings[] = {
   /* methods called internally */
   "configure", "initialize", "assign", "getParameterSpec",
   /* var names */
-  "__autonames", "__default_metaclass", "__default_superclass", "__initcmd",
+  "__autonames", "__default_metaclass", "__default_superclass", "__initcmd", "__cmd",
   "::nsf::alias", "::nsf::parameter::syntax", 
   "position", "positional", "config", "parameterSpec",
   /* object/class names */
@@ -823,7 +824,7 @@ typedef struct NsfRuntimeState {
   int doCheckArguments;
   int doCheckResults;
   int doFilters;
-  int doKeepinitcmd;
+  int doKeepcmds;
   int doProfile;
   int doSoftrecreate;
   /* keep track of defined filters */

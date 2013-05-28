@@ -246,14 +246,14 @@
 # 		root metaclass and (if available) the mappings of
 # 		system hooks to system methods.
 
-# @command.sub-command {configure keepinitcmd}
+# @command.sub-command {configure keepcmds}
 #
-# Usually, initcmd scripts are discarded by the '''interp''' once
-# having been evaluated (in contrast to '''proc''' and '''method'''
-# bodies). If you need them preserved for later introspection and
+# Usually, initblocks of objects (actually configure parameter of type cmd)
+# are not preserved. This is somewhat in contrast to '''proc''' and '''method'''
+# bodies. If you need these values to be preserved for later introspection and
 # processing (as in the "Next" documentation system), set this option
 # to '''true'''. Then, the initcmd scripts are retained as a
-# particular object variable ('''__initcmd''') of classes and
+# particular object variable ('''__cmd(__initblock)''') of classes and
 # objects. It defaults to '''false'''.
 #
 # @parameter value:boolean Either '''true''' or '''false'''

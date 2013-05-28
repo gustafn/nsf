@@ -38,11 +38,11 @@ nx::Test case configure-parameters {
 -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n
 -class:class,alias,method=::nsf::methods::object::class
 -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n
-__initcmd:cmd,optional,noleadingdash"
+__initblock:cmd,optional,noleadingdash"
 
   ? {Person info configure parameters age} "-age:integer"
   ? {Person info configure parameters {*a[gs]*}} "-age:integer -class:class,alias,method=::nsf::methods::object::class"
-  ? {Person info configure syntax} "/::Person/ ?-age /integer/? ?-name /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initcmd/?"
+  ? {Person info configure syntax} "/::Person/ ?-age /integer/? ?-name /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   ? {Person info method parameters foo} {-force:switch age:integer {name ""}}
   ? {Person info method parameters foo force} "-force:switch"
@@ -72,7 +72,7 @@ __initcmd:cmd,optional,noleadingdash"
   }
 
   ? {lmap p [Foo info configure parameters] {nsf::parameter::get name $p}} \
-      "i a b p volatile noinit object-mixin class object-filter __initcmd"
+      "i a b p volatile noinit object-mixin class object-filter __initblock"
   ? {lmap p [Foo info configure parameters] {nsf::parameter::get default $p}} \
       "0 0 1 1 0 0 0 0 0 0"
   ? {lmap p [Foo info configure parameters] {nsf::parameter::get type $p}} \
@@ -106,7 +106,7 @@ __initcmd:cmd,optional,noleadingdash"
 ::Foo::slot::e
 ::Foo::slot::i
 ::Foo::slot::q
-::nx::Object::slot::__initcmd
+::nx::Object::slot::__initblock
 ::nx::Object::slot::class
 ::nx::Object::slot::noinit
 ::nx::Object::slot::object-filter

@@ -370,7 +370,7 @@ namespace eval ::nx::serializer {
         #::nx::Slot mixin add ::nx::Slot::Nocheck
         ::nsf::exithandler set [list [::nsf::exithandler get]]
       }]
-      foreach option {debug softrecreate keepinitcmd checkresults checkarguments} {
+      foreach option {debug softrecreate keepcmds checkresults checkarguments} {
 	append r \t [list ::nsf::configure $option [::nsf::configure $option]] \n
       }
       :resetPattern

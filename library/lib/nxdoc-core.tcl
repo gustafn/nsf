@@ -2235,7 +2235,7 @@ namespace eval ::nx::doc {
 	      # 
 	      if {$rootclass ne "::nx::doc::_%&::obj"} {
 		
-		::nsf::configure keepinitcmd true
+		::nsf::configure keepcmds true
 	      
 	      array set sysmeths [concat {*}$m]
 	      set ::nx::doc::rootns [namespace qualifier $rootmclass]
@@ -2260,7 +2260,7 @@ namespace eval ::nx::doc {
 	      		->source [file normalize [info script]] \
 	      		->nsexported [::nx::doc::is_exported $obj] \
 			->bundle $bundle \
-	      		{*}[expr {[::nsf::var::exists $obj __initcmd] && [::nsf::var::set $obj __initcmd] ne ""?[list ->docstring [::nsf::var::set $obj __initcmd]]:[list]}]
+	      		{*}[expr {[::nsf::var::exists $obj __cmd(__initblock)] && [::nsf::var::set $obj __cmd(__initblock)] ne ""?[list ->docstring [::nsf::var::set $obj __cmd(__initblock)]]:[list]}]
 	      	    return $obj
 	      	  }
 	      
@@ -2473,7 +2473,7 @@ namespace eval ::nx::doc {
 		      ->cmdtype @class \
 		      ->source [file normalize [info script]] \
 		      ->nsexported [::nx::doc::is_exported $r] \
-		      {*}[expr {[::nsf::var::exists $r __initcmd] && [::nsf::var::set $obj __initcmd] ne ""?[list ->docstring [::nsf::var::set $r __initcmd]]:[list]}] \
+		      {*}[expr {[::nsf::var::exists $r __cmd(__initblock)] && [::nsf::var::set $obj __cmd(__initblock)] ne ""?[list ->docstring [::nsf::var::set $r __cmd(__initblock)]]:[list]}] \
 		      ->bundle $bundle
 		}
 	      }
@@ -2631,7 +2631,7 @@ namespace eval ::nx::doc {
 	#
 	:do {
 	  if {[info commands ::nsf::configure] ne ""} {
-	    ::nsf::configure keepinitcmd false
+	    ::nsf::configure keepcmds false
 	    array set sysmeths [concat {*}[lassign {*}[::nsf::configure objectsystem] rootclass rootmclass]]
 	    # TODO: some cleanup is only needed if __init has been called
 	    # (which is not always the case). refactor the code

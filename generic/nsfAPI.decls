@@ -37,7 +37,7 @@ cmd "asm::proc" NsfAsmProcCmd {
 }
 
 cmd configure NsfConfigureCmd {
-  {-argName "option" -required 1 -typeName "configureoption" -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
+  {-argName "option" -required 1 -typeName "configureoption" -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepcmds|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 } {-nxdoc 1}
 cmd colon NsfColonCmd {

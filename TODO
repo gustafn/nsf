@@ -4526,6 +4526,12 @@ nsf.c:
 
 nx.tcl:
 - removed "info is .." since it might raise more questions than it solves
+- renamed initblock parameter from __initcmd to __initblock
+- renamed nsf::configure parameter from "keepinitcmds" to "keepcmds"
+- saving "keepcmds" in an associative array named "__cmd(/parameternName)"
+  to allow saving of multiple parmeters with less nameclash danger
+  (when application stays away from variables stating with double
+  underscore)
 
 ========================================================================
 TODO:
@@ -4595,9 +4601,6 @@ Stefan: API-related items
       ... alternative name: "initializer", or "initialize" ... which
       translates into a "o method init {} {}"
 
- * info configure parameters & friends report ?__initcmd?, in
-   other context this parameter is called initblock -> property,
-   variable.
 
 ==
      

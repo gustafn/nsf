@@ -418,5 +418,12 @@ nx::Class create C -superclass {B1 B2}
 ? {C create c1} ::c1
 ? {A info instances -closure} ::c1
 
+
+
+::nsf::configure keepcmds 1
+::nx::Object create o {set :x 1}
+? {o info vars} "x __cmd"
+? {o eval {array get :__cmd}} "__initblock {set :x 1}"
+
 puts stderr ===EXIT
 ::nsf::configure dtrace off

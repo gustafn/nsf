@@ -12803,8 +12803,10 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
      ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
   
   if (likely(result == TCL_OK)) {
-    if (paramPtr->flags & NSF_ARG_CMD && RUNTIME_STATE(interp)->doKeepinitcmd) {
-      Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+    if (paramPtr->flags & NSF_ARG_CMD && RUNTIME_STATE(interp)->doKeepcmds) {
+      fprintf(stderr, "setting %s(%s) /%s/\n", ObjStr(NsfGlobalObjs[NSF_ARRAY_CMD]), ObjStr(paramPtr->nameObj), ObjStr(newValue));
+      Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_CMD], 
+		     paramPtr->nameObj, newValue, 0);
     }
   }
 
@@ -19245,7 +19247,7 @@ NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *argume
 
 /*
 cmd configure NsfConfigureCmd {
-  {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
+  {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepcmds|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -19258,7 +19260,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
     /* TODO: opts copied from tclAPI.h; maybe make global value? */
     static CONST char *opts[] = {
       "debug", "dtrace", "filter", "profile", "softrecreate",
-      "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
+      "objectsystems", "keepcmds", "checkresults", "checkarguments", NULL};
     NSF_DTRACE_CONFIGURE_PROBE((char *)opts[configureoption-1], valueObj ? ObjStr(valueObj) : NULL);
   }
 #endif
@@ -19346,11 +19348,11 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
     }
     break;
 
-  case ConfigureoptionKeepinitcmdIdx:
+  case ConfigureoptionKeepcmdsIdx:
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
-                      (RUNTIME_STATE(interp)->doKeepinitcmd));
+                      (RUNTIME_STATE(interp)->doKeepcmds));
     if (valueObj) {
-      RUNTIME_STATE(interp)->doKeepinitcmd = bool;
+      RUNTIME_STATE(interp)->doKeepcmds = bool;
     }
     break;
 
@@ -22478,7 +22480,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	  /*
 	   * The "defaultValue" holds the initcmd to be executed
 	   */
-	  Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, NsfGlobalObjs[NSF_INITCMD], 
+	  Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, NsfGlobalObjs[NSF_ARRAY_INITCMD], 
 					   paramPtr->nameObj, 0);
 	  // TODO cleanup
 	  /*fprintf(stderr, "INITCMD isdefault %d default %s value %p var %p\n", 
@@ -22490,7 +22492,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	  if (varObj == NULL) {
 	    /*
 	     * The variable is not set. Therefore, we assume, we have to
-	     * execute the initcmd. On success, we note the execution in the NSF_INITCMD
+	     * execute the initcmd. On success, we note the execution in the NSF_ARRAY_INITCMD
 	     * variable (usually __initcmd(name))
 	     */
 	    result = ParameterMethodDispatch(interp, object, paramPtr, paramPtr->defaultValue, 
@@ -22501,7 +22503,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	      Nsf_PopFrameObj(interp, framePtr);
 	      goto configure_exit;
 	    }
-	    Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_INITCMD], 
+	    Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_INITCMD], 
 			   paramPtr->nameObj, Tcl_NewIntObj(1), 0);
 	  }
 

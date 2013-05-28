@@ -15,9 +15,7 @@ Test parameter count 1
 
 proc lcompare {a b} {
   foreach x $a y $b {
-    if {$a ne $b} {
-      return -1; break;
-    }
+    if {$a ne $b} {return -1}
   }
   return 1
 }
@@ -183,7 +181,7 @@ Test case scanning {
       # TODO: Do not enforce space line between the context and immediate
       # part block (when description is skipped)?
       # 
-      # OR: For absolutely object::qualifying parts (e.g., outside of an initcmd block),
+      # OR: For absolutely object::qualifying parts (e.g., outside of an initblock),
       # do we need sequences of _two_ (or more) tag lines, e.g.
       # 
       # --
@@ -366,7 +364,7 @@ Test case scanning {
     if {0} {
     Test case in-situ-basics {
       #
-      # basic test for in-situ documentation (initcmd block)
+      # basic test for in-situ documentation (initblock)
       # 
       #
       set script {
@@ -479,7 +477,7 @@ Test case scanning {
 	  
 	  # @.method foo
 	  #
-	  # This describes the foo method in the initcmd
+	  # This describes the foo method in the initblock
 	  #
 	  # @parameter a Provides a first value
 	  # @parameter b Provides a second value
@@ -643,8 +641,8 @@ Test case scanning {
 	# ISSUE: If specifying an axis ".object", we would have to define
 	# a part property @object on @class and @object. However, @object
 	# would be ambiguous now: It could be called in a freestanding
-	# (absolute) manner AND in a contextualised manner (in an initcmd
-	# script). In the latter case, it would fail because we would have
+	# (absolute) manner AND in a contextualised manner (in an init
+	# block). In the latter case, it would fail because we would have
 	# to provide a FQ'ed name (which defeats the purpose of a nested =
 	# contextualised notation).
 	# 
@@ -655,7 +653,7 @@ Test case scanning {
 	# object with the doc entity represented the parent object?
 	
 	Class create C {
-	  # This is the initcmd-level description of ::C which overwrites the
+	  # This is the initblock description of ::C which overwrites the
 	  # global description (see above)
 	  
 	  # @.property attr1
@@ -666,7 +664,7 @@ Test case scanning {
 	    # "attr1" owned by the ::C class, rather it is a description
 	    # of the property slot object! How should we deal with this
 	    # situation? Should this level overwrite the top-level and
-	    # initcmd-level descriptions?
+	    # initblock descriptions?
 	  }
 	  
 	  # @.class-object-property attr2 Carries a short desc only
@@ -701,9 +699,9 @@ Test case scanning {
 	  #
 	  # The first element in the name list is resolved into a fully
 	  # qualified (absolute) entity, based on the object owning the
-	  # initcmd!
+	  # initblock!
 	  Object create [current]::foo {
-	    # Adding a line for the first time (not processed in the initcmd phase!)
+	    # Adding a line for the first time (not processed in the initblock phase!)
 	    
 	    # @..property p1
 	    # 
@@ -714,7 +712,7 @@ Test case scanning {
 	  # @.class Foo X
 	  #
 	  # By providing a fully-qualified identifier ("::Foo") you leave the
-	  # context of the initcmd-owning object, i.e. you would NOT refer to 
+	  # context of the initblock-owning object, i.e. you would NOT refer to 
 	  # a nested class object named "Foo" anymore!
 	  
 	  # @.class.property {Foo p1}
@@ -756,7 +754,7 @@ Test case scanning {
 	  
 	  # ISSUE: Should the helper object "sub" be documentable in its own
 	  # right?  This would be feasible with the dotted notation from
-	  # within and outside the initcmd script block, e.g. "@object sub" or
+	  # within and outside the init block, e.g. "@object sub" or
 	  # "@class.object {::C sub}"
 	  #
 	  # ISSUE: Is it correct to say the sub appears as per-object method
@@ -836,26 +834,26 @@ Test case scanning {
       ? [list ::nsf::object::exists $entity] 0
 
       #
-      # 2) process the initcmd comments (PARSING LEVEL 1)
+      # 2) process the initblock comments (PARSING LEVEL 1)
       #
       
-      puts stderr -----INITCMD------
-      ::nsf::configure keepinitcmd true
+      puts stderr -----CMD------
+      ::nsf::configure keepcmds true
       eval $script
-      ::nsf::configure keepinitcmd false
+      ::nsf::configure keepcmds false
       lassign [processor readin \
 		   -parsing_level 1 \
 		   -docstring \
 		   -tag @class \
 		   -name ::C \
-		   [::C eval {set :__initcmd}]] _ processed_entities
+		   [::C eval {set :__cmd(__initblock)}]] _ processed_entities
       # a) existing, but modified ...
       
       set entity [@class id ::C]
       ? $_ $entity
       ? [list ::nsf::object::exists $entity] 1
       ? [list $entity info has type ::nx::doc::@class] 1
-      ? [list $entity as_text] "This is the initcmd-level description of ::C which overwrites the global description (see above)"
+      ? [list $entity as_text] "This is the initblock description of ::C which overwrites the global description (see above)"
       
       set entity [@property id $entity class attr1]
       ? [list ::nsf::object::exists $entity] 1
@@ -870,7 +868,7 @@ Test case scanning {
       set entity [@property id $entity object p1]
       ? [list ::nsf::object::exists $entity] 1
       ? [list $entity info has type ::nx::doc::@property] 1
-      ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
+      ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initblock!"
       
       # b) newly added ...
       
@@ -885,7 +883,7 @@ Test case scanning {
       set entity [@class id ::C::Foo]
       ? [list ::nsf::object::exists $entity] 1
       ? [list $entity info has type ::nx::doc::@class] 1
-      ? [list $entity as_text] {By providing a fully-qualified identifier ("::Foo") you leave the context of the initcmd-owning object, i.e. you would NOT refer to a nested class object named "Foo" anymore!}
+      ? [list $entity as_text] {By providing a fully-qualified identifier ("::Foo") you leave the context of the initblock owning object, i.e. you would NOT refer to a nested class object named "Foo" anymore!}
       
       set entity [@property id [@class id ::C] class p1]
       ? [list ::nsf::object::exists $entity] 0; # should be 0 at this stage!
@@ -934,7 +932,7 @@ Test case scanning {
       ? [list $entity as_text] "Some words on p1"
       
       #
-      # 3a) process the property initcmds and method bodies (PARSING LEVEL 2)!
+      # 3a) process the property initblocks and method bodies (PARSING LEVEL 2)!
       #  
       
       set project [@project new -name "_%@"]
@@ -956,7 +954,7 @@ Test case scanning {
       set entity [@property id [@class id ::C] class attr1]
       ? [list ::nsf::object::exists $entity] 1
       ? [list $entity info has type ::nx::doc::@property] 1
-      ? [list $entity as_text] {This description does not apply to the object parameter "attr1" owned by the ::C class, rather it is a description of the property slot object! How should we deal with this situation? Should this level overwrite the top-level and initcmd-level descriptions?}
+      ? [list $entity as_text] {This description does not apply to the object parameter "attr1" owned by the ::C class, rather it is a description of the property slot object! How should we deal with this situation? Should this level overwrite the top-level and initblock descriptions?}
       
       #
       # 3b) nested objects/ classes (PARSING LEVEL 2)!
@@ -966,14 +964,14 @@ Test case scanning {
 	  -parsing_level 2 \
 	  -tag @object \
 	  -name ::C::foo \
-	  [::C::foo eval {set :__initcmd}]
+	  [::C::foo eval {set :__cmd(__initblock)}]
       
       processor process=@object $project [@object id ::C::foo]
       
       set entity [@object id ::C::foo]
       ? [list ::nsf::object::exists $entity] 1
       ? [list $entity info has type ::nx::doc::@object] 1
-      ? [list $entity as_text] "Adding a line for the first time (not processed in the initcmd phase!)"; # still empty!
+      ? [list $entity as_text] "Adding a line for the first time (not processed in the initblock phase!)"; # still empty!
       set entity [@property id $entity object p1]
       ? [list ::nsf::object::exists $entity] 1
       ? [list $entity info has type ::nx::doc::@property] 1
@@ -984,7 +982,7 @@ Test case scanning {
 	  -parsing_level 2 \
 	  -tag @class \
 	  -name ::C::Foo \
-	  [::C::Foo eval {set :__initcmd}]
+	  [::C::Foo eval {set :__cmd(__initblock)}]
       processor process=@class $project [@class id ::C::Foo]
       
       set cl [@class id ::C::Foo]
