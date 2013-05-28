@@ -5307,8 +5307,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Check if object is a class
-</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> is <span class='nx-keyword'>class</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-keyword'>cd</span> <span class='nx-comment'># Check if object is an NX class
+</span><span class='nx-placeholder'>/obj/</span> has type ::nx::Class
+
+<span class='nx-comment'># Check if object is a class in one of the
+</span><span class='nx-comment'># NSF object systems
+</span>::nsf::is <span class='nx-keyword'>class</span> <span class='nx-placeholder'>/obj/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5334,8 +5338,12 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Check if object is a metaclass
-</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> is <span class='nx-keyword'>metaclass</span></pre></div></div></div></td>
+<pre class='nx'><span class='nx-comment'># Check if class is an NX metaclass
+</span><span class='nx-keyword'>expr</span> {[<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> heritage ::nx::Class] ne <span class='nx-string'>""</span>}
+
+<span class='nx-comment'># Check if object is a metaclass in one of the
+</span><span class='nx-comment'># NSF object systems
+</span>::nsf::is <span class='nx-keyword'>metaclass</span> <span class='nx-placeholder'>/obj/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5362,7 +5370,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-comment'># Check if object is a baseclass of an object system
-</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> is baseclass</pre></div></div></div></td>
+</span>::nsf::is baseclass <span class='nx-placeholder'>/obj/</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -6264,7 +6272,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.2<br />
-Last updated 2013-05-23 10:37:14 CEST
+Last updated 2013-05-28 16:04:09 CEST
 </div>
 </div>
 </body>

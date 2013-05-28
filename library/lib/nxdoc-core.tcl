@@ -101,7 +101,7 @@ namespace eval ::nx::doc {
 	set base "${:prefix}::[namespace tail $mixin]"
 	if {[::nsf::object::exists $base]} {
 	  set scope [expr {[$mixin scope] eq "object" && \
-			       [$base info is class]?"class":""}]
+			       [$base info has type ::nx::Class]?"class":""}]
 	  dict lappend :active_mixins $base $mixin
 	  $base eval [list : -system {*}$scope mixin add $mixin]
 	}
@@ -112,7 +112,7 @@ namespace eval ::nx::doc {
       dict for {base mixins} ${:active_mixins} {
 	foreach m $mixins {
 	  set scope [expr {[$m scope] eq "object" && \
-			       [$base info is class]?"class":""}]
+			       [$base info has type ::nx::Class]?"class":""}]
 	  $base {*}$scope mixin delete $m
 	}
       }

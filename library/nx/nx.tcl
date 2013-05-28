@@ -710,7 +710,7 @@ namespace eval ::nx {
     :alias "info has mixin"        ::nsf::methods::object::info::hasmixin
     :alias "info has namespace"    ::nsf::methods::object::info::hasnamespace
     :alias "info has type"         ::nsf::methods::object::info::hastype
-    :alias "info is"               ::nsf::methods::object::info::is
+    #:alias "info is"               ::nsf::methods::object::info::is
     :alias "info name"             ::nsf::methods::object::info::name
     :alias "info object filter guard"     ::nsf::methods::object::info::filterguard
     :alias "info object filter methods"   ::nsf::methods::object::info::filtermethods

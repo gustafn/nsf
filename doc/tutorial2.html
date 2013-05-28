@@ -609,7 +609,7 @@ not change internally (e.g. the playerRole stays the same). Therefore we
       <it># But we only remove matching playernames of type "Player". We do</it>
       <it># not want to remove another club member type who has the same</it>
       <it># name.</it>
-      <tt>if</tt>{[$player info is type Player] && [$player name] eq $playername} {
+      <tt>if</tt>{[$player info has type Player] && [$player name] eq $playername} {
         <it># We simply 'move' the player object to the destination team.</it>
         <it># Again we use a unique autoname in the new scope</it>
         $player <tt>move</tt> ${destinationTeam}::[$destinationTeam <tt>autoname</tt> player%02d]
@@ -629,7 +629,7 @@ the console with <tt>puts</tt>.
   SoccerTeam <tt>method</tt> printPlayers {} {
     <tt>puts</tt> "Players of ${:name}:"
     <tt>foreach</tt> m [<tt>:info</tt> children] {
-      <tt>if</tt> {[$m info is type Player]} {<tt>puts</tt> "  [$m name]"}
+      <tt>if</tt> {[$m info has type Player]} {<tt>puts</tt> "  [$m name]"}
     }
   }
 </pre>

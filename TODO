@@ -4524,6 +4524,9 @@ nsf.c:
   for consistencey with "nsf::my" and "nsf::dispatch"
   which uses "-system" as well
 
+nx.tcl:
+- removed "info is .." since it might raise more questions than it solves
+
 ========================================================================
 TODO:
 

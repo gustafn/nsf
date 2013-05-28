@@ -534,7 +534,7 @@ namespace eval ::nx::doc {
     :property processed_section  {
       :public method assign {domain prop value} {
 	set current_entity [$domain current_entity]
-	set scope [expr {[$current_entity info is class]?"class":""}]
+	set scope [expr {[$current_entity info has type ::nx::Class]?"class":""}]
 	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity eval [list : -system {*}$scope info mixin classes]]} {
 	  $current_entity eval [list : -system {*}$scope mixin delete [:get $domain $prop]]
 	}
@@ -643,7 +643,7 @@ namespace eval ::nx::doc {
       # 	${:current_entity} {*}$scope mixin delete ${:processed_section}
       # }
 
-      set scope [expr {[${:current_entity} info is class]?"class":""}]
+      set scope [expr {[${:current_entity} info has type ::nx::Class]?"class":""}]
       set mixins [${:current_entity} {*}$scope info mixin classes]
       if {${:processed_section} in $mixins} {
 	set idx [lsearch -exact $mixins ${:processed_section}]

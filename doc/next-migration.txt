@@ -2485,8 +2485,12 @@ naming using multiple layers of subcommands).
 ----------------
 |[source,tcl]
 ----------------
-# Check if object is a class
-/obj/ info is class
+cd # Check if object is an NX class
+/obj/ has type ::nx::Class
+
+# Check if object is a class in one of the 
+# NSF object systems
+::nsf::is class /obj/
 ----------------
 |[source,tcl]
 ----------------
@@ -2494,8 +2498,12 @@ naming using multiple layers of subcommands).
 ----------------
 |[source,tcl]
 ----------------
-# Check if object is a metaclass
-/obj/ info is metaclass 
+# Check if class is an NX metaclass
+expr {[/cls/ info heritage ::nx::Class] ne ""}
+
+# Check if object is a metaclass in one of the 
+# NSF object systems
+::nsf::is metaclass /obj/
 ----------------
 |[source,tcl]
 ----------------
@@ -2504,7 +2512,7 @@ naming using multiple layers of subcommands).
 |[source,tcl]
 ----------------
 # Check if object is a baseclass of an object system
-/obj/ info is baseclass
+::nsf::is baseclass /obj/
 ----------------
 |[source,tcl]
 ----------------

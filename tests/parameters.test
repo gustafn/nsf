@@ -50,12 +50,12 @@ nx::Test case parametercheck {
   ? {::nsf::object::exists o1000} 0
   
   ? {::nsf::is class C} 1
-  ? {C info is class} 1
+  ? {C info has type ::nx::Class} 1
 
   ? {::nsf::is baseclass ::nx::Object} 1
-  ? {::nx::Object info is baseclass} 1
+  #? {::nx::Object info is baseclass} 1
   ? {::nsf::is baseclass C} 0
-  ? {C info is baseclass} 0
+  #? {C info is baseclass} 0
 
   ? {::nsf::is class ::nx::Object} 1
   ? {::nsf::is ::nx::Object class} {invalid value constraints "::nx::Object"}
