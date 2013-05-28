@@ -58,12 +58,12 @@ static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CO
   return result;
 }
   
-enum SourceIdx {SourceNULL, SourceAllIdx, SourceApplicationIdx, SourceBaseclassesIdx};
+enum SourceIdx {SourceNULL, SourceAllIdx, SourceApplicationIdx, SourceSystemIdx};
 
 static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"all", "application", "baseclasses", NULL};
+  static CONST char *opts[] = {"all", "application", "system", NULL};
   (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-source", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
@@ -226,7 +226,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   {ConvertToObjectkind, "class|baseclass|metaclass"},
   {ConvertToMethodproperty, "class-only|call-private|call-protected|redefine-protected|returns|slotobj"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
-  {ConvertToSource, "all|application|baseclasses"},
+  {ConvertToSource, "all|application|system"},
   {ConvertToConfigureoption, "debug|dtrace|filter|profile|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
   {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},

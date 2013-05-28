@@ -4513,6 +4513,17 @@ Traits:
   (not fully implemented/tested)
 - fixed property/variable inheritance in traits.
 
+nsf.c: 
+- changed enumeration values for "-source" in
+     "info lookup methods"
+     "info lookup slots"
+     "info methods"
+     "info slots"
+  of "all|application|baseclasses"
+  to "all|application|system" 
+  for consistencey with "nsf::my" and "nsf::dispatch"
+  which uses "-system" as well
+
 ========================================================================
 TODO:
 
@@ -4563,22 +4574,7 @@ Stefan: API-related items
 
     /cls/ property ?-accessor /value/? ?-config /boolean/? ?-incremental? ?-type /class/? /spec/ ?/initblock/? 
 
-   * naming: application vs. baseclasses -> applicationclasses
-     vs. baseclasses ...
 
-     /obj/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/? 
-     
-     better:
-
-/obj/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-methodtype all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|applicationclasses|baseclasses? ?/pattern/? 
-
-  should be consistent, either way. 
-
-  or:
-
- -class all|application|base
- -classes all|application|base
-  
   * - naming in slots: "incremental", "reconfigure"
 
  * Currently, in NX, specifying mandatory parameters may break

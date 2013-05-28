@@ -131,16 +131,16 @@ nx::Test case info-method-base {
   set object_methods "cget configure contains copy delete destroy eval info move object private protected public require volatile"
   set class_methods "alias cget configure contains copy create delete destroy eval filter forward info method mixin move new object private property protected public require variable volatile"
 
-  ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
-  ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods
+  ? {lsort [::nx::Object info lookup methods -source system]} $class_methods
+  ? {lsort [::nx::Class info lookup methods -source system]} $class_methods
   ? {lsort [::nx::Object info lookup methods -source all]} $class_methods
   ? {lsort [::nx::Class info lookup methods -source all]} $class_methods
   ? {lsort [::nx::Object info lookup methods]} $class_methods
   ? {lsort [::nx::Class info lookup methods]} $class_methods
   ? {lsort [C info lookup methods -source application]} "add1 apo fpo mpo spo"
   ? {lsort [c1 info lookup methods -source application]} "a addOne foo m m-with-assertions s"
-  ? {lsort [C info lookup methods -source baseclasses]} $class_methods
-  ? {lsort [c1 info lookup methods -source baseclasses]} $object_methods
+  ? {lsort [C info lookup methods -source system]} $class_methods
+  ? {lsort [c1 info lookup methods -source system]} $object_methods
 
   ::nx::configure defaultMethodCallProtection true
   #
@@ -679,7 +679,7 @@ nx::Test case info-submethod {
   ? {nx::Object info method parameters "info lookup methods"} \
       "-callprotection -incontext:switch -type -nomixins:switch -path:switch -source pattern:optional"
   ? {nx::Object info method syntax "info lookup methods"} \
-      "/cls/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|baseclasses? ?/pattern/?"
+      "/cls/ info lookup methods ?-callprotection all|public|protected|private? ?-incontext? ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ?-nomixins? ?-path? ?-source all|application|system? ?/pattern/?"
 
   ? {o info object method parameters "foo b"} "x:int y:upper"
 

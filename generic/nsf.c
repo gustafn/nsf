@@ -18217,7 +18217,7 @@ ListMethod(Tcl_Interp *interp,
  * MethodSourceMatches --
  *
  *    Check, whether the provided class or object (mutually exclusive) matches
- *    with the required method source (typically all|application|baseclasses).
+ *    with the required method source (typically all|application|system).
  *
  * Results:
  *    Returns true or false
@@ -18244,7 +18244,7 @@ static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object) 
   }
 
   isBaseClass = IsBaseClass(&cl->object);
-  if (withSource == SourceBaseclassesIdx && isBaseClass) {
+  if (withSource == SourceSystemIdx && isBaseClass) {
     return 1;
   } else if (withSource == SourceApplicationIdx && !isBaseClass) {
     return 1;
@@ -23929,7 +23929,7 @@ objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-type" -nrargs 1 -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
   {-argName "-path" -nrargs 0}
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
+  {-argName "-source" -nrargs 1 -type "all|application|system"}
   {-argName "pattern" -required 0}
 }
 */
@@ -24030,7 +24030,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
+  {-argName "-source" -nrargs 1 -type "all|application|system" -default all}
   {-argName "-type" -required 0 -nrargs 1 -type class}
   {-argName "pattern" -required 0}
 }
@@ -24524,7 +24524,7 @@ classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-closure" -nrargs 0}
   {-argName "-type" -typeName "methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-path" -nrargs 0}
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
+  {-argName "-source" -nrargs 1 -type "all|application|system"}
   {-argName "pattern"}
 }
 */
@@ -24711,7 +24711,7 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, 
 /*
 classInfoMethod slots NsfClassInfoSlotobjectsMethod {
   {-argName "-closure" -nrargs 0}
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
+  {-argName "-source" -nrargs 1 -type "all|application|system"}
   {-argName "-type" -required 0 -nrargs 1 -type class}
   {-argName "pattern" -required 0}
 }

@@ -406,11 +406,11 @@ objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-type" -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-nomixins" -nrargs 0}
   {-argName "-path" -nrargs 0}
-  {-argName "-source" -type "all|application|baseclasses" -default all}
+  {-argName "-source" -type "all|application|system" -default all}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
-  {-argName "-source" -type "all|application|baseclasses" -default all}
+  {-argName "-source" -type "all|application|system" -default all}
   {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
 }
@@ -484,7 +484,7 @@ classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-closure" -nrargs 0}
   {-argName "-type" -nrargs 1 -typeName "methodtype" -type "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"}
   {-argName "-path" -nrargs 0}
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses" -default all}
+  {-argName "-source" -nrargs 1 -type "all|application|system" -default all}
   {-argName "pattern"}
 }
 classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {
@@ -503,7 +503,7 @@ classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
 }
 classInfoMethod slotobjects NsfClassInfoSlotobjectsMethod {
   {-argName "-closure" -nrargs 0}
-  {-argName "-source" -type "all|application|baseclasses" -default all}
+  {-argName "-source" -type "all|application|system" -default all}
   {-argName "-type" -required 0 -type class}
   {-argName "pattern" -required 0}
  }
