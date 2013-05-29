@@ -12,7 +12,7 @@ package req nx
 nx::Object create output {
   set :state ""
   set :text ""
-  :public method line {kind string} {
+  :public object method line {kind string} {
     if {${:state} ne $kind} {
       if {${:state} ne ""} {:flush}
       set :state $kind
@@ -20,13 +20,13 @@ nx::Object create output {
     }
     append :text $string \n
   }
-  :public method flush {} {
+  :public object method flush {} {
     set trimmed [string trim ${:text} \n]
     if {$trimmed ne ""} {
       :${:state} $trimmed
     }
   }
-  :public method postprocess {block} {
+  :public object method postprocess {block} {
     set result ""
     set cmd ""
     foreach l [split $block \n] {
@@ -47,13 +47,13 @@ nx::Object create output {
     }
     return [string trimright $result \n]
   }
-  :public method prog {block} {
+  :public object method prog {block} {
     puts $::out {[source,tcl]}
     puts $::out --------------------------------------------------
     puts $::out [:postprocess $block]
     puts $::out --------------------------------------------------\n
   }
-  :public method doc {block} {
+  :public object method doc {block} {
     #puts $::out "=====doc\n$block\n====="
     puts $::out $block\n
   }
