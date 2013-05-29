@@ -1804,7 +1804,7 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method checkDefault {} {
-    if {![info exists :default]} {return}
+    if {![info exists :default] || [string match {*\[*\]*} ${:default}]} {return}
     set options [:getParameterOptions -withMultiplicity true]
     if {[llength $options] > 0} {
       if {[catch {::nsf::is -complain -configure -name ${:name}: [join $options ,] ${:default}} errorMsg]} {
