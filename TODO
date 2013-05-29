@@ -4309,11 +4309,13 @@ Object-method Reform:
    /metacls/ create cls -filter f1 -object-filter f2
 
 - as a consequence,
-  a) "/cls/ class method ...",
-     "/cls/ class alias ...",
-     "/cls/ class forward ...",
-     "/cls/ class filter ...",
-     "/cls/ class mixin ...",
+  a) "/cls/ class method ..."
+     "/cls/ class alias ..."
+     "/cls/ class forward ..."
+     "/cls/ class filter ..."
+     "/cls/ class filterguard ..."
+     "/cls/ class mixin ..."
+     "/cls/ class mixinguard ..."
      "/cls/ class info ..." 
      "/obj/ class method require method ..."
      "/obj/ class method require public method ..."
@@ -4321,20 +4323,28 @@ Object-method Reform:
      "/obj/ class method require private method ..."
      "/cls/ class property ..." 
      "/cls/ class variable ..." 
+     "/cls/ class delete property ..." 
+     "/cls/ class delete variable ..." 
+     "/cls/ class delete method ..." 
+     "/cls/ require class method ..." 
+     "/cls/ require public class method ..." 
+     "/cls/ require protected class method ..." 
+     "/cls/ require private class method ..." 
+
     were dropped 
 
-  b) "/obj/ method ....", 
-     "/obj/ alias ....", 
+  b) "/obj/ method ...."
+     "/obj/ alias ...."
      "/obj/ forward ...."
      "/obj/ filter ...."
      "/obj/ mixin ...."
      "/obj/ info method*" 
      "/cls/ create obj -mixin M"
      "/cls/ create obj -filter f"
-     "/obj/ method require method ..."
-     "/obj/ method require public method ..."
-     "/obj/ method require protected method ..."
-     "/obj/ method require private method ..."
+     "/obj/ require method ..."
+     "/obj/ require public method ..."
+     "/obj/ require protected method ..."
+     "/obj/ require private method ..."
      were dropped 
      
 - added package nx::class-method to allow optionally the "class" notation
@@ -4430,7 +4440,7 @@ by
 Method and configure parameter reform, Part 3:
 - added 
 
-    /cls/ info lookup variables                  -> list of handles
+    /obj/ info lookup variables                  -> list of handles
     /obj/ info lookup object variables           -> list of handles
     /obj/ info variable definition|name|parameter /handle/
 
@@ -4532,6 +4542,9 @@ nx.tcl:
   to allow saving of multiple parmeters with less nameclash danger
   (when application stays away from variables stating with double
   underscore)
+
+- completed coverage if plain-object-method.tcl
+- provide warnings via plain-object-method.tcl via "nsf::log warn ..."
 
 ========================================================================
 TODO:

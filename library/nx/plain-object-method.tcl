@@ -7,35 +7,35 @@ namespace eval ::nx {
     :public method method {      
       name arguments:parameter,0..* -returns body -precondition -postcondition
     } {
-      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+      ::nsf::log warn "LEGACY CMD: [self] [current method] [current args]"
       :public object [current method] {*}[current args]
     }
 
     :public method alias args {
-      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+      ::nsf::log warn "LEGACY CMD: [self] [current method] [current args]"
       :public object [current method] {*}$args
     }
     :public method forward args {
-      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+      ::nsf::log warn "LEGACY CMD: [self] [current method] [current args]"
       :public object [current method] {*}$args
     }
 
-    :public method mixin args {
-      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+    :public method filter args {
+      ::nsf::log warn "LEGACY CMD: [self] [current method] [current args]"
       :object [current method] {*}$args
     }
 
-    :public method filter args {
-      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+    :public method mixin args {
+      ::nsf::log warn "LEGACY CMD: [self] [current method] [current args]"
       :object [current method] {*}$args
     }
 
     :public method property args {
-      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+      ::nsf::log warn "LEGACY CMD: [self] [current method] [current args]"
       :object [current method] {*}$args
     }
     :public method variable args {
-      puts stderr "LEGACY CMD: [self] [current method] [current args]"
+      ::nsf::log warn "LEGACY CMD: [self] [current method] [current args]"
       :object [current method] {*}$args
     }
 
@@ -45,6 +45,11 @@ namespace eval ::nx {
     :public alias "info filter methods"   ::nsf::methods::object::info::filtermethods
     :public alias "info mixin guard"      ::nsf::methods::object::info::mixinguard
     :public alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
+
+    :public method "info slots" args {
+      ::nsf::log warn "LEGACY CMD: [self] [current method] [current args]"
+      :object [current method] {*}$args
+    }
 
   }
 

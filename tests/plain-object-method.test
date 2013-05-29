@@ -37,5 +37,5 @@ nx::Test case plain-methods-1 {
   ? {o info filter methods} ""
 
   ? {lsort [o info object methods]} "f foo"
-  ? {lsort [o info]} "valid submethods of ::o info: children class filter has info lookup method methods mixin name object parameter parent precedence variable vars"
+  ? {lsort [o info]} "valid submethods of ::o info: children class filter has info lookup method methods mixin name object parameter parent precedence slots variable vars"
 }
