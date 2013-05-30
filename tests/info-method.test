@@ -993,10 +993,13 @@ nx::Test case info-heritage-multimix {
   B create b1
   ? {B info heritage} "::A ::nx::Object"
   ? {b1 info precedence} "::B ::A ::nx::Object"
+  ? {b1 info precedence ::M*} ""
 
   A mixin {M1 M2}
   ? {B info heritage} "::M1 ::M2 ::A ::nx::Object"
   ? {b1 info precedence} "::M1 ::M2 ::B ::A ::nx::Object"
+  ? {b1 info precedence ::M*} "::M1 ::M2"
+  ? {b1 info precedence ::X*} ""
   
   b1 object mixin {M1 M1 M4}
   ? {b1 info precedence} "::M1 ::M4 ::M2 ::B ::A ::nx::Object"

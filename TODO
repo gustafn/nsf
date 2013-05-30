@@ -4544,7 +4544,12 @@ nx.tcl:
   underscore)
 
 - completed coverage if plain-object-method.tcl
-- provide warnings via plain-object-method.tcl via "nsf::log warn ..."
+- provided warnings via plain-object-method.tcl via "nsf::log warn ..."
+
+nsf.c
+- fixed potential inifinite loop in pattern matching for precedence lists
+- cget: make error message closer to tcl conventions
+- extended regression test
 
 ========================================================================
 TODO:

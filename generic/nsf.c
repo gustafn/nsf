@@ -7199,15 +7199,15 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
       MixinComputeDefined(interp, object);
     }
     if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
-      NsfCmdList *ml = object->mixinOrder;
+      NsfCmdList *ml;
 
-      while (ml) {
+      for (ml = object->mixinOrder; ml; ml = ml->nextPtr) {
 	NsfClass *mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
-	if (pattern) {
-	  if (!Tcl_StringMatch(ClassName(mixin), pattern)) continue;
+
+	if (pattern && !Tcl_StringMatch(ClassName(mixin), pattern)) {
+	  continue;
 	}
 	npl = NsfClassListAdd(npl, mixin, NULL);
-	ml = ml->nextPtr;
       }
     }
   }
@@ -22652,7 +22652,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   }
   
   if (!found) {
-    result = NsfPrintError(interp, "cget: cannot lookup parameter value for %s", nameString);
+    result = NsfPrintError(interp, "cget: unknown configure parameter %s", nameString);
     goto cget_exit;
   }
 
