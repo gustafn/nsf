@@ -4551,6 +4551,11 @@ nsf.c
 - cget: make error message closer to tcl conventions
 - extended regression test
 
+package nx::plain-object-method:
+- made warnings configurable via
+  nx::configure plain-object-method-warning on|off
+- completed coverage and test cases
+
 ========================================================================
 TODO:
 
