@@ -4574,6 +4574,11 @@ nx.tcl:
   instead of 
      o1 info lookup configure syntax
 
+- traits: added ability to trun on verbosity for traits
+  by using
+     nx::configure trait-verbosity on|off
+
+
 ========================================================================
 TODO:
 

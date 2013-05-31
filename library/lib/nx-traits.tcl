@@ -1,5 +1,5 @@
 package require nx
-package provide nx::trait 0.3
+package provide nx::trait 0.4
 
 # @package nx::trait
 # 
@@ -37,81 +37,100 @@ package provide nx::trait 0.3
 #        :useTrait ...
 #     }
 #
-namespace eval ::nx::trait {}
 
 #
-# nx::trait::provide and nx::trait::require implement a basic
-# auto-loading mechanism for traits
+# Define a method to allow configuration for verbosity of the
+# trait operations:
 #
-nsf::proc nx::trait::provide {traitName script} {
-  set ::nsf::traitIndex($traitName) [list script $script]
-}
+#    nx::configure trait-verbosity on|off
+#
+# This might be useful for debugging of complex trait compositions.
+#
 
-nsf::proc nx::trait::require {traitName} {
-  if {[::nsf::object::exists $traitName]} {return}
-  set key ::nsf::traitIndex($traitName)
-  if {[info exists $key]} {
-    array set "" [set $key]
-    if {$(script) ne ""} {
-      eval $(script)
-
-    }
+nx::configure public object method trait-verbosity {onoff:boolean,optional} {
+  if {[info exists onoff]} {
+    set :trait-verbosity $onoff
+  } else {
+    set :trait-verbosity
   }
-  if {[::nsf::object::exists $traitName]} {return}
-  error "cannot require trait $traitName, trait unknown"
 }
+nx::configure  trait-verbosity off
 
-#
-# The function nx::trait::add adds the methods defined in the
-# specified trait to the obj/class provided as first argument.
-#
-nsf::proc nx::trait::add {obj -per-object:switch traitName {nameMap ""}} {
-  array set map $nameMap
-  foreach m [$traitName info methods -callprotection all] {
-    if {[info exists map($m)]} {set newName $map($m)} else {set newName $m}
-    # do not add entries with $newName empty
-    if {$newName eq ""} continue
-    set traitMethodHandle [$traitName info method definitionhandle $m]
+
+namespace eval ::nx::trait {
+
+  #
+  # nx::trait::provide and nx::trait::require implement a basic
+  # auto-loading mechanism for traits
+  #
+  nsf::proc provide {traitName script} {
+    set ::nsf::traitIndex($traitName) [list script $script]
+  }
+
+  nsf::proc require {traitName} {
+    if {[::nsf::object::exists $traitName]} {return}
+    set key ::nsf::traitIndex($traitName)
+    if {[info exists $key]} {
+      array set "" [set $key]
+      if {$(script) ne ""} {
+	eval $(script)
+      }
+    }
+    if {[::nsf::object::exists $traitName]} {return}
+    error "cannot require trait $traitName, trait unknown"
+  }
+
+  #
+  # The function nx::trait::add adds the methods defined in the
+  # specified trait to the obj/class provided as first argument.
+  #
+  nsf::proc add {obj -per-object:switch traitName {nameMap ""}} {
+    array set map $nameMap
     if {${per-object} || ![::nsf::is class $obj]} {
-      $obj public object alias $newName $traitMethodHandle
-      foreach slot [$traitName info object variables] {
-	#puts "$obj - wanna define: [$traitName info variable definition $slot]"
-	$obj {*}[lrange [$traitName info variable definition $slot] 1 end]
-      }
-    } else {
+      error "per-object traits are currently not supported"
+    }
+    foreach m [$traitName info methods -callprotection all] {
+      if {[info exists map($m)]} {set newName $map($m)} else {set newName $m}
+      # do not add entries with $newName empty
+      if {$newName eq ""} continue
+      set traitMethodHandle [$traitName info method definitionhandle $m]
       $obj public alias $newName $traitMethodHandle
-      # We define property inheritance for the time being only for
-      # instance properties.
-      foreach slot [$traitName info variables] {
-	#puts "$obj - wanna define: [$traitName info variable definition $slot]"
-	$obj {*}[lrange [$traitName info variable definition $slot] 1 end]
+      if {[nx::configure trait-verbosity]} {
+	puts "...trait: $obj public alias $newName"
+      }
+    }
+    foreach slot [$traitName info variables] {
+      #puts "$obj - wanna define: [$traitName info variable definition $slot]"
+      $obj {*}[lrange [$traitName info variable definition $slot] 1 end]
+      if {[nx::configure trait-verbosity]} {
+	puts "...trait: $obj [lrange [$traitName info variable definition $slot] 1 end]"
       }
     }
   }
-}
-
-#
-# The function nx::trait::checkObject checks, whether the target
-# object has the method defined that the trait requires.
-#
-nsf::proc nx::trait::checkObject {obj traitName} {
-  foreach m [$traitName requiredMethods] {
-    #puts "$m ok? [$obj info methods -closure $m]"
-    if {[$obj info lookup method $m] eq ""} {
-      error "trait $traitName requires $m, which is not defined for $obj"
+  
+  #
+  # The function nx::trait::checkObject checks, whether the target
+  # object has the method defined that the trait requires.
+  #
+  nsf::proc checkObject {obj traitName} {
+    foreach m [$traitName requiredMethods] {
+      #puts "$m ok? [$obj info methods -closure $m]"
+      if {[$obj info lookup method $m] eq ""} {
+	error "trait $traitName requires $m, which is not defined for $obj"
+      }
     }
   }
-}
-
-#
-# The function nx::trait::checkClass checks, whether the target
-# class has the method defined that the trait requires.
-#
-nsf::proc nx::trait::checkClass {obj traitName} {
-  foreach m [$traitName requiredMethods] {
-    #puts "$m ok? [$obj info methods -closure $m]"
-    if {[$obj info methods -closure $m] eq ""} {
-      error "trait $traitName requires $m, which is not defined for $obj"
+  
+  #
+  # The function nx::trait::checkClass checks, whether the target
+  # class has the method defined that the trait requires.
+  #
+  nsf::proc checkClass {obj traitName} {
+    foreach m [$traitName requiredMethods] {
+      #puts "$m ok? [$obj info methods -closure $m]"
+      if {[$obj info methods -closure $m] eq ""} {
+	error "trait $traitName requires $m, which is not defined for $obj"
+      }
     }
   }
 }
@@ -122,6 +141,9 @@ nsf::proc nx::trait::checkClass {obj traitName} {
 #
 nx::Class public method "require trait" {traitName {nameMap ""}} {
   # adding a trait to a class
+  if {[nx::configure trait-verbosity]} {
+    puts "trait: [self] requires $traitName"
+  }
   nx::trait::require $traitName
   nx::trait::checkClass [self] $traitName
   nx::trait::add [self] $traitName $nameMap  
