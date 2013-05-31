@@ -35,10 +35,6 @@ nx::Test case plain-methods-1 {
     :property -accessor public p
     :variable v1 1
     :variable -incremental v2:integer 1
-    #
-    # public, protected, private
-    # alias, forward
-    #
   }
   ? {o info methods} "v2 p foo fwd a f"
   ? {lsort [o info methods -callprotection protected]} "per-object-slot pm1 pm2"
@@ -65,4 +61,48 @@ nx::Test case plain-methods-1 {
 
   ? {lsort [o info object methods]} "a f foo fwd p v2"
   ? {lsort [o info]} "valid submethods of ::o info: children class filter has info lookup method methods mixin name object parameter parent precedence slots variable variables vars"
+}
+
+#
+# delete class method, class property, class variable
+# 
+nx::Test case plain-methods-2 {
+  nx::Object create ::o {
+    :public method foo {} {return foo}
+    :property -accessor public p
+    :variable -incremental v1:integer 1
+  }
+
+  ? {o info methods} "p foo v1"
+  ? {o info variables} "::o::per-object-slot::p ::o::per-object-slot::v1"
+
+  ? {o delete method foo} ""
+  ? {o info methods} "p v1"
+  ? {o info variables} "::o::per-object-slot::p ::o::per-object-slot::v1"
+
+  ? {o delete property p} ""
+  ? {o info methods} "v1"
+  ? {o info variables} "::o::per-object-slot::v1"
+
+  ? {o delete variable v1} ""
+  ? {o info methods} ""
+  ? {o info variables} ""
+
+}
+
+#
+# require method
+# 
+
+nx::Test case plain-methods-3 {
+
+  nsf::method::provide set {::nsf::method::alias  set -frame object ::set}
+
+  nx::Object create ::o {
+    :require method set
+  }
+
+  ? {::o info methods} "set"
+  ? {::o info object methods} "set"
+
 }

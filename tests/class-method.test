@@ -1,0 +1,124 @@
+# -*- Tcl -*-
+package require nx::test
+
+#
+# The first test series without the conveniance layer
+#
+nx::Test case class-methods-0 {
+  nx::Class create M1
+  nx::Class create C {
+    ? {::C public class method foo {} {return foo}} "'class' is not a method defining method"
+    :public object method f args {next}
+  }
+  ? {::C class mixin M1} \
+      "method 'class' unknown for ::C; consider '::C create class mixin M1' instead of '::C class mixin M1'"
+  ? {::C class filter f} \
+      "method 'class' unknown for ::C; consider '::C create class filter f' instead of '::C class filter f'"
+
+  ? {lsort [::C info object methods]} "f"
+  ? {lsort [::C info]} \
+      "valid submethods of ::C info: children class configure filter has heritage info instances lookup method methods mixin mixinof name object parameter parent precedence slots subclass superclass variable variables vars"
+}
+
+#
+# require the conveniance layer
+# and make it verbose
+#
+package require nx::class-method
+nx::configure class-method-warning on
+
+
+nx::Test case class-methods-1 {
+  nx::Class create M1
+  nx::Class create ::C {
+    :public class method foo {} {return [:pm1]}
+    :public class method f args {next}
+    :protected class method pm1 args {return pm1}
+    :public class alias a ::C::pm1
+    :public class forward fwd %self pm1
+    :private class method priv args {return priv}
+    :class method pm2 args {return pm2}
+    :class property -accessor public p
+    :class variable v1 1
+    :class variable -incremental v2:integer 1
+    #
+    # public, protected, private
+    # alias, forward
+    #
+  }
+  ? {::C info object methods} "v2 p foo fwd a f"
+  ? {lsort [::C info object methods -callprotection protected]} "per-object-slot pm1 pm2"
+  ? {lsort [::C info object methods -callprotection private]} "priv"
+
+  ? {::C class info methods} "v2 p foo fwd a f"
+  ? {lsort [::C class info methods -callprotection protected]} "per-object-slot pm1 pm2"
+  ? {lsort [::C class info methods -callprotection private]} "priv"
+
+  ? {::C class info variables} "::C::per-object-slot::v2 ::C::per-object-slot::p"
+  ? {::C info object variables} "::C::per-object-slot::v2 ::C::per-object-slot::p"
+  ? {::C class info slots} "::C::per-object-slot::v2 ::C::per-object-slot::p"
+  
+  ? {::C pm1} \
+      "method 'pm1' unknown for ::C; consider '::C create pm1 ' instead of '::C pm1 '"
+  ? {::C foo} "pm1"
+  ? {::C a} "pm1"
+  ? {::C fwd} "pm1"
+
+  ? {::C class mixin M1} ::M1
+  ? {::C class info mixin classes} ::M1
+  ? {::C class mixin ""} ""
+  ? {::C class info mixin classes} ""
+
+  ? {::C class filter f} f
+  ? {::C class info filter methods} f
+  ? {::C class filter ""} ""
+  ? {::C class info filter methods} ""
+
+  ? {lsort [::C info object methods]} "a f foo fwd p v2"
+  ? {lsort [::C info]} \
+      "valid submethods of ::C info: children class configure filter has heritage info instances lookup method methods mixin mixinof name object parameter parent precedence slots subclass superclass variable variables vars"
+}
+
+#
+# delete class method, class property, class variable
+# 
+nx::Test case class-methods-2 {
+  nx::Class create ::C {
+    :public class method foo {} {return foo}
+    :class property -accessor public p
+    :class variable -incremental v1:integer 1
+  }
+
+  ? {C class info methods} "p foo v1"
+  ? {C class info variables} "::C::per-object-slot::p ::C::per-object-slot::v1"
+
+  ? {C class delete method foo} ""
+  ? {C class info methods} "p v1"
+  ? {C class info variables} "::C::per-object-slot::p ::C::per-object-slot::v1"
+
+  ? {C class delete property p} ""
+  ? {C class info methods} "v1"
+  ? {C class info variables} "::C::per-object-slot::v1"
+
+  ? {C class delete variable v1} ""
+  ? {C class info methods} ""
+  ? {C class info variables} ""
+
+}
+
+#
+# require method
+# 
+
+nx::Test case class-methods-2 {
+
+  nsf::method::provide set {::nsf::method::alias  set -frame object ::set}
+
+  nx::Class create ::C {
+    :require class method set
+  }
+
+  ? {C class info methods} "set"
+  ? {C info object methods} "set"
+
+}

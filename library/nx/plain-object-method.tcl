@@ -1,5 +1,34 @@
 package provide nx::plain-object-method 1.0
 
+#
+# Provide a convenience layer to define/introspect object specific
+# methods without having to use the "object" modifier. By using this
+# package, one can use instead of
+#
+#     nx::Object create o {
+#        :public object method foo args {....}
+#        :object property p:integer
+#        :object mixin add M
+#        #...
+#        puts [:info object methods]
+#     }
+#
+# simply
+#
+#     package require nx::plain-object-method
+#
+#     nx::Object create o {
+#        :public method foo args {....}
+#        :property p:integer
+#        :mixin add M
+#        #...
+#        puts [:info methods]
+#     }
+#
+# Note that for object specific methods of classes, one has still to
+# use "object method" etc. (see also package nx::plass-method).
+#
+
 namespace eval ::nx {
 
   #
@@ -8,7 +37,9 @@ namespace eval ::nx {
   #
   #    nx::configure plain-object-method-warning on|off
   #
-  # for activation/deactivation of tracing
+  # for activation/deactivation of tracing. This might be 
+  # useful for porting legacy NX programs or for testing
+  # default-configuration compliance.
   #
   nx::configure public object method plain-object-method-warning {onoff:boolean,optional} {
     if {[info exists onoff]} {
@@ -27,7 +58,15 @@ namespace eval ::nx {
     #
     # Definitions redirected to "object"
     #
-    foreach m {alias filter forward method mixin property variable} {
+    foreach m {
+      alias 
+      filter 
+      forward 
+      method 
+      mixin 
+      property 
+      variable
+    } {
       :public method $m {args} {
 	nx::configure plain-object-method-warning
 	:object [current method] {*}[current args]
@@ -35,9 +74,10 @@ namespace eval ::nx {
     }
 
     #
-    # info subcmmands 
+    # info subcommands 
     #
-    foreach m {method methods slots variables
+    foreach m {
+      method methods slots variables
       "filter guards" "filter methods"
       "mixin guards" "mixin classes"
     } {
@@ -46,6 +86,20 @@ namespace eval ::nx {
 	:info object $m {*}[current args]
       }]
     }
+
+    #
+    # deletions for object
+    #
+    foreach m {
+      "property"
+      "variable"
+      "method"
+    } {
+      nx::Object public method "delete $m" {args} {
+	nx::configure plain-object-method-warning
+	:delete object [current method] {*}[current args]
+      }
+    } 
 
   }
 

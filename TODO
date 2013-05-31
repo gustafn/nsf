@@ -4556,16 +4556,20 @@ package nx::plain-object-method:
   nx::configure plain-object-method-warning on|off
 - completed coverage and test cases
 
+package nx::class-method:
+- convenience package similar to nx::plain-object-method
+- allow for usage "C class method ..." in addition to 
+  "C object method".
+- made warnings configurable via
+  nx::configure class-method-warning on|off
+- completed coverage and test cases
+
 ========================================================================
 TODO:
 
 - reconsider
   #? {c1 cget -mixin} ""
   ? {c1 cget -object-mixin} ""
-
-- test cases
-   complete coverage tests/plain-object-method.test
-   provide  coverage tests/class.test
 
 - reconsider lower multiplicty on 
   -object-mixin, -mixin...
