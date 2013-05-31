@@ -22586,6 +22586,10 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
   ParamDefsRefCountDecr(paramDefs);
   ParseContextRelease(&pc);
+
+  if (result == TCL_OK) {
+    Tcl_ResetResult(interp);
+  }
   return result;
 }
 

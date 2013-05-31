@@ -661,23 +661,6 @@ namespace eval ::nx {
   }
 
   ######################################################################
-  # Provide Tk-style methods for configure and cget
-  ######################################################################
-  Object eval {
-    :public alias cget ::nsf::methods::object::cget
-
-    :protected alias __configure ::nsf::methods::object::configure    
-    :public method configure {args} {
-      if {[llength $args] == 0} {
-	: ::nsf::methods::object::info::objectparameter syntax
-      } else {
-	: __configure {*}$args
-	return
-      }
-    }
-  }
-
-  ######################################################################
   # Info definition
   ######################################################################
 
@@ -781,6 +764,14 @@ namespace eval ::nx {
   nsf::object::property ::nx::Class::slot::__info keepcallerself true
 
   Class eval {
+    #
+    # On a forget nx/reload nx, "info configure" might still be
+    # around.  If this is the case, remove it to allow smooth
+    # recreation of ensemble methods.
+    #
+    if {[: ::nsf::methods::class::info::method exists "info configure"]} {
+      :delete method "info configure"
+    }
     :method "info configure parameters"    {pattern:optional} {
       set defs [: ::nsf::methods::class::getCachedParameters]
       if {[llength $defs] > 0} {
@@ -789,8 +780,8 @@ namespace eval ::nx {
       }
       set slots [: ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot {*}[current args]]
       return [::nsf::parameter::specs -configure $slots]
-		  
     }
+
     :method "info configure syntax"    {} {
       set defs [: ::nsf::methods::class::getCachedParameters]
       if {[llength $defs] == 0} {
@@ -899,6 +890,20 @@ namespace eval ::nx {
     :method "info object method submethods"    {name} {: ::nsf::methods::object::info::method submethods $name}
     :method "info object method returns"       {name} {: ::nsf::methods::object::info::method returns $name}
   }
+
+  ######################################################################
+  # Provide Tk-style methods for configure and cget
+  ######################################################################
+  Object eval {
+    :public alias cget ::nsf::methods::object::cget
+
+    :public alias configure ::nsf::methods::object::configure    
+    :public method "info configure" args {: ::nsf::methods::object::info::objectparameter syntax}
+  }
+  nsf::method::create ::nx::Class::slot::__info::configure defaultmethod args {
+    uplevel {: ::nsf::methods::object::info::objectparameter syntax}
+  }
+
 
   ######################################################################
   # Definition of "abstract method foo ...."

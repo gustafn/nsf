@@ -4503,7 +4503,7 @@ Method and configure parameter reform, Part 3:
 - added implementation for slots with traces+types for classes
 - exception for incorrect defaults are thrown during slot creation
 - extended nsf::is, added parameter
-   * ?-configure? -- accept configure paramter options
+   * ?-configure? -- accept configure parameter options
    * ?-name /name/? -- provide a parameter name for error message
 - simplified nx.tcl by using new nsf::is
 - extended regression test
@@ -4518,7 +4518,7 @@ Cleanup of nsfAPI.decls
 
 Traits:
 - changed from traits-as-objects to traits-as-classes. This
-  allows for higher orthogonality of traits and class definitons
+  allows for higher orthogonality of traits and class definitions
   and allows in principle traits for object-specific methods 
   (not fully implemented/tested)
 - fixed property/variable inheritance in traits.
@@ -4531,7 +4531,7 @@ nsf.c:
      "info slots"
   of "all|application|baseclasses"
   to "all|application|system" 
-  for consistencey with "nsf::my" and "nsf::dispatch"
+  for consistency with "nsf::my" and "nsf::dispatch"
   which uses "-system" as well
 
 nx.tcl:
@@ -4539,7 +4539,7 @@ nx.tcl:
 - renamed initblock parameter from __initcmd to __initblock
 - renamed nsf::configure parameter from "keepinitcmds" to "keepcmds"
 - saving "keepcmds" in an associative array named "__cmd(/parameternName)"
-  to allow saving of multiple parmeters with less nameclash danger
+  to allow saving of multiple parmeters with less name clash danger
   (when application stays away from variables stating with double
   underscore)
 
@@ -4547,7 +4547,7 @@ nx.tcl:
 - provided warnings via plain-object-method.tcl via "nsf::log warn ..."
 
 nsf.c
-- fixed potential inifinite loop in pattern matching for precedence lists
+- fixed potential infinite loop in pattern matching for precedence lists
 - cget: make error message closer to tcl conventions
 - extended regression test
 
@@ -4563,6 +4563,16 @@ package nx::class-method:
 - made warnings configurable via
   nx::configure class-method-warning on|off
 - completed coverage and test cases
+
+nx.tcl:
+- replaced functionality of "/obj/ configure" by
+  "/obj/ info configure" to re-enable semantics
+  of the plain configure method, even when called without
+  arguments. "/obj/ info configure" is actually a 
+  convenience method to allow to write
+     o1 info configure
+  instead of 
+     o1 info lookup configure syntax
 
 ========================================================================
 TODO:

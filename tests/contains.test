@@ -110,7 +110,11 @@ namespace eval ::nx {
   #puts stderr =====3
 }
 
-puts ====NX
+#
+# Forget and reload nx
+#
+
+#puts ====NX-[package versions nx]-[set auto_path]
 package forget nx
 package req nx
 
