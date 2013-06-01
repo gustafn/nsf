@@ -4574,7 +4574,7 @@ nx.tcl:
   instead of 
      o1 info lookup configure syntax
 
-- traits: added ability to trun on verbosity for traits
+- traits: added ability to turn on verbosity for traits
   by using
      nx::configure trait-verbosity on|off
 
@@ -4582,16 +4582,15 @@ nx.tcl:
 - renamed variable option "-config" to "-configurable"
   to make its intention clearer
 
+- changed multiplicity of mixin, object-mixin, filter, object-filter 
+  from 1..n to 0..n; rationale: when one has a list of eg. mixins,
+  which should be passed, one has to test for the length before
+  passing it, otherwise the empty list would generate an error.
+  Allowing 0..n makes the usage simpler and the program shorter.
+
 
 ========================================================================
 TODO:
-
-- reconsider
-  #? {c1 cget -mixin} ""
-  ? {c1 cget -object-mixin} ""
-
-- reconsider lower multiplicity on 
-  -object-mixin, -mixin...
 
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)

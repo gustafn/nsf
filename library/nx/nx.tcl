@@ -1539,19 +1539,19 @@ namespace eval ::nx {
   #     filter
 
   ::nx::RelationSlot create ::nx::Object::slot::object-mixin \
-      -multiplicity 1..n \
+      -multiplicity 0..n \
       -methodname "::nx::Object::slot::__object::mixin" \
       -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
   ::nx::RelationSlot create ::nx::Object::slot::object-filter \
       -methodname "::nx::Object::slot::__object::filter" \
-      -multiplicity 1..n \
+      -multiplicity 0..n \
       -settername "object filter" -forwardername object-filter -elementtype filterreg 
   
   ::nx::RelationSlot create ::nx::Class::slot::mixin \
-      -multiplicity 1..n \
+      -multiplicity 0..n \
       -forwardername class-mixin -elementtype mixinreg
   ::nx::RelationSlot create ::nx::Class::slot::filter \
-      -multiplicity 1..n \
+      -multiplicity 0..n \
       -forwardername class-filter -elementtype filterreg
 
   #

@@ -35,9 +35,9 @@ nx::Test case configure-parameters {
 -name
 -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg
 -noinit:alias,method=::nsf::methods::object::noinit,noarg
--object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,1..n
+-object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,0..n
 -class:class,alias,method=::nsf::methods::object::class
--object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,1..n
+-object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,0..n
 __initblock:cmd,optional,noleadingdash"
 
   ? {Person info configure parameters age} "-age:integer"
