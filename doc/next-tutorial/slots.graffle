@@ -7,7 +7,7 @@
 	<key>ApplicationVersion</key>
 	<array>
 		<string>com.omnigroup.OmniGrafflePro</string>
-		<string>139.16.0.171715</string>
+		<string>139.7.0.167456</string>
 	</array>
 	<key>AutoAdjust</key>
 	<false/>
@@ -65,8 +65,8 @@
 			<integer>129</integer>
 			<key>Points</key>
 			<array>
-				<string>{317.22199999999998, 429.36153899148525}</string>
-				<string>{196.13920000000002, 308.91911503050011}</string>
+				<string>{317.22199999999998, 429.32791353754141}</string>
+				<string>{196.13920000000002, 308.83987271990873}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -102,8 +102,8 @@
 			<integer>128</integer>
 			<key>Points</key>
 			<array>
-				<string>{106.8858400404699, 432.88299999999998}</string>
-				<string>{106.88589312914517, 409}</string>
+				<string>{106.88579015298748, 432.88299999999998}</string>
+				<string>{106.88582432955573, 409}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -679,8 +679,8 @@
 			<integer>90</integer>
 			<key>Points</key>
 			<array>
-				<string>{122.38148119767141, 635.89999999999986}</string>
-				<string>{113.85795765929126, 558.88300000000004}</string>
+				<string>{122.38148080033758, 635.89999999999986}</string>
+				<string>{113.85795490799903, 558.88300000000004}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -802,8 +802,8 @@
 			<integer>88</integer>
 			<key>Points</key>
 			<array>
-				<string>{106.88571180743048, 597.48299999999995}</string>
-				<string>{106.8857468664164, 558.88300000000004}</string>
+				<string>{106.88570184457316, 597.48299999999995}</string>
+				<string>{106.88570732153661, 558.88300000000004}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -839,8 +839,8 @@
 			<integer>87</integer>
 			<key>Points</key>
 			<array>
-				<string>{352.01146605391102, 148.30099999999999}</string>
-				<string>{287.24460912688153, 39.584100000000007}</string>
+				<string>{352.01146512998173, 148.30099999999999}</string>
+				<string>{287.2446029162823, 39.584100000000007}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -994,8 +994,8 @@
 			<integer>85</integer>
 			<key>Points</key>
 			<array>
-				<string>{196.13920000000002, 119.99154186866068}</string>
-				<string>{267.8995865405019, 39.584099999999992}</string>
+				<string>{196.13920000000002, 119.99070764884014}</string>
+				<string>{267.89824345555076, 39.584100000000007}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1478,7 +1478,7 @@ methodname\
 forwardername\
 defaultmethods \{get assign)\
 accessor false\
-config true\
+configurable true\
 noarg\
 noleadingdash\
 disposition alias\
@@ -1605,9 +1605,9 @@ destroy\
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2013-05-28 14:40:56 +0000</string>
+	<string>2013-06-01 16:42:39 +0000</string>
 	<key>Modifier</key>
-	<string>Gustaf Neumann</string>
+	<string>Gustaf A. Neumann</string>
 	<key>NotesVisible</key>
 	<string>NO</string>
 	<key>Orientation</key>
@@ -1637,11 +1637,6 @@ destroy\
 		<array>
 			<string>float</string>
 			<string>12</string>
-		</array>
-		<key>NSOrientation</key>
-		<array>
-			<string>coded</string>
-			<string>BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU051bWJlcgCEhAdOU1ZhbHVlAISECE5TT2JqZWN0AIWEASqEhAFxlwCG</string>
 		</array>
 		<key>NSPagesPerSheet</key>
 		<array>
@@ -1718,7 +1713,7 @@ destroy\
 		<key>SidebarWidth</key>
 		<integer>138</integer>
 		<key>VisibleRegion</key>
-		<string>{{-22.022840097881307, -78.0228400978813}, {862.83219357080509, 877.48959210258545}}</string>
+		<string>{{-145.0228400978813, -29.022840097881307}, {862.83219357080509, 877.48959210258545}}</string>
 		<key>Zoom</key>
 		<real>1.0233739614486694</real>
 		<key>ZoomValues</key>

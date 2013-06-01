@@ -630,7 +630,7 @@ typedef enum {
   NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, 
   NSF_ARRAY_INITCMD, NSF_ARRAY_CMD,
   NSF_ARRAY_ALIAS, NSF_ARRAY_PARAMETERSYNTAX, 
-  NSF_POSITION, NSF_POSITIONAL, NSF_CONFIG, NSF_PARAMETERSPEC,
+  NSF_POSITION, NSF_POSITIONAL, NSF_CONFIGURABLE, NSF_PARAMETERSPEC,
   /* object/class names */
   NSF_METHOD_PARAMETER_SLOT_OBJ, 
   /* constants */
@@ -652,7 +652,7 @@ char *NsfGlobalStrings[] = {
   /* var names */
   "__autonames", "__default_metaclass", "__default_superclass", "__initcmd", "__cmd",
   "::nsf::alias", "::nsf::parameter::syntax", 
-  "position", "positional", "config", "parameterSpec",
+  "position", "positional", "configurable", "parameterSpec",
   /* object/class names */
   "::nx::methodParameterSlot", 
   /* constants */

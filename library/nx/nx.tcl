@@ -977,7 +977,7 @@ namespace eval ::nx {
 	  if {$property eq "convert" } {set class [:requireClass ::nx::VariableSlot $class]}
           lappend opts -$property 1
         } elseif {$property eq "noconfig"} {
-	  set opt(-config) 0 ;# TODO
+	  set opt(-configurable) 0 ;# TODO
         } elseif {$property eq "incremental"} {
 	  error "parameter option incremental must not be used; use non-positional argument -incremental instead"
         } elseif {[string match type=* $property]} {
@@ -1103,7 +1103,7 @@ namespace eval ::nx {
       # set for every bootstrap property slot the position 0
       #
       ::nsf::var::set $slotObj position 0
-      ::nsf::var::set $slotObj config 1
+      ::nsf::var::set $slotObj configurable 1
     }
 
     #puts stderr "Bootstrap-slot for $class calls parameter:invalidate::classcache"
@@ -1185,7 +1185,7 @@ namespace eval ::nx {
     {defaultmethods {get assign}}
     {accessor public}
     {incremental:boolean false}
-    {config true}
+    {configurable true}
     {noarg}
     {noleadingdash}
     {disposition alias}
@@ -1368,12 +1368,12 @@ namespace eval ::nx {
   }
 
   ObjectParameterSlot public method getPropertyDefinitionOptions {parameterSpec} {
-    #puts "accessor <${:accessor}> config ${:config} per-object ${:per-object}" 
+    #puts "accessor <${:accessor}> configurable ${:configurable} per-object ${:per-object}" 
 
     set mod [expr {${:per-object} ? "object" : ""}]
     set opts ""
 
-    if {${:config}} {
+    if {${:configurable}} {
       lappend opts -accessor ${:accessor}
       if {${:incremental}} {lappend opts -incremental}
       if {[info exists :default]} {
@@ -1382,7 +1382,7 @@ namespace eval ::nx {
       set methodName property
     } else {
       lappend opts -accessor ${:accessor}
-      if {${:config}} {lappend opts -config true}
+      if {${:configurable}} {lappend opts -configurable true}
       if {[info exists :default]} {
 	return [list ${:domain} {*}$mod variable {*}$opts $parameterSpec ${:default}]
       }
@@ -1394,7 +1394,7 @@ namespace eval ::nx {
   ObjectParameterSlot public method definition {} {
     set options [:getParameterOptions -withMultiplicity true]
     if {[info exists :positional]} {lappend options positional}
-    #if {!${:config}} {lappend options noconfig}
+    #if {!${:configurable}} {lappend options noconfig}
     return [:getPropertyDefinitionOptions [:namedParameterSpec -map-private "" ${:name} $options]]
   }
 
@@ -1725,7 +1725,7 @@ namespace eval ::nx {
       if {[info exists :substdefault] && ${:substdefault}} {
 	lappend options substdefault
       }
-      if {[info exists :config] && !${:config}} {
+      if {[info exists :configurable] && !${:configurable}} {
 	lappend options noconfig
       }
     }
@@ -1770,11 +1770,11 @@ namespace eval ::nx {
     if {${:accessor} eq "protected"} {
       ::nsf::method::property ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] \
 	  $handle call-protected true
-      set :config 0
+      set :configurable 0
     } elseif {${:accessor} eq "private"} {
       ::nsf::method::property ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] \
 	  $handle call-private true
-      set :config 0
+      set :configurable 0
     } elseif {${:accessor} ne "public"} {
       :destroy
       error "accessor value '${:accessor}' invalid; might be one of public|protected|private or none"
@@ -1978,7 +1978,7 @@ namespace eval ::nx {
      {-accessor "none"}
      {-incremental:switch}
      {-class ""}
-     {-config:boolean false}
+     {-configurable:boolean false}
      {-initblock ""}
      {-nocomplain:switch}
      spec:parameter
@@ -2000,13 +2000,12 @@ namespace eval ::nx {
 	name parameterOptions class options
     array set opts $options
 
-    # TODO: do we need config as parameter property?
-    if {[info exists opts(-config)]} {
-      set config $opts(-config)
+    if {[info exists opts(-configurable)]} {
+      set configurable $opts(-configurable)
     }
 
     #if {$initblock eq "" && $accessor eq "none" && !$incremental} 
-    if {$initblock eq "" && !$config && $accessor eq "none" && !$incremental} {
+    if {$initblock eq "" && !$configurable && $accessor eq "none" && !$incremental} {
       #
       # we can build a slot-less variable
       #
@@ -2054,7 +2053,7 @@ namespace eval ::nx {
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
 
     if {$nocomplain} {$slot eval {set :nocomplain 1}}
-    if {!$config} {$slot eval {set :config false}}
+    if {!$configurable} {$slot eval {set :configurable false}}
     if {[info exists defaultValue]} {
       # We could consider calling "configure" instead, but that would
       # not work for true "variable" handlers
@@ -2073,7 +2072,7 @@ namespace eval ::nx {
 
   Object method "object property" {
     {-accessor ""}
-    {-config:boolean true}
+    {-configurable:boolean true}
     {-incremental:switch}
     {-class ""}
     {-nocomplain:switch}
@@ -2091,7 +2090,7 @@ namespace eval ::nx {
 	       -incremental=$incremental \
 	       -class $class \
 	       -initblock $initblock \
-	       -config $config \
+	       -configurable $configurable \
 	       -nocomplain=$nocomplain \
 	       {*}$spec]
     return $r
@@ -2101,7 +2100,7 @@ namespace eval ::nx {
     {-accessor "none"}
     {-incremental:switch}
     {-class ""}
-    {-config:boolean false}
+    {-configurable:boolean false}
     {-initblock ""}
     spec:parameter
     defaultValue:optional
@@ -2111,7 +2110,7 @@ namespace eval ::nx {
 		  -initblock $initblock \
 		  -incremental=$incremental \
 		  -private=[expr {$accessor eq "private"}] \
-		  -defaultopts [list -accessor $accessor -config $config] \
+		  -defaultopts [list -accessor $accessor -configurable $configurable] \
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
     if {[$slot eval {info exists :settername}]} {
@@ -2125,7 +2124,7 @@ namespace eval ::nx {
 
   nx::Class method property {
     {-accessor ""}
-    {-config:boolean true}
+    {-configurable:boolean true}
     {-incremental:switch}
     {-class ""}
     spec:parameter
@@ -2140,7 +2139,7 @@ namespace eval ::nx {
 	       -accessor $accessor \
 	       -incremental=$incremental \
 	       -class $class \
-	       -config $config \
+	       -configurable $configurable \
 	       -initblock $initblock \
 	       {*}$spec]
     return $r

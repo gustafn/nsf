@@ -2159,10 +2159,13 @@ defined by NX application programs usually via +property+.
 
 /obj/ info lookup configure parameters ?pattern?
 
+
 # "info lookup configure syntax" returns syntax of 
 # a call to configure in the Tcl parameter syntax
 
 /obj/ info lookup configure syntax
+# short form
+/obj/ info configure
 
 # Obtain information from a parameter 
 # (as e.g. returned from "info configure
@@ -2170,7 +2173,6 @@ defined by NX application programs usually via +property+.
 
 /obj/ info parameter name /parameter/
 /obj/ info parameter syntax /parameter/
-
 ----------------
 |======================
 

@@ -193,6 +193,7 @@ nx::Class create C {
 
 #? {C::slot info vars} __parameter
 #? {C info attributes} {{x 1} {y 2}}
+
 ? {C info configure parameters x} {{-x 1}}
 ? {C info configure parameters y} {{-y 2}}
 

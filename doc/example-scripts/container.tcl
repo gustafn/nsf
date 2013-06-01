@@ -129,14 +129,14 @@ nx::Class create SortedContainer -superclass OrderedContainer {
 
   :variable values {}
   :variable index {}
-
   :property key
+
   :public method index {} { return ${:index}}
 
   :public method new {args} {
     set item [${:memberClass} create [:]::[:autoname ${:prefix}] {*}$args]
     if {[info exists :key]} {
-      set value [$item ${:key}]
+      set value [$item cget -${:key}]
       set pos [lsearch -bisect ${:values} $value]
       set :values [linsert ${:values} [expr {$pos + 1}] $value]
       set :index  [linsert ${:index}  [expr {$pos + 1}] $item]
@@ -154,7 +154,6 @@ nx::Class create SortedContainer -superclass OrderedContainer {
     set :index  [lreplace ${:index}  $pos $pos]
     next
   }
-
 }
 
 # Create a container for class +D+ with key +name+:

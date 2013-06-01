@@ -21175,7 +21175,7 @@ NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, 
     if (withConfigure) {
       int configure = 0;
       Tcl_Obj *configureObj = Nsf_ObjGetVar2((Nsf_Object *)slotObject, interp, 
-					     NsfGlobalObjs[NSF_CONFIG], NULL, 0);
+					     NsfGlobalObjs[NSF_CONFIGURABLE], NULL, 0);
       if (!configureObj) continue;
       Tcl_GetBooleanFromObj(interp, configureObj, &configure);
       if (!configure) continue;

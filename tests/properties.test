@@ -31,7 +31,7 @@ nx::Test case class-level {
     :variable -accessor none ve ve1
 
     # a non-configurable property is a variable
-    :property -accessor none -config false {vf vf1}
+    :property -accessor none -configurable false {vf vf1}
     
     :public method call-local {v} {: -local $v}
     

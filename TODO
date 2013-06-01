@@ -4578,6 +4578,10 @@ nx.tcl:
   by using
      nx::configure trait-verbosity on|off
 
+nx.tcl:
+- renamed variable option "-config" to "-configurable"
+  to make its intention clearer
+
 
 ========================================================================
 TODO:
@@ -4586,12 +4590,9 @@ TODO:
   #? {c1 cget -mixin} ""
   ? {c1 cget -object-mixin} ""
 
-- reconsider lower multiplicty on 
+- reconsider lower multiplicity on 
   -object-mixin, -mixin...
 
-- maybe rename nonpos arg "-config" of property/variable
-  to "-configurable"? (pro: more clearly, contra: longer)
-  do we need "config" as parameter property?
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)
 - handling of recreate (see regression test for class-level properties)
