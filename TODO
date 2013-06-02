@@ -4589,12 +4589,31 @@ nx.tcl:
   Allowing 0..n makes the usage simpler and the program shorter.
 
 
+Removed oboslete item. At least in this concrete form, the 
+warning does not show up.
+- NSF_WITH_VALUE_WARNINGS: Right now, value warnings are also fired
+  for arg vectors with a delimiting "--"; right now, this gives a warning:
+
+  Object create o {
+  	 :public object method foo {-np1 -np2 p1} {
+	     return $p1
+	  }
+  }
+
+  ? {o foo -np1 1 -np2 2 -- -X} "-X"
+
+nsf.c: 
+- when creation with an required configure parameter failed,
+  delete the half-baked object to avoid confusing states.
+  
 ========================================================================
 TODO:
 
 - handling of "required" in reconfigure (see 
   parameter-object-mixin-dependency in parameters.test)
 - handling of recreate (see regression test for class-level properties)
+
+
 - maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
   volatile state.
 
@@ -4839,22 +4858,6 @@ Stefan: API-related items
 Ein paar Punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
-
-- NSF_WITH_VALUE_WARNINGS: Right now, value warnings are also fired
-  for arg vectors with a delimiting "--"; right now, this gives a warning:
-
-  Object create o {
-  	 :public method foo {-np1 -np2 p1} {
-	     return $p1
-	  }
-  }
-
-  ? {o foo -np1 1 -np2 2 -- -X} "-X"
-
-  However, the warning-generating code in Nsf_ConvertToTclobj() does
-  not receive any word of a dashdash having been processed in the
-  overall argv ... the NSF_ARG_CHECK_NONPOS set on the parsed (and
-  cached) param is the only condition to must hold.
 
 - should we continue to work on the problem of the interp-aliased class,
   exported from one ns, imported into another one?

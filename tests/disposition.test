@@ -833,28 +833,28 @@ nx::Test case alias-args {
   #
   C setObjectParams {{args:alias,int,method=Residualargs,args {hello world}}}
   ? {C create c1} {refuse to redefine parameter type of 'args' from type 'integer' to type 'args'}
-  ? {c1 eval {info exists :args}} 0
+  ? {nsf::is object c1} 0
   C setObjectParams {{args:int,alias,method=Residualargs,args {hello world}}}
   ? {C create c1} {refuse to redefine parameter type of 'args' from type 'integer' to type 'args'}
-  ? {c1 eval {info exists :args}} 0
+  ? {nsf::is object c1} 0
 
   #
   # don't allow multiplicity settings for parameter option "args"
   #
   C setObjectParams {{args:alias,method=Residualargs,0..n,args {hello world}}}
   ? {C create c1} {multiplicity settings for variable argument parameter "args" not allowed}
-  ? {c1 eval {info exists :args}} 0
+  ? {nsf::is object c1} 0
 
   C setObjectParams {args:alias,method=Residualargs,args,1..n}
   ? {C create c1} {multiplicity settings for variable argument parameter "args" not allowed}
-  ? {c1 eval {info exists :args}} 0
+  ? {nsf::is object c1} 0
   
   #
   # make sure, parameter with parameter option "args" is used in last parameter
   #
   C setObjectParams {a:alias,method=Residualargs,args -b:integer}
   ? {C create c1 hello world} {parameter option "args" invalid for parameter "a"; only allowed for last parameter}
-  ? {c1 eval {info exists :args}} 0
+  ? {nsf::is object c1} 0
 }
 
 

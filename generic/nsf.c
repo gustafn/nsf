@@ -15594,6 +15594,12 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     if (likely(result == TCL_OK)) {
       Tcl_SetObjResult(interp, savedObjResult);
     }
+  } else {
+    /*
+     * Configure failed, therefore, the object might be in an undefined
+     * state. To avoid strange errors, we delete the half-baked object.
+     */
+    DispatchDestroyMethod(interp, (NsfObject *)object, 0);
   }
 
   NsfCleanupObject(object, "obj init");

@@ -1663,19 +1663,40 @@ nx::Test case setter-under-coloncmd-and-interpvarresolver {
   }
 }
 
+#
+# test required configure parameter
+#
+
 nx::Test case req-param {
   ::nx::Class create C {
     :property y:required
     :property x:required
-    :method init args {set ::_ $args}
+    :method init args {set ::_ "passed args '$args'"}
   }
 
   set ::_ ""
   ? {C create c2 -y 1 -x} {value for parameter '-x' expected}
+
+  # Was the constructor called? Should not.
   ? {set ::_} ""
-  ? {c2 cget -x} {can't read "x": no such variable}
+  
+  # Did the object survive the error? Should not.
+  ? {::nsf::is object c2} 0
+
+  set ::_ ""
+  ? {C create c2} \
+"required argument 'x' is missing, should be:
+	::c2 __configure -x /value/ -y /value/ ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+
+  # Was the constructor called? Should not.
+  ? {set ::_} ""
+  
+  # Did the object survive the error? Should not.
+  ? {::nsf::is object c2} 0
+
+  # The following should run through without erros
   ? {C create c3 -y 1 -x 0} "::c3"
-  ? {set ::_} ""
+  ? {set ::_} "passed args ''"
   ? {c3 cget -x} "0"
 }
 
@@ -1829,6 +1850,8 @@ nx::Test case parameter-alias-default {
   ? {::C::slot::x1 getParameterSpec} {-x1:alias hugo}
   ? {::C::slot::x2 getParameterSpec} {-x2:alias,substdefault {[self]}}
 }
+
+
 
 #
 # Test interactions between per-object-mixins and objectparameters 
