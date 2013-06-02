@@ -53,7 +53,7 @@ namespace eval ::nx {
 	  success ${:success} \
 	  failure ${:failure} \
 	  ms ${:ms} 
-      puts "Summary: $msg"
+      puts "Summary: $msg\n"
       array set "" $::argv
       if {[info exists (-testlog)]} {
 	set f [open $(-testlog) a]; puts $f $msg; close $f
@@ -208,5 +208,6 @@ proc ? {cmd expected {msg ""}} {
   nsf::__db_run_assertions
 }
 
+nsf::log notice "Running test cases: [info script]"
 
 
