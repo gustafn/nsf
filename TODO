@@ -4605,14 +4605,23 @@ warning does not show up.
 nsf.c: 
 - when creation with an required configure parameter failed,
   delete the half-baked object to avoid confusing states.
+
+- improved handling of required configure parameters
+  when classes are changed dynamically.
+  When configure parameter are defined required, checking
+  for the absence of required parameter was only performed
+  at creation time. When objects were re-classed or their
+  classes extended with required parameters, later 
+  calls to configure did not trigger exceptions. Now
+  we check for the existence of the instance variable
+  which addresses most of these points, but in future
+  we might wish a more general solution (see comment
+  for futures releases)
   
 ========================================================================
 TODO:
 
-- handling of "required" in reconfigure (see 
-  parameter-object-mixin-dependency in parameters.test)
 - handling of recreate (see regression test for class-level properties)
-
 
 - maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
   volatile state.
@@ -4880,17 +4889,35 @@ TODO "Kleinigkeiten"
 
 
 For future releases (after first alpha/beta release)
+
+  * generalizing parameter-specific per-object info
+    Now we have 
+      __initcmd(varname) for init-cmds of varitable traces
+      __cmd(varname) for the eval-ed cmds (mostly
+                     for documentation purposes
+                     to postprocess the init block
+    We could need 
+       __required_satistfied(varname) to handle
+                     required parameter aliases
+    As generalization, we could use a dict
+       __parameterstate(varname) 
+    or even
+       __parameterstate 
+    with a dict to collect the various aspects. 
+    for performance reasons, we do not want to set this
+    variable too frequent, serialization and blueprint
+    aspects have to be considered. This would as well
+    address cases, where the parameter has a different name
+    than the associated varianle (e.g. private properties)
    
   * extend traits (object-specific traits, test cases, etc.)
 
-    - Stefan: Still valid, IMHO: todo: don't hard-code registering
-    command name "method" / NSF_METHOD"; parts of the introspection
-    machinery in NSF rely on NX/script-level specifics ... how should we
-    handle this? For the system methods (create, ...), we can resolve
-    the situation; for the NX or XOTcl method delegates (method) of
-    ::nsf::method::create & friends, we do not have any
-    abstraction/handle right now ... should we script those info
-    subcmds (info method definition), against a performance penalty?
+  * Reduce / remove hard-code names. Right now, "method"/"alias"/
+    "forward" is returend by "info definition" introspection.
+    This is not serious, since e.g. XOTcl handles this on the
+    script level by mapping these names to the XOTcl counterparts.
+    We could as well make this configurable via the object-system
+    parameters.
 
    * Consider alternate method name/place for subcmds (and/or slots) on classes
      - currently, there are potential conflicts between slots and ensemble objects

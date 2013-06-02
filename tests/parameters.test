@@ -1698,7 +1698,31 @@ nx::Test case req-param {
   ? {C create c3 -y 1 -x 0} "::c3"
   ? {set ::_} "passed args ''"
   ? {c3 cget -x} "0"
+
+  #
+  # incremental property adding vs. required
+  #
+  nx::Class create D
+
+  ? {D create d1} ::d1
+  ? {d1 configure} ""
+
+  D property x:required
+  ? {d1 info configure} \
+      "-x /value/ ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  
+  ? {d1 configure} \
+      "required argument 'x' is missing, should be:
+	::d1 configure -x /value/ ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+
+  ? {d1 configure -x 123} ""
+  ? {d1 cget -x} 123
+
+  ? {d1 configure} ""
 }
+
+
+
 
 ::nsf::configure checkarguments on
 
@@ -1883,15 +1907,14 @@ nx::Test case parameter-object-mixin-dependency {
   # 
   # We have now "-b1:required" in the configure parameters.  
   #
-  # TODO: Actually we should enforce it. We could check, if the
-  # associate variable is already set, but this does not work for
-  # aliases.... we could track, if the slot is already initialized for
-  # this object. This can be a potentially huge table containing
-  # potentially all objects (relation slots). Maybe keep the table
-  # just for "required" parameters? or look for an approach based on
-  # epoch counting?
+  # NSF checks, if the associated variable is already set, but
+  # this does not work for aliases.... we could track whether or 
+  # not a required parameter was already provided, but that 
+  # requires most likely a more general handling.
   #
-  ? {c1 configure -a1 x} ""
+  ? {c1 configure -a1 x} \
+"required argument 'b1' is missing, should be:
+	::c1 configure -b1 /value/ ?-a1 /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   #
   # The object parameter based on the per-object-mixin must not be
@@ -1983,7 +2006,9 @@ nx::Test case parameter-object-mixin-dependency-object-property {
   #
   ::nsf::parameter:invalidate::classcache C
 
-  c1 __configure -a1 x
+  ? {c1 __configure -a1 x} \
+"required argument 'b1' is missing, should be:
+	::c1 __configure ?-a2 /value/? -b1 /value/ ?-a1 /value/? ?-volatile? ?-noinit? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
 

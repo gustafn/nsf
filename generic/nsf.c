@@ -22404,20 +22404,24 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	}
       }
     } else if (unlikely(paramPtr->flags & NSF_ARG_REQUIRED 
-			&& pc.full_objv[i] == NsfGlobalObjs[NSF___UNKNOWN__]
-			&& (object->flags & NSF_INIT_CALLED) == 0)
-	       ) {
-      /*
-       * The checking for required arguments happens only, when the actual
-       * value is not the default, but the magic __UNKNOWN Tcl_Obj, and the
-       * object is not jet initialized. Logic behind this: if the object is
-       * initialized, configure must have been called before, and the required
-       * action must have been already taken).  We might change this to the
-       * overwriting logic like above, but we have as well to deal with
-       * aliases.
-       */
-	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(paramDefs->paramsPtr);
+			&& pc.full_objv[i] == NsfGlobalObjs[NSF___UNKNOWN__])) {
 
+      /* Previous versions contained a test for 
+       *   (object->flags & NSF_INIT_CALLED)
+       *
+       * to perform required testing just for in the non-initialized state. We
+       * switched in 2.0b5 to checking for the existance of the associated
+       * instance variable, which works under the assumption that the instance
+       * variable has the same name and that e.g. an required alias parameter
+       * sets this variable either. Similar assumption is in the default
+       * handling. Future versions might use a more generneral handling of the
+       * parameter states.
+       */
+	 
+      Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
+      if (varObj == NULL) {
+	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(paramDefs->paramsPtr);
+	
         NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
 		      paramPtr->nameObj ? ObjStr(paramPtr->nameObj) : paramPtr->name,
 		      pc.object ? ObjectName(pc.object) : "",
@@ -22429,6 +22433,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	Nsf_PopFrameObj(interp, framePtr);
 	result = TCL_ERROR;
 	goto configure_exit;
+      }
     }
 
     newValue = pc.full_objv[i];
