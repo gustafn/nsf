@@ -139,16 +139,23 @@ namespace eval ::nx {
 	#puts stderr "running test $c times"
 	if {${:verbose}} {puts stderr "running test $c times"}
 	if {$c > 1} {
-	  set r0 [time {time {::namespace eval ${:namespace} ";"} $c}]
-	  regexp {^(-?[0-9]+) +} $r0 _ mS0
+	  #
+	  # The following line was used to calculate calling-overhead.
+	  # deactivated for now, since sometimes the reported calling
+	  # overhead was larger than the call.
+	  #
+	  #set r0 [time {time {::namespace eval ${:namespace} ";"} $c}]
+	  #regexp {^(-?[0-9]+) +} $r0 _ mS0
 	  set r1 [time {time {::namespace eval ${:namespace} ${:cmd}} $c}]
 	  #puts stderr "running {time {::namespace eval ${:namespace} ${:cmd}} $c} => $r1"
 	  regexp {^(-?[0-9]+) +} $r1 _ mS1
-	  set ms [expr {($mS1 - $mS0) * 1.0 / $c}]
+	  #set ms [expr {($mS1 - $mS0) * 1.0 / $c}]
+	  set ms [expr {$mS1 * 1.0 / $c}]
 	  # if for some reason the run of the test is faster than the
 	  # body-less eval, don't report negative values.
-	  if {$ms < 0} {set ms 0.0}
-	  puts stderr "[set :name]:\t[format %6.2f $ms]\tmms, ${:msg} (overhead [format %.2f [expr {$mS0*1.0/$c}]])"
+	  #if {$ms < 0} {set ms 0.0}
+	  #puts stderr "[set :name]:\t[format %6.2f $ms]\tmms, ${:msg} (overhead [format %.2f [expr {$mS0*1.0/$c}]])"
+	  puts stderr "[set :name]:\t[format %6.2f $ms]\tmms, ${:msg}"
 	} else {
 	  puts stderr "[set :name]: ${:msg} ok"
 	}
