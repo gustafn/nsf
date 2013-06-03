@@ -4621,23 +4621,40 @@ nsf.c:
 nx::test:
 - deactivate calling overhead calculation, since this
   is not reliable (sometimes larger than the call).
+
+- Old TODO maybe obsolete:
+
+  handling of recreate (see regression test for class-level properties)
+
+  Could not find refernces about this in the parameters
+  or properties tests.
+
+nsf.m4: 
+- nsf.m4 currently unused (SC_PATH_NSFCONFIG and SC_LOAD_NSFCONFIG)
+  We can delete it from the current version.
+
+nsf.c
+- fixed a bug in "info methods returns" in cases, where
+  no returns info was available.
+- we can "/obj/ copy" now objects/classes containing
+  * aliases
+  * setter
+  * ensemble methods
+  * method protections
+  Instead of handling cmd copying in NsfNSCopyCmdsCmd,
+  it is replaced now by introspection.
+- extended regression test
+
 ========================================================================
 TODO:
 
-- handling of recreate (see regression test for class-level properties)
-
-- maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
-  volatile state.
-
-- document new setable object properties perobjectdispatch and keepcallerself
-
-- behavior on keepcallerself on ordinary dispatches with implicit/explicit 
-  receiver (currently the flag is ignored, the code just commented out)
-
-- Aliases and forwards are not handled by NsfNSCopyCmdsCmd; object
-  cloning/copying remains incomplete; also, there might be object and
-  method properties not handled as well (as the "returns" method
-  property before the recent fix)
+- copycmds is obsolete, copyNSVarsAndCmds should be renamed
+- methods.test: test case object+class-copy:
+  after copy, the following command lists "__a" etc as well
+  #? {lsort [::D info object methods -path]} "{oa b} {oa c} ofoo ofwd set"
+- methods.test: when method "exists" is required in test case
+  object+class-copy, cleanup leads to a crash
+- nx.tcl: cleanup of XXX cmds
 
 Stefan: API-related items
 
@@ -4715,9 +4732,6 @@ Stefan: API-related items
 - do we have to adjust the documentation in xotcl2 for object initialization?
 - maybe optional arg (true) to ::nsf::object::initialized 
   to generalize -noinit
-
-- nsf.m4 seems to be currently unused (SC_PATH_NSFCONFIG and SC_LOAD_NSFCONFIG)
-  Should we delete it?
 
 - maybe: add a disposition=pipe
 
@@ -4915,6 +4929,9 @@ For future releases (after first alpha/beta release)
    
   * extend traits (object-specific traits, test cases, etc.)
 
+  * add maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
+    volatile state.
+
   * Reduce / remove hard-code names. Right now, "method"/"alias"/
     "forward" is returend by "info definition" introspection.
     This is not serious, since e.g. XOTcl handles this on the
@@ -4953,6 +4970,12 @@ For future releases (after first alpha/beta release)
     - Use parameter syntax in genTclAPI
     - better handling of "c1 cget -noinit" ?
  
+  * experimental features:
+     - document/extend/generalize/remove the experimental object properties 
+       perobjectdispatch and keepcallerself
+     - behavior on keepcallerself on ordinary dispatches with implicit/explicit 
+       receiver (currently the flag is ignored, the code just commented out)
+
   * C-Code
      * Several of the tracing options in nsf.h could be replaced by DTrace
      * Rework implict namespace completion (NameInNamespaceObj(), 

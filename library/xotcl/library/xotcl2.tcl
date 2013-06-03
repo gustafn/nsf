@@ -811,6 +811,22 @@ namespace eval ::xotcl {
     uplevel [list [self] contains -object $slotContainer $cmd]
   }
 
+  #
+  # provide a stub function to allow reuse of copy of nx
+  #
+  ::nsf::method::create Object __resolve_method_path {
+    -per-object:switch
+    -verbose:switch
+    path
+  } {
+    set object [::nsf::self]
+    return [list object $object methodName $path regObject $object]
+  }
+  ::nsf::method::property Object __resolve_method_path call-protected true
+
+
+
+
   # assertion handling
   proc checkoption_xotcl1_to_internal checkoptions {
     set options [list]
