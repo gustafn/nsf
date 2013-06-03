@@ -100,8 +100,8 @@ namespace eval ::nx::doc {
       foreach mixin [:info children -type [current class]::Mixin] {
 	set base "${:prefix}::[namespace tail $mixin]"
 	if {[::nsf::object::exists $base]} {
-	  set scope [expr {[$mixin scope] eq "object" && \
-			       [$base info has type ::nx::Class]?"class":""}]
+	  set scope [expr {[$mixin scope] eq "object"?"object":""}]
+	  #set scope "object"
 	  dict lappend :active_mixins $base $mixin
 	  $base eval [list : -system {*}$scope mixin add $mixin]
 	}
@@ -120,7 +120,7 @@ namespace eval ::nx::doc {
     }
     
     Class create [current]::Mixin -superclass Class {
-      :property {scope class}
+      :property -accessor public {scope class}
     }
   }
 
@@ -136,12 +136,12 @@ namespace eval ::nx::doc {
     # @param root_namespace You may choose your own root-level
     # namespace hosting the namespace hierarchy of entity objects
 
-    :property {tag {[string trimleft [string tolower [namespace tail [current]]] @]}}
-    :property {root_namespace "::nx::doc::entities"}
+    :property -accessor public {tag {[string trimleft [string tolower [namespace tail [current]]] @]}}
+    :property -accessor protected {root_namespace "::nx::doc::entities"}
 
     namespace eval ::nx::doc::entities {}
 
-    :public class method normalise {tagpath names} {
+    :public object method normalise {tagpath names} {
       # 1) verify balancedness of path spec elements
       if {[llength $tagpath] != [llength $names]} {
 	return [list 1 "Imbalanced tag line spec: '$tagpath' vs. '$names'"]
@@ -159,7 +159,7 @@ namespace eval ::nx::doc {
 
     }
     
-    :public class method find {
+    :public object method find {
 	-strict:switch 
 	-all:switch 
 	tagpath 
@@ -299,7 +299,7 @@ namespace eval ::nx::doc {
     # TODO: We don't need the stack-like dispensing of containers,
     # make it a simple one-element store
 
-    :public class property containers:0..*,object,type=::nx::doc::ContainerEntity {
+    :object property containers:0..*,object,type=::nx::doc::ContainerEntity {
       set :incremental 1
     }
 
@@ -404,19 +404,19 @@ namespace eval ::nx::doc {
     # 
     # The property refers to a concrete subclass of Part which
     # describes the parts being managed by the property.
-    :property part_class:optional,class {
-      :public method assign {domain prop value} {
+    :property -accessor public part_class:optional,class {
+      :public object method assign {domain prop value} {
 	set owningClass [[$domain info parent] info parent]
 	if {"::nx::doc::ContainerEntity" in [concat $owningClass [$owningClass info heritage]]} {
-	  $value class mixin add ::nx::doc::ContainerEntity::Containable
+	  $value object mixin add ::nx::doc::ContainerEntity::Containable
 	}
 	next
       }
     }
-    :property scope
+    :property -accessor public scope
 
-    :property {pretty_name {[string totitle [string trimleft [namespace tail [current]] @]]}}
-    :property {pretty_plural {[string totitle [string trimleft [namespace tail [current]] @]]}}
+    :property -accessor public {pretty_name {[string totitle [string trimleft [namespace tail [current]] @]]}}
+    :property -accessor public {pretty_plural {[string totitle [string trimleft [namespace tail [current]] @]]}}
 
     # :forward owning_entity_class {% [[:info parent] info parent] }
     :method init args {
@@ -533,13 +533,13 @@ namespace eval ::nx::doc {
     # @.parameter name
     #
     # gives you the name (i.e., the Nx object identifier) of the documented entity
-    :property name:any,required
+    :property -accessor public name:any,required
 
-    :class property current_project:object,type=::nx::doc::@project,0..1
+    :object property -accessor public current_project:object,type=::nx::doc::@project,0..1
     :public forward current_project [current] %method
 
-    :property partof:object,type=::nx::doc::StructuredEntity
-    :property part_attribute:object,type=::nx::doc::PartAttribute
+    :property -accessor public partof:object,type=::nx::doc::StructuredEntity
+    :property -accessor public part_attribute:object,type=::nx::doc::PartAttribute
 
 
     :public method get_fqn_command_name {} {
@@ -634,7 +634,7 @@ namespace eval ::nx::doc {
     }
 
     :property @use {
-      :public method assign {domain prop value} {
+      :public object method assign {domain prop value} {
 	lassign $value pathspec pathnames
 	if {$pathnames eq ""} {
 	  set pathnames $pathspec
@@ -700,9 +700,9 @@ namespace eval ::nx::doc {
 
   # @class @glossary
   @glossary eval {
-    :property @pretty_name
-    :property @pretty_plural
-    :property @acronym
+    :property -accessor public @pretty_name
+    :property -accessor public @pretty_plural
+    :property -accessor public @acronym
   }
 
 
@@ -803,7 +803,7 @@ namespace eval ::nx::doc {
       }
     }
 
-    :property previous:object,type=[current]
+    :property -accessor public previous:object,type=[current]
 
     :public method announceAsContainer {tag:object,type=::nx::doc::Tag} {
       $tag containers push [current]
@@ -830,9 +830,9 @@ namespace eval ::nx::doc {
     # Doc entity interface
     # / / / / / / / / / / / / / / / / / /
 
-    :public property sandbox:object,type=::nx::doc::Sandbox
+    :property -accessor public sandbox:object,type=::nx::doc::Sandbox
 
-    :property url
+    :property -accessor public url
     :property license
     :property creationdate
     :property {version ""}
@@ -842,7 +842,7 @@ namespace eval ::nx::doc {
     
     :property -class ::nx::doc::PartAttribute @glossary {
       :part_class ::nx::doc::@glossary
-      :public method get {domain prop} {
+      :public object method get {domain prop} {
 	set l [next]
 	if {[$domain eval {info exists :depends}]} {
 	  foreach d [$domain depends] {
@@ -853,7 +853,7 @@ namespace eval ::nx::doc {
       }
     }
 
-    :property -class ::nx::doc::PartAttribute @package {
+    :property -accessor protected -class ::nx::doc::PartAttribute @package {
       :pretty_name "Package"
       :pretty_plural "Packages"
       :part_class ::nx::doc::@package
@@ -871,7 +871,7 @@ namespace eval ::nx::doc {
       :frontend $frontend $srcs $cmds
     }
 
-    :public class method newFromSources {
+    :public object method newFromSources {
 	{-frontend dc} 
 	{-sandboxed:boolean 1}
 	-include
@@ -1060,7 +1060,7 @@ namespace eval ::nx::doc {
       :part_class ::nx::doc::@param
     }
     :property -class ::nx::doc::PartAttribute @return {
-      :method require_part {domain prop value} {
+      :object method require_part {domain prop value} {
 	set value [expr {![string match ":*" $value] ? "__out__: $value": "__out__$value"}]
 	next [list $domain $prop $value]
       }
@@ -1072,7 +1072,7 @@ namespace eval ::nx::doc {
     :property -class ::nx::doc::PartAttribute @command {
       :pretty_name "Subcommand"
       :pretty_plural "Subcommands"
-      :public method id {domain prop value} { 
+      :public object method id {domain prop value} { 
 	return [${:part_class} [current method] \
 		    -partof_name [$domain name] \
 		    -scope ${:scope} -- $value]
@@ -1087,7 +1087,7 @@ namespace eval ::nx::doc {
     
     :property -class ::nx::doc::PartAttribute @child-object {
       :part_class ::nx::doc::@object
-      :public method id {domain prop value} {
+      :public object method id {domain prop value} {
 	return [${:part_class} id [join [list [$domain name] $value] ::]]
       }
       
@@ -1097,7 +1097,7 @@ namespace eval ::nx::doc {
     
     :property -class ::nx::doc::PartAttribute @child-class {
       :part_class ::nx::doc::@class
-      :public method id {domain prop value} {
+      :public object method id {domain prop value} {
 	return [${:part_class} id [join [list [$domain name] $value] ::]]
       }
     }
@@ -1160,7 +1160,7 @@ namespace eval ::nx::doc {
 	  :pretty_name "Provided method"
 	  :pretty_plural "Provided methods"
 	  :part_class ::nx::doc::@method
-	  :method require_part {domain prop value} {
+	  :object method require_part {domain prop value} {
 	    # TODO: verify whether these scoping checks are sufficient
 	    # and/or generalisable: For instance, is the scope
 	    # requested (from the part_attribute) applicable to the
@@ -1208,14 +1208,14 @@ namespace eval ::nx::doc {
 	  # be displayed. I shall fix this later and refactor it to a
 	  # shared place between @method and @command.
 	  #
-	  :method require_part {domain prop value} {
+	  :object method require_part {domain prop value} {
 	    set value [expr {![string match ":*" $value] ? "__out__: $value": "__out__$value"}]
 	    next [list $domain $prop $value]
 	  }
 	  :part_class ::nx::doc::@param
 	}
 
-	:public class method new {	       
+	:public object  method new {	       
 	  -part_attribute:required
 	  -partof:object,type=::nx::doc::Entity
 	  -name:any,required
@@ -1237,7 +1237,7 @@ namespace eval ::nx::doc {
 
 	:property -class ::nx::doc::PartAttribute @method {
 	  :part_class ::nx::doc::@method
-	  :public method id {domain prop name} {
+	  :public object method id {domain prop name} {
 	    # TODO: ${:part_class} resolves to the local slot
 	    # [current], rather than ::nx::doc::@method. Why?
 	    if {[$domain eval {: -system info has type ::nx::doc::@method}]} {
@@ -1304,7 +1304,7 @@ namespace eval ::nx::doc {
 	:property -class ::nx::doc::PartAttribute @spec
 	:property default
 
-	:public class method id {partof_name scope name} {
+	:public object method id {partof_name scope name} {
 	  next [list [:get_unqualified_name ${partof_name}] $scope $name]
 	}
 		
@@ -1318,7 +1318,7 @@ namespace eval ::nx::doc {
 	# @param -name
 	# @param args
 
-	:public class method new {
+	:public object method new {
 		-part_attribute 
 		-partof:required
 		-name:any,required
@@ -1382,23 +1382,23 @@ namespace eval ::nx::doc {
 
   Class create TemplateData {
     
-    :class property renderer
+    :object property -accessor public renderer
     :public forward renderer [current] %method
 
     :public forward rendered [current] %method
-    :class method "rendered push" {e:object,type=::nx::doc::Entity} {
+    :object method "rendered push" {e:object,type=::nx::doc::Entity} {
       if {![info exists :__rendered_entity]} {
 	set :__rendered_entity [list]
       }
       set :__rendered_entity [concat $e {*}${:__rendered_entity}]
     }
 
-    :class method "rendered pop" {} {
+    :object method "rendered pop" {} {
       set :__rendered_entity [lassign ${:__rendered_entity} e]
       return $e
     }
 
-    :class method "rendered top" {} {
+    :object method "rendered top" {} {
       return [lindex ${:__rendered_entity} 0]
     }
 
@@ -1663,8 +1663,8 @@ namespace eval ::nx::doc {
     # template management
     #
     
-    :property current_theme
-    :protected property {templates {[dict create]}}
+    :property -accessor public current_theme
+    :property {templates {[dict create]}}
     
     :public method addTemplate {name theme body} {
       dict set :templates $theme $name $body
@@ -1842,21 +1842,21 @@ namespace eval ::nx::doc {
   namespace import -force ::nx::*
   Class create Sandbox {
 
-    :public class method type=in {name value arg} {
+    :public object method type=in {name value arg} {
       if {$value ni [split $arg |]} {
 	error "The value '$value' provided for parameter $name not permissible."
       }
       return $value
     }
 
-    :public class method type=fqn {name value} {
+    :public object method type=fqn {name value} {
       if {[string first "::" $value] != 0} {
 	error "The value '$value' must be a fully-qualified Tcl name."
       }
       return $value
     }
 
-    :public class method type=fpathtype {name value arg} {
+    :public object method type=fpathtype {name value arg} {
       #
       # Note: We might receive empty strings in case of [eval]s!
       #
@@ -1867,7 +1867,7 @@ namespace eval ::nx::doc {
       return $value
     }
 
-    :public class method type=nonempty {name value} {
+    :public object method type=nonempty {name value} {
       if {$value eq ""} {
 	return \
 	    -code error \
@@ -1876,7 +1876,7 @@ namespace eval ::nx::doc {
       return $value
     }
 
-    :protected property {current_packages ""}
+    :property -accessor protected {current_packages ""}
 
     :public method "permissive lappend" {type value} {
       set d [lindex [current methodpath] 0]
@@ -2334,7 +2334,7 @@ namespace eval ::nx::doc {
 		    set obj $modifier 
 		    set scope ""
 		    set name ""
-		  } elseif {$modifier eq "class"} {
+		  } elseif {$modifier eq "object"} {
 		    set scope $modifier
 		    set name [lindex $definition 4]
 		  } else {
@@ -2566,9 +2566,9 @@ namespace eval ::nx::doc {
 
       next
     }
-    :protected property {interp ""}; # the default empty string points to the current interp
+    :property -accessor public {interp ""}; # the default empty string points to the current interp
 
-    :public property registered_commands
+    :property -accessor public registered_commands
 
     :public method get_companions {} {
       set companions [dict create]

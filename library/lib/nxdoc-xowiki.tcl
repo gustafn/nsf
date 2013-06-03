@@ -14,10 +14,10 @@ namespace eval ::xowiki {
   nx::Class create Page { 
     :property {lang en}
     :property {description ""}
-    :property {text ""}
+    :property -accessor public {text ""}
     :property {nls_language en_US}
     :property {mime_type text/html}
-    :property {title ""}
+    :property -accessor public {title ""}
     :property name
     :property text 
     :property page_order
@@ -25,7 +25,7 @@ namespace eval ::xowiki {
     # For representing a folder structure
     #
     :property parent_id
-    :property item_id
+    :property -accessor public item_id
   }
   
   nx::Class create File -superclass Page
@@ -173,7 +173,7 @@ namespace eval ::nx::doc {
       next
     }
 
-    :public class method mkFolder {entity} -returns object,type=[current] {
+    :public object method mkFolder {entity} -returns object,type=[current] {
       return [:new -name en:[$entity filename] -title [$entity print_name]]
     }
     
@@ -196,7 +196,12 @@ namespace eval ::nx::doc {
 
     :public method serialize {} {
       set map [list [current class] [[: -system info class] info superclass]]
-      set ignore [join [[current class] info slot names] |]
+      set slots  [[current class] info slots]
+      set names [list]
+      foreach s $slots {
+	lappend names [$s name]
+      }
+      set ignore [join $names |]
       append script [::Serializer deepSerialize -map $map -ignoreVarsRE $ignore [current]]
       if {[info exists :indexPage]} {
 	append script \n [${:indexPage} serialize]
@@ -336,7 +341,7 @@ namespace eval ::nx::doc {
     }
 
 
-    :class method render {
+    :object method render {
 	project 
 	entity:object,type=::nx::doc::StructuredEntity 
 	theme 
@@ -362,9 +367,9 @@ namespace eval ::nx::doc {
       set fwdTarget [list ::base64::encode]
     }
 
-    :class forward asBase64 {*}$fwdTarget
+    :object forward asBase64 {*}$fwdTarget
 
-    :class method installAssets {project theme targetDir} {
+    :object method installAssets {project theme targetDir} {
       #
       # render and append single glossary page to the output
       #

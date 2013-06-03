@@ -96,8 +96,8 @@ namespace eval ::nx::doc {
       interp delete $i
     }
 
-    :protected class method objectparameter {} {
-      set slots [:info slot objects]
+    :protected method __objectparameter {} {
+      set slots [[current class] info slots]
       foreach slot $slots {
 	lappend defs([$slot position]) [$slot getParameterSpec]
       }

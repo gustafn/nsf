@@ -21,7 +21,7 @@ namespace eval ::nx::doc {
 
 
     nx::Class create [current]::DependencyEntity {
-      :class property {instances:0..*,object,type=::nx::doc::Entity ""} {
+      :object property {instances:0..*,object,type=::nx::doc::Entity ""} {
 	set :incremental 1
       }
       :public method init args {
@@ -62,8 +62,8 @@ namespace eval ::nx::doc {
       return $inst
     }
 
-        nx::Class create [current]::ProvidedEntity {
-      :class property {instances:0..*,object,type=::nx::doc::Entity ""} {
+    nx::Class create [current]::ProvidedEntity {
+      :object property {instances:0..*,object,type=::nx::doc::Entity ""} {
 	set :incremental 1
       }
       :public method init args {
@@ -216,7 +216,7 @@ namespace eval ::nx::doc {
       # / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
       # PROCESSOR
       foreach {attr part_class} [$project part_attributes] {
-	$part_class class mixin add ::nx::doc::ContainerEntity::Containable
+	$part_class object mixin add ::nx::doc::ContainerEntity::Containable
 	$part_class container $project
       }
 
@@ -471,7 +471,7 @@ namespace eval ::nx::doc {
       set box [$project sandbox]
       # methods
 
-      foreach methodName [$box do [list ${name} {*}$scope info methods\
+      foreach methodName [$box do [list ${name} info {*}$scope methods\
 				       -type scripted \
 				       -callprotection public]] {
 	
@@ -483,7 +483,7 @@ namespace eval ::nx::doc {
 	    -tag @$tag \
 	    -name $methodName \
 	    -parsing_level 2  \
-	    [$box do [list ${name} {*}$scope info method body $methodName]]
+	    [$box do [list ${name} info {*}$scope method body $methodName]]
       }
     }
   }
@@ -500,9 +500,9 @@ namespace eval ::nx::doc {
   #
   Class create CommentBlockParser {
 
-    :property {parsing_level:integer 0}
+    :property -accessor public {parsing_level:integer 0}
 
-    :property {message ""}
+    :property -accessor protected {message ""}
     :property {status:in "COMPLETED"} {
 
       set :incremental 1
@@ -515,35 +515,36 @@ namespace eval ::nx::doc {
 	LEVELMISMATCH
       }
       
-      :public method type=in {name value} {
+      :public object method type=in {name value} {
 	if {$value ni ${:statuscodes}} {
 	  error "Invalid statuscode '$code'."
 	}
 	return $value
       }
       
-      :public method ? [list obj var value:in,slot=[current object]] {
+      :public object method ? [list obj var value:in,slot=[current object]] {
 								      return [expr {[:get $obj $var] eq $value}]
 								    }
 
-      :public method is {obj var value} {
+      :public object method is {obj var value} {
 	return [expr {$value in ${:statuscodes}}]
       }
     }
 
-    :property processed_section  {
-      :public method assign {domain prop value} {
+    :property -accessor public processed_section  {
+      :public object method assign {domain prop value} {
 	set current_entity [$domain current_entity]
-	set scope [expr {[$current_entity info has type ::nx::Class]?"class":""}]
-	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity eval [list : -system {*}$scope info mixin classes]]} {
+	set scope "object"
+	#set scope [expr {[$current_entity info has type ::nx::Class]?"object":""}]
+	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity eval [list : -system info {*}$scope mixin classes]]} {
 	  $current_entity eval [list : -system {*}$scope mixin delete [:get $domain $prop]]
 	}
 	$current_entity eval [list : -system {*}$scope mixin add [next [list $domain $prop $value]]]
       }
     }
-    :property current_entity:object
+    :property -accessor public current_entity:object
     
-    :public class method process {
+    :public object method process {
 				  {-partof_entity ""}
 				  {-initial_section context}
 				  {-parsing_level 0}
@@ -643,8 +644,10 @@ namespace eval ::nx::doc {
       # 	${:current_entity} {*}$scope mixin delete ${:processed_section}
       # }
 
-      set scope [expr {[${:current_entity} info has type ::nx::Class]?"class":""}]
-      set mixins [${:current_entity} {*}$scope info mixin classes]
+      #set scope [expr {[${:current_entity} info has type ::nx::Class]?"object":""}]
+      set scope "object"
+
+      set mixins [${:current_entity} info {*}$scope mixin classes]
       if {${:processed_section} in $mixins} {
 	set idx [lsearch -exact $mixins ${:processed_section}]
 	set mixins [lreplace $mixins $idx $idx]
@@ -657,15 +660,15 @@ namespace eval ::nx::doc {
   
   Class create CommentBlockParsingState -superclass Class {
     
-    :property next_comment_section
-    :property comment_line_transitions:required
+    :property -accessor public next_comment_section
+    :property -accessor public comment_line_transitions:required
     
   }
   
   Class create CommentSection {
 
-    :property block_parser:object,type=::nx::doc::CommentBlockParser
-    :property {current_comment_line_type ""}
+    :property -accessor public block_parser:object,type=::nx::doc::CommentBlockParser
+    :property -accessor public {current_comment_line_type ""}
 
     set :line_types {
       tag {regexp -- {^\s*@[^[:space:]@]+} $line}

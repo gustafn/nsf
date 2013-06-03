@@ -8,7 +8,7 @@ namespace eval ::nx::doc {
 
   Renderer create html {
     
-    :class method render {project entity theme {tmplName ""}} {
+    :object method render {project entity theme {tmplName ""}} {
       set top_level_entities [$project navigatable_parts]
       set init [subst {
 	set project $project
@@ -19,7 +19,7 @@ namespace eval ::nx::doc {
       $entity render -initscript $init -theme $theme {*}$tmplName
     }
 
-    :class method installAssets {project theme targetDir} {
+    :object method installAssets {project theme targetDir} {
       set assets [glob -directory [file join [findAssetPath] $theme] *]
       file mkdir $targetDir
       if {$assets eq ""} return;
