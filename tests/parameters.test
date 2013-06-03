@@ -2804,3 +2804,36 @@ nx::Test case object-level-defaults {
   ? {o eval {info exists :assignCalled}} 0; # !!! should be 1
   ? {o a} 1
 }
+
+nx::Test case cmd-error-propagation {
+  ? {nx::Object new {
+    error "bow-wow"
+  }} "bow-wow"
+
+  ? {nx::Object new {
+    :object method foo {} {
+      error "bow-wow"
+    }
+    :foo
+  }} "bow-wow"
+
+  ? {nx::Object new {
+    # Note: Creating a slot causes a destroy() to perform some cascading
+    # operations which eventually reset the interp result at some
+    # point.  
+    :object property x
+    :object method foo {} { error "bow-wow" }
+    :foo
+  }} "bow-wow"
+
+  ? {nx::Object new {
+    :object method destroy {} {
+      # This (inner) error message is swallowed and written to stderr
+      # directly. The original (outer) error message is preserved.
+      error "BOW-WOW"
+    }
+    :object method foo {} { error "bow-wow" }
+    :foo
+  }} "bow-wow"
+
+}

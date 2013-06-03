@@ -15596,10 +15596,24 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     }
   } else {
     /*
-     * Configure failed, therefore, the object might be in an undefined
-     * state. To avoid strange errors, we delete the half-baked object.
+     * Configure failed and might have left the object in a bogus state. To
+     * avoid strange errors, we delete the half-baked object.
      */
+
+    Tcl_Obj *errObj;
+
+    /* 
+     *	Preserve the outer error message, calls triggered by
+     *  DispatchDestroyMethod() can cause the interp result to be reset
+     */
+
+    errObj = Tcl_GetObjResult(interp);
+    INCR_REF_COUNT(errObj);
+    
     DispatchDestroyMethod(interp, (NsfObject *)object, 0);
+
+    Tcl_SetObjResult(interp, errObj);
+    DECR_REF_COUNT(errObj);
   }
 
   NsfCleanupObject(object, "obj init");
