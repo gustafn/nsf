@@ -8823,7 +8823,9 @@ static void
 NsfProcDeleteProc(ClientData clientData) {
   NsfProcContext *ctxPtr = (NsfProcContext *)clientData;
 
-  (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
+  if (ctxPtr->oldDeleteProc) {
+    (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
+  }
   if (ctxPtr->paramDefs) {
     /*fprintf(stderr, "free ParamDefs %p\n", ctxPtr->paramDefs);*/
     ParamDefsRefCountDecr(ctxPtr->paramDefs);
@@ -19880,7 +19882,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (newObjProc) {
     /* add a wrapper */
-    /*fprintf(stderr, "NsfMethodAliasCmd cmd %p\n", cmd);*/
+    /*fprintf(stderr, "NsfMethodAliasCmd add wrapper cmd %p\n", cmd);*/
     NsfCommandPreserve(cmd);
     tcd = NEW(AliasCmdClientData);
     tcd->cmdName    = object->cmdName;
@@ -19900,6 +19902,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
      * depending on a volatile client data)
      */
     tcd = Tcl_Command_objClientData(cmd);
+    /*fprintf(stderr, "NsfMethodAliasCmd no wrapper cmd %p\n", cmd);*/
   }
 
   flags = 0;
