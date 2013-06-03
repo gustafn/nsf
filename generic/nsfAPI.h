@@ -236,7 +236,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[106];
+static Nsf_methodDefinition method_definitions[105];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -288,7 +288,6 @@ static int NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, i
 static int NsfMethodRegisteredCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMethodSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -394,7 +393,6 @@ static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withP
 static int NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *handle);
 static int NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
 static int NsfMyCmd(Tcl_Interp *interp, int withIntrinsic, int withLocal, int withSystem, Tcl_Obj *methodName, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
@@ -501,7 +499,6 @@ enum {
  NsfMethodRegisteredCmdIdx,
  NsfMethodSetterCmdIdx,
  NsfMyCmdIdx,
- NsfNSCopyCmdsCmdIdx,
  NsfNSCopyVarsCmdIdx,
  NsfNextCmdIdx,
  NsfObjectExistsCmdIdx,
@@ -1514,26 +1511,6 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
     assert(pc.status == 0);
     return NsfMyCmd(interp, withIntrinsic, withLocal, withSystem, methodName, objc-pc.lastObjc, objv+pc.lastObjc);
-
-  } else {
-    return TCL_ERROR;
-  }
-}
-
-static int
-NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-  (void)clientData;
-
-  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfNSCopyCmdsCmdIdx].paramDefs, 
-                     method_definitions[NsfNSCopyCmdsCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
-                     &pc) == TCL_OK)) {
-    Tcl_Obj *fromNs = (Tcl_Obj *)pc.clientData[0];
-    Tcl_Obj *toNs = (Tcl_Obj *)pc.clientData[1];
-
-    assert(pc.status == 0);
-    return NsfNSCopyCmdsCmd(interp, fromNs, toNs);
 
   } else {
     return TCL_ERROR;
@@ -2674,7 +2651,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[106] = {
+static Nsf_methodDefinition method_definitions[105] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2888,10 +2865,6 @@ static Nsf_methodDefinition method_definitions[106] = {
   {"-system", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},
-{"::nsf::nscopycmds", NsfNSCopyCmdsCmdStub, 2, {
-  {"fromNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"toNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::nscopyvars", NsfNSCopyVarsCmdStub, 2, {
   {"fromNs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},

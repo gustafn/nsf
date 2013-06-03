@@ -541,9 +541,6 @@ namespace eval ::nx {
       return $r
     }
 
-    ### TODO needed?
-    #:alias "object filterguard" ::nsf::methods::object::filterguard
-    #:alias "object mixinguard" ::nsf::methods::object::mixinguard
   }
 
   #
@@ -2303,11 +2300,6 @@ namespace eval ::nx {
       }
     }
 
-    :method copyNSVarsAndCmds {orig dest} {
-      ::nsf::nscopyvars $orig $dest
-      #::nsf::nscopycmd $orig $dest
-    }
-
     # construct destination obj name from old qualified ns name
     :method getDest {origin} {
       if {${:dest} eq ""} {
@@ -2322,6 +2314,7 @@ namespace eval ::nx {
       #puts stderr "COPY will copy targetList = [set :targetList]"
       set objs {}
       array set cmdMap {alias alias forward forward method create setter setter}
+
       foreach origin [set :targetList] {
         set dest [:getDest $origin]
         if {[::nsf::object::exists $origin]} {
@@ -2329,17 +2322,21 @@ namespace eval ::nx {
 	    set obj [[$origin info class] new -noinit]
 	    set dest [set :dest $obj]
 	  } else {
-	    if {[::nsf::object::property $origin slotcontainer] && [nsf::is object $dest]} {
-	      #
-	      # We do not want to clean slotcontainer. Assume a target
-	      # list of the form "::C ::C::slot".  First ::C is
-	      # created (with e.g. ensemble objects, therefore
-	      # creating itself ::C::slot). If a later creation of
-	      # ::C::slot would clean the slot container it would
-	      # damage ::C. If we would drop ::C::slot from the target
-	      # list, properties and variables would no be copied.
-	      #
+	    #
+	    # Slot container are handled separately, since
+	    # ::nx::slotObj does already the right thing. We have just
+	    # to copy the variables (XOTcl keeps the parameter
+	    # definitions there).
+	    #
+	    if {[::nsf::object::property $origin slotcontainer]} {
+	      ::nx::slotObj -container [namespace tail $origin] \
+		  [namespace qualifiers $dest]
+	      ::nsf::nscopyvars $origin $dest
+	      continue
 	    } else {
+	      #
+	      # create an object without calling init
+	      #
 	      set obj [[$origin info class] create $dest -noinit]
 	    }
 	  }
@@ -2351,25 +2348,21 @@ namespace eval ::nx {
             ::nsf::method::assertion $obj class-invar [::nsf::method::assertion $origin class-invar]
 	    ::nsf::relation $obj class-filter [::nsf::relation $origin class-filter]
 	    ::nsf::relation $obj class-mixin [::nsf::relation $origin class-mixin]
-	    :copyNSVarsAndCmds ::nsf::classes$origin ::nsf::classes$dest
+	    ::nsf::nscopyvars ::nsf::classes$origin ::nsf::classes$dest
 
-	    #puts stderr "XXX === class methods: [lsort [$origin ::nsf::methods::class::info::methods -path -callprotection all]]"
 	    foreach m [$origin ::nsf::methods::class::info::methods -path -callprotection all] {
-	      #puts stderr "XXX class [$origin ::nsf::methods::class::info::method definition $m]"
 	      set rest [lassign [$origin ::nsf::methods::class::info::method definition $m] . protection what .]
-	      #puts stderr "XXX class m $m rest <$rest>"
 
 	      # remove -returns from reported definitions
 	      set p [lsearch -exact $rest -returns]; if {$p > -1} {set rest [lreplace $rest $p $p+1]}
 
 	      array set "" [$obj eval [list :__resolve_method_path $m]]
 	      set r [::nsf::method::$cmdMap($what) $(object) $(methodName) {*}$rest]
-	      #puts stderr "XXX class created $r"
+
 	      ::nsf::method::property $(object) $r returns [$origin ::nsf::methods::class::info::method returns $m]
 	      ::nsf::method::property $(object) $r call-protected [::nsf::method::property $origin $m call-protected]
 	      ::nsf::method::property $(object) $r call-private [::nsf::method::property $origin $m call-private]
 	    }
-	    #puts stderr "XXX === class target: [lsort [$obj ::nsf::methods::class::info::methods -path -callprotection all]]"
 	  }
 
 	  # copy object -> might be a class obj
@@ -2388,18 +2381,15 @@ namespace eval ::nx {
 	  namespace eval $dest {}
 	}
 	lappend objs $obj
-	:copyNSVarsAndCmds $origin $dest
+	::nsf::nscopyvars $origin $dest
 
-	#puts stderr "XXX ??? object methods: [$origin ::nsf::methods::object::info::methods -path -callprotection all]"
 	foreach m [$origin ::nsf::methods::object::info::methods -path -callprotection all] {
 	  set rest [lassign [$origin ::nsf::methods::object::info::method definition $m] . protection . what .]
-	  #puts "XXX $m what $what rest $rest"
 
 	  # remove -returns from reported definitions
 	  set p [lsearch -exact $rest -returns]; if {$p > -1} {set rest [lreplace $rest $p $p+1]}
 
 	  array set "" [$obj eval [list :__resolve_method_path -per-object $m]]
-	  #puts "XXX $m create ::nsf::method::$cmdMap($what) $(object) -per-object $(methodName) $rest"
 	  set r [::nsf::method::$cmdMap($what) $(object) -per-object $(methodName) {*}$rest]
 	  ::nsf::method::property $(object) -per-object $r \
 	      returns \
@@ -2410,16 +2400,6 @@ namespace eval ::nx {
 	  ::nsf::method::property $(object) -per-object $r \
 	      call-private \
 	      [::nsf::method::property $origin -per-object $m call-private]
-	}
-	#puts stderr "XXX === object target: [$obj ::nsf::methods::object::info::methods -path -callprotection all]"
-
-	#
-	# Check, if $origin is a slot container. If yes, set the slot
-	# container properties on $dest
-	#
-	if {[::nsf::object::property $origin slotcontainer]} {
-	  ::nx::internal::setSlotContainerProperties \
-	      [$dest ::nsf::methods::object::info::parent] [namespace tail $origin]
 	}
 
 	#

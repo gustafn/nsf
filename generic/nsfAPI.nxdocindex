@@ -32,7 +32,6 @@ set ::nxdoc::include(::nsf::object::qualify) 1
 set ::nxdoc::include(::nsf::objectsystem::create) 1
 set ::nxdoc::include(::nsf::my) 1
 set ::nxdoc::include(::nsf::next) 1
-set ::nxdoc::include(::nsf::nscopycmds) 0
 set ::nxdoc::include(::nsf::nscopyvars) 0
 set ::nxdoc::include(::nsf::proc) 1
 set ::nxdoc::include(::nsf::relation) 1

@@ -972,3 +972,77 @@ nx::Test case object+class-copy {
 
   ? {::d1 set x 2} 2
 }
+
+
+
+nx::Test parameter count 10
+#
+# class copy with class object methods
+#
+nx::Test case object+class+property-copy {
+  nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
+  nsf::method::provide exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
+
+  package require nx::serializer
+
+  nx::Class create C {
+    :public method foo {} {return foo}
+    :public method "a b" {} {return "a b"}
+    :public method "a c" {} {return "a c"}
+    :protected method bar {} {return bar}
+    :private method baz {} {return baz}
+    :public forward fwd %self xxx
+    :require public method set
+    :property p
+    :variable v 0
+
+    :public object method ofoo {} {return foo}
+    :public object method "oa b" {} {return "oa b"}
+    :public object method "oa c" {} {return "oa c"}
+    :protected object method obar {} {return bar}
+    :private object method obaz {} {return baz}
+    :public object forward ofwd %self xxx
+    :require public object method exists
+    :require public object method set
+
+    :object property op
+    :object variable ov 0
+
+    :create c1
+  }
+
+  ? {lsort [::C info methods -path]} "{a b} {a c} foo fwd set"
+  ? {lsort [::C info object methods -path]} "exists {oa b} {oa c} ofoo ofwd set"
+
+  ? {::c1 a b} "a b"
+  ? {::c1 a c} "a c"
+  ? {::c1 set x 1} 1
+
+  ? {::C oa b} "oa b"
+  ? {::C oa c} "oa c"
+  ? {::C set y 100} "100"
+
+  ::nx::Object public method COPY {target} {
+    set code [::Serializer deepSerialize -objmap [list [self] $target] [self]]
+    #puts CODE=$code
+    eval $code
+    return $target
+  }
+
+  #? {::C COPY ::E} ::E
+  ? {::C copy ::D} ::D
+
+  ? {lsort [::D info methods -path]} "{a b} {a c} foo fwd set"
+  ? {lsort [::D info object methods -path]} "exists {oa b} {oa c} ofoo ofwd set"
+
+  ? {::D oa b} "oa b"
+  ? {::D oa c} "oa c"
+  ? {::D set y} "100"
+
+  ::D create d1
+
+  ? {::d1 a b} "a b"
+  ? {::d1 a c} "a c"
+
+  ? {::d1 set x 2} 2
+}

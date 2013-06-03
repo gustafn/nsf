@@ -200,10 +200,6 @@ cmd my NsfMyCmd {
 cmd next NsfNextCmd {
   {-argName "arguments" -required 0 -type tclobj}
 } {-nxdoc 1}
-cmd nscopycmds NsfNSCopyCmdsCmd {
-  {-argName "fromNs" -required 1 -type tclobj}
-  {-argName "toNs" -required 1 -type tclobj}
-}
 cmd nscopyvars NsfNSCopyVarsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
