@@ -2269,6 +2269,13 @@ namespace eval ::nx {
     :property objLength
 
     :method makeTargetList {t} {
+      if {[::nsf::is object,type=::nx::EnsembleObject $t]} {
+	# 
+	# we do not copy ensemble objects, since method
+	# introspection/recreation will care about these
+	#
+	return
+      }
       lappend :targetList $t
       #puts stderr "COPY makeTargetList $t targetList '${:targetList}'"
       # if it is an object without namespace, it is a leaf
@@ -2298,7 +2305,7 @@ namespace eval ::nx {
 
     :method copyNSVarsAndCmds {orig dest} {
       ::nsf::nscopyvars $orig $dest
-      ::nsf::nscopycmds $orig $dest
+      #::nsf::nscopycmd $orig $dest
     }
 
     # construct destination obj name from old qualified ns name
@@ -2314,6 +2321,7 @@ namespace eval ::nx {
     :method copyTargets {} {
       #puts stderr "COPY will copy targetList = [set :targetList]"
       set objs {}
+      array set cmdMap {alias alias forward forward method create setter setter}
       foreach origin [set :targetList] {
         set dest [:getDest $origin]
         if {[::nsf::object::exists $origin]} {
@@ -2321,8 +2329,21 @@ namespace eval ::nx {
 	    set obj [[$origin info class] new -noinit]
 	    set dest [set :dest $obj]
 	  } else {
-	    set obj [[$origin info class] create $dest -noinit]
+	    if {[::nsf::object::property $origin slotcontainer] && [nsf::is object $dest]} {
+	      #
+	      # We do not want to clean slotcontainer. Assume a target
+	      # list of the form "::C ::C::slot".  First ::C is
+	      # created (with e.g. ensemble objects, therefore
+	      # creating itself ::C::slot). If a later creation of
+	      # ::C::slot would clean the slot container it would
+	      # damage ::C. If we would drop ::C::slot from the target
+	      # list, properties and variables would no be copied.
+	      #
+	    } else {
+	      set obj [[$origin info class] create $dest -noinit]
+	    }
 	  }
+
           # copy class information
           if {[::nsf::is class $origin]} {
 	    # obj is a class, copy class specific information
@@ -2331,7 +2352,26 @@ namespace eval ::nx {
 	    ::nsf::relation $obj class-filter [::nsf::relation $origin class-filter]
 	    ::nsf::relation $obj class-mixin [::nsf::relation $origin class-mixin]
 	    :copyNSVarsAndCmds ::nsf::classes$origin ::nsf::classes$dest
+
+	    #puts stderr "XXX === class methods: [lsort [$origin ::nsf::methods::class::info::methods -path -callprotection all]]"
+	    foreach m [$origin ::nsf::methods::class::info::methods -path -callprotection all] {
+	      #puts stderr "XXX class [$origin ::nsf::methods::class::info::method definition $m]"
+	      set rest [lassign [$origin ::nsf::methods::class::info::method definition $m] . protection what .]
+	      #puts stderr "XXX class m $m rest <$rest>"
+
+	      # remove -returns from reported definitions
+	      set p [lsearch -exact $rest -returns]; if {$p > -1} {set rest [lreplace $rest $p $p+1]}
+
+	      array set "" [$obj eval [list :__resolve_method_path $m]]
+	      set r [::nsf::method::$cmdMap($what) $(object) $(methodName) {*}$rest]
+	      #puts stderr "XXX class created $r"
+	      ::nsf::method::property $(object) $r returns [$origin ::nsf::methods::class::info::method returns $m]
+	      ::nsf::method::property $(object) $r call-protected [::nsf::method::property $origin $m call-protected]
+	      ::nsf::method::property $(object) $r call-private [::nsf::method::property $origin $m call-private]
+	    }
+	    #puts stderr "XXX === class target: [lsort [$obj ::nsf::methods::class::info::methods -path -callprotection all]]"
 	  }
+
 	  # copy object -> might be a class obj
 	  ::nsf::object::property $obj keepcallerself [::nsf::object::property $origin keepcallerself]
 	  ::nsf::object::property $obj perobjectdispatch [::nsf::object::property $origin perobjectdispatch]
@@ -2340,7 +2380,7 @@ namespace eval ::nx {
 	  ::nsf::method::assertion $obj object-invar [::nsf::method::assertion $origin object-invar]
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
-            # reused in XOTcl, no "require" there, so use nsf primitiva
+	  # reused in XOTcl, no "require namespace" there, so use nsf primitiva
 	  if {[::nsf::directdispatch $origin ::nsf::methods::object::info::hasnamespace]} {
 	    ::nsf::directdispatch $obj ::nsf::methods::object::requirenamespace
 	  }
@@ -2349,17 +2389,29 @@ namespace eval ::nx {
 	}
 	lappend objs $obj
 	:copyNSVarsAndCmds $origin $dest
-	foreach i [$origin ::nsf::methods::object::info::forward] {
-	  ::nsf::method::forward $dest -per-object $i \
-	      {*}[$origin ::nsf::methods::object::info::forward -definition $i]
 
+	#puts stderr "XXX ??? object methods: [$origin ::nsf::methods::object::info::methods -path -callprotection all]"
+	foreach m [$origin ::nsf::methods::object::info::methods -path -callprotection all] {
+	  set rest [lassign [$origin ::nsf::methods::object::info::method definition $m] . protection . what .]
+	  #puts "XXX $m what $what rest $rest"
+
+	  # remove -returns from reported definitions
+	  set p [lsearch -exact $rest -returns]; if {$p > -1} {set rest [lreplace $rest $p $p+1]}
+
+	  array set "" [$obj eval [list :__resolve_method_path -per-object $m]]
+	  #puts "XXX $m create ::nsf::method::$cmdMap($what) $(object) -per-object $(methodName) $rest"
+	  set r [::nsf::method::$cmdMap($what) $(object) -per-object $(methodName) {*}$rest]
+	  ::nsf::method::property $(object) -per-object $r \
+	      returns \
+	      [$origin ::nsf::methods::object::info::method returns $m]
+	  ::nsf::method::property $(object) -per-object $r \
+	      call-protected \
+	      [::nsf::method::property $origin -per-object $m call-protected]
+	  ::nsf::method::property $(object) -per-object $r \
+	      call-private \
+	      [::nsf::method::property $origin -per-object $m call-private]
 	}
-	if {[::nsf::is class $origin]} {
-	  foreach i [$origin ::nsf::methods::class::info::forward] {
-	    ::nsf::method::forward $dest $i \
-		{*}[$origin ::nsf::methods::class::info::forward -definition $i]
-	  }
-	}
+	#puts stderr "XXX === object target: [$obj ::nsf::methods::object::info::methods -path -callprotection all]"
 
 	#
 	# Check, if $origin is a slot container. If yes, set the slot

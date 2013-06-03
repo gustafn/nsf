@@ -17932,8 +17932,8 @@ ListMethod(Tcl_Interp *interp,
 	paramDefs = ParamDefsGet(importedCmd);
 	if (paramDefs && paramDefs->returns) {
 	  Tcl_SetObjResult(interp, paramDefs->returns);
-	  return TCL_OK;
 	}
+	return TCL_OK;
       }
     case InfomethodsubcmdSyntaxIdx:
       {
@@ -18494,7 +18494,13 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	    /* Don't report slot container */
 	    continue;
 	  }
+	  if ((childObject->flags & NSF_KEEP_CALLER_SELF) == 0) {
+	    /* Do only report sub-objects with keep caller self */
+	    continue;
+	  }
 	  
+	  /*fprintf(stderr, "ListMethodKeys key %s append key space flags %.6x\n", 
+	    key, childObject->flags);*/
 	  if (prefix == NULL) {
 	    DSTRING_INIT(dsPtr);
 	    Tcl_DStringAppend(dsPtr, key, -1);
@@ -20753,6 +20759,9 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
      * Otherwise: do not copy.
      */
     cmd = Tcl_FindCommand(interp, newName, NULL, TCL_GLOBAL_ONLY);
+
+    fprintf(stderr, "wanna copy %s to %p (new cmd %p)\n", oldName, newName, cmd);
+
     if (cmd) {
       /*fprintf(stderr, "%s already exists\n", newName);*/
       if (!GetObjectFromString(interp, newName)) {
@@ -20784,6 +20793,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
     if (!GetObjectFromString(interp, oldName)) {
 
       if (CmdIsProc(cmd)) {
+#if 0
         Proc *procPtr = (Proc *)Tcl_Command_objClientData(cmd);
         Tcl_Obj *arglistObj;
         int result;
@@ -20880,6 +20890,7 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
           Tcl_VarEval(interp, "proc ", newName, " {", ObjStr(arglistObj), "} {\n",
                       ObjStr(procPtr->bodyPtr), "}", (char *) NULL);
         }
+#endif
       } else {
         /*
          * Otherwise copy command.
@@ -20887,6 +20898,9 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
         Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
         Tcl_CmdDeleteProc *deleteProc = Tcl_Command_deleteProc(cmd);
         ClientData clientData;
+
+	fprintf(stderr, "copy CMD %s objproc %p\n", newName, objProc);
+
         if (objProc) {
           clientData = Tcl_Command_objClientData(cmd);
           if (clientData == NULL || clientData == (ClientData)NSF_CMD_NONLEAF_METHOD) {

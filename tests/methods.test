@@ -1,9 +1,8 @@
 # -*- Tcl -*-
 package require nx
-#package require nx::plain-object-method
+package require nx::test
 
 ::nx::configure defaultMethodCallProtection false
-package require nx::test
 
 nx::Test parameter count 10
 
@@ -842,4 +841,134 @@ nx::Test case fq-obj-dispatch {
   ? {::X set p1} 3
   ? {::X set unknown} 2
   ? {::X set recreate} 1
+}
+
+
+#
+# object copy
+#
+nx::Test case object-copy {
+  nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
+
+  nx::Object create o {
+    :public object method foo {} {return foo}
+    :public object method "a b" {} {return "a b"}
+    :public object method "a c" {} {return "a c"}
+    :protected object method bar {} {return bar}
+    :private object method baz {} {return baz}
+    :public object forward fwd %self xxx
+    :require public object method set
+  }
+  ? {lsort [::o info object methods -path]} "{a b} {a c} foo fwd set"
+  ? {o a b} "a b"
+  ? {o a c} "a c"
+  ? {o set x 1} 1
+
+  ? {o copy p} ::p
+  ? {lsort [::p info object methods -path]} "{a b} {a c} foo fwd set"
+
+  ? {p a b} "a b"
+  ? {p a c} "a c"
+
+  #package require nx::serializer
+  #puts stderr [o serialize]
+  #puts stderr [p serialize]
+  ? {p set x} 1
+}
+
+#
+# class copy
+#
+nx::Test case class-copy {
+  nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
+
+  nx::Class create C {
+    :public method foo {} {return foo}
+    :public method "a b" {} {return "a b"}
+    :public method "a c" {} {return "a c"}
+    :protected method bar {} {return bar}
+    :private method baz {} {return baz}
+    :public forward fwd %self xxx
+    :require public method set
+    :create c1
+  }
+
+  ? {lsort [::C info methods -path]} "{a b} {a c} foo fwd set"
+  ? {::c1 a b} "a b"
+  ? {::c1 a c} "a c"
+  ? {::c1 set x 1} 1
+
+  ? {::C copy ::D} ::D
+
+  ? {lsort [::D info methods -path]} "{a b} {a c} foo fwd set"
+
+  #package require nx::serializer
+  #puts stderr [::C serialize]
+  #puts stderr [::D serialize]
+
+  ::D create d1
+
+  ? {::d1 a b} "a b"
+  ? {::d1 a c} "a c"
+
+  #puts stderr [::c1 serialize]
+  #puts stderr [::d1 serialize]
+  ? {::d1 set x 2} 2
+}
+
+
+#
+# class copy with class object methods
+#
+nx::Test case object+class-copy {
+  nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
+  nsf::method::provide exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
+
+  nx::Class create C {
+    :public method foo {} {return foo}
+    :public method "a b" {} {return "a b"}
+    :public method "a c" {} {return "a c"}
+    :protected method bar {} {return bar}
+    :private method baz {} {return baz}
+    :public forward fwd %self xxx
+    :require public method set
+
+    :public object method ofoo {} {return foo}
+    :public object method "oa b" {} {return "oa b"}
+    :public object method "oa c" {} {return "oa c"}
+    :protected object method obar {} {return bar}
+    :private object method obaz {} {return baz}
+    :public object forward ofwd %self xxx
+    #TODO: the following line leads to a crash
+    #:require public object method exists
+    :require public object method set
+    :create c1
+  }
+
+  ? {lsort [::C info methods -path]} "{a b} {a c} foo fwd set"
+  ? {lsort [::C info object methods -path]} "{oa b} {oa c} ofoo ofwd set"
+
+  ? {::c1 a b} "a b"
+  ? {::c1 a c} "a c"
+  ? {::c1 set x 1} 1
+
+  ? {::C oa b} "oa b"
+  ? {::C oa c} "oa c"
+  ? {::C set y 100} "100"
+
+  ? {::C copy ::D} ::D
+
+  ? {lsort [::D info methods -path]} "{a b} {a c} foo fwd set"
+  #? {lsort [::D info object methods -path]} "{oa b} {oa c} ofoo ofwd set"
+
+  ? {::D oa b} "oa b"
+  ? {::D oa c} "oa c"
+  ? {::D set y} "100"
+
+  ::D create d1
+
+  ? {::d1 a b} "a b"
+  ? {::d1 a c} "a c"
+
+  ? {::d1 set x 2} 2
 }
