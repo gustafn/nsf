@@ -2332,10 +2332,8 @@ namespace eval ::nx::doc {
 		} else {
 		  set definition [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method definition $handle]
 		}
-		# TODO:
-		# puts stderr handle=$handle,def=$definition
-		#set scope ""
-		#set obj $handle
+		# TODO: CHECK whether definitions can be obtained for
+		# all types of handles, including ensembles.
 		if {$definition ne ""} {
 		  set obj [lindex $definition 0]
 		  set modifier [lindex $definition 2]
