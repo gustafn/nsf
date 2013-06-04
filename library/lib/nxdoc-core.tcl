@@ -620,7 +620,7 @@ namespace eval ::nx::doc {
     :property -class ::nx::doc::SwitchAttribute @deprecated:boolean {
       set :default 0
     }
-    :property -class ::nx::doc::SwitchAttribute @stashed:boolean {
+    :property -accessor protected -class ::nx::doc::SwitchAttribute @stashed:boolean {
       set :default 0
     }
     :property -class ::nx::doc::SwitchAttribute @c-implemented:boolean {
@@ -773,7 +773,7 @@ namespace eval ::nx::doc {
     }
 
     # Note: The default "" corresponds to the top-level namespace "::"!
-    :property {@namespace ""}
+    :property -accessor public {@namespace ""}
     
     :property -class ::nx::doc::PartAttribute @class {
       :pretty_name "Class"
@@ -2293,7 +2293,7 @@ namespace eval ::nx::doc {
 			 
 			  set handle [::nsf::dispatch $obj \
 					  ::nsf::methods::${scope}::info::method \
-					  handle $leg]
+					  definitionhandle $leg]
 			  if {![::nsf::var::exists [::nsf::current class] handles] || ![[::nsf::current class] eval [concat dict exists \${:handles} $handle]]} {
 			    dict set bundle handle $handle
 			    dict set bundle handleinfo [::nx::doc::handleinfo $handle]
@@ -2326,7 +2326,16 @@ namespace eval ::nx::doc {
 
 	      }
 	      ::interp invokehidden "" proc ::nx::doc::handleinfo {handle} {
-		set definition [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method definition $handle]
+		
+		if {[::nsf::is object,type=::nx::Slot $handle]} {
+		  set definition [$handle definition]
+		} else {
+		  set definition [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method definition $handle]
+		}
+		# TODO:
+		# puts stderr handle=$handle,def=$definition
+		#set scope ""
+		#set obj $handle
 		if {$definition ne ""} {
 		  set obj [lindex $definition 0]
 		  set modifier [lindex $definition 2]
@@ -2341,8 +2350,11 @@ namespace eval ::nx::doc {
 		    set scope ""
 		    set name [lindex $definition 3]
 		  }
+		} else { 
+		  return
 		}
-		if {$scope eq ""} {
+		
+		if {[info exists scope] && $scope eq ""} {
 		  set is_method 0
 		  set obj [concat {*}[split [string trimleft $obj :] "::"]]
 		  foreach label $obj {

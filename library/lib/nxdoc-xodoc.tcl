@@ -22,11 +22,11 @@ namespace eval ::nx::doc::xodoc {
   # MetaClassToken	n/a
 
   Class create MetadataToken {
-    :class property analyzer
+    :object property -accessor public analyzer
     :public forward analyzer [current] %method
     :method as {partof:object,type=::nx::doc::StructuredEntity} \
         -returns object,type=::nx::doc::Entity {
-          error "Subclass responsibility"
+	  error "Subclass responsibility"
         } 
     :public method emit {partof:object,type=::nx::doc::StructuredEntity} \
         -returns object,type=::nx::doc::Entity {

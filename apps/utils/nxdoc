@@ -31,7 +31,7 @@ namespace eval ::nx::doc {
     :property excludes
     :property indexfiles:alias
 
-    :protected property sources:1..* {
+    :property -accessor protected sources:1..* {
       set :incremental 1
       set :config false
     }
