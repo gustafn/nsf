@@ -1029,8 +1029,8 @@ nx::Test case object+class+property-copy {
     return $target
   }
 
-  #? {::C COPY ::E} ::E
   ? {::C copy ::D} ::D
+  ? {::C COPY ::E} ::E
 
   ? {lsort [::D info methods -path]} "{a b} {a c} foo fwd set"
   ? {lsort [::D info object methods -path]} "exists {oa b} {oa c} ofoo ofwd set"
@@ -1039,10 +1039,47 @@ nx::Test case object+class+property-copy {
   ? {::D oa c} "oa c"
   ? {::D set y} "100"
 
-  ::D create d1
-
+  ? {::D create d1} ::d1
   ? {::d1 a b} "a b"
   ? {::d1 a c} "a c"
-
   ? {::d1 set x 2} 2
+
+  ? {::E oa b} "oa b"
+  ? {::E oa c} "oa c"
+  ? {::E set y} "100"
+
+  ? {::E create e1} ::e1
+  ? {::e1 a b} "a b"
+  ? {::e1 a c} "a c"
+  ? {::e1 set x 2} 2
+
+}
+
+nx::Test case xotcl-COPY {
+  package req XOTcl
+  xotcl::Class create C
+  C proc foo {} {return foo}
+  C instproc bar {} {return bar}
+  C set x 1
+
+  ::xotcl::Object instproc COPY {target} {
+    set code [::Serializer deepSerialize -objmap [list [self] $target] [self]]
+    #puts CODE=$code
+    eval $code
+    return $target
+  }
+
+  ? {C set x} 1
+  C copy D
+  C COPY E
+
+  ? {D set x} 1
+  ? {D foo} foo
+  ? {D create d1} ::d1
+  ? {d1 bar} bar
+
+  ? {E set x} 1
+  ? {E foo} foo
+  ? {E create e1} ::e1
+  ? {e1 bar} bar
 }

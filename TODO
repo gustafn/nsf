@@ -4645,16 +4645,25 @@ nsf.c
   it is replaced now by introspection.
 - extended regression test
 
+nsf.c
+- fixed a potental crash on destroy for objects having a 
+  wrapperless alias defined
+- removed obsolete function AssertionAppendPrePost()
+- removed obsolete function NsfNSCopyCmdsCmd() 
+  and ::nsf::nscopycmd (handled now more general on 
+  scripting level in the "copy" method)
+
+nx.tcl:
+- "copy" method: fixed copying of class-level per-object methods
+- extended regression tests
+
+serializer.tcl
+- added flag -objmap to Serialzer.deepSerialize
+  to make serialzer usable for copying (-map is to coarse)
+- extended regression test
+
 ========================================================================
 TODO:
-
-- copycmds is obsolete, copyNSVarsAndCmds should be renamed
-- methods.test: test case object+class-copy:
-  after copy, the following command lists "__a" etc as well
-  #? {lsort [::D info object methods -path]} "{oa b} {oa c} ofoo ofwd set"
-- methods.test: when method "exists" is required in test case
-  object+class-copy, cleanup leads to a crash
-- nx.tcl: cleanup of XXX cmds
 
 Stefan: API-related items
 

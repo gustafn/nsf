@@ -156,6 +156,9 @@ namespace eval ::nx::serializer {
         }
       }
     }
+    :public method objmap {map} {
+      array set :objmap $map
+    }
     
     :method init {} {
       # Never serialize the (volatile) serializer object
@@ -193,6 +196,17 @@ namespace eval ::nx::serializer {
         }
         set o [::nsf::dispatch $o ::nsf::methods::object::info::parent]
       }
+    }
+
+    :public method getTargetName {sourceName} {
+      # TODO: make more efficent; 
+      set targetName $sourceName
+      if {[array exists :objmap]} {
+	foreach {source target} [array get :objmap] {
+	  regsub ^$source $targetName $target targetName
+	}
+      }
+      return $targetName
     }
     
     :method topoSort {set all} {
@@ -245,7 +259,7 @@ namespace eval ::nx::serializer {
       set result ""
       foreach l [lsort -integer [array names :level]] {
         foreach i [set :level($l)] {
-          #.warn "serialize $i"
+          #:warn "serialize $i"
           #append result "# Stratum $l\n"
           set oss [set :serializer($i)]
           append result [$oss serialize $i [::nsf::current object]] \n
@@ -446,15 +460,15 @@ namespace eval ::nx::serializer {
       return $result
     }
 
-    :public object method deepSerialize {-ignoreVarsRE -ignore -map args} {
+    :public object method deepSerialize {-ignoreVarsRE -ignore -map -objmap args} {
       :resetPattern
       set s [:new -childof [::nsf::current object] -volatile]
       #$s volatile
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
-      
+      if {[info exists objmap]} {$s objmap $objmap}
       foreach o $args {
-        append r [$s deepSerialize [$o]]
+        append r [$s deepSerialize [::nsf::directdispatch $o -frame method ::nsf::current]]
       }
       if {[info exists map]} {return [string map $map $r]}
       return $r
@@ -590,7 +604,7 @@ namespace eval ::nx::serializer {
       set v [$cmd $o $relation]
       if {$v eq ""} {return ""}
       if {[info exists unless] && $v eq $unless} {return ""}
-      return [list $cmd $o $relation $v]\n
+      return [list $cmd ${:targetName} $relation $v]\n
     }
 
     :method serializeExportedMethods {s} {
@@ -620,6 +634,7 @@ namespace eval ::nx::serializer {
     ###############################
 
     :public method serialize {objectOrClass s} {
+      set :targetName [$s getTargetName $objectOrClass]
       :[:classify $objectOrClass]-serialize $objectOrClass $s
     }
 
@@ -756,7 +771,9 @@ namespace eval ::nx::serializer {
 	set def ""
       } else {
 	set def [$o info {*}$modifier method definition $m]
-	set handle [$o info {*}$modifier method registrationhandle $m]
+	if {${:targetName} ne $o} {
+	  set def [lreplace $def 0 0 ${:targetName}]
+	}
       }
       return $def
     }
@@ -775,16 +792,17 @@ namespace eval ::nx::serializer {
       set isSlotContainer [::nx::isSlotContainer $objectName]
       if {$isSlotContainer} {
 	append cmd [list ::nx::slotObj -container [namespace tail $objectName] \
-			[$o ::nsf::methods::object::info::parent]]\n
+			[$s getTargetName [$objectName ::nsf::methods::object::info::parent]]]\n
       } else {
-	append cmd [list [$o info class] create $objectName -noinit]\n
+	#puts stderr "CREATE targetName '${:targetName}'"
+	append cmd [list [$o info class] create ${:targetName} -noinit]\n
 	foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all -path]] {
 	  append cmd [:method-serialize $o $i "object"] "\n"
 	}
       }
      
       set vars [:collectVars $o $s]
-      if {[llength $vars]>0} {append cmd [list $o eval [join $vars "\n   "]]\n}
+      if {[llength $vars]>0} {append cmd [list ${:targetName} eval [join $vars "\n   "]]\n}
 
       append cmd \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
@@ -795,7 +813,7 @@ namespace eval ::nx::serializer {
       if {[$o info has type ::nx::Slot]} {
         # Slots needs to be initialized to ensure
         # __invalidateobjectparameter to be called
-        append cmd [list $o eval :init] \n
+        append cmd [list ${:targetName} eval :init] \n
       }
 
       $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
@@ -809,6 +827,7 @@ namespace eval ::nx::serializer {
     :object method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
+
       foreach i [lsort [$o ::nsf::methods::class::info::methods -callprotection all -path]] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
@@ -898,7 +917,7 @@ namespace eval ::nx::serializer {
 	  #puts "... [list $o info ${prefix}default $m $v x] returned 1, x?[info exists x] level=[info level]"
           lappend arglist [list $v $x] } {lappend arglist $v}
       }
-      lappend r $o ${prefix}proc $m \
+      lappend r ${:targetName} ${prefix}proc $m \
           [concat [$o info ${prefix}nonposargs $m] $arglist] \
           [$o info ${prefix}body $m]
       foreach p {pre post} {
@@ -913,19 +932,19 @@ namespace eval ::nx::serializer {
 
     :object method Object-serialize {o s} {
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create [::nsf::directdispatch $o -frame method ::nsf::current object]]
+      append cmd [list [$o info class] create ${:targetName}]
       append cmd " -noinit\n"
       foreach i [$o ::nsf::methods::object::info::methods -type scripted -callprotection all] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
       foreach i [$o ::nsf::methods::object::info::methods -type forward -callprotection all] {
-        append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
+        append cmd [concat [list ${:targetName}] forward $i [$o info forward -definition $i]] "\n"
       }
       foreach i [$o ::nsf::methods::object::info::methods -type setter -callprotection all] {
-        append cmd [list $o parametercmd $i] "\n"
+        append cmd [list ${:targetName} parametercmd $i] "\n"
       }
       append cmd \
-          [list $o eval [join [:collectVars $o $s] "\n   "]] \n \
+          [list ${:targetName} eval [join [:collectVars $o $s] "\n   "]] \n \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o object-invar]
 
@@ -943,15 +962,15 @@ namespace eval ::nx::serializer {
         append cmd [:method-serialize $o $i inst] "\n"
       }
       foreach i [$o info instforward] {
-        append cmd [concat [list $o] instforward $i [$o info instforward -definition $i]] "\n"
+        append cmd [concat [list ${:targetName}] instforward $i [$o info instforward -definition $i]] "\n"
       }
       foreach i [$o info instparametercmd] {
-        append cmd [list $o instparametercmd $i] "\n"
+        append cmd [list ${:targetName} instparametercmd $i] "\n"
       }
       # provide limited support for exporting aliases for XOTcl objects
       foreach i [$o ::nsf::methods::class::info::methods -type alias -callprotection all] {
         set nxDef [$o ::nsf::methods::class::info::method definition $i]
-        append cmd [list ::nsf::method::alias $o {*}[lrange $nxDef 3 end]]\n
+        append cmd [list ::nsf::method::alias ${:targetName} {*}[lrange $nxDef 3 end]]\n
       }
       append cmd \
           [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
