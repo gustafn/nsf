@@ -7,7 +7,7 @@
  *      for naming changes etc., but requires more work to be revived. The
  *      code is currently deactivated.
  *
- * Copyright (C) 2005-2012 Gustaf Neumann
+ * Copyright (C) 2005-2013 Gustaf Neumann
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

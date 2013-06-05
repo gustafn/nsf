@@ -1,7 +1,7 @@
 Migration Guide for the Next Scripting Language
 ===============================================
 Gustaf Neumann <neumann@wu-wien.ac.at>
-v2.2, May 2013:
+v2.0b5, June 2013:
 :Author Initials: GN
 :toc:
 :toclevels: 3
@@ -182,11 +182,11 @@ in the following respects:
 [width="50%",frame="topbot",options="header,footer",cols="3,>1,>1"]
 |======================
 ||NX|XOTcl
-|Methods for Objects           |20|  51
-|Methods for Classes           |  3|  24
-|Info-methods for Objects  |15|  25
-|Info-methods for Classes  |  6|  24
-|Total                                  | 44|124
+|Methods for Objects           |15|  51
+|Methods for Classes           |  9|  24
+|Info-methods for Objects  |13|  25
+|Info-methods for Classes  |11|  24
+|Total                                  | 48|124
 |======================
 
 This comparison list compares mostly XOTcl 1 with NX, some features

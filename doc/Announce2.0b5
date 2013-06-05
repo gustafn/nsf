@@ -7,10 +7,15 @@ discussion and led to revising some earlier decisions on designing and
 on namings used in the APIs to achieve better comprehension and
 orthogonality.
 
-Most of the changes happened at the NSF scripting level, without the
-need to modify the NSF C layer.
+The new release differs in about 240 commits since the release of 
+2.0b3. The implemenetation is very stable and is used since 
+more than two years in production of our large scale, multi threaded 
+web environment inside naviserver. Most of the changes happened 
+in NX and therefore on the NSF scripting level, without the need 
+to modify the NSF C layer. The implementation of XOTcl 2 
+has changed very little.
 
-There are the following notable differences in 2.0b5 as compared to
+Below are the most notable differences in 2.0b5 as compared to
 2.0b3:
 
 a) NX 2.0b3 used the following conventions to define methods for
@@ -114,8 +119,10 @@ c) Further clean-ups of the introspection interface ("info").
    and singular wordings for different purposes (e.g., retrieving
    collections and/or detailed information on one item).
 
-We are pleased to announce the availability of the Next Scripting
-Framework 2.0b5 which can be obtained from http://next-scripting.org/
+Below is a more detailed summary of the changes.
+
+The Next Scripting Framework 2.0b5 (containing NX and XOTcl 2.0)
+can be obtained from http://next-scripting.org/
 
 Best regards
 - Gustaf Neumann
@@ -226,12 +233,12 @@ the items (a), (b), and (c) above) are:
    * Improved documentation
      - fixed typos, improve wordings
      - updated tutorial and migration guide
-     - use slashed in generated syntax to distinguish 
-       between constants and placeholders 
+     - use slashes in generated syntax to distinguish 
+       between constants and placeholders. 
+       Example:
          /obj/ info method definition /methodName/
+
        
-
-
      - improved performance
        * rewrite of alias handling (alias reform)
        * improved branch prediction
@@ -244,14 +251,6 @@ the items (a), (b), and (c) above) are:
      - fixed potential duplicates on diamond inheritance
      - fixed unknown handling for "-local" and "-system"
        dispatches
-
-
-     - follow Tcl convention on error messages
-       (start always with lower case)
-     - better handling of multiple errors in a single command.
-     - return GMT dates in Httpd as RFCs require
-
-
 
    * Extended regression tests
 

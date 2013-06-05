@@ -4665,45 +4665,14 @@ serializer.tcl
 ========================================================================
 TODO:
  - introspection (e.g. "syntax" for unregistered cmds/methods)
- - quantify changes/regression tests (script on notebook)
- - update copyright notices
+ - spellcheck / ChangeLog (to point out differences to 2.0b3)
+- maybe change nx::Test to nx::test 
+  (user never has to know that nx::Test is a class).
 
 
 Stefan: API-related items
 
-  * the introspection interface uses "-type" for "class" or "instanceof", but the intercession interface refers to "-class", e.g.
-    
-    introspection:
-
-    /obj/ info children ?-type /class/? ?/pattern/? 
-    ...
-
-    intercession:
-    
-    /cls/ property ?-accessor /value/? ?-config /boolean/? ?-incremental? ?-class /value/? /spec/ ?/initblock/? 
-
-    better:
-
-    /cls/ property ?-accessor /value/? ?-config /boolean/? ?-incremental? ?-type /class/? /spec/ ?/initblock/? 
-
-
-  * - naming in slots: "incremental", "reconfigure"
-
- * Currently, in NX, specifying mandatory parameters may break
-      object construction as init won't receive any arguments (no
-      residual args). Similarly, a -returns might scream out. Shall we
-      package that by not "allowing" (actually advertising) an
-      argument spec block for init, e.g.:
-
-      Class create C {
-      	  :constructor {
-	  	       # ...
-	  }
-      }
-      
-      ... alternative name: "initializer", or "initialize" ... which
-      translates into a "o method init {} {}"
-
+ * - naming in slots: "incremental", "reconfigure"
 
 ==
      
@@ -4735,10 +4704,6 @@ Stefan: API-related items
    * add switch -array for "variable"? (Just setting is trivial,
      handling setters and incremental setter is more work)
 
- - handle cases, where defaultmethods of the slot are altered. 
-   The parameter handling in nx assumes on several places that
-   the defaultm
-
 - extend mongo::gridfs::store_file with a switch -metadata to
   pass metadata together at gridfs file creation time
 
@@ -4748,16 +4713,11 @@ Stefan: API-related items
 
 - maybe: add a disposition=pipe
 
-- MixinComputeOrderFullList() could receive a flag to store source classes in checkList
+- MixinComputeOrderFullList() could receive a flag to store 
+  source classes in checkList
 
 - if the check on eg. info-heritage-circular in test/info.method.tcl
   reports a warning on exit, if we get an exception.
-
-- should be be concerned about message like
-  DEBUG obj 0x100227960 ::nx::Object activationcount 2 on stack 3; might be from non-stacked but active callstack content
- in the regression test?
-
-- maybe change nx::Test to nx::test (user never has to know that nx::Test is a class).
 
 - what to do with metadata analyzer? 
   Still needed? Already replaced by new doctool? 
@@ -4867,32 +4827,10 @@ Stefan: API-related items
 
 - check performance implications of value checker
 
-- nameing
-
-    * namespace prefix 
-       next scripting language: ::nx::*
-       next scripting framework: ::nsf::*
-    * distributed packages in namespace ::nx::*, some are still in ::xotcl::*
-    * names of subpackages nx::*, some packages are still xotcl::*
-
-    * Now we have
-        package require nx
-        package require nx::test
-        namespace import ::nx::*
-
-- library + apps
-    - new directory structure DONE
+- library + XOTcl apps
     - work on binary packages of xotcl (store + xml)
     - nicht gewartete/nicht getestete library aus distro entfernen?
     - migration von einzelnen paketen nach next? von welchen?
-
-- new website
-    * graphisches design
-    * website-struktur
-    * org. tutorial (bzw teile davon) ala book 
-      or wiki (features als kategorien|tags|sections|directories)
-
-
 
 Ein paar Punkte im folgenden könnten obsolet sein:
 
@@ -4940,6 +4878,11 @@ For future releases (after first alpha/beta release)
     address cases, where the parameter has a different name
     than the associated varianle (e.g. private properties)
    
+ * Currently, in NX, specifying mandatory parameters may break
+   object construction as init won't receive any arguments (no
+   residual args). We should provide a warning when a user
+   defines arguments for init (or provide some other syntactic sugar)
+
   * extend traits (object-specific traits, test cases, etc.)
 
   * add maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
