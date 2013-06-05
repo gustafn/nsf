@@ -4664,6 +4664,10 @@ serializer.tcl
 
 ========================================================================
 TODO:
+ - introspection (e.g. "syntax" for unregistered cmds/methods)
+ - quantify changes/regression tests (script on notebook)
+ - update copyright notices
+
 
 Stefan: API-related items
 
