@@ -3,7 +3,7 @@ package require nx
 ::nsf::configure dtrace on
 
 nx::Object create o {
-  :public method foo {x y} {
+  :public object method foo {x y} {
     [self] ::incr x 1
     return [expr {$x + $y}]
   }

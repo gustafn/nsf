@@ -8,7 +8,7 @@ on namings used in the APIs to achieve better comprehension and
 orthogonality.
 
 The new release differs in about 240 commits since the release of 
-2.0b3. The implemenetation is very stable and is used since 
+2.0b3. The implementation is very stable and is used since 
 more than two years in production of our large scale, multi threaded 
 web environment inside naviserver. Most of the changes happened 
 in NX and therefore on the NSF scripting level, without the need 
@@ -203,7 +203,7 @@ the items (a), (b), and (c) above) are:
        * don't allow "method" to overwrite child objects
 
      - fixed potential crashes
-       * on object destroy, when the same wrapperless 
+       * on object destroy, when the same wrapper-less 
          aliases was registered on many objects
        * when "nsf::my" is called with a single argument
          outside an object context.
