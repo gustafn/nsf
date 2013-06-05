@@ -4662,6 +4662,9 @@ serializer.tcl
   to make serialzer usable for copying (-map is to coarse)
 - extended regression test
 
+nsf.c:
+- Eliminate all use of Tcl_GetStringFromObj() function.
+
 ========================================================================
 TODO:
  - introspection (e.g. "syntax" for unregistered cmds/methods)

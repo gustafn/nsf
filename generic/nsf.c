@@ -5068,7 +5068,6 @@ NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
 static Tcl_Obj *
 AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
              int instanceOpt, int resetOpt) {
-  int valueLength;
   Tcl_Obj *valueObj, *resultObj = NULL;
   int flogs = TCL_LEAVE_ERR_MSG;
   CallFrame frame, *framePtr = &frame;
@@ -5166,9 +5165,9 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
       FREE_ON_STACK(Tcl_Obj*, ov);
 
     } else {
-      char *valueString = Tcl_GetStringFromObj(valueObj, &valueLength);
+      char *valueString = Tcl_GetString(valueObj);
 
-      Tcl_AppendLimitedToObj(resultObj, valueString, valueLength, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(resultObj, valueString, valueObj->length, INT_MAX, NULL);
       /*fprintf(stderr, "+++ append to obj done\n");*/
     }
   }
@@ -8584,7 +8583,8 @@ MakeProcError(
   /*fprintf(stderr, "MakeProcError %p type %p refCount %d\n",
     procNameObj, procNameObj->typePtr, procNameObj->refCount);*/
 
-  procName = Tcl_GetStringFromObj(procNameObj, &nameLen);
+  procName = Tcl_GetString(procNameObj);
+  nameLen = procNameObj->length;
   overflow = (nameLen > limit);
   Tcl_AppendObjToErrorInfo(interp, Tcl_ObjPrintf(
 						 "\n    (procedure \"%.*s%s\" line %d)",
