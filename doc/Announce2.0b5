@@ -1,84 +1,87 @@
 Dear Community,
 
-After the release of Next Scripting Framework 2.0b3, we received
-several feedbacks from early adaptors (many thanks for the
-helpful an constructive comments). This discussion made us to
-revise some of the namings and conventions to achive better
-comprehension and orthogonality. Most of the changes happend
-on the scripting layer without the need to change the nsf C layer.
+Since releasing the Next Scripting Framework (NSF) 2.0b3, we have
+received feedback from early adopters. Many thanks for the helpful and
+the constructive comments! This feedback triggered an internal
+discussion and led to revising some earlier decisions on designing and
+on namings used in the APIs to achieve better comprehension and
+orthogonality.
 
-In addition to the list of changes below, there are the following major
-differences:
+Most of the changes happened at the NSF scripting level, without the
+need to modify the NSF C layer.
 
-a) NX 2.0b3 used the following conventions
-   to define methods for instances, object-specific
-   methods and class-object specific methods:
+There are the following notable differences in 2.0b5 as compared to
+2.0b3:
+
+a) NX 2.0b3 used the following conventions to define methods for
+   instances, object-specific methods and class-object specific
+   methods:
 
      /cls/ method foo {args} {...}
      /obj/ method bar {args} {...}
      /cls/ class method baz {args} {...}
 
-   Introspecition was (in the same order)
+   Introspection was possible via (in the same order):
 
      /cls/ info methods 
      /obj/ info methods 
      /cls/ class info methods 
 
    The problem with this convention is that e.g. "info methods"
-   returns different things depending on wheter it is called
-   on a class or on an object, and breaks the contract with 
-   the programmer. nx::Class is a specialization of the
-   most general class nx::Object, the same means should be
-   able to obtain e.g. object specific methods for classes and
-   ordinary objects.
+   operates on different method records, depending on whether it is
+   called on a class or on an object. This breaks a basic inheritance
+   contract with the programmer: As nx::Class is a specialization of
+   the most general class nx::Object, the same introspection operation
+   (e.g., "info methods") should return e.g. object-specific methods
+   for both class objects and ordinary, non-class objects.
 
-   Thefore, we changed to the following more orthogonal
+   Therefore, we adopted the following more orthogonal
    conventions to define methods for instances and 
-   object-specific methods
+   for object-specific methods
 
      /cls/ method foo {args} {...}
      /obj/ object method bar {args} {...}
 
-   Introspecition:
+   Introspection:
 
      /cls/ info methods 
      /obj/ info object methods 
 
-   Note that we can now use the same mechanis to define
-   or query object specific methods on objects and classes.
+   Note that we can now use the same mechanism to define
+   or query object-specific methods on objects and classes.
    The same applies for aliases, forwards, mixins, and filters.
 
-   The new convention is a little more to burden for the 
+   The new convention imposes a little typing burden on the 
    developer, but reduces the effort of a reader of a
-   program to understand, what exactly 
+   program for understanding what exactly 
       $x method FOO {args} {...}
    means.
 
-   For conveniance (and migration) we provide two 
-   packages "nx::plain-object-method" and 
-   "nx::class-method" to use the follow the 
-   old conventions (a verbose mode can report usages).
+   For convenience, we provide two packages "nx::plain-object-method"
+   and "nx::class-method" to switch to the old conventions. A verbose
+   tracing mode can report usages to ease migration.
 
 
-b) Parameterization:
+b) Parametrization:
 
-   NX 2.0b3 followed the XOTcl conventions, that parameters
-   for configuring object creations are registering by default
-   same-named setter methods. This setter methods can shadow
-   potentially needed methods, which might lead to unexpected
-   behaviors for beginners.
+   NX 2.0b3 followed the XOTcl conventions of registering by default
+   same-named getter/setter methods for configuration parameters used
+   in object creation. These getter/setter methods bloat the method
+   interface and risk shadowing inherited methods, leading to
+   unexpected behaviors for beginners.
 
-   NX 2.0b5 switched to the Tk/itcl/... conventions to
-   support cget / configure. The accessor methods 
-   (public, protected, private) can be optionally 
-   automatically generated via flag "-accessor ..."
-   for properties and variables.
+   NX 2.0b5 adopts a Tk/itcl/... idiom by offering a cget/configure
+   interface to objects as generic getters/setters. To obtain
+   parameter-specific getters/setters (i.e., the old behavior), the
+   flag "-accessor public|protected|private" can be set when defining
+   properties and variables.
 
-c) Further orthogonalized introspection interface ("info").
+c) Further clean-ups of the introspection interface ("info").
 
    In order to streamline the interface further, we followed the idea
-   to use "... info /plural word/" to obtain a set of handles, and then a
-   separate call to obtain the details. Therefore, we use now 
+   to use "... info /plural word/" to obtain a set of handles, and
+   then to make a separate call to obtain the details. Therefore, we
+   now provide ...
 
      /cls/ info methods
      /obj/ info object methods
@@ -95,25 +98,24 @@ c) Further orthogonalized introspection interface ("info").
      /cls/ info configure parameters
      /obj/ info lookup configure parameters
 
-   to return a list of handles (result list can be filtered
-   in each case via a patter) and use later a separate call
-   to obtain detail information
+   ... to return a list of handles. The result list can be filtered in
+   each case by specifying a match pattern. Each result handle can
+   then be used in a separate call to obtain details:
 
      /obj/ info method definition /methodHandle/
      /obj/ info variable definition /varHandle/
      /obj/ info parameter name /paramHandle/
 
-   These are just a few example.
-   In NX 2.0b3 we had e.g. "... info parameter definitions ..."
-   where it was for a beginner not clear, what parameters are
-   exactly meant, and in which case one can use a plural word
-   for detail information or not. Now, all detail definitions
-   are singualar words
+   These are just a few examples.
    
+   In NX 2.0b3, we had e.g. "... info parameter definitions ..."
+   leaving a beginner in the dark about the parameters actually
+   meant. Also, the introspection interface made mixed use of plural
+   and singular wordings for different purposes (e.g., retrieving
+   collections and/or detailed information on one item).
 
-
-We are pleased to announce the availability of the Next Scripting Framework 2.0b3
-which can be obtained from http://next-scripting.org
+We are pleased to announce the availability of the Next Scripting
+Framework 2.0b5 which can be obtained from http://next-scripting.org/
 
 Best regards
 - Gustaf Neumann
@@ -131,7 +133,7 @@ the items (a), (b), and (c) above) are:
  
       - serializer:
 	* added flag -objmap to Serializer method deepSerialize 
-          to make serialzer to provide mapping only for
+          to make serializer to provide mapping only for
           object names. This makes the serializer  
           usable for object/class copying (-map is too coarse)
         * Serializer: "ignore" method made public
@@ -139,12 +141,12 @@ the items (a), (b), and (c) above) are:
           system serializer, the "ignore" settings were lost
 
       - allow explicit unsetting of -per-object flag in 0-argument
-	"-flag=value" notation (all built-in cmds accepting this flag)
+	"-flag=value" notation (all built-in commands accepting this flag)
 
      - better compatibility with XOTcl 1.*:
 
      - added "/obj/ info name" (as alternative to 
-       "namspace tail [self]")
+       "namespace tail [self]")
 
      - test-suite: added summary with statistics
   
@@ -178,14 +180,14 @@ the items (a), (b), and (c) above) are:
          (when e.g. configure raises an exception)
        * handling of required configure parameters
          on later calls to "configure"
-       * fixed potential inifinite loop in pattern matching for
+       * fixed potential infinite loop in pattern matching for
 	 precedence lists
        * handling of full-qualified name patterns 
          for private slots
        * invalidation of per-object parameter cache
 	  - on mixin changes and
 	  - on deletion/adding of per-object slots
-       * handle cyclical superclassclass dependencies during object
+       * handle cyclical superclass/class dependencies during object
 	 system finalize
        * Fixed a bad interaction between Tcl's apply (pushing lambda
 	 frames) and the variable resolvers. The variable resolver was
@@ -200,26 +202,26 @@ the items (a), (b), and (c) above) are:
          outside an object context.
        * avoid crash in case NsfParameterGetCmd() is passed 
          a plain value (without a parameter spec)
-       * fix potential crash in method caching when cmds 
-         are renamed by tcl (many thanks to Arthur Schreiber
+       * fix potential crash in method caching when commands 
+         are renamed by Tcl (many thanks to Arthur Schreiber
          for reporting)
 
 
      - build system:
        * improved compatibility for windows compilations.
          NX can now be compiled under windows with the
-         native window toolchain (and as well with MinGW)
+         native window tool chain (and as well with MinGW)
          (Many thanks to Stephan Adelsberger)
         * Update to latest TEA.
 	* Follow new naming convention for auto-tools 
           (using configure.ac)
-	* fix compilation when dtrace is activated (missing 
-          parthesis, many thanks to Victor Guerra for noticing)
+	* fix compilation when DTrace is activated (missing 
+          parenthesis, many thanks to Victor Guerra for noticing)
 	* added compile macro NSF_STACKCHECK to provide stack
-	  monitoring/debugging (especially useful for multi 
+	  monitoring/debugging (especially useful for multi- 
           threaded programs, where stack is more limited)
 	- fix compilation when compiled without threads 
-          (many thanks for r.zaumseil for noting this).
+          (many thanks for r.Zaumseil for noting this).
 
    * Improved documentation
      - fixed typos, improve wordings
