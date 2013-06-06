@@ -4678,7 +4678,7 @@ nx::test:
 
 ========================================================================
 TODO:
- - introspection (e.g. "syntax" for unregistered cmds/methods)
+
  - spellcheck / ChangeLog (to point out differences to 2.0b3)
 
 Stefan: API-related items
@@ -4868,6 +4868,27 @@ TODO "Kleinigkeiten"
 
 
 For future releases (after first alpha/beta release)
+
+ - cmd introspection:
+   nsf defines a commands (e.g. nsf::proc) and unregistered methods.
+   The interfaces of these commands can be queried via methods
+
+      % nx::Object info method parameters ::nsf::proc
+      -ad:switch procName arguments body
+      % nx::Object info method syntax ::nsf::proc
+      /cls/ proc ?-ad? /procName/ /arguments/ /body/
+      % nx::Object info method definition ::nsf::proc
+      Warning: Could not obtain alias definition for proc...
+
+    which return only patially correct results (the first is correct,
+    the second one is misleading, the error message can be improved
+    for the third case.
+
+    maybe 
+       ::nsf::info command parameters|syntax /cmd/
+    might make sense, but there might be more candidates
+    for nsf::info around. OTOH, we have already 
+    nsf::object::exists, nsf::is, etc.
 
   * generalizing parameter-specific per-object info
     Now we have 
