@@ -5,7 +5,7 @@ namespace eval ::nx {
 
   # @file Simple regression test support for XOTcl / NX
 
-  nx::Class create nx::Test {
+  nx::Class create nx::test {
     #
     # Class Test is used to configure test instances, which can 
     # be configured by the following parameters:
@@ -22,20 +22,21 @@ namespace eval ::nx {
     :property {name ""}
     :property cmd 
     :property {namespace ::}
-    :property {verbose 0} 
+    :property {verbose:boolean 0} 
     :property -accessor public {expected 1} 
-    :property {count 1} 
+    :property {count:integer 1} 
     :property msg 
     :property setResult 
     :property errorReport
     :property pre 
     :property post
 
+    :object property {count:integer 1} 
     :object variable success 0
     :object variable failure 0
     :object variable testfile ""
-    :object variable count 0
     :object variable ms 0
+    :object variable case "test"
 
     :public object method success {} {
       incr :success
@@ -87,25 +88,12 @@ namespace eval ::nx {
       }
     }
 
-    :public object method parameter {name value:optional} {
-      if {[info exists value]} {
-	[self]::slot::$name default $value
-	[self]::slot::$name reconfigure
-      } else {
-	return [[self]::slot::$name $name default]
-      }
-    }
-
     :public object method new args {
       set testfile [file rootname [file tail [info script]]]
       set :testfile $testfile
-      if {[info exists :case]} {
-	if {![info exists :ccount(${:case})]} {set :ccount(${:case}) 0}
-	set :name $testfile/${:case}.[format %.3d [incr :ccount(${:case})]]
-      } else {
-	set :name $testfile/t.[format %.3d [incr :count]]
-      }
-      :create ${:name} -name ${:name} {*}$args
+      if {![info exists :ccount(${:case})]} {set :ccount(${:case}) 0}
+      set :name $testfile/${:case}.[format %.3d [incr :ccount(${:case})]]
+      :create ${:name} -name ${:name} -count ${:count} {*}$args
     }
 
     :public object method run {} {
@@ -159,13 +147,13 @@ namespace eval ::nx {
 	} else {
 	  puts stderr "[set :name]: ${:msg} ok"
 	}
-	::nx::Test success
+	::nx::test success
       } else {
 	puts stderr "[set :name]:\tincorrect result for '${:msg}', expected:"
 	puts stderr "'${:expected}', got\n\"$r\""
 	puts stderr "\tin test file [info script]"
 	if {[info exists :errorReport]} {eval [set :errorReport]}
-	::nx::Test failure
+	::nx::test failure
 	#
 	# Make sure that the script exits with an error code, but
 	# unwind the callstack via return with an error code.  Using
@@ -175,7 +163,7 @@ namespace eval ::nx {
 	:exit -1
       }
       if {[info exists :post]} {:call "post" ${:post}}
-      ::nx::Test ms [expr {[clock clicks -milliseconds]-$startTime}]
+      ::nx::test ms [expr {[clock clicks -milliseconds]-$startTime}]
       :exitOff
     }
 
@@ -206,9 +194,9 @@ proc ? {cmd expected {msg ""}} {
   set namespace [uplevel {::namespace current}]
   #puts stderr "eval in namespace $namespace"
   if {$msg ne ""} {
-    set t [nx::Test new -cmd $cmd -msg $msg -namespace $namespace]
+    set t [nx::test new -cmd $cmd -msg $msg -namespace $namespace]
   } else {
-    set t [nx::Test new -cmd $cmd -namespace $namespace]
+    set t [nx::test new -cmd $cmd -namespace $namespace]
   }
   $t expected $expected 
   $t run
