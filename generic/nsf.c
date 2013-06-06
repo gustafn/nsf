@@ -5540,9 +5540,8 @@ CmdListRemoveContextClassFromList(NsfCmdList **cmdList, NsfClass *clorobj,
  */
 static void
 CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
-  NsfCmdList *del;
   while (*cmdList) {
-    del = *cmdList;
+    NsfCmdList *del = *cmdList;
     *cmdList = (*cmdList)->nextPtr;
     CmdListDeleteCmdListEntry(del, freeFct);
   }
@@ -5628,9 +5627,8 @@ CheckConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
  */
 static void
 TclObjListFreeList(NsfTclObjList *list) {
-  NsfTclObjList *del;
   while (list) {
-    del = list;
+    NsfTclObjList *del = list;
     list = list->nextPtr;
     DECR_REF_COUNT2("listContent", del->content);
     if (del->payload) {DECR_REF_COUNT2("listContent", del->payload);}
@@ -6618,9 +6616,9 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 
   if (startCl->opt) {
     NsfCmdList *m;
-    NsfClass *cl;
 
     for (m = startCl->opt->isClassMixinOf; m; m = m->nextPtr) {
+      NsfClass *cl;
 
       /* we should have no deleted commands in the list */
       assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
@@ -6642,9 +6640,9 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
    */
   if (startCl->opt) {
     NsfCmdList *m;
-    NsfObject *object;
 
     for (m = startCl->opt->isObjectMixinOf; m; m = m->nextPtr) {
+      NsfObject *object;
 
       /* we should have no deleted commands in the list */
       assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
@@ -7067,7 +7065,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
   NsfClasses *clPtr;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
-  Tcl_HashTable objTable, *commandTable = &objTable, *instanceTablePtr;
+  Tcl_HashTable objTable, *commandTable = &objTable;
 
   /*
    * Iterate over the subclass hierarchy.
@@ -7075,6 +7073,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
   for (clPtr = subClasses; clPtr; clPtr = clPtr->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
+    Tcl_HashTable *instanceTablePtr;
 
     /*
      * Reset mixin order for all objects having this class as per object mixin
@@ -7430,15 +7429,16 @@ static int
 MixinInfo(Tcl_Interp *interp, NsfCmdList *m, CONST char *pattern,
           int withGuards, NsfObject *matchObject) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-  NsfClass *mixinClass;
 
   /*fprintf(stderr, "   mixin info m=%p, pattern %s, matchObject %p\n",
     m, pattern, matchObject);*/
 
   while (m) {
+    NsfClass *mixinClass = NsfGetClassFromCmdPtr(m->cmdPtr);
+
     /* fprintf(stderr, "   mixin info m=%p, next=%p, pattern %s, matchObject %p\n",
        m, m->next, pattern, matchObject);*/
-    mixinClass = NsfGetClassFromCmdPtr(m->cmdPtr);
+
     if (mixinClass &&
         (!pattern
          || (matchObject && &(mixinClass->object) == matchObject)
@@ -7703,9 +7703,8 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
   }
   if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
     NsfCmdList *ml;
-    NsfClass *mixin;
     for (ml = object->mixinOrder; ml && !guardAdded; ml = ml->nextPtr) {
-      mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
+      NsfClass *mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
       if (mixin && mixin->opt) {
         guardAdded = GuardAddFromDefinitionList(dest, filterCmd,
                                                 mixin->opt->classFilters);
@@ -7920,15 +7919,14 @@ FilterResetOrder(NsfObject *object) {
 static void
 FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
                   NsfObject *startingObject, NsfClass *startingClass) {
-  char *simpleName;
-  Tcl_Command cmd;
   NsfCmdList *cmdList, *del;
   NsfClass *cl = NULL;
 
   CmdListRemoveDeleted(filters, GuardDel);
   for (cmdList = *filters; cmdList; ) {
-    simpleName = (char *) Tcl_GetCommandName(interp, cmdList->cmdPtr);
-    cmd = FilterSearch(simpleName, startingObject, startingClass, &cl);
+    char *simpleName = (char *) Tcl_GetCommandName(interp, cmdList->cmdPtr);
+    Tcl_Command cmd = FilterSearch(simpleName, startingObject, startingClass, &cl);
+
     if (cmd == NULL) {
       del = CmdListRemoveFromList(filters, cmdList);
       cmdList = cmdList->nextPtr;
@@ -8053,7 +8051,6 @@ MethodHandleObj(NsfObject *object, int withPer_object, CONST char *methodName) {
 static int
 FilterInfo(Tcl_Interp *interp, NsfCmdList *f, CONST char *pattern,
            int withGuards, int withMethodHandles) {
-  CONST char *simpleName;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
   /*fprintf(stderr, "FilterInfo %p %s %d %d\n", pattern, pattern,
@@ -8067,11 +8064,13 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, CONST char *pattern,
   }
 
   while (f) {
-    simpleName = Tcl_GetCommandName(interp, f->cmdPtr);
+    CONST char *simpleName = Tcl_GetCommandName(interp, f->cmdPtr);
+
     if (!pattern || Tcl_StringMatch(simpleName, pattern)) {
       if (withGuards && f->clientData) {
         Tcl_Obj *innerList = Tcl_NewListObj(0, NULL);
         Tcl_Obj *g = (Tcl_Obj *) f->clientData;
+
         Tcl_ListObjAppendElement(interp, innerList,
                                  Tcl_NewStringObj(simpleName, -1));
         Tcl_ListObjAppendElement(interp, innerList, NsfGlobalObjs[NSF_GUARD_OPTION]);
@@ -8080,6 +8079,7 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, CONST char *pattern,
       } else {
         if (withMethodHandles) {
 	  NsfClass *filterClass = f->clorobj;
+
           Tcl_ListObjAppendElement(interp, list,
 				   MethodHandleObj((NsfObject *)filterClass,
 						   !NsfObjectIsClass(&filterClass->object), simpleName));
@@ -8102,7 +8102,6 @@ static void
 FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
                            NsfCmdList **filterList) {
   NsfCmdList *f ;
-  char *simpleName;
   NsfClass *fcl;
   NsfClasses *pl;
 
@@ -8112,7 +8111,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
   CmdListRemoveDeleted(filters, GuardDel);
 
   for (f = *filters; f; f = f->nextPtr) {
-    simpleName = (char *) Tcl_GetCommandName(interp, f->cmdPtr);
+    char *simpleName = (char *) Tcl_GetCommandName(interp, f->cmdPtr);
     fcl = f->clorobj;
     CmdListAdd(filterList, f->cmdPtr, fcl, /*noDuplicates*/ 0, 1);
 
@@ -14539,12 +14538,13 @@ UnsetInAllNamespaces(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *name)
     Tcl_HashSearch search;
     Tcl_HashEntry *entryPtr = Tcl_FirstHashEntry(Tcl_Namespace_childTablePtr(nsPtr), &search);
     Tcl_Var *varPtr;
-    int result;
 
     varPtr = (Tcl_Var *) Tcl_FindNamespaceVar(interp, name, nsPtr, 0);
     /*fprintf(stderr, "found %s in %s -> %p\n", name, nsPtr->fullName, varPtr);*/
     if (varPtr) {
       Tcl_DString dFullname, *dsPtr = &dFullname;
+      int result;
+
       Tcl_DStringInit(dsPtr);
       Tcl_DStringAppend(dsPtr, "unset ", -1);
       DStringAppendQualName(dsPtr, nsPtr, name);
@@ -18587,12 +18587,12 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
     Tcl_HashSearch hSrch;
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(object->nsPtr);
     Tcl_HashEntry *hPtr;
-    char *key;
 
     for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
 	 hPtr;
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
-      key = Tcl_GetHashKey(cmdTablePtr, hPtr);
+      char *key = Tcl_GetHashKey(cmdTablePtr, hPtr);
+
       if (!pattern || Tcl_StringMatch(key, pattern)) {
         Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
 
@@ -23800,10 +23800,11 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
     }
     if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
       NsfCmdList *ml;
-      NsfClass *mixin;
+
       for (ml = object->mixinOrder; ml; ml = ml->nextPtr) {
 	int guardOk = TCL_OK;
-        mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
+	NsfClass *mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
+
 	assert(mixin);
         if (withIncontext) {
           if (!RUNTIME_STATE(interp)->guardCount) {
@@ -24759,7 +24760,6 @@ DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   Tcl_HashTable *cmdTablePtr, *childTablePtr;
   register Tcl_HashEntry *entryPtr;
   Tcl_HashSearch search;
-  Tcl_Command cmd;
 
   if (nsPtr == NULL) {
     nsPtr = Tcl_GetGlobalNamespace(interp);
@@ -24774,7 +24774,8 @@ DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
 
   for (entryPtr = Tcl_FirstHashEntry(cmdTablePtr, &search); entryPtr;
        entryPtr = Tcl_NextHashEntry(&search)) {
-    cmd = (Tcl_Command)Tcl_GetHashValue(entryPtr);
+    Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(entryPtr);
+
     if (Tcl_Command_objProc(cmd) == NsfProcStub) {
       /*fprintf(stderr, "cmdname = %s cmd %p\n",
 	Tcl_GetHashKey(cmdTablePtr, entryPtr), cmd);*/

@@ -132,7 +132,7 @@ static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 Tcl_Obj *
 BsonToList(Tcl_Interp *interp, const char *data , int depth) {
   bson_iterator i;
-  const char *key, *tag;
+  const char *tag;
   char oidhex[25];
   Tcl_Obj *resultObj, *elemObj;
 
@@ -141,6 +141,7 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
 
   while ( bson_iterator_next( &i ) ){
     bson_type t = bson_iterator_type( &i );
+    const char *key;
 
     if ( t == 0 )
       break;
@@ -455,13 +456,12 @@ static int
 NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int withTimeout) {
   char channelName[80], *buffer = NULL;
   mongo_host_port host_port;
-  int result, objc = 0;
+  int status, objc = 0;
   mongo *connPtr;
-  int status;
   Tcl_Obj **objv;
 
   if (server) {
-    result = Tcl_ListObjGetElements(interp, server, &objc, &objv);
+    int result = Tcl_ListObjGetElements(interp, server, &objc, &objv);
     if (result != TCL_OK) {
       return NsfPrintError(interp, "The provided servers are not a well-formed list");
     }
@@ -670,7 +670,7 @@ cmd insert NsfMongoInsert {
 */
 static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *valuesObj) {
   int i, objc, result;
-  Tcl_Obj **objv, *resultObj;
+  Tcl_Obj **objv;
   bson b[1];
 
   result = Tcl_ListObjGetElements(interp, valuesObj, &objc, &objv);
@@ -697,7 +697,7 @@ static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namesp
   if (result == MONGO_ERROR) {
     result = NsfPrintError(interp, ErrorMsg(connPtr->err));
   } else {
-    resultObj = BsonToList(interp, b->data, 0);
+    Tcl_Obj *resultObj = BsonToList(interp, b->data, 0);
     Tcl_SetObjResult(interp, resultObj);
     result = TCL_OK;
   }
@@ -856,7 +856,6 @@ NsfMongoCursorFind(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
 		   int withTailable, int withAwaitdata) {
   int objc1, objc2, result, options = 0;
   Tcl_Obj **objv1, **objv2;
-  char buffer[80];
   mongo_cursor *cursor;
   bson query[1];
   bson atts[1];
@@ -893,6 +892,7 @@ NsfMongoCursorFind(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
   cursor = mongo_find( connPtr, namespace, query, atts, withLimit, withSkip, options);
   
   if (cursor) {
+    char buffer[80];
     Nsf_PointerAdd(interp, buffer, "mongo_cursor", cursor);
     Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
   } else {
@@ -1095,7 +1095,6 @@ cmd gridfile::open NsfMongoGridFileOpen {
 */
 static int 
 NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *gridfsPtr, CONST char *filename) {
-  char buffer[80];
   gridfile* gridFilePtr;
   int result;
 
@@ -1103,6 +1102,7 @@ NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *gridfsPtr, CONST char *filename
   result = gridfs_find_filename(gridfsPtr, filename, gridFilePtr);
 
   if (result == MONGO_OK) {
+    char buffer[80];
     Nsf_PointerAdd(interp, buffer, "gridfile", gridFilePtr);
     Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
   } else {

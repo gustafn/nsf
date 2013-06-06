@@ -66,13 +66,13 @@ userPwd proc show {realm userVar pwVar} {
 #          \tstatus-code: \[\[r0 set token\] set responseCode\]"
 #}}}
 
-nx::test new -msg "Trying to load image logo-100.jpg ... " -count 1 \
+nx::test new -msg "Trying to load image logo-100.jpg ... " \
      -verbose 1 \
      -pre "puts starting..." \
     -setResult {expr {[r0::sink set contentLength] == 1706}} \
     -cmd [list SimpleRequest r0 -url http://$hostport/logo-100.jpg] \
 
-nx::test new -msg "Trying to PUT a file on web-server ... " -count 1 \
+nx::test new -msg "Trying to PUT a file on web-server ... " \
     -setResult {expr [[r0 set token] set responseCode] == 201} \
     -pre [list file delete -force $dir/../doc/junk.junk] \
     -cmd [list SimpleRequest r0 \
@@ -81,24 +81,24 @@ nx::test new -msg "Trying to PUT a file on web-server ... " -count 1 \
 	      -data "this is a test\n" \
 	      -contentType plain/text]
 
-nx::test new -msg "And download it again ... " -count 1 \
+nx::test new -msg "And download it again ... " \
     -setResult {expr [r0 getContentLength] == 15} \
     -post {file delete -force ../doc/junk.junk} \
     -cmd [list SimpleRequest r0 -url http://$hostport/junk.junk]
 
-nx::test new -msg "Get protected resource ... " -count 1 \
+nx::test new -msg "Get protected resource ... " \
     -setResult {expr [r0 getContentLength] > 500} \
     -cmd [list SimpleRequest r0 -url http://$protectedhostport/ ]
 
-#nx::test new -msg "Try an FTP request $ftpURL ... "  -count 1 \
+#nx::test new -msg "Try an FTP request $ftpURL ... " \
     -setResult {expr [r0 getContentLength] > 100} \
     -cmd [list SimpleRequest r0 -url $ftpURL]
 
-#nx::test new -msg "Try timeout with slow URL $slowURL ... "  -count 1 \
+#nx::test new -msg "Try timeout with slow URL $slowURL ... " \
     -setResult {expr {[[r0 set token] set errormsg] == {timeout exceeded}}} \
     -cmd [list SimpleRequest r0 -url $slowURL -timeout 100]
 
-nx::test new -msg terminate -count 1 \
+nx::test new -msg terminate \
     -setResult {set x 1} \
     -cmd [list SimpleRequest r0 -url http://$protectedhostport/exit] \
     -post {set ::forever 1}

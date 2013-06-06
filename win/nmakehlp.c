@@ -482,12 +482,12 @@ GetVersionFromFile(
     const char *match,
     int numdots)
 {
-    size_t cbBuffer = 100;
     static char szBuffer[100];
     char *szResult = NULL;
     FILE *fp = fopen(filename, "rt");
 
     if (fp != NULL) {
+	size_t cbBuffer = 100;
 	/*
 	 * Read data until we see our match string.
 	 */
@@ -558,9 +558,11 @@ list_insert(list_item_t **listPtrPtr, const char *key, const char *value)
 static void
 list_free(list_item_t **listPtrPtr)
 {
-    list_item_t *tmpPtr, *listPtr = *listPtrPtr;
+    list_item_t *listPtr = *listPtrPtr;
+
     while (listPtr) {
-	tmpPtr = listPtr;
+	list_item_t *tmpPtr = listPtr;
+
 	listPtr = listPtr->nextPtr;
 	free(tmpPtr->key);
 	free(tmpPtr->value);
@@ -590,14 +592,13 @@ SubstituteFile(
     const char *substitutions,
     const char *filename)
 {
-    size_t cbBuffer = 1024;
     static char szBuffer[1024], szCopy[1024];
-    char *szResult = NULL;
     list_item_t *substPtr = NULL;
-    FILE *fp, *sp;
+    FILE *fp;
 
     fp = fopen(filename, "rt");
     if (fp != NULL) {
+	FILE *sp;
 
 	/*
 	 * Build a list of substutitions from the first filename
@@ -605,16 +606,18 @@ SubstituteFile(
 
 	sp = fopen(substitutions, "rt");
 	if (sp != NULL) {
+	    size_t cbBuffer = 1024;
+
 	    while (fgets(szBuffer, cbBuffer, sp) != NULL) {
 		char *ks, *ke, *vs, *ve;
 		ks = szBuffer;
-		while (ks && *ks && isspace(*ks)) ++ks;
+		while (*ks && isspace(*ks)) ++ks;
 		ke = ks;
-		while (ke && *ke && !isspace(*ke)) ++ke;
+		while (*ke && !isspace(*ke)) ++ke;
 		vs = ke;
-		while (vs && *vs && isspace(*vs)) ++vs;
+		while (*vs && isspace(*vs)) ++vs;
 		ve = vs;
-		while (ve && *ve && !(*ve == '\r' || *ve == '\n')) ++ve;
+		while (*ve && !(*ve == '\r' || *ve == '\n')) ++ve;
 		*ke = 0, *ve = 0;
 		list_insert(&substPtr, ks, vs);
 	    }
@@ -657,8 +660,9 @@ SubstituteFile(
 	}
 
 	list_free(&substPtr);
+	fclose(fp);
     }
-    fclose(fp);
+
     return 0;
 }
 
