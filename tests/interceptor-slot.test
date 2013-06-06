@@ -2,19 +2,17 @@
 package require nx
 package require nx::test
 
-namespace import ::nx::*
-
-Class create M {
+nx::Class create M {
   :method mfoo {} {puts [self proc]}
 }
-Class create M2
-Class create C 
+nx::Class create M2
+nx::Class create C 
 C create c1
 
 #
 # test mixin method
 #
-Test case mixin-method {
+nx::test case mixin-method {
   ? {C info lookup method mixin} "::nsf::classes::nx::Class::mixin"
   ? {C mixin M} ::M
   ? {C info precedence} "::nx::Class ::nx::Object"
@@ -35,7 +33,7 @@ Test case mixin-method {
 #
 # test nsf::mixin interface
 #
-Test case nsf-mixin {
+nx::test case nsf-mixin {
   ? {::nsf::mixin C ::M} "::M"
   ? {C info mixin classes} "::M"
   ? {::nsf::mixin C ::M2} "::M2 ::M"
@@ -47,7 +45,7 @@ Test case nsf-mixin {
 #
 # per-object mixins
 #
-Test case per-object-mixin {
+nx::test case per-object-mixin {
   ? {c1 info precedence} "::C ::nx::Object"
   ? {c1 object mixin add M} ::M
   ? {::nsf::relation c1 object-mixin} ::M
@@ -69,7 +67,7 @@ Test case per-object-mixin {
 # adding, removing per-object mixins for classes through relation
 # "object-mixin"
 #
-Test case object-mixin-relation {
+nx::test case object-mixin-relation {
   ? {::nsf::relation C object-mixin M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
   ? {C info object mixin classes} "::M"
@@ -91,7 +89,7 @@ Test case object-mixin-relation {
 # add and remove object mixin for classes via modifier "object" and
 # "mixin"
 #
-Test case class+mixin {
+nx::test case class+mixin {
   ? {C object mixin M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
   ? {C info object mixin classes} "::M"
@@ -102,7 +100,7 @@ Test case class+mixin {
 #
 #  add and remove object mixin for classes via object mixin add
 #
-Test case class+mixin-add {
+nx::test case class+mixin-add {
   ? {C object mixin add M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
   ? {C info object mixin classes} "::M"
@@ -126,13 +124,13 @@ Test case class+mixin-add {
 
 
 
-Test case mixin-add {
+nx::test case mixin-add {
 
-  Class create M1 {
+  nx::Class create M1 {
     :method mfoo {} {puts [current method]}
   }
-  Class create M11
-  Class create C1 
+  nx::Class create M11
+  nx::Class create C1 
 
   ? {C1 info lookup method mixin} "::nsf::classes::nx::Class::mixin"
   C1 object mixin M1
@@ -144,14 +142,14 @@ Test case mixin-add {
   Object create o -object-mixin M1
   ? {o info precedence} "::M1 ::nx::Object"
 
-  Class create O 
+  nx::Class create O 
   O object mixin M1
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
-  Class create O -object-mixin M1
+  nx::Class create O -object-mixin M1
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
 }
 
-Test case filter-relation {
+nx::test case filter-relation {
   nx::Class create CC {
     :public method filterA args {next}
     :public method filterB args {next}
@@ -207,9 +205,9 @@ Test case filter-relation {
 }
 
 
-Test parameter count 3
-Test case "filter-and-creation" {
-  Class create Foo {
+nx::test configure -count 3
+nx::test case "filter-and-creation" {
+  nx::Class create Foo {
     :method myfilter {args} {
       set i [::incr ::count]
       set s [self]
@@ -265,16 +263,16 @@ Test case "filter-and-creation" {
 }
 
 
-Test parameter count 1
+nx::test configure -count 1
 #
 # Test the next-path with just intrinsic classes in cases where a
 # method handle is used for method dispatch
 #
 
-nx::Test case intrinsic+method-handles {
-  Class create A {:public method foo {} {return "A [next]"}}
-  Class create B -superclass A {:public method foo {} {return "B [next]"}}
-  Class create C -superclass B {:public method foo {} {return "C [next]"}}
+nx::test case intrinsic+method-handles {
+  nx::Class create A {:public method foo {} {return "A [next]"}}
+  nx::Class create B -superclass A {:public method foo {} {return "B [next]"}}
+  nx::Class create C -superclass B {:public method foo {} {return "C [next]"}}
   
   C create c1
   ? {c1 foo} "C B A "
@@ -306,15 +304,15 @@ nx::Test case intrinsic+method-handles {
 # method handle is used for method dispatch
 #
 
-nx::Test case mixins+method-handles {
+nx::test case mixins+method-handles {
   #
   # Just mixin classes
   #
-  Class create A {:public method foo {} {return "A [next]"}}
-  Class create B {:public method foo {} {return "B [next]"}}
-  Class create C {:public method foo {} {return "C [next]"}}
+  nx::Class create A {:public method foo {} {return "A [next]"}}
+  nx::Class create B {:public method foo {} {return "B [next]"}}
+  nx::Class create C {:public method foo {} {return "C [next]"}}
 
-  Class create X -mixin {C B A}
+  nx::Class create X -mixin {C B A}
   X create c1
   ? {c1 foo} "C B A "
   ? {c1 [C info method definitionhandle foo]} "C B A "
@@ -325,8 +323,8 @@ nx::Test case mixins+method-handles {
   # Intrinsic classes and mixin classes
   #
 
-  Class create Y {:public method foo {} {return "Y [next]"}}
-  Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
+  nx::Class create Y {:public method foo {} {return "Y [next]"}}
+  nx::Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
 
   Z create c1 -object-mixin {C B A}
   ? {c1 foo} "C B A Z Y "
@@ -360,15 +358,15 @@ nx::Test case mixins+method-handles {
 # method handle is used for method dispatch
 #
 
-nx::Test case mixins+method-handles+intrinsic {
+nx::test case mixins+method-handles+intrinsic {
   #
   # Just mixin classes
   #
-  Class create A {:public method foo {} {return "A [next]"}}
-  Class create B {:public method foo {} {return "B [next]"}}
-  Class create C {:public method foo {} {return "C [next]"}}
+  nx::Class create A {:public method foo {} {return "A [next]"}}
+  nx::Class create B {:public method foo {} {return "B [next]"}}
+  nx::Class create C {:public method foo {} {return "C [next]"}}
 
-  Class create X -mixin {C B A} {
+  nx::Class create X -mixin {C B A} {
     :public method foo {} {return "X [next]"}
   }
   X create c1
@@ -380,8 +378,8 @@ nx::Test case mixins+method-handles+intrinsic {
   # Intrinsic classes and mixin classes
   #
 
-  Class create Y {:public method foo {} {return "Y [next]"}}
-  Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
+  nx::Class create Y {:public method foo {} {return "Y [next]"}}
+  nx::Class create Z -superclass Y {:public method foo {} {return "Z [next]"}}
 
   Z create c1 -object-mixin {C B A}
   ? {c1 foo} "C B A Z Y "

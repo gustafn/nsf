@@ -1,11 +1,11 @@
 # -*- Tcl -*-
 package req nx
-::nx::configure defaultMethodCallProtection false
 package require nx::test
-#namespace import ::nx::*
 
-nx::Test parameter count 100
-nx::Test case submethods {
+::nx::configure defaultMethodCallProtection false
+
+nx::test configure -count 100
+nx::test case submethods {
   #Object method unknown {} {}
   Object create o1   
   ? {o1 foo} "::o1: unable to dispatch method 'foo'"
@@ -63,8 +63,8 @@ nx::Test case submethods {
 #unable to dispatch method <obj> baz a m3; valid subcommands of a: m1 m2}
 #
 
-nx::Test parameter count 1 
-nx::Test case defaultmethod {
+nx::test configure -count 1 
+nx::test case defaultmethod {
   Object create o {
     :object method "string length"  x {return [current method]}
     :object method "string tolower" x {return [current method]}
@@ -96,8 +96,8 @@ nx::Test case defaultmethod {
 #
 # testing ensemble objects with next
 #
-nx::Test parameter count 1
-nx::Test case ensemble-next {
+nx::test configure -count 1
+nx::test case ensemble-next {
 
   nx::Class create FOO {
     # reduced ensemble
@@ -179,7 +179,7 @@ nx::Test case ensemble-next {
   ? {f1 l1 l2 l3a 100} "{M1.l1 l2 l3a//l3a (100)} {l1 l2//l2 (l3a 100)} {FOO.l1 l2 l3a//l3a (100)}"
 }
 
-nx::Test case ensemble-partial-next {
+nx::test case ensemble-partial-next {
   nx::Class create M {
     :public method "info has namespace" {} {
       nx::next
@@ -242,7 +242,7 @@ nx::Test case ensemble-partial-next {
 #
 # Check behavior of upvars in ensemble methods
 #
-nx::Test case ensemble-upvar {
+nx::test case ensemble-upvar {
 
   nx::Class create FOO {
     :method "bar0 x" {varname} {upvar $varname v; return [info exists v]}
@@ -265,7 +265,7 @@ nx::Test case ensemble-upvar {
 #
 # Check behavior of next with arguments within an ensemble
 #
-nx::Test case ensemble-next-with-args {
+nx::test case ensemble-next-with-args {
   nx::Object create o {
     :object method foo {x}          {return $x}
     :object method "e1 sm" {x}      {return $x}
@@ -298,8 +298,8 @@ nx::Test case ensemble-next-with-args {
   ? {o e1 e1 e1} {e1 e1 e1}
 }
 
-nx::Test parameter count 1
-nx::Test case ensemble-next-with-colon-prefix
+nx::test configure -count 1
+nx::test case ensemble-next-with-colon-prefix
 namespace eval ::ns1 {
   nx::Object create obj {
     :public object method foo {} { return [:info class] } 
@@ -348,7 +348,7 @@ namespace eval ::ns1 {
 # Leaf next: Do not trigger unknown handling (see also
 # NextSearchAndInvoke())
 #
-nx::Test case leaf-next-in-submethods {
+nx::test case leaf-next-in-submethods {
   nx::Object create container {
     set :x 0
     :public object method "FOO bar" {} { 
@@ -366,7 +366,7 @@ nx::Test case leaf-next-in-submethods {
 }
 
 
-nx::Test case submethods-and-filters {
+nx::test case submethods-and-filters {
   #
   # submethods as filters?
   #
@@ -376,7 +376,7 @@ nx::Test case submethods-and-filters {
   #C filter {{BAR bar}}
 }
 
-nx::Test case submethods-current-introspection {
+nx::test case submethods-current-introspection {
   #
   # [current] & [current class]
   #
@@ -522,7 +522,7 @@ nx::Test case submethods-current-introspection {
 #
 # Test current args in ensemble methods
 #
-nx::Test case current-args {
+nx::test case current-args {
   nx::Class create C {
     :method foo {{-x 1} z:optional} {return [current args]}
     :method "bar foo" {{-x 1} z:optional} {return [current args]}
@@ -542,7 +542,7 @@ nx::Test case current-args {
 # method interface
 #
 
-nx::Test case per-object-dispatch {
+nx::test case per-object-dispatch {
   nx::Class create C {
     :public method foo {} {return foo-[self]}
     :public method baz {} {return [c1::1 baz]}
@@ -618,8 +618,8 @@ nx::Test case per-object-dispatch {
 # Test forwarding to child object, with respect to settings of the
 # object properties keepcallerself and allowmethoddispatch
 #
-nx::Test parameter count 1000
-nx::Test case child-obj-delegation {
+nx::test configure -count 1000
+nx::test case child-obj-delegation {
 
   nx::Object create obj {
     nx::Object create [self]::child {
@@ -727,8 +727,8 @@ nx::Test case child-obj-delegation {
 # Examplify the current behavior of "keepcallerself" with and without
 # the setting of "perobjectdispatch"
 #
-nx::Test parameter count 1
-nx::Test case keepcallerself {
+nx::test configure -count 1
+nx::test case keepcallerself {
 
   nx::Class create C {:public method foo {} {return C-[self]}}
   nx::Class create D {:public method foo {} {return D-[self]}}

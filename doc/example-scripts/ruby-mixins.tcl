@@ -7,7 +7,7 @@
 # in the same script.
 
 package req nx::test
-nx::Test parameter count 1
+nx::test configure -count 1
 
 #
 # One important difference between mixin classes in NX and Ruby's

@@ -5,7 +5,7 @@ package req nx::test
 # [::nsf::current calledclass]
 #
 
-nx::Test case current-calledclass {
+nx::test case current-calledclass {
   Object create o {
     :public method foo {} {
       return [current calledclass]
@@ -51,7 +51,7 @@ nx::Test case current-calledclass {
 #
 # [::nsf::current calledclass]
 #
-nx::Test case current-calledmethod {
+nx::test case current-calledmethod {
   set body {
     return [list [current nextmethod] {*}[next]]
   }

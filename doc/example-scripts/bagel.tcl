@@ -7,7 +7,7 @@
 
 package req nx
 package req nx::test
-nx::Test parameter count 1
+nx::test configure -count 1
 
 # Suppose we need to work with many bagels in our application. We
 # might start by creating a Bagel class.

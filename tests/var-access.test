@@ -18,7 +18,7 @@ namespace eval ::nx::var1 {
 }
 
 
-nx::Test case set+array {
+nx::test case set+array {
   nx::Object create o1
   
   # first set a scalar variable
@@ -61,8 +61,8 @@ nx::Test case set+array {
   ? {nsf::var::unset -nocomplain o1 x} ""
 }
 
-nx::Test parameter count 10000
-nx::Test case dummy {
+nx::test configure -count 10000
+nx::test case dummy {
   nx::Object create o {
     set :x 1
   }

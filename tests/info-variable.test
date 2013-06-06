@@ -23,7 +23,7 @@ package req nx::test
 # /obj/ info parameter list|name|syntax /param/ -> value
 # /obj/ info variable definition|name|parameter /handle/ -> value
 #
-nx::Test case configure-parameters {
+nx::test case configure-parameters {
   nx::Class create Person {
     :property name
     :property age:integer
@@ -193,7 +193,7 @@ q"
 
 }
 
-nx::Test case object-variables {
+nx::test case object-variables {
   nx::Class create Bar {
     :property {p 9}
   }

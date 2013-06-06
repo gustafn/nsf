@@ -4665,13 +4665,21 @@ serializer.tcl
 nsf.c:
 - Eliminate all use of Tcl_GetStringFromObj() function.
 
+nx::test:
+- use the standard configure interface for
+  configuring instead of own version
+- changed from nx::Test to nx::test
+  (user never has to know that nx::Test is a class).
+- change test cases to newer interface
+- don't use "namespace import nx::*" in test cases
+  when not required
+
+
+
 ========================================================================
 TODO:
  - introspection (e.g. "syntax" for unregistered cmds/methods)
  - spellcheck / ChangeLog (to point out differences to 2.0b3)
-- maybe change nx::Test to nx::test 
-  (user never has to know that nx::Test is a class).
-
 
 Stefan: API-related items
 

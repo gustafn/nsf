@@ -2,9 +2,9 @@
 package require nx
 package require nx::test
 
-nx::Test parameter count 1
+nx::test configure -count 1
 
-nx::Test case call-protected {
+nx::test case call-protected {
   nx::Class create C {
     :public alias SET ::set
     :public method foo {} {return [current method]}
@@ -82,7 +82,7 @@ nx::Test case call-protected {
 # Allow to call methods as filters even if these are protected or
 # private.
 #
-nx::Test case protected+filter {
+nx::test case protected+filter {
   nx::Class create C {
     :method f1 args { next }
     :private method f2 args { next }
@@ -102,7 +102,7 @@ nx::Test case protected+filter {
 }
 
 
-nx::Test case redefined-protected {
+nx::test case redefined-protected {
   nx::Class create C {
     :public alias SET ::set
     :public method foo {} {return [current method]}
@@ -154,7 +154,7 @@ nx::Test case redefined-protected {
 # Use case for private:
 # Hide "helper methods of e.g. mixin"
 #
-nx::Test case private-helper {
+nx::test case private-helper {
 
   nx::Class create B {
     :public method bar {} {return "B.bar [next]"}
@@ -208,7 +208,7 @@ nx::Test case private-helper {
 # Use case for private:
 # Hide "helper object specific helper methods"
 #
-nx::Test case object-private-helper {
+nx::test case object-private-helper {
 
   nx::Class create B {
     :public method bar {} {return "B.bar [next]"}
@@ -262,7 +262,7 @@ nx::Test case object-private-helper {
 #
 # Check local + filter
 #
-nx::Test case local+filter {
+nx::test case local+filter {
   nx::Class create C {
     :method f1 args { return "f1 [next]" }
     :public method foo {} { return "C.foo [: -local bar]"}
@@ -307,7 +307,7 @@ nx::Test case local+filter {
 #
 # test private
 #
-nx::Test case private {
+nx::test case private {
   nx::Class create B {
     :private method p1 {} {return B.p1}
     :private method p2 {} {return B.p2}
@@ -393,7 +393,7 @@ nx::Test case private {
 # test ": -local" on classes
 #
 
-nx::Test case class-my-local {
+nx::test case class-my-local {
   nx::Class create Base {
     :private method baz {a b} { expr {$a + $b} }
     :public method foo {a b} {: -local baz $a $b}
@@ -414,7 +414,7 @@ nx::Test case class-my-local {
 #
 # test ": -local" on objects
 #
-nx::Test case object-my-local {
+nx::test case object-my-local {
   nx::Class create M {
     :public method foo {} {return "M [next]"}
     :public method foo2 {} {return "M2 [next]"}
@@ -441,7 +441,7 @@ nx::Test case object-my-local {
 # test "my" + path instead of ": -local" on classes
 #
 
-nx::Test case my+handle-instead-of-my-local {
+nx::test case my+handle-instead-of-my-local {
   nx::Class create Base {
     :private method privateMethod {a b} { expr {$a + $b} }
     :public method foo {a b} {: [Base info method registrationhandle privateMethod] $a $b}
@@ -462,7 +462,7 @@ nx::Test case my+handle-instead-of-my-local {
 # test object::dispatch instead of ": -local" on classes
 #
 
-nx::Test case dispatch-instead-of-my-local {
+nx::test case dispatch-instead-of-my-local {
   nx::Class create Base {
     :private method privateMethod {a b} { expr {$a + $b} }
     :public method foo {a b} { dispatch [self] [Base info method registrationhandle privateMethod] $a $b }
@@ -482,7 +482,7 @@ nx::Test case dispatch-instead-of-my-local {
 #
 # Test -system flag on dispatch with explicit receiver
 #
-nx::Test case system-flag {
+nx::test case system-flag {
 
   #
   # create an object, which overloads some system behavior
@@ -540,7 +540,7 @@ nx::Test case system-flag {
 # private methods
 #
 
-nx::Test case class-my-local+next {
+nx::test case class-my-local+next {
 
   nx::Class create Base {
     :private method baz {a b} { expr {$a + $b} }
@@ -612,7 +612,7 @@ nx::Test case class-my-local+next {
 # Test setting / clearing private and protected flags
 #
 
-nx::Test case call-protected-flags {
+nx::test case call-protected-flags {
   Class create C
 
   C protected method foo {} {return foo}
@@ -646,7 +646,7 @@ nx::Test case call-protected-flags {
 #
 # private subobjects
 #
-nx::Test case private-subobject {
+nx::test case private-subobject {
   nx::Object create obj {
     :public object method foo {} {return foo-[self]}
     nx::Object create [self]::child {
@@ -687,7 +687,7 @@ nx::Test case private-subobject {
 #
 # Test protected and private object properties
 #
-nx::Test case protected-priv-class-property {
+nx::test case protected-priv-class-property {
   nx::Class create C {
     :property -accessor public {a a1}
     :property -accessor protected {b b1}
@@ -772,7 +772,7 @@ nx::Test case protected-priv-class-property {
 # Test properties in class hierarchy, where a subclass defines a
 # private property with the same name as a property in a superclass.
 #
-nx::Test case private-shadows-public-property {
+nx::test case private-shadows-public-property {
   nx::Class create C {
     :property -accessor public {x c}
   }
@@ -794,7 +794,7 @@ nx::Test case private-shadows-public-property {
 #
 # Test protected and private class properties
 #
-nx::Test case protected-priv-object-property {
+nx::test case protected-priv-object-property {
   nx::Object create o {
     :object property -accessor public {a a1}
     :object property -accessor protected {b b1}
@@ -830,7 +830,7 @@ nx::Test case protected-priv-object-property {
 #
 # Test protected and private class object properties
 #
-nx::Test case protected-priv-class-object-property {
+nx::test case protected-priv-class-object-property {
   nx::Class create C {
     :object property -accessor public {a a1}
     :object property -accessor protected {b b1}

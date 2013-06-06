@@ -8,7 +8,7 @@ package require nx::test
 # test cases for disposition "alias" and "forward"
 #
 
-nx::Test case basics {
+nx::test case basics {
 
   Class create C {
     :object property {inst "::__%&singleton"}
@@ -318,7 +318,7 @@ nx::Test case basics {
   ? {C new} "parameter option 'initcmd' not valid in this option combination"
 }
 
-nx::Test case dispo-multiplicities {
+nx::test case dispo-multiplicities {
   Class create S {
     :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
@@ -381,7 +381,7 @@ nx::Test case dispo-multiplicities {
 
 }
 
-nx::Test case dispo-returns {
+nx::test case dispo-returns {
   Class create R {
      :public object method setObjectParams {spec} {
        :protected method __objectparameter {} [list return $spec]
@@ -445,7 +445,7 @@ nx::Test case dispo-returns {
   ? {string is wideinteger [[R new -foo t f] eval {set :baz}]} 1
 }
 
-nx::Test case dispo-callstack {
+nx::test case dispo-callstack {
   Class create Callee {
     :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
@@ -613,7 +613,7 @@ nx::Test case dispo-callstack {
 
 }
 
-nx::Test case alias-noarg {
+nx::test case alias-noarg {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
@@ -754,7 +754,7 @@ nx::Test case alias-noarg {
 #
 # check inticmd + noarg (should not be allowed)
 #
-nx::Test case alias-noarg {
+nx::test case alias-noarg {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
@@ -769,7 +769,7 @@ nx::Test case alias-noarg {
 #
 # check alias + args
 #
-nx::Test case alias-args {
+nx::test case alias-args {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
@@ -859,7 +859,7 @@ nx::Test case alias-args {
 
 
 
-nx::Test case alias-init {
+nx::test case alias-init {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
@@ -877,7 +877,7 @@ nx::Test case alias-init {
   ? {c1 eval {set :y}} 1
 }
 
-nx::Test case submethods-via-aliasparams {
+nx::test case submethods-via-aliasparams {
   #
   # Could move to submethods.test?
   #
@@ -1080,7 +1080,7 @@ nx::Test case submethods-via-aliasparams {
   C mixin {}  
 }
 
-nx::Test case dispo-configure-transparency {
+nx::test case dispo-configure-transparency {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __objectparameter {} [list return $spec]
@@ -1169,7 +1169,7 @@ nx::Test case dispo-configure-transparency {
   #
 }
 
-nx::Test case dispo-object-targets {
+nx::test case dispo-object-targets {
   Object create obj
   ::nsf::object::property obj perobjectdispatch true
 
@@ -1332,7 +1332,7 @@ nx::Test case dispo-object-targets {
 # check xotcl with residual args
 #
 
-nx::Test case xotcl-residualargs {
+nx::test case xotcl-residualargs {
   package prefer latest
   puts stderr "XOTcl loaded: [package req XOTcl 2.0]"
 
@@ -1354,8 +1354,8 @@ nx::Test case xotcl-residualargs {
 }
 
 
-nx::Test parameter count 1000
-nx::Test case xotcl-residualargs2 {
+nx::test configure -count 1000
+nx::test case xotcl-residualargs2 {
 
   ::xotcl::Class create XC -parameter {a b c}
   ::XC instproc init args {set :x $args; incr :y}
@@ -1378,7 +1378,7 @@ nx::Test case xotcl-residualargs2 {
   ? {c1 eval {set :y}} 1
 }
 
-nx::Test case xotcl-residualargs-upleveling {
+nx::test case xotcl-residualargs-upleveling {
   #
   # Test callstack resolution for upvar/uplevel in
   # parameter-dispatched methods under residualargs() ...

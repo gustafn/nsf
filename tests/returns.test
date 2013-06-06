@@ -12,8 +12,8 @@ package require nx::test
 #
 ::nsf::configure checkresult true
 
-nx::Test parameter count 10000
-nx::Test case int-returns { 
+nx::test configure -count 10000
+nx::test case int-returns { 
     nx::Class create C {
 	# scripted method without paramdefs
 	:method bar-ok1 {a b} {return 1}
@@ -62,8 +62,8 @@ nx::Test case int-returns {
 
 }
 
-nx::Test parameter count 10
-nx::Test case app-specific-returns { 
+nx::test configure -count 10
+nx::test case app-specific-returns { 
 
     ::nx::methodParameterSlot object method type=range {name value arg} {
 	foreach {min max} [split $arg -] break
@@ -98,8 +98,8 @@ nx::Test case app-specific-returns {
     ? {c1 lappend l e1} {Value 'e1' of parameter return-value not between 1 and 30}
 }
 
-nx::Test parameter count 1000
-nx::Test case converting-returns { 
+nx::test configure -count 1000
+nx::test case converting-returns { 
 
     ::nx::methodParameterSlot object method type=sex {name value args} {
         #puts stderr "[current] slot specific converter"
@@ -154,8 +154,8 @@ nx::Test case converting-returns {
 #
 ::nsf::configure checkresults false
 
-::nx::Test parameter count 1000
-::nx::Test case int-returns-nocheck { 
+::nx::test configure -count 1000
+::nx::test case int-returns-nocheck { 
     nx::Class create C {
 	# scripted method without paramdefs
 	:method bar-ok1 {a b} {return 1}
@@ -198,8 +198,8 @@ nx::Test case converting-returns {
     ? {::nsf::method::property ::nx::Class method returns} ""
 }
 
-::nx::Test parameter count 10
-::nx::Test case app-specific-returns-nocheck { 
+::nx::test configure -count 10
+::nx::test case app-specific-returns-nocheck { 
 
     ::nx::methodParameterSlot object method type=range {name value arg} {
 	foreach {min max} [split $arg -] break
@@ -234,8 +234,8 @@ nx::Test case converting-returns {
     ? {c1 lappend l e1} e1
 }
 
-::nx::Test parameter count 1000
-::nx::Test case converting-returns-nocheck { 
+::nx::test configure -count 1000
+::nx::test case converting-returns-nocheck { 
 
     ::nx::methodParameterSlot object method type=sex {name value args} {
         #puts stderr "[current] slot specific converter"
@@ -294,7 +294,7 @@ nx::Test case converting-returns {
 
 ::nsf::configure checkresults true
 
-::nx::Test case int-returns-sugar { 
+::nx::test case int-returns-sugar { 
     nx::Class create C {
 	# scripted method without paramdefs
 	:method bar-ok1 {a b} -returns integer {return 1}
@@ -354,7 +354,7 @@ nx::Test case converting-returns {
 
 }
 
-::nx::Test case empty-paramdefs-robustedness {
+::nx::test case empty-paramdefs-robustedness {
   ::nx::Object create ku {
     # 1: Create an empty or checker-free parameter spec
     :object method foo {} {;}

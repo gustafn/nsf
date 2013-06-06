@@ -3,9 +3,9 @@
 # testing var resolution
 #
 package require nx
-::nx::configure defaultMethodCallProtection false
 package require nx::test
-namespace import ::nx::*
+
+::nx::configure defaultMethodCallProtection false
 
 ::nsf::method::alias ::nx::Object objeval -frame object ::eval 
 ::nsf::method::alias ::nx::Object array -frame object ::array
@@ -18,9 +18,9 @@ namespace import ::nx::*
 # Basic tests for var resolution under 
 # per-object namespaces ...
 ###########################################
-Test case globals
+nx::test case globals
 set ::globalVar 1
-Object create o 
+nx::Object create o 
 o require namespace
 ? {o info vars} ""
 ? {info exists ::globalVar} 1
@@ -40,10 +40,10 @@ unset ::globalVar
 ###########################################
 # scopes
 ###########################################
-Test case scopes
+nx::test case scopes
 
-Object create o 
-Object create o2 {set :i 1}
+nx::Object create o 
+nx::Object create o2 {set :i 1}
 o objeval {
   # require an namespace within an objscoped frame; it is necessary to replace
   # vartables on the stack
@@ -103,8 +103,8 @@ unset ::g
 
 # like the example above, but with the non-leaf initcmd
 
-Object create o2 {set :i 1}
-Object create o {
+nx::Object create o2 {set :i 1}
+nx::Object create o {
   :require namespace
   global g
   ::nsf::var::import o2 i
@@ -137,10 +137,10 @@ foreach v {::x ::z ::g} {unset -nocomplain $v}
 ###########################################
 # var exists tests
 ###########################################
-Test case exists {
+nx::test case exists {
     set y 1 
 
-    Object create o {set :x 1}
+    nx::Object create o {set :x 1}
     o object method foo {} {info exists :x}
     o object method bar {} {info exists :y}
     ? {o eval {info exists :x}} 1
@@ -160,9 +160,9 @@ Test case exists {
 ###########################################
 # mix & match namespace and object interfaces
 ###########################################
-Test case namespaces
+nx::test case namespaces
 
-Object create o 
+nx::Object create o 
 o require namespace
 o set x 1
 ? {namespace eval ::o {set x}} 1
@@ -184,9 +184,9 @@ o destroy
 ###########################################
 # array-specific tests
 ###########################################
-Test case namespaces-array
+nx::test case namespaces-array
 
-Object create o 
+nx::Object create o 
 o require namespace
 
 ? {o array exists a} 0
@@ -210,10 +210,10 @@ o destroy
 ###########################################
 # tests on namespace-qualified var names
 ###########################################
-Test case namespaced-var-names
-Object create o 
+nx::test case namespaced-var-names
+nx::Object create o 
 o require namespace
-Object create o::oo 
+nx::Object create o::oo 
 o::oo require namespace
 
 ? {::o set ::x 1} 1
@@ -242,7 +242,7 @@ o destroy
 
 # the tests below fail. We could consider
 # to require namespaces on the fly in the future
-#Object create o
+#nx::Object create o
 #? {::o set ::o::x 1} 1
 #? {o exists x} [::o set ::o::x]
 #? {namespace eval ::o unset x} ""
@@ -258,8 +258,8 @@ o destroy
 ###############################################
 # tests for the compiled var resolver on Object
 ###############################################
-Test case var-resolver-object
-Object create o
+nx::test case var-resolver-object
+nx::Object create o
 o object method foo {x} {set :y 2; return ${:x},${:y}}
 o object method bar {} {return ${:x},${:y}}
 o set x 1
@@ -268,7 +268,7 @@ o set x 1
 ? {o info vars} "x y" 
 # recreate object, check var caching; 
 # we have to recreate bar, so no problem
-Object create o
+nx::Object create o
 o set x 1
 o object method bar {} {return ${:x},${:y}}
 ? {catch {o bar}} "1" "compiled var y should not exist"
@@ -277,8 +277,8 @@ o destroy
 ###############################################
 # tests for the compiled var resolver on Class
 ###############################################
-Test case var-resolver-class
-Class create C {:property {x 1}}
+nx::test case var-resolver-class
+nx::Class create C {:property {x 1}}
 C create c1
 C method foo {x} {set :y 2; return ${:x},${:y}}
 C method bar {} {return ${:x},${:y}}
@@ -301,8 +301,8 @@ C destroy
 ###############################################
 # tests for the compiled var resolver with eval
 ###############################################
-Test case compiled-var-resolver
-Class create C {:property {x 1}}
+nx::test case compiled-var-resolver
+nx::Class create C {:property {x 1}}
 C create c1
 C method foo {x} {
   set :y 2; 
@@ -335,7 +335,7 @@ C destroy
 # tests with array
 ###############################################
 
-Class create C
+nx::Class create C
 C create c1
 C method foo {} {
   array set :a {a 1 b 2 c 3}
@@ -348,8 +348,8 @@ c1 foo
 ###############################################
 # tests for the var resolver
 ###############################################
-Test case var-resolver
-Class create C
+nx::test case var-resolver
+nx::Class create C
 C method bar0 {} {return ${:x}}
 C method bar1 {} {set a ${:x}; return [info exists :x],[info exists :y]}
 C method bar2 {} {return [info exists :x],[info exists :y]}
@@ -371,7 +371,7 @@ c1 foo
 ###############################################
 # first tests for the cmd resolver
 ###############################################
-Class create C
+nx::Class create C
 C method bar {args} {
   #puts stderr "[current] bar called with [list $args]"
   return $args
@@ -401,7 +401,7 @@ C create c3
 set ::w 1
 array set ::tmpArray {key value}
 
-Class create ::C
+nx::Class create ::C
 ::nsf::method::alias ::C Set -frame object ::set
 ::nsf::method::alias ::C Unset -frame object ::unset
 
@@ -426,14 +426,14 @@ unset ::tmpArray
 # -varscope flags and with a
 # required namespace and without
 ##################################################
-Test case eval-variants
+nx::test case eval-variants
 ::nsf::method::alias ::nx::Object objeval -frame object ::eval 
 ::nsf::method::alias ::nx::Object softeval -frame method ::eval 
 ::nsf::method::alias ::nx::Object softeval2 ::eval 
 
 set G 1
 
-Object create o {
+nx::Object create o {
   set xxx 1
   set :x 1
   ? {info exists G} 1
@@ -487,7 +487,7 @@ unset -nocomplain ::zzz
 o destroy
 
 # now with an object namespace 
-Object create o
+nx::Object create o
 o require namespace
 
 # objeval does an objcope, all vars are instance variables
@@ -520,10 +520,10 @@ o destroy
 # The same as above, but with some global vars.  The global vars
 # should not influence the behavior on instance variables
 #################################################################
-Test case with-global-vars
+nx::test case with-global-vars
 foreach var {.x x xxx :a a aaa :b b bbb :c c ccc :d d ddd :z z zzz} {set $var 1}
 
-Object create o {
+nx::Object create o {
   set xxx 1
   set :x 1
 }
@@ -558,7 +558,7 @@ o softeval2 {
 o destroy
 
 # now with namespace 
-Object create o
+nx::Object create o
 o require namespace
 
 # eval does an objcope, all vars are instance variables
@@ -590,7 +590,7 @@ o destroy
 ##################################################
 # Test with proc scopes
 ##################################################
-Test case proc-scopes
+nx::test case proc-scopes
 ::nsf::method::alias ::nx::Object objscoped-eval -frame object ::eval 
 ::nsf::method::alias ::nx::Object nonleaf-eval -frame method ::eval 
 ::nsf::method::alias ::nx::Object plain-eval ::eval 
@@ -598,7 +598,7 @@ Test case proc-scopes
 proc foo-via-initcmd {} {
   foreach v {x xxx} {unset -nocomplain ::$v}
   set p 1
-  Object create o {
+  nx::Object create o {
     set xxx 1
     set :x 1
     set ::result G=[info exists G],p=[info exists p]
@@ -609,7 +609,7 @@ proc foo-via-initcmd {} {
 proc foo {type} {
   foreach v {x xxx} {unset -nocomplain ::$v}
   set p 1
-  Object create o 
+  nx::Object create o 
   o $type {
     set xxx 1
     set :x 1
@@ -646,10 +646,10 @@ set G 1
 ##################################################
 # dotCmd tests
 ##################################################
-Test case dotcmd
+nx::test case dotcmd
 set C 0
 proc bar {} {incr ::C}
-Class create Foo {
+nx::Class create Foo {
   :method init {} {set :c 0}
   :method callDot1 {} {:bar}
   :method callDot2 {} {:bar}
@@ -670,7 +670,7 @@ vwait X
 #
 # Test vwait with colon variable and vwait method
 #
-Object create o {
+nx::Object create o {
   set :x 0
   :public object method foo {} {incr :x}
   :public object method vwait {varName} {
@@ -716,11 +716,11 @@ vwait X
 ##################################################
 # test for namespace resolver
 ##################################################
-Test case nsresolver
+nx::test case nsresolver
 namespace eval module {
-  Class create C
-  Class create M1
-  Class create M2
+  nx::Class create C
+  nx::Class create M1
+  nx::Class create M2
 
   C mixin M1
   ? {::nsf::relation C class-mixin} "::module::M1"
@@ -736,9 +736,9 @@ namespace eval module {
 # of an eval (one case uses compiler)
 ##################################################
 
-Test case alias-dot-resolver-interp
+nx::test case alias-dot-resolver-interp
 # outside of eval scope (interpreted)
-Class create V {
+nx::Class create V {
   set :Z 1
   set ZZZ 1
   :method bar {z} { return $z }
@@ -753,9 +753,9 @@ Class create V {
 
 # dot-resolver/ dot-dispatcher used in aliased proc
 
-Test case alias-dot-resolver {
+nx::test case alias-dot-resolver {
 
-  Class create V {
+  nx::Class create V {
     set :Z 1
     set ZZZ 1
     :method bar {z} { return $z }
@@ -773,9 +773,9 @@ Test case alias-dot-resolver {
 # test [info vars] in eval method
 #
 
-Test case info-vars-in-eval {
+nx::test case info-vars-in-eval {
 
-  Object create o
+  nx::Object create o
   ? {o eval {
     set x 1
     expr {[info vars "x"] eq "x"}
@@ -786,8 +786,8 @@ Test case info-vars-in-eval {
 # test for former crash when variable is used in connection with
 # prefixed variables
 #
-Test case tcl-variable-cmd {
-  Object create o {
+nx::test case tcl-variable-cmd {
+  nx::Object create o {
     :public object method ? {varname} {info exists :$varname}
     :public object method bar args {
       variable :a
@@ -811,7 +811,7 @@ Test case tcl-variable-cmd {
   ? {lsort [o info vars]} a
 }
 
-Test case interactions {
+nx::test case interactions {
   
   # SS: Adding an exemplary test destilled from the behaviour observed
   # for AOLserver vs. NaviServer when introspecting object variables
@@ -820,7 +820,7 @@ Test case interactions {
   # non-compiling var resolvers and (b) compiled and non-compiled
   # script execution
   
-  Object create ::o {
+  nx::Object create ::o {
     :public object method bar {} {
       # 1. creates a proc-local, compiled var "type"
       set type 1
@@ -912,7 +912,7 @@ Test case interactions {
   # this has some implications ...
   
   namespace eval ::ns1 {
-    Object create o {
+    nx::Object create o {
       :public object method foo {} {
 	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
 			 [info exists w] [::nsf::var::exists [::nsf::current] w] \
@@ -1035,7 +1035,7 @@ Test case interactions {
     # accessing of object state ...
     #
 
-    Object create p {
+    nx::Object create p {
       :public object method foo {var} {
 	set :x XXX
 	set _ ${:x}
@@ -1108,19 +1108,19 @@ Test case interactions {
   }
 }
 
-Test case after-next {
+nx::test case after-next {
   #
   # This test case tests, whether we can use e..g an instvar in an
   # mixin method after the next. In such cases, the frame flags have
   # to be altered from inactive mixin to active mixin (otherwise the
   # actual frame would be skipped in useActiveFrames below in :instvar).
   #
-  Class create FormPage {
+  nx::Class create FormPage {
     :property package_id
     :public method initialize_loaded_object {} {;}
   }
 
-  Class create WorkflowPage {
+  nx::Class create WorkflowPage {
     :alias instvar :::nsf::methods::object::instvar
     :public method initialize_loaded_object {} {
       next
@@ -1135,11 +1135,11 @@ Test case after-next {
   }
 }
 
-Test case unconfigured-varresolver {
+nx::test case unconfigured-varresolver {
   #
   # Test robustness of varresolver for unconfigured objects
   #
-  Class create O {
+  nx::Class create O {
     :public method configure args {;}
     :create ateh
   }
@@ -1151,7 +1151,7 @@ Test case unconfigured-varresolver {
 # (lambda frames)
 #
 
-::nx::Test case var-resolver-uplevel-apply {
+::nx::test case var-resolver-uplevel-apply {
 
   nx::Object create o1 {
     set :a o1.a

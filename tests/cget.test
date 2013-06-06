@@ -5,7 +5,7 @@ package require nx::test
 #
 # The first test set checks just the basic behavior:
 #
-nx::Test case cget-simple {
+nx::test case cget-simple {
 
   nx::Class create Person {
     :property famnam:required
@@ -61,8 +61,8 @@ nx::Test case cget-simple {
 # methods "assign" and "get".
 #
 
-nx::Test parameter count 1
-nx::Test case cget-via-slot {
+nx::test configure -count 1
+nx::test case cget-via-slot {
 
   nx::Class create C {
     
@@ -122,7 +122,7 @@ nx::Test case cget-via-slot {
 # The third test set checks method binding to parameter:
 # All cmds are supposed to return resonable values.
 #
-nx::Test case cget-parameter-methods {
+nx::test case cget-parameter-methods {
   nx::Class create C {
     :property {foo:alias,method=m0 {1 2 3}}
     :property {{bar:forward,method=%self m1 a b c %method} bar1}
@@ -175,8 +175,8 @@ nx::Test case cget-parameter-methods {
 #
 # The fourth test set checks performance of "cget" and "configure".
 #
-nx::Test parameter count 10000
-nx::Test case cget-performance {
+nx::test configure -count 10000
+nx::test case cget-performance {
 
   nx::Class create Person {
     :property famnam:required
@@ -220,8 +220,8 @@ nx::Test case cget-performance {
 
 }
 
-nx::Test parameter count 1
-nx::Test case configure-trace-class {
+nx::test configure -count 1
+nx::test case configure-trace-class {
 
   #
   # class case with no default
@@ -259,7 +259,7 @@ nx::Test case configure-trace-class {
   ? {c2 cget -q} "102"
 }
 
-nx::Test case configure-trace-object {
+nx::test case configure-trace-object {
   #
   # object case with no default
   #
@@ -299,7 +299,7 @@ nx::Test case configure-trace-object {
 
 
 
-nx::Test case configure-trace-class-type {
+nx::test case configure-trace-class-type {
 
   #
   # class case with type and no default
@@ -355,7 +355,7 @@ nx::Test case configure-trace-class-type {
 }
 
 
-nx::Test case configure-trace-object-type {
+nx::test case configure-trace-object-type {
   #
   # object case with no default
   #

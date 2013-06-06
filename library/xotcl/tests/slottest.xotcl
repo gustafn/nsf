@@ -3,7 +3,7 @@ package prefer latest
 package require XOTcl 2.0; namespace import -force ::xotcl::*
 package require nx::test
 
-nx::Test parameter count 1000
+nx::test configure -count 1000
 
 # what's new:
 #   - slots instances are manager objects for slot values
@@ -146,7 +146,7 @@ O2 superclass delete ::O
 #
 ::xotcl::MetaSlot create Role -superclass Attribute -parameter {references}
 
-::nx::Test case info-slots-heritage {
+::nx::test case info-slots-heritage {
   ::xotcl::Class create C -parameter {c1 c2}
   ::xotcl::Class create D -superclass C -parameter {c2 c3}
 
@@ -372,7 +372,7 @@ a1 foo 123 ;# calls overridden foosetter
 #puts [A serialize]
 
 ###################
-nx::Test case req-param {
+nx::test case req-param {
   ::xotcl::Class create C -parameter {y:required x:required}
   C instproc init args {set ::_ $args}
 
@@ -389,7 +389,7 @@ nx::Test case req-param {
 ###################
 # Application Slots
 #
-nx::Test case app-slots
+nx::test case app-slots
 
 Class Person -slots {
   Attribute create name
@@ -475,7 +475,7 @@ Person method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
 #######################################################
 # defaultcmd via slots
 #######################################################
-nx::Test case defaultcmd
+nx::test case defaultcmd
 set ::hu 0
 Class C -slots {
   Attribute create x -defaultcmd {incr ::hu; set x 101}
@@ -489,7 +489,7 @@ C c1
 #######################################################
 # nested contains
 #######################################################
-nx::Test case nested-contains
+nx::test case nested-contains
 
 Class Point -parameter {{x 100} {y 300}}
 Class Rectangle -parameter {color}
@@ -521,7 +521,7 @@ Rectangle r0 -color pink -contains {
 #######################################################
 # assign via slots
 #######################################################
-nx::Test case assign-via-slots
+nx::test case assign-via-slots
 
 Class create A -slots {
   Attribute create foo -default 1 -proc  assign {domain var value} {
@@ -568,7 +568,7 @@ Class Fred -slots { Attribute create a -defaultcmd { set _ 4 } }
 x move y
 ? {y a} 4
 
-::nx::Test case slots-compat
+::nx::test case slots-compat
 #
 # Some tests covering the backward compatibility of NX/XOTcl2 hybrid
 # slots to the XOTcl1 slot API (as extracted from the XOTcl language

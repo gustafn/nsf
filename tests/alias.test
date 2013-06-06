@@ -5,8 +5,8 @@ package require nx::test
 
 #::nx::configure defaultMethodCallProtection false
 
-nx::Test parameter count 10
-nx::Test case alias-preliminaries { 
+nx::test configure -count 10
+nx::test case alias-preliminaries { 
   
   # The system methods of nx::VariableSlot are either alias or forwarders
   ? {lsort [::nx::VariableSlot info methods -type alias]} {assign get}
@@ -37,7 +37,7 @@ nx::Test case alias-preliminaries {
 
 }
 
-nx::Test case alias-simple { 
+nx::test case alias-simple { 
   # define an alias and retrieve its definition
   nx::Class create Base {
     :public method foo {{-x 1}} {return $x}
@@ -76,7 +76,7 @@ nx::Test case alias-simple {
   ? {Foo info methods -type alias} {} "removed"
 }
 
-nx::Test case alias-chaining {
+nx::test case alias-chaining {
   #
   # chaining aliases
   #
@@ -180,7 +180,7 @@ nx::Test case alias-chaining {
   ? {lsort [T info object methods]} {ZAP bar}
 }
 
-nx::Test case alias-per-object {
+nx::test case alias-per-object {
 
   nx::Class create T {
     :public object method bar args { return [current class]->[current method] }
@@ -239,7 +239,7 @@ nx::Test case alias-per-object {
 
 
 # namespaced procs + namespace deletion
-nx::Test case alias-namespaced {
+nx::test case alias-namespaced {
   nx::Class create T {
     :public object method bar args { return [current class]->[current method] }
     :create t
@@ -291,7 +291,7 @@ nx::Test case alias-namespaced {
 
 # dot-resolver/ dot-dispatcher used in aliased proc
 
-nx::Test case alias-dot-resolver {
+nx::test case alias-dot-resolver {
 
   nx::Class create V {
     set :z 1
@@ -324,7 +324,7 @@ nx::Test case alias-dot-resolver {
   ? {lsort [V info object methods]} {FOO2 bar}
 }
 
-nx::Test case alias-store
+nx::test case alias-store
 #
 # Tests for the ::nsf::method::alias store, used for introspection for
 # aliases. The alias store (an associative variable) is mostly
@@ -458,7 +458,7 @@ rename ::foo2 ::foo
 # Check resolving of namespace imported classes
 # and when a class is aliased via "interp alias"
 #
-nx::Test case class-resolve {
+nx::test case class-resolve {
   namespace eval ::ns1 {
     nx::Class create A {:public method foo {} {::nx::current class}}
     nx::Class create B {:public method foo {} {::nx::current class}}
@@ -483,8 +483,8 @@ nx::Test case class-resolve {
   }
 }
 
-nx::Test parameter count 10
-nx::Test case proc-alias {
+nx::test configure -count 10
+nx::test case proc-alias {
 
   nx::Class create C {
     :public method foo {} {upvar x y; info exists y}
@@ -555,8 +555,8 @@ proc baz {} {
   return ${:z}  
 }
 
-nx::Test parameter count 10
-nx::Test case proc-alias-compile {
+nx::test configure -count 10
+nx::test case proc-alias-compile {
 
   nx::Object create o {
     set :a 100
@@ -601,8 +601,8 @@ nx::Test case proc-alias-compile {
 #
 # test redefinition of a target proc
 #
-nx::Test parameter count 1
-nx::Test case alias-proc-refetch {
+nx::test configure -count 1
+nx::test case alias-proc-refetch {
 
   #
   # initial definition 
@@ -621,8 +621,8 @@ nx::Test case alias-proc-refetch {
 #
 # test registration of a pre-compiled proc
 #
-nx::Test parameter count 1
-nx::Test case alias-precompiled-proc {
+nx::test configure -count 1
+nx::test case alias-precompiled-proc {
   nx::Class create C {
     :public method vars {} {
       set result [list]
@@ -673,7 +673,7 @@ nx::Test case alias-precompiled-proc {
 # Testing aliases to objects and reference counting.
 # Check the effects via MEM_COUNT...
 #
-nx::Test case refcount-object-alias-recreate1 {
+nx::test case refcount-object-alias-recreate1 {
   #
   # alias recreate with the same object
   #
@@ -702,7 +702,7 @@ nx::Test case refcount-object-alias-recreate1 {
   }
 }
 
-nx::Test case refcount-object-alias-recreate2 {
+nx::test case refcount-object-alias-recreate2 {
   #
   # alias recreate with a proc
   #
@@ -716,7 +716,7 @@ nx::Test case refcount-object-alias-recreate2 {
   }
 }
 
-nx::Test case refount-destroy-delete1 {
+nx::test case refount-destroy-delete1 {
   nx::Object create ::x
   nx::Object create ::o {:object alias X ::x}
 
@@ -742,7 +742,7 @@ nx::Test case refount-destroy-delete1 {
   ? {::o object alias X ::x} "::o::X"
 }
 
-nx::Test case refount-destroy-delete2 {
+nx::test case refount-destroy-delete2 {
   nx::Object create ::o
   nx::Object create ::baff
   nx::Object create ::baff::child
@@ -768,7 +768,7 @@ nx::Test case refount-destroy-delete2 {
 #
 # Testing cylcic alias
 #
-nx::Test case cyclic-alias {
+nx::test case cyclic-alias {
   nx::Object create o {
     set handle [:public object method foo {} {return 1}]
     # we can define currently the recursive definition

@@ -3,7 +3,7 @@
 package req nx::test
 package req nx::serializer	
 
-nx::Test case deepSerialize-map-filter {
+nx::test case deepSerialize-map-filter {
 
   Object create ::a {
     :object property -accessor public ref:object,type=[:info class]
@@ -51,7 +51,7 @@ nx::Test case deepSerialize-map-filter {
   ? {::a::c eval {set :parentRef}} ::a
 }
 
-nx::Test case deepSerialize-ignoreVarsRE-filter {   
+nx::test case deepSerialize-ignoreVarsRE-filter {   
   nx::Class create C {
     :object property -accessor public x
     :object property -accessor public y
@@ -113,7 +113,7 @@ nx::Test case deepSerialize-ignoreVarsRE-filter {
   }
 }
 
-nx::Test case deepSerialize-ignore-filter { 
+nx::test case deepSerialize-ignore-filter { 
   Object create ::a {
     Object create [self]::b 
     Object create [self]::c
@@ -143,7 +143,7 @@ nx::Test case deepSerialize-ignore-filter {
   ? {::nsf::object::exists ::a} 0
 }
 
-nx::Test case serialize-slotContainer {
+nx::test case serialize-slotContainer {
  
   nx::Class create C {
     :object property x
@@ -176,7 +176,7 @@ nx::Test case serialize-slotContainer {
 # check whether ::nsf::object::properties keepcallerself and
 # perobjectdispatch for nx::Objects are handled correctly via serialize
 #
-nx::Test case serialize-object-properties {
+nx::test case serialize-object-properties {
  
   #
   # Check on object o

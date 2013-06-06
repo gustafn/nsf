@@ -6,7 +6,7 @@
 
 package req nx
 package req nx::test
-nx::Test parameter count 1
+nx::test configure -count 1
 
 # == Simple Container
 #

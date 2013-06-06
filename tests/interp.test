@@ -5,7 +5,7 @@ proc traceStderr args {
   puts ">>> traceStderr HA! $args"
 }
 
-nx::Test case hidden-cmds {
+nx::test case hidden-cmds {
   global i
 
   #
@@ -160,7 +160,7 @@ nx::Test case hidden-cmds {
 #
 # Explicit destruction
 #
-nx::Test case hidden-cmds+explicit-delete {
+nx::test case hidden-cmds+explicit-delete {
   global i
 
   set i [interp create]
@@ -198,7 +198,7 @@ nx::Test case hidden-cmds+explicit-delete {
 #
 # hide and re-expose
 #
-nx::Test case hide-and-re-expose {
+nx::test case hide-and-re-expose {
   global i
 
   set i [interp create]
@@ -251,7 +251,7 @@ nx::Test case hide-and-re-expose {
 #
 # hide/re-expose with "command renaming"
 #
-nx::Test case command-renaming {
+nx::test case command-renaming {
   global i
 
   set i [interp create]
@@ -309,7 +309,7 @@ nx::Test case command-renaming {
 #
 # Rename namespaced object to global one and hide ...
 #
-nx::Test case namespaced-object {
+nx::test case namespaced-object {
   global i
 
   set i [interp create]
@@ -354,7 +354,7 @@ nx::Test case namespaced-object {
 # Deletion order
 #
 
-nx::Test case deletion-order {
+nx::test case deletion-order {
   global i
 
   set i [interp create]
@@ -391,7 +391,7 @@ nx::Test case deletion-order {
 #
 # Some stumbling blocks in destructors: [error] in app-level destroy
 #
-nx::Test case error-in-destroy-1 {
+nx::test case error-in-destroy-1 {
   global i
 
   set i [interp create]
@@ -427,7 +427,7 @@ nx::Test case error-in-destroy-1 {
 # Some stumbling blocks in destructors: [interp hide] in app-level
 # destroy
 #
-nx::Test case error-in-destroy-2 {
+nx::test case error-in-destroy-2 {
   global i
 
   set i [interp create]
@@ -471,7 +471,7 @@ nx::Test case error-in-destroy-2 {
 #
 # Some stumbling blocks in destructors: [interp hide] in app-level destroy
 #
-nx::Test case error-in-destroy-3 {
+nx::test case error-in-destroy-3 {
   global i
 
   set i [interp create]
@@ -504,7 +504,7 @@ nx::Test case error-in-destroy-3 {
 # see NsfProcAliasMethod():
 # Tcl_Command_cmdEpoch(tcd->aliasedCmd)
 #
-nx::Test case hidden-procs-as-aliases {
+nx::test case hidden-procs-as-aliases {
   #
   # 1) hide alias proc targets
   #
@@ -581,7 +581,7 @@ nx::Test case hidden-procs-as-aliases {
 
 }
 
-nx::Test case hidden-objects-as-aliases {
+nx::test case hidden-objects-as-aliases {
   #
   # 2) hide alias object targets
   #
@@ -647,7 +647,7 @@ nx::Test case hidden-objects-as-aliases {
 # MixinSearchProc()
 #
 
-nx::Test case hidden-mixins-procsearch {
+nx::test case hidden-mixins-procsearch {
   global i
   set i [interp create]
   $i eval {
@@ -703,7 +703,7 @@ nx::Test case hidden-mixins-procsearch {
 # MixinComputeOrderFullList() & friends (due to
 # CmdListRemoveDeleted()
 #
-nx::Test case hidden-mixins-mixinlists {
+nx::test case hidden-mixins-mixinlists {
   global i
   set i [interp create]
   $i eval {

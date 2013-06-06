@@ -7,7 +7,7 @@ package require nx::test
 # Test info superclass with closure and patterns (with and without
 # wildcards, prefixed or not, success or not).
 #
-nx::Test case info-superclass {
+nx::test case info-superclass {
   nx::Class create C
   nx::Class create D -superclass C
 
@@ -59,7 +59,7 @@ nx::Test case info-superclass {
 # Test "info method", base cases
 #
 
-nx::Test case info-method-base {
+nx::test case info-method-base {
   nx::Object create o {
     :object alias set ::set
   }
@@ -173,7 +173,7 @@ nx::Test case info-method-base {
 # Test visability of obj-objects 
 #
 
-nx::Test case visability-sub-objects {
+nx::test case visability-sub-objects {
   ::nx::Object create o {
     ::nx::Object create [::nx::self]::sub {
       :object method foo {} {;}
@@ -192,7 +192,7 @@ nx::Test case visability-sub-objects {
 #
 # Test visability of aliased Objects
 #
-nx::Test case visability-aliased-object {
+nx::test case visability-aliased-object {
   ::nx::Object create ::I
   ::nx::Class create C {
     :public alias i ::I
@@ -230,7 +230,7 @@ set dmcFlag [::nx::configure defaultMethodCallProtection]
 ::nx::configure defaultMethodCallProtection false
 
 
-nx::Test case method-returns {
+nx::test case method-returns {
   
   #
   # A test object covering basic cases, adopted from returns.test
@@ -273,7 +273,7 @@ nx::Test case method-returns {
   ? {c1 info object method returns "bar baf"} ""
 }
 
-nx::Test case method-definition-with-returns {
+nx::test case method-definition-with-returns {
   #
   # A test object covering basic cases, adopted from returns.test
   #
@@ -306,7 +306,7 @@ nx::Test case method-definition-with-returns {
 
 }
 
-nx::Test case copy-with-returns {
+nx::test case copy-with-returns {
     nx::Class create C {
     # scripted method without paramdefs for in-parameters
     :method bar-ok1 {a b} -returns integer {;}
@@ -354,7 +354,7 @@ nx::Test case copy-with-returns {
 ::nx::configure defaultMethodCallProtection $dmcFlag
 # --
 
-nx::Test case callable {
+nx::test case callable {
     # define the same method for Object and Class
     ::nx::Object method bar {} {return Object.bar}
     ::nx::Class method bar {} {return Class.bar}
@@ -458,7 +458,7 @@ nx::Test case callable {
 #
 # test info slot objects / info lookup slots
 #
-nx::Test case info-slots {
+nx::test case info-slots {
 
   nx::Class create C {
     :property a
@@ -488,7 +488,7 @@ nx::Test case info-slots {
 #
 # test info slot objects / info lookup slots
 #
-nx::Test case slots {
+nx::test case slots {
 
   nx::Class create C {
     :property a
@@ -576,7 +576,7 @@ nx::Test case slots {
 #
 # test info submethod and method handles for submethods
 #
-nx::Test case info-submethod {
+nx::test case info-submethod {
 
   nx::Object create o {
     :object method "foo a" {} {return a}
@@ -703,7 +703,7 @@ nx::Test case info-submethod {
 #
 # test info slot parameter|parametersyntax 
 #
-nx::Test case info-slot-parametersyntax {
+nx::test case info-slot-parametersyntax {
 
   nx::Class create C {
     :property a
@@ -740,7 +740,7 @@ nx::Test case info-slot-parametersyntax {
 #
 # test "info methods -path"
 #
-nx::Test case info-methods-path {
+nx::test case info-methods-path {
   #
   # test case on base class
   #
@@ -798,7 +798,7 @@ nx::Test case info-methods-path {
 #
 # Test parameter syntax for a methods and cmds
 #
-nx::Test case parametersyntax {
+nx::test case parametersyntax {
   # a true method
   ? {::nx::Class info method syntax method} \
       "/cls/ method /name/ /arguments/ ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
@@ -812,7 +812,7 @@ nx::Test case parametersyntax {
 #
 # Test info heritage, base cases
 #
-nx::Test case info-heritage {
+nx::test case info-heritage {
   Class create A
   Class create B -superclass A
   Class create BB -superclass B
@@ -859,7 +859,7 @@ nx::Test case info-heritage {
 #
 # Test transitive per-class mixins
 #
-nx::Test case info-heritage-transitive {
+nx::test case info-heritage-transitive {
   Class create O
   Class create A -superclass O
   Class create B -superclass A
@@ -900,7 +900,7 @@ nx::Test case info-heritage-transitive {
 #
 # Test circular mixins
 #
-nx::Test case info-heritage-circular {
+nx::test case info-heritage-circular {
   Class create O
   Class create A -superclass O
   Class create B -superclass A
@@ -961,7 +961,7 @@ nx::Test case info-heritage-circular {
 #
 # Mixin the same class twice, once per-class and one per-object.
 #
-nx::Test case info-heritage-simple-multimix {
+nx::test case info-heritage-simple-multimix {
   Class create Agent
   Class create MovementTest
   Class create MovementLog
@@ -982,7 +982,7 @@ nx::Test case info-heritage-simple-multimix {
 # Mixin several classes at several class levels and on the object
 # level
 #
-nx::Test case info-heritage-multimix {
+nx::test case info-heritage-multimix {
   Class create A
   Class create B -superclass A
   Class create M1
@@ -1013,7 +1013,7 @@ nx::Test case info-heritage-multimix {
 #
 # per-object mixin with implied classes
 #
-nx::Test case info-heritage-multimix {
+nx::test case info-heritage-multimix {
   Class create A
   Class create B -superclass A
   Class create C
@@ -1043,7 +1043,7 @@ nx::Test case info-heritage-multimix {
 #
 # transitive per-class mixins with implied classes
 #
-nx::Test case info-heritage-transitive-pcm {
+nx::test case info-heritage-transitive-pcm {
   Class create A
   Class create B -superclass A
   Class create C -superclass B
@@ -1131,7 +1131,7 @@ nx::Test case info-heritage-transitive-pcm {
 #
 # ::nsf::method::ishandle
 #
-nx::Test case method-isregistered {
+nx::test case method-isregistered {
   
   ? {::nsf::method::registered c} ""
   ? {::nsf::method::registered info} ""
@@ -1168,7 +1168,7 @@ nx::Test case method-isregistered {
 # "handle" alone is the registration handle.
 #
 
-nx::Test case method-origin {
+nx::test case method-origin {
   nx::Class create C
   ? {set implHandle [C public method "foo bar" {x} {;}]} "::C::slot::__foo::bar"
   ? {set regHandle [C info method registrationhandle "foo bar"]} "::nsf::classes::C::foo bar"
@@ -1188,7 +1188,7 @@ nx::Test case method-origin {
 # test "info methods -closure"
 #
 
-nx::Test case info-methods-closure {
+nx::test case info-methods-closure {
   nx::Class create C {
     :public method c1 {} {...}
     :method c2 {} {...}
@@ -1226,6 +1226,6 @@ nx::Test case info-methods-closure {
 #
 # Test error messages within an ensemble call
 #
-nx::Test case error-in-ensemble {
+nx::test case error-in-ensemble {
   ? {nx::Object info method definition foo 1} {wrong # args: should be "definition name"}
 }

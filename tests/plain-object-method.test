@@ -1,7 +1,7 @@
 # -*- Tcl -*-
 package require nx::test
 
-nx::Test case plain-methods-0 {
+nx::test case plain-methods-0 {
   nx::Class create M1
   nx::Object create o {
     ? {o public method foo {} {return foo}} "::o: unable to dispatch method 'method'"
@@ -22,7 +22,7 @@ package require nx::plain-object-method
 nx::configure plain-object-method-warning on
 
 
-nx::Test case plain-methods-1 {
+nx::test case plain-methods-1 {
   nx::Class create M1
   nx::Object create o {
     :public method foo {} {return [:pm1]}
@@ -66,7 +66,7 @@ nx::Test case plain-methods-1 {
 #
 # delete class method, class property, class variable
 # 
-nx::Test case plain-methods-2 {
+nx::test case plain-methods-2 {
   nx::Object create ::o {
     :public method foo {} {return foo}
     :property -accessor public p
@@ -94,7 +94,7 @@ nx::Test case plain-methods-2 {
 # require method
 # 
 
-nx::Test case plain-methods-3 {
+nx::test case plain-methods-3 {
 
   nsf::method::provide set {::nsf::method::alias  set -frame object ::set}
 

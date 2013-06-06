@@ -7,7 +7,7 @@ namespace import -force ::nx::*
 namespace import -force ::nx::doc::*
 
 
-Test parameter count 1
+nx::test configure -count 1
 
 #
 # some helper

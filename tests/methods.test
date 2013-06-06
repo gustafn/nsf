@@ -4,7 +4,7 @@ package require nx::test
 
 ::nx::configure defaultMethodCallProtection false
 
-nx::Test parameter count 10
+nx::test configure -count 10
 
 nx::Class create C {
   # methods
@@ -74,7 +74,7 @@ C object property -accessor public {s3 ""}
 # create a fresh object (different from c1)
 C create c2
 # test scripted class level methods
-nx::Test case scripted-class-level-methods {
+nx::test case scripted-class-level-methods {
   ? {c2 plain_method} "plain_method"
   ? {c2 public_method} "public_method"
   ? {catch {c2 protected_method}} 1
@@ -82,7 +82,7 @@ nx::Test case scripted-class-level-methods {
 }
 
 # class level forwards
-nx::Test case class-level-forwards {
+nx::test case class-level-forwards {
   ? {c2 plain_forward} "plain_method"
   ? {c2 public_forward} "public_method"
   ? {catch {c2 protected_forward}} 1
@@ -90,7 +90,7 @@ nx::Test case class-level-forwards {
 }
 
 # class level setter
-nx::Test case class-level-setter {
+nx::test case class-level-setter {
   ? {c2 plain_setter 1} {::c2: unable to dispatch method 'plain_setter'}
   #? {c2 plain_setter 1} 1
   ? {c2 public_setter 2} "2"
@@ -99,7 +99,7 @@ nx::Test case class-level-setter {
 }
 
 # class level alias ....
-nx::Test case class-level-alias {
+nx::test case class-level-alias {
   ? {c2 plain_alias} "plain_alias"
   ? {c2 public_alias} "public_alias"
   ? {catch {c2 protected_alias}} 1
@@ -109,7 +109,7 @@ nx::Test case class-level-alias {
 ###########
 
 # scripted class level methods
-nx::Test case scripted-class-object-level {
+nx::test case scripted-class-object-level {
   ? {C plain_object_method} "plain_object_method"
   ? {C public_object_method} "public_object_method"
   ? {catch {C protected_object_method}} 1
@@ -117,7 +117,7 @@ nx::Test case scripted-class-object-level {
 }
 
 # class level forwards
-nx::Test case class-object-level-forwards {
+nx::test case class-object-level-forwards {
   ? {C plain_object_forward} "plain_object_method"
   ? {C public_object_forward} "public_object_method"
   ? {catch {C protected_object_forward}} 1
@@ -125,7 +125,7 @@ nx::Test case class-object-level-forwards {
 }
 
 # class level setter
-nx::Test case class-object-level-setter {
+nx::test case class-object-level-setter {
   ? {C plain_object_setter 1} {method 'plain_object_setter' unknown for ::C; consider '::C create plain_object_setter 1' instead of '::C plain_object_setter 1'}
   #? {C plain_object_setter 1} "1"
   ? {C public_object_setter 2} "2"
@@ -134,7 +134,7 @@ nx::Test case class-object-level-setter {
 }
 
 # class level alias ....
-nx::Test case class-object-level-alias {
+nx::test case class-object-level-alias {
   ? {C plain_object_alias} "plain_object_alias"
   ? {C public_object_alias} "public_object_alias"
   ? {catch {C protected_object_alias}} 1
@@ -144,7 +144,7 @@ nx::Test case class-object-level-alias {
 ###########
 
 # scripted object level methods
-nx::Test case scripted-object-level-methods {
+nx::test case scripted-object-level-methods {
   ? {c1 plain_object_method} "plain_object_method"
   ? {c1 public_object_method} "public_object_method"
   ? {catch {c1 protected_object_method}} 1
@@ -152,7 +152,7 @@ nx::Test case scripted-object-level-methods {
 }
 
 # object level forwards
-nx::Test case object-level-forwards {
+nx::test case object-level-forwards {
   ? {c1 plain_object_forward} "plain_object_method"
   ? {c1 public_object_forward} "public_object_method"
   ? {catch {c1 protected_object_forward}} 1
@@ -160,7 +160,7 @@ nx::Test case object-level-forwards {
 }
 
 # object level setter
-nx::Test case object-level-setter {
+nx::test case object-level-setter {
   ? {c1 plain_object_setter 1} {::c1: unable to dispatch method 'plain_object_setter'}
   #? {c1 plain_object_setter 1} "1"
   ? {c1 public_object_setter 2} "2"
@@ -169,7 +169,7 @@ nx::Test case object-level-setter {
 }
 
 # object level alias ....
-nx::Test case object-level-alias {
+nx::test case object-level-alias {
   ? {c1 plain_object_alias} "plain_object_alias"
   ? {c1 public_object_alias} "public_object_alias"
   ? {catch {c1 protected_object_alias}} 1
@@ -188,7 +188,7 @@ nx::Test case object-level-alias {
 
 C destroy
 
-nx::Test case colondispatch {
+nx::test case colondispatch {
   nx::Object create ::o {
     #:public object method foo args {;}
     :public object method bar args {;}
@@ -199,7 +199,7 @@ nx::Test case colondispatch {
   ? {o eval :foo} "::o: unable to dispatch method 'foo'" 
 }
 
-nx::Test case mixinguards {
+nx::test case mixinguards {
   # define a Class C and mixin class M
   nx::Class create C
   nx::Class create M
@@ -219,7 +219,7 @@ nx::Test case mixinguards {
   ? {C info object mixin guard M} ""
 }
 
-nx::Test case mixin-via-objectparam {
+nx::test case mixin-via-objectparam {
   # add an object and class mixin via object-parameter and via slots
   nx::Class create M1; nx::Class create M2; nx::Class create M3; nx::Class create M4
   nx::Class create C -mixin M1 -object-mixin M2 {
@@ -237,7 +237,7 @@ nx::Test case mixin-via-objectparam {
 }
 
 # testing next via nonpos-args
-nx::Test case next-from-nonpos-args {
+nx::test case next-from-nonpos-args {
   
   nx::Object create o {
     :object method bar {-y:required -x:required} {
@@ -260,7 +260,7 @@ nx::Test case next-from-nonpos-args {
 # 
 # test method property with protected/public
 # 
-nx::Test case property-method {
+nx::test case property-method {
 
   nx::Class create C {
     set x [:property -accessor public a]
@@ -310,7 +310,7 @@ nx::Test case property-method {
   ? {o d} "::o: unable to dispatch method 'd'"
 }
 
-nx::Test case subcmd {
+nx::test case subcmd {
   
   nx::Class create Foo {
 
@@ -341,7 +341,7 @@ nx::Test case subcmd {
 }
 
 package req nx::serializer
-nx::Test case class-object-property {
+nx::test case class-object-property {
   nx::Class create C {
     :object property -accessor public x
     :property -accessor public a:int
@@ -379,9 +379,9 @@ nx::Test case class-object-property {
 #
 # Test method deletion
 #
-nx::Test parameter count 1
+nx::test configure -count 1
 
-nx::Test case methoddelete {
+nx::test case methoddelete {
   nx::Class create C {
     :public method foo {x} {return $x}
     :public object method bar {x} {return $x}
@@ -400,9 +400,9 @@ nx::Test case methoddelete {
 #
 # Test error message of method modifier
 #
-nx::Test parameter count 1
+nx::test configure -count 1
 
-nx::Test case errormessage {
+nx::test case errormessage {
   nx::Class create C
   ? {C public method foo {x} {return $x}} "::nsf::classes::C::foo"
   ? {C public Object method bar {x} {return $x}} \
@@ -419,7 +419,7 @@ nx::Test case errormessage {
 #
 # test dispatch without object
 #
-nx::Test case dispatch-without-object {
+nx::test case dispatch-without-object {
 
   nx::Object create o {
     # property defines a setter, we need a current object
@@ -452,7 +452,7 @@ nx::Test case dispatch-without-object {
 # b) ensemble methods on level 1
 # c) ensemble methods on level 2
 #
-nx::Test case scopes {
+nx::test case scopes {
   nx::Object create o1 {
     :public object method foo {} {return [namespace current]-[namespace which info]}
     :public object method "info foo" {} {return [namespace current]-[namespace which info]}
@@ -482,7 +482,7 @@ nx::Test case scopes {
 # b) ensemble methods on level 1
 # c) ensemble methods on level 2
 #
-nx::Test case namespaced-scopes {
+nx::test case namespaced-scopes {
 
   namespace eval ::ns {
     nx::Object create o1 {
@@ -515,7 +515,7 @@ nx::Test case namespaced-scopes {
 # b) ensemble methods on level 1
 # c) ensemble methods on level 2
 #
-nx::Test case nested-scopes {
+nx::test case nested-scopes {
   nx::Object create o 
   nx::Object create o::o1 {
     :public object method foo {} {return [namespace current]-[namespace which info]}
@@ -547,7 +547,7 @@ nx::Test case nested-scopes {
 # b) test simple methods
 # c) test ensemble methods
 #
-nx::Test case delete-per-object {
+nx::test case delete-per-object {
   nx::Object create o1 {
     :object property -accessor public a1 
     :object property -accessor public a2
@@ -593,7 +593,7 @@ nx::Test case delete-per-object {
 # b) test simple methods
 # c) test ensemble methods
 #
-nx::Test case delete-per-object-on-class {
+nx::test case delete-per-object-on-class {
   nx::Class create C {
     :object property -accessor public a1
     :public object method foo {} {return [namespace current]-[namespace which info]}
@@ -632,7 +632,7 @@ nx::Test case delete-per-object-on-class {
 # b) test simple methods
 # c) test ensemble methods
 #
-nx::Test case delete-class-level-method {
+nx::test case delete-class-level-method {
   nx::Class create C {
     :property -accessor public a1
     :public method foo {} {return [namespace current]-[namespace which info]}
@@ -664,7 +664,7 @@ nx::Test case delete-class-level-method {
 # simple unknown tests; 
 # ensemble unknown tests are in submethods.test
 #
-nx::Test case test-simple-unknown {
+nx::test case test-simple-unknown {
 
   #
   # calling unknown with a plain "method" without arguments
@@ -696,8 +696,8 @@ nx::Test case test-simple-unknown {
 # simple speed tests
 # ensemble unknown tests are in submethods.test
 #
-nx::Test parameter count 1000
-nx::Test case speed-dispatch {
+nx::test configure -count 1000
+nx::test case speed-dispatch {
 
   #
   # define various forms of simple dispatches
@@ -729,8 +729,8 @@ nx::Test case speed-dispatch {
   #? {o bar09} foo "my -system info"
 }
 
-nx::Test parameter count 1
-nx::Test case fq-obj-dispatch {
+nx::test configure -count 1
+nx::test case fq-obj-dispatch {
   #
   # Capture the (current) dispatcher rules for fully-qualified
   # selectors which resolve to existing objects.
@@ -847,7 +847,7 @@ nx::Test case fq-obj-dispatch {
 #
 # object copy
 #
-nx::Test case object-copy {
+nx::test case object-copy {
   nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
 
   nx::Object create o {
@@ -879,7 +879,7 @@ nx::Test case object-copy {
 #
 # class copy
 #
-nx::Test case class-copy {
+nx::test case class-copy {
   nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
 
   nx::Class create C {
@@ -920,7 +920,7 @@ nx::Test case class-copy {
 #
 # class copy with class object methods
 #
-nx::Test case object+class-copy {
+nx::test case object+class-copy {
   nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
   nsf::method::provide exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
 
@@ -975,11 +975,11 @@ nx::Test case object+class-copy {
 
 
 
-nx::Test parameter count 10
+nx::test configure -count 10
 #
 # class copy with class object methods
 #
-nx::Test case object+class+property-copy {
+nx::test case object+class+property-copy {
   nsf::method::provide set      {::nsf::method::alias  set -frame object ::set}
   nsf::method::provide exists   {::nsf::method::alias  exists ::nsf::methods::object::exists}
 
@@ -1055,7 +1055,7 @@ nx::Test case object+class+property-copy {
 
 }
 
-nx::Test case xotcl-COPY {
+nx::test case xotcl-COPY {
   package req XOTcl
   xotcl::Class create C
   C proc foo {} {return foo}

@@ -4,7 +4,7 @@ package require nx::test
 #
 # The first test series without the conveniance layer
 #
-nx::Test case class-methods-0 {
+nx::test case class-methods-0 {
   nx::Class create M1
   nx::Class create C {
     ? {::C public class method foo {} {return foo}} "'class' is not a method defining method"
@@ -28,7 +28,7 @@ package require nx::class-method
 nx::configure class-method-warning on
 
 
-nx::Test case class-methods-1 {
+nx::test case class-methods-1 {
   nx::Class create M1
   nx::Class create ::C {
     :public class method foo {} {return [:pm1]}
@@ -82,7 +82,7 @@ nx::Test case class-methods-1 {
 #
 # delete class method, class property, class variable
 # 
-nx::Test case class-methods-2 {
+nx::test case class-methods-2 {
   nx::Class create ::C {
     :public class method foo {} {return foo}
     :class property -accessor public p
@@ -110,7 +110,7 @@ nx::Test case class-methods-2 {
 # require method
 # 
 
-nx::Test case class-methods-2 {
+nx::test case class-methods-2 {
 
   nsf::method::provide set {::nsf::method::alias  set -frame object ::set}
 

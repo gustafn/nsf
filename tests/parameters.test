@@ -4,7 +4,7 @@ package require nx::test
 
 #::nx::configure defaultMethodCallProtection false
 
-nx::Test case dummy {
+nx::test case dummy {
   ? {::namespace current} ::
   set o [Object create o]
 
@@ -15,7 +15,7 @@ nx::Test case dummy {
 #
 # simple test case for parameter passing
 #
-nx::Test case syntax {
+nx::test case syntax {
   ::nx::Class create C
 
   ? {::nsf::method::alias C} \
@@ -33,8 +33,8 @@ nx::Test case syntax {
 #######################################################
 # parametercheck
 #######################################################
-nx::Test parameter count 1000
-nx::Test case parametercheck {
+nx::test configure -count 1000
+nx::test case parametercheck {
 
   nx::Object create o1
   nx::Class create C {
@@ -120,8 +120,8 @@ nx::Test case parametercheck {
 
   ? {::nsf::is -complain class o1} {expected class but got "o1"}
   ? {::nsf::is class o1} 0
-  ? {::nsf::is -complain class nx::Test} 1
-  ? {::nsf::is -complain object,1..* [list o1 nx::Test]} 1
+  ? {::nsf::is -complain class nx::test} 1
+  ? {::nsf::is -complain object,1..* [list o1 nx::test]} 1
 
   ? {::nsf::is -complain integer,1..* [list 1 2 3]} 1
   ? {::nsf::is -complain integer,1..* [list 1 2 3 a]} \
@@ -146,8 +146,8 @@ nx::Test case parametercheck {
   ? {::nsf::is -complain {i:integer 1} 2} {invalid value constraints "i:integer 1"}
 }
 
-nx::Test parameter count 10
-nx::Test case multiple-method-checkers {
+nx::test configure -count 10
+nx::test case multiple-method-checkers {
   nx::Object create o {
     :public object method foo {} {
       ::nsf::is metaclass ::XYZ
@@ -178,8 +178,8 @@ nx::Test case multiple-method-checkers {
 #######################################################
 # param manager
 #######################################################
-nx::Test parameter count 10000
-nx::Test case param-manager {
+nx::test configure -count 10000
+nx::test case param-manager {
 
   nx::Object create ::paramManager {
     :object method type=sex {name value} {
@@ -264,8 +264,8 @@ nx::Test case param-manager {
 #######################################################
 # objectparameter
 #######################################################
-nx::Test parameter count 10
-nx::Test case objectparameter {
+nx::test configure -count 10
+nx::test case objectparameter {
 
   nx::Class create C {
     :property a 
@@ -285,7 +285,7 @@ nx::Test case objectparameter {
 #######################################################
 # reclass to nx::Object, no need to do anything on caching
 #######################################################
-nx::Test case reclass {
+nx::test case reclass {
 
   nx::Class create C {
     :property a 
@@ -313,7 +313,7 @@ nx::Test case reclass {
 #######################################################
 # Add mixin
 #######################################################
-nx::Test case objparam-mixins {
+nx::test case objparam-mixins {
 
   nx::Class create C {
     :property a 
@@ -365,7 +365,7 @@ nx::Test case objparam-mixins {
 # test passed arguments
 #######################################################
 
-nx::Test case passed-arguments {
+nx::test case passed-arguments {
 
   nx::Class create C {
     :property a 
@@ -436,7 +436,7 @@ nx::Test case passed-arguments {
 #######################################################
 # non required positional arguments
 #######################################################
-nx::Test case non-reg-args {
+nx::test case non-reg-args {
 
   nx::Class create D 
   D create d1
@@ -458,7 +458,7 @@ nx::Test case non-reg-args {
 #######################################################
 # multivalued arguments
 #######################################################
-nx::Test case multivalued {
+nx::test case multivalued {
 
   nx::Class create D 
   D create d1
@@ -506,7 +506,7 @@ nx::Test case multivalued {
 #######################################################
 # subst default tests
 #######################################################
-nx::Test case subst-default {
+nx::test case subst-default {
   
   nx::Class create D {
     :property {c 1}
@@ -637,7 +637,7 @@ nx::Test case subst-default {
 #######################################################
 # user defined parameter value checkers
 #######################################################
-nx::Test case user-value-checker {
+nx::test case user-value-checker {
 
   nx::Class create D {:property d}
   D create d1
@@ -782,7 +782,7 @@ nx::Test case user-value-checker {
 #######################################################
 # testing object types in method parameters
 #######################################################
-nx::Test case mp-object-types {
+nx::test case mp-object-types {
 
   nx::Class create C
   nx::Class create D -superclass C {:property d}
@@ -857,7 +857,7 @@ nx::Test case mp-object-types {
 #######################################################
 # substdefault
 #######################################################
-nx::Test case substdefault {
+nx::test case substdefault {
 
   nx::Class create S {
     :property {x 1} 
@@ -916,7 +916,7 @@ nx::Test case substdefault {
 #######################################################
 # testing substdefault for object parameters
 #######################################################
-nx::Test case substdefault-objparam {
+nx::test case substdefault-objparam {
 
   nx::Class create Bar {
 
@@ -943,7 +943,7 @@ nx::Test case substdefault-objparam {
 #
 # Test call of configure within constructor
 #
-nx::Test case parameter-alias-default {
+nx::test case parameter-alias-default {
 
   ::nsf::method::require nx::Object __configure
   nx::Class create C {
@@ -967,7 +967,7 @@ nx::Test case parameter-alias-default {
 #######################################################
 # testing object types in object parameters
 #######################################################
-nx::Test case op-object-types {
+nx::test case op-object-types {
 
   nx::Class create C
   nx::Class create D -superclass C {:property d}
@@ -1078,7 +1078,7 @@ nx::Test case op-object-types {
 #######################################################
 # application specific multivalued converter
 #######################################################
-nx::Test case multivalued-app-converter {
+nx::test case multivalued-app-converter {
 
   ::nx::methodParameterSlot public object method type=sex {name value args} {
     #puts stderr "[current] slot specific converter"
@@ -1115,7 +1115,7 @@ nx::Test case multivalued-app-converter {
 #######################################################
 # application specific multivalued converter
 #######################################################
-nx::Test case shadowing-app-converter {
+nx::test case shadowing-app-converter {
 
   nx::Object create mySlot {
     :public object method type=integer {name value arg:optional} {
@@ -1136,7 +1136,7 @@ nx::Test case shadowing-app-converter {
 #######################################################
 # allow empty values
 #######################################################
-nx::Test case allow-empty {
+nx::test case allow-empty {
 
   nx::Object create o1
   nx::Object create o2
@@ -1164,7 +1164,7 @@ nx::Test case allow-empty {
 #######################################################
 # slot specific converter
 #######################################################
-nx::Test case slot-specfic-converter {
+nx::test case slot-specfic-converter {
 
   nx::Class create Person {
     :property -accessor public sex {
@@ -1192,7 +1192,7 @@ nx::Test case slot-specfic-converter {
 #######################################################
 # test for setters with parameters 
 #######################################################
-nx::Test case setters {
+nx::test case setters {
   nx::Object create o
   nx::Class create C
   
@@ -1234,8 +1234,8 @@ nx::Test case setters {
 #######################################################
 # test for slot-optimizer
 #######################################################
-nx::Test parameter count 1000
-nx::Test case slot-optimizer {
+nx::test configure -count 1000
+nx::test case slot-optimizer {
 
   nx::Class create C {
     :property -accessor public a 
@@ -1249,8 +1249,8 @@ nx::Test case slot-optimizer {
   ? {c1 c 1} 1
 }
 
-nx::Test parameter count 10
-nx::Test case slot-nosetter {
+nx::test configure -count 10
+nx::test case slot-nosetter {
   nx::Class create C {
     :property -accessor public a 
     :property -accessor none b:integer
@@ -1264,8 +1264,8 @@ nx::Test case slot-nosetter {
   ? {c1 c 102} {::c1: unable to dispatch method 'c'}
 }
 
-nx::Test parameter count 1000
-nx::Test case check-arguments {
+nx::test configure -count 1000
+nx::test case check-arguments {
 
   nx::Class create Foo {
     :public method noarg {} {return ""} 
@@ -1298,7 +1298,7 @@ nx::Test case check-arguments {
   ? {f1 metaclassarg ::Foo} {expected metaclass but got "::Foo" for parameter "x"}
 }
 
-nx::Test case slot-traces {
+nx::test case slot-traces {
   ::nx::Object create o {
     :object property -accessor public a {set :defaultcmd { set _ 4 } }
     :object property -accessor public b {set :valuecmd { set _ 44 } }
@@ -1341,7 +1341,7 @@ nx::Test case slot-traces {
   ? {d1 c 5} 999
 }
 
-nx::Test case slot-trace-interaction {
+nx::test case slot-trace-interaction {
   #
   # 1) Verify the controlled interactions between trace types
   #
@@ -1475,7 +1475,7 @@ nx::Test case slot-trace-interaction {
 }
 
 ::nsf::configure checkarguments off
-nx::Test case check-arguments-nocheck {
+nx::test case check-arguments-nocheck {
 
   nx::Class create Foo {
     :public method noarg {} {return ""} 
@@ -1508,9 +1508,9 @@ nx::Test case check-arguments-nocheck {
   ? {f1 metaclassarg ::Foo} ::Foo
 }
 
-nx::Test parameter count 100
+nx::test configure -count 100
 
-nx::Test case checktype {
+nx::test case checktype {
   nx::Object create o {
     :public object method f01 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype ::nx::Object}
     :public object method f02 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
@@ -1574,7 +1574,7 @@ namespace eval foo {
   ? {c1 f32} 1
 }
 
-nx::Test case check-arguments {
+nx::test case check-arguments {
 
   nx::Class create Foo {
     :method noarg {} {return ""} 
@@ -1605,7 +1605,7 @@ nx::Test case check-arguments {
 # Check whether resetting via method "configure" changes values in the
 # initialzed object state.
 #
-nx::Test case dont-reset-to-defaults {
+nx::test case dont-reset-to-defaults {
   nx::Class create C {
     :property -accessor public {a 1}
     :create c1
@@ -1621,7 +1621,7 @@ nx::Test case dont-reset-to-defaults {
   ? {c1 a} 2
 }
 
-nx::Test case setter-under-coloncmd-and-interpvarresolver {
+nx::test case setter-under-coloncmd-and-interpvarresolver {
   # There are (at least) three forms of object-namespace alignment in
   # NSF:
   # 1. Same-named namespace (::omon) predates a same-named object
@@ -1667,7 +1667,7 @@ nx::Test case setter-under-coloncmd-and-interpvarresolver {
 # test required configure parameter
 #
 
-nx::Test case req-param {
+nx::test case req-param {
   ::nx::Class create C {
     :property y:required
     :property x:required
@@ -1727,10 +1727,10 @@ nx::Test case req-param {
 ::nsf::configure checkarguments on
 
 #
-# nx::Test type any (or other typechecker) in combination with
+# nx::test type any (or other typechecker) in combination with
 # substdefault via object parameter
 #
-nx::Test case nsf-subdefault {
+nx::test case nsf-subdefault {
   nx::Class create C {
     :property {n1 "[namespace tail [::nsf::self]]"}
     :property {n2:any "[namespace tail [::nsf::self]]"}
@@ -1741,10 +1741,10 @@ nx::Test case nsf-subdefault {
 }
 
 #
-# nx::Test argument processing and namespace handling in nsf::procs
+# nx::test argument processing and namespace handling in nsf::procs
 #
 
-nx::Test case nsf-proc {
+nx::test case nsf-proc {
   #
   # test inner namespace and handling of switches
   #
@@ -1776,7 +1776,7 @@ nx::Test case nsf-proc {
     nsf::proc -ad pass1 {-s:boolean} {foo -s=$s_p}
   }
   
-  nx::Test parameter count 1
+  nx::test configure -count 1
   ? {::nsf::mix} "::nsf-0-NULL"
   ? {::nsf::mix -per-object} "::nsf-1-NULL"
   ? {::nsf::mix -x true} "::nsf-0-true"
@@ -1798,7 +1798,7 @@ nx::Test case nsf-proc {
     return [namespace current]-[lsort [info vars]]-$html_p-$allow_complete_url_p
   }
   
-  nx::Test parameter count 1000
+  nx::test configure -count 1000
   ? {::ns1::pass1} "::ns1-0"
   ? {::ns1::pass1 -s} "::ns1-1"
   ? {::ns1::pass0} "::ns1-0"
@@ -1809,8 +1809,8 @@ nx::Test case nsf-proc {
 # Test argument processing and namespace handling in nsf::procs
 #
 
-nx::Test case xotcl-list-notation {
-  nx::Test parameter count 1
+nx::test case xotcl-list-notation {
+  nx::test configure -count 1
 
   package prefer latest
   package req XOTcl 2.0
@@ -1832,7 +1832,7 @@ nx::Test case xotcl-list-notation {
 #
 # Test parameter alias and parameter forwarder
 #
-nx::Test case parameter-alias {
+nx::test case parameter-alias {
 
   nx::Class create C {
     :property {x:alias}
@@ -1854,7 +1854,7 @@ nx::Test case parameter-alias {
 #
 # Test parameter alias and parameter forwarder with default value
 #
-nx::Test case parameter-alias-default {
+nx::test case parameter-alias-default {
 
   nx::Class create C {
     :property {x1:alias "hugo"}
@@ -1881,7 +1881,7 @@ nx::Test case parameter-alias-default {
 # Test interactions between per-object-mixins and objectparameters 
 # (case without per-object property)
 #
-nx::Test case parameter-object-mixin-dependency {
+nx::test case parameter-object-mixin-dependency {
   nx::Class create C {
     :property a1
     :create c1
@@ -1980,7 +1980,7 @@ nx::Test case parameter-object-mixin-dependency {
 # Test interactions between per-object-mixins and objectparameters 
 # (case with per-object property)
 #
-nx::Test case parameter-object-mixin-dependency-object-property {
+nx::test case parameter-object-mixin-dependency-object-property {
   nx::Class create C {
     :property a1
     :create c1 {
@@ -2028,8 +2028,8 @@ nx::Test case parameter-object-mixin-dependency-object-property {
 #
 # Test integer, wideinteger and bignums
 #
-nx::Test parameter count 1000
-nx::Test case bignums {
+nx::test configure -count 1000
+nx::test case bignums {
 
   ::nx::Object create o {
     :public object method foo {x:int} { return $x }
@@ -2109,7 +2109,7 @@ nx::Test case bignums {
 
 }
 
-nx::Test case reconfigure-perobj-default {
+nx::test case reconfigure-perobj-default {
   nx::Object create o
   ? {o eval {info exists :a}} 0
   o object property {a oldvalue}
@@ -2180,7 +2180,7 @@ nx::Test case reconfigure-perobj-default {
 #
 # test object level property and variable
 #
-nx::Test case object-level-variable {
+nx::test case object-level-variable {
 
   nx::Object create ::enterprise {
 
@@ -2286,7 +2286,7 @@ nx::Test case object-level-variable {
 #
 # test class level property and variable
 #
-nx::Test case class-level-variable {
+nx::test case class-level-variable {
   nx::Class create C {
 
     # define 2 class-level variables, one via variable, one via property
@@ -2332,7 +2332,7 @@ nx::Test case class-level-variable {
 #
 # test classes with single variable definitions, and illegal names
 #
-nx::Test case single-variable {
+nx::test case single-variable {
   ? {nx::Class create C {
     :variable v 1
     :create c1
@@ -2347,7 +2347,7 @@ nx::Test case single-variable {
 #
 # test deletion of class level property and variable
 #
-nx::Test case delete-class-level-variable-and-property {
+nx::test case delete-class-level-variable-and-property {
   nx::Class create C {
 
     # define 2 class-level variables, one via variable, one via property
@@ -2387,7 +2387,7 @@ nx::Test case delete-class-level-variable-and-property {
 #
 # test deletion of class level property and variable
 #
-nx::Test case delete-object-level-variable-and-property {
+nx::test case delete-object-level-variable-and-property {
   nx::Object create o {
 
     # define 2 object-level variables, one via variable, one via property
@@ -2417,7 +2417,7 @@ nx::Test case delete-object-level-variable-and-property {
 # Testing object parameters of type "switch"
 #
 
-nx::Test case object-parameter-switch {
+nx::test case object-parameter-switch {
 
   # Create a class with an property of type switch and an instance of
   # the class
@@ -2477,7 +2477,7 @@ nx::Test case object-parameter-switch {
 # Test slots with configparameter true/false, accessor true/false
 # against "slot definitions" and "info parameter"
 #
-nx::Test case class-info-slots-types {
+nx::test case class-info-slots-types {
   #
   # "/cls/ info slot ..." shows all slots, including variables
   # "/cls/ info parameter ..." shows the parameter available for object parameterization
@@ -2516,7 +2516,7 @@ nx::Test case class-info-slots-types {
 }
 
 
-nx::Test case object-info-slots-types {
+nx::test case object-info-slots-types {
   #
   # "/obj/ info slot ..." shows all slots, including variables
   #
@@ -2557,7 +2557,7 @@ nx::Test case object-info-slots-types {
 #
 # testing method properties
 #
-nx::Test case properties {
+nx::test case properties {
 
   # simple properties
   #nx::Class create Foo -properties {a {b 1}}
@@ -2607,7 +2607,7 @@ nx::Test case properties {
 # Note that the order, in which is the arguments are provided is not
 # significant for the evaluation order.
 #
-nx::Test case side-effect-set-value {
+nx::test case side-effect-set-value {
 
   nx::Class create C {
     :public object method setObjectParams {spec} {
@@ -2628,8 +2628,8 @@ nx::Test case side-effect-set-value {
   ? {[C new -second Y] eval {set :first}} Y "side-effect determines value"
 }
 
-nx::Test case xotcl-configure-method {
-  nx::Test parameter count 1
+nx::test case xotcl-configure-method {
+  nx::test configure -count 1
 
   package prefer latest
   package req XOTcl 2.0
@@ -2644,7 +2644,7 @@ nx::Test case xotcl-configure-method {
 #
 # Test forwarding to slot object, when assign is overloaded
 #
-nx::Test case forward-to-assign {
+nx::test case forward-to-assign {
   set ::slotcalls 0
   nx::Class create Foo {
     :property -accessor public bar {
@@ -2699,7 +2699,7 @@ nx::Test case forward-to-assign {
 #
 # Test forwarding to slot vs. accessor none
 #
-nx::Test case forward-to-assign {
+nx::test case forward-to-assign {
   set ::slotcalls 0
 
   ? {nx::Class create Foo {
@@ -2739,7 +2739,7 @@ nx::Test case forward-to-assign {
 #
 # Test slot initialize 
 #
-nx::Test case forward-to-incremental {
+nx::test case forward-to-incremental {
   set ::slotcalls 0
 
   ? {nx::Class create Foo {
@@ -2762,7 +2762,7 @@ nx::Test case forward-to-incremental {
 # property named "list" leads to a call to the container object
 # ::Test2::slot::list instead of the intended ::list.
 #
-nx::Test case slot-container-name-interaction {
+nx::test case slot-container-name-interaction {
 
   nx::Class create Test2 {
     :property -accessor public list {
@@ -2781,7 +2781,7 @@ nx::Test case slot-container-name-interaction {
   ? {t2 list this should call unknown} "unknown"
 }
 
-nx::Test case object-level-defaults {
+nx::test case object-level-defaults {
   #
   # In the scenario below, setCheckedInstVar is executed and performs
   # an ::nsf::is value check on the default value. However, given the
@@ -2805,7 +2805,7 @@ nx::Test case object-level-defaults {
   ? {o a} 1
 }
 
-nx::Test case cmd-error-propagation {
+nx::test case cmd-error-propagation {
   ? {nx::Object new {
     error "bow-wow"
   }} "bow-wow"

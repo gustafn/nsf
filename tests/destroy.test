@@ -1,16 +1,13 @@
 # -*- Tcl -*-
 package require nx
-package require nx::plain-object-method
+package require nx::test
+nx::test configure -count 10
 
 ::nx::configure defaultMethodCallProtection false
-package require nx::test
-
-namespace import ::nx::*
-Test parameter count 10
 
 ::nsf::method::alias ::nx::Object set -frame object ::set
 
-Class create O -superclass Object {
+nx::Class create O -superclass nx::Object {
   :method init {} {
     set ::ObjectDestroy 0
     set ::firstDestroy 0
@@ -26,8 +23,8 @@ Class create O -superclass Object {
 # classical simple case
 #
 set case "simple destroy (1)"
-Test case simple-destroy-1
-Class create C -superclass O
+nx::test case simple-destroy-1
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -50,8 +47,8 @@ c1 foo
 # simple case, destroy does not propagate, c1 survives
 #
 set case "simple destroy (2), destroy blocks"
-Test case simple-destroy-2
-Class create C -superclass O
+nx::test case simple-destroy-2
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy block"}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -74,8 +71,8 @@ c1 foo
 # simple object recreate
 #
 set case "recreate"
-Test case recreate
-Class create C -superclass O
+nx::test case recreate
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -98,9 +95,9 @@ c1 foo
 # .. like simple case above
 #
 set case "cmd rename empty (1)"
-Test case rename-empty-1
-Object create o
-Class create C -superclass O
+nx::test case rename-empty-1
+nx::Object create o
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -125,8 +122,8 @@ c1 foo
 # this is the situation like above, as long xotcl's rename is used.
 #
 set case "cmd rename empty (2)"
-Test case rename-empty-2
-Class create C -superclass O
+nx::test case rename-empty-2
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy block"}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -151,9 +148,9 @@ c1 foo
 # xotcl's rename invokes a move 
 #
 set case "cmd rename object to current"
-Test case rename-to-current
-Object create o
-Class create C -superclass O
+nx::test case rename-to-current
+nx::Object create o
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -177,9 +174,9 @@ c1 foo
 # xotcl's rename invokes a move 
 #
 set case "cmd rename proc to current"
-Test case rename-proc-to-current
+nx::test case rename-proc-to-current
 proc o args {}
-Class create C -superclass O
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -202,9 +199,9 @@ rename o ""
 #
 
 set case "delete parent namespace (1)"
-Test case delete-parent-namespace
+nx::test case delete-parent-namespace
 namespace eval ::test {
-  Class create C -superclass O
+  nx::Class create C -superclass O
   C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
   C method foo {} {
     puts stderr "==== $::case [current]"
@@ -242,10 +239,10 @@ test::c1 foo
 # propagate.  
 #
 set case "delete parent namespace (2)"
-Test case delete-parent-namespace-2
+nx::test case delete-parent-namespace-2
 namespace eval ::test {
   ? {namespace exists test::C} 0 "exists test::C"
-  Class create C -superclass O
+  nx::Class create C -superclass O
   C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy block"}
   C method foo {} {
     puts stderr "==== $::case [current]"
@@ -278,9 +275,9 @@ test::c1 foo
 # already deleted, while a method of it is excuted
 #
 set case "delete parent object (1)"
-Test case delete-parent-object
-Object create o
-Class create C -superclass O
+nx::test case delete-parent-object
+nx::Object create o
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -310,9 +307,9 @@ o::c1 foo
 # is deleted.
 #
 set case "delete parent object (2)"
-Test case delete-parent-object-2
-Object create o
-Class create C -superclass O
+nx::test case delete-parent-object-2
+nx::Object create o
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy block"}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -338,9 +335,9 @@ o::c1 foo
 # xotcl 1.6 crashed on this test
 #
 set case "redefine current object as proc"
-Test case redefine-current-object-as-proc
-Object create o
-Class create C -superclass O
+nx::test case redefine-current-object-as-proc
+nx::Object create o
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -366,8 +363,8 @@ rename c1 ""
 # delete the active class
 #
 set case "delete active class"
-Test case delete-active-class
-Class create C -superclass O
+nx::test case delete-active-class
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -396,8 +393,8 @@ c1 foo
 # delete active object nested in class
 #
 set case "delete active object nested in class"
-Test case delete-active-object-nested-in-class
-Class create C -superclass O
+nx::test case delete-active-object-nested-in-class
+nx::Class create C -superclass O
 C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
   puts stderr "==== $::case [current]"
@@ -424,22 +421,22 @@ C::c1 foo
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 
 #
-Test case nesting-destroy {
-  Object create x
-  Object create x::y
+nx::test case nesting-destroy {
+  nx::Object create x
+  nx::Object create x::y
   x destroy
   ? {::nsf::object::exists x} 0 "parent object gone"
   ? {::nsf::object::exists x::y} 0 "child object gone"
 }
 
-Test case deleting-aliased-object1 {
-  Object create o
-  Object create o2
+nx::test case deleting-aliased-object1 {
+  nx::Object create o
+  nx::Object create o2
   # behave like an ensemble: aliased object has self of the caller
   ::nsf::object::property o2 perobjectdispatch 1
   ::nsf::method::alias o a o2
   ? {o a} ::o2 "call object via alias"
-  ? {o info method type a} alias
+  ? {o info object method type a} alias
   ## the ensemble-object needs per-object methods
   o2 object method info args {:info {*}$args}
   o2 object method set args {:set {*}$args}
@@ -456,16 +453,16 @@ Test case deleting-aliased-object1 {
   ? {o a info vars} {target "o2" of alias a apparently disappeared} "2nd call on deleted object"
 }
 
-Test case deleting-aliased-object2 {
-  Object create o
-  Object create o2
+nx::test case deleting-aliased-object2 {
+  nx::Object create o
+  nx::Object create o2
   # The methods of the aliased object have their own self
   ::nsf::method::alias o a o2
   puts stderr ===5
   ? {o a} ::o2 "call object via alias"
   puts stderr ===6
 
-  ? {o info method type a} alias
+  ? {o info object method type a} alias
   # In order to avoid recursive calls, we have to provide the
   # selector for the method definitions in nx::Object
   o2 object method info args {: ::nsf::classes::nx::Object::info {*}$args}
@@ -485,9 +482,9 @@ Test case deleting-aliased-object2 {
 }
 
 set case "deleting object with alias to object"
-Test case deleting-object-with-alias-to-object
-Object create o
-Object create o3
+nx::test case deleting-object-with-alias-to-object
+nx::Object create o
+nx::Object create o3
 ::nsf::method::alias o x o3
 o destroy
 ? {::nsf::object::exists o} 0 "parent object gone"
@@ -496,9 +493,9 @@ o3 destroy
 ? {::nsf::object::exists o3} 0 "aliased object destroyed"
 
 set case "create an alias, and delete cmd via aggregation"
-Test case create-alias-delete-via-aggregation
-Object create o
-Object create o3
+nx::test case create-alias-delete-via-aggregation
+nx::Object create o
+nx::Object create o3
 ::nsf::method::alias o x o3
 #o::x destroy
 o3 destroy
@@ -510,11 +507,11 @@ o destroy
 #
 # create an alias, and recreate obj
 #
-Test case create-alias-and-recreate-obj {
-  Object create o
-  Object create o3
+nx::test case create-alias-and-recreate-obj {
+  nx::Object create o
+  nx::Object create o3
   o object alias x o3
-  Object create o3
+  nx::Object create o3
   o3 object method set args {: ::nsf::classes::nx::Object::set {*}$args}
   o x set a 13
   ? {o x set a} 13 "aliased object works after recreate"
@@ -524,10 +521,10 @@ Test case create-alias-and-recreate-obj {
 # create an alias on the class level, double aliasing, delete aliased
 # object
 #
-Test case create-alias-on-class-delete-aliased-obj {
-  Class create C
-  Object create o
-  Object create o3
+nx::test case create-alias-on-class-delete-aliased-obj {
+  nx::Class create C
+  nx::Object create o
+  nx::Object create o3
 
   ::nsf::object::property o keepcallerself 1
   ::nsf::object::property o3 keepcallerself 1
@@ -553,10 +550,10 @@ Test case create-alias-on-class-delete-aliased-obj {
 #
 # create an alias on the class level, double aliasing, destroy class
 #
-Test case create-alias-on-class-destroy-class {
-  Class create C
-  Object create o
-  Object create o3
+nx::test case create-alias-on-class-destroy-class {
+  nx::Class create C
+  nx::Object create o
+  nx::Object create o3
   o object alias a o3
   C alias b o
   C create c1
@@ -569,12 +566,12 @@ Test case create-alias-on-class-destroy-class {
 # test cases where preexisting namespaces are re-used
 #
 
-Test case module {
+nx::test case module {
   # create a namespace with an object/class in it
-  namespace eval ::module { Object create foo }
+  namespace eval ::module { nx::Object create foo }
   
   # reuse the namespace for a class/object
-  Class create ::module
+  nx::Class create ::module
 
   ? {::nsf::is class ::module} 1
 
@@ -584,15 +581,15 @@ Test case module {
   ? {::nsf::is class ::module} 0
 }
 
-Test case namespace-import {
+nx::test case namespace-import {
 
   namespace eval ::module {
-    Class create Foo {
+    nx::Class create Foo {
       :create foo
     }
     namespace export Foo foo
   }
-  Class create ::module {
+  nx::Class create ::module {
     :create mod1
   }
   ? {::nsf::is class ::module::Foo} 1
@@ -600,7 +597,7 @@ Test case namespace-import {
   ? {::nsf::object::exists ::module::foo} 1
   ? {::nsf::is class ::module} 1
 
-  Object create ::o { :require namespace }
+  nx::Object create ::o { :require namespace }
   namespace eval ::o {namespace import ::module::*}
 
   ? {::nsf::is class ::o::Foo} 1
@@ -621,9 +618,10 @@ Test case namespace-import {
 
 # to avoid CallDirectly, we could activate this line
 ::nx::Class create M {:method dealloc args {next}}
-Test case delete-parent-namespace-dealloc
+
+nx::test case delete-parent-namespace-dealloc
 namespace eval ::test {
-  Class create C -superclass O
+  nx::Class create C -superclass O
   C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
   C method foo {} {
     puts stderr "==== $::case [current]"
@@ -642,6 +640,7 @@ namespace eval ::test {
     ? "set ::ObjectDestroy" 0 "$::case destroy not yet called"
   }
 }
+
 test::C create test::c1
 test::c1 foo
 ? {::nsf::object::exists test::c1} 0  "object still exists after proc"
@@ -652,7 +651,7 @@ test::c1 foo
 ? {namespace exists ::test} 1  "parent ::test namespace still exists after proc"
 ? {namespace exists ::xotcl::classes::test::C} 0  "namespace ::xotcl::classes::test::C still exists after proc"
 
-Test case destroy-during-init {
+nx::test case destroy-during-init {
   # create class
   nx::Class create Foo {
     :public method bar {} {return 1}
@@ -717,7 +716,7 @@ Test case destroy-during-init {
   ::nx::Object filter ""
 }
 
-Test case nested-ordered-composite {
+nx::test case nested-ordered-composite {
   # The following test case an explicit deletion/redefinition of an
   # toplevel object (o1) will cause the implicit deletion of a nested
   # object o1::o2. The object o2 has as well several included objects,
@@ -728,7 +727,7 @@ Test case nested-ordered-composite {
   # confronted with the deletion of indirectly deleted items (deleted by
   # the deletion of the ordered composite).
 
-  Class create C {
+  nx::Class create C {
     :property os
     :public method destroy {} {
       #puts stderr "[self] destroy ${:os}"
@@ -752,9 +751,9 @@ Test case nested-ordered-composite {
   for {set i 0} {$i < 10} {incr i} {
     set os [list]
     for {set j 0} {$j < 10} {incr j} {lappend os ::o1::o2::[incr c]}
-    Object create ::o1
-    Object create ::o1::o2
-    foreach o $os {Object create $o}
+    nx::Object create ::o1
+    nx::Object create ::o1::o2
+    foreach o $os {nx::Object create $o}
     C create ::o1::o2::oc1 -os $os
     ? {llength [o1 info children]} 1
     ? {llength [o1::o2 info children]} 11
@@ -772,9 +771,9 @@ Test case nested-ordered-composite {
   for {set i 0} {$i < 10} {incr i} {
     set os [list]
     for {set j 0} {$j < 20} {incr j} {lappend os ::o1::o2::[incr c]}
-    Object create ::o1
-    Object create ::o1::o2
-    foreach o $os {Object create $o}
+    nx::Object create ::o1
+    nx::Object create ::o1::o2
+    foreach o $os {nx::Object create $o}
     C create ::o1::o2::oc1 -os $os
     ? {llength [o1 info children]} 1
     ? {llength [o1::o2 info children]} 21
@@ -785,9 +784,9 @@ Test case nested-ordered-composite {
   for {set i 0} {$i < 10} {incr i} {
     set os [list]
     for {set j 0} {$j < 20} {incr j} {lappend os ::o1::o2::[incr c]}
-    Object create ::o1
-    Object create ::o1::o2
-    foreach o $os {Object create $o}
+    nx::Object create ::o1
+    nx::Object create ::o1::o2
+    foreach o $os {nx::Object create $o}
     C create ::o1::o2::ocX -os {}
     C create ::o1::o2::ocY -os $os
     ? {llength [o1 info children]} 1
@@ -802,9 +801,9 @@ Test case nested-ordered-composite {
 #
 package req nx::serializer
 
-nx::Test case class-object-property {
+nx::test case class-object-property {
 
-  Class create C {
+  nx::Class create C {
     :object property -accessor public x
     :property a:int
   }
@@ -831,7 +830,7 @@ nx::Test case class-object-property {
   ? {::nsf::object::exists ::C} 0
 }
 
-nx::Test case unset-traces-during-cleanup {
+nx::test case unset-traces-during-cleanup {
   global i
   set i [interp create]
   $i eval {
@@ -851,7 +850,7 @@ nx::Test case unset-traces-during-cleanup {
   unset i
 }
 
-nx::Test case unset-traces-during-cleanup-with-destroy {
+nx::test case unset-traces-during-cleanup-with-destroy {
   #
   # Make sure that a very-late destroy (in the unset trace) does not
   # fire ... and does not cause any side effects.
@@ -879,7 +878,7 @@ nx::Test case unset-traces-during-cleanup-with-destroy {
   unset i
 }
 
-nx::Test case unset-traces-during-cleanup-with-destroy-2 {
+nx::test case unset-traces-during-cleanup-with-destroy-2 {
   #
   # We are safe when trying to delete the base class/metaclass ...
   #
@@ -902,7 +901,7 @@ nx::Test case unset-traces-during-cleanup-with-destroy-2 {
   unset i
 }
 
-nx::Test case unset-traces-during-cleanup-with-reset {
+nx::test case unset-traces-during-cleanup-with-reset {
   #
   # Check for leaks ...
   #
@@ -928,7 +927,7 @@ nx::Test case unset-traces-during-cleanup-with-reset {
 #
 # Exercise renaming of cmds which are used as methods
 #
-nx::Test case rename-cached-method {
+nx::test case rename-cached-method {
   # Create a class with a namespace
   nx::Class create A {:public object method foo args {}}
   #
@@ -980,7 +979,7 @@ nx::Test case rename-cached-method {
 #
 # Create a cyclical class dependency and delete it manually
 #
-nx::Test case cyclical-dependency {
+nx::test case cyclical-dependency {
   nx::Object create o1
   ? {nx::Class create o1::C} ::o1::C
   ? {nsf::relation o1 class o1::C} ::o1::C
@@ -998,7 +997,7 @@ nsf::relation o1 class o1::C
 #
 # Create a cyclical superclass dependency and delete it manually
 #
-nx::Test case cyclical-dependency {
+nx::test case cyclical-dependency {
   nx::Class create C 
   nx::Class create C::*
   ? {nsf::relation C superclass {C::* nx::Object}} ""

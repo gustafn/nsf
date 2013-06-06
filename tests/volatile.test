@@ -68,12 +68,12 @@ nx::Class create D {
 }
 
 D create d1
-nx::Test case methods-methods {
+nx::test case methods-methods {
   d1 foox
   d1 foon
 }
 
-nx::Test case methods-procs {
+nx::test case methods-procs {
   d1 foox2
   d1 foon2
 }
@@ -81,7 +81,7 @@ nx::Test case methods-procs {
 #
 # Call just in tcl procs
 #
-nx::Test case procs-procs {
+nx::test case procs-procs {
   ::foox
   ::foon
 }

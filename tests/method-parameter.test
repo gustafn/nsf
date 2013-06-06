@@ -2,7 +2,7 @@
 package require nx
 package require nx::test
 
-nx::Test case method-params-0 {
+nx::test case method-params-0 {
   nsf::proc p0 {} {return 1}
   nsf::proc p1 {-x} {return [list [info exists x]]}
 
@@ -38,7 +38,7 @@ nx::Test case method-params-0 {
 
 
 
-nx::Test case noleadingdash {
+nx::test case noleadingdash {
 
   nsf::proc p2a {-x args} {return [list [info exists x] $args]}
   nsf::proc p2b {-x args:noleadingdash} {return [list [info exists x] $args]}
@@ -61,7 +61,7 @@ nx::Test case noleadingdash {
  should be "p3a /a/ ?-x /value/? ?-y /value/? /b/ ?-z /value/?"}  
 }
 
-nx::Test case unknown-handler {
+nx::test case unknown-handler {
 
   Class create C {
     :public method p1 {-x} {return [list [info exists x]]}

@@ -8,7 +8,7 @@ if {[info command yield] eq ""} return
 #
 # Test coroutine / yield
 #
-nx::Test case number-generator {
+nx::test case number-generator {
   nx::Object create ::numbers {
     # set instance variable used in coroutine
     set :delta 2
@@ -38,7 +38,7 @@ nx::Test case number-generator {
 #
 # Test coroutine / yield 
 #
-nx::Test case enumerator1 {
+nx::test case enumerator1 {
 
   #
   # enumerator with yield in a single class
@@ -79,7 +79,7 @@ nx::Test case enumerator1 {
 }
 
 
-nx::Test case enumerator2 {
+nx::test case enumerator2 {
   
   #
   # Define separate classes for Yielder and Enumerator
@@ -209,7 +209,7 @@ nx::Test case enumerator2 {
 #
 # apply
 #
-nx::Test case apply {
+nx::test case apply {
 
   # Register apply as an alias
   ::nx::Object public alias apply ::apply

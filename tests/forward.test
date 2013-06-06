@@ -1,14 +1,13 @@
 # -*- Tcl -*-
 package require nx
 package require nx::test
-namespace import ::nx::*
 
 ###########################################
 # trivial object delegation
 ###########################################
-Test case delegation {
-  Object create dog 
-  Object create tail {
+nx::test case delegation {
+  nx::Object create dog 
+  nx::Object create tail {
     :public object method wag args { return $args }
   }
   dog public object forward wag tail %proc
@@ -20,8 +19,8 @@ Test case delegation {
 ###########################################
 # evaluating in scope 
 ###########################################
-Test case inscope {
-    Class create X {
+nx::test case inscope {
+    nx::Class create X {
 	:property {x 1}
 	:public forward Incr -objframe incr
     }
@@ -36,8 +35,8 @@ Test case inscope {
 ###########################################
 # adding 
 ###########################################
-Test case adding {
-    Object create obj {
+nx::test case adding {
+    nx::Object create obj {
 	:public object forward addOne expr 1 +
     }
 
@@ -47,11 +46,11 @@ Test case adding {
 ###########################################
 # more arguments
 ###########################################
-Test case multiple-args {
-    Object create target {
+nx::test case multiple-args {
+    nx::Object create target {
 	:public object method foo args {return $args}
     }
-    Object create obj {
+    nx::Object create obj {
 	:public object forward foo target %proc %self a1 a2
     }
 
@@ -64,12 +63,12 @@ Test case multiple-args {
 ###########################################
 # mixin example
 ###########################################
-Test case mixin-via-forward {
-    Object create mixin {
+nx::test case mixin-via-forward {
+    nx::Object create mixin {
       :object method unknown {m args} {return [concat [current] $m $args]}
     }
 
-    Object create obj {
+    nx::Object create obj {
 	:public object forward Mixin mixin %1 %self
     }
 
@@ -86,8 +85,8 @@ Test case mixin-via-forward {
 ###########################################
 # sketching extensibe info
 ###########################################
-Test case info-via-forward {
-    Object create Info {
+nx::test case info-via-forward {
+    nx::Object create Info {
         :public object method @mixin {o} {
 	    $o info mixin
 	}
@@ -99,9 +98,9 @@ Test case info-via-forward {
 	    return $result
 	}
     }
-    Object public forward Info -methodprefix @ Info %1 %self
+    nx::Object public forward Info -methodprefix @ Info %1 %self
 
-    Class create X {
+    nx::Class create X {
 	:create x1
     }
     ? {x1 Info class} ::X
@@ -111,8 +110,8 @@ Test case info-via-forward {
 ###########################################
 # variations of placement of options
 ###########################################
-Test case incr {
-    Object create obj {
+nx::test case incr {
+    nx::Object create obj {
 	set :x 1
 	:public object forward i1 -objframe incr x 
     }
@@ -123,8 +122,8 @@ Test case incr {
 ###########################################
 # introspeciton options
 ###########################################
-Test case introspection {
-    Class create C {
+nx::test case introspection {
+    nx::Class create C {
 	:public forward Info -methodprefix @ Info %1 %self 
     }
 
@@ -143,7 +142,7 @@ Test case introspection {
     ? {C info method definition Info} [list ::C public forward Info -methodprefix @ Info %1 %self]
 
     # check introspection for objects
-    Object create obj {
+    nx::Object create obj {
 	:public object forward i1 -objframe incr x 
 	:public object forward Mixin mixin %1 %self
 	:public object forward foo target %proc %self %%self %%p
@@ -161,8 +160,8 @@ Test case introspection {
 # test serializer
 ###########################################
 package require nx::serializer
-Test case serializer {
-    Object create obj {
+nx::test case serializer {
+    nx::Object create obj {
         :object method test {} {puts "i am [current method]"}
     }
     set ::a [Serializer deepSerialize obj]
@@ -174,15 +173,15 @@ Test case serializer {
 ###########################################
 # test optional target cmd
 ###########################################
-Test case optional-target {
-    Object create obj {
+nx::test case optional-target {
+    nx::Object create obj {
 	set :x 2
 	:public object forward append -objframe
     }
     ? {obj append x y z} 2yz
 
-    Object create n; Object create n::x {:public object method current {} {current}}
-    Object create o
+    nx::Object create n; nx::Object create n::x {:public object method current {} {current}}
+    nx::Object create o
     o public object forward ::n::x
     ? {o x current} ::n::x
 }
@@ -190,8 +189,8 @@ Test case optional-target {
 ###########################################
 # arg including instvar
 ###########################################
-Test case percent-cmd {
-    Object create obj {
+nx::test case percent-cmd {
+    nx::Object create obj {
 	set :x 10
 	:public object forward x* expr {%:eval {set :x}} *
     }
@@ -201,8 +200,8 @@ Test case percent-cmd {
 ###########################################
 # positional arguments
 ###########################################
-Test case positioning-args {
-    Object create obj
+nx::test case positioning-args {
+    nx::Object create obj
     obj public object forward @end-13 list {%@end 13}
     ? {obj @end-13 1 2 3 } [list 1 2 3 13]
 
@@ -259,8 +258,8 @@ Test case positioning-args {
 ###############################################
 # substitution depending on number of arguments
 ###############################################
-Test case num-args {
-    Object create obj {
+nx::test case num-args {
+    nx::Object create obj {
 	:public object forward f %self [list %argclindex [list a b c]]
 	:object method a args {return [list [current method] $args]}
 	:object method b args {return [list [current method] $args]}
@@ -275,21 +274,21 @@ Test case num-args {
 ###############################################
 # option earlybinding
 ###############################################
-Test case earlybinding {
-    Object create obj {
+nx::test case earlybinding {
+    nx::Object create obj {
       #:public object forward s -earlybinding ::set ::X
       :public object forward s ::set ::X
     }
     ? {obj s 100} 100
     ? {obj s} 100
 
-    Object public method f args { next }          
+    nx::Object public method f args { next }          
 
-    Class create NS	
-    Class create NS::Main {
+    nx::Class create NS	
+    nx::Class create NS::Main {
 	:public object method m1 {} { :m2 }
 	:public object method m2 {} {
-	    ? {namespace eval :: {Object create toplevelObj1}} ::toplevelObj1
+	    ? {namespace eval :: {nx::Object create toplevelObj1}} ::toplevelObj1
   
 	    ? [list set _ [namespace current]] ::NS
 	    ? [list set _ [NS create m1]] ::NS::m1
@@ -314,7 +313,7 @@ Test case earlybinding {
 
 	:public method i1 {} { :i2 }
 	:public method i2 {} {
-	    ? {namespace eval :: {Object create toplevelObj2}} ::toplevelObj2
+	    ? {namespace eval :: {nx::Object create toplevelObj2}} ::toplevelObj2
   
 	    ? [list set _ [namespace current]] ::NS
 	    ? [list set _ [NS create i1]] ::NS::i1
@@ -362,10 +361,10 @@ Test case earlybinding {
 ###########################################
 # forward to expr + callstack
 ###########################################
-Test case callstack {
-    Object public forward expr -objframe
+nx::test case callstack {
+    nx::Object public forward expr -objframe
 
-    Class create C {
+    nx::Class create C {
 	:method xx {} {current}
 	:public object method t {o expr} {
 	    return [$o expr $expr]
@@ -387,6 +386,6 @@ Test case callstack {
     ? {C t ::c1 {[:info has type C]}} 	1
     ? {C t ::c1 {[:info has type ::C]}}	1
 
-    Object method expr {} {}
+    nx::Object method expr {} {}
 
 }

@@ -84,7 +84,7 @@ nx::Class create ExportUnexportUtil {
 }
 nx::Class mixin add ExportUnexportUtil
 
-nx::Test case export {
+nx::test case export {
   #
   # Exporting existing, non-inherited method (see TclOO tests,
   # oo.test, oo-4.1)
@@ -175,7 +175,7 @@ nx::Test case export {
 
 }
 
-nx::Test case unexport {
+nx::test case unexport {
 
   # A solitary, preemptive [unexport]: see description for the
   # corresponding [export] case

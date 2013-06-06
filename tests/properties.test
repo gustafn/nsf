@@ -16,7 +16,7 @@ nx::configure defaultAccessor none
 #
 # Test class-level properties and variables without -incremental
 #
-nx::Test case class-level {
+nx::test case class-level {
 
   nx::Class create C {
     :property {a a1}
@@ -206,7 +206,7 @@ nx::Test case class-level {
 #
 # test class-level properties and variables with -incremental
 #
-nx::Test case class-level-incremental {
+nx::test case class-level-incremental {
 
   nx::Class create CC {
     :property -incremental {a a1}
@@ -377,7 +377,7 @@ nx::Test case class-level-incremental {
 #
 # Test object-level properties and variables without -incremental
 #
-nx::Test case object-level {
+nx::test case object-level {
   
   nx::Object create o1 {
     :object property {a a1}
@@ -511,7 +511,7 @@ nx::Test case object-level {
 #
 # test object-level properties and variables with -incremental
 #
-nx::Test case object-level-incremental {
+nx::test case object-level-incremental {
 
   nx::Object create o1 {
     :object property -incremental {a a1}
@@ -681,7 +681,7 @@ nx::Test case object-level-incremental {
 #
 # check performance of class-level configure and cget
 #
-nx::Test case class-object-properties {
+nx::test case class-object-properties {
 
   nx::Class create C {
     :property {a a1}
@@ -713,11 +713,11 @@ nx::Test case class-object-properties {
 #####################################################################
 # performance tests
 #####################################################################
-nx::Test parameter count 10000
+nx::test configure -count 10000
 #
 # check performance of class-level configure and cget
 #
-nx::Test case class-level-perf {
+nx::test case class-level-perf {
 
   nx::Class create C {
     :property {a a1}
@@ -795,7 +795,7 @@ nx::Test case class-level-perf {
 # check performance of class-level configure and cget
 #
 
-nx::Test case object-level-perf {
+nx::test case object-level-perf {
 
   nx::Object create o1 {
     :object property {a a1}
