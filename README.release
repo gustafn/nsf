@@ -44,8 +44,8 @@ Steps for a beta release:
          tar ztvf ../nsf2.0b3.tar.gz |sort -rn -k 5,6|less
 
    - tag version in git and commit  
-       git tag -a 2.0b3 -m 2.0b3
-       git push tag
+       git tag -a 2.0b5 -m 2.0b5
+       git push --tags
        git push commit
 
    - update archive at sourceforge
