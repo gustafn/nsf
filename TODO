@@ -4685,7 +4685,9 @@ nsf.c:
 ========================================================================
 TODO:
 
- - spellcheck / ChangeLog (to point out differences to 2.0b3)
+ - update + spellcheck / ChangeLog (to point out differences to 2.0b3)
+ - recheck Announce
+   
 
 Stefan: doc itmes
 

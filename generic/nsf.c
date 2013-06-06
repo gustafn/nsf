@@ -1236,7 +1236,6 @@ TclObjIsNsfObject(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
 
 static int
 GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
-  int result;
   NsfObject *object;
   CONST char *string;
   Tcl_Command cmd;
@@ -1278,13 +1277,12 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
     DECR_REF_COUNT(tmpName);
   }
 
-  if (object) {
-    if (objectPtr) *objectPtr = object;
-    result = TCL_OK;
-  } else {
-    result = TCL_ERROR;
+  if (likely(object != NULL)) {
+    if (objectPtr) {*objectPtr = object;}
+    return TCL_OK;
   }
-  return result;
+
+  return TCL_ERROR;
 }
 
 /*
@@ -20933,8 +20931,8 @@ static int
 NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object) {
 #if defined(PER_OBJECT_PARAMETER_CACHING)
   if (object->opt && object->opt->parsedParamPtr) {
-    fprintf(stderr, "   %p %s invalidate %p\n", object,
-	    ObjectName(object),  object->opt->parsedParamPtr);
+    /*fprintf(stderr, "   %p %s invalidate %p\n", object,
+      ObjectName(object),  object->opt->parsedParamPtr);*/
     ParsedParamFree(object->opt->parsedParamPtr);
     object->opt->parsedParamPtr = NULL;
   }
@@ -21831,8 +21829,8 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
      * We have object-specific parameters.  Do not use the per-class cache,
      * and do not save the results in the per-class cache
      */
-    fprintf(stderr, "per-object configure obj %s flags %.6x\n", 
-	    ObjectName(object), object->flags);
+    /*fprintf(stderr, "per-object configure obj %s flags %.6x\n", 
+      ObjectName(object), object->flags);*/
     class = NULL;
   } else {
     class = object->cl;

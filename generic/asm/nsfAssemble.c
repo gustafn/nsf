@@ -171,10 +171,10 @@ AsmInstructionArgvSet(Tcl_Interp *interp, int from, int to, int currentArg,
 static int
 AsmInstructionArgvCheck(Tcl_Interp *interp, int from, int to, CONST char **argType, 
 			int nrSlots, int nrStatements, Tcl_Obj **wordOv, Tcl_Obj *lineObj) {
-  int j, result;
+  int j;
 
   for (j = from; j < to; j += 2) {
-    int argIndex, typesIndex, intValue;
+    int argIndex, typesIndex, intValue, result;
 
     //fprintf(stderr, "check arg type %s\n", ObjStr(wordOv[j]));
     result = Tcl_GetIndexFromObj(interp, wordOv[j], asmStatementArgType, 
@@ -338,33 +338,35 @@ NsfAsmProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   //fprintf(stderr, "NsfAsmProcStub %s is called, tcd %p object %p\n", ObjStr(objv[0]), cd, cd->object);
 
   if (likely(cd->paramDefs && cd->paramDefs->paramsPtr)) {
-    ParseContext *pcPtr;
     ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 
     fprintf(stderr, "not implemented yet\n");
 #if 0
-    pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
-    /*
-     * We have to substitute the first element of objv with the name
-     * of the function to be called. Since objv is immutable, we have
-     * to copy the full argument vector and replace the element on
-     * position [0]
-     */
-    memcpy(tov, objv, sizeof(Tcl_Obj *)*(objc));
-    //tov[0] = tcd->procName;
-
-    /* If the argument parsing is ok, the body will be called */
-    result = ProcessMethodArguments(pcPtr, interp, NULL, 0,
-				    cd->paramDefs, objv[0],
-				    objc, tov);
-
-    if (likely(result == TCL_OK)) {
-      result = InvokeShadowedProc(interp, cd->procName, cd->cmd, pcPtr);
-    } else {
-      /*Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
-      fprintf(stderr, "NsfProcStub: incorrect arguments (%s)\n", ObjStr(resultObj));*/
-      ParseContextRelease(pcPtr);
-      NsfTclStackFree(interp, pcPtr, "release parse context");
+    {
+      ParseContext *pcPtr;
+      pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
+      /*
+       * We have to substitute the first element of objv with the name
+       * of the function to be called. Since objv is immutable, we have
+       * to copy the full argument vector and replace the element on
+       * position [0]
+       */
+      memcpy(tov, objv, sizeof(Tcl_Obj *)*(objc));
+      //tov[0] = tcd->procName;
+      
+      /* If the argument parsing is ok, the body will be called */
+      result = ProcessMethodArguments(pcPtr, interp, NULL, 0,
+				      cd->paramDefs, objv[0],
+				      objc, tov);
+      
+      if (likely(result == TCL_OK)) {
+	result = InvokeShadowedProc(interp, cd->procName, cd->cmd, pcPtr);
+      } else {
+	/*Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+	  fprintf(stderr, "NsfProcStub: incorrect arguments (%s)\n", ObjStr(resultObj));*/
+	ParseContextRelease(pcPtr);
+	NsfTclStackFree(interp, pcPtr, "release parse context");
+      }
     }
 #endif
     /*fprintf(stderr, "NsfProcStub free on stack %p\n", tov);*/

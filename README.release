@@ -9,7 +9,8 @@ Steps for a beta release:
          make test 2>&1|cat |fgrep Overall
        * configure with --enable-development and activate valgrind in Makefile
          make test 2>&1|cat |fgrep "definitely lost"
-         (8.5 ok, whenevery test returns "40 bytes in 2 blocks")
+         (8.5.11 ok, when every test returns "40 bytes in 2 blocks")
+         (8.5.14 ok, when on test reurns "64 bytes in 1 blocks")
        * get rid of non-ansi-c
          make "CFLAGS_DEFAULT=-ansi -pedantic"
          (warnings are ok, errors not)
@@ -22,7 +23,7 @@ Steps for a beta release:
          make install
          make install-aol
          test with naviserver/aolserver (xowiki/xowf)
-     * tcl 8.6b2: 
+     * tcl 8.6: 
        * configure with --enable-development
          make test
        * configure with --enable-memcount=yes
@@ -30,6 +31,7 @@ Steps for a beta release:
        * configure with --enable-development and activate valgrind in Makefile
          make test 2>&1|cat |fgrep "definitely lost"
          (8.6b2 ok, whenevery test returns "40 bytes in 2 blocks")
+         (8.6.0 ok, whenevery test returns "0 bytes in 0 blocks")
 
    - Announcement
       * Summarize changes since the last release in doc/Announce-VERSION
