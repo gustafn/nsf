@@ -4057,6 +4057,23 @@ NsfNamespaceInit(Tcl_Namespace *nsPtr) {
 #endif
 }
 
+static NsfObject * 
+NSNamespaceClientDataObject(ClientData clientData) {
+#ifdef NSF_MEM_COUNT
+  NsfNamespaceClientData *nsClientData = (NsfNamespaceClientData *)clientData;
+
+  assert(clientData);
+  /*fprintf(stderr, "NSNamespaceDeleteProc cd %p\n", clientData);
+    fprintf(stderr, "... nsPtr %p name '%s'\n", nsClientData->nsPtr, nsClientData->nsPtr->fullName);*/
+
+  return nsClientData->object;
+#else
+  assert(clientData);
+  return (NsfObject *) clientData;
+#endif
+}
+
+
 /*
  *----------------------------------------------------------------------
  * SlotContainerCmdResolver --
@@ -4077,20 +4094,26 @@ NsfNamespaceInit(Tcl_Namespace *nsPtr) {
  */
 
 static int
-SlotContainerCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
+SlotContainerCmdResolver(Tcl_Interp *interp, CONST char *cmdName, 
+			 Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
 
   if (*cmdName == ':' || (flags & TCL_GLOBAL_ONLY)) {
     /* colon names (InterpColonCmdResolver) and global lookups are not for us */
     return TCL_CONTINUE;
   }
-  /*fprintf(stderr, "DotCmdResolver called with %s ns %s ourNs %d\n", 
-    cmdName, nsPtr->fullName, nsPtr->deleteProc == NSNamespaceDeleteProc);*/
+
+  /*fprintf(stderr, "SlotContainerCmdResolver called with %s ns %s ourNs %d clientData %p\n", 
+	  cmdName, nsPtr->fullName, nsPtr->deleteProc == NSNamespaceDeleteProc,
+	  nsPtr->clientData);*/
   
   /* 
    * Check, if this already a namespace handled by NSF 
    */
   if (nsPtr->deleteProc == NSNamespaceDeleteProc && nsPtr->clientData) {
-    NsfObject *parentObject = (NsfObject *) nsPtr->clientData;
+    NsfObject *parentObject = NSNamespaceClientDataObject(nsPtr->clientData);
+
+    /*fprintf(stderr, "SlotContainerCmdResolver parentObject %p %s\n", 
+      parentObject, ObjectName(parentObject));*/
     /* 
      * Make global lookups when the parent is a slotcontainer
      */
@@ -4431,21 +4454,13 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   }
 }
 
+
 static void
 NSNamespaceDeleteProc(ClientData clientData) {
+  NsfObject *object = NSNamespaceClientDataObject(clientData);
+
 #ifdef NSF_MEM_COUNT
-  NsfNamespaceClientData *nsClientData = (NsfNamespaceClientData *)clientData;
-  NsfObject *object;
-
-  assert(clientData);
-  /*fprintf(stderr, "NSNamespaceDeleteProc cd %p\n", clientData);
-    fprintf(stderr, "... nsPtr %p name '%s'\n", nsClientData->nsPtr, nsClientData->nsPtr->fullName);*/
-
-  object = nsClientData->object;
-
-  ckfree((char *)nsClientData);
-#else
-  NsfObject *object = (NsfObject *) clientData;
+  ckfree((char *)clientData);
 #endif
 
   assert(object);
@@ -9343,7 +9358,7 @@ NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) {
 static void
 ParsedParamFree(NsfParsedParam *parsedParamPtr) {
   /*fprintf(stderr, "ParsedParamFree %p, npargs %p\n",
-   parsedParamPtr, parsedParamPtr->paramDefs);*/
+    parsedParamPtr, parsedParamPtr->paramDefs);*/
   if (parsedParamPtr->paramDefs) {
     ParamDefsRefCountDecr(parsedParamPtr->paramDefs);
   }
@@ -20921,7 +20936,8 @@ static int
 NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object) {
 #if defined(PER_OBJECT_PARAMETER_CACHING)
   if (object->opt && object->opt->parsedParamPtr) {
-    /* fprintf(stderr, "   %s invalidate %p\n", ObjectName(object),  obj->opt->parsedParamPtr); */
+    fprintf(stderr, "   %p %s invalidate %p\n", object,
+	    ObjectName(object),  object->opt->parsedParamPtr);
     ParsedParamFree(object->opt->parsedParamPtr);
     object->opt->parsedParamPtr = NULL;
   }
@@ -21818,8 +21834,8 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
      * We have object-specific parameters.  Do not use the per-class cache,
      * and do not save the results in the per-class cache
      */
-    /*fprintf(stderr, "per-object configure obj %s flags %.6x\n", 
-      ObjectName(object), object->flags);*/
+    fprintf(stderr, "per-object configure obj %s flags %.6x\n", 
+	    ObjectName(object), object->flags);
     class = NULL;
   } else {
     class = object->cl;
@@ -21850,15 +21866,19 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
     parsedParamPtr->paramDefs = clParsedParamPtr->paramDefs;
     parsedParamPtr->possibleUnknowns = clParsedParamPtr->possibleUnknowns;
     result = TCL_OK;
+
 #if defined(PER_OBJECT_PARAMETER_CACHING)
   } else if (object->opt && object->opt->parsedParamPtr && 
 	     object->opt->classParamPtrEpoch == RUNTIME_STATE(interp)->classParamPtrEpoch) {
     NsfParsedParam *objParsedParamPtr = object->opt->parsedParamPtr;
-    /*fprintf(stderr, "reuse obj param for obj %s paramPtr %p\n", ObjectName(object), objParsedParamPtr);*/
+
+    /*fprintf(stderr, "reuse obj param for obj %p  %s paramPtr %p\n", 
+      object, ObjectName(object), objParsedParamPtr);*/
     parsedParamPtr->paramDefs = objParsedParamPtr->paramDefs;
     parsedParamPtr->possibleUnknowns = objParsedParamPtr->possibleUnknowns;
     result = TCL_OK;
 #endif
+
   } else {
     /*
      * There is no parameter definition available, get a new one in
@@ -21894,10 +21914,13 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 #if defined(PER_OBJECT_PARAMETER_CACHING)
 	  } else {
 	    NsfObjectOpt *opt = NsfRequireObjectOpt(object);
+	    if (object->opt->parsedParamPtr) {
+	      NsfParameterInvalidateObjectCacheCmd(interp, object);
+	    }
 	    opt->parsedParamPtr = ppDefPtr;
 	    opt->classParamPtrEpoch = RUNTIME_STATE(interp)->classParamPtrEpoch;
-	    /*fprintf(stderr, "set obj param for obj %s epoch %d ppDefPtr %p\n", 
-	      ObjectName(object), opt->classParamPtrEpoch, ppDefPtr);*/
+	    fprintf(stderr, "set obj param for obj %p %s epoch %d ppDefPtr %p\n", 
+		    object, ObjectName(object), opt->classParamPtrEpoch, ppDefPtr);
 #endif
 	  }
 	  if (ppDefPtr->paramDefs) {

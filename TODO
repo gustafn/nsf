@@ -4674,6 +4674,12 @@ nx::test:
 - don't use "namespace import nx::*" in test cases
   when not required
 
+nsf.c:
+- reduce variable scopes
+- fix a bug in SlotContainerCmdResolver() when NSF_MEM_COUNT
+  is activated
+- fix a small memory leak for PER_OBJECT_PARAMETER_CACHING
+- all cases detectable with --enable-memcount=yes are fixed
 
 
 ========================================================================
@@ -4681,12 +4687,8 @@ TODO:
 
  - spellcheck / ChangeLog (to point out differences to 2.0b3)
 
-Stefan: API-related items
+Stefan: doc itmes
 
- * - naming in slots: "incremental", "reconfigure"
-
-==
-     
  - make rough comparison table with NX, XOTcl, tclOO, itcl, Ruby, Python
    Most general superclass
    Metaclass
@@ -4753,7 +4755,7 @@ Stefan: API-related items
 
 - document value added replacements of Tcl functions
 
-- object parameter type forward:
+- configure parameter type forward:
    - regression test
    - get rid of eager tcd creation (optimization, can go to future releases)
 

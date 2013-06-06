@@ -287,8 +287,8 @@ NsfFlagObjSet(
   } else {
     flagPtr = (NsfFlag *)objPtr->internalRep.twoPtrValue.ptr1;
 
-    /* fprintf(stderr, "NsfFlagObjSet %p reuses interal rep, serial (%d/%d)\n",
-       objPtr, flagPtr->serial, serial);*/
+    /*fprintf(stderr, "NsfFlagObjSet %p reuses interal rep, serial (%d/%d)\n",
+      objPtr, flagPtr->serial, serial);*/
 
     if (flagPtr->payload) {DECR_REF_COUNT2("flagPtr->payload", flagPtr->payload);}
   }
