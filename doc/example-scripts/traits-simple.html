@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>Listing of doc/example-scripts/traits-simple.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -179,7 +183,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -349,7 +353,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +411,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,6 +508,31 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -558,7 +577,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -587,7 +606,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +652,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -740,8 +759,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-keyword'>package</span> require nx::trait</pre></div></div>
-<div class="paragraph"><p>Create a simple trait called <tt>tReadStream</tt> which provides the
+<pre class='nx'><span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx::trait</pre></div></div>
+<div class="paragraph"><p>Create a simple trait called <code>tReadStream</code> which provides the
 interface to a stream. In contrary to a composite trait, a simple
 trait does not inherit from another trait.</p></div>
 <div class="listingblock">
@@ -759,21 +778,21 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   <span class='nx-comment'>#
 </span>  <span class='nx-comment'># Define the methods provided by this trait:
 </span>  <span class='nx-comment'>#
-</span>  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> atStart {} {<span class='nx-keyword'>expr</span> {[:position] == [:minPosition]}}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> atEnd {} {<span class='nx-keyword'>expr</span> {[:position] == [:maxPosition]}}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> setToStart {} {<span class='nx-keyword'>set</span> :position [:minPosition]}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> setToEnd {} {<span class='nx-keyword'>set</span> :position [:maxPosition]}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> maxPosition {} {<span class='nx-keyword'>llength</span> <span class='nx-variable'>${</span><span class='nx-variable'>:collection}</span>}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> on {collection} {<span class='nx-keyword'>set</span> :collection <span class='nx-variable'>$collection</span>; :setToStart}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>next</span> {} {
+</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> atStart {} {<span class='nx-keyword'>expr</span> {[:position] == [:minPosition]}}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> atEnd {} {<span class='nx-keyword'>expr</span> {[:position] == [:maxPosition]}}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> setToStart {} {<span class='nx-keyword'>set</span> :position [:minPosition]}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> setToEnd {} {<span class='nx-keyword'>set</span> :position [:maxPosition]}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> maxPosition {} {<span class='nx-keyword'>llength</span> <span class='nx-variable'>${</span><span class='nx-variable'>:collection}</span>}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> on {collection} {<span class='nx-keyword'>set</span> :collection <span class='nx-variable'>$collection</span>; :setToStart}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>next</span> {} {
     <span class='nx-keyword'>if</span> {[:atEnd]} {<span class='nx-keyword'>return</span> <span class='nx-string'>""</span>} <span class='nx-keyword'>else</span> {
       <span class='nx-keyword'>set</span> r [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:collection}</span> <span class='nx-variable'>${</span><span class='nx-variable'>:position}</span>]
       :nextPosition
       <span class='nx-keyword'>return</span> <span class='nx-variable'>$r</span>
     }
   }
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> minPosition {} {<span class='nx-keyword'>return</span> 0}
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> nextPosition {} {<span class='nx-keyword'>incr</span> :position 1}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> minPosition {} {<span class='nx-keyword'>return</span> 0}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> nextPosition {} {<span class='nx-keyword'>incr</span> :position 1}
 
   <span class='nx-comment'># This trait requires a method "position" and a variable
 </span>  <span class='nx-comment'># "collection" from the base class. The definition is incomplete in
@@ -782,9 +801,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   :requiredMethods position
   :requiredVariables collection
 }</pre></div></div>
-<div class="paragraph"><p>Define the class <tt>ReadStream</tt> with properties <tt>position</tt> and
-<tt>collection</tt> that uses the trait. The method <tt>require trait</tt> checks the
-requirements of the trait and imports the methods into <tt>ReadStream</tt>.</p></div>
+<div class="paragraph"><p>Define the class <code>ReadStream</code> with properties <code>position</code> and
+<code>collection</code> that uses the trait. The method <code>require trait</code> checks the
+requirements of the trait and imports the methods into <code>ReadStream</code>.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -797,11 +816,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> ReadStream {
-  :<span class='nx-keyword'>property</span> {collection <span class='nx-string'>""</span>}
-  :<span class='nx-keyword'>property</span> {position 0}
-  :require trait tReadStream
+  <span class='nx-keyword'>:property</span> {collection <span class='nx-string'>""</span>}
+  <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>public</span> {position 0}
+  <span class='nx-keyword'>:require</span> trait tReadStream
 }</pre></div></div>
-<div class="paragraph"><p>Create an instance of the class <tt>ReadStream</tt>:</p></div>
+<div class="paragraph"><p>Create an instance of the class <code>ReadStream</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -840,7 +859,7 @@ b</pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-10-01 20:34:17 CEST
+Last updated 2013-06-07 00:17:03 CEST
 </div>
 </div>
 </body>

@@ -13,7 +13,8 @@ more than two years in production of our large scale, multi threaded
 web environment inside naviserver. Most of the changes happened 
 in NX and therefore on the NSF scripting level, without the need 
 to modify the NSF C layer. The implementation of XOTcl 2 
-has changed very little.
+has changed very little. The Next Scripting Framework was tested
+with Tcl 8.5.14 and Tcl 8.6.0.
 
 Below are the most notable differences in 2.0b5 as compared to
 2.0b3:

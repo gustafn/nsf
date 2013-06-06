@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>Listing of doc/example-scripts/container.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -179,7 +183,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -349,7 +353,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +411,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,6 +508,31 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -558,7 +577,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -587,7 +606,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +652,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -718,8 +737,8 @@ asciidoc.install();
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph"><p>This example is a small design study to implement container classes
-with different features, namely a <tt>SimpleContainer</tt>, an
-<tt>OrderedContainer</tt> and a <tt>SortedContainer</tt>. First of all, we require NX:</p></div>
+with different features, namely a <code>SimpleContainer</code>, an
+<code>OrderedContainer</code> and a <code>SortedContainer</code>. First of all, we require NX:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -731,19 +750,20 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-keyword'>package</span> req nx</pre></div></div>
+<pre class='nx'><span class='nx-keyword'>package</span> req nx
+nx::test <span class='nx-keyword'>configure</span> -count 1</pre></div></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_simple_container">Simple Container</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The first container class presented here is called
-<tt>SimpleContainer</tt>, which manages its contained items. As all
+<code>SimpleContainer</code>, which manages its contained items. As all
 container classes presented here, the items are created as child
 objects embedded in the container. If the container is deleted, all
 items are deleted as well.  The items, which will be put into the
 container, should be instances of a certain class. We define here
-for this purpose an arbitrary class <tt>C</tt>:</p></div>
+for this purpose an arbitrary class <code>C</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -756,10 +776,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C</pre></div></div>
-<div class="paragraph"><p>The class <tt>SimpleContainer</tt> keeps and manages items added to it.
+<div class="paragraph"><p>The class <code>SimpleContainer</code> keeps and manages items added to it.
 Every instance of this class might have different item classes. We
 might provide a prefix for naming the items, otherwise the default
-is <tt>member</tt>.</p></div>
+is <code>member</code>.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -782,9 +802,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>  <span class='nx-comment'># container.
 </span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>new</span> {args} {
     <span class='nx-keyword'>set</span> item [<span class='nx-variable'>${</span><span class='nx-variable'>:memberClass}</span> <span class='nx-keyword'>create</span> [:]::[:autoname <span class='nx-variable'>${</span><span class='nx-variable'>:prefix}</span>] {*}<span class='nx-variable'>$args</span>]
+    <span class='nx-keyword'>return</span> <span class='nx-variable'>$item</span>
   }
 }</pre></div></div>
-<div class="paragraph"><p>Create and instance of the class <tt>SimpleContainer</tt> &#8230;</p></div>
+<div class="paragraph"><p>Create and instance of the class <code>SimpleContainer</code> &#8230;</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -818,7 +839,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 % container1 <span class='nx-keyword'>new</span>
 ::container1::member3</pre></div></div>
-<div class="paragraph"><p>The elements of the container can be obtained via <tt>info children</tt>:</p></div>
+<div class="paragraph"><p>The elements of the container can be obtained via <code>info children</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -837,15 +858,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="sect1">
 <h2 id="_ordered_container">Ordered Container</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>In the example with <tt>SimpleContainer</tt>, the order of the results of
-<tt>info children</tt> just happens to be in the order of the added items,
+<div class="paragraph"><p>In the example with <code>SimpleContainer</code>, the order of the results of
+<code>info children</code> just happens to be in the order of the added items,
 but in general, this order is not guaranteed, but depends on the
 population of the hash tables. In the next step, we extend the
 example above by preserving the order of the elements.</p></div>
-<div class="paragraph"><p>The class <tt>OrderedContainer</tt> is similar to <tt>SimpleContainer</tt>, but
+<div class="paragraph"><p>The class <code>OrderedContainer</code> is similar to <code>SimpleContainer</code>, but
 keeps a list of items that were added to the container. The item
-list is managed in a property <tt>items</tt> which is defined as
-<tt>incremental</tt> to make use of the <tt>add</tt> and <tt>delete</tt> methods provided
+list is managed in a property <code>items</code> which is defined as
+<code>incremental</code> to make use of the <code>add</code> and <code>delete</code> methods provided
 by the slots.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -859,7 +880,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> OrderedContainer -superclass SimpleContainer {
-  <span class='nx-keyword'>:property</span> {items:0..n,incremental {}}
+  <span class='nx-keyword'>:property</span> -incremental {items:0..n {}}
 
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>new</span> {args} {
     <span class='nx-keyword'>set</span> item [<span class='nx-variable'>${</span><span class='nx-variable'>:memberClass}</span> <span class='nx-keyword'>create</span> [:]::[:autoname <span class='nx-variable'>${</span><span class='nx-variable'>:prefix}</span>] {*}<span class='nx-variable'>$args</span>]
@@ -869,13 +890,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
   <span class='nx-comment'># Since we keep the list of items, we have to maintain it in case
 </span>  <span class='nx-comment'># items are deleted.
-</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>delete</span> {item:object} {
+</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>delete</span> {item<span class='nx-keyword'>:object</span>} {
     :items <span class='nx-keyword'>delete</span> <span class='nx-variable'>$item</span>
     <span class='nx-variable'>$item</span> <span class='nx-keyword'>destroy</span>
   }
 
 }</pre></div></div>
-<div class="paragraph"><p>Create an instance of <tt>OrderedContainer</tt> &#8230;</p></div>
+<div class="paragraph"><p>Create an instance of <code>OrderedContainer</code> &#8230;</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -909,7 +930,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 % container2 <span class='nx-keyword'>new</span>
 ::container2::member3</pre></div></div>
-<div class="paragraph"><p>The elements of the container are obtained via the method <tt>items</tt>.</p></div>
+<div class="paragraph"><p>The elements of the container are obtained via the method <code>items</code>.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -936,7 +957,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
 <pre class='nx'>% container2 <span class='nx-keyword'>delete</span> ::container2::member2</pre></div></div>
-<div class="paragraph"><p>the item is as well removed from the <tt>items</tt> list.</p></div>
+<div class="paragraph"><p>the item is as well removed from the <code>items</code> list.</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -955,7 +976,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div class="sect1">
 <h2 id="_sorted_container">Sorted Container</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>In the next step, we define a <tt>SortedContainer</tt>, that keeps
+<div class="paragraph"><p>In the next step, we define a <code>SortedContainer</code>, that keeps
 additionally a sorted list for iterating through the items without
 needing to sort the items when needed.  The implementation maintains
 an additional sorted list. The implementation of the SortedContainer
@@ -974,7 +995,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-keyword'>if</span> {[<span class='nx-keyword'>info</span> command yield] eq <span class='nx-string'>""</span>} <span class='nx-keyword'>return</span></pre></div></div>
 <div class="paragraph"><p>For sorting, we require the item class to have a key, that can be
-freely specified. We use there the property <tt>name</tt> of Class <tt>D</tt>:</p></div>
+freely specified. We use there the property <code>name</code> of Class <code>D</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -999,14 +1020,14 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>
   <span class='nx-keyword'>:variable</span> values {}
   <span class='nx-keyword'>:variable</span> index {}
-
   <span class='nx-keyword'>:property</span> key
+
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> index {} { <span class='nx-keyword'>return</span> <span class='nx-variable'>${</span><span class='nx-variable'>:index}</span>}
 
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>new</span> {args} {
     <span class='nx-keyword'>set</span> item [<span class='nx-variable'>${</span><span class='nx-variable'>:memberClass}</span> <span class='nx-keyword'>create</span> [:]::[:autoname <span class='nx-variable'>${</span><span class='nx-variable'>:prefix}</span>] {*}<span class='nx-variable'>$args</span>]
     <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>info</span> exists :key]} {
-      <span class='nx-keyword'>set</span> value [<span class='nx-variable'>$item</span> <span class='nx-variable'>${</span><span class='nx-variable'>:key}</span>]
+      <span class='nx-keyword'>set</span> value [<span class='nx-variable'>$item</span> <span class='nx-keyword'>cget</span> -<span class='nx-variable'>${</span><span class='nx-variable'>:key}</span>]
       <span class='nx-keyword'>set</span> pos [<span class='nx-keyword'>lsearch</span> -bisect <span class='nx-variable'>${</span><span class='nx-variable'>:values}</span> <span class='nx-variable'>$value</span>]
       <span class='nx-keyword'>set</span> :values [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:values}</span> [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$pos</span> + 1}] <span class='nx-variable'>$value</span>]
       <span class='nx-keyword'>set</span> :index  [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:index}</span>  [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$pos</span> + 1}] <span class='nx-variable'>$item</span>]
@@ -1017,16 +1038,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
   <span class='nx-comment'># Since we keep the list of items, we have to maintain it in case
 </span>  <span class='nx-comment'># items are deleted.
-</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>delete</span> {item:object} {
+</span>  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>delete</span> {item<span class='nx-keyword'>:object</span>} {
     <span class='nx-keyword'>set</span> pos [<span class='nx-keyword'>lsearch</span> <span class='nx-variable'>${</span><span class='nx-variable'>:index}</span> <span class='nx-variable'>$item</span>]
     <span class='nx-keyword'>if</span> {<span class='nx-variable'>$pos</span> == -1} {<span class='nx-keyword'>error</span> <span class='nx-string'>"item $item not found in container; items: ${:index}"</span>}
     <span class='nx-keyword'>set</span> :values [<span class='nx-keyword'>lreplace</span> <span class='nx-variable'>${</span><span class='nx-variable'>:values}</span> <span class='nx-variable'>$pos</span> <span class='nx-variable'>$pos</span>]
     <span class='nx-keyword'>set</span> :index  [<span class='nx-keyword'>lreplace</span> <span class='nx-variable'>${</span><span class='nx-variable'>:index}</span>  <span class='nx-variable'>$pos</span> <span class='nx-variable'>$pos</span>]
     <span class='nx-keyword'>next</span>
   }
-
 }</pre></div></div>
-<div class="paragraph"><p>Create a container for class <tt>D</tt> with key <tt>name</tt>:</p></div>
+<div class="paragraph"><p>Create a container for class <code>D</code> with key <code>name</code>:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1059,7 +1079,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 % container3 <span class='nx-keyword'>new</span> -name gustaf
 ::container3::member3</pre></div></div>
-<div class="paragraph"><p>The method <tt>items</tt> returns the items in the order of insertion (as before):</p></div>
+<div class="paragraph"><p>The method <code>items</code> returns the items in the order of insertion (as before):</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1073,7 +1093,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'>% container3 items
 ::container3::member1 ::container3::member2 ::container3::member3</pre></div></div>
-<div class="paragraph"><p>The method <tt>index</tt> returns the items in sorting order (sorted by the <tt>name</tt> member):</p></div>
+<div class="paragraph"><p>The method <code>index</code> returns the items in sorting order (sorted by the <code>name</code> member):</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -1123,7 +1143,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-10-05 13:55:13 CEST
+Last updated 2013-06-07 00:17:05 CEST
 </div>
 </div>
 </body>

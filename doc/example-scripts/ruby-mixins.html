@@ -741,6 +741,18 @@ asciidoc.install();
 XOTcl) is able to support <em>Ruby style mixins</em> (called modules) and
 <em>decorator style mixins</em> (named after the design pattern Decorator)
 in the same script.</p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'>nx::test <span class='nx-keyword'>configure</span> -count 1</pre></div></div>
 <div class="paragraph"><p>One important difference between mixin classes in NX and Ruby&#8217;s
 mixins is the precedence order. While in NX, mixins are decorators
 (the mixins have higher precedence than the intrinsic classes,
@@ -933,7 +945,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>% g1 <span class='nx-keyword'>mixin</span> Mix
+<pre class='nx'>% g1 <span class='nx-keyword'>object</span> <span class='nx-keyword'>mixin</span> Mix
 ::Mix
 
 % g1 <span class='nx-keyword'>info</span> precedence
@@ -953,7 +965,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>% g1 <span class='nx-keyword'>mixin</span> <span class='nx-string'>""</span>
+<pre class='nx'>% g1 <span class='nx-keyword'>object</span> <span class='nx-keyword'>mixin</span> <span class='nx-string'>""</span>
 % g1 <span class='nx-keyword'>info</span> precedence
 ::Group ::Enumerable ::nx::Object</pre></div></div>
 <div class="paragraph"><p>An important difference between NX/XOTcl style mixins (decorators)
@@ -1117,7 +1129,7 @@ support Ruby-style mixins, and decorator style mixins in the same script.</p></d
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-08-01 19:39:00 CEST
+Last updated 2013-06-07 00:16:54 CEST
 </div>
 </div>
 </body>

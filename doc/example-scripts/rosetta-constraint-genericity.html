@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>Listing of doc/example-scripts/rosetta-constraint-genericity.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -179,7 +183,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -349,7 +353,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +411,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,6 +508,31 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -558,7 +577,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -587,7 +606,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +652,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -720,106 +739,30 @@ asciidoc.install();
 <div class="sectionbody">
 <div class="paragraph"><p>For details see <a href="http://rosettacode.org/wiki/Constrained_genericity">http://rosettacode.org/wiki/Constrained_genericity</a></p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-keyword'>package</span> req nx</pre></div></div>
-<div class="paragraph"><p>Define the two classes <tt>Eatable</tt> and <tt>Fish</tt>. <tt>Eatable</tt> is a class
-for all eatable things, a <tt>Fish</tt> is a subclass ant therefore
+<div class="content"></div></div>
+<div class="paragraph"><p>Define the two classes <code>Eatable</code> and <code>Fish</code>. <code>Eatable</code> is a class
+for all eatable things, a <code>Fish</code> is a subclass ant therefore
 eatable.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Eatable
-<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Fish -<span class='nx-keyword'>superclass</span> Eatable {
-  :<span class='nx-keyword'>property</span> name
-}</pre></div></div>
-<div class="paragraph"><p>A <tt>FoodBax</tt> may only contain eatable items. Therefore with we define
-<tt>items</tt> as a property of type <tt>Eatable" which has a multiplicity of
-+0..n</tt> (might contain 0 to n eatable items). Furthermore, we define
-items as <tt>incremental</tt>, such we can add / remove items with <tt>item
-add</tt> or <tt>item remove</tt>.</p></div>
+<div class="content"></div></div>
+<div class="paragraph"><p>A <code>FoodBax</code> may only contain eatable items. Therefore with we define
+<code>items</code> as a property of type <code>Eatable" which has a multiplicity of
++0..n</code> (might contain 0 to n eatable items). Furthermore, we define
+items as <code>incremental</code>, such we can add / remove items with <code>item
+add</code> or <code>item remove</code>.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> FoodBox {
-  :<span class='nx-keyword'>property</span> item:object,type=::Eatable,0..n,incremental
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> print {} {
-    <span class='nx-keyword'>set</span> <span class='nx-keyword'>string</span> <span class='nx-string'>"Foodbox contains:\n"</span>
-    <span class='nx-keyword'>foreach</span> i <span class='nx-variable'>${</span><span class='nx-variable'>:item}</span> {<span class='nx-keyword'>append</span> <span class='nx-keyword'>string</span> <span class='nx-string'>"   [$i name]\n"</span>}
-    <span class='nx-keyword'>return</span> <span class='nx-variable'>$string</span>
-  }
-}</pre></div></div>
+<div class="content"></div></div>
 <div class="sect2">
 <h3 id="_demonstrating_the_behavior_in_a_shell">Demonstrating the behavior in a shell:</h3>
 <div class="paragraph"><p>Create two fishes, Wanda and Nemo:</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-keyword'>set</span> f1 [Fish <span class='nx-keyword'>new</span> -name <span class='nx-string'>"Wanda"</span>]
-% <span class='nx-keyword'>set</span> f2 [Fish <span class='nx-keyword'>new</span> -name <span class='nx-string'>"Nemo"</span>]</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Create a Foodbox and add the two fishes:</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-keyword'>set</span> fb [FoodBox <span class='nx-keyword'>new</span>]
-% <span class='nx-variable'>$fb</span> item add <span class='nx-variable'>$f1</span>
-% <span class='nx-variable'>$fb</span> item add <span class='nx-variable'>$f2</span></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Return the print string of the contents:</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-variable'>$fb</span> print
-Foodbox contains:
-   Nemo
-   Wanda</pre></div></div>
+<div class="content"></div></div>
 </div>
 </div>
 </div>
@@ -827,7 +770,7 @@ Foodbox contains:
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-08-15 19:02:56 CEST
+Last updated 2013-06-07 00:07:51 CEST
 </div>
 </div>
 </body>

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>Listing of doc/example-scripts/rosetta-polymorphism.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -179,7 +183,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -349,7 +353,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +411,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,6 +508,31 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -558,7 +577,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -587,7 +606,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +652,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -734,19 +753,19 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Point {
 
-  :<span class='nx-keyword'>property</span> x:double
-  :<span class='nx-keyword'>property</span> y:double
+  <span class='nx-keyword'>:property</span> x:double
+  <span class='nx-keyword'>:property</span> y:double
 
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> print {} {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> print {} {
     <span class='nx-keyword'>return</span> <span class='nx-string'>"Point(${:x},${:y})"</span>
   }
 }
 
-<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Circle -<span class='nx-keyword'>superclass</span> Point {
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Circle -superclass Point {
 
-  :<span class='nx-keyword'>property</span> radius:double
+  <span class='nx-keyword'>:property</span> radius:double
 
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> print {} {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> print {} {
     <span class='nx-keyword'>return</span> <span class='nx-string'>"Circle(${:x},${:y},${:radius})"</span>
   }
 }</pre></div></div>
@@ -779,7 +798,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>% <span class='nx-variable'>$p</span> x
+<pre class='nx'>% <span class='nx-variable'>$p</span> <span class='nx-keyword'>cget</span> -x
 1.0</pre></div></div>
 <div class="paragraph"><p>Create a circle:</p></div>
 <div class="listingblock">
@@ -819,8 +838,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'>% <span class='nx-variable'>$d</span> radius 1.5
-1.5</pre></div></div>
+<pre class='nx'>% <span class='nx-variable'>$d</span> <span class='nx-keyword'>configure</span> -radius 1.5</pre></div></div>
 <div class="paragraph"><p>Print the two circles:</p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -845,7 +863,7 @@ Circle(3.0,4.0,1.5)</pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-08-16 10:49:16 CEST
+Last updated 2013-06-07 00:08:23 CEST
 </div>
 </div>
 </body>

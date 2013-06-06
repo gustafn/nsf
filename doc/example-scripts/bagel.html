@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>Listing of doc/example-scripts/bagel.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -179,7 +183,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -349,7 +353,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +411,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,6 +508,31 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -558,7 +577,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -587,7 +606,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +652,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -722,171 +741,43 @@ asciidoc.install();
 a very short intro to the basic elements of scripting with NX and
 provides a comparison study to OTcl.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'><span class='nx-keyword'>package</span> req nx</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Suppose we need to work with many bagels in our application. We
 might start by creating a Bagel class.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Bagel
-::Bagel</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>We can now create bagels and keep track of them using the info
 method.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% Bagel <span class='nx-keyword'>create</span> abagel
-::abagel
-
-% abagel <span class='nx-keyword'>info</span> <span class='nx-keyword'>class</span>
-::Bagel
-
-% Bagel <span class='nx-keyword'>info</span> instances
-::abagel</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Of course, bagels don&#8217;t do much yet. They should remember whether
 they&#8217;ve been toasted. We can create and access an instance variable
 by defining an property for the class. All instance variables are
 per default public in the sense of C++.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% Bagel <span class='nx-keyword'>property</span> {toasted 0}
-::nsf::classes::Bagel::toasted</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Since abagel was created before the definition of the property we
 have to set the default value for it using the setter method. Again,
 the info method helps us keep track of things.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% abagel toasted 0
-0
-
-% abagel <span class='nx-keyword'>info</span> vars
-toasted
-
-% abagel toasted
-0</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>But we really want them to begin in an untoasted state to start
 with.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% Bagel <span class='nx-keyword'>create</span> bagel2
-::bagel2
-
-% bagel2 <span class='nx-keyword'>info</span> vars
-toasted
-
-% bagel2 toasted
-0</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Our bagels now remember whether they&#8217;ve been toasted. Let is
 recreate the first one.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-keyword'>lsort</span> [Bagel <span class='nx-keyword'>info</span> instances]
-::abagel ::bagel2
-
-% ::abagel <span class='nx-keyword'>destroy</span>
-
-% Bagel <span class='nx-keyword'>info</span> instances
-::bagel2
-
-% Bagel <span class='nx-keyword'>create</span> abagel
-::abagel</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Now we&#8217;re ready to add a method to bagels so that we can toast
 them. Methods have an argument list and body like regular
 Tcl procs. Here&#8217;s the toast method.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% Bagel <span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> toast {} {
-      <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>incr</span> :toasted]&gt;1} then {
-        <span class='nx-keyword'>error</span> <span class='nx-string'>"something's burning!"</span>
-      }
-}
-::nsf::classes::Bagel::toast</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>The defined methods can be queried with info. We see as well the
 setter method for the variable toasted.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% Bagel <span class='nx-keyword'>info</span> <span class='nx-keyword'>methods</span>
-toasted toast</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Aside from setting the toasted variable, the body of the toast
 method demonstrates how to access instance variables by using a
 leading colon in the name.</p></div>
@@ -894,19 +785,7 @@ leading colon in the name.</p></div>
 info and destroy methods that were provided by the system. That
 is, there is no distinction between user and system methods.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% abagel toast
-% abagel toast
-something's burning!</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Now we can add spreads to the bagels and start tasting them. If we
 have bagels that aren&#8217;t topped, as well as bagels that are, we may
 want to make toppable bagels a separate class. Let explore
@@ -915,68 +794,11 @@ SpreadableBagel that inherits from Bagel. A SpreadableBagel has an
 property toppings which might have multiple values. Initially,
 toppings are empty.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> SpreadableBagel -<span class='nx-keyword'>superclass</span> Bagel {
-    :<span class='nx-keyword'>property</span> {toppings:0..n <span class='nx-string'>""</span>}
-}
-::SpreadableBagel
-
-% SpreadableBagel <span class='nx-keyword'>info</span> <span class='nx-keyword'>superclass</span>
-::Bagel
-
-% SpreadableBagel <span class='nx-keyword'>info</span> heritage
-::Bagel ::<span class='nx-keyword'>nx::Object</span></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Let&#8217;s add a taste method to bagels, splitting its functionality
 between the two classes and combining it with next.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% Bagel <span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> taste {} {
-    <span class='nx-keyword'>if</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:toasted}</span> == 0} then {
-    <span class='nx-keyword'>return</span> raw!
-  } elseif {<span class='nx-variable'>${</span><span class='nx-variable'>:toasted}</span> == 1} then {
-    <span class='nx-keyword'>return</span> toasty
-  } <span class='nx-keyword'>else</span> {
-    <span class='nx-keyword'>return</span> burnt!
-  }
-}
-::nsf::classes::Bagel::taste
-
-% SpreadableBagel <span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> taste {} {
-    <span class='nx-keyword'>set</span> t [<span class='nx-keyword'>next</span>]
-    <span class='nx-keyword'>foreach</span> i <span class='nx-variable'>${</span><span class='nx-variable'>:toppings}</span> {
-       <span class='nx-keyword'>lappend</span> t <span class='nx-variable'>$i</span>
-    }
-    <span class='nx-keyword'>return</span> <span class='nx-variable'>$t</span>
-}
-::nsf::classes::SpreadableBagel::taste
-
-% SpreadableBagel <span class='nx-keyword'>create</span> abagel
-::abagel
-
-% abagel toast
-% abagel toppings jam
-jam
-
-% abagel taste
-toasty jam</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Of course, along come sesame, onion, poppy, and a host of other
 bagels, requiring us to expand our scheme. We could keep track of
 flavor with an instance variable, but this may not be
@@ -987,104 +809,28 @@ multiple inheritance to make the flavor classes mixins that add a
 their taste independent trait to bagels or whatever other food they
 are mixed with.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Sesame {
-    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> taste {} {<span class='nx-keyword'>concat</span> [<span class='nx-keyword'>next</span>] <span class='nx-string'>"sesame"</span>}
-}
-::Sesame
-
-% <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Onion {
-    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> taste {} {<span class='nx-keyword'>concat</span> [<span class='nx-keyword'>next</span>] <span class='nx-string'>"onion"</span>}
-}
-::Onion
-
-% <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Poppy {
-    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> taste {} {<span class='nx-keyword'>concat</span> [<span class='nx-keyword'>next</span>] <span class='nx-string'>"poppy"</span>}
-}
-::Poppy</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Well, they don&#8217;t appear to do much, but the use of next allows them
 to be freely mixed.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> SesameOnionBagel -<span class='nx-keyword'>superclass</span> SpreadableBagel -<span class='nx-keyword'>mixin</span> {Sesame Onion}
-::SesameOnionBagel
-
-% SesameOnionBagel <span class='nx-keyword'>create</span> abagel -toppings butter
-::abagel
-
-% abagel taste
-raw! butter onion sesame</pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>For multiple inheritance, the system determines a linear inheritance
 ordering that respects all of the local superclass orderings. You
 can examine this ordering with an info option. next follows this
 ordering when it combines behavior.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% SesameOnionBagel <span class='nx-keyword'>info</span> heritage
-::Sesame ::Onion ::SpreadableBagel ::Bagel ::<span class='nx-keyword'>nx::Object</span>
-
-% abagel <span class='nx-keyword'>info</span> precedence
-::Sesame ::Onion ::SesameOnionBagel ::SpreadableBagel ::Bagel ::<span class='nx-keyword'>nx::Object</span></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>We can also combine our mixins with other classes, classes that need
 have nothing to do with bagels, leading to a family of chips.</p></div>
 <div class="listingblock">
-<div class="content"><style type='text/css'>
-.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
-table.nx        {border-collapse: collapse; border-spacing: 3px;}
-.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
-.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
-.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
-.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
-.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
-.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
-</style>
-<pre class='nx'>% <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Chips {
-    :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> taste {} {<span class='nx-keyword'>return</span> <span class='nx-string'>"crunchy"</span>}
-}
-::Chips
-
-% <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> OnionChips -<span class='nx-keyword'>superclass</span> Chips -<span class='nx-keyword'>mixin</span> Onion
-::OnionChips
-
-% OnionChips <span class='nx-keyword'>create</span> abag
-::abag
-
-% abag taste
-crunchy onion</pre></div></div>
+<div class="content"></div></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-08-15 18:13:53 CEST
+Last updated 2013-06-07 00:05:23 CEST
 </div>
 </div>
 </body>
