@@ -5631,7 +5631,7 @@ TclObjListFreeList(NsfTclObjList *list) {
     NsfTclObjList *del = list;
     list = list->nextPtr;
     DECR_REF_COUNT2("listContent", del->content);
-    if (del->payload) {DECR_REF_COUNT2("listContent", del->payload);}
+    if (del->payload) {DECR_REF_COUNT2("listPayload", del->payload);}
     FREE(NsfTclObjList, del);
   }
 }
