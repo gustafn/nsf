@@ -17853,9 +17853,6 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
 			     : Tcl_NewStringObj("public", 6));
   }
 
-  //if (withPer_object) {
-  //  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class", 5));
-  //}
   if (!NsfObjectIsClass(object) || withPer_object) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
@@ -22278,7 +22275,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * "cmd", "initcmd", "alias" and "forward".
      */
     if ((paramPtr->flags & NSF_ARG_METHOD_INVOCATION) 
-	//&&  (paramPtr->flags & NSF_ARG_METHOD_CALL || object->flags & NSF_INIT_CALLED)
 	) {
       int consuming = (*paramPtr->name == '-' || paramPtr->nrArgs > 0);
 
@@ -22293,7 +22289,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       }
 
       if ((paramPtr->flags & NSF_ARG_INITCMD)) {
-	// oooo;
 
 	if (paramPtr->defaultValue) {
 	  /*
@@ -22301,13 +22296,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	   */
 	  Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, NsfGlobalObjs[NSF_ARRAY_INITCMD], 
 					   paramPtr->nameObj, 0);
-	  // TODO cleanup
-	  /*fprintf(stderr, "INITCMD isdefault %d default %s value %p var %p\n", 
-		  (pc.flags[i-1] & NSF_PC_IS_DEFAULT),
-		  paramPtr->defaultValue ? ObjStr(paramPtr->defaultValue) : "NONE",
-		  ObjStr(newValue),
-		  varObj
-		  );*/
 	  if (varObj == NULL) {
 	    /*
 	     * The variable is not set. Therefore, we assume, we have to
@@ -22327,8 +22315,9 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	  }
 
 	} else {
-	  //TODO should we require a default?
-	  
+	  /*
+	   * we could consider to require a default
+	   */
 	}
 	/*
 	 * if we have a new actual value, proceed to setvars
