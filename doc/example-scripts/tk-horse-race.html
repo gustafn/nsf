@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>Listing of doc/example-scripts/tk-horse-race.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -179,7 +183,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -349,7 +353,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +411,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,6 +508,31 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -558,7 +577,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -587,7 +606,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +652,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -736,8 +755,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-keyword'>package</span> require Tk
-<span class='nx-keyword'>package</span> require nx::trait
+<pre class='nx'><span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> Tk
+<span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx::trait
 
  <span class='nx-comment'>##############################################################################
 </span> <span class='nx-comment'># Trait ListUtils
@@ -747,13 +766,13 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>
  nx::Trait <span class='nx-keyword'>create</span> ::nx::traits::listUtils {
 
-   :<span class='nx-keyword'>protected</span> <span class='nx-keyword'>method</span> lpick {<span class='nx-keyword'>list</span>} {
+   <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>method</span> lpick {<span class='nx-keyword'>list</span>} {
      <span class='nx-comment'># return a random entry from a given list
 </span>     <span class='nx-keyword'>lindex</span> <span class='nx-variable'>$list</span> [<span class='nx-keyword'>expr</span> {int(rand()*[<span class='nx-keyword'>llength</span> <span class='nx-variable'>$list</span>])}]
    }
-   :<span class='nx-keyword'>protected</span> <span class='nx-keyword'>method</span> lremove {listName what} {
+   <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>method</span> lremove {listName what} {
      <span class='nx-comment'># remove a list element referenced by the elements value
-</span>     :<span class='nx-keyword'>upvar</span> <span class='nx-variable'>$listName</span> <span class='nx-keyword'>list</span>
+</span>     <span class='nx-keyword'>:upvar</span> <span class='nx-variable'>$listName</span> <span class='nx-keyword'>list</span>
      <span class='nx-keyword'>set</span> pos  [<span class='nx-keyword'>lsearch</span> <span class='nx-variable'>$list</span> <span class='nx-variable'>$what</span>]
      <span class='nx-keyword'>set</span> <span class='nx-keyword'>list</span> [<span class='nx-keyword'>lreplace</span> <span class='nx-variable'>$list</span> <span class='nx-variable'>$pos</span> <span class='nx-variable'>$pos</span>]
    }
@@ -768,15 +787,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span> <span class='nx-comment'>##############################################################################
 </span>
  <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Horse {
-   :<span class='nx-keyword'>property</span> name:required      ;<span class='nx-comment'># name is the external name of the horse
-</span>   :<span class='nx-keyword'>property</span> tag:required       ;<span class='nx-comment'># tag is an internal id
-</span>   :<span class='nx-keyword'>property</span> canvas:required    ;<span class='nx-comment'># the canvas, on which the horse is drawn
-</span>   :<span class='nx-keyword'>property</span> n:integer,required ;<span class='nx-comment'># the position on the canvas
+   <span class='nx-keyword'>:property</span> name:required      ;<span class='nx-comment'># name is the external name of the horse
+</span>   <span class='nx-keyword'>:property</span> tag:required       ;<span class='nx-comment'># tag is an internal id
+</span>   <span class='nx-keyword'>:property</span> canvas:required    ;<span class='nx-comment'># the canvas, on which the horse is drawn
+</span>   <span class='nx-keyword'>:property</span> n:integer,required ;<span class='nx-comment'># the position on the canvas
 </span>
-   :require trait nx::traits::callback
-   :require trait nx::traits::listUtils
+   <span class='nx-keyword'>:require</span> trait nx::traits::callback
+   <span class='nx-keyword'>:require</span> trait nx::traits::listUtils
 
-   :<span class='nx-keyword'>method</span> draw {x y} {
+   <span class='nx-keyword'>:method</span> draw {x y} {
      <span class='nx-keyword'>set</span> hide [:lpick {black brown white gray brown3 brown4}]
      <span class='nx-keyword'>set</span> c1 [:lpick {red yellow blue purple pink green}]
      <span class='nx-keyword'>set</span> c2 [:lpick {red yellow blue purple pink green}]
@@ -788,10 +807,10 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 9 4 11 1 7 -1 -fill <span class='nx-variable'>$c1</span> -width 2 -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>
      <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line 7 -2 10 -6 15 -3 -fill <span class='nx-variable'>$c2</span> -width 2 -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>
      <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> oval 9 -7 12 -10 -fill orange -outline orange -tag <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>
-     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> move <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> <span class='nx-variable'>$x</span> <span class='nx-variable'>$y</span>
+     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> <span class='nx-variable'>$x</span> <span class='nx-variable'>$y</span>
    }
 
-   :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
+   <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
      <span class='nx-keyword'>set</span> w [entry <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.e<span class='nx-variable'>${</span><span class='nx-variable'>:n}</span> -textvar [:bindvar name] -width 7 -bg green3]
      <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> window 5 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:n}</span>*30+5}] -window <span class='nx-variable'>$w</span> -anchor nw
      :draw 70 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:n}</span>*30+14}]
@@ -806,16 +825,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span> <span class='nx-comment'>##############################################################################
 </span>
  <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> HorseGame {
-   :<span class='nx-keyword'>property</span> {bg1 green4}   ;<span class='nx-comment'># background color of the canvas
-</span>   :<span class='nx-keyword'>property</span> {bg2 green3}   ;<span class='nx-comment'># background color of the result label
-</span>   :<span class='nx-keyword'>property</span> {width 750}    ;<span class='nx-comment'># width of the canvas
-</span>   :<span class='nx-keyword'>property</span> {height 330}   ;<span class='nx-comment'># height of the canvas
-</span>   :<span class='nx-keyword'>property</span> {horses}       ;<span class='nx-comment'># a list of horse names participating in the game
+   <span class='nx-keyword'>:property</span> {bg1 green4}   ;<span class='nx-comment'># background color of the canvas
+</span>   <span class='nx-keyword'>:property</span> {bg2 green3}   ;<span class='nx-comment'># background color of the result label
+</span>   <span class='nx-keyword'>:property</span> {width 750}    ;<span class='nx-comment'># width of the canvas
+</span>   <span class='nx-keyword'>:property</span> {height 330}   ;<span class='nx-comment'># height of the canvas
+</span>   <span class='nx-keyword'>:property</span> {horses}       ;<span class='nx-comment'># a list of horse names participating in the game
 </span>
-   :require trait nx::traits::callback
-   :require trait nx::traits::listUtils
+   <span class='nx-keyword'>:require</span> trait nx::traits::callback
+   <span class='nx-keyword'>:require</span> trait nx::traits::listUtils
 
-   :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
+   <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
      <span class='nx-comment'>#
 </span>     <span class='nx-comment'># create the canvas
 </span>     <span class='nx-comment'>#
@@ -845,7 +864,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
      <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> window 70 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$n</span>*30}] -window <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.winners -anchor nw
    }
 
-   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> start {running} {
+   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> start {running} {
      <span class='nx-comment'>#
 </span>     <span class='nx-comment'># When the "Start" button is pressed, we turn this button into a
 </span>     <span class='nx-comment'># "Reset" button and the horse race starts. We stop, when more
@@ -856,16 +875,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
      <span class='nx-keyword'>set</span> finish [<span class='nx-keyword'>expr</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> bbox finish] 2]+10}]
      <span class='nx-keyword'>while</span> {[<span class='nx-keyword'>llength</span> <span class='nx-variable'>${</span><span class='nx-variable'>:winners}</span>]&lt;3} {
        <span class='nx-keyword'>set</span> this [:lpick <span class='nx-variable'>$running</span>]
-       <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> move <span class='nx-variable'>$this</span> [:lpick {0 1 2 3}] 0
+       <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>$this</span> [:lpick {0 1 2 3}] 0
        <span class='nx-keyword'>update</span>
        <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> bbox <span class='nx-variable'>$this</span>] 2] &gt; <span class='nx-variable'>$finish</span>} {
-         <span class='nx-keyword'>lappend</span> :winners [<span class='nx-keyword'>expr</span> {[<span class='nx-keyword'>llength</span> <span class='nx-variable'>${</span><span class='nx-variable'>:winners}</span>]+1}]:[<span class='nx-variable'>$this</span> name]
+         <span class='nx-keyword'>lappend</span> :winners [<span class='nx-keyword'>expr</span> {[<span class='nx-keyword'>llength</span> <span class='nx-variable'>${</span><span class='nx-variable'>:winners}</span>]+1}]:[<span class='nx-variable'>$this</span> <span class='nx-keyword'>cget</span> -name]
          :lremove running <span class='nx-variable'>$this</span>
        }
      }
    }
 
-   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> reset {} {
+   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> reset {} {
      <span class='nx-comment'>#
 </span>     <span class='nx-comment'># When the "Reset" button is pressed, we switch back to the start
 </span>     <span class='nx-comment'># configuration, the horses come back to the start.
@@ -873,7 +892,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span>     <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span>.button config -text Start -command [:callback start <span class='nx-variable'>${</span><span class='nx-variable'>:tags}</span>]
      <span class='nx-keyword'>foreach</span> tag <span class='nx-variable'>${</span><span class='nx-variable'>:tags}</span> {
        <span class='nx-keyword'>set</span> x [<span class='nx-keyword'>lindex</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> bbox <span class='nx-variable'>$tag</span>] 0]
-       <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> move <span class='nx-variable'>$tag</span> [<span class='nx-keyword'>expr</span> {70-<span class='nx-variable'>$x</span>}] 0
+       <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>$tag</span> [<span class='nx-keyword'>expr</span> {70-<span class='nx-variable'>$x</span>}] 0
      }
    }
  }
@@ -889,7 +908,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-10-01 20:34:10 CEST
+Last updated 2013-06-07 14:19:11 CEST
 </div>
 </div>
 </body>

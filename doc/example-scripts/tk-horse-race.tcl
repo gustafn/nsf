@@ -127,7 +127,7 @@ package require nx::trait
        ${:canvas} move $this [:lpick {0 1 2 3}] 0
        update
        if {[lindex [${:canvas} bbox $this] 2] > $finish} {
-	 lappend :winners [expr {[llength ${:winners}]+1}]:[$this name]
+	 lappend :winners [expr {[llength ${:winners}]+1}]:[$this cget -name]
 	 :lremove running $this
        }
      }
