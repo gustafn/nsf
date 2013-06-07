@@ -1,7 +1,7 @@
 Tutorial for the Next Scripting Language
 ==========================================
 Gustaf Neumann <neumann@wu-wien.ac.at>, Stefan Sobernig <stefan.sobernig@wu.ac.at>
-v2.3, May 2013:
+v2.0b5, June 2013:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
@@ -87,7 +87,7 @@ knowledge about Tcl. In the following sections we introduce NX by
 examples. In later sections we introduce the more advanced concepts of
 the language. Conceptually, most of the addressed concepts are very
 similar to XOTcl. Concerning the differences between NX and XOTcl,
-please refer to the "Migration Guide for the Next Scripting Language".
+please refer to the _Migration Guide for the Next Scripting Language_.
 
 == Introductory Overview Example: Stack
 
@@ -255,7 +255,7 @@ methods defined in the class in the instances of the class.
 In our next example, we introduce _generic objects_ and _object
 specific methods_. With NX, we can define generic objects, which are
 instances of the most generic class +nx::Object+ (sometimes called
-"common root class"). +nx::Object+ is predefined and contains a
+_common root class_). +nx::Object+ is predefined and contains a
 minimal set of methods applicable to all NX objects.  In this example,
 we define a generic object named +stack+ and provide methods for this
 object. The methods defined above were methods provided by a class for
@@ -564,7 +564,7 @@ the life-cycles of the instances of the classes (we will come to this
 point in later sections in more detail). Since classes are objects, we
 can use exactly the same notation as above to define class methods by
 using +object method+. The methods defined on the class object are
-in all respects idential with object specific methods shown in the
+in all respects identical with object specific methods shown in the
 examples above.
 
 [[xmp-stack2]]
@@ -976,7 +976,7 @@ full name of the subobject +fido::tail+. The method +length+ is an
 C-implemented accessor, that enforces the value constraint (here a
 floating point number, since length uses the value constraint
 +double+). Line 25 will therefore raise an exception, since the
-provided values is not converable to a double number. 
+provided values cannot be converted to a double number. 
 
 [[xmp-fido3]]
 .Listing {counter:figure-number}: Forwarder Methods
@@ -1061,7 +1061,7 @@ fido warn
 --------------------------------------------------
 
 <<xmp-fido4,{xmp-fido4}>> extends the last example by defining an
-alias for the method "bark". The example only shows the bare
+alias for the method +bark+. The example only shows the bare
 mechanism. In general, method aliases are very powerful means for
 reusing pre-existing functionality. The full object system of NX and
 XOTcl2 is built from aliases, reusing functionality provided by the
@@ -1168,7 +1168,7 @@ have tried to call the helper of +Sub+, which would be incorrect. For
 all other purposes, the private methods are "invisible" in all
 situations, e.g., when mixins are used, or within the +next+-path, etc.
 
-By using the +-local+ flag at the call site it is possible to invoce
+By using the +-local+ flag at the call site it is possible to invoke
 only the local definition of the method. If we would call the method
 without this flag, the resolution order would be the standard
 resolution order, starting with filters, mixins, object methods
@@ -1181,9 +1181,9 @@ and means actually "accessible for methods defined on the same entity
 locality of the code e.g. for compositional operations.
 
 In order to improve locality for properties, a private property
-defines therfore internally a variable with a different name to avoid
+defines therefore internally a variable with a different name to avoid
 unintended interactions. The variable should be accessed via the
-private accessor, which can be invoved with the +-local+ flag.  In the
+private accessor, which can be invoked with the +-local+ flag.  In the
 following example class +D+ introduces a private property with the
 same name as a property in the superclass. 
 
@@ -1356,7 +1356,7 @@ are called "static methods".
 
 === Ensemble Methods 
 
-NX provides "ensemble methods" as a means to structure the method name
+NX provides _ensemble methods_ as a means to structure the method name
 space and to group related methods. Ensemble methods are similar in
 concept to Tcl's ensemble commands.
 
@@ -2203,7 +2203,7 @@ the same way.
 
 Since +Student+ is an instance of the meta-class +nx::Class+ it
 inherits the configure parameters from +nx::Class+ (see class diagram
-<<img-object-parameters,{img-object-parameters}>>). Therefore, one can
+<<img-configure-parameters,{img-configure-parameters}>>). Therefore, one can
 use e.g. +-superclass+ in the definition of classes.
 
 Since +nx::Class+ is a subclass of +nx::Object+, the meta-class

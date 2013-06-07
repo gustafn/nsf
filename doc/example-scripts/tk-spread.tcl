@@ -26,7 +26,7 @@ package require nx::trait
    # If no widget is provided, use the name of the object as widget
    # name.
    #
-   :property {widget ".[namespace tail [self]]"}
+   :property -accessor public {widget ".[namespace tail [self]]"}
 
    #
    # Use the nx callback trait 

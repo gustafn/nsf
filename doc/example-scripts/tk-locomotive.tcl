@@ -32,7 +32,7 @@ nx::Class create Wheel {
       set alpha [expr {$alpha + $delta}]
     }
     if {[info exists :act_pivot]} {
-      foreach {item perc} [set :act_pivot] break
+      lassign [set :act_pivot] item perc
       set rp [expr {${:r} * $perc}]
       set xp [expr {${:x} - $rp * cos($deg2arc * $alpha)}]
       set yp [expr {${:y} - $rp * sin($deg2arc * $alpha)}]

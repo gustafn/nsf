@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.5" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
 <title>Listing of doc/example-scripts/tk-locomotive.tcl</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,10 +87,14 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
 }
+
 
 #author {
   color: #527bbd;
@@ -179,7 +183,7 @@ div.quoteblock, div.verseblock {
   margin-left: 1.0em;
   margin-right: 10%;
   border-left: 5px solid #f0f0f0;
-  color: #777777;
+  color: #888;
 }
 
 div.quoteblock > div.attribution {
@@ -349,7 +353,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +411,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +451,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -514,6 +508,31 @@ th.tableblock.valign-middle, td.tableblock.valign-middle {
 th.tableblock.valign-bottom, td.tableblock.valign-bottom {
   vertical-align: bottom;
 }
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -558,7 +577,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -587,7 +606,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'DIV'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -633,7 +652,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'DIV' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -748,20 +767,20 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-keyword'>package</span> require Tk
-<span class='nx-keyword'>package</span> require nx
+<pre class='nx'><span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> Tk
+<span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Wheel {
-  :<span class='nx-keyword'>property</span> x
-  :<span class='nx-keyword'>property</span> y
-  :<span class='nx-keyword'>property</span> r
-  :<span class='nx-keyword'>property</span> {spokes 24}
-  :<span class='nx-keyword'>property</span> {pivot 0}
-  :<span class='nx-keyword'>property</span> {color red}
-  :<span class='nx-keyword'>property</span> {tag <span class='nx-string'>""</span>}
+  <span class='nx-keyword'>:property</span> x
+  <span class='nx-keyword'>:property</span> y
+  <span class='nx-keyword'>:property</span> r
+  <span class='nx-keyword'>:property</span> {spokes 24}
+  <span class='nx-keyword'>:property</span> {pivot 0}
+  <span class='nx-keyword'>:property</span> {color red}
+  <span class='nx-keyword'>:property</span> {tag <span class='nx-string'>""</span>}
 
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> drawSpokes {} {
-    ::nx::var import [:<span class='nx-keyword'>info</span> parent] c alpha
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> drawSpokes {} {
+    ::nx::var import [<span class='nx-keyword'>:info</span> parent] c alpha
     <span class='nx-keyword'>set</span> delta [<span class='nx-keyword'>expr</span> {360.0 / <span class='nx-variable'>${</span><span class='nx-variable'>:spokes}</span>}]
     <span class='nx-keyword'>set</span> deg2arc [<span class='nx-keyword'>expr</span> {atan(1.0)*8/360.}]
     <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 0} {<span class='nx-variable'>$i</span> &lt; <span class='nx-variable'>${</span><span class='nx-variable'>:spokes}</span>} {<span class='nx-keyword'>incr</span> i} {
@@ -771,7 +790,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
       <span class='nx-keyword'>set</span> alpha [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$alpha</span> + <span class='nx-variable'>$delta</span>}]
     }
     <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>info</span> exists :act_pivot]} {
-      <span class='nx-keyword'>foreach</span> {item perc} [<span class='nx-keyword'>set</span> :act_pivot] <span class='nx-keyword'>break</span>
+      <span class='nx-keyword'>lassign</span> [<span class='nx-keyword'>set</span> :act_pivot] item perc
       <span class='nx-keyword'>set</span> rp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:r}</span> * <span class='nx-variable'>$perc</span>}]
       <span class='nx-keyword'>set</span> xp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-variable'>$rp</span> * cos(<span class='nx-variable'>$deg2arc</span> * <span class='nx-variable'>$alpha</span>)}]
       <span class='nx-keyword'>set</span> yp [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>$rp</span> * sin(<span class='nx-variable'>$deg2arc</span> * <span class='nx-variable'>$alpha</span>)}]
@@ -779,8 +798,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
     }
   }
 
-  :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
-    ::nx::var import [:<span class='nx-keyword'>info</span> parent] c alpha
+  <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
+    ::nx::var import [<span class='nx-keyword'>:info</span> parent] c alpha
     <span class='nx-keyword'>set</span> alpha 0.
 
     <span class='nx-keyword'>set</span> :y [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>${</span><span class='nx-variable'>:r}</span>}]
@@ -821,15 +840,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Locomotive {
-  :<span class='nx-keyword'>property</span> {speed 4}
+  <span class='nx-keyword'>:property</span> {speed 4}
 
-  :<span class='nx-keyword'>method</span> turn {} {
+  <span class='nx-keyword'>:method</span> turn {} {
     <span class='nx-keyword'>set</span> :alpha [<span class='nx-keyword'>expr</span> {round(<span class='nx-variable'>${</span><span class='nx-variable'>:alpha}</span> + 360 - <span class='nx-variable'>${</span><span class='nx-variable'>:speed}</span>) % 360}]
     <span class='nx-keyword'>foreach</span> i [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> find withtag counterweight] {
       <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> itemconfig <span class='nx-variable'>$i</span> -start [<span class='nx-keyword'>expr</span> {310 - <span class='nx-variable'>${</span><span class='nx-variable'>:alpha}</span>}]
     }
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> spoke
-    <span class='nx-keyword'>foreach</span> wheel [:<span class='nx-keyword'>info</span> children] { <span class='nx-variable'>$wheel</span> drawSpokes }
+    <span class='nx-keyword'>foreach</span> wheel [<span class='nx-keyword'>:info</span> children] { <span class='nx-variable'>$wheel</span> drawSpokes }
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> raise hub
     <span class='nx-keyword'>set</span> xp0 [<span class='nx-keyword'>expr</span> {105 + 15 * sin((<span class='nx-variable'>${</span><span class='nx-variable'>:alpha}</span> - 90) * atan(1.0) * 8 / 360)}]
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> piston
@@ -841,15 +860,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
       <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>lindex</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-variable'>$i</span>] 3]&lt;0} {
         <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> <span class='nx-variable'>$i</span>
       } <span class='nx-keyword'>else</span> {
-        <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> move <span class='nx-variable'>$i</span> [<span class='nx-keyword'>expr</span> {rand() * <span class='nx-variable'>${</span><span class='nx-variable'>:speed}</span> / 3.0}] [<span class='nx-keyword'>expr</span> {rand() * 2 - 2}]
+        <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>$i</span> [<span class='nx-keyword'>expr</span> {rand() * <span class='nx-variable'>${</span><span class='nx-variable'>:speed}</span> / 3.0}] [<span class='nx-keyword'>expr</span> {rand() * 2 - 2}]
       }
     }
     <span class='nx-keyword'>set</span> t [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> oval [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox chimney] -fill white -outline white -tag smoke]
-    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> move <span class='nx-variable'>$t</span> 0 -10
+    <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>$t</span> 0 -10
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> lower smoke
   }
 
-  :<span class='nx-keyword'>method</span> drawRod {p0 p1 p2 p3} {
+  <span class='nx-keyword'>:method</span> drawRod {p0 p1 p2 p3} {
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> rod
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p3</span>] -fill white -tag rod
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> line {*}[<span class='nx-keyword'>lrange</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> bbox <span class='nx-variable'>$p0</span>] 0 1] \
@@ -858,29 +877,29 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> raise pivot
   }
 
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> tick {} {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> tick {} {
     :turn
     <span class='nx-keyword'>foreach</span> i [<span class='nx-keyword'>after</span> <span class='nx-keyword'>info</span>] {<span class='nx-keyword'>after</span> cancel <span class='nx-variable'>$i</span>}
     <span class='nx-keyword'>after</span> 10 [<span class='nx-keyword'>self</span>] tick
   }
 
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> throttle {} {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> throttle {} {
     <span class='nx-keyword'>incr</span> :speed 2
     :tick
   }
 
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>break</span> {} {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>break</span> {} {
     <span class='nx-keyword'>incr</span> :speed -2
     <span class='nx-keyword'>if</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:speed}</span>&lt;0} {<span class='nx-keyword'>set</span> :speed 0}
     :tick
   }
 
-  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> emergencyBreak {} {
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> emergencyBreak {} {
     <span class='nx-keyword'>set</span> :speed 0
     :tick
   }
 
-  :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
+  <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
     <span class='nx-keyword'>set</span> :c [canvas .c -width 600 -height 160 -background lightblue]
     pack <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span>
 
@@ -939,7 +958,7 @@ Locomotive <span class='nx-keyword'>new</span></pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-09-30 13:39:25 CEST
+Last updated 2013-06-07 09:47:50 CEST
 </div>
 </div>
 </body>

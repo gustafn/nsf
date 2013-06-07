@@ -733,8 +733,8 @@ asciidoc.install(4);
 <div id="header">
 <h1>Tutorial for the Next Scripting Language</h1>
 <span id="author">Gustaf Neumann &lt;neumann@wu-wien.ac.at&gt;, Stefan Sobernig &lt;stefan.sobernig@wu.ac.at&gt;</span><br />
-<span id="revnumber">version 2.3,</span>
-<span id="revdate">May 2013</span>
+<span id="revnumber">version 2.0b5,</span>
+<span id="revdate">June 2013</span>
 <br /><span id="revremark">Written for the Initial Release of the Next Scripting Framework.</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
@@ -822,7 +822,7 @@ knowledge about Tcl. In the following sections we introduce NX by
 examples. In later sections we introduce the more advanced concepts of
 the language. Conceptually, most of the addressed concepts are very
 similar to XOTcl. Concerning the differences between NX and XOTcl,
-please refer to the "Migration Guide for the Next Scripting Language".</p></div>
+please refer to the <em>Migration Guide for the Next Scripting Language</em>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1031,7 +1031,7 @@ methods defined in the class in the instances of the class.</p></div>
 <div class="paragraph"><p>In our next example, we introduce <em>generic objects</em> and <em>object
 specific methods</em>. With NX, we can define generic objects, which are
 instances of the most generic class <code>nx::Object</code> (sometimes called
-"common root class"). <code>nx::Object</code> is predefined and contains a
+<em>common root class</em>). <code>nx::Object</code> is predefined and contains a
 minimal set of methods applicable to all NX objects.  In this example,
 we define a generic object named <code>stack</code> and provide methods for this
 object. The methods defined above were methods provided by a class for
@@ -1457,7 +1457,7 @@ the life-cycles of the instances of the classes (we will come to this
 point in later sections in more detail). Since classes are objects, we
 can use exactly the same notation as above to define class methods by
 using <code>object method</code>. The methods defined on the class object are
-in all respects idential with object specific methods shown in the
+in all respects identical with object specific methods shown in the
 examples above.</p></div>
 <div class="paragraph" id="xmp-stack2"><div class="title">Listing 14: Class Stack2</div><p></p></div>
 <div class="listingblock">
@@ -2035,7 +2035,7 @@ full name of the subobject <code>fido::tail</code>. The method <code>length</cod
 C-implemented accessor, that enforces the value constraint (here a
 floating point number, since length uses the value constraint
 <code>double</code>). Line 25 will therefore raise an exception, since the
-provided values is not converable to a double number.</p></div>
+provided values cannot be converted to a double number.</p></div>
 <div class="paragraph" id="xmp-fido3"><div class="title">Listing 23: Forwarder Methods</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
@@ -2158,7 +2158,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-comment'># The following line prints "::fido Bark, bark, bark."
 </span>fido warn</pre></td></tr></table></div></div>
 <div class="paragraph"><p><a href="#xmp-fido4">Listing 24</a> extends the last example by defining an
-alias for the method "bark". The example only shows the bare
+alias for the method <code>bark</code>. The example only shows the bare
 mechanism. In general, method aliases are very powerful means for
 reusing pre-existing functionality. The full object system of NX and
 XOTcl2 is built from aliases, reusing functionality provided by the
@@ -2305,7 +2305,7 @@ the <code>local</code> flag had not beed used in helper, <code>s1</code> would
 have tried to call the helper of <code>Sub</code>, which would be incorrect. For
 all other purposes, the private methods are "invisible" in all
 situations, e.g., when mixins are used, or within the <code>next</code>-path, etc.</p></div>
-<div class="paragraph"><p>By using the <code>-local</code> flag at the call site it is possible to invoce
+<div class="paragraph"><p>By using the <code>-local</code> flag at the call site it is possible to invoke
 only the local definition of the method. If we would call the method
 without this flag, the resolution order would be the standard
 resolution order, starting with filters, mixins, object methods
@@ -2316,9 +2316,9 @@ and means actually "accessible for methods defined on the same entity
 (object or class)". The main usage for <code>private</code> is to improve
 locality of the code e.g. for compositional operations.</p></div>
 <div class="paragraph"><p>In order to improve locality for properties, a private property
-defines therfore internally a variable with a different name to avoid
+defines therefore internally a variable with a different name to avoid
 unintended interactions. The variable should be accessed via the
-private accessor, which can be invoved with the <code>-local</code> flag.  In the
+private accessor, which can be invoked with the <code>-local</code> flag.  In the
 following example class <code>D</code> introduces a private property with the
 same name as a property in the superclass.</p></div>
 <div class="paragraph" id="xmp-private-properties"><div class="title">Listing 27: Private Properties</div><p></p></div>
@@ -2583,7 +2583,7 @@ are called "static methods".</p></div>
 </div>
 <div class="sect2">
 <h3 id="_ensemble_methods">3.5. Ensemble Methods</h3>
-<div class="paragraph"><p>NX provides "ensemble methods" as a means to structure the method name
+<div class="paragraph"><p>NX provides <em>ensemble methods</em> as a means to structure the method name
 space and to group related methods. Ensemble methods are similar in
 concept to Tcl&#8217;s ensemble commands.</p></div>
 <div class="exampleblock">
@@ -3790,6 +3790,7 @@ per-class mixins (see e.g. the introductory Stack example in
 the same way.</p></div>
 <div class="paragraph"><p>Since <code>Student</code> is an instance of the meta-class <code>nx::Class</code> it
 inherits the configure parameters from <code>nx::Class</code> (see class diagram
+<a href="#img-configure-parameters">Figure 44</a>). Therefore, one can
 use e.g. <code>-superclass</code> in the definition of classes.</p></div>
 <div class="paragraph"><p>Since <code>nx::Class</code> is a subclass of <code>nx::Object</code>, the meta-class
 <code>nx::Class</code> inherits the parameter definitions from the most general
@@ -4112,8 +4113,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 2.3<br />
-Last updated 2013-05-21 21:03:38 CEST
+Version 2.0b5<br />
+Last updated 2013-06-07 10:54:59 CEST
 </div>
 </div>
 </body>
