@@ -23,8 +23,15 @@
 (setq nx-keyword-list tcl-keyword-list)
 
 (setq nx-builtin-list (append tcl-builtin-list 
-	  '("lsearch" "lassign" 
-	    "cget" "configure" "create" "destroy" "lookup" "object"
+	  '("apply" "chan" "dict" 
+	    "lassign" "lsearch" "lrepeat" "lreverse" "lset" 
+	    "pkg_mkIndex" "refchan" "unload" "update"
+	    "cget" "children" "configure" "create" "copy" 
+	    "delete" "destroy" "filter" "has" "lookup" 
+	    "heritage" "instances" "methods" "mixinof" 
+	    "move" "object" "new" "parameter" "parent" 
+	    "precedence" "require" "slots" "subclass" 
+	    "superclass" "volatile" "variables" "vars" 
 	    )))
 
 (setq nx-typeword-regexp (regexp-opt nx-typeword-list 'words))
