@@ -8,3 +8,23 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+
+.listingblock   {font-size: 80%;}
+div.toclevel1   {display: block;}
+div.toclevel2   {display: block;}
+div.toclevel3   {display: block;}
+div.toclevel4   {display: block;}
+
+@page {
+    @top { 
+	color: #717ab3;font-style: italic;
+	font-size: 80%;
+	content: string(chapter-title) 
+    }
+    @bottom {
+	font-size: 80%;
+	color: #717ab3;
+        content: "-  " counter(page) "  -"
+    }
+}
+h2 { string-set: chapter-title content() }
