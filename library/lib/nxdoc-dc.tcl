@@ -398,8 +398,7 @@ namespace eval ::nx::doc {
       set line_counter -1
       foreach line $lines {
 	incr line_counter
-	# foreach {is_comment text} [:analyze_line $line] break;
-	lassign [:analyze_line $line] is_comment text;
+	lassign [:analyze_line $line] is_comment text
 	eval $do($was_comment,$is_comment)
 	set was_comment $is_comment
       }

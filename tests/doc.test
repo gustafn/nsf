@@ -54,7 +54,7 @@ Test case scanning {
   
   set ::prj [@project new -name _PROJECT_]
   foreach {::line ::result} $lines {
-    ? {foreach {is_comment text} [$::prj analyze_line $::line] break; set is_comment} $::result "processor analyze_line '$::line'"
+    ? {lassign [$::prj analyze_line $::line] is_comment text; set is_comment} $::result "processor analyze_line '$::line'"
   }
 
   set script {

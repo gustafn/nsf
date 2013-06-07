@@ -50,7 +50,7 @@ if {$argc < 2} {
 	\t-rundir dirname  (default: $::opt(-rundir))\n"
   exit -1
 }
-foreach {daemon action} $argv break
+lassign $argv daemon action
 array set opt [lreplace $argv 0 1]
 
 # The daemon scripts should be 

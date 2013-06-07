@@ -1083,7 +1083,7 @@ namespace eval ::nx {
 
   proc createBootstrapVariableSlots {class definitions} {
     foreach att $definitions {
-      if {[llength $att]>1} {foreach {att default} $att break}
+      if {[llength $att]>1} {lassign $att att default}
       set slotObj [::nx::slotObj $class $att]
       #puts stderr "::nx::BootStrapVariableSlot create $slotObj"
       ::nx::BootStrapVariableSlot create $slotObj
@@ -2409,7 +2409,7 @@ namespace eval ::nx {
 	  set cmds [::nsf::directdispatch $origin -frame object ::trace info variable $var]
 	  if {$cmds ne ""} {
 	    foreach cmd $cmds {
-	      foreach {op def} $cmd break
+	      lassign $cmd op def
 	      #$origin trace remove variable $var $op $def
 	      set domain [lindex $def 0]
 	      if {$domain eq $origin} {

@@ -337,7 +337,7 @@ namespace eval ::nx::serializer {
     
     :object method checkExportedMethods {} {
       foreach k [array names :exportMethods] {
-        foreach {o p m} $k break
+        lassign $k o p m
         set ok 0
         foreach p [array names :ignorePattern] {
           if {[string match $p $o]} {
@@ -553,7 +553,7 @@ namespace eval ::nx::serializer {
       # which this object specific serializer is responsible
       #
       foreach k [Serializer exportedMethods] {
-        foreach {o p m} $k break
+        lassign $k o p m
 	if {![::nsf::object::exists $o]} {
 	  :warn "$o is not an object"
 	} elseif {[::nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
@@ -610,11 +610,12 @@ namespace eval ::nx::serializer {
     :method serializeExportedMethods {s} {
       set r ""
       foreach k [array names :exportMethods] {
-        foreach {o p m} $k break
+        lassign $f o p m
         if {![:methodExists $o $p $m]} {
           :warn "Method does not exist: $o $p $m"
           continue
         }
+	set :targetName [$s getTargetName $o]
         append methods($o) [:serializeExportedMethod $o $p $m]\n
       }
       foreach o [array names methods] {set ($o) 1}
@@ -653,7 +654,7 @@ namespace eval ::nx::serializer {
 
         if {$t ne ""} {
           foreach ops $t { 
-            foreach {op cmd} $ops break
+            lassign $ops op cmd
             # save traces in post_cmds
             $s addPostCmd [list $o trace add variable $v $op $cmd]
 

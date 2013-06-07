@@ -66,7 +66,7 @@ nx::test configure -count 10
 nx::test case app-specific-returns { 
 
     ::nx::methodParameterSlot object method type=range {name value arg} {
-	foreach {min max} [split $arg -] break
+        lassign [split $arg -] min max
 	if {$value < $min || $value > $max} {
 	    error "Value '$value' of parameter $name not between $min and $max"
 	}
@@ -202,7 +202,7 @@ nx::test case converting-returns {
 ::nx::test case app-specific-returns-nocheck { 
 
     ::nx::methodParameterSlot object method type=range {name value arg} {
-	foreach {min max} [split $arg -] break
+	lassign [split $arg -] min max
 	if {$value < $min || $value > $max} {
 	    error "Value '$value' of parameter $name not between $min and $max"
 	}
