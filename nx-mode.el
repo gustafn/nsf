@@ -23,7 +23,9 @@
 (setq nx-keyword-list tcl-keyword-list)
 
 (setq nx-builtin-list (append tcl-builtin-list 
-	  '("cget" "configure" "create" "destroy" "lookup" "object")))
+	  '("lsearch" "lassign" 
+	    "cget" "configure" "create" "destroy" "lookup" "object"
+	    )))
 
 (setq nx-typeword-regexp (regexp-opt nx-typeword-list 'words))
 (setq nx-proc-regexp (regexp-opt nx-proc-list 'words))
