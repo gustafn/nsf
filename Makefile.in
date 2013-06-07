@@ -256,7 +256,7 @@ EXAMPLE_SCRIPTS = \
 # for the BINARIES that you specified above have already been done.
 #========================================================================
 
-all: binaries libraries doc end
+all: binaries libraries end
 
 #========================================================================
 # The binaries target builds executable programs, Windows .dll's, unix
@@ -287,8 +287,8 @@ full-doc: doc pdf example-doc
 
 # for now, just the two doc files
 doc: 
-	(cd $(src_doc_dir); asciitext next-migration.txt)
-	(cd $(src_doc_dir)/next-tutorial; asciitext next-tutorial.txt)
+	(cd $(src_doc_dir); asciidoc next-migration.txt)
+	(cd $(src_doc_dir)/next-tutorial; asciidoc next-tutorial.txt)
 pdfdoc: 
 	(cd $(src_doc_dir); prince --javascript --script=prince.js --style=nx-small.css next-migration.html next-migration.html)
 	(cd $(src_doc_dir)/next-tutorial; prince --javascript --script=../prince.js --style=../nx.css next-tutorial.html)
