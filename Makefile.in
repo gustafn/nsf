@@ -281,8 +281,17 @@ libraries-pkgindex: pkgIndex.tcl
 	$(TCLSH) $(src_lib_dir_native)/lib/make.tcl -dir $(src_lib_dir_native) -all
 
 full-doc: doc pdf example-doc
+
 # use language reference as sample file to trigger generation of documentation files
-doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
+#doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
+
+# for now, just the two doc files
+doc: 
+	(cd $(src_doc_dir); asciitext next-migration.txt)
+	(cd $(src_doc_dir)/next-tutorial; asciitext next-tutorial.txt)
+pdfdoc: 
+	(cd $(src_doc_dir); prince --javascript --script=prince.js --style=nx-small.css next-migration.html next-migration.html)
+	(cd $(src_doc_dir)/next-tutorial; prince --javascript --script=../prince.js --style=../nx.css next-tutorial.html)
 
 YUIDOC_OUTPUT = \
 	$(target_doc_dir)/$(PACKAGE_NAME)/index.html \
