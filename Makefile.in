@@ -467,7 +467,7 @@ install-xotcl-apps: install-xotcl-libraries
 # directory.
 #========================================================================
 
-install-doc: doc $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(mandir)/mann
+install-doc: $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(mandir)/mann
 	(cd $(src_man_dir)/ ; \
 	 for i in *.1; do \
 	    echo "Installing $$i"; \
