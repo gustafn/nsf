@@ -610,7 +610,7 @@ namespace eval ::nx::serializer {
     :method serializeExportedMethods {s} {
       set r ""
       foreach k [array names :exportMethods] {
-        lassign $f o p m
+        lassign $k o p m
         if {![:methodExists $o $p $m]} {
           :warn "Method does not exist: $o $p $m"
           continue
