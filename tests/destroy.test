@@ -837,6 +837,9 @@ nx::test case unset-traces-during-cleanup {
     package req nx
     nx::Object create o {
       set :x 100
+      # The following line is tricky: the trailing ";#" 
+      # is used to trim the undesirable extra arguments 
+      # from the trace command.
       ::trace add variable :x unset "[list set ::X ${:x}];#"
     }
   }
@@ -865,6 +868,9 @@ nx::test case unset-traces-during-cleanup-with-destroy {
 	next
       } 
       set :x 100
+      # The following line is tricky: the trailing ";#" 
+      # is used to trim the undesirable extra arguments 
+      # from the trace command.
       ::trace add variable :x unset "[list ::incr ::X]; [list [self] destroy];#"
     }
   }
@@ -888,6 +894,9 @@ nx::test case unset-traces-during-cleanup-with-destroy-2 {
     package req nx
     nx::Object create o {
       set :x _
+      # The following line is tricky: the trailing ";#" 
+      # is used to trim the undesirable extra arguments 
+      # from the trace command.
       ::trace add variable :x unset "[list catch [list ::nx::Object destroy] msg1]; [list catch [list ::nx::Class destroy] msg2]; set ::MSG \[list \$msg1 \$msg2\];#"
     }
   }
@@ -911,6 +920,9 @@ nx::test case unset-traces-during-cleanup-with-reset {
     package req nx
     nx::Object create o {
       set :x 100
+      # The following line is tricky: the trailing ";#" 
+      # is used to trim the undesirable extra arguments 
+      # from the trace command.
       ::trace add variable :x unset "[list ::nsf::var::set [self] x ${:x}];#"
     }
   }
