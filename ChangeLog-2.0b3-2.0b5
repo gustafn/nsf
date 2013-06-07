@@ -1,26 +1,74 @@
+2013-06-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- fix typo
+	- remove doc target from "install-doc" since this takes a while in a
+	  "make install"
+	- document tricky trace script setting in regression test
+	- use tcl8.5 commands instead of 8.4 idioms
+	- don't build doc always, since it takes a long time
+	- documentation update and regeneration of html docs
+	- add all tcl 8.5 cmds, nx methods + info methods
+	- add missing tcl-keywords to nx-mode.el
+	- adjust style files for document generation
+	- added rules for generating pdf to ease release management
+	- code cleanup
+	- updated HTML renderings of examples
+
+2013-06-06  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	nsf.c:
+	- fix a bug in SlotContainerCmdResolver() when NSF_MEM_COUNT is
+	  activated
+	- fix a small memory leak for PER_OBJECT_PARAMETER_CACHING
+	- all cases detectable with --enable-memcount=yes are fixed
+	- fix git command in release instructions
+	- fix label for debugging reference counts
+	- updated TODO
+	- reduce variable scopes
+
+	nx::test:
+	- change test cases to newer interface
+	- don't use "namespace import nx::*" in test cases when not required
+
+	nx::test:
+	- use the standard configure interface for configuring instead of
+	  own version
+	- changed from nx::Test to nx::test (user never has to know that
+	  nx::Test is a class).
+
+2013-06-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+
+	- Eliminate all use of Tcl_GetStringFromObj() function.
+	- fix typos, example code
+	- further release work
+
+2013-06-05  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	Fixed some typos and suggesting some rewording
+
+2013-06-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- initial checkin of nx-mode.el
+	- preparing 2.0b5 release
+
 2013-06-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
 	Left a to-do in the nxdoc backend
-
-
 	Completed update of nxdoc for NX
 
 2013-06-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	serializer.tcl
-	- added flag -objmap to Serialzer.deepSerialize to make serialzer
-	  usable for copying (-map is too coarse)
+	- added flag -objmap to Serialzer.deepSerialize to make serializer
+	  usable for copying (-map is to coarse)
 	- extended regression test
 
 2013-06-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
 	Adjusted nxdoc for the recent changes to NSF/NX
 
 2013-06-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	nsf.c
 	- removed obsolete function AssertionAppendPrePost()
@@ -30,18 +78,16 @@
 	- "copy" method: fixed copying of class-level per-object methods
 	- extended regression tests
 
-
 	nsf.c
-	- fixed a potental crash for objects having a wrapperless alias defined
+	- fixed a potential crash for objects having a wrapper-less alias defined
 
 2013-06-03  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
-	Make sure that the original error message is preserved when calling
-	destroy after a failed CMD or INITCMD
+	nsf.c
+	- Make sure that the original error message is preserved when
+	  calling destroy after a failed CMD or INITCMD
 
 2013-06-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	nsf.c
 	- fixed a bug in "info methods returns" in cases, where no
@@ -56,37 +102,34 @@
 
 2013-06-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	nx::test:
 	- deactivate calling overhead calculation, since this is not reliable
 	  (sometimes larger than the call).
 
-
-	- improved handling of required configure parameters when classes are
-	changed dynamically. When configure parameter are defined required,
-	checking for the absence of required parameter was only performed at
-	creation time. When objects were re-classed or their classes extended
-	with required parameters, later calls to configure did not trigger
-	exceptions. Now we check for the existence of the instance variable
-	which addresses most of these points, but in future we might wish a
-	more general solution (see comment for futures releases)
-
+	- improved handling of required configure parameters when
+	  classes are changed dynamically. When configure parameter
+	  are defined required, checking for the absence of required
+	  parameter was only performed at creation time. When objects
+	  were re-classed or their classes extended with required
+	  parameters, later calls to configure did not trigger
+	  exceptions. Now we check for the existence of the instance
+	  variable which addresses most of these points, but in future
+	  we might wish a more general solution (see comment for
+	  futures releases)
 
 	- when creation with an required configure parameter failed, delete the
 	  half-baked object to avoid confusing states.
-
 
 	- nx::test: show msg at start of test file
 
 2013-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- changed multiplicity of mixin, object-mixin, filter, object-filter
-	from 1..n to 0..n; rationale: when one has a list of eg. mixins,
-	which should be passed, one has to test for the length before passing
-	it, otherwise the empty list would generate an error. Allowing 0..n
-	makes the usage simpler and the program shorter.
-
+	- changed multiplicity of mixin, object-mixin, filter,
+	  object-filter from 1..n to 0..n; rationale: when one has a
+	  list of eg. mixins, which should be passed, one has to test
+	  for the length before passing it, otherwise the empty list
+	  would generate an error. Allowing 0..n makes the usage
+	  simpler and the program shorter.
 
 	nx.tcl:
 	- renamed variable option "-config" to "-configurable" to make its
@@ -94,18 +137,16 @@
 
 2013-05-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- traits: added ability to trun on verbosity for traits by using
+	- traits: added ability to turn on verbosity for traits by using
 	  nx::configure trait-verbosity on|off
 
-
 	nx.tcl:
-	- replaced functionality of "/obj/ configure" by "/obj/ info configure"
-	to re-enable semantics of the plain configure method, even when
-	called without arguments. "/obj/ info configure" is actually a
-	convenience method to allow to write o1 info configure instead of o1
-	info lookup configure syntax
-
+	- replaced functionality of "/obj/ configure" by "/obj/ info
+	  configure" to re-enable semantics of the plain configure
+	  method, even when called without arguments. "/obj/ info
+	  configure" is actually a convenience method to allow to
+	  write o1 info configure instead of o1 info lookup configure
+	  syntax
 
 	package nx::class-method:
 	- convenience package similar to nx::plain-object-method
@@ -115,7 +156,6 @@
 	  class-method-warning on|off
 	- completed coverage and test cases
 
-
 	package nx::plain-object-method:
 	- made warnings configurable via nx::configure
 	  plain-object-method-warning on|off
@@ -123,167 +163,146 @@
 
 2013-05-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	nsf.c
-	- fixed potential inifinite loop in pattern matching for
+	- fixed potential infinite loop in pattern matching for
 	  precedence lists
 	- cget: make error message closer to tcl conventions
 	- extended regression test
 
 2013-05-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- adapt to object methods
-
-
 	- prevent default value checking, when it is determined by a command
-
-
 	- completed coverage if plain-object-method.tcl
 	- provide warnings via plain-object-method.tcl via "nsf::log warn ..."
 
 2013-05-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- renamed initblock parameter from __initcmd to __initblock
 	- renamed nsf::configure parameter from "keepinitcmds" to
 	  "keepcmds"
-	- saving "keepcmds" in an associative array named
-	"__cmd(/parameternName)" to allow saving of multiple parmeters with
-	less nameclash danger (when application stays away from variables
-	stating with double underscore)
 
+	- saving "keepcmds" in an associative array named
+	  "__cmd(/parameternName)" to allow saving of multiple
+	  parmeters with less name clash danger (when application
+	  stays away from variables stating with double underscore)
 
 	nx.tcl:
-	- removed "info is .." since it might raise more questions than it
-	  solves
+	- removed "info is .." since it might raise more questions
+	  than it solves
 
-
-	- changed enumeration values for "-source" in "info lookup methods"
-	"info lookup slots" "info methods" "info slots" of
-	"all|application|baseclasses" to "all|application|system" for
-	consistencey with "nsf::my" and "nsf::dispatch" which uses "-system" as
-	well
+	- changed enumeration values for "-source" in 
+            "info lookup methods"
+	    "info lookup slots" 
+            "info methods" 
+            "info slots" 
+         from 
+	   "all|application|baseclasses" 
+         to 
+            "all|application|system" 
+        for consistency with "nsf::my" and "nsf::dispatch" which uses
+	"-system" as well
 
 2013-05-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	Traits:
 	- changed from traits-as-objects to traits-as-classes. This
-	  allows for higher orthogonality of traits and class definitons
+	  allows for higher orthogonality of traits and class definitions
 	  and allows in principle traits for object-specific methods (not
 	  fully implemented/tested)
 	- fixed property/variable inheritance in traits.
-
-
 	- remove spurious debug line
-
 
 	Cleanup of nsfAPI.decls
 	- remove unneeded enumeration types
 	- use "typeName" to shorten reported names of parameters
 	- use camel case for reported names
 
-
 	- changed ::nsf::parametersyntax(..) to
 	  ::nsf::parameter::syntax(..)
+
 	- xotcl2: adjusted manual parameter syntax entries to new conventions
 
 2013-05-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- added implementation for slots with traces+types for classes
 	- exception for incorrect defaults are thrown during slot creation
+
 	- extended nsf::is, added parameter
-	  * ?-configure? -- accept configure paramter options
+	  * ?-configure? -- accept configure parameter options
 	  * ?-name /name/? -- provide a parameter name for error message
+
 	- simplified nx.tcl by using new nsf::is
 	- extended regression test
 
-
-	- added partly implementation for slots with traces+types for classes
-
+	- added partly implementation for slots with traces+types for
+          classes
 
 	- fixed cases, where valuechangedcmd (and the other traces) did
 	  not work with "configure" method. When slot traces are used, it
 	  cleans other traces for the same operations.
+
 	- extended regression test
-
-2013-05-24  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
-
-
-	Clear the TODOs
 
 2013-05-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- nsf.c: fix crash when "nsf::my" is called with a single argument
+	nsf.c: 
+        - fix crash when "nsf::my" is called with a single argument
 	  outside the object context.
-
-
 	- fix assert
-
-
 	- removed some TODOs from tests/parameters.test
-	- parameter dispositions:
-	 We differentiate now between "initcmd" and "cmd": an "initcmd" is only
-	 evaluated once, but one can provide configure values for this parameter
-	 later. a "cmd" is executed on every evaluation, it is only possible
-	 to pass cmds to it. The trailing argument of the configure parameters
-	 (used e.g. for scripted object/class definitions) is now of type "cmd".
-	 Implementation not yet complete (object cases are not correct).
 
+	- parameter dispositions: We differentiate now between
+	  "initcmd" and "cmd": an "initcmd" is only evaluated once,
+	  but one can provide configure values for this parameter
+	  later. a "cmd" is executed on every evaluation, it is only
+	  possible to pass cmds to it. The trailing argument of the
+	  configure parameters (used e.g. for scripted object/class
+	  definitions) is now of type "cmd".  Implementation not yet
+	  complete (object cases are not correct).
 
 	- streamline documentation
 
+	C-code Generator: 
+        - added "-typeName" for enumeration types that allows for
+	  disambiguation of enumerations with different argument
+	  names.  Before that, the argument name determined the c-type
+	  of the enumeration. Therefore it was not possible to use
+	  argName "-type" for two different functions with a different
+	  list of enumerators.
 
-	- C-code Generator: added "-typeName" for enumeration types that allows
-	for disambiguation of enumerations with different argument names.
-	Before that, the argument name determined the c-type of the
-	enumeration. Therefore it was not possible to use argName "-type" for
-	two different functions with a different list of enumerators.
-	- changed "-methodtype" to simply "-type" in
-	/obj/ info methods ... ?-type
-	all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
-	/obj/ info object methods ... ?-type
-	all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
-	/obj/ info lookup methods ... ?-type
-	all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
+	- renamed option "-methodtype" to "-type" in
 
+	  /obj/ info methods ... ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
+	  /obj/ info object methods ... ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
+	  /obj/ info lookup methods ... ?-type all|scripted|builtin|alias|forwarder|object|setter|nsfproc? ...
 
 	- minor code cleanup
 
 2013-05-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- streamlined AddSlotObjects()
-
-
 	- cleanup of TODOs
-
-
 	- nsf.c: handle full-qualified name for private slots
 	  (AddSlotObjects())
 	- extended regression test
 
 2013-05-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- updated next-tutorial:
 	  * bring definitions of properties and variables up to date
 	  * fix "object methods"
 
-
 	- XOTcl2: ensure public accessor when "-parameter ..." is used
 
+	- extended parameter extractor: new functionality 
 
-	- extended parameter extractor: new functionality ::nsf::parameter get
-	default /parameter/ ?/varname/? ::nsf::parameter get type /parameter/
-	/obj/ info parameter get default /parameter/ ?/varname/? /obj/ info
-	parameter get type /parameter/
+          ::nsf::parameter get default /parameter/ ?/varname/? 
+          ::nsf::parameter get type /parameter/	
+          /obj/ info parameter get default /parameter/ ?/varname/? 
+	  /obj/ info parameter get type /parameter/
 
 2013-05-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- hopefully the last changes for ?object?
 	  method|variable|property: defined
@@ -291,203 +310,172 @@
 	  * "/obj/ delete object property"
 	  * "/obj/ delete object variable"
 
-
 	- "info method syntax" returns now "/cls/ ...."
 	- "info object method syntax" returns now "/obj/ ...."
 
-
-	- updated next-migration guide to reflect changes from the configure
-	  reform
-
-
+	- updated next-migration guide to reflect changes from the
+	  configure reform
 	- make name fully qualified for symmetry reasons
-
-
 	- minor cleanup
 
-
-	- nx-pp.tcl: fixed changed accessor handling, added cget to highlight
-	  words
+	- nx-pp.tcl: fixed changed accessor handling, added cget to
+	  highlight words
 
 2013-05-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- added new regression test info-variables.test
 
 2013-05-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	Method and configure parameter reform, Part 3:
 	- added
-	 /cls/ info lookup variables -> list of handles
-	 /obj/ info lookup object variables -> list of handles
-	 /obj/ info variable definition|name|parameter /handle/
+
+	   /cls/ info lookup variables -> list of handles
+	   /obj/ info lookup object variables -> list of handles
+	   /obj/ info variable definition|name|parameter /handle/
+
 	- nx.tcl: added forward compatible scripted implementation of "lmap"
 	- nsf.c: handle names for private slots in pattern provided to
-	  AddSlotObjects(),
-	 used e.g. in "info lookup slots /pattern/"
+	  AddSlotObjects(), used e.g. in "info lookup slots /pattern/"
 
 2013-05-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- dropped "/obj/ info slot definition /obj/" in favor of "/slotobj/
 	  definition"
 
 2013-05-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- nx.tcl: handle "incremental" in slot reconfigure
 	- nx.tcl: change defaultAccessor to "none"
 
 2013-05-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
+	- Method and configure parameter reform, Part 2: In order to
+	  streamline the interface further, we tried to follow the
+	  idea to use "... info /plural word/" to obtain a set of
+	  handles, and then a separate call to obtain the
+	  details. Therefore, we replaced
 
-	Method and configure parameter reform, Part 2: In order to streamline
-	the interface further, we tried to follow the idea to use "... info
-	/plural word/" to obtain a set of handles, and then a separate call to
-	obtain the details. Therefore, we replaced
-	 /cls/ info slot objects
-	 /cls/ info slot definitions
-	 /cls/ info slot names
-	 /obj/ info object slot objects
-	 /obj/ info object slot definitions
-	 /obj/ info object slot names
-	 /obj/ info lookup slots
-	by
-	/cls/ info slots ?-type /type/? ?-closure? ?-source
-	all|application|baseclasses? ?/pattern/?
-	 /obj/ info object slots ?-type /type/? ?/pattern/?
-	 /obj/ info slot definition /obj/
-	/obj/ info lookup slots ?-type /type/? ?-source
-	all|application|baseclasses? ?/pattern/?
+	    /cls/ info slot objects
+	    /cls/ info slot definitions
+	    /cls/ info slot names
+	    /obj/ info object slot objects
+	    /obj/ info object slot definitions
+	    /obj/ info object slot names
+	    /obj/ info lookup slots
+	  by
+
+	    /cls/ info slots ?-type /type/? ?-closure? ?-source all|application|baseclasses? ?/pattern/?
+	    /obj/ info object slots ?-type /type/? ?/pattern/?
+	    /obj/ info slot definition /obj/
+	    /obj/ info lookup slots ?-type /type/? ?-source all|application|baseclasses? ?/pattern/?
 
 2013-05-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- Method and configure parameter reform
-	 /cls/ info configure parameters ?pattern? -> list of params
-	 /cls/ info configure syntax -> syntax output
-	 /obj/ info method parameters /methodName/ ?/pattern/? -> list of params
-	 /obj/ info method syntax -> syntax output
-	 /obj/ info lookup configure parameter ?/pattern/? -> list of params
-	 /obj/ info lookup configure syntax -> syntax output
-	 /cls/ info parameter list|name|syntax /param/ -> value
+
+	  /cls/ info configure parameters ?pattern? -> list of params
+	  /cls/ info configure syntax -> syntax output
+	  /obj/ info method parameters /methodName/ ?/pattern/? -> list of params
+	  /obj/ info method syntax -> syntax output
+	  /obj/ info lookup configure parameter ?/pattern/? -> list of params
+	  /obj/ info lookup configure syntax -> syntax output
+	  /cls/ info parameter list|name|syntax /param/ -> value
 
 2013-05-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- avoid crash in case NsfParameterGetCmd() is passed a plain value
 
 2013-05-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- minor documentation updates
 
 2013-05-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- initialize stub-tables only once
 
-
-	- syntax formatter: use /value/ for denoting placeholder in "... info
-	  method syntax ..."
+	- syntax formatter: use /value/ for denoting placeholder in
+	  "... info method syntax ..."
 
 2013-05-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- parametersyntax: make placeholders explicit
-
 
 	- moved "/obj/ info slot definition|..." to "/obj/ info object
 	  slot definition|..." for consistency
-	- provided "parametersyntax()" for "object mixin" and "object filter"
+
+	- provided "parametersyntax()" for "object mixin" and "object
+          filter"
 
 2013-05-05  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	win/makefile.vc: have the install target copy the public headers as well
+	- win/makefile.vc: have the install target copy the public
+          headers as well
 
 2013-05-04  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	- MinGW toolchains do not provide support _vscprintf(), so we
+	  limit the use of it to MSVC; tested NsfDStringPrintf under
+	  MinGW
 
-	MinGW toolchains do not provide support _vscprintf(), so we limit the
-	use of it to MSVC; tested NsfDStringPrintf under MinGW
+	- Provide tcl library path to summary.tcl and remove
+	  intermediate file from repo
 
-
-	Provide tcl library path to summary.tcl and remove intermediate file
-	from repo
-
-
-	Fixed the Win32 logic for computing the Tcl_DStringth in
-	NsfDStringPrintf(), tested for MSVC under x86 and amd64
+	- Fixed the Win32 logic for computing the Tcl_DString in
+	  NsfDStringPrintf(), tested for MSVC under x86 and amd64
 
 2013-05-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- updating next-tutorial to object method syntax
 
 2013-05-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- updated migration guide
-
-
-	- update to new namings
+	- update to new naming
 
 2013-05-03  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
-	Fix the 86-specific tests to reflect the object-modifier reform
+	- Fix the 86-specific tests to reflect the object-modifier
+          reform
 
 2013-05-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- try to print arguments in one sweep in NsfDStringPrintf()
 	- remove "extern" declarations
 
 2013-05-02  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
-	Revised NsfDStringPrintf() for portability to non-C99-compliant C
-	runtimes; remains to be tested
+	- Revised NsfDStringPrintf() for portability to
+	  non-C99-compliant C runtimes (MSVC); remains to be tested
 
 2013-05-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- first and incomplete update of migration guide to new syntax
 
 2013-05-01  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
+	- Re-enabling deletion of intermediate file in makefile
+	- Remove legacy build artifacts
 
-	Re-enabling deletion of intermediate file in makefile
-
-
-	Remove legacy build artifacts
-
-
-	Provide native Win build support for MSVC++ and MSVC, using the Tcl 8.6
-	nmake templates. Tested using Visual Studio 12 (VC and nmake in version
-	11). See makefile.vc for build instructions for Win32 and Win64.
+	- Provide native Win build support for MSVC++ and MSVC, using
+	  the Tcl 8.6 name templates. Tested using Visual Studio 12
+	  (VC and name in version 11). See makefile.vc for build
+	  instructions for Win32 and Win64.
 
 2013-04-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- bumped version number to 2.0b5
-	- tested with NaviServer and OpenACS (new version of nx needs as well a
-	newest NaviServer, since ns_cache implementation needs to be
-	objectified; newest NaviServer version works as well with older nx)
 
+	- tested with NaviServer and OpenACS (new version of nx needs
+	  as well a newest NaviServer, since ns_cache implementation
+	  needs to be objectified; newest NaviServer version works as
+	  well with older nx)
 
-	- fix xotcl instance method serialization (still not covered in
-	  regression test)
-
-
-	- bump version number to 2.0b5
-
+	- fix xotcl instance method serialization (still not covered
+	  in regression test)
 
 	- renamed "package require nx::class" to "package require
 	  nx::class-method" in analogy to "nx::plain-object-method"
-
 
 	- added "/obj/ object variable" and "/obj/ object property"
 
@@ -497,12 +485,9 @@
 	MongoDB
 	- added "nx::mongo::db drop collection /name/"
 	- returning status from "nx::mongo::db remove" as success (0 or 1)
-
-
 	- adjust to object interface
 	- reduce verbosity
 	- add error messages for slot lookup failures
-
 
 	Updated MongoDB interface
 	- upgraded to c-driver 0.7.1
@@ -515,212 +500,195 @@
 	- adapted interface for c-driver 0.7.1 (e.g. new optional name for
 	  mongo::index
 
+	- nsfPointer.c: add parameter to Nsf_PointerDelete() for
+	  allowing optional freeing
 
-	- nsfPointer.c: add parameter to Nsf_PointerDelete() for allowing
-	  optional freeing
 	- reduced default verbosity
-
-
 	- moved NsfConfigEnabled from nsf.h to nsfInt.h (no need to be
 	  part of the public interface)
-	  - moved NSF_ARGPARSE_* macros to nsf.h (since arg parser is public and
-	  uses these flags)
+
+        - moved NSF_ARGPARSE_* macros to nsf.h (since arg parser is
+	  public and uses these flags)
 
 2013-04-23  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	Object-method Reform:
-	- changed interface to object specific commands by requiring an
-	ensemble named "object". The rational behind is essentially to use
-	always the same info command to retrieve object specific methods, no
-	matter whether these are defined on a plain object or an a class object
-	(does not break the "contract" what e.g. "info method" returns).
-	 Now we define methods via:
-	 /cls/ method foo {args} {...body...}
-	 /cls/ object method foo {args} {...body...}
-	 /obj/ object method foo {args} {...body...}
+
+	- changed interface to object specific commands by requiring
+	  an ensemble named "object". The rational behind is
+	  essentially to use always the same info command to retrieve
+	  object specific methods, no matter whether these are defined
+	  on a plain object or an a class object (does not break the
+	  "contract" what e.g. "info method" returns).
+
+ 	 Now we define methods via:
+
+	    /cls/ method foo {args} {...body...}
+	    /cls/ object method foo {args} {...body...}
+	    /obj/ object method foo {args} {...body...}
+
 	 Similarly, aliases, forwards and mixins are defined, e.g.
-	 /cls/ mixin add ...
-	 /cls/ object mixin add ...
-	 /obj/ object mixin add ...
-	 /obj/ require object method ...
+
+	    /cls/ mixin add ...
+	    /cls/ object mixin add ...
+	    /obj/ object mixin add ...
+	    /obj/ require object method ...
+
 	 The same change propagated as well to the "info" method.
 	 Now we have:
-	 /cls/ info methods ...
-	 /cls/ info object methods ...
-	 /obj/ info object methods ...
-	 Similar, the object parametererization uses
-	 /cls/ create obj -object-mixin M
-	 /cls/ create obj -object-filter f
-	 /metacls/ create cls -mixin M1 -object-mixin M2
-	 /metacls/ create cls -filter f1 -object-filter f2
+
+	    /cls/ info methods ...
+	    /cls/ info object methods ...
+	    /obj/ info object methods ...
+
+	 Similar, the object parameterization uses
+
+	    /cls/ create obj -object-mixin M
+	    /cls/ create obj -object-filter f
+	    /metacls/ create cls -mixin M1 -object-mixin M2
+	   /metacls/ create cls -filter f1 -object-filter f2
+
 	- as a consequence,
+
 	 a) "/cls/ class method ...",
-	 "/cls/ class alias ...",
-	 "/cls/ class forward ...",
-	 "/cls/ class filter ...",
-	 "/cls/ class mixin ...",
-	 "/cls/ class info ..."
-	 "/obj/ class method require method ..."
-	 "/obj/ class method require public method ..."
-	 "/obj/ class method require protected method ..."
-	 "/obj/ class method require private method ..."
+	    "/cls/ class alias ...",
+	    "/cls/ class forward ...",
+	    "/cls/ class filter ...",
+	    "/cls/ class mixin ...",
+	    "/cls/ class info ..."
+	    "/obj/ class method require method ..."
+	    "/obj/ class method require public method ..."
+	    "/obj/ class method require protected method ..."
+	    "/obj/ class method require private method ..."
 	 were dropped
+
 	 b) "/obj/ method ....",
-	 "/obj/ alias ....",
-	 "/obj/ forward ...."
-	 "/obj/ filter ...."
-	 "/obj/ mixin ...."
-	 "/obj/ info method*"
-	 "/cls/ create obj -mixin M"
-	 "/cls/ create obj -filter f"
-	 "/obj/ method require method ..."
-	 "/obj/ method require public method ..."
-	 "/obj/ method require protected method ..."
-	 "/obj/ method require private method ..."
-	 were dropped
+	    "/obj/ alias ....",
+	    "/obj/ forward ...."
+	    "/obj/ filter ...."
+	    "/obj/ mixin ...."
+	    "/obj/ info method*"
+	    "/cls/ create obj -mixin M"
+	    "/cls/ create obj -filter f"
+	    "/obj/ method require method ..."
+	    "/obj/ method require public method ..."
+	    "/obj/ method require protected method ..."
+	    "/obj/ method require private method ..."
+	  were dropped
+
 	- added package nx::class to allow optionally the "class" notation
-	 "/cls/ class method ..." (and friends, see (a)), and
-	 "/cls/ class info ...
-	- added package nx::plain-object-method to allow optionally plain method
-	 b) "/obj/ method ...." (and friends, see (b))
+	  "/cls/ class method ..." (and friends, see (a)), and
+	  "/cls/ class info ...
+
+	- added package nx::plain-object-method to allow optionally
+	  plain method b) "/obj/ method ...." (and friends, see (b))
+
 	- add support to slots to use ensemble methods as setters
 
 2013-04-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- allow explicit unsetting of -per-object flag in 0-argument
 	  -flag=value notation
 
 2013-04-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- reduce variable scope
 
 2013-03-25  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
-	Improved wording in comment on NsfConfigEnabled()
-
-
-	Irgh. Had forgotten about two-level stringification to provide
-	configuration macro expansions as strings in NsfReportVars()
+	- Improved wording in comment on NsfConfigEnabled()
+	- Irgh. Had forgotten about two-level stringification to
+	  provide configuration macro expansions as strings in
+	  NsfReportVars()
 
 2013-03-25  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	Adding a helper macro NsfConfigEnabled() to test for active/inactive
-	build-time configurations; rewrote NsfReportVars() accordingly. This
-	makes NSF compilable under MSVC (VC11). Thanks are due to Stephan
-	Adelsberger for reporting the issue.
+	- Adding a helper macro NsfConfigEnabled() to test for
+	  active/inactive build-time configurations; rewrote
+	  NsfReportVars() accordingly. This makes NSF compilable under
+	  MSVC (VC11). Thanks are due to Stephan Adelsberger for
+	  reporting the issue.
 
 2013-02-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- ByteCompiled(): fix indentation of preprocessor #if statements
 	- ByteCompiled(): ensure result setting in case HAVE_TCL_COMPILE_H is
 	  not defined
-
-
-	- improve wording in rosetta example
-
-
 	- improve wording in rosetta example
 
 2013-01-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	more cleanup
-
-
+	- more code cleanup
 	- reduce variable scopes
-
-
 	- remove EXTERN declarations from function definitions
 
 2013-01-08  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- Update to latest TEA.
 	- Follow new naming convention for auto-tools (using configure.ac)
 
-
-	silence compiler warnings
+	- silence compiler warnings
 
 2012-12-12  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- replace Tcl_GlobalEval by Tcl_Eval, since Tcl_GlobalEval will be
 	  removed in futures versions of Tcl
 
 2012-11-26  Stefan Sobernig  <stefan.sobernig@wu-wien.ac.at>
 
-
-	Checked built and test suite against Tcl 8.6rc2 (core-8-6-0-rc) under
-	MinGW32; removed temporary fix for bug #3401422
+	- Checked built and test suite against Tcl 8.6rc2
+	  (core-8-6-0-rc) under MinGW32; removed temporary fix for bug
+	  #3401422
 
 2012-11-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	quote filename in content disposition
+	- quote filename in content disposition
 
 2012-11-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- replace nx::configure option defaultPropertyCallProtection by
 	  defaultAccessor
-
 
 	- protect trf against leading dashes
 
 2012-11-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- deactivate tests in library file
 
 2012-11-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- add additional "convertto" when generating zip files from strings
 
 2012-10-30  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	The asciidoc-related configuration artifacts, especially for
-	Tcl/NSF-specific code highlighting, are now contained in the source
-	distribution and integrated with the respective make targets. Besides a
-	running asciidoc installation, there is no further configuration need.
-	Tested with asciidoc 8.6.8
+	- The asciidoc-related configuration artifacts, especially for
+	  Tcl/NSF-specific code highlighting, are now contained in the
+	  source distribution and integrated with the respective make
+	  targets. Besides a running asciidoc installation, there is
+	  no further configuration need.  Tested with asciidoc 8.6.8
 
 2012-10-28  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
 
-
-	Extending test case to cover slotassign issue
-
-
-	Adding a test and a temporary fix for the ::nsf::is issue in
-	setCheckedInstVar
+	- Extending test case to cover slotassign issue
+	- Adding a test and a temporary fix for the ::nsf::is issue in
+	  setCheckedInstVar
 
 2012-10-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	Make sure to NS_EXPORT Ns_ModuleVersion for people using still the
-	old-style aolserver module.
+	- Make sure to NS_EXPORT Ns_ModuleVersion for people using
+	  still the old-style AolServer module.
 
 2012-10-04  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	make assumptions explicit
+	- make assumptions in code explicit
 
 2012-10-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	nsf.c:
 	- handling of method names in error messages from nsfAPI.h. Make sure
 	  that error message is generated with the actual method name.
 
 2012-10-02  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	nx.tcl:
 	- property has now a boolean non-positional argument "-config"
@@ -735,24 +703,18 @@
 
 2012-09-30  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- remove debug output
-
 
 	nsf.c:
 	- factored out ParameterMethodForwardDispatch() to call a
-	  parameter method defined as a forwarder the smae way from
+	  parameter method defined as a forwarder the same way from
 	  "configure" and "cget"
 	- extended regression test
-
-
 	- improve comment
 
 2012-09-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- extended regression test
-
 
 	- changed name "/obj|cls/ slot info definition" to "/obj|cls/
 	  slot info definition" since result is a set
@@ -760,40 +722,36 @@
 	- dropped "/obj/ info properties" (since "properties" or "variables"
 	  are returned")
 
-
 	nx.tcl:
-	- change parameter name in "/cls/ inif paramameter ... ?pattern?" from
+	- change parameter name in "/cls/ info parameter ... ?pattern?" from
 	  "name" to "pattern"
 
 2012-09-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	- added functiality for "cget" to call parameter-methods (e.g.
+	- added functionality for "cget" to call parameter-methods (e.g.
 	  "... cget -class"). The method cget calls either "/slot/ get
 	  ..." (when slot=... is provided in the parameter spec) or it
 	  assumes that the method without argument returns the value
 	- added "::nsf::object::property /obj/ volatile" to query whether
 	  a object is volatile or not
-	- "/obj/ cget -volatile" returns now the volatial state of the
+	- "/obj/ cget -volatile" returns now the volatile state of the
 	  object
 	- factored out ParameterMethodDispatch() from OConfigureMethod()
 	- extended regression test
 
 2012-09-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- invalidation of per-object parameter cache
 	  * on mixin changes and
 	  * on deletion/adding of per-object slots
-	- decactivate PER_OBJECT_PARAMETER_CACHING per default (flipping
+	- deactivate PER_OBJECT_PARAMETER_CACHING per default (flipping
 	  this parameter makes regression test more than 20 faster).
 	- extended regression test
 
-
-	- NsfObjInfoObjectparameterMethod(): return not only the first matching
-	parameter, but the list of all matching ones. The last optional
-	argument was renamed from "name" to "pattern" accordingly
-
+	- NsfObjInfoObjectparameterMethod(): return not only the first
+	  matching parameter, but the list of all matching ones. The
+	  last optional argument was renamed from "name" to "pattern"
+	  accordingly
 
 	- rename invalidateobjectparameter ->
 	  parameter:invalidate::classcache
@@ -803,10 +761,8 @@
 
 2012-09-26  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- first draft of per-object parameter caching (for per-object-mixins
 	  and per-object properties).
-
 
 	nsf.c:
 	- fix potential bad interaction between per-object mixins and per-class
@@ -814,9 +770,7 @@
 
 2012-09-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- don't blindly register all object/class methods for XOTcl
-
 
 	Property Reform Part 2: better handling of per-object properties
 	  nsf.c:
@@ -842,129 +796,122 @@
 	  slotcontainer ?value?" by "::nsf::object::property /obj/
 	  slotcontainer ?value?"
 	- added "::nsf::object::property /obj/ hasperobjectslots ?value?"
+
 	nx.tcl:
 	- new info methods
 	   * "/obj/ info lookup parameter definitions"
 	   * "/obj/ info lookup parameter names"
 	   * "/obj/ info lookup parameter list"
 	   * "/obj/ info lookup parameter syntax"
-	- changed "/cls/ info parameter definition ?name?"
-	 into "/cls/ info parameter definitions ?name?"
-	 since ir returns a list. Still, "list" or "syntax" won't
-	 be plural
+
+	- changed "/cls/ info parameter definition ?name?"  into
+	  "/cls/ info parameter definitions ?name?"  since ir returns
+	  a list. Still, "list" or "syntax" won't be plural
 
 2012-09-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- renamed timing variable from "time" to "ms"
-
-
 	- added timing statistics
 
 2012-09-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 
 	- generalize handling for per-object-properties
-
-
-	- added addtional file for regression test
+	- added additional file for regression test
 
 2012-09-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
-
-	updated todo
-
-2012-09-19  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	Property reform part 1:
 	- disallow protection modifiers for "properties" and
-	 add new flag "-accessor" to "property" and "variable"
-	 This changes definitions like
+	  add new flag "-accessor" to "property" and "variable"
+	  This changes definitions like
+
 	 Class create C {
-	 :property {a a1}
-	 :public property {b b1}
-	 :protected property {c c1}
-	 :private property {d d1}
+	   :property {a a1}
+	   :public property {b b1}
+	   :protected property {c c1}
+	   :private property {d d1}
 	 }
+
 	 to
+
 	 Class create C {
-	 :property {a a1}
-	 :property -accessor public {b b1}
-	 :property -accessor protected {c c1}
-	 :property -accessor private {d d1}
+	   :property {a a1}
+	   :property -accessor public {b b1}
+	   :property -accessor protected {c c1}
+	   :property -accessor private {d d1}
 	 }
-	 since "properties" are always public accessible
-	 over the "configure" and "cget" interface, but the
-	 accessors methods might not be public. The value of
-	 the accessor might be also "none" (specifying explicitely
-	 that no accessor is wanted) or "", which means: use the default.
-	 Same holds for "variable"
-	- disallow parameter option "incremental" and change it to a flag
-	 of the property or variable. The motivation for this is due to
-	 the fact, that "incremental" is a property of the accessor, and
-	 not of the value.
+
+	  since "properties" are always public accessible over the
+	  "configure" and "cget" interface, but the accessors methods
+	  might not be public. The value of the accessor might be also
+	  "none" (specifying explicitly that no accessor is wanted) or
+	  "", which means: use the default.  Same holds for "variable"
+
+	- disallow parameter option "incremental" and change it to a
+	  flag of the property or variable. The motivation for this is
+	  due to the fact, that "incremental" is a property of the
+	  accessor, and not of the value.
+
 	 old:
 	 Class create C {
-	 :property foo:int,incremental
-	 :variable bar:int,incremental
+	   :property foo:int,incremental
+	   :variable bar:int,incremental
 	 }
 	 new:
 	 Class create C {
-	 :property -incremental foo:int
-	 :variable -incremental bar:int
+	   :property -incremental foo:int
+	   :variable -incremental bar:int
 	 }
-	- disallow "public class property" and friends since these are not
-	  needed
+
+	- disallow "public class property" and friends since these are
+	  not needed
+
 	- removed parameter property "noaccessor"
+
 	- removed "nx::configure defaultPropertyCallProtection" and
-	 method hook "__default_property_call_protection"
+	  method hook "__default_property_call_protection"
+
 	- introduced "nx::configure defaultAccessor" and
-	 method hook "__default_accessor"
-	- for the time being, "defaultAccessor" is "public" for NX and XOTcl,
-	 will be changed to "none" in NX
+	  method hook "__default_accessor"
+
+	- for the time being, "defaultAccessor" is "public" for NX and
+	  XOTcl, will be changed to "none" in NX
+
 	- extended regression test (new file properties.test)
 
 2012-09-15  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	nsf.c:
 	- fixed parmeter syntax for required nonpos args
 	- deactivate deletion of methods via nsf::object::delete during
 	  shutdown to avoid missing slot forwarders called from destructors
 
-
 	nx.tcl:
 	- remove debugging output
-
-
 	- renamed testlog file, remove it on "make clean"
-
 
 	nsf.c:
 	- made argument of cget required
+
 	nx.tcl:
 	- added Tk-style methods "configure" and "cget"
 	- added additional regression test set for cget and configure
 
-
 	nsf.c:
-	- implememted cget as a configure-like method, dropped ensemble method
+	- implemented cget as a configure-like method, dropped ensemble method
 	  variant
+
 	nx.tcl:
 	- simplified "/obj|cls/ delete method" due to resolving capabilities in
-	 nsf::delete::method
-
-
+	  nsf::delete::method
 	- fixed regression test to run all test again correctly
-
 
 	xotcl2.tcl:
 	- made destructor of Connection more robust such it does not depend on
 	  accessor methods.
 
 2012-09-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	nsf.c:
 	- extended nsf::method::delete to handle ensemble names
@@ -974,66 +921,49 @@
 	  working
 	- make sure to ignore non-slot-type objects in slot introspection
 	- worked on regression test until "methods.test". others are missing,
-	 but maybe reconsideration
+	  but maybe reconsideration
 
 2012-09-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- updated 34 copyright notices
-
 
 	nx.tcl:
 	- rename the following internally called methods (not for XOTcl).
 	  alloc -> __alloc dealloc -> __dealloc objectparameter ->
-	  __objectparameter recrate -> __recreate
+	  __objectparameter recreate -> __recreate
 	- from these methods, only __objectparameter is defined per default,
 	  the others are defined on demand
-
 
 	changes to allow efficient tk/incr tcl compatible configure/cget
 	- refactored code to allow to parameterize handling of required
 	  flag for parameters
-	- don't flag an error when configure is called on an initialized object
-	(logic: if the object is initialized, configure must have been called
-	before, and the required action must have been already taken).
-
-
+	- don't flag an error when configure is called on an
+	  initialized object (logic: if the object is initialized,
+	  configure must have been called before, and the required
+	  action must have been already taken).
 	- rename nx::Object.configure to nx::Object.__configure to free method
 	  name "configure" for an e.g. tk-like configure
 
 2012-09-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- finalize transition from old code
 
 2012-08-28  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- fix frame scoping for myvar/myproc
 
 2012-08-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- allow to change title of a scripted document
-
-
-	- make doc beautifer more robust for invalid lists
-
-
+	- make doc beautifier more robust for invalid lists
 	- use explicit return in tutorial example scripts
 
 2012-08-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- improve documentation
-
-
 	- use "nsf::relation $cl superclass" instead of "$cl configure
 	  -superclass"
-
-
 	- minor documentation updates
-
 
 	nx::test:
 	- added summary at the end of "make test" via log file
@@ -1041,63 +971,60 @@
 
 2012-07-31  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	nx.tcl:
-	- set multiplicty for mixins and filters by default from 1..n to 0..n
-	to avoid error messages, when e.g. empty mixin lists are configured.
-	Setting emtpy mixin-lists is strictly speaking not necessary, but this
-	eases the code in cases the lists are sometimes empty.
+	- set multiplicity for mixins and filters by default from 1..n
+	  to 0..n to avoid error messages, when e.g. empty mixin lists
+	  are configured.  Setting empty mixin-lists is strictly
+	  speaking not necessary, but this eases the code in cases the
+	  lists are sometimes empty.
 
-
-	- handle cyclical superclassclass dependencies during object
+	- handle cyclical superclass/class dependencies during object
 	  system finalize
 	- extend regression test
 
 2012-07-18  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	nsf.c:
-	- ignore in internall calls to "dealloc" protection settings
+	- ignore in internal calls to "dealloc" protection settings
 	- handle cyclical class dependencies during object system finalize
 	- extend regression test
 
 2012-07-18  Stefan Sobernig  <stefan.sobernig@wu-wien.ac.at>
 
-
 	- library/nx/nx.tcl: Following the code review, implemented a
 	  first scheme for handling traces in setCheckedInstVar. This
 	  gives us consistent behavior for defaults and traces
 	  (valuechangedcmd) across classes and objects.
+
 	- tests/parameters.test: Adjusted the relevant tests
-	- Pending: setCheckedInstVar currently uses ::nsf::is to validate the
-	value (e.g., default value) to be set. However, it might get passed
-	parameter options which do not fit the NSF_DISALLOWED_ARG_VALUECHECKED
-	filter.
+
+	- Pending: setCheckedInstVar currently uses ::nsf::is to
+	  validate the value (e.g., default value) to be set. However,
+	  it might get passed parameter options which do not fit the
+	  NSF_DISALLOWED_ARG_VALUECHECKED filter.
 
 2012-07-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- define method "proc" of ::xotcl::Attribute in terms of
 	  ::xotcl::Object proc
 
-
 	- make sure to have gcc branch hints in generated code
-
 
 	- honor default type in "info slot names"
 
 2012-07-17  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
 	- Addressed a number of issues in the NX slot infrastructure
 	  (which revealed themselves when running Mark's
 	  BusinessActivities implementation in XOTcl2 mode):
+
 	- generic/nsf.c: Initcmd blocks (as set for registering per-class
 	  slot traces) were subjected to argument checks causing
 	  unexpected behavior (e.g., attempts of unboxing initcmds as Tcl
 	  lists or of checking initcmds against value types). This was
 	  fixed by exempting NSF_ARG_INITCMD params from argument
 	  checking in ArgumentCheck() explicitly.
+
 	- library/nx/nx.tcl: For per-class parameters, the use of
 	  valuechangedcmd effectively overruled the default value
 	  specified (simply because the generated initcmd holding the
@@ -1108,29 +1035,30 @@
 	  default-setting statement in the initcmd.
 	- tests/parameters.test: Added tests to cover the above (and
 	  beyond).
+
 	- library/xotcl/library/xotcl2.tcl: Extended the backwards
 	  compatibility of the hybrid XOTcl2/NX slots infrastructure to
 	  the XOTcl 1 interface: This includes support for inline -proc
-	  statements and instvar. This compat level corresponds to the
+	  statements and instvar. This compatibility level corresponds to the
 	  slot interface as documented (by examples) in the XOTcl
 	  language ref and the manual.
-	- library/xotcl/tests/slottest.xotcl: Added tests for the above compat
+
+	- library/xotcl/tests/slottest.xotcl: Added tests for the above compatibility
 	  enhancements.
 
 2012-07-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- allow instance property inheritance for traits
 
 2012-07-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
-	Don't recommend to use "configure" method for chaning class/superclass
+	- Don't advertise to use "configure" method for calling
+          class/superclass in documentation sice we have better
+          ways.
 
 2012-06-27  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
-	- Replaced errorneous check using the object-specific rather than
+	- Replaced erroneous check using the object-specific rather than
 	  the class-specific options in the query mode of ::nsf::relation
 	  with class-filter. This prevented [::nsf::relation /cls/
 	  class-filter] from returning any filter info. As a consequence,
@@ -1138,14 +1066,13 @@
 	  [/cls/ filter add aFilterProc] effectively reset the
 	  class-filter cmd list instead of adding to it). Thx are due to
 	  Markus Moldaschl for reporting the issue.
-	- Aligning class-filter and object-filter behaviour on errors
-	  during filter additions to the state-preserving behaviour of
+	- Aligning class-filter and object-filter behavior on errors
+	  during filter additions to the state-preserving behavior of
 	  object-mixin and class-mixin.
 	- Adding basic tests on object-filter/class-filter (::nsf::relation,
 	  filter slot interface) and specific ones to cover the above issues.
 
 2012-06-25  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- added a SlotContainerCmdResolver() to avoid interaction of slot
 	  names with names of callable tcl commands. Without the
@@ -1155,15 +1082,10 @@
 	  implementation is not perfect, since it ignores the namespace
 	  path inside the slot container.
 	- added regression test.
-
-
-	adding gcc helper files to ignore list
-
-
-	cosmetical documentation changes
+	- adding gcc helper files to ignore list
+	- cosmetical documentation changes
 
 2012-06-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	nsfShadow.c
 	- bump MethodEpoch when a tcl ::rename command happens on a nsf
@@ -1177,63 +1099,50 @@
 
 2012-05-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- remove dependency of generated stub file from nsfInt.h
-
-
-	- fix compilation when dtrace is activated (missing parthesis, many
+	- fix compilation when dtrace is activated (missing parenthesis, many
 	  thanks to Victor Guerra for noticing)
-
-
 	- document private properties in tutorial and migration guide
 	- improve wording in documenting
 	- extend regression test
 
 2012-05-22  Stefan Sobernig  <stefan.sobernig@wu-wien.ac.at>
 
-
 	- configure, configure.in: Under win, the CLEANFILES missed a
 	  pattern for object files
+
 	- nsfInt.h: Based on the BUILD_nsf convention, the internal
 	  header introduced a TCL_STORAGE_CLASS macro placing the
 	  dllimport attribute (under Win/MinGW builts). As a consequence,
-	  shared and stub builts ended up with function declarations
+	  shared and stub builds ended up with function declarations
 	  annotated with dllimport (which for these cases is either
-	  unnecessary or even breaks builts because the dllexport
+	  unnecessary or even breaks builds because the dllexport
 	  counterpart is missing, obviously). As nsf.h includes a sane
 	  DLLIMPORT/DLLEXPORT handling (copied over from tcl.h), I simply
 	  removed the special macro handling from nsfInt.h.
+
 	- NsfProcStub(): Use the EXTERN macro rather than extern directly
 
 2012-05-21  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- added documentation for "/obj/ info name" to migration guide
 	  and .nxd file
 	- adding more comments to examples in migration guide
-
-
 	- added design study ruby-mixins.tcl to example-docs and regression test
-
-
 	- minor polishing
 
 2012-05-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- change "#!/bin/env" into "#!/usr/bin/env"
 
 2012-05-14  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- increase backward compatibility for ::xotcl::Attribute by defining
 	  the public methods "set", "exists" and "istype"
 
 2012-05-14  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
 	- apps/utils/nxdoc: fix shebang path to env ...
-
 
 	- generic/nsf.c, ObjectDispatch(): Re-arranged the handling of
 	  fully-qualified method dispatches with the selectors resolving
@@ -1244,36 +1153,28 @@
 	  continued to dispatch to the cmd "::parent::child" in the
 	  self-context ::parent::child ... with unwanted side-effects
 	  (e.g., XOTcl's unknown handling was bypassed).
+
 	- tests/methods.test: Added basic tests on the (current) handling for
 	  such ::* dispatches and a specific test set on the intended XOTcl
-	behaviour.
+	  behavior.
 
 2012-05-13  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- start error messages with a lower case word for consistency and to
 	  follow closer to Tcl's conventions
-
-
 	- added "private property foo"
 	- extended regression test
-
-
 	- allow parens in property names (array syntax)
-	- added "/obj/ info name" (as alternative to "namspace tail [self]")
-
-
+	- added "/obj/ info name" (as alternative to "namespace tail [self]")
 	- use newer style of tcl-obj interface instead of sprintf
 
 2012-05-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- implement escaping for comma in value of parameter options:
-	  escaping in values can be achived via duplicating the comma.
+	  escaping in values can be achieved via duplicating the comma.
 	- extend regression test
 
 2012-05-04  ssoberni  <stefan.sobernig@wu-wien.ac.at>
-
 
 	- library/xotcl/library/xotcl2.tcl: Provided a virtual slot
 	  "multivalued" to establish backward compatibility with XOTcl1;
@@ -1284,97 +1185,74 @@
 
 2012-04-20  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- explorative implementation of object method dispatches with
 	  KEEP_CALLER_SELF and no NSF_PER_OBJECT_DISPATCH
 	- extend regression test
 
 2012-04-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	nsf.c:
 	- refactor ObjectCmdMethodDispatch() for clarity
 	- prepare work on object method dispatches with KEEP_CALLER_SELF and no
 	  NSF_PER_OBJECT_DISPATCH
-
-
 	- remove debug line
 
 2012-04-11  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- fix off-by-one error
-
-
 	- add regression test for keepcallerself with and without
 	  perobjectdispatch
-
-
 	- fix typo
 
 2012-04-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- serializer:
 	  * pertain perobjectdispatch and keepcallerself in serializer
 	  * extend regression test
 
-
 	nsf.c:
 	- generalize stack monitor by handling growing and shrinking
 	  stacks
-	- refactor into funciton CheckCStack()
-
+	- refactor into function CheckCStack()
 
 	- serializer:
-	  * make [::Serializer deepSerialize -ignoreVarsRE "" $o] behave
-	  like [::Serializer deepSerialize $o], since learn@wu depends on
-	  that, and a value for ignoreVarsRE of empty looks more like an
-	  omitted value than a regular expression, that should match
-	  everything.
-	  * extended regression test
 
+	  * make [::Serializer deepSerialize -ignoreVarsRE "" $o]
+	    behave like [::Serializer deepSerialize $o], since
+	    learn@wu depends on that, and a value for ignoreVarsRE of
+	    empty looks more like an omitted value than a regular
+	    expression, that should match everything.
+	  * extended regression test
 
 	- extended regression test
 
 2012-04-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- added compile macro NSF_STACKCHECK to provide stack
-	monitoring/debugging (especially useful for multi threaded programs,
-	where stack is more limited)
-
-
-	- make ::nsf::log more robust for aolserver/naviserver, since ::ns_log
+	  monitoring/debugging (especially useful for multi threaded
+	  programs, where stack is more limited)
+	- make ::nsf::log more robust for aolserver/NaviServer, since ::ns_log
 	  is not always around when an output is needed
-
-
 	- don't hide call to make.tcl
 
 2012-03-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- protect serial generation for parameters via mutex
-
-
 	- fix compilation when compiled without threads (many thanks for
 	  r.zaumseil for noting this).
 
 2012-03-05  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- tcl86.test: better implementation of method "each", cleanup and
 	  extension of enumerator tests
 
 2012-02-29  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- extended regression tests for yield
 	- implemented "next" for ruby-like enumerators (each needs still more
 	  work)
 
 2012-02-27  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- pass property name to slot "initialize" method to conform with
 	  the interface to "assign", "get" ... (all these receive the
@@ -1383,7 +1261,6 @@
 	  "init")
 
 2012-02-24  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	nsf.c:
 	- added object parameter option "slotinitialize"
@@ -1395,80 +1272,70 @@
 
 2012-02-22  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- Fixed a bad interaction between Tcl's apply (pushing lambda
 	  frames) and the variable resolvers. The variable resolver was
 	  not able to resolve variables, while the command resolver was
 	  still working correctly.
 	- Extended regression test
 
-
-	Improve wording in instructions
-
-
-	Improve comments
-
-
-	documented dependencies between configure flags and feature activation
-	cpp macros
+	- Improve wording in instructions
+	- Improve comments
+	- Documented dependencies between configure flags and feature
+	  activation cpp macros
 
 2012-02-17  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 
 	- improve error message to indicate, that nsf refuses to overwrite
 	  (redefine) some cmds
-
-
 	- don't allow method to overwrite child object
 	- extended regression test
 	- documented new feature as incompatibility with XOTcl 1
 
 2012-02-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- don't allow object creation to overwrite non-object cmds (e.g. procs)
-
-
 	- improve debug line
 
 2012-02-16  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
-
 	- library/lib/nxdoc-xowiki.tcl: Finished and polished the xowiki
 	  backend for nxdoc. Some tests regarding relative paths and the
-	  treeview generation are pending ...
+	  tree-view generation are pending ...
 	- library/lib/nxdoc-xowiki.tcl: Use the built-in base64 facility
 	  if running under Tcl 8.6
-	- Due to re-introducing nested-object-as-method semantics lately, nxdoc
-	started stumbling over name conflicts between nested entity
-	hierarchies (i.e., the entity object representing "/cls/ class info
-	class" ...) and equally-named introspection calls on such entities
-	(e.g., a "info class" call). I made these calls more robust my using
-	-system dispatches; which is fine as long as we do not have sth. like
-	"/obj/ info eval". Generally speaking, the risk of such naming
-	conflicts discredits the use of object nesting in nxdoc; should
-	eventually be revised. Or, as work-around: Using a filter on Entity
-	instances to protect/redirect critical calls.
-
+	- Due to re-introducing nested-object-as-method semantics
+	  lately, nxdoc started stumbling over name conflicts between
+	  nested entity hierarchies (i.e., the entity object
+	  representing "/cls/ class info class" ...) and equally-named
+	  introspection calls on such entities (e.g., a "info class"
+	  call). I made these calls more robust my using -system
+	  dispatches; which is fine as long as we do not have
+	  sth. like "/obj/ info eval". Generally speaking, the risk of
+	  such naming conflicts discredits the use of object nesting
+	  in nxdoc; should eventually be revised. Or, as work-around:
+	  Using a filter on Entity instances to protect/redirect
+	  critical calls.
 
 	- tests/serialize.test: Added some basic regression tests, in
 	  particular to challenge the filter options provided by
 	  Serializer->deepSerialize() and Serializer->all().
 	- Included a test for commit 595e6a2.
+
 	- Along the line, two minor issues where fixed: 1) Set
-	Serializer->ignore() to public, otherwise the various external
-	message sends to this method would fail; 2) Object-serialize() did not
-	distinguish between serialising a per-object or per-class container
-	properly; as a consequence, per-object containers were not restored at
-	all. Add a test covering this.
+	  Serializer->ignore() to public, otherwise the various
+	  external message sends to this method would fail; 2)
+	  Object-serialize() did not distinguish between serializing a
+	  per-object or per-class container properly; as a
+	  consequence, per-object containers were not restored at
+	  all. Add a test covering this.
 
-
-	- library/serialize/serializer.tcl: Due to the split between serializer
-	and object system serializer, the ignore settings (passed as object
-	variables, i.e., ignoreVarRE) got lost. This is fixed now ...
+	- library/serialize/serializer.tcl: Due to the split between
+	  serializer and object system serializer, the ignore settings
+	  (passed as object variables, i.e., ignoreVarRE) got
+	  lost. This is fixed now ...
 
 2012-02-16  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
 
 	- treating incompatible forwarding to slot vs. slot option
 	  noaccessor
@@ -1484,17 +1351,8 @@
 
 2012-02-03  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
-
 	- mv next-tutorial (source, images) into own subdirectory
 	  doc/next-tutorial/
-
-
 	- Bump version number of head to 2.0b4
+	- improve wording in documentation
 
-
-	improve wording
-
-2012-02-01  Gustaf Neumann  <neumann@wu-wien.ac.at>
-
-
-	Added README.release Added Annoice 2.0b3

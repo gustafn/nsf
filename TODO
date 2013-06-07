@@ -4685,9 +4685,10 @@ nsf.c:
 ========================================================================
 TODO:
 
- - update + spellcheck / ChangeLog (to point out differences to 2.0b3)
  - recheck Announce
-   
+ - concatenate Changelog
+ - update next-scriping doc + examples, pdf-files?
+ - build tar etc. as in README.release
 
 Stefan: doc itmes
 

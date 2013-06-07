@@ -37,7 +37,8 @@ Steps for a beta release:
       * Summarize changes since the last release in doc/Announce-VERSION
         As source use e.g.
             git log --date-order --date=short|less
-      * Run spell checker over announcement
+	    ~/scripts/git-changelog2  -- 2.0b3..HEAD --no-merges > ChangeLog-2.0b3-2.0b5
+      * Run spell checker over announcement + ChangeLog
       * git add announcement 
 
    - build tar

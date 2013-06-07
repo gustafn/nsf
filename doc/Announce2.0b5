@@ -3,18 +3,21 @@ Dear Community,
 Since releasing the Next Scripting Framework (NSF) 2.0b3, we have
 received feedback from early adopters. Many thanks for the helpful and
 the constructive comments! This feedback triggered an internal
-discussion and led to revising some earlier decisions on designing and
-on namings used in the APIs to achieve better comprehension and
-orthogonality.
+discussion and led to revising some earlier design decisions and
+naming conventions used in the APIs to achieve better comprehension
+and orthogonality.
 
-The new release differs in about 240 commits since the release of 
+The new release differs in about 250 commits since the release of 
 2.0b3. The implementation is very stable and is used since 
 more than two years in production of our large scale, multi threaded 
-web environment inside naviserver. Most of the changes happened 
+web environment inside NaviServer. Most of the changes happened 
 in NX and therefore on the NSF scripting level, without the need 
 to modify the NSF C layer. The implementation of XOTcl 2 
 has changed very little. The Next Scripting Framework was tested
-with Tcl 8.5.14 and Tcl 8.6.0.
+with Tcl 8.5.14 and Tcl 8.6.0. 
+
+This beta-release is supposed to be the last release before 
+the final 2.0 is out, which should be soon.
 
 Below are the most notable differences in 2.0b5 as compared to
 2.0b3:
@@ -181,7 +184,7 @@ the items (a), (b), and (c) above) are:
 
 
    * Improved Code Quality:
-     - some cleanup and code refactorings
+
      - fixed functional bugs:
        * copy did not copy aliases and ensemble methods
        * automatic object destroy for half-baked objects
@@ -214,6 +217,11 @@ the items (a), (b), and (c) above) are:
          are renamed by Tcl (many thanks to Arthur Schreiber
          for reporting)
 
+      - more code cleanup and refactoring
+
+      - released version runs all regression tests
+        without memory leaks with Tcl 8.5.14 and
+        Tcl 8.6.0        
 
      - build system:
        * improved compatibility for windows compilations.
@@ -239,21 +247,7 @@ the items (a), (b), and (c) above) are:
        Example:
          /obj/ info method definition /methodName/
 
-       
-     - improved performance
-       * rewrite of alias handling (alias reform)
-       * improved branch prediction
-       * significant speedup for handling large numbers
-         of subclasses (subclass reform), avoid
-         repetitious computations
-       * significant speedup on mass-destroy (e.g. on thread exit)
-     - provide better protection for deletion/overwriting
-       of base classes
-     - fixed potential duplicates on diamond inheritance
-     - fixed unknown handling for "-local" and "-system"
-       dispatches
-
-   * Extended regression tests
+    * Extended regression tests
 
 MORE INFO
   General and more detailed information about the
