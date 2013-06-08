@@ -68,9 +68,13 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
    * buffer (rather than the number of required bytes as required by C99) and
    * upon other error conditions. This should not happen for the above size
    * estimation, however. Also, for MS VC runtimes, we use the vendor-specific
-   * _vscprintf() 
+   * _vscprintf()
+   *
+   * Note: For MinGW and MinGW-w64, we assume that their ANSI-compliant
+   * version of vsnprintf() is used. See __USE_MINGW_ANSI_STDIO in nsfInt.h
    */
-#if defined(_WIN32) && defined(_MSC_VER)
+
+#if defined(_MSC_VER)
   failure = (result == -1 && errno == ERANGE);
 #else
   assert(result > -1);
@@ -79,7 +83,7 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
 
   if (failure) {
     int addedStringLength;
-#if defined(_WIN32) && defined(_MSC_VER)   
+#if defined(_MSC_VER)   
     /* Compute the required size of the Tcl_DString */
     va_copy(vargsCopy, vargs);
     addedStringLength = _vscprintf(fmt, vargsCopy);

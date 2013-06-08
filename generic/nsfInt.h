@@ -35,6 +35,21 @@
 # define HAVE_UINTPTR_T 
 #endif
 
+/*
+ * MinGW and MinGW-w64 provide both MSCRT-compliant and ANSI-compliant
+ * implementations of certain I/O operations (e.g., *printf()). By
+ * setting __USE_MINGW_ANSI_STDIO to 1 explicitly, we can assume the
+ * ANSI versions.
+ *
+ * Note: It is sufficient to test for __MINGW32__ to trap all MinGW
+ * tool chains, including 64bit versions. See
+ * http://sourceforge.net/p/predef/wiki/Compilers/#mingw-and-mingw-w64
+ */
+
+#if defined(__MINGW32__) && !defined(__USE_MINGW_ANSI_STDIO)
+#define __USE_MINGW_ANSI_STDIO 1
+#endif
+
 #include <tclInt.h>
 #include "nsf.h"
 
@@ -1056,7 +1071,6 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #define va_copy(dest,src) ((dest) = (src))
 #endif
 #endif
-
 
 #if !defined(NDEBUG)
 /*# define NSF_INLINE*/
