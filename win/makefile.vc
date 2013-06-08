@@ -206,7 +206,6 @@ DLLOBJS = \
 PRJTESTS = \
 	$(ROOT)\tests\object-system.test \
 	$(ROOT)\tests\alias.test \
-	$(ROOT)\tests\introspection.test \
 	$(ROOT)\tests\returns.test \
 	$(ROOT)\tests\cget.test \
 	$(ROOT)\tests\method-parameter.test \
@@ -219,7 +218,6 @@ PRJTESTS = \
 	$(ROOT)\tests\disposition.test \
 	$(ROOT)\tests\mixinof.test \
 	$(ROOT)\tests\tcl86.test \
-	$(ROOT)\tests\doc.test \
 	$(ROOT)\tests\tcloo.test \
 	$(ROOT)\tests\forward.test \
 	$(ROOT)\tests\var-access.test \
@@ -230,7 +228,9 @@ PRJTESTS = \
 	$(ROOT)\tests\volatile.test \
 	$(ROOT)\tests\interp.test \
 	$(ROOT)\tests\protected.test \
-	$(ROOT)\tests\parameters.test
+	$(ROOT)\tests\parameters.test \
+	$(ROOT)\tests\plain-object-method.test \
+	$(ROOT)\tests\class-method.test
 
 PRJHEADERS =
 
