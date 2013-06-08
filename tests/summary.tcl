@@ -22,7 +22,7 @@ if {[info exists opt(-testlog)]} {
 
   puts "\nRegression Test Summary:"
   puts "\tEnvironment: Tcl $tcl_patchLevel, OS $tcl_platform(os) $tcl_platform(osVersion)\
-	machine $tcl_platform(machine) threaded $tcl_platform(threaded)."
+	machine $tcl_platform(machine) threaded [info exists tcl_platform(threaded)]."
   puts "\tNSF performed $tests tests in $files files, success $success, failures $failures in [expr {$ms / 1000.0}] seconds"
   if {$failures == 0} {
     puts "\tCongratulations, NSF [package require nsf], NX [package require nx], and\
