@@ -81,10 +81,20 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
   failure = (result > avail);
 #endif
 
-  if (failure) {
+  if (likely(failure == 0)) {
+    /* 
+     * vsnprintf() has already copied all content,
+     * we have just to adjust the length.
+     */
+    Tcl_DStringSetLength(dsPtr, offset + result);
+  } else {
     int addedStringLength;
+    /* 
+     * vsnprintf() has already not copied all content,
+     * we have to determine the required length (MS),
+     * adjust the DString size and copy again.
+     */
 #if defined(_MSC_VER)   
-    /* Compute the required size of the Tcl_DString */
     va_copy(vargsCopy, vargs);
     addedStringLength = _vscprintf(fmt, vargsCopy);
     va_end(vargsCopy);
