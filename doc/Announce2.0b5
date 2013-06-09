@@ -4,17 +4,17 @@ Since releasing the Next Scripting Framework (NSF) 2.0b3, we have
 received feedback from early adopters. Many thanks for the helpful and
 the constructive comments! This feedback triggered an internal
 discussion and led to revising some earlier design decisions and
-naming conventions used in the APIs to achieve better comprehension
-and orthogonality.
+naming conventions used in the APIs to achieve better
+comprehensibility and orthogonality.
 
-The new release differs in about 250 commits since the release of 
-2.0b3. The implementation is very stable and is used since 
-more than two years in production of our large scale, multi threaded 
-web environment inside NaviServer. Most of the changes happened 
-in NX and therefore on the NSF scripting level, without the need 
-to modify the NSF C layer. The implementation of XOTcl 2 
-has changed very little. The Next Scripting Framework was tested
-with Tcl 8.5.14 and Tcl 8.6.0. 
+Since the release of 2.0b3, there were more than 250 commits to our
+code repository. The implementation is very stable and has been used for
+more than two years in production of our large-scale, multi-threaded
+web environment inside NaviServer. Most of the changes happened in NX
+and, therefore, on the NSF scripting level, without the need to modify
+the NSF C layer. The implementation of XOTcl 2 has changed very
+little. The Next Scripting Framework was tested with Tcl 8.5.14 and
+Tcl 8.6.0.
 
 This beta-release is supposed to be the last release before 
 the final 2.0 is out, which should be soon.
@@ -60,11 +60,9 @@ a) NX 2.0b3 used the following conventions to define methods for
    or query object-specific methods on objects and classes.
    The same applies for aliases, forwards, mixins, and filters.
 
-   The new convention imposes a little typing burden on the 
-   developer, but reduces the effort of a reader of a
-   program for understanding what exactly 
-      $x method FOO {args} {...}
-   means.
+   The new convention imposes a little typing burden on the developer,
+   but reduces the reading effort when trying to understand what
+   exactly $x method FOO {args} {...}  means.
 
    For convenience, we provide two packages "nx::plain-object-method"
    and "nx::class-method" to switch to the old conventions. A verbose
@@ -89,7 +87,7 @@ c) Further clean-ups of the introspection interface ("info").
 
    In order to streamline the interface further, we followed the idea
    to use "... info /plural word/" to obtain a set of handles, and
-   then to make a separate call to obtain the details. Therefore, we
+   then to make a separate call to retrieve the details. Therefore, we
    now provide ...
 
      /cls/ info methods
@@ -125,8 +123,8 @@ c) Further clean-ups of the introspection interface ("info").
 
 Below is a more detailed summary of the changes.
 
-The Next Scripting Framework 2.0b5 (containing NX and XOTcl 2.0)
-can be obtained from http://next-scripting.org/
+The Next Scripting Framework 2.0b5 (containing NX and XOTcl 2.0b5) can
+be obtained from http://next-scripting.org/
 
 Best regards
 - Gustaf Neumann
