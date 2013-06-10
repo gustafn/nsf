@@ -1,3 +1,8 @@
+2013-06-10  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- More release work
+	- Tag git with 2.0b5
+
 2013-06-10  ssoberni  <stefan.sobernig@wu-wien.ac.at>
 
 	- Fix the implementation of NsfInterpObjCmd() which crashed
