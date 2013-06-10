@@ -4,17 +4,18 @@ Since releasing the Next Scripting Framework (NSF) 2.0b3, we have
 received feedback from early adopters. Many thanks for the helpful and
 the constructive comments! This feedback triggered an internal
 discussion and led to revising some earlier design decisions and
-naming conventions used in the APIs to achieve better
-comprehensibility and orthogonality.
+naming conventions, especially in NX. The new naming conventions
+improve the orthogonality and the clarity of NX programs.
 
-Since the release of 2.0b3, there have been more than 250 commits to our
-code repository. The implementation is very stable and has been used for
-more than two years in production of our large-scale, multi-threaded
-web environment inside NaviServer. Most of the changes happened in NX
-and, therefore, on the NSF scripting level, without the need to modify
-the NSF C layer. The implementation of XOTcl 2 has changed very
-little. The Next Scripting Framework was tested with Tcl 8.5.14 and
-Tcl 8.6.0.
+Since the release of 2.0b3, there have been more than 250 commits to
+our code repository. The implementation is very stable and has been
+used for more than two years in production of our large-scale,
+multi-threaded web environment inside NaviServer. Most of the changes
+happened in NX and, therefore, on the NSF scripting level, without the
+need to modify the NSF C layer. The implementation of XOTcl 2 has
+changed very little. The Next Scripting Framework was tested with Tcl
+8.5.14 and Tcl 8.6.0 on Linux, Mac OS X, and in windows enviroments
+(MinGW, VC11).
 
 This beta-release is supposed to be the last release before 
 the final 2.0 is out, which should be soon.
@@ -60,9 +61,10 @@ a) NX 2.0b3 used the following conventions to define methods for
    or query object-specific methods on objects and classes.
    The same applies for aliases, forwards, mixins, and filters.
 
-   The new convention imposes a little typing burden on the developer,
-   but reduces the reading effort when trying to understand what
-   exactly $x method FOO {args} {...}  means.
+   The new convention imposes a little typing burden for the code
+   writer, but reduces the potential ambiguity for the code reader,
+   who is trying to understand what exactly "$x method FOO {args}
+   {...}" means.
 
    For convenience, we provide two packages "nx::plain-object-method"
    and "nx::class-method" to switch to the old conventions. A verbose
@@ -140,107 +142,107 @@ the items (a), (b), and (c) above) are:
 
    * Additional Features:
  
-      - serializer:
-	* added flag -objmap to Serializer method deepSerialize 
-          to make serializer to provide mapping only for
-          object names. This makes the serializer  
-          usable for object/class copying (-map is too coarse)
-        * Serializer: "ignore" method made public
-        * Due to the split between serializer and object 
-          system serializer, the "ignore" settings were lost
+     - Serializer:
+       * Added flag -objmap to Serializer method deepSerialize 
+         to make serializer to provide mapping only for
+         object names. This makes the serializer  
+         usable for object/class copying (-map is too coarse)
+       * Made "ignore" method public
+       * Due to the split between serializer and object 
+         system serializer, the "ignore" settings were lost
 
-      - allow explicit unsetting of -per-object flag in 0-argument
+      - Allow explicit unsetting of -per-object flag in 0-argument
 	"-flag=value" notation (all built-in commands accepting this flag)
 
-     - better compatibility with XOTcl 1.*:
+     - Better compatibility with XOTcl 1.*:
 
-     - added "/obj/ info name" (as alternative to 
+     - Added "/obj/ info name" (as alternative to 
        "namespace tail [self]")
 
-     - test-suite: added summary with statistics
+     - Test-suite: added summary with statistics
   
-     - traits: added property/variable inheritance
+     - Traits: added property/variable inheritance
 
      - MongoDB
-	- added "nx::mongo::db drop collection /name/"
-	- returning status from "nx::mongo::db remove" as success (0 or 1)
-
-	- adjust to object interface
-	- reduce verbosity
-	- add error messages for slot lookup failures
+	- Added "nx::mongo::db drop collection /name/"
+	- Returning status from "nx::mongo::db remove" as success (0 or 1)
+	- Adjust to object interface
+	- Reduce verbosity
+	- Add error messages for slot lookup failures
 
 	Updated MongoDB interface
-	- upgraded to c-driver 0.7.1
-	- tested with MongoDB 2.4.4-pre
-	- new commands:
+	- Upgraded to c-driver 0.7.1
+	- Zested with MongoDB 2.4.4-pre
+	- New commands:
 	  * mongo::run
 	  * mongo::cursor::find
 	  * mongo::cursor::next
 	  * mongo::cursor::close
-	- adapted interface for c-driver 0.7.1 (e.g. new 
+	- Adapted interface for c-driver 0.7.1 (e.g. new 
           optional name for mongo::index)
 
 
    * Improved Code Quality:
 
-     - fixed functional bugs:
-       * copy did not copy aliases and ensemble methods
-       * automatic object destroy for half-baked objects
+     - Fixed functional bugs:
+       * Copy did not copy aliases and ensemble methods
+       * Automatic object destroy for half-baked objects
          (when e.g. configure raises an exception)
-       * handling of required configure parameters
+       * Handling of required configure parameters
          on later calls to "configure"
-       * fixed potential infinite loop in pattern matching for
+       * Fixed potential infinite loop in pattern matching for
 	 precedence lists
-       * handling of full-qualified name patterns 
+       * Handling of full-qualified name patterns 
          for private slots
-       * invalidation of per-object parameter cache
+       * Invalidation of per-object parameter cache
 	  - on mixin changes and
 	  - on deletion/adding of per-object slots
-       * handle cyclical superclass/class dependencies during object
+       * Handle cyclical superclass/class dependencies during object
 	 system finalize
        * Fixed a bad interaction between Tcl's apply (pushing lambda
 	 frames) and the variable resolvers. The variable resolver was
 	 not able to resolve variables, while the command resolver was
 	 still working correctly.
-       * don't allow "method" to overwrite child objects
+       * Don't allow "method" to overwrite child objects
 
-     - fixed potential crashes
-       * on object destroy, when the same wrapper-less 
-         aliases was registered on many objects
-       * when "nsf::my" is called with a single argument
-         outside an object context.
-       * avoid crash in case NsfParameterGetCmd() is passed 
+     - Fixed potential crashes:
+       * Avoid crash on object destroy, when the same wrapper-less 
+         aliases was registered on more than one object/class
+       * Fix crash on "nsf::my", when this is called with a single 
+         argument outside an object context (many thanks
+         to Markus Moser for reporting)
+       * Avoid crash in case NsfParameterGetCmd() is passed 
          a plain value (without a parameter spec)
-       * fix potential crash in method caching when commands 
+       * Fix potential crash in method caching when commands 
          are renamed by Tcl (many thanks to Arthur Schreiber
          for reporting)
 
-      - more code cleanup and refactoring
+      - More code cleanup and refactoring
 
-      - released version runs all regression tests
+      - Released version runs all regression tests
         without memory leaks with Tcl 8.5.14 and
         Tcl 8.6.0        
 
-     - build system:
-       * improved compatibility for windows compilations.
-         NX can now be compiled under windows with the
-         native window tool chain (and as well with MinGW)
-         (Many thanks to Stephan Adelsberger)
-        * Update to latest TEA.
+     - Build system:
+       * Improved compatibility for windows compilations.  NX can now
+         be compiled under windows with the native window tool chain
+         (VC11) and as well with MinGW (Many thanks to Stephan
+         Adelsberger)
+        * Update to latest TEA
 	* Follow new naming convention for auto-tools 
           (using configure.ac)
-	* fix compilation when DTrace is activated (missing 
+	* Fix compilation when DTrace is activated (missing 
           parenthesis, many thanks to Victor Guerra for noticing)
-	* added compile macro NSF_STACKCHECK to provide stack
+	* Added compile macro NSF_STACKCHECK to provide stack
 	  monitoring/debugging (especially useful for multi- 
           threaded programs, where stack is more limited)
-	- fix compilation when compiled without threads 
-          (many thanks for r.Zaumseil for noting this).
+	- Fix compilation when compiled without threads 
+          (many thanks for r.Zaumseil for noting this)
 
    * Improved documentation
-     - fixed typos, improve wordings
-     - updated tutorial and migration guide
-     - use slashes in generated syntax to distinguish 
+     - Fixed typos, improve wordings
+     - Updated tutorial and migration guide
+     - Use slashes in generated syntax to distinguish 
        between constants and placeholders. 
        Example:
          /obj/ info method definition /methodName/

@@ -4690,7 +4690,7 @@ TODO:
  - update next-scriping doc + examples, pdf-files?
  - build tar etc. as in README.release
 
-Stefan: doc itmes
+Stefan: doc items
 
  - make rough comparison table with NX, XOTcl, tclOO, itcl, Ruby, Python
    Most general superclass
@@ -4728,6 +4728,8 @@ Stefan: doc itmes
   to generalize -noinit
 
 - maybe: add a disposition=pipe
+
+- maybe: add "-asHTML" as style option to parameteresyntax
 
 - MixinComputeOrderFullList() could receive a flag to store 
   source classes in checkList
