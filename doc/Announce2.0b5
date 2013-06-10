@@ -7,7 +7,7 @@ discussion and led to revising some earlier design decisions and
 naming conventions used in the APIs to achieve better
 comprehensibility and orthogonality.
 
-Since the release of 2.0b3, there were more than 250 commits to our
+Since the release of 2.0b3, there have been more than 250 commits to our
 code repository. The implementation is very stable and has been used for
 more than two years in production of our large-scale, multi-threaded
 web environment inside NaviServer. Most of the changes happened in NX
