@@ -19690,16 +19690,27 @@ NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST o
     return TCL_ERROR;
   }
 
+  /*
+   * Upon [interp create], set up NSF for the new child interp by running
+   * Nsf_Init()
+   */
+
   if (isCreateString(name)) {
+    Tcl_Obj *slaveCmdObj; 
+    Tcl_Interp *slavePtr;
+
     /*
-     * The command was an interp create, so perform an Nsf_Init() on
-     * the new interpreter.
+     * Tcl_InterpObjCmd() stores the newly created child interp's command name
+     * in the interp result store.
      */
-    Tcl_Interp *slave = Tcl_GetSlave(interp, ObjStr(objv[2]));
-    if (!slave) {
+
+    slaveCmdObj = Tcl_GetObjResult(interp);
+    slavePtr = Tcl_GetSlave(interp, ObjStr(slaveCmdObj));
+
+    if (!slavePtr) {
       return NsfPrintError(interp, "creation of slave interpreter failed");
     }
-    if (Nsf_Init(slave) == TCL_ERROR) {
+    if (Nsf_Init(slavePtr) == TCL_ERROR) {
       return TCL_ERROR;
     }
   }

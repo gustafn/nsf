@@ -740,4 +740,15 @@ nx::test case hidden-mixins-mixinlists {
   unset i
 }
 
+nx::test case nsf-interp-basics {
+  global i
+  set i [::nsf::interp create]
+  ? {$i eval {info commands ::nsf::is}} "::nsf::is"
+  ? {interp issafe $i} 0
+  ? {::nsf::interp create zzz} "zzz"
+  set i [::nsf::interp create -safe]
+  ? {$i eval {info commands ::nsf::is}} "::nsf::is"
+  ? {interp issafe $i} 1
+}
+
 
