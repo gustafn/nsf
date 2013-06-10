@@ -1,3 +1,26 @@
+2013-06-10  ssoberni  <stefan.sobernig@wu-wien.ac.at>
+
+	- Fix the implementation of NsfInterpObjCmd() which crashed
+	  previously due to the broken resolution of the child
+	  interpreter
+
+2013-06-09  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	- Proof-read announcement for a second time
+
+2013-06-09  Gustaf Neumann  <neumann@wu-wien.ac.at>
+
+	- NsfDStringPrintf(): set the length of the resulting DString
+
+2013-06-08  Stefan Sobernig  <stefan.sobernig@wu.ac.at>
+
+	- Using the ANSI-compliant I/O operations such as vsnprintf()
+	  under MinGW and MinGW-w64 tool chains
+	- Updated test suite to be executed in makefile.vc
+	- nx::test: change test for threaded in final report, since
+          tcl_platform(threaded) is not present as array element in
+          non-threaded builts
+
 2013-06-07  Gustaf Neumann  <neumann@wu-wien.ac.at>
 
 	- fix typo
