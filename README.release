@@ -44,7 +44,7 @@ Steps for a beta release:
    - build tar
        * make tar
        * check content of tar file
-         tar ztvf ../nsf2.0b3.tar.gz |sort -rn -k 5,6|less
+         tar ztvf ../nsf2.0b5.tar.gz |sort -rn -k 5,6|less
 
    - tag version in git and commit  
        git tag -a 2.0b5 -m 2.0b5
@@ -60,7 +60,7 @@ Steps for a beta release:
      * stefan, please add recommended steps here
 
    - prepare next release:
-       rename folder containing nsf to e.g. nsf2.0b4
+       rename folder containing nsf to e.g. nsf2.0b5
        update version number in 
          * configure.in
 	 * library/nx/nx.tcl
