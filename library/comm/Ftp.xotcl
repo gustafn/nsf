@@ -1,6 +1,6 @@
 # $Id: Ftp.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 
-package provide xotcl::comm::ftp 0.9
+package provide xotcl::comm::ftp 1.0
 package require xotcl::comm::httpAccess
 
 package require XOTcl 1

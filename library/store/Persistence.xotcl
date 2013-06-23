@@ -1,11 +1,10 @@
-# $Id: Persistence.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
-package provide xotcl::store::persistence 0.8
+package provide xotcl::store::persistence 1.0
 
-package require xotcl::trace
-package require xotcl::package
-package require xotcl::mixinStrategy
-package require xotcl::store
+package require -exact xotcl::trace 1.0
+package require -exact xotcl::package 1.0
+package require -exact xotcl::mixinStrategy 1.0
+package require -exact xotcl::store 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::store::persistence {

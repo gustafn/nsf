@@ -1,5 +1,5 @@
-package provide xotcl::store::textfile 0.84
-package require xotcl::store
+package provide xotcl::store::textfile 1.0
+package require -exact xotcl::store 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::store::textfile {

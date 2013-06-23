@@ -35,7 +35,7 @@ proc t {cmd expected {txt ""}} {
 #
 # -gustaf neumann                          21.Jan. 2006
 
-package require xotcl::serializer
+package require xotcl::serializer 1
 
 #proc ? {cmd expected} {
 #   set r [eval $cmd]		       

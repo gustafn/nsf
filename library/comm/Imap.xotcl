@@ -1,6 +1,6 @@
 # $Id: Imap.xotcl,v 1.4 2006/02/18 22:17:33 neumann Exp $
 
-package provide xotcl::comm::imap 0.9
+package provide xotcl::comm::imap 1.0
 
 package require XOTcl 1
 

@@ -1,5 +1,6 @@
-package require -exact xotcl::metadataAnalyzer 0.84
-package provide xotcl::staticMetadataAnalyzer 0.84
+package provide xotcl::staticMetadataAnalyzer 1.0
+
+package require -exact xotcl::metadataAnalyzer 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::staticMetadataAnalyzer {

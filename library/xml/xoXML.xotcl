@@ -1,12 +1,11 @@
-# $Id: xoXML.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
-package provide xotcl::xml::parser 0.94
+package provide xotcl::xml::parser 1.0
 
 package require XOTcl 1
-package require xotcl::pattern::chainOfResponsibility
-package require xotcl::pattern::sortedCompositeWithAfter
-#package require xotcl::pattern::link
-package require xotcl::trace
-#package require xml
+package require -exact xotcl::pattern::chainOfResponsibility 1.0
+package require -exact xotcl::pattern::sortedCompositeWithAfter 1.0
+#package require -exact xotcl::pattern::link 1.0
+package require -exact xotcl::trace 1.0
+#package require -exact xml
 #package require expat
 
 namespace eval ::xotcl::xml::parser {

@@ -1,6 +1,6 @@
 # $Id: Dav.xotcl,v 1.4 2006/02/18 22:17:33 neumann Exp $
 
-package provide xotcl::comm::dav 0.9
+package provide xotcl::comm::dav 1.0
 
 package require XOTcl 1
 

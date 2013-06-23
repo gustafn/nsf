@@ -10,6 +10,6 @@
 
 package ifneeded sgml 1.6 [list source [file join $dir sgml.tcl]]
 package ifneeded xml 1.8 [list source [file join $dir xml.tcl]]
-package ifneeded xotcl::xml::parser 0.94 [list source [file join $dir xoXML.xotcl]]
-package ifneeded xotcl::xml::printVisitor 0.9 [list source [file join $dir printVisitor.xotcl]]
-package ifneeded xotcl::xml::recreatorVisitor 0.9 [list source [file join $dir xmlRecreatorVisitor.xotcl]]
+package ifneeded xotcl::xml::parser 1.0 [list source [file join $dir xoXML.xotcl]]
+package ifneeded xotcl::xml::printVisitor 1.0 [list source [file join $dir printVisitor.xotcl]]
+package ifneeded xotcl::xml::recreatorVisitor 1.0 [list source [file join $dir xmlRecreatorVisitor.xotcl]]

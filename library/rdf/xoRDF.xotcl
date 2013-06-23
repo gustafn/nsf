@@ -1,10 +1,9 @@
-# $Id: xoRDF.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
 package provide xotcl::rdf::parser 1.0
 
 package require XOTcl 1
-package require xotcl::xml::parser
-#package require xotcl::pattern::link
-package require xotcl::trace
+package require -exact xotcl::xml::parser 1.0
+#package require -exact xotcl::pattern::link 1.0
+package require -exact xotcl::trace 1.0
 
 namespace eval ::xotcl::rdf::parser {
   namespace import ::xotcl::*

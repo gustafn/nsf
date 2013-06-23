@@ -1,9 +1,9 @@
-package provide xotcl::registry::registry 0.8
+package provide xotcl::registry::registry 1.0
 
-package require xotcl::trace
-package require xotcl::rdf::triple
-package require xotcl::rdf::tripleRecreator
-package require xotcl::actiweb::agent
+package require -exact xotcl::trace 1.0
+package require -exact xotcl::rdf::triple 1.0
+package require -exact xotcl::rdf::tripleRecreator 1.0
+package require -exact xotcl::actiweb::agent 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::registry::registry {

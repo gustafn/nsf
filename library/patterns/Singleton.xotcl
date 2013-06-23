@@ -1,6 +1,5 @@
-# $Id: Singleton.xotcl,v 1.7 2006/09/27 08:12:40 neumann Exp $
 
-package provide xotcl::pattern::singleton 0.8
+package provide xotcl::pattern::singleton 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::pattern::singleton {

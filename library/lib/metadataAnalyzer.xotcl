@@ -1,4 +1,4 @@
-package provide xotcl::metadataAnalyzer 0.84 
+package provide xotcl::metadataAnalyzer 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::metadataAnalyzer {

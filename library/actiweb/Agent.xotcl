@@ -1,11 +1,11 @@
 # $Id: Agent.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
-package provide xotcl::actiweb::agent 0.8
+package provide xotcl::actiweb::agent 1.0
 
-package require xotcl::trace
-package require xotcl::comm::httpAccess
-package require xotcl::actiweb::webObject
-package require xotcl::store::persistence
+package require -exact xotcl::trace 1.0
+package require -exact xotcl::comm::httpAccess 1.0
+package require -exact xotcl::actiweb::webObject 1.0
+package require -exact xotcl::store::persistence 1.0
 
 package require XOTcl 1
 

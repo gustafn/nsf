@@ -1,6 +1,5 @@
-# $Id: observer.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 
-package provide xotcl::pattern::observer 0.8
+package provide xotcl::pattern::observer 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::pattern::observer {

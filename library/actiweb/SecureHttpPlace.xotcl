@@ -1,9 +1,7 @@
-# $Id: SecureHttpPlace.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 
-package provide xotcl::actiweb::secureHttpPlace 0.8
+package provide xotcl::actiweb::secureHttpPlace 1.0
 
-package require xotcl::actiweb::httpPlace
-
+package require -exact xotcl::actiweb::httpPlace 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::actiweb::secureHttpPlace {

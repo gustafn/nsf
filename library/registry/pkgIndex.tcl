@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded xotcl::registry::registry 0.8 [list source [file join $dir Registry.xotcl]]
+package ifneeded xotcl::registry::registry 1.0 [list source [file join $dir Registry.xotcl]]

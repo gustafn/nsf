@@ -1,6 +1,5 @@
-# $Id: composite.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
 
-package provide xotcl::pattern::composite  0.9
+package provide xotcl::pattern::composite 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::pattern::composite {

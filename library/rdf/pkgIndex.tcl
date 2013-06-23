@@ -9,6 +9,6 @@
 # full path name of this file's directory.
 
 package ifneeded xotcl::rdf::parser 1.0 [list source [file join $dir xoRDF.xotcl]]
-package ifneeded xotcl::rdf::recreatorVisitor 0.9 [list source [file join $dir rdfRecreatorVisitor.xotcl]]
+package ifneeded xotcl::rdf::recreatorVisitor 1.0 [list source [file join $dir rdfRecreatorVisitor.xotcl]]
 package ifneeded xotcl::rdf::triple 1.0 [list source [file join $dir RDFTriple.xotcl]]
-package ifneeded xotcl::rdf::tripleRecreator 0.9 [list source [file join $dir RDFCreator.xotcl]]
+package ifneeded xotcl::rdf::tripleRecreator 1.0 [list source [file join $dir RDFCreator.xotcl]]

@@ -1,6 +1,5 @@
-# $Id: SendStrategy.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 
-package provide xotcl::actiweb::sendStrategy 0.8
+package provide xotcl::actiweb::sendStrategy 1.0
 
 package require XOTcl 1
 

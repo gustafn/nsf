@@ -1,11 +1,10 @@
-# $Id: WebDocument.xotcl,v 1.9 2007/08/14 16:38:26 neumann Exp $
 
-package provide xotcl::actiweb::webDocument 0.8
+package provide xotcl::actiweb::webDocument 1.0
 
-package require xotcl::actiweb::webObject
-package require xotcl::comm::httpAccess
-package require xotcl::mixinStrategy
-package require xotcl::actiweb::sendStrategy
+package require -exact xotcl::actiweb::webObject 1.0
+package require -exact xotcl::comm::httpAccess 1.0
+package require -exact xotcl::mixinStrategy 1.0
+package require -exact xotcl::actiweb::sendStrategy 1.0
 
 package require XOTcl 1
 

@@ -1,4 +1,3 @@
-# -*- tcl -*- $Id: Httpd.xotcl,v 1.9 2007/08/14 16:38:26 neumann Exp $
 #
 # The XOTcl class Httpd implements an HTTP/1.0 and HTTP/1.1 server with  
 # basic functionality.
@@ -13,8 +12,8 @@ package require XOTcl 1
 #package require xotcl::comm::httpAccess
 
 package require -exact xotcl::comm::connection 1.0
-package require -exact xotcl::trace 0.91
-package require -exact xotcl::comm::mime 0.9
+package require -exact xotcl::trace 1.0
+package require -exact xotcl::comm::mime 1.0
 
 namespace eval ::xotcl::comm::httpd {
   namespace import ::xotcl::*

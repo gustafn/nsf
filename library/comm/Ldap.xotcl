@@ -1,4 +1,4 @@
-package provide xotcl::comm::ldap 0.9
+package provide xotcl::comm::ldap 1.0
 
 package require xotcl::wafecompat ; # Get 'requireModules'.
 

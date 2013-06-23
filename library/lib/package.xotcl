@@ -1,7 +1,6 @@
-#$Id: package.xotcl,v 1.7 2006/09/27 08:12:40 neumann Exp $
-package provide xotcl::package 0.91
+package provide xotcl::package 1.0
 
-package require xotcl::mixinStrategy
+package require -exact xotcl::mixinStrategy 1.0
 package require XOTcl 1
 
 rename package tcl_package

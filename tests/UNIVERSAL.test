@@ -1,11 +1,10 @@
-# $Id $
 #if {[set ::tcl_platform(platform)] == "windows"} {lappend auto_path .}
 
 package require XOTcl 1; namespace import -force xotcl::*
 set pkgdir  [file dir [info script]]/..
 lappend auto_path $pkgdir
 
-package require xotcl::test 1
+package require -exact xotcl::test 1.38
 
 set tclsh [info nameofexecutable]
 set dir [file dir [info script]]
@@ -19,7 +18,7 @@ set startCmd "$tclsh $univApps/UNIVERSAL.xotcl \
 puts stderr "starting $startCmd"
 set PIPE [open "|$startCmd"]
 
-package require xotcl::comm::httpAccess
+package require -exact xotcl::comm::httpAccess 1.0
 proc printError msg {puts stderr !!!$msg!!!}
 
 Class T -superclass Test -parameter {

@@ -9,7 +9,7 @@ set pkgDir [file dirname [info script]]/..
 lappend auto_path $pkgDir
 package require xotcl::test 1
 #package require xotcl::package; package verbose 1
-package require xotcl::comm::httpAccess
+package require xotcl::comm::httpAccess 1
 #package require xotcl::trace
 
 set tclsh [info nameofexecutable]

@@ -133,7 +133,7 @@ C instproc XXXo {} {}
 ###########################################
 # test serializer
 ###########################################
-package require xotcl::serializer
+package require xotcl::serializer 1
 obj proc test {} {puts "i am [self proc]"}
 set a [Serializer deepSerialize obj]
 #puts <<$a>>

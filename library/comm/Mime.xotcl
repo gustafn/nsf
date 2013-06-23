@@ -1,6 +1,6 @@
 # $Id: Mime.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
-package provide xotcl::comm::mime 0.9
+package provide xotcl::comm::mime 1.0
 
 package require XOTcl 1
 

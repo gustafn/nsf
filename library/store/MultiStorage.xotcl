@@ -1,6 +1,6 @@
 
-package provide xotcl::store::multi 0.9
-package require xotcl::store 0.84
+package provide xotcl::store::multi 1.0
+package require -exact xotcl::store 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::store::multi {

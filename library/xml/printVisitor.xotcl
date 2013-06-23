@@ -1,7 +1,6 @@
-# $Id: printVisitor.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 
-package provide xotcl::xml::printVisitor 0.9
-package require xotcl::xml::parser
+package provide xotcl::xml::printVisitor 1.0
+package require -exact xotcl::xml::parser 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::xml::printVisitor {

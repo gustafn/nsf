@@ -1,17 +1,16 @@
-# $Id: HttpPlace.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
-package provide xotcl::actiweb::httpPlace 0.8
+package provide xotcl::actiweb::httpPlace 1.0
 
-package require xotcl::trace
-package require xotcl::actiweb::invoker
-package require xotcl::actiweb::webObject
-package require xotcl::comm::httpd
-package require xotcl::scriptCreation::scriptCreator
-package require xotcl::store::persistence
-package require xotcl::pattern::singleton
-package require xotcl::registry::registry
-package require xotcl::actiweb::agentManagement
-package require xotcl::rdf::tripleRecreator
+package require -exact xotcl::trace 1.0
+package require -exact xotcl::actiweb::invoker 1.0
+package require -exact xotcl::actiweb::webObject 1.0
+package require -exact xotcl::comm::httpd 1.1
+package require -exact xotcl::scriptCreation::scriptCreator 1.0
+package require -exact xotcl::store::persistence 1.0
+package require -exact xotcl::pattern::singleton 1.0
+package require -exact xotcl::registry::registry 1.0
+package require -exact xotcl::actiweb::agentManagement 1.0
+package require -exact xotcl::rdf::tripleRecreator 1.0
 
 package require XOTcl 1
 

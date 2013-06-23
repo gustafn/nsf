@@ -1,1 +1,1 @@
-package ifneeded xotcl::package 0.91 [list source [file join $dir package.xotcl]]
+package ifneeded xotcl::package 1.0 [list source [file join $dir package.xotcl]]

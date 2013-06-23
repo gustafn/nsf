@@ -1,5 +1,4 @@
-# -*- Tcl -*- $Id: trace.xotcl,v 1.12 2007/08/14 16:38:26 neumann Exp $
-package provide xotcl::trace 0.91
+package provide xotcl::trace 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::trace {

@@ -8,14 +8,14 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded xotcl::htmllib 0.1 [list source [file join $dir htmllib.xotcl]]
-package ifneeded xotcl::metadataAnalyzer 0.84 [list source [file join $dir metadataAnalyzer.xotcl]]
-package ifneeded xotcl::mixinStrategy 0.9 [list source [file join $dir mixinStrategy.xotcl]]
-package ifneeded xotcl::script 0.9 [list source [file join $dir Script.xotcl]]
-package ifneeded xotcl::staticMetadataAnalyzer 0.84 [list source [file join $dir staticMetadata.xotcl]]
+package ifneeded xotcl::htmllib 1.0 [list source [file join $dir htmllib.xotcl]]
+package ifneeded xotcl::metadataAnalyzer 1.0 [list source [file join $dir metadataAnalyzer.xotcl]]
+package ifneeded xotcl::mixinStrategy 1.0 [list source [file join $dir mixinStrategy.xotcl]]
+package ifneeded xotcl::script 1.0 [list source [file join $dir Script.xotcl]]
+package ifneeded xotcl::staticMetadataAnalyzer 1.0 [list source [file join $dir staticMetadata.xotcl]]
 package ifneeded xotcl::test 1.38 [list source [file join $dir test.xotcl]]
-package ifneeded xotcl::trace 0.91 [list source [file join $dir trace.xotcl]]
+package ifneeded xotcl::trace 1.0 [list source [file join $dir trace.xotcl]]
 package ifneeded xotcl::upvar-compat 1.0 [list source [file join $dir upvarcompat.xotcl]]
-package ifneeded xotcl::wafecompat 0.9 [list source [file join $dir wafecompat.tcl]]
-package ifneeded xotcl::xodoc 0.84 [list source [file join $dir xodoc.xotcl]]
-package ifneeded xotcl::package 0.91 [list source [file join $dir package.xotcl]]
+package ifneeded xotcl::wafecompat 1.0 [list source [file join $dir wafecompat.tcl]]
+package ifneeded xotcl::xodoc 1.0 [list source [file join $dir xodoc.xotcl]]
+package ifneeded xotcl::package 1.0 [list source [file join $dir package.xotcl]]

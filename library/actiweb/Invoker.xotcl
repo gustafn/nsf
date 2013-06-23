@@ -1,6 +1,6 @@
 # $Id: Invoker.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
-package provide xotcl::actiweb::invoker 0.8
+package provide xotcl::actiweb::invoker 1.0
 
 package require XOTcl 1
 

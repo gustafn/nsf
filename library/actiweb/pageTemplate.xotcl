@@ -1,8 +1,8 @@
-package provide xotcl::actiweb::pageTemplate 0.8
+package provide xotcl::actiweb::pageTemplate 1.0
 
-package require xotcl::actiweb::webObject
-package require xotcl::actiweb::invoker
-package require xotcl::mixinStrategy
+package require xotcl::actiweb::webObject 1.0
+package require xotcl::actiweb::invoker 1.0
+package require xotcl::mixinStrategy 1.0
 
 package require XOTcl 1
 

@@ -1,12 +1,12 @@
 # -*- tcl -*- $Id: Access.xotcl,v 1.9 2007/08/14 16:38:26 neumann Exp $
 
-set httpAccessVersion 0.91
+set httpAccessVersion 1.0
 package provide xotcl::comm::httpAccess $httpAccessVersion
 
-package require -exact xotcl::comm::pcache 0.9
-package require -exact xotcl::comm::mime 0.9
+package require -exact xotcl::comm::pcache 1.0
+package require -exact xotcl::comm::mime 1.0
 package require -exact xotcl::comm::connection 1.0
-package require -exact xotcl::trace 0.91
+package require -exact xotcl::trace 1.0
 
 package require XOTcl 1
 

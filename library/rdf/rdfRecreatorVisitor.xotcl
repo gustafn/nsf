@@ -1,8 +1,7 @@
-#$Id: rdfRecreatorVisitor.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
-package provide xotcl::rdf::recreatorVisitor 0.9
-package require xotcl::rdf::parser
-package require xotcl::xml::recreatorVisitor
+package provide xotcl::rdf::recreatorVisitor 1.0
+package require -exact xotcl::rdf::parser 1.0
+package require -exact xotcl::xml::recreatorVisitor 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::rdf::recreatorVisitor {

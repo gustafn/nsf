@@ -1,7 +1,6 @@
-# $Id: xmlRecreatorVisitor.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
-package provide xotcl::xml::recreatorVisitor 0.9
-package require xotcl::xml::parser
+package provide xotcl::xml::recreatorVisitor 1.0
+package require -exact xotcl::xml::parser 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::xml::recreatorVisitor {

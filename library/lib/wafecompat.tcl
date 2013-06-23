@@ -1,5 +1,4 @@
-# $Id: wafecompat.tcl,v 1.4 2006/09/27 08:12:40 neumann Exp $
-package provide xotcl::wafecompat 0.9
+package provide xotcl::wafecompat 1.0
 
 set WAFELIB        /usr/lib/X11/wafe/
 set MODULE_PATH    "$WAFELIB $auto_path" 

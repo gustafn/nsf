@@ -8,12 +8,12 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded xotcl::pattern::adapter 0.9 [list source [file join $dir adapter.xotcl]]
-package ifneeded xotcl::pattern::chainOfResponsibility 0.9 [list source [file join $dir ChainOfResponsibility.xotcl]]
-package ifneeded xotcl::pattern::composite 0.9 [list source [file join $dir composite.xotcl]]
-package ifneeded xotcl::pattern::link 0.9 [list source [file join $dir link.xotcl]]
-package ifneeded xotcl::pattern::manager 0.8 [list source [file join $dir manager.xotcl]]
-package ifneeded xotcl::pattern::observer 0.8 [list source [file join $dir observer.xotcl]]
-package ifneeded xotcl::pattern::onCalleeProxy 0.8 [list source [file join $dir OnCalleeProxy.xotcl]]
-package ifneeded xotcl::pattern::singleton 0.8 [list source [file join $dir Singleton.xotcl]]
-package ifneeded xotcl::pattern::sortedCompositeWithAfter 0.9 [list source [file join $dir SortedComposite.xotcl]]
+package ifneeded xotcl::pattern::adapter 1.0 [list source [file join $dir adapter.xotcl]]
+package ifneeded xotcl::pattern::chainOfResponsibility 1.0 [list source [file join $dir ChainOfResponsibility.xotcl]]
+package ifneeded xotcl::pattern::composite 1.0 [list source [file join $dir composite.xotcl]]
+package ifneeded xotcl::pattern::link 1.0 [list source [file join $dir link.xotcl]]
+package ifneeded xotcl::pattern::manager 1.0 [list source [file join $dir manager.xotcl]]
+package ifneeded xotcl::pattern::observer 1.0 [list source [file join $dir observer.xotcl]]
+package ifneeded xotcl::pattern::onCalleeProxy 1.0 [list source [file join $dir OnCalleeProxy.xotcl]]
+package ifneeded xotcl::pattern::singleton 1.0 [list source [file join $dir Singleton.xotcl]]
+package ifneeded xotcl::pattern::sortedCompositeWithAfter 1.0 [list source [file join $dir SortedComposite.xotcl]]

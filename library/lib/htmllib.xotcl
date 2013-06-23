@@ -1,4 +1,3 @@
-## $Header: /home/neumann/cvs/xotcl/xotcl/library/lib/htmllib.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
 #
 # htmllib.xotcl
@@ -35,7 +34,7 @@
 # MODIFICATIONS.
 # 
 
-package provide xotcl::htmllib 0.1
+package provide xotcl::htmllib 1.0
 package require XOTcl 1
 
 namespace eval ::xotcl::htmllib {
