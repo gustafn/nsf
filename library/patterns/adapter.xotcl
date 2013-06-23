@@ -2,7 +2,7 @@
 
 package provide xotcl::pattern::adapter 0.9
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::pattern::adapter {
     namespace import ::xotcl::*

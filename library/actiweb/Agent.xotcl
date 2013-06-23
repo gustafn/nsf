@@ -7,7 +7,7 @@ package require xotcl::comm::httpAccess
 package require xotcl::actiweb::webObject
 package require xotcl::store::persistence
 
-package require XOTcl
+package require XOTcl 1
 
 #
 # current response codes for agent requests:

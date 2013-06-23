@@ -2,7 +2,7 @@
 
 package provide xotcl::xml::printVisitor 0.9
 package require xotcl::xml::parser
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::xml::printVisitor {
     namespace import ::xotcl::*

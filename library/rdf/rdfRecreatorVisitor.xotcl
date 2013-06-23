@@ -3,7 +3,7 @@
 package provide xotcl::rdf::recreatorVisitor 0.9
 package require xotcl::rdf::parser
 package require xotcl::xml::recreatorVisitor
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::rdf::recreatorVisitor {
     namespace import ::xotcl::*

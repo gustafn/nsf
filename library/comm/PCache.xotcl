@@ -19,7 +19,7 @@
 package provide xotcl::comm::pcache 0.9
 #package require xotcl::package
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::comm::pcache {
     namespace import ::xotcl::*

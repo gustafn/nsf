@@ -8,7 +8,7 @@
 set VERSION 1.1
 package provide xotcl::comm::httpd $VERSION
 
-package require XOTcl
+package require XOTcl 1
 
 #package require xotcl::comm::httpAccess
 

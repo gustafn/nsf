@@ -2,7 +2,7 @@
 
 package provide xotcl::actiweb::userMgt 0.8
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::actiweb::userMgt {
     namespace import ::xotcl::*

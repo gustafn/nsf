@@ -3,7 +3,7 @@
 package provide xotcl::comm::ftp 0.9
 package require xotcl::comm::httpAccess
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::comm::ftp {
     namespace import ::xotcl::*

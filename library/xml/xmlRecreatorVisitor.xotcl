@@ -2,7 +2,7 @@
 
 package provide xotcl::xml::recreatorVisitor 0.9
 package require xotcl::xml::parser
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::xml::recreatorVisitor {
     namespace import ::xotcl::*

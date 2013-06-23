@@ -2,7 +2,7 @@
 package provide xotcl::package 0.91
 
 package require xotcl::mixinStrategy
-package require XOTcl
+package require XOTcl 1
 
 rename package tcl_package
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env tclsh
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl 1; namespace import -force xotcl::*
 
 #  ./get-regression-nb.xotcl -host swt -parallel 0
 #  ./get-regression-nb.xotcl -host swt -sequential 0

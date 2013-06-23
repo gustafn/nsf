@@ -4,7 +4,7 @@ package require xotcl::actiweb::webObject
 package require xotcl::actiweb::invoker
 package require xotcl::mixinStrategy
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::actiweb::pageTemplate {
     namespace import ::xotcl::*

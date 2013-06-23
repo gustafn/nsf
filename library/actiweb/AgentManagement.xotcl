@@ -6,7 +6,7 @@ package require xotcl::rdf::parser
 package require xotcl::rdf::triple
 package require xotcl::actiweb::agent
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::actiweb::agentManagement {
     namespace import ::xotcl::*

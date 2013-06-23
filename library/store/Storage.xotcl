@@ -1,7 +1,7 @@
 # $Id: Storage.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 
 package provide xotcl::store 0.84
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::store {
     namespace import ::xotcl::*

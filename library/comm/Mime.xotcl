@@ -2,7 +2,7 @@
 
 package provide xotcl::comm::mime 0.9
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::comm::mime {
   namespace import ::xotcl::*

@@ -1,5 +1,5 @@
 package provide xotcl::test 1.38
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::test {
   namespace import ::xotcl::*

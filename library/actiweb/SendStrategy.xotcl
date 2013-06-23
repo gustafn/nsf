@@ -2,7 +2,7 @@
 
 package provide xotcl::actiweb::sendStrategy 0.8
 
-package require XOTcl
+package require XOTcl 1
 
 #
 # some simple sending strategy classes -- to be used as mixins

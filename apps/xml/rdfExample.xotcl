@@ -3,7 +3,7 @@
 #
 # small Example for usage of xoXML
 #
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl 1; namespace import -force xotcl::*
 package require xotcl::package
 package require xotcl::trace
 package require xotcl::rdf::parser

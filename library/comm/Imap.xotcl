@@ -2,7 +2,7 @@
 
 package provide xotcl::comm::imap 0.9
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::comm::imap {
   package require xotcl::comm::httpAccess

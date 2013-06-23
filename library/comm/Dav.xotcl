@@ -2,7 +2,7 @@
 
 package provide xotcl::comm::dav 0.9
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::comm::dav {
   package require xotcl::comm::httpAccess

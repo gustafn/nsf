@@ -4,7 +4,7 @@ package require xotcl::trace
 package require xotcl::rdf::triple
 package require xotcl::rdf::tripleRecreator
 package require xotcl::actiweb::agent
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::registry::registry {
     namespace import ::xotcl::*

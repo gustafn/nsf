@@ -1,7 +1,7 @@
 #$Id: upvarcompat.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 
 package provide xotcl::upvar-compat 1.0
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::upvar-compat {
     namespace import ::xotcl::*

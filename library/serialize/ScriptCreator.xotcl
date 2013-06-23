@@ -1,7 +1,7 @@
 # $Id: ScriptCreator.xotcl,v 1.4 2006/02/18 22:17:33 neumann Exp $
 
 package provide xotcl::scriptCreation::scriptCreator 0.8
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::scriptCreation::scriptCreator {
     namespace import ::xotcl::*

@@ -1,6 +1,6 @@
 
 
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl 1; namespace import -force xotcl::*
 
 # DEMO OF USE OF ACTIWEB AND SSL
 # 03/09/01 klaus.kolowratnik@wu-wien.ac.at

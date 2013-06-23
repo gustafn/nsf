@@ -5,7 +5,7 @@ package provide xotcl::actiweb::secureHtmlPlace 0.8
 package require xotcl::actiweb::secureHttpPlace
 package require xotcl::actiweb::htmlPlace
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::actiweb::secureHtmlPlace {
     namespace import ::xotcl::*

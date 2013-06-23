@@ -5,7 +5,7 @@ package provide xotcl::actiweb::placeAccessControl 0.8
 package require xotcl::comm::httpd
 package require xotcl::actiweb::httpPlace
 
-package require XOTcl
+package require XOTcl 1
 
 #
 # Simple Object Pwd Protection with BasicAccessControl

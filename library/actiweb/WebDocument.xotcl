@@ -7,7 +7,7 @@ package require xotcl::comm::httpAccess
 package require xotcl::mixinStrategy
 package require xotcl::actiweb::sendStrategy
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::actiweb::webDocument {
     namespace import ::xotcl::*

@@ -1,7 +1,7 @@
 # $Id: xoRDF.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
 package provide xotcl::rdf::parser 1.0
 
-package require XOTcl
+package require XOTcl 1
 package require xotcl::xml::parser
 #package require xotcl::pattern::link
 package require xotcl::trace

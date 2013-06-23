@@ -2,7 +2,7 @@
 
 package provide xotcl::store::mem 0.84
 package require xotcl::store 0.84
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::store::mem {
   namespace import ::xotcl::*

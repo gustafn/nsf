@@ -4,7 +4,7 @@ package provide xotcl::store::jufgdbm 0.81
 
 package require xotcl::store::juf_gdbm
 package require xotcl::store
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::store::jufgdbm {
     namespace import ::xotcl::*

@@ -2,7 +2,7 @@ package provide xotcl::comm::ldap 0.9
 
 package require xotcl::wafecompat ; # Get 'requireModules'.
 
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::comm::ldap {
     namespace import ::xotcl::*

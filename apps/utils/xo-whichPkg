@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 # $Id: xo-whichPkg,v 1.2 2006/02/18 22:17:32 neumann Exp $
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl 1; namespace import -force xotcl::*
 
 @ @File {
     description {

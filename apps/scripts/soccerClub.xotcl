@@ -3,7 +3,7 @@
 # It demonstrates the basic language constructs on the example of
 # a soccer club.
 
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl 1; namespace import -force xotcl::*
  
 # All the characters in this example are fictitious, and any
 # resemblance to actual persons, living or deceased, is coincidental.

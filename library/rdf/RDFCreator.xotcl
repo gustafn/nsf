@@ -1,7 +1,7 @@
 # $Id: RDFCreator.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
 package provide xotcl::rdf::tripleRecreator 0.9
-package require XOTcl
+package require XOTcl 1
 package require xotcl::rdf::parser
 
 namespace eval ::xotcl::rdf::tripleRecreator {

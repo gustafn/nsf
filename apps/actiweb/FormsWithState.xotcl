@@ -4,7 +4,7 @@
 # Demo Program for Multi-Page Forms implemented via hidden
 # Form Fields  -gn
 #
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl 1; namespace import -force xotcl::*
 package require xotcl::actiweb::htmlPlace
 package require xotcl::actiweb::webDocument
 HtmlPlace receiver -port 8086

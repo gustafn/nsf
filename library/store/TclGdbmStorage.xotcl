@@ -4,7 +4,7 @@ package provide xotcl::store::tclgdbm 0.84
 
 package require xotcl::store::gdbm
 package require xotcl::store
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::store::tclgdbm {
     namespace import ::xotcl::*

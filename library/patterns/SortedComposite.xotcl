@@ -1,7 +1,7 @@
 # $Id: SortedComposite.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
 
 package provide xotcl::pattern::sortedCompositeWithAfter 0.9
-package require XOTcl
+package require XOTcl 1
 
 namespace eval ::xotcl::pattern::sortedCompositeWithAfter {
     namespace import ::xotcl::*
