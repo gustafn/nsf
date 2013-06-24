@@ -1,6 +1,6 @@
 # -*- tcl -*-
-package provide XOTcl-langRef 1.6.4
-package require XOTcl
+package provide XOTcl-langRef 2.0
+package require XOTcl 2.0
 
 namespace eval ::xotcl {}
 namespace import -force ::xotcl::@

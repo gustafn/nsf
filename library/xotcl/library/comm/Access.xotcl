@@ -1,11 +1,11 @@
 # -*- tcl -*- $
 
-set httpAccessVersion 1.2
+set httpAccessVersion 2.0
 package provide xotcl::comm::httpAccess $httpAccessVersion
 
 package require xotcl::comm::pcache
 package require xotcl::comm::mime
-package require xotcl::comm::connection 1.2
+package require xotcl::comm::connection
 package require xotcl::trace
 
 package require XOTcl 2.0

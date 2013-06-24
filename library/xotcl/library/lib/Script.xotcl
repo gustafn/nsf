@@ -1,5 +1,5 @@
 # -*- Tcl -*-
-package provide xotcl::script 0.91
+package provide xotcl::script 2.0
 package require XOTcl 2.0
 
 namespace eval ::xotcl::script {

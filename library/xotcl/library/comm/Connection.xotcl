@@ -1,6 +1,6 @@
 # -*- tcl -*- $
 
-package provide xotcl::comm::connection 1.2
+package provide xotcl::comm::connection 2.0
 
 package require XOTcl 2.0
 

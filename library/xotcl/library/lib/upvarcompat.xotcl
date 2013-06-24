@@ -1,6 +1,6 @@
 # -*- Tcl -*-
 
-package provide xotcl::upvar-compat 1.1
+package provide xotcl::upvar-compat 2.0
 package require XOTcl 2.0
 
 namespace eval ::xotcl::upvar-compat {

@@ -1,5 +1,5 @@
 # -*- Tcl -*-  $
-package provide xotcl::trace 0.92
+package provide xotcl::trace 2.0
 package require XOTcl 2.0
 
 namespace eval ::xotcl::trace {

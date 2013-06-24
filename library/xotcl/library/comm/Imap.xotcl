@@ -1,6 +1,6 @@
 # -*- Tcl -*- $
 
-package provide xotcl::comm::imap 0.91
+package provide xotcl::comm::imap 2.0
 
 package require XOTcl 2.0
 

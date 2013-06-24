@@ -3,7 +3,7 @@ package require nx
 #package require nx::plain-object-method
 
 package require XOTcl 2.0
-package provide nx::serializer 1.0
+package provide nx::serializer 2.0
 
 # For the time being, we require classical XOTcl.
 

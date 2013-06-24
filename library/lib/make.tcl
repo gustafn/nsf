@@ -18,7 +18,7 @@ nx::Object create make {
     set fls {}
     foreach f [glob -nocomplain *tcl] {
       if {![file isdirectory $f]} {
-        set F [open $f]; set c [read $F]; close $F
+        set F [file open $f]; set c [read $F]; close $F
         if {[string match "*package provide*" $c]} { lappend fls $f }
       }
     }
@@ -75,6 +75,7 @@ nx::Object create make {
         close $IN; close $OUT
       }
     }
+
     #puts stderr "+++ mkIndex name=$name, pwd=[pwd] DONE"
   }
 

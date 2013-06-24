@@ -1,6 +1,6 @@
 # -*- Tcl -*-
 
-package provide xotcl::scriptCreation::scriptCreator 0.81
+package provide xotcl::scriptCreation::scriptCreator 2.0
 package require XOTcl 2.0
 
 namespace eval ::xotcl::scriptCreation::scriptCreator {

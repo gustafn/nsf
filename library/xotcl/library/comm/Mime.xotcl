@@ -1,6 +1,6 @@
 # -*- Tcl -*-
 
-package provide xotcl::comm::mime 0.91
+package provide xotcl::comm::mime 2.0
 
 package require XOTcl 2.0
 

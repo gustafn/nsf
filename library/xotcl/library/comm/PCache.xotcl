@@ -16,7 +16,7 @@
 # file (before the first open) through the instance variable "dir"
 # in the object persistentCache.
 
-package provide xotcl::comm::pcache 0.91
+package provide xotcl::comm::pcache 2.0
 #package require xotcl::package
 
 package require XOTcl 2.0

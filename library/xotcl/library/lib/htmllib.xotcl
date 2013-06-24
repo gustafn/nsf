@@ -35,7 +35,7 @@
 # MODIFICATIONS.
 # 
 
-package provide xotcl::htmllib 0.1
+package provide xotcl::htmllib 2.0
 package require XOTcl 2.0
 
 namespace eval ::xotcl::htmllib {

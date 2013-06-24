@@ -1,6 +1,6 @@
 # -*- Tcl -*- $
 
-package provide xotcl::comm::ftp 0.91
+package provide xotcl::comm::ftp 2.0
 package require xotcl::comm::httpAccess
 
 package require XOTcl 2.0

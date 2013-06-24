@@ -1,5 +1,5 @@
 # -*- Tcl -*-
-package provide xotcl::package 0.92
+package provide xotcl::package 2.0
 
 package require XOTcl 2.0
 package require xotcl::mixinStrategy

@@ -1,6 +1,6 @@
 # -*- Tcl -*-
 
-package provide xotcl::scriptCreation::recoveryPoint 0.81
+package provide xotcl::scriptCreation::recoveryPoint 2.0
 package require XOTcl 2.0
 
 namespace eval ::xotcl::scriptCreation::recoveryPoint {

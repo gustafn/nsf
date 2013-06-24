@@ -1,5 +1,5 @@
 # -*- Tcl -*-
-package provide xotcl::comm::ldap 0.91
+package provide xotcl::comm::ldap 2.0
 
 package require xotcl::wafecompat ; # Get 'requireModules'.
 
