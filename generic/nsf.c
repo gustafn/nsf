@@ -21925,8 +21925,8 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 	    }
 	    opt->parsedParamPtr = ppDefPtr;
 	    opt->classParamPtrEpoch = RUNTIME_STATE(interp)->classParamPtrEpoch;
-	    fprintf(stderr, "set obj param for obj %p %s epoch %d ppDefPtr %p\n", 
-		    object, ObjectName(object), opt->classParamPtrEpoch, ppDefPtr);
+	    /*fprintf(stderr, "set obj param for obj %p %s epoch %d ppDefPtr %p\n", 
+	      object, ObjectName(object), opt->classParamPtrEpoch, ppDefPtr);*/
 #endif
 	  }
 	  if (ppDefPtr->paramDefs) {
