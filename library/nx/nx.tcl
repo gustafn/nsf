@@ -227,18 +227,21 @@ namespace eval ::nx {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    array set "" [:__resolve_method_path $name]
-    #puts "class method $(object).$(methodName) [list $arguments] {...}"
-    set r [::nsf::method::create $(object) \
-	       {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
-	       $(methodName) $arguments $body {*}$conditions]
-    if {$r ne ""} {
-      # the method was not deleted
-      ::nsf::method::property $(object) $r call-protected \
-	  [::nsf::dispatch $(object) __default_method_call_protection]
-      if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+    set p [:__resolve_method_path $name]
+    set p [dict filter $p script {k v} {expr {$k in {object regObject methodName}}}]
+    dict with p {
+      #puts "class method $object.$methodName [list $arguments] {...}"
+      set r [::nsf::method::create $object \
+		 {*}[expr {$regObject ne "" ? "-reg-object [list $regObject]" : ""}] \
+		 $methodName $arguments $body {*}$conditions]
+      if {$r ne ""} {
+	# the method was not deleted
+	::nsf::method::property $object $r call-protected \
+	    [::nsf::dispatch $object __default_method_call_protection]
+	if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
+      }
+      return $r
     }
-    return $r
   }
 
   ######################################################################
