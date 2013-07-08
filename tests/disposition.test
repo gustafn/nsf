@@ -1414,3 +1414,28 @@ nx::test case xotcl-residualargs-upleveling {
 # TODO: what todo with object parameter inspection for names with
 # alias, forward... "names" do not always correspond with vars set.
 
+nx::test case class-configure-default {
+  
+  # Background: when class is created, it is created with a "default"
+  # superclass of "::nx::Object". This is defined in the slot for
+  # superclass in nx.tcl
+
+  nx::Class create P
+  ? {Q info superclass} ::nx::Object
+  
+  #
+  # When we pass the superclass a different value, this is certainly used.
+  #
+  nx::Class create Q -superclass P
+  ? {Q info superclass} ::P
+  
+  #
+  # When we call configure on the superclass, we do not want the
+  # default to be used to reset it to ::nx::Object. Therefore the
+  # configure uses the default for parameters with METHOD_INVOCATION
+  # only, when the object is not yet initialized.
+  #
+  Q configure 
+  ? {Q info superclass} ::P
+  
+}

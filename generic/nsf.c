@@ -22216,6 +22216,16 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 		  paramPtr->name, paramPtr->flags, pc.full_objv[i]);*/
 	  continue;
 	}
+      } else if (object->flags & NSF_INIT_CALLED) {
+	/*
+	 * The object is already initialized. Don't use the default, since it
+	 * might change part of the state back to the original default.  This
+	 * might happen, when e.g. configure is called on a class manually,
+	 * where "superclass" has a default.
+	 */
+	/*fprintf(stderr, "%s skip default %s in configure\n", 
+	  ObjectName(object), ObjStr(pc.full_objv[i]));*/
+	continue;
       }
     } else if (unlikely(paramPtr->flags & NSF_ARG_REQUIRED 
 			&& pc.full_objv[i] == NsfGlobalObjs[NSF___UNKNOWN__])) {
@@ -22336,7 +22346,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	}
 	continue;
       }
-
       result = ParameterMethodDispatch(interp, object, paramPtr, newValue, 
 				       uplevelVarFramePtr, initString,
 				       objv[pc.lastObjc], (Tcl_Obj **)&objv[pc.lastObjc + 1], 

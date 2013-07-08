@@ -4681,18 +4681,29 @@ nsf.c:
 - fix a small memory leak for PER_OBJECT_PARAMETER_CACHING
 - all cases detectable with --enable-memcount=yes are fixed
 
-
-========================================================================
-TODO:
-
  - recheck Announce
  - concatenate Changelog
  - update next-scriping doc + examples, pdf-files?
  - build tar etc. as in README.release
 
+nsf.c:
+- dont't use the default of a invocation parameter in "configure" 
+  when the object is already initialized. The default is in 
+  general only used when the parameter is not specified. We do not want 
+  e.g. superclass to be reset to ::nx::Object, when configure is
+  called on a class without arguments.
+- extended regression test
+
+
+========================================================================
+TODO:
+
+
+
 Stefan: doc items
 
  - make rough comparison table with NX, XOTcl, tclOO, itcl, Ruby, Python
+   comparison NX vs. TclOO is most probably the most important
    Most general superclass
    Metaclass
    Per-object methods
