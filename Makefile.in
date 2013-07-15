@@ -403,8 +403,17 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	    rm -rf $(DESTDIR)$(pkglibdir)/$$i ; \
 	    $(INSTALL_DATA) $(src_lib_dir)/$$i $(DESTDIR)$(pkglibdir)/$$i ; \
 	done;
-	cat unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
-	$(INSTALL_DATA) nsfConfig.sh $(DESTDIR)$(libdir)/
+	@mkdir -p $(DESTDIR)$(libdir)/tcl8/site-tcl
+	@for i in $(srcdir)/tcl8/site-tcl/*.tm ; do \
+	    if test -f $$i; then \
+	       echo "    Installing module $$i in $(DESTDIR)$(libdir)/tcl8/site-tcl" ; \
+	       $(INSTALL_DATA) $$i $(DESTDIR)$(libdir)/tcl8/site-tcl/; \
+	    fi; \
+	done;
+	@echo "    Installing pkgIndex.tcl for nsf in $(DESTDIR)$(pkglibdir)/pkgIndex.tcl"
+	@echo "" >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	@cat unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	@$(INSTALL_DATA) nsfConfig.sh $(DESTDIR)$(libdir)/
 
 install-xotcl-libraries: install-libraries $(DESTDIR)$(pkglibdir)
 	@echo "Installing XOTcl Libraries to $(DESTDIR)$(xotcl_pkglibdir)/"
@@ -468,7 +477,7 @@ install-xotcl-apps: install-xotcl-libraries
 #========================================================================
 
 install-doc: $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(mandir)/mann
-	(cd $(src_man_dir)/ ; \
+	@(cd $(src_man_dir)/ ; \
 	 for i in *.1; do \
 	    echo "Installing $$i"; \
 	    rm -f $(DESTDIR)$(mandir)/man1/$$i; \
@@ -840,8 +849,7 @@ end:
 	@echo "   make install-aol"
 	@echo "" 
 	@echo " In order to invoke NX interactively (before install), use:" 
-	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\"" 
-	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
+	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\" TCL8_5_TM_PATH=\"$(TCLLIBPATH)\"/tcl8/site-tcl" 
 	@echo " and"
 	@echo "   @TCLSH_PROG@"
 	@echo "   package require nx"

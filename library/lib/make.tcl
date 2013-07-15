@@ -3,7 +3,13 @@
 ###
 ###  - Build the pkgIndex in each directory
 ###
+
+# adjust the paths;
+# - auto_path is needed, when nx is loaded via good old pkgIndex.tcl
+# - tcl::tm::roots is needed when nx is provided as a tcl module (.tm)
 lappend auto_path ..
+::tcl::tm::roots [pwd]
+#puts stderr TM-LIST=[  ::tcl::tm::path list ]
 
 package require nx
 namespace eval ::nx {}; # make pkg_mkIndex happy
