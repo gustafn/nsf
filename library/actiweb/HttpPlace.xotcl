@@ -1,4 +1,4 @@
-
+# -*- Tcl -*-
 package provide xotcl::actiweb::httpPlace 1.0
 
 package require -exact xotcl::trace 1.0
@@ -178,6 +178,18 @@ namespace eval ::xotcl::actiweb::httpPlace {
 	    if {![my isobject $obj] && [file readable $fileName]} {
 		next      ;# let Httpd handle this
 	    } else {
+	        #
+	        # tell the object the query from the URL
+	        #
+                $obj set query [my set query]
+		#
+	        # If there are no arguments available through the 
+		# interface, pass the URL-query parameters (raw)
+		#
+	        if {$arguments eq ""} {set arguments [my set query]}
+		#
+		# now invoke the method
+		#
 		set response [$place invokeCall obj status $method $arguments]
 		#puts stderr "RESPONSE: $response"
 		#
