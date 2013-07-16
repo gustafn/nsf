@@ -4694,6 +4694,17 @@ nsf.c:
   called on a class without arguments.
 - extended regression test
 
+- prepare for providing nx as a tcl module (.tm file). 
+  this is just a preparation, since for testing, one cannot set up a path
+  that prefers a local copy over a global installed one (the global tcl-site is 
+  preferred over the one specified in e.g. TCL8_5_TM_PATH)
+   
+  Moving to tcl modules works in essence via
+  git mv library/nx/nx.tcl tcl8/site-tcl/nx-2.0b5.tm
+
+  This is really usable, when 
+  http://core.tcl.tk/tcl/tktview?name=86ceb4e2b6
+  is through
 
 ========================================================================
 TODO:
