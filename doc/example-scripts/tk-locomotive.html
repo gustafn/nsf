@@ -769,6 +769,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> Tk
 <span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx
+<span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx::trait
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Wheel {
   <span class='nx-keyword'>:property</span> x
@@ -842,6 +843,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Locomotive {
   <span class='nx-keyword'>:property</span> {speed 4}
 
+  <span class='nx-keyword'>:require</span> trait nx::traits::callback
+
   <span class='nx-keyword'>:method</span> turn {} {
     <span class='nx-keyword'>set</span> :alpha [<span class='nx-keyword'>expr</span> {round(<span class='nx-variable'>${</span><span class='nx-variable'>:alpha}</span> + 360 - <span class='nx-variable'>${</span><span class='nx-variable'>:speed}</span>) % 360}]
     <span class='nx-keyword'>foreach</span> i [<span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> find withtag counterweight] {
@@ -903,9 +906,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
     <span class='nx-keyword'>set</span> :c [canvas .c -width 600 -height 160 -background lightblue]
     pack <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span>
 
-    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;1&gt;</b> [<span class='nx-keyword'>list</span> [<span class='nx-keyword'>self</span>] throttle]
-    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;2&gt;</b> [<span class='nx-keyword'>list</span> [<span class='nx-keyword'>self</span>] <span class='nx-keyword'>break</span>]
-    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;3&gt;</b> [<span class='nx-keyword'>list</span> [<span class='nx-keyword'>self</span>] emergencyBreak]
+    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;1&gt;</b> [:callback throttle]
+    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;2&gt;</b> [:callback <span class='nx-keyword'>break</span>]
+    bind <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <b>&lt;3&gt;</b> [:callback emergencyBreak]
 
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>delete</span> all
     <span class='nx-variable'>${</span><span class='nx-variable'>:c}</span> <span class='nx-keyword'>create</span> rect 32 115 360 125 -fill black ;<span class='nx-comment'># frame
@@ -958,7 +961,7 @@ Locomotive <span class='nx-keyword'>new</span></pre></div></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-06-07 09:47:50 CEST
+Last updated 2013-07-26 01:01:36 IST
 </div>
 </div>
 </body>

@@ -11,6 +11,7 @@
 #
 package require Tk
 package require nx
+package require nx::trait
 
 nx::Class create Wheel {
   :property x 
@@ -84,6 +85,8 @@ nx::Class create Wheel {
 nx::Class create Locomotive {
   :property {speed 4}
 
+  :require trait nx::traits::callback
+
   :method turn {} {
     set :alpha [expr {round(${:alpha} + 360 - ${:speed}) % 360}]
     foreach i [${:c} find withtag counterweight] {
@@ -145,9 +148,9 @@ nx::Class create Locomotive {
     set :c [canvas .c -width 600 -height 160 -background lightblue]
     pack ${:c}
 
-    bind ${:c} <1> [list [self] throttle]
-    bind ${:c} <2> [list [self] break]
-    bind ${:c} <3> [list [self] emergencyBreak]
+    bind ${:c} <1> [:callback throttle]
+    bind ${:c} <2> [:callback break]
+    bind ${:c} <3> [:callback emergencyBreak]
     
     ${:c} delete all
     ${:c} create rect 32 115 360 125 -fill black ;# frame
