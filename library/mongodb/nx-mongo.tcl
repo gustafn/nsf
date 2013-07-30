@@ -21,7 +21,7 @@ package provide nx::mongo 0.3
 namespace eval ::nx::mongo {
 
   ::nx::Object create ::nx::mongo::db {
-    :property db
+    :object property db
     :public object method connect {{-db test} args} {
       set :db $db
       set :mongoConn [::mongo::connect {*}$args]
@@ -32,7 +32,9 @@ namespace eval ::nx::mongo {
     :public object method remove  {args} {::mongo::remove ${:mongoConn} {*}$args}
     :public object method query   {args} {::mongo::query  ${:mongoConn} {*}$args}
     :public object method update  {args} {::mongo::update ${:mongoConn} {*}$args}
-    :public object method "drop collection" {name} {::mongo::run ${:mongoConn} ${:db} [list drop string $name]}
+    :public object method "drop collection" {name} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list drop string $name]}
+    :public object method "drop database" {} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list dropDatabase integer 1]}
+    :public object method "reset error" {} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list reseterror integer 1]}
   }
   
   #######################################################################
@@ -121,7 +123,7 @@ namespace eval ::nx::mongo {
 	  puts stderr "autosave $value to obtain an object_id"
 	  $value save
 	}
-	set _id [$value _id]
+	set _id [$value cget -_id]
 	set cls [$value info class]
 	return [list object [list \
 				 {$ref} string [$cls mongo_collection] \
@@ -221,7 +223,7 @@ namespace eval ::nx::mongo {
     :method "get slot" {att} {
       set classes [concat [self] [:info mixin classes] [:info heritage]]
       foreach cls $classes {
-	set slot [$cls info slot objects $att]
+	set slot [$cls info slots $att]
 	if {$slot ne ""} {
 	  return $slot
 	}
@@ -249,9 +251,9 @@ namespace eval ::nx::mongo {
 	set slot [:get slot $att]
 	if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
 	switch $op {
-	  "=" {lappend bson $att [$slot mongotype] $value}
+	  "=" {lappend bson $att [$slot cget -mongotype] $value}
 	  ">" - "<" - "<=" - ">=" - "!="  {
-	    lappend bson $att object [list [:get relop $op] [$slot mongotype] $value]
+	    lappend bson $att object [list [:get relop $op] [$slot cget -mongotype] $value]
 	  }
 	  "in" - "all" {
 	    lappend bson $att object [list [:get relop $op] {*}[$slot bson encode -array $value]]
@@ -367,7 +369,7 @@ namespace eval ::nx::mongo {
     :public method insert {args} {
       set p [:new {*}$args]
       $p save
-      set _id [$p _id]
+      set _id [$p cget -_id]
       $p destroy
       return $_id
     }
@@ -457,7 +459,7 @@ namespace eval ::nx::mongo {
 	  set :mongo_collection [string tolower [namespace tail [self]]]s
 	}
 	if {![info exists :mongo_db]} {
-	  set :mongo_db [::nx::mongo::db db]
+	  set :mongo_db [::nx::mongo::db cget -db]
 	}
 	set :mongo_ns ${:mongo_db}.${:mongo_collection}
 	#puts stderr "mongo_ns is set to ${:mongo_ns}"
@@ -555,7 +557,7 @@ namespace eval ::nx::mongo {
       } else {
 	#puts "delete a non-embedded entry"
 	if {[info exists :_id]} {
-	  set mongo_ns [[:info class] mongo_ns]
+	  set mongo_ns [[:info class] cget -mongo_ns]
 	  ::nx::mongo::db remove $mongo_ns [list _id oid ${:_id}]
 	} else {
 	  error "[self]: object does not contain an _id; it can't be delete from the mongo db."
@@ -568,7 +570,7 @@ namespace eval ::nx::mongo {
     # otherwise perform an insert
     #
     :public method save {} {
-      set mongo_ns [[:info class] mongo_ns]
+      set mongo_ns [[:info class] cget -mongo_ns]
       if {$mongo_ns eq ""} {
 	# We could perform the delegation probably automatically, but
 	# for now we provide an error

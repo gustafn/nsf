@@ -71,7 +71,7 @@ static int NsfMongoIndex(Tcl_Interp *interp, mongo *connPtr, CONST char *namespa
 static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *values);
 static int NsfMongoQuery(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
 static int NsfMongoRemove(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *condition);
-static int NsfMongoRunCmd(Tcl_Interp *interp, mongo *connPtr, CONST char *db, Tcl_Obj *cmd);
+static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongo *connPtr, CONST char *db, Tcl_Obj *cmd);
 static int NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *cond, Tcl_Obj *values, int withUpsert, int withAll);
 
 enum {
@@ -545,12 +545,13 @@ NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
                      method_definitions[NsfMongoRunCmdIdx].paramDefs, 
                      method_definitions[NsfMongoRunCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    mongo *connPtr = (mongo *)pc.clientData[0];
-    CONST char *db = (CONST char *)pc.clientData[1];
-    Tcl_Obj *cmd = (Tcl_Obj *)pc.clientData[2];
+    int withNocomplain = (int )PTR2INT(pc.clientData[0]);
+    mongo *connPtr = (mongo *)pc.clientData[1];
+    CONST char *db = (CONST char *)pc.clientData[2];
+    Tcl_Obj *cmd = (Tcl_Obj *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfMongoRunCmd(interp, connPtr, db, cmd);
+    return NsfMongoRunCmd(interp, withNocomplain, connPtr, db, cmd);
 
   } else {
     return TCL_ERROR;
@@ -681,7 +682,8 @@ static Nsf_methodDefinition method_definitions[24] = {
   {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"condition", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::run", NsfMongoRunCmdStub, 3, {
+{"::mongo::run", NsfMongoRunCmdStub, 4, {
+  {"-nocomplain", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
   {"db", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"cmd", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

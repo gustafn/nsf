@@ -28,7 +28,7 @@ Group insert -name "grp1" -members {gustaf stefan}
 
 # Retrieve the entry from the database:
 set g [Group find first -cond {name = "grp1"}]
-puts stderr "Members of group: [$g members]\n"
+puts stderr "Members of group: [$g cget -members]\n"
 
 ######################################################################
 # The second approach to implement references to other objects via an
@@ -52,11 +52,11 @@ Group insert -name "grp2" -members [list $id1 $id2]
 # Retrieve the entry from the database:
 set g [Group find first -cond {name = "grp2"}]
 set members [list]
-foreach m [Member find all -cond [list _id in [$g members]]] {
+foreach m [Member find all -cond [list _id in [$g cget -members]]] {
   lappend members $m
 }
-puts stderr "Members of group [$g name]:"
-foreach m $members {puts stderr "\t[$m name]"}
+puts stderr "Members of group [$g cget -name]:"
+foreach m $members {puts stderr "\t[$m cget -name]"}
 puts stderr ""
 
 ######################################################################
@@ -81,8 +81,8 @@ Group insert -name "grp3" \
 # Retrieve the entry from the database:
 set g [Group find first -cond {name = "grp3"}]
 
-puts stderr "Members of group [$g name]:"
-foreach m [$g members] {puts stderr "\t[$m name]"}
+puts stderr "Members of group [$g cget -name]:"
+foreach m [$g cget -members] {puts stderr "\t[$m cget -name]"}
 puts stderr ""
 
 
@@ -112,8 +112,8 @@ if {0} {
   # Retrieve the entry from the database:
   set g [Group find first -cond {name = "grp4"}]
   
-  puts stderr "Members of group [$g name]:"
-  foreach m [$g members] {puts stderr "\t[$m name]"}
+  puts stderr "Members of group [$g cget -name]:"
+  foreach m [$g cget -members] {puts stderr "\t[$m cget -name]"}
   puts stderr ""
   
   puts stderr "Content of collection groups:"

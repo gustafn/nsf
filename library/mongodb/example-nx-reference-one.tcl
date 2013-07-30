@@ -30,7 +30,7 @@ Post insert -title "Hello trivial World" -user smith
 
 # Retrieve the entry from the database:
 set p [Post find first -cond {title = "Hello trivial World"}]
-puts stderr "Name of user: [$p user]\n"
+puts stderr "Name of user: [$p cget -user]\n"
 
 ######################################################################
 # The second approach to implement references to other objects via an
@@ -54,8 +54,8 @@ Post insert -title "Hello simple World" -user_id $uid
 
 # Retrieve the entry from the database:
 set p [Post find first -cond {title = "Hello simple World"}]
-set u [User find first -cond [list _id = [$p user_id]]]
-puts stderr "Name of user: [$u name]\n"
+set u [User find first -cond [list _id = [$p cget -user_id]]]
+puts stderr "Name of user: [$u cget -name]\n"
 
 ######################################################################
 # The third approach is to embed the object in the referencing
@@ -75,7 +75,7 @@ Post insert -title "Hello embedded World" -user [User new -name Smith]
 
 # Retrieve the entry from the database:
 set p [Post find first -cond {title = "Hello embedded World"}]
-puts stderr "Name of user: [[$p user] name]\n"
+puts stderr "Name of user: [[$p cget -user] cget -name]\n"
 
 ######################################################################
 # The fourth approach is to use mongo db-refs for referencing.  This
@@ -101,7 +101,7 @@ if {0} {
   # Retrieve the entry from the database:
   set p [Post find first -cond {title = "Hello referenced World"}]
   
-  puts stderr "Name of user: [[$p user] name]\n"
+  puts stderr "Name of user: [[$p cget -user] cget -name]\n"
   
   puts stderr "Content of the collection groups:"
   Post show

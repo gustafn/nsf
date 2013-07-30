@@ -156,6 +156,8 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
     case BSON_BOOL:   tag = "boolean"; elemObj = Tcl_NewBooleanObj(bson_iterator_bool( &i )); break;
     case BSON_REGEX:  tag = "regex";   elemObj = Tcl_NewStringObj(bson_iterator_regex( &i ), -1); break;
     case BSON_STRING: tag = "string";  elemObj = Tcl_NewStringObj(bson_iterator_string( &i ), -1); break;
+    case BSON_MINKEY: tag = "minkey";  elemObj = Tcl_NewStringObj("null", 4); break;
+    case BSON_MAXKEY: tag = "maxkey";  elemObj = Tcl_NewStringObj("null", 4); break;
     case BSON_NULL:   tag = "null";    elemObj = Tcl_NewStringObj("null", 4); break;
     case BSON_OID: {
       tag = "oid";
@@ -221,6 +223,10 @@ BsonTagToType(Tcl_Interp *interp, char *tag) {
     if (*(tag + 1) == 'o') /* double */ return BSON_DOUBLE;
   case 'i': /* integer */ return BSON_INT;
   case 'l': /* long */    return BSON_LONG;
+  case 'm': 
+    if  (*(tag + 1) == 'i') /* minkey */ return BSON_MINKEY;
+    if  (*(tag + 1) == 'a') /* maxkey */ return BSON_MAXKEY;
+    break;
   case 'n': /* null */    return BSON_NULL;
   case 'o': 
     if  (*(tag + 1) == 'i') /* oid */ return BSON_OID;
@@ -289,6 +295,12 @@ BsonAppend(Tcl_Interp *interp, bson *bbPtr, char *name, char *tag, Tcl_Obj *valu
     bson_append_long(bbPtr, name, v);
     break;
   }
+  case BSON_MAXKEY: 
+    bson_append_maxkey(bbPtr, name); 
+    break;
+  case BSON_MINKEY: 
+    bson_append_minkey(bbPtr, name); 
+    break;
   case BSON_NULL: {
     bson_append_null(bbPtr, name);
     break;
@@ -538,13 +550,14 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
 
 /*
 cmd run NsfMongoRunCmd {
+  {-argName "-nocomplain" -required 0 -nrargs 0}
   {-argName "conn" -required 1 -type mongo}
   {-argName "db" -required 1}
   {-argName "cmd" -required 1 -type tclobj}
 }
 */
 static int 
-NsfMongoRunCmd(Tcl_Interp *interp, mongo *connPtr, CONST char *db, Tcl_Obj *cmdObj) {
+NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongo *connPtr, CONST char *db, Tcl_Obj *cmdObj) {
   int result, objc;
   Tcl_Obj **objv;
   bson cmd[1], out[1];
@@ -559,11 +572,13 @@ NsfMongoRunCmd(Tcl_Interp *interp, mongo *connPtr, CONST char *db, Tcl_Obj *cmdO
   result = mongo_run_command( connPtr, db, cmd, out );
   bson_destroy( cmd );
 
-  if (result != MONGO_OK) {
-    return NsfPrintError(interp, "mongo::run: provided command returned an unknown error");
+  
+  if (withNocomplain == 0 && result != MONGO_OK) {
+    fprintf(stderr, "run result %d\n", result);
+    return NsfPrintError(interp, "mongo::run: command '%s' returned an unknown error", ObjStr(cmdObj));
   }
 
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(result == MONGO_OK));
   return TCL_OK;
 }
 

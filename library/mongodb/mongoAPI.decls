@@ -25,6 +25,7 @@ cmd connect NsfMongoConnect {
 }
 
 cmd run NsfMongoRunCmd {
+  {-argName "-nocomplain" -required 0 -nrargs 0}
   {-argName "conn" -required 1 -type mongo}
   {-argName "db" -required 1}
   {-argName "cmd" -required 1 -type tclobj}

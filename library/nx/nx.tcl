@@ -334,11 +334,11 @@ namespace eval ::nx {
   #
 
   Class public method forward {
-     method
+     methodName
      -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
      target:optional args
    } {
-    array set "" [:__resolve_method_path $method]
+    array set "" [:__resolve_method_path $methodName]
     set arguments [lrange [::nsf::current args] 1 end]
     if {[info exists returns]} {
       # search for "-returns" in the arguments before $args ...
@@ -526,11 +526,11 @@ namespace eval ::nx {
     }
 
     :public method "object forward" {
-      method
+      methodName
       -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
       target:optional args
     } {
-      array set "" [:__resolve_method_path -per-object $method]
+      array set "" [:__resolve_method_path -per-object $methodName]
       set arguments [lrange [::nsf::current args] 1 end]
       if {[info exists returns]} {
 	# search for "-returns" in the arguments before $args ...

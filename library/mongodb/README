@@ -6,7 +6,7 @@ Ingredients:
   https://github.com/mongodb/mongo-c-driver 
 
 The current version is tested with 
-- MongoDB v2.4.4-pre-
+- MongoDB v2.4.5
 - mongodb-c-driver v0.7.1
 
 Compile or obtain mongodb (the database).
