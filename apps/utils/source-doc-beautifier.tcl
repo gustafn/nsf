@@ -32,6 +32,7 @@ nx::Object create output {
     foreach l [split $block \n] {
       append cmd $l \n
       if {[info complete $cmd]} then {
+	set w0 ""
 	regexp {^\s*(\S+)\s*} $cmd _ w0
 	#set w0 [lindex $cmd 0]
 	if { ($w0 eq "?" && [llength $cmd] == 3) || 
