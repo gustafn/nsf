@@ -11,6 +11,8 @@ lappend auto_path ..
 ::tcl::tm::roots [pwd]
 #puts stderr TM-LIST=[  ::tcl::tm::path list ]
 
+set verbose 0
+
 package require nx
 namespace eval ::nx {}; # make pkg_mkIndex happy
 
@@ -20,7 +22,7 @@ nx::Object create make {
   # shared lib add files for pkgIndex.tcl
   #
   :object method mkIndex {name} {
-    #puts stderr "+++ mkIndex in [pwd]"
+    if {$::verbose} {puts stderr "+++ mkIndex in [pwd]"}
     set fls {}
     foreach f [glob -nocomplain *tcl] {
       if {![file isdirectory $f]} {
@@ -37,7 +39,7 @@ nx::Object create make {
       set p [lsearch -exact $so $lib]
       if {$p != -1} {
         set so [lreplace $so $p $p]
-        #puts stderr "new so=<$so>"
+        puts stderr "new so=<$so>"
       }
     }
     #puts stderr "[pwd]: call so=<$so>"
@@ -67,9 +69,9 @@ nx::Object create make {
       if {$fls ne "nx.tcl"} {
 	append flags " -load nx"
       }
-      #puts stderr "[pwd]:\n\tcall pkg_mkIndex $flags . $fls"
+      if {$::verbose} {puts stderr "[pwd]:\n\tcall pkg_mkIndex $flags . $fls"}
       pkg_mkIndex {*}$flags . {*}$fls
-      #puts stderr "[pwd] done"
+      if {$::verbose} {puts stderr "[pwd] done"}
     }
     
     foreach addFile [glob -nocomplain *.add] {
@@ -86,7 +88,7 @@ nx::Object create make {
   }
 
   :public object method inEachDir {path cmd} {
-    #puts stderr "[pwd] inEachDir $path  [file isdirectory $path]"
+    if {$::verbose} {puts stderr "[pwd] inEachDir $path (dir [file isdirectory $path]) $cmd"}
     if { [file isdirectory $path] 
          && ![string match *CVS $path]
          && ![string match *SCCS $path]
@@ -101,7 +103,7 @@ nx::Object create make {
       set files [glob -nocomplain *]
       cd $olddir
       foreach p $files { :inEachDir $path/$p $cmd }
-      #puts stderr "+++ change back to $olddir"
+      if {$::verbose} {puts stderr "+++ change back to $olddir"}
     }
   }
 
