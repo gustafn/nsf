@@ -1421,7 +1421,7 @@ nx::test case class-configure-default {
   # superclass in nx.tcl
 
   nx::Class create P
-  ? {Q info superclass} ::nx::Object
+  ? {P info superclass} ::nx::Object
   
   #
   # When we pass the superclass a different value, this is certainly used.
