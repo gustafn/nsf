@@ -1169,8 +1169,13 @@ NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *gridFilePtr, int offset) {
 
 void 
 Nsfmongo_Exit(ClientData clientData) {
-  Tcl_Interp *interp = (Tcl_Interp *)clientData;
-  NsfLog(interp,NSF_LOG_NOTICE, "Nsfmongo Exit");
+  /*
+   * The exit might happen at a time, when tcl is already shut down.
+   * We can't reliably call NsfLog.
+   *
+   *   Tcl_Interp *interp = (Tcl_Interp *)clientData;
+   *   NsfLog(interp,NSF_LOG_NOTICE, "Nsfmongo Exit");
+   */
 }
 
 extern int 
