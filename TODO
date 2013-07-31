@@ -4706,6 +4706,13 @@ nsf.c:
   http://core.tcl.tk/tcl/tktview?name=86ceb4e2b6
   is through
 
+monogodb:
+- updated to most recent version of c-driver (0.7.1)
+- adapted to nx 2.0b5 (use everywhere cget interface)
+- tested with mongodb 2.4.5
+
+- added example scripts rosetta-sudoku.{tcl,html} and tk-ludo.{tcl,html}
+ 
 ========================================================================
 TODO:
 
@@ -4751,7 +4758,7 @@ Stefan: doc items
 
 - maybe: add a disposition=pipe
 
-- maybe: add "-asHTML" as style option to parameteresyntax
+- maybe: add "-asHTML" as style option to parametersyntax
 
 - MixinComputeOrderFullList() could receive a flag to store 
   source classes in checkList

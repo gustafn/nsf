@@ -1,0 +1,1389 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
+<title>Listing of doc/example-scripts/tk-ludo.tcl</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Listing of doc/example-scripts/tk-ludo.tcl</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>A small Ludo/Mensch ärgere Dich nicht/Pachisie game, originally
+developed by Richard Suchenwirth in plain Tcl (see
+<a href="http://wiki.tcl.tk/956">http://wiki.tcl.tk/956</a>). The game was rewritten as a design study in
+NX by Gustaf Neumann in July 2013.</p></div>
+<div class="paragraph"><p>Major changes:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+object-oriented design (no global variables)
+</p>
+</li>
+<li>
+<p>
+knowledge about the paths of the figures
+</p>
+</li>
+<li>
+<p>
+animated moves
+</p>
+</li>
+<li>
+<p>
+knowledge about the basic rules (e.g. need 6 to move out of the
+  nest, have to move figures from starting position)
+</p>
+</li>
+<li>
+<p>
+throw opponents out
+</p>
+</li>
+<li>
+<p>
+sanity checks
+</p>
+</li>
+<li>
+<p>
+user feedback
+</p>
+</li>
+</ul></div>
+<div class="imageblock">
+<div class="content">
+<img src="tk-ludo.png" alt="tk-ludo.png" width="400" />
+</div>
+</div>
+<div class="paragraph"><p>Short Instructions</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+The active player (marked with the button) has to dice (click on
+  the die, or press somewhere on the board "d").
+</p>
+</li>
+<li>
+<p>
+If all figures are in the nest (start position), the player needs
+  to dice a 6. The player is allowed to try three times, then the
+  player is done (press "done" button, or type "n") and the turn
+  moves to the next player.
+</p>
+</li>
+<li>
+<p>
+When a player got 6 eyes, he can move out of the nest. This is
+  done by clicking on the figure the player wants to move.
+</p>
+</li>
+<li>
+<p>
+After dicing 6, the player can dice again and move the player on
+  the field (always by clicking on the figure).
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_implementation">Implementation</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> Tk
+<span class='nx-keyword'>package</span> <span class='nx-keyword'>require</span> nx::trait</pre></div></div>
+<div class="paragraph"><p>Define an application specific converter "expr" that passes the
+scalar result of the expression. Since the converter is defined on
+nx::Slot, it is applicable to all method and configure arguments.</p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'>::nx::Slot <span class='nx-keyword'>method</span> type=<span class='nx-keyword'>expr</span> {name value} {<span class='nx-keyword'>return</span> [<span class='nx-keyword'>expr</span> <span class='nx-variable'>$value</span>]}</pre></div></div>
+<div class="paragraph"><p>Class Figure</p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Figure {
+    <span class='nx-keyword'>:property</span> canvas:required
+    <span class='nx-keyword'>:property</span> x:double
+    <span class='nx-keyword'>:property</span> y:double
+    <span class='nx-keyword'>:property</span> size:double
+    <span class='nx-keyword'>:property</span> position:integer
+    <span class='nx-keyword'>:property</span> color
+    <span class='nx-keyword'>:property</span> no:integer
+    <span class='nx-keyword'>:property</span> board<span class='nx-keyword'>:object</span>,required
+    <span class='nx-keyword'>:variable</span> tag <span class='nx-string'>""</span>
+
+    <span class='nx-keyword'>:require</span> trait nx::traits::callback
+
+    <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Draw figure and define interactions
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> d [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>/6.}]
+        <span class='nx-keyword'>set</span> s [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>/1.5}]
+        <span class='nx-keyword'>set</span> y [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span>-<span class='nx-variable'>$d</span>*2.5}]
+        <span class='nx-keyword'>set</span> :tag <span class='nx-variable'>${</span><span class='nx-variable'>:color}</span><span class='nx-variable'>${</span><span class='nx-variable'>:no}</span>
+        <span class='nx-keyword'>set</span> id [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> arc [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span>-<span class='nx-variable'>$s</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span>-<span class='nx-variable'>$s</span>}] \
+                    [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span>+<span class='nx-variable'>$s</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span>+<span class='nx-variable'>$s</span>}] -outline grey \
+                    -start 250 -extent 40 -fill <span class='nx-variable'>${</span><span class='nx-variable'>:color}</span> \
+                    -tags [<span class='nx-keyword'>list</span> mv <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>]]
+        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> oval \
+            [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span>-<span class='nx-variable'>$d</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span>-<span class='nx-variable'>$d</span>}] \
+            [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span>+<span class='nx-variable'>$d</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span>+<span class='nx-variable'>$d</span>}] \
+            -fill <span class='nx-variable'>${</span><span class='nx-variable'>:color}</span> -outline grey -tags [<span class='nx-keyword'>list</span> mv <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>]
+        <span class='nx-comment'>#${:board} figure set $id [self]
+</span>        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> bind <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> &lt;B1-ButtonRelease&gt; [:callback go]
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> go {} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Start moving the figure if the draw is permitted.
+</span>        <span class='nx-comment'># The board knows the die and the rules.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>if</span> {![<span class='nx-variable'>${</span><span class='nx-variable'>:board}</span> moveFigure [<span class='nx-keyword'>self</span>]]} {
+            <span class='nx-comment'># stay at old position
+</span>            :gotoNr <span class='nx-variable'>${</span><span class='nx-variable'>:position}</span>
+        }
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> gotoNr {nr {-path <span class='nx-string'>""</span>} {-afterCmd <span class='nx-string'>""</span>}} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Move figure to the numbered position. If a path is given it
+</span>        <span class='nx-comment'># moves stepwise from position to position.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> oldPos <span class='nx-variable'>${</span><span class='nx-variable'>:position}</span>
+        <span class='nx-keyword'>set</span> :position <span class='nx-variable'>$nr</span>
+        <span class='nx-keyword'>if</span> {<span class='nx-variable'>$path</span> eq <span class='nx-string'>""</span>} {<span class='nx-keyword'>set</span> path <span class='nx-variable'>$nr</span>}
+        <span class='nx-keyword'>return</span> [<span class='nx-keyword'>:move</span> {*}[<span class='nx-variable'>${</span><span class='nx-variable'>:board}</span> getPointCenter <span class='nx-variable'>$oldPos</span>] <span class='nx-variable'>$path</span> \
+                    -afterCmd <span class='nx-variable'>$afterCmd</span>]
+    }
+
+    <span class='nx-keyword'>:protected</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>move</span> {x0 y0 path:integer,1..n {-afterCmd <span class='nx-string'>""</span>}} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Move figure from old position (x0 y0) stepwise along the
+</span>        <span class='nx-comment'># path using animation. At the end of the move, 'afterCmd' is
+</span>        <span class='nx-comment'># issued.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> t 0
+        <span class='nx-keyword'>foreach</span> pos <span class='nx-variable'>$path</span> {
+            <span class='nx-keyword'>lassign</span> [<span class='nx-variable'>${</span><span class='nx-variable'>:board}</span> getPointCenter <span class='nx-variable'>$pos</span>] x y
+            <span class='nx-keyword'>set</span> stepx [<span class='nx-keyword'>expr</span> {(<span class='nx-variable'>$x</span>-<span class='nx-variable'>$x0</span>)/50.0}]
+            <span class='nx-keyword'>set</span> stepy [<span class='nx-keyword'>expr</span> {(<span class='nx-variable'>$y</span>-<span class='nx-variable'>$y0</span>)/50.0}]
+            <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 0} {<span class='nx-variable'>$i</span> &lt; 50} {<span class='nx-keyword'>incr</span> i} {
+                <span class='nx-keyword'>after</span> [<span class='nx-keyword'>incr</span> t 8] <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span> <span class='nx-variable'>$stepx</span> <span class='nx-variable'>$stepy</span>
+            }
+            <span class='nx-keyword'>lassign</span> [<span class='nx-keyword'>list</span> <span class='nx-variable'>$x</span> <span class='nx-variable'>$y</span>] x0 y0
+            <span class='nx-keyword'>incr</span> t 100
+        }
+        <span class='nx-keyword'>after</span> <span class='nx-variable'>$t</span> <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> raise <span class='nx-variable'>${</span><span class='nx-variable'>:tag}</span>
+        <span class='nx-keyword'>after</span> <span class='nx-variable'>$t</span> <span class='nx-variable'>$afterCmd</span>
+        <span class='nx-keyword'>set</span> :x <span class='nx-variable'>$x</span>; <span class='nx-keyword'>set</span> :y <span class='nx-variable'>$y</span>
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> <span class='nx-keyword'>lookup</span> {position} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Return the figure at the provided position.  This function
+</span>        <span class='nx-comment'># could be made faster, but is efficient enough as it is.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>foreach</span> f [Figure <span class='nx-keyword'>info</span> instances] {
+            <span class='nx-keyword'>if</span> {[<span class='nx-variable'>$f</span> <span class='nx-keyword'>cget</span> -position] == <span class='nx-variable'>$position</span>} {
+                <span class='nx-keyword'>return</span> <span class='nx-variable'>$f</span>
+            }
+        }
+        <span class='nx-keyword'>return</span> <span class='nx-string'>""</span>
+    }
+}</pre></div></div>
+<div class="paragraph"><p>Helper functions for the die</p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-keyword'>proc</span> random:select L {<span class='nx-keyword'>lindex</span> <span class='nx-variable'>$L</span> [<span class='nx-keyword'>expr</span> int(rand()*[<span class='nx-keyword'>llength</span> <span class='nx-variable'>$L</span>].)]}
+<span class='nx-keyword'>proc</span> lexpr {term L} {
+    <span class='nx-comment'># map an expr term to each element \$i of a list
+</span>    <span class='nx-keyword'>set</span> res [<span class='nx-keyword'>list</span>]
+    <span class='nx-keyword'>foreach</span> i <span class='nx-variable'>$L</span> {<span class='nx-keyword'>lappend</span> res [<span class='nx-keyword'>eval</span> <span class='nx-keyword'>expr</span> <span class='nx-variable'>$term</span>]}
+    <span class='nx-keyword'>set</span> res
+}</pre></div></div>
+<div class="paragraph"><p>Class Die</p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Die {
+    <span class='nx-keyword'>:property</span> canvas:required
+    <span class='nx-keyword'>:property</span> x:double
+    <span class='nx-keyword'>:property</span> y:double
+    <span class='nx-keyword'>:property</span> {size:double 25}
+    <span class='nx-keyword'>:property</span> {fg gold}
+    <span class='nx-keyword'>:property</span> {bg red}
+    <span class='nx-keyword'>:property</span> {eyes 0}
+
+    <span class='nx-keyword'>:require</span> trait nx::traits::callback
+
+    <span class='nx-keyword'>:method</span> <span class='nx-keyword'>set</span> {n} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Set the eyes of the die.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> itemconfig <span class='nx-variable'>${</span><span class='nx-variable'>:grouptag}</span> -fill <span class='nx-variable'>${</span><span class='nx-variable'>:bg}</span> -outline <span class='nx-variable'>${</span><span class='nx-variable'>:bg}</span>
+        <span class='nx-keyword'>foreach</span> i [<span class='nx-keyword'>lindex</span> [<span class='nx-keyword'>list</span> \
+               {} {d5} [random:select {{d3 d7} {d1 d9}}] \
+               [random:select {{d1 d5 d9} {d3 d5 d7}}] \
+               {d1 d3 d7 d9} {d1 d3 d5 d7 d9} \
+               [random:select {{d1 d3 d4 d6 d7 d9} {d1 d2 d3 d7 d8 d9}}] \
+              ] <span class='nx-variable'>$n</span>] {
+            <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> itemconfig <span class='nx-variable'>${</span><span class='nx-variable'>:id}</span><span class='nx-variable'>$i</span> -fill <span class='nx-variable'>${</span><span class='nx-variable'>:fg}</span> -outline <span class='nx-variable'>${</span><span class='nx-variable'>:fg}</span>
+        }
+        <span class='nx-keyword'>set</span> :eyes <span class='nx-variable'>$n</span>
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> invalidate {} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Invalidate the eyes to avoid double uses of the eyes.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> :eyes 0
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> roll {} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Roll the dice and animate rolling
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># wiggle: amount, pick one of eight wiggle directions
+</span>        <span class='nx-keyword'>set</span> dwig [<span class='nx-keyword'>expr</span> <span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>/5]
+        <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 10} {<span class='nx-variable'>$i</span>&lt;100} {<span class='nx-keyword'>incr</span> i 10} {
+            <span class='nx-keyword'>:set</span> [<span class='nx-keyword'>expr</span> {int(rand() * 6) + 1}]
+            <span class='nx-keyword'>set</span> wig [random:select {0,1 0,-1 1,0 -1,0 1,1 -1,1 1,-1 -1,-1}]
+            <span class='nx-keyword'>set</span> wig [lexpr \<span class='nx-variable'>$i</span>*<span class='nx-variable'>$dwig</span> [<span class='nx-keyword'>split</span> <span class='nx-variable'>$wig</span> ,]]
+            <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> group<span class='nx-variable'>${</span><span class='nx-variable'>:id}</span> {*}<span class='nx-variable'>$wig</span>
+            <span class='nx-keyword'>update</span>
+            <span class='nx-keyword'>set</span> wig [lexpr \<span class='nx-variable'>$i</span>*-1 <span class='nx-variable'>$wig</span>] ;<span class='nx-comment'># wiggle back
+</span>            <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>move</span> group<span class='nx-variable'>${</span><span class='nx-variable'>:id}</span> {*}<span class='nx-variable'>$wig</span>
+            <span class='nx-keyword'>after</span> <span class='nx-variable'>$i</span>
+        }
+    }
+
+    <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># initialize the widgets with tags interactions
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> x [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:x}</span> - <span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>/2.0}]
+        <span class='nx-keyword'>set</span> y [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:y}</span> - <span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>/2.0}]
+        <span class='nx-keyword'>set</span> :id [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> rect <span class='nx-variable'>$x</span> <span class='nx-variable'>$y</span> \
+                     [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$x</span>+<span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$y</span>+<span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>}] \
+                     -fill <span class='nx-variable'>${</span><span class='nx-variable'>:bg}</span> -tags mvg]
+        <span class='nx-keyword'>set</span> :grouptag group<span class='nx-variable'>${</span><span class='nx-variable'>:id}</span>
+        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> addtag <span class='nx-variable'>${</span><span class='nx-variable'>:grouptag}</span> withtag <span class='nx-variable'>${</span><span class='nx-variable'>:id}</span>
+        <span class='nx-keyword'>set</span> ex [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$x</span>+<span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>/10.}]
+        <span class='nx-keyword'>set</span> ey [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$y</span>+<span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>/10.}]
+        <span class='nx-keyword'>set</span> d  [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>/5.}];<span class='nx-comment'># dot diameter
+</span>        <span class='nx-keyword'>set</span> dotno 1 ;<span class='nx-comment'># dot counter
+</span>        <span class='nx-keyword'>foreach</span> y [<span class='nx-keyword'>list</span> <span class='nx-variable'>$ey</span> [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$ey</span>+<span class='nx-variable'>$d</span>*1.5}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$ey</span>+<span class='nx-variable'>$d</span>*3}]] {
+            <span class='nx-keyword'>foreach</span> x [<span class='nx-keyword'>list</span> <span class='nx-variable'>$ex</span> [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$ex</span>+<span class='nx-variable'>$d</span>*1.5}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$ex</span>+<span class='nx-variable'>$d</span>*3}]] {
+                <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> oval <span class='nx-variable'>$x</span> <span class='nx-variable'>$y</span> [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$x</span>+<span class='nx-variable'>$d</span>}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$y</span>+<span class='nx-variable'>$d</span>}] \
+                    -fill <span class='nx-variable'>${</span><span class='nx-variable'>:bg}</span> -outline <span class='nx-variable'>${</span><span class='nx-variable'>:bg}</span> \
+                    -tags [<span class='nx-keyword'>list</span> mvg <span class='nx-variable'>${</span><span class='nx-variable'>:grouptag}</span> <span class='nx-variable'>${</span><span class='nx-variable'>:id}</span>d<span class='nx-variable'>$dotno</span>]
+                <span class='nx-keyword'>incr</span> dotno
+            }
+        }
+        <span class='nx-keyword'>:set</span> [<span class='nx-keyword'>expr</span> {int(rand()*6)+1}]
+        :invalidate
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># To dice, let people click on the die, or press &lt;d&gt; on the
+</span>        <span class='nx-comment'># board
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> bind mvg <b>&lt;1&gt;</b> [:callback roll]
+        bind . &lt;d&gt; [:callback roll]
+    }
+}</pre></div></div>
+<div class="paragraph"><p>Class Board</p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Board {
+    <span class='nx-keyword'>:property</span> canvas:required
+    <span class='nx-keyword'>:property</span> {size:integer 25}
+    <span class='nx-keyword'>:property</span> {bg LightBlue1}
+    <span class='nx-keyword'>:property</span> {fg white}
+    <span class='nx-keyword'>:property</span> {colors:1..n {red green yellow blue}}
+
+    <span class='nx-keyword'>:require</span> trait nx::traits::callback
+
+    <span class='nx-keyword'>:method</span> <span class='nx-keyword'>lookup</span> {var idx} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Convenience lookup function for arbitrary instance
+</span>        <span class='nx-comment'># variables.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> key <span class='nx-string'>"${var}($idx)"</span>
+        <span class='nx-keyword'>if</span> {[<span class='nx-keyword'>info</span> exists <span class='nx-variable'>$key</span>]} {<span class='nx-keyword'>return</span> [<span class='nx-keyword'>set</span> <span class='nx-variable'>$key</span>]}
+        <span class='nx-keyword'>return</span> <span class='nx-string'>""</span>
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> getPointCenter {nr} {<span class='nx-keyword'>:lookup</span> :pointCenter <span class='nx-variable'>$nr</span>}
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> getPointId {nr}     {<span class='nx-keyword'>:lookup</span> :pointId <span class='nx-variable'>$nr</span>}
+
+    <span class='nx-keyword'>:method</span> line {
+        x0<span class='nx-keyword'>:expr</span>,convert y0<span class='nx-keyword'>:expr</span>,convert x1<span class='nx-keyword'>:expr</span>,convert y1<span class='nx-keyword'>:expr</span>,convert
+        {-width 1} {-arrow none}
+    } {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Convenience function for line drawing, evaluates passed
+</span>        <span class='nx-comment'># expressions.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line <span class='nx-variable'>$x0</span> <span class='nx-variable'>$y0</span> <span class='nx-variable'>$x1</span> <span class='nx-variable'>$y1</span> -width <span class='nx-variable'>$width</span> -arrow <span class='nx-variable'>$arrow</span>
+    }
+
+    <span class='nx-keyword'>:method</span> point {x<span class='nx-keyword'>:expr</span>,convert y<span class='nx-keyword'>:expr</span>,convert d {-number<span class='nx-keyword'>:switch</span> false} -fill} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Draw a point (a position on the game board) and keep its
+</span>        <span class='nx-comment'># basic data in instance variables. We could as well turn the
+</span>        <span class='nx-comment'># positions into objects.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>if</span> {![<span class='nx-keyword'>info</span> exists fill]} {<span class='nx-keyword'>set</span> fill <span class='nx-variable'>${</span><span class='nx-variable'>:fg}</span>}
+        <span class='nx-keyword'>incr</span> :pointCounter
+        <span class='nx-keyword'>set</span> id [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> oval \
+                    [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$x</span>-<span class='nx-variable'>$d</span>/2.}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$y</span>-<span class='nx-variable'>$d</span>/2.}] \
+                    [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$x</span>+<span class='nx-variable'>$d</span>/2.}] [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$y</span>+<span class='nx-variable'>$d</span>/2.}] \
+                    -fill <span class='nx-variable'>$fill</span> -tags [<span class='nx-keyword'>list</span> point] -outline brown -width 2]
+        <span class='nx-comment'>#${:canvas} create text $x $y -text ${:pointCounter} -fill grey
+</span>        <span class='nx-keyword'>set</span> :pointNr(<span class='nx-variable'>$id</span>) <span class='nx-variable'>${</span><span class='nx-variable'>:pointCounter}</span>
+        <span class='nx-keyword'>set</span> :pointCenter(<span class='nx-variable'>${</span><span class='nx-variable'>:pointCounter}</span>) [<span class='nx-keyword'>list</span> <span class='nx-variable'>$x</span> <span class='nx-variable'>$y</span>]
+        <span class='nx-keyword'>set</span> :pointId(<span class='nx-variable'>${</span><span class='nx-variable'>:pointCounter}</span>) <span class='nx-variable'>$id</span>
+        <span class='nx-keyword'>return</span> <span class='nx-variable'>${</span><span class='nx-variable'>:pointCounter}</span>
+    }
+
+    <span class='nx-keyword'>:method</span> fpoint {x<span class='nx-keyword'>:expr</span>,convert y<span class='nx-keyword'>:expr</span>,convert psize fsize color no} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Draw a point with a figure, note the position in the board
+</span>        <span class='nx-comment'># in the figure
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> nr [:point <span class='nx-variable'>$x</span> <span class='nx-variable'>$y</span> <span class='nx-variable'>$psize</span> -fill <span class='nx-variable'>$color</span>]
+        Figure <span class='nx-keyword'>new</span> -board [<span class='nx-keyword'>self</span>] -canvas <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> \
+            -x <span class='nx-variable'>$x</span> -y [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$y</span>-<span class='nx-variable'>$fsize</span>/2.0}] \
+            -size <span class='nx-variable'>$fsize</span> -color <span class='nx-variable'>$color</span> -no <span class='nx-variable'>$no</span> -position <span class='nx-variable'>$nr</span>
+        <span class='nx-keyword'>return</span> <span class='nx-variable'>$nr</span>
+    }
+
+    <span class='nx-keyword'>:method</span> pnest {x<span class='nx-keyword'>:expr</span>,convert y<span class='nx-keyword'>:expr</span>,convert d colorNr xf yf} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Draw the nest with the figures in it
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> fsize [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$d</span>/0.75}]
+        <span class='nx-keyword'>set</span> color [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:colors}</span> <span class='nx-variable'>$colorNr</span>]
+        <span class='nx-keyword'>lappend</span> :nest(<span class='nx-variable'>$colorNr</span>) [:fpoint <span class='nx-variable'>$x</span>-<span class='nx-variable'>$d</span> <span class='nx-variable'>$y</span>-<span class='nx-variable'>$d</span> <span class='nx-variable'>$d</span> <span class='nx-variable'>$fsize</span> <span class='nx-variable'>$color</span> 0]
+        <span class='nx-keyword'>lappend</span> :nest(<span class='nx-variable'>$colorNr</span>) [:fpoint <span class='nx-variable'>$x</span>-<span class='nx-variable'>$d</span> <span class='nx-variable'>$y</span>+<span class='nx-variable'>$d</span> <span class='nx-variable'>$d</span> <span class='nx-variable'>$fsize</span> <span class='nx-variable'>$color</span> 1]
+        <span class='nx-keyword'>lappend</span> :nest(<span class='nx-variable'>$colorNr</span>) [:fpoint <span class='nx-variable'>$x</span>+<span class='nx-variable'>$d</span> <span class='nx-variable'>$y</span>-<span class='nx-variable'>$d</span> <span class='nx-variable'>$d</span> <span class='nx-variable'>$fsize</span> <span class='nx-variable'>$color</span> 2]
+        <span class='nx-keyword'>lappend</span> :nest(<span class='nx-variable'>$colorNr</span>) [:fpoint <span class='nx-variable'>$x</span>+<span class='nx-variable'>$d</span> <span class='nx-variable'>$y</span>+<span class='nx-variable'>$d</span> <span class='nx-variable'>$d</span> <span class='nx-variable'>$fsize</span> <span class='nx-variable'>$color</span> 3]
+        <span class='nx-keyword'>set</span> :buttonPos(<span class='nx-variable'>$colorNr</span>) [<span class='nx-keyword'>list</span> [<span class='nx-keyword'>expr</span> <span class='nx-variable'>$x</span>+(<span class='nx-variable'>$xf</span>*<span class='nx-variable'>$d</span>)] [<span class='nx-keyword'>expr</span> <span class='nx-variable'>$y</span>+(<span class='nx-variable'>$yf</span>*<span class='nx-variable'>$d</span>)]]
+    }
+
+    <span class='nx-keyword'>:method</span> pline {
+        x0<span class='nx-keyword'>:expr</span>,convert y0<span class='nx-keyword'>:expr</span>,convert
+        x1<span class='nx-keyword'>:expr</span>,convert y1<span class='nx-keyword'>:expr</span>,convert d {-width 1} {-arrow none}
+    } {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Draw a path of the play-field with points (potential player
+</span>        <span class='nx-comment'># positions) on it.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> id [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> line <span class='nx-variable'>$x0</span> <span class='nx-variable'>$y0</span> <span class='nx-variable'>$x1</span> <span class='nx-variable'>$y1</span> \
+                    -width <span class='nx-variable'>$width</span> -arrow <span class='nx-variable'>$arrow</span> -fill brown]
+        <span class='nx-keyword'>if</span> {<span class='nx-variable'>$x0</span> eq <span class='nx-variable'>$x1</span>} {
+            <span class='nx-comment'># vertical
+</span>            <span class='nx-keyword'>set</span> f [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$y1</span>&lt;<span class='nx-variable'>$y0</span> ? -1.25 : 1.25}]
+            <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 0} {<span class='nx-variable'>$i</span> &lt; [<span class='nx-keyword'>expr</span> {int(abs(<span class='nx-variable'>$y1</span>-<span class='nx-variable'>$y0</span>)/(<span class='nx-variable'>$d</span>*1.25))}]} {<span class='nx-keyword'>incr</span> i} {
+                :point <span class='nx-variable'>$x0</span> <span class='nx-variable'>$y0</span>+<span class='nx-variable'>$i</span>*<span class='nx-variable'>$d</span>*<span class='nx-variable'>$f</span> <span class='nx-variable'>$d</span>
+            }
+        } <span class='nx-keyword'>else</span> {
+            <span class='nx-comment'># horizontal
+</span>            <span class='nx-keyword'>set</span> f [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$x1</span>&lt;<span class='nx-variable'>$x0</span> ? -1.25 : 1.25}]
+            <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 0} {<span class='nx-variable'>$i</span> &lt; [<span class='nx-keyword'>expr</span> {int(abs(<span class='nx-variable'>$x1</span>-<span class='nx-variable'>$x0</span>)/(<span class='nx-variable'>$d</span>*1.25))}]} {<span class='nx-keyword'>incr</span> i} {
+                :point <span class='nx-variable'>$x0</span>+<span class='nx-variable'>$i</span>*<span class='nx-variable'>$d</span>*<span class='nx-variable'>$f</span> <span class='nx-variable'>$y0</span> <span class='nx-variable'>$d</span> -number
+            }
+        }
+        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> lower <span class='nx-variable'>$id</span>
+    }
+
+    <span class='nx-keyword'>:method</span> draw {m} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Draw board and create figures
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> d <span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>
+        <span class='nx-keyword'>set</span> u [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$d</span> * 1.25}]
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Major positions: p0 .. p1 ..m.. p2 .. p3
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> p0 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$u</span>-<span class='nx-variable'>$d</span>/2.0}]
+        <span class='nx-keyword'>set</span> p1 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$m</span>-<span class='nx-variable'>$u</span>}]
+        <span class='nx-keyword'>set</span> p2 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$m</span>+<span class='nx-variable'>$u</span>}]
+        <span class='nx-keyword'>set</span> p3 [<span class='nx-keyword'>expr</span> {2*<span class='nx-variable'>$m</span>-<span class='nx-variable'>$u</span>+<span class='nx-variable'>$d</span>/2}]
+
+        :pline <span class='nx-variable'>$p0</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$d</span> -width 4
+        :pline <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p0</span> <span class='nx-variable'>$d</span> -width 4
+        :pline <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p0</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p0</span> <span class='nx-variable'>$d</span> -width 4 ;<span class='nx-comment'># horizonal short line
+</span>        :pline <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p0</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$d</span> -width 4
+        :pline <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p3</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$d</span> -width 4
+        :pline <span class='nx-variable'>$p3</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p3</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$d</span> -width 4 ;<span class='nx-comment'># vertical short line
+</span>        :pline <span class='nx-variable'>$p3</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$d</span> -width 4
+        :pline <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p3</span> <span class='nx-variable'>$d</span> -width 4
+        :pline <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p3</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p3</span> <span class='nx-variable'>$d</span> -width 4 ;<span class='nx-comment'># horizonal short line
+</span>        :pline <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p3</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$d</span> -width 4
+        :pline <span class='nx-variable'>$p1</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p0</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$d</span> -width 4
+        :pline <span class='nx-variable'>$p0</span> <span class='nx-variable'>$p2</span> <span class='nx-variable'>$p0</span> <span class='nx-variable'>$p1</span> <span class='nx-variable'>$d</span> -width 4 ;<span class='nx-comment'># vertical short line
+</span>        :line <span class='nx-variable'>$m</span>+5*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>+2*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>+6*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>+2*<span class='nx-variable'>$d</span> -arrow first
+        :line <span class='nx-variable'>$m</span>-2*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>+5*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>-2*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>+6*<span class='nx-variable'>$d</span> -arrow first
+        :line <span class='nx-variable'>$m</span>-5*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>-2*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>-6*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>-2*<span class='nx-variable'>$d</span> -arrow first
+        :line <span class='nx-variable'>$m</span>+2*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>-5*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>+2*<span class='nx-variable'>$d</span>  <span class='nx-variable'>$m</span>-6*<span class='nx-variable'>$d</span> -arrow first
+
+        <span class='nx-keyword'>set</span> d2 [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$d</span>*0.75}]
+        <span class='nx-keyword'>set</span> d15 <span class='nx-variable'>$d2</span>*2
+        <span class='nx-keyword'>set</span> o [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$u</span>*5}]
+        :pnest <span class='nx-variable'>$m</span>+<span class='nx-variable'>$o</span>-<span class='nx-variable'>$d</span> <span class='nx-variable'>$m</span>-<span class='nx-variable'>$o</span>+<span class='nx-variable'>$d</span> <span class='nx-variable'>$d2</span> 0 -1  3
+        :pnest <span class='nx-variable'>$m</span>+<span class='nx-variable'>$o</span>-<span class='nx-variable'>$d</span> <span class='nx-variable'>$m</span>+<span class='nx-variable'>$o</span>-<span class='nx-variable'>$d</span> <span class='nx-variable'>$d2</span> 1 -1 -2.5
+        :pnest <span class='nx-variable'>$d15</span>     <span class='nx-variable'>$m</span>+<span class='nx-variable'>$o</span>-<span class='nx-variable'>$d</span> <span class='nx-variable'>$d2</span> 2  1 -2.5
+        :pnest <span class='nx-variable'>$d15</span>     <span class='nx-variable'>$m</span>-<span class='nx-variable'>$o</span>+<span class='nx-variable'>$d</span> <span class='nx-variable'>$d2</span> 3  1  3
+        <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 0;<span class='nx-keyword'>set</span> y [<span class='nx-keyword'>expr</span> <span class='nx-variable'>$d</span>*2]} {<span class='nx-variable'>$i</span>&lt;4} {<span class='nx-keyword'>incr</span> i;<span class='nx-keyword'>set</span> y [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$y</span>+<span class='nx-variable'>$d</span>}]} {
+            <span class='nx-keyword'>lappend</span> p(0) [:point <span class='nx-variable'>$m</span>      <span class='nx-variable'>$y</span>      <span class='nx-variable'>$d2</span> -fill [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:colors}</span> 0]]
+            <span class='nx-keyword'>lappend</span> p(1) [:point <span class='nx-variable'>$m</span>*2-<span class='nx-variable'>$y</span> <span class='nx-variable'>$m</span>      <span class='nx-variable'>$d2</span> -fill [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:colors}</span> 1]]
+            <span class='nx-keyword'>lappend</span> p(2) [:point <span class='nx-variable'>$m</span>      <span class='nx-variable'>$m</span>*2-<span class='nx-variable'>$y</span> <span class='nx-variable'>$d2</span> -fill [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:colors}</span> 2]]
+            <span class='nx-keyword'>lappend</span> p(3) [:point <span class='nx-variable'>$y</span>      <span class='nx-variable'>$m</span>      <span class='nx-variable'>$d2</span> -fill [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:colors}</span> 3]]
+        }
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Setup the path per player and color the starting points
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>for</span> {<span class='nx-keyword'>set</span> i 1} {<span class='nx-variable'>$i</span> &lt; 41} {<span class='nx-keyword'>incr</span> i} {<span class='nx-keyword'>lappend</span> path <span class='nx-variable'>$i</span>}
+        <span class='nx-keyword'>foreach</span> c {0 1 2 3} pos {11 21 31 1} o {11 21 31 1} {
+            <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> itemconfig [:getPointId <span class='nx-variable'>$pos</span>] -fill [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:colors}</span> <span class='nx-variable'>$c</span>]
+            <span class='nx-keyword'>set</span> :path(<span class='nx-variable'>$c</span>) [<span class='nx-keyword'>concat</span> [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>$path</span> <span class='nx-variable'>$o</span>-1 end] [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>$path</span> 0 <span class='nx-variable'>$o</span>-2] <span class='nx-variable'>$p</span>(<span class='nx-variable'>$c</span>)]
+        }
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> msg {text} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Report a message to the user.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> itemconfig <span class='nx-variable'>${</span><span class='nx-variable'>:msgId}</span> -text <span class='nx-variable'>$text</span>
+        <span class='nx-keyword'>return</span> 0
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> wannaGo {obj pos {-path <span class='nx-string'>""</span>}} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># We know that we can move the figure in principle.  We have
+</span>        <span class='nx-comment'># to check, whether the target position is free. If the target
+</span>        <span class='nx-comment'># is occupied by our own player, we give up, otherwise we
+</span>        <span class='nx-comment'># through the opponent out.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>if</span> {<span class='nx-variable'>$pos</span> eq <span class='nx-string'>""</span>} {<span class='nx-keyword'>return</span> [:msg <span class='nx-string'>"beyond path"</span>]}
+        <span class='nx-keyword'>set</span> other [Figure <span class='nx-keyword'>lookup</span> <span class='nx-variable'>$pos</span>]
+        <span class='nx-keyword'>set</span> afterCmd <span class='nx-string'>""</span>
+        <span class='nx-keyword'>if</span> {<span class='nx-variable'>$other</span> ne <span class='nx-string'>""</span>} {
+            <span class='nx-keyword'>if</span> {[<span class='nx-variable'>$obj</span> <span class='nx-keyword'>cget</span> -color] eq [<span class='nx-variable'>$other</span> <span class='nx-keyword'>cget</span> -color]} {
+                <span class='nx-comment'># On player can't have two figure at the same place.
+</span>                <span class='nx-keyword'>return</span> [:msg <span class='nx-string'>"My player is already at pos $pos"</span>]
+            } <span class='nx-keyword'>else</span> {
+                <span class='nx-comment'># Opponent is at the target position. Find a free
+</span>                <span class='nx-comment'># position in the opponents nest and though her out.
+</span>                <span class='nx-keyword'>set</span> opponent [<span class='nx-variable'>$other</span> <span class='nx-keyword'>cget</span> -color]
+                <span class='nx-keyword'>foreach</span> p [<span class='nx-keyword'>set</span> :nest([<span class='nx-keyword'>lsearch</span> <span class='nx-variable'>${</span><span class='nx-variable'>:colors}</span> <span class='nx-variable'>$opponent</span>])] {
+                    <span class='nx-keyword'>if</span> {[Figure <span class='nx-keyword'>lookup</span> <span class='nx-variable'>$p</span>] eq <span class='nx-string'>""</span>} {
+                        <span class='nx-keyword'>set</span> afterCmd [<span class='nx-keyword'>list</span> <span class='nx-variable'>$other</span> gotoNr <span class='nx-variable'>$p</span>]
+                        <span class='nx-keyword'>break</span>
+                    }
+                }
+            }
+        }
+        :msg <span class='nx-string'>"[$obj cget -color]-[$obj cget -no] went to $pos"</span>
+        <span class='nx-variable'>$obj</span> gotoNr <span class='nx-variable'>$pos</span> -path <span class='nx-variable'>$path</span> -afterCmd <span class='nx-variable'>$afterCmd</span>
+        <span class='nx-variable'>${</span><span class='nx-variable'>:die}</span> invalidate
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> moveFigure {obj} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Move the provided figure by the diced eyes according to the
+</span>        <span class='nx-comment'># rules. First we check, if we are allowed to move this
+</span>        <span class='nx-comment'># figure, which might be in the nest or on the run.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> currentColor [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:colors}</span> <span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>]
+        <span class='nx-keyword'>if</span> {[<span class='nx-variable'>$obj</span> <span class='nx-keyword'>cget</span> -color] ne <span class='nx-variable'>$currentColor</span>} {
+            <span class='nx-keyword'>return</span> [:msg <span class='nx-string'>"figure is not from the current player"</span>]
+        }
+        <span class='nx-keyword'>set</span> eyes [<span class='nx-variable'>${</span><span class='nx-variable'>:die}</span> <span class='nx-keyword'>cget</span> -eyes]
+        <span class='nx-keyword'>if</span> {<span class='nx-variable'>$eyes</span> == 0} {
+            <span class='nx-keyword'>return</span> [:msg <span class='nx-string'>"Must dice first"</span>]
+        }
+        <span class='nx-keyword'>set</span> position [<span class='nx-variable'>$obj</span> <span class='nx-keyword'>cget</span> -position]
+        <span class='nx-keyword'>if</span> {<span class='nx-variable'>$position</span> in [<span class='nx-keyword'>set</span> :nest(<span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>)]} {
+            <span class='nx-comment'># Figure is in the nest, just accept eyes == 6
+</span>            <span class='nx-keyword'>if</span> {<span class='nx-variable'>$eyes</span> == 6} {
+                :wannaGo <span class='nx-variable'>$obj</span> [<span class='nx-keyword'>lindex</span> [<span class='nx-keyword'>set</span> :path(<span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>)] 0]
+            } <span class='nx-keyword'>else</span> {
+                <span class='nx-keyword'>return</span> [:msg <span class='nx-string'>"Need 6 to move this figure"</span>]
+            }
+        } <span class='nx-keyword'>else</span> {
+            <span class='nx-comment'>#
+</span>            <span class='nx-comment'># Check, if we have still figures in the nest
+</span>            <span class='nx-comment'>#
+</span>            <span class='nx-keyword'>set</span> inNest <span class='nx-string'>""</span>
+            <span class='nx-keyword'>foreach</span> p [<span class='nx-keyword'>set</span> :nest(<span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>)] {
+                <span class='nx-keyword'>set</span> inNest [Figure <span class='nx-keyword'>lookup</span> <span class='nx-variable'>$p</span>]
+                <span class='nx-keyword'>if</span> {<span class='nx-variable'>$inNest</span> ne <span class='nx-string'>""</span>} <span class='nx-keyword'>break</span>
+            }
+            <span class='nx-comment'>#
+</span>            <span class='nx-comment'># Check, if the actual figure is at the start position.
+</span>            <span class='nx-comment'>#
+</span>            <span class='nx-keyword'>set</span> startPos [<span class='nx-keyword'>lindex</span> [<span class='nx-keyword'>set</span> :path(<span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>)] 0]
+            <span class='nx-keyword'>set</span> atStart [Figure <span class='nx-keyword'>lookup</span> <span class='nx-variable'>$startPos</span>]
+            <span class='nx-keyword'>if</span> {<span class='nx-variable'>$eyes</span> == 6} {
+                <span class='nx-keyword'>if</span> {<span class='nx-variable'>$inNest</span> ne <span class='nx-string'>""</span>} {
+                    <span class='nx-comment'># Move a figure out from the nest, if we can
+</span>                    <span class='nx-keyword'>if</span> {<span class='nx-variable'>$atStart</span> ne <span class='nx-string'>""</span>} {
+                        <span class='nx-keyword'>if</span> {[<span class='nx-variable'>$atStart</span> <span class='nx-keyword'>cget</span> -color] eq <span class='nx-variable'>$currentColor</span>} {
+                            <span class='nx-keyword'>set</span> path [<span class='nx-keyword'>set</span> :path(<span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>)]
+                            <span class='nx-keyword'>set</span> <span class='nx-keyword'>current</span> [<span class='nx-keyword'>lsearch</span> <span class='nx-variable'>$path</span> <span class='nx-variable'>$position</span>]
+                            <span class='nx-keyword'>set</span> targetPos [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$current</span> + [<span class='nx-variable'>${</span><span class='nx-variable'>:die}</span> <span class='nx-keyword'>cget</span> -eyes]}]
+                            :wannaGo <span class='nx-variable'>$obj</span> [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>$path</span> <span class='nx-variable'>$targetPos</span>] \
+                                -path [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>$path</span> <span class='nx-variable'>$current</span>+1 <span class='nx-variable'>$targetPos</span>]
+                            <span class='nx-keyword'>return</span> 1
+                        }
+                    }
+                    <span class='nx-keyword'>return</span> [:msg <span class='nx-string'>"You have to move the figures from your nest first"</span>]
+                }
+            }
+            <span class='nx-keyword'>if</span> {<span class='nx-variable'>$atStart</span> ne <span class='nx-string'>""</span> &amp;&amp; <span class='nx-variable'>$inNest</span> ne <span class='nx-string'>""</span> &amp;&amp; <span class='nx-variable'>$obj</span> ne <span class='nx-variable'>$atStart</span>} {
+                <span class='nx-keyword'>return</span> [:msg <span class='nx-string'>"You have to move the figures from the start first"</span>]
+            }
+            <span class='nx-keyword'>set</span> path [<span class='nx-keyword'>set</span> :path(<span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>)]
+            <span class='nx-keyword'>set</span> <span class='nx-keyword'>current</span> [<span class='nx-keyword'>lsearch</span> <span class='nx-variable'>$path</span> <span class='nx-variable'>$position</span>]
+            <span class='nx-keyword'>set</span> targetPos [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$current</span> + [<span class='nx-variable'>${</span><span class='nx-variable'>:die}</span> <span class='nx-keyword'>cget</span> -eyes]}]
+            :wannaGo <span class='nx-variable'>$obj</span> [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>$path</span> <span class='nx-variable'>$targetPos</span>] \
+                -path [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>$path</span> <span class='nx-variable'>$current</span>+1 <span class='nx-variable'>$targetPos</span>]
+        }
+        <span class='nx-keyword'>return</span> 1
+    }
+
+    <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> nextPlayer {} {
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Switch to the next player.
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> :player [<span class='nx-keyword'>expr</span> {(<span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>+1) % 4}]
+        <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> coords <span class='nx-variable'>${</span><span class='nx-variable'>:buttonWindow}</span> {*}[<span class='nx-keyword'>set</span> :buttonPos(<span class='nx-variable'>${</span><span class='nx-variable'>:player}</span>)]
+    }
+
+    <span class='nx-keyword'>:method</span> <span class='nx-keyword'>init</span> {} {
+        <span class='nx-keyword'>set</span> hw [<span class='nx-keyword'>expr</span> {14 * <span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>}]
+        <span class='nx-keyword'>set</span> center [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>$hw</span> / 2}]
+        canvas <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> -bg <span class='nx-variable'>${</span><span class='nx-variable'>:bg}</span> -height <span class='nx-variable'>$hw</span> -width <span class='nx-variable'>$hw</span>
+        :draw <span class='nx-variable'>$center</span>
+        <span class='nx-keyword'>set</span> :die [Die <span class='nx-keyword'>new</span> -canvas <span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> -x <span class='nx-variable'>$center</span> -y <span class='nx-variable'>$center</span> -size <span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>]
+        <span class='nx-keyword'>set</span> :msgId [<span class='nx-variable'>${</span><span class='nx-variable'>:canvas}</span> <span class='nx-keyword'>create</span> text [<span class='nx-keyword'>expr</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:size}</span>*4}] 10 -text <span class='nx-string'>""</span>]
+        <span class='nx-comment'>#
+</span>        <span class='nx-comment'># Player management (signal which player is next, etc.)
+</span>        <span class='nx-comment'>#
+</span>        <span class='nx-keyword'>set</span> :player 2
+        button .b1 -text <span class='nx-string'>"Done"</span> -command [:callback nextPlayer]
+        <span class='nx-keyword'>set</span> :buttonWindow [.p <span class='nx-keyword'>create</span> window 22 14 -window .b1]
+        :nextPlayer
+        bind . &lt;n&gt; [:callback nextPlayer]
+    }
+}</pre></div></div>
+<div class="paragraph"><p>Finally, create the board and pack it</p></div>
+<div class="listingblock">
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<pre class='nx'>Board <span class='nx-keyword'>new</span> -canvas .p -bg beige -size 40
+pack .p</pre></div></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2013-07-26 02:51:47 IST
+</div>
+</div>
+</body>
+</html>
