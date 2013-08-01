@@ -701,6 +701,7 @@ NSF_PATCH_LEVEL
 NSF_MINOR_VERSION
 NSF_MAJOR_VERSION
 NSF_VERSION
+test_mongodb
 subdirs
 PKG_CFLAGS
 PKG_LIBS
@@ -756,6 +757,7 @@ ac_user_opts='
 enable_option_checking
 with_aolserver3
 with_dtrace
+with_mongodb
 enable_profile
 enable_memcount
 enable_development
@@ -1414,6 +1416,8 @@ Optional Packages:
                           build an AOLserver 3 module; point to directory
                           containing aolsever/include (default: off)
   --with-dtrace           build nsf with dtrace (default: without)
+  --with-mongodb=MONGO_INCLUDE_DIR,MONGO_LIB_DIR
+                          build nsf with mongodb support (default: without)
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files
@@ -2389,6 +2393,14 @@ else
   with_dtrace=no
 fi
 
+
+# Check whether --with-mongodb was given.
+if test "${with_mongodb+set}" = set; then :
+  withval=$with_mongodb; with_mongodb=$withval
+else
+  with_mongodb=no
+fi
+
 # Check whether --enable-profile was given.
 if test "${enable_profile+set}" = set; then :
   enableval=$enable_profile; enable_profile=$enableval
@@ -2426,10 +2438,17 @@ fi
 
 
 subdirs=""
+test_mongodb=""
+
+if ! test "$with_mongodb" = no; then
+   test_mongodb=test-mongdb
+   subdirs="$subdirs library/mongodb"
+fi
 
 test_actiweb=""
 libdirs_actiweb=""
 apps_actiweb=""
+
 
 
 
@@ -10148,7 +10167,7 @@ do
    		mkdir -p $subdir
 		confdir=${srcdir}/$subdir
 	fi
-    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here})
+    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-nsf=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-nsf=${here})
 done
 
 

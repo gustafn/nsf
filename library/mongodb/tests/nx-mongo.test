@@ -1,0 +1,125 @@
+# -*- tcl -*-
+#
+# This is an example how to use the nx mongo mapping.  We show here
+# single class mapped to the mongo db with sing and multivalued
+# scalars together with some querying options.
+#
+# Gustaf Neumann              fecit, April 2011
+#
+package require nx::mongo
+package require nx::test
+#nsf::configure debug 2
+
+# Establish connection to the database
+? {::nx::mongo::db connect -db "tutorial"} mongo:0
+
+# Make sure, we start always from scratch
+
+nx::mongo::db remove tutorial.persons {}
+if {[::mongo::count [::nx::mongo::db cget -mongoConn] tutorial.persons {}] > 0} {
+  # when we create a capped colletion, we have to use "drop collection" to get rid of it.
+  nx::mongo::db drop collection persons
+}
+
+#
+# Create the application class "Person"
+#
+? {
+  nx::mongo::Class create Person {
+    :index name
+    
+    :property name:required
+    :property projects:0..n {set :incremental 1}
+    :property age:integer
+  }
+} ::Person
+
+#
+# Insert a tuple to the database via creating an object, saving and
+# destroying it:
+#
+? { nsf::is object [set p [Person new -name Gustaf -projects {nsf nx nxmongo} -age 53]]} 1
+? { nx::mongo::db is_oid [$p save]} 1
+? { $p destroy; nsf::is object $p} 0
+  
+
+#
+# The insert operation of above can be achieved with less typing via
+# the conveniance method "insert":
+#
+? { nx::mongo::db is_oid [Person insert -name Stefan -projects {nsf nx}]} 1
+? { nx::mongo::db is_oid [Person insert -name Joe -projects abc -age 23]} 1
+? { nx::mongo::db is_oid [Person insert -name Franz -projects {gtat annobackend abc} -age 29]} 1
+
+#
+# Quick check of the results: count all persons and count the persons
+# named Gustaf
+#
+? {Person count} 4
+? {Person count -cond {name = Gustaf}} 1
+
+#
+# Lookup a single Person, create an instance of the object ...
+#
+? {nsf::is object [set p [Person find first -cond {name = Gustaf}]]} 1
+#puts [$p serialize]
+#
+# ... change the age, add an project, and save it.
+#
+? {$p configure -age 55} ""
+? {$p projects add xowiki} "xowiki nsf nx nxmongo"
+? {nx::mongo::db is_oid [$p save]} 1
+? {$p destroy; nsf::is object $p} 0
+
+#
+# Lookup a single Person and create a named object
+#
+? {Person find first -instance p2 -cond {name = Gustaf}} ::p2
+? {lsort [p2 info vars]} "_id age name projects"
+? {p2 destroy; nsf::is object p2} 0
+
+#
+# Test a few queries based on the user-friendly query language defined
+# for the class objects.
+#
+puts "\nProject members of nsf:"
+? {llength [set persons [Person find all -cond {projects = nsf}]]} 2
+? {lsort [lmap p $persons {$p cget -name}]} "Gustaf Stefan"
+
+puts "\nProject members of nsf or gtat:"
+? {llength [set persons [Person find all -cond {projects in {nsf gtat}}]]} 3
+? {lsort [lmap p $persons {$p cget -name}]} "Franz Gustaf Stefan"
+
+puts "\nProject members working on both nsf and nxmongo:"
+? {llength [set persons [Person find all -cond {projects all {nsf nxmongo}}]]} 1
+? {lsort [lmap p $persons {$p cget -name}]} "Gustaf"
+
+puts "\nAll Persons sorted by name (ascending):"
+? {llength [set persons [Person find all -orderby name]]} 4
+? {lmap p $persons {$p cget -name}} "Franz Gustaf Joe Stefan"
+
+puts "\nMembers of Projects != 'abc' nsf sorted by name desc and age:"
+? {llength [set persons [Person find all -cond {projects != "abc"} -orderby {{name desc} age}]]} 2
+? {lmap p $persons {$p cget -name}} "Stefan Gustaf"
+
+puts "\nFind persons age > 30:"
+? {llength [set persons [Person find all -cond {age > 30}]]} 1
+? {lsort [lmap p $persons {$p cget -name}]} "Gustaf"
+
+
+#
+# Define a special find method for "Person" named "oldies" by
+# extending the query interface (add sub-method to ensemble).
+#
+Person public object method "find oldies" {} {
+  return [:find all -cond {age > 30}]
+}
+
+#
+# Use the special find method
+#
+puts "\nFind oldies:"
+? {llength [set persons [Person find oldies]]} 1
+? {lsort [lmap p $persons {$p cget -name}]} "Gustaf"
+
+

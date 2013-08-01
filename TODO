@@ -4712,6 +4712,15 @@ monogodb:
 - tested with mongodb 2.4.5
 
 - added example scripts rosetta-sudoku.{tcl,html} and tk-ludo.{tcl,html}
+
+mongodb:
+- integrated configuration of mongodb into toplevel configfile
+  option: --with-mongodb=MONGO_INCLUDE_DIR,MONGO_LIB_DIR
+- added regression test files for mongodb support
+  (lowlevel (tcl-only) and highlevel (nx based oo support))
+- integrated mongodb-testfiles with "make test"
+- reduced verbosity of nx-mongo.tcl (added verbosty variable)
+
  
 ========================================================================
 TODO:

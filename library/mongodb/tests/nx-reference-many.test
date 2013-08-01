@@ -1,0 +1,164 @@
+# -*- tcl -*-
+#
+# This is an introductory example how to use the nx mongo mapping for
+# referencing some objects. We use here an example of a Group having
+# a (possible compound) users as members.
+#
+# Gustaf Neumann              fecit, May 2011
+#
+package require nx::mongo
+package require nx::test
+
+# Establish connection to the database
+? {::nx::mongo::db connect -db "tutorial"} mongo:0
+
+# Make sure, we start always from scratch
+nx::mongo::db drop collection groups
+nx::mongo::db drop collection members
+
+######################################################################
+# The first approach to implement references simply as multivalued
+# attributes. This is just feasible in cases, where the user has just
+# a name and not more attributes.
+#
+? {nx::mongo::Class create Group {
+  :property name
+  :property members:0..n
+}} ::Group
+
+# Insert entry with the schema of ::Group into the database:
+? { nx::mongo::db is_oid [Group insert -name "grp1" -members {gustaf stefan}]} 1
+
+# Retrieve the entry from the database:
+? {nsf::is object [set g [Group find first -cond {name = "grp1"}]]} 1
+? {$g cget -members} "gustaf stefan"
+
+######################################################################
+# The second approach to implement references to other objects via an
+# property pointing to the object ids of other objects. This is
+# similar to the classical datbase approach. When the object is
+# fetched, the application developer has to care about
+# fetching/dereferencing the referenced objects.
+#
+? {nx::mongo::Class create Member {
+  :property name
+}} ::Member
+? {nx::mongo::Class create Group {
+  :property name
+  :property members:0..n
+}} ::Group
+
+? {nx::mongo::db is_oid [set id1 [Member insert -name gustaf]]} 1
+? {nx::mongo::db is_oid [set id2 [Member insert -name stefan]]} 1
+? {nx::mongo::db is_oid [Group insert -name "grp2" -members [list $id1 $id2]]} 1
+
+# Retrieve the entry from the database:
+? {nsf::is object [set g [Group find first -cond {name = "grp2"}]]} 1
+
+# Obtain the objects with the oids contained in the group
+? {llength [set members [Member find all -cond [list _id in [$g cget -members]]]]} 2
+? {lsort [lmap m $members {$m cget -name}]} "gustaf stefan"
+
+
+######################################################################
+# The third approach is to embed the objects in the referencing
+# document. This might be feasible when the values of the embedded
+# objects seldomly change, When the containing object (the posting) is
+# loaded, the appropriate object structure is created automatically.
+#
+? {nx::mongo::Class create Member {
+  :property name
+}} ::Member
+? {nx::mongo::Class create Group {
+  :property name
+  :property members:embedded,type=::Member,0..n
+}} ::Group
+
+? {nx::mongo::db is_oid [Group insert -name "grp3" \
+			     -members [list \
+					   [Member new -name gustaf] \
+					   [Member new -name stefan]]]} 1
+
+# Retrieve the entry from the database:
+? {nsf::is object [set g [Group find first -cond {name = "grp3"}]]} 1
+? {lsort [lmap m [$g cget -members] {$m cget -name}]} "gustaf stefan"
+
+
+######################################################################
+# The fourth approach is to use mongo db-refs for referencing.  This
+# is similar to approach two, but provides support for dereferencing
+# and maintaining the reference lists.
+#
+? {nx::mongo::Class create Member {
+  :property name
+}} ::Member
+? {nx::mongo::Class create Group {
+  :property name
+  :property members:reference,type=::Member,0..n
+}} ::Group
+
+#
+# Currently, the mongo c-driver does not allow to add DBRefs, since
+# it refuses to accept field names with leading '$'. So we skip this
+# version for the time being.
+#
+? {nx::mongo::db is_oid [Group insert -name "grp4" \
+			     -members [list \
+					   [Member new -name gustaf1] \
+					   [Member new -name stefan2]]]} 1
+# Retrieve the entry from the database:
+? {nsf::is object [set g [Group find first -cond {name = "grp4"}]]} 1
+? {lsort [lmap m [$g cget -members] {$m cget -name}]} "gustaf1 stefan2"
+
+puts stderr "\nContent of collection groups:"
+Group show
+puts stderr "\nContent of collection members:"
+Member show
+
+
+######################################################################
+# Output
+######################################################################
+# Content of collection groups:
+# {
+#     _id: 51fa2ea113760b0000000000, 
+#     name: grp1, 
+#     members: [ gustaf, stefan ]
+# }, {
+#     _id: 51fa2ea113760b0000000003, 
+#     name: grp2, 
+#     members: [ 51fa2ea113760b0000000001, 51fa2ea113760b0000000002 ]
+# }, {
+#     _id: 51fa2ea113760b0000000004, 
+#     name: grp3, 
+#     members: [ { 
+#       name: gustaf }, { 
+#       name: stefan } ]
+# }, {
+#     _id: 51fa2ea113760b0000000007, 
+#     name: grp4, 
+#     members: [ { 
+#       $ref: members, 
+#       $id: 51fa2ea113760b0000000005, 
+#       $db: tutorial }, { 
+#       $ref: members, 
+#       $id: 51fa2ea113760b0000000006, 
+#       $db: tutorial } ]
+# }
+#
+# Content of collection members:
+# {
+#     _id: 51fa2ea113760b0000000001, 
+#     name: gustaf
+# }, {
+#     _id: 51fa2ea113760b0000000002, 
+#     name: stefan
+# }, {
+#     _id: 51fa2ea113760b0000000005, 
+#     name: gustaf1
+# }, {
+#     _id: 51fa2ea113760b0000000006, 
+#     name: stefan2
+# }
+
+

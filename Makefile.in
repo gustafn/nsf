@@ -494,7 +494,14 @@ shell: binaries libraries
 gdb:
 	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
 
-test: binaries libraries test-core test-xotcl test-http @test_actiweb@ test-summary
+test: binaries libraries test-core test-xotcl test-http @test_actiweb@
+	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
+	for dir in $$dirs ; do \
+	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
+	done; fi
+	$(TCLSH) $(src_test_dir_native)/summary.tcl -title NX+XOTcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+
+
 test-nohttp: binaries libraries test-core test-xotcl
 
 TESTLOG   = ./__test.log
@@ -564,6 +571,10 @@ test-actiweb: $(TCLSH_PROG)
 	$(TCLSH) $(xotcl_src_test_dir)/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(xotcl_src_test_dir)/xoRDF.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	@rm -rf receiver
+
+test-mongodb: $(TCLSH_PROG)
+	$(MAKE) $@
+
 
 depend:
 

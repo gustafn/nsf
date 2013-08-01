@@ -1,3 +1,4 @@
+# -*- tcl -*-
 #
 # This is an introductory example how to use the nx mongo mapping for
 # referencing some object. We use here an example of an Posting having
@@ -7,9 +8,10 @@
 # Gustaf Neumann              fecit, May 2011
 #
 package require nx::mongo
+package require nx::test
 
 # Establish connection to the database
-::nx::mongo::db connect -db "tutorial"
+? {::nx::mongo::db connect -db "tutorial"} mongo:0
 
 # Make sure, we start always from scratch
 nx::mongo::db drop collection users
@@ -21,16 +23,18 @@ nx::mongo::db drop collection posts
 # This is just feasible in cases, where the user has just a name and
 # not more attributes.
 #
-nx::mongo::Class create Post {
+? {nx::mongo::Class create Post {
   :property title
   :property user
-}
+}} ::Post
 
-Post insert -title "Hello trivial World" -user smith
+# Insert entry with the schema of ::Post into the database:
+? {nx::mongo::db is_oid [Post insert -title "Hello trivial World" -user smith] } 1
 
 # Retrieve the entry from the database:
-set p [Post find first -cond {title = "Hello trivial World"}]
-puts stderr "Name of user: [$p cget -user]\n"
+? {nsf::is object [set p [Post find first -cond {title = "Hello trivial World"}]]} 1
+? {$p cget -user} smith
+? {$p destroy; nsf::is object $p} 0
 
 ######################################################################
 # The second approach to implement references to other objects via an
@@ -39,96 +43,104 @@ puts stderr "Name of user: [$p cget -user]\n"
 # application developer has to care about fetching/dereferencing the
 # referenced object.
 #
-nx::mongo::Class create User {
+? {nx::mongo::Class create User {
   :property name
-}
-nx::mongo::Class create Post {
+}} ::User
+? {nx::mongo::Class create Post {
   :property title
   :property user_id
-}
+}} ::Post
 
 # The method "insert" returns the object id of the newly created
 # object. We can use this value as a reference in the Post.
-set uid [User insert -name Smith]
-Post insert -title "Hello simple World" -user_id $uid
+? {nx::mongo::db is_oid [set oid [User insert -name Smith]]} 1
+? {nx::mongo::db is_oid [Post insert -title "Hello simple World" -user_id $oid]} 1
 
 # Retrieve the entry from the database:
-set p [Post find first -cond {title = "Hello simple World"}]
-set u [User find first -cond [list _id = [$p cget -user_id]]]
-puts stderr "Name of user: [$u cget -name]\n"
+? {nsf::is object [set p [Post find first -cond {title = "Hello simple World"}]]} 1
+? {nsf::is object [set u [User find first -cond [list _id = [$p cget -user_id]]]]} 1
+? {$u cget -name} "Smith"
 
 ######################################################################
 # The third approach is to embed the object in the referencing
 # document. This might be feasible when the values of the embedded
-# objects seldomly change, When the containing object (the posting) is
-# loaded, the appropriate object structure is created automatically.
+# objects seldomly change, When the containing object (the Post
+# instance) is loaded, the appropriate object structure is created
+# automatically.
 #
-nx::mongo::Class create User {
+? {nx::mongo::Class create User {
   :property name
-}
-nx::mongo::Class create Post {
+}} ::User
+? {nx::mongo::Class create Post {
   :property title
   :property user:embedded,type=::User
-}
+}} ::Post
 
-Post insert -title "Hello embedded World" -user [User new -name Smith]
+? {nx::mongo::db is_oid [Post insert -title "Hello embedded World" -user [User new -name Smith]]} 1
 
 # Retrieve the entry from the database:
-set p [Post find first -cond {title = "Hello embedded World"}]
-puts stderr "Name of user: [[$p cget -user] cget -name]\n"
+? {nsf::is object [set p [Post find first -cond {title = "Hello embedded World"}]]} 1
+? {[$p cget -user] cget -name} "Smith"
 
 ######################################################################
 # The fourth approach is to use mongo db-refs for referencing.  This
 # is similar to approach two, but provides support for dereferencing
 # and maintaining the reference lists.
 #
-nx::mongo::Class create User {
+? {nx::mongo::Class create User {
   :property name
-}
-nx::mongo::Class create Post {
+}} ::User
+? {nx::mongo::Class create Post {
   :property title
   :property user:reference,type=::User
-}
+}} ::Post
 
-if {0} {
-  #
-  # Currently, the mongo c-driver does not allow to add DBRefs, since
-  # it refuses to accept field names with leading '$'. So we skip this
-  # version for the time being.
-  #
-  Post insert -title "Hello referenced World" -user [User new -name Smith]
+? {nx::mongo::db is_oid [Post insert -title "Hello referenced World" -user [User new -name SmithR]]} 1
 
-  # Retrieve the entry from the database:
-  set p [Post find first -cond {title = "Hello referenced World"}]
+# Retrieve the entry from the database:
+? {nsf::is object [set p [Post find first -cond {title = "Hello referenced World"}]]} 1
+? {[$p cget -user] cget -name} SmithR
   
-  puts stderr "Name of user: [[$p cget -user] cget -name]\n"
-  
-  puts stderr "Content of the collection groups:"
-  Post show
-}
+
+puts stderr "\nContent of the collection posts:"
+Post show
+
+puts stderr "\nContent of the collection users:"
+User show
 ######################################################################
 # Output
 ######################################################################
 
-# Content of the collection groups:
+# Content of the collection posts:
+# Content of the collection posts:
 # {
-#     _id: 4daae48056b77f0e00000000, 
+#     _id: 51fa2f29cb562e0000000000, 
 #     title: {Hello trivial World}, 
 #     user: smith
 # }, {
-#     _id: 4daae48056b77f0e00000002, 
+#     _id: 51fa2f29cb562e0000000002, 
 #     title: {Hello simple World}, 
-#     user_id: 4daae48056b77f0e00000001
+#     user_id: 51fa2f29cb562e0000000001
 # }, {
-#     _id: 4daae48056b77f0e00000003, 
+#     _id: 51fa2f29cb562e0000000003, 
 #     title: {Hello embedded World}, 
 #     user: { 
 #       name: Smith }
 # }, {
-#     _id: 4daae48056b77f0e00000005, 
+#     _id: 51fa2f29cb562e0000000005, 
 #     title: {Hello referenced World}, 
 #     user: { 
 #       $ref: users, 
-#       $id: 4daae48056b77f0e00000004, 
+#       $id: 51fa2f29cb562e0000000004, 
 #       $db: tutorial }
 # }
+# 
+# Content of the collection users:
+# {
+#     _id: 51fa2f29cb562e0000000001, 
+#     name: Smith
+# }, {
+#     _id: 51fa2f29cb562e0000000004, 
+#     name: SmithR
+# }
+# 

@@ -5,7 +5,7 @@
 #
 package require nx
 package require nsf::mongo
-package provide nx::mongo 0.3
+package provide nx::mongo 0.4
 
 # todo: how to handle multiple connections; currently we have a single, global connection
 # todo: all references are currently auto-fetched. make this optional
@@ -20,8 +20,11 @@ package provide nx::mongo 0.3
 
 namespace eval ::nx::mongo {
 
+  set ::nx::mongo::log 1
+
   ::nx::Object create ::nx::mongo::db {
     :object property db
+    :object property mongoConn
     :public object method connect {{-db test} args} {
       set :db $db
       set :mongoConn [::mongo::connect {*}$args]
@@ -35,6 +38,7 @@ namespace eval ::nx::mongo {
     :public object method "drop collection" {name} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list drop string $name]}
     :public object method "drop database" {} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list dropDatabase integer 1]}
     :public object method "reset error" {} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list reseterror integer 1]}
+    :public object method is_oid  {string} {expr {[string length $string] == 24}}
   }
   
   #######################################################################
@@ -43,6 +47,15 @@ namespace eval ::nx::mongo {
   ::nx::MetaSlot create ::nx::mongo::Attribute -superclass ::nx::VariableSlot {
     :property mongotype
     
+    #
+    # manage logging of mongo concerns
+    #
+    :public method log {msg} {
+      if {$::nx::mongo::log} {
+	nsf::log notice "mongo-attribute: $msg"
+      }
+    }
+
     :protected method init {} {
       #
       # If the mongotype was not provided, set it to a value derived
@@ -107,10 +120,14 @@ namespace eval ::nx::mongo {
 	error "value to be dereferenced does not contain dbref id: $value"
       }
       if {[info exists (db)]} {
-	if {$(db) ne [$class mongo_db]} {error "$(db) is different to [$class mongo_db]"}
+	if {$(db) ne [$class cget -mongo_db]} {
+	  error "$(db) is different to [$class cget -mongo_db]"
+	}
       }
       if {[info exists (ref)]} {
-	if {$(ref) ne [$class mongo_collection]} {error "$(ref) is different to [$class mongo_collection]"}
+	if {$(ref) ne [$class cget -mongo_collection]} {
+	  error "$(ref) is different to [$class cget -mongo_collection]"
+	}
       }
       return [$class find first -cond [list _id = $(id)]]
     }
@@ -120,15 +137,15 @@ namespace eval ::nx::mongo {
 	return [list object [$value bson encode]]
       } elseif {${:mongotype} eq "referenced_object"} {
 	if {![::nsf::var::exists $value _id]} {
-	  puts stderr "autosave $value to obtain an object_id"
+	  :log "autosave $value to obtain an object_id"
 	  $value save
 	}
 	set _id [$value cget -_id]
 	set cls [$value info class]
 	return [list object [list \
-				 {$ref} string [$cls mongo_collection] \
+				 {$ref} string [$cls cget -mongo_collection] \
 				 {$id} oid $_id \
-				 {$db} string [$cls mongo_db]]]
+				 {$db} string [$cls cget -mongo_db]]]
       } else {
 	return [list ${:mongotype} $value]
       }
@@ -219,7 +236,6 @@ namespace eval ::nx::mongo {
     # (property name or operator name) internal representations
     # (eg. mongo type, or mongo operator).
     #
-    
     :method "get slot" {att} {
       set classes [concat [self] [:info mixin classes] [:info heritage]]
       foreach cls $classes {
@@ -416,7 +432,7 @@ namespace eval ::nx::mongo {
 		       [:bson query -cond $cond -orderby $orderby] \
 		       -atts [:bson atts $atts] \
 		       {*}$opts]
-      puts "[join $fetched \n]"
+      #puts "[join $fetched \n]"
       foreach tuple $fetched {
 	lappend result [:bson create $tuple]
       }
@@ -484,6 +500,15 @@ namespace eval ::nx::mongo {
   ::nx::Class create ::nx::mongo::Object {
     
     #
+    # manage logging of mongo concerns
+    #
+    :public method log {msg} {
+      if {$::nx::mongo::log} {
+	nsf::log notice "mongo: $msg"
+      }
+    }
+
+    #
     # _id is the special property maintained by mongoDB
     #
     :property -class ::nx::mongo::Attribute _id  {
@@ -512,7 +537,7 @@ namespace eval ::nx::mongo {
       if {[array exists :__contains]} {
 	# destroy embedded object
 	foreach o [array names :__contains] {
-	  puts "[self] contains $o -> destroy"
+	  :log "[self] contains $o -> destroy"
 	  $o destroy
 	}
       }
@@ -527,7 +552,6 @@ namespace eval ::nx::mongo {
     # delete the current object from the db
     #
     :public method delete {} {
-      puts stderr "[self] delete"
       if {[info exists :__embedded_in]} {
 	# When an embedded object is deleted, it is removed for the
 	# reference list. The containing object is not automatically
@@ -539,19 +563,19 @@ namespace eval ::nx::mongo {
 	if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
 	$slot remove $parent [self]
 	#puts stderr [:serialize]
-	puts stderr "[self] must save parent $parent in db"
+	:log "[self] must save parent $parent in db"
 	:destroy
       } elseif {[info exists :__referenced_in]} {
 	# When a referenced is deleted, we do for now essentially the
 	# same as for embedded objects. However, the same object might
 	# be referenced by several objects.
-	puts "[self] is referenced in ${:__referenced_in}"
+	#puts "[self] is referenced in ${:__referenced_in}"
 	foreach reference ${:__referenced_in} {
 	  lassign $reference parent att
 	  set slot [[$parent info class] get slot $att]
 	  if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
 	  $slot remove $parent [self]
-	  puts stderr "[self] must save parent $parent in db"
+	  :log "[self] must save parent $parent in db"
 	}
 	:destroy
       } else {
@@ -578,10 +602,11 @@ namespace eval ::nx::mongo {
       } else {
 	set bson [:bson encode]
 	if {[info exists :_id]} {
-	  puts stderr "we have to update [[:info class] bson pp -indent 4 $bson]"
+	  :log "we have to update [[:info class] bson pp -indent 4 $bson]"
 	  ::nx::mongo::db update $mongo_ns [list _id oid ${:_id}] $bson
+	  set :_id
 	} else {
-	  puts stderr "we have to insert [[:info class] bson pp -indent 4 $bson]"
+	  :log "we have to insert [[:info class] bson pp -indent 4 $bson]"
 	  set r [::nx::mongo::db insert $mongo_ns $bson]
 	  set :_id [lindex $r 2]
 	}

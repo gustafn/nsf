@@ -35,11 +35,11 @@ AC_CONFIG_AUX_DIR(../../config)
 #--------------------------------------------------------------------
 # specify some extra flags
 #--------------------------------------------------------------------
-AC_ARG_WITH(mongo,
-        [  --with-mongo=MONGO_INCLUDE_DIR[,MONGO_LIB_DIR]
+AC_ARG_WITH(mongodb,
+        [  --with-mongodb=MONGO_INCLUDE_DIR[,MONGO_LIB_DIR]
             absolute path to bson.h and optionally the path to the library, 
-           --without-mongo disables build of the mongo interface],
-        [with_mongo=$withval], [with_mongo=no])
+           --without-mongodb disables build of the mongo interface],
+        [with_mongodb=$withval], [with_mongodb=no])
 
 AC_ARG_WITH(nsf,
         [  --with-nsf=DIR_CONTAINING_NSFCONFIG_SH
@@ -86,9 +86,9 @@ TEA_SETUP_COMPILER
 # This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
-if test ! "${with_mongo}" = no; then
-        MONGO_INC_DIR="`echo $with_mongo |cut -f1 -d,`"
-        MONGO_LIB_DIR="`echo $with_mongo |cut -f2 -d, -s`"
+if test ! "${with_mongodb}" = no; then
+        MONGO_INC_DIR="`echo $with_mongodb |cut -f1 -d,`"
+        MONGO_LIB_DIR="`echo $with_mongodb |cut -f2 -d, -s`"
 fi
 if test -z "$MONGO_INC_DIR" ; then
         gdbm_h_ok=1

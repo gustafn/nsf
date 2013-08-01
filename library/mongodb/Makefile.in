@@ -219,8 +219,19 @@ install-doc: doc
 #	    $(INSTALL_DATA) $$i $(DESTDIR)$(mandir)/mann ; \
 #	done
 
+TESTLOG   = ./__test.log
+TESTFLAGS = -testlog $(TESTLOG)
+
 test: binaries libraries
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` $(TESTFLAGS)
+	rm -f $(TESTLOG)
+	$(TCLSH) $(srcdir)/tests/nsf-mongo.test -libdir . $(TESTFLAGS)
+	$(TCLSH) $(srcdir)/tests/nsf-gridfs.test -libdir . $(TESTFLAGS)
+	$(TCLSH) $(srcdir)/tests/nx-bi.test -libdir . $(TESTFLAGS)
+	$(TCLSH) $(srcdir)/tests/nx-mongo.test -libdir . $(TESTFLAGS)
+	$(TCLSH) $(srcdir)/tests/nx-reference-one.test -libdir . $(TESTFLAGS)
+	$(TCLSH) $(srcdir)/tests/nx-reference-many.test -libdir . $(TESTFLAGS)
+	$(TCLSH) $(srcdir)/../../tests/summary.tcl -title MongoDB -libdir . $(TESTFLAGS)
+
 
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)

@@ -1,5 +1,7 @@
+# -*- tcl -*-
+#
 # An example for the usage of the nx mongo object mapping based on the
-# the real world 
+# the real world
 #
 #      "Business Insider" Data Model 
 #

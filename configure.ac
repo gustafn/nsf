@@ -37,6 +37,10 @@ AC_ARG_WITH(aolserver3,
 AC_ARG_WITH(dtrace,
 	AC_HELP_STRING([--with-dtrace], [build nsf with dtrace (default: without)]),
         [with_dtrace=$withval], [with_dtrace=no])
+AC_ARG_WITH(mongodb,
+	AC_HELP_STRING([--with-mongodb=MONGO_INCLUDE_DIR[,MONGO_LIB_DIR]], 
+		[build nsf with mongodb support (default: without)]),
+        	[with_mongodb=$withval], [with_mongodb=no])
 AC_ARG_ENABLE(profile,
 	AC_HELP_STRING([--enable-profile], [build nsf with profile support (default: disabled)]),
         [enable_profile=$enableval], [enable_profile=no])
@@ -58,12 +62,19 @@ AC_ARG_ENABLE(assemble,
         [enable_assemble=$enableval], [enable_assemble=no])
 
 subdirs=""
+test_mongodb=""
+
+if ! test "$with_mongodb" = no; then
+   test_mongodb=test-mongdb
+   subdirs="$subdirs library/mongodb"
+fi
 
 test_actiweb=""
 libdirs_actiweb=""
 apps_actiweb=""
 
 AC_SUBST(subdirs)
+AC_SUBST(test_mongodb)
 
 
 #--------------------------------------------------------------------
@@ -443,7 +454,7 @@ do
    		mkdir -p $subdir
 		confdir=${srcdir}/$subdir
 	fi
-    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here})
+    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-nsf=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-nsf=${here})
 done
 
 

@@ -670,7 +670,7 @@ NsfMongoIndex(Tcl_Interp *interp,
   /* TODO: examples in mongo-client do not touch out; do we have to do
      something about it? */
 
-  Tcl_SetObjResult(interp, Tcl_NewBooleanObj(success));
+  Tcl_SetObjResult(interp, Tcl_NewBooleanObj(success == MONGO_OK));
   return TCL_OK;
 }
 
@@ -821,7 +821,7 @@ cmd insert NsfMongoUpdate {
 static int 
 NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, 
 	       Tcl_Obj *conditionObj, Tcl_Obj *valuesObj, int withUpsert, int withAll) {
-  int objc, result, options = 0;
+  int objc, result, mongorc, options = 0;
   Tcl_Obj **objv;
   bson cond[1], values[1];
 
@@ -844,8 +844,10 @@ NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
   if (withAll) {options |= 2;}
 
   /* for the time being, no write_concern (last arg of mongo_update()) */
-  mongo_update(connPtr, namespace, cond, values, options, NULL);
-  
+  mongorc = mongo_update(connPtr, namespace, cond, values, options, NULL);
+
+  Tcl_SetObjResult(interp, Tcl_NewBooleanObj(mongorc == MONGO_OK));
+ 
   return TCL_OK;
 }
 

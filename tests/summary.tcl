@@ -4,6 +4,7 @@
 # end of the regression test. It aggreates the content of the test log
 # provided via arg "-testlog".
 
+array set opt {-title ""}
 array set opt $::argv
 
 if {[info exists opt(-testlog)]} {
@@ -20,13 +21,12 @@ if {[info exists opt(-testlog)]} {
     }
   }
 
-  puts "\nRegression Test Summary:"
+  puts "\nRegression Test Summary of $opt(-title):"
   puts "\tEnvironment: Tcl $tcl_patchLevel, OS $tcl_platform(os) $tcl_platform(osVersion)\
 	machine $tcl_platform(machine) threaded [info exists tcl_platform(threaded)]."
   puts "\tNSF performed $tests tests in $files files, success $success, failures $failures in [expr {$ms / 1000.0}] seconds"
   if {$failures == 0} {
-    puts "\tCongratulations, NSF [package require nsf], NX [package require nx], and\
-	XOTcl [package require XOTcl 2] work fine in your environment."
+    puts "\tCongratulations, all tests of $opt(-title) passed in your installation of NSF [package req nsf]"
   }
   puts ""
 }

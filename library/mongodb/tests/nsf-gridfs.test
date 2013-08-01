@@ -1,0 +1,119 @@
+# -*- tcl -*-
+#
+# This test suite tests some basic interactions from the nsf mongo
+# interface with gridFS. It connects to mongoDB, opens a GridFS named
+# "myfs" and inserts a file into the file systems.  Run the script
+# with the current directory of nsfmongo, such it can find the README
+# file.
+#
+# After running the script, one can use the following command to
+# inspect the content in the GridFS via the mongo shell
+#
+#    $ mongo
+#    > use myfs
+#    > show collections
+#    > db.fs.files.find()
+#
+# or via the mongofiles interface:
+#
+#    $ mongofiles -d myfs list
+#
+
+package require nx::test
+package require nsf::mongo
+
+#
+# First, as usual, open the connection to the mongo db
+#
+? {set mongoConn [::mongo::connect]} mongo:0
+
+#
+# Open a GridFS in the mongo datbase "myfs" and use the usual prefix
+# "fs", such GridFS names the collections "fs.chunks" and "fs.files".
+#
+? {set gridFS [::mongo::gridfs::open $mongoConn myfs fs]} gridfs:0
+
+
+set fn README
+# gridfs::remove_file removes all files with the specified name
+# multiple store operations create "revisions" with different uploadDates
+::mongo::gridfs::remove_file $gridFS $fn
+
+# make sure, nothing else is stored there.
+::mongo::remove $mongoConn myfs.fs.files {}
+
+#
+# The current version of gridfs_store_file() is quite unfriendly,
+# since it assumes that the file exists, and aborts otherwise. So, we
+# perform the existence test here. 
+#
+# Store a known file:
+#
+? {::mongo::gridfs::store_file $gridFS $fn $fn text/plain} 1
+
+#
+# Open a grid file, get some of its properties, and read it in chunks
+# of 500 bytes, and close it finally.
+#
+? {set f [mongo::gridfile::open $gridFS README]} gridfile:0
+? {mongo::gridfile::get_metadata $f} ""
+? {mongo::gridfile::get_contentlength $f} 5611
+? {mongo::gridfile::get_contenttype $f} text/plain
+? {
+  set chunks 0
+  while {1} {
+    set chunk [mongo::gridfile::read $f 500]
+    if {[string length $chunk] < 500} {
+      break
+    }
+    incr chunks
+  }
+  set chunks
+} 11
+? {mongo::gridfile::close $f} ""
+
+#
+# Access the files stored in the gridfs via plain query interface.
+# (should be just one)
+puts "\nAll Files:"
+? {llength [::mongo::query $mongoConn myfs.fs.files {}]} 1
+
+#
+# Get the file named README from the gridfs via plain query interface
+#
+? {set files [::mongo::query $mongoConn myfs.fs.files \
+		  [list \$query object {filename string README}] \
+		  -limit 1]
+  llength [lindex $files 0]
+} 24
+
+#
+# Extract the oid from the bson attributes
+#
+? {
+  foreach {name type value} [lindex $files 0] {
+    if {$name eq "_id"} {set oid $value; break}
+  }
+  expr {$oid ne ""}
+} 1
+
+#
+# Add a dc:creator to the bson attributes 
+# and update the entry in the gridfs
+#
+? {::mongo::update $mongoConn myfs.fs.files [list _id oid $oid] \
+       [concat [lindex $files 0] [list metadata object {dc:creator string "Gustaf Neumann"}]]
+} 1
+#
+# Now we can use the gridfs interface to obtain the additional
+# metadata as well
+#
+set f [mongo::gridfile::open $gridFS README]
+? {mongo::gridfile::get_metadata $f} "dc:creator string {Gustaf Neumann}"
+mongo::gridfile::close $f
+
+#
+# close everything
+#
+::mongo::gridfs::close $gridFS
+::mongo::close $mongoConn
