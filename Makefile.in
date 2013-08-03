@@ -240,6 +240,7 @@ EXAMPLE_SCRIPTS = \
 	$(src_doc_dir)/example-scripts/tk-horse-race.html \
 	$(src_doc_dir)/example-scripts/tk-locomotive.html \
 	$(src_doc_dir)/example-scripts/tk-ludo.html \
+	$(src_doc_dir)/example-scripts/tk-geo.html \
 	$(src_doc_dir)/example-scripts/tk-mini.html \
 	$(src_doc_dir)/example-scripts/tk-spread.html \
 	$(src_doc_dir)/example-scripts/traits-composite.html \
@@ -571,10 +572,6 @@ test-actiweb: $(TCLSH_PROG)
 	$(TCLSH) $(xotcl_src_test_dir)/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(xotcl_src_test_dir)/xoRDF.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	@rm -rf receiver
-
-test-mongodb: $(TCLSH_PROG)
-	$(MAKE) $@
-
 
 depend:
 
