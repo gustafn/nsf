@@ -203,6 +203,7 @@ install-libraries: libraries
 		$(INSTALL_DATA) $(srcdir)/$$i $(DESTDIR)$(includedir) ; \
 	done; \
 	fi
+	$(INSTALL_DATA) $(srcdir)/nx-mongo.tcl $(DESTDIR)$(pkglibdir)
 
 #========================================================================
 # Install documentation.  Unix manpages should go in the $(mandir)

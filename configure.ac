@@ -62,7 +62,6 @@ AC_ARG_ENABLE(assemble,
         [enable_assemble=$enableval], [enable_assemble=no])
 
 subdirs=""
-test_mongodb=""
 
 if ! test "$with_mongodb" = no; then
    test_mongodb=test-mongdb
@@ -74,7 +73,6 @@ libdirs_actiweb=""
 apps_actiweb=""
 
 AC_SUBST(subdirs)
-AC_SUBST(test_mongodb)
 
 
 #--------------------------------------------------------------------
