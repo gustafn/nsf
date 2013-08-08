@@ -261,7 +261,7 @@ TestX assertions -proc run {{n 20}} {
     a set x 1
     a check all
   }
-  ::errorCheck $err {assertion failed check: {$x == 1} in proc 'xTo2'} \
+  ::errorCheck $err {assertion failed check: {$x == 1} in proc 'set'} \
     "inheritance a xTo2"
 
   if {![catch {a yTo2} err]} {
@@ -280,7 +280,7 @@ TestX assertions -proc run {{n 20}} {
     b set x 1
     b check all
   }
-  ::errorCheck $err {assertion failed check: {$x == 1} in proc 'xTo2'} \
+  ::errorCheck $err {assertion failed check: {$x == 1} in proc 'set'} \
     "inheritance b xTo2"
 
   if {![catch {b yTo2} err]} {

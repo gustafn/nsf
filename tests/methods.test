@@ -1090,6 +1090,9 @@ nx::test case assertion-swallows-result {
     :public method foo {} {
       :configure -xxx 1
     }
+    :public method bar {} {
+      :configure -xxx 1
+    } -postcondition {{1 == 0}}
     :create e1
   }
 
@@ -1097,10 +1100,19 @@ nx::test case assertion-swallows-result {
   ? {catch {e1 foo} errMsg} 1
   ? {string match "invalid non-positional*" $errMsg} 1
 
+  ? {catch {e1 bar} errMsg} 1
+  ? {string match "invalid non-positional*" $errMsg} 1
+
+
   # turn on assertion checking
   nsf::method::assertion e1 check all
 
-  # still report error
+  # still report error when invariant would not return error
   ? {catch {e1 foo} errMsg} 1
   ? {string match "invalid non-positional*" $errMsg} 1
+
+  # still report error when postcondition would not return error
+  ? {catch {e1 bar} errMsg} 1
+  ? {string match "invalid non-positional*" $errMsg} 1
+
 }

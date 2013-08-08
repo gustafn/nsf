@@ -9403,14 +9403,9 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 	  cscPtr->flags, (cscPtr->flags & NSF_CSC_CALL_IS_NRE), pcPtr, result);*/
 
 #if defined(NSF_WITH_ASSERTIONS)
-  if (unlikely(opt && object->teardown && (opt->checkoptions & CHECK_POST))) {
-    int rc;
-    /*
-     * Even, when the returned result != TCL_OK, run assertion to report
-     * the highest possible method from the call-stack (e.g. "set" would not
-     * be very meaningful; however, do not flush a TCL_ERROR.
-     */
-    rc = AssertionCheck(interp, object, cscPtr->cl, data[2], CHECK_POST);
+  if (unlikely(opt && object->teardown && (opt->checkoptions & CHECK_POST)) 
+      && likely(result == TCL_OK)) {
+    int rc = AssertionCheck(interp, object, cscPtr->cl, data[2], CHECK_POST);
     if (rc != TCL_OK) {
       result = rc;
     }
@@ -9694,7 +9689,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   }
 
 #if defined(NSF_WITH_ASSERTIONS)
-  if (unlikely(object->opt != NULL)) {
+  if (unlikely(object->opt != NULL) && likely(result == TCL_OK)) {
     CheckOptions co = object->opt->checkoptions;
     if ((co & CHECK_INVAR)) {
       int rc = AssertionCheckInvars(interp, object, Tcl_GetCommandName(interp, cmd), co);
