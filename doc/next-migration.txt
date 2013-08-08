@@ -2706,7 +2706,7 @@ Next Scripting primitive +nsf::method::assertion+.
 ----------------
 |[source,tcl]
 ----------------
-::nsf::method::assertion /obj/ check /checkptions/
+::nsf::method::assertion /obj/ check /checkoptions/
 ----------------
 |[source,tcl]
 ----------------
