@@ -9398,9 +9398,9 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   NsfObjectOpt *opt = object->opt;
 #endif
 
-  /*fprintf(stderr, "ProcMethodDispatchFinalize %s %s flags %.6x isNRE %d pcPtr %p\n",
+  /*fprintf(stderr, "ProcMethodDispatchFinalize %s %s flags %.6x isNRE %d pcPtr %p result %d\n",
 	  ObjectName(object), methodName,
-	  cscPtr->flags, (cscPtr->flags & NSF_CSC_CALL_IS_NRE), pcPtr);*/
+	  cscPtr->flags, (cscPtr->flags & NSF_CSC_CALL_IS_NRE), pcPtr, result);*/
 
 #if defined(NSF_WITH_ASSERTIONS)
   if (unlikely(opt && object->teardown && (opt->checkoptions & CHECK_POST))) {
@@ -9411,7 +9411,7 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
      * be very meaningful; however, do not flush a TCL_ERROR.
      */
     rc = AssertionCheck(interp, object, cscPtr->cl, data[2], CHECK_POST);
-    if (result == TCL_OK) {
+    if (rc != TCL_OK) {
       result = rc;
     }
   }
@@ -9697,7 +9697,11 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   if (unlikely(object->opt != NULL)) {
     CheckOptions co = object->opt->checkoptions;
     if ((co & CHECK_INVAR)) {
-      result = AssertionCheckInvars(interp, object, Tcl_GetCommandName(interp, cmd), co);
+      int rc = AssertionCheckInvars(interp, object, Tcl_GetCommandName(interp, cmd), co);
+
+      if (rc != TCL_OK) {
+	result = rc;
+      }
     }
   }
 #endif

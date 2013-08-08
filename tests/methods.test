@@ -1083,3 +1083,24 @@ nx::test case xotcl-COPY {
   ? {E create e1} ::e1
   ? {e1 bar} bar
 }
+
+nx::test case assertion-swallows-result {
+
+  nx::Class create Edge {
+    :public method foo {} {
+      :configure -xxx 1
+    }
+    :create e1
+  }
+
+  # base case
+  ? {catch {e1 foo} errMsg} 1
+  ? {string match "invalid non-positional*" $errMsg} 1
+
+  # turn on assertion checking
+  nsf::method::assertion e1 check all
+
+  # still report error
+  ? {catch {e1 foo} errMsg} 1
+  ? {string match "invalid non-positional*" $errMsg} 1
+}

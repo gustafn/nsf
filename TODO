@@ -4721,6 +4721,9 @@ mongodb:
 - integrated mongodb-testfiles with "make test"
 - reduced verbosity of nx-mongo.tcl (added verbosty variable)
 
+nsf.c
+- fixed a bug where turning on assertions could swallow result-codes
+- extended regression test
  
 ========================================================================
 TODO:
