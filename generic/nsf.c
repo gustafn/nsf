@@ -5737,7 +5737,7 @@ AssertionNewList(Tcl_Interp *interp, Tcl_Obj *aObj) {
   Tcl_Obj **ov; int oc;
   NsfTclObjList *last = NULL;
 
-  if (Tcl_ListObjGetElements(interp, aObj, &oc, &ov) == TCL_OK) {
+  if (aObj && Tcl_ListObjGetElements(interp, aObj, &oc, &ov) == TCL_OK) {
     if (oc > 0) {
       int i;
       for (i = oc - 1; i >= 0; i--) {
