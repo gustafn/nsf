@@ -19999,6 +19999,11 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj
     break;
 
   case AssertionsubcmdClass_invarIdx:
+
+    if (!NsfObjectIsClass(object)) {
+      return NsfPrintError(interp, "object is not a class");
+    }
+
     class = (NsfClass *)object;
     if (arg) {
       NsfClassOpt *opt = NsfRequireClassOpt(class);
@@ -21427,7 +21432,8 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 
   case CurrentoptionClassIdx: /* class subcommand */
     cscPtr = CallStackGetTopFrame0(interp);
-    Tcl_SetObjResult(interp, cscPtr->cl ? cscPtr->cl->object.cmdName : NsfGlobalObjs[NSF_EMPTY]);
+    Tcl_SetObjResult(interp, cscPtr && cscPtr->cl ? 
+		     cscPtr->cl->object.cmdName : NsfGlobalObjs[NSF_EMPTY]);
     break;
 
   case CurrentoptionActivelevelIdx:
@@ -21439,14 +21445,19 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     Tcl_Obj **nobjv;
 
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
-    if (cscPtr->objv) {
-      nobjc = cscPtr->objc;
-      nobjv = (Tcl_Obj **)cscPtr->objv;
+
+    if (cscPtr) {
+      if (cscPtr->objv) {
+	nobjc = cscPtr->objc;
+	nobjv = (Tcl_Obj **)cscPtr->objv;
+      } else {
+	nobjc = Tcl_CallFrame_objc(framePtr);
+	nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(framePtr);
+      }
+      Tcl_SetObjResult(interp, Tcl_NewListObj(nobjc-1, nobjv+1));
     } else {
-      nobjc = Tcl_CallFrame_objc(framePtr);
-      nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(framePtr);
+      return NsfPrintError(interp,  "can't find proc");
     }
-    Tcl_SetObjResult(interp, Tcl_NewListObj(nobjc-1, nobjv+1));
     break;
   }
 

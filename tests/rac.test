@@ -1,0 +1,523 @@
+# -*- Tcl -*-
+#
+# Exploratory tests on run-time assertion checking (RAC)
+#
+# stefan.sobernig@wu.ac.at
+#
+# Conceptual baseline is the Eiffel Spec (ECMA Standard 367, 2nd ed.,
+# 2006)
+# 
+# see
+# http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-367.pdf
+#
+
+package require nx::test
+
+nx::Class create Sensor {
+  :property -accessor public {value:integer 1}
+}
+
+set invar [list {[regexp {^[0-9]$} ${:value}] == 1}]
+
+::nsf::method::assertion Sensor class-invar $invar
+
+? {::nsf::method::assertion Sensor class-invar} $invar
+
+#
+# Minimal object interface to ::nsf::method::assertion
+#
+
+#
+# TODO: This should not be ::nx::VariableSlot below, but
+# ::nx::ObjectParameterSlot mixes alias + slotassign.
+#
+
+::nx::VariableSlot create ::nx::Object::slot::object-invariant {
+  :public object method get {obj prop} {
+    ::nsf::method::assertion $obj object-invar
+  }
+
+  :public object method assign {obj prop value} {
+    ::nsf::method::assertion $obj object-invar $value
+  }
+}
+
+::nx::VariableSlot create ::nx::Class::slot::invariant {
+  :public object method get {cls prop} {
+    ::nsf::method::assertion $cls class-invar
+  }
+
+  :public object method assign {cls prop value} {
+    ::nsf::method::assertion $cls class-invar $value
+  }
+}
+
+? {Sensor cget -invariant} $invar 
+
+? {::nsf::method::assertion Sensor class-invar} $invar
+
+? {Sensor configure -invariant ""} ""
+
+? {Sensor cget -invariant} ""
+
+? {::nsf::method::assertion Sensor class-invar} ""
+
+? {Sensor configure -invariant $invar} ""
+
+? {Sensor cget -invariant} $invar 
+
+? {::nsf::method::assertion Sensor class-invar} $invar
+
+Sensor create s1
+
+? {s1 cget -object-invariant} ""
+
+? {s1 configure -object-invariant $invar} ""
+
+? {s1 cget -object-invariant} $invar
+
+? {s1 configure -object-invariant ""} ""
+
+
+#
+# TODO: re-position -pre-condition, to appear before the method
+# body. This would ease reading.
+#
+#
+# TODO: Why is there a firm requirement to provide a post-condition,
+# when defining a pre-condition (they are non-positional
+# parameters in NX)?
+#
+# --> because of XOTcl2 legacy interface? 
+# i.e.: precondition:optional postcondition:optional
+#
+
+
+Sensor public method incrValue {} {
+  incr :value
+} -precondition {
+  {[set ::ARGS [nsf::current args]] eq "run {bar 1 2 3}"}
+  {# pre-condition:} 
+  {${:value} > 0}
+} -postcondition {
+  {[puts stderr POST=${:value}] eq ""}
+  {# post-condition:} 
+  {${:value} > 1}
+  }
+
+proc bar args {
+  s1 incrValue
+}
+
+
+#
+# TODO: How to activate, deactivate RAC per object? Re-introduce check() method?
+#
+
+# s1 check pre
+::nsf::method::assertion s1 check pre
+
+? {bar 1 2 3} "2"
+
+#
+# TODO: ::nsf::current jumps the call stack, picks an arbitrary call
+# frame if the context provides for it.
+#
+
+? {info exists ::ARGS} 1
+? {set ::ARGS} "run {bar 1 2 3}" 
+
+#
+# TODO: Improve formatting of assertion messages, to make distinction
+# clear between assertion and underlying error.
+#
+
+catch {s1 incrValue} ::msg
+? {set ::msg} {error in Assertion: {[set ::ARGS [nsf::current args]] eq "run {bar 1 2 3}"} in proc 'incrValue'
+can't find proc}
+
+? {s1 value -1} -1
+? {s1 value 10} 10
+
+? {s1 value 1} 1
+
+# s1 check all
+::nsf::method::assertion s1 check all
+
+#
+# TODO: When INVAR assertions fail (upon entering an operation), the
+# object state is still modified effectively. Why?
+#
+
+# INVAR
+
+? {s1 value -1} {assertion failed check: {[regexp {^[0-9]$} ${:value}] == 1} in proc 'value'}
+# s1 check {}
+::nsf::method::assertion s1 check {}
+
+? {s1 value} -1
+
+# s1 check all
+::nsf::method::assertion s1 check all
+
+? {s1 value 10} {assertion failed check: {[regexp {^[0-9]$} ${:value}] == 1} in proc 'value'}
+
+# s1 check {}
+::nsf::method::assertion s1 check {}
+
+? {s1 value} 10
+
+# PRE
+
+# s1 check pre
+::nsf::method::assertion s1 check pre
+
+
+Sensor public method incrValue2 {} {
+  incr :value
+} -precondition {
+  {# pre-condition:} 
+  {${:value} == -1}
+} -postcondition {}
+
+? {s1 incrValue2} {assertion failed check: {${:value} == -1} in proc 'incrValue2'}
+
+#
+# OK: old value (value before PRE RAC) is preserved
+#
+
+? {s1 value} 10
+
+#
+# What is the order when evaluating PRE/POST and INVAR assertions?
+#
+# ACTUAL: . -> PRE -> INVAR -> (BODY) -> POST -> INVAR -> .
+#
+# TODO: EXPTECTED (ECMA-367 §8.23.26): 
+# 	. -> INVAR -> PRE -> (BODY) -> INVAR -> POST -> .
+#
+
+set ::YYY [list]
+
+# s1 check all
+::nsf::method::assertion s1 check all
+
+#
+# TODO: using [:*] calls within assertions distorts error
+# reporting (the * call frame is reported as error context -> proc
+# name = "lappend" in the examples below etc.)
+#
+
+Sensor configure -invariant {
+  {[llength [lappend ::YYY "INVAR"]]}
+}
+
+Sensor public method incrValue2 {} {
+  lappend ::YYY "BODY"
+  ::nsf::method::assertion [self] check {}
+  set r [incr :value]
+  ::nsf::method::assertion [self] check all
+  return $r
+} -precondition {
+  {# pre-condition:} 
+  {[llength [lappend ::YYY "PRE"]]}
+} -postcondition {
+  {# post-condition:} 
+  {[llength [lappend ::YYY "POST"]]}
+}
+
+
+? {s1 incrValue2} 11
+
+? {set ::YYY} "PRE INVAR BODY POST INVAR"
+
+
+#
+# Are class invariants evaluated after instance creation?
+# see ECMA-367 §7.5
+#
+
+set ::YYY [list]
+
+nx::Class create Account -invariant {  
+  {[llength [lappend ::YYY "Account"]]}
+  {# sufficient_balance: }
+  {${:balance} >= ${:minimumBalance}}
+} {
+  :property -accessor public balance:integer
+  :property -accessor public minimumBalance:integer
+  
+  :method init args {
+    set :balance 9
+    set :minimumBalance 10
+  }
+}
+
+#
+# TODO: Irgh! a1 is effectively an invalid instance, class invars
+# should have been checked after create(); this is also inconvenient,
+# because once checking has been activated, the assertions are
+# reported as violated ... without directly blaming the creation
+# operation --> relevant for paper!
+#
+
+Account create a1
+? {a1 balance} 9
+? {a1 minimumBalance} 10
+
+# a1 check instinvar
+::nsf::method::assertion a1 check class-invar
+
+#
+# TODO: Should the default dispatch also trigger INVAR checks?
+# 
+# - Against: ECMA semantics refer to qualified feature calls, with
+#  the default method not being an externally visible feature, at
+#  least in XOTcl. 
+# 
+# - In favor: In NX, however, it can be refined though not publicly
+#  available (or?) Also, a convenient way to ask whether an object is
+#  in a valid state ...
+#
+
+? {a1} "::a1"
+
+? {a1 balance} {assertion failed check: {${:balance} >= ${:minimumBalance}} in proc 'balance'}
+
+#
+# TODO: What about pre- and post-conditions for create() and/or
+# init(). This adds to the above ... 
+#
+# - They should be evaluated upon creation (before an explicit "/inst/
+#   check pre|post"
+#
+# - How to specify them? a) There is no custom create() defined for
+#  classes (only meta-classes) -> some pre|post notation for
+#  configure? b) init() is not necessarily defined for a class ...
+#
+# - the assertion-checking semantics are different from ordinary method calls:
+#   PRE (BODY) POST INVAR (no INVAR checking before PRE!)
+#
+
+#
+# How does the super/subclass relationship relate to ...
+#
+# - invariants?	       -(ECMA)-> include parent clauses: AND joining,
+#                                with parent clauses taking precedence
+#                                (in reverse linearization order; see
+#                                ECMA-367 §8.10.2)
+#
+
+
+set ::YYY [list]
+
+nx::Class create SavingsAccount -superclass Account -invariant {
+  {[llength [lappend ::YYY [:info class]]]}
+  {# minimum_deposit: }
+  {${:minimumBalance} > 110}
+}
+
+SavingsAccount create sa1
+? {sa1 balance 99} 99
+? {sa1 minimumBalance 101} 101
+
+# sa1 check instinvar
+::nsf::method::assertion sa1 check class-invar
+
+# Should be: assertion labelled 'sufficient_balance' should be checked
+# before 'minimum_deposit'
+#
+# i.e.:
+# ? {sa1 balance} {assertion failed check: {[my balance] >= [my minimumBalance]} in proc 'balance'}
+#
+# TODO: inverse order of resolution of class INVARs
+#
+
+? {sa1 balance} {assertion failed check: {${:minimumBalance} > 110} in proc 'balance'}
+
+? {set ::YYY} "::SavingsAccount"
+
+# sa1 check {}
+# a1 check {}
+
+::nsf::method::assertion a1 check {}
+::nsf::method::assertion sa1 check {}
+
+# - pre-conditions?    -(ECMA)-> require else (OR) ... weakening: OR
+#				 joining with parent clauses taking
+#				 precedence in reverse linearization
+#				 order (see ECMA-367 $8.10.5)
+#
+# 		(pre_1 or ... or pre_n) or else pre
+
+Account property -accessor public depositTransactions:integer
+
+Account public method deposit {sum:integer} {
+  incr :depositTransactions
+  incr :balance $sum
+} -precondition {
+  {[llength [current class]]}
+  {# trap :}
+  {0}
+} -postcondition {
+  {${:depositTransactions} > 1}
+}
+
+SavingsAccount public method deposit {sum:integer} {
+  next
+} -precondition {
+  {# max_deposits :}
+  {${:depositTransactions} < 3}
+} -postcondition {}
+
+SavingsAccount create sa2
+sa2 depositTransactions 2
+
+# sa2 check pre
+
+::nsf::method::assertion sa2 check pre
+
+# EXPECTED: trap OR max_deposits
+
+? {sa2 deposit 50} {assertion failed check: {0} in proc 'deposit'}; # SHOULD ACTUALLY PASS because max_deposits is okay!
+
+? {sa2 depositTransactions 3} 3
+
+? {sa2 deposit 60} {assertion failed check: {${:depositTransactions} < 3} in proc 'deposit'}; # FAILS because of max_deposits, but evaluation order should be inverse: ACCOUNT -> SAVINGSACCOUNT.
+
+# --
+
+# TODO: Are method contracts enforced in shadowing methods, even without [next]?
+
+nx::Class create S {
+  :public method foo {} {
+    [:info class] eval [list lappend :TRACE "[current class]-[current proc]"]
+  } -precondition {
+    {[llength [[:info class] eval [list lappend :TRACE "::S-foo-PRE"]]]}
+  } -postcondition {
+    {[llength [[:info class] eval [list lappend :TRACE "::S-foo-POST"]]]}
+  }
+}
+
+nx::Class create T -superclass S {
+  :public method foo {} {
+    [:info class] eval [list lappend :TRACE "[current class]-[current proc]"]
+    # next; # invariants of super only fired when [next] is provided :/
+  }
+}
+
+T create t1; # -check all
+::nsf::method::assertion t1 check all
+
+t1 foo
+
+? {T eval {set :TRACE}} "::T-foo"; # SHOULD BE "::T-foo ::S-foo-PRE ::S-foo ::S-foo-POST", even without [next]
+
+#
+# - post-conditions?  -(ECMA)-> ensure then (AND) ... strengthening:
+# 				in a convenience view, AND joining,
+# 				with parent clauses taking precedence
+# 				in reverse linearization order (see
+# 				ECMA-367 $8.10.5). More precisely,
+# 				parent posts only required iff
+# 				pre-conditions over the pre-state
+# 				(old) hold.
+#
+#		(old pre_1 implies post_1) 
+#		and ... and 
+#		(old pre_n implies post_n) 
+#		and then post
+#
+
+T eval {unset :TRACE}
+
+nx::Class create T -superclass S {
+  :public method foo {} {
+    [:info class] eval [list lappend :TRACE "[current class]-[current proc]"]
+    next
+  } -precondition {} -postcondition {
+    {[llength [[:info class] eval {lappend :TRACE "::T-foo-POST"}]]}
+  }
+}
+
+T create t1; # -check post
+
+::nsf::method::assertion t1 check post
+
+t1 foo
+
+? {T eval {set :TRACE}} "::T-foo ::S-foo ::S-foo-POST ::T-foo-POST"; # SHOULD BE: ::T-foo ::S-foo ::S-foo-POST ::T-foo-POST ... seems OK, but only because next induces a correct order.
+
+T eval {unset :TRACE}
+
+# without [next]
+
+nx::Class create T -superclass S {
+  :public method foo {} {
+    [:info class] eval [list lappend :TRACE "[current class]-[current proc]"]
+    # next
+  } -precondition {} -postcondition {
+    {[llength [[:info class] eval {lappend :TRACE "::T-foo-POST"}]]}
+  }
+}
+
+T create t2
+
+::nsf::method::assertion t2 check post
+t2 foo
+
+? {T eval {set :TRACE}} "::T-foo ::T-foo-POST"; # SHOULD BE: ::T-foo ::S-foo-POST ::T-foo-POST, even without [next]
+
+#
+# TODO: Provide access to method arguments in assertion expressions.
+#
+# TODO: Parameter checks should be performed before PRE (and before
+# INVAR) checks (see ECMA-367, §...)
+#
+# nx::Class create S {
+#   :public method bar {p:integer} {
+#   } -precondition {
+#     {$p > -1}
+#   }
+# }
+
+#
+# OK: Are assertions fired through the colon resolver (:/var/) and
+# upon cget/configure?
+#
+
+nx::Class create Z -invariant {
+  {[::nsf::is integer ${:v}]}
+} {
+  :property -accessor public {v 1}
+  :create ::z1
+}
+
+? {z1 v 1} 1
+
+::nsf::method::assertion z1 check class-invar
+
+#
+# TODO: Why "in proc 'v'"? ... this is misleading, at least for an INVAR.
+#
+
+? {z1 v "XXX"} {assertion failed check: {[::nsf::is integer ${:v}]} in proc 'v'}
+? {z1 eval {set :v "XXX"}} {assertion failed check: {[::nsf::is integer ${:v}]} in proc 'eval'}
+? {z1 configure -v "XXX"} {assertion failed check: {[::nsf::is integer ${:v}]} in proc 'configure'}
+
+#
+# TODO: v should still be 1, but is already 'XXX' (see above)
+#
+
+::nsf::method::assertion z1 check {}
+? {z1 v} XXX; # Why not '1'?
+::nsf::method::assertion z1 check class-invar
+
+# ::nsf::method::assertion z1 check {}
+# ? {z1 v XXX} XXX
+# ::nsf::method::assertion z1 check class-invar
+
+? {z1 cget -v} {assertion failed check: {[::nsf::is integer ${:v}]} in proc 'cget'}
+
+::nsf::method::assertion z1 check {}
+
