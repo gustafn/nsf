@@ -949,6 +949,7 @@ NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj,
 
   return result;
 }
+
 int
 NsfDeleteObject(Tcl_Interp *interp, Nsf_Object *object) {
   return DispatchDestroyMethod(interp, (NsfObject *)object, 0);
@@ -1074,11 +1075,14 @@ IsClassNsName(CONST char *string, CONST char **cont) {
   return 0;
 }
 
+#if 0
 /*
  *----------------------------------------------------------------------
  * NSCutNsfClasses --
  *
  *    Removes preceding ::nsf::classes from a string
+ *
+ *    Currently not used; either make it public or remove it.
  *
  * Results:
  *    NsfObject and *fromClasses
@@ -1093,6 +1097,7 @@ NSCutNsfClasses(CONST char *string) {
   assert(strncmp((string), "::nsf::classes", 14) == 0);
   return string+14;
 }
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -21445,12 +21450,12 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
 
   case CurrentoptionArgsIdx: {
-    int nobjc;
-    Tcl_Obj **nobjv;
-
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
 
     if (cscPtr) {
+      int nobjc;
+      Tcl_Obj **nobjv;
+
       if (cscPtr->objv) {
 	nobjc = cscPtr->objc;
 	nobjv = (Tcl_Obj **)cscPtr->objv;
