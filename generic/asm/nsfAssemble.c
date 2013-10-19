@@ -70,6 +70,7 @@ typedef struct AsmProcClientData {
   AsmCompiledProc *proc;
   NsfParamDefs *paramDefs;
   int with_ad;
+  int with_checkAlways;
 } AsmProcClientData;
 
 typedef struct AsmResolverInfo {
@@ -401,7 +402,8 @@ NsfAsmProcAddParam(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 
 static int
 NsfAsmProcAddArgs(Tcl_Interp *interp, Tcl_Obj *argumentsObj,
-		  Tcl_Obj *nameObj, Tcl_Obj *bodyObj, int with_ad) {
+		  Tcl_Obj *nameObj, Tcl_Obj *bodyObj, 
+		  int with_ad, int with_checkAlways) {
   int argc, result;
   Tcl_Obj **argv;
   AsmCompiledProc *asmProc;
@@ -422,6 +424,7 @@ NsfAsmProcAddArgs(Tcl_Interp *interp, Tcl_Obj *argumentsObj,
   cd->proc = asmProc;
   cd->paramDefs = NULL;
   cd->with_ad = with_ad;
+  cd->with_checkAlways = with_checkAlways ? NSF_ARGPARSE_CHECK : 0;
 
   Tcl_CreateObjCommand(interp, procName, NsfAsmProc,
 		       cd, NsfAsmProcDeleteProc);

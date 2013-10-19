@@ -30,7 +30,8 @@ cmd __profile_get NsfProfileGetDataStub {}
 cmd __unset_unknown_args NsfUnsetUnknownArgsCmd {}
 
 cmd "asm::proc" NsfAsmProcCmd {
-  {-argName "-ad" -required 0  -nrargs 0}
+  {-argName "-ad" -required 0  -nrargs 0 -type switch}
+  {-argName "-checkalways" -required 0  -nrargs 0 -type switch}
   {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
@@ -206,7 +207,8 @@ cmd nscopyvars NsfNSCopyVarsCmd {
 }
 
 cmd proc NsfProcCmd {
-  {-argName "-ad" -required 0  -nrargs 0}
+  {-argName "-ad" -required 0  -nrargs 0 -type switch}
+  {-argName "-checkalways" -required 0  -nrargs 0 -type switch}
   {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}

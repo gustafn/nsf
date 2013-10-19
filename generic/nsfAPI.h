@@ -372,7 +372,7 @@ static int NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *cl, int w
 static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
 static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *name, Tcl_Obj *arguments, Tcl_Obj *body);
-static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
+static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfConfigureCmd(Tcl_Interp *interp, int option, Tcl_Obj *value);
 static int NsfCurrentCmd(Tcl_Interp *interp, int option);
@@ -403,7 +403,7 @@ static int NsfParameterGetCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *spec, Tcl
 static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *class);
 static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object);
 static int NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, Tcl_Obj *slotobjs);
-static int NsfProcCmd(Tcl_Interp *interp, int withAd, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
+static int NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfProfileClearDataStub(Tcl_Interp *interp);
 static int NsfProfileGetDataStub(Tcl_Interp *interp);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int type, Tcl_Obj *value);
@@ -1102,12 +1102,13 @@ NsfAsmProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
                      method_definitions[NsfAsmProcCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withAd = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *procName = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[2];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[3];
+    int withCheckalways = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *procName = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
-    return NsfAsmProcCmd(interp, withAd, procName, arguments, body);
+    return NsfAsmProcCmd(interp, withAd, withCheckalways, procName, arguments, body);
 
   } else {
     return TCL_ERROR;
@@ -1717,12 +1718,13 @@ NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
                      method_definitions[NsfProcCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withAd = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *procName = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[2];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[3];
+    int withCheckalways = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *procName = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[4];
 
     assert(pc.status == 0);
-    return NsfProcCmd(interp, withAd, procName, arguments, body);
+    return NsfProcCmd(interp, withAd, withCheckalways, procName, arguments, body);
 
   } else {
     return TCL_ERROR;
@@ -2751,8 +2753,9 @@ static Nsf_methodDefinition method_definitions[105] = {
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::asm::proc", NsfAsmProcCmdStub, 4, {
-  {"-ad", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+{"::nsf::asm::proc", NsfAsmProcCmdStub, 5, {
+  {"-ad", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"-checkalways", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -2905,8 +2908,9 @@ static Nsf_methodDefinition method_definitions[105] = {
   {"-nonposargs", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"slotobjs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::proc", NsfProcCmdStub, 4, {
-  {"-ad", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+{"::nsf::proc", NsfProcCmdStub, 5, {
+  {"-ad", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"-checkalways", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"procName", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

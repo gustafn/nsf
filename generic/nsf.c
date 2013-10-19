@@ -13188,7 +13188,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
     /* If the argument parsing is ok, the shadowed proc will be called */
     result = ProcessMethodArguments(pcPtr, interp, NULL, 
-				    NSF_ARGPARSE_FORCE_REQUIRED,
+				    tcd->with_checkAlways|NSF_ARGPARSE_FORCE_REQUIRED,
 				    tcd->paramDefs, objv[0],
 				    objc, tov);
 
@@ -13238,7 +13238,8 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  */
 static int
 NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
-		    CONST char *procName, Tcl_Obj *body, int with_ad) {
+	   CONST char *procName, Tcl_Obj *body, 
+	   int with_ad, int with_checkAlways) {
   NsfParamDefs *paramDefs = parsedParamPtr->paramDefs;
   Tcl_Namespace *cmdNsPtr;
   NsfProcClientData *tcd;
@@ -13313,6 +13314,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->procName = procNameObj;
   tcd->paramDefs = paramDefs;
   tcd->with_ad = with_ad;
+  tcd->with_checkAlways = with_checkAlways ? NSF_ARGPARSE_CHECK : 0;
   tcd->cmd = NULL;
 
   /*fprintf(stderr, "NsfProcAdd %s tcd %p paramdefs %p\n",
@@ -19223,7 +19225,8 @@ NsfUnsetUnknownArgsCmd(Tcl_Interp *interp) {
 
 /*
 cmd asmproc NsfAsmProcCmd {
-  {-argName "-ad" -required 0}
+  {-argName "-ad" -required 0  -nrargs 0 -type switch}
+  {-argName "-checkalways" -required 0  -nrargs 0 -type switch}
   {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
@@ -19231,12 +19234,12 @@ cmd asmproc NsfAsmProcCmd {
 */
 #if !defined(NSF_ASSEMBLE)
 static int
-NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
+NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
   return TCL_OK;
 }
 #else
 static int
-NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
+NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
   NsfParsedParam parsedParam;
   int result;
   /*
@@ -19254,13 +19257,13 @@ NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *argume
     /*
      * We need parameter handling. 
      */
-    result = NsfAsmProcAddParam(interp, &parsedParam, nameObj, body, with_ad);
+    result = NsfAsmProcAddParam(interp, &parsedParam, nameObj, body, with_ad, with_checkAlways);
 
   } else {
     /*
      * No parameter handling needed.
      */
-    result = NsfAsmProcAddArgs(interp, arguments, nameObj, body, with_ad);
+    result = NsfAsmProcAddArgs(interp, arguments, nameObj, body, with_ad, with_checkAlways);
   }
 
   return result;
@@ -21054,14 +21057,15 @@ NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, 
 
 /*
 cmd proc NsfProcCmd {
-  {-argName "-ad" -required 0}
+  {-argName "-ad" -required 0  -nrargs 0 -type switch}
+  {-argName "-checkalways" -required 0  -nrargs 0 -type switch}
   {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
 }
 */
 static int
-NsfProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
+NsfProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
   NsfParsedParam parsedParam;
   int result;
   /*
@@ -21081,7 +21085,7 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments
      * is added which handles the parameter passing and calls the proc
      * later.
      */
-    result = NsfProcAdd(interp, &parsedParam, ObjStr(nameObj), body, with_ad);
+    result = NsfProcAdd(interp, &parsedParam, ObjStr(nameObj), body, with_ad, with_checkAlways);
     
   } else {
     /*
