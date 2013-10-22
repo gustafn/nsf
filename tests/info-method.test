@@ -109,7 +109,7 @@ nx::test case info-method-base {
   }
   ? {C info method parameters m} {x}
   ? {nx::Class info method parameters method} \
-      {name arguments:parameter,0..* -returns body -precondition -postcondition}
+      {name arguments:parameter,0..* -checkalways:switch -returns body -precondition -postcondition}
   ? {nx::Class info method parameters alias} \
       {methodName -returns {-frame default} cmd}
   # raises currently an error
@@ -801,7 +801,7 @@ nx::test case info-methods-path {
 nx::test case parametersyntax {
   # a true method
   ? {::nx::Class info method syntax method} \
-      "/cls/ method /name/ /arguments/ ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
+      "/cls/ method /name/ /arguments/ ?-checkalways? ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
   # a forwarder to ::nsf::relation; definition comes via array ::nsf::parametersyntax
   ? {::nx::Class info method syntax mixin} "/cls/ mixin ?/class .../?|?add /class/?|?delete /class/?"
 

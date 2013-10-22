@@ -371,7 +371,7 @@ static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST 
 static int NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withSource, NsfClass *withType, CONST char *pattern);
 static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObject);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
-static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *name, Tcl_Obj *arguments, Tcl_Obj *body);
+static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withCheckalways, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *name, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfConfigureCmd(Tcl_Interp *interp, int option, Tcl_Obj *value);
@@ -386,7 +386,7 @@ static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_O
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, int withConfigure, CONST char *withName, Tcl_Obj *constraint, Tcl_Obj *value);
 static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
 static int NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg);
-static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
+static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withCheckalways, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName);
 static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjframe, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodProperty, Tcl_Obj *value);
@@ -1077,15 +1077,16 @@ NsfAsmMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
                      method_definitions[NsfAsmMethodCreateCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    int withInner_namespace = (int )PTR2INT(pc.clientData[1]);
-    int withPer_object = (int )PTR2INT(pc.clientData[2]);
-    NsfObject *withReg_object = (NsfObject *)pc.clientData[3];
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[4];
-    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[5];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
+    int withCheckalways = (int )PTR2INT(pc.clientData[1]);
+    int withInner_namespace = (int )PTR2INT(pc.clientData[2]);
+    int withPer_object = (int )PTR2INT(pc.clientData[3]);
+    NsfObject *withReg_object = (NsfObject *)pc.clientData[4];
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[6];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[7];
 
     assert(pc.status == 0);
-    return NsfAsmMethodCreateCmd(interp, object, withInner_namespace, withPer_object, withReg_object, name, arguments, body);
+    return NsfAsmMethodCreateCmd(interp, object, withCheckalways, withInner_namespace, withPer_object, withReg_object, name, arguments, body);
 
   } else {
     return TCL_ERROR;
@@ -1370,17 +1371,18 @@ NsfMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      method_definitions[NsfMethodCreateCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    int withInner_namespace = (int )PTR2INT(pc.clientData[1]);
-    int withPer_object = (int )PTR2INT(pc.clientData[2]);
-    NsfObject *withReg_object = (NsfObject *)pc.clientData[3];
-    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[4];
-    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[5];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
-    Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[7];
-    Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[8];
+    int withCheckalways = (int )PTR2INT(pc.clientData[1]);
+    int withInner_namespace = (int )PTR2INT(pc.clientData[2]);
+    int withPer_object = (int )PTR2INT(pc.clientData[3]);
+    NsfObject *withReg_object = (NsfObject *)pc.clientData[4];
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[6];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[7];
+    Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[8];
+    Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[9];
 
     assert(pc.status == 0);
-    return NsfMethodCreateCmd(interp, object, withInner_namespace, withPer_object, withReg_object, methodName, arguments, body, withPrecondition, withPostcondition);
+    return NsfMethodCreateCmd(interp, object, withCheckalways, withInner_namespace, withPer_object, withReg_object, methodName, arguments, body, withPrecondition, withPostcondition);
 
   } else {
     return TCL_ERROR;
@@ -2744,8 +2746,9 @@ static Nsf_methodDefinition method_definitions[105] = {
   {"-closure", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::method::asmcreate", NsfAsmMethodCreateCmdStub, 7, {
+{"::nsf::method::asmcreate", NsfAsmMethodCreateCmdStub, 8, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-checkalways", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-inner-namespace", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-reg-object", 0, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
@@ -2818,8 +2821,9 @@ static Nsf_methodDefinition method_definitions[105] = {
   {"subcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToAssertionsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arg", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::method::create", NsfMethodCreateCmdStub, 9, {
+{"::nsf::method::create", NsfMethodCreateCmdStub, 10, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"-checkalways", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-inner-namespace", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, Nsf_ConvertToBoolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-reg-object", 0, 1, Nsf_ConvertToObject, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},

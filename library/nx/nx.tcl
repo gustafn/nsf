@@ -223,7 +223,7 @@ namespace eval ::nx {
   ######################################################################
 
   ::nsf::method::create Class method {
-    name arguments:parameter,0..* -returns body -precondition -postcondition
+    name arguments:parameter,0..* -checkalways:switch -returns body -precondition -postcondition
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -233,6 +233,7 @@ namespace eval ::nx {
     dict with p {
       #puts "class method $object.$methodName [list $arguments] {...}"
       set r [::nsf::method::create $object \
+		 -checkalways=$checkalways \
 		 {*}[expr {$regObject ne "" ? "-reg-object [list $regObject]" : ""}] \
 		 $methodName $arguments $body {*}$conditions]
       if {$r ne ""} {
@@ -494,7 +495,7 @@ namespace eval ::nx {
     #    - "forward"
 
     :public method "object method" {
-      name arguments:parameter,0..* -returns body -precondition -postcondition
+      name arguments:parameter,0..* -checkalways:switch -returns body -precondition -postcondition
     } {
       set conditions [list]
       if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -502,6 +503,7 @@ namespace eval ::nx {
       array set "" [:__resolve_method_path -per-object $name]
       # puts "object method $(object).$(methodName) [list $arguments] {...}"
       set r [::nsf::method::create $(object) \
+		 -checkalways=$checkalways \
 		 {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
 		 -per-object \
 		 $(methodName) $arguments $body {*}$conditions]
@@ -841,7 +843,7 @@ namespace eval ::nx {
   Object method "info info" {} {::nx::internal::infoOptions ::nx::Object::slot::__info}
   Class  method "info info" {} {::nx::internal::infoOptions ::nx::Class::slot::__info}
 
-  # finally register method "method" (otherwise, we cannot use "method" above)
+  # finally register method for "info method" (otherwise, we cannot use "method" above)
   Class  eval {
     #:alias "info method" ::nsf::methods::class::info::method
     :method "info method args"         {name} {: ::nsf::methods::class::info::method args $name}

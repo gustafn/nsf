@@ -435,6 +435,7 @@ NsfAsmProcAddArgs(Tcl_Interp *interp, Tcl_Obj *argumentsObj,
 /*
 cmd method::asmcreate NsfAsmMethodCreateCmd {
   {-argName "object" -required 1 -type object}
+  {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
   {-argName "-inner-namespace" -nrargs 0}
   {-argName "-per-object"  -nrargs 0}
   {-argName "-reg-object" -required 0 -nrargs 1 -type object}
@@ -456,7 +457,11 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
     (withPer_object || ! NsfObjectIsClass(defObject)) ?
     NULL : (NsfClass *)defObject;
 
-  // not handled:  withInner_namespace, regObject, no pre and post-conditions
+  // not handled:  
+  //  * withInner_namespace, 
+  //  * regObject, 
+  //  * pre and post-conditions
+  //  * withCheckAlways ? NSF_ARGPARSE_CHECK : 0
 
   if (cl == 0) {
     RequireObjNamespace(interp, defObject);

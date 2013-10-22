@@ -98,6 +98,7 @@ typedef struct NsfProcContext {
   ClientData oldDeleteData;
   Tcl_CmdDeleteProc *oldDeleteProc;
   NsfParamDefs *paramDefs;
+  int checkAlwaysFlag;
 } NsfProcContext;
 
 /*
@@ -8798,12 +8799,33 @@ ParamsFree(Nsf_Param *paramsPtr) {
   FREE(Nsf_Param*, paramsPtr);
 }
 
+/*----------------------------------------------------------------------
+ * ParamDefsGet --
+ *
+ *    Obtain parameter definitions for a cmdPtr; Optionally, this command
+ *    returns as well a flag for ProcessMethodArguments to indicate if the
+ *    parameter have to checked always.
+ *
+ * Results:
+ *    Parameter definitions or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 NSF_INLINE static NsfParamDefs *
-ParamDefsGet(Tcl_Command cmdPtr) {
+ParamDefsGet(Tcl_Command cmdPtr, int *checkAlwaysFlagPtr) {
+
   assert(cmdPtr);
+
   if (likely(Tcl_Command_deleteProc(cmdPtr) == NsfProcDeleteProc)) {
-    return ((NsfProcContext *)Tcl_Command_deleteData(cmdPtr))->paramDefs;
+    NsfProcContext *ctx = (NsfProcContext *)Tcl_Command_deleteData(cmdPtr);
+
+    if (checkAlwaysFlagPtr) { *checkAlwaysFlagPtr = ctx->checkAlwaysFlag;}
+    return ctx->paramDefs;
   }
+
   return NULL;
 }
 
@@ -8853,7 +8875,7 @@ NsfProcDeleteProc(ClientData clientData) {
  *----------------------------------------------------------------------
  */
 static int
-ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs) {
+ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, int checkAlwaysFlag) {
   Command *cmdPtr = (Command *)cmd;
 
   if (cmdPtr->deleteProc != NsfProcDeleteProc) {
@@ -8862,11 +8884,12 @@ ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs) {
     /*fprintf(stderr, "ParamDefsStore %p replace deleteProc %p by %p\n",
       paramDefs, cmdPtr->deleteProc, NsfProcDeleteProc);*/
 
-    ctxPtr->oldDeleteData = (Proc *)cmdPtr->deleteData;
-    ctxPtr->oldDeleteProc = cmdPtr->deleteProc;
-    cmdPtr->deleteProc = NsfProcDeleteProc;
-    ctxPtr->paramDefs = paramDefs;
-    cmdPtr->deleteData = ctxPtr;
+    ctxPtr->oldDeleteData   = (Proc *)cmdPtr->deleteData;
+    ctxPtr->oldDeleteProc   = cmdPtr->deleteProc;
+    cmdPtr->deleteProc      = NsfProcDeleteProc;
+    ctxPtr->paramDefs       = paramDefs;
+    ctxPtr->checkAlwaysFlag = checkAlwaysFlag;
+    cmdPtr->deleteData      = ctxPtr;
 
     return TCL_OK;
   } else {
@@ -8874,6 +8897,7 @@ ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs) {
       cmd, cmdPtr->deleteData);*/
     if (cmdPtr->deleteData) {
       NsfProcContext *ctxPtr = cmdPtr->deleteData;
+
       assert(ctxPtr->paramDefs == NULL);
       ctxPtr->paramDefs = paramDefs;
     }
@@ -9493,7 +9517,7 @@ static int
 ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
          CONST char *methodName, NsfObject *object, NsfClass *cl, Tcl_Command cmdPtr,
          NsfCallStackContent *cscPtr) {
-  int result, releasePc = 0;
+  int result, releasePc = 0, checkAlwaysFlag = 0;
   NsfParamDefs *paramDefs;
 #if defined(NSF_WITH_ASSERTIONS)
   NsfObjectOpt *opt = object->opt;
@@ -9575,14 +9599,14 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
    *  argument parser with the argument definitions obtained from the
    *  proc context from the cmdPtr.
    */
-  paramDefs = ParamDefsGet(cmdPtr);
+  paramDefs = ParamDefsGet(cmdPtr, &checkAlwaysFlag);
 
   if (paramDefs && paramDefs->paramsPtr) {
 #if defined(NRE)
     pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
 #endif
     result = ProcessMethodArguments(pcPtr, interp, object, 
-				    NSF_ARGPARSE_METHOD_PUSH|NSF_ARGPARSE_FORCE_REQUIRED, 
+				    checkAlwaysFlag|NSF_ARGPARSE_METHOD_PUSH|NSF_ARGPARSE_FORCE_REQUIRED, 
 				    paramDefs, objv[0], objc, objv);
     cscPtr->objc = objc;
     cscPtr->objv = (Tcl_Obj **)objv;
@@ -10322,7 +10346,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
    * Check the return value if wanted
    */
   if (likely(result == TCL_OK && cscPtr->cmdPtr && Tcl_Command_cmdEpoch(cscPtr->cmdPtr) == 0)) {
-    NsfParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr);
+    NsfParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr, NULL);
 
     if (paramDefs && paramDefs->returns) {
       Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
@@ -12821,7 +12845,7 @@ static int
 MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
          Tcl_Obj *postcondition, NsfObject *defObject, NsfObject *regObject,
-         int withPer_object, int withInner_namespace) {
+         int withPer_object, int withInner_namespace, int checkAlwaysFlag) {
   Tcl_CallFrame frame, *framePtr = &frame;
   CONST char *methodName = ObjStr(nameObj);
   NsfParsedParam parsedParam;
@@ -12894,7 +12918,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
         procPtr->cmdPtr->nsPtr = ((Command *)regObject->id)->nsPtr;
       }
 
-      ParamDefsStore((Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
+      ParamDefsStore((Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs, checkAlwaysFlag);
       Tcl_SetObjResult(interp, MethodHandleObj(defObject, withPer_object, methodName));
       result = TCL_OK;
     }
@@ -12919,7 +12943,7 @@ static int
 MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
 	   NsfClass *cl, Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body,
            Tcl_Obj *precondition, Tcl_Obj *postcondition,
-           int withInner_namespace) {
+           int withInner_namespace, int checkAlwaysFlag) {
   CONST char *argsStr = ObjStr(args), *bodyStr = ObjStr(body), *nameStr = ObjStr(nameObj);
   int result;
 
@@ -12966,7 +12990,8 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
     }
     result = MakeProc(cl ? cl->nsPtr : defObject->nsPtr, aStore,
 		      interp, nameObj, args, body, precondition, postcondition,
-		      defObject, regObject, cl == NULL, withInner_namespace);
+		      defObject, regObject, cl == NULL, withInner_namespace, 
+		      checkAlwaysFlag);
 #else
     if (precondition) {
       NsfLog(interp, NSF_LOG_WARN, "Precondition %s provided, but not compiled with assertion enabled",
@@ -12977,7 +13002,8 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
     }
     result = MakeProc(cl ? cl->nsPtr : defObject->nsPtr, NULL,
 		      interp, nameObj, args, body, NULL, NULL,
-		      defObject, regObject, cl == NULL, withInner_namespace);
+		      defObject, regObject, cl == NULL, withInner_namespace, 
+		      checkAlwaysFlag);
 #endif
   }
 
@@ -13193,7 +13219,7 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 
     /* If the argument parsing is ok, the shadowed proc will be called */
     result = ProcessMethodArguments(pcPtr, interp, NULL, 
-				    tcd->with_checkAlways|NSF_ARGPARSE_FORCE_REQUIRED,
+				    tcd->checkAlwaysFlag|NSF_ARGPARSE_FORCE_REQUIRED,
 				    tcd->paramDefs, objv[0],
 				    objc, tov);
 
@@ -13246,14 +13272,12 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
 	   CONST char *procName, Tcl_Obj *body, 
 	   int with_ad, int with_checkAlways) {
   NsfParamDefs *paramDefs = parsedParamPtr->paramDefs;
-  Tcl_Namespace *cmdNsPtr;
-  NsfProcClientData *tcd;
-  Tcl_Obj *argList;
-  Tcl_Obj *procNameObj;
-  Tcl_DString ds, *dsPtr = &ds;
   Nsf_Param *paramPtr;
-  Tcl_Obj *ov[4];
-  int result;
+  NsfProcClientData *tcd;
+  Tcl_Namespace *cmdNsPtr;
+  Tcl_Obj *argList, *procNameObj, *ov[4];
+  Tcl_DString ds, *dsPtr = &ds;
+  int result, checkAlwaysFlag;
   Tcl_Command cmd;
 
   Tcl_DStringInit(dsPtr);
@@ -13282,8 +13306,16 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
     return TCL_ERROR;
   }
 
+  checkAlwaysFlag = with_checkAlways ? NSF_ARGPARSE_CHECK : 0;
+
   cmdNsPtr = Tcl_Command_nsPtr(cmd);
-  ParamDefsStore(cmd, paramDefs);
+  
+  /* 
+   * Storing param defs is actually not needed to be stored, since the stub
+   * receives paramters + flag via client data... but it is needed for
+   * introspection.
+   */
+  ParamDefsStore(cmd, paramDefs, checkAlwaysFlag);
 
   /*fprintf(stderr, "NsfProcAdd procName '%s' define cmd '%s' %p in namespace %s\n",
     procName, Tcl_GetCommandName(interp, cmd), cmd, cmdNsPtr->fullName);*/
@@ -13319,7 +13351,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   tcd->procName = procNameObj;
   tcd->paramDefs = paramDefs;
   tcd->with_ad = with_ad;
-  tcd->with_checkAlways = with_checkAlways ? NSF_ARGPARSE_CHECK : 0;
+  tcd->checkAlwaysFlag = checkAlwaysFlag;
   tcd->cmd = NULL;
 
   /*fprintf(stderr, "NsfProcAdd %s tcd %p paramdefs %p\n",
@@ -17663,7 +17695,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
   assert(methodName);
   assert(cmd);
 
-  paramDefs = ParamDefsGet(cmd);
+  paramDefs = ParamDefsGet(cmd, NULL);
 
   if (paramDefs && paramDefs->paramsPtr) {
     /*
@@ -17877,7 +17909,7 @@ static void
 AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) {
   NsfParamDefs *paramDefs;
   
-  paramDefs = ParamDefsGet(cmd);
+  paramDefs = ParamDefsGet(cmd, NULL);
   if (paramDefs && paramDefs->returns) {
     /* TODO: avoid hard-coding the script-level/NX-specific keyword "returns" */
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-returns", -1));
@@ -17946,7 +17978,7 @@ ListMethod(Tcl_Interp *interp,
 	NsfParamDefs *paramDefs;
 
 	importedCmd = GetOriginalCommand(cmd);
-	paramDefs = ParamDefsGet(importedCmd);
+	paramDefs = ParamDefsGet(importedCmd, NULL);
 	if (paramDefs && paramDefs->returns) {
 	  Tcl_SetObjResult(interp, paramDefs->returns);
 	}
@@ -18998,8 +19030,12 @@ AliasDereference(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, 
 #else
 static int
 NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
-		      int withInner_namespace, int withPer_object, NsfObject *regObject,
+		      int with_checkAlways, int withInner_namespace, 
+		      int withPer_object, NsfObject *regObject,
 		      Tcl_Obj *nameObj, Tcl_Obj *argumentsObj, Tcl_Obj *bodyObj) {
+  /* 
+   * Dummy stub; used, when compiled without NSF_ASSEMBLE
+   */
   return TCL_OK;
 }
 #endif
@@ -20029,6 +20065,7 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj
 /*
 cmd method::create NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
+  {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
   {-argName "-reg-object" -required 0 -nrargs 1 -type object}
@@ -20041,9 +20078,10 @@ cmd method::create NsfMethodCreateCmd {
 */
 static int
 NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
-	     int withInner_namespace, int withPer_object, NsfObject *regObject,
-	     Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body,
-	     Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
+		   int withCheckAlways, int withInner_namespace, 
+		   int withPer_object, NsfObject *regObject,
+		   Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body,
+		   Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
   NsfClass *cl =
     (withPer_object || ! NsfObjectIsClass(defObject)) ?
     NULL : (NsfClass *)defObject;
@@ -20054,7 +20092,7 @@ NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
   return MakeMethod(interp, defObject, regObject, cl,
 		    nameObj, arguments, body,
                     withPrecondition, withPostcondition,
-                    withInner_namespace);
+                    withInner_namespace, withCheckAlways ? NSF_ARGPARSE_CHECK : 0);
 }
 
 /*
@@ -20271,7 +20309,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 			     methodName);
       }
 
-      paramDefs = ParamDefsGet(cmd);
+      paramDefs = ParamDefsGet(cmd, NULL);
       /*fprintf(stderr, "MethodProperty, ParamDefsGet cmd %p paramDefs %p returns %p\n",
 	cmd, paramDefs, paramDefs?paramDefs->returns:NULL);*/
 
@@ -20294,7 +20332,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 	if (paramDefs == NULL) {
 	  /* acquire new paramDefs */
 	  paramDefs = ParamDefsNew();
-	  ParamDefsStore(cmd, paramDefs);
+	  ParamDefsStore(cmd, paramDefs, 0);
 	  /*fprintf(stderr, "new param definitions %p for cmd %p %s\n", paramDefs, cmd, methodName);*/
 	}
 	objPtr =

@@ -581,7 +581,7 @@ typedef struct NsfProcClientData {
   Tcl_Command cmd;
   NsfParamDefs *paramDefs;
   int with_ad;
-  int with_checkAlways;
+  int checkAlwaysFlag;
 } NsfProcClientData;
 
 typedef enum SystemMethodsIdx {

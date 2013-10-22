@@ -616,7 +616,7 @@ nx::test case subst-default {
       "query instparams with default, no paramdefs needed"
 
   ? {nx::Class info method parameters method} \
-      "name arguments:parameter,0..* -returns body -precondition -postcondition" \
+      "name arguments:parameter,0..* -checkalways:switch -returns body -precondition -postcondition" \
       "query instparams for scripted method 'method'"
   
   ? {nx::Object info method parameters ::nsf::method::forward} \
@@ -1727,7 +1727,7 @@ nx::test case req-param {
 ::nsf::configure checkarguments on
 
 #
-# nx::test type any (or other typechecker) in combination with
+# Test type any (or other typechecker) in combination with
 # substdefault via object parameter
 #
 nx::test case nsf-subdefault {
@@ -1741,7 +1741,7 @@ nx::test case nsf-subdefault {
 }
 
 #
-# nx::test argument processing and namespace handling in nsf::procs
+# Test argument processing and namespace handling in nsf::procs
 #
 
 nx::test case nsf-proc {
@@ -1804,6 +1804,7 @@ nx::test case nsf-proc {
   ? {::ns1::pass0} "::ns1-0"
   ? {::ns1::pass0 -s} "::ns1-1"
 }
+
 
 #
 # Test argument processing and namespace handling in nsf::procs
@@ -2836,4 +2837,71 @@ nx::test case cmd-error-propagation {
     :foo
   }} "bow-wow"
 
+}
+
+#
+# test argument processing in nsf::proc with checkalways
+#
+
+nx::test case nsf-proc-checkalways {
+  
+  #
+  # one proc with checkalways
+  #
+  nsf::proc p1 {-x:integer} { return $x}
+  nsf::proc -checkalways p2 {-x:integer} { return $x}
+
+  ? {p1 -x 100} 100
+  ? {p1 -x a100} {expected integer but got "a100" for parameter "-x"}
+
+  ? {p2 -x 100} 100
+  ? {p2 -x a100} {expected integer but got "a100" for parameter "-x"}
+ 
+  nsf::configure checkarguments off
+  ? {p1 -x a100} a100
+  ? {p2 -x a100} {expected integer but got "a100" for parameter "-x"}
+
+  nsf::configure checkarguments on
+}
+
+#
+# test argument processing in methods with checkalways
+#
+
+nx::test case nsf-method-checkalways {
+
+  #
+  # one method with checkalways
+  #
+
+  nx::Class create C {
+    :public method m1 {-x:integer} { return $x}
+    :public method m2 {-x:integer} -checkalways { return $x}
+
+    :public object method om1 {-x:integer} { return $x}
+    :public object method om2 {-x:integer} -checkalways { return $x}
+
+    :create c1
+  }
+
+  ? {c1 m1 -x 100} 100
+  ? {c1 m2 -x 100} 100
+
+  ? {c1 m1 -x a100} {expected integer but got "a100" for parameter "-x"}
+  ? {c1 m2 -x a100} {expected integer but got "a100" for parameter "-x"}
+
+  ? {C om1 -x 200} 200
+  ? {C om2 -x 200} 200
+
+  ? {C om1 -x a} {expected integer but got "a" for parameter "-x"}
+  ? {C om2 -x a} {expected integer but got "a" for parameter "-x"}
+ 
+  nsf::configure checkarguments off
+  ? {c1 m1  -x a100} a100
+  ? {c1 m2 -x a100} {expected integer but got "a100" for parameter "-x"}
+
+  ? {C om1 -x a} a
+  ? {C om2 -x a} {expected integer but got "a" for parameter "-x"}
+
+  nsf::configure checkarguments on
 }

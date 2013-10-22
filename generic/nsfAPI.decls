@@ -113,6 +113,7 @@ cmd "method::assertion" NsfMethodAssertionCmd {
 } {-nxdoc 1}
 cmd "method::create" NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
+  {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
   {-argName "-inner-namespace" -nrargs 0}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "-reg-object" -required 0 -type object}
@@ -125,6 +126,7 @@ cmd "method::create" NsfMethodCreateCmd {
 
 cmd method::asmcreate NsfAsmMethodCreateCmd {
   {-argName "object" -required 1 -type object}
+  {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
   {-argName "-inner-namespace" -nrargs 0}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "-reg-object" -required 0 -nrargs 1 -type object}
