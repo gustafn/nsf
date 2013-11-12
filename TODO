@@ -4712,6 +4712,7 @@ monogodb:
 - tested with mongodb 2.4.5
 
 - added example scripts rosetta-sudoku.{tcl,html} and tk-ludo.{tcl,html}
+- added sample script doc/example-scripts/tk-geo.tcl
 
 mongodb:
 - integrated configuration of mongodb into toplevel configfile
@@ -4722,9 +4723,39 @@ mongodb:
 - reduced verbosity of nx-mongo.tcl (added verbosty variable)
 
 nsf.c
+- don't call postcondition, when the command/invariant have returned already an error
+- fixed a bug where turning on assertions could swallow result-codes
+- fix potential crash when preconditions are empty
+- extended regression test
+
+serializer
+- fix object mehtod serializeExportedMethod: targetName might have been uninitialized
+
+nsf.c
+- reduce variable scope
+- remove uncalled static function
+
+nsf.c
 - fixed a bug where turning on assertions could swallow result-codes
 - extended regression test
  
+nsf.c:
+- added flag -checkalways to nsf::proc and nsf::asm::proc (for the
+  latter just a placeholder for now). If the flag is used, it will cause argument
+  testing independently from the "configure checkarguments" setting.
+  To force argument checking always is useful e.g. for checking
+  external values (e.g. in a web server)
+- nsf: added switch "-checkalways" to nsf::method::create
+- nx: added switch "checkalways" to "method" and "object method"
+- extended regression test
+
+xotcl2:
+- fixed "... info defaults ..." and "... info instdefaults ..."
+  emulation in XOTcl 2
+- fixed error message
+- extended regression test
+- bumped revision of nsf/xotcl/nx to 2.0b6
+
 ========================================================================
 TODO:
 

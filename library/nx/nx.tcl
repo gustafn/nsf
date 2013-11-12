@@ -29,7 +29,7 @@
 # SOFTWARE.
 #
 package require nsf
-package provide nx 2.0b5
+package provide nx 2.0b6
 
 namespace eval ::nx {
 

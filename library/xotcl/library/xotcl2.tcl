@@ -28,7 +28,7 @@
 # SOFTWARE.
 #
 
-package provide XOTcl 2.0b5
+package provide XOTcl 2.0b6
 package require nx
 
 #######################################################
@@ -554,21 +554,19 @@ namespace eval ::xotcl {
         argName [$o ::nsf::methods::${scope}::info::method args $method] \
         flag    [$o ::nsf::methods::${scope}::info::method parameter $method] {
           if {$argName eq $arg} {
-	    # upvar 2 $varName default
-	    # use "my" here to avoid surprises with aliases or interceptors
-	    $o upvar $varName default
-	    #puts "--- info_default var '$varName' level=[info level]"
+	    # we are in a proc, so using builtin "upvar" is safe
+	    upvar $varName default
             if {[llength $flag] == 2} {
               set default [lindex $flag 1]
-              #puts stderr "--- get $scope default for $o $method $arg => $default"
+              #puts "--- get $scope default for $o $method $arg => setting default to '$default'"
               return 1
             }
-            #puts stderr "--- get $scope default for $o $method $arg fails"
+            #puts "--- get $scope default for $o $method $arg fails"
             set default ""
             return 0
           }
         }
-    error "procedure \"$method\" doesn't have an argument \"$varName\""
+    error "procedure \"$method\" doesn't have an argument \"$arg\""
   }
 
   proc ::xotcl::info_forward_options {list} {
@@ -603,9 +601,15 @@ namespace eval ::xotcl {
       return [my {*}$cmd]
     }
     :proc default {method arg varName} {
+      #
+      # We are called from object "objectInfo". The true caller is 2
+      # levels up.
+      #
+      :upvar 2 $varName defaultVar
       # pass varName to be able produce the right error message
-      set r [::xotcl::info_default object [self] $method $arg $varName]
-      #puts "--- var '$varName' level=[info level]"
+      set r [::xotcl::info_default object [self] $method $arg defaultVar]
+      #if {$r == 1 && ![info exists defaultVar]} {error inconsistency}
+      #puts "--- objectInfo default: var '$varName' level=[info level]"
       return $r
     }
     :proc filter {-order:switch -guards:switch pattern:optional} {
@@ -687,8 +691,14 @@ namespace eval ::xotcl {
     :alias classchildren      ::nsf::methods::object::info::children
     :alias classparent        ::nsf::methods::object::info::parent
     :proc default {method arg varName} {
-      set r [::xotcl::info_default object [self] $method $arg $varName]
-      #puts "--- var '$varName' level=[info level]"
+      #
+      # We are called from object "classInfo". The true caller is 2
+      # levels up.
+      #
+      :upvar 2 $varName defaultVar
+      set r [::xotcl::info_default object [self] $method $arg defaultVar]
+      #puts "--- classInfo default: var '$varName' level=[info level] result $r exists [info exists defaultVar]"
+      #if {$r == 1 && ![info exists defaultVar]} {error inconsistency}
       return $r
     }
     :proc heritage {pattern:optional} {
@@ -706,7 +716,14 @@ namespace eval ::xotcl {
       return [my {*}$cmd]
     }
     :proc instdefault {method arg varName} {
-      set r [::xotcl::info_default class [self] $method $arg $varName]
+      #
+      # We are called from object "classInfo". The true caller is 2
+      # levels up.
+      #
+      :upvar 2 $varName defaultVar
+      set r [::xotcl::info_default class [self] $method $arg defaultVar]
+      #puts "--- classInfo instdefault: var '$varName' level=[info level]"
+      #if {$r == 1 && ![info exists defaultVar]} {error inconsistency}
       return $r
     }
     :alias instfilter         ::nsf::methods::class::info::filtermethods

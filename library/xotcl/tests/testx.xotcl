@@ -4160,7 +4160,7 @@ TestX create nonposargs -proc run {{n 20}} {
 	"Defaults for instproc"
 
   catch {C info instdefault m2 xxx e} msg
-  errorCheck $msg {procedure "m2" doesn't have an argument "e"} \
+  errorCheck $msg {procedure "m2" doesn't have an argument "xxx"} \
 	"Defaults instproc error"
 
   C instproc m3 {
