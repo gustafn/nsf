@@ -62,6 +62,19 @@ NsfStubs nsfStubs = {
     NsfAddObjectMethod, /* 22 */
     NsfAddClassMethod, /* 23 */
     NsfCreate, /* 24 */
+    Nsf_ArgumentParse, /* 25 */
+    NsfLog, /* 26 */
+    Nsf_PointerAdd, /* 27 */
+    Nsf_PointerDelete, /* 28 */
+    Nsf_PointerTypeRegister, /* 29 */
+    Nsf_ConvertToBoolean, /* 30 */
+    Nsf_ConvertToClass, /* 31 */
+    Nsf_ConvertToInt32, /* 32 */
+    Nsf_ConvertToInteger, /* 33 */
+    Nsf_ConvertToObject, /* 34 */
+    Nsf_ConvertToPointer, /* 35 */
+    Nsf_ConvertToString, /* 36 */
+    Nsf_ConvertToTclobj, /* 37 */
 };
 
 /* !END!: Do not edit above this line. */

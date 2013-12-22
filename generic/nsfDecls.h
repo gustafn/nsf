@@ -178,6 +178,96 @@ EXTERN int		NsfCreate(Tcl_Interp *in, Nsf_Class *class,
 				Tcl_Obj *name, int objc,
 				Tcl_Obj *CONST objv[]);
 #endif
+#ifndef Nsf_ArgumentParse_TCL_DECLARED
+#define Nsf_ArgumentParse_TCL_DECLARED
+/* 25 */
+EXTERN int		Nsf_ArgumentParse(Tcl_Interp *interp, int objc,
+				Tcl_Obj *CONST objv[], Nsf_Object *object,
+				Tcl_Obj *procNameObj,
+				Nsf_Param CONST *paramPtr, int nrParams,
+				int serial, int doCheck,
+				Nsf_ParseContext *pcPtr);
+#endif
+#ifndef NsfLog_TCL_DECLARED
+#define NsfLog_TCL_DECLARED
+/* 26 */
+EXTERN void		NsfLog(Tcl_Interp *interp, int requiredLevel,
+				CONST char *fmt, ...);
+#endif
+#ifndef Nsf_PointerAdd_TCL_DECLARED
+#define Nsf_PointerAdd_TCL_DECLARED
+/* 27 */
+EXTERN int		Nsf_PointerAdd(Tcl_Interp *interp, char *buffer,
+				CONST char *typeName, VOID *valuePtr);
+#endif
+#ifndef Nsf_PointerDelete_TCL_DECLARED
+#define Nsf_PointerDelete_TCL_DECLARED
+/* 28 */
+EXTERN int		Nsf_PointerDelete(CONST char *key, VOID *valuePtr,
+				int free);
+#endif
+#ifndef Nsf_PointerTypeRegister_TCL_DECLARED
+#define Nsf_PointerTypeRegister_TCL_DECLARED
+/* 29 */
+EXTERN int		Nsf_PointerTypeRegister(Tcl_Interp *interp,
+				CONST char*typeName, int *counterPtr);
+#endif
+#ifndef Nsf_ConvertToBoolean_TCL_DECLARED
+#define Nsf_ConvertToBoolean_TCL_DECLARED
+/* 30 */
+EXTERN int		Nsf_ConvertToBoolean(Tcl_Interp *interp,
+				Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+				ClientData *clientData, Tcl_Obj **outObjPtr);
+#endif
+#ifndef Nsf_ConvertToClass_TCL_DECLARED
+#define Nsf_ConvertToClass_TCL_DECLARED
+/* 31 */
+EXTERN int		Nsf_ConvertToClass(Tcl_Interp *interp,
+				Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+				ClientData *clientData, Tcl_Obj **outObjPtr);
+#endif
+#ifndef Nsf_ConvertToInt32_TCL_DECLARED
+#define Nsf_ConvertToInt32_TCL_DECLARED
+/* 32 */
+EXTERN int		Nsf_ConvertToInt32(Tcl_Interp *interp,
+				Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+				ClientData *clientData, Tcl_Obj **outObjPtr);
+#endif
+#ifndef Nsf_ConvertToInteger_TCL_DECLARED
+#define Nsf_ConvertToInteger_TCL_DECLARED
+/* 33 */
+EXTERN int		Nsf_ConvertToInteger(Tcl_Interp *interp,
+				Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+				ClientData *clientData, Tcl_Obj **outObjPtr);
+#endif
+#ifndef Nsf_ConvertToObject_TCL_DECLARED
+#define Nsf_ConvertToObject_TCL_DECLARED
+/* 34 */
+EXTERN int		Nsf_ConvertToObject(Tcl_Interp *interp,
+				Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+				ClientData *clientData, Tcl_Obj **outObjPtr);
+#endif
+#ifndef Nsf_ConvertToPointer_TCL_DECLARED
+#define Nsf_ConvertToPointer_TCL_DECLARED
+/* 35 */
+EXTERN int		Nsf_ConvertToPointer(Tcl_Interp *interp,
+				Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+				ClientData *clientData, Tcl_Obj **outObjPtr);
+#endif
+#ifndef Nsf_ConvertToString_TCL_DECLARED
+#define Nsf_ConvertToString_TCL_DECLARED
+/* 36 */
+EXTERN int		Nsf_ConvertToString(Tcl_Interp *interp,
+				Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+				ClientData *clientData, Tcl_Obj **outObjPtr);
+#endif
+#ifndef Nsf_ConvertToTclobj_TCL_DECLARED
+#define Nsf_ConvertToTclobj_TCL_DECLARED
+/* 37 */
+EXTERN int		Nsf_ConvertToTclobj(Tcl_Interp *interp,
+				Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+				ClientData *clientData, Tcl_Obj **outObjPtr);
+#endif
 
 typedef struct NsfStubHooks {
     struct NsfIntStubs *nsfIntStubs;
@@ -212,6 +302,19 @@ typedef struct NsfStubs {
     int (*nsfAddObjectMethod) (Tcl_Interp *interp, struct Nsf_Object *object, CONST char *nm, Tcl_ObjCmdProc *proc, ClientData cd, Tcl_CmdDeleteProc *dp, int flags); /* 22 */
     int (*nsfAddClassMethod) (Tcl_Interp *interp, struct Nsf_Class *cl, CONST char *nm, Tcl_ObjCmdProc *proc, ClientData cd, Tcl_CmdDeleteProc *dp, int flags); /* 23 */
     int (*nsfCreate) (Tcl_Interp *in, Nsf_Class *class, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]); /* 24 */
+    int (*nsf_ArgumentParse) (Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Nsf_Object *object, Tcl_Obj *procNameObj, Nsf_Param CONST *paramPtr, int nrParams, int serial, int doCheck, Nsf_ParseContext *pcPtr); /* 25 */
+    void (*nsfLog) (Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...); /* 26 */
+    int (*nsf_PointerAdd) (Tcl_Interp *interp, char *buffer, CONST char *typeName, VOID *valuePtr); /* 27 */
+    int (*nsf_PointerDelete) (CONST char *key, VOID *valuePtr, int free); /* 28 */
+    int (*nsf_PointerTypeRegister) (Tcl_Interp *interp, CONST char*typeName, int *counterPtr); /* 29 */
+    int (*nsf_ConvertToBoolean) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 30 */
+    int (*nsf_ConvertToClass) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 31 */
+    int (*nsf_ConvertToInt32) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 32 */
+    int (*nsf_ConvertToInteger) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 33 */
+    int (*nsf_ConvertToObject) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 34 */
+    int (*nsf_ConvertToPointer) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 35 */
+    int (*nsf_ConvertToString) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 36 */
+    int (*nsf_ConvertToTclobj) (Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr); /* 37 */
 } NsfStubs;
 
 #ifdef __cplusplus
@@ -324,6 +427,58 @@ extern NsfStubs *nsfStubsPtr;
 #ifndef NsfCreate
 #define NsfCreate \
 	(nsfStubsPtr->nsfCreate) /* 24 */
+#endif
+#ifndef Nsf_ArgumentParse
+#define Nsf_ArgumentParse \
+	(nsfStubsPtr->nsf_ArgumentParse) /* 25 */
+#endif
+#ifndef NsfLog
+#define NsfLog \
+	(nsfStubsPtr->nsfLog) /* 26 */
+#endif
+#ifndef Nsf_PointerAdd
+#define Nsf_PointerAdd \
+	(nsfStubsPtr->nsf_PointerAdd) /* 27 */
+#endif
+#ifndef Nsf_PointerDelete
+#define Nsf_PointerDelete \
+	(nsfStubsPtr->nsf_PointerDelete) /* 28 */
+#endif
+#ifndef Nsf_PointerTypeRegister
+#define Nsf_PointerTypeRegister \
+	(nsfStubsPtr->nsf_PointerTypeRegister) /* 29 */
+#endif
+#ifndef Nsf_ConvertToBoolean
+#define Nsf_ConvertToBoolean \
+	(nsfStubsPtr->nsf_ConvertToBoolean) /* 30 */
+#endif
+#ifndef Nsf_ConvertToClass
+#define Nsf_ConvertToClass \
+	(nsfStubsPtr->nsf_ConvertToClass) /* 31 */
+#endif
+#ifndef Nsf_ConvertToInt32
+#define Nsf_ConvertToInt32 \
+	(nsfStubsPtr->nsf_ConvertToInt32) /* 32 */
+#endif
+#ifndef Nsf_ConvertToInteger
+#define Nsf_ConvertToInteger \
+	(nsfStubsPtr->nsf_ConvertToInteger) /* 33 */
+#endif
+#ifndef Nsf_ConvertToObject
+#define Nsf_ConvertToObject \
+	(nsfStubsPtr->nsf_ConvertToObject) /* 34 */
+#endif
+#ifndef Nsf_ConvertToPointer
+#define Nsf_ConvertToPointer \
+	(nsfStubsPtr->nsf_ConvertToPointer) /* 35 */
+#endif
+#ifndef Nsf_ConvertToString
+#define Nsf_ConvertToString \
+	(nsfStubsPtr->nsf_ConvertToString) /* 36 */
+#endif
+#ifndef Nsf_ConvertToTclobj
+#define Nsf_ConvertToTclobj \
+	(nsfStubsPtr->nsf_ConvertToTclobj) /* 37 */
 #endif
 
 #endif /* defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS) */

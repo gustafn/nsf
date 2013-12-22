@@ -109,3 +109,56 @@ declare 24 generic {
   int NsfCreate(Tcl_Interp *in, Nsf_Class *class, Tcl_Obj *name, 
 		int objc, Tcl_Obj *CONST objv[])
 }
+declare 25 generic {
+  int Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+		  Nsf_Object *object, Tcl_Obj *procNameObj,
+		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
+		  int doCheck, Nsf_ParseContext *pcPtr)
+}
+declare 26 generic {
+  void NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)
+}
+
+declare 27 generic {
+  int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr)
+}
+
+declare 28 generic {
+  int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free)
+}
+declare 29 generic {
+  int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr)
+}
+
+declare 30 generic {
+  int Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			   ClientData *clientData, Tcl_Obj **outObjPtr)
+}
+declare 31 generic {
+  int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			   ClientData *clientData, Tcl_Obj **outObjPtr)
+}
+declare 32 generic {
+  int Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			   ClientData *clientData, Tcl_Obj **outObjPtr)
+}
+declare 33 generic {
+  int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			   ClientData *clientData, Tcl_Obj **outObjPtr)
+}
+declare 34 generic {
+  int Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			 ClientData *clientData, Tcl_Obj **outObjPtr)
+}
+declare 35 generic {
+  int Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr)
+}
+declare 36 generic {
+  int Nsf_ConvertToString(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr)
+}
+declare 37 generic {
+  int Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr)
+}
