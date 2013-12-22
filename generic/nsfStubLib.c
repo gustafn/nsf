@@ -65,18 +65,21 @@ CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;
  */
 
 CONST char *
-Nsf_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
+Nsf_InitStubs(Tcl_Interp *interp, CONST char *version, int exact) {
     CONST char *actualVersion;
-    const char *packageName = "XOTcl";
+    const char *packageName = "nsf";
     ClientData clientData = NULL;
 
     actualVersion = Tcl_PkgRequireEx(interp, "nsf", version, exact,
-        &clientData);
+				     &clientData);
+
+    /*fprintf(stderr, "Nsf_InitStubs required nsf version %s exact %d -> %s %p\n",
+      version, exact, actualVersion, clientData);*/
 
     if (clientData == NULL) {
       Tcl_ResetResult(interp);
-      Tcl_AppendResult(interp, "Error loading ", packageName, " package; ",
-                         "package not present or incomplete", NULL);
+      Tcl_AppendResult(interp, "Error loading package ", packageName,
+		       ": package not present or incomplete", NULL);
         return NULL;
     } else {
       CONST86 NsfStubs * const stubsPtr = clientData;
@@ -90,8 +93,8 @@ Nsf_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
       if (!stubsPtr || !intStubsPtr) {
         static char *errMsg = "missing stub table pointer";
         Tcl_ResetResult(interp);
-        Tcl_AppendResult(interp, "Error loading ", packageName, " package",
-                         " (requested version '", version, "', loaded version '",
+        Tcl_AppendResult(interp, "Error loading package", packageName,
+                         ": (requested version '", version, "', loaded version '",
                          actualVersion, "'): ", errMsg, NULL);
         return NULL;
       }
