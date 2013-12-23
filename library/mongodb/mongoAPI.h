@@ -4,6 +4,51 @@
  * part of the Next Scripting Framework.
  */
 
+#if defined(USE_NSF_STUBS)
+int Nsf_ConvertTo_Boolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return Nsf_ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
+}
+int Nsf_ConvertTo_Class(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return Nsf_ConvertToClass(interp, objPtr, pPtr, clientData, outObjPtr);
+}
+int Nsf_ConvertTo_Int32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return Nsf_ConvertToInt32(interp, objPtr, pPtr, clientData, outObjPtr);
+}
+int Nsf_ConvertTo_Integer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return Nsf_ConvertToInteger(interp, objPtr, pPtr, clientData, outObjPtr);
+}
+int Nsf_ConvertTo_Object(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return Nsf_ConvertToObject(interp, objPtr, pPtr, clientData, outObjPtr);
+}
+int Nsf_ConvertTo_Pointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return Nsf_ConvertToPointer(interp, objPtr, pPtr, clientData, outObjPtr);
+}
+int Nsf_ConvertTo_String(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return Nsf_ConvertToString(interp, objPtr, pPtr, clientData, outObjPtr);
+}
+int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return Nsf_ConvertToTclobj(interp, objPtr, pPtr, clientData, outObjPtr);
+}
+#else
+# define Nsf_ConvertTo_Boolean Nsf_ConvertToBoolean
+# define Nsf_ConvertTo_Class Nsf_ConvertToClass
+# define Nsf_ConvertTo_Int32 Nsf_ConvertToInt32
+# define Nsf_ConvertTo_Integer Nsf_ConvertToInteger
+# define Nsf_ConvertTo_Object Nsf_ConvertToObject
+# define Nsf_ConvertTo_Pointer Nsf_ConvertToPointer
+# define Nsf_ConvertTo_String Nsf_ConvertToString
+# define Nsf_ConvertTo_Tclobj Nsf_ConvertToTclobj
+#endif
+
+
 #if !defined(likely) 
 # if defined(__GNUC__) && __GNUC__ > 2
 /* Use gcc branch prediction hint to minimize cost of e.g. DTrace
@@ -67,7 +112,7 @@ static int NsfMongoGridFileGetMetaData(Tcl_Interp *interp, gridfile *filePtr);
 static int NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *fsPtr, CONST char *filename);
 static int NsfMongoGridFileRead(Tcl_Interp *interp, gridfile *filePtr, int size);
 static int NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *filePtr, int offset);
-static int NsfMongoIndex(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *attributes, CONST char *withName, int withBackground, int withDropdups, int withSparse, int withUnique);
+static int NsfMongoIndex(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *attributes, CONST char *withName, int withBackground, int withDropdups, int withSparse, int withTtl, int withUnique);
 static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *values);
 static int NsfMongoQuery(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
 static int NsfMongoRemove(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *condition);
@@ -460,10 +505,11 @@ NsfMongoIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     int withBackground = (int )PTR2INT(pc.clientData[4]);
     int withDropdups = (int )PTR2INT(pc.clientData[5]);
     int withSparse = (int )PTR2INT(pc.clientData[6]);
-    int withUnique = (int )PTR2INT(pc.clientData[7]);
+    int withTtl = (int )PTR2INT(pc.clientData[7]);
+    int withUnique = (int )PTR2INT(pc.clientData[8]);
 
     assert(pc.status == 0);
-    return NsfMongoIndex(interp, connPtr, namespace, attributes, withName, withBackground, withDropdups, withSparse, withUnique);
+    return NsfMongoIndex(interp, connPtr, namespace, attributes, withName, withBackground, withDropdups, withSparse, withTtl, withUnique);
 
   } else {
     return TCL_ERROR;
@@ -584,117 +630,118 @@ NsfMongoUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 static Nsf_methodDefinition method_definitions[24] = {
 {"::mongo::close", NsfMongoCloseStub, 1, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::connect", NsfMongoConnectStub, 3, {
-  {"-replica-set", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-server", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-timeout", 0, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+  {"-replica-set", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-server", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-timeout", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::count", NsfMongoCountStub, 3, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::cursor::close", NsfMongoCursorCloseStub, 1, {
-  {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo_cursor",NULL,NULL,NULL,NULL,NULL}}
+  {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo_cursor",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::cursor::find", NsfMongoCursorFindStub, 8, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-atts", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-limit", 0, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
-  {"-skip", 0, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
-  {"-tailable", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-awaitdata", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-atts", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-limit", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
+  {"-skip", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
+  {"-tailable", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-awaitdata", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::cursor::next", NsfMongoCursorNextStub, 1, {
-  {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo_cursor",NULL,NULL,NULL,NULL,NULL}}
+  {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo_cursor",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfs::close", NsfMongoGridFSCloseStub, 1, {
-  {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL}}
+  {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfs::open", NsfMongoGridFSOpenStub, 3, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"dbname", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"prefix", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"dbname", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"prefix", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfs::remove_file", NsfMongoGridFSRemoveFileStub, 2, {
-  {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL},
-  {"filename", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL},
+  {"filename", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfs::store_file", NsfMongoGridFSStoreFileStub, 4, {
-  {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL},
-  {"filename", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"remotename", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"contenttype", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL},
+  {"filename", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"remotename", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"contenttype", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::close", NsfMongoGridFileCloseStub, 1, {
-  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL}}
+  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::get_contenttype", NsfMongoGridFileGetContentTypeStub, 1, {
-  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL}}
+  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::get_contentlength", NsfMongoGridFileGetContentlengthStub, 1, {
-  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL}}
+  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::get_metadata", NsfMongoGridFileGetMetaDataStub, 1, {
-  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL}}
+  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::open", NsfMongoGridFileOpenStub, 2, {
-  {"fs", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL},
-  {"filename", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"fs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfs",NULL,NULL,NULL,NULL,NULL},
+  {"filename", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::read", NsfMongoGridFileReadStub, 2, {
-  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
-  {"size", NSF_ARG_REQUIRED, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
+  {"size", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::seek", NsfMongoGridFileSeekStub, 2, {
-  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
-  {"offset", NSF_ARG_REQUIRED, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+  {"file", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"gridfile",NULL,NULL,NULL,NULL,NULL},
+  {"offset", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::index", NsfMongoIndexStub, 8, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"attributes", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-name", 0, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-background", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-dropdups", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-sparse", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-unique", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+{"::mongo::index", NsfMongoIndexStub, 9, {
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"attributes", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-name", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-background", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-dropdups", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-sparse", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-ttl", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
+  {"-unique", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::insert", NsfMongoInsertStub, 3, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"values", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"values", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::query", NsfMongoQueryStub, 6, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-atts", 0, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-limit", 0, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
-  {"-skip", 0, 1, Nsf_ConvertToInt32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"query", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-atts", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-limit", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
+  {"-skip", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::remove", NsfMongoRemoveStub, 3, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"condition", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"condition", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::run", NsfMongoRunCmdStub, 4, {
-  {"-nocomplain", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"db", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"cmd", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"-nocomplain", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"db", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"cmd", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::update", NsfMongoUpdateStub, 6, {
-  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertToPointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
-  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"cond", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"values", NSF_ARG_REQUIRED, 1, Nsf_ConvertToTclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-upsert", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-all", 0, 0, Nsf_ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongo",NULL,NULL,NULL,NULL,NULL},
+  {"namespace", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"cond", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"values", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-upsert", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-all", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },{NULL}
 };
 

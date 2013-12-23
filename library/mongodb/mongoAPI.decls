@@ -45,6 +45,7 @@ cmd index NsfMongoIndex {
   {-argName "-background" -required 0 -nrargs 0}
   {-argName "-dropdups" -required 0 -nrargs 0}
   {-argName "-sparse" -required 0 -nrargs 0}
+  {-argName "-ttl" -required 0 -nrargs 1 -type int32}
   {-argName "-unique" -required 0 -nrargs 0}
 }
 

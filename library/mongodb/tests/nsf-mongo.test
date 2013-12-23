@@ -3,6 +3,7 @@
 # This is a sample test set using the low-level (pure tcl) interface
 # for inserting and querying tuples into MongoDB.
 #
+
 package require nsf
 package require nx::test
 package require nsf::mongo

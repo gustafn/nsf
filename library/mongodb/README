@@ -3,11 +3,12 @@ Interface between mongoDB and the Next Scripting Framework
 
 Ingredients:
   https://github.com/mongodb/mongo
-  https://github.com/mongodb/mongo-c-driver 
+  https://github.com/mongodb/mongo-c-driver-legacy 
 
 The current version is tested with 
 - MongoDB v2.4.5
-- mongodb-c-driver v0.7.1
+- mongodb-c-driver-legacy v0.8.1
+  git checkout v0.8.1
 
 Compile or obtain mongodb (the database).
 Compile or obtain the mongo-c-driver (client interface)
@@ -40,7 +41,7 @@ In order to run the sample script,
 
   * run 
 
-    ./nxsh library/mongodb/example-nsf-mongo.tcl
+    ./nxsh library/mongodb/tests/nsf-mongo.test
  
     The script is using the low level interface (nsf::mongo) and has a
     few insert, query and delete statements, some of these are

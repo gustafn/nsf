@@ -637,9 +637,12 @@ cmd index NsfMongoIndex {
   {-argName "-background" -required 0 -nrargs 0}
   {-argName "-dropdups" -required 0 -nrargs 0}
   {-argName "-sparse" -required 0 -nrargs 0}
+  {-argName "-ttl" -required 0 -nrargs 1 -type int32}
   {-argName "-unique" -required 0 -nrargs 0}
 }
 */
+
+
 static int 
 NsfMongoIndex(Tcl_Interp *interp, 
 	      mongo *connPtr, 
@@ -649,6 +652,7 @@ NsfMongoIndex(Tcl_Interp *interp,
 	      int withBackground, 
 	      int withDropdups, 
 	      int withSparse, 
+	      int withTtl, 
 	      int withUnique) {
   bson_bool_t success;
   int objc, result, options = 0;
@@ -665,7 +669,7 @@ NsfMongoIndex(Tcl_Interp *interp,
   if (withSparse)     {options |= MONGO_INDEX_SPARSE;}
   if (withUnique)     {options |= MONGO_INDEX_UNIQUE;}
 
-  success = mongo_create_index(connPtr, namespace, keys, withName, options, out);
+  success = mongo_create_index(connPtr, namespace, keys, withName, options, withTtl, out);
   bson_destroy(keys);
   /* TODO: examples in mongo-client do not touch out; do we have to do
      something about it? */
@@ -1190,10 +1194,11 @@ Nsfmongo_Init(Tcl_Interp * interp) {
     }
 
 # ifdef USE_NSF_STUBS
-    if (Nsf_InitStubs(interp, "1.1", 0) == NULL) {
+    if (Nsf_InitStubs(interp, "2.0", 0) == NULL) {
         return TCL_ERROR;
     }
 # endif
+
 #else
     if (Tcl_PkgRequire(interp, "Tcl", TCL_VERSION, 0) == NULL) {
         return TCL_ERROR;
@@ -1202,7 +1207,7 @@ Nsfmongo_Init(Tcl_Interp * interp) {
     Tcl_PkgProvide(interp, "nsf::mongo", PACKAGE_VERSION);
 
 #ifdef PACKAGE_REQUIRE_FROM_SLAVE_INTERP_WORKS_NOW
-    if (Tcl_PkgRequire(interp, "nsf", XOTCLVERSION, 0) == NULL) {
+    if (Tcl_PkgRequire(interp, "nsf", PACKAGE_VERSION, 0) == NULL) {
         return TCL_ERROR;
     }
 #endif
