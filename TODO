@@ -4756,10 +4756,39 @@ xotcl2:
 - extended regression test
 - bumped revision of nsf/xotcl/nx to 2.0b6
 
+gentclAPI.tcl, generic/nsf.decls
+- make converter usable from c-based packages compiled with subs activated
+- add parameter parser and converter to stub tables
+
+generic/nsfStubLib.c:
+- change base stub table from XOTcl to NSF.
+- improve wording of error messages.
+
+generic/nsfPointer.c:
+- add reference counter to avoid double-inits and double-frees 
+  in case the table of converters is used from multiple interpreters
+
+generic/nsf.c:
+- made linearization monotonic (for multiple inheritance) 
+  via single-inheritance linearization merging
+  while preserving overall linearization rules
+- added flag NSF_LINEARIZER_TRACE
+- extended regression test
+
+library/lib/make.tcl:
+- don't try to load nx when building pkgindex for a binary package (.so or dylib)
+
+mongodb
+- upgrade to mongo-c-driver to 0.8.1
+- added new flag "-ttl" to mongo::index
+- there seems to be now a differen mongo-c-driver to be the preferred
+  one, the old one is renamed to mongo-c-driver-legacy
+- link against nsf-stublib
+- bump version number to 0.2
 ========================================================================
 TODO:
 
-
+- remove / rephrase "//"-comments
 
 Stefan: doc items
 

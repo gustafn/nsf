@@ -1,0 +1,127 @@
+package require nx::test
+
+proc direct-constraints {obj} {
+  set constraints ""
+  foreach c [$obj info precedence] {
+
+    set sc [$c info superclass]
+
+    # add constraints to ensure that subclass is before superclass
+    foreach super $sc { lappend constraints [list $c < $super] }
+    
+    # maintain order from superclass list
+    if {[llength $sc] == 2} {
+      lappend constraints [list [lindex $sc 0] < [lindex $sc 1]]
+    } elseif {[llength $sc] > 2} {
+      set first [lindex $sc 0]
+      foreach class [lrange $sc 1 end] {
+	lappend constraints [list $first < $class]
+	set first $class
+      }
+    }
+  }
+  return $constraints
+}
+
+
+proc monotonicity-constraints {obj {linearizer ""}} {
+  set constraints ""
+  foreach c [$obj info precedence] {
+
+    # compute for every class its own heritage and turn this into constraints
+    if {$linearizer eq ""} {
+      set sc [$c info heritage]
+    } else {
+      puts "call linearizer [list $linearizer $c]"
+      set sc [$linearizer $c]
+
+    }
+
+    # maintain order from superclass list
+    if {[llength $sc] == 2} {
+      lappend constraints [list [lindex $sc 0] < [lindex $sc 1]]
+    } elseif {[llength $sc] > 2} {
+      set first [lindex $sc 0]
+      foreach class [lrange $sc 1 end] {
+	lappend constraints [list $first < $class]
+	set first $class
+      }
+    }
+  }
+  return [lsort -unique $constraints]
+}
+
+proc local-order-constraints {obj} {
+  # no class before its subclass
+  set constraints ""
+  foreach c [$obj info precedence] {
+
+    # compute vor every class its subclasses
+    set subclasses [$c info subclass -closure]
+
+    # subclasses must be before classes
+    foreach sc $subclasses {
+      lappend constraints [list $sc < $c]
+    }
+  }
+  return [lsort -unique $constraints]
+}
+
+proc check-constraints {example rule kind list constraints} {
+  #puts "check-constraints $example $rule $kind $list"
+  foreach triple $constraints {
+    lassign $triple x before y
+    set larger [expr {[lsearch -exact $list $x] > [lsearch -exact $list $y]}]
+    ? [list set _ $larger] 0 "$example $rule $kind violated $triple"
+  }
+  #puts ""
+}
+
+nx::test case boat {
+  #
+  # Boat example DHHM 94; 
+  # R. Ducournau, M. Habib, M. Huchard, and M.L. Mugnier. Proposal for a Monotonic Multiple Inheritance Linearization.
+  # see: http://www2.lirmm.fr/~ducour/Publis/DHHM-oopsla94.pdf
+  #
+
+  nx::Class create boat ;# 8
+  nx::Class create dayboat -superclass boat ;# 6
+  nx::Class create wheelboat -superclass boat ;# 7
+  nx::Class create engineless -superclass dayboat ;# 3
+  nx::Class create pedalwheelboat -superclass {engineless wheelboat} ;# 2
+  nx::Class create smallmultihull -superclass dayboat ;# 5
+  nx::Class create smallcatamaran -superclass smallmultihull ;# 4
+  nx::Class create pedalo -superclass {pedalwheelboat smallcatamaran};# 1
+
+  dayboat public method max-distance {} {return 5m}
+  wheelboat public method max-distance {} {return 100m}
+
+  # If the linearization is known to be monotonic, the compiler can
+  # choose to dispatch the call to max-distance directly to the method
+  # defined on <day-boat>. This is known statically because no new
+  # methods can be defined on max-distance - it is sealed - and
+  # <day-boat> is always more specific than <wheel-boat> for instances
+  # of <pedal-wheel-boat>.
+
+  pedalo create o1
+  #? {o1 info precedence} {::pedalo ::pedalwheelboat ::engineless ::wheelboat ::smallcatamaran ::smallmultihull ::dayboat ::boat ::nx::Object}
+  #? {o1 max-distance} 100m
+  ? {o1 info precedence} {::pedalo ::pedalwheelboat ::engineless ::smallcatamaran ::smallmultihull ::dayboat ::wheelboat ::boat ::nx::Object}
+  ? {o1 max-distance} 5m
+
+  pedalwheelboat create pwb
+  ? {pwb max-distance} 5m
+  ? {pwb info precedence} "::pedalwheelboat ::engineless ::dayboat ::wheelboat ::boat ::nx::Object"
+
+  smallcatamaran create smc
+  ? {smc max-distance} 5m
+  ? {smc info precedence} "::smallcatamaran ::smallmultihull ::dayboat ::boat ::nx::Object"
+  
+
+  set order [o1 info precedence] 
+  puts "${:case} nx: $order"
+  check-constraints ${:case} nx direct $order [direct-constraints o1]
+  check-constraints ${:case} nx monotonicty $order [monotonicity-constraints o1]
+  check-constraints ${:case} nx local-order $order [local-order-constraints o1]
+
+}

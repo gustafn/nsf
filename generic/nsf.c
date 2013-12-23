@@ -1622,6 +1622,7 @@ NsfClassListFree(NsfClasses *classList) {
 static NsfClasses **
 NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
   NsfClasses *l = *firstPtrPtr, *element = NEW(NsfClasses);
+
   element->cl = cl;
   element->clientData = clientData;
   element->nextPtr = NULL;
@@ -1703,7 +1704,7 @@ NsfClassListFind(NsfClasses *clPtr, NsfClass *cl) {
   return clPtr;
 }
 
-#if 0
+#if defined(NSF_CLASSLIST_PRINT)
 /* debugging purposes only */
 /*
  *----------------------------------------------------------------------
@@ -1740,16 +1741,16 @@ NsfClassListPrint(CONST char *title, NsfClasses *clsList) {
   if (title) {
     fprintf(stderr, "%s", title);
   }
-  fprintf(stderr, " %p: ", clsList);
+  //fprintf(stderr, " %p:", clsList);
   while (clsList) {
-    fprintf(stderr, "%p %s ", clsList->cl, ClassName(clsList->cl));
+    //fprintf(stderr, " %p", clsList->cl);
+    fprintf(stderr, " %s", ClassName(clsList->cl));
     clsList = clsList->nextPtr;
   }
   fprintf(stderr, "\n");
 }
 #endif
 
-#if defined(CHECK_ACTIVATION_COUNTS)
 /*
  *----------------------------------------------------------------------
  * NsfClassListUnlink --
@@ -1786,6 +1787,7 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
 	  /* first item */
 	  *firstPtrPtr = entryPtr->nextPtr;
 	}
+	entryPtr->nextPtr = NULL;
 	break;
       }
     }
@@ -1794,11 +1796,9 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
   return entryPtr;
 }
 
-#endif
-
 
 /*
- * precedence ordering functions
+ * Functions for computing Precedence Order
  */
 
 /*
@@ -1863,14 +1863,248 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction) {
   return 1;
 }
 
+
 /*
  *----------------------------------------------------------------------
- * TransitiveSuperClasses --
+ * MustBeBefore --
+ *
+ *    Check the partial ordering of classes based on precedence list in the
+ *    form of prior ordering from the topological sort. We compare here
+ *    orderings based the class hierarchies with single inheritance and prior
+ *    solved multiple inheritance orderings.
+ *
+ * Results:
+ *    Boolean value indicating success.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *miList) {
+  int result = (NsfClassListFind(b->order, a) != NULL);
+
+  /*
+   * When the partital ordering can't be decided based on the prior test, we
+   * take the specified multiple inheritance ordering (e.g. -superclass {x y})
+   * which is not taken account by the class hierarchy.
+   */
+  if (result == 0) {
+    NsfClasses *sl;
+    int bFound = 0;
+
+#if defined(NSF_LINEARIZER_TRACE)
+    fprintf(stderr, "--> check %s before %s?\n", ClassName(b), ClassName(a));
+    NsfClassListPrint("miList", miList);
+#endif
+    for (sl = miList; sl; sl = sl->nextPtr) {
+      if (sl->cl == b) {
+	bFound = 1;
+      } else if (bFound && sl->cl == a) {
+#if defined(NSF_LINEARIZER_TRACE)
+	fprintf(stderr, "%s in inheritanceList before %s therefore a < b\n", ClassName(b), ClassName(a));
+#endif
+	result = 1;
+	break;
+      }
+    }
+  }
+#if defined(NSF_LINEARIZER_TRACE)
+  fprintf(stderr, "compare %s %s -> %d\n", ClassName(a), ClassName(b), result);
+  NsfClassListPrint("\ta", a->order);
+  NsfClassListPrint("\tb", b->order);
+#endif
+  return result;
+}
+
+
+static int
+TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
+  NsfClasses *pl, *savedSuper, *sl;
+
+  /*
+   * Be careful to reset the color of unreported classes to
+   * white in the caller on all exits to WHITE.
+   *
+   *     WHITE ... not processed
+   *     GRAY  ... in work
+   *     BLACK ... done
+   */
+
+  cl->color = GRAY;
+  savedSuper = cl->super;
+  for (sl = savedSuper; sl; sl = sl->nextPtr) {
+    NsfClass *sc = sl->cl;
+    if (sc->color == GRAY) { cl->color = WHITE; return 0; }
+    if (unlikely(sc->color == WHITE && !TopoSortSuper(sc, baseClass))) {
+      cl->color = WHITE;
+      return 0;
+    }
+  }
+
+  /*
+   * Create a new pl
+   */
+  pl = NEW(NsfClasses);
+  pl->cl = cl;
+  pl->nextPtr = NULL;
+
+  /*
+   * If we have multiple inheritance we merge the precomputed inheritance
+   * paths of the involved classes in the provided order.
+   */
+  if (likely(savedSuper) && unlikely(savedSuper->nextPtr != NULL)) {
+    NsfClasses *baseList = NULL, *baseListCurrent, **plNext, 
+      *miList, *deletionList = NULL;
+
+#if defined(NSF_LINEARIZER_TRACE)
+    fprintf(stderr, "=== working on %s\n", ClassName(cl));
+#endif
+
+    /*
+     * The available multiple inheritance list is in revesed order so we have
+     * to reverse it.
+     */
+    miList = NsfReverseClasses(savedSuper);
+
+    /*
+     * We distinguish between a baseList (which might be later an result of
+     * partial merges, and a mergeList, which is to be merged orderpreserving
+     * into the baseList. The first baseList is the precedence list of the
+     * first element of the multiple inheritance list.
+     */
+
+    baseList = miList->cl->order;
+    assert(baseList != NULL);
+
+#if defined(NSF_LINEARIZER_TRACE)
+    fprintf(stderr, "=== baseList from %s\n", ClassName(miList->cl));
+    NsfClassListPrint("baseList", baseList);
+#endif
+
+    /*
+     * The first element of the result list of the merge operation is the
+     * first element of the baseList.
+     */
+    plNext = NsfClassListAdd(&pl, baseList->cl, NULL);
+
+    for (sl = miList->nextPtr; sl; sl = sl->nextPtr) {
+      NsfClasses *mergeList = sl->cl->order;
+
+#if defined(NSF_LINEARIZER_TRACE)
+      NsfClassListPrint("mergeList", mergeList);
+#endif
+      // merge mergeList into baseList
+      // we start with the 2nd (later probably nth) entry of the baseList
+      baseListCurrent = baseList->nextPtr;
+
+      while (mergeList != NULL) {
+	NsfClass *addClass;
+
+	//NsfClassListPrint("baseListCurrent", baseListCurrent);
+	if (mergeList->cl == baseListCurrent->cl) {
+	  // elements are identical, advance both pointers
+	  //fprintf(stderr, "\t\tadvance both\n");
+	  addClass = mergeList->cl;
+	  baseListCurrent = baseListCurrent->nextPtr;
+	  mergeList = mergeList->nextPtr;
+	} else if (MustBeBefore(baseListCurrent->cl, mergeList->cl, miList)) {
+	  // insert current mergelist element before baseListCurrent
+	  addClass = mergeList->cl;
+	  //fprintf(stderr, "\t\tadd from mergeList %s\n", ClassName(addClass));
+	  mergeList = mergeList->nextPtr;
+
+	} else {
+	  // add baselist current
+	  addClass = baseListCurrent->cl;
+	  //fprintf(stderr, "\t\tadd from baselist %s\n", ClassName(addClass));
+	  baseListCurrent = baseListCurrent->nextPtr;
+	}
+	if (addClass) {
+	  /*
+	   * When the class to be added is already in the result list (which
+	   * might happen just in crippled cases) then delete it, and add the
+	   * class to the end.
+	   */
+	  NsfClasses *deletedElement = NsfClassListUnlink(&pl, addClass);
+	  if (deletedElement) {
+#if defined(NSF_LINEARIZER_TRACE)
+	    fprintf(stderr, "\t\t%s is redundant (in resultList)\n", ClassName(addClass));
+#endif
+	    /*
+	     * When plNext points to the nextPtr of the deleted element,
+	     * search the list from the begin 
+	     */
+	    if (plNext == &(deletedElement->nextPtr)) {
+	      plNext = &pl;
+	    }
+	    NsfClassListFree(deletedElement);
+	  }
+	  plNext = NsfClassListAdd(plNext, addClass, NULL);
+	}
+
+#if defined(NSF_LINEARIZER_TRACE)
+	NsfClassListPrint("pl:", pl);
+#endif
+
+      }
+#if defined(NSF_LINEARIZER_TRACE)
+      NsfClassListPrint("plFinal:", pl);
+#endif
+
+      if (sl && sl->nextPtr) {
+	// use pl as new base list
+	baseList = pl;
+
+#if defined(NSF_LINEARIZER_TRACE)
+	fprintf(stderr, "=== setting new baseList\n");
+	NsfClassListPrint("new baseList", baseList);
+#endif
+	/*
+	 * Add old pl to deletion list; these entries are deleted once merging
+	 * is finished.
+	 */
+	NsfClassListAdd(&deletionList, NULL, pl);
+
+	/*
+	 * create a fresh pl for the next iteration.
+	 */
+	pl = NULL;
+	plNext = NsfClassListAdd(&pl, cl, NULL);
+      }
+    }
+
+    for (sl = deletionList; sl; sl = sl->nextPtr) {
+      //fprintf(stderr, "delete from deletion list %p\n", sl->clientData);
+      NsfClassListFree(sl->clientData);
+    }
+    if (deletionList) {
+      NsfClassListFree(deletionList);
+    }
+
+    NsfClassListFree(miList);
+
+  } else {
+    pl->nextPtr = baseClass->order;
+  }
+
+  cl->color = BLACK;
+  baseClass->order = pl;
+
+  return 1;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ * PrecedenceOrder --
  *
  *    Return a class list containing the transitive list of super classes
  *    starting with (and containing) the provided class. The super class list
  *    is cached in cl->order and has to be invalidated by FlushPrecedences()
- *    in case the order changes. The caller does not have free the returned
+ *    in case the order changes. The caller does not have to free the returned
  *    class list (like for TransitiveSubClasses);
  *
  * Results:
@@ -1883,7 +2117,10 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction) {
  */
 
 NSF_INLINE static NsfClasses *
-TransitiveSuperClasses(NsfClass *cl) {
+PrecedenceOrder(NsfClass *cl) {
+  register NsfClasses *sl;
+  int success;
+
   /*
    * Check, of the superclass order is already cached.
    */
@@ -1892,10 +2129,39 @@ TransitiveSuperClasses(NsfClass *cl) {
   }
 
   /*
+   * For multiple inheritance (more than one superclass), make sure that
+   * required precedence orders are precomputed.
+   */
+
+  if (likely(cl->super) && unlikely(cl->super->nextPtr)) {
+    for (sl = cl->super; sl; sl = sl->nextPtr) {
+      if (unlinkely(sl->cl->order == NULL)) {
+
+#if defined(NSF_LINEARIZER_TRACE)
+	fprintf(stderr, "====== PrecedenceOrder computes required order for %s \n", 
+		ClassName(sl->cl));
+#endif
+	if (cl != sl->cl) {
+	  PrecedenceOrder(sl->cl);
+	}
+      }
+    }
+  }
+
+  success = TopoSortSuper(cl, cl);
+
+  /*
+   * Reset the color of all nodes.
+   */
+  for (sl = cl->order; sl; sl = sl->nextPtr) {
+    sl->cl->color = WHITE;
+  }
+
+  /*
    * If computation is successful, return cl->order.
    * Otherwise clear cl->order.
    */
-  if (likely(TopoSort(cl, cl, SUPER_CLASSES))) {
+  if (likely(success)) {
     return cl->order;
   } else {
     NsfClassListFree(cl->order);
@@ -2569,7 +2835,7 @@ SearchPLMethod(register NsfClasses *pl, CONST char *methodName,
 static NsfClass *
 SearchCMethod(/*@notnull@*/ NsfClass *cl, CONST char *methodName, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod0(TransitiveSuperClasses(cl), methodName, cmdPtr);
+  return SearchPLMethod0(PrecedenceOrder(cl), methodName, cmdPtr);
 }
 
 /*
@@ -2593,7 +2859,7 @@ static NsfClass *
 SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 		    Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
   assert(cl);
-  return SearchPLMethod0(TransitiveSuperClasses(cl), ObjStr(methodObj), cmdPtr);
+  return SearchPLMethod0(PrecedenceOrder(cl), ObjStr(methodObj), cmdPtr);
 }
 
 /*
@@ -2621,7 +2887,7 @@ SearchComplexCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
 
   assert(cl);
 
-  for (pl = TransitiveSuperClasses(cl); pl;  pl = pl->nextPtr) {
+  for (pl = PrecedenceOrder(cl); pl;  pl = pl->nextPtr) {
     Tcl_Command cmd = ResolveMethodName(interp, pl->cl->nsPtr, methodObj,
 					NULL, NULL, NULL, NULL, &fromClassNS);
     if (cmd) {
@@ -5959,7 +6225,7 @@ AssertionCheckInvars(Tcl_Interp *interp, NsfObject *object,
 
   if (result != TCL_ERROR && checkoptions & CHECK_CLINVAR) {
     NsfClasses *clPtr;
-    clPtr = TransitiveSuperClasses(object->cl);
+    clPtr = PrecedenceOrder(object->cl);
     while (clPtr && result != TCL_ERROR) {
       NsfAssertionStore *aStore = (clPtr->cl->opt) ? clPtr->cl->opt->assertions : NULL;
       if (aStore) {
@@ -6111,7 +6377,7 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
     NsfClass *mCl = NsfGetClassFromCmdPtr(m->cmdPtr);
 
     if (mCl) {
-      for (pl = TransitiveSuperClasses(mCl); pl; pl = pl->nextPtr) {
+      for (pl = PrecedenceOrder(mCl); pl; pl = pl->nextPtr) {
         if ((pl->cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
           NsfClassOpt *opt = pl->cl->opt;
 
@@ -6186,7 +6452,7 @@ NsfClassListAddPerClassMixins(Tcl_Interp *interp, NsfClass *cl,
 			      NsfClasses **classList, NsfClasses **checkList) {
   NsfClasses *pl;
 
-  for (pl = TransitiveSuperClasses(cl); pl; pl = pl->nextPtr) {
+  for (pl = PrecedenceOrder(cl); pl; pl = pl->nextPtr) {
     NsfClassOpt *clopt = pl->cl->opt;
     if (clopt && clopt->classMixins) {
       MixinComputeOrderFullList(interp, &clopt->classMixins,
@@ -6269,7 +6535,7 @@ MixinComputeOrder(Tcl_Interp *interp, NsfObject *object) {
      */
     if (checker == NULL) {
       /* check object->cl hierarchy */
-      checker = NsfClassListFind(TransitiveSuperClasses(object->cl), cl);
+      checker = NsfClassListFind(PrecedenceOrder(object->cl), cl);
       /*
        * if checker is set, it was found in the class hierarchy and it is ignored
        */
@@ -7214,7 +7480,7 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
     }
   }
 
-  pcl = TransitiveSuperClasses(object->cl);
+  pcl = PrecedenceOrder(object->cl);
   for (; pcl; pcl = pcl->nextPtr) {
     if (withRootClass == 0 && pcl->cl->object.flags & NSF_IS_ROOT_CLASS) {
       continue;
@@ -7740,7 +8006,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
 
   if (!guardAdded) {
     /* search per-class filters */
-    for (pl = TransitiveSuperClasses(object->cl); !guardAdded && pl; pl = pl->nextPtr) {
+    for (pl = PrecedenceOrder(object->cl); !guardAdded && pl; pl = pl->nextPtr) {
       NsfClassOpt *clopt = pl->cl->opt;
       if (clopt) {
         guardAdded = GuardAddFromDefinitionList(dest, filterCmd,
@@ -8141,7 +8407,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
 
     /* if we have a filter class -> search up the inheritance hierarchy*/
     if (fcl) {
-      pl = TransitiveSuperClasses(fcl);
+      pl = PrecedenceOrder(fcl);
       if (pl && pl->nextPtr) {
         /* don't search on the start class again */
         pl = pl->nextPtr;
@@ -8205,7 +8471,7 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   /* 
    * Append per-class filters.
    */
-  for (pl = TransitiveSuperClasses(object->cl); pl; pl = pl->nextPtr) {
+  for (pl = PrecedenceOrder(object->cl); pl; pl = pl->nextPtr) {
     NsfClassOpt *clopt = pl->cl->opt;
     if (clopt && clopt->classFilters) {
       FilterComputeOrderFullList(interp, &clopt->classFilters, &filterList);
@@ -8319,7 +8585,7 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   }
 
   /* search per-class filters */
-  for (pl = TransitiveSuperClasses(object->cl); pl; pl = pl->nextPtr) {
+  for (pl = PrecedenceOrder(object->cl); pl; pl = pl->nextPtr) {
     NsfClassOpt *opt = pl->cl->opt;
     if (opt && opt->classFilters) {
       if (CmdListFindCmdInList(cmd, opt->classFilters)) {
@@ -8407,7 +8673,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   NsfClass **scl;
   int i, j;
 
-  superClasses = TransitiveSuperClasses(cl);
+  superClasses = PrecedenceOrder(cl);
   subClasses = TransitiveSubClasses(cl);
 
   /*
@@ -8450,7 +8716,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
    */
   for (i = 0; i < oc; i++) {
     for (j = i+1; j < oc; j++) {
-      NsfClasses *dl = TransitiveSuperClasses(scl[j]);
+      NsfClasses *dl = PrecedenceOrder(scl[j]);
       dl = NsfClassListFind(dl, scl[i]);
       if (dl) {
 	FREE(NsfClass**, scl);
@@ -8497,10 +8763,10 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   NsfClassListFree(subClasses);
   FREE(NsfClass**, scl);
 
-  if (unlikely(!TransitiveSuperClasses(cl))) {
+  if (unlikely(!PrecedenceOrder(cl))) {
     NsfClasses *l;
     /*
-     * Cycle in the superclass graph, backtrack
+     * There is a cycle in the superclass graph, we have to revert.
      */
     while (cl->super) {
       (void)RemoveSuper(cl, cl->super->cl);
@@ -8511,6 +8777,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     NsfClassListFree(osl);
     return NsfObjErrType(interp, "superclass", arg, "a cycle-free graph", NULL);
   }
+
   NsfClassListFree(osl);
 
   assert(cl->super);
@@ -10404,7 +10671,7 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *methodName) {
   NsfClasses *p;
 
   /*fprintf(stderr, "NsfFindClassMethod %s %s\n", ClassName(cl), methodName);*/
-  for(p = TransitiveSuperClasses(cl); p; p = p->nextPtr) {
+  for(p = PrecedenceOrder(cl); p; p = p->nextPtr) {
     NsfClass *currentClass = p->cl;
     Tcl_Namespace *nsPtr = currentClass->object.nsPtr;
 
@@ -10749,7 +11016,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       } else {
 	
 	/*
-	 * We could call TransitiveSuperClasses(currentClass) to recompute
+	 * We could call PrecedenceOrder(currentClass) to recompute
 	 * currentClass->order on demand, but by construction this is already
 	 * set here.
 	 */
@@ -14061,7 +14328,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    *methodNamePtr, *clPtr, ClassName((*clPtr)), *cmdPtr, cscPtr->flags); */
 
   if (!*cmdPtr) {
-    NsfClasses *pl = TransitiveSuperClasses(object->cl);
+    NsfClasses *pl = PrecedenceOrder(object->cl);
     NsfClass *cl = *clPtr;
 
     if (cl) {
@@ -15682,7 +15949,7 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) {
   }
 
   /* is the class a subclass of a meta-class? */
-  for (pl = TransitiveSuperClasses(cl); pl; pl = pl->nextPtr) {
+  for (pl = PrecedenceOrder(cl); pl; pl = pl->nextPtr) {
     if (HasMetaProperty(pl->cl)) {
       return 1;
     }
@@ -15719,7 +15986,7 @@ IsSubType(NsfClass *subcl, NsfClass *cl) {
   assert(cl && subcl);
 
   if (cl != subcl) {
-    return NsfClassListFind(TransitiveSuperClasses(subcl), cl) != NULL;
+    return NsfClassListFind(PrecedenceOrder(subcl), cl) != NULL;
   }
   return 1;
 }
@@ -18786,7 +19053,7 @@ ListSuperclasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClo
   }
 
   if (withClosure) {
-    NsfClasses *pl = TransitiveSuperClasses(cl);
+    NsfClasses *pl = PrecedenceOrder(cl);
     if (pl) pl=pl->nextPtr;
     rc = AppendMatchingElementsFromClasses(interp, pl, patternString, matchObject);
   } else {
@@ -23909,7 +24176,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
     }
   }
 
-  result = ListMethodKeysClassList(interp, TransitiveSuperClasses(object->cl),
+  result = ListMethodKeysClassList(interp, PrecedenceOrder(object->cl),
 				   withSource, pattern,
 				   methodType, withCallprotection,
 				   withPath, dups, object, withPer_object);
@@ -24282,7 +24549,7 @@ NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern
   Tcl_Obj *resultObj;
 
   resultObj = Tcl_NewObj();
-  intrinsic = TransitiveSuperClasses(cl);
+  intrinsic = PrecedenceOrder(cl);
 
   NsfClassListAddPerClassMixins(interp, cl, &mixinClasses, &checkList);
   for (pl = mixinClasses; pl; pl = pl->nextPtr) {
@@ -24450,7 +24717,7 @@ NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *class,
     NsfClassListFree(checkList);
     NsfClassListFree(mixinClasses);
 
-    result = ListMethodKeysClassList(interp, TransitiveSuperClasses(class),
+    result = ListMethodKeysClassList(interp, PrecedenceOrder(class),
 				     withSource, pattern,
 				     AggregatedMethodType(withMethodtype), withCallprotection,
 				     withPath, dups, &class->object, 0);
@@ -24615,7 +24882,7 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
   Tcl_HashTable slotTable;
 
   Tcl_ResetResult(interp);
-  intrinsicClasses = TransitiveSuperClasses(class);
+  intrinsicClasses = PrecedenceOrder(class);
 
   if (withClosure) {
     NsfClasses *checkList = NULL, *mixinClasses = NULL;

@@ -140,7 +140,9 @@
 #define CMD_RESOLVER_TRACE 1
 #define NRE_CALLBACK_TRACE 1
 #define METHOD_OBJECT_TRACE 1
+#define NSF_LINEARIZER_TRACE 1
 #define NSF_STACKCHECK 1
+#define NSF_CLASSLIST_PRINT 1
 */
 
 #define PER_OBJECT_PARAMETER_CACHING 1
@@ -168,6 +170,12 @@
 
 #ifdef DO_FULL_CLEANUP
 # define DO_CLEANUP
+#endif
+
+#ifdef NSF_LINEARIZER_TRACE
+# if !defined(NSF_CLASSLIST_PRINT)
+#  define NSF_CLASSLIST_PRINT 1
+# endif
 #endif
 
 #ifdef NSF_DTRACE
