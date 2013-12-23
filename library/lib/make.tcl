@@ -66,9 +66,12 @@ nx::Object create make {
       }
       
       set flags "-verbose -direct -load nsf"
-      if {$fls ne "nx.tcl"} {
+      # the following test is just an approximization, loading nsf +
+      # nx does not seem to work for binary extensions (e.g. mongodb)
+      if {$fls ne "nx.tcl" && ![string match "*[info sharedlibextension]" $fls]} {
 	append flags " -load nx"
       }
+      #package prefer latest
       if {$::verbose} {puts stderr "[pwd]:\n\tcall pkg_mkIndex $flags . $fls"}
       pkg_mkIndex {*}$flags . {*}$fls
       if {$::verbose} {puts stderr "[pwd] done"}
