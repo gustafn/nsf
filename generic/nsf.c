@@ -2135,7 +2135,7 @@ PrecedenceOrder(NsfClass *cl) {
 
   if (likely(cl->super) && unlikely(cl->super->nextPtr)) {
     for (sl = cl->super; sl; sl = sl->nextPtr) {
-      if (unlinkely(sl->cl->order == NULL)) {
+      if (unlikely(sl->cl->order == NULL)) {
 
 #if defined(NSF_LINEARIZER_TRACE)
 	fprintf(stderr, "====== PrecedenceOrder computes required order for %s \n", 
