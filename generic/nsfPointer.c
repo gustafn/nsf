@@ -28,6 +28,7 @@
 #include "nsfInt.h"
 
 static Tcl_HashTable pointerHashTable, *pointerHashTablePtr = &pointerHashTable;
+static int pointerTableRefCount = 0;
 static NsfMutex pointerMutex = 0;
 
 /*
@@ -243,7 +244,9 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPt
   int isNew;
 
   NsfMutexLock(&pointerMutex);
+
   hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, typeName, &isNew);
+
   NsfMutexUnlock(&pointerMutex);
   
   if (isNew) {
@@ -303,7 +306,12 @@ void
 Nsf_PointerInit(Tcl_Interp *interp) {
 
     NsfMutexLock(&pointerMutex);
-    Tcl_InitHashTable(pointerHashTablePtr, TCL_STRING_KEYS);
+
+    if (pointerTableRefCount == 0) {
+      Tcl_InitHashTable(pointerHashTablePtr, TCL_STRING_KEYS);
+    }
+    pointerTableRefCount++;
+
     NsfMutexUnlock(&pointerMutex);
 
 }
@@ -329,20 +337,26 @@ Nsf_PointerExit(Tcl_Interp *interp) {
     Tcl_HashSearch hSrch;
 
     NsfMutexLock(&pointerMutex);
-    for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
-         hPtr = Tcl_NextHashEntry(&hSrch)) {
-      char *key = Tcl_GetHashKey(pointerHashTablePtr, hPtr);
-      void *valuePtr = Tcl_GetHashValue(hPtr);
+    if (--pointerTableRefCount == 0) {
 
-      /*
-       * We can't use NsfLog here any more, since the Tcl procs are
-       * already deleted.
-       */
       if (RUNTIME_STATE(interp)->debugLevel >= 2) {
-	fprintf(stderr, "Nsf_PointerExit: we have still an entry %s with value %p\n", key, valuePtr);
+	for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
+	     hPtr = Tcl_NextHashEntry(&hSrch)) {
+	  char *key = Tcl_GetHashKey(pointerHashTablePtr, hPtr);
+	  void *valuePtr = Tcl_GetHashValue(hPtr);
+
+	  /*
+	   * We can't use NsfLog here any more, since the Tcl procs are
+	   * already deleted.
+	   */
+
+	  fprintf(stderr, "Nsf_PointerExit: we have still an entry %s with value %p\n", key, valuePtr);
+	}
       }
+
+      Tcl_DeleteHashTable(pointerHashTablePtr);
     }
-    Tcl_DeleteHashTable(pointerHashTablePtr);
+    
     NsfMutexUnlock(&pointerMutex);
 }
 
