@@ -4785,6 +4785,11 @@ mongodb
   one, the old one is renamed to mongo-c-driver-legacy
 - link against nsf-stublib
 - bump version number to 0.2
+
+generic/nsf.c:
+- add more assertions
+- ensure computation of requires orders for recursive merges
+
 ========================================================================
 TODO:
 

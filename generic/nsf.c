@@ -1886,10 +1886,13 @@ static int
 MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *miList) {
   int result = (NsfClassListFind(b->order, a) != NULL);
 
+  assert(b->order != NULL);
+
   /*
-   * When the partital ordering can't be decided based on the prior test, we
-   * take the specified multiple inheritance ordering (e.g. -superclass {x y})
-   * which is not taken account by the class hierarchy.
+   * When the partital ordering can't be decided based on the local order
+   * test, we take the specified multiple inheritance ordering
+   * (e.g. -superclass {x y}) which is not taken account by the class
+   * hierarchy.
    */
   if (result == 0) {
     NsfClasses *sl;
@@ -1912,7 +1915,7 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *miList) {
     }
   }
 #if defined(NSF_LINEARIZER_TRACE)
-  fprintf(stderr, "compare %s %s -> %d\n", ClassName(a), ClassName(b), result);
+  fprintf(stderr, "compare a: %s %p b: %s %p -> %d\n", ClassName(a), a->order, ClassName(b),b->order, result);
   NsfClassListPrint("\ta", a->order);
   NsfClassListPrint("\tb", b->order);
 #endif
@@ -1999,6 +2002,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
       // merge mergeList into baseList
       // we start with the 2nd (later probably nth) entry of the baseList
       baseListCurrent = baseList->nextPtr;
+      assert(baseListCurrent != NULL);
 
       while (mergeList != NULL) {
 	NsfClass *addClass;
@@ -2020,6 +2024,8 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
 	  }
 	}
 #endif
+
+	assert(baseListCurrent != NULL);
 
 	//NsfClassListPrint("baseListCurrent", baseListCurrent);
 	if (mergeList->cl == baseListCurrent->cl) {
@@ -2154,13 +2160,29 @@ PrecedenceOrder(NsfClass *cl) {
   if (likely(cl->super != NULL) && unlikely(cl->super->nextPtr != NULL)) {
     for (sl = cl->super; sl; sl = sl->nextPtr) {
       if (unlikely(sl->cl->order == NULL)) {
+	if (cl != sl->cl) {
+	  NsfClasses *pl;
 
 #if defined(NSF_LINEARIZER_TRACE)
 	fprintf(stderr, "====== PrecedenceOrder computes required order for %s \n",
 		ClassName(sl->cl));
 #endif
-	if (cl != sl->cl) {
-	  PrecedenceOrder(sl->cl);
+
+	PrecedenceOrder(sl->cl);
+#if defined(NSF_LINEARIZER_TRACE)
+	  NsfClassListPrint("====== PO:", sl->cl->order);
+#endif
+	  for (pl = sl->cl->order; pl; pl = pl->nextPtr) {
+#if defined(NSF_LINEARIZER_TRACE)
+	    fprintf(stderr, "====== PO order: %s %p\n", ClassName(pl->cl), pl->cl->order);
+#endif
+	    if (pl->cl->order == NULL) {
+#if defined(NSF_LINEARIZER_TRACE)
+	      fprintf(stderr, "========== recurse\n");
+#endif
+	      PrecedenceOrder(pl->cl);
+	    }
+	  }
 	}
       }
     }
