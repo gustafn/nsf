@@ -1774,7 +1774,7 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
   NsfClasses *entryPtr = NULL;
 
   if (*firstPtrPtr != NULL) {
-    NsfClasses *prevPtr;
+    NsfClasses *prevPtr = NULL;
     
     /* list is non-empty */
     for (entryPtr = *firstPtrPtr; entryPtr; prevPtr = entryPtr, entryPtr = entryPtr->nextPtr) {
@@ -23145,6 +23145,8 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
       }
     case LIST_DASH:  /* Argument is a list with a leading dash, grouping determined by list */
       {	i++;
+	nextMethodName = NULL;
+
 	if (i < objc) {
 	  isdasharg = IsDashArg(interp, objv[i], 1, &nextMethodName, &nextArgc, &nextArgv);
         } else {
