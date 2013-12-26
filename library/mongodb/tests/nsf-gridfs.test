@@ -57,7 +57,7 @@ set fn README
 #
 ? {set f [mongo::gridfile::open $gridFS README]} gridfile:0
 ? {mongo::gridfile::get_metadata $f} ""
-? {mongo::gridfile::get_contentlength $f} 5611
+? {mongo::gridfile::get_contentlength $f} [file size README]
 ? {mongo::gridfile::get_contenttype $f} text/plain
 ? {
   set chunks 0
