@@ -1955,7 +1955,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
    * If we have multiple inheritance we merge the precomputed inheritance
    * paths of the involved classes in the provided order.
    */
-  if (likely(savedSuper) && unlikely(savedSuper->nextPtr != NULL)) {
+  if (likely(savedSuper != NULL) && unlikely(savedSuper->nextPtr != NULL)) {
     NsfClasses *baseList = NULL, *baseListCurrent, **plNext, 
       *miList, *deletionList = NULL;
 
@@ -2002,6 +2002,24 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
 
       while (mergeList != NULL) {
 	NsfClass *addClass;
+
+#if !defined(NDEBUG)
+	{
+	  NsfClasses *sl, *tail;
+	  for (sl = baseList, tail = NULL; sl; sl = sl->nextPtr) {tail = sl;}
+	  if (tail) {
+	    // fprintf(stderr, "check tail baseList %s %p\n", ClassName(tail->cl), tail->nextPtr);
+	    assert(IsBaseClass(&tail->cl->object));
+	    assert(tail->nextPtr == NULL);
+	  }
+	  for (sl = mergeList, tail = NULL; sl; sl = sl->nextPtr) {tail = sl;}
+	  if (tail) {
+	    // fprintf(stderr, "check tail mergeList %s %p\n", ClassName(tail->cl), tail->nextPtr);
+	    assert(IsBaseClass(&tail->cl->object));
+	    assert(tail->nextPtr == NULL);
+	  }
+	}
+#endif
 
 	//NsfClassListPrint("baseListCurrent", baseListCurrent);
 	if (mergeList->cl == baseListCurrent->cl) {
@@ -2133,7 +2151,7 @@ PrecedenceOrder(NsfClass *cl) {
    * required precedence orders are precomputed.
    */
 
-  if (likely(cl->super) && unlikely(cl->super->nextPtr)) {
+  if (likely(cl->super != NULL) && unlikely(cl->super->nextPtr != NULL)) {
     for (sl = cl->super; sl; sl = sl->nextPtr) {
       if (unlikely(sl->cl->order == NULL)) {
 
