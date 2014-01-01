@@ -743,6 +743,11 @@ namespace eval ::nx::serializer {
 	::nx::configure defaultMethodCallProtection [::nx::configure defaultMethodCallProtection]
 	::nx::configure defaultAccessor [::nx::configure defaultAccessor]
       }]
+      foreach pkg {nx::mongo} {
+	if {![catch {package present $pkg}]} {
+	  append intro "package require $pkg\n"
+	}
+      }
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::nx::Object"} {
         append intro "\n" "namespace import -force ::nx::*"
       } 
