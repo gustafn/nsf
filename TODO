@@ -4790,6 +4790,9 @@ generic/nsf.c:
 - add more assertions
 - ensure computation of requires orders for recursive merges
 
+mongodb
+- add flag "-puts" to method "show" of nx::mongo::Class to turnoff 
+  output to stdout
 ========================================================================
 TODO:
 

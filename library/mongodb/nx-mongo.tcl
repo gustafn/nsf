@@ -29,6 +29,7 @@ namespace eval ::nx::mongo {
       set :db $db
       set :mongoConn [::mongo::connect {*}$args]
     }
+    :public object method close   {}     {::mongo::close  ${:mongoConn}}
     :public object method count   {args} {::mongo::count  ${:mongoConn} {*}$args}
     :public object method index   {args} {::mongo::index  ${:mongoConn} {*}$args}
     :public object method insert  {args} {::mongo::insert ${:mongoConn} {*}$args}
@@ -325,6 +326,7 @@ namespace eval ::nx::mongo {
       if {$name ne ""} {
 	return [:create $name {*}[:bson parameter $tuple]]
       } else {
+	#puts "CREATE new [self] <$tuple>"
 	return [:new {*}[:bson parameter $tuple]]
       }
     }
@@ -368,6 +370,30 @@ namespace eval ::nx::mongo {
       regsub -all {,type=} $spec {,arg=} spec
       next [list -class $class -incremental=$incremental $spec $initblock]
     }
+
+    :public method pretty_variables {} {
+      set vars {}
+      foreach p [lmap handle [lsort [:info variables]] {::nx::Object info variable parameter $handle}] {
+	  if {[regexp {^([^:]+):(.*)$} $p _ name options]} {
+	      set resultOptions {}
+	      set opts [split $options ,]
+	      if {[lindex $opts 0] eq "embedded"} {
+		  set resultOpts {}
+		  foreach opt $opts {
+		      switch -glob $opt {
+			  slot=* {continue}
+			  arg=*  {lappend resultOpts type=[string range $opt 4 end]}
+			  default {lappend resultOpts $opt}
+		      }
+		  }
+		  lappend vars $name:[join $resultOpts ,]
+		  continue
+	      }
+	  }
+	  lappend vars $p
+      }
+      return $vars
+  }
     
     #
     # index method
@@ -412,7 +438,9 @@ namespace eval ::nx::mongo {
 			     [:bson query -cond $cond -orderby $orderby] \
 			     -atts [:bson atts $atts] \
 			     -limit 1] 0]
-      #puts "find first fetched: $tuple"
+      if {$tuple eq ""} {
+	  return ""
+      }
       if {$instance ne ""} {set instance [:uplevel [list ::nsf::object::qualify $instance]]}
       return [:bson create -name $instance $tuple]
     }
@@ -432,7 +460,7 @@ namespace eval ::nx::mongo {
 		       [:bson query -cond $cond -orderby $orderby] \
 		       -atts [:bson atts $atts] \
 		       {*}$opts]
-      #puts "[join $fetched \n]"
+
       foreach tuple $fetched {
 	lappend result [:bson create $tuple]
       }
@@ -445,8 +473,8 @@ namespace eval ::nx::mongo {
 			 {-orderby ""} 
 			 {-limit} 
 			 {-skip} 
+			 {-puts:boolean 1} 
 			 } {
-      set result [list]
       set opts [list]
       if {[info exists limit]} {lappend opts -limit $limit}
       if {[info exists skip]} {lappend opts -skip $skip}
@@ -458,7 +486,8 @@ namespace eval ::nx::mongo {
       foreach tuple $fetched {
 	lappend tuples "\{[:bson pp -indent 4 $tuple]\n\}"
       }
-      puts [join $tuples ", "]
+      if {$puts} {puts [join $tuples ", "]}
+      return $tuples
     }
     
     :method mongo_setup {} {
