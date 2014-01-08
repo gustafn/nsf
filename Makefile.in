@@ -856,7 +856,7 @@ end:
 	@echo " To install, use:"
 	@echo "   make install"
 	@echo ""
-	@echo " To install for AOLserver 4.x or NaviServer, use:"
+	@echo " To install for AOLserver 4.x, use:"
 	@echo "   make install-aol"
 	@echo "" 
 	@echo " In order to invoke NX interactively (before install), use:" 
