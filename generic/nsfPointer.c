@@ -333,13 +333,14 @@ Nsf_PointerInit(Tcl_Interp *interp) {
 
 void
 Nsf_PointerExit(Tcl_Interp *interp) {
-    Tcl_HashEntry *hPtr;
-    Tcl_HashSearch hSrch;
 
     NsfMutexLock(&pointerMutex);
     if (--pointerTableRefCount == 0) {
 
       if (RUNTIME_STATE(interp)->debugLevel >= 2) {
+	Tcl_HashSearch hSrch;
+	Tcl_HashEntry *hPtr;
+
 	for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
 	     hPtr = Tcl_NextHashEntry(&hSrch)) {
 	  char *key = Tcl_GetHashKey(pointerHashTablePtr, hPtr);

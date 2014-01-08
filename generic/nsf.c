@@ -2078,7 +2078,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
       NsfClassListPrint("plFinal:", pl);
 #endif
 
-      if (sl && sl->nextPtr) {
+      if (sl->nextPtr) {
 	// use pl as new base list
 	baseList = pl;
 

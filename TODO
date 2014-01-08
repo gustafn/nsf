@@ -4790,9 +4790,13 @@ generic/nsf.c:
 - add more assertions
 - ensure computation of requires orders for recursive merges
 
-mongodb
+mongodb:
 - add flag "-puts" to method "show" of nx::mongo::Class to turnoff 
   output to stdout
+- handle empty find operations for "find first"
+- added method pretty_variables to output available variables
+  of a class in a similar style as in the definition
+- added low-level method "close" to nx::mongo
 ========================================================================
 TODO:
 
