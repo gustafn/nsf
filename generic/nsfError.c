@@ -1,8 +1,8 @@
-/*  
+/*
  *  nsfError.c --
- *  
+ *
  *      Error reporting functions for the Next Scripting Framework.
- *  
+ *
  *  Copyright (C) 1999-2013 Gustaf Neumann
  *  Copyright (C) 1999-2007 Uwe Zdun
  *  Copyright (C) 2011 Stefan Sobernig
@@ -52,15 +52,15 @@ void
 NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
   int      result, failure, offset = dsPtr->length, avail = dsPtr->spaceAvl;
   va_list  vargsCopy;
-  
-  /* 
-   * Work on a copy of the va_list so that the caller's copy is untouched 
+
+  /*
+   * Work on a copy of the va_list so that the caller's copy is untouched
    */
   va_copy(vargsCopy, vargs);
   result = vsnprintf(dsPtr->string + offset, avail, fmt, vargsCopy);
   va_end(vargsCopy);
 
-  /* 
+  /*
    * Trap C99+ incompatabilities of certain vsnprintf() implementations
    * w.r.t. the result value: For example, old *nix implementations of
    * vsnprintf() as well as C89 implementations (as current MS Visual Compiler
@@ -82,19 +82,19 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
 #endif
 
   if (likely(failure == 0)) {
-    /* 
+    /*
      * vsnprintf() has already copied all content,
      * we have just to adjust the length.
      */
     Tcl_DStringSetLength(dsPtr, offset + result);
   } else {
     int addedStringLength;
-    /* 
+    /*
      * vsnprintf() has already not copied all content,
      * we have to determine the required length (MS),
      * adjust the DString size and copy again.
      */
-#if defined(_MSC_VER)   
+#if defined(_MSC_VER)
     va_copy(vargsCopy, vargs);
     addedStringLength = _vscprintf(fmt, vargsCopy);
     va_end(vargsCopy);
@@ -191,7 +191,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
                Tcl_Obj *clName, CONST char *procName) {
   Tcl_DString errMsg;
   char *cName, *space;
-  
+
   Tcl_DStringInit(&errMsg);
   Tcl_DStringAppend(&errMsg, "\n    ", -1);
   if (clName) {
@@ -228,7 +228,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  *----------------------------------------------------------------------
  */
 int
-NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, 
+NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
 		Tcl_Obj *methodName, char *arglist) {
   int need_space = 0;
   Tcl_ResetResult(interp);
@@ -239,7 +239,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
   }
   if (methodName) {
     Tcl_Obj *resultObj;
-    
+
     if (need_space) Tcl_AppendResult(interp, " ", (char *) NULL);
 
     resultObj = NsfMethodNamePath(interp, methodName);
@@ -301,7 +301,7 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  *----------------------------------------------------------------------
  */
 int
-NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString, 
+NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
 			   Nsf_Object *object, Nsf_Param CONST *paramPtr, Tcl_Obj *procNameObj) {
   Tcl_DString ds, *dsPtr = &ds;
   DSTRING_INIT(dsPtr);
@@ -331,9 +331,9 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
  *----------------------------------------------------------------------
  */
 int
-NsfUnexpectedNonposArgumentError(Tcl_Interp *interp, 
-				 CONST char *argumentString, 
-				 Nsf_Object *object, 
+NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
+				 CONST char *argumentString,
+				 Nsf_Object *object,
 				 Nsf_Param CONST *currentParamPtr,
 				 Nsf_Param CONST *paramPtr,
 				 Tcl_Obj *procNameObj) {
@@ -353,7 +353,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   }
   Tcl_DStringTrunc(dsPtr, Tcl_DStringLength(dsPtr) - 2);
   Tcl_DStringAppend(dsPtr, ";\n", 2);
-  
+
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
 		   object ? object->cmdName : NULL,
 		   procNameObj);
@@ -377,11 +377,11 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 int
-NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData, 
+NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 			   CONST char *what, CONST char *methodName) {
   if (clientData) {
     return NsfPrintError(interp, "method %s not dispatched on valid %s",
-			 methodName, what);  
+			 methodName, what);
   } else {
     return NsfNoCurrentObjectError(interp, methodName);
   }
@@ -426,11 +426,11 @@ NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what) {
  *----------------------------------------------------------------------
  */
 int
-NsfObjErrType(Tcl_Interp *interp, 
-	      CONST char *context, 
-	      Tcl_Obj *value, 
-	      CONST char *type, 
-	      Nsf_Param CONST *paramPtr) 
+NsfObjErrType(Tcl_Interp *interp,
+	      CONST char *context,
+	      Tcl_Obj *value,
+	      CONST char *type,
+	      Nsf_Param CONST *paramPtr)
 {
   int named = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
   int returnValue = !named && paramPtr && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);

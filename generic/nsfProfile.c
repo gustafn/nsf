@@ -1,9 +1,9 @@
-/*  
+/*
  *  nsfProfile.c --
- *  
- *      Profiling information printout for Next Scripting Framework.  
+ *
+ *      Profiling information printout for Next Scripting Framework.
  *      For profiling infos NSF_PROFILE must be configured.
- *  
+ *
  *  Copyright (C) 2010-2013 Gustaf Neumann
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -126,7 +126,7 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     if (cscPtrTop) {
       NsfClass *cl = cscPtrTop->cl;
       NsfObject *obj = cscPtrTop->self;
-      
+
       Tcl_DStringAppend(&methodKey, " ", 1);
       Tcl_DStringAppend(&methodKey, cl ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
       Tcl_DStringAppend(&methodKey, " ", 1);
@@ -197,7 +197,7 @@ NsfProfileClearTable(Tcl_HashTable *table) {
   Tcl_HashEntry *hPtr;
 
   assert(table);
-  for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr; 
+  for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfProfileData *value = (NsfProfileData *) Tcl_GetHashValue(hPtr);
     ckfree((char *) value);
@@ -228,7 +228,7 @@ NsfProfileClearData(Tcl_Interp *interp) {
   NsfProfileClearTable(&profilePtr->objectData);
   NsfProfileClearTable(&profilePtr->methodData);
   NsfProfileClearTable(&profilePtr->procData);
-  
+
   gettimeofday(&trt, NULL);
   profilePtr->startSec = trt.tv_sec;
   profilePtr->startUSec = trt.tv_usec;
@@ -257,7 +257,7 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
   Tcl_HashEntry *hPtr;
 
   assert(table);
-  for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr; 
+  for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfProfileData *value = (NsfProfileData *) Tcl_GetHashValue(hPtr);
     char *key = Tcl_GetHashKey(table, hPtr);
@@ -323,7 +323,7 @@ NsfProfileGetData(Tcl_Interp *interp) {
  *
  *----------------------------------------------------------------------
  */
-void 
+void
 NsfProfileInit(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
@@ -353,7 +353,7 @@ NsfProfileInit(Tcl_Interp *interp) {
  *
  *----------------------------------------------------------------------
  */
-void 
+void
 NsfProfileFree(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
 

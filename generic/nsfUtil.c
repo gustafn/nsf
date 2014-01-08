@@ -54,8 +54,8 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
   }
 
   needle_len = strlen(needle);
-  for (p = (char *)buffer, remainder = buffer_len; 
-       p != NULL; 
+  for (p = (char *)buffer, remainder = buffer_len;
+       p != NULL;
        p = memchr(p + 1, *needle, remainder-1)) {
     remainder = buffer_len - (p - buffer);
     if (remainder < needle_len) break;
@@ -72,7 +72,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len) {
  *----------------------------------------------------------------------
  * Nsf_ltoa --
  *
- *    Convert a long value into a string; this function is a fast 
+ *    Convert a long value into a string; this function is a fast
  *    version of sprintf(buf, "%ld", l);
  *
  * Results:
@@ -88,23 +88,23 @@ Nsf_ltoa(char *buf, long i, int *len) {
   int nr_written, negative;
   char tmp[LONG_AS_STRING], *pointer = &tmp[1], *string, *p;
   *tmp = 0;
-  
+
   if (i<0) {
     i = -i;
     negative = nr_written = 1;
-  } else 
+  } else
     nr_written = negative = 0;
-  
+
   do {
     nr_written++;
     *pointer++ = i%10 + '0';
     i/=10;
   } while (i);
-  
+
   p = string = buf;
   if (negative)
     *p++ = '-';
-  
+
   while ((*p++ = *--pointer));   /* copy number (reversed) from tmp to buf */
   if (len) *len = nr_written;
   return string;
@@ -140,7 +140,7 @@ NsfStringIncr(NsfStringIncrStruct *iss) {
 
   currentChar = iss->buffer + iss->bufSize - 2;
   newch = *(alphabet + chartable[(unsigned)*currentChar]);
-    
+
   while (1) {
     if (newch) { /* no overflow */
       *currentChar = newch;

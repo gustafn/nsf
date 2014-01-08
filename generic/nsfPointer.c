@@ -1,9 +1,9 @@
-/*  
+/*
  *  nsfPointer.c --
- *  
+ *
  *      Provide API for accessing mallocated data via Tcl.
  *      this is used e.q. via the MongoDB interface.
- *  
+ *
  *  Copyright (C) 2011 Gustaf Neumann
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -138,7 +138,7 @@ static Tcl_HashEntry *
 Nsf_PointerGetHptr(void *valuePtr) {
   Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
-  
+
   for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     void *ptr = Tcl_GetHashValue(hPtr);
@@ -175,8 +175,8 @@ Nsf_PointerDelete(CONST char *key, void *valuePtr, int free) {
   assert(valuePtr);
 
   NsfMutexLock(&pointerMutex);
-  hPtr = key 
-    ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL) 
+  hPtr = key
+    ? Tcl_CreateHashEntry(pointerHashTablePtr, key, NULL)
     : Nsf_PointerGetHptr(valuePtr);
   if (hPtr) {
     if (free) {ckfree((char *)valuePtr);}
@@ -248,7 +248,7 @@ Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPt
   hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, typeName, &isNew);
 
   NsfMutexUnlock(&pointerMutex);
-  
+
   if (isNew) {
     Tcl_SetHashValue(hPtr, counterPtr);
     return TCL_OK;
@@ -280,7 +280,7 @@ Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName) {
   NsfMutexLock(&pointerMutex);
   hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, typeName, NULL);
   NsfMutexUnlock(&pointerMutex);
-  
+
   if (hPtr) {
     return Tcl_GetHashValue(hPtr);
   }
@@ -357,7 +357,7 @@ Nsf_PointerExit(Tcl_Interp *interp) {
 
       Tcl_DeleteHashTable(pointerHashTablePtr);
     }
-    
+
     NsfMutexUnlock(&pointerMutex);
 }
 

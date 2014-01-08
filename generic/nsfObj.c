@@ -1,8 +1,8 @@
-/*  
+/*
  *  nsfError.c --
- *  
+ *
  *      Tcl_Obj types provided by the Next Scripting Framework.
- *  
+ *
  *  Copyright (C) 1999-2013 Gustaf Neumann
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -58,7 +58,7 @@ Tcl_ObjType NsfObjectMethodObjType = {
     NULL			/* setFromAnyProc */
 };
 
-/* 
+/*
  * freeIntRepProc
  */
 static void
@@ -71,7 +71,7 @@ MethodFreeInternalRep(
   if (mcPtr != NULL) {
 #if defined(METHOD_OBJECT_TRACE)
     fprintf(stderr, "MethodFreeInternalRep %p methodContext %p methodEpoch %d type <%s>\n",
-	    objPtr, mcPtr, mcPtr->methodEpoch, 
+	    objPtr, mcPtr, mcPtr->methodEpoch,
 	    objPtr->typePtr ? objPtr->typePtr->name : "none");
 #endif
     /*
@@ -83,7 +83,7 @@ MethodFreeInternalRep(
   }
 }
 
-/* 
+/*
  * dupIntRepProc
  */
 static void
@@ -197,7 +197,7 @@ Tcl_ObjType NsfFlagObjType = {
     NULL			/* setFromAnyProc */
 };
 
-/* 
+/*
  * freeIntRepProc
  */
 static void
@@ -225,7 +225,7 @@ FlagFreeInternalRep(
   }
 }
 
-/* 
+/*
  * dupIntRepProc
  */
 static void
@@ -268,7 +268,7 @@ NsfFlagObjSet(
 	      )
 {
   NsfFlag *flagPtr;
-  
+
   /*fprintf(stderr, "NsfFlagObjSet %p %s signature %p (%d) param %p payload %p flags %.4x\n",
     objPtr, ObjStr(objPtr), baseParamPtr, serial, paramPtr, payload, flags);*/
 
@@ -338,7 +338,7 @@ Tcl_ObjType NsfMixinregObjType = {
     MixinregSetFromAny			/* setFromAnyProc */
 };
 
-/* 
+/*
  * freeIntRepProc
  */
 static void
@@ -356,14 +356,14 @@ MixinregFreeInternalRep(
    */
   NsfObjectRefCountDecr(&(mixinRegPtr->mixin)->object);
   if (mixinRegPtr->guardObj) {DECR_REF_COUNT2("mixinRegPtr->guardObj", mixinRegPtr->guardObj);}
-  
+
   /*
    * ... and free structure
    */
   FREE(Mixinreg, mixinRegPtr);
 }
 
-/* 
+/*
  * dupIntRepProc
  */
 static void
@@ -376,14 +376,14 @@ MixinregDupInternalRep(
   assert(srcPtr);
 
 #if defined(METHOD_OBJECT_TRACE)
-  fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n", 
+  fprintf(stderr, "MixinregDupInternalRep src %p dst %p\n",
 	  srcObjPtr, dstObjPtr);
 #endif
   dstPtr = NEW(Mixinreg);
   memcpy(dstPtr, srcPtr, sizeof(Mixinreg));
 
-  /* 
-   * increment refcounts 
+  /*
+   * increment refcounts
    */
   NsfObjectRefCountIncr(&(srcPtr->mixin)->object);
   if (srcPtr->guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", srcPtr->guardObj);}
@@ -396,7 +396,7 @@ MixinregDupInternalRep(
 }
 
 
-/* 
+/*
  * setFromAnyProc
  */
 static int
@@ -423,16 +423,16 @@ MixinregSetFromAny(
     return TCL_ERROR;
   }
 
-  /* 
+  /*
    * Try to resolve unknowns
    */
   if (NsfGetClassFromObj(interp, nameObj, &mixin, 1) != TCL_OK) {
     return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
   }
-  
+
   /*
    * Conversion was ok.
-   * Allocate structure ... 
+   * Allocate structure ...
    */
   mixinRegPtr = NEW(Mixinreg);
   mixinRegPtr->mixin = mixin;
@@ -522,7 +522,7 @@ Tcl_ObjType NsfFilterregObjType = {
 };
 
 
-/* 
+/*
  * freeIntRepProc
  */
 static void
@@ -549,7 +549,7 @@ FilterregFreeInternalRep(
   FREE(Filterreg, filterregPtr);
 }
 
-/* 
+/*
  * dupIntRepProc
  */
 static void
@@ -568,8 +568,8 @@ FilterregDupInternalRep(
   dstPtr = NEW(Filterreg);
   memcpy(dstPtr, srcPtr, sizeof(Filterreg));
 
-  /* 
-   * increment refcounts 
+  /*
+   * increment refcounts
    */
   INCR_REF_COUNT2("filterregPtr->filterObj", srcPtr->filterObj);
   if (srcPtr->guardObj) {INCR_REF_COUNT2("FilterregPtr->guardObj", srcPtr->guardObj);}
@@ -581,7 +581,7 @@ FilterregDupInternalRep(
   dstObjPtr->internalRep.twoPtrValue.ptr1 = dstPtr;
 }
 
-/* 
+/*
  * setFromAnyProc
  */
 static int
@@ -609,7 +609,7 @@ FilterregSetFromAny(
 
   /*
    * Conversion was ok.
-   * Allocate structure ... 
+   * Allocate structure ...
    */
   filterregPtr = NEW(Filterreg);
 
@@ -666,4 +666,12 @@ NsfFilterregGet(Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj) {
 }
 /*
  * Filterreg type end
+ */
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 72
+ * End:
  */
