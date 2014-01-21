@@ -23675,7 +23675,7 @@ classMethod getCachedParameters NsfCGetCachendParameters {
 static int
 NsfCGetCachendParameters(Tcl_Interp *interp, NsfClass *class) {
 
-  if (likely(class && class->parsedParamPtr)) {
+  if (likely(class && class->parsedParamPtr && class->parsedParamPtr->paramDefs)) {
     Tcl_Obj *listObj;
 
     listObj = ListParamDefs(interp, class->parsedParamPtr->paramDefs->paramsPtr, NSF_PARAMS_PARAMETER);
