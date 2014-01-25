@@ -1236,7 +1236,7 @@ namespace eval ::nx {
     } else {
       ::nsf::parameter:invalidate::classcache ${:domain}
     }
-
+    nsf::object::property [self] initialized 1
     #
     # plain object parameter have currently no setter/forwarder
     #
@@ -2344,6 +2344,8 @@ namespace eval ::nx {
 	      # create an object without calling init
 	      #
 	      set obj [[$origin info class] create $dest -noinit]
+	      #set obj [::nsf::object::alloc [$origin info class] $dest]
+	      #puts stderr "COPY obj=<$obj>"
 	    }
 	  }
 

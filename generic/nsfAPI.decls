@@ -124,7 +124,7 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "-postcondition" -type tclobj}
 } {-nxdoc 1}
 
-cmd method::asmcreate NsfAsmMethodCreateCmd {
+cmd "method::asmcreate" NsfAsmMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
   {-argName "-inner-namespace" -nrargs 0}
@@ -172,6 +172,11 @@ cmd "method::setter" NsfMethodSetterCmd {
 #
 # object cmds
 #
+cmd "object::alloc" NsfObjectAllocCmd {
+  {-argName "class" -required 1 -type class}
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "initcmd" -required 0 -type tclobj}
+}
 cmd "object::exists" NsfObjectExistsCmd {
   {-argName "value" -required 1 -type tclobj}
 } {-nxdoc 1}

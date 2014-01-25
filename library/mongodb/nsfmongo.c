@@ -572,7 +572,6 @@ NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongo *connPtr, CONST cha
   result = mongo_run_command( connPtr, db, cmd, out );
   bson_destroy( cmd );
 
-
   if (withNocomplain == 0 && result != MONGO_OK) {
     fprintf(stderr, "run result %d\n", result);
     return NsfPrintError(interp, "mongo::run: command '%s' returned an unknown error", ObjStr(cmdObj));

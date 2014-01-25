@@ -4797,10 +4797,27 @@ mongodb:
 - added method pretty_variables to output available variables
   of a class in a similar style as in the definition
 - added low-level method "close" to nx::mongo
+
+nsf.c:
+- new command ::nsf::object::alloc /class/ /obj/ ?/script/?
+  alloc an object and execute script in the context. Can be
+  used to regenerate an object in a old state.
+
+serializer:
+- fixed loading of objects with required data in the blueprint 
+  (many thanks for david hopfmueller for reporting this)
+- make use of nsf::object::alloc (1 command instead of 1 create + 2 evals)
+- these changes imprived laading time of blueprint by about 25% 
+  for OpenACS+xowiki
+
 ========================================================================
 TODO:
 
 - remove / rephrase "//"-comments
+
+- check deactivated tests in tests/serialize.test
+  C(One), C(IgnoreAll), C(None2)
+  and xlloc fix
 
 Stefan: doc items
 

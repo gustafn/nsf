@@ -26,6 +26,7 @@ set ::nxdoc::include(::nsf::method::forward) 1
 set ::nxdoc::include(::nsf::method::property) 1
 set ::nxdoc::include(::nsf::method::registered) 1
 set ::nxdoc::include(::nsf::method::setter) 1
+set ::nxdoc::include(::nsf::object::alloc) 0
 set ::nxdoc::include(::nsf::object::exists) 1
 set ::nxdoc::include(::nsf::object::property) 1
 set ::nxdoc::include(::nsf::object::qualify) 1

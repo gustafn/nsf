@@ -281,7 +281,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[105];
+static Nsf_methodDefinition method_definitions[106];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -335,6 +335,7 @@ static int NsfMethodSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int
 static int NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjectAllocCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjectQualifyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -440,6 +441,7 @@ static int NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer
 static int NsfMyCmd(Tcl_Interp *interp, int withIntrinsic, int withLocal, int withSystem, Tcl_Obj *methodName, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
+static int NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *name, Tcl_Obj *initcmd);
 static int NsfObjectExistsCmd(Tcl_Interp *interp, Tcl_Obj *value);
 static int NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *objectName, int objectProperty, Tcl_Obj *value);
 static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
@@ -546,6 +548,7 @@ enum {
  NsfMyCmdIdx,
  NsfNSCopyVarsCmdIdx,
  NsfNextCmdIdx,
+ NsfObjectAllocCmdIdx,
  NsfObjectExistsCmdIdx,
  NsfObjectPropertyCmdIdx,
  NsfObjectQualifyCmdIdx,
@@ -1599,6 +1602,27 @@ NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
     
     return NsfNextCmd(interp, objc == 2 ? objv[1] : NULL);
 
+}
+
+static int
+NsfObjectAllocCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfObjectAllocCmdIdx].paramDefs, 
+                     method_definitions[NsfObjectAllocCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    NsfClass *class = (NsfClass *)pc.clientData[0];
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *initcmd = (Tcl_Obj *)pc.clientData[2];
+
+    assert(pc.status == 0);
+    return NsfObjectAllocCmd(interp, class, name, initcmd);
+
+  } else {
+    return TCL_ERROR;
+  }
 }
 
 static int
@@ -2700,7 +2724,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[105] = {
+static Nsf_methodDefinition method_definitions[106] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -2924,6 +2948,11 @@ static Nsf_methodDefinition method_definitions[105] = {
 },
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::object::alloc", NsfObjectAllocCmdStub, 3, {
+  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Class, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
+  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"initcmd", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::object::exists", NsfObjectExistsCmdStub, 1, {
   {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

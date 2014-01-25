@@ -211,6 +211,7 @@ static Tcl_ObjCmdProc NsfAsmProc;
 
 /* prototypes for methods called directly when CallDirectly() returns NULL */
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj);
+static int NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr);
 static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object);
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
@@ -14137,8 +14138,8 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
   Tcl_DString ds, *dsPtr = &ds;
   int fullQualPattern = (pattern && *pattern == ':' && *(pattern+1) == ':');
 
-  /*fprintf(stderr, "AddSlotObjects parent %s prefix %s type %p %s\n",
-    ObjectName(parent), prefix, type, type ? ClassName(type) : "");*/
+  /* fprintf(stderr, "AddSlotObjects parent %s prefix %s type %p %s\n",
+     ObjectName(parent), prefix, type, type ? ClassName(type) : "");*/
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, ObjectName(parent), -1);
@@ -14178,6 +14179,7 @@ AddSlotObjects(Tcl_Interp *interp, NsfObject *parent, CONST char *prefix,
        * being right now created.
        */
       if (!childObject || (childObject->flags & NSF_INIT_CALLED) == 0) {
+	/* fprintf(stderr, "....... key %s unfinished\n", key);*/
 	continue;
       }
 
@@ -20755,6 +20757,42 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
   return result;
 }
 
+/*
+cmd "object::alloc" NsfObjectAllocCmd {
+  {-argName "class" -required 1 -type class}
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "initcmd" -required 0 -type tclobj}
+}
+*/
+static int
+  NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Obj *initcmdObj) {
+  int result;
+
+  /*fprintf(stderr, "trying to alloc <%s>\n", ObjStr(nameObj));*/
+
+  result = NsfCAllocMethod(interp, class, nameObj);
+
+  if (result == TCL_OK && initcmdObj) {
+    NsfObject *object;
+    Tcl_Obj *nameObj = Tcl_GetObjResult(interp);
+
+    INCR_REF_COUNT(nameObj);
+    if (unlikely(GetObjectFromObj(interp, nameObj, &object) != TCL_OK)) {
+      return NsfPrintError(interp, "couldn't find result of alloc");
+    }
+    result = NsfDirectDispatchCmd(interp, object, 1,
+				  NsfGlobalObjs[NSF_EVAL], 
+				  1, &initcmdObj);
+    if (result == TCL_OK) {
+      Tcl_SetObjResult(interp,nameObj);
+    }
+    
+    DECR_REF_COUNT(nameObj);
+
+  }
+
+  return result;
+}
 
 /*
 cmd "object::exists" NsfObjectExistsCmd {
@@ -20786,7 +20824,7 @@ NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, 
   int flags = 0, allowSet = 0;
 
   switch (objectproperty) {
-  case ObjectpropertyInitializedIdx: flags = NSF_INIT_CALLED; break;
+  case ObjectpropertyInitializedIdx: flags = NSF_INIT_CALLED; allowSet = 1; break;
   case ObjectpropertyClassIdx: flags = NSF_IS_CLASS; break;
   case ObjectpropertyRootmetaclassIdx: flags = NSF_IS_ROOT_META_CLASS; break;
   case ObjectpropertyVolatileIdx:
@@ -22558,7 +22596,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      * already existing values (which might have been set via parameter
      * alias).
      */
-    /*fprintf(stderr, "[%d] param %s, object init called %d is default %d value = '%s' nrArgs %d\n",
+    /* fprintf(stderr, "[%d] param %s, object init called %d is default %d value = '%s' nrArgs %d\n",
 	    i, paramPtr->name, (object->flags & NSF_INIT_CALLED),
 	    (pc.flags[i-1] & NSF_PC_IS_DEFAULT),
 	    ObjStr(pc.full_objv[i]), paramPtr->nrArgs);*/
@@ -22602,14 +22640,14 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * instance variable, which works under the assumption that the instance
        * variable has the same name and that e.g. an required alias parameter
        * sets this variable either. Similar assumption is in the default
-       * handling. Future versions might use a more generneral handling of the
+       * handling. Future versions might use a more general handling of the
        * parameter states.
        */
 	
       Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
       if (varObj == NULL) {
 	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(paramDefs->paramsPtr);
-	
+
         NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
 		      paramPtr->nameObj ? ObjStr(paramPtr->nameObj) : paramPtr->name,
 		      pc.object ? ObjectName(pc.object) : "",
@@ -23093,6 +23131,7 @@ objectMethod noinit NsfONoinitMethod {
 */
 static int
 NsfONoinitMethod(Tcl_Interp *UNUSED(interp), NsfObject *object) {
+  // fprintf(stderr, "noinit \n");
   object->flags |= NSF_INIT_CALLED;
   return TCL_OK;
 }
@@ -24951,7 +24990,7 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
   } else {
     NsfClassListAdd(&precedenceList, class, NULL);
   }
-  /* NsfClassListPrint("precedence", precedenceList);*/
+  /* NsfClassListPrint("precedence", precedenceList); */
   if (withSource == 0) {withSource = 1;}
 
   /*

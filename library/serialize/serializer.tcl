@@ -203,9 +203,15 @@ namespace eval ::nx::serializer {
       set targetName $sourceName
       if {[array exists :objmap]} {
 	foreach {source target} [array get :objmap] {
+	  puts "[list regsub ^$source $targetName $target targetName]"
 	  regsub ^$source $targetName $target targetName
 	}
       }
+      if {![string match ::* $targetName]} {
+	set targetName ::$targetName
+      }
+      #puts stderr "targetName of <$sourceName> = <$targetName>"
+
       return $targetName
     }
     
@@ -795,33 +801,36 @@ namespace eval ::nx::serializer {
       }
 
       :collect-var-traces $o $s
+
+      set evalList [:collectVars $o $s]
+
+      if {[$o info has type ::nx::Slot]} {
+        # Slots need to be explicitely initialized to ensure
+        # __invalidateobjectparameter to be called
+	lappend evalList :init
+      }
+
       set objectName [::nsf::directdispatch $o -frame method ::nsf::current object]
       set isSlotContainer [::nx::isSlotContainer $objectName]
       if {$isSlotContainer} {
 	append cmd [list ::nx::slotObj -container [namespace tail $objectName] \
 			[$s getTargetName [$objectName ::nsf::methods::object::info::parent]]]\n
+	if {[llength $evalList] > 0} {
+	  append cmd [list ${:targetName} eval [join $evalList "\n   "]]\n
+	}
       } else {
 	#puts stderr "CREATE targetName '${:targetName}'"
-	append cmd [list [$o info class] create ${:targetName} -noinit]\n
+	append cmd [list ::nsf::object::alloc [$o info class] ${:targetName} [join $evalList "\n   "]]\n
 	foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all -path]] {
 	  append cmd [:method-serialize $o $i "object"] "\n"
 	}
       }
-     
-      set vars [:collectVars $o $s]
-      if {[llength $vars]>0} {append cmd [list ${:targetName} eval [join $vars "\n   "]]\n}
 
       append cmd \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o object-invar] \
           [:frameWorkCmd ::nsf::object::property $o keepcallerself -unless 0] \
           [:frameWorkCmd ::nsf::object::property $o perobjectdispatch -unless 0]
-
-      if {[$o info has type ::nx::Slot]} {
-        # Slots needs to be initialized to ensure
-        # __invalidateobjectparameter to be called
-        append cmd [list ${:targetName} eval :init] \n
-      }
 
       $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
       return $cmd
@@ -940,8 +949,7 @@ namespace eval ::nx::serializer {
 
     :object method Object-serialize {o s} {
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create ${:targetName}]
-      append cmd " -noinit\n"
+      append cmd [list ::nsf::object::alloc [$o info class] ${:targetName} [join [:collectVars $o $s] "\n   "]]\n
       foreach i [$o ::nsf::methods::object::info::methods -type scripted -callprotection all] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
@@ -952,7 +960,6 @@ namespace eval ::nx::serializer {
         append cmd [list ${:targetName} parametercmd $i] "\n"
       }
       append cmd \
-          [list ${:targetName} eval [join [:collectVars $o $s] "\n   "]] \n \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o object-invar]
 
