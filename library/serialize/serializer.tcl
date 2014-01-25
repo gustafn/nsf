@@ -665,7 +665,7 @@ namespace eval ::nx::serializer {
             $s addPostCmd [list $o trace add variable $v $op $cmd]
 
             # remove trace from object
-            $o trace remove variable $v $op $cmd
+	    ::nsf::directdispatch $o -frame object ::trace remove variable $v $op $cmd
           }
         }
       }
