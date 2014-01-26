@@ -4809,6 +4809,21 @@ serializer:
 - make use of nsf::object::alloc (1 command instead of 1 create + 2 evals)
 - these changes imprived laading time of blueprint by about 25% 
   for OpenACS+xowiki
+- don't rely on the existence of a "trace" method
+
+nsf.c:
+- when ::nsf::object::alloc is passed an empty name (2nd argument), 
+  behave like "new" method
+
+nx:
+- allow copy of objects with required arguments
+- use ::nsf::object::alloc in "copy" method
+- don't depend on method "trace", use directdispatch instead
+- remove method "-noinit" (nsf::object::alloc makes it obsolete)
+- extend regression test
+
+serializer:
+- restore traces after object-serialize
 
 ========================================================================
 TODO:

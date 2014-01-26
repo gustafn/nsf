@@ -157,17 +157,20 @@ C method foo {} {
   rename o [current]
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
-  ? "[current] set x" 1 "$::case can still access [current]"
+  #? "[current] set x" 1 "$::case can still access [current]"
+  ? "[current] set x" {can't read "x": no such variable} "$::case cannot access [current]"
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
-  ? "set ::firstDestroy" 0 "firstDestroy called"
-  ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
+  #? "set ::firstDestroy" 0 "firstDestroy called"
+  #? "set ::ObjectDestroy" 0 "ObjectDestroy called"
+  ? "set ::firstDestroy" 1 "firstDestroy called"
+  ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 }
 C create c1
 c1 foo
 
 ? {::nsf::object::exists c1} 1 "$::case object still exists after proc"
-? "set ::firstDestroy" 0 "firstDestroy called"
-? "set ::ObjectDestroy" 0 "ObjectDestroy called"
+? "set ::firstDestroy" 1 "firstDestroy called"
+? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 
 #
 # cmd rename other proc to current object, 

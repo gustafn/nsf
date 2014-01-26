@@ -1560,8 +1560,8 @@ namespace eval ::nx {
   #
   # Create object parameter slots for "noninit" and "volatile"
   #
-  ::nx::ObjectParameterSlot create ::nx::Object::slot::noinit \
-      -methodname ::nsf::methods::object::noinit -noarg true
+  #::nx::ObjectParameterSlot create ::nx::Object::slot::noinit \
+  #    -methodname ::nsf::methods::object::noinit -noarg true
   ::nx::ObjectParameterSlot create ::nx::Object::slot::volatile -noarg true
   ::nsf::method::create ::nx::Object::slot::volatile assign {object var value} {$object volatile}
   ::nsf::method::create ::nx::Object::slot::volatile get {object var} {
@@ -2325,7 +2325,9 @@ namespace eval ::nx {
         set dest [:getDest $origin]
         if {[::nsf::object::exists $origin]} {
 	  if {$dest eq ""} {
-	    set obj [[$origin info class] new -noinit]
+	    #set obj [[$origin info class] new -noinit]
+	    set obj [::nsf::object::alloc [$origin info class] ""]
+	    #nsf::object::property $obj initialized 1
 	    set dest [set :dest $obj]
 	  } else {
 	    #
@@ -2343,8 +2345,9 @@ namespace eval ::nx {
 	      #
 	      # create an object without calling init
 	      #
-	      set obj [[$origin info class] create $dest -noinit]
-	      #set obj [::nsf::object::alloc [$origin info class] $dest]
+	      #set obj [[$origin info class] create $dest -noinit]
+	      set obj [::nsf::object::alloc [$origin info class] $dest]
+	      #nsf::object::property $obj initialized 1
 	      #puts stderr "COPY obj=<$obj>"
 	    }
 	  }
@@ -2415,6 +2418,7 @@ namespace eval ::nx {
 	#
 	foreach var [$origin info vars] {
 	  set cmds [::nsf::directdispatch $origin -frame object ::trace info variable $var]
+	  #puts stderr "COPY $var <$cmds>"
 	  if {$cmds ne ""} {
 	    foreach cmd $cmds {
 	      lassign $cmd op def
@@ -2423,15 +2427,23 @@ namespace eval ::nx {
 	      if {$domain eq $origin} {
 		set def [concat $dest [lrange $def 1 end]]
 	      }
-	      if {[::nsf::object::exists $domain] && [$domain info has type ::nx::Slot]} {
+	      #puts stderr "COPY $var domain $domain [::nsf::object::exists $domain] && [$domain info has type ::nx::Slot]"
+	      #if {[::nsf::object::exists $domain] && [$domain info has type ::nx::Slot]} {
 		# slot traces are handled already by the slot mechanism
-		continue
+		#continue
+	      #}
+	      #
+	      # handle the most common cases to replace $origin by $dest in trace command
+	      #
+	      if {[lindex $def 2] eq $origin} {
+		set def [lreplace $def 2 2 $dest]
+	      } elseif {[lindex $def 0] eq $origin} {
+		set def [lreplace $def 0 0 $dest]
 	      }
-	      $dest trace add variable $var $op $def
+	      ::nsf::directdispatch $dest -frame object ::trace add variable $var $op $def
 	    }
 	  }
 	}
-	#puts stderr "====="
       }
 
       #
@@ -2452,6 +2464,7 @@ namespace eval ::nx {
 	foreach slot [$origin ::nsf::methods::object::info::slotobjects -type ::nx::Slot] {
 	  lappend slots $slot
 	}
+
 	#puts stderr "replacing domain and manager from <$origin> to <$dest> in slots <$slots>"
 	foreach oldslot $slots {
 	  set container [expr {[$oldslot per-object] ? "per-object-slot" : "slot"}]
