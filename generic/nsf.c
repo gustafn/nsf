@@ -1555,6 +1555,41 @@ NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr) {
 
 /*
  *----------------------------------------------------------------------
+ * NewTclCommand --
+ *
+ *    Given a provided prefix in dsPtr, make it a name of a command that does not exist.
+ *    This function is used by the *new command, when "anonyous" objects are created
+ *
+ * Results:
+ *    dsPtr will be complete to represent a new (unused) name of a command
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+void
+NewTclCommand(Tcl_Interp *interp, Tcl_DString *dsPtr) {
+  int prefixLength = dsPtr->length;
+  NsfStringIncrStruct *iss = &RUNTIME_STATE(interp)->iss;
+
+  while (1) {
+
+    (void)NsfStringIncr(iss);
+    Tcl_DStringAppend(dsPtr, iss->start, iss->length);
+    if (!Tcl_FindCommand(interp, Tcl_DStringValue(dsPtr), NULL, TCL_GLOBAL_ONLY)) {
+      break;
+    }
+    /*
+     * In case the symbol existed already, reset prefix to the
+     * original length.
+     */
+    Tcl_DStringSetLength(dsPtr, prefixLength);
+  }
+}
+
+/*
+ *----------------------------------------------------------------------
  * NsfReverseClasses --
  *
  *    Reverse class list. Caller is responsible for freeing data.
@@ -20765,8 +20800,27 @@ cmd "object::alloc" NsfObjectAllocCmd {
 }
 */
 static int
-  NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Obj *initcmdObj) {
+NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Obj *initcmdObj) {
+  Tcl_Obj *newNameObj = NULL;
   int result;
+
+  /*
+   * If the provided name is empty, make a new symbol
+   */
+  if (strlen(ObjStr(nameObj)) == 0) {
+    Tcl_DString ds, *dsPtr = &ds;
+
+    Tcl_DStringInit(dsPtr);
+    Tcl_DStringAppend(dsPtr, "::nsf::__#", 10);
+
+    NewTclCommand(interp, dsPtr);
+
+    newNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
+    INCR_REF_COUNT(newNameObj);
+    Tcl_DStringFree(dsPtr);
+
+    nameObj = newNameObj;
+  }
 
   /*fprintf(stderr, "trying to alloc <%s>\n", ObjStr(nameObj));*/
 
@@ -20789,6 +20843,10 @@ static int
     
     DECR_REF_COUNT(nameObj);
 
+  }
+
+  if (newNameObj) {
+    DECR_REF_COUNT(newNameObj);
   }
 
   return result;
@@ -23772,9 +23830,8 @@ static int
 NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof,
 	      int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Obj *fullnameObj;
-  int result, prefixLength;
   Tcl_DString dFullname, *dsPtr = &dFullname;
-  NsfStringIncrStruct *iss = &RUNTIME_STATE(interp)->iss;
+  int result;
 
   /*fprintf(stderr, "NsfCNewMethod objc %d\n", objc);*/
 
@@ -23807,23 +23864,10 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof,
   } else {
     Tcl_DStringAppend(dsPtr, "::nsf::__#", 10);
   }
-  prefixLength = dsPtr->length;
 
-  while (1) {
-    (void)NsfStringIncr(iss);
-    Tcl_DStringAppend(dsPtr, iss->start, iss->length);
-    if (!Tcl_FindCommand(interp, Tcl_DStringValue(dsPtr), NULL, TCL_GLOBAL_ONLY)) {
-      break;
-    }
-    /*
-     * In case the symbol existed already, reset prefix to the
-     * original length.
-     */
-    Tcl_DStringSetLength(dsPtr, prefixLength);
-  }
+  NewTclCommand(interp, dsPtr);
 
   fullnameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
-
   INCR_REF_COUNT(fullnameObj);
 
   {
