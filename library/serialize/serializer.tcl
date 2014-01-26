@@ -653,6 +653,7 @@ namespace eval ::nx::serializer {
     }
 
     :method collect-var-traces {o s} {
+      set traces {}
       foreach v [$o info vars] {
 	# Use directdispatch to query existing traces without the need
 	# of an extra method.
@@ -662,13 +663,16 @@ namespace eval ::nx::serializer {
           foreach ops $t { 
             lassign $ops op cmd
             # save traces in post_cmds
-            $s addPostCmd [list $o trace add variable $v $op $cmd]
+	    set traceCmd [list ::nsf::directdispatch $o -frame object ::trace add variable $v $op $cmd]
+            $s addPostCmd $traceCmd
+	    append traces $traceCmd \n
 
             # remove trace from object
 	    ::nsf::directdispatch $o -frame object ::trace remove variable $v $op $cmd
           }
         }
       }
+      return $traces
     }
 
     ###############################
@@ -800,7 +804,7 @@ namespace eval ::nx::serializer {
 	return ""
       }
 
-      :collect-var-traces $o $s
+      set traces [:collect-var-traces $o $s]
 
       set evalList [:collectVars $o $s]
 
@@ -831,6 +835,8 @@ namespace eval ::nx::serializer {
           [:frameWorkCmd ::nsf::method::assertion $o object-invar] \
           [:frameWorkCmd ::nsf::object::property $o keepcallerself -unless 0] \
           [:frameWorkCmd ::nsf::object::property $o perobjectdispatch -unless 0]
+
+      eval $traces
 
       $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
       return $cmd
@@ -948,7 +954,7 @@ namespace eval ::nx::serializer {
     ###############################
 
     :object method Object-serialize {o s} {
-      :collect-var-traces $o $s
+      set traces [:collect-var-traces $o $s]
       append cmd [list ::nsf::object::alloc [$o info class] ${:targetName} [join [:collectVars $o $s] "\n   "]]\n
       foreach i [$o ::nsf::methods::object::info::methods -type scripted -callprotection all] {
         append cmd [:method-serialize $o $i ""] "\n"
@@ -964,6 +970,8 @@ namespace eval ::nx::serializer {
           [:frameWorkCmd ::nsf::method::assertion $o object-invar]
 
       $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
+
+      eval $traces
       return $cmd
     }
 
