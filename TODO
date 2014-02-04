@@ -4825,6 +4825,11 @@ nx:
 serializer:
 - restore traces after object-serialize
 
+nsf.c:
+- fix stub provisioning for Tcl 8.6
+- reduce verbosity for FreeUnsetTraceVariable
+- return TCL_OK, even when FreeUnsetTraceVariable() fails (warning stays)
+  
 ========================================================================
 TODO:
 

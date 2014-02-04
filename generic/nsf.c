@@ -14926,8 +14926,9 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
 static int
 UnsetInAllNamespaces(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *name) {
   int rc = 0;
-  fprintf(stderr, "### UnsetInAllNamespaces variable '%s', current namespace '%s'\n",
-          name, nsPtr ? nsPtr->fullName : "NULL");
+  
+  /*fprintf(stderr, "### UnsetInAllNamespaces variable '%s', current namespace '%s'\n",
+          name, nsPtr ? nsPtr->fullName : "NULL");*/
 
   if (nsPtr) {
     Tcl_HashSearch search;
@@ -14976,7 +14977,7 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
      * variable here which will cause a destroy via var trace, which in turn
      * clears the volatileVarName flag.
      */
-    /*fprintf(stderr, "### FreeUnsetTraceVariable %s\n", obj->opt->volatileVarName);*/
+    /* fprintf(stderr, "### FreeUnsetTraceVariable %s\n", object->opt->volatileVarName);*/
 
     result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, 0);
     if (result != TCL_OK) {
@@ -14986,14 +14987,18 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
         if (UnsetInAllNamespaces(interp, nsPtr, object->opt->volatileVarName) == 0) {
           fprintf(stderr, "### don't know how to delete variable '%s' of volatile object\n",
                   object->opt->volatileVarName);
+	  /* 
+	   * Return always success, since an error during destroy does not
+	   * help at all
+	   */
 	}
       }
     }
-    if (result == TCL_OK) {
-      /*fprintf(stderr, "### success unset\n");*/
-    }
+    /*fprintf(stderr, "### FreeUnsetTraceVariable returns %d OK %d\n", result, TCL_OK);*/
+
   }
-  return  result;
+
+  return TCL_OK;
 }
 
 static char *
@@ -15005,7 +15010,7 @@ NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
   char *resultMsg = NULL;
 
   /*fprintf(stderr, "NsfUnsetTrace %s flags %.4x %.4x\n", name, flags,
-    flags & TCL_INTERP_DESTROYED); **/
+    flags & TCL_INTERP_DESTROYED);*/
 
   if ((flags & TCL_INTERP_DESTROYED) == 0) {
     if (GetObjectFromObj(interp, objPtr, &object) == TCL_OK) {
@@ -20025,7 +20030,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   }
 #endif
 
-  /*fprintf(stderr, "+++ call tcl-defined exit handler\n");  */
+  /*fprintf(stderr, "+++ call tcl-defined exit handler\n");*/
 
   /*
    * Evaluate user-defined exit handler.
@@ -20039,6 +20044,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   }
 
   ObjectSystemsCleanup(interp, withKeepvars);
+
 
 #ifdef DO_CLEANUP
   {
