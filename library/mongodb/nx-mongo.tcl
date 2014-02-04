@@ -25,11 +25,30 @@ namespace eval ::nx::mongo {
   ::nx::Object create ::nx::mongo::db {
     :object property db
     :object property mongoConn
+
     :public object method connect {{-db test} args} {
+      if {[info exists :db]} {
+        if {${:db} eq $db} {
+          # reuse existing connection
+          return ${:mongoConn}
+        }
+        ::mongo::close ${:mongoConn}
+      }
       set :db $db
       set :mongoConn [::mongo::connect {*}$args]
     }
-    :public object method close   {}     {::mongo::close  ${:mongoConn}}
+    :public object method close   {}     {
+      ::mongo::close  ${:mongoConn}
+      unset :db :mongoConn
+    }
+
+    :public object method destroy {}     {
+      if {[info exists :db]} {
+        ::nsf::log notice "nx::mongo: auto close connection to database '${:db}'"
+        ::mongo::close ${:mongoConn}
+      }
+    }
+
     :public object method count   {args} {::mongo::count  ${:mongoConn} {*}$args}
     :public object method index   {args} {::mongo::index  ${:mongoConn} {*}$args}
     :public object method insert  {args} {::mongo::insert ${:mongoConn} {*}$args}
@@ -644,3 +663,10 @@ namespace eval ::nx::mongo {
   }
   
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

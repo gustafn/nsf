@@ -457,6 +457,7 @@ NsfMongoClose(Tcl_Interp *interp, mongo *connPtr, Tcl_Obj *connObj) {
   return TCL_OK;
 }
 
+
 /*
 cmd connect NsfMongoConnect {
   {-argName "-replica-set" -required 0 -nrargs 1}

@@ -4829,7 +4829,10 @@ nsf.c:
 - fix stub provisioning for Tcl 8.6
 - reduce verbosity for FreeUnsetTraceVariable
 - return TCL_OK, even when FreeUnsetTraceVariable() fails (warning stays)
-  
+
+nx-mongo:
+- implement simple persistent handle management based on per-thread objects
+
 ========================================================================
 TODO:
 
