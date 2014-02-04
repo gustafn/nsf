@@ -119,12 +119,12 @@ Nsf_PointerGet(char *key, CONST char *prefix) {
  *
  * Nsf_PointerGetHptr --
  *
- *      Find for a pointer the associated key. The current (static)
- *      implementaiton is quite slow in case there are a high number of
- *      pointer values registered (which should not be the case for the
- *      current usage patterns).  It could certainly be improved by a
- *      second hash table. The function should be run under a callers
- *      mutex.
+ *      Find for a pointer the associated key for a valuePtr (reverse
+ *      lookup). The current implementation is quite slow in case there
+ *      are a high number of pointer values registered (which should not
+ *      be the case for the current usage patterns).  It could certainly
+ *      be improved by a second hash table. The function should be run
+ *      under a callers mutex.
  *
  * Results:
  *      key or NULL.
@@ -154,8 +154,8 @@ Nsf_PointerGetHptr(void *valuePtr) {
  *
  * Nsf_PointerDelete --
  *
- *      Delete an hash entry from our locally maintained hash table and
- *      free the associated memory, if the heas entry is
+ *      Delete an hash entry from the locally maintained hash table and
+ *      free the associated memory, if the hash entry is
  *      found. Normally, the key should be provided. If the key is not
  *      available, we perform a reverse lookup from the hash table.
  *
