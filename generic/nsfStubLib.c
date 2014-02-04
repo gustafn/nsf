@@ -92,6 +92,7 @@ Nsf_InitStubs(Tcl_Interp *interp, CONST char *version, int exact) {
 
       if (!stubsPtr || !intStubsPtr) {
         static char *errMsg = "missing stub table pointer";
+
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "Error loading package", packageName,
                          ": (requested version '", version, "', loaded version '",

@@ -23,6 +23,15 @@
  * below should be made in the generic/tcl.decls script.
  */
 
+#if defined(PRE86)
+EXTERN NsfStubs nsfStubs;
+# else
+MODULE_SCOPE const NsfStubs nsfStubs;
+#endif
+
+
+
+
 /* !BEGIN!: Do not edit below this line. */
 
 NsfIntStubs nsfIntStubs = {
@@ -78,9 +87,6 @@ NsfStubs nsfStubs = {
 };
 
 /* !END!: Do not edit above this line. */
-
-MODULE_SCOPE const NsfStubs * const nsfConstStubPtr;
-const NsfStubs * const nsfConstStubPtr = &nsfStubs;
 
 /*
  * Local Variables:

@@ -71,7 +71,7 @@
 # if defined(PRE86)
 EXTERN NsfStubs nsfStubs;
 # else
-MODULE_SCOPE const NsfStubs * const nsfConstStubPtr;
+MODULE_SCOPE const NsfStubs nsfStubs;
 # endif
 #endif
 
@@ -25979,11 +25979,7 @@ Nsf_Init(Tcl_Interp *interp) {
 #ifndef AOL_SERVER
   /* the AOL server uses a different package loading mechanism */
 # ifdef COMPILE_NSF_STUBS
-#  if defined(PRE86)
   Tcl_PkgProvideEx(interp, "nsf", PACKAGE_VERSION, &nsfStubs);
-#  else
-  Tcl_PkgProvideEx(interp, "nsf", PACKAGE_VERSION, &nsfConstStubPtr);
-#  endif
 # else
   Tcl_PkgProvide(interp, "nsf", PACKAGE_VERSION);
 # endif
