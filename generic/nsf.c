@@ -2192,13 +2192,16 @@ PrecedenceOrder(NsfClass *cl) {
    * For multiple inheritance (more than one superclass), make sure that
    * required precedence orders are precomputed.
    */
-
+  
   if (likely(cl->super != NULL) && unlikely(cl->super->nextPtr != NULL)) {
     for (sl = cl->super; sl; sl = sl->nextPtr) {
-      if (unlikely(sl->cl->order == NULL)) {
-	if (cl != sl->cl) {
-	  NsfClasses *pl;
+      NsfClasses *pl;
 
+#if defined(NSF_LINEARIZER_TRACE)
+      fprintf(stderr, "====== PrecedenceOrder mi, check %s %p \n",
+	      ClassName(sl->cl), sl->cl->order);
+#endif
+      if (unlikely(sl->cl->order == NULL) && likely(cl != sl->cl)) {
 #if defined(NSF_LINEARIZER_TRACE)
 	fprintf(stderr, "====== PrecedenceOrder computes required order for %s \n",
 		ClassName(sl->cl));
@@ -2206,19 +2209,19 @@ PrecedenceOrder(NsfClass *cl) {
 
 	PrecedenceOrder(sl->cl);
 #if defined(NSF_LINEARIZER_TRACE)
-	  NsfClassListPrint("====== PO:", sl->cl->order);
+	NsfClassListPrint("====== PO:", sl->cl->order);
 #endif
-	  for (pl = sl->cl->order; pl; pl = pl->nextPtr) {
+      }
+
+      for (pl = sl->cl->order; pl; pl = pl->nextPtr) {
 #if defined(NSF_LINEARIZER_TRACE)
-	    fprintf(stderr, "====== PO order: %s %p\n", ClassName(pl->cl), pl->cl->order);
+	fprintf(stderr, "====== PO order: %s %p\n", ClassName(pl->cl), pl->cl->order);
 #endif
-	    if (pl->cl->order == NULL) {
+	if (pl->cl->order == NULL) {
 #if defined(NSF_LINEARIZER_TRACE)
-	      fprintf(stderr, "========== recurse\n");
+          fprintf(stderr, "========== recurse\n");
 #endif
-	      PrecedenceOrder(pl->cl);
-	    }
-	  }
+          PrecedenceOrder(pl->cl);
 	}
       }
     }
