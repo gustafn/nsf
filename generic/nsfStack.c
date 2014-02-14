@@ -418,6 +418,9 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
 
+      /*
+       * A NSF method frame.
+       */
       if ((cscPtr->flags & (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE))
 	  || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         continue;
@@ -429,8 +432,20 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
 	if (framePtrPtr) *framePtrPtr = varFramePtr;
 	return cscPtr;
       }
+    } else if (Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
+
+      /*
+       * A Tcl proc frame.
+       */
+      if (offset) {
+        offset--;
+      } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
+	if (framePtrPtr) *framePtrPtr = varFramePtr;
+	return NULL;
+      }
     }
   }
+
   if (framePtrPtr) *framePtrPtr = NULL;
   return NULL;
 }

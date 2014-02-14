@@ -314,14 +314,14 @@ nx::test case subcmd {
   
   nx::Class create Foo {
 
-     :method "Info filter guard" {filter} {return [current object]-[current method]}
-     :method "Info filter methods" {-guards pattern:optional} {return [current object]-[current method]}
-     :method "Info args" {} {return [current object]-[current method]}
-     :method "Info foo" {} {return [current object]-[current method]}
+    :method "Info filter guard" {filter} {return [current object]-[current method]}
+    :method "Info filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+    :method "Info args" {} {return [current object]-[current method]}
+    :method "Info foo" {} {return [current object]-[current method]}
 
-     :object method "INFO filter guard" {a b} {return [current object]-[current method]}
-     :object method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
-   }
+    :object method "INFO filter guard" {a b} {return [current object]-[current method]}
+    :object method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+  }
   
   ? {Foo INFO filter guard 1 2} ::Foo-guard
   ? {Foo INFO filter methods a*} ::Foo-methods
@@ -1118,39 +1118,122 @@ nx::test case assertion-swallows-result {
 }
 
 
-nx::test case uplevel+mixin-transparency {
-
-    nx::Object create ns_cache {
-	:public object method eval {script} {
-	    set rc [catch {:uplevel $script} result]
-	    return -code $rc $result
-	}
+nx::test case uplevel+interceptor-transparency {
+  #
+  # A real-world case from OpenACS + from the database abstraction
+  # layer. Since profiling is realized via mixin, and the db interface
+  # requires heavy upleveling for SQL bind variables, we have complex
+  # interaction between upleveling and interceptor transparency. In
+  # earlier versions, the Profile mixin towards the end of this test
+  # case lead to a problem with the variable scope (the interceptor
+  # transparency was violated).
+  #
+  nx::Object create ns_cache {
+    :public object method eval {script} {
+      set rc [catch {:uplevel $script} result]
+      return -code $rc $result
     }
-    nx::Class create DBI {
-	:public method 1row {} { :uplevel {return $x} }
-    }
-    nx::Class create Profile {
-	:public method 1row {} { next }
-    }
-    DBI create db
+  }
+  nx::Class create DBI {
+    :public method 1row {} { :uplevel {return $x} }
+  }
+  nx::Class create Profile {
+    :public method 1row {} { next }
+  }
+  DBI create db
 
-    nx::Class create C {
-	:public method foo {} {
-	    set x 1
-	    return [db 1row]
-	}
-	:public method bar {} {
-	    set x 2
-	    return [ns_cache eval {db 1row}]
-	}
-	:create c1
+  nx::Class create C {
+    :public method foo {} {
+      set x 1
+      return [db 1row]
     }
+    :public method bar {} {
+      set x 2
+      return [ns_cache eval {db 1row}]
+    }
+    :create c1
+  }
 
-    ? {c1 foo} 1
-    ? {c1 bar} 2
+  ? {c1 foo} 1
+  ? {c1 bar} 2
 
-    db object mixin Profile
-    ? {c1 foo} 1
-    ? {c1 bar} 2
+  db object mixin Profile
+  ? {c1 foo} 1
+  ? {c1 bar} 2
 
 }
+
+nx::test case uplevel+tcl-transparency {
+  #
+  # A real-world case from OpenACS + from the database abstraction
+  # layer. Frequently, nsf based methods are called from tcl procs
+  # (and tcl-upleveled code). In order to preserve interceptor
+  # transparency (i.e. to be able to use a mixin on the tcl-called nsf
+  # method), the uplevel method has to behave like tcl-uplevel when the
+  # caller is a tcl method.
+  #
+
+  nx::Object create ns_cache {
+    :public object method eval {script} {
+      set rc [catch {:uplevel $script} result]
+      return -code $rc $result
+    }
+    :public object method eval0 {script} {
+      set rc [catch {uplevel $script} result]
+      return -code $rc $result
+    }
+  }
+
+  nx::Class create Profile {
+    :public method eval  {script} { next }
+    :public method eval0 {script} { next }
+  }
+
+  proc db {cmd} {
+    #nsf::__db_show_stack
+    return [uplevel $cmd]
+  }
+
+  proc foo {} {
+    set x 1
+    db {set x}
+  }
+
+  proc bar0 {} {
+    set x 2
+    ns_cache eval0 {db {set x}}
+  }
+
+  proc bar {} {
+    set x 2
+    ns_cache eval {db {set x}}
+  }
+
+  # foo is tcl, only
+  ? foo 1
+
+  # The "bar" functions use the ns_cache interface, which is
+  # nsf-based.  The function "bar0" uses tcl uplevel, which is fine,
+  # as long no interceptor is used. The function "bar0" uses the
+  # uplevel method, which works also, when e.g. mixins are used on
+  # ns_cache.
+
+  ? bar0 2
+  ? bar 2
+
+  ns_cache object mixin Profile
+  
+  # the version with tcl-uplevel should fail
+  ? bar0 {can't read "x": no such variable}
+
+  # the version with uplevel method should succeed
+  ? bar 2
+}
+
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
