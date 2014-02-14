@@ -412,21 +412,22 @@ static NsfCallStackContent *
 NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   int lvl = Tcl_CallFrame_level(varFramePtr);
+  
+  for (; likely(varFramePtr != NULL); varFramePtr = Tcl_CallFrame_callerVarPtr(varFramePtr)) {
 
-  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+
       if ((cscPtr->flags & (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE))
 	  || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         continue;
       }
+
       if (offset) {
         offset--;
-      } else {
-        if (Tcl_CallFrame_level(varFramePtr) < lvl) {
-          if (framePtrPtr) *framePtrPtr = varFramePtr;
-          return cscPtr;
-        }
+      } else if (Tcl_CallFrame_level(varFramePtr) < lvl) {
+	if (framePtrPtr) *framePtrPtr = varFramePtr;
+	return cscPtr;
       }
     }
   }

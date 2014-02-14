@@ -1116,3 +1116,41 @@ nx::test case assertion-swallows-result {
   ? {string match "invalid non-positional*" $errMsg} 1
 
 }
+
+
+nx::test case uplevel+mixin-transparency {
+
+    nx::Object create ns_cache {
+	:public object method eval {script} {
+	    set rc [catch {:uplevel $script} result]
+	    return -code $rc $result
+	}
+    }
+    nx::Class create DBI {
+	:public method 1row {} { :uplevel {return $x} }
+    }
+    nx::Class create Profile {
+	:public method 1row {} { next }
+    }
+    DBI create db
+
+    nx::Class create C {
+	:public method foo {} {
+	    set x 1
+	    return [db 1row]
+	}
+	:public method bar {} {
+	    set x 2
+	    return [ns_cache eval {db 1row}]
+	}
+	:create c1
+    }
+
+    ? {c1 foo} 1
+    ? {c1 bar} 2
+
+    db object mixin Profile
+    ? {c1 foo} 1
+    ? {c1 bar} 2
+
+}

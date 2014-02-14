@@ -4833,6 +4833,10 @@ nsf.c:
 nx-mongo:
 - implement simple persistent handle management based on per-thread objects
 
+-nsf.c:
+- fix bug in interaction between uplevel method and interceptor transparency
+- extend regression test
+
 ========================================================================
 TODO:
 
