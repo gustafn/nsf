@@ -4838,6 +4838,18 @@ nx-mongo:
 - fix bug in interaction between uplevel method from tcl procs
 - extend regression test
 
+build-system:
+- provide datarootdir to silence configure
+
+nx-mongo:
+- updated documentation (switch back to mongo-c-driver, but comment usage 
+  of tagged version v0.8.1)
+- added support for rep types (allow for mappings between certain instance 
+  variables such as arrays or dicts to customizable representations in 
+  MongoDB)
+- added nx-serialize to test cases (simple state persistance for nx objects)
+- added nx-rep to test cases (rep types for "array" and "dict")
+
 ========================================================================
 TODO:
 
