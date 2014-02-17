@@ -1,0 +1,176 @@
+# -*- tcl -*-
+#
+# An example for using MongoDB as a persistence store.
+#
+# Gustaf Neumann              fecit, Feb 2014
+#
+package require nx::mongo
+package require nx::serializer
+package require nx::test
+
+#nsf::configure debug 2
+
+######################################################################
+# Define sample methods to use MongoDB as a simple persistence store
+# for nx. The provided methods are
+#
+#   nx::Class "mongo persist" ?-db db? ?-collection name? ?-closure?
+#   nx::Class "mongo fetch" ?-db db? ?-collection name?
+#
+# where "mongo persist" stores/updates the direct or indirect
+# instances in the specified collection and "mongo fetch" loads 
+# all instances from this collection
+#
+nx::Class public method "mongo persist" {
+	{-db "tutorial"} 
+	{-collection "nx"}
+	{-closure:switch}
+    } {
+    set mongo_ns $db.$collection
+    set count(update) 0
+    set count(insert) 0
+
+    foreach i [:info instances -closure=$closure] {
+	set isNew [string match "::nsf::__#*" $i]
+	set bson [list name string $i class string [$i info class] isNew string $isNew]
+	lappend bson definition string [$i serialize]
+    
+	if {[::nx::var exists $i _id]} {
+	    #puts "we have to update "
+	    ::nx::mongo::db update $mongo_ns [list _id oid [::nx::var set $i _id]] $bson
+	    incr count(update)
+	} else {
+	    #puts "we have to insert to $mongo_ns"
+	    set r [::nx::mongo::db insert $mongo_ns $bson]
+	    ::nx::var set $i _id [lindex $r 2]
+	    incr count(insert)
+	}
+    }
+    puts "$count(insert) instances inserted, $count(update) instances updated in $mongo_ns"
+}
+
+nx::Class public method "mongo fetch" {
+	{-db "tutorial"} 
+	{-collection "nx"}
+    } {
+    set mongo_ns $db.$collection
+
+    set result {}
+    set bson [::nx::mongo::db query $mongo_ns {}]
+    foreach obj $bson {
+	foreach {att type value} $obj {
+	    switch $att {
+		_id {set _id $value}
+		class {set class $value}
+		definition {set definition $value}
+		name {set name $value}
+	    }
+	}
+	eval $definition
+	$name eval [list set _id $_id]
+	::nx::var set $name _id $_id
+	lappend result $name
+    }
+    return $result
+}
+
+#
+######################################################################
+#
+# Sample usage of the two methods
+#
+
+# Establish connection to the database
+::nx::mongo::db connect -db "tutorial"
+
+# Make sure, we start always from scratch, so remove everything from
+# the collection.
+nx::mongo::db drop collection nx
+
+######################################################################
+#
+# Define an arbitrary class
+#
+
+nx::Class create Foo {
+    :property title
+    :property {count 1}
+    :public method ++ {} {incr :count}
+    :public method hasArray {} {array exists :a}
+    
+    :public object method counts {} {
+	foreach i [:info instances] {incr c [$i cget -count]}
+	return $c
+    }
+    :public object method countArrays {} {
+	foreach i [:info instances] {incr c [$i hasArray]}
+	return $c
+    }
+
+}
+
+######################################################################
+#
+# Create an instance of Foo containing e.g. arrays or dicts as
+# instance variables
+#
+Foo new -title t1 {
+    set :a(1) a
+    set :a(2) b
+    set :d [dict create x 100 y 101]
+    set :count 100
+}
+Foo new -title t2
+
+? {llength [Foo info instances]} 2 "Foo instances before persist"
+? {Foo counts} 101
+? {Foo countArrays} 1
+
+foreach i [Foo info instances] {$i ++}
+? {Foo counts} 103
+
+#
+# Save all instances of Foo (inserts)
+#
+Foo mongo persist
+
+#
+# Destroy all instances of Foo in memory
+#
+foreach i [Foo info instances] {$i destroy}
+? {llength [Foo info instances]} 0 "Foo instances after destroy"
+
+#
+# Load instances from MongoDB
+#
+::nx::Class mongo fetch
+
+? {llength [Foo info instances]} 2 "Foo instances after fetch"
+? {Foo counts} 103
+? {Foo countArrays} 1
+
+foreach i [Foo info instances] {$i ++}
+? {Foo counts} 105
+
+#
+# create one more instance, also with an array
+#
+Foo new {set :a(x) foo}
+? {Foo counts} 106
+? {Foo countArrays} 2
+
+#
+# Save all instances of Foo (updates)
+#
+Foo mongo persist
+
+foreach i [Foo info instances] {$i destroy}
+? {llength [Foo info instances]} 0 "Foo instances after destroy"
+
+::nx::Class mongo fetch
+? {Foo counts} 106
+? {Foo countArrays} 2
+
+
+exit
+

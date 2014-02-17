@@ -4832,7 +4832,7 @@ if test ! "${with_mongodb}" = no; then
         MONGO_LIB_DIR="`echo $with_mongodb |cut -f2 -d, -s`"
 fi
 if test -z "$MONGO_INC_DIR" ; then
-        gdbm_h_ok=1
+        mongo_h_ok=0
         MONGO_INC_SPEC=""
 else
         MONGO_INC_SPEC="-I${MONGO_INC_DIR}"
@@ -4920,8 +4920,7 @@ source ${with_nsf}/nsfConfig.sh
     done
 
 
-#TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $NSF_BUILD_LIB_SPEC $MONGO_LIB_SPEC -Wl,-rpath,${MONGO_LIB_DIR} -L${MONGO_LIB_DIR} -lmongoc -lbson])
-#TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $NSF_BUILD_LIB_SPEC $MONGO_LIB_SPEC -L${MONGO_LIB_DIR} -lmongoc -lbson])
+#TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -Wl,-rpath,${MONGO_LIB_DIR} -L${MONGO_LIB_DIR} -lmongoc -lbson])
 
     vars="$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -L${MONGO_LIB_DIR} -lmongoc -lbson"
     for i in $vars; do

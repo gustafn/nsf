@@ -20,7 +20,7 @@ package provide nx::mongo 0.4
 
 namespace eval ::nx::mongo {
 
-  set ::nx::mongo::log 1
+  set ::nx::mongo::log 0
 
   ::nx::Object create ::nx::mongo::db {
     :object property db
@@ -66,6 +66,7 @@ namespace eval ::nx::mongo {
   #
   ::nx::MetaSlot create ::nx::mongo::Attribute -superclass ::nx::VariableSlot {
     :property mongotype
+    :property rep
     
     #
     # manage logging of mongo concerns
@@ -102,12 +103,18 @@ namespace eval ::nx::mongo {
     # mapping. For now, this handles just the array notation.
     #
     :method "bson decode" {bsontype value} {
-	#puts stderr "bson decode of ${:name} /$bsontype/ '$value'"
+      #puts stderr "bson decode of ${:name} /$bsontype/ '$value'"
       if {$bsontype eq "array"} {
 	if {![:isMultivalued]} {
 	  # We got an array, but the slot is not multivalued. Maybe
 	  # generating an error is too harsh, but for the mapping back,
 	  # we check for multivalued as well.
+
+          # aaaaa
+          puts stderr [list bsontype $bsontype value $value]
+          #set result [list]
+          #foreach {pos type v} $value {lappend result [:bson decode $type $v]}
+          #puts stderr "[self] $result"
 	  error "Attribute ${:name} should be multivalued, but it is not"
 	}
 	set result [list]
@@ -330,24 +337,44 @@ namespace eval ::nx::mongo {
     }
 
     :method "bson parameter" {tuple} {
+      #
+      # Translate bson tuple into a parameter values pairs suited as
+      # configure parameters
+      #
       #puts "bson parameter: <$tuple>"
       set objParams [list]
       foreach {att type value} $tuple {
 	set slot [:get slot $att]
-	if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
+	if {$slot eq ""} {error "could not obtain slot for <$att $type $value>"}
 	lappend objParams -$att [$slot bson decode $type $value]
       }
       #puts "bson parameter <$tuple> => $objParams"
       return $objParams
     }
-    
-    :public method "bson create" {{-name ""} tuple} {
-      if {$name ne ""} {
-	return [:create $name {*}[:bson parameter $tuple]]
-      } else {
-	#puts "CREATE new [self] <$tuple>"
-	return [:new {*}[:bson parameter $tuple]]
+
+    :method "bson setvalues" {tuple} {
+      #
+      # Translate bson tuple into a cmd to set instance values, which
+      # can be evaluated in the context of an object.
+      #
+      #puts "bson setvalues: <$tuple>"
+      set cmd ""
+      foreach {att type value} $tuple {
+	set slot [:get slot $att]
+	if {$slot eq ""} {error "could not obtain slot for <$att $type $value>"}
+        if {[nx::var exists $slot rep] && [nx::var set $slot rep] ne ""} {
+          set script [:bson rep decode [nx::var set $slot rep] $slot $att $type $value]
+          append cmd $script\n
+        } else {
+          append cmd "set [list :$att] [list [$slot bson decode $type $value]]\n"
+        }
       }
+      #puts "bson parameter <$tuple> => $objParams"
+      return $cmd
+    }
+
+    :public method "bson create" {{-name ""} tuple} {
+      ::nsf::object::alloc [self] $name [:bson setvalues $tuple]
     }
 
     :method "bson pp_array" {{-indent 0} list} {
@@ -381,13 +408,41 @@ namespace eval ::nx::mongo {
     # default slot class
     #
     :public method property {
-       {-incremental:switch}
-       spec 
-       {-class ::nx::mongo::Attribute} 
-       {initblock ""}
-    } {
+                             {-accessor ""}
+                             {-class ::nx::mongo::Attribute}
+                             {-configurable:boolean true}
+                             {-incremental:switch}
+                             {-rep ""}
+                             spec:parameter
+                             {initblock ""}
+                           } {
       regsub -all {,type=} $spec {,arg=} spec
-      next [list -class $class -incremental=$incremental $spec $initblock]
+      set result [next [list -accessor $accessor -class $class \
+                            -configurable $configurable -incremental=$incremental \
+                            $spec $initblock]]
+      lassign [::nx::MetaSlot parseParameterSpec $spec] name 
+      [:info slots $name] configure -rep $rep
+      return $result
+    }
+
+    :public method variable {
+                             {-accessor "none"}
+                             {-class ::nx::mongo::Attribute}
+                             {-configurable:boolean false}
+                             {-incremental:switch}
+                             {-initblock ""}
+                             {-rep ""}
+                             spec:parameter
+                             defaultValue:optional
+                           } {
+      regsub -all {,type=} $spec {,arg=} spec
+      set result [next [list -accessor $accessor -class $class \
+                            -configurable $configurable -incremental=$incremental \
+                            -initblock $initblock $spec \
+                            {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]]
+      lassign [::nx::MetaSlot parseParameterSpec $spec] name 
+      [:info slots $name] configure -rep $rep
+      return $result
     }
 
     :public method pretty_variables {} {
@@ -539,6 +594,67 @@ namespace eval ::nx::mongo {
       :mixin add ::nx::mongo::Object
       :mongo_setup
     }
+
+    #
+    :public method "bson rep encode array" {slot obj name} {
+      return [$slot bson encode -array [$obj eval [list array get :$name]]]
+    }
+    :public method "bson rep decode array" {slot name bsontype value} {
+      set result [list]
+      foreach {pos type v} $value {lappend result [$slot bson decode $type $v]}
+      return [list array set :$name $result]
+    }
+  }
+
+  #
+  # Allow special representations in MongoDB for instance variables.
+  # The methods
+  #
+  #   bson rep encode <CODEC> ....
+  #   bson rep decode <CODEC> ....
+  #
+  # allow for creating tailored methods to obtain + encode instance
+  # variables and for decode an setting these. The codecs
+  # (coder/decoder) are extensible on the application level by
+  # defining ensemble methods with the name of the codec as last part.
+  
+  ::nx::mongo::Class eval {
+    #
+    # rep codec "array"
+    #
+    :public method "bson rep encode array" {slot obj name} {
+      set body {}
+      set c 0
+      foreach {k v} [$obj eval [list array get :$name]] {
+        lappend body [incr c] object [list k string $k v string $v]
+      }
+      return [list array $body]
+    }
+    :public method "bson rep decode array" {slot name bsontype value} {
+      set av ""
+      foreach {pos type entry} $value {
+        lappend av [lindex $entry 2] [lindex $entry 5] 
+      }
+      return "array set :$name [list $av]"
+    }
+
+    #
+    # rep codec "dict"
+    #
+    :public method "bson rep encode dict" {slot obj name} {
+      set body {}
+      dict for {k v} [$obj eval [list set :$name]] {
+        lappend body $k string $v 
+      }
+      return [list object $body]
+    }
+    :public method "bson rep decode dict" {slot name bsontype value} {
+      set result ""
+      foreach {k type v} $value {
+        lappend result $k $v
+      }
+      return "set :$name \[dict create $result\]"
+    }
   }
   
   #######################################################################
@@ -572,7 +688,11 @@ namespace eval ::nx::mongo {
       foreach var [:info vars] {
 	set slot [$cls get slot $var]
 	if {$slot ne ""} {
-	  lappend bson $var {*}[$slot bson encode [set :$var]]
+          if {[nx::var exists $slot rep] && [nx::var set $slot rep] ne ""} {
+            lappend bson $var {*}[$cls bson rep encode [nx::var set $slot rep] $slot [self] $var]
+          } else {
+            lappend bson $var {*}[$slot bson encode [set :$var]]
+          }
 	}
       }
       return $bson

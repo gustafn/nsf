@@ -1,0 +1,153 @@
+# -*- tcl -*-
+#
+# An example for the usage of the nx mongo object mapping with
+# input/export functions for variables not following the standard
+# nx-mapping of properties. 
+#
+# The MongoDB nx package supports special codec (encoding/decoding)
+# functions which perform the mapping from instance variables to bson
+# and vice versa. These special mappings can be defined via the
+# attribute "rep" for :variable and :property. The predefined
+# representations for "array" and "dict" are included here. The rep
+# mechanism is extensible, users can define on the application layer
+# their own representations.
+#
+package require nx::mongo
+package require nx::serializer
+package require nx::test
+
+#nsf::configure debug 2
+
+# Establish connection to the database
+::nx::mongo::db connect -db "tutorial"
+
+# Make sure, we start always from scratch, so remove everything from
+# the collection.
+nx::mongo::db drop collection foos
+
+######################################################################
+# nx-mongo has a built-in special representation for Tcl arrays which 
+# can be used via e.g.
+#
+#    :variable -rep array a
+#
+# The "array" representation differs from a string representation by
+# requiring a different method in tcl to read its values, and by
+# saving the tcl array in mongoDB in a different notation. The chosen
+# representation of the array in mongoDB is an array of key/value
+# pairs.
+#
+# Similarly we provide here a "dict" mapping, which transforms a dict
+# to a a form similar to a nested object. Just the first level of the
+# dict is transformed.
+
+######################################################################
+#
+# Extend ::nx::mongo::Class to handle rep codecs "array" and "dict"
+#
+::nx::mongo::Class eval {
+    #
+    # rep codec "array"
+    #
+    :public method "bson rep encode array" {slot obj name} {
+	set body {}
+	set c 0
+	foreach {k v} [$obj eval [list array get :$name]] {
+	    lappend body [incr c] object [list k string $k v string $v]
+	}
+	return [list array $body]
+    }
+    :public method "bson rep decode array" {slot name bsontype value} {
+	set av ""
+	foreach {pos type entry} $value {
+	    lappend av [lindex $entry 2] [lindex $entry 5] 
+	}
+	return "array set :$name [list $av]"
+    }
+
+    #
+    # rep codec "dict"
+    #
+    :public method "bson rep encode dict" {slot obj name} {
+	set body {}
+	dict for {k v} [$obj eval [list set :$name]] {
+	    lappend body $k string $v 
+	}
+	return [list object $body]
+    }
+    :public method "bson rep decode dict" {slot name bsontype value} {
+	set result ""
+	foreach {k type v} $value {
+	    lappend result $k $v
+	}
+	return "set :$name \[dict create $result\]"
+    }
+}
+
+######################################################################
+#
+# Define an application class Foo, using the rep type "array" for
+# instance variable "a" and the rep type "dict" for instance variable
+# "d".
+#
+
+nx::mongo::Class create Foo {
+    :index tags
+    :property title
+    :property -incremental tags:0..n
+    :variable -rep array a
+    :variable -rep dict d
+
+    :public method bar {} {return [lsort [array names :a]]}
+    :public method baz {key} {dict get ${:d} $key}
+}
+
+######################################################################
+# Build a composite Posting instance based on the example above.
+#
+set p [Foo new -title "Hello World" {
+    :tags add a 
+    set :a(1) a
+    set :a(2) b
+    set :d [dict create first_name Walter second_name White]
+}]
+
+? {$p bar} "1 2"
+? {$p baz first_name} "Walter"
+
+#
+# When we save the item, the instances variables are transformed into
+# a mongoDB representation, using the rep types defined above.
+#
+? {nx::mongo::db is_oid [$p save]} 1
+
+$p destroy
+? {nsf::is object $p} 0
+
+# Now fetch the first entry
+set q [Foo find first]
+
+? {$q bar} "1 2"
+? {$q baz first_name} "Walter"
+
+
+Foo show
+
+puts stderr ====EXIT
+######################################################################
+# Output
+######################################################################
+#
+# {
+#     _id: 5301d307249bc51c00000000, 
+#     d: { 
+#       first_name: Walter, 
+#       second_name: White }, 
+#     a: [ { 
+#       k: 1, 
+#       v: a }, { 
+#       k: 2, 
+#       v: b } ], 
+#     title: {Hello World}, 
+#     tags: [ a ]
+# }

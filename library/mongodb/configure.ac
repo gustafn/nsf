@@ -91,7 +91,7 @@ if test ! "${with_mongodb}" = no; then
         MONGO_LIB_DIR="`echo $with_mongodb |cut -f2 -d, -s`"
 fi
 if test -z "$MONGO_INC_DIR" ; then
-        gdbm_h_ok=1
+        mongo_h_ok=0
         MONGO_INC_SPEC=""
 else
         MONGO_INC_SPEC="-I${MONGO_INC_DIR}"
