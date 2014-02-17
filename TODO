@@ -4839,7 +4839,7 @@ nx-mongo:
 - extend regression test
 
 build-system:
-- provide datarootdir to silence configure
+- provide datarootdir to get rid of warning during configure
 
 nx-mongo:
 - updated documentation (switch back to mongo-c-driver, but comment usage 
@@ -4849,6 +4849,7 @@ nx-mongo:
   MongoDB)
 - added nx-serialize to test cases (simple state persistance for nx objects)
 - added nx-rep to test cases (rep types for "array" and "dict")
+- improve performance of mongo->tcl conversion by using predefined global strings
 
 ========================================================================
 TODO:

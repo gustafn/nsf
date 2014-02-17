@@ -33,6 +33,45 @@ static int gridfileCount = 0;
 static int mongoCount = 0;
 static int cursorCount = 0;
 
+typedef enum {
+  NSF_BSON_INT,
+  NSF_BSON_LONG,
+  NSF_BSON_DATE,
+  NSF_BSON_DOUBLE,
+  NSF_BSON_BOOL,
+  NSF_BSON_REGEX,
+  NSF_BSON_STRING,
+  NSF_BSON_MINKEY,
+  NSF_BSON_MAXKEY,
+  NSF_BSON_NULL,
+  NSF_BSON_OID,
+  NSF_BSON_TIMESTAMP,
+  NSF_BSON_OBJECT,
+  NSF_BSON_ARRAY,
+  NSF_BSON_UNKNOWN
+} nsfMongoTypes;
+
+static char *
+NsfMongoGlobalStrings[] = {
+  "integer",
+  "long",
+  "date",
+  "double",
+  "boolean",
+  "regex",
+  "string",
+  "minkey",
+  "maxkey",
+  "null",
+  "oid",
+  "timestamp",
+  "object",
+  "array",
+  "unknown",
+  NULL
+};
+static Tcl_Obj **NsfMongoGlobalObjs = NULL;
+
 /***********************************************************************
  * The following definitions should not be here, but they are included
  * to get compilation going for the time being.
@@ -132,7 +171,6 @@ static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 Tcl_Obj *
 BsonToList(Tcl_Interp *interp, const char *data , int depth) {
   bson_iterator i;
-  const char *tag;
   char oidhex[25];
   Tcl_Obj *resultObj, *elemObj;
 
@@ -141,6 +179,7 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
 
   while ( bson_iterator_next( &i ) ){
     bson_type t = bson_iterator_type( &i );
+    nsfMongoTypes tag;
     const char *key;
 
     if ( t == 0 )
@@ -149,25 +188,25 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
     /*fprintf(stderr, "BsonToList: key %s t %d string %d\n", key, t, bson_string);*/
 
     switch ( t ){
-    case BSON_INT:    tag = "integer"; elemObj = Tcl_NewIntObj(bson_iterator_int( &i )); break;
-    case BSON_LONG:   tag = "long";    elemObj = Tcl_NewLongObj(bson_iterator_long( &i )); break;
-    case BSON_DATE:   tag = "date";    elemObj = Tcl_NewLongObj(bson_iterator_date( &i )); break;
-    case BSON_DOUBLE: tag = "double";  elemObj = Tcl_NewDoubleObj(bson_iterator_double( &i )); break;
-    case BSON_BOOL:   tag = "boolean"; elemObj = Tcl_NewBooleanObj(bson_iterator_bool( &i )); break;
-    case BSON_REGEX:  tag = "regex";   elemObj = Tcl_NewStringObj(bson_iterator_regex( &i ), -1); break;
-    case BSON_STRING: tag = "string";  elemObj = Tcl_NewStringObj(bson_iterator_string( &i ), -1); break;
-    case BSON_MINKEY: tag = "minkey";  elemObj = Tcl_NewStringObj("null", 4); break;
-    case BSON_MAXKEY: tag = "maxkey";  elemObj = Tcl_NewStringObj("null", 4); break;
-    case BSON_NULL:   tag = "null";    elemObj = Tcl_NewStringObj("null", 4); break;
+    case BSON_INT:    tag = NSF_BSON_INT;    elemObj = Tcl_NewIntObj(bson_iterator_int( &i )); break;
+    case BSON_LONG:   tag = NSF_BSON_LONG;   elemObj = Tcl_NewLongObj(bson_iterator_long( &i )); break;
+    case BSON_DATE:   tag = NSF_BSON_DATE;   elemObj = Tcl_NewLongObj(bson_iterator_date( &i )); break;
+    case BSON_DOUBLE: tag = NSF_BSON_DOUBLE; elemObj = Tcl_NewDoubleObj(bson_iterator_double( &i )); break;
+    case BSON_BOOL:   tag = NSF_BSON_BOOL;   elemObj = Tcl_NewBooleanObj(bson_iterator_bool( &i )); break;
+    case BSON_REGEX:  tag = NSF_BSON_REGEX;  elemObj = Tcl_NewStringObj(bson_iterator_regex( &i ), -1); break;
+    case BSON_STRING: tag = NSF_BSON_STRING; elemObj = Tcl_NewStringObj(bson_iterator_string( &i ), -1); break;
+    case BSON_MINKEY: tag = NSF_BSON_MINKEY; elemObj = Tcl_NewStringObj("null", 4); break;
+    case BSON_MAXKEY: tag = NSF_BSON_MAXKEY; elemObj = Tcl_NewStringObj("null", 4); break;
+    case BSON_NULL:   tag = NSF_BSON_NULL;   elemObj = Tcl_NewStringObj("null", 4); break;
     case BSON_OID: {
-      tag = "oid";
+      tag = NSF_BSON_OID;
       bson_oid_to_string(bson_iterator_oid(&i), oidhex);
       elemObj = Tcl_NewStringObj(oidhex, -1);
       break;
     }
     case BSON_TIMESTAMP: {
       bson_timestamp_t ts;
-      tag = "timestamp";
+      tag = NSF_BSON_TIMESTAMP;
       ts = bson_iterator_timestamp( &i );
       elemObj = Tcl_NewListObj(0, NULL);
       Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(ts.t));
@@ -176,17 +215,17 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
     }
     case BSON_OBJECT:
     case BSON_ARRAY:
-      tag = t == BSON_OBJECT ? "object" : "array";
+      tag = t == BSON_OBJECT ? NSF_BSON_OBJECT : NSF_BSON_ARRAY;
       elemObj = BsonToList(interp, bson_iterator_value( &i ) , depth + 1 );
       break;
     default:
-      tag = "unknown";
+      tag = NSF_BSON_UNKNOWN;
       elemObj = Tcl_NewStringObj("", 0);
       NsfLog(interp, NSF_LOG_WARN, "BsonToList: unknown type %d", t);
     }
 
     Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(key, -1));
-    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(tag, -1));
+    Tcl_ListObjAppendElement(interp, resultObj, NsfMongoGlobalObjs[tag]);
     Tcl_ListObjAppendElement(interp, resultObj, elemObj);
   }
 
@@ -1187,6 +1226,8 @@ Nsfmongo_Exit(ClientData clientData) {
 extern int
 Nsfmongo_Init(Tcl_Interp * interp) {
   int i;
+  static NsfMutex initMutex = 0;
+
 
 #ifdef USE_TCL_STUBS
     if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
@@ -1213,6 +1254,19 @@ Nsfmongo_Init(Tcl_Interp * interp) {
 #endif
 
     Tcl_CreateExitHandler(Nsfmongo_Exit, interp);
+
+    /*
+     * Register global mongo tcl_objs
+     */
+    NsfMutexLock(&initMutex);
+    if (NsfMongoGlobalObjs == NULL) {
+      NsfMongoGlobalObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*nr_elements(NsfMongoGlobalStrings));
+      for (i = 0; i < nr_elements(NsfMongoGlobalStrings); i++) {
+	NsfMongoGlobalObjs[i] = Tcl_NewStringObj(NsfMongoGlobalStrings[i], -1);
+	Tcl_IncrRefCount(NsfMongoGlobalObjs[i]);
+      }
+    }
+    NsfMutexUnlock(&initMutex);
 
     /*
      * register the pointer converter

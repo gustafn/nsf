@@ -17,8 +17,6 @@ Compile or obtain the mongo-c-driver (client interface)
       make
       make install
 
-Install the mongo-c-driver
-
 Assume, Tcl is under /usr/local/ns/lib and the source of the 
 mongo-c-driver is under /usr/local/src/mongo-c-driver/, 
 then configure the nsf interface via the following 
