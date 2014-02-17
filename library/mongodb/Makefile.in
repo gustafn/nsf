@@ -72,6 +72,7 @@ exec_prefix	= @exec_prefix@
 
 bindir		= @bindir@
 libdir		= @libdir@
+datarootdir 	= @datarootdir@
 datadir		= @datadir@
 mandir		= @mandir@
 includedir	= @includedir@
@@ -231,6 +232,8 @@ test: binaries libraries
 	$(TCLSH) $(srcdir)/tests/nx-mongo.test -libdir . $(TESTFLAGS)
 	$(TCLSH) $(srcdir)/tests/nx-reference-one.test -libdir . $(TESTFLAGS)
 	$(TCLSH) $(srcdir)/tests/nx-reference-many.test -libdir . $(TESTFLAGS)
+	$(TCLSH) $(srcdir)/tests/nx-serialize.test -libdir . $(TESTFLAGS)
+	$(TCLSH) $(srcdir)/tests/nx-rep.test -libdir . $(TESTFLAGS)
 	$(TCLSH) $(srcdir)/../../tests/summary.tcl -title MongoDB -libdir . $(TESTFLAGS)
 
 
