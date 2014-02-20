@@ -97,7 +97,7 @@ namespace eval ::nx {
   # Actually, we do not need an unknown handler, but if someone
   # defines his own unknown handler we define it automatically
   proc ::nsf::methods::object::unknown {m args} {
-    error "[::nsf::self]: unable to dispatch method '$m'"
+    return -code error "[::nsf::self]: unable to dispatch method '$m'"
   }
 
   # The default constructor
@@ -254,7 +254,7 @@ namespace eval ::nx {
 
     # define unknown handler for class
     :method unknown {methodName args} {
-      error "method '$methodName' unknown for [::nsf::self];\
+      return -code error "method '$methodName' unknown for [::nsf::self];\
 	consider '[::nsf::self] create $methodName $args' instead of '[::nsf::self] $methodName $args'"
     }
     # protected is not yet defined
@@ -281,9 +281,9 @@ namespace eval ::nx {
     # method modifier "public"
     :method public {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
-	error "'[lindex $args 0]' is not a method defining method"
+	return -code error "'[lindex $args 0]' is not a method defining method"
       } elseif {[lindex $args 0] eq "object" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
-	error "'[lindex $args 1]' is not a method defining method"
+	return -code error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-protected false}
@@ -294,9 +294,9 @@ namespace eval ::nx {
     # method modifier "protected"
     :method protected {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
-	error "'[lindex $args 0]' is not a method defining method"
+	return -code error "'[lindex $args 0]' is not a method defining method"
       } elseif {[lindex $args 0] eq "object" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
-	error "'[lindex $args 1]' is not a method defining method"
+	return -code error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-protected true}
@@ -306,9 +306,9 @@ namespace eval ::nx {
     # method modifier "private"
     :method private {args} {
       if {![info exists ::nsf::methodDefiningMethod([lindex $args 0])]} {
-	error "'[lindex $args 0]' is not a method defining method"
+	return -code error "'[lindex $args 0]' is not a method defining method"
       } elseif {[lindex $args 0] eq "object" && ![info exists ::nsf::methodDefiningMethod([lindex $args 1])]} {
-	error "'[lindex $args 1]' is not a method defining method"
+	return -code error "'[lindex $args 1]' is not a method defining method"
       }
       set r [: -system {*}$args]
       if {$r ne ""} {::nsf::method::property [self] $r call-private true}
@@ -464,7 +464,7 @@ namespace eval ::nx {
 	puts stderr "+++ UNKNOWN raises error $errorMsg"
       }
       set ref "\"$m\" of $obj $path"
-      error "unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
+      return -code error "unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
     }
 
     :protected method defaultmethod {} {
@@ -475,7 +475,7 @@ namespace eval ::nx {
       set l [string length $path]
       set submethods [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]
       foreach sm $submethods {set results([lindex [string range $sm $l+1 end] 0]) 1}
-      error "valid submethods of $obj $path: [lsort [array names results]]"
+      return -code error "valid submethods of $obj $path: [lsort [array names results]]"
     }
 
     # end of EnsembleObject
@@ -561,7 +561,10 @@ namespace eval ::nx {
     :public method "delete object property" {name} {
       # call explicitly the per-object variant of "info::slotobjects"
       set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
-      if {$slot eq ""} {error "[self]: cannot delete object specific property '$name'"}
+      if {$slot eq ""} {
+	  return -code error \
+	      "[self]: cannot delete object-specific property '$name'"
+      }
       $slot destroy
       nsf::var::unset -nocomplain [self] $name
     }
@@ -572,7 +575,8 @@ namespace eval ::nx {
       if {[nsf::var::exists [self] $name]} {
 	nsf::var::unset [self] $name
       } else {
-	error "[self]: object does not have an instance variable '$name'"
+	return -code error \
+	    "[self]: object does not have an instance variable '$name'"
       }
       # call explicitly the per-object variant of "info::slotobejcts"
       set slot [: ::nsf::methods::object::info::slotobjects -type ::nx::Slot $name]
@@ -590,12 +594,16 @@ namespace eval ::nx {
     }
     :public method "delete property" {name} {
       set slot [:info slots $name]
-      if {$slot eq ""} {error "[self]: cannot delete property '$name'"}
+      if {$slot eq ""} {
+	  return -code error "[self]: cannot delete property '$name'"
+      }
       $slot destroy
     }
     :public method "delete variable" {name} {
       set slot [:info slots $name]
-      if {$slot eq ""} {error "[self]: cannot delete variable '$name'"}
+      if {$slot eq ""} {
+	  return -code error "[self]: cannot delete variable '$name'"
+      }
       $slot destroy
     }
   }
@@ -837,7 +845,8 @@ namespace eval ::nx {
   }
 
   Object protected method "info unknown" {method obj:object args} {
-    error "[::nsf::self] unknown info option \"$method\"; [$obj info info]"
+    return -code error \
+	"[::nsf::self] unknown info option \"$method\"; [$obj info info]"
   }
 
   Object method "info info" {} {::nx::internal::infoOptions ::nx::Object::slot::__info}
@@ -956,7 +965,7 @@ namespace eval ::nx {
       #puts stderr "required $required is more general than $old => keep $old"
       return $old
     } else {
-      error "required class $required not compatible with $old"
+      return -code error "required class $required not compatible with $old"
     }
   }
 
@@ -982,7 +991,7 @@ namespace eval ::nx {
         } elseif {$property eq "noconfig"} {
 	  set opt(-configurable) 0 ;# TODO
         } elseif {$property eq "incremental"} {
-	  error "parameter option incremental must not be used; use non-positional argument -incremental instead"
+	  return -code error "parameter option incremental must not be used; use non-positional argument -incremental instead"
         } elseif {[string match type=* $property]} {
 	  set class [:requireClass ::nx::VariableSlot $class]
           set type [string range $property 5 end]
@@ -1216,7 +1225,7 @@ namespace eval ::nx {
       if {[string match __* $m]} continue
       lappend methods $m
     }
-    error "method '$method' unknown for slot [::nsf::self]; valid are: {[lsort $methods]}"
+    return -code error "method '$method' unknown for slot [::nsf::self]; valid are: {[lsort $methods]}"
   }
 
   ObjectParameterSlot protected method init {args} {
@@ -1226,7 +1235,7 @@ namespace eval ::nx {
     # the changes
     #
     if {${:incremental} && [:info class] eq [current class]} {
-      error "flag incremental must not be used for this slot type"
+      return -code error "flag incremental must not be used for this slot type"
     }
     if {![info exists :methodname]} {
       set :methodname ${:name}
@@ -1479,7 +1488,7 @@ namespace eval ::nx {
 	# Obtain a fully qualified name.
 	#
         if {![::nsf::object::exists $value]} {
-          error "$value does not appear to be an object"
+          return -code error "$value does not appear to be an object"
         }
         set value [::nsf::directdispatch $value -frame method ::nsf::self]
       }
@@ -1501,7 +1510,9 @@ namespace eval ::nx {
 	}
 	lappend new $v
       }
-      if {!$found} {error "$value is not a $prop of $obj (valid are: $old)"}
+      if {!$found} {
+	  return -code error "$value is not a $prop of $obj (valid are: $old)"
+      }
       return $new
     }
   }
@@ -1666,7 +1677,8 @@ namespace eval ::nx {
   ::nx::VariableSlot public method setCheckedInstVar {-nocomplain:switch object value} {
 
     if {[::nsf::var::exists $object ${:name}] && !$nocomplain} {
-      error "object $object has already an instance variable named '${:name}'"
+      return -code error \
+	  "object $object has already an instance variable named '${:name}'"
     }
     set options [:getParameterOptions -withMultiplicity true]
 
@@ -1779,8 +1791,9 @@ namespace eval ::nx {
 	  $handle call-private true
       set :configurable 0
     } elseif {${:accessor} ne "public"} {
-      :destroy
-      error "accessor value '${:accessor}' invalid; might be one of public|protected|private or none"
+       set msg "accessor value '${:accessor}' invalid; might be one of public|protected|private or none"
+       :destroy
+       return -code error $msg
     }
     return 1
   }
@@ -1818,7 +1831,7 @@ namespace eval ::nx {
       if {[catch {::nsf::is -complain -configure -name ${:name}: [join $options ,] ${:default}} errorMsg]} {
 	#puts stderr "**** destroy [self] - $errorMsg"
 	:destroy
-	error $errorMsg
+	return -code error $errorMsg
       }
     }
   }
@@ -1896,10 +1909,18 @@ namespace eval ::nx {
     # There be already default values registered on the
     # class. If so, defaultcmd is ignored.
     if {[info exists :default]} {
-      if {[info exists :defaultcmd]} {error "defaultcmd can't be used together with default value"}
-      if {[info exists :valuecmd]} {error "valuecmd can't be used together with default value"}
+      if {[info exists :defaultcmd]} {
+	  return -code error \
+	      "defaultcmd can't be used together with default value"
+      }
+      if {[info exists :valuecmd]} {
+	  return -code error \
+	      "valuecmd can't be used together with default value"}
     } elseif [info exists :defaultcmd] {
-      if {[info exists :valuecmd]} {error "valuecmd can't be used together with defaultcmd"}
+      if {[info exists :valuecmd]} {
+	  return -code error \
+	      "valuecmd can't be used together with defaultcmd"
+      }
       append __initblock "::nsf::directdispatch [::nsf::self] -frame object :removeTraces \[::nsf::self\] read\n"
       append __initblock "$trace add variable [list ${:name}] read \
 	\[list [::nsf::self] __default_from_cmd \[::nsf::self\] [list [set :defaultcmd]]\]\n"
@@ -1955,7 +1976,7 @@ namespace eval ::nx {
   ::nx::VariableSlot public method add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
       #puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"
-      error "property $prop of [set :domain] ist not multivalued"
+      return -code error "property $prop of [set :domain] ist not multivalued"
     }
     if {[::nsf::var::exists $obj $prop]} {
       ::nsf::var::set $obj $prop [linsert [::nsf::var::set $obj $prop] $pos $value]
@@ -1968,7 +1989,7 @@ namespace eval ::nx {
     set old [::nsf::var::set $obj $prop]
     set p [lsearch -glob $old $value]
     if {$p>-1} {::nsf::var::set $obj $prop [lreplace $old $p $p]} else {
-      error "$value is not a $prop of $obj (valid are: $old)"
+      return -code error "$value is not a $prop of $obj (valid are: $old)"
     }
   }
 
@@ -2018,7 +2039,8 @@ namespace eval ::nx {
 
       if {[info exists defaultValue]} {
 	if {[info exists :$name] && !$nocomplain} {
-	  error "object [self] has already an instance variable named '$name'"
+	  return -code error \
+	      "object [self] has already an instance variable named '$name'"
 	}
 	if {$parameterOptions ne ""} {
 	  #puts stderr "*** ::nsf::is $parameterOptions $defaultValue // opts=$options"
@@ -2036,7 +2058,8 @@ namespace eval ::nx {
       } elseif {$isSwitch} {
 	set :$name 0
       } else {
-	error "variable definition for '$name' (without value and accessor) is useless"
+	return -code error \
+	    "variable definition for '$name' (without value and accessor) is useless"
       }
       return
     }
@@ -2551,7 +2574,7 @@ namespace eval ::nx {
     :object method defaultAccessor {value:optional} {
       if {[info exists value]} {
 	if {$value ni {"public" "protected" "private" "none"}} {
-	  error {defaultAccessor must be "public", "protected", "private" or "none"}
+	  return -code error {defaultAccessor must be "public", "protected", "private" or "none"}
 	}
 	::nsf::method::create Object __default_accessor args [list return $value]
 	::nsf::method::property Object __default_accessor call-protected true
