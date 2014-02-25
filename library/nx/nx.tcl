@@ -157,8 +157,16 @@ namespace eval ::nx {
 	if {[::nsf::is class $object] && !${per-object}} {
 	  set scope class
 	  set ensembleName [::nx::slotObj ${object} __$w]
+          if {[: ::nsf::methods::class::info::method exists $w]
+              && [: ::nsf::methods::class::info::method type $w] ne "alias"} {
+            return -code error "refuse to overwrite method $w; delete/rename method first."
+          }
 	} else {
 	  set scope object
+          if {[: ::nsf::methods::object::info::method exists $w]
+              && [: ::nsf::methods::object::info::method type $w] ne "object"} {
+            return -code error "refuse to overwrite object method $w; delete/rename object method first."
+          }
 	  set ensembleName ${object}::$w
 	} 
 	#puts stderr "NX check $scope $object info methods $path @ <$w> cmd=[info command $w] obj?[nsf::object::exists $ensembleName] "
@@ -2652,3 +2660,9 @@ if {[::nsf::configure debug] > 1} {
   puts stderr "======= nx loaded"
 }
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

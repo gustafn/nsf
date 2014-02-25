@@ -792,6 +792,41 @@ nx::test case keepcallerself {
   ? {d1 c1 baz} c1-::d1
 }
 
+
+nx::test case ensemble-vs-simple-method {
+
+  ? {nx::Class create C} ::C
+  ? {C public method foo {args} {return foo/1}} "::nsf::classes::C::foo"
+  ? {C public method "foo x" {args} {return foo/2}} \
+      {refuse to overwrite method foo; delete/rename method first.}
+  ? {C public method "foo x y" {args} {return foo/3}} \
+      {refuse to overwrite method foo; delete/rename method first.}
+
+  ? {C public method "bar x" {args} {return bar/2}} {::C::slot::__bar::x}
+  ? {C public method "bar x y" {args} {return foo/3}} \
+      {refuse to overwrite cmd ::C::slot::__bar::x; delete/rename it before overwriting}
+
+  C create c1
+
+  ? {c1 foo x y z} "foo/1"
+  ? {c1 bar x y z} "bar/2"
+
+
+  ? {nx::Object create o1} ::o1
+  ? {o1 public object method foo {args} {return foo/1}} "::o1::foo"
+  ? {o1 public object method "foo x" {args} {return foo/2}} \
+      {refuse to overwrite object method foo; delete/rename object method first.}
+  ? {o1 public object method "foo x y" {args} {return foo/3}} \
+      {refuse to overwrite object method foo; delete/rename object method first.}
+
+  ? {o1 public object method "bar x" {args} {return bar/2}} {::o1::bar::x}
+  ? {o1 public object method "bar x y" {args} {return foo/3}} \
+      {refuse to overwrite cmd ::o1::bar::x; delete/rename it before overwriting}
+
+  ? {o1 foo x y z} "foo/1"
+  ? {o1 bar x y z} "bar/2"
+}
+
 #
 # Local variables:
 #    mode: tcl

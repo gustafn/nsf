@@ -4895,6 +4895,9 @@ nsf.c:
   modules using the converter
 - Added editor hints for a more uniform appearance
 
+nx.tcl:
+- raise an error, when an ensemble methods redefined a plain method
+
 ========================================================================
 TODO:
 
