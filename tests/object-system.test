@@ -426,5 +426,13 @@ nx::Class create C -superclass {B1 B2}
 ? {o info vars} "x __cmd"
 ? {o eval {array get :__cmd}} "__initblock {set :x 1}"
 
-puts stderr ===EXIT
 ::nsf::configure dtrace off
+
+puts stderr "===EXIT [info script]"
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

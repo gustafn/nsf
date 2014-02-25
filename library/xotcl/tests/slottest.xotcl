@@ -760,31 +760,12 @@ puts [$p member]
 ? [list $p currentbudget] 98
 ? [list $p fullbudget 200] 200
 ? [list $p currentbudget] 199
-exit
-
-foreach o [Object allinstances] {
-  if {[$o isclass]} continue
-  if {[$o istype Slot]} continue
-  if {$o eq "::xotcl::relmgr"} continue
-  set string "$o\n"
-  foreach v [$o info vars] {
-    append string "   $v = [$o set $v]\n"
-  }
-  puts $string
-}
-
-puts stderr DONE-[p1 name]-[p1 age]
-
-p3 age 77
 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
 
-
-exit
-
-puts [XoXML asXML]
-
-puts ====
-foreach n [XoXML selectNodes {//object[age > 1]}]  {puts [$n asXML]}
-
-exit

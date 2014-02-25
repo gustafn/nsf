@@ -268,3 +268,12 @@ nx::test case unexport {
   ? {AbstractQueue create aQueue} {method 'create' unknown for ::AbstractQueue; consider '::AbstractQueue create create aQueue' instead of '::AbstractQueue create aQueue'}
   
 }
+
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+

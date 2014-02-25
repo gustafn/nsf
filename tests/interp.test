@@ -752,3 +752,9 @@ nx::test case nsf-interp-basics {
 }
 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

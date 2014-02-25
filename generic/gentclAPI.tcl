@@ -395,7 +395,7 @@ proc genstubs {} {
   foreach c [array names ::createdConverter] {lappend entries "\{$::createdConverter($c)\}"}
   if {[llength $entries]>0} {
     puts [subst {
-      static enumeratorConverterEntry enumeratorConverterEntries\[\] = {
+      static Nsf_EnumeratorConverterEntry enumeratorConverterEntries\[\] = {
   [join $entries ",\n  "],
   {NULL, NULL}
 };

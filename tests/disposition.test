@@ -776,13 +776,13 @@ nx::test case alias-args {
       ::nsf::parameter:invalidate::classcache [current]
     }
     :public method Residualargs args {
-      puts stderr "aliased RESIDUALARGS <[llength $args]>"
-      puts stderr "....... <$args>"
+      #puts stderr "aliased RESIDUALARGS <[llength $args]>"
+      #puts stderr "....... <$args>"
       set :args $args
 
     }
     :public method residualargs args {
-      puts stderr "residualargs <$args>"
+      #puts stderr "residualargs <$args>"
     }
   }
   C copy D
@@ -1439,3 +1439,10 @@ nx::test case class-configure-default {
   ? {Q info superclass} ::P
   
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

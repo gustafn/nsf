@@ -420,3 +420,9 @@ nx::test case mixins+method-handles+intrinsic {
 }
 
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

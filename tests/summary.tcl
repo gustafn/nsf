@@ -31,3 +31,10 @@ if {[info exists opt(-testlog)]} {
   puts ""
 }
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+

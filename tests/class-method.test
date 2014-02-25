@@ -122,3 +122,10 @@ nx::test case class-methods-2 {
   ? {C info object methods} "set"
 
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

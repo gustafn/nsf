@@ -128,3 +128,10 @@ nx::test case method-require-scope {
   ::nsf::method::require o __alloc
   ? {o __alloc x} {method __alloc not dispatched on valid class}
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

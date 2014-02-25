@@ -389,3 +389,11 @@ nx::test case callstack {
     nx::Object method expr {} {}
 
 }
+
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

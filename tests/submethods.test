@@ -791,3 +791,11 @@ nx::test case keepcallerself {
   ? {d1 c1 foo} "::c1: unable to dispatch method 'foo'"
   ? {d1 c1 baz} c1-::d1
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+

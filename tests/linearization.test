@@ -125,3 +125,10 @@ nx::test case boat {
   check-constraints ${:case} nx local-order $order [local-order-constraints o1]
 
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

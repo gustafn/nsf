@@ -533,3 +533,10 @@ classInfoMethod superclass NsfClassInfoSuperclassMethod {
 #   {-argName "name" -required 1}
 #   {-argName "value" -required 0 -type tclobj}
 # }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

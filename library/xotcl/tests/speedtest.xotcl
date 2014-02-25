@@ -562,7 +562,11 @@ nx::test new -msg {return -code break} \
     -post {A destroy; a1 destroy}
 
 
-nx::test run; exit
+nx::test run
 
-
-
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

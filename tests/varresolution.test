@@ -1231,3 +1231,10 @@ nx::test case unconfigured-varresolver {
   ? {o3 foo-a-m-u} "o3.a"
   ? {o3 foo-a-r-u} "o3.a"
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

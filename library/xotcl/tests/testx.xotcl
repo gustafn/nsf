@@ -4402,3 +4402,10 @@ o proc test {} {
 o test
 
 puts "PASSED ::topLevelCommands"
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

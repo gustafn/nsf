@@ -867,3 +867,11 @@ nx::test case protected-priv-class-object-property {
   ? {C protected object property {d:integer 1}} {'property' is not a method defining method}
   ? {C private object property {d:integer 1}} {'property' is not a method defining method}
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+

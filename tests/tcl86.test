@@ -248,3 +248,11 @@ nx::test case apply {
   ? {o map {x {:foo $x}} {hello world}} \
       "hello-hello world-world"
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+

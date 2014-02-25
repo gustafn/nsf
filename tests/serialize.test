@@ -213,3 +213,11 @@ nx::test case serialize-object-properties {
   ? {::nsf::object::property ::C perobjectdispatch} 1
 
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+

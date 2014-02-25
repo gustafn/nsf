@@ -145,4 +145,10 @@ o1 proc cleanup {} {puts stderr "CLEANUP"; return}
 C1 create c1
 C1 create c1
 
-#puts stderr ===EXIT
+puts stderr "====EXIT [info script]"
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

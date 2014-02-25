@@ -180,11 +180,6 @@ typedef struct {
 
 static Nsf_TypeConverter ConvertToNothing, ConvertViaCmd, ConvertToObjpattern;
 
-typedef struct {
-  Nsf_TypeConverter *converter;
-  char *domain;
-} enumeratorConverterEntry;
-
 /*
  * Tcl_Obj Types for Next Scripting Objects
  */
@@ -209,7 +204,7 @@ static Tcl_ObjCmdProc NsfProcAliasMethod;
 static Tcl_ObjCmdProc NsfAsmProc;
 
 
-/* prototypes for methods called directly when CallDirectly() returns NULL */
+/* Prototypes for methods called directly when CallDirectly() returns NULL */
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj);
 static int NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr);
 static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
@@ -5209,9 +5204,9 @@ GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr) {
 
 #if !defined(NDEBUG)
   if (screenedObject) {
-    fprintf(stderr, "SCREENED OBJECT %s found: object %p (%s) cmd %p\n",
-	    Tcl_GetCommandName(interp, cmdPtr), screenedObject,
-	    ObjectName(screenedObject), cmdPtr);
+    NsfLog(interp, NSF_LOG_NOTICE, "screened object %s found: object %p (%s) cmd %p",
+	   Tcl_GetCommandName(interp, cmdPtr), screenedObject,
+	   ObjectName(screenedObject), cmdPtr);
   }
 #endif
   return screenedObject;
@@ -9598,7 +9593,7 @@ ParamGetDomain(Nsf_Param CONST *paramPtr) {
 
   assert(paramPtr);
   if ((paramPtr->flags & NSF_ARG_IS_ENUMERATION)) {
-    enumeratorConverterEntry *ePtr;
+    Nsf_EnumeratorConverterEntry *ePtr;
     for (ePtr = &enumeratorConverterEntries[0]; ePtr->converter; ePtr++) {
       if (ePtr->converter == paramPtr->converter) {
 	result = ePtr->domain;
@@ -26036,5 +26031,6 @@ Nsf_SafeInit(Tcl_Interp *interp) {
  * mode: c
  * c-basic-offset: 2
  * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

@@ -2915,3 +2915,10 @@ nx::test case nsf-method-checkalways {
 
   nsf::configure checkarguments on
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

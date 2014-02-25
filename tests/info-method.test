@@ -1229,3 +1229,10 @@ nx::test case info-methods-closure {
 nx::test case error-in-ensemble {
   ? {nx::Object info method definition foo 1} {wrong # args: should be "definition name"}
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

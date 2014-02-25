@@ -106,3 +106,11 @@ nx::test case plain-methods-3 {
   ? {::o info object methods} "set"
 
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+

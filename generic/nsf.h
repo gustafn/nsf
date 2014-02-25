@@ -275,12 +275,19 @@ typedef struct Nsf_ParseContext {
   int status;
 } Nsf_ParseContext;
 
+
 struct Nsf_Param;
 typedef int (Nsf_TypeConverter)(Tcl_Interp *interp,
 				 Tcl_Obj *obj,
                                  struct Nsf_Param CONST *pPtr,
 				 ClientData *clientData,
 				 Tcl_Obj **outObjPtr);
+
+typedef struct {
+  Nsf_TypeConverter *converter;
+  CONST char *domain;
+} Nsf_EnumeratorConverterEntry;
+
 Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass,
   Nsf_ConvertToInteger, Nsf_ConvertToInt32,
   Nsf_ConvertToObject, Nsf_ConvertToParameter,
@@ -308,6 +315,35 @@ typedef struct Nsf_Param {
 #define NSF_ARGPARSE_BUILTIN	     	     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
 /* Special flags for process method arguments */
 #define NSF_ARGPARSE_METHOD_PUSH	     0x0100
+
+/* flags for NsfParams */
+
+#define NSF_ARG_REQUIRED		0x00000001
+#define NSF_ARG_MULTIVALUED		0x00000002
+#define NSF_ARG_NOARG 		     	0x00000004
+#define NSF_ARG_NOCONFIG	     	0x00000008
+#define NSF_ARG_CURRENTLY_UNKNOWN	0x00000010
+#define NSF_ARG_SUBST_DEFAULT		0x00000020
+#define NSF_ARG_ALLOW_EMPTY		0x00000040
+#define NSF_ARG_INITCMD		     	0x00000080
+#define NSF_ARG_CMD		     	0x00000100
+#define NSF_ARG_ALIAS		     	0x00000200
+#define NSF_ARG_FORWARD		     	0x00000400
+#define NSF_ARG_SWITCH		     	0x00000800
+#define NSF_ARG_BASECLASS	     	0x00001000
+#define NSF_ARG_METACLASS	     	0x00002000
+#define NSF_ARG_HAS_DEFAULT		0x00004000
+#define NSF_ARG_IS_CONVERTER		0x00008000
+#define NSF_ARG_IS_ENUMERATION		0x00010000
+#define NSF_ARG_CHECK_NONPOS		0x00020000
+#define NSF_ARG_SET			0x00040000
+#define NSF_ARG_WARN			0x00080000
+#define NSF_ARG_UNNAMED			0x00100000
+#define NSF_ARG_IS_RETURNVALUE		0x00200000
+#define NSF_ARG_NOLEADINGDASH		0x00400000
+#define NSF_ARG_SLOTASSIGN		0x00800000
+#define NSF_ARG_SLOTINITIALIZE		0x01000000
+
 
 EXTERN int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],

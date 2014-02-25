@@ -783,3 +783,10 @@ nx::test case cyclic-alias {
   set handle3 [o public object alias foo $handle2]
   ? {o foo} {target "::o::bar" of alias foo apparently disappeared}
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

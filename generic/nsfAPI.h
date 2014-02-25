@@ -260,7 +260,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
 }
   
 
-      static enumeratorConverterEntry enumeratorConverterEntries[] = {
+      static Nsf_EnumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToInfoobjectparametersubcmd, "definitions|list|names|syntax"},
   {ConvertToScope, "all|class|object"},
   {ConvertToInfomethodsubcmd, "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"},

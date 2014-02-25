@@ -109,3 +109,9 @@ nx::test new -msg terminate \
 after 1000 {nx::test run}
 catch {vwait forever}
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

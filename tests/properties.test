@@ -831,3 +831,10 @@ nx::test case object-level-perf {
   ? {o1 cget -class} ::nx::Object
 }
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
+

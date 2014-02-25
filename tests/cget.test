@@ -407,3 +407,10 @@ nx::test case configure-trace-object-type {
   ? {o configure -B x} {expected integer but got "x" for parameter "-B"}
   ? {o cget -B} 1002
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

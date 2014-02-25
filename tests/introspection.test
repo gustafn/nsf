@@ -67,3 +67,10 @@ nx::test case current-calledmethod {
 
   ? {o foo} [list $mh2 $mh {}]
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -521,3 +521,9 @@ nx::Class create Z -invariant {
 
 ::nsf::method::assertion z1 check {}
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

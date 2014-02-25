@@ -4851,11 +4851,57 @@ nx-mongo:
 - added nx-rep to test cases (rep types for "array" and "dict")
 - improve performance of mongo->tcl conversion by using predefined global strings
 
+nx-monogo:
+- Updated the mongo-c-driver and libbson to the actual tip version from github
+  (this is a significant change, since 10gen essentially changed the
+  officially supported c-driver of MongoDB)
+- mongo-c-driver was more or less new-implementation, since strucure and
+  names changed in the mongo-c-driver substantially, serveral functions 
+  were added, several were dropped. The new interface supports now
+  e.g. mongo URIs, and should be faster (by using collection objects
+  instead of connection handles)
+- Although the low-level nsf interface changed significantly, the high level
+  (nx level) interface remained unaffected.
+- Configure has now --with-mongoc=... and --with-bson instead of --with-mongodb
+- New commands:
+     mongo::collection::open /mongoConn/ /dbName/ /collectionName/
+     mongo::collection::close /collection/
+     mongo::gridfs::store_string /content/ /name/ /contentType/
+- Make use of the new collection handle
+     mongo::count /mongoConn/ /ns/ ...  -> mongo::collection::count /collection/  ...
+     mongo::index /mongoConn/ /ns/ ...  -> mongo::collection::index /collection/  ...
+     mongo::insert /mongoConn/ /ns/ ... -> mongo::collection::insert /collection/ ...
+     mongo::query /mongoConn/ /ns/ ...  -> mongo::collection::query /collection/  ...
+     mongo::remove /mongoConn/ /ns/ ... -> mongo::collection::delete /collection/ ...
+     mongo::update /mongoConn/ /ns/ ... -> mongo::collection::update /collection/ ...
+     mongo::cursor::find /mongoConn/ /ns/ ... -> mongo::cursor::find /collection/ ...
+- nsf::mongo::connect receives now a mongoc_uri
+  https://github.com/mongodb/mongo-c-driver/blob/master/doc/mongoc_uri.txt
+- The gridfs interface allows now to store multiple revisions of a file
+- The gridfs interface allows now upload files from a string 
+- The gridfs interface allows to refer to files by other attributes than
+  just the filename (e.g. the mongo id).
+- Modified/new gridfile functions  
+     mongo::gridfile::create ?-source file|string? /gridfs/ /value/ /name/ /contentType/
+     mongo::gridfile::delete /gridfs/ /query/
+     mongo::gridfile::open /gridfs/ /query/
+- Updated README
+- Updated regression test
+- Added editor hints for a more uniform appearance
+
+nsf.c:
+- change name of enumeratorConverterEntry to Nsf_EnumeratorConverterEntry,
+  move it with NSF_ARG_* flags to tcl.h to make it available in derived
+  modules using the converter
+- Added editor hints for a more uniform appearance
+
 ========================================================================
 TODO:
 
 - remove / rephrase "//"-comments
-
+- ParamGetDomain(Nsf_Param CONST *paramPtr) does not work
+  for enumeration types defined in derived packages, having
+  their own constants
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
   and xlloc fix

@@ -90,3 +90,10 @@ nx::test case unknown-handler {
  should be "::c1 p1 ?-x /value/?"}
   }
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

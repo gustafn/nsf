@@ -600,7 +600,6 @@ TestSuite proc run {} {
 
 puts [time {TestSuite run} 1]
 
-#exit
 
 # Local Variables:
 # mode: tcl

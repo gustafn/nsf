@@ -461,9 +461,8 @@ nx::test case deleting-aliased-object2 {
   nx::Object create o2
   # The methods of the aliased object have their own self
   ::nsf::method::alias o a o2
-  puts stderr ===5
+
   ? {o a} ::o2 "call object via alias"
-  puts stderr ===6
 
   ? {o info object method type a} alias
   # In order to avoid recursive calls, we have to provide the
@@ -1026,3 +1025,11 @@ nx::test case cyclical-dependency {
 nx::Class create C 
 nx::Class create C::*
 nsf::relation C superclass {C::* nx::Object}
+
+puts "==== EXIT [info script]"
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
