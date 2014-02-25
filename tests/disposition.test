@@ -1295,11 +1295,11 @@ nx::test case dispo-object-targets {
   #
   # Dispatch with a method handle
   #
-
   ::T mixin {}
+  #puts stderr =================1
   ? [list [T create t] $methods(z) XXX] \
       "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z"
-  
+  #puts stderr =================3
   T setObjectParams x:alias,method=$methods(z)
   ? {T create t XXX} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z" \
       "Non-object FQ selector with default unknown handler"

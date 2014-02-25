@@ -3609,7 +3609,7 @@ NsfMethodNamePath(Tcl_Interp *interp,
 
   if (methodName) {
 
-    assert(*methodName != ':');
+    //assert(*methodName != ':');
     
     Tcl_ListObjAppendElement(interp, resultObj, 
 			     Tcl_NewStringObj(methodName,-1));
@@ -10307,8 +10307,8 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
     }
 
     /*
-     * The method name for next might be colon-prefixed. In
-     * these cases, we have to skip the single colon.
+     * The method name for next might be colon-prefixed. In these cases, we
+     * have to skip the single colon with the MethodName() function.
      */
     result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
 				 cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
@@ -10331,28 +10331,17 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
        * method path, and the unknown final method.
        */
       Tcl_Obj *callInfoObj = Tcl_NewListObj(1, &callerSelf->cmdName);
-      
-      Tcl_Obj *methodPathObj = 
-	NsfMethodNamePath(interp, 
-			  (Tcl_CallFrame *)framePtr,
-			  MethodName(objv[0]));
-      INCR_REF_COUNT(methodPathObj);
-
+      Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, 
+                                                 (Tcl_CallFrame *)framePtr,
+                                                 MethodName(objv[0]));
+      INCR_REF_COUNT(callInfoObj);
       Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
-
-      /*      Tcl_Obj *methodPathObj = CallStackMethodPath(interp, (Tcl_CallFrame *)framePtr);
-
-      INCR_REF_COUNT(methodPathObj);
-      Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
-      */
-
-      /* Tcl_ListObjAppendElement(interp, callInfoObj, Tcl_NewStringObj(MethodName(objv[0]), -1));*/
       Tcl_ListObjAppendElement(interp, callInfoObj, objv[1]);
 
-      DECR_REF_COUNT(methodPathObj);
-
+      /*fprintf(stderr, "DispatchUnknownMethod is called with callinfo <%s> \n", ObjStr(callInfoObj));*/
       result = DispatchUnknownMethod(interp, invokedObject, objc-1, objv+1, callInfoObj,
 				     objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
+      DECR_REF_COUNT(callInfoObj);
     }
   }
   Nsf_PopFrameCsc(interp, framePtr);
