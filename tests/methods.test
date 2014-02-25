@@ -570,7 +570,7 @@ nx::test case delete-per-object {
   ? {o1::per-object-slot info children} "::o1::per-object-slot::a2"
 
   # try to delete the property again:
-  ? {o1 delete object property a1} "::o1: cannot delete object specific property 'a1'"
+  ? {o1 delete object property a1} "::o1: cannot delete object-specific property 'a1'"
 
   ? {o1 info object methods -path} "{info foo} {info bar foo} foo a2"
   ? {o1 delete object property a2} ""
@@ -609,7 +609,7 @@ nx::test case delete-per-object-on-class {
 
   ? {C delete object property a1} ""
   ? {C info object methods -path} "{info foo} {info bar foo} foo"
-  ? {C delete object property a1} "::C: cannot delete object specific property 'a1'"
+  ? {C delete object property a1} "::C: cannot delete object-specific property 'a1'"
 
   ? {C delete object method foo} ""
   ? {C info object methods -path} "{info foo} {info bar foo}"

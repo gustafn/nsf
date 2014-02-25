@@ -242,7 +242,9 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
 
     if (need_space) Tcl_AppendResult(interp, " ", (char *) NULL);
 
-    resultObj = NsfMethodNamePath(interp, methodName);
+    resultObj = NsfMethodNamePath(interp, 
+				  NULL /* use topmost frame */, 
+				  NsfMethodName(methodName));
     INCR_REF_COUNT(resultObj);
     Tcl_AppendResult(interp, ObjStr(resultObj), (char *) NULL);
     DECR_REF_COUNT(resultObj);

@@ -3591,29 +3591,30 @@ NsfMethodName(Tcl_Obj *methodObj) {
  */
 
 Tcl_Obj *
-NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj) {
-  Tcl_CallFrame *framePtr;
-  NsfCallStackContent *cscPtr = CallStackGetTopFrame(interp, &framePtr);
-  Tcl_Obj *resultObj;
+NsfMethodNamePath(Tcl_Interp *interp, 
+		  Tcl_CallFrame *framePtr, 
+		  CONST char *methodName) {
 
-  /* NsfShowStack(interp);*/
-  if (cscPtr && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE)) {
-    resultObj = Tcl_NewListObj(0, NULL);
-    Tcl_ListObjAppendElement(interp, resultObj,
-			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
-    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(MethodName(procObj), -1));
-  } else {
-    resultObj = Tcl_NewStringObj(MethodName(procObj), -1);
-  }
-  /* The following might be needed for deeper nested errors, but so far, it
-     does not appear to be necessary. Just kept as a reminder here */
-#if 0
-  if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
-    cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
-    fprintf(stderr, "inside ensemble\n");
-  }
-#endif
+  Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
 
+  if (!framePtr) {
+    /* We default to the top frame, if not requested otherwise */
+    (void) CallStackGetTopFrame(interp, &framePtr);
+  }
+  
+  if (framePtr) {
+    Tcl_ListObjAppendList(interp, resultObj, 
+			  CallStackMethodPath(interp, framePtr));
+  }
+
+  if (methodName) {
+
+    assert(*methodName != ':');
+    
+    Tcl_ListObjAppendElement(interp, resultObj, 
+			     Tcl_NewStringObj(methodName,-1));
+  }
+  
   return resultObj;
 }
 
@@ -10330,12 +10331,22 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
        * method path, and the unknown final method.
        */
       Tcl_Obj *callInfoObj = Tcl_NewListObj(1, &callerSelf->cmdName);
-      Tcl_Obj *methodPathObj = CallStackMethodPath(interp, (Tcl_CallFrame *)framePtr);
+      
+      Tcl_Obj *methodPathObj = 
+	NsfMethodNamePath(interp, 
+			  (Tcl_CallFrame *)framePtr,
+			  MethodName(objv[0]));
+      INCR_REF_COUNT(methodPathObj);
+
+      Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
+
+      /*      Tcl_Obj *methodPathObj = CallStackMethodPath(interp, (Tcl_CallFrame *)framePtr);
 
       INCR_REF_COUNT(methodPathObj);
       Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
+      */
 
-      Tcl_ListObjAppendElement(interp, callInfoObj, Tcl_NewStringObj(MethodName(objv[0]), -1));
+      /* Tcl_ListObjAppendElement(interp, callInfoObj, Tcl_NewStringObj(MethodName(objv[0]), -1));*/
       Tcl_ListObjAppendElement(interp, callInfoObj, objv[1]);
 
       DECR_REF_COUNT(methodPathObj);
@@ -17470,14 +17481,22 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
       } else if (unlikely(pPtr->flags & NSF_ARG_REQUIRED)
 		 && (processFlags & NSF_ARGPARSE_FORCE_REQUIRED)) {
 	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(ifd);
+	Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, 
+						   NULL /* use topmost frame */,
+						   MethodName(pcPtr->full_objv[0]));
+
+	INCR_REF_COUNT2("methodPathObj", methodPathObj);
 
         NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
 		      pPtr->nameObj ? ObjStr(pPtr->nameObj) : pPtr->name,
 		      pcPtr->object ? ObjectName(pcPtr->object) : "",
 		      pcPtr->object ? " " : "",
-		      ObjStr(pcPtr->full_objv[0]),
+		      ObjStr(methodPathObj),
 		      ObjStr(paramDefsObj));
+
 	DECR_REF_COUNT2("paramDefsObj", paramDefsObj);
+	DECR_REF_COUNT2("methodPathObj", methodPathObj);
+
 	return TCL_ERROR;
 
       } else {
@@ -21880,8 +21899,9 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
 
   case CurrentoptionMethodpathIdx:
-    (void) CallStackGetTopFrame(interp, &framePtr);
-    Tcl_SetObjResult(interp, CallStackMethodPath(interp, framePtr));
+    Tcl_SetObjResult(interp, NsfMethodNamePath(interp, 
+					       NULL /* use topmost frame */, 
+					       NULL /* exclude leaf */));
     break;
 
   case CurrentoptionClassIdx: /* class subcommand */
@@ -21946,25 +21966,9 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 
     cscPtr = NsfCallStackFindLastInvocation(interp, 1, &framePtr);
     if (cscPtr && cscPtr->cmdPtr) {
-      Tcl_Obj *methodNameObj = Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1);
-      /*
-       * By checking the characteristic frame and call type pattern for "leaf"
-       * ensemble dispatches, we make sure that the method path is only
-       * reported for these cases. Otherwise, we constrain the result to the
-       * method name.
-       */
-      if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) &&
-	  (cscPtr->flags & NSF_CSC_CALL_IS_COMPILE) == 0) {
-	resultObj = CallStackMethodPath(interp, framePtr);
-	result = Tcl_ListObjAppendElement(interp, resultObj, methodNameObj);
-	if (result != TCL_OK) {
-	  DECR_REF_COUNT(resultObj);
-	  DECR_REF_COUNT(methodNameObj);
-	  break;
-	}
-      } else {
-	resultObj = methodNameObj;
-      }
+      resultObj = NsfMethodNamePath(interp, 
+				    framePtr, 
+				    Tcl_GetCommandName(interp, cscPtr->cmdPtr));
     } else {
       resultObj = NsfGlobalObjs[NSF_EMPTY];
     }

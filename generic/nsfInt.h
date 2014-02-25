@@ -959,7 +959,9 @@ EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj);
 EXTERN void NsfReportVars(Tcl_Interp *interp);
 EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 
-EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, Tcl_Obj *procObj);
+EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, 
+				  Tcl_CallFrame *framePtr, 
+				  CONST char *methodName);
 
 /*
  * Definition of methodEpoch macros
