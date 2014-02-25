@@ -18,8 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "bson.h"
-#include "mongo.h"
-#include <gridfs.h>
+#include "mongoc.h"
 
 #include <tcl.h>
 #include <assert.h>
@@ -28,45 +27,46 @@
 /*
  * Define the counters to generate nice symbols for pointer converter
  */
-static int gridfsCount = 0;
 static int gridfileCount = 0;
-static int mongoCount = 0;
-static int cursorCount = 0;
+static int gridfsCount = 0;
+static int mongoClientCount = 0;
+static int mongoCollectionCount = 0;
+static int mongoCursorCount = 0;
 
 typedef enum {
-  NSF_BSON_INT,
-  NSF_BSON_LONG,
-  NSF_BSON_DATE,
-  NSF_BSON_DOUBLE,
+  NSF_BSON_ARRAY,
   NSF_BSON_BOOL,
-  NSF_BSON_REGEX,
-  NSF_BSON_STRING,
+  NSF_BSON_INT32,
+  NSF_BSON_INT64,
+  NSF_BSON_DATE_TIME,
+  NSF_BSON_DOCUMENT,
+  NSF_BSON_DOUBLE,
   NSF_BSON_MINKEY,
   NSF_BSON_MAXKEY,
   NSF_BSON_NULL,
   NSF_BSON_OID,
+  NSF_BSON_REGEX,
+  NSF_BSON_STRING,
   NSF_BSON_TIMESTAMP,
-  NSF_BSON_OBJECT,
-  NSF_BSON_ARRAY,
   NSF_BSON_UNKNOWN
 } nsfMongoTypes;
 
 static char *
 NsfMongoGlobalStrings[] = {
-  "integer",
-  "long",
-  "date",
-  "double",
+  "array",
   "boolean",
-  "regex",
-  "string",
+  "int32",
+  "int64",
+  "date_time",
+  "document",
+  "double",
   "minkey",
   "maxkey",
   "null",
   "oid",
+  "regex",
+  "string",
   "timestamp",
-  "object",
-  "array",
   "unknown",
   NULL
 };
@@ -93,8 +93,6 @@ typedef struct {
   int varArgs;
   NsfObject *object;
 } ParseContext;
-
-#define NSF_ARG_REQUIRED	0x000001
 
 #define nr_elements(arr)  ((int) (sizeof(arr) / sizeof(arr[0])))
 #define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
@@ -157,7 +155,7 @@ static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
  *
  * BsonToList --
  *
- *      Convert a bson structure to a tagged list. Each value field is
+ *      Convert a bson_t structure to a tagged list. Each value field is
  *      preceded by a tag denoting its bson type.
  *
  * Results:
@@ -169,55 +167,80 @@ static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
  *----------------------------------------------------------------------
  */
 Tcl_Obj *
-BsonToList(Tcl_Interp *interp, const char *data , int depth) {
-  bson_iterator i;
+BsonToList(Tcl_Interp *interp, const bson_t *data , int depth) {
+  bson_iter_t i;
   char oidhex[25];
   Tcl_Obj *resultObj, *elemObj;
 
-  bson_iterator_from_buffer( &i , data );
+  bson_iter_init( &i , data );
   resultObj = Tcl_NewListObj(0, NULL);
 
-  while ( bson_iterator_next( &i ) ){
-    bson_type t = bson_iterator_type( &i );
+  while ( bson_iter_next( &i ) ){
+    bson_type_t t = bson_iter_type( &i );
     nsfMongoTypes tag;
     const char *key;
 
     if ( t == 0 )
       break;
-    key = bson_iterator_key( &i );
+    key = bson_iter_key( &i );
     /*fprintf(stderr, "BsonToList: key %s t %d string %d\n", key, t, bson_string);*/
 
     switch ( t ){
-    case BSON_INT:    tag = NSF_BSON_INT;    elemObj = Tcl_NewIntObj(bson_iterator_int( &i )); break;
-    case BSON_LONG:   tag = NSF_BSON_LONG;   elemObj = Tcl_NewLongObj(bson_iterator_long( &i )); break;
-    case BSON_DATE:   tag = NSF_BSON_DATE;   elemObj = Tcl_NewLongObj(bson_iterator_date( &i )); break;
-    case BSON_DOUBLE: tag = NSF_BSON_DOUBLE; elemObj = Tcl_NewDoubleObj(bson_iterator_double( &i )); break;
-    case BSON_BOOL:   tag = NSF_BSON_BOOL;   elemObj = Tcl_NewBooleanObj(bson_iterator_bool( &i )); break;
-    case BSON_REGEX:  tag = NSF_BSON_REGEX;  elemObj = Tcl_NewStringObj(bson_iterator_regex( &i ), -1); break;
-    case BSON_STRING: tag = NSF_BSON_STRING; elemObj = Tcl_NewStringObj(bson_iterator_string( &i ), -1); break;
-    case BSON_MINKEY: tag = NSF_BSON_MINKEY; elemObj = Tcl_NewStringObj("null", 4); break;
-    case BSON_MAXKEY: tag = NSF_BSON_MAXKEY; elemObj = Tcl_NewStringObj("null", 4); break;
-    case BSON_NULL:   tag = NSF_BSON_NULL;   elemObj = Tcl_NewStringObj("null", 4); break;
-    case BSON_OID: {
+    case BSON_TYPE_INT32:     tag = NSF_BSON_INT32;     elemObj = Tcl_NewIntObj(bson_iter_int32( &i )); break;
+    case BSON_TYPE_INT64:     tag = NSF_BSON_INT64;     elemObj = Tcl_NewLongObj(bson_iter_int64( &i )); break;
+    case BSON_TYPE_DATE_TIME: tag = NSF_BSON_DATE_TIME; elemObj = Tcl_NewLongObj(bson_iter_date_time( &i )); break;
+    case BSON_TYPE_DOUBLE:    tag = NSF_BSON_DOUBLE;    elemObj = Tcl_NewDoubleObj(bson_iter_double( &i )); break;
+    case BSON_TYPE_BOOL:      tag = NSF_BSON_BOOL;      elemObj = Tcl_NewBooleanObj(bson_iter_bool( &i )); break;
+    case BSON_TYPE_REGEX:  {
+      const char *options = NULL; /* TODO: not handled */
+      tag = NSF_BSON_REGEX;  elemObj = Tcl_NewStringObj(bson_iter_regex( &i, &options ), -1); 
+      break;
+    }
+    case BSON_TYPE_UTF8: {
+      uint32_t utf8_len;
+      const char *string = bson_iter_utf8( &i, &utf8_len);
+      /*fprintf(stderr, "append UTF8: <%s> %d\n", string, utf8_len);*/
+      tag = NSF_BSON_STRING; elemObj = Tcl_NewStringObj(string, utf8_len); 
+      break;
+    }
+    case BSON_TYPE_MINKEY: tag = NSF_BSON_MINKEY; elemObj = Tcl_NewStringObj("null", 4); break;
+    case BSON_TYPE_MAXKEY: tag = NSF_BSON_MAXKEY; elemObj = Tcl_NewStringObj("null", 4); break;
+    case BSON_TYPE_NULL:   tag = NSF_BSON_NULL;   elemObj = Tcl_NewStringObj("null", 4); break;
+    case BSON_TYPE_OID: {
       tag = NSF_BSON_OID;
-      bson_oid_to_string(bson_iterator_oid(&i), oidhex);
+      bson_oid_to_string(bson_iter_oid(&i), oidhex);
       elemObj = Tcl_NewStringObj(oidhex, -1);
       break;
     }
-    case BSON_TIMESTAMP: {
-      bson_timestamp_t ts;
+    case BSON_TYPE_TIMESTAMP: {
+      uint32_t timestamp, increment;
       tag = NSF_BSON_TIMESTAMP;
-      ts = bson_iterator_timestamp( &i );
+      bson_iter_timestamp( &i, &timestamp, &increment );
       elemObj = Tcl_NewListObj(0, NULL);
-      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(ts.t));
-      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(ts.i));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(timestamp));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewIntObj(increment));
       break;
     }
-    case BSON_OBJECT:
-    case BSON_ARRAY:
-      tag = t == BSON_OBJECT ? NSF_BSON_OBJECT : NSF_BSON_ARRAY;
-      elemObj = BsonToList(interp, bson_iterator_value( &i ) , depth + 1 );
+    case BSON_TYPE_DOCUMENT: {
+      const uint8_t *docbuf = NULL;
+      uint32_t doclen = 0;
+      bson_t b;
+      tag = NSF_BSON_DOCUMENT;
+      bson_iter_document (&i, &doclen, &docbuf);
+      bson_init_static(&b, docbuf, doclen);
+      elemObj = BsonToList(interp, &b , depth + 1 );
       break;
+    }
+    case BSON_TYPE_ARRAY: {
+      const uint8_t *docbuf = NULL;
+      uint32_t doclen = 0;
+      bson_t b;
+      tag = NSF_BSON_ARRAY;
+      bson_iter_array(&i, &doclen, &docbuf);
+      bson_init_static (&b, docbuf, doclen);
+      elemObj = BsonToList(interp, &b , depth + 1 );
+      break;
+    }
     default:
       tag = NSF_BSON_UNKNOWN;
       elemObj = Tcl_NewStringObj("", 0);
@@ -250,34 +273,38 @@ BsonToList(Tcl_Interp *interp, const char *data , int depth) {
  *
  *----------------------------------------------------------------------
  */
-bson_type
+bson_type_t
 BsonTagToType(Tcl_Interp *interp, char *tag) {
   char firstChar = *tag;
 
   switch (firstChar) {
-  case 'a': /* array */   return BSON_ARRAY;
-  case 'b': /* bool */    return BSON_BOOL;
+  case 'a': /* array */   return BSON_TYPE_ARRAY;
+  case 'b': /* bool */    return BSON_TYPE_BOOL;
   case 'd':
-    if (*(tag + 1) == 'a') /* date   */ return BSON_DATE;
-    if (*(tag + 1) == 'o') /* double */ return BSON_DOUBLE;
-  case 'i': /* integer */ return BSON_INT;
-  case 'l': /* long */    return BSON_LONG;
+    if (*(tag + 1) == 'a') /* date   */ return BSON_TYPE_DATE_TIME;
+    if (*(tag + 1) == 'o' && *(tag + 2) == 'c') /* document */ return BSON_TYPE_DOCUMENT;
+    if (*(tag + 1) == 'o' && *(tag + 2) == 'u') /* double   */ return BSON_TYPE_DOUBLE;
+    break;
+  case 'i': /* int32|64 */ 
+    if (*(tag + 1) == 'n' && *(tag + 2) == 't' && *(tag + 3) == '3') return BSON_TYPE_INT32;
+    if (*(tag + 1) == 'n' && *(tag + 2) == 't' && *(tag + 3) == '6') return BSON_TYPE_INT64;
+    if (*(tag + 1) == 'n' && *(tag + 2) == 't') return BSON_TYPE_INT32;
+    break;
   case 'm':
-    if  (*(tag + 1) == 'i') /* minkey */ return BSON_MINKEY;
-    if  (*(tag + 1) == 'a') /* maxkey */ return BSON_MAXKEY;
+    if  (*(tag + 1) == 'i') /* minkey */ return BSON_TYPE_MINKEY;
+    if  (*(tag + 1) == 'a') /* maxkey */ return BSON_TYPE_MAXKEY;
     break;
-  case 'n': /* null */    return BSON_NULL;
+  case 'n': /* null */    return BSON_TYPE_NULL;
   case 'o':
-    if  (*(tag + 1) == 'i') /* oid */ return BSON_OID;
-    if  (*(tag + 1) == 'b') /* object */ return BSON_OBJECT;
+    if  (*(tag + 1) == 'i') /* oid */ return BSON_TYPE_OID;
     break;
-  case 'r': /* regex */   return BSON_REGEX;
-  case 's': /* string */  return BSON_STRING;
-  case 't': /* timestamp */ return BSON_TIMESTAMP;
+  case 'r': /* regex */   return BSON_TYPE_REGEX;
+  case 's': /* string */  return BSON_TYPE_UTF8;
+  case 't': /* timestamp */ return BSON_TYPE_TIMESTAMP;
   }
 
   NsfLog(interp, NSF_LOG_WARN, "BsonTagToType: Treat unknown tag '%s' as string", tag);
-  return BSON_STRING;
+  return BSON_TYPE_UTF8;
 }
 
 /*
@@ -296,127 +323,132 @@ BsonTagToType(Tcl_Interp *interp, char *tag) {
  *----------------------------------------------------------------------
  */
 static int
-BsonAppend(Tcl_Interp *interp, bson *bbPtr, char *name, char *tag, Tcl_Obj *value) {
+BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, char *name, char *tag, Tcl_Obj *value) {
   int result = TCL_OK;
-  bson_type t = BsonTagToType(interp, tag);
+  bson_type_t t = BsonTagToType(interp, tag);
+  int keyLength = strlen(name);
 
   /*fprintf(stderr, "BsonAppend: add name %s tag %s value '%s'\n", name, tag, ObjStr(value));*/
 
   switch ( t ){
-  case BSON_STRING:
-    bson_append_string(bbPtr, name, ObjStr(value));
-    break;
-  case BSON_INT: {
-    int v;
-    result = Tcl_GetIntFromObj(interp, value, &v);
-    if (result != TCL_OK) break;
-    bson_append_int(bbPtr, name, v);
+  case BSON_TYPE_UTF8: {
+    const char* string = ObjStr(value);
+    bson_append_utf8(bbPtr, name, keyLength, string, strlen(string));
     break;
   }
-  case BSON_DOUBLE: {
+  case BSON_TYPE_INT32: {
+    int32_t v;
+    result = Tcl_GetIntFromObj(interp, value, &v);
+    if (result != TCL_OK) break;
+    bson_append_int32(bbPtr, name, keyLength, v);
+    break;
+  }
+  case BSON_TYPE_DOUBLE: {
     double v;
     result = Tcl_GetDoubleFromObj(interp, value, &v);
     if (result != TCL_OK) break;
-    bson_append_double(bbPtr, name, v);
+    bson_append_double(bbPtr, name, keyLength, v);
     break;
   }
-  case BSON_BOOL: {
+  case BSON_TYPE_BOOL: {
     int v;
     result = Tcl_GetBooleanFromObj(interp, value, &v);
     if (result != TCL_OK) break;
-    bson_append_bool(bbPtr, name, v);
+    bson_append_bool(bbPtr, name, keyLength, v);
     break;
   }
-  case BSON_LONG: {
+  case BSON_TYPE_INT64: {
     long v;
     result = Tcl_GetLongFromObj(interp, value, &v);
     if (result != TCL_OK) break;
-    bson_append_long(bbPtr, name, v);
+    bson_append_int64(bbPtr, name, keyLength, v);
     break;
   }
-  case BSON_MAXKEY:
-    bson_append_maxkey(bbPtr, name);
+  case BSON_TYPE_MAXKEY:
+    bson_append_maxkey(bbPtr, name, keyLength);
     break;
-  case BSON_MINKEY:
-    bson_append_minkey(bbPtr, name);
+  case BSON_TYPE_MINKEY:
+    bson_append_minkey(bbPtr, name, keyLength);
     break;
-  case BSON_NULL: {
-    bson_append_null(bbPtr, name);
+  case BSON_TYPE_NULL: {
+    bson_append_null(bbPtr, name, keyLength);
     break;
   }
-  case BSON_OID: {
+  case BSON_TYPE_OID: {
     bson_oid_t v;
-    bson_oid_from_string(&v, ObjStr(value));
-    bson_append_oid(bbPtr, name, &v);
+    bson_oid_init_from_string(&v, ObjStr(value));
+    bson_append_oid(bbPtr, name, keyLength, &v);
     break;
   }
-  case BSON_REGEX: {
+  case BSON_TYPE_REGEX: {
     char *opts = ""; /* TODO: how to handle regex opts? */
-    bson_append_regex(bbPtr, name, ObjStr(value), opts);
+    bson_append_regex(bbPtr, name, keyLength, ObjStr(value), opts);
     break;
   }
-  case BSON_DATE: {
+  case BSON_TYPE_DATE_TIME: {
     long v;
     result = Tcl_GetLongFromObj(interp, value, &v);
     if (result != TCL_OK) break;
-    bson_append_date(bbPtr, name, v);
+    bson_append_date_time(bbPtr, name, keyLength, v);
     break;
   }
-  case BSON_TIMESTAMP: {
-    bson_timestamp_t v;
+  case BSON_TYPE_TIMESTAMP: {
+    int timestamp, increment, objc = 0;
     Tcl_Obj **objv;
-    int objc = 0;
+
     result = Tcl_ListObjGetElements(interp, value, &objc, &objv);
     if (result != TCL_OK || objc != 2) {
       return NsfPrintError(interp, "invalid timestamp: %s", ObjStr(value));
     }
-    result = Tcl_GetIntFromObj(interp, objv[0], &v.t);
+    result = Tcl_GetIntFromObj(interp, objv[0], &timestamp);
     if (result == TCL_OK) {
-      result = Tcl_GetIntFromObj(interp, objv[1], &v.i);
+      result = Tcl_GetIntFromObj(interp, objv[1], &increment);
     }
     if (result != TCL_OK) break;
-    bson_append_timestamp(bbPtr, name, &v);
+    bson_append_timestamp(bbPtr, name, keyLength, timestamp, increment);
     break;
   }
-  case BSON_OBJECT:
-  case BSON_ARRAY: {
-    int i, objc;
+  case BSON_TYPE_DOCUMENT:
+  case BSON_TYPE_ARRAY: {
+    int       i, objc;
     Tcl_Obj **objv;
+    bson_t    child, *childPtr = &child;
 
     result = Tcl_ListObjGetElements(interp, value, &objc, &objv);
     if (result != TCL_OK || objc % 3 != 0) {
       return NsfPrintError(interp, "invalid %s value contain multiple of 3 elements %s", tag, ObjStr(value));
     }
 
-    if (t == BSON_OBJECT) {
-      bson_append_start_object(bbPtr, name);
+    if (t == BSON_TYPE_DOCUMENT) {
+      bson_append_document_begin(bbPtr, name, keyLength, childPtr);
     } else {
-      bson_append_start_array(bbPtr, name);
+      bson_append_array_begin(bbPtr, name, keyLength, childPtr);
     }
     for (i = 0; i< objc; i += 3) {
       /*fprintf(stderr, "value %s, i %d, [0]: %s, [1]: %s, [2]: %s\n", ObjStr(value), i,
 	ObjStr(objv[i]),  ObjStr(objv[i+1]), ObjStr(objv[i+2]));*/
-      result = BsonAppend(interp, bbPtr, ObjStr(objv[i]),  ObjStr(objv[i+1]), objv[i+2]);
+      result = BsonAppend(interp, childPtr, ObjStr(objv[i]),  ObjStr(objv[i+1]), objv[i+2]);
       if (result != TCL_OK) break;
     }
 
-    /*
-     * finish_object works for arrays and objects
-     */
-    bson_append_finish_object(bbPtr);
+    if (t == BSON_TYPE_DOCUMENT) {
+      bson_append_document_end(bbPtr, childPtr);
+    } else {
+      bson_append_array_end(bbPtr, childPtr);
+    }
     break;
   }
 
-  case BSON_BINDATA:
-  case BSON_DBREF:
-  case BSON_CODE:
-  case BSON_SYMBOL:
-  case BSON_CODEWSCOPE:
+  case BSON_TYPE_BINARY:
+  case BSON_TYPE_DBPOINTER:
+  case BSON_TYPE_CODE:
+  case BSON_TYPE_SYMBOL:
+  case BSON_TYPE_CODEWSCOPE:
     return NsfPrintError(interp, "tag %s not handled yet", tag);
     break;
 
-  case BSON_UNDEFINED:
-  case BSON_EOO:
+  case BSON_TYPE_UNDEFINED:
+  case BSON_TYPE_EOD:
     break;
 
     /* no default here, to get the warning to the compilation log for the time being */
@@ -440,7 +472,7 @@ BsonAppend(Tcl_Interp *interp, bson *bbPtr, char *name, char *tag, Tcl_Obj *valu
  *----------------------------------------------------------------------
  */
 static int
-BsonAppendObjv(Tcl_Interp *interp, bson *bPtr, int objc, Tcl_Obj **objv) {
+BsonAppendObjv(Tcl_Interp *interp, bson_t *bPtr, int objc, Tcl_Obj **objv) {
   int i;
 
   bson_init(bPtr);
@@ -451,31 +483,10 @@ BsonAppendObjv(Tcl_Interp *interp, bson *bPtr, int objc, Tcl_Obj **objv) {
     /*fprintf(stderr, "adding pair '%s' (%s) '%s'\n", name, tag, ObjStr(value));*/
     BsonAppend(interp, bPtr, name, tag, value);
   }
-  bson_finish(bPtr);
 
   return TCL_OK;
 }
 
-static char *
-ErrorMsg(int status) {
-
-    switch (status) {
-    case MONGO_CONN_NO_SOCKET:    return "Could not create socket";
-    case MONGO_CONN_FAIL:         return "An error occured while calling connect()";
-    case MONGO_CONN_ADDR_FAIL:    return "An error occured while calling getaddrinfo()";
-    case MONGO_CONN_NOT_MASTER:   return "Connected to a non-master node (read-only)";
-    case MONGO_CONN_BAD_SET_NAME: return "Given replica set name doesn't match this replica set";
-    case MONGO_CONN_NO_PRIMARY:   return "Can't find primary in replica set";
-
-    case MONGO_IO_ERROR:          return "An error occurred while reading or writing on the socket";
-    case MONGO_READ_SIZE_ERROR:   return "The response is not the expected length";
-    case MONGO_COMMAND_FAILED:    return "The command returned with 'ok' value of 0";
-    case MONGO_BSON_INVALID:      return "BSON not valid for the specified op";
-    case MONGO_BSON_NOT_FINISHED: return "BSON object has not been finished";
-
-    default: return "Unknown error (maybe mongodb server not running)";
-    }
-}
 
 /***********************************************************************
  * Define the api functions
@@ -483,15 +494,15 @@ ErrorMsg(int status) {
 
 /*
 cmd close NsfMongoClose {
-  {-argName "conn" -required 1 -type mongo -withObj 1}
+  {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
 }
 */
 static int
-NsfMongoClose(Tcl_Interp *interp, mongo *connPtr, Tcl_Obj *connObj) {
+NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj) {
 
-  if (connPtr) {
-    mongo_destroy(connPtr);
-    Nsf_PointerDelete(ObjStr(connObj), connPtr, 1);
+  if (clientPtr) {
+    mongoc_client_destroy(clientPtr);
+    Nsf_PointerDelete(ObjStr(clientObj), clientPtr, 0);
   }
   return TCL_OK;
 }
@@ -499,90 +510,32 @@ NsfMongoClose(Tcl_Interp *interp, mongo *connPtr, Tcl_Obj *connObj) {
 
 /*
 cmd connect NsfMongoConnect {
-  {-argName "-replica-set" -required 0 -nrargs 1}
-  {-argName "-server" -required 0 -nrargs 1 -type tclobj}
-  {-argName "-timeout" -required 0 -nrargs 1 -type int32}
+  {-argName "-uri" -required 1 -nrargs 1}
 }
 */
 static int
-NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int withTimeout) {
-  char channelName[80], *buffer = NULL;
-  mongo_host_port host_port;
-  int status, objc = 0;
-  mongo *connPtr;
-  Tcl_Obj **objv;
+NsfMongoConnect(Tcl_Interp *interp, CONST char *uri) {
+  char channelName[80];
+  mongoc_client_t *clientPtr;
 
-  if (server) {
-    int result = Tcl_ListObjGetElements(interp, server, &objc, &objv);
-    if (result != TCL_OK) {
-      return NsfPrintError(interp, "The provided servers are not a well-formed list");
-    }
+  if (uri == NULL) {
+    uri = "mongodb://127.0.0.1:27017/";
   }
+  clientPtr = mongoc_client_new(uri);
 
-  connPtr = (mongo *)ckalloc(sizeof(mongo));
-
-  if (objc == 0) {
-    /*
-     * No -server argument or an empty list was provided; use the
-     * mongo default values.
-     */
-    status = mongo_client( connPtr, "127.0.0.1", 27017 );
-
-  } else if (objc == 1 && replicaSet == NULL) {
-    /*
-     * A single element was provided to -server, we have no replica
-     * set specified.
-     */
-    mongo_parse_host(ObjStr(objv[0]), &host_port);
-    status = mongo_client( connPtr, host_port.host, host_port.port );
-    if (buffer) {ckfree(buffer);}
-
-  } else if (replicaSet) {
-    /*
-     * A list of 1 or more server was provided together with a replica
-     * set.
-     */
-    int i;
-
-    mongo_replset_init( connPtr, replicaSet );
-
-    for (i = 0; i < objc; i++) {
-      mongo_parse_host(ObjStr(objv[i]), &host_port);
-      mongo_replset_add_seed(connPtr, host_port.host, host_port.port );
-      if (buffer) {ckfree(buffer);}
-    }
-
-    status = mongo_replset_connect( connPtr );
-
-  } else {
-    ckfree((char *)connPtr);
-    return NsfPrintError(interp, "A list of servers was provided, but not name for the replica set");
-  }
-
-  /*
-   * Process the status from either mongo_connect() or
-   * mongo_replset_connect().
-   */
-  if (status != MONGO_OK) {
-    ckfree((char *)connPtr);
-    return NsfPrintError(interp, ErrorMsg(status));
-  }
-
-  if (withTimeout > 0) {
-    /*
-     * setting connection timeout - measured in  milliseconds
-     */
-    if (mongo_set_op_timeout(connPtr, withTimeout) != MONGO_OK) {
-      ckfree((char *)connPtr);
-      return NsfPrintError(interp, "setting connection timeout failed");
-    }
+  if (clientPtr == NULL) {
+      return NsfPrintError(interp, "failed to parse Mongo URI");
   }
 
   /*
    * Make an entry in the symbol table and return entry name it as
    * result.
    */
-  Nsf_PointerAdd(interp, channelName, "mongo", connPtr);
+  if (Nsf_PointerAdd(interp, channelName, "mongoc_client_t", clientPtr) != TCL_OK) {
+    mongoc_client_destroy(clientPtr);
+    return TCL_ERROR;
+  }
+
   Tcl_SetObjResult(interp, Tcl_NewStringObj(channelName, -1));
 
   return TCL_OK;
@@ -591,16 +544,19 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *replicaSet, Tcl_Obj *server, int
 /*
 cmd run NsfMongoRunCmd {
   {-argName "-nocomplain" -required 0 -nrargs 0}
-  {-argName "conn" -required 1 -type mongo}
+  {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "db" -required 1}
   {-argName "cmd" -required 1 -type tclobj}
 }
 */
 static int
-NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongo *connPtr, CONST char *db, Tcl_Obj *cmdObj) {
+NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPtr, 
+	       CONST char *db, Tcl_Obj *cmdObj) {
   int result, objc;
   Tcl_Obj **objv;
-  bson cmd[1], out[1];
+  bson_t cmd[1], out[1];
+  mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not used */
+  bson_error_t bsonError;
 
   result = Tcl_ListObjGetElements(interp, cmdObj, &objc, &objv);
   if (result != TCL_OK || (objc % 3 != 0)) {
@@ -608,34 +564,84 @@ NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongo *connPtr, CONST cha
   }
   BsonAppendObjv(interp, cmd, objc, objv);
 
-  mongo_clear_errors( connPtr );
-  result = mongo_run_command( connPtr, db, cmd, out );
+  /*mongo_clear_errors( connPtr );*/
+  result = mongoc_client_command_simple( clientPtr, db, cmd, readPrefsPtr, out, &bsonError);
   bson_destroy( cmd );
 
-  if (withNocomplain == 0 && result != MONGO_OK) {
-    fprintf(stderr, "run result %d\n", result);
-    return NsfPrintError(interp, "mongo::run: command '%s' returned an unknown error", ObjStr(cmdObj));
+  if (withNocomplain == 0 && result == 0) {
+    return NsfPrintError(interp, "mongo::run: command '%s' returned error: %s", ObjStr(cmdObj), bsonError.message);
   }
 
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(result == MONGO_OK));
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(result));
   return TCL_OK;
 }
 
+/*
+cmd collection::open NsfCollectionOpen {
+  {-argName "conn" -required 1 -type mongoc_client_t}
+  {-argName "dbname" -required 1}
+  {-argName "collectionname" -required 1}
+}
+*/
+int
+NsfCollectionOpen(Tcl_Interp *interp, 
+		  mongoc_client_t *clientPtr, 
+		  const char *dbName,
+		  const char *collectionName) {
+  int   result = TCL_ERROR;
+  mongoc_collection_t *collectionPtr;
+
+  collectionPtr = mongoc_client_get_collection(clientPtr, dbName, collectionName);
+  if (collectionPtr != NULL) {
+    char buffer[80];
+
+    if (Nsf_PointerAdd(interp, buffer, "mongoc_collection_t", collectionPtr) == TCL_OK) {
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+      result = TCL_OK;
+    } else {
+      mongoc_collection_destroy(collectionPtr);
+      result = TCL_ERROR;
+    }
+  }
+  
+  if (collectionPtr == NULL) {
+    result = NsfPrintError(interp, 
+			   "collection::open: could not open collection: %s.%s", 
+			   dbName, collectionName);
+  }
+
+  return result;
+}
 
 /*
-cmd query NsfMongoCount {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd collection::close NsfCollectionClose {
+  {-argName "collection" -required 1 -type mongoc_collection_t -withObj 1}
+}
+*/
+static int
+NsfCollectionClose(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *clientObj) {
+  if (collectionPtr) {
+    mongoc_collection_destroy(collectionPtr);
+    Nsf_PointerDelete(ObjStr(clientObj), collectionPtr, 0);
+  }
+  return TCL_OK;
+}
+
+/*
+cmd collection::count NsfMongoCollectionCount {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
 }
 */
 static int
-NsfMongoCount(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *queryObj) {
+NsfMongoCollectionCount(Tcl_Interp *interp, 
+			mongoc_collection_t *collectionPtr, 
+			Tcl_Obj *queryObj) {
   int objc, result;
   Tcl_Obj **objv;
-  char *db, *collection;
-  int count, length;
-  bson query[1];
+  int count;
+  bson_t query[1];
+  bson_error_t bsonError;
 
   result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
   if (result != TCL_OK || (objc % 3 != 0)) {
@@ -644,33 +650,65 @@ NsfMongoCount(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj
 
   BsonAppendObjv(interp, query, objc, objv);
 
-  length = strlen(namespace)+1;
-  db = ckalloc(length);
-  memcpy(db, namespace, length);
-  collection = strchr(db, '.');
+  if (collectionPtr != NULL) {
+    count = mongoc_collection_count(collectionPtr, 
+				    0 /* query flags */, query,
+				    0 /*skip */, 0 /*limit */,
+				    NULL /* read preferences */,
+				    &bsonError);
+    fprintf(stderr, "count returns %d \n", count);
+    if (count == -1) {
+      bson_destroy( query );
+      return NsfPrintError(interp, "mongo::collection::count: error: %s", bsonError.message);
+    }
 
-  if (collection != NULL) {
-    /* successful */
-    *collection = '\0';
-    collection ++;
-    count = mongo_count(connPtr, db, collection, query);
   } else {
     count = 0;
   }
 
   bson_destroy( query );
-  ckfree(db);
 
   Tcl_SetObjResult(interp, Tcl_NewIntObj(count));
 
   return TCL_OK;
 }
 
+/*
+cmd "collection::delete" NsfMongoCollectionDelete {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
+  {-argName "condition" -required 1 -type tclobj}
+}
+*/
+static int
+NsfMongoCollectionDelete(Tcl_Interp *interp, 
+			mongoc_collection_t *collectionPtr,
+			 Tcl_Obj *conditionObj) {
+  int objc, result = TCL_OK, status;
+  Tcl_Obj **objv;
+  bson_t query[1];
+  bson_error_t bsonError;
+  mongoc_delete_flags_t deleteFlags = 0; /* TODO: not handled */
+  /* MONGOC_DELETE_SINGLE_REMOVE = 1 << 0,**/
+  const mongoc_write_concern_t *writeConcern = NULL; /* TODO: not handled yet */
+
+  result = Tcl_ListObjGetElements(interp, conditionObj, &objc, &objv);
+  if (result != TCL_OK || (objc % 3 != 0)) {
+    return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(conditionObj));
+  }
+
+  BsonAppendObjv(interp, query, objc, objv);
+  status = mongoc_collection_delete(collectionPtr, deleteFlags, query, writeConcern, &bsonError);
+
+  if (status == 0) {
+    result = NsfPrintError(interp, "mongo::collection::delete: error: %s", bsonError.message);
+  }
+  bson_destroy(query);
+  return result;
+}
 
 /*
-cmd index NsfMongoIndex {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd "collection::index" NsfMongoCollectionIndex {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "attributes" -required 1 -type tclobj}
   {-argName "-name" -required 0 -nrargs 1}
   {-argName "-background" -required 0 -nrargs 0}
@@ -681,64 +719,79 @@ cmd index NsfMongoIndex {
 }
 */
 
-
 static int
-NsfMongoIndex(Tcl_Interp *interp,
-	      mongo *connPtr,
-	      CONST char *namespace,
-	      Tcl_Obj *attributesObj,
-	      CONST char *withName,
-	      int withBackground,
-	      int withDropdups,
-	      int withSparse,
-	      int withTtl,
-	      int withUnique) {
-  bson_bool_t success;
-  int objc, result, options = 0;
+NsfMongoCollectionIndex(Tcl_Interp *interp,
+			mongoc_collection_t *collectionPtr,
+			Tcl_Obj *attributesObj,
+			CONST char *withName,
+			int withBackground,
+			int withDropdups,
+			int withSparse,
+			int withTtl,
+			int withUnique) {
+  int success = 0;
+  int objc, result;
   Tcl_Obj **objv;
-  bson keys[1], out[1];
+  bson_t keys[1];
+  bson_error_t bsonError;
+  mongoc_index_opt_t options;
 
   result = Tcl_ListObjGetElements(interp, attributesObj, &objc, &objv);
   if (result != TCL_OK || (objc % 3 != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(attributesObj));
   }
+
   BsonAppendObjv(interp, keys, objc, objv);
-  if (withBackground) {options |= MONGO_INDEX_BACKGROUND;}
-  if (withDropdups)   {options |= MONGO_INDEX_DROP_DUPS;}
-  if (withSparse)     {options |= MONGO_INDEX_SPARSE;}
-  if (withUnique)     {options |= MONGO_INDEX_UNIQUE;}
 
-  success = mongo_create_index(connPtr, namespace, keys, withName, options, withTtl, out);
+  mongoc_index_opt_init(&options);
+
+  if (withBackground) {options.background = 1;}
+  if (withDropdups)   {options.drop_dups = 1;}
+  if (withSparse)     {options.sparse = 1;}
+  if (withUnique)     {options.unique = 1;}
+  if (withTtl)        {options.expire_after_seconds = withTtl;}
+  if (withName)       {options.name = withName;}
+  /* TODO: not handled: is_initialized, v, weights, default_language, laguage_override, padding */
+
+  success = mongoc_collection_ensure_index(collectionPtr, keys, &options, &bsonError);
+
   bson_destroy(keys);
-  /* TODO: examples in mongo-client do not touch out; do we have to do
-     something about it? */
 
-  Tcl_SetObjResult(interp, Tcl_NewBooleanObj(success == MONGO_OK));
+  Tcl_SetObjResult(interp, Tcl_NewBooleanObj(success));
   return TCL_OK;
 }
 
 
-
 /*
-cmd insert NsfMongoInsert {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd "collection::insert" NsfMongoCollectionInsert {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "values" -required 1 -type tclobj}
 }
 */
-static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *valuesObj) {
+static int NsfMongoCollectionInsert(Tcl_Interp *interp, 
+				    mongoc_collection_t *collectionPtr,
+				    Tcl_Obj *valuesObj) {
   int i, objc, result;
   Tcl_Obj **objv;
-  bson b[1];
+  bson_t b[1];
+  bson_oid_t oid;
+  bson_error_t bsonError;
+  mongoc_insert_flags_t insertFlags = MONGOC_INSERT_NO_VALIDATE; /* otherwise, we can't insert a DBRef */
+  /* TODO: insertFlags not handled:
+   MONGOC_INSERT_NONE              = 0,
+   MONGOC_INSERT_CONTINUE_ON_ERROR = 1 << 0,
+   MONGOC_INSERT_NO_VALIDATE       = 1 << 31,
+  */
+  const mongoc_write_concern_t *writeConcern = NULL; /* TODO: not handled yet */
 
   result = Tcl_ListObjGetElements(interp, valuesObj, &objc, &objv);
   if (result != TCL_OK || (objc % 3 != 0)) {
     return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(valuesObj));
   }
 
-  //bson_init(buf);
   bson_init(b);
-  bson_append_new_oid(b, "_id");
+  bson_oid_init(&oid, NULL);
+  bson_append_oid(b, "_id", 3, &oid);
 
   for (i = 0; i < objc; i += 3) {
     char *name = ObjStr(objv[i]);
@@ -748,25 +801,22 @@ static int NsfMongoInsert(Tcl_Interp *interp, mongo *connPtr, CONST char *namesp
     BsonAppend(interp, b, name, tag, value);
   }
 
-  bson_finish(b);
-  /* for the time being, no write_concern (last arg of mongo_insert()) */
-  result = mongo_insert(connPtr, namespace, b, NULL);
+  result = mongoc_collection_insert(collectionPtr, insertFlags, b, writeConcern, &bsonError);
 
-  if (result == MONGO_ERROR) {
-    result = NsfPrintError(interp, ErrorMsg(connPtr->err));
+  if (result == 0) {
+    bson_destroy(b);
+    return NsfPrintError(interp, "mongo::collection::insert: error: %s", bsonError.message);
   } else {
-    Tcl_Obj *resultObj = BsonToList(interp, b->data, 0);
-    Tcl_SetObjResult(interp, resultObj);
+    Tcl_SetObjResult(interp, BsonToList(interp, b, 0));
     result = TCL_OK;
+    bson_destroy(b);
   }
-  bson_destroy(b);
   return result;
 }
 
 /*
-cmd query NsfMongoQuery {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd collection::query NsfMongoCollectionQuery {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
   {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
   {-argName "-limit" -required 0 -type int32}
@@ -774,14 +824,18 @@ cmd query NsfMongoQuery {
 }
 */
 static int
-NsfMongoQuery(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
-	      Tcl_Obj *queryObj, Tcl_Obj *withAttsObj,
-	      int withLimit, int withSkip) {
+NsfMongoCollectionQuery(Tcl_Interp *interp, 
+			mongoc_collection_t *collectionPtr,
+			Tcl_Obj *queryObj, Tcl_Obj *withAttsObj,
+			int withLimit, int withSkip) {
   int objc1, objc2, result;
   Tcl_Obj **objv1, **objv2, *resultObj;
-  mongo_cursor *cursor;
-  bson query[1];
-  bson atts[1];
+  mongoc_cursor_t *cursor;
+  bson_t query[1];
+  bson_t atts[1];
+  const bson_t *nextPtr;
+  mongoc_query_flags_t queryFlags = 0; /* TODO: not handled */
+  mongoc_read_prefs_t *readPrefs = NULL; /* TODO: not handled */
 
   /*fprintf(stderr, "NsfMongoQuery: namespace %s withLimit %d withSkip %d\n",
     namespace, withLimit, withSkip);*/
@@ -801,7 +855,7 @@ NsfMongoQuery(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
 
   /* fprintf(stderr, "query # %d, atts # %d\n", objc1, objc2); */
   BsonAppendObjv(interp, query, objc1, objv1);
-  BsonAppendObjv(interp, atts, objc2, objv2);
+  BsonAppendObjv(interp, atts,  objc2, objv2);
 
   resultObj = Tcl_NewListObj(0, NULL);
 
@@ -809,12 +863,15 @@ NsfMongoQuery(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
    *  The last field of mongo_find is options, semantics are described here
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
-  cursor = mongo_find( connPtr, namespace, query, atts, withLimit, withSkip, 0 );
-  while( mongo_cursor_next( cursor ) == MONGO_OK ) {
-    Tcl_ListObjAppendElement(interp, resultObj, BsonToList(interp, (&cursor->current)->data, 0));
+  cursor = mongoc_collection_find( collectionPtr, queryFlags, 
+				   withSkip, withLimit, 0 /* batch_size */,
+				   query, atts, readPrefs);
+
+  while( mongoc_cursor_next( cursor, &nextPtr ) == 1 ) {
+    Tcl_ListObjAppendElement(interp, resultObj, BsonToList(interp, nextPtr, 0));
   }
 
-  mongo_cursor_destroy( cursor );
+  mongoc_cursor_destroy( cursor );
   bson_destroy( query );
   bson_destroy( atts );
 
@@ -823,38 +880,10 @@ NsfMongoQuery(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
   return TCL_OK;
 }
 
-/*
-cmd remove NsfMongoRemove {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
-  {-argName "condition" -required 1 -type tclobj}
-}
-*/
-static int
-NsfMongoRemove(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace, Tcl_Obj *conditionObj) {
-  int objc, result, status;
-  Tcl_Obj **objv;
-  bson query[1];
-
-  result = Tcl_ListObjGetElements(interp, conditionObj, &objc, &objv);
-  if (result != TCL_OK || (objc % 3 != 0)) {
-    return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(conditionObj));
-  }
-
-  BsonAppendObjv(interp, query, objc, objv);
-  /* for the time being, no write_concern (last arg of mongo_remove()) */
-  status = mongo_remove(connPtr, namespace, query, NULL);
-
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(status == MONGO_OK));
-
-  bson_destroy(query);
-  return TCL_OK;
-}
 
 /*
-cmd insert NsfMongoUpdate {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd "collection::update" NsfMongoCollectionUpdate {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "cond" -required 1 -type tclobj}
   {-argName "values" -required 1 -type tclobj}
   {-argName "-upsert" -required 0 -nrargs 0}
@@ -862,11 +891,17 @@ cmd insert NsfMongoUpdate {
 }
 */
 static int
-NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
-	       Tcl_Obj *conditionObj, Tcl_Obj *valuesObj, int withUpsert, int withAll) {
-  int objc, result, mongorc, options = 0;
+NsfMongoCollectionUpdate(Tcl_Interp *interp, 
+			 mongoc_collection_t *collectionPtr,
+			 Tcl_Obj *conditionObj, Tcl_Obj *valuesObj, 
+			 int withUpsert, int withAll) {
+
+  const mongoc_write_concern_t *writeConcern = NULL; /* TODO: not handled yet */
+  mongoc_update_flags_t updateFlags =  MONGOC_UPDATE_NO_VALIDATE; /* for dbrefs */
+  bson_error_t bsonError;
+  bson_t cond[1], values[1];
+  int objc, result = TCL_OK, success;
   Tcl_Obj **objv;
-  bson cond[1], values[1];
 
   result = Tcl_ListObjGetElements(interp, conditionObj, &objc, &objv);
   if (result != TCL_OK || (objc % 3 != 0)) {
@@ -883,13 +918,14 @@ NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
 
   BsonAppendObjv(interp, values, objc, objv);
 
-  if (withUpsert) {options |= 1;}
-  if (withAll) {options |= 2;}
+  if (withUpsert) {updateFlags |= MONGOC_UPDATE_UPSERT;}
+  if (withAll)    {updateFlags |= MONGOC_UPDATE_MULTI_UPDATE;}
 
-  /* for the time being, no write_concern (last arg of mongo_update()) */
-  mongorc = mongo_update(connPtr, namespace, cond, values, options, NULL);
+  success = mongoc_collection_update(collectionPtr, updateFlags, cond, values, writeConcern, &bsonError);
 
-  Tcl_SetObjResult(interp, Tcl_NewBooleanObj(mongorc == MONGO_OK));
+  if (success == 0) {
+    result = NsfPrintError(interp, "mongo::collection::delete: error: %s", bsonError.message);
+  }
 
   return TCL_OK;
 }
@@ -899,8 +935,7 @@ NsfMongoUpdate(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
  ***********************************************************************/
 /*
 cmd cursor::find NsfMongoCursorFind {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
   {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
   {-argName "-limit" -required 0 -type int32}
@@ -910,15 +945,18 @@ cmd cursor::find NsfMongoCursorFind {
 }
 */
 static int
-NsfMongoCursorFind(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
-	      Tcl_Obj *queryObj, Tcl_Obj *withAttsObj,
+NsfMongoCursorFind(Tcl_Interp *interp, 
+		   mongoc_collection_t *collectionPtr,
+		   Tcl_Obj *queryObj, Tcl_Obj *withAttsObj,
 		   int withLimit, int withSkip,
 		   int withTailable, int withAwaitdata) {
-  int objc1, objc2, result, options = 0;
+  int objc1, objc2, result;
+  mongoc_query_flags_t queryFlags = 0;
   Tcl_Obj **objv1, **objv2;
-  mongo_cursor *cursor;
-  bson query[1];
-  bson atts[1];
+  mongoc_cursor_t *cursor;
+  bson_t query[1];
+  bson_t atts[1];
+  mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not used */
 
   /*fprintf(stderr, "NsfMongoQuery: namespace %s withLimit %d withSkip %d\n",
     namespace, withLimit, withSkip);*/
@@ -944,17 +982,29 @@ NsfMongoCursorFind(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
    *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
    */
   if (withTailable) {
-    options |= MONGO_TAILABLE;
+    queryFlags |= MONGOC_QUERY_TAILABLE_CURSOR;
   }
   if (withAwaitdata) {
-    options |= MONGO_AWAIT_DATA;
+    queryFlags |= MONGOC_QUERY_AWAIT_DATA;
   }
-  cursor = mongo_find( connPtr, namespace, query, atts, withLimit, withSkip, options);
-
+  /* TODO: query flags:
+   MONGOC_QUERY_SLAVE_OK          = 1 << 2,
+   MONGOC_QUERY_OPLOG_REPLAY      = 1 << 3,
+   MONGOC_QUERY_NO_CURSOR_TIMEOUT = 1 << 4,
+   MONGOC_QUERY_EXHAUST           = 1 << 6,
+   MONGOC_QUERY_PARTIAL           = 1 << 7,
+  */
+  cursor = mongoc_collection_find(collectionPtr, queryFlags, 
+				  withSkip, withLimit, 0 /*TODO missing batch_size*/,
+				  query, atts, readPrefsPtr);
   if (cursor) {
     char buffer[80];
-    Nsf_PointerAdd(interp, buffer, "mongo_cursor", cursor);
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+    if (Nsf_PointerAdd(interp, buffer, "mongoc_cursor_t", cursor) == TCL_OK) {
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+    } else {
+      mongoc_cursor_destroy( cursor );
+      result = TCL_ERROR;
+    }
   } else {
     Tcl_ResetResult(interp);
   }
@@ -962,34 +1012,35 @@ NsfMongoCursorFind(Tcl_Interp *interp, mongo *connPtr, CONST char *namespace,
   bson_destroy( query );
   bson_destroy( atts );
 
-  return TCL_OK;
+  return result;
 }
 
 /*
 cmd cursor::next NsfMongoCursorNext {
-  {-argName "cursor" -required 1 -type mongo_cursor}
+  {-argName "cursor" -required 1 -type mongoc_cursor_t}
 }
 */
 static int
-NsfMongoCursorNext(Tcl_Interp *interp, mongo_cursor *cursor) {
+NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursor) {
   int result;
+  const bson_t *nextPtr;
 
-  result = mongo_cursor_next( cursor );
-  if (result == MONGO_OK) {
-    Tcl_SetObjResult(interp, BsonToList(interp, (&cursor->current)->data, 0));
+  result = mongoc_cursor_next( cursor, &nextPtr );
+  if (result == 1) {
+    Tcl_SetObjResult(interp, BsonToList(interp, nextPtr, 0));
   }
   return TCL_OK;
 }
 
 /*
 cmd cursor::close NsfMongoCursorClose {
-  {-argName "cursor" -required 1 -type mongo_cursor -withObj 1}
+  {-argName "cursor" -required 1 -type mongoc_cursor_t -withObj 1}
 }
 */
 static int
-NsfMongoCursorClose(Tcl_Interp *interp, mongo_cursor *cursor, Tcl_Obj *cursorObj) {
+NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursor, Tcl_Obj *cursorObj) {
 
-  mongo_cursor_destroy( cursor );
+  mongoc_cursor_destroy( cursor );
   Nsf_PointerDelete(ObjStr(cursorObj), cursor, 0);
 
   return TCL_OK;
@@ -1000,85 +1051,239 @@ NsfMongoCursorClose(Tcl_Interp *interp, mongo_cursor *cursor, Tcl_Obj *cursorObj
 /***********************************************************************
  * GridFS interface
  ***********************************************************************/
+
+/*
+cmd gridfs::close NsfMongoGridFSClose {
+  {-argName "gfs" -required 1 -type mongoc_gridfs_t -withObj 1}
+}
+*/
+static int
+NsfMongoGridFSClose(Tcl_Interp *interp, mongoc_gridfs_t *gridfsPtr, Tcl_Obj *gridfsObj) {
+
+  mongoc_gridfs_destroy(gridfsPtr);
+  Nsf_PointerDelete(ObjStr(gridfsObj), gridfsPtr, 0);
+
+  return TCL_OK;
+}
+
 /*
 cmd gridfs::open NsfMongoGridFSOpen {
-  {-argName "conn" -required 1 -type mongo}
+  {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "dbname" -required 1}
   {-argName "prefix" -required 1}
 }
 */
 
 static int
-NsfMongoGridFSOpen(Tcl_Interp *interp, mongo *connPtr,
+NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
 		   CONST char *dbname, CONST char *prefix) {
   char buffer[80];
-  gridfs *gfsPtr;
+  int result = TCL_OK;
+  bson_error_t bsonError;
+  mongoc_gridfs_t *gfsPtr;
 
-  gfsPtr = (gridfs *)ckalloc(sizeof(gridfs));
-  gridfs_init(connPtr, dbname, prefix, gfsPtr);
+  gfsPtr = mongoc_client_get_gridfs(clientPtr, dbname, prefix, &bsonError);
 
-  Nsf_PointerAdd(interp, buffer, "gridfs", gfsPtr);
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+  if (gfsPtr == NULL) {
+    result = NsfPrintError(interp, "mongo::gridfs::open: error: %s", bsonError.message);
+  }
 
-  return TCL_OK;
+  if (Nsf_PointerAdd(interp, buffer, "mongoc_gridfs_t", gfsPtr) == TCL_OK) {
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+  } else {
+    mongoc_gridfs_destroy(gfsPtr);
+    result = TCL_ERROR;
+  }
+
+  return result;
 }
 
+/***********************************************************************
+ * GridFile interface operating on GridFS
+ *
+ * Currently we need a few private gridfs functions since the new
+ * c-driver has less functionality than the old one.
+ ***********************************************************************/
+
+#define MONGOC_INSIDE 1
+#include "mongoc-gridfs-private.h"
+#include "mongoc-gridfs-file-private.h"
+#undef MONGOC_INSIDE
+#define MONGOC_GRIDFS_READ_CHUNK 4096*4
 
 /*
-cmd gridfs::remove_file NsfMongoGridFSRemoveFile {
-  {-argName "gfs" -required 1 -type tclobj}
-  {-argName "filename" -required 1}
-}
-*/
-static int
-NsfMongoGridFSRemoveFile(Tcl_Interp *interp, gridfs *gridfsPtr,
-			CONST char *filename) {
-  int status;
-
-  /* the current interfaces does not return a status ! */
-  status = gridfs_remove_filename(gridfsPtr, filename);
-
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(status == MONGO_OK));
-
-  return TCL_OK;
-}
-
-/*
-cmd gridfs::store_file NsfMongoGridFSStoreFile {
-  {-argName "gfs" -required 1 -type gridfs}
-  {-argName "filename" -required 1}
-  {-argName "remotename" -required 1}
+cmd gridfile::create NsfMongoGridFileCreate {
+  {-argName "-source" -required 1 -typeName "gridfilesource" -type "file|string"}
+  {-argName "gfs" -required 1 -type mongoc_gridfs_t}
+  {-argName "value" -required 1}
+  {-argName "name" -required 1}
   {-argName "contenttype" -required 1}
 }
 */
 static int
-NsfMongoGridFSStoreFile(Tcl_Interp *interp, gridfs *gridfsPtr,
-			CONST char *filename, CONST char *remotename,
-			CONST char *contenttype) {
-  int flags = 0;  // TODO: add/handle flags
-  int result = gridfs_store_file(gridfsPtr, filename, remotename, contenttype, flags);
+NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
+		       mongoc_gridfs_t *gridfsPtr,
+		       CONST char *value, CONST char *name,
+		       CONST char *contenttype) {
+  int n, result = TCL_OK;
+  mongoc_gridfs_file_opt_t fileOpts = {NULL};
+  mongoc_gridfs_file_t *gridFile;
 
-  /* currently, we do not get the bson structure;
-     Tcl_SetObjResult(interp, BsonToList(interp, b.data, 0));*/
+  fprintf(stderr, "0 withSource %d\n", withSource);
+  if (withSource == GridfilesourceNULL) {
+    withSource = GridfilesourceFileIdx;
+  }
+  fprintf(stderr, "1 withSource %d\n", withSource);
 
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(result == MONGO_OK));
+  fileOpts.filename = name;
+  fileOpts.content_type = contenttype;
+  /*
+   const char   *md5;
+   const char   *filename;
+   const char   *content_type;
+   const bson_t *aliases;
+   const bson_t *metadata;
+   uint32_t chunk_size;
+  */
+  gridFile = mongoc_gridfs_create_file(gridfsPtr, &fileOpts);
 
+  if (withSource == GridfilesourceFileIdx) {
+    uint8_t buf[MONGOC_GRIDFS_READ_CHUNK];
+    struct iovec iov = { buf, 0 };
+    int fd = open(value, O_RDONLY);
+
+    for (;; ) {
+      n = read(fd, iov.iov_base, MONGOC_GRIDFS_READ_CHUNK);
+      if (n > 0) {
+	iov.iov_len = n;
+	n = mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
+      } else if (n == 0) {
+	break;
+      } else {
+	result = TCL_ERROR;
+	break;
+      }
+    }
+    close(fd);
+  } else {
+    struct iovec iov = { (char *)value, strlen(value) };
+    mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
+  }
+  if (result == TCL_OK) {
+    mongoc_gridfs_file_save(gridFile);
+  }
+
+  mongoc_gridfs_file_destroy(gridFile);
+
+  Tcl_SetObjResult(interp, Tcl_NewIntObj(result == TCL_OK));
+
+  return result;
+}
+
+
+/*
+cmd "gridfile::delete" NsfMongoGridFileDelete {
+  {-argName "gfs" -required 1 -type mongoc_gridfs_t}
+  {-argName "query" -required 1 -type tclobj}
+}
+*/
+static int
+NsfMongoGridFileDelete(Tcl_Interp *interp, 
+			 mongoc_gridfs_t *gridfsPtr,
+			 Tcl_Obj *queryObj) {
+  bson_t query[1];
+  mongoc_cursor_t *files;
+  bson_iter_t it[1];
+  bson_oid_t id;
+  bson_t b[1];
+  const bson_t *nextPtr;
+  bson_error_t bsonError;
+  Tcl_Obj **objv;
+  int objc, result;
+
+  result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
+  if (result != TCL_OK || (objc % 3 != 0)) {
+    return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
+  }
+
+  BsonAppendObjv(interp, query, objc, objv);
+  files = mongoc_collection_find( gridfsPtr->files, 0, 
+				   0, 0, 0 /* batch_size */,
+				   query, NULL, NULL);
+  bson_destroy(query);
+
+  /* files should be a valid cursor even if the file doesn't exist */
+  if ( files == NULL ) {
+    return NsfPrintError(interp, "gridfs::remove_file: invalid cursor for files");
+  }
+
+  /* Remove each file and it's chunks from files named filename */
+  while (mongoc_cursor_next(files, &nextPtr)) {
+    bson_iter_init_find(it, nextPtr, "_id");
+    id = *bson_iter_oid(it);
+
+    /* Remove the file with the specified id */
+    bson_init(b);
+    bson_append_oid(b, "_id", 3, &id);
+    mongoc_collection_delete(gridfsPtr->files, 0, b, NULL, &bsonError);
+    bson_destroy(b);
+
+    /* Remove all chunks from the file with the specified id */
+    bson_init(b);
+    bson_append_oid(b, "files_id", 8, &id);
+    mongoc_collection_delete(gridfsPtr->chunks, 0, b, NULL, &bsonError);
+    bson_destroy(b);
+  }
+
+  mongoc_cursor_destroy(files);
   return TCL_OK;
 }
 
 /*
-cmd gridfs::close NsfMongoGridFSClose {
-  {-argName "gfs" -required 1 -type gridfs -withObj 1}
+cmd gridfile::open NsfMongoGridFileOpen {
+  {-argName "gfs" -required 1 -type mongoc_gridfs_t}
+  {-argName "query" -required 1 -type tclobj}
 }
 */
 static int
-NsfMongoGridFSClose(Tcl_Interp *interp, gridfs *gridfsPtr, Tcl_Obj *gridfsObj) {
+NsfMongoGridFileOpen(Tcl_Interp *interp, 
+		     mongoc_gridfs_t *gridfsPtr, 
+		     Tcl_Obj *queryObj) {
+  mongoc_gridfs_file_t* gridFilePtr;
+  bson_error_t bsonError;
+  int result = TCL_OK, objc;
+  bson_t query[1];
+  Tcl_Obj **objv;
 
-  gridfs_destroy(gridfsPtr);
-  Nsf_PointerDelete(ObjStr(gridfsObj), gridfsPtr, 1);
+  /*fprintf(stderr, "NsfMongoQuery: namespace %s withLimit %d withSkip %d\n",
+    namespace, withLimit, withSkip);*/
 
-  return TCL_OK;
+  result = Tcl_ListObjGetElements(interp, queryObj, &objc, &objv);
+  if (result != TCL_OK || (objc % 3 != 0)) {
+    return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(queryObj));
+  }
+
+  BsonAppendObjv(interp, query, objc, objv);
+
+  gridFilePtr = mongoc_gridfs_find_one(gridfsPtr, query, &bsonError);
+
+  if (gridFilePtr != NULL) {
+    char buffer[80];
+
+    if (Nsf_PointerAdd(interp, buffer, "mongoc_gridfs_file_t", gridFilePtr) == TCL_OK) {
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+    } else {
+      mongoc_gridfs_file_destroy(gridFilePtr);
+      result = TCL_ERROR;
+    }
+  } else {
+    Tcl_ResetResult(interp);
+  }
+
+  bson_destroy(query);
+  return result;
 }
+
 
 /***********************************************************************
  * GridFile interface
@@ -1089,28 +1294,28 @@ NsfMongoGridFSClose(Tcl_Interp *interp, gridfs *gridfsPtr, Tcl_Obj *gridfsObj) {
 
 /*
 cmd gridfile::close NsfMongoGridFileClose {
-  {-argName "file" -required 1 -type gridfile -withObj 1}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t -withObj 1}
 }
 */
 static int
-NsfMongoGridFileClose(Tcl_Interp *interp, gridfile* gridFilePtr, Tcl_Obj *gridFileObj) {
+NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr, Tcl_Obj *gridFileObj) {
 
-  gridfile_destroy(gridFilePtr);
-  Nsf_PointerDelete(ObjStr(gridFileObj), gridFilePtr, 1);
+  mongoc_gridfs_file_destroy(gridFilePtr);
+  Nsf_PointerDelete(ObjStr(gridFileObj), gridFilePtr, 0);
 
   return TCL_OK;
 }
 
 /*
 cmd gridfile::get_contentlength NsfMongoGridFileGetContentlength {
-  {-argName "gridfile" -required 1 -type gridfile}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
 }
 */
 static int
-NsfMongoGridFileGetContentlength(Tcl_Interp *interp, gridfile* gridFilePtr) {
-  gridfs_offset len;
+NsfMongoGridFileGetContentlength(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr) {
+  int64_t len;
 
-  len = gridfile_get_contentlength(gridFilePtr);
+  len = mongoc_gridfs_file_get_length(gridFilePtr);
   Tcl_SetObjResult(interp, Tcl_NewLongObj(len));
 
   return TCL_OK;
@@ -1118,94 +1323,68 @@ NsfMongoGridFileGetContentlength(Tcl_Interp *interp, gridfile* gridFilePtr) {
 
 /*
 cmd gridfile::get_contenttype NsfMongoGridFileGetContentType {
-  {-argName "gridfile" -required 1 -type gridfile}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
 }
 */
 static int
-NsfMongoGridFileGetContentType(Tcl_Interp *interp, gridfile* gridFilePtr) {
-  CONST char *contentType;
+NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr) {
 
-  contentType = gridfile_get_contenttype(gridFilePtr);
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(contentType, -1));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(gridFilePtr->bson_content_type, -1));
 
   return TCL_OK;
 }
 
 /*
 cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {
-  {-argName "gridfile" -required 1 -type tclgridfile* gridFilePtrobj}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
 }
 */
 static int
-NsfMongoGridFileGetMetaData(Tcl_Interp *interp, gridfile* gridFilePtr) {
-  bson b;
-  bson_bool_t copyData = 0; // TODO: what does this
+NsfMongoGridFileGetMetaData(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr) {
 
-  gridfile_get_metadata(gridFilePtr, &b, copyData);
-  Tcl_SetObjResult(interp, BsonToList(interp, b.data, 0));
-
-  return TCL_OK;
-}
-
-/*
-cmd gridfile::open NsfMongoGridFileOpen {
-  {-argName "gfs" -required 1 -type gridfs}
-  {-argName "filename" -required 1}
-}
-*/
-static int
-NsfMongoGridFileOpen(Tcl_Interp *interp, gridfs *gridfsPtr, CONST char *filename) {
-  gridfile* gridFilePtr;
-  int result;
-
-  gridFilePtr = (gridfile *)ckalloc(sizeof(gridfile));
-  result = gridfs_find_filename(gridfsPtr, filename, gridFilePtr);
-
-  if (result == MONGO_OK) {
-    char buffer[80];
-    Nsf_PointerAdd(interp, buffer, "gridfile", gridFilePtr);
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
-  } else {
-    ckfree((char *)gridFilePtr);
-    Tcl_ResetResult(interp);
-  }
+  Tcl_SetObjResult(interp, BsonToList(interp, &gridFilePtr->bson_metadata, 0));
 
   return TCL_OK;
 }
 
 /*
 cmd gridfile::read NsfMongoGridFileRead {
-  {-argName "gridfile" -required 1 -type gridfile}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
   {-argName "size" -required 1 -type int}
 }
 */
 static int
-NsfMongoGridFileRead(Tcl_Interp *interp, gridfile *gridFilePtr, int size) {
+NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int size) {
   int readSize;
-  char *buffer;
+  Tcl_Obj *resultObj = Tcl_NewByteArrayObj(NULL, size);
+  struct iovec iov = { NULL, size };
 
-  buffer = ckalloc(size);
-  readSize = gridfile_read_buffer(gridFilePtr, buffer, size);
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, readSize));
-  ckfree(buffer);
+  iov.iov_base = Tcl_SetByteArrayLength(resultObj, size);
+
+  readSize = mongoc_gridfs_file_readv(gridFilePtr, &iov, 1,
+				      0 /* min_bytes */,
+				      0 /* timeout_msec */);
+  /*fprintf(stderr, "NsfMongoGridFileRead want %d got %d\n", size, readSize);*/
+  Tcl_SetByteArrayLength(resultObj, readSize);
+  Tcl_SetObjResult(interp, resultObj);
 
   return TCL_OK;
 }
 
 /*
 cmd "gridfile::seek" NsfMongoGridFileSeek {
-  {-argName "file" -required 1 -type gridfile}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
   {-argName "offset" -required 1 -type int32}
 }
 */
 static int
-NsfMongoGridFileSeek(Tcl_Interp *interp, gridfile *gridFilePtr, int offset) {
-  int pos;
+NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int offset) {
+  int result;
 
-  pos = gridfile_seek(gridFilePtr, offset);
-  Tcl_SetObjResult(interp, Tcl_NewIntObj(pos));
+  /* TODO: whence SEEK_SET, SEEK_CUR or SEEK_END; implementation of SEEK_END looks incorrect */
+  result = mongoc_gridfs_file_seek(gridFilePtr, offset, SEEK_SET);
 
-  return TCL_OK;
+  return result < 0 ? TCL_ERROR : TCL_OK;
 }
 
 /***********************************************************************
@@ -1271,10 +1450,15 @@ Nsfmongo_Init(Tcl_Interp * interp) {
     /*
      * register the pointer converter
      */
-    Nsf_PointerTypeRegister(interp, "gridfs",       &gridfsCount);
-    Nsf_PointerTypeRegister(interp, "gridfile",     &gridfileCount);
-    Nsf_PointerTypeRegister(interp, "mongo",        &mongoCount);
-    Nsf_PointerTypeRegister(interp, "mongo_cursor", &cursorCount);
+    Nsf_PointerTypeRegister(interp, "mongoc_client_t",      &mongoClientCount);
+    Nsf_PointerTypeRegister(interp, "mongoc_collection_t",  &mongoCollectionCount);
+    Nsf_PointerTypeRegister(interp, "mongoc_cursor_t",      &mongoCursorCount);
+    Nsf_PointerTypeRegister(interp, "mongoc_gridfs_file_t", &gridfileCount);
+    Nsf_PointerTypeRegister(interp, "mongoc_gridfs_t",      &gridfsCount);
+
+    for (i=0; i < nr_elements(method_command_namespace_names); i++) {
+      Tcl_CreateNamespace(interp, method_command_namespace_names[i], 0, (Tcl_NamespaceDeleteProc *)NULL);
+    }
 
     /* create all method commands (will use the namespaces above) */
     for (i=0; i < nr_elements(method_definitions)-1; i++) {
@@ -1291,3 +1475,13 @@ Nsfmongo_SafeInit(interp)
 {
     return Nsfmongo_Init(interp);
 }
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * indent-tabs-mode: nil
+ * End:
+ */
+

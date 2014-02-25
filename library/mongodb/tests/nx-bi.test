@@ -141,7 +141,8 @@ $q save
 
 Posting show
 
-puts stderr ====EXIT
+nx::mongo::db close
+
 ######################################################################
 # Output
 ######################################################################
@@ -180,3 +181,11 @@ puts stderr ====EXIT
 #     ts: {05-Nov-09 10:33}, 
 #     tags: [ nsf, nx, finance, economy ]
 # }
+######################################################################
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

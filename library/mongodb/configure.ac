@@ -35,17 +35,27 @@ AC_CONFIG_AUX_DIR(../../config)
 #--------------------------------------------------------------------
 # specify some extra flags
 #--------------------------------------------------------------------
-AC_ARG_WITH(mongodb,
-        [  --with-mongodb=MONGO_INCLUDE_DIR[,MONGO_LIB_DIR]
+AC_ARG_WITH(mongoc,
+        [  --with-mongoc=MONGOC_INCLUDE_DIR[,MONGOC_LIB_DIR]
+            absolute path to mongo.h and optionally the path to the library, 
+           --without-mongoc disables build of the mongo interface],
+        [with_mongoc=$withval], [with_mongoc=no])
+AC_ARG_WITH(bson,
+        [  --with-bson=BSON_INCLUDE_DIR[,BSON_LIB_DIR]
             absolute path to bson.h and optionally the path to the library, 
-           --without-mongodb disables build of the mongo interface],
-        [with_mongodb=$withval], [with_mongodb=no])
+           --without-bson disables build of the mongo interface],
+        [with_bson=$withval], [with_bson=no])
 
 AC_ARG_WITH(nsf,
         [  --with-nsf=DIR_CONTAINING_NSFCONFIG_SH
             absolute path to nsfConfig.sh, 
            --without-nsf disables, but this is pointless],
         [with_nsf=$withval], [AC_MSG_ERROR([--with-nsf is required])])
+AC_ARG_ENABLE(development,
+	AC_HELP_STRING([--enable-development], 
+		[build nsf with development support (intensive runtime checking, etc.; default: disabled)]),
+        [enable_development=$enableval], [enable_development=no])
+
 
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
@@ -86,35 +96,53 @@ TEA_SETUP_COMPILER
 # This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
-if test ! "${with_mongodb}" = no; then
-        MONGO_INC_DIR="`echo $with_mongodb |cut -f1 -d,`"
-        MONGO_LIB_DIR="`echo $with_mongodb |cut -f2 -d, -s`"
+if test ! "${with_mongoc}" = no; then
+        MONGOC_INC_DIR="`echo $with_mongoc |cut -f1 -d,`"
+        MONGOC_LIB_DIR="`echo $with_mongoc |cut -f2 -d, -s`"
 fi
-if test -z "$MONGO_INC_DIR" ; then
+if test ! "${with_bson}" = no; then
+        BSON_INC_DIR="`echo $with_bson |cut -f1 -d,`"
+        BSON_LIB_DIR="`echo $with_bson |cut -f2 -d, -s`"
+fi
+
+mongo_h_ok=1
+if test -z "$MONGOC_INC_DIR" ; then
         mongo_h_ok=0
         MONGO_INC_SPEC=""
-else
-        MONGO_INC_SPEC="-I${MONGO_INC_DIR}"
-        echo "Checking ${MONGO_INC_DIR}/bson.h"
-        if test -f "${MONGO_INC_DIR}/bson.h" ; then
-                mongo_h_ok=1
-        else
+fi
+if test -z "$BSON_INC_DIR" ; then
+        mongo_h_ok=0
+        MONGO_INC_SPEC=""
+fi
+
+if test "${mongo_h_ok}" = "1" ; then
+        MONGO_INC_SPEC="-I${MONGOC_INC_DIR} -I${BSON_INC_DIR}"
+        echo "Checking ${MONGOC_INC_DIR}/mongoc.h"
+        if test ! -f "${MONGOC_INC_DIR}/mongoc.h" ; then
+                mongo_h_ok=0
+        fi
+        echo "Checking ${BSON_INC_DIR}/bson.h"
+        if test ! -f "${BSON_INC_DIR}/bson.h" ; then
                 mongo_h_ok=0
         fi
 fi
                                                                               
 if test "${mongo_h_ok}" = "0" ; then
       AC_MSG_ERROR([
-        Could not locate bson.h on your machine to build the nsf mongo interface.
+        Could not locate bson.h and mongo.h on your machine to build the nsf mongo interface.
         ])
 fi
-                                                                              
-if test -z "${MONGO_LIB_DIR}" ; then
+
+if test -z "${MONGOC_LIB_DIR}" ; then
         MONGO_LIB_SPEC=""
 else
-        MONGO_LIB_SPEC="-L${MONGO_LIB_DIR}"
+        MONGO_LIB_SPEC="-L${MONGOC_LIB_DIR}"
 fi
-                                                                              
+
+if test ! -z "${BSON_LIB_DIR}" ; then
+        MONGO_LIB_SPEC="${MONGO_LIB_SPEC} -L${BSON_LIB_DIR}"
+fi
+
 #echo "MONGO include spec = '${MONGO_INC_SPEC}'"
 #echo "MONGO lib spec = '${MONGO_LIB_SPEC}'"
 
@@ -129,7 +157,8 @@ TEA_ADD_SOURCES([nsfmongo.c])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES([-I${with_nsf}/generic ${NSF_BUILD_INCLUDE_SPEC} ${MONGO_INC_SPEC}])
 #TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -Wl,-rpath,${MONGO_LIB_DIR} -L${MONGO_LIB_DIR} -lmongoc -lbson])
-TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -L${MONGO_LIB_DIR} -lmongoc -lbson])
+#TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -L${MONGO_LIB_DIR} -lmongoc -lbson])
+TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -lmongoc-1.0 -lbson-1.0])
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])
 TEA_ADD_TCL_SOURCES([])
@@ -211,6 +240,10 @@ TEA_ENABLE_SYMBOLS
 
 AC_DEFINE(USE_TCL_STUBS)
 #AC_DEFINE(USE_TK_STUBS)
+if test "$enable_development" = yes; then
+   AC_DEFINE(NSF_DEVELOPMENT, 1, [Are we building with development support?])
+fi
+
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It

@@ -17,12 +17,15 @@ package require nsf::mongo
 #    > db.persons.find();
 #
 
-#set mongoConn [::mongo::connect -server 127.0.0.1:27017]
-set mongoConn [::mongo::connect]
+#set mongoConn [::mongo::connect -uri mongodb://127.0.0.1:27017/]
+? {set mongoConn [::mongo::connect]} "mongoc_client_t:0"
 puts "Connection: $mongoConn"
 
+
+
 if {1} {
-  #::mongo::remove $mongoConn tutorial.persons {}
+  
+  #::mongo::collection::delete $mongoConn tutorial.persons {}
   # Drop old potenially old collection and 
   # recreate it as a capped collection
   ::mongo::run -nocomplain $mongoConn tutorial {drop string persons}
@@ -30,62 +33,85 @@ if {1} {
   ? {::mongo::run $mongoConn tutorial {
     create string persons
     capped bool 1 
-    size int 100000
+    size int32 100000
   }} 1
 
+  ? {set mongoColl [::mongo::collection::open $mongoConn tutorial persons]} "mongoc_collection_t:0"
+  puts "Collection: $mongoColl"
+
+  ? {mongo::collection::count $mongoColl {}} 0
+
+
   puts "\nInserting a few tuples"
+  ? {llength [::mongo::collection::insert $mongoColl \
+		  [list name string Gustaf projects string nsf age int32 53]]} "12"
+
+  ? {mongo::collection::count $mongoColl {}} 1
+
+  ::mongo::collection::insert $mongoColl \
+      [list name string Stefan projects string nsf]
+  ::mongo::collection::insert $mongoColl \
+      [list name string Victor a array {0 string "x" 1 string "y"} age int 31]
+
   ? {
-    set r [::mongo::insert $mongoConn tutorial.persons [list name string Joe projects string abc age int 23 \
-							    classes array {0 object {$ref string courses $id oid 1}}]]
+    set r [::mongo::collection::insert $mongoColl \
+	       [list name string Joe \
+		    projects string abc \
+		    age int32 23 \
+		    classes array {0 document {$ref string courses $id oid 1}}]]
     string match "_id oid *" $r
   } 1
 
-  ::mongo::insert $mongoConn tutorial.persons [list name string Gustaf projects string nsf age int 53]
-  ::mongo::insert $mongoConn tutorial.persons [list name string Stefan projects string nsf]
-  ::mongo::insert $mongoConn tutorial.persons [list name string Franz info object {x int 203 y int 102} age int 29 projects string gtat]
-  ::mongo::insert $mongoConn tutorial.persons [list name string Victor a array {0 string "x" 1 string "y"} age int 31]
-  ::mongo::insert $mongoConn tutorial.persons [list name string Selim ts timestamp {1302945037 1} d date 1302947619279]
+  ::mongo::collection::insert $mongoColl \
+      [list name string Franz info document {x int 203 y int 102} age int 29 projects string gtat]
+  ::mongo::collection::insert $mongoColl \
+      [list name string Selim ts timestamp {1302945037 1} d date 1302947619279]
+
+  ? {mongo::collection::count $mongoColl {}} 6
 
   puts stderr "\nCreate an index on name (ascending)"
-  ? {::mongo::index $mongoConn tutorial.persons [list name int 1]} 1
+  ? {::mongo::collection::index $mongoColl [list name int 1]} 1
 }
 
 puts stderr "\nFull content"
-? {llength [::mongo::query $mongoConn tutorial.persons {}]} 6
+? {llength [::mongo::collection::query $mongoColl {}]} 6
 
 puts stderr "\nProject members"
 ? {
-  llength [::mongo::query $mongoConn tutorial.persons \
-	       [list \$query object {projects string nsf} \$orderby object {name int 1}]]
+  llength [::mongo::collection::query $mongoColl \
+	       [list \$query document {projects string nsf} \$orderby document {name int 1}]]
 } 2
 
 puts stderr "\nProject members of nsf sorted by name"
 ? {
-  set r [lindex [::mongo::query $mongoConn tutorial.persons \
-		     [list \$query object {projects string nsf} \$orderby object {name int 1}]] 0]
+  set r [lindex [::mongo::collection::query $mongoColl \
+		     [list \$query document {projects string nsf} \$orderby document {name int 1}]] 0]
   string match *Gustaf* $r
 } 1
 
 puts stderr "\nAge > 30 (all atts)"
 ? {
-  set r [::mongo::query $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}]]
+  set r [::mongo::collection::query $mongoColl \
+	     [list \$query document {age document {$gt int 30}}]]
   set _ [llength $r]-[llength [lindex $r 0]]
 } 2-12
-  
+
 
 puts stderr "\nAge > 30 (only atts name and age, aside of _id)"
 ? {
-  set r [::mongo::query $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}] \
+  set r [::mongo::collection::query $mongoColl \
+	     [list \$query document {age document {$gt int 30}}] \
 	     -atts {name int 1 age int 1}]
   set _ [llength $r]-[llength [lindex $r 0]]
 } 2-9
 
 puts stderr "\nCount Age > 30"
-? {::mongo::count $mongoConn tutorial.persons {age object {$gt int 30}}} 2
+? {::mongo::collection::count $mongoColl {age document {$gt int 30}}} 2
 
 puts stderr "\nAge > 30 (all atts, via cursor interface)"
 ? {
-  set cursor [::mongo::cursor::find $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}]]
+  set cursor [::mongo::cursor::find $mongoColl \
+		  [list \$query document {age document {$gt int 30}}]]
   puts "Cursor: $cursor"
   set r0 [::mongo::cursor::next $cursor]
   set r1 [::mongo::cursor::next $cursor]
@@ -96,7 +122,8 @@ puts stderr "\nAge > 30 (all atts, via cursor interface)"
 
 puts stderr "\nAge > 30 (all atts, via cursor interface, tailable)"
 ? {
-  set cursor [::mongo::cursor::find $mongoConn tutorial.persons [list \$query object {age object {$gt int 30}}] -tailable]
+  set cursor [::mongo::cursor::find $mongoColl \
+		  [list \$query document {age document {$gt int 30}}] -tailable]
   if {$cursor ne ""} {
     set r ""
     while {1} {
@@ -110,7 +137,8 @@ puts stderr "\nAge > 30 (all atts, via cursor interface, tailable)"
 
 puts stderr "\nEmpty result (via cursor interface)"
 ? {
-  set cursor [::mongo::cursor::find $mongoConn tutorial.persons [list \$query object {age object {$gt int 300}}]]
+  set cursor [::mongo::cursor::find $mongoColl \
+		  [list \$query document {age document {$gt int 300}}]]
   if {$cursor ne ""} {
     set r {}
     while {1} {
@@ -123,13 +151,26 @@ puts stderr "\nEmpty result (via cursor interface)"
 } 0
 
 puts stderr "\nArray 'a' contains 'x'"
-? {llength [::mongo::query $mongoConn tutorial.persons [list \$query object {a string "x"}]]} 1
+? {llength [::mongo::collection::query $mongoColl \
+		[list \$query document {a string "x"}]]} 1
 
-puts stderr "\nEmbedded object has some value (info.y > 100)"
-? {llength [::mongo::query $mongoConn tutorial.persons [list \$query object {info.y object {$gt int 100}}]]} 1
+puts stderr "\nEmbedded document has some value (info.y > 100)"
+? {llength [::mongo::collection::query $mongoColl \
+		[list \$query document {info.y document {$gt int 100}}]]} 1
 
 puts stderr "\nProjects in {nsf gtat}"
-? { llength [::mongo::query $mongoConn tutorial.persons \
-		 [list \$query object {projects object {$in array {0 string nsf 1 string gtat}}}]]} 3
+? { llength [::mongo::collection::query $mongoColl \
+		 [list \$query document {projects document {$in array {0 string nsf 1 string gtat}}}]]} 3
 
+puts stderr "\nClose collecton $mongoColl"
+::mongo::collection::close $mongoColl
+
+puts stderr "\nClose connection $mongoConn"
 ::mongo::close $mongoConn
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

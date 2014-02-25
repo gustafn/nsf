@@ -8,38 +8,44 @@ array set ns {
   cmd  "::mongo"
 }
 array set ptrConverter {
-  mongo 1
-  gridfs 1
-  gridfile 1
-  mongo_cursor 1
+  mongoc_client_t 1
+  mongoc_collection_t 1
+  mongoc_cursor_t 1
+  mongoc_gridfs_file_t 1
+  mongoc_gridfs_t 1
 }
 
 
 cmd close NsfMongoClose {
-  {-argName "conn" -required 1 -type mongo -withObj 1}
+  {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
 }
 cmd connect NsfMongoConnect {
-  {-argName "-replica-set" -required 0 -nrargs 1}
-  {-argName "-server" -required 0 -nrargs 1 -type tclobj}
-  {-argName "-timeout" -required 0 -nrargs 1 -type int32}
+  {-argName "-uri" -required 0 -nrargs 1}
 }
 
 cmd run NsfMongoRunCmd {
   {-argName "-nocomplain" -required 0 -nrargs 0}
-  {-argName "conn" -required 1 -type mongo}
+  {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "db" -required 1}
   {-argName "cmd" -required 1 -type tclobj}
 }
 
-cmd count NsfMongoCount {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+#
+# collection
+#
+cmd "collection::close" NsfCollectionClose {
+  {-argName "collection" -required 1 -type mongoc_collection_t -withObj 1}
+}
+cmd "collection::count" NsfMongoCollectionCount {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
 }
-
-cmd index NsfMongoIndex {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd "collection::delete" NsfMongoCollectionDelete {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
+  {-argName "condition" -required 1 -type tclobj}
+}
+cmd "collection::index" NsfMongoCollectionIndex {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "attributes" -required 1 -type tclobj}
   {-argName "-name" -required 0 -nrargs 1}
   {-argName "-background" -required 0 -nrargs 0}
@@ -48,31 +54,25 @@ cmd index NsfMongoIndex {
   {-argName "-ttl" -required 0 -nrargs 1 -type int32}
   {-argName "-unique" -required 0 -nrargs 0}
 }
-
-cmd insert NsfMongoInsert {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd "collection::insert" NsfMongoCollectionInsert {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "values" -required 1 -type tclobj}
 }
-
-cmd query NsfMongoQuery {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd collection::open NsfCollectionOpen {
+  {-argName "conn" -required 1 -type mongoc_client_t}
+  {-argName "dbname" -required 1}
+  {-argName "collectionname" -required 1}
+}
+cmd "collection::query" NsfMongoCollectionQuery {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
   {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
-  {-argName "-limit" -required 0 -nrargs 1 -type int32}
-  {-argName "-skip" -required 0 -nrargs 1 -type int32}
+  {-argName "-limit" -required 0 -type int32}
+  {-argName "-skip" -required 0 -type int32}
 }
 
-cmd remove NsfMongoRemove {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
-  {-argName "condition" -required 1 -type tclobj}
-}
-
-cmd update NsfMongoUpdate {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+cmd "collection::update" NsfMongoCollectionUpdate {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "cond" -required 1 -type tclobj}
   {-argName "values" -required 1 -type tclobj}
   {-argName "-upsert" -required 0 -nrargs 0}
@@ -83,8 +83,7 @@ cmd update NsfMongoUpdate {
 # Cursor
 #
 cmd cursor::find NsfMongoCursorFind {
-  {-argName "conn" -required 1 -type mongo}
-  {-argName "namespace" -required 1}
+  {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
   {-argName "-atts" -required 0 -nrargs 1 -type tclobj}
   {-argName "-limit" -required 0 -type int32}
@@ -93,64 +92,77 @@ cmd cursor::find NsfMongoCursorFind {
   {-argName "-awaitdata" -required 0 -nrargs 0}
 }
 cmd cursor::next NsfMongoCursorNext {
-  {-argName "cursor" -required 1 -type mongo_cursor}
+  {-argName "cursor" -required 1 -type mongoc_cursor_t}
 }
 cmd cursor::close NsfMongoCursorClose {
-  {-argName "cursor" -required 1 -type mongo_cursor -withObj 1}
+  {-argName "cursor" -required 1 -type mongoc_cursor_t -withObj 1}
 }
 
 #
 # GridFS
 #
+cmd gridfs::close NsfMongoGridFSClose {
+  {-argName "gfs" -required 1 -type mongoc_gridfs_t -withObj 1}
+}
+
 cmd gridfs::open NsfMongoGridFSOpen {
-  {-argName "conn" -required 1 -type mongo}
+  {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "dbname" -required 1}
   {-argName "prefix" -required 1}
 }
 
-cmd gridfs::store_file NsfMongoGridFSStoreFile {
-  {-argName "gfs" -required 1 -type gridfs}
-  {-argName "filename" -required 1}
-  {-argName "remotename" -required 1}
+
+#
+# GridFile commands operating on GridFS
+#
+
+cmd gridfile::create NsfMongoGridFileCreate {
+  {-argName "-source" -required 1 -typeName "gridfilesource" -type "file|string"}
+  {-argName "gfs" -required 1 -type mongoc_gridfs_t}
+  {-argName "value" -required 1}
+  {-argName "name" -required 1}
   {-argName "contenttype" -required 1}
 }
 
-cmd gridfs::remove_file NsfMongoGridFSRemoveFile {
-  {-argName "gfs" -required 1 -type gridfs}
-  {-argName "filename" -required 1}
+cmd "gridfile::delete" NsfMongoGridFileDelete {
+  {-argName "gfs" -required 1 -type mongoc_gridfs_t}
+  {-argName "query" -required 1 -type tclobj}
+}
+cmd "gridfile::open" NsfMongoGridFileOpen {
+  {-argName "gfs" -required 1 -type mongoc_gridfs_t}
+  {-argName "query" -required 1 -type tclobj}
 }
 
-cmd gridfs::close NsfMongoGridFSClose {
-  {-argName "gfs" -required 1 -type gridfs -withObj 1}
-}
 
 #
 # GridFile
 #
 
 cmd "gridfile::close" NsfMongoGridFileClose {
-  {-argName "file" -required 1 -type gridfile -withObj 1}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t -withObj 1}
 }
-
 cmd "gridfile::get_contentlength" NsfMongoGridFileGetContentlength {
-  {-argName "file" -required 1 -type gridfile}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
 }
 cmd "gridfile::get_contenttype" NsfMongoGridFileGetContentType {
-  {-argName "file" -required 1 -type gridfile}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
 }
 cmd "gridfile::get_metadata" NsfMongoGridFileGetMetaData {
-  {-argName "file" -required 1 -type gridfile}
-}
-cmd "gridfile::open" NsfMongoGridFileOpen {
-  {-argName "fs" -required 1 -type gridfs}
-  {-argName "filename" -required 1}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
 }
 cmd "gridfile::read" NsfMongoGridFileRead {
-  {-argName "file" -required 1 -type gridfile}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
   {-argName "size" -required 1 -type int32}
 }
 cmd "gridfile::seek" NsfMongoGridFileSeek {
-  {-argName "file" -required 1 -type gridfile}
+  {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
   {-argName "offset" -required 1 -type int32}
 }
 
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -11,12 +11,20 @@ package require nx::test
 #nsf::configure debug 2
 
 # Establish connection to the database
-? {::nx::mongo::db connect -db "tutorial"} mongo:0
+? {::nx::mongo::db connect -db "tutorial"} mongoc_client_t:0
 
 # Make sure, we start always from scratch
 
-nx::mongo::db remove tutorial.persons {}
-if {[::mongo::count [::nx::mongo::db cget -mongoConn] tutorial.persons {}] > 0} {
+nx::mongo::db delete tutorial.persons {}
+
+#
+# Create or lookup collection handle; the first operation is a create,
+# the second a lookup.
+#
+? {::nx::mongo::db collection tutorial.persons} "mongoc_collection_t:0"
+? {::nx::mongo::db collection tutorial.persons} "mongoc_collection_t:0"
+
+if {[::mongo::collection::count [::nx::mongo::db collection tutorial.persons] {}] > 0} {
   # when we create a capped colletion, we have to use "drop collection" to get rid of it.
   nx::mongo::db drop collection persons
 }
@@ -122,4 +130,13 @@ puts "\nFind oldies:"
 ? {llength [set persons [Person find oldies]]} 1
 ? {lsort [lmap p $persons {$p cget -name}]} "Gustaf"
 
+# check autoclosing
+nx::mongo::db close
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
 

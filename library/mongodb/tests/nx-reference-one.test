@@ -11,7 +11,7 @@ package require nx::mongo
 package require nx::test
 
 # Establish connection to the database
-? {::nx::mongo::db connect -db "tutorial"} mongo:0
+? {::nx::mongo::db connect -db "tutorial"} mongoc_client_t:0
 
 # Make sure, we start always from scratch
 nx::mongo::db drop collection users
@@ -144,3 +144,11 @@ User show
 #     name: SmithR
 # }
 # 
+
+######################################################################
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -25,22 +25,22 @@ package require nsf::mongo
 #
 # First, as usual, open the connection to the mongo db
 #
-? {set mongoConn [::mongo::connect]} mongo:0
+? {set mongoConn [::mongo::connect]} mongoc_client_t:0
 
 #
 # Open a GridFS in the mongo datbase "myfs" and use the usual prefix
 # "fs", such GridFS names the collections "fs.chunks" and "fs.files".
 #
-? {set gridFS [::mongo::gridfs::open $mongoConn myfs fs]} gridfs:0
+? {set gridFS [::mongo::gridfs::open $mongoConn myfs fs]} mongoc_gridfs_t:0
 
-
+set dir [file dirname [file dirname [info script]]]
 set fn README
 # gridfs::remove_file removes all files with the specified name
 # multiple store operations create "revisions" with different uploadDates
-::mongo::gridfs::remove_file $gridFS $fn
+::mongo::gridfile::delete $gridFS [list filename string $fn]
 
-# make sure, nothing else is stored there.
-::mongo::remove $mongoConn myfs.fs.files {}
+# get the fs.files collection 
+set mongoColl [mongo::collection::open $mongoConn myfs fs.files]
 
 #
 # The current version of gridfs_store_file() is quite unfriendly,
@@ -49,43 +49,52 @@ set fn README
 #
 # Store a known file:
 #
-? {::mongo::gridfs::store_file $gridFS $fn $fn text/plain} 1
+? {::mongo::gridfile::create -source file $gridFS $dir/$fn $fn text/plain} 1
 
 #
-# Open a grid file, get some of its properties, and read it in chunks
-# of 500 bytes, and close it finally.
-#
-? {set f [mongo::gridfile::open $gridFS README]} gridfile:0
+# Open grid file, get some of its properties, and read it in chunks
+# of 1000 bytes, and close it finally.
+
+? {set f [mongo::gridfile::open $gridFS {filename string README}]} mongoc_gridfs_file_t:0
 ? {mongo::gridfile::get_metadata $f} ""
-? {mongo::gridfile::get_contentlength $f} [file size README]
+? {mongo::gridfile::get_contentlength $f} [file size $dir/README]
 ? {mongo::gridfile::get_contenttype $f} text/plain
+
 ? {
   set chunks 0
   while {1} {
-    set chunk [mongo::gridfile::read $f 500]
-    if {[string length $chunk] < 500} {
+    set chunk [mongo::gridfile::read $f 1000]
+    puts "... read chunk length [string length $chunk]"
+    if {[string length $chunk] > 0}   { incr chunks }
+    if {[string length $chunk] < 1000} {
       break
     }
-    incr chunks
   }
   set chunks
-} 11
+} 4
 ? {mongo::gridfile::close $f} ""
 
 #
 # Access the files stored in the gridfs via plain query interface.
 # (should be just one)
 puts "\nAll Files:"
-? {llength [::mongo::query $mongoConn myfs.fs.files {}]} 1
+? {llength [::mongo::collection::query $mongoColl {}]} 1
+
+# store one more copy
+? {::mongo::gridfile::create -source file $gridFS $dir/$fn $fn text/plain} 1
+
+# we should have now two entries:
+? {llength [::mongo::collection::query $mongoColl {}]} 2
+puts [join [::mongo::collection::query $mongoColl {}] \n]
 
 #
 # Get the file named README from the gridfs via plain query interface
 #
-? {set files [::mongo::query $mongoConn myfs.fs.files \
-		  [list \$query object {filename string README}] \
+? {set files [::mongo::collection::query $mongoColl \
+		  [list \$query document {filename string README}] \
 		  -limit 1]
   llength [lindex $files 0]
-} 24
+} 18
 
 #
 # Extract the oid from the bson attributes
@@ -101,14 +110,14 @@ puts "\nAll Files:"
 # Add a dc:creator to the bson attributes 
 # and update the entry in the gridfs
 #
-? {::mongo::update $mongoConn myfs.fs.files [list _id oid $oid] \
-       [concat [lindex $files 0] [list metadata object {dc:creator string "Gustaf Neumann"}]]
-} 1
+? {::mongo::collection::update $mongoColl [list _id oid $oid] \
+       [concat [lindex $files 0] [list metadata document {dc:creator string "Gustaf Neumann"}]]
+} ""
 #
 # Now we can use the gridfs interface to obtain the additional
 # metadata as well
 #
-set f [mongo::gridfile::open $gridFS README]
+set f [mongo::gridfile::open $gridFS [list _id oid $oid]]
 ? {mongo::gridfile::get_metadata $f} "dc:creator string {Gustaf Neumann}"
 mongo::gridfile::close $f
 
@@ -116,4 +125,12 @@ mongo::gridfile::close $f
 # close everything
 #
 ::mongo::gridfs::close $gridFS
+::mongo::collection::close $mongoColl
 ::mongo::close $mongoConn
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -9,7 +9,7 @@ package provide nx::mongo 0.4
 
 # todo: how to handle multiple connections; currently we have a single, global connection
 # todo: all references are currently auto-fetched. make this optional
-# todo: If "emebds" or "references" are used, the object must be of 
+# todo: If "embeds" or "references" are used, the object must be of
 #       the specified classes, no subclasses allowed
 # todo: extend the query language syntax, e.g. regexp, ...
 # todo: handle remove for non-multivalued embedded objects
@@ -25,6 +25,7 @@ namespace eval ::nx::mongo {
   ::nx::Object create ::nx::mongo::db {
     :object property db
     :object property mongoConn
+    :object property gridFsName
 
     :public object method connect {{-db test} args} {
       if {[info exists :db]} {
@@ -37,8 +38,17 @@ namespace eval ::nx::mongo {
       set :db $db
       set :mongoConn [::mongo::connect {*}$args]
     }
-    :public object method close   {}     {
-      ::mongo::close  ${:mongoConn}
+
+    :public object method close {} {
+      if {[info exists :gridFs]} {
+        ::nsf::log notice "nx::mongo: auto close gridfs"
+        :gridfs close
+      }
+      foreach {ns coll} [array get :collection] {
+        ::nsf::log notice "nx::mongo: auto close collection $ns $coll"
+        ::mongo::collection::close $coll
+      }
+      ::mongo::close ${:mongoConn}
       unset :db :mongoConn
     }
 
@@ -48,17 +58,124 @@ namespace eval ::nx::mongo {
         ::mongo::close ${:mongoConn}
       }
     }
+    :public object method collection {ns} {
+      set key :collection($ns)
+      if {[info exists $key]} {return [set $key]}
+      if {[regexp {^([^.]+)[.](.+)$} $ns _ db coll]} {
+        return [set $key [mongo::collection::open ${:mongoConn} $db $coll]]
+      }
+      error "invalid mongo namespace '$ns'"
+    }
 
-    :public object method count   {args} {::mongo::count  ${:mongoConn} {*}$args}
-    :public object method index   {args} {::mongo::index  ${:mongoConn} {*}$args}
-    :public object method insert  {args} {::mongo::insert ${:mongoConn} {*}$args}
-    :public object method remove  {args} {::mongo::remove ${:mongoConn} {*}$args}
-    :public object method query   {args} {::mongo::query  ${:mongoConn} {*}$args}
-    :public object method update  {args} {::mongo::update ${:mongoConn} {*}$args}
-    :public object method "drop collection" {name} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list drop string $name]}
-    :public object method "drop database" {} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list dropDatabase integer 1]}
-    :public object method "reset error" {} {::mongo::run -nocomplain ${:mongoConn} ${:db} [list reseterror integer 1]}
+    :public object method count  {ns args} {::mongo::collection::count  [:collection $ns] {*}$args}
+    :public object method index  {ns args} {::mongo::collection::index  [:collection $ns] {*}$args}
+    :public object method insert {ns args} {::mongo::collection::insert [:collection $ns] {*}$args}
+    :public object method delete {ns args} {::mongo::collection::delete [:collection $ns] {*}$args}
+    :public object method query  {ns args} {::mongo::collection::query  [:collection $ns] {*}$args}
+    :public object method update {ns args} {::mongo::collection::update [:collection $ns] {*}$args}
+    :public object method "drop collection" {name} {
+      ::mongo::run -nocomplain ${:mongoConn} ${:db} [list drop string $name]
+    }
+    :public object method "drop database" {} {
+      ::mongo::run -nocomplain ${:mongoConn} ${:db} [list dropDatabase integer 1]
+    }
+    :public object method "reset error" {} {
+      ::mongo::run -nocomplain ${:mongoConn} ${:db} [list reseterror integer 1]
+    }
     :public object method is_oid  {string} {expr {[string length $string] == 24}}
+
+    #
+    # GridFS
+    # 
+    :object property gridFs
+
+    :public object method "gridfs open" {{name fs}} {
+      if {[info exists :gridFsName]} {
+        if {${:gridFsName} eq $name} {return ${:gridFs}}
+        :gridfs close
+      }
+      set :gridFsName $name
+      set :gridFs [::mongo::gridfs::open ${:mongoConn} ${:db} $name]
+    }
+
+    :public object method "gridfs close" {} {
+      ::mongo::gridfs::close ${:gridFs}
+      unset :gridFs :gridFsName
+    }
+
+    :public object method "gridfs store_file" {local remote {mime text/plain}} {
+      ::mongo::gridfs::store_file ${:gridFs} $local $remote $mime
+    }
+    :public object method "gridfs store_string" {string remote {mime text/plain}} {
+      ::mongo::gridfs::store_string ${:gridFs} $string $remote $mime
+    }
+
+    :public object method "gridfs list" {name} {
+      if {[string first * $name] == -1} {
+        set info [::mongo::query ${:mongoConn} ${:db}.${:gridFsName}.files \
+                      [list \$query document [list filename string $name]] \
+                      -limit 1]
+        return [lindex $info 0]
+      } else {
+        ns_log notice "::mongo::query ${:mongoConn} ${:db}.${:gridFsName}.files"
+        set info [::mongo::query ${:mongoConn} ${:db}.${:gridFsName}.files {}]
+        return $info
+      }
+    }
+
+    :public object method "gridfs update" {id bson} {
+      ::mongo::update ${:mongoConn} ${:db}.${:gridFsName}.files \
+          [list _id oid $id] $bson
+    }
+
+    :public object method "file content" {name} {
+      set f [mongo::gridfile::open ${:gridFs} $name]
+      set content ""
+      while {1} {
+        append content [set chunk [mongo::gridfile::read $f 4096]]
+        if {[string length $chunk] < 4096} {
+          break
+        }
+      }
+      mongo::gridfile::close $f
+      return $content
+    }
+    
+    :public object method "gridfs set attribute" {file attribute value} {
+      set info [::nx::mongo::db gridfs list $file]
+      if {$info eq ""} {error "no such file <$file> stored in gridfs"}
+      foreach {att type v} $info { dict set d $att $v }
+      if {[dict exists $d $attribute] && [dict get $d $attribute] eq $value} {
+        # right value, nothing to do
+        return
+      } elseif {[dict exists $d $attribute]} {
+        # wrong value replace it
+        set bson {}
+        foreach {att type v} $info { 
+          if {$att eq $attribute} {
+            lappend bson $att $type $value
+          } else {
+            lappend bson $att $type $v
+          }
+        }
+      } else {
+        #no such value, add it
+        lappend bson {*}$info $attribute string $value
+      }
+      nx::mongo::db gridfs update [dict get $d _id] $bson
+    }
+
+    :public object method "gridfs map" {file url} {
+      ::nx::mongo::db gridfs set attribute $file url $url
+    }
+    :public object method "gridfs mapped" {url} {
+      set info [::mongo::query ${:mongoConn} ${:db}.${:gridFsName}.files \
+                    [list \$query document [list url string $url]] \
+                    -limit 1]
+      return [lindex $info 0]
+    }
+
+
   }
   
   #######################################################################
@@ -120,8 +237,8 @@ namespace eval ::nx::mongo {
 	set result [list]
 	foreach {pos type v} $value {lappend result [:bson decode $type $v]}
 	return $result
-      } elseif {$bsontype eq "object"} {
-	#puts stderr "*** we have an object '$value', [:serialize]"
+      } elseif {$bsontype eq "document"} {
+	#puts stderr "*** we have an document '$value', [:serialize]"
 	if {${:type} eq "embedded" && [info exists :arg]} {
 	  #puts stderr "*** we have an embed class = ${:arg}"
 	  set value [${:arg} bson create $value]
@@ -132,7 +249,7 @@ namespace eval ::nx::mongo {
 	  set value [:bson deref ${:arg} $value]
 	  #puts stderr "*** bson deref ${:arg} ==> $value"
 	} else {
-	  error "don't know how to decode object with value '$value'; [:serialize]"
+	  error "don't know how to decode document with value '$value'; [:serialize]"
 	}
       }
       return $value
@@ -161,7 +278,8 @@ namespace eval ::nx::mongo {
 
     :method "bson encodeValue" {value} {
       if {${:mongotype} eq "embedded_object"} {
-	return [list object [$value bson encode]]
+        #puts "embedded_object <$value>"
+	return [list document [$value bson encode]]
       } elseif {${:mongotype} eq "referenced_object"} {
 	if {![::nsf::var::exists $value _id]} {
 	  :log "autosave $value to obtain an object_id"
@@ -169,7 +287,7 @@ namespace eval ::nx::mongo {
 	}
 	set _id [$value cget -_id]
 	set cls [$value info class]
-	return [list object [list \
+	return [list document [list \
 				 {$ref} string [$cls cget -mongo_collection] \
 				 {$id} oid $_id \
 				 {$db} string [$cls cget -mongo_db]]]
@@ -296,10 +414,10 @@ namespace eval ::nx::mongo {
 	switch $op {
 	  "=" {lappend bson $att [$slot cget -mongotype] $value}
 	  ">" - "<" - "<=" - ">=" - "!="  {
-	    lappend bson $att object [list [:get relop $op] [$slot cget -mongotype] $value]
+	    lappend bson $att document [list [:get relop $op] [$slot cget -mongotype] $value]
 	  }
 	  "in" - "all" {
-	    lappend bson $att object [list [:get relop $op] {*}[$slot bson encode -array $value]]
+	    lappend bson $att document [list [:get relop $op] {*}[$slot bson encode -array $value]]
 	  }
 	  default {error "unknown operator $op"}
 	}
@@ -311,7 +429,7 @@ namespace eval ::nx::mongo {
     :method "bson query" {{-cond ""} {-orderby ""}} {
       #puts "bson query -cond <$cond> -orderby <$orderby>"
       set bson [:bson cond $cond]
-      set result [list \$query object $bson]
+      set result [list \$query document $bson]
 
       if {[llength $orderby] > 0} {
 	set bson [list]
@@ -319,7 +437,7 @@ namespace eval ::nx::mongo {
 	  lassign $attspec att direction
 	  lappend bson $att int [expr {$direction eq "desc" ? -1 : 1}]
 	}
-	lappend result \$orderby object $bson
+	lappend result \$orderby document $bson
       }
       #puts "bson query -cond <$cond> -orderby <$orderby> => $result"
       return $result
@@ -381,9 +499,9 @@ namespace eval ::nx::mongo {
       set result [list]
       foreach {name type value} $list {
 	switch $type {
-	  object { lappend result "\{ [:bson pp -indent $indent $value] \}" }
-	  array { lappend result "\[ [:bson pp_array -indent $indent $value] \]" }
-	  default { lappend result [list $value]}
+	  document { lappend result "\{ [:bson pp -indent $indent $value] \}" }
+	  array    { lappend result "\[ [:bson pp_array -indent $indent $value] \]" }
+	  default  { lappend result [list $value]}
 	}
       }
       return [join $result ", "]
@@ -395,9 +513,9 @@ namespace eval ::nx::mongo {
       foreach {name type value} $list {
 	set prefix "\n[string repeat { } $indent]$name: "
 	switch $type {
-	  object { lappend result "$prefix\{ [:bson pp -indent $nextIndent $value] \}" }
-	  array { lappend result "$prefix\[ [:bson pp_array -indent $nextIndent $value] \]" }
-	  default { lappend result $prefix[list $value]}
+	  document { lappend result "$prefix\{ [:bson pp -indent $nextIndent $value] \}" }
+	  array    { lappend result "$prefix\[ [:bson pp_array -indent $nextIndent $value] \]" }
+	  default  { lappend result $prefix[list $value]}
 	}
       }
       return [join $result ", "]
@@ -448,26 +566,26 @@ namespace eval ::nx::mongo {
     :public method pretty_variables {} {
       set vars {}
       foreach p [lmap handle [lsort [:info variables]] {::nx::Object info variable parameter $handle}] {
-	  if {[regexp {^([^:]+):(.*)$} $p _ name options]} {
-	      set resultOptions {}
-	      set opts [split $options ,]
-	      if {[lindex $opts 0] eq "embedded"} {
-		  set resultOpts {}
-		  foreach opt $opts {
-		      switch -glob $opt {
-			  slot=* {continue}
-			  arg=*  {lappend resultOpts type=[string range $opt 4 end]}
-			  default {lappend resultOpts $opt}
-		      }
-		  }
-		  lappend vars $name:[join $resultOpts ,]
-		  continue
-	      }
-	  }
-	  lappend vars $p
+        if {[regexp {^([^:]+):(.*)$} $p _ name options]} {
+          set resultOptions {}
+          set opts [split $options ,]
+          if {[lindex $opts 0] eq "embedded"} {
+            set resultOpts {}
+            foreach opt $opts {
+              switch -glob $opt {
+                slot=* {continue}
+                arg=*  {lappend resultOpts type=[string range $opt 4 end]}
+                default {lappend resultOpts $opt}
+              }
+            }
+            lappend vars $name:[join $resultOpts ,]
+            continue
+          }
+        }
+        lappend vars $p
       }
       return $vars
-  }
+    }
     
     #
     # index method
@@ -513,7 +631,7 @@ namespace eval ::nx::mongo {
 			     -atts [:bson atts $atts] \
 			     -limit 1] 0]
       if {$tuple eq ""} {
-	  return ""
+        return ""
       }
       if {$instance ne ""} {set instance [:uplevel [list ::nsf::object::qualify $instance]]}
       return [:bson create -name $instance $tuple]
@@ -548,7 +666,7 @@ namespace eval ::nx::mongo {
 			 {-limit} 
 			 {-skip} 
 			 {-puts:boolean 1} 
-			 } {
+                       } {
       set opts [list]
       if {[info exists limit]} {lappend opts -limit $limit}
       if {[info exists skip]} {lappend opts -skip $skip}
@@ -626,7 +744,7 @@ namespace eval ::nx::mongo {
       set body {}
       set c 0
       foreach {k v} [$obj eval [list array get :$name]] {
-        lappend body [incr c] object [list k string $k v string $v]
+        lappend body [incr c] document [list k string $k v string $v]
       }
       return [list array $body]
     }
@@ -646,7 +764,7 @@ namespace eval ::nx::mongo {
       dict for {k v} [$obj eval [list set :$name]] {
         lappend body $k string $v 
       }
-      return [list object $body]
+      return [list document $body]
     }
     :public method "bson rep decode dict" {slot name bsontype value} {
       set result ""
@@ -750,7 +868,7 @@ namespace eval ::nx::mongo {
 	#puts "delete a non-embedded entry"
 	if {[info exists :_id]} {
 	  set mongo_ns [[:info class] cget -mongo_ns]
-	  ::nx::mongo::db remove $mongo_ns [list _id oid ${:_id}]
+	  ::nx::mongo::db delete $mongo_ns [list _id oid ${:_id}]
 	} else {
 	  error "[self]: object does not contain an _id; it can't be delete from the mongo db."
 	}

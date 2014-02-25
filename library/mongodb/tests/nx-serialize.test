@@ -172,5 +172,10 @@ foreach i [Foo info instances] {$i destroy}
 ? {Foo countArrays} 2
 
 
-exit
-
+######################################################################
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

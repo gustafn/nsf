@@ -53,7 +53,7 @@ nx::mongo::db drop collection foos
 	set body {}
 	set c 0
 	foreach {k v} [$obj eval [list array get :$name]] {
-	    lappend body [incr c] object [list k string $k v string $v]
+	    lappend body [incr c] document [list k string $k v string $v]
 	}
 	return [list array $body]
     }
@@ -73,7 +73,7 @@ nx::mongo::db drop collection foos
 	dict for {k v} [$obj eval [list set :$name]] {
 	    lappend body $k string $v 
 	}
-	return [list object $body]
+	return [list document $body]
     }
     :public method "bson rep decode dict" {slot name bsontype value} {
 	set result ""
@@ -133,7 +133,7 @@ set q [Foo find first]
 
 Foo show
 
-puts stderr ====EXIT
+puts stderr "====EXIT [info script]"
 ######################################################################
 # Output
 ######################################################################
@@ -151,3 +151,10 @@ puts stderr ====EXIT
 #     title: {Hello World}, 
 #     tags: [ a ]
 # }
+######################################################################
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

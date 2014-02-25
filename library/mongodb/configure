@@ -727,8 +727,10 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-with_mongodb
+with_mongoc
+with_bson
 with_nsf
+enable_development
 with_tcl
 with_tclinclude
 enable_threads
@@ -1358,6 +1360,8 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-development    build nsf with development support (intensive
+                          runtime checking, etc.; default: disabled)
   --enable-threads        build with threads
   --enable-shared         build and link with shared libraries (default: on)
   --enable-64bit          enable 64bit support (default: off)
@@ -1369,9 +1373,12 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-mongodb=MONGO_INCLUDE_DIR,MONGO_LIB_DIR
+  --with-mongoc=MONGOC_INCLUDE_DIR,MONGOC_LIB_DIR
+            absolute path to mongo.h and optionally the path to the library,
+           --without-mongoc disables build of the mongo interface
+  --with-bson=BSON_INCLUDE_DIR,BSON_LIB_DIR
             absolute path to bson.h and optionally the path to the library,
-           --without-mongodb disables build of the mongo interface
+           --without-bson disables build of the mongo interface
   --with-nsf=DIR_CONTAINING_NSFCONFIG_SH
             absolute path to nsfConfig.sh,
            --without-nsf disables, but this is pointless
@@ -2314,11 +2321,19 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 # specify some extra flags
 #--------------------------------------------------------------------
 
-# Check whether --with-mongodb was given.
-if test "${with_mongodb+set}" = set; then :
-  withval=$with_mongodb; with_mongodb=$withval
+# Check whether --with-mongoc was given.
+if test "${with_mongoc+set}" = set; then :
+  withval=$with_mongoc; with_mongoc=$withval
 else
-  with_mongodb=no
+  with_mongoc=no
+fi
+
+
+# Check whether --with-bson was given.
+if test "${with_bson+set}" = set; then :
+  withval=$with_bson; with_bson=$withval
+else
+  with_bson=no
 fi
 
 
@@ -2329,6 +2344,14 @@ if test "${with_nsf+set}" = set; then :
 else
   as_fn_error $? "--with-nsf is required" "$LINENO" 5
 fi
+
+# Check whether --enable-development was given.
+if test "${enable_development+set}" = set; then :
+  enableval=$enable_development; enable_development=$enableval
+else
+  enable_development=no
+fi
+
 
 
 #--------------------------------------------------------------------
@@ -4827,33 +4850,51 @@ done
 # This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
-if test ! "${with_mongodb}" = no; then
-        MONGO_INC_DIR="`echo $with_mongodb |cut -f1 -d,`"
-        MONGO_LIB_DIR="`echo $with_mongodb |cut -f2 -d, -s`"
+if test ! "${with_mongoc}" = no; then
+        MONGOC_INC_DIR="`echo $with_mongoc |cut -f1 -d,`"
+        MONGOC_LIB_DIR="`echo $with_mongoc |cut -f2 -d, -s`"
 fi
-if test -z "$MONGO_INC_DIR" ; then
+if test ! "${with_bson}" = no; then
+        BSON_INC_DIR="`echo $with_bson |cut -f1 -d,`"
+        BSON_LIB_DIR="`echo $with_bson |cut -f2 -d, -s`"
+fi
+
+mongo_h_ok=1
+if test -z "$MONGOC_INC_DIR" ; then
         mongo_h_ok=0
         MONGO_INC_SPEC=""
-else
-        MONGO_INC_SPEC="-I${MONGO_INC_DIR}"
-        echo "Checking ${MONGO_INC_DIR}/bson.h"
-        if test -f "${MONGO_INC_DIR}/bson.h" ; then
-                mongo_h_ok=1
-        else
+fi
+if test -z "$BSON_INC_DIR" ; then
+        mongo_h_ok=0
+        MONGO_INC_SPEC=""
+fi
+
+if test "${mongo_h_ok}" = "1" ; then
+        MONGO_INC_SPEC="-I${MONGOC_INC_DIR} -I${BSON_INC_DIR}"
+        echo "Checking ${MONGOC_INC_DIR}/mongoc.h"
+        if test ! -f "${MONGOC_INC_DIR}/mongoc.h" ; then
+                mongo_h_ok=0
+        fi
+        echo "Checking ${BSON_INC_DIR}/bson.h"
+        if test ! -f "${BSON_INC_DIR}/bson.h" ; then
                 mongo_h_ok=0
         fi
 fi
 
 if test "${mongo_h_ok}" = "0" ; then
       as_fn_error $? "
-        Could not locate bson.h on your machine to build the nsf mongo interface.
+        Could not locate bson.h and mongo.h on your machine to build the nsf mongo interface.
         " "$LINENO" 5
 fi
 
-if test -z "${MONGO_LIB_DIR}" ; then
+if test -z "${MONGOC_LIB_DIR}" ; then
         MONGO_LIB_SPEC=""
 else
-        MONGO_LIB_SPEC="-L${MONGO_LIB_DIR}"
+        MONGO_LIB_SPEC="-L${MONGOC_LIB_DIR}"
+fi
+
+if test ! -z "${BSON_LIB_DIR}" ; then
+        MONGO_LIB_SPEC="${MONGO_LIB_SPEC} -L${BSON_LIB_DIR}"
 fi
 
 #echo "MONGO include spec = '${MONGO_INC_SPEC}'"
@@ -4921,8 +4962,9 @@ source ${with_nsf}/nsfConfig.sh
 
 
 #TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -Wl,-rpath,${MONGO_LIB_DIR} -L${MONGO_LIB_DIR} -lmongoc -lbson])
+#TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -L${MONGO_LIB_DIR} -lmongoc -lbson])
 
-    vars="$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -L${MONGO_LIB_DIR} -lmongoc -lbson"
+    vars="$NSF_BUILD_STUB_LIB_SPEC $MONGO_LIB_SPEC -lmongoc-1.0 -lbson-1.0"
     for i in $vars; do
 	if test "${TEA_PLATFORM}" = "windows" -a "$GCC" = "yes" ; then
 	    # Convert foo.lib to -lfoo for GCC.  No-op if not *.lib
@@ -7529,6 +7571,12 @@ $as_echo "enabled $tcl_ok debugging" >&6; }
 $as_echo "#define USE_TCL_STUBS 1" >>confdefs.h
 
 #AC_DEFINE(USE_TK_STUBS)
+if test "$enable_development" = yes; then
+
+$as_echo "#define NSF_DEVELOPMENT 1" >>confdefs.h
+
+fi
+
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It
