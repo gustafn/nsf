@@ -756,7 +756,8 @@ ac_user_opts='
 enable_option_checking
 with_aolserver3
 with_dtrace
-with_mongodb
+with_mongoc
+with_bson
 enable_profile
 enable_memcount
 enable_development
@@ -1415,8 +1416,12 @@ Optional Packages:
                           build an AOLserver 3 module; point to directory
                           containing aolsever/include (default: off)
   --with-dtrace           build nsf with dtrace (default: without)
-  --with-mongodb=MONGO_INCLUDE_DIR,MONGO_LIB_DIR
-                          build nsf with mongodb support (default: without)
+  --with-mongoc=MONGOC_INCLUDE_DIR,MONGOC_LIB_DIR
+                          build nsf with mongodb c-driver support (default:
+                          without)
+  --with-bson=BSON_INCLUDE_DIR,BSON_LIB_DIR
+                          build nsf with mongodb bson support (default:
+                          without)
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files
@@ -2393,11 +2398,19 @@ else
 fi
 
 
-# Check whether --with-mongodb was given.
-if test "${with_mongodb+set}" = set; then :
-  withval=$with_mongodb; with_mongodb=$withval
+# Check whether --with-mongoc was given.
+if test "${with_mongoc+set}" = set; then :
+  withval=$with_mongoc; with_mongoc=$withval
 else
-  with_mongodb=no
+  with_mongoc=no
+fi
+
+
+# Check whether --with-bson was given.
+if test "${with_bson+set}" = set; then :
+  withval=$with_bson; with_bson=$withval
+else
+  with_bson=no
 fi
 
 # Check whether --enable-profile was given.
@@ -2438,7 +2451,7 @@ fi
 
 subdirs=""
 
-if ! test "$with_mongodb" = no; then
+if ! test "$with_mongoc" = no; then
    test_mongodb=test-mongdb
    subdirs="$subdirs library/mongodb"
 fi

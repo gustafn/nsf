@@ -37,10 +37,14 @@ AC_ARG_WITH(aolserver3,
 AC_ARG_WITH(dtrace,
 	AC_HELP_STRING([--with-dtrace], [build nsf with dtrace (default: without)]),
         [with_dtrace=$withval], [with_dtrace=no])
-AC_ARG_WITH(mongodb,
-	AC_HELP_STRING([--with-mongodb=MONGO_INCLUDE_DIR[,MONGO_LIB_DIR]], 
-		[build nsf with mongodb support (default: without)]),
-        	[with_mongodb=$withval], [with_mongodb=no])
+AC_ARG_WITH(mongoc,
+	AC_HELP_STRING([--with-mongoc=MONGOC_INCLUDE_DIR[,MONGOC_LIB_DIR]],
+		[build nsf with mongodb c-driver support (default: without)]),
+		[with_mongoc=$withval], [with_mongoc=no])
+AC_ARG_WITH(bson,
+	AC_HELP_STRING([--with-bson=BSON_INCLUDE_DIR[,BSON_LIB_DIR]],
+		[build nsf with mongodb bson support (default: without)]),
+		[with_bson=$withval], [with_bson=no])
 AC_ARG_ENABLE(profile,
 	AC_HELP_STRING([--enable-profile], [build nsf with profile support (default: disabled)]),
         [enable_profile=$enableval], [enable_profile=no])
@@ -63,7 +67,7 @@ AC_ARG_ENABLE(assemble,
 
 subdirs=""
 
-if ! test "$with_mongodb" = no; then
+if ! test "$with_mongoc" = no; then
    test_mongodb=test-mongdb
    subdirs="$subdirs library/mongodb"
 fi
