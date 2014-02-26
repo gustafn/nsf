@@ -1602,6 +1602,7 @@ NsfReverseClasses(NsfClasses *sl) {
   NsfClasses *firstPtr = NULL;
   for (; sl; sl = sl->nextPtr) {
     NsfClasses *element = NEW(NsfClasses);
+
     element->cl = sl->cl;
     element->clientData = sl->clientData;
     element->nextPtr = firstPtr;
@@ -1698,6 +1699,7 @@ NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientDa
 
   if (*nextPtr == NULL) {
     NsfClasses *element = NEW(NsfClasses);
+
     element->cl = cl;
     element->clientData = clientData;
     element->nextPtr = NULL;
@@ -1775,6 +1777,7 @@ NsfClassListPrint(CONST char *title, NsfClasses *clsList) {
   //fprintf(stderr, " %p:", clsList);
   while (clsList) {
     //fprintf(stderr, " %p", clsList->cl);
+    fprintf(stderr, " %p", clsList);
     fprintf(stderr, " %s", ClassName(clsList->cl));
     clsList = clsList->nextPtr;
   }
@@ -1956,7 +1959,7 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *miList) {
 
 static int
 TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
-  NsfClasses *pl, *savedSuper, *sl;
+  NsfClasses *pl, *sl;
 
   /*
    * Be careful to reset the color of unreported classes to
@@ -1968,8 +1971,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
    */
 
   cl->color = GRAY;
-  savedSuper = cl->super;
-  for (sl = savedSuper; sl; sl = sl->nextPtr) {
+  for (sl = cl->super; sl; sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
     if (unlikely(sc->color == WHITE && !TopoSortSuper(sc, baseClass))) {
@@ -1989,7 +1991,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
    * If we have multiple inheritance we merge the precomputed inheritance
    * paths of the involved classes in the provided order.
    */
-  if (likely(savedSuper != NULL) && unlikely(savedSuper->nextPtr != NULL)) {
+  if (likely(cl->super != NULL) && unlikely(cl->super->nextPtr != NULL)) {
     NsfClasses *baseList = NULL, *baseListCurrent, **plNext,
       *miList, *deletionList = NULL;
 
@@ -2001,7 +2003,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
      * The available multiple inheritance list is in revesed order so we have
      * to reverse it.
      */
-    miList = NsfReverseClasses(savedSuper);
+    miList = NsfReverseClasses(cl->super);
 
     /*
      * We distinguish between a baseList (which might be later an result of
@@ -2070,7 +2072,6 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
 	  addClass = mergeList->cl;
 	  //fprintf(stderr, "\t\tadd from mergeList %s\n", ClassName(addClass));
 	  mergeList = mergeList->nextPtr;
-
 	} else {
 	  // add baselist current
 	  addClass = baseListCurrent->cl;
@@ -2084,6 +2085,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
 	   * class to the end.
 	   */
 	  NsfClasses *deletedElement = NsfClassListUnlink(&pl, addClass);
+
 	  if (deletedElement) {
 #if defined(NSF_LINEARIZER_TRACE)
 	    fprintf(stderr, "\t\t%s is redundant (in resultList)\n", ClassName(addClass));
@@ -2112,7 +2114,6 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
       if (sl->nextPtr) {
 	// use pl as new base list
 	baseList = pl;
-
 #if defined(NSF_LINEARIZER_TRACE)
 	fprintf(stderr, "=== setting new baseList\n");
 	NsfClassListPrint("new baseList", baseList);
@@ -2132,7 +2133,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
     }
 
     for (sl = deletionList; sl; sl = sl->nextPtr) {
-      //fprintf(stderr, "delete from deletion list %p\n", sl->clientData);
+      //fprintf(stderr, "delete from deletion list %p client data %p\n", sl, sl->clientData);
       NsfClassListFree(sl->clientData);
     }
     if (deletionList) {
@@ -2141,11 +2142,23 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
 
     NsfClassListFree(miList);
 
+    if (baseClass->order) {
+      NsfClassListFree(baseClass->order);
+      baseClass->order = NULL;
+    }
+
   } else {
+    /*
+     * Add old baseClass order to the end of the precedence list.
+     */
+    assert(pl->nextPtr == NULL);
     pl->nextPtr = baseClass->order;
   }
 
   cl->color = BLACK;
+  /*
+   * Set baseclass order to the newly computed list (the result of this function)
+   */
   baseClass->order = pl;
 
   return 1;
@@ -2197,11 +2210,11 @@ PrecedenceOrder(NsfClass *cl) {
 	      ClassName(sl->cl), sl->cl->order);
 #endif
       if (unlikely(sl->cl->order == NULL) && likely(cl != sl->cl)) {
+
 #if defined(NSF_LINEARIZER_TRACE)
 	fprintf(stderr, "====== PrecedenceOrder computes required order for %s \n",
 		ClassName(sl->cl));
 #endif
-
 	PrecedenceOrder(sl->cl);
 #if defined(NSF_LINEARIZER_TRACE)
 	NsfClassListPrint("====== PO:", sl->cl->order);
@@ -2392,6 +2405,7 @@ AS(NsfClass *s, NsfClasses **sl) {
 #endif
   if (!l) {
     NsfClasses *sc = NEW(NsfClasses);
+
     sc->cl = s;
     sc->nextPtr = *sl;
     *sl = sc;
@@ -8850,6 +8864,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
       AddSuper(cl, l->cl);
     }
     NsfClassListFree(osl);
+
     return NsfObjErrType(interp, "superclass", arg, "a cycle-free graph", NULL);
   }
 

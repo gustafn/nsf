@@ -4898,6 +4898,10 @@ nsf.c:
 nx.tcl:
 - raise an error, when an ensemble methods redefined a plain method
 
+nsf.c:
+- fix small memory leak in multiple inheritance code.
+- all regression tests reun cleanly with --enable-memcount=yes
+
 ========================================================================
 TODO:
 
