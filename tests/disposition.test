@@ -911,7 +911,7 @@ nx::test case submethods-via-aliasparams {
   ? {
     [C create c1] FOO foo; # N
     c1 eval {set :msg}
-  } "::c1--FOO--foo" 
+  } "::c1--FOO foo--foo"
 
   #
   # Submethod levels greater than 1 turn into intermittent frames:
@@ -923,7 +923,7 @@ nx::test case submethods-via-aliasparams {
   ? {
     [C create c3] BAR BOO buu; # N
     c3 eval {set :msg}
-  } "::c3--BAR BOO--buu" 
+  } "::c3--BAR BOO buu--buu" 
 
 
   # // Parameter (alias) dispatch //
@@ -940,7 +940,7 @@ nx::test case submethods-via-aliasparams {
   C setObjectParams [list FOO:alias]
   ? {
     [C create c2 foo] eval {set :msg}; # N
-  } "::c2--FOO--foo"
+  } "::c2--FOO foo--foo"
 
   #
   # 1) Interleaving @Type(INACTIVE) frames through indirection
@@ -966,7 +966,7 @@ nx::test case submethods-via-aliasparams {
   ? {
     [C create c1] FOO foo; # N
     c1 eval {set :msg}
-  } "::c1--FOO--foo" 
+  } "::c1--FOO foo--foo"
 
   # N+6 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)
   # N+5 |:CscFrame @Call(ENSEMBLE)|		<-- FOO (root)
@@ -978,7 +978,7 @@ nx::test case submethods-via-aliasparams {
   C setObjectParams [list FOO:alias]
   ? {
     [C create c2 foo] eval {set :msg}; # N
-  } "::c2--FOO--foo"
+  } "::c2--FOO foo--foo"
 
   # ... the filter variant ...
   C mixin {}
@@ -995,7 +995,7 @@ nx::test case submethods-via-aliasparams {
   ? {
     [C create c1] FOO foo; # N
     c1 eval {set :msg}
-  } "::c1--FOO--foo" 
+  } "::c1--FOO foo--foo"
 
   # N+6 |:CscFrame @Type(ENSEMBLE)|		<-- foo (leaf)
   # N+5 |:CscFrame @Call(ENSEMBLE)|		<-- FOO (root)
@@ -1007,7 +1007,7 @@ nx::test case submethods-via-aliasparams {
   C setObjectParams [list FOO:alias]
   ? {
     [C create c2 foo] eval {set :msg}; # N
-  } "::c2--FOO--foo"
+  } "::c2--FOO foo--foo"
   
 
   C filter ""
@@ -1028,27 +1028,27 @@ nx::test case submethods-via-aliasparams {
   }
 
   C::slot::__FOO object mixin M2
-  ? {C::slot::__FOO foo} "::M2--::C::slot::__FOO----foo"
+  ? {C::slot::__FOO foo} "::M2--::C::slot::__FOO--foo--foo"
   C::slot::__FOO eval {unset :msg}
 
   C setObjectParams [list]
   ? {
     [C create c1] FOO foo; # N
     c1 eval {set :msg}
-  } "::c1--FOO--foo" 
+  } "::c1--FOO foo--foo"
 
   C::slot::__FOO object mixin {}
   C::slot::__FOO public object method intercept {} {
     return "[current]--[next]"
   }
   C::slot::__FOO object filter intercept
-  ? {C::slot::__FOO foo} "::C::slot::__FOO--::C::slot::__FOO----foo"
+  ? {C::slot::__FOO foo} "::C::slot::__FOO--::C::slot::__FOO--foo--foo"
 
   C setObjectParams [list]
   ? {
     [C create c1] FOO foo; # N
     c1 eval {set :msg}
-  } "::c1--FOO--foo" 
+  } "::c1--FOO foo--foo"
 
   # --
 
@@ -1075,7 +1075,7 @@ nx::test case submethods-via-aliasparams {
     [C create c1] FOO foo; # N
     #puts stderr "/ / / / / / / / / / / "
     c1 eval {set :msg}
-  } "(1)--::c1--FOO--foo--(3)--::M2--FOO--::c1"
+  } "(1)--::c1--FOO foo--foo--(3)--::M2--FOO foo--::c1"
 
   C mixin {}  
 }
@@ -1093,17 +1093,15 @@ nx::test case dispo-configure-transparency {
   }
   #
   ::nsf::method::alias C FOO ::foo
-  ? {[C create c] FOO} "::c--FOO"
+  ? {[C create c] FOO} "::c-FOO-FOO"
   C setObjectParams [list [list FOO:alias,noarg ""]]
-  ? {C create c} "::c--FOO"
+  ? {C create c} "::c-FOO-FOO"
   C public method "show me" {} {
-    set :msg [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
+    set :msg [::nsf::current]-[::nsf::current methodpath]
   }
   C setObjectParams [list -show:alias]
   ? {[C create c -show me] eval {info exists :msg}} 1
-  # UNPATCHED:
-  # ? {[C create c -show me] eval {set :msg}} "::c-{} show"
-  ? {[C create c -show me] eval {set :msg}} "::c-show-me"
+  ? {[C create c -show me] eval {set :msg}} "::c-show me"
 
   #
   # ... with mixin indirection
@@ -1118,14 +1116,14 @@ nx::test case dispo-configure-transparency {
       next;
     }
     :public method FOO args {
-      error [::nsf::current]-[::nsf::current methodpath]-[::nsf::current method]
+      error [::nsf::current]-[::nsf::current methodpath]
     }
 
   }
 
   C setObjectParams [list [list FOO:alias,noarg ""]]
   C mixin add M
-  ? {C create c} "::c--FOO"
+  ? {C create c} "::c-FOO"
   C mixin {}
 
 
@@ -1141,11 +1139,11 @@ nx::test case dispo-configure-transparency {
   ::nsf::method::alias C FOO ::callee
 
   C setObjectParams [list [list FOO:alias,noarg ""]]
-  ? {C create c} "::c" "Defaultmethod of calle is invoked ..."
+  ? {C create c} "::c" "Defaultmethod of callee is invoked ..."
   C setObjectParams [list [list FOO:alias "foo"]]
-  ? {C create c} "::callee-FOO" "foo leaf method is selected ..."
+  ? {C create c} "::callee-FOO foo" "foo leaf method is selected ..."
   ::callee object mixin add M
-  ? {C create c} "::callee-FOO" "With mixin ..."
+  ? {C create c} "::callee-FOO foo" "With mixin ..."
 
   #
   # ... at the calling object level / ensemble path
@@ -1162,7 +1160,7 @@ nx::test case dispo-configure-transparency {
     }
   }
 
-  ? {C create c} "::callee-FOO" "With mixin ..."
+  ? {C create c} "::callee-FOO foo" "With mixin ..."
   
   #
   # ... with filter indirection: tbd

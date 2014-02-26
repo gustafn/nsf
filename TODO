@@ -4901,7 +4901,14 @@ nx.tcl:
 nsf.c:
 - fix small memory leak in multiple inheritance code.
 - all regression tests reun cleanly with --enable-memcount=yes
+- let [current methodpath] return full path (similar to -path option
+  in "info methods"
+- handle collateral damage in regression test due to changed result
+  of "current methodpath"
 
+nx::traits:
+- handle ensemble methods correctly (use full method path for resolution)
+- add new regression tests for traits
 ========================================================================
 TODO:
 
@@ -5074,12 +5081,6 @@ Stefan: doc items
     - nicht gewartete/nicht getestete library aus distro entfernen?
     - migration von einzelnen paketen nach next? von welchen?
 
-- Sind [current method] + [current methodpath] beide notwendig? warum
-  nicht nur ein introspektionscmd, das abhängig vom kontext eine liste
-  mit 1 element (non-ensemble method) oder mehreren (ensemble leaf
-  method) zurückliefert. Ein Test, ob man sich in einer ensemble methode
-  befindet oder nicht, bedarf dann nur eines [current] calls und nicht 2
-  etc.
 
 Ein paar Punkte im folgenden könnten obsolet sein:
 

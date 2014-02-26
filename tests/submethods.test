@@ -189,14 +189,14 @@ nx::test case ensemble-partial-next {
       return something
     }
     :public method "info has something path" {} {
-      return [concat [::nsf::current methodpath] [::nsf::current method]]
+      return [::nsf::current methodpath]
     }
     :public method "info has something better" {} {
       nx::next
       return better
     }
     :public method foo {} {
-      return [concat [::nsf::current methodpath] [::nsf::current method]]
+      return [::nsf::current methodpath]
     }
   }
   nx::Object mixin add M
@@ -412,7 +412,7 @@ nx::test case submethods-current-introspection {
   #
 
   o eval {
-    :public object method faz {} {return [concat [current methodpath] [current method]]}
+    :public object method faz {} {return [current methodpath]}
     ? [list set _ [:faz]] "faz"
   }
 
@@ -421,7 +421,7 @@ nx::test case submethods-current-introspection {
   #
 
   o eval {
-    set body {? [list set _ [:bar]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    set body {? [list set _ [:bar]] [current class]-[current]-[current methodpath]}
     :public object method "FOO foo" {} $body
     :public object method "BAR BUU boo" {} $body
     :public object method baz {} $body
@@ -434,7 +434,7 @@ nx::test case submethods-current-introspection {
     :baz
 
     :object method "a b" {} $calleeBody
-    set body {? [list set _ [:a b]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    set body {? [list set _ [:a b]] [current class]-[current]-[current methodpath]}
     :public object method "FOO foo" {} $body
     :public object method "BAR BUU boo" {} $body
     :public object method baz {} $body
@@ -445,7 +445,7 @@ nx::test case submethods-current-introspection {
 
     # TODO: :method "a b c" {} $calleeBody; FAILS -> "can't append to scripted"
     :object method "x y z" {} $calleeBody;
-    set body {? [list set _ [:x y z]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    set body {? [list set _ [:x y z]] [current class]-[current]-[current methodpath]}
     :public object method "FOO foo" {} $body
     :public object method "BAR BUU boo" {} $body
     :public object method baz {} $body
@@ -461,7 +461,7 @@ nx::test case submethods-current-introspection {
   #
 
   C eval {
-    set body {? [list set _ [:bar]] [current class]-[current]-[concat [current methodpath] [current method]]}
+    set body {? [list set _ [:bar]] [current class]-[current]-[current methodpath]}
     :public method "FOO foo" {} $body
     :public method "BAR BUU boo" {} $body
     :public method baz {} $body
@@ -495,7 +495,7 @@ nx::test case submethods-current-introspection {
   Class create Z {
     :object property -accessor public msg
     :method intercept args {
-      [current class] eval [list set :msg [list [current methodpath] \
+      [current class] eval [list set :msg [list [lrange [current methodpath] 1 end-1] \
 					       [current calledmethod] \
 					       [current calledclass] \
 					       [current nextmethod]]]

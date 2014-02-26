@@ -21903,9 +21903,10 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
 
   case CurrentoptionMethodpathIdx:
-    Tcl_SetObjResult(interp, NsfMethodNamePath(interp, 
-					       NULL /* use topmost frame */, 
-					       NULL /* exclude leaf */));
+    cscPtr = CallStackGetTopFrame0(interp);
+    Tcl_SetObjResult(interp, NsfMethodNamePath(interp,
+					       NULL /* use topmost frame */,
+					       Tcl_GetCommandName(interp, cscPtr->cmdPtr)));
     break;
 
   case CurrentoptionClassIdx: /* class subcommand */
