@@ -89,7 +89,7 @@ namespace eval ::nx::trait {
     if {${per-object} || ![::nsf::is class $obj]} {
       error "per-object traits are currently not supported"
     }
-    foreach m [$traitName info methods -callprotection all] {
+    foreach m [$traitName info methods -callprotection all -path] {
       if {[info exists map($m)]} {set newName $map($m)} else {set newName $m}
       # do not add entries with $newName empty
       if {$newName eq ""} continue
@@ -179,3 +179,10 @@ nx::Class create nx::Trait -superclass nx::Class {
     set :requiredMethods $finalReqMethods
   }
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

@@ -1,0 +1,66 @@
+package require nx::trait
+package require nx::test
+
+nx::test case basics {
+
+  nx::Trait create t1 {
+    :public method t1m1 {} {return t1.[current method]}
+    :public method t1m2 {} {return t1.[current method]}
+
+    # This trait requires a method "foo" 
+    :requiredMethods foo
+  }
+  nx::Trait create t2 {
+    :public method "bar x" {} {return t2.[current methodpath]}
+    :public method "bar y" {} {return t2.[current methodpath]}
+    :public method foo {} {return t2.[current methodpath]}
+
+    # This trait requires a method "t1m1" 
+    :requiredMethods t1m1
+  }
+
+  nx::Trait create t3 {
+    :public method "bar y" {} {return t3.[current methodpath]}
+    :public method "bar z" {} {return t3.[current methodpath]}
+  }
+
+  nx::Class create C {
+    :property {collection ""}
+    :public method foo {} {return [current method]}
+    :create c1
+  }
+
+  ? {c1 foo} "foo"
+
+  ? {C require trait t2} "trait t2 requires t1m1, which is not defined for ::C"
+
+  ? {lsort [C info methods]} "foo"
+  C require trait t1
+  ? {lsort [C info methods]} "foo t1m1 t1m2"
+  ? {c1 foo} "foo"
+
+  ? {C require trait t2} ""
+  ? {lsort [C info methods]} "bar foo t1m1 t1m2"
+  ? {lsort [C info methods -path]} "{bar x} {bar y} foo t1m1 t1m2"
+  # trait t2 redefines t2, so we call that see its result here
+  ? {c1 foo} "t2.foo"
+  ? {c1 bar x} "t2.bar x"
+  ? {c1 bar y} "t2.bar y"
+
+  ? {C require trait t3} ""
+  ? {lsort [C info methods]} "bar foo t1m1 t1m2"
+  ? {lsort [C info methods -path]} "{bar x} {bar y} {bar z} foo t1m1 t1m2"
+  # trait t3 redefines "bar y", so we call that see its result here
+  ? {c1 foo} "t2.foo"
+  ? {c1 bar x} "t2.bar x"
+  ? {c1 bar y} "t3.bar y"
+  ? {c1 bar z} "t3.bar z"
+}
+
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
