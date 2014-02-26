@@ -683,7 +683,7 @@ static int
 NsfMongoCollectionDelete(Tcl_Interp *interp, 
 			mongoc_collection_t *collectionPtr,
 			 Tcl_Obj *conditionObj) {
-  int objc, result = TCL_OK, status;
+  int objc, result, status;
   Tcl_Obj **objv;
   bson_t query[1];
   bson_error_t bsonError;
@@ -900,7 +900,7 @@ NsfMongoCollectionUpdate(Tcl_Interp *interp,
   mongoc_update_flags_t updateFlags =  MONGOC_UPDATE_NO_VALIDATE; /* for dbrefs */
   bson_error_t bsonError;
   bson_t cond[1], values[1];
-  int objc, result = TCL_OK, success;
+  int objc, result, success;
   Tcl_Obj **objv;
 
   result = Tcl_ListObjGetElements(interp, conditionObj, &objc, &objv);
@@ -927,7 +927,7 @@ NsfMongoCollectionUpdate(Tcl_Interp *interp,
     result = NsfPrintError(interp, "mongo::collection::delete: error: %s", bsonError.message);
   }
 
-  return TCL_OK;
+  return result;
 }
 
 /***********************************************************************
@@ -1125,15 +1125,13 @@ NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
 		       mongoc_gridfs_t *gridfsPtr,
 		       CONST char *value, CONST char *name,
 		       CONST char *contenttype) {
-  int n, result = TCL_OK;
+  int result = TCL_OK;
   mongoc_gridfs_file_opt_t fileOpts = {NULL};
   mongoc_gridfs_file_t *gridFile;
 
-  fprintf(stderr, "0 withSource %d\n", withSource);
   if (withSource == GridfilesourceNULL) {
     withSource = GridfilesourceFileIdx;
   }
-  fprintf(stderr, "1 withSource %d\n", withSource);
 
   fileOpts.filename = name;
   fileOpts.content_type = contenttype;
@@ -1151,9 +1149,14 @@ NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
     uint8_t buf[MONGOC_GRIDFS_READ_CHUNK];
     struct iovec iov = { buf, 0 };
     int fd = open(value, O_RDONLY);
+    
+    if (fd < 1) {
+      mongoc_gridfs_file_destroy(gridFile);
+      return NsfPrintError(interp, "nsf::gridfile::create: cannot open file '%s' for reading", value);
+    }
 
     for (;; ) {
-      n = read(fd, iov.iov_base, MONGOC_GRIDFS_READ_CHUNK);
+      int n = read(fd, iov.iov_base, MONGOC_GRIDFS_READ_CHUNK);
       if (n > 0) {
 	iov.iov_len = n;
 	n = mongoc_gridfs_file_writev(gridFile, &iov, 1, 0);
@@ -1251,7 +1254,7 @@ NsfMongoGridFileOpen(Tcl_Interp *interp,
 		     Tcl_Obj *queryObj) {
   mongoc_gridfs_file_t* gridFilePtr;
   bson_error_t bsonError;
-  int result = TCL_OK, objc;
+  int result, objc;
   bson_t query[1];
   Tcl_Obj **objv;
 

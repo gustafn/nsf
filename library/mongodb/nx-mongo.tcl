@@ -103,33 +103,28 @@ namespace eval ::nx::mongo {
       unset :gridFs :gridFsName
     }
 
-    :public object method "gridfs store_file" {local remote {mime text/plain}} {
-      ::mongo::gridfs::store_file ${:gridFs} $local $remote $mime
-    }
-    :public object method "gridfs store_string" {string remote {mime text/plain}} {
-      ::mongo::gridfs::store_string ${:gridFs} $string $remote $mime
+    :public object method "gridfs create" {{-source file} value name {mime text/plain}} {
+      ::mongo::gridfile::create -source $source ${:gridFs} $value $name $mime
     }
 
-    :public object method "gridfs list" {name} {
-      if {[string first * $name] == -1} {
-        set info [::mongo::query ${:mongoConn} ${:db}.${:gridFsName}.files \
-                      [list \$query document [list filename string $name]] \
-                      -limit 1]
+    :public object method "gridfs list" {{-all:switch false} query} {
+      set coll [:collection ${:db}.${:gridFsName}.files]
+      if {!$all} {
+        set info [::mongo::collection::query $coll $query -limit 1]
         return [lindex $info 0]
       } else {
-        ns_log notice "::mongo::query ${:mongoConn} ${:db}.${:gridFsName}.files"
-        set info [::mongo::query ${:mongoConn} ${:db}.${:gridFsName}.files {}]
+        set info [::mongo::collection::query $coll {}]
         return $info
       }
     }
 
     :public object method "gridfs update" {id bson} {
-      ::mongo::update ${:mongoConn} ${:db}.${:gridFsName}.files \
+      ::mongo::collection::update [:collection ${:db}.${:gridFsName}.files] \
           [list _id oid $id] $bson
     }
 
-    :public object method "file content" {name} {
-      set f [mongo::gridfile::open ${:gridFs} $name]
+    :public object method "file content" {query} {
+      set f [mongo::gridfile::open ${:gridFs} $query]
       set content ""
       while {1} {
         append content [set chunk [mongo::gridfile::read $f 4096]]
@@ -141,9 +136,9 @@ namespace eval ::nx::mongo {
       return $content
     }
     
-    :public object method "gridfs set attribute" {file attribute value} {
-      set info [::nx::mongo::db gridfs list $file]
-      if {$info eq ""} {error "no such file <$file> stored in gridfs"}
+    :public object method "gridfs set attribute" {query attribute value} {
+      set info [::nx::mongo::db gridfs list $query]
+      if {$info eq ""} {error "no such file <$query> stored in gridfs"}
       foreach {att type v} $info { dict set d $att $v }
       if {[dict exists $d $attribute] && [dict get $d $attribute] eq $value} {
         # right value, nothing to do
@@ -165,11 +160,11 @@ namespace eval ::nx::mongo {
       nx::mongo::db gridfs update [dict get $d _id] $bson
     }
 
-    :public object method "gridfs map" {file url} {
-      ::nx::mongo::db gridfs set attribute $file url $url
+    :public object method "gridfs map" {query url} {
+      ::nx::mongo::db gridfs set attribute $query url $url
     }
     :public object method "gridfs mapped" {url} {
-      set info [::mongo::query ${:mongoConn} ${:db}.${:gridFsName}.files \
+      set info [::mongo::collection::query [:collection ${:db}.${:gridFsName}.files] \
                     [list \$query document [list url string $url]] \
                     -limit 1]
       return [lindex $info 0]
