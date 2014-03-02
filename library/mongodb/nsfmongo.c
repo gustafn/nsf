@@ -201,9 +201,12 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth) {
     case BSON_TYPE_DOUBLE:    tag = NSF_BSON_DOUBLE;    elemObj = Tcl_NewDoubleObj(bson_iter_double( &i )); break;
     case BSON_TYPE_BOOL:      tag = NSF_BSON_BOOL;      elemObj = Tcl_NewBooleanObj(bson_iter_bool( &i )); break;
     case BSON_TYPE_REGEX:  {
-      const char *options = NULL; /* TODO: not handled */
+      const char *options = NULL, *regex = NULL;
       tag = NSF_BSON_REGEX;
-      elemObj = Tcl_NewStringObj(bson_iter_regex( &i, &options ), -1);
+      regex = bson_iter_regex( &i, &options );
+      elemObj = Tcl_NewListObj(0, NULL);
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewStringObj(regex, -1));
+      Tcl_ListObjAppendElement(interp, elemObj, Tcl_NewStringObj(options, -1));
       break;
     }
     case BSON_TYPE_UTF8: {
@@ -391,8 +394,14 @@ BsonAppend(Tcl_Interp *interp, bson_t *bbPtr, char *name, char *tag, Tcl_Obj *va
     break;
   }
   case BSON_TYPE_REGEX: {
-    char *opts = ""; /* TODO: how to handle regex opts? */
-    bson_append_regex(bbPtr, name, keyLength, ObjStr(value), opts);
+    int objc = 0;
+    Tcl_Obj **objv;
+
+    result = Tcl_ListObjGetElements(interp, value, &objc, &objv);
+    if (result != TCL_OK || objc != 2) {
+      return NsfPrintError(interp, "invalid regexp representation: %s", ObjStr(value));
+    }
+    bson_append_regex(bbPtr, name, keyLength, ObjStr(objv[0]), ObjStr(objv[1]));
     break;
   }
   case BSON_TYPE_DATE_TIME: {

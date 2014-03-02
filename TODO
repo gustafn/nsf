@@ -4918,6 +4918,9 @@ nx-mongo:
 - some conveniance improvements in nx-mongo.tcl (ability to ignore
   attributes in "bson encode", ability to unset attributes in gridfs, ...)
 - bump version numbers of nsfmongo to 0.3 and nx-monogo to 0.5
+- represent BSON_TYPE_REGEX as pairs (regex + options) in the Tcl 
+  representation to preserve regular expression options
+- update to newest version of mongo-c-driver and libbson from github
 
 ========================================================================
 TODO:

@@ -40,7 +40,7 @@ command in the directory nsf*/library/mongodb/
 
    ./configure --with-tcl=/usr/local/ns/lib/ --with-nsf=../../ \
    	       --with-mongoc=/usr/local/src/mongo-c-driver/mongoc/,/usr/local/src/mongo-c-driver/.libs \
-	       --with-bson=/usr/local/src/libbson/bson,/usr/local/src/libbson/.libs \
+	       --with-bson=/usr/local/src/libbson/src/bson,/usr/local/src/libbson/.libs \
 	       --enable-threads --enable-symbols --prefix=/usr/local/ns
 
 
