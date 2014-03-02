@@ -122,6 +122,7 @@ cmd gridfile::create NsfMongoGridFileCreate {
   {-argName "value" -required 1}
   {-argName "name" -required 1}
   {-argName "contenttype" -required 1}
+  {-argName "-metadata" -type tclobj}
 }
 
 cmd "gridfile::delete" NsfMongoGridFileDelete {

@@ -4909,6 +4909,16 @@ nsf.c:
 nx::traits:
 - handle ensemble methods correctly (use full method path for resolution)
 - add new regression tests for traits
+
+nx-mongo:
+- optional support for mongodb connection pools (compile time macro 
+  USE_CLIENT_POOL controls this, per default, this is on)
+- allow to pass "-metadata" to gridfile::create to ease metadata attachment
+  to gridfiles
+- some conveniance improvements in nx-mongo.tcl (ability to ignore
+  attributes in "bson encode", ability to unset attributes in gridfs, ...)
+- bump version numbers of nsfmongo to 0.3 and nx-monogo to 0.5
+
 ========================================================================
 TODO:
 

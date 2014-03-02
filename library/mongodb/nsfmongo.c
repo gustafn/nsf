@@ -24,6 +24,8 @@
 #include <assert.h>
 #include <nsf.h>
 
+#define USE_CLIENT_POOL 1
+
 /*
  * Define the counters to generate nice symbols for pointer converter
  */
@@ -32,6 +34,13 @@ static int gridfsCount = 0;
 static int mongoClientCount = 0;
 static int mongoCollectionCount = 0;
 static int mongoCursorCount = 0;
+
+#if defined(USE_CLIENT_POOL)
+static NsfMutex poolMutex = 0;
+static mongoc_client_pool_t *mongoClientPool = NULL;
+static int mongoClientPoolRefCount = 0;
+static mongoc_uri_t *mongoUri = NULL;
+#endif
 
 typedef enum {
   NSF_BSON_ARRAY,
@@ -57,7 +66,7 @@ NsfMongoGlobalStrings[] = {
   "boolean",
   "int32",
   "int64",
-  "date_time",
+  "datetime",
   "document",
   "double",
   "minkey",
@@ -193,7 +202,8 @@ BsonToList(Tcl_Interp *interp, const bson_t *data , int depth) {
     case BSON_TYPE_BOOL:      tag = NSF_BSON_BOOL;      elemObj = Tcl_NewBooleanObj(bson_iter_bool( &i )); break;
     case BSON_TYPE_REGEX:  {
       const char *options = NULL; /* TODO: not handled */
-      tag = NSF_BSON_REGEX;  elemObj = Tcl_NewStringObj(bson_iter_regex( &i, &options ), -1); 
+      tag = NSF_BSON_REGEX;
+      elemObj = Tcl_NewStringObj(bson_iter_regex( &i, &options ), -1);
       break;
     }
     case BSON_TYPE_UTF8: {
@@ -501,7 +511,11 @@ static int
 NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj) {
 
   if (clientPtr) {
+#if defined(USE_CLIENT_POOL)
+    mongoc_client_pool_push(mongoClientPool, clientPtr);
+#else
     mongoc_client_destroy(clientPtr);
+#endif
     Nsf_PointerDelete(ObjStr(clientObj), clientPtr, 0);
   }
   return TCL_OK;
@@ -521,7 +535,21 @@ NsfMongoConnect(Tcl_Interp *interp, CONST char *uri) {
   if (uri == NULL) {
     uri = "mongodb://127.0.0.1:27017/";
   }
+
+#if defined(USE_CLIENT_POOL)
+  NsfMutexLock(&poolMutex);
+
+  if (mongoClientPool == NULL) {
+    mongoUri = mongoc_uri_new(uri);
+    NsfLog(interp, NSF_LOG_NOTICE, "nsf::mongo::connect: creating pool with uri %s", uri);
+    mongoClientPool = mongoc_client_pool_new(mongoUri);
+  }
+
+  NsfMutexUnlock(&poolMutex);
+  clientPtr = mongoc_client_pool_pop(mongoClientPool);
+#else
   clientPtr = mongoc_client_new(uri);
+#endif
 
   if (clientPtr == NULL) {
       return NsfPrintError(interp, "failed to parse Mongo URI");
@@ -1118,29 +1146,42 @@ cmd gridfile::create NsfMongoGridFileCreate {
   {-argName "value" -required 1}
   {-argName "name" -required 1}
   {-argName "contenttype" -required 1}
+  {-argName "-metadata" -required 0 -nrags 1 -type tclobj}
 }
 */
 static int
 NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource,
 		       mongoc_gridfs_t *gridfsPtr,
 		       CONST char *value, CONST char *name,
-		       CONST char *contenttype) {
+		       CONST char *contenttype,
+		       Tcl_Obj *withMetadata
+		       ) {
   int result = TCL_OK;
   mongoc_gridfs_file_opt_t fileOpts = {NULL};
   mongoc_gridfs_file_t *gridFile;
+  bson_t bsonMetaData[1];
 
   if (withSource == GridfilesourceNULL) {
     withSource = GridfilesourceFileIdx;
+  }
+
+  if (withMetadata != NULL) {
+    Tcl_Obj **objv;
+    int objc;
+
+    result = Tcl_ListObjGetElements(interp, withMetadata, &objc, &objv);
+    if (result != TCL_OK || (objc % 3 != 0)) {
+      return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(withMetadata));
+    }
+    BsonAppendObjv(interp, bsonMetaData, objc, objv);
+    fileOpts.metadata = bsonMetaData;
   }
 
   fileOpts.filename = name;
   fileOpts.content_type = contenttype;
   /*
    const char   *md5;
-   const char   *filename;
-   const char   *content_type;
    const bson_t *aliases;
-   const bson_t *metadata;
    uint32_t chunk_size;
   */
   gridFile = mongoc_gridfs_create_file(gridfsPtr, &fileOpts);
@@ -1337,6 +1378,18 @@ NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFil
   return TCL_OK;
 }
 
+#if 0
+bson_t *
+mongoc_gridfs_file_get_metadata(mongoc_gridfs_file_t *file) {
+  return &file->bson_metadata;
+}
+
+void
+mongoc_gridfs_file_set_metadata(mongoc_gridfs_file_t *file, bson_t *metadata) {
+  file->bson_metadata = *metadata;
+}
+#endif
+
 /*
 cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {
   {-argName "gridfile" -required 1 -type mongoc_gridfs_file_t}
@@ -1344,9 +1397,11 @@ cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {
 */
 static int
 NsfMongoGridFileGetMetaData(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr) {
+  const bson_t *metaDataPtr = mongoc_gridfs_file_get_metadata(gridFilePtr);
 
-  Tcl_SetObjResult(interp, BsonToList(interp, &gridFilePtr->bson_metadata, 0));
-
+  if (metaDataPtr != NULL) {
+    Tcl_SetObjResult(interp, BsonToList(interp, metaDataPtr, 0));
+  }
   return TCL_OK;
 }
 
@@ -1395,6 +1450,29 @@ NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridFilePtr, int 
  ***********************************************************************/
 
 void
+Nsfmongo_ThreadExit(ClientData clientData) {
+  /*
+   * The exit might happen at a time, when tcl is already shut down.
+   * We can't reliably call NsfLog.
+   */
+  fprintf(stderr, "+++ Nsfmongo_ThreadExit\n");
+#if defined(USE_CLIENT_POOL)
+  NsfMutexLock(&poolMutex);
+  mongoClientPoolRefCount --;
+  if (mongoClientPool != NULL) {
+    fprintf(stderr, "========= Nsfmongo_ThreadExit mongoClientPoolRefCount %d\n", mongoClientPoolRefCount);
+    if (mongoClientPoolRefCount < 1) {
+      mongoc_client_pool_destroy(mongoClientPool);
+      mongoClientPool = NULL;
+      mongoc_uri_destroy(mongoUri);
+      mongoUri = NULL;
+    }
+  }
+  NsfMutexUnlock(&poolMutex);
+#endif
+}
+
+void
 Nsfmongo_Exit(ClientData clientData) {
   /*
    * The exit might happen at a time, when tcl is already shut down.
@@ -1403,80 +1481,96 @@ Nsfmongo_Exit(ClientData clientData) {
    *   Tcl_Interp *interp = (Tcl_Interp *)clientData;
    *   NsfLog(interp,NSF_LOG_NOTICE, "Nsfmongo Exit");
    */
+  fprintf(stderr, "+++ Nsfmongo_Exit\n");
+#if defined(TCL_THREADS)
+  Tcl_DeleteThreadExitHandler(Nsfmongo_ThreadExit, clientData);
+#endif
+  Tcl_Release(clientData);
 }
+
+
 
 extern int
 Nsfmongo_Init(Tcl_Interp * interp) {
   int i;
   static NsfMutex initMutex = 0;
 
-
 #ifdef USE_TCL_STUBS
-    if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
-        return TCL_ERROR;
-    }
+  if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL) {
+    return TCL_ERROR;
+  }
 
 # ifdef USE_NSF_STUBS
-    if (Nsf_InitStubs(interp, "2.0", 0) == NULL) {
-        return TCL_ERROR;
-    }
+  if (Nsf_InitStubs(interp, "2.0", 0) == NULL) {
+    return TCL_ERROR;
+  }
 # endif
 
 #else
-    if (Tcl_PkgRequire(interp, "Tcl", TCL_VERSION, 0) == NULL) {
-        return TCL_ERROR;
-    }
+  if (Tcl_PkgRequire(interp, "Tcl", TCL_VERSION, 0) == NULL) {
+    return TCL_ERROR;
+  }
 #endif
-    Tcl_PkgProvide(interp, "nsf::mongo", PACKAGE_VERSION);
+  Tcl_PkgProvide(interp, "nsf::mongo", PACKAGE_VERSION);
 
 #ifdef PACKAGE_REQUIRE_FROM_SLAVE_INTERP_WORKS_NOW
-    if (Tcl_PkgRequire(interp, "nsf", PACKAGE_VERSION, 0) == NULL) {
-        return TCL_ERROR;
-    }
+  if (Tcl_PkgRequire(interp, "nsf", PACKAGE_VERSION, 0) == NULL) {
+    return TCL_ERROR;
+  }
 #endif
 
-    Tcl_CreateExitHandler(Nsfmongo_Exit, interp);
+  Tcl_Preserve(interp);
+#if defined(TCL_THREADS)
+  Tcl_CreateThreadExitHandler(Nsfmongo_ThreadExit, interp);
+#endif
+  Tcl_CreateExitHandler(Nsfmongo_Exit, interp);
 
-    /*
-     * Register global mongo tcl_objs
-     */
-    NsfMutexLock(&initMutex);
-    if (NsfMongoGlobalObjs == NULL) {
-      NsfMongoGlobalObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*nr_elements(NsfMongoGlobalStrings));
-      for (i = 0; i < nr_elements(NsfMongoGlobalStrings); i++) {
-	NsfMongoGlobalObjs[i] = Tcl_NewStringObj(NsfMongoGlobalStrings[i], -1);
-	Tcl_IncrRefCount(NsfMongoGlobalObjs[i]);
-      }
+#if defined(USE_CLIENT_POOL)
+  NsfMutexLock(&poolMutex);
+  mongoClientPoolRefCount ++;
+  NsfMutexUnlock(&poolMutex);
+#endif
+
+  /*
+   * Register global mongo tcl_objs
+   */
+  NsfMutexLock(&initMutex);
+  if (NsfMongoGlobalObjs == NULL) {
+    NsfMongoGlobalObjs = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*nr_elements(NsfMongoGlobalStrings));
+    for (i = 0; i < nr_elements(NsfMongoGlobalStrings); i++) {
+      NsfMongoGlobalObjs[i] = Tcl_NewStringObj(NsfMongoGlobalStrings[i], -1);
+      Tcl_IncrRefCount(NsfMongoGlobalObjs[i]);
     }
-    NsfMutexUnlock(&initMutex);
+  }
+  NsfMutexUnlock(&initMutex);
 
-    /*
-     * register the pointer converter
-     */
-    Nsf_PointerTypeRegister(interp, "mongoc_client_t",      &mongoClientCount);
-    Nsf_PointerTypeRegister(interp, "mongoc_collection_t",  &mongoCollectionCount);
-    Nsf_PointerTypeRegister(interp, "mongoc_cursor_t",      &mongoCursorCount);
-    Nsf_PointerTypeRegister(interp, "mongoc_gridfs_file_t", &gridfileCount);
-    Nsf_PointerTypeRegister(interp, "mongoc_gridfs_t",      &gridfsCount);
+  /*
+   * register the pointer converter
+   */
+  Nsf_PointerTypeRegister(interp, "mongoc_client_t",      &mongoClientCount);
+  Nsf_PointerTypeRegister(interp, "mongoc_collection_t",  &mongoCollectionCount);
+  Nsf_PointerTypeRegister(interp, "mongoc_cursor_t",      &mongoCursorCount);
+  Nsf_PointerTypeRegister(interp, "mongoc_gridfs_file_t", &gridfileCount);
+  Nsf_PointerTypeRegister(interp, "mongoc_gridfs_t",      &gridfsCount);
 
-    for (i=0; i < nr_elements(method_command_namespace_names); i++) {
-      Tcl_CreateNamespace(interp, method_command_namespace_names[i], 0, (Tcl_NamespaceDeleteProc *)NULL);
-    }
+  for (i=0; i < nr_elements(method_command_namespace_names); i++) {
+    Tcl_CreateNamespace(interp, method_command_namespace_names[i], 0, (Tcl_NamespaceDeleteProc *)NULL);
+  }
 
-    /* create all method commands (will use the namespaces above) */
-    for (i=0; i < nr_elements(method_definitions)-1; i++) {
-      Tcl_CreateObjCommand(interp, method_definitions[i].methodName, method_definitions[i].proc, 0, 0);
-    }
+  /* create all method commands (will use the namespaces above) */
+  for (i=0; i < nr_elements(method_definitions)-1; i++) {
+    Tcl_CreateObjCommand(interp, method_definitions[i].methodName, method_definitions[i].proc, 0, 0);
+  }
 
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
-    return TCL_OK;
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+  return TCL_OK;
 }
 
 extern int
 Nsfmongo_SafeInit(interp)
-    Tcl_Interp *interp;
+     Tcl_Interp *interp;
 {
-    return Nsfmongo_Init(interp);
+  return Nsfmongo_Init(interp);
 }
 
 /*

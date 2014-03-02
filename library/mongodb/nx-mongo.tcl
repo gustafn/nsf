@@ -5,7 +5,7 @@
 #
 package require nx
 package require nsf::mongo
-package provide nx::mongo 0.4
+package provide nx::mongo 0.5
 
 # todo: how to handle multiple connections; currently we have a single, global connection
 # todo: all references are currently auto-fetched. make this optional
@@ -103,8 +103,9 @@ namespace eval ::nx::mongo {
       unset :gridFs :gridFsName
     }
 
-    :public object method "gridfs create" {{-source file} value name {mime text/plain}} {
-      ::mongo::gridfile::create -source $source ${:gridFs} $value $name $mime
+    :public object method "gridfs create" {{-source file} value name {mime text/plain} {-metadata}} {
+      ::mongo::gridfile::create -source $source ${:gridFs} $value $name $mime \
+          {*}[expr {[info exists metadata] ? [list -metadata $metadata] : {}}]
     }
 
     :public object method "gridfs list" {{-all:switch false} query} {
@@ -160,8 +161,22 @@ namespace eval ::nx::mongo {
       nx::mongo::db gridfs update [dict get $d _id] $bson
     }
 
+    :public object method "gridfs unset attribute" {query attribute} {
+      set info [::nx::mongo::db gridfs list $query]
+      if {$info eq ""} {error "no such file <$query> stored in gridfs"}
+      foreach {att type v} $info { dict set d $att $v }
+      if {[dict exists $d $attribute]} {
+        # delete the attribute
+        nx::mongo::db gridfs update [dict get $d _id] [list \$unset document [list $attribute string ""]]
+      } else {
+        # does not exist, nothing to do
+      }
+    }
+
     :public object method "gridfs map" {query url} {
-      ::nx::mongo::db gridfs set attribute $query url $url
+      # map always the newest entry
+      set fullQuery [list \$query document $query \$orderby document {uploadDate integer -1}]
+      ::nx::mongo::db gridfs set attribute $fullQuery url $url
     }
     :public object method "gridfs mapped" {url} {
       set info [::mongo::collection::query [:collection ${:db}.${:gridFsName}.files] \
@@ -354,6 +369,16 @@ namespace eval ::nx::mongo {
 	error "value '$value' for property $name is not of type $arg"
       }
     }
+    #
+    # Type converter for datetime handling (scan date strings into
+    # input values into integers in the form mongo expects it)
+    #
+    :public method type=datetime {name value} {
+      # puts stderr "...  [clock format [clock scan $value -format {%B %d, %Y}] -format {%B %d, %Y}]"
+      # MongoDB stores time in ms
+      if {[info exists :scanformat]} {return [expr {[clock scan $value -format ${:scanformat}] * 1000}]}
+      return [expr {[clock scan $value] * 1000}]
+    }
   }
   
 
@@ -529,7 +554,7 @@ namespace eval ::nx::mongo {
                              spec:parameter
                              {initblock ""}
                            } {
-      regsub -all {,type=} $spec {,arg=} spec
+      regsub -all {,type=::} $spec {,arg=::} spec
       set result [next [list -accessor $accessor -class $class \
                             -configurable $configurable -incremental=$incremental \
                             $spec $initblock]]
@@ -548,7 +573,7 @@ namespace eval ::nx::mongo {
                              spec:parameter
                              defaultValue:optional
                            } {
-      regsub -all {,type=} $spec {,arg=} spec
+      regsub -all {,type=::} $spec {,arg=::} spec
       set result [next [list -accessor $accessor -class $class \
                             -configurable $configurable -incremental=$incremental \
                             -initblock $initblock $spec \
@@ -788,17 +813,18 @@ namespace eval ::nx::mongo {
     #
     # _id is the special property maintained by mongoDB
     #
-    :property -class ::nx::mongo::Attribute _id  {
+    :property -accessor public -class ::nx::mongo::Attribute _id  {
       set :mongotype oid
     }
 
     #
     # Encode all object data in bson notation
     #
-    :method "bson encode" {} {
+    :method "bson encode" {{-ignore ""}} {
       set bson [list]
       set cls [:info class]
       foreach var [:info vars] {
+        if {$var in $ignore} continue
 	set slot [$cls get slot $var]
 	if {$slot ne ""} {
           if {[nx::var exists $slot rep] && [nx::var set $slot rep] ne ""} {

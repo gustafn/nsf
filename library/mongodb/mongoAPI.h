@@ -132,7 +132,7 @@ static int NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr);
 static int NsfMongoGridFSClose(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *gfsObj);
 static int NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, CONST char *dbname, CONST char *prefix);
 static int NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, Tcl_Obj *gridfileObj);
-static int NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource, mongoc_gridfs_t *gfsPtr, CONST char *value, CONST char *name, CONST char *contenttype);
+static int NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource, mongoc_gridfs_t *gfsPtr, CONST char *value, CONST char *name, CONST char *contenttype, Tcl_Obj *withMetadata);
 static int NsfMongoGridFileDelete(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *query);
 static int NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr);
 static int NsfMongoGridFileGetContentlength(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr);
@@ -517,9 +517,10 @@ NsfMongoGridFileCreateStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     CONST char *value = (CONST char *)pc.clientData[2];
     CONST char *name = (CONST char *)pc.clientData[3];
     CONST char *contenttype = (CONST char *)pc.clientData[4];
+    Tcl_Obj *withMetadata = (Tcl_Obj *)pc.clientData[5];
 
     assert(pc.status == 0);
-    return NsfMongoGridFileCreate(interp, withSource, gfsPtr, value, name, contenttype);
+    return NsfMongoGridFileCreate(interp, withSource, gfsPtr, value, name, contenttype, withMetadata);
 
   } else {
     return TCL_ERROR;
@@ -762,12 +763,13 @@ static Nsf_methodDefinition method_definitions[26] = {
 {"::mongo::gridfile::close", NsfMongoGridFileCloseStub, 1, {
   {"gridfile", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_gridfs_file_t",NULL,NULL,NULL,NULL,NULL}}
 },
-{"::mongo::gridfile::create", NsfMongoGridFileCreateStub, 5, {
+{"::mongo::gridfile::create", NsfMongoGridFileCreateStub, 6, {
   {"-source", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToGridfilesource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_gridfs_t",NULL,NULL,NULL,NULL,NULL},
   {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"contenttype", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"contenttype", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-metadata", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::gridfile::delete", NsfMongoGridFileDeleteStub, 2, {
   {"gfs", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_gridfs_t",NULL,NULL,NULL,NULL,NULL},
