@@ -917,9 +917,11 @@ namespace eval ::xotcl {
       error "invalid method type '$methtype', \
 	must be either 'proc', 'instproc' or 'method'."
     }
+    set arglist2 $arglist
+    regsub -all {\"} $arglist {\\"} arglist2 ;"
     :$methtype $methname $arglist "
       if {!\[::xotcl::self isnextcall\]} {
-        error \"Abstract method $methname $arglist called\"
+        error \"Abstract method $methname $arglist2 called\"
       } else {::xotcl::next}
     "
   }
