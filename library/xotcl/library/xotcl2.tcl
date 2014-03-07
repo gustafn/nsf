@@ -918,12 +918,13 @@ namespace eval ::xotcl {
 	must be either 'proc', 'instproc' or 'method'."
     }
     set arglist2 $arglist
-    regsub -all {\"} $arglist {\\"} arglist2 ;"
+    regsub -all {\"} $arglist {\\"} arglist2
     :$methtype $methname $arglist "
       if {!\[::xotcl::self isnextcall\]} {
         error \"Abstract method $methname $arglist2 called\"
       } else {::xotcl::next}
     "
+    # balance " for emacs syntax highlighter
   }
 
   # support for XOTcl specific convenience routines
