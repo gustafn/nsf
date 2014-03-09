@@ -1141,12 +1141,30 @@ NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
  * Currently we need a few private gridfs functions since the new
  * c-driver has less functionality than the old one.
  ***********************************************************************/
+#define MONGO_HAS_NO_GRIDFS_COLLECTION_ACCESSOR 1
 
+#if defined(MONGO_HAS_NO_GRIDFS_COLLECTION_ACCESSOR)
 #define MONGOC_INSIDE 1
 #include "mongoc-gridfs-private.h"
-#include "mongoc-gridfs-file-private.h"
 #undef MONGOC_INSIDE
+
+mongoc_collection_t *
+mongoc_gridfs_get_files (mongoc_gridfs_t * gridfs) 
+{
+    return gridfs->files;
+}
+
+mongoc_collection_t *
+mongoc_gridfs_get_chunks (mongoc_gridfs_t * gridfs) 
+{
+    return gridfs->chunks;
+}
+#endif
+
+
+
 #define MONGOC_GRIDFS_READ_CHUNK 4096*4
+
 
 /*
 cmd gridfile::create NsfMongoGridFileCreate {
@@ -1260,7 +1278,7 @@ NsfMongoGridFileDelete(Tcl_Interp *interp,
   }
 
   BsonAppendObjv(interp, query, objc, objv);
-  files = mongoc_collection_find( gridfsPtr->files, 0, 
+  files = mongoc_collection_find( mongoc_gridfs_get_files(gridfsPtr), 0, 
 				   0, 0, 0 /* batch_size */,
 				   query, NULL, NULL);
   bson_destroy(query);
@@ -1278,13 +1296,13 @@ NsfMongoGridFileDelete(Tcl_Interp *interp,
     /* Remove the file with the specified id */
     bson_init(b);
     bson_append_oid(b, "_id", 3, &id);
-    mongoc_collection_delete(gridfsPtr->files, 0, b, NULL, &bsonError);
+    mongoc_collection_delete(mongoc_gridfs_get_files(gridfsPtr), 0, b, NULL, &bsonError);
     bson_destroy(b);
 
     /* Remove all chunks from the file with the specified id */
     bson_init(b);
     bson_append_oid(b, "files_id", 8, &id);
-    mongoc_collection_delete(gridfsPtr->chunks, 0, b, NULL, &bsonError);
+    mongoc_collection_delete(mongoc_gridfs_get_chunks(gridfsPtr), 0, b, NULL, &bsonError);
     bson_destroy(b);
   }
 
@@ -1382,22 +1400,12 @@ cmd gridfile::get_contenttype NsfMongoGridFileGetContentType {
 static int
 NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t* gridFilePtr) {
 
-  Tcl_SetObjResult(interp, Tcl_NewStringObj(gridFilePtr->bson_content_type, -1));
+  Tcl_SetObjResult(interp, Tcl_NewStringObj(mongoc_gridfs_file_get_content_type(gridFilePtr), -1));
 
   return TCL_OK;
 }
 
-#if 0
-bson_t *
-mongoc_gridfs_file_get_metadata(mongoc_gridfs_file_t *file) {
-  return &file->bson_metadata;
-}
 
-void
-mongoc_gridfs_file_set_metadata(mongoc_gridfs_file_t *file, bson_t *metadata) {
-  file->bson_metadata = *metadata;
-}
-#endif
 
 /*
 cmd gridfile::get_metadata NsfMongoGridFileGetMetaData {

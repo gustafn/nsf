@@ -9,38 +9,36 @@ Ingredients:
 The current version is tested with 
 - MongoDB v2.4.9
 - mongodb-c-driver 0.90.1
-- libbson 0.4.3
 
 Compile or obtain mongodb (the database).
-
-Compile or obtain libbson (binary json library)
-
-      cd /usr/local/src
-      git clone https://github.com/mongodb/libbson
-      cd libbson
-      sh autogen.sh
-      make
-      sudo make install
 
 Compile or obtain the mongo-c-driver (client interface)
 
       cd /usr/local/src
       git clone https://github.com/mongodb/mongo-c-driver
       cd mongo-c-driver
-      export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+      sh autogen.sh
       make
       sudo make install
 
+If you experience errors during autogen on debian, you might have to 
+   apt-get install libtool
+
+If configure complains about not finding bson, you might have to do
+   export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+
+
 Assume the following installation directories 
+
   - Tcl:             /usr/local/ns/lib/
   - mongo-c-driver: /usr/local/src/mongo-c-driver/
-  - libbson:        /usr/local/src/libbson
+
 configure the mongodb nsf interface via the following 
 command in the directory nsf*/library/mongodb/  
 
    ./configure --with-tcl=/usr/local/ns/lib/ --with-nsf=../../ \
-   	       --with-mongoc=/usr/local/src/mongo-c-driver/mongoc/,/usr/local/src/mongo-c-driver/.libs \
-	       --with-bson=/usr/local/src/libbson/src/bson,/usr/local/src/libbson/.libs \
+   	       --with-mongoc=/usr/local/src/mongo-c-driver/src/mongoc/,/usr/local/src/mongo-c-driver/.libs \
+	       --with-bson=/usr/local/src/mongo-c-driver/src/libbson/src/bson \
 	       --enable-threads --enable-symbols --prefix=/usr/local/ns
 
 
