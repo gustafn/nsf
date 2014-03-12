@@ -1137,31 +1137,7 @@ NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *clientPtr,
 
 /***********************************************************************
  * GridFile interface operating on GridFS
- *
- * Currently we need a few private gridfs functions since the new
- * c-driver has less functionality than the old one.
  ***********************************************************************/
-#define MONGO_HAS_NO_GRIDFS_COLLECTION_ACCESSOR 1
-
-#if defined(MONGO_HAS_NO_GRIDFS_COLLECTION_ACCESSOR)
-#define MONGOC_INSIDE 1
-#include "mongoc-gridfs-private.h"
-#undef MONGOC_INSIDE
-
-mongoc_collection_t *
-mongoc_gridfs_get_files (mongoc_gridfs_t * gridfs) 
-{
-    return gridfs->files;
-}
-
-mongoc_collection_t *
-mongoc_gridfs_get_chunks (mongoc_gridfs_t * gridfs) 
-{
-    return gridfs->chunks;
-}
-#endif
-
-
 
 #define MONGOC_GRIDFS_READ_CHUNK 4096*4
 
