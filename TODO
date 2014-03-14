@@ -4921,6 +4921,7 @@ nx-mongo:
 - represent BSON_TYPE_REGEX as pairs (regex + options) in the Tcl 
   representation to preserve regular expression options
 - update to newest version of mongo-c-driver and libbson from github
+- tested with mongodb-c-driver 0.93.0
 
 ========================================================================
 TODO:

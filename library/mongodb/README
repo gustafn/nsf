@@ -8,7 +8,7 @@ Ingredients:
 
 The current version is tested with 
 - MongoDB v2.4.9
-- mongodb-c-driver 0.90.1
+- mongodb-c-driver 0.93.0
 
 Compile or obtain mongodb (the database).
 
