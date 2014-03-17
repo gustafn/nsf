@@ -1,0 +1,749 @@
+[comment {-*- tcl -*- nx::Object manpage}]
+[manpage_begin nx::Object n 2.0b6]
+
+[keywords baseclass]
+[keywords NX]
+
+[copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+[titledesc {nx::Object API Reference}]
+
+[description]
+[para]
+
+[syscmd nx::Object] is the [term baseclass] of the [term NX] object system. All
+objects defined in [term NX] are (direct or indirect) instances of this
+[term baseclass]. The methods provided by the [syscmd nx::Object]
+[term baseclass] are available to all objects and to all classes defined in
+NX.
+
+[para]
+[comment {Hier wäre eine Stellung der jeweiligen Klasse als UML-Diagramm in der Klassenhierarchie nett.}]
+
+[term NX] allows for creating and for using objects which are not
+derived from any application class (see [cmd ::nx::Class]), that is,
+as direct instances of the [term baseclass] [cmd nx::Object]. Typical use cases are
+singeltons and anonymous, inline objects. In such use cases, [term NX]
+does not require creating an intermediate application class, which
+specializes the [term baseclass] [cmd nx::Object], beforehand.
+
+[list_begin definitions]
+
+
+[call [cmd nx::Object] [method create] [arg objectName] [opt -volatile] [opt "-object-mixin [arg mixinSpec]"] [opt "-class [arg newClassName]"] [opt "-object-filter [arg filterSpec]"] [opt [arg initBlock]]]
+
+[para] 
+
+To create a direct instance of [cmd nx::Object] having an explicit
+[arg objectName], use [method create] on [cmd nx::Object]. Note that
+[method create] is defined by [cmd nx::Class] and is available to [cmd nx::Object] being
+an instance of [cmd nx::Class]. This way, singelton objects can be
+created, for example.
+
+[call [cmd nx::Object] [method new] [opt -volatile] [opt "-object-mixin [arg mixinSpec]"] [opt "-class [arg newClassName]"] [opt "-object-filter [arg filterSpec]"] [opt [arg initBlock]]]
+
+[para] 
+
+To create a direct instance of [cmd nx::Object] having an
+automatically assigned, implict object name, use [method new] on [cmd nx::Object]. Note
+that [method new] is defined by [cmd nx::Class] and is available to
+[cmd nx::Object] being an instance of [cmd nx::Class]. The [method new] allows
+for creating anonymous, inline objects, for example.
+
+[list_end]
+
+The configuration options for direct instances of [cmd nx::Object],
+which can be passed when calling [method create] and [method new], are
+documented in the subsequent section.
+
+[section {Configuration Options for Instances of nx::Object}]
+
+[para] 
+Configuration options can be used for the configuration during object
+creation via non-positional arguments for [method new] and [method create],
+they can be altered via [method configure], or queried via [method cget].
+
+[list_begin options]
+
+[opt_def -class [arg className]]
+
+Class of the object.
+
+[opt_def -object-filter [arg filterMethods]]
+
+List of per-object filter methods.
+
+[opt_def -object-mixin [arg mixinSpec]]
+
+List of mixinSpecs. A [arg mixinSpec] is of the form of ...
+
+[opt_def -volatile]
+
+Volatile state. Volatile objects are destroyed automatically upon
+leaving the variable scope where volatile was set.
+
+[list_end]
+
+[section {Methods for Instances of nx::Object}]
+
+[list_begin commands]
+
+[cmd_def cget]
+
+[list_begin definitions]
+
+[call [arg nx::Object] [method cget] [arg configurationOption]] [para] 
+
+The method [method cget] is used to obtain the value of a configuration
+option. The applicable configuration options depend on the properties
+defined in the class hierarchy. Applicable configuration options can be obtained via...
+
+[example_begin]
+% nx::Object cget -class
+::nx::Class
+[example_end]
+
+[list_end]
+
+[cmd_def configure]
+
+[list_begin definitions]
+
+[call [arg nx::Object] [method configure] [opt "[arg option] [arg value]"] ...]
+
+[para] This method is used configure an object based on the available
+configuration options. The applicable configuration options depend on
+the properties defined in the class hierarchy. The method 
+[method configure] is called during object construction and obtains the
+argument vector provided for the methods [method create] and [method new].
+
+[example_begin]
+% nx::Class create Foo {:property x}
+::Foo
+% Foo create f1 -x 101
+::f1
+% f1 cget -x
+101
+% f1 configure -x 200
+% f1 cget -x
+200
+[example_end]
+
+[list_end]
+
+
+[cmd_def contains]
+
+[list_begin definitions]
+
+[call [arg obj] [cmd contains] [opt "-withnew [arg trueFalse]"] [opt "-object [arg objectName]"] [opt "-class [arg className]"] [arg cmds]]
+
+This methods acts as a builder for nested object structures. Object
+and class construction statements passed to this method as its last
+argument [arg cmds] are evaluated in a way so that the receiver object
+[arg obj] becomes the parent of the newly constructed objects and
+classes. This is realized by setting explicitly the namespace for
+constructing relatively named objects. Fully qualified object names in
+[arg cmds] evade the nesting.
+
+[para]
+
+[option "-withnew [arg trueFalse]"] requests the automatic rescoping of
+objects created using [method new] so that they become nested into the
+receiver object [arg obj], rather than being created in the default
+namespace for autonamed objects (i.e., ::nsf). If turned off,
+autonamed objects do not become children of [arg obj].
+
+[para]
+
+The parent object to be used instead of [arg obj] can be specified
+using [option "-object [arg objectName]"]. If this explicitly set parent
+object does not exist prior to calling [method contains], it will be
+created on the fly as a direct instance of [cmd nx::Object]. Alternatively,
+using [option "-class [arg className]"], a class [arg className] other
+than [cmd nx::Object] for the on-the-fly creation of [arg objectName]
+can be provided.
+
+[example {
+ nx::Class create Window {
+   :contains {
+     #
+     # Become children of Window, implicitly
+     #
+     nx::Class create Header
+     nx::Object create Panel 
+   }
+   #
+   # Explicitly declared a child of Window
+   #
+   nx::Class create [self]::Slider
+ }}]
+
+[list_end]
+
+[cmd_def delete]
+
+[list_begin definitions]
+
+[call [arg obj] [method "delete object method"] ...]
+[para] Description of [method "delete object method"] ...
+
+[call [arg obj] [method {delete object property}] ...]
+[para] Description of [method {delete object property}] ...
+
+[call [arg obj] [method {delete object variable}] ...]
+[para] Description of [method {delete object variable}] ...
+
+[list_end]
+
+
+[cmd_def destroy]
+
+[list_begin definitions]
+
+[call [arg obj] [cmd destroy]]
+
+This method allows for explicitly destructing an object [arg obj],
+potentially prior to [arg obj] being destroyed by the object system
+(e.g., during the shutdown of the object system upon calling [syscmd exit]):
+
+[example {[nx::Object new] destroy}]
+
+By providing a custom implementation of [method destroy], the
+destruction procedure of [arg obj] can be customized. Typically, once
+the application-specific destruction logic as has completed, a custom
+[method destroy] will trigger the actual, physical object destruction
+via [cmd next].
+
+[example_begin]
+% nx::Class create Foo {
+    :method destroy {} {
+        puts "destroying [lb]self[rb]"
+        next
+    }
+}
+::Foo
+% Foo create f1
+::f1
+% f1 destroy
+destroying ::f1
+[example_end]
+
+Some background details: The method <<@class.method "::nx::Object destroy">>
+delegates the actual destruction to <<@class.method "::nx::Class
+dealloc">> which clears the memory object storage. Essentially, this
+behavior could be scripted as:
+
+[example {
+Object method destroy {} {
+  [:info class] dealloc [self]
+}
+}]
+
+Note, however, that '''destroy''' is protected against
+application-level redefinition. You must refine it in a subclass
+or a <<@gls mixin_class>>.
+
+[list_end]
+
+[cmd_def eval]
+
+[list_begin definitions]
+
+[call [arg obj] [method eval] ...]
+[para] Description of [method eval] ...
+
+[list_end]
+
+
+[cmd_def info]
+
+[list_begin definitions]
+
+[call [arg obj] [method {info children}] ...]
+[para] Description of [method {info children}] ...
+
+
+[call [arg obj] [method {info class}] ...]
+[para] Description of [method {info class}] ...
+
+
+[call [arg obj] [method {info configure}] ...]
+[para] Description of [method {info configure}] ...
+
+
+[call [arg obj] [method {info has mixin}] ...]
+[para] Description of [method {info has mixin}] ...
+
+
+[call [arg obj] [method {info has namespace}] ...]
+[para] Description of [method {info has namespace}] ...
+
+
+[call [arg obj] [method {info has type}] ...]
+[para] Description of [method {info has type}] ...
+
+
+[call [arg obj] [method {info info}] ...]
+[para] Description of [method {info info}] ...
+
+
+[call [arg obj] [method {info lookup configure parameters}] ...]
+[para] Description of [method {info lookup configure parameters}] ...
+
+
+[call [arg obj] [method {info lookup configure syntax}] ...]
+[para] Description of [method {info lookup configure syntax}] ...
+
+
+[call [arg obj] [method {info lookup filter}] ...]
+[para] Description of [method {info lookup filter}] ...
+
+[call [arg obj] [method {info lookup method}] ...]
+[para] Description of [method {info lookup method}] ...
+
+[call [arg obj] [method {info lookup methods}] ...]
+[para] Description of [method {info lookup methods}] ...
+
+[call [arg obj] [method {info lookup slots}] ...]
+[para] Description of [method {info lookup slots}] ...
+
+[call [arg obj] [method {info lookup variables}] ...]
+[para] Description of [method {info lookup variables}] ...
+
+[call [arg obj] [method {info name}] ...]
+[para] Description of [method {info name}] ...
+
+[call [arg obj] [method {info object filter guard}] ...]
+[para] Description of [method {info object filter guard}] ...
+
+[call [arg obj] [method {info object filter methods}] ...]
+[para] Description of [method {info object filter methods}] ...
+
+[call [arg obj] [method {info object method args}] ...]
+[para] Description of [method {info object method args}] ...
+
+[call [arg obj] [method {info object method body}] ...]
+[para] Description of [method {info object method body}] ...
+
+[call [arg obj] [method {info object method definition}] ...]
+[para] Description of [method {info object method definition}] ...
+
+[call [arg obj] [method {info object method definitionhandle}] ...]
+[para] Description of [method {info object method definitionhandle}] ...
+
+[call [arg obj] [method {info object method exists}] ...]
+[para] Description of [method {info object method exists}] ...
+
+[call [arg obj] [method {info object method handle}] ...]
+[para] Description of [method {info object method handle}] ...
+
+[call [arg obj] [method {info object method origin}] ...]
+[para] Description of [method {info object method origin}] ...
+
+[call [arg obj] [method {info object method parameters}] ...]
+[para] Description of [method {info object method parameters}] ...
+
+[call [arg obj] [method {info object method postcondition}] ...]
+[para] Description of [method {info object method postcondition}] ...
+
+[call [arg obj] [method {info object method precondition}] ...]
+[para] Description of [method {info object method precondition}] ...
+
+[call [arg obj] [method {info object method registrationhandle}] ...]
+[para] Description of [method {info object method registrationhandle}] ...
+
+[call [arg obj] [method {info object method returns}] ...]
+[para] Description of [method {info object method returns}] ...
+
+[call [arg obj] [method {info object method submethods}] ...]
+[para] Description of [method {info object method submethods}] ...
+
+[call [arg obj] [method {info object method syntax}] ...]
+[para] Description of [method {info object method syntax}] ...
+
+[call [arg obj] [method {info object method type}] ...]
+[para] Description of [method {info object method type}] ...
+
+[call [arg obj] [method {info object methods}] ...]
+[para] Description of [method {info object methods}] ...
+
+[call [arg obj] [method {info object mixin classes}] ...]
+[para] Description of [method {info object mixin classes}] ...
+
+[call [arg obj] [method {info object mixin guard}] ...]
+[para] Description of [method {info object mixin guard}] ...
+
+[call [arg obj] [method {info object slots}] ...]
+[para] Description of [method {info object slots}] ...
+
+[call [arg obj] [method {info object variables}] ...]
+[para] Description of [method {info object variables}] ...
+
+[call [arg obj] [method {info parameter default}] ...]
+[para] Description of [method {info parameter default}] ...
+
+[call [arg obj] [method {info parameter name}] ...]
+[para] Description of [method {info parameter name}] ...
+
+[call [arg obj] [method {info parameter syntax}] ...]
+[para] Description of [method {info parameter syntax}] ...
+
+[call [arg obj] [method {info parameter type}] ...]
+[para] Description of [method {info parameter type}] ...
+
+[call [arg obj] [method {info parent}] ...]
+[para] Description of [method {info parent}] ...
+
+[call [arg obj] [method {info precedence}] ...]
+[para] Description of [method {info precedence}] ...
+
+[call [arg obj] [method {info variable definition}] ...]
+[para] Description of [method {info variable definition}] ...
+
+[call [arg obj] [method {info variable name}] ...]
+[para] Description of [method {info variable name}] ...
+
+[call [arg obj] [method {info variable parameter}] ...]
+[para] Description of [method {info variable parameter}] ...
+
+[call [arg obj] [method {info vars}] ...]
+[para] Description of [method {info vars}] ...
+
+[list_end]
+
+[cmd_def move]
+
+[list_begin definitions]
+
+[call [arg obj] [method {move}] ...]
+[para] Description of [method {move}] ...
+
+[list_end]
+
+[cmd_def object]
+
+[list_begin definitions]
+
+[call [arg obj] [method {object alias}] ...]
+[para] Description of [method {object alias}] ...
+
+[call [arg obj] [method {object filter}] ...]
+[para] Description of [method {object filter}] ...
+
+[call [arg obj] [method {object forward}] ...]
+[para] Description of [method {object forward}] ...
+
+[call [arg obj] [method {object method}] ...]
+[para] Description of [method {object method}] ...
+
+[call [arg obj] [method {object mixin}] ...]
+[para] Description of [method {object mixin}] ...
+
+[call [arg obj] [method {object property}] ...]
+[para] Description of [method {object property}] ...
+
+[call [arg obj] [method {object variable}] ...]
+[para] Description of [method {object variable}] ...
+
+[list_end]
+
+
+
+
+[cmd_def private]
+
+[list_begin definitions]
+
+[call [arg obj] [method {private}] ...]
+[para] Description of [method {private}] ...
+
+[list_end]
+
+
+
+[cmd_def private]
+
+[list_begin definitions]
+
+[call [arg obj] [method {protected}] ...]
+[para] Description of [method {protected}] ...
+
+[list_end]
+
+[cmd_def public]
+
+[list_begin definitions]
+
+[call [arg obj] [method {public}] ...]
+[para] Description of [method {public}] ...
+
+[list_end]
+
+[cmd_def public]
+
+[list_begin definitions]
+
+[call [arg obj] [method {require namespace}] ...]
+[para] Description of [method {require namespace}] ...
+
+[list_end]
+
+[cmd_def require]
+
+[list_begin definitions]
+
+
+[call [arg obj] [method {require object method}] ...]
+[para] Description of [method {require object method}] ...
+
+[call [arg obj] [method {require private object method}] ...]
+[para] Description of [method {require private object method}] ...
+
+[call [arg obj] [method {require protected object method}] ...]
+[para] Description of [method {require protected object method}] ...
+
+[call [arg obj] [method {require public object method}] ...]
+[para] Description of [method {require public object method}] ...
+
+[list_end]
+
+
+[cmd_def volatile]
+
+[list_begin definitions]
+
+[call [arg obj] [method {volatile}] ...]
+[para] Description of [method {volatile}] ...
+[list_end]
+
+[list_end]
+
+[list_begin commands]
+
+[cmd_def property]
+
+[list_begin definitions]
+
+[call [arg obj] [const object] [cmd property] [opt "-accessor public|private|protected"] [opt "-configurable [arg trueFalse]"] [opt -incremental] [opt "-class [arg className]"] [opt -nocomplain] [arg spec] [opt [arg initBlock]]]
+
+Defines a per-object <<@gls property>>. For every property, a <<@gls
+slotobject>> is created. A property also provides for a pair of
+getter and setter methods, automatically.
+
+[list_begin options]
+
+[opt_def [option -accessor] "public|private|protected"] 
+
+If set, a getter/setter method having the specified call-protection
+level ([const public], [const private], or [const protected]) will be
+defined automatically.
+[para]
+Type: an empty string (""), meaning no getter/setter method will be provided for the property
+[para]
+Default value: an empty string (""), meaning no getter/setter method will be provided for the property
+
+[list_end]
+
+[list_begin arguments]
+
+
+[arg_def boolean -configurable in] 
+If set to [const true], the property can be configured through [cmd configure] and [cmd cget], respectively. If [const false], the property's value can be accessed and modified via the getter/setter method, if available (see [arg -accessor]), or by using the object variable managed by the property directly.
+[para]
+Default value: [const true]
+
+[arg_def switch -incremental in] ...
+
+[arg_def "" "-class [arg className]" in] Allows for specifying a slot class, from which the slot object realizing the property is instantiated.
+[para]
+Default value: [cmd ::nx::VariableSlot]
+
+[arg_def switch -nocomplain in]
+If set, an existing object variable by the property name will not
+be overwritten. Instead, an error exception is thrown.
+
+[arg_def "" spec in]	
+
+The property specification can be a list of, at
+least, one or two elements, maximum. The first element
+specifies the property name, optionally followed by
+parameter types after a colon delimiter. If provided,
+the second element sets the default value for this
+property.
+
+[arg_def "" initblock in]	
+
+A script which is evaluated for the scope of the property's slot
+object during its initialization.
+
+[list_end]
+
+
+
+[list_end]
+
+[cmd_def alias]
+[list_begin definitions]
+
+[call [arg obj] [opt "public | private | protected"] [const object] [cmd alias] [arg methodName] [opt "-returns [arg charConstraint]"] [opt "-frame object | method"] [arg cmdName]]
+Define an <<@gls alias>> as per-object method. This method is used
+for defining a method with the specified name by binding a
+pre-existing implementation. This alias target is provided as the
+last argument.
+
+[list_begin arguments]
+
+[arg_def "" methodName in] Name of the new method
+
+[arg_def "" -returns in] 
+An optional character constraint to check the result value received
+upon invoking on the alias method (e.g., [const integer]).
+
+[arg_def "" -frame in] 
+
+Optional scoping information. If the provided 
+value is [const object] then variable references of the 
+command are created as instance variables. If the value 
+is [const method], then a method frame is pushed (the 
+method can resolve [cmd ::nx::self] or can call [cmd nx::next]).
+
+[arg_def "" cmdName in]
+
+A reference to an implementation. If the 
+implementation is a method, the value should be a
+[term "[keywords {method handle}]"] (see [sectref-external xxx]), if it is a Tcl command, it should
+be a fully qualified command name.
+
+[list_end]
+[list_end]
+
+
+[cmd_def delete]
+
+[list_begin definitions]
+
+[call [arg obj] [cmd delete] [method object] [method property] [arg propertyName]]
+[call [arg obj] [cmd delete] [method object] [method variable] [arg variableName]]
+[call [arg obj] [cmd delete] [method object] [method method] [arg methodName]]
+
+[def "[method object] [method property]"]
+Remove a previously defined property defined for the object.
+[para]
+Return value: ...
+[list_begin arguments]
+
+[arg_def "" propertyName in] Unqualified name of the property which should be deleted.
+
+[list_end]
+
+[def "[method object] [method variable]"]
+Remove a previously defined variable defined for the object.
+[para]
+Return value: ...
+[list_begin arguments]
+
+[arg_def "" variableName in] Unqualified name of the variable which should be deleted.
+
+[list_end]
+
+[def "[method object] [method method]"]
+Remove a previously defined method defined for the object.
+[list_begin arguments]
+
+[arg_def "" methodName in] Unqualified name of the method which should be deleted.
+
+[arg_def "" "(Return value)"] ...
+
+[list_end]
+
+
+[list_end]
+
+[list_end]
+
+[section {Internally called Methods}]
+
+[cmd nx::Object] provides a set of default implementations for
+internally called methods, which are called primarily during the 
+creation or destruction of NX objects.
+
+Application developers can provide custom implementations of these
+methods by providing tailored implementations for these methods in application
+classes (i.e., subclasses of [cmd nx::Object]). An adequate method
+implementation must comply with the method signature interfaces described below.
+
+
+[list_begin commands]
+
+[cmd_def defaultmethod]
+
+[list_begin definitions]
+
+[def "[arg obj] [cmd defaultmethod]"]
+
+This method is called implicitly when the object is invoked without
+a provided method name. By default, the [cmd defaultmethod] implementation 
+returns the fully qualified object name.
+
+[example_begin]
+% Object create ::foo
+::foo
+% ::foo defaultmethod
+::foo
+% ::foo
+::foo
+[example_end]
+
+[list_end]
+
+[cmd_def init]
+
+[list_begin definitions]
+
+[def "[arg obj] [cmd init] [arg args]"]
+
+The method [method init] is called during the object construction
+process. It is invoked as the last step during object construction
+(i.e. after method [method configure]) to provide the fully initialized 
+state of the object. Note that the definition of an [method init] 
+method must contain an empty parameter specification, 
+since [method init] is always called with an empty argument list.
+
+[example_begin]
+% nx::Class create Foo {:property x}
+% Foo method init {} {set :y [lb]expr {${:x} + 1}[rb]}
+% Foo public method bar {} {return ${:y}}
+% Foo create f1 -x 101
+% f1 cget -x
+101
+% f1 bar
+102
+[example_end]
+[list_end]
+
+[cmd_def unknown]
+
+[list_begin definitions]
+
+[def "[arg obj] [cmd unknown] [arg unknownMethodName] [arg args]"]
+
+This method is called implicitly whenever an unknown method is invoked.
+
+[list_begin arguments]
+
+[arg_def "" unknownMethodName in] 
+
+Indicates the unresolvable method name
+
+[arg_def "" args in]
+
+Contains the remainder of the original argument vector of the
+indirected method invocation
+
+[list_end]
+
+[list_end]
+
+[list_end] [comment { COMMANDS list }]
+
+[manpage_end]
