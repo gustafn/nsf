@@ -3,6 +3,7 @@
 
 [keywords baseclass]
 [keywords NX]
+[keywords "mixin class"]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
 [titledesc {nx::Object API Reference}]
@@ -57,29 +58,36 @@ documented in the subsequent section.
 
 [section {Configuration Options for Instances of nx::Object}]
 
-[para] 
-Configuration options can be used for the configuration during object
-creation via non-positional arguments for [method new] and [method create],
-they can be altered via [method configure], or queried via [method cget].
+[para] Configuration options can be used for configuring objects during
+their creation by passing the options as non-positional arguments into calls
+of [method new] and [method create] (see [cmd nx::Class]). An
+existing object can be queried for its current configuration using
+[method cget] and it can be re-configured using [method configure].
 
 [list_begin options]
 
 [opt_def -class [arg className]]
 
-Class of the object.
+Returns the current class of the object or re-classes the object to [arg className], if provided.
 
 [opt_def -object-filter [arg filterMethods]]
 
-List of per-object filter methods.
+Returns the list of currently active per-object filter methods or sets
+a list of per-object filter methods, if [arg filterMethods] is
+provided.
 
-[opt_def -object-mixin [arg mixinSpec]]
+[opt_def -object-mixin [arg mixinSpecs]]
 
-List of mixinSpecs. A [arg mixinSpec] is of the form of ...
+Returns the list of currently active per-object mixin specifications
+or sets a list of per-object mixin specifications to become
+active. [arg mixinSpecs] is of the form of ...
 
 [opt_def -volatile]
 
-Volatile state. Volatile objects are destroyed automatically upon
-leaving the variable scope where volatile was set.
+A volatile object is automatically destroyed (see [method destroy])
+when, during program execution, the variable scope, in which [option -volatile] was
+configured for a given object for the first time (e.g., the call frame
+of a proc), is cleaned up.
 
 [list_end]
 
@@ -214,11 +222,25 @@ the application-specific destruction logic as has completed, a custom
 [method destroy] will trigger the actual, physical object destruction
 via [cmd next].
 
+[example {
+% [nx::Object create obj {
+  :public method destroy {} {
+    puts "destroying [self]"
+    next; # physical destruction
+  }
+}] destroy
+destroying ::obj
+}]
+
+A customized object-desctruction scheme can be made shared between the instances
+of a class, by defining the custom [method destroy] for an
+application class:
+
 [example_begin]
 % nx::Class create Foo {
     :method destroy {} {
-        puts "destroying [lb]self[rb]"
-        next
+      puts "destroying [lb]self[rb]"
+      next; # physical destruction
     }
 }
 ::Foo
@@ -228,20 +250,27 @@ via [cmd next].
 destroying ::f1
 [example_end]
 
-Some background details: The method <<@class.method "::nx::Object destroy">>
-delegates the actual destruction to <<@class.method "::nx::Class
-dealloc">> which clears the memory object storage. Essentially, this
-behavior could be scripted as:
+Physical destruction is performed by clearing the in-memory object
+storage of [arg obj]. This is achieved by passing [arg obj] into a
+call to [method dealloc] provided by [cmd nx::Class]. A near, scripted
+equivalent to the C-implemented [method destroy] provided by [cmd nx::Object] would look
+as follows:
 
 [example {
-Object method destroy {} {
+% Object method destroy {} {
   [:info class] dealloc [self]
 }
 }]
 
-Note, however, that '''destroy''' is protected against
-application-level redefinition. You must refine it in a subclass
-or a <<@gls mixin_class>>.
+Note, however, that [method destroy] is protected against
+application-level redefinition. Trying to evaluate the above script snippet yields: 
+
+[example {
+refuse to overwrite protected method 'destroy'; derive e.g. a sub-class!  
+}]
+
+A custom [method destroy] must be provided as a refinement in a
+subclass of [cmd nx::Object] or in a [term "mixin class"].
 
 [list_end]
 

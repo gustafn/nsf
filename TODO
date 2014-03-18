@@ -4926,6 +4926,10 @@ nx-mongo:
 ========================================================================
 TODO:
 
+- Why do we still have a method volatile in nx? Why not leave it as
+  configure/cget configuration option only?! At least, I cannot recall the
+  rationale behind keeping the method anymore :/
+
 - remove / rephrase "//"-comments
 - ParamGetDomain(Nsf_Param CONST *paramPtr) does not work
   for enumeration types defined in derived packages, having
