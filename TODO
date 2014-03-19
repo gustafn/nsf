@@ -4923,12 +4923,20 @@ nx-mongo:
 - update to newest version of mongo-c-driver and libbson from github
 - tested with mongodb-c-driver 0.93.0
 
+nx-mongo:
+- fixed suprising compiler message
+  "alignment of array elements is greater than element size"
+  when using e.g. "bson_iter_t i[1]"
+- some c-code cleanup
+- tested with mongodb-c-driver 0.92.3
+
 ========================================================================
 TODO:
 
 - Why do we still have a method volatile in nx? Why not leave it as
   configure/cget configuration option only?! At least, I cannot recall the
   rationale behind keeping the method anymore :/
+  * why the question ... now?
 
 - remove / rephrase "//"-comments
 - ParamGetDomain(Nsf_Param CONST *paramPtr) does not work
