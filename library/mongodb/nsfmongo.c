@@ -917,6 +917,45 @@ NsfMongoCollectionQuery(Tcl_Interp *interp,
   return TCL_OK;
 }
 
+/*
+cmd "collection::stats" NsfMongoCollectionStats {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
+  {-argName "-options" -required 0 -type tclobj}
+}
+*/
+static int
+NsfMongoCollectionStats(Tcl_Interp *interp, 
+			 mongoc_collection_t *collectionPtr,
+			 Tcl_Obj *optionsObj) {
+  int       objc = 0, result, success;
+  Tcl_Obj **objv = NULL;
+  bson_t options, *optionsPtr = NULL;
+  bson_t stats, *statsPtr = &stats;
+  bson_error_t bsonError;
+
+  if (optionsObj) {
+    result = Tcl_ListObjGetElements(interp, optionsObj, &objc, &objv);
+    if (result != TCL_OK || (objc % 3 != 0)) {
+      return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(optionsObj));
+    }
+    optionsPtr = &options;
+    BsonAppendObjv(interp, optionsPtr, objc, objv);
+  }
+
+   success = mongoc_collection_stats(collectionPtr, optionsPtr, statsPtr, &bsonError);
+   
+   if (optionsPtr) {
+     bson_destroy (optionsPtr);
+   }
+
+   if (success) {
+     Tcl_SetObjResult(interp, BsonToList(interp, statsPtr, 0));
+     bson_destroy (statsPtr);
+     return TCL_OK;
+   } else {
+     return NsfPrintError(interp, "mongo::collection::stats: error: %s", bsonError.message);
+   }
+}
 
 /*
 cmd "collection::update" NsfMongoCollectionUpdate {

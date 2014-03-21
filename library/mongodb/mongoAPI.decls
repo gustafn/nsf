@@ -70,7 +70,10 @@ cmd "collection::query" NsfMongoCollectionQuery {
   {-argName "-limit" -required 0 -type int32}
   {-argName "-skip" -required 0 -type int32}
 }
-
+cmd "collection::stats" NsfMongoCollectionStats {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
+  {-argName "-options" -required 0 -type tclobj}
+}
 cmd "collection::update" NsfMongoCollectionUpdate {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "cond" -required 1 -type tclobj}

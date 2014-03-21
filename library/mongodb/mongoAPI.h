@@ -85,7 +85,7 @@ static int ConvertToGridfilesource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[26];
+static Nsf_methodDefinition method_definitions[27];
   
 static CONST char *method_command_namespace_names[] = {
   "::mongo"
@@ -98,6 +98,7 @@ static int NsfMongoCollectionDeleteStub(ClientData clientData, Tcl_Interp *inter
 static int NsfMongoCollectionIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCollectionInsertStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCollectionQueryStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMongoCollectionStatsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCollectionUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCursorCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -124,6 +125,7 @@ static int NsfMongoCollectionDelete(Tcl_Interp *interp, mongoc_collection_t *col
 static int NsfMongoCollectionIndex(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *attributes, CONST char *withName, int withBackground, int withDropdups, int withSparse, int withTtl, int withUnique);
 static int NsfMongoCollectionInsert(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *values);
 static int NsfMongoCollectionQuery(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
+static int NsfMongoCollectionStats(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *withOptions);
 static int NsfMongoCollectionUpdate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *cond, Tcl_Obj *values, int withUpsert, int withAll);
 static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withUri);
 static int NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr, Tcl_Obj *cursorObj);
@@ -151,6 +153,7 @@ enum {
  NsfMongoCollectionIndexIdx,
  NsfMongoCollectionInsertIdx,
  NsfMongoCollectionQueryIdx,
+ NsfMongoCollectionStatsIdx,
  NsfMongoCollectionUpdateIdx,
  NsfMongoConnectIdx,
  NsfMongoCursorCloseIdx,
@@ -333,6 +336,26 @@ NsfMongoCollectionQueryStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
     assert(pc.status == 0);
     return NsfMongoCollectionQuery(interp, collectionPtr, query, withAtts, withLimit, withSkip);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfMongoCollectionStatsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMongoCollectionStatsIdx].paramDefs, 
+                     method_definitions[NsfMongoCollectionStatsIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
+    Tcl_Obj *withOptions = (Tcl_Obj *)pc.clientData[1];
+
+    assert(pc.status == 0);
+    return NsfMongoCollectionStats(interp, collectionPtr, withOptions);
 
   } else {
     return TCL_ERROR;
@@ -686,7 +709,7 @@ NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   }
 }
 
-static Nsf_methodDefinition method_definitions[26] = {
+static Nsf_methodDefinition method_definitions[27] = {
 {"::mongo::collection::close", NsfCollectionCloseStub, 1, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL}}
 },
@@ -726,6 +749,10 @@ static Nsf_methodDefinition method_definitions[26] = {
   {"-atts", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-limit", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL},
   {"-skip", 0, 1, Nsf_ConvertTo_Int32, NULL,NULL,"int32",NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::collection::stats", NsfMongoCollectionStatsStub, 2, {
+  {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL},
+  {"-options", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::collection::update", NsfMongoCollectionUpdateStub, 5, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL},

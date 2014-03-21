@@ -4929,6 +4929,8 @@ nx-mongo:
   when using e.g. "bson_iter_t i[1]"
 - some c-code cleanup
 - tested with mongodb-c-driver 0.92.3
+- added mongo::collection::stats
+- extended regression test
 
 ========================================================================
 TODO:
