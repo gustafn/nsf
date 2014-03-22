@@ -85,7 +85,7 @@ static int ConvertToGridfilesource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[27];
+static Nsf_methodDefinition method_definitions[28];
   
 static CONST char *method_command_namespace_names[] = {
   "::mongo"
@@ -101,6 +101,7 @@ static int NsfMongoCollectionQueryStub(ClientData clientData, Tcl_Interp *interp
 static int NsfMongoCollectionStatsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCollectionUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMongoCursorAggregateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCursorCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCursorFindStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoCursorNextStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -128,6 +129,7 @@ static int NsfMongoCollectionQuery(Tcl_Interp *interp, mongoc_collection_t *coll
 static int NsfMongoCollectionStats(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *withOptions);
 static int NsfMongoCollectionUpdate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *cond, Tcl_Obj *values, int withUpsert, int withAll);
 static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withUri);
+static int NsfMongoCursorAggregate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *pipeline, Tcl_Obj *options, int withTailable, int withAwaitdata);
 static int NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr, Tcl_Obj *cursorObj);
 static int NsfMongoCursorFind(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip, int withTailable, int withAwaitdata);
 static int NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr);
@@ -156,6 +158,7 @@ enum {
  NsfMongoCollectionStatsIdx,
  NsfMongoCollectionUpdateIdx,
  NsfMongoConnectIdx,
+ NsfMongoCursorAggregateIdx,
  NsfMongoCursorCloseIdx,
  NsfMongoCursorFindIdx,
  NsfMongoCursorNextIdx,
@@ -398,6 +401,29 @@ NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
     assert(pc.status == 0);
     return NsfMongoConnect(interp, withUri);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfMongoCursorAggregateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMongoCursorAggregateIdx].paramDefs, 
+                     method_definitions[NsfMongoCursorAggregateIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    mongoc_collection_t *collectionPtr = (mongoc_collection_t *)pc.clientData[0];
+    Tcl_Obj *pipeline = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *options = (Tcl_Obj *)pc.clientData[2];
+    int withTailable = (int )PTR2INT(pc.clientData[3]);
+    int withAwaitdata = (int )PTR2INT(pc.clientData[4]);
+
+    assert(pc.status == 0);
+    return NsfMongoCursorAggregate(interp, collectionPtr, pipeline, options, withTailable, withAwaitdata);
 
   } else {
     return TCL_ERROR;
@@ -709,7 +735,7 @@ NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   }
 }
 
-static Nsf_methodDefinition method_definitions[27] = {
+static Nsf_methodDefinition method_definitions[28] = {
 {"::mongo::collection::close", NsfCollectionCloseStub, 1, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL}}
 },
@@ -763,6 +789,13 @@ static Nsf_methodDefinition method_definitions[27] = {
 },
 {"::mongo::connect", NsfMongoConnectStub, 1, {
   {"-uri", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::cursor::aggregate", NsfMongoCursorAggregateStub, 5, {
+  {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL},
+  {"pipeline", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"options", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-tailable", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-awaitdata", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::mongo::cursor::close", NsfMongoCursorCloseStub, 1, {
   {"cursor", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_cursor_t",NULL,NULL,NULL,NULL,NULL}}

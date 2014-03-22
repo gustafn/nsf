@@ -1010,6 +1010,80 @@ NsfMongoCollectionUpdate(Tcl_Interp *interp,
  * Cursor interface
  ***********************************************************************/
 /*
+cmd cursor::aggregate NsfMongoCursorAggregate {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
+  {-argName "pipeline" -required 1 -type tclobj}
+  {-argName "options" -required 1 -type tclobj}
+  {-argName "-tailable" -required 0 -nrargs 0}
+  {-argName "-awaitdata" -required 0 -nrargs 0}
+}
+*/
+static int
+NsfMongoCursorAggregate(Tcl_Interp *interp,
+                        mongoc_collection_t *collectionPtr,
+                        Tcl_Obj *pipelineObj,
+                        Tcl_Obj *optionsObj,
+                        int withTailable,
+                        int withAwaitdata) {
+  int objc1, objc2, result;
+  mongoc_query_flags_t queryFlags = 0;
+  Tcl_Obj **objv1, **objv2 = NULL;
+  mongoc_cursor_t *cursor;
+  bson_t pipeline, *pipelinePtr = &pipeline;
+  bson_t options,  *optionsPtr  = &options;
+  mongoc_read_prefs_t *readPrefsPtr = NULL; /* TODO: not used */
+
+  result = Tcl_ListObjGetElements(interp, pipelineObj, &objc1, &objv1);
+  if (result != TCL_OK || (objc1 % 3 != 0)) {
+    return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(pipelineObj));
+  }
+  result = Tcl_ListObjGetElements(interp, optionsObj, &objc2, &objv2);
+  if (result != TCL_OK || (objc2 % 3 != 0)) {
+    return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(optionsObj));
+  }
+
+  BsonAppendObjv(interp, pipelinePtr, objc1, objv1);
+  BsonAppendObjv(interp, optionsPtr,  objc2, objv2);
+
+  /*
+   *  The last field of mongo_find is options, semantics are described here
+   *  http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPQUERY
+   */
+  if (withTailable) {
+    queryFlags |= MONGOC_QUERY_TAILABLE_CURSOR;
+  }
+  if (withAwaitdata) {
+    queryFlags |= MONGOC_QUERY_AWAIT_DATA;
+  }
+  /* TODO: query flags:
+   MONGOC_QUERY_SLAVE_OK          = 1 << 2,
+   MONGOC_QUERY_OPLOG_REPLAY      = 1 << 3,
+   MONGOC_QUERY_NO_CURSOR_TIMEOUT = 1 << 4,
+   MONGOC_QUERY_EXHAUST           = 1 << 6,
+   MONGOC_QUERY_PARTIAL           = 1 << 7,
+  */
+  cursor = mongoc_collection_aggregate(collectionPtr, queryFlags,
+                                       pipelinePtr, optionsPtr,
+                                       readPrefsPtr);
+  if (cursor) {
+    char buffer[80];
+    if (Nsf_PointerAdd(interp, buffer, "mongoc_cursor_t", cursor) == TCL_OK) {
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(buffer, -1));
+    } else {
+      mongoc_cursor_destroy( cursor );
+      result = TCL_ERROR;
+    }
+  } else {
+    Tcl_ResetResult(interp);
+  }
+
+  bson_destroy( pipelinePtr );
+  bson_destroy( optionsPtr );
+
+  return result;
+}
+
+/*
 cmd cursor::find NsfMongoCursorFind {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
@@ -1046,8 +1120,6 @@ NsfMongoCursorFind(Tcl_Interp *interp,
     if (result != TCL_OK || (objc2 % 3 != 0)) {
       return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(withAttsObj));
     }
-  } else {
-    objc2 = 0;
   }
 
   BsonAppendObjv(interp, queryPtr, objc1, objv1);

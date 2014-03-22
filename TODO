@@ -4930,6 +4930,7 @@ nx-mongo:
 - some c-code cleanup
 - tested with mongodb-c-driver 0.92.3
 - added mongo::collection::stats
+- added mongo::cursor::aggregate
 - extended regression test
 
 ========================================================================

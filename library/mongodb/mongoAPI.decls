@@ -85,6 +85,13 @@ cmd "collection::update" NsfMongoCollectionUpdate {
 #
 # Cursor
 #
+cmd cursor::aggregate NsfMongoCursorAggregate {
+  {-argName "collection" -required 1 -type mongoc_collection_t}
+  {-argName "pipeline" -required 1 -type tclobj}
+  {-argName "options" -required 1 -type tclobj}
+  {-argName "-tailable" -required 0 -nrargs 0}
+  {-argName "-awaitdata" -required 0 -nrargs 0}
+}
 cmd cursor::find NsfMongoCursorFind {
   {-argName "collection" -required 1 -type mongoc_collection_t}
   {-argName "query" -required 1 -type tclobj}
