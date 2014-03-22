@@ -6066,7 +6066,8 @@ TclObjListAdd(Tcl_Interp *interp, NsfTclObjList **list, Tcl_Obj *key, Tcl_Obj *v
       /*
        * Found the element, append to it
        */
-      /* fprintf(stderr, "TclObjListAdd: insert %s equal %s\n", keyString, eltString);*/
+      /* fprintf(stderr, "TclObjListAdd: insert %s/%s equal, append to %s\n",
+         keyString, ObjStr(value), ObjStr(elt->payload));*/
       Tcl_ListObjAppendElement(interp, elt->payload, value);
       return;
     }
@@ -6074,15 +6075,16 @@ TclObjListAdd(Tcl_Interp *interp, NsfTclObjList **list, Tcl_Obj *key, Tcl_Obj *v
       /*
        * Element not found, insert new before as a new entry.
        */
-      /* fprintf(stderr, "TclObjListAdd: insert %s before %s\n", keyString, eltString);*/
-      TclObjListNewElement(prevPtr, key, value);
+      /*fprintf(stderr, "TclObjListAdd: insert %s/%s before %s isshared %d\n",
+        keyString, ObjStr(value), eltString, Tcl_IsShared(key));*/
+      TclObjListNewElement(prevPtr, key, Tcl_IsShared(value) ? Tcl_DuplicateObj(value) : value);
       return;
     }
   }
   /*
    * Element not found, insert new as last entry.
    */
-  /* fprintf(stderr, "TclObjListAdd: insert last %s\n", keyString); */
+  /* fprintf(stderr, "TclObjListAdd: insert last %s value %s\n", keyString, ObjStr(value)); */
   TclObjListNewElement(prevPtr, key, Tcl_NewListObj(1, &value));
 
   return;

@@ -674,6 +674,9 @@ nx::test case destroy-during-init {
 
   ? [list info command $c] "" "explicit destroy of class"
 
+  package require nx::volatile
+  ::nsf::method::require ::nx::Object volatile
+
   # create new class and object and cleanup everything
   set x [nx::Class new {
     :volatile

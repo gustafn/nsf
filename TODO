@@ -4933,6 +4933,19 @@ nx-mongo:
 - added mongo::cursor::aggregate
 - extended regression test
 
+nsf.c:
+- fix case, where NsfDStringPrintf() failed (when print llength including
+  \0 was 1 byte longer than print buffer)
+- make sure, that the list kept for the cached parameter is just built
+  from unshared objects; otherwise Tcl append will abort
+
+nx.tcl:
+- new package "nx::volatile"
+- don't define configure parameter "-volatile" per default;
+  use "package req nx::volatile" instead
+- don't define per method "volatile" per default;
+  use "::nsf::method::require ::nx::Object volatile" instead
+
 ========================================================================
 TODO:
 

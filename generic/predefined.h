@@ -31,6 +31,7 @@ static char cmd[] =
 "uplevel [list ::nsf::relation $object $rel \"\"]}}\n"
 "::nsf::method::provide autoname {::nsf::method::alias autoname ::nsf::methods::object::autoname}\n"
 "::nsf::method::provide exists   {::nsf::method::alias exists   ::nsf::methods::object::exists}\n"
+"::nsf::method::provide volatile {::nsf::method::alias volatile   ::nsf::methods::object::volatile}\n"
 "proc ::nsf::object::unknown {name} {\n"
 "foreach {key handler} [array get ::nsf::object::unknown] {\n"
 "set result [uplevel [list {*}$handler $name]]\n"

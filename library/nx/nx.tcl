@@ -76,8 +76,6 @@ namespace eval ::nx {
   #
   # provide the standard command set for ::nx::Object
   #
-  ::nsf::method::alias Object volatile  ::nsf::methods::object::volatile
-#  ::nsf::method::alias Object configure ::nsf::methods::object::configure
   ::nsf::method::alias Object upvar     ::nsf::methods::object::upvar
   ::nsf::method::alias Object destroy   ::nsf::methods::object::destroy
   ::nsf::method::alias Object uplevel   ::nsf::methods::object::uplevel
@@ -1577,17 +1575,6 @@ namespace eval ::nx {
       -forwardername class-filter -elementtype filterreg
 
   #
-  # Create object parameter slots for "noninit" and "volatile"
-  #
-  #::nx::ObjectParameterSlot create ::nx::Object::slot::noinit \
-  #    -methodname ::nsf::methods::object::noinit -noarg true
-  ::nx::ObjectParameterSlot create ::nx::Object::slot::volatile -noarg true
-  ::nsf::method::create ::nx::Object::slot::volatile assign {object var value} {$object volatile}
-  ::nsf::method::create ::nx::Object::slot::volatile get {object var} {
-    ::nsf::object::property $object volatile
-  }
-
-  #
   # Define "class" as a ObjectParameterSlot defined as alias
   #
   ::nx::ObjectParameterSlot create ::nx::Object::slot::class \
@@ -2224,7 +2211,7 @@ namespace eval ::nx {
 	set childof [uplevel {namespace current}]
       }
       #
-      # Use the uplevel method to assure that "... new -volatile ..."
+      # Use the uplevel method to assure that e.g. "... new -volatile ..."
       # has the right scope
       #
       :uplevel [list [self] ::nsf::methods::class::new -childof $childof {*}$args]
@@ -2519,8 +2506,11 @@ namespace eval ::nx {
   }
 
   Object public method copy {{newName ""}} {
-    if {[string compare [string trimleft $newName :] [string trimleft [::nsf::self] :]]} {
-      [CopyHandler new -volatile] copy [::nsf::self] $newName
+    if {[string trimleft $newName :] ne [string trimleft [::nsf::self] :]} {
+      set h [CopyHandler new]
+      set r [$h copy [::nsf::self] $newName]
+      $h destroy
+      return $r
     }
   }
 

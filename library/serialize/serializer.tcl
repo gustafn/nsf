@@ -380,8 +380,7 @@ namespace eval ::nx::serializer {
 
       # don't filter anything during serialization
       set filterstate [::nsf::configure filter off]
-      set s [:new -childof [::nsf::current object] -volatile]
-      #$s volatile
+      set s [:new -childof [::nsf::current object]]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
 
@@ -421,6 +420,7 @@ namespace eval ::nx::serializer {
       foreach oss [ObjectSystemSerializer info instances] {
         append r [$oss serialize-all-end $s]
       }
+      $s destroy
 
       append r {
         #::nx::Slot mixin delete ::nx::Slot::Nocheck
@@ -455,27 +455,25 @@ namespace eval ::nx::serializer {
     }
 
     :public object method methodSerialize {object method prefix} {
-      set s [:new -childof [::nsf::current object] -volatile]
       foreach oss [ObjectSystemSerializer info instances] {
         if {[$oss responsibleSerializer $object]} {
 	  set result [$oss serializeExportedMethod $object $prefix $method]
 	  break
 	}
       }
-      #concat $object [$s method-serialize $object $method $prefix]
       return $result
     }
 
     :public object method deepSerialize {-ignoreVarsRE -ignore -map -objmap args} {
       :resetPattern
-      set s [:new -childof [::nsf::current object] -volatile]
-      #$s volatile
+      set s [:new -childof [::nsf::current object]]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
       if {[info exists objmap]} {$s objmap $objmap}
       foreach o $args {
         append r [$s deepSerialize [::nsf::directdispatch $o -frame method ::nsf::current]]
       }
+      $s destroy
       if {[info exists map]} {return [string map $map $r]}
       return $r
     }
@@ -1018,3 +1016,10 @@ namespace eval ::nx::serializer {
   namespace export Serializer
   namespace eval :: "namespace import -force [namespace current]::*"
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

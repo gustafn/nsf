@@ -4,6 +4,9 @@ package req nx::test
 package prefer latest
 package req XOTcl 2.0
 
+package req nx::volatile
+::nsf::method::require ::nx::Object volatile
+
 #
 # Wrapper to call a command in a proc/method
 #

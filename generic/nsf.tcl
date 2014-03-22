@@ -92,6 +92,7 @@ namespace eval ::nsf {
   #
   ::nsf::method::provide autoname {::nsf::method::alias autoname ::nsf::methods::object::autoname}
   ::nsf::method::provide exists   {::nsf::method::alias exists   ::nsf::methods::object::exists}
+  ::nsf::method::provide volatile {::nsf::method::alias volatile   ::nsf::methods::object::volatile}
 
   ######################################################################
   # unknown handler for objects and classes

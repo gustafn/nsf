@@ -41,7 +41,7 @@ nx::test case class-level {
   #
   # just the public properties are accessible via the configure interface
   #
-  ? {c1 info configure} { ?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {c1 info configure} { ?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
   ? {lsort [C info slots]} "::C::slot::____C.d ::C::slot::____C.vd ::C::slot::a ::C::slot::b ::C::slot::c ::C::slot::e ::C::slot::va ::C::slot::vb ::C::slot::vc ::C::slot::ve ::C::slot::vf"
 
@@ -230,7 +230,7 @@ nx::test case class-level-incremental {
   #
   # The use of "-incremental" implies multivalued
   #
-  ? {c1 info configure} { ?-e /value .../? ?-a /value .../? ?-b /value .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {c1 info configure} { ?-e /value .../? ?-a /value .../? ?-b /value .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
   
   ? {c1 cget -a} a1
   ? {c1 cget -b} b1
@@ -405,7 +405,7 @@ nx::test case object-level {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {o1 info configure} { ?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {o1 info configure} { ?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
   #
   # just the public properties are accessible via the cget interface
@@ -533,7 +533,7 @@ nx::test case object-level-incremental {
   #
   # The use of "-incremental" implies multivalued
   #
-  ? {o1 info configure} { ?-e /value .../? ?-a /value .../? ?-b /value .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {o1 info configure} { ?-e /value .../? ?-a /value .../? ?-b /value .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
   
   ? {o1 cget -a} a1
   ? {o1 cget -b} b1
@@ -697,12 +697,12 @@ nx::test case class-object-properties {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {c1 info configure} {?-a /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {c1 info configure} {?-a /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
   ? {c1 cget -a} a1
   ? {c1 configure -a a2} ""
 
-  ? {C info configure} {?-b /value/? ?-superclass /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {C info configure} {?-b /value/? ?-superclass /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
   ? {C cget -b} b1
   ? {C configure -b b2} ""
@@ -755,6 +755,7 @@ nx::test case class-level-perf {
   #
   # just the public properties are accessible via the configure interface
   #
+  package require nx::volatile
   
   ? {c1 info configure} { ?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
@@ -815,7 +816,7 @@ nx::test case object-level-perf {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {o1 info configure} { ?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {o1 info configure} { ?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
   set e [o1 eval :__objectparameter]
 

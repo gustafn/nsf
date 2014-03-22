@@ -128,8 +128,8 @@ nx::test case info-method-base {
   ? {::nx::Object info lookup methods -source application} ""
   ? {::nx::Class info lookup methods -source application} ""
 
-  set object_methods "cget configure contains copy delete destroy eval info move object private protected public require volatile"
-  set class_methods "alias cget configure contains copy create delete destroy eval filter forward info method mixin move new object private property protected public require variable volatile"
+  set object_methods "cget configure contains copy delete destroy eval info move object private protected public require"
+  set class_methods "alias cget configure contains copy create delete destroy eval filter forward info method mixin move new object private property protected public require variable"
 
   ? {lsort [::nx::Object info lookup methods -source system]} $class_methods
   ? {lsort [::nx::Class info lookup methods -source system]} $class_methods
@@ -505,7 +505,7 @@ nx::test case slots {
     :create d1
   }
 
-  ? {lsort [D info lookup slots]} "::D::per-object-slot::a2 ::nx::Class::slot::filter ::nx::Class::slot::mixin ::nx::Class::slot::superclass ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin ::nx::Object::slot::volatile"
+  ? {lsort [D info lookup slots]} "::D::per-object-slot::a2 ::nx::Class::slot::filter ::nx::Class::slot::mixin ::nx::Class::slot::superclass ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin"
 
   ? {D info lookup slots superclass} "::nx::Class::slot::superclass"
   ? {D info lookup slots ::nx::Class::slot::superclass} "::nx::Class::slot::superclass"
@@ -520,7 +520,7 @@ nx::test case slots {
   ? {C info heritage} "::nx::Object"
   ? {C info slots -closure -source application} "::C::slot::____C.x ::C::slot::a ::C::slot::b"
   ? {lsort [C info slots -closure]} \
-      "::C::slot::____C.x ::C::slot::a ::C::slot::b ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin ::nx::Object::slot::volatile"
+      "::C::slot::____C.x ::C::slot::a ::C::slot::b ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin"
 
   ? {C info slots} "::C::slot::____C.x ::C::slot::a ::C::slot::b"
 
@@ -564,7 +564,7 @@ nx::test case slots {
 
   ? {d1 info precedence} "::D ::C ::nx::Object"
   ? {lsort [d1 info lookup slots]} \
-      "::C::slot::____C.x ::C::slot::a ::D::slot::b ::D::slot::c ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin ::nx::Object::slot::volatile"
+      "::C::slot::____C.x ::C::slot::a ::D::slot::b ::D::slot::c ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin"
 
 
   # Fully qualified name, with metachars
@@ -718,14 +718,14 @@ nx::test case info-slot-parametersyntax {
   }
 
   C new
-  ? {C info configure syntax} "/::C/ ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {C info configure syntax} "/::C/ ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 #  ? {C info configure syntax a} "/::C/ ?-a /value/?"
 
-  ? {C info configure parameters } "-a {-b 1} -volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,0..n __initblock:cmd,optional,noleadingdash"
+  ? {C info configure parameters } "-a {-b 1} -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,0..n __initblock:cmd,optional,noleadingdash"
 
-#  ? {C info parameter list} "-a -b -volatile -noinit -object-mixin -class -object-filter __initblock"
-#  ? {C info parameter names} "a b volatile noinit object-mixin class object-filter __initblock"
-  ? {lsort [C info slots -closure]} "::C::slot::a ::C::slot::b ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin ::nx::Object::slot::volatile"
+#  ? {C info parameter list} "-a -b -noinit -object-mixin -class -object-filter __initblock"
+#  ? {C info parameter names} "a b noinit object-mixin class object-filter __initblock"
+  ? {lsort [C info slots -closure]} "::C::slot::a ::C::slot::b ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin"
 
   ? {C info configure parameters b} "{-b 1}"
   ? {D info configure parameters b} "{-b 2}"
@@ -733,8 +733,8 @@ nx::test case info-slot-parametersyntax {
   ? {D info slots -closure a} "::C::slot::a"
   ? {D info slots -closure class} "::nx::Object::slot::class"
 
-#  ? {D info parameter list} "-b -c -a -volatile -noinit -object-mixin -class -object-filter __initblock"
-#  ? {D info parameter names} "b c a volatile noinit object-mixin class object-filter __initblock"
+#  ? {D info parameter list} "-b -c -a -noinit -object-mixin -class -object-filter __initblock"
+#  ? {D info parameter names} "b c a noinit object-mixin class object-filter __initblock"
 }
 
 #

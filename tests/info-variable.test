@@ -33,7 +33,6 @@ nx::test case configure-parameters {
   ? {join [Person info configure parameters] \n} \
 "-age:integer
 -name
--volatile:alias,slot=::nx::Object::slot::volatile,slotassign,noarg
 -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,0..n
 -class:class,alias,method=::nsf::methods::object::class
 -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,0..n
@@ -41,7 +40,7 @@ __initblock:cmd,optional,noleadingdash"
 
   ? {Person info configure parameters age} "-age:integer"
   ? {Person info configure parameters {*a[gs]*}} "-age:integer -class:class,alias,method=::nsf::methods::object::class"
-  ? {Person info configure syntax} "/::Person/ ?-age /integer/? ?-name /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {Person info configure syntax} "/::Person/ ?-age /integer/? ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   ? {Person info method parameters foo} {-force:switch age:integer {name ""}}
   ? {Person info method parameters foo force} "-force:switch"
@@ -51,7 +50,7 @@ __initblock:cmd,optional,noleadingdash"
   ? {Person info parameter syntax -force:switch} "?-force?"
   ? {Person info parameter name "a b"} "a"
 
-  ? {lmap p [Person info configure parameters] {nsf::parameter::get default $p}} "0 0 0 0 0 0 0"
+  ? {lmap p [Person info configure parameters] {nsf::parameter::get default $p}} "0 0 0 0 0 0"
   ? {lmap p [Person info method parameters foo] {nsf::parameter::get default $p}} "1 0 1"
 
   nx::Class create Bar {
@@ -71,11 +70,11 @@ __initblock:cmd,optional,noleadingdash"
   }
 
   ? {lmap p [Foo info configure parameters] {nsf::parameter::get name $p}} \
-      "i a b p volatile object-mixin class object-filter __initblock"
+      "i a b p object-mixin class object-filter __initblock"
   ? {lmap p [Foo info configure parameters] {nsf::parameter::get default $p}} \
-      "0 0 1 1 0 0 0 0 0"
+      "0 0 1 1 0 0 0 0"
   ? {lmap p [Foo info configure parameters] {nsf::parameter::get type $p}} \
-      "{} integer integer {} {} mixinreg class filterreg {}"
+      "{} integer integer {} mixinreg class filterreg {}"
 
   ? {join [lsort [::Foo info slots]] \n} \
 "::Foo::slot::____Foo.p
@@ -108,8 +107,7 @@ __initblock:cmd,optional,noleadingdash"
 ::nx::Object::slot::__initblock
 ::nx::Object::slot::class
 ::nx::Object::slot::object-filter
-::nx::Object::slot::object-mixin
-::nx::Object::slot::volatile"
+::nx::Object::slot::object-mixin"
 
   # get the configure value from p and the value of the private property via m
   ? {f1 cget -p} 9

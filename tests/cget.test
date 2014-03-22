@@ -53,7 +53,7 @@ nx::test case cget-simple {
   #
   # configure without arguments
   #
-  ? {p1 info configure} "?-sex /value/? -famnam /value/ ?-age /integer/? ?-friends /value .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {p1 info configure} "?-sex /value/? -famnam /value/ ?-age /integer/? ?-friends /value .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 }
 
 #
@@ -93,7 +93,7 @@ nx::test case cget-via-slot {
   #
   # configure without arguments
   #
-  ? {p1 info configure} "?-bar1 /value/? ?-bar2 /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {p1 info configure} "?-bar1 /value/? ?-bar2 /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   #
   # test gettin/setting via slots
@@ -130,7 +130,9 @@ nx::test case cget-parameter-methods {
     :public method m1 {args} {set :m1 $args; return $args}
     :create c1
   }
-  
+
+  package req nx::volatile
+
   #
   # class-level lookup
   #
