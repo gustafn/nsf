@@ -78,7 +78,7 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
   failure = (result == -1 && errno == ERANGE);
 #else
   assert(result > -1);
-  failure = (result > avail);
+  failure = (result >= avail);
 #endif
 
   if (likely(failure == 0)) {
