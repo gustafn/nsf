@@ -85,7 +85,7 @@ static int ConvertToGridfilesource(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Para
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[28];
+static Nsf_methodDefinition method_definitions[29];
   
 static CONST char *method_command_namespace_names[] = {
   "::mongo"
@@ -117,6 +117,7 @@ static int NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, i
 static int NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMongoStatusStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int NsfCollectionClose(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *collectionObj);
 static int NsfCollectionOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, CONST char *dbname, CONST char *collectionname);
@@ -145,6 +146,7 @@ static int NsfMongoGridFileOpen(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl
 static int NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int size);
 static int NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int offset);
 static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *connPtr, CONST char *db, Tcl_Obj *cmd);
+static int NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj);
 
 enum {
  NsfCollectionCloseIdx,
@@ -173,7 +175,8 @@ enum {
  NsfMongoGridFileOpenIdx,
  NsfMongoGridFileReadIdx,
  NsfMongoGridFileSeekIdx,
- NsfMongoRunCmdIdx
+ NsfMongoRunCmdIdx,
+ NsfMongoStatusIdx
 } NsfMethods;
 
 
@@ -735,7 +738,26 @@ NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   }
 }
 
-static Nsf_methodDefinition method_definitions[28] = {
+static int
+NsfMongoStatusStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMongoStatusIdx].paramDefs, 
+                     method_definitions[NsfMongoStatusIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    mongoc_client_t *connPtr = (mongoc_client_t *)pc.clientData[0];
+
+    assert(pc.status == 0);
+    return NsfMongoStatus(interp, connPtr,pc.objv[0]);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static Nsf_methodDefinition method_definitions[29] = {
 {"::mongo::collection::close", NsfCollectionCloseStub, 1, {
   {"collection", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_collection_t",NULL,NULL,NULL,NULL,NULL}}
 },
@@ -861,6 +883,9 @@ static Nsf_methodDefinition method_definitions[28] = {
   {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_client_t",NULL,NULL,NULL,NULL,NULL},
   {"db", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"cmd", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::mongo::status", NsfMongoStatusStub, 1, {
+  {"conn", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Pointer, NULL,NULL,"mongoc_client_t",NULL,NULL,NULL,NULL,NULL}}
 },{NULL}
 };
 

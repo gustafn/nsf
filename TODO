@@ -4945,7 +4945,12 @@ nx.tcl:
   use "package req nx::volatile" instead
 - don't define per method "volatile" per default;
   use "::nsf::method::require ::nx::Object volatile" instead
+- get rid of -volatile in nx.tcl and serializer
+- updated/extened regression test
 
+nx-mongo:
+- added command "::mongo::status /mongoConn/"
+- extended regression test
 ========================================================================
 TODO:
 

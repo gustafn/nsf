@@ -22,12 +22,14 @@ cmd close NsfMongoClose {
 cmd connect NsfMongoConnect {
   {-argName "-uri" -required 0 -nrargs 1}
 }
-
 cmd run NsfMongoRunCmd {
   {-argName "-nocomplain" -required 0 -nrargs 0}
   {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "db" -required 1}
   {-argName "cmd" -required 1 -type tclobj}
+}
+cmd status NsfMongoStatus {
+  {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
 }
 
 #

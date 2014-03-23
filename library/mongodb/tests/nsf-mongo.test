@@ -163,7 +163,6 @@ puts stderr "\nProjects in {nsf gtat}"
 		 [list \$query document {projects document {$in array {0 string nsf 1 string gtat}}}]]} 3
 
 puts stderr "\nStatistics of $mongoColl"
-puts stderr [::mongo::collection::stats $mongoColl]
 set stats [::mongo::collection::stats $mongoColl]
 
 ? {expr [llength $stats] % 3 == 0} 1
@@ -174,6 +173,13 @@ if {[llength $stats] % 3 == 0} {
   nx::mongo::Class create C
   puts [C bson pp $stats]
 }
+
+puts stderr "\nStatus"
+set status [::mongo::status $mongoConn]
+puts [C bson pp $status]
+
+? {expr [llength $status] % 3 == 0} 1
+? {expr [llength $status] > 0} 1
 
 puts stderr "\nClose connection $mongoConn"
 ::mongo::close $mongoConn

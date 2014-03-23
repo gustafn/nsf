@@ -530,7 +530,6 @@ NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj
   return TCL_OK;
 }
 
-
 /*
 cmd connect NsfMongoConnect {
   {-argName "-uri" -required 1 -nrargs 1}
@@ -614,6 +613,29 @@ NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *clientPt
 }
 
 /*
+cmd status NsfMongoStatus {
+  {-argName "conn" -required 1 -type mongoc_client_t -withObj 1}
+}
+*/
+static int
+NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *clientPtr, Tcl_Obj *clientObj) {
+  mongoc_read_prefs_t *readPrefs = NULL; /* TODO: not handled */
+  bson_t reply, *replyPtr = &reply;
+  bson_error_t bsonError;
+  int result = TCL_OK;
+
+  if (likely(mongoc_client_get_server_status(clientPtr, readPrefs, replyPtr, &bsonError)) !=0) {
+    Tcl_SetObjResult(interp, BsonToList(interp, replyPtr, 0));
+  } else {
+    result = NsfPrintError(interp, "mongo::status: error: %s", bsonError.message);
+  }
+
+  bson_destroy(replyPtr);
+  return result;
+}
+
+
+/*
 cmd collection::open NsfCollectionOpen {
   {-argName "conn" -required 1 -type mongoc_client_t}
   {-argName "dbname" -required 1}
@@ -693,7 +715,6 @@ NsfMongoCollectionCount(Tcl_Interp *interp,
 				    0 /*skip */, 0 /*limit */,
 				    NULL /* read preferences */,
 				    &bsonError);
-    fprintf(stderr, "count returns %d \n", count);
     if (count == -1) {
       bson_destroy( queryPtr );
       return NsfPrintError(interp, "mongo::collection::count: error: %s", bsonError.message);
@@ -720,7 +741,7 @@ static int
 NsfMongoCollectionDelete(Tcl_Interp *interp, 
 			mongoc_collection_t *collectionPtr,
 			 Tcl_Obj *conditionObj) {
-  int objc, result, status;
+  int objc, result, success;
   Tcl_Obj **objv;
   bson_t query, *queryPtr = &query;
   bson_error_t bsonError;
@@ -734,9 +755,9 @@ NsfMongoCollectionDelete(Tcl_Interp *interp,
   }
 
   BsonAppendObjv(interp, queryPtr, objc, objv);
-  status = mongoc_collection_delete(collectionPtr, deleteFlags, queryPtr, writeConcern, &bsonError);
+  success = mongoc_collection_delete(collectionPtr, deleteFlags, queryPtr, writeConcern, &bsonError);
 
-  if (status == 0) {
+  if (success == 0) {
     result = NsfPrintError(interp, "mongo::collection::delete: error: %s", bsonError.message);
   }
   bson_destroy(queryPtr);
@@ -808,7 +829,7 @@ cmd "collection::insert" NsfMongoCollectionInsert {
 static int NsfMongoCollectionInsert(Tcl_Interp *interp, 
 				    mongoc_collection_t *collectionPtr,
 				    Tcl_Obj *valuesObj) {
-  int i, objc, result;
+  int i, objc, result, success;
   Tcl_Obj **objv;
   bson_t bson, *bsonPtr = &bson;
   bson_oid_t oid;
@@ -838,16 +859,16 @@ static int NsfMongoCollectionInsert(Tcl_Interp *interp,
     BsonAppend(interp, bsonPtr, name, tag, value);
   }
 
-  result = mongoc_collection_insert(collectionPtr, insertFlags, bsonPtr, writeConcern, &bsonError);
+  success = mongoc_collection_insert(collectionPtr, insertFlags, bsonPtr, writeConcern, &bsonError);
 
-  if (result == 0) {
-    bson_destroy(bsonPtr);
-    return NsfPrintError(interp, "mongo::collection::insert: error: %s", bsonError.message);
+  if (success == 0) {
+    result = NsfPrintError(interp, "mongo::collection::insert: error: %s", bsonError.message);
   } else {
     Tcl_SetObjResult(interp, BsonToList(interp, bsonPtr, 0));
-    result = TCL_OK;
-    bson_destroy(bsonPtr);
   }
+
+  bson_destroy(bsonPtr);
+
   return result;
 }
 
