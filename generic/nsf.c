@@ -21412,8 +21412,28 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
     ParsedParamFree(cl->parsedParamPtr);
     cl->parsedParamPtr = NULL;
   }
+
+  /*
+   * Omit storm of invalidations on shutdown.
+   */
+  if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
+    NsfClasses *subClasses = TransitiveSubClasses(cl), *clPtr;
+    /*
+     * invalidate cached parameters in subclasses
+     */
+    for (clPtr = subClasses; clPtr; clPtr = clPtr->nextPtr) {
+      NsfClass *subClass = clPtr->cl;
+      if (subClass->parsedParamPtr) {
+        ParsedParamFree(subClass->parsedParamPtr);
+        subClass->parsedParamPtr = NULL;
+      }
+    }
+    NsfClassListFree(subClasses);
+  }
+
   return TCL_OK;
 }
+
 
 /*
 cmd parameter:invalidate::objectcache NsfParameterInvalidateObjectCacheCmd {
@@ -22344,6 +22364,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 
   if (likely(class && class->parsedParamPtr)) {
     NsfParsedParam *clParsedParamPtr = class->parsedParamPtr;
+
     parsedParamPtr->paramDefs = clParsedParamPtr->paramDefs;
     parsedParamPtr->possibleUnknowns = clParsedParamPtr->possibleUnknowns;
     result = TCL_OK;
@@ -22391,6 +22412,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
 	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
 	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
 	  if (class) {
+            assert(class->parsedParamPtr == NULL);
 	    class->parsedParamPtr = ppDefPtr;
 #if defined(PER_OBJECT_PARAMETER_CACHING)
 	  } else {
@@ -23781,11 +23803,11 @@ NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl,
 }
 
 /*
-classMethod getCachedParameters NsfCGetCachendParameters {
+classMethod getCachedParameters NsfCGetCachendParametersMethod {
 }
 */
 static int
-NsfCGetCachendParameters(Tcl_Interp *interp, NsfClass *class) {
+NsfCGetCachendParametersMethod(Tcl_Interp *interp, NsfClass *class) {
 
   if (likely(class && class->parsedParamPtr && class->parsedParamPtr->paramDefs)) {
     Tcl_Obj *listObj;

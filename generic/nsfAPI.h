@@ -293,7 +293,7 @@ static int NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfCGetCachendParametersStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCGetCachendParametersMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -399,7 +399,7 @@ static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName
 static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *objectName, int objc, Tcl_Obj *CONST objv[]);
 static int NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *object);
 static int NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter, Tcl_Obj *guard);
-static int NsfCGetCachendParameters(Tcl_Interp *interp, NsfClass *cl);
+static int NsfCGetCachendParametersMethod(Tcl_Interp *interp, NsfClass *cl);
 static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *guard);
 static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName, int objc, Tcl_Obj *CONST objv[]);
@@ -506,7 +506,7 @@ enum {
  NsfCCreateMethodIdx,
  NsfCDeallocMethodIdx,
  NsfCFilterGuardMethodIdx,
- NsfCGetCachendParametersIdx,
+ NsfCGetCachendParametersMethodIdx,
  NsfCMixinGuardMethodIdx,
  NsfCNewMethodIdx,
  NsfCRecreateMethodIdx,
@@ -686,7 +686,7 @@ NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 }
 
 static int
-NsfCGetCachendParametersStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfCGetCachendParametersMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfClass *cl =  NsfObjectToClass(clientData);
   assert(objc > 0);
   if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, "class", ObjStr(objv[0]));
@@ -694,11 +694,11 @@ NsfCGetCachendParametersStub(ClientData clientData, Tcl_Interp *interp, int objc
 
       if (unlikely(objc != 1)) {
 	return NsfArgumentError(interp, "too many arguments:", 
-			     method_definitions[NsfCGetCachendParametersIdx].paramDefs,
+			     method_definitions[NsfCGetCachendParametersMethodIdx].paramDefs,
 			     NULL, objv[0]); 
       } 
     
-    return NsfCGetCachendParameters(interp, cl);
+    return NsfCGetCachendParametersMethod(interp, cl);
 
 }
 
@@ -2739,7 +2739,7 @@ static Nsf_methodDefinition method_definitions[106] = {
   {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"guard", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::class::getCachedParameters", NsfCGetCachendParametersStub, 0, {
+{"::nsf::methods::class::getCachedParameters", NsfCGetCachendParametersMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::mixinguard", NsfCMixinGuardMethodStub, 2, {

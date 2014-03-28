@@ -832,6 +832,48 @@ nx::test case object-level-perf {
   ? {o1 cget -class} ::nx::Object
 }
 
+nx::test case extend-parent-class-info {
+
+  nx::Class create Foo
+  nx::Class create Bar -superclass Foo
+  ? {llength [Bar info configure parameters]} 4
+  #
+  # extend the superclass, subclass should become aware of this
+  #
+  Foo property y
+  ? {llength [Bar info configure parameters]} 5
+}
+
+nx::test case extend-parent-class-info-cache {
+
+  nx::Class create Foo
+  nx::Class create Bar -superclass Foo
+  ? {llength [Bar info configure parameters]} 4
+  #
+  # Let Bar cache the objectparameters, and extend later the
+  # superclass
+  #
+  Bar new
+  Foo property y
+  ? {llength [Bar info configure parameters]} 5
+}
+
+nx::test case extend-parent-class-info-cache-configure {
+
+  nx::Class create Foo
+  nx::Class create Bar -superclass Foo
+  ? {llength [Bar info configure parameters]} 4
+  #
+  # Let Bar cache the objectparameters, and extend later the
+  # superclass
+  #
+  Bar create b1
+  Foo property y
+  # access obejctparamter indirectly via configure
+  ? {b1 configure -y 2} ""
+}
+
+
 #
 # Local variables:
 #    mode: tcl
