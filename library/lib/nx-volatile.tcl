@@ -15,12 +15,6 @@ namespace eval ::nx {
     ::nsf::object::property $object volatile
   }
 
-  # this loop should not be required.
-  foreach c [::nx::Object info subclass -closure] {
-    ::nsf::parameter:invalidate::classcache $c
-  }
-  unset -nocomplain c
-
 }
 
 #
