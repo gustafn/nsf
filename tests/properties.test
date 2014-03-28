@@ -873,6 +873,52 @@ nx::test case extend-parent-class-info-cache-configure {
   ? {b1 configure -y 2} ""
 }
 
+nx::test case extend-class-mixin-info {
+  
+  nx::Class create Baz
+  nx::Class create Foo -mixin Baz
+  nx::Class create Bar -mixin Foo
+  Bar create bar; # cache becomes hot!
+  ? {llength [Bar info configure parameters]} 4
+
+  Foo property y
+  ? {llength [Bar info configure parameters]} 5
+
+  Baz property z
+  ? {llength [Bar info configure parameters]} 6
+
+  Baz delete property z
+  ? {llength [Bar info configure parameters]} 5
+
+  Foo delete property y
+  ? {llength [Bar info configure parameters]} 4
+
+}
+
+nx::test case extend-class-mixin-configure {
+  
+  nx::Class create Baz
+  nx::Class create Foo -mixin Baz
+  nx::Class create Bar -mixin Foo
+  Bar create bar; # cache becomes hot!
+
+  Foo property y
+  bar configure -y 1
+  ? {bar cget -y} 1
+
+  Baz property z
+  bar configure -z 2
+  ? {bar cget -z} 2
+  bar configure -y 3
+  ? {bar cget -y} 3
+
+  Bar property w
+  bar configure -w 4
+  ? {bar cget -w} 4
+
+}
+
+
 
 #
 # Local variables:
