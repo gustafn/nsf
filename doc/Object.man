@@ -30,7 +30,7 @@ specializes the [term baseclass] [cmd nx::Object], beforehand.
 [list_begin definitions]
 
 
-[call [cmd nx::Object] [method create] [arg objectName] [opt -volatile] [opt "-object-mixin [arg mixinSpec]"] [opt "-class [arg newClassName]"] [opt "-object-filter [arg filterSpec]"] [opt [arg initBlock]]]
+[call [cmd nx::Object] [method create] [arg objectName] [opt "-object-mixin [arg mixinSpec]"] [opt "-class [arg newClassName]"] [opt "-object-filter [arg filterSpec]"] [opt [arg initBlock]]]
 
 [para] 
 
@@ -40,14 +40,12 @@ To create a direct instance of [cmd nx::Object] having an explicit
 an instance of [cmd nx::Class]. This way, singelton objects can be
 created, for example.
 
-[call [cmd nx::Object] [method new] [opt -volatile] [opt "-object-mixin [arg mixinSpec]"] [opt "-class [arg newClassName]"] [opt "-object-filter [arg filterSpec]"] [opt [arg initBlock]]]
-
-[para] 
+[call [cmd nx::Object] [method new] [opt "-object-mixin [arg mixinSpec]"] [opt "-class [arg newClassName]"] [opt "-object-filter [arg filterSpec]"] [opt [arg initBlock]]]
 
 To create a direct instance of [cmd nx::Object] having an
 automatically assigned, implict object name, use [method new] on [cmd nx::Object]. Note
 that [method new] is defined by [cmd nx::Class] and is available to
-[cmd nx::Object] being an instance of [cmd nx::Class]. The [method new] allows
+[cmd nx::Object] being an instance of [cmd nx::Class]. Using [method new] allows
 for creating anonymous, inline objects, for example.
 
 [list_end]
@@ -68,26 +66,28 @@ existing object can be queried for its current configuration using
 
 [opt_def -class [arg className]]
 
-Returns the current class of the object or re-classes the object to [arg className], if provided.
+Retrieves the current class of the object or sets the object's class to [arg className], if provided.
 
 [opt_def -object-filter [arg filterMethods]]
 
-Returns the list of currently active per-object filter methods or sets
+Retrieves the list of currently active per-object filter methods or sets
 a list of per-object filter methods, if [arg filterMethods] is
 provided.
 
 [opt_def -object-mixin [arg mixinSpecs]]
 
-Returns the list of currently active per-object mixin specifications
+Retrieves the list of currently active per-object mixin specifications
 or sets a list of per-object mixin specifications to become
 active. [arg mixinSpecs] is of the form of ...
 
-[opt_def -volatile]
+[comment {
+  [opt_def -volatile]
 
-A volatile object is automatically destroyed (see [method destroy])
-when, during program execution, the variable scope, in which [option -volatile] was
-configured for a given object for the first time (e.g., the call frame
-of a proc), is cleaned up.
+  A volatile object is automatically destroyed (see [method destroy])
+  when, during program execution, the variable scope, in which [option -volatile] was
+  configured for a given object for the first time (e.g., the call frame
+						    of a proc), is cleaned up.
+}]
 
 [list_end]
 
@@ -99,15 +99,23 @@ of a proc), is cleaned up.
 
 [list_begin definitions]
 
-[call [arg nx::Object] [method cget] [arg configurationOption]] [para] 
+[call [arg obj] [method cget] [arg configurationOption]] 
 
-The method [method cget] is used to obtain the value of a configuration
-option. The applicable configuration options depend on the properties
-defined in the class hierarchy. Applicable configuration options can be obtained via...
+The method is used to obtain the current value of [arg configurationOption] for
+[arg obj]. The configuration options
+available for querying through [method cget] are determined by the
+configurable properties defined by the class hierarchy of [arg obj]. The
+queriable configuration options for [arg obj] can be
+obtained by calling [method "info configure"]. The [arg configurationOption] can
+be set and modified using [method configure].
 
 [example_begin]
-% nx::Object cget -class
-::nx::Class
+% nx::Object create obj
+::obj
+% ::obj info configure
+?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
+% ::obj cget -class
+::nx::Object
 [example_end]
 
 [list_end]
@@ -116,13 +124,16 @@ defined in the class hierarchy. Applicable configuration options can be obtained
 
 [list_begin definitions]
 
-[call [arg nx::Object] [method configure] [opt "[arg option] [arg value]"] ...]
+[call [arg obj] [method configure] [opt "[arg configurationOption] [arg value] ..."]]
 
-[para] This method is used configure an object based on the available
-configuration options. The applicable configuration options depend on
-the properties defined in the class hierarchy. The method 
-[method configure] is called during object construction and obtains the
-argument vector provided for the methods [method create] and [method new].
+This method sets configuration options on an object. The configuration
+options available for setting on [arg obj] are determined by the
+configurable properties defined by the class hierarchy of [arg obj]. The
+settable configuration options for [arg obj] can be
+obtained by calling [method "info configure"]. Furthermore, [method configure] is
+also called during object construction. Under object construction, it receives
+the arguments passed into calls of [method create] and [method new]. Options
+set using [method configure] can be retrieved using [method cget].
 
 [example_begin]
 % nx::Class create Foo {:property x}
@@ -172,19 +183,41 @@ than [cmd nx::Object] for the on-the-fly creation of [arg objectName]
 can be provided.
 
 [example {
- nx::Class create Window {
-   :contains {
-     #
-     # Become children of Window, implicitly
-     #
-     nx::Class create Header
-     nx::Object create Panel 
-   }
-   #
-   # Explicitly declared a child of Window
-   #
-   nx::Class create [self]::Slider
- }}]
+% nx::Class create Window {
+  :contains {
+    #
+    # Become children of Window, implicitly
+    #
+    nx::Class create Header; # Window::Header
+    nx::Object create Panel; # Window::Panel
+  }
+  #
+  # Explicitly declared a child of Window using [self]
+  #
+  nx::Class create [self]::Slider; # Window::Slider
+  #
+  # Fully-qualified objects do not become nested
+  #
+  nx::Class create ::Door; # ::Door
+}
+::Window
+% ::Window info children
+::Window::Panel ::Window::Header ::Window::Slider
+}]
+
+[list_end]
+
+[cmd_def copy]
+
+[list_begin definitions]
+
+[call [arg obj] [cmd copy] [arg newObjectName]]
+
+Creates a full and deep copy of a source object [arg obj]. The
+object's copy [arg newObjectName] features all structural and
+behavioral properties of the source object, including object
+variables, per-object methods, nested objects, slot objects,
+namespaces, filters, mixins, and traces.
 
 [list_end]
 
@@ -278,8 +311,26 @@ subclass of [cmd nx::Object] or in a [term "mixin class"].
 
 [list_begin definitions]
 
-[call [arg obj] [method eval] ...]
-[para] Description of [method eval] ...
+[call [arg obj] [method eval] [arg arg] [opt "[arg arg] ..."]]
+
+Evaluates a special Tcl script for the scope of [arg obj] in the style
+of Tcl's [cmd eval]. There are, however, notable differences to the
+standard [cmd eval]: In this script, the colon-prefix notation to
+dispatch to methods and to access variables of [arg obj]. Script-local
+variables, which are thrown away once the evaluation of the script has
+completed, can be defined to store intermediate results.
+
+[example { 
+  % nx::Object create obj {
+    :object property {bar 1}
+    :public object method foo {x} { return $x }
+  }
+  ::obj
+  % ::obj eval {
+    set y [:foo ${:bar}]
+  }
+  1
+}]
 
 [list_end]
 
@@ -444,8 +495,13 @@ subclass of [cmd nx::Object] or in a [term "mixin class"].
 
 [list_begin definitions]
 
-[call [arg obj] [method {move}] ...]
-[para] Description of [method {move}] ...
+[call [arg obj] [method move] [arg newObjectName]]
+
+Effectively renames an object. First, the source object [arg obj] is
+cloned into a target object [arg newObjectName] using [method copy]. Second,
+the source object [arg obj] is destroyed by invoking [method destroy]. 
+[method move] is also called internally when [cmd rename] is
+performed for a Tcl command representing an object.
 
 [list_end]
 
@@ -533,17 +589,6 @@ subclass of [cmd nx::Object] or in a [term "mixin class"].
 
 [call [arg obj] [method {require public object method}] ...]
 [para] Description of [method {require public object method}] ...
-
-[list_end]
-
-
-[cmd_def volatile]
-
-[list_begin definitions]
-
-[call [arg obj] [method {volatile}] ...]
-[para] Description of [method {volatile}] ...
-[list_end]
 
 [list_end]
 
@@ -685,6 +730,8 @@ Remove a previously defined method defined for the object.
 
 [list_end]
 
+
+[list_end]
 
 [list_end]
 
