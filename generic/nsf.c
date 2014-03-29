@@ -21414,46 +21414,50 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
   }
 
   /*
-   * Omit storm of invalidations on shutdown.
+   * During lifetime, invalidations are propagated to subclasses and/or to
+   * classes extended by the given mixin class. During shutdown, we avoid the
+   * storm of invalidations.
    */
-  if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
-    Tcl_HashTable objTable, *commandTable = &objTable;
-    Tcl_HashSearch hSrch;
-    Tcl_HashEntry *hPtr;
+  if (likely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
+    
+    /* Is the current class mixed into at least another one class? */
+    if (cl->opt && cl->opt->isClassMixinOf) {
+       Tcl_HashTable objTable, *commandTable = &objTable;
+       Tcl_HashSearch hSrch;
+       Tcl_HashEntry *hPtr;
 
-    /* NsfClasses *subClasses = TransitiveSubClasses(cl), *clPtr; */
-  
-    /*
-     * invalidate cached parameters in subclasses
-     *
-     for (clPtr = subClasses; clPtr; clPtr = clPtr->nextPtr) {
-      NsfClass *subClass = clPtr->cl;
-      if (subClass->parsedParamPtr) {
-        ParsedParamFree(subClass->parsedParamPtr);
-        subClass->parsedParamPtr = NULL;
-      }
-    }
-    NsfClassListFree(subClasses);
-   */
-
-    Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-    MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-    GetAllClassMixinsOf(interp, commandTable, Tcl_GetObjResult(interp),
+       Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
+       MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
+       GetAllClassMixinsOf(interp, commandTable, Tcl_GetObjResult(interp),
 		      cl, 1, 0, NULL, NULL);
 
-    for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
-         hPtr = Tcl_NextHashEntry(&hSrch)) {
-      NsfClass *mixinOfClass = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
-      if (mixinOfClass) {
-        /* fprintf(stderr, "mixinOfClass   %s\n", ClassName(mixinOfClass)); */
-        if (mixinOfClass->parsedParamPtr) {
-          ParsedParamFree(mixinOfClass->parsedParamPtr);
-          mixinOfClass->parsedParamPtr = NULL;
+       for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
+            hPtr = Tcl_NextHashEntry(&hSrch)) {
+         NsfClass *mixinOfClass = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
+         if (mixinOfClass) {
+           /* fprintf(stderr, "mixinOfClass   %s\n", ClassName(mixinOfClass)); */
+           if (mixinOfClass->parsedParamPtr) {
+             ParsedParamFree(mixinOfClass->parsedParamPtr);
+             mixinOfClass->parsedParamPtr = NULL;
+           }
+         }
+       }
+       Tcl_DeleteHashTable(commandTable);
+       MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
+    } else {
+      /* The current class is only a potential superclass */
+      NsfClasses *subClasses = TransitiveSubClasses(cl), *clPtr;
+      
+      /* invalidate cached parameters in subclasses */
+      for (clPtr = subClasses; clPtr; clPtr = clPtr->nextPtr) {
+        NsfClass *subClass = clPtr->cl;
+        if (subClass->parsedParamPtr) {
+          ParsedParamFree(subClass->parsedParamPtr);
+          subClass->parsedParamPtr = NULL;
         }
       }
+      NsfClassListFree(subClasses);
     }
-    Tcl_DeleteHashTable(commandTable);
-    MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   }
 
   return TCL_OK;
