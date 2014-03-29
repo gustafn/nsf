@@ -4957,7 +4957,7 @@ nsf.c:
   NsfParameterInvalidateClassCacheCmd unless during
   shutdown. Otherwise some classes might not become aware of
   properties added later to superclasses.
-- extended regression test
+- extend regression test
 
 ========================================================================
 TODO:

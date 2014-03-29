@@ -918,7 +918,32 @@ nx::test case extend-class-mixin-configure {
 
 }
 
+nx::test case dynamic-transitive-mixin-info {
+  
+  nx::Class create Foo
+  nx::Class create Bar
+  nx::Class create Baz
+  Bar create bar; # cache object parameters in class Bar
+  Baz create baz; # cache object parameters in class Baz
+  ? {llength [Bar info configure parameters]} 4
 
+  Foo property y
+  ? {llength [Bar info configure parameters]} 4
+
+  Bar mixin add Foo
+  ? {llength [Bar info configure parameters]} 5
+  ? {bar configure -y 1} ""
+
+  ? {llength [Baz info configure parameters]} 4
+  Baz mixin add Bar
+  ? {llength [Baz info configure parameters]} 5
+
+  Foo property z
+  ? {llength [Baz info configure parameters]} 6
+  ? {baz configure -z 1} ""
+  ? {bar configure -z 1} ""
+
+}
 
 #
 # Local variables:
