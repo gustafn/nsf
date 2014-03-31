@@ -945,6 +945,47 @@ nx::test case dynamic-transitive-mixin-info {
 
 }
 
+nx::test case indirect-transitive-mixin-info {
+
+  nx::Class create M0
+  nx::Class create M1 -superclass M0
+  nx::Class create M2 -superclass M1
+
+  nx::Class create C
+  nx::Class create D -superclass C
+
+  C create c1
+  D create d1
+  M0 create m0
+  M1 create m1
+  M2 create m2
+
+  ? {llength [C info configure parameters]} 4
+  ? {llength [D info configure parameters]} 4
+  ? {llength [M0 info configure parameters]} 4
+  ? {llength [M1 info configure parameters]} 4
+  ? {llength [M2 info configure parameters]} 4
+
+  M0 property x
+
+  ? {llength [M0 info configure parameters]} 5
+  ? {llength [M1 info configure parameters]} 5
+  ? {llength [M2 info configure parameters]} 5
+
+  C mixin add M2
+
+  ? {llength [C info configure parameters]} 5
+  ? {llength [D info configure parameters]} 5
+
+  M1 property y
+  ? {llength [C info configure parameters]} 6
+  ? {llength [D info configure parameters]} 6
+  ? {llength [M0 info configure parameters]} 5
+  ? {llength [M1 info configure parameters]} 6
+  ? {llength [M2 info configure parameters]} 6
+}
+
+
 #
 # Local variables:
 #    mode: tcl

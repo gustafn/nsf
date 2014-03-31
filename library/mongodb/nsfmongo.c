@@ -811,7 +811,7 @@ NsfMongoCollectionIndex(Tcl_Interp *interp,
   if (withName)       {options.name = withName;}
   /* TODO: not handled: is_initialized, v, weights, default_language, laguage_override, padding */
 
-  success = mongoc_collection_ensure_index(collectionPtr, keysPtr, &options, &bsonError);
+  success = mongoc_collection_create_index(collectionPtr, keysPtr, &options, &bsonError);
 
   bson_destroy(keysPtr);
 
