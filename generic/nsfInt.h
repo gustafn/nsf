@@ -263,7 +263,7 @@ typedef struct NsfMemCounter {
   /*fprintf(stderr, "c '%s'\n", ObjStr(A));*/				\
   MEM_COUNT_ALLOC("INCR_REF_COUNT-" name,A); Tcl_IncrRefCount(A)
 
-#define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
+#define ObjStr(obj) ((obj)->bytes) ? ((obj)->bytes) : Tcl_GetString(obj)
 #define ClassName(cl) (((cl) ? ObjStr((cl)->object.cmdName) : "NULL"))
 #define ObjectName(obj) (((obj) ? ObjStr((obj)->cmdName) : "NULL"))
 

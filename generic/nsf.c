@@ -16722,7 +16722,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (tcd->objframe) {
     Nsf_PopFrameObj(interp, framePtr);
   }
-  if (unlikely(result == TCL_ERROR && tcd && tcd->onerror)) {
+  if (unlikely(result == TCL_ERROR && tcd->onerror)) {
     Tcl_Obj *ov[2];
     ov[0] = tcd->onerror;
     ov[1] = Tcl_GetObjResult(interp);
@@ -18907,7 +18907,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	  Tcl_DString ds, *dsPtr = &ds;
 	  Tcl_HashTable *cmdTablePtr = childObject->nsPtr ? Tcl_Namespace_cmdTablePtr(childObject->nsPtr) : NULL;
 	
-	  if (cmdTablePtr == NULL || childObject == NULL) {
+	  if (cmdTablePtr == NULL) {
 	    /* nothing to do */
 	    continue;
 	  }	
