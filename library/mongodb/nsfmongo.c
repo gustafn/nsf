@@ -948,14 +948,15 @@ static int
 NsfMongoCollectionStats(Tcl_Interp *interp, 
 			 mongoc_collection_t *collectionPtr,
 			 Tcl_Obj *optionsObj) {
-  int       objc = 0, result, success;
+  int       objc = 0, success;
   Tcl_Obj **objv = NULL;
   bson_t options, *optionsPtr = NULL;
   bson_t stats, *statsPtr = &stats;
   bson_error_t bsonError;
 
   if (optionsObj) {
-    result = Tcl_ListObjGetElements(interp, optionsObj, &objc, &objv);
+    int result = Tcl_ListObjGetElements(interp, optionsObj, &objc, &objv);
+
     if (result != TCL_OK || (objc % 3 != 0)) {
       return NsfPrintError(interp, "%s: must contain a multiple of 3 elements", ObjStr(optionsObj));
     }
