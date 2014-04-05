@@ -282,7 +282,7 @@ libraries: libraries-pkgindex
 	done; fi;
 
 libraries-pkgindex: pkgIndex.tcl
-	$(TCLSH) $(src_lib_dir_native)/lib/make.tcl -dir $(src_lib_dir_native) -all
+	$(TCLSH) $(src_lib_dir_native)/lib/mkIndex.tcl -dir $(src_lib_dir_native)
 
 full-doc: doc pdf example-doc
 

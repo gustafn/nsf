@@ -1,7 +1,7 @@
 # -*- tcl -*- $
 
-set httpAccessVersion 2.0
-package provide xotcl::comm::httpAccess $httpAccessVersion
+package provide xotcl::comm::httpAccess 2.0
+set httpAccessVersion [package present xotcl::comm::httpAccess]
 
 package require xotcl::comm::pcache
 package require xotcl::comm::mime

@@ -271,7 +271,7 @@ TEA_PROG_TCLSH
 # which require substituting th AC variables in.  Include these here.
 #--------------------------------------------------------------------
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile pkgIndex.add])
 
 AC_OUTPUT
 

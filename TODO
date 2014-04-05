@@ -4959,6 +4959,18 @@ nsf.c:
   properties added later to superclasses.
 - extend regression test
 
+nsf.c:
+- remove redundant NULL tests
+- improve safety mof macro ObjStr()
+
+build-process:
+- replace make.tcl by the much simpler mkIndex.tcl:
+  * Does not use pkg_mkIndex
+  * Does not load binary files (problem for cross compiling)
+  * Requires package provide with constant in one line.
+
+
+
 ========================================================================
 TODO:
 

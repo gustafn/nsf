@@ -5,8 +5,8 @@
 #
 #  Gustaf Neumann (neumann@wu-wien.ac.at)
 
-set VERSION 2.0
-package provide xotcl::comm::httpd $VERSION
+package provide xotcl::comm::httpd 2.0
+set VERSION [package present xotcl::comm::httpd]
 
 package require XOTcl 2.0
 
