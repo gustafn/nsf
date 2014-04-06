@@ -12,7 +12,7 @@
 #
 #--------------------------------------------------------------------
 define(NsfVersion, 2.0b6)
-AC_INIT([nsf], [NsfVersion])
+AC_INIT([nsf],[NsfVersion])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -30,38 +30,38 @@ AC_CONFIG_AUX_DIR(config)
 #  - "enable" is for optional features
 #
 AC_ARG_WITH(aolserver3,
-	AC_HELP_STRING([--with-aolserver3=AOL_SERVER_DIR], 
+	AS_HELP_STRING([--with-aolserver3=AOL_SERVER_DIR],
 		[build an AOLserver 3 module; 
 		point to directory containing aolsever/include (default: off)]),
         [with_aol3=$withval], [with_aol3=no])
 AC_ARG_WITH(dtrace,
-	AC_HELP_STRING([--with-dtrace], [build nsf with dtrace (default: without)]),
+	AS_HELP_STRING([--with-dtrace], [build nsf with dtrace (default: without)]),
         [with_dtrace=$withval], [with_dtrace=no])
 AC_ARG_WITH(mongoc,
-	AC_HELP_STRING([--with-mongoc=MONGOC_INCLUDE_DIR[,MONGOC_LIB_DIR]],
+	AS_HELP_STRING([--with-mongoc=MONGOC_INCLUDE_DIR[,MONGOC_LIB_DIR]],
 		[build nsf with mongodb c-driver support (default: without)]),
 		[with_mongoc=$withval], [with_mongoc=no])
 AC_ARG_WITH(bson,
-	AC_HELP_STRING([--with-bson=BSON_INCLUDE_DIR[,BSON_LIB_DIR]],
+	AS_HELP_STRING([--with-bson=BSON_INCLUDE_DIR[,BSON_LIB_DIR]],
 		[build nsf with mongodb bson support (default: without)]),
 		[with_bson=$withval], [with_bson=no])
 AC_ARG_ENABLE(profile,
-	AC_HELP_STRING([--enable-profile], [build nsf with profile support (default: disabled)]),
+	AS_HELP_STRING([--enable-profile], [build nsf with profile support (default: disabled)]),
         [enable_profile=$enableval], [enable_profile=no])
 AC_ARG_ENABLE(memcount,
-	AC_HELP_STRING([--enable-memcount=yes|trace], 
+	AS_HELP_STRING([--enable-memcount=yes|trace],
 		[build nsf with memcount debug support (default: disabled)]),
         [enable_memcount=$enableval], [enable_memcount=no])
 AC_ARG_ENABLE(development,
-	AC_HELP_STRING([--enable-development], 
+	AS_HELP_STRING([--enable-development],
 		[build nsf with development support (intensive runtime checking, etc.; default: disabled)]),
         [enable_development=$enableval], [enable_development=no])
 AC_ARG_ENABLE(assertions,
-	AC_HELP_STRING([--enable-assertions], 
+	AS_HELP_STRING([--enable-assertions],
 		[build nsf with assertion support (default: enabled)]),
         [enable_assertions=$enableval], [enable_assertions=yes])
 AC_ARG_ENABLE(assemble,
-	AC_HELP_STRING([--enable-assemble=yes|label|call], 
+	AS_HELP_STRING([--enable-assemble=yes|label|call],
 		[build nsf with assemble support (default: disabled)]),
         [enable_assemble=$enableval], [enable_assemble=no])
 
