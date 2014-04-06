@@ -674,6 +674,10 @@ EGREP
 GREP
 RANLIB
 SET_MAKE
+INSTALL_SCRIPT
+INSTALL_PROGRAM
+INSTALL_DATA
+INSTALL
 CPP
 TCL_SHLIB_LD_LIBS
 TCL_LD_FLAGS
@@ -2594,6 +2598,8 @@ $as_echo "$as_me: WARNING: --with-tcl argument should refer to directory contain
 			`ls -d /usr/contrib/lib 2>/dev/null` \
 			`ls -d /usr/lib 2>/dev/null` \
 			`ls -d /usr/lib64 2>/dev/null` \
+			`ls -d /usr/lib/tcl8.6 2>/dev/null` \
+			`ls -d /usr/lib/tcl8.5 2>/dev/null` \
 			; do
 		    if test -f "$i/tclConfig.sh" ; then
 			ac_cv_c_tclconfig="`(cd $i; pwd)`"
@@ -4280,6 +4286,15 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+    INSTALL="\$(SHELL) \$(srcdir)/tclconfig/install-sh -c"
+
+    INSTALL_DATA="\${INSTALL} -m 644"
+
+    INSTALL_PROGRAM="\${INSTALL}"
+
+    INSTALL_SCRIPT="\${INSTALL}"
 
 
     #--------------------------------------------------------------------
@@ -6362,6 +6377,9 @@ $as_echo "$tcl_cv_cc_visibility_hidden" >&6; }
 $as_echo "#define MODULE_SCOPE extern __attribute__((__visibility__(\"hidden\")))" >>confdefs.h
 
 
+$as_echo "#define HAVE_HIDDEN 1" >>confdefs.h
+
+
 fi
 
     # Step 0.d: Disable -rpath support?
@@ -6783,7 +6801,7 @@ _ACEOF
 		else
 		    RC="rc"
 		    lflags="-nologo"
-    		    LINKBIN="link"
+		    LINKBIN="link"
 		    CFLAGS_DEBUG="-nologo -Z7 -Od -W3 -WX ${runtime}d"
 		    CFLAGS_OPTIMIZE="-nologo -O2 -W2 ${runtime}"
 		fi
@@ -6898,7 +6916,7 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-			    #ifdef __WIN32__
+			    #ifdef _WIN32
 				#error cross-compiler
 			    #endif
 
@@ -7107,6 +7125,7 @@ fi
 	    SHLIB_LD='${CC} -shared'
 	    SHLIB_SUFFIX=".dll"
 	    EXEEXT=".exe"
+	    do64bit_ok=yes
 	    CC_SEARCH_FLAGS=""
 	    LD_SEARCH_FLAGS=""
 	    ;;
@@ -7333,7 +7352,7 @@ fi
 
 fi
 	    ;;
-	Linux*)
+	Linux*|GNU*|NetBSD-Debian)
 	    SHLIB_CFLAGS="-fPIC"
 	    SHLIB_SUFFIX=".so"
 
@@ -7401,19 +7420,6 @@ fi
 	    if test x"${USE_COMPAT}" != x; then :
   CFLAGS="$CFLAGS -fno-inline"
 fi
-
-	    ;;
-	GNU*)
-	    SHLIB_CFLAGS="-fPIC"
-	    SHLIB_SUFFIX=".so"
-
-	    SHLIB_LD='${CC} -shared'
-	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
-	    CC_SEARCH_FLAGS=""
-	    LD_SEARCH_FLAGS=""
-	    if test "`uname -m`" = "alpha"; then :
-  CFLAGS="$CFLAGS -mieee"
-fi
 	    ;;
 	Lynx*)
 	    SHLIB_CFLAGS="-fPIC"
@@ -7430,9 +7436,10 @@ fi
 	OpenBSD-*)
 	    arch=`arch -s`
 	    case "$arch" in
-	    m88k|vax)
+	    vax)
 		SHLIB_SUFFIX=""
 		SHARED_LIB_SUFFIX=""
+		LDFLAGS=""
 		;;
 	    *)
 		SHLIB_CFLAGS="-fPIC"
@@ -7444,48 +7451,17 @@ fi
 fi
 		LD_SEARCH_FLAGS=${CC_SEARCH_FLAGS}
 		SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.so.${SHLIB_VERSION}'
+		LDFLAGS="-Wl,-export-dynamic"
 		;;
 	    esac
 	    case "$arch" in
-	    m88k|vax)
+	    vax)
 		CFLAGS_OPTIMIZE="-O1"
 		;;
 	    *)
 		CFLAGS_OPTIMIZE="-O2"
 		;;
 	    esac
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ELF" >&5
-$as_echo_n "checking for ELF... " >&6; }
-if ${tcl_cv_ld_elf+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifdef __ELF__
-	yes
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "yes" >/dev/null 2>&1; then :
-  tcl_cv_ld_elf=yes
-else
-  tcl_cv_ld_elf=no
-fi
-rm -f conftest*
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $tcl_cv_ld_elf" >&5
-$as_echo "$tcl_cv_ld_elf" >&6; }
-	    if test $tcl_cv_ld_elf = yes; then :
-
-		LDFLAGS=-Wl,-export-dynamic
-
-else
-  LDFLAGS=""
-fi
 	    if test "${TCL_THREADS}" = "1"; then :
 
 		# On OpenBSD:	Compile with -pthread
@@ -7498,9 +7474,8 @@ fi
 	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
 	    TCL_LIB_VERSIONS_OK=nodots
 	    ;;
-	NetBSD-*|FreeBSD-[3-4].*)
-	    # FreeBSD 3.* and greater have ELF.
-	    # NetBSD 2.* has ELF and can use 'cc -shared' to build shared libs
+	NetBSD-*)
+	    # NetBSD has ELF and can use 'cc -shared' to build shared libs
 	    SHLIB_CFLAGS="-fPIC"
 	    SHLIB_LD='${CC} -shared ${SHLIB_CFLAGS}'
 	    SHLIB_SUFFIX=".so"
@@ -7518,26 +7493,19 @@ fi
 	    	LDFLAGS="$LDFLAGS -pthread"
 
 fi
-	    case $system in
-	    FreeBSD-3.*)
-	    	# FreeBSD-3 doesn't handle version numbers with dots.
-	    	UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
-	    	SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.so'
-	    	TCL_LIB_VERSIONS_OK=nodots
-		;;
-	    esac
 	    ;;
 	FreeBSD-*)
 	    # This configuration from FreeBSD Ports.
 	    SHLIB_CFLAGS="-fPIC"
 	    SHLIB_LD="${CC} -shared"
-	    TCL_SHLIB_LD_EXTRAS="-soname \$@"
+	    TCL_SHLIB_LD_EXTRAS="-Wl,-soname=\$@"
+	    TK_SHLIB_LD_EXTRAS="-Wl,-soname,\$@"
 	    SHLIB_SUFFIX=".so"
 	    LDFLAGS=""
 	    if test $doRpath = yes; then :
 
 		CC_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR}'
-		LD_SEARCH_FLAGS='-rpath ${LIB_RUNTIME_DIR}'
+		LD_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR}'
 fi
 	    if test "${TCL_THREADS}" = "1"; then :
 
@@ -7546,11 +7514,15 @@ fi
 		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 		LDFLAGS="$LDFLAGS $PTHREAD_LIBS"
 fi
-	    # Version numbers are dot-stripped by system policy.
-	    TCL_TRIM_DOTS=`echo ${VERSION} | tr -d .`
-	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
-	    SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}\$\{DBGX\}.so.1'
-	    TCL_LIB_VERSIONS_OK=nodots
+	    case $system in
+	    FreeBSD-3.*)
+		# Version numbers are dot-stripped by system policy.
+		TCL_TRIM_DOTS=`echo ${VERSION} | tr -d .`
+		UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
+		SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.so'
+		TCL_LIB_VERSIONS_OK=nodots
+		;;
+	    esac
 	    ;;
 	Darwin-*)
 	    CFLAGS_OPTIMIZE="-Os"
@@ -7912,8 +7884,8 @@ fi
 
 else
 
-	       SHLIB_CFLAGS="-Kpic -belf"
-	       LDFLAGS="$LDFLAGS -belf -Wl,-Bexport"
+		SHLIB_CFLAGS="-Kpic -belf"
+		LDFLAGS="$LDFLAGS -belf -Wl,-Bexport"
 
 fi
 	    SHLIB_LD="ld -G"
@@ -8088,6 +8060,51 @@ else
 
 fi
 	    ;;
+	UNIX_SV* | UnixWare-5*)
+	    SHLIB_CFLAGS="-KPIC"
+	    SHLIB_LD='${CC} -G'
+	    SHLIB_LD_LIBS=""
+	    SHLIB_SUFFIX=".so"
+	    # Some UNIX_SV* systems (unixware 1.1.2 for example) have linkers
+	    # that don't grok the -Bexport option.  Test that it does.
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld accepts -Bexport flag" >&5
+$as_echo_n "checking for ld accepts -Bexport flag... " >&6; }
+if ${tcl_cv_ld_Bexport+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+		hold_ldflags=$LDFLAGS
+		LDFLAGS="$LDFLAGS -Wl,-Bexport"
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+int i;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  tcl_cv_ld_Bexport=yes
+else
+  tcl_cv_ld_Bexport=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+	        LDFLAGS=$hold_ldflags
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $tcl_cv_ld_Bexport" >&5
+$as_echo "$tcl_cv_ld_Bexport" >&6; }
+	    if test $tcl_cv_ld_Bexport = yes; then :
+
+		LDFLAGS="$LDFLAGS -Wl,-Bexport"
+
+fi
+	    CC_SEARCH_FLAGS=""
+	    LD_SEARCH_FLAGS=""
+	    ;;
     esac
 
     if test "$do64bit" = yes -a "$do64bit_ok" = no; then :
@@ -8112,7 +8129,7 @@ fi
 	case $system in
 	    AIX-*) ;;
 	    BSD/OS*) ;;
-	    CYGWIN_*) ;;
+	    CYGWIN_*|MINGW32_*) ;;
 	    IRIX*) ;;
 	    NetBSD-*|FreeBSD-*|OpenBSD-*) ;;
 	    Darwin-*) ;;
@@ -8128,9 +8145,6 @@ fi
 $as_echo "#define MODULE_SCOPE extern" >>confdefs.h
 
 
-$as_echo "#define NO_VIZ /**/" >>confdefs.h
-
-
 fi
 
     if test "$SHARED_LIB_SUFFIX" = ""; then :
@@ -8144,7 +8158,7 @@ fi
     UNSHARED_LIB_SUFFIX='${PACKAGE_VERSION}.a'
 fi
 
-    if test "${GCC}" = "yes" ; then
+    if test "${GCC}" = "yes" -a ${SHLIB_SUFFIX} = ".dll"; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SEH support in compiler" >&5
 $as_echo_n "checking for SEH support in compiler... " >&6; }
 if ${tcl_cv_seh+:} false; then :
@@ -8156,9 +8170,9 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-	    #define WIN32_LEAN_AND_MEAN
-	    #include <windows.h>
-	    #undef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#undef WIN32_LEAN_AND_MEAN
 
 	    int main(int argc, char** argv) {
 		int a, b = 0;
@@ -8247,10 +8261,10 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-		#define VOID void
-		#define WIN32_LEAN_AND_MEAN
-		#include <windows.h>
-		#undef WIN32_LEAN_AND_MEAN
+#define VOID void
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#undef WIN32_LEAN_AND_MEAN
 
 int
 main ()
@@ -8279,6 +8293,7 @@ $as_echo "$tcl_cv_winnt_ignore_void" >&6; }
 $as_echo "#define HAVE_WINNT_IGNORE_VOID 1" >>confdefs.h
 
 	fi
+    fi
 
 	# See if the compiler supports casting to a union type.
 	# This is used to stop gcc from printing a compiler
@@ -8318,7 +8333,6 @@ $as_echo "$tcl_cv_cast_to_union" >&6; }
 $as_echo "#define HAVE_CAST_TO_UNION 1" >>confdefs.h
 
 	fi
-    fi
 
 
 
@@ -8566,7 +8580,7 @@ else
 	    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <sys/types.h>
-#include <sys/dirent.h>
+#include <dirent.h>
 int
 main ()
 {
@@ -8795,7 +8809,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 fi
 rm -f conftest*
 
-	MAKE_STUB_LIB="\${STLIB_LD} -out:\$@ \$(PKG_STUB_OBJECTS)"
+	MAKE_STUB_LIB="\${STLIB_LD} -nodefaultlib -out:\$@ \$(PKG_STUB_OBJECTS)"
     else
 	MAKE_STATIC_LIB="\${STLIB_LD} \$@ \$(PKG_OBJECTS)"
 	MAKE_SHARED_LIB="\${SHLIB_LD} -o \$@ \$(PKG_OBJECTS) \${SHLIB_LD_LIBS}"
@@ -8818,13 +8832,19 @@ rm -f conftest*
 	if test "${SHARED_BUILD}" = "1" ; then
 	    # We force the unresolved linking of symbols that are really in
 	    # the private libraries of Tcl and Tk.
-	    SHLIB_LD_LIBS="${SHLIB_LD_LIBS} \"`${CYGPATH} ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\""
 	    if test x"${TK_BIN_DIR}" != x ; then
 		SHLIB_LD_LIBS="${SHLIB_LD_LIBS} \"`${CYGPATH} ${TK_BIN_DIR}/${TK_STUB_LIB_FILE}`\""
+	    fi
+	    SHLIB_LD_LIBS="${SHLIB_LD_LIBS} \"`${CYGPATH} ${TCL_BIN_DIR}/${TCL_STUB_LIB_FILE}`\""
+	    if test "$GCC" = "yes"; then
+		SHLIB_LD_LIBS="${SHLIB_LD_LIBS} -static-libgcc"
 	    fi
 	    eval eval "PKG_LIB_FILE=${PACKAGE_NAME}${SHARED_LIB_SUFFIX}"
 	else
 	    eval eval "PKG_LIB_FILE=${PACKAGE_NAME}${UNSHARED_LIB_SUFFIX}"
+	    if test "$GCC" = "yes"; then
+		PKG_LIB_FILE=lib${PKG_LIB_FILE}
+	    fi
 	fi
 	# Some packages build their own stubs libraries
 	eval eval "PKG_STUB_LIB_FILE=${PACKAGE_NAME}stub${UNSHARED_LIB_SUFFIX}"
