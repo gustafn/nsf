@@ -11,8 +11,12 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
+AC_PREREQ([2.69])
+
 define(NsfVersion, 2.0b6)
 AC_INIT([nsf],[NsfVersion])
+
+AC_CONFIG_MACRO_DIR([m4])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.

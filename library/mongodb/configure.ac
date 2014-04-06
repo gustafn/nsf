@@ -21,6 +21,7 @@ configdir=$(srcdir)/../../config
 #-----------------------------------------------------------------------
 
 AC_INIT([nsfmongo], [0.3])
+AC_CONFIG_MACRO_DIR([m4])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
