@@ -37,22 +37,22 @@ AC_CONFIG_AUX_DIR(../../config)
 #--------------------------------------------------------------------
 AC_ARG_WITH(mongoc,
         [  --with-mongoc=MONGOC_INCLUDE_DIR[,MONGOC_LIB_DIR]
-            absolute path to mongo.h and optionally the path to the library, 
+            absolute path to mongo.h and optionally the path to the library,
            --without-mongoc disables build of the mongo interface],
         [with_mongoc=$withval], [with_mongoc=no])
 AC_ARG_WITH(bson,
         [  --with-bson=BSON_INCLUDE_DIR[,BSON_LIB_DIR]
-            absolute path to bson.h and optionally the path to the library, 
+            absolute path to bson.h and optionally the path to the library,
            --without-bson disables build of the mongo interface],
         [with_bson=$withval], [with_bson=no])
 
 AC_ARG_WITH(nsf,
         [  --with-nsf=DIR_CONTAINING_NSFCONFIG_SH
-            absolute path to nsfConfig.sh, 
+            absolute path to nsfConfig.sh,
            --without-nsf disables, but this is pointless],
         [with_nsf=$withval], [AC_MSG_ERROR([--with-nsf is required])])
 AC_ARG_ENABLE(development,
-	AC_HELP_STRING([--enable-development], 
+	AS_HELP_STRING([--enable-development],
 		[build nsf with development support (intensive runtime checking, etc.; default: disabled)]),
         [enable_development=$enableval], [enable_development=no])
 
