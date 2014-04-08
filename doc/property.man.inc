@@ -1,4 +1,4 @@
-[comment {-*- tcl -*- manpage fragment for property method}]
+[comment {-*- tcl -*- manpage fragment for property method, shared by nx::Object and nx::Class}]
 
 [keywords property]
 [keywords "slot object"]
@@ -9,8 +9,6 @@
 [keywords "switch"]
 [keywords "value checker"]
 
-[call [arg obj] [const [vset SCOPE]] [method property] [opt "-accessor public|private|protected"] [opt "-configurable [arg trueFalse]"] [opt -incremental] [opt "-class [arg className]"] [opt -nocomplain] [arg spec] [opt [arg initBlock]]]
-
 Defines a [term property] for the scope of the [vset SCOPE]. For every
 property, a [term "slot object"] is created to manage the
 corresponding object variable.
@@ -20,6 +18,11 @@ and setter methods, automatically. By default, no getter and setter
 methods are created. The option value passed along [option "-accessor"]
 sets the level of [term "call protection"] for the getter and setter
 methods: [term public], [term protected], or [term private].
+
+[list_begin arguments]
+[arg_def switch -incremental in] ...
+
+[list_end]
 
 [para]
 
@@ -54,8 +57,3 @@ sets a [emph defaultValue] for this property.
 The last argument [arg initBlock] accepts an optional Tcl script which is passed into
 the initialization procedure (see [method configure]) of the [term property]'s [term "slot object"]. See
 also [sectref description "[arg initBlock] for [method create] and [method new]"].
-
-[list_begin arguments]
-[arg_def switch -incremental in] ...
-
-[list_end]

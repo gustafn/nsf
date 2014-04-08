@@ -600,7 +600,11 @@ performed for a Tcl command representing an object.
 
 [list_begin definitions]
 
+[call [arg obj] [const object] [method property] [opt "-accessor public|private|protected"] [opt "-configurable [arg trueFalse]"] [opt -incremental] [opt "-class [arg className]"] [opt -nocomplain] [arg spec] [opt [arg initBlock]]]
+
 [include property.man.inc]
+
+[para]
 
 By default, the [term property] will ascertain that no (potentially)
 pre-existing and equally named object variable will be overwritten
