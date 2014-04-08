@@ -596,7 +596,33 @@ performed for a Tcl command representing an object.
 
 [list_end]
 
+[cmd_def property]
+
+[list_begin definitions]
+
 [include property.man.inc]
+
+By default, the [term property] will ascertain that no (potentially)
+pre-existing and equally named object variable will be overwritten
+when defining the property. In case of a conflict, an error exception
+is thrown:
+
+[example {
+% Object create obj { set :x 1 }
+::obj
+% ::obj object property {x 2}
+object ::obj has already an instance variable named 'x'
+}]
+
+If the [term switch] [option -nocomplain] is on, this check is omitted (continuing the above example):
+
+[example {
+% ::obj object property -nocomplain {x 2}
+% ::obj eval {set :x}
+2
+}]
+
+[list_end]
 
 [cmd_def alias]
 [list_begin definitions]

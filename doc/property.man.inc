@@ -9,10 +9,6 @@
 [keywords "switch"]
 [keywords "value checker"]
 
-[cmd_def property]
-
-[list_begin definitions]
-
 [call [arg obj] [const [vset SCOPE]] [method property] [opt "-accessor public|private|protected"] [opt "-configurable [arg trueFalse]"] [opt -incremental] [opt "-class [arg className]"] [opt -nocomplain] [arg spec] [opt [arg initBlock]]]
 
 Defines a [term property] for the scope of the [vset SCOPE]. For every
@@ -45,26 +41,6 @@ which this slot object is to be instantiated, can be provided using
 
 [para]
 
-By default, the [term property] will ascertain that no (potentially)
-pre-existing and equally named object variable will be overwritten
-when defining the property. In case of a conflict, an error exception
-is thrown:
-
-[example {
-% Object create obj { set :x 1 }
-::obj
-% ::obj object property {x 2}
-object ::obj has already an instance variable named 'x'
-}]
-
-If the [term switch] [option -nocomplain] is on, this check is omitted (continuing the above example):
-
-[example {
-% ::obj object property -nocomplain {x 2}
-% ::obj eval {set :x}
-2
-}]
-
 The [arg spec] provides the [term property] specification as a [cmd list] holding
 at least one element or, maximum, two elements: [emph propertyName][opt ":[emph typeSpec]"] [opt [emph defaultValue]]. The [arg propertyName] sets
 the name of the property and the corresponding object variable(s). It
@@ -81,13 +57,5 @@ also [sectref description "[arg initBlock] for [method create] and [method new]"
 
 [list_begin arguments]
 [arg_def switch -incremental in] ...
-
-
-
-
-
-[list_end]
-
-
 
 [list_end]
