@@ -5,6 +5,10 @@
 [keywords NX]
 [keywords "mixin class"]
 
+[vset SCOPE "object"]
+[vset CMD "::obj"]
+[vset SCOPEMODIFIER "object"]
+
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
 [titledesc {nx::Object API Reference}]
 
@@ -315,7 +319,7 @@ subclass of [cmd nx::Object] or in a [term "mixin class"].
 
 Evaluates a special Tcl script for the scope of [arg obj] in the style
 of Tcl's [cmd eval]. There are, however, notable differences to the
-standard [cmd eval]: In this script, the colon-prefix notation to
+standard [cmd eval]: In this script, the colon-prefix notation is available to
 dispatch to methods and to access variables of [arg obj]. Script-local
 variables, which are thrown away once the evaluation of the script has
 completed, can be defined to store intermediate results.
@@ -592,67 +596,35 @@ performed for a Tcl command representing an object.
 
 [list_end]
 
-[list_begin commands]
-
 [cmd_def property]
 
 [list_begin definitions]
 
-[call [arg obj] [const object] [cmd property] [opt "-accessor public|private|protected"] [opt "-configurable [arg trueFalse]"] [opt -incremental] [opt "-class [arg className]"] [opt -nocomplain] [arg spec] [opt [arg initBlock]]]
+[call [arg obj] [const object] [method property] [opt "-accessor public|private|protected"] [opt "-configurable [arg trueFalse]"] [opt -incremental] [opt "-class [arg className]"] [opt -nocomplain] [arg spec] [opt [arg initBlock]]]
 
-Defines a per-object <<@gls property>>. For every property, a <<@gls
-slotobject>> is created. A property also provides for a pair of
-getter and setter methods, automatically.
+[include property.man.inc]
 
-[list_begin options]
-
-[opt_def [option -accessor] "public|private|protected"] 
-
-If set, a getter/setter method having the specified call-protection
-level ([const public], [const private], or [const protected]) will be
-defined automatically.
 [para]
-Type: an empty string (""), meaning no getter/setter method will be provided for the property
-[para]
-Default value: an empty string (""), meaning no getter/setter method will be provided for the property
 
-[list_end]
+By default, the [term property] will ascertain that no (potentially)
+pre-existing and equally named object variable will be overwritten
+when defining the property. In case of a conflict, an error exception
+is thrown:
 
-[list_begin arguments]
+[example {
+% Object create obj { set :x 1 }
+::obj
+% ::obj object property {x 2}
+object ::obj has already an instance variable named 'x'
+}]
 
+If the [term switch] [option -nocomplain] is on, this check is omitted (continuing the above example):
 
-[arg_def boolean -configurable in] 
-If set to [const true], the property can be configured through [cmd configure] and [cmd cget], respectively. If [const false], the property's value can be accessed and modified via the getter/setter method, if available (see [arg -accessor]), or by using the object variable managed by the property directly.
-[para]
-Default value: [const true]
-
-[arg_def switch -incremental in] ...
-
-[arg_def "" "-class [arg className]" in] Allows for specifying a slot class, from which the slot object realizing the property is instantiated.
-[para]
-Default value: [cmd ::nx::VariableSlot]
-
-[arg_def switch -nocomplain in]
-If set, an existing object variable by the property name will not
-be overwritten. Instead, an error exception is thrown.
-
-[arg_def "" spec in]	
-
-The property specification can be a list of, at
-least, one or two elements, maximum. The first element
-specifies the property name, optionally followed by
-parameter types after a colon delimiter. If provided,
-the second element sets the default value for this
-property.
-
-[arg_def "" initblock in]	
-
-A script which is evaluated for the scope of the property's slot
-object during its initialization.
-
-[list_end]
-
-
+[example {
+% ::obj object property -nocomplain {x 2}
+% ::obj eval {set :x}
+2
+}]
 
 [list_end]
 
@@ -735,7 +707,6 @@ Remove a previously defined method defined for the object.
 
 [list_end]
 
-[list_end]
 
 [section {Internally called Methods}]
 
