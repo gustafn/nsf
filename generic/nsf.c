@@ -9611,13 +9611,7 @@ ParamGetDomain(Nsf_Param CONST *paramPtr) {
 
   assert(paramPtr);
   if ((paramPtr->flags & NSF_ARG_IS_ENUMERATION)) {
-    Nsf_EnumeratorConverterEntry *ePtr;
-    for (ePtr = &enumeratorConverterEntries[0]; ePtr->converter; ePtr++) {
-      if (ePtr->converter == paramPtr->converter) {
-	result = ePtr->domain;
-	break;
-      }
-    }
+    return Nsf_EnumerationTypeGetDomain(paramPtr->converter);
   } else {
     result = ParamGetType(paramPtr);
   }
@@ -18133,24 +18127,17 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 
   {
     /*
-     * If a command is found for the object|class, check whether we
+     * If a command is not found for the object|class, check whether we
      * find the parameter definitions for the C-defined method.
      */
-    Nsf_methodDefinition *mdPtr = &method_definitions[0];
-
-    for (; mdPtr->methodName; mdPtr ++) {
-
-      /*fprintf(stderr, "... comparing %p with %p => %s\n", ((Command *)cmd)->objProc, mdPtr->proc,
-	mdPtr->methodName);*/
-
-      if (((Command *)cmd)->objProc == mdPtr->proc) {
+    Nsf_methodDefinition *mdPtr = Nsf_CmdDefinitionGet(((Command *)cmd)->objProc);
+    if (mdPtr != NULL) {
 	NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, 0, NULL, NULL};
 	Tcl_Obj *list = ListParamDefs(interp, paramDefs.paramsPtr, printStyle);
 	
 	Tcl_SetObjResult(interp, list);
 	DECR_REF_COUNT2("paramDefsObj", list);
 	return TCL_OK;
-      }
     }
   }
 
@@ -25900,9 +25887,18 @@ Nsf_Init(Tcl_Interp *interp) {
 
 
   /*
-   * Initialize the pointer converter.
+   * Initialize the pointer converter, the enumeration types and cmd
+   * definitions tables and load it with the generated information for
+   * introspection.
    */
   Nsf_PointerInit(interp);
+
+  Nsf_EnumerationTypeInit(interp);
+  Nsf_EnumerationTypeRegister(interp, enumeratorConverterEntries);
+
+  Nsf_CmdDefinitionInit(interp);
+  Nsf_CmdDefinitionRegister(interp, method_definitions);
+
   /*
     fprintf(stderr, "SIZES: obj=%d, tcl_obj=%d, DString=%d, class=%d, namespace=%d, command=%d, HashTable=%d\n",
     sizeof(NsfObject), sizeof(Tcl_Obj), sizeof(Tcl_DString), sizeof(NsfClass),
@@ -26027,15 +26023,16 @@ Nsf_Init(Tcl_Interp *interp) {
   rst->colonCmd = Tcl_FindCommand(interp, "::nsf::colon", NULL, TCL_GLOBAL_ONLY);
 
   /*
-   * SS: Tcl occasionally resolves a proc's cmd structure (e.g., in
+   *  Tcl occasionally resolves a proc's cmd structure (e.g., in
    *  [info frame /number/] or TclInfoFrame()) without
    *  verification. However, NSF non-proc frames, in particular
    *  initcmd blocks, point to the fakeProc structure which does not
-   *  come with an initialized Command pointer. For now, we default to
-   *  an internal command. However, we need to revisit this decision
+   *  contain a initialized Command pointer. For now, we default to
+   *  an internal command. However, we might have to revisit this decision
    *  as non-proc frames (e.g., initcmds) report a "proc" entry
-   *  indicating "::nsf::colon" (which is sufficiently misleading and
-   *  reveals internals not to be revealed ...).
+   *  for c-based functions with a proc scope, such as "::nsf::colon"), 
+   *  which can lead to confusions. "proc" does not mean "tcp proc",
+   *  but an entry with a proc frame for local vars.
   */
   rst->fakeProc.cmdPtr = (Command *)RUNTIME_STATE(interp)->colonCmd;
 

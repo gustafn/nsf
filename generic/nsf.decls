@@ -162,3 +162,9 @@ declare 37 generic {
   int Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 			  ClientData *clientData, Tcl_Obj **outObjPtr)
 }
+declare 38 generic {
+  int Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords)
+}
+declare 39 generic {
+  int Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords)
+}

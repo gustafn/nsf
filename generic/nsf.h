@@ -403,6 +403,16 @@ typedef struct Nsf_methodDefinition {
   Nsf_Param paramDefs[12];
 } Nsf_methodDefinition;
 
+/*
+ * Nsf Enumeration type interface
+ */
+EXTERN int Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords);
+
+/*
+ * Nsf Cmd definition interface
+ */
+EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords);
+
 
 /*
  * Include the public function declarations that are accessible via
