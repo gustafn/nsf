@@ -631,36 +631,10 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 [cmd_def alias]
 [list_begin definitions]
 
-[call [arg obj] [opt "public | private | protected"] [const object] [cmd alias] [arg methodName] [opt "-returns [arg charConstraint]"] [opt "-frame object | method"] [arg cmdName]]
-Define an <<@gls alias>> as per-object method. This method is used
-for defining a method with the specified name by binding a
-pre-existing implementation. This alias target is provided as the
-last argument.
+[call [arg obj] [opt "public | private | protected"] [const object] [cmd alias] [arg methodName] [opt "-returns [arg valueChecker]"] [opt "-frame object | method"] [arg cmdName]]
 
-[list_begin arguments]
+[include alias.man.inc]
 
-[arg_def "" methodName in] Name of the new method
-
-[arg_def "" -returns in] 
-An optional character constraint to check the result value received
-upon invoking on the alias method (e.g., [const integer]).
-
-[arg_def "" -frame in] 
-
-Optional scoping information. If the provided 
-value is [const object] then variable references of the 
-command are created as instance variables. If the value 
-is [const method], then a method frame is pushed (the 
-method can resolve [cmd ::nx::self] or can call [cmd nx::next]).
-
-[arg_def "" cmdName in]
-
-A reference to an implementation. If the 
-implementation is a method, the value should be a
-[term "[keywords {method handle}]"] (see [sectref-external xxx]), if it is a Tcl command, it should
-be a fully qualified command name.
-
-[list_end]
 [list_end]
 
 
@@ -668,40 +642,7 @@ be a fully qualified command name.
 
 [list_begin definitions]
 
-[call [arg obj] [cmd delete] [method object] [method property] [arg propertyName]]
-[call [arg obj] [cmd delete] [method object] [method variable] [arg variableName]]
-[call [arg obj] [cmd delete] [method object] [method method] [arg methodName]]
-
-[def "[method object] [method property]"]
-Remove a previously defined property defined for the object.
-[para]
-Return value: ...
-[list_begin arguments]
-
-[arg_def "" propertyName in] Unqualified name of the property which should be deleted.
-
-[list_end]
-
-[def "[method object] [method variable]"]
-Remove a previously defined variable defined for the object.
-[para]
-Return value: ...
-[list_begin arguments]
-
-[arg_def "" variableName in] Unqualified name of the variable which should be deleted.
-
-[list_end]
-
-[def "[method object] [method method]"]
-Remove a previously defined method defined for the object.
-[list_begin arguments]
-
-[arg_def "" methodName in] Unqualified name of the method which should be deleted.
-
-[arg_def "" "(Return value)"] ...
-
-[list_end]
-
+[include delete.man.inc]
 
 [list_end]
 
