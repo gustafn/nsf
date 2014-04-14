@@ -1671,6 +1671,9 @@ Nsfmongo_Init(Tcl_Interp * interp) {
   }
   NsfMutexUnlock(&initMutex);
 
+  Nsf_EnumerationTypeRegister(interp, enumeratorConverterEntries);
+  Nsf_CmdDefinitionRegister(interp, method_definitions);
+
   /*
    * register the pointer converter
    */

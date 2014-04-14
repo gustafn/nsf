@@ -220,8 +220,8 @@ AC_SUBST(DTRACE_OBJ)
 #-----------------------------------------------------------------------
 
 TEA_ADD_SOURCES([nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
-	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c \
-        nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c])
+	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c nsfEnumerationType.c \
+        nsfCmdDefinitions.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c])
 TEA_ADD_HEADERS([generic/nsf.h generic/nsfInt.h generic/nsfDecls.h generic/nsfIntDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])

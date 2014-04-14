@@ -1026,6 +1026,19 @@ char *NsfStringIncr(NsfStringIncrStruct *iss);
 void NsfStringIncrInit(NsfStringIncrStruct *iss);
 void NsfStringIncrFree(NsfStringIncrStruct *iss);
 
+/*
+ * Nsf Enumeration type interface
+ */
+EXTERN void Nsf_EnumerationTypeInit(Tcl_Interp *interp);
+EXTERN CONST char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter);
+
+/*
+ * Nsf Cmd definition interface
+ */
+EXTERN void Nsf_CmdDefinitionInit(Tcl_Interp *interp);
+EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc);
+
+
 #ifndef HAVE_STRNSTR
 char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #endif

@@ -84,6 +84,8 @@ NsfStubs nsfStubs = {
     Nsf_ConvertToPointer, /* 35 */
     Nsf_ConvertToString, /* 36 */
     Nsf_ConvertToTclobj, /* 37 */
+    Nsf_EnumerationTypeRegister, /* 38 */
+    Nsf_CmdDefinitionRegister, /* 39 */
 };
 
 /* !END!: Do not edit above this line. */

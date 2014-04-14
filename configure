@@ -5551,8 +5551,8 @@ fi
 
 
     vars="nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
-	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c \
-        nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
+	nsfDebug.c nsfUtil.c nsfObj.c nsfPointer.c nsfEnumerationType.c \
+        nsfCmdDefinitions.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
     for i in $vars; do
 	case $i in
 	    \$*)
