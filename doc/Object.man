@@ -495,6 +495,14 @@ completed, can be defined to store intermediate results.
 
 [list_end]
 
+[cmd_def method]
+
+[list_begin definitions]
+
+[include method.man.inc]
+
+[list_end]
+
 [cmd_def move]
 
 [list_begin definitions]
