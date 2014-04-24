@@ -64,7 +64,7 @@ int
 Tcl_AppInit(interp)
     Tcl_Interp *interp;		/* Interpreter for application. */
 {
-    if (Tcl_Init(interp) == TCL_ERROR) {
+    if ((Tcl_Init)(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
     if (Tk_Init(interp) == TCL_ERROR) {
