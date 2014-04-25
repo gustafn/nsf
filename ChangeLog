@@ -1,3 +1,42 @@
+2014-04-25 <Gustaf.Neumann@wu-wien.ac.at>
+	* follow modern autoconf conventions
+	* configure.a: use TEA 3.9
+	* use new tcl.m4
+	* Makefile.in: remove hard-coded "-rdynamic" from build of xotclsh
+	and xowish
+	* generic/xotclTrace.c: remove obsolete test
+
+2014-04-24 <stefan.sobernig@wu-wien.ac.at>
+	* Makefile.in: Make sure that xotclsh + xowish are explicitly linked
+	against libtclstub*.so, rather than libtcl*.so. Otherwise, building
+	with --with-xotclsh + --with-xowish fails starting with 8.6 (which
+	effectively hides the various stub structures in libtcl*.so).
+	* AppInit.c: Use the stubbed variant of Tcl_Init().
+	* Tested under 8.6 (fossil trunk as of commit date) and 8.5 (fossil
+	core-8-5-branch as of commit date).
+	Thanks to Sergei Golovan (Debian Tcl/Tk Package Mantainers) for
+	reporting the issue and an initial patch (see Debian bug #724816).
+
+2013-07-16 <Gustaf.Neumann@wu-wien.ac.at>
+	* library/actiweb/HttpPlace.xotcl: add URL query variables as
+	arguments
+
+2013-06-23 <Gustaf.Neumann@wu-wien.ac.at>
+	* make version management simpler and freeze XOTcl 1.* versions In
+	order to avoid bad interactions between XOTcl 1.0 and XOTcl 2.0
+	the version dependency in 1.0 where changed to "package require
+	-exact ... 1.0" where possible, and the provides where upgraded to
+	1.0 in most cases
+	* make sure that packages from XOTcl 1 require XOTcl 1
+	* generic/xotcl.c: code cleanup
+
+2013-03-26 <Gustaf.Neumann@wu-wien.ac.at>
+	* doc/langRef.xotcl: update documentation
+
+2012-10-13 <Gustaf.Neumann@wu-wien.ac.at>
+	* Make sure to NS_EXPORT Ns_ModuleVersion for people using still
+	the old-style aolserver module.
+
 2012-01-16 <Gustaf.Neumann@wu-wien.ac.at>
 	* xotcl.c Extend backport of handling of dashses in XOTcl's
 	configure method to perform a more eager search for command
