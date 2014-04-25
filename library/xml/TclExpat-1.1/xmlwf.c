@@ -23,6 +23,7 @@ Contributor(s):
 #include "filemap.h"
 #include "codepage.h"
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
