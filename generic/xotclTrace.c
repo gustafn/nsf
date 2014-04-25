@@ -26,7 +26,7 @@ XOTclStackDump(Tcl_Interp *interp) {
     Tcl_Obj *cmdObj;
     XOTclNewObj(cmdObj);
     fprintf(stderr, "\tFrame=%p ", f);
-    if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
+    if (f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
       fprintf(stderr,"caller %p ",Tcl_CallFrame_callerPtr(f));
       fprintf(stderr,"callerV %p ",Tcl_CallFrame_callerVarPtr(f));
       Tcl_GetCommandFullName(interp, (Tcl_Command)  f->procPtr->cmdPtr, cmdObj);
