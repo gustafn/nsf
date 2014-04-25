@@ -114,6 +114,7 @@ SHELL		= @SHELL@
 srcdir		= @srcdir@
 prefix		= @prefix@
 exec_prefix	= @exec_prefix@
+datarootdir     = @datarootdir@
 
 bindir		= @bindir@
 libdir		= @libdir@
@@ -430,13 +431,13 @@ install-pkgIndex:
 #	@echo package ifneeded XOTcl $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] XOTcl] > "$(pkglibdir)/pkgIndex.tcl"
 
 xotclsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
-	$(CC) -rdynamic -o $@ tclAppInit.o \
+	$(CC)  -o $@ tclAppInit.o \
 		$(PKG_OBJECTS) \
 		$(CFLAGS) $(TCL_LIB_SPEC) $(TCL_STUB_LIB_SPEC) \
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
 
 xowish: tkAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
-	$(CC) -rdynamic -o $@ tkAppInit.o \
+	$(CC)  -o $@ tkAppInit.o \
 		$(PKG_OBJECTS) \
 		$(CFLAGS)  $(TCL_LIB_SPEC) $(TCL_STUB_LIB_SPEC) $(TK_LIB_SPEC) $(TK_STUB_LIB_SPEC) \
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
