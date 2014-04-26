@@ -14,7 +14,7 @@
 	* AppInit.c: Use the stubbed variant of Tcl_Init().
 	* Tested under 8.6 (fossil trunk as of commit date) and 8.5 (fossil
 	core-8-5-branch as of commit date).
-	Thanks to Sergei Golovan (Debian Tcl/Tk Package Mantainers) for
+	Thanks to Sergei Golovan (Debian Tcl/Tk Package Maintainers) for
 	reporting the issue and an initial patch (see Debian bug #724816).
 
 2013-07-16 <Gustaf.Neumann@wu-wien.ac.at>
@@ -38,7 +38,7 @@
 	the old-style aolserver module.
 
 2012-01-16 <Gustaf.Neumann@wu-wien.ac.at>
-	* xotcl.c Extend backport of handling of dashses in XOTcl's
+	* xotcl.c Extend backport of handling of dashes in XOTcl's
 	configure method to perform a more eager search for command
 	begins. Extended regression test
 
@@ -122,7 +122,7 @@
 
 2010-03-06 <Gustaf.Neumann@wu-wien.ac.at>
     * use installed expat when specified
-      This option is needed fro debian packaging rules.
+      This option is needed fro Debian packaging rules.
       (Many thanks to Stefan Sobernig for this contribution)
     * cleanup of redundant section in configure.in
     * update to TEA 3.7
@@ -156,7 +156,7 @@
     * Release of XOTcl 1.6.4
 
 2009-06-19 <Gustaf.Neumann@wu-wien.ac.at>
-    - minor variable renaming to follow tcl naming convetions more closely
+    - minor variable renaming to follow tcl naming conventions more closely
 
 2009-06-14 <Gustaf.Neumann@wu-wien.ac.at>
     - fixed potential access to deleted command list item in
@@ -184,7 +184,7 @@
 
 2009-03-02 <Gustaf.Neumann@wu-wien.ac.at>
     - some small performance improvements (use CreateHashEntry instead
-      of FindHashEntry, remove unneded argument, improve order of long
+      of FindHashEntry, remove unneeded argument, improve order of long
       and expressions)
     - some code cleanup
     - new methods, when compiled with tcl 8.5;
@@ -286,7 +286,7 @@
        Syntax:
           <objName> info precedence ?-intrinsic? ?pattern?
       If "-intrinsic" is specified, only the classes of the
-      superclass type hierarchy are returnd. Otherwise,
+      superclass type hierarchy are returned. Otherwise,
      the precedence contains mixin classes as well.
    * Check results for guards to be boolean instead
       of int (now, guards are allowed to return e.g. "true")
@@ -316,7 +316,7 @@
       as suggested by Jeff Hobbs
 
 2008-03-18 <Gustaf.Neumann@wu-wien.ac.at>
-    * allowed "abstract method" in additon to "abstract instproc"
+    * allowed "abstract method" in addition to "abstract instproc"
       and "abstract proc"
 
 2008-02-26 <Gustaf.Neumann@wu-wien.ac.at>
@@ -527,7 +527,7 @@
     * Release of XOTcl 1.5.6
 
 2007-10-09: <Gustaf.Neumann@wu-wien.ac.at>
-   * More fixes for treating gobal volatile objects
+   * More fixes for treating global volatile objects
      during shutdown:
        - do not allow to create new objects during shutdown
        - do not allow objects to be set volatile during shutdown
@@ -571,7 +571,7 @@
 
 2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
     * Fix for cases, where volatile objects are
-      deleted before the corrsoponding trace variable.
+      deleted before the corresponding trace variable.
 
 2007-09-18: <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.5.5
@@ -656,13 +656,13 @@
        tclCompile.h may lose both binary and source compatibility. The
        relevant changes are:
 
-       1. 'struct Var' is completely changed, all acceses to its
+       1. 'struct Var' is completely changed, all accesses to its
           internals (either direct or via the TclSetVar* and TclIsVar*
           macros) will malfunction. Var flag values and semantics
           changed too.
 
        2. 'struct Bytecode' has an additional field that has to be
-          initialised to NULL
+          initialized to NULL
 
        3. 'struct Namespace' is larger, as the varTable is now one
           pointer larger than a Tcl_HashTable. Direct access to its
@@ -738,7 +738,7 @@
       version is faster, but uses for filters or mixins slightly more
       storage.
 
-    * reduced calling overhead of methods with nonpositional arguments
+    * reduced calling overhead of methods with non-positional arguments
       by about 10 percent by avoiding shimmering.
 
     * fixed handling of "return -code break" from xotcl methods
@@ -822,7 +822,7 @@
 
 2006-09-19 <Gustaf.Neumann@wu-wien.ac.at>
     * added XOTCL_NONLEAF_METHOD: This constant
-      must be used fwhen registering C-implemented methods
+      must be used when registering C-implemented methods
       that call "::xotcl::next" to push the XOTcl activation record.
 
        Example:
@@ -830,7 +830,7 @@
                    XOTCL_NONLEAF_METHOD, 0 );
 
 2006-09-18 <Gustaf.Neumann@wu-wien.ac.at>
-    * fixed a bug in parsing nonpositional arguments, when
+    * fixed a bug in parsing non-positional arguments, when
        e.g. square brackets are used in type declarations for
        parameters.
          Class C
@@ -911,11 +911,11 @@
          the setrelation command.
 
 2006-08-22 <Gustaf.Neumann@wu-wien.ac.at>
-       * fixed a bug with nonpositional arguments, some
+       * fixed a bug with non-positional arguments, some
           positional arguments and "args"
-       * fixed a bug in nonpositional arguments when called without
+       * fixed a bug in non-positional arguments when called without
            arguments
-       * improved error messages in connection with nonpositional arguments
+       * improved error messages in connection with non-positional arguments
        * extended interface of XOTclErrBadVal() to provide better error messages
          (this changes the stub interface, so we have to change the version number)
 

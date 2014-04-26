@@ -1,7 +1,7 @@
 /* 
  *  XOTcl - Extended Object Tcl
  *
- *  Copyright (C) 1999-2011 Gustaf Neumann (a) (b)
+ *  Copyright (C) 1999-2014 Gustaf Neumann (a) (b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  *  Copyright (C) 2007-2008 Martin Matuska (b)
  *

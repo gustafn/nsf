@@ -3,8 +3,9 @@
  *
  *      Stub object that will be statically linked into extensions of XOTcl
  *
- * Copyright (c) 2001-2008 Gustaf Neumann, Uwe Zdun
  * Copyright (c) 1998 Paul Duffin.
+ * Copyright (C) 1999-2007 Uwe Zdun
+ * Copyright (C) 1999-2014 Gustaf Neumann
  *
  * See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
