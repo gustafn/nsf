@@ -129,8 +129,8 @@ TEA_LOAD_TCLCONFIG
 if test "$with_xowish" = yes; then
 	TEA_PATH_TKCONFIG
 	TEA_LOAD_TKCONFIG
-#	TEA_PUBLIC_TK_HEADERS
-#	TEA_PATH_X
+	TEA_PUBLIC_TK_HEADERS
+	# TEA_PATH_X
 fi
 
 #--------------------------------------------------------------------

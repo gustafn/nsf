@@ -682,6 +682,7 @@ INSTALL_PROGRAM
 INSTALL_DATA
 INSTALL
 CPP
+TK_INCLUDES
 TK_XINCLUDES
 TK_LIBS
 TK_STUB_LIB_SPEC
@@ -781,6 +782,7 @@ with_all
 with_expat
 with_tcl
 with_tk
+with_tkinclude
 with_tclinclude
 enable_threads
 enable_shared
@@ -1439,6 +1441,7 @@ Optional Packages:
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tk               directory containing tk configuration (tkConfig.sh)
+  --with-tkinclude        directory containing the public Tk header files
   --with-tclinclude       directory containing the public Tcl header files
   --with-celib=DIR        use Windows/CE support library from DIR
 
@@ -3808,8 +3811,107 @@ $as_echo "#define MAC_OSX_TK 1" >>confdefs.h
 
 
 
-#	TEA_PUBLIC_TK_HEADERS
-#	TEA_PATH_X
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Tk public headers" >&5
+$as_echo_n "checking for Tk public headers... " >&6; }
+
+
+# Check whether --with-tkinclude was given.
+if test "${with_tkinclude+set}" = set; then :
+  withval=$with_tkinclude; with_tkinclude=${withval}
+fi
+
+
+    if ${ac_cv_c_tkh+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+	# Use the value from --with-tkinclude, if it was given
+
+	if test x"${with_tkinclude}" != x ; then
+	    if test -f "${with_tkinclude}/tk.h" ; then
+		ac_cv_c_tkh=${with_tkinclude}
+	    else
+		as_fn_error $? "${with_tkinclude} directory does not contain tk.h" "$LINENO" 5
+	    fi
+	else
+	    list=""
+	    if test "`uname -s`" = "Darwin"; then
+		# If Tk was built as a framework, attempt to use
+		# the framework's Headers directory.
+		case ${TK_DEFS} in
+		    *TK_FRAMEWORK*)
+			list="`ls -d ${TK_BIN_DIR}/Headers 2>/dev/null`"
+			;;
+		esac
+	    fi
+
+	    # Look in the source dir only if Tk is not installed,
+	    # and in that situation, look there before installed locations.
+	    if test -f "${TK_BIN_DIR}/Makefile" ; then
+		list="$list `ls -d ${TK_SRC_DIR}/generic 2>/dev/null`"
+	    fi
+
+	    # Check order: pkg --prefix location, Tk's --prefix location,
+	    # relative to directory of tkConfig.sh, Tcl's --prefix location,
+	    # relative to directory of tclConfig.sh.
+
+	    eval "temp_includedir=${includedir}"
+	    list="$list \
+		`ls -d ${temp_includedir}        2>/dev/null` \
+		`ls -d ${TK_PREFIX}/include      2>/dev/null` \
+		`ls -d ${TK_BIN_DIR}/../include  2>/dev/null` \
+		`ls -d ${TCL_PREFIX}/include     2>/dev/null` \
+		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null`"
+	    if test "${TEA_PLATFORM}" != "windows" -o "$GCC" = "yes"; then
+		list="$list /usr/local/include /usr/include"
+		if test x"${TK_INCLUDE_SPEC}" != x ; then
+		    d=`echo "${TK_INCLUDE_SPEC}" | sed -e 's/^-I//'`
+		    list="$list `ls -d ${d} 2>/dev/null`"
+		fi
+	    fi
+	    for i in $list ; do
+		if test -f "$i/tk.h" ; then
+		    ac_cv_c_tkh=$i
+		    break
+		fi
+	    done
+	fi
+
+fi
+
+
+    # Print a message based on how we determined the include path
+
+    if test x"${ac_cv_c_tkh}" = x ; then
+	as_fn_error $? "tk.h not found.  Please specify its location with --with-tkinclude" "$LINENO" 5
+    else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${ac_cv_c_tkh}" >&5
+$as_echo "${ac_cv_c_tkh}" >&6; }
+    fi
+
+    # Convert to a native path and substitute into the output files.
+
+    INCLUDE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tkh}`
+
+    TK_INCLUDES=-I\"${INCLUDE_DIR_NATIVE}\"
+
+
+
+    if test "${TEA_WINDOWINGSYSTEM}" != "x11"; then
+	# On Windows and Aqua, we need the X compat headers
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for X11 header files" >&5
+$as_echo_n "checking for X11 header files... " >&6; }
+	if test ! -r "${INCLUDE_DIR_NATIVE}/X11/Xlib.h"; then
+	    INCLUDE_DIR_NATIVE="`${CYGPATH} ${TK_SRC_DIR}/xlib`"
+	    TK_XINCLUDES=-I\"${INCLUDE_DIR_NATIVE}\"
+
+	fi
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${INCLUDE_DIR_NATIVE}" >&5
+$as_echo "${INCLUDE_DIR_NATIVE}" >&6; }
+    fi
+
+	# TEA_PATH_X
 fi
 
 #--------------------------------------------------------------------
