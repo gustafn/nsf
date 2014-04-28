@@ -14,6 +14,7 @@
  */
 
 #include "tcl.h"
+#include <xotcl.h>
 
 #ifdef TCL_TEST
 
