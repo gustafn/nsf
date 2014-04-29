@@ -1,4 +1,7 @@
 2014-04-29 <Gustaf.Neumann@wu-wien.ac.at>
+	* Release of XOTcl 1.6.8
+
+2014-04-29 <Gustaf.Neumann@wu-wien.ac.at>
 	* some more cleanup of autoconf (more quoting, remove obsolete file, use recent install-sh)
 	* try to stick closer to current tcl conventions
 
