@@ -1,4 +1,4 @@
-***************** $Id: README,v 1.2 2004/08/18 09:31:08 neumann Exp $
+*****************
 XOTcl README File
 *****************
 
@@ -28,7 +28,7 @@ xowish anymore. Instead you should use xotcl from tclsh or wish. The
 typical way to do so is to load XOTcl as a packages and then import
 the commands from the XOTcl namespace into the current namespace:
 
-   /usr/local/bin/tclsh8.4
+   tclsh8.5
    package require XOTcl; namespace import -force xotcl::*
 
 That means, the XOTcl installed package library needs to be on Tcl's
@@ -39,10 +39,10 @@ set the environment variable TCLLIBPATH from outside of Tcl to this
 location, or use the variable auto_path in Tcl. For instance, to use
 the local, extracted tar ball, you can use something like (under
 UNIX):
-  export TCLLIBPATH="./xotcl-1.3.0"  or
-  setenv TCLLIBPATH "./xotcl-1.3.0"
+  export TCLLIBPATH="./xotcl-1.6.8"  or
+  setenv TCLLIBPATH "./xotcl-1.6.8"
 Under Windows:
-  set TCLLIBPATH=".\xotcl-1.3.0"
+  set TCLLIBPATH=".\xotcl-1.6.8"
 
 
 Linux Binary Distribution
@@ -68,12 +68,12 @@ bash: export TCLLIBPATH="/usr/local/lib/xotcl-<VERSION>/ $(TCLLIBPATH)"
 Windows Binary Release
 ----------------------
 
-You need Tcl 8.3.* or 8.4.* installed properly. If necessary, get Tcl
-8.4 for your system from 
+You need Tcl installed properly. If necessary, get Tcl
+for your system from 
    http://www.tcl.tk
 
 Now check where Tcl is installed and what the name of the tclsh*.exe
-is. If you installed Tcl 8.3.5, the name is tclsh83.exe. On my system
+is. If you installed Tcl 8.5.13, the name is tclsh85.exe. On my system
 Tcl installs tclsh in c:\Programme\Tcl\bin (in English versions this
 is most likely under c:\Program Files\Tcl\bin).
 

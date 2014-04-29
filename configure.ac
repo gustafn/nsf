@@ -12,7 +12,9 @@
 #
 #--------------------------------------------------------------------
 define(XOTclVersion, 1.6.8)
-AC_INIT([xotcl], [XOTclVersion])
+AC_INIT([xotcl], [XOTclVersion], [xotcl@alice.wu-wien.ac.at])
+
+AC_CONFIG_AUX_DIR(tclconfig)
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -20,7 +22,6 @@ AC_INIT([xotcl], [XOTclVersion])
 #--------------------------------------------------------------------
 
 TEA_INIT([3.9])
-AC_CONFIG_AUX_DIR(config)
 
 #--------------------------------------------------------------------
 # specify some extra flags
@@ -407,13 +408,13 @@ AC_SUBST(apps_actiweb)
 
 AC_SUBST(TEA_PLATFORM)
 
-dnl macro expanding to the names of files ./configure is to generate.
+dnl CONFIG_OUTPUT_FILES is a macro containing the names of the output files
 dnl reasoning: this is a factoring; I use this value elsewhere.
 dnl
 dnl Change the value of -this- macro if you want to add or remove
 dnl such files.
 
-AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix]])
+AC_DEFUN([CONFIG_OUTPUT_FILES], [[Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix]])
 
 #--------------------------------------------------------------------
 # the value of this variable is set to the files which are to be
@@ -425,6 +426,7 @@ AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile xotclConfig.sh apps/utils/xotclsh apps/
 CONFIG_CLEAN_FILES="CONFIG_OUTPUT_FILES autom4te.cache/"
 AC_SUBST(CONFIG_CLEAN_FILES)
 AC_CONFIG_FILES(CONFIG_OUTPUT_FILES)
+
 
 #--------------------------------------------------------------------
 # Finally, substitute all of the various values into the Makefile,

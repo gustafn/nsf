@@ -10,7 +10,7 @@ dnl	to configure the system for the local environment.
 # need to modify this file are marked by the string __CHANGE__
 #-----------------------------------------------------------------------
 
-configdir=$(srcdir)/../../../config
+configdir=$(srcdir)/../../../tclconfig
 
 #-----------------------------------------------------------------------
 # __CHANGE__
@@ -31,7 +31,7 @@ AC_INIT([xotclsdbm], [1.2])
 
 TEA_INIT([3.9])
 
-AC_CONFIG_AUX_DIR(../../../config)
+AC_CONFIG_AUX_DIR([../../../tclconfig])
 
 #--------------------------------------------------------------------
 # specify some extra flags

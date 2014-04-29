@@ -127,17 +127,17 @@ DESTDIR		=
 
 top_builddir	= .
 
-# INSTALL		= @INSTALL@
-# INSTALL_PROGRAM	= @INSTALL_PROGRAM@
-# INSTALL_DATA	= @INSTALL_DATA@
-# INSTALL_SCRIPT	= @INSTALL_SCRIPT@
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_SCRIPT	= @INSTALL_SCRIPT@
 
-INSTALL          = $(SHELL) $(srcdir)/config/install-sh -c ${INSTALL_OPTIONS}
-INSTALL_DATA_DIR = ${INSTALL} -d -m 755
-INSTALL_PROGRAM  = ${INSTALL} -m 755
-INSTALL_DATA    = ${INSTALL} -m 644
-INSTALL_SCRIPT  = ${INSTALL_PROGRAM}
-INSTALL_LIBRARY = ${INSTALL_DATA}
+# INSTALL          = $(SHELL) $(srcdir)/config/install-sh -c ${INSTALL_OPTIONS}
+# INSTALL_DATA_DIR = ${INSTALL} -d -m 755
+# INSTALL_PROGRAM  = ${INSTALL} -m 755
+# INSTALL_DATA    = ${INSTALL} -m 644
+# INSTALL_SCRIPT  = ${INSTALL_PROGRAM}
+# INSTALL_LIBRARY = ${INSTALL_DATA}
 
 PACKAGE_NAME	= @PACKAGE_NAME@
 PACKAGE_VERSION	= @PACKAGE_VERSION@
@@ -189,7 +189,7 @@ TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= @SHARED_BUILD@
 
-INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @TK_INCLUDES@ @TK_XINCLUDES@ @XOTCL_BUILD_INCLUDE_SPEC@
+AM_CPPFLAGS	= @PKG_INCLUDES@ @TCL_INCLUDES@ @TK_INCLUDES@ @TK_XINCLUDES@ @XOTCL_BUILD_INCLUDE_SPEC@
 EXTRA_CFLAGS	= @PKG_CFLAGS@
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
@@ -206,7 +206,7 @@ CPPFLAGS	= @CPPFLAGS@
 LIBS		= @PKG_LIBS@ @LIBS@
 AR		= @AR@
 CFLAGS		= @CFLAGS@
-COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+COMPILE		= $(CC) $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 
 #========================================================================
 # Start of user-definable TARGETS section
@@ -601,7 +601,7 @@ install-bin-binaries:
 	  fi; \
 	done
 
-.SUFFIXES: .c .$(OBJEXT)
+SUFFIXES= .c .$(OBJEXT)
 
 #Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 #	cd $(top_builddir) \
@@ -684,7 +684,7 @@ bin-tar:
 	)
 
 tar:  libraries-pkgindex
-	sh ./config/mktar.sh
+	sh ./tclconfig/mktar.sh
 
 
 .PHONY: all binaries clean depend distclean doc install libraries \
