@@ -4980,7 +4980,7 @@ Configuration:
 - stick closer to TEA conventions (keep tclconfig-sh in tclconfig directory)
 - remove obsolete version of install-sh, copy manifested version to 
   mongodb library
-- fix more configure quoting
+- fix configure.ac quoting
 
 ========================================================================
 TODO:

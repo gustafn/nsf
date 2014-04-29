@@ -187,7 +187,7 @@ else
     #TEA_ADD_SOURCES([unix/unixFile.c])
     #TEA_ADD_LIBS([-lsuperfly])
 fi
-AC_SUBST(CLEANFILES)
+AC_SUBST([CLEANFILES])
 
 #--------------------------------------------------------------------
 # __CHANGE__
@@ -239,10 +239,10 @@ TEA_ENABLE_SYMBOLS
 # link against the non-stubbed Tcl library.  Add Tk too if necessary.
 #--------------------------------------------------------------------
 
-AC_DEFINE(USE_TCL_STUBS)
-#AC_DEFINE(USE_TK_STUBS)
+AC_DEFINE([USE_TCL_STUBS])
+#AC_DEFINE([USE_TK_STUBS])
 if test "$enable_development" = yes; then
-   AC_DEFINE(NSF_DEVELOPMENT, 1, [Are we building with development support?])
+   AC_DEFINE([NSF_DEVELOPMENT], 1, [Are we building with development support?])
 fi
 
 

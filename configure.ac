@@ -167,41 +167,41 @@ AC_SUBST([aol_prefix])
 #--------------------------------------------------------------------
 # check for tclCompile.h (needed, when compiled without full source)
 if test -f "$TCL_SRC_DIR/generic/tclCompile.h"; then
-   AC_DEFINE(HAVE_TCL_COMPILE_H, 1, [Do we have tclCompile.h installed?])
+   AC_DEFINE([HAVE_TCL_COMPILE_H], 1, [Do we have tclCompile.h installed?])
 fi
 
 if test "$enable_assertions" = yes; then
-   AC_DEFINE(NSF_WITH_ASSERTIONS, 1, [Are we building with assertions support?])
+   AC_DEFINE([NSF_WITH_ASSERTIONS], 1, [Are we building with assertions support?])
 fi
 
 if test "$enable_profile" = yes; then
-   AC_DEFINE(NSF_PROFILE, 1, [Are we building with profile support?])
+   AC_DEFINE([NSF_PROFILE], 1, [Are we building with profile support?])
 fi
 
 if test "$enable_development" = yes; then
-   AC_DEFINE(NSF_DEVELOPMENT, 1, [Are we building with development support?])
+   AC_DEFINE([NSF_DEVELOPMENT], 1, [Are we building with development support?])
 fi
 
 if test "$enable_memcount" = yes; then
-   AC_DEFINE(NSF_MEM_COUNT, 1, [Are we building with memcount support?])
+   AC_DEFINE([NSF_MEM_COUNT], 1, [Are we building with memcount support?])
 fi
 if test "$enable_memcount" = trace; then
-   AC_DEFINE(NSF_MEM_TRACE, 1, [Are we building with memcount tracing support?])
+   AC_DEFINE([NSF_MEM_TRACE], 1, [Are we building with memcount tracing support?])
 fi
 
 if test "$enable_assemble" = yes; then
-   AC_DEFINE(NSF_ASSEMBLE, 1, [Are we building with assembly support?])
+   AC_DEFINE([NSF_ASSEMBLE], 1, [Are we building with assembly support?])
 fi
 if test "$enable_assemble" = call; then
-   AC_DEFINE(NSF_ASSEMBLE_CT, 1, [Are we building with assembly call threading support?])
+   AC_DEFINE([NSF_ASSEMBLE_CT], 1, [Are we building with assembly call threading support?])
 fi
 if test "$enable_assemble" = call; then
-   AC_DEFINE(NSF_ASSEMBLE_LT, 1, [Are we building with assembly label threading support?])
+   AC_DEFINE([NSF_ASSEMBLE_LT], 1, [Are we building with assembly label threading support?])
 fi
 
 DTRACE_OBJ=
 if test "$with_dtrace" = yes; then
-   AC_DEFINE(NSF_DTRACE, 1, [Are we building with DTrace support?])
+   AC_DEFINE([NSF_DTRACE], 1, [Are we building with DTrace support?])
    # Under Mac OS X, we need no nsfDTrace.o
    if test "`uname -s`" != "Darwin" ; then
       DTRACE_OBJ=nsfDTrace.o
@@ -244,7 +244,7 @@ TEA_ADD_TCL_SOURCES([])
 
 if test "${TEA_PLATFORM}" = "windows" ; then
     if test "$GCC" != "yes" ; then
-       AC_DEFINE(VISUAL_CC)
+       AC_DEFINE([VISUAL_CC])
     fi
     CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch vc60.pch "
     #TEA_ADD_SOURCES([win/winFile.c])
@@ -329,7 +329,7 @@ TEA_ENABLE_SYMBOLS
 # link against the non-stubbed Tcl library.
 #--------------------------------------------------------------------
 
-AC_DEFINE(USE_TCL_STUBS, 1, [Use Tcl stubs])
+AC_DEFINE([USE_TCL_STUBS], 1, [Use Tcl stubs])
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It
@@ -374,7 +374,7 @@ else
 	NSF_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
 	NSF_BUILD_STUB_LIB_SPEC="-L`pwd` -lnsfstub${PACKAGE_VERSION}"
 	NSF_STUB_LIB_SPEC="-L${pkglibdir} -lnsfstub${PACKAGE_VERSION}"
-	AC_DEFINE(COMPILE_NSF_STUBS)
+	AC_DEFINE([COMPILE_NSF_STUBS])
 fi
 
 else
