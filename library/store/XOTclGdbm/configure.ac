@@ -36,13 +36,13 @@ AC_CONFIG_AUX_DIR([../../../tclconfig])
 #--------------------------------------------------------------------
 # specify some extra flags
 #--------------------------------------------------------------------
-AC_ARG_WITH(gdbm,
+AC_ARG_WITH([gdbm],
         [  --with-gdbm=GDBM_INCLUDE_DIR[,GDBM_LIB_DIR]
             absolute path to gdbm.h and optionally the path to the library, 
            --without-gdbm disables build of Tcl Gdbm],
         [with_gdbm=$withval], [with_gdbm=no])
 
-AC_ARG_WITH(xotcl,
+AC_ARG_WITH([xotcl],
         [  --with-xotcl=DIR_CONTAINING_XOTCLCONFIG_SH
             absolute path to xotclConfig.sh, 
            --without-xotcl disables, but this is pointless],
@@ -152,7 +152,7 @@ TEA_ADD_TCL_SOURCES([])
 #--------------------------------------------------------------------
 
 if test "${TEA_PLATFORM}" = "windows" ; then
-    AC_DEFINE(BUILD_sample)
+    AC_DEFINE([BUILD_sample])
     CLEANFILES="pkgIndex.tcl *.lib *.dll *.exp *.ilk *.pdb vc*.pch"
     #TEA_ADD_SOURCES([win/winFile.c])
     #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
@@ -161,7 +161,7 @@ else
     #TEA_ADD_SOURCES([unix/unixFile.c])
     #TEA_ADD_LIBS([-lsuperfly])
 fi
-AC_SUBST(CLEANFILES)
+AC_SUBST([CLEANFILES])
 
 #--------------------------------------------------------------------
 # __CHANGE__
@@ -213,8 +213,8 @@ TEA_ENABLE_SYMBOLS
 # link against the non-stubbed Tcl library.  Add Tk too if necessary.
 #--------------------------------------------------------------------
 
-AC_DEFINE(USE_TCL_STUBS)
-#AC_DEFINE(USE_TK_STUBS)
+AC_DEFINE([USE_TCL_STUBS])
+#AC_DEFINE([USE_TK_STUBS])
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It

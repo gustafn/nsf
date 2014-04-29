@@ -37,12 +37,12 @@ AC_CONFIG_AUX_DIR([../../../tclconfig])
 # specify some extra flags
 #--------------------------------------------------------------------
 
-AC_ARG_WITH(xotcl,
+AC_ARG_WITH([xotcl],
         [  --with-xotcl=DIR_CONTAINING_XOTCLCONFIG_SH
             absolute path to xotclConfig.sh, 
            --without-xotcl disables, but this is pointless],
         [with_xotcl=$withval], [AC_MSG_ERROR([--with-xotcl is required])])
-AC_ARG_WITH(expat,
+AC_ARG_WITH([expat],
         [  --with-expat=sys assumes a system-wide expat installation, 
            --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
            --without-expat falls back to the bundled expat installation],
@@ -170,7 +170,7 @@ TEA_ADD_TCL_SOURCES([])
 #--------------------------------------------------------------------
 
 if test "${TEA_PLATFORM}" = "windows" ; then
-    AC_DEFINE(BUILD_sample)
+    AC_DEFINE([BUILD_sample])
     CLEANFILES="pkgIndex.tcl *.lib *.dll *.exp *.ilk *.pdb vc*.pch"
     #TEA_ADD_SOURCES([win/winFile.c])
     #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
@@ -179,7 +179,7 @@ else
     #TEA_ADD_SOURCES([unix/unixFile.c])
     #TEA_ADD_LIBS([-lsuperfly])
 fi
-AC_SUBST(CLEANFILES)
+AC_SUBST([CLEANFILES])
 
 #--------------------------------------------------------------------
 # __CHANGE__
@@ -231,8 +231,8 @@ TEA_ENABLE_SYMBOLS
 # link against the non-stubbed Tcl library.  Add Tk too if necessary.
 #--------------------------------------------------------------------
 
-AC_DEFINE(USE_TCL_STUBS)
-#AC_DEFINE(USE_TK_STUBS)
+AC_DEFINE([USE_TCL_STUBS])
+#AC_DEFINE([USE_TK_STUBS])
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It

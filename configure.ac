@@ -12,7 +12,7 @@
 #
 #--------------------------------------------------------------------
 define(XOTclVersion, 1.6.8)
-AC_INIT([xotcl], [XOTclVersion], [xotcl@alice.wu-wien.ac.at])
+AC_INIT([xotcl],[XOTclVersion],[xotcl@alice.wu-wien.ac.at])
 
 AC_CONFIG_AUX_DIR([tclconfig])
 
@@ -231,9 +231,9 @@ TEA_PRIVATE_TCL_HEADERS
 #--------------------------------------------------------------------
 
 if test "${TEA_PLATFORM}" = "windows" ; then
-	AC_DEFINE(BUILD_xotcl)
+	AC_DEFINE([BUILD_xotcl])
 	if test "$GCC" != "yes" ; then
-		AC_DEFINE(VISUAL_CC)
+		AC_DEFINE([VISUAL_CC])
 	fi
 	CLEANFILES="*.lib *.dll *.exp *.ilk *.pdb vc50.pch vc60.pch"
 	#TEA_ADD_SOURCES([win/winFile.c])
@@ -308,7 +308,7 @@ TEA_ENABLE_SYMBOLS
 #fi
 
 if test "${FORCE_NO_STUBS}" = "0" ; then
-	AC_DEFINE(USE_TCL_STUBS)
+	AC_DEFINE([USE_TCL_STUBS])
 fi
 
 #--------------------------------------------------------------------
@@ -331,7 +331,7 @@ TEA_PROG_TCLSH
 
 # make this available, for such as xotclConfig.sh
 XOTCL_COMPATIBLE_TCLSH=${TCLSH_PROG}
-AC_SUBST(XOTCL_COMPATIBLE_TCLSH)
+AC_SUBST([XOTCL_COMPATIBLE_TCLSH])
 
 # resolve the variables
 eval "libdir=${libdir}"
@@ -369,7 +369,7 @@ else
 	XOTCL_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
 	XOTCL_BUILD_STUB_LIB_SPEC="-L`pwd` -lxotclstub${PACKAGE_VERSION}"
 	XOTCL_STUB_LIB_SPEC="-L${pkglibdir} -lxotclstub${PACKAGE_VERSION}"
-	AC_DEFINE(COMPILE_XOTCL_STUBS)
+	AC_DEFINE([COMPILE_XOTCL_STUBS])
 fi 
 
 else
