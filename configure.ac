@@ -14,7 +14,7 @@
 define(XOTclVersion, 1.6.8)
 AC_INIT([xotcl], [XOTclVersion], [xotcl@alice.wu-wien.ac.at])
 
-AC_CONFIG_AUX_DIR(tclconfig)
+AC_CONFIG_AUX_DIR([tclconfig])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -27,32 +27,32 @@ TEA_INIT([3.9])
 # specify some extra flags
 #--------------------------------------------------------------------
 
-AC_ARG_WITH(gdbm,
+AC_ARG_WITH([gdbm],
         [  --with-gdbm=GDBM_INCLUDE_DIR[,GDBM_LIB_DIR]
             absolute path to gdbm.h and optionally the path to the library, 
            --without-gdbm disables build of Tcl Gdbm],
         [with_gdbm=$withval], [with_gdbm=no])
-AC_ARG_WITH(aolserver3,
+AC_ARG_WITH([aolserver3],
         [  --with-aolserver3=AOL_SERVER_DIR, (containing include ,...)
            --without-aolserver3 disables build of AOLserver 3 module],
         [with_aol3=$withval], [with_aol3=no])
-AC_ARG_WITH(actiweb,
+AC_ARG_WITH([actiweb],
         [  --with-actiweb=yes|no,
            --without-actiweb disables actiweb components],
         [with_actiweb=$withval], [with_actiweb=no])
-AC_ARG_WITH(xotclsh,
+AC_ARG_WITH([xotclsh],
         [  --with-xotclsh=yes|no,
 	   --without-xotclsh disables built of xotclsh],
         [with_xotclsh=$withval], [with_xotclsh=no])
-AC_ARG_WITH(xowish,
+AC_ARG_WITH([xowish],
         [  --with-xowish=yes|no,
 	   --without-xowish disables built of xowish],
         [with_xowish=$withval], [with_xowish=no])
-AC_ARG_WITH(all,
+AC_ARG_WITH([all],
         [  --with-all=yes|no,
 	   --without-all disables built of all],
         [with_all=$withval], [with_all=no])
-AC_ARG_WITH(expat,
+AC_ARG_WITH([expat],
         [  --with-expat=sys assumes a system-wide expat installation, 
            --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
            --without-expat falls back to the bundled expat installation],
@@ -86,7 +86,7 @@ else
    fi
 fi
 
-AC_SUBST(subdirs)
+AC_SUBST([subdirs])
 
 if test "$with_tk" = no; then with_xowish="" ; fi
 if test "$with_xotclsh" = yes; then XOTCLSH="xotclsh" ; else XOTCLSH=""; fi
@@ -109,10 +109,10 @@ XOTCL_RELEASE_LEVEL=.8
 XOTCL_VERSION=${XOTCL_MAJOR_VERSION}.${XOTCL_MINOR_VERSION}
 NODOT_VERSION=${XOTCL_MAJOR_VERSION}${XOTCL_MINOR_VERSION}
 
-AC_SUBST(XOTCL_VERSION)
-AC_SUBST(XOTCL_MAJOR_VERSION)
-AC_SUBST(XOTCL_MINOR_VERSION)
-AC_SUBST(XOTCL_RELEASE_LEVEL)
+AC_SUBST([XOTCL_VERSION])
+AC_SUBST([XOTCL_MAJOR_VERSION])
+AC_SUBST([XOTCL_MINOR_VERSION])
+AC_SUBST([XOTCL_RELEASE_LEVEL])
 
 echo "Configuring XOTcl Version $PACKAGE_VERSION"
 
@@ -165,7 +165,7 @@ fi
 
 aol_prefix="/usr/local/aolserver"
 if test -d "${prefix}/modules/tcl" ; then aol_prefix="${prefix}" ; fi
-AC_SUBST(aol_prefix)
+AC_SUBST([aol_prefix])
 
 #--------------------------------------------------------------------
 # check for tclCompile.h (needed, when compiled without full source)
@@ -245,7 +245,7 @@ else
 fi
 
 
-AC_SUBST(CLEANFILES)
+AC_SUBST([CLEANFILES])
 
 #--------------------------------------------------------------------
 # Check whether --enable-threads or --disable-threads was given.
@@ -344,10 +344,10 @@ pkglibdir="${libdir}/${PKG_DIR}"
 # make sure this is right (then remove this comment)
 pkgincludedir="${includedir}/${PKG_DIR}"
 
-AC_SUBST(PKG_DIR)
-AC_SUBST(pkgdatadir)
-AC_SUBST(pkglibdir)
-AC_SUBST(pkgincludedir)
+AC_SUBST([PKG_DIR])
+AC_SUBST([pkgdatadir])
+AC_SUBST([pkglibdir])
+AC_SUBST([pkgincludedir])
 
 #
 # XOTcl specific configs
@@ -383,30 +383,30 @@ XOTCL_STUB_LIB_SPEC="${pkglibdir}/${PKG_STUB_LIB_FILE}"
 
 fi
 
-AC_SUBST(SHARED_LIB_SUFFIX)
-AC_SUBST(UNSHARED_LIB_SUFFIX)
-AC_SUBST(XOTCL_BUILD_LIB_SPEC)
-AC_SUBST(XOTCL_LIB_SPEC)
-AC_SUBST(XOTCL_BUILD_STUB_LIB_SPEC)
-AC_SUBST(XOTCL_STUB_LIB_SPEC)
-AC_SUBST(XOTCL_BUILD_STUB_LIB_PATH)
-AC_SUBST(XOTCL_STUB_LIB_PATH)
+AC_SUBST([SHARED_LIB_SUFFIX])
+AC_SUBST([UNSHARED_LIB_SUFFIX])
+AC_SUBST([XOTCL_BUILD_LIB_SPEC])
+AC_SUBST([XOTCL_LIB_SPEC])
+AC_SUBST([XOTCL_BUILD_STUB_LIB_SPEC])
+AC_SUBST([XOTCL_STUB_LIB_SPEC])
+AC_SUBST([XOTCL_BUILD_STUB_LIB_PATH])
+AC_SUBST([XOTCL_STUB_LIB_PATH])
 XOTCL_SRC_DIR=$srcdir
-AC_SUBST(XOTCL_SRC_DIR)
-AC_SUBST(XOTCLSH)
-AC_SUBST(XOWISH)
+AC_SUBST([XOTCL_SRC_DIR])
+AC_SUBST([XOTCLSH])
+AC_SUBST([XOWISH])
 
 # include dir of xotcl during build process (i.e., does not assume installed)
 XOTCL_BUILD_INCLUDE_DIR="${XOTCL_SRC_DIR}/generic"
 XOTCL_BUILD_INCLUDE_SPEC="-I${XOTCL_BUILD_INCLUDE_DIR}"
-AC_SUBST(XOTCL_BUILD_INCLUDE_DIR)
-AC_SUBST(XOTCL_BUILD_INCLUDE_SPEC)
+AC_SUBST([XOTCL_BUILD_INCLUDE_DIR])
+AC_SUBST([XOTCL_BUILD_INCLUDE_SPEC])
 
-AC_SUBST(test_actiweb)
-AC_SUBST(libdirs_actiweb)
-AC_SUBST(apps_actiweb)
+AC_SUBST([test_actiweb])
+AC_SUBST([libdirs_actiweb])
+AC_SUBST([apps_actiweb])
 
-AC_SUBST(TEA_PLATFORM)
+AC_SUBST([TEA_PLATFORM])
 
 dnl CONFIG_OUTPUT_FILES is a macro containing the names of the output files
 dnl reasoning: this is a factoring; I use this value elsewhere.
@@ -424,7 +424,7 @@ AC_DEFUN([CONFIG_OUTPUT_FILES], [[Makefile xotclConfig.sh apps/utils/xotclsh app
 #--------------------------------------------------------------------
 
 CONFIG_CLEAN_FILES="CONFIG_OUTPUT_FILES autom4te.cache/"
-AC_SUBST(CONFIG_CLEAN_FILES)
+AC_SUBST([CONFIG_CLEAN_FILES])
 AC_CONFIG_FILES(CONFIG_OUTPUT_FILES)
 
 
