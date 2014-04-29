@@ -141,13 +141,18 @@ pkgincludedir	= $(includedir)/$(PKG_DIR)
 
 top_builddir	= .
 
-INSTALL_OPTIONS =
-INSTALL		= $(SHELL) $(srcdir)/config/install-sh -c ${INSTALL_OPTIONS}
-INSTALL_DATA_DIR = ${INSTALL} -d -m 755
-INSTALL_PROGRAM	= ${INSTALL} -m 755
-INSTALL_DATA	= ${INSTALL} -m 644
-INSTALL_SCRIPT	= ${INSTALL_PROGRAM}
-INSTALL_LIBRARY	= ${INSTALL_DATA}
+INSTALL         = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+INSTALL_SCRIPT  = @INSTALL_SCRIPT@
+
+# INSTALL_OPTIONS =
+# INSTALL		= $(SHELL) $(srcdir)/config/install-sh -c ${INSTALL_OPTIONS}
+# INSTALL_DATA_DIR = ${INSTALL} -d -m 755
+# INSTALL_PROGRAM	= ${INSTALL} -m 755
+# INSTALL_DATA	= ${INSTALL} -m 644
+# INSTALL_SCRIPT	= ${INSTALL_PROGRAM}
+# INSTALL_LIBRARY	= ${INSTALL_DATA}
 
 PACKAGE_NAME	= @PACKAGE_NAME@
 PACKAGE_VERSION	= @PACKAGE_VERSION@
@@ -893,7 +898,7 @@ bin-tar:
 	)
 
 tar:  libraries-pkgindex
-	sh ./config/mktar.sh
+	sh ./tclconfig/mktar.sh
 
 
 .PHONY: all binaries clean depend distclean doc install libraries \

@@ -14,9 +14,10 @@
 AC_PREREQ([2.69])
 
 define(NsfVersion, 2.0b6)
-AC_INIT([nsf],[NsfVersion])
+AC_INIT([nsf],[NsfVersion], [xotcl@alice.wu-wien.ac.at])
 
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([tclconfig])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -24,7 +25,6 @@ AC_CONFIG_MACRO_DIR([m4])
 #--------------------------------------------------------------------
 
 TEA_INIT([3.9])
-AC_CONFIG_AUX_DIR(config)
 
 #--------------------------------------------------------------------
 # specify some extra flags
@@ -33,38 +33,38 @@ AC_CONFIG_AUX_DIR(config)
 #  - "with" is for external software (optional packages)
 #  - "enable" is for optional features
 #
-AC_ARG_WITH(aolserver3,
+AC_ARG_WITH([aolserver3],
 	AS_HELP_STRING([--with-aolserver3=AOL_SERVER_DIR],
 		[build an AOLserver 3 module; 
 		point to directory containing aolsever/include (default: off)]),
         [with_aol3=$withval], [with_aol3=no])
-AC_ARG_WITH(dtrace,
+AC_ARG_WITH([dtrace],
 	AS_HELP_STRING([--with-dtrace], [build nsf with dtrace (default: without)]),
         [with_dtrace=$withval], [with_dtrace=no])
-AC_ARG_WITH(mongoc,
+AC_ARG_WITH([mongoc],
 	AS_HELP_STRING([--with-mongoc=MONGOC_INCLUDE_DIR[,MONGOC_LIB_DIR]],
 		[build nsf with mongodb c-driver support (default: without)]),
 		[with_mongoc=$withval], [with_mongoc=no])
-AC_ARG_WITH(bson,
+AC_ARG_WITH([bson],
 	AS_HELP_STRING([--with-bson=BSON_INCLUDE_DIR[,BSON_LIB_DIR]],
 		[build nsf with mongodb bson support (default: without)]),
 		[with_bson=$withval], [with_bson=no])
-AC_ARG_ENABLE(profile,
+AC_ARG_ENABLE([profile],
 	AS_HELP_STRING([--enable-profile], [build nsf with profile support (default: disabled)]),
         [enable_profile=$enableval], [enable_profile=no])
-AC_ARG_ENABLE(memcount,
+AC_ARG_ENABLE([memcount],
 	AS_HELP_STRING([--enable-memcount=yes|trace],
 		[build nsf with memcount debug support (default: disabled)]),
         [enable_memcount=$enableval], [enable_memcount=no])
-AC_ARG_ENABLE(development,
+AC_ARG_ENABLE([development],
 	AS_HELP_STRING([--enable-development],
 		[build nsf with development support (intensive runtime checking, etc.; default: disabled)]),
         [enable_development=$enableval], [enable_development=no])
-AC_ARG_ENABLE(assertions,
+AC_ARG_ENABLE([assertions],
 	AS_HELP_STRING([--enable-assertions],
 		[build nsf with assertion support (default: enabled)]),
         [enable_assertions=$enableval], [enable_assertions=yes])
-AC_ARG_ENABLE(assemble,
+AC_ARG_ENABLE([assemble],
 	AS_HELP_STRING([--enable-assemble=yes|label|call],
 		[build nsf with assemble support (default: disabled)]),
         [enable_assemble=$enableval], [enable_assemble=no])
@@ -80,7 +80,7 @@ test_actiweb=""
 libdirs_actiweb=""
 apps_actiweb=""
 
-AC_SUBST(subdirs)
+AC_SUBST([subdirs])
 
 
 #--------------------------------------------------------------------
@@ -99,10 +99,10 @@ NSF_PATCH_LEVEL=$PACKAGE_VERSION
 NSF_VERSION=${NSF_MAJOR_VERSION}.${NSF_MINOR_VERSION}
 NODOT_VERSION=${NSF_MAJOR_VERSION}${NSF_MINOR_VERSION}
 
-AC_SUBST(NSF_VERSION)
-AC_SUBST(NSF_MAJOR_VERSION)
-AC_SUBST(NSF_MINOR_VERSION)
-AC_SUBST(NSF_PATCH_LEVEL)
+AC_SUBST([NSF_VERSION])
+AC_SUBST([NSF_MAJOR_VERSION])
+AC_SUBST([NSF_MINOR_VERSION])
+AC_SUBST([NSF_PATCH_LEVEL])
 
 echo "Configuring next Version $PACKAGE_VERSION"
 
@@ -162,7 +162,7 @@ else
       aol_prefix="${prefix}"
    fi
 fi
-AC_SUBST(aol_prefix)
+AC_SUBST([aol_prefix])
 
 #--------------------------------------------------------------------
 # check for tclCompile.h (needed, when compiled without full source)
@@ -207,7 +207,7 @@ if test "$with_dtrace" = yes; then
       DTRACE_OBJ=nsfDTrace.o
    fi
 fi
-AC_SUBST(DTRACE_OBJ)
+AC_SUBST([DTRACE_OBJ])
 
 #-----------------------------------------------------------------------
 # __CHANGE__
@@ -351,7 +351,7 @@ TEA_PROG_TCLSH
 
 # make this available, for such as nsfConfig.sh
 NSF_COMPATIBLE_TCLSH=${TCLSH_PROG}
-AC_SUBST(NSF_COMPATIBLE_TCLSH)
+AC_SUBST([NSF_COMPATIBLE_TCLSH])
 
 #
 # Next Scripting specific configs
@@ -388,30 +388,30 @@ NSF_STUB_LIB_SPEC="${pkglibdir}/${PKG_STUB_LIB_FILE}"
 
 fi
 
-AC_SUBST(SHARED_LIB_SUFFIX)
-AC_SUBST(UNSHARED_LIB_SUFFIX)
-AC_SUBST(NSF_BUILD_LIB_SPEC)
-AC_SUBST(NSF_LIB_SPEC)
-AC_SUBST(NSF_BUILD_STUB_LIB_SPEC)
-AC_SUBST(NSF_STUB_LIB_SPEC)
-AC_SUBST(NSF_BUILD_STUB_LIB_PATH)
-AC_SUBST(NSF_STUB_LIB_PATH)
+AC_SUBST([SHARED_LIB_SUFFIX])
+AC_SUBST([UNSHARED_LIB_SUFFIX])
+AC_SUBST([NSF_BUILD_LIB_SPEC])
+AC_SUBST([NSF_LIB_SPEC])
+AC_SUBST([NSF_BUILD_STUB_LIB_SPEC])
+AC_SUBST([NSF_STUB_LIB_SPEC])
+AC_SUBST([NSF_BUILD_STUB_LIB_PATH])
+AC_SUBST([NSF_STUB_LIB_PATH])
 NSF_SRC_DIR=$srcdir
-AC_SUBST(NSF_SRC_DIR)
-AC_SUBST(NXSH)
-AC_SUBST(XOWISH)
+AC_SUBST([NSF_SRC_DIR])
+AC_SUBST([NXSH])
+AC_SUBST([XOWISH])
 
 # include dirs for nsf during build process (i.e., does not assume installed)
 NSF_BUILD_INCLUDE_DIR="${NSF_SRC_DIR}/generic"
 NSF_BUILD_INCLUDE_SPEC="-I${NSF_BUILD_INCLUDE_DIR}"
-AC_SUBST(NSF_BUILD_INCLUDE_DIR)
-AC_SUBST(NSF_BUILD_INCLUDE_SPEC)
+AC_SUBST([NSF_BUILD_INCLUDE_DIR])
+AC_SUBST([NSF_BUILD_INCLUDE_SPEC])
 
-AC_SUBST(test_actiweb)
-AC_SUBST(libdirs_actiweb)
-AC_SUBST(apps_actiweb)
+AC_SUBST([test_actiweb])
+AC_SUBST([libdirs_actiweb])
+AC_SUBST([apps_actiweb])
 
-AC_SUBST(TEA_PLATFORM)
+AC_SUBST([TEA_PLATFORM])
 
 dnl macro expanding to the names of files ./configure is to generate.
 dnl reasoning: this is a factoring; I use this value elsewhere.
@@ -419,7 +419,7 @@ dnl
 dnl Change the value of -this- macro if you want to add or remove
 dnl such files.
 
-AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/pkgIndex.unix nxsh nxwish]])
+AC_DEFUN([CONFIG_OUTPUT_FILES], [[Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/pkgIndex.unix nxsh nxwish]])
 
 #--------------------------------------------------------------------
 # the value of this variable is set to the files which are to be
@@ -429,7 +429,7 @@ AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile nsfConfig.sh library/xotcl/xotclsh libr
 #--------------------------------------------------------------------
 
 CONFIG_CLEAN_FILES="CONFIG_OUTPUT_FILES autom4te.cache/"
-AC_SUBST(CONFIG_CLEAN_FILES)
+AC_SUBST([CONFIG_CLEAN_FILES])
 AC_CONFIG_FILES(CONFIG_OUTPUT_FILES)
 
 #--------------------------------------------------------------------
