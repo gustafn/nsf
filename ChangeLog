@@ -1,3 +1,16 @@
+2014-04-29 <Gustaf.Neumann@wu-wien.ac.at>
+	* some more cleanup of autoconf (more quoting, remove obsolete file, use recent install-sh)
+	* try to stick closer to current tcl conventions
+
+2014-04-29 <stefan.sobernig@wu-wien.ac.at>
+	* unix/tclAppInit.c: Fix one more compiler warning: undeclared Xotcl_Init()
+	* Removing configure artifact, otherwise lintian complains
+	* Makefile.in: LDFLAGS must be referenced differently under TEA
+	* fixed "make install" problem, fix build problem for xowish
+
+2014-04-28 <stefan.sobernig@wu-wien.ac.at>
+	* library/xml/TclExpat-1.1/xmltok_impl.c: fix for CVE-2009-3720
+	
 2014-04-25 <Gustaf.Neumann@wu-wien.ac.at>
 	* follow modern autoconf conventions
 	* configure.a: use TEA 3.9
