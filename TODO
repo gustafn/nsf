@@ -4985,6 +4985,15 @@ Configuration:
 ========================================================================
 TODO:
 
+- forwarders/aliases: -checkalways is missing. Issues: 1) limit to
+  -returns only? 2) cover value checkers of method parameters also,
+  effectively overruling -checkalways settings of the
+  aliased/forwarded nsf::proc or method?
+
+- forwarders/aliases: -frame object vs. -objframe: keep -objframe in
+  forward or introduce -frame object (if -frame method made sense for
+  forwards --> using next etc.?)?
+
 - forwarder: should %proc be renamed to %method or (for XOTcl2 compat)
   %method be accepted as alternative name (more NX'ish)?
 
