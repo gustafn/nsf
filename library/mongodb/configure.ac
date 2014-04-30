@@ -242,7 +242,7 @@ TEA_ENABLE_SYMBOLS
 AC_DEFINE([USE_TCL_STUBS])
 #AC_DEFINE([USE_TK_STUBS])
 if test "$enable_development" = yes; then
-   AC_DEFINE([NSF_DEVELOPMENT], 1, [Are we building with development support?])
+   AC_DEFINE([NSF_DEVELOPMENT], [1], [Are we building with development support?])
 fi
 
 
