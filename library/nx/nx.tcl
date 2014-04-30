@@ -229,11 +229,8 @@ namespace eval ::nx {
   ######################################################################
 
   ::nsf::method::create Class method {
-    name arguments:parameter,0..* -checkalways:switch -returns body -precondition -postcondition
+    name arguments:parameter,0..* -checkalways:switch -returns body
   } {
-    set conditions [list]
-    if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
-    if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
     set p [:__resolve_method_path $name]
     set p [dict filter $p script {k v} {expr {$k in {object regObject methodName}}}]
     dict with p {
@@ -241,7 +238,7 @@ namespace eval ::nx {
       set r [::nsf::method::create $object \
 		 -checkalways=$checkalways \
 		 {*}[expr {$regObject ne "" ? "-reg-object [list $regObject]" : ""}] \
-		 $methodName $arguments $body {*}$conditions]
+		 $methodName $arguments $body]
       if {$r ne ""} {
 	# the method was not deleted
 	::nsf::method::property $object $r call-protected \
@@ -501,18 +498,15 @@ namespace eval ::nx {
     #    - "forward"
 
     :public method "object method" {
-      name arguments:parameter,0..* -checkalways:switch -returns body -precondition -postcondition
+      name arguments:parameter,0..* -checkalways:switch -returns body
     } {
-      set conditions [list]
-      if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
-      if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
       array set "" [:__resolve_method_path -per-object $name]
       # puts "object method $(object).$(methodName) [list $arguments] {...}"
       set r [::nsf::method::create $(object) \
 		 -checkalways=$checkalways \
 		 {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
 		 -per-object \
-		 $(methodName) $arguments $body {*}$conditions]
+		 $(methodName) $arguments $body]
       if {$r ne ""} {
 	# the method was not deleted
 	::nsf::method::property $(object) $r call-protected \
@@ -878,8 +872,6 @@ namespace eval ::nx {
       return [string trimright "/cls/ [namespace tail $name] [: ::nsf::methods::class::info::method syntax $name]" { }]
     }
     :method "info method type"          {name} {: ::nsf::methods::class::info::method type $name}
-    :method "info method precondition"  {name} {: ::nsf::methods::class::info::method precondition $name}
-    :method "info method postcondition" {name} {: ::nsf::methods::class::info::method postcondition $name}
     :method "info method submethods"    {name} {: ::nsf::methods::class::info::method submethods $name}
     :method "info method returns"       {name} {: ::nsf::methods::class::info::method returns $name}
   }
@@ -903,8 +895,6 @@ namespace eval ::nx {
       return [string trimright "/obj/ [namespace tail $name] [: ::nsf::methods::object::info::method syntax $name]" { }]
     }
     :method "info object method type"          {name} {: ::nsf::methods::object::info::method type $name}
-    :method "info object method precondition"  {name} {: ::nsf::methods::object::info::method precondition $name}
-    :method "info object method postcondition" {name} {: ::nsf::methods::object::info::method postcondition $name}
     :method "info object method submethods"    {name} {: ::nsf::methods::object::info::method submethods $name}
     :method "info object method returns"       {name} {: ::nsf::methods::object::info::method returns $name}
   }

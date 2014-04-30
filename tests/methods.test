@@ -1084,24 +1084,27 @@ nx::test case xotcl-COPY {
   ? {e1 bar} bar
 }
 
-nx::test case assertion-swallows-result {
+nx::test case xotcl-assertion-swallows-result {
 
-  nx::Class create Edge {
-    :public method foo {} {
-      :configure -xxx 1
-    }
-    :public method bar {} {
-      :configure -xxx 1
-    } -postcondition {{1 == 0}}
-    :create e1
+  package req XOTcl
+
+  xotcl::Class create Edge 
+  Edge instproc foo {} {
+    my set xxx
   }
+
+  Edge instproc bar {} {
+    my set xxx
+  } {} {{1 == 0}}
+
+  Edge create e1
 
   # base case
   ? {catch {e1 foo} errMsg} 1
-  ? {string match "invalid non-positional*" $errMsg} 1
+  ? {string match {can't read "xxx":*} $errMsg} 1
 
   ? {catch {e1 bar} errMsg} 1
-  ? {string match "invalid non-positional*" $errMsg} 1
+  ? {string match {can't read "xxx":*} $errMsg} 1
 
 
   # turn on assertion checking
@@ -1109,12 +1112,11 @@ nx::test case assertion-swallows-result {
 
   # still report error when invariant would not return error
   ? {catch {e1 foo} errMsg} 1
-  ? {string match "invalid non-positional*" $errMsg} 1
+  ? {string match {can't read "xxx":*} $errMsg} 1
 
-  # still report error when postcondition would not return error
+  # still report error when postcondition would return an error
   ? {catch {e1 bar} errMsg} 1
-  ? {string match "invalid non-positional*" $errMsg} 1
-
+  ? {string match {can't read "xxx":*} $errMsg} 1
 }
 
 

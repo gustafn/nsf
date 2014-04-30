@@ -67,7 +67,7 @@ nx::test case info-method-base {
   nx::Class create C {
     :method m {x} {return proc-[self proc]}
     :object method mpo {} {return instproc-[self proc]}
-    :method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
+    # :method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
     
     :forward addOne expr 1 +
     :object forward add1 expr 1 +
@@ -81,7 +81,7 @@ nx::test case info-method-base {
   }
   C create c1
   
-  ? {lsort [C info methods -callprotection all]} "a addOne m m-with-assertions s"
+  ? {lsort [C info methods -callprotection all]} "a addOne m s"
   #? {lsort [C info methods]} "a addOne s"
   foreach m [lsort [C info methods -callprotection all]] {
     ? [subst -nocommands {lsort [c1 info lookup methods $m]}] $m
@@ -100,16 +100,16 @@ nx::test case info-method-base {
   
   ? {C info method definition m} {::C public method m x {return proc-[self proc]}}
   ? {C info object method definition mpo} {::C public object method mpo {} {return instproc-[self proc]}}
-  if {$::nsf::config(assertions)} {
-    ? {C info method definition m-with-assertions} \
-	{::C public method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
-  } else {
-    ? {C info method definition m-with-assertions} \
-	{::C public method m-with-assertions {} {return proc-[self proc]}}
-  }
+  # if {$::nsf::config(assertions)} {
+  #   ? {C info method definition m-with-assertions} \
+  #       {::C public method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
+  # } else {
+  #   ? {C info method definition m-with-assertions} \
+  #       {::C public method m-with-assertions {} {return proc-[self proc]}}
+  # }
   ? {C info method parameters m} {x}
   ? {nx::Class info method parameters method} \
-      {name arguments:parameter,0..* -checkalways:switch -returns body -precondition -postcondition}
+      {name arguments:parameter,0..* -checkalways:switch -returns body}
   ? {nx::Class info method parameters alias} \
       {methodName -returns {-frame default} cmd}
   # raises currently an error
@@ -138,7 +138,7 @@ nx::test case info-method-base {
   ? {lsort [::nx::Object info lookup methods]} $class_methods
   ? {lsort [::nx::Class info lookup methods]} $class_methods
   ? {lsort [C info lookup methods -source application]} "add1 apo fpo mpo spo"
-  ? {lsort [c1 info lookup methods -source application]} "a addOne foo m m-with-assertions s"
+  ? {lsort [c1 info lookup methods -source application]} "a addOne foo m s"
   ? {lsort [C info lookup methods -source system]} $class_methods
   ? {lsort [c1 info lookup methods -source system]} $object_methods
 
@@ -801,7 +801,7 @@ nx::test case info-methods-path {
 nx::test case parametersyntax {
   # a true method
   ? {::nx::Class info method syntax method} \
-      "/cls/ method /name/ /arguments/ ?-checkalways? ?-returns /value/? /body/ ?-precondition /value/? ?-postcondition /value/?"
+      "/cls/ method /name/ /arguments/ ?-checkalways? ?-returns /value/? /body/"
   # a forwarder to ::nsf::relation; definition comes via array ::nsf::parametersyntax
   ? {::nx::Class info method syntax mixin} "/cls/ mixin ?/class .../?|?add /class/?|?delete /class/?"
 

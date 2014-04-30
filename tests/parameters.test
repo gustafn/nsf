@@ -616,7 +616,7 @@ nx::test case subst-default {
       "query instparams with default, no paramdefs needed"
 
   ? {nx::Class info method parameters method} \
-      "name arguments:parameter,0..* -checkalways:switch -returns body -precondition -postcondition" \
+      "name arguments:parameter,0..* -checkalways:switch -returns body" \
       "query instparams for scripted method 'method'"
   
   ? {nx::Object info method parameters ::nsf::method::forward} \
