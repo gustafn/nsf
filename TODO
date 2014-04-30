@@ -4985,6 +4985,9 @@ Configuration:
 ========================================================================
 TODO:
 
+- forwarder: Turn switch -verbose in a valued nonpos arg which allows
+  to set the channel: stdout vs. stderr?
+
 - forwarders/aliases: -checkalways is missing. Issues: 1) limit to
   -returns only? 2) cover value checkers of method parameters also,
   effectively overruling -checkalways settings of the

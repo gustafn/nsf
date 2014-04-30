@@ -255,6 +255,91 @@ nx::test case positioning-args {
     ? {obj @end-13 1 2 3 } [list 13 1 ::obj 2 3]
 }
 
+nx::test case placeholder-basics {
+  nx::Object create obj
+  obj public object forward foo list {%argclindex {A B C}}
+  ? {obj foo} A
+  ? {obj foo _} "B _"
+  ? {obj foo _ _} "C _ _"
+  ? {obj foo _ _ _ _} "forward: not enough elements in specified list of ARGC argument argclindex {A B C}"
+}
+
+nx::test case positioning-arg-extended {
+ 
+ nx::Object create obj
+  obj public object forward foo list {%@end %self}
+  ? {obj foo 1 2 3} [list 1 2 3 ::obj]
+  obj public object forward foo list {%@end %proc}
+  ? {obj foo 1 2 3} [list 1 2 3 foo]
+
+  obj public object forward foo list {%@end %%}
+  ? {obj foo 1 2 3} [list 1 2 3 %]
+  
+  obj public object forward foo list {%obj foo}
+  ? {obj foo 1 2 3} "too many nested evaluations (infinite loop?)"
+
+  obj public object forward foo list {%apply {{x} {return $x}} A}
+  ? {obj foo 1 2 3} [list A 1 2 3]
+
+  ## positioning of "simple" cmd substitution works fine
+  obj public object forward foo list {%@end %obj}
+  ? {obj foo 1 2 3} [list 1 2 3 ::obj]
+
+  ## lindex allows for omitting the index arg or passing {} as index value ... forward catches both cases nicely:
+  obj public object forward foo list {%@{} %obj}
+  ? {obj foo 1 2 3} "forward: invalid index specified in argument %@{} %obj"
+
+ obj public object forward foo list {%@ %obj}
+ ? {obj foo 1 2 3} "forward: invalid index specified in argument %@ %obj"
+
+ ##
+ ## resolving name conflicts between Tcl commands & predefined
+ ## placeholder names -> use fully qualified names
+ ##
+
+ obj public object forward foo list {%@end %::proc}
+ ? {obj foo 1 2 3} {wrong # args: should be "::proc name args body"}
+
+ obj public object forward foo list {%@end %::self}
+ ? {obj foo 1 2 3} [list 1 2 3 ::obj]
+
+ obj public object forward foo list {%@end %::nx::self}
+ ? {obj foo 1 2 3} [list 1 2 3 ::obj]
+
+ obj public object forward foo list {%@end %::1}
+ ? {obj foo 1 2 3} {invalid command name "::1"}
+
+ ##
+ ## position prefixes are interpreted in a context-dependent manner:
+ ##
+
+ obj public object forward foo list {%@1 %@1}
+ ? {obj foo 1 2 3} {invalid command name "@1"}
+
+ if {![string length "ISSUES"]} {
+   
+   
+   ## list protection makes this fail
+   obj public object forward foo list {%@end {%argclindex {A B C D}}}
+   ? {obj foo 1 2 3} [list 1 2 3 D]
+   
+   ## positioned "complex" cmd substitution (cmd + args) not working because of list protection
+   obj public object forward foo list {%@end {%list 1}}
+   ? {obj foo 1 2 3} [list 1 2 3 A]
+   
+   ## Why not %1 not working with positioning working?
+   obj public object forward foo list {%@end %1}
+   ? {obj foo 1 2 3} [list 1 2 3 1]
+   
+   ##
+   ## Should this be caught somehow? How would this be treated when list protection would not interfere?
+   ##
+   obj public object forward foo list {%@1 {%@1 "x"}}
+   ? {obj foo 1 2 3} "forward: invalid index specified in argument %@{} %obj"
+ } 
+}
+
+
 ###############################################
 # substitution depending on number of arguments
 ###############################################
