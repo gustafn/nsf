@@ -339,6 +339,14 @@ completed, can be defined to store intermediate results.
 [list_end]
 
 
+[cmd_def forward]
+
+[list_begin definitions]
+
+[include forward.man.inc]
+
+[list_end]
+
 [cmd_def info]
 
 [list_begin definitions]
@@ -526,9 +534,6 @@ performed for a Tcl command representing an object.
 
 [call [arg obj] [method {object filter}] ...]
 [para] Description of [method {object filter}] ...
-
-[call [arg obj] [method {object forward}] ...]
-[para] Description of [method {object forward}] ...
 
 [call [arg obj] [method {object method}] ...]
 [para] Description of [method {object method}] ...

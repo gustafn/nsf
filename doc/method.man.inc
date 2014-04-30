@@ -43,6 +43,6 @@ parameters and value checkers on arguments. Second, the script
 implementing the method body can contain object-specific notation and
 commands (see above). Third, method calls [emph cannot] be intercepted
 using Tcl [cmd trace]. Note that an existing Tcl [cmd proc] can be registered as
-an [term "alias method"] (see [method "[vset SCOPE] alias"]).
+an [term "alias method"] with the [vset SCOPE] (see [method "[vset SCOPE] alias"]).
 
 [comment {TODO: refer to nsf::proc?}]

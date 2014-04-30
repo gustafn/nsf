@@ -12,10 +12,10 @@ should be a valid [term "method handle"]. If a Tcl command (e.g., a
 [cmd proc]), the argument should be a fully qualified Tcl command
 name. If aliasing a subcommand (e.g., [cmd "array exists"]) of a Tcl namespace ensemble (e.g., [cmd array]), [arg cmdName] must hold the fully qualified subcommand name (and not the ensemble name of
 the subcommand).
-
-[para] As for a regular [method "[vset SCOPE] method"], [option "-returns"] allows
-for setting a [term "value checker"] on the values
-returned by the [term "alias method"].  
+[para] 
+As for a regular [method "[vset SCOPE] method"], [option "-returns"]
+allows for setting a [term "value checker"] on the values returned by
+the aliased command [arg cmdName].
 [para] 
 When creating an [term "alias method"] for
 a [emph C-implemented] Tcl command (i.e., command defined using the
