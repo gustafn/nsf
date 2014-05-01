@@ -3,7 +3,7 @@
 [keywords "value checker"]
 [keywords "forward method"]
 
-[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset SCOPE]] [method forward] [arg methodName] [opt [option "-default [arg value]"]] [opt [option "-methodprefix [arg prefixName]"]] [opt [option "-objframe"]] [opt [option "-onerror [arg cmdName]"]] [opt [option "-returns [arg valueChecker]"]] [opt [option "-verbose"]] [arg arg] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset SCOPE]] [method forward] [arg methodName] [opt [option "-default [arg value]"]] [opt [option "-methodprefix [arg prefixName]"]] [opt [option "-frame object"]] [opt [option "-onerror [arg cmdName]"]] [opt [option "-returns [arg valueChecker]"]] [opt [option "-verbose"]] [arg arg] [opt "[arg arg] ..."]]
 
 Define a [term "forward method"] for the given [vset SCOPE]. The
 definition of a [term "forward method"] registers a predefined, but
@@ -20,7 +20,7 @@ list of forwarder arguments.
 
 As for a regular [method "[vset SCOPE] method"], [option "-returns"] allows
 for setting a [term "value checker"] on the values returned by the
-resulting Tcl command call. When setting the [term "switch"] [option "-objframe"], the
+resulting Tcl command call. When passing [const object] to [option "-frame"], the
 resulting Tcl command is evaluated in the context of the object
 receiving the [term "forward method"] call. [option "-onerror"] sets a
 Tcl command [arg cmdName] which is called as the handler for errors
@@ -37,7 +37,7 @@ the fly:
 
 [list_begin itemized]
 
-[item] [const %proc] becomes substituted for the name of the [term "forward method"], i.e. [arg methodName].
+[item] [const %method] becomes substituted for the name of the [term "forward method"], i.e. [arg methodName].
 
 [item] [const %self] becomes substituted for the name of the object receiving the call of the [term "forward method"].
 
@@ -54,7 +54,7 @@ to the list tail. Indexes for positioning placeholders in the definition of a
 used in ascending order.
 [para]
 Note that [arg value] can be a literal or any of the placeholders
-(e.g., [const %proc], [const %self]). An exception are position
+(e.g., [const %method], [const %self]). An exception are position
 prefixes themselves which are evaluated according to the [const %][arg cmdName]-rule 
 (see below).
 

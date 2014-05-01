@@ -294,7 +294,7 @@ nx::test case positioning-arg-extended {
  nx::Object create obj
   obj public object forward foo list {%@end %self}
   ? {obj foo 1 2 3} [list 1 2 3 ::obj]
-  obj public object forward foo list {%@end %proc}
+  obj public object forward foo list {%@end %method}
   ? {obj foo 1 2 3} [list 1 2 3 foo]
 
   obj public object forward foo list {%@end %%}

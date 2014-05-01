@@ -4996,6 +4996,10 @@ forwarders:
 ========================================================================
 TODO:
 
+- Is -onerror for forwarders really needed?! Can we pull it out from
+  NX, at least? I can't see what -onerror should achieve that cannot
+  be done using catch.
+
 - Revisit nsf::*::assertion interface? Why does nsf::method::assertion
   allow for setting invariants. One would rather expect a
   ::nsf::object|class::assertion or the like?
