@@ -4994,11 +4994,6 @@ forwarders:
 ========================================================================
 TODO:
 
-- forwarders/aliases: -checkalways is missing. Issues: 1) limit to
-  -returns only? 2) cover value checkers of method parameters also,
-  effectively overruling -checkalways settings of the
-  aliased/forwarded nsf::proc or method?
-
 - forwarders/aliases: -frame object vs. -objframe: keep -objframe in
   forward or introduce -frame object (if -frame method made sense for
   forwards --> using next etc.?)?
@@ -5250,7 +5245,33 @@ For future releases (after first alpha/beta release)
    residual args). We should provide a warning when a user
    defines arguments for init (or provide some other syntactic sugar)
 
-  * extend traits (object-specific traits, test cases, etc.)
+ * extend traits (object-specific traits, test cases, etc.)
+
+ * RFE: forwarders/aliases: -checkalways is missing. 
+   Issues:
+   1) limit to -returns only?
+
+    checkalways affects only input-parameters, not return.
+    (purpose: make it possible to rely on parameter checking
+    from external sources, no matter whether checking is turned
+    on/off). furthermore, it effects only checking for procs.
+    For C-implemented commands, there is no way to avoid e.g.
+    checking if something is an integer, since the binary
+    representation of the integer is passed.
+
+    so i don't understand "limit to -returns".
+
+   2) cover value checkers of method parameters also,
+      effectively overruling -checkalways settings of the
+      aliased/forwarded nsf::proc or method?
+
+      i guess that this is based on the assumption,
+      there would be value-checkers for forwarders
+      or aliases. Then one would have to handle the
+      conflicts. However, forwarders and aliases
+      pass arguments around without having any knowledge
+      about parameter definitions. They don't check
+      anything by design.
 
   * add maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
     volatile state.
