@@ -18222,7 +18222,8 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-earlybinding", -1));
   }
   if (tcd->objframe) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objframe", -1));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
   Tcl_ListObjAppendElement(interp, listObj, tcd->cmdName);
   if (tcd->args) {

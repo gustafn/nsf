@@ -572,16 +572,18 @@ namespace eval ::xotcl {
   proc ::xotcl::info_forward_options {list} {
     set result [list]
     set i 0
-    foreach w $list {
-      switch -glob -- $w {
-	-objframe {lappend result -objscope}
-	-* {lappend result $w}
+    for {set i 0} {$i < [llength $list]} {incr i} {
+      switch -glob -- [lindex $list $i] {
+	-frame {
+	  lappend result -objscope
+	  incr i
+	}
+	-* {lappend result [lindex $list $i]}
 	default {
 	  lappend result {*}[lrange $list $i end]
 	  break
 	}
       }
-      incr i
     }
     return $result
   }

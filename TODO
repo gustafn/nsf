@@ -4989,14 +4989,12 @@ forwarders:
 - adding a test case
 - use for output of forward ... -verbose NsfLog(...NSF_LOG_NOTICE...)
   instead of fprintf() to make it redirect-able
-
+- use in forwarders "-frame object" instead of "-objframe" in nx
+  for consistency with other calls (e.g. dispatch). Other values for
+  "-frame" are not allowed. (btw, XOTcl has "-objscope")
 
 ========================================================================
 TODO:
-
-- forwarders/aliases: -frame object vs. -objframe: keep -objframe in
-  forward or introduce -frame object (if -frame method made sense for
-  forwards --> using next etc.?)?
 
 - Revisit nsf::*::assertion interface? Why does nsf::method::assertion
   allow for setting invariants. One would rather expect a

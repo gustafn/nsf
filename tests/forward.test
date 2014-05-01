@@ -25,7 +25,7 @@ nx::test case delegation {
 nx::test case inscope {
     nx::Class create X {
 	:property {x 1}
-	:public forward Incr -objframe incr
+	:public forward Incr -frame object incr
     }
 
     X create x1 -x 100
@@ -116,7 +116,7 @@ nx::test case info-via-forward {
 nx::test case incr {
     nx::Object create obj {
 	set :x 1
-	:public object forward i1 -objframe incr x 
+	:public object forward i1 -frame object incr x
     }
 
     ? {obj i1} 2
@@ -146,7 +146,7 @@ nx::test case introspection {
 
     # check introspection for objects
     nx::Object create obj {
-	:public object forward i1 -objframe incr x 
+	:public object forward i1 -frame object incr x
 	:public object forward Mixin mixin %1 %self
 	:public object forward foo target %proc %self %%self %%p
 	:public object forward addOne expr 1 +
@@ -156,7 +156,7 @@ nx::test case introspection {
     ? {obj info object method definition Mixin} "::obj public object forward Mixin mixin %1 %self"
     ? {obj info object method definition addOne} "::obj public object forward addOne expr 1 +"
     ? {obj info object method definition foo} "::obj public object forward foo target %proc %self %%self %%p"
-    ? {obj info object method definition i1} "::obj public object forward i1 -objframe ::incr x"
+    ? {obj info object method definition i1} "::obj public object forward i1 -frame object ::incr x"
 }
 
 ###########################################
@@ -179,7 +179,7 @@ nx::test case serializer {
 nx::test case optional-target {
     nx::Object create obj {
 	set :x 2
-	:public object forward append -objframe
+	:public object forward append -frame object
     }
     ? {obj append x y z} 2yz
 
@@ -303,11 +303,12 @@ nx::test case positioning-arg-extended {
  obj public object forward foo list {%@end %::proc}
  ? {obj foo 1 2 3} {wrong # args: should be "::proc name args body"}
 
- obj public object forward foo list {%@end %::self}
- ? {obj foo 1 2 3} [list 1 2 3 ::obj]
+ # the next test does not work unless called from nxsh, which imports ::nx::self
+ #obj public object forward foo list {%@end %::self}
+ #? {obj foo 1 2 3} [list 1 2 3 ::obj]
 
  obj public object forward foo list {%@end %::nx::self}
- ? {obj foo 1 2 3} [list 1 2 3 ::obj]
+ ? {obj foo 1 2 3} [list 1 2 3 ::obj] "fully qualified self"
 
  obj public object forward foo list {%@end %::1}
  ? {obj foo 1 2 3} {invalid command name "::1"}
@@ -450,7 +451,7 @@ nx::test case earlybinding {
 # forward to expr + callstack
 ###########################################
 nx::test case callstack {
-    nx::Object public forward expr -objframe
+    nx::Object public forward expr -frame object
 
     nx::Class create C {
 	:method xx {} {current}
