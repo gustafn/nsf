@@ -4982,6 +4982,13 @@ Configuration:
   mongodb library
 - fix configure.ac quoting
 
+forwarders:
+- RFE "provide %method" as keyword like %proc"
+  was already implemented. Dropping %proc would break XOTcl2
+  compatibility.
+- adding a test case
+
+
 ========================================================================
 TODO:
 
@@ -4996,9 +5003,6 @@ TODO:
 - forwarders/aliases: -frame object vs. -objframe: keep -objframe in
   forward or introduce -frame object (if -frame method made sense for
   forwards --> using next etc.?)?
-
-- forwarder: should %proc be renamed to %method or (for XOTcl2 compat)
-  %method be accepted as alternative name (more NX'ish)?
 
 - Revisit nsf::*::assertion interface? Why does nsf::method::assertion
   allow for setting invariants. One would rather expect a

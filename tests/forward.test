@@ -9,10 +9,13 @@ nx::test case delegation {
   nx::Object create dog 
   nx::Object create tail {
     :public object method wag args { return $args }
+    :public object method nxwag args { return $args }
   }
   dog public object forward wag tail %proc
+  dog public object forward nxwag tail %method
   
   ? {dog wag 100} 100
+  ? {dog nxwag 100} 100
 }
 
 
