@@ -258,13 +258,35 @@ nx::test case positioning-args {
     ? {obj @end-13 1 2 3 } [list 13 1 ::obj 2 3]
 }
 
-nx::test case placeholder-basics {
+nx::test case forwarder-basics {
+
   nx::Object create obj
+
+
+  ##
+  ## Particular role of first forwarder arg: (fully-qualified) target
+  ## & methodName in one (provides shortcut notation)
+  ##
+
+  ? {obj info object methods foo} ""
+  obj public object forward ::ns1::foo 
+  ? {obj info object methods foo} "foo"
+  ? {obj foo X} {invalid command name "::ns1::foo"}
+  namespace eval ::ns1 {proc foo {p} {return $p}}
+  ? {obj foo X} "X"
+  obj public object forward ::ns1::foo %method %method
+  ? {namespace eval ::ns1 { ::obj foo }} "foo"
+
+  ##
+  ## argclindex
+  ##
+  
   obj public object forward foo list {%argclindex {A B C}}
   ? {obj foo} A
   ? {obj foo _} "B _"
   ? {obj foo _ _} "C _ _"
   ? {obj foo _ _ _ _} "forward: not enough elements in specified list of ARGC argument argclindex {A B C}"
+
 }
 
 nx::test case positioning-arg-extended {
