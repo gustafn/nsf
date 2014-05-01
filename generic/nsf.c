@@ -16691,7 +16691,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (unlikely(tcd->verbose)) {
     Tcl_Obj *cmd = Tcl_NewListObj(objc, objv);
-    fprintf(stderr, "forwarder calls '%s'\n", ObjStr(cmd));
+
+    NsfLog(interp, NSF_LOG_NOTICE, "forwarder calls '%s'",  ObjStr(cmd));
     DECR_REF_COUNT(cmd);
   }
   if (tcd->objframe) {

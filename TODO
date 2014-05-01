@@ -4987,13 +4987,12 @@ forwarders:
   was already implemented. Dropping %proc would break XOTcl2
   compatibility.
 - adding a test case
+- use for output of forward ... -verbose NsfLog(...NSF_LOG_NOTICE...)
+  instead of fprintf() to make it redirect-able
 
 
 ========================================================================
 TODO:
-
-- forwarder: Turn switch -verbose in a valued nonpos arg which allows
-  to set the channel: stdout vs. stderr?
 
 - forwarders/aliases: -checkalways is missing. Issues: 1) limit to
   -returns only? 2) cover value checkers of method parameters also,
