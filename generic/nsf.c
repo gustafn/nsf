@@ -128,7 +128,9 @@ typedef struct ForwardCmdClientData {
   int nr_args;
   Tcl_Obj *args;
   int objframe;
+#if defined(NSF_FORWARD_WITH_ONERROR)
   Tcl_Obj *onerror;
+#endif
   Tcl_Obj *prefix;
   int nr_subcommands;
   Tcl_Obj *subcommands;
@@ -273,7 +275,7 @@ static void GuardDel(NsfCmdList *filterCL);
 static void ForwardCmdDeleteProc(ClientData clientData);
 static int ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 				 Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-				 int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
+				 int withObjframe, int withVerbose,
 				 Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
 				 ForwardCmdClientData **tcdPtr);
 
@@ -12986,7 +12988,7 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
   result = ForwardProcessOptions(interp, methodObj,
 				 NULL /*withDefault*/, 0 /*withEarlybinding*/,
 				 NULL /*withMethodprefix*/, 0 /*withObjframe*/,
-				 NULL /*withOnerror*/, 0 /*withVerbose*/,
+				 0 /*withVerbose*/,
 				 nobjv[0], nobjc-1, nobjv+1, &tcd);
   if (result != TCL_OK) {
     if (tcd) ForwardCmdDeleteProc(tcd);
@@ -13874,7 +13876,9 @@ ForwardCmdDeleteProc(ClientData clientData) {
 
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   if (tcd->subcommands) {DECR_REF_COUNT(tcd->subcommands);}
+#if defined(NSF_FORWARD_WITH_ONERROR)
   if (tcd->onerror)     {DECR_REF_COUNT(tcd->onerror);}
+#endif
   if (tcd->prefix)      {DECR_REF_COUNT(tcd->prefix);}
   if (tcd->args)        {DECR_REF_COUNT(tcd->args);}
   FREE(ForwardCmdClientData, tcd);
@@ -14030,7 +14034,7 @@ GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 static int
 ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
                        Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                       int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
+                       int withObjframe, int withVerbose,
                        Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
                        ForwardCmdClientData **tcdPtr) {
   ForwardCmdClientData *tcd;
@@ -14056,10 +14060,12 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
     tcd->prefix = withMethodprefix;
     INCR_REF_COUNT(tcd->prefix);
   }
+#if defined(NSF_FORWARD_WITH_ONERROR)
   if (withOnerror) {
     tcd->onerror = withOnerror;
     INCR_REF_COUNT(tcd->onerror);
   }
+#endif
   tcd->objframe = withObjframe;
   tcd->verbose = withVerbose;
   tcd->needobjmap = 0;
@@ -16717,6 +16723,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (tcd->objframe) {
     Nsf_PopFrameObj(interp, framePtr);
   }
+
+#if defined(NSF_FORWARD_WITH_ONERROR)
   if (unlikely(result == TCL_ERROR && tcd->onerror)) {
     Tcl_Obj *ov[2];
     ov[0] = tcd->onerror;
@@ -16726,6 +16734,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     Tcl_EvalObjv(interp, 2, ov, 0);
     DECR_REF_COUNT(ov[1]);
   }
+#endif
+
   return result;
 }
 
@@ -20532,14 +20542,14 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
 	      NsfObject *object, int withPer_object,
 	      Tcl_Obj *methodObj,
 	      Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-	      int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
+	      int withObjframe, int withVerbose,
 	      Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
   ForwardCmdClientData *tcd = NULL;
   int result;
 
   result = ForwardProcessOptions(interp, methodObj,
                                  withDefault, withEarlybinding, withMethodprefix,
-                                 withObjframe, withOnerror, withVerbose,
+                                 withObjframe, withVerbose,
                                  target, nobjc, nobjv, &tcd);
 
   if (result == TCL_OK) {
