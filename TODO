@@ -5003,9 +5003,6 @@ TODO:
   allow for setting invariants. One would rather expect a
   ::nsf::object|class::assertion or the like?
 
-- test cases switch now to global dir. maybe due to new tcl.m4. See e.g.:
-  notice: Running test cases: /usr/local/ns/lib/nsf2.0b6/lib/nx-test.tcl
-
 - remove / rephrase "//"-comments
 
 - check deactivated tests in tests/serialize.test
