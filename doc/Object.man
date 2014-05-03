@@ -581,31 +581,16 @@ performed for a Tcl command representing an object.
 
 [list_end]
 
-[cmd_def public]
-
-[list_begin definitions]
-
-[call [arg obj] [method {require namespace}] ...]
-[para] Description of [method {require namespace}] ...
-
-[list_end]
-
 [cmd_def require]
 
 [list_begin definitions]
 
+[call [arg obj] [method require] [method namespace]]
 
-[call [arg obj] [method {require object method}] ...]
-[para] Description of [method {require object method}] ...
+Create a Tcl namespace named after the object [arg obj]. All object
+variables become available as namespace variables.
 
-[call [arg obj] [method {require private object method}] ...]
-[para] Description of [method {require private object method}] ...
-
-[call [arg obj] [method {require protected object method}] ...]
-[para] Description of [method {require protected object method}] ...
-
-[call [arg obj] [method {require public object method}] ...]
-[para] Description of [method {require public object method}] ...
+[include require.man.inc]
 
 [list_end]
 
