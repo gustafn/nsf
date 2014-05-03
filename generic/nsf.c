@@ -128,7 +128,9 @@ typedef struct ForwardCmdClientData {
   int nr_args;
   Tcl_Obj *args;
   int objframe;
+#if defined(NSF_FORWARD_WITH_ONERROR)
   Tcl_Obj *onerror;
+#endif
   Tcl_Obj *prefix;
   int nr_subcommands;
   Tcl_Obj *subcommands;
@@ -205,156 +207,244 @@ static Tcl_ObjCmdProc NsfAsmProc;
 
 
 /* Prototypes for methods called directly when CallDirectly() returns NULL */
-static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj);
-static int NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr);
-static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
-static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object);
-static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
-static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object);
+static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj)
+  nonnull(1) nonnull(2);
+static int NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
+static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(4);
+static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
 static int MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 			  int objc, Tcl_Obj *CONST objv[],
 			  Tcl_Command cmd, NsfObject *object, NsfClass *cl,
-			  CONST char *methodName, int frameType, int flags);
-static int DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object,
-				 Tcl_Obj *obj, int flags);
-static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags);
+			  CONST char *methodName, int frameType, int flags)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5) nonnull(6) nonnull(8);
+static int DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *obj, int flags)
+  nonnull(1) nonnull(2) nonnull(3);
+static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags)
+  nonnull(1) nonnull(2);
 static int DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
 				 int objc, Tcl_Obj *CONST objv[], Tcl_Obj *callInfo,
-				 Tcl_Obj *methodObj, int flags);
+				 Tcl_Obj *methodObj, int flags)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(6);
 
 NSF_INLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
-                                      Tcl_Obj *CONST objv[], int flags);
+                                      Tcl_Obj *CONST objv[], int flags)
+  nonnull(1) nonnull(2) nonnull(4);
+
 NSF_INLINE static int ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
-					     int result /*, char *string , CONST char *methodName*/);
+					     int result /*, char *string , CONST char *methodName*/)
+  nonnull(1) nonnull(2);
 
 /* prototypes for object life-cycle management */
-static int RecreateObject(Tcl_Interp *interp, NsfClass *cl, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
-static void FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object);
+static int RecreateObject(Tcl_Interp *interp, NsfClass *cl, NsfObject *object, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
+static void FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+
 #if defined(DO_CLEANUP)
-static void FreeAllNsfObjectsAndClasses(Tcl_Interp *interp,  NsfCmdList **instances);
+static void FreeAllNsfObjectsAndClasses(Tcl_Interp *interp,  NsfCmdList **instances)
+  nonnull(1) nonnull(2);
 #endif
-static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object);
-static void PrimitiveCDestroy(ClientData clientData);
-static void PrimitiveODestroy(ClientData clientData);
-static void PrimitiveDestroy(ClientData clientData);
-static void NsfCleanupObject_(NsfObject *object);
+static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+static void PrimitiveCDestroy(ClientData clientData)
+  nonnull(1);
+static void PrimitiveODestroy(ClientData clientData)
+  nonnull(1);
+static void PrimitiveDestroy(ClientData clientData)
+  nonnull(1);
+static void NsfCleanupObject_(NsfObject *object)
+  nonnull(1);
 
 /* prototypes for object and command lookup */
-static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name);
-static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name);
-static int GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, NsfClass **clPtr, int withUnknown);
+static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name)
+  nonnull(1) nonnull(2);
+static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name)
+  nonnull(1) nonnull(2);
+static int GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, NsfClass **clPtr, int withUnknown)
+  nonnull(1) nonnull(2) nonnull(3);
 /*static NsfObject *GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr);
 static int ReverseLookupCmdFromCmdTable(Tcl_Interp *interp, Tcl_Command searchCmdPtr,
 					Tcl_HashTable *cmdTablePtr);*/
-static void GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startClass);
-NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName);
+static void GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startClass)
+  nonnull(1) nonnull(2) nonnull(3);
+NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName)
+  nonnull(1) nonnull(2);
 
 /* prototypes for namespace specific calls */
-static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
-static Tcl_Namespace *CallingNameSpace(Tcl_Interp *interp);
-NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name);
-static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object,
-					  CONST char *name);
-static Tcl_Namespace *RequireObjNamespace(Tcl_Interp *interp, NsfObject *object);
-static int NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName);
-static void NSNamespaceDeleteProc(ClientData clientData);
-static void NSNamespacePreserve(Tcl_Namespace *nsPtr);
-static void NSNamespaceRelease(Tcl_Namespace *nsPtr);
+static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns)
+  nonnull(1) nonnull(2) nonnull(3);
+static Tcl_Namespace *CallingNameSpace(Tcl_Interp *interp)
+  nonnull(1);
+NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name)
+  nonnull(1) nonnull(2);
+static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, CONST char *name)
+  nonnull(1) nonnull(2) nonnull(3);
+static Tcl_Namespace *RequireObjNamespace(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+static int NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName)
+  nonnull(1) nonnull(2) nonnull(3);
+static void NSNamespaceDeleteProc(ClientData clientData)
+  nonnull(1);
+static void NSNamespacePreserve(Tcl_Namespace *nsPtr)
+  nonnull(1);
+static void NSNamespaceRelease(Tcl_Namespace *nsPtr)
+  nonnull(1);
 
 /* prototypes for filters and mixins */
-static void FilterComputeDefined(Tcl_Interp *interp, NsfObject *object);
-static void MixinComputeDefined(Tcl_Interp *interp, NsfObject *object);
-NSF_INLINE static void GuardAdd(NsfCmdList *filterCL, Tcl_Obj *guardObj);
+static void FilterComputeDefined(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+static void MixinComputeDefined(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+NSF_INLINE static void GuardAdd(NsfCmdList *filterCL, Tcl_Obj *guardObj)
+  nonnull(1) nonnull(2);
 static int GuardCall(NsfObject *object, Tcl_Interp *interp,
-                     Tcl_Obj *guardObj, NsfCallStackContent *cscPtr);
-static void GuardDel(NsfCmdList *filterCL);
+                     Tcl_Obj *guardObj, NsfCallStackContent *cscPtr)
+  nonnull(1) nonnull(2) nonnull(3);
+static void GuardDel(NsfCmdList *filterCL)
+  nonnull(1);
 
 /* prototypes for forwarders */
-static void ForwardCmdDeleteProc(ClientData clientData);
+static void ForwardCmdDeleteProc(ClientData clientData)
+  nonnull(1);
 static int ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 				 Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-				 int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
+				 int withObjframe, int withVerbose,
 				 Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
-				 ForwardCmdClientData **tcdPtr);
+				 ForwardCmdClientData **tcdPtr)
+  nonnull(1) nonnull(2) nonnull(8) nonnull(10);
 
 /* properties of objects and classes */
-static int IsBaseClass(NsfObject *cl);
-static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins);
-static int IsSubType(NsfClass *subcl, NsfClass *cl);
-static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta);
+static int IsBaseClass(NsfObject *cl)
+  nonnull(1);
+static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins)
+  nonnull(1) nonnull(2);
+static int IsSubType(NsfClass *subcl, NsfClass *cl)
+  nonnull(1) nonnull(2);
+static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta)
+  nonnull(1) nonnull(2) nonnull(3);
+
 
 /* prototypes for call stack specific calls */
 NSF_INLINE static void CscInit_(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-			       Tcl_Command cmd, int frameType, int flags);
-NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr);
-NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object);
+			       Tcl_Command cmd, int frameType, int flags)
+  nonnull(1) nonnull(2) nonnull(3);
+
+NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr)
+  nonnull(1) nonnull(2);
+NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
 
 /* prototypes for  parameter and argument management */
 
-static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl);
+static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl)
+  nonnull(1) nonnull(2);
 static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   NsfObject *object, int processFlags, NsfParamDefs *paramDefs,
-                                  Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
+                                  Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(5) nonnull(6) nonnull(8);
+
 static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
 			  const char *argNamePrefix, int doCheckArguments,
 			  int isNamed, int doConfigureParameter,
-			  Nsf_Param **paramPtrPtr);
-static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs);
-static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs);
-static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
+			  Nsf_Param **paramPtrPtr)
+  nonnull(1) nonnull(2) nonnull(3);
+static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs)
+  nonnull(1);
+static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs)
+  nonnull(1);
+static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr)
+  nonnull(1) nonnull(2);
+
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
                          Nsf_Param CONST *paramPtr, int nrParameters, int serial,
-			 int processFlags, ParseContext *pc);
+			 int processFlags, ParseContext *pc)
+  nonnull(1) nonnull(3) nonnull(5) nonnull(6) nonnull(10);
+
 static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int doCheckArguments,
-			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr);
+			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5) nonnull(6) nonnull(7);
+
 static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
-			  NsfObject **matchObject, CONST char **pattern);
-static void NsfProcDeleteProc(ClientData clientData);
-static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object);
+			  NsfObject **matchObject, CONST char **pattern)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
+static void NsfProcDeleteProc(ClientData clientData)
+  nonnull(1);
+
+static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
 
 /* prototypes for alias management */
-static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
+static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object)
+  nonnull(1) nonnull(2) nonnull(3);
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName,
-			 int withPer_object, int leaveError);
-static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd);
+			 int withPer_object, int leaveError)
+  nonnull(1) nonnull(2) nonnull(3);
+static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd)
+  nonnull(1) nonnull(2);
 static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
-			     CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
+			     CONST char *methodName, int withFrame, Tcl_Obj *cmdName)
+  nonnull(1) nonnull(2) nonnull(4);
 static int AliasRefetch(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
-			 AliasCmdClientData *tcd);
-NSF_INLINE
-static Tcl_Command AliasDereference(Tcl_Interp *interp, NsfObject *object,
-				    CONST char *methodName, Tcl_Command cmd);
+			 AliasCmdClientData *tcd)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+NSF_INLINE static Tcl_Command AliasDereference(Tcl_Interp *interp, NsfObject *object,
+                                               CONST char *methodName, Tcl_Command cmd)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 /* prototypes for (class) list handling */
-static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData);
-static void NsfClassListFree(NsfClasses *firstPtr);
+static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData)
+  nonnull(1);
+
+static void NsfClassListFree(NsfClasses *firstPtr)
+  nonnull(1);
 
 /* misc prototypes */
-static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj);
+static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj)
+  nonnull(1) nonnull(2) nonnull(3);
+
 static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 			      int withPer_object, int methodType, int withCallproctection,
-			      int withPath);
+			      int withPath)
+  nonnull(1) nonnull(2);
+
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
-			       NsfCallStackContent *cscPtr, int freeArgumentVector);
+			       NsfCallStackContent *cscPtr, int freeArgumentVector)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
-static void CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct);
-static void NsfCommandPreserve(Tcl_Command cmd);
-static void NsfCommandRelease(Tcl_Command cmd);
-static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
-EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
+static void CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct)
+  nonnull(1);
+static void NsfCommandPreserve(Tcl_Command cmd)
+  nonnull(1);
+static void NsfCommandRelease(Tcl_Command cmd)
+  nonnull(1);
+static Tcl_Command GetOriginalCommand(Tcl_Command cmd)
+  nonnull(1);
+
+EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(3);
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 #ifdef DO_CLEANUP
-static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
+static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr)
+  nonnull(1);
 #endif
 
 #if defined(NSF_WITH_ASSERTIONS)
-static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name);
+static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name)
+  nonnull(1) nonnull(2);
 #endif
 
 #ifdef DO_FULL_CLEANUP
-static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars);
+static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars)
+  nonnull(1) nonnull(2);
 #endif
 
 /*
@@ -1774,9 +1864,9 @@ NsfClassListPrint(CONST char *title, NsfClasses *clsList) {
   if (title) {
     fprintf(stderr, "%s", title);
   }
-  //fprintf(stderr, " %p:", clsList);
+  /* fprintf(stderr, " %p:", clsList); */
   while (clsList) {
-    //fprintf(stderr, " %p", clsList->cl);
+    /* fprintf(stderr, " %p", clsList->cl); */
     fprintf(stderr, " %p", clsList);
     fprintf(stderr, " %s", ClassName(clsList->cl));
     clsList = clsList->nextPtr;
@@ -1905,7 +1995,8 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction) {
  *    Check the partial ordering of classes based on precedence list in the
  *    form of prior ordering from the topological sort. We compare here
  *    orderings based the class hierarchies with single inheritance and prior
- *    solved multiple inheritance orderings.
+ *    solved multiple inheritance orderings. The test is true, if b must be
+ *    before a.
  *
  * Results:
  *    Boolean value indicating success.
@@ -1915,18 +2006,28 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction) {
  *
  *----------------------------------------------------------------------
  */
-
 static int
-MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *miList) {
-  int result = (NsfClassListFind(b->order, a) != NULL);
+MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *superClasses) {
+  int result;
 
   assert(b->order != NULL);
 
   /*
+   * Check, if a is in the precedence order of b. E.g.
+   *
+   *   a c1 object
+   *   b c2 a object
+   *
+   * If so then b must be before a to preserve the precedence order based on
+   * single inheritance (monotonicity).
+   */
+  result = (NsfClassListFind(b->order, a) != NULL);
+
+  /*
    * When the partital ordering can't be decided based on the local order
-   * test, we take the specified multiple inheritance ordering
-   * (e.g. -superclass {x y}) which is not taken account by the class
-   * hierarchy.
+   * test, we take the specified multiple inheritance ordering in superClasses
+   * (e.g. coming from -superclass {x y}) which is not taken account by the
+   * class hierarchy.
    */
   if (result == 0) {
     NsfClasses *sl;
@@ -1936,7 +2037,7 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *miList) {
     fprintf(stderr, "--> check %s before %s?\n", ClassName(b), ClassName(a));
     NsfClassListPrint("miList", miList);
 #endif
-    for (sl = miList; sl; sl = sl->nextPtr) {
+    for (sl = superClasses; sl; sl = sl->nextPtr) {
       if (sl->cl == b) {
 	bFound = 1;
       } else if (bFound && sl->cl == a) {
@@ -1948,6 +2049,7 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *miList) {
       }
     }
   }
+
 #if defined(NSF_LINEARIZER_TRACE)
   fprintf(stderr, "compare a: %s %p b: %s %p -> %d\n", ClassName(a), a->order, ClassName(b),b->order, result);
   NsfClassListPrint("\ta", a->order);
@@ -1957,6 +2059,242 @@ MustBeBefore(NsfClass *a, NsfClass *b, NsfClasses *miList) {
 }
 
 
+/*
+ *----------------------------------------------------------------------
+ * ValidClassListTail --
+ *
+ *    Debug function to assure that the provided class lists are valid. The
+ *    tail of the class list must be a base class of the current object
+ *    system.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+#if !defined(NDEBUG)
+static void ValidClassListTail(CONST char *what, NsfClasses *classList) {
+  NsfClasses *sl, *tail;
+  for (sl = classList, tail = NULL; sl; sl = sl->nextPtr) {tail = sl;}
+  if (tail) {
+    /* fprintf(stderr, "check tail what %s %p\n", what, ClassName(tail->cl), tail->nextPtr);*/
+    assert(IsBaseClass(&tail->cl->object));
+    assert(tail->nextPtr == NULL);
+  }
+}
+#else
+# define ValidClassListTail(what, classList)
+#endif
+
+/*
+ *----------------------------------------------------------------------
+ * MergeInheritanceLists --
+ *
+ *    Merge the PrecedenceOrders of class cl. This function is called, when cl
+ *    is defined with multiple inheritance. The precedence orders of the
+ *    specified classes are merged in an order preserving manner to achieve
+ *    monotonicity.
+ *
+ * Results:
+ *    precedence order.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfClasses *
+MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
+
+  NsfClasses *sl, *baseList, **plNext, *superClasses, 
+    *deletionList = NULL;
+
+#if defined(NSF_LINEARIZER_TRACE)
+  fprintf(stderr, "=== working on %s\n", ClassName(cl));
+#endif
+
+  /*
+   * The available multiple inheritance list is in reversed order so we have
+   * to reverse it to obtain the specified superClasses in the provided order.
+   */
+  superClasses = NsfReverseClasses(cl->super);
+
+  /*
+   * We distinguish between a
+   *
+   *  - baseList (which might be later an result of partial merges), and a
+   *  - mergeList, which is merged order-preserving into the baseList.
+   *
+   * The first baseList is the precedence list of the first element of the
+   * specified superClasses.
+   */
+
+  baseList = superClasses->cl->order;
+  assert(baseList != NULL);
+
+#if defined(NSF_LINEARIZER_TRACE)
+  fprintf(stderr, "=== baseList from %s\n", ClassName(superClasses->cl));
+  NsfClassListPrint("baseList", baseList);
+#endif
+
+  /*
+   * The first element of the result list of the merge operation is the first
+   * element of the baseList.
+   */
+  plNext = NsfClassListAdd(&pl, baseList->cl, NULL);
+
+  /*
+   * For every element but the first (which is already in baseList), we have to
+   * perform the merge operation. For n elements in superClasses, the merge
+   * operation is performed n-1 times.
+   */
+  for (sl = superClasses->nextPtr; sl; sl = sl->nextPtr) {
+    NsfClasses *mergeList = sl->cl->order, *baseListCurrent;
+
+#if defined(NSF_LINEARIZER_TRACE)
+    NsfClassListPrint("mergeList", mergeList);
+#endif
+
+    /*
+     * Merge mergeList into baseList. We start with the 2nd (later probably
+     * nth) entry of the baseList
+     */
+    baseListCurrent = baseList->nextPtr;
+    assert(baseListCurrent != NULL);
+
+    while (mergeList != NULL) {
+      NsfClass *addClass;
+
+      ValidClassListTail("baseList",  baseList);
+      ValidClassListTail("mergeList", mergeList);
+
+      assert(baseListCurrent != NULL);
+      /* NsfClassListPrint("baseListCurrent", baseListCurrent); */
+
+      if (mergeList->cl == baseListCurrent->cl) {
+        /*
+         * The first element of mergeList and the current baseList element are
+         * identical. The element is in the result, keep the element in the
+         * result, advance in both lists.
+         */
+        /* fprintf(stderr, "\t\tadvance both\n"); */
+        addClass = mergeList->cl;
+        baseListCurrent = baseListCurrent->nextPtr;
+        mergeList = mergeList->nextPtr;
+
+      } else if (MustBeBefore(baseListCurrent->cl, mergeList->cl, superClasses)) {
+        /*
+         * Check, if current element of mergeList must be before the current
+         * element of baseList. If so, insert current mergelist element before
+         * baseListCurrent,
+         */
+        addClass  = mergeList->cl;
+        mergeList = mergeList->nextPtr;
+        /* fprintf(stderr, "\t\tadd from mergeList %s\n", ClassName(addClass)); */
+
+      } else {
+        /*
+         * Two cases above do not apply, add from baseList and advance
+         * baseList pointer.
+         */
+        addClass = baseListCurrent->cl;
+        baseListCurrent = baseListCurrent->nextPtr;
+        /* fprintf(stderr, "\t\tadd from baselist %s\n", ClassName(addClass)); */
+      }
+
+      if (addClass) {
+        /*
+         * We have to add an element to the precedence list. When the class to
+         * be added is already in the result list (which might happen just in
+         * crippled cases) then delete it. In the final step it will be added
+         * again to the end.
+         */
+        NsfClasses *deletedElement = NsfClassListUnlink(&pl, addClass);
+
+        if (deletedElement) {
+#if defined(NSF_LINEARIZER_TRACE)
+          fprintf(stderr, "\t\t%s is redundant (in resultList)\n", ClassName(addClass));
+#endif
+          /*
+           * When plNext points to the nextPtr of the deleted element, search
+           * the list from the begin
+           */
+          if (plNext == &(deletedElement->nextPtr)) {
+            plNext = &pl;
+          }
+          NsfClassListFree(deletedElement);
+        }
+        /* add the new element */
+        plNext = NsfClassListAdd(plNext, addClass, NULL);
+      }
+
+#if defined(NSF_LINEARIZER_TRACE)
+      NsfClassListPrint("pl:", pl);
+#endif
+    }
+    /*
+     * mergeList is processed, we have a final precedence list in pl.  In case
+     * are at then of superClasses, we are done. Otherwise, use the resulting
+     * pl as next baseList and continue with the next mergeList from
+     * superClasses.
+     */
+#if defined(NSF_LINEARIZER_TRACE)
+    NsfClassListPrint("plFinal:", pl);
+#endif
+
+    if (sl->nextPtr) {
+      /* We are not at the end, use pl as new base list */
+      baseList = pl;
+
+#if defined(NSF_LINEARIZER_TRACE)
+      fprintf(stderr, "=== setting new baseList\n");
+      NsfClassListPrint("new baseList", baseList);
+#endif
+      /*
+       * Add old pl to deletion list; these entries are deleted once merging
+       * is finished.
+       */
+      NsfClassListAdd(&deletionList, NULL, pl);
+
+      /*
+       * Create a fresh pl for the next iteration.
+       */
+      pl = NULL;
+      plNext = NsfClassListAdd(&pl, cl, NULL);
+    }
+  }
+
+  for (sl = deletionList; sl; sl = sl->nextPtr) {
+    /* fprintf(stderr, "delete from deletion list %p client data %p\n", sl, sl->clientData); */
+    NsfClassListFree(sl->clientData);
+  }
+  if (deletionList) {
+    NsfClassListFree(deletionList);
+  }
+  NsfClassListFree(superClasses);
+
+  return pl;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * TopoSortSuper --
+ *
+ *    Compute the precedence order for baseClass based on the superclasses. If
+ *    the order is computable, update base class and return 1. Otherwise
+ *    return 0.
+ *
+ * Results:
+ *    Success/Failure.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
   NsfClasses *pl, *sl;
@@ -1971,8 +2309,9 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
    */
 
   cl->color = GRAY;
-  for (sl = cl->super; sl; sl = sl->nextPtr) {
+  for (sl = cl->super; likely(sl != NULL); sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
+
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
     if (unlikely(sc->color == WHITE && !TopoSortSuper(sc, baseClass))) {
       cl->color = WHITE;
@@ -1981,7 +2320,7 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
   }
 
   /*
-   * Create a new pl
+   * Create a new precedence list containing cl.
    */
   pl = NEW(NsfClasses);
   pl->cl = cl;
@@ -1989,167 +2328,21 @@ TopoSortSuper(NsfClass *cl, NsfClass *baseClass) {
 
   /*
    * If we have multiple inheritance we merge the precomputed inheritance
-   * paths of the involved classes in the provided order.
+   * orders of the involved classes in the provided order.
    */
   if (likely(cl->super != NULL) && unlikely(cl->super->nextPtr != NULL)) {
-    NsfClasses *baseList = NULL, *baseListCurrent, **plNext,
-      *miList, *deletionList = NULL;
 
-#if defined(NSF_LINEARIZER_TRACE)
-    fprintf(stderr, "=== working on %s\n", ClassName(cl));
-#endif
-
-    /*
-     * The available multiple inheritance list is in revesed order so we have
-     * to reverse it.
-     */
-    miList = NsfReverseClasses(cl->super);
-
-    /*
-     * We distinguish between a baseList (which might be later an result of
-     * partial merges, and a mergeList, which is to be merged orderpreserving
-     * into the baseList. The first baseList is the precedence list of the
-     * first element of the multiple inheritance list.
-     */
-
-    baseList = miList->cl->order;
-    assert(baseList != NULL);
-
-#if defined(NSF_LINEARIZER_TRACE)
-    fprintf(stderr, "=== baseList from %s\n", ClassName(miList->cl));
-    NsfClassListPrint("baseList", baseList);
-#endif
-
-    /*
-     * The first element of the result list of the merge operation is the
-     * first element of the baseList.
-     */
-    plNext = NsfClassListAdd(&pl, baseList->cl, NULL);
-
-    for (sl = miList->nextPtr; sl; sl = sl->nextPtr) {
-      NsfClasses *mergeList = sl->cl->order;
-
-#if defined(NSF_LINEARIZER_TRACE)
-      NsfClassListPrint("mergeList", mergeList);
-#endif
-      // merge mergeList into baseList
-      // we start with the 2nd (later probably nth) entry of the baseList
-      baseListCurrent = baseList->nextPtr;
-      assert(baseListCurrent != NULL);
-
-      while (mergeList != NULL) {
-	NsfClass *addClass;
-
-#if !defined(NDEBUG)
-	{
-	  NsfClasses *sl, *tail;
-	  for (sl = baseList, tail = NULL; sl; sl = sl->nextPtr) {tail = sl;}
-	  if (tail) {
-	    // fprintf(stderr, "check tail baseList %s %p\n", ClassName(tail->cl), tail->nextPtr);
-	    assert(IsBaseClass(&tail->cl->object));
-	    assert(tail->nextPtr == NULL);
-	  }
-	  for (sl = mergeList, tail = NULL; sl; sl = sl->nextPtr) {tail = sl;}
-	  if (tail) {
-	    // fprintf(stderr, "check tail mergeList %s %p\n", ClassName(tail->cl), tail->nextPtr);
-	    assert(IsBaseClass(&tail->cl->object));
-	    assert(tail->nextPtr == NULL);
-	  }
-	}
-#endif
-
-	assert(baseListCurrent != NULL);
-
-	//NsfClassListPrint("baseListCurrent", baseListCurrent);
-	if (mergeList->cl == baseListCurrent->cl) {
-	  // elements are identical, advance both pointers
-	  //fprintf(stderr, "\t\tadvance both\n");
-	  addClass = mergeList->cl;
-	  baseListCurrent = baseListCurrent->nextPtr;
-	  mergeList = mergeList->nextPtr;
-	} else if (MustBeBefore(baseListCurrent->cl, mergeList->cl, miList)) {
-	  // insert current mergelist element before baseListCurrent
-	  addClass = mergeList->cl;
-	  //fprintf(stderr, "\t\tadd from mergeList %s\n", ClassName(addClass));
-	  mergeList = mergeList->nextPtr;
-	} else {
-	  // add baselist current
-	  addClass = baseListCurrent->cl;
-	  //fprintf(stderr, "\t\tadd from baselist %s\n", ClassName(addClass));
-	  baseListCurrent = baseListCurrent->nextPtr;
-	}
-	if (addClass) {
-	  /*
-	   * When the class to be added is already in the result list (which
-	   * might happen just in crippled cases) then delete it, and add the
-	   * class to the end.
-	   */
-	  NsfClasses *deletedElement = NsfClassListUnlink(&pl, addClass);
-
-	  if (deletedElement) {
-#if defined(NSF_LINEARIZER_TRACE)
-	    fprintf(stderr, "\t\t%s is redundant (in resultList)\n", ClassName(addClass));
-#endif
-	    /*
-	     * When plNext points to the nextPtr of the deleted element,
-	     * search the list from the begin
-	     */
-	    if (plNext == &(deletedElement->nextPtr)) {
-	      plNext = &pl;
-	    }
-	    NsfClassListFree(deletedElement);
-	  }
-	  plNext = NsfClassListAdd(plNext, addClass, NULL);
-	}
-
-#if defined(NSF_LINEARIZER_TRACE)
-	NsfClassListPrint("pl:", pl);
-#endif
-
-      }
-#if defined(NSF_LINEARIZER_TRACE)
-      NsfClassListPrint("plFinal:", pl);
-#endif
-
-      if (sl->nextPtr) {
-	// use pl as new base list
-	baseList = pl;
-#if defined(NSF_LINEARIZER_TRACE)
-	fprintf(stderr, "=== setting new baseList\n");
-	NsfClassListPrint("new baseList", baseList);
-#endif
-	/*
-	 * Add old pl to deletion list; these entries are deleted once merging
-	 * is finished.
-	 */
-	NsfClassListAdd(&deletionList, NULL, pl);
-
-	/*
-	 * create a fresh pl for the next iteration.
-	 */
-	pl = NULL;
-	plNext = NsfClassListAdd(&pl, cl, NULL);
-      }
-    }
-
-    for (sl = deletionList; sl; sl = sl->nextPtr) {
-      //fprintf(stderr, "delete from deletion list %p client data %p\n", sl, sl->clientData);
-      NsfClassListFree(sl->clientData);
-    }
-    if (deletionList) {
-      NsfClassListFree(deletionList);
-    }
-
-    NsfClassListFree(miList);
+    pl = MergeInheritanceLists(pl, cl);
 
     if (baseClass->order) {
       NsfClassListFree(baseClass->order);
       baseClass->order = NULL;
     }
 
+
   } else {
     /*
-     * Add old baseClass order to the end of the precedence list.
+     * Add baseClass order to the end of the precedence list.
      */
     assert(pl->nextPtr == NULL);
     pl->nextPtr = baseClass->order;
@@ -7199,7 +7392,7 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 
 
   /*
-   * check all superclasses of startCl for class mixins.
+   * Check all superClasses of startCl for class mixins.
    */
   for (sc = startCl->super; sc; sc = sc->nextPtr) {
     /* fprintf(stderr, "Superclass GetAllClassMixins for %s (%s)\n",
@@ -8745,9 +8938,9 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
  *----------------------------------------------------------------------
  * SuperclassAdd --
  *
- *    Add a list of superclasses (specified in the argument vector) to
+ *    Add a list of superClasses (specified in the argument vector) to
  *    the specified class. On the first call, the class has no previous
- *    superclasses.
+ *    superClasses.
  *
  * Results:
  *    Tcl result code.
@@ -8791,7 +8984,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   }
 
   /*
-   * Build an array of superclasses from the argument vector.
+   * Build an array of superClasses from the argument vector.
    */
   scl = NEW_ARRAY(NsfClass*, oc);
   for (i = 0; i < oc; i++) {
@@ -8803,7 +8996,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   }
 
   /*
-   * Check that superclasses don't precede their classes.
+   * Check that superClasses don't precede their classes.
    */
   for (i = 0; i < oc; i++) {
     for (j = i+1; j < oc; j++) {
@@ -8818,7 +9011,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   }
 
   /*
-   * Ensure that the current class and new superclasses are from the
+   * Ensure that the current class and new superClasses are from the
    * same object system.
    */
   osPtr = GetObjectSystem(&cl->object);
@@ -12986,7 +13179,7 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
   result = ForwardProcessOptions(interp, methodObj,
 				 NULL /*withDefault*/, 0 /*withEarlybinding*/,
 				 NULL /*withMethodprefix*/, 0 /*withObjframe*/,
-				 NULL /*withOnerror*/, 0 /*withVerbose*/,
+				 0 /*withVerbose*/,
 				 nobjv[0], nobjc-1, nobjv+1, &tcd);
   if (result != TCL_OK) {
     if (tcd) ForwardCmdDeleteProc(tcd);
@@ -13874,7 +14067,9 @@ ForwardCmdDeleteProc(ClientData clientData) {
 
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   if (tcd->subcommands) {DECR_REF_COUNT(tcd->subcommands);}
+#if defined(NSF_FORWARD_WITH_ONERROR)
   if (tcd->onerror)     {DECR_REF_COUNT(tcd->onerror);}
+#endif
   if (tcd->prefix)      {DECR_REF_COUNT(tcd->prefix);}
   if (tcd->args)        {DECR_REF_COUNT(tcd->args);}
   FREE(ForwardCmdClientData, tcd);
@@ -14030,7 +14225,7 @@ GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 static int
 ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
                        Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                       int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
+                       int withObjframe, int withVerbose,
                        Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
                        ForwardCmdClientData **tcdPtr) {
   ForwardCmdClientData *tcd;
@@ -14056,10 +14251,12 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
     tcd->prefix = withMethodprefix;
     INCR_REF_COUNT(tcd->prefix);
   }
+#if defined(NSF_FORWARD_WITH_ONERROR)
   if (withOnerror) {
     tcd->onerror = withOnerror;
     INCR_REF_COUNT(tcd->onerror);
   }
+#endif
   tcd->objframe = withObjframe;
   tcd->verbose = withVerbose;
   tcd->needobjmap = 0;
@@ -14977,7 +15174,6 @@ UnsetInAllNamespaces(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *name)
 
 static int
 FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
-  int result = TCL_OK;
   if (object->opt && object->opt->volatileVarName) {
     /*
      * Somebody destroys a volatile object manually while the vartrace is
@@ -14988,7 +15184,7 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
      */
     /* fprintf(stderr, "### FreeUnsetTraceVariable %s\n", object->opt->volatileVarName);*/
 
-    result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, 0);
+    int result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, 0);
     if (result != TCL_OK) {
       int result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, TCL_GLOBAL_ONLY);
       if (result != TCL_OK) {
@@ -15461,7 +15657,7 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
     } else {
       NsfClasses *sc;
 
-      /* fprintf(stderr, "DefaultSuperClass for %s: search in superclasses starting with %p meta %d\n",
+      /* fprintf(stderr, "DefaultSuperClass for %s: search in superClasses starting with %p meta %d\n",
 	 ClassName(cl), cl->super, isMeta); */
 
       if (isMeta) {
@@ -15473,7 +15669,7 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
         }
       }
       /*
-       * check superclasses of metaclass
+       * check superClasses of metaclass
        */
       for (sc = mcl->super; sc && sc->cl != cl; sc = sc->nextPtr) {
 	/* fprintf(stderr, "  ... check ismeta %d %s root mcl %d root cl %d\n",
@@ -15653,7 +15849,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
 
   if (!softrecreate) {
     /*
-     * flush all caches, unlink superclasses
+     * flush all caches, unlink superClasses
      */
 
     while (cl->sub) {
@@ -15661,7 +15857,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
       (void)RemoveSuper(subClass, cl);
       /*
        * If there are no more super classes add the Object
-       * class as superclasses
+       * class as superClasses
        * -> don't do that for Object itself!
        */
       if (subClass->super == 0 && (cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
@@ -15709,7 +15905,7 @@ CleanupInitClass(Tcl_Interp *interp, NsfClass *cl, Tcl_Namespace *nsPtr,
 
   if (!softrecreate) {
     /*
-     * Subclasses are preserved during recreate, superclasses not (since the
+     * Subclasses are preserved during recreate, superClasses not (since the
      * creation statement defined the superclass, might be different the
      * second time)
      */
@@ -16717,6 +16913,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (tcd->objframe) {
     Nsf_PopFrameObj(interp, framePtr);
   }
+
+#if defined(NSF_FORWARD_WITH_ONERROR)
   if (unlikely(result == TCL_ERROR && tcd->onerror)) {
     Tcl_Obj *ov[2];
     ov[0] = tcd->onerror;
@@ -16726,6 +16924,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     Tcl_EvalObjv(interp, 2, ov, 0);
     DECR_REF_COUNT(ov[1]);
   }
+#endif
+
   return result;
 }
 
@@ -19130,7 +19330,7 @@ ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 }
 
 static int
-ListSuperclasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClosure) {
+ListSuperClasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClosure) {
   NsfObject *matchObject = NULL;
   Tcl_Obj *patternObj = NULL, *outObjPtr;
   CONST char *patternString = NULL;
@@ -20538,14 +20738,14 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
 	      NsfObject *object, int withPer_object,
 	      Tcl_Obj *methodObj,
 	      Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-	      int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
+	      int withObjframe, int withVerbose,
 	      Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
   ForwardCmdClientData *tcd = NULL;
   int result;
 
   result = ForwardProcessOptions(interp, methodObj,
                                  withDefault, withEarlybinding, withMethodprefix,
-                                 withObjframe, withOnerror, withVerbose,
+                                 withObjframe, withVerbose,
                                  target, nobjc, nobjv, &tcd);
 
   if (result == TCL_OK) {
@@ -21714,7 +21914,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     }
     cl = (NsfClass *)object;
     if (valueObj == NULL) {
-      return ListSuperclasses(interp, cl, NULL, 0);
+      return ListSuperClasses(interp, cl, NULL, 0);
     }
     if (Tcl_ListObjGetElements(interp, valueObj, &oc, &ov) != TCL_OK) {
       return TCL_ERROR;
@@ -23267,7 +23467,6 @@ objectMethod noinit NsfONoinitMethod {
 */
 static int
 NsfONoinitMethod(Tcl_Interp *UNUSED(interp), NsfObject *object) {
-  // fprintf(stderr, "noinit \n");
   object->flags |= NSF_INIT_CALLED;
   return TCL_OK;
 }
@@ -24051,8 +24250,8 @@ classMethod superclass NsfCSuperclassMethod {
 }
 */
 static int
-NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *superclassesObj) {
-  return NsfRelationCmd(interp, &cl->object, RelationtypeSuperclassIdx, superclassesObj);
+NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *superClassesObj) {
+  return NsfRelationCmd(interp, &cl->object, RelationtypeSuperclassIdx, superClassesObj);
 }
 
 /***********************************************************************
@@ -25172,7 +25371,7 @@ classInfoMethod superclass NsfClassInfoSuperclassMethod {
 */
 static int
 NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, Tcl_Obj *pattern) {
-  return ListSuperclasses(interp, class, pattern, withClosure);
+  return ListSuperClasses(interp, class, pattern, withClosure);
 }
 
 /***********************************************************************
@@ -25595,7 +25794,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
       /*
        * Final check. If there are no cyclical dependencies, we should have
        * now just the the base classes left. If this is not the case, reclass
-       * the remaining objects to their base classes, and set the superclasses
+       * the remaining objects to their base classes, and set the superClasses
        * to the most general superclass.
        */
       for (entry = *instances;

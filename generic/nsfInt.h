@@ -65,7 +65,7 @@
 # include <sys/time.h>
 #endif
 
-#if defined(__GNUC__) && __GNUC__ > 2
+#if __GNUC_PREREQ(2, 95)
 /* Use gcc branch prediction hint to minimize cost of e.g. DTrace
  * ENABLED checks. 
  */
@@ -74,6 +74,25 @@
 #else
 #  define unlikely(x) (x)
 #  define likely(x) (x)
+#endif
+
+#if __GNUC_PREREQ(3, 3)
+# define nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
+#else
+# define nonnull(ARGS)
+#endif
+
+/*
+ * Tries to use gcc __attribute__ unused and mangles the name, so the
+ * attribute could not be used, if declared as unused.
+ */
+#ifdef UNUSED
+#elif __GNUC_PREREQ(2, 7)
+# define UNUSED(x) UNUSED_ ## x __attribute__((unused))
+#elif defined(__LCLINT__)
+# define UNUSED(x) /*@unused@*/ x
+#else
+# define UNUSED(x) x
 #endif
 
 #if defined(NSF_DTRACE)
@@ -135,19 +154,6 @@ typedef struct NsfMemCounter {
 # define STRING_NEW(target, p, l)  target = ckalloc(l+1); strncpy(target, p, l); *((target)+l) = '\0'; \
   MEM_COUNT_ALLOC(#target, target)
 # define STRING_FREE(key, p)  MEM_COUNT_FREE(key, p); ckfree((p))
-
-/*
- * Tries to use gcc __attribute__ unused and mangles the name, so the
- * attribute could not be used, if declared as unused.
- */
-#ifdef UNUSED
-#elif defined(__GNUC__)
-# define UNUSED(x) UNUSED_ ## x __attribute__((unused))
-#elif defined(__LCLINT__)
-# define UNUSED(x) /*@unused@*/ x
-#else
-# define UNUSED(x) x
-#endif
 
 #define DSTRING_INIT(dsPtr) Tcl_DStringInit(dsPtr); MEM_COUNT_ALLOC("DString",dsPtr)
 #define DSTRING_FREE(dsPtr) \
@@ -662,10 +668,12 @@ char *NsfGlobalStrings[] = {
 
 /* obj types */
 EXTERN Tcl_ObjType NsfMixinregObjType;
-int NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj);
+int NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj)
+  nonnull(1) nonnull(2) nonnull(3);
 
 EXTERN Tcl_ObjType NsfFilterregObjType;
-int NsfFilterregGet(Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj);
+int NsfFilterregGet(Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj)
+  nonnull(1) nonnull(2) nonnull(3);
 
 /* Next Scripting ShadowTclCommands */
 typedef struct NsfShadowTclCommandInfo {
@@ -679,9 +687,15 @@ typedef enum {NSF_PARAMS_NAMES, NSF_PARAMS_LIST,
 	      NSF_PARAMS_PARAMETER, NSF_PARAMS_SYNTAX} NsfParamsPrintStyle;
 
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
-		     int objc, Tcl_Obj *CONST objv[]);
-int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load);
-Tcl_Obj * NsfMethodObj(NsfObject *object, int methodIdx);
+		     int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(4);
+
+int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load)
+  nonnull(1);
+
+Tcl_Obj *NsfMethodObj(NsfObject *object, int methodIdx)
+  nonnull(1);
+
 
 
 /*
@@ -844,13 +858,17 @@ typedef struct NsfRuntimeState {
 
 #ifdef NSF_OBJECTDATA
 EXTERN void
-NsfSetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData data);
+NsfSetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData data)
+  nonnull(1) nonnull(2) nonnull(3);
 EXTERN int
-NsfGetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData *data);
+NsfGetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData *data)
+  nonnull(1) nonnull(2) nonnull(3);
 EXTERN int
-NsfUnsetObjectData(struct NsfObject *obj, struct NsfClass *cl);
+NsfUnsetObjectData(struct NsfObject *obj, struct NsfClass *cl)
+  nonnull(1) nonnull(2);
 EXTERN void
-NsfFreeObjectData(NsfClass *cl);
+NsfFreeObjectData(NsfClass *cl)
+  nonnull(1);
 #endif
 
 /*
@@ -888,13 +906,20 @@ NsfFreeObjectData(NsfClass *cl);
  */
 
 #if defined(NSF_PROFILE)
-EXTERN void NsfProfileRecordMethodData(Tcl_Interp* interp, NsfCallStackContent *cscPtr);
-EXTERN void NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec);
-EXTERN void NsfProfileInit(Tcl_Interp *interp);
-EXTERN void NsfProfileFree(Tcl_Interp *interp);
-EXTERN void NsfProfileClearData(Tcl_Interp *interp);
-EXTERN void NsfProfileGetData(Tcl_Interp *interp);
-EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
+EXTERN void NsfProfileRecordMethodData(Tcl_Interp* interp, NsfCallStackContent *cscPtr)
+  nonnull(1) nonnull(2);
+EXTERN void NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec)
+  nonnull(1) nonnull(2);
+EXTERN void NsfProfileInit(Tcl_Interp *interp)
+  nonnull(1);
+EXTERN void NsfProfileFree(Tcl_Interp *interp)
+  nonnull(1);
+EXTERN void NsfProfileClearData(Tcl_Interp *interp)
+  nonnull(1);
+EXTERN void NsfProfileGetData(Tcl_Interp *interp)
+  nonnull(1);
+EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)
+  nonnull(1) nonnull(2);
 #endif
 
 /*
@@ -945,23 +970,32 @@ Tcl_ObjCmdProc NsfInitProcNSCmd, NsfSelfDispatchCmd,
 
 EXTERN NsfCompEnv *NsfGetCompEnv();
 int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
-		     int objc, Tcl_Obj *CONST objv[]);
+		     int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2);
 #endif
 
 EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
-			      NsfClass **clPtr, int withUnknown);
+			      NsfClass **clPtr, int withUnknown)
+  nonnull(1) nonnull(2) nonnull(3);
 EXTERN int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
-			  int objc, Tcl_Obj *CONST objv[]);
+			  int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(4);
 EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, 
 			   Tcl_Obj *cmdName, Tcl_Obj *methodName, 
-			   char *arglist);
-EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj);
-EXTERN void NsfReportVars(Tcl_Interp *interp);
-EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
+			   char *arglist)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
+
+EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj)
+  nonnull(1);
+EXTERN void NsfReportVars(Tcl_Interp *interp)
+  nonnull(1);
+EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(3);
 
 EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, 
 				  Tcl_CallFrame *framePtr, 
-				  CONST char *methodName);
+				  CONST char *methodName)
+  nonnull(1) nonnull(3);
 
 /*
  * Definition of methodEpoch macros
@@ -1010,7 +1044,11 @@ EXTERN Tcl_ObjType NsfObjectMethodObjType;
 EXTERN int NsfMethodObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
 			   Tcl_ObjType *objectType,
 			   void *context, int methodEpoch,
-			   Tcl_Command cmd, NsfClass *cl, int flags);
+			   Tcl_Command cmd, NsfClass *cl, int flags)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6);
+
+
+
 
 typedef struct {
   void *context;
@@ -1021,22 +1059,35 @@ typedef struct {
 } NsfMethodContext;
 
 /* functions from nsfUtil.c */
-char *Nsf_ltoa(char *buf, long i, int *len);
-char *NsfStringIncr(NsfStringIncrStruct *iss);
-void NsfStringIncrInit(NsfStringIncrStruct *iss);
-void NsfStringIncrFree(NsfStringIncrStruct *iss);
+char *Nsf_ltoa(char *buf, long i, int *len)
+  nonnull(1) nonnull(3);
+
+char *NsfStringIncr(NsfStringIncrStruct *iss)
+  nonnull(1);
+
+void NsfStringIncrInit(NsfStringIncrStruct *iss)
+  nonnull(1);
+
+void NsfStringIncrFree(NsfStringIncrStruct *iss)
+  nonnull(1);
 
 /*
  * Nsf Enumeration type interface
  */
-EXTERN void Nsf_EnumerationTypeInit(Tcl_Interp *interp);
-EXTERN CONST char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter);
+EXTERN void Nsf_EnumerationTypeInit(Tcl_Interp *interp)
+  nonnull(1);
+
+EXTERN CONST char *Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter)
+  nonnull(1);
 
 /*
  * Nsf Cmd definition interface
  */
-EXTERN void Nsf_CmdDefinitionInit(Tcl_Interp *interp);
-EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc);
+EXTERN void Nsf_CmdDefinitionInit(Tcl_Interp *interp)
+  nonnull(1);
+
+EXTERN Nsf_methodDefinition *Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc)
+  nonnull(1);
 
 
 #ifndef HAVE_STRNSTR

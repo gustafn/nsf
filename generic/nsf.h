@@ -344,33 +344,55 @@ typedef struct Nsf_Param {
 #define NSF_ARG_SLOTASSIGN		0x00800000
 #define NSF_ARG_SLOTINITIALIZE		0x01000000
 
+#undef  __GNUC_PREREQ
+#if defined __GNUC__ && defined __GNUC_MINOR__
+# define __GNUC_PREREQ(maj, min) \
+        ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+# define __GNUC_PREREQ(maj, min) (0)
+#endif
+#if __GNUC_PREREQ(3, 3)
+# define NSF_nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
+#else
+# define NSF_nonnull(ARGS)
+#endif
 
 EXTERN int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
-		  int doCheck, Nsf_ParseContext *pcPtr);
+		  int doCheck, Nsf_ParseContext *pcPtr)
+  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(10);
+
 EXTERN int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
-		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj);
+		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(5);
+
 
 EXTERN int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
-			   CONST char *what, CONST char *methodName);
+			   CONST char *what, CONST char *methodName)
+  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
+
 EXTERN int
-NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what);
+NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what)
+  NSF_nonnull(1);
 
 EXTERN int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
 			   Nsf_Object *object, Nsf_Param CONST *paramPtr,
-			   Tcl_Obj *procNameObj);
+			   Tcl_Obj *procNameObj)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5);
+
 EXTERN int
 NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 				 CONST char *argumentString,
 				 Nsf_Object *object,
 				 Nsf_Param CONST *currentParamPtr,
 				 Nsf_Param CONST *paramPtr,
-				 Tcl_Obj *procNameObj);
+				 Tcl_Obj *procNameObj)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
 
 /*
  * logging
@@ -379,18 +401,30 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 #define NSF_LOG_WARN 1
 
 EXTERN void
-NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...);
+NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)
+  NSF_nonnull(1) NSF_nonnull(3);
 
 /*
  * Nsf Pointer converter interface
  */
 
-EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr);
-EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free);
-EXTERN void Nsf_PointerInit(Tcl_Interp *interp);
-EXTERN void Nsf_PointerExit(Tcl_Interp *interp);
-EXTERN void *Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName);
-EXTERN int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr);
+EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
+
+EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free)
+  NSF_nonnull(1) NSF_nonnull(2);
+
+EXTERN void Nsf_PointerInit(Tcl_Interp *interp)
+  NSF_nonnull(1);
+
+EXTERN void Nsf_PointerExit(Tcl_Interp *interp)
+  NSF_nonnull(1);
+
+EXTERN void *Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName)
+  NSF_nonnull(1) NSF_nonnull(2);
+
+EXTERN int Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 
 /*
  * methodDefinition
@@ -406,12 +440,15 @@ typedef struct Nsf_methodDefinition {
 /*
  * Nsf Enumeration type interface
  */
-EXTERN int Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords);
+EXTERN int Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *typeRecords)
+  NSF_nonnull(1) NSF_nonnull(2);
+
 
 /*
  * Nsf Cmd definition interface
  */
-EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords);
+EXTERN int  Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords)
+  NSF_nonnull(1) NSF_nonnull(2);
 
 
 /*

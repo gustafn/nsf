@@ -4992,22 +4992,18 @@ forwarders:
 - use in forwarders "-frame object" instead of "-objframe" in nx
   for consistency with other calls (e.g. dispatch). Other values for
   "-frame" are not allowed. (btw, XOTcl has "-objscope")
+- deactivated "-onerror", since its semantics are expressible via
+  try/catch, and there are no regression tests for xotcl and nx,
+  and we could not find any script that uses this
+
+nsf.c:
+- de-spaghetti precedence computations for multiple inheritance and
+  improve documentation
+- get rid of // comments
+- use nonnull variable attributes for prototpyes (nsf.h, nsfInt.h, nsf.c)
 
 ========================================================================
 TODO:
-
-- Is -onerror for forwarders really needed?! Can we pull it out from
-  NX, at least? I can't see what -onerror should achieve that cannot
-  be done using catch.
-
-- Revisit nsf::*::assertion interface? Why does nsf::method::assertion
-  allow for setting invariants. One would rather expect a
-  ::nsf::object|class::assertion or the like?
-
-- test cases switch now to global dir. maybe due to new tcl.m4. See e.g.:
-  notice: Running test cases: /usr/local/ns/lib/nsf2.0b6/lib/nx-test.tcl
-
-- remove / rephrase "//"-comments
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
@@ -5274,6 +5270,20 @@ For future releases (after first alpha/beta release)
       pass arguments around without having any knowledge
       about parameter definitions. They don't check
       anything by design.
+
+  * RFE Revisit nsf::*::assertion interface? Why does nsf::method::assertion
+    allow for setting invariants. One would rather expect a
+    ::nsf::object|class::assertion or the like?
+
+       The reason for the current naming is simply that assertions
+       are only implemented for scripted methods.
+         * pre/post conditions are just checked for scripted methods,
+           since only these have stack frames, which are necessary
+           to access self or the resolver variables.
+         * invariants are only checkable during scripted methods,
+           there is no way to intercept c-based functions.
+           Checking these before/after c-implemented functions
+           should be possible though.
 
   * add maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
     volatile state.
