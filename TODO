@@ -5005,6 +5005,13 @@ nsf.c:
 ========================================================================
 TODO:
 
+- forwarder: I find the naming "-methodprefix" misleading, the 2nd arg
+  can also denote a subcommand, ensemble command or simply an argument
+  to a resulting command call. methodprefix is biased towards NX,
+  though its use is not. Just -prefix? (to maintain XOTcl compat, just
+  rename it in the NX forwarder API ... the malus would be that
+  -methodprefix pops up in info introspection etc. :/)
+
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
   and xlloc fix
