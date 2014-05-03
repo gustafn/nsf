@@ -16904,15 +16904,19 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
       }
     }
 
-    if (tcd->prefix) {
-      /*
-       * If a prefix was provided, prepend a prefix for the subcommands to
-       * avoid name clashes.
-       */
-      Tcl_Obj *methodName = Tcl_DuplicateObj(tcd->prefix);
-      Tcl_AppendObjToObj(methodName, ov[1]);
-      ov[1] = methodName;
-      INCR_REF_COUNT(ov[1]);
+    /* 
+       If a prefix is provided, it will be prepended to the 2nd argument. This
+       allows for avoiding name clashes if the 2nd argument denotes a
+       subcommand, for example.
+
+       Make sure that the prefix is only prepended, if a second arg is
+       actually available! Otherwise, the requested prefix has no effect.       
+    */
+    if (tcd->prefix && objc > 1) {
+        Tcl_Obj *methodName = Tcl_DuplicateObj(tcd->prefix);
+        Tcl_AppendObjToObj(methodName, ov[1]);
+        ov[1] = methodName;
+        INCR_REF_COUNT(ov[1]);
     }
 
 #if 0
@@ -16926,7 +16930,9 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
 
     result = CallForwarder(tcd, interp, objc, ov);
 
-    if (tcd->prefix) {DECR_REF_COUNT(ov[1]);}
+    if (tcd->prefix && objc > 1) {
+      DECR_REF_COUNT(ov[1]);
+    }
   exitforwardmethod:
     if (freeList)    {DECR_REF_COUNT2("freeList", freeList);}
 

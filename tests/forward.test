@@ -287,6 +287,47 @@ nx::test case forwarder-basics {
   ? {obj foo _ _} "C _ _"
   ? {obj foo _ _ _ _} "forward: not enough elements in specified list of ARGC argument argclindex {A B C}"
 
+  ##
+  ## %1 + defaults
+  ##
+
+  ::nsf::configure debug 2
+
+  obj public object method FOO args {return [current method]-$args}
+  obj public object method OOF args {return [current method]-$args}
+  obj public object forward foo -verbose %self %1
+  ? {obj foo} {%1 requires argument; should be "foo arg ..."}
+  obj public object forward foo -verbose %self {%1 FOO}
+  ? {obj foo} "FOO-"
+  ? {obj foo X} {::obj: unable to dispatch method 'X'}
+  obj public object forward foo -verbose %self {%1 FOO OOF}
+  ? {obj foo X} {::obj: unable to dispatch method 'X'}
+  obj public object forward foo -verbose %self {%1 {FOO OOF}}
+  ? {obj foo X} "OOF-X"
+  ? {obj foo X Y} {::obj: unable to dispatch method 'X'}
+  obj public object forward foo -verbose %self {%1 {FOO OOF}} {%1 {A B}}
+  ? {obj foo} "FOO-A"
+  obj public object forward foo -verbose %self {%1 {FOO OOF}} {%1 {A B}}
+  ? {obj foo X} "OOF-B X"
+
+  ##
+  ## -methodprefix; requires a 2nd arg!
+  ##
+  ##
+
+  obj public object method _FOO args {return [current method]-$args}
+  ## 1) 2nd arg is missing! Prefix is silently neglected ...
+  obj public object forward FOO -methodprefix _ %self
+  ? {obj FOO} {::obj}
+  # 2) There is a 2nd arg, a method argument
+  ? {obj FOO FOO X} "_FOO-X"
+  # 3) There is a 2nd arg, a forwarder argument
+  obj public object forward FOO -methodprefix _ %self %1
+  ? {obj FOO FOO X} "_FOO-X"
+  # 4) There is a 2nd arg, a forwarder argument provided through %1
+  obj public object forward FOO -methodprefix _ %self {%1 {FOO FOO}}
+  ? {obj FOO X} "_FOO-X"  
+
 }
 
 nx::test case positioning-arg-extended {
