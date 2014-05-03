@@ -207,156 +207,244 @@ static Tcl_ObjCmdProc NsfAsmProc;
 
 
 /* Prototypes for methods called directly when CallDirectly() returns NULL */
-static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj);
-static int NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr);
-static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
-static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object);
-static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
-static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object);
+static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj)
+  nonnull(1) nonnull(2);
+static int NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
+static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(4);
+static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
 static int MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 			  int objc, Tcl_Obj *CONST objv[],
 			  Tcl_Command cmd, NsfObject *object, NsfClass *cl,
-			  CONST char *methodName, int frameType, int flags);
-static int DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object,
-				 Tcl_Obj *obj, int flags);
-static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags);
+			  CONST char *methodName, int frameType, int flags)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5) nonnull(6) nonnull(8);
+static int DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *obj, int flags)
+  nonnull(1) nonnull(2) nonnull(3);
+static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags)
+  nonnull(1) nonnull(2);
 static int DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
 				 int objc, Tcl_Obj *CONST objv[], Tcl_Obj *callInfo,
-				 Tcl_Obj *methodObj, int flags);
+				 Tcl_Obj *methodObj, int flags)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(6);
 
 NSF_INLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
-                                      Tcl_Obj *CONST objv[], int flags);
+                                      Tcl_Obj *CONST objv[], int flags)
+  nonnull(1) nonnull(2) nonnull(4);
+
 NSF_INLINE static int ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
-					     int result /*, char *string , CONST char *methodName*/);
+					     int result /*, char *string , CONST char *methodName*/)
+  nonnull(1) nonnull(2);
 
 /* prototypes for object life-cycle management */
-static int RecreateObject(Tcl_Interp *interp, NsfClass *cl, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
-static void FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object);
+static int RecreateObject(Tcl_Interp *interp, NsfClass *cl, NsfObject *object, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
+static void FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+
 #if defined(DO_CLEANUP)
-static void FreeAllNsfObjectsAndClasses(Tcl_Interp *interp,  NsfCmdList **instances);
+static void FreeAllNsfObjectsAndClasses(Tcl_Interp *interp,  NsfCmdList **instances)
+  nonnull(1) nonnull(2);
 #endif
-static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object);
-static void PrimitiveCDestroy(ClientData clientData);
-static void PrimitiveODestroy(ClientData clientData);
-static void PrimitiveDestroy(ClientData clientData);
-static void NsfCleanupObject_(NsfObject *object);
+static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+static void PrimitiveCDestroy(ClientData clientData)
+  nonnull(1);
+static void PrimitiveODestroy(ClientData clientData)
+  nonnull(1);
+static void PrimitiveDestroy(ClientData clientData)
+  nonnull(1);
+static void NsfCleanupObject_(NsfObject *object)
+  nonnull(1);
 
 /* prototypes for object and command lookup */
-static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name);
-static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name);
-static int GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, NsfClass **clPtr, int withUnknown);
+static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name)
+  nonnull(1) nonnull(2);
+static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name)
+  nonnull(1) nonnull(2);
+static int GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, NsfClass **clPtr, int withUnknown)
+  nonnull(1) nonnull(2) nonnull(3);
 /*static NsfObject *GetHiddenObjectFromCmd(Tcl_Interp *interp, Tcl_Command cmdPtr);
 static int ReverseLookupCmdFromCmdTable(Tcl_Interp *interp, Tcl_Command searchCmdPtr,
 					Tcl_HashTable *cmdTablePtr);*/
-static void GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startClass);
-NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName);
+static void GetAllInstances(Tcl_Interp *interp, NsfCmdList **instances, NsfClass *startClass)
+  nonnull(1) nonnull(2) nonnull(3);
+NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName)
+  nonnull(1) nonnull(2);
 
 /* prototypes for namespace specific calls */
-static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
-static Tcl_Namespace *CallingNameSpace(Tcl_Interp *interp);
-NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name);
-static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object,
-					  CONST char *name);
-static Tcl_Namespace *RequireObjNamespace(Tcl_Interp *interp, NsfObject *object);
-static int NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName);
-static void NSNamespaceDeleteProc(ClientData clientData);
-static void NSNamespacePreserve(Tcl_Namespace *nsPtr);
-static void NSNamespaceRelease(Tcl_Namespace *nsPtr);
+static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns)
+  nonnull(1) nonnull(2) nonnull(3);
+static Tcl_Namespace *CallingNameSpace(Tcl_Interp *interp)
+  nonnull(1);
+NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name)
+  nonnull(1) nonnull(2);
+static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, NsfObject *object, CONST char *name)
+  nonnull(1) nonnull(2) nonnull(3);
+static Tcl_Namespace *RequireObjNamespace(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+static int NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName)
+  nonnull(1) nonnull(2) nonnull(3);
+static void NSNamespaceDeleteProc(ClientData clientData)
+  nonnull(1);
+static void NSNamespacePreserve(Tcl_Namespace *nsPtr)
+  nonnull(1);
+static void NSNamespaceRelease(Tcl_Namespace *nsPtr)
+  nonnull(1);
 
 /* prototypes for filters and mixins */
-static void FilterComputeDefined(Tcl_Interp *interp, NsfObject *object);
-static void MixinComputeDefined(Tcl_Interp *interp, NsfObject *object);
-NSF_INLINE static void GuardAdd(NsfCmdList *filterCL, Tcl_Obj *guardObj);
+static void FilterComputeDefined(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+static void MixinComputeDefined(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
+NSF_INLINE static void GuardAdd(NsfCmdList *filterCL, Tcl_Obj *guardObj)
+  nonnull(1) nonnull(2);
 static int GuardCall(NsfObject *object, Tcl_Interp *interp,
-                     Tcl_Obj *guardObj, NsfCallStackContent *cscPtr);
-static void GuardDel(NsfCmdList *filterCL);
+                     Tcl_Obj *guardObj, NsfCallStackContent *cscPtr)
+  nonnull(1) nonnull(2) nonnull(3);
+static void GuardDel(NsfCmdList *filterCL)
+  nonnull(1);
 
 /* prototypes for forwarders */
-static void ForwardCmdDeleteProc(ClientData clientData);
+static void ForwardCmdDeleteProc(ClientData clientData)
+  nonnull(1);
 static int ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 				 Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
 				 int withObjframe, int withVerbose,
 				 Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
-				 ForwardCmdClientData **tcdPtr);
+				 ForwardCmdClientData **tcdPtr)
+  nonnull(1) nonnull(2) nonnull(8) nonnull(10);
 
 /* properties of objects and classes */
-static int IsBaseClass(NsfObject *cl);
-static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins);
-static int IsSubType(NsfClass *subcl, NsfClass *cl);
-static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta);
+static int IsBaseClass(NsfObject *cl)
+  nonnull(1);
+static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins)
+  nonnull(1) nonnull(2);
+static int IsSubType(NsfClass *subcl, NsfClass *cl)
+  nonnull(1) nonnull(2);
+static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta)
+  nonnull(1) nonnull(2) nonnull(3);
+
 
 /* prototypes for call stack specific calls */
 NSF_INLINE static void CscInit_(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-			       Tcl_Command cmd, int frameType, int flags);
-NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr);
-NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object);
+			       Tcl_Command cmd, int frameType, int flags)
+  nonnull(1) nonnull(2) nonnull(3);
+
+NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr)
+  nonnull(1) nonnull(2);
+NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
 
 /* prototypes for  parameter and argument management */
 
-static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl);
+static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl)
+  nonnull(1) nonnull(2);
 static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   NsfObject *object, int processFlags, NsfParamDefs *paramDefs,
-                                  Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
+                                  Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(2) nonnull(5) nonnull(6) nonnull(8);
+
 static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
 			  const char *argNamePrefix, int doCheckArguments,
 			  int isNamed, int doConfigureParameter,
-			  Nsf_Param **paramPtrPtr);
-static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs);
-static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs);
-static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
+			  Nsf_Param **paramPtrPtr)
+  nonnull(1) nonnull(2) nonnull(3);
+static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs)
+  nonnull(1);
+static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs)
+  nonnull(1);
+static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr)
+  nonnull(1) nonnull(2);
+
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
                          Nsf_Param CONST *paramPtr, int nrParameters, int serial,
-			 int processFlags, ParseContext *pc);
+			 int processFlags, ParseContext *pc)
+  nonnull(1) nonnull(3) nonnull(5) nonnull(6) nonnull(10);
+
 static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int doCheckArguments,
-			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr);
+			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(5) nonnull(6) nonnull(7);
+
 static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
-			  NsfObject **matchObject, CONST char **pattern);
-static void NsfProcDeleteProc(ClientData clientData);
-static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object);
+			  NsfObject **matchObject, CONST char **pattern)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
+static void NsfProcDeleteProc(ClientData clientData)
+  nonnull(1);
+
+static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object)
+  nonnull(1) nonnull(2);
 
 /* prototypes for alias management */
-static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
+static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object)
+  nonnull(1) nonnull(2) nonnull(3);
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName,
-			 int withPer_object, int leaveError);
-static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd);
+			 int withPer_object, int leaveError)
+  nonnull(1) nonnull(2) nonnull(3);
+static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd)
+  nonnull(1) nonnull(2);
 static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
-			     CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
+			     CONST char *methodName, int withFrame, Tcl_Obj *cmdName)
+  nonnull(1) nonnull(2) nonnull(4);
 static int AliasRefetch(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
-			 AliasCmdClientData *tcd);
-NSF_INLINE
-static Tcl_Command AliasDereference(Tcl_Interp *interp, NsfObject *object,
-				    CONST char *methodName, Tcl_Command cmd);
+			 AliasCmdClientData *tcd)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+NSF_INLINE static Tcl_Command AliasDereference(Tcl_Interp *interp, NsfObject *object,
+                                               CONST char *methodName, Tcl_Command cmd)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 /* prototypes for (class) list handling */
-static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData);
-static void NsfClassListFree(NsfClasses *firstPtr);
+static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData)
+  nonnull(1);
+
+static void NsfClassListFree(NsfClasses *firstPtr)
+  nonnull(1);
 
 /* misc prototypes */
-static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj);
+static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj)
+  nonnull(1) nonnull(2) nonnull(3);
+
 static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 			      int withPer_object, int methodType, int withCallproctection,
-			      int withPath);
+			      int withPath)
+  nonnull(1) nonnull(2);
+
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
-			       NsfCallStackContent *cscPtr, int freeArgumentVector);
+			       NsfCallStackContent *cscPtr, int freeArgumentVector)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
-static void CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct);
-static void NsfCommandPreserve(Tcl_Command cmd);
-static void NsfCommandRelease(Tcl_Command cmd);
-static Tcl_Command GetOriginalCommand(Tcl_Command cmd);
-EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
+static void CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct)
+  nonnull(1);
+static void NsfCommandPreserve(Tcl_Command cmd)
+  nonnull(1);
+static void NsfCommandRelease(Tcl_Command cmd)
+  nonnull(1);
+static Tcl_Command GetOriginalCommand(Tcl_Command cmd)
+  nonnull(1);
+
+EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
+  nonnull(1) nonnull(3);
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 #ifdef DO_CLEANUP
-static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr);
+static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr)
+  nonnull(1);
 #endif
 
 #if defined(NSF_WITH_ASSERTIONS)
-static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name);
+static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name)
+  nonnull(1) nonnull(2);
 #endif
 
 #ifdef DO_FULL_CLEANUP
-static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars);
+static void DeleteProcsAndVars(Tcl_Interp *interp, Tcl_Namespace *nsPtr, int withKeepvars)
+  nonnull(1) nonnull(2);
 #endif
 
 /*

@@ -5000,6 +5000,7 @@ nsf.c:
 - de-spaghetti precedence computations for multiple inheritance and
   improve documentation
 - get rid of // comments
+- use nonnull variable attributes for prototpyes (nsf.h, nsfInt.h, nsf.c)
 
 ========================================================================
 TODO:
