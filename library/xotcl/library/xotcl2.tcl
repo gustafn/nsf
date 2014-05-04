@@ -578,6 +578,11 @@ namespace eval ::xotcl {
 	  lappend result -objscope
 	  incr i
 	}
+	-prefix {
+	  lappend result -methodprefix
+	  incr i
+	  lappend result [lindex $list $i]
+	}
 	-* {lappend result [lindex $list $i]}
 	default {
 	  lappend result {*}[lrange $list $i end]

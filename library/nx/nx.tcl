@@ -339,13 +339,18 @@ namespace eval ::nx {
 
   Class public method forward {
      methodName
-     -default -methodprefix -frame -onerror -returns -verbose:switch
+     -default -prefix -frame -onerror -returns -verbose:switch
      target:optional args
    } {
     array set ""  [:__resolve_method_path $methodName]
     set arguments [lrange [::nsf::current args] 1 end]
     set nrPreArgs [expr {[llength $arguments]-[llength $args]}]
 
+    if {[info exists prefix]} {
+      set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -prefix]
+      # search for "-prefix" in the arguments before $args and replace it
+      if {$p > -1} {set arguments [lreplace $arguments $p $p -methodprefix]}
+    }
     if {[info exists frame]} {
       if {$frame ne "object"} { error "value of parameter -frame must be 'object'" }
       set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -frame]
@@ -537,12 +542,17 @@ namespace eval ::nx {
 
     :public method "object forward" {
       methodName
-      -default -methodprefix -frame -onerror -returns -verbose:switch
+      -default -prefix -frame -onerror -returns -verbose:switch
       target:optional args
     } {
       array set "" [:__resolve_method_path -per-object $methodName]
       set arguments [lrange [::nsf::current args] 1 end]
       set nrPreArgs [expr {[llength $arguments]-[llength $args]}]
+      if {[info exists prefix]} {
+        set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -prefix]
+        # search for "-prefix" in the arguments before $args and replace it
+      if {$p > -1} {set arguments [lreplace $arguments $p $p -methodprefix]}
+      }
       if {[info exists frame]} {
         if {$frame ne "object"} { error "value of parameter -frame must be 'object'" }
         set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -frame]

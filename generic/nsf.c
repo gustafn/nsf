@@ -18417,7 +18417,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 static void
 AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientData *tcd) {
   if (tcd->prefix) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-methodprefix", -1));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-prefix", -1));
     Tcl_ListObjAppendElement(interp, listObj, tcd->prefix);
   }
   if (tcd->subcommands) {

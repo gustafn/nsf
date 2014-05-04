@@ -101,7 +101,7 @@ nx::test case info-via-forward {
 	    return $result
 	}
     }
-    nx::Object public forward Info -methodprefix @ Info %1 %self
+    nx::Object public forward Info -prefix @ Info %1 %self
 
     nx::Class create X {
 	:create x1
@@ -127,7 +127,7 @@ nx::test case incr {
 ###########################################
 nx::test case introspection {
     nx::Class create C {
-	:public forward Info -methodprefix @ Info %1 %self 
+	:public forward Info -prefix @ Info %1 %self 
     }
 
     ? {C info methods -type forwarder} Info
@@ -142,7 +142,7 @@ nx::test case introspection {
     ? {C info methods -type forwarder} [list Info]
 
     # get the definition of a instforwarder
-    ? {C info method definition Info} [list ::C public forward Info -methodprefix @ Info %1 %self]
+    ? {C info method definition Info} [list ::C public forward Info -prefix @ Info %1 %self]
 
     # check introspection for objects
     nx::Object create obj {
@@ -311,22 +311,22 @@ nx::test case forwarder-basics {
   ? {obj foo X} "OOF-B X"
 
   ##
-  ## -methodprefix; requires a 2nd arg!
+  ## -prefix; requires a 2nd arg!
   ##
   ##
 
   obj public object method _FOO args {return [current method]-$args}
   ## 1) 2nd arg is missing! Prefix is silently neglected ...
-  obj public object forward FOO -methodprefix _ %self
+  obj public object forward FOO -prefix _ %self
   ? {obj FOO} {::obj}
   # 2) There is a 2nd arg, a method argument
-  ? {obj FOO FOO X} "_FOO-X"
+  ? {obj FOO FOO X} "_FOO-X" "prefix, 2nd arg is method argument"
   # 3) There is a 2nd arg, a forwarder argument
-  obj public object forward FOO -methodprefix _ %self %1
-  ? {obj FOO FOO X} "_FOO-X"
+  obj public object forward FOO -prefix _ %self %1
+  ? {obj FOO FOO X} "_FOO-X" "prefix, 2nd arg is forwarder argument"
   # 4) There is a 2nd arg, a forwarder argument provided through %1
-  obj public object forward FOO -methodprefix _ %self {%1 {FOO FOO}}
-  ? {obj FOO X} "_FOO-X"  
+  obj public object forward FOO -prefix _ %self {%1 {FOO FOO}}
+  ? {obj FOO X} "_FOO-X" "prefix, 2nd arg is forwarder argument provided through %1"
 
 }
 

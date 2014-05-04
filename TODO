@@ -4995,6 +4995,8 @@ forwarders:
 - deactivated "-onerror", since its semantics are expressible via
   try/catch, and there are no regression tests for xotcl and nx,
   and we could not find any script that uses this
+- renamed "-methodprefix" to "-prefix" in nx, since the prefix
+  can be applied as well applied to a cmd.
 
 nsf.c:
 - de-spaghetti precedence computations for multiple inheritance and
@@ -5004,13 +5006,6 @@ nsf.c:
 
 ========================================================================
 TODO:
-
-- forwarder: I find the naming "-methodprefix" misleading, the 2nd arg
-  can also denote a subcommand, ensemble command or simply an argument
-  to a resulting command call. methodprefix is biased towards NX,
-  though its use is not. Just -prefix? (to maintain XOTcl compat, just
-  rename it in the NX forwarder API ... the malus would be that
-  -methodprefix pops up in info introspection etc. :/)
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
