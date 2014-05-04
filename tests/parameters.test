@@ -620,7 +620,7 @@ nx::test case subst-default {
       "query instparams for scripted method 'method'"
   
   ? {nx::Object info method parameters ::nsf::method::forward} \
-      "object:object -per-object:switch method -default -earlybinding:switch -methodprefix -objframe:switch -verbose:switch target:optional args" \
+      "object:object -per-object:switch method -default -earlybinding:switch -prefix -frame -verbose:switch target:optional args" \
       "query parameter for C-defined cmd 'nsf::forward'"
 
   nx::Object require method autoname

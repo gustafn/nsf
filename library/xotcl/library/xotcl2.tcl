@@ -341,10 +341,13 @@ namespace eval ::xotcl {
     target:optional args
   } {
     set arglist [list]
+    if {[info exists target] && [string range $target 0 0] eq "-"} {
+      error "target '$target' must not start with a dash"
+    }
     if {[info exists default]} {lappend arglist -default $default}
-    if {$earlybinding} {lappend arglist "-earlybinding"}
-    if {[info exists methodprefix]} {lappend arglist -methodprefix $methodprefix}
-    if {$objscope} {lappend arglist "-objframe"}
+    if {$earlybinding} {lappend arglist -earlybinding}
+    if {[info exists methodprefix]} {lappend arglist -prefix $methodprefix}
+    if {$objscope} {lappend arglist -frame object}
     if {[info exists onerror]} {lappend arglist -onerror $onerror}
     if {$verbose} {lappend arglist -verbose}
     if {[info exists target]} {lappend arglist $target}
@@ -359,10 +362,13 @@ namespace eval ::xotcl {
     target:optional args
   } {
     set arglist [list]
+    if {[info exists target] && [string range $target 0 0] eq "-"} {
+      error "target '$target' must not start with a dash"
+    }
     if {[info exists default]} {lappend arglist -default $default}
-    if {$earlybinding} {lappend arglist "-earlybinding"}
-    if {[info exists methodprefix]} {lappend arglist -methodprefix $methodprefix}
-    if {$objscope} {lappend arglist "-objframe"}
+    if {$earlybinding} {lappend arglist -earlybinding}
+    if {[info exists methodprefix]} {lappend arglist -prefix $methodprefix}
+    if {$objscope} {lappend arglist -frame object}
     if {[info exists onerror]} {lappend arglist -onerror $onerror}
     if {$verbose} {lappend arglist -verbose}
     if {[info exists target]} {lappend arglist $target}

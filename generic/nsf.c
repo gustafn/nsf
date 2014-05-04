@@ -127,7 +127,7 @@ typedef struct ForwardCmdClientData {
   int hasNonposArgs;
   int nr_args;
   Tcl_Obj *args;
-  int objframe;
+  int frame;
 #if defined(NSF_FORWARD_WITH_ONERROR)
   Tcl_Obj *onerror;
 #endif
@@ -315,7 +315,7 @@ static void ForwardCmdDeleteProc(ClientData clientData)
   nonnull(1);
 static int ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 				 Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-				 int withObjframe, int withVerbose,
+				 int withFrame, int withVerbose,
 				 Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
 				 ForwardCmdClientData **tcdPtr)
   nonnull(1) nonnull(2) nonnull(8) nonnull(10);
@@ -13178,7 +13178,7 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
   methodObj = paramPtr->nameObj;
   result = ForwardProcessOptions(interp, methodObj,
 				 NULL /*withDefault*/, 0 /*withEarlybinding*/,
-				 NULL /*withMethodprefix*/, 0 /*withObjframe*/,
+				 NULL /*withMethodprefix*/, 0 /*withFrame*/,
 				 0 /*withVerbose*/,
 				 nobjv[0], nobjc-1, nobjv+1, &tcd);
   if (result != TCL_OK) {
@@ -14225,7 +14225,7 @@ GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 static int
 ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
                        Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                       int withObjframe, int withVerbose,
+                       int withFrame, int withVerbose,
                        Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
                        ForwardCmdClientData **tcdPtr) {
   ForwardCmdClientData *tcd;
@@ -14257,7 +14257,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
     INCR_REF_COUNT(tcd->onerror);
   }
 #endif
-  tcd->objframe = withObjframe;
+  tcd->frame = withFrame;
   tcd->verbose = withVerbose;
   tcd->needobjmap = 0;
   tcd->cmdName = target;
@@ -14285,10 +14285,10 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
   /*fprintf(stderr, "+++ cmdName = %s, args = %s, # = %d\n",
     ObjStr(tcd->cmdName), tcd->args?ObjStr(tcd->args):"NULL", tcd->nr_args);*/
 
-  if (tcd->objframe) {
+  if (tcd->frame == FrameObjectIdx) {
     /*
      * When we evaluating objscope, and define ...
-     *     o forward append -objframe append
+     *     o forward append -frame object append
      *  a call to
      *     o append ...
      *  would lead to a recursive call; so we add the appropriate namespace.
@@ -16891,7 +16891,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     NsfLog(interp, NSF_LOG_NOTICE, "forwarder calls '%s'",  ObjStr(cmd));
     DECR_REF_COUNT(cmd);
   }
-  if (tcd->objframe) {
+  if (tcd->frame == FrameObjectIdx) {
     Nsf_PushFrameObj(interp, object, framePtr);
   }
   if (tcd->objProc) {
@@ -16910,7 +16910,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     result = Tcl_EvalObjv(interp, objc, objv, 0);
   }
 
-  if (tcd->objframe) {
+  if (tcd->frame == FrameObjectIdx) {
     Nsf_PopFrameObj(interp, framePtr);
   }
 
@@ -18427,7 +18427,7 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
   if (tcd->objProc) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-earlybinding", -1));
   }
-  if (tcd->objframe) {
+  if (tcd->frame == FrameObjectIdx) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
@@ -18445,7 +18445,7 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
 static void
 AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *registerCmdName,
                          NsfObject *object, CONST char *methodName, Tcl_Command cmd,
-                         int withObjframe, int withPer_object, int withProtection) {
+                         int withObjFrame, int withPer_object, int withProtection) {
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   if (withProtection) {
     Tcl_ListObjAppendElement(interp, listObj,
@@ -18462,7 +18462,7 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, -1));
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, -1));
 
-  if (withObjframe) {
+  if (withObjFrame) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
@@ -20721,14 +20721,13 @@ NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 /*
 cmd method::forward NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object"}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "method" -required 1 -type tclobj}
-  {-argName "-default" -nrargs 1 -type tclobj}
-  {-argName "-earlybinding"}
-  {-argName "-methodprefix" -nrargs 1 -type tclobj}
-  {-argName "-objframe"}
-  {-argName "-onerror" -nrargs 1 -type tclobj}
-  {-argName "-verbose"}
+  {-argName "-default" -type tclobj}
+  {-argName "-earlybinding" -nrargs 0}
+  {-argName "-prefix" -type tclobj}
+  {-argName "-frame" -nrargs 1 -type "object|method|default" -default default}
+  {-argName "-verbose" -nrargs 0}
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
 }
@@ -20738,14 +20737,14 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
 	      NsfObject *object, int withPer_object,
 	      Tcl_Obj *methodObj,
 	      Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-	      int withObjframe, int withVerbose,
+	      int withFrame, int withVerbose,
 	      Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
   ForwardCmdClientData *tcd = NULL;
   int result;
 
   result = ForwardProcessOptions(interp, methodObj,
                                  withDefault, withEarlybinding, withMethodprefix,
-                                 withObjframe, withVerbose,
+                                 withFrame, withVerbose,
                                  target, nobjc, nobjv, &tcd);
 
   if (result == TCL_OK) {

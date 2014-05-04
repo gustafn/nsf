@@ -344,26 +344,21 @@ namespace eval ::nx {
    } {
     array set ""  [:__resolve_method_path $methodName]
     set arguments [lrange [::nsf::current args] 1 end]
-    set nrPreArgs [expr {[llength $arguments]-[llength $args]}]
 
-    if {[info exists prefix]} {
-      set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -prefix]
-      # search for "-prefix" in the arguments before $args and replace it
-      if {$p > -1} {set arguments [lreplace $arguments $p $p -methodprefix]}
+    if {[info exists target] && [string range $target 0 0] eq "-"} {
+      error "target '$target' must not start with a dash"
     }
-    if {[info exists frame]} {
-      if {$frame ne "object"} { error "value of parameter -frame must be 'object'" }
-      set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -frame]
-      # search for "-frame" in the arguments before $args and replace it
-      if {$p > -1} {set arguments [lreplace $arguments $p $p+1 -objframe]}
-      incr nrPreArgs -1
+    if {[info exists frame] && $frame ni {object default}} {
+      error "value of parameter -frame must be 'object' or 'default'" 
     }
     if {[info exists returns]} {
+      set nrPreArgs [expr {[llength $arguments]-[llength $args]}]
       # search for "-returns" in the arguments before $args and remove it
       set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -returns]
       if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
     }
     set r [::nsf::method::forward $(object) $(methodName) {*}$arguments]
+
     ::nsf::method::property $(object) $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
     if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
@@ -547,20 +542,15 @@ namespace eval ::nx {
     } {
       array set "" [:__resolve_method_path -per-object $methodName]
       set arguments [lrange [::nsf::current args] 1 end]
-      set nrPreArgs [expr {[llength $arguments]-[llength $args]}]
-      if {[info exists prefix]} {
-        set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -prefix]
-        # search for "-prefix" in the arguments before $args and replace it
-      if {$p > -1} {set arguments [lreplace $arguments $p $p -methodprefix]}
+
+      if {[info exists target] && [string range $target 0 0] eq "-"} {
+        error "target '$target' must not start with a dash"
       }
-      if {[info exists frame]} {
-        if {$frame ne "object"} { error "value of parameter -frame must be 'object'" }
-        set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -frame]
-        # search for "-frame" in the arguments before $args and replace it
-        if {$p > -1} {set arguments [lreplace $arguments $p $p+1 -objframe]}
-        incr nrPreArgs -1
+      if {[info exists frame] && $frame ni {object default}} {
+        error "value of parameter '-frame' must be 'object' or 'default'" 
       }
       if {[info exists returns]} {
+        set nrPreArgs [expr {[llength $arguments]-[llength $args]}]
 	# search for "-returns" in the arguments before $args ...
 	set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -returns]
 	# ... and remove it if found

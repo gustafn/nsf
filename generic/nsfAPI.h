@@ -434,7 +434,7 @@ static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_
 static int NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg);
 static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withCheckalways, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName);
-static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjframe, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withPrefix, int withFrame, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodProperty, Tcl_Obj *value);
 static int NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *handle);
 static int NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
@@ -1472,13 +1472,13 @@ NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     Tcl_Obj *method = (Tcl_Obj *)pc.clientData[2];
     Tcl_Obj *withDefault = (Tcl_Obj *)pc.clientData[3];
     int withEarlybinding = (int )PTR2INT(pc.clientData[4]);
-    Tcl_Obj *withMethodprefix = (Tcl_Obj *)pc.clientData[5];
-    int withObjframe = (int )PTR2INT(pc.clientData[6]);
+    Tcl_Obj *withPrefix = (Tcl_Obj *)pc.clientData[5];
+    int withFrame = (int )PTR2INT(pc.clientData[6]);
     int withVerbose = (int )PTR2INT(pc.clientData[7]);
     Tcl_Obj *target = (Tcl_Obj *)pc.clientData[8];
 
     assert(pc.status == 0);
-    return NsfMethodForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjframe, withVerbose, target, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfMethodForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withPrefix, withFrame, withVerbose, target, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
     return TCL_ERROR;
@@ -2912,8 +2912,8 @@ static Nsf_methodDefinition method_definitions[106] = {
   {"method", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-default", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-earlybinding", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-methodprefix", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"-objframe", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-prefix", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-verbose", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"target", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

@@ -4997,6 +4997,7 @@ forwarders:
   and we could not find any script that uses this
 - renamed "-methodprefix" to "-prefix" in nx, since the prefix
   can be applied as well applied to a cmd.
+- use nx rather than xotcl2 terminology in nsf::method::forward
 
 nsf.c:
 - de-spaghetti precedence computations for multiple inheritance and

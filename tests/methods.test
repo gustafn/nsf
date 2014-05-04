@@ -863,6 +863,7 @@ nx::test case object-copy {
   ? {o a b} "a b"
   ? {o a c} "a c"
   ? {o set x 1} 1
+  ? {o eval {info exists :x}} 1
 
   ? {o copy p} ::p
   ? {lsort [::p info object methods -path]} "{a b} {a c} foo fwd set"
@@ -873,6 +874,7 @@ nx::test case object-copy {
   #package require nx::serializer
   #puts stderr [o serialize]
   #puts stderr [p serialize]
+  ? {p eval {info exists :x}} 1
   ? {p set x} 1
 }
 
