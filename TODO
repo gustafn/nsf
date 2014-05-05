@@ -5011,6 +5011,7 @@ nsf.c:
 ========================================================================
 TODO:
 
+- check autoadded asserts; complete asserts for other .c files
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
   and xlloc fix
