@@ -3,7 +3,7 @@
  *
  *      Tcl_Obj types provided by the Next Scripting Framework.
  *
- *  Copyright (C) 1999-2013 Gustaf Neumann
+ *  Copyright (C) 1999-2014 Gustaf Neumann
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

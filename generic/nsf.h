@@ -1,10 +1,10 @@
 /*
  *  Next Scripting Framework
  *
- *  Copyright (C) 1999-2013 Gustaf Neumann (a) (b)
+ *  Copyright (C) 1999-2014 Gustaf Neumann (a) (b)
  *  Copyright (C) 1999-2007 Uwe Zdun (a) (b)
  *  Copyright (C) 2007-2008 Martin Matuska (b)
- *  Copyright (C) 2010-2013 Stefan Sobernig (b)
+ *  Copyright (C) 2010-2014 Stefan Sobernig (b)
  *
  * (a) University of Essen
  *     Specification of Software Systems

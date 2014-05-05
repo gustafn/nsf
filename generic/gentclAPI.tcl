@@ -6,7 +6,7 @@
 # handling of input argument types, consistent error messages in case
 # of failures and eases documentation.
 #
-#   Copyright (C) 2009-2013 Gustaf Neumann
+#   Copyright (C) 2009-2014 Gustaf Neumann
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files

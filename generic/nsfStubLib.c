@@ -4,9 +4,9 @@
  *      Stub object that will be statically linked into extensions of the Next
  *      Scripting Framework.
  *
- * Copyright (c) 1998 Paul Duffin
- * Copyright (c) 2001-2013 Gustaf Neumann
- * Copyright (c) 2001-2007 Uwe Zdun
+ * Copyright (C) 1998 Paul Duffin
+ * Copyright (C) 2001-2014 Gustaf Neumann
+ * Copyright (C) 2001-2007 Uwe Zdun
  *
  * See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

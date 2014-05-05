@@ -3,7 +3,7 @@
  *
  *	Next Scripting Framework DTrace provider.
  *
- * Copyright (c) 2011 Gustaf Neumann <neumann@wu-wien.ac.at>
+ * Copyright (c) 2011-2014 Gustaf Neumann
  *
  * See the file "license.terms" for information on usage and redistribution of
  * this file, and for a DISCLAIMER OF ALL WARRANTIES.

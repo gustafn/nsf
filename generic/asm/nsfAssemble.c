@@ -4,7 +4,7 @@
  *      Support for the experimental assemble feature. This file is
  *      only included in the source when NSF_ASSEMBLE is turned on.
  *
- * Copyright (C) 2011 Gustaf Neumann
+ * Copyright (C) 2011-2014 Gustaf Neumann
  */
 
 //#define LABEL_THREADING

@@ -4,7 +4,7 @@
  *      Provide API for accessing mallocated data via Tcl.
  *      this is used e.q. via the MongoDB interface.
  *
- *  Copyright (C) 2011 Gustaf Neumann
+ *  Copyright (C) 2011-2014 Gustaf Neumann
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

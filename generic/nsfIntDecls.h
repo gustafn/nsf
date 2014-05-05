@@ -6,7 +6,8 @@
  *	interfaces are not guaranteed to remain the same between
  *	versions.  Use at your own risk.
  *
- * Copyright (c) 1998-2008 Gustaf Neumann, Uwe Zdun
+ * Copyright (C) 1998-2008 Uwe Zdun
+ * Copyright (C) 1998-2014 Gustaf Neumann
  *
  * See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.

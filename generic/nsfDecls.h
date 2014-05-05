@@ -5,7 +5,7 @@
  *
  *  This file is part of the Next Scripting Framework.
  *
- *  Copyright (C) 1999-2013 Gustaf Neumann
+ *  Copyright (C) 1999-2014 Gustaf Neumann
  *  Copyright (C) 1999-2007 Uwe Zdun
  *
  * See the file "tcl-license.terms" for information on usage and redistribution

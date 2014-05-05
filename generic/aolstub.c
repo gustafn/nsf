@@ -10,7 +10,7 @@
       Archiware Inc.
  *
  * Copyright (C) 2006-2013 Zoran Vasiljevic
- * Copyright (C) 2006-2013 Gustaf Neumann
+ * Copyright (C) 2006-2014 Gustaf Neumann
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
