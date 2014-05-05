@@ -80,6 +80,13 @@
 # define nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
 #else
 # define nonnull(ARGS)
+# define returns_nonnull
+#endif
+
+#if __GNUC_PREREQ(4, 9)
+# define returns_nonnull __attribute__((returns_nonnull))
+#else
+# define returns_nonnull
 #endif
 
 /*
@@ -986,7 +993,8 @@ EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg,
   nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 
 EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj)
-  nonnull(1);
+  nonnull(1) returns_nonnull;
+
 EXTERN void NsfReportVars(Tcl_Interp *interp)
   nonnull(1);
 EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
@@ -995,7 +1003,7 @@ EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
 EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, 
 				  Tcl_CallFrame *framePtr, 
 				  CONST char *methodName)
-  nonnull(1) nonnull(3);
+  nonnull(1) nonnull(3) returns_nonnull;
 
 /*
  * Definition of methodEpoch macros

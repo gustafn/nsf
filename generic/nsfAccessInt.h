@@ -90,10 +90,18 @@
 # define Tcl_HashSize(tablePtr) ((tablePtr)->numEntries)
 #endif
 
+static NSF_INLINE NsfObject*NsfGetObjectFromCmdPtr(Tcl_Command cmd) nonnull(1);
+static NSF_INLINE NsfClass*NsfGetClassFromCmdPtr(Tcl_Command cmd) nonnull(1);
+static NSF_INLINE ClientData NsfGetClientDataFromCmdPtr(Tcl_Command cmd) nonnull(1);
+static NSF_INLINE Var *VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) nonnull(1) nonnull(2);
+
 static NSF_INLINE Var *
 VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
   Var *varPtr = NULL;
   Tcl_HashEntry *hPtr;
+
+  assert(tablePtr);
+  assert(key);
 
   hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
                              (char *) key, newPtr);
@@ -133,6 +141,7 @@ NsfGetClientDataFromCmdPtr(Tcl_Command cmd) {
 static NSF_INLINE NsfClass*
 NsfGetClassFromCmdPtr(Tcl_Command cmd) {
   ClientData cd = NsfGetClientDataFromCmdPtr(cmd);
+  assert(cmd);
   /*fprintf(stderr, "cd=%p\n",cd);*/
   if (likely(cd != NULL)) {
     return NsfObjectToClass(cd);
@@ -143,6 +152,7 @@ NsfGetClassFromCmdPtr(Tcl_Command cmd) {
 
 static NSF_INLINE NsfObject*
 NsfGetObjectFromCmdPtr(Tcl_Command cmd) {
+  assert(cmd);
   return (NsfObject*) NsfGetClientDataFromCmdPtr(cmd);
 }
 

@@ -5004,6 +5004,9 @@ nsf.c:
   improve documentation
 - get rid of // comments
 - use nonnull variable attributes for prototpyes (nsf.h, nsfInt.h, nsf.c)
+- add returns_nonnull assertion
+- simplify few inner code pieces based on assertions
+- add serveral more assertions based on nonnull sepcifications.
 
 ========================================================================
 TODO:
