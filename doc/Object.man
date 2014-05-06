@@ -4,6 +4,10 @@
 [keywords baseclass]
 [keywords NX]
 [keywords "mixin class"]
+[keywords "re-classification"]
+[keywords "submethod"]
+[keywords "method ensemble"]
+[keywords "linearisation"]
 
 [vset SCOPE "object"]
 [vset CMD "::obj"]
@@ -93,6 +97,14 @@ active. [arg mixinSpecs] is of the form of ...
 						    of a proc), is cleaned up.
 }]
 
+[list_end]
+
+[section {Call Protection for Behavioral Features of nx::Object Instances}]
+
+[list_begin itemized]
+[item] [const public]
+[item] [const protected]
+[item] [const private]
 [list_end]
 
 [section {Methods for Instances of nx::Object}]
@@ -225,22 +237,6 @@ namespaces, filters, mixins, and traces.
 
 [list_end]
 
-[cmd_def delete]
-
-[list_begin definitions]
-
-[call [arg obj] [method "delete object method"] ...]
-[para] Description of [method "delete object method"] ...
-
-[call [arg obj] [method {delete object property}] ...]
-[para] Description of [method {delete object property}] ...
-
-[call [arg obj] [method {delete object variable}] ...]
-[para] Description of [method {delete object variable}] ...
-
-[list_end]
-
-
 [cmd_def destroy]
 
 [list_begin definitions]
@@ -351,33 +347,59 @@ completed, can be defined to store intermediate results.
 
 [list_begin definitions]
 
-[call [arg obj] [method {info children}] ...]
-[para] Description of [method {info children}] ...
+[call [arg obj] [method info] [method children] [opt "[option -type] [arg className]"] [opt [arg pattern]]]
 
+Retrieves the list of nested (or aggregated) objects of [arg obj]. The
+resulting list contains the fully qualified names of the nested
+objects. If [option -type] is set, only nested objects which are
+direct or indirect instances of class [arg className] are
+returned. Using [arg pattern], only nested objects whose names match
+[arg pattern] are returned. The [arg pattern] string can contain
+special matching characters (see [cmd "string match"]). This method
+allows for introspecting on [method contains].
 
-[call [arg obj] [method {info class}] ...]
-[para] Description of [method {info class}] ...
+[call [arg obj] [method info] [method class]]
 
+Returns the fully qualified name of the current [cmd nx::Class] of
+[arg obj]. In case of [term "re-classification"] (see [method configure]), the
+returned class will be different from the [cmd nx::Class] from which [arg obj] was
+originally instantiated using [method create] or [method new].
 
-[call [arg obj] [method {info configure}] ...]
-[para] Description of [method {info configure}] ...
+[call [arg obj] [method info] [method configure]]
 
+Lists all configuration options available for [arg obj]. These include
+the [sectref {Configuration Options for Instances of nx::Object} "configuration options"] provided
+by [cmd nx::Object]. The available configuration options can be
+modified using [method configure], their current value can be queried
+using [method cget].
 
-[call [arg obj] [method {info has mixin}] ...]
-[para] Description of [method {info has mixin}] ...
+[call [arg obj] [method info] [method has] [method mixin] | [method namespace] | [method type] [opt ...]]
 
+[list_begin definitions]
+[def "[arg obj] [method info] [method has] [method mixin] [arg className]"] 
 
-[call [arg obj] [method {info has namespace}] ...]
-[para] Description of [method {info has namespace}] ...
+Verifies whether [arg obj] has a given [cmd nx::Class] [arg className] registered as a [term "mixin class"] (returns: [const true]) or not (returns: [const false]).
 
+[def "[arg obj] [method info] [method has] [method namespace]"]
 
-[call [arg obj] [method {info has type}] ...]
-[para] Description of [method {info has type}] ...
+Checks whether the object has a companion Tcl namespace (returns:
+[const true]) or not (returns: [const false]). The namespace could
+have been created using, for example, [method "object require namespace"]. 
 
+[comment {Note that the results do not necessarily correspond
+  to those yielded by '''[namespace exists /obj/]'''.}]
 
-[call [arg obj] [method {info info}] ...]
-[para] Description of [method {info info}] ...
+[def "[arg obj] [method "info has type"] [arg className]"]
 
+Tests whether the [cmd nx::Class] [arg className] is a type of the
+object (returns: [const true]) or not (returns: [const false]). That
+is, the method checks whether the object is a direct instance of [arg className] or
+an indirect instance of one of the superclasses of [arg className].
+
+[list_end]
+
+[call [arg obj] [method {info info}]]
+Lists the available [term "submethod"]s of the [method info] [term "method ensemble"].
 
 [call [arg obj] [method {info lookup configure parameters}] ...]
 [para] Description of [method {info lookup configure parameters}] ...
@@ -402,8 +424,10 @@ completed, can be defined to store intermediate results.
 [call [arg obj] [method {info lookup variables}] ...]
 [para] Description of [method {info lookup variables}] ...
 
-[call [arg obj] [method {info name}] ...]
-[para] Description of [method {info name}] ...
+[call [arg obj] [method {info name}]]
+
+Returns the unqualified name of an object, i.e., the object name
+without any namespace qualifiers.
 
 [call [arg obj] [method {info object filter guard}] ...]
 [para] Description of [method {info object filter guard}] ...
@@ -483,11 +507,22 @@ completed, can be defined to store intermediate results.
 [call [arg obj] [method {info parameter type}] ...]
 [para] Description of [method {info parameter type}] ...
 
-[call [arg obj] [method {info parent}] ...]
-[para] Description of [method {info parent}] ...
+[call [arg obj] [method {info parent}]]
 
-[call [arg obj] [method {info precedence}] ...]
-[para] Description of [method {info precedence}] ...
+Returns the fully qualified name of the parent object of [arg obj], if
+any. If there is no parent object, the name of the Tcl
+namespace containing [arg obj] (e.g., "::") will be reported.
+
+[call [arg obj] [method {info precedence}] [opt [option -intrinsic]] [opt [arg pattern]]]
+
+Lists the classes from which [arg obj] inherits structural (e.g.,
+properties) and behavioral features (e.g., methods) and methods, in
+order of the [term linearisation] scheme in [term NX]. By setting the
+[term switch] [option -intrinsic], only classes which participate in
+superclass/subclass relationships (i.e., intrinsic classes) are
+returned. If a [arg pattern] is provided, only nested classes whose
+names match [arg pattern] are returned. The [arg pattern] string can
+contain special matching characters (see [cmd "string match"]).
 
 [call [arg obj] [method {info variable definition}] ...]
 [para] Description of [method {info variable definition}] ...
@@ -498,8 +533,12 @@ completed, can be defined to store intermediate results.
 [call [arg obj] [method {info variable parameter}] ...]
 [para] Description of [method {info variable parameter}] ...
 
-[call [arg obj] [method {info vars}] ...]
-[para] Description of [method {info vars}] ...
+[call [arg obj] [method {info vars}] [opt [arg pattern]]]
+
+Yields a list of variable names created and defined for the scope of
+[arg obj]. The list can be limited to object variables whose names
+match [arg pattern]. The [arg pattern] string can contain special
+matching characters (see [cmd "string match"]).
 
 [list_end]
 
@@ -529,55 +568,14 @@ performed for a Tcl command representing an object.
 
 [list_begin definitions]
 
-[call [arg obj] [method {object alias}] ...]
-[para] Description of [method {object alias}] ...
-
 [call [arg obj] [method {object filter}] ...]
 [para] Description of [method {object filter}] ...
-
-[call [arg obj] [method {object method}] ...]
-[para] Description of [method {object method}] ...
 
 [call [arg obj] [method {object mixin}] ...]
 [para] Description of [method {object mixin}] ...
 
-[call [arg obj] [method {object property}] ...]
-[para] Description of [method {object property}] ...
-
 [call [arg obj] [method {object variable}] ...]
 [para] Description of [method {object variable}] ...
-
-[list_end]
-
-
-
-
-[cmd_def private]
-
-[list_begin definitions]
-
-[call [arg obj] [method {private}] ...]
-[para] Description of [method {private}] ...
-
-[list_end]
-
-
-
-[cmd_def private]
-
-[list_begin definitions]
-
-[call [arg obj] [method {protected}] ...]
-[para] Description of [method {protected}] ...
-
-[list_end]
-
-[cmd_def public]
-
-[list_begin definitions]
-
-[call [arg obj] [method {public}] ...]
-[para] Description of [method {public}] ...
 
 [list_end]
 
