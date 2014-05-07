@@ -4,7 +4,7 @@
 [keywords "forward method"]
 [keywords "debugging level"]
 
-[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset SCOPE]] [method forward] [arg methodName] [opt [option "-prefix [arg prefixName]"]] [opt [option "-frame object"]] [opt [option "-returns [arg valueChecker]"]] [opt [option "-verbose"]] [arg target] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset SCOPE]] [method forward] [arg methodName] [opt "[option -prefix] [arg prefixName]"] [opt "[option -frame] [arg object]"] [opt "[option -returns] [arg valueChecker]"] [opt [option -verbose]] [arg target] [opt "[arg arg] ..."]]
 
 Define a [term "forward method"] for the given [vset SCOPE]. The
 definition of a [term "forward method"] registers a predefined, but
@@ -89,7 +89,7 @@ become called by a [term "forward method"], a prefix [arg prefixName]
 can be set using [option "-prefix"]. This prefix is prepended
 automatically to the argument following [arg target] (i.e., a second
 argument), if present. If missing, [option "-prefix"] has no
-effect on the [term "forward method"] call.
+effect on the [term "forward method"] call. 
 
 [para]
 To inspect and to debug the conversions performed by the above

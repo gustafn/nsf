@@ -37,8 +37,7 @@ specializes the [term baseclass] [cmd nx::Object], beforehand.
 
 [list_begin definitions]
 
-
-[call [cmd nx::Object] [method create] [arg objectName] [opt "-object-mixin [arg mixinSpec]"] [opt "-class [arg newClassName]"] [opt "-object-filter [arg filterSpec]"] [opt [arg initBlock]]]
+[call [cmd nx::Object] [method create] [arg objectName] [opt "[option -object-mixin] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filter] [arg filterSpec]"] [opt [arg initBlock]]]
 
 [para] 
 
@@ -48,7 +47,7 @@ To create a direct instance of [cmd nx::Object] having an explicit
 an instance of [cmd nx::Class]. This way, singelton objects can be
 created, for example.
 
-[call [cmd nx::Object] [method new] [opt "-object-mixin [arg mixinSpec]"] [opt "-class [arg newClassName]"] [opt "-object-filter [arg filterSpec]"] [opt [arg initBlock]]]
+[call [cmd nx::Object] [method new] [opt "[option -object-mixin] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filter] [arg filterSpec]"] [opt [arg initBlock]]]
 
 To create a direct instance of [cmd nx::Object] having an
 automatically assigned, implict object name, use [method new] on [cmd nx::Object]. Note
@@ -182,7 +181,7 @@ constructing relatively named objects. Fully qualified object names in
 
 [para]
 
-[option "-withnew [arg trueFalse]"] requests the automatic rescoping of
+[option "-withnew"] requests the automatic rescoping of
 objects created using [method new] so that they become nested into the
 receiver object [arg obj], rather than being created in the default
 namespace for autonamed objects (i.e., ::nsf). If turned off,
@@ -190,11 +189,11 @@ autonamed objects do not become children of [arg obj].
 
 [para]
 
-The parent object to be used instead of [arg obj] can be specified
-using [option "-object [arg objectName]"]. If this explicitly set parent
+The parent object [arg objectName] to be used instead of [arg obj] can be specified
+using [option "-object"]. If this explicitly set parent
 object does not exist prior to calling [method contains], it will be
 created on the fly as a direct instance of [cmd nx::Object]. Alternatively,
-using [option "-class [arg className]"], a class [arg className] other
+using [option "-class"], a class [arg className] other
 than [cmd nx::Object] for the on-the-fly creation of [arg objectName]
 can be provided.
 
@@ -373,14 +372,14 @@ by [cmd nx::Object]. The available configuration options can be
 modified using [method configure], their current value can be queried
 using [method cget].
 
-[call [arg obj] [method info] [method has] [method mixin] | [method namespace] | [method type] [opt ...]]
+[call [arg obj] [method info] [method has] [method mixin] | [method namespace] | [method type] [opt "[arg arg] ..."]]
 
 [list_begin definitions]
-[def "[arg obj] [method info] [method has] [method mixin] [arg className]"] 
+[def "[arg obj] [method "info method has mixin"] [arg className]"] 
 
 Verifies whether [arg obj] has a given [cmd nx::Class] [arg className] registered as a [term "mixin class"] (returns: [const true]) or not (returns: [const false]).
 
-[def "[arg obj] [method info] [method has] [method namespace]"]
+[def "[arg obj] [method "info has namespace"]"]
 
 Checks whether the object has a companion Tcl namespace (returns:
 [const true]) or not (returns: [const false]). The namespace could
@@ -596,7 +595,7 @@ variables become available as namespace variables.
 
 [list_begin definitions]
 
-[call [arg obj] [const object] [method property] [opt "-accessor public|private|protected"] [opt "-configurable [arg trueFalse]"] [opt -incremental] [opt "-class [arg className]"] [opt -nocomplain] [arg spec] [opt [arg initBlock]]]
+[call [arg obj] [const object] [method property] [opt "[option -accessor] public | protected | private"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt [option -nocomplain]] [arg spec] [opt [arg initBlock]]]
 
 [include property.man.inc]
 
@@ -627,7 +626,7 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 [cmd_def alias]
 [list_begin definitions]
 
-[call [arg obj] [opt "public | private | protected"] [const object] [cmd alias] [arg methodName] [opt "-returns [arg valueChecker]"] [opt "-frame object | method"] [arg cmdName]]
+[call [arg obj] [opt "public | private | protected"] [const object] [cmd alias] [arg methodName] [opt "[option -returns] [arg valueChecker]"] [opt "[option -frame] object | method"] [arg cmdName]]
 
 [include alias.man.inc]
 
