@@ -1958,7 +1958,8 @@ NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
  *----------------------------------------------------------------------
  */
 
-static NsfClasses ** NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData, int *isNewPtr) 
+static NsfClasses **NsfClassListAddNoDup(NsfClasses **firstPtrPtr, NsfClass *cl, 
+                                         ClientData clientData, int *isNewPtr) 
   nonnull(1) nonnull(2);
 
 static NsfClasses **
@@ -2952,7 +2953,7 @@ GetEnsembleObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *nam
  */
 static NsfObject *GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
                                CONST char **methodName1, int *fromClassNS) 
-  nonnull(1) nonnull(3) nonnull(5);
+  nonnull(1) nonnull(3) nonnull(5) nonnull(2);
 
 static NsfObject *
 GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
@@ -2962,6 +2963,7 @@ GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
   size_t objNameLength;
 
   assert(interp); // autoadded
+  assert(cmd);
   assert(methodName); // autoadded
   assert(fromClassNS); // autoadded
 
@@ -5193,11 +5195,12 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName) {
  *
  *----------------------------------------------------------------------
  */
-static int NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) nonnull(1);
+static int NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) nonnull(1) nonnull(2);
 
 static int
 NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
 
+  assert(cmd); // autoadded
   assert(interp); // autoadded
 
   /*fprintf(stderr, "NSDeleteChildren child %p flags %.6x epoch %d\n",
@@ -6292,12 +6295,13 @@ CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object) {
  * Cmd List Add/Remove ... returns the new element
  */
 static NsfCmdList *CmdListAdd(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicates, int atEnd) 
-  nonnull(1);
+  nonnull(1) nonnull(2);
 
 static NsfCmdList *
 CmdListAdd(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicates, int atEnd) {
   NsfCmdList *l, *nextPtr, *new;
 
+  assert(c); // autoadded
   assert(cList); // autoadded
 
   if (unlikely(atEnd)) {
@@ -6373,11 +6377,13 @@ CmdListAdd(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj, int noDuplicate
  *
  *----------------------------------------------------------------------
  */
-static NsfCmdList *CmdListAddSorted(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj) nonnull(1);
+static NsfCmdList *CmdListAddSorted(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj) nonnull(1) nonnull(2);
 
 static NsfCmdList *
 CmdListAddSorted(NsfCmdList **cList, Tcl_Command c, NsfClass *clorobj) {
   NsfCmdList *prev, *new, *h;
+
+  assert(c); // autoadded
 
   assert(cList); // autoadded
 
@@ -6594,10 +6600,12 @@ CmdListFree(NsfCmdList **cmdList, NsfFreeCmdListClientData *freeFct) {
  * simple list search proc to search a list of cmds
  * for a command ptr
  */
-static NsfCmdList * CmdListFindCmdInList(Tcl_Command cmd, NsfCmdList *l) nonnull(2);
+static NsfCmdList * CmdListFindCmdInList(Tcl_Command cmd, NsfCmdList *l) nonnull(2) nonnull(1);
 
 static NsfCmdList *
 CmdListFindCmdInList(Tcl_Command cmd, NsfCmdList *l) {
+
+  assert(cmd); // autoadded
 
   assert(l); // autoadded
 
@@ -7748,13 +7756,15 @@ static int AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTable
 			 Tcl_Obj *resultSet, NsfClass *cl,
 			 ClientData clientData, int *new, int appendResult,
 			 CONST char *pattern, NsfObject *matchObject) 
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6);
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6) nonnull(5);
 
 static int
 AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 			 Tcl_Obj *resultSet, NsfClass *cl,
 			 ClientData clientData, int *new, int appendResult,
 			 CONST char *pattern, NsfObject *matchObject) {
+
+  assert(clientData); // autoadded
 
   assert(interp); // autoadded
   assert(destTablePtr); // autoadded
@@ -9003,13 +9013,15 @@ GuardCall(NsfObject *object, Tcl_Interp *interp, Tcl_Obj *guardObj, NsfCallStack
 }
 
 static int GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
-                           NsfCmdList *interceptorDefList) nonnull(1) nonnull(3);
+                           NsfCmdList *interceptorDefList) nonnull(1) nonnull(3) nonnull(2);
 
 static int
 GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
                            NsfCmdList *interceptorDefList) {
   if (interceptorDefList) {
     NsfCmdList *h = CmdListFindCmdInList(interceptorCmd, interceptorDefList);
+
+  assert(interceptorCmd); // autoadded
 
   assert(dest); // autoadded
   assert(interceptorDefList); // autoadded
@@ -9029,7 +9041,7 @@ GuardAddFromDefinitionList(NsfCmdList *dest, Tcl_Command interceptorCmd,
 }
 
 static void GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
-                        NsfObject *object, Tcl_Command filterCmd) nonnull(1) nonnull(2) nonnull(3);
+                        NsfObject *object, Tcl_Command filterCmd) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static void
 GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
@@ -9037,6 +9049,8 @@ GuardAddInheritedGuards(Tcl_Interp *interp, NsfCmdList *dest,
   NsfClasses *pl;
   int guardAdded = 0;
   NsfObjectOpt *opt;
+
+  assert(filterCmd); // autoadded
 
   assert(interp); // autoadded
   assert(dest); // autoadded
@@ -9716,12 +9730,14 @@ FilterStackPop(NsfObject *object) {
  * "<class> filter <filterName>,
  * or an empty list, if not registered
  */
-static Tcl_Obj * FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) nonnull(1) nonnull(2);
+static Tcl_Obj * FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) nonnull(1) nonnull(2) nonnull(3);
 
 static Tcl_Obj *
 FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   NsfClasses *pl;
+
+  assert(cmd); // autoadded
 
   assert(interp); // autoadded
   assert(object); // autoadded
@@ -11051,7 +11067,7 @@ ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
  */
 static int ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
          CONST char *methodName, NsfObject *object, NsfClass *cl, Tcl_Command cmdPtr,
-         NsfCallStackContent *cscPtr) nonnull(2) nonnull(4) nonnull(5) nonnull(6) nonnull(8) nonnull(9);
+         NsfCallStackContent *cscPtr) nonnull(2) nonnull(4) nonnull(5) nonnull(6) nonnull(8) nonnull(9) nonnull(1);
 
 static int
 ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
@@ -11067,6 +11083,8 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 #else
   ParseContext pc, *pcPtr = &pc;
 #endif
+
+  assert(cp); // autoadded
 
   assert(interp); // autoadded
   assert(objv); // autoadded
@@ -11236,7 +11254,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
  */
 static int CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                              NsfObject *object, Tcl_Command cmd, NsfCallStackContent *cscPtr) 
-  nonnull(2) nonnull(4) nonnull(5);
+  nonnull(2) nonnull(4) nonnull(5) nonnull(6);
 
 static int
 CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
@@ -11649,7 +11667,7 @@ static int MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 		  int objc, Tcl_Obj *CONST objv[],
 		  Tcl_Command cmd,
 		  NsfCallStackContent *cscPtr, CONST char *methodName,
-		  int *validCscPtr) nonnull(2) nonnull(4) nonnull(6) nonnull(7) nonnull(8);
+		  int *validCscPtr) nonnull(2) nonnull(4) nonnull(6) nonnull(7) nonnull(8) nonnull(1) nonnull(5);
 
 static int
 MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
@@ -11661,6 +11679,9 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   ClientData cp = Tcl_Command_objClientData(cmd);
   Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
   NsfCallStackContent *cscPtr1;
+
+  assert(clientData); // autoadded
+  assert(cmd); // autoadded
 
   assert(interp); // autoadded
   assert(objv); // autoadded
@@ -12803,7 +12824,7 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
   return Tcl_NRCallObjProc(interp, NsfObjDispatchNRE, clientData, objc, objv);
 }
-int NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) nonnull(2) nonnull(4);
+int NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) nonnull(2) nonnull(4) nonnull(1);
 
 int
 NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -14896,7 +14917,7 @@ NsfProcStubDeleteProc(ClientData clientData) {
  *
  *----------------------------------------------------------------------
  */
-static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr) nonnull(1) nonnull(2) nonnull(4);
+static int InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr) nonnull(1) nonnull(2) nonnull(4) nonnull(3);
 
 static int
 InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, ParseContext *pcPtr) {
@@ -14906,6 +14927,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
   CONST char *fullMethodName = ObjStr(procNameObj);
   Tcl_CallFrame *framePtr;
   Proc *procPtr;
+
+  assert(cmd); // autoadded
 
   assert(interp); // autoadded
   assert(procNameObj); // autoadded
@@ -15026,12 +15049,14 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Command cmd, Pa
  *
  *----------------------------------------------------------------------
  */
-int NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) nonnull(2) nonnull(4);
+int NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) nonnull(2) nonnull(4) nonnull(1);
 
 int
 NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfProcClientData *tcd = clientData;
   int result;
+
+  assert(clientData); // autoadded
 
   assert(interp); // autoadded
   assert(objv); // autoadded
@@ -17921,10 +17946,12 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *o
 /*
  * obj/cl ClientData setter/getter
  */
-void NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object1, ClientData data) nonnull(1) nonnull(2);
+void NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object1, ClientData data) nonnull(1) nonnull(2) nonnull(3);
 
 void
 NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object1, ClientData data) {
+
+  assert(data); // autoadded
 
   assert(interp); // autoadded
   assert(object1); // autoadded
@@ -17940,10 +17967,12 @@ NsfGetObjClientData(Tcl_Interp *interp, Nsf_Object *object1) {
   NsfObject *object = (NsfObject *) object1;
   return (object && object->opt) ? object->opt->clientData : NULL;
 }
-void NsfSetClassClientData(Tcl_Interp *interp, Nsf_Class *cli, ClientData data) nonnull(1) nonnull(2);
+void NsfSetClassClientData(Tcl_Interp *interp, Nsf_Class *cli, ClientData data) nonnull(1) nonnull(2) nonnull(3);
 
 void
 NsfSetClassClientData(Tcl_Interp *interp, Nsf_Class *cli, ClientData data) {
+
+  assert(data); // autoadded
 
   assert(interp); // autoadded
   assert(cli); // autoadded
@@ -19886,7 +19915,7 @@ ListParamDefs(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfParamsPrintStyl
  */
 
 static int ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
-	      NsfParamsPrintStyle printStyle) nonnull(1) nonnull(3);
+	      NsfParamsPrintStyle printStyle) nonnull(1) nonnull(3) nonnull(2);
 
 static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
@@ -20083,7 +20112,7 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
 
 static void AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *registerCmdName,
                          NsfObject *object, CONST char *methodName, Tcl_Command cmd,
-                         int withObjFrame, int withPer_object, int withProtection) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+                         int withObjFrame, int withPer_object, int withProtection) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5) nonnull(6);
 
 static void
 AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *registerCmdName,
@@ -20098,6 +20127,8 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
 			     ? Tcl_NewStringObj("protected", 9)
 			     : Tcl_NewStringObj("public", 6));
   }
+
+  assert(cmd); // autoadded
 
   assert(interp); // autoadded
   assert(listObj); // autoadded
@@ -20121,11 +20152,13 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
   }
 }
 
-static void AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) nonnull(1) nonnull(2);
+static void AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) nonnull(1) nonnull(2) nonnull(3);
 
 static void
 AppendReturnsClause(Tcl_Interp *interp, Tcl_Obj *listObj, Tcl_Command cmd) {
   NsfParamDefs *paramDefs;
+
+  assert(cmd); // autoadded
 
   assert(interp); // autoadded
   assert(listObj); // autoadded
@@ -20553,7 +20586,7 @@ static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object) 
 static int MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
                              NsfObject *object, CONST char *methodName, int withPer_object,
                              int *isObject) 
-  nonnull(1) nonnull(5) nonnull(7);
+  nonnull(1) nonnull(5) nonnull(7) nonnull(3);
 
 static int
 MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
@@ -20561,6 +20594,8 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
 		  int *isObject) {
   Tcl_Command importedCmd;
   Tcl_ObjCmdProc *proc, *resolvedProc;
+
+  assert(cmd); // autoadded
 
   assert(interp); // autoadded
   assert(methodName); // autoadded
