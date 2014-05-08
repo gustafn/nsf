@@ -13087,13 +13087,14 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   assert(outObjPtr); // autoadded
 
   if (unlikely(pPtr->converterArg != NULL)) {
-    Tcl_Obj *objv[3];
+    Tcl_Obj *objv[4];
     /*fprintf(stderr, "ConvertToTclobj %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
 
     objv[1] = pPtr->converterArg;
-    objv[2] = objPtr;
+    objv[2] = NsfGlobalObjs[NSF_OPTION_STRICT];
+    objv[3] = objPtr;
 
-    result = NsfCallCommand(interp, NSF_IS, 3, objv);
+    result = NsfCallCommand(interp, NSF_STRING_IS, 4, objv);
     if (likely(result == TCL_OK)) {
       int success;
       Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &success);
