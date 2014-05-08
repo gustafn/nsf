@@ -367,7 +367,7 @@ Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 EXTERN int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
 		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj)
-  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(5);
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 
 
 EXTERN int

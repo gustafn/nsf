@@ -987,10 +987,11 @@ EXTERN int NsfGetClassFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr,
 EXTERN int NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
 			  int objc, Tcl_Obj *CONST objv[])
   nonnull(1) nonnull(2) nonnull(4);
+
 EXTERN int NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, 
 			   Tcl_Obj *cmdName, Tcl_Obj *methodName, 
 			   char *arglist)
-  nonnull(1) nonnull(2) nonnull(5);
+  nonnull(1) nonnull(2);
 
 EXTERN CONST char *NsfMethodName(Tcl_Obj *methodObj)
   nonnull(1) returns_nonnull;
