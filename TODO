@@ -5011,6 +5011,42 @@ nsf.c:
 ========================================================================
 TODO:
 
+- multiplicity: Check or clarify the intended semantics of the lower
+  bound 1 in 0..1/1..1 when it comes to the empty string "".
+
+  What is the intended difference between:
+
+  ::nsf::is 1..1 ""; # 1
+  vs.
+  ::nsf::is 0..1 ""; # 1
+  
+  or
+
+  ::nsf::is alnum,1..1 ""; # 1
+  vs.
+  ::nsf::is alnum,0..1 ""; # 1
+
+  ???
+
+  I suggest that a lower bound of 1 should semantically match what is
+  meant by [string is /class/ -strict], e.g.:
+  	                      ^^^^^^^				
+  ::string is alnum -strict ""; # == alnum,1..1 -> false
+  ::string is alnum ""; # == alnum,0..1 -> true
+
+  Thinking of this makes me also wonder what the difference between
+  specifying 0..1 and simply omitting any multiplicity spec is,
+  actually:
+
+  ::nsf::is alnum,0..1 ""; # 1	
+  vs.
+  ::nsf::is alnum ""; # 1
+  
+  While 0..*/1..* etc. imply a list conversion (=check for a valid
+  list), and 1..1 could check -strict, 0..1 does not imply any rep
+  conversion or rep condition. Can we drop it, and just keep 1..1,
+  0..*, and 1..* (and the alternative notations: 0..n, 1..n)?
+
 - check autoadded asserts; complete asserts for other .c files
 - check nonnull with various compilers for tcl8.6
 
