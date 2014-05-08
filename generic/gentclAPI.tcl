@@ -30,7 +30,7 @@
 #
 
 set ::converter ""
-set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\]);"
+set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\])"
 
 proc convertername {type typename} {
   return [string totitle [string trimleft $typename -]]
@@ -125,9 +125,10 @@ proc genifd {parameterDefinitions} {
 }
 
 proc gencall {methodName fn parameterDefinitions clientData 
-	      cDefsVar ifDefVar arglistVar preVar postVar introVar} {
+	      cDefsVar ifDefVar arglistVar preVar postVar introVar nnVar
+	    } {
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
-      $introVar intro 
+      $introVar intro $nnVar nn
   set c [list]
   set i 0
   set pre ""; set post ""
@@ -137,16 +138,18 @@ proc gencall {methodName fn parameterDefinitions clientData
     class {
       set a  [list cl]
       set if [list "NsfClass *cl"]
+      set argNum 3
       append intro \
-          "  NsfClass *cl =  NsfObjectToClass(clientData);" \n \
+          "  NsfClass *cl =  NsfObjectToClass(clientData);" \n\n \
           "  assert(objc > 0);" \n \
           "  if (unlikely(cl == NULL)) return NsfDispatchClientDataError(interp, clientData, \"class\", ObjStr(objv\[0\]));"
     }
     object {
       set a  [list obj]
       set if [list "NsfObject *obj"]
+      set argNum 3
       append intro \
-          "  NsfObject *obj =  (NsfObject *)clientData;" \n \
+          "  NsfObject *obj =  (NsfObject *)clientData;" \n\n \
           "  assert(objc > 0);" \n \
           "  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, \"object\",  ObjStr(objv\[0\]));"
     }
@@ -154,6 +157,7 @@ proc gencall {methodName fn parameterDefinitions clientData
       append intro "  (void)clientData;\n"
       set a [list]
       set if [list]
+      set argNum 2
       array set cd {arglist "" ifDefs ""}
     }
   }
@@ -241,6 +245,10 @@ proc gencall {methodName fn parameterDefinitions clientData
         }
       }
     }
+
+    if {[string match {*[*]*} $type] && $(-required)} {
+      append nn " NSF_nonnull($argNum)"
+    }
     if {!$ifSet} {lappend if "$type$varName"}
     if {$cVar} {
       if {$type eq "int "} {
@@ -251,6 +259,7 @@ proc gencall {methodName fn parameterDefinitions clientData
     }
     lappend a $calledArg
     incr i
+    incr argNum
   }
   set ifDef   [join $if ", "]
   set cDefs   [join $c "\n    "]
@@ -317,11 +326,23 @@ proc genstubs {} {
     array set d $::definitions($key)
     lappend enums $d(idx)
     set nrParams [llength $d(parameterDefinitions)]
-    set stubDecl "static int $d(stub)$::objCmdProc\n"
+    set nn ""
+
+    gencall $d(methodName) $d(stub) $d(parameterDefinitions) $d(clientData) \
+	cDefs ifDef arglist pre post intro nn
+
+    if {[dict get $::definitions($key) clientData] ne ""} {
+      set stubNN "NSF_nonnull(1) "
+      set NN " NSF_nonnull(2)"
+      regsub \n\n $intro "\n\n  assert(clientData);\n" intro
+    } else {
+      set stubNN ""
+      set NN ""
+    }
+    set stubDecl "static int $d(stub)$::objCmdProc\n  ${stubNN}NSF_nonnull(2) NSF_nonnull(4);\n"
     set ifd "{\"$d(ns)::$d(methodName)\", $d(stub), $nrParams, {\n  [genifd $d(parameterDefinitions)]}\n}"
-    
-    gencall $d(methodName) $d(stub) $d(parameterDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
-    append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef];\n"
+
+    append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef]\n  NSF_nonnull(1)${NN}${nn};\n"
     if {$post ne ""} {
       append cDefs "\n    int returnCode;"
       set call "returnCode = [implArgList $d(implementation) {} $arglist];"
@@ -335,7 +356,6 @@ proc genstubs {} {
     if {$nrParams == 1 && $arglist eq "objc, objv"} {
       # TODO we would not need to generate a stub at all.... 
       #set ifd "{\"$d(ns)::$d(methodName)\", $d(implementation), $nrParams, {\n  [genifd $d(parameterDefinitions)]}\n}"
-      #set stubDecl "static int $d(implementation)$::objCmdProc\n"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     } elseif {$nrParams == 1 && $arglist eq "obj, objc, objv"} {
       # no need to call objv parser
@@ -357,8 +377,10 @@ proc genstubs {} {
     
     if {$defs(-required)} {
       set op "objc != 2"
+      set newArg {objv[1]}
     } else {
       set op "objc < 1 || objc > 2"
+      set newArg {objc == 2 ? objv[1] : NULL}
     }
     append pre [subst -nocommands {
       if ($op) {
@@ -368,7 +390,6 @@ proc genstubs {} {
       }
     }]
 
-    set newArg {objc == 2 ? objv[1] : NULL}
     if {[regexp {^(.*),(.*)$} $arglist _ arg1]} {
       set newArglist "$arg1, $newArg"
     } else {

@@ -90,63 +90,119 @@ static Nsf_methodDefinition method_definitions[29];
 static CONST char *method_command_namespace_names[] = {
   "::mongo"
 };
-static int NsfCollectionCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfCollectionOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCollectionCountStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCollectionDeleteStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCollectionIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCollectionInsertStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCollectionQueryStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCollectionStatsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCollectionUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCursorAggregateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCursorCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCursorFindStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoCursorNextStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFSCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFSOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileCreateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileDeleteStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileGetContentTypeStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileGetContentlengthStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileGetMetaDataStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfMongoStatusStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCollectionCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfCollectionOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCollectionCountStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCollectionDeleteStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCollectionIndexStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCollectionInsertStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCollectionQueryStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCollectionStatsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCollectionUpdateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoConnectStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCursorAggregateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCursorCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCursorFindStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoCursorNextStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFSCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFSOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileCloseStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileCreateStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileDeleteStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileGetContentTypeStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileGetContentlengthStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileGetMetaDataStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileOpenStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileReadStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoGridFileSeekStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoRunCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMongoStatusStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
 
-static int NsfCollectionClose(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *collectionObj);
-static int NsfCollectionOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, CONST char *dbname, CONST char *collectionname);
-static int NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj);
-static int NsfMongoCollectionCount(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query);
-static int NsfMongoCollectionDelete(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *condition);
-static int NsfMongoCollectionIndex(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *attributes, CONST char *withName, int withBackground, int withDropdups, int withSparse, int withTtl, int withUnique);
-static int NsfMongoCollectionInsert(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *values);
-static int NsfMongoCollectionQuery(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip);
-static int NsfMongoCollectionStats(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *withOptions);
-static int NsfMongoCollectionUpdate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *cond, Tcl_Obj *values, int withUpsert, int withAll);
-static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withUri);
-static int NsfMongoCursorAggregate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *pipeline, Tcl_Obj *options, int withTailable, int withAwaitdata);
-static int NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr, Tcl_Obj *cursorObj);
-static int NsfMongoCursorFind(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip, int withTailable, int withAwaitdata);
-static int NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr);
-static int NsfMongoGridFSClose(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *gfsObj);
-static int NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, CONST char *dbname, CONST char *prefix);
-static int NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, Tcl_Obj *gridfileObj);
-static int NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource, mongoc_gridfs_t *gfsPtr, CONST char *value, CONST char *name, CONST char *contenttype, Tcl_Obj *withMetadata);
-static int NsfMongoGridFileDelete(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *query);
-static int NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr);
-static int NsfMongoGridFileGetContentlength(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr);
-static int NsfMongoGridFileGetMetaData(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr);
-static int NsfMongoGridFileOpen(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *query);
-static int NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int size);
-static int NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int offset);
-static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *connPtr, CONST char *db, Tcl_Obj *cmd);
-static int NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj);
+static int NsfCollectionClose(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *collectionObj)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfCollectionOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, CONST char *dbname, CONST char *collectionname)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
+static int NsfMongoClose(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoCollectionCount(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfMongoCollectionDelete(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *condition)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfMongoCollectionIndex(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *attributes, CONST char *withName, int withBackground, int withDropdups, int withSparse, int withTtl, int withUnique)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfMongoCollectionInsert(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *values)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfMongoCollectionQuery(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfMongoCollectionStats(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *withOptions)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoCollectionUpdate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *cond, Tcl_Obj *values, int withUpsert, int withAll)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
+static int NsfMongoConnect(Tcl_Interp *interp, CONST char *withUri)
+  NSF_nonnull(1);
+static int NsfMongoCursorAggregate(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *pipeline, Tcl_Obj *options, int withTailable, int withAwaitdata)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
+static int NsfMongoCursorClose(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr, Tcl_Obj *cursorObj)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoCursorFind(Tcl_Interp *interp, mongoc_collection_t *collectionPtr, Tcl_Obj *query, Tcl_Obj *withAtts, int withLimit, int withSkip, int withTailable, int withAwaitdata)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfMongoCursorNext(Tcl_Interp *interp, mongoc_cursor_t *cursorPtr)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoGridFSClose(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *gfsObj)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoGridFSOpen(Tcl_Interp *interp, mongoc_client_t *connPtr, CONST char *dbname, CONST char *prefix)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
+static int NsfMongoGridFileClose(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, Tcl_Obj *gridfileObj)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoGridFileCreate(Tcl_Interp *interp, int withSource, mongoc_gridfs_t *gfsPtr, CONST char *value, CONST char *name, CONST char *contenttype, Tcl_Obj *withMetadata)
+  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
+static int NsfMongoGridFileDelete(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *query)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfMongoGridFileGetContentType(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoGridFileGetContentlength(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoGridFileGetMetaData(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoGridFileOpen(Tcl_Interp *interp, mongoc_gridfs_t *gfsPtr, Tcl_Obj *query)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfMongoGridFileRead(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int size)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoGridFileSeek(Tcl_Interp *interp, mongoc_gridfs_file_t *gridfilePtr, int offset)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfMongoRunCmd(Tcl_Interp *interp, int withNocomplain, mongoc_client_t *connPtr, CONST char *db, Tcl_Obj *cmd)
+  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5);
+static int NsfMongoStatus(Tcl_Interp *interp, mongoc_client_t *connPtr, Tcl_Obj *connObj)
+  NSF_nonnull(1) NSF_nonnull(2);
 
 enum {
  NsfCollectionCloseIdx,
