@@ -383,7 +383,7 @@ EXTERN int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
 			   Nsf_Object *object, Nsf_Param CONST *paramPtr,
 			   Tcl_Obj *procNameObj)
-  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5);
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5);
 
 EXTERN int
 NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
@@ -392,7 +392,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 				 Nsf_Param CONST *currentParamPtr,
 				 Nsf_Param CONST *paramPtr,
 				 Tcl_Obj *procNameObj)
-  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
 
 /*
  * logging
