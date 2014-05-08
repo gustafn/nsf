@@ -5011,7 +5011,20 @@ nsf.c:
 ========================================================================
 TODO:
 
-=======
+- incremental: should we add a third operation?
+
+  /obj/ /prop/ get /index/
+
+  right now, we only provide a setter facade (add, delete) for list
+  values, no getter one. Reasons: consistency (per-element getter +
+  setter), a complete getter+setter facade would also allow for
+  switching from a list representation of multivalued values to
+  another one (e.g., some mongodb data structure?) without changing
+  clients of the incremental interface (e.g., which now use [lindex]
+  etc. to retrieve elements from the property-managed list value) ...
+
+  get would behave like (=be implemented with) lindex.
+
 - multiplicity: Check or clarify the intended semantics of the lower
   bound 1 in 0..1/1..1 when it comes to the empty string "".
 

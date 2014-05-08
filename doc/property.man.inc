@@ -1,6 +1,6 @@
 [comment {-*- tcl -*- manpage fragment for property method, shared by nx::Object and nx::Class}]
 
-[keywords property]
+[keywords "property"]
 [keywords "slot object"]
 [keywords "call protection"]
 [keywords "public"]
@@ -8,6 +8,7 @@
 [keywords "private"]
 [keywords "switch"]
 [keywords "value checker"]
+[keywords "multiplicity"]
 
 Defines a [term property] for the scope of the [vset SCOPE]. For every
 property, a [term "slot object"] is created to manage the
@@ -18,11 +19,6 @@ and setter methods, automatically. By default, no getter and setter
 methods are created. The option value passed along [option "-accessor"]
 sets the level of [term "call protection"] for the getter and setter
 methods: [term public], [term protected], or [term private].
-
-[list_begin arguments]
-[arg_def switch -incremental in] ...
-
-[list_end]
 
 [para]
 
@@ -57,3 +53,21 @@ sets a [emph defaultValue] for this property.
 The last argument [arg initBlock] accepts an optional Tcl script which is passed into
 the initialization procedure (see [method configure]) of the [term property]'s [term "slot object"]. See
 also [sectref description "[arg initBlock] for [method create] and [method new]"].
+
+[para]
+
+Turning on the [term switch] [option -incremental] provides a refined
+setter interface to the value managed by the [term property]. First,
+setting [option -incremental] implies requesting [option -accessor]
+(set to [emph public] by default, if not specified explicitly). Second,
+the managed value will be considered a valid Tcl list. A [term multiplicity] of
+[const 0..*] is set by default, if not specified explicitly as part of
+[arg spec] (see above). Third, to manage this list value
+[emph incrementally], two additional operations become available:
+
+[list_begin definitions]
+[def "[arg obj] [arg propertyName] [method add] [arg element] [opt [arg index]]"]
+Adding [arg element] to the managed list value, at the list position given by [arg index] (by default: 0).
+[def "[arg obj] [arg propertyName] [method delete] [arg element] [opt [arg index]]"]
+Removing the first occurrence of [arg value] from the managed list value, starting from list position [arg index] (by default: [const end]).
+[list_end]
