@@ -412,7 +412,7 @@ EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
 
 EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free)
-  NSF_nonnull(1) NSF_nonnull(2);
+  NSF_nonnull(2);
 
 EXTERN void Nsf_PointerInit(Tcl_Interp *interp)
   NSF_nonnull(1);

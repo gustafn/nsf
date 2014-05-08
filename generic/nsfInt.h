@@ -917,14 +917,11 @@ EXTERN void NsfProfileRecordMethodData(Tcl_Interp* interp, NsfCallStackContent *
   nonnull(1) nonnull(2);
 EXTERN void NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, long startUsec)
   nonnull(1) nonnull(2);
-EXTERN void NsfProfileInit(Tcl_Interp *interp)
-  nonnull(1);
-EXTERN void NsfProfileFree(Tcl_Interp *interp)
-  nonnull(1);
-EXTERN void NsfProfileClearData(Tcl_Interp *interp)
-  nonnull(1);
-EXTERN void NsfProfileGetData(Tcl_Interp *interp)
-  nonnull(1);
+EXTERN void NsfProfileInit(Tcl_Interp *interp) nonnull(1);
+EXTERN void NsfProfileFree(Tcl_Interp *interp) nonnull(1);
+EXTERN void NsfProfileClearData(Tcl_Interp *interp) nonnull(1);
+EXTERN void NsfProfileGetData(Tcl_Interp *interp) nonnull(1);
+
 EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr)
   nonnull(1) nonnull(2);
 #endif

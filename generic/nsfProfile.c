@@ -49,11 +49,16 @@ typedef struct NsfProfileData {
  *
  *----------------------------------------------------------------------
  */
+static void NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) nonnull(1) nonnull(2);
+
 static void
 NsfProfileFillTable(Tcl_HashTable *table, char *keyStr, double totalMicroSec) {
   NsfProfileData *value;
   Tcl_HashEntry *hPtr;
   int isNew;
+
+  assert(table);
+  assert(keyStr);
 
   hPtr = Tcl_CreateHashEntry(table, keyStr, &isNew);
   if (isNew) {
@@ -94,6 +99,9 @@ NsfProfileRecordMethodData(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   Tcl_DString methodKey, objectKey;
   NsfProfile *profile = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
+
+  assert(interp);
+  assert(cscPtr);
 
   gettimeofday(&trt, NULL);
 
@@ -168,6 +176,9 @@ NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, lo
   double totalMicroSec;
   struct timeval trt;
 
+  assert(interp);
+  assert(methodName);
+
   gettimeofday(&trt, NULL);
 
   totalMicroSec = (trt.tv_sec - startSec) * 1000000 + (trt.tv_usec - startUsec);
@@ -191,12 +202,16 @@ NsfProfileRecordProcData(Tcl_Interp *interp, char *methodName, long startSec, lo
  *----------------------------------------------------------------------
  */
 
+
+static void NsfProfileClearTable(Tcl_HashTable *table) nonnull(1);
+
 static void
 NsfProfileClearTable(Tcl_HashTable *table) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
   assert(table);
+
   for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfProfileData *value = (NsfProfileData *) Tcl_GetHashValue(hPtr);
@@ -220,10 +235,13 @@ NsfProfileClearTable(Tcl_HashTable *table) {
  *
  *----------------------------------------------------------------------
  */
+
 void
 NsfProfileClearData(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
+
+  assert(interp);
 
   NsfProfileClearTable(&profilePtr->objectData);
   NsfProfileClearTable(&profilePtr->methodData);
@@ -250,13 +268,17 @@ NsfProfileClearData(Tcl_Interp *interp) {
  *
  *----------------------------------------------------------------------
  */
+static Tcl_Obj* NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) nonnull(1) nonnull(2);
+
 static Tcl_Obj*
 NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
+  assert(interp);
   assert(table);
+
   for (hPtr = Tcl_FirstHashEntry(table, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfProfileData *value = (NsfProfileData *) Tcl_GetHashValue(hPtr);
@@ -288,12 +310,15 @@ NsfProfileGetTable(Tcl_Interp *interp, Tcl_HashTable *table) {
  *
  *----------------------------------------------------------------------
  */
+
 void
 NsfProfileGetData(Tcl_Interp *interp) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   long totalMicroSec;
   struct timeval trt;
+
+  assert(interp);
 
   gettimeofday(&trt, NULL);
   totalMicroSec = (trt.tv_sec - profilePtr->startSec) * 1000000 + (trt.tv_usec - profilePtr->startUSec);
@@ -328,6 +353,8 @@ NsfProfileInit(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
   struct timeval trt;
 
+  assert(interp);
+
   Tcl_InitHashTable(&profilePtr->objectData, TCL_STRING_KEYS);
   Tcl_InitHashTable(&profilePtr->methodData, TCL_STRING_KEYS);
   Tcl_InitHashTable(&profilePtr->procData, TCL_STRING_KEYS);
@@ -356,6 +383,8 @@ NsfProfileInit(Tcl_Interp *interp) {
 void
 NsfProfileFree(Tcl_Interp *interp) {
   NsfProfile *profilePtr = &RUNTIME_STATE(interp)->profile;
+
+  assert(interp);
 
   NsfProfileClearData(interp);
   Tcl_DeleteHashTable(&profilePtr->objectData);

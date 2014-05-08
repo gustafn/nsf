@@ -5011,7 +5011,7 @@ nsf.c:
 ========================================================================
 TODO:
 
-- check autoadded asserts; complete asserts for other .c files
+- check autoadded asserts
 - check nonnull with various compilers for tcl8.6
 
 - check deactivated tests in tests/serialize.test

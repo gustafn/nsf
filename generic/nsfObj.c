@@ -478,6 +478,11 @@ MixinregSetFromAny(
 
 int
 NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj) {
+
+  assert(obj);
+  assert(clPtr); 
+  assert(guardObj);
+
   if (obj->typePtr == &NsfMixinregObjType) {
     Mixinreg *mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
     *guardObj = mixinRegPtr->guardObj;
@@ -555,10 +560,11 @@ FilterregFreeInternalRep(
 static void
 FilterregDupInternalRep(
     Tcl_Obj *srcObjPtr,
-    Tcl_Obj *dstObjPtr)
-{
+    Tcl_Obj *dstObjPtr) {
   register Filterreg *srcPtr = (Filterreg *)srcObjPtr->internalRep.twoPtrValue.ptr1, *dstPtr;
 
+  assert(srcObjPtr);
+  assert(dstObjPtr);
   assert(srcPtr);
 
 #if defined(METHOD_OBJECT_TRACE)
@@ -655,6 +661,11 @@ FilterregSetFromAny(
 
 int
 NsfFilterregGet(Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj) {
+
+  assert(obj);
+  assert(filterObj);
+  assert(guardObj);
+
   if (obj->typePtr == &NsfFilterregObjType) {
     Filterreg *filterregPtr = obj->internalRep.twoPtrValue.ptr1;
     *filterObj = filterregPtr->filterObj;

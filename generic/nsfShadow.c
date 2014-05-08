@@ -44,11 +44,15 @@
  *
  *----------------------------------------------------------------------
  */
+static int NsfReplaceCommandCleanup(Tcl_Interp *interp, NsfGlobalNames name) nonnull(1);
+
 static int
 NsfReplaceCommandCleanup(Tcl_Interp *interp, NsfGlobalNames name) {
   Tcl_Command cmd;
   int result = TCL_OK;
   NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
+
+  assert(interp);
 
   /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", NsfGlobalStrings[name], ti, interp);*/
   cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
@@ -77,10 +81,16 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, NsfGlobalNames name) {
  *
  *----------------------------------------------------------------------
  */
+static void NsfReplaceCommandCheck(Tcl_Interp *interp, NsfGlobalNames name, Tcl_ObjCmdProc *proc) nonnull(1) nonnull(3);
+
 static void
 NsfReplaceCommandCheck(Tcl_Interp *interp, NsfGlobalNames name, Tcl_ObjCmdProc *proc) {
-  Tcl_Command cmd;
   NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
+  Tcl_Command cmd;
+
+  assert(interp);
+  assert(proc);
+
   cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
   
   if (cmd != NULL && ti->proc && Tcl_Command_objProc(cmd) != proc) {
@@ -110,12 +120,17 @@ NsfReplaceCommandCheck(Tcl_Interp *interp, NsfGlobalNames name, Tcl_ObjCmdProc *
  *
  *----------------------------------------------------------------------
  */
+static int NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
+			     Tcl_ObjCmdProc *nsfReplacementProc, int pass) nonnull(1);
+
 static int
 NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
 		    Tcl_ObjCmdProc *nsfReplacementProc, int pass) {
   Tcl_Command cmd;
   NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
   int result = TCL_OK;
+
+  assert(interp);
 
   /*fprintf(stderr,"NsfReplaceCommand %d\n", name);*/
   cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
@@ -162,12 +177,15 @@ NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
  *
  *----------------------------------------------------------------------
  */
-EXTERN int
-NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+EXTERN int NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) 
+  nonnull(1) nonnull(2) nonnull(4);
 
 static int
 Nsf_InfoBodyObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Command cmd;
+
+  assert(interp);
+  assert(objv); 
 
   if (objc != 2) {
     /* wrong # args, let Tcl generate the error */
@@ -369,8 +387,11 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 int
 NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
   int rc = TCL_OK;
+  assert(interp);
+
   if (load == SHADOW_LOAD) {
     int initialized = (RUNTIME_STATE(interp)->tclCommands != NULL);
+
     assert(initialized == 0);
     RUNTIME_STATE(interp)->tclCommands = 
       NEW_ARRAY(NsfShadowTclCommandInfo, NSF_RENAME - NSF_EXPR + 1);

@@ -58,9 +58,16 @@ NsfGetCompEnv() {
 }
 
 
+static int initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
+		  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
+
 static int
 initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 		  CompileEnv *envPtr) {
+
+  assert(interp);
+  assert(parsePtr);
+  assert(envPtr);
 
   if (parsePtr->numWords != 1) {
 	Tcl_ResetResult(interp);
@@ -76,9 +83,16 @@ initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   return TCL_OK;
 }
 
+static int nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
+		  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
+
 static int
 nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 		  CompileEnv *envPtr) {
+
+  assert(interp);
+  assert(parsePtr);
+  assert(envPtr);
 
   if (parsePtr->numWords != 1) 
     return TCL_OUT_LINE_COMPILE;
@@ -88,9 +102,17 @@ nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
     
   return TCL_OK;
 }
+
+static int selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
+		  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
+
 static int
 selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 		  CompileEnv *envPtr) {
+
+  assert(interp);
+  assert(parsePtr);
+  assert(envPtr);
 
   if (parsePtr->numWords != 1) 
     return TCL_OUT_LINE_COMPILE;
@@ -100,12 +122,21 @@ selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
     
   return TCL_OK;
 }
+
+static int selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
+		  CompileEnv *envPtr) nonnull(1) nonnull(2) nonnull(3);
+
 static int
 selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 		  CompileEnv *envPtr) {
 
   Tcl_Token *tokenPtr;
   int code, wordIdx;
+
+  assert(interp);
+  assert(parsePtr);
+  assert(envPtr);
+
   /*
   fprintf(stderr, "****** selfDispatchCompile words=%d tokens=%d, avail=%d\n",
 	  parsePtr->numWords, parsePtr->numTokens, parsePtr->tokensAvailable);
@@ -158,6 +189,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 void
 NsfBytecodeInit() {
   int i;
+
   for(i=0; i<LAST_INSTRUCTION; i++) {
     if ((instructions[i].bytecode = 
        TclRegisterUserOpcode(&instructionTable[i],
