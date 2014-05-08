@@ -5026,6 +5026,15 @@ TODO:
 
   get would behave like (=be implemented with) lindex.
 
+ >>>
+    * the typical idiom for set-valued db-results is foreach, not lindex.
+      Is there a convincing use case? from databases one gets a "set" of values
+      accessing the nth one is rather a border case.
+    * We have for variable and relation slots aleady "assign", "get", 
+      "add" and "delete", so "get" is not reasonable naming choice.
+    * The slot interface is extensible. different slot methods of choice can be added via
+      packages. so why bloat the implementation?
+
 - check autoadded asserts
 - check nonnull with various compilers for tcl8.6
 
