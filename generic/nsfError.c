@@ -128,6 +128,10 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list vargs) {
  */
 void
 NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]) {
+
+  assert(dsPtr);
+  assert(objv);
+
   if (objc > 0) {
     int i;
     Tcl_DStringAppendElement(dsPtr, NsfMethodName(objv[0]));
@@ -231,12 +235,17 @@ int
 NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
 		Tcl_Obj *methodName, char *arglist) {
   int need_space = 0;
+
+  assert(interp);
+  assert(msg);
+
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, msg, " should be \"", (char *) NULL);
   if (cmdName) {
     Tcl_AppendResult(interp, ObjStr(cmdName), (char *) NULL);
     need_space = 1;
   }
+
   if (methodName) {
     Tcl_Obj *resultObj;
 
@@ -280,6 +289,10 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
   Tcl_Obj *argStringObj = NsfParamDefsSyntax(paramPtr);
 
+  assert(interp);
+  assert(errorMsg);
+  assert(paramPtr);
+
   NsfObjWrongArgs(interp, errorMsg, cmdNameObj, methodObj, ObjStr(argStringObj));
   DECR_REF_COUNT2("paramDefsObj", argStringObj);
 
@@ -306,6 +319,12 @@ int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
 			   Nsf_Object *object, Nsf_Param CONST *paramPtr, Tcl_Obj *procNameObj) {
   Tcl_DString ds, *dsPtr = &ds;
+
+  assert(interp);
+  assert(argumentString);
+  assert(paramPtr);
+  assert(procNameObj);
+
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, "invalid argument '", -1);
   Tcl_DStringAppend(dsPtr, argumentString, -1);
@@ -341,6 +360,12 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 				 Tcl_Obj *procNameObj) {
   Tcl_DString ds, *dsPtr = &ds;
   Nsf_Param CONST *pPtr;
+
+  assert(interp);
+  assert(argumentString);
+  assert(currentParamPtr);
+  assert(paramPtr);
+  assert(procNameObj);
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, "invalid non-positional argument '", -1);
@@ -381,6 +406,11 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 int
 NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
 			   CONST char *what, CONST char *methodName) {
+
+  assert(interp);
+  assert(what);
+  assert(methodName);
+
   if (clientData) {
     return NsfPrintError(interp, "method %s not dispatched on valid %s",
 			 methodName, what);
@@ -407,6 +437,9 @@ NsfDispatchClientDataError(Tcl_Interp *interp, ClientData clientData,
  */
 int
 NsfNoCurrentObjectError(Tcl_Interp *interp, CONST char *what) {
+
+  assert(interp);
+
   return NsfPrintError(interp, "no current object; %s called outside the context of a Next Scripting method",
 		       what ? what : "command");
 }

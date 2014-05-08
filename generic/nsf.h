@@ -367,7 +367,7 @@ Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 EXTERN int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
 		 Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj)
-  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(5);
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 
 
 EXTERN int
@@ -412,7 +412,7 @@ EXTERN int Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
 
 EXTERN int Nsf_PointerDelete(CONST char *key, void *valuePtr, int free)
-  NSF_nonnull(1) NSF_nonnull(2);
+  NSF_nonnull(2);
 
 EXTERN void Nsf_PointerInit(Tcl_Interp *interp)
   NSF_nonnull(1);

@@ -168,11 +168,15 @@ NsNsf_Init1 (Tcl_Interp *interp, void *notUsed)
  *----------------------------------------------------------------------------
  */
 
+int Ns_ModuleInit(char *hServer, char *hModule) nonnull(1) nonnull(2);
+
 int
-Ns_ModuleInit(char *hServer, char *hModule)
-{
+Ns_ModuleInit(char *hServer, char *hModule) {
   int ret;
-  
+
+  assert(hServer);
+  assert(hModule);
+
   /*Ns_Log(Notice, "+++ ModuleInit","INIT");*/
   ret = Ns_TclInitInterps(hServer, NsNsf_Init, (void*)hModule);
 

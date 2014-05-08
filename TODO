@@ -5061,7 +5061,7 @@ TODO:
   conversion or rep condition. Can we drop it, and just keep 1..1,
   0..*, and 1..* (and the alternative notations: 0..n, 1..n)?
 
-- check autoadded asserts; complete asserts for other .c files
+- check autoadded asserts
 - check nonnull with various compilers for tcl8.6
 
 - check deactivated tests in tests/serialize.test

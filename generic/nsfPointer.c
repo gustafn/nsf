@@ -53,6 +53,11 @@ int
 Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *valuePtr) {
   int *counterPtr;
 
+  assert(interp);
+  assert(buffer);
+  assert(typeName);
+  assert(valuePtr);
+
   counterPtr = Nsf_PointerTypeLookup(interp, typeName);
   if (counterPtr) {
     Tcl_DString ds, *dsPtr = &ds;
@@ -95,9 +100,14 @@ Nsf_PointerAdd(Tcl_Interp *interp, char *buffer, CONST char *typeName, void *val
  *
  *----------------------------------------------------------------------
  */
+static void * Nsf_PointerGet(char *key, CONST char *prefix) nonnull(1) nonnull(2);
+
 static void *
 Nsf_PointerGet(char *key, CONST char *prefix) {
   void *valuePtr = NULL;
+
+  assert(key);
+  assert(prefix);
 
   /* make sure to return the right type of hash entry */
   if (strncmp(prefix, key, strlen(prefix)) == 0) {
@@ -134,10 +144,14 @@ Nsf_PointerGet(char *key, CONST char *prefix) {
  *
  *----------------------------------------------------------------------
  */
+static Tcl_HashEntry * Nsf_PointerGetHptr(void *valuePtr) nonnull(1);
+
 static Tcl_HashEntry *
 Nsf_PointerGetHptr(void *valuePtr) {
   Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
+
+  assert(valuePtr); 
 
   for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -209,10 +223,20 @@ Nsf_PointerDelete(CONST char *key, void *valuePtr, int free) {
  *----------------------------------------------------------------------
  */
 
+int Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
+			 ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+
 int
 Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 		     ClientData *clientData, Tcl_Obj **outObjPtr) {
   void *valuePtr;
+
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   *outObjPtr = objPtr;
   valuePtr = Nsf_PointerGet(ObjStr(objPtr), pPtr->type);
@@ -242,6 +266,10 @@ int
 Nsf_PointerTypeRegister(Tcl_Interp *interp, CONST char* typeName, int *counterPtr) {
   Tcl_HashEntry *hPtr;
   int isNew;
+
+  assert(interp);
+  assert(typeName);
+  assert(counterPtr);
 
   NsfMutexLock(&pointerMutex);
 
@@ -277,6 +305,9 @@ void *
 Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName) {
   Tcl_HashEntry *hPtr;
 
+  assert(interp);
+  assert(typeName);
+
   NsfMutexLock(&pointerMutex);
   hPtr = Tcl_CreateHashEntry(pointerHashTablePtr, typeName, NULL);
   NsfMutexUnlock(&pointerMutex);
@@ -305,14 +336,16 @@ Nsf_PointerTypeLookup(Tcl_Interp *interp, CONST char* typeName) {
 void
 Nsf_PointerInit(Tcl_Interp *interp) {
 
-    NsfMutexLock(&pointerMutex);
+  assert(interp);
 
-    if (pointerTableRefCount == 0) {
-      Tcl_InitHashTable(pointerHashTablePtr, TCL_STRING_KEYS);
-    }
-    pointerTableRefCount++;
+  NsfMutexLock(&pointerMutex);
 
-    NsfMutexUnlock(&pointerMutex);
+  if (pointerTableRefCount == 0) {
+    Tcl_InitHashTable(pointerHashTablePtr, TCL_STRING_KEYS);
+  }
+  pointerTableRefCount++;
+
+  NsfMutexUnlock(&pointerMutex);
 
 }
 
@@ -334,31 +367,33 @@ Nsf_PointerInit(Tcl_Interp *interp) {
 void
 Nsf_PointerExit(Tcl_Interp *interp) {
 
-    NsfMutexLock(&pointerMutex);
-    if (--pointerTableRefCount == 0) {
+  assert(interp);
 
-      if (RUNTIME_STATE(interp)->debugLevel >= 2) {
-	Tcl_HashSearch hSrch;
-	Tcl_HashEntry *hPtr;
+  NsfMutexLock(&pointerMutex);
+  if (--pointerTableRefCount == 0) {
 
-	for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
-	     hPtr = Tcl_NextHashEntry(&hSrch)) {
-	  char *key = Tcl_GetHashKey(pointerHashTablePtr, hPtr);
-	  void *valuePtr = Tcl_GetHashValue(hPtr);
+    if (RUNTIME_STATE(interp)->debugLevel >= 2) {
+      Tcl_HashSearch hSrch;
+      Tcl_HashEntry *hPtr;
 
-	  /*
-	   * We can't use NsfLog here any more, since the Tcl procs are
-	   * already deleted.
-	   */
+      for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
+	   hPtr = Tcl_NextHashEntry(&hSrch)) {
+	char *key = Tcl_GetHashKey(pointerHashTablePtr, hPtr);
+	void *valuePtr = Tcl_GetHashValue(hPtr);
 
-	  fprintf(stderr, "Nsf_PointerExit: we have still an entry %s with value %p\n", key, valuePtr);
-	}
+	/*
+	 * We can't use NsfLog here any more, since the Tcl procs are
+	 * already deleted.
+	 */
+
+	fprintf(stderr, "Nsf_PointerExit: we have still an entry %s with value %p\n", key, valuePtr);
       }
-
-      Tcl_DeleteHashTable(pointerHashTablePtr);
     }
 
-    NsfMutexUnlock(&pointerMutex);
+    Tcl_DeleteHashTable(pointerHashTablePtr);
+  }
+
+  NsfMutexUnlock(&pointerMutex);
 }
 
 /*

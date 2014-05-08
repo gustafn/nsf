@@ -50,6 +50,8 @@ static int Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition);
 void
 Nsf_CmdDefinitionInit(Tcl_Interp *interp) {
 
+  assert(interp);
+
   NsfMutexLock(&cmdDefinitonMutex);
   
   if (cmdDefinitonRefCount == 0) {
@@ -78,6 +80,9 @@ int
 Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRecords) {
   Nsf_methodDefinition *ePtr;
 
+  assert(interp);
+  assert(definitionRecords);
+
   for (ePtr = definitionRecords; ePtr->methodName; ePtr++) {
     Register(interp, ePtr);
   }
@@ -102,6 +107,8 @@ Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRe
 Nsf_methodDefinition *
 Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc) {
   Tcl_HashEntry *hPtr;
+
+  assert(proc);
 
   NsfMutexLock(&cmdDefinitonMutex);
   hPtr = Tcl_FindHashEntry(cmdDefinitonHashTablePtr, (char *)proc); 
@@ -128,10 +135,15 @@ Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc) {
  *
  *----------------------------------------------------------------------
  */
+static int Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition) nonnull(1) nonnull(2);
+
 static int
 Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition) {
   Tcl_HashEntry *hPtr;
   int isNew;
+
+  assert(interp);
+  assert(methodDefinition);
 
   NsfMutexLock(&cmdDefinitonMutex);
   hPtr = Tcl_CreateHashEntry(cmdDefinitonHashTablePtr, (char *)methodDefinition->proc, &isNew);
