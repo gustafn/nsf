@@ -406,7 +406,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
 #endif
     rc |= NsfReplaceCommand(interp, NSF_FORMAT,     NULL, initialized);
     rc |= NsfReplaceCommand(interp, NSF_INTERP,     NULL, initialized);
-    rc |= NsfReplaceCommand(interp, NSF_IS,         NULL, initialized);
+    rc |= NsfReplaceCommand(interp, NSF_STRING_IS,  NULL, initialized);
 
     /* for the following commands, we have to add our own semantics */
     rc |= NsfReplaceCommand(interp, NSF_INFO_BODY,  Nsf_InfoBodyObjCmd, initialized);
