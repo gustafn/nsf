@@ -8612,7 +8612,7 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
  *
  *----------------------------------------------------------------------
  */
-static NsfCmdList * SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr);
+static NsfCmdList * SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) nonnull(2);
 
 static NsfCmdList *
 SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) {
@@ -8710,6 +8710,10 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
 
   /* ensure that the mixin order is valid */
   assert(object->flags & NSF_MIXIN_ORDER_VALID);
+
+  if (object->mixinOrder == NULL) {
+    return TCL_OK;
+  }
 
   cmdList = SeekCurrent(object->mixinStack->currentCmdPtr, object->mixinOrder);
   RUNTIME_STATE(interp)->currentMixinCmdPtr = cmdList ? cmdList->cmdPtr : NULL;
