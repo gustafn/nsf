@@ -5030,7 +5030,14 @@ TODO:
 
    alternatively, we can enforce that -incremental can only be used on
    props/vars explicitly declared multivalued, rather than promoting
-   them silently?
+   them silently? 
+
+   >>>
+   Maybe limiting -incremental to props/vars explicitly declared
+   multivalued would be more honest, simply because 0..1/1..1 permit
+   values (any Tcl word) which cannot be turned in to a list rep no
+   way ... so silently attempting to promote them will always have NX
+   throw up.
 
 - at this point, the documentation of variable vs. property (in the
   man pages and the tutorial) boils down to:
