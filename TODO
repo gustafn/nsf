@@ -5013,6 +5013,25 @@ nsf.c:
 ========================================================================
 TODO:
 
+- -incremental: setting incremental will promote a property/variable
+   from a non-multivalued one to a multivalued one ->
+   i.e., it becomes 0..*  unconditionally
+
+   if the following is stated (ambiguous, but allowed):
+
+   /obj/ object property -incremental a:1..1 
+
+   we will end up with "a" becoming 0..*, allowing empty strings without
+   this being acknowledged by the definition (even if ambiguous). maybe this is more compelling when
+   setting incremental a posteriori and reconfigure a property/variable.
+
+   suggestion: make the lower bound always respected -> 1..1 becomes
+   1..*, 0..1 becomes 0..*
+
+   alternatively, we can enforce that -incremental can only be used on
+   props/vars explicitly declared multivalued, rather than promoting
+   them silently?
+
 - at this point, the documentation of variable vs. property (in the
   man pages and the tutorial) boils down to:
 
