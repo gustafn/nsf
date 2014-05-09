@@ -5013,6 +5013,41 @@ nsf.c:
 ========================================================================
 TODO:
 
+- at this point, the documentation of variable vs. property (in the
+  man pages and the tutorial) boils down to:
+
+  "property equals variable despite a different default value of
+  nonpos arg -configurable" (and the consequences entailed by this
+  condition -> configure option, slot object).
+
+  (agreed, they also differ slightly by their definition syntaxes,
+  e.g. placement of the default value etc., but this is also more a
+  historical artifact)
+
+  historically, there used to be more differences (no accessors for
+  variable etc.), right now, the largest portions of the their
+  documentation is identical.
+
+  so, I act as the devil's advocate: is it worth keeping both, rather
+  than giving an example of how to use -configurable on
+  property to achieve what is now achieved by variable (or vice versa)?
+
+  one could restate anything written in Section 3.1.2 of the tutorial
+  by substituting occurrences of ":variable" for ":property
+  -configurable false ...". Or, if the notion of variable should take
+  precedence (with the sections being named "non-configurable instance variables"
+  ...) drop property and keep ":variable -configurable false" which
+  literally expressed what is stated in the section headings.
+
+  or, to be on the safe side, make "property" a requirable feature and
+  just keep "variable" for the core API?
+
+  maybe I am wrong, if so, what is a convincing statement/scenario
+  (from the API perspective) to give to the reader of property
+  vs. variable rather than explaining property vs. property
+  -configurable false (or variable vs. variable -configurable false)
+  only? (apparently, i can't think of one)
+
 - incremental: should we add a third operation?
 
   /obj/ /prop/ get /index/
@@ -5035,6 +5070,24 @@ TODO:
       "add" and "delete", so "get" is not reasonable naming choice.
     * The slot interface is extensible. different slot methods of choice can be added via
       packages. so why bloat the implementation?
+
+ >>> (adding discussion item from yesterday)
+
+    * using the argument arity for the conditional dispatch behind the
+      incremental interface leads to the situation that "get" cannot
+      be called directly, other than assign, get, and delete. there is
+      no warning raised, no feedback given to the client.
+    * therefore, should we provide for three modes (as an example):
+
+      - implicit slot interface (arity-based conditional dispatch),
+        allows for refining the slot interface "behind the scenes"-
+      - explicit slot interface: assign + get are "exported" to
+        clients = must be used. there is no convenience way of
+        getting/setting a property/variable (implementation using ensembles).
+      - incremental slot interface: implies explicit and adds "add" +
+        "delete" (downside: every client must use the explicit
+        interface: assign, get, add, delete; upside: no ambiguities
+        such as with get)
 
 - check autoadded asserts
 - check nonnull with various compilers for tcl8.6
