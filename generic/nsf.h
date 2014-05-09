@@ -351,10 +351,18 @@ typedef struct Nsf_Param {
 #else
 # define __GNUC_PREREQ(maj, min) (0)
 #endif
+
 #if __GNUC_PREREQ(3, 3)
 # define NSF_nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
 #else
 # define NSF_nonnull(ARGS)
+#endif
+
+/* unforunately, we can't combine NSF_attribute_format() with functions called via stubs */
+#if __GNUC_PREREQ(3, 4)
+# define NSF_attribute_format(ARGS) __attribute__((format ARGS))
+#else
+# define NSF_attribute_format(ARGS)
 #endif
 
 EXTERN int
@@ -402,7 +410,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 
 EXTERN void
 NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)
-  NSF_nonnull(1) NSF_nonnull(3);
+  NSF_nonnull(1) NSF_nonnull(3) NSF_attribute_format((printf,3,4));
 
 /*
  * Nsf Pointer converter interface

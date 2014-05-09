@@ -345,6 +345,8 @@ Nsf_PointerInit(Tcl_Interp *interp) {
   }
   pointerTableRefCount++;
 
+  //fprintf(stderr, "Nsf_PointerInit pointerTableRefCount == %d\n", pointerTableRefCount);
+
   NsfMutexUnlock(&pointerMutex);
 
 }
@@ -353,7 +355,7 @@ Nsf_PointerInit(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  * Nsf_PointerExit --
  *
- *    Exit handler fr the Pointer converter
+ *    Exit handler for the Pointer converter
  *
  * Results:
  *    void
@@ -392,6 +394,7 @@ Nsf_PointerExit(Tcl_Interp *interp) {
 
     Tcl_DeleteHashTable(pointerHashTablePtr);
   }
+  //fprintf(stderr, "Nsf_PointerExit pointerTableRefCount == %d\n", pointerTableRefCount);
 
   NsfMutexUnlock(&pointerMutex);
 }

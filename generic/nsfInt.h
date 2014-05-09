@@ -80,7 +80,6 @@
 # define nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
 #else
 # define nonnull(ARGS)
-# define returns_nonnull
 #endif
 
 #if __GNUC_PREREQ(4, 9)
