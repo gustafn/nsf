@@ -5009,6 +5009,7 @@ nsf.c:
 - add serveral more assertions based on nonnull sepcifications.
 - made nsf::is using the "-strict" option when tcl's "string is" is called.
 - let the c-code generator produce as well nonnull assertions
+- simplify FilterInvalidateObjOrders() and FilterRemoveDependentFilterCmds()
 
 ========================================================================
 TODO:

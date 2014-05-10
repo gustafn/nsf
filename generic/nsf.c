@@ -8237,10 +8237,10 @@ GetAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
   NsfClass *cl;
   NsfClasses *sc;
 
-  assert(interp); // autoadded
-  assert(destTablePtr); // autoadded
-  assert(resultObj); // autoadded
-  assert(startCl); // autoadded
+  assert(interp);
+  assert(destTablePtr);
+  assert(resultObj);
+  assert(startCl);
 
   /*
    * check this class for class mixins.
@@ -8358,9 +8358,9 @@ static void
 RemoveFromObjectMixinsOf(Tcl_Command cmd, NsfCmdList *cmdlist) {
 
   assert(cmd); 
-  assert(cmdlist); // autoadded
+  assert(cmdlist);
 
-  for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
+  for ( ; likely(cmdlist != NULL); cmdlist = cmdlist->nextPtr) {
     NsfClass *cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
     NsfClassOpt *clopt = cl ? cl->opt : NULL;
     if (clopt) {
@@ -8397,13 +8397,15 @@ static void
 RemoveFromClassmixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
 
   assert(cmd); 
-  assert(cmdlist); // autoadded
+  assert(cmdlist);
 
-  for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
+  for ( ; likely(cmdlist != NULL); cmdlist = cmdlist->nextPtr) {
     NsfClass *cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
     NsfClassOpt *clopt = cl ? cl->opt : NULL;
+
     if (clopt) {
       NsfCmdList *del = CmdListFindCmdInList(cmd, clopt->classMixins);
+
       if (del) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
@@ -8436,13 +8438,15 @@ static void
 RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
 
   assert(cmd);
-  assert(cmdlist); // autoadded
+  assert(cmdlist);
 
-  for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
+  for ( ; likely(cmdlist != NULL); cmdlist = cmdlist->nextPtr) {
     NsfObject *nobj = NsfGetObjectFromCmdPtr(cmdlist->cmdPtr);
     NsfObjectOpt *objopt = nobj ? nobj->opt : NULL;
+
     if (objopt) {
       NsfCmdList *del = CmdListFindCmdInList(cmd, objopt->objMixins);
+
       if (del) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            ClassName(cl), ObjStr(NsfGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
@@ -8478,7 +8482,7 @@ MixinResetOrderForInstances(NsfClass *cl) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
-  assert(cl); // autoadded
+  assert(cl);
 
   /*fprintf(stderr, "invalidating instances of class %s\n", ClassName(clPtr->cl));*/
 
@@ -8520,12 +8524,14 @@ ResetOrderOfClassesUsedAsMixins(NsfClass *cl) {
   /*fprintf(stderr, "ResetOrderOfClassesUsedAsMixins %s - %p\n",
     ClassName(cl), cl->opt);*/
 
-  assert(cl); // autoadded
+  assert(cl);
 
   if (cl->opt) {
     NsfCmdList *ml;
+
     for (ml = cl->opt->isObjectMixinOf; ml; ml = ml->nextPtr) {
       NsfObject *object = NsfGetObjectFromCmdPtr(ml->cmdPtr);
+
       if (object) {
         if (object->mixinOrder) { MixinResetOrder(object); }
         object->flags &= ~NSF_MIXIN_ORDER_VALID;
@@ -8552,23 +8558,23 @@ ResetOrderOfClassesUsedAsMixins(NsfClass *cl) {
  *----------------------------------------------------------------------
  */
 
-static void MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasses) nonnull(1) nonnull(2) nonnull(3);
+static void MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasses) 
+  nonnull(1) nonnull(2) nonnull(3);
 
 static void
 MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasses) {
-  NsfClasses *clPtr;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   Tcl_HashTable objTable, *commandTable = &objTable;
 
-  assert(interp); // autoadded
-  assert(cl); // autoadded
-  assert(subClasses); // autoadded
+  assert(interp);
+  assert(cl);
+  assert(subClasses);
 
   /*
    * Iterate over the subclass hierarchy.
    */
-  for (clPtr = subClasses; clPtr; clPtr = clPtr->nextPtr) {
+  for (; likely(subClasses != NULL); subClasses = subClasses->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
     Tcl_HashTable *instanceTablePtr;
@@ -8576,11 +8582,11 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
     /*
      * Reset mixin order for all objects having this class as per object mixin
      */
-    ResetOrderOfClassesUsedAsMixins(clPtr->cl);
+    ResetOrderOfClassesUsedAsMixins(subClasses->cl);
 
     /* fprintf(stderr, "invalidating instances of class %s\n", ClassName(clPtr));
      */
-    instanceTablePtr = &clPtr->cl->instances;
+    instanceTablePtr = &subClasses->cl->instances;
     for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr;
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *)Tcl_GetHashKey(instanceTablePtr, hPtr);
@@ -8643,8 +8649,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
 static void
 MixinComputeDefined(Tcl_Interp *interp, NsfObject *object) {
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
+  assert(interp);
+  assert(object);
 
   MixinComputeOrder(interp, object);
   object->flags |= NSF_MIXIN_ORDER_VALID;
@@ -8683,8 +8689,8 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
 		      int withMixins, int withRootClass) {
   NsfClasses *precedenceList = NULL, *pcl, **npl = &precedenceList;
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
+  assert(interp);
+  assert(object);
 
   if (withMixins) {
     if (!(object->flags & NSF_MIXIN_ORDER_VALID)) {
@@ -8733,15 +8739,15 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
  *
  *----------------------------------------------------------------------
  */
-static NsfCmdList * SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) nonnull(2);
+static NsfCmdList *SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) nonnull(2);
 
 static NsfCmdList *
 SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) {
 
-  assert(cmdListPtr); // autoadded
+  assert(cmdListPtr);
 
   if (cmd) {
-    for (; cmdListPtr; cmdListPtr = cmdListPtr->nextPtr) {
+    for (; likely(cmdListPtr != NULL); cmdListPtr = cmdListPtr->nextPtr) {
       if (cmdListPtr->cmdPtr == cmd) {
         return cmdListPtr->nextPtr;
       }
@@ -8766,16 +8772,17 @@ SeekCurrent(Tcl_Command cmd, register NsfCmdList *cmdListPtr) {
  *----------------------------------------------------------------------
  */
 
-static int CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, NsfCmdList *cmdList) nonnull(1) nonnull(2) nonnull(4);
+static int CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, NsfCmdList *cmdList) 
+  nonnull(1) nonnull(2) nonnull(4);
 
 static int
 CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, NsfCmdList *cmdList) {
   int result = TCL_OK;
   int cmdFlags = Tcl_Command_flags(cmd);
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(cmdList); // autoadded
+  assert(interp);
+  assert(object);
+  assert(cmdList);
 
   if ((cmdFlags & NSF_CMD_CALL_PRIVATE_METHOD) ||
       ((cmdFlags & NSF_CMD_CLASS_ONLY_METHOD) && !NsfObjectIsClass(object))) {
@@ -8790,6 +8797,7 @@ CanInvokeMixinMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd, Nsf
     /*fprintf(stderr, "guard call\n");*/
     result = GuardCall(object, interp, (Tcl_Obj *)cmdList->clientData, NULL);
   }
+
   return result;
 }
 
@@ -8828,14 +8836,13 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object,
   NsfClass *cl = NULL;
   int result = TCL_OK;
 
-  assert(interp); // autoadded
-  assert(clPtr); // autoadded
-  assert(currentCmdPtr); // autoadded
-  assert(cmdPtr); // autoadded
-
+  assert(interp);
   assert(object);
   assert(object->mixinStack);
   assert(methodName);
+  assert(clPtr);
+  assert(currentCmdPtr);
+  assert(cmdPtr);
 
   /* ensure that the mixin order is valid */
   assert(object->flags & NSF_MIXIN_ORDER_VALID);
@@ -8967,7 +8974,7 @@ MixinInfo(Tcl_Interp *interp, NsfCmdList *m, CONST char *pattern,
           int withGuards, NsfObject *matchObject) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
-  assert(interp); // autoadded
+  assert(interp);
 
   /*fprintf(stderr, "   mixin info m=%p, pattern %s, matchObject %p\n",
     m, pattern, matchObject);*/
@@ -9009,17 +9016,18 @@ static Tcl_Command MixinSearchMethodByName(NsfCmdList *mixinList, CONST char *na
   nonnull(1) nonnull(2) nonnull(3);
 
 static Tcl_Command
-MixinSearchMethodByName(NsfCmdList *mixinList, CONST char *name, NsfClass **cl) {
+MixinSearchMethodByName(NsfCmdList *mixinList, CONST char *name, NsfClass **clPtr) {
   Tcl_Command cmd;
 
-  assert(mixinList); // autoadded
-  assert(name); // autoadded
-  assert(cl); // autoadded
+  assert(mixinList);
+  assert(name);
+  assert(clPtr);
 
-  for (; mixinList;  mixinList = mixinList->nextPtr) {
+  for (; likely(mixinList != NULL);  mixinList = mixinList->nextPtr) {
     NsfClass *foundCl = NsfGetClassFromCmdPtr(mixinList->cmdPtr);
+
     if (foundCl && SearchCMethod(foundCl, name, &cmd)) {
-      if (cl) *cl = foundCl;
+      *clPtr = foundCl;
       return cmd;
     }
   }
@@ -9045,11 +9053,11 @@ static Tcl_Command FilterSearch(CONST char *name, NsfObject *startingObject,
 
 static Tcl_Command
 FilterSearch(CONST char *name, NsfObject *startingObject,
-             NsfClass *startingClass, NsfClass **cl) {
+             NsfClass *startingClass, NsfClass **clPtr) {
   Tcl_Command cmd = NULL;
 
-  assert(name); // autoadded
-  assert(cl); // autoadded
+  assert(name);
+  assert(clPtr);
 
   if (startingObject) {
     NsfObjectOpt *opt = startingObject->opt;
@@ -9064,7 +9072,7 @@ FilterSearch(CONST char *name, NsfObject *startingObject,
      * search for filters on object mixins
      */
     if (opt && opt->objMixins) {
-      if ((cmd = MixinSearchMethodByName(opt->objMixins, name, cl))) {
+      if ((cmd = MixinSearchMethodByName(opt->objMixins, name, clPtr))) {
         return cmd;
       }
     }
@@ -9076,7 +9084,7 @@ FilterSearch(CONST char *name, NsfObject *startingObject,
   if (startingClass) {
     NsfClassOpt *opt = startingClass->opt;
     if (opt && opt->classMixins) {
-      if ((cmd = MixinSearchMethodByName(opt->classMixins, name, cl))) {
+      if ((cmd = MixinSearchMethodByName(opt->classMixins, name, clPtr))) {
         return cmd;
       }
     }
@@ -9088,7 +9096,7 @@ FilterSearch(CONST char *name, NsfObject *startingObject,
   if (startingObject && startingObject->nsPtr) {
     /*fprintf(stderr, "search filter %s as proc \n", name);*/
     if ((cmd = FindMethod(startingObject->nsPtr, name))) {
-      *cl = (NsfClass *)startingObject;
+      *clPtr = (NsfClass *)startingObject;
       return cmd;
     }
   }
@@ -9097,12 +9105,12 @@ FilterSearch(CONST char *name, NsfObject *startingObject,
    * ok, no filter on obj or mixins -> search class
    */
   if (startingClass) {
-    *cl = SearchCMethod(startingClass, name, &cmd);
-    if (*cl == NULL) {
+    *clPtr = SearchCMethod(startingClass, name, &cmd);
+    if (*clPtr == NULL) {
       /*
        * If no filter is found yet -> search the meta-class
        */
-      *cl = SearchCMethod(startingClass->object.cl, name, &cmd);
+      *clPtr = SearchCMethod(startingClass->object.cl, name, &cmd);
     }
   }
   return cmd;
@@ -9118,37 +9126,38 @@ static int GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) nonnull(1) nonnull(
 static int
 GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  int result;
 
-  assert(interp); // autoadded
-  assert(guardObj); // autoadded
+  assert(interp);
+  assert(guardObj);
 
-  if (guardObj) {
-    int result;
-    /*
-     * if there are more than one filter guard for this filter
-     * (i.e. they are inherited), then they are OR combined
-     * -> if one check succeeds => return 1
-     */
+  /*
+   * if there are more than one filter guard for this filter
+   * (i.e. they are inherited), then they are OR combined
+   * -> if one check succeeds => return 1
+   */
 
-    /*fprintf(stderr, "checking guard **%s**\n", ObjStr(guardObj));*/
+  /*fprintf(stderr, "checking guard **%s**\n", ObjStr(guardObj));*/
 
-    rst->guardCount++;
-    result = CheckConditionInScope(interp, guardObj);
-    rst->guardCount--;
+  rst->guardCount++;
+  result = CheckConditionInScope(interp, guardObj);
+  rst->guardCount--;
 
-    /*fprintf(stderr, "checking guard **%s** returned rc=%d\n", ObjStr(guardObj), rc);*/
+  /*fprintf(stderr, "checking guard **%s** returned rc=%d\n", ObjStr(guardObj), rc);*/
 
-    if (result == TCL_OK) {
-      /* fprintf(stderr, " +++ OK\n"); */
-      return TCL_OK;
-    } else if (result == TCL_ERROR) {
-      Tcl_Obj *sr = Tcl_GetObjResult(interp);
-      INCR_REF_COUNT(sr);
-      NsfPrintError(interp, "Guard error: '%s'\n%s", ObjStr(guardObj), ObjStr(sr));
-      DECR_REF_COUNT(sr);
-      return TCL_ERROR;
-    }
+  if (result == TCL_OK) {
+    /* fprintf(stderr, " +++ OK\n"); */
+    return TCL_OK;
+
+  } else if (result == TCL_ERROR) {
+    Tcl_Obj *sr = Tcl_GetObjResult(interp);
+
+    INCR_REF_COUNT(sr);
+    NsfPrintError(interp, "Guard error: '%s'\n%s", ObjStr(guardObj), ObjStr(sr));
+    DECR_REF_COUNT(sr);
+    return TCL_ERROR;
   }
+
   /*
     fprintf(stderr, " +++ FAILED\n");
   */
@@ -9427,8 +9436,8 @@ FilterAddActive(Tcl_Interp *interp, CONST char *methodName) {
   Tcl_HashEntry *hPtr;
   int newItem;
 
-  assert(interp); // autoadded
-  assert(methodName); // autoadded
+  assert(interp);
+  assert(methodName);
 
   hPtr = Tcl_CreateHashEntry(&rst->activeFilterTablePtr, methodName, &newItem);
   if (newItem) {
@@ -9496,7 +9505,7 @@ FiltersDefined(Tcl_Interp *interp) {
 
 /*
  *----------------------------------------------------------------------
- * FiltersDefined --
+ * FilterAdd --
  *
  *    Append a filter command to the 'filterList' of an obj/class
  *
@@ -9507,9 +9516,6 @@ FiltersDefined(Tcl_Interp *interp) {
  *    Modifies interp result in error situations.
  *
  *----------------------------------------------------------------------
- */
-/*
- * 
  */
 static int FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
                      NsfObject *startingObject, NsfClass *startingClass) 
@@ -9568,90 +9574,122 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
 }
 
 /*
- * reset the filter order cached in obj->filterOrder
+ *----------------------------------------------------------------------
+ * FilterResetOrder --
+ *
+ *    Reset the filter order cached in obj->filterOrder
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
  */
+
 static void FilterResetOrder(NsfObject *object) nonnull(1);
 
 static void
 FilterResetOrder(NsfObject *object) {
 
-  assert(object); // autoadded
+  assert(object);
 
   CmdListFree(&object->filterOrder, GuardDel);
   object->filterOrder = NULL;
 }
 
 /*
- * search the filter in the hierarchy again with FilterSearch, e.g.
- * upon changes in the class hierarchy or mixins that carry the filter
- * command, so that we can be sure it is still reachable.
+ *----------------------------------------------------------------------
+ * FilterSearchAgain --
+ *
+ *    Search the filter in the hierarchy again with FilterSearch, e.g.  upon
+ *    changes in the class hierarchy or mixins that carry the filter command,
+ *    so that we can be sure it is still reachable.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
  */
 static void FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
-                              NsfObject *startingObject, NsfClass *startingClass) nonnull(1) nonnull(2);
+                              NsfObject *startingObject, NsfClass *startingClass) 
+  nonnull(1) nonnull(2);
 
 static void
 FilterSearchAgain(Tcl_Interp *interp, NsfCmdList **filters,
                   NsfObject *startingObject, NsfClass *startingClass) {
   NsfCmdList *cmdList, *del;
-  NsfClass *cl = NULL;
 
-  assert(interp); // autoadded
-  assert(filters); // autoadded
+  assert(interp);
+  assert(filters);
 
   CmdListRemoveDeleted(filters, GuardDel);
-  for (cmdList = *filters; cmdList; ) {
+  for (cmdList = *filters; cmdList; cmdList = cmdList->nextPtr) {
+    NsfClass *cl = NULL;
     char *simpleName = (char *) Tcl_GetCommandName(interp, cmdList->cmdPtr);
     Tcl_Command cmd = FilterSearch(simpleName, startingObject, startingClass, &cl);
 
     if (cmd == NULL) {
       del = CmdListRemoveFromList(filters, cmdList);
-      cmdList = cmdList->nextPtr;
       CmdListDeleteCmdListEntry(del, GuardDel);
     } else if (cmd != cmdList->cmdPtr) {
       CmdListReplaceCmd(cmdList, cmd, cl);
-      cmdList = cmdList->nextPtr;
-    } else {
-      cmdList = cmdList->nextPtr;
     }
   }
 
-  /* some entries might be NULL now, if they are not found anymore
-     -> delete those
-     CmdListRemoveNulledEntries(filters, GuardDel);
-  */
+  /* 
+   * some entries might be NULL now, if they are not found anymore
+   *  -> delete those
+   *  CmdListRemoveNulledEntries(filters, GuardDel);
+   */
 }
 
+
 /*
- * if the class hierarchy or class filters have changed ->
- * invalidate filter entries in all dependent instances
+ *----------------------------------------------------------------------
+ * FilterInvalidateObjOrders --
  *
+ *    Invalidate filter entries in all dependent instances. This will be
+ *    e.g. necessary, when the class hierarchy or the class filters have
+ *    changed.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
  */
-static void FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasses) 
-  nonnull(1) nonnull(2) nonnull(3);
+static void FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClasses *subClasses) 
+  nonnull(1) nonnull(2);
 
 static void
-FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasses) {
-  NsfClasses *clPtr;
+FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClasses *subClasses) {
 
-  assert(interp); // autoadded
-  assert(cl); // autoadded
-  assert(subClasses); // autoadded
+  assert(interp);
+  assert(subClasses);
 
-  for (clPtr = subClasses; clPtr; clPtr = clPtr->nextPtr) {
+  for (; likely(subClasses != NULL); subClasses = subClasses->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
 
-    assert(clPtr->cl);
+    assert(subClasses->cl);
 
-    hPtr = &clPtr->cl->instances ?
-      Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
+    hPtr = &subClasses->cl->instances ?
+      Tcl_FirstHashEntry(&subClasses->cl->instances, &hSrch) : NULL;
 
     /* recalculate the commands of all class-filter registrations */
-    if (clPtr->cl->opt) {
-      FilterSearchAgain(interp, &clPtr->cl->opt->classFilters, NULL, clPtr->cl);
+    if (subClasses->cl->opt) {
+      FilterSearchAgain(interp, &subClasses->cl->opt->classFilters, NULL, subClasses->cl);
     }
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      NsfObject *object = (NsfObject *)Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
+      NsfObject *object = (NsfObject *)Tcl_GetHashKey(&subClasses->cl->instances, hPtr);
+
       FilterResetOrder(object);
       object->flags &= ~NSF_FILTER_ORDER_VALID;
 
@@ -9664,38 +9702,50 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClass
 }
 
 /*
- * from cl on down the hierarchy we remove all filters
- * the refer to "removeClass" namespace. E.g. used to
- * remove filters defined in superclass list from dependent
- * class cl
+ *----------------------------------------------------------------------
+ * FilterRemoveDependentFilterCmds --
+ *
+ *
+ *    Remove all filters from all subclasses that refer to "removeClass". This
+ *    function is e.g. used to remove filters defined in superclass list from
+ *    a dependent class.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
  */
-static void FilterRemoveDependentFilterCmds(NsfClass *cl, NsfClass *removeClass, NsfClasses *subClasses) nonnull(1) nonnull(2) nonnull(3);
+/*
+ */
+static void FilterRemoveDependentFilterCmds(NsfClass *removeClass, NsfClasses *subClasses) 
+  nonnull(1) nonnull(2);
 
 static void
-FilterRemoveDependentFilterCmds(NsfClass *cl, NsfClass *removeClass, NsfClasses *subClasses) {
-  NsfClasses *clPtr;
+FilterRemoveDependentFilterCmds(NsfClass *removeClass, NsfClasses *subClasses) {
 
-  assert(cl); // autoadded
-  assert(removeClass); // autoadded
-  assert(subClasses); // autoadded
+  assert(removeClass);
+  assert(subClasses);
 
-  /*fprintf(stderr, "FilterRemoveDependentFilterCmds cl %p %s, removeClass %p %s\n",
-    cl, ClassName(cl), removeClass, ObjStr(removeClass->object.cmdName));*/
+  /*fprintf(stderr, "FilterRemoveDependentFilterCmds removeClass %p %s\n",
+    removeClass, ObjStr(removeClass->object.cmdName));*/
 
-  for (clPtr = subClasses; clPtr; clPtr = clPtr->nextPtr) {
+  for (; likely(subClasses != NULL); subClasses = subClasses->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr;
     NsfClassOpt *opt;
 
-    assert(clPtr->cl);
-    hPtr = &clPtr->cl->instances ? Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
+    assert(subClasses->cl);
+    hPtr = &subClasses->cl->instances ? Tcl_FirstHashEntry(&subClasses->cl->instances, &hSrch) : NULL;
 
-    opt = clPtr->cl->opt;
+    opt = subClasses->cl->opt;
     if (opt) {
       CmdListRemoveContextClassFromList(&opt->classFilters, removeClass, GuardDel);
     }
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      NsfObject *object = (NsfObject *) Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
+      NsfObject *object = (NsfObject *) Tcl_GetHashKey(&subClasses->cl->instances, hPtr);
       if (object->opt) {
         CmdListRemoveContextClassFromList(&object->opt->objFilters, removeClass, GuardDel);
       }
@@ -10148,7 +10198,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     superClasses = superClasses->nextPtr;
   }
   for (; superClasses; superClasses = superClasses->nextPtr) {
-    FilterRemoveDependentFilterCmds(cl, superClasses->cl, subClasses);
+    FilterRemoveDependentFilterCmds(superClasses->cl, subClasses);
   }
 
   /*
@@ -10157,7 +10207,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
    */
   MixinInvalidateObjOrders(interp, cl, subClasses);
   if (FiltersDefined(interp) > 0) {
-    FilterInvalidateObjOrders(interp, cl, subClasses);
+    FilterInvalidateObjOrders(interp, subClasses);
   }
 
   /*
@@ -15181,7 +15231,7 @@ MakeMethod(Tcl_Interp *interp, NsfObject *defObject, NsfObject *regObject,
     if (FilterIsActive(interp, nameStr)) {
       NsfClasses *subClasses = TransitiveSubClasses(cl);
       if (subClasses) {
-        FilterInvalidateObjOrders(interp, cl, subClasses);
+        FilterInvalidateObjOrders(interp, subClasses);
         NsfClassListFree(subClasses);
       }
     }
@@ -17554,7 +17604,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
      */
     MixinInvalidateObjOrders(interp, cl, subClasses);
     if (FiltersDefined(interp) > 0) {
-      FilterInvalidateObjOrders(interp, cl, subClasses);
+      FilterInvalidateObjOrders(interp, subClasses);
     }
   }
 
@@ -17586,7 +17636,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
     /*
      * Remove dependent filters of this class from all subclasses
      */
-    FilterRemoveDependentFilterCmds(cl, cl, subClasses);
+    FilterRemoveDependentFilterCmds(cl, subClasses);
 
 #if defined(NSF_WITH_ASSERTIONS)
     if (clopt->assertions) {
@@ -20651,16 +20701,17 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdPreconditionIdx:
       {
 #if defined(NSF_WITH_ASSERTIONS)
-        NsfProcAssertion *procs;
-        NsfAssertionStore *assertions;
+        NsfProcAssertion *procs = NULL;
 
         if (withPer_object) {
-          assertions = regObject->opt ? regObject->opt->assertions : NULL;
-          procs = regObject->opt ? AssertionFindProcs(assertions, methodName) : NULL;
+          if (regObject->opt && regObject->opt->assertions) {
+            procs = AssertionFindProcs(regObject->opt->assertions, methodName);
+          }
         } else {
           NsfClass *class = (NsfClass *)regObject;
-          assertions = class->opt ? class->opt->assertions : NULL;
-          procs = class->opt ? AssertionFindProcs(assertions, methodName) : NULL;
+          if (class->opt && class->opt->assertions) {
+            procs = AssertionFindProcs(class->opt->assertions, methodName);
+          }
         }
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
 #endif
@@ -20669,16 +20720,17 @@ ListMethod(Tcl_Interp *interp,
     case InfomethodsubcmdPostconditionIdx:
       {
 #if defined(NSF_WITH_ASSERTIONS)
-        NsfProcAssertion *procs;
-        NsfAssertionStore *assertions;
+        NsfProcAssertion *procs = NULL;
 
         if (withPer_object) {
-          assertions = regObject->opt ? regObject->opt->assertions : NULL;
-          procs = regObject->opt ? AssertionFindProcs(assertions, methodName) : NULL;
+          if (regObject->opt && regObject->opt->assertions) {
+            procs = AssertionFindProcs(regObject->opt->assertions, methodName);
+          }
         } else {
           NsfClass *class = (NsfClass *)regObject;
-          assertions = class->opt ? class->opt->assertions : NULL;
-          procs = class->opt ? AssertionFindProcs(assertions, methodName) : NULL;
+          if (class->opt && class->opt->assertions) {
+            procs = AssertionFindProcs(class->opt->assertions, methodName);
+          }
         }
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
 #endif
@@ -24419,7 +24471,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
        * invalidate the filters as well.
        */
       if (FiltersDefined(interp) > 0) {
-	FilterInvalidateObjOrders(interp, cl, subClasses);
+	FilterInvalidateObjOrders(interp, subClasses);
       }
       NsfClassListFree(subClasses);
 
@@ -24460,7 +24512,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       if (FiltersDefined(interp) > 0) {
 	NsfClasses *subClasses = TransitiveSubClasses(cl);
         if (subClasses) {
-          FilterInvalidateObjOrders(interp, cl, subClasses);
+          FilterInvalidateObjOrders(interp, subClasses);
           NsfClassListFree(subClasses);
         }
       }
@@ -26521,7 +26573,7 @@ NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl,
       if (guardObj) GuardAdd(h, guardObj);
 
       if (subClasses) {
-        FilterInvalidateObjOrders(interp, cl, subClasses);
+        FilterInvalidateObjOrders(interp, subClasses);
         NsfClassListFree(subClasses);
       }
 
