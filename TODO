@@ -5010,6 +5010,8 @@ nsf.c:
 - made nsf::is using the "-strict" option when tcl's "string is" is called.
 - let the c-code generator produce as well nonnull assertions
 - simplify FilterInvalidateObjOrders() and FilterRemoveDependentFilterCmds()
+- simplify SuperclassAdd()
+- improve code documentation
 
 ========================================================================
 TODO:

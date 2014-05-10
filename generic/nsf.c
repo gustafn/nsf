@@ -333,10 +333,8 @@ static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *val
 			  int isNamed, int doConfigureParameter,
 			  Nsf_Param **paramPtrPtr)
   nonnull(1) nonnull(2) nonnull(3);
-static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs)
-  nonnull(1);
-static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs)
-  nonnull(1);
+static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs) nonnull(1);
+static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs) nonnull(1);
 static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr)
   nonnull(1) nonnull(2);
 
@@ -353,8 +351,7 @@ static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param C
 static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  NsfObject **matchObject, CONST char **pattern)
   nonnull(1) nonnull(4) nonnull(5);
-static void NsfProcDeleteProc(ClientData clientData)
-  nonnull(1);
+static void NsfProcDeleteProc(ClientData clientData) nonnull(1);
 
 static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object)
   nonnull(1) nonnull(2);
@@ -410,8 +407,7 @@ EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
 static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 
 #ifdef DO_CLEANUP
-static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr)
-  nonnull(1);
+static void DeleteNsfProcs(Tcl_Interp *interp, Tcl_Namespace *nsPtr) nonnull(1);
 #endif
 
 #if defined(NSF_WITH_ASSERTIONS)
@@ -9768,15 +9764,15 @@ FilterRemoveDependentFilterCmds(NsfClass *removeClass, NsfClasses *subClasses) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj * MethodHandleObj(NsfObject *object, int withPer_object, CONST char *methodName) nonnull(1) nonnull(3);
+static Tcl_Obj * MethodHandleObj(NsfObject *object, int withPer_object, CONST char *methodName) 
+  nonnull(1) nonnull(3);
 
 static Tcl_Obj *
 MethodHandleObj(NsfObject *object, int withPer_object, CONST char *methodName) {
   Tcl_Obj *resultObj;
 
-  assert(methodName); // autoadded
-
   assert(object);
+  assert(methodName);
   assert(*methodName != ':');
 
   resultObj = Tcl_NewStringObj(withPer_object ? "" : "::nsf::classes", -1);
@@ -9787,9 +9783,20 @@ MethodHandleObj(NsfObject *object, int withPer_object, CONST char *methodName) {
 }
 
 /*
- * info option for filters and class filters
- * withGuards -> if not 0 => append guards
- * withMethodHandles -> if not 0 => return method handles
+ *----------------------------------------------------------------------
+ * FilterInfo --
+ *
+ *    Set the interp results with a tcl list containing the content of the
+ *    filter list. The options withGuards and withMethodHandles can be used
+ *    for different output structures
+ *
+ * Results:
+ *    Standard Tcl results
+ *
+ * Side effects:
+ *    Updating interp result
+ *
+ *----------------------------------------------------------------------
  */
 static int FilterInfo(Tcl_Interp *interp, NsfCmdList *f, CONST char *pattern,
            int withGuards, int withMethodHandles) nonnull(1);
@@ -9799,13 +9806,11 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, CONST char *pattern,
            int withGuards, int withMethodHandles) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
-  assert(interp); // autoadded
+  assert(interp);
 
-  /*fprintf(stderr, "FilterInfo %p %s %d %d\n", pattern, pattern,
-    withGuards, withMethodHandles);*/
   /*
-   * Guard lists should only have unqualified filter lists when
-   * withGuards is activated, withMethodHandles has no effect
+   * Guard lists should only have unqualified filter lists when withGuards is
+   * activated. withMethodHandles has no effect when withGuards is specified.
    */
   if (withGuards) {
     withMethodHandles = 0;
@@ -9842,23 +9847,35 @@ FilterInfo(Tcl_Interp *interp, NsfCmdList *f, CONST char *pattern,
   return TCL_OK;
 }
 
+
 /*
- * Appends NsfCmdPtr *containing the filter cmds and their
- * superclass specializations to 'filterList'
+ *----------------------------------------------------------------------
+ * FilterComputeOrderFullList --
+ *
+ *    Compute a fresh list of filters and append it to the filterList.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Updating filterList
+ *
+ *----------------------------------------------------------------------
  */
 static void FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
-                           NsfCmdList **filterList) nonnull(1) nonnull(2) nonnull(3);
+                                       NsfCmdList **filterList) 
+  nonnull(1) nonnull(2) nonnull(3);
 
 static void
-FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
+FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters, 
                            NsfCmdList **filterList) {
   NsfCmdList *f ;
   NsfClass *fcl;
   NsfClasses *pl;
 
-  assert(interp); // autoadded
-  assert(filters); // autoadded
-  assert(filterList); // autoadded
+  assert(interp);
+  assert(filters);
+  assert(filterList);
 
   /*
    * Ensure that no epoched command is in the filters list.
@@ -9898,10 +9915,21 @@ FilterComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **filters,
 }
 
 /*
- * Computes a linearized order of object and class filter. Then
- * duplicates in the full list and with the class inheritance list of
- * 'obj' are eliminated.  The precedence rule is that the last
- * occurrence makes it into the final list.
+ *----------------------------------------------------------------------
+ * FilterComputeOrder --
+ *
+ *    Computes a linearized order of object and class filter. Then duplicates
+ *    in the full list and with the class inheritance list of 'obj' are
+ *    eliminated.  The precedence rule is that the last occurrence makes it
+ *    into the final list (object->filterOrder).
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Updating interp result
+ *
+ *----------------------------------------------------------------------
  */
 static void FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) nonnull(1) nonnull(2);
 
@@ -9910,8 +9938,8 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   NsfCmdList *filterList = NULL, *next, *checker, *newList;
   NsfClasses *pl;
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
+  assert(interp);
+  assert(object);
 
   if (object->filterOrder) FilterResetOrder(object);
   /*
@@ -9926,10 +9954,10 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   }
   if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
     NsfCmdList *ml;
-    NsfClass *mixin;
 
     for (ml = object->mixinOrder; ml; ml = ml->nextPtr) {
-      mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
+      NsfClass *mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
+
       if (mixin && mixin->opt && mixin->opt->classFilters) {
         FilterComputeOrderFullList(interp, &mixin->opt->classFilters, &filterList);
       }
@@ -9953,54 +9981,64 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
     }
   }
 
-  /*fprintf(stderr, "\n");*/
-
   /*
    * Use no duplicates & no classes of the precedence order
    * on the resulting list.
    */
   while (filterList) {
-    checker = next = filterList->nextPtr;
-    while (checker) {
-      if (checker->cmdPtr == filterList->cmdPtr) break;
-      checker = checker->nextPtr;
+    /*
+     * Search for filterList->cmdPtr 
+     */
+    for (checker = next = filterList->nextPtr; checker; checker = checker->nextPtr) {
+      if (checker->cmdPtr == filterList->cmdPtr) {
+        break;
+      }
     }
+
     if (checker == NULL) {
+      /* 
+       * filterList->cmdPtr was found 
+       */
       newList = CmdListAdd(&object->filterOrder, filterList->cmdPtr, filterList->clorobj,
                            /*noDuplicates*/ 0, 1);
       GuardAddInheritedGuards(interp, newList, object, filterList->cmdPtr);
       /*
-        fprintf(stderr, "  Adding %s::%s,\n", filterList->cmdPtr->nsPtr->fullName, Tcl_GetCommandName(interp, filterList->cmdPtr));
-      */
-      /*
         GuardPrint(interp, newList->clientData);
       */
-
     }
 
     CmdListDeleteCmdListEntry(filterList, GuardDel);
-
     filterList = next;
   }
-  /*
-    fprintf(stderr, "</Filter Order>\n");
-  */
 }
 
 /*
- * The filter order is either
- *   DEFINED (there are filter on the instance),
- *   NONE    (there are no filter for the instance),
- *   or INVALID (a class restructuring has occurred, thus it is not clear
- *               whether filters are defined or not).
- * If it is INVALID FilterComputeDefined can be used to compute the order
- * and set the instance to DEFINE or NONE.
+ *----------------------------------------------------------------------
+ * FilterComputeDefined --
+ *
+ *    Compute the state of the filter order. The filter order is either
+ *
+ *       DEFINED (there are filter on the instance),
+ *       NONE    (there are no filter for the instance),
+ *       or INVALID (a class restructuring has occurred, thus it is not clear
+ *                whether filters are defined or not).
+ *
+ *    If it is INVALID FilterComputeDefined can be used to compute the order
+ *    and set the instance to DEFINE or NONE.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Updating object-flags
+ *
+ *----------------------------------------------------------------------
  */
 static void
 FilterComputeDefined(Tcl_Interp *interp, NsfObject *object) {
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
+  assert(interp);
+  assert(object);
 
   FilterComputeOrder(interp, object);
   object->flags |= NSF_FILTER_ORDER_VALID;
@@ -10012,36 +10050,60 @@ FilterComputeDefined(Tcl_Interp *interp, NsfObject *object) {
 }
 
 /*
- * push a filter stack information on this object
+ *----------------------------------------------------------------------
+ * FilterStackPush --
+ *
+ *    Push a filter stack information on this object and initialize it with
+ *    calledProc.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Updating object->filterStack
+ *
+ *----------------------------------------------------------------------
  */
-static int FilterStackPush(NsfObject *object, Tcl_Obj *calledProc) nonnull(1) nonnull(2);
+static void FilterStackPush(NsfObject *object, Tcl_Obj *calledProc) nonnull(1) nonnull(2);
 
-static int
+static void
 FilterStackPush(NsfObject *object, Tcl_Obj *calledProc) {
   register NsfFilterStack *h = NEW(NsfFilterStack);
 
-  assert(object); // autoadded
-  assert(calledProc); // autoadded
+  assert(object);
+  assert(calledProc);
 
   h->currentCmdPtr = NULL;
   h->calledProc = calledProc;
   INCR_REF_COUNT(h->calledProc);
   h->nextPtr = object->filterStack;
   object->filterStack = h;
-  return 1;
 }
 
 /*
- * pop a filter stack information on this object
+ *----------------------------------------------------------------------
+ * FilterStackPush --
+ *
+ *    Pop filter stack information from the specified object
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    Free filter stack info
+ *
+ *----------------------------------------------------------------------
  */
 static void FilterStackPop(NsfObject *object) nonnull(1);
 
 static void
 FilterStackPop(NsfObject *object) {
-  register NsfFilterStack *h = object->filterStack;
-  object->filterStack = h->nextPtr;
+  register NsfFilterStack *h;
 
-  assert(object); // autoadded
+  assert(object);
+
+  h = object->filterStack;
+  object->filterStack = h->nextPtr;
 
   /* free stack entry */
   DECR_REF_COUNT(h->calledProc);
@@ -10049,25 +10111,33 @@ FilterStackPop(NsfObject *object) {
 }
 
 /*
- * search through the filter list on obj and class hierarchy
- * for registration of a command ptr as filter
+ *----------------------------------------------------------------------
+ * FilterFindReg --
  *
- * returns a tcl obj list with the filter registration, like:
- * "<obj> filter <filterName>,
- * "<class> filter <filterName>,
- * or an empty list, if not registered
+ *    Search through the filter list on obj and class hierarchy for
+ *    registration of a cmdPtr as filter
+ *
+ * Results:
+ *    Returns a tcl list with the filter registration, like:
+ *    "<obj> filter <filterName>, "<class> filter <filterName>,
+ *    or an empty list, if not registered
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
  */
-static Tcl_Obj * FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) nonnull(1) nonnull(2) nonnull(3);
+static Tcl_Obj * FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) 
+  nonnull(1) nonnull(2) nonnull(3) returns_nonnull;
 
 static Tcl_Obj *
 FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   NsfClasses *pl;
 
-  assert(cmd); // autoadded
-
-  assert(interp); // autoadded
-  assert(object); // autoadded
+  assert(interp);
+  assert(object);
+  assert(cmd);
 
   /* search per-object filters */
   if (object->opt && object->opt->objFilters &&
@@ -10097,25 +10167,37 @@ FilterFindReg(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
 }
 
 /*
- * before we can perform a filter dispatch, FilterSearchProc seeks the
- * current filter and the relevant calling information
+ *----------------------------------------------------------------------
+ * FilterSearchProc --
+ *
+ *     FilterSearchProc seeks the current filter and the relevant calling
+ *     information (class and currentCmd). The function assumes to be called
+ *     with an existing filterStack.
+ *
+ * Results:
+ *    Tcl_Command or NULL
+ *
+ * Side effects:
+ *    Updates *currentCmd and **cl
+ *
+ *----------------------------------------------------------------------
+ */
+/*
  */
 static Tcl_Command FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
-                 Tcl_Command *currentCmd, NsfClass **cl) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+                 Tcl_Command *currentCmd, NsfClass **cl) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static Tcl_Command
 FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
                  Tcl_Command *currentCmd, NsfClass **cl) {
   NsfCmdList *cmdList;
 
-  assert(interp); // autoadded
-  assert(currentCmd); // autoadded
-  assert(cl); // autoadded
-
+  assert(interp);
   assert(object);
   assert(object->filterStack);
-
-  *currentCmd = NULL;
+  assert(currentCmd);
+  assert(cl);
 
   /*
    * Ensure that the filter order is not invalid, otherwise compute order
@@ -10123,6 +10205,7 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
    */
   assert(object->flags & NSF_FILTER_ORDER_VALID);
 
+  *currentCmd = NULL;
   cmdList = SeekCurrent(object->filterStack->currentCmdPtr, object->filterOrder);
 
   while (cmdList) {
@@ -10169,20 +10252,20 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
  *
  *----------------------------------------------------------------------
  */
-static int SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *arg, NsfClass *baseClass) nonnull(1) nonnull(2) nonnull(4) nonnull(5) nonnull(6);
+static int SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *arg)
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static int
-SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *arg, NsfClass *baseClass) {
+SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *arg) {
   NsfClasses *superClasses, *subClasses, *osl = NULL;
   NsfObjectSystem *osPtr;
   NsfClass **scl;
   int i, j;
 
-  assert(interp); // autoadded
-  assert(cl); // autoadded
-  assert(ov); // autoadded
-  assert(arg); // autoadded
-  assert(baseClass); // autoadded
+  assert(interp);
+  assert(cl);
+  assert(ov);
+  assert(arg);
 
   superClasses = PrecedenceOrder(cl);
   subClasses = TransitiveSubClasses(cl);
@@ -10270,14 +10353,14 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   }
 
   FlushPrecedences(subClasses);
-
   NsfClassListFree(subClasses);
   FREE(NsfClass**, scl);
 
   if (unlikely(!PrecedenceOrder(cl))) {
     NsfClasses *l;
     /*
-     * There is a cycle in the superclass graph, we have to revert.
+     * There is a cycle in the superclass graph, we have to revert and return
+     * an error.
      */
     while (cl->super) {
       (void)RemoveSuper(cl, cl->super->cl);
@@ -10317,8 +10400,8 @@ static int CheckVarName(Tcl_Interp *interp, const char *varNameString) nonnull(1
 static int
 CheckVarName(Tcl_Interp *interp, const char *varNameString) {
 
-  assert(interp); // autoadded
-  assert(varNameString); // autoadded
+  assert(interp);
+  assert(varNameString);
 
   /*
    * We want to have a plain variable name, since we do not want to
@@ -10338,32 +10421,46 @@ CheckVarName(Tcl_Interp *interp, const char *varNameString) {
   return TCL_OK;
 }
 
-static int VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *varName, CONST char *index, int flags) 
+/*
+ *----------------------------------------------------------------------
+ * VarExists --
+ *
+ *    Check, whether the named variable exists on the specified object.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
+static int VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *name1, CONST char *name2, int flags) 
   nonnull(1) nonnull(2) nonnull(3);
 
 static int
-VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *varName, CONST char *index,
+VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *name1, CONST char *name2,
           int flags) {
   CallFrame frame, *framePtr = &frame;
   Var *varPtr, *arrayPtr;
   int result;
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(varName); // autoadded
+  assert(interp);
+  assert(object);
+  assert(name1);
 
   Nsf_PushFrameObj(interp, object, framePtr);
 
   if (flags & NSF_VAR_TRIGGER_TRACE) {
-    varPtr = TclVarTraceExists(interp, varName);
+    varPtr = TclVarTraceExists(interp, name1);
   } else {
-    int flags = (index == NULL) ? TCL_PARSE_PART1 : 0;
-    varPtr = TclLookupVar(interp, varName, index, flags, "access",
+    int flags = (name2 == NULL) ? TCL_PARSE_PART1 : 0;
+    varPtr = TclLookupVar(interp, name1, name2, flags, "access",
                           /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
   }
   /*
     fprintf(stderr, "VarExists %s varPtr %p flags %.4x isundef %d\n",
-    varName,
+    name1,
     varPtr,
     flags,
     varPtr ? TclIsVarUndefined(varPtr) : NULL);
@@ -10381,6 +10478,21 @@ VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *varName, CONST char
 # include <tclCompile.h>
 #endif
 
+/*
+ *----------------------------------------------------------------------
+ * MakeProcError --
+ *
+ *    Function called internally from Tcl in case the definition of the proc
+ *    failed.
+ *
+ * Results:
+ *    None
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 MakeProcError(
 	      Tcl_Interp *interp,	/* The interpreter in which the procedure was called. */
@@ -10402,19 +10514,37 @@ MakeProcError(
 						 (overflow ? "..." : ""), Tcl_GetErrorLine(interp)));
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ByteCompiled --
+ *
+ *    Function to determine wether a proc is already byted compiled or not.
+ *
+ * Results:
+ *    0 or 1 based on success
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
 static int ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
-	     Proc *procPtr, CONST char *procName) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+                        Proc *procPtr, CONST char *procName) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static int
 ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
 	     Proc *procPtr, CONST char *procName) {
-  Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
-  Tcl_Obj *bodyObj = procPtr->bodyPtr;
+  Namespace *nsPtr;
+  Tcl_Obj *bodyObj;
 
-  assert(interp); // autoadded
-  assert(flagsPtr); // autoadded
-  assert(procPtr); // autoadded
-  assert(procName); // autoadded
+  assert(interp);
+  assert(flagsPtr);
+  assert(procPtr);
+  assert(procName);
+
+  nsPtr = procPtr->cmdPtr->nsPtr;
+  bodyObj = procPtr->bodyPtr;
 
   if (likely(bodyObj->typePtr == Nsf_OT_byteCodeType)) {
 #if defined(HAVE_TCL_COMPILE_H)
@@ -10493,7 +10623,8 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
  */
 static int PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
 		  int objc, Tcl_Obj *CONST objv[],
-                  NsfCallStackContent *cscPtr) nonnull(1) nonnull(2) nonnull(4) nonnull(5);
+                  NsfCallStackContent *cscPtr) 
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static int
 PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
@@ -10502,10 +10633,10 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
   Tcl_CallFrame *framePtr;
   int result;
 
-  assert(procPtr); // autoadded
-  assert(interp); // autoadded
-  assert(objv); // autoadded
-  assert(cscPtr); // autoadded
+  assert(procPtr);
+  assert(interp);
+  assert(objv);
+  assert(cscPtr);
 
   /*
    * Set up and push a new call frame for the new procedure invocation.
@@ -10554,7 +10685,9 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
 static Nsf_Param *
 ParamsNew(int nr) {
   Nsf_Param *paramsPtr = NEW_ARRAY(Nsf_Param, nr+1);
+
   memset(paramsPtr, 0, sizeof(Nsf_Param)*(nr+1));
+
   return paramsPtr;
 }
 
@@ -10576,7 +10709,7 @@ static void ParamFree(Nsf_Param *paramPtr) nonnull(1);
 static void
 ParamFree(Nsf_Param *paramPtr) {
 
-  assert(paramPtr); // autoadded
+  assert(paramPtr);
 
   /*fprintf(stderr, "ParamFree %p\n", paramPtr);*/
   if (paramPtr->name) {STRING_FREE("paramPtr->name", paramPtr->name);}
@@ -10608,12 +10741,13 @@ static void
 ParamsFree(Nsf_Param *paramsPtr) {
   Nsf_Param *paramPtr;
 
-  assert(paramsPtr); // autoadded
+  assert(paramsPtr);
 
   /*fprintf(stderr, "ParamsFree %p\n", paramsPtr);*/
-  for (paramPtr=paramsPtr; paramPtr->name; paramPtr++) {
+  for (paramPtr = paramsPtr; paramPtr->name; paramPtr++) {
     ParamFree(paramPtr);
   }
+
   FREE(Nsf_Param*, paramsPtr);
 }
 
@@ -10667,7 +10801,7 @@ static void
 NsfProcDeleteProc(ClientData clientData) {
   NsfProcContext *ctxPtr = (NsfProcContext *)clientData;
 
-  assert(clientData); // autoadded
+  assert(clientData);
 
   if (ctxPtr->oldDeleteProc) {
     (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
@@ -10703,7 +10837,8 @@ ParamDefsStore(Tcl_Command cmd, NsfParamDefs *paramDefs, int checkAlwaysFlag) {
   Command *cmdPtr = (Command *)cmd;
 
   assert(cmd);
-  // TODO might store empty paramDefs. needed?
+
+  // TODO This function might store empty paramDefs. needed?
 
   if (cmdPtr->deleteProc != NsfProcDeleteProc) {
     NsfProcContext *ctxPtr = NEW(NsfProcContext);
@@ -10791,7 +10926,7 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
   /*fprintf(stderr, "ParamDefsFree %p slotObj %p returns %p\n",
     paramDefs, paramDefs->slotObj, paramDefs->returns);*/
 
-  assert(paramDefs); // autoadded
+  assert(paramDefs);
 
   if (paramDefs->paramsPtr) {
     ParamsFree(paramDefs->paramsPtr);
@@ -10825,13 +10960,16 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
 
 static void
 ParamDefsRefCountIncr(NsfParamDefs *paramDefs) {
+
   assert(paramDefs);
+
   paramDefs->refCount ++;
 }
+
 static void
 ParamDefsRefCountDecr(NsfParamDefs *paramDefs) {
 
-  assert(paramDefs); // autoadded
+  assert(paramDefs);
 
   paramDefs->refCount --;
   if (paramDefs->refCount < 1) {
@@ -10861,10 +10999,10 @@ static void
 ParamDefsFormatOption(Tcl_Obj *nameStringObj, CONST char *option,
                       int *colonWritten, int *firstOption) {
 
-  assert(nameStringObj); // autoadded
-  assert(option); // autoadded
-  assert(colonWritten); // autoadded
-  assert(firstOption); // autoadded
+  assert(nameStringObj);
+  assert(option);
+  assert(colonWritten);
+  assert(firstOption);
 
   if (!*colonWritten) {
     Tcl_AppendLimitedToObj(nameStringObj, ":", 1, INT_MAX, NULL);
@@ -10893,25 +11031,25 @@ ParamDefsFormatOption(Tcl_Obj *nameStringObj, CONST char *option,
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj * ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) nonnull(1) nonnull(2);
+static Tcl_Obj *ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) 
+  nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
 ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
   int first, colonWritten;
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL), *innerListObj, *nameStringObj;
-  Nsf_Param CONST *paramPtr;
 
-  assert(interp); // autoadded
-  assert(paramsPtr); // autoadded
+  assert(interp);
+  assert(paramsPtr);
 
   INCR_REF_COUNT2("paramDefsObj", listObj);
 
-  for (paramPtr = paramsPtr; paramPtr->name; paramPtr++) {
-    if (paramPtr->flags & NSF_ARG_NOCONFIG) {
+  for (; likely(paramsPtr->name != NULL); paramsPtr++) {
+    if (paramsPtr->flags & NSF_ARG_NOCONFIG) {
       continue;
     }
-    if (paramPtr -> paramObj) {
-      innerListObj = paramPtr->paramObj;
+    if (paramsPtr -> paramObj) {
+      innerListObj = paramsPtr->paramObj;
     } else {
       /*
        * We need this part only for C-defined parameter definitions, defined
@@ -10920,18 +11058,18 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
        * TODO: we could streamline this by defining as well C-API via the same
        * syntax as for accepted for tcl obj types "nsfParam"
        */
-      int isNonpos = *paramPtr->name == '-';
-      int outputRequired = (isNonpos && (paramPtr->flags & NSF_ARG_REQUIRED));
-      int outputOptional = (!isNonpos && !(paramPtr->flags & NSF_ARG_REQUIRED)
-                            && !paramPtr->defaultValue &&
-                            paramPtr->converter != ConvertToNothing);
+      int isNonpos = *paramsPtr->name == '-';
+      int outputRequired = (isNonpos && (paramsPtr->flags & NSF_ARG_REQUIRED));
+      int outputOptional = (!isNonpos && !(paramsPtr->flags & NSF_ARG_REQUIRED)
+                            && !paramsPtr->defaultValue &&
+                            paramsPtr->converter != ConvertToNothing);
       first = 1;
       colonWritten = 0;
 
-      nameStringObj = Tcl_NewStringObj(paramPtr->name, -1);
-      if (paramPtr->type) {
-        ParamDefsFormatOption(nameStringObj, paramPtr->type, &colonWritten, &first);
-      } else if (isNonpos && paramPtr->nrArgs == 0) {
+      nameStringObj = Tcl_NewStringObj(paramsPtr->name, -1);
+      if (paramsPtr->type) {
+        ParamDefsFormatOption(nameStringObj, paramsPtr->type, &colonWritten, &first);
+      } else if (isNonpos && paramsPtr->nrArgs == 0) {
         ParamDefsFormatOption(nameStringObj, "switch", &colonWritten, &first);
       }
       if (outputRequired) {
@@ -10939,36 +11077,36 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
       } else if (outputOptional) {
         ParamDefsFormatOption(nameStringObj, "optional", &colonWritten, &first);
       }
-      if ((paramPtr->flags & NSF_ARG_SUBST_DEFAULT)) {
+      if ((paramsPtr->flags & NSF_ARG_SUBST_DEFAULT)) {
         ParamDefsFormatOption(nameStringObj, "substdefault", &colonWritten, &first);
       }
-      if ((paramPtr->flags & NSF_ARG_ALLOW_EMPTY) || (paramPtr->flags & NSF_ARG_MULTIVALUED)) {
+      if ((paramsPtr->flags & NSF_ARG_ALLOW_EMPTY) || (paramsPtr->flags & NSF_ARG_MULTIVALUED)) {
 	char option[10] = "....";
-	option[0] = (paramPtr->flags & NSF_ARG_ALLOW_EMPTY) ? '0' : '1';
-	option[3] = (paramPtr->flags & NSF_ARG_MULTIVALUED) ? '*' : '1';
+	option[0] = (paramsPtr->flags & NSF_ARG_ALLOW_EMPTY) ? '0' : '1';
+	option[3] = (paramsPtr->flags & NSF_ARG_MULTIVALUED) ? '*' : '1';
         ParamDefsFormatOption(nameStringObj, option, &colonWritten, &first);
       }
-      if ((paramPtr->flags & NSF_ARG_IS_CONVERTER)) {
+      if ((paramsPtr->flags & NSF_ARG_IS_CONVERTER)) {
         ParamDefsFormatOption(nameStringObj, "convert", &colonWritten, &first);
       }
-      if ((paramPtr->flags & NSF_ARG_INITCMD)) {
+      if ((paramsPtr->flags & NSF_ARG_INITCMD)) {
         ParamDefsFormatOption(nameStringObj, "initcmd", &colonWritten, &first);
-      } else if ((paramPtr->flags & NSF_ARG_CMD)) {
+      } else if ((paramsPtr->flags & NSF_ARG_CMD)) {
         ParamDefsFormatOption(nameStringObj, "cmd", &colonWritten, &first);
-      } else if ((paramPtr->flags & NSF_ARG_ALIAS)) {
+      } else if ((paramsPtr->flags & NSF_ARG_ALIAS)) {
         ParamDefsFormatOption(nameStringObj, "alias", &colonWritten, &first);
-      } else if ((paramPtr->flags & NSF_ARG_FORWARD)) {
+      } else if ((paramsPtr->flags & NSF_ARG_FORWARD)) {
         ParamDefsFormatOption(nameStringObj, "forward", &colonWritten, &first);
-      } else if ((paramPtr->flags & NSF_ARG_NOARG)) {
+      } else if ((paramsPtr->flags & NSF_ARG_NOARG)) {
         ParamDefsFormatOption(nameStringObj, "noarg", &colonWritten, &first);
-      } else if ((paramPtr->flags & NSF_ARG_NOCONFIG)) {
+      } else if ((paramsPtr->flags & NSF_ARG_NOCONFIG)) {
         ParamDefsFormatOption(nameStringObj, "noconfig", &colonWritten, &first);
       }
 
       innerListObj = Tcl_NewListObj(0, NULL);
       Tcl_ListObjAppendElement(interp, innerListObj, nameStringObj);
-      if (paramPtr->defaultValue) {
-        Tcl_ListObjAppendElement(interp, innerListObj, paramPtr->defaultValue);
+      if (paramsPtr->defaultValue) {
+        Tcl_ListObjAppendElement(interp, innerListObj, paramsPtr->defaultValue);
       }
     }
 
@@ -10993,20 +11131,20 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj * ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) nonnull(1) nonnull(2);
+static Tcl_Obj * ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) 
+  nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
 ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
-  Nsf_Param CONST *paramPtr;
 
-  assert(interp); // autoadded
-  assert(paramsPtr); // autoadded
+  assert(interp);
+  assert(paramsPtr);
 
   INCR_REF_COUNT2("paramDefsObj", listObj);
-  for (paramPtr = paramsPtr; paramPtr->name; paramPtr++) {
-    if ((paramPtr->flags & NSF_ARG_NOCONFIG) == 0) {
-      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(paramPtr->name, -1));
+  for (; likely(paramsPtr->name != NULL); paramsPtr++) {
+    if ((paramsPtr->flags & NSF_ARG_NOCONFIG) == 0) {
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(paramsPtr->name, -1));
     }
   }
   return listObj;
@@ -11028,20 +11166,20 @@ ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj * ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) nonnull(1) nonnull(2);
+static Tcl_Obj * ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) 
+  nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
 ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
-  Nsf_Param CONST *paramPtr;
 
-  assert(interp); // autoadded
-  assert(paramsPtr); // autoadded
+  assert(interp);
+  assert(paramsPtr);
 
   INCR_REF_COUNT2("paramDefsObj", listObj);
-  for (paramPtr = paramsPtr; paramPtr->name; paramPtr++) {
-    if ((paramPtr->flags & NSF_ARG_NOCONFIG) == 0) {
-      Tcl_ListObjAppendElement(interp, listObj, paramPtr->nameObj);
+  for (; likely(paramsPtr->name != NULL); paramsPtr++) {
+    if ((paramsPtr->flags & NSF_ARG_NOCONFIG) == 0) {
+      Tcl_ListObjAppendElement(interp, listObj, paramsPtr->nameObj);
     }
   }
   return listObj;
@@ -11061,13 +11199,14 @@ ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
  *
  *----------------------------------------------------------------------
  */
-static CONST char * ParamGetType(Nsf_Param CONST *paramPtr) nonnull(1);
+static CONST char *ParamGetType(Nsf_Param CONST *paramPtr) nonnull(1) returns_nonnull;
 
 static CONST char *
 ParamGetType(Nsf_Param CONST *paramPtr) {
   CONST char *result = "value";
 
   assert(paramPtr);
+
   if (paramPtr->type) {
     if (paramPtr->converter == ConvertViaCmd) {
       result = paramPtr->type + 5;
@@ -11106,13 +11245,14 @@ ParamGetType(Nsf_Param CONST *paramPtr) {
  *
  *----------------------------------------------------------------------
  */
-static CONST char * ParamGetDomain(Nsf_Param CONST *paramPtr) nonnull(1);
+static CONST char * ParamGetDomain(Nsf_Param CONST *paramPtr) nonnull(1) returns_nonnull;
 
 static CONST char *
 ParamGetDomain(Nsf_Param CONST *paramPtr) {
   CONST char *result = "value";
 
   assert(paramPtr);
+
   if ((paramPtr->flags & NSF_ARG_IS_ENUMERATION)) {
     return Nsf_EnumerationTypeGetDomain(paramPtr->converter);
   } else {
@@ -11142,8 +11282,8 @@ static void NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param CONST *pPtr) 
 static void
 NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param CONST *pPtr) {
 
-  assert(argStringObj); // autoadded
-  assert(pPtr); // autoadded
+  assert(argStringObj);
+  assert(pPtr);
 
   if (pPtr->nrArgs > 0 && *pPtr->name == '-') {
     Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
@@ -11187,14 +11327,14 @@ NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param CONST *pPtr) {
  *----------------------------------------------------------------------
  */
 
-Tcl_Obj * NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) nonnull(1);
+Tcl_Obj *NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) nonnull(1) returns_nonnull;
 
 Tcl_Obj *
 NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) {
   Tcl_Obj *argStringObj = Tcl_NewObj();
   Nsf_Param CONST *pPtr;
 
-  assert(paramsPtr); // autoadded
+  assert(paramsPtr);
 
   INCR_REF_COUNT2("paramDefsObj", argStringObj);
 
@@ -11253,7 +11393,7 @@ static void ParsedParamFree(NsfParsedParam *parsedParamPtr) nonnull(1);
 static void
 ParsedParamFree(NsfParsedParam *parsedParamPtr) {
 
-  assert(parsedParamPtr); // autoadded
+  assert(parsedParamPtr);
 
   /*fprintf(stderr, "ParsedParamFree %p, npargs %p\n",
     parsedParamPtr, parsedParamPtr->paramDefs);*/
@@ -11300,8 +11440,8 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   NsfObjectOpt *opt = object->opt;
 #endif
 
-  assert(data); // autoadded
-  assert(interp); // autoadded
+  assert(data);
+  assert(interp);
 
   /*fprintf(stderr, "ProcMethodDispatchFinalize %s %s flags %.6x isNRE %d pcPtr %p result %d\n",
 	  ObjectName(object), methodName,
@@ -11356,12 +11496,12 @@ static int ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int resul
 static int
 ProcDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[1];
+
   /*CONST char *methodName = data[0];
-
-  assert(data); // autoadded
-  assert(interp); // autoadded
-
     fprintf(stderr, "ProcDispatchFinalize of method %s\n", methodName);*/
+
+  assert(data);
+  assert(interp);
 
 # if defined(NSF_PROFILE)
   long int startUsec = (long int)data[2];
@@ -11414,12 +11554,12 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   ParseContext pc, *pcPtr = &pc;
 #endif
 
-  assert(cp); // autoadded
-  assert(interp); // autoadded
-  assert(objv); // autoadded
-  assert(methodName); // autoadded
+  assert(cp);
+  assert(interp);
+  assert(objv);
+  assert(methodName);
   assert(cmdPtr);
-  assert(cscPtr); // autoadded
+  assert(cscPtr);
   assert(object);
   assert(object->teardown);
 
@@ -11596,8 +11736,8 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   CallFrame frame, *framePtr = &frame;
   int result;
 
-  assert(interp); // autoadded
-  assert(objv); // autoadded
+  assert(interp);
+  assert(objv);
   assert(cmd);
   assert(object);
   assert(object->teardown);
@@ -11672,15 +11812,16 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
   NsfClass *actualClass;
   int result;
 
-  assert(interp); // autoadded
-  assert(objv); // autoadded
-  assert(methodName); // autoadded
-  assert(callerSelf); // autoadded
-  assert(cscPtr); // autoadded
+  assert(invokedObject);
+  assert(interp);
+  assert(objv);
+  assert(methodName);
+  assert(callerSelf);
+  assert(cscPtr);
 
   /*fprintf(stderr, "ObjectCmdMethodDispatch %p %s\n", cmd, Tcl_GetCommandName(interp, cmd));*/
 
-  assert(invokedObject);
+
 
   /*fprintf(stderr, "ObjectCmdMethodDispatch method %s invokedObject %p %s callerSelf %p %s\n",
 	  methodName, invokedObject, ObjectName(invokedObject),
@@ -11768,7 +11909,8 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 
     if (subMethodCmd == NULL) {
       /* no -system handling */
-      actualClass = SearchPLMethod(invokedObject->cl->order, subMethodName, &subMethodCmd, NSF_CMD_CALL_PRIVATE_METHOD);
+      actualClass = SearchPLMethod(invokedObject->cl->order, subMethodName, &subMethodCmd, 
+                                   NSF_CMD_CALL_PRIVATE_METHOD);
     }
     if (likely(subMethodCmd != NULL)) {
       cscPtr->objc = objc;
@@ -11945,16 +12087,17 @@ static int NsfAsmProc(ClientData clientData, Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 #if defined(NSF_STACKCHECK)
-NSF_INLINE static void CheckCStack(Tcl_Interp *interp, CONST char *prefix, CONST char *fullMethodName) nonnull(1) nonnull(2) nonnull(3);
+NSF_INLINE static void CheckCStack(Tcl_Interp *interp, CONST char *prefix, CONST char *fullMethodName) 
+  nonnull(1) nonnull(2) nonnull(3);
 
 NSF_INLINE static void
 CheckCStack(Tcl_Interp *interp, CONST char *prefix, CONST char *fullMethodName) {
   int somevar;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
-  assert(interp); // autoadded
-  assert(prefix); // autoadded
-  assert(fullMethodName); // autoadded
+  assert(interp);
+  assert(prefix);
+  assert(fullMethodName);
 
   if (rst->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF) {
 # if TCL_STACK_GROWS_UP
@@ -12004,7 +12147,8 @@ static int MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 		  int objc, Tcl_Obj *CONST objv[],
 		  Tcl_Command cmd,
 		  NsfCallStackContent *cscPtr, CONST char *methodName,
-		  int *validCscPtr) nonnull(2) nonnull(4) nonnull(6) nonnull(7) nonnull(8) nonnull(1) nonnull(5);
+		  int *validCscPtr) 
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5) nonnull(6) nonnull(7) nonnull(8);
 
 static int
 MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
@@ -12017,14 +12161,13 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
   NsfCallStackContent *cscPtr1;
 
-  assert(clientData); // autoadded
-  assert(cmd); // autoadded
-
-  assert(interp); // autoadded
-  assert(objv); // autoadded
-  assert(cscPtr); // autoadded
-  assert(methodName); // autoadded
-  assert(validCscPtr); // autoadded
+  assert(clientData);
+  assert(interp);
+  assert(objv);
+  assert(cmd);
+  assert(cscPtr);
+  assert(methodName);
+  assert(validCscPtr);
 
   /*
    * Privide DTrace with calling info
@@ -12196,15 +12339,13 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   int result, validCscPtr = 1;
   Tcl_Command resolvedCmd;
 
-  assert(clientData); // autoadded
-  assert(interp); // autoadded
-  assert(objv); // autoadded
-  assert(cmd); // autoadded
-  assert(object); // autoadded
-  assert(methodName); // autoadded
-
-  assert (object->teardown);
-  assert (cmd);
+  assert(clientData);
+  assert(interp);
+  assert(objv);
+  assert(cmd);
+  assert(object);
+  assert(methodName);
+  assert(object->teardown);
 
   CheckCStack(interp, "method", methodName);
 
@@ -12275,14 +12416,14 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   NsfObject *object;
   int flags;
 
-  assert(interp); // autoadded
-
+  assert(interp);
   assert(cscPtr);
   object = cscPtr->self;
-  flags = cscPtr->flags;
 
   assert(object);
   assert(object->id);
+
+  flags = cscPtr->flags;
 
   /*fprintf(stderr, "ObjectDispatchFinalize %p %s flags %.6x (%d) frame %.6x unk %d m %s\n",
 	  cscPtr, ObjectName(object), flags,
@@ -12410,8 +12551,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   int validCscPtr = 1;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
-  assert(interp); // autoadded
-  assert(objv); // autoadded
+  assert(interp);
+  assert(objv);
 
   /* none of the higher copy-flags must be passed */
   assert((flags & (NSF_CSC_COPY_FLAGS & 0xFFF000)) == 0);
@@ -12905,10 +13046,9 @@ DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object,
   int result;
   Tcl_Obj *methodObj;
 
-  assert(interp); // autoadded
-  assert(obj); // autoadded
-
+  assert(interp);
   assert(object);
+  assert(obj);
 
   if (CallDirectly(interp, object, NSF_o_defaultmethod_idx, &methodObj)) {
 
@@ -12953,8 +13093,8 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
   Tcl_Obj *methodObj;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
+  assert(interp);
+  assert(object);
 
   /*
    * Don't call destroy after exit handler started physical
@@ -13025,8 +13165,7 @@ DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
   int result;
   Tcl_Obj *methodObj;
 
-  assert(interp); // autoadded
-
+  assert(interp);
   assert(object);
 
   /*
@@ -13086,10 +13225,10 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
   Tcl_Obj *unknownObj = NsfMethodObj(object, NSF_o_unknown_idx);
   CONST char *methodName = MethodName(methodObj);
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(objv); // autoadded
-  assert(methodObj); // autoadded
+  assert(interp);
+  assert(object);
+  assert(objv);
+  assert(methodObj);
 
   /*fprintf(stderr, "compare unknownObj %p with methodObj %p '%s' %p %p %s -- %s\n",
     unknownObj, methodObj, ObjStr(methodObj), callInfoObj,
@@ -13171,13 +13310,14 @@ Tcl_ObjCmdProc NsfObjDispatchNRE;
 int
 NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 
-  assert(clientData); // autoadded
-  assert(interp); // autoadded
-  assert(objv); // autoadded
+  assert(clientData);
+  assert(interp);
+  assert(objv);
 
   return Tcl_NRCallObjProc(interp, NsfObjDispatchNRE, clientData, objc, objv);
 }
-int NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) nonnull(2) nonnull(4) nonnull(1);
+int NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) 
+  nonnull(1) nonnull(2) nonnull(4);
 
 int
 NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -13187,15 +13327,15 @@ NsfObjDispatchNRE(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 EXTERN int
 NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 
-  assert(clientData); // autoadded
-  assert(interp); // autoadded
-  assert(objv); // autoadded
-
 #endif
   int result;
 #ifdef STACK_TRACE
   NsfStackDump(interp);
 #endif
+
+  assert(clientData);
+  assert(interp);
+  assert(objv);
 
   if (likely(objc > 1)) {
     /*
@@ -13235,8 +13375,8 @@ static Tcl_Obj *
 AddPrefixToBody(Tcl_Obj *body, int paramDefs, NsfParsedParam *paramPtr) {
   Tcl_Obj *resultBody = Tcl_NewObj();
 
-  assert(body); // autoadded
-  assert(paramPtr); // autoadded
+  assert(body);
+  assert(paramPtr);
 
   INCR_REF_COUNT2("resultBody", resultBody);
 
@@ -13253,10 +13393,10 @@ NSF_INLINE static int NoMetaChars(CONST char *pattern) nonnull(1);
 NSF_INLINE static int
 NoMetaChars(CONST char *pattern) {
   register char c;
-  CONST char *p = pattern;
 
   assert(pattern);
-  for (c=*p; c; c = *++p) {
+
+  for (c = *pattern; c; c = *++pattern) {
     if (c == '*' || c == '?' || c == '[') {
       return 0;
     }
@@ -13292,9 +13432,9 @@ int
 Nsf_ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, Nsf_Param CONST *UNUSED(pPtr),
                     ClientData *clientData, Tcl_Obj **outObjPtr) {
 
-  assert(objPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(objPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   *clientData = (char *)ObjStr(objPtr);
   assert(*outObjPtr == objPtr);
@@ -13325,10 +13465,10 @@ static int
 ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  Nsf_Param CONST *UNUSED(pPtr),
 		 ClientData *UNUSED(clientData), Tcl_Obj **outObjPtr) {
 
-  assert(objPtr); // autoadded
-  assert(outObjPtr); // autoadded
-
+  assert(objPtr);
+  assert(outObjPtr);
   assert(*outObjPtr == objPtr);
+
   *outObjPtr = objPtr;
   return TCL_OK;
 }
@@ -13367,11 +13507,11 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 			   ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(interp); 
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   if (unlikely(pPtr->converterArg != NULL)) {
     Tcl_Obj *objv[4];
@@ -13436,7 +13576,8 @@ Nsf_ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
  */
 
 int Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+			    ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
@@ -13444,11 +13585,11 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
   int result, bool;
   result = Tcl_GetBooleanFromObj(interp, objPtr, &bool);
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   if (result == TCL_OK) {
     *clientData = (ClientData)INT2PTR(bool);
@@ -13485,11 +13626,11 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   int result;
   int i;
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   result = Tcl_GetIntFromObj(interp, objPtr, &i);
 
@@ -13522,18 +13663,19 @@ Nsf_ConvertToInt32(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 
 #include <tclTomMath.h>
 int Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
-		     ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+		     ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 		     ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   /*
    * Try to short_cut common cases to avoid conversion to bignums, since
@@ -13598,17 +13740,18 @@ Nsf_ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
  */
 
 int Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
-			   ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+			   ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 			   ClientData *clientData, Tcl_Obj **outObjPtr) {
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   return Nsf_ConvertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
 }
@@ -13631,19 +13774,20 @@ Nsf_ConvertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
  */
 
 int Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
-		ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+		ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 		ClientData *clientData, Tcl_Obj **outObjPtr) {
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
-
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
   assert(*outObjPtr == objPtr);
+
   if (likely(GetObjectFromObj(interp, objPtr, (NsfObject **)clientData) == TCL_OK)) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "object", objPtr, pPtr);
   }
@@ -13668,19 +13812,20 @@ Nsf_ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
  */
 
 int Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
-	       ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+	       ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
-
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
   assert(*outObjPtr == objPtr);
+
   if (likely(GetClassFromObj(interp, objPtr, (NsfClass **)clientData, 0) == TCL_OK)) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "class", objPtr, pPtr);
   }
@@ -13708,18 +13853,19 @@ Nsf_ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
  */
 
 int Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
-	       ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+	       ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   assert(*outObjPtr == objPtr);
   result = Tcl_ConvertToType(interp, objPtr, &NsfFilterregObjType);
@@ -13749,20 +13895,21 @@ Nsf_ConvertToFilterreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pP
  */
 
 int Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
-	       ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+	       ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	       ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
-
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
   assert(*outObjPtr == objPtr);
+
   result = Tcl_ConvertToType(interp, objPtr, &NsfMixinregObjType);
   if (likely(result == TCL_OK)) {
     *clientData = objPtr;
@@ -13790,20 +13937,21 @@ Nsf_ConvertToMixinreg(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPt
  */
 
 int Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
-		   ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+		   ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
 Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 		   ClientData *clientData, Tcl_Obj **outObjPtr) {
   CONST char *value = ObjStr(objPtr);
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
-
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
   assert(*outObjPtr == objPtr);
+
   /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/
   if (*value == ':' ||  (*value == '-' && *(value + 1) == ':')) {
     return NsfPrintError(interp, "leading colon in '%s' not allowed in parameter specification '%s'",
@@ -13833,7 +13981,8 @@ Nsf_ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPt
  */
 
 static int ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
-	      ClientData *clientData, Tcl_Obj **outObjPtr) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
+	      ClientData *clientData, Tcl_Obj **outObjPtr) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 static int
 ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
@@ -13842,11 +13991,11 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
   NsfObject *object;
   int result, oc;
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(pPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(interp);
+  assert(objPtr);
+  assert(pPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   /*
    * In general, when the converter is used e.g. for result checking,
@@ -13952,10 +14101,10 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *UNUSED
   Tcl_Obj *patternObj = objPtr;
   CONST char *pattern = ObjStr(objPtr);
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
-  assert(clientData); // autoadded
-  assert(outObjPtr); // autoadded
+  assert(interp);
+  assert(objPtr);
+  assert(clientData);
+  assert(outObjPtr);
 
   if (NoMetaChars(pattern)) {
     /*
@@ -13990,29 +14139,61 @@ ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *UNUSED
   return TCL_OK;
 }
 
-static Tcl_Obj * ParamCheckObj(CONST char *start, size_t len) nonnull(1);
+/*
+ *----------------------------------------------------------------------
+ * ParamCheckObj --
+ *
+ *    Ths function returns a fresh Tcl_Obj in the form of a method name for a
+ *    checker method.
+ *
+ * Results:
+ *    Tcl_Obj
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+
+static Tcl_Obj *ParamCheckObj(CONST char *start, size_t len) nonnull(1) returns_nonnull;
 
 static Tcl_Obj *
 ParamCheckObj(CONST char *start, size_t len) {
-
-  assert(start); // autoadded
-
   Tcl_Obj *checker = Tcl_NewStringObj("type=", 5);
+
+  assert(start);
+
   Tcl_AppendLimitedToObj(checker, start, len, INT_MAX, NULL);
   return checker;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamOptionSetConverter --
+ *
+ *    Fill in the fields int to the specifed paramPtr structure
+ *    checker method and perform sanity checking.
+ *
+ * Results:
+ *    Standard result code
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
 static int ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
-                        CONST char *typeName, Nsf_TypeConverter *converter) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+                        CONST char *typeName, Nsf_TypeConverter *converter) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static int
 ParamOptionSetConverter(Tcl_Interp *interp, Nsf_Param *paramPtr,
                         CONST char *typeName, Nsf_TypeConverter *converter) {
 
-  assert(interp); // autoadded
-  assert(paramPtr); // autoadded
-  assert(typeName); // autoadded
-  assert(converter); // autoadded
+  assert(interp);
+  assert(paramPtr);
+  assert(typeName);
+  assert(converter);
 
   if (paramPtr->converter) {
     return NsfPrintError(interp, "refuse to redefine parameter type of '%s' from type '%s' to type '%s'",
@@ -14047,7 +14228,7 @@ Unescape(Tcl_Obj *objPtr) {
   int i, j, l = Tcl_GetCharLength(objPtr);
   char *string = ObjStr(objPtr);
 
-  assert(objPtr); // autoadded
+  assert(objPtr);
 
   for (i = 0; i < l; i++) {
     if (string[i] == ',' && string[i+1] == ',') {
@@ -14081,7 +14262,8 @@ Unescape(Tcl_Obj *objPtr) {
 
 static int ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 		 size_t start, size_t optionLength,
-		 int disallowedOptions, Nsf_Param *paramPtr, int unescape) nonnull(1) nonnull(2) nonnull(6);
+		 int disallowedOptions, Nsf_Param *paramPtr, int unescape) 
+  nonnull(1) nonnull(2) nonnull(6);
 
 static int
 ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
@@ -14387,12 +14569,12 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   CONST char *argString, *argName;
   Tcl_Obj **npav;
 
-  assert(interp); // autoadded
-  assert(arg); // autoadded
-  assert(paramPtr); // autoadded
-  assert(possibleUnknowns); // autoadded
-  assert(plainParams); // autoadded
-  assert(nrNonposArgs); // autoadded
+  assert(interp); 
+  assert(arg);
+  assert(paramPtr);
+  assert(possibleUnknowns);
+  assert(plainParams);
+  assert(nrNonposArgs);
 
   paramPtr->paramObj = arg;
   INCR_REF_COUNT(paramPtr->paramObj);
@@ -14672,9 +14854,9 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
   Tcl_Obj **argsv;
   int result, argsc;
 
-  assert(interp); // autoadded
-  assert(paramSpecObjs); // autoadded
-  assert(parsedParamPtr); // autoadded
+  assert(interp);
+  assert(paramSpecObjs);
+  assert(parsedParamPtr);
 
   parsedParamPtr->paramDefs = NULL;
   parsedParamPtr->possibleUnknowns = 0;
@@ -14783,20 +14965,15 @@ static int
 ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
 			       Nsf_Param *paramPtr, Tcl_Obj *newValue,
 			       NsfCallStackContent *cscPtr) {
-
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(paramPtr); // autoadded
-
   Tcl_Obj **nobjv, *ov[3], *methodObj, *forwardSpec;
   ForwardCmdClientData *tcd = NULL;
   int result, oc, nobjc;
 
+  assert(interp);
+  assert(object);
+  assert(paramPtr);
   assert(paramPtr->flags & NSF_ARG_FORWARD);
 
-  /*
-
-   */
   forwardSpec = paramPtr->method ? paramPtr->method : NULL; /* different default? */
   if (forwardSpec == NULL) {
     return NsfPrintError(interp, "forward: no spec available\n");
@@ -24316,7 +24493,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     if (Tcl_ListObjGetElements(interp, valueObj, &oc, &ov) != TCL_OK) {
       return TCL_ERROR;
     }
-    return SuperclassAdd(interp, cl, oc, ov, valueObj, cl->object.cl);
+    return SuperclassAdd(interp, cl, oc, ov, valueObj);
 
   case RelationtypeClassIdx:
     if (valueObj == NULL) {
@@ -28572,7 +28749,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, NsfCmdList **instances) {
 	  for (sc = cl->super; sc; sc = sc->nextPtr) {
 	    if (sc->cl != osPtr->rootClass) {
 	      Tcl_Obj *objectName = osPtr->rootClass->object.cmdName;
-	      SuperclassAdd(interp, cl, 1, &objectName, objectName, cl->object.cl);
+	      SuperclassAdd(interp, cl, 1, &objectName, objectName);
 	      reclassed ++;
 	      break;
 	    }
