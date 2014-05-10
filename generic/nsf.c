@@ -22399,7 +22399,7 @@ ListSuperClasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClo
  * AliasIndex --
  *
  *      The alias index is an internal data structure to keep track how
- *      aliases are constructed.
+ *      aliases are constructed. This function computes the key of the index.
  *
  * Results:
  *      string value of the index
@@ -22432,63 +22432,116 @@ AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *methodName, int wit
   return Tcl_DStringValue(dsPtr);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * AliasAdd --
+ *
+ *      Add an alias to the alias index
+ *
+ * Results:
+ *      Standard Tcl result
+ *
+ * Side effects:
+ *      Adding value to the hidden associated array.
+ *
+ *----------------------------------------------------------------------
+ */
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object,
 	 CONST char *cmd) nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 
 static int
 AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object,
 	 CONST char *cmd) {
-
-  assert(interp); // autoadded
-  assert(cmdName); // autoadded
-  assert(methodName); // autoadded
-  assert(cmd); // autoadded
-
   Tcl_DString ds, *dsPtr = &ds;
+
+  assert(interp);
+  assert(cmdName);
+  assert(methodName);
+  assert(cmd);
+
   Tcl_SetVar2Ex(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
                 AliasIndex(dsPtr, cmdName, methodName, withPer_object),
                 Tcl_NewStringObj(cmd, -1),
                 TCL_GLOBAL_ONLY);
+
   /*fprintf(stderr, "aliasAdd ::nsf::alias(%s) '%s' returned %p\n",
     AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd, 1);*/
   Tcl_DStringFree(dsPtr);
+
   return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * AliasDelete --
+ *
+ *      Delete an alias from the index
+ *
+ * Results:
+ *      Standard Tcl result
+ *
+ * Side effects:
+ *      delete an entry from the hidden associative array
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object) {
-
-  assert(interp); // autoadded
-  assert(cmdName); // autoadded
-  assert(methodName); // autoadded
-
   Tcl_DString ds, *dsPtr = &ds;
-  int result = Tcl_UnsetVar2(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
-                             AliasIndex(dsPtr, cmdName, methodName, withPer_object),
-                             TCL_GLOBAL_ONLY);
+  int result;
+
+  assert(interp);
+  assert(cmdName);
+  assert(methodName);
+
+  result = Tcl_UnsetVar2(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
+                         AliasIndex(dsPtr, cmdName, methodName, withPer_object),
+                         TCL_GLOBAL_ONLY);
+
   /*fprintf(stderr, "aliasDelete ::nsf::alias(%s) returned %d (%d)\n",
     AliasIndex(dsPtr, cmdName, methodName, withPer_object), result);*/
   Tcl_DStringFree(dsPtr);
+
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * AliasGet --
+ *
+ *      Get an entry from the alias index
+ *
+ * Results:
+ *      Tcl obj
+ *
+ * Side effects:
+ *      delete an entry from the hidden associative array
+ *
+ *----------------------------------------------------------------------
+ */
 static Tcl_Obj *
 AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, int leaveError) {
-
-  assert(interp); // autoadded
-  assert(cmdName); // autoadded
-  assert(methodName); // autoadded
-
   Tcl_DString ds, *dsPtr = &ds;
-  Tcl_Obj *obj = Tcl_GetVar2Ex(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
-                               AliasIndex(dsPtr, cmdName, methodName, withPer_object),
-                               TCL_GLOBAL_ONLY);
+  Tcl_Obj *obj;
+
+  assert(interp);
+  assert(cmdName);
+  assert(methodName);
+
+  obj = Tcl_GetVar2Ex(interp, NsfGlobalStrings[NSF_ARRAY_ALIAS],
+                      AliasIndex(dsPtr, cmdName, methodName, withPer_object),
+                      TCL_GLOBAL_ONLY);
+
   /*fprintf(stderr, "aliasGet methodName '%s' returns %p\n", methodName, obj);*/
   Tcl_DStringFree(dsPtr);
   if (obj == NULL && leaveError) {
     NsfPrintError(interp, "could not obtain alias definition for %s %s.",
 		  ObjStr(cmdName), methodName);
   }
+
   return obj;
 }
 
@@ -22513,12 +22566,12 @@ static int
 AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
   NsfObject *referencedObject = NsfGetObjectFromCmdPtr(cmd);
 
-  assert(interp); // autoadded
-  assert(cmd); // autoadded
+  assert(interp);
+  assert(cmd);
+  assert(referencedObject);
 
   /*fprintf(stderr, "AliasDeleteObjectReference on %p obj %p\n", cmd, referencedObject);*/
-  if (referencedObject
-      && referencedObject->refCount > 0
+  if (referencedObject->refCount > 0
       && cmd != referencedObject->id) {
     /*
      * The cmd is an aliased object, reduce the refCount of the
@@ -22555,11 +22608,11 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Alia
   NsfObject *defObject;
   Tcl_Command cmd;
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(methodName); // autoadded
-
+  assert(interp);
+  assert(object);
+  assert(methodName);
   assert(tcd);
+
   defObject = tcd->class ? &(tcd->class->object) : object;
 
   /*
@@ -22635,14 +22688,16 @@ AliasRefetch(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Alia
  *
  *----------------------------------------------------------------------
  */
-NSF_INLINE static Tcl_Command AliasDereference(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Command cmd) nonnull(1) nonnull(2) nonnull(3);
+NSF_INLINE static Tcl_Command AliasDereference(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Command cmd) 
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 NSF_INLINE static Tcl_Command
 AliasDereference(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Command cmd) {
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(methodName); // autoadded
+  assert(interp);
+  assert(object);
+  assert(methodName);
+  assert(cmd);
 
   if (unlikely(Tcl_Command_objProc(cmd) == NsfProcAliasMethod)) {
     AliasCmdClientData *tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
@@ -22673,11 +22728,11 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
 		      int withPer_object, NsfObject *regObject,
 		      Tcl_Obj *nameObj, Tcl_Obj *argumentsObj, Tcl_Obj *bodyObj) {
 
-  assert(interp); // autoadded
-  assert(defObject); // autoadded
-  assert(nameObj); // autoadded
-  assert(argumentsObj); // autoadded
-  assert(bodyObj); // autoadded
+  assert(interp);
+  assert(defObject);
+  assert(nameObj);
+  assert(argumentsObj);
+  assert(bodyObj);
 
   /*
    * Dummy stub; used, when compiled without NSF_ASSEMBLE
@@ -22701,17 +22756,18 @@ NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
  *----------------------------------------------------------------------
  */
 
-static int SetBooleanFlag(Tcl_Interp *interp, unsigned int *flagsPtr, unsigned int flag, Tcl_Obj *valueObj, int *flagValue) nonnull(1) nonnull(2) nonnull(4) nonnull(5);
+static int SetBooleanFlag(Tcl_Interp *interp, unsigned int *flagsPtr, unsigned int flag, Tcl_Obj *valueObj, int *flagValue) 
+  nonnull(1) nonnull(2) nonnull(4) nonnull(5);
 
 static int
 SetBooleanFlag(Tcl_Interp *interp, unsigned int *flagsPtr, unsigned int flag, Tcl_Obj *valueObj, int *flagValue) {
   int result;
 
-  assert(interp); // autoadded
-  assert(valueObj); // autoadded
-  assert(flagValue); // autoadded
-
+  assert(interp);
   assert(flagsPtr);
+  assert(valueObj);
+  assert(flagValue);
+
   result = Tcl_GetBooleanFromObj(interp, valueObj, flagValue);
   if (result != TCL_OK) {
     return result;
@@ -22737,7 +22793,7 @@ static int
 NsfDebugCompileEpoch(Tcl_Interp *interp) {
   Interp *iPtr = (Interp *) interp;
 
-  assert(interp); // autoadded
+  assert(interp);
 
   Tcl_SetObjResult(interp, Tcl_NewIntObj(iPtr->compileEpoch));
   return TCL_OK;
@@ -22753,8 +22809,8 @@ static int NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) nonnull(1) nonnu
 static int
 NsfDebugShowObj(Tcl_Interp *interp, Tcl_Obj *objPtr) {
 
-  assert(interp); // autoadded
-  assert(objPtr); // autoadded
+  assert(interp);
+  assert(objPtr);
 
   fprintf(stderr, "*** obj %p refCount %d type <%s>\n",
 	  objPtr, objPtr->refCount,
@@ -22788,7 +22844,7 @@ cmd __db_show_stack NsfShowStackCmd {}
 static int
 NsfShowStackCmd(Tcl_Interp *interp) {
 
-  assert(interp); // autoadded
+  assert(interp);
 
   NsfShowStack(interp);
   return TCL_OK;
@@ -22802,7 +22858,7 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
   NsfObjectSystem *osPtr;
   NsfCmdList *instances = NULL, *entry;
 
-  assert(interp); // autoadded
+  assert(interp);
 
   /*
    * Collect all instances from all object systems.
@@ -22871,7 +22927,7 @@ static int NsfProfileClearDataStub(Tcl_Interp *interp) nonnull(1);
 static int
 NsfProfileClearDataStub(Tcl_Interp *interp) {
 
-  assert(interp); // autoadded
+  assert(interp);
 
 #if defined(NSF_PROFILE)
   NsfProfileClearData(interp);
@@ -22887,7 +22943,7 @@ static int NsfProfileGetDataStub(Tcl_Interp *interp) nonnull(1);
 static int
 NsfProfileGetDataStub(Tcl_Interp *interp) {
 
-  assert(interp); // autoadded
+  assert(interp);
 
 #if defined(NSF_PROFILE)
   NsfProfileGetData(interp);
@@ -22920,7 +22976,7 @@ NsfUnsetUnknownArgsCmd(Tcl_Interp *interp) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
   Proc *proc = Tcl_CallFrame_procPtr(varFramePtr);
 
-  assert(interp); // autoadded
+  assert(interp);
 
   if (likely(proc != NULL)) {
     CompiledLocal *ap;
@@ -22955,10 +23011,10 @@ cmd asmproc NsfAsmProcCmd {
 static int
 NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
 
-  assert(interp); // autoadded
-  assert(nameObj); // autoadded
-  assert(arguments); // autoadded
-  assert(body); // autoadded
+  assert(interp);
+  assert(nameObj);
+  assert(arguments);
+  assert(body);
 
   return TCL_OK;
 }
@@ -22967,6 +23023,12 @@ static int
 NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
   NsfParsedParam parsedParam;
   int result;
+
+  assert(interp);
+  assert(nameObj);
+  assert(arguments); 
+  assert(body);
+
   /*
    * Parse argument list "arguments" to determine if we should provide
    * nsf parameter handling.
@@ -22977,11 +23039,6 @@ NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *na
   if (result != TCL_OK) {
     return result;
   }
-
-  assert(interp); // autoadded
-  assert(nameObj); // autoadded
-  assert(arguments); // autoadded
-  assert(body); // autoadded
 
   if (parsedParam.paramDefs) {
     /*
@@ -23010,7 +23067,7 @@ static int
 NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
   int bool;
 
-  assert(interp); // autoadded
+  assert(interp);
 
 #if defined(NSF_DTRACE)
   if (NSF_DTRACE_CONFIGURE_PROBE_ENABLED()) {
@@ -23143,7 +23200,7 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   CONST char *methodName = ObjStr(nobjv[0]);
   NsfObject *self = GetSelfObj(interp);
 
-  assert(interp); // autoadded
+  assert(interp);
 
   if (unlikely(self == NULL)) {
     return NsfNoCurrentObjectError(interp, methodName);
@@ -23228,9 +23285,9 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
   int flags = 0;
   int useCmdDispatch = 1;
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(commandObj); // autoadded
+  assert(interp);
+  assert(object);
+  assert(commandObj);
 
   /*fprintf(stderr, "NsfDirectDispatchCmd obj=%s, cmd m='%s'\n", ObjectName(object), methodName);*/
 
@@ -23337,9 +23394,9 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 	       Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS|NSF_CM_NO_SHIFT;
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(commandObj); // autoadded
+  assert(interp);
+  assert(object);
+  assert(commandObj);
 
   /*fprintf(stderr, "NsfDispatchCmd obj=%s, cmd m='%s' nobjc %d\n",
     ObjectName(object), ObjStr(commandObj), nobjc);*/
@@ -23374,7 +23431,7 @@ static int
 NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
   int result;
 
-  assert(interp); // autoadded
+  assert(interp);
 
 #if defined(NSF_STACKCHECK)
   {NsfRuntimeState *rst = RUNTIME_STATE(interp);
@@ -23432,8 +23489,8 @@ cmd interp NsfInterpObjCmd {
 static int
 NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]) {
 
-  assert(interp); // autoadded
-  assert(name); // autoadded
+  assert(interp);
+  assert(name);
 
   /* create a fresh Tcl interpreter, or pass command to an existing one */
   if (NsfCallCommand(interp, NSF_INTERP, objc, objv) != TCL_OK) {
@@ -23486,9 +23543,9 @@ NsfIsCmd(Tcl_Interp *interp,
   Nsf_Param *paramPtr = NULL;
   int result;
 
-  assert(interp); // autoadded
-  assert(constraintObj); // autoadded
-  assert(valueObj); // autoadded
+  assert(interp);
+  assert(constraintObj);
+  assert(valueObj);
 
   result = ParameterCheck(interp, constraintObj, valueObj,
 			  name ? name : "value:", 1, (name != NULL),
@@ -23540,13 +23597,11 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   NsfClass *cl = (withPer_object || ! NsfObjectIsClass(object)) ? NULL : (NsfClass *)object;
   NsfObject *oldTargetObject, *newTargetObject;
 
-  assert(cmdName); // autoadded
-
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(methodName); // autoadded
-
+  assert(interp);
+  assert(object);
+  assert(methodName);
   assert(methodName && *methodName != ':');
+  assert(cmdName);
 
   cmd = Tcl_GetCommandFromObj(interp, cmdName);
   if (cmd == NULL) {
@@ -23739,8 +23794,8 @@ NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj
 #if defined(NSF_WITH_ASSERTIONS)
   NsfClass *class;
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
+  assert(interp);
+  assert(object);
 
   switch (subcmd) {
   case AssertionsubcmdCheckIdx:
@@ -23806,13 +23861,13 @@ NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *defObject,
     (withPer_object || ! NsfObjectIsClass(defObject)) ?
     NULL : (NsfClass *)defObject;
 
-  assert(interp); // autoadded
-  assert(defObject); // autoadded
-  assert(nameObj); // autoadded
-  assert(arguments); // autoadded
-  assert(body); // autoadded
+  assert(interp);
+  assert(defObject);
+  assert(nameObj);
+  assert(arguments);
+  assert(body);
 
-  if (cl == 0) {
+  if (cl == NULL) {
     RequireObjNamespace(interp, defObject);
   }
   return MakeMethod(interp, defObject, regObject, cl,
@@ -23831,17 +23886,16 @@ cmd "method::delete" NsfMethodDeleteCmd {
 static int
 NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 		   Tcl_Obj *methodNameObj) {
-
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(methodNameObj); // autoadded
-
   NsfObject *regObject, *defObject;
   CONST char *methodName1 = NULL;
   NsfClass *cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
   int fromClassNS = cl != NULL, result;
   Tcl_DString ds, *dsPtr = &ds;
   Tcl_Command cmd;
+
+  assert(interp);
+  assert(object);
+  assert(methodNameObj);
 
   Tcl_DStringInit(dsPtr);
 
@@ -23904,9 +23958,9 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
   ForwardCmdClientData *tcd = NULL;
   int result;
 
-  assert(interp); // autoadded
-  assert(object); // autoadded
-  assert(methodObj); // autoadded
+  assert(interp);
+  assert(object);
+  assert(methodObj);
 
   result = ForwardProcessOptions(interp, methodObj,
                                  withDefault, withEarlybinding, withMethodprefix,
@@ -23971,7 +24025,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (unlikely(cmd == NULL)) {
     return NsfPrintError(interp, "cannot lookup %s method '%s' for %s",
-			 cl == 0 ? "object " : "",
+			 cl == NULL ? "object " : "",
 			 methodName, ObjectName(object));
   }
 
