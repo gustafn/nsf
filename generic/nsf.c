@@ -6150,7 +6150,7 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
  */
 int NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName,
                      Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
-                     int flags) nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6);
+                     int flags) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName,
@@ -6166,7 +6166,6 @@ NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodNa
   assert(object1);
   assert(methodName);
   assert(proc);
-  assert(dp);
 
   /* Check, if we are allowed to redefine the method */
   result = CanRedefineCmd(interp, object->nsPtr, object, (char *)methodName);
@@ -10254,7 +10253,6 @@ static Tcl_Command FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
 static Tcl_Command
 FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
                  Tcl_Command *currentCmd, NsfClass **clPtr) {
-  NsfCmdList *cmdList;
 
   assert(interp);
   assert(object);
@@ -10268,32 +10266,36 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
    */
   assert(object->flags & NSF_FILTER_ORDER_VALID);
 
-  *currentCmd = NULL;
-  cmdList = SeekCurrent(object->filterStack->currentCmdPtr, object->filterOrder);
+  if (object->filterOrder) {
+    NsfCmdList *cmdList;
 
-  while (cmdList) {
-    /*fprintf(stderr, "FilterSearchProc found %s\n",
-      Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr));*/
-    if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
-      cmdList = cmdList->nextPtr;
-    } else if (FilterActiveOnObj(interp, object, cmdList->cmdPtr)) {
-      /* fprintf(stderr, "Filter <%s> -- Active on: %s\n",
-         Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr), ObjectName(object));
-      */
-      object->filterStack->currentCmdPtr = cmdList->cmdPtr;
-      cmdList = SeekCurrent(object->filterStack->currentCmdPtr, object->filterOrder);
-    } else {
-      /* ok. we found it */
-      if (cmdList->clorobj && !NsfObjectIsClass(&cmdList->clorobj->object)) {
-        *clPtr = NULL;
+    *currentCmd = NULL;
+    cmdList = SeekCurrent(object->filterStack->currentCmdPtr, object->filterOrder);
+
+    while (cmdList) {
+      /*fprintf(stderr, "FilterSearchProc found %s\n",
+        Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr));*/
+      if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
+        cmdList = cmdList->nextPtr;
+      } else if (FilterActiveOnObj(interp, object, cmdList->cmdPtr)) {
+        /* fprintf(stderr, "Filter <%s> -- Active on: %s\n",
+           Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr), ObjectName(object));
+        */
+        object->filterStack->currentCmdPtr = cmdList->cmdPtr;
+        cmdList = SeekCurrent(object->filterStack->currentCmdPtr, object->filterOrder);
       } else {
-        *clPtr = cmdList->clorobj;
+        /* ok. we found it */
+        if (cmdList->clorobj && !NsfObjectIsClass(&cmdList->clorobj->object)) {
+          *clPtr = NULL;
+        } else {
+          *clPtr = cmdList->clorobj;
+        }
+        *currentCmd = cmdList->cmdPtr;
+        /* fprintf(stderr, "FilterSearchProc - found: %s, %p\n",
+           Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr), cmdList->cmdPtr);
+        */
+        return cmdList->cmdPtr;
       }
-      *currentCmd = cmdList->cmdPtr;
-      /* fprintf(stderr, "FilterSearchProc - found: %s, %p\n",
-         Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr), cmdList->cmdPtr);
-      */
-      return cmdList->cmdPtr;
     }
   }
   return NULL;
@@ -23729,11 +23731,11 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (cl) {
     result = NsfAddClassMethod(interp, (Nsf_Class *)cl, methodName,
-                                    objProc, tcd, deleteProc, flags);
+                               objProc, tcd, deleteProc, flags);
     nsPtr = cl->nsPtr;
   } else {
     result = NsfAddObjectMethod(interp, (Nsf_Object *)object, methodName,
-                                  objProc, tcd, deleteProc, flags);
+                                objProc, tcd, deleteProc, flags);
     nsPtr = object->nsPtr;
   }
 
