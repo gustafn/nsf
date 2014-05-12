@@ -20422,7 +20422,6 @@ Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
   assert(interp);
   assert(objv);
-  assert(object);
   assert(procNameObj);
   assert(pcPtr);
 

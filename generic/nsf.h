@@ -370,7 +370,7 @@ Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
 		  int doCheck, Nsf_ParseContext *pcPtr)
-  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(10);
+  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(5) NSF_nonnull(10);
 
 EXTERN int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
