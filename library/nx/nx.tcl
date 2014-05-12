@@ -1854,7 +1854,10 @@ namespace eval ::nx {
     #puts "VariableSlot [self] ${:incremental} && ${:accessor} && ${:multiplicity} incremental ${:incremental}"
     if {${:incremental}} {
       if {${:accessor} eq "none"} { set :accessor "public" }
-      if {![:isMultivalued]} { set :multiplicity "0..n" }
+      if {![:isMultivalued]} { 
+        puts stderr "=== incremental adds multiplicity"
+        set :multiplicity "0..n" 
+      }
     }
     next
     :makeAccessor
