@@ -1817,7 +1817,7 @@ namespace eval ::nx {
     unset -nocomplain :parameterSpec
     if {${:incremental}} {
       if {${:accessor} eq "none"} { set :accessor "public" }
-      if {![:isMultivalued]} { set :multiplicity "0..n" }
+      if {![:isMultivalued]} { set :multiplicity [string range ${:multiplicity} 0 0]..n }
     }
     :makeAccessor
     if {${:per-object} && [info exists :default]} {
@@ -1855,8 +1855,7 @@ namespace eval ::nx {
     if {${:incremental}} {
       if {${:accessor} eq "none"} { set :accessor "public" }
       if {![:isMultivalued]} { 
-        puts stderr "=== incremental adds multiplicity"
-        set :multiplicity "0..n" 
+        set :multiplicity [string range ${:multiplicity} 0 0]..n
       }
     }
     next

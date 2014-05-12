@@ -703,22 +703,32 @@ nx::test case property-incremental-multiplicity {
   nx::Object create o1 {
     :object property -incremental a:integer,0..n
     :object property -incremental b:integer,1..n
+    :object property -incremental c:integer,0..1
+    :object property -incremental d:integer,1..1 
   }
 
   ? {o1 info object slots a} "::o1::per-object-slot::a"
   ? {[o1 info object slots a] eval {set :multiplicity}} "0..n"
   ? {[o1 info object slots b] eval {set :multiplicity}} "1..n"
+  ? {[o1 info object slots c] eval {set :multiplicity}} "0..n"
+  ? {[o1 info object slots d] eval {set :multiplicity}} "1..n"
 
   ? {o1 info variable definition [o1 info object variables a]} \
       "::o1 object property -accessor public -incremental a:integer,0..n"
   ? {o1 info variable definition [o1 info object variables b]} \
       "::o1 object property -accessor public -incremental b:integer,1..n"
+  ? {o1 info variable definition [o1 info object variables c]} \
+      "::o1 object property -accessor public -incremental c:integer,0..n"
+  ? {o1 info variable definition [o1 info object variables d]} \
+      "::o1 object property -accessor public -incremental d:integer,1..n"
 
   ? {o1 a {1 2 3}} {1 2 3}
   ? {o1 b {1 2 3}} {1 2 3}
 
   ? {o1 a ""} {}
   ? {o1 b ""} {invalid value for parameter 'value': list is not allowed to be empty}
+  ? {o1 c ""} {}
+  ? {o1 d ""} {invalid value for parameter 'value': list is not allowed to be empty}
   
 }
 

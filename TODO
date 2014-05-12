@@ -5019,6 +5019,7 @@ nx.tcl:
   forward dispatcher.
 - extend regression test
 - added more test cases for multiplicity and incremental
+- preserve lower bound of multiplicity when incemental is added
 
 ========================================================================
 TODO:
