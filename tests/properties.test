@@ -674,6 +674,27 @@ nx::test case object-level-incremental {
 
 }
 
+#
+# Tests for experimental "value add", "value assign" ...
+#
+
+nx::test case property-value-incremental {
+
+  nx::Object create o1 {
+    :object property -incremental {a a1}
+  }
+
+  ? {o1 a add x} {x a1}
+  ? {o1 a {a1}} {a1}
+  
+  nsf::configure debug 2
+  ? {o1 a value add x    } {x a1}
+  ? {o1 a value assign {a b c}} {a b c}
+  ? {o1 a value get      } {a b c}
+  ? {o1 a value add x    } {x a b c}
+  ? {o1 a value add z end} {x a b c z}
+}
+
 
 #####################################################################
 # tests with class object

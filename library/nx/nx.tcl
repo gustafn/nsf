@@ -1194,6 +1194,19 @@ namespace eval ::nx {
   createBootstrapVariableSlots ::nx::Slot {
   }
 
+  # Define method "value" as a slot forwarder to allow for calling
+  # value-less slot methods like e.g. "get" dispite of the arity-based
+  # forward dispatcher.
+  ::nx::Slot public method value {obj method prop value:optional pos:optional} {
+    if {[info exists pos]} {
+      ${:manager} $prop $obj ${:name} $value $pos
+    } elseif {[info exists value]} {
+      ${:manager} $prop $obj ${:name} $value
+    } else {
+      ${:manager} $prop $obj ${:name}
+    }
+  }
+
   ######################################################################
   # configure nx::ObjectParameterSlot
   ######################################################################
@@ -1306,6 +1319,7 @@ namespace eval ::nx {
       set name ${:name}
       set domain ${:domain}
     }
+
     ::nsf::method::forward $domain \
 	{*}[expr {${:per-object} ? "-per-object" : ""}] \
 	$name \

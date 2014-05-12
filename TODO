@@ -5013,6 +5013,12 @@ nsf.c:
 - simplify SuperclassAdd()
 - improve code documentation
 
+nx.tcl:
+- Define method "value" as a slot forwarder to allow for calling
+  value-less slot methods like e.g. "get" dispite of the arity-based
+  forward dispatcher.
+- extend regression test
+
 ========================================================================
 TODO:
 
