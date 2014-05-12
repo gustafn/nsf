@@ -563,15 +563,19 @@ performed for a Tcl command representing an object.
 
 [list_end]
 
-[cmd_def object]
+[cmd_def filter]
 
 [list_begin definitions]
 
 [call [arg obj] [method {object filter}] ...]
 [para] Description of [method {object filter}] ...
+[list_end]
 
-[call [arg obj] [method {object mixin}] ...]
-[para] Description of [method {object mixin}] ...
+
+[cmd_def mixin]
+[list_begin definitions]
+
+[include mixin.man.inc]
 
 [list_end]
 
