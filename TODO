@@ -5118,9 +5118,6 @@ TODO:
         interface: assign, get, add, delete; upside: no ambiguities
         such as with get)
 
-- check autoadded asserts
-- check nonnull with various compilers for tcl8.6
-
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
   and xlloc fix
