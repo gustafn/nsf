@@ -86,9 +86,9 @@ __initblock:cmd,optional,noleadingdash"
 ::Foo::slot::i
 ::Foo::slot::q"
 
-  ? {::Foo info configure parameters ?} "-i:0..n -a:integer {-b:integer 123} {-p 9}"
+  ? {::Foo info configure parameters ?} "-i:1..n -a:integer {-b:integer 123} {-p 9}"
   ? {::Foo::slot::b definition} "::Foo property -accessor none {b:integer 123}"
-  ? {::Foo::slot::i definition} "::Foo property -accessor public -incremental i:0..n"
+  ? {::Foo::slot::i definition} "::Foo property -accessor public -incremental i:1..n"
   ? {::Foo::slot::____Foo.p definition} "::Foo variable -accessor private p 19"
   ? {::Foo::slot::d definition} "::Foo variable -accessor none d:lower abc"
   ? {::Foo::slot::e definition} "::Foo variable -accessor public e:lower efg"
@@ -156,7 +156,7 @@ __initblock:cmd,optional,noleadingdash"
 ::Foo variable -accessor none c 456
 ::Foo variable -accessor none d:lower abc
 ::Foo variable -accessor public e:lower efg
-::Foo property -accessor public -incremental i:0..n
+::Foo property -accessor public -incremental i:1..n
 ::Foo variable -accessor protected q"
 
   set ::ps [lmap handle $::vs {::Foo info variable parameter $handle}]
@@ -168,7 +168,7 @@ b:integer 123
 c 456
 d:lower abc
 e:lower efg
-i:0..n
+i:1..n
 q"
 
   ? {lmap handle $::vs {::Foo info variable name $handle}} \
@@ -235,11 +235,11 @@ nx::test case object-variables {
 ::f2 object property -accessor none oa:integer
 ::f2 object property -accessor none {ob:integer 123}
 ::f2 object variable -accessor public oe:lower efg
-::f2 object property -accessor public -incremental oi:0..n
+::f2 object property -accessor public -incremental oi:1..n
 ::f2 object variable -accessor protected oq"
 
   ? {lmap handle $::ovs {::f2 info variable parameter $handle}} \
-    "{op 19} oa:integer {ob:integer 123} {oe:lower efg} oi:0..n oq"
+    "{op 19} oa:integer {ob:integer 123} {oe:lower efg} oi:1..n oq"
   ? {lmap handle $::ovs {::f2 info variable name $handle}} \
     "__private(::f2,op) oa ob oe oi oq"
 

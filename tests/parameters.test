@@ -2539,7 +2539,7 @@ nx::test case object-info-slots-types {
 
   # only the variables with slots show up in "info slot ..." 
   ? {o1 info object slots} "::o1::per-object-slot::v2 ::o1::per-object-slot::v1"
-  ? {::o1::per-object-slot::v2 definition} "::o1 object variable -accessor public v2:0..n 100"
+  ? {::o1::per-object-slot::v2 definition} "::o1 object variable -accessor public v2:1..n 100"
   ? {::o1::per-object-slot::v1 definition} "::o1 object variable -accessor public v1 100"
 
   nx::Object create o2 {
