@@ -342,8 +342,9 @@ namespace eval ::nx {
      -default -prefix -frame -onerror -returns -verbose:switch
      target:optional args
    } {
-    array set ""  [:__resolve_method_path $methodName]
+    set pathData  [:__resolve_method_path $methodName]
     set arguments [lrange [::nsf::current args] 1 end]
+    set object [dict get $pathData object]
 
     if {[info exists target] && [string range $target 0 0] eq "-"} {
       error "target '$target' must not start with a dash"
@@ -357,11 +358,11 @@ namespace eval ::nx {
       set p [lsearch -exact [lrange $arguments 0 $nrPreArgs] -returns]
       if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
     }
-    set r [::nsf::method::forward $(object) $(methodName) {*}$arguments]
+    set r [::nsf::method::forward $object [dict get $pathData methodName] {*}$arguments]
 
-    ::nsf::method::property $(object) $r call-protected \
-	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+    ::nsf::method::property $object $r call-protected \
+	[::nsf::dispatch $object __default_method_call_protection]
+    if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
     return $r
   }
 
@@ -372,12 +373,14 @@ namespace eval ::nx {
   ######################################################################
 
   Class public method alias {methodName -returns {-frame default} cmd} {
-    array set "" [:__resolve_method_path $methodName]
-    #puts "class alias $(object).$(methodName) $cmd"
-    set r [::nsf::method::alias $(object) $(methodName) -frame $frame $cmd]
-    ::nsf::method::property $(object) $r call-protected \
-	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+    set pathData  [:__resolve_method_path $methodName]
+    set object [dict get $pathData object]
+
+    #puts "class alias $object.[dict get $pathData methodName] $cmd"
+    set r [::nsf::method::alias $object [dict get $pathData methodName] -frame $frame $cmd]
+    ::nsf::method::property $object $r call-protected \
+	[::nsf::dispatch $object __default_method_call_protection]
+    if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
     return $r
   }
 
@@ -506,32 +509,37 @@ namespace eval ::nx {
     #    - "forward"
 
     :public method "object method" {
-      name arguments:parameter,0..* -checkalways:switch -returns body
+      methodName arguments:parameter,0..* -checkalways:switch -returns body
     } {
-      array set "" [:__resolve_method_path -per-object $name]
-      # puts "object method $(object).$(methodName) [list $arguments] {...}"
-      set r [::nsf::method::create $(object) \
+      set pathData  [:__resolve_method_path -per-object $methodName]
+      set object    [dict get $pathData object]
+      set regObject [dict get $pathData regObject]
+
+      # puts "object method $object.[dict get $pathData methodName] [list $arguments] {...}"
+      set r [::nsf::method::create $object \
 		 -checkalways=$checkalways \
-		 {*}[expr {$(regObject) ne "" ? "-reg-object [list $(regObject)]" : ""}] \
+		 {*}[expr {$regObject ne "" ? "-reg-object [list $regObject]" : ""}] \
 		 -per-object \
-		 $(methodName) $arguments $body]
+		 [dict get $pathData methodName] $arguments $body]
       if {$r ne ""} {
 	# the method was not deleted
-	::nsf::method::property $(object) $r call-protected \
-	    [::nsf::dispatch $(object) __default_method_call_protection]
-	if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+	::nsf::method::property $object $r call-protected \
+	    [::nsf::dispatch $object __default_method_call_protection]
+	if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
       }
       return $r
     }
 
     :public method "object alias" {methodName -returns {-frame default} cmd} {
-      array set "" [:__resolve_method_path -per-object $methodName]
-      #puts "object alias $(object).$(methodName) $cmd"
-      set r [::nsf::method::alias $(object) -per-object $(methodName) \
+      set pathData  [:__resolve_method_path -per-object  $methodName]
+      set object    [dict get $pathData object]
+
+      #puts "object alias $object.[dict get $pathData methodName] $cmd"
+      set r [::nsf::method::alias $object -per-object [dict get $pathData methodName] \
 		 -frame $frame $cmd]
-      ::nsf::method::property $(object) -per-object $r call-protected \
-	  [::nsf::dispatch $(object) __default_method_call_protection]
-      if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+      ::nsf::method::property $object -per-object $r call-protected \
+	  [::nsf::dispatch $object __default_method_call_protection]
+      if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
       return $r
     }
 
@@ -540,8 +548,9 @@ namespace eval ::nx {
       -default -prefix -frame -onerror -returns -verbose:switch
       target:optional args
     } {
-      array set "" [:__resolve_method_path -per-object $methodName]
       set arguments [lrange [::nsf::current args] 1 end]
+      set pathData  [:__resolve_method_path -per-object  $methodName]
+      set object    [dict get $pathData object]
 
       if {[info exists target] && [string range $target 0 0] eq "-"} {
         error "target '$target' must not start with a dash"
@@ -556,10 +565,11 @@ namespace eval ::nx {
 	# ... and remove it if found
 	if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
       }
-      set r [::nsf::method::forward $(object) -per-object $(methodName) {*}$arguments]
-      ::nsf::method::property $(object) -per-object $r call-protected \
-	  [::nsf::dispatch $(object) __default_method_call_protection]
-      if {[info exists returns]} {::nsf::method::property $(object) $r returns $returns}
+      set r [::nsf::method::forward $object -per-object \
+                 [dict get $pathData methodName] {*}$arguments]
+      ::nsf::method::property $object -per-object $r call-protected \
+	  [::nsf::dispatch $object __default_method_call_protection]
+      if {[info exists returns]} {::nsf::method::property $object $r returns $returns}
       return $r
     }
   }
@@ -1310,11 +1320,11 @@ namespace eval ::nx {
     }
     #puts stderr "makeforwarder --> '${:forwardername}'"
     if {[info exists :settername]} {
-      array set "" [nsf::directdispatch ${:domain} \
-			::nsf::classes::nx::Object::__resolve_method_path \
-			{*}[expr {${:per-object} ? "-per-object" : ""}] ${:settername}]
-      set name $(methodName)
-      set domain $(object)
+      set d [nsf::directdispatch ${:domain} \
+                 ::nsf::classes::nx::Object::__resolve_method_path \
+                 {*}[expr {${:per-object} ? "-per-object" : ""}] ${:settername}]
+      set name   [dict get $d methodName]
+      set domain [dict get $d object]
     } else {
       set name ${:name}
       set domain ${:domain}
@@ -2406,12 +2416,14 @@ namespace eval ::nx {
 	      # remove -returns from reported definitions
 	      set p [lsearch -exact $rest -returns]; if {$p > -1} {set rest [lreplace $rest $p $p+1]}
 
-	      array set "" [$obj eval [list :__resolve_method_path $m]]
-	      set r [::nsf::method::$cmdMap($what) $(object) $(methodName) {*}$rest]
+              set pathData  [$obj eval [list :__resolve_method_path $m]]
+              set object    [dict get $pathData object]
 
-	      ::nsf::method::property $(object) $r returns [$origin ::nsf::methods::class::info::method returns $m]
-	      ::nsf::method::property $(object) $r call-protected [::nsf::method::property $origin $m call-protected]
-	      ::nsf::method::property $(object) $r call-private [::nsf::method::property $origin $m call-private]
+	      set r [::nsf::method::$cmdMap($what) $object [dict get $pathData methodName] {*}$rest]
+
+	      ::nsf::method::property $object $r returns [$origin ::nsf::methods::class::info::method returns $m]
+	      ::nsf::method::property $object $r call-protected [::nsf::method::property $origin $m call-protected]
+	      ::nsf::method::property $object $r call-private [::nsf::method::property $origin $m call-private]
 	    }
 	  }
 
@@ -2439,15 +2451,18 @@ namespace eval ::nx {
 	  # remove -returns from reported definitions
 	  set p [lsearch -exact $rest -returns]; if {$p > -1} {set rest [lreplace $rest $p $p+1]}
 
-	  array set "" [$obj eval [list :__resolve_method_path -per-object $m]]
-	  set r [::nsf::method::$cmdMap($what) $(object) -per-object $(methodName) {*}$rest]
-	  ::nsf::method::property $(object) -per-object $r \
+          set pathData  [$obj eval [list :__resolve_method_path -per-object $m]]
+          set object    [dict get $pathData object]
+
+	  set r [::nsf::method::$cmdMap($what) $object -per-object \
+                     [dict get $pathData methodName] {*}$rest]
+	  ::nsf::method::property $object -per-object $r \
 	      returns \
 	      [$origin ::nsf::methods::object::info::method returns $m]
-	  ::nsf::method::property $(object) -per-object $r \
+	  ::nsf::method::property $object -per-object $r \
 	      call-protected \
 	      [::nsf::method::property $origin -per-object $m call-protected]
-	  ::nsf::method::property $(object) -per-object $r \
+	  ::nsf::method::property $object -per-object $r \
 	      call-private \
 	      [::nsf::method::property $origin -per-object $m call-private]
 	}
