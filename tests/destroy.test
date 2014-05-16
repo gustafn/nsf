@@ -31,7 +31,9 @@ C method foo {} {
   :destroy
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
+  puts stderr XXXX2
   ? "[current] set x" 1 "$::case can still access [current]"
+  puts stderr XXXX3
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"

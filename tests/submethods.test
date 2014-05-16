@@ -493,7 +493,7 @@ nx::test case submethods-current-introspection {
   # filter-local argv.
 
   Class create Z {
-    :object property -accessor public msg
+    :object property msg
     :method intercept args {
       [current class] eval [list set :msg [list [lrange [current methodpath] 1 end-1] \
 					       [current calledmethod] \
@@ -512,7 +512,7 @@ nx::test case submethods-current-introspection {
     set root [lindex $selector 0]
     set mh [Z info method registrationhandle $root]
     $c {*}$selector
-    ? [list set _ [join [Z msg] -]] -$root-::Z-$mh
+    ? [list set _ [join [Z cget -msg] -]] -$root-::Z-$mh
   }
 
   Z filter {}  

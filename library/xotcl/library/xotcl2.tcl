@@ -426,8 +426,15 @@ namespace eval ::xotcl {
   ::xotcl::Class instproc parameter {arglist} {
     set slotContainer [::nx::slotObj [::nsf::self]]
     foreach arg $arglist {
-      #puts stderr "[self] ::nsf::classes::nx::Class::property $arg"
-      [self] ::nsf::classes::nx::Class::property -accessor public $arg
+      puts stderr "[self] ::nsf::classes::nx::Class::property -accessor public $arg"
+      #[self] ::nsf::classes::nx::Class::property -accessor public $arg
+      if {[llength $arg] > 1} {
+	::nx::MetaSlot createFromParameterSpec [::nsf::self] [lindex $arg 0] [lindex $arg 1]
+      } else {
+	::nx::MetaSlot createFromParameterSpec [::nsf::self] $arg
+      }
+      #[self] ::nsf::classes::nx::Class::property -accessor public $arg
+      ::nsf::method:::setter [self] [lindex $arg 0]
     }
     ::nsf::var::set $slotContainer __parameter $arglist
   }
@@ -1003,6 +1010,7 @@ namespace eval ::xotcl {
   # Create ::xotcl::Attribute for compatibility
   #
   ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot {
+
     :property -accessor public multivalued {
       :public object method assign {object property value} {
 	set mClass [expr {$value ? "0..n" : "1..1"}]
@@ -1012,6 +1020,31 @@ namespace eval ::xotcl {
       :public object method get {object property} {
 	return [$object eval [list :isMultivalued]]
       }
+    }
+
+    :protected method needsForwarder {} {
+      #
+      # We just forward, when
+      #   * "assign" and "add" are still untouched, or
+      #   * or incremental is specified
+      #
+      if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {return 1}
+      if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
+      if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
+      if {[info exists :settername]} {return 1}
+      if {!${:incremental}} {return 0}
+      #if {![:isMultivalued]} {return 0}
+      #puts stderr "[self] ismultivalued"
+      return 1
+    }
+
+    :public method createForwarder {name domain} {
+      ::nsf::method::forward $domain \
+	  -per-object=${:per-object} \
+	  $name \
+	  ${:manager} \
+	  [list %1 [${:manager} defaultmethods]] %self \
+	  ${:forwardername}
     }
 
     :public method __objectparameter {} {

@@ -206,7 +206,7 @@ nx::test case cget-performance {
   # - cget
   # - dispatch of cget method with full path
   # - cget via slot method
-  ? {p1 age} 25
+  ? {p1 age get} 25
   ? {p1 cget -age} 25
   ? {p1 ::nsf::methods::object::cget -age} 25
   ? {p1 cget -bar} 101
@@ -216,7 +216,7 @@ nx::test case cget-performance {
   # - built-in accessor
   # - configure
   # - configure via slot method
-  ? {p1 age 27} 27
+  ? {p1 age assign 27} 27
   ? {p1 configure -age 27} ""
   ? {p1 configure -bar 102} ""
 

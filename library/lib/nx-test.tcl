@@ -23,7 +23,7 @@ namespace eval ::nx {
     :property cmd 
     :property {namespace ::}
     :property {verbose:boolean 0} 
-    :property -accessor public {expected 1} 
+    :property {expected 1}
     :property {count:integer 1} 
     :property msg 
     :property setResult 
@@ -198,7 +198,7 @@ proc ? {cmd expected {msg ""}} {
   } else {
     set t [nx::test new -cmd $cmd -namespace $namespace]
   }
-  $t expected $expected 
+  $t configure -expected $expected 
   $t run
   nsf::__db_run_assertions
 }

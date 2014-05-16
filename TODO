@@ -5020,9 +5020,14 @@ nx.tcl:
 - extend regression test
 - added more test cases for multiplicity and incremental
 - preserve lower bound of multiplicity when incemental is added
+- added log-level Info which prints always, e.g. for "-verbose" flag
+  of forwarder
 
 ========================================================================
 TODO:
+
+- nsf.c: finish forwarder error messages
+- finish nx-property reform
 
 - -incremental: setting incremental will promote a property/variable
    from a non-multivalued one to a multivalued one ->

@@ -407,6 +407,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
  */
 #define NSF_LOG_NOTICE 2
 #define NSF_LOG_WARN 1
+#define NSF_LOG_INFO 0
 
 EXTERN void
 NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)

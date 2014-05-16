@@ -33,7 +33,7 @@ nx::test case class-level {
     # a non-configurable property is a variable
     :property -accessor none -configurable false {vf vf1}
     
-    :public method call-local {v} {: -local $v}
+    :public method call-local {v} {: -local $v get}
     
     :create c1
   }
@@ -126,24 +126,24 @@ nx::test case class-level {
   #
   
   ? {c1 a} {::c1: unable to dispatch method 'a'}
-  ? {c1 b} b1
+  ? {c1 b get} b1
   ? {c1 c} {::c1: unable to dispatch method 'c'}
   ? {c1 d} {::c1: unable to dispatch method 'd'}
  
   ? {c1 eval ":a"} {::c1: unable to dispatch method 'a'}
-  ? {c1 eval ":b"} b1
-  ? {c1 eval ":c"} c1
+  ? {c1 eval ":b get"} b1
+  ? {c1 eval ":c get"} c1
   ? {c1 eval ":d"} {::c1: unable to dispatch method 'd'}
   
   
   ? {c1 va} {::c1: unable to dispatch method 'va'}
-  ? {c1 vb} vb1
+  ? {c1 vb get} vb1
   ? {c1 vc} {::c1: unable to dispatch method 'vc'}
   ? {c1 vd} {::c1: unable to dispatch method 'vd'}
   
   ? {c1 eval ":va"} {::c1: unable to dispatch method 'va'}
-  ? {c1 eval ":vb"} vb1
-  ? {c1 eval ":vc"} vc1
+  ? {c1 eval ":vb get"} vb1
+  ? {c1 eval ":vc get"} vc1
   ? {c1 eval ":vd"} {::c1: unable to dispatch method 'vd'}
 
   #
@@ -160,9 +160,9 @@ nx::test case class-level {
   # cases)
   #
 
-  ? {c1 b add x} {wrong # args should be "::c1 b ?value?"}
+  ? {c1 b add x} {property b of ::C ist not multivalued}
   ? {c1 c add x} {::c1: unable to dispatch method 'c'}
-  ? {c1 eval {:c add x}} {wrong # args should be "::c1 c ?value?"}
+  ? {c1 eval {:c add x}} {property c of ::C ist not multivalued}
   ? {c1 d add x} {::c1: unable to dispatch method 'd'}
   ? {c1 eval {:d add x}} {::c1: unable to dispatch method 'd'}
   ? {c1 e add x} {::c1: unable to dispatch method 'e'}
@@ -173,9 +173,9 @@ nx::test case class-level {
   #
 
   ? {c1 va add x} {::c1: unable to dispatch method 'va'}
-  ? {c1 vb add x} {wrong # args should be "::c1 vb ?value?"}
+  ? {c1 vb add x} {property vb of ::C ist not multivalued}
   ? {c1 vc add x} {::c1: unable to dispatch method 'vc'}
-  ? {c1 eval {:vc add x}} {wrong # args should be "::c1 vc ?value?"}
+  ? {c1 eval {:vc add x}} {property vc of ::C ist not multivalued}
   ? {c1 vd add x} {::c1: unable to dispatch method 'vd'}
   ? {c1 eval {:vd add x}} {::c1: unable to dispatch method 'vd'}
   ? {c1 ve add x} {::c1: unable to dispatch method 've'}
@@ -185,7 +185,7 @@ nx::test case class-level {
   # The accessor should be a setter due to incremental
   #
 
-  ? {C info method definition b} {::C public setter b}
+  ? {C info method definition b} {::C public forward b ::C::slot::b %1 %self b}
 
   #
   # check error message on a typo. The following command does a
@@ -221,7 +221,7 @@ nx::test case class-level-incremental {
     :variable -accessor private -incremental vd vd1
     :variable -accessor none -incremental ve ve1
     
-    :public method call-local {v} {: -local $v}
+    :public method call-local {v} {: -local $v get}
     :public method add-local {var value} {: -local $var add $value}
     
     :create c1
@@ -294,26 +294,26 @@ nx::test case class-level-incremental {
   # can we call the accessor directly or via "eval"
   #
   
-  ? {c1 a} a1
-  ? {c1 b} b1
+  ? {c1 a get} a1
+  ? {c1 b get} b1
   ? {c1 c} {::c1: unable to dispatch method 'c'}
   ? {c1 d} {::c1: unable to dispatch method 'd'}
  
-  ? {c1 eval ":a"} a1
-  ? {c1 eval ":b"} b1
-  ? {c1 eval ":c"} c1
+  ? {c1 eval ":a get"} a1
+  ? {c1 eval ":b get"} b1
+  ? {c1 eval ":c get"} c1
   ? {c1 eval ":d"} {::c1: unable to dispatch method 'd'}
   
   
-  ? {c1 va} va1
-  ? {c1 vb} vb1
+  ? {c1 va get} va1
+  ? {c1 vb get} vb1
   ? {c1 vc} {::c1: unable to dispatch method 'vc'}
   ? {c1 vd} {::c1: unable to dispatch method 'vd'}
   
-  ? {c1 eval ":va"} va1
-  ? {c1 eval ":vb"} vb1
-  ? {c1 eval ":vc"} vc1
-  ? {c1 eval ":vd"} {::c1: unable to dispatch method 'vd'}
+  ? {c1 eval ":va get"} va1
+  ? {c1 eval ":vb get"} vb1
+  ? {c1 eval ":vc get"} vc1
+  ? {c1 eval ":vd get"} {::c1: unable to dispatch method 'vd'}
 
   #
   # check the behavior of "private" properties and variables
@@ -356,7 +356,7 @@ nx::test case class-level-incremental {
   # The accessor should be a forwarder due to incremental
   #
 
-  ? {CC info method definition b} {::CC public forward b ::CC::slot::b {%1 {get assign}} %self b}
+  ? {CC info method definition b} {::CC public forward b ::CC::slot::b %1 %self b}
 
   #
   # check error message
@@ -392,7 +392,7 @@ nx::test case object-level {
     :object variable -accessor private vd vd1
     :object variable -accessor none ve ve1
     
-    :public object method call-local {v} {: -local $v}
+    :public object method call-local {v} {: -local $v get}
     
   }
   
@@ -474,23 +474,23 @@ nx::test case object-level {
   #
   
   ? {o1 a} {::o1: unable to dispatch method 'a'}
-  ? {o1 b} b1
+  ? {o1 b get} b1
   ? {o1 c} {::o1: unable to dispatch method 'c'}
   ? {o1 d} {::o1: unable to dispatch method 'd'}
   
   ? {o1 eval ":a"} {::o1: unable to dispatch method 'a'}
-  ? {o1 eval ":b"} b1
-  ? {o1 eval ":c"} c1
+  ? {o1 eval ":b get"} b1
+  ? {o1 eval ":c get"} c1
   ? {o1 eval ":d"} {::o1: unable to dispatch method 'd'}
 
   ? {o1 va} {::o1: unable to dispatch method 'va'}
-  ? {o1 vb} vb1
+  ? {o1 vb get} vb1
   ? {o1 vc} {::o1: unable to dispatch method 'vc'}
   ? {o1 vd} {::o1: unable to dispatch method 'vd'}
   
   ? {o1 eval ":va"} {::o1: unable to dispatch method 'va'}
-  ? {o1 eval ":vb"} vb1
-  ? {o1 eval ":vc"} vc1
+  ? {o1 eval ":vb get"} vb1
+  ? {o1 eval ":vc get"} vc1
   ? {o1 eval ":vd"} {::o1: unable to dispatch method 'vd'}
 
   #
@@ -526,7 +526,7 @@ nx::test case object-level-incremental {
     :object variable -accessor private -incremental vd vd1
     :object variable -accessor none -incremental ve ve1
     
-    :public object method call-local {v} {: -local $v}
+    :public object method call-local {v} {: -local $v get}
     :public object method add-local {var value} {: -local $var add $value}
   }
   
@@ -597,25 +597,25 @@ nx::test case object-level-incremental {
   # can we call the accessor directly or via "eval"
   #
   
-  ? {o1 a} a1
-  ? {o1 b} b1
+  ? {o1 a get} a1
+  ? {o1 b get} b1
   ? {o1 c} {::o1: unable to dispatch method 'c'}
   ? {o1 d} {::o1: unable to dispatch method 'd'}
  
-  ? {o1 eval ":a"} a1
-  ? {o1 eval ":b"} b1
-  ? {o1 eval ":c"} c1
+  ? {o1 eval ":a get"} a1
+  ? {o1 eval ":b get"} b1
+  ? {o1 eval ":c get"} c1
   ? {o1 eval ":d"} {::o1: unable to dispatch method 'd'}
   
   
-  ? {o1 va} va1
-  ? {o1 vb} vb1
+  ? {o1 va get} va1
+  ? {o1 vb get} vb1
   ? {o1 vc} {::o1: unable to dispatch method 'vc'}
   ? {o1 vd} {::o1: unable to dispatch method 'vd'}
   
-  ? {o1 eval ":va"} va1
-  ? {o1 eval ":vb"} vb1
-  ? {o1 eval ":vc"} vc1
+  ? {o1 eval ":va get"} va1
+  ? {o1 eval ":vb get"} vb1
+  ? {o1 eval ":vc get"} vc1
   ? {o1 eval ":vd"} {::o1: unable to dispatch method 'vd'}
 
   #
@@ -659,7 +659,7 @@ nx::test case object-level-incremental {
   # The accessor should be a forwarder due to incremental
   #
 
-  ? {o1 info object method definition b} {::o1 public object forward b ::o1::per-object-slot::b {%1 {get assign}} %self b}
+  ? {o1 info object method definition b} {::o1 public object forward b ::o1::per-object-slot::b %1 %self b}
 
   #
   # check error message
@@ -685,7 +685,7 @@ nx::test case property-value-incremental {
   }
 
   ? {o1 a add x} {x a1}
-  ? {o1 a {a1}} {a1}
+  ? {o1 a assign {a1}} {a1}
   
   nsf::configure debug 2
   ? {o1 a value add x    } {x a1}
@@ -722,13 +722,13 @@ nx::test case property-incremental-multiplicity {
   ? {o1 info variable definition [o1 info object variables d]} \
       "::o1 object property -accessor public -incremental d:integer,1..n"
 
-  ? {o1 a {1 2 3}} {1 2 3}
-  ? {o1 b {1 2 3}} {1 2 3}
+  ? {o1 a assign {1 2 3}} {1 2 3}
+  ? {o1 b assign {1 2 3}} {1 2 3}
 
-  ? {o1 a ""} {}
-  ? {o1 b ""} {invalid value for parameter 'value': list is not allowed to be empty}
-  ? {o1 c ""} {}
-  ? {o1 d ""} {invalid value for parameter 'value': list is not allowed to be empty}
+  ? {o1 a assign ""} {}
+  ? {o1 b assign ""} {invalid value for parameter 'value': list is not allowed to be empty}
+  ? {o1 c assign ""} {}
+  ? {o1 d assign ""} {invalid value for parameter 'value': list is not allowed to be empty}
   
 }
 
@@ -882,8 +882,8 @@ nx::test case object-level-perf {
   ? {o1 cget -a} a1
   ? {o1 configure -a a2} ""
 
-  ? {o1 b} b1
-  ? {o1 b b2} "b2"
+  ? {o1 b get} b1
+  ? {o1 b assign b2} "b2"
 
   ? {o1 configure -class ::nx::Object} ""
   ? {o1 cget -class} ::nx::Object

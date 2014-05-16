@@ -65,7 +65,7 @@ __initblock:cmd,optional,noleadingdash"
     :property -accessor private {p 19}
     :property -accessor protected q
     :property -incremental i
-    :public method m {} {: -local p}
+    :public method m {} {: -local p get}
     :create f1
   }
 

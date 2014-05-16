@@ -527,10 +527,10 @@ nx::test case subst-default {
   ? {d1 bar -c 1} {::d1-[current]-1-2} "substdefault in method parameter"
   
   nx::Class create Bar -superclass D {
-    :property -accessor public {s "[current]"} 
-    :property -accessor public {literal "\\[current\\]"} 
-    :property -accessor public {c "[:info class]"} 
-    :property -accessor public {d "literal $d"}
+    :property {s "[current]"} 
+    :property {literal "\\[current\\]"} 
+    :property {c "[:info class]"} 
+    :property {d "literal $d"}
   }
 
   ? {Bar property -accessor public ss:switch} "::nsf::classes::Bar::ss"
@@ -538,12 +538,12 @@ nx::test case subst-default {
   Bar create bar1
   #puts stderr [bar1 __objectparameter]
   
-  ? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]}} \
+  ? {subst {[bar1 cget -s]-[bar1 cget -literal]-[bar1 cget -c]-[bar1 cget -d]}} \
       {::bar1-[current]-::Bar-literal $d} \
       "substdefault in object parameter 1"
   
   Bar create bar2
-  ? {subst {[bar2 s]-[bar2 literal]-[bar2 c]-[bar2 d]}} \
+  ? {subst {[bar2 cget -s]-[bar2 cget -literal]-[bar2 cget -c]-[bar2 cget -d]}} \
       {::bar2-[current]-::Bar-literal $d} \
       "substdefault in object parameter 2"
   
@@ -620,7 +620,7 @@ nx::test case subst-default {
       "query instparams for scripted method 'method'"
   
   ? {nx::Object info method parameters ::nsf::method::forward} \
-      "object:object -per-object:switch method -default -earlybinding:switch -prefix -frame -verbose:switch target:optional args" \
+      "object:object -per-object:switch method -default -earlybinding:switch -onerror -prefix -frame -verbose:switch target:optional args" \
       "query parameter for C-defined cmd 'nsf::forward'"
 
   nx::Object require method autoname
@@ -1060,18 +1060,18 @@ nx::test case op-object-types {
     }
   }
 
-  ? {ParamTest info method definition os} "::ParamTest public setter os:object,1..n"
+  ? {ParamTest info method definition os} "::ParamTest public forward os ::ParamTest::slot::os %1 %self os"
 
-  ? {p os o} \
+  ? {p os assign o} \
       "o" \
       "value is a list of objects (1 element)"
 
-  ? {p os {o c1 d1}} \
+  ? {p os assign {o c1 d1}} \
       "o c1 d1" \
       "value is a list of objects (multiple elements)"
   
-  ? {p os {o xxx d1}} \
-      {invalid value in "o xxx d1": expected object but got "xxx" for parameter "os"} \
+  ? {p os assign {o xxx d1}} \
+      {invalid value in "o xxx d1": expected object but got "xxx" for parameter "value"} \
       "list with invalid object"
 }
 
@@ -1183,10 +1183,10 @@ nx::test case slot-specfic-converter {
 
   Person create p1 -sex male
   ? {p1 cget -sex} m
-  ? {p1 sex} m
+  ? {p1 sex get} m
   Person public method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
   ? {p1 foo male} m
-  ? {p1 sex male} m
+  ? {p1 sex assign male} m
 }
 
 #######################################################
@@ -1244,9 +1244,9 @@ nx::test case slot-optimizer {
   }
   
   C create c1 
-  ? {c1 a 1} 1
-  ? {c1 b 1} 1
-  ? {c1 c 1} 1
+  ? {c1 a assign 1} 1
+  ? {c1 b assign 1} 1
+  ? {c1 c assign 1} 1
 }
 
 nx::test configure -count 10
@@ -1259,7 +1259,7 @@ nx::test case slot-nosetter {
   
   ? {C create c1 -a 1 -b 2} ::c1
   ? {c1 info vars} "a b c"
-  ? {c1 a 100} 100
+  ? {c1 a assign 100} 100
   ? {c1 b 101} {::c1: unable to dispatch method 'b'}
   ? {c1 c 102} {::c1: unable to dispatch method 'c'}
 }
@@ -1315,16 +1315,16 @@ nx::test case slot-traces {
     :object property -accessor public c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
   }
 
-  ? {o a} 4
-  ? {o b} 44
-  ? {o c 5} 999
+  ? {o a get} 4
+  ? {o b get} 44
+  ? {o c assign 5} 999
   ? {::nsf::object::property o hasperobjectslots} 1
 
   o copy o2
 
-  ? {o a} 4
-  ? {o b} 44
-  ? {o c 5} 999
+  ? {o a get} 4
+  ? {o b get} 44
+  ? {o c assign 5} 999
   ? {::nsf::object::property o2 hasperobjectslots} 1
 
   ::nx::Class create C {
@@ -1333,22 +1333,22 @@ nx::test case slot-traces {
     :property -accessor public c {set :valuechangedcmd { ::nsf::var::set $obj $var 999 }}
     :create c1
   }
-  ? {c1 a} 4
-  ? {c1 b} 44
-  ? {c1 c 5} 999
+  ? {c1 a get} 4
+  ? {c1 b get} 44
+  ? {c1 c assign 5} 999
 
   c1 copy c2
 
-  ? {c2 a} 4
-  ? {c2 b} 44
-  ? {c2 c 5} 999
+  ? {c2 a get} 4
+  ? {c2 b get} 44
+  ? {c2 c assign 5} 999
 
   C copy D
   D create d1
 
-  ? {d1 a} 4
-  ? {d1 b} 44
-  ? {d1 c 5} 999
+  ? {d1 a get} 4
+  ? {d1 b get} 44
+  ? {d1 c assign 5} 999
 }
 
 nx::test case slot-trace-interaction {
@@ -1392,10 +1392,10 @@ nx::test case slot-trace-interaction {
   }
   ? {o eval {info exists :a}} 1
 
-  ? {o a} 0
-  ? {o a 1} 2
-  ? {o a} 2
-  ? {o a 2} 3
+  ? {o a get} 0
+  ? {o a assign 1} 2
+  ? {o a get} 2
+  ? {o a assign 2} 3
 
   ? {o eval {info exists :A}} 0
   o object property {A 0} {
@@ -1428,10 +1428,10 @@ nx::test case slot-trace-interaction {
  
   Klass create k
   ? {k eval {info exists :a}} 1
-  ? {k a} 0; # should be 1, reflecting the corresponding per-object case above
-  ? {k a 1} 2
-  ? {k a} 2
-  ? {k a 2} 3
+  ? {k a get} 0; # should be 1, reflecting the corresponding per-object case above
+  ? {k a assign 1} 2
+  ? {k a get} 2
+  ? {k a assign 2} 3
 
   #
   # 2) Have initcmd scripts escaped from C-level argument checking (in
@@ -1480,7 +1480,7 @@ nx::test case slot-trace-interaction {
 
   ? {cc cget -a} 4
   ? {cc cget -b} 44
-  ? {cc c 5} 999
+  ? {cc c assign 5} 999
   
 }
 
@@ -1620,15 +1620,15 @@ nx::test case dont-reset-to-defaults {
     :property -accessor public {a 1}
     :create c1
   }
-  ? {c1 a} 1
+  ? {c1 cget -a} 1
 
   # change the value from the default to a different value
-  ? {c1 a 2} 2
-  ? {c1 a} 2
+  ? {c1 a assign 2} 2
+  ? {c1 a get} 2
   # call configure ...
   c1 __configure
   # ... and check, it did not reset the value to the default
-  ? {c1 a} 2
+  ? {c1 a get} 2
 }
 
 nx::test case setter-under-coloncmd-and-interpvarresolver {
@@ -2444,16 +2444,16 @@ nx::test case object-parameter-switch {
   # uses the parameter type "boolean" instead.
   ? {C info methods} "foo"
   ? {c1 info lookup method foo} "::nsf::classes::C::foo"
-  ? {c1 foo} 0
-  ? {c1 foo 1} 1
-  ? {c1 foo} 1
+  ? {c1 foo get} 0
+  ? {c1 foo assign 1} 1
+  ? {c1 foo get} 1
 
   # When the object parameter is specified, the instance variable has
   # a value of true (i.e. 1)
   C create c2 -foo
   ? {lsort [c2 info vars]} {foo}
   ? {c2 eval {set :foo}} {1}
-  ? {c1 foo} 1
+  ? {c1 foo get} 1
 
   # One can pass false (and other values) with the = notation as well
   C create c3 -foo=false
@@ -2667,14 +2667,14 @@ nx::test case forward-to-assign {
   set o [Foo new]
   ? [list $o eval {info exists :bar}] 0 
   ? {set ::slotcalls} 0
-  ? [list $o bar] {can't read "bar": no such variable}
+  ? [list $o bar get] {can't read "bar": no such variable}
 
   # call without default, with object parameter value
 
   set o [Foo new -bar "test"]
   ? [list $o eval {info exists :bar}] 1
   ? {set ::slotcalls} 1
-  ? [list $o bar] "test" 
+  ? [list $o bar get] "test" 
 
   # test cases for default
   set ::slotcalls 0
@@ -2691,14 +2691,14 @@ nx::test case forward-to-assign {
   set o [Foo new]
   ? [list $o eval {info exists :baz}] 1
   ? {set ::slotcalls} 1
-  ? [list $o baz] "1" 
+  ? [list $o baz get] "1" 
 
   # call with default, with object parameter value
 
   set o [Foo new -baz "test"]
   ? [list $o eval {info exists :baz}] 1
   ? {set ::slotcalls} 2
-  ? [list $o baz] "test" 
+  ? [list $o baz get] "test" 
   ? {Foo info method exists baz} 1
 
 } 
@@ -2784,8 +2784,8 @@ nx::test case slot-container-name-interaction {
   }
   
   ? {Test2 create t2} ::t2
-  ? {t2 list 3} {::t2 list 3}
-  ? {t2 list} {::t2 list 3}
+  ? {t2 list assign 3} {::t2 list 3}
+  ? {t2 list get} {::t2 list 3}
   ? {t2 list this should call unknown} "unknown"
 }
 
@@ -2810,7 +2810,7 @@ nx::test case object-level-defaults {
     } a 1}} 0
   ? {o eval {info exists :a}} 1
   ? {o eval {info exists :assignCalled}} 0; # !!! should be 1
-  ? {o a} 1
+  ? {o a get} 1
 }
 
 nx::test case cmd-error-propagation {

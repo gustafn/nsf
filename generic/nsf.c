@@ -63,6 +63,8 @@
  *    provided "as is" without express or implied warranty."
  */
 
+#define NSF_FORWARD_WITH_ONERROR 1
+
 #define NSF_C 1
 #include "nsfInt.h"
 #include "nsfAccessInt.h"
@@ -295,11 +297,12 @@ static void GuardDel(NsfCmdList *filterCL) nonnull(1);
 /* prototypes for forwarders */
 static void ForwardCmdDeleteProc(ClientData clientData) nonnull(1);
 static int ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
-				 Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
+				 Tcl_Obj *withDefault, int withEarlybinding, 
+                                 Tcl_Obj *withOnerror, Tcl_Obj *withMethodprefix,
 				 int withFrame, int withVerbose,
 				 Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
 				 ForwardCmdClientData **tcdPtr)
-  nonnull(1) nonnull(2) nonnull(10);
+  nonnull(1) nonnull(2) nonnull(11);
 
 /* properties of objects and classes */
 static int IsBaseClass(NsfObject *cl) nonnull(1);
@@ -511,8 +514,14 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...) {
   assert(fmt);
 
   if (RUNTIME_STATE(interp)->debugLevel >= requiredLevel) {
-    CONST char *level = requiredLevel == NSF_LOG_WARN ? "Warning" : "Notice";
     Tcl_DString cmdString, ds;
+    CONST char *level;
+
+    switch (requiredLevel) {
+    case NSF_LOG_INFO: level = "Info"; break;
+    case NSF_LOG_NOTICE: level = "Notice"; break;
+    default: level = "Warning"; break;
+    }
 
     Tcl_DStringInit(&ds);
     va_start(ap, fmt);
@@ -15054,8 +15063,11 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
 
   methodObj = paramPtr->nameObj;
   result = ForwardProcessOptions(interp, methodObj,
-				 NULL /*withDefault*/, 0 /*withEarlybinding*/,
-				 NULL /*withMethodprefix*/, 0 /*withFrame*/,
+				 NULL /*withDefault*/, 
+                                 0 /*withEarlybinding*/,
+                                 NULL /*withOnerror*/,
+				 NULL /*withMethodprefix*/, 
+                                 0 /*withFrame*/,
 				 0 /*withVerbose*/,
 				 nobjv[0], nobjc-1, nobjv+1, &tcd);
   if (result != TCL_OK) {
@@ -16228,9 +16240,13 @@ GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 
 static int
 ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
-                       Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                       int withFrame, int withVerbose,
-                       Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
+                      Tcl_Obj *withDefault, 
+                      int withEarlybinding, 
+                      Tcl_Obj *withOnerror,
+                      Tcl_Obj *withMethodprefix,
+                      int withFrame, 
+                      int withVerbose,
+                      Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
                        ForwardCmdClientData **tcdPtr) {
   ForwardCmdClientData *tcd;
   int i, result = 0;
@@ -19167,6 +19183,50 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
  *----------------------------------------------------------------------
  */
 
+int
+NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
+                     int objc, Tcl_Obj *CONST objv[], 
+                     CONST char *fmt, ...) {
+  Tcl_DString ds;
+  va_list ap;
+  int result;
+
+  assert(interp);
+  assert(tcd);
+  assert(fmt);
+
+  Tcl_DStringInit(&ds);
+
+  va_start(ap, fmt);
+  NsfDStringPrintf(&ds, fmt, ap);
+  va_end(ap);
+
+  if (tcd->onerror) {
+    Tcl_Obj *script = Tcl_DuplicateObj(tcd->onerror);
+    Tcl_Obj *cmd;
+
+    if (tcd->object) {
+      cmd = Tcl_DuplicateObj(tcd->object->cmdName);
+    } else {
+      cmd = Tcl_NewObj();
+    }
+
+    Tcl_ListObjAppendElement(interp, cmd,  Tcl_NewListObj(objc,objv));
+    Tcl_ListObjAppendElement(interp, script,  cmd);
+    Tcl_ListObjAppendElement(interp, script, 
+                             Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));
+    INCR_REF_COUNT(script);
+    result = Tcl_EvalObjEx(interp, script, TCL_EVAL_DIRECT);
+    DECR_REF_COUNT(script);
+  } else {
+    result = NsfPrintError(interp, "%s", Tcl_DStringValue(&ds));
+  }
+
+  Tcl_DStringFree(&ds);
+  return result;
+}
+
+
 static int ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                       Tcl_Obj *ForwardArgObj, ForwardCmdClientData *tcd, Tcl_Obj **out,
                       Tcl_Obj **freeList, int *inputArg, int *mapvalue,
@@ -19204,6 +19264,7 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   if (c == '%' && *(ForwardArgString+1) == '@') {
     char *remainder = NULL;
     long pos;
+
     ForwardArgString += 2;
     pos = strtol(ForwardArgString, &remainder, 0);
     /*fprintf(stderr, "strtol('%s) returned %ld '%s'\n", ForwardArgString, pos, remainder);*/
@@ -19284,7 +19345,9 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
           ObjStr(listElements[nrPosArgs]));*/
         *out = listElements[nrPosArgs];
       } else if (objc <= 1) {
-	return NsfObjWrongArgs(interp, "%1 requires argument;", objv[0], NULL, "arg ...");
+
+	return NsfForwardPrintError(interp, tcd, objc, objv, 
+                                    "%%1 requires argument; should be \"%s arg ...\"", ObjStr(objv[0]));
       } else {
         /*fprintf(stderr, "copying %%1: '%s'\n", ObjStr(objv[firstPosArg]));*/
         *out = objv[firstPosArg];
@@ -19440,7 +19503,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   if (unlikely(tcd->verbose)) {
     Tcl_Obj *cmd = Tcl_NewListObj(objc, objv);
 
-    NsfLog(interp, NSF_LOG_NOTICE, "forwarder calls '%s'",  ObjStr(cmd));
+    NsfLog(interp, NSF_LOG_INFO, "forwarder calls '%s'",  ObjStr(cmd));
     DECR_REF_COUNT(cmd);
   }
   if (tcd->frame == FrameObjectIdx) {
@@ -19468,13 +19531,8 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 #if defined(NSF_FORWARD_WITH_ONERROR)
   if (unlikely(result == TCL_ERROR && tcd->onerror)) {
-    Tcl_Obj *ov[2];
-    ov[0] = tcd->onerror;
-    ov[1] = Tcl_GetObjResult(interp);
-    INCR_REF_COUNT(ov[1]);
-    /*Tcl_EvalObjEx(interp, tcd->onerror, TCL_EVAL_DIRECT);*/
-    Tcl_EvalObjv(interp, 2, ov, 0);
-    DECR_REF_COUNT(ov[1]);
+    result = NsfForwardPrintError(interp, tcd, objc, objv, "%s", 
+                                  ObjStr(Tcl_GetObjResult(interp)));
   }
 #endif
 
@@ -23950,11 +24008,14 @@ cmd method::forward NsfMethodForwardCmd {
 */
 static int
 NsfMethodForwardCmd(Tcl_Interp *interp,
-	      NsfObject *object, int withPer_object,
-	      Tcl_Obj *methodObj,
-	      Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-	      int withFrame, int withVerbose,
-	      Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
+                    NsfObject *object, int withPer_object,
+                    Tcl_Obj *methodObj,
+                    Tcl_Obj *withDefault, 
+                    int withEarlybinding, 
+                    Tcl_Obj *withOnerror,
+                    Tcl_Obj *withMethodprefix,
+                    int withFrame, int withVerbose,
+                    Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
   ForwardCmdClientData *tcd = NULL;
   int result;
 
@@ -23963,7 +24024,8 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
   assert(methodObj);
 
   result = ForwardProcessOptions(interp, methodObj,
-                                 withDefault, withEarlybinding, withMethodprefix,
+                                 withDefault, withEarlybinding, 
+                                 withOnerror, withMethodprefix,
                                  withFrame, withVerbose,
                                  target, nobjc, nobjv, &tcd);
 

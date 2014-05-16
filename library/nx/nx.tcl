@@ -1308,6 +1308,18 @@ namespace eval ::nx {
     ::nsf::next
   }
 
+  #
+  # good old default: TODO question in case of nx-relation slot
+  #
+  ObjectParameterSlot protected method createForwarder {name domain} {
+    ::nsf::method::forward $domain \
+        -per-object=${:per-object} \
+        $name \
+        ${:manager} \
+        [list %1 [${:manager} defaultmethods]] %self \
+        ${:forwardername}
+  }
+
   ObjectParameterSlot protected method makeForwarder {} {
     #
     # Build forwarder from the source object class ($domain) to the slot
@@ -1323,19 +1335,10 @@ namespace eval ::nx {
       set d [nsf::directdispatch ${:domain} \
                  ::nsf::classes::nx::Object::__resolve_method_path \
                  {*}[expr {${:per-object} ? "-per-object" : ""}] ${:settername}]
-      set name   [dict get $d methodName]
-      set domain [dict get $d object]
+     :createForwarder [dict get $d methodName] [dict get $d object]
     } else {
-      set name ${:name}
-      set domain ${:domain}
+     :createForwarder ${:name} ${:domain}
     }
-
-    ::nsf::method::forward $domain \
-	{*}[expr {${:per-object} ? "-per-object" : ""}] \
-	$name \
-	${:manager} \
-	[list %1 [${:manager} defaultmethods]] %self \
-	${:forwardername}
   }
 
   ObjectParameterSlot protected method getParameterOptions {
@@ -1790,6 +1793,30 @@ namespace eval ::nx {
     #if {![:isMultivalued]} {return 0}
     #puts stderr "[self] ismultivalued"
     return 1
+  }
+
+  if {1} {
+    #
+    # TODO: remove if
+    #
+    ::nx::VariableSlot protected method needsForwarder {} {
+      return 1
+    }
+    ::nx::VariableSlot protected method createForwarder {name domain} {
+      ::nsf::method::forward $domain \
+          -per-object=${:per-object} \
+          $name \
+          -onerror [list ${:manager} onError] \
+          ${:manager} \
+          %1 %self \
+          ${:forwardername}
+    }
+    ::nx::VariableSlot public method onError {cmd msg} {
+      if {[string match "%1 requires argument*" $msg]} {
+        return -code error "wrong # args: use \"$cmd assign|get\"" 
+      }
+      return -code error $msg
+    }
   }
 
   ::nx::VariableSlot public method makeAccessor {} {

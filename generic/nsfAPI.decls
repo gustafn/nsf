@@ -146,6 +146,7 @@ cmd "method::forward" NsfMethodForwardCmd {
   {-argName "method" -required 1 -type tclobj}
   {-argName "-default" -type tclobj}
   {-argName "-earlybinding" -nrargs 0}
+  {-argName "-onerror" -type tclobj}
   {-argName "-prefix" -type tclobj}
   {-argName "-frame" -nrargs 1 -type "object|method|default" -default default}
   {-argName "-verbose" -nrargs 0}

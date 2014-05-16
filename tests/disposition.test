@@ -1358,15 +1358,15 @@ nx::test case xotcl-residualargs2 {
   ::xotcl::Class create XC -parameter {a b c}
   ::XC instproc init args {set :x $args; incr :y}
 
+  ? {XC create xc1 -a 1} ::xc1
+  ? {XC create xc2 x y -a 1} ::xc2
+
   ::nx::Class create C {
     :property a
     :property b
     :property c
     :method init args {set :x $args; incr :y}
   }
-  
-  ? {XC create xc1 -a 1} ::xc1
-  ? {XC create xc2 x y -a 1} ::xc2
 
   ? {C create c1 -a 1} ::c1
   ? {xc2 eval {info exists :a}} 1
