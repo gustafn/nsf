@@ -77,10 +77,13 @@ namespace eval ::nx {
       #   - no var cleanup
       #
       set :case $name 
+      nsf::log notice "Running test case: [info script] $name"
 
       if {[info exists arg]} {
 	foreach o [Object info instances -closure] {set pre_exist($o) 1}
+
 	namespace eval :: [list [current] eval $arg]
+
 	foreach o [Object info instances -closure] {
 	  if {[info exists pre_exist($o)]} continue
 	  if {[::nsf::object::exists $o]} {$o destroy}
@@ -203,6 +206,6 @@ proc ? {cmd expected {msg ""}} {
   nsf::__db_run_assertions
 }
 
-nsf::log notice "Running test cases: [info script]"
+
 
 
