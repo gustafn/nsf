@@ -33,9 +33,13 @@ nx::test configure -count 1
 # have to set the default value for it using the setter method. Again,
 # the info method helps us keep track of things.
 
-? {abagel cget -toasted} 0
+? {abagel info vars} ""
+
+? {abagel configure -toasted 0} ""
 
 ? {abagel info vars} toasted
+
+? {abagel cget -toasted} 0
 
 # But we really want them to begin in an untoasted state to start
 # with.
@@ -125,8 +129,9 @@ nx::test configure -count 1
 
 ? {abagel toast} ""
 ? {abagel toppings add jam} jam
+? {abagel toppings add m&m} "m&m jam"
 
-? {abagel taste} "toasty jam"
+? {abagel taste} "toasty m&m jam"
 
 # Of course, along come sesame, onion, poppy, and a host of other
 # bagels, requiring us to expand our scheme. We could keep track of
