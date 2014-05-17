@@ -19,8 +19,8 @@ nx::Trait create tPositionableStream {
   #
   # Define the methods provided by this trait:
   #  
-  :public method atStart {} {expr {[:position] == [:minPosition]}}
-  :public method atEnd {} {expr {[:position] == [:maxPosition]}}
+  :public method atStart {} {expr {[:position get] == [:minPosition]}}
+  :public method atEnd {} {expr {[:position get] == [:maxPosition]}}
   :public method setToStart {} {set :position [:minPosition]}
   :public method setToEnd {} {set :position [:maxPosition]}
   :public method maxPosition {} {llength ${:collection}}
@@ -31,8 +31,8 @@ nx::Trait create tPositionableStream {
   # from the base class or other traits. The definition is incomplete
   # in these regards
 
-  :requiredMethods position
-  :requiredVariables collection
+  :requiredMethods assign position
+  :requiredVariables assign collection
 }
 
 #
@@ -53,7 +53,7 @@ nx::Trait create tReadStream {
   }
   
   # This trait requires these methods:
-  :requiredMethods {setToStart atEnd nextPosition}
+  :requiredMethods assign {setToStart atEnd nextPosition}
 
   # Require the trait "tPositionableStream"
   :require trait tPositionableStream
@@ -75,7 +75,7 @@ nx::Trait create tWriteStream {
   }
 
   # This trait requires these methods:
-  :requiredMethods {setToEnd nextPosition}
+  :requiredMethods assign {setToEnd nextPosition}
 
   # Require the trait "tPositionableStream"
   :require trait tPositionableStream

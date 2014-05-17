@@ -619,9 +619,9 @@ Class Person -slots {
 
 ? {lsort [Person info slots]} "::Person::slot::name ::Person::slot::projects ::Person::slot::salary"
 
-? {Person::slot::name multivalued} 0
-? {Person::slot::salary multivalued} 0
-? {Person::slot::projects multivalued} 1
+? {Person::slot::name multivalued get} 0
+? {Person::slot::salary multivalued get} 0
+? {Person::slot::projects multivalued get} 1
 
 Person p2 -name "John Doe"
 ? {p2 name} "John Doe"

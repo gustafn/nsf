@@ -113,7 +113,7 @@ namespace eval ::nx::trait {
   # object has the method defined that the trait requires.
   #
   nsf::proc checkObject {obj traitName} {
-    foreach m [$traitName requiredMethods] {
+    foreach m [$traitName requiredMethods get] {
       #puts "$m ok? [$obj info methods -closure $m]"
       if {[$obj info lookup method $m] eq ""} {
 	error "trait $traitName requires $m, which is not defined for $obj"
@@ -126,7 +126,7 @@ namespace eval ::nx::trait {
   # class has the method defined that the trait requires.
   #
   nsf::proc checkClass {obj traitName} {
-    foreach m [$traitName requiredMethods] {
+    foreach m [$traitName requiredMethods get] {
       #puts "$m ok? [$obj info methods -closure $m]"
       if {[$obj info methods -closure $m] eq ""} {
 	error "trait $traitName requires $m, which is not defined for $obj"
@@ -172,7 +172,7 @@ nx::Class create nx::Trait -superclass nx::Class {
     nx::trait::add [self] $traitName $nameMap
     set finalReqMethods {}
     # remove the methods from the set of required methods, which became available
-    foreach m [lsort -unique [concat ${:requiredMethods} [$traitName requiredMethods]]] {
+    foreach m [lsort -unique [concat ${:requiredMethods} [$traitName requiredMethods get]]] {
       if {[:info methods $m] eq ""} {lappend finalReqMethods $m}
     }
     #puts "final reqMethods of [self]: $finalReqMethods // defined=[:info methods]"

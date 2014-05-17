@@ -27,17 +27,15 @@ nx::test configure -count 1
 # they've been toasted. We can create and access an instance variable
 # by defining an property for the class. All instance variables are
 # per default public in the sense of C++.
-? {Bagel property -accessor public {toasted 0}} "::nsf::classes::Bagel::toasted"
+? {Bagel property {toasted 0}} ""
 
 # Since abagel was created before the definition of the property we
 # have to set the default value for it using the setter method. Again,
 # the info method helps us keep track of things.
 
-? {abagel toasted 0} 0
+? {abagel cget -toasted} 0
 
 ? {abagel info vars} toasted
-
-? {abagel toasted} 0
 
 # But we really want them to begin in an untoasted state to start
 # with.
@@ -46,7 +44,7 @@ nx::test configure -count 1
 
 ? {bagel2 info vars} toasted
 
-? {bagel2 toasted} 0
+? {bagel2 cget -toasted} 0
 
 #
 # Our bagels now remember whether they've been toasted. Let is
@@ -65,7 +63,7 @@ nx::test configure -count 1
 # Tcl procs. Here's the toast method.
 
 ? {Bagel public method toast {} {
-      if {[incr :toasted]>1} then { 
+      if {[incr :toasted] > 1} then { 
         error "something's burning!"
       }
 }} "::nsf::classes::Bagel::toast"
@@ -73,7 +71,7 @@ nx::test configure -count 1
 # The defined methods can be queried with info. We see as well the
 # setter method for the variable toasted.
 
-? {Bagel info methods} {toasted toast}
+? {Bagel info methods} {toast}
 
 # Aside from setting the toasted variable, the body of the toast
 # method demonstrates how to access instance variables by using a
@@ -95,7 +93,7 @@ nx::test configure -count 1
 # toppings are empty.
 
 ? {nx::Class create SpreadableBagel -superclass Bagel {
-    :property -accessor public {toppings:0..n ""}
+    :property -incremental {toppings:0..n ""}
 }} ::SpreadableBagel
 
 ? {SpreadableBagel info superclass} ::Bagel
@@ -126,7 +124,7 @@ nx::test configure -count 1
 ? {SpreadableBagel create abagel} ::abagel
 
 ? {abagel toast} ""
-? {abagel toppings jam} jam
+? {abagel toppings add jam} jam
 
 ? {abagel taste} "toasty jam"
 

@@ -8,7 +8,7 @@ nx::test case basics {
     :public method t1m2 {} {return t1.[current method]}
 
     # This trait requires a method "foo" 
-    :requiredMethods foo
+    :requiredMethods add foo
   }
   nx::Trait create t2 {
     :public method "bar x" {} {return t2.[current methodpath]}
@@ -16,7 +16,7 @@ nx::test case basics {
     :public method foo {} {return t2.[current methodpath]}
 
     # This trait requires a method "t1m1" 
-    :requiredMethods t1m1
+    :requiredMethods add t1m1
   }
 
   nx::Trait create t3 {

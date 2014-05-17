@@ -8,14 +8,14 @@ nx::test case deepSerialize-map-filter {
   Object create ::a {
     :object property -accessor public ref:object,type=[:info class]
     Object create [self]::b {
-      [:info parent] ref [Object create [self]::c]
+      [:info parent] ref assign [Object create [self]::c]
     }
   }
 
   ? {::nsf::object::exists ::a} 1
   ? {::nsf::object::exists ::a::b} 1
   ? {::nsf::object::exists ::a::b::c} 1
-  ? {::a ref} [[::a::b] info children]
+  ? {::a ref get} [[::a::b] info children]
 
   set script [::Serializer deepSerialize -map {::a::b ::x::y ::a ::x} ::a]
   # fix collateral damage (TODO: fixme, preprecate me, ...)
@@ -36,7 +36,7 @@ nx::test case deepSerialize-map-filter {
   ? {::nsf::object::exists ::x} 1
   ? {::nsf::object::exists ::x::y} 1
   ? {::nsf::object::exists ::x::y::c} 1
-  ? {::x ref} [::x::y info children]
+  ? {::x ref get} [::x::y info children]
 
   Object create ::a
   ::x::y::c eval {
@@ -62,28 +62,27 @@ nx::test case deepSerialize-ignoreVarsRE-filter {
     :create c1
   }
 
-  ? {C x 1} 1
-  ? {C x} 1
-  ? {C y 1} 1
-  ? {C y} 1
+  ? {C x assign 1} 1
+  ? {C x get} 1
+  ? {C y assign 1} 1
+  ? {C y get} 1
   
   ? {lsort [C info methods]} "a b"
   ? {lsort [C info object methods]} "x y"
-  ? {c1 a b} {expected integer but got "b" for parameter "a"}
-  ? {c1 a 1} 1
-  ? {c1 b 1} 1
+  ? {c1 a assign b} {expected integer but got "b" for parameter "value"}
+  ? {c1 a assign 1} 1
+  ? {c1 b assign 1} 1
 
   set c1(IgnoreNone1) [list [::Serializer deepSerialize c1] "a b"]
   set c1(IgnoreNone2) [list [::Serializer deepSerialize -ignoreVarsRE "" c1] "a b"]
-  set c1(One) [list [::Serializer deepSerialize -ignoreVarsRE "a" c1] "b"]
-  set c1(One2) [list [::Serializer deepSerialize -ignoreVarsRE {::a$} c1] "b"]
-  set c1(IgnoreAll) [list [::Serializer deepSerialize -ignoreVarsRE "." c1] ""]
+  set c1(One)         [list [::Serializer deepSerialize -ignoreVarsRE "a" c1] "b"]
+  set c1(One2)        [list [::Serializer deepSerialize -ignoreVarsRE {::a$} c1] "b"]
+  set c1(IgnoreAll)   [list [::Serializer deepSerialize -ignoreVarsRE "." c1] ""]
   set names {}; foreach s [C info slots] {lappend names [$s name]}
-  set c1(None2) [list [::Serializer deepSerialize -ignoreVarsRE \
-			   [join $names |] c1] ""]
+  set c1(None2)       [list [::Serializer deepSerialize -ignoreVarsRE [join $names |] c1] ""]
   
   c1 destroy
-
+puts stderr ====1
   foreach t [array names c1] {
     ? {nsf::object::exists c1} 0
     lassign $c1($t) script res

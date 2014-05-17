@@ -693,17 +693,17 @@ nx::test case protected-priv-class-property {
     :property -accessor protected {b b1}
     :property -accessor private {c c1}
     :property -accessor private {d:integer 1}
-    :public method foo {p} {return [: $p]}
-    :public method bar {p} {return [: -local $p]}
-    :public method baz {p v} {return [: -local $p $v]}
+    :public method foo {p} {return [: $p get]}
+    :public method bar {p} {return [: -local $p get]}
+    :public method baz {p v} {return [: -local $p assign $v]}
     :create c1
   }
 
   # call properties directly
 
-  ? {c1 a} a1
-  ? {c1 b} {::c1: unable to dispatch method 'b'}
-  ? {c1 c} {::c1: unable to dispatch method 'c'}
+  ? {c1 a get} a1
+  ? {c1 b get} {::c1: unable to dispatch method 'b'}
+  ? {c1 c get} {::c1: unable to dispatch method 'c'}
 
   # call properties via method
 
@@ -736,7 +736,7 @@ nx::test case protected-priv-class-property {
   #
   nx::Class create D -superclass C {
     :property -accessor private {c c1d}
-    :public method bard {p} {return [: -local $p]}
+    :public method bard {p} {return [: -local $p get]}
     :create d1 {
       :object property -accessor public {c c1o}
     }
@@ -744,7 +744,7 @@ nx::test case protected-priv-class-property {
 
   ? {d1 bar c} c1
   ? {d1 bard c} c1d
-  ? {d1 c} c1o
+  ? {d1 c get} c1o
 
   #
   # Define a public property with the same name as the private
@@ -755,17 +755,17 @@ nx::test case protected-priv-class-property {
   #
   nx::Class create D -superclass C {
     :property -accessor public {c c1d}
-    :public method bard {p} {return [: -local $p]}
+    :public method bard {p} {return [: -local $p get]}
     :create d1 {
       :object property -accessor private {c c1o}
-      :public object method bard1 {p} {return [: -local $p]}
+      :public object method bard1 {p} {return [: -local $p get]}
     }
   }
 
   ? {d1 bar c} c1
   ? {d1 bard c} c1d
   ? {d1 bard1 c} c1o
-  ? {d1 c} c1d
+  ? {d1 c get} c1d
 }
 
 #
@@ -778,15 +778,15 @@ nx::test case private-shadows-public-property {
   }
   nx::Class create D -superclass C {
     :property -accessor private {x d}
-    :public method bar-d {p} {return [: -local $p]}
+    :public method bar-d {p} {return [: -local $p get]}
   }
   nx::Class create E -superclass D {
     :property -accessor private {x e}
-    :public method bar-e {p} {return [: -local $p]}
+    :public method bar-e {p} {return [: -local $p get]}
   }
 
   E create e1
-  ? {e1 x} c
+  ? {e1 x get} c
   ? {e1 bar-d x} d
   ? {e1 bar-e x} e
 }
@@ -800,14 +800,14 @@ nx::test case protected-priv-object-property {
     :object property -accessor protected {b b1}
     :object property -accessor private {c c1}
     :object property -accessor private {d:integer 1}
-    :public object method foo {p} {return [: $p]}
-    :public object method bar {p} {return [: -local $p]}
-    :public object method baz {p v} {return [: -local $p $v]}
+    :public object method foo {p} {return [: $p get]}
+    :public object method bar {p} {return [: -local $p get]}
+    :public object method baz {p v} {return [: -local $p assign $v]}
   }
 
-  ? {o a} a1
-  ? {o b} {::o: unable to dispatch method 'b'}
-  ? {o c} {::o: unable to dispatch method 'c'}
+  ? {o a get} a1
+  ? {o b get} {::o: unable to dispatch method 'b'}
+  ? {o c get} {::o: unable to dispatch method 'c'}
 
   ? {o foo a} a1
   ? {o foo b} b1
@@ -836,18 +836,18 @@ nx::test case protected-priv-class-object-property {
     :object property -accessor protected {b b1}
     :object property -accessor private {c c1}
     :object property -accessor private {d:integer 1}
-    :public object method foo {p} {return [: $p]}
-    :public object method bar {p} {return [: -local $p]}
-    :public object method baz {p v} {return [: -local $p $v]}
+    :public object method foo {p} {return [: $p get]}
+    :public object method bar {p} {return [: -local $p get]}
+    :public object method baz {p v} {return [: -local $p assign $v]}
   }
 
-  ? {C a} a1
-  ? {C b} {method 'b' unknown for ::C; consider '::C create b ' instead of '::C b '}
-  ? {C c} {method 'c' unknown for ::C; consider '::C create c ' instead of '::C c '}
+  ? {C a get} a1
+  ? {C b get} {method 'b' unknown for ::C; consider '::C create b get' instead of '::C b get'}
+  ? {C c get} {method 'c' unknown for ::C; consider '::C create c get' instead of '::C c get'}
 
   ? {C foo a} a1
   ? {C foo b} b1
-  ? {C foo c} {method 'c' unknown for ::C; consider '::C create c ' instead of '::C c '}
+  ? {C foo c} {method 'c' unknown for ::C; consider '::C create c get' instead of '::C c get'}
 
   ? {C bar a} a1
   ? {C bar b} b1
