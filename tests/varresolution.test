@@ -722,7 +722,7 @@ namespace eval module {
   nx::Class create M1
   nx::Class create M2
 
-  C mixin M1
+  C mixin set M1
   ? {::nsf::relation C class-mixin} "::module::M1"
 
   C mixin add M2
@@ -1128,7 +1128,7 @@ nx::test case after-next {
       return $package_id
     }
 
-    FormPage mixin WorkflowPage
+    FormPage mixin add WorkflowPage
     FormPage create p1 -package_id 123
     
     ? {p1 initialize_loaded_object} 123

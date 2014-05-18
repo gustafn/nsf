@@ -161,7 +161,7 @@ nx::test case ensemble-next {
     }
   }
   
-  FOO mixin {M1 M0}
+  FOO mixin set {M1 M0}
   FOO create f1
   
   #
@@ -393,7 +393,7 @@ nx::test case submethods-current-introspection {
   C create c
   ? {c FOO foo} -::c-::C-
 
-  C mixin [Class create M1 {
+  C mixin set [Class create M1 {
     :public method "FOO foo" {} {
       return "-[current]-[current class][next]"
     }
@@ -401,11 +401,11 @@ nx::test case submethods-current-introspection {
 
   ? {c FOO foo} -::c-::M1-::c-::C-
   
-  o object mixin ::M1
+  o object mixin set ::M1
   ? {o FOO foo} -::o-::M1-::o--
 
-  o object mixin {}
-  C mixin {}
+  o object mixin set {}
+  C mixin set {}
 
   #
   # limit [current methodpath] to collect only ensemble methods?

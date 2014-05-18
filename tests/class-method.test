@@ -10,8 +10,8 @@ nx::test case class-methods-0 {
     ? {::C public class method foo {} {return foo}} "'class' is not a method defining method"
     :public object method f args {next}
   }
-  ? {::C class mixin M1} \
-      "method 'class' unknown for ::C; consider '::C create class mixin M1' instead of '::C class mixin M1'"
+  ? {::C class mixin set M1} \
+      "method 'class' unknown for ::C; consider '::C create class mixin set M1' instead of '::C class mixin set M1'"
   ? {::C class filter f} \
       "method 'class' unknown for ::C; consider '::C create class filter f' instead of '::C class filter f'"
 
@@ -64,9 +64,9 @@ nx::test case class-methods-1 {
   ? {::C a} "pm1"
   ? {::C fwd} "pm1"
 
-  ? {::C class mixin M1} ::M1
+  ? {::C class mixin set M1} ::M1
   ? {::C class info mixin classes} ::M1
-  ? {::C class mixin ""} ""
+  ? {::C class mixin set ""} ""
   ? {::C class info mixin classes} ""
 
   ? {::C class filter f} f

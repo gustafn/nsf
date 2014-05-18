@@ -27,7 +27,7 @@ nx::Class create B
 nx::Class create C -superclass B
 
 nx::Class create M 
-B mixin M
+B mixin set M
 
 nx::Object create o -object-mixin C
 nx::Object create o1 -object-mixin B
@@ -123,7 +123,7 @@ nx::test case trans-pcm1
 nx::Class create A
 nx::Class create B -mixin A
 nx::Class create C -superclass B
-A mixin [nx::Class create M]
+A mixin set [nx::Class create M]
 
 A create a1
 B create b1
@@ -174,7 +174,7 @@ B create b1
 ? {A info mixinof -scope class -closure} ""
 ? {B info mixinof -scope class -closure} ""
 ? {X info mixinof -scope class -closure} ""
-D mixin X
+D mixin set X
 ? {C info mixinof -scope class -closure} "::A ::B"
 ? {D info mixinof -scope class -closure} ""
 ? {A info mixinof -scope class -closure} ""
@@ -194,8 +194,8 @@ nx::Class create A3 -superclass [nx::Class create A2 -superclass [nx::Class crea
 nx::Class create B3 -superclass [nx::Class create B2 -superclass [nx::Class create B1 -superclass [nx::Class create B0]]]
 nx::Class create C3 -superclass [nx::Class create C2 -superclass [nx::Class create C1]]
 
-A2 mixin B2
-B1 mixin C2
+A2 mixin set B2
+B1 mixin set C2
 
 ? {A1 info mixinof -scope class -closure} ""
 ? {A2 info mixinof -scope class -closure} ""
@@ -494,7 +494,7 @@ nx::test case nx-mixinof {
   ? {c1 info object mixin classes} ::A
   ? {lsort [A info mixinof]} "::C2 ::c1"
   ? {M info mixinof} ""
-  C mixin M
+  C mixin set M
   #? {M info mixinof -scope object} "::c1 ::c2"
   ? {M info mixinof -scope object} ""
   ? {M info mixinof -scope class} "::C"

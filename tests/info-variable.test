@@ -33,7 +33,7 @@ nx::test case configure-parameters {
   ? {join [Person info configure parameters] \n} \
 "-age:integer
 -name
--object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,0..n
+-object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotassign,method=object-mixin,0..n
 -class:class,alias,method=::nsf::methods::object::class
 -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,0..n
 __initblock:cmd,optional,noleadingdash"

@@ -205,14 +205,15 @@ nx::test case mixinguards {
   nx::Class create M
 
   # register the mixin on C as a object mixin and define a mixinguard
-  C mixin M
+  puts stderr XXXX=[nx::Class info method definition mixin]
+  C mixin set M
   C mixin guard M {1 == 1}
   ? {C info mixin guard M} "1 == 1"
   C mixin guard M {}
   ? {C info mixin guard M} ""
 
   # now the same as class mixin and class mixin guard
-  C object mixin M
+  C object mixin set M
   C object mixin guard M {1 == 1}
   ? {C info object mixin guard M} "1 == 1"
   C object mixin guard M {}
@@ -221,19 +222,24 @@ nx::test case mixinguards {
 
 nx::test case mixin-via-objectparam {
   # add an object and class mixin via object-parameter and via slots
-  nx::Class create M1; nx::Class create M2; nx::Class create M3; nx::Class create M4
+  foreach c {M1 M2 M3 M4 M5} {nx::Class create $c}
+
   nx::Class create C -mixin M1 -object-mixin M2 {
     :mixin add M3
     :object mixin add M4
   }
   
   ? {lsort [C info object mixin classes]} "::M2 ::M4"
-  #? {lsort [C info object mixin classes]} "::M2"
-
   ? {lsort [C info mixin classes]} "::M1 ::M3"
-  #? {lsort [C info mixin classes]} "::M1"
-  C destroy
-  M1 destroy; M2 destroy; M3 destroy; M4 destroy;
+
+  ? {lsort [C object mixin get]} "::M2 ::M4"
+  ? {lsort [C mixin get]} "::M1 ::M3"
+
+  ? {catch {C mixin M5} errorMsg} 1
+  ? {lsort [C info mixin classes]} "::M1 ::M3"
+
+  ? {catch {C object mixin M5} errorMsg} 1
+  ? {lsort [C info object mixin classes]} "::M2 ::M4"
 }
 
 # testing next via nonpos-args
@@ -252,7 +258,7 @@ nx::test case next-from-nonpos-args {
     }
   }
   
-  o object mixin M
+  o object mixin set M
   ? {o bar -x 13 -y 14} "x 13 y 14 {-x 13 -y 14} -- x 13 y 14 {-x 13 -y 14}"
   ? {o bar -y 14 -x 13} "x 13 y 14 {-y 14 -x 13} -- x 13 y 14 {-y 14 -x 13}"
 }
@@ -1161,7 +1167,7 @@ nx::test case uplevel+interceptor-transparency {
   ? {c1 foo} 1
   ? {c1 bar} 2
 
-  db object mixin Profile
+  db object mixin set Profile
   ? {c1 foo} 1
   ? {c1 bar} 2
 
@@ -1225,7 +1231,7 @@ nx::test case uplevel+tcl-transparency {
   ? bar0 2
   ? bar 2
 
-  ns_cache object mixin Profile
+  ns_cache object mixin set Profile
   
   # the version with tcl-uplevel should fail
   ? bar0 {can't read "x": no such variable}

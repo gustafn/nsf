@@ -1025,7 +1025,6 @@ namespace eval ::nx {
         } elseif {$property eq "optional"} {
 	  lappend opts -required 0
         } elseif {$property in [list "alias" "forward" "cmd" "initcmd"]} {
-	  set class [:requireClass ::nx::ObjectParameterSlot $class]
 	  lappend opts -disposition $property
 	  set class [:requireClass ::nx::ObjectParameterSlot $class]
         } elseif {[regexp {([01])[.][.]([1n*])} $property _ minOccurance maxOccurance]} {
@@ -1335,9 +1334,9 @@ namespace eval ::nx {
       set d [nsf::directdispatch ${:domain} \
                  ::nsf::classes::nx::Object::__resolve_method_path \
                  {*}[expr {${:per-object} ? "-per-object" : ""}] ${:settername}]
-     :createForwarder [dict get $d methodName] [dict get $d object]
+      :createForwarder [dict get $d methodName] [dict get $d object]
     } else {
-     :createForwarder ${:name} ${:domain}
+      :createForwarder ${:name} ${:domain}
     }
   }
 
@@ -1353,7 +1352,11 @@ namespace eval ::nx {
       lappend options ${:elementtype}
       #puts stderr "+++ [self] added elementtype ${:elementtype}"
     }
-    lappend options ${:disposition}
+    if {${:disposition} eq "slotassign"} {
+      lappend options slot=[::nsf::self] ${:disposition} method=${:forwardername}
+    } else {
+      lappend options ${:disposition}
+    }
     if {${:name} ne ${:methodname}} {lappend options method=${:methodname}}
     if {${:required}} {
       lappend options required
@@ -1414,6 +1417,8 @@ namespace eval ::nx {
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options]]
       }
     }
+
+    #puts stderr ================${:parameterSpec}
     return ${:parameterSpec}
   }
 
@@ -1496,6 +1501,7 @@ namespace eval ::nx {
   # create methods for slot operations assign/get/add/delete
   #
   ::nsf::method::alias RelationSlot assign ::nsf::relation
+  ::nsf::method::alias RelationSlot set ::nsf::relation
   ::nsf::method::alias RelationSlot get ::nsf::relation
 
   RelationSlot protected method delete_value {obj prop old value} {
@@ -1590,18 +1596,49 @@ namespace eval ::nx {
   #     mixin
   #     filter
 
-  ::nx::RelationSlot create ::nx::Object::slot::object-mixin \
-      -multiplicity 0..n \
-      -methodname "::nx::Object::slot::__object::mixin" \
-      -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
+  if {0} {
+    ::nx::RelationSlot create ::nx::Object::slot::object-mixin \
+        -multiplicity 0..n \
+        -methodname "::nx::Object::slot::__object::mixin" \
+        -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
+  }
+  if {1} {
+    ::nx::RelationSlot create ::nx::Object::slot::object-mixin \
+        -multiplicity 0..n \
+        -defaultmethods get \
+        -disposition slotassign \
+        -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
+  }
   ::nx::RelationSlot create ::nx::Object::slot::object-filter \
       -methodname "::nx::Object::slot::__object::filter" \
       -multiplicity 0..n \
       -settername "object filter" -forwardername object-filter -elementtype filterreg 
-  
-  ::nx::RelationSlot create ::nx::Class::slot::mixin \
-      -multiplicity 0..n \
-      -forwardername class-mixin -elementtype mixinreg
+  if {0} {
+    #puts stderr =============1
+    ::nx::RelationSlot create ::nx::Class::slot::mixin \
+        -multiplicity 0..n \
+        -methodname "mixin set" \
+        -defaultmethods {get} \
+        -forwardername "class-mixin" -elementtype mixinreg
+  }
+  if {0} {
+    #puts stderr =============2
+    ::nx::RelationSlot create ::nx::Class::slot::mixin \
+        -multiplicity 0..n \
+        -methodname "::nx::Class::slot::mixin set %self class-mixin" \
+        -disposition forward \
+        -forwardername "class-mixin" -elementtype mixinreg
+  }
+  if {1} {
+    #puts stderr =============3
+    ::nx::RelationSlot create ::nx::Class::slot::mixin \
+        -multiplicity 0..n \
+        -methodname "mixin" \
+        -defaultmethods get \
+        -disposition slotassign \
+        -forwardername "class-mixin" -elementtype mixinreg
+    #puts stderr =============4
+  }
   ::nx::RelationSlot create ::nx::Class::slot::filter \
       -multiplicity 0..n \
       -forwardername class-filter -elementtype filterreg

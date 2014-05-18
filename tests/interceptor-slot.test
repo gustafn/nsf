@@ -14,7 +14,7 @@ C create c1
 #
 nx::test case mixin-method {
   ? {C info lookup method mixin} "::nsf::classes::nx::Class::mixin"
-  ? {C mixin M} ::M
+  ? {C mixin set M} ::M
   ? {C info precedence} "::nx::Class ::nx::Object"
   ? {C mixin} "::M"
   ? {C info mixin classes} "::M"
@@ -25,8 +25,8 @@ nx::test case mixin-method {
   ? {c1 info precedence} "::M ::C ::nx::Object"
   ? {C mixin delete M} ""
   ? {C info mixin classes} ""
-  ? {C mixin ::M} "::M"
-  ? {C mixin {}} ""
+  ? {C mixin set ::M} "::M"
+  ? {C mixin set {}} ""
   ? {C info mixin classes} ""
 }
 
@@ -90,10 +90,10 @@ nx::test case object-mixin-relation {
 # "mixin"
 #
 nx::test case class+mixin {
-  ? {C object mixin M} ::M
+  ? {C object mixin set M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
   ? {C info object mixin classes} "::M"
-  ? {C object mixin ""} ""
+  ? {C object mixin set ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 }
 
@@ -104,7 +104,7 @@ nx::test case class+mixin-add {
   ? {C object mixin add M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
   ? {C info object mixin classes} "::M"
-  ? {C object mixin ""} ""
+  ? {C object mixin set ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
   
   ? {C object mixin add M} ::M
@@ -112,10 +112,10 @@ nx::test case class+mixin-add {
   ? {::nsf::relation C object-mixin} ::M
   ? {catch {C object mixin add UNKNOWN}} 1
   ? {::nsf::relation C object-mixin} "::M"
-  ? {C object mixin ""} ""
+  ? {C object mixin set ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 
-  ? {C object mixin M} ::M
+  ? {C object mixin set M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
 
   # forwarder with 0 arguments + flag
@@ -133,7 +133,7 @@ nx::test case mixin-add {
   nx::Class create C1 
 
   ? {C1 info lookup method mixin} "::nsf::classes::nx::Class::mixin"
-  C1 object mixin M1
+  C1 object mixin set M1
   ? {C1 info precedence} "::M1 ::nx::Class ::nx::Object"
   C1 create c11
   ? {c11 info precedence} "::C1 ::nx::Object"
@@ -143,7 +143,7 @@ nx::test case mixin-add {
   ? {o info precedence} "::M1 ::nx::Object"
 
   nx::Class create O 
-  O object mixin M1
+  O object mixin set M1
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
   nx::Class create O -object-mixin M1
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"

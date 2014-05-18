@@ -7,7 +7,7 @@ nx::test case plain-methods-0 {
     ? {o public method foo {} {return foo}} "::o: unable to dispatch method 'method'"
     :public object method f args {next}
   }
-  ? {o mixin M1} "::o: unable to dispatch method 'mixin'"
+  ? {o mixin set M1} "::o: unable to dispatch method 'mixin'"
   ? {o filter f} "::o: unable to dispatch method 'filter'"
 
   ? {lsort [o info object methods]} "f"
@@ -49,9 +49,9 @@ nx::test case plain-methods-1 {
   ? {o a} "pm1"
   ? {o fwd} "pm1"
 
-  ? {o mixin M1} ::M1
+  ? {o mixin set M1} ::M1
   ? {o info mixin classes} ::M1
-  ? {o mixin ""} ""
+  ? {o mixin set ""} ""
   ? {o info mixin classes} ""
 
   ? {o filter f} f
