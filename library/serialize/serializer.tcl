@@ -203,7 +203,7 @@ namespace eval ::nx::serializer {
       set targetName $sourceName
       if {[array exists :objmap]} {
 	foreach {source target} [array get :objmap] {
-	  puts "[list regsub ^$source $targetName $target targetName]"
+	  #puts "[list regsub ^$source $targetName $target targetName]"
 	  regsub ^$source $targetName $target targetName
 	}
       }
