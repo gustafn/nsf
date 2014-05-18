@@ -14531,8 +14531,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     INCR_REF_COUNT(paramPtr->slotObj);
 
   } else if (optionLength >= 6 && strncmp(option, "method=", 7) == 0) {
-    if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD)) == 0) {
-      return NsfPrintError(interp, "parameter option 'method=' only allowed for parameter types 'alias' and 'forward'");
+    if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_SLOTASSIGN)) == 0) {
+      return NsfPrintError(interp, "parameter option 'method=' only allowed for parameter "
+                           "types 'alias', 'forward' and 'slotassign'");
     }
     if (paramPtr->method) {DECR_REF_COUNT(paramPtr->method);}
     paramPtr->method = Tcl_NewStringObj(option + 7, optionLength - 7);
@@ -15147,6 +15148,8 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
   assert(lastObj);
   assert(nextObjPtr);
 
+  /* fprintf(stderr, "ParameterMethodDispatch %s flags %06x\n", paramPtr->name, paramPtr->flags);*/
+
   /*
    * The current call-frame of configure uses an obj-frame, such
    * that setvar etc.  are able to access variables like "a" as a
@@ -15197,10 +15200,10 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
     methodObj = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
     methodString = ObjStr(methodObj);
 
-    /*fprintf(stderr, "ALIAS %s, nrargs %d converter %p toNothing %d i %d oc %d,  pcPtr->lastObjc %d\n",
-      paramPtr->name, paramPtr->nrArgs, paramPtr->converter,
-      paramPtr->converter == ConvertToNothing,
-      i, objc,  pc.lastObjc);*/
+    /*fprintf(stderr, "ALIAS %s, nrargs %d converter %p toNothing %d oc %d\n",
+            paramPtr->name, paramPtr->nrArgs, paramPtr->converter,
+            paramPtr->converter == ConvertToNothing,
+            oc);*/
 
     if (paramPtr->converter == ConvertToNothing) {
       /*
@@ -15226,17 +15229,35 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
       }
     } else {
       /*
-       * A simple alias, receives no (when noarg was specified) or a
+       * A simple alias, receives no arg (when noarg was specified) or a
        * single argument (which might be the default value).
        */
-      if (paramPtr->nrArgs == 1) {
-	oc = 1;
-	ov0 = newValue;
-      } else {
-	oc = 0;
-	ov0 = NULL;
-      }
+      int moc = 1;
+      Tcl_Obj **movPtr = NULL;
+
+      ov0 = NULL;
       ovPtr = NULL;
+
+      if (Tcl_ListObjGetElements(interp, methodObj, &moc, &movPtr) == TCL_OK) {
+        if (moc != 2) {
+          oc = 0;
+          if (unlikely(moc > 2)) {
+            NsfLog(interp, NSF_LOG_WARN, "max 2 words are currently allowed in methodName <%s>", methodString);
+          }
+        } else {
+          oc = 1;
+          methodObj = movPtr[0];
+          ov0 = movPtr[1];
+        }
+      }
+      if (paramPtr->nrArgs == 1) {
+        oc++;
+        if (oc == 1) {
+          ov0 = newValue;
+        } else {
+          ovPtr = &newValue;
+        }
+      }
     }
 
     /*
@@ -26554,8 +26575,13 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	if (likely(slotObject != NULL)) {
 	  Tcl_Obj *ov[2];
 
-	  ov[0] = paramPtr->nameObj;
+	  ov[0] = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
 	  ov[1] = newValue;
+
+          /*fprintf(stderr, "SLOTASSIGN %s %s %s %s %s\n", ObjectName(slotObject),
+                  ObjStr(NsfGlobalObjs[NSF_ASSIGN]), ObjStr(object->cmdName),
+                  ObjStr(paramPtr->nameObj), ObjStr(newValue));*/
+
 	  result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_ASSIGN],
 					 object->cmdName, 3, ov, NSF_CSC_IMMEDIATE);
 	}
@@ -26677,10 +26703,9 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
     if (uplevelVarFramePtr) {
       Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
     }
-    ov[0] = paramPtr->nameObj;
+    ov[0]  = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
     result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_GET],
 				   object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
-
     goto cget_exit;
   }
 
