@@ -10,7 +10,7 @@ nx::test configure -count 100
 ###########################################
 nx::Class create A
 nx::Object create o -object-mixin A
-? {o object mixin} ::A
+? {o object mixin get} ::A
 ? {o info object mixin classes} ::A
 ? {A info mixinof} ::o
 
@@ -77,7 +77,7 @@ nx::Class create B -mixin A
 nx::Class create C -superclass B
 C create c1
 
-? {B mixin} ::A
+? {B mixin get} ::A
 ? {B info mixin classes} ::A
 ? {A info mixinof} ::B
 ? {c1 info precedence} "::A ::C ::B ::nx::Object"
@@ -129,7 +129,7 @@ A create a1
 B create b1
 C create c1
 
-? {B mixin} ::A
+? {B mixin get} ::A
 ? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {a1 info precedence} "::M ::A ::nx::Object"
@@ -224,7 +224,7 @@ A create a1
 B create b1
 C create c1
 
-? {B mixin} ::A
+? {B mixin get} ::A
 ? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {a1 info precedence} "::M ::A ::nx::Object"
@@ -258,7 +258,7 @@ A create a1
 B create b1
 C create c1
 
-? {B mixin} ::A
+? {B mixin get} ::A
 ? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {a1 info precedence} "::M ::A ::nx::Object"
@@ -287,7 +287,7 @@ nx::test case pcm-redefine {
   nx::Class create C -superclass B
   C create c1
   
-  ? {B mixin} ::A
+  ? {B mixin get} ::A
   ? {B info mixin classes} ::A
   ? {A info mixinof -scope class} ::B
   ? {c1 info precedence} "::A ::C ::B ::nx::Object"
@@ -302,7 +302,7 @@ nx::test case pcm-redefine {
   ? {C info superclass -closure} "::nx::Object"
   ? {B info heritage} "::A ::nx::Object"
   ? {C info heritage} "::nx::Object"
-  ? {B mixin} ::A
+  ? {B mixin get} ::A
   ? {B info mixin classes} ::A
   ? {A info mixinof} ::B
   ? {c1 info precedence} "::C ::nx::Object"
@@ -324,7 +324,7 @@ nx::test case pcm-redefine-soft {
   nx::Class create C -superclass B
   C create c1
   
-  ? {B mixin} ::A
+  ? {B mixin get} ::A
   ? {B info mixin classes} ::A
   ? {A info mixinof -scope class} ::B
   ? {c1 info precedence} "::A ::C ::B ::nx::Object"
@@ -490,7 +490,7 @@ nx::test case nx-mixinof {
   nx::Class create C2 -mixin A
   C2 create c22
 
-  ? {c1 object mixin} ::A
+  ? {c1 object mixin get} ::A
   ? {c1 info object mixin classes} ::A
   ? {lsort [A info mixinof]} "::C2 ::c1"
   ? {M info mixinof} ""

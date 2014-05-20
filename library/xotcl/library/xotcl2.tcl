@@ -426,7 +426,7 @@ namespace eval ::xotcl {
   ::xotcl::Class instproc parameter {arglist} {
     set slotContainer [::nx::slotObj [::nsf::self]]
     foreach arg $arglist {
-      puts stderr "[self] ::nsf::classes::nx::Class::property -accessor public $arg"
+      puts stderr "PARAMETER: [self] ::nsf::classes::nx::Class::property -accessor public $arg"
       #[self] ::nsf::classes::nx::Class::property -accessor public $arg
       if {[llength $arg] > 1} {
 	::nx::MetaSlot createFromParameterSpec [::nsf::self] [lindex $arg 0] [lindex $arg 1]
@@ -457,18 +457,24 @@ namespace eval ::xotcl {
 
   set cSlotContainer [::nx::slotObj ::xotcl::Class]
   set oSlotContainer [::nx::slotObj ::xotcl::Object]
-  ::nx::RelationSlot create ${cSlotContainer}::superclass
+  ::nx::RelationSlot create ${cSlotContainer}::superclass \
+      -defaultmethods {get assign}
   #::nsf::method::alias      ${cSlotContainer}::superclass assign ::nsf::relation
-  ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1
+  ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1 \
+      -defaultmethods {get assign}
   #::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
   ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
+      -defaultmethods {get assign} \
       -elementtype mixinreg -multiplicity 0..n
   ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
+      -defaultmethods {get assign} \
       -elementtype filterreg -multiplicity 0..n
   ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin \
+      -defaultmethods {get assign} \
       -elementtype mixinreg -multiplicity 0..n
   ::nx::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
-	-elementtype filterreg -multiplicity 0..n
+      -defaultmethods {get assign} \
+      -elementtype filterreg -multiplicity 0..n
 
   ########################
   # Info definition
@@ -1011,6 +1017,8 @@ namespace eval ::xotcl {
   #
   ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot {
 
+    #:property defaultmethods {get assign}
+
     :property -accessor public multivalued {
       :public object method assign {object property value} {
 	set mClass [expr {$value ? "0..n" : "1..1"}]
@@ -1042,7 +1050,7 @@ namespace eval ::xotcl {
 	  -per-object=${:per-object} \
 	  $name \
 	  ${:manager} \
-	  [list %1 [${:manager} cget -defaultmethods]] %self \
+	  "%1 {get assign}" %self \
 	  ${:forwardername}
     }
 

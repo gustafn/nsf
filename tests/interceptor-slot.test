@@ -16,7 +16,7 @@ nx::test case mixin-method {
   ? {C info lookup method mixin} "::nsf::classes::nx::Class::mixin"
   ? {C mixin set M} ::M
   ? {C info precedence} "::nx::Class ::nx::Object"
-  ? {C mixin} "::M"
+  ? {C mixin get} "::M"
   ? {C info mixin classes} "::M"
   ? {c1 info precedence} "::M ::C ::nx::Object"
   ? {C mixin add M2} "::M2 ::M"
@@ -118,8 +118,8 @@ nx::test case class+mixin-add {
   ? {C object mixin set M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
 
-  # forwarder with 0 arguments + flag
-  ? {C object mixin} "::M"
+  # forwarder with get
+  ? {C object mixin get} "::M"
 }
 
 

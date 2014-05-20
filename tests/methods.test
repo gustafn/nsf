@@ -235,8 +235,8 @@ nx::test case mixin-via-objectparam {
   ? {lsort [C object mixin get]} "::M2 ::M4"
   ? {lsort [C mixin get]} "::M1 ::M3"
 
-  ? {lsort [C object mixin]} "::M2 ::M4"
-  ? {lsort [C mixin]} "::M1 ::M3"
+  ? {lsort [C object mixin]} {wrong # args: use "::C mixin assign|get"} ;# TODO: should be "C object mixin ..."
+  ? {lsort [C mixin]} {wrong # args: use "::C mixin assign|get"}
 
   ? {catch {C mixin M5} errorMsg} 1
   ? {lsort [C info mixin classes]} "::M1 ::M3"

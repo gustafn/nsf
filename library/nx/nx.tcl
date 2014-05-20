@@ -1235,7 +1235,7 @@ namespace eval ::nx {
     {per-object false}
     {methodname}
     {forwardername}
-    {defaultmethods {get assign}}
+    {defaultmethods {}}
     {accessor public}
     {incremental:boolean false}
     {configurable true}
@@ -1316,15 +1316,25 @@ namespace eval ::nx {
   }
 
   #
-  # good old default: TODO question in case of nx-relation slot
+  # Define a forwarder directing accessor calls to the slot
   #
   ObjectParameterSlot protected method createForwarder {name domain} {
+    set dm [${:manager} cget -defaultmethods]
     ::nsf::method::forward $domain \
         -per-object=${:per-object} \
         $name \
+        -onerror [list ${:manager} onError] \
         ${:manager} \
-        [list %1 [${:manager} cget -defaultmethods]] %self \
+        [expr {$dm ne "" ? [list %1 $dm] : "%1"}] %self \
         ${:forwardername}
+  }
+
+  ObjectParameterSlot public method onError {cmd msg} {
+    if {[string match "%1 requires argument*" $msg]} {
+      #return -code error "wrong # args: use \"$cmd assign|get\" [lsort [:info lookup methods -callprotection public -source application]]" 
+      return -code error "wrong # args: use \"$cmd assign|get\"" 
+    }
+    return -code error $msg
   }
 
   ObjectParameterSlot protected method makeForwarder {} {
@@ -1613,7 +1623,7 @@ namespace eval ::nx {
   if {1} {
     ::nx::RelationSlot create ::nx::Object::slot::object-mixin \
         -multiplicity 0..n \
-        -defaultmethods get \
+        -defaultmethods {} \
         -disposition slotassign \
         -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
   }
@@ -1626,7 +1636,7 @@ namespace eval ::nx {
   if {1} {
     ::nx::RelationSlot create ::nx::Object::slot::object-filter \
         -multiplicity 0..n \
-        -defaultmethods get \
+        -defaultmethods {} \
         -disposition slotassign \
         -settername "object filter" -forwardername object-filter -elementtype filterreg
   }
@@ -1650,7 +1660,7 @@ namespace eval ::nx {
   if {1} {
     ::nx::RelationSlot create ::nx::Class::slot::mixin \
         -multiplicity 0..n \
-        -defaultmethods get \
+        -defaultmethods {} \
         -disposition slotassign \
         -forwardername "class-mixin" -elementtype mixinreg
   }
@@ -1663,7 +1673,7 @@ namespace eval ::nx {
   if {1} {
     ::nx::RelationSlot create ::nx::Class::slot::filter \
         -multiplicity 0..n \
-        -defaultmethods get \
+        -defaultmethods {} \
         -disposition slotassign \
         -forwardername class-filter -elementtype filterreg
   } 
@@ -1858,29 +1868,9 @@ namespace eval ::nx {
     return 1
   }
 
-  if {1} {
-    #
-    # TODO: remove if
-    #
-    ::nx::VariableSlot protected method needsForwarder {} {
-      return 1
-    }
-    ::nx::VariableSlot protected method createForwarder {name domain} {
-      ::nsf::method::forward $domain \
-          -per-object=${:per-object} \
-          $name \
-          -onerror [list ${:manager} onError] \
-          ${:manager} \
-          %1 %self \
-          ${:forwardername}
-    }
-    ::nx::VariableSlot public method onError {cmd msg} {
-      if {[string match "%1 requires argument*" $msg]} {
-        #return -code error "wrong # args: use \"$cmd assign|get\" [lsort [:info lookup methods -callprotection public -source application]]" 
-        return -code error "wrong # args: use \"$cmd assign|get\"" 
-      }
-      return -code error $msg
-    }
+  # TODO: check detailed xotcl2 implications
+  ::nx::VariableSlot protected method needsForwarder {} {
+    return 1
   }
 
   ::nx::VariableSlot protected method makeAccessor {} {
