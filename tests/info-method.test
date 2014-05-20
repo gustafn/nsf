@@ -389,34 +389,34 @@ nx::test case callable {
     ? {o info lookup methods create} ""
     ? {o info lookup methods configure} configure
     ? {o info lookup method configure} "::nsf::classes::nx::Object::configure"
-    ? {o object filter f} "f"
+    ? {o object filter set f} "f"
     ? {o object filter guard f { 1 == 1 }} ""
     ? {o info object filter guard f} " 1 == 1 "
     ? {o object filter guard f} " 1 == 1 "
-    o object filter ""
+    o object filter set ""
 
     nx::Class create Foo
     ? {Foo method f args ::nx::next} "::nsf::classes::Foo::f"
     ? {Foo method f2 args ::nx::next} "::nsf::classes::Foo::f2"
-    ? {Foo filter {f f2}} "f f2"
+    ? {Foo filter set {f f2}} "f f2"
     ? {Foo info filter methods} "f f2"
     ? {Foo filter guard f {2 == 2}} ""
     ? {Foo info filter guard f} "2 == 2"
     ? {Foo info filter methods -guards f} "{f -guard {2 == 2}}"
     ? {Foo info filter methods -guards f2} "f2"
     ? {Foo info filter methods -guards} "{f -guard {2 == 2}} f2"
-    ? {Foo filter {}} ""
+    ? {Foo filter set {}} ""
 
     ? {Foo object method f args ::nx::next} "::Foo::f"
     ? {Foo object method f2 args ::nx::next} "::Foo::f2"
-    ? {Foo object filter {f f2}} "f f2"
+    ? {Foo object filter set {f f2}} "f f2"
     ? {Foo info object filter methods} "f f2"
     ? {Foo object filter guard f {2 == 2}} ""
     ? {Foo info object filter guard f} "2 == 2"
     ? {Foo info object filter methods -guards f} "{f -guard {2 == 2}}"
     ? {Foo info object filter methods -guards f2} "f2"
     ? {Foo info object filter methods -guards} "{f -guard {2 == 2}} f2"
-    ? {Foo object filter {}} ""
+    ? {Foo object filter set {}} ""
     Foo destroy 
 
     nx::Class create Fly
@@ -721,7 +721,7 @@ nx::test case info-slot-parametersyntax {
   ? {C info configure syntax} "/::C/ ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 #  ? {C info configure syntax a} "/::C/ ?-a /value/?"
 
-  ? {C info configure parameters } "-a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotassign,method=object-mixin,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,0..n __initblock:cmd,optional,noleadingdash"
+  ? {C info configure parameters } "-a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotassign,method=object-mixin,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotassign,method=object-filter,0..n __initblock:cmd,optional,noleadingdash"
 
 #  ? {C info parameter list} "-a -b -noinit -object-mixin -class -object-filter __initblock"
 #  ? {C info parameter names} "a b noinit object-mixin class object-filter __initblock"

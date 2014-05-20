@@ -286,7 +286,7 @@ nx::test case local+filter {
   ? {d1 bar} "::d1: unable to dispatch method 'bar'"
 
   # remove the filter
-  d1 object filter ""
+  d1 object filter set ""
   # define call to private method via method handle
   C public method foo {} { return "C.foo [[self] [C info method registrationhandle bar]]"}
 

@@ -8,7 +8,7 @@ nx::test case plain-methods-0 {
     :public object method f args {next}
   }
   ? {o mixin set M1} "::o: unable to dispatch method 'mixin'"
-  ? {o filter f} "::o: unable to dispatch method 'filter'"
+  ? {o filter set f} "::o: unable to dispatch method 'filter'"
 
   ? {lsort [o info object methods]} "f"
   ? {lsort [o info]} "valid submethods of ::o info: children class configure has info lookup name object parameter parent precedence variable vars"
@@ -54,9 +54,9 @@ nx::test case plain-methods-1 {
   ? {o mixin set ""} ""
   ? {o info mixin classes} ""
 
-  ? {o filter f} f
+  ? {o filter set f} f
   ? {o info filter methods} f
-  ? {o filter ""} ""
+  ? {o filter set ""} ""
   ? {o info filter methods} ""
 
   ? {lsort [o info object methods]} "a f foo fwd p v2"

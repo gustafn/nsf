@@ -163,7 +163,7 @@ nx::test case filter-relation {
   ? {cc info object filter methods} ""
   ? {::nsf::relation cc object-filter filterA} filterA
   ? {cc info object filter methods} "filterA"
-  ? {cc object filter filterB} "filterB" 
+  ? {cc object filter set filterB} "filterB"
   ? {::nsf::relation cc object-filter} "filterB"
   ? {cc info object filter methods} "filterB"
   ? {cc object filter add filterD} "filterD filterB"
@@ -240,7 +240,7 @@ nx::test case "filter-and-creation" {
   ? {ob bar} {::ob: unable to dispatch method 'bar'}
   ? {ob baz} {}
 
-  Foo filter myfilter
+  Foo filter set myfilter
   # create through filter
   ? {Foo create ob} ::ob
 

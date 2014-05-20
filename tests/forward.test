@@ -452,22 +452,22 @@ nx::test case earlybinding {
 
       ? [list set _ [namespace current]] ::NS
       ? [list set _ [NS create m1]] ::NS::m1
-      NS filter f
+      NS filter set f
       ? [list set _ [NS create m2]] ::NS::m2
-      NS filter ""
+      NS filter set ""
 
       namespace eval ::test {
         ? [list set _ [NS create m3]] ::test::m3
-        NS filter f
+        NS filter set f
         ? [list set _ [NS create m4]] ::test::m4
-        NS filter ""
+        NS filter set ""
       }
 
       namespace eval test {
         ? [list set _ [NS create m5]] ::NS::test::m5
-        NS filter f
+        NS filter set f
         ? [list set _ [NS create m6]] ::NS::test::m6
-        NS filter ""
+        NS filter set ""
       }
     }
 
@@ -477,22 +477,22 @@ nx::test case earlybinding {
 
       ? [list set _ [namespace current]] ::NS
       ? [list set _ [NS create i1]] ::NS::i1
-      NS filter f
+      NS filter set f
       ? [list set _ [NS create i2]] ::NS::i2
-      NS filter ""
+      NS filter set ""
 
       namespace eval ::test {
         ? [list set _ [NS create i3]] ::test::i3
-        NS filter f
+        NS filter set f
         ? [list set _ [NS create i4]] ::test::i4
-        NS filter ""
+        NS filter set ""
       }
 
       namespace eval test {
         ? [list set _ [NS create i5]] ::NS::test::i5
-        NS filter f
+        NS filter set f
         ? [list set _ [NS create i6]] ::NS::test::i6
-        NS filter ""
+        NS filter set ""
       }
 
     }
@@ -505,17 +505,17 @@ nx::test case earlybinding {
 
   #puts ====
   ? [list set _ [NS create n1]] ::n1
-  NS filter f
+  NS filter set f
   ? [list set _ [NS create n2]] ::n2
-  NS filter ""
+  NS filter set ""
 
   #puts ====
   namespace eval test {
     ? [list set _ [NS create n1]] ::test::n1
     ? [list set _ [NS create n3]] ::test::n3
-    NS filter f
+    NS filter set f
     ? [list set _ [NS create n4]] ::test::n4
-    NS filter ""
+    NS filter set ""
   }
 }
 

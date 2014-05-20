@@ -1617,10 +1617,20 @@ namespace eval ::nx {
         -disposition slotassign \
         -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
   }
-  ::nx::RelationSlot create ::nx::Object::slot::object-filter \
-      -methodname "::nx::Object::slot::__object::filter" \
-      -multiplicity 0..n \
-      -settername "object filter" -forwardername object-filter -elementtype filterreg 
+  if {0} {
+    ::nx::RelationSlot create ::nx::Object::slot::object-filter \
+        -methodname "::nx::Object::slot::__object::filter" \
+        -multiplicity 0..n \
+        -settername "object filter" -forwardername object-filter -elementtype filterreg
+  }
+  if {1} {
+    ::nx::RelationSlot create ::nx::Object::slot::object-filter \
+        -multiplicity 0..n \
+        -defaultmethods get \
+        -disposition slotassign \
+        -settername "object filter" -forwardername object-filter -elementtype filterreg
+  }
+
   if {0} {
     #puts stderr =============1
     ::nx::RelationSlot create ::nx::Class::slot::mixin \
@@ -1638,18 +1648,26 @@ namespace eval ::nx {
         -forwardername "class-mixin" -elementtype mixinreg
   }
   if {1} {
-    #puts stderr =============3
     ::nx::RelationSlot create ::nx::Class::slot::mixin \
         -multiplicity 0..n \
-        -methodname "mixin" \
         -defaultmethods get \
         -disposition slotassign \
         -forwardername "class-mixin" -elementtype mixinreg
-    #puts stderr =============4
   }
-  ::nx::RelationSlot create ::nx::Class::slot::filter \
-      -multiplicity 0..n \
-      -forwardername class-filter -elementtype filterreg
+
+  if {0} {
+    ::nx::RelationSlot create ::nx::Class::slot::filter \
+        -multiplicity 0..n \
+        -forwardername class-filter -elementtype filterreg
+  }
+  if {1} {
+    ::nx::RelationSlot create ::nx::Class::slot::filter \
+        -multiplicity 0..n \
+        -defaultmethods get \
+        -disposition slotassign \
+        -forwardername class-filter -elementtype filterreg
+  } 
+
 
   #
   # Define "class" as a ObjectParameterSlot defined as alias

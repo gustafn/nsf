@@ -357,7 +357,7 @@ nx::test case leaf-next-in-submethods {
     :public object method intercept args { 
       incr :x; next; # a "filter next" 
     }
-    :object filter intercept
+    :object filter set intercept
     :FOO bar
     # Rationale: A call count > 2 would indicate that the leaf next
     # triggers a further call into filter ...
@@ -505,7 +505,7 @@ nx::test case submethods-current-introspection {
   
   set c [Z new]
 
-  Z filter intercept
+  Z filter set intercept
 
   foreach selector [list "FOO foo" "BAR BUU boo" "baz"] {
     Z public method $selector {} {;}
@@ -515,7 +515,7 @@ nx::test case submethods-current-introspection {
     ? [list set _ [join [Z cget -msg] -]] -$root-::Z-$mh
   }
 
-  Z filter {}  
+  Z filter set {}
 
 }
 

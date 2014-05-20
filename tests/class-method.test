@@ -69,9 +69,9 @@ nx::test case class-methods-1 {
   ? {::C class mixin set ""} ""
   ? {::C class info mixin classes} ""
 
-  ? {::C class filter f} f
+  ? {::C class filter set f} f
   ? {::C class info filter methods} f
-  ? {::C class filter ""} ""
+  ? {::C class filter set ""} ""
   ? {::C class info filter methods} ""
 
   ? {lsort [::C info object methods]} "a f foo fwd p v2"

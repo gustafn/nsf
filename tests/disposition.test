@@ -985,7 +985,7 @@ nx::test case submethods-via-aliasparams {
   C public method intercept args {
     next
   }
-  C filter intercept
+  C filter set intercept
 
   # N+4 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
   # N+3 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
@@ -1010,7 +1010,7 @@ nx::test case submethods-via-aliasparams {
   } "::c2--FOO foo--foo"
   
 
-  C filter ""
+  C filter set ""
   # / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
   # b) Between root and intermittent or inbetween the set of
   # intermittent frames (i.e., indirection at the level of
@@ -1041,7 +1041,7 @@ nx::test case submethods-via-aliasparams {
   C::slot::__FOO public object method intercept {} {
     return "[current]--[next]"
   }
-  C::slot::__FOO object filter intercept
+  C::slot::__FOO object filter set intercept
   ? {C::slot::__FOO foo} "::C::slot::__FOO--::C::slot::__FOO--foo--foo"
 
   C setObjectParams [list]
@@ -1294,10 +1294,8 @@ nx::test case dispo-object-targets {
   # Dispatch with a method handle
   #
   ::T mixin set {}
-  #puts stderr =================1
   ? [list [T create t] $methods(z) XXX] \
       "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z"
-  #puts stderr =================3
   T setObjectParams x:alias,method=$methods(z)
   ? {T create t XXX} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z" \
       "Non-object FQ selector with default unknown handler"
