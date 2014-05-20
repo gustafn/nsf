@@ -160,9 +160,12 @@ nx::test case class-level {
   # cases)
   #
 
+  set unknowns "valid are: {assign definition destroy get getParameterSpec getPropertyDefinitionOptions onError parameter reconfigure setCheckedInstVar}"
   ? {c1 b add x} {property b of ::C ist not multivalued}
+  #? {c1 b add x} "method 'add' unknown for slot ::C::slot::b; $unknowns"
   ? {c1 c add x} {::c1: unable to dispatch method 'c'}
   ? {c1 eval {:c add x}} {property c of ::C ist not multivalued}
+  #? {c1 eval {:c add x}} "method 'add' unknown for slot ::C::slot::c; $unknowns"
   ? {c1 d add x} {::c1: unable to dispatch method 'd'}
   ? {c1 eval {:d add x}} {::c1: unable to dispatch method 'd'}
   ? {c1 e add x} {::c1: unable to dispatch method 'e'}
@@ -174,8 +177,10 @@ nx::test case class-level {
 
   ? {c1 va add x} {::c1: unable to dispatch method 'va'}
   ? {c1 vb add x} {property vb of ::C ist not multivalued}
+  #? {c1 vb add x} "method 'add' unknown for slot ::C::slot::vb; $unknowns"
   ? {c1 vc add x} {::c1: unable to dispatch method 'vc'}
   ? {c1 eval {:vc add x}} {property vc of ::C ist not multivalued}
+  #? {c1 eval {:vc add x}} "method 'add' unknown for slot ::C::slot::vc; $unknowns"
   ? {c1 vd add x} {::c1: unable to dispatch method 'vd'}
   ? {c1 eval {:vd add x}} {::c1: unable to dispatch method 'vd'}
   ? {c1 ve add x} {::c1: unable to dispatch method 've'}
@@ -678,22 +683,22 @@ nx::test case object-level-incremental {
 # Tests for experimental "value add", "value assign" ...
 #
 
-nx::test case property-value-incremental {
+# nx::test case property-value-incremental {
 
-  nx::Object create o1 {
-    :object property -incremental {a a1}
-  }
+#   nx::Object create o1 {
+#     :object property -incremental {a a1}
+#   }
 
-  ? {o1 a add x} {x a1}
-  ? {o1 a assign {a1}} {a1}
+#   ? {o1 a add x} {x a1}
+#   ? {o1 a assign {a1}} {a1}
   
-  nsf::configure debug 2
-  ? {o1 a value add x    } {x a1}
-  ? {o1 a value assign {a b c}} {a b c}
-  ? {o1 a value get      } {a b c}
-  ? {o1 a value add x    } {x a b c}
-  ? {o1 a value add z end} {x a b c z}
-}
+#   nsf::configure debug 2
+#   ? {o1 a value add x    } {x a1}
+#   ? {o1 a value assign {a b c}} {a b c}
+#   ? {o1 a value get      } {a b c}
+#   ? {o1 a value add x    } {x a b c}
+#   ? {o1 a value add z end} {x a b c z}
+# }
 
 #
 # Test interactions between multiplicity and incremental

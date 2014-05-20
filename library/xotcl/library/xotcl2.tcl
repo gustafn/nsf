@@ -1014,8 +1014,7 @@ namespace eval ::xotcl {
     :property -accessor public multivalued {
       :public object method assign {object property value} {
 	set mClass [expr {$value ? "0..n" : "1..1"}]
-	$object incremental $value
-	$object multiplicity $mClass
+	$object configure -incremental $value -multiplicity $mClass
       }
       :public object method get {object property} {
 	return [$object eval [list :isMultivalued]]
@@ -1043,7 +1042,7 @@ namespace eval ::xotcl {
 	  -per-object=${:per-object} \
 	  $name \
 	  ${:manager} \
-	  [list %1 [${:manager} defaultmethods]] %self \
+	  [list %1 [${:manager} cget -defaultmethods]] %self \
 	  ${:forwardername}
     }
 

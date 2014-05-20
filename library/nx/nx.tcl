@@ -762,7 +762,7 @@ namespace eval ::nx {
     :alias "info precedence"       ::nsf::methods::object::info::precedence
     :alias "info vars"           ::nsf::methods::object::info::vars
     :method "info variable definition" {handle}  {return [$handle definition]}
-    :method "info variable name"       {handle}  {return [$handle name]}
+    :method "info variable name"       {handle}  {return [$handle cget -name]}
     :method "info variable parameter"  {handle}  {return [$handle parameter]}
   }
 
@@ -1130,7 +1130,14 @@ namespace eval ::nx {
       #
       # register the standard setter
       #
-      ::nsf::method::setter $class $att
+      #::nsf::method::setter $class $att
+
+      #
+      # make setter protected
+      #
+      #regexp {^([^:]+):} $att . att
+      #::nsf::method::property $class $att call-protected true
+      
       #
       # set for every bootstrap property slot the position 0
       #
@@ -1142,7 +1149,7 @@ namespace eval ::nx {
     ::nsf::parameter:invalidate::classcache $class
   }
 
-  ObjectParameterSlot public method namedParameterSpec {-map-private:switch prefix name options} {
+  ObjectParameterSlot protected method namedParameterSpec {-map-private:switch prefix name options} {
     #
     # Build a pos/nonpos parameter specification from name and option list
     #
@@ -1206,15 +1213,16 @@ namespace eval ::nx {
   # Define method "value" as a slot forwarder to allow for calling
   # value-less slot methods like e.g. "get" dispite of the arity-based
   # forward dispatcher.
-  ::nx::Slot public method value {obj method prop value:optional pos:optional} {
-    if {[info exists pos]} {
-      ${:manager} $prop $obj ${:name} $value $pos
-    } elseif {[info exists value]} {
-      ${:manager} $prop $obj ${:name} $value
-    } else {
-      ${:manager} $prop $obj ${:name}
-    }
-  }
+  # ::nx::Slot public method value {obj method prop value:optional pos:optional} {
+  #   if {[info exists pos]} {
+  #     ${:manager} $prop $obj ${:name} $value $pos
+  #   } elseif {[info exists value]} {
+  #     ${:manager} $prop $obj ${:name} $value
+  #   } else {
+  #     ${:manager} $prop $obj ${:name}
+  #   }
+  # }
+  # TODO REMOVEME
 
   ######################################################################
   # configure nx::ObjectParameterSlot
@@ -1315,7 +1323,7 @@ namespace eval ::nx {
         -per-object=${:per-object} \
         $name \
         ${:manager} \
-        [list %1 [${:manager} defaultmethods]] %self \
+        [list %1 [${:manager} cget -defaultmethods]] %self \
         ${:forwardername}
   }
 
@@ -1850,13 +1858,14 @@ namespace eval ::nx {
     }
     ::nx::VariableSlot public method onError {cmd msg} {
       if {[string match "%1 requires argument*" $msg]} {
+        #return -code error "wrong # args: use \"$cmd assign|get\" [lsort [:info lookup methods -callprotection public -source application]]" 
         return -code error "wrong # args: use \"$cmd assign|get\"" 
       }
       return -code error $msg
     }
   }
 
-  ::nx::VariableSlot public method makeAccessor {} {
+  ::nx::VariableSlot protected method makeAccessor {} {
     
     if {${:accessor} eq "none"} {
       #puts stderr "*** Do not register forwarder ${:domain} ${:name}"
@@ -1895,7 +1904,6 @@ namespace eval ::nx {
     }
     :makeAccessor
     if {${:per-object} && [info exists :default]} {
-      puts stderr "reconfigure calls setCheckedInstVar"
       :setCheckedInstVar -nocomplain=[info exists :nocomplain] ${:domain} ${:default}
     }
     if {[::nsf::is class ${:domain}]} {
@@ -1905,7 +1913,7 @@ namespace eval ::nx {
 
   ::nx::VariableSlot public method parameter {} {
     # This is a shortend "lightweight" version of "getParameterSpec"
-    # returning less (implicit) details.
+    # returning less (implicit) details. used e.g. by "info variable parameter"
     set options [:getParameterOptions -withMultiplicity true]
     set spec [:namedParameterSpec -map-private "" ${:name} $options]
     if {[info exists :default]} {lappend spec ${:default}}
@@ -2178,9 +2186,9 @@ namespace eval ::nx {
     }
 
     if {[$slot eval {info exists :settername}]} {
-      set name [$slot settername]
+      set name [$slot cget -settername]
     } else {
-      set name [$slot name]
+      set name [$slot cget -name]
     }
 
     return [::nsf::directdispatch [self] ::nsf::methods::object::info::method registrationhandle $name]
@@ -2230,9 +2238,9 @@ namespace eval ::nx {
 		  $spec \
 		  {*}[expr {[info exists defaultValue] ? [list $defaultValue] : ""}]]
     if {[$slot eval {info exists :settername}]} {
-      set name [$slot settername]
+      set name [$slot cget -settername]
     } else {
-      set name [$slot name]
+      set name [$slot cget -name]
     }
     #puts stderr handle=[::nsf::directdispatch [self] ::nsf::methods::class::info::method registrationhandle $name]
     return [::nsf::directdispatch [self] ::nsf::methods::class::info::method registrationhandle $name]
@@ -2280,8 +2288,8 @@ namespace eval ::nx {
   # content and not to produce a warning when it might look like a
   # non-positional parameter.
   ######################################################################
-  ::nx::Slot method type=any {name value} {
-  }
+  ::nx::Slot method type=any {name value} { }
+  ::nsf::method::property ::nx::Slot type=any call-protected true
 
   ######################################################################
   # Now the slots are defined; now we can defines the Objects or
@@ -2585,10 +2593,10 @@ namespace eval ::nx {
 
 	#puts stderr "replacing domain and manager from <$origin> to <$dest> in slots <$slots>"
 	foreach oldslot $slots {
-	  set container [expr {[$oldslot per-object] ? "per-object-slot" : "slot"}]
+	  set container [expr {[$oldslot cget -per-object] ? "per-object-slot" : "slot"}]
 	  set newslot [::nx::slotObj -container $container $dest [namespace tail $oldslot]]
-	  if {[$oldslot domain] eq $origin}   {$newslot domain $dest}
-	  if {[$oldslot manager] eq $oldslot} {$newslot manager $newslot}
+	  if {[$oldslot cget -domain] eq $origin}   {$newslot configure -domain $dest}
+	  if {[$oldslot cget -manager] eq $oldslot} {$newslot configure -manager $newslot}
 	  $newslot eval :init
 	}
       }

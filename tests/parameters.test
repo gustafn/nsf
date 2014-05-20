@@ -1057,10 +1057,12 @@ nx::test case op-object-types {
   # slot object
   #
   ParamTest eval {
-    :property -accessor public os {
-      :type object 
-      :multiplicity 1..n
-    }
+    #:property -accessor public os {
+    #  :type object 
+    #  :multiplicity 1..n
+    #}
+    :property -accessor public os:object,1..n
+
   }
 
   ? {ParamTest info method definition os} "::ParamTest public forward os ::ParamTest::slot::os %1 %self os"
@@ -1170,9 +1172,19 @@ nx::test case allow-empty {
 nx::test case slot-specfic-converter {
 
   nx::Class create Person {
-    :property -accessor public sex {
-      :type "sex"
-      :convert true
+    # :property -accessor public sex {
+    #   :type "sex"
+    #   :convert true
+    #   :object method type=sex {name value} {
+    #     #puts stderr "[self] slot specific converter"
+    #     switch -glob $value {
+    #       m* {return m}
+    #       f* {return f}
+    #       default {error "expected sex but got $value"}
+    #     }
+    #   }
+    # }
+    :property -accessor public sex:sex,convert {
       :object method type=sex {name value} {
 	#puts stderr "[self] slot specific converter"
 	switch -glob $value {
@@ -1182,6 +1194,7 @@ nx::test case slot-specfic-converter {
 	}
       }
     }
+
   }
 
   Person create p1 -sex male
@@ -1193,7 +1206,7 @@ nx::test case slot-specfic-converter {
 }
 
 #######################################################
-# test for setters with parameters 
+# test for setters with parameters os
 #######################################################
 nx::test case setters {
   nx::Object create o
@@ -2141,7 +2154,7 @@ nx::test case reconfigure-perobj-default {
   ? {o cget -a} newvalue
   o eval {unset :a}
   ? {o eval {info exists :a}} 0
-  [o info object slots a] default anothervalue
+  [o info object slots a] configure -default anothervalue
   ? {o eval {info exists :a}} 0
   #
   # re-assignment must be requested by a reconfigure call

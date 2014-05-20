@@ -132,7 +132,8 @@ Class O2 -superclass O
 }
 
 ? {O superclass slot self} "::xotcl::Class::slot::superclass"
-? {O superclass slot domain} "::xotcl::Class"
+#? {O superclass slot domain} "::xotcl::Class"
+? {::xotcl::Class::slot::superclass cget -domain} "::xotcl::Class"
 
 ? {O2 superclass} "::O"
 O2 superclass add M
@@ -210,8 +211,8 @@ Class Project -slots {
 }
 
 puts [Person serialize]
-Person::slot::name default "gustaf"
-? {Person::slot::name default} gustaf
+Person::slot::name configure -default "gustaf"
+? {Person::slot::name cget -default} gustaf
 Person p1 -name neophytos
 ? {p1 name} neophytos
 ? {p1 age} 0

@@ -78,11 +78,10 @@ nx::test case deepSerialize-ignoreVarsRE-filter {
   set c1(One)         [list [::Serializer deepSerialize -ignoreVarsRE "a" c1] "b"]
   set c1(One2)        [list [::Serializer deepSerialize -ignoreVarsRE {::a$} c1] "b"]
   set c1(IgnoreAll)   [list [::Serializer deepSerialize -ignoreVarsRE "." c1] ""]
-  set names {}; foreach s [C info slots] {lappend names [$s name]}
+  set names {}; foreach s [C info slots] {lappend names [$s cget -name]}
   set c1(None2)       [list [::Serializer deepSerialize -ignoreVarsRE [join $names |] c1] ""]
   
   c1 destroy
-puts stderr ====1
   foreach t [array names c1] {
     ? {nsf::object::exists c1} 0
     lassign $c1($t) script res
@@ -98,7 +97,7 @@ puts stderr ====1
   #set C(One) [list [::Serializer deepSerialize -ignoreVarsRE "x" C] "y"]
   set C(One2) [list [::Serializer deepSerialize -ignoreVarsRE {::x$} C] "y"]
   #set C(IgnoreAll) [list [::Serializer deepSerialize -ignoreVarsRE "." C] ""]
-  set names {}; foreach s [C info object slots] {lappend names [$s name]}
+  set names {}; foreach s [C info object slots] {lappend names [$s cget -name]}
   #set C(None2) [list [::Serializer deepSerialize -ignoreVarsRE [join $names |] C] ""]
   
   C destroy
