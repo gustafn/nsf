@@ -580,25 +580,29 @@ typedef enum SystemMethodsIdx {
   NSF_o_destroy_idx, 
   NSF_o_init_idx, 
   NSF_o_move_idx, 
-  NSF_o_unknown_idx
+  NSF_o_unknown_idx,
+  NSF_s_get_idx,
+  NSF_s_set_idx
 } SystemMethodsIdx;
 
 #if !defined(NSF_C)
 EXTERN CONST char *Nsf_SystemMethodOpts[];
 #else 
 CONST char *Nsf_SystemMethodOpts[] = {
-  "-class.alloc", 
-  "-class.create", 
+  "-class.alloc",
+  "-class.create",
   "-class.dealloc",
-  "-class.objectparameter", 
-  "-class.recreate", 
-  "-object.cleanup", 
-  "-object.configure", 
-  "-object.defaultmethod", 
-  "-object.destroy", 
-  "-object.init", 
-  "-object.move", 
-  "-object.unknown",  
+  "-class.objectparameter",
+  "-class.recreate",
+  "-object.cleanup",
+  "-object.configure",
+  "-object.defaultmethod",
+  "-object.destroy",
+  "-object.init",
+  "-object.move",
+  "-object.unknown",
+  "-slot.get",
+  "-slot.set",
   NULL
 };
 #endif
@@ -608,8 +612,8 @@ typedef struct NsfObjectSystem {
   NsfClass *rootMetaClass;
   int overloadedMethods;
   int definedMethods;
-  Tcl_Obj *methods[NSF_o_unknown_idx+1];
-  Tcl_Obj *handles[NSF_o_unknown_idx+1];
+  Tcl_Obj *methods[NSF_s_set_idx+1];
+  Tcl_Obj *handles[NSF_s_set_idx+1];
   struct NsfObjectSystem *nextPtr;
 } NsfObjectSystem;
 
@@ -625,7 +629,7 @@ typedef struct NsfObjectSystem {
 typedef enum {
   NSF_EMPTY, NSF_ZERO, NSF_ONE,
   /* methods called internally */
-  NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN, NSF_GET_PARAMETER_SPEC,
+  NSF_CONFIGURE, NSF_INITIALIZE, NSF_GET_PARAMETER_SPEC,
   /* var names */
   NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, 
   NSF_ARRAY_INITCMD, NSF_ARRAY_CMD,
@@ -649,7 +653,7 @@ EXTERN char *NsfGlobalStrings[];
 char *NsfGlobalStrings[] = {
   "", "0", "1", 
   /* methods called internally */
-  "configure", "initialize", "assign", "getParameterSpec",
+  "configure", "initialize", "getParameterSpec",
   /* var names */
   "__autonames", "__default_metaclass", "__default_superclass", "__initcmd", "__cmd",
   "::nsf::alias", "::nsf::parameter::syntax", 

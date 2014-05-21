@@ -3711,7 +3711,7 @@ ObjectSystemFree(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
   assert(interp);
   assert(osPtr);
 
-  for (idx = 0; idx <= NSF_o_unknown_idx; idx++) {
+  for (idx = 0; idx <= NSF_s_set_idx; idx++) {
     if (osPtr->methods[idx]) { DECR_REF_COUNT(osPtr->methods[idx]); }
     if (osPtr->handles[idx]) { DECR_REF_COUNT(osPtr->handles[idx]); }
   }
@@ -3788,7 +3788,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
     int i, rootClassMethod, flag = 0;
 
-    for (i = 0; i <= NSF_o_unknown_idx; i++) {
+    for (i = 0; i <= NSF_s_set_idx; i++) {
       Tcl_Obj *methodObj = osPtr->methods[i];
       CONST char *methodString = methodObj ? ObjStr(methodObj) : NULL;
 
@@ -3987,7 +3987,8 @@ ObjectSystemsCleanup(Tcl_Interp *interp, int withKeepvars) {
  *
  *----------------------------------------------------------------------
  */
-static int CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **methodObjPtr) nonnull(1) nonnull(2) nonnull(4);
+static int CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **methodObjPtr)
+  nonnull(1) nonnull(2) nonnull(4);
 
 static int
 CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **methodObjPtr) {
@@ -14353,8 +14354,8 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
   assert(argString);
   assert(paramPtr);
 
-  /* fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
-     paramPtr->name, option, start, disallowedOptions);*/
+  /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%ld) disallowed %.6x\n",
+    paramPtr->name, option, start, disallowedOptions);*/
 
   if (strncmp(option, "required", MAX(3, optionLength)) == 0) {
     paramPtr->flags |= NSF_ARG_REQUIRED;
@@ -15148,7 +15149,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
   assert(lastObj);
   assert(nextObjPtr);
 
-  /* fprintf(stderr, "ParameterMethodDispatch %s flags %06x\n", paramPtr->name, paramPtr->flags);*/
+  /*fprintf(stderr, "ParameterMethodDispatch %s flags %06x\n", paramPtr->name, paramPtr->flags);*/
 
   /*
    * The current call-frame of configure uses an obj-frame, such
@@ -15302,9 +15303,7 @@ ParameterMethodDispatch(Tcl_Interp *interp, NsfObject *object,
 
   if (likely(result == TCL_OK)) {
     if (paramPtr->flags & NSF_ARG_CMD && RUNTIME_STATE(interp)->doKeepcmds) {
-      fprintf(stderr, "setting %s(%s) /%s/\n", ObjStr(NsfGlobalObjs[NSF_ARRAY_CMD]), ObjStr(paramPtr->nameObj), ObjStr(newValue));
-      Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_CMD],
-		     paramPtr->nameObj, newValue, 0);
+      Tcl_ObjSetVar2(interp, NsfGlobalObjs[NSF_ARRAY_CMD], paramPtr->nameObj, newValue, 0);
     }
   }
 
@@ -24569,7 +24568,7 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
           return NsfPrintError(interp, "invalid system method argument '%s'", ObjStr(ov[i]), ObjStr(arg));
 	}
         /*fprintf(stderr, "NsfCreateObjectSystemCmd [%d] = %p %s (max %d, given %d)\n",
-          idx, ov[i+1], ObjStr(ov[i+1]), XO_unknown_idx, oc);*/
+          idx, ov[i+1], ObjStr(ov[i+1]), NSF_s_set_idx, oc);*/
 
 	if (arg_oc == 1) {
 	  osPtr->methods[idx] = arg;
@@ -26574,15 +26573,18 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
 	if (likely(slotObject != NULL)) {
 	  Tcl_Obj *ov[2];
+          Tcl_Obj *methodObj = NsfMethodObj(object, NSF_s_set_idx);
 
 	  ov[0] = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
 	  ov[1] = newValue;
 
-          /*fprintf(stderr, "SLOTASSIGN %s %s %s %s %s\n", ObjectName(slotObject),
-                  ObjStr(NsfGlobalObjs[NSF_ASSIGN]), ObjStr(object->cmdName),
-                  ObjStr(paramPtr->nameObj), ObjStr(newValue));*/
+          /*fprintf(stderr, "SLOTSET %s %s %s %s %s idx %d %p\n", ObjectName(slotObject),
+                  ObjStr(NsfGlobalObjs[NSF_SET]), ObjStr(object->cmdName),
+                  ObjStr(paramPtr->nameObj), ObjStr(newValue),
+                  NSF_s_set_idx, methodObj);*/
 
-	  result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_ASSIGN],
+	  result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject,
+                                         methodObj ? methodObj : NsfGlobalObjs[NSF_SET],
 					 object->cmdName, 3, ov, NSF_CSC_IMMEDIATE);
 	}
 	if (result != TCL_OK) {
@@ -26695,6 +26697,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
    */
   if (paramPtr->slotObj) {
     NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
+    Tcl_Obj *methodObj = NsfMethodObj(object, NSF_s_get_idx);
     Tcl_Obj *ov[1];
 
     /*
@@ -26704,7 +26707,12 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
       Tcl_Interp_varFramePtr(interp) = uplevelVarFramePtr;
     }
     ov[0]  = paramPtr->method ? paramPtr->method : paramPtr->nameObj;
-    result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_GET],
+
+    /*fprintf(stderr, "SLOTGET %s idx %d %p\n", ObjectName(slotObject),
+      NSF_s_get_idx, methodObj);*/
+
+    result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject,
+                                   methodObj ? methodObj : NsfGlobalObjs[NSF_GET],
 				   object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
     goto cget_exit;
   }
