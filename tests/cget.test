@@ -80,7 +80,7 @@ nx::test case cget-via-slot {
 	incr ::count(cget)
 	nsf::var::set $object $property
       }
-      :public object method assign { object property value } {
+      :public object method set { object property value } {
 	incr ::count(assign)
 	nsf::var::set $object $property $value
       }
@@ -191,7 +191,7 @@ nx::test case cget-performance {
       :public object method get { object property } {
 	nsf::var::set $object $property
       }
-      :public object method assign { object property value } {
+      :public object method set { object property value } {
 	nsf::var::set $object $property $value
       }
     }

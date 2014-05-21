@@ -65,6 +65,8 @@ namespace eval ::xotcl {
     -object.init init
     -object.move move
     -object.unknown unknown
+    -slot.set assign
+    -slot.get get
   }
 
   #
@@ -443,10 +445,40 @@ namespace eval ::xotcl {
   # specified explicitly) and metaclass, in case they should differ
   # from the root classes of the object system.
 
-  ::xotcl::Class parameter {
+  proc createBootstrapVariableSlots {class definitions} {
+    foreach att $definitions {
+      if {[llength $att]>1} {lassign $att att default}
+      set slotObj [::nx::slotObj $class $att]
+      #puts stderr "::nx::BootStrapVariableSlot create $slotObj"
+      ::nx::BootStrapVariableSlot create $slotObj
+      if {[info exists default]} {
+        #puts stderr "::nsf::var::set $slotObj default $default"
+        ::nsf::var::set $slotObj default $default
+        unset default
+      }
+      #
+      # register the standard setter
+      #
+      ::nsf::method::setter $class $att
+
+      #
+      # make setter protected
+      #
+      #regexp {^([^:]+):} $att . att
+      #::nsf::method::property $class $att call-protected true
+      #
+      # set for every bootstrap property slot the position 0
+      #
+      ::nsf::var::set $slotObj position 0
+      ::nsf::var::set $slotObj configurable 1
+    }
+  }
+
+  createBootstrapVariableSlots ::xotcl::Class {
     {__default_superclass ::xotcl::Object}
     {__default_metaclass ::xotcl::Class}
   }
+
 
   ############################################
   # Register system slots
@@ -1020,7 +1052,11 @@ namespace eval ::xotcl {
     #:property defaultmethods {get assign}
 
     :property -accessor public multivalued {
-      :public object method assign {object property value} {
+      #
+      # The slot object is an nx object, therefore we need "set"
+      # rather than "assign"
+      #
+      :public object method set {object property value} {
 	set mClass [expr {$value ? "0..n" : "1..1"}]
 	$object configure -incremental $value -multiplicity $mClass
       }
@@ -1029,10 +1065,38 @@ namespace eval ::xotcl {
       }
     }
 
+    :protected method setterRedefinedOptions {} {
+      if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {
+	# In case the "assign" method was provided on the slot, ask nsf to call it directly
+	return [list slot=[::nsf::self] slotassign]
+      }
+      if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {
+	# In case the "get" method was provided on the slot, ask nsf to call it directly
+	return [list slot=[::nsf::self]]
+      }
+    }
+
+    :protected method defineIncrementalOperations {options_single options} {
+      #
+      # Just define these setter methods, when these are not defined
+      # jet. We need the methods as well for e.g. private properties,
+      # where the setting of the property is handled via slot.
+      #
+      if {[:info lookup method assign] eq "::nsf::classes::nx::VariableSlot::assign"} {
+	:public object method assign [list obj var [:namedParameterSpec {} value $options]] {::nsf::var::set $obj $var $value}
+      }
+      if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::VariableSlot::add"} {
+	lappend options_single slot=[::nsf::self]
+	:public object method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
+      } else {
+	# TODO should we deactivate add/delete?
+      }
+    }
+
     :protected method needsForwarder {} {
       #
       # We just forward, when
-      #   * "assign" and "add" are still untouched, or
+      #   * "assign", "get" and "add" are still untouched, or
       #   * or incremental is specified
       #
       if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {return 1}
@@ -1041,7 +1105,7 @@ namespace eval ::xotcl {
       if {[info exists :settername]} {return 1}
       if {!${:incremental}} {return 0}
       #if {![:isMultivalued]} {return 0}
-      #puts stderr "[self] ismultivalued"
+      #puts stderr "--------------- [self] ismultivalued"
       return 1
     }
 

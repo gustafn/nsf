@@ -372,7 +372,7 @@ nx::test case class-object-property {
   ? {C x get} 1
   ? {lsort [C info methods]} "a"
   ? {lsort [C info object methods]} "x"
-  ? {c1 a assign b} {expected integer but got "b" for parameter "value"}
+  ? {c1 a set b} {expected integer but got "b" for parameter "value"}
 
   set s(C) [C serialize]
   set s(c1) [c1 serialize]
@@ -394,7 +394,7 @@ nx::test case class-object-property {
   ? {C x get} 1
   ? {lsort [C info methods]} "a"
   ? {lsort [C info object methods]} "x"
-  ? {c1 a assign b} {expected integer but got "b" for parameter "value"}  
+  ? {c1 a set b} {expected integer but got "b" for parameter "value"}  
 }
 
 #

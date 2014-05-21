@@ -8,7 +8,7 @@ nx::test case deepSerialize-map-filter {
   Object create ::a {
     :object property -accessor public ref:object,type=[:info class]
     Object create [self]::b {
-      [:info parent] ref assign [Object create [self]::c]
+      [:info parent] ref set [Object create [self]::c]
     }
   }
 
@@ -62,16 +62,16 @@ nx::test case deepSerialize-ignoreVarsRE-filter {
     :create c1
   }
 
-  ? {C x assign 1} 1
+  ? {C x set 1} 1
   ? {C x get} 1
-  ? {C y assign 1} 1
+  ? {C y set 1} 1
   ? {C y get} 1
   
   ? {lsort [C info methods]} "a b"
   ? {lsort [C info object methods]} "x y"
-  ? {c1 a assign b} {expected integer but got "b" for parameter "value"}
-  ? {c1 a assign 1} 1
-  ? {c1 b assign 1} 1
+  ? {c1 a set b} {expected integer but got "b" for parameter "value"}
+  ? {c1 a set 1} 1
+  ? {c1 b set 1} 1
 
   set c1(IgnoreNone1) [list [::Serializer deepSerialize c1] "a b"]
   set c1(IgnoreNone2) [list [::Serializer deepSerialize -ignoreVarsRE "" c1] "a b"]

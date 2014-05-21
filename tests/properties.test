@@ -727,13 +727,13 @@ nx::test case property-incremental-multiplicity {
   ? {o1 info variable definition [o1 info object variables d]} \
       "::o1 object property -accessor public -incremental d:integer,1..n"
 
-  ? {o1 a assign {1 2 3}} {1 2 3}
-  ? {o1 b assign {1 2 3}} {1 2 3}
+  ? {o1 a set {1 2 3}} {1 2 3}
+  ? {o1 b set {1 2 3}} {1 2 3}
 
-  ? {o1 a assign ""} {}
-  ? {o1 b assign ""} {invalid value for parameter 'value': list is not allowed to be empty}
-  ? {o1 c assign ""} {}
-  ? {o1 d assign ""} {invalid value for parameter 'value': list is not allowed to be empty}
+  ? {o1 a set ""} {}
+  ? {o1 b set ""} {invalid value for parameter 'value': list is not allowed to be empty}
+  ? {o1 c set ""} {}
+  ? {o1 d set ""} {invalid value for parameter 'value': list is not allowed to be empty}
   
 }
 
@@ -888,7 +888,7 @@ nx::test case object-level-perf {
   ? {o1 configure -a a2} ""
 
   ? {o1 b get} b1
-  ? {o1 b assign b2} "b2"
+  ? {o1 b set b2} "b2"
 
   ? {o1 configure -class ::nx::Object} ""
   ? {o1 cget -class} ::nx::Object

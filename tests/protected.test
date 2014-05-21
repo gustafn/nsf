@@ -695,7 +695,7 @@ nx::test case protected-priv-class-property {
     :property -accessor private {d:integer 1}
     :public method foo {p} {return [: $p get]}
     :public method bar {p} {return [: -local $p get]}
-    :public method baz {p v} {return [: -local $p assign $v]}
+    :public method baz {p v} {return [: -local $p set $v]}
     :create c1
   }
 
@@ -802,7 +802,7 @@ nx::test case protected-priv-object-property {
     :object property -accessor private {d:integer 1}
     :public object method foo {p} {return [: $p get]}
     :public object method bar {p} {return [: -local $p get]}
-    :public object method baz {p v} {return [: -local $p assign $v]}
+    :public object method baz {p v} {return [: -local $p set $v]}
   }
 
   ? {o a get} a1
@@ -838,7 +838,7 @@ nx::test case protected-priv-class-object-property {
     :object property -accessor private {d:integer 1}
     :public object method foo {p} {return [: $p get]}
     :public object method bar {p} {return [: -local $p get]}
-    :public object method baz {p v} {return [: -local $p assign $v]}
+    :public object method baz {p v} {return [: -local $p set $v]}
   }
 
   ? {C a get} a1

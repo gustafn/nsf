@@ -1382,13 +1382,21 @@ namespace eval ::nx {
       lappend options optional
     }
     if {$forObjectParameter} {
+      #
+      # Slot objects are always in nx (for nx and for xotcl
+      # application objects. we have to watch for assign and set)
+      #
       if {[:info lookup method assign] ni {"" "::nsf::classes::nx::RelationSlot::assign"}} {
 	# In case the "assign" method was provided on the slot, ask nsf to call it directly
+	lappend options slot=[::nsf::self] slotassign
+      } elseif {[:info lookup method set] ni {"" "::nsf::classes::nx::RelationSlot::set"}} {
+	# In case the "set" method was provided on the slot, ask nsf to call it directly
 	lappend options slot=[::nsf::self] slotassign
       } elseif {[:info lookup method get] ni {"" "::nsf::classes::nx::RelationSlot::get"}} {
 	# In case the "get" method was provided on the slot, ask nsf to call it directly
 	lappend options slot=[::nsf::self]
       }
+
       if {[info exists :substdefault] && ${:substdefault}} {
 	lappend options substdefault
       }
@@ -1791,6 +1799,17 @@ namespace eval ::nx {
     if {[info exists restore]} { {*}$restore }
   }
 
+  ::nx::VariableSlot protected method setterRedefinedOptions {} {
+    if {[:info lookup method set] ne "::nsf::classes::nx::VariableSlot::set"} {
+      # In case the "set" method was provided on the slot, ask nsf to call it directly
+      return [list slot=[::nsf::self] slotassign]
+    }
+    if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {
+      # In case the "get" method was provided on the slot, ask nsf to call it directly
+      return [list slot=[::nsf::self]]
+    }
+  }
+
   ::nx::VariableSlot protected method getParameterOptions {
     {-withMultiplicity 0}
     {-forObjectParameter 0}
@@ -1815,13 +1834,13 @@ namespace eval ::nx {
 	  lappend options slot=[::nsf::self] 
 	}
       }
-    } elseif {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {
-      # In case the "assign" method was provided on the slot, ask nsf to call it directly
-      lappend options slot=[::nsf::self] slotassign
-    } elseif {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {
-      # In case the "get" method was provided on the slot, ask nsf to call it directly
-      lappend options slot=[::nsf::self]
     }
+    if {$forObjectParameter} {
+      foreach o [:setterRedefinedOptions] {
+        if {$o ni $options} {lappend options $o}
+      }
+    }
+
     if {[:info lookup method initialize] ne "" && $forObjectParameter} {
       if {"slot=[::nsf::self]" ni $options} {lappend options slot=[::nsf::self]}
       lappend options slotinitialize
@@ -1844,7 +1863,7 @@ namespace eval ::nx {
 	lappend options noconfig
       }
     }
-    #puts stderr "*** getParameterOptions [self] returns '$options'"
+    #puts stderr "*** getParameterOptions $withMultiplicity $forObjectParameter [self] returns '$options'"
     return $options
   }
 
@@ -1852,21 +1871,20 @@ namespace eval ::nx {
     return [string match {*..[n*]} ${:multiplicity}]
   }
 
-  ::nx::VariableSlot protected method needsForwarder {} {
-    #
-    # We just forward, when
-    #   * "assign" and "add" are still untouched, or
-    #   * or incremental is specified
-    #
-    if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {return 1}
-    if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
-    if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
-    if {[info exists :settername]} {return 1}
-    if {!${:incremental}} {return 0}
-    #if {![:isMultivalued]} {return 0}
-    #puts stderr "[self] ismultivalued"
-    return 1
-  }
+  # ::nx::VariableSlot protected method needsForwarder {} {
+  #   #
+  #   # We just forward, when
+  #   #   * "set", "get" and "add" are still untouched, or
+  #   #   * or incremental is specified
+  #   #
+  #   if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
+  #   if {[:info lookup method set] ne "::nsf::classes::nx::VariableSlot::set"} {return 1}
+  #   if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
+  #   if {[info exists :settername]} {return 1}
+  #   if {!${:incremental}} {return 0}
+  #   #puts stderr "[self] ismultivalued"
+  #   return 1
+  # }
 
   # TODO: check detailed xotcl2 implications
   ::nx::VariableSlot protected method needsForwarder {} {
@@ -1961,6 +1979,23 @@ namespace eval ::nx {
     ::nsf::method::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] $setterParam
   }
 
+  ::nx::VariableSlot protected method defineIncrementalOperations {options_single options} {
+    #
+    # Just define these setter methods, when these are not defined
+    # jet. We need the methods as well for e.g. private properties,
+    # where the setting of the property is handled via slot.
+    #
+    if {[:info lookup method set] eq "::nsf::classes::nx::VariableSlot::set"} {
+      :public object method set [list obj var [:namedParameterSpec {} value $options]] {::nsf::var::set $obj $var $value}
+    }
+    if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::VariableSlot::add"} {
+      lappend options_single slot=[::nsf::self]
+      :public object method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
+    } else {
+      # TODO should we deactivate add/delete?
+    }
+  }
+
   ::nx::VariableSlot protected method makeIncrementalOperations {} {
     set options_single [:getParameterOptions]
     #if {[llength $options_single] == 0} {}
@@ -1969,25 +2004,12 @@ namespace eval ::nx {
       # nx::VariableSlot are sufficient
       return
     }
-    #puts "makeIncrementalOperations -- $options_single // [:info vars]"
+    #puts "makeIncrementalOperations -- single $options_single type ${:type}"
     #if {[info exists :type]} {puts ".... type ${:type}"}
     set options [:getParameterOptions -withMultiplicity true]
     lappend options slot=[::nsf::self]
-    set body {::nsf::var::set $obj $var $value}
 
-    # We need the following rule e.g. for private properties, where
-    # the setting of the property is handled via slot.
-    if {[:info lookup method assign] eq "::nsf::classes::nx::VariableSlot::assign"} {
-      #puts stderr ":public object method assign [list obj var [:namedParameterSpec {} value $options]] $body"
-      :public object method assign [list obj var [:namedParameterSpec {} value $options]] $body
-    }
-    if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::VariableSlot::add"} {
-      lappend options_single slot=[::nsf::self]
-      #puts stderr ":public object method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}"
-      :public object method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
-    } else {
-      # TODO should we deactivate add/delete?
-    }
+    :defineIncrementalOperations $options_single $options
   }
 
   ######################################################################
@@ -2078,6 +2100,7 @@ namespace eval ::nx {
 
   ::nsf::method::alias ::nx::VariableSlot get ::nsf::var::set
   ::nsf::method::alias ::nx::VariableSlot assign ::nsf::var::set
+  ::nsf::method::alias ::nx::VariableSlot set ::nsf::var::set
 
   ::nx::VariableSlot public method add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {

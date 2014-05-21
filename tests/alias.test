@@ -9,7 +9,7 @@ nx::test configure -count 10
 nx::test case alias-preliminaries { 
   
   # The system methods of nx::VariableSlot are either alias or forwarders
-  ? {lsort [::nx::VariableSlot info methods -type alias]} {assign get}
+  ? {lsort [::nx::VariableSlot info methods -type alias]} {assign get set}
   ? {::nx::VariableSlot info method definition get} \
       "::nx::VariableSlot public alias get ::nsf::var::set"
 
