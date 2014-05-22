@@ -86,6 +86,7 @@ namespace eval ::nx {
 
 	foreach o [Object info instances -closure] {
 	  if {[info exists pre_exist($o)]} continue
+	  if {$o in {::xotcl::Attribute}} continue
 	  if {[::nsf::object::exists $o]} {$o destroy}
 	}
       }
