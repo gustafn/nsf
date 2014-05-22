@@ -12,7 +12,7 @@ Accesses and modifies the list of [term "mixin class"]es of
 [def "[arg obj] [const [vset SCOPE]] [method {mixin set}] [arg mixinSpecList]"] 
 
 [arg mixinSpecList] takes a list of [term "mixin class"] specs, with each spec being itself a
-one- or two-element list: [arg className] ?-guard [arg guardExpr]?. If
+one- or three-elements list: [arg className] ?-guard [arg guardExpr]?. If
 having one element, the element will be considered the [arg className]
 of the [term "mixin class"]. If having three elements, the third
 element [arg guardExpr] will be stored as a guard expression of the
@@ -27,7 +27,8 @@ existing [term "mixin class"] will be removed from [arg obj].
 Returns the current list of [term "mixin class"]es.
 [def "[arg obj] [const [vset SCOPE]] [method {mixin add}] [arg spec] [opt [arg index]]"]
 Inserts a single [term "mixin class"] into the current list of [term "mixin class"]es of [arg obj]. Using [arg index], a position in the existing list of [term "mixin class"]es for inserting the new [term "mixin class"] can be set. If
-omitted, [arg index] defaults to the list head (0). Therefore, by default, any added [term "mixin class"] takes precedence over previously added classes in the overall linearisation of [arg obj].
+omitted, [arg index] defaults to the list head (0). 
+[comment {Therefore, by default, any added [term "mixin class"] takes precedence over previously added classes in the overall linearisation of [arg obj].}]
 [def "[arg obj] [const [vset SCOPE]] [method {mixin delete}] [option -nocomplain] [arg specPattern]"]
 Removes a [term "mixin class"] from a current list of [term "mixin class"]es of [arg obj] whose spec matches [arg specPattern]. [arg specPattern] can contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "mixin delete"] will throw an error if there is no matching [term "mixin class"], unless [option -nocomplain] is set.
 [list_end]
