@@ -457,6 +457,20 @@ NsfErrorContext(Tcl_Interp *interp, CONST char *context) {
   Tcl_DStringFree(dsPtr);
 }
 
+#if 0
+static char *
+NsfErrorInfo(Tcl_Interp *interp) {
+  Tcl_Obj *value;
+  assert(interp);
+
+  value = Tcl_GetVar2Ex(interp, "::errorInfo", NULL, TCL_GLOBAL_ONLY);
+  if (value) {
+    return ObjStr(value);
+  }
+  return NULL;
+}
+#endif
+
 /*
  *----------------------------------------------------------------------
  *
@@ -10677,6 +10691,7 @@ ByteCompiled(Tcl_Interp *interp, unsigned int *flagsPtr,
                               (Namespace *) nsPtr, "body of proc",
                               procName);
     *flagsPtr &= ~NSF_CSC_CALL_IS_COMPILE;
+
     return result;
   }
 }
@@ -13061,8 +13076,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 			       resolvedCmd, cscPtr, methodName, &validCscPtr);
 
     if (unlikely(result == TCL_ERROR)) {
-      /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
-	cl, cl ? cl->object.id : NULL, cl ? cl->object.flags : 0);*/
+      /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, methodName %s flags %.6x\n",
+              cl, cl ? cl->object.id : NULL, methodName,
+              cl ? cl->object.flags : 0);*/
+
       result = NsfErrInProc(interp, cmdName,
 			    cl && cl->object.teardown ? cl->object.cmdName : NULL,
 			    methodName);
@@ -13266,7 +13283,6 @@ DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
        */
       result = TCL_OK;
     } else {
-      /*fprintf(stderr, "%s init dispatch\n", ObjectName(object));*/
       result = CallMethod(object, interp, methodObj,
 			  objc+2, objv, 
                           flags|NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
@@ -14812,15 +14828,15 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
 
   if ((paramPtr->slotObj || paramPtr->converter == ConvertViaCmd) && paramPtr->type) {
     CONST char *converterNameString;
-    Tcl_Obj *converterNameObj;
+    Tcl_Obj *converterNameObj, *slotObj;
     NsfObject *paramObject;
     Tcl_Command cmd;
     NsfClass *pcl = NULL;
 
-    result = GetObjectFromObj(interp, paramPtr->slotObj ? paramPtr->slotObj :
-			      NsfGlobalObjs[NSF_METHOD_PARAMETER_SLOT_OBJ],
-			      &paramObject);
+    slotObj = paramPtr->slotObj ? paramPtr->slotObj : NsfGlobalObjs[NSF_METHOD_PARAMETER_SLOT_OBJ];
+    result = GetObjectFromObj(interp, slotObj, &paramObject);
     if (unlikely(result != TCL_OK)) {
+      NsfPrintError(interp, "non-existing slot object \"%s\"", ObjStr(slotObj));
       goto param_error;
     }
     if (paramPtr->converterName == NULL) {
@@ -14900,6 +14916,17 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
   ParamFree(paramPtr);
   paramPtr->name = NULL;
 
+#if !defined(NDEBUG)
+  /*
+   * Whenever we return a TCL_ERROR, we expect that the interp result contains
+   * an error message.
+   */
+  {
+    char *errStr = ObjStr(Tcl_GetObjResult(interp));
+    assert(*errStr != '\0');
+  }
+#endif
+
   return TCL_ERROR;
 }
 
@@ -14955,6 +14982,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
     for (i = 0; i < argsc; i++, paramPtr++) {
       result = ParamParse(interp, procNameObj, argsv[i], allowedOptinons,
 			  paramPtr, &possibleUnknowns, &plainParams, &nrNonposArgs);
+
       if (result == TCL_OK && paramPtr->converter == ConvertToNothing && i < argsc-1) {
 	result = NsfPrintError(interp,
 			       "parameter option \"args\" invalid for parameter \"%s\"; only allowed for last parameter",
@@ -15353,11 +15381,12 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   /* Check, if we are allowed to redefine the method */
   result = CanRedefineCmd(interp, nsPtr, defObject, methodName);
   if (likely(result == TCL_OK)) {
-    /* Yes, so obtain an method parameter definitions */
+    /* Yes, we can! ...so obtain an method parameter definitions */
     result = ParamDefsParse(interp, nameObj, args,
 			    NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
 			    &parsedParam);
   }
+
   if (unlikely(result != TCL_OK)) {
     return result;
   }
@@ -26584,7 +26613,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
                   NSF_s_set_idx, methodObj);*/
 
 	  result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject,
-                                         methodObj ? methodObj : NsfGlobalObjs[NSF_SET],
+                                         methodObj ? methodObj : NsfGlobalObjs[NSF_SLOT_SET],
 					 object->cmdName, 3, ov, NSF_CSC_IMMEDIATE);
 	}
 	if (result != TCL_OK) {
@@ -26712,7 +26741,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
       NSF_s_get_idx, methodObj);*/
 
     result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject,
-                                   methodObj ? methodObj : NsfGlobalObjs[NSF_GET],
+                                   methodObj ? methodObj : NsfGlobalObjs[NSF_SLOT_GET],
 				   object->cmdName, 2, ov, NSF_CSC_IMMEDIATE);
     goto cget_exit;
   }
