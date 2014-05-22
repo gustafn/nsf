@@ -119,8 +119,8 @@ nx::test case info-method-base {
   ? {C info object method definition add1} "::C public object forward add1 expr 1 +"
   ? {C info object method definition fpo} "::C public object forward fpo ::o"
   
-  ? {C info method definition s} "::C public forward s ::C::slot::s %1 %self s"
-  ? {C info object method definition spo} "::C public object forward spo ::C::per-object-slot::spo %1 %self spo"
+  ? {C info method definition s} "::C public forward s -prefix value= ::C::slot::s %1 %self s"
+  ? {C info object method definition spo} "::C public object forward spo -prefix value= ::C::per-object-slot::spo %1 %self spo"
   
   ? {C info method definition a} "::C public alias a ::set"
   ? {C info object method definition apo} "::C public object alias apo ::puts"

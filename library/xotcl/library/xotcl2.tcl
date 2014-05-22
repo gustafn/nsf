@@ -65,8 +65,8 @@ namespace eval ::xotcl {
     -object.init init
     -object.move move
     -object.unknown unknown
-    -slot.set assign
-    -slot.get get
+    -slot.set value=assign
+    -slot.get value=get
   }
 
   #
@@ -428,7 +428,7 @@ namespace eval ::xotcl {
   ::xotcl::Class instproc parameter {arglist} {
     set slotContainer [::nx::slotObj [::nsf::self]]
     foreach arg $arglist {
-      puts stderr "PARAMETER: [self] ::nsf::classes::nx::Class::property -accessor public $arg"
+      #puts stderr "PARAMETER: [self] ::nsf::classes::nx::Class::property -accessor public $arg"
       #[self] ::nsf::classes::nx::Class::property -accessor public $arg
       if {[llength $arg] > 1} {
 	::nx::MetaSlot createFromParameterSpec [::nsf::self] [lindex $arg 0] [lindex $arg 1]
@@ -491,10 +491,10 @@ namespace eval ::xotcl {
   set oSlotContainer [::nx::slotObj ::xotcl::Object]
   ::nx::RelationSlot create ${cSlotContainer}::superclass \
       -defaultmethods {get assign}
-  #::nsf::method::alias      ${cSlotContainer}::superclass assign ::nsf::relation
+  #::nsf::method::alias      ${cSlotContainer}::superclass value=assign ::nsf::relation
   ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1 \
       -defaultmethods {get assign}
-  #::nsf::method::alias      ${oSlotContainer}::class assign ::nsf::relation
+  #::nsf::method::alias      ${oSlotContainer}::class value=assign ::nsf::relation
   ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
       -defaultmethods {get assign} \
       -elementtype mixinreg -multiplicity 0..n
@@ -1049,6 +1049,8 @@ namespace eval ::xotcl {
   #
   ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::VariableSlot {
 
+    :public alias value=assign ::nsf::var::set
+
     #:property defaultmethods {get assign}
 
     :property -accessor public multivalued {
@@ -1056,21 +1058,21 @@ namespace eval ::xotcl {
       # The slot object is an nx object, therefore we need "set"
       # rather than "assign"
       #
-      :public object method set {object property value} {
+      :public object method value=set {object property value} {
 	set mClass [expr {$value ? "0..n" : "1..1"}]
 	$object configure -incremental $value -multiplicity $mClass
       }
-      :public object method get {object property} {
+      :public object method value=get {object property} {
 	return [$object eval [list :isMultivalued]]
       }
     }
 
     :protected method setterRedefinedOptions {} {
-      if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {
+      if {[:info lookup method value=assign] ne "::nsf::classes::xotcl::Attribute::value=assign"} {
 	# In case the "assign" method was provided on the slot, ask nsf to call it directly
 	return [list slot=[::nsf::self] slotassign]
       }
-      if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {
+      if {[:info lookup method value=get] ne "::nsf::classes::nx::VariableSlot::value=get"} {
 	# In case the "get" method was provided on the slot, ask nsf to call it directly
 	return [list slot=[::nsf::self]]
       }
@@ -1082,12 +1084,14 @@ namespace eval ::xotcl {
       # jet. We need the methods as well for e.g. private properties,
       # where the setting of the property is handled via slot.
       #
-      if {[:info lookup method assign] eq "::nsf::classes::nx::VariableSlot::assign"} {
-	:public object method assign [list obj var [:namedParameterSpec {} value $options]] {::nsf::var::set $obj $var $value}
+      if {[:info lookup method value=assign] eq "::nsf::classes::xotcl::Attribute::value=assign"} {
+	set args [list obj var [:namedParameterSpec {} value $options]]
+	:public object method value=assign $args {::nsf::var::set $obj $var $value}
       }
-      if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::VariableSlot::add"} {
+      if {[:isMultivalued] && [:info lookup method value=add] eq "::nsf::classes::nx::VariableSlot::value=add"} {
 	lappend options_single slot=[::nsf::self]
-	:public object method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
+	set args [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] 
+	:public object method value=add $args {::nsf::next}
       } else {
 	# TODO should we deactivate add/delete?
       }
@@ -1099,9 +1103,9 @@ namespace eval ::xotcl {
       #   * "assign", "get" and "add" are still untouched, or
       #   * or incremental is specified
       #
-      if {[:info lookup method assign] ne "::nsf::classes::nx::VariableSlot::assign"} {return 1}
-      if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
-      if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
+      if {[:info lookup method value=assign] ne "::nsf::classes::xotcl::Attribute::value=assign"} {return 1}
+      if {[:info lookup method value=add]    ne "::nsf::classes::nx::VariableSlot::value=add"} {return 1}
+      if {[:info lookup method value=get]    ne "::nsf::classes::nx::VariableSlot::value=get"} {return 1}
       if {[info exists :settername]} {return 1}
       if {!${:incremental}} {return 0}
       #if {![:isMultivalued]} {return 0}
@@ -1113,6 +1117,7 @@ namespace eval ::xotcl {
       ::nsf::method::forward $domain \
 	  -per-object=${:per-object} \
 	  $name \
+	  -prefix value= \
 	  ${:manager} \
 	  "%1 {get assign}" %self \
 	  ${:forwardername}

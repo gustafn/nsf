@@ -190,7 +190,7 @@ nx::test case class-level {
   # The accessor should be a setter due to incremental
   #
 
-  ? {C info method definition b} {::C public forward b ::C::slot::b %1 %self b}
+  ? {C info method definition b} {::C public forward b -prefix value= ::C::slot::b %1 %self b}
 
   #
   # check error message on a typo. The following command does a
@@ -361,7 +361,7 @@ nx::test case class-level-incremental {
   # The accessor should be a forwarder due to incremental
   #
 
-  ? {CC info method definition b} {::CC public forward b ::CC::slot::b %1 %self b}
+  ? {CC info method definition b} {::CC public forward b -prefix value= ::CC::slot::b %1 %self b}
 
   #
   # check error message
@@ -664,7 +664,7 @@ nx::test case object-level-incremental {
   # The accessor should be a forwarder due to incremental
   #
 
-  ? {o1 info object method definition b} {::o1 public object forward b ::o1::per-object-slot::b %1 %self b}
+  ? {o1 info object method definition b} {::o1 public object forward b -prefix value= ::o1::per-object-slot::b %1 %self b}
 
   #
   # check error message

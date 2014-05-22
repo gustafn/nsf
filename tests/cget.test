@@ -58,7 +58,7 @@ nx::test case cget-simple {
 
 #
 # The second test set checks redirection of configure / cget to slot
-# methods "assign" and "get".
+# methods "set" and "get".
 #
 
 nx::test configure -count 1
@@ -68,19 +68,19 @@ nx::test case cget-via-slot {
     
     # Define a property with a "get" method
     :property bar1 {
-      :public object method get { object property} {
+      :public object method value=get { object property} {
 	incr ::count(cget)
 	nsf::var::set $object $property
       }
     }
     
-    # Define a property with a "get" and "assign" method
+    # Define a property with a "get" and "set" method
     :property bar2 {
-      :public object method get { object property} {
+      :public object method value=get { object property} {
 	incr ::count(cget)
 	nsf::var::set $object $property
       }
-      :public object method set { object property value } {
+      :public object method value=set { object property value } {
 	incr ::count(assign)
 	nsf::var::set $object $property $value
       }
@@ -186,12 +186,12 @@ nx::test case cget-performance {
     :property {friends:0..n ""}
     :property sex
     
-    # Define a property with a "get" and "assign" method
+    # Define a property with a "get" and "set" method
     :property bar {
-      :public object method get { object property } {
+      :public object method value=get { object property } {
 	nsf::var::set $object $property
       }
-      :public object method set { object property value } {
+      :public object method value=set { object property value } {
 	nsf::var::set $object $property $value
       }
     }
@@ -216,7 +216,7 @@ nx::test case cget-performance {
   # - built-in accessor
   # - configure
   # - configure via slot method
-  ? {p1 age assign 27} 27
+  ? {p1 age set 27} 27
   ? {p1 configure -age 27} ""
   ? {p1 configure -bar 102} ""
 

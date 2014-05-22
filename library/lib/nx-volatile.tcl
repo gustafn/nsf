@@ -8,10 +8,10 @@ namespace eval ::nx {
 
   ::nx::ObjectParameterSlot create ::nx::Object::slot::volatile -noarg true
 
-  ::nsf::method::create ::nx::Object::slot::volatile assign {object var value} {
+  ::nsf::method::create ::nx::Object::slot::volatile value=set {object var value} {
     $object ::nsf::methods::object::volatile
   }
-  ::nsf::method::create ::nx::Object::slot::volatile get {object var} {
+  ::nsf::method::create ::nx::Object::slot::volatile value=get {object var} {
     ::nsf::object::property $object volatile
   }
 

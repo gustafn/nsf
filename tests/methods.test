@@ -66,10 +66,10 @@ C create c1 {
 }
 C property -accessor public s0
 C property -accessor protected s1
-? {c1 s0 assign 0} 0
-? {::nsf::dispatch c1 s1 assign 1} 1
+? {c1 s0 set 0} 0
+? {::nsf::dispatch c1 s1 set 1} 1
 C object property -accessor public {s3 ""}
-? {C s3 assign 3} 3
+? {C s3 set 3} 3
 
 # create a fresh object (different from c1)
 C create c2
@@ -93,9 +93,9 @@ nx::test case class-level-forwards {
 nx::test case class-level-setter {
   ? {c2 plain_setter 1} {::c2: unable to dispatch method 'plain_setter'}
   #? {c2 plain_setter 1} 1
-  ? {c2 public_setter assign 2} "2"
-  ? {catch {c2 protected_setter assign 3}} 1
-  ? {::nsf::dispatch c2 protected_setter assign 4} "4"
+  ? {c2 public_setter set 2} "2"
+  ? {catch {c2 protected_setter set 3}} 1
+  ? {::nsf::dispatch c2 protected_setter set 4} "4"
 }
 
 # class level alias ....
@@ -128,9 +128,9 @@ nx::test case class-object-level-forwards {
 nx::test case class-object-level-setter {
   ? {C plain_object_setter 1} {method 'plain_object_setter' unknown for ::C; consider '::C create plain_object_setter 1' instead of '::C plain_object_setter 1'}
   #? {C plain_object_setter 1} "1"
-  ? {C public_object_setter assign 2} "2"
-  ? {catch {C protected_object_setter assign 3}} 1
-  ? {::nsf::dispatch C protected_object_setter assign 4} "4"
+  ? {C public_object_setter set 2} "2"
+  ? {catch {C protected_object_setter set 3}} 1
+  ? {::nsf::dispatch C protected_object_setter set 4} "4"
 }
 
 # class level alias ....
@@ -163,9 +163,9 @@ nx::test case object-level-forwards {
 nx::test case object-level-setter {
   ? {c1 plain_object_setter 1} {::c1: unable to dispatch method 'plain_object_setter'}
   #? {c1 plain_object_setter 1} "1"
-  ? {c1 public_object_setter assign 2} "2"
-  ? {catch {c1 protected_object_setter assign 3}} 1
-  ? {::nsf::dispatch c1 protected_object_setter assign 4} "4"
+  ? {c1 public_object_setter set 2} "2"
+  ? {catch {c1 protected_object_setter set 3}} 1
+  ? {::nsf::dispatch c1 protected_object_setter set 4} "4"
 }
 
 # object level alias ....
@@ -308,7 +308,7 @@ nx::test case property-method {
   ? {c1 cget -c} c1
   ? {c1 d} "::c1: unable to dispatch method 'd'"
 
-  ? {C A assign 2} 2
+  ? {C A set 2} 2
   ? {C A get} 2
   ? {C B} {method 'B' unknown for ::C; consider '::C create B ' instead of '::C B '}
   #? {C B} B2
@@ -324,7 +324,7 @@ nx::test case property-method {
     :object property -accessor public {c c1}
     :object property -accessor protected {d d1}
   }
-  ? {o a assign 2} 2
+  ? {o a set 2} 2
   ? {o b} {::o: unable to dispatch method 'b'}
   #? {o b} b1
   ? {o c get} c1
@@ -368,7 +368,7 @@ nx::test case class-object-property {
     :property -accessor public a:int
     :create c1
   }
-  ? {C x assign 1} 1
+  ? {C x set 1} 1
   ? {C x get} 1
   ? {lsort [C info methods]} "a"
   ? {lsort [C info object methods]} "x"

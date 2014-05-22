@@ -1323,6 +1323,7 @@ namespace eval ::nx {
     ::nsf::method::forward $domain \
         -per-object=${:per-object} \
         $name \
+        -prefix "value=" \
         -onerror [list ${:manager} onError] \
         ${:manager} \
         [expr {$dm ne "" ? [list %1 $dm] : "%1"}] %self \
@@ -1386,13 +1387,13 @@ namespace eval ::nx {
       # Slot objects are always in nx (for nx and for xotcl
       # application objects. we have to watch for assign and set)
       #
-      if {[:info lookup method assign] ni {"" "::nsf::classes::nx::RelationSlot::assign"}} {
+      if {[:info lookup method value=assign] ni {"" "::nsf::classes::nx::RelationSlot::value=assign"}} {
 	# In case the "assign" method was provided on the slot, ask nsf to call it directly
 	lappend options slot=[::nsf::self] slotassign
-      } elseif {[:info lookup method set] ni {"" "::nsf::classes::nx::RelationSlot::set"}} {
+      } elseif {[:info lookup method value=set] ni {"" "::nsf::classes::nx::RelationSlot::value=set"}} {
 	# In case the "set" method was provided on the slot, ask nsf to call it directly
 	lappend options slot=[::nsf::self] slotassign
-      } elseif {[:info lookup method get] ni {"" "::nsf::classes::nx::RelationSlot::get"}} {
+      } elseif {[:info lookup method value=get] ni {"" "::nsf::classes::nx::RelationSlot::value=get"}} {
 	# In case the "get" method was provided on the slot, ask nsf to call it directly
 	lappend options slot=[::nsf::self]
       }
@@ -1526,9 +1527,9 @@ namespace eval ::nx {
   #
   # create methods for slot operations assign/get/add/delete
   #
-  ::nsf::method::alias RelationSlot assign ::nsf::relation
-  ::nsf::method::alias RelationSlot set ::nsf::relation
-  ::nsf::method::alias RelationSlot get ::nsf::relation
+  ::nsf::method::alias RelationSlot value=assign ::nsf::relation
+  ::nsf::method::alias RelationSlot value=set ::nsf::relation
+  ::nsf::method::alias RelationSlot value=get ::nsf::relation
 
   RelationSlot protected method delete_value {obj prop old value} {
     #
@@ -1587,11 +1588,11 @@ namespace eval ::nx {
     }
   }
 
-  RelationSlot public method get {obj prop} {
-    ::nsf::relation $obj $prop
-  }
+  #RelationSlot public method value=get {obj prop} {
+  #  ::nsf::relation $obj $prop
+  #}
 
-  RelationSlot public method add {obj prop value {pos 0}} {
+  RelationSlot public method value=add {obj prop value {pos 0}} {
     set oldSetting [::nsf::relation $obj $prop]
     #puts stderr [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
     #
@@ -1600,7 +1601,7 @@ namespace eval ::nx {
     uplevel [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
   }
 
-  RelationSlot public method delete {-nocomplain:switch obj prop value} {
+  RelationSlot public method value=delete {-nocomplain:switch obj prop value} {
     uplevel [list ::nsf::relation $obj $prop \
 		 [:delete_value $obj $prop [::nsf::relation $obj $prop] $value]]
   }
@@ -1719,28 +1720,28 @@ namespace eval ::nx {
   #
   # Define method "guard" for mixin- and filter-slots of Object and Class
   #
-  ::nx::Object::slot::object-filter object method guard {obj prop filter guard:optional} {
+  ::nx::Object::slot::object-filter object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::filterguard $filter $guard
     } else {
       $obj info object filter guard $filter
     }
   }
-  ::nx::Class::slot::filter object method guard {obj prop filter guard:optional} {
+  ::nx::Class::slot::filter object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::filterguard $filter $guard
     } else {
       $obj info filter guard $filter
     }
   }
-  ::nx::Object::slot::object-mixin object method guard {obj prop mixin guard:optional} {
+  ::nx::Object::slot::object-mixin object method value=guard {obj prop mixin guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
     } else {
       $obj info object mixin guard $mixin
     }
   }
-  ::nx::Class::slot::mixin object method guard {obj prop filter guard:optional} {
+  ::nx::Class::slot::mixin object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::mixinguard $filter $guard
     } else {
@@ -1800,11 +1801,11 @@ namespace eval ::nx {
   }
 
   ::nx::VariableSlot protected method setterRedefinedOptions {} {
-    if {[:info lookup method set] ne "::nsf::classes::nx::VariableSlot::set"} {
+    if {[:info lookup method value=set] ne "::nsf::classes::nx::VariableSlot::value=set"} {
       # In case the "set" method was provided on the slot, ask nsf to call it directly
       return [list slot=[::nsf::self] slotassign]
     }
-    if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {
+    if {[:info lookup method value=get] ne "::nsf::classes::nx::VariableSlot::value=get"} {
       # In case the "get" method was provided on the slot, ask nsf to call it directly
       return [list slot=[::nsf::self]]
     }
@@ -1816,6 +1817,7 @@ namespace eval ::nx {
   } {
     set options ""
     set slotObject ""
+
     if {[info exists :type]} {
       set type ${:type}
       if {$type eq "switch" && !$forObjectParameter} {set type boolean}
@@ -1985,12 +1987,14 @@ namespace eval ::nx {
     # jet. We need the methods as well for e.g. private properties,
     # where the setting of the property is handled via slot.
     #
-    if {[:info lookup method set] eq "::nsf::classes::nx::VariableSlot::set"} {
-      :public object method set [list obj var [:namedParameterSpec {} value $options]] {::nsf::var::set $obj $var $value}
+    if {[:info lookup method value=set] eq "::nsf::classes::nx::VariableSlot::value=set"} {
+      set args [list obj var [:namedParameterSpec {} value $options]]
+      :public object method value=set $args {::nsf::var::set $obj $var $value}
     }
-    if {[:isMultivalued] && [:info lookup method add] eq "::nsf::classes::nx::VariableSlot::add"} {
+    if {[:isMultivalued] && [:info lookup method value=add] eq "::nsf::classes::nx::VariableSlot::value=add"} {
       lappend options_single slot=[::nsf::self]
-      :public object method add [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}] {::nsf::next}
+      set args [list obj prop [:namedParameterSpec {} value $options_single] {pos 0}]
+      :public object method value=add $args {::nsf::next}
     } else {
       # TODO should we deactivate add/delete?
     }
@@ -2098,11 +2102,10 @@ namespace eval ::nx {
   #  - delete
   ######################################################################
 
-  ::nsf::method::alias ::nx::VariableSlot get ::nsf::var::set
-  ::nsf::method::alias ::nx::VariableSlot assign ::nsf::var::set
-  ::nsf::method::alias ::nx::VariableSlot set ::nsf::var::set
+  ::nsf::method::alias ::nx::VariableSlot value=get    ::nsf::var::set
+  ::nsf::method::alias ::nx::VariableSlot value=set    ::nsf::var::set
 
-  ::nx::VariableSlot public method add {obj prop value {pos 0}} {
+  ::nx::VariableSlot public method value=add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {
       #puts stderr "... vars [[self] info vars] // [[self] eval {set :multiplicity}]"
       return -code error "property $prop of [set :domain] ist not multivalued"
@@ -2114,7 +2117,7 @@ namespace eval ::nx {
     }
   }
 
-  ::nx::VariableSlot public method delete {-nocomplain:switch obj prop value} {
+  ::nx::VariableSlot public method value=delete {-nocomplain:switch obj prop value} {
     set old [::nsf::var::set $obj $prop]
     set p [lsearch -glob $old $value]
     if {$p>-1} {::nsf::var::set $obj $prop [lreplace $old $p $p]} else {
@@ -2399,6 +2402,7 @@ namespace eval ::nx {
       # of "new"
       #
       set errorOccured [catch [list ::apply [list {} $cmds $object]] errorMsg]
+
       #
       # Remove the mapped "new" method, if it was added above
       #
@@ -2406,7 +2410,7 @@ namespace eval ::nx {
       if {[::nsf::is class ::xotcl::Class]} {
 	if {$xotclMapNew} {::nsf::method::alias ::xotcl::Class new $plainNew}
       }
-      if {$errorOccured} {error $errorMsg}
+      if {$errorOccured} {return -code error $errorMsg}
 
     } else {
       ::apply [list {} $cmds $object]

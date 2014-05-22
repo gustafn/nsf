@@ -1070,7 +1070,7 @@ nx::test case op-object-types {
 
   }
 
-  ? {ParamTest info method definition os} "::ParamTest public forward os ::ParamTest::slot::os %1 %self os"
+  ? {ParamTest info method definition os} "::ParamTest public forward os -prefix value= ::ParamTest::slot::os %1 %self os"
 
   ? {p os set o} \
       "o" \
@@ -1280,7 +1280,7 @@ nx::test case slot-nosetter {
   
   ? {C create c1 -a 1 -b 2} ::c1
   ? {c1 info vars} "a b c"
-  ? {c1 a assign 100} 100
+  ? {c1 a set 100} 100
   ? {c1 b 101} {::c1: unable to dispatch method 'b'}
   ? {c1 c 102} {::c1: unable to dispatch method 'c'}
 }
@@ -2677,7 +2677,7 @@ nx::test case forward-to-set {
   set ::slotcalls 0
   nx::Class create Foo {
     :property -accessor public bar {
-      :public object method set { object property value } {
+      :public object method value=set { object property value } {
 	incr ::slotcalls 1
 	nsf::var::set $object $property $value
       }
@@ -2701,7 +2701,7 @@ nx::test case forward-to-set {
   set ::slotcalls 0
   nx::Class create Foo {
     :property -accessor public {baz 1} {
-      :public object method set { object property value } {
+      :public object method value=set { object property value } {
 	incr ::slotcalls 1
 	nsf::var::set $object $property $value
       }
@@ -2733,7 +2733,7 @@ nx::test case forward-to-set2 {
 
   ? {nx::Class create Foo {
     :property -accessor none bar {
-      :public object method set { object property value } {
+      :public object method value=set { object property value } {
 	incr ::slotcalls 1
 	nsf::var::set $object $property $value
       }
@@ -2747,7 +2747,7 @@ nx::test case forward-to-set2 {
   # test cases for default
   nx::Class create Foo {
     :property -accessor none {baz 1} {
-      :public object method set { object property value } {
+      :public object method value=set { object property value } {
 	incr ::slotcalls 1
 	nsf::var::set $object $property $value
       }
@@ -2795,7 +2795,7 @@ nx::test case slot-container-name-interaction {
 
   nx::Class create Test2 {
     :property -accessor public list {
-      :public object method set { obj var val } {
+      :public object method value=set { obj var val } {
 	nsf::var::set $obj $var [list $obj $var $val]
       }
       :object method unknown { val obj var args } {
@@ -2824,7 +2824,7 @@ nx::test case object-level-defaults {
   ? {o eval {info exists :a}} 0
   ? {catch {
     o object variable -accessor public -initblock {
-      :public object method set args {
+      :public object method value=set args {
 	incr :assignCalled
 	next
       }

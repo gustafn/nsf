@@ -381,7 +381,7 @@ namespace eval ::nx::serializer {
       # don't filter anything during serialization
       set filterstate [::nsf::configure filter off]
       set s [:new -childof [::nsf::current object]]
-      if {[info exists ignoreVarsRE]} {$s ignoreVarsRE assign $ignoreVarsRE}
+      if {[info exists ignoreVarsRE]} {$s ignoreVarsRE set $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
 
       set r [subst {
@@ -467,7 +467,7 @@ namespace eval ::nx::serializer {
     :public object method deepSerialize {-ignoreVarsRE -ignore -map -objmap args} {
       :resetPattern
       set s [:new -childof [::nsf::current object]]
-      if {[info exists ignoreVarsRE]} {$s ignoreVarsRE assign $ignoreVarsRE}
+      if {[info exists ignoreVarsRE]} {$s ignoreVarsRE set $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
       if {[info exists objmap]} {$s objmap $objmap}
       foreach o $args {
