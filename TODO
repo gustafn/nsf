@@ -5026,6 +5026,8 @@ nx.tcl:
 ========================================================================
 TODO:
 
+- why is there no pos/index arg for mixin|filter delete?
+
 - nsf.c: finish forwarder error messages
 - finish nx-property reform
 
