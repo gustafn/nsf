@@ -1532,6 +1532,10 @@ namespace eval ::nx {
   ::nsf::method::alias RelationSlot value=set ::nsf::relation
   ::nsf::method::alias RelationSlot value=get ::nsf::relation
 
+  RelationSlot public method value=unset {obj prop} {
+    ::nsf::relation $obj $prop {}
+  }
+
   RelationSlot protected method delete_value {obj prop old value} {
     #
     # Helper method for the delete operation, deleting a value from a
@@ -2105,6 +2109,11 @@ namespace eval ::nx {
 
   ::nsf::method::alias ::nx::VariableSlot value=get    ::nsf::var::set
   ::nsf::method::alias ::nx::VariableSlot value=set    ::nsf::var::set
+  
+  ::nx::VariableSlot public method value=unset {obj prop} {
+    puts stderr "::nsf::var::unset $obj $prop"
+    ::nsf::var::unset $obj $prop
+  }
 
   ::nx::VariableSlot public method value=add {obj prop value {pos 0}} {
     if {![:isMultivalued]} {

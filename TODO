@@ -5051,6 +5051,7 @@ nsf.c:
       overwrote the error message in the interp result
 
 nx.tcl:
+    - replace empty-named arrays by dicts
     - remove setter methods from BootstrapVariableSlots
     - reducing interface of BootstrapVariableSlots by setting methods protected
     - use value=* as names for interally called and forwarder-called
@@ -5090,6 +5091,9 @@ mongodb
 nx::test:
     - don't delete system slot ::xotcl::Attribute on cleanup
 
+nx.tcl:
+- add slot method value=unset to nx::RelationSlot and nx::VariableSlot
+- extended regression test
 
 ========================================================================
 TODO:
