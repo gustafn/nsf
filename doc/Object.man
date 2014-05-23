@@ -333,6 +333,13 @@ completed, can be defined to store intermediate results.
 
 [list_end]
 
+[cmd_def filter]
+
+[list_begin definitions]
+
+[include filter.man.inc]
+
+[list_end]
 
 [cmd_def forward]
 
@@ -562,15 +569,6 @@ the source object [arg obj] is destroyed by invoking [method destroy].
 performed for a Tcl command representing an object.
 
 [list_end]
-
-[cmd_def filter]
-
-[list_begin definitions]
-
-[call [arg obj] [method {object filter}] ...]
-[para] Description of [method {object filter}] ...
-[list_end]
-
 
 [cmd_def mixin]
 [list_begin definitions]
