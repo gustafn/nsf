@@ -5096,6 +5096,7 @@ nx.tcl:
 - extended regression test
 - reworked error message generation of slot-forwarder 
   (list all available slot methods with prefix value=)
+- cleaned up relation slot mixin variants
 
 xotcl2:
 - use xotcl::RelationSlot instead of nx::Relationslot in xotcl2
@@ -5106,9 +5107,6 @@ Makefile:
 
 ========================================================================
 TODO:
-- TODO: demangle "slotassign" in "ObjectParameterSlot protected method getParameterOptions" 
-  and check interactions
-- TODO: clean up relation slot mixin variants
 - TODO: define setters for traits
 - TODO: paths in sublibs in regression test incorrect
 - TODO: rename "slotassign" to "slotset"?
