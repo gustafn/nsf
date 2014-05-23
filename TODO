@@ -5095,23 +5095,19 @@ nx.tcl:
 - add slot method value=unset to nx::RelationSlot and nx::VariableSlot
 - extended regression test
 
+Makefile:
+- fix load paths for sublibs (e.g. mongodb) in regression test
+
 ========================================================================
 TODO:
 - TODO: rework error message generation of slot-forwarder
 - TODO: demangle "slotassign" in "ObjectParameterSlot protected method getParameterOptions" 
   and check interactions
-- TODO: to the same as -mixin and -object-mixin to -filter and -object-filter
 - TODO: clean up relation slot mixin variants
-- TODO: do we really like the fact that we have to write now 
-   "B mixin set M2" instead of "B mixin M2"?
-- TODO: should we disallow
-   "B mixin" and enforce instead of "B mixin get" ?
-- TODO: we could as well allow "B mixin clear" instead of "B mixin set {}"
-- TODO: allow "set" for variable slots as well. Do we need "assign"?
 - TODO: define setters for traits
 - TODO: paths in sublibs in regression test incorrect
 - TODO: rename "slotassign" to "slotset"?
-
+- TODO: update tutorial and migration guide
 
 - why is there no pos/index arg for mixin|filter delete?
 

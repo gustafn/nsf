@@ -1,0 +1,78 @@
+package req nx::test
+nx::test configure -count 1
+nx::test case setter-variants {
+    nx::Class create C {
+	:property {p1a 1}
+	:property {p1b 1} {
+	    :public object method value=set {obj prop value} {
+		nx::var::set $obj $prop [incr value]
+	    }
+	}
+	:property -accessor public {p2a 2}
+	:property -accessor public {p2b 2} {
+	    :public object method value=set {obj prop value} {
+		nx::var::set $obj $prop [incr value]
+	    }
+	}
+
+	:property -incremental {p3a 3}
+	:property -incremental {p3b 3} {
+	    :public object method value=set {obj prop value} {
+		nx::var::set $obj $prop [incr value]
+	    }
+	}
+
+	:create c1
+    }
+
+    puts [C info method definition p1a]
+    ? {c1 cget -p1a} 1
+    ? {c1 configure -p1a 1} ""
+
+    puts [C info method definition p1b]
+    ? {c1 cget -p1b} 2
+    ? {c1 configure -p1b 3} ""
+    ? {c1 cget -p1b} 4
+
+    puts [C info method definition p2a]
+    ? {c1 cget -p2a} 2
+    ? {c1 p2a get} 2
+    ? {c1 configure -p2a 2} ""
+    ? {c1 p2a set 2} 2
+    ? {c1 p2a unset} ""
+    ? {c1 cget -p2a} {can't read "p2a": no such variable}
+
+    puts [C info method definition p2b]
+    ? {c1 cget -p2b} 3
+    ? {c1 p2b get} 3
+    ? {c1 configure -p2b 2} ""
+    ? {c1 p2b set 2} 3
+    ? {c1 p2b unset} ""
+    ? {c1 cget -p2b} {can't read "p2b": no such variable}
+
+    puts [C info method definition p3a]
+
+    ? {c1 cget -p3a} 3
+    ? {c1 p3a get} 3
+    ? {c1 configure -p3a 3} ""
+    ? {c1 p3a get 3} 3
+    ? {c1 p3a set 3} 3
+    ? {c1 p3a unset} ""
+    ? {c1 cget -p3a} {can't read "p3a": no such variable}
+
+    puts [C info method definition p3b]
+
+    ? {c1 cget -p3b} 4
+    ? {c1 p3b get} 4
+    ? {c1 configure -p3b 4} ""
+    ? {c1 p3b get} 5
+    ? {c1 p3b set 4} 5
+    ? {c1 p3b get} 5
+    ? {c1 p3b set 4} 5
+    ? {c1 p3b get} 5
+
+    ? {c1 p3b unset} ""
+    ? {c1 cget -p3b} {can't read "p3b": no such variable}
+
+}
+
