@@ -5023,10 +5023,91 @@ nx.tcl:
 - added log-level Info which prints always, e.g. for "-verbose" flag
   of forwarder
 
+
+nsf.c:
+    - add flag "-onerror" to nsf::forward::method to handle errors during
+      dispatch of a forwarder (not all error messags of forwarder are
+      already transformed)
+    - added log-level Info which prints always, e.g. for "-verbose" flag
+      of forwarder
+    - drop setter-rule from properties (use always forwarder)
+    - drop "/obj/ /prop/" and  "/obj/ /prop/ /value/" in favor of
+      "/obj/ /prop/ get" and  "/obj/ /prop/ set /value/"
+      to achieve better orthogonality with e.g. incremental properties
+    - allow parameter option "method=" for slotassign as well. rationale:
+      this allows to use the parameter "forwardername" to specify a
+      different forwarder target method (e.g. in case of object-mixins).
+      The method is used both in "configure" and "cget".
+    - allow methodname to consist of max two words in relation slots
+       (e.g. "-methodname {mixin set}"}
+    - allow configuration of internally called "slot.get" and
+      "slot.assign" methods via objectsystem::create
+    - rename default slot methods add/get to value=add/value=get
+    - provide an error message, when refering to a non-existing slot object
+    - added likely/unlikely to result == TCL_OK etc.
+    - fix one more subtle case of an error being swallowed: for xotcl, the
+      constructor returns the list of residual arguments. In case there
+      was an error, it was possible that the returned residual arguments
+      overwrote the error message in the interp result
+
+nx.tcl:
+    - remove setter methods from BootstrapVariableSlots
+    - reducing interface of BootstrapVariableSlots by setting methods protected
+    - use value=* as names for interally called and forwarder-called
+      accessor methods
+    - enforce using "set" for filter/object-filter in slot operations
+      (same as for mixins)
+    - add "set" as a method name for relation slots
+    - implemented relation slot "mixin" and "object-mixin" via "slotassign" to disallow
+       "/obj/ mixin /value/" and  "/obj/ object mixin /value/" to use  instead
+       "/obj/ mixin set /value/" and  "/obj/ object mixin set /value/"
+       while keeping "configure" and "cget" working.
+       This has the advantage that  "/obj/ mixin set"  does not try
+       to replace the mixin chain by "set"
+    - disallow "assign" for nx::variableSlots
+    - use set/get/add as slot methods for get/configure/incremental
+      operations
+    - demangle slots for nx/xotcl2 further
+    - enforce usage of "get" for all slots in nx
+    - put test cases for all kind of mix setter / getter together in one test case
+
+xotcl2.tcl:
+    - use object system configuration for -slot.get and -slot.set
+    - use value=set instead of value=assign
+    - simplify "-parameter" implementation
+    - add setters for "name", "domain", and "default" to xotcl::Attribute
+      for backward compatibility
+
+mongodb
+    - by directing calls to the setter, it is now more complex to
+      determine the true calling object for an converter, since the
+      set operation might be routed though the slot object.
+      It would be nice to have framework support for this.
+    - fix 2 error messages
+    - provide shorter tracebacks by using "return -code error ..." rather
+       than "error ..."
+
+nx::test:
+    - don't delete system slot ::xotcl::Attribute on cleanup
+
+
 ========================================================================
 TODO:
+- TODO: rework error message generation of slot-forwarder
+- TODO: demangle "slotassign" in "ObjectParameterSlot protected method getParameterOptions" 
+  and check interactions
+- TODO: to the same as -mixin and -object-mixin to -filter and -object-filter
+- TODO: clean up relation slot mixin variants
+- TODO: do we really like the fact that we have to write now 
+   "B mixin set M2" instead of "B mixin M2"?
+- TODO: should we disallow
+   "B mixin" and enforce instead of "B mixin get" ?
+- TODO: we could as well allow "B mixin clear" instead of "B mixin set {}"
+- TODO: allow "set" for variable slots as well. Do we need "assign"?
+- TODO: define setters for traits
+- TODO: paths in sublibs in regression test incorrect
+- TODO: rename "slotassign" to "slotset"?
 
-- remove "-guard" from mixin and filter specs, just have two-element lists?
 
 - why is there no pos/index arg for mixin|filter delete?
 
@@ -5414,6 +5495,9 @@ For future releases (after first alpha/beta release)
            there is no way to intercept c-based functions.
            Checking these before/after c-implemented functions
            should be possible though.
+
+  * REF: feature request 'remove "-guard" from mixin and filter specs, just have two-element lists'
+    would require to have different sets of converters for slots depending on object system
 
   * add maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
     volatile state.
