@@ -1772,7 +1772,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   }
 
   result = GetObjectFromObj(interp, objPtr, &object);
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     cls = NsfObjectToClass(object);
     if (cls) {
       *clPtr = cls;
@@ -1787,7 +1787,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     result = NsfCallObjectUnknownHandler(interp, isAbsolutePath(objName) ? objPtr :
 					 NameInNamespaceObj(objName, CallingNameSpace(interp)));
 
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       /* Retry, but now, the last argument (withUnknown) has to be 0 */
       result = GetClassFromObj(interp, objPtr, clPtr, 0);
     }
@@ -3870,7 +3870,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
 	  /*
 	   * If the definition was ok, make the method protected.
 	   */
-	  if (result == TCL_OK) {
+	  if (likely(result == TCL_OK)) {
 	    Tcl_Obj *methodObj = Tcl_GetObjResult(interp);
 	    Tcl_Command cmd = Tcl_GetCommandFromObj(interp, methodObj);
 	    if (cmd) { Tcl_Command_flags(cmd) |= NSF_CMD_CALL_PROTECTED_METHOD; }
@@ -5759,7 +5759,7 @@ NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName) {
 
   result = NsfCallObjectUnknownHandler(interp, Tcl_NewStringObj(parentName, -1));
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     NsfObject *parentObj = (NsfObject *) GetObjectFromString(interp, parentName);
     if (parentObj) {
       RequireObjNamespace(interp, parentObj);
@@ -6151,7 +6151,7 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
     }
   }
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     ObjectSystemsCheckSystemMethod(interp, methodName, object);
   }
   return result;
@@ -6907,7 +6907,7 @@ CheckConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
   result = Nsf_ExprObjCmd(NULL, interp, 2, ov);
   DECR_REF_COUNT(condition);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     result = Tcl_GetBooleanFromObj(interp, Tcl_GetObjResult(interp), &success);
     if (result == TCL_OK && success == 0) {
       result = NSF_CHECK_FAILED;
@@ -9227,7 +9227,7 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
 
   /*fprintf(stderr, "checking guard **%s** returned rc=%d\n", ObjStr(guardObj), rc);*/
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     /* fprintf(stderr, " +++ OK\n"); */
     return TCL_OK;
 
@@ -11683,7 +11683,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
         result = TCL_OK;
       }
 
-      if (result != TCL_OK) {
+      if (unlikely(result != TCL_OK)) {
         /*fprintf(stderr, "Filter GuardCall in invokeProc returned %d\n", result);*/
 
         if (result != TCL_ERROR) {
@@ -11763,7 +11763,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
    */
 
   /* we could consider to run here ARG_METHOD or ARG_INITCMD
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
 
   }
   */
@@ -12081,7 +12081,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 			    subMethodCmd, actualSelf, actualClass, subMethodName,
 			    cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE,
 			    (cscPtr->flags & 0xFF)|NSF_CSC_IMMEDIATE);
-    /*if (result != TCL_OK) {
+    /*if (unlikely(result != TCL_OK)) {
       fprintf(stderr, "ERROR: cmd %p %s subMethodName %s -- %s -- %s\n",
       subMethodCmd, Tcl_GetCommandName(interp, subMethodCmd), subMethodName,
       Tcl_GetCommandName(interp, cscPtr->cmdPtr), ObjStr(Tcl_GetObjResult(interp)));
@@ -12834,7 +12834,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
        */
       result = MixinSearchProc(interp, object, methodName, methodObj, &cl,
                                &object->mixinStack->currentCmdPtr, &cmd1);
-      if (result != TCL_OK) {
+      if (unlikely(result != TCL_OK)) {
 	/*fprintf(stderr, "mixinsearch returned an error for %p %s.%s\n",
 	  object, ObjectName(object), methodName);*/
 	validCscPtr = 0;
@@ -13685,7 +13685,7 @@ Nsf_ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr
   assert(clientData);
   assert(outObjPtr);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     *clientData = (ClientData)INT2PTR(bool);
   } else {
     Tcl_ResetResult(interp);
@@ -15087,7 +15087,7 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
   }
 
   result = Tcl_ListObjGetElements(interp, forwardSpec, &nobjc, &nobjv);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
 
@@ -15100,7 +15100,7 @@ ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
                                  0 /*withFrame*/,
 				 0 /*withVerbose*/,
 				 nobjv[0], nobjc-1, nobjv+1, &tcd);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     if (tcd) ForwardCmdDeleteProc(tcd);
     return result;
   }
@@ -15417,7 +15417,7 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
   /* create the method in the provided namespace */
   result = Tcl_ProcObjCmd(NULL, interp, 4, ov);
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     /* retrieve the defined proc */
     Proc *procPtr = FindProcMethod(nsPtr, methodName);
     if (procPtr) {
@@ -15974,7 +15974,7 @@ NsfProcAdd(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   DECR_REF_COUNT(argList);
   DECR_REF_COUNT2("resultBody", ov[3]);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     /*
      * The shadowed proc was created successfully. Retrieve the
      * defined proc and set its namespace to the namespace of the stub
@@ -16058,7 +16058,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
    * args ('args'). Treating "args is more involved (see below).
    */
 
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
 
@@ -17098,7 +17098,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
     result = MethodDispatch(object, interp, objc, objv, cmd,
 			    object, cl, methodName, frameType, 0);
 #endif
-  } else if (result == TCL_OK) {
+  } else if (likely(result == TCL_OK)) {
     NsfCallStackContent *topCscPtr;
     int isLeafNext;
 
@@ -17359,7 +17359,7 @@ UnsetInAllNamespaces(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *name)
     /*rc = Tcl_UnsetVar2(interp, Tcl_DStringValue(dsPtr), NULL, TCL_LEAVE_ERR_MSG);*/
     result = Tcl_Eval(interp, Tcl_DStringValue(dsPtr));
     /* fprintf(stderr, "fqName = '%s' unset => %d %d\n", Tcl_DStringValue(dsPtr), rc, TCL_OK);*/
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       rc = 1;
     } else {
       Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
@@ -17413,9 +17413,9 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
      */
     /* fprintf(stderr, "### FreeUnsetTraceVariable %s\n", object->opt->volatileVarName);*/
 
-    if (result != TCL_OK) {
+    if (unlikely(result != TCL_OK)) {
       int result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, TCL_GLOBAL_ONLY);
-      if (result != TCL_OK) {
+      if (unlikely(result != TCL_OK)) {
         Tcl_Namespace *nsPtr = Tcl_GetCurrentNamespace(interp);
         if (UnsetInAllNamespaces(interp, nsPtr, object->opt->volatileVarName) == 0) {
           fprintf(stderr, "### don't know how to delete variable '%s' of volatile object\n",
@@ -20009,7 +20009,7 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *initStrin
   /*fprintf(stderr, "method  '%s' called args: %d o=%p, result=%d %d\n",
     methodName, argc+1, object, result, TCL_ERROR);*/
 
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     Tcl_Obj *res = Tcl_DuplicateObj(Tcl_GetObjResult(interp)); /* save the result */
 
     INCR_REF_COUNT(res);
@@ -22876,7 +22876,7 @@ SetBooleanFlag(Tcl_Interp *interp, unsigned int *flagsPtr, unsigned int flag, Tc
   assert(flagValue);
 
   result = Tcl_GetBooleanFromObj(interp, valueObj, flagValue);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
   if (*flagValue) {
@@ -23143,7 +23143,7 @@ NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *na
   result = ParamDefsParse(interp, nameObj, arguments,
 			  NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
 			  &parsedParam);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
 
@@ -23219,7 +23219,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
 
     if (valueObj) {
       int result = Tcl_GetIntFromObj(interp, valueObj, &level);
-      if (result != TCL_OK) {
+      if (unlikely(result != TCL_OK)) {
 	return result;
       }
       RUNTIME_STATE(interp)->debugLevel = level;
@@ -23235,7 +23235,7 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
    */
   if (valueObj) {
     int result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
-    if (result != TCL_OK) {
+    if (unlikely(result != TCL_OK)) {
       return result;
     }
   }
@@ -23555,7 +23555,7 @@ NsfFinalizeCmd(Tcl_Interp *interp, int withKeepvars) {
    */
   result = Tcl_Eval(interp, "::nsf::__exithandler");
 
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     fprintf(stderr, "User defined exit handler contains errors!\n"
             "Error in line %d: %s\nExecution interrupted.\n",
             Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
@@ -23675,7 +23675,7 @@ NsfIsCmd(Tcl_Interp *interp,
   if (withComplain == 0) {
     Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
     result = TCL_OK;
-  } else if (result == TCL_OK) {
+  } else if (likely(result == TCL_OK)) {
     Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
   }
 
@@ -23845,7 +23845,7 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
     nsPtr = object->nsPtr;
   }
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     newCmd = FindMethod(nsPtr, methodName);
   }
 
@@ -24078,7 +24078,7 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
                                  withFrame, withVerbose,
                                  target, nobjc, nobjv, &tcd);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     CONST char *methodName = NSTail(ObjStr(methodObj));
     NsfClass *cl =
       (withPer_object || ! NsfObjectIsClass(object)) ?
@@ -24095,7 +24095,7 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
 				 (Tcl_ObjCmdProc *)NsfForwardMethod,
 				 tcd, ForwardCmdDeleteProc, 0);
     }
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       Tcl_SetObjResult(interp, MethodHandleObj(object, withPer_object, methodName));
     }
   }
@@ -24331,7 +24331,7 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
                         setterClientData->paramsPtr, &possibleUnknowns,
 			&plainParams, &nrNonposArgs);
 
-    if (result != TCL_OK) {
+    if (unlikely(result != TCL_OK)) {
       SetterCmdDeleteProc(setterClientData);
       return result;
     }
@@ -24349,7 +24349,7 @@ NsfMethodSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tc
 				(Tcl_ObjCmdProc *)NsfSetterMethod,
 				setterClientData, SetterCmdDeleteProc, 0);
   }
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     Tcl_SetObjResult(interp, MethodHandleObj(object, cl == NULL, methodName));
   } else {
     SetterCmdDeleteProc(setterClientData);
@@ -24406,7 +24406,7 @@ NsfObjectAllocCmd(Tcl_Interp *interp, NsfClass *class, Tcl_Obj *nameObj, Tcl_Obj
     result = NsfDirectDispatchCmd(interp, object, 1,
 				  NsfGlobalObjs[NSF_EVAL], 
 				  1, &initcmdObj);
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       Tcl_SetObjResult(interp,nameObj);
     }
     
@@ -24586,10 +24586,10 @@ NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 
 	arg = ov[i+1];
         result = Tcl_GetIndexFromObj(interp, ov[i], Nsf_SystemMethodOpts, "system method", 0, &idx);
-	if (result == TCL_OK) {
+	if (likely(result == TCL_OK)) {
 	  result = Tcl_ListObjGetElements(interp, arg, &arg_oc, &arg_ov);
 	}
-        if (result != TCL_OK) {
+        if (unlikely(result != TCL_OK)) {
           ObjectSystemFree(interp, osPtr);
           return NsfPrintError(interp, "invalid system method '%s'", ObjStr(ov[i]));
         } else if (arg_oc < 1 || arg_oc > 2) {
@@ -24743,7 +24743,7 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
   if (arguments) {
     /* Arguments were provided. */
     int result = Tcl_ListObjGetElements(interp, arguments, &oc, &ov);
-    if (result != TCL_OK) {return result;}
+    if (unlikely(result != TCL_OK)) {return result;}
   } else {
     /* No arguments were provided. */
     oc = -1;
@@ -24752,7 +24752,7 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
 
   result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName,
 			    &nobjc, &nobjv, &freeArgumentVector);
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
   }
   return result;
@@ -24904,7 +24904,7 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
 			    &parsedParam);
   DECR_REF_COUNT(paramsObj);
 
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
 
@@ -25204,7 +25204,7 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameO
   result = ParamDefsParse(interp, nameObj, arguments,
 			  NSF_DISALLOWED_ARG_METHOD_PARAMETER, 0,
 			  &parsedParam);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
 
@@ -25950,7 +25950,7 @@ ParamSetFromAny2(
     result = TCL_ERROR;
   }
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     /*
      * In success cases, the memory allocated by this function is freed via
      * the tcl_obj type.
@@ -26181,7 +26181,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
      * explicitly.
      */
     result = ParamSetFromAny2(interp, argNamePrefix, doConfigureParameter, paramObjPtr);
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       paramWrapperPtr = (NsfParamWrapper *) paramObjPtr->internalRep.twoPtrValue.ptr1;
     } else {
       return NsfPrintError(interp, "invalid value constraints \"%s\"", ObjStr(paramObjPtr));
@@ -26387,7 +26387,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   result = ProcessMethodArguments(&pc, interp, object, 0, paramDefs,
 				  NsfGlobalObjs[NSF_CONFIGURE], objc, objv);
 
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     Nsf_PopFrameObj(interp, framePtr);
     goto configure_exit;
   }
@@ -26497,7 +26497,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 				       NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
 
       }
-      if (result != TCL_OK) {
+      if (unlikely(result != TCL_OK)) {
 	/*
 	 * The error message was set either by GetSlotObject or by ...CallMethod...
 	 */
@@ -26543,7 +26543,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 					     objv[pc.lastObjc], (Tcl_Obj **)&objv[pc.lastObjc + 1],
 					     objc - pc.lastObjc);
 
-	    if (result != TCL_OK) {
+	    if (unlikely(result != TCL_OK)) {
 	      Nsf_PopFrameObj(interp, framePtr);
 	      goto configure_exit;
 	    }
@@ -26568,7 +26568,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 				       uplevelVarFramePtr, initString,
 				       objv[pc.lastObjc], (Tcl_Obj **)&objv[pc.lastObjc + 1],
 				       objc - pc.lastObjc);
-      if (result != TCL_OK) {
+      if (unlikely(result != TCL_OK)) {
 	Nsf_PopFrameObj(interp, framePtr);
 	goto configure_exit;
       }
@@ -26619,7 +26619,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
                                          methodObj ? methodObj : NsfGlobalObjs[NSF_SLOT_SET],
 					 object->cmdName, 3, ov, NSF_CSC_IMMEDIATE);
 	}
-	if (result != TCL_OK) {
+	if (unlikely(result != TCL_OK)) {
 	  /*
 	   * The error message was set either by GetSlotObject or by ...CallMethod...
 	   */
@@ -26639,7 +26639,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   ParamDefsRefCountDecr(paramDefs);
   ParseContextRelease(&pc);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     Tcl_ResetResult(interp);
   }
   return result;
@@ -27068,7 +27068,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
           }
         }
         result = CallConfigureMethod(interp, object, initString, methodName, argc+1, objv+i+1);
-        if (result != TCL_OK) {
+        if (unlikely(result != TCL_OK)) {
           return result;
 	}
 	i += argc;
@@ -27086,7 +27086,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
 	  nextArgc = 0;
 	}
 	result = CallConfigureMethod(interp, object, initString, methodName, argc+1, argv+1);
-	if (result != TCL_OK) {
+	if (unlikely(result != TCL_OK)) {
 	  return result;
         }
 	break;
@@ -27104,7 +27104,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
    */
   result = DispatchInitMethod(interp, object, normalArgs, objv+1, 0);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     /*
      * Return the non-processed leading arguments unless there was an error
      * (XOTcl convention)
@@ -27222,7 +27222,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST 
   for ( ;  i < objc;  i += 2) {
     result = Tcl_UpVar2(interp, frameInfo, ObjStr(objv[i]), NULL,
                         ObjStr(objv[i+1]), 0 /*flags*/);
-    if (result != TCL_OK) {
+    if (unlikely(result != TCL_OK)) {
       break;
     }
   }
@@ -27270,7 +27270,7 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   }
   CallStackRestoreSavedFrames(interp, &ctx);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     INCR_REF_COUNT(objPtr);
   }
   return result;
@@ -27791,7 +27791,7 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
    */
   result = ChangeClass(interp, object, class);
 
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     Tcl_Obj *methodObj;
 
     /*
@@ -27812,9 +27812,9 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
   /*
    * Second: if cleanup was successful, initialize the object as usual.
    */
-  if (result == TCL_OK) {
+  if (likely(result == TCL_OK)) {
     result = DoObjInitialization(interp, object, objc, objv);
-    if (result == TCL_OK) {
+    if (likely(result == TCL_OK)) {
       Tcl_SetObjResult(interp, object->cmdName);
     } else {
       /* fprintf(stderr, "recreate DoObjInitialization returned %d\n", result);*/
@@ -30037,7 +30037,7 @@ Nsf_Init(Tcl_Interp *interp) {
    * Create Shadowed Tcl cmds:
    */
   result = NsfShadowTclCommands(interp, SHADOW_LOAD);
-  if (result != TCL_OK) {
+  if (unlikely(result != TCL_OK)) {
     return result;
   }
   /*
