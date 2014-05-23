@@ -26397,6 +26397,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
    * parameter definitions) and the defaults are set. Now we have to apply the
    * arguments (mostly setting instance variables).
    */
+
 #if defined(CONFIGURE_ARGS_TRACE)
   fprintf(stderr, "*** POPULATE OBJ '%s': nr of parsed args %d\n", ObjectName(object), pc.objc);
 #endif
@@ -26494,6 +26495,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 	result = NsfCallMethodWithArgs(interp, (Nsf_Object *)slotObject, NsfGlobalObjs[NSF_INITIALIZE],
                                        object->cmdName, 2, ov,
 				       NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
+
       }
       if (result != TCL_OK) {
 	/*
@@ -26540,6 +26542,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 					     uplevelVarFramePtr, initString,
 					     objv[pc.lastObjc], (Tcl_Obj **)&objv[pc.lastObjc + 1],
 					     objc - pc.lastObjc);
+
 	    if (result != TCL_OK) {
 	      Nsf_PopFrameObj(interp, framePtr);
 	      goto configure_exit;
@@ -27054,7 +27057,7 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
     switch (isdasharg) {
     case SKALAR_DASH:    /* Argument is a skalar with a leading dash */
       { int j;
-
+        
 	nextMethodName = NULL;
 	nextArgv = NULL;
 	nextArgc = 0;
@@ -27101,10 +27104,13 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
    */
   result = DispatchInitMethod(interp, object, normalArgs, objv+1, 0);
 
-  /*
-   * Return the non-processed leading arguments (XOTcl convention).
-   */
-  Tcl_SetObjResult(interp, Tcl_NewListObj(normalArgs, objv+1));
+  if (result == TCL_OK) {
+    /*
+     * Return the non-processed leading arguments unless there was an error
+     * (XOTcl convention)
+     */
+    Tcl_SetObjResult(interp, Tcl_NewListObj(normalArgs, objv+1));
+  }
 
   return result;
 }
