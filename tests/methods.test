@@ -235,8 +235,8 @@ nx::test case mixin-via-objectparam {
   ? {lsort [C object mixin get]} "::M2 ::M4"
   ? {lsort [C mixin get]} "::M1 ::M3"
 
-  ? {lsort [C object mixin]} {wrong # args: use "::C mixin assign|get"} ;# TODO: should be "C object mixin ..."
-  ? {lsort [C mixin]} {wrong # args: use "::C mixin assign|get"}
+  ? {lsort [C object mixin]} {wrong # args: use "::C mixin add|delete|get|guard|set|unset"} ;# TODO: should be "C object mixin ..."
+  ? {lsort [C mixin]} {wrong # args: use "::C mixin add|delete|get|guard|set|unset"}
 
   ? {catch {C mixin M5} errorMsg} 1
   ? {lsort [C info mixin classes]} "::M1 ::M3"
@@ -455,7 +455,7 @@ nx::test case dispatch-without-object {
   }
 
   # dispatch methods without current object 
-  ? ::o::a {wrong # args: use "::o ::o::a assign|get"}
+  ? ::o::a {wrong # args: use "::o ::o::a add|delete|get|set|unset"}
   ? ::o::b "::o2"
   ? ::o::foo "no current object; command called outside the context of a Next Scripting method"
   ? ::o::x "no current object; x called outside the context of a Next Scripting method"

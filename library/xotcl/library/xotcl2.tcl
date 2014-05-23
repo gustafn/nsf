@@ -481,24 +481,28 @@ namespace eval ::xotcl {
   # We need fully qualified "::xotcl" prefixes, since prefix
   # completion would skip the object system root namespace
 
+  nx::MetaSlot create ::xotcl::RelationSlot -superclass ::nx::RelationSlot
+
+  ::nsf::method::alias ::xotcl::RelationSlot value=assign ::nsf::relation
+
   set cSlotContainer [::nx::slotObj ::xotcl::Class]
   set oSlotContainer [::nx::slotObj ::xotcl::Object]
-  ::nx::RelationSlot create ${cSlotContainer}::superclass \
+  ::xotcl::RelationSlot create ${cSlotContainer}::superclass \
       -defaultmethods {get set}
   #::nsf::method::alias      ${cSlotContainer}::superclass value=set ::nsf::relation
-  ::nx::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1 \
+  ::xotcl::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1 \
       -defaultmethods {get set}
   #::nsf::method::alias      ${oSlotContainer}::class value=set ::nsf::relation
-  ::nx::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
+  ::xotcl::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
       -defaultmethods {get set} \
       -elementtype mixinreg -multiplicity 0..n
-  ::nx::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
+  ::xotcl::RelationSlot create ${oSlotContainer}::filter -forwardername object-filter \
       -defaultmethods {get set} \
       -elementtype filterreg -multiplicity 0..n
-  ::nx::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin \
+  ::xotcl::RelationSlot create ${cSlotContainer}::instmixin  -forwardername class-mixin \
       -defaultmethods {get set} \
       -elementtype mixinreg -multiplicity 0..n
-  ::nx::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
+  ::xotcl::RelationSlot create ${cSlotContainer}::instfilter -forwardername class-filter \
       -defaultmethods {get set} \
       -elementtype filterreg -multiplicity 0..n
 

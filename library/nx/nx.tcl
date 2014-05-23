@@ -1333,8 +1333,11 @@ namespace eval ::nx {
 
   ObjectParameterSlot public method onError {cmd msg} {
     if {[string match "%1 requires argument*" $msg]} {
-      #return -code error "wrong # args: use \"$cmd assign|get\" [lsort [:info lookup methods -callprotection public -source application]]" 
-      return -code error "wrong # args: use \"$cmd assign|get\"" 
+      set methods ""
+      foreach m [lsort [:info lookup methods -callprotection public value=*]] {
+        lappend methods [lindex [split $m =] end]
+      }
+      return -code error "wrong # args: use \"$cmd [join $methods |]\"" 
     }
     return -code error $msg
   }
@@ -1388,7 +1391,7 @@ namespace eval ::nx {
       # Slot objects are always in nx (for nx and for xotcl
       # application objects. we have to watch for assign and set)
       #
-      if {[:info lookup method value=assign] ni {"" "::nsf::classes::nx::RelationSlot::value=assign"}} {
+      if {[:info lookup method value=assign] ni {"" "::nsf::classes::xotcl::RelationSlot::value=assign"}} {
 	# In case the "assign" method was provided on the slot, ask nsf to call it directly
 	lappend options slot=[::nsf::self] slotassign
       } elseif {[:info lookup method value=set] ni {"" "::nsf::classes::nx::RelationSlot::value=set"}} {
@@ -1528,7 +1531,6 @@ namespace eval ::nx {
   #
   # create methods for slot operations assign/get/add/delete
   #
-  ::nsf::method::alias RelationSlot value=assign ::nsf::relation
   ::nsf::method::alias RelationSlot value=set ::nsf::relation
   ::nsf::method::alias RelationSlot value=get ::nsf::relation
 

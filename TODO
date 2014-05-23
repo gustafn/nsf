@@ -5094,13 +5094,18 @@ nx::test:
 nx.tcl:
 - add slot method value=unset to nx::RelationSlot and nx::VariableSlot
 - extended regression test
+- reworked error message generation of slot-forwarder 
+  (list all available slot methods with prefix value=)
+
+xotcl2:
+- use xotcl::RelationSlot instead of nx::Relationslot in xotcl2
+  (we can more value=assign here).
 
 Makefile:
 - fix load paths for sublibs (e.g. mongodb) in regression test
 
 ========================================================================
 TODO:
-- TODO: rework error message generation of slot-forwarder
 - TODO: demangle "slotassign" in "ObjectParameterSlot protected method getParameterOptions" 
   and check interactions
 - TODO: clean up relation slot mixin variants
