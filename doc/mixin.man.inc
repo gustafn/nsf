@@ -31,6 +31,14 @@ omitted, [arg index] defaults to the list head (0).
 [comment {Therefore, by default, any added [term "mixin class"] takes precedence over previously added classes in the overall linearisation of [arg obj].}]
 [def "[arg obj] [const [vset SCOPE]] [method {mixin delete}] [option -nocomplain] [arg specPattern]"]
 Removes a [term "mixin class"] from a current list of [term "mixin class"]es of [arg obj] whose spec matches [arg specPattern]. [arg specPattern] can contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "mixin delete"] will throw an error if there is no matching [term "mixin class"], unless [option -nocomplain] is set.
+
+[def "[arg obj] [const [vset SCOPE]] [method {mixin guard}] [arg className] [arg expr]"]
+
+Registers a guard expression [arg expr] with the [term "mixin class"] [arg className]
+in a separate step, once the [term "mixin class"] was set or added using [const [vset SCOPE]] [method {mixin set}] or
+[const [vset SCOPE]] [method {mixin add}]. [arg expr] must be a valid Tcl expression (see
+[cmd expr]). An empty string for [arg expr] will clear the currently registered
+guard expression for the registered [term "mixin class"] [arg className].
 [list_end]
 [comment {
   A [term "mixin class"] whose spec is featured earlier in [arg mixinSpecList] takes

@@ -5026,6 +5026,8 @@ nx.tcl:
 ========================================================================
 TODO:
 
+- remove "-guard" from mixin and filter specs, just have two-element lists?
+
 - why is there no pos/index arg for mixin|filter delete?
 
 - nsf.c: finish forwarder error messages
