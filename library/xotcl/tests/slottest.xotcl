@@ -377,7 +377,7 @@ a0 forward f4 puts hu
 ? {a0 procsearch f3} "::a0 proc f3"
 ? {a0 procsearch f4} "::a0 forward f4"
 ? {a0 procsearch set} "::xotcl::Object instcmd set"
-? {A::slot::foo info lookup method value=assign} "::nsf::classes::xotcl::Attribute::value=assign"
+? {A::slot::foo info lookup method value=set} "::nsf::classes::xotcl::Attribute::value=set"
 
 # redefine setter for foo of class A
 #A slot foo method assign {domain var val} ...
@@ -546,7 +546,7 @@ Rectangle r0 -color pink -contains {
 nx::test case assign-via-slots
 
 Class create A -slots {
-  Attribute create foo -default 1 -proc value=assign {domain var value} {
+  Attribute create foo -default 1 -proc value=set {domain var value} {
     if {$value < 0 || $value > 99} {
       error "$value is not in the range of 0 .. 99"
     }
@@ -646,7 +646,7 @@ p2 projects delete some-other-value
 #
 
 Class create AA -slots {
-    Attribute foo -default 1 -proc value=assign {domain var value} {
+    Attribute foo -default 1 -proc value=set {domain var value} {
 	if {$value < 0 || $value > 99} {
 	    error "$value is not in the range of 0 .. 99"
 	}  

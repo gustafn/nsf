@@ -1846,6 +1846,7 @@ nx::test case xotcl-list-notation {
 
   package prefer latest
   package req XOTcl 2.0
+
   xotcl::Class create CC -parameter {package_id parameter_declaration user_id}
 
   # first, without list notation

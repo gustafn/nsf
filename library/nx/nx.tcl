@@ -1092,8 +1092,9 @@ namespace eval ::nx {
     #puts stderr "*** returned $r"
     return $r
   }
-
 }
+
+
 namespace eval ::nx {
 
   ######################################################################

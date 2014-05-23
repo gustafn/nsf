@@ -1329,6 +1329,7 @@ nx::test case dispo-object-targets {
 #
 
 nx::test case xotcl-residualargs {
+
   package prefer latest
   puts stderr "XOTcl loaded: [package req XOTcl 2.0]"
 
