@@ -325,7 +325,7 @@ $(xotcl_target_doc_dir)/XOTcl-langRef/index.html: library/xotcl/doc/langRef.xotc
 	-docurl "http://next-scripting.org/" -docversion $(PACKAGE_VERSION) \
 	-outdir $(xotcl_target_doc_dir) -frontend xodoc -- package:XOTcl-langRef
 
-yuidoc-dev: NXDFLAGS := -validation
+#yuidoc-dev: NXDFLAGS := -validation
 yuidoc-dev: yuidoc
 
 XOWIKI_OUTPUT = \
@@ -354,7 +354,7 @@ $(xotcl_target_doc_dir)/XOTcl-langRef.xowiki : library/xotcl/doc/langRef.xotcl
 	-outdir $(target_doc_dir) -format xowiki -layout many-to-1 \
 	-frontend xodoc -- package:XOTcl-langRef
 
-xowiki-dev: NXDFLAGS := -validation
+#xowiki-dev: NXDFLAGS := -validation
 xowiki-dev: xowiki
 
 
