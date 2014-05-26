@@ -41,6 +41,11 @@ nx::test case setter-variants {
     ? {c1 p2a set 2} 2
     ? {c1 p2a unset} ""
     ? {c1 cget -p2a} {can't read "p2a": no such variable}
+puts stderr ====1
+    ? {c1 p2a unset} {can't unset "p2a": no such variable}
+puts stderr ====2
+    ? {c1 p2a unset -nocomplain} ""
+puts stderr ====3
 
     puts [C info method definition p2b]
     ? {c1 cget -p2b} 3

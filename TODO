@@ -5114,6 +5114,11 @@ nsf.c:
   of nx::VariableSlot)
 - renamed nsf::relation to nsf::relation::set and added 
   nsf::relation::get in accordance with nsf::var::get
+- fixed unary argument passing notation for "-nocomplain" 
+  of nsf::var and for 42 other options of other commands
+
+nx.tcl:
+- added flag -nocomplain to "/obj/ /prop/ unset ?-nocomplain?"
 
 ========================================================================
 TODO:

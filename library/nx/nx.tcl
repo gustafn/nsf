@@ -2043,9 +2043,8 @@ namespace eval ::nx {
   ::nsf::method::alias ::nx::VariableSlot value=get    ::nsf::var::get
   ::nsf::method::alias ::nx::VariableSlot value=set    ::nsf::var::set
   
-  ::nx::VariableSlot public method value=unset {obj prop} {
-    puts stderr "::nsf::var::unset $obj $prop"
-    ::nsf::var::unset $obj $prop
+  ::nx::VariableSlot public method value=unset {obj prop -nocomplain:switch} {
+    ::nsf::var::unset -nocomplain=$nocomplain $obj $prop
   }
 
   ::nx::VariableSlot public method value=add {obj prop value {pos 0}} {
