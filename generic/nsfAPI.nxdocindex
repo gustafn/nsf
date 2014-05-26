@@ -39,6 +39,7 @@ set ::nxdoc::include(::nsf::relation) 1
 set ::nxdoc::include(::nsf::current) 1
 set ::nxdoc::include(::nsf::self) 1
 set ::nxdoc::include(::nsf::var::exists) 1
+set ::nxdoc::include(::nsf::var::get) 1
 set ::nxdoc::include(::nsf::var::import) 1
 set ::nxdoc::include(::nsf::var::set) 1
 set ::nxdoc::include(::nsf::var::unset) 1

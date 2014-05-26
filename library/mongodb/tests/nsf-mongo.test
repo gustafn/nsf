@@ -5,6 +5,16 @@
 #
 
 package require nsf
+
+puts stderr "PWD [pwd]"
+puts stderr "auto_path $auto_path"
+foreach p [lsort [package names]] {
+   if {![catch {package present $p}]} {
+      set l [format %-15s $p]
+      puts stderr "loaded $l [package ifneeded $p [package require $p]]"
+   }
+}
+
 package require nx::test
 package require nsf::mongo
 

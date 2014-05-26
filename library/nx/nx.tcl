@@ -1211,20 +1211,6 @@ namespace eval ::nx {
   createBootstrapVariableSlots ::nx::Slot {
   }
 
-  # Define method "value" as a slot forwarder to allow for calling
-  # value-less slot methods like e.g. "get" dispite of the arity-based
-  # forward dispatcher.
-  # ::nx::Slot public method value {obj method prop value:optional pos:optional} {
-  #   if {[info exists pos]} {
-  #     ${:manager} $prop $obj ${:name} $value $pos
-  #   } elseif {[info exists value]} {
-  #     ${:manager} $prop $obj ${:name} $value
-  #   } else {
-  #     ${:manager} $prop $obj ${:name}
-  #   }
-  # }
-  # TODO REMOVEME
-
   ######################################################################
   # configure nx::ObjectParameterSlot
   ######################################################################
@@ -1841,22 +1827,10 @@ namespace eval ::nx {
     return [string match {*..[n*]} ${:multiplicity}]
   }
 
-  # ::nx::VariableSlot protected method needsForwarder {} {
-  #   #
-  #   # We just forward, when
-  #   #   * "set", "get" and "add" are still untouched, or
-  #   #   * or incremental is specified
-  #   #
-  #   if {[:info lookup method add] ne "::nsf::classes::nx::VariableSlot::add"} {return 1}
-  #   if {[:info lookup method set] ne "::nsf::classes::nx::VariableSlot::set"} {return 1}
-  #   if {[:info lookup method get] ne "::nsf::classes::nx::VariableSlot::get"} {return 1}
-  #   if {[info exists :settername]} {return 1}
-  #   if {!${:incremental}} {return 0}
-  #   #puts stderr "[self] ismultivalued"
-  #   return 1
-  # }
-
-  # TODO: check detailed xotcl2 implications
+  #
+  # When there are accessors defined, we use always the forwarders in
+  # NX. XOTcl2 has a detailed optimization.
+  #
   ::nx::VariableSlot protected method needsForwarder {} {
     return 1
   }
@@ -2070,7 +2044,7 @@ namespace eval ::nx {
   #  - delete
   ######################################################################
 
-  ::nsf::method::alias ::nx::VariableSlot value=get    ::nsf::var::set
+  ::nsf::method::alias ::nx::VariableSlot value=get    ::nsf::var::get
   ::nsf::method::alias ::nx::VariableSlot value=set    ::nsf::var::set
   
   ::nx::VariableSlot public method value=unset {obj prop} {
@@ -2709,6 +2683,7 @@ namespace eval ::nx {
   #
   Object create ::nx::var {
     :public object alias exists ::nsf::var::exists
+    :public object alias get ::nsf::var::get
     :public object alias import ::nsf::var::import
     :public object alias set ::nsf::var::set
   }

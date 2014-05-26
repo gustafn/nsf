@@ -11,7 +11,7 @@ nx::test case alias-preliminaries {
   # The system methods of nx::VariableSlot are either alias or forwarders
   ? {lsort [::nx::VariableSlot info methods -type alias]} {value=get value=set}
   ? {::nx::VariableSlot info method definition value=get} \
-      "::nx::VariableSlot public alias value=get ::nsf::var::set"
+      "::nx::VariableSlot public alias value=get ::nsf::var::get"
 
   # define an alias and retrieve its definition
   set cmd "::nx::Object public alias set ::set"

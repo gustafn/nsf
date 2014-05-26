@@ -281,7 +281,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[106];
+static Nsf_methodDefinition method_definitions[107];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -414,6 +414,8 @@ static int NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfUnsetUnknownArgsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfVarExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfVarGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfVarImportCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
@@ -626,6 +628,8 @@ static int NsfUnsetUnknownArgsCmd(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, CONST char *varName)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
+static int NsfVarGetCmd(Tcl_Interp *interp, int withArray, NsfObject *object, Tcl_Obj *varName)
+  NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(4);
 static int NsfVarImportCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST nobjv[])
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfVarSetCmd(Tcl_Interp *interp, int withArray, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value)
@@ -775,6 +779,7 @@ enum {
  NsfShowStackCmdIdx,
  NsfUnsetUnknownArgsCmdIdx,
  NsfVarExistsCmdIdx,
+ NsfVarGetCmdIdx,
  NsfVarImportCmdIdx,
  NsfVarSetCmdIdx,
  NsfVarUnsetCmdIdx,
@@ -2179,6 +2184,27 @@ NsfVarExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 }
 
 static int
+NsfVarGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfVarGetCmdIdx].paramDefs, 
+                     method_definitions[NsfVarGetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    int withArray = (int )PTR2INT(pc.clientData[0]);
+    NsfObject *object = (NsfObject *)pc.clientData[1];
+    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[2];
+
+    assert(pc.status == 0);
+    return NsfVarGetCmd(interp, withArray, object, varName);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
 NsfVarImportCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
@@ -3056,7 +3082,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[106] = {
+static Nsf_methodDefinition method_definitions[107] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3349,6 +3375,11 @@ static Nsf_methodDefinition method_definitions[106] = {
   {"-array", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::var::get", NsfVarGetCmdStub, 3, {
+  {"-array", 0, 0, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"varName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::var::import", NsfVarImportCmdStub, 2, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},

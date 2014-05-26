@@ -25775,6 +25775,20 @@ NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, CONST char
 }
 
 /*
+cmd var::get NsfVarGetCmd {
+  {-argName "-array" -required 0 -nrargs 0}
+  {-argName "object" -required 1 -type object}
+  {-argName "varName" -required 1 -type tclobj}
+}
+*/
+static int
+NsfVarGetCmd(Tcl_Interp *interp, int withArray,
+	     NsfObject *object, Tcl_Obj *varName) {
+
+  return NsfVarSetCmd(interp, withArray, object, varName, NULL);
+}
+
+/*
 cmd var::import NsfVarImportCmd {
   {-argName "object" -type object}
   {-argName "args" -type args}

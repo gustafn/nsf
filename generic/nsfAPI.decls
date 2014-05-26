@@ -241,6 +241,12 @@ cmd "var::exists" NsfVarExistsCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varName" -required 1}
 } {-nxdoc 1}
+cmd "var::get" NsfVarGetCmd {
+  {-argName "-array" -required 0 -nrargs 0}
+  {-argName "object" -required 1 -type object}
+  {-argName "varName" -required 1 -type tclobj}
+} {-nxdoc 1}
+
 cmd "var::import" NsfVarImportCmd {
   {-argName "object" -required 1 -type object}
   {-argName "args" -type args}
