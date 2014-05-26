@@ -304,7 +304,7 @@ nx::test case reclass {
 
   ? {c1 info lookup slots -source application} "::C::slot::a ::C::slot::b ::C::slot::c"
 
-  nsf::relation c1 class nx::Object
+  nsf::relation::set c1 class nx::Object
 
   ? {c1 info lookup slots -source application} ""
   

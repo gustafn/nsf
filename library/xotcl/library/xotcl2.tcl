@@ -80,8 +80,9 @@ namespace eval ::xotcl {
   # get frequently used primitiva into the ::xotcl namespace
   #
   namespace import ::nsf::configure ::nsf::my ::nsf::finalize ::nsf::interp
-  namespace import ::nsf::method::alias ::nsf::is ::nsf::relation
+  namespace import ::nsf::method::alias ::nsf::is
   interp alias {} ::xotcl::next {} ::nsf::xotclnext
+  interp alias {} ::xotcl::relation {} ::nsf::relation::set
 
   proc ::xotcl::self {{arg ""}} {
       switch $arg {
@@ -483,16 +484,16 @@ namespace eval ::xotcl {
 
   nx::MetaSlot create ::xotcl::RelationSlot -superclass ::nx::RelationSlot
 
-  ::nsf::method::alias ::xotcl::RelationSlot value=assign ::nsf::relation
+  ::nsf::method::alias ::xotcl::RelationSlot value=assign ::nsf::relation::set
 
   set cSlotContainer [::nx::slotObj ::xotcl::Class]
   set oSlotContainer [::nx::slotObj ::xotcl::Object]
   ::xotcl::RelationSlot create ${cSlotContainer}::superclass \
       -defaultmethods {get set}
-  #::nsf::method::alias      ${cSlotContainer}::superclass value=set ::nsf::relation
+  #::nsf::method::alias      ${cSlotContainer}::superclass value=set ::nsf::relation::set
   ::xotcl::RelationSlot create ${oSlotContainer}::class -elementtype class -multiplicity 1..1 \
       -defaultmethods {get set}
-  #::nsf::method::alias      ${oSlotContainer}::class value=set ::nsf::relation
+  #::nsf::method::alias      ${oSlotContainer}::class value=set ::nsf::relation::set
   ::xotcl::RelationSlot create ${oSlotContainer}::mixin  -forwardername object-mixin \
       -defaultmethods {get set} \
       -elementtype mixinreg -multiplicity 0..n

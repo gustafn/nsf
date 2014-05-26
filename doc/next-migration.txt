@@ -2825,7 +2825,7 @@ Bar b1
 ==== Changing classes and superclasses
 
 NX does not define the methods +class+ and +superclass+ (like XOTcl), but allows to
-alter all object/class relations (including class/superclass/object-mixin/...) +nsf::relation+. The class and superclass
+alter all object/class relations (including class/superclass/object-mixin/...) +nsf::relation::set+. The class and superclass
 can be certainly queried in all variants with +info class+ or +info superclass+.
 [source,tcl]
 ----------------
@@ -2835,7 +2835,7 @@ nx::Class create Foo
 Foo create f1
 
 # now alter the class of object f1
-nsf::relation f1 class ::nx::Object
+nsf::relation::set f1 class ::nx::Object
 ----------------
 
 ==== Overwriting procs/methods with objects and vice versa

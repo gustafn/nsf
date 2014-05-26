@@ -32,7 +32,7 @@ package req nx
 
 nx::Class eval {
   :protected method module {name:class} {
-    nsf::relation [self] superclass [concat $name [:info superclass]]
+    nsf::relation::set [self] superclass [concat $name [:info superclass]]
   }
 }
 

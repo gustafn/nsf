@@ -1001,7 +1001,7 @@ nx::test case rename-cached-method {
 nx::test case cyclical-dependency {
   nx::Object create o1
   ? {nx::Class create o1::C} ::o1::C
-  ? {nsf::relation o1 class o1::C} ::o1::C
+  ? {nsf::relation::set o1 class o1::C} ::o1::C
   o1 destroy
 }
 
@@ -1011,7 +1011,7 @@ nx::test case cyclical-dependency {
 #
 nx::Object create o1
 nx::Class create o1::C
-nsf::relation o1 class o1::C
+nsf::relation::set o1 class o1::C
 
 #
 # Create a cyclical superclass dependency and delete it manually
@@ -1019,7 +1019,7 @@ nsf::relation o1 class o1::C
 nx::test case cyclical-dependency {
   nx::Class create C 
   nx::Class create C::*
-  ? {nsf::relation C superclass {C::* nx::Object}} ""
+  ? {nsf::relation::set C superclass {C::* nx::Object}} ""
   C destroy
 }
 
@@ -1029,7 +1029,7 @@ nx::test case cyclical-dependency {
 #
 nx::Class create C 
 nx::Class create C::*
-nsf::relation C superclass {C::* nx::Object}
+nsf::relation::set C superclass {C::* nx::Object}
 
 puts "==== EXIT [info script]"
 #

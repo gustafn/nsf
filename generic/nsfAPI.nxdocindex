@@ -35,7 +35,8 @@ set ::nxdoc::include(::nsf::my) 1
 set ::nxdoc::include(::nsf::next) 1
 set ::nxdoc::include(::nsf::nscopyvars) 0
 set ::nxdoc::include(::nsf::proc) 1
-set ::nxdoc::include(::nsf::relation) 1
+set ::nxdoc::include(::nsf::relation::get) 1
+set ::nxdoc::include(::nsf::relation::set) 1
 set ::nxdoc::include(::nsf::current) 1
 set ::nxdoc::include(::nsf::self) 1
 set ::nxdoc::include(::nsf::var::exists) 1

@@ -53,9 +53,9 @@ nx::test case nsf-mixin {
 nx::test case per-object-mixin {
   ? {c1 info precedence} "::C ::nx::Object"
   ? {c1 object mixin add M} ::M
-  ? {::nsf::relation c1 object-mixin} ::M
+  ? {::nsf::relation::get c1 object-mixin} ::M
   ? {catch {c1 object mixin UNKNOWN}} 1
-  ? {::nsf::relation c1 object-mixin} "::M"
+  ? {::nsf::relation::get c1 object-mixin} "::M"
 
   # add again the same mixin
   ? {c1 object mixin add M} {::M}
@@ -78,10 +78,10 @@ nx::test case per-object-mixin {
 # "object-mixin"
 #
 nx::test case object-mixin-relation {
-  ? {::nsf::relation C object-mixin M} ::M
+  ? {::nsf::relation::set C object-mixin M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
   ? {C info object mixin classes} "::M"
-  ? {::nsf::relation C object-mixin ""} ""
+  ? {::nsf::relation::set C object-mixin ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 }
 
@@ -119,9 +119,9 @@ nx::test case class+mixin-add {
   
   ? {C object mixin add M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
-  ? {::nsf::relation C object-mixin} ::M
+  ? {::nsf::relation::get C object-mixin} ::M
   ? {catch {C object mixin add UNKNOWN}} 1
-  ? {::nsf::relation C object-mixin} "::M"
+  ? {::nsf::relation::get C object-mixin} "::M"
   ? {C object mixin set ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 
@@ -169,57 +169,57 @@ nx::test case filter-relation {
     }
   }
 
-  ? {::nsf::relation cc object-filter} ""
+  ? {::nsf::relation::get cc object-filter} ""
   ? {cc info object filter methods} ""
-  ? {::nsf::relation cc object-filter filterA} filterA
+  ? {::nsf::relation::set cc object-filter filterA} filterA
   ? {cc info object filter methods} "filterA"
   ? {cc object filter set filterB} "filterB"
 
-  ? {::nsf::relation cc object-filter} "filterB"
+  ? {::nsf::relation::get cc object-filter} "filterB"
   ? {cc info object filter methods} "filterB"
 
   ? {cc object filter add filterD} "filterD filterB"
-  ? {::nsf::relation cc object-filter} "filterD filterB"
+  ? {::nsf::relation::get cc object-filter} "filterD filterB"
   ? {cc info object filter methods} "filterD filterB"
 
   ? {cc object filter delete filterB} "filterD"
-  ? {::nsf::relation cc object-filter} "filterD"
+  ? {::nsf::relation::get cc object-filter} "filterD"
   ? {cc info object filter methods} "filterD"
 
-  ? {catch {::nsf::relation cc object-filter UNKNOWN}} 1
-  ? {::nsf::relation cc object-filter} "filterD"
+  ? {catch {::nsf::relation::set cc object-filter UNKNOWN}} 1
+  ? {::nsf::relation::get cc object-filter} "filterD"
   ? {cc info object filter methods} "filterD"
 
-  ? {::nsf::relation CC object-filter} ""
+  ? {::nsf::relation::get CC object-filter} ""
   ? {CC info object filter methods} ""
-  ? {::nsf::relation CC object-filter filterC} "filterC"
-  ? {::nsf::relation CC object-filter} "filterC"
+  ? {::nsf::relation::set CC object-filter filterC} "filterC"
+  ? {::nsf::relation::get CC object-filter} "filterC"
   ? {CC info object filter methods} "filterC"
 
   ? {CC object filter unset} ""
-  ? {::nsf::relation CC object-filter} ""
+  ? {::nsf::relation::get CC object-filter} ""
   ? {CC info object filter methods} ""
   
-  ? {::nsf::relation CC class-filter} ""
+  ? {::nsf::relation::get CC class-filter} ""
   ? {CC info filter methods} ""
-  ? {::nsf::relation CC class-filter filterA} "filterA"
-  ? {::nsf::relation CC class-filter} "filterA"
+  ? {::nsf::relation::set CC class-filter filterA} "filterA"
+  ? {::nsf::relation::get CC class-filter} "filterA"
   ? {CC info filter methods} "filterA"
 
   ? {CC filter add filterB} "filterB filterA"
-  ? {::nsf::relation CC class-filter} "filterB filterA"
+  ? {::nsf::relation::get CC class-filter} "filterB filterA"
   ? {CC info filter methods} "filterB filterA"
 
   ? {CC filter delete filterA} "filterB"
-  ? {::nsf::relation CC class-filter} "filterB"
+  ? {::nsf::relation::get CC class-filter} "filterB"
   ? {CC info filter methods} "filterB"
 
-  ? {catch {::nsf::relation CC class-filter UNKNOWN}} 1
-  ? {::nsf::relation CC class-filter} "filterB"
+  ? {catch {::nsf::relation::set CC class-filter UNKNOWN}} 1
+  ? {::nsf::relation::get CC class-filter} "filterB"
   ? {CC info filter methods} "filterB"
 
   ? {CC filter unset} ""
-  ? {::nsf::relation CC class-filter} ""
+  ? {::nsf::relation::get CC class-filter} ""
   ? {CC info filter methods} ""
 }
 

@@ -25274,15 +25274,27 @@ NsfProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *nameO
 }
 
 /*
-cmd relation NsfRelationCmd {
+cmd relation::get NsfRelationGetCmd {
+  {-argName "object" -type object}
+  {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
+}
+*/
+static int
+NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, int relationtype) {
+
+  return NsfRelationSetCmd(interp, object, relationtype, NULL);
+}
+
+/*
+cmd relation::set NsfRelationSetCmd {
   {-argName "object" -type object}
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
 static int
-NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
-	       int relationtype, Tcl_Obj *valueObj) {
+NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
+                  int relationtype, Tcl_Obj *valueObj) {
   int oc; Tcl_Obj **ov;
   NsfObject *nObject = NULL;
   NsfClass *cl = NULL;
@@ -25293,7 +25305,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
   assert(interp);
   assert(object);
 
-  /*fprintf(stderr, "NsfRelationCmd %s rel=%d val='%s'\n",
+  /*fprintf(stderr, "NsfRelationSetCmd %s rel=%d val='%s'\n",
     ObjectName(object), relationtype, valueObj ? ObjStr(valueObj) : "NULL");*/
 
   if (relationtype == RelationtypeClass_mixinIdx ||
@@ -25563,7 +25575,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     }
 
   }
-  NsfRelationCmd(interp, object, relationtype, NULL);
+  NsfRelationSetCmd(interp, object, relationtype, NULL);
   return TCL_OK;
 }
 
@@ -26305,7 +26317,7 @@ NsfOClassMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *classObj) {
   assert(interp);
   assert(object);
 
-  return NsfRelationCmd(interp, object, RelationtypeClassIdx, classObj);
+  return NsfRelationSetCmd(interp, object, RelationtypeClassIdx, classObj);
 }
 
 /*
@@ -27904,7 +27916,7 @@ NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *superClassesObj)
   assert(interp);
   assert(cl);
 
-  return NsfRelationCmd(interp, &cl->object, RelationtypeSuperclassIdx, superClassesObj);
+  return NsfRelationSetCmd(interp, &cl->object, RelationtypeSuperclassIdx, superClassesObj);
 }
 
 /***********************************************************************

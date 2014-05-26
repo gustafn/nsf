@@ -5112,6 +5112,9 @@ nsf.c:
 - added nsf::var::get and "::nx::var get" to provide selector
   based interface for variable reading (used in slotmethod get
   of nx::VariableSlot)
+- renamed nsf::relation to nsf::relation::set and added 
+  nsf::relation::get in accordance with nsf::var::get
+
 ========================================================================
 TODO:
 - TODO: rename "slotassign" to "slotset"?

@@ -28,7 +28,7 @@ package require nsf
 #   ::nsf::objectsystem::create
 #   ::nsf::forward
 #   ::nsf::method
-#   ::nsf::relation
+#   ::nsf::relation::set
 #
 # Three exported commands to be used by in the languages
 #   ::nsf::my
@@ -154,7 +154,7 @@ namespace eval tcl-cool {
   # superclasses
   class init {
     method superclass {sc} {
-      ::nsf::relation [self] superclass $sc
+      ::nsf::relation::set [self] superclass $sc
     }
   }
 
@@ -166,8 +166,8 @@ namespace eval tcl-cool {
   # Provide users a convenient way to register/deregister per-object
   # filters and mixins
 
-  object forward filter ::nsf::relation %self object-filter
-  object forward mixin  ::nsf::relation %self object-mixin
+  object forward filter ::nsf::relation::set %self object-filter
+  object forward mixin  ::nsf::relation::set %self object-mixin
 
   # finally, export a few commands
   namespace export object class my self next

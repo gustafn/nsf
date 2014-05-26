@@ -723,10 +723,10 @@ namespace eval module {
   nx::Class create M2
 
   C mixin set M1
-  ? {::nsf::relation C class-mixin} "::module::M1"
+  ? {::nsf::relation::get C class-mixin} "::module::M1"
 
   C mixin add M2
-  ? {::nsf::relation C class-mixin} "::module::M2 ::module::M1"
+  ? {::nsf::relation::get C class-mixin} "::module::M2 ::module::M1"
 }
 
 

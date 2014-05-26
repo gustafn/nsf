@@ -972,7 +972,7 @@ namespace eval ::nx {
   # "objectparameter".
   #
   Class create ::nx::MetaSlot
-  ::nsf::relation MetaSlot superclass Class
+  ::nsf::relation::set MetaSlot superclass Class
 
   MetaSlot object method requireClass {required:class old:class,0..1} {
     #
@@ -1104,10 +1104,10 @@ namespace eval ::nx {
   MetaSlot create ::nx::Slot
 
   MetaSlot create ::nx::ObjectParameterSlot
-  ::nsf::relation ObjectParameterSlot superclass Slot
+  ::nsf::relation::set ObjectParameterSlot superclass Slot
 
   MetaSlot create ::nx::MethodParameterSlot
-  ::nsf::relation MethodParameterSlot superclass Slot
+  ::nsf::relation::set MethodParameterSlot superclass Slot
 
   # Create a slot instance for dispatching method parameter specific
   # value checkers
@@ -1176,7 +1176,7 @@ namespace eval ::nx {
   # defining slots for slots, called BootStrapVariableSlot.
   #
   MetaSlot create ::nx::BootStrapVariableSlot
-  ::nsf::relation BootStrapVariableSlot superclass ObjectParameterSlot
+  ::nsf::relation::set BootStrapVariableSlot superclass ObjectParameterSlot
 
   BootStrapVariableSlot public method getParameterSpec {} {
     #
@@ -1501,7 +1501,7 @@ namespace eval ::nx {
   ######################################################################
 
   MetaSlot create ::nx::RelationSlot
-  ::nsf::relation RelationSlot superclass ObjectParameterSlot
+  ::nsf::relation::set RelationSlot superclass ObjectParameterSlot
 
   createBootstrapVariableSlots ::nx::RelationSlot {
     {accessor public}
@@ -1519,11 +1519,11 @@ namespace eval ::nx {
   #
   # create methods for slot operations assign/get/add/delete
   #
-  ::nsf::method::alias RelationSlot value=set ::nsf::relation
-  ::nsf::method::alias RelationSlot value=get ::nsf::relation
+  ::nsf::method::alias RelationSlot value=set ::nsf::relation::set
+  ::nsf::method::alias RelationSlot value=get ::nsf::relation::get
 
   RelationSlot public method value=unset {obj prop} {
-    ::nsf::relation $obj $prop {}
+    ::nsf::relation::set $obj $prop {}
   }
 
   RelationSlot protected method delete_value {obj prop old value} {
@@ -1583,22 +1583,18 @@ namespace eval ::nx {
     }
   }
 
-  #RelationSlot public method value=get {obj prop} {
-  #  ::nsf::relation $obj $prop
-  #}
-
   RelationSlot public method value=add {obj prop value {pos 0}} {
-    set oldSetting [::nsf::relation $obj $prop]
-    #puts stderr [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
+    set oldSetting [::nsf::relation::get $obj $prop]
+    #puts stderr [list ::nsf::relation::set $obj $prop [linsert $oldSetting $pos $value]]
     #
     # Use uplevel to avoid namespace surprises
     #
-    uplevel [list ::nsf::relation $obj $prop [linsert $oldSetting $pos $value]]
+    uplevel [list ::nsf::relation::set $obj $prop [linsert $oldSetting $pos $value]]
   }
 
   RelationSlot public method value=delete {-nocomplain:switch obj prop value} {
-    uplevel [list ::nsf::relation $obj $prop \
-		 [:delete_value $obj $prop [::nsf::relation $obj $prop] $value]]
+    uplevel [list ::nsf::relation::set $obj $prop \
+		 [:delete_value $obj $prop [::nsf::relation::get $obj $prop] $value]]
   }
 
   ######################################################################
@@ -2458,10 +2454,10 @@ namespace eval ::nx {
           # copy class information
           if {[::nsf::is class $origin]} {
 	    # obj is a class, copy class specific information
-            ::nsf::relation $obj superclass [$origin info superclass]
+            ::nsf::relation::set $obj superclass [$origin info superclass]
             ::nsf::method::assertion $obj class-invar [::nsf::method::assertion $origin class-invar]
-	    ::nsf::relation $obj class-filter [::nsf::relation $origin class-filter]
-	    ::nsf::relation $obj class-mixin [::nsf::relation $origin class-mixin]
+	    ::nsf::relation::set $obj class-filter [::nsf::relation::get $origin class-filter]
+	    ::nsf::relation::set $obj class-mixin [::nsf::relation::get $origin class-mixin]
 	    ::nsf::nscopyvars ::nsf::classes$origin ::nsf::classes$dest
 
 	    foreach m [$origin ::nsf::methods::class::info::methods -path -callprotection all] {
@@ -2487,8 +2483,8 @@ namespace eval ::nx {
 	  ::nsf::object::property $obj hasperobjectslots [::nsf::object::property $origin hasperobjectslots]
 	  ::nsf::method::assertion $obj check [::nsf::method::assertion $origin check]
 	  ::nsf::method::assertion $obj object-invar [::nsf::method::assertion $origin object-invar]
-	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
-	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
+	  ::nsf::relation::set $obj object-filter [::nsf::relation::get $origin object-filter]
+	  ::nsf::relation::set $obj object-mixin [::nsf::relation::get $origin object-mixin]
 	  # reused in XOTcl, no "require namespace" there, so use nsf primitiva
 	  if {[::nsf::directdispatch $origin ::nsf::methods::object::info::hasnamespace]} {
 	    ::nsf::directdispatch $obj ::nsf::methods::object::requirenamespace
@@ -2615,7 +2611,7 @@ namespace eval ::nx {
           set scl [$subclass info superclass]
           if {[set index [lsearch -exact $scl [::nsf::self]]] != -1} {
             set scl [lreplace $scl $index $index $newName]
-	    ::nsf::relation $subclass superclass $scl
+	    ::nsf::relation::set $subclass superclass $scl
           }
         }	
       }

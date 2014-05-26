@@ -297,14 +297,14 @@ puts stderr ===MINI-OBJECTSYSTEM
 ? {::nsf::object::exists ::object} 1
 ? {::nsf::is class ::object} 1
 ? {::nsf::is metaclass ::object} 0
-? {::nsf::relation ::object class} ::class
-? {::nsf::relation ::object superclass} ""
+? {::nsf::relation::get ::object class} ::class
+? {::nsf::relation::get ::object superclass} ""
 
 ? {::nsf::object::exists ::class} 1
 ? {::nsf::is class ::class} 1
 ? {::nsf::is metaclass ::class} 1
-? {::nsf::relation ::class class} ::class
-? {::nsf::relation ::class superclass} ::object
+? {::nsf::relation::get ::class class} ::class
+? {::nsf::relation::get ::class superclass} ::object
 
 # define non-standard methos to create/destroy objects and classes
 ::nsf::method::alias ::class  + ::nsf::methods::class::create
@@ -316,8 +316,8 @@ puts stderr ===MINI-OBJECTSYSTEM
 ? {::nsf::object::exists ::C} 1
 ? {::nsf::is class ::C} 1
 ? {::nsf::is metaclass ::C} 0
-? {::nsf::relation ::C class} ::class
-? {::nsf::relation ::C superclass} ::object
+? {::nsf::relation::get ::C class} ::class
+? {::nsf::relation::get ::C superclass} ::object
 
 # create an instance of C
 C + c1
@@ -325,7 +325,7 @@ C + c1
 ? {::nsf::object::exists ::c1} 1
 ? {::nsf::is class ::c1} 0
 ? {::nsf::is metaclass ::c1} 0
-? {::nsf::relation ::c1 class} ::C
+? {::nsf::relation::get ::c1 class} ::C
 
 # destroy instance
 c1 -

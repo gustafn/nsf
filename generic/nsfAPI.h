@@ -281,7 +281,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[107];
+static Nsf_methodDefinition method_definitions[108];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -405,7 +405,9 @@ static int NsfProfileClearDataStubStub(ClientData clientData, Tcl_Interp *interp
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
-static int NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+static int NsfRelationGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfRelationSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
@@ -618,7 +620,9 @@ static int NsfProfileClearDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
 static int NsfProfileGetDataStub(Tcl_Interp *interp)
   NSF_nonnull(1);
-static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int type, Tcl_Obj *value)
+static int NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, int type)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object, int type, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfSelfCmd(Tcl_Interp *interp)
   NSF_nonnull(1);
@@ -774,7 +778,8 @@ enum {
  NsfProcCmdIdx,
  NsfProfileClearDataStubIdx,
  NsfProfileGetDataStubIdx,
- NsfRelationCmdIdx,
+ NsfRelationGetCmdIdx,
+ NsfRelationSetCmdIdx,
  NsfSelfCmdIdx,
  NsfShowStackCmdIdx,
  NsfUnsetUnknownArgsCmdIdx,
@@ -2094,20 +2099,40 @@ NsfProfileGetDataStubStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 }
 
 static int
-NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfRelationGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
 
   if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfRelationCmdIdx].paramDefs, 
-                     method_definitions[NsfRelationCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     method_definitions[NsfRelationGetCmdIdx].paramDefs, 
+                     method_definitions[NsfRelationGetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int type = (int )PTR2INT(pc.clientData[1]);
+
+    assert(pc.status == 0);
+    return NsfRelationGetCmd(interp, object, type);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfRelationSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfRelationSetCmdIdx].paramDefs, 
+                     method_definitions[NsfRelationSetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int type = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfRelationCmd(interp, object, type, value);
+    return NsfRelationSetCmd(interp, object, type, value);
 
   } else {
     return TCL_ERROR;
@@ -3082,7 +3107,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[107] = {
+static Nsf_methodDefinition method_definitions[108] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3357,7 +3382,11 @@ static Nsf_methodDefinition method_definitions[107] = {
 {"::nsf::__profile_get", NsfProfileGetDataStubStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::relation", NsfRelationCmdStub, 3, {
+{"::nsf::relation::get", NsfRelationGetCmdStub, 2, {
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
+  {"type", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToRelationtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::relation::set", NsfRelationSetCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"type", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToRelationtype, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

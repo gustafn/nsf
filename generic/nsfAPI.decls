@@ -221,11 +221,17 @@ cmd proc NsfProcCmd {
   {-argName "body" -required 1 -type tclobj}
 } {-nxdoc 1}
 
-cmd relation NsfRelationCmd {
+cmd relation::get NsfRelationGetCmd {
+  {-argName "object"  -required 1 -type object}
+  {-argName "type" -required 1 -typeName "relationtype" -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
+} {-nxdoc 1}
+
+cmd relation::set NsfRelationSetCmd {
   {-argName "object"  -required 1 -type object}
   {-argName "type" -required 1 -typeName "relationtype" -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 } {-nxdoc 1}
+
 
 cmd current NsfCurrentCmd {
   {-argName "option" -required 0 -typeName "currentoption" -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|nextmethod"}
