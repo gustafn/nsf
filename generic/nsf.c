@@ -19163,10 +19163,10 @@ UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, CONST ch
  *----------------------------------------------------------------------
  * NsfSetterMethod --
  *
- *    This Tcl_ObjCmdProc is called, when a setter is invoked. A setter is a
- *    method that access the same-named instance variable. If the setter is
- *    called without arguments, it returns the values, if it is called with
- *    one argument, the argument is used as new value.
+ *    This Tcl_ObjCmdProc is called, when a setter method is invoked. A setter
+ *    is a method that accesses/modifies a same-named instance variable. If
+ *    the setter is called without arguments, it returns the values, if it is
+ *    called with one argument, the argument is used as new value.
  *
  * Results:
  *    Tcl result code.
@@ -19217,22 +19217,31 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 
 /*
  *----------------------------------------------------------------------
- * ForwardArg --
+ * NsfForwardPrintError --
  *
- *    This function is a helper function of NsfForwardMethod() and processes a
- *    single entry (ForwardArgObj) of the forward spec. Essentially, it
- *    performs the percent substitution of the forward spec.
+ *    Helper function to print either an error message directly to call the
+ *    forwarder specific callback method specified in
+ *    tcd->onerror. Background: ForwardArg() is called at runtime to
+ *    substitute the argument list. Catching such errors is not conveniently
+ *    doable via catch, since it would be necessary to wrap every possible
+ *    usage of a forwarder in a catch. Therefore the callback function can be
+ *    used to give a sensible error message appropriate for each context.
  *
  * Results:
  *    Tcl result code.
  *
  * Side effects:
- *    Updates the provided output arguments.
+ *    Potential side effects through the script.
  *
  *----------------------------------------------------------------------
  */
+static int
+NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
+                     int objc, Tcl_Obj *CONST objv[],
+                     CONST char *fmt, ...)
+  nonnull(1) nonnull(2) nonnull(5) NSF_attribute_format((printf,5,6));
 
-int
+static int
 NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
                      int objc, Tcl_Obj *CONST objv[], 
                      CONST char *fmt, ...) {
@@ -19275,7 +19284,22 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
   return result;
 }
 
-
+/*
+ *----------------------------------------------------------------------
+ * ForwardArg --
+ *
+ *    This function is a helper function of NsfForwardMethod() and processes a
+ *    single entry (ForwardArgObj) of the forward spec. Essentially, it
+ *    performs the percent substitution of the forward spec.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Updates the provided output arguments.
+ *
+ *----------------------------------------------------------------------
+ */
 static int ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                       Tcl_Obj *ForwardArgObj, ForwardCmdClientData *tcd, Tcl_Obj **out,
                       Tcl_Obj **freeList, int *inputArg, int *mapvalue,
@@ -19325,11 +19349,14 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       pos --;
     }
     if (ForwardArgString == remainder || abs(pos) > totalargs) {
-      return NsfPrintError(interp, "forward: invalid index specified in argument %s",
-			   ObjStr(forwardArgObj));
-    }    if (!remainder || *remainder != ' ') {
-      return NsfPrintError(interp, "forward: invalid syntax in '%s'; use: %@<pos> <cmd>",
-			   ObjStr(forwardArgObj));
+      return NsfForwardPrintError(interp, tcd, objc, objv,
+                                  "forward: invalid index specified in argument %s",
+                                  ObjStr(forwardArgObj));
+    }
+    if (!remainder || *remainder != ' ') {
+      return NsfForwardPrintError(interp, tcd, objc, objv,
+                                  "forward: invalid syntax in '%s'; use: %%@<pos> <cmd>",
+                                  ObjStr(forwardArgObj));
     }
 
     ForwardArgString = ++remainder;
@@ -19370,15 +19397,20 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
       if (c1 != '\0') {
         if (unlikely(Tcl_ListObjIndex(interp, forwardArgObj, 1, &list) != TCL_OK)) {
-          return NsfPrintError(interp, "forward: %%1 must be followed by a valid list, given: '%s'",
-			       ObjStr(forwardArgObj));
+          return NsfForwardPrintError(interp, tcd, objc, objv,
+                                      "forward: %%1 must be followed by a valid list, given: '%s'",
+                                      ObjStr(forwardArgObj));
         }
         if (unlikely(Tcl_ListObjGetElements(interp, list, &nrElements, &listElements) != TCL_OK)) {
-          return NsfPrintError(interp, "forward: %%1 contains invalid list '%s'", ObjStr(list));
+          return NsfForwardPrintError(interp, tcd, objc, objv,
+                                      "forward: %%1 contains invalid list '%s'",
+                                      ObjStr(list));
         }
       } else if (unlikely(tcd->subcommands != NULL)) { /* deprecated part */
         if (Tcl_ListObjGetElements(interp, tcd->subcommands, &nrElements, &listElements) != TCL_OK) {
-          return NsfPrintError(interp, "forward: %%1 contains invalid list '%s'", ObjStr(tcd->subcommands));
+          return NsfForwardPrintError(interp, tcd, objc, objv,
+                                      "forward: %%1 contains invalid list '%s'",
+                                      ObjStr(tcd->subcommands));
         }
       } else {
 	assert(nrElements <= nrPosArgs);
@@ -19395,8 +19427,9 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         *out = listElements[nrPosArgs];
       } else if (objc <= 1) {
 
-	return NsfForwardPrintError(interp, tcd, objc, objv, 
-                                    "%%1 requires argument; should be \"%s arg ...\"", ObjStr(objv[0]));
+	return NsfForwardPrintError(interp, tcd, objc, objv,
+                                    "%%1 requires argument; should be \"%s arg ...\"",
+                                    ObjStr(objv[0]));
       } else {
         /*fprintf(stderr, "copying %%1: '%s'\n", ObjStr(objv[firstPosArg]));*/
         *out = objv[firstPosArg];
@@ -19408,10 +19441,14 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
       /*fprintf(stderr, "process flag '%s'\n", firstActualArgument);*/
       if (Tcl_ListObjGetElements(interp, forwardArgObj, &nrElements, &listElements) != TCL_OK) {
-        return NsfPrintError(interp, "forward: '%s' is not a valid list", ForwardArgString);
+        return NsfForwardPrintError(interp, tcd, objc, objv,
+                                    "forward: '%s' is not a valid list",
+                                    ForwardArgString);
       }
       if (nrElements < 1 || nrElements > 2) {
-        return NsfPrintError(interp, "forward: '%s': must contain 1 or 2 arguments", ForwardArgString);
+        return NsfForwardPrintError(interp, tcd, objc, objv,
+                                    "forward: '%s': must contain 1 or 2 arguments",
+                                    ForwardArgString);
       }
       firstElementString = ObjStr(listElements[0]);
       firstElementString++; /* we skip the dash */
@@ -19468,15 +19505,19 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
     } else if (c == 'a' && !strncmp(ForwardArgString, "argcl", 4)) {
       if (Tcl_ListObjIndex(interp, forwardArgObj, 1, &list) != TCL_OK) {
-        return NsfPrintError(interp, "forward: %%argclindex must by a valid list, given: '%s'",
-			     ForwardArgString);
+        return NsfForwardPrintError(interp, tcd, objc, objv,
+                                    "forward: %%argclindex must by a valid list, given: '%s'",
+                                    ForwardArgString);
       }
       if (Tcl_ListObjGetElements(interp, list, &nrElements, &listElements) != TCL_OK) {
-        return NsfPrintError(interp, "forward: %%argclindex contains invalid list '%s'", ObjStr(list));
+        return NsfForwardPrintError(interp, tcd, objc, objv,
+                                    "forward: %%argclindex contains invalid list '%s'",
+                                    ObjStr(list));
       }
       if (nrArgs >= nrElements) {
-        return NsfPrintError(interp, "forward: not enough elements in specified list of ARGC argument %s",
-			     ForwardArgString);
+        return NsfForwardPrintError(interp, tcd, objc, objv,
+                                    "forward: not enough elements in specified list of ARGC argument %s",
+                                    ForwardArgString);
       }
       *out = listElements[nrArgs];
     } else if (c == '%') {

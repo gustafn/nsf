@@ -5049,6 +5049,9 @@ nsf.c:
       constructor returns the list of residual arguments. In case there
       was an error, it was possible that the returned residual arguments
       overwrote the error message in the interp result
+    - finish implementation of NsfForwardPrintError()
+    - use NsfForwardPrintError() in ForwardArg() for all error messages
+
 
 nx.tcl:
     - replace empty-named arrays by dicts
@@ -5107,14 +5110,11 @@ Makefile:
 
 ========================================================================
 TODO:
-- TODO: define setters for traits
-- TODO: paths in sublibs in regression test incorrect
 - TODO: rename "slotassign" to "slotset"?
 - TODO: update tutorial and migration guide
 
 - why is there no pos/index arg for mixin|filter delete?
 
-- nsf.c: finish forwarder error messages
 - finish nx-property reform
 
 - -incremental: setting incremental will promote a property/variable
