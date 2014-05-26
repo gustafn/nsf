@@ -31,8 +31,8 @@ nx::Trait create tPositionableStream {
   # from the base class or other traits. The definition is incomplete
   # in these regards
 
-  :requiredMethods set position
-  :requiredVariables set collection
+  :requiredMethods position
+  :requiredVariables collection
 }
 
 #
@@ -53,7 +53,7 @@ nx::Trait create tReadStream {
   }
   
   # This trait requires these methods:
-  :requiredMethods set {setToStart atEnd nextPosition}
+  :requiredMethods {setToStart atEnd nextPosition}
 
   # Require the trait "tPositionableStream"
   :require trait tPositionableStream
@@ -75,7 +75,7 @@ nx::Trait create tWriteStream {
   }
 
   # This trait requires these methods:
-  :requiredMethods set {setToEnd nextPosition}
+  :requiredMethods {setToEnd nextPosition}
 
   # Require the trait "tPositionableStream"
   :require trait tPositionableStream

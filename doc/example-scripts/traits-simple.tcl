@@ -40,8 +40,8 @@ nx::Trait create tReadStream {
   # "collection" from the base class. The definition is incomplete in
   # these regards.
 
-  :requiredMethods set position
-  :requiredVariables set collection
+  :requiredMethods position
+  :requiredVariables collection
 }
 
 # Define the class +ReadStream+ with properties +position+ and
