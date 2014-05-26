@@ -18,8 +18,8 @@
 Defines a [term property] for the scope of the [vset SCOPE]. The [arg spec] provides
 the [term property] specification as a [cmd list] holding at least one
 element or, maximum, two elements: 
-[emph propertyName][opt ":[emph typeSpec]"] [opt [emph defaultValue]]. The [arg propertyName] sets
-the name of the property and the corresponding object variable(s). It
+[emph propertyName][opt ":[emph typeSpec]"] [opt [emph defaultValue]]. The [arg propertyName] is also used as to form the names of the getter/setter methods,
+if requested (see [option "-accessor"]). It
 is, optionally, equipped with a [emph typeSpec] following a colon
 delimiter which specifies a [term "value checker"] for the values
 which become assigned to the property. The second, optional element
@@ -34,6 +34,8 @@ a pair of getter and setter methods:
 Sets the [term property] [arg propertyName] to [arg value].
 [def "[arg obj] [arg propertyName] [method get]"]
 Returns the current value of [term property] [arg propertyName].
+[def "[arg obj] [arg propertyName] [method unset]"]
+Removes the value store of [arg propertyName] (e.g., an object variable), if existing.
 [list_end]
 The option value passed along [option "-accessor"] sets the level of
 [term "call protection"] for the generated getter and setter methods: [term public],
@@ -55,8 +57,8 @@ additional setter methods become available:
 [list_begin definitions]
 [def "[arg obj] [arg propertyName] [method add] [arg element] [opt [arg index]]"]
 Adding [arg element] to the managed list value, at the list position given by [arg index] (by default: 0).
-[def "[arg obj] [arg propertyName] [method delete] [arg element] [opt [arg index]]"]
-Removing the first occurrence of [arg value] from the managed list value, starting from list position [arg index] (by default: [const end]).
+[def "[arg obj] [arg propertyName] [method delete] [arg elementPattern]"]
+Removing one or multiple elements from the managed list value which match [arg elementPattern]. [arg elementPattern] can contain matching characters (see [cmd "string match"]).
 [list_end]
 
 
