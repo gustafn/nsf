@@ -20,8 +20,7 @@ element [arg guardExpr] will be stored as a guard expression of the
 (see [cmd expr]). [arg expr] is evaluated when [arg obj] receives a message to determine whether the
 filter should intercept the message. Guard expressions
 allow for realizing context-dependent or conditional filter
-composition. If [arg filterSpecList] represents an empty list, any
-existing [term "filter"] will be removed from [arg obj].
+composition.
 
 [def "[arg obj] [const [vset SCOPE]] [method {filter get}]"]
 Returns the current list of methods registered as [term "filter"]s.
@@ -36,6 +35,10 @@ Removes a single [term "filter"] from the current list of [term "filter"]s of
 contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "filter delete"] will
 throw an error if there is no matching [term "filter"], unless
 [option -nocomplain] is set.
+
+[def "[arg obj] [const [vset SCOPE]] [method {filter unset}]"]
+Removes all [term "filter"]s from [arg obj]. This is equivalent
+to passing an empty list for [arg filterSpecList] to [const [vset SCOPE]] [method {filter set}].
 
 [def "[arg obj] [const [vset SCOPE]] [method {filter guard}] [arg methodName] [arg expr]"]
 

@@ -26,6 +26,8 @@ getter and setter methods:
 Sets [arg variableName] to [arg varValue].
 [def "[arg obj] [arg variableName] [method get]"]
 Returns the current value of [arg variableName].
+[def "[arg obj] [arg variableName] [method unset]"]
+Removes [arg variableName], if existing, underlying the property.
 [list_end]
 
 The option value passed along [option "-accessor"] sets the level of
@@ -48,8 +50,10 @@ additional setter operations become available:
 [list_begin definitions]
 [def "[arg obj] [arg variableName] [method add] [arg element] [opt [arg index]]"]
 Adding [arg element] to the managed list value, at the list position given by [arg index] (by default: 0).
-[def "[arg obj] [arg variableName] [method delete] [arg element] [opt [arg index]]"]
-Removing the first occurrence of [arg value] from the managed list value, starting from list position [arg index] (by default: [const end]).
+[def "[arg obj] [arg variableName] [method delete] [arg elementPattern]"]
+Removing one or multiple elements from the managed list value which
+match [arg elementPattern]. [arg elementPattern] can contain matching
+characters (see [cmd "string match"]).
 [list_end]
 
 [para]

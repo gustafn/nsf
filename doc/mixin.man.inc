@@ -20,8 +20,7 @@ element [arg guardExpr] will be stored as a guard expression of the
 [cmd expr] when [arg obj] receives a message to determine if the mixin
 is to be considered during method dispatch or not. Guard expressions
 allow for realizing context-dependent or conditional mixin
-composition. If [arg mixinSpecList] represents an empty list, any
-existing [term "mixin class"] will be removed from [arg obj].
+composition.
 
 [def "[arg obj] [const [vset SCOPE]] [method {mixin get}]"]
 Returns the current list of [term "mixin class"]es.
@@ -31,6 +30,11 @@ omitted, [arg index] defaults to the list head (0).
 [comment {Therefore, by default, any added [term "mixin class"] takes precedence over previously added classes in the overall linearisation of [arg obj].}]
 [def "[arg obj] [const [vset SCOPE]] [method {mixin delete}] [option -nocomplain] [arg specPattern]"]
 Removes a [term "mixin class"] from a current list of [term "mixin class"]es of [arg obj] whose spec matches [arg specPattern]. [arg specPattern] can contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "mixin delete"] will throw an error if there is no matching [term "mixin class"], unless [option -nocomplain] is set.
+
+[def "[arg obj] [const [vset SCOPE]] [method {mixin unset}]"]
+Removes all [term "mixin class"]es from [arg obj]. This is equivalent
+to passing an empty list for [arg mixinSpecList] to 
+[const [vset SCOPE]] [method {mixin set}].
 
 [def "[arg obj] [const [vset SCOPE]] [method {mixin guard}] [arg className] [arg expr]"]
 
