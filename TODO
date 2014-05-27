@@ -5122,6 +5122,10 @@ nx.tcl:
 - use "mixin|filter clear" instead of "mixin|filter unset"
 - name parameter option "slotset" instead of "slotassign"
 
+nsfObj.c:
+- allow to omit "-guard" within arguments to flag
+  definition of a filter/mixin guard
+- extended regression test
 
 ========================================================================
 TODO:

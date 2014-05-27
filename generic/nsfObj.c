@@ -410,21 +410,28 @@ MixinregSetFromAny(
   int oc; Tcl_Obj **ov;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
-    if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
+    
+    if (oc == 1) {
+      nameObj = ov[0];
+
+    } else if (oc == 2) {
+      nameObj = ov[0];
+      guardObj = ov[1];
+
+    } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
       nameObj = ov[0];
       guardObj = ov[2];
-      /* fprintf(stderr, "mixinadd name = '%s', guard = '%s'\n", ObjStr(nameObj), ObjStr(guardObj));*/
-    } else if (oc == 1) {
-      nameObj = ov[0];
+
     } else {
       return TCL_ERROR;
     }
+
   } else {
     return TCL_ERROR;
   }
 
   /*
-   * Try to resolve unknowns
+   * Syntax was ok. Try to lookup mixin classes:
    */
   if (NsfGetClassFromObj(interp, nameObj, &mixin, 1) != TCL_OK) {
     return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
@@ -600,16 +607,21 @@ FilterregSetFromAny(
   int oc; Tcl_Obj **ov;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
-    if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
+    if (oc == 1) {
+      filterObj = ov[0];
+
+    } else if (oc == 2) {
+      filterObj = ov[0];
+      guardObj = ov[1];
+
+    } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
       filterObj = ov[0];
       guardObj = ov[2];
-      /*fprintf(stderr, "filteradd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
-    } else if (oc == 1) {
-      filterObj = ov[0];
+
     } else {
       return TCL_ERROR;
     }
-  } else {
+  }  else {
     return TCL_ERROR;
   }
 
