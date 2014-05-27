@@ -281,7 +281,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[108];
+static Nsf_methodDefinition method_definitions[110];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -477,9 +477,13 @@ static int NsfObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfObjInfoLookupFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
+static int NsfObjInfoLookupFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfObjInfoLookupMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
+static int NsfObjInfoLookupMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfObjInfoLookupSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
@@ -692,9 +696,13 @@ static int NsfObjInfoIsMethod(Tcl_Interp *interp, NsfObject *obj, int objectkind
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoLookupFilterMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfObjInfoLookupFiltersMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, CONST char *pattern)
+  NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *name)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withIncontext, int withType, int withNomixins, int withPath, int withSource, CONST char *pattern)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfObjInfoLookupMixinsMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, CONST char *patternString, NsfObject *patternObject)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *obj, int withSource, NsfClass *withType, CONST char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -814,8 +822,10 @@ enum {
  NsfObjInfoHasnamespaceMethodIdx,
  NsfObjInfoIsMethodIdx,
  NsfObjInfoLookupFilterMethodIdx,
+ NsfObjInfoLookupFiltersMethodIdx,
  NsfObjInfoLookupMethodMethodIdx,
  NsfObjInfoLookupMethodsMethodIdx,
+ NsfObjInfoLookupMixinsMethodIdx,
  NsfObjInfoLookupSlotsMethodIdx,
  NsfObjInfoMethodMethodIdx,
  NsfObjInfoMethodsMethodIdx,
@@ -2800,6 +2810,29 @@ NsfObjInfoLookupFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 }
 
 static int
+NsfObjInfoLookupFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  NsfObject *obj =  (NsfObject *)clientData;
+
+  assert(clientData);
+  assert(objc > 0);
+  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, "object",  ObjStr(objv[0]));
+  if (likely(ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[NsfObjInfoLookupFiltersMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoLookupFiltersMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    int withGuards = (int )PTR2INT(pc.clientData[0]);
+    CONST char *pattern = (CONST char *)pc.clientData[1];
+
+    assert(pc.status == 0);
+    return NsfObjInfoLookupFiltersMethod(interp, obj, withGuards, pattern);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
 NsfObjInfoLookupMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfObject *obj =  (NsfObject *)clientData;
 
@@ -2841,6 +2874,43 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
     assert(pc.status == 0);
     return NsfObjInfoLookupMethodsMethod(interp, obj, withCallprotection, withIncontext, withType, withNomixins, withPath, withSource, pattern);
 
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfObjInfoLookupMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  NsfObject *obj =  (NsfObject *)clientData;
+
+  assert(clientData);
+  assert(objc > 0);
+  if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, "object",  ObjStr(objv[0]));
+  if (likely(ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[NsfObjInfoLookupMixinsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoLookupMixinsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    int withGuards = (int )PTR2INT(pc.clientData[0]);
+    CONST char *patternString = NULL;
+    NsfObject *patternObject = NULL;
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
+    int returnCode;
+
+    if (GetMatchObject(interp, pattern, objc>1 ? objv[1] : NULL, &patternObject, &patternString) == -1) {
+      if (pattern) {
+        DECR_REF_COUNT2("patternObj", pattern);
+      }
+      return TCL_OK;
+    }
+          
+    assert(pc.status == 0);
+    returnCode = NsfObjInfoLookupMixinsMethod(interp, obj, withGuards, patternString, patternObject);
+
+    if (pattern) {
+      DECR_REF_COUNT2("patternObj", pattern);
+    }
+    return returnCode;
   } else {
     return TCL_ERROR;
   }
@@ -3107,7 +3177,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[108] = {
+static Nsf_methodDefinition method_definitions[110] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3511,6 +3581,10 @@ static Nsf_methodDefinition method_definitions[108] = {
 {"::nsf::methods::object::info::lookupfilter", NsfObjInfoLookupFilterMethodStub, 1, {
   {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
+{"::nsf::methods::object::info::lookupfilters", NsfObjInfoLookupFiltersMethodStub, 2, {
+  {"-guards", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
 {"::nsf::methods::object::info::lookupmethod", NsfObjInfoLookupMethodMethodStub, 1, {
   {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3522,6 +3596,10 @@ static Nsf_methodDefinition method_definitions[108] = {
   {"-path", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::methods::object::info::lookupmixins", NsfObjInfoLookupMixinsMethodStub, 2, {
+  {"-guards", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::lookupslots", NsfObjInfoLookupSlotsMethodStub, 3, {
   {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},

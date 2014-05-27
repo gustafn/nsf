@@ -565,6 +565,10 @@ nx::test case filter-guard-separately {
   r leave Uwe
   r configure -name "Office"
   ? {set ::_} "enter leave"
+  ? {r info lookup filters} "::nsf::classes::Room::loggingFilter"
+  ? {r info lookup filters -guards} {{loggingFilter -guard {
+      [current calledmethod] in {enter leave}
+    }}}
   
   # Now we define a subclass DangerRoom, which refines the filter by
   # logging into a "dangerRoomLog". We want here entries for all
@@ -589,9 +593,37 @@ nx::test case filter-guard-separately {
   ? {set ::_} "enter leave"
   ? {expr [llength $::dangerRoomLog] > 2} 1
 
+  ? {d info lookup filters} "::nsf::classes::DangerRoom::loggingFilter ::nsf::classes::Room::loggingFilter"
+
   d destroy
 }
 
+
+#
+# Test info lookup mixins (with guards)
+#
+
+nx::test case filter-guard-separately {
+  nx::Class create M1
+  nx::Class create M2
+  nx::Class create M3
+  nx::Class create C
+  nx::Class create D -superclass C
+
+  D create d1 -object-mixin M1
+  ? {d1 info lookup mixins} ::M1
+
+  D mixin add {M2 -guard 1}
+  ? {d1 info lookup mixins} "::M1 ::M2"
+
+  C mixin add M3
+  ? {d1 info lookup mixins} "::M1 ::M2 ::M3"
+  ? {d1 info lookup mixins -guards} "::M1 {::M2 -guard 1} ::M3"
+  ? {d1 info lookup mixins -guards *2*} "{::M2 -guard 1}"
+
+  d1 object mixin clear 
+  ? {d1 info lookup mixins} "::M2 ::M3"
+}
 
 #
 # Local variables:

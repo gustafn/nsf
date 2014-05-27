@@ -79,8 +79,10 @@ set ::nxdoc::include(::nsf::methods::object::info::hasnamespace) 0
 set ::nxdoc::include(::nsf::methods::object::info::hastype) 0
 set ::nxdoc::include(::nsf::methods::object::info::is) 0
 set ::nxdoc::include(::nsf::methods::object::info::lookupfilter) 0
+set ::nxdoc::include(::nsf::methods::object::info::lookupfilters) 0
 set ::nxdoc::include(::nsf::methods::object::info::lookupmethod) 0
 set ::nxdoc::include(::nsf::methods::object::info::lookupmethods) 0
+set ::nxdoc::include(::nsf::methods::object::info::lookupmixins) 0
 set ::nxdoc::include(::nsf::methods::object::info::lookupslots) 0
 set ::nxdoc::include(::nsf::methods::object::info::method) 0
 set ::nxdoc::include(::nsf::methods::object::info::methods) 0

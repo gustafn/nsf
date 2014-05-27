@@ -414,6 +414,10 @@ objectInfoMethod is NsfObjInfoIsMethod {
 objectInfoMethod lookupfilter NsfObjInfoLookupFilterMethod {
   {-argName "filter" -required 1}
 }
+objectInfoMethod lookupfilters NsfObjInfoLookupFiltersMethod {
+  {-argName "-guards" -nrargs 0 -type switch}
+  {-argName "pattern"}
+}
 objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
   {-argName "name" -required 1 -type tclobj}
 }
@@ -425,6 +429,10 @@ objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-path" -nrargs 0 -type switch}
   {-argName "-source" -type "all|application|system" -default all}
   {-argName "pattern" -required 0}
+}
+objectInfoMethod lookupmixins NsfObjInfoLookupMixinsMethod {
+  {-argName "-guards" -nrargs 0 -type switch}
+  {-argName "pattern" -type objpattern}
 }
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
   {-argName "-source" -type "all|application|system" -default all}

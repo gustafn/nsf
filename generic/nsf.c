@@ -10034,7 +10034,9 @@ FilterComputeOrder(Tcl_Interp *interp, NsfObject *object) {
   assert(interp);
   assert(object);
 
-  if (object->filterOrder) FilterResetOrder(object);
+  if (object->filterOrder) {
+    FilterResetOrder(object);
+  }
   /*
     fprintf(stderr, "<Filter Order obj=%s> List: ", ObjectName(object));
   */
@@ -28173,6 +28175,25 @@ NsfObjInfoLookupFilterMethod(Tcl_Interp *interp, NsfObject *object, CONST char *
   return TCL_OK;
 }
 
+
+/*
+objectInfoMethod lookupfilters NsfObjInfoLookupFiltersMethod {
+  {-argName "-guards" -nrargs 0 -type switch}
+  {-argName "pattern"}
+}
+*/
+static int
+NsfObjInfoLookupFiltersMethod(Tcl_Interp *interp, NsfObject *object, int withGuards, CONST char *pattern) {
+
+  assert(interp);
+  assert(object);
+
+  if (!(object->flags & NSF_FILTER_ORDER_VALID)) {
+    FilterComputeDefined(interp, object);
+  }
+  return FilterInfo(interp, object->filterOrder, pattern, withGuards, 1);
+}
+
 /*
 objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
   {-argName "name" -required 1 -type tclobj}
@@ -28329,6 +28350,25 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 }
 
 /*
+objectInfoMethod lookupmixins NsfObjInfoLookupMixinsMethod {
+  {-argName "-guards" -nrargs 0 -type switch}
+  {-argName "pattern" -type objpattern}
+}
+*/
+static int
+NsfObjInfoLookupMixinsMethod(Tcl_Interp *interp, NsfObject *object, int withGuards,
+			     CONST char *patternString, NsfObject *patternObj) {
+  assert(interp);
+  assert(object);
+
+  if (!(object->flags & NSF_MIXIN_ORDER_VALID)) {
+    MixinComputeDefined(interp, object);
+  }
+  return MixinInfo(interp, object->mixinOrder, patternString, withGuards, patternObj);
+}
+
+
+/*
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
   {-argName "-source" -nrargs 1 -type "all|application|system" -default all}
   {-argName "-type" -required 0 -nrargs 1 -type class}
@@ -28444,13 +28484,11 @@ objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
   {-argName "-heritage"}
   {-argName "pattern" -type objpattern}
 }
-}
 */
 static int
 NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *object,
 			     int withGuards, int withHeritage,
 			     CONST char *patternString, NsfObject *patternObj) {
-
   assert(interp);
   assert(object);
 

@@ -704,8 +704,10 @@ namespace eval ::nx {
 
   Object eval {
     :alias "info lookup filter"  ::nsf::methods::object::info::lookupfilter
+    :alias "info lookup filters" ::nsf::methods::object::info::lookupfilters
     :alias "info lookup method"  ::nsf::methods::object::info::lookupmethod
     :alias "info lookup methods" ::nsf::methods::object::info::lookupmethods
+    :alias "info lookup mixins"   ::nsf::methods::object::info::lookupmixins
     :method "info lookup slots" {{-type:class ::nx::Slot} -source pattern:optional} {
       set cmd [list ::nsf::methods::object::info::lookupslots -type $type]
       if {[info exists source]} {lappend cmd -source $source}

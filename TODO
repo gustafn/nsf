@@ -5131,7 +5131,10 @@ nsfObj.c:
 
 nsf.c:
 - improve handling of space in object names
-
+- added methods 
+     "info lookup filters ?-guards? ?/pattern/?" and 
+     "info lookup methods *-guards? ?/pattern/?"
+- extended regression test
 ========================================================================
 TODO:
 - TODO: update tutorial and migration guide
