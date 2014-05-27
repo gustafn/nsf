@@ -12,9 +12,9 @@ Accesses and modifies the list of methods which are registered as
 [def "[arg obj] [const [vset SCOPE]] [method {filter set}] [arg filterSpecList]"]
 
 [arg filterSpecList] takes a list of [term "filter"] specs, with each spec being itself a
-one- or three-elements list: [arg methodName] ?-guard [arg guardExpr]?. [arg methodName] identifies
+one-element or two-elements list: [arg methodName] ?[arg guardExpr]?. [arg methodName] identifies
 an existing method of [arg obj] which becomes
-registered as a filter. If having three elements, the third
+registered as a filter. If having two elements, the second
 element [arg guardExpr] will be stored as a guard expression of the
 [term "filter"]. This guard expression must be a valid Tcl expression
 (see [cmd expr]). [arg expr] is evaluated when [arg obj] receives a message to determine whether the
@@ -36,7 +36,7 @@ contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] 
 throw an error if there is no matching [term "filter"], unless
 [option -nocomplain] is set.
 
-[def "[arg obj] [const [vset SCOPE]] [method {filter unset}]"]
+[def "[arg obj] [const [vset SCOPE]] [method {filter clear}]"]
 Removes all [term "filter"]s from [arg obj]. This is equivalent
 to passing an empty list for [arg filterSpecList] to [const [vset SCOPE]] [method {filter set}].
 
