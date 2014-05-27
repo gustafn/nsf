@@ -3134,7 +3134,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 		  CONST char **methodName1, int *fromClassNS) {
   char *methodName;
   NsfObject *referencedObject;
-  int containsSpace;
+  int containsSpace, tailContainsSpace;
   Tcl_Command cmd;
 
   assert(interp);
@@ -3156,15 +3156,22 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
     containsSpace = strchr(methodName, ' ') != NULL;
   }
 
+  if (containsSpace) {
+    tailContainsSpace = strchr(NSTail(methodName), ' ') != NULL;
+  } else {
+    tailContainsSpace = 0;
+  }
+  /*fprintf(stderr, "<%s> containsSpace %d tailContainsSpace %d\n", methodName, containsSpace, tailContainsSpace);*/
+
 #if !defined(NDBUG)
   if (containsSpace) {
     assert(strchr(methodName, ' ') != 0);
   } else {
-    assert(strchr(methodName, ' ') == 0);
+    assert(tailContainsSpace == 0);
   }
 #endif
 
-  if (containsSpace) {
+  if (tailContainsSpace) {
     CONST char *firstElementString;
     Tcl_Namespace *parentNsPtr;
     NsfObject *ensembleObject;

@@ -5127,6 +5127,9 @@ nsfObj.c:
   definition of a filter/mixin guard
 - extended regression test
 
+nsf.c:
+- improve handling of space in object names
+
 ========================================================================
 TODO:
 - TODO: update tutorial and migration guide
