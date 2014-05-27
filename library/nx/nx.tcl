@@ -1361,7 +1361,7 @@ namespace eval ::nx {
       lappend options ${:elementtype}
       #puts stderr "+++ [self] added elementtype ${:elementtype}"
     }
-    if {${:disposition} eq "slotassign"} {
+    if {${:disposition} eq "slotset"} {
       lappend options slot=[::nsf::self] ${:disposition} method=${:forwardername}
     } else {
       lappend options ${:disposition}
@@ -1376,15 +1376,11 @@ namespace eval ::nx {
     }
     if {$forObjectParameter} {
       #
-      # Slot objects are always in nx (for nx and for xotcl
-      # application objects. we have to watch for assign and set)
+      # Check, if get or set methods were overloaded
       #
-      if {[:info lookup method value=assign] ni {"" "::nsf::classes::xotcl::RelationSlot::value=assign"}} {
-	# In case the "assign" method was provided on the slot, ask nsf to call it directly
-	lappend options slot=[::nsf::self] slotassign
-      } elseif {[:info lookup method value=set] ni {"" "::nsf::classes::nx::RelationSlot::value=set"}} {
+      if {[:info lookup method value=set] ni {"" "::nsf::classes::nx::RelationSlot::value=set"}} {
 	# In case the "set" method was provided on the slot, ask nsf to call it directly
-	lappend options slot=[::nsf::self] slotassign
+	lappend options slot=[::nsf::self] slotset
       } elseif {[:info lookup method value=get] ni {"" "::nsf::classes::nx::RelationSlot::value=get"}} {
 	# In case the "get" method was provided on the slot, ask nsf to call it directly
 	lappend options slot=[::nsf::self]
@@ -1517,12 +1513,12 @@ namespace eval ::nx {
   }
 
   #
-  # create methods for slot operations assign/get/add/delete
+  # create methods for slot operations set/get/add/clear/delete
   #
   ::nsf::method::alias RelationSlot value=set ::nsf::relation::set
   ::nsf::method::alias RelationSlot value=get ::nsf::relation::get
 
-  RelationSlot public method value=unset {obj prop} {
+  RelationSlot public method value=clear {obj prop} {
     ::nsf::relation::set $obj $prop {}
   }
 
@@ -1617,25 +1613,25 @@ namespace eval ::nx {
   ::nx::RelationSlot create ::nx::Object::slot::object-mixin \
       -multiplicity 0..n \
       -defaultmethods {} \
-      -disposition slotassign \
+      -disposition slotset \
       -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
 
   ::nx::RelationSlot create ::nx::Object::slot::object-filter \
       -multiplicity 0..n \
       -defaultmethods {} \
-      -disposition slotassign \
+      -disposition slotset \
       -settername "object filter" -forwardername object-filter -elementtype filterreg
 
   ::nx::RelationSlot create ::nx::Class::slot::mixin \
       -multiplicity 0..n \
       -defaultmethods {} \
-      -disposition slotassign \
+      -disposition slotset \
       -forwardername "class-mixin" -elementtype mixinreg
 
     ::nx::RelationSlot create ::nx::Class::slot::filter \
       -multiplicity 0..n \
       -defaultmethods {} \
-      -disposition slotassign \
+      -disposition slotset \
       -forwardername class-filter -elementtype filterreg
   
   #
@@ -1753,7 +1749,7 @@ namespace eval ::nx {
   ::nx::VariableSlot protected method setterRedefinedOptions {} {
     if {[:info lookup method value=set] ne "::nsf::classes::nx::VariableSlot::value=set"} {
       # In case the "set" method was provided on the slot, ask nsf to call it directly
-      return [list slot=[::nsf::self] slotassign]
+      return [list slot=[::nsf::self] slotset]
     }
     if {[:info lookup method value=get] ne "::nsf::classes::nx::VariableSlot::value=get"} {
       # In case the "get" method was provided on the slot, ask nsf to call it directly
@@ -2034,7 +2030,7 @@ namespace eval ::nx {
   ######################################################################
   # Implementation of (incremental) forwarder operations for
   # VariableSlots:
-  #  - assign
+  #  - set
   #  - get
   #  - add
   #  - delete

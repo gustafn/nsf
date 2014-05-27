@@ -4,10 +4,10 @@ package require nx::test
 
 #::nx::configure defaultMethodCallProtection false
 
-set objectFilter "-object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotassign,method=object-filter,0..n"
-set objectMixin "-object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotassign,method=object-mixin,0..n"
+set objectFilter "-object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,method=object-filter,0..n"
+set objectMixin "-object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,method=object-mixin,0..n"
 set initBlock "__initblock:cmd,optional,noleadingdash"
-set filter "-filter:filterreg,slot=::nx::Class::slot::filter,slotassign,method=class-filter,0..n"
+set filter "-filter:filterreg,slot=::nx::Class::slot::filter,slotset,method=class-filter,0..n"
 
 set ::trailer "$objectMixin -class:class,alias,method=::nsf::methods::object::class $objectFilter $initBlock"
 
@@ -283,7 +283,7 @@ nx::test case objectparameter {
   C create c1
  
   ? {C eval :__objectparameter} \
-      "{-superclass:class,alias,method=::nsf::methods::class::superclass,1..n ::nx::Object} -mixin:mixinreg,slot=::nx::Class::slot::mixin,slotassign,method=class-mixin,0..n $::filter $::objectMixin -class:class,alias,method=::nsf::methods::object::class $::objectFilter $::initBlock"
+      "{-superclass:class,alias,method=::nsf::methods::class::superclass,1..n ::nx::Object} -mixin:mixinreg,slot=::nx::Class::slot::mixin,slotset,method=class-mixin,0..n $::filter $::objectMixin -class:class,alias,method=::nsf::methods::object::class $::objectFilter $::initBlock"
 
   #### TOOD: remove or add
   #? {c1 eval :__objectparameter} \
@@ -2819,7 +2819,7 @@ nx::test case object-level-defaults {
   # to ::nsf::is which (currently) does not accept it:
   #
   # 'invalid value constraints
-  # "slot=::objekt::per-object-slot::a,slotassign"'
+  # "slot=::objekt::per-object-slot::a,slotset"'
   #
   nx::Object create o
   ? {o eval {info exists :a}} 0

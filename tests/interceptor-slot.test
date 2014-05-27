@@ -27,7 +27,7 @@ nx::test case mixin-method {
   ? {C info mixin classes} ""
 
   ? {C mixin set ::M} "::M"
-  ? {C mixin unset} ""
+  ? {C mixin clear} ""
   ? {C info mixin classes} ""
 
   ? {C mixin add ::M} "::M"
@@ -69,7 +69,7 @@ nx::test case per-object-mixin {
 
   ? {c1 object mixin add M} {::M}
   ? {c1 info object mixin classes} {::M}
-  ? {c1 object mixin unset} {}
+  ? {c1 object mixin clear} {}
   ? {c1 info object mixin classes} {}
 }
 
@@ -196,7 +196,7 @@ nx::test case filter-relation {
   ? {::nsf::relation::get CC object-filter} "filterC"
   ? {CC info object filter methods} "filterC"
 
-  ? {CC object filter unset} ""
+  ? {CC object filter clear} ""
   ? {::nsf::relation::get CC object-filter} ""
   ? {CC info object filter methods} ""
   
@@ -218,7 +218,7 @@ nx::test case filter-relation {
   ? {::nsf::relation::get CC class-filter} "filterB"
   ? {CC info filter methods} "filterB"
 
-  ? {CC filter unset} ""
+  ? {CC filter clear} ""
   ? {::nsf::relation::get CC class-filter} ""
   ? {CC info filter methods} ""
 }
@@ -436,6 +436,160 @@ nx::test case mixins+method-handles+intrinsic {
   ? {c1 [A info method definitionhandle bar]} "Z Y "
   ? {c1 [Z info method definitionhandle bar]} "Z Y "
   ? {c1 [Y info method definitionhandle bar]} "Z Y "
+}
+
+#
+# Test filter guards (define filter and guard separtely)
+#
+
+nx::test case filter-guard-separately {
+
+  #
+  # Define a room with occupancy and methods for entering and leaving
+  #
+  nx::Class create Room {
+    :property name
+    :variable occupancy:integer 0
+
+    :public method enter {name} {incr ::occupancy}
+    :public method leave {name} {incr ::occupancy -1}
+    
+    #
+    # We are interested, what happens with the room, so we define a
+    # logging filter....
+    #
+    :method loggingFilter args {
+      lappend ::_ [current calledmethod]
+      next
+    }
+    
+    #
+    # ... and we register it.
+    #
+    :filter add loggingFilter
+  }
+
+  set ::_ {}
+
+  ? {Room create r} ::r
+  r enter Uwe
+  r leave Uwe
+  r configure -name "Office"
+  ? {set ::_} "__objectparameter init enter leave configure"
+
+  #
+  # Hmm, we not so much interested on all these calls. Just the
+  # "enter" and "leave" operations are fine. We could have certainly
+  # as well mixin for these two methods, but the guards are more
+  # general since the can as well trigger on arbitrary patterns.
+  #
+
+  Room filter guard loggingFilter {
+    [current calledmethod] in {enter leave}
+  }
+
+  r destroy
+  set ::_ {}
+
+  ? {Room create r} ::r
+  r enter Uwe
+  r leave Uwe
+  r configure -name "Office"
+  ? {set ::_} "enter leave"
+
+  r destroy
+  
+  # Now we define a subclass DangerRoom, which refines the filter by
+  # logging into a "dangerRoomLog". We want here entries for all
+  # operations.
+
+  set ::_ {}
+  set ::dangerRoomLog {}
+
+  nx::Class create DangerRoom -superclass Room {
+    :method loggingFilter args {
+      lappend ::dangerRoomLog [current calledmethod]
+      next
+    }
+    :filter add loggingFilter
+  }
+
+  ? {DangerRoom create d} ::d
+  d enter Uwe
+  d leave Uwe
+  d configure -name "Safe Room"
+  ? {set ::_} "enter leave"
+  ? {expr [llength $::dangerRoomLog] > 2} 1
+
+  d destroy
+
+}
+
+#
+# Test filter guards (define filter together with guard)
+#
+
+nx::test case filter-guard-separately {
+
+  #
+  # Define a room with occupancy and methods for entering and leaving
+  #
+  nx::Class create Room {
+    :property name
+    :variable occupancy:integer 0
+
+    :public method enter {name} {incr ::occupancy}
+    :public method leave {name} {incr ::occupancy -1}
+    
+    #
+    # We are interested, what happens with the room, so we define a
+    # logging filter....
+    #
+    :method loggingFilter args {
+      lappend ::_ [current calledmethod]
+      next
+    }
+    
+    #
+    # ... and we register it together with a guard.
+    #
+    :filter add {loggingFilter {
+      [current calledmethod] in {enter leave}
+    }}
+  }
+
+  set ::_ {}
+
+  ? {Room create r} ::r
+  r enter Uwe
+  r leave Uwe
+  r configure -name "Office"
+  ? {set ::_} "enter leave"
+  
+  # Now we define a subclass DangerRoom, which refines the filter by
+  # logging into a "dangerRoomLog". We want here entries for all
+  # operations.
+
+  set ::_ {}
+  set ::dangerRoomLog {}
+
+  nx::Class create DangerRoom -superclass Room {
+
+    :method loggingFilter args {
+      lappend ::dangerRoomLog [current calledmethod]
+      next
+    }
+    :filter add loggingFilter
+  }
+
+  ? {DangerRoom create d} ::d
+  d enter Uwe
+  d leave Uwe
+  d configure -name "Safe Room"
+  ? {set ::_} "enter leave"
+  ? {expr [llength $::dangerRoomLog] > 2} 1
+
+  d destroy
 }
 
 

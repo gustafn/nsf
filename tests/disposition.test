@@ -303,7 +303,7 @@ nx::test case basics {
   # The option 'method=...' applies to disposition types only
   #
   C setObjectParams [list [list -foo:initcmd,method=BOOM]]
-  ? {C new} "parameter option 'method=' only allowed for parameter types 'alias', 'forward' and 'slotassign'"
+  ? {C new} "parameter option 'method=' only allowed for parameter types 'alias', 'forward' and 'slotset'"
   
   C setObjectParams [list [list -foo:alias,forward]]
   ? {C new} "parameter option 'forward' not valid in this option combination"

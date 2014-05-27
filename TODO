@@ -5119,13 +5119,20 @@ nsf.c:
 
 nx.tcl:
 - added flag -nocomplain to "/obj/ /prop/ unset ?-nocomplain?"
+- use "mixin|filter clear" instead of "mixin|filter unset"
+- name parameter option "slotset" instead of "slotassign"
+
+nsfObj.c:
+- allow to omit "-guard" within arguments to flag
+  definition of a filter/mixin guard
+- extended regression test
+
+nsf.c:
+- improve handling of space in object names
 
 ========================================================================
 TODO:
-- TODO: rename "slotassign" to "slotset"?
 - TODO: update tutorial and migration guide
-
-- why is there no pos/index arg for mixin|filter delete?
 
 - finish nx-property reform (merge into master)
 

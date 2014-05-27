@@ -1069,7 +1069,7 @@ namespace eval ::xotcl {
     :protected method setterRedefinedOptions {} {
       if {[:info lookup method value=set] ne "::nsf::classes::xotcl::Attribute::value=set"} {
 	# In case the "set" method was provided on the slot, ask nsf to call it directly
-	return [list slot=[::nsf::self] slotassign]
+	return [list slot=[::nsf::self] slotset]
       }
       if {[:info lookup method value=get] ne "::nsf::classes::nx::VariableSlot::value=get"} {
 	# In case the "get" method was provided on the slot, ask nsf to call it directly
