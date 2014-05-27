@@ -1519,7 +1519,9 @@ namespace eval ::nx {
   ::nsf::method::alias RelationSlot value=get ::nsf::relation::get
 
   RelationSlot public method value=clear {obj prop} {
+    set result [::nsf::relation::set $obj $prop]
     ::nsf::relation::set $obj $prop {}
+    return $result
   }
 
   RelationSlot protected method delete_value {obj prop old value} {

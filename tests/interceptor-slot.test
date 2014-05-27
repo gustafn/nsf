@@ -27,7 +27,7 @@ nx::test case mixin-method {
   ? {C info mixin classes} ""
 
   ? {C mixin set ::M} "::M"
-  ? {C mixin clear} ""
+  ? {C mixin clear} "::M"
   ? {C info mixin classes} ""
 
   ? {C mixin add ::M} "::M"
@@ -69,7 +69,7 @@ nx::test case per-object-mixin {
 
   ? {c1 object mixin add M} {::M}
   ? {c1 info object mixin classes} {::M}
-  ? {c1 object mixin clear} {}
+  ? {c1 object mixin clear} {::M}
   ? {c1 info object mixin classes} {}
 }
 
@@ -196,7 +196,7 @@ nx::test case filter-relation {
   ? {::nsf::relation::get CC object-filter} "filterC"
   ? {CC info object filter methods} "filterC"
 
-  ? {CC object filter clear} ""
+  ? {CC object filter clear} "filterC"
   ? {::nsf::relation::get CC object-filter} ""
   ? {CC info object filter methods} ""
   
@@ -218,7 +218,7 @@ nx::test case filter-relation {
   ? {::nsf::relation::get CC class-filter} "filterB"
   ? {CC info filter methods} "filterB"
 
-  ? {CC filter clear} ""
+  ? {CC filter clear} "filterB"
   ? {::nsf::relation::get CC class-filter} ""
   ? {CC info filter methods} ""
 }
