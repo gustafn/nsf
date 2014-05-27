@@ -1522,7 +1522,7 @@ namespace eval ::nx {
   ::nsf::method::alias RelationSlot value=set ::nsf::relation::set
   ::nsf::method::alias RelationSlot value=get ::nsf::relation::get
 
-  RelationSlot public method value=unset {obj prop} {
+  RelationSlot public method value=clear {obj prop} {
     ::nsf::relation::set $obj $prop {}
   }
 

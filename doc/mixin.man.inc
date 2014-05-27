@@ -31,7 +31,7 @@ omitted, [arg index] defaults to the list head (0).
 [def "[arg obj] [const [vset SCOPE]] [method {mixin delete}] [option -nocomplain] [arg specPattern]"]
 Removes a [term "mixin class"] from a current list of [term "mixin class"]es of [arg obj] whose spec matches [arg specPattern]. [arg specPattern] can contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "mixin delete"] will throw an error if there is no matching [term "mixin class"], unless [option -nocomplain] is set.
 
-[def "[arg obj] [const [vset SCOPE]] [method {mixin unset}]"]
+[def "[arg obj] [const [vset SCOPE]] [method {mixin clear}]"]
 Removes all [term "mixin class"]es from [arg obj]. This is equivalent
 to passing an empty list for [arg mixinSpecList] to 
 [const [vset SCOPE]] [method {mixin set}].

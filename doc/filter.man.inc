@@ -36,7 +36,7 @@ contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] 
 throw an error if there is no matching [term "filter"], unless
 [option -nocomplain] is set.
 
-[def "[arg obj] [const [vset SCOPE]] [method {filter unset}]"]
+[def "[arg obj] [const [vset SCOPE]] [method {filter clear}]"]
 Removes all [term "filter"]s from [arg obj]. This is equivalent
 to passing an empty list for [arg filterSpecList] to [const [vset SCOPE]] [method {filter set}].
 
