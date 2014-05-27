@@ -14409,11 +14409,11 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     }
     paramPtr->flags |= NSF_ARG_FORWARD;
 
-  } else if (strncmp(option, "slotassign", 10) == 0) {
+  } else if (strncmp(option, "slotset", 7) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
-      return NsfPrintError(interp, "parameter option 'slotassign' must follow 'slot='");
+      return NsfPrintError(interp, "parameter option 'slotset' must follow 'slot='");
     }
-    paramPtr->flags |= NSF_ARG_SLOTASSIGN;
+    paramPtr->flags |= NSF_ARG_SLOTSET;
 
   } else if (strncmp(option, "slotinitialize", 14) == 0) {
     if (unlikely(paramPtr->slotObj == NULL)) {
@@ -14548,9 +14548,9 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     INCR_REF_COUNT(paramPtr->slotObj);
 
   } else if (optionLength >= 6 && strncmp(option, "method=", 7) == 0) {
-    if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_SLOTASSIGN)) == 0) {
+    if ((paramPtr->flags & (NSF_ARG_ALIAS|NSF_ARG_FORWARD|NSF_ARG_SLOTSET)) == 0) {
       return NsfPrintError(interp, "parameter option 'method=' only allowed for parameter "
-                           "types 'alias', 'forward' and 'slotassign'");
+                           "types 'alias', 'forward' and 'slotset'");
     }
     if (paramPtr->method) {DECR_REF_COUNT(paramPtr->method);}
     paramPtr->method = Tcl_NewStringObj(option + 7, optionLength - 7);
@@ -26667,7 +26667,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
        * is typically a forwarder to the slot object.
        */
 
-      if (paramPtr->flags & NSF_ARG_SLOTASSIGN) {
+      if (paramPtr->flags & NSF_ARG_SLOTSET) {
 	NsfObject *slotObject = GetSlotObject(interp, paramPtr->slotObj);
 
 	if (likely(slotObject != NULL)) {
