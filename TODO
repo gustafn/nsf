@@ -5136,6 +5136,24 @@ TODO:
 
 - finish nx-property reform (merge into master)
 
+- IDEA: have "filter|mixin clear" return the list of former|removed
+  filters|mixins to stash them in the caller context. simplifies
+  turning on|off scenarios (one instead of two calls):
+
+  set tmp [obj object filter clear]
+  # ... do work ...
+  obj object filter $tmp
+
+  or: clear & check whether mixins|filters were set in one step:
+
+  if {[length [obj object filter clear]]} {
+    # ... there were actually filter active, now removed
+  } else {
+    # ... attempted clearing, but nothing active ...
+  }
+
+  or: a combination of the two idioms ...
+
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
   and xlloc fix
