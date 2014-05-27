@@ -408,9 +408,10 @@ an indirect instance of one of the superclasses of [arg className].
 Lists the available [term "submethod"]s of the [method info] [term "method ensemble"].
 
 [call [arg obj] [method "info lookup"] [arg submethod] [opt "[arg arg] ..."]]
-A collection of submethods to retrieve all structural features (e.g.,
-configuration options, [term "slot object"]s) and all behavioral
-features (e.g., methods, [term "filter"]s) available for [arg obj], whether provided by [arg obj] itself or by the classes in its current linearisation list.
+
+A collection of submethods to retrieve structural features (e.g.,
+configuration options, [term "slot object"]s) and behavioral
+features (e.g., methods, [term "filter"]s) available for [arg obj] from the perspective of a client to [arg obj]. Features provided by [arg obj] itself and by the classes in its current linearisation list are considered.
 
 [list_begin definitions]
 [def "[arg obj] [method {info lookup configure parameters}] [opt [arg namePattern]]"] 
@@ -423,13 +424,15 @@ configuration options can be limited to those whose names match [arg pattern]
 
 [def "[arg obj] [method {info lookup configure syntax}]"]
 
-[comment {Why is the no pattern arg for the syntax submethod?}]
-
 Returns all configuration options available for [arg obj] as a
 concrete-syntax description to be used in human-understandable
 messages (e.g., errors or warnings, documentation strings).
 
 [def "[arg obj] [method "info lookup filter"] [arg name]"]
+
+Returns the [term "method handle"] for the [term "filter"] method [arg name], if
+currently registered. If there is no filter [arg name] registered, an
+empty string is returned.
 
 [comment {
   why is there no lookup filters plus optional pattern, like
@@ -585,8 +588,8 @@ contain special matching characters (see [cmd "string match"]).
 
 [call [arg obj] [method {info vars}] [opt [arg pattern]]]
 
-Yields a list of variable names created and defined for the scope of
-[arg obj]. The list can be limited to object variables whose names
+Yields a list of Tcl variable names created and defined for the scope of
+[arg obj], i.e., object variables. The list can be limited to object variables whose names
 match [arg pattern]. The [arg pattern] string can contain special
 matching characters (see [cmd "string match"]).
 
