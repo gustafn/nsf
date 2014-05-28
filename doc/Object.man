@@ -498,65 +498,7 @@ submethods available for each [term "slot object"].
 Returns the unqualified name of an object, i.e., the object name
 without any namespace qualifiers.
 
-[call [arg obj] [method {info object filter guard}] ...]
-[para] Description of [method {info object filter guard}] ...
-
-[call [arg obj] [method {info object filter methods}] ...]
-[para] Description of [method {info object filter methods}] ...
-
-[call [arg obj] [method {info object method args}] ...]
-[para] Description of [method {info object method args}] ...
-
-[call [arg obj] [method {info object method body}] ...]
-[para] Description of [method {info object method body}] ...
-
-[call [arg obj] [method {info object method definition}] ...]
-[para] Description of [method {info object method definition}] ...
-
-[call [arg obj] [method {info object method definitionhandle}] ...]
-[para] Description of [method {info object method definitionhandle}] ...
-
-[call [arg obj] [method {info object method exists}] ...]
-[para] Description of [method {info object method exists}] ...
-
-[call [arg obj] [method {info object method handle}] ...]
-[para] Description of [method {info object method handle}] ...
-
-[call [arg obj] [method {info object method origin}] ...]
-[para] Description of [method {info object method origin}] ...
-
-[call [arg obj] [method {info object method parameters}] ...]
-[para] Description of [method {info object method parameters}] ...
-
-[call [arg obj] [method {info object method registrationhandle}] ...]
-[para] Description of [method {info object method registrationhandle}] ...
-
-[call [arg obj] [method {info object method returns}] ...]
-[para] Description of [method {info object method returns}] ...
-
-[call [arg obj] [method {info object method submethods}] ...]
-[para] Description of [method {info object method submethods}] ...
-
-[call [arg obj] [method {info object method syntax}] ...]
-[para] Description of [method {info object method syntax}] ...
-
-[call [arg obj] [method {info object method type}] ...]
-[para] Description of [method {info object method type}] ...
-
-[call [arg obj] [method {info object methods}] ...]
-[para] Description of [method {info object methods}] ...
-
-[call [arg obj] [method {info object mixin classes}] ...]
-[para] Description of [method {info object mixin classes}] ...
-
-[call [arg obj] [method {info object mixin guard}] ...]
-[para] Description of [method {info object mixin guard}] ...
-
-[call [arg obj] [method {info object slots}] ...]
-[para] Description of [method {info object slots}] ...
-
-[call [arg obj] [method {info object variables}] ...]
-[para] Description of [method {info object variables}] ...
+[include info.man.inc]
 
 [call [arg obj] [method {info parent}]]
 
