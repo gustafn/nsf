@@ -2936,6 +2936,30 @@ nx::test case nsf-method-checkalways {
 }
 
 #
+# Test parameter::get with objects/classes and types
+#
+nx::test case parameter-get {
+    nx::Class create C {
+	:property foo:integer
+	:property o:object,type=::nx::Object
+	:property c:class
+	:property m:metaclass
+    }
+
+    ? {C info configure parameters foo} "-foo:integer"
+    ? {nsf::parameter::get type [C info configure parameters foo]} "integer"
+
+    ? {C info configure parameters o} "-o:object,type=::nx::Object"
+    ? {nsf::parameter::get type [C info configure parameters o]} "object,type=::nx::Object"
+
+    ? {C info configure parameters c} "-c:class"
+    ? {nsf::parameter::get type [C info configure parameters c]} "class"
+
+    ? {C info configure parameters m} "-m:metaclass"
+    ? {nsf::parameter::get type [C info configure parameters m]} "metaclass"
+}
+
+#
 # Local variables:
 #    mode: tcl
 #    tcl-indent-level: 2

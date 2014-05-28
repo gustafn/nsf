@@ -25004,10 +25004,32 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
 
   case ParametersubcmdTypeIdx:
     if (paramsPtr->type) {
+
       if (paramsPtr->converter == Nsf_ConvertToTclobj && paramsPtr->converterArg) {
 	Tcl_SetObjResult(interp, paramsPtr->converterArg);
+
       } else {
-	Tcl_SetObjResult(interp, Tcl_NewStringObj(paramsPtr->type, -1));
+        if (paramsPtr->converter == Nsf_ConvertToObject || paramsPtr->converter == Nsf_ConvertToClass) {
+          CONST char *what = paramsPtr->type;
+          /*
+           * baseclass and metaclass are communicated via flags
+           */
+          if (unlikely(paramsPtr->flags & NSF_ARG_BASECLASS)) {
+            what = "baseclass";
+          } else if (unlikely(paramsPtr->flags & NSF_ARG_METACLASS)) {
+            what = "metaclass";
+          }
+          /*
+           * The converterArg might contain a class for type checking
+           */
+          if (paramsPtr->converterArg == NULL) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj(what, -1));
+          } else {
+            NsfPrintError(interp, "%s,type=%s", what, ObjStr(paramsPtr->converterArg));
+          }
+        } else {
+          Tcl_SetObjResult(interp, Tcl_NewStringObj(paramsPtr->type, -1));
+        }
       }
     } else {
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);

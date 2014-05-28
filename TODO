@@ -5155,6 +5155,11 @@ nx.tcl
   "info parameter" was not object/class specific at all, but
   is just a syntax extractor
 
+
+nsf.c:
+- extend nsf::parameter::get to obtained more detailed information
+  for obejcts/classes/metaclasses/baseclasses and specified types
+- extend regression test
 ========================================================================
 TODO:
 
