@@ -98,17 +98,18 @@ active. [arg mixinSpecs] is of the form of ...
 
 [list_end]
 
-[section {Call Protection for Behavioral Features of nx::Object Instances}]
-
-[list_begin itemized]
-[item] [const public]
-[item] [const protected]
-[item] [const private]
-[list_end]
-
 [section {Methods for Instances of nx::Object}]
 
 [list_begin commands]
+
+[cmd_def alias]
+[list_begin definitions]
+
+[call [arg obj] [opt "public | private | protected"] [const object] [cmd alias] [arg methodName] [opt "[option -returns] [arg valueChecker]"] [opt "[option -frame] object | method"] [arg cmdName]]
+
+[include alias.man.inc]
+
+[list_end]
 
 [cmd_def cget]
 
@@ -235,6 +236,36 @@ variables, per-object methods, nested objects, slot objects,
 namespaces, filters, mixins, and traces.
 
 [list_end]
+
+[cmd_def defaultmethod]
+
+[list_begin definitions]
+
+[call [arg obj] [cmd defaultmethod]]
+
+This method is called implicitly when the object command is invoked
+without an argument. By default, the [cmd defaultmethod]
+implementation returns the fully qualified object name.
+
+[example_begin]
+% Object create ::foo
+::foo
+% ::foo defaultmethod
+::foo
+% ::foo
+::foo
+[example_end]
+
+[list_end]
+
+[cmd_def delete]
+
+[list_begin definitions]
+
+[include delete.man.inc]
+
+[list_end]
+
 
 [cmd_def destroy]
 
@@ -540,6 +571,32 @@ matching characters (see [cmd "string match"]).
 
 [list_end]
 
+[cmd_def init]
+
+[list_begin definitions]
+
+[call [arg obj] [cmd init] [opt "[arg arg] ..."]]
+
+The method [method init] is called during the object construction
+process. It is invoked as the last step during object construction
+(i.e. after method [method configure]) to provide the fully initialized 
+state of the object. Note that the definition of an [method init] 
+method must contain an empty parameter specification, 
+since [method init] is always called with an empty argument list.
+
+[example_begin]
+% nx::Class create Foo {:property x}
+% Foo method init {} {set :y [lb]expr {${:x} + 1}[rb]}
+% Foo public method bar {} {return ${:y}}
+% Foo create f1 -x 101
+% f1 cget -x
+101
+% f1 bar
+102
+[example_end]
+[list_end]
+
+
 [cmd_def method]
 
 [list_begin definitions]
@@ -614,24 +671,19 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 
 [list_end]
 
-[cmd_def alias]
-[list_begin definitions]
-
-[call [arg obj] [opt "public | private | protected"] [const object] [cmd alias] [arg methodName] [opt "[option -returns] [arg valueChecker]"] [opt "[option -frame] object | method"] [arg cmdName]]
-
-[include alias.man.inc]
-
-[list_end]
-
-
-[cmd_def delete]
+[cmd_def unknown]
 
 [list_begin definitions]
 
-[include delete.man.inc]
+[call [arg obj] [cmd unknown] [arg unknownMethodName] [opt "[arg arg] ..."]]
+
+This method is called implicitly whenever an unknown method is invoked.
+
+[arg unknownMethodName] indicates the unresolvable method name,
+followed by the remainder of the original argument vector as a number
+of [arg arg] of the indirected method invocation.
 
 [list_end]
-
 
 [cmd_def variable]
 
@@ -669,89 +721,17 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 
 [list_end]
 
-[section {Internally called Methods}]
+[comment { COMMANDS list }]
 
-[cmd nx::Object] provides a set of default implementations for
-internally called methods, which are called primarily during the 
-creation or destruction of NX objects.
-
-Application developers can provide custom implementations of these
-methods by providing tailored implementations for these methods in application
-classes (i.e., subclasses of [cmd nx::Object]). An adequate method
-implementation must comply with the method signature interfaces described below.
-
-
-[list_begin commands]
-
-[cmd_def defaultmethod]
-
-[list_begin definitions]
-
-[def "[arg obj] [cmd defaultmethod]"]
-
-This method is called implicitly when the object is invoked without
-a provided method name. By default, the [cmd defaultmethod] implementation 
-returns the fully qualified object name.
-
-[example_begin]
-% Object create ::foo
-::foo
-% ::foo defaultmethod
-::foo
-% ::foo
-::foo
-[example_end]
-
-[list_end]
-
-[cmd_def init]
-
-[list_begin definitions]
-
-[def "[arg obj] [cmd init] [arg args]"]
-
-The method [method init] is called during the object construction
-process. It is invoked as the last step during object construction
-(i.e. after method [method configure]) to provide the fully initialized 
-state of the object. Note that the definition of an [method init] 
-method must contain an empty parameter specification, 
-since [method init] is always called with an empty argument list.
-
-[example_begin]
-% nx::Class create Foo {:property x}
-% Foo method init {} {set :y [lb]expr {${:x} + 1}[rb]}
-% Foo public method bar {} {return ${:y}}
-% Foo create f1 -x 101
-% f1 cget -x
-101
-% f1 bar
-102
-[example_end]
-[list_end]
-
-[cmd_def unknown]
-
-[list_begin definitions]
-
-[def "[arg obj] [cmd unknown] [arg unknownMethodName] [arg args]"]
-
-This method is called implicitly whenever an unknown method is invoked.
-
-[list_begin arguments]
-
-[arg_def "" unknownMethodName in] 
-
-Indicates the unresolvable method name
-
-[arg_def "" args in]
-
-Contains the remainder of the original argument vector of the
-indirected method invocation
-
-[list_end]
-
-[list_end]
-
-[list_end] [comment { COMMANDS list }]
+[comment {
+  [cmd nx::Object] provides a set of default implementations for
+  internally called methods, which are called primarily during the 
+  creation or destruction of NX objects.
+  
+  Application developers can provide custom implementations of these
+  methods by providing tailored implementations for these methods in application
+  classes (i.e., subclasses of [cmd nx::Object]). An adequate method
+  implementation must comply with the method signature interfaces described below.
+}]
 
 [manpage_end]
