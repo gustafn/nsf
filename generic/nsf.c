@@ -25025,7 +25025,7 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
           if (paramsPtr->converterArg == NULL) {
             Tcl_SetObjResult(interp, Tcl_NewStringObj(what, -1));
           } else {
-            NsfPrintError(interp, "%s,type=%s", what, ObjStr(paramsPtr->converterArg));
+            Tcl_SetObjResult(interp, paramsPtr->converterArg);
           }
         } else {
           Tcl_SetObjResult(interp, Tcl_NewStringObj(paramsPtr->type, -1));

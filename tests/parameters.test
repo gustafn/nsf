@@ -2950,7 +2950,7 @@ nx::test case parameter-get {
     ? {nsf::parameter::get type [C info configure parameters foo]} "integer"
 
     ? {C info configure parameters o} "-o:object,type=::nx::Object"
-    ? {nsf::parameter::get type [C info configure parameters o]} "object,type=::nx::Object"
+    ? {nsf::parameter::get type [C info configure parameters o]} "::nx::Object"
 
     ? {C info configure parameters c} "-c:class"
     ? {nsf::parameter::get type [C info configure parameters c]} "class"
