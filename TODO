@@ -5149,10 +5149,15 @@ nsf.c
   with wierd namespace deletion order
 - extended regression test
 
+nx.tcl
+- switch from "/obj/ info parameter" -> "nsf::parameter::get"
+  to reduce potential semantic confusion of info options.
+  "info parameter" was not object/class specific at all, but
+  is just a syntax extractor
 
 ========================================================================
 TODO:
-- /obj/ info parameter -> nsf::parameter ???
+
 - TODO: update tutorial and migration guide
 
 - finish nx-property reform (merge into master)

@@ -749,7 +749,7 @@ nx::test case info-methods-path {
   ? {lsort [::nx::Object info methods -path "info lookup *"]} \
       "{info lookup configure parameters} {info lookup configure syntax} {info lookup filter} {info lookup filters} {info lookup method} {info lookup methods} {info lookup mixins} {info lookup slots} {info lookup variables}"
   ? {lsort [::nx::Object info methods -path "info *parameter*"]} \
-      "{info lookup configure parameters} {info object method parameters} {info parameter default} {info parameter name} {info parameter syntax} {info parameter type} {info variable parameter}"
+      "{info lookup configure parameters} {info object method parameters} {info variable parameter}"
   ? {lsort [::nx::Object info methods "slots"]} ""
   ? {lsort [::nx::Object info methods "*slots*"]} ""
   ? {lsort [::nx::Object info methods -path "*slot*"]} \
