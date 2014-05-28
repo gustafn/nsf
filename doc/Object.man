@@ -434,10 +434,12 @@ Returns the [term "method handle"] for the [term "filter"] method [arg name], if
 currently registered. If there is no filter [arg name] registered, an
 empty string is returned.
 
-[comment {
-  why is there no lookup filters plus optional pattern, like
-  methods. singular form should return method handle behind filter ...
-}]
+[def "[arg obj] [method "info lookup filters"] [option -guards] [opt [arg namePattern]]"]
+
+Returns the [term "method handle"]s of all filters which are active on [arg obj]. By
+turning on the [term switch] [option -guards], the corresponding guard
+expressions are also reported for each filter as a three-element list: [arg methodHandle] -guard [arg guardExpr]. The returned filters can be limited to
+those whose names match [arg namePattern] (see [cmd "string match"]).
 
 [def "[arg obj] [method "info lookup method"] [arg name]"]
 
@@ -450,6 +452,14 @@ so-named method can be invoked on [arg obj]. If there is no method
 Returns the names of all methods (including aliases and forwarders)
 which can be invoked on [arg obj]. The returned methods can be limited
 to those whose names match [arg namePattern] (see [cmd "string match"]).
+
+[def "[arg obj] [method "info lookup mixins"] [option -guards] [opt [arg namePattern]]"]
+
+Returns the object names of all [term "mixin class"]es which are
+currently active on [arg obj]. By turning on the [term switch] [option -guards], the corresponding guard expressions are also reported as a
+three-element list for each [term "mixin class"]: [arg className]
+-guard [arg guardExpr]. The returned [term "mixin class"]es can be
+limited to those whose names match [arg namePattern] (see [cmd "string match"]).
 
 [def "[arg obj] [method "info lookup slots"] [opt "[option "-type"] [arg className]"] [opt "[option "-source"] all | application | system"] [opt [arg namePattern]]"]
 
@@ -573,7 +583,7 @@ properties) and behavioral features (e.g., methods) and methods, in
 order of the [term linearisation] scheme in [term NX]. By setting the
 [term switch] [option -intrinsic], only classes which participate in
 superclass/subclass relationships (i.e., intrinsic classes) are
-returned. If a [arg pattern] is provided, only classes whose
+returned. If a [arg pattern] is provided only classes whose
 names match [arg pattern] are returned. The [arg pattern] string can
 contain special matching characters (see [cmd "string match"]).
 
