@@ -11,10 +11,9 @@ Accesses and modifies the list of [term "mixin class"]es of
 [list_begin definitions]
 [def "[arg obj] [const [vset SCOPE]] [method {mixin set}] [arg mixinSpecList]"] 
 
-[arg mixinSpecList] takes a list of [term "mixin class"] specs, with each spec being itself a
-one-element or two-elements list: [arg className] ?[arg guardExpr]?. If
+[arg mixinSpecList] takes a list of [term "mixin class"] specs, with each spec being itself either a one-element or a three-element list: [arg className] ?-guard [arg guardExpr]?. If
 having one element, the element will be considered the [arg className]
-of the [term "mixin class"]. If having two elements, the second
+of the [term "mixin class"]. If having three elements, the third
 element [arg guardExpr] will be stored as a guard expression of the
 [term "mixin class"]. This guard expression will be evaluated using
 [cmd expr] when [arg obj] receives a message to determine if the mixin
@@ -32,8 +31,7 @@ omitted, [arg index] defaults to the list head (0).
 Removes a [term "mixin class"] from a current list of [term "mixin class"]es of [arg obj] whose spec matches [arg specPattern]. [arg specPattern] can contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "mixin delete"] will throw an error if there is no matching [term "mixin class"], unless [option -nocomplain] is set.
 
 [def "[arg obj] [const [vset SCOPE]] [method {mixin clear}]"]
-Removes all [term "mixin class"]es from [arg obj]. This is equivalent
-to passing an empty list for [arg mixinSpecList] to 
+Removes all [term "mixin class"]es from [arg obj] and returns the list of removed [term "mixin class"]es. Clearing is equivalent to passing an empty list for [arg mixinSpecList] to 
 [const [vset SCOPE]] [method {mixin set}].
 
 [def "[arg obj] [const [vset SCOPE]] [method {mixin guard}] [arg className] [arg expr]"]
