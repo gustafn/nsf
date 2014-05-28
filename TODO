@@ -5134,9 +5134,25 @@ nsf.c:
 - added methods 
      "info lookup filters ?-guards? ?/pattern/?" and 
      "info lookup methods *-guards? ?/pattern/?"
+
+nsf.c
+- force again literal "-guard" in a "mixinreg" type to avoid
+  potential confusions
+- Base nsfRelationSet for mixins on cmds rather than TclObjs
+  to avoid confusions and duplication of guard detection logic
+- Add interp to NsfMixinregGet() and NsfFilterregGet() to be
+  able to return error messages
+- return more error message from mixinreg converter
+- provide at least minimal support for "funny class names"
+  (i.e. containing spaces)
+- FinalObjectDeletion: don't enforce namespace = 1 for cases
+  with wierd namespace deletion order
 - extended regression test
+
+
 ========================================================================
 TODO:
+- /obj/ info parameter -> nsf::parameter ???
 - TODO: update tutorial and migration guide
 
 - finish nx-property reform (merge into master)

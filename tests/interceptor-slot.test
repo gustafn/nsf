@@ -553,7 +553,7 @@ nx::test case filter-guard-separately {
     #
     # ... and we register it together with a guard.
     #
-    :filter add {loggingFilter {
+    :filter add {loggingFilter -guard {
       [current calledmethod] in {enter leave}
     }}
   }
@@ -625,6 +625,44 @@ nx::test case filter-guard-separately {
   ? {d1 info lookup mixins} "::M2 ::M3"
 }
 
+
+#
+# Test potential confusion in case a class has a space in its name
+# when registering methods or mixins.
+#
+
+nx::test case space-in-classname {
+  nx::Class create M1 {
+    :public method foo {} {return "[next] [current class]"}
+  }
+
+  #
+  # Define a class with a space in its name, containing a method. This
+  # class will be used as a mixin class later on.
+  #
+  nx::Class create "M1 b" -superclass M1 {
+    :public method foo {} {return next-[current class]}
+  }
+
+  nx::Class create C {
+    :public method foo {} {return foo}
+    :create c1
+  }
+
+  # Test the base case
+  ? {c1 foo} foo
+
+  # Add spacy class as a mixin. Check, if the introspection returns
+  # sensible values.
+  ? {C mixin add "M1 b"} "{::M1 b}"
+  ? {C info mixin classes} "{::M1 b}"
+  ? {M1 info mixin classes} ""
+  ? {M1 info mixinof} ""
+  ? {"M1 b" info mixin classes} ""
+
+  # check the result of the mixin class
+  ? {c1 foo} "next-::M1 b"
+}
 #
 # Local variables:
 #    mode: tcl

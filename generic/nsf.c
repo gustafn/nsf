@@ -7777,6 +7777,7 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
 
   /*fprintf(stderr, "MixinAdd gets obj %p type %p %s\n", nameObj, nameObj->typePtr,
     nameObj->typePtr?nameObj->typePtr->name : "NULL");*/
+
   /*
    * When the provided nameObj is of type NsfMixinregObjType, the nsf specific
    * converter was called already; otherwise call the converter here.
@@ -7787,9 +7788,12 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
     }
   }
 
-  NsfMixinregGet(nameObj, &mixinCl, &guardObj);
+  NsfMixinregGet(interp, nameObj, &mixinCl, &guardObj);
+  
+  assert((Tcl_Command_flags(mixinCl->object.id) & CMD_IS_DELETED) == 0);
 
   new = CmdListAdd(mixinList, mixinCl->object.id, NULL, /*noDuplicates*/ 1, 1);
+
   if (guardObj) {
     GuardAdd(new, guardObj);
   } else if (new->clientData) {
@@ -9636,7 +9640,7 @@ FilterAdd(Tcl_Interp *interp, NsfCmdList **filterList, Tcl_Obj *filterregObj,
     /*fprintf(stderr, "FilterAdd: %s already converted\n", ObjStr(filterregObj));*/
   }
 
-  NsfFilterregGet(filterregObj, &filterObj, &guardObj);
+  NsfFilterregGet(interp, filterregObj, &filterObj, &guardObj);
 
   if (!(cmd = FilterSearch(ObjStr(filterObj), startingObject, startingClass, &cl))) {
     if (startingObject) {
@@ -25422,8 +25426,11 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
   switch (relationtype) {
   case RelationtypeObject_mixinIdx:
     {
-      NsfCmdList *newMixinCmdList = NULL;
+      NsfCmdList *newMixinCmdList = NULL, *cmds;
 
+      /*
+       * Add every mixin class
+       */
       for (i = 0; i < oc; i++) {
         if (MixinAdd(interp, &newMixinCmdList, ov[i], object->cl->object.cl) != TCL_OK) {
           CmdListFree(&newMixinCmdList, GuardDel);
@@ -25434,6 +25441,9 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
       if (objopt->objMixins) {
         NsfCmdList *cmdlist, *del;
 
+        /*
+         * Delete from old isObjectMixinOf lists
+         */
         for (cmdlist = objopt->objMixins; cmdlist; cmdlist = cmdlist->nextPtr) {
           cl = NsfGetClassFromCmdPtr(cmdlist->cmdPtr);
           clopt = cl ? cl->opt : NULL;
@@ -25462,23 +25472,20 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
       object->flags &= ~NSF_FILTER_ORDER_VALID;
 
       /*
-       * Now add the specified mixins.
+       * Now register the specified mixins.
        */
       objopt->objMixins = newMixinCmdList;
-      for (i = 0; i < oc; i++) {
-        Tcl_Obj *ocl = NULL;
 
-        /* fprintf(stderr, "Added to mixins of %s: %s\n", ObjectName(object), ObjStr(ov[i])); */
-        Tcl_ListObjIndex(interp, ov[i], 0, &ocl);
-        GetObjectFromObj(interp, ocl, &nObject);
+      for (cmds = newMixinCmdList; cmds; cmds = cmds->nextPtr) {
+        nObject = NsfGetObjectFromCmdPtr(cmds->cmdPtr);
         if (nObject) {
-          /* fprintf(stderr, "Registering object %s to isObjectMixinOf of class %s\n",
-             ObjectName(object), ObjectName(nObject)); */
-          nclopt = NsfRequireClassOpt((NsfClass *)nObject);
+          nclopt = NsfRequireClassOpt((NsfClass *) nObject);
           CmdListAddSorted(&nclopt->isObjectMixinOf, object->id, NULL);
-
-        } /* else fprintf(stderr, "Problem registering %s as a mixinof of %s\n",
-             ObjStr(ov[i]), ClassName(cl)); */
+        } else {
+          NsfLog(interp, NSF_LOG_WARN, 
+                 "Problem registering %s as a mixin of %s\n",
+                 ObjStr(valueObj), ClassName(cl)); 
+        }
       }
 
       MixinComputeDefined(interp, object);
@@ -25511,7 +25518,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
 
   case RelationtypeClass_mixinIdx:
     {
-      NsfCmdList *newMixinCmdList = NULL;
+      NsfCmdList *newMixinCmdList = NULL, *cmds;
       NsfClasses *subClasses;
 
       for (i = 0; i < oc; i++) {
@@ -25527,6 +25534,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
 
       subClasses = TransitiveSubClasses(cl);
       MixinInvalidateObjOrders(interp, cl, subClasses);
+
       /*
        * Since methods of mixed in classes may be used as filters, we have to
        * invalidate the filters as well.
@@ -25536,22 +25544,26 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
       }
       NsfClassListFree(subClasses);
 
+      /*
+       * Now register the specified mixins.
+       */
       clopt->classMixins = newMixinCmdList;
-      for (i = 0; i < oc; i++) {
-        Tcl_Obj *ocl = NULL;
-        /* fprintf(stderr, "Added to class-mixins of %s: %s\n",
-           ClassName(cl), ObjStr(ov[i])); */
 
-        Tcl_ListObjIndex(interp, ov[i], 0, &ocl);
-        GetObjectFromObj(interp, ocl, &nObject);
+      /*
+       * Finally, update classMixinOfs
+       */
+      for (cmds = newMixinCmdList; cmds; cmds = cmds->nextPtr) {
+        nObject = NsfGetObjectFromCmdPtr(cmds->cmdPtr);
         if (nObject) {
-          /* fprintf(stderr, "Registering class %s to isClassMixinOf of class %s\n",
-             ClassName(cl), ObjectName(nObject)); */
           nclopt = NsfRequireClassOpt((NsfClass *) nObject);
           CmdListAddSorted(&nclopt->isClassMixinOf, cl->object.id, NULL);
-        } /* else fprintf(stderr, "Problem registering %s as a class-mixin of %s\n",
-             ObjStr(ov[i]), ClassName(cl)); */
+        } else {
+          NsfLog(interp, NSF_LOG_WARN, 
+                 "Problem registering %s as a mixin of %s\n",
+                 ObjStr(valueObj), ClassName(cl)); 
+        }
       }
+
       break;
     }
 
@@ -29349,13 +29361,13 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
    */
   if (unlikely(object->refCount != 1)) {
     if (object->refCount > 1) {
-      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refCount for obj %p refCount %d  (name %s)",
+      NsfLog(interp, NSF_LOG_WARN,  "RefCount for obj %p %d (name %s) > 1",
 	     object, object->refCount, ObjectName(object));
     } else {
-      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refCount for obj %p refCount %d",
+      NsfLog(interp, NSF_LOG_WARN,  "Refcount for obj %p %d > 1",
 	     object, object->refCount);
     }
-    object->refCount = 1;
+    /*object->refCount = 1;*/
   }
 
 #if !defined(NDEBUG)
