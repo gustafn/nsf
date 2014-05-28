@@ -497,7 +497,7 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, CONST char *context) {
   assert(dsPtr);
   assert(context);
 
-  if (result == TCL_ERROR) {
+  if (unlikely(result == TCL_ERROR)) {
     NsfErrorContext(interp, context);
   }
   return result;
@@ -9242,7 +9242,7 @@ GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObj) {
     /* fprintf(stderr, " +++ OK\n"); */
     return TCL_OK;
 
-  } else if (result == TCL_ERROR) {
+  } else if (unlikely(result == TCL_ERROR)) {
     Tcl_Obj *sr = Tcl_GetObjResult(interp);
 
     INCR_REF_COUNT(sr);
@@ -27286,7 +27286,7 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *UNUSED(object), int objc, Tcl_O
     Tcl_Obj *objPtr = Tcl_ConcatObj(objc, objv);
     result = Tcl_EvalObjEx(interp, objPtr, TCL_EVAL_DIRECT);
   }
-  if (result == TCL_ERROR) {
+  if (unlikely(result == TCL_ERROR)) {
     Tcl_AppendObjToErrorInfo(interp,
        Tcl_ObjPrintf("\n    (\"uplevel\" body line %d)",
 		     Tcl_GetErrorLine(interp)));
