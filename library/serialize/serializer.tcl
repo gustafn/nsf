@@ -608,6 +608,7 @@ namespace eval ::nx::serializer {
       set v [$cmd $o $relation]
       if {$v eq ""} {return ""}
       if {[info exists unless] && $v eq $unless} {return ""}
+      regsub -all {::get$} $cmd ::set cmd
       return [list $cmd ${:targetName} $relation $v]\n
     }
 
