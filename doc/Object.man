@@ -438,7 +438,7 @@ empty string is returned.
 
 Returns the [term "method handle"]s of all filters which are active on [arg obj]. By
 turning on the [term switch] [option -guards], the corresponding guard
-expressions are also reported for each filter as a three-element list: [arg methodHandle] -guard [arg guardExpr]. The returned filters can be limited to
+expressions, if any, are also reported for each filter as a three-element list: [arg methodHandle] -guard [arg guardExpr]. The returned filters can be limited to
 those whose names match [arg namePattern] (see [cmd "string match"]).
 
 [def "[arg obj] [method "info lookup method"] [arg name]"]
@@ -456,7 +456,7 @@ to those whose names match [arg namePattern] (see [cmd "string match"]).
 [def "[arg obj] [method "info lookup mixins"] [option -guards] [opt [arg namePattern]]"]
 
 Returns the object names of all [term "mixin class"]es which are
-currently active on [arg obj]. By turning on the [term switch] [option -guards], the corresponding guard expressions are also reported as a
+currently active on [arg obj]. By turning on the [term switch] [option -guards], the corresponding guard expressions, if any, are also reported as a
 three-element list for each [term "mixin class"]: [arg className]
 -guard [arg guardExpr]. The returned [term "mixin class"]es can be
 limited to those whose names match [arg namePattern] (see [cmd "string match"]).
