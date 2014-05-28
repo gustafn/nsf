@@ -3,11 +3,15 @@
 }]	 
 
 [keywords "method filter"]
+[keywords "submethod"]
+[keywords "parameter specification"]
+[keywords "type specification"]
+[keywords "method handle"]
+[keywords "method path"]
 
 [call [arg obj] [method "info [vset SCOPE] filter"] [arg option] [opt "[arg arg] ..."]]
 
 [list_begin definitions]
-
 
 [def "[arg obj] [method "info [vset SCOPE] filter methods"] [opt [option -guards]] [opt [arg pattern]]"]
 
@@ -27,44 +31,54 @@ be returned.
 
 [list_end]
 
-[call [arg obj] [method {info object method}] ...]
-[para] Description of [method {info object method args}] ...
+[call [arg obj] [method "info [vset SCOPE] method"] [arg option] [arg methodName]]
 
-[call [arg obj] [method {info object method body}] ...]
-[para] Description of [method {info object method body}] ...
+This introspection [term "submethod"] provides access to the details
+of [arg methodName] provided by [arg obj]. Permitted values for
+[arg option] are:
 
-[call [arg obj] [method {info object method definition}] ...]
-[para] Description of [method {info object method definition}] ...
+[list_begin itemized]
 
-[call [arg obj] [method {info object method definitionhandle}] ...]
-[para] Description of [method {info object method definitionhandle}] ...
+[item] [const args] returns a list containing the parameter names of
+[arg methodName], in order of the method-parameter specification.
 
-[call [arg obj] [method {info object method exists}] ...]
-[para] Description of [method {info object method exists}] ...
+[item] [const body] returns the body script of [arg methodName].
 
-[call [arg obj] [method {info object method handle}] ...]
-[para] Description of [method {info object method handle}] ...
+[item] [const definition] returns a canonical command list which allows for (re-)define [arg methodName].
 
-[call [arg obj] [method {info object method origin}] ...]
-[para] Description of [method {info object method origin}] ...
+[item] [const definitionhandle] returns the [term "method handle"] for a [term "submethod"] in a [term "method ensemble"] from the perspective of [arg obj] as method provider. [arg methodName] must contain a complete [term "method path"].
 
-[call [arg obj] [method {info object method parameters}] ...]
-[para] Description of [method {info object method parameters}] ...
+[item] [const exists] returns 1 if there is a [arg methodName] provided by [arg obj], returns 0 otherwise.
 
-[call [arg obj] [method {info object method registrationhandle}] ...]
-[para] Description of [method {info object method registrationhandle}] ...
+[item] [const handle] returns the [term "method handle"] for [arg methodName].
 
-[call [arg obj] [method {info object method returns}] ...]
-[para] Description of [method {info object method returns}] ...
+[item] [const origin] returns the aliased command if [arg methodName] is an [term "alias method"], or an empty string otherwise.
 
-[call [arg obj] [method {info object method submethods}] ...]
-[para] Description of [method {info object method submethods}] ...
+[item] [const parameters] returns the [term "parameter specification"] of [arg methodName] as
+a list of parameter names and type specifications.
 
-[call [arg obj] [method {info object method syntax}] ...]
-[para] Description of [method {info object method syntax}] ...
+[item] [const registrationhandle] returns the [term "method handle"] for a [term "submethod"] in a [term "method ensemble"] from the perspective of the method caller. [arg methodName] must contain a complete [term "method path"].
 
-[call [arg obj] [method {info object method type}] ...]
-[para] Description of [method {info object method type}] ...
+[item] [const returns] gives the [term "type specification"] defined
+for the return value of [arg methodName].
+
+[item] [const submethods] returns the names of all [term "submethod"]s of [arg methodName], if [arg methodName] is a [term "method ensemble"]. Otherwise, an empty string is returned.
+
+[item] [const syntax] returns the method parameters of [arg methodName] as a
+concrete-syntax description to be used in human-understandable
+messages (e.g., errors or warnings, documentation strings).
+
+[item] [const type] returns whether [arg methodName] is a [emph scripted] method, an [emph alias] method, a [emph forwarder] method, or a [emph setter] method.
+
+[comment {
+  [item] [const object] 
+  [item] [const nsfproc]
+  [item] [const builtin] denotes methods provided a [term "baseclass"];
+
+}]
+
+
+[list_end]
 
 [call [arg obj] [method "info [vset SCOPE] methods"] [opt "[option -callprotection] [arg level]"] [opt "[option -type] [arg methodType]"] [opt [option -path]] [opt [arg namePattern]]]
 
