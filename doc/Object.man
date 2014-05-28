@@ -333,6 +333,13 @@ completed, can be defined to store intermediate results.
 
 [list_end]
 
+[cmd_def filter]
+
+[list_begin definitions]
+
+[include filter.man.inc]
+
+[list_end]
 
 [cmd_def forward]
 
@@ -400,28 +407,91 @@ an indirect instance of one of the superclasses of [arg className].
 [call [arg obj] [method {info info}]]
 Lists the available [term "submethod"]s of the [method info] [term "method ensemble"].
 
-[call [arg obj] [method {info lookup configure parameters}] ...]
-[para] Description of [method {info lookup configure parameters}] ...
+[call [arg obj] [method "info lookup"] [arg submethod] [opt "[arg arg] ..."]]
+
+A collection of submethods to retrieve structural features (e.g.,
+configuration options, [term "slot object"]s) and behavioral
+features (e.g., methods, [term "filter"]s) available for [arg obj] from the perspective of a client to [arg obj]. Features provided by [arg obj] itself and by the classes in its current linearisation list are considered.
+
+[list_begin definitions]
+[def "[arg obj] [method {info lookup configure parameters}] [opt [arg namePattern]]"] 
+
+Returns all configuration options available for [arg obj] as a list of
+method-parameter definitions. They can be used, for example, to
+define a custom method refinement for [method configure]. The returned
+configuration options can be limited to those whose names match [arg pattern]
+(see [cmd "string match"]).
+
+[def "[arg obj] [method {info lookup configure syntax}]"]
+
+Returns all configuration options available for [arg obj] as a
+concrete-syntax description to be used in human-understandable
+messages (e.g., errors or warnings, documentation strings).
+
+[def "[arg obj] [method "info lookup filter"] [arg name]"]
+
+Returns the [term "method handle"] for the [term "filter"] method [arg name], if
+currently registered. If there is no filter [arg name] registered, an
+empty string is returned.
+
+[def "[arg obj] [method "info lookup filters"] [option -guards] [opt [arg namePattern]]"]
+
+Returns the [term "method handle"]s of all filters which are active on [arg obj]. By
+turning on the [term switch] [option -guards], the corresponding guard
+expressions, if any, are also reported for each filter as a three-element list: [arg methodHandle] -guard [arg guardExpr]. The returned filters can be limited to
+those whose names match [arg namePattern] (see [cmd "string match"]).
+
+[def "[arg obj] [method "info lookup method"] [arg name]"]
+
+Returns the [term "method handle"] for a method [arg name] if a
+so-named method can be invoked on [arg obj]. If there is no method
+[arg name], an empty string is returned.
+
+[def "[arg obj] [method "info lookup methods"] [opt [arg namePattern]]"]
+
+Returns the names of all methods (including aliases and forwarders)
+which can be invoked on [arg obj]. The returned methods can be limited
+to those whose names match [arg namePattern] (see [cmd "string match"]).
+
+[def "[arg obj] [method "info lookup mixins"] [option -guards] [opt [arg namePattern]]"]
+
+Returns the object names of all [term "mixin class"]es which are
+currently active on [arg obj]. By turning on the [term switch] [option -guards], the corresponding guard expressions, if any, are also reported as a
+three-element list for each [term "mixin class"]: [arg className]
+-guard [arg guardExpr]. The returned [term "mixin class"]es can be
+limited to those whose names match [arg namePattern] (see [cmd "string match"]).
+
+[def "[arg obj] [method "info lookup slots"] [opt "[option "-type"] [arg className]"] [opt "[option "-source"] all | application | system"] [opt [arg namePattern]]"]
+
+Returns the command names of all [term "slot object"]s responsible for
+managing properties, variables, and relations of [arg obj]. The
+returned [term "slot object"]s can be limited according to any or a
+combination of the following criteria: First, [term "slot object"]s
+can be filtered based on their command names matching [arg namePattern] (see [cmd "string
+match"]). Second, [option "-type"] allows to select
+[term "slot object"]s which are instantiated from a subclass [arg className] of [cmd nx::Slot] (default: [cmd nx::Slot]) . Third, [option -source] restricts [term "slot object"]s returned according to their provenance in either the NX [emph system] classes or the [emph application] classes present in the linearisation list of [arg obj] (default: [emph all]). 
+
+[para]
+
+To extract details of each [term "slot object"], use the [method info]
+submethods available for each [term "slot object"].
+
+[def "[arg obj] [method "info lookup variables"]"]
+
+Returns the command names of all [term "slot object"]s responsible for
+managing properties and variables of [arg obj], if provided by [arg obj] or the classes in the linearisation list of [arg obj].
+
+[para]
+
+This is equivalent to calling: [arg obj] [method "info lookup slots"] -type ::nx::VariableSlot -source all [opt [arg namePattern]].
+
+[para]
+
+To extract details of each [term "slot object"], use the [method info]
+submethods available for each [term "slot object"].
 
 
-[call [arg obj] [method {info lookup configure syntax}] ...]
-[para] Description of [method {info lookup configure syntax}] ...
-
-
-[call [arg obj] [method {info lookup filter}] ...]
-[para] Description of [method {info lookup filter}] ...
-
-[call [arg obj] [method {info lookup method}] ...]
-[para] Description of [method {info lookup method}] ...
-
-[call [arg obj] [method {info lookup methods}] ...]
-[para] Description of [method {info lookup methods}] ...
-
-[call [arg obj] [method {info lookup slots}] ...]
-[para] Description of [method {info lookup slots}] ...
-
-[call [arg obj] [method {info lookup variables}] ...]
-[para] Description of [method {info lookup variables}] ...
+[list_end]
 
 [call [arg obj] [method {info name}]]
 
@@ -458,12 +528,6 @@ without any namespace qualifiers.
 [call [arg obj] [method {info object method parameters}] ...]
 [para] Description of [method {info object method parameters}] ...
 
-[call [arg obj] [method {info object method postcondition}] ...]
-[para] Description of [method {info object method postcondition}] ...
-
-[call [arg obj] [method {info object method precondition}] ...]
-[para] Description of [method {info object method precondition}] ...
-
 [call [arg obj] [method {info object method registrationhandle}] ...]
 [para] Description of [method {info object method registrationhandle}] ...
 
@@ -494,18 +558,6 @@ without any namespace qualifiers.
 [call [arg obj] [method {info object variables}] ...]
 [para] Description of [method {info object variables}] ...
 
-[call [arg obj] [method {info parameter default}] ...]
-[para] Description of [method {info parameter default}] ...
-
-[call [arg obj] [method {info parameter name}] ...]
-[para] Description of [method {info parameter name}] ...
-
-[call [arg obj] [method {info parameter syntax}] ...]
-[para] Description of [method {info parameter syntax}] ...
-
-[call [arg obj] [method {info parameter type}] ...]
-[para] Description of [method {info parameter type}] ...
-
 [call [arg obj] [method {info parent}]]
 
 Returns the fully qualified name of the parent object of [arg obj], if
@@ -519,23 +571,28 @@ properties) and behavioral features (e.g., methods) and methods, in
 order of the [term linearisation] scheme in [term NX]. By setting the
 [term switch] [option -intrinsic], only classes which participate in
 superclass/subclass relationships (i.e., intrinsic classes) are
-returned. If a [arg pattern] is provided, only nested classes whose
+returned. If a [arg pattern] is provided only classes whose
 names match [arg pattern] are returned. The [arg pattern] string can
 contain special matching characters (see [cmd "string match"]).
 
-[call [arg obj] [method {info variable definition}] ...]
-[para] Description of [method {info variable definition}] ...
+[call [arg obj] [method {info variable}] [arg option] [arg handle]]
 
-[call [arg obj] [method {info variable name}] ...]
-[para] Description of [method {info variable name}] ...
+Retrieves selected details about a variable represented by the given
+[arg handle]. A [arg handle] can be obtained by querying [arg obj] using 
+[method "info [vset SCOPE] variables"] and [method "info lookup variables"].
 
-[call [arg obj] [method {info variable parameter}] ...]
-[para] Description of [method {info variable parameter}] ...
+Valid values for [arg option] are:
+[list_begin itemized]
+[item] [const name] returns the variable name.
+[item] [const parameter] returns a canonical parameter specification
+eligible to (re-)define the given variable (e.g., using [method "[vset SCOPE] variable"]) in a new context.
+[item] [const definition] returns a canonical representation of the definition command used to create the variable in its current configuration.
+[list_end]
 
 [call [arg obj] [method {info vars}] [opt [arg pattern]]]
 
-Yields a list of variable names created and defined for the scope of
-[arg obj]. The list can be limited to object variables whose names
+Yields a list of Tcl variable names created and defined for the scope of
+[arg obj], i.e., object variables. The list can be limited to object variables whose names
 match [arg pattern]. The [arg pattern] string can contain special
 matching characters (see [cmd "string match"]).
 
@@ -562,15 +619,6 @@ the source object [arg obj] is destroyed by invoking [method destroy].
 performed for a Tcl command representing an object.
 
 [list_end]
-
-[cmd_def filter]
-
-[list_begin definitions]
-
-[call [arg obj] [method {object filter}] ...]
-[para] Description of [method {object filter}] ...
-[list_end]
-
 
 [cmd_def mixin]
 [list_begin definitions]

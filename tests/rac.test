@@ -29,7 +29,7 @@ set invar [list {[regexp {^[0-9]$} ${:value}] == 1}]
 
 #
 # TODO: This should not be ::nx::VariableSlot below, but
-# ::nx::ObjectParameterSlot mixes alias + slotassign.
+# ::nx::ObjectParameterSlot mixes alias + slotset.
 #
 
 ::nx::VariableSlot create ::nx::Object::slot::object-invariant {

@@ -5020,111 +5020,152 @@ nx.tcl:
 - extend regression test
 - added more test cases for multiplicity and incremental
 - preserve lower bound of multiplicity when incemental is added
+- added log-level Info which prints always, e.g. for "-verbose" flag
+  of forwarder
 
+
+nsf.c:
+    - add flag "-onerror" to nsf::forward::method to handle errors during
+      dispatch of a forwarder (not all error messags of forwarder are
+      already transformed)
+    - added log-level Info which prints always, e.g. for "-verbose" flag
+      of forwarder
+    - drop setter-rule from properties (use always forwarder)
+    - drop "/obj/ /prop/" and  "/obj/ /prop/ /value/" in favor of
+      "/obj/ /prop/ get" and  "/obj/ /prop/ set /value/"
+      to achieve better orthogonality with e.g. incremental properties
+    - allow parameter option "method=" for slotassign as well. rationale:
+      this allows to use the parameter "forwardername" to specify a
+      different forwarder target method (e.g. in case of object-mixins).
+      The method is used both in "configure" and "cget".
+    - allow methodname to consist of max two words in relation slots
+       (e.g. "-methodname {mixin set}"}
+    - allow configuration of internally called "slot.get" and
+      "slot.assign" methods via objectsystem::create
+    - rename default slot methods add/get to value=add/value=get
+    - provide an error message, when refering to a non-existing slot object
+    - added likely/unlikely to result == TCL_OK etc.
+    - fix one more subtle case of an error being swallowed: for xotcl, the
+      constructor returns the list of residual arguments. In case there
+      was an error, it was possible that the returned residual arguments
+      overwrote the error message in the interp result
+    - finish implementation of NsfForwardPrintError()
+    - use NsfForwardPrintError() in ForwardArg() for all error messages
+
+
+nx.tcl:
+    - replace empty-named arrays by dicts
+    - remove setter methods from BootstrapVariableSlots
+    - reducing interface of BootstrapVariableSlots by setting methods protected
+    - use value=* as names for interally called and forwarder-called
+      accessor methods
+    - enforce using "set" for filter/object-filter in slot operations
+      (same as for mixins)
+    - add "set" as a method name for relation slots
+    - implemented relation slot "mixin" and "object-mixin" via "slotassign" to disallow
+       "/obj/ mixin /value/" and  "/obj/ object mixin /value/" to use  instead
+       "/obj/ mixin set /value/" and  "/obj/ object mixin set /value/"
+       while keeping "configure" and "cget" working.
+       This has the advantage that  "/obj/ mixin set"  does not try
+       to replace the mixin chain by "set"
+    - disallow "assign" for nx::variableSlots
+    - use set/get/add as slot methods for get/configure/incremental
+      operations
+    - demangle slots for nx/xotcl2 further
+    - enforce usage of "get" for all slots in nx
+    - put test cases for all kind of mix setter / getter together in one test case
+
+xotcl2.tcl:
+    - use object system configuration for -slot.get and -slot.set
+    - use value=set instead of value=assign
+    - simplify "-parameter" implementation
+    - add setters for "name", "domain", and "default" to xotcl::Attribute
+      for backward compatibility
+
+mongodb
+    - by directing calls to the setter, it is now more complex to
+      determine the true calling object for an converter, since the
+      set operation might be routed though the slot object.
+      It would be nice to have framework support for this.
+    - fix 2 error messages
+    - provide shorter tracebacks by using "return -code error ..." rather
+       than "error ..."
+
+nx::test:
+    - don't delete system slot ::xotcl::Attribute on cleanup
+
+nx.tcl:
+- add slot method value=unset to nx::RelationSlot and nx::VariableSlot
+- extended regression test
+- reworked error message generation of slot-forwarder 
+  (list all available slot methods with prefix value=)
+- cleaned up relation slot mixin variants
+
+xotcl2:
+- use xotcl::RelationSlot instead of nx::Relationslot in xotcl2
+  (we can more value=assign here).
+
+Makefile:
+- fix load paths for sublibs (e.g. mongodb) in regression test
+
+nsf.c:
+- added nsf::var::get and "::nx::var get" to provide selector
+  based interface for variable reading (used in slotmethod get
+  of nx::VariableSlot)
+- renamed nsf::relation to nsf::relation::set and added 
+  nsf::relation::get in accordance with nsf::var::get
+- fixed unary argument passing notation for "-nocomplain" 
+  of nsf::var and for 42 other options of other commands
+
+nx.tcl:
+- added flag -nocomplain to "/obj/ /prop/ unset ?-nocomplain?"
+- use "mixin|filter clear" instead of "mixin|filter unset"
+- name parameter option "slotset" instead of "slotassign"
+- have "filter|mixin clear" return the list of former|removed
+  filters|mixins.
+
+nsfObj.c:
+- allow to omit "-guard" within arguments to flag
+  definition of a filter/mixin guard
+- extended regression test
+
+nsf.c:
+- improve handling of space in object names
+- added methods 
+     "info lookup filters ?-guards? ?/pattern/?" and 
+     "info lookup methods *-guards? ?/pattern/?"
+
+nsf.c
+- force again literal "-guard" in a "mixinreg" type to avoid
+  potential confusions
+- Base nsfRelationSet for mixins on cmds rather than TclObjs
+  to avoid confusions and duplication of guard detection logic
+- Add interp to NsfMixinregGet() and NsfFilterregGet() to be
+  able to return error messages
+- return more error message from mixinreg converter
+- provide at least minimal support for "funny class names"
+  (i.e. containing spaces)
+- FinalObjectDeletion: don't enforce namespace = 1 for cases
+  with wierd namespace deletion order
+- extended regression test
+
+nx.tcl
+- switch from "/obj/ info parameter" -> "nsf::parameter::get"
+  to reduce potential semantic confusion of info options.
+  "info parameter" was not object/class specific at all, but
+  is just a syntax extractor
+
+
+nsf.c:
+- extend nsf::parameter::get to obtained more detailed information
+  for obejcts/classes/metaclasses/baseclasses and specified types
+- extend regression test
 ========================================================================
 TODO:
 
-- -incremental: setting incremental will promote a property/variable
-   from a non-multivalued one to a multivalued one ->
-   i.e., it becomes 0..*  unconditionally
+- TODO: update tutorial and migration guide
 
-   if the following is stated (ambiguous, but allowed):
-
-   /obj/ object property -incremental a:1..1 
-
-   we will end up with "a" becoming 0..*, allowing empty strings without
-   this being acknowledged by the definition (even if ambiguous). maybe this is more compelling when
-   setting incremental a posteriori and reconfigure a property/variable.
-
-   suggestion: make the lower bound always respected -> 1..1 becomes
-   1..*, 0..1 becomes 0..*
-
-   alternatively, we can enforce that -incremental can only be used on
-   props/vars explicitly declared multivalued, rather than promoting
-   them silently? 
-
-   >>>
-   Maybe limiting -incremental to props/vars explicitly declared
-   multivalued would be more honest, simply because 0..1/1..1 permit
-   values (any Tcl word) which cannot be turned in to a list rep no
-   way ... so silently attempting to promote them will always have NX
-   throw up.
-
-- at this point, the documentation of variable vs. property (in the
-  man pages and the tutorial) boils down to:
-
-  "property equals variable despite a different default value of
-  nonpos arg -configurable" (and the consequences entailed by this
-  condition -> configure option, slot object).
-
-  (agreed, they also differ slightly by their definition syntaxes,
-  e.g. placement of the default value etc., but this is also more a
-  historical artifact)
-
-  historically, there used to be more differences (no accessors for
-  variable etc.), right now, the largest portions of the their
-  documentation is identical.
-
-  so, I act as the devil's advocate: is it worth keeping both, rather
-  than giving an example of how to use -configurable on
-  property to achieve what is now achieved by variable (or vice versa)?
-
-  one could restate anything written in Section 3.1.2 of the tutorial
-  by substituting occurrences of ":variable" for ":property
-  -configurable false ...". Or, if the notion of variable should take
-  precedence (with the sections being named "non-configurable instance variables"
-  ...) drop property and keep ":variable -configurable false" which
-  literally expressed what is stated in the section headings.
-
-  or, to be on the safe side, make "property" a requirable feature and
-  just keep "variable" for the core API?
-
-  maybe I am wrong, if so, what is a convincing statement/scenario
-  (from the API perspective) to give to the reader of property
-  vs. variable rather than explaining property vs. property
-  -configurable false (or variable vs. variable -configurable false)
-  only? (apparently, i can't think of one)
-
-- incremental: should we add a third operation?
-
-  /obj/ /prop/ get /index/
-
-  right now, we only provide a setter facade (add, delete) for list
-  values, no getter one. Reasons: consistency (per-element getter +
-  setter), a complete getter+setter facade would also allow for
-  switching from a list representation of multivalued values to
-  another one (e.g., some mongodb data structure?) without changing
-  clients of the incremental interface (e.g., which now use [lindex]
-  etc. to retrieve elements from the property-managed list value) ...
-
-  get would behave like (=be implemented with) lindex.
-
- >>>
-    * the typical idiom for set-valued db-results is foreach, not lindex.
-      Is there a convincing use case? from databases one gets a "set" of values
-      accessing the nth one is rather a border case.
-    * We have for variable and relation slots aleady "assign", "get", 
-      "add" and "delete", so "get" is not reasonable naming choice.
-    * The slot interface is extensible. different slot methods of choice can be added via
-      packages. so why bloat the implementation?
-
- >>> (adding discussion item from yesterday)
-
-    * using the argument arity for the conditional dispatch behind the
-      incremental interface leads to the situation that "get" cannot
-      be called directly, other than assign, get, and delete. there is
-      no warning raised, no feedback given to the client.
-    * therefore, should we provide for three modes (as an example):
-
-      - implicit slot interface (arity-based conditional dispatch),
-        allows for refining the slot interface "behind the scenes"-
-      - explicit slot interface: assign + get are "exported" to
-        clients = must be used. there is no convenience way of
-        getting/setting a property/variable (implementation using ensembles).
-      - incremental slot interface: implies explicit and adds "add" +
-        "delete" (downside: every client must use the explicit
-        interface: assign, get, add, delete; upside: no ambiguities
-        such as with get)
+- finish nx-property reform (merge into master)
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
@@ -5405,6 +5446,9 @@ For future releases (after first alpha/beta release)
            there is no way to intercept c-based functions.
            Checking these before/after c-implemented functions
            should be possible though.
+
+  * REF: feature request 'remove "-guard" from mixin and filter specs, just have two-element lists'
+    would require to have different sets of converters for slots depending on object system
 
   * add maybe "::nsf::object::property /obj/ volatile 0|1" to alter 
     volatile state.

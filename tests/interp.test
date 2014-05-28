@@ -660,7 +660,7 @@ nx::test case hidden-mixins-procsearch {
 	return <[current class]>[next]<[current class]>
       }
     }
-    x object mixin M
+    x object mixin set M
   }
 
   ? {$i eval {x foo}} <::M>OK<::M>
@@ -712,7 +712,7 @@ nx::test case hidden-mixins-mixinlists {
     nx::Class create M1 
     nx::Class create M2
     nx::Class create M3
-    o object mixin {M1 M2}
+    o object mixin set {M1 M2}
   }
 
   ? {$i eval {o info precedence}} "::M1 ::M2 ::nx::Object"

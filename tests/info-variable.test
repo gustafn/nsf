@@ -33,9 +33,9 @@ nx::test case configure-parameters {
   ? {join [Person info configure parameters] \n} \
 "-age:integer
 -name
--object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,0..n
+-object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,method=object-mixin,0..n
 -class:class,alias,method=::nsf::methods::object::class
--object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,0..n
+-object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,method=object-filter,0..n
 __initblock:cmd,optional,noleadingdash"
 
   ? {Person info configure parameters age} "-age:integer"
@@ -46,9 +46,14 @@ __initblock:cmd,optional,noleadingdash"
   ? {Person info method parameters foo force} "-force:switch"
   ? {Person info method parameters foo {*a[gm]*}} {age:integer {name ""}}
   ? {Person info method syntax foo} "/cls/ foo ?-force? /age/ ?/name/?"
-  ? {Person info parameter syntax age:integer} "/age/"
-  ? {Person info parameter syntax -force:switch} "?-force?"
-  ? {Person info parameter name "a b"} "a"
+
+  #? {Person info parameter syntax age:integer} "/age/"
+  #? {Person info parameter syntax -force:switch} "?-force?"
+  #? {Person info parameter name "a b"} "a"
+  ? {nsf::parameter::get syntax age:integer} "/age/"
+  ? {nsf::parameter::get syntax -force:switch} "?-force?"
+  ? {nsf::parameter::get name "a b"} "a"
+
 
   ? {lmap p [Person info configure parameters] {nsf::parameter::get default $p}} "0 0 0 0 0 0"
   ? {lmap p [Person info method parameters foo] {nsf::parameter::get default $p}} "1 0 1"
@@ -65,7 +70,7 @@ __initblock:cmd,optional,noleadingdash"
     :property -accessor private {p 19}
     :property -accessor protected q
     :property -incremental i
-    :public method m {} {: -local p}
+    :public method m {} {: -local p get}
     :create f1
   }
 
@@ -174,17 +179,17 @@ q"
   ? {lmap handle $::vs {::Foo info variable name $handle}} \
     "__private(::Foo,p) a b c d e i q"
 
-  ? {lmap handle $::ps {::Foo info parameter name $handle}} \
+  ? {lmap handle $::ps {nsf::parameter::get name $handle}} \
     "p a b c d e i q"
-  ? {lmap handle $::ps {::Foo info parameter default $handle}} \
+  ? {lmap handle $::ps {nsf::parameter::get default $handle}} \
     "1 0 1 1 1 1 0 0"
-  ? {lmap handle $::ps {::Foo info parameter type $handle}} \
+  ? {lmap handle $::ps {nsf::parameter::get type $handle}} \
     "{} integer integer {} lower lower {} {}"
 
   ? {nsf::parameter::get default "b:integer 123" ::var1} "1"
   ? {set ::var1} "123"
 
-  ? {::Foo info parameter default "b:integer 123" ::var2} "1"
+  ? {nsf::parameter::get default "b:integer 123" ::var2} "1"
   ? {set ::var2} "123"
 
 }

@@ -64,7 +64,7 @@ namespace eval ::nx::mongo {
       if {[regexp {^([^.]+)[.](.+)$} $ns _ db coll]} {
         return [set $key [mongo::collection::open ${:mongoConn} $db $coll]]
       }
-      error "invalid mongo namespace '$ns'"
+      return -code error "invalid mongo namespace '$ns'"
     }
 
     :public object method count  {ns args} {::mongo::collection::count  [:collection $ns] {*}$args}
@@ -139,7 +139,7 @@ namespace eval ::nx::mongo {
     
     :public object method "gridfs set attribute" {query attribute value} {
       set info [::nx::mongo::db gridfs list $query]
-      if {$info eq ""} {error "no such file <$query> stored in gridfs"}
+      if {$info eq ""} {return -code error "no such file <$query> stored in gridfs"}
       foreach {att type v} $info { dict set d $att $v }
       if {[dict exists $d $attribute] && [dict get $d $attribute] eq $value} {
         # right value, nothing to do
@@ -163,7 +163,7 @@ namespace eval ::nx::mongo {
 
     :public object method "gridfs unset attribute" {query attribute} {
       set info [::nx::mongo::db gridfs list $query]
-      if {$info eq ""} {error "no such file <$query> stored in gridfs"}
+      if {$info eq ""} {return -code error "no such file <$query> stored in gridfs"}
       foreach {att type v} $info { dict set d $att $v }
       if {[dict exists $d $attribute]} {
         # delete the attribute
@@ -237,12 +237,7 @@ namespace eval ::nx::mongo {
 	  # generating an error is too harsh, but for the mapping back,
 	  # we check for multivalued as well.
 
-          # aaaaa
-          puts stderr [list bsontype $bsontype value $value]
-          #set result [list]
-          #foreach {pos type v} $value {lappend result [:bson decode $type $v]}
-          #puts stderr "[self] $result"
-	  error "Attribute ${:name} should be multivalued, but it is not"
+	  return -code error "Attribute ${:name} should be multivalued, but it is not"
 	}
 	set result [list]
 	foreach {pos type v} $value {lappend result [:bson decode $type $v]}
@@ -259,7 +254,7 @@ namespace eval ::nx::mongo {
 	  set value [:bson deref ${:arg} $value]
 	  #puts stderr "*** bson deref ${:arg} ==> $value"
 	} else {
-	  error "don't know how to decode document with value '$value'; [:serialize]"
+	  return -code error "don't know how to decode document with value '$value'; [:serialize]"
 	}
       }
       return $value
@@ -271,16 +266,16 @@ namespace eval ::nx::mongo {
 	if {[string match {$*} $name]} {set ([string range $name 1 end]) $v}
       }
       if {![info exists (id)]} {
-	error "value to be dereferenced does not contain dbref id: $value"
+	return -code error "value to be dereferenced does not contain dbref id: $value"
       }
       if {[info exists (db)]} {
 	if {$(db) ne [$class cget -mongo_db]} {
-	  error "$(db) is different to [$class cget -mongo_db]"
+	  return -code error "$(db) is different to [$class cget -mongo_db]"
 	}
       }
       if {[info exists (ref)]} {
 	if {$(ref) ne [$class cget -mongo_collection]} {
-	  error "$(ref) is different to [$class cget -mongo_collection]"
+	  return -code error "$(ref) is different to [$class cget -mongo_collection]"
 	}
       }
       return [$class find first -cond [list _id = $(id)]]
@@ -326,12 +321,12 @@ namespace eval ::nx::mongo {
 	set values [::nsf::var::set $object ${:name}]
 	set p [lsearch $values $value]
 	if {$p < 0} {
-	  error "$value not included in $object.$value ($values)"
+	  return -code error "$value not included in $object.$value ($values)"
 	}
 	set newValues [lreplace $values $p $p]
 	::nsf::var::set $object ${:name} $newValues
       } else {
-	error "remove just implemented for multivalued slots"
+	return -code error "remove just implemented for multivalued slots"
       }
     }
 
@@ -340,13 +335,33 @@ namespace eval ::nx::mongo {
     # track "embedded in" relationship
     #
     :public method type=embedded {name value arg} {
+      # Determine the calling object of the type converter, which
+      # might be object itself or a variable slot managing the object.
       set s [:uplevel self]
-      #puts stderr "check $name '$value' arg='$arg' s=$s"
+      #puts stderr "XXXX check $name '$value' arg='$arg' s=$s // [:uplevel 1 self]"
+      # The calling objects have the the mongo::Object mixed in.
+      if {![$s info has mixin ::nx::mongo::Object]} {
+        # If this is not the case, we might be in a variable slot,
+        # where we cannot trust the incoming name and we have to
+        # obtain the object from one level higher.
+        if {[$s info has type ::nx::VariableSlot]} {
+          set name [$s cget -name]
+          set s [:uplevel 2 self]
+          if {![$s info has mixin ::nx::mongo::Object]} {set s ""}
+        } else {
+          # no slot object, some strange constellation
+          set s ""
+        }
+        if {$s eq ""} {
+          return -code error "$name '$value' is not embedded in object of type ::nx::mongo::Object"
+        }
+      }
+
       if {[::nsf::object::exists $value] && [::nsf::is class $arg] && [$value info has type $arg]} {
 	::nsf::var::set $value __embedded_in [list $s $name]
 	::nsf::var::set $s __contains($value) 1
       } else {
-	error "value '$value' for property $name is not of type $arg"
+	return -code error "value '$value' for property $name is not of type $arg"
       }
     }
     #
@@ -366,7 +381,7 @@ namespace eval ::nx::mongo {
 	}
 	::nsf::var::set $value __referenced_in $refs
       } else {
-	error "value '$value' for property $name is not of type $arg"
+	return -code error "value '$value' for property $name is not of type $arg"
       }
     }
     #
@@ -430,7 +445,7 @@ namespace eval ::nx::mongo {
       set bson [list]
       foreach {att op value} $cond {
 	set slot [:get slot $att]
-	if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
+	if {$slot eq ""} {return -code error "could not obtain slot for <$att $op $value>"}
 	switch $op {
 	  "=" {lappend bson $att [$slot cget -mongotype] $value}
 	  ">" - "<" - "<=" - ">=" - "!="  {
@@ -439,7 +454,7 @@ namespace eval ::nx::mongo {
 	  "in" - "all" {
 	    lappend bson $att document [list [:get relop $op] {*}[$slot bson encode -array $value]]
 	  }
-	  default {error "unknown operator $op"}
+	  default {return -code error "unknown operator $op"}
 	}
       }
       #puts "bson cond <$cond> => $bson"
@@ -467,7 +482,7 @@ namespace eval ::nx::mongo {
       set result {}
       foreach {att value} $atts {
 	if {![string is integer -strict $value]} {
-	  error "$atts: $value should be integer"
+	  return -code error "$atts: $value should be integer"
 	}
 	lappend result $att int $value
       }
@@ -483,7 +498,7 @@ namespace eval ::nx::mongo {
       set objParams [list]
       foreach {att type value} $tuple {
 	set slot [:get slot $att]
-	if {$slot eq ""} {error "could not obtain slot for <$att $type $value>"}
+	if {$slot eq ""} {return -code error "could not obtain slot for <$att $type $value>"}
 	lappend objParams -$att [$slot bson decode $type $value]
       }
       #puts "bson parameter <$tuple> => $objParams"
@@ -499,7 +514,7 @@ namespace eval ::nx::mongo {
       set cmd ""
       foreach {att type value} $tuple {
 	set slot [:get slot $att]
-	if {$slot eq ""} {error "could not obtain slot for <$att $type $value>"}
+	if {$slot eq ""} {return -code error "could not obtain slot for <$att $type $value>"}
         if {[nx::var exists $slot rep] && [nx::var set $slot rep] ne ""} {
           set script [:bson rep decode [nx::var set $slot rep] $slot $att $type $value]
           append cmd $script\n
@@ -709,7 +724,7 @@ namespace eval ::nx::mongo {
       if {[info exists :mongo_ns]} {
 	#puts stderr "given mongo_ns ${:mongo_ns}"
 	if {![regexp {^([^.]+)[.](.*)$} ${:mongo_ns} :mongo_db :mongo_collection]} {
-	  error "${:mongo_ns} does not contain a dot."
+	  return -code error "${:mongo_ns} does not contain a dot."
 	}
       } else {
 	if {![info exists :mongo_collection]} {
@@ -860,27 +875,31 @@ namespace eval ::nx::mongo {
     #
     :public method delete {} {
       if {[info exists :__embedded_in]} {
+        #
 	# When an embedded object is deleted, it is removed for the
 	# reference list. The containing object is not automatically
 	# saved for the time being. We could consider an automatic
 	# save or mongo-$pull update operation.
+        #
 	#puts "[self] is embedded in ${:__embedded_in}"
 	lassign ${:__embedded_in} parent att
 	set slot [[$parent info class] get slot $att]
-	if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
+	if {$slot eq ""} {return -code error "could not obtain slot for <[$parent info class] $att>"}
 	$slot remove $parent [self]
 	#puts stderr [:serialize]
 	:log "[self] must save parent $parent in db"
 	:destroy
       } elseif {[info exists :__referenced_in]} {
+        #
 	# When a referenced is deleted, we do for now essentially the
 	# same as for embedded objects. However, the same object might
 	# be referenced by several objects.
+        #
 	#puts "[self] is referenced in ${:__referenced_in}"
 	foreach reference ${:__referenced_in} {
 	  lassign $reference parent att
 	  set slot [[$parent info class] get slot $att]
-	  if {$slot eq ""} {error "could not obtain slot for <$att $op $value>"}
+	  if {$slot eq ""} {return -code error "could not obtain slot for <[$parent info class] $att>"}
 	  $slot remove $parent [self]
 	  :log "[self] must save parent $parent in db"
 	}
@@ -891,7 +910,7 @@ namespace eval ::nx::mongo {
 	  set mongo_ns [[:info class] cget -mongo_ns]
 	  ::nx::mongo::db delete $mongo_ns [list _id oid ${:_id}]
 	} else {
-	  error "[self]: object does not contain an _id; it can't be delete from the mongo db."
+	  return -code error "[self]: object does not contain an _id; it can't be delete from the mongo db."
 	}
       }
     }
@@ -905,7 +924,7 @@ namespace eval ::nx::mongo {
       if {$mongo_ns eq ""} {
 	# We could perform the delegation probably automatically, but
 	# for now we provide an error
-	error "No mongo_ns specified for [:info class]. In case this is an embedded object, save the embedding one."
+	return -code error "No mongo_ns specified for [:info class]. In case this is an embedded object, save the embedding one."
       } else {
 	set bson [:bson encode]
 	if {[info exists :_id]} {

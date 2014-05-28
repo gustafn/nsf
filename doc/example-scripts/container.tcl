@@ -95,13 +95,13 @@ nx::Class create OrderedContainer -superclass SimpleContainer {
 ? {container2 new} "::container2::member3"
 
 # The elements of the container are obtained via the method +items+.
-? {container2 items} "::container2::member1 ::container2::member2 ::container2::member3"
+? {container2 items get} "::container2::member1 ::container2::member2 ::container2::member3"
 
 # When we delete an item in the container ...
 ? {container2 delete ::container2::member2} ""
 
 # the item is as well removed from the +items+ list.
-? {container2 items} "::container2::member1 ::container2::member3"
+? {container2 items get} "::container2::member1 ::container2::member3"
 
 # == Sorted Container
 #

@@ -31,7 +31,9 @@ C method foo {} {
   :destroy
   puts stderr "AAAA [current] exists [::nsf::object::exists [current]]"
   :set x 1
+  puts stderr XXXX2
   ? "[current] set x" 1 "$::case can still access [current]"
+  puts stderr XXXX3
   ? {::nsf::object::exists c1} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
@@ -699,7 +701,7 @@ nx::test case destroy-during-init {
 
   ::nx::Object public method f1 args {next}
   ::nx::Object public method f2 args {next}
-  ::nx::Object filter {f1 f2}
+  ::nx::Object filter set {f1 f2}
 
   set x [nx::Class new {
     :volatile
@@ -718,7 +720,7 @@ nx::test case destroy-during-init {
   
   ? [list info command $x] $x "destroy via volatile method + 2 filters"
 
-  ::nx::Object filter ""
+  ::nx::Object filter set ""
 }
 
 nx::test case nested-ordered-composite {
@@ -999,7 +1001,7 @@ nx::test case rename-cached-method {
 nx::test case cyclical-dependency {
   nx::Object create o1
   ? {nx::Class create o1::C} ::o1::C
-  ? {nsf::relation o1 class o1::C} ::o1::C
+  ? {nsf::relation::set o1 class o1::C} ::o1::C
   o1 destroy
 }
 
@@ -1009,7 +1011,7 @@ nx::test case cyclical-dependency {
 #
 nx::Object create o1
 nx::Class create o1::C
-nsf::relation o1 class o1::C
+nsf::relation::set o1 class o1::C
 
 #
 # Create a cyclical superclass dependency and delete it manually
@@ -1017,7 +1019,7 @@ nsf::relation o1 class o1::C
 nx::test case cyclical-dependency {
   nx::Class create C 
   nx::Class create C::*
-  ? {nsf::relation C superclass {C::* nx::Object}} ""
+  ? {nsf::relation::set C superclass {C::* nx::Object}} ""
   C destroy
 }
 
@@ -1027,7 +1029,7 @@ nx::test case cyclical-dependency {
 #
 nx::Class create C 
 nx::Class create C::*
-nsf::relation C superclass {C::* nx::Object}
+nsf::relation::set C superclass {C::* nx::Object}
 
 puts "==== EXIT [info script]"
 #

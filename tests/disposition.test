@@ -303,7 +303,7 @@ nx::test case basics {
   # The option 'method=...' applies to disposition types only
   #
   C setObjectParams [list [list -foo:initcmd,method=BOOM]]
-  ? {C new} "parameter option 'method=' only allowed for parameter types 'alias' and 'forward'"
+  ? {C new} "parameter option 'method=' only allowed for parameter types 'alias', 'forward' and 'slotset'"
   
   C setObjectParams [list [list -foo:alias,forward]]
   ? {C new} "parameter option 'forward' not valid in this option combination"
@@ -587,7 +587,7 @@ nx::test case dispo-callstack {
   # effective difference between #activelevel and #callinglevel, both
   # skip INACTIVE frames.
 
-  Callee mixin [Class new {:public method call args { next }}]
+  Callee mixin set [Class new {:public method call args { next }}]
 
   foreach dispoSpec {
     {-ah:alias,method=call {call:alias X}}
@@ -955,7 +955,7 @@ nx::test case submethods-via-aliasparams {
     }
   }
 
-  C mixin M1
+  C mixin set M1
 
   # N+4 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
   # N+3 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
@@ -981,11 +981,11 @@ nx::test case submethods-via-aliasparams {
   } "::c2--FOO foo--foo"
 
   # ... the filter variant ...
-  C mixin {}
+  C mixin set {}
   C public method intercept args {
     next
   }
-  C filter intercept
+  C filter set intercept
 
   # N+4 |:CscFrame @Type(ENSEMBLE) |	<-- foo (leaf)
   # N+3 |:CscFrame @Call(ENSEMBLE) |	<-- FOO (root)
@@ -1010,7 +1010,7 @@ nx::test case submethods-via-aliasparams {
   } "::c2--FOO foo--foo"
   
 
-  C filter ""
+  C filter set ""
   # / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
   # b) Between root and intermittent or inbetween the set of
   # intermittent frames (i.e., indirection at the level of
@@ -1027,7 +1027,7 @@ nx::test case submethods-via-aliasparams {
     }
   }
 
-  C::slot::__FOO object mixin M2
+  C::slot::__FOO object mixin set M2
   ? {C::slot::__FOO foo} "::M2--::C::slot::__FOO--foo--foo"
   C::slot::__FOO eval {unset :msg}
 
@@ -1037,11 +1037,11 @@ nx::test case submethods-via-aliasparams {
     c1 eval {set :msg}
   } "::c1--FOO foo--foo"
 
-  C::slot::__FOO object mixin {}
+  C::slot::__FOO object mixin set {}
   C::slot::__FOO public object method intercept {} {
     return "[current]--[next]"
   }
-  C::slot::__FOO object filter intercept
+  C::slot::__FOO object filter set intercept
   ? {C::slot::__FOO foo} "::C::slot::__FOO--::C::slot::__FOO--foo--foo"
 
   C setObjectParams [list]
@@ -1062,7 +1062,7 @@ nx::test case submethods-via-aliasparams {
     }
   }
 
-  C mixin M2
+  C mixin set M2
 
   # N+4 |:CscFrame @Type(ENSEMBLE) |		<-- C.FOO.foo (leaf)
   # N+2 |:CscFrame @Call(ENSEMBLE) |		<-- C.FOO (root)
@@ -1077,7 +1077,7 @@ nx::test case submethods-via-aliasparams {
     c1 eval {set :msg}
   } "(1)--::c1--FOO foo--foo--(3)--::M2--FOO foo--::c1"
 
-  C mixin {}  
+  C mixin set {}  
 }
 
 nx::test case dispo-configure-transparency {
@@ -1124,7 +1124,7 @@ nx::test case dispo-configure-transparency {
   C setObjectParams [list [list FOO:alias,noarg ""]]
   C mixin add M
   ? {C create c} "::c-FOO"
-  C mixin {}
+  C mixin set {}
 
 
   # ... at the called object level
@@ -1212,7 +1212,7 @@ nx::test case dispo-object-targets {
   }
 
 
-  ::obj object mixin UnknownHandler
+  ::obj object mixin set UnknownHandler
   ? {[T create t] z uff} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-uff-PATH-z" \
       "Aliased dispatch to unknown method (custom unknown handler)"
   set x [UnknownHandler create handledObj]
@@ -1229,11 +1229,11 @@ nx::test case dispo-object-targets {
   #
   # a) direct dispatch (non-aliased) with fully qualified selector (::*)
   #
-  ::obj object mixin {}
+  ::obj object mixin set {}
   T setObjectParams x:alias,method=::obj
   ? {T create t XXX} "::t: unable to dispatch method '::obj'" "FQ dispatch with default unknown handler"
 
-  ::T mixin UnknownHandler
+  ::T mixin set UnknownHandler
   ? {T create t XXX} "UNKNOWNMETHOD-::obj" "FQ dispatch with custom unknown handler"
 
   #
@@ -1242,7 +1242,7 @@ nx::test case dispo-object-targets {
   UnknownHandler method defaultmethod {} {
     set :defaultmethod 1
   }
-  ::obj object mixin UnknownHandler
+  ::obj object mixin set UnknownHandler
   T setObjectParams [list [list z:alias,noarg ""]]
   ? {T create t; ::obj eval {info exists :defaultmethod}} 1 \
       "Calling defaultmethod via alias+noarg combo with empty default"
@@ -1262,18 +1262,18 @@ nx::test case dispo-object-targets {
   #
   ? {T create t XXX} "invalid argument 'XXX', maybe too many arguments; should be \"::t configure ?/z/?\""
 
-  ::obj object mixin {}
+  ::obj object mixin set {}
   T setObjectParams [list z:alias]
   ? {T create tt YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
-  ::obj object mixin UnknownHandler
+  ::obj object mixin set UnknownHandler
   ? {T create tt YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
       "sending the msg: tt->z(::obj)->YYY()"
 
 
-  ::obj object mixin {}
+  ::obj object mixin set {}
   T setObjectParams [list -z:alias]
   ? {T create tt -z YYY} "::obj: unable to dispatch method 'YYY'" "sending the msg: tt->z(::obj)->YYY()"
-  ::obj object mixin UnknownHandler
+  ::obj object mixin set UnknownHandler
   ? {T create tt -z YYY} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD-YYY-PATH-z" \
       "sending the msg: tt->z(::obj)->YYY()"
     
@@ -1281,10 +1281,10 @@ nx::test case dispo-object-targets {
   # [current methodpath] & empty selector strings:
   #
 
-  ::obj object mixin {}
+  ::obj object mixin set {}
   T setObjectParams [list z:alias]
   ? {T create tt ""} "::obj: unable to dispatch method ''" "sending the msg: tt->z->{}()"
-  ::obj object mixin UnknownHandler
+  ::obj object mixin set UnknownHandler
   ? {T create tt ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z->{}()"
   T setObjectParams [list -z:alias]
   ? {T create tt -z ""} "CURRENT-::obj-DELEGATOR-::tt-UNKNOWNMETHOD--PATH-z" "sending the msg: tt->z()"
@@ -1293,15 +1293,13 @@ nx::test case dispo-object-targets {
   #
   # Dispatch with a method handle
   #
-  ::T mixin {}
-  #puts stderr =================1
+  ::T mixin set {}
   ? [list [T create t] $methods(z) XXX] \
       "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z"
-  #puts stderr =================3
   T setObjectParams x:alias,method=$methods(z)
   ? {T create t XXX} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z" \
       "Non-object FQ selector with default unknown handler"
-  ::T mixin UnknownHandler
+  ::T mixin set UnknownHandler
   ? {T create t XXX} "CURRENT-::obj-DELEGATOR-::t-UNKNOWNMETHOD-XXX-PATH-::nsf::classes::T::z" \
       "Non-object FQ selector with custom unknown handler"
 
@@ -1331,6 +1329,7 @@ nx::test case dispo-object-targets {
 #
 
 nx::test case xotcl-residualargs {
+
   package prefer latest
   puts stderr "XOTcl loaded: [package req XOTcl 2.0]"
 
@@ -1358,15 +1357,15 @@ nx::test case xotcl-residualargs2 {
   ::xotcl::Class create XC -parameter {a b c}
   ::XC instproc init args {set :x $args; incr :y}
 
+  ? {XC create xc1 -a 1} ::xc1
+  ? {XC create xc2 x y -a 1} ::xc2
+
   ::nx::Class create C {
     :property a
     :property b
     :property c
     :method init args {set :x $args; incr :y}
   }
-  
-  ? {XC create xc1 -a 1} ::xc1
-  ? {XC create xc2 x y -a 1} ::xc2
 
   ? {C create c1 -a 1} ::c1
   ? {xc2 eval {info exists :a}} 1

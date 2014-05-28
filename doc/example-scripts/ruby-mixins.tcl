@@ -32,7 +32,7 @@ package req nx
 
 nx::Class eval {
   :protected method module {name:class} {
-    nsf::relation [self] superclass [concat $name [:info superclass]]
+    nsf::relation::set [self] superclass [concat $name [:info superclass]]
   }
 }
 
@@ -124,14 +124,14 @@ nx::Class create Mix {
 # the precedence list. A decorator is able to modify the behavior of
 # all of the methods of the class, where it is mixed into.
 
-? {g1 object mixin Mix} "::Mix"
+? {g1 object mixin set Mix} "::Mix"
 
 ? {g1 info precedence} "::Mix ::Group ::Enumerable ::nx::Object"
 
 ? {g1 count} {alpha 3 omega}
 
 # For the time being, remove the mixin class again.
-? {g1 object mixin ""} ""
+? {g1 object mixin set ""} ""
 ? {g1 info precedence} "::Group ::Enumerable ::nx::Object"
 
 #
@@ -213,7 +213,7 @@ nx::Class create SpecialForce -superclass ATeam {
 # and decorates the instances of +ATeam+ as well the instances of its
 # specializations (like e.g. +SpecialForce+).
 
-? {ATeam mixin Mix} "::Mix"
+? {ATeam mixin set Mix} "::Mix"
 
 ? {s1 info precedence} "::Mix ::SpecialForce ::ATeam ::Enumerable ::nx::Object"
 

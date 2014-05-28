@@ -203,7 +203,7 @@ namespace eval ::nx::serializer {
       set targetName $sourceName
       if {[array exists :objmap]} {
 	foreach {source target} [array get :objmap] {
-	  puts "[list regsub ^$source $targetName $target targetName]"
+	  #puts "[list regsub ^$source $targetName $target targetName]"
 	  regsub ^$source $targetName $target targetName
 	}
       }
@@ -381,7 +381,7 @@ namespace eval ::nx::serializer {
       # don't filter anything during serialization
       set filterstate [::nsf::configure filter off]
       set s [:new -childof [::nsf::current object]]
-      if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
+      if {[info exists ignoreVarsRE]} {$s ignoreVarsRE set $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
 
       set r [subst {
@@ -467,7 +467,7 @@ namespace eval ::nx::serializer {
     :public object method deepSerialize {-ignoreVarsRE -ignore -map -objmap args} {
       :resetPattern
       set s [:new -childof [::nsf::current object]]
-      if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
+      if {[info exists ignoreVarsRE]} {$s ignoreVarsRE set $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
       if {[info exists objmap]} {$s objmap $objmap}
       foreach o $args {
@@ -511,8 +511,8 @@ namespace eval ::nx::serializer {
       set cmd ""
       foreach o [list ${:rootClass} ${:rootMetaClass}] {
         append cmd \
-            [:frameWorkCmd ::nsf::relation $o object-mixin] \
-            [:frameWorkCmd ::nsf::relation $o class-mixin] \
+            [:frameWorkCmd ::nsf::relation::get $o object-mixin] \
+            [:frameWorkCmd ::nsf::relation::get $o class-mixin] \
             [:frameWorkCmd ::nsf::method::assertion $o object-invar] \
             [:frameWorkCmd ::nsf::method::assertion $o class-invar]
       }
@@ -608,6 +608,7 @@ namespace eval ::nx::serializer {
       set v [$cmd $o $relation]
       if {$v eq ""} {return ""}
       if {[info exists unless] && $v eq $unless} {return ""}
+      regsub -all {::get$} $cmd ::set cmd
       return [list $cmd ${:targetName} $relation $v]\n
     }
 
@@ -717,7 +718,7 @@ namespace eval ::nx::serializer {
       if {![:Object-needsNothing $x $s]} {return 0}
       set scs [$x info superclass]
       if {[$s needsOneOf $scs]} {return 0}
-      if {[$s needsOneOf [::nsf::relation $x class-mixin]]} {return 0}
+      if {[$s needsOneOf [::nsf::relation::get $x class-mixin]]} {return 0}
       foreach sc $scs {if {[$s needsOneOf [$sc ::nsf::methods::class::info::slotobjects]]} {return 0}}
       if {[$s needsOneOf [:alias-dependency $x class]]} {return 0}
       return 1
@@ -829,14 +830,14 @@ namespace eval ::nx::serializer {
       }
 
       append cmd \
-          [:frameWorkCmd ::nsf::relation $o object-mixin] \
+          [:frameWorkCmd ::nsf::relation::get $o object-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o object-invar] \
           [:frameWorkCmd ::nsf::object::property $o keepcallerself -unless 0] \
           [:frameWorkCmd ::nsf::object::property $o perobjectdispatch -unless 0]
 
       eval $traces
 
-      $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
+      $s addPostCmd [:frameWorkCmd ::nsf::relation::get $o object-filter]
       return $cmd
     }
 
@@ -852,11 +853,11 @@ namespace eval ::nx::serializer {
         append cmd [:method-serialize $o $i ""] "\n"
       }
       append cmd \
-          [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
-          [:frameWorkCmd ::nsf::relation $o class-mixin] \
+          [:frameWorkCmd ::nsf::relation::get $o superclass -unless ${:rootClass}] \
+          [:frameWorkCmd ::nsf::relation::get $o class-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o class-invar]
       
-      $s addPostCmd [:frameWorkCmd ::nsf::relation $o class-filter]
+      $s addPostCmd [:frameWorkCmd ::nsf::relation::get $o class-filter]
       return $cmd\n
     }
 
@@ -964,10 +965,10 @@ namespace eval ::nx::serializer {
         append cmd [list ${:targetName} parametercmd $i] "\n"
       }
       append cmd \
-          [:frameWorkCmd ::nsf::relation $o object-mixin] \
+          [:frameWorkCmd ::nsf::relation::get $o object-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o object-invar]
 
-      $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
+      $s addPostCmd [:frameWorkCmd ::nsf::relation::get $o object-filter]
 
       eval $traces
       return $cmd
@@ -994,11 +995,11 @@ namespace eval ::nx::serializer {
         append cmd [list ::nsf::method::alias ${:targetName} {*}[lrange $nxDef 3 end]]\n
       }
       append cmd \
-          [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
-          [:frameWorkCmd ::nsf::relation $o class-mixin] \
+          [:frameWorkCmd ::nsf::relation::get $o superclass -unless ${:rootClass}] \
+          [:frameWorkCmd ::nsf::relation::get $o class-mixin] \
           [:frameWorkCmd ::nsf::method::assertion $o class-invar]
 
-      $s addPostCmd [:frameWorkCmd ::nsf::relation $o class-filter]
+      $s addPostCmd [:frameWorkCmd ::nsf::relation::get $o class-filter]
       return $cmd
     }
 

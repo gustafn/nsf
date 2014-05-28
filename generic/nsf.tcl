@@ -79,11 +79,11 @@ namespace eval ::nsf {
   ::nsf::proc ::nsf::mixin {object -per-object:switch classes} {
     set rel [expr {${per-object} ? "object-mixin" : "class-mixin"}]
     if {[lindex $classes 0] ne ""} {
-      set oldSetting [::nsf::relation $object $rel]
+      set oldSetting [::nsf::relation::get $object $rel]
       # use uplevel to avoid namespace surprises
-      uplevel [list ::nsf::relation $object $rel [linsert $oldSetting 0 $classes]]
+      uplevel [list ::nsf::relation::set $object $rel [linsert $oldSetting 0 $classes]]
     } else {
-      uplevel [list ::nsf::relation $object $rel ""]
+      uplevel [list ::nsf::relation::set $object $rel ""]
     }
   }
 

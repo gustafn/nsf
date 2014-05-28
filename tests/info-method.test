@@ -119,8 +119,8 @@ nx::test case info-method-base {
   ? {C info object method definition add1} "::C public object forward add1 expr 1 +"
   ? {C info object method definition fpo} "::C public object forward fpo ::o"
   
-  ? {C info method definition s} "::C public setter s"
-  ? {C info object method definition spo} "::C public object setter spo"
+  ? {C info method definition s} "::C public forward s -prefix value= ::C::slot::s %1 %self s"
+  ? {C info object method definition spo} "::C public object forward spo -prefix value= ::C::per-object-slot::spo %1 %self spo"
   
   ? {C info method definition a} "::C public alias a ::set"
   ? {C info object method definition apo} "::C public object alias apo ::puts"
@@ -364,7 +364,7 @@ nx::test case callable {
     ? {o info lookup methods bar} bar
     ? {o bar} Object.bar
 
-    o object mixin ::nx::Class
+    o object mixin set ::nx::Class
     ? {o info precedence} "::nx::Class ::nx::Object"
     ? {o info lookup method bar} "::nsf::classes::nx::Class::bar"
     ? {o info lookup methods bar} bar
@@ -389,34 +389,34 @@ nx::test case callable {
     ? {o info lookup methods create} ""
     ? {o info lookup methods configure} configure
     ? {o info lookup method configure} "::nsf::classes::nx::Object::configure"
-    ? {o object filter f} "f"
+    ? {o object filter set f} "f"
     ? {o object filter guard f { 1 == 1 }} ""
     ? {o info object filter guard f} " 1 == 1 "
     ? {o object filter guard f} " 1 == 1 "
-    o object filter ""
+    o object filter set ""
 
     nx::Class create Foo
     ? {Foo method f args ::nx::next} "::nsf::classes::Foo::f"
     ? {Foo method f2 args ::nx::next} "::nsf::classes::Foo::f2"
-    ? {Foo filter {f f2}} "f f2"
+    ? {Foo filter set {f f2}} "f f2"
     ? {Foo info filter methods} "f f2"
     ? {Foo filter guard f {2 == 2}} ""
     ? {Foo info filter guard f} "2 == 2"
     ? {Foo info filter methods -guards f} "{f -guard {2 == 2}}"
     ? {Foo info filter methods -guards f2} "f2"
     ? {Foo info filter methods -guards} "{f -guard {2 == 2}} f2"
-    ? {Foo filter {}} ""
+    ? {Foo filter set {}} ""
 
     ? {Foo object method f args ::nx::next} "::Foo::f"
     ? {Foo object method f2 args ::nx::next} "::Foo::f2"
-    ? {Foo object filter {f f2}} "f f2"
+    ? {Foo object filter set {f f2}} "f f2"
     ? {Foo info object filter methods} "f f2"
     ? {Foo object filter guard f {2 == 2}} ""
     ? {Foo info object filter guard f} "2 == 2"
     ? {Foo info object filter methods -guards f} "{f -guard {2 == 2}}"
     ? {Foo info object filter methods -guards f2} "f2"
     ? {Foo info object filter methods -guards} "{f -guard {2 == 2}} f2"
-    ? {Foo object filter {}} ""
+    ? {Foo object filter set {}} ""
     Foo destroy 
 
     nx::Class create Fly
@@ -451,7 +451,7 @@ nx::test case callable {
     ? {Foo info lookup methods create} "create"
     ? {Foo info lookup method create} "::nsf::classes::nx::Class::create"
     
-    ? {o object mixin ""} ""
+    ? {o object mixin set ""} ""
 }
 
 
@@ -721,7 +721,7 @@ nx::test case info-slot-parametersyntax {
   ? {C info configure syntax} "/::C/ ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 #  ? {C info configure syntax a} "/::C/ ?-a /value/?"
 
-  ? {C info configure parameters } "-a {-b 1} -object-mixin:mixinreg,alias,method=::nx::Object::slot::__object::mixin,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,alias,method=::nx::Object::slot::__object::filter,0..n __initblock:cmd,optional,noleadingdash"
+  ? {C info configure parameters } "-a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,method=object-mixin,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,method=object-filter,0..n __initblock:cmd,optional,noleadingdash"
 
 #  ? {C info parameter list} "-a -b -noinit -object-mixin -class -object-filter __initblock"
 #  ? {C info parameter names} "a b noinit object-mixin class object-filter __initblock"
@@ -747,15 +747,15 @@ nx::test case info-methods-path {
   ? {::nx::Object info methods "info"} "info"
   ? {::nx::Object info methods -path "info"} ""
   ? {lsort [::nx::Object info methods -path "info lookup *"]} \
-      "{info lookup configure parameters} {info lookup configure syntax} {info lookup filter} {info lookup method} {info lookup methods} {info lookup slots} {info lookup variables}"
+      "{info lookup configure parameters} {info lookup configure syntax} {info lookup filter} {info lookup filters} {info lookup method} {info lookup methods} {info lookup mixins} {info lookup slots} {info lookup variables}"
   ? {lsort [::nx::Object info methods -path "info *parameter*"]} \
-      "{info lookup configure parameters} {info object method parameters} {info parameter default} {info parameter name} {info parameter syntax} {info parameter type} {info variable parameter}"
+      "{info lookup configure parameters} {info object method parameters} {info variable parameter}"
   ? {lsort [::nx::Object info methods "slots"]} ""
   ? {lsort [::nx::Object info methods "*slots*"]} ""
   ? {lsort [::nx::Object info methods -path "*slot*"]} \
       "{info lookup slots} {info object slots}"
   ? {lsort [::nx::Object info methods -path "*filter*"]} \
-      "{info lookup filter} {info object filter guard} {info object filter methods} {object filter}"
+      "{info lookup filter} {info lookup filters} {info object filter guard} {info object filter methods} {object filter}"
 
   ::nx::Class create C {
     :public method "string length" {s} {puts length}
@@ -833,26 +833,26 @@ nx::test case info-heritage {
   ? {B info heritage} "::M1 ::A ::nx::Object"
   ? {B info mixin classes -closure} "::M1"
 
-  B mixin M2
+  B mixin set M2
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::M2 ::A ::nx::Object"
   ? {B info mixin classes -closure} "::M2"
 
-  B mixin A
+  B mixin set A
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::A ::nx::Object"
 
-  B mixin C
+  B mixin set C
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::C ::A ::nx::Object"
 
-  B mixin ""
+  B mixin set ""
   ? {BB info heritage} "::B ::A ::nx::Object"
 
-  BB mixin CC
+  BB mixin set CC
   ? {BB info heritage} "::CC ::C ::B ::A ::nx::Object"
 
-  BB mixin ""
+  BB mixin set ""
   ? {BB info heritage} "::B ::A ::nx::Object"
 }
 
@@ -867,31 +867,31 @@ nx::test case info-heritage-transitive {
   Class create D -superclass A
 
   # transitive case
-  C mixin D
-  B mixin C
+  C mixin set D
+  B mixin set C
   ? {C info heritage} "::D ::A ::O ::nx::Object"
   ? {D info heritage} "::A ::O ::nx::Object"
   ? {B info heritage} "::D ::C ::A ::O ::nx::Object"
 
   # reset
-  C mixin ""
-  B mixin ""
+  C mixin set ""
+  B mixin set ""
   ? {B info heritage} "::A ::O ::nx::Object"
   ? {C info heritage} "::A ::O ::nx::Object"
   ? {D info heritage} "::A ::O ::nx::Object"
 
 
   # transitve different order
-  B mixin C
-  C mixin D
+  B mixin set C
+  C mixin set D
   ? {B info heritage} "::D ::C ::A ::O ::nx::Object"
   ? {C info heritage} "::D ::A ::O ::nx::Object"
   ? {D info heritage} "::A ::O ::nx::Object"
 
 
   # reset
-  C mixin ""
-  B mixin ""
+  C mixin set ""
+  B mixin set ""
   ? {B info heritage} "::A ::O ::nx::Object"
   ? {C info heritage} "::A ::O ::nx::Object"
   ? {D info heritage} "::A ::O ::nx::Object"
@@ -913,39 +913,39 @@ nx::test case info-heritage-circular {
   Class create M
 
   # circular case
-  B mixin C
-  C mixin B
+  B mixin set C
+  C mixin set B
   ? {B info heritage} "::C ::A ::O ::nx::Object"
   ? {C info heritage} "::B ::A ::O ::nx::Object"
   ? {D info heritage} "::A ::O ::nx::Object"
 
   # reset
-  C mixin ""
-  B mixin ""
+  C mixin set ""
+  B mixin set ""
   ? {B info heritage} "::A ::O ::nx::Object"
   ? {C info heritage} "::A ::O ::nx::Object"
   ? {D info heritage} "::A ::O ::nx::Object"  
 
   # indirect circular case
-  B mixin C
-  C mixin BB
+  B mixin set C
+  C mixin set BB
   ? {B info heritage} "::BB ::C ::A ::O ::nx::Object"
   ? {C info heritage} "::BB ::B ::A ::O ::nx::Object"
   ? {D info heritage} "::A ::O ::nx::Object"
 
   # reset
-  C mixin ""
-  B mixin ""
+  C mixin set ""
+  B mixin set ""
   ? {B info heritage} "::A ::O ::nx::Object"
   ? {C info heritage} "::A ::O ::nx::Object"
   ? {D info heritage} "::A ::O ::nx::Object"  
 
-  M3 mixin B
+  M3 mixin set B
   ? {A info heritage} "::O ::nx::Object"
   ? {B info heritage} "::A ::O ::nx::Object"
   ? {M3 info heritage} "::B ::A ::O ::nx::Object"
 
-  A mixin M3
+  A mixin set M3
 
   ? {A info heritage} "::B ::M3 ::O ::nx::Object"
   ? {B info heritage} "::M3 ::A ::O ::nx::Object"
@@ -954,7 +954,7 @@ nx::test case info-heritage-circular {
   ? {m1 info precedence} "::B ::A ::O ::M3 ::nx::Object"
   ? {M3 info heritage}   "::B ::A ::O ::nx::Object"
 
-  B mixin M3
+  B mixin set M3
   ? {B info heritage} "::M3 ::A ::O ::nx::Object"
 }
 
@@ -966,13 +966,13 @@ nx::test case info-heritage-simple-multimix {
   Class create MovementTest
   Class create MovementLog
   
-  Agent mixin MovementTest
+  Agent mixin set MovementTest
   Agent create a1 
 
   ? {Agent info heritage} "::MovementTest ::nx::Object"
   ? {a1 info precedence} "::MovementTest ::Agent ::nx::Object"
 
-  a1 object mixin {MovementTest MovementLog}
+  a1 object mixin set {MovementTest MovementLog}
 
   ? {Agent info heritage} "::MovementTest ::nx::Object"
   ? {a1 info precedence} "::MovementTest ::MovementLog ::Agent ::nx::Object"
@@ -995,17 +995,17 @@ nx::test case info-heritage-multimix {
   ? {b1 info precedence} "::B ::A ::nx::Object"
   ? {b1 info precedence ::M*} ""
 
-  A mixin {M1 M2}
+  A mixin set {M1 M2}
   ? {B info heritage} "::M1 ::M2 ::A ::nx::Object"
   ? {b1 info precedence} "::M1 ::M2 ::B ::A ::nx::Object"
   ? {b1 info precedence ::M*} "::M1 ::M2"
   ? {b1 info precedence ::X*} ""
   
-  b1 object mixin {M1 M1 M4}
+  b1 object mixin set {M1 M1 M4}
   ? {b1 info precedence} "::M1 ::M4 ::M2 ::B ::A ::nx::Object"
   ? {b1 info object mixin classes} "::M1 ::M4"
 
-  B mixin {M3 M1 M1 M4}
+  B mixin set {M3 M1 M1 M4}
   ? {B info heritage} "::M3 ::M1 ::M4 ::M2 ::A ::nx::Object"
   ? {b1 info precedence} "::M1 ::M4 ::M3 ::M2 ::B ::A ::nx::Object"
 }
@@ -1023,12 +1023,12 @@ nx::test case info-heritage-multimix {
   ? {c1 info precedence} "::C ::nx::Object"
 
   # ::A is an implied class
-  c1 object mixin B
+  c1 object mixin set B
   ? {c1 info precedence} "::B ::A ::C ::nx::Object"
   ? {c1 info object mixin classes -heritage} "::B ::A"
 
   # ::A is as well implied by ::PCM
-  C mixin PCM
+  C mixin set PCM
   ? {C info heritage} "::PCM ::A ::nx::Object"
   ? {C info mixin classes} "::PCM"
   ? {C info mixin classes -order} "" ;# ???? why no warning
@@ -1057,7 +1057,7 @@ nx::test case info-heritage-transitive-pcm {
   ? {C info heritage} "::B ::A ::nx::Object"
   ? {c1 info precedence} "::C ::B ::A ::nx::Object"
 
-  B mixin PCMB
+  B mixin set PCMB
   
   # heritage includes implied classes
   ? {C info heritage} "::PCMB ::PCMA ::B ::A ::nx::Object"
@@ -1082,7 +1082,7 @@ nx::test case info-heritage-transitive-pcm {
   # since C is a specialization of B, it inherits the classes from B
   ? {C info mixin classes -heritage} "::PCMB ::PCMA ::A"
 
-  PCMB mixin TPCMB
+  PCMB mixin set TPCMB
 
   # heritage includes implied classes
   ? {C info heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::B ::A ::nx::Object"
@@ -1105,7 +1105,7 @@ nx::test case info-heritage-transitive-pcm {
   # since C is a specialization of B, it inherits the classes from B
   ? {C info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
 
-  C mixin PCMC
+  C mixin set PCMC
 
   # heritage includes implied classes
   ? {C info heritage} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::B ::A ::nx::Object"
@@ -1213,7 +1213,7 @@ nx::test case info-methods-closure {
   ? {D info methods -closure *2} "d2 c2"
   ? {D info methods -closure -source application} "c1 d1 d2 c2"
 
-  D mixin M
+  D mixin set M
 
   #
   # Check as well methods inherited from per-class mixins

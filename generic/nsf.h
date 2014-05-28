@@ -341,7 +341,7 @@ typedef struct Nsf_Param {
 #define NSF_ARG_UNNAMED			0x00100000
 #define NSF_ARG_IS_RETURNVALUE		0x00200000
 #define NSF_ARG_NOLEADINGDASH		0x00400000
-#define NSF_ARG_SLOTASSIGN		0x00800000
+#define NSF_ARG_SLOTSET			0x00800000
 #define NSF_ARG_SLOTINITIALIZE		0x01000000
 
 #undef  __GNUC_PREREQ
@@ -407,6 +407,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
  */
 #define NSF_LOG_NOTICE 2
 #define NSF_LOG_WARN 1
+#define NSF_LOG_INFO 0
 
 EXTERN void
 NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)

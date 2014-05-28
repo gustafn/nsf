@@ -439,11 +439,11 @@ typedef struct NsfStringIncrStruct {
 #define NSF_ARG_METHOD_CALL		     (NSF_ARG_ALIAS|NSF_ARG_FORWARD)
 
 /* Disallowed parameter options */
-#define NSF_DISALLOWED_ARG_METHOD_PARAMETER  (NSF_ARG_METHOD_INVOCATION|NSF_ARG_NOCONFIG|NSF_ARG_SLOTASSIGN|NSF_ARG_SLOTINITIALIZE)
+#define NSF_DISALLOWED_ARG_METHOD_PARAMETER  (NSF_ARG_METHOD_INVOCATION|NSF_ARG_NOCONFIG|NSF_ARG_SLOTSET|NSF_ARG_SLOTINITIALIZE)
 #define NSF_DISALLOWED_ARG_SETTER	     (NSF_ARG_SWITCH|NSF_ARG_SUBST_DEFAULT|NSF_DISALLOWED_ARG_METHOD_PARAMETER)
 /*#define NSF_DISALLOWED_ARG_OBJECT_PARAMETER  (NSF_ARG_SWITCH)*/
 #define NSF_DISALLOWED_ARG_OBJECT_PARAMETER  0
-#define NSF_DISALLOWED_ARG_VALUECHECK	     (NSF_ARG_SUBST_DEFAULT|NSF_ARG_METHOD_INVOCATION|NSF_ARG_SWITCH|NSF_ARG_CURRENTLY_UNKNOWN|NSF_ARG_SLOTASSIGN|NSF_ARG_SLOTINITIALIZE)
+#define NSF_DISALLOWED_ARG_VALUECHECK	     (NSF_ARG_SUBST_DEFAULT|NSF_ARG_METHOD_INVOCATION|NSF_ARG_SWITCH|NSF_ARG_CURRENTLY_UNKNOWN|NSF_ARG_SLOTSET|NSF_ARG_SLOTINITIALIZE)
 
 /* flags for ParseContext */
 #define NSF_PC_MUST_DECR		     0x0001
@@ -580,25 +580,29 @@ typedef enum SystemMethodsIdx {
   NSF_o_destroy_idx, 
   NSF_o_init_idx, 
   NSF_o_move_idx, 
-  NSF_o_unknown_idx
+  NSF_o_unknown_idx,
+  NSF_s_get_idx,
+  NSF_s_set_idx
 } SystemMethodsIdx;
 
 #if !defined(NSF_C)
 EXTERN CONST char *Nsf_SystemMethodOpts[];
 #else 
 CONST char *Nsf_SystemMethodOpts[] = {
-  "-class.alloc", 
-  "-class.create", 
+  "-class.alloc",
+  "-class.create",
   "-class.dealloc",
-  "-class.objectparameter", 
-  "-class.recreate", 
-  "-object.cleanup", 
-  "-object.configure", 
-  "-object.defaultmethod", 
-  "-object.destroy", 
-  "-object.init", 
-  "-object.move", 
-  "-object.unknown",  
+  "-class.objectparameter",
+  "-class.recreate",
+  "-object.cleanup",
+  "-object.configure",
+  "-object.defaultmethod",
+  "-object.destroy",
+  "-object.init",
+  "-object.move",
+  "-object.unknown",
+  "-slot.get",
+  "-slot.set",
   NULL
 };
 #endif
@@ -608,8 +612,8 @@ typedef struct NsfObjectSystem {
   NsfClass *rootMetaClass;
   int overloadedMethods;
   int definedMethods;
-  Tcl_Obj *methods[NSF_o_unknown_idx+1];
-  Tcl_Obj *handles[NSF_o_unknown_idx+1];
+  Tcl_Obj *methods[NSF_s_set_idx+1];
+  Tcl_Obj *handles[NSF_s_set_idx+1];
   struct NsfObjectSystem *nextPtr;
 } NsfObjectSystem;
 
@@ -625,9 +629,10 @@ typedef struct NsfObjectSystem {
 typedef enum {
   NSF_EMPTY, NSF_ZERO, NSF_ONE,
   /* methods called internally */
-  NSF_CONFIGURE, NSF_INITIALIZE, NSF_ASSIGN, NSF_GET_PARAMETER_SPEC,
+  NSF_CONFIGURE, NSF_INITIALIZE, NSF_GET_PARAMETER_SPEC,
+  NSF_SLOT_GET, NSF_SLOT_SET,
   /* var names */
-  NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, 
+  NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS,
   NSF_ARRAY_INITCMD, NSF_ARRAY_CMD,
   NSF_ARRAY_ALIAS, NSF_ARRAY_PARAMETERSYNTAX, 
   NSF_POSITION, NSF_POSITIONAL, NSF_CONFIGURABLE, NSF_PARAMETERSPEC,
@@ -647,15 +652,16 @@ typedef enum {
 EXTERN char *NsfGlobalStrings[];
 #else
 char *NsfGlobalStrings[] = {
-  "", "0", "1", 
+  "", "0", "1",
   /* methods called internally */
-  "configure", "initialize", "assign", "getParameterSpec",
+  "configure", "initialize", "getParameterSpec",
+  "value=get", "value=set",
   /* var names */
   "__autonames", "__default_metaclass", "__default_superclass", "__initcmd", "__cmd",
-  "::nsf::alias", "::nsf::parameter::syntax", 
+  "::nsf::alias", "::nsf::parameter::syntax",
   "position", "positional", "configurable", "parameterSpec",
   /* object/class names */
-  "::nx::methodParameterSlot", 
+  "::nx::methodParameterSlot",
   /* constants */
   "alias", "args", "cmd", "filter",  "forward", 
   "method", "object", "setter", "settername", "valuecheck",
@@ -674,12 +680,12 @@ char *NsfGlobalStrings[] = {
 
 /* obj types */
 EXTERN Tcl_ObjType NsfMixinregObjType;
-int NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj)
-  nonnull(1) nonnull(2) nonnull(3);
+int NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 EXTERN Tcl_ObjType NsfFilterregObjType;
-int NsfFilterregGet(Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj)
-  nonnull(1) nonnull(2) nonnull(3);
+int NsfFilterregGet(Tcl_Interp *interp, Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 /* Next Scripting ShadowTclCommands */
 typedef struct NsfShadowTclCommandInfo {

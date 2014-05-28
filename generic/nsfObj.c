@@ -26,6 +26,8 @@
  */
 
 #include "nsfInt.h"
+#include "nsfAccessInt.h"
+
 /*
  *----------------------------------------------------------------------
  *
@@ -405,26 +407,33 @@ MixinregSetFromAny(
     register Tcl_Obj *objPtr)	/* The object to convert. */
 {
   NsfClass *mixin = NULL;
-  Tcl_Obj *guardObj = NULL, *nameObj;
+  Tcl_Obj *guardObj = NULL, *nameObj = NULL;
   Mixinreg *mixinRegPtr;
   int oc; Tcl_Obj **ov;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
-    if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
+    
+    if (oc == 1) {
+      nameObj = ov[0];
+
+      /*} else if (oc == 2) {
+      nameObj = ov[0];
+      guardObj = ov[1];*/
+
+    } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
       nameObj = ov[0];
       guardObj = ov[2];
-      /* fprintf(stderr, "mixinadd name = '%s', guard = '%s'\n", ObjStr(nameObj), ObjStr(guardObj));*/
-    } else if (oc == 1) {
-      nameObj = ov[0];
+
     } else {
-      return TCL_ERROR;
+      nameObj = objPtr;
     }
+
   } else {
-    return TCL_ERROR;
+    return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
   }
 
   /*
-   * Try to resolve unknowns
+   * Syntax was ok. Try to lookup mixin classes:
    */
   if (NsfGetClassFromObj(interp, nameObj, &mixin, 1) != TCL_OK) {
     return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
@@ -477,14 +486,30 @@ MixinregSetFromAny(
  */
 
 int
-NsfMixinregGet(Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj) {
+NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **guardObj) {
 
+  assert(interp);
   assert(obj);
   assert(clPtr); 
   assert(guardObj);
 
   if (obj->typePtr == &NsfMixinregObjType) {
     Mixinreg *mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
+
+    /*
+     * We got a cmd, but this might be already deleted.
+     */
+    if ((Tcl_Command_flags(mixinRegPtr->mixin->object.id) & CMD_IS_DELETED)) {
+      /*
+       * The cmd is deleted. retry to refetch it.
+       */
+      if (MixinregSetFromAny(interp, obj) == TCL_OK) {
+	mixinRegPtr = obj->internalRep.twoPtrValue.ptr1;
+      } else {
+	return TCL_ERROR;
+      }
+    }
+
     *guardObj = mixinRegPtr->guardObj;
     *clPtr = mixinRegPtr->mixin;
     return TCL_OK;
@@ -600,16 +625,21 @@ FilterregSetFromAny(
   int oc; Tcl_Obj **ov;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
-    if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
+    if (oc == 1) {
+      filterObj = ov[0];
+
+      /*    } else if (oc == 2) {
+      filterObj = ov[0];
+      guardObj = ov[1];*/
+
+    } else if (oc == 3 && !strcmp(ObjStr(ov[1]), NsfGlobalStrings[NSF_GUARD_OPTION])) {
       filterObj = ov[0];
       guardObj = ov[2];
-      /*fprintf(stderr, "filteradd name = '%s', guard = '%s'\n", ObjStr(name), ObjStr(guard));*/
-    } else if (oc == 1) {
-      filterObj = ov[0];
+
     } else {
       return TCL_ERROR;
     }
-  } else {
+  }  else {
     return TCL_ERROR;
   }
 
@@ -660,7 +690,7 @@ FilterregSetFromAny(
  */
 
 int
-NsfFilterregGet(Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj) {
+NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, Tcl_Obj **guardObj) {
 
   assert(obj);
   assert(filterObj);

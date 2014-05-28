@@ -391,17 +391,17 @@ nx::test new \
 
 nx::test new \
     -count 100 \
-    -pre {Class D; Class E; Class X -instmixin {D E}} \
-    -cmd {X info instmixin D} \
+    -pre {Class D; Class E; Class X1 -instmixin {D E}} \
+    -cmd {X1 info instmixin D} \
     -expected {::D} \
-    -post {foreach o {D E X} {$o destroy}}
+    -post {foreach o {D E X1} {$o destroy}}
 
 nx::test new \
     -count 100 \
-    -pre {Class D; Class E; Class X -instmixin {D E}} \
-    -cmd {X info instmixin E} \
+    -pre {Class D; Class E; Class X2 -instmixin {D E}} \
+    -cmd {X2 info instmixin E} \
     -expected {::E} \
-    -post {foreach o {D E X} {$o destroy}}
+    -post {foreach o {D E X2} {$o destroy}}
 
 nx::test new \
     -count 100 \
@@ -412,10 +412,10 @@ nx::test new \
 
 nx::test new \
     -count 100 \
-    -pre {Class D; Class E; Class X -instmixin {D E}} \
-    -cmd {X info instmixin ::E*} \
+    -pre {Class D; Class E; Class X3 -instmixin {D E}} \
+    -cmd {X3 info instmixin ::E*} \
     -expected {::E} \
-    -post {foreach o {D E X} {$o destroy}}
+    -post {foreach o {D E X3} {$o destroy}}
 
 nx::test new \
     -count 100 \

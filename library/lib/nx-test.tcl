@@ -23,7 +23,7 @@ namespace eval ::nx {
     :property cmd 
     :property {namespace ::}
     :property {verbose:boolean 0} 
-    :property -accessor public {expected 1} 
+    :property {expected 1}
     :property {count:integer 1} 
     :property msg 
     :property setResult 
@@ -77,12 +77,16 @@ namespace eval ::nx {
       #   - no var cleanup
       #
       set :case $name 
+      nsf::log notice "Running test case: [info script] $name"
 
       if {[info exists arg]} {
 	foreach o [Object info instances -closure] {set pre_exist($o) 1}
+
 	namespace eval :: [list [current] eval $arg]
+
 	foreach o [Object info instances -closure] {
 	  if {[info exists pre_exist($o)]} continue
+	  if {$o in {::xotcl::Attribute}} continue
 	  if {[::nsf::object::exists $o]} {$o destroy}
 	}
       }
@@ -198,11 +202,11 @@ proc ? {cmd expected {msg ""}} {
   } else {
     set t [nx::test new -cmd $cmd -namespace $namespace]
   }
-  $t expected $expected 
+  $t configure -expected $expected 
   $t run
   nsf::__db_run_assertions
 }
 
-nsf::log notice "Running test cases: [info script]"
+
 
 
