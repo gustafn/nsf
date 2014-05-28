@@ -558,18 +558,6 @@ without any namespace qualifiers.
 [call [arg obj] [method {info object variables}] ...]
 [para] Description of [method {info object variables}] ...
 
-[call [arg obj] [method {info parameter default}] ...]
-[para] Description of [method {info parameter default}] ...
-
-[call [arg obj] [method {info parameter name}] ...]
-[para] Description of [method {info parameter name}] ...
-
-[call [arg obj] [method {info parameter syntax}] ...]
-[para] Description of [method {info parameter syntax}] ...
-
-[call [arg obj] [method {info parameter type}] ...]
-[para] Description of [method {info parameter type}] ...
-
 [call [arg obj] [method {info parent}]]
 
 Returns the fully qualified name of the parent object of [arg obj], if
@@ -587,14 +575,19 @@ returned. If a [arg pattern] is provided only classes whose
 names match [arg pattern] are returned. The [arg pattern] string can
 contain special matching characters (see [cmd "string match"]).
 
-[call [arg obj] [method {info variable definition}] ...]
-[para] Description of [method {info variable definition}] ...
+[call [arg obj] [method {info variable}] [arg option] [arg handle]]
 
-[call [arg obj] [method {info variable name}] ...]
-[para] Description of [method {info variable name}] ...
+Retrieves selected details about a variable represented by the given
+[arg handle]. A [arg handle] can be obtained by querying [arg obj] using 
+[method "info [vset SCOPE] variables"] and [method "info lookup variables"].
 
-[call [arg obj] [method {info variable parameter}] ...]
-[para] Description of [method {info variable parameter}] ...
+Valid values for [arg option] are:
+[list_begin itemized]
+[item] [const name] returns the variable name.
+[item] [const parameter] returns a canonical parameter specification
+eligible to (re-)define the given variable (e.g., using [method "[vset SCOPE] variable"]) in a new context.
+[item] [const definition] returns a canonical representation of the definition command used to create the variable in its current configuration.
+[list_end]
 
 [call [arg obj] [method {info vars}] [opt [arg pattern]]]
 

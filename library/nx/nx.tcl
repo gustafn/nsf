@@ -763,9 +763,15 @@ namespace eval ::nx {
     :alias "info parent"                ::nsf::methods::object::info::parent
     :alias "info precedence"            ::nsf::methods::object::info::precedence
     :alias "info vars"                  ::nsf::methods::object::info::vars
-    :method "info variable definition" {handle}  {return [$handle definition]}
-    :method "info variable name"       {handle}  {return [$handle cget -name]}
-    :method "info variable parameter"  {handle}  {return [$handle parameter]}
+    :method "info variable definition" {handle:object,type=::nx::VariableSlot}  {
+      return [$handle definition]
+    }
+    :method "info variable name" {handle:object,type=::nx::VariableSlot}  {
+      return [$handle cget -name]
+    }
+    :method "info variable parameter" {handle:object,type=::nx::VariableSlot}  {
+      return [$handle parameter]
+    }
   }
 
   ######################################################################
