@@ -5133,7 +5133,7 @@ nsf.c:
 - improve handling of space in object names
 - added methods 
      "info lookup filters ?-guards? ?/pattern/?" and 
-     "info lookup methods *-guards? ?/pattern/?"
+     "info lookup methods ?-guards? ?/pattern/?"
 
 nsf.c
 - force again literal "-guard" in a "mixinreg" type to avoid
@@ -5155,20 +5155,50 @@ nx.tcl
   "info parameter" was not object/class specific at all, but
   is just a syntax extractor
 
-
 nsf.c:
 - extend nsf::parameter::get to obtained more detailed information
   for obejcts/classes/metaclasses/baseclasses and specified types
 - extend regression test
+
+- Updated tutorial and migration guide
+
 ========================================================================
 TODO:
-
-- TODO: update tutorial and migration guide
 
 - what should happen with: "/class/ info mixin classes -heritage"
 - asymmetry between "/obj/ info lookup mixins" vs. "/obj/ info ?object? mixin classes"
 
-- finish nx-property reform (merge into master)
+- configure parameters: we have to cleanup
+  Given:
+
+    nx::Class create Person {
+	:property name
+	:create p1
+    }
+
+    Person info configure            says, how object "Person" can be configured 
+    Person info configure syntax     says, how instances of "Person" can be configured
+
+    p1 info configure                says, how object p1 can be configured
+    p1 info lookup configure syntax  says, how object p1 can be configured (long form of above)
+
+    p1 configure -help               gives a reasonable error message, "p1 configure" does not work, when no args are needed
+    Person new -help                 gives a reasonable error message, except, that "configure" is not perfect
+    Person create                    just complains about missing name, does not know about configure arguments
+    Person create -help              creates an object named "-help"
+    Person create foo -help          gives a reasonable error message, except, that "configure" is not perfect
+
+  possible path:
+  1) "Person info configure" is dangerous, too close to "Person info configure syntax" but completely different.
+      maybe: use "Person info configure" as short form of "Person info configure syntax", or drop it,
+      since the lookup variant is at least not surprising.
+  2) It would be nice if we would be not to need the "info" at all but improve the errors in 5-9, 
+     maybe special switch "-?"
+
+- fix error message for
+  "C object mixin" returns 
+  "::C mixin add|clear|delete|get|guard|set" and not
+  "::C object mixin add|clear|delete|get|guard|set"
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
