@@ -720,7 +720,7 @@ namespace eval ::nx {
       return [: {*}$cmd]
     }
     :method "info lookup configure syntax" {} {
-      set syntax "/[self]/ configure [: ::nsf::methods::object::info::objectparameter syntax]"
+      set syntax [: ::nsf::methods::object::info::objectparameter syntax]
       return [string trimright $syntax " "]
     }
     :method "info lookup variables" {pattern:optional} {
@@ -939,7 +939,7 @@ namespace eval ::nx {
     :public alias cget ::nsf::methods::object::cget
 
     :public alias configure ::nsf::methods::object::configure    
-    :public method "info configure" {} {: ::nsf::methods::object::info::objectparameter syntax}
+    #:public method "info configure" {} {: ::nsf::methods::object::info::objectparameter syntax}
   }
   nsf::method::create ::nx::Class::slot::__info::configure defaultmethod {} {
     uplevel {: ::nsf::methods::object::info::objectparameter syntax}

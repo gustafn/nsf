@@ -5162,6 +5162,11 @@ nsf.c:
 
 - Updated tutorial and migration guide
 
+nx.tcl
+- drop short form "/obj/ info configure" for now
+- make output of "/obj/ info lookup configure syntax" equivalent to 
+  "/obj/ info configure"
+
 ========================================================================
 TODO:
 
@@ -5182,7 +5187,7 @@ TODO:
     p1 info configure                says, how object p1 can be configured
     p1 info lookup configure syntax  says, how object p1 can be configured (long form of above)
 
-    p1 configure -help               gives a reasonable error message, "p1 configure" does not work, when no args are needed
+    p1 configure -help               gives a reasonable error message, "p1 configure" does not work, since no args are needed
     Person new -help                 gives a reasonable error message, except, that "configure" is not perfect
     Person create                    just complains about missing name, does not know about configure arguments
     Person create -help              creates an object named "-help"
@@ -5193,7 +5198,17 @@ TODO:
       maybe: use "Person info configure" as short form of "Person info configure syntax", or drop it,
       since the lookup variant is at least not surprising.
   2) It would be nice if we would be not to need the "info" at all but improve the errors in 5-9, 
-     maybe special switch "-?"
+     maybe special switch "-?" or "--"
+
+  Tk uses "/obj/ configure" for obtaining possible values
+
+  Furthermore:
+     The command
+       p1 info method definition [p1 info lookup method configure]
+     gives an error, since "info method" is not defined for p1, we could have used
+       p1 info object method definition [p1 info lookup method configure]
+     which is somewhat strange, since configure is not an object method.
+     Probably: nsf-level command for handles.
 
 - fix error message for
   "C object mixin" returns 

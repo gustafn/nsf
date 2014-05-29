@@ -1739,7 +1739,7 @@ nx::test case req-param {
   ? {d1 configure} ""
 
   D property x:required
-  ? {d1 info configure} \
+  ? {d1 info lookup configure syntax} \
       "-x /value/ ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
   
   ? {d1 configure} \

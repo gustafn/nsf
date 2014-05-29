@@ -53,7 +53,9 @@ nx::test case cget-simple {
   #
   # configure without arguments
   #
-  ? {p1 info configure} "?-sex /value/? -famnam /value/ ?-age /integer/? ?-friends /value .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {p1 configure} ""
+
+  ? {p1 info lookup configure syntax} {?-sex /value/? -famnam /value/ ?-age /integer/? ?-friends /value .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 }
 
 #
@@ -93,7 +95,10 @@ nx::test case cget-via-slot {
   #
   # configure without arguments
   #
-  ? {p1 info configure} "?-bar1 /value/? ?-bar2 /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {p1 configure} ""
+
+  ? {p1 info lookup configure syntax} {?-bar1 /value/? ?-bar2 /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+
 
   #
   # test gettin/setting via slots
@@ -137,7 +142,7 @@ nx::test case cget-parameter-methods {
   # class-level lookup
   #
   ? {C info lookup configure syntax} \
-      "/::C/ configure ?-superclass /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "?-superclass /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
   ? {C cget -superclass} "::nx::Object"
   ? {C cget -object-mixin} ""
   ? {C cget -mixin} ""
@@ -150,7 +155,7 @@ nx::test case cget-parameter-methods {
   # object-level lookup
   #
   ? {c1 info lookup configure syntax} \
-      "/::c1/ configure ?-foo /value/? ?-bar /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "?-foo /value/? ?-bar /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   #
   # query all properties from base classes
