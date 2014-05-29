@@ -720,7 +720,7 @@ namespace eval ::nx {
       return [: {*}$cmd]
     }
     :method "info lookup configure syntax" {} {
-      set syntax "/[self]/ configure [: ::nsf::methods::object::info::objectparameter syntax]"
+      set syntax [: ::nsf::methods::object::info::objectparameter syntax]
       return [string trimright $syntax " "]
     }
     :method "info lookup variables" {pattern:optional} {
@@ -939,7 +939,7 @@ namespace eval ::nx {
     :public alias cget ::nsf::methods::object::cget
 
     :public alias configure ::nsf::methods::object::configure    
-    :public method "info configure" {} {: ::nsf::methods::object::info::objectparameter syntax}
+    #:public method "info configure" {} {: ::nsf::methods::object::info::objectparameter syntax}
   }
   nsf::method::create ::nx::Class::slot::__info::configure defaultmethod {} {
     uplevel {: ::nsf::methods::object::info::objectparameter syntax}
@@ -1370,7 +1370,10 @@ namespace eval ::nx {
       #puts stderr "+++ [self] added elementtype ${:elementtype}"
     }
     if {${:disposition} eq "slotset"} {
-      lappend options slot=[::nsf::self] ${:disposition} method=${:forwardername}
+      lappend options slot=[::nsf::self] ${:disposition}
+      if {${:forwardername} ne ${:name}} {
+        lappend options method=${:forwardername}
+      }
     } else {
       lappend options ${:disposition}
     }
@@ -1624,25 +1627,29 @@ namespace eval ::nx {
       -multiplicity 0..n \
       -defaultmethods {} \
       -disposition slotset \
-      -settername "object mixin" -forwardername object-mixin -elementtype mixinreg
+      -settername "object mixin" \
+      -elementtype mixinreg
 
   ::nx::RelationSlot create ::nx::Object::slot::object-filter \
       -multiplicity 0..n \
       -defaultmethods {} \
       -disposition slotset \
-      -settername "object filter" -forwardername object-filter -elementtype filterreg
+      -settername "object filter" \
+      -elementtype filterreg
 
   ::nx::RelationSlot create ::nx::Class::slot::mixin \
       -multiplicity 0..n \
       -defaultmethods {} \
       -disposition slotset \
-      -forwardername "class-mixin" -elementtype mixinreg
+      -forwardername "class-mixin" \
+      -elementtype mixinreg
 
     ::nx::RelationSlot create ::nx::Class::slot::filter \
       -multiplicity 0..n \
       -defaultmethods {} \
       -disposition slotset \
-      -forwardername class-filter -elementtype filterreg
+      -forwardername class-filter \
+      -elementtype filterreg
   
   #
   # Define "class" as a ObjectParameterSlot defined as alias

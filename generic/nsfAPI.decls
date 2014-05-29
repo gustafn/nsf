@@ -393,7 +393,6 @@ objectInfoMethod filterguard NsfObjInfoFilterguardMethod {
 }
 objectInfoMethod filtermethods NsfObjInfoFiltermethodsMethod {
   {-argName "-guards" -nrargs 0 -type switch}
-  {-argName "-order" -nrargs 0 -type switch}
   {-argName "pattern"}
 }
 objectInfoMethod forward NsfObjInfoForwardMethod {
@@ -452,7 +451,6 @@ objectInfoMethod methods NsfObjInfoMethodsMethod {
 
 objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
   {-argName "-guards" -nrargs 0 -type switch}
-  {-argName "-heritage" -nrargs 0 -type switch}
   {-argName "pattern" -type objpattern}
 }
 objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {

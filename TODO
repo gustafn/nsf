@@ -5133,7 +5133,7 @@ nsf.c:
 - improve handling of space in object names
 - added methods 
      "info lookup filters ?-guards? ?/pattern/?" and 
-     "info lookup methods *-guards? ?/pattern/?"
+     "info lookup methods ?-guards? ?/pattern/?"
 
 nsf.c
 - force again literal "-guard" in a "mixinreg" type to avoid
@@ -5155,29 +5155,65 @@ nx.tcl
   "info parameter" was not object/class specific at all, but
   is just a syntax extractor
 
-
 nsf.c:
 - extend nsf::parameter::get to obtained more detailed information
   for obejcts/classes/metaclasses/baseclasses and specified types
 - extend regression test
+
+- Updated tutorial and migration guide
+
+nx.tcl
+- drop short form "/obj/ info configure" for now
+- make output of "/obj/ info lookup configure syntax" equivalent to 
+  "/obj/ info configure"
+
 ========================================================================
 TODO:
 
-- Minor redundancy: "/obj/ info object filter" methods plus "-order"
-  switch is functionally equivalent to "/obj/ info lookup
-  filters". Suggestions: Remove -order switch param from the former
-  (not expected from the provider perspective, we are just interested
-  in the filters defined on the given obj in isolation).
+- what should happen with: "/class/ info mixin classes -heritage"
+- asymmetry between "/obj/ info lookup mixins" vs. "/obj/ info ?object? mixin classes"
 
-  the same holds for "/obj/ info object mixin classes -heritage" and
-  /obj/ info lookup mixins. I suggest, removing "-heritage" from the
-  former.
+- configure parameters: we have to cleanup
+  Given:
 
-  (besides, in nsf.c the respective sections are full code clones)
+    nx::Class create Person {
+	:property name
+	:create p1
+    }
 
-- TODO: update tutorial and migration guide
+    Person info configure            says, how object "Person" can be configured 
+    Person info configure syntax     says, how instances of "Person" can be configured
 
-- finish nx-property reform (merge into master)
+    p1 info configure                says, how object p1 can be configured
+    p1 info lookup configure syntax  says, how object p1 can be configured (long form of above)
+
+    p1 configure -help               gives a reasonable error message, "p1 configure" does not work, since no args are needed
+    Person new -help                 gives a reasonable error message, except, that "configure" is not perfect
+    Person create                    just complains about missing name, does not know about configure arguments
+    Person create -help              creates an object named "-help"
+    Person create foo -help          gives a reasonable error message, except, that "configure" is not perfect
+
+  possible path:
+  1) "Person info configure" is dangerous, too close to "Person info configure syntax" but completely different.
+      maybe: use "Person info configure" as short form of "Person info configure syntax", or drop it,
+      since the lookup variant is at least not surprising.
+  2) It would be nice if we would be not to need the "info" at all but improve the errors in 5-9, 
+     maybe special switch "-?" or "--"
+
+  Tk uses "/obj/ configure" for obtaining possible values
+
+  Furthermore:
+     The command
+       p1 info method definition [p1 info lookup method configure]
+     gives an error, since "info method" is not defined for p1, we could have used
+       p1 info object method definition [p1 info lookup method configure]
+     which is somewhat strange, since configure is not an object method.
+     Probably: nsf-level command for handles.
+
+- fix error message for
+  "C object mixin" returns 
+  "::C mixin add|clear|delete|get|guard|set" and not
+  "::C object mixin add|clear|delete|get|guard|set"
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)

@@ -721,7 +721,7 @@ nx::test case info-slot-parametersyntax {
   ? {C info configure syntax} "/::C/ ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 #  ? {C info configure syntax a} "/::C/ ?-a /value/?"
 
-  ? {C info configure parameters } "-a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,method=object-mixin,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,method=object-filter,0..n __initblock:cmd,optional,noleadingdash"
+  ? {C info configure parameters } "-a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
 
 #  ? {C info parameter list} "-a -b -noinit -object-mixin -class -object-filter __initblock"
 #  ? {C info parameter names} "a b noinit object-mixin class object-filter __initblock"
@@ -1025,7 +1025,7 @@ nx::test case info-heritage-multimix {
   # ::A is an implied class
   c1 object mixin set B
   ? {c1 info precedence} "::B ::A ::C ::nx::Object"
-  ? {c1 info object mixin classes -heritage} "::B ::A"
+  ? {c1 info lookup mixins} "::B ::A"
 
   # ::A is as well implied by ::PCM
   C mixin set PCM
@@ -1037,7 +1037,7 @@ nx::test case info-heritage-multimix {
 
   # ::A is not ordered after ::B but after ::PCM
   ? {c1 info precedence} "::B ::PCM ::A ::C ::nx::Object"
-  ? {c1 info object mixin classes -heritage} "::B ::PCM ::A"
+  ? {c1 info lookup mixins} "::B ::PCM ::A"
 }
 
 #

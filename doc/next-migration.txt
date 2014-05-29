@@ -182,11 +182,11 @@ in the following respects:
 [width="50%",frame="topbot",options="header,footer",cols="3,>1,>1"]
 |======================
 ||NX|XOTcl
-|Methods for Objects           |15|  51
+|Methods for Objects           |14|  51
 |Methods for Classes           |  9|  24
-|Info-methods for Objects  |13|  25
+|Info-methods for Objects  |12|  25
 |Info-methods for Classes  |11|  24
-|Total                                  | 48|124
+|Total                                  | 46|124
 |======================
 
 This comparison list compares mostly XOTcl 1 with NX, some features
@@ -1207,6 +1207,20 @@ default in NX. In order to change the default behavior in NX, one can use
 # "parameter" creates always accessor 
 # methods, accessor methods are 
 # always public, no "cget" is available.
+
+Class create Foo -parameter {a {b1}}
+
+# Use the accessor method to query 
+# the value of a configuration parameter
+puts [f1 b]
+
+# Use the accessor method to set the
+# value of instance variable "a"
+f1 a 100
+
+# Use the accessor method to unset the
+# value of instance variable "a" n.a. via 
+# accessor
 ----------------
 |[source,tcl]
 ----------------
@@ -1221,11 +1235,15 @@ Class create Foo {
 
 # Use the accessor method to query 
 # the value of a configuration parameter
-puts [f1 b]
+puts [f1 b get]
 
 # Use the accessor method to set the
 # value of instance variable "a"
-f1 a 100
+f1 a set 100
+
+# Use the accessor method to unset the
+# value of instance variable "a"
+f1 a unset
 ----------------
 |======================
 
@@ -1481,18 +1499,18 @@ Class Person -slots {
 # property specific type checker
 
 Class create Person {
-  :property sex {
-    :type "sex"
-    :object method type=sex {name value} {
-      switch -glob $value {
-        m* {return m}
-        f* {return f}
-        default {
-          error "expected sex but got $value"
-        }
+    :property -accessor public sex:sex,convert {
+
+      # define a converter to standardize representation
+      :object method type=sex {name value} {
+	switch -glob $value {
+	  m* {return m}
+	  f* {return f}
+	  default {error "expected sex but got $value"}
+	}
       }
+
     }
-  }
 }
 ----------------
 |======================
@@ -1712,27 +1730,43 @@ per-object mixin on a plain object or on a class object.
 ----------------
 /cls/ instmixin ...
 /cls/ instmixinguard /mixin/ ?condition?
+
+# Query per-class mixin
+/cls/ instmixin
 ----------------
 |[source,tcl]
 ----------------
 # Register per-class mixin and guard for 
 # a class
 
-/cls/ mixin ...
+/cls/ mixin add\|set\|clear ...
 /cls/ mixin guard /mixin/ ?condition?
+/cls/ configure -mixin ...
+
+# Query per-class mixin
+/cls/ mixin get
+/cls/ cget -mixin
 ----------------
 |[source,tcl]
 ----------------
 /obj/ mixin ...
 /obj/ mixinguard /mixin/ ?condition?
+
+# Query per-object mixin
+/obj/ mixin
 ----------------
 |[source,tcl]
 ----------------
 # Register per-object mixin and guard for 
 # an object
 
-/obj/ object mixin ...
+/obj/ object mixin add\|set\|clear ...
 /obj/ object mixin guard /mixin/ ?condition?
+/obj/ configure -object-mixin ...
+
+# Query per-object mixin
+/obj/ object mixin get
+/obj/ cget -object-mixin
 ----------------
 |======================
 
@@ -1743,16 +1777,26 @@ per-object mixin on a plain object or on a class object.
 
 |[source,tcl]
 ----------------
+# Register per-class filter and guard for 
+# a class
 /cls/ instfilter ...
 /cls/ instfilterguard /filter/ ?condition?
+
+# Query per-class filter
+/cls/ instfilter 
 ----------------
 |[source,tcl]
 ----------------
-# Register per-object filter and guard for 
+# Register per-class filter and guard for 
 # a class
 
-/cls/ class filter ...
-/cls/ class filter guard /filter/ ?condition?
+/cls/ filter add\|set\|clear ...
+/cls/ filter guard /filter/ ?condition?
+/cls/ configure -filter ...
+
+# Query per-class filter
+/cls/ filter get 
+/cls/ cget -filter
 ----------------
 |[source,tcl]
 ----------------
@@ -1764,8 +1808,13 @@ per-object mixin on a plain object or on a class object.
 # Register per-object filter and guard for 
 # an object
 
-/obj/ object filter ...
+/obj/ object filter add\|set\|clear ...
 /obj/ object filter guard /filter/ ?condition?
+/obj/ configure -object-filter ...
+
+# Query per-object filter
+/cls/ object filter get 
+/obj/ cget -object-filter
 ----------------
 |======================
 
@@ -1972,6 +2021,23 @@ In order to obtain for an object the set of artefacts defined in the
 
 # Returns list of slot objects
 ----------------
+|[source,tcl]
+----------------
+# List registered filters
+/obj/ info filters -order ?-guards? ?pattern?
+
+# List registered mixins
+/obj/ info mixins -heritage ?-guards? ?pattern?
+----------------
+|[source,tcl]
+----------------
+# List registered filters
+/obj/ info lookup filters ?-guards? ?pattern?
+
+# List registered mixins
+/obj/ info lookup mixins ?-guards? ?pattern?
+----------------
+
 |======================
 
 ==== List object/class where a specified method is defined
@@ -2171,8 +2237,9 @@ defined by NX application programs usually via +property+.
 # (as e.g. returned from "info configure
 # parameters").
 
-/obj/ info parameter name /parameter/
-/obj/ info parameter syntax /parameter/
+nsf::parameter::get name /parameter/
+nsf::parameter::get syntax /parameter/
+nsf::parameter::get type /parameter/
 ----------------
 |======================
 
@@ -2277,12 +2344,8 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-# ... info filter methods -order ... returns 
-# method-handles instead of triples 
-# (applies to all three variants)
-
 /obj/ info object filter methods \
-   ?-guards? ?-order? ?pattern?
+   ?-guards? ?pattern?
 /obj/ info object filter guard /name/
 ----------------
 |[source,tcl]
@@ -2294,18 +2357,18 @@ subcommands rather than using a flat namespace.
 |[source,tcl]
 ----------------
 /cls/ info filter methods \
-   ?-guards? ?-order? ?pattern?
+   ?-guards? ?pattern?
 /cls/ info filter guard /name/
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info mixin ?-guards? ?-order? ?pattern?
+/obj/ info mixin ?-guards? ?-order ?pattern?
 /obj/ info mixinguard /name/
 ----------------
 |[source,tcl]
 ----------------
 /obj/ info object mixin classes \
-   ?-guards? ?-heritage? ?pattern?
+   ?-guards? ?pattern?
 /obj/ info object mixin guard /name/
 ----------------
 |[source,tcl]
@@ -2317,7 +2380,7 @@ subcommands rather than using a flat namespace.
 |[source,tcl]
 ----------------
 /cls/ info mixin classes \
-   ?-closure? ?-guards? ?-heritage? ?pattern?
+   ?-closure? ?-guards? ?pattern?
 /cls/ info mixin guard /name/
 ----------------
 |======================
@@ -2378,8 +2441,8 @@ the method handle to the created method.
 /cls/ info method registrationhandle /methodName/
 /obj/ info object method registrationhandle /methodName/
 #
-# For aliases, one can query the original definition
-# via "info method origin"
+# For aliases, one can query the original 
+# definition via "info method origin"
 #
 /cls/ info method origin /methodName/
 /obj/ info object method origin /methodName/
@@ -2825,8 +2888,10 @@ Bar b1
 ==== Changing classes and superclasses
 
 NX does not define the methods +class+ and +superclass+ (like XOTcl), but allows to
-alter all object/class relations (including class/superclass/object-mixin/...) +nsf::relation::set+. The class and superclass
-can be certainly queried in all variants with +info class+ or +info superclass+.
+alter all object/class relations (including
+class/superclass/object-mixin/...)  
++nsf::relation::set+. The class and superclass can be certainly queried 
+in all variants with +info class+ or +info superclass+.
 [source,tcl]
 ----------------
 # NX example

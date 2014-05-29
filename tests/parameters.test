@@ -4,8 +4,8 @@ package require nx::test
 
 #::nx::configure defaultMethodCallProtection false
 
-set objectFilter "-object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,method=object-filter,0..n"
-set objectMixin "-object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,method=object-mixin,0..n"
+set objectFilter "-object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n"
+set objectMixin "-object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n"
 set initBlock "__initblock:cmd,optional,noleadingdash"
 set filter "-filter:filterreg,slot=::nx::Class::slot::filter,slotset,method=class-filter,0..n"
 
@@ -1739,7 +1739,7 @@ nx::test case req-param {
   ? {d1 configure} ""
 
   D property x:required
-  ? {d1 info configure} \
+  ? {d1 info lookup configure syntax} \
       "-x /value/ ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
   
   ? {d1 configure} \
