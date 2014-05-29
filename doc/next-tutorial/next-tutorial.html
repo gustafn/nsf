@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Tutorial for the Next Scripting Language</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -94,7 +94,9 @@ ul > li > * { color: black; }
   padding: 0;
   margin: 0;
 }
-
+pre {
+  white-space: pre-wrap;
+}
 
 #author {
   color: #527bbd;
@@ -223,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -2019,15 +2021,15 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <span class='nx-comment'># Use the accessor "length" as a getter, to obtain the value
 </span><span class='nx-comment'># of a property. The following call returns the length of the
 </span><span class='nx-comment'># tail of fido
-</span>fido::tail length
+</span>fido::tail length get
 
 <span class='nx-comment'># Use the accessor "length" as a setter, to alter the value
 </span><span class='nx-comment'># of a property. The following call changes the length of
 </span><span class='nx-comment'># the tail of fido
-</span>fido::tail length 10
+</span>fido::tail length <span class='nx-keyword'>set</span> 10
 
 <span class='nx-comment'># Proving an invalid values will raise an error
-</span>fido::tail length <span class='nx-string'>"Hello"</span></pre></td></tr></table></div></div>
+</span>fido::tail length <span class='nx-keyword'>set</span> <span class='nx-string'>"Hello"</span></pre></td></tr></table></div></div>
 <div class="paragraph"><p><a href="#xmp-fido2">Listing 22</a> shows an extended example, where every dog
 has a tail. The object <code>tail</code> is created as a subobject of the dog in
 the constructor <code>init</code>. The subobject can be accessed by providing the
@@ -2076,7 +2078,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 }
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Tail {
-  <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>public</span> {length 5}
+  <span class='nx-keyword'>:property</span> {length 5}
   <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> wag {} {<span class='nx-keyword'>return</span> Joy}
 }
 
@@ -2372,7 +2374,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'>#
 </span><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> D -superclass C {
   <span class='nx-keyword'>:property</span> -accessor <span class='nx-keyword'>private</span> {x d}
-  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar {p} {<span class='nx-keyword'>return</span> [: -local <span class='nx-variable'>$p</span>]}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> bar {p} {<span class='nx-keyword'>return</span> [: -local <span class='nx-variable'>$p</span> get]}
 }
 
 <span class='nx-comment'>#
@@ -2381,7 +2383,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># conflict.
 </span><span class='nx-comment'>#
 </span>D <span class='nx-keyword'>create</span> d1
-<span class='nx-keyword'>puts</span> [d1 x]       ;<span class='nx-comment'># prints "c"
+<span class='nx-keyword'>puts</span> [d1 x get]   ;<span class='nx-comment'># prints "c"
 </span><span class='nx-keyword'>puts</span> [d1 bar x]   ;<span class='nx-comment'># prints "d"</span></pre></td></tr></table></div></div>
 <div class="paragraph"><p>Without the <code>private</code> definition of the property, the definition of
 property <code>x</code> in class <code>D</code> would shadow the
@@ -2683,16 +2685,28 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  18
  19
  20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
 </pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> C {
-  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} { <span class='nx-keyword'>return</span> <span class='nx-string'>"C foo: [next]"</span>}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {
+    <span class='nx-keyword'>return</span> <span class='nx-string'>"C foo: [next]"</span>
+  }
 }
 
 <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> D -superclass C {
 
-  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} { <span class='nx-keyword'>return</span> <span class='nx-string'>"D foo: [next]"</span>}
+  <span class='nx-keyword'>:public</span> <span class='nx-keyword'>method</span> foo {} {
+    <span class='nx-keyword'>return</span> <span class='nx-string'>"D foo: [next]"</span>
+  }
 
    <span class='nx-keyword'>:create</span> d1 {
-     <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {} { <span class='nx-keyword'>return</span> <span class='nx-string'>"d1 foo: [next]"</span>}
+     <span class='nx-keyword'>:public</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>method</span> foo {} {
+       <span class='nx-keyword'>return</span> <span class='nx-string'>"d1 foo: [next]"</span>
+     }
    }
 }
 
@@ -2765,11 +2779,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># "d1" is created based on the definitions of the last example
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># Add the methods from "M1" as per-object mixin to "d1"
-</span>d1 <span class='nx-keyword'>object</span> <span class='nx-keyword'>mixin</span> M1
+</span>d1 <span class='nx-keyword'>object</span> <span class='nx-keyword'>mixin</span> add M1
 
 <span class='nx-comment'>#
 </span><span class='nx-comment'># Add the methods from "M2" as per-class mixin to class "C"
-</span>C <span class='nx-keyword'>mixin</span> M2
+</span>C <span class='nx-keyword'>mixin</span> add M2
 
 <span class='nx-comment'># Invoke the method foo
 </span>d1 foo
@@ -3737,8 +3751,8 @@ specified at object creation as last argument; see
 scripted block and its meaning are as well defined by the means of
 configure parameters. However, this configure parameter is positional (last
 argument) and optional (it can be omitted). The following listing shows
-(simplified) the configure parameters of <code>Person p1</code> and <code>Student s1</code>.</p></div>
-<div class="paragraph" id="xmp-object-parameter-list"><div class="title">Listing 45: Computed Actual Configure Parameter (simplified)</div><p></p></div>
+the configure parameters of <code>Person p1</code> and <code>Student s1</code>.</p></div>
+<div class="paragraph" id="xmp-object-parameter-list"><div class="title">Listing 45: Computed Actual Configure Parameter</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -3758,18 +3772,42 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   6
   7
   8
-</pre></td><td class='nx-body'><pre class='nx'>Configure parameter <span class='nx-keyword'>for</span> Person p1:
-   -name:required -birthday ...
-   -mixin:mixinreg,<span class='nx-keyword'>alias</span>,1..n -filter:filterreg,<span class='nx-keyword'>alias</span>,1..n _:initcmd,optional
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+</pre></td><td class='nx-body'><pre class='nx'>Configure parameters <span class='nx-keyword'>for</span> Person p1:
+   Command:
+      p1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span>
+   Result:
+      -name <span class='nx-placeholder'>/value/</span> ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixin /mixinreg .../<span class='nx-placeholder'>?
+      ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filter /filterreg .../? ?/__initblock/?
 
 Configure parameter <span class='nx-keyword'>for</span> Student s1:
-   -matnr:required {-oncampus:boolean true}
-   -name:required -birthday ...
-   -mixin:mixinreg,<span class='nx-keyword'>alias</span>,1..n -filter:filterreg,<span class='nx-keyword'>alias</span>,1..n _:initcmd,optional</pre></td></tr></table></div></div>
-<div class="paragraph"><p>The actual values can be obtained via introspection via <code>Person info
-parameter definition</code>. The configure parameter types <code>mixinreg</code> and
+   Command:
+      s1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span>
+   Result:
+      ?-oncampus <span class='nx-placeholder'>/boolean/</span>? -matnr <span class='nx-placeholder'>/value/</span> -name <span class='nx-placeholder'>/value/</span>
+      ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixin /mixinreg .../? ?-class /<span class='nx-keyword'>class</span>/<span class='nx-placeholder'>?
+      ?</span>-object-filter /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>+p1 info configure+
++Person info configure syntax+</code></pre>
+</div></div>
+<div class="paragraph"><p>The actual values can be obtained via introspection
+from an object via
+<code>p1 info lookup configure parameters</code> on an actual object
+(returning the configure parameters currently applicable for
+<code>configure</code> or <code>cget</code> or on a class
+<code>Person info configure syntax</code> on a class
+(returning the configure parameters applicable when an object
+of this class is created)</p></div>
+<div class="paragraph"><p>The listed configure parameter types <code>mixinreg</code> and
 <code>filterreg</code> are for converting definitions of filters and mixins.  The
-configure parameter type <code>initcmd</code> says that the content of this variable
+last value <code>__initblock</code> says that the content of this variable
 will be executed in the context of the object being created (before
 the constructor <code>init</code> is called).  More about the configure parameter
 types later.</p></div>
@@ -3790,8 +3828,8 @@ per-class mixins (see e.g. the introductory Stack example in
 the same way.</p></div>
 <div class="paragraph"><p>Since <code>Student</code> is an instance of the meta-class <code>nx::Class</code> it
 inherits the configure parameters from <code>nx::Class</code> (see class diagram
-<a href="#img-configure-parameters">Figure 44</a>). Therefore, one can
-use e.g. <code>-superclass</code> in the definition of classes.</p></div>
+<a href="#img-configure-parameters">Figure 44</a>).
+Therefore, one can use e.g. <code>-superclass</code> in the definition of classes.</p></div>
 <div class="paragraph"><p>Since <code>nx::Class</code> is a subclass of <code>nx::Object</code>, the meta-class
 <code>nx::Class</code> inherits the parameter definitions from the most general
 class <code>nx::Object</code>. Therefore, every class might as well be configured
@@ -3800,7 +3838,7 @@ configured. We used actually this scripted initialization block in
 most examples for defining the methods of the class. The following
 listing shows (simplified) the parameters applicable for <code>Class
 Student</code>.</p></div>
-<div class="paragraph" id="xmp-class-parameter-list"><div class="title">Listing 46: Computed Parameters for a Class (simplified)</div><p></p></div>
+<div class="paragraph" id="xmp-class-parameter-list"><div class="title">Listing 46: Parameters for Classes</div><p></p></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -3815,11 +3853,19 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <table class='nx'><tr><td class='nx-linenr'><pre>  1
   2
   3
-</pre></td><td class='nx-body'><pre class='nx'>Configure parameter <span class='nx-keyword'>for</span> <span class='nx-keyword'>Class</span> Student:
-   -mixin:mixinreg,<span class='nx-keyword'>alias</span>,1..n -filter:filterreg,<span class='nx-keyword'>alias</span>,1..n ...
-   {-superclass<span class='nx-keyword'>:class</span>,<span class='nx-keyword'>alias</span>,1..n ::nx::Object} ...</pre></td></tr></table></div></div>
-<div class="paragraph"><p>The actual values can be obtained via introspection via <code>nx::Class info
-parameter definition</code>.</p></div>
+  4
+  5
+  6
+  7
+</pre></td><td class='nx-body'><pre class='nx'>Configure parameter <span class='nx-keyword'>for</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>nx::Class</span>
+   Command:
+      <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span>
+   Result:
+      ?-superclass /<span class='nx-keyword'>class</span> .../? ?-mixin /mixinreg .../<span class='nx-placeholder'>?
+      ?</span>-filter /filterreg .../? ?-object-mixin /mixinreg .../<span class='nx-placeholder'>?
+      ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filter /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
+<div class="paragraph"><p>The actual values can be obtained via introspection via
+<code>nx::Class info configure</code></p></div>
 </div>
 <div class="sect3">
 <h4 id="_user_defined_parameter_types">4.3.3. User defined Parameter Types</h4>
@@ -4114,7 +4160,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.0b5<br />
-Last updated 2013-06-07 10:54:59 CEST
+Last updated 2014-05-29 21:02:50 CEST
 </div>
 </div>
 </body>

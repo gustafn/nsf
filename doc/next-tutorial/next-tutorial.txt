@@ -958,15 +958,15 @@ Dog create fido
 # Use the accessor "length" as a getter, to obtain the value
 # of a property. The following call returns the length of the 
 # tail of fido
-fido::tail length
+fido::tail length get
 
 # Use the accessor "length" as a setter, to alter the value
 # of a property. The following call changes the length of 
 # the tail of fido
-fido::tail length 10
+fido::tail length set 10
 
 # Proving an invalid values will raise an error
-fido::tail length "Hello"
+fido::tail length set "Hello"
 --------------------------------------------------
 
 <<xmp-fido2,{xmp-fido2}>> shows an extended example, where every dog
@@ -992,7 +992,7 @@ nx::Class create Dog {
 }
 
 nx::Class create Tail {
-  :property -accessor public {length 5}
+  :property {length 5}
   :public method wag {} {return Joy}
 }
 
@@ -1206,7 +1206,7 @@ nx::Class create C {
 #
 nx::Class create D -superclass C {
   :property -accessor private {x d}
-  :public method bar {p} {return [: -local $p]}
+  :public method bar {p} {return [: -local $p get]}
 }
  
 #
@@ -1215,7 +1215,7 @@ nx::Class create D -superclass C {
 # conflict.
 # 
 D create d1
-puts [d1 x]       ;# prints "c"
+puts [d1 x get]   ;# prints "c"
 puts [d1 bar x]   ;# prints "d"
 --------------------------------------------------
 
@@ -1420,15 +1420,21 @@ more specific definitions.
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Class create C {
-  :public method foo {} { return "C foo: [next]"}
+  :public method foo {} { 
+    return "C foo: [next]"
+  }
 }
 
 nx::Class create D -superclass C {
 
-  :public method foo {} { return "D foo: [next]"}
+  :public method foo {} { 
+    return "D foo: [next]"
+  }
 
    :create d1 {
-     :public object method foo {} { return "d1 foo: [next]"}
+     :public object method foo {} { 
+       return "d1 foo: [next]"
+     }
    }
 }
 
@@ -1474,11 +1480,11 @@ nx::Class create M2 {
 # "d1" is created based on the definitions of the last example
 # 
 # Add the methods from "M1" as per-object mixin to "d1"
-d1 object mixin M1
+d1 object mixin add M1
 
 #
 # Add the methods from "M2" as per-class mixin to class "C"
-C mixin M2
+C mixin add M2
 
 # Invoke the method foo
 d1 foo
@@ -2160,27 +2166,44 @@ specified at object creation as last argument; see
 scripted block and its meaning are as well defined by the means of
 configure parameters. However, this configure parameter is positional (last
 argument) and optional (it can be omitted). The following listing shows
-(simplified) the configure parameters of +Person p1+ and +Student s1+.
+the configure parameters of +Person p1+ and +Student s1+.
 
 [[xmp-object-parameter-list]]
-.Listing {counter:figure-number}: Computed Actual Configure Parameter (simplified)
+.Listing {counter:figure-number}: Computed Actual Configure Parameter
 {set:xmp-object-parameter-list:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Configure parameter for Person p1: 
-   -name:required -birthday ... 
-   -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n _:initcmd,optional
+Configure parameters for Person p1: 
+   Command:   
+      p1 info configure
+   Result: 
+      -name /value/ ?-birthday /value/? ?-object-mixin /mixinreg .../? 
+      ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
 
 Configure parameter for Student s1:
-   -matnr:required {-oncampus:boolean true} 
-   -name:required -birthday ...
-   -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n _:initcmd,optional
+   Command:   
+      s1 info configure
+   Result: 
+      ?-oncampus /boolean/? -matnr /value/ -name /value/ 
+      ?-birthday /value/? ?-object-mixin /mixinreg .../? ?-class /class/?
+      ?-object-filter /filterreg .../? ?/__initblock/?
 --------------------------------------------------
 
-The actual values can be obtained via introspection via +Person info
-parameter definition+. The configure parameter types +mixinreg+ and
+  +p1 info configure+
+  +Person info configure syntax+
+
+The actual values can be obtained via introspection 
+from an object via 
++p1 info lookup configure parameters+ on an actual object
+(returning the configure parameters currently applicable for
++configure+ or +cget+ or on a class
++Person info configure syntax+ on a class 
+(returning the configure parameters applicable when an object
+of this class is created)
+
+The listed configure parameter types +mixinreg+ and
 +filterreg+ are for converting definitions of filters and mixins.  The
-configure parameter type +initcmd+ says that the content of this variable
+last value +__initblock+ says that the content of this variable
 will be executed in the context of the object being created (before
 the constructor +init+ is called).  More about the configure parameter
 types later.
@@ -2203,8 +2226,8 @@ the same way.
 
 Since +Student+ is an instance of the meta-class +nx::Class+ it
 inherits the configure parameters from +nx::Class+ (see class diagram
-<<img-configure-parameters,{img-configure-parameters}>>). Therefore, one can
-use e.g. +-superclass+ in the definition of classes.
+<<img-configure-parameters,{img-configure-parameters}>>). 
+Therefore, one can use e.g. +-superclass+ in the definition of classes.
 
 Since +nx::Class+ is a subclass of +nx::Object+, the meta-class
 +nx::Class+ inherits the parameter definitions from the most general
@@ -2216,18 +2239,21 @@ listing shows (simplified) the parameters applicable for +Class
 Student+.
 
 [[xmp-class-parameter-list]]
-.Listing {counter:figure-number}: Computed Parameters for a Class (simplified)
+.Listing {counter:figure-number}: Parameters for Classes
 {set:xmp-class-parameter-list:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Configure parameter for Class Student:
-   -mixin:mixinreg,alias,1..n -filter:filterreg,alias,1..n ...
-   {-superclass:class,alias,1..n ::nx::Object} ...
+Configure parameter for class nx::Class
+   Command:   
+      nx::Class info configure
+   Result: 
+      ?-superclass /class .../? ?-mixin /mixinreg .../? 
+      ?-filter /filterreg .../? ?-object-mixin /mixinreg .../? 
+      ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
 --------------------------------------------------
 
-The actual values can be obtained via introspection via +nx::Class info
-parameter definition+.
-
+The actual values can be obtained via introspection via
++nx::Class info configure+
 
 ==== User defined Parameter Types
 
