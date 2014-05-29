@@ -941,9 +941,9 @@ namespace eval ::nx {
     :public alias configure ::nsf::methods::object::configure    
     #:public method "info configure" {} {: ::nsf::methods::object::info::objectparameter syntax}
   }
-  nsf::method::create ::nx::Class::slot::__info::configure defaultmethod {} {
-    uplevel {: ::nsf::methods::object::info::objectparameter syntax}
-  }
+  #nsf::method::create ::nx::Class::slot::__info::configure defaultmethod {} {
+   # uplevel {: ::nsf::methods::object::info::objectparameter syntax}
+  #}
 
 
   ######################################################################
