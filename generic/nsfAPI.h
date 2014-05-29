@@ -682,7 +682,7 @@ static int NsfObjInfoClassMethod(Tcl_Interp *interp, NsfObject *obj)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withOrder, CONST char *pattern)
+static int NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, CONST char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoForwardMethod(Tcl_Interp *interp, NsfObject *obj, int withDefinition, CONST char *name)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -710,7 +710,7 @@ static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int subcmd
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withType, int withPath, CONST char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withHeritage, CONST char *patternString, NsfObject *patternObject)
+static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, CONST char *patternString, NsfObject *patternObject)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
@@ -2668,11 +2668,10 @@ NsfObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
                      method_definitions[NsfObjInfoFiltermethodsMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withGuards = (int )PTR2INT(pc.clientData[0]);
-    int withOrder = (int )PTR2INT(pc.clientData[1]);
-    CONST char *pattern = (CONST char *)pc.clientData[2];
+    CONST char *pattern = (CONST char *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfObjInfoFiltermethodsMethod(interp, obj, withGuards, withOrder, pattern);
+    return NsfObjInfoFiltermethodsMethod(interp, obj, withGuards, pattern);
 
   } else {
     return TCL_ERROR;
@@ -3001,13 +3000,12 @@ NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int 
                      method_definitions[NsfObjInfoMixinclassesMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withGuards = (int )PTR2INT(pc.clientData[0]);
-    int withHeritage = (int )PTR2INT(pc.clientData[1]);
     CONST char *patternString = NULL;
     NsfObject *patternObject = NULL;
-    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
     int returnCode;
 
-    if (GetMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObject, &patternString) == -1) {
+    if (GetMatchObject(interp, pattern, objc>1 ? objv[1] : NULL, &patternObject, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT2("patternObj", pattern);
       }
@@ -3015,7 +3013,7 @@ NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     }
           
     assert(pc.status == 0);
-    returnCode = NsfObjInfoMixinclassesMethod(interp, obj, withGuards, withHeritage, patternString, patternObject);
+    returnCode = NsfObjInfoMixinclassesMethod(interp, obj, withGuards, patternString, patternObject);
 
     if (pattern) {
       DECR_REF_COUNT2("patternObj", pattern);
@@ -3557,9 +3555,8 @@ static Nsf_methodDefinition method_definitions[110] = {
 {"::nsf::methods::object::info::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
   {"filter", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::object::info::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
+{"::nsf::methods::object::info::filtermethods", NsfObjInfoFiltermethodsMethodStub, 2, {
   {"-guards", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"-order", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::forward", NsfObjInfoForwardMethodStub, 2, {
@@ -3616,9 +3613,8 @@ static Nsf_methodDefinition method_definitions[110] = {
   {"-path", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::object::info::mixinclasses", NsfObjInfoMixinclassesMethodStub, 3, {
+{"::nsf::methods::object::info::mixinclasses", NsfObjInfoMixinclassesMethodStub, 2, {
   {"-guards", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"-heritage", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::mixinguard", NsfObjInfoMixinguardMethodStub, 1, {

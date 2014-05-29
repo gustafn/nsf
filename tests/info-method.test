@@ -1025,7 +1025,7 @@ nx::test case info-heritage-multimix {
   # ::A is an implied class
   c1 object mixin set B
   ? {c1 info precedence} "::B ::A ::C ::nx::Object"
-  ? {c1 info object mixin classes -heritage} "::B ::A"
+  ? {c1 info lookup mixins} "::B ::A"
 
   # ::A is as well implied by ::PCM
   C mixin set PCM
@@ -1037,7 +1037,7 @@ nx::test case info-heritage-multimix {
 
   # ::A is not ordered after ::B but after ::PCM
   ? {c1 info precedence} "::B ::PCM ::A ::C ::nx::Object"
-  ? {c1 info object mixin classes -heritage} "::B ::PCM ::A"
+  ? {c1 info lookup mixins} "::B ::PCM ::A"
 }
 
 #

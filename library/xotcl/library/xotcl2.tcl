@@ -674,7 +674,7 @@ namespace eval ::xotcl {
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
         set def [::nsf::directdispatch [::nsf::current object] \
-		     ::nsf::methods::object::info::filtermethods -order \
+		     ::nsf::methods::object::info::lookupfilters \
 		     {*}$guardsFlag \
 		     {*}$patternArg]
         set def [method_handles_to_xotcl $def]
@@ -715,8 +715,11 @@ namespace eval ::xotcl {
     }
 
     :proc mixin {-order:switch -guards:switch pattern:optional} {
-      set cmd ::nsf::methods::object::info::mixinclasses
-      if {$order} {lappend cmd "-heritage"}
+      if {$order} {
+        set cmd ::nsf::methods::object::info::lookupmixins
+      } else {
+        set cmd ::nsf::methods::object::info::mixinclasses
+      }
       if {$guards} {lappend cmd "-guards"}
       if {[info exists pattern]} {lappend cmd $pattern}
       my {*}$cmd
@@ -1457,3 +1460,9 @@ if {[::nsf::configure debug] > 1} {
   puts stderr "======= XOTcl $::xotcl::version$::xotcl::patchlevel loaded"
 }
 
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

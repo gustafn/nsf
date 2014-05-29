@@ -28052,26 +28052,18 @@ NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *f
 
 /*
 objectInfoMethod filtermethods NsfObjInfoFiltermethodsMethod {
-  {-argName "-guards"}
-  {-argName "-order"}
+  {-argName "-guards" -nrargs 0 -type switch}
   {-argName "pattern"}
 }
 */
 static int
-NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *object,
-                                    int withGuards, int withOrder,
-				    CONST char *pattern) {
+NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *object, int withGuards,
+                              CONST char *pattern) {
   NsfObjectOpt *opt = object->opt;
 
   assert(interp);
   assert(object);
 
-  if (withOrder) {
-    if (!(object->flags & NSF_FILTER_ORDER_VALID)) {
-      FilterComputeDefined(interp, object);
-    }
-    return FilterInfo(interp, object->filterOrder, pattern, withGuards, 1);
-  }
   return opt ? FilterInfo(interp, opt->objFilters, pattern, withGuards, 0) : TCL_OK;
 }
 
@@ -28514,24 +28506,16 @@ NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
-  {-argName "-guards"}
-  {-argName "-heritage"}
+  {-argName "-guards" -nrargs 0 -type switch}
   {-argName "pattern" -type objpattern}
 }
 */
 static int
-NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *object,
-			     int withGuards, int withHeritage,
+NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *object, int withGuards, 
 			     CONST char *patternString, NsfObject *patternObj) {
   assert(interp);
   assert(object);
 
-  if (withHeritage) {
-    if (!(object->flags & NSF_MIXIN_ORDER_VALID)) {
-      MixinComputeDefined(interp, object);
-    }
-    return MixinInfo(interp, object->mixinOrder, patternString, withGuards, patternObj);
-  }
   return object->opt ?
     MixinInfo(interp, object->opt->objMixins, patternString, withGuards, patternObj) :
     TCL_OK;

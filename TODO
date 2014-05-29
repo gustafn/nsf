@@ -5163,19 +5163,10 @@ nsf.c:
 ========================================================================
 TODO:
 
-- Minor redundancy: "/obj/ info object filter" methods plus "-order"
-  switch is functionally equivalent to "/obj/ info lookup
-  filters". Suggestions: Remove -order switch param from the former
-  (not expected from the provider perspective, we are just interested
-  in the filters defined on the given obj in isolation).
-
-  the same holds for "/obj/ info object mixin classes -heritage" and
-  /obj/ info lookup mixins. I suggest, removing "-heritage" from the
-  former.
-
-  (besides, in nsf.c the respective sections are full code clones)
-
 - TODO: update tutorial and migration guide
+
+- what should happen with: "/class/ info mixin classes -heritage"
+- asymmetry between "/obj/ info lookup mixins" vs. "/obj/ info ?object? mixin classes"
 
 - finish nx-property reform (merge into master)
 
