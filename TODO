@@ -5220,6 +5220,18 @@ TODO:
   2) It would be nice if we would be not to need the "info" at all but improve the errors in 5-9, 
      maybe special switch "-?" or "--"
 
+  3) another possible path:
+
+       p1 info lookup syntax configure   (short form of nsf::method::get syntax [p1 info lookup method configure])
+
+     where "configure is a method name", would work the same way as "p1 info lookup syntax create|foo|..."
+     (under the assumption, we get the "right" syntax for configure).
+     Similar:
+
+       p1 info lookup parameter configure   (short form of nsf::method::get parameter [p1 info lookup method configure])
+
+     this way, we would not need "info configure" and friends at all.
+
   Tk uses "/obj/ configure" for obtaining possible values
 
   Furthermore:
