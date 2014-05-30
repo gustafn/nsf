@@ -198,7 +198,7 @@ namespace eval ::nsf {
   proc ::nsf::parameter::filter {defs pattern} {
     set result {}
     foreach def $defs {
-      if {[string match $pattern [::nsf::parameter::get name $def]]} {
+      if {[string match $pattern [::nsf::parameter::info name $def]]} {
 	lappend result $def
       }
     }

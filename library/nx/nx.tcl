@@ -751,14 +751,14 @@ namespace eval ::nx {
     #
     # :method "info parameter default" {p:parameter varName:optional} {
     #   if {[info exists varName]} {
-    #     uplevel [list ::nsf::parameter::get default $p $varName]
+    #     uplevel [list ::nsf::parameter::info default $p $varName]
     #   } else {
-    #     ::nsf::parameter::get default $p
+    #     ::nsf::parameter::info default $p
     #   }
     # }
-    # :method "info parameter name"    {p:parameter} {::nsf::parameter::get name   $p}
-    # :method "info parameter syntax"  {p:parameter} {::nsf::parameter::get syntax $p}
-    # :method "info parameter type"    {p:parameter} {::nsf::parameter::get type   $p}
+    # :method "info parameter name"    {p:parameter} {::nsf::parameter::info name   $p}
+    # :method "info parameter syntax"  {p:parameter} {::nsf::parameter::info syntax $p}
+    # :method "info parameter type"    {p:parameter} {::nsf::parameter::info type   $p}
     
     :alias "info parent"                ::nsf::methods::object::info::parent
     :alias "info precedence"            ::nsf::methods::object::info::precedence
@@ -833,7 +833,7 @@ namespace eval ::nx {
 	set defs [::nsf::parameter::specs -configure $slots]
       }
       set syntax "/[self]/ "
-      foreach def $defs {append syntax [::nsf::parameter::get syntax $def] " "}
+      foreach def $defs {append syntax [::nsf::parameter::info syntax $def] " "}
       return [string trimright $syntax " "]
     }
     :alias "info lookup"         ::nx::Object::slot::__info::lookup

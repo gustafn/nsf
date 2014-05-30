@@ -83,7 +83,7 @@ static char cmd[] =
 "proc ::nsf::parameter::filter {defs pattern} {\n"
 "set result {}\n"
 "foreach def $defs {\n"
-"if {[string match $pattern [::nsf::parameter::get name $def]]} {\n"
+"if {[string match $pattern [::nsf::parameter::info name $def]]} {\n"
 "lappend result $def}}\n"
 "return $result}\n"
 "set ::nsf::parameter::syntax(::nsf::xotclnext) \"?--noArgs? ?/arg .../?\"\n"

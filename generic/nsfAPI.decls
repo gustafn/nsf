@@ -74,7 +74,7 @@ cmd is NsfIsCmd {
 } {-nxdoc 1}
 
 
-cmd parameter::get NsfParameterGetCmd {
+cmd parameter::info NsfParameterInfoCmd {
   {-argName "subcmd"   -typeName "parametersubcmd" -type "default|list|name|syntax|type" -required 1}
   {-argName "spec"     -required 1 -type tclobj}
   {-argName "varname"  -required 0 -type tclobj}
@@ -94,7 +94,14 @@ cmd parameter::specs NsfParameterSpecsCmd {
   {-argName "slotobjs"    -required 1 -type tclobj}
 }
 
+#
+# cmd cmds (maybe more later)
+#
 
+cmd "cmd::info" NsfCmdInfoCmd {
+  {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "methodName" -required 1 -type tclobj}
+} {-nxdoc 1}
 
 #
 # method cmds
@@ -138,10 +145,7 @@ cmd "method::delete" NsfMethodDeleteCmd {
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1 -type tclobj}
 } {-nxdoc 1}
-cmd "method::get" NsfMethodGetCmd {
-  {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
-  {-argName "methodName" -required 1 -type tclobj}
-} {-nxdoc 1}
+
 
 cmd "method::forward" NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
@@ -156,6 +160,8 @@ cmd "method::forward" NsfMethodForwardCmd {
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
 } {-nxdoc 1}
+
+
 cmd "method::property" NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
@@ -163,9 +169,11 @@ cmd "method::property" NsfMethodPropertyCmd {
   {-argName "methodProperty" -required 1 -type "class-only|call-private|call-protected|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
 } {-nxdoc 1}
+
 cmd "method::registered" NsfMethodRegisteredCmd {
   {-argName "handle" -required 1 -type tclobj}
 } {-nxdoc 1}
+
 cmd "method::setter" NsfMethodSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}

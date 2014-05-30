@@ -5187,6 +5187,10 @@ nsf.c:
 - return errors from failing converter registrations
 - extend regression test (new test set nsf-method.test)
 
+nsf.c
+- renamed parameter::get -> parameter::info
+- renamed method::get -> cmd::info
+
 ========================================================================
 TODO:
 

@@ -23310,6 +23310,18 @@ NsfAsmProcCmd(Tcl_Interp *interp, int with_ad, int with_checkAlways, Tcl_Obj *na
 #endif
 
 /*
+cmd "cmd::info" NsfCmdInfoCmd {
+  {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "methodName" -required 1 -type tclobj}
+} {-nxdoc 1}
+*/
+static int
+NsfCmdInfoCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *methodNameObj) {
+
+  return ListMethodResolve(interp, subcmd, NULL, NULL, methodNameObj, 0);
+}
+
+/*
 cmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "debug|dtrace|filter|profile|softrecreate|objectsystems|keepcmds|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
@@ -24251,18 +24263,6 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
   return result;
 }
 
-/*
-cmd "method::get" NsfMethodGetCmd {
-  {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
-  {-argName "methodName" -required 1 -type tclobj}
-} {-nxdoc 1}
-*/
-static int
-NsfMethodGetCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *methodNameObj) {
-
-  return ListMethodResolve(interp, subcmd, NULL, NULL, methodNameObj, 0);
-}
-
 
 /*
 cmd ::method::property NsfMethodPropertyCmd {
@@ -25035,14 +25035,14 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 }
 
 /*
-cmd parameter::get NsfParameterGetCmd {
+cmd parameter::info NsfParameterInfoCmd {
   {-argName "parametersubcmd" -type "default|list|name|syntax|type" -required 1}
   {-argName "parameterspec"   -required 1 -type tclobj}
   {-argName "varname"         -required 0 -type tclobj}
 }
 */
 static int
-NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec,  Tcl_Obj *varname) {
+NsfParameterInfoCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameterspec,  Tcl_Obj *varname) {
   NsfParsedParam parsedParam;
   Tcl_Obj *paramsObj, *listObj = NULL;
   Nsf_Param *paramsPtr;
@@ -25052,7 +25052,7 @@ NsfParameterGetCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parametersp
   assert(parameterspec);
 
   if (parametersubcmd != ParametersubcmdDefaultIdx && varname != NULL) {
-    return NsfPrintError(interp, "parameter::get: provided third arguement is only valid for querying defaults");
+    return NsfPrintError(interp, "parameter::info: provided third arguement is only valid for querying defaults");
   }
 
   paramsObj = Tcl_NewListObj(1, &parameterspec);

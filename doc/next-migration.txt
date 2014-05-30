@@ -2237,9 +2237,9 @@ defined by NX application programs usually via +property+.
 # (as e.g. returned from "info configure
 # parameters").
 
-nsf::parameter::get name /parameter/
-nsf::parameter::get syntax /parameter/
-nsf::parameter::get type /parameter/
+nsf::parameter::info name /parameter/
+nsf::parameter::info syntax /parameter/
+nsf::parameter::info type /parameter/
 ----------------
 |======================
 
