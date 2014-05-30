@@ -11282,7 +11282,9 @@ ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr) {
   INCR_REF_COUNT2("paramDefsObj", listObj);
   for (; likely(paramsPtr->name != NULL); paramsPtr++) {
     if ((paramsPtr->flags & NSF_ARG_NOCONFIG) == 0) {
-      Tcl_ListObjAppendElement(interp, listObj, paramsPtr->nameObj);
+      Tcl_ListObjAppendElement(interp, listObj,
+                               paramsPtr->nameObj ? paramsPtr->nameObj :
+                               Tcl_NewStringObj(paramsPtr->name,-1));
     }
   }
   return listObj;
@@ -11462,11 +11464,13 @@ NsfParamDefsSyntax(Nsf_Param CONST *paramsPtr) {
     if (pPtr->converter == ConvertToNothing && strcmp(pPtr->name, "args") == 0) {
       Tcl_AppendLimitedToObj(argStringObj, "?/arg .../?", 11, INT_MAX, NULL);
     } else if (pPtr->flags & NSF_ARG_REQUIRED) {
+
       if ((pPtr->flags & NSF_ARG_IS_ENUMERATION)) {
-	Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
+	Tcl_AppendLimitedToObj(argStringObj, Nsf_EnumerationTypeGetDomain(pPtr->converter), -1, INT_MAX, NULL);
       } else {
 	NsfParamDefsSyntaxOne(argStringObj, pPtr);
       }
+
     } else {
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
       NsfParamDefsSyntaxOne(argStringObj, pPtr);
@@ -21279,6 +21283,9 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 	    Tcl_AppendToObj(listObj, args->name, -1);
 	    Tcl_AppendToObj(listObj, "/", 1);
 	  }
+          if (args->nextPtr != NULL) {
+	    Tcl_AppendToObj(listObj, " ", 1);
+          }
 	} else {
 	  Tcl_Obj *innerListObj = Tcl_NewListObj(0, NULL);
 
@@ -21360,10 +21367,10 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
   }
 
   if (Tcl_Command_objProc(cmd) == NsfForwardMethod) {
-    return NsfPrintError(interp, "info params: could not obtain parameter definition for forwarder '%s'",
+    return NsfPrintError(interp, "could not obtain parameter definition for forwarder '%s'",
 			 methodName);
   } else if (!CmdIsNsfObject(cmd)) {
-    return NsfPrintError(interp, "info params: could not obtain parameter definition for method '%s'",
+    return NsfPrintError(interp, "could not obtain parameter definition for method '%s'",
 			 methodName);
   } else {
     /* procPtr == NsfObjDispatch, be quiet */
@@ -21374,7 +21381,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
     Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
 
     INCR_REF_COUNT(methodObj);
-    NsfObjErrType(interp, "info params", methodObj, "a method name", NULL);
+    NsfObjErrType(interp, "parameter get", methodObj, "a method name", NULL);
     DECR_REF_COUNT(methodObj);
   }
   return TCL_ERROR;
@@ -21548,7 +21555,7 @@ static int ListMethod(Tcl_Interp *interp,
                       NsfObject *defObject,
                       CONST char *methodName, Tcl_Command cmd,
                       int subcmd, int withPer_object) 
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+  nonnull(1) nonnull(4) nonnull(5);
 
 static int
 ListMethod(Tcl_Interp *interp,
@@ -21557,81 +21564,82 @@ ListMethod(Tcl_Interp *interp,
 	   CONST char *methodName, Tcl_Command cmd,
            int subcmd, int withPer_object) {
 
+  Tcl_ObjCmdProc *procPtr;
+  int outputPerObject;
+  Tcl_Obj *resultObj;
+
   assert(interp);
-  assert(regObject);
-  assert(defObject);
   assert(methodName);
+  assert(*methodName != ':');
+  assert(cmd);
 
   Tcl_ResetResult(interp);
 
-  if (cmd == NULL) {
-    if (subcmd == InfomethodsubcmdExistsIdx) {
-      Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
-    }
+  if (regObject && !NsfObjectIsClass(regObject)) {
+    withPer_object = 1;
+    /* don't output "object" modifier, if regObject is not a class */
+    outputPerObject = 0;
   } else {
-    Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
-    int outputPerObject = 0;
-    Tcl_Obj *resultObj;
+    outputPerObject = withPer_object;
+  }
 
-    assert(methodName && *methodName != ':');
-    if (!NsfObjectIsClass(regObject)) {
-      withPer_object = 1;
-      /* don't output "object" modifier, if regObject is not a class */
-      outputPerObject = 0;
-    } else {
-      outputPerObject = withPer_object;
+  procPtr = Tcl_Command_objProc(cmd);
+
+  switch (subcmd) {
+  case InfomethodsubcmdRegistrationhandleIdx:
+    {
+      if (regObject) {
+        Tcl_SetObjResult(interp, MethodHandleObj(regObject, withPer_object, methodName));
+      }
+      return TCL_OK;
     }
+  case InfomethodsubcmdDefinitionhandleIdx:
+    {
+      if (defObject) {
+        Tcl_SetObjResult(interp, MethodHandleObj(defObject,
+                                                 NsfObjectIsClass(defObject) ? withPer_object : 1,
+                                                 Tcl_GetCommandName(interp, cmd)));
+      }
+      return TCL_OK;
+    }
+  case InfomethodsubcmdExistsIdx:
+    {
+      Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
+      return TCL_OK;
+    }
+  case InfomethodsubcmdArgsIdx:
+    {
+      Tcl_Command importedCmd = GetOriginalCommand(cmd);
+      return ListCmdParams(interp, importedCmd, methodName, NSF_PARAMS_NAMES);
+    }
+  case InfomethodsubcmdParameterIdx:
+    {
+      Tcl_Command importedCmd = GetOriginalCommand(cmd);
+      return ListCmdParams(interp, importedCmd, methodName, NSF_PARAMS_PARAMETER);
+    }
+  case InfomethodsubcmdReturnsIdx:
+    {
+      Tcl_Command importedCmd;
+      NsfParamDefs *paramDefs;
 
-    switch (subcmd) {
-    case InfomethodsubcmdRegistrationhandleIdx:
-      {
-	Tcl_SetObjResult(interp, MethodHandleObj(regObject, withPer_object, methodName));
-	return TCL_OK;
+      importedCmd = GetOriginalCommand(cmd);
+      paramDefs = ParamDefsGet(importedCmd, NULL);
+      if (paramDefs && paramDefs->returns) {
+        Tcl_SetObjResult(interp, paramDefs->returns);
       }
-    case InfomethodsubcmdDefinitionhandleIdx:
-      {
-	Tcl_SetObjResult(interp, MethodHandleObj(defObject,
-						 NsfObjectIsClass(defObject) ? withPer_object : 1,
-						 Tcl_GetCommandName(interp, cmd)));
-	return TCL_OK;
-      }
-    case InfomethodsubcmdExistsIdx:
-      {
-	Tcl_SetObjResult(interp, Tcl_NewIntObj(1));
-	return TCL_OK;
-      }
-    case InfomethodsubcmdArgsIdx:
-      {
-        Tcl_Command importedCmd = GetOriginalCommand(cmd);
-        return ListCmdParams(interp, importedCmd, methodName, NSF_PARAMS_NAMES);
-      }
-    case InfomethodsubcmdParameterIdx:
-      {
-        Tcl_Command importedCmd = GetOriginalCommand(cmd);
-        return ListCmdParams(interp, importedCmd, methodName, NSF_PARAMS_PARAMETER);
-      }
-    case InfomethodsubcmdReturnsIdx:
-      {
-	Tcl_Command importedCmd;
-	NsfParamDefs *paramDefs;
-
-	importedCmd = GetOriginalCommand(cmd);
-	paramDefs = ParamDefsGet(importedCmd, NULL);
-	if (paramDefs && paramDefs->returns) {
-	  Tcl_SetObjResult(interp, paramDefs->returns);
-	}
-	return TCL_OK;
-      }
-    case InfomethodsubcmdSyntaxIdx:
-      {
-        Tcl_Command importedCmd = GetOriginalCommand(cmd);
-        return ListCmdParams(interp, importedCmd, methodName, NSF_PARAMS_SYNTAX);
-      }
-    case InfomethodsubcmdPreconditionIdx:
-      {
+      return TCL_OK;
+    }
+  case InfomethodsubcmdSyntaxIdx:
+    {
+      Tcl_Command importedCmd = GetOriginalCommand(cmd);
+      return ListCmdParams(interp, importedCmd, methodName, NSF_PARAMS_SYNTAX);
+    }
+  case InfomethodsubcmdPreconditionIdx:
+    {
 #if defined(NSF_WITH_ASSERTIONS)
-        NsfProcAssertion *procs = NULL;
+      NsfProcAssertion *procs = NULL;
 
+      if (regObject) {
         if (withPer_object) {
           if (regObject->opt && regObject->opt->assertions) {
             procs = AssertionFindProcs(regObject->opt->assertions, methodName);
@@ -21643,14 +21651,16 @@ ListMethod(Tcl_Interp *interp,
           }
         }
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
-#endif
-        return TCL_OK;
       }
-    case InfomethodsubcmdPostconditionIdx:
-      {
+#endif
+      return TCL_OK;
+    }
+  case InfomethodsubcmdPostconditionIdx:
+    {
 #if defined(NSF_WITH_ASSERTIONS)
-        NsfProcAssertion *procs = NULL;
-
+      NsfProcAssertion *procs = NULL;
+      
+      if (regObject) {
         if (withPer_object) {
           if (regObject->opt && regObject->opt->assertions) {
             procs = AssertionFindProcs(regObject->opt->assertions, methodName);
@@ -21662,258 +21672,339 @@ ListMethod(Tcl_Interp *interp,
           }
         }
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
-#endif
-        return TCL_OK;
       }
-    case InfomethodsubcmdSubmethodsIdx:
-      {
-	Tcl_Command origCmd = GetOriginalCommand(cmd);
+#endif
+      return TCL_OK;
+    }
+  case InfomethodsubcmdSubmethodsIdx:
+    {
+      Tcl_Command origCmd = GetOriginalCommand(cmd);
 
-	if (CmdIsNsfObject(origCmd)) {
-	  NsfObject *subObject = NsfGetObjectFromCmdPtr(origCmd);
-	  if (subObject) {
-	    return ListDefinedMethods(interp, subObject, NULL, 1 /* per-object */,
-				      NSF_METHODTYPE_ALL, CallprotectionAllIdx, 0);
-	  }
-	}
-	/* all other cases return empty */
-	Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
-        return TCL_OK;
+      if (CmdIsNsfObject(origCmd)) {
+        NsfObject *subObject = NsfGetObjectFromCmdPtr(origCmd);
+        if (subObject) {
+          return ListDefinedMethods(interp, subObject, NULL, 1 /* per-object */,
+                                    NSF_METHODTYPE_ALL, CallprotectionAllIdx, 0);
+        }
+      }
+      /* all other cases return empty */
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
+      return TCL_OK;
+    }
+  }
+
+  /*
+   * The subcommands differ per type of method. The converter in
+   * InfoMethods defines the types:
+   *
+   *    all|scripted|builtin|alias|forwarder|object|setter|nsfproc
+   */
+  if (GetTclProcFromCommand(cmd)) {
+    /* a scripted method */
+    switch (subcmd) {
+
+    case InfomethodsubcmdTypeIdx:
+      if (regObject) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("scripted", -1));
+      } else {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("proc", -1));
+      }
+      break;
+
+    case InfomethodsubcmdBodyIdx:
+      ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
+      break;
+
+    case InfomethodsubcmdDefinitionIdx:
+      {
+        resultObj = Tcl_NewListObj(0, NULL);
+        /* todo: don't hard-code registering command name "method" / NSF_METHOD */
+        if (regObject) {
+          AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_METHOD],
+                                   regObject, methodName, cmd, 0, outputPerObject, 1);
+        } else {
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::proc", -1));
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(methodName,-1));
+        }
+        ListCmdParams(interp, cmd, methodName, NSF_PARAMS_PARAMETER);
+        Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+	
+        AppendReturnsClause(interp, resultObj, cmd);
+
+        ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
+        Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+
+#if defined(NSF_WITH_ASSERTIONS)
+        {
+          NsfAssertionStore *assertions;
+
+          if (regObject) {
+            if (withPer_object) {
+              assertions = regObject->opt ? regObject->opt->assertions : NULL;
+            } else {
+              NsfClass *class = (NsfClass *)regObject;
+              assertions = class->opt ? class->opt->assertions : NULL;
+            }
+
+            if (assertions) {
+              NsfProcAssertion *procs = AssertionFindProcs(assertions, methodName);
+              if (procs) {
+                Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-precondition", -1));
+                Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->pre));
+                Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-postcondition", -1));
+                Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->post));
+              }
+            }
+          }
+        }
+#endif
+        Tcl_SetObjResult(interp, resultObj);
+        break;
       }
     }
 
-    /*
-     * The subcommands differ per type of method. The converter in
-     * InfoMethods defines the types:
-     *
-     *    all|scripted|builtin|alias|forwarder|object|setter|nsfproc
-     */
-    if (GetTclProcFromCommand(cmd)) {
-      /* a scripted method */
-      switch (subcmd) {
+  } else if (procPtr == NsfForwardMethod) {
+    /* forwarder */
+    switch (subcmd) {
+    case InfomethodsubcmdTypeIdx:
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_FORWARD]);
+      break;
+    case InfomethodsubcmdDefinitionIdx:
+      {
+        ClientData clientData = cmd ? Tcl_Command_objClientData(cmd) : NULL;
 
-      case InfomethodsubcmdTypeIdx:
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("scripted", -1));
-        break;
-
-      case InfomethodsubcmdBodyIdx:
-        ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
-        break;
-
-      case InfomethodsubcmdDefinitionIdx:
-        {
+        if (clientData) {
           resultObj = Tcl_NewListObj(0, NULL);
-          /* todo: don't hard-code registering command name "method" / NSF_METHOD */
-          AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_METHOD],
+          /* todo: don't hard-code registering command name "forward" / NSF_FORWARD*/
+          AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_FORWARD],
                                    regObject, methodName, cmd, 0, outputPerObject, 1);
-          ListCmdParams(interp, cmd, methodName, NSF_PARAMS_PARAMETER);
-          Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+          AppendReturnsClause(interp, resultObj, cmd);
 	
-	  AppendReturnsClause(interp, resultObj, cmd);
-
-          ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
-          Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
-
-#if defined(NSF_WITH_ASSERTIONS)
-	  {
-	    NsfAssertionStore *assertions;
-	    if (withPer_object) {
-	      assertions = regObject->opt ? regObject->opt->assertions : NULL;
-	    } else {
-	      NsfClass *class = (NsfClass *)regObject;
-	      assertions = class->opt ? class->opt->assertions : NULL;
-	    }
-	    if (assertions) {
-	      NsfProcAssertion *procs = AssertionFindProcs(assertions, methodName);
-	      if (procs) {
-		Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-precondition", -1));
-		Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->pre));
-		Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-postcondition", -1));
-		Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->post));
-	      }
-	    }
-	  }
-#endif
+          AppendForwardDefinition(interp, resultObj, clientData);
           Tcl_SetObjResult(interp, resultObj);
           break;
         }
       }
+    }
 
-    } else if (procPtr == NsfForwardMethod) {
-      /* forwarder */
+  } else if (procPtr == NsfSetterMethod) {
+    /* setter methods */
+    switch (subcmd) {
+    case InfomethodsubcmdTypeIdx:
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_SETTER]);
+      break;
+    case InfomethodsubcmdDefinitionIdx: {
+      SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
+
+      resultObj = Tcl_NewListObj(0, NULL);
+      /* todo: don't hard-code registering command name "setter" / NSF_SETTER */
+
+      AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_SETTER], regObject,
+                               (cd && cd->paramsPtr) ? ObjStr(cd->paramsPtr->paramObj) : methodName,
+                               cmd, 0, outputPerObject, 1);
+      Tcl_SetObjResult(interp, resultObj);
+      break;
+    }
+    }
+  } else if (procPtr == NsfProcStub) {
+    /*
+     * Special nsfproc handling:
+     */
+    NsfProcClientData *tcd = Tcl_Command_objClientData(cmd);
+    if (tcd && tcd->procName) {
+      Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, tcd->procName);
+      Tcl_DString ds, *dsPtr = &ds;
+      Tcl_Obj *resultObj;
+
+      switch (subcmd) {
+
+      case InfomethodsubcmdTypeIdx:
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("nsfproc", -1));
+        break;
+
+      case InfomethodsubcmdBodyIdx:
+        ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
+        break;
+
+      case InfomethodsubcmdDefinitionIdx:
+        resultObj = Tcl_NewListObj(0, NULL);
+        Tcl_DStringInit(dsPtr);
+        DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
+        /* don't hardcode names */
+        Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::nsf::proc", -1));
+        if (tcd->with_ad) {
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-ad", 3));
+        }
+        Tcl_ListObjAppendElement(interp, resultObj,
+                                 Tcl_NewStringObj(Tcl_DStringValue(dsPtr),
+                                                  Tcl_DStringLength(dsPtr)));
+        ListCmdParams(interp, cmd, Tcl_DStringValue(dsPtr), NSF_PARAMS_PARAMETER);
+        Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+        ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
+        Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+        Tcl_SetObjResult(interp, resultObj);
+        Tcl_DStringFree(dsPtr);
+        break;
+      }
+    }
+
+  } else if (defObject != NULL) {
+    /*
+     * The cmd must be an alias or object.
+     *
+     * Note that some aliases come with procPtr == NsfObjDispatch.
+     * In order to distinguish between "object" and alias, we have
+     * to do the lookup for the entryObj to determine wether it is
+     * really an alias.
+     */
+    Tcl_Obj *entryObj;
+
+    entryObj = AliasGet(interp, defObject->cmdName,
+                        Tcl_GetCommandName(interp, cmd),
+                        regObject != defObject ? 1 : withPer_object, 0);
+    /*
+      fprintf(stderr, "aliasGet %s -> %s/%s (%d) returned %p\n",
+      ObjectName(defObject), methodName, Tcl_GetCommandName(interp, cmd),
+      withPer_object, entryObj);
+      fprintf(stderr, "... regObject %p %s\n", regObject, ObjectName(regObject));
+      fprintf(stderr, "... defObject %p %s\n", defObject, ObjectName(defObject));
+    */
+
+    if (entryObj) {
+      /* is an alias */
       switch (subcmd) {
       case InfomethodsubcmdTypeIdx:
-        Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_FORWARD]);
+        Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_ALIAS]);
         break;
       case InfomethodsubcmdDefinitionIdx:
         {
-          ClientData clientData = cmd ? Tcl_Command_objClientData(cmd) : NULL;
+          int nrElements;
+          Tcl_Obj **listElements;
 
-          if (clientData) {
-            resultObj = Tcl_NewListObj(0, NULL);
-            /* todo: don't hard-code registering command name "forward" / NSF_FORWARD*/
-            AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_FORWARD],
-                                     regObject, methodName, cmd, 0, outputPerObject, 1);
-	    AppendReturnsClause(interp, resultObj, cmd);
-	
-            AppendForwardDefinition(interp, resultObj, clientData);
-            Tcl_SetObjResult(interp, resultObj);
-            break;
-          }
+          resultObj = Tcl_NewListObj(0, NULL);
+          Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
+          /* todo: don't hard-code registering command name "alias" / NSF_ALIAS */
+          AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_ALIAS],
+                                   regObject, methodName, cmd,
+                                   procPtr == NsfObjscopedMethod,
+                                   outputPerObject, 1);
+          AppendReturnsClause(interp, resultObj, cmd);
+          Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
+          Tcl_SetObjResult(interp, resultObj);
+          break;
+        }
+      case InfomethodsubcmdOriginIdx:
+        {
+          int nrElements;
+          Tcl_Obj **listElements;
+          Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
+          Tcl_SetObjResult(interp, listElements[nrElements-1]);
+          break;
         }
       }
-
-    } else if (procPtr == NsfSetterMethod) {
-      /* setter methods */
-      switch (subcmd) {
-      case InfomethodsubcmdTypeIdx:
-        Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_SETTER]);
-        break;
-      case InfomethodsubcmdDefinitionIdx: {
-        SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
-
-        resultObj = Tcl_NewListObj(0, NULL);
-        /* todo: don't hard-code registering command name "setter" / NSF_SETTER */
-
-        AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_SETTER], regObject,
-                                 (cd && cd->paramsPtr) ? ObjStr(cd->paramsPtr->paramObj) : methodName,
-                                 cmd, 0, outputPerObject, 1);
-        Tcl_SetObjResult(interp, resultObj);
-        break;
-      }
-      }
-    } else if (procPtr == NsfProcStub) {
-      /*
-       * Special nsfproc handling:
-       */
-      NsfProcClientData *tcd = Tcl_Command_objClientData(cmd);
-      if (tcd && tcd->procName) {
-	Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, tcd->procName);
-	Tcl_DString ds, *dsPtr = &ds;
-	Tcl_Obj *resultObj;
-
-	switch (subcmd) {
-
-	case InfomethodsubcmdTypeIdx:
-	  Tcl_SetObjResult(interp, Tcl_NewStringObj("nsfproc", -1));
-	  break;
-
-	case InfomethodsubcmdBodyIdx:
-	  ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
-	  break;
-
-	case InfomethodsubcmdDefinitionIdx:
-          resultObj = Tcl_NewListObj(0, NULL);
-	  Tcl_DStringInit(dsPtr);
-	  DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
-	  /* don't hardcode names */
-	  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::nsf::proc", -1));
-	  if (tcd->with_ad) {
-	    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-ad", 3));
-	  }
-	  Tcl_ListObjAppendElement(interp, resultObj,
-				   Tcl_NewStringObj(Tcl_DStringValue(dsPtr),
-						    Tcl_DStringLength(dsPtr)));
-          ListCmdParams(interp, cmd, Tcl_DStringValue(dsPtr), NSF_PARAMS_PARAMETER);
-          Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
-          ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
-          Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
-	  Tcl_SetObjResult(interp, resultObj);
-	  Tcl_DStringFree(dsPtr);
-	  break;
-	}
-      }
-
     } else {
-      /*
-       * The cmd must be an alias or object.
-       *
-       * Note that some aliases come with procPtr == NsfObjDispatch.
-       * In order to distinguish between "object" and alias, we have
-       * to do the lookup for the entryObj to determine wether it is
-       * really an alias.
-       */
-      Tcl_Obj *entryObj;
+      /* check, to be on the safe side */
+      if (CmdIsNsfObject(cmd)) {
+        /* the command is an object */
+        switch (subcmd) {
+        case InfomethodsubcmdTypeIdx:
+          Tcl_SetObjResult(interp, Tcl_NewStringObj("object", -1));
+          break;
+        case InfomethodsubcmdDefinitionIdx:
+          {
+            NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);
 
-      entryObj = AliasGet(interp, defObject->cmdName,
-			  Tcl_GetCommandName(interp, cmd),
-			  regObject != defObject ? 1 : withPer_object, 0);
-      /*
-      fprintf(stderr, "aliasGet %s -> %s/%s (%d) returned %p\n",
-	      ObjectName(defObject), methodName, Tcl_GetCommandName(interp, cmd),
-	      withPer_object, entryObj);
-      fprintf(stderr, "... regObject %p %s\n", regObject, ObjectName(regObject));
-      fprintf(stderr, "... defObject %p %s\n", defObject, ObjectName(defObject));
-      */
-
-      if (entryObj) {
-	/* is an alias */
-	switch (subcmd) {
-	case InfomethodsubcmdTypeIdx:
-	  Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_ALIAS]);
-	  break;
-	case InfomethodsubcmdDefinitionIdx:
-	  {
-            int nrElements;
-            Tcl_Obj **listElements;
-
+            assert(subObject);
             resultObj = Tcl_NewListObj(0, NULL);
-            Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
-            /* todo: don't hard-code registering command name "alias" / NSF_ALIAS */
-            AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_ALIAS],
-                                     regObject, methodName, cmd,
-				     procPtr == NsfObjscopedMethod,
-				     outputPerObject, 1);
-	    AppendReturnsClause(interp, resultObj, cmd);
-            Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
+            AppendMethodRegistration(interp, resultObj, "create",
+                                     &(subObject->cl)->object,
+                                     ObjStr(subObject->cmdName), cmd, 0, 0, 0);
             Tcl_SetObjResult(interp, resultObj);
-            break;
-          }
-	case InfomethodsubcmdOriginIdx:
-	  {
-            int nrElements;
-            Tcl_Obj **listElements;
-            Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
-            Tcl_SetObjResult(interp, listElements[nrElements-1]);
             break;
           }
         }
       } else {
-	/* check, to be on the safe side */
-	if (CmdIsNsfObject(cmd)) {
-	  /* the command is an object */
-	  switch (subcmd) {
-	  case InfomethodsubcmdTypeIdx:
-	    Tcl_SetObjResult(interp, Tcl_NewStringObj("object", -1));
-	    break;
-	  case InfomethodsubcmdDefinitionIdx:
-	    {
-	      NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);
-
-	      assert(subObject);
-	      resultObj = Tcl_NewListObj(0, NULL);
-	      AppendMethodRegistration(interp, resultObj, "create",
-				       &(subObject->cl)->object,
-				       ObjStr(subObject->cmdName), cmd, 0, 0, 0);
-	      Tcl_SetObjResult(interp, resultObj);
-	      break;
-	    }
-	  }
-	} else {
-	  /*
-	   * Should never happen.
-	   *
-	   * The warning is just a guess, so we don't raise an error here.
-	   */
-	  NsfLog(interp, NSF_LOG_WARN, "Could not obtain alias definition for %s. "
-		 "Maybe someone deleted the alias %s for object %s?",
-		 methodName, methodName, ObjectName(regObject));
-	  Tcl_ResetResult(interp);
-	}
+        /*
+         * Should never happen.
+         *
+         * The warning is just a guess, so we don't raise an error here.
+         */
+        NsfLog(interp, NSF_LOG_WARN, "Could not obtain alias definition for %s. "
+               "Maybe someone deleted the alias %s for object %s?",
+               methodName, methodName, ObjectName(regObject));
+        Tcl_ResetResult(interp);
       }
     }
+  } else {
+    /*
+     * The cmd must be a plain unregisted cmd
+     */
+
+    switch (subcmd) {
+    case InfomethodsubcmdTypeIdx:
+      Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_CMD]);
+      break;
+    case InfomethodsubcmdDefinitionIdx:
+      break;
+    case InfomethodsubcmdOriginIdx:
+      break;
+    }
   }
+
   return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ListMethodResolve --
+ *
+ *    Call essentially ListMethod(), but try to resolve the method name/handle
+ *    first.
+ *
+ * Results:
+ *    Standard Tcl result
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+ListMethodResolve(Tcl_Interp *interp, int subcmd, Tcl_Namespace *nsPtr,
+                   NsfObject *object, Tcl_Obj *methodNameObj, int fromClassNS)
+  nonnull(1) nonnull(5);
+
+static int
+ListMethodResolve(Tcl_Interp *interp, int subcmd, Tcl_Namespace *nsPtr,
+                   NsfObject *object, Tcl_Obj *methodNameObj, int fromClassNS) {
+  NsfObject *regObject, *defObject;
+  CONST char *methodName1 = NULL;
+  int result = TCL_OK;
+  Tcl_DString ds, *dsPtr = &ds;
+  Tcl_Command cmd;
+
+  assert(interp);
+  assert(methodNameObj);
+
+  Tcl_DStringInit(dsPtr);
+
+  cmd = ResolveMethodName(interp, nsPtr, methodNameObj,
+			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+  /*
+   * If the cmd is not found, we return for every sub-command but "exists"
+   * empty.
+   */
+  if (likely(cmd != NULL)) {
+    result = ListMethod(interp,
+                        regObject ? regObject : object,
+                        defObject ? defObject : object,
+                        methodName1, cmd, subcmd, fromClassNS ? 0 : 1);
+  } else if (subcmd == InfomethodsubcmdExistsIdx) {
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(0));
+  }
+
+  Tcl_DStringFree(dsPtr);
+  return result;
 }
 
 
@@ -24159,6 +24250,19 @@ NsfMethodForwardCmd(Tcl_Interp *interp,
   }
   return result;
 }
+
+/*
+cmd "method::get" NsfMethodGetCmd {
+  {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "methodName" -required 1 -type tclobj}
+} {-nxdoc 1}
+*/
+static int
+NsfMethodGetCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *methodNameObj) {
+
+  return ListMethodResolve(interp, subcmd, NULL, NULL, methodNameObj, 0);
+}
+
 
 /*
 cmd ::method::property NsfMethodPropertyCmd {
@@ -28235,7 +28339,7 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *met
   assert(methodObj);
 
   cmd = ObjectFindMethod(interp, object, methodObj, &pcl);
-  if (cmd) {
+  if (likely(cmd != NULL)) {
     NsfObject *pobj = pcl ? &pcl->object : object;
     int perObject = (pcl == NULL);
 
@@ -28456,29 +28560,7 @@ objectInfoMethod method NsfObjInfoMethodMethod {
 static int
 NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
 		       int subcmd, Tcl_Obj *methodNameObj) {
-  NsfObject *regObject, *defObject;
-  CONST char *methodName1 = NULL;
-  int fromClassNS = 0, result;
-  Tcl_DString ds, *dsPtr = &ds;
-  Tcl_Command cmd;
-
-  assert(interp);
-  assert(object);
-  assert(methodNameObj);
-
-  Tcl_DStringInit(dsPtr);
-  cmd = ResolveMethodName(interp, object->nsPtr, methodNameObj,
-			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-  /*fprintf(stderr,
-	  "NsfObjInfoMethodMethod method %s / %s object %p regObject %p defObject %p fromClass %d\n",
-	  ObjStr(methodNameObj), methodName1, object, regObject, defObject, fromClassNS);*/
-  result = ListMethod(interp,
-		      regObject ? regObject : object,
-		      defObject ? defObject : object,
-		      methodName1, cmd, subcmd, fromClassNS ? 0 : 1);
-  Tcl_DStringFree(dsPtr);
-
-  return result;
+  return ListMethodResolve(interp, subcmd, object->nsPtr, object, methodNameObj, 0);
 }
 
 /*
@@ -28916,31 +28998,8 @@ classInfoMethod method NsfClassInfoMethodMethod {
 static int
 NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 			 int subcmd, Tcl_Obj *methodNameObj) {
-  NsfObject *regObject, *defObject;
-  CONST char *methodName1 = NULL;
-  int fromClassNS = 1, result;
-  Tcl_DString ds, *dsPtr = &ds;
-  Tcl_Command cmd;
 
-  assert(interp);
-  assert(class);
-  assert(methodNameObj);
-
-  Tcl_DStringInit(dsPtr);
-  cmd = ResolveMethodName(interp, class->nsPtr, methodNameObj,
-			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-  /*fprintf(stderr,
-	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p %s fromClass %d cmd %p method %s\n",
-	  &class->object, regObject, defObject, ObjectName(defObject), fromClassNS, cmd, methodName1);*/
-
-  result = ListMethod(interp,
-		      regObject ? regObject : &class->object,
-		      defObject ? defObject : &class->object,
-		      methodName1,
-		      cmd, subcmd, fromClassNS ? 0 : 1);
-  Tcl_DStringFree(dsPtr);
-
-  return result;
+  return ListMethodResolve(interp, subcmd, class->nsPtr, &class->object, methodNameObj, 1);
 }
 
 /*
@@ -30066,7 +30125,10 @@ Nsf_Init(Tcl_Interp *interp) {
   Nsf_PointerInit(interp);
 
   Nsf_EnumerationTypeInit(interp);
-  Nsf_EnumerationTypeRegister(interp, enumeratorConverterEntries);
+  result = Nsf_EnumerationTypeRegister(interp, enumeratorConverterEntries);
+  if (unlikely(result != TCL_OK)) {
+    return result;
+  }
 
   Nsf_CmdDefinitionInit(interp);
   Nsf_CmdDefinitionRegister(interp, method_definitions);

@@ -111,6 +111,16 @@ cmd "method::assertion" NsfMethodAssertionCmd {
   {-argName "subcmd" -required 1 -typeName "assertionsubcmd" -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 } {-nxdoc 1}
+cmd "method::asmcreate" NsfAsmMethodCreateCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
+  {-argName "-inner-namespace" -nrargs 0 -type switch}
+  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
+  {-argName "-reg-object" -required 0 -nrargs 1 -type object}
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+}
 cmd "method::create" NsfMethodCreateCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
@@ -123,23 +133,16 @@ cmd "method::create" NsfMethodCreateCmd {
   {-argName "-precondition"  -type tclobj}
   {-argName "-postcondition" -type tclobj}
 } {-nxdoc 1}
-
-cmd "method::asmcreate" NsfAsmMethodCreateCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-checkalways" -required 0 -nrargs 0 -type switch}
-  {-argName "-inner-namespace" -nrargs 0 -type switch}
-  {-argName "-per-object" -required 0 -nrargs 0 -type switch}
-  {-argName "-reg-object" -required 0 -nrargs 1 -type object}
-  {-argName "name" -required 1 -type tclobj}
-  {-argName "arguments" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
-}
-
 cmd "method::delete" NsfMethodDeleteCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1 -type tclobj}
 } {-nxdoc 1}
+cmd "method::get" NsfMethodGetCmd {
+  {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "methodName" -required 1 -type tclobj}
+} {-nxdoc 1}
+
 cmd "method::forward" NsfMethodForwardCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}

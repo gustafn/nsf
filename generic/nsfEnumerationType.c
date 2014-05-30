@@ -83,7 +83,10 @@ Nsf_EnumerationTypeRegister(Tcl_Interp *interp, Nsf_EnumeratorConverterEntry *ty
   assert(typeRecords);
 
   for (ePtr = typeRecords; ePtr->converter; ePtr++) {
-    Register(interp, ePtr->domain, ePtr->converter);
+    int result = Register(interp, ePtr->domain, ePtr->converter);
+    if (unlikely(result != TCL_OK)) {
+      return result;
+    }
   }
 
   return TCL_OK;
@@ -116,6 +119,7 @@ Nsf_EnumerationTypeGetDomain(Nsf_TypeConverter *converter) {
   for (hPtr = Tcl_FirstHashEntry(enumerationHashTablePtr, &hSrch); hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     void *ptr = Tcl_GetHashValue(hPtr);
+
     if (ptr == converter) {
       domain = Tcl_GetHashKey(enumerationHashTablePtr, hPtr);
       break;
@@ -155,10 +159,17 @@ Register(Tcl_Interp *interp, CONST char* domain, Nsf_TypeConverter *converter) {
 
   if (isNew) {
     Tcl_SetHashValue(hPtr, converter);
-    return TCL_OK;
   } else {
-    return NsfPrintError(interp, "type converter %s is already registered", domain);
+    /*
+     * In general, it would make sense to return an error here, but for
+     * multiple interps (e.g. slave interps) the register happens per
+     * interp. So, not even a warning seems here appropriate
+     */
+    /*return NsfPrintError(interp, "type converter %s is already registered", domain);
+      NsfLog(interp, NSF_LOG_WARN, "type converter %s is already registered", domain);
+    */
   }
+  return TCL_OK;
 }
 
 

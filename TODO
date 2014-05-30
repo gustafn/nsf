@@ -5167,6 +5167,26 @@ nx.tcl
 - make output of "/obj/ info lookup configure syntax" equivalent to 
   "/obj/ info configure"
 
+gentclAPI.tcl:
+- handle duplicated domains by folding these to a single definition
+
+nsf.c:
+- added command nsf::method::get.
+  Rationale: provide a central place to obtain information
+  about all kind of method handles, which might be
+   - scripted and c-based methods
+   - nsf::procs
+   - plain tcl procs
+   - cmds (with and without paramter definitions)
+- make results of ListMethod() robust against missing
+  information (e.g. plain tcl cmds, missing object registrations,
+  etc.)
+- factor out common code for ListMethod call sites
+  for per-object methods, instance methods and procs/cmds
+  to ListMethodResolve()
+- return errors from failing converter registrations
+- extend regression test (new test set nsf-method.test)
+
 ========================================================================
 TODO:
 

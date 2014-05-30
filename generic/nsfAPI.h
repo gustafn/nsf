@@ -281,7 +281,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
     
 
 /* just to define the symbol */
-static Nsf_methodDefinition method_definitions[110];
+static Nsf_methodDefinition method_definitions[111];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
@@ -368,6 +368,8 @@ static int NsfMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int
 static int NsfMethodDeleteCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMethodGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
@@ -588,6 +590,8 @@ static int NsfMethodDeleteCmd(Tcl_Interp *interp, NsfObject *object, int withPer
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMethodForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withOnerror, Tcl_Obj *withPrefix, int withFrame, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[])
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
+static int NsfMethodGetCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *methodName)
+  NSF_nonnull(1) NSF_nonnull(3);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodProperty, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4);
 static int NsfMethodRegisteredCmd(Tcl_Interp *interp, Tcl_Obj *handle)
@@ -768,6 +772,7 @@ enum {
  NsfMethodCreateCmdIdx,
  NsfMethodDeleteCmdIdx,
  NsfMethodForwardCmdIdx,
+ NsfMethodGetCmdIdx,
  NsfMethodPropertyCmdIdx,
  NsfMethodRegisteredCmdIdx,
  NsfMethodSetterCmdIdx,
@@ -1754,6 +1759,26 @@ NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
     assert(pc.status == 0);
     return NsfMethodForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withOnerror, withPrefix, withFrame, withVerbose, target, objc-pc.lastObjc, objv+pc.lastObjc);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfMethodGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMethodGetCmdIdx].paramDefs, 
+                     method_definitions[NsfMethodGetCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    int subcmd = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[1];
+
+    assert(pc.status == 0);
+    return NsfMethodGetCmd(interp, subcmd, methodName);
 
   } else {
     return TCL_ERROR;
@@ -3175,7 +3200,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   }
 }
 
-static Nsf_methodDefinition method_definitions[110] = {
+static Nsf_methodDefinition method_definitions[111] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
@@ -3370,6 +3395,10 @@ static Nsf_methodDefinition method_definitions[110] = {
   {"-verbose", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"target", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::method::get", NsfMethodGetCmdStub, 2, {
+  {"subcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::property", NsfMethodPropertyCmdStub, 5, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},

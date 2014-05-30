@@ -33,7 +33,13 @@ set ::converter ""
 set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\])"
 
 proc convertername {type typename} {
-  return [string totitle [string trimleft $typename -]]
+  if {[info exists ::registeredConverter($type)]} {
+    set name $::registeredConverter($type)
+  } else {
+    set name [string totitle [string trimleft $typename -]]
+    set ::registeredConverter($type) $name
+  }
+  return $name
 }
 
 proc createconverter {type typename} {
@@ -564,3 +570,10 @@ int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *
 }
 genstubs
 puts stderr "[array size ::definitions] parsing stubs generated"
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:
