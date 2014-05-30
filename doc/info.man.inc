@@ -9,11 +9,11 @@
 [keywords "method handle"]
 [keywords "method path"]
 
-[call [arg obj] [method "info [vset SCOPE] filter"] [arg option] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] filter"] [arg option] [opt "[arg arg] ..."]]
 
 [list_begin definitions]
 
-[def "[arg obj] [method "info [vset SCOPE] filter methods"] [opt [option -guards]] [opt [arg pattern]]"]
+[def "[arg [vset CMD]] [method "info [vset MODIFIER] filter methods"] [opt [option -guards]] [opt [arg pattern]]"]
 
 
 If [arg pattern] is omitted, returns all filter names which are
@@ -23,7 +23,7 @@ reported along with each filter as a three-element list: [arg filterName]
 -guard [arg guardExpr]. The returned filters can be limited to those whose names
 match [arg patterns] (see [cmd "string match"]).
 
-[def "[arg obj] [method "info [vset SCOPE] filter guard"] [arg name]"]
+[def "[arg [vset CMD]] [method "info [vset MODIFIER] filter guard"] [arg name]"]
 
 Returns the guard expression set on the [term "filter"] [arg name]
 defined for [arg obj]. If none is available, an empty string will
@@ -31,7 +31,7 @@ be returned.
 
 [list_end]
 
-[call [arg obj] [method "info [vset SCOPE] method"] [arg option] [arg methodName]]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] method"] [arg option] [arg methodName]]
 
 This introspection [term "submethod"] provides access to the details
 of [arg methodName] provided by [arg obj]. Permitted values for
@@ -80,7 +80,7 @@ messages (e.g., errors or warnings, documentation strings).
 
 [list_end]
 
-[call [arg obj] [method "info [vset SCOPE] methods"] [opt "[option -callprotection] [arg level]"] [opt "[option -type] [arg methodType]"] [opt [option -path]] [opt [arg namePattern]]]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] methods"] [opt "[option -callprotection] [arg level]"] [opt "[option -type] [arg methodType]"] [opt [option -path]] [opt [arg namePattern]]]
 
 Returns the names of all methods defined by [arg obj]. Methods covered
 include those defined using ,
@@ -105,11 +105,11 @@ By setting [option -callprotection], only methods of a certain [term "call prote
 }]
 [list_end]
 
-[call [arg obj] [method "info [vset SCOPE] mixin"] [arg option] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] mixin"] [arg option] [opt "[arg arg] ..."]]
 
 [list_begin definitions]
 
-[def "[arg obj] [method {info object mixin classes}] [opt [option -guards]] [opt [arg pattern]]"]
+[def "[arg [vset CMD]] [method "info [vset MODIFIER] mixin classes"] [opt [option -guards]] [opt [arg pattern]]"]
 
 If [arg pattern] is omitted, returns the object names of the [term "mixin class"]es which
 extend [arg obj] directly. By turning on the [term switch] [option -guards],
@@ -118,7 +118,7 @@ reported along with each mixin as a three-element list: [arg className]
 -guard [arg guardExpr]. The returned [term "mixin class"]es can be limited to those whose names
 match [arg patterns] (see [cmd "string match"]).
 
-[def "[arg obj] [method {info object mixin guard}] [arg name]"]
+[def "[arg [vset CMD]] [method "info [vset MODIFIER] mixin guard"] [arg name]"]
 
 For the [term "mixin class"] [arg name] which extends
 [arg obj] directly, returns the corresponding guard expression, if
@@ -127,7 +127,7 @@ any. If none is available, an empty string will be returned.
 [list_end]
 
 
-[call [arg obj] [method "info [vset SCOPE] slots"] [opt "[option -type] [arg className]"] [arg pattern]]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] slots"] [opt "[option -type] [arg className]"] [arg pattern]]
 
 If [arg pattern] is not specified, returns the object names of all [term "slot object"]s defined by [arg obj]. The returned [term "slot object"]s can be limited according to any or a
 combination of the following criteria: First, [term "slot object"]s
@@ -135,7 +135,7 @@ can be filtered based on their command names matching [arg namePattern] (see [cm
 match"]). Second, [option "-type"] allows to select
 [term "slot object"]s which are instantiated from a subclass [arg className] of [cmd nx::Slot] (default: [cmd nx::Slot]).
 
-[call [arg obj] [method "info [vset SCOPE] variables"] [arg pattern]]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] variables"] [arg pattern]]
 
 If [arg pattern] is omitted, returns the object names of all [term "slot object"]s provided
 by [arg obj] which are responsible for managing properties and variables of [arg obj]. Otherwise,
@@ -144,7 +144,7 @@ returned.
 
 [para]
 
-This is equivalent to calling: [arg obj] [method "info [vset SCOPE] slots"] -type ::nx::VariableSlot [opt [arg namePattern]].
+This is equivalent to calling: [arg obj] [method "info [vset MODIFIER] slots"] -type ::nx::VariableSlot [opt [arg namePattern]].
 
 [para]
 

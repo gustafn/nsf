@@ -1,6 +1,6 @@
 [comment {-*- tcl -*- manpage fragment for method method, shared by nx::Object and nx::Class}]
 
-[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset SCOPE]] [method method] [arg name] [arg parameters] [opt [option "-checkalways"]] [opt "[option -returns] [arg valueChecker]"] [arg body]]
+[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset MODIFIER]] [method method] [arg name] [arg parameters] [opt [option "-checkalways"]] [opt "[option -returns] [arg valueChecker]"] [arg body]]
 
 [keywords "value checker"]
 [keywords "colon-prefix notation"]
@@ -43,6 +43,6 @@ parameters and value checkers on arguments. Second, the script
 implementing the method body can contain object-specific notation and
 commands (see above). Third, method calls [emph cannot] be intercepted
 using Tcl [cmd trace]. Note that an existing Tcl [cmd proc] can be registered as
-an [term "alias method"] with the [vset SCOPE] (see [method "[vset SCOPE] alias"]).
+an [term "alias method"] with the [vset SCOPE] (see [method "[vset MODIFIER] alias"]).
 
 [comment {TODO: refer to nsf::proc?}]

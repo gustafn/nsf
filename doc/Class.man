@@ -1,0 +1,266 @@
+[comment {-*- tcl -*- nx::Class manpage}]
+[manpage_begin nx::Class n 2.0b6]
+
+[keywords base-metaclass]
+[keywords NX]
+[keywords "mixin class"]
+[keywords "re-classification"]
+[keywords "submethod"]
+[keywords "method ensemble"]
+[keywords "linearisation"]
+[term "filter specification"]
+
+[vset SCOPE "class"]
+[vset CMD "cls"]
+[vset MODIFIER ""]
+
+[copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+[titledesc {nx::Class API Reference}]
+
+[description]
+[para]
+
+[cmd nx::Class] is the [term base-metaclass] of the [term NX] object
+system. All application classes defined in [term NX] are (direct or indirect)
+instances of this [cmd nx::Class]. The methods provided by [cmd nx::Class] are
+available to all application classes. A custom metaclass instantiates [cmd nx::Class] and
+subclasses [cmd nx::Class] at the same time.
+
+[list_begin definitions]
+
+[call [cmd nx::Class] [method create] [arg className] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
+
+[para] 
+
+To create an application class having an explicit [arg className], use [method create].
+
+[call [cmd nx::Class] [method new] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
+
+To create an application class having an automatically assigned, implicit object name, use [method new].
+
+[list_end]
+
+The configuration options for direct instances of [cmd nx::Class],
+which can be passed when calling [method create] and [method new], are
+documented in the subsequent section.
+
+[section {Configuration Options for Instances of nx::Class}]
+
+[para] Configuration options can be used for configuring objects during
+their creation by passing the options as non-positional arguments into calls
+of [method new] and [method create] (see [cmd nx::Class]). An
+existing object can be queried for its current configuration using
+[method cget] and it can be re-configured using [method configure].
+
+[list_begin options]
+
+[opt_def -superclass [opt [arg superClassNames]]]
+
+If [arg superClassNames] is not specified, returns the superclasses of
+the class. If provided, the class becomes the subclass of [arg superClassNames].
+
+[opt_def -filter [opt [arg filterSpecs]]]
+
+Retrieves the list of filter methods currently active on instances of
+the class, if [arg filterSpecs] is not set. Otherwise, activates a
+list of filter methods for the instances of the class. Filters are
+returned or set in terms of a list of [term "filter specification"]s.
+
+[opt_def -mixin [opt [arg mixinSpecs]]]
+
+Returns the list of [term "mixin class"]es currently active on
+instances of the class, if [arg mixinSpecs] is not specified. Otherwise, the class
+is extended by the list of [term "mixin class"]es provided by [arg mixinSpecs]. 
+[term "mixin class"]es are returned or set in terms of a list of [term "mixin specification"]s.
+
+[list_end]
+
+The configuration options provided by [cmd nx::Object] are equally
+available because an application class [arg className] are indirect
+instances of [cmd nx::Object].
+
+[section {Methods for Instances of nx::Class}]
+
+[list_begin commands]
+
+[cmd_def alias]
+[list_begin definitions]
+
+[include alias.man.inc]
+
+[list_end]
+
+[cmd_def create]
+
+[list_begin definitions]
+
+[call [arg cls] [method create] [arg className] [opt "[arg arg] ..."]] 
+
+[list_end]
+
+[cmd_def delete]
+
+[list_begin definitions]
+
+[include delete.man.inc]
+
+[list_end]
+
+[cmd_def filter]
+
+[list_begin definitions]
+
+[include filter.man.inc]
+
+[list_end]
+
+[cmd_def forward]
+
+[list_begin definitions]
+
+[include forward.man.inc]
+
+[list_end]
+
+[cmd_def info]
+
+[list_begin definitions]
+
+[call [arg cls] [method info] [method configure]]
+
+Lists all configuration options available for [arg obj]. These include
+the [sectref {Configuration Options for Instances of nx::Class} "configuration options"] provided
+by [cmd nx::Object]. The available configuration options can be
+modified using [method configure], their current value can be queried
+using [method cget].
+
+[call [arg cls] [method info] [method heritage]]
+
+...
+
+[call [arg cls] [method info] [method instances]]
+
+...
+
+[call [arg cls] [method info] [method mixinof]]
+
+...
+
+[call [arg cls] [method info] [method subclass]]
+
+...
+
+[call [arg cls] [method info] [method superclass]]
+
+...
+
+[include info.man.inc]
+
+[list_end]
+
+
+[cmd_def method]
+
+[list_begin definitions]
+
+[include method.man.inc]
+
+[list_end]
+
+[cmd_def mixin]
+[list_begin definitions]
+
+[include mixin.man.inc]
+
+[list_end]
+
+[cmd_def require]
+
+[list_begin definitions]
+
+[include require.man.inc]
+
+[list_end]
+
+[cmd_def property]
+
+[list_begin definitions]
+
+[call [arg cls] [method property] [opt "[option -accessor] public | protected | private"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt [option -nocomplain]] [arg spec] [opt [arg initBlock]]]
+
+[include property.man.inc]
+
+[para]
+
+By default, the [term property] will ascertain that no (potentially)
+pre-existing and equally named object variable will be overwritten
+when defining the property. In case of a conflict, an error exception
+is thrown:
+
+[example {
+% Object create obj { set :x 1 }
+::obj
+% ::obj object property {x 2}
+object ::obj has already an instance variable named 'x'
+}]
+
+If the [term switch] [option -nocomplain] is on, this check is omitted (continuing the above example):
+
+[example {
+% ::obj object property -nocomplain {x 2}
+% ::obj eval {set :x}
+2
+}]
+
+[list_end]
+
+[cmd_def variable]
+
+[list_begin definitions]
+
+[comment {::nx::Object variable ?-accessor /value/? ?-incremental? ?-class /value/? ?-configurable /boolean/? ?-initblock /value/? ?-nocomplain? /spec/ ?/defaultValue/?}]
+
+[call [arg cls] [method variable] [opt "[option -accessor] public | protected | private"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [opt [option -nocomplain]] [arg spec] [opt [arg defaultValue]]]
+
+[include variable.man.inc]
+
+[para]
+
+By default, the [term variable] will ascertain that a
+pre-existing and equally named object variable will not be overwritten
+when defining the [term variable]. In case of a conflict, an error exception
+is thrown:
+
+[example {
+% Object create obj { set :x 1 }
+::obj
+% ::obj object variable x 2
+object ::obj has already an instance variable named 'x'
+}]
+
+If the [term switch] [option -nocomplain] is on, this check is omitted (continuing the above example):
+
+[example {
+% ::obj object variable -nocomplain x 2
+% ::obj eval {set :x}
+2
+}]
+
+[list_end]
+
+[list_end]
+
+[comment { COMMANDS list }]
+
+[comment {
+  [cmd nx::Object] provides a set of default implementations for
+  internally called methods, which are called primarily during the 
+  creation or destruction of NX objects.
+  
+  Application developers can provide custom implementations of these
+  methods by providing tailored implementations for these methods in application
+  classes (i.e., subclasses of [cmd nx::Object]). An adequate method
+  implementation must comply with the method signature interfaces described below.
+}]
+
+[manpage_end]

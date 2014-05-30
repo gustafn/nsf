@@ -3,13 +3,13 @@
 [keywords "mixin class"]
 [keywords linearisation]
 
-[call [arg obj] [const [vset SCOPE]] [method mixin] [arg submethod] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [const [vset MODIFIER]] [method mixin] [arg submethod] [opt "[arg arg] ..."]]
 
 Accesses and modifies the list of [term "mixin class"]es of 
 [arg obj] using a specific setter or getter [arg submethod]:
 
 [list_begin definitions]
-[def "[arg obj] [const [vset SCOPE]] [method {mixin set}] [arg mixinSpecList]"] 
+[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixin set}] [arg mixinSpecList]"] 
 
 [arg mixinSpecList] takes a list of [term "mixin class"] specs, with each spec being itself either a one-element or a three-element list: [arg className] ?-guard [arg guardExpr]?. If
 having one element, the element will be considered the [arg className]
@@ -21,24 +21,24 @@ is to be considered during method dispatch or not. Guard expressions
 allow for realizing context-dependent or conditional mixin
 composition.
 
-[def "[arg obj] [const [vset SCOPE]] [method {mixin get}]"]
+[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixin get}]"]
 Returns the current list of [term "mixin class"]es.
-[def "[arg obj] [const [vset SCOPE]] [method {mixin add}] [arg spec] [opt [arg index]]"]
+[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixin add}] [arg spec] [opt [arg index]]"]
 Inserts a single [term "mixin class"] into the current list of [term "mixin class"]es of [arg obj]. Using [arg index], a position in the existing list of [term "mixin class"]es for inserting the new [term "mixin class"] can be set. If
 omitted, [arg index] defaults to the list head (0). 
 [comment {Therefore, by default, any added [term "mixin class"] takes precedence over previously added classes in the overall linearisation of [arg obj].}]
-[def "[arg obj] [const [vset SCOPE]] [method {mixin delete}] [option -nocomplain] [arg specPattern]"]
+[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixin delete}] [option -nocomplain] [arg specPattern]"]
 Removes a [term "mixin class"] from a current list of [term "mixin class"]es of [arg obj] whose spec matches [arg specPattern]. [arg specPattern] can contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "mixin delete"] will throw an error if there is no matching [term "mixin class"], unless [option -nocomplain] is set.
 
-[def "[arg obj] [const [vset SCOPE]] [method {mixin clear}]"]
+[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixin clear}]"]
 Removes all [term "mixin class"]es from [arg obj] and returns the list of removed [term "mixin class"]es. Clearing is equivalent to passing an empty list for [arg mixinSpecList] to 
 [const [vset SCOPE]] [method {mixin set}].
 
-[def "[arg obj] [const [vset SCOPE]] [method {mixin guard}] [arg className] [arg expr]"]
+[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixin guard}] [arg className] [arg expr]"]
 
 Registers a guard expression [arg expr] with the [term "mixin class"] [arg className]
 in a separate step, once the [term "mixin class"] was set or added using [const [vset SCOPE]] [method {mixin set}] or
-[const [vset SCOPE]] [method {mixin add}]. [arg expr] must be a valid Tcl expression (see
+[const [vset MODIFIER]] [method {mixin add}]. [arg expr] must be a valid Tcl expression (see
 [cmd expr]). An empty string for [arg expr] will clear the currently registered
 guard expression for the registered [term "mixin class"] [arg className].
 [list_end]
@@ -49,8 +49,7 @@ guard expression for the registered [term "mixin class"] [arg className].
   overall [term linearisation] of [arg obj] guarantees to maintain
   this local order of [term "mixin class"]es.
 }]
-At the time of setting the mixin relation, that is, calling [const [vset SCOPE]] [method mixin], every
+At the time of setting the mixin relation, that is, calling [const [vset MODIFIER]] [method mixin], every
 [arg className] as part of a spec must be an existing instance of [cmd nx::Class]. To
 access and to manipulate the list of [term "mixin class"]es of [arg obj], 
-[method cget]|[method configure] [option -[vset SCOPE]-mixin] can also be used.
-
+[method cget]|[method configure] [option -[vset MODIFIER]-mixin] can also be used.

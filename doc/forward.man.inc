@@ -4,7 +4,7 @@
 [keywords "forward method"]
 [keywords "debugging level"]
 
-[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset SCOPE]] [method forward] [arg methodName] [opt "[option -prefix] [arg prefixName]"] [opt "[option -frame] [arg object]"] [opt "[option -returns] [arg valueChecker]"] [opt [option -verbose]] [arg target] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset MODIFIER]] [method forward] [arg methodName] [opt "[option -prefix] [arg prefixName]"] [opt "[option -frame] [arg object]"] [opt "[option -returns] [arg valueChecker]"] [opt [option -verbose]] [arg target] [opt "[arg arg] ..."]]
 
 Define a [term "forward method"] for the given [vset SCOPE]. The
 definition of a [term "forward method"] registers a predefined, but
@@ -19,7 +19,7 @@ arguments.
 
 [para] 
 
-As for a regular [method "[vset SCOPE] method"], [option "-returns"] allows
+As for a regular [method "[vset MODIFIER] method"], [option "-returns"] allows
 for setting a [term "value checker"] on the values returned by the
 resulting Tcl command call. When passing to [option "-frame"] [const object], the
 resulting Tcl command is evaluated in the context of the object

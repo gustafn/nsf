@@ -2,7 +2,7 @@
 
 [keywords "call protection"]
 
-[call [arg [vset CMD]] [opt "public | protected | private"] [method require] [const [vset SCOPE]] [method method] [arg methodName]]
+[call [arg [vset CMD]] [opt "public | protected | private"] [method require] [const [vset MODIFIER]] [method method] [arg methodName]]
 
 Attempts to register a method definition made available using [cmd ::nsf::method::provide] under
 the name [arg methodName] with the object [arg obj] . The registered

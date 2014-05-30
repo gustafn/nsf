@@ -10,8 +10,8 @@
 [keywords "linearisation"]
 
 [vset SCOPE "object"]
-[vset CMD "::obj"]
-[vset SCOPEMODIFIER "object"]
+[vset CMD "obj"]
+[vset MODIFIER "object"]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
 [titledesc {nx::Object API Reference}]
@@ -104,8 +104,6 @@ active. [arg mixinSpecs] is of the form of ...
 
 [cmd_def alias]
 [list_begin definitions]
-
-[call [arg obj] [opt "public | private | protected"] [const object] [cmd alias] [arg methodName] [opt "[option -returns] [arg valueChecker]"] [opt "[option -frame] object | method"] [arg cmdName]]
 
 [include alias.man.inc]
 
