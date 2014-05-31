@@ -11482,7 +11482,7 @@ NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param CONST *pPtr, NsfObject *
   } else if (NsfObjectIsClass(contextObject)) {
     result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], NULL, (NsfClass *)contextObject, &parsedParam);
   } else {
-    NsfLog(interp, NSF_LOG_WARN, "... CANNOT append, context is no class <%s>\n", ObjectName(contextObject));
+    NsfLog(interp, NSF_LOG_WARN, "virtual args: provided context is not a class <%s>", ObjectName(contextObject));
     result = TCL_ERROR;
   }
   if (result == TCL_OK && parsedParam.paramDefs != NULL) {
