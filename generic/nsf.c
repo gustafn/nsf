@@ -11580,6 +11580,7 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
 
       if (contextObject != NULL && strncmp(pPtr->type, "virtual", 7) == 0) {
         Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, pPtr, contextObject, NsfParamDefsSyntax);
+
         if (formattedObj != NULL) {
           argsResolved = 1;
           Tcl_AppendObjToObj(argStringObj, formattedObj);
@@ -11588,28 +11589,6 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
       if (argsResolved == 0) {
         Tcl_AppendLimitedToObj(argStringObj, "?/arg .../?", 11, INT_MAX, NULL);
       }
-#if 0
-        NsfParsedParam parsedParam;
-        int result;
-
-        if (strcmp(pPtr->type, "virtualobjectargs") == 0) {
-          fprintf(stderr, "append virtual object args\n");
-          result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], contextObject, NULL, &parsedParam);
-        } else if (NsfObjectIsClass(contextObject)) {
-          fprintf(stderr, "append virtual class args\n");
-          result = GetObjectParameterDefinition(interp, NsfGlobalObjs[NSF_EMPTY], NULL, (NsfClass *)contextObject, &parsedParam);
-        } else {
-          result = TCL_ERROR;
-        }
-        if (result == TCL_OK && parsedParam.paramDefs != NULL) {
-          argsResolved = 1;
-          Tcl_AppendObjToObj(argStringObj, NsfParamDefsSyntax(interp, parsedParam.paramDefs->paramsPtr, contextObject));
-        }
-      }
-      if (argsResolved == 0) {
-        Tcl_AppendLimitedToObj(argStringObj, "?/arg .../?", 11, INT_MAX, NULL);
-      }
-#endif
 
     } else if (pPtr->flags & NSF_ARG_REQUIRED) {
 
