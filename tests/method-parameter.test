@@ -61,6 +61,10 @@ nx::test case noleadingdash {
  should be "p3a /a/ ?-x /value/? ?-y /value/? /b/ ?-z /value/?"}  
 }
 
+#
+# Testing the unknown handler
+#
+
 nx::test case unknown-handler {
 
   Class create C {

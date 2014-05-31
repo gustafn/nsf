@@ -522,7 +522,7 @@ static int NsfCGetCachendParametersMethod(Tcl_Interp *interp, NsfClass *cl)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *guard)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
-static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof, int nobjc, Tcl_Obj *CONST nobjv[])
+static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof, int objc, Tcl_Obj *CONST objv[])
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName, int objc, Tcl_Obj *CONST objv[])
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
@@ -558,8 +558,8 @@ static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int with
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(7) NSF_nonnull(8) NSF_nonnull(9);
 static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
   NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
-static int NsfCmdInfoCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *methodName)
-  NSF_nonnull(1) NSF_nonnull(3);
+static int NsfCmdInfoCmd(Tcl_Interp *interp, int subcmd, NsfObject *withContext, Tcl_Obj *methodName)
+  NSF_nonnull(1) NSF_nonnull(4);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
   NSF_nonnull(1);
 static int NsfConfigureCmd(Tcl_Interp *interp, int option, Tcl_Obj *value)
@@ -985,7 +985,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     Tcl_Obj *withChildof = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCNewMethod(interp, cl, withChildof, objc-pc.lastObjc, objv+pc.lastObjc);
+    return NsfCNewMethod(interp, cl, withChildof, objc, objv);
 
   } else {
     return TCL_ERROR;
@@ -1453,10 +1453,11 @@ NsfCmdInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
                      method_definitions[NsfCmdInfoCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int subcmd = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[1];
+    NsfObject *withContext = (NsfObject *)pc.clientData[1];
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfCmdInfoCmd(interp, subcmd, methodName);
+    return NsfCmdInfoCmd(interp, subcmd, withContext, methodName);
 
   } else {
     return TCL_ERROR;
@@ -3206,7 +3207,7 @@ static Nsf_methodDefinition method_definitions[111] = {
 },
 {"::nsf::methods::class::create", NsfCCreateMethodStub, 2, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"virtualclassargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::dealloc", NsfCDeallocMethodStub, 1, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -3224,11 +3225,11 @@ static Nsf_methodDefinition method_definitions[111] = {
 },
 {"::nsf::methods::class::new", NsfCNewMethodStub, 2, {
   {"-childof", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"virtualclassargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::recreate", NsfCRecreateMethodStub, 2, {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"virtualclassargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::superclass", NsfCSuperclassMethodStub, 1, {
   {"superclasses", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
@@ -3308,8 +3309,9 @@ static Nsf_methodDefinition method_definitions[111] = {
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::cmd::info", NsfCmdInfoCmdStub, 2, {
+{"::nsf::cmd::info", NsfCmdInfoCmdStub, 3, {
   {"subcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-context", 0, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::colon", NsfColonCmdStub, 1, {
@@ -3537,7 +3539,7 @@ static Nsf_methodDefinition method_definitions[111] = {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::configure", NsfOConfigureMethodStub, 1, {
-  {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}
+  {"args", 0, 1, ConvertToNothing, NULL,NULL,"virtualobjectargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::destroy", NsfODestroyMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}

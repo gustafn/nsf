@@ -100,6 +100,7 @@ cmd parameter::specs NsfParameterSpecsCmd {
 
 cmd "cmd::info" NsfCmdInfoCmd {
   {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
+  {-argName "-context" -required 0 -type object}
   {-argName "methodName" -required 1 -type tclobj}
 } {-nxdoc 1}
 
@@ -301,7 +302,7 @@ objectMethod cget NsfOCgetMethod {
 }
 
 objectMethod configure NsfOConfigureMethod {
-  {-argName "args" -type allargs}
+  {-argName "args" -type virtualobjectargs}
 }
 
 objectMethod destroy NsfODestroyMethod {
@@ -356,7 +357,7 @@ classMethod alloc NsfCAllocMethod {
 
 classMethod create NsfCCreateMethod {
   {-argName "objectName" -required 1}
-  {-argName "args" -type allargs}
+  {-argName "args" -type virtualclassargs}
 }
 
 classMethod dealloc NsfCDeallocMethod {
@@ -378,12 +379,12 @@ classMethod mixinguard NsfCMixinGuardMethod {
 
 classMethod new NsfCNewMethod {
   {-argName "-childof" -required 0 -type tclobj}
-  {-argName "args" -required 0 -type args}
+  {-argName "args" -required 0 -type virtualclassargs}
 }
 
 classMethod recreate NsfCRecreateMethod {
   {-argName "objectName" -required 1 -type tclobj}
-  {-argName "args" -type allargs}
+  {-argName "args" -type virtualclassargs}
 }
 
 classMethod superclass NsfCSuperclassMethod {

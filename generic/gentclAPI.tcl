@@ -90,7 +90,9 @@ proc genifd {parameterDefinitions} {
       "object"     {set converter Object}
       "tclobj"     {set converter Tclobj}
       "args"       {set converter Nothing}
-      "allargs"    {set converter Nothing}
+      "allargs"    -
+      "virtualobjectargs" -
+      "virtualclassargs" {set converter Nothing}
       "objpattern" {set converter Objpattern}
       *|* {
 	if {![info exists (-typeName)]} {set (-typeName) $(-argName)}
@@ -206,7 +208,9 @@ proc gencall {methodName fn parameterDefinitions clientData
           set ifSet 1
           set cVar 0
         }
-        "allargs"       {
+        "virtualobjectargs" -
+        "virtualclassargs" -
+        "allargs" {
           set type "int "
           set calledArg "objc, objv"
           lappend if "int objc" "Tcl_Obj *CONST objv\[\]"

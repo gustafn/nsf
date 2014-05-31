@@ -821,8 +821,8 @@ nx::test case class-level-perf {
   
   ? {c1 info lookup configure syntax} { ?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
-  set e [C eval :__objectparameter]
-  ? {C eval :__objectparameter} $e
+  set e [C eval :__object_configureparameter]
+  ? {C eval :__object_configureparameter} $e
 
   ? {c1 cget -a} a1
   ? {c1 configure -a a2} ""
@@ -840,8 +840,8 @@ nx::test case class-level-perf {
   #
   ? {d1 info lookup configure syntax} { ?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
-  set e [D eval :__objectparameter]
-  ? {D eval :__objectparameter} $e
+  set e [D eval :__object_configureparameter]
+  ? {D eval :__object_configureparameter} $e
 
   ? {d1 cget -a} a1
   ? {d1 configure -a a2} ""
@@ -880,9 +880,9 @@ nx::test case object-level-perf {
   
   ? {o1 info lookup configure syntax} { ?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
-  set e [o1 eval :__objectparameter]
+  set e [o1 eval :__object_configureparameter]
 
-  ? {o1 eval :__objectparameter} $e
+  ? {o1 eval :__object_configureparameter} $e
 
   ? {o1 cget -a} a1
   ? {o1 configure -a a2} ""

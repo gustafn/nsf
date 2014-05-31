@@ -475,7 +475,7 @@ nx::test case filter-guard-separately {
   r enter Uwe
   r leave Uwe
   r configure -name "Office"
-  ? {set ::_} "__objectparameter init enter leave configure"
+  ? {set ::_} "__object_configureparameter init enter leave configure"
 
   #
   # Hmm, we not so much interested on all these calls. Just the

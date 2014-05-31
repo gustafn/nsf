@@ -26,7 +26,7 @@ nx::test case basics {
     # some testing helpers
     #
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
     :setObjectParams ""
@@ -321,10 +321,10 @@ nx::test case basics {
 nx::test case dispo-multiplicities {
   Class create S {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
-    #:object method __objectparameter {} {
+    #:object method __object_configureparameter {} {
     #  return ${:objectparams} 
     #}
     :public method foo {args} {
@@ -384,7 +384,7 @@ nx::test case dispo-multiplicities {
 nx::test case dispo-returns {
   Class create R {
      :public object method setObjectParams {spec} {
-       :protected method __objectparameter {} [list return $spec]
+       :protected method __object_configureparameter {} [list return $spec]
        ::nsf::parameter:invalidate::classcache [current]
     }
   }
@@ -448,7 +448,7 @@ nx::test case dispo-returns {
 nx::test case dispo-callstack {
   Class create Callee {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
   }
@@ -509,7 +509,7 @@ nx::test case dispo-callstack {
 
   Callee public object method run {} {
     set self [self]
-    set objparams [:__objectparameter]
+    set objparams [:__object_configureparameter]
     #
     # The ? helper by default performs a [namespace eval] in the ::
     # namespace, so the uplevel|upvar would happen in a different,
@@ -616,7 +616,7 @@ nx::test case dispo-callstack {
 nx::test case alias-noarg {
   Class create C {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
     :public method foo {args} {
@@ -757,7 +757,7 @@ nx::test case alias-noarg {
 nx::test case alias-noarg {
   Class create C {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
   }
@@ -772,7 +772,7 @@ nx::test case alias-noarg {
 nx::test case alias-args {
   Class create C {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
     :public method Residualargs args {
@@ -862,7 +862,7 @@ nx::test case alias-args {
 nx::test case alias-init {
   Class create C {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
     :method init {} {
@@ -883,7 +883,7 @@ nx::test case submethods-via-aliasparams {
   #
   Class create C {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
   }
@@ -1083,7 +1083,7 @@ nx::test case submethods-via-aliasparams {
 nx::test case dispo-configure-transparency {
   Class create C {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
   }
@@ -1174,7 +1174,7 @@ nx::test case dispo-object-targets {
   Class create C
   Class create T {
     :public object method setObjectParams {spec} {
-      :protected method __objectparameter {} [list return $spec]
+      :protected method __object_configureparameter {} [list return $spec]
       ::nsf::parameter:invalidate::classcache [current]
     }
   }
@@ -1335,7 +1335,7 @@ nx::test case xotcl-residualargs {
 
   ? {::xotcl::Class create XD -set x 1} "::XD"
   #? {c1 eval {info exists :args}} 0
-  ? {XD objectparameter} "-instfilter:filterreg,alias,0..n -superclass:alias,0..n -instmixin:mixinreg,alias,0..n {-__default_metaclass ::xotcl::Class} {-__default_superclass ::xotcl::Object} -mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args:alias,method=residualargs,args"
+  ? {XD __object_configureparameter} "-instfilter:filterreg,alias,0..n -superclass:alias,0..n -instmixin:mixinreg,alias,0..n {-__default_metaclass ::xotcl::Class} {-__default_superclass ::xotcl::Object} -mixin:mixinreg,alias,0..n -filter:filterreg,alias,0..n -class:class,alias args:alias,method=residualargs,args"
 
   #
   # test passing arguments to init

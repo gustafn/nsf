@@ -50,16 +50,17 @@ namespace eval ::nx {
   # First create the ::nx object system. The internally called methods,
   # which are not defined by in this script, must have method handles
   # included. The methods "create", "configure", "destroy", "move" and
-  # "__objectparameter" are defined in this script (either scripted, or
+  # "__objectcoonfigureparameter" are defined in this script (either scripted, or
   # via alias).
   #
   ::nsf::objectsystem::create ::nx::Object ::nx::Class {
     -class.alloc {__alloc ::nsf::methods::class::alloc}
     -class.create create
     -class.dealloc {__dealloc ::nsf::methods::class::dealloc}
-    -class.objectparameter __objectparameter
+    -class.configureparameter __class_configureparameter
     -class.recreate {__recreate ::nsf::methods::class::recreate}
     -object.configure __configure
+    -object.configureparameter __object_configureparameter
     -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod}
     -object.destroy destroy
     -object.init {init ::nsf::methods::object::init}
@@ -323,7 +324,7 @@ namespace eval ::nx {
   # process. The real definition is based on slots, which are not
   # available at this point.
 
-  Object protected method __objectparameter {} {;}
+  Object protected method __object_configureparameter {} {;}
 
   ######################################################################
   # Define forward methods
@@ -1495,8 +1496,12 @@ namespace eval ::nx {
   # Define objectparameter method
   ######################################################################
 
-  Object protected method __objectparameter {} {
+  Object protected method __object_configureparameter {} {
     set slotObjects [nsf::directdispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot]
+    return [::nsf::parameter::specs $slotObjects]
+  }
+  Class protected method __class_configureparameter {} {
+    set slotObjects [nsf::directdispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]
     return [::nsf::parameter::specs $slotObjects]
   }
 }

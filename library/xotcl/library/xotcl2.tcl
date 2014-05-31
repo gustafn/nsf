@@ -56,9 +56,10 @@ namespace eval ::xotcl {
     -class.alloc alloc
     -class.create create
     -class.dealloc dealloc
-    -class.objectparameter objectparameter
+    -class.configureparameter __class_configureparameter
     -class.recreate recreate
     -object.configure configure
+    -object.configureparameter __object_configureparameter
     -object.cleanup cleanup
     -object.defaultmethod defaultmethod
     -object.destroy destroy
@@ -405,14 +406,15 @@ namespace eval ::xotcl {
   # Method objectparameter, backwards upward compatible. We use
   # here the definition of parametersfromslots from nx.tcl
   #
-  ::xotcl::Object instproc objectparameter {} {
-    set parameterDefinitions [list]
-    set class [nsf::directdispatch [self] ::nsf::methods::object::info::class]
-    foreach slot [nsf::directdispatch $class ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot] {
-      lappend parameterDefinitions [$slot getParameterSpec]
-    }
+  ::xotcl::Object instproc __object_configureparameter {} {
+    set slotObjects [nsf::directdispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot]
+    set parameterDefinitions [::nsf::parameter::specs $slotObjects]
     lappend parameterDefinitions args:alias,method=residualargs,args
-    return $parameterDefinitions
+  }
+  ::xotcl::Class instproc __class_configureparameter {} {
+    set slotObjects [nsf::directdispatch [self] ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]
+    set parameterDefinitions [::nsf::parameter::specs $slotObjects]
+    lappend parameterDefinitions args:alias,method=residualargs,args
   }
 
   ######################################################################
@@ -1125,7 +1127,7 @@ namespace eval ::xotcl {
 	  ${:forwardername}
     }
 
-    :public method __objectparameter {} {
+    :public method __object_configureparameter {} {
       set slotObjects [nsf::directdispatch [self] ::nsf::methods::object::info::lookupslots -type ::nx::Slot]
       set parameterDefinitions [::nsf::parameter::specs -nonposargs $slotObjects]
       lappend parameterDefinitions args:alias,method=residualargs,args

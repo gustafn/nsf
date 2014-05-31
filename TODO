@@ -5191,8 +5191,35 @@ nsf.c
 - renamed parameter::get -> parameter::info
 - renamed method::get -> cmd::info
 
+nsf.c, gentclAPI.tcl:
+- new argument types "virtualobjectargs" and "virtualclassargs" for
+  context-specific argument resolutions: when a context object
+  is provided, arguments of type "virtualobjectargs" are determined
+  based on the slots applicable for the object (like "... lookup ..."),
+  arguments of type "virtualclassargs" are resolved against a class.
+  These types are used as follows:
+    /obj/ configure /virtualobjectargs/
+    /cls/ create /name/ /virtualclassargs/
+    /cls/ recreate /name/ /virtualclassargs/
+    /cls/ new ?-childof /obj/? /virtualclassargs/
+  This new feature allows us to provide better error messages and
+  to make much of the "... info ... configure parameter ..."
+  infrastructure much less important.
+- For "virtualclassargs" we need the functionality to obtain
+  from the C-Code based on a class the configure parameters
+  applicable to objects of this class.
+- add argument "-context ..." to "cmd::info" to pass the context object
+  (so far the only place where the context-object is used)
+- object system configuration parameters changes:
+    new: -class.configureparameter
+    new: -object.configureparameter
+    removed: -class.objectparameter
+
 ========================================================================
 TODO:
+- use "cmd::info" to implement "info lookup parameter configure" etc.
+- use context-object for error messages of configure/new/create/recreate
+- remove // comments
 
 - what should happen with: "/class/ info mixin classes -heritage"
 - asymmetry between "/obj/ info lookup mixins" vs. "/obj/ info ?object? mixin classes"

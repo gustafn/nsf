@@ -29,7 +29,8 @@
 #include "nsfInt.h"
 
 /* function prototypes */
-Tcl_Obj *NsfParamDefsSyntax(Nsf_Param CONST *paramPtr);
+Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject) 
+  nonnull(1) nonnull(2) returns_nonnull;
 
 /*
  *----------------------------------------------------------------------
@@ -287,7 +288,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
 int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
-  Tcl_Obj *argStringObj = NsfParamDefsSyntax(paramPtr);
+  Tcl_Obj *argStringObj = NsfParamDefsSyntax(interp, paramPtr, NULL);
 
   assert(interp);
   assert(errorMsg);
@@ -341,7 +342,7 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
  *
  * NsfUnexpectedNonposArgumentError --
  *
- *      Produce a unexpecte argument number (most likely, too many arguments)
+ *      Produce an error message about an invalid nonposistional argument.
  *
  * Results:
  *      TCL_ERROR
