@@ -558,7 +558,7 @@ static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int with
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(7) NSF_nonnull(8) NSF_nonnull(9);
 static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
   NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
-static int NsfCmdInfoCmd(Tcl_Interp *interp, int subcmd, NsfObject *withContext, Tcl_Obj *methodName)
+static int NsfCmdInfoCmd(Tcl_Interp *interp, int subcmd, NsfObject *withContext, Tcl_Obj *methodName, CONST char *pattern)
   NSF_nonnull(1) NSF_nonnull(4);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
   NSF_nonnull(1);
@@ -1455,9 +1455,10 @@ NsfCmdInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     int subcmd = (int )PTR2INT(pc.clientData[0]);
     NsfObject *withContext = (NsfObject *)pc.clientData[1];
     Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
+    CONST char *pattern = (CONST char *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfCmdInfoCmd(interp, subcmd, withContext, methodName);
+    return NsfCmdInfoCmd(interp, subcmd, withContext, methodName, pattern);
 
   } else {
     return TCL_ERROR;
@@ -3309,10 +3310,11 @@ static Nsf_methodDefinition method_definitions[111] = {
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::cmd::info", NsfCmdInfoCmdStub, 3, {
+{"::nsf::cmd::info", NsfCmdInfoCmdStub, 4, {
   {"subcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToInfomethodsubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-context", 0, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::colon", NsfColonCmdStub, 1, {
   {"args", 0, 1, ConvertToNothing, NULL,NULL,"allargs",NULL,NULL,NULL,NULL,NULL}}

@@ -102,6 +102,7 @@ cmd "cmd::info" NsfCmdInfoCmd {
   {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
   {-argName "-context" -required 0 -type object}
   {-argName "methodName" -required 1 -type tclobj}
+  {-argName "pattern" -required 0}
 } {-nxdoc 1}
 
 #

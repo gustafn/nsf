@@ -715,14 +715,19 @@ namespace eval ::nx {
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }
-    :method "info lookup configure parameters" {pattern:optional} {
-      set cmd [list ::nsf::methods::object::info::objectparameter definitions]
-      if {[info exists pattern]} {lappend cmd $pattern}
-      return [: {*}$cmd]
+    :method "info lookup parameters" {methodName pattern:optional} {
+      return [::nsf::cmd::info \
+                  parameter \
+                  -context [self] \
+                  [:info lookup method $methodName] \
+                  {*}[expr {[info exists pattern] ? $pattern : ""}] ]
     }
-    :method "info lookup configure syntax" {} {
-      set syntax [: ::nsf::methods::object::info::objectparameter syntax]
-      return [string trimright $syntax " "]
+    :method "info lookup syntax" {methodName pattern:optional} {
+      return [::nsf::cmd::info \
+                  syntax \
+                  -context [self] \
+                  [:info lookup method $methodName] \
+                  {*}[expr {[info exists pattern] ? $pattern : ""}] ]
     }
     :method "info lookup variables" {pattern:optional} {
       return [: info lookup slots -type ::nx::VariableSlot {*}[current args]]

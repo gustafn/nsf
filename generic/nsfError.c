@@ -29,7 +29,8 @@
 #include "nsfInt.h"
 
 /* function prototypes */
-Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject) 
+Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, 
+			    NsfObject *contextObject, CONST char *pattern) 
   nonnull(1) nonnull(2) returns_nonnull;
 
 /*
@@ -288,7 +289,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
 int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
-  Tcl_Obj *argStringObj = NsfParamDefsSyntax(interp, paramPtr, NULL);
+  Tcl_Obj *argStringObj = NsfParamDefsSyntax(interp, paramPtr, NULL, NULL);
 
   assert(interp);
   assert(errorMsg);

@@ -5215,9 +5215,21 @@ nsf.c, gentclAPI.tcl:
     new: -object.configureparameter
     removed: -class.objectparameter
 
+nsf.c:
+- added options to filter output from ::nsf::cmd::info parameter options
+  (args, syntax, parameter)
+- deleted:
+    - "/obj/ info lookup configure parameters ?pattern?"
+    - "/obj/ info lookup configure syntax"
+- added:
+    - "/obj/ info lookup parameters /methodName/ ?pattern?"
+    - "/obj/ info lookup syntax /methodName/ ?pattern?"
+  This covers as well
+    - "/obj/ info lookup parameters configure|create|new|... ?pattern?"
+- extend regression test
+
 ========================================================================
 TODO:
-- use "cmd::info" to implement "info lookup parameter configure" etc.
 - use context-object for error messages of configure/new/create/recreate
 - remove // comments
 

@@ -322,7 +322,7 @@ NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPt
 NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object)
   nonnull(1) nonnull(2);
 
-/* prototypes for  parameter and argument management */
+/* prototypes for parameter and argument management */
 
 static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl)
   nonnull(1) nonnull(2);
@@ -363,15 +363,16 @@ static int GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj
   nonnull(1) nonnull(2) nonnull(5);
 
 typedef Tcl_Obj *(NsfFormatFunction) _ANSI_ARGS_((Tcl_Interp *interp, Nsf_Param CONST *paramsPtr,
-                                                  NsfObject *contextObject));
+                                                  NsfObject *contextObject, CONST char *pattern));
 
 static Tcl_Obj *NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param CONST *pPtr,
-                                          NsfObject *contextObject,
+                                          NsfObject *contextObject,  CONST char *pattern,
                                           NsfFormatFunction formatFunction)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static int NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
                                      Nsf_Param CONST *paramsPtr, NsfObject *contextObject,
+                                     CONST char *pattern,
                                      NsfFormatFunction formatFunction)
   nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 
@@ -10887,7 +10888,7 @@ ParamsFree(Nsf_Param *paramsPtr) {
  *
  *----------------------------------------------------------------------
  */
-NSF_INLINE static NsfParamDefs * ParamDefsGet(Tcl_Command cmdPtr, int *checkAlwaysFlagPtr) nonnull(1);
+NSF_INLINE static NsfParamDefs *ParamDefsGet(Tcl_Command cmdPtr, int *checkAlwaysFlagPtr) nonnull(1);
 
 NSF_INLINE static NsfParamDefs *
 ParamDefsGet(Tcl_Command cmdPtr, int *checkAlwaysFlagPtr) {
@@ -10902,6 +10903,64 @@ ParamDefsGet(Tcl_Command cmdPtr, int *checkAlwaysFlagPtr) {
   }
 
   return NULL;
+}
+
+/*----------------------------------------------------------------------
+ * NsfParamDefsFilter --
+ *
+ *    Process a list of ParamDefs and return a subset of it matching the
+ *    provided pattern.  If no parameter name matches the pattern, NULL is
+ *    returned. The client is supposed to FREE the returned parameter list
+ *    (entries are shared, a free of the returned pointer is sufficient).
+ *
+ * Results:
+ *    Parameter definitions or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static Nsf_Param *NsfParamDefsFilter(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, CONST char *pattern)
+  nonnull(1) nonnull(2) nonnull(3);
+
+static Nsf_Param *
+NsfParamDefsFilter(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, CONST char *pattern) {
+  static Nsf_Param *paramList = NULL;
+  Nsf_Param CONST *pPtr;
+  int maxParams, nrMatchingParams;
+
+  /*
+   * If a single parameter or pattern name is given, we construct a filtered
+   * parameter list on the fly and we return it
+   */
+
+  /*
+   * Count the parameters
+   */
+  for (pPtr = paramsPtr, maxParams = 0; pPtr->name; pPtr++, maxParams++);
+
+  /*
+   * Allocate the number of potentional matches
+   */
+  paramList = ParamsNew(maxParams);
+
+  for (pPtr = paramsPtr, nrMatchingParams = 0; pPtr->name; pPtr++) {
+    if (Tcl_StringMatch( ObjStr(pPtr->nameObj), pattern)) {
+      paramList[nrMatchingParams] = *pPtr;
+      nrMatchingParams++;
+    }
+  }
+
+  if (nrMatchingParams == 0) {
+    /*
+     * The named parameter were NOT found, so return NULL
+     */
+    FREE(Nsf_Param*, paramList);
+    paramList = NULL;
+  }
+
+  return paramList;
 }
 
 /*
@@ -11156,11 +11215,19 @@ ParamDefsFormatOption(Tcl_Obj *nameStringObj, CONST char *option,
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj *ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject)
+static Tcl_Obj *ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject, CONST char *pattern)
   nonnull(1) nonnull(2) returns_nonnull;
 
+static int ParamsDefMatchPattern(Nsf_Param CONST *paramsPtr, CONST char *pattern) {
+  if (paramsPtr->nameObj != NULL) {
+    return Tcl_StringMatch(ObjStr(paramsPtr->nameObj), pattern);
+  }
+  return Tcl_StringMatch(paramsPtr->name, pattern);
+}
+
+
 static Tcl_Obj *
-ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject) {
+ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject, CONST char *pattern) {
   int first, colonWritten;
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL), *innerListObj, *nameStringObj;
 
@@ -11173,7 +11240,8 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *conte
     if (paramsPtr->flags & NSF_ARG_NOCONFIG) {
       continue;
     }
-    if (paramsPtr -> paramObj) {
+    if (paramsPtr->paramObj) {
+      if (pattern && !ParamsDefMatchPattern(paramsPtr, pattern)) continue;
       innerListObj = paramsPtr->paramObj;
     } else {
       /*
@@ -11191,9 +11259,10 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *conte
       first = 1;
       colonWritten = 0;
 
-      if (NsfParamDefsAppendVirtual(interp, listObj, paramsPtr, contextObject, ParamDefsFormat)) {
+      if (NsfParamDefsAppendVirtual(interp, listObj, paramsPtr, contextObject, pattern, ParamDefsFormat)) {
         continue;
       }
+      if (pattern && !ParamsDefMatchPattern(paramsPtr, pattern)) continue;
 
       nameStringObj = Tcl_NewStringObj(paramsPtr->name, -1);
 
@@ -11261,11 +11330,11 @@ ParamDefsFormat(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *conte
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj *ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject)
+static Tcl_Obj *ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject, CONST char *pattern)
   nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
-ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject) {
+ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject, CONST char *pattern) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
 
   assert(interp);
@@ -11275,7 +11344,7 @@ ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *context
 
   for (; likely(paramsPtr->name != NULL); paramsPtr++) {
     if ((paramsPtr->flags & NSF_ARG_NOCONFIG) != 0) continue;
-    if (NsfParamDefsAppendVirtual(interp, listObj, paramsPtr, contextObject, ParamDefsList)) continue;
+    if (NsfParamDefsAppendVirtual(interp, listObj, paramsPtr, contextObject, pattern, ParamDefsList)) continue;
 
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(paramsPtr->name, -1));
   }
@@ -11299,12 +11368,12 @@ ParamDefsList(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *context
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj * ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject)
+static Tcl_Obj * ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject, CONST char *pattern)
   nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
-ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject) {
-  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
+ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject, CONST char *pattern) {
+  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL), *obj;
 
   assert(interp);
   assert(paramsPtr);
@@ -11313,11 +11382,12 @@ ParamDefsNames(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contex
 
   for (; likely(paramsPtr->name != NULL); paramsPtr++) {
     if ((paramsPtr->flags & NSF_ARG_NOCONFIG) != 0) continue;
-    if (NsfParamDefsAppendVirtual(interp, listObj, paramsPtr, contextObject, ParamDefsNames)) continue;
+    if (NsfParamDefsAppendVirtual(interp, listObj, paramsPtr, contextObject, pattern, ParamDefsNames)) continue;
 
-    Tcl_ListObjAppendElement(interp, listObj,
-                             paramsPtr->nameObj ? paramsPtr->nameObj :
-                             Tcl_NewStringObj(paramsPtr->name,-1));
+    obj = paramsPtr->nameObj ? paramsPtr->nameObj : Tcl_NewStringObj(paramsPtr->name,-1);
+    if (pattern && !Tcl_StringMatch(ObjStr(obj), pattern)) continue;
+
+    Tcl_ListObjAppendElement(interp, listObj, obj);
   }
 
   return listObj;
@@ -11450,7 +11520,6 @@ NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param CONST *pPtr) {
 }
 
 /*
- *----------------------------------------------------------------------
  * NsfParamDefsVirtualFormat --
  *
  *    This function is called, when we know we can resolve a virtual argument
@@ -11467,7 +11536,8 @@ NsfParamDefsSyntaxOne(Tcl_Obj *argStringObj, Nsf_Param CONST *pPtr) {
  */
 
 static Tcl_Obj *
-NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param CONST *pPtr, NsfObject *contextObject, NsfFormatFunction formatFunction) {
+NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param CONST *pPtr, NsfObject *contextObject, CONST char *pattern,
+                          NsfFormatFunction formatFunction) {
   NsfParsedParam parsedParam;
   int result;
 
@@ -11485,12 +11555,13 @@ NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param CONST *pPtr, NsfObject *
     NsfLog(interp, NSF_LOG_WARN, "virtual args: provided context is not a class <%s>", ObjectName(contextObject));
     result = TCL_ERROR;
   }
+
   if (result == TCL_OK && parsedParam.paramDefs != NULL) {
-    return (*formatFunction)(interp, parsedParam.paramDefs->paramsPtr, contextObject);
+    return (*formatFunction)(interp, parsedParam.paramDefs->paramsPtr, contextObject, pattern);
   }
+
   return NULL;
 }
-
 
 /*
  *----------------------------------------------------------------------
@@ -11508,16 +11579,18 @@ NsfParamDefsVirtualFormat(Tcl_Interp *interp, Nsf_Param CONST *pPtr, NsfObject *
  *----------------------------------------------------------------------
  */
 static int
-NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj, Nsf_Param CONST *paramsPtr, NsfObject *contextObject,
-                          NsfFormatFunction formatFunction) {
+NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
+                          Nsf_Param CONST *paramsPtr, NsfObject *contextObject,
+                          CONST char *pattern, NsfFormatFunction formatFunction) {
   assert(interp);
   assert(listObj);
   assert(paramsPtr);
   assert(formatFunction);
 
   if (paramsPtr->converter == ConvertToNothing && strcmp(paramsPtr->name, "args") == 0) {
+
     if (contextObject != NULL && strncmp(paramsPtr->type, "virtual", 7) == 0) {
-      Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, paramsPtr, contextObject, formatFunction);
+      Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, paramsPtr, contextObject, pattern, formatFunction);
       if (formattedObj != NULL) {
         Tcl_ListObjAppendList(interp, listObj, formattedObj);
         return 1;
@@ -11544,13 +11617,14 @@ NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj, Nsf_Param CONST 
  *----------------------------------------------------------------------
  */
 
-Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject)
+Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject, CONST char *pattern)
   nonnull(1) nonnull(2) returns_nonnull;
 
 Tcl_Obj *
-NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject) {
+NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject, CONST char *pattern) {
   Tcl_Obj *argStringObj = Tcl_NewObj();
   Nsf_Param CONST *pPtr;
+  int needSpace = 0;
 
   assert(interp);
   assert(paramsPtr);
@@ -11565,6 +11639,8 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
        */
       continue;
     }
+
+    // TODO: inside test?
     if (pPtr != paramsPtr) {
       /*
        * Don't output non-consuming parameters (i.e. positional, and no args)
@@ -11572,25 +11648,30 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
       if (*pPtr->name != '-' && pPtr->nrArgs == 0) {
 	continue;
       }
-      Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
     }
+
 
     if (pPtr->converter == ConvertToNothing && strcmp(pPtr->name, "args") == 0) {
       int argsResolved = 0;
 
       if (contextObject != NULL && strncmp(pPtr->type, "virtual", 7) == 0) {
-        Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, pPtr, contextObject, NsfParamDefsSyntax);
+        Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, pPtr, contextObject, pattern, NsfParamDefsSyntax);
 
         if (formattedObj != NULL) {
           argsResolved = 1;
+          if (needSpace) Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
           Tcl_AppendObjToObj(argStringObj, formattedObj);
         }
       }
       if (argsResolved == 0) {
+        if (pattern && !ParamsDefMatchPattern(pPtr, pattern)) continue;
+        if (needSpace)  Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
         Tcl_AppendLimitedToObj(argStringObj, "?/arg .../?", 11, INT_MAX, NULL);
       }
 
     } else if (pPtr->flags & NSF_ARG_REQUIRED) {
+      if (pattern && !ParamsDefMatchPattern(pPtr, pattern)) continue;
+      if (needSpace) Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
 
       if ((pPtr->flags & NSF_ARG_IS_ENUMERATION)) {
 	Tcl_AppendLimitedToObj(argStringObj, Nsf_EnumerationTypeGetDomain(pPtr->converter), -1, INT_MAX, NULL);
@@ -11599,10 +11680,13 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
       }
 
     } else {
+      if (pattern && !ParamsDefMatchPattern(pPtr, pattern)) continue;
+      if (needSpace) Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
       NsfParamDefsSyntaxOne(argStringObj, pPtr);
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
     }
+    needSpace = 1;
   }
   /* caller has to decr */
   return argStringObj;
@@ -20657,7 +20741,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	}
       } else if (unlikely(pPtr->flags & NSF_ARG_REQUIRED)
 		 && (processFlags & NSF_ARGPARSE_FORCE_REQUIRED)) {
-	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, ifd, NULL); // TODO NsfObject *contextObject
+	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, ifd, NULL, NULL); // TODO NsfObject *contextObject
 	Tcl_Obj *methodPathObj = NsfMethodNamePath(interp,
 						   NULL /* use topmost frame */,
 						   MethodName(pcPtr->full_objv[0]));
@@ -21313,11 +21397,12 @@ ListProcBody(Tcl_Interp *interp, Proc *procPtr, CONST char *methodName) {
  *----------------------------------------------------------------------
  */
 static Tcl_Obj *ListParamDefs(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr,
-                              NsfObject *contextObject, NsfParamsPrintStyle style)
+                              NsfObject *contextObject, CONST char *pattern, NsfParamsPrintStyle style)
   nonnull(1) nonnull(2) returns_nonnull;
 
 static Tcl_Obj *
-ListParamDefs(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *contextObject,
+ListParamDefs(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr,
+              NsfObject *contextObject,  CONST char *pattern,
               NsfParamsPrintStyle style) {
   Tcl_Obj *listObj;
 
@@ -21325,10 +21410,10 @@ ListParamDefs(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *context
   assert(paramsPtr);
 
   switch (style) {
-  case NSF_PARAMS_PARAMETER: listObj = ParamDefsFormat(interp, paramsPtr, contextObject); break;
-  case NSF_PARAMS_LIST:      listObj = ParamDefsList(interp, paramsPtr, contextObject);   break;
-  case NSF_PARAMS_NAMES:     listObj = ParamDefsNames(interp, paramsPtr, contextObject);  break;
-  default: /* NSF_PARAMS_SYNTAX:*/ listObj = NsfParamDefsSyntax(interp, paramsPtr, contextObject); break;
+  case NSF_PARAMS_PARAMETER: listObj = ParamDefsFormat(interp, paramsPtr, contextObject, pattern); break;
+  case NSF_PARAMS_LIST:      listObj = ParamDefsList(interp, paramsPtr, contextObject, pattern);   break;
+  case NSF_PARAMS_NAMES:     listObj = ParamDefsNames(interp, paramsPtr, contextObject, pattern);  break;
+  default: /* NSF_PARAMS_SYNTAX:*/ listObj = NsfParamDefsSyntax(interp, paramsPtr, contextObject, pattern); break;
   }
 
   return listObj;
@@ -21353,12 +21438,12 @@ ListParamDefs(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *context
  */
 
 static int ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, NsfObject *contextObject,
-                         CONST char *methodName, NsfParamsPrintStyle printStyle)
-  nonnull(1) nonnull(2) nonnull(4) ;
+                         CONST char *pattern, CONST char *methodName, NsfParamsPrintStyle printStyle)
+  nonnull(1) nonnull(2) nonnull(5);
 
 static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
-                CONST char *methodName, NsfParamsPrintStyle printStyle) {
+                CONST char *pattern, CONST char *methodName, NsfParamsPrintStyle printStyle) {
   NsfParamDefs *paramDefs;
   Tcl_Obj *listObj;
   Proc *procPtr;
@@ -21373,7 +21458,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
     /*
      * Obtain parameter info from paramDefs.
      */
-    listObj = ListParamDefs(interp, paramDefs->paramsPtr, contextObject, printStyle);
+    listObj = ListParamDefs(interp, paramDefs->paramsPtr, contextObject, pattern, printStyle);
     Tcl_SetObjResult(interp, listObj);
     DECR_REF_COUNT2("paramDefsObj", listObj);
     return TCL_OK;
@@ -21392,6 +21477,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
       if (!TclIsCompiledLocalArgument(args)) {
 	continue;
       }
+      if (pattern && !Tcl_StringMatch(args->name, pattern)) continue;
 
       if (printStyle == NSF_PARAMS_SYNTAX && strcmp(args->name, "args") == 0) {
 	if (args != procPtr->firstLocalPtr) {
@@ -21442,7 +21528,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
     Nsf_methodDefinition *mdPtr = Nsf_CmdDefinitionGet(((Command *)cmd)->objProc);
     if (mdPtr != NULL) {
 	NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters, 1, 0, NULL, NULL};
-	Tcl_Obj *list = ListParamDefs(interp, paramDefs.paramsPtr, contextObject, printStyle);
+	Tcl_Obj *list = ListParamDefs(interp, paramDefs.paramsPtr, contextObject, pattern, printStyle);
 
 	Tcl_SetObjResult(interp, list);
 	DECR_REF_COUNT2("paramDefsObj", list);
@@ -21459,7 +21545,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd,  NsfObject *contextObject,
       paramDefs.paramsPtr = cd->paramsPtr;
       paramDefs.nrParams = 1;
       paramDefs.slotObj = NULL;
-      list = ListParamDefs(interp, paramDefs.paramsPtr, contextObject, printStyle);
+      list = ListParamDefs(interp, paramDefs.paramsPtr, contextObject, pattern, printStyle);
       Tcl_SetObjResult(interp, list);
       DECR_REF_COUNT2("paramDefsObj", list);
       return TCL_OK;
@@ -21686,6 +21772,7 @@ static int ListMethod(Tcl_Interp *interp,
                       Tcl_Command cmd,
                       int subcmd,
                       NsfObject *contextObject,
+                      CONST char *pattern,
                       int withPer_object)
   nonnull(1) nonnull(4) nonnull(5);
 
@@ -21697,6 +21784,7 @@ ListMethod(Tcl_Interp *interp,
            Tcl_Command cmd,
            int subcmd,
            NsfObject *contextObject,
+           CONST char *pattern,
            int withPer_object) {
 
   Tcl_ObjCmdProc *procPtr;
@@ -21745,12 +21833,12 @@ ListMethod(Tcl_Interp *interp,
   case InfomethodsubcmdArgsIdx:
     {
       Tcl_Command importedCmd = GetOriginalCommand(cmd);
-      return ListCmdParams(interp, importedCmd, contextObject, methodName, NSF_PARAMS_NAMES);
+      return ListCmdParams(interp, importedCmd, contextObject, pattern, methodName, NSF_PARAMS_NAMES);
     }
   case InfomethodsubcmdParameterIdx:
     {
       Tcl_Command importedCmd = GetOriginalCommand(cmd);
-      return ListCmdParams(interp, importedCmd, contextObject, methodName, NSF_PARAMS_PARAMETER);
+      return ListCmdParams(interp, importedCmd, contextObject, pattern, methodName, NSF_PARAMS_PARAMETER);
     }
   case InfomethodsubcmdReturnsIdx:
     {
@@ -21767,7 +21855,7 @@ ListMethod(Tcl_Interp *interp,
   case InfomethodsubcmdSyntaxIdx:
     {
       Tcl_Command importedCmd = GetOriginalCommand(cmd);
-      return ListCmdParams(interp, importedCmd, contextObject, methodName, NSF_PARAMS_SYNTAX);
+      return ListCmdParams(interp, importedCmd, contextObject, pattern, methodName, NSF_PARAMS_SYNTAX);
     }
   case InfomethodsubcmdPreconditionIdx:
     {
@@ -21861,7 +21949,7 @@ ListMethod(Tcl_Interp *interp,
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::proc", -1));
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(methodName,-1));
         }
-        ListCmdParams(interp, cmd, contextObject, methodName, NSF_PARAMS_PARAMETER);
+        ListCmdParams(interp, cmd, contextObject, NULL, methodName, NSF_PARAMS_PARAMETER);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
 
         AppendReturnsClause(interp, resultObj, cmd);
@@ -21973,7 +22061,7 @@ ListMethod(Tcl_Interp *interp,
         Tcl_ListObjAppendElement(interp, resultObj,
                                  Tcl_NewStringObj(Tcl_DStringValue(dsPtr),
                                                   Tcl_DStringLength(dsPtr)));
-        ListCmdParams(interp, cmd, NULL, Tcl_DStringValue(dsPtr), NSF_PARAMS_PARAMETER);
+        ListCmdParams(interp, cmd, NULL, NULL, Tcl_DStringValue(dsPtr), NSF_PARAMS_PARAMETER);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
         ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
@@ -22105,13 +22193,15 @@ ListMethod(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 static int
-ListMethodResolve(Tcl_Interp *interp, int subcmd, NsfObject *contextObject,
+ListMethodResolve(Tcl_Interp *interp, int subcmd,
+                  NsfObject *contextObject, CONST char *pattern,
                   Tcl_Namespace *nsPtr, NsfObject *object,
                   Tcl_Obj *methodNameObj, int fromClassNS)
-  nonnull(1) nonnull(6);
+  nonnull(1) nonnull(7);
 
 static int
-ListMethodResolve(Tcl_Interp *interp, int subcmd, NsfObject *contextObject,
+ListMethodResolve(Tcl_Interp *interp, int subcmd,
+                  NsfObject *contextObject, CONST char *pattern,
                   Tcl_Namespace *nsPtr, NsfObject *object,
                   Tcl_Obj *methodNameObj, int fromClassNS) {
   NsfObject *regObject, *defObject;
@@ -22136,7 +22226,8 @@ ListMethodResolve(Tcl_Interp *interp, int subcmd, NsfObject *contextObject,
     result = ListMethod(interp,
                         regObject ? regObject : object,
                         defObject ? defObject : object,
-                        methodName1, cmd, subcmd, contextObject,
+                        methodName1, cmd, subcmd,
+                        contextObject, pattern,
                         fromClassNS ? 0 : 1);
 
   } else if (subcmd == InfomethodsubcmdExistsIdx) {
@@ -23454,15 +23545,16 @@ cmd "cmd::info" NsfCmdInfoCmd {
   {-argName "subcmd" -required 1 -typeName "methodgetcmd" -type "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns"}
   {-argName "-context" -required 0 -type object}
   {-argName "methodName" -required 1 -type tclobj}
+  {-argName "pattern" -required 0}
 } {-nxdoc 1}
 */
 static int
-NsfCmdInfoCmd(Tcl_Interp *interp, int subcmd, NsfObject *context, Tcl_Obj *methodNameObj) {
+NsfCmdInfoCmd(Tcl_Interp *interp, int subcmd, NsfObject *context, Tcl_Obj *methodNameObj, CONST char *pattern) {
 
   assert(interp);
   assert(methodNameObj);
 
-  return ListMethodResolve(interp, subcmd, context, NULL, NULL, methodNameObj, 0);
+  return ListMethodResolve(interp, subcmd, context, pattern, NULL, NULL, methodNameObj, 0);
 }
 
 /*
@@ -25233,19 +25325,19 @@ NsfParameterInfoCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameters
     break;
 
   case ParametersubcmdListIdx:
-    listObj = ParamDefsList(interp, paramsPtr, NULL); // TODO contextObject
+    listObj = ParamDefsList(interp, paramsPtr, NULL, NULL); // TODO contextObject
     Tcl_SetObjResult(interp, listObj);
     DECR_REF_COUNT2("paramDefsObj", listObj);
     break;
 
   case ParametersubcmdNameIdx:
-    listObj = ParamDefsNames(interp, paramsPtr, NULL); // TODO contextObject
+    listObj = ParamDefsNames(interp, paramsPtr, NULL, NULL); // TODO contextObject
     Tcl_SetObjResult(interp, listObj);
     DECR_REF_COUNT2("paramDefsObj", listObj);
     break;
 
   case ParametersubcmdSyntaxIdx:
-    listObj = NsfParamDefsSyntax(interp, paramsPtr, NULL); // TODO contextObject
+    listObj = NsfParamDefsSyntax(interp, paramsPtr, NULL, NULL); // TODO contextObject
     Tcl_SetObjResult(interp, listObj);
     DECR_REF_COUNT2("paramDefsObj", listObj);
     break;
@@ -26835,7 +26927,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
       if (varObj == NULL) {
-	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, paramDefs->paramsPtr, object); // TODO contextObject?
+	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, paramDefs->paramsPtr, object, NULL); // TODO contextObject?
 
         NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
 		      paramPtr->nameObj ? ObjStr(paramPtr->nameObj) : paramPtr->name,
@@ -28001,7 +28093,7 @@ NsfCGetCachendParametersMethod(Tcl_Interp *interp, NsfClass *class) {
     Tcl_Obj *listObj;
 
     listObj = ListParamDefs(interp, class->parsedParamPtr->paramDefs->paramsPtr,
-                            NULL, NSF_PARAMS_PARAMETER);
+                            NULL, NULL, NSF_PARAMS_PARAMETER);
     Tcl_SetObjResult(interp, listObj);
     DECR_REF_COUNT2("paramDefsObj", listObj);
   }
@@ -28517,8 +28609,8 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *met
     int perObject = (pcl == NULL);
 
     ListMethod(interp, pobj, pobj, ObjStr(methodObj), cmd,
-               InfomethodsubcmdRegistrationhandleIdx, NULL,
-               perObject);
+               InfomethodsubcmdRegistrationhandleIdx,
+               NULL, NULL, perObject);
   }
   return TCL_OK;
 }
@@ -28735,7 +28827,7 @@ objectInfoMethod method NsfObjInfoMethodMethod {
 static int
 NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
 		       int subcmd, Tcl_Obj *methodNameObj) {
-  return ListMethodResolve(interp, subcmd, NULL, object->nsPtr, object, methodNameObj, 0);
+  return ListMethodResolve(interp, subcmd, NULL, NULL, object->nsPtr, object, methodNameObj, 0);
 }
 
 /*
@@ -28813,6 +28905,7 @@ objectInfoMethod objectparameter NsfObjInfoObjectparameterMethod {
   {-argName "pattern" -required 0}
 }
 */
+
 static int
 NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcmd, CONST char *pattern) {
   NsfParsedParam parsedParam;
@@ -28833,54 +28926,31 @@ NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcm
 
   paramsPtr = parsedParam.paramDefs->paramsPtr;
 
-  /*
-   * If a single parameter name is given, we construct a filtered parameter
-   * list on the fly and provide it to the output functions.
-   */
   if (pattern) {
-    Nsf_Param CONST *pPtr;
-    int maxParams, nrMatchingParams;
-
-    /*
-     * Count the parameters
-     */
-    for (pPtr = paramsPtr, maxParams = 0; pPtr->name; pPtr++, maxParams++);
-    /*
-     * Allocate the number of potentional matches
-     */
-    paramList = ParamsNew(maxParams);
-
-    for (pPtr = paramsPtr, nrMatchingParams = 0; pPtr->name; pPtr++) {
-      if (Tcl_StringMatch( ObjStr(pPtr->nameObj), pattern)) {
-	paramList[nrMatchingParams] = *pPtr;
-	nrMatchingParams++;
-      }
-    }
-
-    if (nrMatchingParams == 0) {
+    paramList = NsfParamDefsFilter(interp, paramsPtr, pattern);
+    if (unlikely(paramList == NULL)) {
       /*
        * The named parameter were NOT found, so return "".
        */
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
-      FREE(Nsf_Param*, paramList);
       return TCL_OK;
     }
-    /* iterate over the computed selection */
+    /* Iterate below over the computed selection */
     paramsPtr = paramList;
   }
 
   switch (subcmd) {
   case InfoobjectparametersubcmdDefinitionsIdx:
-    listObj = ParamDefsFormat(interp, paramsPtr, NULL);  // TODO contextObject
+    listObj = ParamDefsFormat(interp, paramsPtr, NULL, NULL);  // TODO contextObject
     break;
   case InfoobjectparametersubcmdListIdx:
-    listObj = ParamDefsList(interp, paramsPtr, NULL); // TODO contextObject
+    listObj = ParamDefsList(interp, paramsPtr, NULL, NULL); // TODO contextObject
     break;
   case InfoobjectparametersubcmdNamesIdx:
-    listObj = ParamDefsNames(interp, paramsPtr, NULL); // TODO contextObject
+    listObj = ParamDefsNames(interp, paramsPtr, NULL, NULL); // TODO contextObject
     break;
   case InfoobjectparametersubcmdSyntaxIdx:
-    listObj = NsfParamDefsSyntax(interp, paramsPtr, NULL);  // TODO contextObject
+    listObj = NsfParamDefsSyntax(interp, paramsPtr, NULL, NULL);  // TODO contextObject
     break;
   }
   assert(listObj);
@@ -29174,7 +29244,7 @@ static int
 NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 			 int subcmd, Tcl_Obj *methodNameObj) {
 
-  return ListMethodResolve(interp, subcmd, NULL, class->nsPtr, &class->object, methodNameObj, 1);
+  return ListMethodResolve(interp, subcmd, NULL, NULL, class->nsPtr, &class->object, methodNameObj, 1);
 }
 
 /*

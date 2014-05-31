@@ -1739,7 +1739,7 @@ nx::test case req-param {
   ? {d1 configure} ""
 
   D property x:required
-  ? {d1 info lookup configure syntax} \
+  ? {d1 info lookup syntax configure} \
       "-x /value/ ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
   
   ? {d1 configure} \
@@ -1967,7 +1967,7 @@ nx::test case parameter-object-mixin-dependency {
   #
   ? {c1 info object mixin classes} ::M1
   ? {c1 cget -object-mixin} ::M1
-  ? {c1 info lookup configure parameters b*} "-b1:required"
+  ? {c1 info lookup parameters configure b*} "-b1:required"
 
   #
   # add one more mixin.
@@ -1975,37 +1975,37 @@ nx::test case parameter-object-mixin-dependency {
   c1 object mixin add ::M2
   ? {c1 info object mixin classes} {::M2 ::M1}
   ? {c1 cget -object-mixin} {::M2 ::M1}
-  ? {c1 info lookup configure parameters b1} "-b1:required"
-  ? {c1 info lookup configure parameters b2} "-b2:required"
-  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -b2:required"
+  ? {c1 info lookup parameters configure b1} "-b1:required"
+  ? {c1 info lookup parameters configure b2} "-b2:required"
+  ? {lsort [c1 info lookup parameters configure b*]} "-b1:required -b2:required"
 
   #
   # drop the mixins, the b* properties should be gone.
   #
   c1 object mixin set ""
   ? {c1 info object mixin classes} {}
-  ? {lsort [c1 info lookup configure parameters b*]} ""
+  ? {lsort [c1 info lookup parameters configure b*]} ""
 
   #
   # add M1 again
   #
   c1 object mixin add ::M1
   ? {c1 info object mixin classes} {::M1}
-  ? {c1 info lookup configure parameters b1} "-b1:required"
-  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required"
+  ? {c1 info lookup parameters configure b1} "-b1:required"
+  ? {lsort [c1 info lookup parameters configure b*]} "-b1:required"
   #
   # We have the per-object cache; adding a per-object property should
   # flush the cache
   #
   c1 object property bo1
-  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -bo1"
+  ? {lsort [c1 info lookup parameters configure b*]} "-b1:required -bo1"
   c1 object property bo2
-  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -bo1 -bo2"
+  ? {lsort [c1 info lookup parameters configure b*]} "-b1:required -bo1 -bo2"
   #
   # property deletion should invalidate the cache as well
   #
   c1 delete object property bo2
-  ? {lsort [c1 info lookup configure parameters b*]} "-b1:required -bo1"
+  ? {lsort [c1 info lookup parameters configure b*]} "-b1:required -bo1"
 }
 
 
