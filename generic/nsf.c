@@ -20741,7 +20741,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	}
       } else if (unlikely(pPtr->flags & NSF_ARG_REQUIRED)
 		 && (processFlags & NSF_ARGPARSE_FORCE_REQUIRED)) {
-	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, ifd, NULL, NULL); // TODO NsfObject *contextObject
+	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, ifd, pcPtr->object, NULL);
 	Tcl_Obj *methodPathObj = NsfMethodNamePath(interp,
 						   NULL /* use topmost frame */,
 						   MethodName(pcPtr->full_objv[0]));
