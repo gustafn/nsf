@@ -4,11 +4,10 @@ Interface between mongoDB and the Next Scripting Framework
 Ingredients:
   https://github.com/mongodb/mongo
   https://github.com/mongodb/mongo-c-driver
-  https://github.com/mongodb/libbson
 
 The current version is tested with 
-- MongoDB v2.4.10
-- mongodb-c-driver 0.94.1
+- MongoDB v2.6.1
+- mongodb-c-driver 0.96
 
 Compile or obtain mongodb (the database).
 
@@ -71,7 +70,7 @@ In order to run the sample script,
     check the content in MongoDB:
 
     % mongo
-    MongoDB shell version: 2.4.9
+    MongoDB shell version: 2.6.1
     connecting to: test
     > use tutorial
     switched to db tutorial

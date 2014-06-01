@@ -755,7 +755,7 @@ NsfMongoCollectionDelete(Tcl_Interp *interp,
   }
 
   BsonAppendObjv(interp, queryPtr, objc, objv);
-  success = mongoc_collection_delete(collectionPtr, deleteFlags, queryPtr, writeConcern, &bsonError);
+  success = mongoc_collection_remove(collectionPtr, deleteFlags, queryPtr, writeConcern, &bsonError);
 
   if (success == 0) {
     result = NsfPrintError(interp, "mongo::collection::delete: error: %s", bsonError.message);
@@ -1406,13 +1406,13 @@ NsfMongoGridFileDelete(Tcl_Interp *interp,
     /* Remove the file with the specified id */
     bson_init(bsonPtr);
     bson_append_oid(bsonPtr, "_id", 3, &id);
-    mongoc_collection_delete(mongoc_gridfs_get_files(gridfsPtr), 0, bsonPtr, NULL, &bsonError);
+    mongoc_collection_remove(mongoc_gridfs_get_files(gridfsPtr), 0, bsonPtr, NULL, &bsonError);
     bson_destroy(bsonPtr);
 
     /* Remove all chunks from the file with the specified id */
     bson_init(bsonPtr);
     bson_append_oid(bsonPtr, "files_id", 8, &id);
-    mongoc_collection_delete(mongoc_gridfs_get_chunks(gridfsPtr), 0, bsonPtr, NULL, &bsonError);
+    mongoc_collection_remove(mongoc_gridfs_get_chunks(gridfsPtr), 0, bsonPtr, NULL, &bsonError);
     bson_destroy(bsonPtr);
   }
 
