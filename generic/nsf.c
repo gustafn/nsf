@@ -374,7 +374,7 @@ static int NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
                                      Nsf_Param CONST *paramsPtr, NsfObject *contextObject,
                                      CONST char *pattern,
                                      NsfFormatFunction formatFunction)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(5);
+  nonnull(1) nonnull(2) nonnull(3) nonnull(6);
 
 /* prototypes for alias management */
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object)
@@ -11585,11 +11585,12 @@ NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
   assert(interp);
   assert(listObj);
   assert(paramsPtr);
+  assert(paramsPtr->name);
   assert(formatFunction);
 
   if (paramsPtr->converter == ConvertToNothing && strcmp(paramsPtr->name, "args") == 0) {
 
-    if (contextObject != NULL && strncmp(paramsPtr->type, "virtual", 7) == 0) {
+    if (contextObject != NULL && paramsPtr->type && strncmp(paramsPtr->type, "virtual", 7) == 0) {
       Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, paramsPtr, contextObject, pattern, formatFunction);
       if (formattedObj != NULL) {
         Tcl_ListObjAppendList(interp, listObj, formattedObj);
@@ -11640,7 +11641,6 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
       continue;
     }
 
-    // TODO: inside test?
     if (pPtr != paramsPtr) {
       /*
        * Don't output non-consuming parameters (i.e. positional, and no args)
@@ -11650,11 +11650,10 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
       }
     }
 
-
     if (pPtr->converter == ConvertToNothing && strcmp(pPtr->name, "args") == 0) {
       int argsResolved = 0;
 
-      if (contextObject != NULL && strncmp(pPtr->type, "virtual", 7) == 0) {
+      if (contextObject != NULL && pPtr->type && strncmp(pPtr->type, "virtual", 7) == 0) {
         Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, pPtr, contextObject, pattern, NsfParamDefsSyntax);
 
         if (formattedObj != NULL) {

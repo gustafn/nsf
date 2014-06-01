@@ -5228,8 +5228,14 @@ nsf.c:
     - "/obj/ info lookup parameters configure|create|new|... ?pattern?"
 - extend regression test
 
+mongo:
+- upgrade to the newly released version 0.96 of the c-driver
+- replace deprecated function mongoc_collection_delete by mongoc_collection_remove
+- tested with MongoDB v2.6.1
+
 ========================================================================
 TODO:
+- update migration guide/tutorial
 - use context-object for error messages of configure/new/create/recreate
 - remove // comments
 
