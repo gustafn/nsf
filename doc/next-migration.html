@@ -1027,7 +1027,7 @@ cellspacing="0" cellpadding="4">
 <tfoot>
 <tr>
 <td align="left" valign="top"><p class="table">Total</p></td>
-<td align="right" valign="top"><p class="table">46</p></td>
+<td align="right" valign="top"><p class="table">45</p></td>
 <td align="right" valign="top"><p class="table">124</p></td>
 </tr>
 </tfoot>
@@ -1044,7 +1044,7 @@ cellspacing="0" cellpadding="4">
 </tr>
 <tr>
 <td align="left" valign="top"><p class="table">Info-methods for Objects</p></td>
-<td align="right" valign="top"><p class="table">12</p></td>
+<td align="right" valign="top"><p class="table">11</p></td>
 <td align="right" valign="top"><p class="table">25</p></td>
 </tr>
 <tr>
@@ -3272,8 +3272,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>The configure parameters provided by a class for the initialization of
-instances can be introspected via <code>/cls/ info configure parameters</code>
+<div class="paragraph"><p>The parameters provided by a class for the initialization of
+instances can be introspected via querying the parameters
+of the method create: <code>/cls/ info lookup parameters create</code>
 (see <a href="#info_configure_parameter">[info_configure_parameter]</a>).</p></div>
 </div>
 <div class="sect3">
@@ -4644,11 +4645,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </div>
 <div class="sect3">
 <h4 id="info_configure_parameter">2.6.7. List Configure Parameters</h4>
-<div class="paragraph"><p>Obtain information, how newly created object can be configured. The
-configuration of objects is performed in many languages over arguments
-to the constructors. NX has - what we think - a superiour approach for
-configuration via configure parameters. The configure parameter are
-defined by NX application programs usually via <code>property</code>.</p></div>
+<div class="paragraph"><p>The way, how newly created objects can be configured is determined in NX
+via properties. The configuration happens during creation via the
+methods <code>create</code> or <code>new</code> or during runtime via <code>configure</code>. These
+methods have therefore virtual argument lists, depending on the object
+or class on which they are applied.</p></div>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -4687,40 +4688,36 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
 .nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
 </style>
-<pre class='nx'><span class='nx-comment'># Return configure parameter(s), the parameters
-</span><span class='nx-comment'># provided by a class for its instances; these
-</span><span class='nx-comment'># parameters define, how objects of this
+<pre class='nx'><span class='nx-comment'># Return the parameters applicable to
+</span><span class='nx-comment'># the create method of a certain class.
 </span><span class='nx-comment'># class can be configured. A pattern can
 </span><span class='nx-comment'># be used to filter the results.
 </span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span> parameters <span class='nx-placeholder'>?pattern?</span>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> parameters <span class='nx-keyword'>create</span> ?<span class='nx-placeholder'>/pattern/</span>?
 
-<span class='nx-comment'># Return in the Tcl parameter syntax
+<span class='nx-comment'># Return in the result in documentation syntax
 </span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span> syntax
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>create</span> ?<span class='nx-placeholder'>/pattern/</span>?
 
-<span class='nx-comment'># "info lookup configure parameters" returns
+<span class='nx-comment'># "info lookup parameters configure" returns
 </span><span class='nx-comment'># parameters available for configuring the
 </span><span class='nx-comment'># current object  (might contain object
 </span><span class='nx-comment'># specific information)
 </span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>configure</span> parameters <span class='nx-placeholder'>?pattern?</span>
-
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> parameters <span class='nx-keyword'>configure</span> <span class='nx-placeholder'>?pattern?</span>
 
 <span class='nx-comment'># "info lookup configure syntax" returns syntax of
 </span><span class='nx-comment'># a call to configure in the Tcl parameter syntax
 </span>
-<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> <span class='nx-keyword'>configure</span> syntax
-<span class='nx-comment'># short form
-</span><span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span>
+<span class='nx-placeholder'>/obj/</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
 
 <span class='nx-comment'># Obtain information from a parameter
-</span><span class='nx-comment'># (as e.g. returned from "info configure
-</span><span class='nx-comment'># parameters").
+</span><span class='nx-comment'># (as e.g. returned from "info lookup
+</span><span class='nx-comment'># parameters configure").
 </span>
-nsf::parameter::get name <span class='nx-placeholder'>/parameter/</span>
-nsf::parameter::get syntax <span class='nx-placeholder'>/parameter/</span>
-nsf::parameter::get type <span class='nx-placeholder'>/parameter/</span></pre></div></div></div></td>
+nsf::parameter::info name <span class='nx-placeholder'>/parameter/</span>
+nsf::parameter::info syntax <span class='nx-placeholder'>/parameter/</span>
+nsf::parameter::info type <span class='nx-placeholder'>/parameter/</span></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
@@ -5220,7 +5217,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># List objects, where /cls/ is a
 </span><span class='nx-comment'># per-object mixin
 </span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope <span class='nx-keyword'>object</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope <span class='nx-keyword'>object</span> <span class='nx-placeholder'>?-closure?</span> \
+   <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5248,7 +5246,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </style>
 <pre class='nx'><span class='nx-comment'># List classes, where /cls/ is a per-class mixin
 </span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope <span class='nx-keyword'>class</span> <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope <span class='nx-keyword'>class</span> <span class='nx-placeholder'>?-closure?</span> \
+   <span class='nx-placeholder'>?pattern?</span></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -5277,7 +5276,8 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <pre class='nx'><span class='nx-comment'># List objects and classes, where /cls/ is
 </span><span class='nx-comment'># either a per-object or a per-class mixin
 </span>
-<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope all <span class='nx-placeholder'>?-closure?</span> <span class='nx-placeholder'>?pattern?</span></pre></div></div>
+<span class='nx-placeholder'>/cls/</span> <span class='nx-keyword'>info</span> mixinof -scope all <span class='nx-placeholder'>?-closure?</span> \
+   <span class='nx-placeholder'>?pattern?</span></pre></div></div>
 <div class="listingblock">
 <div class="content"><style type='text/css'>
 .nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
@@ -6358,7 +6358,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.0b5<br />
-Last updated 2014-05-29 17:15:16 CEST
+Last updated 2014-06-01 17:28:33 CEST
 </div>
 </div>
 </body>

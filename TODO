@@ -5329,9 +5329,10 @@ nsf.c:
 - adapt mixinof.test to the additional information
 - transform mixinof.test to newer style regression test with automated object deletion
 
+- updated migration guide and tutorial to reflect recent changes
+
 ========================================================================
 TODO:
-- update migration guide/tutorial
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")

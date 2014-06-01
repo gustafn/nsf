@@ -184,9 +184,9 @@ in the following respects:
 ||NX|XOTcl
 |Methods for Objects           |14|  51
 |Methods for Classes           |  9|  24
-|Info-methods for Objects  |12|  25
+|Info-methods for Objects  |11|  25
 |Info-methods for Classes  |11|  24
-|Total                                  | 46|124
+|Total                                  | 45|124
 |======================
 
 This comparison list compares mostly XOTcl 1 with NX, some features
@@ -1515,8 +1515,9 @@ Class create Person {
 ----------------
 |======================
 
-The configure parameters provided by a class for the initialization of
-instances can be introspected via +/cls/ info configure parameters+ 
+The parameters provided by a class for the initialization of
+instances can be introspected via querying the parameters
+of the method create: +/cls/ info lookup parameters create+ 
 (see <<info_configure_parameter>>).
 
 ==== Delete Variable Handlers
@@ -2190,11 +2191,11 @@ method).
 
 [[info_configure_parameter]]
 ==== List Configure Parameters
-Obtain information, how newly created object can be configured. The
-configuration of objects is performed in many languages over arguments
-to the constructors. NX has - what we think - a superiour approach for
-configuration via configure parameters. The configure parameter are
-defined by NX application programs usually via +property+.
+The way, how newly created objects can be configured is determined in NX
+via properties. The configuration happens during creation via the
+methods +create+ or +new+ or during runtime via +configure+. These
+methods have therefore virtual argument lists, depending on the object
+or class on which they are applied.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -2206,36 +2207,32 @@ defined by NX application programs usually via +property+.
 ----------------
 |[source,tcl]
 ----------------
-# Return configure parameter(s), the parameters
-# provided by a class for its instances; these
-# parameters define, how objects of this
+# Return the parameters applicable to 
+# the create method of a certain class.
 # class can be configured. A pattern can
 # be used to filter the results.
 
-/cls/ info configure parameters ?pattern?
+/cls/ info lookup parameters create ?/pattern/?
 
-# Return in the Tcl parameter syntax
+# Return in the result in documentation syntax
 
-/cls/ info configure syntax
+/cls/ info lookup syntax create ?/pattern/?
 
-# "info lookup configure parameters" returns 
+# "info lookup parameters configure" returns 
 # parameters available for configuring the 
 # current object  (might contain object 
 # specific information)
 
-/obj/ info lookup configure parameters ?pattern?
-
+/obj/ info lookup parameters configure ?pattern?
 
 # "info lookup configure syntax" returns syntax of 
 # a call to configure in the Tcl parameter syntax
 
-/obj/ info lookup configure syntax
-# short form
-/obj/ info configure
+/obj/ info lookup syntax configure
 
 # Obtain information from a parameter 
-# (as e.g. returned from "info configure
-# parameters").
+# (as e.g. returned from "info lookup 
+# parameters configure").
 
 nsf::parameter::info name /parameter/
 nsf::parameter::info syntax /parameter/
@@ -2487,7 +2484,8 @@ information, where mixins classes are mixed into.
 # List objects, where /cls/ is a 
 # per-object mixin
 
-/cls/ info mixinof -scope object ?-closure? ?pattern?
+/cls/ info mixinof -scope object ?-closure? \
+   ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -2497,7 +2495,8 @@ information, where mixins classes are mixed into.
 ----------------
 # List classes, where /cls/ is a per-class mixin
 
-/cls/ info mixinof -scope class ?-closure? ?pattern?
+/cls/ info mixinof -scope class ?-closure? \
+   ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -2508,7 +2507,8 @@ information, where mixins classes are mixed into.
 # List objects and classes, where /cls/ is
 # either a per-object or a per-class mixin
 
-/cls/ info mixinof -scope all ?-closure? ?pattern?
+/cls/ info mixinof -scope all ?-closure? \
+   ?pattern?
 ----------------
 [source,tcl]
 ----------------

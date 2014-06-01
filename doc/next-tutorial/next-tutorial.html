@@ -3780,29 +3780,27 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
  14
 </pre></td><td class='nx-body'><pre class='nx'>Configure parameters <span class='nx-keyword'>for</span> Person p1:
    Command:
-      p1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span>
+      p1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
    Result:
       -name <span class='nx-placeholder'>/value/</span> ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixin /mixinreg .../<span class='nx-placeholder'>?
       ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filter /filterreg .../? ?/__initblock/?
 
 Configure parameter <span class='nx-keyword'>for</span> Student s1:
    Command:
-      s1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span>
+      s1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
    Result:
       ?-oncampus <span class='nx-placeholder'>/boolean/</span>? -matnr <span class='nx-placeholder'>/value/</span> -name <span class='nx-placeholder'>/value/</span>
       ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixin /mixinreg .../? ?-class /<span class='nx-keyword'>class</span>/<span class='nx-placeholder'>?
       ?</span>-object-filter /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>+p1 info configure+
-+Person info configure syntax+</code></pre>
-</div></div>
-<div class="paragraph"><p>The actual values can be obtained via introspection
-from an object via
-<code>p1 info lookup configure parameters</code> on an actual object
+<div class="paragraph"><p>The given paramter show, how (a) objects can be configured
+at runtime or (b) how new instances can be configured
+at creation time via the <code>new</code> or <code>create</code> methods.
+Introspection can be used to obtain the configuration
+parameters from an object via
+<code>p1 info lookup parameters configure</code>
 (returning the configure parameters currently applicable for
-<code>configure</code> or <code>cget</code> or on a class
-<code>Person info configure syntax</code> on a class
+<code>configure</code> or <code>cget</code>) or from a class
+<code>Person info lookup parameters create</code> on a class
 (returning the configure parameters applicable when an object
 of this class is created)</p></div>
 <div class="paragraph"><p>The listed configure parameter types <code>mixinreg</code> and
@@ -3859,13 +3857,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
   7
 </pre></td><td class='nx-body'><pre class='nx'>Configure parameter <span class='nx-keyword'>for</span> <span class='nx-keyword'>class</span> <span class='nx-keyword'>nx::Class</span>
    Command:
-      <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>configure</span>
+      <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
    Result:
       ?-superclass /<span class='nx-keyword'>class</span> .../? ?-mixin /mixinreg .../<span class='nx-placeholder'>?
       ?</span>-filter /filterreg .../? ?-object-mixin /mixinreg .../<span class='nx-placeholder'>?
       ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filter /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
-<div class="paragraph"><p>The actual values can be obtained via introspection via
-<code>nx::Class info configure</code></p></div>
 </div>
 <div class="sect3">
 <h4 id="_user_defined_parameter_types">4.3.3. User defined Parameter Types</h4>
@@ -4160,7 +4156,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.0b5<br />
-Last updated 2014-05-29 21:02:50 CEST
+Last updated 2014-06-01 17:23:28 CEST
 </div>
 </div>
 </body>

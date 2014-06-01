@@ -2175,29 +2175,29 @@ the configure parameters of +Person p1+ and +Student s1+.
 --------------------------------------------------
 Configure parameters for Person p1: 
    Command:   
-      p1 info configure
+      p1 info lookup syntax configure
    Result: 
       -name /value/ ?-birthday /value/? ?-object-mixin /mixinreg .../? 
       ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
 
 Configure parameter for Student s1:
    Command:   
-      s1 info configure
+      s1 info lookup syntax configure
    Result: 
       ?-oncampus /boolean/? -matnr /value/ -name /value/ 
       ?-birthday /value/? ?-object-mixin /mixinreg .../? ?-class /class/?
       ?-object-filter /filterreg .../? ?/__initblock/?
 --------------------------------------------------
 
-  +p1 info configure+
-  +Person info configure syntax+
-
-The actual values can be obtained via introspection 
-from an object via 
-+p1 info lookup configure parameters+ on an actual object
+The given paramter show, how (a) objects can be configured 
+at runtime or (b) how new instances can be configured 
+at creation time via the +new+ or +create+ methods.
+Introspection can be used to obtain the configuration
+parameters from an object via
++p1 info lookup parameters configure+ 
 (returning the configure parameters currently applicable for
-+configure+ or +cget+ or on a class
-+Person info configure syntax+ on a class 
++configure+ or +cget+) or from a class
++Person info lookup parameters create+ on a class 
 (returning the configure parameters applicable when an object
 of this class is created)
 
@@ -2245,15 +2245,12 @@ Student+.
 --------------------------------------------------
 Configure parameter for class nx::Class
    Command:   
-      nx::Class info configure
+      nx::Class info lookup syntax configure
    Result: 
       ?-superclass /class .../? ?-mixin /mixinreg .../? 
       ?-filter /filterreg .../? ?-object-mixin /mixinreg .../? 
       ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
 --------------------------------------------------
-
-The actual values can be obtained via introspection via
-+nx::Class info configure+
 
 ==== User defined Parameter Types
 
