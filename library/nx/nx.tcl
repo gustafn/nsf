@@ -814,34 +814,6 @@ namespace eval ::nx {
   nsf::object::property ::nx::Class::slot::__info keepcallerself true
 
   Class eval {
-    #
-    # On a forget nx/reload nx, "info configure" might still be
-    # around.  If this is the case, remove it to allow smooth
-    # recreation of ensemble methods.
-    #
-    if {[: ::nsf::methods::class::info::method exists "info configure"]} {
-      :delete method "info configure"
-    }
-    :method "info configure parameters"    {pattern:optional} {
-      set defs [: ::nsf::methods::class::getCachedParameters]
-      if {[llength $defs] > 0} {
-	if {[info exists pattern]} {return [::nsf::parameter::filter $defs $pattern]}
-	return $defs
-      }
-      set slots [: ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot {*}[current args]]
-      return [::nsf::parameter::specs -configure $slots]
-    }
-
-    :method "info configure syntax"    {} {
-      set defs [: ::nsf::methods::class::getCachedParameters]
-      if {[llength $defs] == 0} {
-	set slots [: ::nsf::methods::class::info::slotobjects -closure -type ::nx::Slot]
-	set defs [::nsf::parameter::specs -configure $slots]
-      }
-      set syntax "/[self]/ "
-      foreach def $defs {append syntax [::nsf::parameter::info syntax $def] " "}
-      return [string trimright $syntax " "]
-    }
     :alias "info lookup"         ::nx::Object::slot::__info::lookup
     :alias "info filter guard"   ::nsf::methods::class::info::filterguard
     :alias "info filter methods" ::nsf::methods::class::info::filtermethods
