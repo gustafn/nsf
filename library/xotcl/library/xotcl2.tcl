@@ -1136,7 +1136,7 @@ namespace eval ::xotcl {
 
     :method init args {
       #
-      # Via xotcl calling convention, init gets the residual arguments
+      # Via XOTcl calling convention, init gets the residual arguments
       # passed. Since nx does not allow this, we simply ignore the passed
       # arguments $args.
       #
