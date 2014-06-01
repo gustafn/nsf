@@ -25369,6 +25369,13 @@ NsfParameterInfoCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameters
   paramsPtr = parsedParam.paramDefs->paramsPtr;
   assert(paramsPtr);
 
+  /*
+   * Since we are passing in a parameter definition in Tcl syntax, and we want
+   * to extract information from that syntax, it make limited sense to provide
+   * a context object for virutal parameter expansion. At least, we do not
+   * allow this so far.
+   */
+
   switch (parametersubcmd) {
   case ParametersubcmdDefaultIdx:
     if (paramsPtr->defaultValue) {
@@ -25388,19 +25395,19 @@ NsfParameterInfoCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameters
     break;
 
   case ParametersubcmdListIdx:
-    listObj = ParamDefsList(interp, paramsPtr, NULL, NULL); // TODO contextObject
+    listObj = ParamDefsList(interp, paramsPtr, NULL, NULL);
     Tcl_SetObjResult(interp, listObj);
     DECR_REF_COUNT2("paramDefsObj", listObj);
     break;
 
   case ParametersubcmdNameIdx:
-    listObj = ParamDefsNames(interp, paramsPtr, NULL, NULL); // TODO contextObject
+    listObj = ParamDefsNames(interp, paramsPtr, NULL, NULL);
     Tcl_SetObjResult(interp, listObj);
     DECR_REF_COUNT2("paramDefsObj", listObj);
     break;
 
   case ParametersubcmdSyntaxIdx:
-    listObj = NsfParamDefsSyntax(interp, paramsPtr, NULL, NULL); // TODO contextObject
+    listObj = NsfParamDefsSyntax(interp, paramsPtr, NULL, NULL);
     Tcl_SetObjResult(interp, listObj);
     DECR_REF_COUNT2("paramDefsObj", listObj);
     break;
@@ -26998,7 +27005,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       Tcl_Obj *varObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, TCL_PARSE_PART1);
       if (varObj == NULL) {
-	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, paramDefs->paramsPtr, object, NULL); // TODO contextObject?
+	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, paramDefs->paramsPtr, object, NULL);
 
         NsfPrintError(interp, "required argument '%s' is missing, should be:\n\t%s%s%s %s",
 		      paramPtr->nameObj ? ObjStr(paramPtr->nameObj) : paramPtr->name,
@@ -28976,7 +28983,9 @@ objectInfoMethod objectparameter NsfObjInfoObjectparameterMethod {
   {-argName "pattern" -required 0}
 }
 */
-
+/*
+ * Actually, this method (object::info::objectparameter) is not used anymore.
+ */
 static int
 NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcmd, CONST char *pattern) {
   NsfParsedParam parsedParam;
@@ -29012,16 +29021,16 @@ NsfObjInfoObjectparameterMethod(Tcl_Interp *interp, NsfObject *object, int subcm
 
   switch (subcmd) {
   case InfoobjectparametersubcmdDefinitionsIdx:
-    listObj = ParamDefsFormat(interp, paramsPtr, NULL, NULL);  // TODO contextObject
+    listObj = ParamDefsFormat(interp, paramsPtr, NULL, NULL);
     break;
   case InfoobjectparametersubcmdListIdx:
-    listObj = ParamDefsList(interp, paramsPtr, NULL, NULL); // TODO contextObject
+    listObj = ParamDefsList(interp, paramsPtr, NULL, NULL);
     break;
   case InfoobjectparametersubcmdNamesIdx:
-    listObj = ParamDefsNames(interp, paramsPtr, NULL, NULL); // TODO contextObject
+    listObj = ParamDefsNames(interp, paramsPtr, NULL, NULL);
     break;
   case InfoobjectparametersubcmdSyntaxIdx:
-    listObj = NsfParamDefsSyntax(interp, paramsPtr, NULL, NULL);  // TODO contextObject
+    listObj = NsfParamDefsSyntax(interp, paramsPtr, NULL, NULL);
     break;
   }
   assert(listObj);
