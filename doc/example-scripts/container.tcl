@@ -167,7 +167,7 @@ SortedContainer create container3 -memberClass ::D -key name
 ? {container3 new -name gustaf} "::container3::member3"
 
 # The method +items+ returns the items in the order of insertion (as before):
-? {container3 items} "::container3::member1 ::container3::member2 ::container3::member3"
+? {container3 items get} "::container3::member1 ::container3::member2 ::container3::member3"
 
 # The method +index+ returns the items in sorting order (sorted by the +name+ member):
 ? {container3 index} "::container3::member3 ::container3::member2 ::container3::member1"
@@ -176,6 +176,6 @@ SortedContainer create container3 -memberClass ::D -key name
 ? {container3 delete ::container3::member2} ""
 
 # The item is as well removed from the result lists
-? {container3 items} "::container3::member1 ::container3::member3"
+? {container3 items get} "::container3::member1 ::container3::member3"
 
 ? {container3 index} "::container3::member3 ::container3::member1"
