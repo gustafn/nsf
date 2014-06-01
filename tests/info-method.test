@@ -718,17 +718,17 @@ nx::test case info-slot-parametersyntax {
   }
 
   C new
-  ? {C info configure syntax} "/::C/ ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
-#  ? {C info configure syntax a} "/::C/ ?-a /value/?"
+  ? {C info lookup syntax create} "/objectName/ ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {C info lookup syntax create a} "?-a /value/?"
 
-  ? {C info configure parameters } "-a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
+  ? {C info lookup parameters create } "objectName -a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
 
-#  ? {C info parameter list} "-a -b -noinit -object-mixin -class -object-filter __initblock"
-#  ? {C info parameter names} "a b noinit object-mixin class object-filter __initblock"
+  #? {C info parameter list} "-a -b -noinit -object-mixin -class -object-filter __initblock"
+  #? {C info lookup args create} "methodName a b noinit object-mixin class object-filter __initblock"
   ? {lsort [C info slots -closure]} "::C::slot::a ::C::slot::b ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin"
 
-  ? {C info configure parameters b} "{-b 1}"
-  ? {D info configure parameters b} "{-b 2}"
+  ? {C info lookup parameters create b} "{-b 1}"
+  ? {D info lookup parameters create b} "{-b 2}"
   ? {D info slots -closure b} "::D::slot::b"
   ? {D info slots -closure a} "::C::slot::a"
   ? {D info slots -closure class} "::nx::Object::slot::class"

@@ -1,0 +1,286 @@
+package require nx::test
+
+
+nx::test case nsf-method-get-variants {
+
+  #
+  # Create a simple class
+  #
+  nx::Class create Person {
+    :property name
+    :public method foo {x:integer} {return foo-$x}
+    :public method "string match" {pattern string} {return string-match-$string}
+    :create p1
+  }
+  
+  #
+  # A plain method
+  #
+  set ::handle [p1 info lookup method foo]
+
+  ? {nsf::cmd::info args $::handle} x
+  ? {nsf::cmd::info body $::handle} {return foo-$x}
+  ? {nsf::cmd::info definition $::handle} {::Person public method foo x:integer {return foo-$x}}
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} ::nsf::classes::Person::foo
+  ? {nsf::cmd::info definitionhandle $::handle} ::nsf::classes::Person::foo
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} x:integer
+  ? {nsf::cmd::info syntax $::handle} "/x/"
+  ? {nsf::cmd::info type $::handle} scripted
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # An ensemble method
+  #
+  set ::handle [p1 info lookup method "string match"]
+
+  ? {nsf::cmd::info args $::handle} "pattern string"
+  ? {nsf::cmd::info body $::handle} {return string-match-$string}
+  ? {nsf::cmd::info definition $::handle} {::Person public method {string match} {pattern string} {return string-match-$string}}
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} "::nsf::classes::Person::string match"
+  ? {nsf::cmd::info definitionhandle $::handle} "::Person::slot::__string::match"
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} "pattern string"
+  ? {nsf::cmd::info syntax $::handle} "/pattern/ /string/"
+  ? {nsf::cmd::info type $::handle} scripted
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # An C-defined method inherited from nx::Object
+  #
+  set ::handle [p1 info lookup method configure]
+
+  ? {nsf::cmd::info args $::handle} args
+  ? {nsf::cmd::info body $::handle} ""
+  ? {nsf::cmd::info definition $::handle} "::nx::Object public alias configure ::nsf::methods::object::configure"
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} ::nsf::classes::nx::Object::configure
+  ? {nsf::cmd::info definitionhandle $::handle} ::nsf::classes::nx::Object::configure
+  ? {nsf::cmd::info origin $::handle} ::nsf::methods::object::configure
+  ? {nsf::cmd::info parameter $::handle} args:virtualobjectargs
+  ? {nsf::cmd::info syntax $::handle} "?/arg .../?"
+  ? {nsf::cmd::info type $::handle} alias
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # An undefined method
+  #
+  set ::handle [p1 info lookup method exists]
+
+  ? {nsf::cmd::info args $::handle} ""
+  ? {nsf::cmd::info body $::handle} ""
+  ? {nsf::cmd::info definition $::handle} ""
+  ? {nsf::cmd::info exists $::handle} 0
+  ? {nsf::cmd::info registrationhandle $::handle} ""
+  ? {nsf::cmd::info definitionhandle $::handle} ""
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} ""
+  ? {nsf::cmd::info syntax $::handle} ""
+  ? {nsf::cmd::info type $::handle} ""
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # Define 2 nsf::procs: one, which requires the nsf argument parser,
+  # and one, which does not.
+  #
+  nsf::proc ::foo {{-x 1} y:optional} {return $x-$y}
+  nsf::proc ::bar {a b} {return $a-$b}
+
+  #
+  # An nsf::proc requiring nsf argument parser
+  #
+  set ::handle ::foo
+
+  ? {nsf::cmd::info args $::handle} "x y"
+  ? {nsf::cmd::info body $::handle} {return $x-$y}
+  ? {nsf::cmd::info definition $::handle} {::nsf::proc ::foo {{-x 1} y:optional} {return $x-$y}}
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} ""
+  ? {nsf::cmd::info definitionhandle $::handle} ""
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} "{-x 1} y:optional"
+  ? {nsf::cmd::info syntax $::handle} {?-x /value/? ?/y/?}
+  ? {nsf::cmd::info type $::handle} "nsfproc"
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # A simple Tcl proc
+  #
+  set ::handle ::bar
+
+  ? {nsf::cmd::info args $::handle} "a b"
+  ? {nsf::cmd::info body $::handle} {return $a-$b}
+  ? {nsf::cmd::info definition $::handle} {::proc bar {a b} {return $a-$b}}
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} ""
+  ? {nsf::cmd::info definitionhandle $::handle} ""
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} "a b"
+  ? {nsf::cmd::info syntax $::handle} {/a/ /b/}
+  ? {nsf::cmd::info type $::handle} "proc"
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # A Tcl cmd implemented in C
+  #
+  set ::handle ::set
+
+  ? {nsf::cmd::info args $::handle} "could not obtain parameter definition for method 'set'"
+  ? {nsf::cmd::info body $::handle} {}
+  ? {nsf::cmd::info definition $::handle} {}
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} ""
+  ? {nsf::cmd::info definitionhandle $::handle} ""
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} "could not obtain parameter definition for method 'set'"
+  ? {nsf::cmd::info syntax $::handle} "could not obtain parameter definition for method 'set'"
+  ? {nsf::cmd::info type $::handle} "cmd"
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+
+  #
+  # A Tcl cmd implemented in C with the nsf infrastructure (with parameter definitions)
+  #
+  set ::handle ::nsf::cmd::info
+
+  ? {nsf::cmd::info args $::handle} "subcmd -context methodName pattern"
+  ? {nsf::cmd::info body $::handle} {}
+  ? {nsf::cmd::info definition $::handle} {}
+  ? {nsf::cmd::info exists $::handle} 1
+  ? {nsf::cmd::info registrationhandle $::handle} ""
+  ? {nsf::cmd::info definitionhandle $::handle} ""
+  ? {nsf::cmd::info origin $::handle} ""
+  ? {nsf::cmd::info parameter $::handle} "subcmd -context:object methodName pattern:optional"
+  ? {nsf::cmd::info syntax $::handle} "args|body|definition|exists|registrationhandle|definitionhandle|origin|parameter|syntax|type|precondition|postcondition|submethods|returns ?-context /object/? /methodName/ ?/pattern/?"
+  ? {nsf::cmd::info type $::handle} "cmd"
+  ? {nsf::cmd::info precondition $::handle} ""
+  ? {nsf::cmd::info postcondition $::handle} ""
+  ? {nsf::cmd::info submethods $::handle} ""
+  ? {nsf::cmd::info returns $::handle} ""
+}
+
+
+#
+# test virtual arg resolution + filtering
+#
+nx::test case nsf-method-get-variants {
+
+  nx::Class create Person {
+    :property name
+    :create p1
+  }
+
+  set ::handle1 [p1     info lookup method configure]
+  set ::handle2 [Person info lookup method create]
+  set ::handle3 [Person info lookup method new]
+
+  #
+  # configure
+  #
+  ? {nsf::cmd::info syntax -context p1 $::handle1} \
+      "?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+
+  ? {nsf::cmd::info parameter -context p1 $::handle1} \
+      "-name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
+
+  ? {nsf::cmd::info args -context p1 $::handle1} \
+      "name object-mixin class object-filter __initblock"
+
+  #
+  # filter on (virtual) arguments
+  #
+  ? {nsf::cmd::info parameter -context p1 $::handle1 na*} "-name"
+  ? {nsf::cmd::info args      -context p1 $::handle1 na*} "name"
+  ? {nsf::cmd::info syntax    -context p1 $::handle1 na*} "?-name /value/?"
+
+  ? {nsf::cmd::info parameter -context p1 $::handle1 *a*} "-name -class:class,alias,method=::nsf::methods::object::class"
+  ? {nsf::cmd::info args      -context p1 $::handle1 *a*} "name class"
+  ? {nsf::cmd::info syntax    -context p1 $::handle1 *a*} "?-name /value/? ?-class /class/?"
+
+
+  #
+  # create
+  #
+  ? {nsf::cmd::info syntax -context Person $::handle2} \
+      "/objectName/ ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+
+  ? {nsf::cmd::info parameter -context Person $::handle2} \
+      "objectName -name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
+
+  ? {nsf::cmd::info args -context Person $::handle2} \
+      "objectName name object-mixin class object-filter __initblock"
+
+
+  #
+  # new
+  #
+  ? {nsf::cmd::info syntax -context Person $::handle3} \
+      "?-childof /value/? ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {nsf::cmd::info parameter -context Person $::handle3} \
+      "-childof -name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
+  ? {nsf::cmd::info args -context Person $::handle3} \
+      "-childof name object-mixin class object-filter __initblock"
+
+  #
+  # filter on (virtual) arguments
+  #
+  ? {nsf::cmd::info parameter -context Person $::handle3 na*} "-name"
+  ? {nsf::cmd::info args      -context Person $::handle3 na*} "name"
+  ? {nsf::cmd::info syntax    -context Person $::handle3 na*} "?-name /value/?"
+
+  ? {nsf::cmd::info parameter -context Person $::handle3 *a*} "-name -class:class,alias,method=::nsf::methods::object::class"
+  ? {nsf::cmd::info args      -context Person $::handle3 *a*} "name class"
+  ? {nsf::cmd::info syntax    -context Person $::handle3 *a*} "?-name /value/? ?-class /class/?"
+
+  ? {nsf::cmd::info args      -context Person $::handle3 *il*} "-childof object-filter"
+
+
+  #
+  # queries without context
+  #
+  ? {nsf::cmd::info parameter $::handle1} args:virtualobjectargs
+  ? {nsf::cmd::info parameter $::handle2} "objectName args:virtualclassargs"
+  ? {nsf::cmd::info parameter $::handle3} "-childof args:virtualclassargs"
+
+
+  #
+  # Test cases, where no instance was created yet (no internally
+  # cached parameters)
+  #
+
+  nx::Class create Student { :property matnr }
+ 
+  set ::handle4 [Student info lookup method create]
+
+  ? {nsf::cmd::info syntax -context Student $::handle4} \
+      "/objectName/ ?-matnr /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+}
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 2
+#    indent-tabs-mode: nil
+# End:

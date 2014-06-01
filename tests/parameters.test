@@ -1001,14 +1001,14 @@ nx::test case op-object-types {
     :property {x:object,1..* {o}}
   }
   
-  ? {ParamTest info configure parameters o} "-o:object"
-  ? {ParamTest info configure parameters c} "-c:class"
-  ? {ParamTest info configure parameters c1} "-c1:class,type=::MC"
-  ? {ParamTest info configure parameters d} "-d:object,type=::C"
-  ? {ParamTest info configure parameters d1} "-d1:object,type=::C"
-  ? {ParamTest info configure parameters x} "{-x:object,1..* o}"
-  ? {ParamTest info configure parameters u} "-u:upper,slot=::ParamTest::slot::u"
-  ? {ParamTest info configure parameters us} "-us:upper,slot=::ParamTest::slot::us,1..*"
+  ? {ParamTest info lookup parameters create o} "-o:object"
+  ? {ParamTest info lookup parameters create c} "-c:class"
+  ? {ParamTest info lookup parameters create c1} "-c1:class,type=::MC"
+  ? {ParamTest info lookup parameters create d} "-d:object,type=::C"
+  ? {ParamTest info lookup parameters create d1} "-d1:object,type=::C"
+  ? {ParamTest info lookup parameters create x} "{-x:object,1..* o}"
+  ? {ParamTest info lookup parameters create u} "-u:upper,slot=::ParamTest::slot::u"
+  ? {ParamTest info lookup parameters create us} "-us:upper,slot=::ParamTest::slot::us,1..*"
   
   ? {ParamTest create p -o o} ::p
   ? {ParamTest create p -o xxx} \
@@ -2338,11 +2338,11 @@ nx::test case class-level-variable {
   # "info parameter syntax" or "info parameter definitions".
   #
 #  ? {C info parameter list a} "-a"
-  ? {C info configure parameters a} "{-a a0}"
-#  ? {C info configure syntax a} "?-a /value/?"
-  ? {C info configure syntax} "/::C/ ?-a /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {C info lookup parameters create a} "{-a a0}"
+#  ? {C info lookup syntax create a} "?-a /value/?"
+  ? {C info lookup syntax create} "/objectName/ ?-a /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
-  ? {C info configure parameters v} ""
+  ? {C info lookup parameters create v} ""
   ? {[C info slots v] definition} "::C variable -accessor none v v0"
 #  ? {C info parameter list v} ""
 #  ? {C info configure parameter v} ""
@@ -2392,8 +2392,8 @@ nx::test case delete-class-level-variable-and-property {
   ? {lsort [c1 info vars]} {a v}
 
   # ... and we expect an object parameter for a but not for v ...
-  ? {C info configure parameters a} "{-a a0}"
-  ? {C info configure parameters v} ""
+  ? {C info lookup parameters create a} "{-a a0}"
+  ? {C info lookup parameters create v} ""
   
   # ... and we expect a setter for a but not for v
   ? {c1 info lookup method a} "::nsf::classes::C::a"
@@ -2403,7 +2403,7 @@ nx::test case delete-class-level-variable-and-property {
   # the object parameter and setters for "a" will be gone
   C delete variable v
   C delete property a
-  ? {C info configure parameters a} ""
+  ? {C info lookup parameters create a} ""
   ? {c1 info lookup method a} ""
   
   # already created instance variables will continue to exist
@@ -2518,7 +2518,7 @@ nx::test case class-info-slots-types {
   }
 
   # "v" does NOT show up in "info configure parameters" 
-  ? {C info configure parameters v} ""
+  ? {C info lookup parameters create v} ""
 #  ? {C info parameter names} "noinit object-mixin class object-filter __initblock"
 
   # "v" does show up in "info slot ..." 
@@ -2533,7 +2533,7 @@ nx::test case class-info-slots-types {
   }
 
   # "p2" and "p3" do NOT show up in "info parameter" 
-  ? {D info configure parameters p*} "{-p0 200} {-p1 201}"
+  ? {D info lookup parameters create p*} "{-p0 200} {-p1 201}"
 
   # "p1" and "p2" do NOT show up in "info methods" 
   ? {D info methods} "p0 p3"
@@ -2946,17 +2946,17 @@ nx::test case parameter-get {
 	:property m:metaclass
     }
 
-    ? {C info configure parameters foo} "-foo:integer"
-    ? {nsf::parameter::info type [C info configure parameters foo]} "integer"
+    ? {C info lookup parameters create foo} "-foo:integer"
+    ? {nsf::parameter::info type [C info lookup parameters create foo]} "integer"
 
-    ? {C info configure parameters o} "-o:object,type=::nx::Object"
-    ? {nsf::parameter::info type [C info configure parameters o]} "::nx::Object"
+    ? {C info lookup parameters create o} "-o:object,type=::nx::Object"
+    ? {nsf::parameter::info type [C info lookup parameters create o]} "::nx::Object"
 
-    ? {C info configure parameters c} "-c:class"
-    ? {nsf::parameter::info type [C info configure parameters c]} "class"
+    ? {C info lookup parameters create c} "-c:class"
+    ? {nsf::parameter::info type [C info lookup parameters create c]} "class"
 
-    ? {C info configure parameters m} "-m:metaclass"
-    ? {nsf::parameter::info type [C info configure parameters m]} "metaclass"
+    ? {C info lookup parameters create m} "-m:metaclass"
+    ? {nsf::parameter::info type [C info lookup parameters create m]} "metaclass"
 }
 
 #

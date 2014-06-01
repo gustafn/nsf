@@ -5233,9 +5233,55 @@ mongo:
 - replace deprecated function mongoc_collection_delete by mongoc_collection_remove
 - tested with MongoDB v2.6.1
 
+nx.tcl:
+- removed 
+    /cls/ info configure parameters
+    /cls/ info configure
+    /cls/ info syntax
+  Use e.g. "/cls/ info lookup parameters create" instead
+
+nsf.c:
+- Let "/cls/ info mixinof -closure" return as well implicit mixin classes
+  to make it easier to determine class dependencies.
+
+  Example:
+
+     nx::Class create M0
+     nx::Class create M1 -superclass M0
+     nx::Class create M2 -superclass M1
+
+     nx::Class create C
+     nx::Class create D -superclass C
+
+     C mixin add M2
+
+     # M2 is mixed into C, and implicitely into D
+     #
+     # Since M2 is a subclass of M1, classes C and D depend as well 
+     # on M1 and M0, as seen in the heritage:
+
+     ? {C info heritage} ":M2 ::M1 ::M0 ::nx::Object"
+     ? {D info heritage} ":M2 ::M1 ::M0 ::C ::nx::Object"     
+
+     # previously, only "M2 info mixinof -closure" showed the
+     # mixin relations, even with "-closure", while M1 and M0 did not.
+
+     ? {M2 info mixinof -closure} "::C ::D"
+
+     # now these show the same relations (in this example).
+
+     ? {M1 info mixinof -closure} "::C ::D"
+     ? {M0 info mixinof -closure} "::C ::D"
+
+- adapt mixinof.test to the additional information
+- transform mixinof.test to newer style regression test with autoated object deletion
+
 ========================================================================
 TODO:
 - update migration guide/tutorial
+
+- should we change "/obj/ info lookup syntax" to return obj and method as well?
+
 - use context-object for error messages of configure/new/create/recreate
 - remove // comments
 
@@ -5273,7 +5319,7 @@ TODO:
 
        p1 info lookup syntax configure   (short form of nsf::method::get syntax [p1 info lookup method configure])
 
-     where "configure is a method name", would work the same way as "p1 info lookup syntax create|foo|..."
+     where "configure" is a method name, would work the same way as "p1 info lookup syntax create|foo|..."
      (under the assumption, we get the "right" syntax for configure).
      Similar:
 

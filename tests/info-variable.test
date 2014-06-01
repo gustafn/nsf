@@ -30,17 +30,18 @@ nx::test case configure-parameters {
     :public method foo {-force:switch age:integer {name ""}} {return $age}
   }
 
-  ? {join [Person info configure parameters] \n} \
-"-age:integer
+  ? {join [Person info lookup parameters create] \n} \
+"objectName
+-age:integer
 -name
 -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n
 -class:class,alias,method=::nsf::methods::object::class
 -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n
 __initblock:cmd,optional,noleadingdash"
 
-  ? {Person info configure parameters age} "-age:integer"
-  ? {Person info configure parameters {*a[gs]*}} "-age:integer -class:class,alias,method=::nsf::methods::object::class"
-  ? {Person info configure syntax} "/::Person/ ?-age /integer/? ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {Person info lookup parameters create age} "-age:integer"
+  ? {Person info lookup parameters create {*a[gs]*}} "-age:integer -class:class,alias,method=::nsf::methods::object::class"
+  ? {Person info lookup syntax create} "/objectName/ ?-age /integer/? ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   ? {Person info method parameters foo} {-force:switch age:integer {name ""}}
   ? {Person info method parameters foo force} "-force:switch"
@@ -55,7 +56,7 @@ __initblock:cmd,optional,noleadingdash"
   ? {nsf::parameter::info name "a b"} "a"
 
 
-  ? {lmap p [Person info configure parameters] {nsf::parameter::info default $p}} "0 0 0 0 0 0"
+  ? {lmap p [Person info lookup parameters create] {nsf::parameter::info default $p}} "0 0 0 0 0 0 0"
   ? {lmap p [Person info method parameters foo] {nsf::parameter::info default $p}} "1 0 1"
 
   nx::Class create Bar {
@@ -74,12 +75,12 @@ __initblock:cmd,optional,noleadingdash"
     :create f1
   }
 
-  ? {lmap p [Foo info configure parameters] {nsf::parameter::info name $p}} \
-      "i a b p object-mixin class object-filter __initblock"
-  ? {lmap p [Foo info configure parameters] {nsf::parameter::info default $p}} \
-      "0 0 1 1 0 0 0 0"
-  ? {lmap p [Foo info configure parameters] {nsf::parameter::info type $p}} \
-      "{} integer integer {} mixinreg class filterreg {}"
+  ? {lmap p [Foo info lookup parameters create] {nsf::parameter::info name $p}} \
+      "objectName i a b p object-mixin class object-filter __initblock"
+  ? {lmap p [Foo info lookup parameters create] {nsf::parameter::info default $p}} \
+      "0 0 0 1 1 0 0 0 0"
+  ? {lmap p [Foo info lookup parameters create] {nsf::parameter::info type $p}} \
+      "{} {} integer integer {} mixinreg class filterreg {}"
 
   ? {join [lsort [::Foo info slots]] \n} \
 "::Foo::slot::____Foo.p
@@ -91,7 +92,7 @@ __initblock:cmd,optional,noleadingdash"
 ::Foo::slot::i
 ::Foo::slot::q"
 
-  ? {::Foo info configure parameters ?} "-i:1..n -a:integer {-b:integer 123} {-p 9}"
+  ? {::Foo info lookup parameters create ?} "-i:1..n -a:integer {-b:integer 123} {-p 9}"
   ? {::Foo::slot::b definition} "::Foo property -accessor none {b:integer 123}"
   ? {::Foo::slot::i definition} "::Foo property -accessor public -incremental i:1..n"
   ? {::Foo::slot::____Foo.p definition} "::Foo variable -accessor private p 19"

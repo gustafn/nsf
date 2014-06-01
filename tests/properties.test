@@ -898,33 +898,33 @@ nx::test case extend-parent-class-info {
 
   nx::Class create Foo
   nx::Class create Bar -superclass Foo
-  ? {llength [Bar info configure parameters]} 4
+  ? {llength [Bar info lookup parameters create]} 5
   #
   # extend the superclass, subclass should become aware of this
   #
   Foo property y
-  ? {llength [Bar info configure parameters]} 5
+  ? {llength [Bar info lookup parameters create]} 6
 }
 
 nx::test case extend-parent-class-info-cache {
 
   nx::Class create Foo
   nx::Class create Bar -superclass Foo
-  ? {llength [Bar info configure parameters]} 4
+  ? {llength [Bar info lookup parameters create]} 5
   #
   # Let Bar cache the objectparameters, and extend later the
   # superclass
   #
   Bar new
   Foo property y
-  ? {llength [Bar info configure parameters]} 5
+  ? {llength [Bar info lookup parameters create]} 6
 }
 
 nx::test case extend-parent-class-info-cache-configure {
 
   nx::Class create Foo
   nx::Class create Bar -superclass Foo
-  ? {llength [Bar info configure parameters]} 4
+  ? {llength [Bar info lookup parameters create]} 5
   #
   # Let Bar cache the objectparameters, and extend later the
   # superclass
@@ -941,19 +941,19 @@ nx::test case extend-class-mixin-info {
   nx::Class create Foo -mixin Baz
   nx::Class create Bar -mixin Foo
   Bar create bar; # cache becomes hot!
-  ? {llength [Bar info configure parameters]} 4
+  ? {llength [Bar info lookup parameters create]} 5
 
   Foo property y
-  ? {llength [Bar info configure parameters]} 5
+  ? {llength [Bar info lookup parameters create]} 6
 
   Baz property z
-  ? {llength [Bar info configure parameters]} 6
+  ? {llength [Bar info lookup parameters create]} 7
 
   Baz delete property z
-  ? {llength [Bar info configure parameters]} 5
+  ? {llength [Bar info lookup parameters create]} 6
 
   Foo delete property y
-  ? {llength [Bar info configure parameters]} 4
+  ? {llength [Bar info lookup parameters create]} 5
 
 }
 
@@ -985,28 +985,31 @@ nx::test case dynamic-transitive-mixin-info {
   nx::Class create Foo
   nx::Class create Bar
   nx::Class create Baz
+
   Bar create bar; # cache object parameters in class Bar
   Baz create baz; # cache object parameters in class Baz
-  ? {llength [Bar info configure parameters]} 4
+
+  ? {llength [Bar info lookup parameters create]} 5
 
   Foo property y
-  ? {llength [Bar info configure parameters]} 4
+  ? {llength [Bar info lookup parameters create]} 5
 
   Bar mixin add Foo
-  ? {llength [Bar info configure parameters]} 5
+  ? {llength [Bar info lookup parameters create]} 6
   ? {bar configure -y 1} ""
 
-  ? {llength [Baz info configure parameters]} 4
+  ? {llength [Baz info lookup parameters create]} 5
   Baz mixin add Bar
-  ? {llength [Baz info configure parameters]} 5
+  ? {llength [Baz info lookup parameters create]} 6
 
   Foo property z
-  ? {llength [Baz info configure parameters]} 6
+  ? {llength [Baz info lookup parameters create]} 7
   ? {baz configure -z 1} ""
   ? {bar configure -z 1} ""
 
 }
 
+nx::test configure -count 1
 nx::test case indirect-transitive-mixin-info {
 
   nx::Class create M0
@@ -1022,29 +1025,61 @@ nx::test case indirect-transitive-mixin-info {
   M1 create m1
   M2 create m2
 
-  ? {llength [C info configure parameters]} 4
-  ? {llength [D info configure parameters]} 4
-  ? {llength [M0 info configure parameters]} 4
-  ? {llength [M1 info configure parameters]} 4
-  ? {llength [M2 info configure parameters]} 4
+  ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} "objectName object-mixin class object-filter __initblock"
+  set base [llength [lmap p [C info lookup parameters create] {nsf::parameter::info name $p}]]
+
+  ? {llength [C info lookup parameters create]} $base
+  ? {llength [D info lookup parameters create]} $base
+  ? {llength [M0 info lookup parameters create]} $base
+  ? {llength [M1 info lookup parameters create]} $base
+  ? {llength [M2 info lookup parameters create]} $base
 
   M0 property x
 
-  ? {llength [M0 info configure parameters]} 5
-  ? {llength [M1 info configure parameters]} 5
-  ? {llength [M2 info configure parameters]} 5
+  ? {llength [M0 info lookup parameters create]} [expr {$base + 1}]
+  ? {llength [M1 info lookup parameters create]} [expr {$base + 1}]
+  ? {llength [M2 info lookup parameters create]} [expr {$base + 1}]
 
   C mixin add M2
 
-  ? {llength [C info configure parameters]} 5
-  ? {llength [D info configure parameters]} 5
+  ? {C info heritage} "::M2 ::M1 ::M0 ::nx::Object"
+  ? {D info heritage} "::M2 ::M1 ::M0 ::C ::nx::Object"
 
+  ? {M2 info mixinof} "::C"
+  ? {M2 info mixinof -closure} "::C ::D"
+
+  ? {M1 info mixinof} ""
+  ? {M1 info mixinof -closure} "::C ::D"
+
+  ? {M0 info mixinof} ""
+  ? {M0 info mixinof -closure} "::C ::D"
+
+  ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} "objectName x object-mixin class object-filter __initblock"
+
+  ? {llength [C info lookup parameters create]} [expr {$base + 1}]
+  ? {llength [D info lookup parameters create]} [expr {$base + 1}]
+
+  puts stderr =========-M1-property
   M1 property y
-  ? {llength [C info configure parameters]} 6
-  ? {llength [D info configure parameters]} 6
-  ? {llength [M0 info configure parameters]} 5
-  ? {llength [M1 info configure parameters]} 6
-  ? {llength [M2 info configure parameters]} 6
+  puts stderr =========
+  ? {C info heritage} "::M2 ::M1 ::M0 ::nx::Object"
+
+  #::nsf::parameter:invalidate::classcache ::C
+
+  ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} \
+      "objectName y x object-mixin class object-filter __initblock"
+
+  ? {lmap p [M0 info lookup parameters create] {nsf::parameter::info name $p}} \
+      "objectName x object-mixin class object-filter __initblock"
+
+  ? {lmap p [M1 info lookup parameters create] {nsf::parameter::info name $p}} \
+      "objectName y x object-mixin class object-filter __initblock"
+
+  ? {llength [C info lookup parameters create]} [expr {$base + 2}]
+  ? {llength [D info lookup parameters create]} [expr {$base + 2}]
+  ? {llength [M0 info lookup parameters create]} [expr {$base + 1}]
+  ? {llength [M1 info lookup parameters create]} [expr {$base + 2}]
+  ? {llength [M2 info lookup parameters create]} [expr {$base + 2}]
 }
 
 
