@@ -21,7 +21,19 @@ namespace eval ::nx {
 		nsf::log warn "$obj has no method \"$w\""
 		return
 	    }
-	    nsf::log info "$obj $w [nsf::cmd::info syntax -context $obj $h]"
+	    set origin [nsf::cmd::info origin $h]
+	    if {$origin eq ""} {
+		#
+		# Since "info object ..." is not a true ensemble, we
+		# have to use the definition handle.
+		#
+		set origin [nsf::cmd::info definitionhandle $h]
+	    }
+	    if {[nsf::is object $origin]} {
+		nsf::log info "$obj $w [join [lsort [nsf::cmd::info submethods $origin]] |] ..."
+	    } else {
+		nsf::log info "$obj $w [nsf::cmd::info syntax -context $obj $h]"
+	    }
 	    return
 	}
 	#
@@ -41,5 +53,9 @@ nx::help nx::Object create
 nx::help nx::Object new
 nx::help nx::Object newx
 nx::help nx::Object info
+nx::help nx::Object info precedence
 nx::help nx::Object info vars
+nx::help nx::Object info object
+nx::help nx::Object info object mixin
+nx::help nx::Object info object methods
 nx::help nsf::cmd::info 
