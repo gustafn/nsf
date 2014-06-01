@@ -8,275 +8,281 @@ nx::test configure -count 100
 ###########################################
 # testing simple per object mixins
 ###########################################
-nx::Class create A
-nx::Object create o -object-mixin A
-? {o object mixin get} ::A
-? {o info object mixin classes} ::A
-? {A info mixinof} ::o
+nx::test case simple-pom {
 
-o destroy
-? {A info mixinof} ""
+  nx::Class create A
+  nx::Object create o -object-mixin A
 
-A destroy
+  ? {o object mixin get} ::A
+  ? {o info object mixin classes} ::A
+  ? {A info mixinof} ::o
+
+  o destroy
+  ? {A info mixinof} ""
+}
 
 ###########################################
 # testing transitive per object mixins
 ###########################################
+nx::test case transitive-pom {
 
-nx::Class create B 
-nx::Class create C -superclass B
+  nx::Class create B 
+  nx::Class create C -superclass B
 
-nx::Class create M 
-B mixin set M
+  nx::Class create M 
+  B mixin set M
 
-nx::Object create o -object-mixin C
-nx::Object create o1 -object-mixin B
-? {C info mixinof} ::o
-? {lsort [B info mixinof -closure]} "::o ::o1"
-? {lsort [B info mixinof -closure ::o1]} "::o1"
-? {lsort [B info mixinof -closure ::o*]} "::o ::o1"
-? {lsort [C info mixinof -closure ::o*]} "::o"
-# A class is mixed into a per-object mixin class
-? {lsort [M info mixinof -closure ::o*]} "::o ::o1"
-? {lsort [M info mixinof -scope object]} ""
+  nx::Object create o -object-mixin C
+  nx::Object create o1 -object-mixin B
 
-M destroy
-B destroy
-C destroy
-::o destroy
-::o1 destroy
+  ? {C info mixinof} ::o
+
+  ? {lsort [B info mixinof -closure]} "::o ::o1"
+  ? {lsort [B info mixinof -closure ::o1]} "::o1"
+  ? {lsort [B info mixinof -closure ::o*]} "::o ::o1"
+  ? {lsort [C info mixinof -closure ::o*]} "::o"
+
+  # A class is mixed into a per-object mixin class
+
+  ? {lsort [M info mixinof -closure ::o*]} "::o ::o1"
+  ? {lsort [M info mixinof -scope object]} ""
+}
 
 ###########################################
 # testing per object mixins with redefinition
 ###########################################
-nx::Class create M {:method foo args {puts x;next}}
-nx::Object create o -object-mixin M 
+nx::test case recreate-mixin-class {
 
-? {o info object mixin classes} ::M
-? {o info precedence} "::M ::nx::Object"
-? {o info lookup method foo} "::nsf::classes::M::foo"
+  nx::Class create M {:method foo args {puts x;next}}
+  nx::Object create o -object-mixin M 
 
-nx::Class create M {:method foo args next}
-? {o info object mixin classes} ::M
-? {o info precedence} "::M ::nx::Object"
-? {o info lookup method foo} "::nsf::classes::M::foo"
+  ? {o info object mixin classes} ::M
+  ? {o info precedence} "::M ::nx::Object"
+  ? {o info lookup method foo} "::nsf::classes::M::foo"
 
-M destroy
-? {o info object mixin classes} ""
-? {o info precedence} "::nx::Object"
-? {o info lookup method foo} ""
+  nx::Class create M {:method foo args next}
+  ? {o info object mixin classes} ::M
+  ? {o info precedence} "::M ::nx::Object"
+  ? {o info lookup method foo} "::nsf::classes::M::foo"
 
-o destroy
+  M destroy
+  ? {o info object mixin classes} ""
+  ? {o info precedence} "::nx::Object"
+  ? {o info lookup method foo} ""
+}
 
 ###########################################
 # testing simple per class mixins
 ###########################################
-nx::test case pcm
-nx::Class create A
-nx::Class create B -mixin A
-nx::Class create C -superclass B
-C create c1
+nx::test case pcm {
 
-? {B mixin get} ::A
-? {B info mixin classes} ::A
-? {A info mixinof} ::B
-? {c1 info precedence} "::A ::C ::B ::nx::Object"
+  nx::Class create A
+  nx::Class create B -mixin A
+  nx::Class create C -superclass B
+  C create c1
 
-B destroy
-? {A info mixinof} ""
-? {c1 info precedence} "::C ::nx::Object"
+  ? {B mixin get} ::A
+  ? {B info mixin classes} ::A
+  ? {A info mixinof} ::B
+  ? {c1 info precedence} "::A ::C ::B ::nx::Object"
 
-A destroy
-C destroy 
-c1 destroy
+  B destroy
+  ? {A info mixinof} ""
+  ? {c1 info precedence} "::C ::nx::Object"
+}
 
 ###########################################
 # testing simple per class mixins with guards
 ###########################################
-nx::test case pcm2
-nx::Class create M1
-nx::Class create M2
-nx::Class create X
-nx::Class create A -mixin {M1 M2 X}
-A mixin guard M1 "test"
-nx::Class create B -superclass A
-? {A info mixin classes M2} ::M2
-? {A info mixin classes M*} "::M1 ::M2"
-? {A info mixin classes -guards} "{::M1 -guard test} ::M2 ::X"
-? {B info mixin classes} ""
-? {B info mixin classes -closure} "::M1 ::M2 ::X"
-? {B info mixin classes -closure M2} ::M2
-? {B info mixin classes -closure M*} "::M1 ::M2"
-? {B info mixin classes -closure -guards} "{::M1 -guard test} ::M2 ::X"
-? {B info mixin classes -closure -guards M1} "{::M1 -guard test}"
-? {B info mixin classes -closure -guards M*} "{::M1 -guard test} ::M2"
-A destroy
-B destroy
-X destroy
-M1 destroy
-M2 destroy
+nx::test case pcm2 {
+
+  nx::Class create M1
+  nx::Class create M2
+  nx::Class create X
+  nx::Class create A -mixin {M1 M2 X}
+  A mixin guard M1 "test"
+  nx::Class create B -superclass A
+
+  ? {A info mixin classes M2} ::M2
+  ? {A info mixin classes M*} "::M1 ::M2"
+  ? {A info mixin classes -guards} "{::M1 -guard test} ::M2 ::X"
+  ? {B info mixin classes} ""
+  ? {B info mixin classes -closure} "::M1 ::M2 ::X"
+  ? {B info mixin classes -closure M2} ::M2
+  ? {B info mixin classes -closure M*} "::M1 ::M2"
+  ? {B info mixin classes -closure -guards} "{::M1 -guard test} ::M2 ::X"
+  ? {B info mixin classes -closure -guards M1} "{::M1 -guard test}"
+  ? {B info mixin classes -closure -guards M*} "{::M1 -guard test} ::M2"
+}
 
 ###########################################
 # testing transitive per class mixins
 ###########################################
-nx::test case trans-pcm1
-nx::Class create A
-nx::Class create B -mixin A
-nx::Class create C -superclass B
-A mixin set [nx::Class create M]
+nx::test case trans-pcm1 {
 
-A create a1
-B create b1
-C create c1
+  nx::Class create A
+  nx::Class create B -mixin A
+  nx::Class create C -superclass B
+  A mixin set [nx::Class create M]
 
-? {B mixin get} ::A
-? {B info mixin classes} ::A
-? {A info mixinof -scope class} ::B
-? {a1 info precedence} "::M ::A ::nx::Object"
-? {b1 info precedence} "::M ::A ::B ::nx::Object"
-? {c1 info precedence} "::M ::A ::C ::B ::nx::Object"
+  A create a1
+  B create b1
+  C create c1
 
-? {M info mixinof -scope class} "::A"
-# since M is an instmixin of A and A is a instmixin of B,
-# M is a instmixin of B as well, and of its subclasses
-? {M info mixinof -scope class -closure} "::A ::B ::C"
-? {A info mixinof -scope class} "::B"
-? {A info mixinof -scope class -closure} "::B ::C"
-? {B info mixinof -scope class} ""
-? {B info mixinof -scope class -closure} ""
+  ? {B mixin get} ::A
+  ? {B info mixin classes} ::A
+  ? {A info mixinof -scope class} ::B
+  ? {a1 info precedence} "::M ::A ::nx::Object"
+  ? {b1 info precedence} "::M ::A ::B ::nx::Object"
+  ? {c1 info precedence} "::M ::A ::C ::B ::nx::Object"
 
-# and now destroy mixin classes
-M destroy
-? {a1 info precedence} "::A ::nx::Object"
-? {b1 info precedence} "::A ::B ::nx::Object"
-? {c1 info precedence} "::A ::C ::B ::nx::Object"
+  ? {M info mixinof -scope class} "::A"
+  # since M is an instmixin of A and A is a instmixin of B,
+  # M is a instmixin of B as well, and of its subclasses
+  ? {M info mixinof -scope class -closure} "::A ::B ::C"
+  ? {A info mixinof -scope class} "::B"
+  ? {A info mixinof -scope class -closure} "::B ::C"
+  ? {B info mixinof -scope class} ""
+  ? {B info mixinof -scope class -closure} ""
 
-B destroy
-? {A info mixinof -scope class} ""
-? {c1 info precedence} "::C ::nx::Object"
+  # and now destroy mixin classes
+  M destroy
+  ? {a1 info precedence} "::A ::nx::Object"
+  ? {b1 info precedence} "::A ::B ::nx::Object"
+  ? {c1 info precedence} "::A ::C ::B ::nx::Object"
 
-foreach o {A C a1 b1 c1} { $o destroy }
-
-
-###########################################
-# testing transitive per class mixins with subclasses
-###########################################
-nx::test case trans-pcm2
-nx::Class create X
-nx::Class create D
-nx::Class create C -superclass D
-nx::Class create A -mixin C
-nx::Class create B -superclass A
-B create b1
-
-? {C info mixinof -scope class -closure} "::A ::B"
-? {D info mixinof -scope class -closure} ""
-? {A info mixinof -scope class -closure} ""
-? {B info mixinof -scope class -closure} ""
-? {X info mixinof -scope class -closure} ""
-D mixin set X
-? {C info mixinof -scope class -closure} "::A ::B"
-? {D info mixinof -scope class -closure} ""
-? {A info mixinof -scope class -closure} ""
-? {B info mixinof -scope class -closure} ""
-? {X info mixinof -scope class -closure} "::D ::C ::A ::B"
-? {b1 info precedence} "::C ::X ::D ::B ::A ::nx::Object"
-B create b2
-? {b2 info precedence} "::C ::X ::D ::B ::A ::nx::Object"
-
-foreach o {X D C A B b1 b2} {$o destroy}
-
-###########################################
-# testing transitive per class mixins with subclasses
-###########################################
-nx::test case trans-pcm3
-nx::Class create A3 -superclass [nx::Class create A2 -superclass [nx::Class create A1]]
-nx::Class create B3 -superclass [nx::Class create B2 -superclass [nx::Class create B1 -superclass [nx::Class create B0]]]
-nx::Class create C3 -superclass [nx::Class create C2 -superclass [nx::Class create C1]]
-
-A2 mixin set B2
-B1 mixin set C2
-
-? {A1 info mixinof -scope class -closure} ""
-? {A2 info mixinof -scope class -closure} ""
-? {A3 info mixinof -scope class -closure} ""
-
-? {B0 info mixinof -scope class -closure} ""
-? {B1 info mixinof -scope class -closure} ""
-? {B2 info mixinof -scope class -closure} "::A2 ::A3"
-? {B3 info mixinof -scope class -closure} ""
-
-? {C1 info mixinof -scope class -closure} ""
-? {C2 info mixinof -scope class -closure} "::B1 ::B2 ::B3 ::A2 ::A3"
-? {C3 info mixinof -scope class -closure} ""
-
-foreach o {A1 A2 A3 B0 B1 B2 B3 C1 C2 C3} {$o destroy}
-
-###########################################
-# testing transitive per class mixins with destroy
-###########################################
-nx::test case pcm-trans-destroy-A
-nx::Class create A -mixin [nx::Class create M]
-nx::Class create B -mixin A
-nx::Class create C -superclass B
-
-A create a1
-B create b1
-C create c1
-
-? {B mixin get} ::A
-? {B info mixin classes} ::A
-? {A info mixinof -scope class} ::B
-? {a1 info precedence} "::M ::A ::nx::Object"
-? {b1 info precedence} "::M ::A ::B ::nx::Object"
-? {c1 info precedence} "::M ::A ::C ::B ::nx::Object"
-
-# and now destroy A
-A destroy
-? {a1 info precedence} "::nx::Object"
-? {b1 info precedence} "::B ::nx::Object"
-? {c1 info precedence} "::C ::B ::nx::Object"
-
-? {M info mixinof} ""
-? {M info mixinof -closure} ""
-
-B destroy
-? {M info mixinof -scope class} ""
-? {c1 info precedence} "::C ::nx::Object"
-
-foreach o {M C a1 b1 c1} { $o destroy }
-
-###########################################
-# testing transitive per class mixins with destroy
-###########################################
-nx::test case pcm-trans-destroy-B
-nx::Class create A -mixin [nx::Class create M]
-nx::Class create B -mixin A
-nx::Class create C -superclass B
-
-A create a1
-B create b1
-C create c1
-
-? {B mixin get} ::A
-? {B info mixin classes} ::A
-? {A info mixinof -scope class} ::B
-? {a1 info precedence} "::M ::A ::nx::Object"
-? {b1 info precedence} "::M ::A ::B ::nx::Object"
-? {c1 info precedence} "::M ::A ::C ::B ::nx::Object"
-
-B destroy
-? {a1 info precedence} "::M ::A ::nx::Object"
-? {b1 info precedence} "::nx::Object"
-? {c1 info precedence} "::C ::nx::Object"
-
-? {M info mixinof -scope class} "::A"
-? {M info mixinof -scope class -closure} "::A"
-? {A info mixinof -scope class} ""
-
-foreach o {M C a1 b1 c1} {
-  $o destroy
+  B destroy
+  ? {A info mixinof -scope class} ""
+  ? {c1 info precedence} "::C ::nx::Object"
 }
+
+###########################################
+# testing transitive per class mixins with subclasses
+###########################################
+nx::test case trans-pcm2 {
+
+  nx::Class create X
+  nx::Class create D
+  nx::Class create C -superclass D
+  nx::Class create A -mixin C
+  nx::Class create B -superclass A
+  B create b1
+
+  # ::C and ::D come to ::A and B as mixin classes
+  ? {A info heritage} "::C ::D ::nx::Object"
+  ? {B info heritage} "::C ::D ::A ::nx::Object"
+ 
+  ? {C info mixinof -scope class -closure} "::A ::B"
+  ? {D info mixinof -scope class -closure} "::A ::B"
+  ? {A info mixinof -scope class -closure} ""
+  ? {B info mixinof -scope class -closure} ""
+  ? {X info mixinof -scope class -closure} ""
+
+  D mixin set X
+  ? {C info mixinof -scope class -closure} "::A ::B"
+  ? {D info mixinof -scope class -closure} "::A ::B"
+  ? {A info mixinof -scope class -closure} ""
+  ? {B info mixinof -scope class -closure} ""
+  ? {X info mixinof -scope class -closure} "::D ::C ::A ::B"
+  ? {b1 info precedence} "::C ::X ::D ::B ::A ::nx::Object"
+  B create b2
+  ? {b2 info precedence} "::C ::X ::D ::B ::A ::nx::Object"
+}
+
+
+###########################################
+# testing transitive per class mixins with subclasses
+###########################################
+nx::test case trans-pcm3 {
+  nx::Class create A3 -superclass [nx::Class create A2 -superclass [nx::Class create A1]]
+  nx::Class create B3 -superclass [nx::Class create B2 -superclass [nx::Class create B1 -superclass [nx::Class create B0]]]
+  nx::Class create C3 -superclass [nx::Class create C2 -superclass [nx::Class create C1]]
+
+  A2 mixin set B2
+  B1 mixin set C2
+
+  ? {A1 info mixinof -scope class -closure} ""
+  ? {A2 info mixinof -scope class -closure} ""
+  ? {A3 info mixinof -scope class -closure} ""
+
+  ? {A1 info heritage} "::nx::Object"
+  ? {A2 info heritage} "::B2 ::C2 ::C1 ::B1 ::B0 ::A1 ::nx::Object"
+  ? {A3 info heritage} "::B2 ::C2 ::C1 ::B1 ::B0 ::A2 ::A1 ::nx::Object"
+
+  ? {B0 info mixinof -scope class -closure} "::A2 ::A3"
+  ? {B1 info mixinof -scope class -closure} "::A2 ::A3"
+  ? {B2 info mixinof -scope class -closure} "::A2 ::A3"
+  ? {B3 info mixinof -scope class -closure} ""
+
+  ? {C1 info mixinof -scope class -closure} "::B1 ::B2 ::B3 ::A2 ::A3"
+  ? {C2 info mixinof -scope class -closure} "::B1 ::B2 ::B3 ::A2 ::A3"
+  ? {C3 info mixinof -scope class -closure} ""
+}
+
+
+###########################################
+# testing transitive per class mixins with destroy
+###########################################
+nx::test case pcm-trans-destroy-A {
+  nx::Class create A -mixin [nx::Class create M]
+  nx::Class create B -mixin A
+  nx::Class create C -superclass B
+
+  A create a1
+  B create b1
+  C create c1
+
+  ? {B mixin get} ::A
+  ? {B info mixin classes} ::A
+  ? {A info mixinof -scope class} ::B
+  ? {a1 info precedence} "::M ::A ::nx::Object"
+  ? {b1 info precedence} "::M ::A ::B ::nx::Object"
+  ? {c1 info precedence} "::M ::A ::C ::B ::nx::Object"
+
+  # and now destroy A
+  A destroy
+  ? {a1 info precedence} "::nx::Object"
+  ? {b1 info precedence} "::B ::nx::Object"
+  ? {c1 info precedence} "::C ::B ::nx::Object"
+
+  ? {M info mixinof} ""
+  ? {M info mixinof -closure} ""
+
+  B destroy
+  ? {M info mixinof -scope class} ""
+  ? {c1 info precedence} "::C ::nx::Object"
+}
+
+###########################################
+# testing transitive per class mixins with destroy
+###########################################
+nx::test case pcm-trans-destroy-B {
+
+  nx::Class create A -mixin [nx::Class create M]
+  nx::Class create B -mixin A
+  nx::Class create C -superclass B
+
+  A create a1
+  B create b1
+  C create c1
+
+  ? {B mixin get} ::A
+  ? {B info mixin classes} ::A
+  ? {A info mixinof -scope class} ::B
+  ? {a1 info precedence} "::M ::A ::nx::Object"
+  ? {b1 info precedence} "::M ::A ::B ::nx::Object"
+  ? {c1 info precedence} "::M ::A ::C ::B ::nx::Object"
+
+  B destroy
+  ? {a1 info precedence} "::M ::A ::nx::Object"
+  ? {b1 info precedence} "::nx::Object"
+  ? {c1 info precedence} "::C ::nx::Object"
+
+  ? {M info mixinof -scope class} "::A"
+  ? {M info mixinof -scope class -closure} "::A"
+  ? {A info mixinof -scope class} ""
+}
+
 
 ###########################################
 # testing simple per class mixins with redefinition
@@ -353,130 +359,164 @@ nx::test case pcm-redefine-soft {
 # test of recreate with same superclass, 
 # with softrecreate off
 ###########################################
-nx::test case precedence
-::nsf::configure softrecreate false
-nx::Class create O
-nx::Class create A -superclass O
-nx::Class create B -superclass A
-B create b1
-A create a1
-O create o1
-? {A info superclass} "::O"
-? {B info heritage} "::A ::O ::nx::Object"
-? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
-? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
-? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::nx::Object"
-? {a1 info precedence} "::A ::O ::nx::Object"
-? {b1 info precedence} "::B ::A ::O ::nx::Object"
-# we recreate the class new, with the same superclass
-nx::Class create A -superclass O
-? {A info superclass} "::O"
-? {B info heritage} "::nx::Object"
-? {list [A info subclass]   [B info subclass]   [O info subclass]}   "{} {} ::A"
-? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::nx::Object ::nx::Object"
-? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::nx::Object ::B ::O"
-? {o1 info precedence} "::O ::nx::Object"
-? {a1 info precedence} "::nx::Object"
-? {b1 info precedence} "::B ::nx::Object"
-foreach o {A O B a1 b1 o1} {$o destroy} 
+nx::test case precedence {
+
+  ::nsf::configure softrecreate false
+  nx::Class create O
+  nx::Class create A -superclass O
+  nx::Class create B -superclass A
+
+  B create b1
+  A create a1
+  O create o1
+
+  ? {A info superclass} "::O"
+  ? {B info heritage} "::A ::O ::nx::Object"
+  ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+  ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
+  ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+
+  ? {o1 info precedence} "::O ::nx::Object"
+  ? {a1 info precedence} "::A ::O ::nx::Object"
+  ? {b1 info precedence} "::B ::A ::O ::nx::Object"
+
+  # we recreate the class new, with the same superclass
+  nx::Class create A -superclass O
+
+  ? {A info superclass} "::O"
+  ? {B info heritage} "::nx::Object"
+  ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "{} {} ::A"
+  ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::nx::Object ::nx::Object"
+  ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::nx::Object ::B ::O"
+  ? {o1 info precedence} "::O ::nx::Object"
+  ? {a1 info precedence} "::nx::Object"
+  ? {b1 info precedence} "::B ::nx::Object"
+}
 
 ###########################################
 # test of recreate with different superclass 
 # with softrecreate on
 ###########################################
-nx::test case alternate-precedence
-::nsf::configure softrecreate false
-nx::Class create O
-nx::Class create A -superclass O
-nx::Class create B -superclass A
-B create b1
-A create a1
-O create o1
-? {A info superclass} "::O"
-? {B info heritage}   "::A ::O ::nx::Object"
-? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
-? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
-? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::nx::Object"
-? {a1 info precedence} "::A ::O ::nx::Object"
-? {b1 info precedence} "::B ::A ::O ::nx::Object"
-# we recreate the class new, with a different superclass
-nx::Class create A
-? {A info superclass} "::nx::Object"
-? {B info heritage}   "::nx::Object"
-? {list [A info subclass]   [B info subclass]   [O info subclass]}   "{} {} {}"
-? {list [A info superclass] [B info superclass] [O info superclass]} "::nx::Object ::nx::Object ::nx::Object"
-? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::nx::Object ::B ::O"
-? {o1 info precedence} "::O ::nx::Object"
-? {a1 info precedence} "::nx::Object"
-? {b1 info precedence} "::B ::nx::Object"
-foreach o {A O B a1 b1 o1} {$o destroy} 
+nx::test case alternate-precedence {
 
+  ::nsf::configure softrecreate false
+  nx::Class create O
+  nx::Class create A -superclass O
+  nx::Class create B -superclass A
+  B create b1
+  A create a1
+  O create o1
+
+  ? {A info superclass} "::O"
+  ? {B info heritage}   "::A ::O ::nx::Object"
+
+  ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+  ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
+  ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+
+  ? {o1 info precedence} "::O ::nx::Object"
+  ? {a1 info precedence} "::A ::O ::nx::Object"
+  ? {b1 info precedence} "::B ::A ::O ::nx::Object"
+
+  # we recreate the class new, with a different superclass
+
+  nx::Class create A
+
+  ? {A info superclass} "::nx::Object"
+  ? {B info heritage}   "::nx::Object"
+
+  ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "{} {} {}"
+  ? {list [A info superclass] [B info superclass] [O info superclass]} "::nx::Object ::nx::Object ::nx::Object"
+  ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::nx::Object ::B ::O"
+
+  ? {o1 info precedence} "::O ::nx::Object"
+  ? {a1 info precedence} "::nx::Object"
+  ? {b1 info precedence} "::B ::nx::Object"
+}
 
 ###########################################
 # test of recreate with same superclass, 
 # with softrecreate on
 ###########################################
-nx::test case recreate-precedence
-::nsf::configure softrecreate true
-nx::Class create O
-nx::Class create A -superclass O
-nx::Class create B -superclass A
-B create b1
-A create a1
-O create o1
-? {A info superclass} "::O"
-? {B info heritage} "::A ::O ::nx::Object"
-? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
-? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
-? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::nx::Object"
-? {a1 info precedence} "::A ::O ::nx::Object"
-? {b1 info precedence} "::B ::A ::O ::nx::Object"
-# we recreate the class new, with the same superclass
-nx::Class create A -superclass O
-? {A info superclass} "::O"
-? {B info heritage} "::A ::O ::nx::Object"
-? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
-? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
-? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::nx::Object"
-? {a1 info precedence} "::A ::O ::nx::Object"
-? {b1 info precedence} "::B ::A ::O ::nx::Object"
-foreach o {A O B a1 b1 o1} {$o destroy} 
+nx::test case recreate-precedence {
+
+  ::nsf::configure softrecreate true
+
+  nx::Class create O
+  nx::Class create A -superclass O
+  nx::Class create B -superclass A
+
+  B create b1
+  A create a1
+  O create o1
+
+  ? {A info superclass} "::O"
+  ? {B info heritage} "::A ::O ::nx::Object"
+
+  ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+  ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
+  ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+
+  ? {o1 info precedence} "::O ::nx::Object"
+  ? {a1 info precedence} "::A ::O ::nx::Object"
+  ? {b1 info precedence} "::B ::A ::O ::nx::Object"
+
+  # we recreate the class new, with the same superclass
+
+  nx::Class create A -superclass O
+
+  ? {A info superclass} "::O"
+  ? {B info heritage} "::A ::O ::nx::Object"
+
+  ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+  ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
+  ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+
+  ? {o1 info precedence} "::O ::nx::Object"
+  ? {a1 info precedence} "::A ::O ::nx::Object"
+  ? {b1 info precedence} "::B ::A ::O ::nx::Object"
+}
 
 ###########################################
 # test of recreate with different superclass 
 # with softrecreate on
 ###########################################
-nx::test case recreate-alternate-precedence
-::nsf::configure softrecreate true
-nx::Class create O
-nx::Class create A -superclass O
-nx::Class create B -superclass A
-B create b1
-A create a1
-O create o1
-? {B info heritage} "::A ::O ::nx::Object"
-? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
-? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
-? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::nx::Object"
-? {a1 info precedence} "::A ::O ::nx::Object"
-? {b1 info precedence} "::B ::A ::O ::nx::Object"
-# we recreate the class new, with a different superclass
-nx::Class create A
-? {A info superclass} "::nx::Object"
-? {B info heritage} "::A ::nx::Object"
-? {B info heritage} "::A ::nx::Object"
-? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} {}"
-? {list [A info superclass] [B info superclass] [O info superclass]} "::nx::Object ::A ::nx::Object"
-? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::nx::Object"
-? {a1 info precedence} "::A ::nx::Object"
-? {b1 info precedence} "::B ::A ::nx::Object"
-foreach o {A O B a1 b1 o1} {$o destroy} 
+nx::test case recreate-alternate-precedence {
+  ::nsf::configure softrecreate true
+
+  nx::Class create O
+  nx::Class create A -superclass O
+  nx::Class create B -superclass A
+  B create b1
+  A create a1
+  O create o1
+
+  ? {B info heritage} "::A ::O ::nx::Object"
+
+  ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+  ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::nx::Object"
+  ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+
+  ? {o1 info precedence} "::O ::nx::Object"
+  ? {a1 info precedence} "::A ::O ::nx::Object"
+  ? {b1 info precedence} "::B ::A ::O ::nx::Object"
+
+  # we recreate the class new, with a different superclass
+
+  nx::Class create A
+
+  ? {A info superclass} "::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+  ? {B info heritage} "::A ::nx::Object"
+
+  ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} {}"
+  ? {list [A info superclass] [B info superclass] [O info superclass]} "::nx::Object ::A ::nx::Object"
+  ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+
+  ? {o1 info precedence} "::O ::nx::Object"
+  ? {a1 info precedence} "::A ::nx::Object"
+  ? {b1 info precedence} "::B ::A ::nx::Object"
+}
 
 ###########################################
 # testing simple per object mixins
