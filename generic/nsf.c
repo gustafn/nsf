@@ -8213,6 +8213,69 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
   return rc;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * AddClassListEntriesToMixinsOfSet --
+ *
+ *    Helper function of GetAllClassMixinsOf(). Iterate over the provided
+ *    class list (mixinOfs) and add every entry to the result set. If the
+ *    entry is new, GetAllClassMixinsOf() is called recursively.
+ *
+ * Results:
+ *    1 in case the operation is finished.
+ *
+ * Side effects:
+ *    The set of classes is returned in the provided hash-table
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+AddClassListEntriesToMixinsOfSet(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
+                                 Tcl_Obj *resultSet, NsfCmdList *mixinOfs, int appendResult,
+                                 CONST char *pattern, NsfObject *matchObject)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+
+static int GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
+		    Tcl_Obj *resultSet, /*@notnull@*/ NsfClass *startCl,
+		    int isMixin, int appendResult,
+		    CONST char *pattern, NsfObject *matchObject)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+
+static int
+AddClassListEntriesToMixinsOfSet(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
+                                 Tcl_Obj *resultSet, NsfCmdList *mixinOfs, int appendResult,
+                                 CONST char *pattern, NsfObject *matchObject) {
+  NsfCmdList *m;
+
+  assert(interp);
+  assert(destTablePtr);
+  assert(resultSet);
+  assert(mixinOfs);
+
+  for (m = mixinOfs; m; m = m->nextPtr) {
+    NsfClass *cl;
+    int rc, new;
+
+    /* We must not have deleted commands in the list */
+    assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
+
+    cl = NsfGetClassFromCmdPtr(m->cmdPtr);
+    assert(cl);
+
+    rc = AddToResultSet(interp, destTablePtr, resultSet,
+                        &cl->object, &new,
+                        appendResult, pattern, matchObject);
+    if (rc) {return 1;}
+    if (new) {
+      /*fprintf(stderr, "... new mixin -closure of %s => %s\n",
+        ClassName(startCl), ClassName(cl));*/
+      rc = GetAllClassMixinsOf(interp, destTablePtr, resultSet, cl, 1,
+                               appendResult, pattern, matchObject);
+      if (rc) {return 1;}
+    }
+  }
+  return 0;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -8231,19 +8294,13 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
  *
  *----------------------------------------------------------------------
  */
-static int GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
-		    Tcl_Obj *resultSet, /*@notnull@*/ NsfClass *startCl,
-		    int isMixin, int appendResult,
-		    CONST char *pattern, NsfObject *matchObject)
-  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static int
 GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 		    Tcl_Obj *resultSet, /*@notnull@*/ NsfClass *startCl,
-		    int isMixin, int appendResult,
+		    int isPCM, int appendResult,
 		    CONST char *pattern, NsfObject *matchObject) {
   int rc = 0, new = 0;
-  NsfClass *cl;
   NsfClasses *sc;
 
   assert(interp);
@@ -8251,13 +8308,13 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
   assert(resultSet);
   assert(startCl);
 
-  /*fprintf(stderr, "startCl = %p %s, opt %p, isMixin %d\n",
-    startCl, ClassName(startCl), startCl->opt, isMixin);*/
+  /*fprintf(stderr, "GetAllClassMixinsOf startCl = %p %s, opt %p, isPCM %d\n",
+    startCl, ClassName(startCl), startCl->opt, isPCM);*/
 
   /*
-   * the startCl is a per class mixin, add it to the result set
+   * If the startCl is a per class mixin, add it to the result set
    */
-  if (isMixin) {
+  if (isPCM) {
     rc = AddToResultSet(interp, destTablePtr, resultSet,
 			&startCl->object, &new,
 			appendResult, pattern, matchObject);
@@ -8280,7 +8337,7 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
 #endif
       assert(sc->cl != startCl);
       rc = GetAllClassMixinsOf(interp, destTablePtr, resultSet,
-			       sc->cl, isMixin,
+			       sc->cl, isPCM,
 			       appendResult, pattern, matchObject);
       if (rc) {
 	return rc;
@@ -8289,31 +8346,38 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
   }
 
   /*
-   * Check, if startCl is a per-class mixin of some other classes
+   * Check, if startCl has a subclass which is a per-class mixin of some other
+   * class(es)
    */
-  if (startCl->opt) {
-    NsfCmdList *m;
+  {
+    NsfClasses *subClasses = TransitiveSubClasses(startCl), *subClass;
 
-    for (m = startCl->opt->isClassMixinOf; m; m = m->nextPtr) {
+    for (subClass = subClasses; subClass; subClass = subClass->nextPtr) {
+      NsfClass *subCl = subClass->cl;
 
-      /* we should have no deleted commands in the list */
-      assert((Tcl_Command_flags(m->cmdPtr) & CMD_IS_DELETED) == 0);
+      /*fprintf(stderr, "... check subclass = %p %s, opt %p, isPCM %d\n",
+        subCl, ClassName(subCl), subCl->opt, isPCM);*/
 
-      cl = NsfGetClassFromCmdPtr(m->cmdPtr);
-      assert(cl);
-
-      rc = AddToResultSet(interp, destTablePtr, resultSet,
-			  &cl->object, &new,
-			  appendResult, pattern, matchObject);
-      if (rc == 1) {return rc;}
-      if (new) {
-        /*fprintf(stderr, "... new\n");*/
-        rc = GetAllClassMixinsOf(interp, destTablePtr, resultSet,
-				 cl, 1,
-				 appendResult, pattern, matchObject);
-        if (rc) {return rc;}
+      if (subCl->opt && subCl->opt->isClassMixinOf) {
+        rc = AddClassListEntriesToMixinsOfSet(interp, destTablePtr, resultSet,
+                                              subCl->opt->isClassMixinOf,
+                                              appendResult, pattern, matchObject);
+        if (rc) {goto subclassExit;}
       }
     }
+
+  subclassExit:
+    if (subClasses) NsfClassListFree(subClasses);
+    if (rc) {return rc;}
+  }
+
+  /*
+   * Check, if startCl is a per-class mixin of some other classes
+   */
+  if (startCl->opt && startCl->opt->isClassMixinOf) {
+    rc = AddClassListEntriesToMixinsOfSet(interp, destTablePtr, resultSet,
+                                          startCl->opt->isClassMixinOf,
+                                          appendResult, pattern, matchObject);
   }
 
   return rc;
@@ -25400,7 +25464,7 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
    */
   if (cl->parsedParamPtr) {
     NsfClassParamPtrEpochIncr("NsfParameterInvalidateClassCacheCmd");
-    /* fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr); */
+    /*fprintf(stderr, "....  %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr);*/
     ParsedParamFree(cl->parsedParamPtr);
     cl->parsedParamPtr = NULL;
   }
@@ -25412,7 +25476,13 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
    */
   if (likely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
 
-    if (unlikely(cl->opt != NULL) && unlikely(cl->opt->isClassMixinOf != NULL)) {
+    /*fprintf(stderr, ".... the current class %s has clopt %p\n", ClassName(cl), cl->opt);*/
+
+    if (
+        1
+        /* unlikely(cl->opt != NULL) && unlikely(cl->opt->isClassMixinOf != NULL) */
+        // TODO cleanup; base case above is included here as well.
+        ) {
        Tcl_HashTable objTable, *commandTable = &objTable;
        Tcl_HashSearch hSrch;
        Tcl_HashEntry *hPtr;
@@ -25420,6 +25490,8 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
        /*
         * The current class is mixed into some other class.
         */
+       /*fprintf(stderr, ".... the current class %s is mixed into some other class\n",
+         ClassName(cl));*/
 
        Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
        MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
@@ -25432,7 +25504,7 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
          NsfClass *mixinOfClass = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
 
          if (mixinOfClass) {
-           /* fprintf(stderr, "mixinOfClass   %s\n", ClassName(mixinOfClass)); */
+           /*fprintf(stderr, "... invalidate mixinOfClass   %s\n", ClassName(mixinOfClass));*/
            if (mixinOfClass->parsedParamPtr) {
              ParsedParamFree(mixinOfClass->parsedParamPtr);
              mixinOfClass->parsedParamPtr = NULL;
