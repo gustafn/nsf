@@ -25,4 +25,4 @@ nxsh
 nxwish
 library/xotcl/xowish
 library/xotcl/doc/junk.junk
-
+doc/example-scripts/*.txt
