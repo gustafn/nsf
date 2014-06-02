@@ -130,7 +130,7 @@ fi
                                                                               
 if test "${mongo_h_ok}" = "0" ; then
       AC_MSG_ERROR([
-        Could not locate bson.h and mongo.h on your machine to build the nsf mongo interface.
+        Could not locate bson.h and mongoc.h on your machine to build the nsf mongo interface.
         ])
 fi
 
