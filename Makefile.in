@@ -287,6 +287,9 @@ libraries: libraries-pkgindex
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi;
 
+cppcheck:
+	cppcheck --enable=all generic/*.c $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS)
+
 libraries-pkgindex: pkgIndex.tcl
 	$(TCLSH) $(src_lib_dir_native)/lib/mkIndex.tcl -dir $(src_lib_dir_native)
 
