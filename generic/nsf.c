@@ -21920,12 +21920,12 @@ ListMethod(Tcl_Interp *interp,
       Tcl_Command importedCmd = GetOriginalCommand(cmd);
       return ListCmdParams(interp, importedCmd, contextObject, pattern, methodName, NSF_PARAMS_SYNTAX);
     }
-  case InfomethodsubcmdPreconditionIdx:
-    {
-#if defined(NSF_WITH_ASSERTIONS)
-      NsfProcAssertion *procs = NULL;
 
+  case InfomethodsubcmdPreconditionIdx:
+#if defined(NSF_WITH_ASSERTIONS)
       if (regObject) {
+        NsfProcAssertion *procs = NULL;
+
         if (withPer_object) {
           if (regObject->opt && regObject->opt->assertions) {
             procs = AssertionFindProcs(regObject->opt->assertions, methodName);
@@ -21940,13 +21940,13 @@ ListMethod(Tcl_Interp *interp,
       }
 #endif
       return TCL_OK;
-    }
-  case InfomethodsubcmdPostconditionIdx:
-    {
-#if defined(NSF_WITH_ASSERTIONS)
-      NsfProcAssertion *procs = NULL;
 
+
+  case InfomethodsubcmdPostconditionIdx:
+#if defined(NSF_WITH_ASSERTIONS)
       if (regObject) {
+        NsfProcAssertion *procs = NULL;
+
         if (withPer_object) {
           if (regObject->opt && regObject->opt->assertions) {
             procs = AssertionFindProcs(regObject->opt->assertions, methodName);
@@ -21961,7 +21961,7 @@ ListMethod(Tcl_Interp *interp,
       }
 #endif
       return TCL_OK;
-    }
+
   case InfomethodsubcmdSubmethodsIdx:
     {
       Tcl_Command origCmd = GetOriginalCommand(cmd);
@@ -22021,25 +22021,23 @@ ListMethod(Tcl_Interp *interp,
         Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
 
 #if defined(NSF_WITH_ASSERTIONS)
-        {
+        if (regObject) {
           NsfAssertionStore *assertions;
 
-          if (regObject) {
-            if (withPer_object) {
-              assertions = regObject->opt ? regObject->opt->assertions : NULL;
-            } else {
-              NsfClass *class = (NsfClass *)regObject;
-              assertions = class->opt ? class->opt->assertions : NULL;
-            }
+          if (withPer_object) {
+            assertions = regObject->opt ? regObject->opt->assertions : NULL;
+          } else {
+            NsfClass *class = (NsfClass *)regObject;
+            assertions = class->opt ? class->opt->assertions : NULL;
+          }
 
-            if (assertions) {
-              NsfProcAssertion *procs = AssertionFindProcs(assertions, methodName);
-              if (procs) {
-                Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-precondition", -1));
-                Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->pre));
-                Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-postcondition", -1));
-                Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->post));
-              }
+          if (assertions) {
+            NsfProcAssertion *procs = AssertionFindProcs(assertions, methodName);
+            if (procs) {
+              Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-precondition", -1));
+              Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->pre));
+              Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-postcondition", -1));
+              Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->post));
             }
           }
         }
