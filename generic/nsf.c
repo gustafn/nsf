@@ -25457,90 +25457,102 @@ cmd parameter:invalidate::classcache NsfParameterInvalidateClassCacheCmd {
 */
 static int
 NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
+  NsfClasses *subClasses;
+  NsfClasses *clPtr;
+  int isMixinOf = 0, nrSubClasses = 0;
 
   assert(interp);
   assert(cl);
 
   /*
-   * First, invalidate the cached parameters on this class (if available) and
-   * bump the epoch counter. Even when the current class does not have parsed
-   * parameters (yet), e.g. a subclass might have cached this information
-   * already.
+   * First, increment the epoch in case we have a parsedParam. The
+   * classParamPtrEpoch is just used for PER_OBJECT_PARAMETER_CACHING
    */
-  if (cl->parsedParamPtr) {
+#if defined(PER_OBJECT_PARAMETER_CACHING)
+  if (unlikely(cl->parsedParamPtr != NULL)) {
     NsfClassParamPtrEpochIncr("NsfParameterInvalidateClassCacheCmd");
-    /*fprintf(stderr, "....  %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr);*/
-    ParsedParamFree(cl->parsedParamPtr);
-    cl->parsedParamPtr = NULL;
   }
+#endif
+
+  /*
+   * Clear the cached parsedParam of the class and all its subclasses (the
+   * result of TransitiveSubClasses contains the starting class). Furthermore,
+   * make a quick check, if any of the subclasses is a class mixin of some
+   * other class.
+   */
+
+  subClasses = TransitiveSubClasses(cl);
+
+  for (clPtr = subClasses; clPtr; nrSubClasses++, clPtr = clPtr->nextPtr) {
+    NsfClass *subClass = clPtr->cl;
+
+    //fprintf(stderr, "startCl %s subcl %s\n", ClassName(cl), ClassName(subClass));
+
+    if (subClass->parsedParamPtr) {
+      ParsedParamFree(subClass->parsedParamPtr);
+      subClass->parsedParamPtr = NULL;
+    }
+    if ((subClass->opt != NULL) && unlikely(subClass->opt->isClassMixinOf != NULL)) {
+      isMixinOf = 1;
+    }
+  }
+
+#if 0
+  if (likely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
+    fprintf(stderr, "startCl %s has %d subclasses, a subclass mixed into something else: %d\n",
+            ClassName(cl), nrSubClasses,  isMixinOf);
+  }
+#endif
 
   /*
    * During lifetime, invalidations are propagated to subclasses and/or to
    * classes extended by the given mixin class. During shutdown, we avoid the
    * storm of invalidations.
+   *
+   * Furthermore: of the class is the root class of the object system
+   * (e.g. nx::Object), then all potentially involved classes are already
+   * included in the subclasses, there is no need for the expensive mixin-of
+   * computation. cross-object-system invalidation are another story,
+   * invalidation currently not supported.
    */
-  if (likely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
+  if (likely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)
+      && isMixinOf
+      && (cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
 
-    /*fprintf(stderr, ".... the current class %s has clopt %p\n", ClassName(cl), cl->opt);*/
+    Tcl_HashTable objTable, *commandTable = &objTable;
+    Tcl_HashSearch hSrch;
+    Tcl_HashEntry *hPtr;
 
-    if (
-        1
-        /* unlikely(cl->opt != NULL) && unlikely(cl->opt->isClassMixinOf != NULL) */
-        // TODO cleanup; base case above is included here as well.
-        ) {
-       Tcl_HashTable objTable, *commandTable = &objTable;
-       Tcl_HashSearch hSrch;
-       Tcl_HashEntry *hPtr;
+    /*
+     * The current class (or one of its subclasses) is mixed into some other class.
+     */
+    /*fprintf(stderr, ".... the current class %s is mixed into some other class\n",
+      ClassName(cl));*/
 
-       /*
-        * The current class is mixed into some other class.
-        */
-       /*fprintf(stderr, ".... the current class %s is mixed into some other class\n",
-         ClassName(cl));*/
+    Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
+    MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
 
-       Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-       MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
+    GetAllClassMixinsOf(interp, commandTable, Tcl_GetObjResult(interp),
+                        cl, 1, 0, NULL, NULL);
 
-       GetAllClassMixinsOf(interp, commandTable, Tcl_GetObjResult(interp),
-                           cl, 1, 0, NULL, NULL);
+    for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
+         hPtr = Tcl_NextHashEntry(&hSrch)) {
+      NsfClass *mixinOfClass = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
 
-       for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
-            hPtr = Tcl_NextHashEntry(&hSrch)) {
-         NsfClass *mixinOfClass = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
-
-         if (mixinOfClass) {
-           /*fprintf(stderr, "... invalidate mixinOfClass   %s\n", ClassName(mixinOfClass));*/
-           if (mixinOfClass->parsedParamPtr) {
-             ParsedParamFree(mixinOfClass->parsedParamPtr);
-             mixinOfClass->parsedParamPtr = NULL;
-           }
-         }
-       }
-       Tcl_DeleteHashTable(commandTable);
-       MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-
-    } else {
-      NsfClasses *subClasses = TransitiveSubClasses(cl);
-
-      if (subClasses != NULL) {
-        NsfClasses *clPtr;
-        /*
-         * The current class is NOT mixed into some other class and is just a
-         * potential superclass of some other classes. In this case, we have to
-         * invalidate cached parameters in subclasses.
-         */
-        for (clPtr = subClasses; clPtr; clPtr = clPtr->nextPtr) {
-          NsfClass *subClass = clPtr->cl;
-
-          if (subClass->parsedParamPtr) {
-            ParsedParamFree(subClass->parsedParamPtr);
-            subClass->parsedParamPtr = NULL;
-          }
+      if (mixinOfClass) {
+        /*fprintf(stderr, "... invalidate mixinOfClass   %s\n", ClassName(mixinOfClass));*/
+        if (mixinOfClass->parsedParamPtr) {
+          ParsedParamFree(mixinOfClass->parsedParamPtr);
+          mixinOfClass->parsedParamPtr = NULL;
         }
-        NsfClassListFree(subClasses);
       }
     }
+    Tcl_DeleteHashTable(commandTable);
+    MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
+
   }
+
+  NsfClassListFree(subClasses);
 
   return TCL_OK;
 }

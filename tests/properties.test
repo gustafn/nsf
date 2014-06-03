@@ -1054,7 +1054,8 @@ nx::test case indirect-transitive-mixin-info {
   ? {M0 info mixinof} ""
   ? {M0 info mixinof -closure} "::C ::D"
 
-  ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} "objectName x object-mixin class object-filter __initblock"
+  ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} \
+      "objectName x object-mixin class object-filter __initblock"
 
   ? {llength [C info lookup parameters create]} [expr {$base + 1}]
   ? {llength [D info lookup parameters create]} [expr {$base + 1}]
