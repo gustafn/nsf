@@ -305,7 +305,9 @@ static int ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
   nonnull(1) nonnull(2) nonnull(11);
 
 /* properties of objects and classes */
-static int IsBaseClass(NsfObject *cl) nonnull(1);
+static int IsRootClass(NsfClass *cl) nonnull(1) pure;
+static int IsRootMetaClass(NsfClass *cl) nonnull(1) pure;
+static int IsBaseClass(NsfObject *cl) nonnull(1) pure;
 static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) nonnull(1) nonnull(2);
 static int IsSubType(NsfClass *subcl, NsfClass *cl) nonnull(1) nonnull(2);
 static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta)
@@ -7548,7 +7550,7 @@ MixinComputeOrderFullList(Tcl_Interp *interp, NsfCmdList **mixinList,
 
     if (mCl) {
       for (pl = PrecedenceOrder(mCl); pl; pl = pl->nextPtr) {
-        if ((pl->cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
+        if (IsRootClass(pl->cl) == 0) {
           NsfClassOpt *opt = pl->cl->opt;
 
 	  /* fprintf(stderr, "find %p %s in checklist 1 %p\n",
@@ -8888,7 +8890,7 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object,
 
   pcl = PrecedenceOrder(object->cl);
   for (; pcl; pcl = pcl->nextPtr) {
-    if (withRootClass == 0 && pcl->cl->object.flags & NSF_IS_ROOT_CLASS) {
+    if (withRootClass == 0 && IsRootClass(pcl->cl)) {
       continue;
     }
     if (pattern && !Tcl_StringMatch(ClassName(pcl->cl), pattern)) {
@@ -17823,8 +17825,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
   /*
    * Remove the instance, but not for ::Class/::Object
    */
-  if ((object->flags & NSF_IS_ROOT_CLASS) == 0 &&
-      (object->flags & NSF_IS_ROOT_META_CLASS) == 0 ) {
+  if (IsBaseClass(object) == 0) {
 
     if (!softrecreate) {
       RemoveInstance(object, object->cl);
@@ -18357,7 +18358,7 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
       /*
        * Is this already the root metaclass ?
        */
-      if (mcl->object.cl->object.flags & NSF_IS_ROOT_META_CLASS) {
+      if (IsRootMetaClass(mcl->object.cl)) {
         return mcl->object.cl;
       }
     }
@@ -18371,11 +18372,11 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
          sc->cl->object.flags & NSF_IS_ROOT_META_CLASS,
          sc->cl->object.flags & NSF_IS_ROOT_CLASS); */
       if (isMeta) {
-        if (sc->cl->object.flags & NSF_IS_ROOT_META_CLASS) {
+        if (IsRootMetaClass(sc->cl)) {
           return sc->cl;
 	}
       } else {
-        if (sc->cl->object.flags & NSF_IS_ROOT_CLASS) {
+        if (IsRootClass(sc->cl)) {
           /* fprintf(stderr, "found root class %p %s\n", sc->cl, ClassName(sc->cl)); */
 	  return sc->cl;
 	}
@@ -18501,7 +18502,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
     /*
      * We do not have to reclassing in case, cl is a root class
      */
-    if ((cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
+    if (IsRootClass(cl) == 0) {
       Tcl_HashTable *instanceTablePtr = &cl->instances;
       Tcl_HashSearch hSrch;
       Tcl_HashEntry *hPtr;
@@ -18552,7 +18553,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
        * class as superClasses
        * -> don't do that for Object itself!
        */
-      if (subClass->super == 0 && (cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
+      if (subClass->super == 0 && IsRootClass(cl) == 0) {
 	/* fprintf(stderr,"subClass %p %s baseClass %p %s\n",
 	   cl, ClassName(cl), baseClass, ClassName(baseClass)); */
 	AddSuper(subClass, baseClass);
@@ -18989,7 +18990,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
 /*
  *----------------------------------------------------------------------
- * HasRootMetaFlag --
+ * IsRootMetaClass --
  *
  *    Check, of the class has the Root meta class flag set.
  *
@@ -19001,10 +19002,8 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
  *
  *----------------------------------------------------------------------
  */
-static int HasRootMetaFlag(NsfClass *cl) nonnull(1);
-
 static int
-HasRootMetaFlag(NsfClass *cl) {
+IsRootMetaClass(NsfClass *cl) {
 
   assert(cl);
 
@@ -19030,8 +19029,31 @@ IsBaseClass(NsfObject *object) {
 
   assert(object);
 
-  return object->flags & (NSF_IS_ROOT_META_CLASS|NSF_IS_ROOT_CLASS);
+  return object->flags & (NSF_IS_ROOT_CLASS|NSF_IS_ROOT_META_CLASS);
 }
+
+/*
+ *----------------------------------------------------------------------
+ * IsRootClass --
+ *
+ *    Check, whether the object is a root class.
+ *
+ * Results:
+ *    Boolean
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+IsRootClass(NsfClass *cls) {
+
+  assert(cls);
+
+  return cls->object.flags & (NSF_IS_ROOT_CLASS);
+}
+
 
 /*
  *----------------------------------------------------------------------
@@ -19056,13 +19078,13 @@ IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins) {
   assert(cl);
 
   /* is the class the most general meta-class? */
-  if (HasRootMetaFlag(cl)) {
+  if (IsRootMetaClass(cl)) {
     return 1;
   }
 
   /* is the class a subclass of a meta-class? */
   for (pl = PrecedenceOrder(cl); pl; pl = pl->nextPtr) {
-    if (HasRootMetaFlag(pl->cl)) {
+    if (IsRootMetaClass(pl->cl)) {
       return 1;
     }
   }
@@ -25517,7 +25539,7 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
    */
   if (likely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)
       && isMixinOf
-      && (cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
+      && (IsRootClass(cl)) == 0) {
 
     Tcl_HashTable objTable, *commandTable = &objTable;
     Tcl_HashSearch hSrch;

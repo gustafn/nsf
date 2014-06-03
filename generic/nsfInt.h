@@ -76,10 +76,22 @@
 #  define likely(x) (x)
 #endif
 
+#if __GNUC_PREREQ(2, 96)
+# define pure __attribute__((pure))
+#else
+# define pure
+#endif
+
 #if __GNUC_PREREQ(3, 3)
 # define nonnull(ARGS) __attribute__((__nonnull__(ARGS)))
 #else
 # define nonnull(ARGS)
+#endif
+
+#if __GNUC_PREREQ(4, 9)
+# define returns_nonnull __attribute__((returns_nonnull))
+#else
+# define returns_nonnull
 #endif
 
 #if __GNUC_PREREQ(4, 9)

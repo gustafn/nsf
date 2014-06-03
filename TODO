@@ -5338,6 +5338,10 @@ nsf.c:
   rootclasses like nx::Object / xotcl::Object), we are again on the same level
   as before (actually slightly faster).
 
+- use functions IsRootClass(), IsRootMetaClass() and IsBaseClass() 
+  to access object/class properties
+
+
 ========================================================================
 TODO:
 
