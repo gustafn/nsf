@@ -27,7 +27,7 @@ nx::test case basics {
     #
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
     :setObjectParams ""
 
@@ -322,7 +322,7 @@ nx::test case dispo-multiplicities {
   Class create S {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
     #:object method __object_configureparameter {} {
     #  return ${:objectparams} 
@@ -385,7 +385,7 @@ nx::test case dispo-returns {
   Class create R {
      :public object method setObjectParams {spec} {
        :protected method __object_configureparameter {} [list return $spec]
-       ::nsf::parameter:invalidate::classcache [current]
+       ::nsf::parameter::cache::classinvalidate [current]
     }
   }
 
@@ -449,7 +449,7 @@ nx::test case dispo-callstack {
   Class create Callee {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
   }
 
@@ -617,7 +617,7 @@ nx::test case alias-noarg {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
     :public method foo {args} {
       set :foo $args
@@ -758,7 +758,7 @@ nx::test case alias-noarg {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
   }
   
@@ -773,7 +773,7 @@ nx::test case alias-args {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
     :public method Residualargs args {
       #puts stderr "aliased RESIDUALARGS <[llength $args]>"
@@ -863,7 +863,7 @@ nx::test case alias-init {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
     :method init {} {
       incr :y
@@ -884,7 +884,7 @@ nx::test case submethods-via-aliasparams {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
   }
 
@@ -1084,7 +1084,7 @@ nx::test case dispo-configure-transparency {
   Class create C {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
   }
   
@@ -1175,7 +1175,7 @@ nx::test case dispo-object-targets {
   Class create T {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [current]
+      ::nsf::parameter::cache::classinvalidate [current]
     }
   }
   

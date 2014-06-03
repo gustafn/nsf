@@ -1065,7 +1065,7 @@ nx::test case indirect-transitive-mixin-info {
   puts stderr =========
   ? {C info heritage} "::M2 ::M1 ::M0 ::nx::Object"
 
-  #::nsf::parameter:invalidate::classcache ::C
+  #::nsf::parameter::cache::classinvalidate ::C
 
   ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} \
       "objectName y x object-mixin class object-filter __initblock"

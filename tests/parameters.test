@@ -1935,7 +1935,7 @@ nx::test case parameter-object-mixin-dependency {
   # Invalidate the object parameter and expect that the per-class
   # mixin does not harm
   #
-  ::nsf::parameter:invalidate::classcache C
+  ::nsf::parameter::cache::classinvalidate C
 
   # 
   # We have now "-b1:required" in the configure parameters.  
@@ -2037,7 +2037,7 @@ nx::test case parameter-object-mixin-dependency-object-property {
   # invalidate object parameter and expect that the per-class mixin
   # does not harm
   #
-  ::nsf::parameter:invalidate::classcache C
+  ::nsf::parameter::cache::classinvalidate C
 
   ? {c1 __configure -a1 x} \
 "required argument 'b1' is missing, should be:
@@ -2642,7 +2642,7 @@ nx::test case side-effect-set-value {
   nx::Class create C {
     :public object method setObjectParams {spec} {
       :protected method __object_configureparameter {} [list return $spec]
-      ::nsf::parameter:invalidate::classcache [self]
+      ::nsf::parameter::cache::classinvalidate [self]
     }
     :setObjectParams ""
   }

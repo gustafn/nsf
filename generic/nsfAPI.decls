@@ -80,11 +80,11 @@ cmd parameter::info NsfParameterInfoCmd {
   {-argName "varname"  -required 0 -type tclobj}
 }
 
-cmd parameter:invalidate::classcache NsfParameterInvalidateClassCacheCmd {
+cmd parameter::cache::classinvalidate NsfParameterCacheClassInvalidateCmd {
   {-argName "class" -required 1 -type class}
 }
 
-cmd parameter:invalidate::objectcache NsfParameterInvalidateObjectCacheCmd {
+cmd parameter::cache::objectinvalidate NsfParameterCacheObjectInvalidateCmd {
   {-argName "object" -required 1 -type object}
 }
 

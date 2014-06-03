@@ -393,11 +393,11 @@ static int NsfObjectQualifyCmdStub(ClientData clientData, Tcl_Interp *interp, in
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfObjectSystemCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
+static int NsfParameterCacheClassInvalidateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
+static int NsfParameterCacheObjectInvalidateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
+  NSF_nonnull(2) NSF_nonnull(4);
 static int NsfParameterInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
-  NSF_nonnull(2) NSF_nonnull(4);
-static int NsfParameterInvalidateClassCacheCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
-  NSF_nonnull(2) NSF_nonnull(4);
-static int NsfParameterInvalidateObjectCacheCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
 static int NsfParameterSpecsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv [])
   NSF_nonnull(2) NSF_nonnull(4);
@@ -614,12 +614,12 @@ static int NsfObjectQualifyCmd(Tcl_Interp *interp, Tcl_Obj *objectName)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfObjectSystemCreateCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
+static int NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *class)
+  NSF_nonnull(1) NSF_nonnull(2);
+static int NsfParameterCacheObjectInvalidateCmd(Tcl_Interp *interp, NsfObject *object)
+  NSF_nonnull(1) NSF_nonnull(2);
 static int NsfParameterInfoCmd(Tcl_Interp *interp, int subcmd, Tcl_Obj *spec, Tcl_Obj *varname)
   NSF_nonnull(1) NSF_nonnull(3);
-static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *class)
-  NSF_nonnull(1) NSF_nonnull(2);
-static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object)
-  NSF_nonnull(1) NSF_nonnull(2);
 static int NsfParameterSpecsCmd(Tcl_Interp *interp, int withConfigure, int withNonposargs, Tcl_Obj *slotobjs)
   NSF_nonnull(1) NSF_nonnull(4);
 static int NsfProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
@@ -784,9 +784,9 @@ enum {
  NsfObjectPropertyCmdIdx,
  NsfObjectQualifyCmdIdx,
  NsfObjectSystemCreateCmdIdx,
+ NsfParameterCacheClassInvalidateCmdIdx,
+ NsfParameterCacheObjectInvalidateCmdIdx,
  NsfParameterInfoCmdIdx,
- NsfParameterInvalidateClassCacheCmdIdx,
- NsfParameterInvalidateObjectCacheCmdIdx,
  NsfParameterSpecsCmdIdx,
  NsfProcCmdIdx,
  NsfProfileClearDataStubIdx,
@@ -2001,6 +2001,44 @@ NsfObjectSystemCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
 }
 
 static int
+NsfParameterCacheClassInvalidateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfParameterCacheClassInvalidateCmdIdx].paramDefs, 
+                     method_definitions[NsfParameterCacheClassInvalidateCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    NsfClass *class = (NsfClass *)pc.clientData[0];
+
+    assert(pc.status == 0);
+    return NsfParameterCacheClassInvalidateCmd(interp, class);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
+NsfParameterCacheObjectInvalidateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  (void)clientData;
+
+  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfParameterCacheObjectInvalidateCmdIdx].paramDefs, 
+                     method_definitions[NsfParameterCacheObjectInvalidateCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+
+    assert(pc.status == 0);
+    return NsfParameterCacheObjectInvalidateCmd(interp, object);
+
+  } else {
+    return TCL_ERROR;
+  }
+}
+
+static int
 NsfParameterInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   (void)clientData;
@@ -2015,44 +2053,6 @@ NsfParameterInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
     assert(pc.status == 0);
     return NsfParameterInfoCmd(interp, subcmd, spec, varname);
-
-  } else {
-    return TCL_ERROR;
-  }
-}
-
-static int
-NsfParameterInvalidateClassCacheCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-  (void)clientData;
-
-  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfParameterInvalidateClassCacheCmdIdx].paramDefs, 
-                     method_definitions[NsfParameterInvalidateClassCacheCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
-                     &pc) == TCL_OK)) {
-    NsfClass *class = (NsfClass *)pc.clientData[0];
-
-    assert(pc.status == 0);
-    return NsfParameterInvalidateClassCacheCmd(interp, class);
-
-  } else {
-    return TCL_ERROR;
-  }
-}
-
-static int
-NsfParameterInvalidateObjectCacheCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-  (void)clientData;
-
-  if (likely(ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfParameterInvalidateObjectCacheCmdIdx].paramDefs, 
-                     method_definitions[NsfParameterInvalidateObjectCacheCmdIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
-                     &pc) == TCL_OK)) {
-    NsfObject *object = (NsfObject *)pc.clientData[0];
-
-    assert(pc.status == 0);
-    return NsfParameterInvalidateObjectCacheCmd(interp, object);
 
   } else {
     return TCL_ERROR;
@@ -3454,16 +3454,16 @@ static Nsf_methodDefinition method_definitions[111] = {
   {"rootMetaClass", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"systemMethods", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
+{"::nsf::parameter::cache::classinvalidate", NsfParameterCacheClassInvalidateCmdStub, 1, {
+  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Class, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL}}
+},
+{"::nsf::parameter::cache::objectinvalidate", NsfParameterCacheObjectInvalidateCmdStub, 1, {
+  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL}}
+},
 {"::nsf::parameter::info", NsfParameterInfoCmdStub, 3, {
   {"subcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToParametersubcmd, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"spec", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"varname", 0, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},
-{"::nsf::parameter:invalidate::classcache", NsfParameterInvalidateClassCacheCmdStub, 1, {
-  {"class", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Class, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL}}
-},
-{"::nsf::parameter:invalidate::objectcache", NsfParameterInvalidateObjectCacheCmdStub, 1, {
-  {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::parameter::specs", NsfParameterSpecsCmdStub, 3, {
   {"-configure", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},

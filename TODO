@@ -5340,8 +5340,12 @@ nsf.c:
 
 - use functions IsRootClass(), IsRootMetaClass() and IsBaseClass() 
   to access object/class properties
+- add gcc attribute "pure"
 
-
+- rename 
+    nsf::parameter:invalidate::classcache -> nsf::parameter::cache::classinvalidate
+    nsf::parameter:invalidate::objectcache -> nsf::parameter::cache::objectinvalidate
+  reasons: (a) remove single colon inside the name, (b) put verb to the end
 ========================================================================
 TODO:
 

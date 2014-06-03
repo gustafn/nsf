@@ -14,8 +14,8 @@ set ::nxdoc::include(::nsf::finalize) 1
 set ::nxdoc::include(::nsf::interp) 1
 set ::nxdoc::include(::nsf::is) 1
 set ::nxdoc::include(::nsf::parameter::info) 0
-set ::nxdoc::include(::nsf::parameter:invalidate::classcache) 0
-set ::nxdoc::include(::nsf::parameter:invalidate::objectcache) 0
+set ::nxdoc::include(::nsf::parameter::cache::classinvalidate) 0
+set ::nxdoc::include(::nsf::parameter::cache::objectinvalidate) 0
 set ::nxdoc::include(::nsf::parameter::specs) 0
 set ::nxdoc::include(::nsf::cmd::info) 1
 set ::nxdoc::include(::nsf::method::alias) 1

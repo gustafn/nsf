@@ -326,7 +326,7 @@ NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object)
 
 /* prototypes for parameter and argument management */
 
-static int NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl)
+static int NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl)
   nonnull(1) nonnull(2);
 static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   NsfObject *object, int processFlags, NsfParamDefs *paramDefs,
@@ -356,7 +356,7 @@ static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *orig
   nonnull(1) nonnull(4) nonnull(5);
 static void NsfProcDeleteProc(ClientData clientData) nonnull(1);
 
-static int NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object)
+static int NsfParameterCacheObjectInvalidateCmd(Tcl_Interp *interp, NsfObject *object)
   nonnull(1) nonnull(2);
 
 static int GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
@@ -8794,7 +8794,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
        * parameter definitions.
        */
       /*fprintf(stderr, "MixinInvalidateObjOrders via class mixin %s calls ifd invalidate \n", ClassName(ncl));*/
-      NsfParameterInvalidateClassCacheCmd(interp, ncl);
+      NsfParameterCacheClassInvalidateCmd(interp, ncl);
     }
   }
   Tcl_DeleteHashTable(commandTable);
@@ -17856,7 +17856,7 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
 
 #if defined(PER_OBJECT_PARAMETER_CACHING)
     if (object->opt->parsedParamPtr) {
-      NsfParameterInvalidateObjectCacheCmd(interp, object);
+      NsfParameterCacheObjectInvalidateCmd(interp, object);
     }
 #endif
 
@@ -25473,12 +25473,12 @@ NsfParameterInfoCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameters
 }
 
 /*
-cmd parameter:invalidate::classcache NsfParameterInvalidateClassCacheCmd {
+cmd parameter::cache::classinvalidate NsfParameterCacheClassInvalidateCmd {
   {-argName "class" -required 1 -type class}
 }
 */
 static int
-NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
+NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
   NsfClasses *subClasses;
   NsfClasses *clPtr;
   int isMixinOf = 0, nrSubClasses = 0;
@@ -25492,7 +25492,7 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
    */
 #if defined(PER_OBJECT_PARAMETER_CACHING)
   if (unlikely(cl->parsedParamPtr != NULL)) {
-    NsfClassParamPtrEpochIncr("NsfParameterInvalidateClassCacheCmd");
+    NsfClassParamPtrEpochIncr("NsfParameterCacheClassInvalidateCmd");
   }
 #endif
 
@@ -25581,12 +25581,12 @@ NsfParameterInvalidateClassCacheCmd(Tcl_Interp *interp, NsfClass *cl) {
 
 
 /*
-cmd parameter:invalidate::objectcache NsfParameterInvalidateObjectCacheCmd {
+cmd parameter::cache::objectinvalidate NsfParameterCacheObjectInvalidateCmd {
   {-argName "object" -required 1 -type object}
 }
 */
 static int
-NsfParameterInvalidateObjectCacheCmd(Tcl_Interp *interp, NsfObject *object) {
+NsfParameterCacheObjectInvalidateCmd(Tcl_Interp *interp, NsfObject *object) {
 
   assert(interp);
   assert(object);
@@ -25935,7 +25935,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
       /*
        * Invalidate per-object infos
        */
-      NsfParameterInvalidateObjectCacheCmd(interp, object);
+      NsfParameterCacheObjectInvalidateCmd(interp, object);
       object->flags &= ~NSF_MIXIN_ORDER_VALID;
       /*
        * Since mixin procs may be used as filters -> we have to invalidate
@@ -26611,7 +26611,7 @@ ComputeParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
         } else if (object) {
           NsfObjectOpt *opt = NsfRequireObjectOpt(object);
           if (object->opt->parsedParamPtr) {
-            NsfParameterInvalidateObjectCacheCmd(interp, object);
+            NsfParameterCacheObjectInvalidateCmd(interp, object);
           }
           opt->parsedParamPtr = ppDefPtr;
           opt->classParamPtrEpoch = RUNTIME_STATE(interp)->classParamPtrEpoch;
