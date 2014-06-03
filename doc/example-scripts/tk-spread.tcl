@@ -26,7 +26,7 @@ package require nx::trait
    # If no widget is provided, use the name of the object as widget
    # name.
    #
-   :property -accessor public {widget ".[namespace tail [self]]"}
+   :property {widget ".[namespace tail [self]]"}
 
    #
    # Use the nx callback trait 
@@ -111,5 +111,5 @@ SpreadSheet create y -rows 4 -cols 4 {
  }
 
 # Pack the spreadsheets into one pane
-pack [x widget] [y widget] -fill both
+pack [x cget -widget] [y cget -widget] -fill both
 
