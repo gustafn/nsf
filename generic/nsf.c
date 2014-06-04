@@ -19578,11 +19578,16 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
 
     if (tcd->object) {
       cmd = Tcl_DuplicateObj(tcd->object->cmdName);
+      if (objc > 0) {
+        Tcl_ListObjAppendList(interp, cmd, NsfMethodNamePath(interp, NULL, MethodName(objv[0])));
+        if (objc > 1) {
+          Tcl_ListObjAppendElement(interp, cmd,  Tcl_NewListObj(objc-1,objv+1));
+        }
+      }
     } else {
-      cmd = Tcl_NewObj();
+      cmd = Tcl_NewListObj(objc, objv);
     }
 
-    Tcl_ListObjAppendElement(interp, cmd,  Tcl_NewListObj(objc,objv));
     Tcl_ListObjAppendElement(interp, script,  cmd);
     Tcl_ListObjAppendElement(interp, script,
                              Tcl_NewStringObj(Tcl_DStringValue(&ds), Tcl_DStringLength(&ds)));

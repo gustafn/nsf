@@ -5346,6 +5346,13 @@ nsf.c:
     nsf::parameter:invalidate::classcache -> nsf::parameter::cache::classinvalidate
     nsf::parameter:invalidate::objectcache -> nsf::parameter::cache::objectinvalidate
   reasons: (a) remove single colon inside the name, (b) put verb to the end
+
+- fixed error message for forward ... onerror and method paths. The command
+  "C object mixin" returns now
+  "::C object mixin add|clear|delete|get|guard|set" and not
+  "::C mixin add|clear|delete|get|guard|set" as before.
+
+
 ========================================================================
 TODO:
 
@@ -5357,11 +5364,6 @@ TODO:
 
 - what should happen with: "/class/ info mixin classes -heritage"
 - asymmetry between "/obj/ info lookup mixins" vs. "/obj/ info ?object? mixin classes"
-
-- fix error message for
-  "C object mixin" returns 
-  "::C mixin add|clear|delete|get|guard|set" and not
-  "::C object mixin add|clear|delete|get|guard|set"
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
