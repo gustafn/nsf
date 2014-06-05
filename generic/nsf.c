@@ -2021,7 +2021,7 @@ static void
 NsfClassListFree(NsfClasses *classList) {
   NsfClasses *nextPtr;
 
-  assert(classList);
+ assert(classList);
 
   for (; likely(classList != NULL); classList = nextPtr) {
     nextPtr = classList->nextPtr;
@@ -2276,10 +2276,11 @@ NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
 enum colors { WHITE, GRAY, BLACK };
 typedef enum { SUPER_CLASSES, SUB_CLASSES } ClassDirection;
 
-static int TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction) nonnull(1) nonnull(2);
+static int TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs)
+  nonnull(1) nonnull(2);
 
 static int
-TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction) {
+TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs) {
   NsfClasses *sl, *pl;
 
   assert(cl);
@@ -2301,13 +2302,29 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction) {
   for (; sl; sl = sl->nextPtr) {
     NsfClass *sc = sl->cl;
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
-    if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction))) {
+    if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
       cl->color = WHITE;
       if (cl == baseClass) {
         register NsfClasses *pc;
         for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
       }
       return 0;
+    }
+  }
+  if (withMixinOfs) {
+    NsfCmdList *classMixins = cl->opt && cl->opt->isClassMixinOf ?  cl->opt->isClassMixinOf : NULL;
+    for (; classMixins; classMixins = classMixins->nextPtr) {
+      NsfClass *sc = NsfGetClassFromCmdPtr(classMixins->cmdPtr);
+      //if (sc->color == GRAY) { cl->color = WHITE; return 0; }
+      if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
+        NsfLog(sc->object.teardown, NSF_LOG_WARN, "cycle in the mixin graph list detected for class %s", ClassName(sc));
+        //cl->color = WHITE;
+        //f (cl == baseClass) {
+        //  register NsfClasses *pc;
+        //  for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
+        //}
+      //return 0;
+      }
     }
   }
   cl->color = BLACK;
@@ -2811,7 +2828,7 @@ PrecedenceOrder(NsfClass *cl) {
  *    the returned class list.
  *
  * Results:
- *    Class list
+ *    Class list or NULL if cycles are detected
  *
  * Side effects:
  *    Just indirect.
@@ -2834,7 +2851,7 @@ TransitiveSubClasses(NsfClass *cl) {
   savedOrder = cl->order;
   cl->order = NULL;
 
-  if (likely(TopoSort(cl, cl, SUB_CLASSES))) {
+  if (likely(TopoSort(cl, cl, SUB_CLASSES, 0))) {
     order = cl->order;
   } else {
     if (cl->order) NsfClassListFree(cl->order);
@@ -2844,6 +2861,50 @@ TransitiveSubClasses(NsfClass *cl) {
   cl->order = savedOrder;
   return order;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * DependentSubClasses --
+ *
+ *    Return a class list containing all dependent classes (i.e. classes that
+ *    inherit via intrinsic or mixin hierarchy) starting with (and containing)
+ *    the provided class.The caller has to free the returned class list.
+ *
+ * Results:
+ *    Class list or NULL if cycles are detected
+ *
+ * Side effects:
+ *    Just indirect.
+ *
+ *----------------------------------------------------------------------
+ */
+NSF_INLINE static NsfClasses *DependentSubClasses(NsfClass *cl) nonnull(1);
+
+NSF_INLINE static NsfClasses *
+DependentSubClasses(NsfClass *cl) {
+  NsfClasses *order, *savedOrder;
+
+  assert(cl);
+
+  /*
+   * Since TopoSort() places its result in cl->order, we have to save the old
+   * cl->order, perform the computation and restore the old order.
+   */
+  savedOrder = cl->order;
+  cl->order = NULL;
+
+  if (likely(TopoSort(cl, cl, SUB_CLASSES, 1))) {
+    order = cl->order;
+  } else {
+    fprintf(stderr, "DependentSubClasses %s failed\n", ClassName(cl));
+    if (cl->order) NsfClassListFree(cl->order);
+    order = NULL;
+  }
+
+  cl->order = savedOrder;
+  return order;
+}
+
 
 /*
  *----------------------------------------------------------------------
@@ -25484,9 +25545,8 @@ cmd parameter::cache::classinvalidate NsfParameterCacheClassInvalidateCmd {
 */
 static int
 NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
-  NsfClasses *subClasses;
+  NsfClasses *dependentSubClasses;
   NsfClasses *clPtr;
-  int isMixinOf = 0, nrSubClasses = 0;
 
   assert(interp);
   assert(cl);
@@ -25503,83 +25563,23 @@ NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
 
   /*
    * Clear the cached parsedParam of the class and all its subclasses (the
-   * result of TransitiveSubClasses contains the starting class). Furthermore,
+   * result of DependentSubClasses contains the starting class). Furthermore,
    * make a quick check, if any of the subclasses is a class mixin of some
    * other class.
    */
 
-  subClasses = TransitiveSubClasses(cl);
+  dependentSubClasses = DependentSubClasses(cl);
 
-  for (clPtr = subClasses; clPtr; nrSubClasses++, clPtr = clPtr->nextPtr) {
+  for (clPtr = dependentSubClasses; clPtr; clPtr = clPtr->nextPtr) {
     NsfClass *subClass = clPtr->cl;
-
-    //fprintf(stderr, "startCl %s subcl %s\n", ClassName(cl), ClassName(subClass));
 
     if (subClass->parsedParamPtr) {
       ParsedParamFree(subClass->parsedParamPtr);
       subClass->parsedParamPtr = NULL;
     }
-    if ((subClass->opt != NULL) && unlikely(subClass->opt->isClassMixinOf != NULL)) {
-      isMixinOf = 1;
-    }
   }
 
-#if 0
-  if (likely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
-    fprintf(stderr, "startCl %s has %d subclasses, a subclass mixed into something else: %d\n",
-            ClassName(cl), nrSubClasses,  isMixinOf);
-  }
-#endif
-
-  /*
-   * During lifetime, invalidations are propagated to subclasses and/or to
-   * classes extended by the given mixin class. During shutdown, we avoid the
-   * storm of invalidations.
-   *
-   * Furthermore: of the class is the root class of the object system
-   * (e.g. nx::Object), then all potentially involved classes are already
-   * included in the subclasses, there is no need for the expensive mixin-of
-   * computation. cross-object-system invalidation are another story,
-   * invalidation currently not supported.
-   */
-  if (likely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)
-      && isMixinOf
-      && (IsRootClass(cl)) == 0) {
-
-    Tcl_HashTable objTable, *commandTable = &objTable;
-    Tcl_HashSearch hSrch;
-    Tcl_HashEntry *hPtr;
-
-    /*
-     * The current class (or one of its subclasses) is mixed into some other class.
-     */
-    /*fprintf(stderr, ".... the current class %s is mixed into some other class\n",
-      ClassName(cl));*/
-
-    Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-    MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-
-    GetAllClassMixinsOf(interp, commandTable, Tcl_GetObjResult(interp),
-                        cl, 1, 0, NULL, NULL);
-
-    for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
-         hPtr = Tcl_NextHashEntry(&hSrch)) {
-      NsfClass *mixinOfClass = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
-
-      if (mixinOfClass) {
-        /*fprintf(stderr, "... invalidate mixinOfClass   %s\n", ClassName(mixinOfClass));*/
-        if (mixinOfClass->parsedParamPtr) {
-          ParsedParamFree(mixinOfClass->parsedParamPtr);
-          mixinOfClass->parsedParamPtr = NULL;
-        }
-      }
-    }
-    Tcl_DeleteHashTable(commandTable);
-    MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-
-  }
-
-  NsfClassListFree(subClasses);
+  NsfClassListFree(dependentSubClasses);
 
   return TCL_OK;
 }

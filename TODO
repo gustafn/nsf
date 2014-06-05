@@ -5352,9 +5352,24 @@ nsf.c:
   "::C object mixin add|clear|delete|get|guard|set" and not
   "::C mixin add|clear|delete|get|guard|set" as before.
 
+nsf.c:
+- new function DependentSubClasses() to determine all classes that inherit 
+  from a given class. The result extend TransitiveSubClasses() by including 
+  class mixin relationships. 
+- simplify NsfParameterCacheClassInvalidateCmd() by using the new function
+  DependentSubClasses(). With the new implementation, 
+  NsfParameterCacheClassInvalidateCmd() is as efficient as before without
+  to MostGeneralSuperclass optimization (but being complete now) when 
+  working on the root classes (an more efficient on subclasses).
 
 ========================================================================
 TODO:
+
+- check other places whether DependentSubClasses() should be used instead of 
+  TransitiveSubClasses()
+- how should we treat cyclic subclass relationships built via class mixins.
+  (either complain at mixin registration or soft warnings or ignoring - 
+  since redundant mixin classes are ignored so far).
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")
