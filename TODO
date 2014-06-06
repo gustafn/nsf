@@ -5361,15 +5361,25 @@ nsf.c:
   NsfParameterCacheClassInvalidateCmd() is as efficient as before without
   to MostGeneralSuperclass optimization (but being complete now) when 
   working on the root classes (an more efficient on subclasses).
+- added experimental code feature CYCLIC_MIXIN_ERROR
 
 ========================================================================
 TODO:
 
-- check other places whether DependentSubClasses() should be used instead of 
-  TransitiveSubClasses()
 - how should we treat cyclic subclass relationships built via class mixins.
   (either complain at mixin registration or soft warnings or ignoring - 
   since redundant mixin classes are ignored so far).
+
+  if we disallow cycles in class-mixins, we can't do "nx::Object mixin add M"
+
+- Document/nonnull/resolve NsfRelationClassMixinsSet()
+- check other places whether DependentSubClasses() should be used instead of 
+  TransitiveSubClasses()
+
+- MixinInvalidateObjOrders() is based on TransitiveSubClasses but calls
+  NsfParameterCacheClassInvalidateCmd() which computes its own set
+  // MixinInvalidateObjOrders calls NsfParameterCacheClassInvalidateCmd
+  Some functions use before-lists for cleanup, which is fine.
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")

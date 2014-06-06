@@ -2279,6 +2279,8 @@ typedef enum { SUPER_CLASSES, SUB_CLASSES } ClassDirection;
 static int TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs)
   nonnull(1) nonnull(2);
 
+//#define CYCLIC_MIXIN_ERROR 1
+
 static int
 TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs) {
   NsfClasses *sl, *pl;
@@ -2315,16 +2317,31 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
     NsfCmdList *classMixins = cl->opt && cl->opt->isClassMixinOf ?  cl->opt->isClassMixinOf : NULL;
     for (; classMixins; classMixins = classMixins->nextPtr) {
       NsfClass *sc = NsfGetClassFromCmdPtr(classMixins->cmdPtr);
+#if defined(CYCLIC_MIXIN_ERROR)
+      if (sc->color == GRAY) { cl->color = WHITE; return 0; }
+      if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
+        if (sc->object.teardown) {
+          NsfLog(sc->object.teardown, NSF_LOG_WARN, "cycle in the mixin graph list detected for class %s", ClassName(sc));
+        }
+        cl->color = WHITE;
+        if (cl == baseClass) {
+          register NsfClasses *pc;
+          for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
+        }
+        return 0;
+      }
+#else
       //if (sc->color == GRAY) { cl->color = WHITE; return 0; }
       if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
         NsfLog(sc->object.teardown, NSF_LOG_WARN, "cycle in the mixin graph list detected for class %s", ClassName(sc));
         //cl->color = WHITE;
-        //f (cl == baseClass) {
+        //if (cl == baseClass) {
         //  register NsfClasses *pc;
         //  for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
         //}
       //return 0;
       }
+#endif
     }
   }
   cl->color = BLACK;
@@ -8849,13 +8866,17 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
     NsfClass *ncl = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
     /*fprintf(stderr, "Got %s, reset for ncl %p\n", ncl?ClassName(ncl):"NULL", ncl);*/
     if (ncl) {
+      int result;
+
       MixinResetOrderForInstances(ncl);
       /*
        * This place seems to be sufficient to invalidate the computed object
        * parameter definitions.
        */
       /*fprintf(stderr, "MixinInvalidateObjOrders via class mixin %s calls ifd invalidate \n", ClassName(ncl));*/
-      NsfParameterCacheClassInvalidateCmd(interp, ncl);
+      result = NsfParameterCacheClassInvalidateCmd(interp, ncl);
+      (void) result; // silence compiler
+      //fprintf(stderr, "MixinInvalidateObjOrders calls NsfParameterCacheClassInvalidateCmd %s => %d\n", ClassName(ncl), result);
     }
   }
   Tcl_DeleteHashTable(commandTable);
@@ -25563,12 +25584,19 @@ NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
 
   /*
    * Clear the cached parsedParam of the class and all its subclasses (the
-   * result of DependentSubClasses contains the starting class). Furthermore,
+   * result of DependentSubClasses() contains the starting class). Furthermore,
    * make a quick check, if any of the subclasses is a class mixin of some
    * other class.
    */
 
   dependentSubClasses = DependentSubClasses(cl);
+
+#if defined(CYCLIC_MIXIN_ERROR)
+  if (dependentSubClasses == NULL) {
+    //fprintf(stderr, "RAISE ERROR\n");
+    return NsfPrintError(interp, "Class heritage graph of %s contains a cycle", ClassName(cl));
+  }
+#endif
 
   for (clPtr = dependentSubClasses; clPtr; clPtr = clPtr->nextPtr) {
     NsfClass *subClass = clPtr->cl;
@@ -25774,6 +25802,63 @@ NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, int relationtype) {
 
   return NsfRelationSetCmd(interp, object, relationtype, NULL);
 }
+
+
+static int
+NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, int oc, Tcl_Obj **ov) {
+  NsfCmdList *newMixinCmdList = NULL, *cmds;
+  NsfClasses *subClasses;
+  NsfClassOpt *clopt = cl->opt;
+  int i;
+
+  assert(clopt);
+
+  for (i = 0; i < oc; i++) {
+    if (MixinAdd(interp, &newMixinCmdList, ov[i], cl->object.cl) != TCL_OK) {
+      CmdListFree(&newMixinCmdList, GuardDel);
+      return TCL_ERROR;
+    }
+  }
+  if (clopt->classMixins) {
+    if (clopt->classMixins) RemoveFromClassMixinsOf(cl->object.id, clopt->classMixins);
+    CmdListFree(&clopt->classMixins, GuardDel);
+  }
+
+  subClasses = TransitiveSubClasses(cl);
+  MixinInvalidateObjOrders(interp, cl, subClasses);
+
+  /*
+   * Since methods of mixed in classes may be used as filters, we have to
+   * invalidate the filters as well.
+   */
+  if (FiltersDefined(interp) > 0) {
+    FilterInvalidateObjOrders(interp, subClasses);
+  }
+  NsfClassListFree(subClasses);
+
+  /*
+   * Now register the specified mixins.
+   */
+  clopt->classMixins = newMixinCmdList;
+
+  /*
+   * Finally, update classMixinOfs
+   */
+  for (cmds = newMixinCmdList; cmds; cmds = cmds->nextPtr) {
+    NsfObject *nObject = NsfGetObjectFromCmdPtr(cmds->cmdPtr);
+    if (nObject) {
+      NsfClassOpt *nclopt = NsfRequireClassOpt((NsfClass *) nObject);
+      CmdListAddSorted(&nclopt->isClassMixinOf, cl->object.id, NULL);
+    } else {
+      NsfLog(interp, NSF_LOG_WARN,
+             "Problem registering %s as a mixin of %s\n",
+             ObjStr(valueObj), ClassName(cl));
+    }
+  }
+
+  return TCL_OK;
+}
+
 
 /*
 cmd relation::set NsfRelationSetCmd {
@@ -25995,51 +26080,48 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
 
   case RelationtypeClass_mixinIdx:
     {
-      NsfCmdList *newMixinCmdList = NULL, *cmds;
-      NsfClasses *subClasses;
 
-      for (i = 0; i < oc; i++) {
-        if (MixinAdd(interp, &newMixinCmdList, ov[i], cl->object.cl) != TCL_OK) {
-          CmdListFree(&newMixinCmdList, GuardDel);
+#if defined(CYCLIC_MIXIN_ERROR)
+      Tcl_Obj *oldClassMixinsObj;
+      NsfClasses *dependentSubClasses;
+      int result;
+
+      MixinInfo(interp, clopt->classMixins, NULL, 1, NULL);
+      oldClassMixinsObj = Tcl_GetObjResult(interp);
+      INCR_REF_COUNT(oldClassMixinsObj);
+
+      result = NsfRelationClassMixinsSet(interp, cl, valueObj, oc, ov);
+      if (result != TCL_OK) {
+        DECR_REF_COUNT(oldClassMixinsObj);
+        return result;
+      }
+
+      dependentSubClasses = DependentSubClasses(cl);
+      if (dependentSubClasses == NULL) {
+        //fprintf(stderr, "RAISE ERROR\n");
+
+        if (Tcl_ListObjGetElements(interp, oldClassMixinsObj, &oc, &ov) != TCL_OK) {
           return TCL_ERROR;
         }
-      }
-      if (clopt->classMixins) {
-        if (clopt->classMixins) RemoveFromClassMixinsOf(cl->object.id, clopt->classMixins);
-        CmdListFree(&clopt->classMixins, GuardDel);
-      }
 
-      subClasses = TransitiveSubClasses(cl);
-      MixinInvalidateObjOrders(interp, cl, subClasses);
+        result = NsfRelationClassMixinsSet(interp, cl, oldClassMixinsObj, oc, ov);
+        DECR_REF_COUNT(oldClassMixinsObj);
 
-      /*
-       * Since methods of mixed in classes may be used as filters, we have to
-       * invalidate the filters as well.
-       */
-      if (FiltersDefined(interp) > 0) {
-	FilterInvalidateObjOrders(interp, subClasses);
-      }
-      NsfClassListFree(subClasses);
-
-      /*
-       * Now register the specified mixins.
-       */
-      clopt->classMixins = newMixinCmdList;
-
-      /*
-       * Finally, update classMixinOfs
-       */
-      for (cmds = newMixinCmdList; cmds; cmds = cmds->nextPtr) {
-        nObject = NsfGetObjectFromCmdPtr(cmds->cmdPtr);
-        if (nObject) {
-          nclopt = NsfRequireClassOpt((NsfClass *) nObject);
-          CmdListAddSorted(&nclopt->isClassMixinOf, cl->object.id, NULL);
-        } else {
-          NsfLog(interp, NSF_LOG_WARN,
-                 "Problem registering %s as a mixin of %s\n",
-                 ObjStr(valueObj), ClassName(cl));
+        if (result != TCL_OK) {
+          return result;
         }
+        return NsfPrintError(interp, "classes dependent on %s contain a cycle", ClassName(cl));
+
+      } else {
+        DECR_REF_COUNT(oldClassMixinsObj);
+        NsfClassListFree(dependentSubClasses);
       }
+
+#else
+      if (NsfRelationClassMixinsSet(interp, cl, valueObj, oc, ov) != TCL_OK) {
+        return TCL_ERROR;
+      }
+#endif
 
       break;
     }
@@ -26071,8 +26153,11 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
 
       break;
     }
-
   }
+
+  /*
+   * Return on success the final setting
+   */
   NsfRelationSetCmd(interp, object, relationtype, NULL);
   return TCL_OK;
 }
