@@ -340,6 +340,7 @@ static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *val
   nonnull(1) nonnull(2) nonnull(3);
 static void ParamDefsRefCountIncr(NsfParamDefs *paramDefs) nonnull(1);
 static void ParamDefsRefCountDecr(NsfParamDefs *paramDefs) nonnull(1);
+static void ParsedParamFree(NsfParsedParam *parsedParamPtr) nonnull(1);
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
@@ -8864,19 +8865,19 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NsfClass *ncl = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
-    /*fprintf(stderr, "Got %s, reset for ncl %p\n", ncl?ClassName(ncl):"NULL", ncl);*/
-    if (ncl) {
-      int result;
 
+    if (ncl) {
       MixinResetOrderForInstances(ncl);
       /*
-       * This place seems to be sufficient to invalidate the computed object
-       * parameter definitions.
+       * Here it is sufficient to invalidate the computed configure parameter
+       * definitions without calling the full-blown
+       * NsfParameterCacheClassInvalidateCmd(interp, ncl), since we are
+       * iterating over the full relevant class ist.
        */
-      /*fprintf(stderr, "MixinInvalidateObjOrders via class mixin %s calls ifd invalidate \n", ClassName(ncl));*/
-      result = NsfParameterCacheClassInvalidateCmd(interp, ncl);
-      (void) result; // silence compiler
-      //fprintf(stderr, "MixinInvalidateObjOrders calls NsfParameterCacheClassInvalidateCmd %s => %d\n", ClassName(ncl), result);
+      if (ncl->parsedParamPtr) {
+        ParsedParamFree(ncl->parsedParamPtr);
+        ncl->parsedParamPtr = NULL;
+      }
     }
   }
   Tcl_DeleteHashTable(commandTable);
@@ -11853,8 +11854,6 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
  *
  *----------------------------------------------------------------------
  */
-static void ParsedParamFree(NsfParsedParam *parsedParamPtr) nonnull(1);
-
 static void
 ParsedParamFree(NsfParsedParam *parsedParamPtr) {
 
@@ -25804,6 +25803,24 @@ NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, int relationtype) {
 }
 
 
+/*
+ *----------------------------------------------------------------------
+ * NsfRelationClassMixinsSet --
+ *
+ *    Set class mixins; the main reason for the factored out semantics is that
+ *    it can allow to undo/redo the operations in case of a failure.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    class mixins are set, various kinds of invlidations.
+ *
+ *----------------------------------------------------------------------
+ */
+static int NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, int oc, Tcl_Obj **ov) 
+  nonnull(1) nonnull(2) nonnull(3);
+
 static int
 NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, int oc, Tcl_Obj **ov) {
   NsfCmdList *newMixinCmdList = NULL, *cmds;
@@ -25811,7 +25828,10 @@ NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, i
   NsfClassOpt *clopt = cl->opt;
   int i;
 
+  assert(interp);
+  assert(cl);
   assert(clopt);
+  assert(valueObj);
 
   for (i = 0; i < oc; i++) {
     if (MixinAdd(interp, &newMixinCmdList, ov[i], cl->object.cl) != TCL_OK) {
