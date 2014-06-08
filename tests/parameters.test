@@ -2287,12 +2287,12 @@ nx::test case object-level-variable {
     ? [list [self] object property -incremental -nocomplain j:int,0..* {}] "::enterprise::j"
     :i add 1
     :j add 1
-    ? [list [self] i] "1"
-    ? [list [self] j] "1"
+    ? [list [self] i get] "1"
+    ? [list [self] j get] "1"
     :i add 2
     :j add 2
-    ? [list [self] i] "2 1"
-    ? [list [self] j] "2 1"
+    ? [list [self] i get] "2 1"
+    ? [list [self] j get] "2 1"
     ? [list [self] i add a] {expected integer but got "a" for parameter "value"}
     ? [list [self] j add a] {expected integer but got "a" for parameter "value"}
   }
