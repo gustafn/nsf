@@ -23,7 +23,7 @@ namespace eval ::nx {
     :property cmd 
     :property {namespace ::}
     :property {verbose:boolean 0} 
-    :property {expected 1}
+    :property {expected:any 1}
     :property {count:integer 1} 
     :property msg 
     :property setResult 
