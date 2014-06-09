@@ -5308,7 +5308,7 @@ nsf.c:
 
      C mixin add M2
 
-     # M2 is mixed into C, and implicitely into D
+     # M2 is mixed into C, and implicitly into D
      #
      # Since M2 is a subclass of M1, classes C and D depend as well 
      # on M1 and M0, as seen in the heritage:
@@ -5335,7 +5335,7 @@ nsf.c:
 - cleanup of NsfParameterInvalidateClassCacheCmd(): performance improvements.
   After the fixing of indirect mixin validation, performance of invalidation
   went up by a factor of 5. At least, in some important cases (invalidation of 
-  rootclasses like nx::Object / xotcl::Object), we are again on the same level
+  root-classes like nx::Object / xotcl::Object), we are again on the same level
   as before (actually slightly faster).
 
 - use functions IsRootClass(), IsRootMetaClass() and IsBaseClass() 
@@ -5365,27 +5365,35 @@ nsf.c:
 
 nsf.c:
 - improve performance of MixinInvalidateObjOrders() by about 30%
-  by recomping the list of the dependent classes over and over again, 
+  by recompiling the list of the dependent classes over and over again, 
   since MixinInvalidateObjOrders() iterates over the full list already.
 - Document NsfRelationClassMixinsSet() and add nonnull declarations and 
   the usual assertions()
-  
+
+nsf.c
+- base MixinInvalidateObjOrders() on DependentSubClasses() and 
+  avoid the need of using a separate hash table for class-mixin
+  handling. The new implementation is several times faster and 
+  improves the speed of the functions CleanupDestroyClass(), 
+  SuperclassAdd() and NsfRelationClassMixinsSet(). Adding a 
+  class-mixin to ::xotcl::Object in OpenACS is more than 4x faster.
+- remove obsolete function MixinResetOrderForInstances()  
+- rename ResetOrderOfClassesUsedAsMixins() to 
+  ResetOrderOfObjectsUsingThisClassAsObjectMixin()
+- used consistenlty DependentSubClasses() instead of TransitiveSubClasses()
+  for invalidations.
+- extend regression test
 ========================================================================
 TODO:
+
+- maybe add "/cl/ info subclasses -dependent" to return union of
+  transitive closure + class mixins.
 
 - how should we treat cyclic subclass relationships built via class mixins.
   (either complain at mixin registration or soft warnings or ignoring - 
   since redundant mixin classes are ignored so far).
 
   if we disallow cycles in class-mixins, we can't do "nx::Object mixin add M"
-
-- check other places whether DependentSubClasses() should be used instead of 
-  TransitiveSubClasses()
-
-- MixinInvalidateObjOrders() is based on TransitiveSubClasses but calls
-  NsfParameterCacheClassInvalidateCmd() which computes its own set
-  // MixinInvalidateObjOrders calls NsfParameterCacheClassInvalidateCmd
-  Some functions use before-lists for cleanup, which is fine.
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")

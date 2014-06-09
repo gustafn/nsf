@@ -7683,7 +7683,8 @@ MixinResetOrder(NsfObject *object) {
 
   assert(object);
 
-  /*fprintf(stderr, "MixinResetOrder for object %s \n", ObjectName(object));*/
+  //fprintf(stderr, "MixinResetOrder for object %s \n", ObjectName(object));
+
   CmdListFree(&object->mixinOrder, NULL /*GuardDel*/);
   object->mixinOrder = NULL;
 }
@@ -8718,50 +8719,7 @@ RemoveFromObjectMixins(Tcl_Command cmd, NsfCmdList *cmdlist) {
 
 /*
  *----------------------------------------------------------------------
- * MixinResetOrderForInstances --
- *
- *    Reset the per-object mixin order for the instances of the provided
- *    class.
- *
- * Results:
- *    void
- *
- * Side effects:
- *    Deletes potentially the mixin list for the objects.
- *
- *----------------------------------------------------------------------
- */
-
-static void MixinResetOrderForInstances(NsfClass *cl) nonnull(1);
-
-static void
-MixinResetOrderForInstances(NsfClass *cl) {
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
-
-  assert(cl);
-
-  /*fprintf(stderr, "invalidating instances of class %s\n", ClassName(clPtr->cl));*/
-
-  /* Here we should check, whether this class is used as an object or
-     class mixin somewhere else and invalidate the objects of these as
-     well -- */
-
-  for (hPtr = Tcl_FirstHashEntry(&cl->instances, &hSrch); hPtr;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
-    NsfObject *object = (NsfObject *)Tcl_GetHashKey(&cl->instances, hPtr);
-    if (object
-        && !(object->flags & NSF_DURING_DELETE)
-        && (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID)) {
-      MixinResetOrder(object);
-      object->flags &= ~NSF_MIXIN_ORDER_VALID;
-    }
-  }
-}
-
-/*
- *----------------------------------------------------------------------
- * ResetOrderOfClassesUsedAsMixins --
+ * ResetOrderOfObjectsUsingThisClassAsObjectMixin --
  *
  *    Reset the per-object mixin order for all objects having this class as
  *    per-object mixin.
@@ -8774,11 +8732,12 @@ MixinResetOrderForInstances(NsfClass *cl) {
  *
  *----------------------------------------------------------------------
  */
-static void ResetOrderOfClassesUsedAsMixins(NsfClass *cl) nonnull(1);
+static void ResetOrderOfObjectsUsingThisClassAsObjectMixin(NsfClass *cl) nonnull(1);
 
 static void
-ResetOrderOfClassesUsedAsMixins(NsfClass *cl) {
-  /*fprintf(stderr, "ResetOrderOfClassesUsedAsMixins %s - %p\n",
+ResetOrderOfObjectsUsingThisClassAsObjectMixin(NsfClass *cl) {
+
+  /*fprintf(stderr, "ResetOrderOfObjectsUsingThisClassAsObjectMixin %s - %p\n",
     ClassName(cl), cl->opt);*/
 
   assert(cl);
@@ -8802,9 +8761,9 @@ ResetOrderOfClassesUsedAsMixins(NsfClass *cl) {
  * MixinInvalidateObjOrders --
  *
  *    Reset mixin order for all instances of the class and the instances of
- *    its subclasses. This function is typically called, when the the class
- *    hierarchy or the class mixins have changed and invalidate mixin entries
- *    in all dependent instances.
+ *    its dependent subclasses. This function is typically called, when the
+ *    the class hierarchy or the class mixins have changed and invalidate
+ *    mixin entries in all dependent instances.
  *
  * Results:
  *    void
@@ -8820,9 +8779,6 @@ static void MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasse
 
 static void
 MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasses) {
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
-  Tcl_HashTable objTable, *commandTable = &objTable;
 
   assert(interp);
   assert(cl);
@@ -8839,49 +8795,30 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
     /*
      * Reset mixin order for all objects having this class as per object mixin
      */
-    ResetOrderOfClassesUsedAsMixins(subClasses->cl);
+    ResetOrderOfObjectsUsingThisClassAsObjectMixin(subClasses->cl);
 
-    /* fprintf(stderr, "invalidating instances of class %s\n", ClassName(clPtr));
-     */
+    //fprintf(stderr, "invalidating instances of class %s\n", ClassName(subClasses->cl));
+    if (subClasses->cl->parsedParamPtr) {
+      ParsedParamFree(subClasses->cl->parsedParamPtr);
+      subClasses->cl->parsedParamPtr = NULL;
+    }
+
     instanceTablePtr = &subClasses->cl->instances;
     for (hPtr = Tcl_FirstHashEntry(instanceTablePtr, &hSrch); hPtr;
 	 hPtr = Tcl_NextHashEntry(&hSrch)) {
       NsfObject *object = (NsfObject *)Tcl_GetHashKey(instanceTablePtr, hPtr);
-      if (object->mixinOrder) { MixinResetOrder(object); }
-      object->flags &= ~NSF_MIXIN_ORDER_VALID;
-    }
-  }
 
-  /*
-   * Reset the mixin order for all objects having this class as a per class
-   * mixin.  This means that we have to work through the class mixin hierarchy
-   * with its corresponding instances.
-   */
-  Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-  GetAllClassMixinsOf(interp, commandTable, Tcl_GetObjResult(interp),
-		      cl, 1, 0, NULL, NULL);
+      assert(object);
 
-  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
-    NsfClass *ncl = (NsfClass *)Tcl_GetHashKey(commandTable, hPtr);
-
-    if (ncl) {
-      MixinResetOrderForInstances(ncl);
-      /*
-       * Here it is sufficient to invalidate the computed configure parameter
-       * definitions without calling the full-blown
-       * NsfParameterCacheClassInvalidateCmd(interp, ncl), since we are
-       * iterating over the full relevant class ist.
-       */
-      if (ncl->parsedParamPtr) {
-        ParsedParamFree(ncl->parsedParamPtr);
-        ncl->parsedParamPtr = NULL;
+      if (!(object->flags & NSF_DURING_DELETE)
+          && (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID)) {
+        MixinResetOrder(object);
+        object->flags &= ~NSF_MIXIN_ORDER_VALID;
+        //fprintf(stderr, "... %s clearing flag NSF_MIXIN_ORDER_VALID\n", ObjectName(object));
       }
     }
   }
-  Tcl_DeleteHashTable(commandTable);
-  MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
+
 }
 
 /*
@@ -10538,7 +10475,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   assert(arg);
 
   superClasses = PrecedenceOrder(cl);
-  subClasses = TransitiveSubClasses(cl);
+  subClasses = DependentSubClasses(cl);
 
   /*
    * We have to remove all dependent superclass filter referenced
@@ -12356,7 +12293,6 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
      *    to MethodDispatch/MethodDispatch
      *  TODO: maybe remove NSF_CM_KEEP_CALLER_SELF when done.
      */
-    //yyyy;
     result = MethodDispatch(object, interp,
 			    nobjc+1, nobjv-1, cmd, object,
 			    NULL /*NsfClass *cl*/,
@@ -13349,7 +13285,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   if (1//(object->flags & NSF_KEEP_CALLER_SELF)
       //&& (flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0
       && (flags & NSF_CM_KEEP_CALLER_SELF)) {
-    // yyyy
     calledObject = GetSelfObj(interp);
     if (calledObject == NULL) {
       NsfShowStack(interp);
@@ -18509,7 +18444,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
 	  cl, ClassName(cl), IsMetaClass(interp, cl, 1),
 	  softrecreate, recreate, clopt);*/
 
-  subClasses = TransitiveSubClasses(cl);
+  subClasses = DependentSubClasses(cl);
   if (subClasses) {
 
     /*
@@ -25818,7 +25753,7 @@ NsfRelationGetCmd(Tcl_Interp *interp, NsfObject *object, int relationtype) {
  *
  *----------------------------------------------------------------------
  */
-static int NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, int oc, Tcl_Obj **ov) 
+static int NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, int oc, Tcl_Obj **ov)
   nonnull(1) nonnull(2) nonnull(3);
 
 static int
@@ -25844,7 +25779,7 @@ NsfRelationClassMixinsSet(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *valueObj, i
     CmdListFree(&clopt->classMixins, GuardDel);
   }
 
-  subClasses = TransitiveSubClasses(cl);
+  subClasses = DependentSubClasses(cl);
   MixinInvalidateObjOrders(interp, cl, subClasses);
 
   /*
@@ -25891,7 +25826,6 @@ static int
 NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
                   int relationtype, Tcl_Obj *valueObj) {
   int oc; Tcl_Obj **ov;
-  NsfObject *nObject = NULL;
   NsfClass *cl = NULL;
   NsfObjectOpt *objopt = NULL;
   NsfClassOpt *clopt = NULL, *nclopt = NULL;
@@ -26059,7 +25993,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
       objopt->objMixins = newMixinCmdList;
 
       for (cmds = newMixinCmdList; cmds; cmds = cmds->nextPtr) {
-        nObject = NsfGetObjectFromCmdPtr(cmds->cmdPtr);
+        NsfObject *nObject = NsfGetObjectFromCmdPtr(cmds->cmdPtr);
         if (nObject) {
           nclopt = NsfRequireClassOpt((NsfClass *) nObject);
           CmdListAddSorted(&nclopt->isObjectMixinOf, object->id, NULL);
@@ -26162,7 +26096,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
       }
 
       if (FiltersDefined(interp) > 0) {
-	NsfClasses *subClasses = TransitiveSubClasses(cl);
+	NsfClasses *subClasses = DependentSubClasses(cl);
         if (subClasses) {
           FilterInvalidateObjOrders(interp, subClasses);
           NsfClassListFree(subClasses);
@@ -28279,7 +28213,7 @@ NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl,
     NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->classFilters);
 
     if (h) {
-      NsfClasses *subClasses = TransitiveSubClasses(cl);
+      NsfClasses *subClasses = DependentSubClasses(cl);
 
       if (h->clientData) {
 	GuardDel(h);
@@ -28351,7 +28285,7 @@ NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *
 	    GuardDel((NsfCmdList *) h);
 	  }
 	  GuardAdd(h, guardObj);
-	  subClasses = TransitiveSubClasses(cl);
+	  subClasses = DependentSubClasses(cl);
 	  MixinInvalidateObjOrders(interp, cl, subClasses);
 	  NsfClassListFree(subClasses);
 	  return TCL_OK;
@@ -29022,7 +28956,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object,
   /*
    * Then add the class provided slot objects.
    */
-  for (clPtr = precendenceList; clPtr; clPtr = clPtr->nextPtr) {
+  for (clPtr = precendenceList; likely(clPtr != NULL); clPtr = clPtr->nextPtr) {
     if (MethodSourceMatches(withSource, clPtr->cl, NULL)) {
       AddSlotObjects(interp, &clPtr->cl->object, "::slot", &slotTable,
 		     withSource, type, pattern, listObj);
@@ -29221,6 +29155,7 @@ NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
 
   precedenceList = ComputePrecedenceList(interp, object, pattern, !withIntrinsicOnly, 1);
   for (pl = precedenceList; pl; pl = pl->nextPtr) {
+    assert(pl->cl);
     Tcl_ListObjAppendElement(interp, resultObj, pl->cl->object.cmdName);
   }
   if (precedenceList) NsfClassListFree(precedenceList);

@@ -1012,11 +1012,11 @@ nx::test case dynamic-transitive-mixin-info {
 nx::test configure -count 1
 nx::test case indirect-transitive-mixin-info {
 
-  nx::Class create M0
+  nx::Class create M0 {:public method foo {} {return M}}
   nx::Class create M1 -superclass M0
   nx::Class create M2 -superclass M1
 
-  nx::Class create C
+  nx::Class create C {:public method foo {} {return C}}
   nx::Class create D -superclass C
 
   C create c1
@@ -1025,8 +1025,11 @@ nx::test case indirect-transitive-mixin-info {
   M1 create m1
   M2 create m2
 
-  ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} "objectName object-mixin class object-filter __initblock"
+  ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} \
+      "objectName object-mixin class object-filter __initblock"
   set base [llength [lmap p [C info lookup parameters create] {nsf::parameter::info name $p}]]
+
+  ? [list set _ $base] 5
 
   ? {llength [C info lookup parameters create]} $base
   ? {llength [D info lookup parameters create]} $base
@@ -1040,10 +1043,27 @@ nx::test case indirect-transitive-mixin-info {
   ? {llength [M1 info lookup parameters create]} [expr {$base + 1}]
   ? {llength [M2 info lookup parameters create]} [expr {$base + 1}]
 
+  ? {c1 foo} C
+  ? {d1 foo} C
+
+  ? {c1 info precedence} "::C ::nx::Object"
+  ? {d1 info precedence} "::D ::C ::nx::Object"
+
+  #puts stderr =========C-mixin-add-M2
   C mixin add M2
+  #puts stderr =========
+
+  ? {c1 foo} M
+  ? {d1 foo} M
+
+  ? {c1 info precedence} "::M2 ::M1 ::M0 ::C ::nx::Object"
+  ? {d1 info precedence} "::M2 ::M1 ::M0 ::D ::C ::nx::Object"
 
   ? {C info heritage} "::M2 ::M1 ::M0 ::nx::Object"
   ? {D info heritage} "::M2 ::M1 ::M0 ::C ::nx::Object"
+
+  # Only M2 is a direct mixin, visible through "mixinof",
+  # but query-able via transitive -closure operator
 
   ? {M2 info mixinof} "::C"
   ? {M2 info mixinof -closure} "::C ::D"
@@ -1060,9 +1080,9 @@ nx::test case indirect-transitive-mixin-info {
   ? {llength [C info lookup parameters create]} [expr {$base + 1}]
   ? {llength [D info lookup parameters create]} [expr {$base + 1}]
 
-  puts stderr =========-M1-property
+  #puts stderr =========-M1-property
   M1 property y
-  puts stderr =========
+  #puts stderr =========
   ? {C info heritage} "::M2 ::M1 ::M0 ::nx::Object"
 
   #::nsf::parameter::cache::classinvalidate ::C
@@ -1081,6 +1101,17 @@ nx::test case indirect-transitive-mixin-info {
   ? {llength [M0 info lookup parameters create]} [expr {$base + 1}]
   ? {llength [M1 info lookup parameters create]} [expr {$base + 2}]
   ? {llength [M2 info lookup parameters create]} [expr {$base + 2}]
+
+  # clearning the mixin has to reset the orders of the instances of C and D
+  #puts stderr =========C-mixin-clear
+  C mixin clear
+  #puts stderr =========
+
+  ? {c1 foo} C
+  ? {d1 foo} C
+
+  ? {c1 info precedence} "::C ::nx::Object"
+  ? {d1 info precedence} "::D ::C ::nx::Object"
 }
 
 
