@@ -126,33 +126,60 @@ instances of [cmd nx::Object].
 
 [list_begin definitions]
 
-[call [arg cls] [method info] [method configure]]
-
-Lists all configuration options available for [arg obj]. These include
-the [sectref {Configuration Options for Instances of nx::Class} "configuration options"] provided
-by [cmd nx::Object]. The available configuration options can be
-modified using [method configure], their current value can be queried
-using [method cget].
 
 [call [arg cls] [method info] [method heritage]]
 
 ...
 
-[call [arg cls] [method info] [method instances]]
+[call [arg cls] [method "info instances"] [opt [option -closure]] [opt [arg pattern]]]
 
-...
+If [arg pattern] is not specified, returns a list of the object names
+of all the direct and/or indirect instances of [arg cls]. A direct
+instance is created by using [method create] or [method new] on [arg cls], an
+indirect instance was created from a direct or indirect subclass of
+[arg cls]. If the [term "switch"] [option -closure] is
+set, indirect instances are also
+returned; otherwise, only direct instances will be returned. If [arg pattern] is
+specified, only instances whose names match [arg pattern] will
+be listed (see [cmd "string match"]).
 
-[call [arg cls] [method info] [method mixinof]]
+[call [arg cls] [method "info mixinof"] [opt [option -closure]] [opt "[option -scope] [arg option]"] [opt [arg pattern]]]
 
-...
+If [arg pattern] is not specified, returns a list of the object names
+of all the objects for which [arg cls] is active as a
+direct and/or indirect [term "mixin class"]. If the [term "switch"]
+[option -closure] is set, objects which have [arg cls] as an indirect
+[term "mixin class"] are also returned; otherwise,
+only those having [arg cls] as a direct [term "mixin class"]. If [arg pattern] is
+specified, only objects whose names match [arg pattern] will
+be listed (see [cmd "string match"]). Valid values of [arg option] are
+[const all], [const object], and [const class]. Passing [const object]
+will have only objects returned which have [arg cls] as [emph per-object]
+[term "mixin class"]. Passing [const class] will have only classes
+returned which have [arg cls] as [emph per-class] [term "mixin class"]. [const all] (the
+default) will have contained both in the returned list.
 
-[call [arg cls] [method info] [method subclass]]
 
-...
+[call [arg cls] [method "info subclass"] [opt [option -closure]] [opt [arg pattern]]]
 
-[call [arg cls] [method info] [method superclass]]
+If [arg pattern] is not specified, returns a list of the object names
+of all the direct and/or indirect subclasses of [arg cls]. If the [term "switch"] [option -closure] is
+set, indirect subclasses are also returned; otherwise, only direct subclasses will be returned. If [arg pattern] is specified, only subclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
 
-...
+[comment {
+  fixme: 
+  % C info subclass 1 2 3 4 5
+  invalid argument '2', maybe too many arguments; should be "::C subclass ?-closure? ?/pattern/?"
+  ::C ::nx::Class->info
+  invoked from within
+  "C info subclass 1 2 3 4 5"
+}]
+
+[call [arg cls] [method "info superclass"] [opt [option -closure]] [opt [arg pattern]]]
+
+If [arg pattern] is not specified, returns a list of the object names
+of all the direct and/or indirect superclasses of [arg cls]. If the [term "switch"] [option -closure] is
+set, indirect superclasses are also returned; otherwise, only direct superclasses will be returned. If [arg pattern] is specified, only superclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
 
 [include info.man.inc]
 

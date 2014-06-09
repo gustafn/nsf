@@ -400,14 +400,6 @@ Returns the fully qualified name of the current [cmd nx::Class] of
 returned class will be different from the [cmd nx::Class] from which [arg obj] was
 originally instantiated using [method create] or [method new].
 
-[call [arg obj] [method info] [method configure]]
-
-Lists all configuration options available for [arg obj]. These include
-the [sectref {Configuration Options for Instances of nx::Object} "configuration options"] provided
-by [cmd nx::Object]. The available configuration options can be
-modified using [method configure], their current value can be queried
-using [method cget].
-
 [call [arg obj] [method info] [method has] [method mixin] | [method namespace] | [method type] [opt "[arg arg] ..."]]
 
 [list_begin definitions]
