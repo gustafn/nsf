@@ -290,9 +290,7 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
   assert(errorMsg);
   assert(paramPtr);
 
-  NsfObjWrongArgs(interp, errorMsg, cmdNameObj, 
-		  NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(methodPathObj)), 
-		  ObjStr(argStringObj));
+  NsfObjWrongArgs(interp, errorMsg, cmdNameObj, methodPathObj, ObjStr(argStringObj));
   DECR_REF_COUNT2("paramDefsObj", argStringObj);
 
   return TCL_ERROR;
