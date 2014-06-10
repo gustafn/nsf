@@ -1249,7 +1249,11 @@ nx::test case info-methods-closure {
 #
 nx::test case error-in-ensemble {
   ? {nx::Object info method definition foo 1} {wrong # args: should be "definition name"}
+  ? {nx::Object info subclass I R G H} {invalid argument 'R', maybe too many arguments; should be "::nx::Object info subclass ?-closure? ?-dependent? ?/pattern/?"}
 }
+
+
+
 
 #
 # Local variables:
