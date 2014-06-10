@@ -19517,7 +19517,10 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   assert(interp);
   assert(objv);
 
-  if (objc > 2) return NsfObjWrongArgs(interp, "wrong # args", object->cmdName, objv[0], "?value?");
+  if (objc > 2) {
+    return NsfObjWrongArgs(interp, "wrong # args", object->cmdName, 
+                           NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(objv[0])), "?value?");
+  }
   if (object == NULL) return NsfDispatchClientDataError(interp, clientData, "object", ObjStr(objv[0]));
 
   if (cd->paramsPtr && objc == 2) {

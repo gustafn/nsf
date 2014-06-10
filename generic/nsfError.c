@@ -235,7 +235,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  */
 int
 NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
-		Tcl_Obj *methodName, char *arglist) {
+		Tcl_Obj *methodPath, char *arglist) {
   int need_space = 0;
 
   assert(interp);
@@ -248,17 +248,12 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
     need_space = 1;
   }
 
-  if (methodName) {
-    Tcl_Obj *resultObj;
-
+  if (methodPath) {
     if (need_space) Tcl_AppendResult(interp, " ", (char *) NULL);
 
-    resultObj = NsfMethodNamePath(interp, 
-				  NULL /* use topmost frame */, 
-				  NsfMethodName(methodName));
-    INCR_REF_COUNT(resultObj);
-    Tcl_AppendResult(interp, ObjStr(resultObj), (char *) NULL);
-    DECR_REF_COUNT(resultObj);
+    INCR_REF_COUNT(methodPath);
+    Tcl_AppendResult(interp, ObjStr(methodPath), (char *) NULL);
+    DECR_REF_COUNT(methodPath);
 
     need_space = 1;
   }
@@ -295,7 +290,9 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
   assert(errorMsg);
   assert(paramPtr);
 
-  NsfObjWrongArgs(interp, errorMsg, cmdNameObj, methodObj, ObjStr(argStringObj));
+  NsfObjWrongArgs(interp, errorMsg, cmdNameObj, 
+		  NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(methodObj)), 
+		  ObjStr(argStringObj));
   DECR_REF_COUNT2("paramDefsObj", argStringObj);
 
   return TCL_ERROR;
