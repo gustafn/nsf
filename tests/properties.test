@@ -1049,6 +1049,11 @@ nx::test case indirect-transitive-mixin-info {
   ? {c1 info precedence} "::C ::nx::Object"
   ? {d1 info precedence} "::D ::C ::nx::Object"
 
+  ? {C info subclass -dependent} "::C ::D"
+  ? {C info subclass -closure} "::C ::D"
+  ? {M0 info subclass -dependent} "::M0 ::M1 ::M2"
+  ? {M0 info subclass -closure} "::M0 ::M1 ::M2"
+
   #puts stderr =========C-mixin-add-M2
   C mixin add M2
   #puts stderr =========
@@ -1061,6 +1066,12 @@ nx::test case indirect-transitive-mixin-info {
 
   ? {C info heritage} "::M2 ::M1 ::M0 ::nx::Object"
   ? {D info heritage} "::M2 ::M1 ::M0 ::C ::nx::Object"
+
+  ? {C info subclass -dependent} "::C ::D"
+  ? {C info subclass -closure} "::C ::D"
+  ? {M0 info subclass -dependent} "::M0 ::M1 ::M2 ::C ::D"
+  ? {M0 info subclass -closure} "::M0 ::M1 ::M2"
+
 
   # Only M2 is a direct mixin, visible through "mixinof",
   # but query-able via transitive -closure operator

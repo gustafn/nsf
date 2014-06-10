@@ -29685,20 +29685,26 @@ NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *class,
 
 /*
 classInfoMethod subclass NsfClassInfoSubclassMethod {
-  {-argName "-closure" -nrargs 0}
+  {-argName "-closure" -nrargs 0 -type switch}
+  {-argName "-dependent" -nrargs 0 -type switch}
   {-argName "pattern" -type objpattern}
 }
 */
 static int
-NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosure,
-                             CONST char *patternString, NsfObject *patternObj) {
+NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *class, 
+                           int withClosure, int withDependent,
+                           CONST char *patternString, NsfObject *patternObj) {
   int rc = 0;
 
   assert(interp);
   assert(class);
 
-  if (withClosure) {
-    NsfClasses *subClasses = TransitiveSubClasses(class);
+  if (withClosure && withDependent) {
+    return NsfPrintError(interp, "only -closure or -dependent can be specified, not both");
+  }
+
+  if (withClosure || withDependent) {
+    NsfClasses *subClasses = withClosure ? TransitiveSubClasses(class) : DependentSubClasses(class);
 
     if (subClasses) {
       rc = AppendMatchingElementsFromClasses(interp, subClasses, patternString, patternObj);

@@ -550,7 +550,7 @@ static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST 
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfClassInfoSlotobjectsMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withSource, NsfClass *withType, CONST char *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObject)
+static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withDependent, CONST char *patternString, NsfObject *patternObject)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -1347,12 +1347,13 @@ NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
                      method_definitions[NsfClassInfoSubclassMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
+    int withDependent = (int )PTR2INT(pc.clientData[1]);
     CONST char *patternString = NULL;
     NsfObject *patternObject = NULL;
-    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
     int returnCode;
 
-    if (GetMatchObject(interp, pattern, objc>1 ? objv[1] : NULL, &patternObject, &patternString) == -1) {
+    if (GetMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObject, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT2("patternObj", pattern);
       }
@@ -1360,7 +1361,7 @@ NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     }
           
     assert(pc.status == 0);
-    returnCode = NsfClassInfoSubclassMethod(interp, cl, withClosure, patternString, patternObject);
+    returnCode = NsfClassInfoSubclassMethod(interp, cl, withClosure, withDependent, patternString, patternObject);
 
     if (pattern) {
       DECR_REF_COUNT2("patternObj", pattern);
@@ -3285,8 +3286,9 @@ static Nsf_methodDefinition method_definitions[111] = {
   {"-type", 0, 1, Nsf_ConvertTo_Class, NULL,NULL,"class",NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::methods::class::info::subclass", NsfClassInfoSubclassMethodStub, 2, {
+{"::nsf::methods::class::info::subclass", NsfClassInfoSubclassMethodStub, 3, {
   {"-closure", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
+  {"-dependent", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"pattern", 0, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::superclass", NsfClassInfoSuperclassMethodStub, 2, {

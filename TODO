@@ -5382,12 +5382,16 @@ nsf.c
   ResetOrderOfObjectsUsingThisClassAsObjectMixin()
 - used consistenlty DependentSubClasses() instead of TransitiveSubClasses()
   for invalidations.
-- extend regression test
+- extended regression test
+
+nsf.c:
+- added option "-dependent" to "info subclass"
+- extended regression test
+
 ========================================================================
 TODO:
 
-- maybe add "/cl/ info subclasses -dependent" to return union of
-  transitive closure + class mixins.
+- shouldn't "info subclass" be named "info subclasses"?
 
 - how should we treat cyclic subclass relationships built via class mixins.
   (either complain at mixin registration or soft warnings or ignoring -
