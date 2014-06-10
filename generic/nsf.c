@@ -21007,7 +21007,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
     if (unlikely(currentParamPtr > lastParamPtr)) {
       return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj),
-					(Nsf_Object*)object, paramPtr, procNameObj);
+					(Nsf_Object*)object, paramPtr, 
+                                        NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
     }
 
     if (*currentParamPtr->name == '-') {
@@ -21117,7 +21118,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		return NsfUnexpectedNonposArgumentError(interp, argumentString,
 							(Nsf_Object *)object,
 							currentParamPtr, paramPtr,
-							procNameObj);
+                                                        NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
 	      }
 	      pPtr = currentParamPtr = nextParamPtr;
 	    }
@@ -21172,7 +21173,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		return NsfUnexpectedNonposArgumentError(interp, argumentString,
 							(Nsf_Object *)object,
 							currentParamPtr, paramPtr,
-							procNameObj);
+                                                        NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
 	      }
 	      pPtr = currentParamPtr = nextParamPtr;
 	    }
@@ -21191,7 +21192,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      */
     if (unlikely(pPtr > lastParamPtr)) {
       return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj),
-					(Nsf_Object *)object, paramPtr, procNameObj);
+					(Nsf_Object *)object, paramPtr, 
+                                        NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
     }
 
 

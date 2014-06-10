@@ -314,13 +314,14 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  */
 int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
-			   Nsf_Object *object, Nsf_Param CONST *paramPtr, Tcl_Obj *procNameObj) {
+			   Nsf_Object *object, Nsf_Param CONST *paramPtr, 
+			   Tcl_Obj *methodNamePathObj) {
   Tcl_DString ds, *dsPtr = &ds;
 
   assert(interp);
   assert(argumentString);
   assert(paramPtr);
-  assert(procNameObj);
+  assert(methodNamePathObj);
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, "invalid argument '", -1);
@@ -328,7 +329,7 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
   Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
 		   object ? object->cmdName : NULL,
-		   NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
+		   methodNamePathObj);
   DSTRING_FREE(dsPtr);
   return TCL_ERROR;
 }
@@ -354,7 +355,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 				 Nsf_Object *object,
 				 Nsf_Param CONST *currentParamPtr,
 				 Nsf_Param CONST *paramPtr,
-				 Tcl_Obj *procNameObj) {
+				 Tcl_Obj *methodNamePathObj) {
   Tcl_DString ds, *dsPtr = &ds;
   Nsf_Param CONST *pPtr;
 
@@ -362,7 +363,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
   assert(argumentString);
   assert(currentParamPtr);
   assert(paramPtr);
-  assert(procNameObj);
+  assert(methodNamePathObj);
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, "invalid non-positional argument '", -1);
@@ -380,7 +381,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
 		   object ? object->cmdName : NULL,
-		   NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
+		   methodNamePathObj);
   DSTRING_FREE(dsPtr);
   return TCL_ERROR;
 }
