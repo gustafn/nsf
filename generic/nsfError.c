@@ -235,7 +235,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
  */
 int
 NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
-		Tcl_Obj *methodPath, char *arglist) {
+		Tcl_Obj *methodPathObj, char *arglist) {
   int need_space = 0;
 
   assert(interp);
@@ -248,12 +248,12 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
     need_space = 1;
   }
 
-  if (methodPath) {
+  if (methodPathObj) {
     if (need_space) Tcl_AppendResult(interp, " ", (char *) NULL);
 
-    INCR_REF_COUNT(methodPath);
-    Tcl_AppendResult(interp, ObjStr(methodPath), (char *) NULL);
-    DECR_REF_COUNT(methodPath);
+    INCR_REF_COUNT(methodPathObj);
+    Tcl_AppendResult(interp, ObjStr(methodPathObj), (char *) NULL);
+    DECR_REF_COUNT(methodPathObj);
 
     need_space = 1;
   }
@@ -283,7 +283,7 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
  */
 int
 NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *paramPtr,
-              Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
+              Tcl_Obj *cmdNameObj, Tcl_Obj *methodPathObj) {
   Tcl_Obj *argStringObj = NsfParamDefsSyntax(interp, paramPtr, NULL, NULL);
 
   assert(interp);
@@ -291,7 +291,7 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
   assert(paramPtr);
 
   NsfObjWrongArgs(interp, errorMsg, cmdNameObj, 
-		  NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(methodObj)), 
+		  NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(methodPathObj)), 
 		  ObjStr(argStringObj));
   DECR_REF_COUNT2("paramDefsObj", argStringObj);
 
@@ -330,7 +330,7 @@ NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
   Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
 		   object ? object->cmdName : NULL,
-		   procNameObj);
+		   NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
   DSTRING_FREE(dsPtr);
   return TCL_ERROR;
 }
@@ -382,7 +382,7 @@ NsfUnexpectedNonposArgumentError(Tcl_Interp *interp,
 
   NsfArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr,
 		   object ? object->cmdName : NULL,
-		   procNameObj);
+		   NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
   DSTRING_FREE(dsPtr);
   return TCL_ERROR;
 }

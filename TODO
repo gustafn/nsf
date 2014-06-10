@@ -5388,9 +5388,9 @@ nsf.c:
 - added option "-dependent" to "info subclass"
 - extended regression test
 
-
 nsf.c:
 - move NsfMethodNamePath() out of NsfObjWrongArgs()
+- move NsfMethodNamePath() out of NsfUnexpectedArgumentError() and NsfUnexpectedNonposArgumentError()
 ========================================================================
 TODO:
 
