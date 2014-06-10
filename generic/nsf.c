@@ -4408,6 +4408,7 @@ NsfMethodName(Tcl_Obj *methodObj) {
 Tcl_Obj *
 NsfMethodNamePath(Tcl_Interp *interp,
 		  Tcl_CallFrame *framePtr,
+                  int skip,
 		  CONST char *methodName) {
 
   Tcl_Obj *resultObj = Tcl_NewListObj(0, NULL);
@@ -4422,7 +4423,7 @@ NsfMethodNamePath(Tcl_Interp *interp,
 
   if (framePtr) {
     Tcl_ListObjAppendList(interp, resultObj,
-			  CallStackMethodPath(interp, framePtr));
+			  CallStackMethodPath(interp, skip, framePtr));
   }
 
   Tcl_ListObjAppendElement(interp, resultObj,
@@ -12446,7 +12447,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
        */
       Tcl_Obj *callInfoObj = Tcl_NewListObj(1, &callerSelf->cmdName);
       Tcl_Obj *methodPathObj = NsfMethodNamePath(interp,
-                                                 (Tcl_CallFrame *)framePtr,
+                                                 (Tcl_CallFrame *)framePtr, 1,
                                                  MethodName(objv[0]));
       INCR_REF_COUNT(callInfoObj);
       Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
@@ -19518,8 +19519,8 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   assert(objv);
 
   if (objc > 2) {
-    return NsfObjWrongArgs(interp, "wrong # args", object->cmdName, 
-                           NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(objv[0])), "?value?");
+    return NsfObjWrongArgs(interp, "wrong # args", object->cmdName,
+                           NsfMethodNamePath(interp, NULL, 1, NsfMethodName(objv[0])), "?value?");
   }
   if (object == NULL) return NsfDispatchClientDataError(interp, clientData, "object", ObjStr(objv[0]));
 
@@ -19598,7 +19599,7 @@ NsfForwardPrintError(Tcl_Interp *interp, ForwardCmdClientData *tcd,
     if (tcd->object) {
       cmd = Tcl_DuplicateObj(tcd->object->cmdName);
       if (objc > 0) {
-        Tcl_ListObjAppendList(interp, cmd, NsfMethodNamePath(interp, NULL, MethodName(objv[0])));
+        Tcl_ListObjAppendList(interp, cmd, NsfMethodNamePath(interp, NULL, 1, MethodName(objv[0])));
         if (objc > 1) {
           Tcl_ListObjAppendElement(interp, cmd,  Tcl_NewListObj(objc-1,objv+1));
         }
@@ -20852,7 +20853,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 		 && (processFlags & NSF_ARGPARSE_FORCE_REQUIRED)) {
 	Tcl_Obj *paramDefsObj = NsfParamDefsSyntax(interp, ifd, pcPtr->object, NULL);
 	Tcl_Obj *methodPathObj = NsfMethodNamePath(interp,
-						   NULL /* use topmost frame */,
+						   NULL, 1,
 						   MethodName(pcPtr->full_objv[0]));
 
 	INCR_REF_COUNT2("methodPathObj", methodPathObj);
@@ -21006,9 +21007,9 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 #endif
 
     if (unlikely(currentParamPtr > lastParamPtr)) {
-      return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj),
-					(Nsf_Object*)object, paramPtr, 
-                                        NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
+      Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, NULL, 0, NsfMethodName(procNameObj));
+      return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj), (Nsf_Object*)object,
+                                        paramPtr, methodPathObj);
     }
 
     if (*currentParamPtr->name == '-') {
@@ -21115,10 +21116,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	      Nsf_Param CONST *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
 	      if (nextParamPtr > lastParamPtr
 		  || (nextParamPtr->flags & NSF_ARG_NOLEADINGDASH)) {
+                Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, NULL, 0, NsfMethodName(procNameObj));
 		return NsfUnexpectedNonposArgumentError(interp, argumentString,
 							(Nsf_Object *)object,
 							currentParamPtr, paramPtr,
-                                                        NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
+                                                        methodPathObj);
 	      }
 	      pPtr = currentParamPtr = nextParamPtr;
 	    }
@@ -21170,10 +21172,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 				       ObjStr(argumentObj));
 		}
 #endif
+                Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, NULL, 0, NsfMethodName(procNameObj));
 		return NsfUnexpectedNonposArgumentError(interp, argumentString,
 							(Nsf_Object *)object,
 							currentParamPtr, paramPtr,
-                                                        NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
+                                                        methodPathObj);
 	      }
 	      pPtr = currentParamPtr = nextParamPtr;
 	    }
@@ -21191,9 +21194,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      * parameter, valueObj might be already provided for valueInArgument.
      */
     if (unlikely(pPtr > lastParamPtr)) {
+      Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, NULL, 0, NsfMethodName(procNameObj));
+
       return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj),
-					(Nsf_Object *)object, paramPtr, 
-                                        NsfMethodNamePath(interp, NULL /* use topmost frame */, NsfMethodName(procNameObj)));
+					(Nsf_Object *)object, paramPtr,
+                                        methodPathObj);
     }
 
 
@@ -26163,7 +26168,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   case CurrentoptionMethodpathIdx:
     cscPtr = CallStackGetTopFrame0(interp);
     Tcl_SetObjResult(interp, NsfMethodNamePath(interp,
-					       NULL /* use topmost frame */,
+					       NULL, 1,
 					       Tcl_GetCommandName(interp, cscPtr->cmdPtr)));
     break;
 
@@ -26231,6 +26236,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     if (cscPtr && cscPtr->cmdPtr) {
       resultObj = NsfMethodNamePath(interp,
 				    framePtr,
+                                    1,
 				    Tcl_GetCommandName(interp, cscPtr->cmdPtr));
     } else {
       resultObj = NsfGlobalObjs[NSF_EMPTY];
@@ -29696,7 +29702,7 @@ classInfoMethod subclass NsfClassInfoSubclassMethod {
 }
 */
 static int
-NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *class, 
+NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *class,
                            int withClosure, int withDependent,
                            CONST char *patternString, NsfObject *patternObj) {
   int rc = 0;

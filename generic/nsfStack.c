@@ -734,10 +734,10 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_Obj* CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) nonnull(1) nonnull(2);
+static Tcl_Obj* CallStackMethodPath(Tcl_Interp *interp, int skip, Tcl_CallFrame *framePtr) nonnull(1) nonnull(3);
 
 static Tcl_Obj*
-CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+CallStackMethodPath(Tcl_Interp *interp, int skip, Tcl_CallFrame *framePtr) {
   int elements;
   Tcl_Obj *resultObj;
   Tcl_Obj *methodPathObj = Tcl_NewListObj(0, NULL);
@@ -749,8 +749,10 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
    * Append all ensemble names to the specified list obj
    */
 
+  while(skip--) {framePtr = Tcl_CallFrame_callerPtr(framePtr);}
+
   for (/* Skipping the starting frame, assuming a "leaf" frame in an ensemble dispatch */
-       framePtr = Tcl_CallFrame_callerPtr(framePtr), elements = 0;
+       elements = 0;
        Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_METHOD);
        framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
 

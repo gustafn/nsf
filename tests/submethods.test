@@ -4,7 +4,17 @@ package require nx::test
 
 ::nx::configure defaultMethodCallProtection false
 
-nx::test configure -count 100
+#
+# test, whether error message from a submethod contains method path
+#
+nx::test case info-errors {
+  ? {::nx::Object info subclass a b c} \
+      {invalid argument 'b', maybe too many arguments; should be "::nx::Object info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {::nx::Object info object mixin classes a b c} \
+      {invalid argument 'b', maybe too many arguments; should be "::nx::Object info object mixin classes ?-guards? ?/pattern/?"}
+}
+
+nx::test configure -count 10
 nx::test case submethods {
   #Object method unknown {} {}
   Object create o1   

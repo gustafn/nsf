@@ -1019,8 +1019,9 @@ EXTERN void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
 
 EXTERN Tcl_Obj *NsfMethodNamePath(Tcl_Interp *interp, 
 				  Tcl_CallFrame *framePtr, 
+				  int skip,
 				  CONST char *methodName)
-  nonnull(1) nonnull(3) returns_nonnull;
+  nonnull(1) nonnull(4) returns_nonnull;
 
 /*
  * Definition of methodEpoch macros
