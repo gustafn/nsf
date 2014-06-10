@@ -388,6 +388,38 @@ GetSelfObj(Tcl_Interp *interp) {
   return NULL;
 }
 
+static  Tcl_CallFrame* CallStackGetFrame(Tcl_Interp *interp, 
+					 Tcl_CallFrame *startFrame,
+					 int skip) nonnull(1);
+
+static Tcl_CallFrame* CallStackGetFrame(Tcl_Interp *interp, 
+					Tcl_CallFrame *startFrame,
+					int skip) {
+  register Tcl_CallFrame *varFramePtr;
+
+  assert(interp);
+
+  /* NsfShowStack(interp); */
+
+  if (startFrame == NULL) {
+    varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  } else {
+    varFramePtr = startFrame;
+  }
+
+  while(skip-- && varFramePtr != NULL) {
+    varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
+  }
+
+  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+      return varFramePtr;
+    }
+  }
+
+  return NULL;
+}
+
 /*
  *----------------------------------------------------------------------
  * CallStackGetTopFrame, CallStackGetTopFrame0, NsfCallStackGetTopFrame --
