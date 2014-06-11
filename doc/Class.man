@@ -8,7 +8,8 @@
 [keywords "submethod"]
 [keywords "method ensemble"]
 [keywords "linearisation"]
-[term "filter specification"]
+[keywords "filter specification"]
+[keywords "metaclass"]
 
 [vset SCOPE "class"]
 [vset CMD "cls"]
@@ -93,22 +94,29 @@ instances of [cmd nx::Object].
 
 [list_begin definitions]
 
-[call [arg cls] [method create] [arg className] [opt "[arg option] [arg value] ..."]] 
+[call [arg cls] [method create] [arg instanceName] [opt "[arg option] [arg value] [arg option] [arg value] ..."]] 
 
-This factory method creates a new application class having an explicit [arg className] and
-returns [arg className]. [method create] accepts the configuration
-options defined by [cmd nx::Class] and [cmd nx::Object] as arguments:
+This factory method creates an instance [arg instanceName] of [arg cls]
+and returns [arg instanceName].
 
 [example {
-  % ::nx::Class create AClass; # defines a new class 'AClass'
-  ::AClass
-  % ::AClass create anInstance; # defines an instance 'anInstance' of 'AClass'
-  % # create must be invoked explicitly; the following fails:
-  % ::nx::Class AnotherClass; # "Method 'AnotherClass' unknown for ::nx::Class."
+% nx::Class create AClass {
+    :method init args {
+      next
+    }; # initialization method for instances of 'AClass'
+  }; # defines a class 'AClass' being an instance of 'nx::Class'
+::AClass
+% ::AClass create anInstance; # defines an object 'anInstance' being an instance of 'AClass'
+::anInstance
+% ::anInstance info class
+::AClass
+% ::AClass info class
+::nx::Class
 }]
 
-Note that [method create] is called internally when defining a class
-using [method new].
+[method create] accepts the configuration options [arg option]
+available for this instance, such as those defined by properties of
+[arg cls] (see [method "property"]).
 
 [para]
 
@@ -145,52 +153,18 @@ behaviour. Alternatively or in addition, an instance may define an
 [method init] method on its own.
 [list_end]
 
+Note that [method create] is called internally when defining an
+instance of [arg cls] using [method new].
+
 [para]
 
-[comment {
-  # Provides for creating application-level classes and objects. If
-  # the method receiver is a <<@gls metaclass>>, a <<@gls class>> will be
-  # created. Otherwise, '''create''' yields an object. '''create'''
-  # is responsible a multi-phase object creation scheme. This
-  # creation scheme involves three major steps:
-  # '''
-  # [Object create anObject]               (1)
-  #                       ---------------.   .--------------.
-  #       -------------->|Class->create()|-->|Class->alloc()|
-  #                      `---------------'   `--------------'
-  #                                |  |  (2) .-------------------.
-  #                                |  .----->|Object->configure()|
-  #                                |         `-------------------'
-  #                                |   (3)   .------.
-  #                                .........>|init()|
-  #                                          `------'
-  # '''
-  # (1) A call to <<@class.method "::nx::Class alloc">> to create a raw,
-  # uninitalized object.
-  #
-  # (2) The newly allocated object receives a method call upon
-  # <<@class.method "::nx::Object configure">>. This will establish the
-  # object's initial state, by applying <<@gls objparam>> values
-  # provided at object creation time and default values defined at
-  # object definition time.
-  #
-  # (3) Finally, '''create''' emits a call to the initialization method
-  # '''init''', if available. An '''init''' method can be defined by a
-  # class on behalf of its objects, to lay out class-specific
-  # initialisation behaviour. Alternatively, each single object may
-  # define an '''init''' method on its own.
-  #
-  # By overloading the method in a <<@gls metaclass>>, you can refine or
-  # replace this default object creation scheme (e.g., for applying
-  # application-specific naming schemes).
-  #
-  #
-  # @parameter name The designated identifier on the class or the object to be created.
-  # @parameter args arguments to be passed down to the object creation
-  # procedure used to initialize the object.
-  # @return The fully qualified name of the created object.
-}]
-
+By calling [method create] on [cmd nx::Class] itself, the created
+instance will become a new application class [arg instanceName] on
+which [method create] can also be applied (i.e., it can be
+instantiated). If the so-created class has [cmd ::nx::Class] has its
+direct or indirect superclass, [arg instanceName] is referred to as a
+[term "metaclass"]; that is, a class whose instances are again
+classes.
 
 [list_end]
 
@@ -269,15 +243,6 @@ If [arg pattern] is not specified, returns a list of the object names
 of all the direct and/or indirect subclasses of [arg cls]. If the [term "switch"] [option -closure] is
 set, indirect subclasses are also returned; otherwise, only direct subclasses will be returned. If the [term "switch"] [option -dependent] is on, indirect subclasses introduced by [term "mixin class"] relations of subclasses of [arg cls] are also reported. [option -closure] and [option -dependent] are mutually exclusive. If [arg pattern] is specified, only subclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
 
-[comment {
-  fixme: 
-  % C info subclass 1 2 3 4 5
-  invalid argument '2', maybe too many arguments; should be "::C subclass ?-closure? ?/pattern/?"
-  ::C ::nx::Class->info
-  invoked from within
-  "C info subclass 1 2 3 4 5"
-}]
-
 [call [arg cls] [method "info superclass"] [opt [option -closure]] [opt [arg pattern]]]
 
 If [arg pattern] is not specified, returns a list of the object names
@@ -301,6 +266,44 @@ set, indirect superclasses are also returned; otherwise, only direct superclasse
 [list_begin definitions]
 
 [include mixin.man.inc]
+
+[list_end]
+
+[cmd_def new]
+
+[list_begin definitions]
+
+[call [arg cls] [method new] [opt "[option "-childof"] [arg parentName]"] [opt "[arg option] [arg value] [arg option] [arg value] ..."]]
+
+A factory method to create autonamed instances of [arg cls]. It
+returns the name of the newly created instance. For example:
+
+[example {
+% nx::Class create AClass; # defines a class 'AClass' being an instance of 'nx::Class'
+::AClass
+% set inst [::AClass new]; # defines an autonamed object being an instance of 'AClass'
+::anInstance
+% $inst info class
+::AClass
+}]
+
+The factory method will provide computed object names of the form,
+e.g., ::nsf::__#0. The uniqueness of generated object names is
+guaranteed for the scope of the current Tcl interpreter only.
+
+[para]
+
+It is a frontend to [method create] which will be called by [method new] once
+the name of the instance has been computed, passing along the
+arguments [arg option] to [method new] as the configuration options
+(see [method create]).
+
+[para]
+If [option -childof] is provided, the new object will be created as a
+nested object of [arg parentName]. [arg parentName] can be the name of
+either an existing NX object or an existing Tcl namespace. If
+non-existing, a Tcl namespace [arg parentName] will be created on the
+fly.
 
 [list_end]
 
