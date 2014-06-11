@@ -25527,7 +25527,7 @@ NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
    * During shutdown, no new objects are created, therefore we do not need to
    * to invalidate the cached parsedParamPtr of the classes.
    */
-  if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_OFF)) {
+  if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound == NSF_EXITHANDLER_OFF)) {
     NsfClasses *dependentSubClasses;
     NsfClasses *clPtr;
 
