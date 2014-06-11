@@ -2280,8 +2280,6 @@ typedef enum { SUPER_CLASSES, SUB_CLASSES } ClassDirection;
 static int TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs)
   nonnull(1) nonnull(2);
 
-//#define CYCLIC_MIXIN_ERROR 1
-
 static int
 TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMixinOfs) {
   NsfClasses *sl, *pl;
@@ -2318,20 +2316,6 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
     NsfCmdList *classMixins = cl->opt && cl->opt->isClassMixinOf ?  cl->opt->isClassMixinOf : NULL;
     for (; classMixins; classMixins = classMixins->nextPtr) {
       NsfClass *sc = NsfGetClassFromCmdPtr(classMixins->cmdPtr);
-#if defined(CYCLIC_MIXIN_ERROR)
-      if (sc->color == GRAY) { cl->color = WHITE; return 0; }
-      if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
-        if (sc->object.teardown) {
-          NsfLog(sc->object.teardown, NSF_LOG_WARN, "cycle in the mixin graph list detected for class %s", ClassName(sc));
-        }
-        cl->color = WHITE;
-        if (cl == baseClass) {
-          register NsfClasses *pc;
-          for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
-        }
-        return 0;
-      }
-#else
       //if (sc->color == GRAY) { cl->color = WHITE; return 0; }
       if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
         NsfLog(sc->object.teardown, NSF_LOG_WARN, "cycle in the mixin graph list detected for class %s", ClassName(sc));
@@ -2342,7 +2326,6 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
         //}
       //return 0;
       }
-#endif
     }
   }
   cl->color = BLACK;
@@ -2659,6 +2642,15 @@ MergeInheritanceLists(NsfClasses *pl, NsfClass *cl) {
   return pl;
 }
 
+#if defined(NDEBUG)
+#define AssertOrderIsWhite(arg)
+#else
+static void AssertOrderIsWhite(NsfClasses *order) {
+  register NsfClasses *pc;
+  for (pc = order; pc; pc = pc->nextPtr) { assert(pc->cl->color == WHITE); }
+}
+#endif
+
 /*
  *----------------------------------------------------------------------
  * TopoSortSuper --
@@ -2830,6 +2822,7 @@ PrecedenceOrder(NsfClass *cl) {
    * Otherwise clear cl->order.
    */
   if (likely(success)) {
+    AssertOrderIsWhite(cl->order);
     return cl->order;
   } else {
     NsfClassListFree(cl->order);
@@ -2876,6 +2869,9 @@ TransitiveSubClasses(NsfClass *cl) {
     order = NULL;
   }
 
+  assert(order);
+  AssertOrderIsWhite(order);
+
   cl->order = savedOrder;
   return order;
 }
@@ -2918,6 +2914,9 @@ DependentSubClasses(NsfClass *cl) {
     if (cl->order) NsfClassListFree(cl->order);
     order = NULL;
   }
+
+  assert(order);
+  AssertOrderIsWhite(order);
 
   cl->order = savedOrder;
   return order;
@@ -3263,7 +3262,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
   }
   /*fprintf(stderr, "<%s> containsSpace %d tailContainsSpace %d\n", methodName, containsSpace, tailContainsSpace);*/
 
-#if !defined(NDBUG)
+#if !defined(NDEBUG)
   if (containsSpace) {
     assert(strchr(methodName, ' ') != 0);
   } else {
@@ -25533,13 +25532,6 @@ NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
 
   dependentSubClasses = DependentSubClasses(cl);
 
-#if defined(CYCLIC_MIXIN_ERROR)
-  if (dependentSubClasses == NULL) {
-    //fprintf(stderr, "RAISE ERROR\n");
-    return NsfPrintError(interp, "Class heritage graph of %s contains a cycle", ClassName(cl));
-  }
-#endif
-
   for (clPtr = dependentSubClasses; clPtr; clPtr = clPtr->nextPtr) {
     NsfClass *subClass = clPtr->cl;
 
@@ -26040,53 +26032,11 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
       break;
     }
 
-  case RelationtypeClass_mixinIdx:
-    {
-
-#if defined(CYCLIC_MIXIN_ERROR)
-      Tcl_Obj *oldClassMixinsObj;
-      NsfClasses *dependentSubClasses;
-      int result;
-
-      MixinInfo(interp, clopt->classMixins, NULL, 1, NULL);
-      oldClassMixinsObj = Tcl_GetObjResult(interp);
-      INCR_REF_COUNT(oldClassMixinsObj);
-
-      result = NsfRelationClassMixinsSet(interp, cl, valueObj, oc, ov);
-      if (result != TCL_OK) {
-        DECR_REF_COUNT(oldClassMixinsObj);
-        return result;
-      }
-
-      dependentSubClasses = DependentSubClasses(cl);
-      if (dependentSubClasses == NULL) {
-        //fprintf(stderr, "RAISE ERROR\n");
-
-        if (Tcl_ListObjGetElements(interp, oldClassMixinsObj, &oc, &ov) != TCL_OK) {
-          return TCL_ERROR;
-        }
-
-        result = NsfRelationClassMixinsSet(interp, cl, oldClassMixinsObj, oc, ov);
-        DECR_REF_COUNT(oldClassMixinsObj);
-
-        if (result != TCL_OK) {
-          return result;
-        }
-        return NsfPrintError(interp, "classes dependent on %s contain a cycle", ClassName(cl));
-
-      } else {
-        DECR_REF_COUNT(oldClassMixinsObj);
-        NsfClassListFree(dependentSubClasses);
-      }
-
-#else
-      if (NsfRelationClassMixinsSet(interp, cl, valueObj, oc, ov) != TCL_OK) {
-        return TCL_ERROR;
-      }
-#endif
-
-      break;
+  case RelationtypeClass_mixinIdx: 
+    if (NsfRelationClassMixinsSet(interp, cl, valueObj, oc, ov) != TCL_OK) {
+      return TCL_ERROR;
     }
+    break;
 
   case RelationtypeClass_filterIdx:
     {
