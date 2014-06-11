@@ -5406,15 +5406,43 @@ TODO:
       (I am in favour).
 
   >>> we have no "-class-mixins", but only "-mixins".
+      >>> true
   >>> but we have also -filters and object-filters and the 
       the accessor methods "... filters add ...", and 
       ".... object filters add ....", and we 
       would need "info mixinofs"
+      >>>> agreed for the filter cases, but mixinof is different: it
+           reads as "is mixin of", with the mixin class as subject in
+           this phrase being naturally singular. plural would be
+           fitting if the phrase would roll out as "cls has
+           superclasses", "cls has filters", "cls has mixins" etc.
  >>> i am not happy. is there any language out there that uses e.g.
      the term "superclasses" for a situation, where in most
      cases a single superclass is used? 
          nx::Class create Student -superclasses Person 
      looks strange.
+
+     >>>> 
+     1) NO, but there are not many languages that use a substantival keyword
+     such as "superclass" or "superclasses" either:
+
+     see http://rosettacode.org/wiki/Inheritance/Multiple
+
+     TclOO being the only one, in its OTcl/XOTcl heritage :)
+
+     Most, if using any keyword at all, use a verb: extend(s),
+     inherit(s), which does not run into the singular/plural "issue"
+     (but other ones: -extends/-inherits, -mixes, -object-mixes? etc.)
+
+     2) Frag uses a substantival keyword in its plural form:
+
+     http://www.infosys.tuwien.ac.at/Staff/zdun/frag-doc/frag-lang-toc.html
+
+     classes, superclasses, mixins, ...
+
+     Whatever the decision, i would just vote for consistency between
+     introspection and intercession (info superclass <-> -superclass
+     vs. superclasses <-> -superclasses) ...
 
 - Can we remove the -childof nonpos param of Class->new()? It might
   also interfere with a childof property/configuration option if
