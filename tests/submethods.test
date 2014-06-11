@@ -431,39 +431,45 @@ nx::test case submethods-current-introspection {
   #
 
   o eval {
-    set body {? [list set _ [:bar]] [current class]-[current]-[current methodpath]}
+    set body {expr {[:bar] eq "[current class]-[current]-[current methodpath]"}}
     :public object method "FOO foo" {} $body
     :public object method "BAR BUU boo" {} $body
     :public object method baz {} $body
 
     set calleeBody {return "[current callingclass]-[current callingobject]-[current callingmethod]"}
     :public object method bar {} $calleeBody
-
-    :FOO foo
-    :BAR BUU boo
-    :baz
-
-    :object method "a b" {} $calleeBody
-    set body {? [list set _ [:a b]] [current class]-[current]-[current methodpath]}
-    :public object method "FOO foo" {} $body
-    :public object method "BAR BUU boo" {} $body
-    :public object method baz {} $body
-
-    :FOO foo
-    :BAR BUU boo
-    :baz
-
-    # TODO: :method "a b c" {} $calleeBody; FAILS -> "can't append to scripted"
-    :object method "x y z" {} $calleeBody;
-    set body {? [list set _ [:x y z]] [current class]-[current]-[current methodpath]}
-    :public object method "FOO foo" {} $body
-    :public object method "BAR BUU boo" {} $body
-    :public object method baz {} $body
-
-    :FOO foo
-    :BAR BUU boo
-    :baz
   }
+  
+  ? {o FOO foo} 1 "instance method ensemble 1"
+  ? {o BAR BUU boo} 1 "instance method ensemble 2"
+  ? {o baz} 1 "instance method"
+
+  o eval {
+    set calleeBody {return "[current callingclass]-[current callingobject]-[current callingmethod]"}
+    :object method "a b" {} $calleeBody
+    set body {expr {[:a b] eq "[current class]-[current]-[current methodpath]"}}
+    :public object method "FOO foo" {} $body
+    :public object method "BAR BUU boo" {} $body
+    :public object method baz {} $body
+  }
+
+  ? {o FOO foo} 1 "object method ensemble 1"
+  ? {o BAR BUU boo} 1 "object method ensemble 2"
+  ? {o baz} 1 "object method"
+
+  o eval {
+    # TODO: :method "a b c" {} $calleeBody; FAILS -> "can't append to scripted"
+    set calleeBody {return "[current callingclass]-[current callingobject]-[current callingmethod]"}
+    :object method "x y z" {} $calleeBody;
+    set body {expr {[:x y z] eq "[current class]-[current]-[current methodpath]"}}
+    :public object method "FOO foo" {} $body
+    :public object method "BAR BUU boo" {} $body
+    :public object method baz {} $body
+  }
+
+  ? {o FOO foo} 1 "class level object method ensemble 1"
+  ? {o BAR BUU boo} 1 "class level object method ensemble 2"
+  ? {o baz} 1 "class level object method"
   
   #
   # Make sure that [current callingclass] works for submethods, as
@@ -471,7 +477,7 @@ nx::test case submethods-current-introspection {
   #
 
   C eval {
-    set body {? [list set _ [:bar]] [current class]-[current]-[current methodpath]}
+    set body {expr {[:bar] eq "[current class]-[current]-[current methodpath]"}}
     :public method "FOO foo" {} $body
     :public method "BAR BUU boo" {} $body
     :public method baz {} $body
@@ -479,12 +485,12 @@ nx::test case submethods-current-introspection {
     :method bar {} {
       return "[current callingclass]-[current callingobject]-[current callingmethod]"
     }
-
-    set c [:new]
-    $c FOO foo
-    $c BAR BUU boo
-    $c baz
   }
+
+  set c [C new]
+  ? [list $c FOO foo] 1
+  ? [list $c BAR BUU boo] 1
+  ? [list $c baz] 1
 
   #
   # [current calledmethod]
