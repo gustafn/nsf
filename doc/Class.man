@@ -8,7 +8,8 @@
 [keywords "submethod"]
 [keywords "method ensemble"]
 [keywords "linearisation"]
-[term "filter specification"]
+[keywords "filter specification"]
+[keywords "metaclass"]
 
 [vset SCOPE "class"]
 [vset CMD "cls"]
@@ -28,13 +29,12 @@ subclasses [cmd nx::Class] at the same time.
 
 [list_begin definitions]
 
-[call [cmd nx::Class] [method create] [arg className] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
-
-[para] 
+[call [cmd nx::Class] [method create] [arg className] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt "[arg option] [arg value] ..."] [opt [arg initBlock]]]
 
 To create an application class having an explicit [arg className], use [method create].
 
-[call [cmd nx::Class] [method new] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
+  
+  [call [cmd nx::Class] [method new] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
 
 To create an application class having an automatically assigned, implicit object name, use [method new].
 
@@ -94,7 +94,77 @@ instances of [cmd nx::Object].
 
 [list_begin definitions]
 
-[call [arg cls] [method create] [arg className] [opt "[arg arg] ..."]] 
+[call [arg cls] [method create] [arg instanceName] [opt "[arg option] [arg value] [arg option] [arg value] ..."]] 
+
+This factory method creates an instance [arg instanceName] of [arg cls]
+and returns [arg instanceName].
+
+[example {
+% nx::Class create AClass {
+    :method init args {
+      next
+    }; # initialization method for instances of 'AClass'
+  }; # defines a class 'AClass' being an instance of 'nx::Class'
+::AClass
+% ::AClass create anInstance; # defines an object 'anInstance' being an instance of 'AClass'
+::anInstance
+% ::anInstance info class
+::AClass
+% ::AClass info class
+::nx::Class
+}]
+
+[method create] accepts the configuration options [arg option]
+available for this instance, such as those defined by properties of
+[arg cls] (see [method "property"]).
+
+[para]
+
+The factory method creates the new class in three major steps:
+[example {
+  [Class create AClass]                   (1)
+                        ---------------.   .--------------.
+        -------------->|Class->create()|-->|Class->alloc()|
+                       `---------------'   `--------------'
+                                 |  |  (2) .-------------------.
+                                 |  .----->|Object->configure()|
+                                 |         `-------------------'
+                                 |   (3)   .------.
+                                 .........>|init()|
+                                           `------'
+}]
+
+[list_begin enumerated]
+
+[enum] A call to the [term protected] [method "alloc"] provided by
+[cmd nx::Class] creates the memory structures and then a raw,
+uninitalized instance of [arg cls].
+  
+[enum] The newly allocated instance is then configured by receiving a
+  call to its [method configure] which consumes the configuration
+  options passed into [method create]. This will establish the
+  instance's initial state, e.g., by setting the configuration options
+  and corresponding default values.
+  
+[enum] [method create] then calls the initialization method [method init], if
+available. The [method "init"] method can be defined by [arg cls] on
+behalf of instances, e.g., to lay out a class-specific initialisation
+behaviour. Alternatively or in addition, an instance may define an
+[method init] method on its own.
+[list_end]
+
+Note that [method create] is called internally when defining an
+instance of [arg cls] using [method new].
+
+[para]
+
+By calling [method create] on [cmd nx::Class] itself, the created
+instance will become a new application class [arg instanceName] on
+which [method create] can also be applied (i.e., it can be
+instantiated). If the so-created class has [cmd ::nx::Class] has its
+direct or indirect superclass, [arg instanceName] is referred to as a
+[term "metaclass"]; that is, a class whose instances are again
+classes.
 
 [list_end]
 
@@ -124,12 +194,19 @@ instances of [cmd nx::Object].
 
 [cmd_def info]
 
+A collection of introspection submethods on the structural features (e.g.,
+configuration options, superclasses) and the behavioral features (e.g.,
+methods, [term "filter"]s) provided by [arg cls] to its instances.
+
 [list_begin definitions]
 
+[call [arg cls] [method "info heritage"] [opt [arg pattern]]]
 
-[call [arg cls] [method info] [method heritage]]
-
-...
+If [arg pattern] is omitted, returns the list of object names of all the direct and indirect
+superclasses and [emph per-class] [term "mixin class"]es of [arg cls], in
+their order of precedence, which are active for instances of [arg cls]. If
+[arg pattern] is specified, only superclasses and [term "mixin class"]es whose names
+match [arg pattern] will be listed (see [cmd "string match"]).
 
 [call [arg cls] [method "info instances"] [opt [option -closure]] [opt [arg pattern]]]
 
@@ -160,20 +237,11 @@ returned which have [arg cls] as [emph per-class] [term "mixin class"]. [const a
 default) will have contained both in the returned list.
 
 
-[call [arg cls] [method "info subclass"] [opt [option -closure]] [opt [arg pattern]]]
+[call [arg cls] [method "info subclass"] [opt [option -closure]] [opt [option -dependent]] [opt [arg pattern]]]
 
 If [arg pattern] is not specified, returns a list of the object names
 of all the direct and/or indirect subclasses of [arg cls]. If the [term "switch"] [option -closure] is
-set, indirect subclasses are also returned; otherwise, only direct subclasses will be returned. If [arg pattern] is specified, only subclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
-
-[comment {
-  fixme: 
-  % C info subclass 1 2 3 4 5
-  invalid argument '2', maybe too many arguments; should be "::C subclass ?-closure? ?/pattern/?"
-  ::C ::nx::Class->info
-  invoked from within
-  "C info subclass 1 2 3 4 5"
-}]
+set, indirect subclasses are also returned; otherwise, only direct subclasses will be returned. If the [term "switch"] [option -dependent] is on, indirect subclasses introduced by [term "mixin class"] relations of subclasses of [arg cls] are also reported. [option -closure] and [option -dependent] are mutually exclusive. If [arg pattern] is specified, only subclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
 
 [call [arg cls] [method "info superclass"] [opt [option -closure]] [opt [arg pattern]]]
 
@@ -198,6 +266,44 @@ set, indirect superclasses are also returned; otherwise, only direct superclasse
 [list_begin definitions]
 
 [include mixin.man.inc]
+
+[list_end]
+
+[cmd_def new]
+
+[list_begin definitions]
+
+[call [arg cls] [method new] [opt "[option "-childof"] [arg parentName]"] [opt "[arg option] [arg value] [arg option] [arg value] ..."]]
+
+A factory method to create autonamed instances of [arg cls]. It
+returns the name of the newly created instance. For example:
+
+[example {
+% nx::Class create AClass; # defines a class 'AClass' being an instance of 'nx::Class'
+::AClass
+% set inst [::AClass new]; # defines an autonamed object being an instance of 'AClass'
+::anInstance
+% $inst info class
+::AClass
+}]
+
+The factory method will provide computed object names of the form,
+e.g., ::nsf::__#0. The uniqueness of generated object names is
+guaranteed for the scope of the current Tcl interpreter only.
+
+[para]
+
+It is a frontend to [method create] which will be called by [method new] once
+the name of the instance has been computed, passing along the
+arguments [arg option] to [method new] as the configuration options
+(see [method create]).
+
+[para]
+If [option -childof] is provided, the new object will be created as a
+nested object of [arg parentName]. [arg parentName] can be the name of
+either an existing NX object or an existing Tcl namespace. If
+non-existing, a Tcl namespace [arg parentName] will be created on the
+fly.
 
 [list_end]
 

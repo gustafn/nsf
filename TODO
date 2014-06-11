@@ -5397,6 +5397,15 @@ nsf.c:
 TODO:
 
 - shouldn't "info subclass" be named "info subclasses"?
+ 
+  >>> Same for "info superclass". If the introspection interface uses
+      the plural, then also the relation slots should state the
+      plural: -superclasses, -object-mixins, -class-mixins, ...
+      (I am in favour).
+
+- Can we remove the -childof nonpos param of Class->new()? It might
+  also interfere with a childof property/configuration option if
+  defined by an application ...
 
 - how should we treat cyclic subclass relationships built via class mixins.
   (either complain at mixin registration or soft warnings or ignoring -

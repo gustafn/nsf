@@ -486,7 +486,8 @@ namespace eval ::nx {
       if {[catch {set obj [uplevel ::nsf::current]}]} {
 	error "ensemble dispatch called outside of method context"
       }
-      set path [lrange [::nsf::current methodpath] 0 end-1]
+      ## set path [lrange [::nsf::current methodpath] 0 end-1]
+      set path [uplevel {::nsf::current methodpath}]
       set l [string length $path]
       set submethods [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]
       foreach sm $submethods {set results([lindex [string range $sm $l+1 end] 0]) 1}
