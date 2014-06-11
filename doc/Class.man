@@ -28,13 +28,12 @@ subclasses [cmd nx::Class] at the same time.
 
 [list_begin definitions]
 
-[call [cmd nx::Class] [method create] [arg className] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
-
-[para] 
+[call [cmd nx::Class] [method create] [arg className] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt "[arg option] [arg value] ..."] [opt [arg initBlock]]]
 
 To create an application class having an explicit [arg className], use [method create].
 
-[call [cmd nx::Class] [method new] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
+  
+  [call [cmd nx::Class] [method new] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
 
 To create an application class having an automatically assigned, implicit object name, use [method new].
 
@@ -94,7 +93,104 @@ instances of [cmd nx::Object].
 
 [list_begin definitions]
 
-[call [arg cls] [method create] [arg className] [opt "[arg arg] ..."]] 
+[call [arg cls] [method create] [arg className] [opt "[arg option] [arg value] ..."]] 
+
+This factory method creates a new application class having an explicit [arg className] and
+returns [arg className]. [method create] accepts the configuration
+options defined by [cmd nx::Class] and [cmd nx::Object] as arguments:
+
+[example {
+  % ::nx::Class create AClass; # defines a new class 'AClass'
+  ::AClass
+  % ::AClass create anInstance; # defines an instance 'anInstance' of 'AClass'
+  % # create must be invoked explicitly; the following fails:
+  % ::nx::Class AnotherClass; # "Method 'AnotherClass' unknown for ::nx::Class."
+}]
+
+Note that [method create] is called internally when defining a class
+using [method new].
+
+[para]
+
+The factory method creates the new class in three major steps:
+[example {
+  [Class create AClass]                   (1)
+                        ---------------.   .--------------.
+        -------------->|Class->create()|-->|Class->alloc()|
+                       `---------------'   `--------------'
+                                 |  |  (2) .-------------------.
+                                 |  .----->|Object->configure()|
+                                 |         `-------------------'
+                                 |   (3)   .------.
+                                 .........>|init()|
+                                           `------'
+}]
+
+[list_begin enumerated]
+
+[enum] A call to the [term protected] [method "alloc"] provided by
+[cmd nx::Class] creates the memory structures and then a raw,
+uninitalized instance of [arg cls].
+  
+[enum] The newly allocated instance is then configured by receiving a
+  call to its [method configure] which consumes the configuration
+  options passed into [method create]. This will establish the
+  instance's initial state, e.g., by setting the configuration options
+  and corresponding default values.
+  
+[enum] [method create] then calls the initialization method [method init], if
+available. The [method "init"] method can be defined by [arg cls] on
+behalf of instances, e.g., to lay out a class-specific initialisation
+behaviour. Alternatively or in addition, an instance may define an
+[method init] method on its own.
+[list_end]
+
+[para]
+
+[comment {
+  # Provides for creating application-level classes and objects. If
+  # the method receiver is a <<@gls metaclass>>, a <<@gls class>> will be
+  # created. Otherwise, '''create''' yields an object. '''create'''
+  # is responsible a multi-phase object creation scheme. This
+  # creation scheme involves three major steps:
+  # '''
+  # [Object create anObject]               (1)
+  #                       ---------------.   .--------------.
+  #       -------------->|Class->create()|-->|Class->alloc()|
+  #                      `---------------'   `--------------'
+  #                                |  |  (2) .-------------------.
+  #                                |  .----->|Object->configure()|
+  #                                |         `-------------------'
+  #                                |   (3)   .------.
+  #                                .........>|init()|
+  #                                          `------'
+  # '''
+  # (1) A call to <<@class.method "::nx::Class alloc">> to create a raw,
+  # uninitalized object.
+  #
+  # (2) The newly allocated object receives a method call upon
+  # <<@class.method "::nx::Object configure">>. This will establish the
+  # object's initial state, by applying <<@gls objparam>> values
+  # provided at object creation time and default values defined at
+  # object definition time.
+  #
+  # (3) Finally, '''create''' emits a call to the initialization method
+  # '''init''', if available. An '''init''' method can be defined by a
+  # class on behalf of its objects, to lay out class-specific
+  # initialisation behaviour. Alternatively, each single object may
+  # define an '''init''' method on its own.
+  #
+  # By overloading the method in a <<@gls metaclass>>, you can refine or
+  # replace this default object creation scheme (e.g., for applying
+  # application-specific naming schemes).
+  #
+  #
+  # @parameter name The designated identifier on the class or the object to be created.
+  # @parameter args arguments to be passed down to the object creation
+  # procedure used to initialize the object.
+  # @return The fully qualified name of the created object.
+}]
+
 
 [list_end]
 
@@ -124,12 +220,19 @@ instances of [cmd nx::Object].
 
 [cmd_def info]
 
+A collection of introspection submethods on the structural features (e.g.,
+configuration options, superclasses) and the behavioral features (e.g.,
+methods, [term "filter"]s) provided by [arg cls] to its instances.
+
 [list_begin definitions]
 
+[call [arg cls] [method "info heritage"] [opt [arg pattern]]]
 
-[call [arg cls] [method info] [method heritage]]
-
-...
+If [arg pattern] is omitted, returns the list of object names of all the direct and indirect
+superclasses and [emph per-class] [term "mixin class"]es of [arg cls], in
+their order of precedence, which are active for instances of [arg cls]. If
+[arg pattern] is specified, only superclasses and [term "mixin class"]es whose names
+match [arg pattern] will be listed (see [cmd "string match"]).
 
 [call [arg cls] [method "info instances"] [opt [option -closure]] [opt [arg pattern]]]
 
@@ -160,11 +263,11 @@ returned which have [arg cls] as [emph per-class] [term "mixin class"]. [const a
 default) will have contained both in the returned list.
 
 
-[call [arg cls] [method "info subclass"] [opt [option -closure]] [opt [arg pattern]]]
+[call [arg cls] [method "info subclass"] [opt [option -closure]] [opt [option -dependent]] [opt [arg pattern]]]
 
 If [arg pattern] is not specified, returns a list of the object names
 of all the direct and/or indirect subclasses of [arg cls]. If the [term "switch"] [option -closure] is
-set, indirect subclasses are also returned; otherwise, only direct subclasses will be returned. If [arg pattern] is specified, only subclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
+set, indirect subclasses are also returned; otherwise, only direct subclasses will be returned. If the [term "switch"] [option -dependent] is on, indirect subclasses introduced by [term "mixin class"] relations of subclasses of [arg cls] are also reported. [option -closure] and [option -dependent] are mutually exclusive. If [arg pattern] is specified, only subclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
 
 [comment {
   fixme: 
