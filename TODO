@@ -5393,6 +5393,8 @@ nsf.c:
 - move NsfMethodNamePath() out of NsfUnexpectedArgumentError() and NsfUnexpectedNonposArgumentError()
 - fix name paths in error messages triggered from ArgumentParse()
 - use 3-argument version of NsfMethodNamePath()
+- don't invalidate class-level param caches during shutdown
+
 ========================================================================
 TODO:
 
@@ -5402,6 +5404,17 @@ TODO:
       the plural, then also the relation slots should state the
       plural: -superclasses, -object-mixins, -class-mixins, ...
       (I am in favour).
+
+  >>> we have no "-class-mixins", but only "-mixins".
+  >>> but we have also -filters and object-filters and the 
+      the accessor methods "... filters add ...", and 
+      ".... object filters add ....", and we 
+      would need "info mixinofs"
+ >>> i am not happy. is there any language out there that uses e.g.
+     the term "superclasses" for a situation, where in most
+     cases a single superclass is used? 
+         nx::Class create Student -superclasses Person 
+     looks strange.
 
 - Can we remove the -childof nonpos param of Class->new()? It might
   also interfere with a childof property/configuration option if

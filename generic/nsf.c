@@ -2321,10 +2321,10 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
         NsfLog(sc->object.teardown, NSF_LOG_WARN, "cycle in the mixin graph list detected for class %s", ClassName(sc));
         //cl->color = WHITE;
         //if (cl == baseClass) {
-        //  register NsfClasses *pc;
-        //  for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
+        //register NsfClasses *pc;
+        //for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
         //}
-      //return 0;
+        //return 0;
       }
     }
   }
@@ -2869,6 +2869,7 @@ TransitiveSubClasses(NsfClass *cl) {
     order = NULL;
   }
 
+  // TODO: if this holds, we can change the fn to returns_nonnull and the else-branch is not needed
   assert(order);
   AssertOrderIsWhite(order);
 
@@ -2910,10 +2911,11 @@ DependentSubClasses(NsfClass *cl) {
   if (likely(TopoSort(cl, cl, SUB_CLASSES, 1))) {
     order = cl->order;
   } else {
-    fprintf(stderr, "DependentSubClasses %s failed\n", ClassName(cl));
     if (cl->order) NsfClassListFree(cl->order);
     order = NULL;
   }
+
+  // TODO: if this holds, we can change the fn to returns_nonnull and the else-branch is not needed
 
   assert(order);
   AssertOrderIsWhite(order);
@@ -25507,8 +25509,6 @@ cmd parameter::cache::classinvalidate NsfParameterCacheClassInvalidateCmd {
 */
 static int
 NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
-  NsfClasses *dependentSubClasses;
-  NsfClasses *clPtr;
 
   assert(interp);
   assert(cl);
@@ -25524,25 +25524,33 @@ NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
 #endif
 
   /*
-   * Clear the cached parsedParam of the class and all its subclasses (the
-   * result of DependentSubClasses() contains the starting class). Furthermore,
-   * make a quick check, if any of the subclasses is a class mixin of some
-   * other class.
+   * During shutdown, no new objects are created, therefore we do not need to
+   * to invalidate the cached parsedParamPtr of the classes.
    */
+  if (unlikely(RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_OFF)) {
+    NsfClasses *dependentSubClasses;
+    NsfClasses *clPtr;
 
-  dependentSubClasses = DependentSubClasses(cl);
+    /*
+     * Clear the cached parsedParam of the class and all its subclasses (the
+     * result of DependentSubClasses() contains the starting class). Furthermore,
+     * make a quick check, if any of the subclasses is a class mixin of some
+     * other class.
+     */
 
-  for (clPtr = dependentSubClasses; clPtr; clPtr = clPtr->nextPtr) {
-    NsfClass *subClass = clPtr->cl;
+    dependentSubClasses = DependentSubClasses(cl);
 
-    if (subClass->parsedParamPtr) {
-      ParsedParamFree(subClass->parsedParamPtr);
-      subClass->parsedParamPtr = NULL;
+    for (clPtr = dependentSubClasses; clPtr; clPtr = clPtr->nextPtr) {
+      NsfClass *subClass = clPtr->cl;
+
+      if (subClass->parsedParamPtr) {
+        ParsedParamFree(subClass->parsedParamPtr);
+        subClass->parsedParamPtr = NULL;
+      }
     }
-  }
 
-  NsfClassListFree(dependentSubClasses);
-
+    NsfClassListFree(dependentSubClasses);
+    }
   return TCL_OK;
 }
 
@@ -26032,7 +26040,7 @@ NsfRelationSetCmd(Tcl_Interp *interp, NsfObject *object,
       break;
     }
 
-  case RelationtypeClass_mixinIdx: 
+  case RelationtypeClass_mixinIdx:
     if (NsfRelationClassMixinsSet(interp, cl, valueObj, oc, ov) != TCL_OK) {
       return TCL_ERROR;
     }
