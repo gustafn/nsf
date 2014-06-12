@@ -5416,6 +5416,16 @@ TODO:
            this phrase being naturally singular. plural would be
            fitting if the phrase would roll out as "cls has
            superclasses", "cls has filters", "cls has mixins" etc.
+           >>> i would accept this argumentation, if i would have written
+               ismixinsof, ... of ismixinsofs... like karl valentins 
+               semmelnknödeln.
+           >>> more seriously, the question is, what kind of argumentation line we
+               try to follow. (a) if something is setting/returning potentially a 
+               list (set) of values, then plural -> mixinofs
+               (b) if we are arguing about the kind of relationship -> mixinof
+               buf if we argue about the kind of relationship then we have 
+               a "superclass relationship", and not a "superclasses relationship", 
+               and same with "mixin relation", etc.
  >>> i am not happy. is there any language out there that uses e.g.
      the term "superclasses" for a situation, where in most
      cases a single superclass is used? 
@@ -5443,6 +5453,19 @@ TODO:
      Whatever the decision, i would just vote for consistency between
      introspection and intercession (info superclass <-> -superclass
      vs. superclasses <-> -superclasses) ...
+        >>> funny, one XOTcl child kept "superclass", 
+            the other one switched to "superclasses", 
+            and nobody else names the relation.
+        >>> in case we would make the transition, i am not sure, who will take 
+            care about the collateral damage, writing change scripts, etc.
+            especially for programs using both xotcl and nx.
+            l@wu has 600.000 .tcl locs, more the 350.000 xo-based.
+        >>> if one script is using both XOTcl and NX (which is a reality
+            in OpenACS) the transition is even worse, and the consequences
+            are that one has to know in detail, whether some tcl-cmd
+            is from xotcl or nx. pretty sure, this would be an ongoing
+            source for confusion. 
+        >>> writing programs working with old and new nx is a mess.
 
 - Can we remove the -childof nonpos param of Class->new()? It might
   also interfere with a childof property/configuration option if
