@@ -664,6 +664,7 @@ ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *proc
     memset(pcPtr->clientData, 0, sizeof(ClientData)*(objc));
     pcPtr->status     = NSF_PC_STATUS_FREE_OBJV|NSF_PC_STATUS_FREE_CD;
     pcPtr->varArgs    = 0;
+    pcPtr->objc       = 0;
   }
   pcPtr->objv = &pcPtr->full_objv[1];
   pcPtr->full_objv[0] = procName;
