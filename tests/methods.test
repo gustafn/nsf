@@ -837,6 +837,7 @@ nx::test case fq-obj-dispatch {
   package req XOTcl 2.0
   
   ? {::nsf::object::exists ::X} 0
+
   xotcl::Class ::X -instproc p1 {v} {
     [self class] incr [self proc] $v
   } -proc unknown args {
@@ -846,19 +847,21 @@ nx::test case fq-obj-dispatch {
     my incr [self proc]
     next
   } -set recreate 0
-  
+
   ? {::nsf::object::exists ::X} 1
   ? {::X exists p1} 0
   ? {::X set unknown} 0
 
-  xotcl::Object ::p
+  ? {xotcl::Object ::p} ::p
   ? {::nsf::object::exists ::p::child} 0
-  ::X ::p::child -p1 2
+  ? {::X ::p::child -p1 2} ::p::child
+
   ? {::nsf::object::exists ::p::child} 1
   ? {::X set p1} 2
   ? {::X set unknown} 1
   ? {::X set recreate} 0
-  ::X ::p::child -p1 1
+
+  ? {::X ::p::child -p1 1} ::p::child
   ? {::X set p1} 3
   ? {::X set unknown} 2
   ? {::X set recreate} 1

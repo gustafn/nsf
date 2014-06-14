@@ -304,7 +304,7 @@ objectMethod cget NsfOCgetMethod {
 
 objectMethod configure NsfOConfigureMethod {
   {-argName "args" -type virtualobjectargs}
-}
+} {-objv0 1}
 
 objectMethod destroy NsfODestroyMethod {
 }
@@ -357,7 +357,7 @@ classMethod alloc NsfCAllocMethod {
 }
 
 classMethod create NsfCCreateMethod {
-  {-argName "objectName" -required 1}
+  {-argName "objectName" -required 1 -type tclobj}
   {-argName "args" -type virtualclassargs}
 }
 

@@ -1410,7 +1410,6 @@ namespace eval ::nx {
 	lappend options initcmd
 	append initblock ${:initblock}
 	set :parameterSpec [list [:namedParameterSpec $prefix ${:name} $options] $initblock]
-	#puts stderr ================${:parameterSpec}
 
       } elseif {[info exists :default]} {
 	# deactivated for now: || [string first {$} ${:default}] > -1

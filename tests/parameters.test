@@ -388,7 +388,7 @@ nx::test case passed-arguments {
   
   ? {D create d1} \
       {required argument 'd' is missing, should be:
-	::d1 __configure -d /value/ ?-a /value/? ?-b /boolean/? ?-c /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+	::d1 configure -d /value/ ?-a /value/? ?-b /boolean/? ?-c /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
   
   ? {D create d2 -d x -b a} \
       {expected boolean but got "a" for parameter "-b"} \
@@ -1717,7 +1717,7 @@ nx::test case req-param {
   set ::_ ""
   ? {C create c2} \
 "required argument 'x' is missing, should be:
-	::c2 __configure -x /value/ -y /value/ ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+	::c2 configure -x /value/ -y /value/ ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   # Was the constructor called? Should not.
   ? {set ::_} ""
@@ -2041,7 +2041,7 @@ nx::test case parameter-object-mixin-dependency-object-property {
 
   ? {c1 __configure -a1 x} \
 "required argument 'b1' is missing, should be:
-	::c1 __configure ?-a2 /value/? -b1 /value/ ?-a1 /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+	::c1 configure ?-a2 /value/? -b1 /value/ ?-a1 /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
   ? {C info slots -closure} \
@@ -2959,6 +2959,43 @@ nx::test case parameter-get {
     ? {nsf::parameter::info type [C info lookup parameters create m]} "metaclass"
 }
 
+
+#
+# Test parameter passing on new (disambiguate between -childof as a
+# property and as a modifier)
+#
+nx::test case new-parameter-passing {
+  nx::Class create C {
+    :property childof
+  }
+
+  nx::Object create o
+
+  proc isGlobalNew name {regexp {^::nsf::__#} $name}
+  proc isONew name {regexp {^::o::__#} $name}
+
+  ? {isGlobalNew [C new]} 1
+  ? {isONew [C new -childof o]} 1
+
+  ? {isGlobalNew [C new --]} 1
+  ? {isGlobalNew [C new -- -childof x]} 1
+
+  ? {isONew [C new -childof o -- -childof x]} 1
+  
+  #
+  # When the parameter is given twice, we get a warning, the second
+  # one "wins"
+  #
+  ? {isONew [C new -childof o -childof xxx]} 0
+
+  # are the properties set correctly?
+  set ::o1 [C new -childof o -- -childof x]
+  ? {$::o1 cget -childof} x
+
+  set ::o1 [C new -- -childof y]
+  ? {$::o1 cget -childof} y
+
+}
 #
 # Local variables:
 #    mode: tcl

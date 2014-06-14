@@ -258,6 +258,12 @@ typedef struct NsfMemCounter {
 # include <alloca.h>
 #endif
 
+# if !defined(NDEBUG)
+# define ISOBJ(o) (o != NULL && o != (void*)0xdeadbeaf && (o->typePtr ? o->typePtr->name != NULL : 1) && o->length >= -1 && (o->length > 0 ? o->bytes!= NULL : 1) && o->refCount >= 0)
+#else
+# define ISOBJ(o) (o != NULL)
+#endif
+
 /*
  * This was defined to be inline for anything !sun or __IBMC__ >= 0x0306,
  * but __hpux should also be checked - switched to only allow in gcc - JH
@@ -1137,10 +1143,6 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 #else
 #define va_copy(dest,src) ((dest) = (src))
 #endif
-#endif
-
-#if !defined(NDEBUG)
-/*# define NSF_INLINE*/
 #endif
 
 #endif /* _nsf_int_h_ */

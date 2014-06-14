@@ -806,9 +806,11 @@ nx::test case alias-args {
 
   # Residual args are provided, the method residualargs is
   # called. 
+
   ? {C create c1 1 2 3} {::c1}
   ? {c1 eval {info exists :args}} 1
   ? {c1 eval {set :args}} {1 2 3}
+
   ? {D create c1 1 2 3} {::c1}
   ? {c1 eval {info exists :args}} 1
   ? {c1 eval {set :args}} {1 2 3}

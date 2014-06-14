@@ -5395,8 +5395,22 @@ nsf.c:
 - use 3-argument version of NsfMethodNamePath()
 - don't invalidate class-level param caches during shutdown
 
+nsf.c: parameter passing reform
+- don't pass full argument list for filteing methods calle further 
+  methods from C (such as new/create/... ) to allow processing of e.g. "--" in "new"
+  to separate arguments to "new" cleanly from arguments passed to "create".
+  Now we can use e.g. "C new -- -childof 123" in case class C has a property "childof".
+- extend c-generator to accept option "-objv0" to pass the original "objv[0]" to the 
+  called command. Since we had previously "allargs", we have to pass the objv[0] now
+  differently
+- more thorough checking ISOBJ(someObj) macro for asserts 
+  (use "assert(ISOBJ(someObj))" instead of just "assert(someObj)")
+- extend regression test
+
 ========================================================================
 TODO:
+
+- make test for all CallDirectly() cases, where method is dispatched (no direct call)
 
 - shouldn't "info subclass" be named "info subclasses"?
  

@@ -512,7 +512,7 @@ static int NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, i
 
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
-static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *objectName, int objc, Tcl_Obj *CONST objv[])
+static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName, int nobjc, Tcl_Obj *CONST nobjv[])
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *object)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
@@ -522,9 +522,9 @@ static int NsfCGetCachendParametersMethod(Tcl_Interp *interp, NsfClass *cl)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *guard)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3) NSF_nonnull(4);
-static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof, int objc, Tcl_Obj *CONST objv[])
+static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof, int nobjc, Tcl_Obj *CONST nobjv[])
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName, int objc, Tcl_Obj *CONST objv[])
+static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName, int nobjc, Tcl_Obj *CONST nobjv[])
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(3);
 static int NsfCSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *superclasses)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -656,7 +656,7 @@ static int NsfOClassMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *class)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[])
+static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int nobjc, Tcl_Obj *CONST nobjv[], Tcl_Obj *objv0)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *obj)
   NSF_nonnull(1) NSF_nonnull(2);
@@ -876,10 +876,10 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
                      method_definitions[NsfCCreateMethodIdx].paramDefs, 
                      method_definitions[NsfCCreateMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
-    CONST char *objectName = (CONST char *)pc.clientData[0];
+    Tcl_Obj *objectName = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCCreateMethod(interp, cl, objectName, objc, objv);
+    return NsfCCreateMethod(interp, cl, objectName, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
     return TCL_ERROR;
@@ -985,7 +985,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     Tcl_Obj *withChildof = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCNewMethod(interp, cl, withChildof, objc, objv);
+    return NsfCNewMethod(interp, cl, withChildof, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
     return TCL_ERROR;
@@ -1007,7 +1007,7 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     Tcl_Obj *objectName = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCRecreateMethod(interp, cl, objectName, objc, objv);
+    return NsfCRecreateMethod(interp, cl, objectName, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
     return TCL_ERROR;
@@ -2412,15 +2412,24 @@ NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
 static int
 NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
 
   assert(clientData);
   assert(objc > 0);
   if (unlikely(obj == NULL)) return NsfDispatchClientDataError(interp, clientData, "object",  ObjStr(objv[0]));
+  if (likely(ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[NsfOConfigureMethodIdx].paramDefs, 
+                     method_definitions[NsfOConfigureMethodIdx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
+                     &pc) == TCL_OK)) {
     
 
-    return NsfOConfigureMethod(interp, obj, objc, objv);
+    
+    return NsfOConfigureMethod(interp, obj, objc-pc.lastObjc, objv+pc.lastObjc, objv[0]);
 
+  } else {
+    return TCL_ERROR;
+  }
 }
 
 static int
@@ -3208,7 +3217,7 @@ static Nsf_methodDefinition method_definitions[111] = {
   {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::create", NsfCCreateMethodStub, 2, {
-  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"objectName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"args", 0, 1, ConvertToNothing, NULL,NULL,"virtualclassargs",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::dealloc", NsfCDeallocMethodStub, 1, {

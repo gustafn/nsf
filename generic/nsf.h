@@ -313,8 +313,10 @@ typedef struct Nsf_Param {
 #define NSF_ARGPARSE_CHECK		     0x0001
 #define NSF_ARGPARSE_FORCE_REQUIRED	     0x0002
 #define NSF_ARGPARSE_BUILTIN	     	     (NSF_ARGPARSE_CHECK|NSF_ARGPARSE_FORCE_REQUIRED)
+#define NSF_ARGPARSE_START_ZERO		     0x0010
 /* Special flags for process method arguments */
 #define NSF_ARGPARSE_METHOD_PUSH	     0x0100
+
 
 /* flags for NsfParams */
 

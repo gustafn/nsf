@@ -1,6 +1,7 @@
 # -*- Tcl -*-
 package require nx
 package require nx::test
+
 nx::test configure -count 10
 
 ::nx::configure defaultMethodCallProtection false

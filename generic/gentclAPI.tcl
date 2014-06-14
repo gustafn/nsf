@@ -201,6 +201,8 @@ proc gencall {methodName fn parameterDefinitions clientData
         "class"      {set type "NsfClass *"}
         "object"     {set type "NsfObject *"}
         "tclobj"     {set type "Tcl_Obj *"}
+        "virtualobjectargs" -
+        "virtualclassargs" -
         "args"       {
           set type "int "
           set calledArg "objc-pc.lastObjc, objv+pc.lastObjc"
@@ -208,8 +210,6 @@ proc gencall {methodName fn parameterDefinitions clientData
           set ifSet 1
           set cVar 0
         }
-        "virtualobjectargs" -
-        "virtualclassargs" -
         "allargs" {
           set type "int "
           set calledArg "objc, objv"
@@ -341,6 +341,16 @@ proc genstubs {} {
     gencall $d(methodName) $d(stub) $d(parameterDefinitions) $d(clientData) \
 	cDefs ifDef arglist pre post intro nn
 
+    #
+    # Check, if spec tells us to pass the original "objv[0]" as an
+    # argument. For unstacked entries this is the only way to
+    # determine the name, under which the cmd was called.
+    #
+    if {[dict get $d(options) -objv0]} {
+      append ifDef ", Tcl_Obj *objv0"
+      append arglist ", objv\[0\]"
+    }
+
     if {[dict get $::definitions($key) clientData] ne ""} {
       set stubNN "NSF_nonnull(1) "
       set NN " NSF_nonnull(2)"
@@ -456,7 +466,7 @@ static Nsf_methodDefinition method_definitions[$nrIfds];
 }
 
 proc methodDefinition {methodName methodType implementation parameterDefinitions options} {
-  array set opts [list -ns $::ns($methodType)]
+  array set opts [list -ns $::ns($methodType) -nxdoc 0 -objv0 0]
   array set opts $options
   set d(methodName) $methodName
   set d(implementation) $implementation
@@ -464,6 +474,7 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   set d(idx) ${implementation}Idx
   set d(methodType) $methodType
   set d(ns) $opts(-ns)
+  set d(options) [array get opts]
   switch $methodType {
     classMethod  {set d(clientData) class}
     objectMethod {set d(clientData) object}
