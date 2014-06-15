@@ -3595,11 +3595,11 @@ nsf.c:
 
 nx: added traits package
 
-nonleadingdash handling:
-  - doc: added "nonleadingdash" to UML class diagram
+noleadingdash handling:
+  - doc: added "noleadingdash" to UML class diagram
   - nsf.c: added error message, when "noleadingdash" is used on
     non-positional parameters
-  - nsf.c: use same logic for "nonleadingdash" to "value in argument"
+  - nsf.c: use same logic for "noleadingdash" to "value in argument"
   - nsf.c: deactivated rudimentary unknown handler non nonpos args
     for the time being
   - nx.tcl: added handling of parameter option "noleadingdash"
@@ -5414,6 +5414,13 @@ nsf.c:
   rather than CallMethod()
 - removed memcopy() in call-directy for "create"
 - some more cleanup
+
+genttclAPI.tcl:
+- added option "-flags", which can be used for every parameter. 
+  example: .... -flags NSF_ARG_NOLEADINGDASH ....
+- experimental: use NSF_ARG_NOLEADINGDASH for pattern "info subclass"
+  to improve error messages.
+- extended regression test
 
 ========================================================================
 TODO:
