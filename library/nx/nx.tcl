@@ -470,7 +470,7 @@ namespace eval ::nx {
       ::nsf::object::property [self] perobjectdispatch true
     }
     :protected method unknown {callInfo args} {
-      set path [lrange $callInfo 1 end-1]; # set path [current methodpath]
+      set path [lrange $callInfo 1 end-1]
       set m [lindex $callInfo end]
       set obj [lindex $callInfo 0]
       #puts stderr "### [list $obj ::nsf::methods::object::info::lookupmethods -path \"$path *\"]"
@@ -486,7 +486,6 @@ namespace eval ::nx {
       if {[catch {set obj [uplevel ::nsf::current]}]} {
 	error "ensemble dispatch called outside of method context"
       }
-      ## set path [lrange [::nsf::current methodpath] 0 end-1]
       set path [uplevel {::nsf::current methodpath}]
       set l [string length $path]
       set submethods [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]
