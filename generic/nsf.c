@@ -21045,8 +21045,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
     if (unlikely(currentParamPtr > lastParamPtr)) {
       Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 0), NsfMethodName(procNameObj));
-      // TODO remove me
-      fprintf(stderr, "call NsfUnexpectedArgumentError 1\n");
+      /*fprintf(stderr, "call NsfUnexpectedArgumentError 1\n");*/
       return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj), (Nsf_Object*)object,
                                         paramPtr, methodPathObj);
     }
@@ -21080,7 +21079,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	   * We got a dashDash, skip nonpos param definitions and continue with next
 	   * element from objv.
 	   */
-          fprintf(stderr, "---- we got NSF_FLAG_DASHDAH\n");
 	  SkipNonposParamDefs(currentParamPtr);
 	  assert(dashdash == 0);
 	  continue;
@@ -21124,7 +21122,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	  /* Is there a "--" ? */
 	  if (ch1 == '-' && *(argumentString+2) == '\0' && dashdash == 0) {
 	    dashdash = 1;
-            fprintf(stderr, "found dashdash\n");
 	    NsfFlagObjSet(interp, argumentObj, paramPtr, serial,
 			  NULL, NULL, NSF_FLAG_DASHDAH);
 	    SkipNonposParamDefs(currentParamPtr);
@@ -21241,7 +21238,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     if (unlikely(pPtr > lastParamPtr)) {
       Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 0),
                                                  NsfMethodName(procNameObj));
-      fprintf(stderr, "call NsfUnexpectedArgumentError 2\n");
+      /*fprintf(stderr, "call NsfUnexpectedArgumentError 2\n");*/
       return NsfUnexpectedArgumentError(interp, ObjStr(argumentObj),
 					(Nsf_Object *)object, paramPtr,
                                         methodPathObj);
@@ -21292,18 +21289,13 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       /*
        * Process an ordinary positional argument.
        */
-
-      //fprintf(stderr, "... positional arg o %d objc %d, nrArgs %d current %s\n",
-      //      o, objc, pPtr->nrArgs, currentParamPtr->name);
-
       currentParamPtr ++;
-      //fprintf(stderr, "... positional arg o %d objc %d, nrArgs %d next paramPtr %s\n",
-      //      o, objc, pPtr->nrArgs, currentParamPtr->name);
 
 #if defined(PARSE_TRACE_FULL)
       fprintf(stderr, "... positional arg o %d objc %d, nrArgs %d next paramPtr %s\n",
 	      o, objc, pPtr->nrArgs, currentParamPtr->name);
 #endif
+
       if (unlikely(pPtr->nrArgs == 0)) {
 	/*
 	 * Allow positional arguments with 0 args for object parameter
@@ -21316,7 +21308,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	continue;
       }
       if (unlikely(dashdash)) {
-        fprintf(stderr, "reset dashdash\n");
+        /* reset dashdash */
 	dashdash = 0;
       }
 
