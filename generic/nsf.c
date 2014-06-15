@@ -13590,8 +13590,7 @@ DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
        */
       result = TCL_OK;
     } else {
-      result = CallMethod(object, interp, methodObj,
-			  objc+2, objv,
+      result = CallMethod(object, interp, methodObj, objc+2, objv,
                           flags|NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
     }
 
@@ -18998,7 +18997,6 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     /* methodObjd is just for error reporting */
     result = NsfOConfigureMethod(interp, object, objc, objv, methodObj);
   } else {
-    fprintf(stderr, "DISPATCH DoObjInitialization dispatches NsfOConfigureMethod objc %d\n",objc+2);
     result = CallMethod(object, interp, methodObj, objc+2, objv, NSF_CSC_IMMEDIATE);
   }
 
@@ -21017,7 +21015,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     fromArg = 1;
   }
 
-  ParseContextInit(pcPtr, nrParams, object, procNameObj/*objv[0]*/);  // TODO: most probably not always right
+  ParseContextInit(pcPtr, nrParams, object, procNameObj);
 
 #if defined(PARSE_TRACE)
   { Nsf_Param CONST *pPtr;
@@ -21409,12 +21407,9 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     /*fprintf(stderr, ".... not all parms processed, pPtr '%s' j %ld nrParams %d last '%s' varArgs %d dashdash %d\n",
 	    currentParamPtr->name, currentParamPtr - paramPtr, nrParams, lastParamPtr->name,
 	    pcPtr->varArgs, dashdash);*/
+
     if (lastParamPtr->converter == ConvertToNothing) {
       pcPtr->varArgs = 1;
-      if (dashdash) {
-        // TODO remove me
-        fprintf(stderr, "---- change nrParams %d o %d\n", nrParams, o);
-      }
     }
   }
 
@@ -27529,7 +27524,6 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
     if (CallDirectly(interp, &object->cl->object, NSF_c_dealloc_idx, &methodObj)) {
       result = DoDealloc(interp, object);
     } else {
-      /*fprintf(stderr, "call dealloc\n");*/
       result = NsfCallMethodWithArgs(interp, (Nsf_Object *)object->cl, methodObj,
 				     object->cmdName, 1, NULL,
 				     NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS);
@@ -28186,17 +28180,23 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
 
     /* call recreate --> initialization */
     if (CallDirectly(interp, &cl->object, NSF_c_recreate_idx, &methodObj)) {
-      //fprintf(stderr, "direct recreate\n");
       result = RecreateObject(interp, cl, newObject, objc, objv);
+
     } else {
-      ALLOC_ON_STACK(Tcl_Obj*, objc+1, xov); // TODO: not needed
-      fprintf(stderr, "DISPATCH recreate\n");
-      xov[0] = nameObj;
-      memcpy(xov+1, objv, sizeof(Tcl_Obj *)*(objc));
-      result = CallMethod(cl, interp, methodObj,
-                          objc+3, xov, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
+
+      ALLOC_ON_STACK(Tcl_Obj*, objc+3, xov);
+
+      xov[0] = NULL; /* just a placeholder for passing conventions in ObjectDispatch() */
+      xov[1] = methodObj;
+      xov[2] = nameObj;
+      if (objc >= 1) {
+        memcpy(xov+3, objv, sizeof(Tcl_Obj *)*objc);
+      }
+      result = ObjectDispatch(cl, interp, objc+3, xov, NSF_CM_IGNORE_PERMISSIONS|NSF_CSC_IMMEDIATE);
+
       FREE_ON_STACK(Tcl_Obj *, xov);
     }
+
     if (unlikely(result != TCL_OK)) {
       goto create_method_exit;
     }
@@ -28432,40 +28432,26 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *withChildof,
   fullnameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
   INCR_REF_COUNT(fullnameObj);
 
-#if 0
-  /*
-   * Since we are using "virtualclassargs" for the last argument, we have to
-   * adjust the agument list manually.
-   */
-  if (withChildof) {
-    objc -= 3 ;
-    objv += 3 ;
-  } else {
-    objc --;
-    objv++;
-  }
-#endif
   {
     Tcl_Obj *methodObj;
     int callDirectly;
-    ALLOC_ON_STACK(Tcl_Obj*, objc+3, ov);
 
     callDirectly = CallDirectly(interp, &cl->object, NSF_c_create_idx, &methodObj);
 
-    ov[0] = NULL; /* just a placeholder for passing conventions in ObjectDispatch() */
-    ov[1] = methodObj;
-    ov[2] = fullnameObj;
-
-    if (objc >= 1) {
-      memcpy(ov+3, objv, sizeof(Tcl_Obj *)*objc);
-    }
     if (callDirectly) {
-      result = NsfCCreateMethod(interp, cl, fullnameObj, objc, objv); // TODO: no need for memcpy tail, ov
+      result = NsfCCreateMethod(interp, cl, fullnameObj, objc, objv);
     } else {
-      result = ObjectDispatch(cl, interp, objc+3, ov, NSF_CSC_IMMEDIATE);
-    }
+      ALLOC_ON_STACK(Tcl_Obj*, objc+3, ov);
 
-    FREE_ON_STACK(Tcl_Obj *, ov);
+      ov[0] = NULL; /* just a placeholder for passing conventions in ObjectDispatch() */
+      ov[1] = methodObj;
+      ov[2] = fullnameObj;
+      if (objc >= 1) {
+        memcpy(ov+3, objv, sizeof(Tcl_Obj *)*objc);
+      }
+      result = ObjectDispatch(cl, interp, objc+3, ov, NSF_CSC_IMMEDIATE);
+      FREE_ON_STACK(Tcl_Obj *, ov);
+    }
   }
 
   DECR_REF_COUNT(fullnameObj);

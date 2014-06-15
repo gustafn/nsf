@@ -5407,6 +5407,14 @@ nsf.c: parameter passing reform
   (use "assert(ISOBJ(someObj))" instead of just "assert(someObj)")
 - extend regression test
 
+nsf.c:
+- checked, that all CallDirectly() cases, where method is dispatched 
+  (no direct call) are covered by the regression tests
+- avoid double memcpy() in dispatch recreate by using ObjectDispatch()
+  rather than CallMethod()
+- removed memcopy() in call-directy for "create"
+- some more cleanup
+
 ========================================================================
 TODO:
 
