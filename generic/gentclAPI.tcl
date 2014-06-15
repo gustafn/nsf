@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 # -*- Tcl -*-
-# 
+#
 # C-Code generator to generate stubs to handle all objv-parsing from
 # an simple interface definition language. This guarantees consistent
 # handling of input argument types, consistent error messages in case
@@ -15,10 +15,10 @@
 # publish, distribute, sublicense, and/or sell copies of the Software,
 # and to permit persons to whom the Software is furnished to do so,
 # subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -55,7 +55,7 @@ proc createconverter {type typename} {
   subst {
 enum ${name}Idx {[join $enums {, }]};
 
-static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr, 
+static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   $opts
@@ -68,17 +68,24 @@ static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST
   }
 }
 
+proc addFlags {flags_var new} {
+  upvar $flags_var flags
+  if {$flags eq "0"} {set flags $new} {append flags "|$new"}
+}
+
 proc genifd {parameterDefinitions} {
   #puts stderr $parameterDefinitions
   set l [list]
   foreach parameterDefinition $parameterDefinitions {
     array unset ""
+    array set "" {-flags 0}
     array set "" $parameterDefinition
     switch $(-type) {
       "" {set type NULL}
       default {set type $(-type)}
     }
-    set flags [expr {$(-required) ? "NSF_ARG_REQUIRED" : "0"}]
+    set flags $(-flags)
+    if {$(-required)} {addFlags flags "NSF_ARG_REQUIRED"}
     set argName $(-argName)
     switch -glob $type {
       "NULL"       {set converter String}
@@ -99,7 +106,7 @@ proc genifd {parameterDefinitions} {
         set converter [convertername $type $(-typeName)]
         append ::converter [createconverter $type $(-typeName)]
         set (-argName) $type
-	append flags |NSF_ARG_IS_ENUMERATION
+        addFlags flags "NSF_ARG_IS_ENUMERATION"
       }
       default {
 	if {[info exists ::ptrConverter($type)]} {
@@ -116,8 +123,8 @@ proc genifd {parameterDefinitions} {
     }
     switch -glob -- $(-type) {
       "*|*" -
-      "tclobj" - 
-      "args" - 
+      "tclobj" -
+      "args" -
       "" {set typeString NULL}
       default {
 	set typeString "\"$(-type)\""
@@ -132,7 +139,7 @@ proc genifd {parameterDefinitions} {
   }
 }
 
-proc gencall {methodName fn parameterDefinitions clientData 
+proc gencall {methodName fn parameterDefinitions clientData
 	      cDefsVar ifDefVar arglistVar preVar postVar introVar nnVar
 	    } {
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
@@ -293,8 +300,8 @@ static int
 ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
 $intro
-  if (likely(ArgumentParse(interp, objc, objv, $obj, objv[0], 
-                     method_definitions[$idx].paramDefs, 
+  if (likely(ArgumentParse(interp, objc, objv, $obj, objv[0],
+                     method_definitions[$idx].paramDefs,
                      method_definitions[$idx].nrParameters, 0, NSF_ARGPARSE_BUILTIN,
                      &pc) == TCL_OK)) {
     $cDefs
@@ -371,10 +378,10 @@ proc genstubs {} {
     } else {
       set call "return [implArgList $d(implementation) {} $arglist];"
     }
-    
+
     #if {$nrParams == 1} { puts stderr "$d(stub) => '$arglist' cDefs=$cDefs ifd=$ifDef" }
     if {$nrParams == 1 && $arglist eq "objc, objv"} {
-      # TODO we would not need to generate a stub at all.... 
+      # TODO we would not need to generate a stub at all....
       #set ifd "{\"$d(ns)::$d(methodName)\", $d(implementation), $nrParams, {\n  [genifd $d(parameterDefinitions)]}\n}"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     } elseif {$nrParams == 1 && $arglist eq "obj, objc, objv"} {
@@ -384,17 +391,17 @@ proc genstubs {} {
   } elseif {$nrParams == 0} {
     append pre [subst -nocommands {
       if (unlikely(objc != 1)) {
-	return NsfArgumentError(interp, "too many arguments:", 
+	return NsfArgumentError(interp, "too many arguments:",
 			     method_definitions[$d(idx)].paramDefs,
-			     NULL, objv[0]); 
-      } 
+			     NULL, objv[0]);
+      }
     }]
     append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
   } elseif {$nrParams == 1 && [string match "Tcl_Obj *" $cDefs]} {
 
     array set defs [list -required 0]
     array set defs [lindex $d(parameterDefinitions) 0]
-    
+
     if {$defs(-required)} {
       set op "objc != 2"
       set newArg {objv[1]}
@@ -404,9 +411,9 @@ proc genstubs {} {
     }
     append pre [subst -nocommands {
       if ($op) {
-	return NsfArgumentError(interp, "wrong # of arguments:", 
+	return NsfArgumentError(interp, "wrong # of arguments:",
 			     method_definitions[$d(idx)].paramDefs,
-			     NULL, objv[0]); 
+			     NULL, objv[0]);
       }
     }]
 
@@ -416,7 +423,7 @@ proc genstubs {} {
       set newArglist $newArg
     }
     regsub ", $arglist\\)" $call ", $newArglist\)" call
-    
+
     append fns [genSimpleStub $d(stub) $intro $d(idx) "" $pre $call $post]
   } else {
       switch $d(methodType) {
@@ -429,9 +436,9 @@ proc genstubs {} {
     lappend ifds $ifd
     append stubDecls $stubDecl
   }
-  
+
   puts $::converter
-  
+
   set entries [list]
   foreach c [array names ::createdConverter] {lappend entries "\{$::createdConverter($c)\}"}
   if {[llength $entries]>0} {
@@ -452,7 +459,7 @@ static Nsf_methodDefinition method_definitions[$nrIfds];
   foreach {key value} [array get ::ns] {
      # no need to create the ::nsf namespace
      if {$value eq "::nsf"} continue
-     lappend namespaces "\"$value\"" 
+     lappend namespaces "\"$value\""
   }
   set namespaceString [join $namespaces ",\n  "]
   puts "static CONST char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
@@ -492,24 +499,24 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   puts $::nxdocIndex [list set ::nxdoc::include($d(ns)::$d(methodName)) $opts(-nxdoc)]
 }
 
-proc checkMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+proc checkMethod {methodName implementation parameterDefinitions {options ""}} {
   methodDefinition type=$methodName checkMethod $implementation $parameterDefinitions $options
 }
-proc classMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+proc classMethod {methodName implementation parameterDefinitions {options ""}} {
   methodDefinition $methodName classMethod $implementation $parameterDefinitions $options
 }
-proc objectMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+proc objectMethod {methodName implementation parameterDefinitions {options ""}} {
   methodDefinition $methodName objectMethod $implementation $parameterDefinitions $options
 }
-proc objectInfoMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
-  lappend options -ns $::ns(objectInfoMethod) 
+proc objectInfoMethod {methodName implementation parameterDefinitions {options ""}} {
+  lappend options -ns $::ns(objectInfoMethod)
   methodDefinition $methodName objectMethod $implementation $parameterDefinitions $options
 }
-proc classInfoMethod {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
-  lappend options -ns $::ns(classInfoMethod) 
+proc classInfoMethod {methodName implementation parameterDefinitions {options ""}} {
+  lappend options -ns $::ns(classInfoMethod)
   methodDefinition $methodName classMethod $implementation $parameterDefinitions $options
 }
-proc cmd {methodName implementation parameterDefinitions {options "-nxdoc 0"}} {
+proc cmd {methodName implementation parameterDefinitions {options ""}} {
   methodDefinition $methodName cmd $implementation $parameterDefinitions $options
 }
 
@@ -520,7 +527,7 @@ close $::nxdocIndex
 
 puts {
 /*
- * This source code file was generated by the C-code generator gentclAPI.tcl, 
+ * This source code file was generated by the C-code generator gentclAPI.tcl,
  * part of the Next Scripting Framework.
  */
 
@@ -569,10 +576,10 @@ int Nsf_ConvertTo_Tclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *
 #endif
 
 
-#if !defined(likely) 
+#if !defined(likely)
 # if defined(__GNUC__) && __GNUC__ > 2
 /* Use gcc branch prediction hint to minimize cost of e.g. DTrace
- * ENABLED checks. 
+ * ENABLED checks.
  */
 #  define unlikely(x) (__builtin_expect((x), 0))
 #  define likely(x) (__builtin_expect((x), 1))

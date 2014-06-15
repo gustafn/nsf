@@ -546,7 +546,7 @@ classInfoMethod slotobjects NsfClassInfoSlotobjectsMethod {
 classInfoMethod subclass NsfClassInfoSubclassMethod {
   {-argName "-closure" -nrargs 0 -type switch}
   {-argName "-dependent" -nrargs 0 -type switch}
-  {-argName "pattern" -type objpattern}
+  {-argName "pattern" -type objpattern -flags NSF_ARG_NOLEADINGDASH}
 }
 classInfoMethod superclass NsfClassInfoSuperclassMethod {
   {-argName "-closure" -nrargs 0 -type switch}
