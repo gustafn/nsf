@@ -32,6 +32,7 @@ namespace eval ::nx {
     :property post
 
     :object property {count:integer 1} 
+    :object property {verbose:boolean 0} 
     :object variable success 0
     :object variable failure 0
     :object variable testfile ""
@@ -97,7 +98,7 @@ namespace eval ::nx {
       set :testfile $testfile
       if {![info exists :ccount(${:case})]} {set :ccount(${:case}) 0}
       set :name $testfile/${:case}.[format %.3d [incr :ccount(${:case})]]
-      :create ${:name} -name ${:name} -count ${:count} {*}$args
+      :create ${:name} -name ${:name} -count ${:count} -verbose ${:verbose} {*}$args
     }
 
     :public object method run {} {
