@@ -89,17 +89,17 @@ typedef void *NsfObject;
 
 #define PARSE_CONTEXT_PREALLOC 20
 typedef struct {
-  ClientData *clientData;
   int status;
+  ClientData *clientData; /* 4 members pointer to the actual parse context data */
   Tcl_Obj **objv;
-  Tcl_Obj **full_objv;
+  Tcl_Obj **full_objv;    /* contains method as well */
   int *flags;
-  ClientData clientData_static[PARSE_CONTEXT_PREALLOC];
+  ClientData clientData_static[PARSE_CONTEXT_PREALLOC]; /* 3 members preallocated parse context data */
   Tcl_Obj *objv_static[PARSE_CONTEXT_PREALLOC+1];
   int flags_static[PARSE_CONTEXT_PREALLOC+1];
-  int lastobjc;
+  int lastObjc;           /* points to the first "unprocessed" argument */
   int objc;
-  int varArgs;
+  int varArgs;            /* does the parameter end with some kind of "args" */
   NsfObject *object;
 } ParseContext;
 
