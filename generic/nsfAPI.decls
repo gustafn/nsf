@@ -126,7 +126,7 @@ cmd "method::asmcreate" NsfAsmMethodCreateCmd {
   {-argName "-inner-namespace" -nrargs 0 -type switch}
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "-reg-object" -required 0 -nrargs 1 -type object}
-  {-argName "name" -required 1 -type tclobj}
+  {-argName "methodName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
 }

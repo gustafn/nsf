@@ -554,7 +554,7 @@ static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int with
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern)
   NSF_nonnull(1) NSF_nonnull(2);
-static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withCheckalways, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *name, Tcl_Obj *arguments, Tcl_Obj *body)
+static int NsfAsmMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withCheckalways, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body)
   NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(7) NSF_nonnull(8) NSF_nonnull(9);
 static int NsfAsmProcCmd(Tcl_Interp *interp, int withAd, int withCheckalways, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body)
   NSF_nonnull(1) NSF_nonnull(4) NSF_nonnull(5) NSF_nonnull(6);
@@ -1409,12 +1409,12 @@ NsfAsmMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     int withInner_namespace = (int )PTR2INT(pc.clientData[2]);
     int withPer_object = (int )PTR2INT(pc.clientData[3]);
     NsfObject *withReg_object = (NsfObject *)pc.clientData[4];
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[5];
     Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[6];
     Tcl_Obj *body = (Tcl_Obj *)pc.clientData[7];
 
     assert(pc.status == 0);
-    return NsfAsmMethodCreateCmd(interp, object, withCheckalways, withInner_namespace, withPer_object, withReg_object, name, arguments, body);
+    return NsfAsmMethodCreateCmd(interp, object, withCheckalways, withInner_namespace, withPer_object, withReg_object, methodName, arguments, body);
 
   } else {
     return TCL_ERROR;
@@ -3310,7 +3310,7 @@ static Nsf_methodDefinition method_definitions[111] = {
   {"-inner-namespace", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-reg-object", 0, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
-  {"name", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"arguments", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"body", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
