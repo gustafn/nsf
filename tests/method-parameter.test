@@ -143,8 +143,9 @@ nx::test case info-subclass-error-messages {
 
   #
   # The argument definition of "pattern" for subclass has
-  # "noleadingdash" option, therefore we can deduce that "-a" must
-  # be a flag.
+  # "noleadingdash" option, therefore we can deduce that "-a" must be
+  # a flag. OTOH, if "-a" is a proper value (e.g. value of a
+  # variable), then the following command would be perfectly fine.
   #
   ? {C info subclass -a} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
@@ -155,6 +156,10 @@ nx::test case info-subclass-error-messages {
  should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
 
   ? {C info subclass -- -a} ""
+
+  ? {C info subclass -1} \
+      {invalid non-positional argument '-1', valid are : -closure, -dependent;
+ should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
 
   #
   # two arguments
@@ -252,6 +257,7 @@ nx::test case info-superclass-error-messages {
   ? {D info superclass -a --} \
       {invalid argument '--', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
   ? {D info superclass -- -a} ""
+  ? {D info superclass -1} ""
 
   #
   # two arguments
