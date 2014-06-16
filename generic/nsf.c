@@ -20941,7 +20941,7 @@ Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   assert(objv);
   assert(procNameObj);
   assert(pcPtr);
-  fprintf(stderr, "Nsf_ArgumentParse calls ArgumentParse\n");
+
   return ArgumentParse(interp, objc, objv, (NsfObject *)object, procNameObj,
 		       paramPtr, nrParams, serial, processFlags,
 		       (ParseContext *)pcPtr);
