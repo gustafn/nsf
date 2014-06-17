@@ -203,7 +203,7 @@ nx::test case nsf-method-get-variants {
       "?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   ? {nsf::cmd::info parameter -context p1 $::handle1} \
-      "-name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
+      "-name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,nodashalnum"
 
   ? {nsf::cmd::info args -context p1 $::handle1} \
       "name object-mixin class object-filter __initblock"
@@ -227,7 +227,7 @@ nx::test case nsf-method-get-variants {
       "/objectName/ ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
 
   ? {nsf::cmd::info parameter -context Person $::handle2} \
-      "objectName -name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
+      "objectName -name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,nodashalnum"
 
   ? {nsf::cmd::info args -context Person $::handle2} \
       "objectName name object-mixin class object-filter __initblock"
@@ -239,7 +239,7 @@ nx::test case nsf-method-get-variants {
   ? {nsf::cmd::info syntax -context Person $::handle3} \
       "?-childof /value/? ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
   ? {nsf::cmd::info parameter -context Person $::handle3} \
-      "-childof -name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
+      "-childof -name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,nodashalnum"
   ? {nsf::cmd::info args -context Person $::handle3} \
       "-childof name object-mixin class object-filter __initblock"
 

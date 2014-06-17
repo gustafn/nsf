@@ -992,7 +992,7 @@ namespace eval ::nx {
       set parameterOptions [string range $spec [expr {$colonPos+1}] end]
       set name [string range $spec 0 [expr {$colonPos -1}]]
       foreach property [split $parameterOptions ,] {
-        if {$property in [list "required" "convert" "substdefault" "noarg" "noleadingdash"]} {
+        if {$property in [list "required" "convert" "substdefault" "noarg" "nodashalnum"]} {
 	  if {$property eq "convert" } {set class [:requireClass ::nx::VariableSlot $class]}
           lappend opts -$property 1
         } elseif {$property eq "noconfig"} {
@@ -1213,7 +1213,7 @@ namespace eval ::nx {
     {incremental:boolean false}
     {configurable true}
     {noarg}
-    {noleadingdash}
+    {nodashalnum}
     {disposition alias}
     {required false}
     {default}
@@ -1380,7 +1380,7 @@ namespace eval ::nx {
       }
     }
     if {[info exists :noarg] && ${:noarg}} {lappend options noarg}
-    if {[info exists :noleadingdash] && ${:noleadingdash}} {lappend options noleadingdash}
+    if {[info exists :nodashalnum] && ${:nodashalnum}} {lappend options nodashalnum}
     if {$withMultiplicity && [info exists :multiplicity] && ${:multiplicity} ne "1..1"} {
       #puts stderr "### [self] added multiplicity ${:multiplicity}"
       lappend options ${:multiplicity}
@@ -1652,7 +1652,7 @@ namespace eval ::nx {
   #
   ::nx::ObjectParameterSlot create ::nx::Object::slot::__initblock \
       -disposition cmd \
-      -noleadingdash true \
+      -nodashalnum true \
       -positional true \
       -position 2
 

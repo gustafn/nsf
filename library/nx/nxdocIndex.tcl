@@ -172,8 +172,8 @@ set ::nxdoc::include(::nx::ObjectParameterSlot::slot::config) 1
 set ::nxdoc::include(::nsf::classes::nx::ObjectParameterSlot::config) 1
 set ::nxdoc::include(::nx::ObjectParameterSlot::slot::noarg) 1
 set ::nxdoc::include(::nsf::classes::nx::ObjectParameterSlot::noarg) 1
-set ::nxdoc::include(::nx::ObjectParameterSlot::slot::noleadingdash) 1
-set ::nxdoc::include(::nsf::classes::nx::ObjectParameterSlot::noleadingdash) 1
+set ::nxdoc::include(::nx::ObjectParameterSlot::slot::nodashalnum) 1
+set ::nxdoc::include(::nsf::classes::nx::ObjectParameterSlot::nodashalnum) 1
 set ::nxdoc::include(::nx::ObjectParameterSlot::slot::disposition) 1
 set ::nxdoc::include(::nsf::classes::nx::ObjectParameterSlot::disposition) 1
 set ::nxdoc::include(::nx::ObjectParameterSlot::slot::required) 1

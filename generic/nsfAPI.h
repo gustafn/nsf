@@ -3298,7 +3298,7 @@ static Nsf_methodDefinition method_definitions[111] = {
 {"::nsf::methods::class::info::subclass", NsfClassInfoSubclassMethodStub, 3, {
   {"-closure", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"-dependent", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
-  {"pattern", NSF_ARG_NOLEADINGDASH, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
+  {"pattern", NSF_ARG_NODASHALNUM, 1, ConvertToObjpattern, NULL,NULL,"objpattern",NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::class::info::superclass", NsfClassInfoSuperclassMethodStub, 2, {
   {"-closure", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},

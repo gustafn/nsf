@@ -6,7 +6,7 @@ package require nx::test
 
 set objectFilter "-object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n"
 set objectMixin "-object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n"
-set initBlock "__initblock:cmd,optional,noleadingdash"
+set initBlock "__initblock:cmd,optional,nodashalnum"
 set filter "-filter:filterreg,slot=::nx::Class::slot::filter,slotset,method=class-filter,0..n"
 
 set ::trailer "$objectMixin -class:class,alias,method=::nsf::methods::object::class $objectFilter $initBlock"

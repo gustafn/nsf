@@ -721,7 +721,7 @@ nx::test case info-slot-parametersyntax {
   ? {C info lookup syntax create} "/objectName/ ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
   ? {C info lookup syntax create a} "?-a /value/?"
 
-  ? {C info lookup parameters create } "objectName -a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,noleadingdash"
+  ? {C info lookup parameters create } "objectName -a {-b 1} -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,nodashalnum"
 
   #? {C info parameter list} "-a -b -noinit -object-mixin -class -object-filter __initblock"
   #? {C info lookup args create} "methodName a b noinit object-mixin class object-filter __initblock"

@@ -5415,17 +5415,20 @@ nsf.c:
 - removed memcopy() in call-directy for "create"
 - some more cleanup
 
-genttclAPI.tcl:
+gentclAPI.tcl:
 - added option "-flags", which can be used for every parameter. 
   example: .... -flags NSF_ARG_NOLEADINGDASH ....
 - experimental: use NSF_ARG_NOLEADINGDASH for pattern "info subclass"
   to improve error messages.
 - extended regression test
 
+nsf.c:
+- relax the meaning of noleadingdash to allow negative numbers
+- rename noleadingdash to e.g. nodashalnum
+
 ========================================================================
 TODO:
 
-- make test for all CallDirectly() cases, where method is dispatched (no direct call)
 
 - shouldn't "info subclass" be named "info subclasses"?
  

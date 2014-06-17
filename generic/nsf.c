@@ -14753,11 +14753,11 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
 
-  } else if (strncmp(option, "noleadingdash", 13) == 0) {
+  } else if (strncmp(option, "nodashalnum", 11) == 0) {
     if (*paramPtr->name == '-') {
-      return NsfPrintError(interp, "parameter option 'noleadingdash' only allowed for positional parameters");
+      return NsfPrintError(interp, "parameter option 'nodashalnum' only allowed for positional parameters");
     }
-    paramPtr->flags |= NSF_ARG_NOLEADINGDASH;
+    paramPtr->flags |= NSF_ARG_NODASHALNUM;
 
   } else if (strncmp(option, "noconfig", 8) == 0) {
     if (disallowedOptions != NSF_DISALLOWED_ARG_OBJECT_PARAMETER) {
@@ -21155,7 +21155,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	    if (!found) {
 	      Nsf_Param CONST *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
 	      if (nextParamPtr > lastParamPtr
-		  || (nextParamPtr->flags & NSF_ARG_NOLEADINGDASH)) {
+		  || (nextParamPtr->flags & NSF_ARG_NODASHALNUM)) {
                 Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 0),
                                                            NsfMethodName(procNameObj));
 		return NsfUnexpectedNonposArgumentError(interp, argumentString,
@@ -21167,8 +21167,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	    }
 	  } else {
 	    /*
-	     * Must be a classical nonpos arg; check for the string in
-	     * the parameter definitions.
+	     * Must be a classical nonpos arg; check for a matching parameter
+	     * definition.
 	     */
 	    int found = 0;
 
@@ -21183,37 +21183,47 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		break;
 	      }
 	    }
+
+            /*
+             * We might have found the argument starting with the dash in the
+             * parameter definitions or not. If it was not found, then we can
+             * advance to the next positional parameter and stuff the value in
+             * there, if the parameter definition allows this.
+             */
 	    if (!found) {
+              int nonposArgError = 0;
 	      Nsf_Param CONST *nextParamPtr = NextParam(currentParamPtr, lastParamPtr);
+
 	      /*fprintf(stderr, "non-pos-arg '%s' not found, current %p %s last %p %s next %p %s\n",
 		      argumentString,
 		      currentParamPtr,  currentParamPtr->name,
 		      lastParamPtr, lastParamPtr->name,
 		      nextParamPtr, nextParamPtr->name);*/
-	      if (nextParamPtr > lastParamPtr
-		  || (nextParamPtr->flags & NSF_ARG_NOLEADINGDASH)) {
-#if 0
-		/*
-		 * Currently, we can't recover from a deletion of the
-		 * parameters in the unknown handler
-		 */
-		int result, refcountBefore = procNameObj->refCount;
-		/*fprintf(stderr, "### refcount of %s before -> %d objc %d\n",
-		  ObjStr(procNameObj), procNameObj->refCount, pcPtr->objc);*/
-		result = NsfCallArgumentUnknownHandler(interp,
-						       procNameObj,
-						       argumentObj,
-						       object);
-		/*fprintf(stderr, "### refcount of %s after -> %d\n",
-		  ObjStr(procNameObj), procNameObj->refCount);*/
-		if (procNameObj->refCount != refcountBefore) {
-		  pcPtr->objc = nrParams ;
-		  /*fprintf(stderr, "trigger error pcPtr->objc %d\n", pcPtr->objc);*/
-		  return NsfPrintError(interp, "unknown handler for '%s' must not alter definition",
-				       ObjStr(argumentObj));
-		}
-#endif
-                Tcl_Obj *methodPathObj = NsfMethodNamePath(interp, CallStackGetTclFrame(interp, NULL, 0),
+
+	      if (nextParamPtr > lastParamPtr) {
+                nonposArgError = 1;
+              } else if (nextParamPtr->flags & NSF_ARG_NODASHALNUM) {
+                /*
+                 * Check if argment is numeric, since we want to allow it as
+                 * value even when NSF_ARG_NODASHALNUM was specified.
+                 */
+                nonposArgError = 1;
+
+                if (argumentString[1] >= '0' && argumentString[1] <= '9') {
+                  char *p;
+
+                  strtod(&argumentString[1], &p);
+                  if (*p == '\0') {
+                    /* argument is numeric */
+                    //fprintf(stderr,"===== FOUND negative NUMERIC argument <%s>\n", argumentString);
+                    nonposArgError = 0;
+                  }
+                }
+              }
+
+              if (nonposArgError) {
+                Tcl_Obj *methodPathObj = NsfMethodNamePath(interp,
+                                                           CallStackGetTclFrame(interp, NULL, 0),
                                                            NsfMethodName(procNameObj));
 		return NsfUnexpectedNonposArgumentError(interp, argumentString,
 							(Nsf_Object *)object,
@@ -21405,7 +21415,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     }
   }
 
-  /* 
+  /*
    * Set lastObjc as index of the first "unprocessed" parameter.
    */
   if (processFlags & NSF_ARGPARSE_START_ZERO) {
