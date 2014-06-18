@@ -90,6 +90,54 @@ instances of [cmd nx::Object].
 
 [list_end]
 
+[cmd_def __alloc]
+
+[list_begin definitions]
+
+[def "[arg cls] [method "__alloc"] [arg instanceName]"]
+
+Creates a blank object [arg instanceName] as an instance of [arg cls] and
+returns the fully-qualified [arg instanceName]. [arg instanceName]
+will represent an uninitialized object, that is, [method configure]
+and [method init], if any, will not be called.
+
+[para] 
+
+[method __alloc] is primarily used
+internally by [method create] to allocate a Tcl memory storage for
+[arg instanceName] and to register [arg instanceName] with the Tcl
+interpreter as a new command. By default, [method __alloc] is not part
+of the exported method interface of [cmd nx::Class] instances.
+
+[para]
+
+[method __alloc] can be refined by providing an implementation of
+[method __alloc], which can redirect to the built-in [method __alloc]
+using [cmd nx::next], for the scope of [arg cls] and/or the scope of
+instances of [arg cls]. This way, [method __alloc] is also exported as
+a callable method of [arg cls] instances.
+
+[para]
+
+[comment {Is the below still intended, currenty redefinition protection is not active on __dealloc}]
+
+As an exception, [method __alloc] for [cmd ::nx::Class] instances is
+protected from redefinition. Consider refining it in a subclass of
+[cmd ::nx::Class] or using a [term "mixin class"] for indirecting the
+allocation procedure.
+
+[list_end]
+
+[cmd_def __class_configureparameter]
+
+[list_begin definitions]
+
+[def "[arg cls] [method "__class_configureparameter"]"]
+
+Computes and returns the configuration options available for [arg cls] instances, to be consumed as method-parameter specification by [method configure].
+
+[list_end]
+
 [cmd_def create]
 
 [list_begin definitions]
@@ -167,6 +215,50 @@ direct or indirect superclass, [arg instanceName] is referred to as a
 classes.
 
 [list_end]
+
+[cmd_def __dealloc]
+
+[list_begin definitions]
+
+[def "[arg cls] [method "__dealloc"] [arg instanceName]"]
+
+Marks an instance [arg instanceName] of [arg cls] for
+deletion by returning its Tcl memory representation to the Tcl memory pool and by 
+unregistering the corresponding Tcl command from the Tcl interpreter.
+
+[para]
+
+Beware that [method __dealloc] does not necessarily
+cause the object to be deleted immediately. Depending on the lifecycle
+of the object's environment (e.g., the '''interp''', the containing
+namespace) and on call references down the callstack, the actual
+memory freeing/returning operation may occur at a later point.
+
+[para]
+
+[method __dealloc] is primarily used internally by [method destroy].
+By default, [method __dealloc] is not part of the exported method
+interface of [arg cls] instances.
+
+[para]
+
+[method __dealloc] can be refined by providing an implementation of
+[method __dealloc], which can redirect to the built-in [method __dealloc]
+using [cmd nx::next], for the scope of [arg cls] and/or the scope of
+instances of [arg cls]. This way, [method __dealloc] is also exported as
+a callable method of [arg cls] instances.
+
+[para]
+[comment {Is the below still intended, currenty redefinition protection is not active on __dealloc}]
+
+As an exception, [method __dealloc] for [cmd ::nx::Class] instances is
+protected from redefinition. Consider refining it in a subclass of
+[cmd ::nx::Class] or using a [term "mixin class"] for indirecting the
+deallocation procedure.
+
+[list_end]
+
+
 
 [cmd_def delete]
 
@@ -304,6 +396,72 @@ nested object of [arg parentName]. [arg parentName] can be the name of
 either an existing NX object or an existing Tcl namespace. If
 non-existing, a Tcl namespace [arg parentName] will be created on the
 fly.
+
+[list_end]
+
+[cmd_def __recreate]
+
+[list_begin definitions]
+
+[def "[arg cls] [method "__recreate"] [arg instanceName] ?[arg arg] ...?"]
+
+Takes an existing instance [arg instanceName] of [arg cls] and
+returns a re-setted and re-initialized instance of [arg cls] equally
+named [arg instanceName]. This process is referred to as recreation of
+[arg instanceName]. By default, [method "__recreate"] is not called
+directly by clients of [arg cls] instances but used internally by
+[method create] and by [method new].
+
+[para]
+
+Recreation is the NX scheme for resolving naming conflicts between
+objects: An object is requested to be created using [method create] or
+[method new] while an object of an identical object name, e.g., [arg instanceName], already
+exists:
+
+[example {
+% Object create Bar
+::Bar
+% Object create Bar; # calls Object->__recreate(::Bar, ...)
+::Bar
+}]
+
+In such a situation, the built-in [method "__recreate"] first unsets
+the object state (i.e., Tcl variables held by the object) and removes
+relations of the object under recreation with other objects. Then,
+second, standard object initialization is performed by calling [method configure] and
+[method configure], if any.
+
+[para]
+
+If the name conflict occurs between an existing class and a newly
+created object (or vice versa), recreation will not be
+performed. Rather, a sequence of [method destroy] and [method create]
+is triggered:
+
+[example {
+% Object create Bar
+::Bar
+% Class create Bar; # calls Bar->destroy() & Class->create(::Bar, ...)
+}]
+
+[para]
+By default, [method __recreate] is not part of the exported method
+interface of [cmd nx::Class] instances. [method __recreate] can be
+refined by providing an implementation of [method __recreate] in a
+subclass or [term "mixin class"], which can redirect to the built-in
+[method __recreate] using [cmd nx::next]. In the method body preceding
+the [cmd nx::next] call, the object under recreation has its old
+state, after returning from the [cmd ::nx::next], it has been
+re-setted and re-configured. This way, [method __recreate] is also exported as a callable method for an instance of [cmd nx::Class].
+
+[para]
+[comment {Is the below still intended, currenty redefinition protection is not active on __dealloc}]
+
+As an exception, [method __recreate] for [cmd ::nx::Class] instances is
+protected from redefinition. Consider refining it in a subclass of
+[cmd ::nx::Class] or using a [term "mixin class"] for indirecting the
+recreation procedure.
 
 [list_end]
 

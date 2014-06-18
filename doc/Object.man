@@ -616,6 +616,17 @@ performed for a Tcl command representing an object.
 
 [list_end]
 
+[cmd_def __object_configureparameter]
+
+[list_begin definitions]
+
+[def "[arg obj] [method "__object_configureparameter"]"]
+
+Computes and returns the configuration options available for [arg obj], to be consumed as method-parameter specification by [method configure].
+
+[list_end]
+
+
 [cmd_def require]
 
 [list_begin definitions]
