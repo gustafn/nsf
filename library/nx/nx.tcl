@@ -54,9 +54,9 @@ namespace eval ::nx {
   # via alias).
   #
   ::nsf::objectsystem::create ::nx::Object ::nx::Class {
-    -class.alloc {__alloc ::nsf::methods::class::alloc}
+    -class.alloc {__alloc ::nsf::methods::class::alloc 1}
     -class.create create
-    -class.dealloc {__dealloc ::nsf::methods::class::dealloc}
+    -class.dealloc {__dealloc ::nsf::methods::class::dealloc 1}
     -class.configureparameter __class_configureparameter
     -class.recreate {__recreate ::nsf::methods::class::recreate}
     -object.configure __configure

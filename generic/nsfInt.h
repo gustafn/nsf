@@ -635,6 +635,7 @@ typedef struct NsfObjectSystem {
   Tcl_Obj *methods[NSF_s_set_idx+1];
   Tcl_Obj *handles[NSF_s_set_idx+1];
   struct NsfObjectSystem *nextPtr;
+  char protected[NSF_s_set_idx+1];
 } NsfObjectSystem;
 
 

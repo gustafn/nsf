@@ -28,12 +28,12 @@ nx::test case syntax {
 
   ? {::nsf::method::alias C} \
       {required argument 'methodName' is missing, should be:
-	::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? /cmdName/}
+	::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? ?-protection call-protected|redefine-protected|none? /cmdName/}
 
   ? {::nsf::method::alias C foo ::set} "::nsf::classes::C::foo"
 
   ? {::nsf::method::alias C foo ::set 1} \
-      {invalid argument '1', maybe too many arguments; should be "::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? /cmdName/"}
+      {invalid argument '1', maybe too many arguments; should be "::nsf::method::alias /object/ ?-per-object? /methodName/ ?-frame method|object|default? ?-protection call-protected|redefine-protected|none? /cmdName/"}
 
   ? {C eval {:property x -class D}} {invalid argument 'D', maybe too many arguments; should be "::C property ?-accessor /value/? ?-configurable /boolean/? ?-incremental? ?-class /value/? /spec/ ?/initblock/?"} "Test whether the colon prefix is suppressed"
 }

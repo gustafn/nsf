@@ -119,11 +119,18 @@ nx::test case parent-require {
 }
 
 #
+# Test what happens if we try to redefine a "nonexistant" protected method.
+#
+nx::test case method-require-scope {
+  ? {nx::Class public method __alloc arg {return 1}} {refuse to overwrite protected method __alloc on ::nx::Class}
+  ? {nx::Class public method __dealloc arg {return 1}} {refuse to overwrite protected method __dealloc on ::nx::Class}
+}
+
+#
 # Test what happens if a class-specific method is registered and
 # called on an object.
 #
 nx::test case method-require-scope {
-
   nx::Object create o
   ::nsf::method::require o __alloc
   ? {o __alloc x} {method __alloc not dispatched on valid class}

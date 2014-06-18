@@ -168,6 +168,19 @@ static int ConvertToFrame(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *
   return result;
 }
   
+enum ProtectionIdx {ProtectionNULL, ProtectionCall_protectedIdx, ProtectionRedefine_protectedIdx, ProtectionNoneIdx};
+
+static int ConvertToProtection(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"call-protected", "redefine-protected", "none", NULL};
+  (void)pPtr;
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-protection", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+  
 enum AssertionsubcmdIdx {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObject_invarIdx, AssertionsubcmdClass_invarIdx};
 
 static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Nsf_Param CONST *pPtr,
@@ -276,6 +289,7 @@ static int ConvertToInfoobjectparametersubcmd(Tcl_Interp *interp, Tcl_Obj *objPt
   {ConvertToObjectproperty, "initialized|class|rootmetaclass|rootclass|volatile|slotcontainer|hasperobjectslots|keepcallerself|perobjectdispatch"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {ConvertToParametersubcmd, "default|list|name|syntax|type"},
+  {ConvertToProtection, "call-protected|redefine-protected|none"},
   {NULL, NULL}
 };
     
@@ -582,8 +596,8 @@ static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_O
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, int withConfigure, CONST char *withName, Tcl_Obj *constraint, Tcl_Obj *value)
   NSF_nonnull(1) NSF_nonnull(5) NSF_nonnull(6);
-static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withFrame, Tcl_Obj *cmdName)
-  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(6);
+static int NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withFrame, int withProtection, Tcl_Obj *cmdName)
+  NSF_nonnull(1) NSF_nonnull(2) NSF_nonnull(4) NSF_nonnull(7);
 static int NsfMethodAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg)
   NSF_nonnull(1) NSF_nonnull(2);
 static int NsfMethodCreateCmd(Tcl_Interp *interp, NsfObject *object, int withCheckalways, int withInner_namespace, int withPer_object, NsfObject *withReg_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition)
@@ -1680,10 +1694,11 @@ NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     CONST char *methodName = (CONST char *)pc.clientData[2];
     int withFrame = (int )PTR2INT(pc.clientData[3]);
-    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[4];
+    int withProtection = (int )PTR2INT(pc.clientData[4]);
+    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[5];
 
     assert(pc.status == 0);
-    return NsfMethodAliasCmd(interp, object, withPer_object, methodName, withFrame, cmdName);
+    return NsfMethodAliasCmd(interp, object, withPer_object, methodName, withFrame, withProtection, cmdName);
 
   } else {
     return TCL_ERROR;
@@ -3373,11 +3388,12 @@ static Nsf_methodDefinition method_definitions[111] = {
   {"constraint", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"value", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
-{"::nsf::method::alias", NsfMethodAliasCmdStub, 5, {
+{"::nsf::method::alias", NsfMethodAliasCmdStub, 6, {
   {"object", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Object, NULL,NULL,"object",NULL,NULL,NULL,NULL,NULL},
   {"-per-object", 0, 0, Nsf_ConvertTo_Boolean, NULL,NULL,"switch",NULL,NULL,NULL,NULL,NULL},
   {"methodName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_String, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"-frame", NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
+  {"-protection", NSF_ARG_IS_ENUMERATION, 1, ConvertToProtection, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL},
   {"cmdName", NSF_ARG_REQUIRED, 1, Nsf_ConvertTo_Tclobj, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::method::assertion", NsfMethodAssertionCmdStub, 3, {

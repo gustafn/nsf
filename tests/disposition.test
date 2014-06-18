@@ -131,7 +131,7 @@ nx::test case basics {
       [list [list X Y]]
 
   #
-  # By design, all parameters are currently limited to 0 or 1
+  # As used, all parameters receive currently 0 or 1
   # argument.  The same is true for disposition "alias" an
   # "forward". One could consider to unbox a parameter list via a
   # parameter option "expand" (like {*}) for alias|forward parameter
@@ -141,10 +141,16 @@ nx::test case basics {
   #
   # Without the sketched extension, one could use eval in a forwarder.
   # 
-
+puts stderr ===1
   C setObjectParams {{{-multi-2:forward,method=eval %self %method}}}
+puts stderr ===2a
+set x [C new -multi-2 {X Y}]
+puts stderr [$x eval {set :multi-2}]
+puts stderr ===2b
+
   ? {[C new -multi-2 {X Y}] eval {set :multi-2}} \
       "X Y"
+puts stderr ===3
 
   #
   # In the positional case, why is FOO not passed on as arg value to

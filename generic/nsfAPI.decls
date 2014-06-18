@@ -113,6 +113,7 @@ cmd "method::alias" NsfMethodAliasCmd {
   {-argName "-per-object" -required 0 -nrargs 0 -type switch}
   {-argName "methodName" -required 1}
   {-argName "-frame" -required 0 -type "method|object|default" -default "default"}
+  {-argName "-protection" -required 0 -type "call-protected|redefine-protected|none" -default "none"}
   {-argName "cmdName" -required 1 -type tclobj}
 } {-nxdoc 1}
 cmd "method::assertion" NsfMethodAssertionCmd {
