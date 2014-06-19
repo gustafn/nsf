@@ -1641,7 +1641,7 @@ namespace eval ::nx {
   #
   # Define "superclass" as a ObjectParameterSlot defined as alias
   #
-  ::nx::ObjectParameterSlot create ::nx::Class::slot::superclass \
+  ::nx::ObjectParameterSlot create ::nx::Class::slot::superclasses \
       -methodname "::nsf::methods::class::superclass" \
       -elementtype class \
       -multiplicity 1..n \

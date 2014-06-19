@@ -5434,10 +5434,20 @@ nsf.c:
     -class.dealloc {__dealloc ::nsf::methods::class::dealloc 1}
 - extend regression test
 
+
+nsf.c:
+- allow abbreaviated nonpos args
+- change name of relationslot "superclass" to "superclasses".
+  (part of a planned change to use plural for setvalued parameters,
+  "info superclasses" and similar changes for mixins/filters will 
+  probably follow)
+
 ========================================================================
 TODO:
 
-
+- finish pluaral reform
+- maybe introdouce "allowabbrev" flag
+- set nodashalnum for int types
 - shouldn't "info subclass" be named "info subclasses"?
  
   >>> Same for "info superclass". If the introspection interface uses

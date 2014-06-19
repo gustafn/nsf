@@ -142,7 +142,8 @@ nx::test case cget-parameter-methods {
   # class-level lookup
   #
   ? {C info lookup syntax configure} \
-      "?-superclass /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "?-superclasses /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {C cget -superclasses} "::nx::Object"
   ? {C cget -superclass} "::nx::Object"
   ? {C cget -object-mixin} ""
   ? {C cget -mixin} ""

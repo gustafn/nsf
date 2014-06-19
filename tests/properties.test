@@ -764,7 +764,7 @@ nx::test case class-object-properties {
   ? {c1 cget -a} a1
   ? {c1 configure -a a2} ""
 
-  ? {C info lookup syntax configure} {?-b /value/? ?-superclass /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {C info lookup syntax configure} {?-b /value/? ?-superclasses /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
 
   ? {C cget -b} b1
   ? {C configure -b b2} ""

@@ -283,7 +283,7 @@ nx::test case objectparameter {
   C create c1
  
   ? {C eval :__object_configureparameter} \
-      "{-superclass:class,alias,method=::nsf::methods::class::superclass,1..n ::nx::Object} -mixin:mixinreg,slot=::nx::Class::slot::mixin,slotset,method=class-mixin,0..n $::filter $::objectMixin -class:class,alias,method=::nsf::methods::object::class $::objectFilter $::initBlock"
+      "{-superclasses:class,alias,method=::nsf::methods::class::superclass,1..n ::nx::Object} -mixin:mixinreg,slot=::nx::Class::slot::mixin,slotset,method=class-mixin,0..n $::filter $::objectMixin -class:class,alias,method=::nsf::methods::object::class $::objectFilter $::initBlock"
 
   #### TOOD: remove or add
   #? {c1 eval :__object_configureparameter} \

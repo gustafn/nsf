@@ -264,6 +264,7 @@ typedef struct NsfMemCounter {
 # define ISOBJ(o) (o != NULL)
 #endif
 
+#define NSF_ABBREV_MIN_CHARS 4
 /*
  * This was defined to be inline for anything !sun or __IBMC__ >= 0x0306,
  * but __hpux should also be checked - switched to only allow in gcc - JH

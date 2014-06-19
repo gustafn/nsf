@@ -11076,6 +11076,67 @@ NsfParamDefsFilter(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, CONST char *p
   return paramList;
 }
 
+/*----------------------------------------------------------------------
+ * NsfParamDefsNonposLookup --
+ *
+ *    Process a list of ParamDefs look for a nonpos args. If there is no exact
+ *    match, look for an abbreviated match having at least
+ *    NSF_ABBREV_MIN_CHARS leading chars which are identical.
+ *
+ * Results:
+ *    Parameter definition or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static Nsf_Param CONST *NsfParamDefsNonposLookup(CONST char *nameString, Nsf_Param CONST *paramsPtr)
+  nonnull(1) nonnull(2);
+
+static Nsf_Param CONST *
+NsfParamDefsNonposLookup(CONST char *nameString, Nsf_Param CONST *paramsPtr) {
+  Nsf_Param CONST *paramPtr;
+  char             ch1 = nameString[2];
+  int              length;
+
+  assert(nameString);
+  assert(paramsPtr);
+  /*
+   * The provided paramsPtr must point to a block starting with a nonpos arg.
+   */
+  assert(paramsPtr->name);
+  assert(*paramsPtr->name == '-');
+  /*
+   * The provided nameString starts as well with a leading dash.
+   */
+  assert(*nameString == '-');
+
+  for (paramPtr = paramsPtr; likely(paramPtr->name != NULL) && *paramPtr->name == '-'; paramPtr++) {
+    if (unlikely(paramPtr->flags & NSF_ARG_NOCONFIG)) continue;
+    if (ch1 == paramPtr->name[2]
+        && strcmp(nameString, paramPtr->name) == 0) {
+      return paramPtr;
+    }
+  }
+
+  length = strlen(nameString);
+
+  if (length >= NSF_ABBREV_MIN_CHARS) {
+
+    for (paramPtr = paramsPtr; likely(paramPtr->name != NULL) && *paramPtr->name == '-'; paramPtr++) {
+      if (unlikely(paramPtr->flags & NSF_ARG_NOCONFIG)) continue;
+
+      if (ch1 == paramPtr->name[2]
+          && strncmp(nameString, paramPtr->name, length) == 0) {
+        /* fprintf(stderr, "... <%s> is an abbrev of <%s>\n", nameString, paramPtr->name); */
+        return paramPtr;
+      }
+    }
+  }
+  return NULL;
+}
+
 /*
  *----------------------------------------------------------------------
  * NsfProcDeleteProc --
@@ -15399,13 +15460,13 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *paramSpecObjs,
  *----------------------------------------------------------------------
  */
 static int ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
-			       Nsf_Param *paramPtr, Tcl_Obj *newValue,
+			       Nsf_Param CONST *paramPtr, Tcl_Obj *newValue,
 			       NsfCallStackContent *cscPtr)
   nonnull(1) nonnull(2) nonnull(3);
 
 static int
 ParameterMethodForwardDispatch(Tcl_Interp *interp, NsfObject *object,
-			       Nsf_Param *paramPtr, Tcl_Obj *newValue,
+			       Nsf_Param CONST *paramPtr, Tcl_Obj *newValue,
 			       NsfCallStackContent *cscPtr) {
   Tcl_Obj **nobjv, *ov[3], *methodObj, *forwardSpec;
   ForwardCmdClientData *tcd = NULL;
@@ -21200,18 +21261,15 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	     * definition.
 	     */
 	    int found = 0;
+            assert(pPtr == currentParamPtr);
 
-	    for (; pPtr <= lastParamPtr && *pPtr->name == '-'; pPtr ++) {
-	      /*fprintf(stderr, "comparing '%s' with '%s'\n", argumentString, pPtr->name);*/
-	      if ((pPtr->flags & NSF_ARG_NOCONFIG) == 0
-		  && ch1 == pPtr->name[1]
-		  && strcmp(argumentString, pPtr->name) == 0) {
-		found = 1;
-		NsfFlagObjSet(interp, argumentObj, paramPtr, serial,
-			      pPtr, NULL, 0);
-		break;
-	      }
-	    }
+            if (ch1 != '\0') {
+              pPtr = NsfParamDefsNonposLookup(argumentString, currentParamPtr);
+              if (pPtr != NULL) {
+                found = 1;
+                NsfFlagObjSet(interp, argumentObj, paramPtr, serial, pPtr, NULL, 0);
+              }
+            }
 
             /*
              * We might have found the argument starting with the dash in the
@@ -21244,7 +21302,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                   strtod(&argumentString[1], &p);
                   if (*p == '\0') {
                     /* argument is numeric */
-                    //fprintf(stderr,"===== FOUND negative NUMERIC argument <%s>\n", argumentString);
                     nonposArgError = 0;
                   }
                 }
@@ -21267,6 +21324,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
     }
 
+    //posarg:
     assert(pPtr);
     /*
      * pPtr points to the actual parameter (part of the currentParamPtr block)
@@ -27372,9 +27430,9 @@ objectMethod cget NsfOCgetMethod {
 */
 static int
 NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
-  int result, i, found = 0;
+  int result, found = 0;
   NsfParsedParam parsedParam;
-  Nsf_Param *paramPtr;
+  Nsf_Param CONST *paramPtr;
   NsfParamDefs *paramDefs;
   CallFrame frame, *framePtr = &frame, *uplevelVarFramePtr;
   char *nameString = ObjStr(nameObj);
@@ -27424,17 +27482,22 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
   ParamDefsRefCountIncr(paramDefs);
 
   /*
-   * Iterate over the parameter definitions to lookup the desired
-   * parameter. Skip positional parameters and those with NOCONFIG settings.
+   * Does provided value start with a dash?
    */
-  for (i = 1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
-    if (*paramPtr->name != '-' || (paramPtr->flags & NSF_ARG_NOCONFIG)) {
-      continue;
-    }
-    if (strcmp(nameString, paramPtr->name) == 0) {
-      found = 1;
-      break;
-    }
+  if (*nameString == '-') {
+    /*
+     * Skip leading parameters from the definition, which are no nonpos args
+     * (very unlikely).
+     */
+    for (paramPtr = paramDefs->paramsPtr;
+         paramPtr->name && *paramPtr->name != '-';
+         paramPtr++);
+
+    /*
+     * Perform the lookup from the next group.
+     */
+    paramPtr = NsfParamDefsNonposLookup(nameString, paramPtr);
+    found = (paramPtr != NULL);
   }
 
   if (!found) {

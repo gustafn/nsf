@@ -505,10 +505,10 @@ nx::test case slots {
     :create d1
   }
 
-  ? {lsort [D info lookup slots]} "::D::per-object-slot::a2 ::nx::Class::slot::filter ::nx::Class::slot::mixin ::nx::Class::slot::superclass ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin"
+  ? {lsort [D info lookup slots]} "::D::per-object-slot::a2 ::nx::Class::slot::filter ::nx::Class::slot::mixin ::nx::Class::slot::superclasses ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filter ::nx::Object::slot::object-mixin"
 
-  ? {D info lookup slots superclass} "::nx::Class::slot::superclass"
-  ? {D info lookup slots ::nx::Class::slot::superclass} "::nx::Class::slot::superclass"
+  ? {D info lookup slots superclasses} "::nx::Class::slot::superclasses"
+  ? {D info lookup slots ::nx::Class::slot::superclasses} "::nx::Class::slot::superclasses"
   ? {D info lookup slots a2} "::D::per-object-slot::a2"
   ? {D info lookup slots ::D::per-object-slot::a2} "::D::per-object-slot::a2"
 
