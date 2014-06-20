@@ -5445,6 +5445,11 @@ nsf.c:
 ========================================================================
 TODO:
 
+- is there a reason why Object::cleanup is not managed as a
+  object-system method; and not named "__cleanup" in NX?!
+
+- should __recreate also be redefine-protected in NX, as __alloc and __dealloc?
+
 - finish pluaral reform
 - maybe introdouce "allowabbrev" flag
 - set nodashalnum for int types
