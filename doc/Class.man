@@ -29,12 +29,12 @@ subclasses [cmd nx::Class] at the same time.
 
 [list_begin definitions]
 
-[call [cmd nx::Class] [method create] [arg className] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt "[arg option] [arg value] ..."] [opt [arg initBlock]]]
+[call [cmd nx::Class] [method create] [arg className] [opt "[option -superclasses] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt "[arg option] [arg value] ..."] [opt [arg initBlock]]]
 
 To create an application class having an explicit [arg className], use [method create].
 
   
-  [call [cmd nx::Class] [method new] [opt "[option -superclass] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
+  [call [cmd nx::Class] [method new] [opt "[option -superclasses] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
 
 To create an application class having an automatically assigned, implicit object name, use [method new].
 
@@ -54,7 +54,7 @@ existing object can be queried for its current configuration using
 
 [list_begin options]
 
-[opt_def -superclass [opt [arg superClassNames]]]
+[opt_def -superclasses [opt [arg superClassNames]]]
 
 If [arg superClassNames] is not specified, returns the superclasses of
 the class. If provided, the class becomes the subclass of [arg superClassNames].
@@ -87,44 +87,6 @@ instances of [cmd nx::Object].
 [list_begin definitions]
 
 [include alias.man.inc]
-
-[list_end]
-
-[cmd_def __alloc]
-
-[list_begin definitions]
-
-[def "[arg cls] [method "__alloc"] [arg instanceName]"]
-
-Creates a blank object [arg instanceName] as an instance of [arg cls] and
-returns the fully-qualified [arg instanceName]. [arg instanceName]
-will represent an uninitialized object, that is, [method configure]
-and [method init], if any, will not be called.
-
-[para] 
-
-[method __alloc] is primarily used
-internally by [method create] to allocate a Tcl memory storage for
-[arg instanceName] and to register [arg instanceName] with the Tcl
-interpreter as a new command. By default, [method __alloc] is not part
-of the exported method interface of [cmd nx::Class] instances.
-
-[para]
-
-[method __alloc] can be refined by providing an implementation of
-[method __alloc], which can redirect to the built-in [method __alloc]
-using [cmd nx::next], for the scope of [arg cls] and/or the scope of
-instances of [arg cls]. This way, [method __alloc] is also exported as
-a callable method of [arg cls] instances.
-
-[para]
-
-[comment {Is the below still intended, currenty redefinition protection is not active on __dealloc}]
-
-As an exception, [method __alloc] for [cmd ::nx::Class] instances is
-protected from redefinition. Consider refining it in a subclass of
-[cmd ::nx::Class] or using a [term "mixin class"] for indirecting the
-allocation procedure.
 
 [list_end]
 
@@ -168,39 +130,6 @@ available for this instance, such as those defined by properties of
 
 [para]
 
-The factory method creates the new class in three major steps:
-[example {
-  [Class create AClass]                   (1)
-                        ---------------.   .--------------.
-        -------------->|Class->create()|-->|Class->alloc()|
-                       `---------------'   `--------------'
-                                 |  |  (2) .-------------------.
-                                 |  .----->|Object->configure()|
-                                 |         `-------------------'
-                                 |   (3)   .------.
-                                 .........>|init()|
-                                           `------'
-}]
-
-[list_begin enumerated]
-
-[enum] A call to the [term protected] [method "alloc"] provided by
-[cmd nx::Class] creates the memory structures and then a raw,
-uninitalized instance of [arg cls].
-  
-[enum] The newly allocated instance is then configured by receiving a
-  call to its [method configure] which consumes the configuration
-  options passed into [method create]. This will establish the
-  instance's initial state, e.g., by setting the configuration options
-  and corresponding default values.
-  
-[enum] [method create] then calls the initialization method [method init], if
-available. The [method "init"] method can be defined by [arg cls] on
-behalf of instances, e.g., to lay out a class-specific initialisation
-behaviour. Alternatively or in addition, an instance may define an
-[method init] method on its own.
-[list_end]
-
 Note that [method create] is called internally when defining an
 instance of [arg cls] using [method new].
 
@@ -215,50 +144,6 @@ direct or indirect superclass, [arg instanceName] is referred to as a
 classes.
 
 [list_end]
-
-[cmd_def __dealloc]
-
-[list_begin definitions]
-
-[def "[arg cls] [method "__dealloc"] [arg instanceName]"]
-
-Marks an instance [arg instanceName] of [arg cls] for
-deletion by returning its Tcl memory representation to the Tcl memory pool and by 
-unregistering the corresponding Tcl command from the Tcl interpreter.
-
-[para]
-
-Beware that [method __dealloc] does not necessarily
-cause the object to be deleted immediately. Depending on the lifecycle
-of the object's environment (e.g., the '''interp''', the containing
-namespace) and on call references down the callstack, the actual
-memory freeing/returning operation may occur at a later point.
-
-[para]
-
-[method __dealloc] is primarily used internally by [method destroy].
-By default, [method __dealloc] is not part of the exported method
-interface of [arg cls] instances.
-
-[para]
-
-[method __dealloc] can be refined by providing an implementation of
-[method __dealloc], which can redirect to the built-in [method __dealloc]
-using [cmd nx::next], for the scope of [arg cls] and/or the scope of
-instances of [arg cls]. This way, [method __dealloc] is also exported as
-a callable method of [arg cls] instances.
-
-[para]
-[comment {Is the below still intended, currenty redefinition protection is not active on __dealloc}]
-
-As an exception, [method __dealloc] for [cmd ::nx::Class] instances is
-protected from redefinition. Consider refining it in a subclass of
-[cmd ::nx::Class] or using a [term "mixin class"] for indirecting the
-deallocation procedure.
-
-[list_end]
-
-
 
 [cmd_def delete]
 
@@ -541,17 +426,174 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 
 [list_end]
 
-[comment { COMMANDS list }]
+[section {Object Life Cycle}]
 
-[comment {
-  [cmd nx::Object] provides a set of default implementations for
-  internally called methods, which are called primarily during the 
-  creation or destruction of NX objects.
-  
-  Application developers can provide custom implementations of these
-  methods by providing tailored implementations for these methods in application
-  classes (i.e., subclasses of [cmd nx::Object]). An adequate method
-  implementation must comply with the method signature interfaces described below.
+[cmd nx::Class] provides means to control important stages through
+which an NX object passes between and including its creation and its
+destruction: allocation, recreation, deallocation.
+
+[example {
+  [/cls/ create /instanceName/]              (1)
+                        ---------------.   .----------------.
+        -------------->|Class->create()|-->|Class->__alloc()|
+                       `---------------'   `----------------'
+                                 |  |  (2) .-------------------.
+                                 |  .----->|Object->configure()|
+                                 |         `-------------------'
+                                 |  (3)   .-------------.
+                                 .........>|/cls/->init()|
+[/instanceName/ destroy]                   `-------------'
+       (4)      ------------------.  
+-------------->|Class->__dealloc()|
+                `-----------------'  
+
 }]
+
+The factory method [method create], provided by [cmd nx::Class] to its
+instance [arg cls], produces a new object [arg instanceName] as an
+instance of [arg cls] in three major steps.
+
+[list_begin enumerated]
+
+[enum] If [arg instanceName] does not represent an existing object, an
+internal call to [method "__alloc"], provided by [cmd nx::Class],
+creates the memory structures and, then, a raw, uninitalized instance
+[arg instanceName] of [arg cls]. If [arg instanceName] corresponds to an existing object, the recreation procedure is triggered.
+  
+[enum] The newly allocated or recreated object [arg instanceName] is then
+configured by receiving a call to [method configure], provided by [cmd nx::Object], which consumes the configuration options passed into
+[method create]. This will establish the instance's initial state,
+e.g., by setting object variables and object relations according to
+the configuration options and corresponding default values.
+  
+[enum] [method create] then calls the initialization method [method init], if
+defined. [method "init"] can be defined by [arg cls] on
+behalf of its instance [arg instanceName], e.g., to lay out a
+class-specific initialisation behaviour. Alternatively, or
+additionally, the object [arg instanceName] may define an per-object
+[method init] on its own.
+
+[list_end]
+
+When the destruction of an object [arg instanceName] is triggered, e.g., by an application-level [method destroy] call (4), [cmd nx::Class] manages deallocation of the object using [method __dealloc].
+
+[list_begin itemized]
+
+[item] [emph {Allocation}]: [method "__alloc"] creates a blank object [arg instanceName] as an instance of [arg cls] and returns the fully-qualified [arg instanceName]. [method __alloc] is primarily used internally by [method create] to allocate a Tcl memory storage for
+[arg instanceName] and to register [arg instanceName] with the Tcl
+interpreter as a new command. By default, [method __alloc] is not callable as a method for clients of [arg cls].
+
+[para]
+
+[method __alloc] defined by [cmd ::nx::Class] is protected from redefinition. The built-in [method __alloc] can however be refined by implementing a custom
+[method __alloc] as a per-object method of [arg cls], as well as as a method in a subclass of [cmd ::nx::Class] and/or in a [term "mixin class"]. The refinement can redirect to the built-in [method __alloc] using [cmd nx::next]. This way, [method __alloc] becomes a a callable method of [arg cls]: [arg cls] [method "__alloc"] [arg instanceName]
+
+
+[item] [emph {Recreation}]:
+
+Recreation is the NX scheme for resolving naming conflicts between
+objects: An object is requested to be created using [method create] or
+[method new] while an object of an identical object name, e.g., [arg instanceName], already
+exists:
+
+[example {
+% Object create Bar
+::Bar
+% Object create Bar; # calls Object->__recreate(::Bar, ...)
+::Bar
+}]
+
+In such a situation, the built-in [method "__recreate"] first unsets
+the object state (i.e., Tcl variables held by the object) and removes
+relations of the object under recreation with other objects. Then,
+second, standard object initialization is performed by calling [method configure] and
+[method configure], if any.
+
+[para]
+
+[arg cls] [method "__recreate"] [arg instanceName] ?[arg arg] ...?
+
+
+Takes an existing instance [arg instanceName] of [arg cls] and
+returns a re-setted and re-initialized instance of [arg cls] equally
+named [arg instanceName]. This process is referred to as recreation of
+[arg instanceName]. By default, [method "__recreate"] is not called
+directly by clients of [arg cls] instances but used internally by
+[method create] and by [method new].
+
+[para]
+
+
+If the name conflict occurs between an existing class and a newly
+created object (or vice versa), recreation will not be
+performed. Rather, a sequence of [method destroy] and [method create]
+is triggered:
+
+[example {
+% Object create Bar
+::Bar
+% Class create Bar; # calls Bar->destroy() & Class->create(::Bar, ...)
+}]
+
+[para]
+By default, [method __recreate] is not part of the exported method
+interface of [cmd nx::Class] instances. [method __recreate] can be
+refined by providing an implementation of [method __recreate] in a
+subclass or [term "mixin class"], which can redirect to the built-in
+[method __recreate] using [cmd nx::next]. In the method body preceding
+the [cmd nx::next] call, the object under recreation has its old
+state, after returning from the [cmd ::nx::next], it has been
+re-setted and re-configured. This way, [method __recreate] is also exported as a callable method for an instance of [cmd nx::Class].
+
+[para]
+[comment {Is the below still intended, currenty redefinition protection is not active on __dealloc}]
+
+As an exception, [method __recreate] for [cmd ::nx::Class] instances is
+protected from redefinition. Consider refining it in a subclass of
+[cmd ::nx::Class] or using a [term "mixin class"] for indirecting the
+recreation procedure.
+
+[item] [emph {Deallocation}]:
+
+[arg cls] [method "__dealloc"] [arg instanceName]
+
+Marks an instance [arg instanceName] of [arg cls] for
+deletion by returning its Tcl memory representation to the Tcl memory pool and by 
+unregistering the corresponding Tcl command from the Tcl interpreter.
+
+[para]
+
+Beware that [method __dealloc] does not necessarily
+cause the object to be deleted immediately. Depending on the lifecycle
+of the object's environment (e.g., the '''interp''', the containing
+namespace) and on call references down the callstack, the actual
+memory freeing/returning operation may occur at a later point.
+
+[para]
+
+[method __dealloc] is primarily used internally by [method destroy].
+By default, [method __dealloc] is not part of the exported method
+interface of [arg cls] instances.
+
+[para]
+
+[method __dealloc] can be refined by providing an implementation of
+[method __dealloc], which can redirect to the built-in [method __dealloc]
+using [cmd nx::next], for the scope of [arg cls] and/or the scope of
+instances of [arg cls]. This way, [method __dealloc] is also exported as
+a callable method of [arg cls] instances.
+
+[para]
+[comment {Is the below still intended, currenty redefinition protection is not active on __dealloc}]
+
+As an exception, [method __dealloc] for [cmd ::nx::Class] instances is
+protected from redefinition. Consider refining it in a subclass of
+[cmd ::nx::Class] or using a [term "mixin class"] for indirecting the
+deallocation procedure.
+
+
+[list_end]
+
+
 
 [manpage_end]
