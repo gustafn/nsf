@@ -93,11 +93,11 @@ nx::test case protected+filter {
   ? {c1 foo} foo
 
   # add a protected filter
-  c1 object filter add f1
+  c1 object filters add f1
   ? {c1 foo} foo
 
   # add a private filter
-  c1 object filter add f2
+  c1 object filters add f2
   ? {c1 foo} foo
 }
 
@@ -191,7 +191,7 @@ nx::test case private-helper {
   # Behavior with mixin . THe private helper methods are "invisible"
   # for invocation and next path.
 
-  B mixin add M
+  B mixins add M
 
   ? {b1 bar} "B.bar "
   ? {b1 baz} "b1.baz B.baz "
@@ -248,7 +248,7 @@ nx::test case object-private-helper {
     :public method bar {} {return "M.bar [next]"}
     :public method baz {} {return "M.baz [next]"}
   }
-  B mixin add M
+  B mixins add M
 
   ? {b1 bar} "M.bar B.bar "
   ? {b1 baz} "M.baz B.baz "
@@ -280,13 +280,13 @@ nx::test case local+filter {
 
   # add a filter; be sure that we still can call the private -local
   # method
-  d1 object filter add f1
+  d1 object filters add f1
   ? {d1 baz} "f1 D.baz C.baz "
   ? {d1 foo} "f1 C.foo f1 bar"
   ? {d1 bar} "::d1: unable to dispatch method 'bar'"
 
   # remove the filter
-  d1 object filter set ""
+  d1 object filters set ""
   # define call to private method via method handle
   C public method foo {} { return "C.foo [[self] [C info method registrationhandle bar]]"}
 
@@ -296,7 +296,7 @@ nx::test case local+filter {
   ? {d1 bar} "::d1: unable to dispatch method 'bar'"
 
   # add a filter; be sure that we still can call the private method
-  d1 object filter add f1
+  d1 object filters add f1
   ? {d1 baz} "f1 D.baz C.baz "
   ? {d1 foo} "f1 C.foo f1 bar"
   ? {d1 bar} "::d1: unable to dispatch method 'bar'"
@@ -429,7 +429,7 @@ nx::test case object-my-local {
   ? {o1 bar} o1
   ? {o1 foo2} o1
 
-  o1 object mixin add M
+  o1 object mixins add M
 
   ? {o1 foo} "M o1"
   ? {o1 bar} "o1"
@@ -559,7 +559,7 @@ nx::test case class-my-local+next {
     :public method foo {a b} {: -local baz $a $b}
   }
 
-  b1 object mixin add Mix
+  b1 object mixins add Mix
 
   # we can call Mix.baz only through Mix.foo
   ? {b1 foo 4 5} 1024
@@ -597,7 +597,7 @@ nx::test case class-my-local+next {
   ? {s1 bar 4 5} 20
 
   # add per-class mixin
-  Sub mixin add Mix
+  Sub mixins add Mix
 
   # foo is shadowed in the mixin and calls the mixin-private method
   ? {s1 foo 4 5} 1024

@@ -9,7 +9,7 @@ package provide nx::class-method 1.0
 #     nx::Class create C {
 #        :public object method foo args {....}
 #        :object property p:integer
-#        :object mixin add M
+#        :object mixins add M
 #        #...
 #        puts [:info object methods]
 #     }
@@ -21,7 +21,7 @@ package provide nx::class-method 1.0
 #     nx::Object create o {
 #        :public class method foo args {....}
 #        :class property p:integer
-#        :class mixin add M
+#        :class mixins add M
 #        #...
 #        puts [:class info methods]
 #     }
@@ -71,10 +71,10 @@ namespace eval ::nx {
     #
     foreach m {
       alias 
-      filter 
+      filters 
       forward 
       method 
-      mixin 
+      mixins 
       property 
       variable
     } {

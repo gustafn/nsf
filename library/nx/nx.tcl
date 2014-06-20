@@ -832,8 +832,8 @@ namespace eval ::nx {
       if {[info exists pattern]} {lappend cmd $pattern}
       return [: {*}$cmd]
     }
-    :alias "info subclass"       ::nsf::methods::class::info::subclass
-    :alias "info superclass"     ::nsf::methods::class::info::superclass
+    :alias "info subclasses"     ::nsf::methods::class::info::subclass
+    :alias "info superclasses"   ::nsf::methods::class::info::superclass
     :method "info variables" {pattern:optional} {
       set cmd {info slots -type ::nx::VariableSlot}
       if {[info exists pattern]} {lappend cmd $pattern}
@@ -965,10 +965,10 @@ namespace eval ::nx {
     # Combine two classes and return the more specialized one
     #
     if {$old eq "" || $old eq $required} {return $required}
-    if {[$required info superclass -closure $old] ne ""} {
+    if {[$required info superclasses -closure $old] ne ""} {
       #puts stderr "required $required has $old as superclass => specializing"
       return $required
-    } elseif {[$required info subclass -closure $old] ne ""} {
+    } elseif {[$required info subclasses -closure $old] ne ""} {
       #puts stderr "required $required is more general than $old => keep $old"
       return $old
     } else {
@@ -1305,11 +1305,19 @@ namespace eval ::nx {
 
   ObjectParameterSlot public method onError {cmd msg} {
     if {[string match "%1 requires argument*" $msg]} {
+      set template {wrong # args: use \"$cmd [join $methods |]\"}
+    } elseif {[string match "*unknown for slot*" $msg]} {
+      lassign $cmd slot calledMethod obj .
+      regexp {=(.*)$} $calledMethod . calledMethod
+      regexp {::([^:]+)$} $slot . slot
+      set template {submethod $calledMethod undefined for $slot: use \"$obj $slot [join $methods |]\"}
+    }
+    if {[info exists template]} {
       set methods ""
       foreach m [lsort [:info lookup methods -callprotection public value=*]] {
         lappend methods [lindex [split $m =] end]
       }
-      return -code error "wrong # args: use \"$cmd [join $methods |]\"" 
+      return -code error [subst $template]
     }
     return -code error $msg
   }
@@ -1604,28 +1612,30 @@ namespace eval ::nx {
   #     mixin
   #     filter
 
-  ::nx::RelationSlot create ::nx::Object::slot::object-mixin \
+  ::nx::RelationSlot create ::nx::Object::slot::object-mixins \
       -multiplicity 0..n \
       -defaultmethods {} \
       -disposition slotset \
-      -settername "object mixin" \
+      -forwardername object-mixin \
+      -settername "object mixins" \
       -elementtype mixinreg
 
-  ::nx::RelationSlot create ::nx::Object::slot::object-filter \
+  ::nx::RelationSlot create ::nx::Object::slot::object-filters \
       -multiplicity 0..n \
       -defaultmethods {} \
       -disposition slotset \
-      -settername "object filter" \
+      -forwardername object-filter \
+      -settername "object filters" \
       -elementtype filterreg
 
-  ::nx::RelationSlot create ::nx::Class::slot::mixin \
+  ::nx::RelationSlot create ::nx::Class::slot::mixins \
       -multiplicity 0..n \
       -defaultmethods {} \
       -disposition slotset \
       -forwardername "class-mixin" \
       -elementtype mixinreg
 
-    ::nx::RelationSlot create ::nx::Class::slot::filter \
+    ::nx::RelationSlot create ::nx::Class::slot::filters \
       -multiplicity 0..n \
       -defaultmethods {} \
       -disposition slotset \
@@ -1664,35 +1674,35 @@ namespace eval ::nx {
   #
   # Define method "guard" for mixin- and filter-slots of Object and Class
   #
-  ::nx::Object::slot::object-filter object method value=guard {obj prop filter guard:optional} {
+  ::nx::Object::slot::object-filters object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::filterguard $filter $guard
     } else {
       $obj info object filter guard $filter
     }
   }
-  ::nx::Class::slot::filter object method value=guard {obj prop filter guard:optional} {
+  ::nx::Class::slot::filters object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::filterguard $filter $guard
     } else {
       $obj info filter guard $filter
     }
   }
-  ::nx::Object::slot::object-mixin object method value=guard {obj prop mixin guard:optional} {
+  ::nx::Object::slot::object-mixins object method value=guard {obj prop mixin guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
     } else {
       $obj info object mixin guard $mixin
     }
   }
-  ::nx::Class::slot::mixin object method value=guard {obj prop filter guard:optional} {
+  ::nx::Class::slot::mixins object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::mixinguard $filter $guard
     } else {
       $obj info mixin guard $filter
     }
   }
-  #::nsf::method::alias ::nx::Class::slot::object-filter guard ::nx::Object::slot::object-filter::guard
+  #::nsf::method::alias ::nx::Class::slot::object-filters guard ::nx::Object::slot::object-filters::guard
 
   #
   # With a special purpose eval, we could avoid the need for
@@ -2447,7 +2457,7 @@ namespace eval ::nx {
           # copy class information
           if {[::nsf::is class $origin]} {
 	    # obj is a class, copy class specific information
-            ::nsf::relation::set $obj superclass [$origin info superclass]
+            ::nsf::relation::set $obj superclass [$origin ::nsf::methods::class::info::superclass]
             ::nsf::method::assertion $obj class-invar [::nsf::method::assertion $origin class-invar]
 	    ::nsf::relation::set $obj class-filter [::nsf::relation::get $origin class-filter]
 	    ::nsf::relation::set $obj class-mixin [::nsf::relation::get $origin class-mixin]
@@ -2600,8 +2610,8 @@ namespace eval ::nx {
       }
       ### let all subclasses get the copied class as superclass
       if {[::nsf::is class [::nsf::self]] && $newName ne ""} {
-        foreach subclass [:info subclass] {
-          set scl [$subclass info superclass]
+        foreach subclass [: ::nsf::methods::class::info::subclass] {
+          set scl [$subclass ::nsf::methods::class::info::superclass]
           if {[set index [lsearch -exact $scl [::nsf::self]]] != -1} {
             set scl [lreplace $scl $index $index $newName]
 	    ::nsf::relation::set $subclass superclass $scl
@@ -2679,14 +2689,14 @@ namespace eval ::nx {
 
   #interp alias {} ::nx::self {} ::nsf::self
 
-  set value "?/class .../?|?add /class/?|?delete /class/?"
-  set "::nsf::parameter::syntax(::nx::Object::slot::__object::object mixin)"  $value
-  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::mixin)"            $value
-  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::superclass)"       $value
+  set value "add /class/|clear|delete /class/|get|guard /expr/|set /class .../"
+  set "::nsf::parameter::syntax(::nx::Object::slot::__object::object mixins)"  $value
+  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::mixins)"            $value
+  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::superclasses)"      $value
   set "::nsf::parameter::syntax(::nsf::classes::nx::Object::class)"           "?/className/?"
-  set value "?/filters/?|?add /filter/?|?delete /filter/?"
-  set "::nsf::parameter::syntax(::nx::Object::slot::__object::object filter)" $value
-  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::filter)"           $value
+  set value "add /filter/|clear|delete /filter/|get|guard /expr/|set /filter .../"
+  set "::nsf::parameter::syntax(::nx::Object::slot::__object::object filters)" $value
+  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::filters)"           $value
   set "::nsf::parameter::syntax(::nsf::classes::nx::Object::eval)"            "/arg/ ?/arg/ ...?"
   unset value
 

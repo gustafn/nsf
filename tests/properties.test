@@ -41,7 +41,7 @@ nx::test case class-level {
   #
   # just the public properties are accessible via the configure interface
   #
-  ? {c1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {c1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
   ? {lsort [C info slots]} "::C::slot::____C.d ::C::slot::____C.vd ::C::slot::a ::C::slot::b ::C::slot::c ::C::slot::e ::C::slot::va ::C::slot::vb ::C::slot::vc ::C::slot::ve ::C::slot::vf"
 
@@ -235,7 +235,7 @@ nx::test case class-level-incremental {
   #
   # The use of "-incremental" implies multivalued
   #
-  ? {c1 info lookup syntax configure} {?-e /value .../? ?-a /value .../? ?-b /value .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {c1 info lookup syntax configure} {?-e /value .../? ?-a /value .../? ?-b /value .../? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
   
   ? {c1 cget -a} a1
   ? {c1 cget -b} b1
@@ -410,7 +410,7 @@ nx::test case object-level {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {o1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {o1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
   #
   # just the public properties are accessible via the cget interface
@@ -538,7 +538,7 @@ nx::test case object-level-incremental {
   #
   # The use of "-incremental" implies multivalued
   #
-  ? {o1 info lookup syntax configure} {?-e /value .../? ?-a /value .../? ?-b /value .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {o1 info lookup syntax configure} {?-e /value .../? ?-a /value .../? ?-b /value .../? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
   
   ? {o1 cget -a} a1
   ? {o1 cget -b} b1
@@ -759,12 +759,12 @@ nx::test case class-object-properties {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {c1 info lookup syntax configure} {?-a /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {c1 info lookup syntax configure} {?-a /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
   ? {c1 cget -a} a1
   ? {c1 configure -a a2} ""
 
-  ? {C info lookup syntax configure} {?-b /value/? ?-superclasses /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {C info lookup syntax configure} {?-b /value/? ?-mixins /mixinreg .../? ?-superclasses /class .../? ?-filters /filterreg .../? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
   ? {C cget -b} b1
   ? {C configure -b b2} ""
@@ -819,7 +819,7 @@ nx::test case class-level-perf {
   #
   package require nx::volatile
   
-  ? {c1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {c1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
   set e [C eval :__object_configureparameter]
   ? {C eval :__object_configureparameter} $e
@@ -838,7 +838,7 @@ nx::test case class-level-perf {
   #
   # check influence of class-level per-object properties
   #
-  ? {d1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {d1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-volatile? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
   set e [D eval :__object_configureparameter]
   ? {D eval :__object_configureparameter} $e
@@ -878,7 +878,7 @@ nx::test case object-level-perf {
   # just the public properties are accessible via the configure interface
   #
   
-  ? {o1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {o1 info lookup syntax configure} {?-e /value/? ?-a /value/? ?-b /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
   set e [o1 eval :__object_configureparameter]
 
@@ -994,12 +994,12 @@ nx::test case dynamic-transitive-mixin-info {
   Foo property y
   ? {llength [Bar info lookup parameters create]} 5
 
-  Bar mixin add Foo
+  Bar mixins add Foo
   ? {llength [Bar info lookup parameters create]} 6
   ? {bar configure -y 1} ""
 
   ? {llength [Baz info lookup parameters create]} 5
-  Baz mixin add Bar
+  Baz mixins add Bar
   ? {llength [Baz info lookup parameters create]} 6
 
   Foo property z
@@ -1026,7 +1026,7 @@ nx::test case indirect-transitive-mixin-info {
   M2 create m2
 
   ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} \
-      "objectName object-mixin class object-filter __initblock"
+      "objectName object-mixins object-filters class __initblock"
   set base [llength [lmap p [C info lookup parameters create] {nsf::parameter::info name $p}]]
 
   ? [list set _ $base] 5
@@ -1049,13 +1049,13 @@ nx::test case indirect-transitive-mixin-info {
   ? {c1 info precedence} "::C ::nx::Object"
   ? {d1 info precedence} "::D ::C ::nx::Object"
 
-  ? {C info subclass -dependent} "::C ::D"
-  ? {C info subclass -closure} "::C ::D"
-  ? {M0 info subclass -dependent} "::M0 ::M1 ::M2"
-  ? {M0 info subclass -closure} "::M0 ::M1 ::M2"
+  ? {C info subclasses -dependent} "::C ::D"
+  ? {C info subclasses -closure} "::C ::D"
+  ? {M0 info subclasses -dependent} "::M0 ::M1 ::M2"
+  ? {M0 info subclasses -closure} "::M0 ::M1 ::M2"
 
   #puts stderr =========C-mixin-add-M2
-  C mixin add M2
+  C mixins add M2
   #puts stderr =========
 
   ? {c1 foo} M
@@ -1067,10 +1067,10 @@ nx::test case indirect-transitive-mixin-info {
   ? {C info heritage} "::M2 ::M1 ::M0 ::nx::Object"
   ? {D info heritage} "::M2 ::M1 ::M0 ::C ::nx::Object"
 
-  ? {C info subclass -dependent} "::C ::D"
-  ? {C info subclass -closure} "::C ::D"
-  ? {M0 info subclass -dependent} "::M0 ::M1 ::M2 ::C ::D"
-  ? {M0 info subclass -closure} "::M0 ::M1 ::M2"
+  ? {C info subclasses -dependent} "::C ::D"
+  ? {C info subclasses -closure} "::C ::D"
+  ? {M0 info subclasses -dependent} "::M0 ::M1 ::M2 ::C ::D"
+  ? {M0 info subclasses -closure} "::M0 ::M1 ::M2"
 
 
   # Only M2 is a direct mixin, visible through "mixinof",
@@ -1086,7 +1086,7 @@ nx::test case indirect-transitive-mixin-info {
   ? {M0 info mixinof -closure} "::C ::D"
 
   ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} \
-      "objectName x object-mixin class object-filter __initblock"
+      "objectName x object-mixins object-filters class __initblock"
 
   ? {llength [C info lookup parameters create]} [expr {$base + 1}]
   ? {llength [D info lookup parameters create]} [expr {$base + 1}]
@@ -1099,13 +1099,13 @@ nx::test case indirect-transitive-mixin-info {
   #::nsf::parameter::cache::classinvalidate ::C
 
   ? {lmap p [C info lookup parameters create] {nsf::parameter::info name $p}} \
-      "objectName y x object-mixin class object-filter __initblock"
+      "objectName y x object-mixins object-filters class __initblock"
 
   ? {lmap p [M0 info lookup parameters create] {nsf::parameter::info name $p}} \
-      "objectName x object-mixin class object-filter __initblock"
+      "objectName x object-mixins object-filters class __initblock"
 
   ? {lmap p [M1 info lookup parameters create] {nsf::parameter::info name $p}} \
-      "objectName y x object-mixin class object-filter __initblock"
+      "objectName y x object-mixins object-filters class __initblock"
 
   ? {llength [C info lookup parameters create]} [expr {$base + 2}]
   ? {llength [D info lookup parameters create]} [expr {$base + 2}]
@@ -1115,7 +1115,7 @@ nx::test case indirect-transitive-mixin-info {
 
   # clearning the mixin has to reset the orders of the instances of C and D
   #puts stderr =========C-mixin-clear
-  C mixin clear
+  C mixins clear
   #puts stderr =========
 
   ? {c1 foo} C

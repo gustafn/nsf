@@ -1,5 +1,4 @@
 # -*- Tcl -*-
-package req nx
 package require nx::test
 
 ::nx::configure defaultMethodCallProtection false
@@ -8,8 +7,8 @@ package require nx::test
 # test, whether error message from a submethod contains method path
 #
 nx::test case info-errors {
-  ? {::nx::Object info subclass a b c} \
-      {invalid argument 'b', maybe too many arguments; should be "::nx::Object info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {::nx::Object info subclasses a b c} \
+      {invalid argument 'b', maybe too many arguments; should be "::nx::Object info subclasses ?-closure? ?-dependent? ?/pattern/?"}
   ? {::nx::Object info object mixin classes a b c} \
       {invalid argument 'b', maybe too many arguments; should be "::nx::Object info object mixin classes ?-guards? ?/pattern/?"}
 }
@@ -171,7 +170,7 @@ nx::test case ensemble-next {
     }
   }
   
-  FOO mixin set {M1 M0}
+  FOO mixins set {M1 M0}
   FOO create f1
   
   #
@@ -209,7 +208,7 @@ nx::test case ensemble-partial-next {
       return [::nsf::current methodpath]
     }
   }
-  nx::Object mixin add M
+  nx::Object mixins add M
   nx::Object create o1
 
   # call a submethod defined by a mixin, which does a next
@@ -290,7 +289,7 @@ nx::test case ensemble-next-with-args {
     :method "e2 e2 e2" {}   {next 4}
     :method "e1 e1 e1" args {next {e1 e1 e1}}
   }
-  o object mixin add M
+  o object mixins add M
 
   # case without ensemble
   ? {o foo} 1
@@ -367,7 +366,7 @@ nx::test case leaf-next-in-submethods {
     :public object method intercept args { 
       incr :x; next; # a "filter next" 
     }
-    :object filter set intercept
+    :object filters set intercept
     :FOO bar
     # Rationale: A call count > 2 would indicate that the leaf next
     # triggers a further call into filter ...
@@ -403,7 +402,7 @@ nx::test case submethods-current-introspection {
   C create c
   ? {c FOO foo} -::c-::C-
 
-  C mixin set [Class create M1 {
+  C mixins set [Class create M1 {
     :public method "FOO foo" {} {
       return "-[current]-[current class][next]"
     }
@@ -411,11 +410,11 @@ nx::test case submethods-current-introspection {
 
   ? {c FOO foo} -::c-::M1-::c-::C-
   
-  o object mixin set ::M1
+  o object mixins set ::M1
   ? {o FOO foo} -::o-::M1-::o--
 
-  o object mixin set {}
-  C mixin set {}
+  o object mixins set {}
+  C mixins set {}
 
   #
   # limit [current methodpath] to collect only ensemble methods?
@@ -521,7 +520,7 @@ nx::test case submethods-current-introspection {
   
   set c [Z new]
 
-  Z filter set intercept
+  Z filters set intercept
 
   foreach selector [list "FOO foo" "BAR BUU boo" "baz"] {
     Z public method $selector {} {;}
@@ -531,7 +530,7 @@ nx::test case submethods-current-introspection {
     ? [list set _ [join [Z cget -msg] -]] -$root-::Z-$mh
   }
 
-  Z filter set {}
+  Z filters set {}
 
 }
 

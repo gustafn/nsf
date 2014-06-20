@@ -8,7 +8,7 @@ package provide nx::plain-object-method 1.0
 #     nx::Object create o {
 #        :public object method foo args {....}
 #        :object property p:integer
-#        :object mixin add M
+#        :object mixins add M
 #        #...
 #        puts [:info object methods]
 #     }
@@ -20,7 +20,7 @@ package provide nx::plain-object-method 1.0
 #     nx::Object create o {
 #        :public method foo args {....}
 #        :property p:integer
-#        :mixin add M
+#        :mixins add M
 #        #...
 #        puts [:info methods]
 #     }
@@ -60,10 +60,10 @@ namespace eval ::nx {
     #
     foreach m {
       alias 
-      filter 
+      filters 
       forward 
       method 
-      mixin 
+      mixins 
       property 
       variable
     } {

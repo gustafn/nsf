@@ -55,7 +55,7 @@ nx::test case cget-simple {
   #
   ? {p1 configure} ""
 
-  ? {p1 info lookup syntax configure} {?-sex /value/? -famnam /value/ ?-age /integer/? ?-friends /value .../? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {p1 info lookup syntax configure} {?-sex /value/? -famnam /value/ ?-age /integer/? ?-friends /value .../? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 }
 
 #
@@ -97,7 +97,7 @@ nx::test case cget-via-slot {
   #
   ? {p1 configure} ""
 
-  ? {p1 info lookup syntax configure} {?-bar1 /value/? ?-bar2 /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+  ? {p1 info lookup syntax configure} {?-bar1 /value/? ?-bar2 /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
 
 
   #
@@ -142,7 +142,7 @@ nx::test case cget-parameter-methods {
   # class-level lookup
   #
   ? {C info lookup syntax configure} \
-      "?-superclasses /class .../? ?-mixin /mixinreg .../? ?-filter /filterreg .../? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "?-mixins /mixinreg .../? ?-superclasses /class .../? ?-filters /filterreg .../? ?-volatile? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
   ? {C cget -superclasses} "::nx::Object"
   ? {C cget -superclass} "::nx::Object"
   ? {C cget -object-mixin} ""
@@ -156,7 +156,7 @@ nx::test case cget-parameter-methods {
   # object-level lookup
   #
   ? {c1 info lookup syntax configure} \
-      "?-foo /value/? ?-bar /value/? ?-volatile? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "?-foo /value/? ?-bar /value/? ?-volatile? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   #
   # query all properties from base classes

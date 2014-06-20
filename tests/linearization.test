@@ -4,7 +4,7 @@ proc direct-constraints {obj} {
   set constraints ""
   foreach c [$obj info precedence] {
 
-    set sc [$c info superclass]
+    set sc [$c info superclasses]
 
     # add constraints to ensure that subclass is before superclass
     foreach super $sc { lappend constraints [list $c < $super] }
@@ -57,7 +57,7 @@ proc local-order-constraints {obj} {
   foreach c [$obj info precedence] {
 
     # compute vor every class its subclasses
-    set subclasses [$c info subclass -closure]
+    set subclasses [$c info subclasses -closure]
 
     # subclasses must be before classes
     foreach sc $subclasses {

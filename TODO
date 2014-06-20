@@ -5442,90 +5442,28 @@ nsf.c:
   "info superclasses" and similar changes for mixins/filters will 
   probably follow)
 
+nx.tcl: pluralism reform part 2
+- changed methods
+    /cls/ info subclass -> /cls/ info subclasses
+    /cls/ info superclass -> /cls/ info superclasses
+    /cls/ mixin ... -> /cls/ mixins
+    /cls/ filter ... -> /cls/ filters
+    /cls/ object mixin ... -> /cls/ object mixins
+    /cls/ object filter ... -> /cls/ object filters
+- changed configure parameters
+    /cls/ configure -mixin -> /cls/ configure -mixins
+    /cls/ configure -filter -> /cls/ configure -filters
+    /obj/ configure -object-mixin -> /obj/ configure -object-mixins
+    /obj/ configure -object-filter -> /obj/ configure -object-filters
+- added handling for calling relationslot with unknown sub method
+
 ========================================================================
 TODO:
 
 - finish pluaral reform
+- update migration guide and tutorial
 - maybe introdouce "allowabbrev" flag
 - set nodashalnum for int types
-- shouldn't "info subclass" be named "info subclasses"?
- 
-  >>> Same for "info superclass". If the introspection interface uses
-      the plural, then also the relation slots should state the
-      plural: -superclasses, -object-mixins, -class-mixins, ...
-      (I am in favour).
-
-  >>> we have no "-class-mixins", but only "-mixins".
-      >>> true
-  >>> but we have also -filters and object-filters and the 
-      the accessor methods "... filters add ...", and 
-      ".... object filters add ....", and we 
-      would need "info mixinofs"
-      >>>> agreed for the filter cases, but mixinof is different: it
-           reads as "is mixin of", with the mixin class as subject in
-           this phrase being naturally singular. plural would be
-           fitting if the phrase would roll out as "cls has
-           superclasses", "cls has filters", "cls has mixins" etc.
-           >>> i would accept this argumentation, if i would have written
-               ismixinsof, ... of ismixinsofs... like karl valentins 
-               semmelnknödeln.
-           >>> more seriously, the question is, what kind of argumentation line we
-               try to follow. (a) if something is setting/returning potentially a 
-               list (set) of values, then plural -> mixinofs
-               (b) if we are arguing about the kind of relationship -> mixinof
-               buf if we argue about the kind of relationship then we have 
-               a "superclass relationship", and not a "superclasses relationship", 
-               and same with "mixin relation", etc.
- >>> i am not happy. is there any language out there that uses e.g.
-     the term "superclasses" for a situation, where in most
-     cases a single superclass is used? 
-         nx::Class create Student -superclasses Person 
-     looks strange.
-
-     >>>> 
-     1) NO, but there are not many languages that use a substantival keyword
-     such as "superclass" or "superclasses" either:
-
-     see http://rosettacode.org/wiki/Inheritance/Multiple
-
-     TclOO being the only one, in its OTcl/XOTcl heritage :)
-
-     Most, if using any keyword at all, use a verb: extend(s),
-     inherit(s), which does not run into the singular/plural "issue"
-     (but other ones: -extends/-inherits, -mixes, -object-mixes? etc.)
-
-     2) Frag uses a substantival keyword in its plural form:
-
-     http://www.infosys.tuwien.ac.at/Staff/zdun/frag-doc/frag-lang-toc.html
-
-     classes, superclasses, mixins, ...
-
-     Whatever the decision, i would just vote for consistency between
-     introspection and intercession (info superclass <-> -superclass
-     vs. superclasses <-> -superclasses) ...
-        >>> funny, one XOTcl child kept "superclass", 
-            the other one switched to "superclasses", 
-            and nobody else names the relation.
-        >>> in case we would make the transition, i am not sure, who will take 
-            care about the collateral damage, writing change scripts, etc.
-            especially for programs using both xotcl and nx.
-            l@wu has 600.000 .tcl locs, more the 350.000 xo-based.
-        >>> if one script is using both XOTcl and NX (which is a reality
-            in OpenACS) the transition is even worse, and the consequences
-            are that one has to know in detail, whether some tcl-cmd
-            is from xotcl or nx. pretty sure, this would be an ongoing
-            source for confusion. 
-        >>> writing programs working with old and new nx is a mess.
-
-- Can we remove the -childof nonpos param of Class->new()? It might
-  also interfere with a childof property/configuration option if
-  defined by an application ...
-
-- how should we treat cyclic subclass relationships built via class mixins.
-  (either complain at mixin registration or soft warnings or ignoring -
-  since redundant mixin classes are ignored so far).
-
-  if we disallow cycles in class-mixins, we can't do "nx::Object mixin add M"
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")

@@ -83,8 +83,8 @@ nx::test case hidden-cmds {
 
   ? {interp eval $i {::C create ::c}} ::c
   # set some relationships to test later ...
-  ? {interp eval $i {::C mixin add ::M}} ::M
-  ? {interp eval $i {::C object mixin add ::M}} ::M
+  ? {interp eval $i {::C mixins add ::M}} ::M
+  ? {interp eval $i {::C object mixins add ::M}} ::M
 
   $i hide C
   ? {interp eval $i {::C create ::c2}} {invalid command name "::C"}
@@ -660,7 +660,7 @@ nx::test case hidden-mixins-procsearch {
 	return <[current class]>[next]<[current class]>
       }
     }
-    x object mixin set M
+    x object mixins set M
   }
 
   ? {$i eval {x foo}} <::M>OK<::M>
@@ -692,8 +692,8 @@ nx::test case hidden-mixins-procsearch {
   
   $i hide MM M
   $i eval {nx::Class create ::M2}
-  ? {$i eval {x object mixin add M2}} {mixin: expected a class as mixin but got "::M"}
-  ? {$i invokehidden M mixin add M2} {expected object but got "::M" for parameter "object"}
+  ? {$i eval {x object mixins add M2}} {mixin: expected a class as mixin but got "::M"}
+  ? {$i invokehidden M mixins add M2} {expected object but got "::M" for parameter "object"}
 
   interp delete $i
   unset i
@@ -712,7 +712,7 @@ nx::test case hidden-mixins-mixinlists {
     nx::Class create M1 
     nx::Class create M2
     nx::Class create M3
-    o object mixin set {M1 M2}
+    o object mixins set {M1 M2}
   }
 
   ? {$i eval {o info precedence}} "::M1 ::M2 ::nx::Object"
@@ -720,7 +720,7 @@ nx::test case hidden-mixins-mixinlists {
   ? {$i hidden} ""
   $i hide M1
   ? {$i hidden} M1
-  $i eval {M2 mixin add M3}
+  $i eval {M2 mixins add M3}
   ? {$i eval {o info precedence}} "::M1 ::M3 ::M2 ::nx::Object"
   #
   # Now, have the mixin list invalidated; The next time we request the list,

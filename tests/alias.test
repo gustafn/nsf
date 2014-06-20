@@ -524,13 +524,13 @@ nx::test case proc-alias {
   ? {d1 bar_} 1
   ? {d1 bar2} 1
 
-  c1 object mixin add M
+  c1 object mixins add M
 
   ? {c1 bar} 0   ;# upvar reaches into to mixin method
   ? {c1 bar_} 0  ;# upvar reaches into to mixin method
   ? {c1 bar2} 0  ;# upvar reaches into to mixin method
 
-  d1 object mixin add M
+  d1 object mixins add M
 
   ? {d1 bar} 1
   ? {d1 bar_} 1

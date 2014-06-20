@@ -744,7 +744,7 @@ namespace eval ::nx::mongo {
     #
     
     :method init {} {
-      :mixin add ::nx::mongo::Object
+      :mixins add ::nx::mongo::Object
       :mongo_setup
     }
 

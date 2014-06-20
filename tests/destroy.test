@@ -702,7 +702,7 @@ nx::test case destroy-during-init {
 
   ::nx::Object public method f1 args {next}
   ::nx::Object public method f2 args {next}
-  ::nx::Object filter set {f1 f2}
+  ::nx::Object filters set {f1 f2}
 
   set x [nx::Class new {
     :volatile
@@ -721,7 +721,7 @@ nx::test case destroy-during-init {
   
   ? [list info command $x] $x "destroy via volatile method + 2 filters"
 
-  ::nx::Object filter set ""
+  ::nx::Object filters set ""
 }
 
 nx::test case nested-ordered-composite {

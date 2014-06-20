@@ -100,7 +100,8 @@ nx::test configure -count 1
     :property -incremental {toppings:0..n ""}
 }} ::SpreadableBagel
 
-? {SpreadableBagel info superclass} ::Bagel
+? {SpreadableBagel cget -superclass} ::Bagel
+? {SpreadableBagel info superclasses} ::Bagel
 
 ? {SpreadableBagel info heritage} {::Bagel ::nx::Object}
 

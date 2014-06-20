@@ -7,8 +7,8 @@ nx::test case plain-methods-0 {
     ? {o public method foo {} {return foo}} "::o: unable to dispatch method 'method'"
     :public object method f args {next}
   }
-  ? {o mixin set M1} "::o: unable to dispatch method 'mixin'"
-  ? {o filter set f} "::o: unable to dispatch method 'filter'"
+  ? {o mixins set M1} "::o: unable to dispatch method 'mixins'"
+  ? {o filters set f} "::o: unable to dispatch method 'filters'"
 
   ? {lsort [o info object methods]} "f"
   ? {lsort [o info]} "valid submethods of ::o info: children class has info lookup name object parent precedence variable vars"
@@ -49,14 +49,14 @@ nx::test case plain-methods-1 {
   ? {o a} "pm1"
   ? {o fwd} "pm1"
 
-  ? {o mixin set M1} ::M1
+  ? {o mixins set M1} ::M1
   ? {o info mixin classes} ::M1
-  ? {o mixin set ""} ""
+  ? {o mixins set ""} ""
   ? {o info mixin classes} ""
 
-  ? {o filter set f} f
+  ? {o filters set f} f
   ? {o info filter methods} f
-  ? {o filter set ""} ""
+  ? {o filters set ""} ""
   ? {o info filter methods} ""
 
   ? {lsort [o info object methods]} "a f foo fwd p v2"

@@ -107,9 +107,9 @@ nx::test case unknown-handler {
 nx::test case flag-in-ensemble {
   nx::Class create C
 
-  set info {info children, info class, info filter guard, info filter methods, info has mixin, info has namespace, info has type, info heritage, info info, info instances, info lookup filter, info lookup filters, info lookup method, info lookup methods, info lookup mixins, info lookup parameters, info lookup slots, info lookup syntax, info lookup variables, info method args, info method body, info method definition, info method definitionhandle, info method exists, info method handle, info method origin, info method parameters, info method registrationhandle, info method returns, info method submethods, info method syntax, info method type, info methods, info mixin classes, info mixin guard, info mixinof, info name, info object filter guard, info object filter methods, info object method args, info object method body, info object method definition, info object method definitionhandle, info object method exists, info object method handle, info object method origin, info object method parameters, info object method registrationhandle, info object method returns, info object method submethods, info object method syntax, info object method type, info object methods, info object mixin classes, info object mixin guard, info object slots, info object variables, info parent, info precedence, info slots, info subclass, info superclass, info variable definition, info variable name, info variable parameter, info variables, info vars}
+  set info {info children, info class, info filter guard, info filter methods, info has mixin, info has namespace, info has type, info heritage, info info, info instances, info lookup filter, info lookup filters, info lookup method, info lookup methods, info lookup mixins, info lookup parameters, info lookup slots, info lookup syntax, info lookup variables, info method args, info method body, info method definition, info method definitionhandle, info method exists, info method handle, info method origin, info method parameters, info method registrationhandle, info method returns, info method submethods, info method syntax, info method type, info methods, info mixin classes, info mixin guard, info mixinof, info name, info object filter guard, info object filter methods, info object method args, info object method body, info object method definition, info object method definitionhandle, info object method exists, info object method handle, info object method origin, info object method parameters, info object method registrationhandle, info object method returns, info object method submethods, info object method syntax, info object method type, info object methods, info object mixin classes, info object mixin guard, info object slots, info object variables, info parent, info precedence, info slots, info subclasses, info superclasses, info variable definition, info variable name, info variable parameter, info variables, info vars}
 
-  ? {C info superclass} "::nx::Object"
+  ? {C info superclasses} "::nx::Object"
   ? {C info -a superclass} "unable to dispatch sub-method \"-a\" of ::C info; valid are: $info"
   ? {C info -- superclass} "unable to dispatch sub-method \"--\" of ::C info; valid are: $info"
   ? {C info -- -a superclass} "unable to dispatch sub-method \"--\" of ::C info; valid are: $info"
@@ -118,9 +118,9 @@ nx::test case flag-in-ensemble {
 
 
 #
-# Testing error messages in info subclass, when too many arguments are
+# Testing error messages in info subclasses, when too many arguments are
 # specified, or when wrong non-positional arguments are given. The
-# argument "pattern" in "info subclass" has parameter option
+# argument "pattern" in "info subclasses" has parameter option
 # "nodashalnum" set.
 #
 
@@ -132,13 +132,13 @@ nx::test case info-subclass-error-messages {
   #
   # no argument
   #
-  ? {C info subclass} "::E ::D"
-  ? {C info subclass --} "::E ::D"
+  ? {C info subclasses} "::E ::D"
+  ? {C info subclasses --} "::E ::D"
 
   #
   # one argument
   #
-  ? {C info subclass a} ""
+  ? {C info subclasses a} ""
 
   #
   # The argument definition of "pattern" for subclass has
@@ -146,90 +146,90 @@ nx::test case info-subclass-error-messages {
   # a flag. OTOH, if "-a" is a proper value (e.g. value of a
   # variable), then the following command would be perfectly fine.
   #
-  ? {C info subclass -a} \
+  ? {C info subclasses -a} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -a --} \
+  ? {C info subclasses -a --} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -- -a} ""
-  ? {C info subclass -1} ""
-  ? {C info subclass -- -1} ""
-  ? {C info subclass -1 --} \
-      {invalid argument '--', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses -- -a} ""
+  ? {C info subclasses -1} ""
+  ? {C info subclasses -- -1} ""
+  ? {C info subclasses -1 --} \
+      {invalid argument '--', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   #
   # two arguments
   #
-  ? {C info subclass a b} \
-      {invalid argument 'b', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses a b} \
+      {invalid argument 'b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -- a b} \
-      {invalid argument 'b', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses -- a b} \
+      {invalid argument 'b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass a -- b} \
-      {invalid argument '--', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses a -- b} \
+      {invalid argument '--', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass a b --} \
-      {invalid argument 'b', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses a b --} \
+      {invalid argument 'b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   # first flag
 
-  ? {C info subclass -a b} \
+  ? {C info subclasses -a b} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -- -a b} \
-      {invalid argument 'b', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses -- -a b} \
+      {invalid argument 'b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -a -- b} \
+  ? {C info subclasses -a -- b} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -a b --} \
+  ? {C info subclasses -a b --} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   # second flag
 
-  ? {C info subclass a -b} \
-      {invalid argument '-b', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses a -b} \
+      {invalid argument '-b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -- a -b} \
-      {invalid argument '-b', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses -- a -b} \
+      {invalid argument '-b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass a -- -b} \
-      {invalid argument '--', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses a -- -b} \
+      {invalid argument '--', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass a -b --} \
-      {invalid argument '-b', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses a -b --} \
+      {invalid argument '-b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
   # both flag
 
-  ? {C info subclass -a -b} \
+  ? {C info subclasses -a -b} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -- -a -b} \
-      {invalid argument '-b', maybe too many arguments; should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+  ? {C info subclasses -- -a -b} \
+      {invalid argument '-b', maybe too many arguments; should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -a -- -b} \
+  ? {C info subclasses -a -- -b} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -a -b --} \
+  ? {C info subclasses -a -b --} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
 }
 
 
 #
-# Testing error messages in info superclass, when too many arguments
+# Testing error messages in info superclasses, when too many arguments
 # are specified, or when wrong non-positional arguments are
-# given. The argument "pattern" in "info superclass" has parameter option
+# given. The argument "pattern" in "info superclasses" has parameter option
 # "nodashalnum" NOT set.
 #
 
@@ -240,80 +240,80 @@ nx::test case info-superclass-error-messages {
   #
   # no argument
   #
-  ? {D info superclass} "::C"
-  ? {D info superclass --} "::C"
+  ? {D info superclasses} "::C"
+  ? {D info superclasses --} "::C"
 
   #
   # one argument
   #
-  ? {D info superclass a} ""
+  ? {D info superclasses a} ""
 
   #
   # The argument definition of "pattern" for superclass has no
   # "nodashalnum" option, "-a" is treated like a pattern.
   #
-  ? {D info superclass -a} ""
-  ? {D info superclass -a --} \
-      {invalid argument '--', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
-  ? {D info superclass -- -a} ""
-  ? {D info superclass -1} ""
+  ? {D info superclasses -a} ""
+  ? {D info superclasses -a --} \
+      {invalid argument '--', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
+  ? {D info superclasses -- -a} ""
+  ? {D info superclasses -1} ""
 
   #
   # two arguments
   #
-  ? {D info superclass a b} \
-      {invalid argument 'b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses a b} \
+      {invalid argument 'b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass -- a b} \
-      {invalid argument 'b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -- a b} \
+      {invalid argument 'b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass a -- b} \
-      {invalid argument '--', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses a -- b} \
+      {invalid argument '--', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass a b --} \
-      {invalid argument 'b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses a b --} \
+      {invalid argument 'b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
   # first flag
 
-  ? {D info superclass -a b} \
-      {invalid argument 'b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -a b} \
+      {invalid argument 'b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass -- -a b} \
-      {invalid argument 'b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -- -a b} \
+      {invalid argument 'b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass -a -- b} \
-      {invalid argument '--', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -a -- b} \
+      {invalid argument '--', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass -a b --} \
-      {invalid argument 'b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -a b --} \
+      {invalid argument 'b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
   # second flag
 
-  ? {D info superclass a -b} \
-      {invalid argument '-b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses a -b} \
+      {invalid argument '-b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass -- a -b} \
-      {invalid argument '-b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -- a -b} \
+      {invalid argument '-b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass a -- -b} \
-      {invalid argument '--', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses a -- -b} \
+      {invalid argument '--', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass a -b --} \
-      {invalid argument '-b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses a -b --} \
+      {invalid argument '-b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
   # both flag
 
-  ? {D info superclass -a -b} \
-      {invalid argument '-b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -a -b} \
+      {invalid argument '-b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass -- -a -b} \
-      {invalid argument '-b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -- -a -b} \
+      {invalid argument '-b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass -a -- -b} \
-      {invalid argument '--', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -a -- -b} \
+      {invalid argument '--', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
-  ? {D info superclass -a -b --} \
-      {invalid argument '-b', maybe too many arguments; should be "::D info superclass ?-closure? ?/pattern/?"}
+  ? {D info superclasses -a -b --} \
+      {invalid argument '-b', maybe too many arguments; should be "::D info superclasses ?-closure? ?/pattern/?"}
 
 }
 
@@ -330,29 +330,29 @@ nx::test case info-with-dash-class-names {
   #
   # no argument
   #
-  ? {C info subclass} "::-a"
-  ? {C info subclass --} "::-a"
+  ? {C info subclasses} "::-a"
+  ? {C info subclasses --} "::-a"
 
-  ? {-b info superclass} "::-a"
-  ? {-b info superclass --} "::-a"
+  ? {-b info superclasses} "::-a"
+  ? {-b info superclasses --} "::-a"
 
   #
   # one argument
   #
-  ? {C info subclass -a} \
+  ? {C info subclasses -a} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -a --} \
+  ? {C info subclasses -a --} \
       {invalid non-positional argument '-a', valid are : -closure, -dependent;
- should be "::C info subclass ?-closure? ?-dependent? ?/pattern/?"}
+ should be "::C info subclasses ?-closure? ?-dependent? ?/pattern/?"}
 
-  ? {C info subclass -- -a} "::-a"
+  ? {C info subclasses -- -a} "::-a"
 
-  ? {-b info superclass -a} "::-a"
-  ? {-b info superclass -a --} \
-      {invalid argument '--', maybe too many arguments; should be "::-b info superclass ?-closure? ?/pattern/?"}
-  ? {-b info superclass -- -a} "::-a"
+  ? {-b info superclasses -a} "::-a"
+  ? {-b info superclasses -a --} \
+      {invalid argument '--', maybe too many arguments; should be "::-b info superclasses ?-closure? ?/pattern/?"}
+  ? {-b info superclasses -- -a} "::-a"
 }
 
 

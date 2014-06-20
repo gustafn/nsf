@@ -716,7 +716,7 @@ namespace eval ::nx::serializer {
 
     :method Class-needsNothing {x s} {
       if {![:Object-needsNothing $x $s]} {return 0}
-      set scs [$x info superclass]
+      set scs [$x ::nsf::methods::class::info::superclass]
       if {[$s needsOneOf $scs]} {return 0}
       if {[$s needsOneOf [::nsf::relation::get $x class-mixin]]} {return 0}
       foreach sc $scs {if {[$s needsOneOf [$sc ::nsf::methods::class::info::slotobjects]]} {return 0}}

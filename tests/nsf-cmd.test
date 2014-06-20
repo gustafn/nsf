@@ -200,13 +200,13 @@ nx::test case nsf-method-get-variants {
   # configure
   #
   ? {nsf::cmd::info syntax -context p1 $::handle1} \
-      "?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "?-name /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   ? {nsf::cmd::info parameter -context p1 $::handle1} \
-      "-name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,nodashalnum"
+      "-name -object-mixins:mixinreg,slot=::nx::Object::slot::object-mixins,slotset,method=object-mixin,0..n -object-filters:filterreg,slot=::nx::Object::slot::object-filters,slotset,method=object-filter,0..n -class:class,alias,method=::nsf::methods::object::class __initblock:cmd,optional,nodashalnum"
 
   ? {nsf::cmd::info args -context p1 $::handle1} \
-      "name object-mixin class object-filter __initblock"
+      "name object-mixins object-filters class __initblock"
 
   #
   # filter on (virtual) arguments
@@ -224,24 +224,24 @@ nx::test case nsf-method-get-variants {
   # create
   #
   ? {nsf::cmd::info syntax -context Person $::handle2} \
-      "/objectName/ ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "/objectName/ ?-name /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   ? {nsf::cmd::info parameter -context Person $::handle2} \
-      "objectName -name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,nodashalnum"
+      "objectName -name -object-mixins:mixinreg,slot=::nx::Object::slot::object-mixins,slotset,method=object-mixin,0..n -object-filters:filterreg,slot=::nx::Object::slot::object-filters,slotset,method=object-filter,0..n -class:class,alias,method=::nsf::methods::object::class __initblock:cmd,optional,nodashalnum"
 
   ? {nsf::cmd::info args -context Person $::handle2} \
-      "objectName name object-mixin class object-filter __initblock"
+      "objectName name object-mixins object-filters class __initblock"
 
 
   #
   # new
   #
   ? {nsf::cmd::info syntax -context Person $::handle3} \
-      "?-childof /value/? ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "?-childof /value/? ?-name /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
   ? {nsf::cmd::info parameter -context Person $::handle3} \
-      "-childof -name -object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n -class:class,alias,method=::nsf::methods::object::class -object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n __initblock:cmd,optional,nodashalnum"
+      "-childof -name -object-mixins:mixinreg,slot=::nx::Object::slot::object-mixins,slotset,method=object-mixin,0..n -object-filters:filterreg,slot=::nx::Object::slot::object-filters,slotset,method=object-filter,0..n -class:class,alias,method=::nsf::methods::object::class __initblock:cmd,optional,nodashalnum"
   ? {nsf::cmd::info args -context Person $::handle3} \
-      "-childof name object-mixin class object-filter __initblock"
+      "-childof name object-mixins object-filters class __initblock"
 
   #
   # filter on (virtual) arguments
@@ -254,7 +254,7 @@ nx::test case nsf-method-get-variants {
   ? {nsf::cmd::info args      -context Person $::handle3 *a*} "name class"
   ? {nsf::cmd::info syntax    -context Person $::handle3 *a*} "?-name /value/? ?-class /class/?"
 
-  ? {nsf::cmd::info args      -context Person $::handle3 *il*} "-childof object-filter"
+  ? {nsf::cmd::info args      -context Person $::handle3 *il*} "-childof object-filters"
 
 
   #
@@ -275,7 +275,7 @@ nx::test case nsf-method-get-variants {
   set ::handle4 [Student info lookup method create]
 
   ? {nsf::cmd::info syntax -context Student $::handle4} \
-      "/objectName/ ?-matnr /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "/objectName/ ?-matnr /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 }
 
 #

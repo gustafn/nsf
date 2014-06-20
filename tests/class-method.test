@@ -10,14 +10,14 @@ nx::test case class-methods-0 {
     ? {::C public class method foo {} {return foo}} "'class' is not a method defining method"
     :public object method f args {next}
   }
-  ? {::C class mixin set M1} \
-      "method 'class' unknown for ::C; consider '::C create class mixin set M1' instead of '::C class mixin set M1'"
+  ? {::C class mixins set M1} \
+      "method 'class' unknown for ::C; consider '::C create class mixins set M1' instead of '::C class mixins set M1'"
   ? {::C class filter f} \
       "method 'class' unknown for ::C; consider '::C create class filter f' instead of '::C class filter f'"
 
   ? {lsort [::C info object methods]} "f"
   ? {lsort [::C info]} \
-      "valid submethods of ::C info: children class filter has heritage info instances lookup method methods mixin mixinof name object parent precedence slots subclass superclass variable variables vars"
+      "valid submethods of ::C info: children class filter has heritage info instances lookup method methods mixin mixinof name object parent precedence slots subclasses superclasses variable variables vars"
 }
 
 #
@@ -64,19 +64,19 @@ nx::test case class-methods-1 {
   ? {::C a} "pm1"
   ? {::C fwd} "pm1"
 
-  ? {::C class mixin set M1} ::M1
+  ? {::C class mixins set M1} ::M1
   ? {::C class info mixin classes} ::M1
-  ? {::C class mixin set ""} ""
+  ? {::C class mixins set ""} ""
   ? {::C class info mixin classes} ""
 
-  ? {::C class filter set f} f
+  ? {::C class filters set f} f
   ? {::C class info filter methods} f
-  ? {::C class filter set ""} ""
+  ? {::C class filters set ""} ""
   ? {::C class info filter methods} ""
 
   ? {lsort [::C info object methods]} "a f foo fwd p v2"
   ? {lsort [::C info]} \
-      "valid submethods of ::C info: children class filter has heritage info instances lookup method methods mixin mixinof name object parent precedence slots subclass superclass variable variables vars"
+      "valid submethods of ::C info: children class filter has heritage info instances lookup method methods mixin mixinof name object parent precedence slots subclasses superclasses variable variables vars"
 }
 
 #

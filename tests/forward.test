@@ -67,21 +67,21 @@ nx::test case multiple-args {
 # mixin example
 ###########################################
 nx::test case mixin-via-forward {
-  nx::Object create mixin {
+  nx::Object create mixins {
     :object method unknown {m args} {return [concat [current] $m $args]}
   }
 
   nx::Object create obj {
-    :public object forward Mixin mixin %1 %self
+    :public object forward Mixin mixins %1 %self
   }
 
-  ? {obj Mixin add M1} [list ::mixin add ::obj M1]
+  ? {obj Mixin add M1} [list ::mixins add ::obj M1]
   ? {catch {obj Mixin}} 1
 
-  obj public object forward Mixin mixin "%1 {Getter Setter}" %self
-  ? {obj Mixin add M1} [list ::mixin add ::obj M1]
-  ? {obj Mixin M1} [list ::mixin Setter ::obj M1]
-  ? {obj Mixin} [list ::mixin Getter ::obj]
+  obj public object forward Mixin mixins "%1 {Getter Setter}" %self
+  ? {obj Mixin add M1} [list ::mixins add ::obj M1]
+  ? {obj Mixin M1} [list ::mixins Setter ::obj M1]
+  ? {obj Mixin} [list ::mixins Getter ::obj]
 }
 
 
@@ -452,22 +452,22 @@ nx::test case earlybinding {
 
       ? [list set _ [namespace current]] ::NS
       ? [list set _ [NS create m1]] ::NS::m1
-      NS filter set f
+      NS filters set f
       ? [list set _ [NS create m2]] ::NS::m2
-      NS filter set ""
+      NS filters set ""
 
       namespace eval ::test {
         ? [list set _ [NS create m3]] ::test::m3
-        NS filter set f
+        NS filters set f
         ? [list set _ [NS create m4]] ::test::m4
-        NS filter set ""
+        NS filters set ""
       }
 
       namespace eval test {
         ? [list set _ [NS create m5]] ::NS::test::m5
-        NS filter set f
+        NS filters set f
         ? [list set _ [NS create m6]] ::NS::test::m6
-        NS filter set ""
+        NS filters set ""
       }
     }
 
@@ -477,22 +477,22 @@ nx::test case earlybinding {
 
       ? [list set _ [namespace current]] ::NS
       ? [list set _ [NS create i1]] ::NS::i1
-      NS filter set f
+      NS filters set f
       ? [list set _ [NS create i2]] ::NS::i2
-      NS filter set ""
+      NS filters set ""
 
       namespace eval ::test {
         ? [list set _ [NS create i3]] ::test::i3
-        NS filter set f
+        NS filters set f
         ? [list set _ [NS create i4]] ::test::i4
-        NS filter set ""
+        NS filters set ""
       }
 
       namespace eval test {
         ? [list set _ [NS create i5]] ::NS::test::i5
-        NS filter set f
+        NS filters set f
         ? [list set _ [NS create i6]] ::NS::test::i6
-        NS filter set ""
+        NS filters set ""
       }
 
     }
@@ -505,17 +505,17 @@ nx::test case earlybinding {
 
   #puts ====
   ? [list set _ [NS create n1]] ::n1
-  NS filter set f
+  NS filters set f
   ? [list set _ [NS create n2]] ::n2
-  NS filter set ""
+  NS filters set ""
 
   #puts ====
   namespace eval test {
     ? [list set _ [NS create n1]] ::test::n1
     ? [list set _ [NS create n3]] ::test::n3
-    NS filter set f
+    NS filters set f
     ? [list set _ [NS create n4]] ::test::n4
-    NS filter set ""
+    NS filters set ""
   }
 }
 

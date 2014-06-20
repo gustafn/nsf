@@ -4,12 +4,12 @@ package require nx::test
 
 #::nx::configure defaultMethodCallProtection false
 
-set objectFilter "-object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n"
-set objectMixin "-object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n"
+set objectFilter "-object-filters:filterreg,slot=::nx::Object::slot::object-filters,slotset,method=object-filter,0..n"
+set objectMixin "-object-mixins:mixinreg,slot=::nx::Object::slot::object-mixins,slotset,method=object-mixin,0..n"
 set initBlock "__initblock:cmd,optional,nodashalnum"
-set filter "-filter:filterreg,slot=::nx::Class::slot::filter,slotset,method=class-filter,0..n"
+set filter "-filters:filterreg,slot=::nx::Class::slot::filters,slotset,method=class-filter,0..n"
 
-set ::trailer "$objectMixin -class:class,alias,method=::nsf::methods::object::class $objectFilter $initBlock"
+set ::trailer "$objectMixin $objectFilter -class:class,alias,method=::nsf::methods::object::class $initBlock"
 
 
 nx::test case dummy {
@@ -52,7 +52,7 @@ nx::test case parametercheck {
   }
   C create c1 
   nx::Class create M
-  c1 object mixin set M
+  c1 object mixins set M
 
   ? {::nsf::object::exists o1} 1
   ? {::nsf::object::exists o1000} 0
@@ -283,7 +283,7 @@ nx::test case objectparameter {
   C create c1
  
   ? {C eval :__object_configureparameter} \
-      "{-superclasses:class,alias,method=::nsf::methods::class::superclass,1..n ::nx::Object} -mixin:mixinreg,slot=::nx::Class::slot::mixin,slotset,method=class-mixin,0..n $::filter $::objectMixin -class:class,alias,method=::nsf::methods::object::class $::objectFilter $::initBlock"
+      "-mixins:mixinreg,slot=::nx::Class::slot::mixins,slotset,method=class-mixin,0..n {-superclasses:class,alias,method=::nsf::methods::class::superclass,1..n ::nx::Object} -filters:filterreg,slot=::nx::Class::slot::filters,slotset,method=class-filter,0..n -object-mixins:mixinreg,slot=::nx::Object::slot::object-mixins,slotset,method=object-mixin,0..n -object-filters:filterreg,slot=::nx::Object::slot::object-filters,slotset,method=object-filter,0..n -class:class,alias,method=::nsf::methods::object::class __initblock:cmd,optional,nodashalnum"
 
   #### TOOD: remove or add
   #? {c1 eval :__object_configureparameter} \
@@ -341,28 +341,28 @@ nx::test case objparam-mixins {
   nx::Class create M2 {
     :property b2
   }
-  D mixin set M
+  D mixins set M
 
   ? {d1 eval :__object_configureparameter} \
       "-b -m1 -m2 -d:required -a {-c 1} $::trailer" \
     "mixin added"
 
-  M mixin set M2
+  M mixins set M2
 
   ? {d1 eval :__object_configureparameter} \
       "-b2 -b -m1 -m2 -d:required -a {-c 1} $::trailer" \
     "transitive mixin added"
-  D mixin set ""
+  D mixins set ""
   #we should have again the old interface
 
   ? {d1 eval :__object_configureparameter} \
       "-d:required -a -b:boolean {-c 1} $::trailer"
 
-  C mixin set M
+  C mixins set M
   ? {d1 eval :__object_configureparameter} \
       "-b2 -b -m1 -m2 -d:required -a {-c 1} $::trailer" \
       "mixin added"
-  C mixin set ""
+  C mixins set ""
   #we should have again the old interface
   
   ? {d1 eval :__object_configureparameter} \
@@ -388,7 +388,7 @@ nx::test case passed-arguments {
   
   ? {D create d1} \
       {required argument 'd' is missing, should be:
-	::d1 configure -d /value/ ?-a /value/? ?-b /boolean/? ?-c /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?}
+	::d1 configure -d /value/ ?-a /value/? ?-b /boolean/? ?-c /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?}
   
   ? {D create d2 -d x -b a} \
       {expected boolean but got "a" for parameter "-b"} \
@@ -798,11 +798,11 @@ nx::test case mp-object-types {
   nx::Class create M
   nx::Class create M2
   D create d1 -d 1
-  C create c1 -object-mixin M
-  C create c2 -object-mixin {{M -guard true}}
-  C create c3 -object-mixin {M ::M2}
-  C create c4 -object-mixin {{M -guard 1} M2}
-  C create c5 -object-mixin {M {M2 -guard 2}}
+  C create c1 -object-mixins M
+  C create c2 -object-mixins {{M -guard true}}
+  C create c3 -object-mixins {M ::M2}
+  C create c4 -object-mixins {{M -guard 1} M2}
+  C create c5 -object-mixins {M {M2 -guard 2}}
   nx::Object create o
 
   ? {c1 info object mixin classes} ::M
@@ -984,7 +984,7 @@ nx::test case op-object-types {
   MC create MC1
   nx::Class create M
   D create d1 -d 1
-  C create c1 -object-mixin M
+  C create c1 -object-mixins M
   nx::Object create o
   
   nx::Class create ParamTest {
@@ -1717,7 +1717,7 @@ nx::test case req-param {
   set ::_ ""
   ? {C create c2} \
 "required argument 'x' is missing, should be:
-	::c2 configure -x /value/ -y /value/ ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+	::c2 configure -x /value/ -y /value/ ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   # Was the constructor called? Should not.
   ? {set ::_} ""
@@ -1740,11 +1740,11 @@ nx::test case req-param {
 
   D property x:required
   ? {d1 info lookup syntax configure} \
-      "-x /value/ ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+      "-x /value/ ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
   
   ? {d1 configure} \
       "required argument 'x' is missing, should be:
-	::d1 configure -x /value/ ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+	::d1 configure -x /value/ ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   ? {d1 configure -x 123} ""
   ? {d1 cget -x} 123
@@ -1925,7 +1925,7 @@ nx::test case parameter-object-mixin-dependency {
 
   ? {c1 eval :__object_configureparameter} "-a1 $::trailer"
   
-  c1 object mixin set M1
+  c1 object mixins set M1
 
   ? {c1 info precedence} "::M1 ::C ::nx::Object"
 
@@ -1947,10 +1947,10 @@ nx::test case parameter-object-mixin-dependency {
   #
   ? {c1 configure -a1 x} \
 "required argument 'b1' is missing, should be:
-	::c1 configure -b1 /value/ ?-a1 /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+	::c1 configure -b1 /value/ ?-a1 /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   #
-  # The object parameter based on the per-object-mixin must not be
+  # The object parameter based on the per-object-mixins must not be
   # stored in the class based cache. Therefore, creating a new object
   # must not require b1
 
@@ -1972,7 +1972,7 @@ nx::test case parameter-object-mixin-dependency {
   #
   # add one more mixin.
   #
-  c1 object mixin add ::M2
+  c1 object mixins add ::M2
   ? {c1 info object mixin classes} {::M2 ::M1}
   ? {c1 cget -object-mixin} {::M2 ::M1}
   ? {c1 info lookup parameters configure b1} "-b1:required"
@@ -1982,14 +1982,14 @@ nx::test case parameter-object-mixin-dependency {
   #
   # drop the mixins, the b* properties should be gone.
   #
-  c1 object mixin set ""
+  c1 object mixins set ""
   ? {c1 info object mixin classes} {}
   ? {lsort [c1 info lookup parameters configure b*]} ""
 
   #
   # add M1 again
   #
-  c1 object mixin add ::M1
+  c1 object mixins add ::M1
   ? {c1 info object mixin classes} {::M1}
   ? {c1 info lookup parameters configure b1} "-b1:required"
   ? {lsort [c1 info lookup parameters configure b*]} "-b1:required"
@@ -2023,12 +2023,12 @@ nx::test case parameter-object-mixin-dependency-object-property {
   nx::Class create D -superclass C
   nx::Class create M {:property b1:required}
   
-  c1 object mixin set M
+  c1 object mixins set M
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
 
-  ? {C info slots -closure} \
-      "::C::slot::a1 ::nx::Object::slot::__initblock ::nx::Object::slot::object-mixin ::nx::Object::slot::class ::nx::Object::slot::object-filter"
+  ? {lsort [C info slots -closure]} \
+      "::C::slot::a1 ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filters ::nx::Object::slot::object-mixins"
 
   ? {c1 eval :__object_configureparameter} \
       "-a2 -b1:required -a1 $::trailer"
@@ -2041,11 +2041,11 @@ nx::test case parameter-object-mixin-dependency-object-property {
 
   ? {c1 __configure -a1 x} \
 "required argument 'b1' is missing, should be:
-	::c1 configure ?-a2 /value/? -b1 /value/ ?-a1 /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+	::c1 configure ?-a2 /value/? -b1 /value/ ?-a1 /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   ? {c1 info precedence} "::M ::C ::nx::Object"
-  ? {C info slots -closure} \
-      "::C::slot::a1 ::nx::Object::slot::__initblock ::nx::Object::slot::object-mixin ::nx::Object::slot::class ::nx::Object::slot::object-filter"
+  ? {lsort [C info slots -closure]} \
+      "::C::slot::a1 ::nx::Object::slot::__initblock ::nx::Object::slot::class ::nx::Object::slot::object-filters ::nx::Object::slot::object-mixins"
 
   ? {c1 eval :__object_configureparameter} "-a2 -b1:required -a1 $::trailer"
   # should not require b1
@@ -2340,7 +2340,7 @@ nx::test case class-level-variable {
 #  ? {C info parameter list a} "-a"
   ? {C info lookup parameters create a} "{-a a0}"
 #  ? {C info lookup syntax create a} "?-a /value/?"
-  ? {C info lookup syntax create} "/objectName/ ?-a /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {C info lookup syntax create} "/objectName/ ?-a /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   ? {C info lookup parameters create v} ""
   ? {[C info slots v] definition} "::C variable -accessor none v v0"
@@ -2349,8 +2349,8 @@ nx::test case class-level-variable {
 
   ? {C create c2 -a 10} ::c2
   ? {C create c2 -v 10} \
-      {invalid non-positional argument '-v', valid are : -a, -object-mixin, -class, -object-filter;
- should be "::c2 configure ?-a /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"}
+      {invalid non-positional argument '-v', valid are : -a, -object-mixins, -object-filters, -class;
+ should be "::c2 configure ?-a /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"}
 
   #
   # We expect a setter for "a" but not for "v". 

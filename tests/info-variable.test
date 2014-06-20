@@ -34,14 +34,14 @@ nx::test case configure-parameters {
 "objectName
 -age:integer
 -name
--object-mixin:mixinreg,slot=::nx::Object::slot::object-mixin,slotset,0..n
+-object-mixins:mixinreg,slot=::nx::Object::slot::object-mixins,slotset,method=object-mixin,0..n
+-object-filters:filterreg,slot=::nx::Object::slot::object-filters,slotset,method=object-filter,0..n
 -class:class,alias,method=::nsf::methods::object::class
--object-filter:filterreg,slot=::nx::Object::slot::object-filter,slotset,0..n
 __initblock:cmd,optional,nodashalnum"
 
   ? {Person info lookup parameters create age} "-age:integer"
   ? {Person info lookup parameters create {*a[gs]*}} "-age:integer -class:class,alias,method=::nsf::methods::object::class"
-  ? {Person info lookup syntax create} "/objectName/ ?-age /integer/? ?-name /value/? ?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?"
+  ? {Person info lookup syntax create} "/objectName/ ?-age /integer/? ?-name /value/? ?-object-mixins /mixinreg .../? ?-object-filters /filterreg .../? ?-class /class/? ?/__initblock/?"
 
   ? {Person info method parameters foo} {-force:switch age:integer {name ""}}
   ? {Person info method parameters foo force} "-force:switch"
@@ -76,11 +76,11 @@ __initblock:cmd,optional,nodashalnum"
   }
 
   ? {lmap p [Foo info lookup parameters create] {nsf::parameter::info name $p}} \
-      "objectName i a b p object-mixin class object-filter __initblock"
+      "objectName i a b p object-mixins object-filters class __initblock"
   ? {lmap p [Foo info lookup parameters create] {nsf::parameter::info default $p}} \
       "0 0 0 1 1 0 0 0 0"
   ? {lmap p [Foo info lookup parameters create] {nsf::parameter::info type $p}} \
-      "{} {} integer integer {} mixinreg class filterreg {}"
+      "{} {} integer integer {} mixinreg filterreg class {}"
 
   ? {join [lsort [::Foo info slots]] \n} \
 "::Foo::slot::____Foo.p
@@ -112,8 +112,8 @@ __initblock:cmd,optional,nodashalnum"
 ::Foo::slot::q
 ::nx::Object::slot::__initblock
 ::nx::Object::slot::class
-::nx::Object::slot::object-filter
-::nx::Object::slot::object-mixin"
+::nx::Object::slot::object-filters
+::nx::Object::slot::object-mixins"
 
   # get the configure value from p and the value of the private property via m
   ? {f1 cget -p} 9

@@ -25,13 +25,13 @@ proc ? {cmd expected {msg ""}} {
 ? {::nsf::object::property nx::Object initialized} 1
 ? {::nsf::is class nx::Object} 1
 ? {::nsf::is metaclass nx::Object} 0
-? {nx::Object info superclass} ""
+? {nx::Object info superclasses} ""
 ? {nx::Object info class} ::nx::Class
 
 ? {::nsf::object::exists nx::Class} 1
 ? {::nsf::is class nx::Class} 1
 ? {::nsf::is metaclass nx::Class} 1
-? {nx::Class info superclass} ::nx::Object
+? {nx::Class info superclasses} ::nx::Object
 ? {nx::Class info class} ::nx::Class
 
 #
@@ -97,7 +97,7 @@ nx::Object create o2 {
 nx::Class create C0
 ? {::nsf::is class C0} 1
 ? {::nsf::is metaclass C0} 0
-? {C0 info superclass} ::nx::Object
+? {C0 info superclasses} ::nx::Object
 ? {C0 info class} ::nx::Class
 #? {lsort [Class info vars]} "__default_metaclass __default_superclass"
 
@@ -105,14 +105,14 @@ nx::Class create M -superclass ::nx::Class
 ? {::nsf::object::exists M} 1
 ? {::nsf::is class M} 1
 ? {::nsf::is metaclass M} 1
-? {M info superclass} ::nx::Class
+? {M info superclasses} ::nx::Class
 ? {M info class} ::nx::Class
 
 M create C
 ? {::nsf::object::exists C} 1
 ? {::nsf::is class C} 1
 ? {::nsf::is metaclass C} 0
-? {C info superclass} ::nx::Object
+? {C info superclasses} ::nx::Object
 ? {C info class} ::M
 
 C create c1
@@ -125,11 +125,11 @@ nx::Class create M2 -superclass M
 ? {::nsf::object::exists M2} 1
 ? {::nsf::is class M2} 1
 ? {::nsf::is metaclass M2} 1
-? {M2 info superclass} ::M
+? {M2 info superclasses} ::M
 ? {M2 info class} ::nx::Class
 
 M2 create m2
-? {m2 info superclass} ::nx::Object
+? {m2 info superclasses} ::nx::Object
 ? {m2 info class} ::M2
 
 # destroy meta-class M, reclass meta-class instances to the base
@@ -138,12 +138,12 @@ M destroy
 ? {::nsf::object::exists C} 1
 ? {::nsf::is class C} 1
 ? {::nsf::is metaclass C} 0
-? {C info superclass} ::nx::Object
+? {C info superclasses} ::nx::Object
 ? {C info class} ::nx::Class
 
 ? {::nsf::is metaclass M2} 1
-? {M2 info superclass} ::nx::Class
-? {m2 info superclass} ::nx::Object
+? {M2 info superclasses} ::nx::Class
+? {m2 info superclasses} ::nx::Object
 ? {m2 info class} ::M2
 
 

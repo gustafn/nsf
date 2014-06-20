@@ -82,7 +82,7 @@ nx::Class create ExportUnexportUtil {
     ::nsf::next
   }
 }
-nx::Class mixin add ExportUnexportUtil
+nx::Class mixins add ExportUnexportUtil
 
 nx::test case export {
   #

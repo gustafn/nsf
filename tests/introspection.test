@@ -43,7 +43,7 @@ nx::test case current-calledclass {
       return [list [current calledclass] [next]]
     }
   }
-  C mixin add M
+  C mixins add M
 
   ? {[C new] baz} {::C ::C}
 }
@@ -62,7 +62,7 @@ nx::test case current-calledmethod {
 
   Class create M 
   set mh2 [M public method foo {} $body]
-  M filter add foo
+  M filters add foo
   o mixin M
 
   ? {o foo} [list $mh2 $mh {}]
