@@ -5460,6 +5460,11 @@ nx.tcl: pluralism reform part 2
 ========================================================================
 TODO:
 
+- is there a reason why Object::cleanup is not managed as a
+  object-system method; and not named "__cleanup" in NX?!
+
+- should __recreate also be redefine-protected in NX, as __alloc and __dealloc?
+
 - finish pluaral reform
 - update migration guide and tutorial
 - maybe introdouce "allowabbrev" flag
