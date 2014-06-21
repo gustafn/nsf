@@ -5457,13 +5457,13 @@ nx.tcl: pluralism reform part 2
     /obj/ configure -object-filter -> /obj/ configure -object-filters
 - added handling for calling relationslot with unknown sub method
 
+
+nx.tcl:
+- make all __* system methods in nx redefine-protected
+- let "nsf::configure objectsystem" return handles and protections as well
+
 ========================================================================
 TODO:
-
-- is there a reason why Object::cleanup is not managed as a
-  object-system method; and not named "__cleanup" in NX?!
-
-- should __recreate also be redefine-protected in NX, as __alloc and __dealloc?
 
 - finish pluaral reform
 - update migration guide and tutorial

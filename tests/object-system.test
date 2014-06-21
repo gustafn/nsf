@@ -19,7 +19,7 @@ proc ? {cmd expected {msg ""}} {
    }
 }
 
-? {::nsf::configure objectsystem} "{::nx::Object ::nx::Class {-class.alloc __alloc -class.create create -class.dealloc __dealloc -class.configureparameter __class_configureparameter -class.recreate __recreate -object.configure __configure -object.configureparameter __object_configureparameter -object.defaultmethod defaultmethod -object.destroy destroy -object.init init -object.move move -object.unknown unknown}}"
+? {::nsf::configure objectsystems} {{::nx::Object ::nx::Class {-class.alloc {__alloc ::nsf::methods::class::alloc 1} -class.create create -class.dealloc {__dealloc ::nsf::methods::class::dealloc 1} -class.configureparameter __class_configureparameter -class.recreate {__recreate ::nsf::methods::class::recreate 1} -object.configure __configure -object.configureparameter __object_configureparameter -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod} -object.destroy destroy -object.init {init ::nsf::methods::object::init} -object.move move -object.unknown unknown}}}
 
 ? {::nsf::object::exists nx::Object} 1
 ? {::nsf::object::property nx::Object initialized} 1

@@ -23866,7 +23866,17 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
 	  continue;
 	}
 	Tcl_ListObjAppendElement(interp, systemMethods, Tcl_NewStringObj(Nsf_SystemMethodOpts[idx], -1));
-	Tcl_ListObjAppendElement(interp, systemMethods, osPtr->methods[idx]);
+        if (osPtr->handles[idx] || osPtr->protected[idx]) {
+          Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
+          Tcl_ListObjAppendElement(interp, listObj, osPtr->methods[idx]);
+          Tcl_ListObjAppendElement(interp, listObj, osPtr->handles[idx]);
+          if (osPtr->protected[idx]) {
+            Tcl_ListObjAppendElement(interp, listObj, Tcl_NewIntObj(1));
+          }
+          Tcl_ListObjAppendElement(interp, systemMethods, listObj);
+        } else {
+          Tcl_ListObjAppendElement(interp, systemMethods, osPtr->methods[idx]);
+        }
       }
       Tcl_ListObjAppendElement(interp, osObj, systemMethods);
       Tcl_ListObjAppendElement(interp, list, osObj);

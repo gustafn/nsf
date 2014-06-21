@@ -58,7 +58,7 @@ namespace eval ::nx {
     -class.create create
     -class.dealloc {__dealloc ::nsf::methods::class::dealloc 1}
     -class.configureparameter __class_configureparameter
-    -class.recreate {__recreate ::nsf::methods::class::recreate}
+    -class.recreate {__recreate ::nsf::methods::class::recreate 1}
     -object.configure __configure
     -object.configureparameter __object_configureparameter
     -object.defaultmethod {defaultmethod ::nsf::methods::object::defaultmethod}

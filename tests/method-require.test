@@ -119,11 +119,12 @@ nx::test case parent-require {
 }
 
 #
-# Test what happens if we try to redefine a "nonexistant" protected method.
+# Test what happens if we try to redefine a "nonexistent" protected method.
 #
-nx::test case method-require-scope {
+nx::test case method-redefine-nonexistent {
   ? {nx::Class public method __alloc arg {return 1}} {refuse to overwrite protected method __alloc on ::nx::Class}
   ? {nx::Class public method __dealloc arg {return 1}} {refuse to overwrite protected method __dealloc on ::nx::Class}
+  ? {nx::Class public method __recreate arg {return 1}} {refuse to overwrite protected method __recreate on ::nx::Class}
 }
 
 #
