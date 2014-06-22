@@ -391,7 +391,7 @@ nx::test case callable {
     ? {o info lookup method configure} "::nsf::classes::nx::Object::configure"
     ? {o object filters set f} "f"
     ? {o object filters guard f { 1 == 1 }} ""
-    ? {o info object filter guard f} " 1 == 1 "
+    ? {o info object filters -guards} {{f -guard { 1 == 1 }}}
     ? {o object filters guard f} " 1 == 1 "
     o object filters set ""
 
@@ -399,54 +399,53 @@ nx::test case callable {
     ? {Foo method f args ::nx::next} "::nsf::classes::Foo::f"
     ? {Foo method f2 args ::nx::next} "::nsf::classes::Foo::f2"
     ? {Foo filters set {f f2}} "f f2"
-    ? {Foo info filter methods} "f f2"
+    ? {Foo info filters} "f f2"
     ? {Foo filters guard f {2 == 2}} ""
-    ? {Foo info filter guard f} "2 == 2"
-    ? {Foo info filter methods -guards f} "{f -guard {2 == 2}}"
-    ? {Foo info filter methods -guards f2} "f2"
-    ? {Foo info filter methods -guards} "{f -guard {2 == 2}} f2"
+    ? {Foo info filters -guards f} "{f -guard {2 == 2}}"
+    ? {Foo info filters -guards f2} "f2"
+    ? {Foo info filters -guards} "{f -guard {2 == 2}} f2"
     ? {Foo filters set {}} ""
 
     ? {Foo object method f args ::nx::next} "::Foo::f"
     ? {Foo object method f2 args ::nx::next} "::Foo::f2"
     ? {Foo object filters set {f f2}} "f f2"
-    ? {Foo info object filter methods} "f f2"
+    ? {Foo info object filters} "f f2"
     ? {Foo object filters guard f {2 == 2}} ""
-    ? {Foo info object filter guard f} "2 == 2"
-    ? {Foo info object filter methods -guards f} "{f -guard {2 == 2}}"
-    ? {Foo info object filter methods -guards f2} "f2"
-    ? {Foo info object filter methods -guards} "{f -guard {2 == 2}} f2"
+    ? {Foo object filters guard f} "2 == 2"
+    ? {Foo info object filters -guards f} "{f -guard {2 == 2}}"
+    ? {Foo info object filters -guards f2} "f2"
+    ? {Foo info object filters -guards} "{f -guard {2 == 2}} f2"
     ? {Foo object filters set {}} ""
     Foo destroy 
 
     nx::Class create Fly
     o object mixins add Fly
-    ? {o info object mixin classes} "::Fly ::nx::Class"
+    ? {o info object mixins} "::Fly ::nx::Class"
     ? {o object mixins guard ::Fly {1}} ""
-    ? {o info object mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
-    ? {o info object mixin classes -guards Fly} "{::Fly -guard 1}"
+    ? {o info object mixins -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {o info object mixins -guards Fly} "{::Fly -guard 1}"
     o object mixins delete ::Fly
-    ? {o info object mixin classes} "::nx::Class"
+    ? {o info object mixins} "::nx::Class"
 
     nx::Class create Foo
     Foo mixins add ::nx::Class
     Foo mixins add Fly
-    ? {Foo info mixin classes} "::Fly ::nx::Class"
+    ? {Foo info mixins} "::Fly ::nx::Class"
     ? {Foo mixins guard ::Fly {1}} ""
-    ? {Foo info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
-    ? {Foo info mixin classes -guards Fly} "{::Fly -guard 1}"
+    ? {Foo info mixins -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo info mixins -guards Fly} "{::Fly -guard 1}"
     Foo mixins delete ::Fly
-    ? {Foo info mixin classes} "::nx::Class"
+    ? {Foo info mixins} "::nx::Class"
 
     Foo object mixins add ::nx::Class
     Foo object mixins add Fly
-    ? {Foo info object mixin classes} "::Fly ::nx::Class"
+    ? {Foo info object mixins} "::Fly ::nx::Class"
     ? {Foo object mixins guard ::Fly {1}} ""
-    ? {Foo info object mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
-    ? {Foo info object mixin classes -guards Fly} "{::Fly -guard 1}"
+    ? {Foo info object mixins -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo info object mixins -guards Fly} "{::Fly -guard 1}"
 
     Foo object mixins delete ::Fly
-    ? {Foo info object mixin classes} "::nx::Class"
+    ? {Foo info object mixins} "::nx::Class"
 
     ? {Foo info lookup methods create} "create"
     ? {Foo info lookup method create} "::nsf::classes::nx::Class::create"
@@ -755,7 +754,7 @@ nx::test case info-methods-path {
   ? {lsort [::nx::Object info methods -path "*slot*"]} \
       "{info lookup slots} {info object slots}"
   ? {lsort [::nx::Object info methods -path "*filter*"]} \
-      "{info lookup filter} {info lookup filters} {info object filter guard} {info object filter methods} {object filters}"
+      "{info lookup filter} {info lookup filters} {info object filters} {object filters}"
 
   ::nx::Class create C {
     :public method "string length" {s} {puts length}
@@ -831,12 +830,12 @@ nx::test case info-heritage {
 
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::M1 ::A ::nx::Object"
-  ? {B info mixin classes -closure} "::M1"
+  ? {B info mixins -closure} "::M1"
 
   B mixins set M2
   ? {A info heritage} "::nx::Object"
   ? {B info heritage} "::M2 ::A ::nx::Object"
-  ? {B info mixin classes -closure} "::M2"
+  ? {B info mixins -closure} "::M2"
 
   B mixins set A
   ? {A info heritage} "::nx::Object"
@@ -1024,7 +1023,7 @@ nx::test case info-heritage-multimix {
   
   b1 object mixins set {M1 M1 M4}
   ? {b1 info precedence} "::M1 ::M4 ::M2 ::B ::A ::nx::Object"
-  ? {b1 info object mixin classes} "::M1 ::M4"
+  ? {b1 info object mixins} "::M1 ::M4"
 
   B mixins set {M3 M1 M1 M4}
   ? {B info heritage} "::M3 ::M1 ::M4 ::M2 ::A ::nx::Object"
@@ -1051,10 +1050,10 @@ nx::test case info-heritage-multimix {
   # ::A is as well implied by ::PCM
   C mixins set PCM
   ? {C info heritage} "::PCM ::A ::nx::Object"
-  ? {C info mixin classes} "::PCM"
-  ? {C info mixin classes -order} "" ;# ???? why no warning
-  ? {C info mixin classes -heritage} "::PCM ::A"
-  ? {C info mixin classes -closure} "::PCM"
+  ? {C info mixins} "::PCM"
+  ? {C info mixins -order} "" ;# ???? why no warning
+  ? {C info mixins -heritage} "::PCM ::A"
+  ? {C info mixins -closure} "::PCM"
 
   # ::A is not ordered after ::B but after ::PCM
   ? {c1 info precedence} "::B ::PCM ::A ::C ::nx::Object"
@@ -1088,20 +1087,20 @@ nx::test case info-heritage-transitive-pcm {
   ? {c1 info precedence} "::PCMB ::PCMA ::C ::B ::A ::nx::Object"
 
   # just the classes mixed explicitly into this class
-  ? {B info mixin classes} "::PCMB"
-  ? {C info mixin classes} ""
+  ? {B info mixins} "::PCMB"
+  ? {C info mixins} ""
 
   # the classes mixed transitive into this class; This answer the
   # question, what classes were mixed in explicitly into the mixin
   # hierarchy by the application program
-  ? {B info mixin classes -closure} "::PCMB"
+  ? {B info mixins -closure} "::PCMB"
   # since C is a specialization of B, it includes transitively B's closure
-  ? {C info mixin classes -closure} "::PCMB"
+  ? {C info mixins -closure} "::PCMB"
 
-  # the explicit and implicit mixin classes
-  ? {B info mixin classes -heritage} "::PCMB ::PCMA ::A"
+  # the explicit and implicit mixins
+  ? {B info mixins -heritage} "::PCMB ::PCMA ::A"
   # since C is a specialization of B, it inherits the classes from B
-  ? {C info mixin classes -heritage} "::PCMB ::PCMA ::A"
+  ? {C info mixins -heritage} "::PCMB ::PCMA ::A"
 
   PCMB mixins set TPCMB
 
@@ -1113,18 +1112,18 @@ nx::test case info-heritage-transitive-pcm {
   ? {c1 info precedence} "::TPCMB ::TPCMA ::PCMB ::PCMA ::C ::B ::A ::nx::Object"
 
   # just the classes mixed explicitly into this class
-  ? {B info mixin classes} "::PCMB"
-  ? {C info mixin classes} ""
+  ? {B info mixins} "::PCMB"
+  ? {C info mixins} ""
 
   # the classes mixed transitive into this class
-  ? {B info mixin classes -closure} "::PCMB ::TPCMB"
+  ? {B info mixins -closure} "::PCMB ::TPCMB"
   # since C is a specialization of B, it includes transitively B's closure
-  ? {C info mixin classes -closure} "::PCMB ::TPCMB"
+  ? {C info mixins -closure} "::PCMB ::TPCMB"
 
-  # the explicit and implicit mixin classes
-  ? {B info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+  # the explicit and implicit mixins
+  ? {B info mixins -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
   # since C is a specialization of B, it inherits the classes from B
-  ? {C info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+  ? {C info mixins -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
 
   C mixins set PCMC
 
@@ -1136,16 +1135,16 @@ nx::test case info-heritage-transitive-pcm {
   ? {c1 info precedence} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::C ::B ::A ::nx::Object"
 
   # just the classes mixed explicitly into this class
-  ? {B info mixin classes} "::PCMB"
-  ? {C info mixin classes} "::PCMC"
+  ? {B info mixins} "::PCMB"
+  ? {C info mixins} "::PCMC"
 
   # the classes mixed transitive into this class
-  ? {B info mixin classes -closure} "::PCMB ::TPCMB"
-  ? {C info mixin classes -closure} "::PCMC ::TPCMB ::PCMB"
+  ? {B info mixins -closure} "::PCMB ::TPCMB"
+  ? {C info mixins -closure} "::PCMC ::TPCMB ::PCMB"
 
-  # the explicit and implicit mixin classes
-  ? {B info mixin classes -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
-  ? {C info mixin classes -heritage} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+  # the explicit and implicit mixins
+  ? {B info mixins -heritage} "::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
+  ? {C info mixins -heritage} "::PCMC ::TPCMB ::TPCMA ::PCMB ::PCMA ::A"
 
 }
 

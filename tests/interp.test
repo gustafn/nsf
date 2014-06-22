@@ -101,7 +101,7 @@ nx::test case hidden-cmds {
 
   ? {interp eval $i {c info class}} ::C
   ? {interp invokehidden $i C info instances ::c} ::c
-  ? {interp invokehidden $i C info mixin classes} ::M
+  ? {interp invokehidden $i C info mixins} ::M
 
   # Note, for all introspections that do *not* try to convert the
   # Tcl_Obj into an object or a class, but treat it as a pattern (or
@@ -716,7 +716,7 @@ nx::test case hidden-mixins-mixinlists {
   }
 
   ? {$i eval {o info precedence}} "::M1 ::M2 ::nx::Object"
-  ? {$i eval {o info object mixin classes}} {::M1 ::M2}
+  ? {$i eval {o info object mixins}} {::M1 ::M2}
   ? {$i hidden} ""
   $i hide M1
   ? {$i hidden} M1
@@ -733,7 +733,7 @@ nx::test case hidden-mixins-mixinlists {
   #
   $i eval {::M2 destroy}
   ? {$i eval {o info precedence}} "::M1 ::nx::Object"
-  ? {$i eval {o info object mixin classes}} "::M1"
+  ? {$i eval {o info object mixins}} "::M1"
   ? {$i invokehidden M1 info mixinof} "::o"
 
   interp delete $i

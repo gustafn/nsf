@@ -9,8 +9,8 @@ package require nx::test
 nx::test case info-errors {
   ? {::nx::Object info subclasses a b c} \
       {invalid argument 'b', maybe too many arguments; should be "::nx::Object info subclasses ?-closure? ?-dependent? ?/pattern/?"}
-  ? {::nx::Object info object mixin classes a b c} \
-      {invalid argument 'b', maybe too many arguments; should be "::nx::Object info object mixin classes ?-guards? ?/pattern/?"}
+  ? {::nx::Object info object mixins a b c} \
+      {invalid argument 'b', maybe too many arguments; should be "::nx::Object info object mixins ?-guards? ?/pattern/?"}
 }
 
 nx::test configure -count 10

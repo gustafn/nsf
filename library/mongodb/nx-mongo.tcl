@@ -417,7 +417,7 @@ namespace eval ::nx::mongo {
     # (eg. mongo type, or mongo operator).
     #
     :method "get slot" {att} {
-      set classes [concat [self] [:info mixin classes] [:info heritage]]
+      set classes [concat [self] [:info mixins] [:info heritage]]
       foreach cls $classes {
 	set slot [$cls info slots $att]
 	if {$slot ne ""} {

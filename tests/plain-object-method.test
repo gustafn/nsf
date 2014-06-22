@@ -50,17 +50,17 @@ nx::test case plain-methods-1 {
   ? {o fwd} "pm1"
 
   ? {o mixins set M1} ::M1
-  ? {o info mixin classes} ::M1
+  ? {o info mixins} ::M1
   ? {o mixins set ""} ""
-  ? {o info mixin classes} ""
+  ? {o info mixins} ""
 
   ? {o filters set f} f
-  ? {o info filter methods} f
+  ? {o info filters} f
   ? {o filters set ""} ""
-  ? {o info filter methods} ""
+  ? {o info filters} ""
 
   ? {lsort [o info object methods]} "a f foo fwd p v2"
-  ? {lsort [o info]} "valid submethods of ::o info: children class filter has info lookup method methods mixin name object parent precedence slots variable variables vars"
+  ? {lsort [o info]} "valid submethods of ::o info: children class filters has info lookup method methods mixins name object parent precedence slots variable variables vars"
 }
 
 #

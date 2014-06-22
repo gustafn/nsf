@@ -473,6 +473,7 @@ namespace eval ::nx {
       set path [lrange $callInfo 1 end-1]
       set m [lindex $callInfo end]
       set obj [lindex $callInfo 0]
+      #puts stderr "CI=<$callInfo> args <$args>"
       #puts stderr "### [list $obj ::nsf::methods::object::info::lookupmethods -path \"$path *\"]"
       if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]} errorMsg]} {
 	set valid ""
@@ -737,13 +738,11 @@ namespace eval ::nx {
     :alias "info has mixin"        ::nsf::methods::object::info::hasmixin
     :alias "info has namespace"    ::nsf::methods::object::info::hasnamespace
     :alias "info has type"         ::nsf::methods::object::info::hastype
-    #:alias "info is"               ::nsf::methods::object::info::is
+    #:alias "info is"              ::nsf::methods::object::info::is
     :alias "info name"             ::nsf::methods::object::info::name
-    :alias "info object filter guard"     ::nsf::methods::object::info::filterguard
-    :alias "info object filter methods"   ::nsf::methods::object::info::filtermethods
-    :alias "info object methods"          ::nsf::methods::object::info::methods
-    :alias "info object mixin guard"      ::nsf::methods::object::info::mixinguard
-    :alias "info object mixin classes"    ::nsf::methods::object::info::mixinclasses
+    :alias "info object filters"   ::nsf::methods::object::info::filtermethods
+    :alias "info object methods"   ::nsf::methods::object::info::methods
+    :alias "info object mixins"    ::nsf::methods::object::info::mixinclasses
     :method "info object slots" {{-type:class ::nx::Slot} pattern:optional} {
       set method [list ::nsf::methods::object::info::slotobjects -type $type]
       if {[info exists pattern]} {lappend method $pattern}
@@ -815,14 +814,12 @@ namespace eval ::nx {
 
   Class eval {
     :alias "info lookup"         ::nx::Object::slot::__info::lookup
-    :alias "info filter guard"   ::nsf::methods::class::info::filterguard
-    :alias "info filter methods" ::nsf::methods::class::info::filtermethods
+    :alias "info filters"        ::nsf::methods::class::info::filtermethods
     :alias "info has"            ::nx::Object::slot::__info::has
     :alias "info heritage"       ::nsf::methods::class::info::heritage
     :alias "info instances"      ::nsf::methods::class::info::instances
     :alias "info methods"        ::nsf::methods::class::info::methods
-    :alias "info mixin guard"    ::nsf::methods::class::info::mixinguard
-    :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
+    :alias "info mixins"         ::nsf::methods::class::info::mixinclasses
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
 
     :method "info slots" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
@@ -1672,34 +1669,74 @@ namespace eval ::nx {
   ::nsf::parameter::cache::classinvalidate ::nx::ObjectParameterSlot
 
   #
-  # Define method "guard" for mixin- and filter-slots of Object and Class
+  # Define method "guard" and "methods" for object filters
   #
   ::nx::Object::slot::object-filters object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::filterguard $filter $guard
     } else {
-      $obj info object filter guard $filter
+      lindex [$obj info object filters -guards $filter] 0 2
     }
   }
+  ::nx::Object::slot::object-filters object method value=methods {obj prop pattern:optional} {
+    if {[info exists pattern]} {
+      $obj info object filters $pattern
+    } else {
+      $obj info object filters
+    }
+  }
+
+  #
+  # Define method "guard" and "methods" for filters
+  #
   ::nx::Class::slot::filters object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::filterguard $filter $guard
     } else {
-      $obj info filter guard $filter
+      lindex [$obj info filters -guards $filter] 0 2
+    }
+  }
+  ::nx::Class::slot::filters object method value=methods {obj prop pattern:optional} {
+    if {[info exists pattern]} {
+      $obj info filters $pattern
+    } else {
+      $obj info filters
+    }
+  }
+
+  #
+  # object mixins
+  #
+  ::nx::Object::slot::object-mixins object method value=classes {obj prop pattern:optional} {
+    if {[info exists pattern]} {
+      $obj info object mixins $pattern
+    } else {
+      $obj info object mixins
     }
   }
   ::nx::Object::slot::object-mixins object method value=guard {obj prop mixin guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::object::mixinguard $mixin $guard
     } else {
-      $obj info object mixin guard $mixin
+      lindex [$obj info object mixins -guards $mixin] 0 2
+    }
+  }
+
+  #
+  # mixins
+  #
+  ::nx::Class::slot::mixins object method value=classes {obj prop pattern:optional} {
+    if {[info exists pattern]} {
+      $obj info mixins $pattern
+    } else {
+      $obj info mixins
     }
   }
   ::nx::Class::slot::mixins object method value=guard {obj prop filter guard:optional} {
     if {[info exists guard]} {
       ::nsf::directdispatch $obj ::nsf::methods::class::mixinguard $filter $guard
     } else {
-      $obj info mixin guard $filter
+      lindex [$obj info mixins -guards $mixin] 0 2
     }
   }
   #::nsf::method::alias ::nx::Class::slot::object-filters guard ::nx::Object::slot::object-filters::guard

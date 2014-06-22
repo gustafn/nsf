@@ -17,7 +17,7 @@ nx::test case class-methods-0 {
 
   ? {lsort [::C info object methods]} "f"
   ? {lsort [::C info]} \
-      "valid submethods of ::C info: children class filter has heritage info instances lookup method methods mixin mixinof name object parent precedence slots subclasses superclasses variable variables vars"
+      "valid submethods of ::C info: children class filters has heritage info instances lookup method methods mixinof mixins name object parent precedence slots subclasses superclasses variable variables vars"
 }
 
 #
@@ -65,18 +65,18 @@ nx::test case class-methods-1 {
   ? {::C fwd} "pm1"
 
   ? {::C class mixins set M1} ::M1
-  ? {::C class info mixin classes} ::M1
+  ? {::C class info mixins} ::M1
   ? {::C class mixins set ""} ""
-  ? {::C class info mixin classes} ""
+  ? {::C class info mixins} ""
 
   ? {::C class filters set f} f
-  ? {::C class info filter methods} f
+  ? {::C class info filters} f
   ? {::C class filters set ""} ""
-  ? {::C class info filter methods} ""
+  ? {::C class info filters} ""
 
   ? {lsort [::C info object methods]} "a f foo fwd p v2"
   ? {lsort [::C info]} \
-      "valid submethods of ::C info: children class filter has heritage info instances lookup method methods mixin mixinof name object parent precedence slots subclasses superclasses variable variables vars"
+      "valid submethods of ::C info: children class filters has heritage info instances lookup method methods mixinof mixins name object parent precedence slots subclasses superclasses variable variables vars"
 }
 
 #

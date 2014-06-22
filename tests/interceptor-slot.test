@@ -16,22 +16,22 @@ nx::test case mixin-method {
   ? {C mixins set M} ::M
   ? {C info precedence} "::nx::Class ::nx::Object"
   ? {C mixins get} "::M"
-  ? {C info mixin classes} "::M"
+  ? {C info mixins} "::M"
   ? {c1 info precedence} "::M ::C ::nx::Object"
   ? {C mixins add M2} "::M2 ::M"
   ? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
   ? {C mixins delete M2} "::M"
   ? {c1 info precedence} "::M ::C ::nx::Object"
   ? {C mixins delete M} ""
-  ? {C info mixin classes} ""
+  ? {C info mixins} ""
 
   ? {C mixins set ::M} "::M"
   ? {C mixins clear} "::M"
-  ? {C info mixin classes} ""
+  ? {C info mixins} ""
 
   ? {C mixins add ::M} "::M"
   ? {C mixins set {}} ""
-  ? {C info mixin classes} ""
+  ? {C info mixins} ""
 }
 
 #
@@ -39,11 +39,11 @@ nx::test case mixin-method {
 #
 nx::test case nsf-mixin {
   ? {::nsf::mixin C ::M} "::M"
-  ? {C info mixin classes} "::M"
+  ? {C info mixins} "::M"
   ? {::nsf::mixin C ::M2} "::M2 ::M"
-  ? {C info mixin classes} "::M2 ::M"
+  ? {C info mixins} "::M2 ::M"
   ? {::nsf::mixin C ""} ""
-  ? {C info mixin classes} ""
+  ? {C info mixins} ""
 }
 
 #
@@ -67,9 +67,9 @@ nx::test case per-object-mixins {
   ? {c1 info precedence} "::C ::nx::Object"
 
   ? {c1 object mixins add M} {::M}
-  ? {c1 info object mixin classes} {::M}
+  ? {c1 info object mixins} {::M}
   ? {c1 object mixins clear} {::M}
-  ? {c1 info object mixin classes} {}
+  ? {c1 info object mixins} {}
 }
 
 #
@@ -79,7 +79,7 @@ nx::test case per-object-mixins {
 nx::test case object-mixin-relation {
   ? {::nsf::relation::set C object-mixin M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
-  ? {C info object mixin classes} "::M"
+  ? {C info object mixins} "::M"
   ? {::nsf::relation::set C object-mixin ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 }
@@ -90,7 +90,7 @@ nx::test case object-mixin-relation {
 #
  # C object-mixin M
  # ? {C info precedence} "::M ::nx::Class ::nx::Object"
- # ? {C info object mixin classes} "::M"
+ # ? {C info object mixins} "::M"
  # C object-mixin ""
  # ? {C info precedence} "::nx::Class ::nx::Object"
 
@@ -101,7 +101,7 @@ nx::test case object-mixin-relation {
 nx::test case class+mixin {
   ? {C object mixins set M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
-  ? {C info object mixin classes} "::M"
+  ? {C info object mixins} "::M"
   ? {C object mixins set ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
 }
@@ -112,7 +112,7 @@ nx::test case class+mixin {
 nx::test case class+mixin-add {
   ? {C object mixins add M} ::M
   ? {C info precedence} "::M ::nx::Class ::nx::Object"
-  ? {C info object mixin classes} "::M"
+  ? {C info object mixins} "::M"
   ? {C object mixins set ""} ""
   ? {C info precedence} "::nx::Class ::nx::Object"
   
@@ -169,57 +169,57 @@ nx::test case filter-relation {
   }
 
   ? {::nsf::relation::get cc object-filter} ""
-  ? {cc info object filter methods} ""
+  ? {cc info object filters} ""
   ? {::nsf::relation::set cc object-filter filterA} filterA
-  ? {cc info object filter methods} "filterA"
+  ? {cc info object filters} "filterA"
   ? {cc object filters set filterB} "filterB"
 
   ? {::nsf::relation::get cc object-filter} "filterB"
-  ? {cc info object filter methods} "filterB"
+  ? {cc info object filters} "filterB"
 
   ? {cc object filters add filterD} "filterD filterB"
   ? {::nsf::relation::get cc object-filter} "filterD filterB"
-  ? {cc info object filter methods} "filterD filterB"
+  ? {cc info object filters} "filterD filterB"
 
   ? {cc object filters delete filterB} "filterD"
   ? {::nsf::relation::get cc object-filter} "filterD"
-  ? {cc info object filter methods} "filterD"
+  ? {cc info object filters} "filterD"
 
   ? {catch {::nsf::relation::set cc object-filter UNKNOWN}} 1
   ? {::nsf::relation::get cc object-filter} "filterD"
-  ? {cc info object filter methods} "filterD"
+  ? {cc info object filters} "filterD"
 
   ? {::nsf::relation::get CC object-filter} ""
-  ? {CC info object filter methods} ""
+  ? {CC info object filters} ""
   ? {::nsf::relation::set CC object-filter filterC} "filterC"
   ? {::nsf::relation::get CC object-filter} "filterC"
-  ? {CC info object filter methods} "filterC"
+  ? {CC info object filters} "filterC"
 
   ? {CC object filters clear} "filterC"
   ? {::nsf::relation::get CC object-filter} ""
-  ? {CC info object filter methods} ""
+  ? {CC info object filters} ""
   
   ? {::nsf::relation::get CC class-filter} ""
-  ? {CC info filter methods} ""
+  ? {CC info filters} ""
   ? {::nsf::relation::set CC class-filter filterA} "filterA"
   ? {::nsf::relation::get CC class-filter} "filterA"
-  ? {CC info filter methods} "filterA"
+  ? {CC info filters} "filterA"
 
   ? {CC filters add filterB} "filterB filterA"
   ? {::nsf::relation::get CC class-filter} "filterB filterA"
-  ? {CC info filter methods} "filterB filterA"
+  ? {CC info filters} "filterB filterA"
 
   ? {CC filters delete filterA} "filterB"
   ? {::nsf::relation::get CC class-filter} "filterB"
-  ? {CC info filter methods} "filterB"
+  ? {CC info filters} "filterB"
 
   ? {catch {::nsf::relation::set CC class-filter UNKNOWN}} 1
   ? {::nsf::relation::get CC class-filter} "filterB"
-  ? {CC info filter methods} "filterB"
+  ? {CC info filters} "filterB"
 
   ? {CC filters clear} "filterB"
   ? {::nsf::relation::get CC class-filter} ""
-  ? {CC info filter methods} ""
+  ? {CC info filters} ""
 }
 
 
@@ -318,13 +318,13 @@ nx::test case intrinsic+method-handles {
 }
 
 #
-# Test the next-path with mixin classes in cases where a
+# Test the next-path with mixins in cases where a
 # method handle is used for method dispatch
 #
 
 nx::test case mixins+method-handles {
   #
-  # Just mixin classes
+  # Just mixins
   #
   nx::Class create A {:public method foo {} {return "A [next]"}}
   nx::Class create B {:public method foo {} {return "B [next]"}}
@@ -338,7 +338,7 @@ nx::test case mixins+method-handles {
   ? {c1 [A info method definitionhandle foo]} "A "
   
   #
-  # Intrinsic classes and mixin classes
+  # Intrinsic classes and mixins
   #
 
   nx::Class create Y {:public method foo {} {return "Y [next]"}}
@@ -372,13 +372,13 @@ nx::test case mixins+method-handles {
 
 
 #
-# Test the next-path with mixin classes in cases where a
+# Test the next-path with mixins in cases where a
 # method handle is used for method dispatch
 #
 
 nx::test case mixins+method-handles+intrinsic {
   #
-  # Just mixin classes
+  # Just mixins
   #
   nx::Class create A {:public method foo {} {return "A [next]"}}
   nx::Class create B {:public method foo {} {return "B [next]"}}
@@ -393,7 +393,7 @@ nx::test case mixins+method-handles+intrinsic {
 
   
   #
-  # Intrinsic classes and mixin classes
+  # Intrinsic classes and mixins
   #
 
   nx::Class create Y {:public method foo {} {return "Y [next]"}}
@@ -654,10 +654,10 @@ nx::test case space-in-classname {
   # Add spacy class as a mixin. Check, if the introspection returns
   # sensible values.
   ? {C mixins add "M1 b"} "{::M1 b}"
-  ? {C info mixin classes} "{::M1 b}"
-  ? {M1 info mixin classes} ""
+  ? {C info mixins} "{::M1 b}"
+  ? {M1 info mixins} ""
   ? {M1 info mixinof} ""
-  ? {"M1 b" info mixin classes} ""
+  ? {"M1 b" info mixins} ""
 
   # check the result of the mixin class
   ? {c1 foo} "next-::M1 b"

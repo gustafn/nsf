@@ -5462,8 +5462,36 @@ nx.tcl:
 - make all __* system methods in nx redefine-protected
 - let "nsf::configure objectsystem" return handles and protections as well
 
+nx.tcl: pluralism reform part 3
+- introduced simple plural form "mixins" and "filters" for introspection
+- moved differentiated interface into slot methods. 
+  the slot methods "get" stay symmetrically to "set",
+  but additional methods "classes" or "methods" are used 
+  like "guard" to obtain partial results of the 
+  mixin and filter specs
+- changed info methods
+    /cls/ info mixin classes         -> /cls/ info mixins
+    /cls/ info filter methods        -> /cls/ info filters
+    /obj/ info object mixin classes  -> /obj/ info object mixins
+    /obj/ info object filter methods -> /obj/ info object filters
+- dropped
+    /cls/ info mixin guard
+    /cls/ info filter guard
+    /obj/ info object mixin guard
+    /obj/ info object filter guard
+- added 
+    /cls/ mixin classes
+    /cls/ filter methods
+    /obj/ object filter methods
+    /obj/ object mixin classes
+
 ========================================================================
 TODO:
+
+- EnsembleObject->unknown is still not correct 
+  "C info object mixin classes" complains about "object" 
+  and not about "mixin". 
+  The message for "C info mixin classes" is fine
 
 - finish pluaral reform
 - update migration guide and tutorial
@@ -5472,7 +5500,14 @@ TODO:
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")
+
 - we could drop methods::object::info::objectparameter
+- do we need: ::nsf::methods::object::info::is ? objectInfoMethod is NsfObjInfoIsMethod 
+
+- we should rename ::nsf::methods::class::info::filtermethods to ::nsf::methods::class::info::filters
+- we should rename ::nsf::methods::class::info::mixinclasses to ::nsf::methods::class::info::mixins
+- can we drop ::nsf::methods::class::info::filterguards ?
+- can we drop ::nsf::methods::class::info::mixinguards ?
 
 - remove // comments
 

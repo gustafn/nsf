@@ -14,7 +14,7 @@ nx::test case simple-pom {
   nx::Object create o -object-mixins A
 
   ? {o object mixins get} ::A
-  ? {o info object mixin classes} ::A
+  ? {o info object mixins} ::A
   ? {A info mixinof} ::o
 
   o destroy
@@ -56,17 +56,17 @@ nx::test case recreate-mixin-class {
   nx::Class create M {:method foo args {puts x;next}}
   nx::Object create o -object-mixins M 
 
-  ? {o info object mixin classes} ::M
+  ? {o info object mixins} ::M
   ? {o info precedence} "::M ::nx::Object"
   ? {o info lookup method foo} "::nsf::classes::M::foo"
 
   nx::Class create M {:method foo args next}
-  ? {o info object mixin classes} ::M
+  ? {o info object mixins} ::M
   ? {o info precedence} "::M ::nx::Object"
   ? {o info lookup method foo} "::nsf::classes::M::foo"
 
   M destroy
-  ? {o info object mixin classes} ""
+  ? {o info object mixins} ""
   ? {o info precedence} "::nx::Object"
   ? {o info lookup method foo} ""
 }
@@ -82,7 +82,7 @@ nx::test case pcm {
   C create c1
 
   ? {B mixins get} ::A
-  ? {B info mixin classes} ::A
+  ? {B info mixins} ::A
   ? {A info mixinof} ::B
   ? {c1 info precedence} "::A ::C ::B ::nx::Object"
 
@@ -103,16 +103,16 @@ nx::test case pcm2 {
   A mixins guard M1 "test"
   nx::Class create B -superclass A
 
-  ? {A info mixin classes M2} ::M2
-  ? {A info mixin classes M*} "::M1 ::M2"
-  ? {A info mixin classes -guards} "{::M1 -guard test} ::M2 ::X"
-  ? {B info mixin classes} ""
-  ? {B info mixin classes -closure} "::M1 ::M2 ::X"
-  ? {B info mixin classes -closure M2} ::M2
-  ? {B info mixin classes -closure M*} "::M1 ::M2"
-  ? {B info mixin classes -closure -guards} "{::M1 -guard test} ::M2 ::X"
-  ? {B info mixin classes -closure -guards M1} "{::M1 -guard test}"
-  ? {B info mixin classes -closure -guards M*} "{::M1 -guard test} ::M2"
+  ? {A info mixins M2} ::M2
+  ? {A info mixins M*} "::M1 ::M2"
+  ? {A info mixins -guards} "{::M1 -guard test} ::M2 ::X"
+  ? {B info mixins} ""
+  ? {B info mixins -closure} "::M1 ::M2 ::X"
+  ? {B info mixins -closure M2} ::M2
+  ? {B info mixins -closure M*} "::M1 ::M2"
+  ? {B info mixins -closure -guards} "{::M1 -guard test} ::M2 ::X"
+  ? {B info mixins -closure -guards M1} "{::M1 -guard test}"
+  ? {B info mixins -closure -guards M*} "{::M1 -guard test} ::M2"
 }
 
 ###########################################
@@ -130,7 +130,7 @@ nx::test case trans-pcm1 {
   C create c1
 
   ? {B mixins get} ::A
-  ? {B info mixin classes} ::A
+  ? {B info mixins} ::A
   ? {A info mixinof -scope class} ::B
   ? {a1 info precedence} "::M ::A ::nx::Object"
   ? {b1 info precedence} "::M ::A ::B ::nx::Object"
@@ -145,7 +145,7 @@ nx::test case trans-pcm1 {
   ? {B info mixinof -scope class} ""
   ? {B info mixinof -scope class -closure} ""
 
-  # and now destroy mixin classes
+  # and now destroy mixins
   M destroy
   ? {a1 info precedence} "::A ::nx::Object"
   ? {b1 info precedence} "::A ::B ::nx::Object"
@@ -168,7 +168,7 @@ nx::test case trans-pcm2 {
   nx::Class create B -superclass A
   B create b1
 
-  # ::C and ::D come to ::A and B as mixin classes
+  # ::C and ::D come to ::A and B as mixins
   ? {A info heritage} "::C ::D ::nx::Object"
   ? {B info heritage} "::C ::D ::A ::nx::Object"
  
@@ -233,7 +233,7 @@ nx::test case pcm-trans-destroy-A {
   C create c1
 
   ? {B mixins get} ::A
-  ? {B info mixin classes} ::A
+  ? {B info mixins} ::A
   ? {A info mixinof -scope class} ::B
   ? {a1 info precedence} "::M ::A ::nx::Object"
   ? {b1 info precedence} "::M ::A ::B ::nx::Object"
@@ -267,7 +267,7 @@ nx::test case pcm-trans-destroy-B {
   C create c1
 
   ? {B mixins get} ::A
-  ? {B info mixin classes} ::A
+  ? {B info mixins} ::A
   ? {A info mixinof -scope class} ::B
   ? {a1 info precedence} "::M ::A ::nx::Object"
   ? {b1 info precedence} "::M ::A ::B ::nx::Object"
@@ -294,7 +294,7 @@ nx::test case pcm-redefine {
   C create c1
   
   ? {B mixins get} ::A
-  ? {B info mixin classes} ::A
+  ? {B info mixins} ::A
   ? {A info mixinof -scope class} ::B
   ? {c1 info precedence} "::A ::C ::B ::nx::Object"
   ? {B info superclasses -closure} "::nx::Object"
@@ -309,7 +309,7 @@ nx::test case pcm-redefine {
   ? {B info heritage} "::A ::nx::Object"
   ? {C info heritage} "::nx::Object"
   ? {B mixins get} ::A
-  ? {B info mixin classes} ::A
+  ? {B info mixins} ::A
   ? {A info mixinof} ::B
   ? {c1 info precedence} "::C ::nx::Object"
   
@@ -331,7 +331,7 @@ nx::test case pcm-redefine-soft {
   C create c1
   
   ? {B mixins get} ::A
-  ? {B info mixin classes} ::A
+  ? {B info mixins} ::A
   ? {A info mixinof -scope class} ::B
   ? {c1 info precedence} "::A ::C ::B ::nx::Object"
   ? {B info superclasses -closure} "::nx::Object"
@@ -345,7 +345,7 @@ nx::test case pcm-redefine-soft {
   ? {C info superclasses -closure} "::B ::nx::Object"
   ? {B info heritage} "::A ::nx::Object"
   ? {C info heritage} "::A ::B ::nx::Object"
-  ? {B info mixin classes} ::A
+  ? {B info mixins} ::A
   ? {A info mixinof -scope class} ::B
   ? {c1 info precedence} "::A ::C ::B ::nx::Object"
   
@@ -531,7 +531,7 @@ nx::test case nx-mixinof {
   C2 create c22
 
   ? {c1 object mixins get} ::A
-  ? {c1 info object mixin classes} ::A
+  ? {c1 info object mixins} ::A
   ? {lsort [A info mixinof]} "::C2 ::c1"
   ? {M info mixinof} ""
   C mixins set M

@@ -805,23 +805,30 @@ nx::test case mp-object-types {
   C create c5 -object-mixins {M {M2 -guard 2}}
   nx::Object create o
 
-  ? {c1 info object mixin classes} ::M
-  ? {c1 info object mixin guard ::M} ""
+  ? {c1 object mixins get} ::M
+  ? {c1 object mixins guard ::M} ""
 
-  ? {c2 info object mixin classes} ::M
-  ? {c2 info object mixin guard ::M} "true"
+  ? {c2 object mixins get} {{::M -guard true}}
+  ? {c2 object mixins classes} ::M
+  ? {c2 object mixins guard ::M} "true"
 
-  ? {c3 info object mixin classes} {::M ::M2}
-  ? {c3 info object mixin guard M} ""
-  ? {c3 info object mixin guard M2} ""
+  ? {c3 object mixins get} {::M ::M2}
+  ? {c3 object mixins guard M} ""
+  ? {c3 object mixins guard M2} ""
 
-  ? {c4 info object mixin classes} {::M ::M2}
-  ? {c4 info object mixin guard M} "1"
-  ? {c4 info object mixin guard M2} ""
+  ? {c4 object mixins get} {{::M -guard 1} ::M2}
+  ? {c4 object mixins classes} {::M ::M2}
+  ? {c4 object mixins classes M} ::M
+  ? {c4 object mixins classes M1} ""
+  ? {c4 object mixins guard M} "1"
+  ? {c4 object mixins guard M2} ""
 
-  ? {c5 info object mixin classes} {::M ::M2}
-  ? {c5 info object mixin guard M} ""
-  ? {c5 info object mixin guard M2} "2"
+  ? {c5 object mixins get} {::M {::M2 -guard 2}}
+  ? {c5 object mixins classes} {::M ::M2}
+  ? {c5 object mixins classes M} {::M}
+  ? {c5 object mixins classes M1} ""
+  ? {c5 object mixins guard M} ""
+  ? {c5 object mixins guard M2} "2"
 
   D public method foo-base     {x:baseclass} {return $x}
   D public method foo-class    {x:class} {return $x}
@@ -1965,7 +1972,7 @@ nx::test case parameter-object-mixin-dependency {
   # we have now per-object mixin of M1, we should have "-b1" but no
   # "-b2"
   #
-  ? {c1 info object mixin classes} ::M1
+  ? {c1 info object mixins} ::M1
   ? {c1 cget -object-mixin} ::M1
   ? {c1 info lookup parameters configure b*} "-b1:required"
 
@@ -1973,7 +1980,7 @@ nx::test case parameter-object-mixin-dependency {
   # add one more mixin.
   #
   c1 object mixins add ::M2
-  ? {c1 info object mixin classes} {::M2 ::M1}
+  ? {c1 info object mixins} {::M2 ::M1}
   ? {c1 cget -object-mixin} {::M2 ::M1}
   ? {c1 info lookup parameters configure b1} "-b1:required"
   ? {c1 info lookup parameters configure b2} "-b2:required"
@@ -1983,14 +1990,14 @@ nx::test case parameter-object-mixin-dependency {
   # drop the mixins, the b* properties should be gone.
   #
   c1 object mixins set ""
-  ? {c1 info object mixin classes} {}
+  ? {c1 info object mixins} {}
   ? {lsort [c1 info lookup parameters configure b*]} ""
 
   #
   # add M1 again
   #
   c1 object mixins add ::M1
-  ? {c1 info object mixin classes} {::M1}
+  ? {c1 info object mixins} {::M1}
   ? {c1 info lookup parameters configure b1} "-b1:required"
   ? {lsort [c1 info lookup parameters configure b*]} "-b1:required"
   #

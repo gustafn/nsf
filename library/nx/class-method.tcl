@@ -89,8 +89,7 @@ namespace eval ::nx {
     #
     foreach m {
       method methods slots variables
-      "filter guards" "filter methods"
-      "mixin guards" "mixin classes"
+      filters mixins
     } {
       :public method "class info $m" {args} [subst -nocommands {
 	nx::configure class-method-warning

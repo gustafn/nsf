@@ -205,19 +205,54 @@ nx::test case mixinguards {
   nx::Class create M
 
   # register the mixin on C as a object mixin and define a mixinguard
-  puts stderr XXXX=[nx::Class info method definition mixin]
-  C mixins set M
-  C mixins guard M {1 == 1}
-  ? {C info mixin guard M} "1 == 1"
-  C mixins guard M {}
-  ? {C info mixin guard M} ""
 
-  # now the same as class mixin and class mixin guard
+  #C mixins set M
+  #C mixins guard M {1 == 1}
+  #? {C info mixin guard M} "1 == 1"
+  #C mixins guard M {}
+  #? {C info mixin guard M} ""
+
+  #
+  # set guard via converter
+  #
+  C mixins set {{M -guard {1 == 1}}}
+  ? {C info mixins -guard} "{::M -guard {1 == 1}}"
+  ? {C mixins get} "{::M -guard {1 == 1}}"
+
+  #
+  # set/clear guard via relation slot
+  #
+  C mixins set M
+  ? {C mixins guard M {1 == 1}} ""
+  ? {C mixins get} "{::M -guard {1 == 1}}"
+  ? {C info mixins -guard} "{::M -guard {1 == 1}}"
+  ? {C info mixins} "::M"
+
+  ? {C mixins guard M ""} ""
+  ? {C mixins get} "::M"
+  ? {C info mixins -guard} "::M"
+
+  #
+  # now the same as object mixin and object mixin guard
+  #
+  # set guard via converter
+  #
+  C object mixins set {{M -guard {1 == 1}}}
+  ? {C info object mixins -guard} "{::M -guard {1 == 1}}"
+  ? {C info object mixins} "::M"
+  ? {C object mixins get} "{::M -guard {1 == 1}}"
+
+  #
+  # set/clear guard via relation slot
+  #
   C object mixins set M
   C object mixins guard M {1 == 1}
-  ? {C info object mixin guard M} "1 == 1"
-  C object mixins guard M {}
-  ? {C info object mixin guard M} ""
+  ? {C object mixins get} "{::M -guard {1 == 1}}"
+  ? {C info object mixins -guard} "{::M -guard {1 == 1}}"
+  ? {C info object mixins} "::M"
+
+  ? {C object mixins guard M {}} ""
+  ? {C info object mixins -guard} "::M"
 }
 
 nx::test case mixin-via-objectparam {
@@ -229,27 +264,27 @@ nx::test case mixin-via-objectparam {
     :object mixins add M4
   }
   
-  ? {lsort [C info object mixin classes]} "::M2 ::M4"
-  ? {lsort [C info mixin classes]} "::M1 ::M3"
+  ? {lsort [C info object mixins]} "::M2 ::M4"
+  ? {lsort [C info mixins]} "::M1 ::M3"
 
   ? {lsort [C object mixins get]} "::M2 ::M4"
   ? {lsort [C mixins get]} "::M1 ::M3"
 
-  ? {lsort [C object mixins]} {wrong # args: use "::C object mixins add|clear|delete|get|guard|set"}
-  ? {lsort [C mixins]} {wrong # args: use "::C mixins add|clear|delete|get|guard|set"}
-  ? {lsort [C mixins x]} {submethod x undefined for mixins: use "::C mixins add|clear|delete|get|guard|set"}
+  ? {lsort [C object mixins]} {wrong # args: use "::C object mixins add|classes|clear|delete|get|guard|set"}
+  ? {lsort [C mixins]} {wrong # args: use "::C mixins add|classes|clear|delete|get|guard|set"}
+  ? {lsort [C mixins x]} {submethod x undefined for mixins: use "::C mixins add|classes|clear|delete|get|guard|set"}
 
   ? {catch {C mixin M5} errorMsg} 1
-  ? {lsort [C info mixin classes]} "::M1 ::M3"
+  ? {lsort [C info mixins]} "::M1 ::M3"
 
   ? {catch {C object mixin M5} errorMsg} 1
-  ? {lsort [C info object mixin classes]} "::M2 ::M4"
+  ? {lsort [C info object mixins]} "::M2 ::M4"
 
   ? {C mixins set M5} ::M5
-  ? {lsort [C info mixin classes]} "::M5"
+  ? {lsort [C info mixins]} "::M5"
 
   ? {C object mixins set M5} "::M5"
-  ? {lsort [C info object mixin classes]} "::M5"
+  ? {lsort [C info object mixins]} "::M5"
 
   ? {C configure -mixin M1} ""
   ? {C cget -mixin} "::M1"
