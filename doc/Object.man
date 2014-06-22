@@ -75,26 +75,19 @@ existing object can be queried for its current configuration using
 
 Retrieves the current class of the object or sets the object's class to [arg className], if provided.
 
-[opt_def -object-filter [arg filterMethods]]
+[opt_def -object-filters [arg filterMethods]]
 
 Retrieves the list of currently active per-object filter methods or sets
 a list of per-object filter methods, if [arg filterMethods] is
 provided.
 
-[opt_def -object-mixin [arg mixinSpecs]]
+[opt_def -object-mixins [arg mixinSpecs]]
 
-Retrieves the list of currently active per-object mixin specifications
-or sets a list of per-object mixin specifications to become
-active. [arg mixinSpecs] is of the form of ...
-
-[comment {
-  [opt_def -volatile]
-
-  A volatile object is automatically destroyed (see [method destroy])
-  when, during program execution, the variable scope, in which [option -volatile] was
-  configured for a given object for the first time (e.g., the call frame
-						    of a proc), is cleaned up.
-}]
+If [arg mixinSpecs] is not specified, retrieves the list of currently
+active per-object mixin specifications. If [arg mixinSpecs] is
+specified, sets a list of per-object mixin specifications to become
+active. [term "mixin class"]es are returned or set in terms of a list
+of [term "mixin specification"]s.
 
 [list_end]
 
@@ -362,7 +355,7 @@ completed, can be defined to store intermediate results.
 
 [list_end]
 
-[cmd_def filter]
+[cmd_def filters]
 
 [list_begin definitions]
 
@@ -609,7 +602,7 @@ performed for a Tcl command representing an object.
 
 [list_end]
 
-[cmd_def mixin]
+[cmd_def mixins]
 [list_begin definitions]
 
 [include mixin.man.inc]

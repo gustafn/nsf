@@ -9,27 +9,15 @@
 [keywords "method handle"]
 [keywords "method path"]
 
-[call [arg [vset CMD]] [method "info [vset MODIFIER] filter"] [arg option] [opt "[arg arg] ..."]]
-
-[list_begin definitions]
-
-[def "[arg [vset CMD]] [method "info [vset MODIFIER] filter methods"] [opt [option -guards]] [opt [arg pattern]]"]
-
+[call [arg [vset CMD]] [method "info [vset MODIFIER] filters"] [opt [option -guards]] [opt [arg pattern]]]
 
 If [arg pattern] is omitted, returns all filter names which are
-defined by [arg obj]. By turning on the [term switch] [option -guards],
-the corresponding guard expressions, if any, are also
-reported along with each filter as a three-element list: [arg filterName] 
--guard [arg guardExpr]. The returned filters can be limited to those whose names
-match [arg patterns] (see [cmd "string match"]).
-
-[def "[arg [vset CMD]] [method "info [vset MODIFIER] filter guard"] [arg name]"]
-
-Returns the guard expression set on the [term "filter"] [arg name]
-defined for [arg obj]. If none is available, an empty string will
-be returned.
-
-[list_end]
+defined by [vset CMD]. By turning on the [term switch] [option -guards], the
+corresponding guard expressions, if any, are also
+reported along with each filter as a three-element list: [arg filterName] -guard
+[arg guardExpr]. By specifying [arg pattern], the
+returned filters can be limited to those whose names match [arg patterns] (see
+[cmd "string match"]).
 
 [call [arg [vset CMD]] [method "info [vset MODIFIER] method"] [arg option] [arg methodName]]
 
@@ -105,26 +93,14 @@ By setting [option -callprotection], only methods of a certain [term "call prote
 }]
 [list_end]
 
-[call [arg [vset CMD]] [method "info [vset MODIFIER] mixin"] [arg option] [opt "[arg arg] ..."]]
-
-[list_begin definitions]
-
-[def "[arg [vset CMD]] [method "info [vset MODIFIER] mixin classes"] [opt [option -guards]] [opt [arg pattern]]"]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] mixins"] [opt [option -guards]] [opt [arg pattern]]]
 
 If [arg pattern] is omitted, returns the object names of the [term "mixin class"]es which
-extend [arg obj] directly. By turning on the [term switch] [option -guards],
+extend [arg [vset CMD]] directly. By turning on the [term switch] [option -guards],
 the corresponding guard expressions, if any, are also
 reported along with each mixin as a three-element list: [arg className] 
 -guard [arg guardExpr]. The returned [term "mixin class"]es can be limited to those whose names
 match [arg patterns] (see [cmd "string match"]).
-
-[def "[arg [vset CMD]] [method "info [vset MODIFIER] mixin guard"] [arg name]"]
-
-For the [term "mixin class"] [arg name] which extends
-[arg obj] directly, returns the corresponding guard expression, if
-any. If none is available, an empty string will be returned.
-
-[list_end]
 
 
 [call [arg [vset CMD]] [method "info [vset MODIFIER] slots"] [opt "[option -type] [arg className]"] [arg pattern]]
