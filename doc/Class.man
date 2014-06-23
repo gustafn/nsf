@@ -433,20 +433,18 @@ which an NX object passes between and including its creation and its
 destruction: allocation, recreation, deallocation.
 
 [example {
-
-      /cls/->create(/instance/)
-                .---------------.   exists?    [false]   .----------------.                   .-------------------.
-           ---->|Class::create()|----><>---------------->|Class::__alloc()|-----------><>---->|Object::configure()|
-                `---------------'      |      (1)        `----------------'             ^ (4) `---------+---------'
-                                [true] |                                                |               | (5)
-                                       |  .-------------------.     .-----------------. |      .------------------.
-                                       `->|Class::__recreate()|---->|Object::cleanup()|-'      |/instance/->init()|
-                                    (2)   `-------------------' (3) `-----------------'        `------------------'
-
-  /instance/->destroy()
-      .-----------------.     .------------------.
- ---->|Object::destroy()|---->|Class::__dealloc()|
-      `-----------------' (6) `------------------'
+        /cls/->create(/instance/)
+                  .---------------.   exists?    [false]   .----------------.                   .-------------------.
+             ---->|Class::create()|----><>---------------->|Class::__alloc()|-----------><>---->|Object::configure()|
+                  `---------------'      |      (1)        `----------------'             ^ (3) `---------+---------'
+                                  [true] |                                                |               | (4)
+                                         |  .-------------------.                         |      .------------------.
+                                         `->|Class::__recreate()|-------------------------'      |/instance/->init()|
+                                      (2)   `-------------------'                                `------------------'
+    /instance/->destroy()
+        .-----------------.     .------------------.
+   ---->|Object::destroy()|---->|Class::__dealloc()|
+        `-----------------' (5) `------------------'
 }]
 
 Object creation is controlled by the factory method [method create], provided by [cmd nx::Class] to its
@@ -463,8 +461,6 @@ the [emph {allocation}] procedure for a fresh [arg instance] of [arg cls].
 [emph {recreation}] procedure is triggered by calling [method "__recreate"]
 defined by [cmd nx::Class].
   
-[enum] Under recreation, the existing [arg instance] is resetted by calling [method cleanup].
-
 [enum] The newly allocated or recreated object [arg instance] is then
 configured by dispatching [method configure], provided by [cmd nx::Object], which
 consumes the configuration options passed into [method create]. This
@@ -482,7 +478,7 @@ additionally, the object [arg instanceName] may define an per-object
 [list_end]
 
 Object destruction, as triggered by, e.g., an application-level
-[method destroy] call (6) is finalized by [method {__dealloc}] offerd by
+[method destroy] call (5) is finalized by [method {__dealloc}] offerd by
 [cmd nx::Class]. 
 
 [para]
