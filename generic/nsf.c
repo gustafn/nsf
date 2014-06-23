@@ -11091,17 +11091,22 @@ NsfParamDefsFilter(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, CONST char *p
  *
  *----------------------------------------------------------------------
  */
-static Nsf_Param CONST *NsfParamDefsNonposLookup(CONST char *nameString, Nsf_Param CONST *paramsPtr)
-  nonnull(1) nonnull(2);
+static int NsfParamDefsNonposLookup(Tcl_Interp *interp, CONST char *nameString,
+                                    Nsf_Param CONST *paramsPtr,  Nsf_Param CONST **paramPtrPtr)
+  nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
-static Nsf_Param CONST *
-NsfParamDefsNonposLookup(CONST char *nameString, Nsf_Param CONST *paramsPtr) {
+static int
+NsfParamDefsNonposLookup(Tcl_Interp *interp, CONST char *nameString,
+                         Nsf_Param CONST *paramsPtr, Nsf_Param CONST **paramPtrPtr) {
   Nsf_Param CONST *paramPtr;
   char             ch1 = nameString[2];
   int              length;
 
+  assert(interp);
   assert(nameString);
   assert(paramsPtr);
+  assert(paramPtrPtr);
+
   /*
    * The provided paramsPtr must point to a block starting with a nonpos arg.
    */
@@ -11116,7 +11121,8 @@ NsfParamDefsNonposLookup(CONST char *nameString, Nsf_Param CONST *paramsPtr) {
     if (unlikely(paramPtr->flags & NSF_ARG_NOCONFIG)) continue;
     if (ch1 == paramPtr->name[2]
         && strcmp(nameString, paramPtr->name) == 0) {
-      return paramPtr;
+        *paramPtrPtr = paramPtr;
+        return TCL_OK;
     }
   }
 
@@ -11129,12 +11135,34 @@ NsfParamDefsNonposLookup(CONST char *nameString, Nsf_Param CONST *paramsPtr) {
 
       if (ch1 == paramPtr->name[2]
           && strncmp(nameString, paramPtr->name, length) == 0) {
+        Nsf_Param CONST *pPtr;
+
         /* fprintf(stderr, "... <%s> is an abbrev of <%s>\n", nameString, paramPtr->name); */
-        return paramPtr;
+        /*
+         * Check, if the abbreviation is unique
+         */
+        for (pPtr = paramPtr + 1; likely(pPtr->name != NULL) && *pPtr->name == '-'; pPtr++) {
+          if (unlikely(pPtr->flags & NSF_ARG_NOCONFIG)) continue;
+          if (ch1 == pPtr->name[2]
+              && strncmp(nameString, pPtr->name, length) == 0) {
+            /*
+             * The abbreviation is not unique
+             */
+            *paramPtrPtr = NULL;
+            return NsfPrintError(interp, "the provided argument %s is an abbreviation for %s and %s",
+                                 nameString, paramPtr->name, pPtr->name);
+          }
+        }
+        /*
+         * The abbreviation is unique
+         */
+        *paramPtrPtr = paramPtr;
+        return TCL_OK;
       }
     }
   }
-  return NULL;
+  *paramPtrPtr = NULL;
+  return TCL_OK;
 }
 
 /*
@@ -21264,10 +21292,13 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
             assert(pPtr == currentParamPtr);
 
             if (ch1 != '\0') {
-              pPtr = NsfParamDefsNonposLookup(argumentString, currentParamPtr);
-              if (pPtr != NULL) {
-                found = 1;
-                NsfFlagObjSet(interp, argumentObj, paramPtr, serial, pPtr, NULL, 0);
+              if (unlikely(NsfParamDefsNonposLookup(interp, argumentString, currentParamPtr, &pPtr) != TCL_OK)) {
+                return TCL_ERROR;
+              } else {
+                if (pPtr != NULL) {
+                  found = 1;
+                  NsfFlagObjSet(interp, argumentObj, paramPtr, serial, pPtr, NULL, 0);
+                }
               }
             }
 
@@ -27506,8 +27537,12 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
     /*
      * Perform the lookup from the next group.
      */
-    paramPtr = NsfParamDefsNonposLookup(nameString, paramPtr);
-    found = (paramPtr != NULL);
+    if (unlikely(NsfParamDefsNonposLookup(interp, nameString, paramPtr, &paramPtr) != TCL_OK)) {
+      result = TCL_ERROR;
+      goto cget_exit;
+    } else {
+      found = (paramPtr != NULL);
+    }
   }
 
   if (!found) {

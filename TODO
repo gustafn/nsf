@@ -5494,6 +5494,10 @@ nsf.c:
    ::nsf::methods::class::info::mixinclasses   -> ::nsf::methods::class::info::mixins
    ::nsf::methods::object::info::mixinclasses  -> ::nsf::methods::object::info::mixins
 
+nsf.c:
+- provide error messages for ambiguous abbreviations
+- extend regression test (now 5460 tests)
+
 ========================================================================
 TODO:
 

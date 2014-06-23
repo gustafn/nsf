@@ -355,7 +355,24 @@ nx::test case info-with-dash-class-names {
   ? {-b info superclasses -- -a} "::-a"
 }
 
+nx::test case abbrevs {
 
+  nsf::proc x {-super -super11 -superclass -super12} { 
+    return [info exists super]-[info exists super11]-[info exists superclass]-[info exists super12] 
+  }
+  ? {x -super 1} "1-0-0-0"
+  ? {x -super1 1} "the provided argument -super1 is an abbreviation for -super11 and -super12"
+  ? {x -superc 1} "0-0-1-0"
+  ? {x -super12 1} "0-0-0-1"
+
+  nsf::proc y {-aaa1 -aa1 -a1 -a} { return [info exists aaa1]-[info exists aa1]-[info exists a1]-[info exists a] }
+
+  ? {y -a 1} "0-0-0-1"
+  ? {y -aa 1} {invalid non-positional argument '-aa', valid are : -aaa1, -aa1, -a1, -a;
+ should be "y ?-aaa1 /value/? ?-aa1 /value/? ?-a1 /value/? ?-a /value/?"}
+  ? {y -aaa 1} "1-0-0-0"
+  ? {y -aa1 1} "0-1-0-0"
+}
 
 #
 # Local variables:
