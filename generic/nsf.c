@@ -28756,14 +28756,14 @@ NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *f
 }
 
 /*
-objectInfoMethod filtermethods NsfObjInfoFiltermethodsMethod {
+objectInfoMethod filters NsfObjInfoFiltersMethod {
   {-argName "-guards" -nrargs 0 -type switch}
   {-argName "pattern"}
 }
 */
 static int
-NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *object, int withGuards,
-                              CONST char *pattern) {
+NsfObjInfoFiltersMethod(Tcl_Interp *interp, NsfObject *object, int withGuards,
+                        CONST char *pattern) {
   NsfObjectOpt *opt = object->opt;
 
   assert(interp);
@@ -28832,35 +28832,6 @@ NsfObjInfoHasTypeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *typeCla
   assert(typeClass);
 
   Tcl_SetBooleanObj(Tcl_GetObjResult(interp), IsSubType(object->cl, typeClass));
-  return TCL_OK;
-}
-
-/*
-objectInfoMethod is NsfObjInfoIsMethod {
-  {-argName "objectkind" -required 1 -type "class|baseclass|metaclass"}
-}
-*/
-static int
-NsfObjInfoIsMethod(Tcl_Interp *interp, NsfObject *object, int objectkind) {
-  int success = 0;
-
-  assert(interp);
-  assert(object);
-
-  switch (objectkind) {
-  case ObjectkindClassIdx:
-    success = (NsfObjectIsClass(object) > 0);
-    break;
-
-  case ObjectkindMetaclassIdx:
-    success = NsfObjectIsClass(object) && IsMetaClass(interp, (NsfClass *)object, 1);
-    break;
-
-  case ObjectkindBaseclassIdx:
-    success = NsfObjectIsClass(object) && IsBaseClass(object);
-    break;
-  }
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
   return TCL_OK;
 }
 
@@ -29190,14 +29161,14 @@ NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 }
 
 /*
-objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
+objectInfoMethod mixins NsfObjInfoMixinsMethod {
   {-argName "-guards" -nrargs 0 -type switch}
   {-argName "pattern" -type objpattern}
 }
 */
 static int
-NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *object, int withGuards,
-			     CONST char *patternString, NsfObject *patternObj) {
+NsfObjInfoMixinsMethod(Tcl_Interp *interp, NsfObject *object, int withGuards,
+                       CONST char *patternString, NsfObject *patternObj) {
   assert(interp);
   assert(object);
 
@@ -29425,14 +29396,14 @@ NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *class, CONST char *f
 }
 
 /*
-classInfoMethod filtermethods NsfClassInfoFiltermethodsMethod {
-  {-argName "-guards"}
+classInfoMethod filters NsfClassInfoFiltersMethod {
+  {-argName "-guards" -nrargs 0 -type switch}
   {-argName "pattern"}
 }
 */
 static int
-NsfClassInfoFiltermethodsMethod(Tcl_Interp *interp, NsfClass *class,
-				int withGuards, CONST char *pattern) {
+NsfClassInfoFiltersMethod(Tcl_Interp *interp, NsfClass *class,
+                          int withGuards, CONST char *pattern) {
 
   assert(interp);
   assert(class);
@@ -29650,17 +29621,17 @@ NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *class,
 }
 
 /*
-classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {
-  {-argName "-closure" -nrargs 0}
-  {-argName "-guards"}
-  {-argName "-heritage"}
+classInfoMethod mixins NsfClassInfoMixinsMethod {
+  {-argName "-closure" -nrargs 0 -type switch}
+  {-argName "-guards" -nrargs 0 -type switch}
+  {-argName "-heritage" -nrargs 0 -type switch}
   {-argName "pattern" -type objpattern}
 }
 */
 static int
-NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *class,
-			       int withClosure, int withGuards, int withHeritage,
-			       CONST char *patternString, NsfObject *patternObj) {
+NsfClassInfoMixinsMethod(Tcl_Interp *interp, NsfClass *class,
+                         int withClosure, int withGuards, int withHeritage,
+                         CONST char *patternString, NsfObject *patternObj) {
   NsfClassOpt *opt = class->opt;
   Tcl_Obj *resultObj;
   int result = TCL_OK;

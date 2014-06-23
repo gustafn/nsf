@@ -405,7 +405,7 @@ objectInfoMethod class NsfObjInfoClassMethod {
 objectInfoMethod filterguard NsfObjInfoFilterguardMethod {
   {-argName "filter" -required 1}
 }
-objectInfoMethod filtermethods NsfObjInfoFiltermethodsMethod {
+objectInfoMethod filters NsfObjInfoFiltersMethod {
   {-argName "-guards" -nrargs 0 -type switch}
   {-argName "pattern"}
 }
@@ -420,9 +420,6 @@ objectInfoMethod hasnamespace NsfObjInfoHasnamespaceMethod {
 }
 objectInfoMethod hastype NsfObjInfoHasTypeMethod {
   {-argName "class" -required 1 -type class}
-}
-objectInfoMethod is NsfObjInfoIsMethod {
-  {-argName "objectkind" -required 1 -type "class|baseclass|metaclass"}
 }
 objectInfoMethod lookupfilter NsfObjInfoLookupFilterMethod {
   {-argName "filter" -required 1}
@@ -463,7 +460,7 @@ objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "pattern" -required 0}
 }
 
-objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
+objectInfoMethod mixins NsfObjInfoMixinsMethod {
   {-argName "-guards" -nrargs 0 -type switch}
   {-argName "pattern" -type objpattern}
 }
@@ -496,7 +493,7 @@ objectInfoMethod vars NsfObjInfoVarsMethod {
 classInfoMethod filterguard NsfClassInfoFilterguardMethod {
   {-argName "filter" -required 1}
 }
-classInfoMethod filtermethods NsfClassInfoFiltermethodsMethod {
+classInfoMethod filters NsfClassInfoFiltersMethod {
   {-argName "-guards" -nrargs 0 -type switch}
   {-argName "pattern"}
 }
@@ -524,7 +521,7 @@ classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-source" -nrargs 1 -type "all|application|system" -default all}
   {-argName "pattern"}
 }
-classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {
+classInfoMethod mixins NsfClassInfoMixinsMethod {
   {-argName "-closure" -nrargs 0 -type switch}
   {-argName "-guards" -nrargs 0 -type switch}
   {-argName "-heritage" -nrargs 0 -type switch}

@@ -682,7 +682,7 @@ namespace eval ::xotcl {
         set def [method_handles_to_xotcl $def]
       } else {
         set def [::nsf::directdispatch [::nsf::current object] \
-		     ::nsf::methods::object::info::filtermethods \
+		     ::nsf::methods::object::info::filters \
 		     {*}$guardsFlag \
 		     {*}$patternArg]
       }
@@ -720,7 +720,7 @@ namespace eval ::xotcl {
       if {$order} {
         set cmd ::nsf::methods::object::info::lookupmixins
       } else {
-        set cmd ::nsf::methods::object::info::mixinclasses
+        set cmd ::nsf::methods::object::info::mixins
       }
       if {$guards} {lappend cmd "-guards"}
       if {[info exists pattern]} {lappend cmd $pattern}
@@ -788,7 +788,7 @@ namespace eval ::xotcl {
       #if {$r == 1 && ![info exists defaultVar]} {error inconsistency}
       return $r
     }
-    :alias instfilter         ::nsf::methods::class::info::filtermethods
+    :alias instfilter         ::nsf::methods::class::info::filters
     :alias instfilterguard    ::nsf::methods::class::info::filterguard
     #:alias instforward        ::nsf::methods::class::info::forward
     :proc instforward {-definition:switch name:optional} {
@@ -802,7 +802,7 @@ namespace eval ::xotcl {
     }
     :proc instinvar {} {::nsf::method::assertion [self] class-invar}
     :proc instmixin {-order:switch -guards:switch pattern:optional} {
-      set cmd ::nsf::methods::class::info::mixinclasses
+      set cmd ::nsf::methods::class::info::mixins
       if {$order} {lappend cmd "-heritage"}
       if {$guards} {lappend cmd "-guards"}
       if {[info exists pattern]} {lappend cmd $pattern}

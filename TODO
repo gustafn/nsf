@@ -5396,27 +5396,27 @@ nsf.c:
 - don't invalidate class-level param caches during shutdown
 
 nsf.c: parameter passing reform
-- don't pass full argument list for filteing methods calle further 
+- don't pass full argument list for filtering methods calle further
   methods from C (such as new/create/... ) to allow processing of e.g. "--" in "new"
   to separate arguments to "new" cleanly from arguments passed to "create".
   Now we can use e.g. "C new -- -childof 123" in case class C has a property "childof".
-- extend c-generator to accept option "-objv0" to pass the original "objv[0]" to the 
+- extend c-generator to accept option "-objv0" to pass the original "objv[0]" to the
   called command. Since we had previously "allargs", we have to pass the objv[0] now
   differently
-- more thorough checking ISOBJ(someObj) macro for asserts 
+- more thorough checking ISOBJ(someObj) macro for asserts
   (use "assert(ISOBJ(someObj))" instead of just "assert(someObj)")
 - extend regression test
 
 nsf.c:
-- checked, that all CallDirectly() cases, where method is dispatched 
+- checked, that all CallDirectly() cases, where method is dispatched
   (no direct call) are covered by the regression tests
 - avoid double memcpy() in dispatch recreate by using ObjectDispatch()
   rather than CallMethod()
-- removed memcopy() in call-directy for "create"
+- removed memcpy() in call-directy for "create"
 - some more cleanup
 
 gentclAPI.tcl:
-- added option "-flags", which can be used for every parameter. 
+- added option "-flags", which can be used for every parameter.
   example: .... -flags NSF_ARG_NOLEADINGDASH ....
 - experimental: use NSF_ARG_NOLEADINGDASH for pattern "info subclass"
   to improve error messages.
@@ -5436,10 +5436,10 @@ nsf.c:
 
 
 nsf.c:
-- allow abbreaviated nonpos args
-- change name of relationslot "superclass" to "superclasses".
-  (part of a planned change to use plural for setvalued parameters,
-  "info superclasses" and similar changes for mixins/filters will 
+- allow abbreviated nonpos args
+- change name of relation slot "superclass" to "superclasses".
+  (part of a planned change to use plural for set-valued parameters,
+  "info superclasses" and similar changes for mixins/filters will
   probably follow)
 
 nx.tcl: pluralism reform part 2
@@ -5455,7 +5455,7 @@ nx.tcl: pluralism reform part 2
     /cls/ configure -filter -> /cls/ configure -filters
     /obj/ configure -object-mixin -> /obj/ configure -object-mixins
     /obj/ configure -object-filter -> /obj/ configure -object-filters
-- added handling for calling relationslot with unknown sub method
+- added handling for calling relation slot with unknown sub method
 
 
 nx.tcl:
@@ -5464,10 +5464,10 @@ nx.tcl:
 
 nx.tcl: pluralism reform part 3
 - introduced simple plural form "mixins" and "filters" for introspection
-- moved differentiated interface into slot methods. 
+- moved differentiated interface into slot methods.
   the slot methods "get" stay symmetrically to "set",
-  but additional methods "classes" or "methods" are used 
-  like "guard" to obtain partial results of the 
+  but additional methods "classes" or "methods" are used
+  like "guard" to obtain partial results of the
   mixin and filter specs
 - changed info methods
     /cls/ info mixin classes         -> /cls/ info mixins
@@ -5479,18 +5479,27 @@ nx.tcl: pluralism reform part 3
     /cls/ info filter guard
     /obj/ info object mixin guard
     /obj/ info object filter guard
-- added 
-    /cls/ mixin classes
-    /cls/ filter methods
-    /obj/ object filter methods
-    /obj/ object mixin classes
+- added
+    /cls/ mixins classes
+    /cls/ filters methods
+    /obj/ object filters methods
+    /obj/ object mixins classes
+- asymmetry between "/obj/ info lookup mixins" vs. "/obj/ info ?object? mixin classes" resolved.
+
+nsf.c:
+- dropped unused object::info::is
+- renamed
+   ::nsf::methods::class::info::filtermethods  -> ::nsf::methods::class::info::filters
+   ::nsf::methods::object::info::filtermethods -> ::nsf::methods::object::info::filters
+   ::nsf::methods::class::info::mixinclasses   -> ::nsf::methods::class::info::mixins
+   ::nsf::methods::object::info::mixinclasses  -> ::nsf::methods::object::info::mixins
 
 ========================================================================
 TODO:
 
-- EnsembleObject->unknown is still not correct 
-  "C info object mixin classes" complains about "object" 
-  and not about "mixin". 
+- EnsembleObject->unknown is still not correct
+  "C info object mixin classes" complains about "object"
+  and not about "mixin".
   The message for "C info mixin classes" is fine
 
 - finish pluaral reform
@@ -5502,17 +5511,9 @@ TODO:
   (similar to "info method syntax /methodName/")
 
 - we could drop methods::object::info::objectparameter
-- do we need: ::nsf::methods::object::info::is ? objectInfoMethod is NsfObjInfoIsMethod 
-
-- we should rename ::nsf::methods::class::info::filtermethods to ::nsf::methods::class::info::filters
-- we should rename ::nsf::methods::class::info::mixinclasses to ::nsf::methods::class::info::mixins
-- can we drop ::nsf::methods::class::info::filterguards ?
-- can we drop ::nsf::methods::class::info::mixinguards ?
-
 - remove // comments
 
 - what should happen with: "/class/ info mixin classes -heritage"
-- asymmetry between "/obj/ info lookup mixins" vs. "/obj/ info ?object? mixin classes"
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)

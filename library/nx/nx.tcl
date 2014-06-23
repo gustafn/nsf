@@ -738,11 +738,10 @@ namespace eval ::nx {
     :alias "info has mixin"        ::nsf::methods::object::info::hasmixin
     :alias "info has namespace"    ::nsf::methods::object::info::hasnamespace
     :alias "info has type"         ::nsf::methods::object::info::hastype
-    #:alias "info is"              ::nsf::methods::object::info::is
     :alias "info name"             ::nsf::methods::object::info::name
-    :alias "info object filters"   ::nsf::methods::object::info::filtermethods
+    :alias "info object filters"   ::nsf::methods::object::info::filters
     :alias "info object methods"   ::nsf::methods::object::info::methods
-    :alias "info object mixins"    ::nsf::methods::object::info::mixinclasses
+    :alias "info object mixins"    ::nsf::methods::object::info::mixins
     :method "info object slots" {{-type:class ::nx::Slot} pattern:optional} {
       set method [list ::nsf::methods::object::info::slotobjects -type $type]
       if {[info exists pattern]} {lappend method $pattern}
@@ -814,12 +813,12 @@ namespace eval ::nx {
 
   Class eval {
     :alias "info lookup"         ::nx::Object::slot::__info::lookup
-    :alias "info filters"        ::nsf::methods::class::info::filtermethods
+    :alias "info filters"        ::nsf::methods::class::info::filters
     :alias "info has"            ::nx::Object::slot::__info::has
     :alias "info heritage"       ::nsf::methods::class::info::heritage
     :alias "info instances"      ::nsf::methods::class::info::instances
     :alias "info methods"        ::nsf::methods::class::info::methods
-    :alias "info mixins"         ::nsf::methods::class::info::mixinclasses
+    :alias "info mixins"         ::nsf::methods::class::info::mixins
     :alias "info mixinof"        ::nsf::methods::class::info::mixinof
 
     :method "info slots" {{-type ::nx::Slot} -closure:switch -source:optional pattern:optional} {
