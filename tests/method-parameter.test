@@ -10,7 +10,7 @@ nx::test case method-params-0 {
   nsf::proc p1 {-x} {return [list [info exists x]]}
 
   ? {p0} 1
-  ;# the following error msg comes from Tcl
+  # the following error msg comes from Tcl
   ? {p0 -x} {wrong # args: should be "p0"}
 
   ? {p1} 0
@@ -63,7 +63,7 @@ nx::test case nodashalnum {
 
   ? {p3a 100 -x 1 -y 1 200} {100 1 1 200}
   ? {p3a 100 -xx 1 -y 1 200} {invalid non-positional argument '-xx', valid are : -x, -y;
- should be "p3a /a/ ?-x /value/? ?-y /value/? /b/ ?-z /value/?"}  
+ should be "p3a /a/ ?-x /value/? ?-y /value/? /b/ ?-z /value/?"}
 }
 
 #
@@ -94,7 +94,7 @@ nx::test case unknown-handler {
       C public method p1 {-y} {return [list [info exists y]]}
       return ""
     }
-    
+
     ? {c1 p1 -x 1 -y} {invalid non-positional argument '-y', valid are : -x;
  should be "::c1 p1 ?-x /value/?"}
   }
@@ -355,10 +355,14 @@ nx::test case info-with-dash-class-names {
   ? {-b info superclasses -- -a} "::-a"
 }
 
+#
+# Test abbreviations
+#
+
 nx::test case abbrevs {
 
-  nsf::proc x {-super -super11 -superclass -super12} { 
-    return [info exists super]-[info exists super11]-[info exists superclass]-[info exists super12] 
+  nsf::proc x {-super -super11 -superclass -super12} {
+    return [info exists super]-[info exists super11]-[info exists superclass]-[info exists super12]
   }
   ? {x -super 1} "1-0-0-0"
   ? {x -super1 1} "the provided argument -super1 is an abbreviation for -super11 and -super12"
@@ -372,6 +376,27 @@ nx::test case abbrevs {
  should be "y ?-aaa1 /value/? ?-aa1 /value/? ?-a1 /value/? ?-a /value/?"}
   ? {y -aaa 1} "1-0-0-0"
   ? {y -aa1 1} "0-1-0-0"
+}
+
+#
+# leading dash and and numbers
+#
+
+nx::test case abbrevs {
+
+  nsf::proc x {-x y:integer} {
+    return [info exists x]-$y
+  }
+  ? {x 1} "0-1"
+  ? {x -1} "0--1"
+  ? {x -- -1} "0--1"
+
+  nsf::proc y {-1 y:integer} {
+    return [info exists 1]-$y
+  }
+  ? {y 1} "0-1"
+  ? {y -1} "value for parameter '-1' expected"
+  ? {y -- -1} "0--1"
 }
 
 #

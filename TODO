@@ -5498,6 +5498,11 @@ nsf.c:
 - provide error messages for ambiguous abbreviations
 - extend regression test (now 5460 tests)
 
+nsf.c:
+- see no need, why we should "set nodashalnum for int types"
+- extended regression test
+
+
 ========================================================================
 TODO:
 
@@ -5506,18 +5511,15 @@ TODO:
   and not about "mixin".
   The message for "C info mixin classes" is fine
 
-- finish pluaral reform
+- finish plural reform
 - update migration guide and tutorial
 - maybe introdouce "allowabbrev" flag
-- set nodashalnum for int types
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")
 
 - we could drop methods::object::info::objectparameter
 - remove // comments
-
-- what should happen with: "/class/ info mixin classes -heritage"
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)
