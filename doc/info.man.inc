@@ -22,7 +22,7 @@ returned filters can be limited to those whose names match [arg patterns] (see
 [call [arg [vset CMD]] [method "info [vset MODIFIER] method"] [arg option] [arg methodName]]
 
 This introspection [term "submethod"] provides access to the details
-of [arg methodName] provided by [arg obj]. Permitted values for
+of [arg methodName] provided by [arg [vset CMD]]. Permitted values for
 [arg option] are:
 
 [list_begin itemized]
@@ -34,9 +34,9 @@ of [arg methodName] provided by [arg obj]. Permitted values for
 
 [item] [const definition] returns a canonical command list which allows for (re-)define [arg methodName].
 
-[item] [const definitionhandle] returns the [term "method handle"] for a [term "submethod"] in a [term "method ensemble"] from the perspective of [arg obj] as method provider. [arg methodName] must contain a complete [term "method path"].
+[item] [const definitionhandle] returns the [term "method handle"] for a [term "submethod"] in a [term "method ensemble"] from the perspective of [arg [vset CMD]] as method provider. [arg methodName] must contain a complete [term "method path"].
 
-[item] [const exists] returns 1 if there is a [arg methodName] provided by [arg obj], returns 0 otherwise.
+[item] [const exists] returns 1 if there is a [arg methodName] provided by [arg [vset CMD]], returns 0 otherwise.
 
 [item] [const handle] returns the [term "method handle"] for [arg methodName].
 
@@ -70,7 +70,7 @@ messages (e.g., errors or warnings, documentation strings).
 
 [call [arg [vset CMD]] [method "info [vset MODIFIER] methods"] [opt "[option -callprotection] [arg level]"] [opt "[option -type] [arg methodType]"] [opt [option -path]] [opt [arg namePattern]]]
 
-Returns the names of all methods defined by [arg obj]. Methods covered
+Returns the names of all methods defined by [arg [vset CMD]]. Methods covered
 include those defined using ,
 [const [vset SCOPE]] [method alias], and [const [vset SCOPE]] [method forward]. The
 returned methods can be limited to those whose names match [arg namePattern] (see
@@ -105,7 +105,7 @@ match [arg patterns] (see [cmd "string match"]).
 
 [call [arg [vset CMD]] [method "info [vset MODIFIER] slots"] [opt "[option -type] [arg className]"] [arg pattern]]
 
-If [arg pattern] is not specified, returns the object names of all [term "slot object"]s defined by [arg obj]. The returned [term "slot object"]s can be limited according to any or a
+If [arg pattern] is not specified, returns the object names of all [term "slot object"]s defined by [arg [vset CMD]]. The returned [term "slot object"]s can be limited according to any or a
 combination of the following criteria: First, [term "slot object"]s
 can be filtered based on their command names matching [arg namePattern] (see [cmd "string
 match"]). Second, [option "-type"] allows to select
@@ -114,13 +114,13 @@ match"]). Second, [option "-type"] allows to select
 [call [arg [vset CMD]] [method "info [vset MODIFIER] variables"] [arg pattern]]
 
 If [arg pattern] is omitted, returns the object names of all [term "slot object"]s provided
-by [arg obj] which are responsible for managing properties and variables of [arg obj]. Otherwise,
+by [arg [vset CMD]] which are responsible for managing properties and variables of [arg [vset CMD]]. Otherwise,
 only [term "slot object"]s whose names match [arg pattern] are
 returned.
 
 [para]
 
-This is equivalent to calling: [arg obj] [method "info [vset MODIFIER] slots"] -type ::nx::VariableSlot [opt [arg namePattern]].
+This is equivalent to calling: [arg [vset CMD]] [method "info [vset MODIFIER] slots"] -type ::nx::VariableSlot [opt [arg namePattern]].
 
 [para]
 

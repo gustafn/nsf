@@ -284,43 +284,21 @@ fly.
 
 [list_end]
 
+[cmd_def property]
+
+[list_begin definitions]
+
+[call [arg cls] [method property] [opt "[option -accessor] public | protected | private"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [arg spec] [opt [arg initBlock]]]
+
+[include property.man.inc]
+
+[list_end]
+
 [cmd_def require]
 
 [list_begin definitions]
 
 [include require.man.inc]
-
-[list_end]
-
-[cmd_def property]
-
-[list_begin definitions]
-
-[call [arg cls] [method property] [opt "[option -accessor] public | protected | private"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt [option -nocomplain]] [arg spec] [opt [arg initBlock]]]
-
-[include property.man.inc]
-
-[para]
-
-By default, the [term property] will ascertain that no (potentially)
-pre-existing and equally named object variable will be overwritten
-when defining the property. In case of a conflict, an error exception
-is thrown:
-
-[example {
-% Object create obj { set :x 1 }
-::obj
-% ::obj object property {x 2}
-object ::obj has already an instance variable named 'x'
-}]
-
-If the [term switch] [option -nocomplain] is on, this check is omitted (continuing the above example):
-
-[example {
-% ::obj object property -nocomplain {x 2}
-% ::obj eval {set :x}
-2
-}]
 
 [list_end]
 
@@ -330,31 +308,9 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 
 [comment {::nx::Object variable ?-accessor /value/? ?-incremental? ?-class /value/? ?-configurable /boolean/? ?-initblock /value/? ?-nocomplain? /spec/ ?/defaultValue/?}]
 
-[call [arg cls] [method variable] [opt "[option -accessor] public | protected | private"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [opt [option -nocomplain]] [arg spec] [opt [arg defaultValue]]]
+[call [arg cls] [method variable] [opt "[option -accessor] public | protected | private"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [arg spec] [opt [arg defaultValue]]]
 
 [include variable.man.inc]
-
-[para]
-
-By default, the [term variable] will ascertain that a
-pre-existing and equally named object variable will not be overwritten
-when defining the [term variable]. In case of a conflict, an error exception
-is thrown:
-
-[example {
-% Object create obj { set :x 1 }
-::obj
-% ::obj object variable x 2
-object ::obj has already an instance variable named 'x'
-}]
-
-If the [term switch] [option -nocomplain] is on, this check is omitted (continuing the above example):
-
-[example {
-% ::obj object variable -nocomplain x 2
-% ::obj eval {set :x}
-2
-}]
 
 [list_end]
 
