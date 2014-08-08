@@ -361,9 +361,29 @@ and corresponding default values.
 [enum] Finally, the initialization method [method init] is dispatched, if
 available for [arg instance]. [method "init"] can be defined by [arg cls] on
 behalf of its instance [arg instance], e.g., to lay out a
-class-specific initialisation behaviour. Alternatively, or
-additionally, the object [arg instance] may define an per-object
-[method init] on its own.
+class-specific initialisation behaviour.
+
+[example_begin]
+% nx::Class create Foo {:property x}
+% Foo method init {} {set :y [lb]expr {${:x} + 1}[rb]}
+% Foo public method bar {} {return ${:y}}
+% Foo create f1 -x 101
+% f1 cget -x
+101
+% f1 bar
+102
+[example_end]
+
+Alternatively, the object [arg instance] may define an per-object
+[method init] on its own. A per-object [method init] can be chained to
+a class-level [method init] using [cmd nx::next], just like a regular
+method.
+
+[para]
+
+Note that the definition of an [method init] method must contain an
+empty parameter specification, since [method init] is always called
+with an empty argument list.
 
 [list_end]
 
