@@ -802,7 +802,7 @@ nx::test case parametersyntax {
   ? {::nx::Class info method syntax method} \
       "/cls/ method /name/ /arguments/ ?-checkalways? ?-returns /value/? /body/"
   # a forwarder to ::nsf::relation; definition comes via array ::nsf::parametersyntax
-  ? {::nx::Class info method syntax mixins} "/cls/ mixins add /class/|clear|delete /class/|get|guard /expr/|set /class .../"
+  ? {::nx::Class info method syntax mixins} "/cls/ mixins add /class/|classes ?/pattern/?|clear|delete /class/|get|guard /class/ /?expr?/|set /class .../"
 
   ? {::nx::Class info method syntax ::nx::next} "/cls/ next ?/arguments/?"
   ? {::nx::Class info method syntax ::nsf::xotclnext} "/cls/ xotclnext ?--noArgs? ?/arg .../?"

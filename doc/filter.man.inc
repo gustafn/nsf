@@ -5,7 +5,7 @@
 [call [arg [vset CMD]] [const [vset MODIFIER]] [method filters] [arg submethod] [opt "[arg arg] ..."]]
 
 Accesses and modifies the list of methods which are registered as
-[term "filter"]s with [arg obj] using a specific setter or getter 
+[term "filter"]s with [arg [vset CMD]] using a specific setter or getter 
 [arg submethod]:
 
 [list_begin definitions]
@@ -19,15 +19,21 @@ Removes all [term "filter"]s from [arg [vset CMD]] and returns the list of remov
 is equivalent to passing an empty list for [arg filterSpecList] to
 [const [vset SCOPE]] [method {filter set}].
 
-[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {filters get}]"]
-Returns the list of current [term "filter specification"]s registered for [vset CMD].
-
 [def "[arg [vset CMD]] [const [vset MODIFIER]] [method {filters delete}] [option -nocomplain] [arg specPattern]"]
 Removes a single [term "filter"] from the current list of [term "filter"]s of
 [arg [vset CMD]] whose spec matches [arg specPattern]. [arg specPattern] can
 contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "filters delete"] will
 throw an error if there is no matching [term "filter"], unless
 [option -nocomplain] is set.
+
+[para]
+
+If [arg expr] is omitted, returns the guard expression set on the
+[term "filter"] [arg methodName] defined for [arg [vset CMD]]. If none
+is available, an empty string will be returned.
+
+[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {filters get}]"]
+Returns the list of current [term "filter specification"]s registered for [vset CMD].
 
 [def "[arg [vset CMD]] [const [vset MODIFIER]] [method {filters guard}] [arg methodName] [opt [arg expr]]"]
 
@@ -36,16 +42,10 @@ If [arg expr] is specified, registers a guard expression [arg expr] with a filte
 [cmd expr]). An empty string for [arg expr] will clear the currently registered
 guard expression for filter [arg methodName].
 
-[para]
-
-If [arg expr] is omitted, returns the guard expression set on the
-[term "filter"] [arg methodName] defined for [arg [vset CMD]]. If none
-is available, an empty string will be returned.
-
 [def "[arg [vset CMD]] [const [vset MODIFIER]] [method "filters methods"] [opt [arg pattern]]"]
 
 If [arg pattern] is omitted, returns all filter names which are
-defined by [arg obj]. By specifying [arg pattern], the returned
+defined by [arg [vset CMD]]. By specifying [arg pattern], the returned
 filters can be limited to those whose names match [arg patterns] (see
 [cmd "string match"]).
 

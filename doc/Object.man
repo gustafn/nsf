@@ -228,26 +228,28 @@ namespaces, filters, mixins, and traces.
 
 [list_end]
 
-[cmd_def defaultmethod]
+[comment {
+  [cmd_def defaultmethod]
+  
+  [list_begin definitions]
+  
+  [call [arg obj] [cmd defaultmethod]]
 
-[list_begin definitions]
+  This method is called implicitly when the object command is invoked
+  without an argument. By default, the [cmd defaultmethod]
+  implementation returns the fully qualified object name.
 
-[call [arg obj] [cmd defaultmethod]]
-
-This method is called implicitly when the object command is invoked
-without an argument. By default, the [cmd defaultmethod]
-implementation returns the fully qualified object name.
-
-[example_begin]
-% Object create ::foo
-::foo
-% ::foo defaultmethod
-::foo
-% ::foo
-::foo
-[example_end]
-
-[list_end]
+  [example_begin]
+  % Object create ::foo
+  ::foo
+  % ::foo defaultmethod
+  ::foo
+  % ::foo
+  ::foo
+  [example_end]
+  
+  [list_end]
+}]
 
 [cmd_def delete]
 
@@ -554,8 +556,9 @@ matching characters (see [cmd "string match"]).
 
 [list_end]
 
+[comment { 
 [cmd_def init]
-
+  
 [list_begin definitions]
 
 [call [arg obj] [cmd init] [opt "[arg arg] ..."]]
@@ -578,6 +581,7 @@ since [method init] is always called with an empty argument list.
 102
 [example_end]
 [list_end]
+}]
 
 
 [cmd_def method]
@@ -619,20 +623,6 @@ Computes and returns the configuration options available for [arg obj], to be co
 
 [list_end]
 
-
-[cmd_def require]
-
-[list_begin definitions]
-
-[call [arg obj] [method require] [method namespace]]
-
-Create a Tcl namespace named after the object [arg obj]. All object
-variables become available as namespace variables.
-
-[include require.man.inc]
-
-[list_end]
-
 [cmd_def property]
 
 [list_begin definitions]
@@ -662,6 +652,19 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 % ::obj eval {set :x}
 2
 }]
+
+[list_end]
+
+[cmd_def require]
+
+[list_begin definitions]
+
+[call [arg obj] [method require] [method namespace]]
+
+Create a Tcl namespace named after the object [arg obj]. All object
+variables become available as namespace variables.
+
+[include require.man.inc]
 
 [list_end]
 

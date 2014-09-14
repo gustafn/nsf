@@ -4,18 +4,25 @@
 [keywords "forward method"]
 [keywords "debugging level"]
 
-[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset MODIFIER]] [method forward] [arg methodName] [opt "[option -prefix] [arg prefixName]"] [opt "[option -frame] [arg object]"] [opt "[option -returns] [arg valueChecker]"] [opt [option -verbose]] [arg target] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset MODIFIER]] [method forward] [arg methodName] [opt "[option -prefix] [arg prefixName]"] [opt "[option -frame] [arg object]"] [opt "[option -returns] [arg valueChecker]"] [opt [option -verbose]] [opt [arg target]] [opt "[arg arg] ..."]]
 
 Define a [term "forward method"] for the given [vset SCOPE]. The
 definition of a [term "forward method"] registers a predefined, but
 changeable list of forwarder arguments under the (forwarder) name [arg methodName]. Upon
 calling the [term "forward method"], the forwarder
-arguments are evaluated as a Tcl command call. That is, [arg target]
+arguments are evaluated as a Tcl command call. That is, if present, [arg target]
 is interpreted as a Tcl command (e.g., a Tcl [cmd proc] or an object)
 and the remainder of the forwarder arguments [arg arg] as arguments passed into
 this command. The actual method arguments to the invocation of the
 [term "forward method"] itself are appended to the list of forwarder
 arguments.
+
+If [arg target] is omitted, the value of [arg methodName] is
+implicitly set and used as [arg target]. This way, when providing a
+fully-qualified Tcl command name as [arg methodName] without [arg target], the
+unqualified [arg methodName] ([cmd "namespace tail"]) is used as the
+forwarder name; while the fully-qualified one serves as the [arg target].
+
 
 [para] 
 

@@ -473,7 +473,9 @@ namespace eval ::nx {
       set path [lrange $callInfo 1 end-1]
       set m [lindex $callInfo end]
       set obj [lindex $callInfo 0]
-      #puts stderr "CI=<$callInfo> args <$args>"
+      ::nsf::__db_show_stack
+      puts stderr "CI=<$callInfo> args <$args>"
+
       #puts stderr "### [list $obj ::nsf::methods::object::info::lookupmethods -path \"$path *\"]"
       if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]} errorMsg]} {
 	set valid ""
@@ -2725,12 +2727,12 @@ namespace eval ::nx {
 
   #interp alias {} ::nx::self {} ::nsf::self
 
-  set value "add /class/|clear|delete /class/|get|guard /expr/|set /class .../"
+  set value "add /class/|classes ?/pattern/?|clear|delete /class/|get|guard /class/ /?expr?/|set /class .../"
   set "::nsf::parameter::syntax(::nx::Object::slot::__object::object mixins)"  $value
   set "::nsf::parameter::syntax(::nsf::classes::nx::Class::mixins)"            $value
-  set "::nsf::parameter::syntax(::nsf::classes::nx::Class::superclasses)"      $value
+  # set "::nsf::parameter::syntax(::nsf::classes::nx::Class::superclasses)"      $value
   set "::nsf::parameter::syntax(::nsf::classes::nx::Object::class)"           "?/className/?"
-  set value "add /filter/|clear|delete /filter/|get|guard /expr/|set /filter .../"
+  set value "add /filter/|clear|delete /filter/|get|guard /filter/ ?/expr/?|methods ?/pattern/?|set /filter .../"
   set "::nsf::parameter::syntax(::nx::Object::slot::__object::object filters)" $value
   set "::nsf::parameter::syntax(::nsf::classes::nx::Class::filters)"           $value
   set "::nsf::parameter::syntax(::nsf::classes::nx::Object::eval)"            "/arg/ ?/arg/ ...?"
