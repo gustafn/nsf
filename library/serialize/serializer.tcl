@@ -933,14 +933,23 @@ namespace eval ::nx::serializer {
     }
 
     :object method method-serialize {o m prefix} {
-      set arglist [list]
-      foreach v [$o info ${prefix}args $m] {
-        if {[$o info ${prefix}default $m $v x]} {
-	  #puts "... [list $o info ${prefix}default $m $v x] returned 1, x?[info exists x] level=[info level]"
-          lappend arglist [list $v $x] } {lappend arglist $v}
+      if {![nsf::is class $o] || $prefix eq ""} {
+        set scope object
+      } else {
+        set scope class
       }
+      set arglist [$o ::nsf::methods::${scope}::info::method parameter $m]
+
+      # set arglist0 [list]
+      # foreach v [$o info ${prefix}args $m] {
+      #   if {[$o info ${prefix}default $m $v x]} {
+      #      #puts "... [list $o info ${prefix}default $m $v x] returned 1, x?[info exists x] level=[info level]"
+      #      lappend arglist0 [list $v $x] } {lappend arglist0 $v}
+      # }
+      # set arglist0 [concat [$o info ${prefix}nonposargs $m] $arglist0] 
+      # puts stderr "====== [list $o $m $prefix] scope $scope => NEW $arglist OLD $arglist0"
       lappend r ${:targetName} ${prefix}proc $m \
-          [concat [$o info ${prefix}nonposargs $m] $arglist] \
+          $arglist \
           [$o info ${prefix}body $m]
       foreach p {pre post} {
         if {[$o info ${prefix}$p $m] ne ""} {lappend r [$o info ${prefix}$p $m]}
