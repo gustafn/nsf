@@ -26878,8 +26878,9 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj,
   parsedParamPtr->possibleUnknowns = 0;
 
   if (class == NULL) {
-    if ((object && object->flags & NSF_HAS_PER_OBJECT_SLOTS)
-        || (object && object->opt && object->opt->objMixins)
+    assert(object != NULL);
+    if ((object->flags & NSF_HAS_PER_OBJECT_SLOTS)
+        || (object->opt && object->opt->objMixins)
         ) {
       /*
        * We have object-specific parameters.  Do not use the per-class cache,
