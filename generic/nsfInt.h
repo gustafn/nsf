@@ -94,12 +94,6 @@
 # define returns_nonnull
 #endif
 
-#if __GNUC_PREREQ(4, 9)
-# define returns_nonnull __attribute__((returns_nonnull))
-#else
-# define returns_nonnull
-#endif
-
 /*
  * Tries to use gcc __attribute__ unused and mangles the name, so the
  * attribute could not be used, if declared as unused.
