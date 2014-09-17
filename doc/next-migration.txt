@@ -2632,6 +2632,14 @@ current class
 ----------------
 |[source,tcl]
 ----------------
+self args
+----------------
+|[source,tcl]
+----------------
+current args
+----------------
+|[source,tcl]
+----------------
 self proc
 ----------------
 |[source,tcl]
@@ -2644,7 +2652,7 @@ self callingclass
 ----------------
 |[source,tcl]
 ----------------
-current currentclass
+current calledclass
 ----------------
 |[source,tcl]
 ----------------

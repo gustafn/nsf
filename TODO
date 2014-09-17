@@ -5502,6 +5502,9 @@ nsf.c:
 - see no need, why we should "set nodashalnum for int types"
 - extended regression test
 
+documentation:
+- add current args to migration guide
+- fix cut&paste error: replace "current currentclass" by "current calledclass"
 
 ========================================================================
 TODO:
