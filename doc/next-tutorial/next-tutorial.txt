@@ -12,7 +12,7 @@ Written for the Initial Release of the Next Scripting Framework.
 
 .Abstract
 *****************************************************************************
-This document provides a tutorial for the Next Scripting 
+This document provides a tutorial for the Next Scripting
 Language NX.
 *****************************************************************************
 
@@ -119,14 +119,14 @@ nx::Class create Stack {
    #
    # Stack of Things
    #
-   
+
    :variable things {}
 
    :public method push {thing} {
-      set :things [linsert ${:things} 0 $thing] 
+      set :things [linsert ${:things} 0 $thing]
       return $thing
    }
-  
+
    :public method pop {} {
       set top [lindex ${:things} 0]
       set :things [lrange ${:things} 1 end]
@@ -191,7 +191,7 @@ provide an interface to the stack implementation.
 --------------------------------------------------
 #!/usr/bin/env tclsh
 package require nx
- 
+
 nx::Class create Stack {
 
    #
@@ -199,7 +199,7 @@ nx::Class create Stack {
    #
    ....
 }
- 
+
 Stack create s1
 s1 push a
 s1 push b
@@ -272,10 +272,10 @@ nx::Object create stack {
    :object variable things {}
 
    :public object method push {thing} {
-      set :things [linsert ${:things} 0 $thing] 
+      set :things [linsert ${:things} 0 $thing]
       return $thing
    }
-  
+
    :public object method pop {} {
       set top [lindex ${:things} 0]
       set :things [lrange ${:things} 1 end]
@@ -295,7 +295,7 @@ following points are different.
    this single instance  (the object +stack+).
 
 - The definition for the methods +push+ and +pop+ are the same as
-  before, but here we defined these with +object method+. Therefore, 
+  before, but here we defined these with +object method+. Therefore,
   these two methods +push+ and +pop+ are object-specific.
 
 In order to use
@@ -352,12 +352,12 @@ nx::Class create Safety {
   #
   # Implement stack safety by defining an additional
   # instance variable named "count" that keeps track of
-  # the number of stacked elements. The methods of 
+  # the number of stacked elements. The methods of
   # this class have the same names and argument lists
   # as the methods of Stack; these methods "shadow"
   # the methods of class Stack.
   #
-  
+
   :variable count 0
 
   :public method push {thing} {
@@ -428,8 +428,8 @@ empty (the value of +count+ reaches 0), and +pop+ is invoked, the
 mixin class +Safety+ generates an error message (raises an exception),
 and does not invoke the method of the +Stack+.
 
-The last two commands in 
-<<xmp-using-class-safety,{xmp-using-class-safety}>> 
+The last two commands in
+<<xmp-using-class-safety,{xmp-using-class-safety}>>
 use introspection to query for the objects
 +s1+ and +s2+ in which order the involved classes are processed. This
 order is called the +precedence order+ and is obtained via +info
@@ -457,8 +457,8 @@ defining classes of safe stacks:
 [source,tcl,numbers]
 --------------------------------------------------
 #
-# Create a safe stack class by using Stack and mixin 
-# Safety 
+# Create a safe stack class by using Stack and mixin
+# Safety
 #
 nx::Class create SafeStack -superclass Stack -mixin Safety
 
@@ -468,7 +468,7 @@ SafeStack create s3
 The difference of a per-class mixin and an per-object mixin is that
 the per-class mixin is applicable to all instances of the
 class. Therefore, we call these mixins also sometimes instance mixins.
-In our example in <<xmp-class-safestack,{xmp-class-safestack}>>, 
+In our example in <<xmp-class-safestack,{xmp-class-safestack}>>,
 +Safety+ is mixed into the definition of
 +SafeStack+. Therefore, all instances of the class +SafeStack+ (here
 the instance +s3+) will be using the safety definitions.
@@ -482,7 +482,7 @@ for this definition.
 Note that we could use +Safety+ as well as a per-class mixin on
 +Stack+. In this case, all stacks would be safe stacks and we could
 not provide a selective feature selection (which might be perfectly
-fine). 
+fine).
 
 === Define Different Kinds of Stacks
 
@@ -500,9 +500,9 @@ object-specific methods.
 --------------------------------------------------
 Stack create s4 {
 
-  # 
-  # Create a stack with a object-specific method 
-  # to check the type of entries 
+  #
+  # Create a stack with a object-specific method
+  # to check the type of entries
   #
 
   :public object method push {thing:integer} {
@@ -534,7 +534,7 @@ shadowed generic definition of +push+ as provided by +Stack+.
 --------------------------------------------------
 nx::Class create IntegerStack -superclass Stack {
 
-  # 
+  #
   # Create a Stack accepting only integers
   #
 
@@ -555,7 +555,7 @@ In our previous examples we defined methods provided by classes
 (applicable for their instances) and object-specific methods (methods
 defined on objects, which are only applicable for these objects). In
 this section, we introduce methods that are defined on the class
-objects. Such methods are sometimes called _class methods_ or 
+objects. Such methods are sometimes called _class methods_ or
 _static methods_.
 
 In NX classes are objects, they are specialized objects with
@@ -581,7 +581,7 @@ nx::Class create Stack2 {
    :variable things {}
 
    :public method push {thing} {
-      set :things [linsert ${:things} 0 $thing] 
+      set :things [linsert ${:things} 0 $thing]
       return $thing
    }
 
@@ -629,7 +629,7 @@ instance variable, or a global variable.  The rules are:
    scoped variable. Such a variable is created during the invocation
    of the method, and it is deleted, when the method ends.  In the
    example below, the variable +a+ is method scoped.
-   
+
 - A variable with a single colon prefix refers to an instance
     variable.  An instance variable is part of the object; when the
     object is destroyed, its instance variables are deleted as well. In the
@@ -704,7 +704,7 @@ an implementation of this conceptual model in NX.
 [source,tcl,numbers]
 --------------------------------------------------
 #
-# Define a class Person with properties "name" 
+# Define a class Person with properties "name"
 # and "birthday"
 #
 nx::Class create Person {
@@ -713,7 +713,7 @@ nx::Class create Person {
 }
 
 #
-# Define a class Student as specialization of Person 
+# Define a class Student as specialization of Person
 # with additional properties
 #
 nx::Class create Student -superclass Person {
@@ -738,7 +738,7 @@ these configurable.  When we create an instance of +Person+ named
 during creation. The properties result in non-positional configure parameters
 which can be provided in any order. In our listing, we create an instance of
 +Person+ using the configure  parameter +name+ and provide the value of
-+Bob+ to the instance variable +name+.  
++Bob+ to the instance variable +name+.
 
 The class +Student+ is defined as a specialization of +Person+ with
 two additional properties: +matnr+ and +oncampus+. The property
@@ -762,7 +762,7 @@ exception will be triggered. The property +oncamups+ is boolean and
 contains a default value. Providing a default value means that
 whenever we create an instance of this class the object will contain
 such an instance variable, even when we provide no value via the
-configure parameters. 
+configure parameters.
 
 In our listing, we create an instance of +Student+ using the two
 configure parameters +name+ and +matnr+. Finally, we use method +cget+
@@ -808,7 +808,7 @@ Derived create d1
 Note that the variable definitions are inherited in the same way as
 properties. The example in <<xmp-variable, {xmp-variable}>> shows a
 class +Derived+ that inherits from +Base+. When an instance +d1+ is
-created, it will contain the two instance variables +x+ and +y+. 
+created, it will contain the two instance variables +x+ and +y+.
 Note that the variable declarations from +property+ and +variable+ are
 used to initialize (and to configure) the instances variables of an object.
 
@@ -857,10 +857,10 @@ specific behavior.
 The basic building blocks of an object oriented program are object and
 classes, which contain named pieces of code, the methods.
 
-=========================================== 
-*Methods* are subroutines (pieces of code) associated with objects 
+===========================================
+*Methods* are subroutines (pieces of code) associated with objects
 and/or classes. A method has a name, receives optionally arguments
-during invocation and returns a value. 
+during invocation and returns a value.
 ===========================================
 
 Plain Tcl provides subroutines, which are not associated with objects
@@ -872,7 +872,7 @@ objects these methods are applicable to. These are described in more
 detail later on. For the time being, we deal here with methods defined
 on classes, which are applicable for the instance of these classes.
 
-==== Scripted Methods 
+==== Scripted Methods
 
 Since NX is a scripting language, most methods are most likely
 scripted methods, in which the method body contains Tcl code.
@@ -922,8 +922,8 @@ might reuse some generic C code to define their own C-implemented
 methods. Such methods are for example _accessors_, _forwarders_ and
 _aliases_.
 
-=========================================== 
-An *accessor method* is a method that accesses instance 
+===========================================
+An *accessor method* is a method that accesses instance
 variables of an object. A call to an accessor
 without arguments uses the accessor as a getter, obtaining the actual
 value of the associated variable. A call to an accessor with an
@@ -932,7 +932,7 @@ variable.
 ===========================================
 
 NX provides support for C-implemented accessor methods. Accessors have
-already been mentioned in the section about properties. When 
+already been mentioned in the section about properties. When
 the option +-accessor public|protected|private+ is provided to a
 +variable+ or +property+ definition, NX creates automatically a
 same-named accessors method.
@@ -956,12 +956,12 @@ nx::Class create Tail {
 Dog create fido
 
 # Use the accessor "length" as a getter, to obtain the value
-# of a property. The following call returns the length of the 
+# of a property. The following call returns the length of the
 # tail of fido
 fido::tail length get
 
 # Use the accessor "length" as a setter, to alter the value
-# of a property. The following call changes the length of 
+# of a property. The following call changes the length of
 # the tail of fido
 fido::tail length set 10
 
@@ -976,7 +976,7 @@ full name of the subobject +fido::tail+. The method +length+ is an
 C-implemented accessor, that enforces the value constraint (here a
 floating point number, since length uses the value constraint
 +double+). Line 25 will therefore raise an exception, since the
-provided values cannot be converted to a double number. 
+provided values cannot be converted to a double number.
 
 [[xmp-fido3]]
 .Listing {counter:figure-number}: Forwarder Methods
@@ -985,7 +985,7 @@ provided values cannot be converted to a double number.
 --------------------------------------------------
 nx::Class create Dog {
   :public method bark {} { puts "[self] Bark, bark, bark." }
-  :method init {} { 
+  :method init {} {
     Tail create [self]::tail
     :public object forward wag [self]::tail wag
   }
@@ -1009,7 +1009,7 @@ forwarder named +wag+ to the object (e.g. +fido+). The forwarder
 redirects all calls of the form +fido wag+ with arbitrary arguments to
 the subobject +fido::tail+.
 
-=========================================== 
+===========================================
 A *forwarder method* is a
 C-implemented method that redirects an invocation for a certain method
 to either a method of another object or to some other method of the
@@ -1028,9 +1028,9 @@ etc. This will be described in later sections.
 
 ==== Method-Aliases
 
-=========================================== 
-An *alias method* is a means to register either an existing method, 
-or a Tcl proc, or a Tcl command as a method with the provided 
+===========================================
+An *alias method* is a means to register either an existing method,
+or a Tcl proc, or a Tcl command as a method with the provided
 name on a class or object.
 ===========================================
 
@@ -1057,7 +1057,7 @@ nx::Class create Dog {
 Dog create fido
 
 # The following line prints "::fido Bark, bark, bark."
-fido warn 
+fido warn
 --------------------------------------------------
 
 <<xmp-fido4,{xmp-fido4}>> extends the last example by defining an
@@ -1073,12 +1073,12 @@ are as well a means for implementing traits in NX.
 All kinds of methods might have different kind of protections in NX.
 The call-protection defines from which calling context methods might
 be called. The Next Scripting Framework supports as well redefinition
-protection for methods. 
+protection for methods.
 
 NX distinguishes between +public+, +protected+ and +private+ methods,
 where the default call-protection is +protected+.
 
-=========================================== 
+===========================================
 A *public* method can be called from every context. A *protected*
 method can only be invoked from the same object. A *private* method
 can only be invoked from methods defined on the same entity
@@ -1145,7 +1145,7 @@ nx::Class create Base {
   :private method helper {a b} {expr {$a + $b}}
   :public method foo     {a b} {: -local helper $a $b}
 }
-    
+
 nx::Class create Sub -superclass Base {
   :public method bar     {a b} {: -local helper $a $b}
   :private method helper {a b} {expr {$a * $b}}
@@ -1185,7 +1185,7 @@ defines therefore internally a variable with a different name to avoid
 unintended interactions. The variable should be accessed via the
 private accessor, which can be invoked with the +-local+ flag.  In the
 following example class +D+ introduces a private property with the
-same name as a property in the superclass. 
+same name as a property in the superclass.
 
 [[xmp-private-properties]]
 .Listing {counter:figure-number}: Private Properties
@@ -1201,19 +1201,19 @@ nx::Class create C {
 
 #
 # Define a subclass D with a private property "x"
-# and a method bar, which is capable of accessing 
+# and a method bar, which is capable of accessing
 # the private property.
 #
 nx::Class create D -superclass C {
   :property -accessor private {x d}
   :public method bar {p} {return [: -local $p get]}
 }
- 
+
 #
 # The private and public (or protected) properties
 # define internally separate variable that do not
 # conflict.
-# 
+#
 D create d1
 puts [d1 x get]   ;# prints "c"
 puts [d1 bar x]   ;# prints "d"
@@ -1228,7 +1228,7 @@ definition of the property in the superclass +C+ for its instances
 
 As defined above, a method is a subroutine defined on an object or
 class. This object (or class) contains the method. If the object (or
-class) is deleted, the contained methods will be deleted as well. 
+class) is deleted, the contained methods will be deleted as well.
 
 ==== Instance Methods
 
@@ -1270,7 +1270,7 @@ Object methods cannot be inherited from other objects.
 The following example defines an object method +bar+ on the
 instance +c1+ of class +C+, and as well as the object specific method
 +baz+ defined on the object +o1+. An object method is defined
-via +object method+. 
+via +object method+.
 
 Note that we can define a object method that shadows (redefines)
 for this object methods provided from classes.
@@ -1346,7 +1346,7 @@ C bar
 # therefore applicable on instance "c1"
 c1 foo
 
-# When trying to invoke the class method on the 
+# When trying to invoke the class method on the
 # instance, an error will be raised.
 c1 bar
 --------------------------------------------------
@@ -1354,7 +1354,7 @@ c1 bar
 In some other object oriented programming languages, class methods
 are called "static methods".
 
-=== Ensemble Methods 
+=== Ensemble Methods
 
 NX provides _ensemble methods_ as a means to structure the method name
 space and to group related methods. Ensemble methods are similar in
@@ -1405,13 +1405,13 @@ following order:
 [align="center"]
 ++++
 Per-object Mixins -> Per-class Mixins -> Object -> Intrinsic Class Hierarchy
-++++ 
+++++
 
 In the case, no mixins are involved, first the object is searched for
 an object method with the given name, and then the class hierarchy
 of the object. The method can be defined multiple times on the search
 path, so some of these method definitions might be _shadowed_ by the
-more specific definitions. 
+more specific definitions.
 
 
 [[xmp-method-resolution]]
@@ -1420,19 +1420,19 @@ more specific definitions.
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Class create C {
-  :public method foo {} { 
+  :public method foo {} {
     return "C foo: [next]"
   }
 }
 
 nx::Class create D -superclass C {
 
-  :public method foo {} { 
+  :public method foo {} {
     return "D foo: [next]"
   }
 
    :create d1 {
-     :public object method foo {} { 
+     :public object method foo {} {
        return "d1 foo: [next]"
      }
    }
@@ -1478,13 +1478,13 @@ nx::Class create M2 {
 
 #
 # "d1" is created based on the definitions of the last example
-# 
+#
 # Add the methods from "M1" as per-object mixin to "d1"
-d1 object mixin add M1
+d1 object mixins add M1
 
 #
 # Add the methods from "M2" as per-class mixin to class "C"
-C mixin add M2
+C mixins add M2
 
 # Invoke the method foo
 d1 foo
@@ -1511,8 +1511,8 @@ method in the per-object mixin.
 --------------------------------------------------
 #
 # "d1" is created based on the definitions of the last two examples,
-# the mixins "M1" and "M2" are registered. 
-# 
+# the mixins "M1" and "M2" are registered.
+#
 # Define a public object method "bar", which calls the method
 # "foo" which various invocation options:
 #
@@ -1533,7 +1533,7 @@ current object (therefore, the call is equivalent to +d1 foo+). The
 next three calls show how to provide flags that influence the method
 resolution. The flags can be provided between the colon and the method
 name. These flags are used rather seldomly but can be helpful in some
-situations. 
+situations.
 
 The invocation flag +-local+ means that the method has to be resolved
 from the same place, where the current method is defined. Since the
@@ -1545,7 +1545,7 @@ methods.
 
 The invocation flag +-intrinsic+ means that the method has to be resolved
 from the intrinsic definitions, meaning simply without mixins. The
-effect is here the same as with the invocation flag +-local+. 
+effect is here the same as with the invocation flag +-local+.
 
 The invocation flag +-system+ means that the method has to be resolved
 from basic - typically predefined - classes of the object system. This
@@ -1556,9 +1556,9 @@ is returned.
 
 The output of <<xmp-method-resolution3,{xmp-method-resolution3}>> is:
 ----
-   M1 foo: M2 foo: d1 foo: D foo: C foo: 
-   d1 foo: D foo: C foo: 
-   d1 foo: D foo: C foo: 
+   M1 foo: M2 foo: d1 foo: D foo: C foo:
+   d1 foo: D foo: C foo:
+   d1 foo: D foo: C foo:
    ::d1: unable to dispatch method 'foo'
 ----
 
@@ -1567,7 +1567,7 @@ The output of <<xmp-method-resolution3,{xmp-method-resolution3}>> is:
 
 NX provides a generalized mechanism for passing values to either
 methods (we refer to these as _method parameters_) or to objects
-(these are called _configure parameters_). Both kind of parameters 
+(these are called _configure parameters_). Both kind of parameters
 might have different features, such as:
 
 - Positional and non-positional parameters
@@ -1616,7 +1616,7 @@ nx::Object create o1 {
   }
 
   #
-  # Method baz has non-positional and 
+  # Method baz has non-positional and
   # positional parameters:
   #
   :public object method baz {-x -y a} {
@@ -1722,7 +1722,7 @@ Similarly, we define method +bar+ in <<xmp-optional-req,
 {xmp-optional-req}>> with one required and one optional non-positional
 parameter. The parameter definition +-y:optional+ is equivalent to
 +-y+, since non-positional parameter are per default optional.
-However, the non-positional parameter +-x:required+ is required. If we 
+However, the non-positional parameter +-x:required+ is required. If we
 invoke +bar+ without it, the system will raise an exception.
 
 ==== Default Values for Parameters
@@ -1783,7 +1783,7 @@ most efficient checkers) or the value checkers provided by Tcl through
 they can be used also at any time during bootstrap of an object
 system, at a time, when e.g. no objects or methods are defined. The
 same checkers are used as well for all C-implemented primitives of NX
-and the Next Scripting Framework. 
+and the Next Scripting Framework.
 
 [[img-value-checkers]]
 image::value-checkers.png[align="center",title="General Applicable Value Checkers in NX"]
@@ -1914,7 +1914,7 @@ value checkers on class +nx::Slot+. The first value checker is called
 }
 
 #
-# Create an application class D 
+# Create an application class D
 # using the new value checkers
 #
 nx::Class create D {
@@ -1928,13 +1928,13 @@ nx::Class create D {
 
 D create d1
 
-# testing "groupsize"; 
+# testing "groupsize";
 # the second call (with value 10) will raise an exception:
-d1 foo 2 
+d1 foo 2
 d1 foo 10
 
 # testing "choice"
-# the second call (with value pink for parameter a) 
+# the second call (with value pink for parameter a)
 # will raise an exception:
 d1 bar green good
 d1 bar pink bad
@@ -1971,7 +1971,7 @@ parameterized value checkers might be more convenient.
 
 *****************************************************************************
 *Multiplicity* is used to define whether a parameter should receive
-single or multiple values. 
+single or multiple values.
 *****************************************************************************
 
 A multiplicity specification has a lower and an upper bound. A lower
@@ -1996,7 +1996,7 @@ previous examples).
 nx::Object create o6 {
 
   #
-  # Positional parameter with an possibly empty 
+  # Positional parameter with an possibly empty
   # single value
   #
   :public object method foo {x:integer,0..1} {
@@ -2004,7 +2004,7 @@ nx::Object create o6 {
   }
 
   #
-  # Positional parameter with an possibly empty 
+  # Positional parameter with an possibly empty
   # list of values value
   #
   :public object method bar {x:integer,0..n} {
@@ -2012,7 +2012,7 @@ nx::Object create o6 {
   }
 
   #
-  # Positional parameter with a non-empty 
+  # Positional parameter with a non-empty
   # list of values
   #
   :public object method baz {x:integer,1..n} {
@@ -2093,7 +2093,7 @@ application classes +Person+ and +Student+ with a few properties.
 [source,tcl,numbers]
 --------------------------------------------------
 #
-# Define a class Person with properties "name" 
+# Define a class Person with properties "name"
 # and "birthday"
 #
 nx::Class create Person {
@@ -2102,7 +2102,7 @@ nx::Class create Person {
 }
 
 #
-# Define a class Student as specialization of Person 
+# Define a class Student as specialization of Person
 # with and additional property
 #
 nx::Class create Student -superclass Person {
@@ -2151,10 +2151,10 @@ The configure parameters are not limited to the application defined
 properties, also NX provides some predefined definitions. Since
 +Person+ is a subclass of +nx::Object+ also the configure parameters of
 +nx::Object+ are inherited. In the introductory stack example, we used
-+-mixin+ applied to an object to denote per-object mixins (see
-<<xmp-using-class-safety, {xmp-using-class-safety}>>). Since +mixin+
++-mixins+ applied to an object to denote per-object mixins (see
+<<xmp-using-class-safety, {xmp-using-class-safety}>>). Since +mixins+
 is defined as a parameter on +nx::Object+ it can be used as an object
-parameter +-mixin+ for all objects in NX. To put it in other words,
+parameter +-mixins+ for all objects in NX. To put it in other words,
 every object can be configured to have per-object mixins. If we would
 remove this definition, this feature would be removed as well.
 
@@ -2173,31 +2173,31 @@ the configure parameters of +Person p1+ and +Student s1+.
 {set:xmp-object-parameter-list:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
-Configure parameters for Person p1: 
-   Command:   
+Configure parameters for Person p1:
+   Command:
       p1 info lookup syntax configure
-   Result: 
-      -name /value/ ?-birthday /value/? ?-object-mixin /mixinreg .../? 
-      ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
+   Result:
+      -name /value/ ?-birthday /value/? ?-object-mixins /mixinreg .../?
+      ?-class /class/? ?-object-filters /filterreg .../? ?/__initblock/?
 
 Configure parameter for Student s1:
-   Command:   
+   Command:
       s1 info lookup syntax configure
-   Result: 
-      ?-oncampus /boolean/? -matnr /value/ -name /value/ 
-      ?-birthday /value/? ?-object-mixin /mixinreg .../? ?-class /class/?
-      ?-object-filter /filterreg .../? ?/__initblock/?
+   Result:
+      ?-oncampus /boolean/? -matnr /value/ -name /value/
+      ?-birthday /value/? ?-object-mixins /mixinreg .../? ?-class /class/?
+      ?-object-filters /filterreg .../? ?/__initblock/?
 --------------------------------------------------
 
-The given paramter show, how (a) objects can be configured 
-at runtime or (b) how new instances can be configured 
+The given paramter show, how (a) objects can be configured
+at runtime or (b) how new instances can be configured
 at creation time via the +new+ or +create+ methods.
 Introspection can be used to obtain the configuration
 parameters from an object via
-+p1 info lookup parameters configure+ 
++p1 info lookup parameters configure+
 (returning the configure parameters currently applicable for
 +configure+ or +cget+) or from a class
-+Person info lookup parameters create+ on a class 
++Person info lookup parameters create+ on a class
 (returning the configure parameters applicable when an object
 of this class is created)
 
@@ -2217,16 +2217,16 @@ specified, that +Student+ has +Person+ as superclass via the
 non-positional configure parameter +-superclass+. If no superclass is
 specified for a class, the default superclass is
 +nx::Object+. Therefore +nx::Object+ is the default value for the
-parameter +superclass+. 
+parameter +superclass+.
 
-Another frequently used parameter for classes is +-mixin+ to denote
+Another frequently used parameter for classes is +-mixins+ to denote
 per-class mixins (see e.g. the introductory Stack example in
 <<xmp-class-safestack,{xmp-class-safestack}>>), which is defined in
 the same way.
 
 Since +Student+ is an instance of the meta-class +nx::Class+ it
 inherits the configure parameters from +nx::Class+ (see class diagram
-<<img-configure-parameters,{img-configure-parameters}>>). 
+<<img-configure-parameters,{img-configure-parameters}>>).
 Therefore, one can use e.g. +-superclass+ in the definition of classes.
 
 Since +nx::Class+ is a subclass of +nx::Object+, the meta-class
@@ -2244,12 +2244,12 @@ Student+.
 [source,tcl,numbers]
 --------------------------------------------------
 Configure parameter for class nx::Class
-   Command:   
+   Command:
       nx::Class info lookup syntax configure
-   Result: 
-      ?-superclass /class .../? ?-mixin /mixinreg .../? 
-      ?-filter /filterreg .../? ?-object-mixin /mixinreg .../? 
-      ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
+   Result:
+      ?-superclass /class .../? ?-mixins /mixinreg .../?
+      ?-filters /filterreg .../? ?-object-mixins /mixinreg .../?
+      ?-class /class/? ?-object-filters /filterreg .../? ?/__initblock/?
 --------------------------------------------------
 
 ==== User defined Parameter Types
@@ -2299,7 +2299,7 @@ NX provides two kinds of unknown handlers:
 Object and classes might be equipped
 with a method +unknown+ which is called in cases, where an unknown
 method is called. The method unknown receives as first argument the
-called method followed by the provided arguments 
+called method followed by the provided arguments
 
 [[xmp-unknown-method]]
 .Listing {counter:figure-number}: Unknown Method Handler
@@ -2349,11 +2349,11 @@ from the keys of other unknown handlers).
 ::nx::Object create o {
   # The class M is unknown at this point
 
-  :object mixin add M
-  # The line above has triggered the unknown class handler, 
+  :object mixins add M
+  # The line above has triggered the unknown class handler,
   # class M is now defined
 
-  puts [:info object mixin classes]
+  puts [:info object mixins]
   # The output will be:
   #     ***** __unknown called with <::M>
   #     ::M

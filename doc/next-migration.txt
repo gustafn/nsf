@@ -92,7 +92,7 @@ in the following respects:
   make these accesses explicit should encourage developer to implement
   well defined interfaces to provide access to instance variables.
 
-. *Additional Forms of Method Definition and Reuse:* 
+. *Additional Forms of Method Definition and Reuse:*
    The Next Scripting Language
    provides much more orthogonal means to _define, reuse and
    introspect_ scripted and C-implemented methods.
@@ -105,7 +105,7 @@ in the following respects:
      to define explicitly public interfaces in order to use methods
      from other objects.
 
-   .. One can invoke in NX fully qualified methods to invoke 
+   .. One can invoke in NX fully qualified methods to invoke
      methods outside the precedence path.
 
    .. One can define in NX _hierachical method names_ (similar to
@@ -118,22 +118,22 @@ in the following respects:
 
 . *Orthogonal Parameterization:*
    The Next Scripting Language provides an _orthogonal framework for
-   parametrization_ of methods and objects. 
+   parametrization_ of methods and objects.
    .. In NX, the same argument parser is used for
      * Scripted Methods
      * C-implemented methods and Tcl commands
      * Object Parametrization
-   ..  While XOTcl 1 provided only value-checkers for non-positional 
-     arguments for methods, the Next Scripting Framework provides 
+   ..  While XOTcl 1 provided only value-checkers for non-positional
+     arguments for methods, the Next Scripting Framework provides
      the same value checkers for positional and non-positional
-     arguments of methods, as well as for positional and 
+     arguments of methods, as well as for positional and
      non-positional configure parameters (`-parameter` in
-     XOTcl 1). 
+     XOTcl 1).
   .. While XOTcl 1 supported only non-positional arguments at the
     begin of the argument list, these can be used now at arbitrary
     positions.
 
-. *Value Checking:* 
+. *Value Checking:*
 
    .. The Next Scripting Language supports checking of the _input
      parmeters_ and the _return values_ of scripted and C-implemented
@@ -169,7 +169,7 @@ in the following respects:
    * Significantly improved built-in profiling (results can be
      processed in Tcl).
 
-. *Significantly Improved Test Suite:* The regression test suite of 
+. *Significantly Improved Test Suite:* The regression test suite of
   Next Scripting Scripting framework contain now more than
   5.000 tests, and order of magnitude more than in XOTcl 1.6
 
@@ -194,7 +194,7 @@ are also available in XOTcl 2 (2a, 2c 2d, 3, 4).
 
 
 
-=== NX and XOTcl Scripts 
+=== NX and XOTcl Scripts
 
 Below is a small, introductory example showing an implementation of a
 class +Stack+ in NX and XOTcl. The purpose of this first example is
@@ -228,10 +228,10 @@ Class create Stack {
    :variable things ""
 
    :public method push {thing} {
-      set :things [linsert ${:things} 0 $thing] 
+      set :things [linsert ${:things} 0 $thing]
       return $thing
    }
-  
+
    :public method pop {} {
       set top [lindex ${:things} 0]
       set :things [lrange ${:things} 1 end]
@@ -250,14 +250,14 @@ Class Stack
 Stack instproc init {} {
    my instvar things
    set things ""
-} 
+}
 
 Stack instproc push {thing} {
    my instvar things
-   set things [linsert $things 0 $thing] 
+   set things [linsert $things 0 $thing]
    return $thing
 }
-  
+
 Stack instproc pop {} {
    my instvar things
    set top [lindex $things 0]
@@ -393,7 +393,7 @@ introduces method protection, which is only supported by NX.
 
 The following examples show the definition of a class and its methods
 in the init-block of a class (NX only), and the definition of methods
-via separate top level calls (XOTcl and NX). 
+via separate top level calls (XOTcl and NX).
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -401,8 +401,8 @@ via separate top level calls (XOTcl and NX).
 
 |[source,tcl]
 ----------------
-# Define instance method 'foo' and object 
-# method 'bar' for a Class 'C' with separate 
+# Define instance method 'foo' and object
+# method 'bar' for a Class 'C' with separate
 # toplevel commands
 
 Class C
@@ -421,7 +421,7 @@ Class create C {
 ----------------
 [source,tcl]
 ----------------
-# Define instance method and object method 
+# Define instance method and object method
 # with separate commands
 
 Class create C
@@ -441,8 +441,8 @@ o proc foo args {...}
 
 |[source,tcl]
 ----------------
-# Define object method and set 
-# instance variable in the init-block of 
+# Define object method and set
+# instance variable in the init-block of
 # an object
 
 Object create o {
@@ -452,8 +452,8 @@ Object create o {
 ----------------
 [source,tcl]
 ----------------
-# Define object method and set 
-# instance variable with separate 
+# Define object method and set
+# instance variable with separate
 # commands
 
 Object create o
@@ -555,22 +555,22 @@ o parametercmd p3
 ----------------
 # Define setter and getter methods in NX.
 #
-# NX does not provide own methods, but uses 
+# NX does not provide own methods, but uses
 # the low level framework commands, since
-# application developer will only seldomly 
+# application developer will only seldomly
 # need it.
 
 Class create C
 ::nsf::method::setter C p1
 ::nsf::method::setter C -per-object p2
 
-Object create o 
+Object create o
 ::nsf::method::setter o p3
 ----------------
 |======================
 
 NX supports in contrary to XOTcl the method +alias+ which can be used
-to register arbitrary Tcl commands or methods for an object or class 
+to register arbitrary Tcl commands or methods for an object or class
 under a provided method name. Aliases can be used to reuse a certain implementation in
 e.g. different object systems under potentially different names. In
 some respects aliases are similar to forwarders, but they do not
@@ -620,7 +620,7 @@ is new in NX.
 # Method modifiers
 #
 #   "object",
-#   "public", 
+#   "public",
 #   "protected", and
 #   "private"
 #
@@ -634,7 +634,7 @@ is new in NX.
 #   "public",
 #   "protected"
 #
-# are applicable for all kinds of 
+# are applicable for all kinds of
 # method defining methods:
 #
 #    method, forward, alias
@@ -666,7 +666,7 @@ The defaults can be overwritten also on a class level.
 NX provides means for method hiding via the method modifier
 +private+. Hidden methods can be invoked only via the +-local+ flag,
 which means: "call the specified method defined in the same
-class/object as the currently executing method". 
+class/object as the currently executing method".
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -674,7 +674,7 @@ class/object as the currently executing method".
 
 |[source,tcl]
 ----------------
-# XOTcl provides no means for 
+# XOTcl provides no means for
 # method hiding
 ----------------
 |[source,tcl]
@@ -685,7 +685,7 @@ nx::Class create Base {
   :private method baz {a b} {expr {$a + $b}}	
   :public method foo {a b} {: -local baz $a $b}
 }
-    
+
 nx::Class create Sub -superclass Base {
   :public method bar {a b} {: -local baz $a $b}
   :private method baz {a b} {expr {$a * $b}}
@@ -711,14 +711,14 @@ NX provides an explicit +delete+ method for the deletion of methods.
 
 |[source,tcl]
 ----------------
-# XOTcl provides only method deletion with 
+# XOTcl provides only method deletion with
 # the equivalent of Tcl's "proc foo {} {}"
 /cls/ instproc foo {} {}
 /obj/ proc foo {} {}
 ----------------
 |[source,tcl]
 ----------------
-# Deletion of Methods 
+# Deletion of Methods
 #
 /cls/ delete method /name/
 /obj/ delete object method /name/
@@ -792,10 +792,10 @@ In XOTcl, the following approaches are used to access instance
 variables:
 
 - Import instance variables via +instvar+ and access variables via +$varName+
-- Set or get instance variables via +my set varName ?value?+ or other 
+- Set or get instance variables via +my set varName ?value?+ or other
    variable accessing methods registered on +xotcl::Object+ such as
    +append+, +lappend+, +incr+, etc.
-- Register same-named accessor functions and set/get values 
+- Register same-named accessor functions and set/get values
    of instance variables via +my varName ?value?+
 
 In NX, the favored approach to access instance variables is to use
@@ -844,7 +844,7 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-# Set own instance variable to a value via 
+# Set own instance variable to a value via
 # resolver (preferred and fastest way)
 
 ... method ... {
@@ -856,11 +856,11 @@ Class create C {
 ... instproc ... {
    my instvar /varName/
    set /varName/ ?value?
-} 
+}
 ----------------
 |[source,tcl]
 ----------------
-# Set own instance variable via 
+# Set own instance variable via
 # variable import
 
 ... method ... {
@@ -872,7 +872,7 @@ Class create C {
 ----------------
 ... instproc ... {
    set /varName/ [my set /otherVar/]
-} 
+}
 ----------------
 |[source,tcl]
 ----------------
@@ -886,7 +886,7 @@ Class create C {
 ----------------
 ... method ... {
    set /newVar/ ${:/otherVar/}
-} 
+}
 ----------------
 |[source,tcl]
 ----------------
@@ -922,8 +922,8 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-# Set instance variable of object obj to a 
-# value via resolver 
+# Set instance variable of object obj to a
+# value via resolver
 # (preferred way: define property on obj)
 
 /obj/ eval [list set :/varName/ ?value?]
@@ -934,7 +934,7 @@ set /varName/ [/obj/ set /otherVar/]
 ----------------
 |[source,tcl]
 ----------------
-# Read instance variable of object obj 
+# Read instance variable of object obj
 # via resolver
 
 set /varName/ [/obj/ eval {set :/otherVar/}]
@@ -948,7 +948,7 @@ set /varName/ [/obj/ eval {set :/otherVar/}]
 ----------------
 |[source,tcl]
 ----------------
-# Read instance variable of object /obj/ 
+# Read instance variable of object /obj/
 # via import
 
 ... method ... {
@@ -962,10 +962,10 @@ set /varName/ [/obj/ eval {set :/otherVar/}]
 ----------------
 |[source,tcl]
 ----------------
-# Test existence of instance variable of 
+# Test existence of instance variable of
 # object obj
 
-/obj/ eval {info exists :/varName/} 
+/obj/ eval {info exists :/varName/}
 ----------------
 [source,tcl]
 ----------------
@@ -978,7 +978,7 @@ set /varName/ [/obj/ eval {set :/otherVar/}]
 While XOTcl 1 had very limited forms of parameters, XOTcl 2 and NX
 provide a generalized and highly orthogonal parameter machinery
 handling various kinds of value constraints (also called value
-checkers). Parameters are used to specify, 
+checkers). Parameters are used to specify,
 
 - how objects and classes are initialized (we call these parameter types
    _Configure Parameters_), and
@@ -1010,7 +1010,7 @@ initialized, what parameters can be passed in for initialization, what
 default values are used, etc.).  Such configuration parameters are
 supported in XOTcl primarily via the method +parameter+, which is used
 in XOTcl to define multiple parameters via a list of parameter
-specifications. 
+specifications.
 
 Since the term "parameter" is underspecified, NX uses a more
 differentiated terminology. NX distinguishes between configurable
@@ -1042,7 +1042,7 @@ respectively.
 
 |[source,tcl]
 ----------------
-# Define class "Foo" with instance 
+# Define class "Foo" with instance
 # variables "x" and "y" initialized
 # on instance creation. The initialization
 # has to be performed in the constructor.
@@ -1057,17 +1057,17 @@ Foo instproc init args {
 # Create instance of the class Foo
 Foo f1
 
-# Object f1 has instance variables 
+# Object f1 has instance variables
 # x == 1 and y == 2
 ----------------
 |[source,tcl]
 ----------------
-# Define class "Foo" with instance variables 
+# Define class "Foo" with instance variables
 # "x" and "y" initialized on instance creation.
-# The method "variable" is similar in syntax 
-# to Tcl's "variable" command. During 
-# instance creation, the variable 
-# definitions are used for the 
+# The method "variable" is similar in syntax
+# to Tcl's "variable" command. During
+# instance creation, the variable
+# definitions are used for the
 # initialization of the variables of the object.
 
 Class create Foo {
@@ -1078,7 +1078,7 @@ Class create Foo {
 # Create instance of the class Foo
 Foo create f1
 
-# Object f1 has instance variables 
+# Object f1 has instance variables
 # x == 1 and y == 2
 ----------------
 |======================
@@ -1102,17 +1102,17 @@ variables.
 
 |[source,tcl]
 ----------------
-# No syntactic support for creating 
+# No syntactic support for creating
 # class variables
 ----------------
 |[source,tcl]
 ----------------
 
 # Define a object variable "V" with value 100 and
-# an instance variable "x". "V" is defined for the 
+# an instance variable "x". "V" is defined for the
 # class object Foo, "x" is defined in the
-# instances of the class. "object variable" works 
-# similar to "object method". 
+# instances of the class. "object variable" works
+# similar to "object method".
 
 Class create Foo {
   :object variable V 100
@@ -1143,7 +1143,7 @@ variables configurable, which means that
 
 |[source,tcl]
 ----------------
-# Parameters specified as a list 
+# Parameters specified as a list
 # (short form); parameter
 # "a" has no default, "b" has default "1"
 
@@ -1152,11 +1152,11 @@ Class Foo -parameter {a {b 1}}
 # Create instance of the class Foo
 Foo f1 -a 0
 
-# Object f1 has instance variables 
+# Object f1 has instance variables
 # a == 0 and b == 1
 
 # XOTcl registers automatically accessors
-# for the parameters. Use the accessor 
+# for the parameters. Use the accessor
 # "b" to output the value of variable "b"
 puts [f1 b]
 
@@ -1166,8 +1166,8 @@ f1 b 100
 ----------------
 |[source,tcl]
 ----------------
-# Define property "a" and "b". The 
-# property "a" has no default, "b" has 
+# Define property "a" and "b". The
+# property "a" has no default, "b" has
 # default value "1"
 
 Class create Foo {
@@ -1178,10 +1178,10 @@ Class create Foo {
 # Create instance of the class Foo
 Foo create f1 -a 0
 
-# Object f1 has instance variables 
+# Object f1 has instance variables
 # a == 0 and b == 1
 
-# Use the method "cget" to query the value 
+# Use the method "cget" to query the value
 # of a configuration parameter
 puts [f1 cget -b]
 
@@ -1204,13 +1204,13 @@ default in NX. In order to change the default behavior in NX, one can use
 
 |[source,tcl]
 ----------------
-# "parameter" creates always accessor 
-# methods, accessor methods are 
+# "parameter" creates always accessor
+# methods, accessor methods are
 # always public, no "cget" is available.
 
 Class create Foo -parameter {a {b1}}
 
-# Use the accessor method to query 
+# Use the accessor method to query
 # the value of a configuration parameter
 puts [f1 b]
 
@@ -1219,13 +1219,13 @@ puts [f1 b]
 f1 a 100
 
 # Use the accessor method to unset the
-# value of instance variable "a" n.a. via 
+# value of instance variable "a" n.a. via
 # accessor
 ----------------
 |[source,tcl]
 ----------------
-# Define property "a" and "b". The 
-# property "a" has no default, "b" has 
+# Define property "a" and "b". The
+# property "a" has no default, "b" has
 # default value "1"
 
 Class create Foo {
@@ -1233,7 +1233,7 @@ Class create Foo {
   :property -accessor public {b 1}
 }
 
-# Use the accessor method to query 
+# Use the accessor method to query
 # the value of a configuration parameter
 puts [f1 b get]
 
@@ -1255,7 +1255,7 @@ and on the object level.
 |XOTcl |Next Scripting Language
 |[source,tcl]
 ----------------
-# XOTcl provides no means to define 
+# XOTcl provides no means to define
 # configurable variables at the object
 # level
 ----------------
@@ -1293,25 +1293,25 @@ performance sensitive.
 
 |[source,tcl]
 ----------------
-# No value constraints for 
-# parameter available 
+# No value constraints for
+# parameter available
 ----------------
 |[source,tcl]
 ----------------
-# Predefined value constraints: 
-#    object, class, alnum, alpha, ascii, boolean, 
-#    control, digit, double, false, graph, integer, 
-#    lower, parameter, print, punct, space, true, 
+# Predefined value constraints:
+#    object, class, alnum, alpha, ascii, boolean,
+#    control, digit, double, false, graph, integer,
+#    lower, parameter, print, punct, space, true,
 #    upper, wordchar, xdigit
 #
 # User defined value constraints are possible.
-# All parameter value checkers can be turned on 
+# All parameter value checkers can be turned on
 # and off at runtime.
 #
 # Define a required boolean property "a"
 # and an integer property "b" with a default.
-# The first definition uses "properties", 
-# the second definition uses multiple 
+# The first definition uses "properties",
+# the second definition uses multiple
 # "property" statements.
 
 Class create Foo -properties {
@@ -1343,12 +1343,12 @@ constructor.
 
 |[source,tcl]
 ----------------
-# Required parameter not available 
+# Required parameter not available
 ----------------
 |[source,tcl]
 ----------------
 # Required parameter:
-# Define a required property "a" and a 
+# Define a required property "a" and a
 # required boolean property "b"
 
 Class create Foo -properties {
@@ -1378,8 +1378,8 @@ every specified value, the value checkers are applied.
 
 |[source,tcl]
 ---------------
-# Multiplicity for parameter 
-# not available 
+# Multiplicity for parameter
+# not available
 -----------------
 |[source,tcl]
 ----------------
@@ -1398,7 +1398,7 @@ Class create Foo -properties {
 ----------------
 Class create Foo {
   :property {ints:integer,0..n ""}
-  :property objs:object,1..n 
+  :property objs:object,1..n
   :property obj:object,0..1
 }
 ----------------
@@ -1434,8 +1434,8 @@ Class Foo -slots {
    Attribute b -default 1
 }
 
-# Create instance of the class Foo 
-# and provide a value for instance 
+# Create instance of the class Foo
+# and provide a value for instance
 # variable "a"
 Foo f1 -a 0
 
@@ -1444,9 +1444,9 @@ Foo f1 -a 0
 
 |[source,tcl]
 ----------------
-# Configurable parameters specified via the 
-# method "property" (supports method 
-# modifiers and scripted configuration; 
+# Configurable parameters specified via the
+# method "property" (supports method
+# modifiers and scripted configuration;
 # see below)
 
 Class create Foo {
@@ -1475,7 +1475,7 @@ parameters, etc. in NX.
 
 |[source,tcl]
 ----------------
-# Define parameter with an an 
+# Define parameter with an an
 # attribute-specific type checker
 
 Class Person -slots {
@@ -1494,7 +1494,7 @@ Class Person -slots {
 ----------------
 |[source,tcl]
 ----------------
-# Configure parameter with scripted 
+# Configure parameter with scripted
 # definition (init-block), defining a
 # property specific type checker
 
@@ -1517,7 +1517,7 @@ Class create Person {
 
 The parameters provided by a class for the initialization of
 instances can be introspected via querying the parameters
-of the method create: +/cls/ info lookup parameters create+ 
+of the method create: +/cls/ info lookup parameters create+
 (see <<info_configure_parameter>>).
 
 ==== Delete Variable Handlers
@@ -1534,7 +1534,7 @@ of the method create: +/cls/ info lookup parameters create+
 |[source,tcl]
 ----------------
 # Like deletion of Methods:
-# Delete on the object, where the 
+# Delete on the object, where the
 # variable handler is defined.
 
 /cls/ delete property /name/
@@ -1564,16 +1564,16 @@ positional arguments, this limitation is lifted in XOTcl 2.
 
 |[source,tcl]
 ----------------
-# Define method foo with non-positional 
-# parameters (x, y and y) and positional 
+# Define method foo with non-positional
+# parameters (x, y and y) and positional
 # parameter (a and b)
 
 Class C
 C instproc foo {
-   -x:integer 
-   -y:required 
-   -z 
-   a 
+   -x:integer
+   -y:required
+   -z
+   a
    b
 } {
    # ...
@@ -1585,17 +1585,17 @@ c1 foo -x 1 -y a 2 3
 ----------------
 |[source,tcl]
 ----------------
-# Define method foo with 
-# non-positional parameters 
-# (x, y and y) and positional 
+# Define method foo with
+# non-positional parameters
+# (x, y and y) and positional
 # parameter (a and b)
 
 Class create C {
    :public method foo {
-      -x:integer 
-      -y:required 
-      -z 
-      a 
+      -x:integer
+      -y:required
+      -z
+      a
       b
    } {
       # ...
@@ -1608,24 +1608,24 @@ c1 foo -x 1 -y a 2 3
 
 |[source,tcl]
 ----------------
-# Only leading non-positional 
-# parameters are available; no 
-# optional positional parameters, 
-# no value constraints on 
-# positional parameters, 
+# Only leading non-positional
+# parameters are available; no
+# optional positional parameters,
+# no value constraints on
+# positional parameters,
 # no multiplicity, ...
 ----------------
 |[source,tcl]
 ----------------
-# Define various forms of parameters 
+# Define various forms of parameters
 # not available in XOTcl 1
 
 Class create C {
-  # trailing (or interleaved) non-positional 
+  # trailing (or interleaved) non-positional
   # parameters
   :public method m1 {a b -x:integer -y} {
     # ...
-  } 
+  }
 
   # positional parameters with value constraints
   :public method m2 {a:integer b:boolean} {
@@ -1640,14 +1640,14 @@ Class create C {
   # parameter with multiplicity
   :public method m3 {-objs:object,1..n c:class,0..1} {
     # ...
-  } 
+  }
 
-  # In general, the same list of value 
-  # constraints as for configure parameter is 
+  # In general, the same list of value
+  # constraints as for configure parameter is
   # available (see above).
   #
-  # User defined value constraints are 
-  # possible. All parameter value checkers 
+  # User defined value constraints are
+  # possible. All parameter value checkers
   # can be turned on and off.
 }
 ----------------
@@ -1668,18 +1668,18 @@ checkers, return value checkers can be turned on and off.
 
 |[source,tcl]
 ----------------
-# No return value checking 
+# No return value checking
 # available
 ----------------
 |[source,tcl]
 ----------------
-# Define method foo with non-positional 
-# parameters (x, y and y) and positional 
+# Define method foo with non-positional
+# parameters (x, y and y) and positional
 # parameter (a and b)
 
 Class create C {
 
-  # Define method foo which returns an 
+  # Define method foo which returns an
   # integer value
   :method foo -returns integer {-x:integer} {
     # ...
@@ -1694,7 +1694,7 @@ Class create C {
   # integer value
   :forward ++ -returns integer ::expr 1 +
 
- # Define a method that has to return a 
+ # Define a method that has to return a
  # non-empty list of objects
  :public object method instances {} \
     -returns object,1..n {
@@ -1737,37 +1737,43 @@ per-object mixin on a plain object or on a class object.
 ----------------
 |[source,tcl]
 ----------------
-# Register per-class mixin and guard for 
+# Register/clear per-class mixin and guard for
 # a class
 
-/cls/ mixin add\|set\|clear ...
-/cls/ mixin guard /mixin/ ?condition?
+/cls/ mixins add\|set\|clear ...
+/cls/ mixins guard /mixin/ ?condition?
 /cls/ configure -mixin ...
 
-# Query per-class mixin
-/cls/ mixin get
-/cls/ cget -mixin
+# Query per-class mixins
+/cls/ mixins get
+/cls/ cget -mixins
+
+# Query per-class mixins (without guards)
+/cls/ mixins classes
 ----------------
 |[source,tcl]
 ----------------
 /obj/ mixin ...
 /obj/ mixinguard /mixin/ ?condition?
 
-# Query per-object mixin
+# Query per-object mixins
 /obj/ mixin
 ----------------
 |[source,tcl]
 ----------------
-# Register per-object mixin and guard for 
+# Register/clear per-object mixin and guard for
 # an object
 
-/obj/ object mixin add\|set\|clear ...
-/obj/ object mixin guard /mixin/ ?condition?
-/obj/ configure -object-mixin ...
+/obj/ object mixins add\|set\|clear ...
+/obj/ object mixins guard /mixin/ ?condition?
+/obj/ configure -object-mixins ...
 
 # Query per-object mixin
-/obj/ object mixin get
+/obj/ object mixins get
 /obj/ cget -object-mixin
+
+# Query per-object mixins (without guards)
+/cls/ mixins classes
 ----------------
 |======================
 
@@ -1778,26 +1784,29 @@ per-object mixin on a plain object or on a class object.
 
 |[source,tcl]
 ----------------
-# Register per-class filter and guard for 
+# Register per-class filter and guard for
 # a class
 /cls/ instfilter ...
 /cls/ instfilterguard /filter/ ?condition?
 
 # Query per-class filter
-/cls/ instfilter 
+/cls/ instfilter
 ----------------
 |[source,tcl]
 ----------------
-# Register per-class filter and guard for 
+# Register/clear per-class filter and guard for
 # a class
 
-/cls/ filter add\|set\|clear ...
-/cls/ filter guard /filter/ ?condition?
-/cls/ configure -filter ...
+/cls/ filters add\|set\|clear ...
+/cls/ filters guard /filter/ ?condition?
+/cls/ configure -filters ...
 
-# Query per-class filter
-/cls/ filter get 
-/cls/ cget -filter
+# Query per-class filters
+/cls/ filters get
+/cls/ cget -filters
+
+# Query per-class filters (without guards)
+/cls/ filters methods
 ----------------
 |[source,tcl]
 ----------------
@@ -1806,16 +1815,19 @@ per-object mixin on a plain object or on a class object.
 ----------------
 |[source,tcl]
 ----------------
-# Register per-object filter and guard for 
+# Register(clear per-object filter and guard for
 # an object
 
-/obj/ object filter add\|set\|clear ...
-/obj/ object filter guard /filter/ ?condition?
-/obj/ configure -object-filter ...
+/obj/ object filters add\|set\|clear ...
+/obj/ object filters guard /filter/ ?condition?
+/obj/ configure -object-filters ...
 
-# Query per-object filter
-/cls/ object filter get 
-/obj/ cget -object-filter
+# Query per-object filters
+/cls/ object filters get
+/obj/ cget -object-filters
+
+# Query per-object filters (without guards)
+/cls/ object filters methods
 ----------------
 |======================
 
@@ -1834,6 +1846,35 @@ definition of all methods via +info method definition+ and one can get
 an manual-like interface description via +info method
 syntax+. In addition, NX provides means to query the type of
 a method, and NX allows to filter by the type of the method.
+
+==== List sub- and superclass relations
+
+While XOTcl used singular words for introspecting sub- and superclass
+relations, NX uses plural word to indicate that potentially a list of
+values is returned.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+/cls/ info superclass ?pattern?
+----------------
+|[source,tcl]
+----------------
+/cls/ info superclasses ?pattern?
+----------------
+|[source,tcl]
+----------------
+/cls/ info subclass ?pattern?
+----------------
+|[source,tcl]
+----------------
+/cls/ info subclasses -type setter ?pattern?
+----------------
+|======================
+
 
 ==== List methods defined by classes
 
@@ -1979,7 +2020,7 @@ In order to obtain for an object the set of artefacts defined in the
 |[source,tcl]
 ----------------
 /obj/ info lookup methods ... ?pattern?
-# Returns list of method names 
+# Returns list of method names
 ----------------
 |[source,tcl]
 ----------------
@@ -1989,14 +2030,14 @@ In order to obtain for an object the set of artefacts defined in the
 ----------------
 # List only application specific methods
 /obj/ info lookup methods -source application ... ?pattern?
-# Returns list of method names 
+# Returns list of method names
 ----------------
 |[source,tcl]
 ----------------
 # Options for 'info methods'
 #
 # -incontext
-# -nomixins 
+# -nomixins
 ----------------
 |[source,tcl]
 ----------------
@@ -2006,7 +2047,7 @@ In order to obtain for an object the set of artefacts defined in the
 # -callprotection ...
 # -incontext
 # -type ...
-# -nomixins 
+# -nomixins
 ----------------
 |[source,tcl]
 ----------------
@@ -2044,10 +2085,10 @@ In order to obtain for an object the set of artefacts defined in the
 ==== List object/class where a specified method is defined
 
 +info lookup+ can be used as well to determine, where exactly an
- artefact is located. One can obtain this way a method handle, where 
-a method or filter is defined. 
+ artefact is located. One can obtain this way a method handle, where
+a method or filter is defined.
 
-The concept of a _method-handle_ is new in NX. The method-handle 
+The concept of a _method-handle_ is new in NX. The method-handle
 can be used to obtain more information about the method, such as
 e.g. the definition of the method.
 
@@ -2085,7 +2126,7 @@ In NX, this list of +info+ subcommands is much shorter and more
 orthogonal. For example +info method definition+ can be used to obtain
 with a single command the full definition of a _scripted method_, and
 furthermore, it works as well the same way to obtain e.g. the
-definition of a _forwarder_ or an _alias_. 
+definition of a _forwarder_ or an _alias_.
 
 While XOTcl uses different names for info options for objects and
 classes (using the prefix "inst" for instance specific method), NX
@@ -2143,7 +2184,7 @@ of class object specific methods, use the modifier +object+ as usual.
 ----------------
 |[source,tcl]
 ----------------
-# not needed, part of 
+# not needed, part of
 # "info ?object? method parameter"
 ----------------
 |[source,tcl]
@@ -2207,7 +2248,7 @@ or class on which they are applied.
 ----------------
 |[source,tcl]
 ----------------
-# Return the parameters applicable to 
+# Return the parameters applicable to
 # the create method of a certain class.
 # class can be configured. A pattern can
 # be used to filter the results.
@@ -2218,20 +2259,20 @@ or class on which they are applied.
 
 /cls/ info lookup syntax create ?/pattern/?
 
-# "info lookup parameters configure" returns 
-# parameters available for configuring the 
-# current object  (might contain object 
+# "info lookup parameters configure" returns
+# parameters available for configuring the
+# current object  (might contain object
 # specific information)
 
 /obj/ info lookup parameters configure ?pattern?
 
-# "info lookup configure syntax" returns syntax of 
+# "info lookup configure syntax" returns syntax of
 # a call to configure in the Tcl parameter syntax
 
 /obj/ info lookup syntax configure
 
-# Obtain information from a parameter 
-# (as e.g. returned from "info lookup 
+# Obtain information from a parameter
+# (as e.g. returned from "info lookup
 # parameters configure").
 
 nsf::parameter::info name /parameter/
@@ -2249,14 +2290,14 @@ nsf::parameter::info type /parameter/
 
 |[source,tcl]
 ----------------
-# obtain parameter definitions defined 
+# obtain parameter definitions defined
 # for a class
 /cls/ info parameter
 ----------------
 |[source,tcl]
 ----------------
-# "info variables" returns handles of 
-# properties and variables defined by this 
+# "info variables" returns handles of
+# properties and variables defined by this
 # class or object
 
 /cls/ info variables ?pattern?
@@ -2269,7 +2310,7 @@ nsf::parameter::info type /parameter/
 
 /obj/ info lookup variables /pattern/
 
-# "info variable" lists details about a 
+# "info variable" lists details about a
 # single property or variable.
 
 /obj/ info variable definition /handle/
@@ -2311,7 +2352,7 @@ nsf::parameter::info type /parameter/
 /obj/ info lookup slots \
    ?-type ...? ?-source ... ?pattern?
 
-# Obtain definition, name or parameter from 
+# Obtain definition, name or parameter from
 # slot object
 
 /slotobj/ definition
@@ -2325,10 +2366,9 @@ nsf::parameter::info type /parameter/
 
 ==== List Filter or Mixins
 
-In NX all introspection options for filters are grouped under +info
-filter+ and all introspection options for mixins are under +info
-mixin+. Therefore, NX follows here the approach of using hierarchical
-subcommands rather than using a flat namespace.
+In NX all introspection options for filters are provided via
++info filters+ and all introspection options for mixins are
+provided via +info mixins+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -2341,9 +2381,8 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object filter methods \
+/obj/ info object filters \
    ?-guards? ?pattern?
-/obj/ info object filter guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -2353,9 +2392,8 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info filter methods \
+/cls/ info filters \
    ?-guards? ?pattern?
-/cls/ info filter guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -2364,9 +2402,8 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info object mixin classes \
+/obj/ info object mixins \
    ?-guards? ?pattern?
-/obj/ info object mixin guard /name/
 ----------------
 |[source,tcl]
 ----------------
@@ -2376,9 +2413,8 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info mixin classes \
-   ?-closure? ?-guards? ?pattern?
-/cls/ info mixin guard /name/
+/cls/ info mixins \
+   ?-closure? ?-guards? ?-heritage? ?pattern?
 ----------------
 |======================
 
@@ -2422,23 +2458,23 @@ the method handle to the created method.
 |[source,tcl]
 ----------------
 #
-# List the method handle of the specified method, 
-# can be used e.g. for aliases. "handle" is the short 
+# List the method handle of the specified method,
+# can be used e.g. for aliases. "handle" is the short
 # form of "definitionhandle".
 #
 /cls/ info method handle /methodName/
 /obj/ info object method handle /methodName/
 #
-# For ensemble methods (method name contains 
-# spaces) one can query as well the registration 
+# For ensemble methods (method name contains
+# spaces) one can query as well the registration
 # handle, which is the handle to the root of the
-# ensemble; the definiton handle points to the 
+# ensemble; the definiton handle points to the
 # leaf of the ensemble.
 #
 /cls/ info method registrationhandle /methodName/
 /obj/ info object method registrationhandle /methodName/
 #
-# For aliases, one can query the original 
+# For aliases, one can query the original
 # definition via "info method origin"
 #
 /cls/ info method origin /methodName/
@@ -2481,7 +2517,7 @@ information, where mixins classes are mixed into.
 ----------------
 |[source,tcl]
 ----------------
-# List objects, where /cls/ is a 
+# List objects, where /cls/ is a
 # per-object mixin
 
 /cls/ info mixinof -scope object ?-closure? \
@@ -2520,7 +2556,7 @@ information, where mixins classes are mixed into.
 ==== Check properties of object and classes
 
 Similar as noted before, NX uses rather a hierarchical approach of
-naming using multiple layers of subcommands). 
+naming using multiple layers of subcommands).
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -2553,7 +2589,7 @@ naming using multiple layers of subcommands).
 cd # Check if object is an NX class
 /obj/ has type ::nx::Class
 
-# Check if object is a class in one of the 
+# Check if object is a class in one of the
 # NSF object systems
 ::nsf::is class /obj/
 ----------------
@@ -2566,7 +2602,7 @@ cd # Check if object is an NX class
 # Check if class is an NX metaclass
 expr {[/cls/ info heritage ::nx::Class] ne ""}
 
-# Check if object is a metaclass in one of the 
+# Check if object is a metaclass in one of the
 # NSF object systems
 ::nsf::is metaclass /obj/
 ----------------
@@ -2586,7 +2622,7 @@ expr {[/cls/ info heritage ::nx::Class] ne ""}
 |[source,tcl]
 ----------------
 # Return name of object (without namespace prefix)
-/obj/ info name 
+/obj/ info name
 ----------------
 |[source,tcl]
 ----------------
@@ -2700,7 +2736,7 @@ self next
 ----------------
 |[source,tcl]
 ----------------
-# Returns method-handle of the 
+# Returns method-handle of the
 # method to be called via "next"
 current next
 ----------------
@@ -2865,7 +2901,7 @@ The following changes for parameters could be regarded as bug-fixes.
 ==== Parameter usage without a value
 
 In XOTcl 1, it was possible to call a parameter method during object
-creation via the dash-interface without a value (in the example below `-x`). 
+creation via the dash-interface without a value (in the example below `-x`).
 
 [source,tcl]
 ----------------
@@ -2897,9 +2933,9 @@ Bar b1
 
 NX does not define the methods +class+ and +superclass+ (like XOTcl), but allows to
 alter all object/class relations (including
-class/superclass/object-mixin/...)  
-+nsf::relation::set+. The class and superclass can be certainly queried 
-in all variants with +info class+ or +info superclass+.
+class/superclass/object-mixin/...)
++nsf::relation::set+. The class and superclass can be certainly queried
+in all variants with +info class+ or +info superclasses+.
 [source,tcl]
 ----------------
 # NX example
@@ -2920,8 +2956,9 @@ preexisting objects and classes con be redefined (necessary for
 reloading objects/classes in an running interpreter).
 
 ==== Info heritage
+
 +info heritage+ returns in XOTcl 1 the transitive superclass
-hierarchy, which is equivalent with +info superclass -closure+ and
+hierarchy, which is equivalent with +info superclasses -closure+ and
 therefore not necessary. In XOTcl 2 (and NX), +info heritage+ includes
 as well the transitive per-class mixins.
 
@@ -2930,19 +2967,19 @@ as well the transitive per-class mixins.
 All slot objects (also XOTcl slot objects) are now next-scripting
 objects of baseclass `::nx::Slot`. The name of the experimental
 default-setter `initcmd` was changed to `defaultcmd`. Code directly
-working on the slots objects has to be adapted. 
+working on the slots objects has to be adapted.
 
 === Obsolete Commands
 
 Parameter-classes were rarely used and have been replaced by the more
 general object parameterization. Therefore, `cl info parameterclass` has
-been removed. 
+been removed.
 
 === Stronger Checking
 
 The Next Scripting Framework performs stronger checking than XOTcl 1
 For example, the requiredness of slots in XOTcl 1 was just a
-comment, while XOTcl 2 enforces it. 
+comment, while XOTcl 2 enforces it.
 
 === Exit Handlers
 

@@ -5502,9 +5502,22 @@ nsf.c:
 - see no need, why we should "set nodashalnum for int types"
 - extended regression test
 
+nsf.c:
+- remove redundant null check for object and add assertion
+
 documentation:
 - add current args to migration guide
 - fix cut&paste error: replace "current currentclass" by "current calledclass"
+
+Migration guide and tutorial:
+- updated "/cls/ info superclasses" and "/cls/ info subclasses"
+- updated "/cls/ info mixins" and "/obj/ info object mixins"
+- updated "/cls/ info filters" and "/obj/ info object filters"
+- dropped "/cls/ info mixin guard" and "/obj/ info object mixin guard"
+  dropped "/cls/ info filter guard" and "/obj/ info object filter guard"
+  (use "-guard option insteads)
+- updated "/cls/ mixins ...", "/obj/ object mixins ...",
+  "/cls/ filteres ...", "/obj/ object filters ..."
 
 ========================================================================
 TODO:

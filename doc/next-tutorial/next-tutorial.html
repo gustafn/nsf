@@ -2779,11 +2779,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 </span><span class='nx-comment'># "d1" is created based on the definitions of the last example
 </span><span class='nx-comment'>#
 </span><span class='nx-comment'># Add the methods from "M1" as per-object mixin to "d1"
-</span>d1 <span class='nx-keyword'>object</span> <span class='nx-keyword'>mixin</span> add M1
+</span>d1 <span class='nx-keyword'>object</span> mixins add M1
 
 <span class='nx-comment'>#
 </span><span class='nx-comment'># Add the methods from "M2" as per-class mixin to class "C"
-</span>C <span class='nx-keyword'>mixin</span> add M2
+</span>C mixins add M2
 
 <span class='nx-comment'># Invoke the method foo
 </span>d1 foo
@@ -3737,10 +3737,10 @@ initialized with the default value).</p></div>
 properties, also NX provides some predefined definitions. Since
 <code>Person</code> is a subclass of <code>nx::Object</code> also the configure parameters of
 <code>nx::Object</code> are inherited. In the introductory stack example, we used
-<code>-mixin</code> applied to an object to denote per-object mixins (see
-<a href="#xmp-using-class-safety">Listing 8</a>). Since <code>mixin</code>
+<code>-mixins</code> applied to an object to denote per-object mixins (see
+<a href="#xmp-using-class-safety">Listing 8</a>). Since <code>mixins</code>
 is defined as a parameter on <code>nx::Object</code> it can be used as an object
-parameter <code>-mixin</code> for all objects in NX. To put it in other words,
+parameter <code>-mixins</code> for all objects in NX. To put it in other words,
 every object can be configured to have per-object mixins. If we would
 remove this definition, this feature would be removed as well.</p></div>
 <div class="paragraph"><p>As shown in the introductory examples, every object can be configured
@@ -3782,16 +3782,16 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
    Command:
       p1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
    Result:
-      -name <span class='nx-placeholder'>/value/</span> ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixin /mixinreg .../<span class='nx-placeholder'>?
-      ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filter /filterreg .../? ?/__initblock/?
+      -name <span class='nx-placeholder'>/value/</span> ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixins /mixinreg .../<span class='nx-placeholder'>?
+      ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filters /filterreg .../? ?/__initblock/?
 
 Configure parameter <span class='nx-keyword'>for</span> Student s1:
    Command:
       s1 <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
    Result:
       ?-oncampus <span class='nx-placeholder'>/boolean/</span>? -matnr <span class='nx-placeholder'>/value/</span> -name <span class='nx-placeholder'>/value/</span>
-      ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixin /mixinreg .../? ?-class /<span class='nx-keyword'>class</span>/<span class='nx-placeholder'>?
-      ?</span>-object-filter /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
+      ?-birthday <span class='nx-placeholder'>/value/</span>? ?-object-mixins /mixinreg .../? ?-class /<span class='nx-keyword'>class</span>/<span class='nx-placeholder'>?
+      ?</span>-object-filters /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
 <div class="paragraph"><p>The given paramter show, how (a) objects can be configured
 at runtime or (b) how new instances can be configured
 at creation time via the <code>new</code> or <code>create</code> methods.
@@ -3820,7 +3820,7 @@ non-positional configure parameter <code>-superclass</code>. If no superclass is
 specified for a class, the default superclass is
 <code>nx::Object</code>. Therefore <code>nx::Object</code> is the default value for the
 parameter <code>superclass</code>.</p></div>
-<div class="paragraph"><p>Another frequently used parameter for classes is <code>-mixin</code> to denote
+<div class="paragraph"><p>Another frequently used parameter for classes is <code>-mixins</code> to denote
 per-class mixins (see e.g. the introductory Stack example in
 <a href="#xmp-class-safestack">Listing 10</a>), which is defined in
 the same way.</p></div>
@@ -3859,9 +3859,9 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
    Command:
       <span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>info</span> <span class='nx-keyword'>lookup</span> syntax <span class='nx-keyword'>configure</span>
    Result:
-      ?-superclass /<span class='nx-keyword'>class</span> .../? ?-mixin /mixinreg .../<span class='nx-placeholder'>?
-      ?</span>-filter /filterreg .../? ?-object-mixin /mixinreg .../<span class='nx-placeholder'>?
-      ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filter /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
+      ?-superclass /<span class='nx-keyword'>class</span> .../? ?-mixins /mixinreg .../<span class='nx-placeholder'>?
+      ?</span>-filters /filterreg .../? ?-object-mixins /mixinreg .../<span class='nx-placeholder'>?
+      ?</span>-class /<span class='nx-keyword'>class</span>/? ?-object-filters /filterreg .../? ?/__initblock/?</pre></td></tr></table></div></div>
 </div>
 <div class="sect3">
 <h4 id="_user_defined_parameter_types">4.3.3. User defined Parameter Types</h4>
@@ -4041,11 +4041,11 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 ::nx::Object <span class='nx-keyword'>create</span> o {
   <span class='nx-comment'># The class M is unknown at this point
 </span>
-  <span class='nx-keyword'>:object</span> <span class='nx-keyword'>mixin</span> add M
+  <span class='nx-keyword'>:object</span> mixins add M
   <span class='nx-comment'># The line above has triggered the unknown class handler,
 </span>  <span class='nx-comment'># class M is now defined
 </span>
-  <span class='nx-keyword'>puts</span> [<span class='nx-keyword'>:info</span> <span class='nx-keyword'>object</span> <span class='nx-keyword'>mixin</span> classes]
+  <span class='nx-keyword'>puts</span> [<span class='nx-keyword'>:info</span> <span class='nx-keyword'>object</span> mixins]
   <span class='nx-comment'># The output will be:
 </span>  <span class='nx-comment'>#     ***** __unknown called with &lt;::M&gt;
 </span>  <span class='nx-comment'>#     ::M
@@ -4156,7 +4156,7 @@ table.nx        {border-collapse: collapse; border-spacing: 3px;}
 <div id="footer">
 <div id="footer-text">
 Version 2.0b5<br />
-Last updated 2014-06-01 17:23:28 CEST
+Last updated 2014-09-22 14:25:50 CEST
 </div>
 </div>
 </body>
