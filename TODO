@@ -5519,6 +5519,16 @@ Migration guide and tutorial:
 - updated "/cls/ mixins ...", "/obj/ object mixins ...",
   "/cls/ filteres ...", "/obj/ object filters ..."
 
+nsf.h
+- In Tcl 8.6.1 it might be that a Tcl_Obj has length > 0 but bytes == NULL. We have
+  to relax out tcl_obj-sanity test for this case from assertions.
+
+nsf.c:
+- remove redundant definition
+- reduce variable scope
+- make sure to follow nonnull assumptions
+
+
 ========================================================================
 TODO:
 

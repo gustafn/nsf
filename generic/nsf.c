@@ -403,8 +403,6 @@ NSF_INLINE static Tcl_Command AliasDereference(Tcl_Interp *interp, NsfObject *ob
 static NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData)
   nonnull(1) returns_nonnull;
 
-static void NsfClassListFree(NsfClasses *firstPtr);
-
 /* misc prototypes */
 static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj)
   nonnull(1) nonnull(2) nonnull(3);
@@ -547,7 +545,6 @@ NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, CONST char *context) {
 
 void
 NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...) {
-  va_list ap;
 
   assert(interp);
   assert(fmt);
@@ -555,6 +552,7 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...) {
   if (RUNTIME_STATE(interp)->debugLevel >= requiredLevel) {
     Tcl_DString cmdString, ds;
     CONST char *level;
+    va_list ap;
 
     switch (requiredLevel) {
     case NSF_LOG_INFO: level = "Info"; break;
@@ -3066,10 +3064,12 @@ AddSuper(NsfClass *cl, NsfClass *super) {
 
 static int
 RemoveSuper1(NsfClass *s, NsfClasses **sl) {
-  NsfClasses *l = *sl;
+  NsfClasses *l;
 
   assert(s != NULL);
   assert(sl != NULL);
+
+  l = *sl;
 
   if (l == NULL) return 0;
   if (l->cl == s) {
@@ -10373,7 +10373,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
    * Do not check the class "cl" itself (first entry in
    * filterCheck class list).
    */
-  if (superClasses) {
+  if (superClasses != NULL) {
     superClasses = superClasses->nextPtr;
   }
   for (; superClasses; superClasses = superClasses->nextPtr) {
@@ -18688,13 +18688,15 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
     cl->opt = 0;
   }
 
-  /*
-   * On a recreate, it might be possible that the newly created class
-   * has a different superclass. So we have to flush the precedence
-   * list on a recreate as well.
-   */
-  FlushPrecedences(subClasses);
-  NsfClassListFree(subClasses);
+  if (subClasses) {
+    /*
+     * On a recreate, it might be possible that the newly created class
+     * has a different superclass. So we have to flush the precedence
+     * list on a recreate as well.
+     */
+    FlushPrecedences(subClasses);
+    NsfClassListFree(subClasses);
+  }
 
   while (cl->super) {
     (void)RemoveSuper(cl, cl->super->cl);
@@ -25484,6 +25486,7 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
   result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName,
 			    &nobjc, &nobjv, &freeArgumentVector);
   if (likely(result == TCL_OK)) {
+    assert(cscPtr);
     result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
   }
   return result;
@@ -25764,17 +25767,21 @@ NsfParameterCacheClassInvalidateCmd(Tcl_Interp *interp, NsfClass *cl) {
 
     dependentSubClasses = DependentSubClasses(cl);
 
-    for (clPtr = dependentSubClasses; clPtr; clPtr = clPtr->nextPtr) {
-      NsfClass *subClass = clPtr->cl;
+    if (dependentSubClasses) {
 
-      if (subClass->parsedParamPtr) {
-        ParsedParamFree(subClass->parsedParamPtr);
-        subClass->parsedParamPtr = NULL;
+      for (clPtr = dependentSubClasses; clPtr; clPtr = clPtr->nextPtr) {
+        NsfClass *subClass = clPtr->cl;
+
+        if (subClass->parsedParamPtr) {
+          ParsedParamFree(subClass->parsedParamPtr);
+          subClass->parsedParamPtr = NULL;
+        }
+
       }
+      NsfClassListFree(dependentSubClasses);
     }
 
-    NsfClassListFree(dependentSubClasses);
-    }
+  }
   return TCL_OK;
 }
 
