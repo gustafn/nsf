@@ -12519,7 +12519,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
      * next to try to call such methods along the next path.
      */
     Tcl_CallFrame *framePtr1;
-    NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
+    NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1), *cscPtr2;
 
     /*fprintf(stderr, "call next instead of unknown %s.%s \n",
       ObjectName(cscPtr->self), methodName);*/
@@ -12544,11 +12544,17 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 				 cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 
 
-    /*fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n",
-      ObjectName(self), methodName, ObjectName(object), cscPtr, result,
-      RUNTIME_STATE(interp)->unknown); */
 
-    if (RUNTIME_STATE(interp)->unknown) {
+    cscPtr2 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
+
+    fprintf(stderr, "==> next %s.%s (obj %s) cscPtr %p cscPtr1 %p cscPtr2 %p (%d) returned %d unknown %d is InfoInfoCase %d\n",
+            ObjectName(callerSelf), methodName, ObjectName(invokedObject), cscPtr, cscPtr1, cscPtr2, 
+            cscPtr2 ? (cscPtr2->flags & NSF_CSC_CALL_IS_NEXT) != 0 : 0, result,
+            RUNTIME_STATE(interp)->unknown);
+
+    NsfShowStack(interp);
+
+    if (RUNTIME_STATE(interp)->unknown && (cscPtr2 == NULL || (cscPtr2->flags & NSF_CSC_CALL_IS_NEXT) == 0)) {
       /*
        * Unknown handling: We trigger a dispatch to an unknown method. The
        * appropriate unknown handler is either provided for the current
@@ -12571,6 +12577,9 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
       /* fprintf(stderr, "DispatchUnknownMethod is called with callinfo <%s> \n", ObjStr(callInfoObj)); */
       result = DispatchUnknownMethod(interp, invokedObject, objc-1, objv+1, callInfoObj,
 				     objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
+
+      RUNTIME_STATE(interp)->unknown = 0;
+
       DECR_REF_COUNT(callInfoObj);
     }
   }
@@ -17554,7 +17563,8 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 			    object, cl, methodName, frameType, 0);
 #endif
   } else if (likely(result == TCL_OK)) {
-    NsfCallStackContent *topCscPtr;
+    NsfCallStackContent *topCscPtr, *topCscPtr0;
+    Tcl_CallFrame *varFramePtr;
     int isLeafNext;
 
     /*
@@ -17574,17 +17584,38 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
      * for dispatching to unknown.
      */
 
-    topCscPtr = CallStackGetTopFrame(interp, NULL);
-    assert(topCscPtr);
+
+    topCscPtr = CallStackGetTopFrame(interp, &varFramePtr);
+
+#if 1
+    if ( cscPtr != topCscPtr && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0 && 
+        (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0) {
+      while(varFramePtr != NULL) {
+        topCscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+        fprintf(stderr, "---- topCscPtr %p topCscPtr->flags %6x\n", topCscPtr, topCscPtr ? topCscPtr->flags : 0);
+        if (topCscPtr == cscPtr) break;
+        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
+      }
+      
+      varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
+      topCscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      
+    }
+    
+#endif
+
+    NsfShowStack(interp);
+
+    // assert(topCscPtr);
 
     /* case 2 */
-    isLeafNext = (cscPtr != topCscPtr) && (topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) &&
+    isLeafNext = topCscPtr &&  (cscPtr != topCscPtr) && (topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) &&
       (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0;
 
     rst->unknown = /* case 1 */ endOfFilterChain ||
       /* case 3 */ (!isLeafNext && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE));
 
-    /*fprintf(stderr, "******** setting unknown to %d\n",  rst->unknown );*/
+    fprintf(stderr, "******** setting unknown to %d isLeafNext %d topCscPtr %p endOfFilterChain %d\n",  rst->unknown, isLeafNext,topCscPtr,endOfFilterChain);
   }
 
  next_search_and_invoke_cleanup:
