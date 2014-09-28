@@ -21538,11 +21538,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   /*
    * Set lastObjc as index of the first "unprocessed" parameter.
    */
-  if (processFlags & NSF_ARGPARSE_START_ZERO) {
-    pcPtr->lastObjc = o;
-  } else {
-    pcPtr->lastObjc = o;
-  }
+  pcPtr->lastObjc = o;
   pcPtr->objc = nrParams;
 
   assert(ISOBJ(objv[pcPtr->lastObjc-1]));
