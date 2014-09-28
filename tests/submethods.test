@@ -374,6 +374,14 @@ nx::test case leaf-next-in-submethods {
   }
 }
 
+nx::test case unknown-in-info {
+  nx::Class create C
+  catch {C info x y z} err
+  ? [list string match {unable to dispatch sub-method "x" of ::C info; valid are:*} $err] 1
+  catch {C info object x y z} err
+  ? [list string match {unable to dispatch sub-method "x" of ::C info object; valid are:*} $err] 1; 
+  ## --> unable to dispatch sub-method "object" of ::C info; valid are:
+}
 
 nx::test case submethods-and-filters {
   #
