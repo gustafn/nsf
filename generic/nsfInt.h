@@ -102,9 +102,9 @@
 #elif __GNUC_PREREQ(2, 7)
 # define UNUSED(x) UNUSED_ ## x __attribute__((unused))
 #elif defined(__LCLINT__)
-# define UNUSED(x) /*@unused@*/ x
+# define UNUSED(x) /*@unused@*/ (x)
 #else
-# define UNUSED(x) x
+# define UNUSED(x) (x)
 #endif
 
 #if defined(NSF_DTRACE)
@@ -114,11 +114,11 @@
 # define NSF_DTRACE_OBJECT_ALLOC_ENABLED()		unlikely(NSF_OBJECT_ALLOC_ENABLED())
 # define NSF_DTRACE_OBJECT_FREE_ENABLED()  		unlikely(NSF_OBJECT_FREE_ENABLED())
 # define NSF_DTRACE_CONFIGURE_PROBE_ENABLED()  		unlikely(NSF_CONFIGURE_PROBE_ENABLED())
-# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3, a4)	NSF_METHOD_ENTRY(a0, a1, a2, a3, a4)
-# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2, a3)      	NSF_METHOD_RETURN(a0, a1, a2, a3)
-# define NSF_DTRACE_OBJECT_ALLOC(a0, a1)		NSF_OBJECT_ALLOC(a0, a1)
-# define NSF_DTRACE_OBJECT_FREE(a0, a1)			NSF_OBJECT_FREE(a0, a1)
-# define NSF_DTRACE_CONFIGURE_PROBE(a0, a1)      	NSF_CONFIGURE_PROBE(a0, a1)
+# define NSF_DTRACE_METHOD_ENTRY(a0, a1, a2, a3, a4)	NSF_METHOD_ENTRY((a0), (a1), (a2), (a3), (a4))
+# define NSF_DTRACE_METHOD_RETURN(a0, a1, a2, a3)      	NSF_METHOD_RETURN((a0), (a1), (a2), (a3))
+# define NSF_DTRACE_OBJECT_ALLOC(a0, a1)		NSF_OBJECT_ALLOC((a0), (a1))
+# define NSF_DTRACE_OBJECT_FREE(a0, a1)			NSF_OBJECT_FREE((a0), (a1))
+# define NSF_DTRACE_CONFIGURE_PROBE(a0, a1)      	NSF_CONFIGURE_PROBE((a0), (a1))
 #else
 # define NSF_DTRACE_METHOD_ENTRY_ENABLED()     		0
 # define NSF_DTRACE_METHOD_RETURN_ENABLED()    		0
@@ -152,8 +152,8 @@ typedef struct NsfMemCounter {
   int peak;
   int count;
 } NsfMemCounter;
-#  define MEM_COUNT_ALLOC(id,p) NsfMemCountAlloc(id, p)
-#  define MEM_COUNT_FREE(id,p) NsfMemCountFree(id, p)
+#  define MEM_COUNT_ALLOC(id,p) NsfMemCountAlloc((id), (p))
+#  define MEM_COUNT_FREE(id,p) NsfMemCountFree((id), (p))
 #  define MEM_COUNT_INIT() NsfMemCountInit()
 #  define MEM_COUNT_RELEASE() NsfMemCountRelease()
 #else
@@ -163,13 +163,13 @@ typedef struct NsfMemCounter {
 #  define MEM_COUNT_RELEASE()
 #endif
 
-# define STRING_NEW(target, p, l)  target = ckalloc(l+1); strncpy(target, p, l); *((target)+l) = '\0'; \
-  MEM_COUNT_ALLOC(#target, target)
-# define STRING_FREE(key, p)  MEM_COUNT_FREE(key, p); ckfree((p))
+# define STRING_NEW(target, p, l)  (target) = ckalloc((l)+1); strncpy((target), (p), (l)); *((target)+(l)) = '\0'; \
+  MEM_COUNT_ALLOC(#target, (target))
+# define STRING_FREE(key, p)  MEM_COUNT_FREE((key), (p)); ckfree((p))
 
-#define DSTRING_INIT(dsPtr) Tcl_DStringInit(dsPtr); MEM_COUNT_ALLOC("DString",dsPtr)
+#define DSTRING_INIT(dsPtr) Tcl_DStringInit(dsPtr); MEM_COUNT_ALLOC("DString",(dsPtr))
 #define DSTRING_FREE(dsPtr) \
-  if ((dsPtr)->string != (dsPtr)->staticSpace) {Tcl_DStringFree(dsPtr);} MEM_COUNT_FREE("DString",dsPtr)
+  if ((dsPtr)->string != (dsPtr)->staticSpace) {Tcl_DStringFree(dsPtr);} MEM_COUNT_FREE("DString",(dsPtr))
 
 #if USE_ASSOC_DATA
 # define RUNTIME_STATE(interp) ((NsfRuntimeState*)Tcl_GetAssocData((interp), "NsfRuntimeState", NULL))
@@ -177,41 +177,41 @@ typedef struct NsfMemCounter {
 # define RUNTIME_STATE(interp) ((NsfRuntimeState*)((Interp*)(interp))->globalNsPtr->clientData)
 #endif
 
-#define nr_elements(arr)  ((int) (sizeof(arr) / sizeof(arr[0])))
+#define nr_elements(arr)  ((int) (sizeof(arr) / sizeof((arr)[0])))
 
 # define NEW(type) \
-	(type *)ckalloc(sizeof(type)); MEM_COUNT_ALLOC(#type, NULL)
+  (type *)ckalloc(sizeof(type)); MEM_COUNT_ALLOC(#type, NULL)
 # define NEW_ARRAY(type,n) \
-	(type *)ckalloc(sizeof(type)*(n)); MEM_COUNT_ALLOC(#type "*", NULL)
+  (type *)ckalloc(sizeof(type)*(n)); MEM_COUNT_ALLOC(#type "*", NULL)
 # define FREE(type, var) \
-	ckfree((char*) var); MEM_COUNT_FREE(#type,var)
+  ckfree((char*) (var)); MEM_COUNT_FREE(#type,(var))
 
-#define isAbsolutePath(m) (*m == ':' && m[1] == ':')
+#define isAbsolutePath(m) (*(m) == ':' && (m)[1] == ':')
 #define isArgsString(m) (\
-	*m   == 'a' && m[1] == 'r' && m[2] == 'g' && m[3] == 's' && \
-	m[4] == '\0')
+	*(m)   == 'a' && (m)[1] == 'r' && (m)[2] == 'g' && (m)[3] == 's' && \
+	(m)[4] == '\0')
 #define isBodyString(m) (\
-	*m   == 'b' && m[1] == 'o' && m[2] == 'd' && m[3] == 'y' && \
-	m[4] == '\0')
+	*(m)   == 'b' && (m)[1] == 'o' && (m)[2] == 'd' && (m)[3] == 'y' && \
+	(m)[4] == '\0')
 #define isCheckString(m) (\
-	*m   == 'c' && m[1] == 'h' && m[2] == 'e' && m[3] == 'c' && \
-	m[4] == 'k' && m[5] == '\0')
+	*(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
+	(m)[4] == 'k' && (m)[5] == '\0')
 #define isCheckObjString(m) (\
-        *m   == 'c' && m[1] == 'h' && m[2] == 'e' && m[3] == 'c' && \
-	m[4] == 'k' && m[5] == 'o' && m[6] == 'b' && m[7] == 'j' && \
-	m[8] == '\0')
+        *(m)   == 'c' && (m)[1] == 'h' && (m)[2] == 'e' && (m)[3] == 'c' && \
+	(m)[4] == 'k' && (m)[5] == 'o' && (m)[6] == 'b' && (m)[7] == 'j' && \
+	(m)[8] == '\0')
 #define isCreateString(m) (\
-	*m   == 'c' && m[1] == 'r' && m[2] == 'e' && m[3] == 'a' && \
-	m[4] == 't' && m[5] == 'e' && m[6] == '\0')
+	*(m)   == 'c' && (m)[1] == 'r' && (m)[2] == 'e' && (m)[3] == 'a' && \
+	(m)[4] == 't' && (m)[5] == 'e' && (m)[6] == '\0')
 #define isTypeString(m) (\
-	*m   == 't' && m[1] == 'y' && m[2] == 'p' && m[3] == 'e' && \
-	m[4] == '\0')
+	*(m)   == 't' && (m)[1] == 'y' && (m)[2] == 'p' && (m)[3] == 'e' && \
+	(m)[4] == '\0')
 #define isObjectString(m) (\
-	*m   == 'o' && m[1] == 'b' && m[2] == 'j' && m[3] == 'e' && \
-	m[4] == 'c' && m[5] == 't' && m[6] == '\0')
+	*(m)   == 'o' && (m)[1] == 'b' && (m)[2] == 'j' && (m)[3] == 'e' && \
+	(m)[4] == 'c' && (m)[5] == 't' && (m)[6] == '\0')
 #define isClassString(m) (\
-	*m   == 'c' && m[1] == 'l' && m[2] == 'a' && m[3] == 's' && \
-	m[4] == 's' && m[5] == '\0')
+	*(m)   == 'c' && (m)[1] == 'l' && (m)[2] == 'a' && (m)[3] == 's' && \
+	(m)[4] == 's' && (m)[5] == '\0')
 
 #if (defined(sun) || defined(__hpux)) && !defined(__GNUC__)
 #  define USE_ALLOCA
@@ -232,20 +232,20 @@ typedef struct NsfMemCounter {
 #if defined(__GNUC__) && !defined(USE_ALLOCA) && !defined(USE_MALLOC)
 # if !defined(NDEBUG)
 #  define ALLOC_ON_STACK(type,n,var) \
-    int __##var##_count = (n); type __##var[n+2]; \
-    type *var = __##var + 1; var[-1] = var[__##var##_count] = (type)0xdeadbeaf
+  int __##var##_count = (n); type __##var[(n)+2];			\
+  type *(var) = __##var + 1; (var)[-1] = var[__##var##_count] = (type)0xdeadbeaf
 #  define FREE_ON_STACK(type,var)                                       \
-  assert(var[-1] == var[__##var##_count] && var[-1] == (type)0xdeadbeaf)
+  assert((var)[-1] == (var)[__##var##_count] && (var)[-1] == (type)0xdeadbeaf)
 # else
-#  define ALLOC_ON_STACK(type,n,var) type var[(n)]
+#  define ALLOC_ON_STACK(type,n,var) type (var)[(n)]
 #  define FREE_ON_STACK(type,var)
 # endif
 #elif defined(USE_ALLOCA)
-#  define ALLOC_ON_STACK(type,n,var) type *var = (type *)alloca((n)*sizeof(type))
+#  define ALLOC_ON_STACK(type,n,var) type *(var) = (type *)alloca((n)*sizeof(type))
 #  define FREE_ON_STACK(type,var)
 #else
-#  define ALLOC_ON_STACK(type,n,var) type *var = (type *)ckalloc((n)*sizeof(type))
-#  define FREE_ON_STACK(type,var) ckfree((char*)var)
+#  define ALLOC_ON_STACK(type,n,var) type *(var) = (type *)ckalloc((n)*sizeof(type))
+#  define FREE_ON_STACK(type,var) ckfree((char*)(var))
 #endif
 
 #ifdef USE_ALLOCA
@@ -254,12 +254,12 @@ typedef struct NsfMemCounter {
 
 #if !defined(NDEBUG)
 # if defined(PRE86)
-#  define ISOBJ(o) (o != NULL && o != (void*)0xdeadbeaf && (o->typePtr ? o->typePtr->name != NULL : 1) && o->length >= -1 && (o->length > 0 ? o->bytes!= NULL : 1) && o->refCount >= 0)
+#  define ISOBJ(o) ((o) != NULL && (o) != (void*)0xdeadbeaf && ((o)->typePtr ? (o)->typePtr->name != NULL : 1) && (o)->length >= -1 && ((o)->length > 0 ? (o)->bytes!= NULL : 1) && (o)->refCount >= 0)
 #  else
-#  define ISOBJ(o) (o != NULL && o != (void*)0xdeadbeaf && (o->typePtr ? o->typePtr->name != NULL : 1) && (o->bytes != NULL ? o->length >= 0 : 1) && o->refCount >= 0)
+#  define ISOBJ(o) ((o) != NULL && (o) != (void*)0xdeadbeaf && ((o)->typePtr ? (o)->typePtr->name != NULL : 1) && ((o)->bytes != NULL ? (o)->length >= 0 : 1) && (o)->refCount >= 0)
 # endif
 #else
-# define ISOBJ(o) (o != NULL)
+# define ISOBJ(o) ((o) != NULL)
 #endif
 
 #define NSF_ABBREV_MIN_CHARS 4
@@ -275,22 +275,22 @@ typedef struct NsfMemCounter {
 
 #ifdef USE_TCL_STUBS
 # define DECR_REF_COUNT(A) \
-	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); assert((A)->refCount > -1); \
-        Tcl_DecrRefCount(A)
+  MEM_COUNT_FREE("INCR_REF_COUNT" #A,(A)); assert((A)->refCount > -1);	\
+  Tcl_DecrRefCount(A)
 # define DECR_REF_COUNT2(name,A)					\
-	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); assert((A)->refCount > -1); \
-        Tcl_DecrRefCount(A)
+  MEM_COUNT_FREE("INCR_REF_COUNT-" (name),(A)); assert((A)->refCount > -1); \
+  Tcl_DecrRefCount(A)
 #else
 # define DECR_REF_COUNT(A) \
-	MEM_COUNT_FREE("INCR_REF_COUNT" #A,A); TclDecrRefCount(A)
+  MEM_COUNT_FREE("INCR_REF_COUNT" #A,(A)); TclDecrRefCount(A)
 # define DECR_REF_COUNT2(name,A)				\
-	MEM_COUNT_FREE("INCR_REF_COUNT-" name,A); TclDecrRefCount(A)
+  MEM_COUNT_FREE("INCR_REF_COUNT-" (name),(A)); TclDecrRefCount(A)
 #endif
 
-#define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT"#A,A); Tcl_IncrRefCount(A)
+#define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT"#A,(A)); Tcl_IncrRefCount((A))
 #define INCR_REF_COUNT2(name,A) \
   /*fprintf(stderr, "c '%s'\n", ObjStr(A));*/				\
-  MEM_COUNT_ALLOC("INCR_REF_COUNT-" name,A); Tcl_IncrRefCount(A)
+  MEM_COUNT_ALLOC("INCR_REF_COUNT-" (name),(A)); Tcl_IncrRefCount((A))
 
 #define ObjStr(obj) ((obj)->bytes) ? ((obj)->bytes) : Tcl_GetString(obj)
 #define ClassName(cl) (((cl) ? ObjStr((cl)->object.cmdName) : "NULL"))
@@ -299,7 +299,7 @@ typedef struct NsfMemCounter {
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,obj) \
   fprintf(stderr, "  %s %p %s oid=%p teardown=%p destroyCalled=%d\n", \
-          ctx,obj,(obj)->teardown?ObjStr((obj)->cmdName):"(deleted)", \
+	  (ctx),(obj),(obj)->teardown?ObjStr((obj)->cmdName):"(deleted)", \
           (obj)->id, (obj)->teardown,                                 \
           ((obj)->flags & NSF_DESTROY_CALLED))
 #else
@@ -1139,7 +1139,7 @@ char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
 */
 #ifndef va_copy
 #ifdef	__va_copy
-#define	va_copy(dest,src) __va_copy(dest,src)
+#define	va_copy(dest,src) __va_copy((dest),(src))
 #else
 #define va_copy(dest,src) ((dest) = (src))
 #endif

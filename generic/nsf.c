@@ -4239,7 +4239,7 @@ GetVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
  * Variable resolvers
  *
  *********************************************************/
-#define FOR_COLON_RESOLVER(ptr) (*(ptr) == ':' && *(ptr+1) != ':')
+#define FOR_COLON_RESOLVER(ptr) (*(ptr) == ':' && *((ptr)+1) != ':')
 
 /*
  *----------------------------------------------------------------------
@@ -21112,7 +21112,7 @@ NextParam(Nsf_Param CONST *paramPtr, Nsf_Param CONST *lastParamPtr) {
  */
 
 #define SkipNonposParamDefs(cPtr) \
-  for (; ++cPtr <= lastParamPtr && *cPtr->name == '-';)
+  for (; ++(cPtr) <= lastParamPtr && *(cPtr)->name == '-';)
 
 static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
