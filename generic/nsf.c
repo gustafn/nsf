@@ -12547,10 +12547,10 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
 
     cscPtr2 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
 
-    fprintf(stderr, "==> next %s.%s (obj %s) cscPtr %p cscPtr1 %p cscPtr2 %p (%d) returned %d unknown %d is InfoInfoCase %d\n",
-            ObjectName(callerSelf), methodName, ObjectName(invokedObject), cscPtr, cscPtr1, cscPtr2, 
-            cscPtr2 ? (cscPtr2->flags & NSF_CSC_CALL_IS_NEXT) != 0 : 0, result,
-            RUNTIME_STATE(interp)->unknown);
+    fprintf(stderr, "==> next %s.%s (obj %s) cscPtr %p cscPtr1 %p cscPtr2 %p (%d) result %d unknown %d\n",
+            ObjectName(callerSelf), methodName, ObjectName(invokedObject),
+            cscPtr, cscPtr1, cscPtr2, cscPtr2 ? (cscPtr2->flags & NSF_CSC_CALL_IS_NEXT) != 0 : 0,
+            result, RUNTIME_STATE(interp)->unknown);
 
     NsfShowStack(interp);
 
@@ -17563,7 +17563,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 			    object, cl, methodName, frameType, 0);
 #endif
   } else if (likely(result == TCL_OK)) {
-    NsfCallStackContent *topCscPtr, *topCscPtr0;
+    NsfCallStackContent *topCscPtr;
     Tcl_CallFrame *varFramePtr;
     int isLeafNext;
 
