@@ -172,10 +172,10 @@ typedef struct {
   ClientData *clientData; /* 4 members pointer to the actual parse context data */
   Tcl_Obj **objv;
   Tcl_Obj **full_objv;    /* contains method as well */
-  int *flags;
+  unsigned int *flags;
   ClientData clientData_static[PARSE_CONTEXT_PREALLOC]; /* 3 members preallocated parse context data */
   Tcl_Obj *objv_static[PARSE_CONTEXT_PREALLOC+1];
-  int flags_static[PARSE_CONTEXT_PREALLOC+1];
+  unsigned int flags_static[PARSE_CONTEXT_PREALLOC+1];
   int lastObjc;           /* points to the first "unprocessed" argument */
   int objc;
   int varArgs;            /* does the parameter end with some kind of "args" */
@@ -223,19 +223,19 @@ static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) nonnull(1) n
 static int MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 			  int objc, Tcl_Obj *CONST objv[],
 			  Tcl_Command cmd, NsfObject *object, NsfClass *cl,
-			  CONST char *methodName, int frameType, int flags)
+			  CONST char *methodName, int frameType, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(4) nonnull(5) nonnull(6) nonnull(8);
-static int DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *obj, int flags)
+static int DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *obj, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
-static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags)
+static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags)
   nonnull(1) nonnull(2);
 static int DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
 				 int objc, Tcl_Obj *CONST objv[], Tcl_Obj *callInfo,
-				 Tcl_Obj *methodObj, int flags)
+				 Tcl_Obj *methodObj, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(4) nonnull(6);
 
 NSF_INLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
-                                      Tcl_Obj *CONST objv[], int flags)
+                                      Tcl_Obj *CONST objv[], unsigned int flags)
   nonnull(1) nonnull(2) nonnull(4);
 
 NSF_INLINE static int ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
@@ -316,7 +316,7 @@ static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *m
 
 /* prototypes for call stack specific calls */
 NSF_INLINE static void CscInit_(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-			       Tcl_Command cmd, int frameType, int flags)
+			       Tcl_Command cmd, int frameType, unsigned int flags)
   nonnull(1) nonnull(2);
 
 NSF_INLINE static void CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr)
@@ -345,11 +345,11 @@ static void ParsedParamFree(NsfParsedParam *parsedParamPtr) nonnull(1);
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          NsfObject *obj, Tcl_Obj *procName,
                          Nsf_Param CONST *paramPtr, int nrParameters, int serial,
-			 int processFlags, ParseContext *pc)
+			 unsigned int processFlags, ParseContext *pc)
   nonnull(1) nonnull(3) nonnull(5) nonnull(6) nonnull(10);
 
 static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int doCheckArguments,
-			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr)
+			 unsigned int *flags, ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(5) nonnull(6) nonnull(7);
 
 static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
@@ -430,7 +430,8 @@ static int MethodSourceMatches(int withSource, NsfClass *cl, NsfObject *object);
 static NsfObjectOpt *NsfRequireObjectOpt(NsfObject *object) nonnull(1) returns_nonnull;
 static NsfClassOpt * NsfRequireClassOpt(/*@notnull@*/ NsfClass *cl) nonnull(1) returns_nonnull;
 
-static int ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfObject *object, int flags)
+static int ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, 
+                                          NsfObject *object, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 
 #ifdef DO_CLEANUP
@@ -655,7 +656,7 @@ ParseContextInit(ParseContext *pcPtr, int objc, NsfObject *object, Tcl_Obj *proc
     pcPtr->flags      = &pcPtr->flags_static[0];
   } else {
     pcPtr->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *)*(objc+1));
-    pcPtr->flags      = (int *)ckalloc(sizeof(int)*(objc+1));
+    pcPtr->flags      = (unsigned int *)ckalloc(sizeof(int)*(objc+1));
     MEM_COUNT_ALLOC("pcPtr.objv", pcPtr->full_objv);
     pcPtr->clientData = (ClientData *)ckalloc(sizeof(ClientData)*objc);
     MEM_COUNT_ALLOC("pcPtr.clientData", pcPtr->clientData);
@@ -703,8 +704,8 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
   if (unlikely(requiredSize >= PARSE_CONTEXT_PREALLOC)) {
     if (pcPtr->objv == &pcPtr->objv_static[1]) {
       /* realloc from preallocated memory */
-      pcPtr->full_objv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * requiredSize);
-      pcPtr->flags     = (int *)     ckalloc(sizeof(int) * requiredSize);
+      pcPtr->full_objv = (Tcl_Obj **)    ckalloc(sizeof(Tcl_Obj *) * requiredSize);
+      pcPtr->flags     = (unsigned int *)ckalloc(sizeof(int) * requiredSize);
       MEM_COUNT_ALLOC("pcPtr.objv", pcPtr->full_objv);
       memcpy(pcPtr->full_objv, &pcPtr->objv_static[0], sizeof(Tcl_Obj *) * PARSE_CONTEXT_PREALLOC);
       memcpy(pcPtr->flags, &pcPtr->flags_static[0], sizeof(int) * PARSE_CONTEXT_PREALLOC);
@@ -714,8 +715,8 @@ ParseContextExtendObjv(ParseContext *pcPtr, int from, int elts, Tcl_Obj *CONST s
       pcPtr->status     |= NSF_PC_STATUS_FREE_OBJV;
     } else {
       /* realloc from mallocated memory */
-      pcPtr->full_objv = (Tcl_Obj **)ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj *) * requiredSize);
-      pcPtr->flags     = (int *)     ckrealloc((char *)pcPtr->flags,     sizeof(int) * requiredSize);
+      pcPtr->full_objv = (Tcl_Obj **)    ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj *) * requiredSize);
+      pcPtr->flags     = (unsigned int *)ckrealloc((char *)pcPtr->flags,     sizeof(int) * requiredSize);
       /*fprintf(stderr, "ParseContextExtendObjv: extend %p realloc %d  new objv=%p pcPtr %p\n",
 	pcPtr, requiredSize, pcPtr->full_objv, pcPtr);*/
     }
@@ -870,12 +871,12 @@ ParseContextRelease(ParseContext *pcPtr) {
  */
 static int
 CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
-           int objc, Tcl_Obj *CONST objv[], int flags)
+           int objc, Tcl_Obj *CONST objv[], unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 
 static int
 CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
-           int objc, Tcl_Obj *CONST objv[], int flags) {
+           int objc, Tcl_Obj *CONST objv[], unsigned int flags) {
   NsfObject *object = (NsfObject *) clientData;
   int result;
   ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
@@ -923,12 +924,12 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
  */
 
 int NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj,
-		      Tcl_Obj *arg1, int givenObjc, Tcl_Obj *CONST objv[], int flags)
+		      Tcl_Obj *arg1, int givenObjc, Tcl_Obj *CONST objv[], unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 
 int
 NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj,
-		      Tcl_Obj *arg1, int givenObjc, Tcl_Obj *CONST objv[], int flags) {
+		      Tcl_Obj *arg1, int givenObjc, Tcl_Obj *CONST objv[], unsigned int flags) {
   int objc = givenObjc + 2;
   int result;
   ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
@@ -1059,9 +1060,9 @@ Nsf_Class * NsfGetClass(Tcl_Interp *interp, CONST char *name) nonnull(1) nonnull
 Nsf_Class * NsfIsClass(Tcl_Interp *interp, ClientData clientData) nonnull(1) nonnull(2);
 void NsfRequireObjNamespace(Tcl_Interp *interp, Nsf_Object *object) nonnull(1) nonnull(2);
 Tcl_Obj * Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
-                         Tcl_Obj *valueObj, int flags)
+                         Tcl_Obj *valueObj, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3) nonnull(5);
-Tcl_Obj * Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, int flags)
+Tcl_Obj * Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 int NsfCreate(Tcl_Interp *interp, Nsf_Class *class, Tcl_Obj *nameObj, int objc, Tcl_Obj *CONST objv[])
   nonnull(1) nonnull(2) nonnull(3) nonnull(5);
@@ -1071,7 +1072,7 @@ int NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *m
 int NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName)
   nonnull(1) nonnull(2) nonnull(3);
 int Nsf_UnsetVar2(Nsf_Object *object1, Tcl_Interp *interp,
-                  CONST char *name1, CONST char *name2, int flags)
+                  CONST char *name1, CONST char *name2, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(4);
 
 void NsfSetObjClientData(Tcl_Interp *interp, Nsf_Object *object, ClientData data) nonnull(1) nonnull(2);
@@ -1121,7 +1122,7 @@ NsfRequireObjNamespace(Tcl_Interp *interp, Nsf_Object *object) {
 
 Tcl_Obj *
 Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
-                 Tcl_Obj *valueObj, int flags) {
+                 Tcl_Obj *valueObj, unsigned int flags) {
   Tcl_Obj *result;
   CallFrame frame, *framePtr = &frame;
 
@@ -1142,7 +1143,7 @@ Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
 
 Tcl_Obj *
 Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
-                 int flags) {
+               unsigned int flags) {
   Tcl_Obj *result;
   CallFrame frame, *framePtr = &frame;
 
@@ -1162,7 +1163,7 @@ Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
 
 int
 Nsf_UnsetVar2(Nsf_Object *object1, Tcl_Interp *interp,
-                   CONST char *name1, CONST char *name2, int flags) {
+                   CONST char *name1, CONST char *name2, unsigned int flags) {
   NsfObject *object = (NsfObject *) object1;
   int result;
   CallFrame frame, *framePtr = &frame;
@@ -3559,7 +3560,7 @@ FindProcMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
  *
  *----------------------------------------------------------------------
  */
-static NsfClass * SearchPLMethod(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr, int flags)
+static NsfClass * SearchPLMethod(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 static NsfClass * SearchPLMethod0(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr)
   nonnull(1) nonnull(2) nonnull(3);
@@ -3586,7 +3587,7 @@ SearchPLMethod0(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cm
 
 static NsfClass *
 SearchPLMethod(register NsfClasses *pl, CONST char *methodName,
-	       Tcl_Command *cmdPtr, int flags) {
+	       Tcl_Command *cmdPtr, unsigned int flags) {
 
   assert(pl);
   assert(methodName);
@@ -4031,7 +4032,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
 	  1 << methodIdx );*/
 
   if (methodObj) {
-    int flag = 1 << methodIdx;
+    unsigned int flag = 1 << methodIdx;
     if ((osPtr->overloadedMethods & flag) != 0) {
       /* overloaded, we must dispatch */
       /*fprintf(stderr, "overloaded\n");*/
@@ -4331,7 +4332,8 @@ NsfMethodNamePath(Tcl_Interp *interp,
  *
  *----------------------------------------------------------------------
  */
-static int NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *UNUSED(nsPtr), int flags, Tcl_Var *varPtr)
+static int NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *UNUSED(nsPtr), 
+                              int flags, Tcl_Var *varPtr)
   nonnull(1) nonnull(2) nonnull(5);
 
 static int
@@ -4542,7 +4544,7 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   assert(vinfoPtr);
 
 #if defined(VAR_RESOLVER_TRACE)
-  int flags = var ? ((Var *)var)->flags : 0;
+  unsigned int flags = var ? ((Var *)var)->flags : 0;
   fprintf(stderr,"CompiledColonVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
 	  ObjStr(resVarInfo->nameObj), var, flags, flags & VAR_DEAD_HASH);
 #endif
@@ -4802,7 +4804,8 @@ InterpGetFrameAndFlags(Tcl_Interp *interp, CallFrame **framePtr) {
  *----------------------------------------------------------------------
  */
 
-static int InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *UNUSED(nsPtr), int flags, Tcl_Var *varPtr)
+static int InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *UNUSED(nsPtr), 
+                                  int flags, Tcl_Var *varPtr)
   nonnull(1) nonnull(2) nonnull(5);
 
 static int
@@ -4969,11 +4972,11 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *U
  *----------------------------------------------------------------------
  */
 static int InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *UNUSED(nsPtr),
-                                  int flags, Tcl_Command *cmdPtr) nonnull(1) nonnull(2) nonnull(5);
+                                  unsigned int flags, Tcl_Command *cmdPtr) nonnull(1) nonnull(2) nonnull(5);
 
 static int
 InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *UNUSED(nsPtr),
-		       int flags, Tcl_Command *cmdPtr) {
+		       unsigned int flags, Tcl_Command *cmdPtr) {
   CallFrame *varFramePtr;
   int frameFlags;
 
@@ -5183,12 +5186,12 @@ NSNamespaceClientDataObject(ClientData clientData) {
  */
 
 static int SlotContainerCmdResolver(Tcl_Interp *interp, CONST char *cmdName,
-			 Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr)
+			 Tcl_Namespace *nsPtr, unsigned int flags, Tcl_Command *cmdPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(5);
 
 static int
 SlotContainerCmdResolver(Tcl_Interp *interp, CONST char *cmdName,
-			 Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
+			 Tcl_Namespace *nsPtr, unsigned int flags, Tcl_Command *cmdPtr) {
 
   assert(cmdName);
   assert(nsPtr);
@@ -6099,11 +6102,11 @@ GetClassFromString(Tcl_Interp *interp, CONST char *name) {
  *
  *----------------------------------------------------------------------
  */
-static int CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONST char *methodName, int flags)
+static int CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONST char *methodName, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 static int
-CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONST char *methodName, int flags) {
+CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONST char *methodName, unsigned int flags) {
   int result, ok;
   Tcl_Command cmd;
 
@@ -6167,13 +6170,13 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
  *----------------------------------------------------------------------
  */
 int NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName,
-                     Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
-                     int flags) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
+                       Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
+                       unsigned int flags) nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName,
-                     Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
-                     int flags) {
+                   Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
+                   unsigned int flags) {
   NsfObject *object = (NsfObject *)object1;
   Tcl_DString newCmdName, *dsPtr = &newCmdName;
   Tcl_Namespace *ns = RequireObjNamespace(interp, object);
@@ -6223,14 +6226,14 @@ NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodNa
  *----------------------------------------------------------------------
  */
 int NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
-                       Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
-                       int flags)
+                      Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
+                      unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4);
 
 int
 NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
                   Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
-                  int flags) {
+                  unsigned int flags) {
   NsfClass *cl = (NsfClass *)class;
   Tcl_DString newCmdName, *dsPtr = &newCmdName;
   Tcl_Command newCmd;
@@ -10531,12 +10534,12 @@ CheckVarName(Tcl_Interp *interp, const char *varNameString) {
  *
  *----------------------------------------------------------------------
  */
-static int VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *name1, CONST char *name2, int flags)
+static int VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *name1, CONST char *name2, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3);
 
 static int
 VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *name1, CONST char *name2,
-          int flags) {
+          unsigned int flags) {
   CallFrame frame, *framePtr = &frame;
   Var *varPtr, *arrayPtr;
   int result;
@@ -10550,7 +10553,7 @@ VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *name1, CONST char *
   if (flags & NSF_VAR_TRIGGER_TRACE) {
     varPtr = TclVarTraceExists(interp, name1);
   } else {
-    int flags = (name2 == NULL) ? TCL_PARSE_PART1 : 0;
+    unsigned int flags = (name2 == NULL) ? TCL_PARSE_PART1 : 0;
     varPtr = TclLookupVar(interp, name1, name2, flags, "access",
                           /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
   }
@@ -10783,7 +10786,7 @@ PushProcCallFrame(Proc *procPtr, Tcl_Interp *interp,
  */
 
 static int
-ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfObject *object, int flags) {
+ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfObject *object, unsigned int flags) {
   NsfObjectSystem *osPtr, *defOsPtr = GetObjectSystem(object);
 
   char firstChar;
@@ -12913,7 +12916,7 @@ static int
 MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	       int objc, Tcl_Obj *CONST objv[],
 	       Tcl_Command cmd, NsfObject *object, NsfClass *cl,
-	       CONST char *methodName, int frameType, int flags) {
+	       CONST char *methodName, int frameType, unsigned int flags) {
   NsfCallStackContent csc, *cscPtr;
   int result, validCscPtr = 1;
   Tcl_Command resolvedCmd;
@@ -12993,7 +12996,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
 		       int result /*, char *msg, CONST char *methodName*/) {
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
   NsfObject *object;
-  int flags;
+  unsigned int flags;
 
   assert(interp);
   assert(cscPtr);
@@ -13114,13 +13117,14 @@ NsfFindClassMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *methodName) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
-	       int objc, Tcl_Obj *CONST objv[],
-	       int flags) nonnull(2) nonnull(4);
+                                     int objc, Tcl_Obj *CONST objv[],
+                                     unsigned int flags) 
+  nonnull(2) nonnull(4);
 
 NSF_INLINE static int
 ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
 	       int objc, Tcl_Obj *CONST objv[],
-	       int flags) {
+	       unsigned int flags) {
   register NsfObject *object = (NsfObject *)clientData;
   int result = TCL_OK, objflags, shift,
     frameType = NSF_CSC_TYPE_PLAIN;
@@ -13625,7 +13629,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
  */
 static int
 DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object,
-		      Tcl_Obj *obj, int flags) {
+		      Tcl_Obj *obj, unsigned int flags) {
   int result;
   Tcl_Obj *methodObj;
 
@@ -13671,7 +13675,7 @@ DispatchDefaultMethod(Tcl_Interp *interp, NsfObject *object,
  */
 
 static int
-DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
+DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, unsigned int flags) {
   int result;
   Tcl_Obj *methodObj;
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
@@ -13739,12 +13743,12 @@ in case the object system has it
  *----------------------------------------------------------------------
  */
 static int DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
-		   int objc, Tcl_Obj *CONST objv[], int flags)
+		   int objc, Tcl_Obj *CONST objv[], unsigned int flags)
   nonnull(1) nonnull(2);
 
 static int
 DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
-		   int objc, Tcl_Obj *CONST objv[], int flags) {
+		   int objc, Tcl_Obj *CONST objv[], unsigned int flags) {
   int result;
   Tcl_Obj *methodObj;
 
@@ -13801,7 +13805,7 @@ DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
 static int
 DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
 		      int objc, Tcl_Obj *CONST objv[],
-		      Tcl_Obj *callInfoObj, Tcl_Obj *methodObj, int flags) {
+		      Tcl_Obj *callInfoObj, Tcl_Obj *methodObj, unsigned int flags) {
   int result;
   Tcl_Obj *unknownObj = NsfMethodObj(object, NSF_o_unknown_idx);
   CONST char *methodName = MethodName(methodObj);
@@ -17584,7 +17588,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
     cscPtr->flags |= NSF_CSC_CALL_IS_NEXT;
     rst->unknown = 0;
 #if defined(NRE)
-    { int flags;
+    { unsigned int flags;
       /*
        * Allow call only without immediate flag, when caller has NRE without immediate
        */
@@ -18001,12 +18005,12 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
  */
 
 static char *NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
-                           CONST char *UNUSED(name), CONST char *UNUSED(name2), int flags)
+                           CONST char *UNUSED(name), CONST char *UNUSED(name2), unsigned int flags)
   nonnull(1) nonnull(2);
 
 static char *
 NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp,
-	      CONST char *UNUSED(name), CONST char *UNUSED(name2), int flags)
+	      CONST char *UNUSED(name), CONST char *UNUSED(name2), unsigned int flags)
 {
   Tcl_Obj *objPtr = (Tcl_Obj *)clientData;
   NsfObject *object;
@@ -19469,7 +19473,7 @@ static int
 ImportInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *object,
                            Tcl_Obj *varName, Tcl_Obj *newName) {
   Var *otherPtr = NULL, *arrayPtr;
-  int flogs = TCL_LEAVE_ERR_MSG;
+  unsigned int flogs = TCL_LEAVE_ERR_MSG;
   Tcl_CallFrame *varFramePtr;
   CallFrame frame, *framePtr = &frame;
   char *varNameString;
@@ -19619,7 +19623,7 @@ static int
 SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj) {
   CallFrame frame, *framePtr = &frame;
   Tcl_Obj *resultObj;
-  int flags;
+  unsigned int flags;
 
   assert(interp);
   assert(object);
@@ -19721,7 +19725,8 @@ static int UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *objec
 static int
 UnsetInstVar(Tcl_Interp *interp, int withNocomplain, NsfObject *object, CONST char *name) {
   CallFrame frame, *framePtr = &frame;
-  int flags, result;
+  unsigned int flags;
+  int result;
 
   assert(interp);
   assert(object);
@@ -19774,7 +19779,8 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 
   if (cd->paramsPtr && objc == 2) {
     Tcl_Obj *outObjPtr;
-    int result, flags = 0;
+    int result; 
+    unsigned flags = 0;
     ClientData checkedData;
 
     result = ArgumentCheck(interp, objv[1], cd->paramsPtr,
@@ -20765,12 +20771,12 @@ ArgumentResetRefCounts(struct Nsf_Param CONST *pPtr, Tcl_Obj *valueObj) {
  *
  *----------------------------------------------------------------------
  */
-static int ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int *flags,
+static int ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, unsigned int *flags,
                                ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5) nonnull(6);
 
 static int
-ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, int *flags,
+ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr, unsigned int *flags,
                     ClientData *clientData, Tcl_Obj **outObjPtr) {
   int objc, i, result;
   Tcl_Obj **ov;
@@ -20848,7 +20854,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST 
 static int
 ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct Nsf_Param CONST *pPtr,
 	      int doCheckArguments,
-	      int *flags, ClientData *clientData, Tcl_Obj **outObjPtr) {
+	      unsigned int *flags, ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
 
   assert(interp);
@@ -21058,7 +21064,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
 	 * Check the default value if necessary
 	 */
         if (pPtr->type || unlikely(pPtr->flags & NSF_ARG_MULTIVALUED)) {
-          int mustDecrList = 0;
+          unsigned int mustDecrList = 0;
           if (unlikely((pPtr->flags & NSF_ARG_INITCMD) == 0 &&
 		       ArgumentCheck(interp, newValue, pPtr,
 				     RUNTIME_STATE(interp)->doCheckArguments,
@@ -21151,7 +21157,7 @@ int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
-		  int processFlags, Nsf_ParseContext *pcPtr) {
+		  unsigned int processFlags, Nsf_ParseContext *pcPtr) {
 
   assert(interp);
   assert(objv);
@@ -21214,7 +21220,7 @@ static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               NsfObject *object, Tcl_Obj *procNameObj,
               Nsf_Param CONST *paramPtr, int nrParams, int serial,
-	      int processFlags, ParseContext *pcPtr) {
+	      unsigned int processFlags, ParseContext *pcPtr) {
   int o, dashdash = 0, j, fromArg;
   Nsf_Param CONST *currentParamPtr = paramPtr;
   Nsf_Param CONST *lastParamPtr = paramPtr + nrParams - 1;
@@ -24184,7 +24190,7 @@ NsfDirectDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
   Tcl_Command cmd, importedCmd;
   CallFrame frame, *framePtr = &frame;
   Tcl_ObjCmdProc *proc;
-  int flags = 0;
+  unsigned int flags = 0;
   int useCmdDispatch = 1;
 
   assert(interp);
@@ -24294,7 +24300,7 @@ static int
 NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object,
 	       int withIntrinsic, int withSystem,
 	       Tcl_Obj *commandObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS|NSF_CM_NO_SHIFT;
+  unsigned int flags = NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE|NSF_CM_IGNORE_PERMISSIONS|NSF_CM_NO_SHIFT;
   Tcl_Obj *CONST*objv = nobjv-1;
 
   assert(interp);
@@ -24515,7 +24521,8 @@ NsfMethodAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   AliasCmdClientData *tcd = NULL; /* make compiler happy */
   Tcl_Command cmd, oldCmd, newCmd = NULL;
   Tcl_Namespace *nsPtr;
-  int flags, result;
+  int result;
+  unsigned int flags;
   NsfClass *cl = (withPer_object || ! NsfObjectIsClass(object)) ? NULL : (NsfClass *)object;
   NsfObject *oldTargetObject, *newTargetObject;
 
@@ -24942,7 +24949,8 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   NsfObject *defObject;
   Tcl_Command cmd;
   NsfClass *cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
-  int flag, fromClassNS = cl != NULL;
+  int fromClassNS = cl != NULL;
+  unsigned int flag;
 
   assert(interp);
   assert(object);
@@ -25271,7 +25279,7 @@ cmd "object::property" NsfObjectPropertyCmd {
 
 static int
 NsfObjectPropertyCmd(Tcl_Interp *interp, NsfObject *object, int objectproperty, Tcl_Obj *valueObj) {
-  int flags = 0, allowSet = 0;
+  unsigned int flags = 0, allowSet = 0;
 
   assert(interp);
   assert(object);
@@ -25493,7 +25501,8 @@ NsfMyCmd(Tcl_Interp *interp,
 	 int withIntrinsic, int withLocal, int withSystem,
 	 Tcl_Obj *methodObj, int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
-  int flags, result;
+  unsigned int flags;
+  int result;
 
   assert(interp);
   assert(methodObj);
@@ -26596,7 +26605,7 @@ cmd var::exists NsfVarExistsCmd {
 */
 static int
 NsfVarExistsCmd(Tcl_Interp *interp, int withArray, NsfObject *object, CONST char *varName) {
-  int flags =
+  unsigned int flags =
     NSF_VAR_TRIGGER_TRACE|NSF_VAR_REQUIRE_DEFINED|
     (withArray ? NSF_VAR_ISARRAY : 0);
 
@@ -27074,7 +27083,8 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *paramObjPtr, Tcl_Obj *valueObj,
   NsfParamWrapper *paramWrapperPtr;
   Tcl_Obj *outObjPtr = NULL;
   ClientData checkedData;
-  int result, flags = 0;
+  int result;
+  unsigned int flags = 0;
 
   assert(interp);
   assert(paramObjPtr);
@@ -27707,7 +27717,7 @@ NsfOCgetMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj) {
     /*
      * Must be a parameter associated with a variable
      */
-    int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
+    unsigned int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
     Tcl_Obj *resultObj = Tcl_ObjGetVar2(interp, paramPtr->nameObj, NULL, flags);
 
     if (resultObj) {

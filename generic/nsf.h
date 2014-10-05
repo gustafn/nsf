@@ -296,7 +296,7 @@ Nsf_TypeConverter Nsf_ConvertToBoolean, Nsf_ConvertToClass,
 
 typedef struct Nsf_Param {
   char *name;
-  int flags;
+  unsigned int flags;
   int nrArgs;
   Nsf_TypeConverter *converter;
   Tcl_Obj *converterArg;
@@ -371,7 +371,7 @@ EXTERN int
 Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
-		  int doCheck, Nsf_ParseContext *pcPtr)
+		  unsigned int processFlags, Nsf_ParseContext *pcPtr)
   NSF_nonnull(1) NSF_nonnull(3) NSF_nonnull(5) NSF_nonnull(10);
 
 EXTERN int

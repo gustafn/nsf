@@ -125,7 +125,7 @@ NsfMethodObjSet(
     int methodEpoch,			/* methodEpoch */
     Tcl_Command cmd,	  		/* the tclCommand behind the method */
     NsfClass *cl,	  		/* the object/class where the method was defined */
-    int flags		  		/* flags */
+    unsigned int flags			/* flags */
 		)
 {
   NsfMethodContext *mcPtr;

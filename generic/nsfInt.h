@@ -1064,7 +1064,7 @@ typedef struct {
   int serial;
   Nsf_Param CONST *paramPtr;
   Tcl_Obj *payload;
-  int flags;
+  unsigned int flags;
 } NsfFlag;
 
 #define NSF_FLAG_DASHDAH		0x01
@@ -1078,7 +1078,7 @@ EXTERN Tcl_ObjType NsfObjectMethodObjType;
 EXTERN int NsfMethodObjSet(Tcl_Interp *interp, Tcl_Obj *objPtr, 
 			   Tcl_ObjType *objectType,
 			   void *context, int methodEpoch,
-			   Tcl_Command cmd, NsfClass *cl, int flags)
+			   Tcl_Command cmd, NsfClass *cl, unsigned int flags)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(6);
 
 
@@ -1089,7 +1089,7 @@ typedef struct {
   int methodEpoch;
   Tcl_Command cmd;
   NsfClass *cl;
-  int flags;
+  unsigned int flags;
 } NsfMethodContext;
 
 /* functions from nsfUtil.c */

@@ -312,10 +312,10 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
  *
  *----------------------------------------------------------------------
  */
-static Tcl_CallFrame * CallStackNextFrameOfType(Tcl_CallFrame *framePtr, int flags) nonnull(1);
+static Tcl_CallFrame * CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) nonnull(1);
 
 static Tcl_CallFrame *
-CallStackNextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
+CallStackNextFrameOfType(Tcl_CallFrame *framePtr, unsigned int flags) {
   assert(framePtr);
 
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
@@ -1079,11 +1079,11 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
  *----------------------------------------------------------------------
  */
 NSF_INLINE static void CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-	Tcl_Command cmd, int frameType, int flags) nonnull(1) nonnull(2);
+	Tcl_Command cmd, int frameType, unsigned int flags) nonnull(1) nonnull(2);
 
 NSF_INLINE static void
 CscInit_(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-	Tcl_Command cmd, int frameType, int flags) {
+	Tcl_Command cmd, int frameType, unsigned int flags) {
 #if defined(NSF_PROFILE)
   struct timeval trt;
 #endif
@@ -1272,7 +1272,7 @@ BeginOfCallChain(Tcl_Interp *interp, NsfObject *object) {
   if (object) {
     fprintf(stderr, "BeginOfCallChain obj %s\n", ObjectName(object));
     for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-      register int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+      register unsigned int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 
       if (flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
 	NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);

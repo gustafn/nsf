@@ -47,16 +47,16 @@ declare 7 generic {
 declare 8 generic {
   Tcl_Obj *Nsf_ObjSetVar2(struct Nsf_Object *object,
 			  Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
-			  Tcl_Obj *value, int flgs)
+			  Tcl_Obj *value, unsigned int flags)
 }
 declare 9 generic {
   Tcl_Obj *Nsf_ObjGetVar2(struct Nsf_Object *object, 
 			  Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
-			  int flgs)
+			  unsigned int flags)
 }
 declare 10 generic {
   int Nsf_UnsetVar2(struct Nsf_Object *object, Tcl_Interp *interp, 
-		    CONST char *name1, CONST char *name2, int flgs)
+		    CONST char *name1, CONST char *name2, unsigned int flags)
 }
 declare 11 generic {
   void NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
@@ -93,17 +93,17 @@ declare 20 generic {
 declare 21 generic {
   int  NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object,
 			     Tcl_Obj *method, Tcl_Obj *arg,
-			     int objc, Tcl_Obj *CONST objv[], int flags)
+			     int objc, Tcl_Obj *CONST objv[], unsigned int flags)
 }
 declare 22 generic {
   int NsfAddObjectMethod(Tcl_Interp *interp, struct Nsf_Object *object, 
                          CONST char *nm, Tcl_ObjCmdProc *proc,
-	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
+	                 ClientData cd, Tcl_CmdDeleteProc *dp, unsigned int flags)
 }
 declare 23 generic {
   int NsfAddClassMethod(Tcl_Interp *interp, struct Nsf_Class *cl, 
 			CONST char *nm, Tcl_ObjCmdProc *proc,
-			ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
+			ClientData cd, Tcl_CmdDeleteProc *dp, unsigned int flags)
 }
 declare 24 generic {
   int NsfCreate(Tcl_Interp *in, Nsf_Class *class, Tcl_Obj *name, 
@@ -113,7 +113,7 @@ declare 25 generic {
   int Nsf_ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		  Nsf_Object *object, Tcl_Obj *procNameObj,
 		  Nsf_Param CONST *paramPtr, int nrParams, int serial,
-		  int doCheck, Nsf_ParseContext *pcPtr)
+		  unsigned int processFlags, Nsf_ParseContext *pcPtr)
 }
 declare 26 generic {
   void NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...)

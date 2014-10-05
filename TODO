@@ -5537,6 +5537,9 @@ nx.tcl:
 - simplify the info ensembles on nx::Object or nx::Class significantly,
   by making use if ensemble-next. 
 - delete "info unknown", since this is not called.
+
+nsf.c:
+- make types for bit operations unsigned (mostly flags)
 ========================================================================
 TODO:
 
