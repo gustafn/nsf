@@ -229,7 +229,7 @@ nx::test case ensemble-partial-next {
   # does a next (which should not complain)
   ? {o1 info has something better} better
 
-  # yet another missing case
+  # ensemble path excluding "wrong" is mixed in
   ? {o1 info has something wrong} \
       {unable to dispatch sub-method "wrong" of ::o1 info has something; valid are: info has something better, info has something else, info has something path}
 
@@ -374,10 +374,47 @@ nx::test case leaf-next-in-submethods {
   }
 }
 
+nx::test case object-unknown {
+  #
+  # object level ensemble
+  #
+  nx::Object create o1 {
+    :object method "i o a" {} {return a}
+    :object method "i o b" {} {return b}
+  }
+  ? {o1 i o x} {unable to dispatch sub-method "x" of ::o1 i o; valid are: i o a, i o b}
+
+  #
+  # object level ensemble on class
+  #
+  nx::Class create C {
+    :public object alias "i o a" ::nsf::methods::class::info::heritage
+    :public object alias "i o b" ::nsf::methods::class::info::heritage
+  }
+  ? {C i o x} {unable to dispatch sub-method "x" of ::C i o; valid are: i o a, i o b}
+  ? {C i o x y} {unable to dispatch sub-method "x" of ::C i o; valid are: i o a, i o b}
+
+  #
+  # Emulate the "info" and "info object" ensembles on nx::Object and nx::Class
+  #
+  nx::Object public method "i o a" {} {return a}
+  nx::Object public alias "i o b" ::nsf::methods::class::info::heritage
+  nx::Class public alias "i a" ::nsf::methods::class::info::heritage
+  nx::Class public alias "i b" ::nsf::methods::class::info::heritage
+
+  nx::Class create D {}
+  ? {D i p} {unable to dispatch sub-method "p" of ::D i; valid are: i a, i b, i o a, i o b}
+  ? {D i o a} a
+  ? {D i o x} {unable to dispatch sub-method "x" of ::D i o; valid are: i o a, i o b}
+  ? {D i o x y} {unable to dispatch sub-method "x" of ::D i o; valid are: i o a, i o b}
+}
+
 nx::test case unknown-in-info {
   nx::Class create C
   catch {C info x y z} err
   ? [list string match {unable to dispatch sub-method "x" of ::C info; valid are:*} $err] 1
+
+  #C info object x y z
   catch {C info object x y z} err
   ? [list string match {unable to dispatch sub-method "x" of ::C info object; valid are:*} $err] 1; 
   ## --> unable to dispatch sub-method "object" of ::C info; valid are:
