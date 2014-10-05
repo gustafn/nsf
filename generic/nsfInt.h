@@ -749,38 +749,40 @@ typedef struct NsfCallStackContent {
 #endif
 } NsfCallStackContent;
 
-#define NSF_CSC_TYPE_PLAIN              0
-#define NSF_CSC_TYPE_ACTIVE_MIXIN       1
-#define NSF_CSC_TYPE_ACTIVE_FILTER      2
-#define NSF_CSC_TYPE_INACTIVE           4
-#define NSF_CSC_TYPE_INACTIVE_MIXIN     5
-#define NSF_CSC_TYPE_INACTIVE_FILTER    6
-#define NSF_CSC_TYPE_GUARD           0x10
-#define NSF_CSC_TYPE_ENSEMBLE        0x20
+#define NSF_CSC_TYPE_PLAIN                    0U
+#define NSF_CSC_TYPE_ACTIVE_MIXIN             1U
+#define NSF_CSC_TYPE_ACTIVE_FILTER            2U
+#define NSF_CSC_TYPE_INACTIVE                 4U
+#define NSF_CSC_TYPE_INACTIVE_MIXIN           5U
+#define NSF_CSC_TYPE_INACTIVE_FILTER          6U
+#define NSF_CSC_TYPE_GUARD                 0x10U
+#define NSF_CSC_TYPE_ENSEMBLE              0x20U
 
-#define NSF_CSC_CALL_IS_NEXT               1
-#define NSF_CSC_CALL_IS_GUARD              2
-#define NSF_CSC_CALL_IS_ENSEMBLE           4
-#define NSF_CSC_CALL_IS_COMPILE            8
+#define NSF_CSC_CALL_IS_NEXT                  1U
+#define NSF_CSC_CALL_IS_GUARD                 2U
+#define NSF_CSC_CALL_IS_ENSEMBLE              4U
+#define NSF_CSC_CALL_IS_COMPILE               8U
 
 
-#define NSF_CSC_IMMEDIATE           0x000100
-#define NSF_CSC_FORCE_FRAME         0x000200
-#define NSF_CSC_CALL_NO_UNKNOWN     0x000400
-#define NSF_CSC_CALL_IS_NRE         0x002000
-#define NSF_CSC_MIXIN_STACK_PUSHED  0x004000
-#define NSF_CSC_FILTER_STACK_PUSHED 0x008000
-#define NSF_CSC_METHOD_IS_UNKNOWN   0x010000 
+#define NSF_CSC_IMMEDIATE           0x000000100U
+#define NSF_CSC_FORCE_FRAME         0x000000200U
+#define NSF_CSC_CALL_NO_UNKNOWN     0x000000400U
+#define NSF_CSC_CALL_IS_NRE         0x000002000U
+#define NSF_CSC_MIXIN_STACK_PUSHED  0x000004000U
+#define NSF_CSC_FILTER_STACK_PUSHED 0x000008000U
+#define NSF_CSC_METHOD_IS_UNKNOWN   0x000010000U
 
 /* flags for call method */
-#define NSF_CM_NO_UNKNOWN           0x000001
-#define NSF_CM_NO_SHIFT             0x000002
-#define NSF_CM_IGNORE_PERMISSIONS   0x000004
-#define NSF_CM_NO_OBJECT_METHOD     0x000008
-#define NSF_CM_SYSTEM_METHOD        0x000010
-#define NSF_CM_LOCAL_METHOD         0x000020
-#define NSF_CM_INTRINSIC_METHOD     0x000040
-#define NSF_CM_KEEP_CALLER_SELF     0x000080
+#define NSF_CM_NO_UNKNOWN           0x000000001U
+#define NSF_CM_NO_SHIFT             0x000000002U
+#define NSF_CM_IGNORE_PERMISSIONS   0x000000004U
+#define NSF_CM_NO_OBJECT_METHOD     0x000000008U
+#define NSF_CM_SYSTEM_METHOD        0x000000010U
+#define NSF_CM_LOCAL_METHOD         0x000000020U
+#define NSF_CM_INTRINSIC_METHOD     0x000000040U
+#define NSF_CM_KEEP_CALLER_SELF     0x000000080U
+#define NSF_CM_ENSEMBLE_UNKNOWN     0x008000000U
+
 
 #define NSF_CSC_COPY_FLAGS          (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CSC_IMMEDIATE|NSF_CSC_FORCE_FRAME|NSF_CM_LOCAL_METHOD)
 
@@ -792,9 +794,9 @@ typedef struct NsfCallStackContent {
  * Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
  * for further extensions of tcl and tcloo...
  */
-#define FRAME_IS_NSF_OBJECT  0x10000
-#define FRAME_IS_NSF_METHOD  0x20000
-#define FRAME_IS_NSF_CMETHOD 0x40000
+#define FRAME_IS_NSF_OBJECT  0x10000U
+#define FRAME_IS_NSF_METHOD  0x20000U
+#define FRAME_IS_NSF_CMETHOD 0x40000U
 
 #if defined(NRE)
 # define NRE_SANE_PATCH 1

@@ -12519,7 +12519,7 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
      * next to try to call such methods along the next path.
      */
     Tcl_CallFrame *framePtr1;
-    NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1), *cscPtr2;
+    NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
 
     /*fprintf(stderr, "call next instead of unknown %s.%s \n",
       ObjectName(cscPtr->self), methodName);*/
@@ -12537,49 +12537,103 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
     }
 
     /*
-     * The method name for next might be colon-prefixed. In these cases, we
-     * have to skip the single colon with the MethodName() function.
+     * We mark in the flags that we are in an ensemble but failed so far to
+     * resolve the cmd. Now we try to resolve the unknown subcmd via next and
+     * we record this in the flags. The method name for next might be
+     * colon-prefixed. In these cases, we have to skip the single colon with
+     * the MethodName() function.
      */
+    cscPtr1-> flags |= NSF_CM_ENSEMBLE_UNKNOWN;
+    /* fprintf(stderr, "==> trying to find <%s> in ensemble <%s> via next\n",
+       subMethodName, MethodName(cscPtr1->objv[0]));*/
     result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
 				 cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 
+    /*fprintf(stderr, "==> next %s.%s subMethodName %s (obj %s) cscPtr %p (flags %.8x)) cscPtr1 %p (flags %.8x) result %d unknown %d\n",
+            ObjectName(callerSelf), methodName, subMethodName, ObjectName(invokedObject),
+            cscPtr, cscPtr->flags, cscPtr1, cscPtr1 ? cscPtr1->flags : 0,
+            result, RUNTIME_STATE(interp)->unknown);*/
 
+    //NsfShowStack(interp);
 
-    cscPtr2 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
-
-    fprintf(stderr, "==> next %s.%s (obj %s) cscPtr %p cscPtr1 %p cscPtr2 %p (%d) result %d unknown %d\n",
-            ObjectName(callerSelf), methodName, ObjectName(invokedObject),
-            cscPtr, cscPtr1, cscPtr2, cscPtr2 ? (cscPtr2->flags & NSF_CSC_CALL_IS_NEXT) != 0 : 0,
-            result, RUNTIME_STATE(interp)->unknown);
-
-    NsfShowStack(interp);
-
-    if (RUNTIME_STATE(interp)->unknown && (cscPtr2 == NULL || (cscPtr2->flags & NSF_CSC_CALL_IS_NEXT) == 0)) {
-      /*
-       * Unknown handling: We trigger a dispatch to an unknown method. The
-       * appropriate unknown handler is either provided for the current
-       * object (at the class or the mixin level), or the default unknown
-       * handler takes it from there. The application-level unknown
-       * handler cannot determine the top-level calling object (referred
-       * to as the delegator). Therefore, we assemble all the necessary
-       * call data as the first argument passed to the unknown
-       * handler. Call data include the calling object (delegator), the
-       * method path, and the unknown final method.
-       */
+    if (RUNTIME_STATE(interp)->unknown) {
       Tcl_Obj *callInfoObj = Tcl_NewListObj(1, &callerSelf->cmdName);
-      Tcl_Obj *methodPathObj = NsfMethodNamePath(interp,
-                                                CallStackGetTclFrame(interp,(Tcl_CallFrame *)framePtr, 1),
-                                                MethodName(objv[0]));
+      Tcl_CallFrame *varFramePtr, *tclFramePtr = CallStackGetTclFrame(interp,(Tcl_CallFrame *)framePtr, 1);
+      int pathLength, pathLength0 = 0, getPath = 1, unknownIndex;
+      Tcl_Obj *pathObj = NsfMethodNamePath(interp, tclFramePtr, MethodName(objv[0]));
+
+      /*
+       * The "next" call could not resolve the unknown subcommand. At this
+       * point, potentially serval different ensembles were tried, which can
+       * be found on the stack.
+       *
+       * Example1:  call: foo a b d
+       *    mixin:  foo a b c
+       *    object: foo a x
+       *
+       * We want to return the longest, most precise prefix (here "foo a b")
+       * and flag "d" as unknown (here the mixin frame). Another (inferior)
+       * solution would be to report "foo a" as know prefix and "b d" as
+       * unknown (when the error is generated from the point of view of the
+       * object method frame).
+       *
+       * In the general case, we traverse the stack for all ensembles and pick
+       * the longest known ensemble for reporting. This path is passed to the
+       * unknown-handler of the ensemble.
+       */
+
+      Tcl_ListObjLength(interp, pathObj, &pathLength0);
+      pathLength = pathLength0;
+
+      for (varFramePtr = (Tcl_CallFrame *)framePtr; likely(varFramePtr != NULL);
+           varFramePtr = Tcl_CallFrame_callerVarPtr(varFramePtr)) {
+        NsfCallStackContent *cscPtr;
+
+        /*
+         * If we reach a non-nsf frame, or it is not an ensemble, we are done.
+         */
+        cscPtr = (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) ?
+          (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr) : NULL;
+        if (cscPtr == NULL || (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0) {
+          break;
+        }
+        /*
+         * Every ensemble block starts with a frame of
+         * NSF_CSC_TYPE_ENSEMBLE. If we find one, then we compute a new path
+         * in the next iteration.
+         */
+        if ((cscPtr->frameType & (NSF_CSC_TYPE_ENSEMBLE)) == 0) {
+          /* get method path the next round */
+          getPath = 1;
+        } else if (getPath) {
+          Tcl_Obj *pathObj1 = CallStackMethodPath(interp, varFramePtr);
+          int pathLength1;
+
+          getPath = 0;
+          Tcl_ListObjLength(interp, pathObj1, &pathLength1);
+          if (pathLength1 > pathLength) {
+            if (pathObj != NULL) {
+              DECR_REF_COUNT(pathObj);
+            }
+            pathObj    = pathObj1;
+            pathLength = pathLength1;
+          }
+        }
+      }
+
+      unknownIndex = pathLength <= pathLength0 ? 1 : 1 + pathLength - pathLength0;
+      assert(objc > unknownIndex);
+
       INCR_REF_COUNT(callInfoObj);
-      Tcl_ListObjAppendList(interp, callInfoObj, methodPathObj);
-      Tcl_ListObjAppendElement(interp, callInfoObj, objv[1]);
+      Tcl_ListObjAppendList(interp, callInfoObj, pathObj);
+      Tcl_ListObjAppendElement(interp, callInfoObj, objv[unknownIndex]);
 
-      /* fprintf(stderr, "DispatchUnknownMethod is called with callinfo <%s> \n", ObjStr(callInfoObj)); */
+      /* fprintf(stderr, "DispatchUnknownMethod is called with callinfo <%s> (callerSelf <%s>, methodName '%s', methodPath '%s')\n",
+              ObjStr(callInfoObj), ObjStr(callerSelf->cmdName), MethodName(objv[0]),
+              ObjStr(callInfoObj)); */
       result = DispatchUnknownMethod(interp, invokedObject, objc-1, objv+1, callInfoObj,
-				     objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
-
+                                     objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
       RUNTIME_STATE(interp)->unknown = 0;
-
       DECR_REF_COUNT(callInfoObj);
     }
   }
@@ -12890,9 +12944,9 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   cscPtr = CscAlloc(interp, &csc, resolvedCmd);
 
   /*
-   * We would not need CscInit when
-   * cp == NULL && !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)
-   * TODO: We could pass cmd==NULL, but is this worth it?
+   * We would not need CscInit when cp (clientData) == NULL &&
+   * !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) TODO: We could pass
+   * cmd==NULL, but is this worth it?
    */
   CscInit(cscPtr, object, cl, cmd, frameType, flags, methodName);
 
@@ -13083,7 +13137,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
   assert(objv);
 
   /* none of the higher copy-flags must be passed */
-  assert((flags & (NSF_CSC_COPY_FLAGS & 0xFFF000)) == 0);
+  assert((flags & (NSF_CSC_COPY_FLAGS & 0x000FFF000U)) == 0);
 
   if (unlikely(flags & NSF_CM_NO_SHIFT)) {
     shift = 0;
@@ -17540,8 +17594,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 	cscPtr->flags,
 	(cscPtr->flags & NSF_CSC_CALL_IS_NRE) != 0,
 	(cscPtr->flags & NSF_CSC_IMMEDIATE) != 0,
-	flags
-	);*/
+	flags);*/
 
       if (flags == 0) {
 	/*
@@ -17559,8 +17612,10 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
       }
     }
 #else
+    /*fprintf(stderr, "NextSearchAndWinvoke calls cmd %p methodName %s cscPtr->flags %.8x\n",
+      cmd, methodName, cscPtr->flags);*/
     result = MethodDispatch(object, interp, objc, objv, cmd,
-			    object, cl, methodName, frameType, 0);
+			    object, cl, methodName, frameType, cscPtr->flags);
 #endif
   } else if (likely(result == TCL_OK)) {
     NsfCallStackContent *topCscPtr;
@@ -17572,50 +17627,60 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
      * in an error. This means that we find ourselves in either of three
      * situations at this point:
      *
-     * 1) A next cmd (NsfNextCmd()) at the end of a filter chain: Dispatch to
-     * unknown as there is no implementation for the requested selector
-     * available.  2) A next cmd from within a leaf sub-method (a "leaf next"):
-     * Remain silent, do not dispatch to unknown.  3) MethodDispatchCsc()
-     * realizes the actual "ensemble next": Dispatch to unknown, the
-     * requested sub-selector is not resolvable to a cmd.
+     * 1) An explicit "next" cmd (NsfNextCmd()) at the end of a filter chain:
+     * Dispatch to unknown as there is no implementation for the requested
+     * call available.
+     *
+     * 2) An explicit "next" cmd from within a leaf sub-method (a "leaf
+     * next"): Remain silent, do not dispatch to unknown.
+
+     * 3) An implicit "next" triggered for unresolved submethods that might be
+     * resolved along the next path: Dispatch to unknown, the requested
+     * sub-cmd is not resolvable to a cmd.
      *
      * For the cases 1) and 3), set the interp's unknown flag signaling to
      * higher levels (e.g., in MethodDispatchCsc(), in NsfNextCmd()) the need
      * for dispatching to unknown.
      */
 
+    /* NsfShowStack(interp);*/
 
     topCscPtr = CallStackGetTopFrame(interp, &varFramePtr);
+    assert(topCscPtr);
 
-#if 1
-    if ( cscPtr != topCscPtr && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0 && 
-        (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0) {
-      while(varFramePtr != NULL) {
+    /*
+     * Find the appropriate frame pointing to the start of the ensemble, in
+     * case we are in the middle of an ensemble.
+     */
+    /*fprintf(stderr, "######## cscPtr %p topCscPtr %p\n", cscPtr, topCscPtr);*/
+    if ( cscPtr != topCscPtr
+         && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0
+         && (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) != 0) {
+      
+      for (; varFramePtr != NULL; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
         topCscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-        fprintf(stderr, "---- topCscPtr %p topCscPtr->flags %6x\n", topCscPtr, topCscPtr ? topCscPtr->flags : 0);
-        if (topCscPtr == cscPtr) break;
-        varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
+        assert(topCscPtr);
+        /*fprintf(stderr, "######## cscPtr %p topCscPtr %p topCscPtr->flags %8x\n",
+          cscPtr, topCscPtr, topCscPtr ? topCscPtr->flags : 0);*/
+        if ((topCscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN)) break;
       }
       
       varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr);
-      topCscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      
+      if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+        topCscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+        assert(topCscPtr);
+      }
     }
-    
-#endif
-
-    NsfShowStack(interp);
-
-    // assert(topCscPtr);
 
     /* case 2 */
-    isLeafNext = topCscPtr &&  (cscPtr != topCscPtr) && (topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) &&
+    isLeafNext = (cscPtr != topCscPtr) && (topCscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE) &&
       (topCscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0;
 
     rst->unknown = /* case 1 */ endOfFilterChain ||
       /* case 3 */ (!isLeafNext && (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE));
 
-    fprintf(stderr, "******** setting unknown to %d isLeafNext %d topCscPtr %p endOfFilterChain %d\n",  rst->unknown, isLeafNext,topCscPtr,endOfFilterChain);
+    /*fprintf(stderr, "******** setting unknown to %d isLeafNext %d topCscPtr %p endOfFilterChain %d\n",
+      rst->unknown, isLeafNext,topCscPtr,endOfFilterChain);*/
   }
 
  next_search_and_invoke_cleanup:

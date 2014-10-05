@@ -393,8 +393,8 @@ GetSelfObj(Tcl_Interp *interp) {
  * CallStackGetTclFrame --
  *
  *    Return the Tcl_Callframe a (scripted or nonleaf) method starting with
- *    the specified or topmost frame; if skip is a positive numer the
- *    specified number of frames tcl frames are skipped.
+ *    the specified or topmost frame; if skip is a positive number the
+ *    specified number of Tcl frames are skipped.
  *
  * Results:
  *    Tcl_CallFrame or NULL.
@@ -439,7 +439,7 @@ static Tcl_CallFrame* CallStackGetTclFrame(Tcl_Interp *interp,
  *
  *    Return the NsfCallStackContent* of the topmost invocation of a (scripted
  *    or nonleaf) method. If framePtrPtr is provided, it is used to return the
- *    tcl frame as well.
+ *    Tcl frame as well.
  *
  * Results:
  *    Call stack content or NULL.
@@ -819,9 +819,16 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
      * reported.
      */
     if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
+    /*
+     * The callstack might contain consecutive calls of ensemble entry calls
+     * chained via next. We can detect consecutive calls via the elements
+     * count.
+     */
+    if (elements == 0 && (cscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN) && (cscPtr->flags & NSF_CSC_CALL_IS_NEXT))
+      break;
 
     /* Do not record any INACTIVE frames in the method path */
-    if ((cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) continue;
+    //if ((cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) continue;
 
     Tcl_ListObjAppendElement(interp, methodPathObj,
 			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
@@ -856,6 +863,8 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
   } else {
     resultObj = methodPathObj;
   }
+
+  /*fprintf(stderr, "--- CallStackMethodPath returns %s\n", ObjStr(resultObj));*/
 
   return resultObj;
 }
