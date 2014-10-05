@@ -5515,7 +5515,7 @@ Migration guide and tutorial:
 - updated "/cls/ info filters" and "/obj/ info object filters"
 - dropped "/cls/ info mixin guard" and "/obj/ info object mixin guard"
   dropped "/cls/ info filter guard" and "/obj/ info object filter guard"
-  (use "-guard option insteads)
+  (use "-guard option insteads)y
 - updated "/cls/ mixins ...", "/obj/ object mixins ...",
   "/cls/ filteres ...", "/obj/ object filters ..."
 
@@ -5528,14 +5528,20 @@ nsf.c:
 - reduce variable scope
 - make sure to follow nonnull assumptions
 
+nsf.c:
+- implement a new approach to error reporting in ensembles:
+  instead of trying to find the "right" place to report the best "error",
+  compute the longest valid ensemble prefix from all the stack frames.
 
+nx.tcl:
+- simplify the info ensembles on nx::Object or nx::Class significantly,
+  by making use if ensemble-next. 
+- delete "info unknown", since this is not called.
 ========================================================================
 TODO:
 
-- EnsembleObject->unknown is still not correct
-  "C info object mixin classes" complains about "object"
-  and not about "mixin".
-  The message for "C info mixin classes" is fine
+- check "info info" on nx::Class and nx::Object. 
+  Probably broken ... but not really needed.
 
 - finish plural reform
 - update migration guide and tutorial

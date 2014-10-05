@@ -473,9 +473,8 @@ namespace eval ::nx {
       set path [lrange $callInfo 1 end-1]
       set m [lindex $callInfo end]
       set obj [lindex $callInfo 0]
-      ::nsf::__db_show_stack
-      puts stderr "CI=<$callInfo> args <$args>"
-
+      #::nsf::__db_show_stack
+      #puts stderr "CI=<$callInfo> args <$args>"
       #puts stderr "### [list $obj ::nsf::methods::object::info::lookupmethods -path \"$path *\"]"
       if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]} errorMsg]} {
 	set valid ""
@@ -788,9 +787,6 @@ namespace eval ::nx {
   # be the same as defined above.
   ######################################################################
 
-  EnsembleObject create ::nx::Class::slot::__info
-  Class alias info ::nx::Class::slot::__info
-
   #
   # The following test is just for the redefinition case, after a
   # "package forget". We clear "info method" for ::nx::Object to avoid
@@ -801,17 +797,10 @@ namespace eval ::nx {
   }
 
   #
-  # Copy all info methods except the sub-objects to
-  # ::nx::Class::slot::__info
+  # There is not need to copy the "info object" ensemble to
+  # ::nx::Class since this is reached via ensemble "next" in
+  # nx::Object.
   #
-  nsf::object::property ::nx::Class::slot::__info keepcallerself false
-  foreach m [::nsf::directdispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods] {
-    if {[::nsf::directdispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method type $m] eq "object"} continue
-    set definition [::nsf::directdispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method definition $m]
-    ::nx::Class::slot::__info {*}[lrange $definition 1 end]
-    unset definition
-  }
-  nsf::object::property ::nx::Class::slot::__info keepcallerself true
 
   Class eval {
     :alias "info lookup"         ::nx::Object::slot::__info::lookup
@@ -851,11 +840,6 @@ namespace eval ::nx {
       lappend methods $name
     }
     return "valid options are: [join [lsort $methods] {, }]"
-  }
-
-  Object protected method "info unknown" {method obj:object args} {
-    return -code error \
-	"[::nsf::self] unknown info option \"$method\"; [$obj info info]"
   }
 
   Object method "info info" {} {::nx::internal::infoOptions ::nx::Object::slot::__info}
