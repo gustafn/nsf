@@ -12636,7 +12636,6 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
               ObjStr(callInfoObj)); */
       result = DispatchUnknownMethod(interp, invokedObject, objc-1, objv+1, callInfoObj,
                                      objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
-      RUNTIME_STATE(interp)->unknown = 0;
       DECR_REF_COUNT(callInfoObj);
     }
   }
@@ -13040,10 +13039,6 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
       result = DispatchUnknownMethod(interp, object,
 				     cscPtr->objc, cscPtr->objv, NULL, cscPtr->objv[0],
 				     (cscPtr->flags & NSF_CSC_CALL_NO_UNKNOWN)|NSF_CSC_IMMEDIATE);
-      /*
-       * Final reset of unknown flag
-       */
-      rst->unknown = 0;
     }
   }
 
@@ -13796,8 +13791,9 @@ DispatchInitMethod(Tcl_Interp *interp, NsfObject *object,
  * Results:
  *    result code
  *
- * Side effects:
- *    indirect effects by calling Tcl code
+ * Side effects: 
+ *    There might be indirect effects by calling Tcl code; also,
+ *    the interp's unknown-state is reset.
  *
  *----------------------------------------------------------------------
  */
@@ -13809,6 +13805,7 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
   int result;
   Tcl_Obj *unknownObj = NsfMethodObj(object, NSF_o_unknown_idx);
   CONST char *methodName = MethodName(methodObj);
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
 
   assert(interp);
   assert(object);
@@ -13869,6 +13866,11 @@ DispatchUnknownMethod(Tcl_Interp *interp, NsfObject *object,
 			   ObjectName(object),
 			   tailMethodObj ? MethodName(tailMethodObj) : methodName);
   }
+
+  /*
+   * Reset interp state, unknown has been fired.
+   */
+  rst->unknown = 0;
 
   return result;
 }
