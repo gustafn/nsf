@@ -5543,6 +5543,24 @@ nsf.c:
 ========================================================================
 TODO:
 
+- [current isnextcall] does not work for ensemble next:
+
+  
+Object create o {
+  :public object method foo {} {return [current isnextcall]}
+  :public object method "x y" {} {return [current isnextcall]}
+}
+Class create M {
+  :public method foo {} {next}
+  :public method "x y" {} {next}
+}
+
+? {o foo} 0
+? {o x y} 0
+o object mixins add M
+? {o foo} 1
+? {o x y} 1; # gives 0 ...
+
 - finish plural reform
 - update migration guide and tutorial
 - maybe introdouce "allowabbrev" flag
