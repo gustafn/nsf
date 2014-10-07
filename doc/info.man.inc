@@ -9,6 +9,12 @@
 [keywords "method handle"]
 [keywords "method path"]
 
+[call  [arg [vset CMD]] [method {info info}] [opt [option "-asList"]]] 
+Returns the available [term "submethod"]s of the [method info] [term "method ensemble"] for
+[arg [vset CMD]], either as a pretty-printed string or as a
+Tcl list (if the [term "switch"] [option -asList] is set) for further
+processing.
+
 [call [arg [vset CMD]] [method "info [vset MODIFIER] filters"] [opt [option -guards]] [opt [arg pattern]]]
 
 If [arg pattern] is omitted, returns all filter names which are

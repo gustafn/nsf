@@ -420,9 +420,6 @@ an indirect instance of one of the superclasses of [arg className].
 
 [list_end]
 
-[call [arg obj] [method {info info}]]
-Lists the available [term "submethod"]s of the [method info] [term "method ensemble"].
-
 [call [arg obj] [method "info lookup"] [arg submethod] [opt "[arg arg] ..."]]
 
 A collection of submethods to retrieve structural features (e.g.,
