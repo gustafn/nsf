@@ -5543,9 +5543,6 @@ nsf.c:
 ========================================================================
 TODO:
 
-- check "info info" on nx::Class and nx::Object. 
-  Probably broken ... but not really needed.
-
 - finish plural reform
 - update migration guide and tutorial
 - maybe introdouce "allowabbrev" flag

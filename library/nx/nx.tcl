@@ -832,18 +832,27 @@ namespace eval ::nx {
   # Define "info info" and "info unknown"
   ######################################################################
 
-  proc ::nx::internal::infoOptions {obj} {
-    #puts stderr "INFO INFO $obj -> '[::nsf::directdispatch $obj ::nsf::methods::object::info::methods -type all]'"
-    set methods [list]
+  ::nsf::proc ::nx::internal::infoOptions {-asList:switch obj {methods ""}} {
+    # puts stderr "INFO INFO $obj -> '[::nsf::directdispatch $obj ::nsf::methods::object::info::methods -type all]'"
+
     foreach name [::nsf::directdispatch $obj ::nsf::methods::object::info::methods] {
-      if {$name eq "unknown"} continue
+      if {$name in $methods || $name eq "unknown"} continue
       lappend methods $name
     }
-    return "valid options are: [join [lsort $methods] {, }]"
+    
+    if {$asList} {
+      return $methods
+    } else {
+      return "valid options are: [join [lsort $methods] {, }]"
+    }
   }
 
-  Object method "info info" {} {::nx::internal::infoOptions ::nx::Object::slot::__info}
-  Class  method "info info" {} {::nx::internal::infoOptions ::nx::Class::slot::__info}
+  Object method "info info" {-asList:switch} {
+    ::nx::internal::infoOptions -asList=$asList ::nx::Object::slot::__info
+  }
+  Class  method "info info" {-asList:switch} {
+    ::nx::internal::infoOptions -asList=$asList ::nx::Class::slot::__info [next {info -asList}]
+  }
 
   # finally register method for "info method" (otherwise, we cannot use "method" above)
   Class  eval {
