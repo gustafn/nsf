@@ -2317,17 +2317,14 @@ TopoSort(NsfClass *cl, NsfClass *baseClass, ClassDirection direction, int withMi
   }
   if (withMixinOfs) {
     NsfCmdList *classMixins = cl->opt && cl->opt->isClassMixinOf ?  cl->opt->isClassMixinOf : NULL;
+
     for (; classMixins; classMixins = classMixins->nextPtr) {
       NsfClass *sc = NsfGetClassFromCmdPtr(classMixins->cmdPtr);
-      //if (sc->color == GRAY) { cl->color = WHITE; return 0; }
+
       if (unlikely(sc->color == WHITE && !TopoSort(sc, baseClass, direction, withMixinOfs))) {
-        NsfLog(sc->object.teardown, NSF_LOG_WARN, "cycle in the mixin graph list detected for class %s", ClassName(sc));
-        //cl->color = WHITE;
-        //if (cl == baseClass) {
-        //register NsfClasses *pc;
-        //for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
-        //}
-        //return 0;
+        NsfLog(sc->object.teardown, NSF_LOG_WARN,
+               "cycle in the mixin graph list detected for class %s",
+               ClassName(sc));
       }
     }
   }
@@ -7575,8 +7572,6 @@ MixinResetOrder(NsfObject *object) {
 
   assert(object);
 
-  //fprintf(stderr, "MixinResetOrder for object %s \n", ObjectName(object));
-
   CmdListFree(&object->mixinOrder, NULL /*GuardDel*/);
   object->mixinOrder = NULL;
 }
@@ -8689,7 +8684,6 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
      */
     ResetOrderOfObjectsUsingThisClassAsObjectMixin(subClasses->cl);
 
-    //fprintf(stderr, "invalidating instances of class %s\n", ClassName(subClasses->cl));
     if (subClasses->cl->parsedParamPtr) {
       ParsedParamFree(subClasses->cl->parsedParamPtr);
       subClasses->cl->parsedParamPtr = NULL;
@@ -8706,7 +8700,6 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl, NsfClasses *subClasse
           && (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID)) {
         MixinResetOrder(object);
         object->flags &= ~NSF_MIXIN_ORDER_VALID;
-        //fprintf(stderr, "... %s clearing flag NSF_MIXIN_ORDER_VALID\n", ObjectName(object));
       }
     }
   }
@@ -12557,8 +12550,6 @@ ObjectCmdMethodDispatch(NsfObject *invokedObject, Tcl_Interp *interp, int objc, 
             cscPtr, cscPtr->flags, cscPtr1, cscPtr1 ? cscPtr1->flags : 0,
             result, RUNTIME_STATE(interp)->unknown);*/
 
-    //NsfShowStack(interp);
-
     if (RUNTIME_STATE(interp)->unknown) {
       Tcl_Obj *callInfoObj = Tcl_NewListObj(1, &callerSelf->cmdName);
       Tcl_CallFrame *varFramePtr, *tclFramePtr = CallStackGetTclFrame(interp,(Tcl_CallFrame *)framePtr, 1);
@@ -13457,29 +13448,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp,
       }
     }
   }
-
-#if 0
-
-  if (1//(object->flags & NSF_KEEP_CALLER_SELF)
-      //&& (flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0
-      && (flags & NSF_CM_KEEP_CALLER_SELF)) {
-    calledObject = GetSelfObj(interp);
-    if (calledObject == NULL) {
-      NsfShowStack(interp);
-      fprintf(stderr, "strange, callerObject is apparently null; stay at %p %s %s FLAGS %.6x\n",
-	      object, ObjectName(object), methodName, flags);
-      calledObject = object;
-    }
-    fprintf(stderr, "NSF_KEEP_CALLER_SELF %p %s calledObject %p %s objv[0] %s\n",
-	    object, ObjectName(object), calledObject, ObjectName(calledObject),
-	    ObjStr(objv[0]));
-  } else {
-    calledObject = object;
-  }
-#else
   calledObject = object;
-#endif
-
 
   /*
    * If we have a command, check the permissions, unless
@@ -21461,7 +21430,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
     }
 
-    //posarg:
     assert(pPtr);
     /*
      * pPtr points to the actual parameter (part of the currentParamPtr block)
@@ -21646,9 +21614,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   pcPtr->objc = nrParams;
 
   assert(ISOBJ(objv[pcPtr->lastObjc-1]));
-
-  //fprintf(stderr, "..... argv processed o %d lastObjc %d nrParams %d o<objc %d varargs %d\n",
-  //	  o, pcPtr->lastObjc, nrParams, o<objc, pcPtr->varArgs);
 
 #if defined(PARSE_TRACE_FULL)
   fprintf(stderr, "..... argv processed o %d lastObjc %d nrParams %d o<objc %d varargs %d\n",
@@ -28331,7 +28296,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
   int result;
   CONST char *nameString = ObjStr(specifiedNameObj);
   Tcl_Namespace *parentNsPtr;
-  ALLOC_ON_STACK(Tcl_Obj*, objc, tov); // TODO: not needed
 
   assert(interp);
   assert(cl);
@@ -28502,7 +28466,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *specifiedNameObj, in
  create_method_exit:
 
   if (tmpObj) {DECR_REF_COUNT(tmpObj);}
-  FREE_ON_STACK(Tcl_Obj *, tov);
   return result;
 }
 
