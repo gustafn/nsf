@@ -1,0 +1,27 @@
+[comment {-*- tcl -*- nx::configure manpage}]
+
+[manpage_begin nx::configure n 2.0b6]
+
+[copyright { 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+
+[titledesc {Get and set configuration options on the object system}]
+
+[description]
+
+[list_begin definitions]
+
+[call [cmd "configure"] [arg option] [opt [arg arg]]]
+
+This command sets and retrieves options for the NX object system. Legal configuration options are:
+
+[list_begin itemized]
+
+[item] [option "defaultMethodCallProtection"] returns the currently active call-protection level used as default for newly defined method implementations (if not specified explicitly by a method definition), if [arg arg] is not provided. If [arg arg] is set, this default call-protection level is re-set to any of the available ones: [const public], [const private], [const protected].
+
+[item] [option "defaultAccessor"]  returns the currently active call-protection level used as the default for newly defined properties (if not specified explicitly by a property definition), if [arg arg] is not provided. If [arg arg] is set, this default call-protection level is re-set to any of the following values: [const public], [const private], [const protected], or [const none]. [const none] indicates that no accessors (getter/setter methods) will be generated for newly defined properties, if not requested explicitly.
+
+[list_end]
+
+[list_end]
+
+[manpage_end]
