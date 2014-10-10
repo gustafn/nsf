@@ -1,0 +1,92 @@
+[comment {-*- tcl -*- nx::current manpage}]
+
+[manpage_begin nx::current n 2.0b6]
+
+[copyright { 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+
+[titledesc {Return information about the method callstack}]
+
+[description]
+
+[list_begin definitions]
+
+[call [cmd "current"] [opt [arg option]]]
+
+This introspection command provides information about various details,
+to be identified using [arg option], on the callstack. The command is
+invoked from a method body. If [arg option] is not provided, [cmd nx::current] will
+default to option [option "object"]. [cmd nx::current] operates on the
+Tcl callstack and is aware of NX-specific callstack and stackframe
+details. [arg option] can be any of the following:
+
+[comment {activelevel activemixin args calledclass calledmethod calledproc callingclass callinglevel callingmethod callingobject callingproc class filterreg isnextcall method methodpath nextmethod object proc}]
+
+[list_begin itemized]
+
+[item] [option "activelevel"] returns the actual callstack level which
+calls into the currently executing method directly. This [option "activelevel"] might
+correspond the [option "callinglevel"], but this is not necessarily
+the case. The [option "activelevel"] also includes
+intermediate calls, such [cmd nx::next] invocations. The level is
+reported as an absolute level number (# followed by a digit) to be
+directly used as the first argument to [cmd uplevel] or [cmd upvar].
+
+[comment {[item] [option "activemixin"] ...}]
+
+[item] [option "args"] returns the list of argument values passed into the currently executing method implementation.
+
+[item] [option "calledclass"] returns the name of the class that provides
+the method implementation to which the intercepted method call is to be redirected (only available from within filter methods).
+
+[item] [option "calledmethod"] returns the original method name
+requested by intercepted method call (only available from within
+filter methods).
+
+[item] [option "callingclass"] returns the name of the class which
+provides the method implementation calling into the currently
+executing method. See also [option "callingobject"].
+
+[item] [option "callinglevel"] resolves the callstack level of the the
+originating invocation of the currently executing method
+implementation. Callstack levels introduced by method interception
+(e.g., filters) and by method combination ([cmd nx::next]) are
+ignored. The level is reported as an absolute level number (# followed
+by a digit) to be directly used as the first argument to [cmd uplevel]
+or [cmd upvar]. See also [option "activelevel"].
+
+[item] [option "callingobject"] returns the name of the object which is
+calling into the currently executing method. See also [option "callingclass"].
+
+[item] [option "class"] returns the name of the class providing the
+ currently executing method implementation. The returned
+ method-providing class may be different to the class of the current
+ object. If called from within a method implementation provided by the
+ current object itself, an empty string is returned.
+
+[item] [option "filterreg"] returns the object (class) on which the
+currently executing method was registered as a filter method (only
+available from within filter methods).
+
+[item] [option "isnextcall"] will return 1, if the currently executing
+method implementation was invoked via [cmd nx::next]; 0 otherwise.
+
+[item] [option method] returns the name of the currently executing
+method. If an ensemble-method call, the name of the bottom-most
+("leaf") method is returned.
+
+[item] [option "methodpath"] returns the combined name of the
+currently executing method (including all ensemble levels) in an
+ensemble-method call. Otherwise, for a regular method call, the result
+corresponds to the result of option [option "method"].
+
+[item] [option "nextmethod"] returns the name of the next most
+specific method implementation to be called when invoking [cmd nx::next].
+
+[item] [option "object"] gives the name of the object on which the
+currently executing method implementation is evaluated.
+
+[list_end]
+
+[list_end]
+
+[manpage_end]
