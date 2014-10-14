@@ -71,7 +71,7 @@ namespace eval ::nx {
   #
   # get frequently used primitiva from the next scripting framework
   #
-  namespace export next current self configure finalize interp is relation
+  namespace export next current self configure
   namespace import ::nsf::next ::nsf::current ::nsf::self ::nsf::dispatch
 
   #
