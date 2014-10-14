@@ -14,7 +14,7 @@
 [vset MODIFIER "object"]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
-[titledesc {nx::Object API Reference}]
+[titledesc {API Reference of the base class in the NX object system}]
 
 [description]
 [para]
@@ -37,7 +37,7 @@ specializes the [term baseclass] [cmd nx::Object], beforehand.
 
 [list_begin definitions]
 
-[call [cmd nx::Object] [method create] [arg objectName] [opt "[option -object-mixin] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filter] [arg filterSpec]"] [opt [arg initBlock]]]
+[call [cmd nx::Object] [method create] [arg objectName] [opt "[option -object-mixins] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filters] [arg filterSpec]"] [opt [arg initBlock]]]
 
 [para] 
 
@@ -47,7 +47,7 @@ To create a direct instance of [cmd nx::Object] having an explicit
 an instance of [cmd nx::Class]. This way, singelton objects can be
 created, for example.
 
-[call [cmd nx::Object] [method new] [opt "[option -object-mixin] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filter] [arg filterSpec]"] [opt [arg initBlock]]]
+[call [cmd nx::Object] [method new] [opt "[option -object-mixins] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filters] [arg filterSpec]"] [opt [arg initBlock]]]
 
 To create a direct instance of [cmd nx::Object] having an
 automatically assigned, implict object name, use [method new] on [cmd nx::Object]. Note
@@ -120,7 +120,7 @@ be set and modified using [method configure].
 % nx::Object create obj
 ::obj
 % ::obj info configure
-?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
+?-object-mixins /mixinreg .../? ?-class /class/? ?-object-filters /filterreg .../? ?/__initblock/?
 % ::obj cget -class
 ::nx::Object
 [example_end]
