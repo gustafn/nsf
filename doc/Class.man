@@ -22,25 +22,49 @@
 [para]
 
 [cmd nx::Class] is the [term base-metaclass] of the [term NX] object
-system. All application classes defined in [term NX] are (direct or indirect)
-instances of this [cmd nx::Class]. The methods provided by [cmd nx::Class] are
-available to all application classes. A custom metaclass instantiates [cmd nx::Class] and
-subclasses [cmd nx::Class] at the same time.
+system. All classes (e.g. [emph cls]) are (direct or indirect)
+instances of [cmd nx::Class]. Therefore, the methods provided by [cmd nx::Class] are
+available to all classes. A class [emph cls] which is a (direct or indirect) subclass of [cmd nx::Object] is referred to as an [emph "application class"]. By default, when instantiating a new class from [cmd nx::Class], it becomes an application class with [cmd nx::Object] being set as its superclass. A class [emph cls] which is explicitly declared as a (direct or indirect) subclass of [cmd nx::Class] is referred to as a [emph metaclass], that is, its instances will become classes as well. Hence, a metaclass instantiates and subclasses [cmd nx::Class] at the same time.
+
+[example {
++---------+
+| ::nx::* |
++---------+--------------------------------------Y
+|                                                |
+|  instance of                                   |
+|   .-------.                                    |
+|  +--------'+     instance of     +----------+  |
+|  |         |<....................|          |  |
+|  |  Class  |                     |  Object  |  |
+|  |         |....................>|          |  |
+|  +---------+     subclass of     +-----+----+  |
+|   ^   ^                                ^       |
+\...|...|................................|......./
+    |   |                                |
+    |   |subclass.....(xor)......subclass|
+    |   |of       +-----------+        of|
+    |   |.........|           |..........|
+    | (metaclass) |    cls    | (application class)
+    |.............|           |
+    instance of   +-----------+
+}]
+
+Classes can be created in the following ways:
 
 [list_begin definitions]
 
-[call [cmd nx::Class] [method create] [arg className] [opt "[option -superclasses] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt "[arg option] [arg value] ..."] [opt [arg initBlock]]]
+[call [cmd nx::Class] [method create] [arg cls] [opt "[option -superclasses] [arg superClassNames]"] [opt "[option -mixins] [arg mixinSpec]"] [opt "[option -filters] [arg filterSpec]"] [opt "[arg option] [arg value] ..."] [opt [arg initBlock]]]
 
-To create an application class having an explicit [arg className], use [method create].
+To create a class having the explicit name [arg cls], use [method create].
 
   
-  [call [cmd nx::Class] [method new] [opt "[option -superclasses] [arg superClassNames]"] [opt "[option -mixin] [arg mixinSpec]"] [opt "[option -filter] [arg filterSpec]"] [opt [arg initBlock]]]
+  [call [cmd nx::Class] [method new] [opt "[option -superclasses] [arg superClassNames]"] [opt "[option -mixins] [arg mixinSpec]"] [opt "[option -filters] [arg filterSpec]"] [opt [arg initBlock]]]
 
-To create an application class having an automatically assigned, implicit object name, use [method new].
+To create a class having an automatically assigned, implicit name, use [method new].
 
 [list_end]
 
-The configuration options for direct instances of [cmd nx::Class],
+The configuration options for direct and indirect instances of [cmd nx::Class],
 which can be passed when calling [method create] and [method new], are
 documented in the subsequent section.
 
