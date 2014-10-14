@@ -783,10 +783,10 @@ There are three main use cases for self-references:
 [list_begin enumerated]
 [enum] As a [emph placeholder] for the currently active object, [cmd nx::current]
        can be used to retrieve the object name.
-[enum] Reading and writing [emph "object variables"] require the use
+[enum] Reading and writing [emph "object variables"] directly (i.e. without getter/setter methods in place) require the use
 of variable names carrying the prefix ":" ("colon-prefix
 notation"). Internally, colon-prefixed variable names are processed
-using Tcl's variable resolvers.
+using Tcl's variable resolvers. Alternatively, one can provide for getter/setter methods for object variables (see [method property] and [method variable]).
 
 [enum] [emph {Self-referential method calls}] can be defined via
 prefixing (":") the method names or, alternatively, via [cmd nx::current]. Internally,
