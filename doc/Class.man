@@ -24,7 +24,16 @@
 [cmd nx::Class] is the [term base-metaclass] of the [term NX] object
 system. All classes (e.g. [emph cls]) are (direct or indirect)
 instances of [cmd nx::Class]. Therefore, the methods provided by [cmd nx::Class] are
-available to all classes. A class [emph cls] which is a (direct or indirect) subclass of [cmd nx::Object] is referred to as an [emph "application class"]. By default, when instantiating a new class from [cmd nx::Class], it becomes an application class with [cmd nx::Object] being set as its superclass. A class [emph cls] which is explicitly declared as a (direct or indirect) subclass of [cmd nx::Class] is referred to as a [emph metaclass], that is, its instances will become classes as well. Hence, a metaclass instantiates and subclasses [cmd nx::Class] at the same time.
+available to all classes. A class [emph cls] which does
+not have [cmd nx::Class] as its direct or indirect superclass is
+referred to as an [emph "application class"]. By default, when
+instantiating a new class from [cmd nx::Class], it becomes an
+application class with [cmd nx::Object] being set as its superclass. A
+class [emph cls] which is explicitly declared as a (direct or
+indirect) subclass of [cmd nx::Class] is referred to as a [emph metaclass], that
+is, its instances will become classes as well. In other words, a
+metaclass instantiates and subclasses [cmd nx::Class] at the same
+time.
 
 [example {
 +---------+
