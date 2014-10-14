@@ -48,6 +48,11 @@ AC_ARG_WITH([expat],
            --without-expat falls back to the bundled expat installation],
         [with_expat=$withval],[with_expat=bundle])
 
+AC_ARG_ENABLE([forward-compat86],
+        AS_HELP_STRING([--forward-compat86],
+                [build XOTcl und Tcl 8.5 with forward compatibilit for Tcl 8.6 (default: disabled)]),
+        [enable_forwardcompat=$enableval], [enable_forwardcompat=no])
+
 case $with_expat in
     bundle) ;;
     sys)

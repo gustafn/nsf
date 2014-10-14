@@ -39,10 +39,10 @@ set the environment variable TCLLIBPATH from outside of Tcl to this
 location, or use the variable auto_path in Tcl. For instance, to use
 the local, extracted tar ball, you can use something like (under
 UNIX):
-  export TCLLIBPATH="./xotcl-1.6.8"  or
-  setenv TCLLIBPATH "./xotcl-1.6.8"
+  export TCLLIBPATH="./xotcl-1.6.9"  or
+  setenv TCLLIBPATH "./xotcl-1.6.9"
 Under Windows:
-  set TCLLIBPATH=".\xotcl-1.6.8"
+  set TCLLIBPATH=".\xotcl-1.6.9"
 
 
 Linux Binary Distribution

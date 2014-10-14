@@ -5226,6 +5226,7 @@ callParameterMethodWithArg(XOTclObject *obj, Tcl_Interp *interp, Tcl_Obj *method
 #  include <tclCompile.h>
 # endif
 
+#if !defined(XOTCL_FORWARD_COMPAT86)
 static void
 MakeProcError(
     Tcl_Interp *interp,		/* The interpreter in which the procedure was
@@ -5324,6 +5325,7 @@ static int PushProcCallFrame(
 
     return TCL_OK;
 }
+#endif
 #endif
 
 /*
@@ -5495,7 +5497,8 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
      * here or in PushProcCallFrame. At the same time, we could do the
      * non-pos-arg handling here as well.
      */
-#if !defined(PRE85) && !defined(NRE)
+
+#if !defined(PRE85) && !defined(NRE) && !defined(XOTCL_FORWARD_COMPAT86)
     /*fprintf(stderr,"\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
     
     result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
@@ -5966,7 +5969,7 @@ static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int nonposArgs) {
   Tcl_Obj *resultBody;
   resultBody = Tcl_NewStringObj("", 0);
   INCR_REF_COUNT(resultBody);
-#if defined(PRE85) || defined(NRE)
+#if defined(PRE85) || defined(NRE) || defined(XOTCL_FORWARD_COMPAT86)
   Tcl_AppendStringsToObj(resultBody, "::xotcl::initProcNS\n", (char *) NULL);
 #endif
   if (nonposArgs) {
@@ -6742,7 +6745,7 @@ ListDefaultFromOrdinaryArgs(Tcl_Interp *interp, char *procName,
 
 static char *
 StripBodyPrefix(char *body) {
-#if defined(PRE85) || defined(NRE)
+#if defined(PRE85) || defined(NRE) || defined(XOTCL_FORWARD_COMPAT86)
   if (strncmp(body, "::xotcl::initProcNS\n", 20) == 0)
     body+=20;
 #endif
@@ -6960,10 +6963,10 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     Tcl_CallFrame *cf = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
     int found = 0;
     while (cf) {
-      /*      fprintf(stderr, " ... compare fp = %p and cfp %p procFrame %p oc=%d\n",
-              cf, csc->currentFramePtr,
-              Tcl_Interp_framePtr(interp), Tcl_CallFrame_objc(Tcl_Interp_framePtr(interp))
-              );*/
+            fprintf(stderr, " ... compare fp = %p and cfp %p procFrame %p oc=%d\n",
+		    cf, csc->currentFramePtr,
+		    Tcl_Interp_framePtr(interp), Tcl_CallFrame_objc(Tcl_Interp_framePtr(interp))
+		    );
       if (cf == csc->currentFramePtr) {
         found = 1;
         break;
@@ -6971,23 +6974,22 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
       cf = (Tcl_CallFrame *)((CallFrame *)cf)->callerPtr;
     }
     /*
-      if (!found) {
+    if (!found) {
       if (Tcl_Interp_varFramePtr(interp)) {
-      fprintf(stderr,"found (csc->currentFramePtr %p)= %d cur level=%d\n",
-      csc->currentFramePtr, found,
-      Tcl_CallFrame_level(Tcl_Interp_varFramePtr(interp)));
+	fprintf(stderr,"found (csc->currentFramePtr %p)= %d cur level=%d\n",
+		csc->currentFramePtr, found,
+		Tcl_CallFrame_level(Tcl_Interp_varFramePtr(interp)));
       } else {
-      fprintf(stderr,"no varFramePtr\n");
+	fprintf(stderr,"no varFramePtr\n");
       }
       return TCL_OK;
-      }
+    }
     */
   }
 #endif
   
   /*fprintf(stderr,"givenMethod = %s, csc = %p, useCallstackObj %d, objc %d currentFramePtr %p\n", 
     givenMethod, csc, useCallstackObjs, objc, csc->currentFramePtr);*/
-  
 
   /* if no args are given => use args from stack */
   if (objc < 2 && useCallstackObjs && csc->currentFramePtr) {
@@ -12275,7 +12277,7 @@ XOTclSelfDispatchCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
   return result;
 }
 
-#if defined(PRE85) || defined(NRE)
+#if defined(PRE85) || defined(NRE) || defined(XOTCL_FORWARD_COMPAT86)
 int
 XOTclInitProcNSCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
@@ -13358,7 +13360,7 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_CreateObjCommand(interp, "::xotcl::configure", XOTclConfigureCommand, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::deprecated", XOTcl_DeprecatedCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::finalize", XOTclFinalizeObjCmd, 0, 0);
-#if defined(PRE85) || defined(NRE)
+#if defined(PRE85) || defined(NRE) || defined(XOTCL_FORWARD_COMPAT86)
 #ifdef XOTCL_BYTECODE
   instructions[INST_INITPROC].cmdPtr = (Command *)
 #endif

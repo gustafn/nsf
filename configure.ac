@@ -11,7 +11,7 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
-define(XOTclVersion, 1.6.8)
+define(XOTclVersion, 1.6.9)
 AC_INIT([xotcl],[XOTclVersion],[xotcl@alice.wu-wien.ac.at])
 
 AC_CONFIG_AUX_DIR([tclconfig])
@@ -58,6 +58,11 @@ AC_ARG_WITH([expat],
            --without-expat falls back to the bundled expat installation],
         [with_expat=$withval],[with_expat=bundle])
 
+AC_ARG_ENABLE([forward-compat86],
+        AS_HELP_STRING([--forward-compat86],
+                [build XOTcl und Tcl 8.5 with forward compatibilit for Tcl 8.6 (default: disabled)]),
+        [enable_forwardcompat=$enableval], [enable_forwardcompat=no])
+
 subdirs=""
 
 if test "$with_all" = yes; then
@@ -84,6 +89,10 @@ else
       AC_MSG_RESULT([WARNING: expat configuration ${with_expat} ignored])
       with_expat="bundle"
    fi
+fi
+
+if test "$enable_forwardcompat" = yes; then
+   AC_DEFINE([XOTCL_FORWARD_COMPAT86], [1], [Are we building forward compatibility?])
 fi
 
 AC_SUBST([subdirs])

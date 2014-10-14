@@ -733,6 +733,7 @@ ac_user_opts='
 enable_option_checking
 with_xotcl
 with_expat
+enable_forward_compat86
 with_tcl
 with_tclinclude
 enable_threads
@@ -1362,6 +1363,8 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --forward-compat86      build XOTcl und Tcl 8.5 with forward compatibilit
+                          for Tcl 8.6 (default: disabled)
   --enable-threads        build with threads
   --enable-shared         build and link with shared libraries (default: on)
   --enable-64bit          enable 64bit support (default: off)
@@ -2351,6 +2354,14 @@ if test "${with_expat+set}" = set; then :
   withval=$with_expat; with_expat=$withval
 else
   with_expat=bundle
+fi
+
+
+# Check whether --enable-forward-compat86 was given.
+if test "${enable_forward_compat86+set}" = set; then :
+  enableval=$enable_forward_compat86; enable_forwardcompat=$enableval
+else
+  enable_forwardcompat=no
 fi
 
 
@@ -8565,7 +8576,7 @@ $as_echo "enabled $tcl_ok debugging" >&6; }
 
 $as_echo "#define USE_TCL_STUBS 1" >>confdefs.h
 
-#AC_DEFINE(USE_TK_STUBS)
+#AC_DEFINE([USE_TK_STUBS])
 
 #--------------------------------------------------------------------
 # This macro generates a line to use when building a library.  It
