@@ -25,19 +25,52 @@ objects defined in [term NX] are (direct or indirect) instances of this
 [term baseclass] are available to all objects and to all classes defined in
 NX.
 
-[para]
-[comment {Hier wäre eine Stellung der jeweiligen Klasse als UML-Diagramm in der Klassenhierarchie nett.}]
+[example {
+ +---------+
+ | ::nx::* |
+ +---------+--------------------------------------Y
+ |                                                |
+ |  +---------+     instance of     +----------+  |
+ |  |         |<....................|          |  |
+ |  |  Class  |                     |  Object  |  |
+ |  |         |....................>|          |  |
+ |  +----+----+     subclass of     +-----+----+  |
+ |       ^                           ^    ^       |
+ `.......|...........................|....|......./
+         |                           |    |
+   +-----+-----+    subclass of      |    | instance
+   |           |.....................|    | of
+   |    cls    |                          |
+   |           |                          |
+   +-----------+                          |
+         ^                                |
+instance |.............(xor)..............|
+      of |         +-----------+          |
+         |.........|           |..........|
+                   |    obj    |
+                   |           |
+                   +-----------+
+}]
 
-[term NX] allows for creating and for using objects which are not
-derived from any application class (see [cmd ::nx::Class]), that is,
-as direct instances of the [term baseclass] [cmd nx::Object]. Typical use cases are
-singeltons and anonymous, inline objects. In such use cases, [term NX]
-does not require creating an intermediate application class, which
-specializes the [term baseclass] [cmd nx::Object], beforehand.
+[term NX] allows for creating and for using objects (e.g. [emph obj]) which are
+instantiated from the [term baseclass] [cmd nx::Object]
+directly. Typical use cases are singeltons and anonymous, inline
+objects. In such use cases, [term NX] does not require creating an
+intermediate application class (e.g. [emph cls]), which specializes the [term baseclass]
+[cmd nx::Object] by default, beforehand.
+
+[para]
+
+Objects (e.g. [emph obj]) which are creating by instantiating a
+previously defined application class (e.g. [emph cls]) are indirect
+instances of [cmd nx::Object].
+
+[para]
+Direct instances of nx::Object can be created as follows:
 
 [list_begin definitions]
 
-[call [cmd nx::Object] [method create] [arg objectName] [opt "[option -object-mixins] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filters] [arg filterSpec]"] [opt [arg initBlock]]]
+[call [cmd nx::Object] [method create] [arg obj] [opt "[option -object-mixins] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filters] [arg filterSpec]"] [opt [arg initBlock]]]
 
 [para] 
 
@@ -57,8 +90,8 @@ for creating anonymous, inline objects, for example.
 
 [list_end]
 
-The configuration options for direct instances of [cmd nx::Object],
-which can be passed when calling [method create] and [method new], are
+The configuration options for direct and indirect instances of [cmd nx::Object], which
+can be passed when calling [method create] and [method new], are
 documented in the subsequent section.
 
 [section {Configuration Options for Instances of nx::Object}]
