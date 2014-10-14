@@ -761,4 +761,61 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
   implementation must comply with the method signature interfaces described below.
 }]
 
+[section {Object Self-Reference}]
+
+Objects are naturally recursive, with methods of an object [const ::obj]
+frequently invoking other methods in the same object [const ::obj] and
+accessing its [const ::obj]'s object variables. To represent these
+self-references effectively in method bodies, and dependening on the
+usage scenario, NX offers two alternative notations: one based on a
+special-purpose syntax token ("colon prefix"), the other based on the
+command [cmd nx::current].  
+
+[para] 
+
+Both, the colon-prefix notation and
+[cmd nx::current], may be used only in method bodies and scripts
+passed to [method eval]. If they appear anywhere else, an error will be
+reported.
+
+There are three main use cases for self-references:
+
+[list_begin enumerated]
+[enum] As a [emph placeholder] for the currently active object, [cmd nx::current]
+       can be used to retrieve the object name.
+[enum] Reading and writing [emph "object variables"] require the use
+of variable names carrying the prefix ":" ("colon-prefix
+notation"). Internally, colon-prefixed variable names are processed
+using Tcl's variable resolvers.
+
+[enum] [emph {Self-referential method calls}] can be defined via
+prefixing (":") the method names or, alternatively, via [cmd nx::current]. Internally,
+colon-prefixed method names are processed using Tcl's command
+resolvers. The colon-prefix notation is recommended, also because it
+has a (slight) performance advantage over [cmd nx::current] which
+requires two rather than one command evaluation per method call.
+[list_end]
+
+See the following listing for some examples corresponding to use cases 1--3:
+
+
+[example {
+Object create ::obj {
+  puts [current]; 			# 1) print name of currently active object ('::obj')        
+  set :x 1; :object variable y 2;	# 2) object variables
+  :public object method print {} {
+    set z 3; 				# 2.a) method-local variable
+    puts ${:x}-${:y}-$z; 		# 2.b) variable substitution using '$' and ':'
+    puts [set :x]-[set :y]-[set z]; 	# 2.c) reading variables using 'set'
+    set :x 1; incr :y; 			# 2.d) writing variables using 'set', 'incr', ...
+  }
+  :public object method show {} {
+   :print;				# 3.a) self-referential method call using ':'	
+   [current] print;			# 3.b) self-referential method call using 'nx::current'
+   [current object] print;              # 3.c) self-referential method call using 'nx::current object'
+  }
+  :show
+}}]
+
+
 [manpage_end]
