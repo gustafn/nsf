@@ -302,7 +302,7 @@ full-doc: doc pdf example-doc
 #doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
 
 # for now, just the two doc files
-doc: man
+doc:
 	(cd $(src_doc_dir); asciidoc next-migration.txt)
 	(cd $(src_doc_dir)/next-tutorial; asciidoc next-tutorial.txt)
 pdfdoc: 
@@ -330,21 +330,28 @@ NX_MAN = \
 	$(src_doc_dir)/current.man \
 	$(src_doc_dir)/next.man
 
-man : man-html man-nroff
+man : man-html man-nroff man-pdf
 
-man-html : $(NX_MAN)
-	@for m in $(^F) ; do \
+man-html : $(NX_MAN:%.man=%.html)
+$(src_doc_dir)/%.html : $(src_doc_dir)/%.man
+	@for m in $(?F) ; do \
 	    echo "    Generating html manpage from $$m" ; \
             (cd $(src_doc_dir); dtplite -style man.css -o . html $$m) ; \
 	done;
 
-man-nroff : $(NX_MAN)
-	@for m in $(^F) ; do \
+man-nroff : $(NX_MAN:%.man=%.n)
+$(src_doc_dir)/%.n : $(src_doc_dir)/%.man
+	@for m in $(?F) ; do \
 	    echo "    Generating nroff manpage from $$m" ; \
             (cd $(src_doc_dir); dtplite -ext n -o . nroff $$m) ; \
 	done;
 
-
+man-pdf: $(NX_MAN:%.man=%.pdf)
+$(src_doc_dir)/%.pdf : $(src_doc_dir)/%.html
+	@for m in $(?F) ; do \
+	    echo "    Generating pdf manpage for $$m" ; \
+            (cd $(src_doc_dir); prince -s man-princexml.css $$m) ; \
+	done;
 
 install: install-binaries install-shells install-libraries install-doc install-xotcl-shells install-xotcl-libraries
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
