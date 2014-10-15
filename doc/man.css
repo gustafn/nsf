@@ -1,0 +1,176 @@
+
+body {
+    color: #252525;
+    font: 13px/1.231 "Arial","Verdana", sans-serif;
+    text-align: left;
+}
+
+
+DIV.doctools {
+    margin-left:	10%;
+    margin-right:	10%;
+}
+DIV.doctools H1,DIV.doctools H2 {
+    margin-left:	-5%;
+}
+H1, H2, H3, H4 {
+    margin-top: 	1em;
+    font-family:	sans-serif;
+    font-size:	large;
+    color:		#89a618;
+    background: 	transparent;
+    text-align:		left;
+}
+
+h2 {
+    border-bottom: 1px solid #89a618;
+    text-transform: uppercase;
+}
+
+H1.title {
+    text-align: center;
+}
+
+/* UL,OL {
+    margin-right: 0em;
+    margin-top: 3pt;
+    margin-bottom: 3pt;
+} */
+
+UL LI {
+    list-style: disc;
+}
+OL LI {
+    list-style: decimal;
+}
+DT {
+    padding-top: 	1ex;
+}
+UL.toc,UL.toc UL, UL.toc UL UL {
+    font:		normal 12pt/14pt sans-serif;
+    list-style:	none;
+}
+LI.section, LI.subsection {
+    list-style: 	none;
+    margin-left: 	0em;
+    text-indent:	0em;
+    padding: 	0em;
+}
+PRE {
+    display: 	block;
+    font-family:	monospace;
+    white-space:	pre;
+    margin:		0%;
+    padding-top:	0.5ex;
+    padding-bottom:	0.5ex;
+    padding-left:	1ex;
+    padding-right:	1ex;
+    width:		100%;
+}
+PRE.example {
+    color: 		black;
+    background: 	#f5dcb3;
+    border:		1px solid black;
+}
+UL.requirements LI, UL.syntax LI {
+    list-style: 	none;
+    margin-left: 	0em;
+    text-indent:	0em;
+    padding:	0em;
+}
+
+/* DIV.synopsis {
+    color: 		black;
+    background: 	#80ffff;
+    border:		1px solid black;
+    font-family:	serif;
+    margin-top: 	1em;
+    margin-bottom: 	1em;
+} */
+
+/* UL.syntax {
+    margin-top: 	1em;
+    border-top:	1px solid black;
+}*/
+
+UL.requirements {
+    margin-bottom: 	1em;
+    border-bottom:	1px solid black;
+}
+
+i.term {
+    border-bottom: 1px dotted #000000;
+    font-style: normal;
+    text-decoration: none;
+}
+
+
+dl.definitions b.method {
+    background: none repeat scroll 0 0 #fcfbfa;
+    border: 1px solid #efeeed;
+    padding: 0 3px;
+    font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+    font-size: 92.308%;
+    line-height: 1.35;
+    font-weight: bold;
+}
+
+dl.definitions i.arg {
+    background: none repeat scroll 0 0 #ffffff;
+    border: 1px solid #efeeed;
+    padding: 0 3px;
+    font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+    font-size: 92.308%;
+    line-height: 1.35;
+    font-weight: normal;
+}
+
+dl.definitions b.option {
+    background: none repeat scroll 0 0 #ffffff;
+    border: 1px solid #efeeed;
+    padding: 0 3px;
+    font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+    font-size: 92.308%;
+    line-height: 1.35;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+p b.cmd {
+    background: none repeat scroll 0 0 #e7edd3;
+    border: 1px solid #89a618;
+    padding: 0 3px;
+    font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+    font-size: 92.308%;
+    line-height: 1.35;
+    font-weight: bold;
+}
+
+
+code, kbd, pre, samp {
+    font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+    font-size: 92.308%;
+    line-height: 1.35;
+}
+
+pre.example {
+    background: none repeat scroll 0 0 #fcfbfa;
+    border-color: #efeeed;
+    border-image: none;
+    border-style: solid;
+    border-width: 1px 1px 1px 5px;
+}
+
+div.synopsis {
+    background: none repeat scroll 0 0 #e7edd3;
+    border-color: #d4d8eb;
+    border: 1px solid;
+    border-radius: 3px;
+    margin: 1em 0;
+    padding: 0 1em;
+}
+
+a:link {
+    color: #002a4b;
+    text-decoration: none
+}
