@@ -294,13 +294,15 @@ cppcheck:
 libraries-pkgindex: pkgIndex.tcl
 	$(TCLSH) $(src_lib_dir_native)/lib/mkIndex.tcl -dir $(src_lib_dir_native)
 
+
+
 full-doc: doc pdf example-doc
 
 # use language reference as sample file to trigger generation of documentation files
 #doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
 
 # for now, just the two doc files
-doc: 
+doc: man
 	(cd $(src_doc_dir); asciidoc next-migration.txt)
 	(cd $(src_doc_dir)/next-tutorial; asciidoc next-tutorial.txt)
 pdfdoc: 
@@ -320,6 +322,29 @@ pdf:
 		-f tutorial.pdf tutorial.html )
 	-(cd $(src_doc_dir); htmldoc --webpage --format pdf14  \
 		-f langRef-xotcl.pdf langRef-xotcl.html )
+
+NX_MAN = \
+	$(src_doc_dir)/Object.man \
+	$(src_doc_dir)/Class.man \
+	$(src_doc_dir)/configure.man \
+	$(src_doc_dir)/current.man \
+	$(src_doc_dir)/next.man
+
+man : man-html man-nroff
+
+man-html : $(NX_MAN)
+	@for m in $(^F) ; do \
+	    echo "    Generating html manpage from $$m" ; \
+            (cd $(src_doc_dir); dtplite -style man.css -o . html $$m) ; \
+	done;
+
+man-nroff : $(NX_MAN)
+	@for m in $(^F) ; do \
+	    echo "    Generating nroff manpage from $$m" ; \
+            (cd $(src_doc_dir); dtplite -ext n -o . nroff $$m) ; \
+	done;
+
+
 
 install: install-binaries install-shells install-libraries install-doc install-xotcl-shells install-xotcl-libraries
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \

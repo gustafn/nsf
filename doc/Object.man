@@ -1,6 +1,9 @@
 [comment {-*- tcl -*- nx::Object manpage}]
 [manpage_begin nx::Object n 2.0b6]
 
+[comment {For the time being, we do not render keywords and the corresponding reverse index}]
+[proc keywords args {}]
+
 [keywords baseclass]
 [keywords NX]
 [keywords "mixin class"]
@@ -14,15 +17,15 @@
 [vset MODIFIER "object"]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
-[titledesc {API Reference of the base class in the NX object system}]
+[titledesc {API reference of the base class in the NX object system}]
 
 [description]
 [para]
 
-[syscmd nx::Object] is the [term baseclass] of the [term NX] object system. All
+[syscmd nx::Object] is the [term "base class"] of the [term NX] object system. All
 objects defined in [term NX] are (direct or indirect) instances of this
-[term baseclass]. The methods provided by the [syscmd nx::Object]
-[term baseclass] are available to all objects and to all classes defined in
+[term "base class"]. The methods provided by the [syscmd nx::Object]
+[term "base class"] are available to all objects and to all classes defined in
 NX.
 
 [example {
@@ -40,23 +43,23 @@ instance.|...........................|....|......./
       of |                           |    |
    +-----+-----+    subclass of      |    | instance
    |           |.....................|    | of
-   |    cls    |    (by default)          |
+   |   /cls/   |    (by default)          |
    |           |                          |
    +-----------+                          |
          ^                                |
 instance |.............(xor)..............|
       of |         +-----------+          |
          |.........|           |..........|
-                   |    obj    |
+                   |   /obj/   |
                    |           |
                    +-----------+
 }]
 
 [term NX] allows for creating and for using objects (e.g. [emph obj]) which are
-instantiated from the [term baseclass] [cmd nx::Object]
+instantiated from the [term "base class"] [cmd nx::Object]
 directly. Typical use cases are singeltons and anonymous, inline
 objects. In such use cases, [term NX] does not require creating an
-intermediate application class (e.g. [emph cls]), which specializes the [term baseclass]
+intermediate application class (e.g. [emph cls]), which specializes the [term "base class"]
 [cmd nx::Object] by default, beforehand.
 
 [para]
@@ -74,8 +77,8 @@ Direct instances of nx::Object can be created as follows:
 
 [para] 
 
-To create a direct instance of [cmd nx::Object] having an explicit
-[arg objectName], use [method create] on [cmd nx::Object]. Note that
+To create a direct instance of [cmd nx::Object] having an explicit name
+[arg obj], use [method create] on [cmd nx::Object]. Note that
 [method create] is defined by [cmd nx::Class] and is available to [cmd nx::Object] being
 an instance of [cmd nx::Class]. This way, singelton objects can be
 created, for example.

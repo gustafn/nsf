@@ -16,7 +16,7 @@
 [vset MODIFIER ""]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
-[titledesc {nx::Class API Reference}]
+[titledesc {API reference of the base-metaclass of the NX objectsystem}]
 
 [description]
 [para]
