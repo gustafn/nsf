@@ -601,7 +601,7 @@ install-bin-binaries:
 	  fi; \
 	done
 
-SUFFIXES= .c .$(OBJEXT)
+.SUFFIXES= .c .$(OBJEXT)
 
 #Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 #	cd $(top_builddir) \
