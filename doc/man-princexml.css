@@ -1,0 +1,19 @@
+@page {
+    size: A4;
+    /* DIV 15 for A4 paper */
+    margin: 19.80mm 14mm;
+    @top { 
+	font-family: "Arial","Verdana", sans-serif;
+	color: #666;
+	font-size: 80%;
+	content: string(chapter-title) 
+    }
+    @bottom {
+	font-family: "Arial","Verdana", sans-serif;
+	font-size: 80%;
+	color: #666;
+        content: "-  " counter(page) "  -"
+    }
+}
+
+h2 { string-set: chapter-title content() }

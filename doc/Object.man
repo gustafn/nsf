@@ -1,6 +1,9 @@
 [comment {-*- tcl -*- nx::Object manpage}]
 [manpage_begin nx::Object n 2.0b6]
 
+[comment {For the time being, we do not render keywords and the corresponding reverse index}]
+[proc keywords args {}]
+
 [keywords baseclass]
 [keywords NX]
 [keywords "mixin class"]
@@ -14,40 +17,73 @@
 [vset MODIFIER "object"]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
-[titledesc {nx::Object API Reference}]
+[titledesc {API reference of the base class in the NX object system}]
 
 [description]
 [para]
 
-[syscmd nx::Object] is the [term baseclass] of the [term NX] object system. All
+[syscmd nx::Object] is the [term "base class"] of the [term NX] object system. All
 objects defined in [term NX] are (direct or indirect) instances of this
-[term baseclass]. The methods provided by the [syscmd nx::Object]
-[term baseclass] are available to all objects and to all classes defined in
+[term "base class"]. The methods provided by the [syscmd nx::Object]
+[term "base class"] are available to all objects and to all classes defined in
 NX.
 
-[para]
-[comment {Hier wäre eine Stellung der jeweiligen Klasse als UML-Diagramm in der Klassenhierarchie nett.}]
+[example {
+ +---------+
+ | ::nx::* |
+ +---------+--------------------------------------Y
+ |                                                |
+ |  +---------+     instance of     +----------+  |
+ |  |         |<....................|          |  |
+ |  |  Class  |                     |  Object  |  |
+ |  |         |....................>|          |  |
+ |  +----+----+     subclass of     +-----+----+  |
+ |       ^                           ^    ^       |
+instance.|...........................|....|......./
+      of |                           |    |
+   +-----+-----+    subclass of      |    | instance
+   |           |.....................|    | of
+   |   /cls/   |    (by default)          |
+   |           |                          |
+   +-----------+                          |
+         ^                                |
+instance |.............(xor)..............|
+      of |         +-----------+          |
+         |.........|           |..........|
+                   |   /obj/   |
+                   |           |
+                   +-----------+
+}]
 
-[term NX] allows for creating and for using objects which are not
-derived from any application class (see [cmd ::nx::Class]), that is,
-as direct instances of the [term baseclass] [cmd nx::Object]. Typical use cases are
-singeltons and anonymous, inline objects. In such use cases, [term NX]
-does not require creating an intermediate application class, which
-specializes the [term baseclass] [cmd nx::Object], beforehand.
+[term NX] allows for creating and for using objects (e.g. [emph obj]) which are
+instantiated from the [term "base class"] [cmd nx::Object]
+directly. Typical use cases are singeltons and anonymous, inline
+objects. In such use cases, [term NX] does not require creating an
+intermediate application class (e.g. [emph cls]), which specializes the [term "base class"]
+[cmd nx::Object] by default, beforehand.
+
+[para]
+
+Objects (e.g. [emph obj]) which are creating by instantiating a
+previously defined application class (e.g. [emph cls]) are indirect
+instances of [cmd nx::Object].
+
+[para]
+Direct instances of nx::Object can be created as follows:
 
 [list_begin definitions]
 
-[call [cmd nx::Object] [method create] [arg objectName] [opt "[option -object-mixin] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filter] [arg filterSpec]"] [opt [arg initBlock]]]
+[call [cmd nx::Object] [method create] [arg obj] [opt "[option -object-mixins] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filters] [arg filterSpec]"] [opt [arg initBlock]]]
 
 [para] 
 
-To create a direct instance of [cmd nx::Object] having an explicit
-[arg objectName], use [method create] on [cmd nx::Object]. Note that
+To create a direct instance of [cmd nx::Object] having an explicit name
+[arg obj], use [method create] on [cmd nx::Object]. Note that
 [method create] is defined by [cmd nx::Class] and is available to [cmd nx::Object] being
 an instance of [cmd nx::Class]. This way, singelton objects can be
 created, for example.
 
-[call [cmd nx::Object] [method new] [opt "[option -object-mixin] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filter] [arg filterSpec]"] [opt [arg initBlock]]]
+[call [cmd nx::Object] [method new] [opt "[option -object-mixins] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filters] [arg filterSpec]"] [opt [arg initBlock]]]
 
 To create a direct instance of [cmd nx::Object] having an
 automatically assigned, implict object name, use [method new] on [cmd nx::Object]. Note
@@ -57,8 +93,8 @@ for creating anonymous, inline objects, for example.
 
 [list_end]
 
-The configuration options for direct instances of [cmd nx::Object],
-which can be passed when calling [method create] and [method new], are
+The configuration options for direct and indirect instances of [cmd nx::Object], which
+can be passed when calling [method create] and [method new], are
 documented in the subsequent section.
 
 [section {Configuration Options for Instances of nx::Object}]
@@ -120,7 +156,7 @@ be set and modified using [method configure].
 % nx::Object create obj
 ::obj
 % ::obj info configure
-?-object-mixin /mixinreg .../? ?-class /class/? ?-object-filter /filterreg .../? ?/__initblock/?
+?-object-mixins /mixinreg .../? ?-class /class/? ?-object-filters /filterreg .../? ?/__initblock/?
 % ::obj cget -class
 ::nx::Object
 [example_end]
@@ -727,5 +763,62 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
   classes (i.e., subclasses of [cmd nx::Object]). An adequate method
   implementation must comply with the method signature interfaces described below.
 }]
+
+[section {Object Self-Reference}]
+
+Objects are naturally recursive, with methods of an object [const ::obj]
+frequently invoking other methods in the same object [const ::obj] and
+accessing [const ::obj]'s object variables. To represent these
+self-references effectively in method bodies, and dependening on the
+usage scenario, NX offers two alternative notations for self-references: one based on a
+special-purpose syntax token ("colon prefix"), the other based on the
+command [cmd nx::current].  
+
+[para] 
+
+Both, the colon-prefix notation and
+[cmd nx::current], may be used only in method bodies and scripts
+passed to [method eval]. If they appear anywhere else, an error will be
+reported.
+
+There are three main use cases for self-references:
+
+[list_begin enumerated]
+[enum] As a [emph placeholder] for the currently active object, [cmd nx::current]
+       can be used to retrieve the object name.
+[enum] Reading and writing [emph "object variables"] directly (i.e. without getter/setter methods in place) require the use
+of variable names carrying the prefix ":" ("colon-prefix
+notation"). Internally, colon-prefixed variable names are processed
+using Tcl's variable resolvers. Alternatively, one can provide for getter/setter methods for object variables (see [method property] and [method variable]).
+
+[enum] [emph {Self-referential method calls}] can be defined via
+prefixing (":") the method names or, alternatively, via [cmd nx::current]. Internally,
+colon-prefixed method names are processed using Tcl's command
+resolvers. The colon-prefix notation is recommended, also because it
+has a (slight) performance advantage over [cmd nx::current] which
+requires two rather than one command evaluation per method call.
+[list_end]
+
+See the following listing for some examples corresponding to use cases 1--3:
+
+
+[example {
+Object create ::obj {
+  puts [current]; 			# 1) print name of currently active object ('::obj')        
+  set :x 1; :object variable y 2;	# 2) object variables
+  :public object method print {} {
+    set z 3; 				# 2.a) method-local variable
+    puts ${:x}-${:y}-$z; 		# 2.b) variable substitution using '$' and ':'
+    puts [set :x]-[set :y]-[set z]; 	# 2.c) reading variables using 'set'
+    set :x 1; incr :y; 			# 2.d) writing variables using 'set', 'incr', ...
+  }
+  :public object method show {} {
+   :print;				# 3.a) self-referential method call using ':'	
+   [current] print;			# 3.b) self-referential method call using 'nx::current'
+   [current object] print;              # 3.c) self-referential method call using 'nx::current object'
+  }
+  :show
+}}]
+
 
 [manpage_end]
