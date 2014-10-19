@@ -324,7 +324,7 @@ NsfMemCountFree(char *id, void *p) {
  *----------------------------------------------------------------------
  */
 void
-NsfMemCountInit() {
+NsfMemCountInit(void) {
   int *tableInitialized;
   Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
 
@@ -352,7 +352,7 @@ NsfMemCountInit() {
  *----------------------------------------------------------------------
  */
 void
-NsfMemCountRelease() {
+NsfMemCountRelease(void) {
   int *tableInitialized;
   Tcl_HashTable *tablePtr = NsfMemCountGetTable(&tableInitialized);
 

@@ -53,7 +53,7 @@ static NsfCompEnv instructions[] = {
 };
 
 NsfCompEnv *
-NsfGetCompEnv() {
+NsfGetCompEnv(void) {
   return &instructions[0];
 }
 
@@ -187,7 +187,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 
 
 void
-NsfBytecodeInit() {
+NsfBytecodeInit(void) {
   int i;
 
   for(i=0; i<LAST_INSTRUCTION; i++) {

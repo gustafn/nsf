@@ -959,8 +959,8 @@ EXTERN NsfCallStackContent *NsfCallStackGetTopFrame(Tcl_Interp *interp, Tcl_Call
 #ifdef NSF_MEM_COUNT
 void NsfMemCountAlloc(char *id, void *);
 void NsfMemCountFree(char *id, void *);
-void NsfMemCountInit();
-void NsfMemCountRelease();
+void NsfMemCountInit(void);
+void NsfMemCountRelease(void);
 #endif /* NSF_MEM_COUNT */
 
 /*
@@ -999,7 +999,7 @@ typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH,
 Tcl_ObjCmdProc NsfInitProcNSCmd, NsfSelfDispatchCmd,
   NsfNextObjCmd, NsfGetSelfObjCmd;
 
-EXTERN NsfCompEnv *NsfGetCompEnv();
+EXTERN NsfCompEnv *NsfGetCompEnv(void);
 int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 		     int objc, Tcl_Obj *CONST objv[])
   nonnull(1) nonnull(2);
