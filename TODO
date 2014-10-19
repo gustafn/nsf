@@ -5540,26 +5540,16 @@ nx.tcl:
 
 nsf.c:
 - make types for bit operations unsigned (mostly flags)
+
+build system:
+- don't call genstubs from configure, since Debian does not seem 
+  to have genstubs.tcl installed. Now, we pre-generate the
+  stub files for tcl8.5 and tcl8.6 and copy the "right" version
+  depending on the configured version.
+  
+
 ========================================================================
 TODO:
-
-- [current isnextcall] does not work for ensemble next:
-
-  
-Object create o {
-  :public object method foo {} {return [current isnextcall]}
-  :public object method "x y" {} {return [current isnextcall]}
-}
-Class create M {
-  :public method foo {} {next}
-  :public method "x y" {} {next}
-}
-
-? {o foo} 0
-? {o x y} 0
-o object mixins add M
-? {o foo} 1
-? {o x y} 1; # gives 0 ...
 
 - finish plural reform
 - update migration guide and tutorial
@@ -5919,3 +5909,26 @@ For future releases (after first alpha/beta release)
 
   * renable/translate deletex XOTcl demo scripts, such as
     e.g. those from library/xotcl/apps/scripts
+
+
+
+
+observation: 
+- [current isnextcall] does not work for ensemble next:
+  ... but should probably not, since this is an implicit 
+  next call just for resolving an ensemble call.
+  
+Object create o {
+  :public object method foo {} {return [current isnextcall]}
+  :public object method "x y" {} {return [current isnextcall]}
+}
+Class create M {
+  :public method foo {} {next}
+  :public method "x y" {} {next}
+}
+
+? {o foo} 0
+? {o x y} 0
+o object mixins add M
+? {o foo} 1
+? {o x y} 1; # gives 0 ...

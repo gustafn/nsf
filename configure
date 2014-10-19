@@ -10192,7 +10192,7 @@ fi
 
 chmod +x nxsh nxwish library/xotcl/xotclsh library/xotcl/xowish
 echo "==================== building genstubs (needed for Tcl 8.6)"
-make genstubs
+make getstubs
 echo "==================== genstubs built"
 
 here=${PWD}
