@@ -1,6 +1,7 @@
-#!@NSF_COMPATIBLE_TCLSH@
-#!/usr/bin/env tclsh
-puts  @NSF_COMPATIBLE_TCLSH@
+#! /usr/bin/env tclsh
+#! @NSF_COMPATIBLE_TCLSH@
+# -*- tcl -*-
+puts  [info nameofexecutable]
 #
 # Tiny scripted replacement of a binary nxsh. This script can be used
 # as interactive shell for testing or like a regular shell with the !#
