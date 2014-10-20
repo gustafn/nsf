@@ -339,11 +339,11 @@ $(src_doc_dir)/%.html : $(src_doc_dir)/%.man
             (cd $(src_doc_dir); dtplite -style man.css -o . html $$m) ; \
 	done;
 
-man-nroff : $(NX_MAN:%.man=%.n)
-$(src_doc_dir)/%.n : $(src_doc_dir)/%.man
+man-nroff : $(NX_MAN:%.man=%.1)
+$(src_doc_dir)/%.1 : $(src_doc_dir)/%.man
 	@for m in $(?F) ; do \
 	    echo "    Generating nroff manpage from $$m" ; \
-            (cd $(src_doc_dir); dtplite -ext n -o . nroff $$m) ; \
+            (cd $(src_doc_dir); dtplite -ext 1 -o . nroff $$m) ; \
 	done;
 
 man-pdf: $(NX_MAN:%.man=%.pdf)
