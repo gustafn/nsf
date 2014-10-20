@@ -278,19 +278,19 @@ typedef struct NsfMemCounter {
   MEM_COUNT_FREE("INCR_REF_COUNT" #A,(A)); assert((A)->refCount > -1);	\
   Tcl_DecrRefCount(A)
 # define DECR_REF_COUNT2(name,A)					\
-  MEM_COUNT_FREE("INCR_REF_COUNT-" (name),(A)); assert((A)->refCount > -1); \
+  MEM_COUNT_FREE("INCR_REF_COUNT-" name,(A)); assert((A)->refCount > -1); \
   Tcl_DecrRefCount(A)
 #else
 # define DECR_REF_COUNT(A) \
   MEM_COUNT_FREE("INCR_REF_COUNT" #A,(A)); TclDecrRefCount(A)
 # define DECR_REF_COUNT2(name,A)				\
-  MEM_COUNT_FREE("INCR_REF_COUNT-" (name),(A)); TclDecrRefCount(A)
+  MEM_COUNT_FREE("INCR_REF_COUNT-" name,(A)); TclDecrRefCount(A)
 #endif
 
-#define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT"#A,(A)); Tcl_IncrRefCount((A))
+#define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT" #A,(A)); Tcl_IncrRefCount((A))
 #define INCR_REF_COUNT2(name,A) \
   /*fprintf(stderr, "c '%s'\n", ObjStr(A));*/				\
-  MEM_COUNT_ALLOC("INCR_REF_COUNT-" (name),(A)); Tcl_IncrRefCount((A))
+  MEM_COUNT_ALLOC("INCR_REF_COUNT-" name,(A)); Tcl_IncrRefCount((A))
 
 #define ObjStr(obj) ((obj)->bytes) ? ((obj)->bytes) : Tcl_GetString(obj)
 #define ClassName(cl) (((cl) ? ObjStr((cl)->object.cmdName) : "NULL"))
