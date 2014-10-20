@@ -2869,7 +2869,9 @@ TransitiveSubClasses(NsfClass *cl) {
     order = NULL;
   }
 
-  // TODO: if this holds, we can change the fn to returns_nonnull and the else-branch is not needed
+  /* 
+   * TODO: if this holds, we can change the fn to returns_nonnull and the else-branch is not needed
+   */
   assert(order);
   AssertOrderIsWhite(order);
 
@@ -2915,7 +2917,9 @@ DependentSubClasses(NsfClass *cl) {
     order = NULL;
   }
 
-  // TODO: if this holds, we can change the fn to returns_nonnull and the else-branch is not needed
+  /* 
+   * TODO: if this holds, we can change the fn to returns_nonnull and the else-branch is not needed
+   */
 
   assert(order);
   AssertOrderIsWhite(order);
@@ -11218,7 +11222,9 @@ ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, NsfParamDefs *paramDefs, int
   assert(interp);
   assert(cmd);
 
-  // TODO This function might store empty paramDefs. needed?
+  /*
+   * TODO This function might store empty paramDefs. needed?
+   */
 
   if (cmdPtr->deleteProc != NsfProcDeleteProc) {
     NsfProcContext *ctxPtr = NEW(NsfProcContext);
@@ -21405,7 +21411,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                 if (argumentString[1] >= '0' && argumentString[1] <= '9') {
                   char *p;
 
-                  strtod(&argumentString[1], &p);
+                  (void)strtod(&argumentString[1], &p);
                   if (*p == '\0') {
                     /* argument is numeric */
                     nonposArgError = 0;
