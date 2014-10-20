@@ -226,7 +226,7 @@ NsfMemCountGetTable(int **initialized) {
  *----------------------------------------------------------------------
  */
 
-void  NsfMemCountAlloc(char *id, void *p) nonnull(1) nonnull(2);
+void  NsfMemCountAlloc(char *id, void *p) nonnull(1);
 
 void 
 NsfMemCountAlloc(char *id, void *p) {
@@ -236,7 +236,6 @@ NsfMemCountAlloc(char *id, void *p) {
   Tcl_HashEntry *hPtr;
 
   assert(id);
-  assert(p);
 
   if (!*tableInitialized) {
     fprintf(stderr, "+++ alloc %s %p\n", id, p);
@@ -278,7 +277,7 @@ NsfMemCountAlloc(char *id, void *p) {
  *----------------------------------------------------------------------
  */
 
-void NsfMemCountFree(char *id, void *p) nonnull(1) nonnull(2);
+void NsfMemCountFree(char *id, void *p) nonnull(1);
 
 void
 NsfMemCountFree(char *id, void *p) {
@@ -288,7 +287,6 @@ NsfMemCountFree(char *id, void *p) {
   Tcl_HashEntry *hPtr;
 
   assert(id);
-  assert(p);
 
   if (!*tableInitialized) {
     fprintf(stderr, "+++ free %s %p\n", id, p);
