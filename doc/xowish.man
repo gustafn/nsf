@@ -1,0 +1,35 @@
+[comment {-*- tcl -*- xowish manpage}]
+
+[manpage_begin xowish 1 2.0b6]
+
+[copyright { 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+
+[titledesc {Simple windowing shell containing NSF/XOTcl2 interpreter}]
+
+[description]
+
+[list_begin definitions]
+
+[call [syscmd "xowish"] [opt [arg fileName]]]
+
+[syscmd "xowish"] is a shell-like application including Tcl and the XOTcl2 as well as the Tk toolkit. [syscmd "xowish"] creates a main window and, then, reads commands from its standard input or from [arg fileName] and evaluates them.  If invoked without [arg fileName], then it runs in REPL mode, reading commands from standard input. [syscmd "xowish"] will continue processing commands until all windows have been deleted or until end-of-file is reached on standard input.
+
+[para] 
+
+[syscmd "xowish"] can be used like [syscmd "wish"] to make XOTcl2 scripts directly invokable from the shell, by providing the following first line ("shebang") in the respective script:
+
+[example {
+	#! /usr/bin/env xowish 
+}]
+
+A (more portable) alternative is:
+
+[example {
+	#! /bin/sh
+	# the next line restarts using xowish \
+	    exec xowish "$0" "$@"
+}]
+
+[list_end]
+
+[manpage_end]

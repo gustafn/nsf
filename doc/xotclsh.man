@@ -1,0 +1,35 @@
+[comment {-*- tcl -*- xotclsh manpage}]
+
+[manpage_begin xotclsh 1 2.0b6]
+
+[copyright { 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+
+[titledesc {Simple shell containing NSF/XOTcl2 interpreter}]
+
+[description]
+
+[list_begin definitions]
+
+[call [syscmd "xotclsh"] [opt [arg fileName]]]
+
+[syscmd "xotclsh"] is a shell-like application that reads XOTcl2 and Tcl commands from its standard input or from [arg fileName] and evaluates them.  If invoked without [arg fileName], then it runs in REPL mode, reading commands from standard input and printing command results and error messages to standard output.  It runs until the exit command is invoked or until it reaches end-of-file on its standard input.
+
+[para] 
+
+[syscmd "xotclsh"] can be used like [syscmd "tclsh"] to make XOTcl2 scripts directly invokable from the shell, by providing the following first line ("shebang") in the respective script:
+
+[example {
+	#! /usr/bin/env xotclsh 
+}]
+
+A (more portable) alternative is:
+
+[example {
+	#! /bin/sh
+	# the next line restarts using xotclsh \
+	    exec xotclsh "$0" "$@"
+}]
+
+[list_end]
+
+[manpage_end]
