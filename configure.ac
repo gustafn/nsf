@@ -352,6 +352,7 @@ TEA_PROG_TCLSH
 # make this available, for such as nsfConfig.sh
 NSF_COMPATIBLE_TCLSH=${TCLSH_PROG}
 AC_SUBST([NSF_COMPATIBLE_TCLSH])
+AC_SUBST([TCL_EXEC_PREFIX])
 
 #
 # Next Scripting specific configs
