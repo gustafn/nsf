@@ -1,4 +1,0 @@
-[:? {![info exists cssclass]} {
-[:!let cssclass nsfdoc-link]
-}]
-<a class="$cssclass" title="$title" href="#[:as_tag_id]">$source_anchor</a>

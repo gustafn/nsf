@@ -1,0 +1,35 @@
+[comment {-*- tcl -*- nxwish manpage}]
+
+[manpage_begin nxwish 1 2.0b6]
+
+[copyright { 2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+
+[titledesc {Simple windowing shell containing NSF/NX interpreter}]
+
+[description]
+
+[list_begin definitions]
+
+[call [syscmd "nxwish"] [opt [arg fileName]]]
+
+[syscmd "nxwish"] is a shell-like application including Tcl and the NX extension as well as the Tk toolkit. [syscmd "nxwish"] creates a main window and, then, reads commands from its standard input or from [arg fileName] and evaluates them.  If invoked without [arg fileName], then it runs in REPL mode, reading commands from standard input. [syscmd "nxwish"] will continue processing commands until all windows have been deleted or until end-of-file is reached on standard input.
+
+[para] 
+
+[syscmd "nxwish"] can be used like [syscmd "wish"] to make NX scripts directly invokable from the shell, by providing the following first line ("shebang") in the respective script:
+
+[example {
+	#! /usr/bin/env nxwish 
+}]
+
+A (more portable) alternative is:
+
+[example {
+	#! /bin/sh
+	# the next line restarts using nxwish \
+	    exec nxwish "$0" "$@"
+}]
+
+[list_end]
+
+[manpage_end]
