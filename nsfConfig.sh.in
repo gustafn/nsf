@@ -22,8 +22,8 @@ NSF_BUILD_INCLUDE_SPEC="-I${NSF_BUILD_INCLUDE_DIR}"
 
 # String to pass to compiles to pick up the nsf includes from their
 # installed directory.
-NSF_INCLUDE_DIR="@pkgincludedir@"
-NSF_INCLUDE_SPEC="-I$NSF_INCLUDE_DIR"
+NSF_INCLUDE_DIR="@NSF_INCLUDE_DIR@"
+NSF_INCLUDE_SPEC="-I${NSF_INCLUDE_DIR}"
 
 # The name of the nsf library (may be either a .a file or a shared library):
 NSF_LIB_FILE=@PKG_LIB_FILE@
@@ -36,18 +36,18 @@ NSF_BUILD_LIB_SPEC='@NSF_BUILD_LIB_SPEC@'
 # installed directory.
 NSF_LIB_SPEC='@NSF_LIB_SPEC@'
 
-# The name of the XOTcl stub library (a .a file):
+# The name of the NSF stub library (a .a file):
 # NSF_STUB_LIB_FILE=@PKG_STUB_LIB_FILE@
 
-# String to pass to linker to pick up the XOTcl stub library from its
+# String to pass to linker to pick up the NSF stub library from its
 # build directory.
 NSF_BUILD_STUB_LIB_SPEC='@NSF_BUILD_STUB_LIB_SPEC@'
 
-# String to pass to linker to pick up the XOTcl stub library from its
+# String to pass to linker to pick up the NSF stub library from its
 # installed directory.
 NSF_STUB_LIB_SPEC='@NSF_STUB_LIB_SPEC@'
 
-# Name of the xotcl stub library with full path in build and install directory
+# Name of the NSF stub library with full path in build and install directory
 NSF_BUILD_STUB_LIB_PATH='@NSF_BUILD_STUB_LIB_PATH@'
 NSF_STUB_LIB_PATH='@NSF_STUB_LIB_PATH@'
 
