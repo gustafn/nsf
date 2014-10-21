@@ -11798,6 +11798,8 @@ NsfParamDefsAppendVirtual(Tcl_Interp *interp, Tcl_Obj *listObj,
       Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, paramsPtr, contextObject, pattern, formatFunction);
       if (formattedObj != NULL) {
         Tcl_ListObjAppendList(interp, listObj, formattedObj);
+        DECR_REF_COUNT2("paramDefsObj", formattedObj);
+
         return 1;
       }
     }
@@ -11858,12 +11860,14 @@ NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, NsfObject *co
       int argsResolved = 0;
 
       if (contextObject != NULL && pPtr->type && strncmp(pPtr->type, "virtual", 7) == 0) {
-        Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, pPtr, contextObject, pattern, NsfParamDefsSyntax);
+        Tcl_Obj *formattedObj = NsfParamDefsVirtualFormat(interp, pPtr, contextObject, 
+                                                          pattern, NsfParamDefsSyntax);
 
         if (formattedObj != NULL) {
           argsResolved = 1;
           if (needSpace) Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
           Tcl_AppendObjToObj(argStringObj, formattedObj);
+          DECR_REF_COUNT2("paramDefsObj", formattedObj);
         }
       }
       if (argsResolved == 0) {
