@@ -1,7 +1,15 @@
-#! /usr/bin/env tclsh
-#! @NSF_COMPATIBLE_TCLSH@
+#! /bin/sh
+# Lookup a Tcl interpreter \
+    INTERP="tclsh@TCL_VERSION@"; \
+    INTERPS="@NSF_COMPATIBLE_TCLSH@ @TCL_EXEC_PREFIX@/bin/$INTERP"; \
+    for interp in $INTERPS; \
+    do if [ -x $interp ]; then INTERP=$interp; break; \
+    fi;  done; \
+    exec $INTERP "$0" ${1+"$@"}
+
 # -*- tcl -*-
 puts  [info nameofexecutable]
+
 #
 # Tiny scripted replacement of a binary nxsh. This script can be used
 # as interactive shell for testing or like a regular shell with the !#
