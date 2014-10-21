@@ -140,13 +140,13 @@ proc genifd {parameterDefinitions} {
 }
 
 proc gencall {methodName fn parameterDefinitions clientData
-	      cDefsVar ifDefVar arglistVar preVar postVar introVar nnVar
+	      cDefsVar ifDefVar arglistVar preVar postVar introVar nnVar cleanupVar
 	    } {
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
-      $introVar intro $nnVar nn
+      $introVar intro $nnVar nn $cleanupVar cleanup
   set c [list]
   set i 0
-  set pre ""; set post ""
+  set pre ""; set post ""; set cleanup ""
   set intro ""
 
   switch $clientData {
@@ -243,6 +243,8 @@ proc gencall {methodName fn parameterDefinitions clientData
       DECR_REF_COUNT2("patternObj", ${varName});
     }
          }]
+          set cleanup [subst -nocommands {$type$varName = ($type)pc.clientData[$i];}]
+          append cleanup \n$post
 	  # end of obj pattern
         }
         *|* {set type "int "}
@@ -283,7 +285,7 @@ proc gencall {methodName fn parameterDefinitions clientData
   set arglist [join $a ", "]
 }
 
-proc genStub {stub intro obj idx cDefs pre call post} {
+proc genStub {stub intro obj idx cDefs pre call post cleanup} {
   # Tiny optimization for calls without parameters;
   # ParseContextExtendObjv() is just called for procs, so no need to
   # free non-static objvs. Actually, the api for c-methods does
@@ -310,12 +312,14 @@ $pre
     $call
 $post
   } else {
+    $cleanup
     return TCL_ERROR;
   }
 }
 }]}
 
-proc genSimpleStub {stub intro idx cDefs pre call post} {
+proc genSimpleStub {stub intro idx cDefs pre call post cleanup} {
+  if {$cleanup ne ""} {error "$stub cleanup code '$cleanup' must be empty"}
   return [subst -nocommands {
 static int
 ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -346,7 +350,7 @@ proc genstubs {} {
     set nn ""
 
     gencall $d(methodName) $d(stub) $d(parameterDefinitions) $d(clientData) \
-	cDefs ifDef arglist pre post intro nn
+	cDefs ifDef arglist pre post intro nn cleanup
 
     #
     # Check, if spec tells us to pass the original "objv[0]" as an
@@ -383,11 +387,11 @@ proc genstubs {} {
     if {$nrParams == 1 && $arglist eq "objc, objv"} {
       # TODO we would not need to generate a stub at all....
       #set ifd "{\"$d(ns)::$d(methodName)\", $d(implementation), $nrParams, {\n  [genifd $d(parameterDefinitions)]}\n}"
-      append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+      append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post $cleanup]
     } elseif {$nrParams == 1 && $arglist eq "obj, objc, objv"} {
       # no need to call objv parser
       #puts stderr "$d(stub) => '$arglist'"
-      append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+      append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post $cleanup]
   } elseif {$nrParams == 0} {
     append pre [subst -nocommands {
       if (unlikely(objc != 1)) {
@@ -396,7 +400,7 @@ proc genstubs {} {
 			     NULL, objv[0]);
       }
     }]
-    append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+    append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post $cleanup]
   } elseif {$nrParams == 1 && [string match "Tcl_Obj *" $cDefs]} {
 
     array set defs [list -required 0]
@@ -424,14 +428,14 @@ proc genstubs {} {
     }
     regsub ", $arglist\\)" $call ", $newArglist\)" call
 
-    append fns [genSimpleStub $d(stub) $intro $d(idx) "" $pre $call $post]
+    append fns [genSimpleStub $d(stub) $intro $d(idx) "" $pre $call $post $cleanup]
   } else {
       switch $d(methodType) {
         objectMethod {set obj "obj"}
         classMethod {set obj "(NsfObject *) cl"}
         default {set obj "NULL"}
       }
-      append fns [genStub $d(stub) $intro $obj $d(idx) $cDefs $pre $call $post]
+      append fns [genStub $d(stub) $intro $obj $d(idx) $cDefs $pre $call $post $cleanup]
     }
     lappend ifds $ifd
     append stubDecls $stubDecl

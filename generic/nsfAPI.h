@@ -877,6 +877,7 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return NsfCCreateMethod(interp, cl, objectName, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -919,6 +920,7 @@ NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     return NsfCFilterGuardMethod(interp, cl, filter, guard);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -961,6 +963,7 @@ NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfCMixinGuardMethod(interp, cl, mixin, guard);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -983,6 +986,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     return NsfCNewMethod(interp, cl, withChildof, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1005,6 +1009,7 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfCRecreateMethod(interp, cl, objectName, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1046,6 +1051,7 @@ NsfClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int
     return NsfClassInfoFilterguardMethod(interp, cl, filter);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1069,6 +1075,7 @@ NsfClassInfoFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     return NsfClassInfoFiltersMethod(interp, cl, withGuards, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1092,6 +1099,7 @@ NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     return NsfClassInfoForwardMethod(interp, cl, withDefinition, name);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1114,6 +1122,7 @@ NsfClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     return NsfClassInfoHeritageMethod(interp, cl, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1151,6 +1160,12 @@ NsfClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     }
     return returnCode;
   } else {
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
+
+    if (pattern) {
+      DECR_REF_COUNT2("patternObj", pattern);
+    }
+         
     return TCL_ERROR;
   }
 }
@@ -1174,6 +1189,7 @@ NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     return NsfClassInfoMethodMethod(interp, cl, subcmd, name);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1201,6 +1217,7 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     return NsfClassInfoMethodsMethod(interp, cl, withCallprotection, withClosure, withType, withPath, withSource, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1239,6 +1256,12 @@ NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     }
     return returnCode;
   } else {
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
+
+    if (pattern) {
+      DECR_REF_COUNT2("patternObj", pattern);
+    }
+         
     return TCL_ERROR;
   }
 }
@@ -1261,6 +1284,7 @@ NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     return NsfClassInfoMixinguardMethod(interp, cl, mixin);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1300,6 +1324,12 @@ NsfClassInfoMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     }
     return returnCode;
   } else {
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
+
+    if (pattern) {
+      DECR_REF_COUNT2("patternObj", pattern);
+    }
+         
     return TCL_ERROR;
   }
 }
@@ -1325,6 +1355,7 @@ NsfClassInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int
     return NsfClassInfoSlotobjectsMethod(interp, cl, withClosure, withSource, withType, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1363,6 +1394,12 @@ NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     }
     return returnCode;
   } else {
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
+
+    if (pattern) {
+      DECR_REF_COUNT2("patternObj", pattern);
+    }
+         
     return TCL_ERROR;
   }
 }
@@ -1386,6 +1423,7 @@ NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     return NsfClassInfoSuperclassMethod(interp, cl, withClosure, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1412,6 +1450,7 @@ NsfAsmMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     return NsfAsmMethodCreateCmd(interp, object, withCheckalways, withInner_namespace, withPer_object, withReg_object, methodName, arguments, body);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1435,6 +1474,7 @@ NsfAsmProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     return NsfAsmProcCmd(interp, withAd, withCheckalways, procName, arguments, body);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1457,6 +1497,7 @@ NsfCmdInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     return NsfCmdInfoCmd(interp, subcmd, withContext, methodName, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1487,6 +1528,7 @@ NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     return NsfConfigureCmd(interp, option, value);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1506,6 +1548,7 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     return NsfCurrentCmd(interp, option);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1575,6 +1618,7 @@ NsfDirectDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfDirectDispatchCmd(interp, object, withFrame, command, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1597,6 +1641,7 @@ NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     return NsfDispatchCmd(interp, object, withIntrinsic, withSystem, command, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1616,6 +1661,7 @@ NsfFinalizeCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     return NsfFinalizeCmd(interp, withKeepvars);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1635,6 +1681,7 @@ NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     return NsfInterpObjCmd(interp, name, objc, objv);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1658,6 +1705,7 @@ NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     return NsfIsCmd(interp, withComplain, withConfigure, withName, constraint, value);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1682,6 +1730,7 @@ NsfMethodAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     return NsfMethodAliasCmd(interp, object, withPer_object, methodName, withFrame, withProtection, cmdName);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1703,6 +1752,7 @@ NsfMethodAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     return NsfMethodAssertionCmd(interp, object, subcmd, arg);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1731,6 +1781,7 @@ NsfMethodCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfMethodCreateCmd(interp, object, withCheckalways, withInner_namespace, withPer_object, withReg_object, methodName, arguments, body, withPrecondition, withPostcondition);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1752,6 +1803,7 @@ NsfMethodDeleteCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfMethodDeleteCmd(interp, object, withPer_object, methodName);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1780,6 +1832,7 @@ NsfMethodForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     return NsfMethodForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withOnerror, withPrefix, withFrame, withVerbose, target, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1803,6 +1856,7 @@ NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfMethodPropertyCmd(interp, object, withPer_object, methodName, methodProperty, value);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1840,6 +1894,7 @@ NsfMethodSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfMethodSetterCmd(interp, object, withPer_object, parameter);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1862,6 +1917,7 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     return NsfMyCmd(interp, withIntrinsic, withLocal, withSystem, methodName, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1882,6 +1938,7 @@ NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return NsfNSCopyVarsCmd(interp, fromNs, toNs);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1919,6 +1976,7 @@ NsfObjectAllocCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     return NsfObjectAllocCmd(interp, class, name, initcmd);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1956,6 +2014,7 @@ NsfObjectPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfObjectPropertyCmd(interp, objectName, objectProperty, value);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -1993,6 +2052,7 @@ NsfObjectSystemCreateCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
     return NsfObjectSystemCreateCmd(interp, rootClass, rootMetaClass, systemMethods);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2012,6 +2072,7 @@ NsfParameterCacheClassInvalidateCmdStub(ClientData clientData, Tcl_Interp *inter
     return NsfParameterCacheClassInvalidateCmd(interp, class);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2031,6 +2092,7 @@ NsfParameterCacheObjectInvalidateCmdStub(ClientData clientData, Tcl_Interp *inte
     return NsfParameterCacheObjectInvalidateCmd(interp, object);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2052,6 +2114,7 @@ NsfParameterInfoCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     return NsfParameterInfoCmd(interp, subcmd, spec, varname);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2073,6 +2136,7 @@ NsfParameterSpecsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfParameterSpecsCmd(interp, withConfigure, withNonposargs, slotobjs);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2096,6 +2160,7 @@ NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
     return NsfProcCmd(interp, withAd, withCheckalways, procName, arguments, body);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2148,6 +2213,7 @@ NsfRelationGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     return NsfRelationGetCmd(interp, object, type);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2169,6 +2235,7 @@ NsfRelationSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     return NsfRelationSetCmd(interp, object, type, value);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2238,6 +2305,7 @@ NsfVarExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     return NsfVarExistsCmd(interp, withArray, object, varName);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2259,6 +2327,7 @@ NsfVarGetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     return NsfVarGetCmd(interp, withArray, object, varName);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2278,6 +2347,7 @@ NsfVarImportCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     return NsfVarImportCmd(interp, object, objc-pc.lastObjc, objv+pc.lastObjc);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2300,6 +2370,7 @@ NsfVarSetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     return NsfVarSetCmd(interp, withArray, object, varName, value);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2321,6 +2392,7 @@ NsfVarUnsetCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     return NsfVarUnsetCmd(interp, withNocomplain, object, varName);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2345,6 +2417,7 @@ NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return NsfOAutonameMethod(interp, obj, withInstance, withReset, name);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2424,6 +2497,7 @@ NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     return NsfOConfigureMethod(interp, obj, objc-pc.lastObjc, objv+pc.lastObjc, objv[0]);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2465,6 +2539,7 @@ NsfOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return NsfOExistsMethod(interp, obj, varName);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2488,6 +2563,7 @@ NsfOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     return NsfOFilterGuardMethod(interp, obj, filter, guard);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2524,6 +2600,7 @@ NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfOMixinGuardMethod(interp, obj, mixin, guard);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2643,6 +2720,7 @@ NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     return NsfObjInfoChildrenMethod(interp, obj, withType, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2684,6 +2762,7 @@ NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     return NsfObjInfoFilterguardMethod(interp, obj, filter);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2707,6 +2786,7 @@ NsfObjInfoFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfObjInfoFiltersMethod(interp, obj, withGuards, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2730,6 +2810,7 @@ NsfObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfObjInfoForwardMethod(interp, obj, withDefinition, name);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2752,6 +2833,7 @@ NsfObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     return NsfObjInfoHasMixinMethod(interp, obj, class);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2774,6 +2856,7 @@ NsfObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfObjInfoHasTypeMethod(interp, obj, class);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2815,6 +2898,7 @@ NsfObjInfoLookupFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     return NsfObjInfoLookupFilterMethod(interp, obj, filter);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2838,6 +2922,7 @@ NsfObjInfoLookupFiltersMethodStub(ClientData clientData, Tcl_Interp *interp, int
     return NsfObjInfoLookupFiltersMethod(interp, obj, withGuards, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2885,6 +2970,7 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
     return NsfObjInfoLookupMethodsMethod(interp, obj, withCallprotection, withIncontext, withType, withNomixins, withPath, withSource, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2922,6 +3008,12 @@ NsfObjInfoLookupMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     }
     return returnCode;
   } else {
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
+
+    if (pattern) {
+      DECR_REF_COUNT2("patternObj", pattern);
+    }
+         
     return TCL_ERROR;
   }
 }
@@ -2946,6 +3038,7 @@ NsfObjInfoLookupSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     return NsfObjInfoLookupSlotsMethod(interp, obj, withSource, withType, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2969,6 +3062,7 @@ NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     return NsfObjInfoMethodMethod(interp, obj, subcmd, name);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -2994,6 +3088,7 @@ NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return NsfObjInfoMethodsMethod(interp, obj, withCallprotection, withType, withPath, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -3016,6 +3111,7 @@ NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     return NsfObjInfoMixinguardMethod(interp, obj, mixin);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -3053,6 +3149,12 @@ NsfObjInfoMixinsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     }
     return returnCode;
   } else {
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
+
+    if (pattern) {
+      DECR_REF_COUNT2("patternObj", pattern);
+    }
+         
     return TCL_ERROR;
   }
 }
@@ -3095,6 +3197,7 @@ NsfObjInfoObjectparameterMethodStub(ClientData clientData, Tcl_Interp *interp, i
     return NsfObjInfoObjectparameterMethod(interp, obj, subcmd, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -3137,6 +3240,7 @@ NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     return NsfObjInfoPrecedenceMethod(interp, obj, withIntrinsic, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -3160,6 +3264,7 @@ NsfObjInfoSlotobjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     return NsfObjInfoSlotobjectsMethod(interp, obj, withType, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
@@ -3182,6 +3287,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     return NsfObjInfoVarsMethod(interp, obj, pattern);
 
   } else {
+    
     return TCL_ERROR;
   }
 }
