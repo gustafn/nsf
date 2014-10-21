@@ -908,6 +908,8 @@ NsfFreeObjectData(NsfClass *cl)
 /*
  *  NsfObject Reference Accounting
  */
+EXTERN void NsfCleanupObject_(NsfObject *object) nonnull(1);
+
 #if defined(NSFOBJ_TRACE)
 # define NsfObjectRefCountIncr(obj)					\
   ((NsfObject *)obj)->refCount++;					\

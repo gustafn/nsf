@@ -255,7 +255,6 @@ static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object) nonnul
 static void PrimitiveCDestroy(ClientData clientData) nonnull(1);
 static void PrimitiveODestroy(ClientData clientData) nonnull(1);
 static void PrimitiveDestroy(ClientData clientData) nonnull(1);
-static void NsfCleanupObject_(NsfObject *object) nonnull(1);
 
 /* prototypes for object and command lookup */
 static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name)
@@ -1488,7 +1487,7 @@ DStringAppendQualName(Tcl_DString *dsPtr, Tcl_Namespace *nsPtr, CONST char *name
  *
  *----------------------------------------------------------------------
  */
-static void
+void
 NsfCleanupObject_(NsfObject *object) {
 
   assert(object);

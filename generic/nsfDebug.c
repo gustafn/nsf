@@ -289,7 +289,7 @@ NsfMemCountFree(char *id, void *p) {
   assert(id);
 
   if (!*tableInitialized) {
-    fprintf(stderr, "+++ free %s %p\n", id, p);
+    fprintf(stderr, "+++ free %s %p !tableInitialized !\n", id, p);
     return;
   }
 #ifdef NSF_MEM_TRACE

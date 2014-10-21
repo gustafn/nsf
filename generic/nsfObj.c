@@ -351,12 +351,14 @@ MixinregFreeInternalRep(
   Mixinreg *mixinRegPtr = (Mixinreg *)objPtr->internalRep.twoPtrValue.ptr1;
 
   assert(mixinRegPtr);
-  /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p\n",
-    mixinRegPtr, mixinRegPtr->class, mixinRegPtr->guardObj);*/
+  /*fprintf(stderr, "MixinregFreeInternalRep freeing mixinReg %p class %p guard %p refcount before decr %d\n",
+    mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj, (&(mixinRegPtr->mixin)->object)->refCount);*/
+
   /*
    * Decrement refCounts
    */
-  NsfObjectRefCountDecr(&(mixinRegPtr->mixin)->object);
+  NsfCleanupObject(&(mixinRegPtr->mixin)->object, "MixinregFreeInternalRep");
+
   if (mixinRegPtr->guardObj) {DECR_REF_COUNT2("mixinRegPtr->guardObj", mixinRegPtr->guardObj);}
 
   /*
@@ -453,8 +455,8 @@ MixinregSetFromAny(
   NsfObjectRefCountIncr((&mixin->object));
   if (guardObj) {INCR_REF_COUNT2("mixinRegPtr->guardObj", guardObj);}
 
-  /*fprintf(stderr, "MixinregSetFromAny alloc mixinReg %p class %p guard %p\n",
-    mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj);*/
+  /*fprintf(stderr, "MixinregSetFromAny alloc mixinReg %p class %p guard %p object->refCount %d\n",
+    mixinRegPtr, mixinRegPtr->mixin, mixinRegPtr->guardObj, ((&mixin->object)->refCount));*/
 
   /*
    * Free the old interal representation and store own structure as internal
