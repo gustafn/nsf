@@ -25716,7 +25716,7 @@ NsfParameterInfoCmd(Tcl_Interp *interp, int parametersubcmd, Tcl_Obj *parameters
   assert(parameterspec);
 
   if (parametersubcmd != ParametersubcmdDefaultIdx && varname != NULL) {
-    return NsfPrintError(interp, "parameter::info: provided third arguement is only valid for querying defaults");
+    return NsfPrintError(interp, "parameter::info: provided third argument is only valid for querying defaults");
   }
 
   paramsObj = Tcl_NewListObj(1, &parameterspec);
