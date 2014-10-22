@@ -827,9 +827,6 @@ CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
     if (elements == 0 && (cscPtr->flags & NSF_CM_ENSEMBLE_UNKNOWN) && (cscPtr->flags & NSF_CSC_CALL_IS_NEXT))
       break;
 
-    /* Do not record any INACTIVE frames in the method path */
-    //if ((cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) continue;
-
     Tcl_ListObjAppendElement(interp, methodPathObj,
 			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
     elements++;

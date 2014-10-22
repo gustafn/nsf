@@ -25,9 +25,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
 #include "nsfInt.h"
 #include "nsfAccessInt.h"
+#include "nsfCmdPtr.c"
 
 /*
  *----------------------------------------------------------------------

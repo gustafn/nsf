@@ -957,6 +957,35 @@ NsfCallMethodWithArgs(Tcl_Interp *interp, Nsf_Object *object, Tcl_Obj *methodObj
   return result;
 }
 
+/*
+ * Support for variable hash tables
+ */
+static NSF_INLINE Var *VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) nonnull(1) nonnull(2);
+
+static NSF_INLINE Var *
+VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
+  Var *varPtr = NULL;
+  Tcl_HashEntry *hPtr;
+
+  assert(tablePtr);
+  assert(key);
+
+  hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
+                             (char *) key, newPtr);
+  if (likely(hPtr != NULL)) {
+    varPtr = TclVarHashGetValue(hPtr);
+  }
+  return varPtr;
+}
+
+static NSF_INLINE TclVarHashTable *
+VarHashTableCreate() {
+  TclVarHashTable *varTablePtr = (TclVarHashTable *) ckalloc(sizeof(TclVarHashTable));
+  TclInitVarHashTable(varTablePtr, NULL);
+  return varTablePtr;
+}
+
+#include "nsfCmdPtr.c"
 #include "nsfStack.c"
 
 /***********************************************************************
@@ -14619,8 +14648,7 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
        *
        * The conversion is just needed, when resultObj differs from the actual
        * value in the output vector. Otherwise the conversion and the value
-       * increment happened already before (and is already recorded in the
-       * parse context).
+       * increment happened already before (and is already recorded in the parse context).
        */
       resultObj = Tcl_GetObjResult(interp);
 
@@ -15909,11 +15937,15 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   }
 
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
-  /* create the method in the provided namespace */
+  /*
+   * Create the method in the provided namespace.
+   */
   result = Tcl_ProcObjCmd(NULL, interp, 4, ov);
+
   if (likely(result == TCL_OK)) {
     /* retrieve the defined proc */
     Proc *procPtr = FindProcMethod(nsPtr, methodName);
+
     if (procPtr) {
       /* modify the cmd of the proc to set the current namespace for the body */
       if (withInner_namespace) {
