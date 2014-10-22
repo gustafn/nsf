@@ -1,8 +1,10 @@
 [comment {-*- tcl -*- nx::Object manpage}]
-[manpage_begin nx::Object n 2.0b6]
+[manpage_begin nx::Object 3 2.0b6]
 
-[comment {For the time being, we do not render keywords and the corresponding reverse index}]
+[comment {For the time being, we do not render keywords & terms; and
+the corresponding reverse index}] 
 [proc keywords args {}]
+[proc term v {return $v}]
 
 [keywords baseclass]
 [keywords NX]
@@ -16,15 +18,15 @@
 [vset CMD "obj"]
 [vset MODIFIER "object"]
 
-[copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+[copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
 [titledesc {API reference of the base class in the NX object system}]
 
 [description]
 [para]
 
-[syscmd nx::Object] is the [term "base class"] of the [term NX] object system. All
+[cmd nx::Object] is the [term "base class"] of the [term NX] object system. All
 objects defined in [term NX] are (direct or indirect) instances of this
-[term "base class"]. The methods provided by the [syscmd nx::Object]
+[term "base class"]. The methods provided by the [cmd nx::Object]
 [term "base class"] are available to all objects and to all classes defined in
 NX.
 
@@ -69,7 +71,7 @@ previously defined application class (e.g. [emph cls]) are indirect
 instances of [cmd nx::Object].
 
 [para]
-Direct instances of nx::Object can be created as follows:
+Direct instances of [cmd nx::Object] can be created as follows:
 
 [list_begin definitions]
 
@@ -198,7 +200,7 @@ set using [method configure] can be retrieved using [method cget].
 
 [list_begin definitions]
 
-[call [arg obj] [cmd contains] [opt "-withnew [arg trueFalse]"] [opt "-object [arg objectName]"] [opt "-class [arg className]"] [arg cmds]]
+[call [arg obj] [method contains] [opt "-withnew [arg trueFalse]"] [opt "-object [arg objectName]"] [opt "-class [arg className]"] [arg cmds]]
 
 This method acts as a builder for nested object structures. Object
 and class construction statements passed to this method as its last
@@ -255,7 +257,7 @@ can be provided.
 
 [list_begin definitions]
 
-[call [arg obj] [cmd copy] [arg newObjectName]]
+[call [arg obj] [method copy] [arg newObjectName]]
 
 Creates a full and deep copy of a source object [arg obj]. The
 object's copy [arg newObjectName] features all structural and
@@ -301,11 +303,11 @@ namespaces, filters, mixins, and traces.
 
 [list_begin definitions]
 
-[call [arg obj] [cmd destroy]]
+[call [arg obj] [method destroy]]
 
 This method allows for explicitly destructing an object [arg obj],
 potentially prior to [arg obj] being destroyed by the object system
-(e.g., during the shutdown of the object system upon calling [syscmd exit]):
+(e.g. during the shutdown of the object system upon calling [cmd exit]):
 
 [example {[nx::Object new] destroy}]
 
@@ -414,7 +416,7 @@ completed, can be defined to store intermediate results.
 
 [list_begin definitions]
 
-[call [arg obj] [method info] [method children] [opt "[option -type] [arg className]"] [opt [arg pattern]]]
+[call [arg obj] [method "info children"] [opt "[option -type] [arg className]"] [opt [arg pattern]]]
 
 Retrieves the list of nested (or aggregated) objects of [arg obj]. The
 resulting list contains the fully qualified names of the nested
@@ -425,14 +427,14 @@ returned. Using [arg pattern], only nested objects whose names match
 special matching characters (see [cmd "string match"]). This method
 allows for introspecting on [method contains].
 
-[call [arg obj] [method info] [method class]]
+[call [arg obj] [method "info class"]]
 
 Returns the fully qualified name of the current [cmd nx::Class] of
 [arg obj]. In case of [term "re-classification"] (see [method configure]), the
 returned class will be different from the [cmd nx::Class] from which [arg obj] was
 originally instantiated using [method create] or [method new].
 
-[call [arg obj] [method info] [method has] [method mixin] | [method namespace] | [method type] [opt "[arg arg] ..."]]
+[call [arg obj] [method "info has"] [opt "[method mixin] | [method namespace] | [method type]"] [opt "[arg arg] ..."]]
 
 [list_begin definitions]
 [def "[arg obj] [method "info method has mixin"] [arg className]"] 
@@ -459,9 +461,9 @@ an indirect instance of one of the superclasses of [arg className].
 
 [call [arg obj] [method "info lookup"] [arg submethod] [opt "[arg arg] ..."]]
 
-A collection of submethods to retrieve structural features (e.g.,
+A collection of submethods to retrieve structural features (e.g.
 configuration options, [term "slot object"]s) and behavioral
-features (e.g., methods, [term "filter"]s) available for [arg obj] from the perspective of a client to [arg obj]. Features provided by [arg obj] itself and by the classes in its current linearisation list are considered.
+features (e.g. methods, [term "filter"]s) available for [arg obj] from the perspective of a client to [arg obj]. Features provided by [arg obj] itself and by the classes in its current linearisation list are considered.
 
 [list_begin definitions]
 [def "[arg obj] [method {info lookup configure parameters}] [opt [arg namePattern]]"] 
@@ -476,7 +478,7 @@ configuration options can be limited to those whose names match [arg pattern]
 
 Returns all configuration options available for [arg obj] as a
 concrete-syntax description to be used in human-understandable
-messages (e.g., errors or warnings, documentation strings).
+messages (e.g. errors or warnings, documentation strings).
 
 [def "[arg obj] [method "info lookup filter"] [arg name]"]
 
@@ -554,12 +556,12 @@ without any namespace qualifiers.
 
 Returns the fully qualified name of the parent object of [arg obj], if
 any. If there is no parent object, the name of the Tcl
-namespace containing [arg obj] (e.g., "::") will be reported.
+namespace containing [arg obj] (e.g. "::") will be reported.
 
 [call [arg obj] [method {info precedence}] [opt [option -intrinsic]] [opt [arg pattern]]]
 
-Lists the classes from which [arg obj] inherits structural (e.g.,
-properties) and behavioral features (e.g., methods) and methods, in
+Lists the classes from which [arg obj] inherits structural (e.g.
+properties) and behavioral features (e.g. methods) and methods, in
 order of the [term linearisation] scheme in [term NX]. By setting the
 [term switch] [option -intrinsic], only classes which participate in
 superclass/subclass relationships (i.e., intrinsic classes) are
@@ -577,7 +579,7 @@ Valid values for [arg option] are:
 [list_begin itemized]
 [item] [const name] returns the variable name.
 [item] [const parameter] returns a canonical parameter specification
-eligible to (re-)define the given variable (e.g., using [method "[vset SCOPE] variable"]) in a new context.
+eligible to (re-)define the given variable (e.g. using [method "[vset SCOPE] variable"]) in a new context.
 [item] [const definition] returns a canonical representation of the definition command used to create the variable in its current configuration.
 [list_end]
 
@@ -661,7 +663,7 @@ Computes and returns the configuration options available for [arg obj], to be co
 
 [list_begin definitions]
 
-[call [arg obj] [const object] [method property] [opt "[option -accessor] public | protected | private"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt [option -nocomplain]] [arg spec] [opt [arg initBlock]]]
+[call [arg obj] [method "object property"] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt [option -nocomplain]] [arg spec] [opt [arg initBlock]]]
 
 [include property.man.inc]
 
@@ -693,7 +695,7 @@ If the [term switch] [option -nocomplain] is on, this check is omitted (continui
 
 [list_begin definitions]
 
-[call [arg obj] [method require] [method namespace]]
+[call [arg obj] [method "require namespace"]]
 
 Create a Tcl namespace named after the object [arg obj]. All object
 variables become available as namespace variables.
@@ -706,7 +708,7 @@ variables become available as namespace variables.
 
 [list_begin definitions]
 
-[call [arg obj] [cmd unknown] [arg unknownMethodName] [opt "[arg arg] ..."]]
+[call [arg obj] [method unknown] [arg unknownMethodName] [opt "[arg arg] ..."]]
 
 This method is called implicitly whenever an unknown method is invoked.
 
@@ -722,7 +724,7 @@ of [arg arg] of the indirected method invocation.
 
 [comment {::nx::Object variable ?-accessor /value/? ?-incremental? ?-class /value/? ?-configurable /boolean/? ?-initblock /value/? ?-nocomplain? /spec/ ?/defaultValue/?}]
 
-[call [arg obj] [const object] [method variable] [opt "[option -accessor] public | protected | private"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [opt [option -nocomplain]] [arg spec] [opt [arg defaultValue]]]
+[call [arg obj] [method "object variable"] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [opt [option -nocomplain]] [arg spec] [opt [arg defaultValue]]]
 
 [include variable.man.inc]
 
@@ -788,12 +790,12 @@ There are three main use cases for self-references:
 [enum] As a [emph placeholder] for the currently active object, [cmd nx::current]
        can be used to retrieve the object name.
 [enum] Reading and writing [emph "object variables"] directly (i.e. without getter/setter methods in place) require the use
-of variable names carrying the prefix ":" ("colon-prefix
+of variable names carrying the prefix [const :] ("colon-prefix
 notation"). Internally, colon-prefixed variable names are processed
 using Tcl's variable resolvers. Alternatively, one can provide for getter/setter methods for object variables (see [method property] and [method variable]).
 
 [enum] [emph {Self-referential method calls}] can be defined via
-prefixing (":") the method names or, alternatively, via [cmd nx::current]. Internally,
+prefixing ([const :]) the method names or, alternatively, via [cmd nx::current]. Internally,
 colon-prefixed method names are processed using Tcl's command
 resolvers. The colon-prefix notation is recommended, also because it
 has a (slight) performance advantage over [cmd nx::current] which

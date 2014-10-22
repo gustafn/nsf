@@ -1,10 +1,13 @@
 [comment {-*- tcl -*- nx::Class manpage}]
-[manpage_begin nx::Class n 2.0b6]
+[manpage_begin nx::Class 3 2.0b6]
 
-[comment {For the time being, we do not render keywords and the corresponding reverse index}]
+[comment {For the time being, we do not render keywords & terms; and
+the corresponding reverse index}] 
 [proc keywords args {}]
+[proc term v {return $v}]
 
-[keywords base-metaclass]
+
+[keywords "base metaclass"]
 [keywords NX]
 [keywords "mixin class"]
 [keywords "re-classification"]
@@ -18,13 +21,13 @@
 [vset CMD "cls"]
 [vset MODIFIER ""]
 
-[copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
+[copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>; available under the Creative Commons Attribution 3.0 Austria license (CC BY 3.0 AT).}]
 [titledesc {API reference of the base-metaclass of the NX objectsystem}]
 
 [description]
 [para]
 
-[cmd nx::Class] is the [term base-metaclass] of the [term NX] object
+[cmd nx::Class] is the [term "base metaclass"] of the [term NX] object
 system. All classes (e.g. [emph cls]) are (direct or indirect)
 instances of [cmd nx::Class]. Therefore, the methods provided by [cmd nx::Class] are
 available to all classes. A class [emph cls] which does
@@ -207,8 +210,8 @@ classes.
 
 [cmd_def info]
 
-A collection of introspection submethods on the structural features (e.g.,
-configuration options, superclasses) and the behavioral features (e.g.,
+A collection of introspection submethods on the structural features (e.g.
+configuration options, superclasses) and the behavioral features (e.g.
 methods, [term "filter"]s) provided by [arg cls] to its instances.
 
 [list_begin definitions]
@@ -298,7 +301,7 @@ returns the name of the newly created instance. For example:
 }]
 
 The factory method will provide computed object names of the form,
-e.g., ::nsf::__#0. The uniqueness of generated object names is
+e.g. [const ::nsf::__#0]. The uniqueness of generated object names is
 guaranteed for the scope of the current Tcl interpreter only.
 
 [para]
@@ -321,7 +324,7 @@ fly.
 
 [list_begin definitions]
 
-[call [arg cls] [method property] [opt "[option -accessor] public | protected | private"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [arg spec] [opt [arg initBlock]]]
+[call [arg cls] [method property] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt "[option -configurable] [arg trueFalse]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [arg spec] [opt [arg initBlock]]]
 
 [include property.man.inc]
 
@@ -341,7 +344,7 @@ fly.
 
 [comment {::nx::Object variable ?-accessor /value/? ?-incremental? ?-class /value/? ?-configurable /boolean/? ?-initblock /value/? ?-nocomplain? /spec/ ?/defaultValue/?}]
 
-[call [arg cls] [method variable] [opt "[option -accessor] public | protected | private"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [arg spec] [opt [arg defaultValue]]]
+[call [arg cls] [method variable] [opt "[option -accessor] [const public] | [const protected] | [const private]"] [opt [option -incremental]] [opt "[option -class] [arg className]"] [opt "[option -configurable] [arg trueFalse]"] [opt "[option -initblock] [arg script]"] [arg spec] [opt [arg defaultValue]]]
 
 [include variable.man.inc]
 
@@ -387,13 +390,13 @@ defined by [cmd nx::Class].
 [enum] The newly allocated or recreated object [arg instance] is then
 configured by dispatching [method configure], provided by [cmd nx::Object], which
 consumes the configuration options passed into [method create]. This
-will establish the instance's initial state, e.g., by setting object
+will establish the instance's initial state, e.g. by setting object
 variables and object relations according to the configuration options
 and corresponding default values.
   
 [enum] Finally, the initialization method [method init] is dispatched, if
 available for [arg instance]. [method "init"] can be defined by [arg cls] on
-behalf of its instance [arg instance], e.g., to lay out a
+behalf of its instance [arg instance], e.g. to lay out a
 class-specific initialisation behaviour.
 
 [example_begin]
@@ -438,7 +441,7 @@ interpreter as a new command.
 
 Recreation is the NX scheme for resolving naming conflicts between
 objects: An object is requested to be created using [method create] or
-[method new] while an object of an identical object name, e.g., [arg instance], already
+[method new] while an object of an identical object name, e.g. [arg instance], already
 exists:
 
 [example {
@@ -468,7 +471,7 @@ Alternatively, recreation will be performed as a sequence of [method destroy] an
   ::Bar
   % Class create Bar; # calls Bar->destroy() & Class::create(::Bar, ...)
 }]
-[item] An object of an object system other than NX (e.g., XOTcl2) is asked to be recreated.
+[item] An object of an object system other than NX (e.g. XOTcl2) is asked to be recreated.
 [list_end]
 
 
@@ -481,7 +484,7 @@ unregistering the corresponding Tcl command with the Tcl interpreter.
 
 Beware that [method __dealloc] does not necessarily
 cause the object to be deleted immediately. Depending on the lifecycle
-of the object's environment (e.g., the Tcl interp interpreter, the containing
+of the object's environment (e.g. the Tcl interp interpreter, the containing
 namespace) and on call references down the callstack, the actual
 memory freeing/returning operation may occur at a later point.
 

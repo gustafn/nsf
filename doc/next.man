@@ -1,5 +1,5 @@
 [comment {-*- tcl -*- nx::next manpage}]
-[manpage_begin nx::next n 2.0b6]
+[manpage_begin nx::next 3 2.0b6]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
 [titledesc {Skip to the next most specific method implementation}]
@@ -14,7 +14,7 @@ This command is invoked inside a method body to call the next most
 specific method implementation in the list of available methods. This
 list of available methods is specific to the current method-call
 context. This context is set by the usage context of [cmd nx::next]
-(method combination vs. method interception; see below). The optional
+(method combination vs. method-call interception; see below). The optional
 [arg "arguments"] are the argument values to be passed into the next
 most specific method implementation. If omitted, the arguments of the
 current method call are automatically forwarded. To call the next most
@@ -26,9 +26,9 @@ the next most specific method implementation.
 
 If there are no more further applicable methods, the result of [cmd nx::next] will
 depend on its usage context: method combination or
-method interception. If [cmd nx::next] is used in a method body for
+method-call interception. If [cmd nx::next] is used in a method body for
 method combination, the result will be an empty string. If [cmd nx::next] is
-used in the body of a filter method for method interception, the
+used in the body of a filter method for method-call interception, the
 result will be an error.
 
 [para] 
@@ -36,7 +36,7 @@ result will be an error.
 When executing a method call, the NX dispatch mechanism computes a
 list of applicable method implementations for the method name
 requested from a given object receiving the call; in support of method
-combination and method interception.
+combination and method-call interception.
 
 [para]
 
@@ -44,7 +44,7 @@ For [emph "method combination"], the computed list contains any object-local
 method implementation and any method implementations inherited by the
 object from the classes in its precedence list. Examples are
 overloading method implementations in the class hierarchy of the
-object, as well as from mixin classes of the object. For [emph "method interception"],
+object, as well as from mixin classes of the object. For [emph "method-call interception"],
 the computed list contains the applicable filter methods, again
 ordered by their definition order according to the precedence list of the called
 object.

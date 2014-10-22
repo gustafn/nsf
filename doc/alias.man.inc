@@ -4,7 +4,7 @@
 [keywords "value checker"]
 [keywords "method handle"]
 
-[call [arg [vset CMD]] [opt "public | private | protected"] [const [vset MODIFIER]] [cmd alias] [arg methodName] [opt "[option -returns] [arg valueChecker]"] [opt "[option -frame] object | method"] [arg cmdName]]
+[call [arg [vset CMD]] [opt "[method public] | [method private] | [method protected]"] [method "[vset MODIFIER] alias"] [arg methodName] [opt "[option -returns] [arg valueChecker]"] [opt "[option -frame] [const object] | [const method]"] [arg cmdName]]
 
 Define an [term "alias method"] for the given [vset SCOPE]. The
 resulting method registers a pre-existing Tcl command [arg cmdName]

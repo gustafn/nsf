@@ -83,7 +83,7 @@ to those whose names match [arg namePattern] (see [cmd "string match"]).
 
 [para]
 
-By setting [option -callprotection], only methods of a certain [term "call protection"] [arg level] ([term "public"], [term "protected"], or [term "private"]) will be returned. Methods of a specific type can be requested using [option "-type"]. The recognized values for [arg methodType] are:
+By setting [option -callprotection], only methods of a certain [term "call protection"] [arg level] ([const "public"], [const "protected"], or [const "private"]) will be returned. Methods of a specific type can be requested using [option "-type"]. The recognized values for [arg methodType] are:
 [list_begin itemized]
 [item] [const scripted] denotes methods defined using [const [vset SCOPE]] [method method];
 [item] [const alias] denotes [term "alias method"]s defined using [const [vset SCOPE]] [method alias];

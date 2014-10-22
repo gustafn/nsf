@@ -8,7 +8,7 @@
 }]
 
 Defines a [term variable] for the scope of the [vset SCOPE]. The [arg spec] provides
-the [term variable] specification: [arg variableName][opt ":[emph typeSpec]"]. The
+the [term variable] specification: [arg variableName][opt "[const :][arg typeSpec]"]. The
 [arg variableName] will be used to name the underlying Tcl variable
 and the getter/setter methods, if requested (see [option "-accessor"]).
 [arg spec] is optionally equipped with a [arg typeSpec] following a colon
@@ -31,8 +31,8 @@ Removes [arg variableName], if existing, underlying the property.
 [list_end]
 
 The option value passed along [option "-accessor"] sets the level of
-[term "call protection"] for the getter and setter methods: [term public], 
-[term protected], or [term private]. By default, no getter and setter
+[term "call protection"] for the getter and setter methods: [const public], 
+[const protected], or [const private]. By default, no getter and setter
 methods are created.
 
 [para]
@@ -40,7 +40,7 @@ methods are created.
 Turning on the [term switch] [option -incremental] provides a refined
 setter interface to the value managed by the [term variable]. First,
 setting [option -incremental] implies requesting [option -accessor]
-([emph public] by default, if not specified
+([const public] by default, if not specified
 explicitly). Second, the managed value will be considered a valid Tcl
 list. A [term multiplicity] of [const 1..*] is set by default, if not
 specified explicitly as part of [arg spec] (see above). Third, to
@@ -75,7 +75,7 @@ A [term variable] becomes implemented by a [term "slot object"] under any of the
 [item] [option -configurable] equals [const true].
 [item] [option -accessor] is one of [const public], [const protected], or [const private].
 [item] [option -incremental] is turned on.
-[item] [option -initblock] is not assigned an empty string.
+[item] [option -initblock] is a non-empty string.
 [list_end]
 
 Provided a [term "slot object"] managing the [term variable] is to be
