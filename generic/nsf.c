@@ -14610,13 +14610,24 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
 	    ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)), pPtr,
 	    pPtr->flags & NSF_ARG_IS_CONVERTER);*/
     if (pPtr->flags & NSF_ARG_IS_CONVERTER) {
+      Tcl_Obj *resultObj;
       /*
        * If we want to convert, the resulting obj is the result of the
        * converter. incr refCount is necessary e.g. for e.g.
+       *
        *     return [expr {$value + 1}]
+       *
+       * The conversion is just needed, when resultObj differs from the actual
+       * value in the output vector. Otherwise the conversion and the value
+       * increment happened already before (and is already recorded in the
+       * parse context).
        */
-      *outObjPtr = Tcl_GetObjResult(interp);
-      INCR_REF_COUNT2("valueObj", *outObjPtr);
+      resultObj = Tcl_GetObjResult(interp);
+
+      if (*outObjPtr != resultObj) {
+        INCR_REF_COUNT2("valueObj", resultObj);
+        *outObjPtr = resultObj;
+      }
       /*fprintf(stderr, "**** NSF_ARG_IS_CONVERTER %p\n", *outObjPtr);*/
     }
     *clientData = (ClientData) *outObjPtr;
