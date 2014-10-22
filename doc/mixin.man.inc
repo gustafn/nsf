@@ -25,7 +25,7 @@ be limited to those whose names match [arg pattern] (see [cmd "string match"]).
 Removes all [term "mixin class"]es from [arg [vset CMD]] and returns the list of removed [term "mixin class"]es. Clearing is equivalent to passing an empty list for [arg mixinSpecList] to 
 [const [vset MODIFIER]] [method {mixins set}].
 
-[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixins delete}] [option -nocomplain] [arg specPattern]"]
+[def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixins delete}] [opt [option -nocomplain]] [arg specPattern]"]
 Removes a [term "mixin class"] from a current list of [term "mixin class"]es of [arg [vset CMD]] whose spec matches [arg specPattern]. [arg specPattern] can contain special matching chars (see [cmd "string match"]). [const [vset SCOPE]] [method "mixins delete"] will throw an error if there is no matching [term "mixin class"], unless [option -nocomplain] is set.
 
 [def "[arg [vset CMD]] [const [vset MODIFIER]] [method {mixins get}]"]

@@ -112,8 +112,8 @@ is extended by the list of [term "mixin class"]es provided by [arg mixinSpecs].
 [list_end]
 
 The configuration options provided by [cmd nx::Object] are equally
-available because an application class [arg className] are indirect
-instances of [cmd nx::Object].
+available because an application class [arg cls] is an indirect
+instance of [cmd nx::Object].
 
 [section {Methods for Instances of nx::Class}]
 
@@ -174,7 +174,7 @@ instance of [arg cls] using [method new].
 By calling [method create] on [cmd nx::Class] itself, the created
 instance will become a new application class [arg instanceName] on
 which [method create] can also be applied (i.e., it can be
-instantiated). If the so-created class has [cmd ::nx::Class] has its
+instantiated). If the so-created class has [cmd ::nx::Class] its
 direct or indirect superclass, [arg instanceName] is referred to as a
 [term "metaclass"]; that is, a class whose instances are again
 classes.
@@ -224,23 +224,20 @@ match [arg pattern] will be listed (see [cmd "string match"]).
 [call [arg cls] [method "info instances"] [opt [option -closure]] [opt [arg pattern]]]
 
 If [arg pattern] is not specified, returns a list of the object names
-of all the direct and/or indirect instances of [arg cls]. A direct
-instance is created by using [method create] or [method new] on [arg cls], an
-indirect instance was created from a direct or indirect subclass of
-[arg cls]. If the [term "switch"] [option -closure] is
-set, indirect instances are also
-returned; otherwise, only direct instances will be returned. If [arg pattern] is
-specified, only instances whose names match [arg pattern] will
-be listed (see [cmd "string match"]).
+of all the direct instances of [arg cls]. If the [term "switch"]
+[option -closure] is set, indirect instances are also returned. A
+direct instance is created by using [method create] or [method new] on
+[arg cls], an indirect instance was created from a direct or indirect
+subclass of [arg cls]. If [arg pattern] is specified, only instances
+whose names match [arg pattern] will be listed (see [cmd "string match"]).
 
 [call [arg cls] [method "info mixinof"] [opt [option -closure]] [opt "[option -scope] [arg option]"] [opt [arg pattern]]]
 
 If [arg pattern] is not specified, returns a list of the object names
 of all the objects for which [arg cls] is active as a
-direct and/or indirect [term "mixin class"]. If the [term "switch"]
+direct [term "mixin class"]. If the [term "switch"]
 [option -closure] is set, objects which have [arg cls] as an indirect
-[term "mixin class"] are also returned; otherwise,
-only those having [arg cls] as a direct [term "mixin class"]. If [arg pattern] is
+[term "mixin class"] are also returned. If [arg pattern] is
 specified, only objects whose names match [arg pattern] will
 be listed (see [cmd "string match"]). Valid values of [arg option] are
 [const all], [const object], and [const class]. Passing [const object]
@@ -253,14 +250,14 @@ default) will have contained both in the returned list.
 [call [arg cls] [method "info subclasses"] [opt [option -closure]] [opt [option -dependent]] [opt [arg pattern]]]
 
 If [arg pattern] is not specified, returns a list of the object names
-of all the direct and/or indirect subclasses of [arg cls]. If the [term "switch"] [option -closure] is
-set, indirect subclasses are also returned; otherwise, only direct subclasses will be returned. If the [term "switch"] [option -dependent] is on, indirect subclasses introduced by [term "mixin class"] relations of subclasses of [arg cls] are also reported. [option -closure] and [option -dependent] are mutually exclusive. If [arg pattern] is specified, only subclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
+of the direct subclasses of [arg cls]. If the [term "switch"] [option -closure] is
+set, indirect subclasses are also returned. If the [term "switch"] [option -dependent] is on, indirect subclasses introduced by [term "mixin class"] relations of subclasses of [arg cls] are also reported. [option -closure] and [option -dependent] are mutually exclusive. If [arg pattern] is specified, only subclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
 
 [call [arg cls] [method "info superclasses"] [opt [option -closure]] [opt [arg pattern]]]
 
 If [arg pattern] is not specified, returns a list of the object names
-of all the direct and/or indirect superclasses of [arg cls]. If the [term "switch"] [option -closure] is
-set, indirect superclasses are also returned; otherwise, only direct superclasses will be returned. If [arg pattern] is specified, only superclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
+of all direct superclasses of [arg cls]. If the [term "switch"] [option -closure] is
+set, indirect superclasses will also be returned. If [arg pattern] is specified, only superclasses whose names match [arg pattern] will be listed (see [cmd "string match"]).
 
 [include info.man.inc]
 
@@ -295,7 +292,7 @@ returns the name of the newly created instance. For example:
 % nx::Class create AClass; # defines a class 'AClass' being an instance of 'nx::Class'
 ::AClass
 % set inst [::AClass new]; # defines an autonamed object being an instance of 'AClass'
-::anInstance
+::nsf::__#0
 % $inst info class
 ::AClass
 }]
@@ -423,8 +420,8 @@ with an empty argument list.
 
 [list_end]
 
-Object destruction, as triggered by, e.g., an application-level
-[method destroy] call (5) is finalized by [method {__dealloc}] offerd by
+Object destruction, such as triggered by an application-level
+[method destroy] call (5), is finalized by [method {__dealloc}] offerd by
 [cmd nx::Class]. 
 
 [para]

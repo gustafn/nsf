@@ -57,7 +57,7 @@ element, [const %1] is substituted when there is no first method
 argument which can be consumed by [const %1]. The second element is
 inserted upon availability of a first method argument with the
 consumed argument being appended right after the second list
-element. This placeholder is typically used to defined a pair of
+element. This placeholder is typically used to define a pair of
 getter/setter methods.
 
 [item] {[const %@][arg index] [arg value]} becomes substituted for the

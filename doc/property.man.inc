@@ -50,7 +50,7 @@ setting [option -incremental] implies requesting [option -accessor]
 (set to [emph public] by default, if not specified
 explicitly). Second, the managed value will be considered a valid Tcl
 list. A [term multiplicity] of [const 1..*] is set by default, if not
-specified explicitly as part of [arg spec] (see above). Third, to
+specified explicitly as part of [arg spec]. Third, to
 manage this list value element-wise ([emph incrementally]), two
 additional setter methods become available:
 
@@ -81,7 +81,7 @@ A [term property] becomes implemented by a [term "slot object"] under any of the
 [item] [option -configurable] equals [const true] (by default).
 [item] [option -accessor] is one of [const public], [const protected], or [const private].
 [item] [option -incremental] is turned on.
-[item] [arg initBlock] is not an empty string.
+[item] [arg initBlock] is a non-empty string.
 [list_end]
 Assuming default settings, every [term property] is realized by a
 [term "slot object"].

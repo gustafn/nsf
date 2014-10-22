@@ -15,7 +15,7 @@ the method [arg parameters] and a method [arg body].
 [para]
 
 [arg parameters] accepts a Tcl [cmd list] containing an arbitrary
-number non-positional and positional parameter definitions. Each parameter
+number of non-positional and positional parameter definitions. Each parameter
 definition comprises a parameter name, a parameter-specific [term "value checker"], and
 parameter options.
 

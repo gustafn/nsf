@@ -18,7 +18,7 @@ processing.
 [call [arg [vset CMD]] [method "info [vset MODIFIER] filters"] [opt [option -guards]] [opt [arg pattern]]]
 
 If [arg pattern] is omitted, returns all filter names which are
-defined by [vset CMD]. By turning on the [term switch] [option -guards], the
+defined by [arg [vset CMD]]. By turning on the [term switch] [option -guards], the
 corresponding guard expressions, if any, are also
 reported along with each filter as a three-element list: [arg filterName] -guard
 [arg guardExpr]. By specifying [arg pattern], the
@@ -76,11 +76,10 @@ messages (e.g., errors or warnings, documentation strings).
 
 [call [arg [vset CMD]] [method "info [vset MODIFIER] methods"] [opt "[option -callprotection] [arg level]"] [opt "[option -type] [arg methodType]"] [opt [option -path]] [opt [arg namePattern]]]
 
-Returns the names of all methods defined by [arg [vset CMD]]. Methods covered
-include those defined using ,
-[const [vset SCOPE]] [method alias], and [const [vset SCOPE]] [method forward]. The
-returned methods can be limited to those whose names match [arg namePattern] (see
-[cmd "string match"]).
+Returns the names of all methods defined by [arg [vset CMD]]. Methods
+covered include those defined using [method "[vset MODIFIER] alias"]
+and [method "[vset MODIFIER] forward"]. The returned methods can be limited
+to those whose names match [arg namePattern] (see [cmd "string match"]).
 
 [para]
 
@@ -113,7 +112,7 @@ match [arg patterns] (see [cmd "string match"]).
 
 If [arg pattern] is not specified, returns the object names of all [term "slot object"]s defined by [arg [vset CMD]]. The returned [term "slot object"]s can be limited according to any or a
 combination of the following criteria: First, [term "slot object"]s
-can be filtered based on their command names matching [arg namePattern] (see [cmd "string
+can be filtered based on their command names matching [arg pattern] (see [cmd "string
 match"]). Second, [option "-type"] allows to select
 [term "slot object"]s which are instantiated from a subclass [arg className] of [cmd nx::Slot] (default: [cmd nx::Slot]).
 
@@ -126,7 +125,7 @@ returned.
 
 [para]
 
-This is equivalent to calling: [arg [vset CMD]] [method "info [vset MODIFIER] slots"] -type ::nx::VariableSlot [opt [arg namePattern]].
+This is equivalent to calling: [arg [vset CMD]] [method "info [vset MODIFIER] slots"] [option -type] [cmd ::nx::VariableSlot] [arg pattern].
 
 [para]
 
