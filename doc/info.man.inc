@@ -113,7 +113,7 @@ match [arg patterns] (see [cmd "string match"]).
 If [arg pattern] is not specified, returns the object names of all [term "slot object"]s defined by [arg [vset CMD]]. The returned [term "slot object"]s can be limited according to any or a
 combination of the following criteria: First, [term "slot object"]s
 can be filtered based on their command names matching [arg pattern] (see [cmd "string
-match"]). Second, [option "-type"] allows to select
+match"]). Second, [option "-type"] allows one to select
 [term "slot object"]s which are instantiated from a subclass [arg className] of [cmd nx::Slot] (default: [cmd nx::Slot]).
 
 [call [arg [vset CMD]] [method "info [vset MODIFIER] variables"] [opt [arg pattern]]]
