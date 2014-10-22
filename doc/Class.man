@@ -1,6 +1,9 @@
 [comment {-*- tcl -*- nx::Class manpage}]
 [manpage_begin nx::Class n 2.0b6]
 
+[comment {For the time being, we do not render keywords and the corresponding reverse index}]
+[proc keywords args {}]
+
 [keywords base-metaclass]
 [keywords NX]
 [keywords "mixin class"]
@@ -53,7 +56,7 @@ time.
     |   |subclass.....(xor)......subclass|
     |   |of       +-----------+        of|
     |   |.........|           |..........|
-    | (metaclass) |    cls    | (application class)
+    | (metaclass) |   /cls/   | (application class)
     |.............|           |
     instance of   +-----------+
 }]

@@ -109,7 +109,7 @@ reported along with each mixin as a three-element list: [arg className]
 match [arg patterns] (see [cmd "string match"]).
 
 
-[call [arg [vset CMD]] [method "info [vset MODIFIER] slots"] [opt "[option -type] [arg className]"] [arg pattern]]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] slots"] [opt "[option -type] [arg className]"] [opt [arg pattern]]]
 
 If [arg pattern] is not specified, returns the object names of all [term "slot object"]s defined by [arg [vset CMD]]. The returned [term "slot object"]s can be limited according to any or a
 combination of the following criteria: First, [term "slot object"]s
@@ -117,7 +117,7 @@ can be filtered based on their command names matching [arg namePattern] (see [cm
 match"]). Second, [option "-type"] allows to select
 [term "slot object"]s which are instantiated from a subclass [arg className] of [cmd nx::Slot] (default: [cmd nx::Slot]).
 
-[call [arg [vset CMD]] [method "info [vset MODIFIER] variables"] [arg pattern]]
+[call [arg [vset CMD]] [method "info [vset MODIFIER] variables"] [opt [arg pattern]]]
 
 If [arg pattern] is omitted, returns the object names of all [term "slot object"]s provided
 by [arg [vset CMD]] which are responsible for managing properties and variables of [arg [vset CMD]]. Otherwise,

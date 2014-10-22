@@ -57,7 +57,7 @@ instance |.............(xor)..............|
 
 [term NX] allows for creating and for using objects (e.g. [emph obj]) which are
 instantiated from the [term "base class"] [cmd nx::Object]
-directly. Typical use cases are singeltons and anonymous, inline
+directly. Typical use cases are singletons and anonymous, inline
 objects. In such use cases, [term NX] does not require creating an
 intermediate application class (e.g. [emph cls]), which specializes the [term "base class"]
 [cmd nx::Object] by default, beforehand.
@@ -80,7 +80,7 @@ Direct instances of nx::Object can be created as follows:
 To create a direct instance of [cmd nx::Object] having an explicit name
 [arg obj], use [method create] on [cmd nx::Object]. Note that
 [method create] is defined by [cmd nx::Class] and is available to [cmd nx::Object] being
-an instance of [cmd nx::Class]. This way, singelton objects can be
+an instance of [cmd nx::Class]. This way, singleton objects can be
 created, for example.
 
 [call [cmd nx::Object] [method new] [opt "[option -object-mixins] [arg mixinSpec]"] [opt "[option -class] [arg newClassName]"] [opt "[option -object-filters] [arg filterSpec]"] [opt [arg initBlock]]]
@@ -99,25 +99,26 @@ documented in the subsequent section.
 
 [section {Configuration Options for Instances of nx::Object}]
 
-[para] Configuration options can be used for configuring objects during
-their creation by passing the options as non-positional arguments into calls
-of [method new] and [method create] (see [cmd nx::Class]). An
+[para] Configuration options can be used for configuring objects
+during their creation by passing the options as non-positional
+arguments into calls of [method new] and [method create] (see [cmd nx::Class]). An
 existing object can be queried for its current configuration using
-[method cget] and it can be re-configured using [method configure].
+[method cget] and it can be re-configured using [method configure]. Legal
+configuration options are:
 
 [list_begin options]
 
-[opt_def -class [arg className]]
+[opt_def -class [opt [arg className]]]
 
 Retrieves the current class of the object or sets the object's class to [arg className], if provided.
 
-[opt_def -object-filters [arg filterMethods]]
+[opt_def -object-filters [opt [arg filterMethods]]]
 
 Retrieves the list of currently active per-object filter methods or sets
 a list of per-object filter methods, if [arg filterMethods] is
 provided.
 
-[opt_def -object-mixins [arg mixinSpecs]]
+[opt_def -object-mixins [opt [arg mixinSpecs]]]
 
 If [arg mixinSpecs] is not specified, retrieves the list of currently
 active per-object mixin specifications. If [arg mixinSpecs] is
@@ -199,7 +200,7 @@ set using [method configure] can be retrieved using [method cget].
 
 [call [arg obj] [cmd contains] [opt "-withnew [arg trueFalse]"] [opt "-object [arg objectName]"] [opt "-class [arg className]"] [arg cmds]]
 
-This methods acts as a builder for nested object structures. Object
+This method acts as a builder for nested object structures. Object
 and class construction statements passed to this method as its last
 argument [arg cmds] are evaluated in a way so that the receiver object
 [arg obj] becomes the parent of the newly constructed objects and
@@ -310,7 +311,7 @@ potentially prior to [arg obj] being destroyed by the object system
 
 By providing a custom implementation of [method destroy], the
 destruction procedure of [arg obj] can be customized. Typically, once
-the application-specific destruction logic as has completed, a custom
+the application-specific destruction logic has completed, a custom
 [method destroy] will trigger the actual, physical object destruction
 via [cmd next].
 
@@ -483,7 +484,7 @@ Returns the [term "method handle"] for the [term "filter"] method [arg name], if
 currently registered. If there is no filter [arg name] registered, an
 empty string is returned.
 
-[def "[arg obj] [method "info lookup filters"] [option -guards] [opt [arg namePattern]]"]
+[def "[arg obj] [method "info lookup filters"] [opt [option -guards]] [opt [arg namePattern]]"]
 
 Returns the [term "method handle"]s of all filters which are active on [arg obj]. By
 turning on the [term switch] [option -guards], the corresponding guard
@@ -502,7 +503,7 @@ Returns the names of all methods (including aliases and forwarders)
 which can be invoked on [arg obj]. The returned methods can be limited
 to those whose names match [arg namePattern] (see [cmd "string match"]).
 
-[def "[arg obj] [method "info lookup mixins"] [option -guards] [opt [arg namePattern]]"]
+[def "[arg obj] [method "info lookup mixins"] [opt [option -guards]] [opt [arg namePattern]]"]
 
 Returns the object names of all [term "mixin class"]es which are
 currently active on [arg obj]. By turning on the [term switch] [option -guards], the corresponding guard expressions, if any, are also reported as a

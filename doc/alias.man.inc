@@ -21,7 +21,7 @@ the aliased command [arg cmdName].
 [para] 
 When creating an [term "alias method"] for
 a [emph C-implemented] Tcl command (i.e., command defined using the
-Tcl/NX C-API), [opt [option -frame]] sets the scope
+Tcl/NX C-API), [option -frame] sets the scope
 for variable references used in the aliased command. If the provided
 value is [const object], then variable references will be resolved in the
 context of the called object, i.e., the object upon which the [term "alias method"] is
