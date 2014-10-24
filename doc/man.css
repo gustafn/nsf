@@ -115,7 +115,7 @@ dl.definitions b.method {
     font-weight: bold;
 }
 
-dl.definitions i.arg {
+dl.definitions i.arg, dl.options i.arg {
     background: none repeat scroll 0 0 #ffffff;
     border: 1px solid #efeeed;
     padding: 0 3px;
@@ -125,7 +125,7 @@ dl.definitions i.arg {
     font-weight: normal;
 }
 
-dl.definitions b.option {
+dl.definitions b.option, dl.options b.option {
     background: none repeat scroll 0 0 #ffffff;
     border: 1px solid #efeeed;
     padding: 0 3px;
@@ -136,7 +136,7 @@ dl.definitions b.option {
     text-decoration: none;
 }
 
-p b.cmd {
+dl.definitions b.cmd, p b.cmd {
     background: none repeat scroll 0 0 #e7edd3;
     border: 1px solid #89a618;
     padding: 0 3px;
@@ -144,6 +144,17 @@ p b.cmd {
     font-size: 92.308%;
     line-height: 1.35;
     font-weight: bold;
+}
+
+dl.definitions b.const, p b.const {
+    /* background: none repeat scroll 0 0 #ffffff; */
+    /* border: 1px solid #efeeed; */
+    padding: 0 3px;
+    font-family: Menlo,Monaco,"DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+    font-size: 92.308%;
+    line-height: 1.35;
+    font-weight: normal;
+    text-decoration: none;
 }
 
 

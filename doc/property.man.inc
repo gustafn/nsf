@@ -18,12 +18,12 @@
 Defines a [term property] for the scope of the [vset SCOPE]. The [arg spec] provides
 the [term property] specification as a [cmd list] holding at least one
 element or, maximum, two elements: 
-[emph propertyName][opt ":[emph typeSpec]"] [opt [emph defaultValue]]. The [arg propertyName] is also used as to form the names of the getter/setter methods,
+[arg propertyName][opt "[const :][arg typeSpec]"] [opt [arg defaultValue]]. The [arg propertyName] is also used as to form the names of the getter/setter methods,
 if requested (see [option "-accessor"]). It
-is, optionally, equipped with a [emph typeSpec] following a colon
+is, optionally, equipped with a [arg typeSpec] following a colon
 delimiter which specifies a [term "value checker"] for the values
 which become assigned to the property. The second, optional element
-sets a [emph defaultValue] for this property.
+sets a [arg defaultValue] for this property.
 
 [para] 
 
@@ -38,8 +38,8 @@ Returns the current value of [term property] [arg propertyName].
 Removes the value store of [arg propertyName] (e.g., an object variable), if existing.
 [list_end]
 The option value passed along [option "-accessor"] sets the level of
-[term "call protection"] for the generated getter and setter methods: [term public],
-[term protected], or [term private]. By default, no getter and setter
+[term "call protection"] for the generated getter and setter methods: [const public],
+[const protected], or [const private]. By default, no getter and setter
 methods are created.
 
 [para]
@@ -47,7 +47,7 @@ methods are created.
 Turning on the [term switch] [option -incremental] provides a refined
 setter interface to the value managed by the [term property]. First,
 setting [option -incremental] implies requesting [option -accessor]
-(set to [emph public] by default, if not specified
+(set to [const public] by default, if not specified
 explicitly). Second, the managed value will be considered a valid Tcl
 list. A [term multiplicity] of [const 1..*] is set by default, if not
 specified explicitly as part of [arg spec]. Third, to

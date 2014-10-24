@@ -1,6 +1,6 @@
 [comment {-*- tcl -*- manpage fragment for method method, shared by nx::Object and nx::Class}]
 
-[call [arg [vset CMD]] [opt "public | protected | private"] [const [vset MODIFIER]] [method method] [arg name] [arg parameters] [opt [option "-checkalways"]] [opt "[option -returns] [arg valueChecker]"] [arg body]]
+[call [arg [vset CMD]] [opt "[method public] | [method protected] | [method private]"] [method "[vset MODIFIER] method"] [arg name] [arg parameters] [opt [option "-checkalways"]] [opt "[option -returns] [arg valueChecker]"] [arg body]]
 
 [keywords "value checker"]
 [keywords "colon-prefix notation"]

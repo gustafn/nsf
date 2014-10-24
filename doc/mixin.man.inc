@@ -3,7 +3,7 @@
 [keywords "mixin class"]
 [keywords linearisation]
 
-[call [arg [vset CMD]] [const [vset MODIFIER]] [method mixins] [arg submethod] [opt "[arg arg] ..."]]
+[call [arg [vset CMD]] [method "[vset MODIFIER] mixins"] [arg submethod] [opt "[arg arg] ..."]]
 
 Accesses and modifies the list of [term "mixin class"]es of 
 [arg [vset CMD]] using a specific setter or getter [arg submethod]:
