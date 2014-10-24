@@ -1,7 +1,7 @@
 /*
  *  nsfEnumerationType.c --
  *
- *      Provide API for registering enumeration types 
+ *      Provide API for registering enumeration types
  *      and obtaining their domain.
  *
  *  Copyright (C) 2014 Gustaf Neumann
@@ -52,12 +52,12 @@ Nsf_EnumerationTypeInit(Tcl_Interp *interp) {
   assert(interp);
 
   NsfMutexLock(&enumerationMutex);
-  
+
   if (enumerationTypeRefCount == 0) {
     Tcl_InitHashTable(enumerationHashTablePtr, TCL_STRING_KEYS);
   }
   enumerationTypeRefCount++;
-  
+
   NsfMutexUnlock(&enumerationMutex);
 }
 
@@ -177,6 +177,7 @@ Register(Tcl_Interp *interp, CONST char* domain, Nsf_TypeConverter *converter) {
  * Local Variables:
  * mode: c
  * c-basic-offset: 2
- * fill-column: 72
+ * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

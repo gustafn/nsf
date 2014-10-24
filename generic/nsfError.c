@@ -29,8 +29,8 @@
 #include "nsfInt.h"
 
 /* function prototypes */
-Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr, 
-			    NsfObject *contextObject, CONST char *pattern) 
+Tcl_Obj *NsfParamDefsSyntax(Tcl_Interp *interp, Nsf_Param CONST *paramsPtr,
+			    NsfObject *contextObject, CONST char *pattern)
   nonnull(1) nonnull(2) returns_nonnull;
 
 /*
@@ -314,7 +314,7 @@ NsfArgumentError(Tcl_Interp *interp, CONST char *errorMsg, Nsf_Param CONST *para
  */
 int
 NsfUnexpectedArgumentError(Tcl_Interp *interp, CONST char *argumentString,
-			   Nsf_Object *object, Nsf_Param CONST *paramPtr, 
+			   Nsf_Object *object, Nsf_Param CONST *paramPtr,
 			   Tcl_Obj *methodPathObj) {
   Tcl_DString ds, *dsPtr = &ds;
 
@@ -491,5 +491,6 @@ NsfObjErrType(Tcl_Interp *interp,
  * mode: c
  * c-basic-offset: 2
  * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

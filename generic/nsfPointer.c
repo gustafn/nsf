@@ -151,7 +151,7 @@ Nsf_PointerGetHptr(void *valuePtr) {
   Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
 
-  assert(valuePtr); 
+  assert(valuePtr);
 
   for (hPtr = Tcl_FirstHashEntry(pointerHashTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -224,7 +224,7 @@ Nsf_PointerDelete(CONST char *key, void *valuePtr, int free) {
  */
 
 int Nsf_ConvertToPointer(Tcl_Interp *interp, Tcl_Obj *objPtr,  Nsf_Param CONST *pPtr,
-			 ClientData *clientData, Tcl_Obj **outObjPtr) 
+			 ClientData *clientData, Tcl_Obj **outObjPtr)
   nonnull(1) nonnull(2) nonnull(3) nonnull(4) nonnull(5);
 
 int
@@ -403,6 +403,7 @@ Nsf_PointerExit(Tcl_Interp *interp) {
  * Local Variables:
  * mode: c
  * c-basic-offset: 2
- * fill-column: 72
+ * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

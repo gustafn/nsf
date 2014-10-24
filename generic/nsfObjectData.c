@@ -1,10 +1,10 @@
-/*  
+/*
  *  nsfObjectData.c --
- *  
+ *
  *      Nsf Object Data, needs NSF_OBJECTDATA to be compiled in.  When
  *      specified, it can be use to equip every object from C with an
  *      additional payload.
- *  
+ *
  *  Copyright (C) 1999-2014 Gustaf Neumann
  *  Copyright (C) 1999-2007 Uwe Zdun
  *
@@ -35,7 +35,7 @@ NsfFreeObjectData(NsfClass* cl) {
   if (cl->opt && cl->opt->objectdata) {
     Tcl_DeleteHashTable(cl->opt->objectdata);
     ckfree((char*)cl->opt->objectdata);
-    cl->opt->objectdata = 0; 
+    cl->opt->objectdata = 0;
   }
 }
 EXTERN void
@@ -56,7 +56,7 @@ NsfSetObjectData(NsfObject* obj, NsfClass* cl, ClientData data) {
 EXTERN int
 NsfGetObjectData(NsfObject* obj, NsfClass* cl, ClientData* data) {
   Tcl_HashEntry *hPtr;
-  if (!cl->opt || !cl->opt->objectdata) 
+  if (!cl->opt || !cl->opt->objectdata)
     return 0;
   hPtr = Tcl_FindHashEntry(cl->opt->objectdata, (char*)obj);
   if (data) *data = hPtr ? Tcl_GetHashValue(hPtr) : 0;
@@ -67,7 +67,7 @@ EXTERN int
 NsfUnsetObjectData(NsfObject* obj, NsfClass* cl) {
   Tcl_HashEntry *hPtr;
 
-  if (!cl->opt || !cl->opt->objectdata) 
+  if (!cl->opt || !cl->opt->objectdata)
     return 0;
   hPtr = Tcl_FindHashEntry(cl->opt->objectdata, (char*)obj);
   if (hPtr) Tcl_DeleteHashEntry(hPtr);
@@ -80,5 +80,6 @@ NsfUnsetObjectData(NsfObject* obj, NsfClass* cl) {
  * mode: c
  * c-basic-offset: 2
  * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

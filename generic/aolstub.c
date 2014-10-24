@@ -1,10 +1,10 @@
-/* 
+/*
    This file provides the stubs needed for the AOLserver, to load nsf.
    Please note, that if you have an ancient version of the AOLserver, you
    might have to have to apply a small patch to the AOLserver as well
    (available from www.xotcl.org) in order to get it working.
 
-   Originally developed by 
+   Originally developed by
 
       Zoran Vasiljevic
       Archiware Inc.
@@ -64,21 +64,21 @@ NsNsf_Init (Tcl_Interp *interp, void *context)
 {
  static int firsttime = 1;
  int ret;
- 
+
  ret = Nsf_Init(interp);
- 
+
  if (firsttime) {
    if (ret != TCL_OK) {
      Ns_Log(Warning, "can't load module %s: %s", (char *)context,
 	    Tcl_GetStringResult(interp));
    } else {
-     Ns_Log(Notice, "%s module version %s%s", (char*)context, 
+     Ns_Log(Notice, "%s module version %s%s", (char*)context,
 	    XOTCLVERSION,XOTCLPATCHLEVEL);
      /*
-      * Import the Nsf namespace only for the shell after 
+      * Import the Nsf namespace only for the shell after
       * predefined is through
       */
-     Tcl_Import(interp, Tcl_GetGlobalNamespace(interp), 
+     Tcl_Import(interp, Tcl_GetGlobalNamespace(interp),
 		"nsf::*", 0);
    }
    firsttime = 0;
@@ -93,35 +93,35 @@ NsNsf_Init (Tcl_Interp *interp, void *context)
  * NsNsf_Init1 --
  *
  *    Loads the package in each thread-interpreter.
- *    This is needed since Nsf Class/Object commands are not copied 
+ *    This is needed since Nsf Class/Object commands are not copied
  *    from the startup thread to the connection (or any other) thread.
  *    during AOLserver initialization and/or thread creation times.
  *
  *    Why ?
- *    
+ *
  *    Simply because these two commands declare a delete callback which is
  *    unsafe to call in any other thread but in the one which created them.
  *
  *    To understand this, you may need to get yourself acquainted with the
  *    mechanics of the AOLserver, more precisely, with the way Tcl interps
  *    are initialized (dive into nsd/tclinit.c in AOLserver distro).
- *   
- *    So, we made sure (by patching the AOLserver code) that no commands with 
+ *
+ *    So, we made sure (by patching the AOLserver code) that no commands with
  *    delete callbacks declared, are ever copied from the startup thread.
  *    Additionaly, we also made sure that AOLserver properly invokes any
  *    AtCreate callbacks. So, instead of activating those callbacks *after*
  *    running the Tcl-initialization script (which is the standard behaviour)
  *    we activate them *before*. So we may get a chance to configure the
- *    interpreter correctly for any commands within the init script. 
- *    
+ *    interpreter correctly for any commands within the init script.
+ *
  *    Proper Nsf usage would be to declare all resources (classes, objects)
  *    at server initialization time and let AOLserver machinery to copy them
  *    (or re-create them, better yet) in each new thread.
  *    Resources created within a thread are automatically garbage-collected
  *    on thread-exit time, so don't create any Nsf resources there.
- *    Create them in the startup thread and they will automatically be copied 
- *    for you. 
- *    Look in <serverroot>/modules/tcl/nsf for a simple example. 
+ *    Create them in the startup thread and they will automatically be copied
+ *    for you.
+ *    Look in <serverroot>/modules/tcl/nsf for a simple example.
  *
  * Results:
  *    Standard Tcl result.
@@ -142,9 +142,9 @@ NsNsf_Init1 (Tcl_Interp *interp, void *notUsed)
 #else
   result = TCL_OK;
 #endif
-  
+
   /*
-   * Import the Nsf namespace only for the shell after 
+   * Import the Nsf namespace only for the shell after
    * predefined is through
    */
   Tcl_Import(interp, Tcl_GetGlobalNamespace(interp), "nsf::*", 1);
@@ -203,5 +203,6 @@ Ns_ModuleInit(char *hServer, char *hModule) {
  * mode: c
  * c-basic-offset: 2
  * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

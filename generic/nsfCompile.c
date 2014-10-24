@@ -33,8 +33,8 @@
 #ifdef NSF_BYTECODE
 #include <tclCompile.h>
 
-static CompileProc 
-  initProcNsCompile, nextCompile, 
+static CompileProc
+  initProcNsCompile, nextCompile,
   selfCompile, selfDispatchCompile;
 
 static InstructionDesc instructionTable[] = {
@@ -79,7 +79,7 @@ initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 
   TclEmitOpcode(instructions[INST_INITPROC].bytecode, envPtr);
   envPtr->maxStackDepth = 0;
-    
+
   return TCL_OK;
 }
 
@@ -94,12 +94,12 @@ nextCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   assert(parsePtr);
   assert(envPtr);
 
-  if (parsePtr->numWords != 1) 
+  if (parsePtr->numWords != 1)
     return TCL_OUT_LINE_COMPILE;
-    
+
   TclEmitOpcode(instructions[INST_NEXT].bytecode, envPtr);
   envPtr->maxStackDepth = 0;
-    
+
   return TCL_OK;
 }
 
@@ -114,12 +114,12 @@ selfCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   assert(parsePtr);
   assert(envPtr);
 
-  if (parsePtr->numWords != 1) 
+  if (parsePtr->numWords != 1)
     return TCL_OUT_LINE_COMPILE;
-    
+
   TclEmitOpcode(instructions[INST_SELF].bytecode, envPtr);
   envPtr->maxStackDepth = 0;
-    
+
   return TCL_OK;
 }
 
@@ -142,13 +142,13 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 	  parsePtr->numWords, parsePtr->numTokens, parsePtr->tokensAvailable);
   */
 
-  if (parsePtr->numWords > 255) 
+  if (parsePtr->numWords > 255)
     return TCL_OUT_LINE_COMPILE;
 
   /*TclEmitOpcode(instructions[INST_SELF].bytecode, envPtr);*/
 
-  for (wordIdx=0, tokenPtr = parsePtr->tokenPtr + 0; 
-       wordIdx < parsePtr->numWords; 
+  for (wordIdx=0, tokenPtr = parsePtr->tokenPtr + 0;
+       wordIdx < parsePtr->numWords;
        wordIdx++, tokenPtr += (tokenPtr->numComponents + 1)) {
 
     /*
@@ -180,7 +180,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
    */
   TclEmitInstInt1(instructions[INST_SELF_DISPATCH].bytecode, wordIdx, envPtr);
   envPtr->maxStackDepth = 0;
-  
+
   return TCL_OK;
 }
 
@@ -191,13 +191,13 @@ NsfBytecodeInit(void) {
   int i;
 
   for(i=0; i<LAST_INSTRUCTION; i++) {
-    if ((instructions[i].bytecode = 
+    if ((instructions[i].bytecode =
        TclRegisterUserOpcode(&instructionTable[i],
 			     instructions[i].callProc,
 			     instructions[i].cmdPtr->objClientData))) {
       instructions[i].cmdPtr->compileProc = instructions[i].compileProc;
     }
-    
+
   }
   /*tclTraceCompile = 2;*/
 
@@ -210,5 +210,6 @@ NsfBytecodeInit(void) {
  * mode: c
  * c-basic-offset: 2
  * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

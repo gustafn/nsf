@@ -414,7 +414,7 @@ MixinregSetFromAny(
   int oc; Tcl_Obj **ov;
 
   if (Tcl_ListObjGetElements(interp, objPtr, &oc, &ov) == TCL_OK) {
-    
+
     if (oc == 1) {
       nameObj = ov[0];
 
@@ -492,7 +492,7 @@ NsfMixinregGet(Tcl_Interp *interp, Tcl_Obj *obj, NsfClass **clPtr, Tcl_Obj **gua
 
   assert(interp);
   assert(obj);
-  assert(clPtr); 
+  assert(clPtr);
   assert(guardObj);
 
   if (obj->typePtr == &NsfMixinregObjType) {
@@ -715,6 +715,7 @@ NsfFilterregGet(Tcl_Interp *UNUSED(interp), Tcl_Obj *obj, Tcl_Obj **filterObj, T
  * Local Variables:
  * mode: c
  * c-basic-offset: 2
- * fill-column: 72
+ * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

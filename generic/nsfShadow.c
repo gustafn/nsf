@@ -1,9 +1,9 @@
-/*  
+/*
  *  nsfShadow.c --
- *  
+ *
  *      API support for shadowing (overloading) and accessing C-implemented
  *      Tcl obj-commands.
- *  
+ *
  *  Copyright (C) 1999-2014 Gustaf Neumann
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -62,7 +62,7 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, NsfGlobalNames name) {
   } else {
     result = TCL_ERROR;
   }
-  
+
   return result;
 }
 
@@ -71,7 +71,7 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, NsfGlobalNames name) {
  * NsfReplaceCommandCheck --
  *
  *    Test, whether shadowing is still in effect, and refresh the
- *    replacement if necessary. 
+ *    replacement if necessary.
  *
  * Results:
  *    Tcl return code.
@@ -92,7 +92,7 @@ NsfReplaceCommandCheck(Tcl_Interp *interp, NsfGlobalNames name, Tcl_ObjCmdProc *
   assert(proc);
 
   cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
-  
+
   if (cmd != NULL && ti->proc && Tcl_Command_objProc(cmd) != proc) {
     /*
     fprintf(stderr, "we have to do something about %s %p %p\n",
@@ -134,7 +134,7 @@ NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
 
   /*fprintf(stderr,"NsfReplaceCommand %d\n", name);*/
   cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
-  
+
   if (cmd == NULL) {
     result = TCL_ERROR;
   } else {
@@ -166,7 +166,7 @@ NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
  *    call here and test, whether the body is from an nsf::proc. If
  *    so, we call tcl::info::body with the shadowed body.
  *
- *    Example: 
+ *    Example:
  *       nsf::proc foo {-a} {puts $a};  info body foo
  *
  * Results:
@@ -177,7 +177,7 @@ NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
  *
  *----------------------------------------------------------------------
  */
-EXTERN int NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) 
+EXTERN int NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
   nonnull(1) nonnull(2) nonnull(4);
 
 static int
@@ -185,7 +185,7 @@ Nsf_InfoBodyObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   Tcl_Command cmd;
 
   assert(interp);
-  assert(objv); 
+  assert(objv);
 
   if (objc != 2) {
     /* wrong # args, let Tcl generate the error */
@@ -250,7 +250,7 @@ Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 				   methodObj, objv[2], 1, 0, NSF_CSC_IMMEDIATE);
     }
 
-    parentCmd = Tcl_FindCommand(interp,  Tcl_Command_nsPtr(cmd)->fullName, 
+    parentCmd = Tcl_FindCommand(interp,  Tcl_Command_nsPtr(cmd)->fullName,
 			     (Tcl_Namespace *)NULL, 0);
     if (parentCmd) {
       NsfObjectMethodEpochIncr("::rename");
@@ -306,11 +306,11 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     }
 
     frameFlags = varFramePtr ? Tcl_CallFrame_isProcCallFrame(varFramePtr) : 0;
-    /*fprintf(stderr, " ... frame %p varFramePtr %p frameFlags %.6x\n", 
+    /*fprintf(stderr, " ... frame %p varFramePtr %p frameFlags %.6x\n",
       framePtr, varFramePtr, frameFlags);
       Tcl85showStack(interp);*/
     if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-      NsfCallStackContent *cscPtr = 
+      NsfCallStackContent *cscPtr =
         ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
       CONST char *frameType;
       Tcl_Obj *listObj, **ov;
@@ -330,11 +330,11 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object",6));
       Tcl_ListObjAppendElement(interp, listObj, cscPtr->self->cmdName);
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class",5));
-      Tcl_ListObjAppendElement(interp, listObj, cscPtr->cl 
-			       ? cscPtr->cl->object.cmdName 
+      Tcl_ListObjAppendElement(interp, listObj, cscPtr->cl
+			       ? cscPtr->cl->object.cmdName
 			       : NsfGlobalObjs[NSF_EMPTY]);
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method",6));
-      Tcl_ListObjAppendElement(interp, listObj, cscPtr->cmdPtr 
+      Tcl_ListObjAppendElement(interp, listObj, cscPtr->cmdPtr
 			       ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1)
 			       : NsfGlobalObjs[NSF_EMPTY]);
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("frametype",9));
@@ -372,10 +372,10 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  * NsfShadowTclCommands --
  *
  *    Load/refresh/unload shadowed Tcl commands. Essentially, the
- *    shadowing function serve two things: 
+ *    shadowing function serve two things:
  *    (a) lookup some Tcl ObjProcs, which are not available via global
- *        symbols and make these available via NsfCallCommand(). 
- *    (b) some Tcl commands are actually shadowed; we perform some 
+ *        symbols and make these available via NsfCallCommand().
+ *    (b) some Tcl commands are actually shadowed; we perform some
  *        pre- and/or postprocessing on these calls.
  *
  * Results:
@@ -395,14 +395,14 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
     int initialized = (RUNTIME_STATE(interp)->tclCommands != NULL);
 
     assert(initialized == 0);
-    RUNTIME_STATE(interp)->tclCommands = 
+    RUNTIME_STATE(interp)->tclCommands =
       NEW_ARRAY(NsfShadowTclCommandInfo, NSF_RENAME - NSF_EXPR + 1);
 
     /*fprintf(stderr, "+++ load tcl commands %d %d\n", load, initialized);*/
 
 #ifdef USE_TCL_STUBS
-    /* no commands are overloaded, these are only used for calling 
-       e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(), 
+    /* no commands are overloaded, these are only used for calling
+       e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(),
        which are not available in though the stub table */
     rc |= NsfReplaceCommand(interp, NSF_EXPR,       NULL, initialized);
 #endif
@@ -457,7 +457,7 @@ int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
 	    NsfGlobalStrings[name], ti, ti->proc, interp, objc);
             for(i=0;i<objc;i++){fprintf(stderr, "'%s' ", ObjStr(objv[i]));}
     fprintf(stderr, "\n");
-  } 
+  }
   */
   ov[0] = NsfGlobalObjs[name];
   if (objc > 1) {
@@ -473,5 +473,6 @@ int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
  * mode: c
  * c-basic-offset: 2
  * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

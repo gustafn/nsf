@@ -1,6 +1,6 @@
-/*  
+/*
  *  nsfDebug.c --
- *  
+ *
  *      Debugging facilities for the Next Scripting Framework.
  *
  *  Copyright (C) 1999-2014 Gustaf Neumann
@@ -54,31 +54,31 @@ NsfReportVars(Tcl_Interp *interp) {
 
   Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
   Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
-  
-  Tcl_SetVar(interp, "::nsf::config(development)", 
-	     NSF_XSTR(NsfConfigEnabled(NSF_DEVELOPMENT)),
-	     TCL_GLOBAL_ONLY);
-  
-  
-  Tcl_SetVar(interp, "::nsf::config(memcount)", 
-	     NSF_XSTR(NsfConfigEnabled(NSF_MEM_COUNT)),
-	     TCL_GLOBAL_ONLY);
 
-  Tcl_SetVar(interp, "::nsf::config(memtrace)", 
-	     NSF_XSTR(NsfConfigEnabled(NSF_MEM_TRACE)),
-	     TCL_GLOBAL_ONLY);
-  
-  Tcl_SetVar(interp, "::nsf::config(profile)", 
-	     NSF_XSTR(NsfConfigEnabled(NSF_PROFILE)),
-	     TCL_GLOBAL_ONLY);
-  
-  Tcl_SetVar(interp, "::nsf::config(dtrace)", 
-	     NSF_XSTR(NsfConfigEnabled(NSF_DTRACE)),
-	     TCL_GLOBAL_ONLY);
-  
-  Tcl_SetVar(interp, "::nsf::config(assertions)", 
-	     NSF_XSTR(NsfConfigEnabled(NSF_WITH_ASSERTIONS)),
-	     TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nsf::config(development)",
+             NSF_XSTR(NsfConfigEnabled(NSF_DEVELOPMENT)),
+             TCL_GLOBAL_ONLY);
+
+
+  Tcl_SetVar(interp, "::nsf::config(memcount)",
+             NSF_XSTR(NsfConfigEnabled(NSF_MEM_COUNT)),
+             TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(memtrace)",
+             NSF_XSTR(NsfConfigEnabled(NSF_MEM_TRACE)),
+             TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(profile)",
+             NSF_XSTR(NsfConfigEnabled(NSF_PROFILE)),
+             TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(dtrace)",
+             NSF_XSTR(NsfConfigEnabled(NSF_DTRACE)),
+             TCL_GLOBAL_ONLY);
+
+  Tcl_SetVar(interp, "::nsf::config(assertions)",
+             NSF_XSTR(NsfConfigEnabled(NSF_WITH_ASSERTIONS)),
+             TCL_GLOBAL_ONLY);
 }
 
 /*
@@ -106,7 +106,7 @@ NsfStackDump(Tcl_Interp *interp) {
   CallFrame *f = iPtr->framePtr, *v = iPtr->varFramePtr;
   Tcl_Obj *varCmdObj;
 
-  assert(interp); 
+  assert(interp);
 
   varCmdObj = Tcl_NewObj();
   fprintf (stderr, "     TCL STACK:\n");
@@ -133,7 +133,7 @@ NsfStackDump(Tcl_Interp *interp) {
   fprintf(stderr, "\tFrame=%p ", v);
   if (v) {
       fprintf(stderr, "caller %p var_table %p ", v->callerPtr, v->varTablePtr);
-      /*      if (v->varTablePtr) 
+      /*      if (v->varTablePtr)
               panic(0, "testing");*/
   }
   if (v && v->isProcCallFrame && v->procPtr && v->procPtr->cmdPtr) {
@@ -163,7 +163,7 @@ NsfStackDump(Tcl_Interp *interp) {
 
 void  NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) nonnull(1) nonnull(3);
 
-void 
+void
 NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   int j;
 
@@ -195,14 +195,14 @@ NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
  */
 static Tcl_HashTable *  NsfMemCountGetTable(int **initialized) nonnull(1);
 
-static Tcl_HashTable * 
+static Tcl_HashTable *
 NsfMemCountGetTable(int **initialized) {
   static Tcl_ThreadDataKey memCountTableKey;
   static Tcl_ThreadDataKey memCountFlagKey;
   Tcl_HashTable *tablePtr;
 
   assert(initialized);
-  
+
   tablePtr = (Tcl_HashTable *)Tcl_GetThreadData(&memCountTableKey, sizeof(Tcl_HashTable));
   *initialized = (int *)Tcl_GetThreadData(&memCountFlagKey, sizeof(int));
 
@@ -228,7 +228,7 @@ NsfMemCountGetTable(int **initialized) {
 
 void  NsfMemCountAlloc(char *id, void *p) nonnull(1);
 
-void 
+void
 NsfMemCountAlloc(char *id, void *p) {
   int new, *tableInitialized;
   NsfMemCounter *entry;
@@ -299,7 +299,7 @@ NsfMemCountFree(char *id, void *p) {
   hPtr = Tcl_FindHashEntry(tablePtr, id);
   if (!hPtr) {
     fprintf(stderr, "******** MEM COUNT ALERT: Trying to free %p <%s>, "
-	    "but was not allocated\n", p, id);
+            "but was not allocated\n", p, id);
     return;
   }
   entry = (NsfMemCounter *)Tcl_GetHashValue(hPtr);
@@ -328,7 +328,7 @@ NsfMemCountInit(void) {
 
   if (!*tableInitialized) {
     Tcl_InitHashTable(tablePtr, TCL_STRING_KEYS);
-  } 
+  }
   (*tableInitialized) ++;
 }
 
@@ -361,7 +361,7 @@ NsfMemCountRelease(void) {
   if (!*tableInitialized) {
     fprintf(stderr, "+++ release called on uninitialized/free hash table\n");
     return;
-  } 
+  }
 
   if (*tableInitialized == 1) {
     Tcl_HashSearch search;
@@ -369,18 +369,18 @@ NsfMemCountRelease(void) {
     int count = 0;
 
     fprintf(stderr, "******** NSF MEM Count *********\n*  count peak\n");
-    
+
     for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr != NULL;
-	 hPtr = Tcl_NextHashEntry(&search)) {
+         hPtr = Tcl_NextHashEntry(&search)) {
       char *id = Tcl_GetHashKey(tablePtr, hPtr);
       NsfMemCounter *entry = (NsfMemCounter*)  Tcl_GetHashValue(hPtr);
       count += entry->count;
       fprintf(stderr, "* %4d %6d %s\n", entry->count, entry->peak, id);
       ckfree ((char*) entry);
     }
-    
+
     Tcl_DeleteHashTable(tablePtr);
-    
+
     fprintf(stderr, "******** Count Overall = %d\n", count);
   }
 
@@ -393,6 +393,7 @@ NsfMemCountRelease(void) {
  * Local Variables:
  * mode: c
  * c-basic-offset: 2
+ * indent-tabs-mode: nil
  * fill-column: 78
  * End:
  */

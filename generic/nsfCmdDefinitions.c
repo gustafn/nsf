@@ -53,12 +53,12 @@ Nsf_CmdDefinitionInit(Tcl_Interp *interp) {
   assert(interp);
 
   NsfMutexLock(&cmdDefinitonMutex);
-  
+
   if (cmdDefinitonRefCount == 0) {
     Tcl_InitHashTable(cmdDefinitonHashTablePtr, TCL_ONE_WORD_KEYS);
   }
   cmdDefinitonRefCount++;
-  
+
   NsfMutexUnlock(&cmdDefinitonMutex);
 }
 
@@ -94,7 +94,7 @@ Nsf_CmdDefinitionRegister(Tcl_Interp *interp, Nsf_methodDefinition *definitionRe
  *----------------------------------------------------------------------
  * Nsf_CmdDefinitionGet --
  *
- *    Obtain the definiton for a registered proc 
+ *    Obtain the definiton for a registered proc
  *
  * Results:
  *    method definition or NULL
@@ -111,7 +111,7 @@ Nsf_CmdDefinitionGet(Tcl_ObjCmdProc *proc) {
   assert(proc);
 
   NsfMutexLock(&cmdDefinitonMutex);
-  hPtr = Tcl_FindHashEntry(cmdDefinitonHashTablePtr, (char *)proc); 
+  hPtr = Tcl_FindHashEntry(cmdDefinitonHashTablePtr, (char *)proc);
   NsfMutexUnlock(&cmdDefinitonMutex);
 
   if (hPtr != NULL) {
@@ -162,6 +162,7 @@ Register(Tcl_Interp *interp, Nsf_methodDefinition *methodDefinition) {
  * Local Variables:
  * mode: c
  * c-basic-offset: 2
- * fill-column: 72
+ * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

@@ -112,5 +112,6 @@ Nsf_InitStubs(Tcl_Interp *interp, CONST char *version, int exact) {
  * mode: c
  * c-basic-offset: 2
  * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */

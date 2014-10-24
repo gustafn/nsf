@@ -691,11 +691,10 @@ QualifyPath(
 }
 
 /*
- * Local variables:
- *   mode: c
- *   c-basic-offset: 4
- *   fill-column: 78
- *   indent-tabs-mode: t
- *   tab-width: 8
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 2
+ * fill-column: 78
+ * indent-tabs-mode: nil
  * End:
  */
