@@ -1,0 +1,353 @@
+Dear Community,
+
+Since releasing the Next Scripting Framework (NSF) 2.0b5, we have
+received more feedback from early adopters. Many thanks for the 
+helpful and the constructive comments! 
+
+Since the release of 2.0b5, there have been more than 450 commits to
+our code repository. The implementation is very stable and has been
+used for more than two years in production of our large-scale,
+multi-threaded web environment inside NaviServer. Most of the changes
+happened in NX and, therefore, on the NSF scripting level, without the
+need to modify the NSF C layer. The implementation of XOTcl 2 has
+changed very little. The Next Scripting Framework was tested with Tcl
+8.5.14 and Tcl 8.6.2 on Linux, Mac OS X, and in windows enviroments
+(MinGW, VC11).
+
+Below are the most notable differences in NX 2.0 final relative to
+2.0b5:
+
+a) Pluralism reform:
+   Use a pluralword, whenever potentially multiple elements
+   are provided or returned. This rule applies now consitently
+   on all nx methods. Here are examples from the introspection
+   interface:
+
+       /cls/ info superclasses
+       /cls/ info subclasses
+       /cls/ info mixins
+       /obj/ info object mixins
+       /cls/ info filters
+       /obj/ info object filters
+
+   use plural forms for configure options
+
+       nx:create create Foo -superclasses {C D}
+
+   but abbreviations are allowed as well
+
+       nx:create create Foo -superclass {C D}
+
+b) Dispatch by arity is gone in NX.
+
+   XOTcl and earlier versions of NX supported 
+   for relation slots a dispatch-by-arity mechanism
+
+       o mixin         # arity 1: get value
+       o mixin M1      # arity 2: set value
+       o mixin add M1  # arity 3: use arg 2 for slot methods
+
+   The problem with this approach is that it is not easy to
+   provide good error messages, and one might be surprised,
+   if e.g. "o mixin add" is used (without a class to be added).
+   In the final release, we removed the entailed complexity
+   by using alway the last form, supporting by default the
+   slot methods
+
+       add, clear, delete, get, guard, set
+
+c) Support for querying computed parameters of methods.
+   Earlier versions of of nx had several methods to 
+   query the parameters for configuring objects of
+   different classes. The configure parameters are 
+   determined by the inheritance in the class hierarchy.
+   and are relevant as well during object creation 
+   (e.g methods "create" or "new").
+
+   Now these parameter can be queried using the standard
+   parameter introspction interface for e.g. "new", "create",
+   or "configure", such as in:
+   
+     nx::Object info lookup parameters create 
+  
+   which returns the parameters which can be given
+   in a "nx::Object create ..." invocation. Furthermore,
+   these computed parameters are as well returned in error
+   messages.
+
+d) Support abbreviations of nonpositional arguments
+   (for plain methods, nsf::proc, or "... configure...").
+   To avoid surprises, especially for computed argument 
+   lists, the minimal number of provided characters is set
+   to 4.
+   
+e) MongoDB interface:
+   The interface was extended in various ways an is now
+   based on mongo-c-driver 1.0.2 and was tested with
+   MongoDB 2.6.5. The driver can be used nicely with
+   e.g. Naviserver by using the c-driver supported 
+   connection pool.
+
+f) Language reference manual
+
+nx::Object info lookup parameters create 
+       /cls/ mixins ...
+       /obj/ object mixins ...
+       /cls/ filters ...
+       /obj/ object filters ...
+
+  simplified info methods for interceptors
+       /cls/ info mixin classes         -> /cls/ info mixins
+       /cls/ info filter methods        -> /cls/ info filters
+       /obj/ info object mixin classes  -> /obj/ info object mixins
+
+  dropped
+       /cls/ info mixin guard
+       /obj/ info object mixin guard
+       /cls/ info filter guard
+       /obj/ info object filter guard
+    -> use use "-guard option insteads
+
+  added
+       /cls/ mixins classes
+       /cls/ filters methods
+       /obj/ object filters methods
+       /obj/ object mixins classes
+
+
+a) NX 2.0b3 used the following conventions to define methods for
+   instances, object-specific methods and class-object specific
+   methods:
+
+     /cls/ info lookup parameters create
+     /cls/ info lookup parameters create
+
+     /cls/ method foo {args} {...}
+     /obj/ method bar {args} {...}
+     /cls/ class method baz {args} {...}
+
+   Introspection was possible via (in the same order):
+
+     /cls/ info methods 
+     /obj/ info methods 
+     /cls/ class info methods 
+
+   The problem with this convention is that e.g. "info methods"
+   operates on different method records, depending on whether it is
+   called on a class or on an object. This breaks a basic inheritance
+   contract with the programmer: As nx::Class is a specialization of
+   the most general class nx::Object, the same introspection operation
+   (e.g., "info methods") should return e.g. object-specific methods
+   for both class objects and ordinary, non-class objects.
+
+   Therefore, we adopted the following more orthogonal
+   conventions to define methods for instances and 
+   for object-specific methods
+
+     /cls/ method foo {args} {...}
+     /obj/ object method bar {args} {...}
+
+   Introspection:
+
+     /cls/ info methods 
+     /obj/ info object methods 
+
+   Note that we can now use the same mechanism to define
+   or query object-specific methods on objects and classes.
+   The same applies for aliases, forwards, mixins, and filters.
+
+   The new convention imposes a little typing burden for the code
+   writer, but reduces the potential ambiguity for the code reader,
+   who is trying to understand what exactly "$x method FOO {args}
+   {...}" means.
+
+   For convenience, we provide two packages "nx::plain-object-method"
+   and "nx::class-method" to switch to the old conventions. A verbose
+   tracing mode can report usages to ease migration.
+
+
+b) Parametrization:
+
+   NX 2.0b3 followed the XOTcl conventions of registering by default
+   same-named getter/setter methods for configuration parameters used
+   in object creation. These getter/setter methods bloat the method
+   interface and risk shadowing inherited methods, leading to
+   unexpected behaviors for beginners.
+
+   NX 2.0b5 adopts a Tk/itcl/... idiom by offering a cget/configure
+   interface to objects as generic getters/setters. To obtain
+   parameter-specific getters/setters (i.e., the old behavior), the
+   flag "-accessor public|protected|private" can be set when defining
+   properties and variables.
+
+c) Further clean-ups of the introspection interface ("info").
+
+   In order to streamline the interface further, we followed the idea
+   to use "... info /plural word/" to obtain a set of handles, and
+   then to make a separate call to retrieve the details. Therefore, we
+   now provide ...
+
+     /cls/ info methods
+     /obj/ info object methods
+
+     /cls/ info variables
+     /obj/ info object variables
+
+     /cls/ info slots
+     /obj/ info object slots
+
+     /cls/ info method parameters /methodName/
+     /obj/ info object method parameters /methodName/
+
+     /cls/ info configure parameters
+     /obj/ info lookup configure parameters
+
+   ... to return a list of handles. The result list can be filtered in
+   each case by specifying a match pattern. Each result handle can
+   then be used in a separate call to obtain details:
+
+     /obj/ info method definition /methodHandle/
+     /obj/ info variable definition /varHandle/
+     /obj/ info parameter name /paramHandle/
+
+   These are just a few examples.
+   
+   In NX 2.0b3, we had e.g. "... info parameter definitions ..."
+   leaving a beginner in the dark about the parameters actually
+   meant. Also, the introspection interface made mixed use of plural
+   and singular wordings for different purposes (e.g., retrieving
+   collections and/or detailed information on one item).
+
+Below is a more detailed summary of the changes.
+
+The Next Scripting Framework 2.0b5 (containing NX and XOTcl 2.0b5) can
+be obtained from http://next-scripting.org/
+
+Best regards
+- Gustaf Neumann
+- Stefan Sobernig
+
+===============================================
+
+Announcing NSF 2.0b5
+*************************
+
+Major changes relative to NSF 2.0b3 are (in addition of 
+the items (a), (b), and (c) above) are:
+
+   * Additional Features:
+ 
+     - Serializer:
+       * Added flag -objmap to Serializer method deepSerialize 
+         to make serializer to provide mapping only for
+         object names. This makes the serializer  
+         usable for object/class copying (-map is too coarse)
+       * Made "ignore" method public
+       * Due to the split between serializer and object 
+         system serializer, the "ignore" settings were lost
+
+      - Allow explicit unsetting of -per-object flag in 0-argument
+	"-flag=value" notation (all built-in commands accepting this flag)
+
+     - Better compatibility with XOTcl 1.*:
+
+     - Added "/obj/ info name" (as alternative to 
+       "namespace tail [self]")
+
+     - Test-suite: added summary with statistics
+  
+     - Traits: added property/variable inheritance
+
+     - MongoDB
+	- Added "nx::mongo::db drop collection /name/"
+	- Returning status from "nx::mongo::db remove" as success (0 or 1)
+	- Adjust to object interface
+	- Reduce verbosity
+	- Add error messages for slot lookup failures
+
+	Updated MongoDB interface
+	- Upgraded to c-driver 0.7.1
+	- Zested with MongoDB 2.4.4-pre
+	- New commands:
+	  * mongo::run
+	  * mongo::cursor::find
+	  * mongo::cursor::next
+	  * mongo::cursor::close
+	- Adapted interface for c-driver 0.7.1 (e.g. new 
+          optional name for mongo::index)
+
+
+   * Improved Code Quality:
+
+     - Fixed functional bugs:
+       * Copy did not copy aliases and ensemble methods
+       * Automatic object destroy for half-baked objects
+         (when e.g. configure raises an exception)
+       * Handling of required configure parameters
+         on later calls to "configure"
+       * Fixed potential infinite loop in pattern matching for
+	 precedence lists
+       * Handling of full-qualified name patterns 
+         for private slots
+       * Invalidation of per-object parameter cache
+	  - on mixin changes and
+	  - on deletion/adding of per-object slots
+       * Handle cyclical superclass/class dependencies during object
+	 system finalize
+       * Fixed a bad interaction between Tcl's apply (pushing lambda
+	 frames) and the variable resolvers. The variable resolver was
+	 not able to resolve variables, while the command resolver was
+	 still working correctly.
+       * Don't allow "method" to overwrite child objects
+
+     - Fixed potential crashes:
+       * Avoid crash on object destroy, when the same wrapper-less 
+         aliases was registered on more than one object/class
+       * Fix crash on "nsf::my", when this is called with a single 
+         argument outside an object context (many thanks
+         to Markus Moser for reporting)
+       * Avoid crash in case NsfParameterGetCmd() is passed 
+         a plain value (without a parameter spec)
+       * Fix potential crash in method caching when commands 
+         are renamed by Tcl (many thanks to Arthur Schreiber
+         for reporting)
+
+      - More code cleanup and refactoring
+
+      - Released version runs all regression tests
+        without memory leaks with Tcl 8.5.14 and
+        Tcl 8.6.0        
+
+     - Build system:
+       * Improved compatibility for windows compilations.  NX can now
+         be compiled under windows with the native window tool chain
+         (VC11) and as well with MinGW (Many thanks to Stephan
+         Adelsberger)
+        * Update to latest TEA
+	* Follow new naming convention for auto-tools 
+          (using configure.ac)
+	* Fix compilation when DTrace is activated (missing 
+          parenthesis, many thanks to Victor Guerra for noticing)
+	* Added compile macro NSF_STACKCHECK to provide stack
+	  monitoring/debugging (especially useful for multi- 
+          threaded programs, where stack is more limited)
+	- Fix compilation when compiled without threads 
+          (many thanks for r.Zaumseil for noting this)
+
+   * Improved documentation
+     - Fixed typos, improve wordings
+     - Updated tutorial and migration guide
+     - Use slashes in generated syntax to distinguish 
+       between constants and placeholders. 
+       Example:
+         /obj/ info method definition /methodName/
+
+    * Extended regression tests
+
+MORE INFO
+  General and more detailed information about the
+  Next Scripting Framework and its components can be
+  found at http://next-scripting.org
+
+
+

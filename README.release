@@ -27,26 +27,29 @@ Steps for a beta release:
        * configure with --enable-development
          make test
        * configure with --enable-memcount=yes
-         make test 2>&1|cat |fgrep Overall  
+         make test 2>&1|cat |fgrep Overall
        * configure with --enable-development and activate valgrind in Makefile
          make test 2>&1|cat |fgrep "definitely lost"
-         (8.6b2 ok, whenevery test returns "40 bytes in 2 blocks")
-         (8.6.0 ok, whenevery test returns "0 bytes in 0 blocks")
+         (8.6b2 ok, when every test returns "40 bytes in 2 blocks")
+         (8.6.0 ok, when every test returns "0 bytes in 0 blocks")
+
+   - build windows binaries
+   - test tk apps under windows
 
    - Announcement
       * Summarize changes since the last release in doc/Announce-VERSION
         As source use e.g.
             git log --date-order --date=short|less
-	    ~/scripts/git-changelog2  -- 2.0b3..HEAD --no-merges > ChangeLog-2.0b3-2.0b5
+	    ~/scripts/git-changelog2  -- 2.0b5..HEAD --no-merges > ChangeLog-2.0b3-2.0
       * Run spell checker over announcement + ChangeLog
       * git add announcement 
 
    - build tar
        * make tar
        * check content of tar file
-         tar ztvf ../nsf2.0b3.tar.gz |sort -rn -k 5,6|less
+         tar ztvf ../nsf2.0.tar.gz |sort -rn -k 5,6|less
 
-   - tag version in git and commit  
+   - tag version in git and commit
        git tag -a 2.0b5 -m 2.0b5
        git push --tags
        git push : 2.0b5
@@ -72,4 +75,4 @@ Steps for a beta release:
        ./configure ....
 
 
-   
+

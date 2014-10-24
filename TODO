@@ -5547,19 +5547,19 @@ build system:
   stub files for tcl8.5 and tcl8.6 and copy the "right" version
   depending on the configured version.
   
+- Make dtplite configurable in Makefile, e.g. 
+     make "DTPLITE=/usr/local/ns/bin/tclsh8.5 /usr/local/ns/bin/dtplite" man
+
+- regenerate documentation
+- bump verison number to 2.0 (also in .man files)
 
 ========================================================================
 TODO:
-
-- finish plural reform
-- update migration guide and tutorial
-- maybe introdouce "allowabbrev" flag
 
 - should we change "/obj/ info lookup syntax /methodName/" to return obj and method as well?
   (similar to "info method syntax /methodName/")
 
 - we could drop methods::object::info::objectparameter
-- remove // comments
 
 - check deactivated tests in tests/serialize.test
   C(One), C(IgnoreAll), C(None2)

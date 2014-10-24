@@ -1,5 +1,5 @@
 [comment {-*- tcl -*- nx::next manpage}]
-[manpage_begin nx::next 3 2.0b6]
+[manpage_begin nx::next 3 2.0]
 
 [copyright {2014 Stefan Sobernig <stefan.sobernig@wu.ac.at>, Gustaf Neumann <gustaf.neumann@wu.ac.at>}]
 [titledesc {Skip to the next most specific method implementation}]

@@ -178,6 +178,12 @@ TCL_BIN_DIR	= @TCL_BIN_DIR@
 TCL_SRC_DIR	= @TCL_SRC_DIR@
 #
 DTRACE          = dtrace
+
+ifeq ($(DTPLITE),)
+  DTPLITE=dtplite
+else
+  # Do nothing, use the environment variable as is.
+endif
 #
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= @TCL_LIBS@
@@ -293,8 +299,7 @@ libraries-pkgindex: pkgIndex.tcl
 	$(TCLSH) $(src_lib_dir_native)/lib/mkIndex.tcl -dir $(src_lib_dir_native)
 
 
-
-full-doc: doc pdf example-doc
+full-doc: doc pdfdoc example-doc
 
 # use language reference as sample file to trigger generation of documentation files
 #doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
@@ -303,9 +308,10 @@ full-doc: doc pdf example-doc
 doc:
 	(cd $(src_doc_dir); asciidoc next-migration.txt)
 	(cd $(src_doc_dir)/next-tutorial; asciidoc next-tutorial.txt)
+
 pdfdoc: 
-	(cd $(src_doc_dir); prince --javascript --script=prince.js --style=nx-small.css next-migration.html next-migration.html)
-	(cd $(src_doc_dir)/next-tutorial; prince --javascript --script=../prince.js --style=../nx.css next-tutorial.html)
+	(cd $(src_doc_dir); prince --javascript --script=prince.js --style=nx-small.css next-migration.html next-migration.pdf)
+	(cd $(src_doc_dir)/next-tutorial; prince --javascript --script=../prince.js --style=../nx.css next-tutorial.html next-tutorial.pdf)
 
 example-doc: $(EXAMPLE_SCRIPTS)
 
@@ -334,13 +340,13 @@ NX_MAN1 = \
 	$(src_doc_dir)/nxwish.man \
 	$(src_doc_dir)/xowish.man
 
-man : man-html man-nroff man-pdf
+man: man-html man-nroff man-pdf
 
-man-html : $(NX_MAN3:%.man=%.html)
-$(src_doc_dir)/%.html : $(src_doc_dir)/%.man
+man-html: $(NX_MAN3:%.man=%.html)
+$(src_doc_dir)/%.html: $(src_doc_dir)/%.man
 	@for m in $(?F) ; do \
 	    echo "    Generating html manpage from $$m" ; \
-            (cd $(src_doc_dir); dtplite -style man.css -o . html $$m) ; \
+            (cd $(src_doc_dir); $(DTPLITE) -style man.css -o . html $$m) ; \
 	done;
 
 man-nroff : man1 man3
@@ -348,14 +354,14 @@ man1 : $(NX_MAN1:%.man=%.1)
 $(src_doc_dir)/%.1 : $(src_doc_dir)/%.man
 	@for m in $(?F) ; do \
 	    echo "    Generating nroff manpage (Section 1) from $$m" ; \
-            (cd $(src_doc_dir); dtplite -ext 1 -o . nroff $$m) ; \
+            (cd $(src_doc_dir); $(DTPLITE)  -ext 1 -o . nroff $$m) ; \
 	done;
 
-man3 : $(NX_MAN3:%.man=%.3)
+man3: $(NX_MAN3:%.man=%.3)
 $(src_doc_dir)/%.3 : $(src_doc_dir)/%.man
 	@for m in $(?F) ; do \
 	    echo "    Generating nroff manpage (Section 3) from $$m" ; \
-            (cd $(src_doc_dir); dtplite -ext 3 -o . nroff $$m) ; \
+            (cd $(src_doc_dir); $(DTPLITE)  -ext 3 -o . nroff $$m) ; \
 	done;
 
 man-pdf: $(NX_MAN3:%.man=%.pdf)
